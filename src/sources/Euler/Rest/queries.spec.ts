@@ -181,6 +181,21 @@ describe('Euler EVK vault operations', () => {
 		})).rejects.toThrow(`${Source.Euler_Rest}: vault chain mismatch`)
 	})
 
+	it('fails closed when a vault list omits a required metric', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: [
+				{
+					...baseVaultSummary,
+					totalAssets: undefined,
+				},
+			],
+		})
+
+		await expect(listVaults({
+			chainId: 1,
+		})).rejects.toThrow(`${Source.Euler_Rest}: vault missing totalAssets`)
+	})
+
 	it('rejects invalid vault list limits before transport', async () => {
 		await expect(listVaults({
 			chainId: 1,
@@ -215,6 +230,34 @@ describe('Euler EVK vault operations', () => {
 			binding,
 			httpUrl(binding, `/v3/evk/vaults/1/${baseVaultAddress.toLowerCase()}`)
 		)
+	})
+
+	it('fails closed when vault detail does not match its requested address', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: {
+				...baseVaultDetail,
+				address: '0x0000000000000000000000000000000000000000',
+			},
+		})
+
+		await expect(getVault({
+			chainId: 1,
+			vaultAddress: baseVaultAddress,
+		})).rejects.toThrow(`${Source.Euler_Rest}: vault address mismatch`)
+	})
+
+	it('fails closed when vault detail has an incomplete fees envelope', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: {
+				...baseVaultDetail,
+				fees: {},
+			},
+		})
+
+		await expect(getVault({
+			chainId: 1,
+			vaultAddress: baseVaultAddress,
+		})).rejects.toThrow(`${Source.Euler_Rest}: vault missing interestFee`)
 	})
 
 	it('rejects an unsupported chain id before transport', async () => {

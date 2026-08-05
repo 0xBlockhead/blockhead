@@ -31,10 +31,10 @@ const assertChainId = (chainId: number) => {
 		throw new Error(`${Source.Euler_Rest}: unsupported chain id ${String(chainId)}`)
 }
 
-const assertVaultAddress = (vaultAddress: string) => {
+const assertVaultAddress = (vaultAddress: string | undefined) => {
 	const normalized = hexLowerOfByteSize(vaultAddress, 20)
 	if (normalized == null)
-		throw new Error(`${Source.Euler_Rest}: invalid vault address ${vaultAddress}`)
+		throw new Error(`${Source.Euler_Rest}: invalid vault address ${String(vaultAddress)}`)
 	return normalized
 }
 
@@ -51,39 +51,65 @@ const assertOptionalAddress = (
 	return normalized
 }
 
-const assertNonNegativeDecimalString = (
-	value: string,
+const assertAddress = (
+	value: string | undefined,
 	label: string
 ) => {
-	if (value.length < 1 || !/^(?:0|[1-9]\d*)$/.test(value))
+	if (value == null || value.length < 1)
+		throw new Error(`${Source.Euler_Rest}: vault missing ${label}`)
+
+	const normalized = hexLowerOfByteSize(value, 20)
+	if (normalized == null)
+		throw new Error(`${Source.Euler_Rest}: invalid ${label} ${value}`)
+	return normalized
+}
+
+const assertNonNegativeDecimalString = (
+	value: string | undefined,
+	label: string
+) => {
+	if (value == null || value.length < 1 || !/^(?:0|[1-9]\d*)$/.test(value))
+		throw new Error(`${Source.Euler_Rest}: vault missing ${label}`)
+	return value
+}
+
+const assertFiniteNumber = (
+	value: number | undefined,
+	label: string
+) => {
+	if (value == null || !Number.isFinite(value))
 		throw new Error(`${Source.Euler_Rest}: vault missing ${label}`)
 	return value
 }
 
 const assertSummaryWire = (
 	wire: EulerVaultSummaryWire,
-	expected?: {
+	expected: {
 		chainId: number
 		vaultAddress: `0x${string}`
 	}
 ): EulerEvkVaultSummary => {
 	if (wire.vaultType !== 'evk')
 		throw new Error(`${Source.Euler_Rest}: vault type ${wire.vaultType} is not evk`)
-	if (wire.chainId !== (expected?.chainId ?? wire.chainId))
+	if (wire.chainId == null)
+		throw new Error(`${Source.Euler_Rest}: vault missing chainId`)
+	if (wire.chainId !== expected.chainId)
 		throw new Error(`${Source.Euler_Rest}: vault chain mismatch`)
-	if (wire.name.length < 1)
+	if (wire.name == null || wire.name.length < 1)
 		throw new Error(`${Source.Euler_Rest}: vault missing name`)
-	if (wire.symbol.length < 1)
+	if (wire.symbol == null || wire.symbol.length < 1)
 		throw new Error(`${Source.Euler_Rest}: vault missing symbol`)
-	if (!Number.isSafeInteger(wire.decimals) || wire.decimals < 0)
+	if (wire.decimals == null || !Number.isSafeInteger(wire.decimals) || wire.decimals < 0)
 		throw new Error(`${Source.Euler_Rest}: vault missing decimals`)
-	if (wire.asset.symbol.length < 1)
+	if (wire.asset == null)
+		throw new Error(`${Source.Euler_Rest}: vault missing asset`)
+	if (wire.asset.symbol == null || wire.asset.symbol.length < 1)
 		throw new Error(`${Source.Euler_Rest}: vault missing asset symbol`)
-	if (wire.createdAt.length < 1)
+	if (wire.createdAt == null || wire.createdAt.length < 1)
 		throw new Error(`${Source.Euler_Rest}: vault missing createdAt`)
 
 	const vaultAddress = assertVaultAddress(wire.address)
-	if (expected != null && vaultAddress !== expected.vaultAddress)
+	if (vaultAddress !== expected.vaultAddress)
 		throw new Error(`${Source.Euler_Rest}: vault address mismatch`)
 
 	return {
@@ -96,11 +122,11 @@ const assertSummaryWire = (
 		assetSymbol: wire.asset.symbol,
 		totalAssets: assertNonNegativeDecimalString(wire.totalAssets, 'totalAssets'),
 		totalBorrows: assertNonNegativeDecimalString(wire.totalBorrows, 'totalBorrows'),
-		totalSupplyUsd: wire.totalSupplyUsd,
-		totalBorrowsUsd: wire.totalBorrowsUsd,
-		utilization: wire.utilization,
-		supplyApy: wire.supplyApy,
-		borrowApy: wire.borrowApy,
+		totalSupplyUsd: assertFiniteNumber(wire.totalSupplyUsd, 'totalSupplyUsd'),
+		totalBorrowsUsd: assertFiniteNumber(wire.totalBorrowsUsd, 'totalBorrowsUsd'),
+		utilization: assertFiniteNumber(wire.utilization, 'utilization'),
+		supplyApy: assertFiniteNumber(wire.supplyApy, 'supplyApy'),
+		borrowApy: assertFiniteNumber(wire.borrowApy, 'borrowApy'),
 		createdAt: wire.createdAt,
 	}
 }
@@ -116,8 +142,8 @@ const assertDetailWire = (
 	...(assertOptionalAddress(wire.dToken, 'dToken') != null && {
 		dTokenAddress: assertOptionalAddress(wire.dToken, 'dToken'),
 	}),
-	...(wire.oracle != null && assertOptionalAddress(wire.oracle.oracle, 'oracle') != null && {
-		oracleAddress: assertOptionalAddress(wire.oracle.oracle, 'oracle'),
+	...(wire.oracle != null && {
+		oracleAddress: assertAddress(wire.oracle.oracle, 'oracle'),
 	}),
 	...(assertOptionalAddress(wire.governor, 'governor') != null && {
 		governorAddress: assertOptionalAddress(wire.governor, 'governor'),
@@ -128,8 +154,8 @@ const assertDetailWire = (
 	...(wire.borrowCap != null && {
 		borrowCap: assertNonNegativeDecimalString(wire.borrowCap, 'borrowCap'),
 	}),
-	...(wire.fees != null && Number.isFinite(wire.fees.interestFee) && {
-		interestFee: wire.fees.interestFee,
+	...(wire.fees != null && {
+		interestFee: assertFiniteNumber(wire.fees.interestFee, 'interestFee'),
 	}),
 })
 

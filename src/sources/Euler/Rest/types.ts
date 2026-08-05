@@ -1,36 +1,36 @@
 export type EulerAssetRefWire = {
-	address: string
-	symbol: string
-	decimals: number
-	name: string
+	address?: string
+	symbol?: string
+	decimals?: number
+	name?: string
 }
 
 export type EulerOracleInfoWire = {
-	oracle: string
-	name: string
+	oracle?: string
+	name?: string
 }
 
 export type EulerVaultFeesWire = {
-	interestFee: number
+	interestFee?: number
 }
 
 export type EulerVaultSummaryWire = {
-	chainId: number
-	address: string
-	vaultType: string
-	name: string
-	symbol: string
-	decimals: number
-	asset: EulerAssetRefWire
-	totalAssets: string
-	totalBorrows: string
-	totalSupplyUsd: number
-	totalBorrowsUsd: number
-	utilization: number
-	supplyApy: number
-	borrowApy: number
+	chainId?: number
+	address?: string
+	vaultType?: string
+	name?: string
+	symbol?: string
+	decimals?: number
+	asset?: EulerAssetRefWire
+	totalAssets?: string
+	totalBorrows?: string
+	totalSupplyUsd?: number
+	totalBorrowsUsd?: number
+	utilization?: number
+	supplyApy?: number
+	borrowApy?: number
 	snapshotTimestamp?: string
-	createdAt: string
+	createdAt?: string
 }
 
 export type EulerVaultDetailWire = EulerVaultSummaryWire & {
@@ -48,7 +48,7 @@ export type EulerVaultDetailWire = EulerVaultSummaryWire & {
 }
 
 export type EulerVaultListResponse = {
-	data: EulerVaultSummaryWire[]
+	data?: EulerVaultSummaryWire[]
 	meta?: {
 		total?: number
 		offset?: number
@@ -57,7 +57,7 @@ export type EulerVaultListResponse = {
 }
 
 export type EulerVaultDetailResponse = {
-	data: EulerVaultDetailWire
+	data?: EulerVaultDetailWire
 }
 
 export type EulerEvkVaultSummary = {
