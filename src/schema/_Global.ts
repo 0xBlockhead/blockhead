@@ -183,10 +183,6 @@ export default entity({
 		entityType: EntityType.BlockheadBridgeTransaction,
 		cardinality: EntityFieldCardinality.Many,
 	},
-	$$bridgeTransfers: {
-		entityType: EntityType.BridgeTransfer,
-		cardinality: EntityFieldCardinality.Many,
-	},
 	$$eip8004Services: {
 		entityType: EntityType.EvmNft,
 		cardinality: EntityFieldCardinality.Many,

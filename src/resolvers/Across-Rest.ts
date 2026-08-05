@@ -338,5 +338,31 @@ export default {
 			refundTxHash: (observation) => observation.refundTxHash,
 			completedAt: (observation) => observation.completedAt,
 		}),
+
+		defineResolver({
+			entityType: EntityType.EvmAccount,
+			resolve: {
+				AddressInteropAddress: {
+					resolve: async ({ address }) => {
+						const { getDeposits } = await import('$/sources/Across/Rest/queries.ts')
+						return (await getDeposits({
+							depositor: address,
+						})).map((deposit) => {
+							if (deposit.depositId == null)
+								throw new Error('Across_Rest: deposit missing deposit id')
+
+							return {
+								[EntityMetaKey.Selector]: {
+									source: Source.Across_Rest,
+									transferId: `${deposit.originChainId}/${deposit.depositId}`,
+								},
+							}
+						})
+					},
+				},
+			},
+		})({
+			$$bridgeTransfers: (bridgeTransfers) => bridgeTransfers,
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

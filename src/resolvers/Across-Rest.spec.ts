@@ -12,10 +12,12 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getDeposit = vi.hoisted(() => vi.fn())
+const getDeposits = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Across/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Across/Rest/queries.ts')>(),
 	getDeposit,
+	getDeposits,
 }))
 
 const { default: across } = await import('$/resolvers/Across-Rest.ts')
@@ -68,6 +70,7 @@ const deposit = {
 describe('Across BridgeTransfer resolvers', () => {
 	afterEach(() => {
 		getDeposit.mockReset()
+		getDeposits.mockReset()
 	})
 
 	it('materializes deposit/fill identity into schema-shaped BridgeTransfer fields', async () => {
@@ -202,6 +205,45 @@ describe('Across BridgeTransfer resolvers', () => {
 			timestampMs: Date.parse(deposit.depositBlockTimestamp),
 			source: Source.Across_Rest,
 		})).rejects.toThrow('observation clock mismatch')
+	})
+
+	it('lists depositor-scoped deposits as BridgeTransfer selector refs on EvmAccount', async () => {
+		getDeposits.mockResolvedValue([deposit])
+		const resolver = across.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmAccount
+		))
+		if (resolver == null)
+			throw new Error('Across_Rest: EvmAccount resolver missing')
+
+		const bridgeTransfers = await resolver.resolve.AddressInteropAddress.resolve({
+			address: depositor,
+		})
+
+		expect(getDeposits).toHaveBeenCalledWith({
+			depositor,
+		})
+		expect(resolver.projections.$$bridgeTransfers(bridgeTransfers)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				source: Source.Across_Rest,
+				transferId,
+			},
+		}])
+	})
+
+	it('fails closed on a depositor deposit missing a deposit id', async () => {
+		getDeposits.mockResolvedValue([{
+			...deposit,
+			depositId: null,
+		}])
+		const resolver = across.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmAccount
+		))
+		if (resolver == null)
+			throw new Error('Across_Rest: EvmAccount resolver missing')
+
+		await expect(resolver.resolve.AddressInteropAddress.resolve({
+			address: depositor,
+		})).rejects.toThrow('deposit missing deposit id')
 	})
 
 	it('registers the Across source lazily', async () => {

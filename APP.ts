@@ -4665,7 +4665,6 @@ export const schema = {
 				"$$evmAbiCatalogs": { label: "EVM ABI catalogs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalEvmAbiCatalog },
 				"$$blockheadAlgorandParticipationKeys": { label: "blockhead algorand participation keys", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadAlgorandParticipationKey },
 				"$$bridgeTransactions": { label: "bridge transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadBridgeTransaction },
-				"$$bridgeTransfers": { label: "bridge transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BridgeTransfer },
 				"$$eip8004Services": { label: "eip8004 services", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNft, defaultSources: [Source.Eip8004Scan_Rest] },
 				"$$blockheadRoomPeers": { label: "blockhead room peers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadRoomPeer, defaultSources: [Source.Local_Internal] },
 				"$$blockheadRooms": { label: "blockhead rooms", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadRoom, defaultSources: [Source.Local_Internal] },
@@ -4791,7 +4790,6 @@ export const schema = {
 								className: "network-view-collapsible-bridges",
 								sections: [
 									{ id: "global-bridge-transactions", field: "$$bridgeTransactions", List: "BlockheadBridgeTransactionsView", label: "Bridge transactions", emptyText: "No bridge transactions." },
-									{ id: "global-bridge-transfers", field: "$$bridgeTransfers", List: "BridgeTransfersView", label: "Bridge transfers", emptyText: "No bridge transfers." },
 									{ id: "global-eip8004", field: "$$eip8004Services", List: "EvmNftsView", label: "EIP-8004 services", emptyText: "No EIP-8004 services." },
 								],
 							},
@@ -28387,6 +28385,13 @@ export const schema = {
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.EnsName,
 				},
+				"$$bridgeTransfers": {
+					label: "bridge transfers",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.BridgeTransfer,
+					defaultSources: [Source.Across_Rest],
+				},
 			})({
 				selectors: {
 					"Address": ["address"],
@@ -28455,6 +28460,20 @@ export const schema = {
 										field: "$$ensNamesOwned",
 										List: "EnsNamesView",
 										emptyText: "No ENS names owned by this account yet.",
+									},
+								],
+							},
+							{
+								id: "activity",
+								label: "Activity",
+								className: "actor-view-collapsible-activity",
+								sections: [
+									{
+										id: "actor-bridge-transfers",
+										label: "Bridge transfers",
+										field: "$$bridgeTransfers",
+										List: "BridgeTransfersView",
+										emptyText: "No bridge transfers from this account yet.",
 									},
 								],
 							},

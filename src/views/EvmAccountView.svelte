@@ -40,6 +40,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EnsNameView from '$/views/EnsNameView.svelte'
 	import EnsNamesView from '$/views/EnsNamesView.svelte'
+	import BridgeTransfersView from '$/views/BridgeTransfersView.svelte'
 </script>
 
 
@@ -214,6 +215,38 @@
 					collapsible={false}
 					title={label}
 					emptyText='No ENS names owned by this account yet.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-activity'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'actor-bridge-transfers',
+						label: 'Bridge transfers',
+					},
+				]
+			}
+			data-card
+			class='actor-view-collapsible-activity'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Activity</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionActorBridgeTransfers({ id, label })}
+				<BridgeTransfersView
+					selection={selection.$$bridgeTransfers}
+					collapsible={false}
+					title={label}
+					emptyText='No bridge transfers from this account yet.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

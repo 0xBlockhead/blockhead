@@ -63,7 +63,6 @@
 	import GlobalAgentNetworksView from '$/views/_GlobalAgentNetworksView.svelte'
 	import GlobalEvmAbiCatalogsView from '$/views/_GlobalEvmAbiCatalogsView.svelte'
 	import BlockheadBridgeTransactionsView from '$/views/BlockheadBridgeTransactionsView.svelte'
-	import BridgeTransfersView from '$/views/BridgeTransfersView.svelte'
 	import EvmNftsView from '$/views/EvmNftsView.svelte'
 	import BlockheadZeroGStorageNodeStatesView from '$/views/BlockheadZeroGStorageNodeStatesView.svelte'
 	import BlockheadZeroGStoredChunksView from '$/views/BlockheadZeroGStoredChunksView.svelte'
@@ -980,10 +979,6 @@
 						label: 'Bridge transactions',
 					},
 					{
-						id: 'global-bridge-transfers',
-						label: 'Bridge transfers',
-					},
-					{
 						id: 'global-eip8004',
 						label: 'EIP-8004 services',
 					},
@@ -1004,16 +999,6 @@
 					collapsible={false}
 					title={label}
 					emptyText='No bridge transactions.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-
-			{#snippet SectionGlobalBridgeTransfers({ id, label })}
-				<BridgeTransfersView
-					selection={selection.$$bridgeTransfers}
-					collapsible={false}
-					title={label}
-					emptyText='No bridge transfers.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

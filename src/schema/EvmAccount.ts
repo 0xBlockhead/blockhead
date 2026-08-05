@@ -5,6 +5,7 @@ import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -38,6 +39,13 @@ export default entity({
 	$$ensNamesOwned: {
 		entityType: EntityType.EnsName,
 		cardinality: EntityFieldCardinality.Many,
+	},
+	$$bridgeTransfers: {
+		entityType: EntityType.BridgeTransfer,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Across_Rest,
+		],
 	},
 })({
 	selectors: {
