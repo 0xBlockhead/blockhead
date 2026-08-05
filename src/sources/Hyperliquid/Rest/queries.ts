@@ -41,10 +41,24 @@ const hyperliquidPerpMarketEnvelope = arktype({
 	name: 'string',
 	szDecimals: 'number',
 	maxLeverage: 'number',
+	'marginTableId?': 'number',
 	'onlyIsolated?': 'boolean',
+	'isDelisted?': 'boolean',
+	'marginMode?': "'strictIsolated' | 'noCross'",
 })
 const hyperliquidMetaEnvelope = arktype({
 	universe: hyperliquidPerpMarketEnvelope.array(),
+	'marginTables?': arktype([
+		'number',
+		{
+			description: 'string',
+			marginTiers: arktype({
+				lowerBound: 'string',
+				maxLeverage: 'number',
+			}).array(),
+		},
+	]).array(),
+	'collateralToken?': 'number',
 })
 const hyperliquidMetaAndAssetCtxsEnvelope = arktype('unknown[]')
 const hyperliquidSpotMetaEnvelope = arktype({
@@ -54,6 +68,13 @@ const hyperliquidSpotMetaEnvelope = arktype({
 		weiDecimals: 'number',
 		index: 'number',
 		'tokenId?': 'string',
+		'isCanonical?': 'boolean',
+		'fullName?': 'string | null',
+		'deployerTradingFeeShare?': 'string',
+		'evmContract?': arktype({
+			address: 'string',
+			evm_extra_wei_decimals: 'number',
+		}).or(arktype.null),
 	}).array(),
 	universe: arktype({
 		name: 'string',

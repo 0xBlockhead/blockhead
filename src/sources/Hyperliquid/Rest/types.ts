@@ -5,8 +5,22 @@ export type HyperliquidMeta = {
 		name: string
 		szDecimals: number
 		maxLeverage: number
+		marginTableId?: number
 		onlyIsolated?: boolean
+		isDelisted?: boolean
+		marginMode?: 'strictIsolated' | 'noCross'
 	}[]
+	marginTables?: [
+		number,
+		{
+			description: string
+			marginTiers: {
+				lowerBound: string
+				maxLeverage: number
+			}[]
+		},
+	][]
+	collateralToken?: number
 }
 
 export type HyperliquidMetaAndAssetCtxs = [
@@ -21,6 +35,13 @@ export type HyperliquidSpotMeta = {
 		weiDecimals: number
 		index: number
 		tokenId?: string
+		isCanonical?: boolean
+		fullName?: string | null
+		deployerTradingFeeShare?: string
+		evmContract?: {
+			address: string
+			evm_extra_wei_decimals: number
+		} | null
 	}[]
 	universe: {
 		name: string

@@ -313,4 +313,54 @@ describe('Hyperliquid public account Info transport', () => {
 			vaultAddress: vaultDetails.vaultAddress,
 		})).rejects.toThrow('Hyperliquid_Rest: invalid vaultDetails response envelope')
 	})
+
+	it('accepts documented metaAndAssetCtxs marginTables and marginTableId fields', async () => {
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [
+				{
+					universe: [{
+						name: 'BTC',
+						szDecimals: 5,
+						maxLeverage: 40,
+						marginTableId: 56,
+					}],
+					marginTables: [
+						[
+							56,
+							{
+								description: '',
+								marginTiers: [{
+									lowerBound: '0.0',
+									maxLeverage: 40,
+								}],
+							},
+						],
+					],
+					collateralToken: 0,
+				},
+				[{
+					funding: '0.0001',
+					openInterest: '1',
+					prevDayPx: '1',
+					dayNtlVlm: '1',
+					markPx: '1',
+					midPx: '1',
+				}],
+			],
+		})
+
+		await expect(getMetaAndAssetCtxs()).resolves.toMatchObject([
+			{
+				universe: [{
+					name: 'BTC',
+					marginTableId: 56,
+				}],
+				collateralToken: 0,
+			},
+			[{
+				markPx: '1',
+			}],
+		])
+	})
 })
