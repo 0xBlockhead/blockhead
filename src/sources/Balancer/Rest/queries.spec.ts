@@ -222,6 +222,15 @@ describe('Balancer poolGetPool operation', () => {
 			poolId: weightedV2PoolId,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool not found ${weightedV2PoolId} on chain 1`)
 	})
+
+	it('fails closed when the pool detail operation is missing', async () => {
+		graphql.mockResolvedValueOnce({})
+
+		await expect(getPool({
+			chainId: 1,
+			poolId: weightedV2PoolId,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: pool response missing poolGetPool`)
+	})
 })
 
 describe('Balancer poolGetPools operation', () => {
@@ -286,5 +295,52 @@ describe('Balancer poolGetPools operation', () => {
 		await expect(listPools({
 			chainId: 1,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response missing data`)
+	})
+
+	it('fails closed when the pool list operation is absent or malformed', async () => {
+		graphql.mockResolvedValueOnce({})
+
+		await expect(listPools({
+			chainId: 1,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response poolGetPools is not an array`)
+
+		graphql.mockResolvedValueOnce({
+			poolGetPools: null,
+		})
+
+		await expect(listPools({
+			chainId: 1,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response poolGetPools is not an array`)
+	})
+
+	it('fails closed when the pool list exceeds its requested limit', async () => {
+		graphql.mockResolvedValueOnce({
+			poolGetPools: [
+				weightedV2Pool,
+				stableV3Pool,
+			],
+		})
+
+		await expect(listPools({
+			chainId: 1,
+			limit: 1,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response exceeds requested limit 1`)
+	})
+
+	it('fails closed for duplicate pool ids', async () => {
+		graphql.mockResolvedValueOnce({
+			poolGetPools: [
+				weightedV2Pool,
+				{
+					...weightedV2Pool,
+					name: 'duplicate',
+				},
+			],
+		})
+
+		await expect(listPools({
+			chainId: 1,
+			limit: 2,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response contains duplicate pool ids`)
 	})
 })

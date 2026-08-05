@@ -25,11 +25,11 @@ export type BalancerPoolWire = {
 }
 
 export type BalancerPoolData = {
-	poolGetPool: BalancerPoolWire | null
+	poolGetPool?: BalancerPoolWire | null
 }
 
 export type BalancerPoolsData = {
-	poolGetPools: BalancerPoolWire[]
+	poolGetPools?: BalancerPoolWire[]
 }
 
 export type BalancerPool = {

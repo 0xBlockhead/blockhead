@@ -177,10 +177,19 @@ export const listPools = async ({
 	if (data == null)
 		throw new Error(`${Source.Balancer_Rest}: pool list response missing data`)
 
-	return data.poolGetPools.map((pool) => assertPoolWire(pool, {
+	if (!Array.isArray(data.poolGetPools))
+		throw new Error(`${Source.Balancer_Rest}: pool list response poolGetPools is not an array`)
+	if (data.poolGetPools.length > limit)
+		throw new Error(`${Source.Balancer_Rest}: pool list response exceeds requested limit ${String(limit)}`)
+
+	const pools = data.poolGetPools.map((pool) => assertPoolWire(pool, {
 		chainId,
 		gqlChain: chain.gqlChain,
 	}))
+	if (new Set(pools.map((pool) => pool.id)).size !== pools.length)
+		throw new Error(`${Source.Balancer_Rest}: pool list response contains duplicate pool ids`)
+
+	return pools
 }
 
 /** Fetch one Balancer v2/v3 pool by EIP-155 chain id and native pool id. */
@@ -210,6 +219,8 @@ export const getPool = async ({
 	})
 	if (data == null)
 		throw new Error(`${Source.Balancer_Rest}: pool response missing data`)
+	if (data.poolGetPool === undefined)
+		throw new Error(`${Source.Balancer_Rest}: pool response missing poolGetPool`)
 	if (data.poolGetPool == null)
 		throw new Error(`${Source.Balancer_Rest}: pool not found ${normalizedPoolId} on chain ${String(chainId)}`)
 
