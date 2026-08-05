@@ -5,7 +5,9 @@ import {
 } from '../ecosystems.ts'
 
 
-// Side-panel onboarding/account automation for Lace 2.2.0 is not yet reliably executable (headed expo UI).
+// All three cells stay explicitly blocked: Lace 2.2.0 headed expo side-panel
+// create-new / second-account / recover automation is not reliably executable.
+// Do not invent pass or soft-pass outcomes for these lifecycle edge cases.
 export const laceWalletMatrixScenarios = (version: string) => ([
 	{
 		id: 'lace-create-new-1',
