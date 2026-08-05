@@ -236,7 +236,10 @@ export const createTonConnectAdapter = (): WalletAdapter => {
 			if (typeof window === 'undefined') return () => {}
 
 			let candidateIds: string | undefined
+			let discoveryInterval: ReturnType<typeof globalThis.setInterval> | undefined
 			const discover = () => {
+				if (typeof window === 'undefined') return
+
 				const wallets = tonConnectWallets.flatMap(({ id, name, icon, wallet }) => {
 					const injectedWallet = wallet()
 					if (injectedWallet == null) return []
@@ -263,10 +266,13 @@ export const createTonConnectAdapter = (): WalletAdapter => {
 			}
 
 			discover()
-			const discoveryInterval = globalThis.setInterval(discover, 100)
+			discoveryInterval = globalThis.setInterval(discover, 100)
 
 			return () => {
-				globalThis.clearInterval(discoveryInterval)
+				if (discoveryInterval !== undefined) {
+					globalThis.clearInterval(discoveryInterval)
+					discoveryInterval = undefined
+				}
 
 				for (const walletId of bridgeByWalletId.keys())
 					nextLifecycleVersion(walletId)

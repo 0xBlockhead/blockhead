@@ -107,6 +107,38 @@ describe('TON Connect injected adapter', () => {
 		])
 	})
 
+	it('stopDiscovery clears discovery timers so later ticks do not run', async () => {
+		vi.useFakeTimers()
+		const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval')
+		const injectedWindow = {
+			location: { origin: 'https://blockhead.info' },
+		}
+		vi.stubGlobal('window', injectedWindow)
+		const updates: WalletCandidate[][] = []
+		const stop = createTonConnectAdapter().start((candidates) => updates.push(candidates))
+
+		expect(updates).toEqual([[]])
+
+		Object.assign(injectedWindow, {
+			tonkeeper: {
+				tonconnect: createBridge(connectEvent()).bridge,
+			},
+		})
+		await vi.advanceTimersByTimeAsync(100)
+		expect(updates).toHaveLength(2)
+
+		stop()
+		expect(clearIntervalSpy).toHaveBeenCalledOnce()
+
+		delete injectedWindow.tonkeeper
+		await vi.advanceTimersByTimeAsync(500)
+
+		expect(updates).toHaveLength(2)
+
+		vi.unstubAllGlobals()
+		await vi.advanceTimersByTimeAsync(500)
+	})
+
 	it('discovers Tonkeeper when its injected bridge arrives after adapter startup', async () => {
 		vi.useFakeTimers()
 		const injectedWindow = {
