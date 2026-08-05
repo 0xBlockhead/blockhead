@@ -1212,8 +1212,22 @@ export default entity({
 					Source.Hyperliquid,
 				],
 			},
+			$$spotPairs: {
+				entityType: EntityType.HyperliquidSpotPair,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Hyperliquid,
+				],
+			},
 			$$perpMarkets: {
 				entityType: EntityType.HyperliquidPerpMarket,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Hyperliquid,
+				],
+			},
+			$$vaults: {
+				entityType: EntityType.HyperliquidVault,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Hyperliquid,

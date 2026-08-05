@@ -6143,6 +6143,28 @@
 							:
 								[]
 						),
+						...(
+							hyperliquidSources.length > 0 ?
+								[
+									{
+										id: 'hyperliquid-markets-spot-pairs',
+										label: 'Spot pairs',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							hyperliquidSources.length > 0 ?
+								[
+									{
+										id: 'hyperliquid-markets-vaults',
+										label: 'Vaults',
+									},
+								]
+							:
+								[]
+						),
 					]}
 
 				{#if hyperliquidMarketsSections.length > 0}
@@ -6189,6 +6211,56 @@
 								emptyText='No Hyperliquid spot assets.'
 								id={`${id}-list`}
 							/>
+						{/snippet}
+
+						{#snippet SectionHyperliquidMarketsSpotPairs({ id, label })}
+							<EntitiesList
+								entityType={EntityType.HyperliquidSpotPair}
+								collapsible={false}
+								title={label}
+								emptyText='No Hyperliquid spot pairs.'
+								open={true}
+								id={`${id}-list`}
+								resource={
+									projection
+									.$$spotPairs({
+										sources: hyperliquidSources,
+										limit: 16,
+									})()
+								}
+							>
+								{#snippet Item({ item: hyperliquidSpotPair })}
+									<EntityView
+										entityType={EntityType.HyperliquidSpotPair}
+										entitySelector={hyperliquidSpotPair[EntityMetaKey.Selector]}
+									/>
+								{/snippet}
+							</EntitiesList>
+						{/snippet}
+
+						{#snippet SectionHyperliquidMarketsVaults({ id, label })}
+							<EntitiesList
+								entityType={EntityType.HyperliquidVault}
+								collapsible={false}
+								title={label}
+								emptyText='No Hyperliquid vaults.'
+								open={true}
+								id={`${id}-list`}
+								resource={
+									projection
+									.$$vaults({
+										sources: hyperliquidSources,
+										limit: 16,
+									})()
+								}
+							>
+								{#snippet Item({ item: hyperliquidVault })}
+									<EntityView
+										entityType={EntityType.HyperliquidVault}
+										entitySelector={hyperliquidVault[EntityMetaKey.Selector]}
+									/>
+								{/snippet}
+							</EntitiesList>
 						{/snippet}
 
 					</CollapsibleTabs>

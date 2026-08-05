@@ -48278,7 +48278,9 @@ export const schema = {
 						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidTransaction, defaultSources: [Source.Hyperliquid] },
 						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidValidator, defaultSources: [Source.Hyperliquid] },
 						"$$spotAssets": { label: "Spot assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidSpotAsset, defaultSources: [Source.Hyperliquid] },
-						"$$perpMarkets": { label: "Perp markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidPerpMarket, defaultSources: [Source.Hyperliquid] }
+						"$$spotPairs": { label: "Spot pairs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidSpotPair, defaultSources: [Source.Hyperliquid] },
+						"$$perpMarkets": { label: "Perp markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidPerpMarket, defaultSources: [Source.Hyperliquid] },
+						"$$vaults": { label: "Vaults", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidVault, defaultSources: [Source.Hyperliquid] },
 					})({
 						singularView: {
 							carousels: [
@@ -48307,6 +48309,8 @@ export const schema = {
 									sections: [
 										{ id: "hyperliquid-markets-perps", field: ["Hyperliquid", "$$perpMarkets"], List: "HyperliquidPerpMarketsView", label: "Perps", emptyText: "No Hyperliquid perp markets.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 										{ id: "hyperliquid-markets-spot-assets", field: ["Hyperliquid", "$$spotAssets"], List: "HyperliquidSpotAssetsView", label: "Spot assets", emptyText: "No Hyperliquid spot assets.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+										{ id: "hyperliquid-markets-spot-pairs", field: ["Hyperliquid", "$$spotPairs"], List: "HyperliquidSpotPairsView", label: "Spot pairs", emptyText: "No Hyperliquid spot pairs.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+										{ id: "hyperliquid-markets-vaults", field: ["Hyperliquid", "$$vaults"], List: "HyperliquidVaultsView", label: "Vaults", emptyText: "No Hyperliquid vaults.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 									],
 								},
 								{
