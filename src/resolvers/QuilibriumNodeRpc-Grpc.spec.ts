@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { implicitAccountReference, listPendingTransactions } from '$/sources/QuilibriumNodeRpc/Grpc/queries.ts'
+import { getAccountBalance, implicitAccountReference, listPendingTransactions } from '$/sources/QuilibriumNodeRpc/Grpc/queries.ts'
 
 const { default: quilibriumNodeRpcResolvers } = await import('$/resolvers/QuilibriumNodeRpc-Grpc.ts')
 
@@ -51,6 +51,28 @@ describe('Quilibrium node RPC account resolution', () => {
 				accountAddress: `0x${'12'.repeat(32)}`,
 			})
 		).rejects.toThrow('QuilibriumNodeRpc_Grpc: unsupported network')
+	})
+})
+
+describe('Quilibrium node RPC account balance', () => {
+	it('calls AccountService.GetBalance with the decryptable request unchanged', async () => {
+		const request = {
+			request: {
+				account: implicitAccountReference(`0x${'12'.repeat(32)}`),
+			},
+			keyRing: {
+				keys: [],
+			},
+		}
+		const response = { balance: new Uint8Array([1, 2, 3]) }
+		const callUnary = vi.fn().mockResolvedValue(response)
+
+		await expect(getAccountBalance({ callUnary, request })).resolves.toBe(response)
+		expect(callUnary).toHaveBeenCalledWith({
+			service: 'quilibrium.node.node.pb.AccountService',
+			method: 'GetBalance',
+			request,
+		})
 	})
 })
 

@@ -1,4 +1,6 @@
 import type {
+	QuilibriumBalanceAccountResponse,
+	QuilibriumDecryptableBalanceAccountRequest,
 	QuilibriumDecryptablePendingTransactionsAccountRequest,
 	QuilibriumGrpcUnaryCall,
 	QuilibriumPendingTransactionsAccountResponse,
@@ -25,6 +27,23 @@ export const implicitAccountReference = (
 }
 
 const accountService = 'quilibrium.node.node.pb.AccountService'
+
+export const getAccountBalance = ({
+	callUnary,
+	request,
+}: {
+	callUnary: QuilibriumGrpcUnaryCall
+	request: QuilibriumDecryptableBalanceAccountRequest
+}) => (
+	callUnary<
+		QuilibriumDecryptableBalanceAccountRequest,
+		QuilibriumBalanceAccountResponse
+	>({
+		service: accountService,
+		method: 'GetBalance',
+		request,
+	})
+)
 
 export const listPendingTransactions = ({
 	callUnary,

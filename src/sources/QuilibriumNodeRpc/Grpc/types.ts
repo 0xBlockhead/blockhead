@@ -58,6 +58,21 @@ export type QuilibriumPendingTransactionInfo = {
 	refundAccount: QuilibriumAccountReference
 }
 
+export type QuilibriumBalanceAccountRequest = {
+	account: QuilibriumAccountReference
+	allowance?: QuilibriumAccountAllowanceReference
+	signature?: QuilibriumSignature
+}
+
+export type QuilibriumDecryptableBalanceAccountRequest = {
+	request: QuilibriumBalanceAccountRequest
+	keyRing: QuilibriumKeyRing
+}
+
+export type QuilibriumBalanceAccountResponse = {
+	balance: Uint8Array
+}
+
 export type QuilibriumPendingTransactionsAccountRequest = {
 	account: QuilibriumAccountReference
 	allowance?: QuilibriumAccountAllowanceReference
