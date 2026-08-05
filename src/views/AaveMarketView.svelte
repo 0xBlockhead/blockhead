@@ -42,6 +42,8 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import AaveReservesView from '$/views/AaveReservesView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -184,5 +186,23 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const reservesResource = selection.$$reserves}
+		<ResourceBoundary
+			resource={reservesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<AaveReservesView
+						selection={reservesResource}
+						countResource={reservesResource.count}
+						title='Reserves'
+						id='reserves'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

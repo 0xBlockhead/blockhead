@@ -41,6 +41,9 @@ const context = {
 const aaveMarketResolver = aaveRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AaveMarket
 ))
+const aaveReserveResolver = aaveRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AaveReserve
+))
 const networkAaveMarketsResolver = aaveRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
@@ -57,6 +60,40 @@ const ethereumMarket = {
 		chainId: 1,
 		name: 'Ethereum',
 	},
+	reserves: [
+		{
+			underlyingToken: {
+				address: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+				name: 'USD Coin',
+				symbol: 'USDC',
+				decimals: 6,
+				imageUrl: 'https://statics.aave.com/icons/tokens/usdc.svg',
+				chainId: 1,
+			},
+			isFrozen: false,
+			isPaused: false,
+			size: {
+				amount: {
+					value: '1000',
+				},
+			},
+			supplyInfo: {
+				apy: {
+					value: '0.03',
+				},
+			},
+			borrowInfo: {
+				apy: {
+					value: '0.05',
+				},
+				availableLiquidity: {
+					amount: {
+						value: '750',
+					},
+				},
+			},
+		},
+	],
 } as const
 
 describe('Aave Rest resolver module', () => {
@@ -64,9 +101,10 @@ describe('Aave Rest resolver module', () => {
 		graphql.mockReset()
 	})
 
-	it('registers under Aave_Rest for AaveMarket and Network.$$aaveMarkets', () => {
+	it('registers under Aave_Rest for markets, reserves, and Network.$$aaveMarkets', () => {
 		expect(aaveRest.source).toBe(Source.Aave_Rest)
 		expect(aaveMarketResolver).toBeDefined()
+		expect(aaveReserveResolver).toBeDefined()
 		expect(networkAaveMarketsResolver).toBeDefined()
 	})
 
@@ -147,5 +185,62 @@ describe('Aave Rest resolver module', () => {
 		expect(aaveMarketResolver.projections.$network(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: ethereumNetwork,
 		})
+		expect(aaveMarketResolver.projections.$$reserves.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$market: {
+						$network: ethereumNetwork,
+						poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+					},
+					underlyingTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+				},
+			},
+		])
+		expect(aaveMarketResolver.projections.$$reserves.resolveCount(snapshot)).toBe(1)
+	})
+
+	it('resolves one Aave reserve from the owning market snapshot', async () => {
+		if (aaveReserveResolver == null)
+			throw new Error('missing AaveReserve resolver')
+
+		graphql.mockResolvedValueOnce({
+			market: ethereumMarket,
+		})
+
+		const snapshot = await aaveReserveResolver.resolve.MarketUnderlyingTokenAddress.resolve({
+			$market: {
+				$network: ethereumNetwork,
+				poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+			},
+			underlyingTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+		}, context)
+
+		expect(aaveReserveResolver.projections.symbol(snapshot)).toBe('USDC')
+		expect(aaveReserveResolver.projections.totalSupplied(snapshot)).toBe('1000')
+		expect(aaveReserveResolver.projections.availableLiquidity(snapshot)).toBe('750')
+		expect(aaveReserveResolver.projections.supplyApy(snapshot)).toBe('0.03')
+		expect(aaveReserveResolver.projections.borrowApy(snapshot)).toBe('0.05')
+	})
+
+	it('matches Aave reserves when the selector address is checksum-cased', async () => {
+		if (aaveReserveResolver == null)
+			throw new Error('missing AaveReserve resolver')
+
+		graphql.mockResolvedValueOnce({
+			market: ethereumMarket,
+		})
+
+		const snapshot = await aaveReserveResolver.resolve.MarketUnderlyingTokenAddress.resolve({
+			$market: {
+				$network: ethereumNetwork,
+				poolAddress: '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
+			},
+			underlyingTokenAddress: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+		}, context)
+
+		expect(aaveReserveResolver.projections.underlyingTokenAddress(snapshot)).toBe(
+			'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+		)
+		expect(aaveReserveResolver.projections.symbol(snapshot)).toBe('USDC')
 	})
 })

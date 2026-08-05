@@ -52,6 +52,13 @@ export default entity({
 			Source.Aave_Rest,
 		],
 	},
+	$$reserves: {
+		entityType: EntityType.AaveReserve,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Aave_Rest,
+		],
+	},
 })({
 	selectors: {
 		NetworkPoolAddress: [

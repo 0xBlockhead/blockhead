@@ -2,7 +2,6 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -10,11 +9,12 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import type { AaveMarketWire } from '$/sources/Aave/Rest/types.ts'
+import type { AaveMarketSnapshotWire } from '$/sources/Aave/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type AaveMarketId = EntitySelector<typeof schema, EntityType.AaveMarket>
+type AaveReserveId = EntitySelector<typeof schema, EntityType.AaveReserve>
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -29,7 +29,7 @@ const eip155ChainId = (network: NetworkId) => {
 
 const mapAaveMarketSnapshot = (
 	network: NetworkId,
-	market: AaveMarketWire
+	market: AaveMarketSnapshotWire
 ) => {
 	const poolAddress = hexLowerOfByteSize(market.address, 20)
 	if (poolAddress == null)
@@ -44,6 +44,15 @@ const mapAaveMarketSnapshot = (
 		icon: market.icon,
 		totalMarketSize: market.totalMarketSize,
 		totalAvailableLiquidity: market.totalAvailableLiquidity,
+		$$reserves: market.reserves.map((reserve) => ({
+			[EntityMetaKey.Selector]: {
+				$market: {
+					$network: network,
+					poolAddress,
+				},
+				underlyingTokenAddress: reserve.underlyingToken.address,
+			},
+		})),
 	}
 }
 
@@ -78,6 +87,69 @@ export default {
 			icon: (market) => market.icon,
 			totalMarketSize: (market) => market.totalMarketSize,
 			totalAvailableLiquidity: (market) => market.totalAvailableLiquidity,
+			$$reserves: {
+				select: (market) => market.$$reserves,
+				resolveCount: (market) => market.$$reserves.length,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.AaveReserve,
+			resolve: {
+				MarketUnderlyingTokenAddress: {
+					resolve: async ({
+						$market,
+						underlyingTokenAddress,
+					}: AaveReserveId) => {
+						const normalizedUnderlyingTokenAddress = hexLowerOfByteSize(underlyingTokenAddress, 20)
+						if (normalizedUnderlyingTokenAddress == null)
+							throw new Error(`${Source.Aave_Rest}: invalid underlying token address ${underlyingTokenAddress}`)
+
+						const { getMarket } = await import('$/sources/Aave/Rest/queries.ts')
+						const market = await getMarket({
+							chainId: eip155ChainId($market.$network),
+							poolAddress: $market.poolAddress,
+						})
+						const reserve = market.reserves.find((candidate) => (
+							candidate.underlyingToken.address === normalizedUnderlyingTokenAddress
+						))
+						if (reserve == null)
+							throw new Error(`${Source.Aave_Rest}: reserve not found ${normalizedUnderlyingTokenAddress}`)
+
+						return {
+							$market: {
+								[EntityMetaKey.Selector]: $market,
+							},
+							underlyingTokenAddress: reserve.underlyingToken.address,
+							name: reserve.underlyingToken.name,
+							symbol: reserve.underlyingToken.symbol,
+							decimals: reserve.underlyingToken.decimals,
+							imageUrl: reserve.underlyingToken.imageUrl,
+							totalSupplied: reserve.size.amount.value,
+							...(reserve.borrowInfo != null && {
+								availableLiquidity: reserve.borrowInfo.availableLiquidity.amount.value,
+								borrowApy: reserve.borrowInfo.apy.value,
+							}),
+							supplyApy: reserve.supplyInfo.apy.value,
+							frozen: reserve.isFrozen,
+							paused: reserve.isPaused,
+						}
+					},
+				},
+			},
+		})({
+			$market: (reserve) => reserve.$market,
+			underlyingTokenAddress: (reserve) => reserve.underlyingTokenAddress,
+			name: (reserve) => reserve.name,
+			symbol: (reserve) => reserve.symbol,
+			decimals: (reserve) => reserve.decimals,
+			imageUrl: (reserve) => reserve.imageUrl,
+			totalSupplied: (reserve) => reserve.totalSupplied,
+			availableLiquidity: (reserve) => reserve.availableLiquidity,
+			supplyApy: (reserve) => reserve.supplyApy,
+			borrowApy: (reserve) => reserve.borrowApy,
+			frozen: (reserve) => reserve.frozen,
+			paused: (reserve) => reserve.paused,
 		}),
 
 		defineResolver({
@@ -108,4 +180,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Aave_Rest>
+}
