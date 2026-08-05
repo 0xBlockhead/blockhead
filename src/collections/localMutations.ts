@@ -235,6 +235,18 @@ type LocalBlockheadTransferIntent = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadTransferIntent>,
 	'$sessionAction'
 >
+type LocalBlockheadSwapIntent = Omit<
+	EntityFieldValues<typeof schema, EntityType.BlockheadSwapIntent>,
+	'$$quotes' | '$sessionAction'
+>
+type LocalBlockheadIntentQuote = Omit<
+	EntityFieldValues<typeof schema, EntityType.BlockheadIntentQuote>,
+	'$$timestamps' | '$sessionAction'
+>
+type LocalBlockheadIntentQuote_Timestamp = Omit<
+	EntityFieldValues<typeof schema, EntityType.BlockheadIntentQuote_Timestamp>,
+	'$quote'
+>
 type LocalBlockheadIntentInvocation = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadIntentInvocation>,
 	'$createdAction' | '$session'
@@ -1567,6 +1579,189 @@ export const writeLocalBlockheadTransferIntent = async (
 	])
 
 	return entitySelector
+}
+
+export const writeLocalBlockheadSwapIntent = async (
+	context: LocalMutationContext,
+	intent: LocalBlockheadSwapIntent
+) => {
+	const entitySelector = {
+		sessionId: intent.sessionId,
+		actionId: intent.actionId,
+	}
+	const primitiveFields = {
+		sessionId: intent.sessionId,
+		actionId: intent.actionId,
+		networkCaip2: intent.networkCaip2,
+		assetInCaip19: intent.assetInCaip19,
+		assetOutCaip19: intent.assetOutCaip19,
+		chainId: intent.chainId,
+		tokenInAddress: intent.tokenInAddress,
+		tokenOutAddress: intent.tokenOutAddress,
+		amount: intent.amount,
+		slippage: intent.slippage,
+	}
+	const relationshipSelectors = [
+		[
+			'$sessionAction',
+			entitySelector,
+		],
+		[
+			'$network',
+			intent.$network?.[EntityMetaKey.Selector],
+		],
+		[
+			'$evmNetwork',
+			intent.$evmNetwork?.[EntityMetaKey.Selector],
+		],
+		[
+			'$tokenIn',
+			intent.$tokenIn?.[EntityMetaKey.Selector],
+		],
+		[
+			'$tokenOut',
+			intent.$tokenOut?.[EntityMetaKey.Selector],
+		],
+	] satisfies [string, object | undefined][]
+	writeLocalPresence(context, EntityType.BlockheadSwapIntent, entitySelector)
+	writeLocalPrimitiveFields(context, EntityType.BlockheadSwapIntent, entitySelector, primitiveFields)
+	await Promise.all(relationshipSelectors.map(([fieldName, referencedEntitySelector]) => (
+		replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadSwapIntent,
+			entitySelector,
+			fieldName,
+			referencedEntitySelector === undefined ? [] : [referencedEntitySelector]
+		)
+	)))
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadSwapIntent].utils.waitForPersistence(),
+		...[
+			...Object.keys(primitiveFields),
+			...relationshipSelectors.map(([fieldName]) => fieldName),
+		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadSwapIntent][
+			entityFieldAddressKey(EntityType.BlockheadSwapIntent, [], fieldName)
+		].utils.waitForPersistence()),
+	])
+
+	return entitySelector
+}
+
+export const writeLocalBlockheadIntentQuote = async (
+	context: LocalMutationContext,
+	sessionActionSelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>,
+	swapIntentSelector: EntitySelector<typeof schema, EntityType.BlockheadSwapIntent>,
+	quote: LocalBlockheadIntentQuote,
+	observation: LocalBlockheadIntentQuote_Timestamp
+) => {
+	const quoteSelector = {
+		id: quote.id,
+	}
+	const observationSelector = {
+		$quote: quoteSelector,
+		timestampMs: observation.timestampMs,
+		source: observation.source,
+	}
+	writeLocalPresence(context, EntityType.BlockheadIntentQuote, quoteSelector)
+	writeLocalPrimitiveFields(context, EntityType.BlockheadIntentQuote, quoteSelector, {
+		id: quote.id,
+		source: quote.source,
+		quoteRequestHash: quote.quoteRequestHash,
+		providerProtocol: quote.providerProtocol,
+		intentType: quote.intentType,
+		userInteropAddress: quote.userInteropAddress,
+		requestedAt: quote.requestedAt,
+		requestPayloadHash: quote.requestPayloadHash,
+		requestSummary: quote.requestSummary,
+	})
+	writeLocalPresence(context, EntityType.BlockheadIntentQuote_Timestamp, observationSelector)
+	writeLocalPrimitiveFields(context, EntityType.BlockheadIntentQuote_Timestamp, observationSelector, {
+		timestampMs: observation.timestampMs,
+		source: observation.source,
+		quoteId: observation.quoteId,
+		solverId: observation.solverId,
+		validUntil: observation.validUntil,
+		estimatedFillSeconds: observation.estimatedFillSeconds,
+		inputPreview: observation.inputPreview,
+		outputPreview: observation.outputPreview,
+		quotePayloadHash: observation.quotePayloadHash,
+		integrityChecksum: observation.integrityChecksum,
+		error: observation.error,
+	})
+	await Promise.all([
+		replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadIntentQuote,
+			quoteSelector,
+			'$sessionAction',
+			[sessionActionSelector]
+		),
+		writeLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadSessionAction,
+			sessionActionSelector,
+			'$$quotes',
+			quoteSelector
+		),
+		writeLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadSwapIntent,
+			swapIntentSelector,
+			'$$quotes',
+			quoteSelector
+		),
+		writeLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadIntentQuote_Timestamp,
+			observationSelector,
+			'$quote',
+			quoteSelector
+		),
+		writeLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadIntentQuote,
+			quoteSelector,
+			'$$timestamps',
+			observationSelector
+		),
+	])
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadIntentQuote].utils.waitForPersistence(),
+		context.entityCollections[EntityType.BlockheadIntentQuote_Timestamp].utils.waitForPersistence(),
+		...[
+			'$sessionAction',
+			'$$timestamps',
+			'id',
+			'source',
+			'quoteRequestHash',
+			'providerProtocol',
+			'intentType',
+			'userInteropAddress',
+			'requestedAt',
+			'requestPayloadHash',
+			'requestSummary',
+		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadIntentQuote][
+			entityFieldAddressKey(EntityType.BlockheadIntentQuote, [], fieldName)
+		].utils.waitForPersistence()),
+		...[
+			'$quote',
+			'timestampMs',
+			'source',
+			'quoteId',
+			'solverId',
+			'validUntil',
+			'estimatedFillSeconds',
+			'inputPreview',
+			'outputPreview',
+			'quotePayloadHash',
+			'integrityChecksum',
+			'error',
+		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadIntentQuote_Timestamp][
+			entityFieldAddressKey(EntityType.BlockheadIntentQuote_Timestamp, [], fieldName)
+		].utils.waitForPersistence()),
+	])
+
+	return quoteSelector
 }
 
 export const writeLocalBlockheadIntentInvocation = async (
