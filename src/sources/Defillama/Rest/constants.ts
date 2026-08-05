@@ -95,3 +95,32 @@ export const defillamaCurrentPriceIdByCoinId = Object.fromEntries(
 			providerCoinId,
 		])
 )
+
+/**
+ * Chain icon slugs are provider identifiers rather than EVM chain ids, and are not returned by `/v2/chains`.
+ * @see https://github.com/DefiLlama/icons
+ */
+export const defillamaChainIconSlugByChainId = Object.fromEntries([
+	[1, 'ethereum'],
+	[10, 'optimism'],
+	[56, 'bsc'],
+	[100, 'xdai'],
+	[137, 'polygon'],
+	[250, 'fantom'],
+	[324, 'era'],
+	[480, 'worldchain'],
+	[1_101, 'polygon_zkevm'],
+	[1_135, 'lisk'],
+	[1_868, 'soneium'],
+	[5_000, 'mantle'],
+	[8_453, 'base'],
+	[34_443, 'mode'],
+	[42_161, 'arbitrum'],
+	[43_114, 'avax'],
+	[57_073, 'ink'],
+	[59_144, 'linea'],
+	[60_808, 'bob'],
+	[81_457, 'blast'],
+	[534_352, 'scroll'],
+	[7_777_777, 'zora'],
+])

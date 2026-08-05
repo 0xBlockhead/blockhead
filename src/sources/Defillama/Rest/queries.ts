@@ -33,6 +33,7 @@ import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
+import { type as arktype } from 'arktype'
 
 const bindingByTargetKey = Object.fromEntries(
 	bindings[Source.Defillama_Rest].map((binding) => ([
@@ -43,6 +44,68 @@ const bindingByTargetKey = Object.fromEntries(
 const publicCoinsBinding = bindingByTargetKey['coins-public']
 const proCoinsBinding = bindingByTargetKey['coins-pro']
 const iconBinding = bindingByTargetKey['chain-icons']
+
+const defillamaPriceWire = arktype({
+	price: 'number',
+	symbol: 'string',
+	timestamp: 'number',
+	'decimals?': 'number',
+	'confidence?': 'number',
+})
+const defillamaFirstPriceWire = arktype({
+	'price?': 'number',
+	'symbol?': 'string',
+	'timestamp?': 'number',
+})
+const defillamaChartPriceWire = arktype({
+	'timestamp?': 'number',
+	'price?': 'number',
+})
+const defillamaChartCoinWire = arktype({
+	confidence: 'number',
+	prices: defillamaChartPriceWire.array(),
+	symbol: 'string',
+	'decimals?': 'number',
+})
+const defillamaCurrentPricesEnvelope = arktype({
+	coins: {
+		'[string]': defillamaPriceWire,
+	},
+})
+const defillamaHistoricalPricesEnvelope = arktype({
+	coins: {
+		'[string]': defillamaPriceWire,
+	},
+})
+const defillamaFirstPricesEnvelope = arktype({
+	coins: {
+		'[string]': defillamaFirstPriceWire,
+	},
+})
+const defillamaChartEnvelope = arktype({
+	coins: {
+		'[string]': defillamaChartCoinWire,
+	},
+})
+const defillamaPercentageEnvelope = arktype({
+	coins: {
+		'[string]': 'number',
+	},
+})
+
+const assertEnvelope = (
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(value)
+	} catch {
+		throw new Error(`Defillama_Rest: invalid ${label} response envelope`)
+	}
+}
 
 const validateCoinIds = (coins: string[]) => {
 	if (
@@ -61,6 +124,19 @@ const coinsPathSegment = (coins: string[]) => (
 const proCoinsBasePath = (publicEnv: GetProDefillamaCurrentPricesArgs['publicEnv']) => (
 	`/${encodeURIComponent(requiredPublicEnvString(publicEnv, 'PUBLIC_DEFILLAMA_PRO_API_KEY'))}/coins`
 )
+
+const getDefillamaJson = async <_Response>(
+	binding: typeof publicCoinsBinding,
+	requestUrl: URL,
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	label: string
+) => {
+	const response = await sourceGetJson<_Response>(binding, requestUrl.href)
+	assertEnvelope(envelope, response, label)
+	return response
+}
 
 const applyChartQuery = (
 	requestUrl: URL,
@@ -99,7 +175,12 @@ export const getCurrentPrices = async ({
 		firstHttpUrlForBinding(publicCoinsBinding)
 	)
 
-	return sourceGetJson<DefillamaCurrentPricesResponse>(publicCoinsBinding, requestUrl.href)
+	return getDefillamaJson<DefillamaCurrentPricesResponse>(
+		publicCoinsBinding,
+		requestUrl,
+		defillamaCurrentPricesEnvelope,
+		'current prices'
+	)
 }
 
 /** `GET /{APIKEY}/coins/prices/current/{coins}` on the Pro gateway. */
@@ -116,7 +197,12 @@ export const getProCurrentPrices = async ({
 		firstHttpUrlForBinding(proCoinsBinding)
 	)
 
-	return sourceGetJson<DefillamaProCurrentPricesResponse>(proCoinsBinding, requestUrl.href)
+	return getDefillamaJson<DefillamaProCurrentPricesResponse>(
+		proCoinsBinding,
+		requestUrl,
+		defillamaCurrentPricesEnvelope,
+		'Pro current prices'
+	)
 }
 
 /** `GET /prices/historical/{timestamp}/{coins}` on the public Coins API. */
@@ -133,7 +219,12 @@ export const getHistoricalPrices = async ({
 		firstHttpUrlForBinding(publicCoinsBinding)
 	)
 
-	return sourceGetJson<DefillamaHistoricalPricesResponse>(publicCoinsBinding, requestUrl.href)
+	return getDefillamaJson<DefillamaHistoricalPricesResponse>(
+		publicCoinsBinding,
+		requestUrl,
+		defillamaHistoricalPricesEnvelope,
+		'historical prices'
+	)
 }
 
 /** `GET /{APIKEY}/coins/prices/historical/{timestamp}/{coins}` on the Pro gateway. */
@@ -151,7 +242,12 @@ export const getProHistoricalPrices = async ({
 		firstHttpUrlForBinding(proCoinsBinding)
 	)
 
-	return sourceGetJson<DefillamaProHistoricalPricesResponse>(proCoinsBinding, requestUrl.href)
+	return getDefillamaJson<DefillamaProHistoricalPricesResponse>(
+		proCoinsBinding,
+		requestUrl,
+		defillamaHistoricalPricesEnvelope,
+		'Pro historical prices'
+	)
 }
 
 /** `GET /prices/first/{coins}` on the public Coins API. */
@@ -167,7 +263,12 @@ export const getFirstPrices = async ({
 		firstHttpUrlForBinding(publicCoinsBinding)
 	)
 
-	return sourceGetJson<DefillamaFirstPricesResponse>(publicCoinsBinding, requestUrl.href)
+	return getDefillamaJson<DefillamaFirstPricesResponse>(
+		publicCoinsBinding,
+		requestUrl,
+		defillamaFirstPricesEnvelope,
+		'first prices'
+	)
 }
 
 /** `GET /{APIKEY}/coins/prices/first/{coins}` on the Pro gateway. */
@@ -184,7 +285,12 @@ export const getProFirstPrices = async ({
 		firstHttpUrlForBinding(proCoinsBinding)
 	)
 
-	return sourceGetJson<DefillamaProFirstPricesResponse>(proCoinsBinding, requestUrl.href)
+	return getDefillamaJson<DefillamaProFirstPricesResponse>(
+		proCoinsBinding,
+		requestUrl,
+		defillamaFirstPricesEnvelope,
+		'Pro first prices'
+	)
 }
 
 /** `GET /chart/{coins}` on the public Coins API. */
@@ -210,7 +316,12 @@ export const getChart = async ({
 		period,
 	})
 
-	return sourceGetJson<DefillamaChartResponse>(publicCoinsBinding, requestUrl.href)
+	return getDefillamaJson<DefillamaChartResponse>(
+		publicCoinsBinding,
+		requestUrl,
+		defillamaChartEnvelope,
+		'chart'
+	)
 }
 
 /** `GET /{APIKEY}/coins/chart/{coins}` on the Pro gateway. */
@@ -237,7 +348,12 @@ export const getProChart = async ({
 		period,
 	})
 
-	return sourceGetJson<DefillamaChartResponse>(proCoinsBinding, requestUrl.href)
+	return getDefillamaJson<DefillamaChartResponse>(
+		proCoinsBinding,
+		requestUrl,
+		defillamaChartEnvelope,
+		'Pro chart'
+	)
 }
 
 /** `GET /percentage/{coins}` on the public Coins API. */
@@ -263,7 +379,12 @@ export const getPercentageChange = async ({
 		if (value != null)
 			requestUrl.searchParams.set(name, String(value))
 
-	return sourceGetJson<DefillamaPercentageResponse>(publicCoinsBinding, requestUrl.href)
+	return getDefillamaJson<DefillamaPercentageResponse>(
+		publicCoinsBinding,
+		requestUrl,
+		defillamaPercentageEnvelope,
+		'percentage'
+	)
 }
 
 /** `GET /{APIKEY}/coins/percentage/{coins}` on the Pro gateway. */
@@ -290,39 +411,15 @@ export const getProPercentageChange = async ({
 		if (value != null)
 			requestUrl.searchParams.set(name, String(value))
 
-	return sourceGetJson<DefillamaProPercentageResponse>(proCoinsBinding, requestUrl.href)
+	return getDefillamaJson<DefillamaProPercentageResponse>(
+		proCoinsBinding,
+		requestUrl,
+		defillamaPercentageEnvelope,
+		'Pro percentage'
+	)
 }
 
 /** `https://icons.llama.fi/{slug}.png` — DeFiLlama's chain icon CDN. */
 export const getChainIconUrl = (slug: string) => (
 	`${firstHttpUrlForBinding(iconBinding).replace(/\/$/, '')}/${encodeURIComponent(slug)}.png`
 )
-
-/**
- * Chain icon slugs are provider identifiers rather than EVM chain ids, and are not returned by `/v2/chains`.
- * @see https://github.com/DefiLlama/icons
- */
-export const chainIconSlugByChainId = Object.fromEntries([
-	[1, 'ethereum'],
-	[10, 'optimism'],
-	[56, 'bsc'],
-	[100, 'xdai'],
-	[137, 'polygon'],
-	[250, 'fantom'],
-	[324, 'era'],
-	[480, 'worldchain'],
-	[1_101, 'polygon_zkevm'],
-	[1_135, 'lisk'],
-	[1_868, 'soneium'],
-	[5_000, 'mantle'],
-	[8_453, 'base'],
-	[34_443, 'mode'],
-	[42_161, 'arbitrum'],
-	[43_114, 'avax'],
-	[57_073, 'ink'],
-	[59_144, 'linea'],
-	[60_808, 'bob'],
-	[81_457, 'blast'],
-	[534_352, 'scroll'],
-	[7_777_777, 'zora'],
-])

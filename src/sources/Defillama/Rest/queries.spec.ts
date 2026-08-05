@@ -209,6 +209,132 @@ describe('DeFiLlama REST endpoint selection', () => {
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
+	it.each([
+		{
+			label: 'current prices',
+			query: () => getCurrentPrices({
+				coins: ['coingecko:ethereum'],
+			}),
+			response: {
+				coins: {
+					'coingecko:ethereum': {
+						price: 3_500,
+						symbol: 'ETH',
+					},
+				},
+			},
+		},
+		{
+			label: 'Pro current prices',
+			query: () => getProCurrentPrices({
+				coins: ['coingecko:ethereum'],
+				publicEnv: {
+					PUBLIC_DEFILLAMA_PRO_API_KEY: 'pro key',
+				},
+			}),
+			response: {},
+		},
+		{
+			label: 'historical prices',
+			query: () => getHistoricalPrices({
+				coins: ['coingecko:ethereum'],
+				timestamp: 1_700_000_000,
+			}),
+			response: {},
+		},
+		{
+			label: 'Pro historical prices',
+			query: () => getProHistoricalPrices({
+				coins: ['coingecko:ethereum'],
+				timestamp: 1_700_000_000,
+				publicEnv: {
+					PUBLIC_DEFILLAMA_PRO_API_KEY: 'pro key',
+				},
+			}),
+			response: {},
+		},
+		{
+			label: 'first prices',
+			query: () => getFirstPrices({
+				coins: ['coingecko:ethereum'],
+			}),
+			response: {
+				coins: {
+					'coingecko:ethereum': {
+						price: '3_500',
+					},
+				},
+			},
+		},
+		{
+			label: 'Pro first prices',
+			query: () => getProFirstPrices({
+				coins: ['coingecko:ethereum'],
+				publicEnv: {
+					PUBLIC_DEFILLAMA_PRO_API_KEY: 'pro key',
+				},
+			}),
+			response: {},
+		},
+		{
+			label: 'chart',
+			query: () => getChart({
+				coins: ['coingecko:ethereum'],
+			}),
+			response: {
+				coins: {
+					'coingecko:ethereum': {
+						confidence: 0.99,
+						prices: [{
+							timestamp: 1_700_000_000,
+							price: '3_500',
+						}],
+						symbol: 'ETH',
+					},
+				},
+			},
+		},
+		{
+			label: 'Pro chart',
+			query: () => getProChart({
+				coins: ['coingecko:ethereum'],
+				publicEnv: {
+					PUBLIC_DEFILLAMA_PRO_API_KEY: 'pro key',
+				},
+			}),
+			response: {},
+		},
+		{
+			label: 'percentage',
+			query: () => getPercentageChange({
+				coins: ['coingecko:ethereum'],
+			}),
+			response: {
+				coins: {
+					'coingecko:ethereum': '2.4',
+				},
+			},
+		},
+		{
+			label: 'Pro percentage',
+			query: () => getProPercentageChange({
+				coins: ['coingecko:ethereum'],
+				publicEnv: {
+					PUBLIC_DEFILLAMA_PRO_API_KEY: 'pro key',
+				},
+			}),
+			response: {},
+		},
+	])('fails closed for malformed $label envelopes', async ({
+		query,
+		response,
+		label,
+	}) => {
+		sourceGetJson.mockResolvedValue(response)
+
+		await expect(query()).rejects.toThrow(`Defillama_Rest: invalid ${label} response envelope`)
+	})
+
 	it('returns an empty result without transport or credentials', async () => {
 		await expect(getCurrentPrices({
 			coins: [],

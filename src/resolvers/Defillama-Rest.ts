@@ -368,10 +368,10 @@ export default {
 				Caip2: {
 					resolve: async ({ caip2 }) => {
 						const {
-							chainIconSlugByChainId,
-							getChainIconUrl,
-						} = await import('$/sources/Defillama/Rest/queries.ts')
-						const slug = chainIconSlugByChainId[Number(caip2.reference)]
+							defillamaChainIconSlugByChainId,
+						} = await import('$/sources/Defillama/Rest/constants.ts')
+						const { getChainIconUrl } = await import('$/sources/Defillama/Rest/queries.ts')
+						const slug = defillamaChainIconSlugByChainId[Number(caip2.reference)]
 						if (slug == null)
 							throw new Error(`Defillama_Rest: no chain icon slug for chain ${caip2.reference}`)
 
