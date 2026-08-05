@@ -4,10 +4,10 @@
  * @see https://docs.gmx.io/docs/api/overview/
  */
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { gmxRestBindingByChainId } from '$/sources/Gmx/bindings.ts'
 import {
 	gmxApiByChainId,
 	gmxMarketsInfoResponseMax,
+	gmxRestBindingByChainId,
 } from '$/sources/Gmx/Rest/constants.ts'
 import type {
 	GmxMarketInfo,

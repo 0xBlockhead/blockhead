@@ -3,6 +3,9 @@
  * @see https://docs.gmx.io/docs/api/overview/
  * @see https://docs.gmx.io/docs/api/integration-guide/
  */
+import gmxBindingIndex from '$/sources/Gmx/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
 
 // Types
@@ -61,4 +64,15 @@ export const gmxApiByChainId = Object.fromEntries(
 		deployment.chainId,
 		deployment,
 	])
+)
+
+export const gmxRestBindingByChainId = Object.fromEntries(
+	(gmxBindingIndex[Source.Gmx_Rest] ?? [])
+		.filter((binding) => (
+			binding.target.kind === SourceTargetKind.Eip155Chain
+		))
+		.map((binding) => [
+			Number(binding.target.key),
+			binding,
+		])
 )
