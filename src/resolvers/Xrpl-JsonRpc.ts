@@ -19,7 +19,6 @@ import type {
 import {
 	isJsonNumber,
 	isJsonObject,
-	isJsonString,
 	type JsonValue,
 } from '$/typescript/JsonValue.ts'
 
@@ -597,49 +596,6 @@ export default {
 			resolve: {
 				Caip2: {
 					resolve: getXrplValidatedLedgerHead,
-				},
-			},
-			// subscribe streams:ledger / ledgerClosed — https://xrpl.org/docs/references/http-websocket-apis/public-api-methods/subscription-methods/subscribe
-			// XrplClio RemoteLive — mechanical-xrplclio-subscribeledger-spec-v1
-			resolveLive: {
-				ledgerStream: {
-					facetPath: [
-						'Xrpl',
-					],
-					publishes: {
-						'$$ledgers': true,
-					},
-					start: async ({
-						fields,
-						parentEntitySelector,
-						signal,
-					}) => {
-						assertXrplNetwork(parentEntitySelector)
-						const { streamLedger } = await import('$/sources/XrplClio/JsonRpc/queries.ts')
-
-						for await (const message of streamLedger(signal)) {
-							if (signal.aborted)
-								return
-							if (
-								!isJsonNumber(message.ledger_index)
-								|| !Number.isSafeInteger(message.ledger_index)
-								|| message.ledger_index < 0
-							)
-								throw new Error('XrplClio_JsonRpc: malformed ledgerClosed ledger_index')
-							if (!isJsonString(message.ledger_hash) || message.ledger_hash.length === 0)
-								throw new Error('XrplClio_JsonRpc: malformed ledgerClosed ledger_hash')
-
-							fields.$$ledgers.replaceRows([{
-								source: Source.Xrpl_Rippled,
-								value: [{
-									[EntityMetaKey.Selector]: {
-										$network: parentEntitySelector,
-										ledgerIndex: BigInt(message.ledger_index),
-									},
-								}],
-							}])
-						}
-					},
 				},
 			},
 		})({

@@ -1,4 +1,3 @@
-import { QueryClient } from '@tanstack/query-core'
 import { readFileSync } from 'node:fs'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -43,17 +42,10 @@ import type {
 } from '$/sources/Xrpl/JsonRpc/types.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
-const subscribeLedger = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
 	firstHttpUrlForBinding: () => 'https://xrpl.example',
 	sourceFetch,
-}))
-
-vi.mock('$/sources/XrplClio/JsonRpc/queries.ts', () => ({
-	getServerInfo: vi.fn(),
-	getLedgerClosed: vi.fn(),
-	streamLedger: subscribeLedger,
 }))
 
 const { default: xrpl } = await import('$/resolvers/Xrpl-JsonRpc.ts')
@@ -325,7 +317,6 @@ describe('XRPL rippled queries', () => {
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })
-
 describe('XRPL rippled account resolver', () => {
 	beforeEach(() => {
 		sourceFetch.mockReset()
@@ -829,176 +820,5 @@ describe('XRPL rippled network resolver', () => {
 		await expect(resolverFor('$$ledgers').resolve['Caip2'].resolve({
 			caip2: networkBySlug.xrpl.caip2,
 		}, context)).rejects.toThrow('malformed validated ledger hash')
-	})
-})
-
-const networkLedgersResolver = xrpl.resolvers.find((candidate) => (
-	candidate.entityType === EntityType.Network
-	&& 'Xrpl' in candidate.projections
-	&& '$$ledgers' in candidate.projections.Xrpl
-	&& typeof candidate.projections.Xrpl.$$ledgers === 'function'
-	&& candidate.resolveLive != null
-))
-if (networkLedgersResolver == null)
-	throw new Error('Xrpl Network $$ledgers resolveLive resolver is missing')
-
-const liveField = () => ({
-	replaceRows: vi.fn(),
-	invalidate: vi.fn(),
-	count: {
-		replaceRows: vi.fn(),
-		invalidate: vi.fn(),
-	},
-})
-
-const liveFields = () => ({
-	'$$ledgers': liveField(),
-})
-
-const startLedgerStreamLive = (
-	fields: ReturnType<typeof liveFields>,
-	signal = new AbortController().signal
-) => networkLedgersResolver.resolveLive.ledgerStream.start({
-	parentEntitySelector: {
-		caip2: networkBySlug.xrpl.caip2,
-	},
-	queryClient: new QueryClient(),
-	signal,
-	trigger: context,
-	fields,
-})
-
-describe('XRPL Clio subscribeLedger Network $$ledgers resolveLive', () => {
-	beforeEach(() => {
-		sourceFetch.mockReset()
-		subscribeLedger.mockReset()
-	})
-
-	it('declares ledgerStream publishing $$ledgers only', () => {
-		expect(networkLedgersResolver.resolveLive.ledgerStream).toMatchObject({
-			facetPath: [
-				'Xrpl',
-			],
-			publishes: {
-				'$$ledgers': true,
-			},
-		})
-		expect(Object.keys(networkLedgersResolver.resolveLive)).toEqual(['ledgerStream'])
-	})
-
-	it('publishes $$ledgers from XrplClio subscribeLedger push only', async () => {
-		subscribeLedger.mockImplementation(async function* () {
-			yield {
-				type: 'ledgerClosed',
-				ledger_index: 92_000_001,
-				ledger_hash: 'LEDGER_HASH_1',
-			}
-			yield {
-				type: 'ledgerClosed',
-				ledger_index: 92_000_002,
-				ledger_hash: 'LEDGER_HASH_2',
-			}
-		})
-
-		const fields = liveFields()
-		await startLedgerStreamLive(fields)
-
-		expect(subscribeLedger).toHaveBeenCalledTimes(1)
-		expect(subscribeLedger).toHaveBeenCalledWith(
-			expect.any(AbortSignal)
-		)
-		expect(sourceFetch).not.toHaveBeenCalled()
-		expect(fields.$$ledgers.replaceRows).toHaveBeenCalledTimes(2)
-		expect(fields.$$ledgers.replaceRows).toHaveBeenNthCalledWith(1, [{
-			source: Source.Xrpl_Rippled,
-			value: [{
-				[EntityMetaKey.Selector]: {
-					$network: {
-						caip2: networkBySlug.xrpl.caip2,
-					},
-					ledgerIndex: 92000001n,
-				},
-			}],
-		}])
-		expect(fields.$$ledgers.replaceRows).toHaveBeenNthCalledWith(2, [{
-			source: Source.Xrpl_Rippled,
-			value: [{
-				[EntityMetaKey.Selector]: {
-					$network: {
-						caip2: networkBySlug.xrpl.caip2,
-					},
-					ledgerIndex: 92000002n,
-				},
-			}],
-		}])
-		expect(fields.$$ledgers.invalidate).not.toHaveBeenCalled()
-	})
-
-	it('threads AbortSignal into subscribeLedger and stops publishing after abort', async () => {
-		const fields = liveFields()
-		const abortController = new AbortController()
-		subscribeLedger.mockImplementation(async function* (signal) {
-			yield {
-				type: 'ledgerClosed',
-				ledger_index: 92_000_010,
-				ledger_hash: 'LEDGER_HASH_ABORT_1',
-			}
-			await new Promise<void>((resolve) => {
-				signal.addEventListener('abort', () => resolve(), { once: true })
-			})
-			if (signal.aborted)
-				return
-			yield {
-				type: 'ledgerClosed',
-				ledger_index: 92_000_011,
-				ledger_hash: 'LEDGER_HASH_ABORT_2',
-			}
-		})
-
-		const liveResolution = startLedgerStreamLive(fields, abortController.signal)
-		await vi.waitFor(() => {
-			expect(fields.$$ledgers.replaceRows).toHaveBeenCalledTimes(1)
-		})
-		abortController.abort()
-		await liveResolution
-
-		expect(subscribeLedger).toHaveBeenCalledWith(
-			abortController.signal
-		)
-		expect(fields.$$ledgers.replaceRows).toHaveBeenCalledTimes(1)
-		expect(sourceFetch).not.toHaveBeenCalled()
-	})
-
-	it('rejects unsupported networks before opening subscribeLedger', async () => {
-		const fields = liveFields()
-		subscribeLedger.mockClear()
-
-		await expect(networkLedgersResolver.resolveLive.ledgerStream.start({
-			parentEntitySelector: {
-				caip2: networkBySlug.ethereum.caip2,
-			},
-			queryClient: new QueryClient(),
-			signal: new AbortController().signal,
-			trigger: context,
-			fields,
-		})).rejects.toThrow('unsupported network')
-		expect(subscribeLedger).not.toHaveBeenCalled()
-		expect(sourceFetch).not.toHaveBeenCalled()
-	})
-
-	it('does not poll HTTP tip as the live driver', () => {
-		const source = readFileSync('src/resolvers/Xrpl-JsonRpc.ts', 'utf8')
-		const liveBlock = source.slice(
-			source.indexOf('// subscribe streams:ledger'),
-			source.indexOf('})({\n\t\t\tXrpl: {\n\t\t\t\t$$ledgers:')
-		)
-
-		expect(liveBlock).toContain('streamLedger')
-		expect(liveBlock).toContain('streams:ledger')
-		expect(liveBlock).toContain('ledgerClosed')
-		expect(liveBlock).toContain('XrplClio')
-		expect(liveBlock).toContain('resolveLive')
-		expect(liveBlock).not.toMatch(/\bsetTimeout\b|\bsetInterval\b|\bpoll\s*\(/)
-		expect(liveBlock).not.toContain('getValidatedLedger')
 	})
 })

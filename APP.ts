@@ -48186,7 +48186,7 @@ export const schema = {
 						"$$amendments": { label: "Amendments", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplAmendment, defaultSources: [Source.Xrpl_Rippled] },
 						"$$amms": { label: "AMMs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplAmm, defaultSources: [Source.Xrpl_Rippled] },
 						"$$ledgerEntries": { label: "Ledger entries", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplLedgerEntry, defaultSources: [Source.Xrpl_Rippled] },
-						"$$ledgers": { label: "Ledgers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplLedger, defaultSources: [Source.Xrpl_Rippled] },
+						"$$ledgers": { label: "Ledgers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplLedger, defaultSources: [Source.Xrpl_Rippled, Source.XrplClio_JsonRpc] },
 						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplTransaction, defaultSources: [Source.Xrpl_Rippled] },
 					})({
 						singularView: {
@@ -48196,7 +48196,7 @@ export const schema = {
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "xrpl-chain-ledgers", field: ["Xrpl", "$$ledgers"], List: "XrplLedgersView", label: "Ledgers", selection: { sources: [Source.Xrpl_Rippled], limit: 16 }, emptyText: "No XRPL ledgers." },
+										{ id: "xrpl-chain-ledgers", field: ["Xrpl", "$$ledgers"], List: "XrplLedgersView", label: "Ledgers", selection: { sources: [Source.Xrpl_Rippled, Source.XrplClio_JsonRpc], limit: 16 }, emptyText: "No XRPL ledgers." },
 										{ id: "xrpl-chain-transactions", field: ["Xrpl", "$$transactions"], List: "XrplTransactionsView", label: "Transactions", selection: { sources: [Source.Xrpl_Rippled], limit: 16 }, emptyText: "No XRPL transactions." },
 									],
 								},
@@ -102006,6 +102006,10 @@ export const app = {
 				path: "src/resolvers/ZeroGChainScan-Rest.ts",
 			},
 			{
+			{
+				source: Source.XrplClio_JsonRpc,
+				path: "src/resolvers/XrplClio-JsonRpc.ts",
+			},
 				source: Source.ZeroGStorageNode_JsonRpc,
 				path: "src/resolvers/ZeroGStorageNode-JsonRpc.ts",
 			},

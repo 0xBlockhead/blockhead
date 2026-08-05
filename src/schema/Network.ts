@@ -1102,6 +1102,7 @@ export default entity({
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Xrpl_Rippled,
+					Source.XrplClio_JsonRpc,
 				],
 			},
 			$$transactions: {

@@ -24,6 +24,16 @@ export const getLedgerClosed = (binding: SourceBinding) => (
 	request(binding, 'ledger_closed')
 )
 
+export const getClosedLedger = () => {
+	const binding = bindings[Source.XrplClio_JsonRpc].find((candidate) => (
+		candidate.delivery === SourceDelivery.RemoteQuery
+	))
+	if (binding == null)
+		throw new Error('XrplClio_JsonRpc: RemoteQuery binding is missing')
+
+	return getLedgerClosed(binding)
+}
+
 export const subscribeLedger = async function* (
 	binding: SourceBinding,
 	signal?: AbortSignal

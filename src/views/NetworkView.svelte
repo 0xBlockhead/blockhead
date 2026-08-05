@@ -5590,9 +5590,14 @@
 			resource={selection.Xrpl}
 		>
 			{#snippet Applicable(projection)}
+				{@const xrplChainActivityXrplChainLedgersSources = networkApplicableSources([
+						Source.Xrpl_Rippled,
+						Source.XrplClio_JsonRpc,
+					], pendingEntity)}
+
 				{@const xrplChainActivitySections = [
 						...(
-							xrplRippledSources.length > 0 ?
+							xrplChainActivityXrplChainLedgersSources.length > 0 ?
 								[
 									{
 										id: 'xrpl-chain-ledgers',
@@ -5634,7 +5639,7 @@
 								selection={
 									projection
 									.$$ledgers({
-										sources: xrplRippledSources,
+										sources: xrplChainActivityXrplChainLedgersSources,
 										limit: 16,
 									})
 								}
