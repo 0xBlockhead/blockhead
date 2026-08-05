@@ -270,7 +270,53 @@ describe('OpenSea NFT endpoints', () => {
 			credential: 'secret',
 			chain: 'ethereum',
 			address: contract,
-		})).rejects.toThrow('missing nfts array')
+		})).rejects.toThrow('invalid contract NFTs response envelope')
+	})
+
+	it('hard-fails NFT list rows that violate the OpenAPI envelope', async () => {
+		vi.mocked(sourceFetch).mockResolvedValueOnce(
+			new Response(JSON.stringify({
+				nfts: [{
+					identifier: '1',
+					collection: 'collection',
+				}],
+			}), {
+				status: 200,
+				headers: {
+					'content-type': 'application/json',
+				},
+			})
+		)
+
+		await expect(getNftsByContract({
+			credential: 'secret',
+			chain: 'ethereum',
+			address: contract,
+		})).rejects.toThrow('invalid contract NFTs response envelope')
+	})
+
+	it('hard-fails incomplete NFT details instead of returning partial metadata', async () => {
+		vi.mocked(sourceFetch).mockResolvedValueOnce(
+			new Response(JSON.stringify({
+				nft: {
+					...nft,
+					is_suspicious: false,
+					creator: address,
+				},
+			}), {
+				status: 200,
+				headers: {
+					'content-type': 'application/json',
+				},
+			})
+		)
+
+		await expect(getNft({
+			credential: 'secret',
+			chain: 'ethereum',
+			address: contract,
+			identifier: '1',
+		})).rejects.toThrow('invalid NFT response envelope')
 	})
 })
 

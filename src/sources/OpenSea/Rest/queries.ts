@@ -1,5 +1,6 @@
 import { throwHttpError } from '$/lib/http.ts'
 import bindings from '$/sources/OpenSea/bindings.ts'
+import { openSeaChainByChainId } from '$/sources/OpenSea/Rest/constants.ts'
 import type {
 	OpenSeaAccountEventsPath,
 	OpenSeaAccountEventsQuery,
@@ -7,7 +8,6 @@ import type {
 	OpenSeaAccountNftsPath,
 	OpenSeaAccountNftsQuery,
 	OpenSeaAccountNftsResponse,
-	OpenSeaChainIdentifier,
 	OpenSeaCollectionNftsPath,
 	OpenSeaCollectionNftsQuery,
 	OpenSeaCollectionNftsResponse,
@@ -32,41 +32,57 @@ import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
+import { type as arktype } from 'arktype'
 
 const binding = bindings[Source.OpenSea_Rest][0]
 
-export const openSeaChainByChainId = {
-	1: 'ethereum',
-	10: 'optimism',
-	130: 'unichain',
-	137: 'polygon',
-	143: 'monad',
-	360: 'shape',
-	747: 'flow',
-	999: 'hyperevm',
-	1329: 'sei',
-	1868: 'soneium',
-	2020: 'ronin',
-	2741: 'abstract',
-	4326: 'megaeth',
-	4663: 'robinhood',
-	5031: 'somnia',
-	8333: 'b3',
-	8453: 'base',
-	33139: 'ape_chain',
-	42161: 'arbitrum',
-	43114: 'avalanche',
-	43419: 'gunzilla',
-	57073: 'ink',
-	80094: 'bera_chain',
-	81457: 'blast',
-	7777777: 'zora',
-} as const satisfies Record<number, OpenSeaChainIdentifier>
+const openSeaNftWire = arktype({
+	identifier: 'string',
+	collection: 'string',
+	contract: 'string',
+	token_standard: 'string',
+	opensea_url: 'string',
+	updated_at: 'string',
+	is_disabled: 'boolean',
+	is_nsfw: 'boolean',
+	traits: 'unknown[]',
+})
+const openSeaNftDetailedWire = arktype({
+	...openSeaNftWire.definition,
+	creator: 'string',
+	is_suspicious: 'boolean',
+	owners: arktype({
+		address: 'string',
+		quantity: 'number',
+		quantity_string: 'string',
+	}).array(),
+})
+const openSeaNftListEnvelope = arktype({
+	nfts: openSeaNftWire.array(),
+	'next?': 'string',
+})
+const openSeaNftEnvelope = arktype({
+	nft: openSeaNftDetailedWire,
+})
+
+const assertEnvelope = (
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(value)
+	} catch {
+		throw new Error(`OpenSea_Rest: invalid ${label} response envelope`)
+	}
+}
 
 export const openSeaChainForChainId = (
 	chainId: number
 ) => {
-	const chain = openSeaChainByChainId[chainId as keyof typeof openSeaChainByChainId]
+	const chain = openSeaChainByChainId[chainId]
 	if (chain == null)
 		throw new Error(`OpenSea_Rest: unsupported EIP-155 chain ${chainId}`)
 
@@ -131,9 +147,7 @@ const requireNftList = <
 	body: _Response,
 	surface: string
 ) => {
-	if (!Array.isArray(body.nfts))
-		throw new Error(`OpenSea_Rest: ${surface} response missing nfts array`)
-
+	assertEnvelope(openSeaNftListEnvelope, body, surface)
 	return body
 }
 
@@ -246,9 +260,7 @@ export const getNft = async ({
 		path: `/api/v2/chain/${encodeURIComponent(chain)}/contract/${encodeURIComponent(address)}/nfts/${encodeURIComponent(identifier)}`,
 	})
 
-	if (body.nft == null)
-		throw new Error('OpenSea_Rest: NFT response missing nft')
-
+	assertEnvelope(openSeaNftEnvelope, body, 'NFT')
 	return body
 }
 
