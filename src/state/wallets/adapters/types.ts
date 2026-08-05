@@ -74,6 +74,16 @@ export type WalletConnection =
 		}
 	)
 
+export type WalletTypedData = {
+	types: Record<string, {
+		name: string
+		type: string
+	}[]>
+	primaryType: string
+	domain: Record<string, string | number | boolean>
+	message: Record<string, string | number | boolean | Record<string, string | number | boolean>>
+}
+
 export type WalletAdapter = {
 	id: string
 	start(updateCandidates: (candidates: WalletCandidate[]) => void): () => void
@@ -81,8 +91,23 @@ export type WalletAdapter = {
 	signMessage?(
 		walletId: string,
 		accountAddress: string,
-		message: string
+		message: string,
+		connectionKey?: string
 	): Promise<string>
+	signTypedData?(
+		walletId: string,
+		accountAddress: string,
+		typedData: WalletTypedData,
+		connectionKey?: string
+	): Promise<string>
+	switchScope?(
+		walletId: string,
+		scope: {
+			namespace: string
+			reference: string
+		},
+		connectionKey?: string
+	): Promise<WalletConnection | undefined>
 	disconnect(walletId: string, connectionKey?: string): void | Promise<void>
 	subscribeConnection(
 		walletId: string,
