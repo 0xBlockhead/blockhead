@@ -55,6 +55,31 @@ const beaconchaInGetJson = async <_Data>(
 	return wire.data
 }
 
+const beaconchaInGetList = async <_Item>(
+	publicEnv: SourcePublicEnv,
+	{
+		chainId,
+		path,
+		label,
+	}: {
+		chainId: number
+		path: `/${string}`
+		label: string
+	}
+) => {
+	const data = await beaconchaInGetJson<_Item[]>(
+		publicEnv,
+		{
+			chainId,
+			path,
+			label,
+		}
+	)
+	if (!Array.isArray(data))
+		throw new Error(`BeaconchaIn_Rest: ${label} returned a non-list payload`)
+	return data
+}
+
 export const getEpoch = (
 	publicEnv: SourcePublicEnv,
 	{
@@ -85,7 +110,7 @@ export const getEpochSlots = (
 		epoch: number | 'latest' | 'finalized'
 	}
 ) => (
-	beaconchaInGetJson<BeaconchaInSlot[]>(
+	beaconchaInGetList<BeaconchaInSlot>(
 		publicEnv,
 		{
 			chainId,
@@ -145,7 +170,7 @@ export const getSlotAttestations = (
 		slot: number | 'latest'
 	}
 ) => (
-	beaconchaInGetJson<BeaconchaInAttestation[]>(
+	beaconchaInGetList<BeaconchaInAttestation>(
 		publicEnv,
 		{
 			chainId,
@@ -165,7 +190,7 @@ export const getSlotWithdrawals = (
 		slot: number | 'latest'
 	}
 ) => (
-	beaconchaInGetJson<BeaconchaInWithdrawal[]>(
+	beaconchaInGetList<BeaconchaInWithdrawal>(
 		publicEnv,
 		{
 			chainId,
@@ -185,7 +210,7 @@ export const getSlotAttesterSlashings = (
 		slot: number | 'latest'
 	}
 ) => (
-	beaconchaInGetJson<BeaconchaInAttesterSlashing[]>(
+	beaconchaInGetList<BeaconchaInAttesterSlashing>(
 		publicEnv,
 		{
 			chainId,
@@ -205,7 +230,7 @@ export const getSlotProposerSlashings = (
 		slot: number | 'latest'
 	}
 ) => (
-	beaconchaInGetJson<BeaconchaInProposerSlashing[]>(
+	beaconchaInGetList<BeaconchaInProposerSlashing>(
 		publicEnv,
 		{
 			chainId,

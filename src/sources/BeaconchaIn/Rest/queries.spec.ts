@@ -261,4 +261,19 @@ describe('BeaconchaIn REST queries', () => {
 			slot: 9600000,
 		})).rejects.toThrow('returned no data')
 	})
+
+	it('hard-fails non-list duty payloads', async () => {
+		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
+			status: 'OK',
+			data: {
+				aggregationbits: '0xff',
+			},
+		})))
+		vi.stubGlobal('window', {})
+
+		await expect(getSlotAttestations(publicEnv, {
+			chainId: 1,
+			slot: 9600000,
+		})).rejects.toThrow('returned a non-list payload')
+	})
 })
