@@ -905,6 +905,7 @@ describe('wallet connection runtime normalization', () => {
 
 	it('maps every built-in adapter candidate tuple to exactly one connection method', () => {
 		const builtInAdapterConnectionMethodIds = [
+			'aptos-aip62',
 			'aptos-injected-globals',
 			'bitcoin-injected-globals',
 			'cardano-cip30',
@@ -1711,7 +1712,7 @@ describe('wallet connection runtime normalization', () => {
 				}),
 			],
 		})
-		expect(enable).toHaveBeenCalledWith('cosmoshub-4')
+		expect(enable).toHaveBeenCalledWith(['cosmoshub-4'])
 
 		const connectionUpdates: WalletConnection[] = []
 		const stopConnection = adapter.subscribeConnection(

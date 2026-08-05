@@ -30,6 +30,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SvelteMap, SvelteSet } from 'svelte/reactivity'
+import { createAptosAip62Adapter } from './adapters/aptosAip62.ts'
 import { createAptosInjectedAdapter } from './adapters/aptosInjected.ts'
 import { createBitcoinInjectedAdapter } from './adapters/bitcoinInjected.ts'
 import { createCardanoCip30Adapter } from './adapters/cardanoCip30.ts'
@@ -272,10 +273,16 @@ const createWalletRuntimeState = (
 
 	registerAdapter(createEip6963Adapter())
 	registerAdapter(createWalletStandardAdapter())
+	registerAdapter(createAptosAip62Adapter())
 	registerAdapter(createAptosInjectedAdapter())
 	registerAdapter(createCardanoCip30Adapter())
 	registerAdapter(createBitcoinInjectedAdapter())
-	registerAdapter(createCosmosOfflineSignerAdapter())
+	registerAdapter(createCosmosOfflineSignerAdapter([
+		{
+			chainId: Caip2Reference.CosmosHub,
+			accountPrefix: 'cosmos',
+		},
+	]))
 	registerAdapter(createTonConnectAdapter())
 	registerAdapter(createTronInjectedAdapter())
 	registerAdapter(createStarknetWalletApiAdapter())

@@ -249,12 +249,15 @@ export const walletConnectionMethods = [
 		capabilities: [
 			WalletCapability.Discover,
 			WalletCapability.Connect,
+			WalletCapability.Reconnect,
+			WalletCapability.Disconnect,
 			WalletCapability.ListAccounts,
 			WalletCapability.WatchAccounts,
+			WalletCapability.WatchScopes,
 			WalletCapability.SignMessage,
 			WalletCapability.SignTransaction,
 		],
-		implementationStatus: WalletImplementationStatus.Modeled,
+		implementationStatus: WalletImplementationStatus.Implemented,
 		dependencyPolicy: 'none',
 	},
 	{
