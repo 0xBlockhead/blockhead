@@ -1,10 +1,18 @@
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+import {
+	duneExecutionStatuses,
+	dunePerformanceTiers,
+} from '$/sources/Dune/Rest/constants.ts'
 /**
  * Dune API shapes (read / execute / execution results).
  * @see https://docs.dune.com/api-reference/queries/endpoint/read.md
  * @see https://docs.dune.com/api-reference/executions/endpoint/execute-query.md
  * @see https://docs.dune.com/api-reference/executions/endpoint/get-execution-result.md
  */
+
+export type DuneExecutionStatus = (typeof duneExecutionStatuses)[number]['state']
+
+export type DunePerformanceTier = (typeof dunePerformanceTiers)[number]['performance']
 
 export type DuneQueryMetadata = {
 	query_id?: number
@@ -44,15 +52,6 @@ export type DuneExecuteQueryResponse = {
 	execution_id: string
 	state: DuneExecutionStatus
 }
-
-export type DuneExecutionStatus =
-	| 'QUERY_STATE_PENDING'
-	| 'QUERY_STATE_EXECUTING'
-	| 'QUERY_STATE_COMPLETED'
-	| 'QUERY_STATE_COMPLETED_PARTIAL'
-	| 'QUERY_STATE_FAILED'
-	| 'QUERY_STATE_EXPIRED'
-	| 'QUERY_STATE_CANCELED'
 
 export type DuneQueryResultData = {
 	rows: Record<string, JsonValue>[]
@@ -96,7 +95,7 @@ export type DuneExecutionResult = {
 
 export type DuneExecuteQueryBody = {
 	query_parameters?: Record<string, JsonValue>
-	performance?: 'medium' | 'large'
+	performance?: DunePerformanceTier
 }
 
 export type DuneGetExecutionResultsParams = {
