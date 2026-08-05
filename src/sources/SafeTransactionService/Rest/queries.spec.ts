@@ -39,6 +39,7 @@ const recipientAddress = `0x${'c'.repeat(40)}`
 const safeTxHash = `0x${'d'.repeat(64)}`
 const executionHash = `0x${'e'.repeat(64)}`
 const masterCopy = `0x${'1'.repeat(40)}`
+const moduleAddress = `0x${'2'.repeat(40)}`
 const zeroAddress = `0x${'0'.repeat(40)}`
 
 const transaction = {
@@ -173,6 +174,26 @@ describe('Safe Transaction Service public multisig queries', () => {
 		)
 	})
 
+	it('rejects malformed Safe owner and module envelopes', async () => {
+		sourceGetJson.mockResolvedValue({
+			...safeStatus,
+			owners: ownerAddress,
+		})
+		await expect(getSafeStatus({
+			chainId,
+			safeAddress,
+		})).rejects.toThrow('invalid Safe owners')
+
+		sourceGetJson.mockResolvedValue({
+			...safeStatus,
+			modules: moduleAddress,
+		})
+		await expect(getSafeStatus({
+			chainId,
+			safeAddress,
+		})).rejects.toThrow('invalid Safe modules')
+	})
+
 	it('checksums lowercase Safe addresses before HTTP (EIP-55 required by tx-service)', async () => {
 		sourceGetJson.mockResolvedValue(safeStatus)
 		await getSafeStatus({
@@ -229,6 +250,22 @@ describe('Safe Transaction Service public multisig queries', () => {
 		})).rejects.toThrow('different Safe')
 	})
 
+	it('rejects malformed transaction page envelopes', async () => {
+		sourceGetJson.mockResolvedValue({
+			count: 1,
+			next: null,
+			previous: null,
+			results: transaction,
+		})
+
+		await expect(getSafeMultisigTransactions({
+			chainId,
+			safeAddress,
+			limit: 20,
+			offset: 0,
+		})).rejects.toThrow('invalid transaction page results')
+	})
+
 	it('rejects continuations that escape the exact chain and Safe path', async () => {
 		sourceGetJson.mockResolvedValue({
 			count: 1,
@@ -269,6 +306,28 @@ describe('Safe Transaction Service public multisig queries', () => {
 			offset: 0,
 			executed: true,
 		})).rejects.toThrow('missing execution hash')
+	})
+
+	it('rejects queued transactions with execution envelope data', async () => {
+		sourceGetJson.mockResolvedValue({
+			count: 1,
+			next: null,
+			previous: null,
+			results: [
+				{
+					...transaction,
+					executionDate: '2026-07-22T00:00:00Z',
+				},
+			],
+		})
+
+		await expect(getSafeMultisigTransactions({
+			chainId,
+			safeAddress,
+			limit: 20,
+			offset: 0,
+			executed: false,
+		})).rejects.toThrow('queued transaction includes execution data')
 	})
 
 	it('binds a single multisig transaction to the requested Safe and hash', async () => {

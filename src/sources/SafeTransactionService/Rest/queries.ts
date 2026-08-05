@@ -76,6 +76,19 @@ const assertPageNumber = (
 		throw new Error(`SafeTransactionService_Rest: invalid ${label}`)
 }
 
+const assertPage = <_Result>(
+	page: SafePage<_Result>,
+	label: string
+) => {
+	assertPageNumber(page.count, `${label} count`, Number.MAX_SAFE_INTEGER)
+	if (!Array.isArray(page.results))
+		throw new Error(`SafeTransactionService_Rest: invalid ${label} results`)
+	if (page.next != null && typeof page.next !== 'string')
+		throw new Error(`SafeTransactionService_Rest: invalid ${label} next continuation`)
+	if (page.previous != null && typeof page.previous !== 'string')
+		throw new Error(`SafeTransactionService_Rest: invalid ${label} previous continuation`)
+}
+
 const request = <_Result>({
 	binding,
 	path,
@@ -106,15 +119,25 @@ const assertTransaction = (
 	transaction: SafeMultisigTransaction,
 	safeAddress: string
 ) => {
+	assertAddress(transaction.safe, 'transaction Safe')
 	if (transaction.safe.toLowerCase() !== safeAddress.toLowerCase())
 		throw new Error('SafeTransactionService_Rest: transaction belongs to a different Safe')
-	assertAddress(transaction.safe, 'transaction Safe')
 	assertAddress(transaction.to, 'transaction recipient')
 	assertAddress(transaction.gasToken, 'transaction gas token')
 	assertAddress(transaction.refundReceiver, 'transaction refund receiver')
 	assertHash(transaction.safeTxHash, 'Safe transaction hash')
 	if (transaction.transactionHash != null)
 		assertHash(transaction.transactionHash, 'execution transaction hash')
+	if (transaction.data != null && !/^0x[0-9a-fA-F]*$/.test(transaction.data))
+		throw new Error('SafeTransactionService_Rest: invalid transaction data')
+	if (transaction.operation !== 0 && transaction.operation !== 1)
+		throw new Error('SafeTransactionService_Rest: invalid transaction operation')
+	if (typeof transaction.isExecuted !== 'boolean')
+		throw new Error('SafeTransactionService_Rest: invalid transaction execution state')
+	if (transaction.isSuccessful != null && typeof transaction.isSuccessful !== 'boolean')
+		throw new Error('SafeTransactionService_Rest: invalid transaction success state')
+	if (!Array.isArray(transaction.confirmations))
+		throw new Error('SafeTransactionService_Rest: invalid transaction confirmations')
 	for (const [value, label] of [
 		[transaction.value, 'transaction value'],
 		[transaction.safeTxGas, 'Safe transaction gas'],
@@ -172,8 +195,7 @@ export const getSafeStatus = async ({
 		binding,
 		path: `/api/v1/safes/${encodeURIComponent(checksummedSafeAddress)}/`,
 	})
-	if (status.address.toLowerCase() !== checksummedSafeAddress.toLowerCase())
-		throw new Error('SafeTransactionService_Rest: status belongs to a different Safe')
+	assertAddress(status.address, 'Safe address')
 	assertUnsignedDecimal(status.nonce, 'Safe nonce')
 	assertPageNumber(status.threshold, 'Safe threshold', 1_000)
 	assertAddress(status.masterCopy, 'Safe masterCopy')
@@ -181,6 +203,14 @@ export const getSafeStatus = async ({
 	assertAddress(status.guard, 'Safe guard')
 	if (status.moduleGuard != null)
 		assertAddress(status.moduleGuard, 'Safe module guard')
+	if (status.version != null && typeof status.version !== 'string')
+		throw new Error('SafeTransactionService_Rest: invalid Safe version')
+	if (!Array.isArray(status.owners))
+		throw new Error('SafeTransactionService_Rest: invalid Safe owners')
+	if (!Array.isArray(status.modules))
+		throw new Error('SafeTransactionService_Rest: invalid Safe modules')
+	if (status.address.toLowerCase() !== checksummedSafeAddress.toLowerCase())
+		throw new Error('SafeTransactionService_Rest: status belongs to a different Safe')
 	const owners = new Set<string>()
 	for (const owner of status.owners) {
 		assertAddress(owner, 'Safe owner')
@@ -233,7 +263,7 @@ export const getSafeMultisigTransactions = async ({
 		binding,
 		path: `${pathPrefix}?${parameters.toString()}`,
 	})
-	assertPageNumber(page.count, 'result count', Number.MAX_SAFE_INTEGER)
+	assertPage(page, 'transaction page')
 	if (page.results.length > limit)
 		throw new Error('SafeTransactionService_Rest: transaction page exceeds requested limit')
 	assertContinuation(page.next, binding, pathPrefix)
@@ -249,6 +279,16 @@ export const getSafeMultisigTransactions = async ({
 			throw new Error('SafeTransactionService_Rest: transaction execution filter was violated')
 		if (executed === true && transaction.transactionHash == null)
 			throw new Error('SafeTransactionService_Rest: executed transaction missing execution hash')
+		if (
+			executed === false
+			&& (
+				transaction.transactionHash != null
+				|| transaction.executionDate != null
+				|| transaction.blockNumber != null
+				|| transaction.isSuccessful != null
+			)
+		)
+			throw new Error('SafeTransactionService_Rest: queued transaction includes execution data')
 	}
 	return page
 }
@@ -314,7 +354,7 @@ export const getSafeTransactionConfirmations = async ({
 			path: `/api/v1/multisig-transactions/${encodeURIComponent(safeTxHash)}/confirmations/?limit=${limit}&offset=${offset}`,
 		}),
 	])
-	assertPageNumber(page.count, 'confirmation count', Number.MAX_SAFE_INTEGER)
+	assertPage(page, 'confirmation page')
 	if (page.results.length > limit)
 		throw new Error('SafeTransactionService_Rest: confirmation page exceeds requested limit')
 	const confirmationPath = `/api/v1/multisig-transactions/${encodeURIComponent(safeTxHash)}/confirmations/`
