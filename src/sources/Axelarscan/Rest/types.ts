@@ -88,3 +88,12 @@ export type AxelarscanGmpResponse = {
 	total: number
 	time_spent: number
 }
+
+export type AxelarscanErrorEnvelope = {
+	error: true
+	code?: number
+	message?: string
+	method?: string
+	params?: Record<string, unknown>
+	time_spent?: number
+}

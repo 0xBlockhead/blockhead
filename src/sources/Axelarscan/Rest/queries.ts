@@ -1,6 +1,12 @@
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Axelarscan/bindings.ts'
+import {
+	axelarscanGmpPageLimits,
+	axelarscanGmpSimplifiedStatusBySimplifiedStatus,
+	axelarscanGmpStatusByStatus,
+} from '$/sources/Axelarscan/Rest/constants.ts'
 import type {
+	AxelarscanErrorEnvelope,
 	AxelarscanEvent,
 	AxelarscanGmpMessage,
 	AxelarscanGmpResponse,
@@ -63,6 +69,10 @@ const assertMessage = (message: AxelarscanGmpMessage) => {
 		throw new Error('Axelarscan_Rest: mismatched message identity')
 	if (message.command_id != null && !bytes32Pattern.test(message.command_id))
 		throw new Error('Axelarscan_Rest: invalid command identity')
+	if (axelarscanGmpStatusByStatus[message.status] == null)
+		throw new Error(`Axelarscan_Rest: unknown message status ${message.status}`)
+	if (axelarscanGmpSimplifiedStatusBySimplifiedStatus[message.simplified_status] == null)
+		throw new Error(`Axelarscan_Rest: unknown simplified status ${message.simplified_status}`)
 
 	if (message.gas_paid != null) {
 		assertEvent(message.gas_paid)
@@ -155,12 +165,42 @@ const assertMessage = (message: AxelarscanGmpMessage) => {
 }
 
 const assertPage = (size: number, from: number) => {
-	if (!Number.isSafeInteger(size) || size < 1 || size > 100)
+	if (!Number.isSafeInteger(size) || size < 1 || size > axelarscanGmpPageLimits.maxSize)
 		throw new Error(`Axelarscan_Rest: invalid page size ${size}`)
-	if (!Number.isSafeInteger(from) || from < 0 || from > 100_000)
+	if (!Number.isSafeInteger(from) || from < 0 || from > axelarscanGmpPageLimits.maxFrom)
 		throw new Error(`Axelarscan_Rest: invalid page offset ${from}`)
 }
 
+const assertGmpResponse = (
+	response: AxelarscanGmpResponse | AxelarscanErrorEnvelope | null | undefined,
+	size: number
+) => {
+	if (response == null)
+		throw new Error('Axelarscan_Rest: searchGMP missing response')
+	if ('error' in response && response.error)
+		throw new Error(
+			`Axelarscan_Rest: ${
+				typeof response.message === 'string' && response.message.length > 0 ?
+					response.message
+				:
+					'searchGMP failed'
+			}`
+		)
+	if (!Array.isArray(response.data))
+		throw new Error('Axelarscan_Rest: searchGMP missing data')
+	assertSafeNonnegativeInteger(response.total, 'total')
+	assertSafeNonnegativeInteger(response.time_spent, 'query time')
+	if (response.data.length > size)
+		throw new Error('Axelarscan_Rest: response exceeds requested size')
+	for (const message of response.data)
+		assertMessage(message)
+	return response
+}
+
+/**
+ * Axelarscan GMP list/detail via unique upstream `GET /gmp/searchGMP`.
+ * Successful empty `data: []` is valid; missing/malformed envelopes throw.
+ */
 export const getGmpMessages = (query:
 	| {
 		destinationChain?: never
@@ -178,7 +218,12 @@ export const getGmpMessages = (query:
 	}
 ) => {
 	const from = query.from ?? 0
-	const size = query.transactionHash == null ? query.size ?? 50 : 100
+	const size = (
+		query.transactionHash == null ?
+			query.size ?? axelarscanGmpPageLimits.defaultSize
+		:
+			axelarscanGmpPageLimits.maxSize
+	)
 	if (query.transactionHash == null) {
 		assertPage(size, from)
 		if (query.sourceChain != null)
@@ -188,7 +233,7 @@ export const getGmpMessages = (query:
 	} else
 		assertOpaqueIdentity(query.transactionHash, 'transaction hash')
 
-	return getJson<AxelarscanGmpResponse>(
+	return getJson<AxelarscanGmpResponse | AxelarscanErrorEnvelope>(
 		bindings[Source.Axelarscan_Rest][0],
 		`/gmp/searchGMP?${new URLSearchParams(
 			query.transactionHash == null ?
@@ -205,16 +250,11 @@ export const getGmpMessages = (query:
 				}
 		)}`
 	).then((response) => {
-		assertSafeNonnegativeInteger(response.total, 'total')
-		assertSafeNonnegativeInteger(response.time_spent, 'query time')
-		if (response.data.length > size)
-			throw new Error('Axelarscan_Rest: response exceeds requested size')
-		for (const message of response.data)
-			assertMessage(message)
+		const page = assertGmpResponse(response, size)
 
 		if (query.transactionHash != null) {
 			if (
-				response.data.some((message) => ![
+				page.data.some((message) => ![
 					message.call.transactionHash,
 					message.gas_paid?.transactionHash,
 					message.approved?.transactionHash,
@@ -223,7 +263,7 @@ export const getGmpMessages = (query:
 			)
 				throw new Error('Axelarscan_Rest: foreign transaction message')
 		} else
-			for (const message of response.data)
+			for (const message of page.data)
 				if (
 					query.sourceChain != null
 					&& !sameIdentity(message.call.chain, query.sourceChain)
@@ -231,6 +271,6 @@ export const getGmpMessages = (query:
 					&& !sameIdentity(message.call.returnValues.destinationChain, query.destinationChain)
 				)
 					throw new Error('Axelarscan_Rest: foreign chain message')
-		return response
+		return page
 	})
 }

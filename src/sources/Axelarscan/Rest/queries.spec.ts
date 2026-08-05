@@ -149,8 +149,50 @@ describe('Axelarscan GMP queries', () => {
 		})
 	})
 
+	it('returns an empty list when searchGMP has zero messages', async () => {
+		getJson.mockResolvedValue(response([]))
+
+		await expect(getGmpMessages({
+			size: 1,
+		})).resolves.toEqual({
+			data: [],
+			total: 0,
+			time_spent: 41,
+		})
+
+		getJson.mockResolvedValue(response([]))
+		await expect(getGmpMessages({
+			transactionHash: `0x${'9'.repeat(64)}`,
+		})).resolves.toEqual({
+			data: [],
+			total: 0,
+			time_spent: 41,
+		})
+	})
+
 	it.each([
-		['size', { size: 101 }],
+		['null response', null, 'searchGMP missing response'],
+		['omitted data', { total: 0, time_spent: 1 }, 'searchGMP missing data'],
+		['non-array data', { data: null, total: 0, time_spent: 1 }, 'searchGMP missing data'],
+		[
+			'upstream error envelope',
+			{
+				error: true,
+				code: 400,
+				message: '"size" (50) cannot be more than 25.',
+				method: 'searchGMP',
+			},
+			'"size" (50) cannot be more than 25.',
+		],
+	])('hard-fails when the searchGMP envelope is %s', async (_name, body, message) => {
+		getJson.mockResolvedValue(body)
+		await expect(getGmpMessages({
+			size: 1,
+		})).rejects.toThrow(message)
+	})
+
+	it.each([
+		['size', { size: 26 }],
 		['offset', { from: -1 }],
 	])('rejects an invalid page %s', (_name, options) => {
 		expect(() => getGmpMessages({
@@ -196,6 +238,12 @@ describe('Axelarscan GMP queries', () => {
 		['lifecycle', (value: AxelarscanGmpMessage) => {
 			value.executed!.block_timestamp = 1
 		}],
+		['status', (value: AxelarscanGmpMessage) => {
+			value.status = 'not-a-status'
+		}],
+		['simplified status', (value: AxelarscanGmpMessage) => {
+			value.simplified_status = 'not-a-status'
+		}],
 	])('rejects mismatched or malformed %s', async (_name, mutate) => {
 		const value = structuredClone(message)
 		mutate(value)
@@ -210,9 +258,10 @@ describe('Axelarscan GMP queries', () => {
 		})
 		expect(getJson).toHaveBeenCalledWith(
 			binding,
-			`/gmp/searchGMP?txHash=${encodeURIComponent(executionTransactionHash)}&size=100`
+			`/gmp/searchGMP?txHash=${encodeURIComponent(executionTransactionHash)}&size=25`
 		)
 
+		getJson.mockResolvedValue(response())
 		await expect(getGmpMessages({
 			transactionHash: `0x${'9'.repeat(64)}`,
 		})).rejects.toThrow('foreign transaction message')
