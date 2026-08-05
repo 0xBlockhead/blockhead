@@ -5,7 +5,8 @@ import {
 } from '../ecosystems.ts'
 
 
-// Recover blocked: no safe restore fixture; source-available build carries Argent non-commercial license.
+// Recover has no safe restore fixture; source-available build carries Argent non-commercial license.
+// Keep that cell explicitly blocked — do not invent a recover pass.
 export const argentXWalletMatrixScenarios = (version: string) => ([
 	{
 		id: 'argent-x-create-new-1',
@@ -50,6 +51,6 @@ export const argentXWalletMatrixScenarios = (version: string) => ([
 		connectionMethod: 'wallet_requestAccounts',
 		chain: 'starknet:SN_MAIN',
 		requestMethod: 'wallet_requestChainId',
-		lifecycleEdgeCase: 'fixture-material-not-provided',
+		lifecycleEdgeCase: 'fixture-material-not-provided-blocked',
 	},
 ] as const satisfies readonly WalletMatrixScenario[])
