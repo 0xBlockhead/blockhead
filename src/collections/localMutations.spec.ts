@@ -260,6 +260,27 @@ describe('local session lifecycle mutations', () => {
 			id: 'session-reload',
 		})).toThrow('not removable')
 
+		await writeLocalBlockheadSessionLifecycle(context, parentSelector, {
+			id: 'session-reload',
+			name: 'reload',
+			status: BlockheadSessionStatus.Finalized,
+			createdAt: 1,
+			updatedAt: 30,
+			lockedAt: 20,
+		})
+		expect(() => deleteLocalBlockheadSession(context, parentSelector, {
+			id: 'session-reload',
+		})).toThrow('not removable')
+		expect(context.entityFieldCollections[EntityType.BlockheadSession][entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'status'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: BlockheadSessionStatus.Finalized,
+			}),
+		])
+
 		const draftSelector = await writeLocalBlockheadSession(context, parentSelector, 'draft-removable')
 		writeLocalBlockheadSessionLockedAt(context, draftSelector, 5)
 		expect(context.entityFieldCollections[EntityType.BlockheadSession][entityFieldAddressKey(
