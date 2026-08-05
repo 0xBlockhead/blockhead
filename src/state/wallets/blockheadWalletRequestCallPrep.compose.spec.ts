@@ -153,6 +153,23 @@ describe('BlockheadWalletRequestCall prep compose', () => {
 			ready: false,
 			error: 'Each BlockheadWalletRequestCall requires a non-empty inputDataHash.',
 		})
+
+		expect(resolveExecutableWalletRequestPrep({
+			connections: [selectedConnection],
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: account.accountAddress,
+			calls: [
+				{
+					toAddress: '0x2222222222222222222222222222222222222222',
+					value: 1n,
+					inputDataHash: '  \n',
+				},
+			],
+		})).toEqual({
+			ready: false,
+			error: 'Each BlockheadWalletRequestCall requires a non-empty inputDataHash.',
+		})
 	})
 
 	it('keeps prepared wallet requests unsent through locked Draft session editing', () => {

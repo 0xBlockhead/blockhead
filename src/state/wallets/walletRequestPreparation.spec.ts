@@ -11,6 +11,7 @@ import {
 import {
 	isPreparedWalletRequestWithoutSend,
 	preparedWalletRequestObservation,
+	resolveExecutableWalletRequestPrep,
 	resolveWalletPrepSelection,
 	resolveWalletRequestCallsPreparation,
 	resolveWalletTransactionPrepGate,
@@ -60,6 +61,14 @@ const walletPrepBlockedComposeSource = readFileSync(
 	new URL('./walletPrepBlocked.compose.spec.ts', import.meta.url),
 	'utf8'
 )
+const sessionsE2eSource = readFileSync(
+	new URL('../../routes/~/sessions/sessions.e2e.ts', import.meta.url),
+	'utf8'
+)
+const accountControlsE2eSource = readFileSync(
+	new URL('../../routes/~/accounts/account-controls.e2e.ts', import.meta.url),
+	'utf8'
+)
 
 
 describe('walletRequestPreparation', () => {
@@ -89,6 +98,13 @@ describe('walletRequestPreparation', () => {
 		expect(walletPrepBlockedComposeSource).toMatch(/none is selected/)
 		expect(walletPrepBlockedComposeSource).toMatch(/SendTransaction capability/)
 		expect(walletPrepBlockedComposeSource).toMatch(/prep-without-send/)
+		expect(sessionsE2eSource).toMatch(/prepares a locked native transfer without sending/)
+		expect(sessionsE2eSource).toMatch(/Prep journey must not broadcast eth_sendTransaction/)
+		expect(sessionsE2eSource).toMatch(/EVM native transfer preparation succeeded and saved a wallet request/)
+		expect(sessionsE2eSource).not.toMatch(/writeLocalBlockheadWalletRequestSubmittedAt/)
+		expect(accountControlsE2eSource).toMatch(/prep-without-send/)
+		expect(accountControlsE2eSource).toMatch(/eth_sendTransaction/)
+		expect(accountControlsE2eSource).toMatch(/must not broadcast eth_sendTransaction/)
 	})
 
 	it('requires exactly one Connected+selected wallet before prep binding', () => {
@@ -144,6 +160,16 @@ describe('walletRequestPreparation', () => {
 			ready: false,
 			error: 'Selected wallet connection has no connectionKey for request binding.',
 		})
+		expect(resolveWalletPrepSelection([
+			connectedWalletConnection({
+				...base,
+				connectionKey: '   ',
+				selected: true,
+			}),
+		])).toEqual({
+			ready: false,
+			error: 'Selected wallet connection has no connectionKey for request binding.',
+		})
 	})
 
 	it('blocks prep when Connected selection has no active account', () => {
@@ -158,6 +184,36 @@ describe('walletRequestPreparation', () => {
 		])).toEqual({
 			ready: false,
 			error: 'Wallet request preparation requires exactly one selected wallet connection; received 0.',
+		})
+
+		expect(resolveWalletPrepSelection([
+			{
+				...base,
+				connectionKey: 'selected',
+				status: BlockheadConnectionStatus.Connected,
+				selected: true,
+				activeAccount: undefined,
+			},
+		])).toEqual({
+			ready: false,
+			error: 'Selected wallet connection has no active account.',
+		})
+
+		expect(resolveWalletPrepSelection([
+			{
+				...base,
+				connectionKey: 'selected',
+				status: BlockheadConnectionStatus.Connected,
+				selected: true,
+				accounts: [account],
+				activeAccount: {
+					...account,
+					accountAddress: '0x9999999999999999999999999999999999999999',
+				},
+			},
+		])).toEqual({
+			ready: false,
+			error: 'Selected wallet connection has no active account.',
 		})
 	})
 
@@ -195,6 +251,26 @@ describe('walletRequestPreparation', () => {
 		})).toEqual({
 			ready: false,
 			error: 'Selected wallet account is connected to a different chain.',
+		})
+
+		expect(resolveWalletTransactionPrepGate({
+			connections: [selected],
+			namespace: 'solana',
+			reference: '1',
+			accountAddress: account.accountAddress,
+		})).toEqual({
+			ready: false,
+			error: 'Selected wallet account is not a solana account.',
+		})
+
+		expect(resolveWalletTransactionPrepGate({
+			connections: [selected],
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: '0x9999999999999999999999999999999999999999',
+		})).toEqual({
+			ready: false,
+			error: 'Selected wallet account does not match the request sender.',
 		})
 
 		const withoutCapability = connectedWalletConnection({
@@ -261,6 +337,16 @@ describe('walletRequestPreparation', () => {
 			{
 				toAddress: '0x2222222222222222222222222222222222222222',
 				value: 1n,
+				inputDataHash: '   ',
+			},
+		])).toEqual({
+			ready: false,
+			error: 'Each BlockheadWalletRequestCall requires a non-empty inputDataHash.',
+		})
+		expect(resolveWalletRequestCallsPreparation([
+			{
+				toAddress: '0x2222222222222222222222222222222222222222',
+				value: 1n,
 				inputDataHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
 			},
 			{
@@ -278,6 +364,55 @@ describe('walletRequestPreparation', () => {
 					inputDataHash: '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
 				},
 			],
+		})
+	})
+
+	it('orchestrates gate + call batch into executable prep-without-send', () => {
+		const selected = connectedWalletConnection({
+			...base,
+			connectionKey: 'selected',
+			selected: true,
+		})
+		const calls = [{
+			toAddress: '0x2222222222222222222222222222222222222222',
+			value: 1n,
+			inputDataHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+		}] as const
+
+		const executable = resolveExecutableWalletRequestPrep({
+			connections: [selected],
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: account.accountAddress,
+			calls,
+		})
+		expect(executable).toMatchObject({
+			ready: true,
+			gate: {
+				connectionKey: 'selected',
+				requestMethod: 'eth_sendTransaction',
+				capability: WalletCapability.SendTransaction,
+			},
+			calls,
+		})
+		if (!executable.ready)
+			throw new Error('expected executable prep')
+		expect(isPreparedWalletRequestWithoutSend(executable.observation)).toBe(true)
+		expect(executable.observation).not.toHaveProperty('submittedAt')
+		expect(executable.observation).not.toHaveProperty('evmTransactionIds')
+
+		expect(resolveExecutableWalletRequestPrep({
+			connections: [selected],
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: account.accountAddress,
+			calls: [{
+				...calls[0],
+				inputDataHash: '\t',
+			}],
+		})).toEqual({
+			ready: false,
+			error: 'Each BlockheadWalletRequestCall requires a non-empty inputDataHash.',
 		})
 	})
 

@@ -680,6 +680,47 @@ describe('wallet connection runtime normalization', () => {
 		)
 	}, 30_000)
 
+	it('persists prepared transaction rejection without rewriting or submitting the request', async () => {
+		const {
+			runtime,
+			writeWalletRequest,
+			writeWalletRequestObservation,
+			writeWalletRequestSubmittedAt,
+		} = await mountMockWalletRuntime({})
+
+		await runtime.rejectPreparedTransactionRequest(
+			{
+				id: 'wallet-request-prepared',
+				requestKind: 'transaction',
+				requestMethod: 'eth_sendTransaction',
+				requestedAt: 10,
+			},
+			{
+				timestampMs: 20,
+				status: 'prepared',
+			},
+			21
+		)
+
+		expect(writeWalletRequest).not.toHaveBeenCalled()
+		expect(writeWalletRequestSubmittedAt).not.toHaveBeenCalled()
+		expect(writeWalletRequestObservation).toHaveBeenCalledExactlyOnceWith(
+			expect.anything(),
+			{
+				id: 'wallet-request-prepared',
+			},
+			{
+				timestampMs: 21,
+				source: Source.Local_Internal,
+				status: 'failed',
+				error: 'Wallet signing request rejected',
+			}
+		)
+		expect(writeWalletRequestObservation.mock.calls[0][2]).not.toHaveProperty('submittedAt')
+		expect(writeWalletRequestObservation.mock.calls[0][2]).not.toHaveProperty('transactionId')
+		expect(writeWalletRequestObservation.mock.calls[0][2]).not.toHaveProperty('evmTransactions')
+	})
+
 	it('awaits durable request and terminal observations around the provider call', async () => {
 		let persistRequested: () => void = () => {}
 		let persistTerminal: () => void = () => {}

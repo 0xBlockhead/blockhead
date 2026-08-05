@@ -85,7 +85,7 @@ export const resolveWalletPrepSelection = (
 		}
 
 	const connection = selected[0]
-	const connectionKey = connection.connectionKey
+	const connectionKey = connection.connectionKey?.trim()
 	if (connectionKey == null || connectionKey === '')
 		return {
 			ready: false,
@@ -93,7 +93,14 @@ export const resolveWalletPrepSelection = (
 		}
 
 	const account = connection.activeAccount
-	if (account == null)
+	if (
+		account == null
+		|| !connection.accounts.some((candidate) => (
+			candidate.namespace === account.namespace
+			&& candidate.reference === account.reference
+			&& candidate.accountAddress.toLowerCase() === account.accountAddress.toLowerCase()
+		))
+	)
 		return {
 			ready: false,
 			error: 'Selected wallet connection has no active account.',
@@ -173,7 +180,7 @@ export const resolveWalletRequestCallsPreparation = (
 			ready: false,
 			error: 'Wallet request preparation requires at least one BlockheadWalletRequestCall.',
 		}
-	: calls.some((call) => call.inputDataHash === '') ?
+	: calls.some((call) => call.inputDataHash.trim() === '') ?
 		{
 			ready: false,
 			error: 'Each BlockheadWalletRequestCall requires a non-empty inputDataHash.',

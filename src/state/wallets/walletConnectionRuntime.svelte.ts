@@ -53,6 +53,11 @@ import {
 import {
 	resolveWalletPrepSelection,
 } from './walletRequestPreparation.ts'
+import {
+	preparedWalletRequestRejection,
+	type PreparedTransactionWalletRequest,
+	type PreparedWalletRequestRejectionObservation,
+} from './preparedWalletRequestRejection.ts'
 import { createWalletStandardAdapter } from './adapters/walletStandard.ts'
 import {
 	createWalletConnectV2Adapter,
@@ -81,6 +86,11 @@ type WalletRuntime = {
 			namespace: string
 			reference: string
 		}
+	): Promise<void>
+	rejectPreparedTransactionRequest(
+		request: PreparedTransactionWalletRequest,
+		preparedObservation: PreparedWalletRequestRejectionObservation,
+		rejectedAt: number
 	): Promise<void>
 	disconnect(connectionKey: string): Promise<void>
 	remove(connectionKey: string): Promise<void>
@@ -819,6 +829,23 @@ const createWalletRuntimeState = (
 		)
 	}
 
+	const rejectPreparedTransactionRequest = async (
+		request: PreparedTransactionWalletRequest,
+		preparedObservation: PreparedWalletRequestRejectionObservation,
+		rejectedAt: number
+	) => {
+		const rejection = preparedWalletRequestRejection({
+			request,
+			preparedObservation,
+			rejectedAt,
+		})
+		await writeLocalBlockheadWalletRequest_Timestamp(
+			context,
+			rejection.walletRequestSelector,
+			rejection.observation
+		)
+	}
+
 	const selectAccount = (
 		connectionKey: string,
 		account: WalletAccount
@@ -850,6 +877,7 @@ const createWalletRuntimeState = (
 		signMessage,
 		signTypedData,
 		switchScope,
+		rejectPreparedTransactionRequest,
 		disconnect,
 		remove,
 		selectAccount,
