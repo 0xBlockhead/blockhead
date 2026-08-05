@@ -6,6 +6,7 @@ import {
 
 
 // Account 2 Add Wallet opens a blank tab on Taho 0.66.0; recover has no safe fixture.
+// Keep those cells explicitly blocked — do not invent pass outcomes for blank-add-wallet / recover.
 export const tahoWalletMatrixScenarios = (version: string) => ([
 	{
 		id: 'taho-create-new-1',
