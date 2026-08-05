@@ -385,6 +385,11 @@ const fieldCanCompleteEmpty = (
 		|| definition.cardinality === EntityFieldCardinality.ZeroOrMany
 	)
 
+const requiredFieldResolvedEmptyError = (
+	entityType: string,
+	definition: EntityFieldDefinition
+) => new Error(`${entityType}.${definition.name} resolved without a required value`)
+
 const enabledSelectionSources = <
 	const _Schema extends Schema
 >(
@@ -849,6 +854,10 @@ export function subscribeEntityField<
 			rowsFailure !== undefined
 			&& queries.rows.data.length === 0
 		)
+		const requiredFieldResolvedEmpty = (
+			queries.localAuthorityResolvedEmpty()
+			&& !fieldCanCompleteEmpty(definition)
+		)
 		let fieldData = fieldDataFromRows(
 			entityType,
 			entitySelector,
@@ -970,14 +979,26 @@ export function subscribeEntityField<
 		return asQuerySnapshot(
 			[{
 				...queries.rows,
-				isError: rowsFailed,
-				error: rowsFailure === undefined ? undefined : new Error(rowsFailure.error),
+				isError: rowsFailed || requiredFieldResolvedEmpty,
+				error: (
+					rowsFailed ?
+						new Error(rowsFailure?.error ?? queries.rows.status)
+					: requiredFieldResolvedEmpty ?
+						requiredFieldResolvedEmptyError(entityType, definition)
+					:
+						undefined
+				),
 				isComplete: (
 					rowsFailed
+					|| requiredFieldResolvedEmpty
 					|| (
 						!queries.sourceHasUnsyncedMatches()
 						&& (
 							queries.localAuthorityResolvedEmpty()
+							|| queries.sourceCollection.utils.isResolverSubsetResolved(
+								parentSelectorKey,
+								queries.sources
+							)
 							|| (
 								(
 									queries.rows.data.length > 0
@@ -1285,6 +1306,13 @@ const subscribeEntitySelection = <
 		selectorKey,
 		querySources
 	)
+	const localEntityResolvedEmpty = () => (
+		(querySources == null || querySources.includes(Source.Local_Internal))
+		&& context.entityCollections[entityType].utils.localMutationAuthorityRowCount(
+			selectorKey,
+			localEntityAuthorityKey
+		) === 0
+	)
 	const selectedFields = (
 		selection.fields === undefined ?
 			entityFieldDefinitions(context.entityDefinitionByType[entityType])
@@ -1462,6 +1490,10 @@ const subscribeEntitySelection = <
 			rowsFailure !== undefined
 			&& entityRows.data.length === 0
 		)
+		const entityMissing = (
+			entityRows.data.length === 0
+			&& localEntityResolvedEmpty()
+		)
 		const fieldValues: SubscribeMaterializedFields = {}
 		const fieldValuesByAddress: Record<
 			string,
@@ -1605,11 +1637,22 @@ const subscribeEntitySelection = <
 			[
 				{
 					...entityRows,
-					isError: rowsFailed,
-					error: rowsFailure === undefined ? undefined : new Error(rowsFailure.error),
+					isError: rowsFailed || entityMissing,
+					error: (
+						rowsFailed ?
+							new Error(rowsFailure?.error ?? entityRows.status)
+						: entityMissing ?
+							new Error(`${entityType} ${selectorKey} does not exist`)
+						:
+							undefined
+					),
 					isComplete: (
 						rowsFailed
-						|| fields.length > 0
+						|| entityMissing
+						|| (
+							fields.length > 0
+							&& querySources?.includes(Source.Local_Internal) !== true
+						)
 						|| (
 							!context.entityCollections[entityType].utils.isResolverSubsetLoading(
 								selectorKey,
@@ -1642,16 +1685,32 @@ const subscribeEntitySelection = <
 						fieldRowsFailure !== undefined
 						&& queries.rows.data.length === 0
 					)
+					const requiredFieldResolvedEmpty = (
+						queries.localAuthorityResolvedEmpty()
+						&& !fieldCanCompleteEmpty(definition)
+					)
 					return {
 						...queries.rows,
-						isError: fieldRowsFailed,
-						error: fieldRowsFailure === undefined ? undefined : new Error(fieldRowsFailure.error),
+						isError: fieldRowsFailed || requiredFieldResolvedEmpty,
+						error: (
+							fieldRowsFailed ?
+								new Error(fieldRowsFailure?.error ?? queries.rows.status)
+							: requiredFieldResolvedEmpty ?
+								requiredFieldResolvedEmptyError(entityType, definition)
+							:
+								undefined
+						),
 						isComplete: (
 							fieldRowsFailed
+							|| requiredFieldResolvedEmpty
 							|| (
 								!queries.sourceHasUnsyncedMatches()
 								&& (
 									queries.localAuthorityResolvedEmpty()
+									|| queries.sourceCollection.utils.isResolverSubsetResolved(
+										selectorKey,
+										queries.sources
+									)
 									|| (
 										(
 											queries.rows.data.length > 0

@@ -4005,6 +4005,10 @@ describe('client resolver stack architecture', () => {
 					primitiveType: arktype('string'),
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
+				requiredNote: {
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
 				$related: {
 					entityType: 'LocalAuthorityRelatedFixture',
 					cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -4104,6 +4108,7 @@ describe('client resolver stack architecture', () => {
 					},
 					projections: {
 						note: (snapshot) => snapshot.note,
+						requiredNote: (snapshot) => snapshot.requiredNote,
 						items: {
 							select: (snapshot) => snapshot.items,
 							resolveCount: (snapshot) => snapshot.items.length,
@@ -4130,6 +4135,7 @@ describe('client resolver stack architecture', () => {
 					},
 					projections: {
 						note: (snapshot) => snapshot.note,
+						requiredNote: (snapshot) => snapshot.requiredNote,
 						items: {
 							select: () => {
 								providerCalls += 1
@@ -4600,10 +4606,79 @@ describe('client resolver stack architecture', () => {
 			note: 'Updated locally',
 		})
 
+		const resolverEmptyRequiredSelector = {
+			slug: 'resolver-empty-required',
+		}
+		const resolverEmptyRequiredSelectorKey = stringify(resolverEmptyRequiredSelector)
+		context.entityCollections.LocalAuthorityFixture.utils.writeUpsertWithAuthority(
+			{
+				[EntityMetaKey.Selector]: resolverEmptyRequiredSelector,
+				[EntityMetaKey.SelectorKey]: resolverEmptyRequiredSelectorKey,
+				[EntityMetaKey.Source]: Source.Local_Internal,
+			},
+			resolverEmptyRequiredSelectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: 'LocalAuthorityFixture',
+				selectorKey: resolverEmptyRequiredSelectorKey,
+			}),
+			'present'
+		)
+		const requiredFieldAddressKey = entityFieldAddressKey('LocalAuthorityFixture', [], 'requiredNote')
+		context.entityFieldCollections.LocalAuthorityFixture[requiredFieldAddressKey].utils.replaceRowsWithAuthority(
+			() => false,
+			[],
+			resolverEmptyRequiredSelectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: 'LocalAuthorityFixture',
+				selectorKey: resolverEmptyRequiredSelectorKey,
+				fieldName: 'requiredNote',
+				fieldAddressKey: requiredFieldAddressKey,
+				facetPathKey: stringify([]),
+			}),
+			'resolved'
+		)
+		const resolverEmptyRequiredResource = subscribeEntityField(
+			context,
+			'LocalAuthorityFixture',
+			resolverEmptyRequiredSelector,
+			'requiredNote',
+			{
+				sources: [Source.Local_Internal],
+			}
+		)
+		await expect.poll(() => resolverEmptyRequiredResource.error).toEqual(
+			new Error('LocalAuthorityFixture.requiredNote resolved without a required value')
+		)
+		await expect(resolverEmptyRequiredResource).rejects.toThrow(
+			'LocalAuthorityFixture.requiredNote resolved without a required value'
+		)
+		await expect(context.select(
+			'LocalAuthorityFixture',
+			resolverEmptyRequiredSelector
+		)({
+			sources: [Source.Local_Internal],
+			fields: {
+				requiredNote: true,
+			},
+		})).rejects.toThrow('LocalAuthorityFixture.requiredNote resolved without a required value')
+		expect(localResolverCalls).toBe(0)
+
 		const absentEntitySelector = {
-			slug: 'runtime-absent',
+			slug: 'e2e-probe-wallet-connection',
 		}
 		const absentSelectorKey = stringify(absentEntitySelector)
+		const absentEntityResource = context.select(
+			'LocalAuthorityFixture',
+			absentEntitySelector
+		)({
+			sources: [Source.Local_Internal],
+			fields: {
+				slug: true,
+				note: true,
+			},
+		})
 		const absentResource = subscribeEntityField(
 			context,
 			'LocalAuthorityFixture',
@@ -4614,6 +4689,17 @@ describe('client resolver stack architecture', () => {
 			}
 		)
 		expect(absentResource.ready).toBe(false)
+		context.entityCollections.LocalAuthorityFixture.utils.replaceRowsWithAuthority(
+			() => false,
+			[],
+			absentSelectorKey,
+			localMutationAuthorityKey({
+				source: Source.Local_Internal,
+				entityType: 'LocalAuthorityFixture',
+				selectorKey: absentSelectorKey,
+			}),
+			'deleted'
+		)
 		context.entityFieldCollections.LocalAuthorityFixture[fieldAddressKey].utils.replaceRowsWithAuthority(
 			() => false,
 			[],
@@ -4645,11 +4731,26 @@ describe('client resolver stack architecture', () => {
 
 		await expect.poll(() => absentResource.ready).toBe(true)
 		await expect(absentResource).resolves.toBeUndefined()
+		await expect.poll(() => absentEntityResource.error).toEqual(
+			new Error(`LocalAuthorityFixture ${absentSelectorKey} does not exist`)
+		)
+		await expect(absentEntityResource).rejects.toThrow('does not exist')
 		await Promise.all([
+			context.entityCollections.LocalAuthorityFixture.utils.waitForPersistence(),
 			context.entityFieldCollections.LocalAuthorityFixture[fieldAddressKey].utils.waitForPersistence(),
 			context.entityFieldCollections.LocalAuthorityFixture[relatedFieldAddressKey].utils.waitForPersistence(),
 		])
 		const restartedContext = createContext()
+		const restartedAbsentEntityResource = restartedContext.select(
+			'LocalAuthorityFixture',
+			absentEntitySelector
+		)({
+			sources: [Source.Local_Internal],
+			fields: {
+				slug: true,
+				note: true,
+			},
+		})
 		const restartedAbsentResource = subscribeEntityField(
 			restartedContext,
 			'LocalAuthorityFixture',
@@ -4659,6 +4760,10 @@ describe('client resolver stack architecture', () => {
 				sources: [Source.Local_Internal],
 			}
 		)
+		await expect.poll(() => restartedAbsentEntityResource.error).toEqual(
+			new Error(`LocalAuthorityFixture ${absentSelectorKey} does not exist`)
+		)
+		await expect(restartedAbsentEntityResource).rejects.toThrow('does not exist')
 		await expect.poll(() => restartedAbsentResource.ready).toBe(true)
 		await expect(restartedAbsentResource).resolves.toBeUndefined()
 		const restartedAbsentReference = restartedContext.select(
