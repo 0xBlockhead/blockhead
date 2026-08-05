@@ -47,7 +47,20 @@ export type EsploraTransactionOutput = {
 	scriptpubkey_asm?: string
 	scriptpubkey_type: string
 	scriptpubkey_address?: string
-	value: number
+	/** Explicit sats when unblinded; Elements confidential outputs omit this. */
+	value?: number
+	/** Elements: Pedersen value commitment when amount is confidential. */
+	valuecommitment?: string
+	/** Elements: explicit asset id when unblinded. */
+	asset?: string
+	/** Elements: Pedersen asset commitment when asset is confidential. */
+	assetcommitment?: string
+	/** Elements: explicit nonce when present. */
+	nonce?: string
+	/** Elements: nonce commitment when blinded. */
+	noncecommitment?: string
+	surjection_proof?: string
+	range_proof?: string
 }
 
 export type EsploraAssetStats = {

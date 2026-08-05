@@ -1,7 +1,6 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -125,7 +124,11 @@ export default {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				NetworkTxId: {
-					resolve: async ({ $network, txId }) => {
+					resolve: async (entitySelector) => {
+						const {
+							$network,
+							txId,
+						} = entitySelector
 						const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
 						const transaction = await getTransaction({
 							target: esploraTargetForNetwork($network),
@@ -150,6 +153,18 @@ export default {
 								feeSats: BigInt(transaction.fee),
 							}),
 							isCoinbase: transaction.vin.some((input) => input.is_coinbase),
+							$$inputs: transaction.vin.map((_input, indexInTransaction) => ({
+								[EntityMetaKey.Selector]: {
+									$transaction: entitySelector,
+									indexInTransaction,
+								},
+							})),
+							$$outputs: transaction.vout.map((_output, indexInTransaction) => ({
+								[EntityMetaKey.Selector]: {
+									$transaction: entitySelector,
+									indexInTransaction,
+								},
+							})),
 						}
 					},
 				}
@@ -163,6 +178,127 @@ export default {
 				virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
 				feeSats: (snapshot) => snapshot.feeSats,
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
+				$$inputs: (snapshot) => snapshot.$$inputs,
+				$$outputs: (snapshot) => snapshot.$$outputs,
+			}),
+
+		defineResolver({
+			entityType: EntityType.UtxoInput,
+			resolve: {
+				TransactionIndexInTransaction: {
+					resolve: async ({ $transaction, indexInTransaction }) => {
+						const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
+						const input = (await getTransaction({
+							target: esploraTargetForNetwork($transaction.$network),
+							txId: $transaction.txId,
+						})).vin[indexInTransaction]
+						return {
+							[EntityMetaKey.Selector]: {
+								$transaction: $transaction,
+								indexInTransaction: indexInTransaction,
+							},
+							...(input.txid != null && input.vout != null && {
+								$spentOutput: {
+									[EntityMetaKey.Selector]: {
+										$transaction: {
+											$network: $transaction.$network,
+											txId: input.txid,
+										},
+										indexInTransaction: input.vout,
+									},
+								},
+							}),
+							...(input.is_coinbase && input.scriptsig != null && {
+								coinbaseScript: input.scriptsig,
+							}),
+							...(input.scriptsig_asm != null && {
+								scriptSigAsm: input.scriptsig_asm,
+							}),
+							sequence: input.sequence,
+							...(input.witness != null && {
+								witness: input.witness,
+							}),
+						}
+					},
+				}
+			},
+		})({
+				$spentOutput: (snapshot) => snapshot.$spentOutput,
+				coinbaseScript: (snapshot) => snapshot.coinbaseScript,
+				scriptSigAsm: (snapshot) => snapshot.scriptSigAsm,
+				sequence: (snapshot) => snapshot.sequence,
+				witness: (snapshot) => snapshot.witness ?? [],
+			}),
+
+		defineResolver({
+			entityType: EntityType.UtxoOutput,
+			resolve: {
+				TransactionIndexInTransaction: {
+					resolve: async ({ $transaction, indexInTransaction }) => {
+						const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
+						const output = (await getTransaction({
+							target: esploraTargetForNetwork($transaction.$network),
+							txId: $transaction.txId,
+						})).vout[indexInTransaction]
+						const isConfidential = (
+							output.valuecommitment != null
+							|| output.assetcommitment != null
+						)
+						return {
+							[EntityMetaKey.Selector]: {
+								$transaction: $transaction,
+								indexInTransaction: indexInTransaction,
+							},
+							...(output.value != null && {
+								valueSats: BigInt(output.value),
+							}),
+							...(output.scriptpubkey_asm != null && {
+								scriptPubKeyAsm: output.scriptpubkey_asm,
+							}),
+							scriptPubKeyHex: output.scriptpubkey,
+							scriptPubKeyType: output.scriptpubkey_type,
+							...(output.scriptpubkey_address != null && {
+								$address: {
+									[EntityMetaKey.Selector]: {
+										$network: $transaction.$network,
+										address: output.scriptpubkey_address,
+									},
+								},
+							}),
+							...(output.valuecommitment != null && {
+								valueCommitment: output.valuecommitment,
+							}),
+							...(output.assetcommitment != null && {
+								assetCommitment: output.assetcommitment,
+							}),
+							...(output.noncecommitment != null && {
+								nonceCommitment: output.noncecommitment,
+							}),
+							...(output.surjection_proof != null && {
+								surjectionProof: output.surjection_proof,
+							}),
+							...(output.range_proof != null && {
+								rangeProof: output.range_proof,
+							}),
+							...(isConfidential && {
+								isConfidential: true,
+							}),
+						}
+					},
+				}
+			},
+		})({
+				valueSats: (snapshot) => snapshot.valueSats,
+				scriptPubKeyAsm: (snapshot) => snapshot.scriptPubKeyAsm,
+				scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
+				scriptPubKeyType: (snapshot) => snapshot.scriptPubKeyType,
+				$address: (snapshot) => snapshot.$address,
+				valueCommitment: (snapshot) => snapshot.valueCommitment,
+				assetCommitment: (snapshot) => snapshot.assetCommitment,
+				nonceCommitment: (snapshot) => snapshot.nonceCommitment,
+				surjectionProof: (snapshot) => snapshot.surjectionProof,
+				rangeProof: (snapshot) => snapshot.rangeProof,
+				isConfidential: (snapshot) => snapshot.isConfidential,
 			}),
 
 		defineResolver({
@@ -296,4 +432,4 @@ export default {
 			$$assets: (assetReferences) => assetReferences,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule
+}
