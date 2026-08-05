@@ -84,3 +84,38 @@ export type FilfoxOverview = {
 	averageTipsetBlocks?: number
 	dailyMessages?: number
 }
+
+export type FilfoxDealListItem = {
+	id: number
+	height: number
+	timestamp: number
+	pieceSize: number
+	verifiedDeal: boolean
+	client: string
+	provider: string
+	startEpoch: number
+	startTimestamp: number
+	endEpoch: number
+	endTimestamp: number
+	stroagePrice: string
+}
+
+export type FilfoxDealsPage = {
+	totalCount: number
+	deals: FilfoxDealListItem[]
+}
+
+export type FilfoxDeal = FilfoxDealListItem & {
+	pieceCid: string
+	clientTag: {
+		name: string
+		signed: boolean
+	}
+	providerTag: {
+		name: string
+		signed: boolean
+	}
+	storagePricePerEpoch: string
+	clientCollateral: string
+	providerCollateral: string
+}

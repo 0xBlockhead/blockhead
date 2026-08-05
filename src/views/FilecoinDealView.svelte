@@ -2,9 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -15,12 +18,19 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.FilecoinDeal>, 'prefetched'> = $props()
 
-	const filecoinDeal = $derived(selection({
+	const network = $derived(selection.entitySelector.$network)
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Filfox_Rest,
+		],
+	}))
+	const filecoinDeal = $derived(viewSelection({
 		fields: {
 			verifiedDeal: true,
 		},
@@ -42,6 +52,23 @@
 	entityType={EntityType.FilecoinDeal}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.dealId)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/deal/[dealId=nonNegativeBigInt]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					dealId: String(selection.entitySelector.dealId),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -154,7 +181,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							pieceCid: true,
 						},
@@ -176,7 +203,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							pieceSizeBytes: true,
 						},
@@ -216,7 +243,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							label: true,
 						},
@@ -240,7 +267,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							startEpoch: true,
 						},
@@ -264,7 +291,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							endEpoch: true,
 						},
@@ -288,7 +315,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							storagePricePerEpochAttoFil: true,
 						},
@@ -312,7 +339,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							providerCollateralAttoFil: true,
 						},
@@ -336,7 +363,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							clientCollateralAttoFil: true,
 						},

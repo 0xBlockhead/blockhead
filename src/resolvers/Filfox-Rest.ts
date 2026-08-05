@@ -38,6 +38,42 @@ const tipsetKeyFromBlocks = (
 		.join(',')
 )
 
+const listDeals = async (
+	network: NetworkId,
+	context: Parameters<typeof resolverContextRowLimit>[0]
+) => {
+	assertFilecoinMainnet(network)
+	const pageSize = resolverContextRowLimit(context)
+	return (await (await import('$/sources/Filfox/Rest/queries.ts')).getDeals({
+		page: Math.floor((context.pagination.offset ?? 0) / pageSize),
+		pageSize,
+	})).deals.map((deal) => ({
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			dealId: BigInt(deal.id),
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.FilecoinDeal, [], '$provider')]: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					minerAddress: deal.provider,
+				},
+			},
+			[entityFieldAddressKey(EntityType.FilecoinDeal, [], '$client')]: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					address: deal.client,
+				},
+			},
+			[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'pieceSizeBytes')]: BigInt(deal.pieceSize),
+			[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'verifiedDeal')]: deal.verifiedDeal,
+			[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'startEpoch')]: BigInt(deal.startEpoch),
+			[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'endEpoch')]: BigInt(deal.endEpoch),
+			[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'storagePricePerEpochAttoFil')]: BigInt(deal.stroagePrice),
+		},
+	}))
+}
+
 export default {
 	source: Source.Filfox_Rest,
 
@@ -241,6 +277,80 @@ export default {
 			},
 		})({
 			$$messages: (snapshot) => snapshot,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinDeal,
+			resolve: {
+				NetworkDealId: {
+					resolve: async ({ $network, dealId }) => {
+						assertFilecoinMainnet($network)
+						const deal = await (await import('$/sources/Filfox/Rest/queries.ts')).getDeal({
+							dealId,
+						})
+						if (BigInt(deal.id) !== dealId)
+							throw new Error(`Filfox_Rest: deal does not match ${dealId.toString()}`)
+
+						return {
+							$provider: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									minerAddress: deal.provider,
+								},
+							},
+							$client: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									address: deal.client,
+								},
+							},
+							pieceCid: deal.pieceCid,
+							pieceSizeBytes: BigInt(deal.pieceSize),
+							verifiedDeal: deal.verifiedDeal,
+							startEpoch: BigInt(deal.startEpoch),
+							endEpoch: BigInt(deal.endEpoch),
+							storagePricePerEpochAttoFil: BigInt(deal.storagePricePerEpoch),
+							providerCollateralAttoFil: BigInt(deal.providerCollateral),
+							clientCollateralAttoFil: BigInt(deal.clientCollateral),
+						}
+					},
+				},
+			},
+		})({
+			$provider: (deal) => deal.$provider,
+			$client: (deal) => deal.$client,
+			pieceCid: (deal) => deal.pieceCid,
+			pieceSizeBytes: (deal) => deal.pieceSizeBytes,
+			verifiedDeal: (deal) => deal.verifiedDeal,
+			startEpoch: (deal) => deal.startEpoch,
+			endEpoch: (deal) => deal.endEpoch,
+			storagePricePerEpochAttoFil: (deal) => deal.storagePricePerEpochAttoFil,
+			providerCollateralAttoFil: (deal) => deal.providerCollateralAttoFil,
+			clientCollateralAttoFil: (deal) => deal.clientCollateralAttoFil,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }, context) => listDeals($network, context),
+				},
+			},
+		})({
+			$$deals: (deals) => deals,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: listDeals,
+				},
+			},
+		})({
+			Filecoin: {
+				$$deals: (deals) => deals,
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

@@ -18,6 +18,8 @@ const {
 	getAddress,
 	getBlock,
 	getBlockMessages,
+	getDeal,
+	getDeals,
 	getMessage,
 	getOverview,
 	getTipset,
@@ -49,6 +51,13 @@ describe('Filfox REST queries', () => {
 			address: 'f01234',
 		})
 		await getOverview()
+		await getDeals({
+			page: 3,
+			pageSize: 16,
+		})
+		await getDeal({
+			dealId: 42n,
+		})
 
 		expect(sourceGetJson.mock.calls).toEqual([
 			[
@@ -75,6 +84,14 @@ describe('Filfox REST queries', () => {
 				binding,
 				'https://filfox.info/api/v1/overview',
 			],
+			[
+				binding,
+				'https://filfox.info/api/v1/deal/list?pageSize=16&page=3',
+			],
+			[
+				binding,
+				'https://filfox.info/api/v1/deal/42',
+			],
 		])
 	})
 
@@ -85,5 +102,71 @@ describe('Filfox REST queries', () => {
 			messageCid: 'missing',
 		})).rejects.toThrow('404')
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
+	})
+
+	it('returns typed deal list and detail responses unchanged', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({
+				totalCount: 1,
+				deals: [{
+					id: 42,
+					height: 100,
+					timestamp: 1_700_000_000,
+					pieceSize: 2048,
+					verifiedDeal: true,
+					client: 'f1client',
+					provider: 'f01000',
+					startEpoch: 101,
+					startTimestamp: 1_700_000_030,
+					endEpoch: 201,
+					endTimestamp: 1_700_003_030,
+					stroagePrice: '0',
+				}],
+			})
+			.mockResolvedValueOnce({
+				id: 42,
+				height: 100,
+				timestamp: 1_700_000_000,
+				pieceCid: 'baga-piece',
+				pieceSize: 2048,
+				verifiedDeal: true,
+				client: 'f1client',
+				clientTag: {
+					name: 'Official',
+					signed: false,
+				},
+				provider: 'f01000',
+				providerTag: {
+					name: 'Official',
+					signed: false,
+				},
+				startEpoch: 101,
+				startTimestamp: 1_700_000_030,
+				endEpoch: 201,
+				endTimestamp: 1_700_003_030,
+				storagePricePerEpoch: '0',
+				stroagePrice: '0',
+				clientCollateral: '1',
+				providerCollateral: '2',
+			})
+
+		await expect(getDeals({
+			page: 0,
+			pageSize: 1,
+		})).resolves.toMatchObject({
+			totalCount: 1,
+			deals: [{
+				id: 42,
+				stroagePrice: '0',
+			}],
+		})
+		await expect(getDeal({
+			dealId: 42n,
+		})).resolves.toMatchObject({
+			id: 42,
+			storagePricePerEpoch: '0',
+			clientCollateral: '1',
+			providerCollateral: '2',
+		})
 	})
 })

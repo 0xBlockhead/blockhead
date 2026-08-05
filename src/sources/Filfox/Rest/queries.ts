@@ -5,6 +5,8 @@ import {
 import type {
 	FilfoxAddress,
 	FilfoxBlock,
+	FilfoxDeal,
+	FilfoxDealsPage,
 	FilfoxMessage,
 	FilfoxMessagesPage,
 	FilfoxOverview,
@@ -77,5 +79,29 @@ export const getOverview = () => (
 	sourceGetJson<FilfoxOverview>(
 		binding,
 		`${baseUrl}/overview`
+	)
+)
+
+export const getDeals = ({
+	page,
+	pageSize,
+}: {
+	page: number
+	pageSize: number
+}) => (
+	sourceGetJson<FilfoxDealsPage>(
+		binding,
+		`${baseUrl}/deal/list?pageSize=${pageSize.toString()}&page=${page.toString()}`
+	)
+)
+
+export const getDeal = ({
+	dealId,
+}: {
+	dealId: bigint
+}) => (
+	sourceGetJson<FilfoxDeal>(
+		binding,
+		`${baseUrl}/deal/${dealId.toString()}`
 	)
 )

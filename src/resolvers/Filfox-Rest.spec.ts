@@ -7,12 +7,16 @@ import { Source } from '$/sources/Source.ts'
 
 const getBlock = vi.hoisted(() => vi.fn())
 const getBlockMessages = vi.hoisted(() => vi.fn())
+const getDeal = vi.hoisted(() => vi.fn())
+const getDeals = vi.hoisted(() => vi.fn())
 const getMessage = vi.hoisted(() => vi.fn())
 const getTipset = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Filfox/Rest/queries.ts', () => ({
 	getBlock,
 	getBlockMessages,
+	getDeal,
+	getDeals,
 	getMessage,
 	getTipset,
 }))
@@ -49,12 +53,24 @@ const blockMessagesResolver = blockResolvers.find((resolver) => (
 const messageResolver = filfoxRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FilecoinMessage
 ))
+const dealResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinDeal
+))
+const filecoinNetworkDealsResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinNetwork
+))
+const networkDealsResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+))
 
 if (
 	tipsetResolver == null
 	|| blockResolver == null
 	|| blockMessagesResolver == null
 	|| messageResolver == null
+	|| dealResolver == null
+	|| filecoinNetworkDealsResolver == null
+	|| networkDealsResolver == null
 )
 	throw new Error('Filfox-Rest spec missing required resolvers')
 
@@ -62,17 +78,22 @@ describe('Filfox REST resolvers', () => {
 	beforeEach(() => {
 		getBlock.mockReset()
 		getBlockMessages.mockReset()
+		getDeal.mockReset()
+		getDeals.mockReset()
 		getMessage.mockReset()
 		getTipset.mockReset()
 	})
 
-	it('registers tipset, block, message, and block-message product surfaces without actor state', () => {
+	it('registers chain and storage-deal product surfaces without actor state', () => {
 		expect(filfoxRest.source).toBe(Source.Filfox_Rest)
 		expect(filfoxRest.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType.FilecoinTipset,
 			EntityType.FilecoinBlock,
 			EntityType.FilecoinMessage,
 			EntityType.FilecoinBlock,
+			EntityType.FilecoinDeal,
+			EntityType.FilecoinNetwork,
+			EntityType.Network,
 		])
 		expect(filfoxRest.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.FilecoinActor
@@ -339,5 +360,116 @@ describe('Filfox REST resolvers', () => {
 			},
 		})
 		expect(blockResolver.projections.winCount(snapshot)).toBe(2)
+	})
+
+	it('resolves Filecoin deal detail from the official detail response', async () => {
+		getDeal.mockResolvedValueOnce({
+			id: 42,
+			height: 100,
+			timestamp: 1_700_000_000,
+			pieceCid: 'baga-piece',
+			pieceSize: 2048,
+			verifiedDeal: true,
+			client: 'f1client',
+			clientTag: {
+				name: 'Official',
+				signed: false,
+			},
+			provider: 'f01000',
+			providerTag: {
+				name: 'Official',
+				signed: false,
+			},
+			startEpoch: 101,
+			startTimestamp: 1_700_000_030,
+			endEpoch: 201,
+			endTimestamp: 1_700_003_030,
+			storagePricePerEpoch: '3',
+			stroagePrice: '3',
+			clientCollateral: '4',
+			providerCollateral: '5',
+		})
+
+		const snapshot = await dealResolver.resolve.NetworkDealId.resolve({
+			$network: network,
+			dealId: 42n,
+		}, context)
+
+		expect(dealResolver.projections.$provider(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				minerAddress: 'f01000',
+			},
+		})
+		expect(dealResolver.projections.$client(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				address: 'f1client',
+			},
+		})
+		expect(dealResolver.projections.pieceCid(snapshot)).toBe('baga-piece')
+		expect(dealResolver.projections.pieceSizeBytes(snapshot)).toBe(2048n)
+		expect(dealResolver.projections.storagePricePerEpochAttoFil(snapshot)).toBe(3n)
+		expect(dealResolver.projections.providerCollateralAttoFil(snapshot)).toBe(5n)
+		expect(dealResolver.projections.clientCollateralAttoFil(snapshot)).toBe(4n)
+	})
+
+	it('lists deals through FilecoinNetwork and Network Filecoin projections', async () => {
+		getDeals.mockResolvedValue({
+			totalCount: 1,
+			deals: [{
+				id: 42,
+				height: 100,
+				timestamp: 1_700_000_000,
+				pieceSize: 2048,
+				verifiedDeal: true,
+				client: 'f1client',
+				provider: 'f01000',
+				startEpoch: 101,
+				startTimestamp: 1_700_000_030,
+				endEpoch: 201,
+				endTimestamp: 1_700_003_030,
+				stroagePrice: '3',
+			}],
+		})
+
+		const expected = [{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				dealId: 42n,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], '$provider')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						minerAddress: 'f01000',
+					},
+				},
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], '$client')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						address: 'f1client',
+					},
+				},
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'pieceSizeBytes')]: 2048n,
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'verifiedDeal')]: true,
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'startEpoch')]: 101n,
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'endEpoch')]: 201n,
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'storagePricePerEpochAttoFil')]: 3n,
+			},
+		}]
+
+		expect(filecoinNetworkDealsResolver.projections.$$deals(
+			await filecoinNetworkDealsResolver.resolve.Network.resolve({
+				$network: network,
+			}, context)
+		)).toEqual(expected)
+		expect(networkDealsResolver.projections.Filecoin.$$deals(
+			await networkDealsResolver.resolve.Slug.resolve(network, context)
+		)).toEqual(expected)
+		expect(getDeals).toHaveBeenNthCalledWith(1, {
+			page: 0,
+			pageSize: 8,
+		})
 	})
 })

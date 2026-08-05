@@ -33793,18 +33793,18 @@ export const schema = {
 				},
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
-				"dealId": { label: "Deal ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
-				"$provider": { label: "Provider", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinMiner },
-				"$client": { label: "Client", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor },
-				"pieceCid": { label: "Piece CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"pieceSizeBytes": { label: "Piece size bytes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"verifiedDeal": { label: "Verified deal", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"dealId": { label: "Deal ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"$provider": { label: "Provider", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinMiner, defaultSources: [Source.Filfox_Rest] },
+				"$client": { label: "Client", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest] },
+				"pieceCid": { label: "Piece CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"pieceSizeBytes": { label: "Piece size bytes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"verifiedDeal": { label: "Verified deal", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Filfox_Rest] },
 				"label": { label: "Label", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"startEpoch": { label: "Start epoch", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"endEpoch": { label: "End epoch", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"storagePricePerEpochAttoFil": { label: "Storage price per epoch attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"providerCollateralAttoFil": { label: "Provider collateral attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"clientCollateralAttoFil": { label: "Client collateral attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"startEpoch": { label: "Start epoch", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"endEpoch": { label: "End epoch", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"storagePricePerEpochAttoFil": { label: "Storage price per epoch attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"providerCollateralAttoFil": { label: "Provider collateral attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"clientCollateralAttoFil": { label: "Client collateral attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinDeal_Timestamp },
 			})({
 				selectors: {
@@ -33812,6 +33812,9 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						query: {
+							sources: [Source.Filfox_Rest],
+						},
 						summary: {
 							title: [{ field: "dealId", format: "number" }],
 							value: ["$provider", "$client"],
@@ -33843,6 +33846,9 @@ export const schema = {
 						],
 					},
 					plural: { component: "FilecoinDealsView",
+						query: {
+							sources: [Source.Filfox_Rest],
+						},
 					},
 				},
 			}),
@@ -34140,6 +34146,7 @@ export const schema = {
 				"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Lotus_JsonRpc] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinNetwork_Timestamp, defaultSources: [Source.Lotus_JsonRpc] },
 				"$$tipsets": { label: "Tipsets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinTipset, defaultSources: [Source.Lotus_JsonRpc] },
+				"$$deals": { label: "Storage deals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinDeal, defaultSources: [Source.Filfox_Rest] },
 			})({
 				selectors: {
 					"Network": ["$network"],
@@ -34164,6 +34171,7 @@ export const schema = {
 						lists: [
 							{ field: "$$timestamps", component: "FilecoinNetwork_TimestampsView", label: "Observations" },
 							{ field: "$$tipsets", component: "FilecoinTipsetsView", label: "Tipsets" },
+							{ field: "$$deals", component: "FilecoinDealsView", label: "Storage deals" },
 						],
 					},
 					plural: { component: "FilecoinNetworksView",
@@ -47881,7 +47889,8 @@ export const schema = {
 					})({
 						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Lotus_JsonRpc] },
 						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinNetwork_Timestamp, defaultSources: [Source.Lotus_JsonRpc] },
-						"$$tipsets": { label: "Tipsets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinTipset, defaultSources: [Source.Lotus_JsonRpc] }
+						"$$tipsets": { label: "Tipsets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinTipset, defaultSources: [Source.Lotus_JsonRpc] },
+						"$$deals": { label: "Storage deals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinDeal, defaultSources: [Source.Filfox_Rest] }
 					})({
 						singularView: {
 							carousels: [
@@ -47892,6 +47901,7 @@ export const schema = {
 									sections: [
 										{ id: "filecoin-chain-observations", field: ["Filecoin", "$$timestamps"], List: "FilecoinNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Lotus_JsonRpc], limit: 16 } },
 										{ id: "filecoin-chain-tipsets", field: ["Filecoin", "$$tipsets"], List: "FilecoinTipsetsView", label: "Tipsets", selection: { sources: [Source.Lotus_JsonRpc], limit: 16 } },
+										{ id: "filecoin-storage-deals", field: ["Filecoin", "$$deals"], List: "FilecoinDealsView", label: "Storage deals", selection: { sources: [Source.Filfox_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -70564,13 +70574,6 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#filecoinblock",
 			},
 		},
-		[EntityType.FilecoinDeal]: {
-			"NetworkDealId": {
-				kind: "Research",
-				decision: "Retain FilecoinDeal.NetworkDealId as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#filecoindeal",
-			},
-		},
 		[EntityType.FilecoinDeal_Timestamp]: {
 			"DealTimestampMsSource": {
 				kind: "Research",
@@ -76326,6 +76329,30 @@ export const routes = defineRoutes(schema)({
 										}
 									},
 									children: {
+										"deal": {
+											children: {
+												"[dealId]": {
+													selectors: {
+														[EntityType.FilecoinDeal]: {
+															"NetworkDealId": {
+																when: {
+																	path: ["namespace"],
+																	is: "Filecoin",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Filecoin"],
+																},
+																params: {
+																	"dealId": ["dealId"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
 										"(accounts)": {
 											layout: {
 												kind: "group",

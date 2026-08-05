@@ -25,6 +25,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import FilecoinNetwork_TimestampsView from '$/views/FilecoinNetwork_TimestampsView.svelte'
 	import FilecoinTipsetsView from '$/views/FilecoinTipsetsView.svelte'
+	import FilecoinDealsView from '$/views/FilecoinDealsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -113,6 +114,21 @@
 						countResource={tipsetsResource.count}
 						title='Tipsets'
 						id='tipsets'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const dealsResource = selection.$$deals}
+		<ResourceBoundary
+			resource={dealsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<FilecoinDealsView
+						selection={dealsResource}
+						countResource={dealsResource.count}
+						title='Storage deals'
+						id='deals'
 					/>
 				{/if}
 			{/snippet}

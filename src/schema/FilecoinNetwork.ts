@@ -43,6 +43,13 @@ export default entity({
 			Source.Lotus_JsonRpc,
 		],
 	},
+	$$deals: {
+		entityType: EntityType.FilecoinDeal,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Filfox_Rest,
+		],
+	},
 })({
 	selectors: {
 		Network: [

@@ -255,6 +255,7 @@
 	import ZeroGStorageLogEntriesView from '$/views/ZeroGStorageLogEntriesView.svelte'
 	import FilecoinNetwork_TimestampsView from '$/views/FilecoinNetwork_TimestampsView.svelte'
 	import FilecoinTipsetsView from '$/views/FilecoinTipsetsView.svelte'
+	import FilecoinDealsView from '$/views/FilecoinDealsView.svelte'
 	import NearNetwork_TimestampsView from '$/views/NearNetwork_TimestampsView.svelte'
 	import NearBlocksView from '$/views/NearBlocksView.svelte'
 	import NearValidatorsView from '$/views/NearValidatorsView.svelte'
@@ -4217,6 +4218,10 @@
 								id: 'filecoin-chain-tipsets',
 								label: 'Tipsets',
 							},
+							{
+								id: 'filecoin-storage-deals',
+								label: 'Storage deals',
+							},
 						]
 					}
 					data-card
@@ -4252,6 +4257,23 @@
 								.$$tipsets({
 									sources: [
 										Source.Lotus_JsonRpc,
+									],
+									limit: 16,
+								})
+							}
+							collapsible={false}
+							title={label}
+							id={`${id}-list`}
+						/>
+					{/snippet}
+
+					{#snippet SectionFilecoinStorageDeals({ id, label })}
+						<FilecoinDealsView
+							selection={
+								projection
+								.$$deals({
+									sources: [
+										Source.Filfox_Rest,
 									],
 									limit: 16,
 								})

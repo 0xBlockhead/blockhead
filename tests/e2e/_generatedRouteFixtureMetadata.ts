@@ -1375,6 +1375,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/deal/[dealId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/deal/[dealId=nonNegativeBigInt]',
+		mappings: [
+			{
+				id: 'FilecoinDeal.NetworkDealId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/deal/[dealId]:FilecoinDeal.NetworkDealId'],
+				probeCases: [[[0, '1', ['dealId', 'network']]]],
+				projectionPath: [
+					'Filecoin',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/drep/[drepCredential]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/drep/[drepCredential=stringSegment]',
 		mappings: [
