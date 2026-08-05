@@ -4419,6 +4419,37 @@ export const schema = {
 				type: { primitive: "string" },
 			},
 			{
+				id: "quilibriumNodeInterface",
+				displayExpression: "value.label",
+				type: {
+					object: [
+						{ name: "label", type: { primitive: "string" } },
+						{ name: "port", type: { primitive: "number" } },
+						{ name: "transportType", type: { primitive: "string" } },
+					],
+				},
+			},
+			{
+				id: "quilibriumProtocolFact",
+				displayExpression: "value.label",
+				type: {
+					object: [
+						{ name: "label", type: { primitive: "string" } },
+						{ name: "value", type: { primitive: "string" } },
+					],
+				},
+			},
+			{
+				id: "quilibriumServiceLayer",
+				displayExpression: "value.label",
+				type: {
+					object: [
+						{ name: "label", type: { primitive: "string" } },
+						{ name: "description", type: { primitive: "string" } },
+					],
+				},
+			},
+			{
 				id: "routeContentPath",
 				routeParam: {
 					matcher: "stringSegment",
@@ -48291,6 +48322,70 @@ export const schema = {
 											emptyText: "REST endpoints are not listed for this network.",
 											items: [
 												{ field: "url", label: "REST" },
+												{ field: "providerName", label: "Provider" },
+												{ field: "transportType", label: "Transport" },
+											],
+										},
+									],
+								},
+							],
+						} }),
+					"Quilibrium": facet({
+						path: ["namespace"],
+						is: "Quilibrium",
+					})({
+						"docsEndpoints": { label: "Docs endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.QuilibriumDocs_Rest] },
+						"nodeInterfaces": { label: "Node interfaces", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "quilibriumNodeInterface", defaultSources: [Source.QuilibriumDocs_Rest] },
+						"protocolFacts": { label: "Protocol facts", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "quilibriumProtocolFact", defaultSources: [Source.QuilibriumDocs_Rest] },
+						"serviceLayers": { label: "Service layers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "quilibriumServiceLayer", defaultSources: [Source.QuilibriumDocs_Rest] },
+						"$protocolDocument": { label: "Protocol document", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.SpecificationProposal, defaultSources: [Source.QuilibriumDocs_Rest] }
+					})({
+						singularView: {
+							carousels: [
+								{
+									id: "quilibrium-protocol",
+									label: "Protocol",
+									className: "network-view-collapsible-resources",
+									sections: [
+										{ id: "quilibrium-protocol-document", field: ["Quilibrium", "$protocolDocument"], List: "SpecificationProposalView", label: "Protocol document", emptyText: "Protocol document is not listed for this network.", selection: { sources: [Source.QuilibriumDocs_Rest] } },
+										{
+											id: "quilibrium-protocol-facts",
+											field: ["Quilibrium", "protocolFacts"],
+											label: "Protocol facts",
+											emptyText: "Protocol facts are not listed for this network.",
+											items: [
+												{ field: "label", label: "Fact" },
+												{ field: "value", label: "Value" },
+											],
+										},
+										{
+											id: "quilibrium-service-layers",
+											field: ["Quilibrium", "serviceLayers"],
+											label: "Service layers",
+											emptyText: "Service layers are not listed for this network.",
+											items: [
+												{ field: "label", label: "Layer" },
+												{ field: "description", label: "Description" },
+											],
+										},
+										{
+											id: "quilibrium-node-interfaces",
+											field: ["Quilibrium", "nodeInterfaces"],
+											label: "Node interfaces",
+											emptyText: "Node interfaces are not listed for this network.",
+											items: [
+												{ field: "label", label: "Interface" },
+												{ field: "port", label: "Port" },
+												{ field: "transportType", label: "Transport" },
+											],
+										},
+										{
+											id: "quilibrium-docs-endpoints",
+											field: ["Quilibrium", "docsEndpoints"],
+											label: "Docs endpoints",
+											emptyText: "Docs endpoints are not listed for this network.",
+											items: [
+												{ field: "url", label: "URL" },
 												{ field: "providerName", label: "Provider" },
 												{ field: "transportType", label: "Transport" },
 											],

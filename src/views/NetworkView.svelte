@@ -283,6 +283,7 @@
 	import HyperliquidNetwork_TimestampsView from '$/views/HyperliquidNetwork_TimestampsView.svelte'
 	import HyperliquidPerpMarketsView from '$/views/HyperliquidPerpMarketsView.svelte'
 	import HyperliquidSpotAssetsView from '$/views/HyperliquidSpotAssetsView.svelte'
+	import SpecificationProposalView from '$/views/SpecificationProposalView.svelte'
 </script>
 
 
@@ -6376,6 +6377,420 @@
 
 					</CollapsibleTabs>
 				{/if}
+			{/snippet}
+		</ProjectionBoundary>
+
+		<ProjectionBoundary
+			resource={selection.Quilibrium}
+		>
+			{#snippet Applicable(projection)}
+				{@const quilibriumProtocolDocumentResource = projection
+					.$protocolDocument({
+						sources: [
+							Source.QuilibriumDocs_Rest,
+						],
+					})}
+
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-quilibrium-protocol'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'quilibrium-protocol-document',
+								label: 'Protocol document',
+								ownsSection: true,
+							},
+							{
+								id: 'quilibrium-protocol-facts',
+								label: 'Protocol facts',
+								ownsSection: true,
+							},
+							{
+								id: 'quilibrium-service-layers',
+								label: 'Service layers',
+								ownsSection: true,
+							},
+							{
+								id: 'quilibrium-node-interfaces',
+								label: 'Node interfaces',
+								ownsSection: true,
+							},
+							{
+								id: 'quilibrium-docs-endpoints',
+								label: 'Docs endpoints',
+								ownsSection: true,
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-resources'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Protocol</HeadingComponent>
+						</header>
+					{/snippet}
+
+					{#snippet MarkerQuilibriumProtocolDocument(_context, Content)}
+						<ResourceBoundary
+							resource={quilibriumProtocolDocumentResource}
+						>
+							{#snippet children(_resolved)}
+								{#if _resolved != null}
+									{@render Content()}
+								{/if}
+							{/snippet}
+
+							{#snippet PendingContent()}
+								{@render Content()}
+							{/snippet}
+
+							{#snippet FailedContent(_error, _retry)}
+								{@render Content()}
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionQuilibriumProtocolDocument({ id, label, active })}
+						<ResourceBoundary
+							resource={quilibriumProtocolDocumentResource}
+						>
+							{#snippet children(specificationProposal)}
+								{#if specificationProposal != null}
+									<section
+										id={id}
+										aria-labelledby={`${id}:marker`}
+										data-scroll-marker-label={label}
+										data-column-item="flexible"
+										data-column
+										data-active={active}
+									>
+										<article
+											id={`${id}-list`}
+											data-column-item="flexible"
+											data-card
+											data-scroll-container
+										>
+											<SpecificationProposalView
+												selection={
+													select(EntityType.SpecificationProposal, specificationProposal[EntityMetaKey.Selector], {
+														sources: [
+															Source.QuilibriumDocs_Rest,
+														],
+													})
+												}
+												prefetched={specificationProposal}
+												layout={EntityLayout.SummaryInline}
+											/>
+										</article>
+									</section>
+								{/if}
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionQuilibriumProtocolFacts({ id, label, active })}
+						<ResourceBoundary
+							resource={projection.protocolFacts}
+						>
+							{#snippet children(protocolFactsField)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<article
+										id={`${id}-list`}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+									>
+										{#if protocolFactsField.values.length === 0}
+											<p data-text="muted">Protocol facts are not listed for this network.</p>
+										{/if}
+
+										<ul data-column="gap-2" data-section-state="resolved-nonempty">
+											{#each protocolFactsField.values as protocolFact, protocolFactIndex (protocolFactIndex)}
+												<li>
+													<dl data-column-item="center">
+														<div>
+															<dt>Fact</dt>
+															<dd>
+																{protocolFact.label}
+															</dd>
+														</div>
+
+														<div>
+															<dt>Value</dt>
+															<dd>
+																{protocolFact.value}
+															</dd>
+														</div>
+													</dl>
+												</li>
+											{/each}
+										</ul>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionQuilibriumServiceLayers({ id, label, active })}
+						<ResourceBoundary
+							resource={projection.serviceLayers}
+						>
+							{#snippet children(serviceLayersField)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<article
+										id={`${id}-list`}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+									>
+										{#if serviceLayersField.values.length === 0}
+											<p data-text="muted">Service layers are not listed for this network.</p>
+										{/if}
+
+										<ul data-column="gap-2" data-section-state="resolved-nonempty">
+											{#each serviceLayersField.values as serviceLayer, serviceLayerIndex (serviceLayerIndex)}
+												<li>
+													<dl data-column-item="center">
+														<div>
+															<dt>Layer</dt>
+															<dd>
+																{serviceLayer.label}
+															</dd>
+														</div>
+
+														<div>
+															<dt>Description</dt>
+															<dd>
+																{serviceLayer.description}
+															</dd>
+														</div>
+													</dl>
+												</li>
+											{/each}
+										</ul>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionQuilibriumNodeInterfaces({ id, label, active })}
+						<ResourceBoundary
+							resource={projection.nodeInterfaces}
+						>
+							{#snippet children(nodeInterfacesField)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<article
+										id={`${id}-list`}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+									>
+										{#if nodeInterfacesField.values.length === 0}
+											<p data-text="muted">Node interfaces are not listed for this network.</p>
+										{/if}
+
+										<ul data-column="gap-2" data-section-state="resolved-nonempty">
+											{#each nodeInterfacesField.values as nodeInterface, nodeInterfaceIndex (nodeInterfaceIndex)}
+												<li>
+													<dl data-column-item="center">
+														<div>
+															<dt>Interface</dt>
+															<dd>
+																{nodeInterface.label}
+															</dd>
+														</div>
+
+														<div>
+															<dt>Port</dt>
+															<dd>
+																{nodeInterface.port}
+															</dd>
+														</div>
+
+														<div>
+															<dt>Transport</dt>
+															<dd>
+																{nodeInterface.transportType}
+															</dd>
+														</div>
+													</dl>
+												</li>
+											{/each}
+										</ul>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionQuilibriumDocsEndpoints({ id, label, active })}
+						<ResourceBoundary
+							resource={projection.docsEndpoints}
+						>
+							{#snippet children(docsEndpointsField)}
+								<section
+									id={id}
+									aria-labelledby={`${id}:marker`}
+									data-scroll-marker-label={label}
+									data-column-item="flexible"
+									data-column
+									data-active={active}
+								>
+									<article
+										id={`${id}-list`}
+										data-column-item="flexible"
+										data-card
+										data-scroll-container
+									>
+										{#if docsEndpointsField.values.length === 0}
+											<p data-text="muted">Docs endpoints are not listed for this network.</p>
+										{/if}
+
+										<ul data-column="gap-2" data-section-state="resolved-nonempty">
+											{#each docsEndpointsField.values as docsEndpoint, docsEndpointIndex (docsEndpointIndex)}
+												<li>
+													<dl data-column-item="center">
+														<div>
+															<dt>URL</dt>
+															<dd>
+																<a
+																	href={docsEndpoint.url}
+																	target="_blank"
+																	rel="noreferrer noopener"
+																>
+																	<TruncatedValue value={docsEndpoint.url} />
+																</a>
+															</dd>
+														</div>
+
+														<div>
+															<dt>Provider</dt>
+															<dd>
+																{docsEndpoint.providerName}
+															</dd>
+														</div>
+
+														<div>
+															<dt>Transport</dt>
+															<dd>
+																{docsEndpoint.transportType}
+															</dd>
+														</div>
+													</dl>
+												</li>
+											{/each}
+										</ul>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Pending()}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-text="muted" data-resource-state="pending" class="loading inline-placeholder" aria-busy="true" aria-label="Loading…">•••</span>
+									</article>
+								</section>
+							{/snippet}
+
+							{#snippet Failed(_error, _retry)}
+								<section id={id} aria-labelledby={`${id}:marker`} data-scroll-marker-label={label} data-column-item="flexible" data-column data-active={active}>
+									<article id={`${id}-list`} data-column-item="flexible" data-card data-scroll-container>
+										<span data-tag data-resource-state="failed" class="inline-placeholder" aria-label="Failed to load">•••</span>
+									</article>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
 			{/snippet}
 		</ProjectionBoundary>
 	{/snippet}

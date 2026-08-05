@@ -1212,5 +1212,61 @@ export default entity({
 				],
 			},
 		}),
+		Quilibrium: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Quilibrium',
+		})({
+			docsEndpoints: {
+				primitiveType: type({
+					url: type('string'),
+					transportType: type('string'),
+					providerName: type('string'),
+				}),
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.QuilibriumDocs_Rest,
+				],
+			},
+			nodeInterfaces: {
+				primitiveType: type({
+					label: type('string'),
+					port: type('number'),
+					transportType: type('string'),
+				}),
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.QuilibriumDocs_Rest,
+				],
+			},
+			protocolFacts: {
+				primitiveType: type({
+					label: type('string'),
+					value: type('string'),
+				}),
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.QuilibriumDocs_Rest,
+				],
+			},
+			serviceLayers: {
+				primitiveType: type({
+					label: type('string'),
+					description: type('string'),
+				}),
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.QuilibriumDocs_Rest,
+				],
+			},
+			$protocolDocument: {
+				entityType: EntityType.SpecificationProposal,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.QuilibriumDocs_Rest,
+				],
+			},
+		}),
 	},
 })
