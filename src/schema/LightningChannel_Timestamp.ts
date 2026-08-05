@@ -32,6 +32,7 @@ export default entity({
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
 			Source.LightningLnd_Rest,
+			Source.Amboss_Graphql,
 		],
 	},
 	capacitySats: {
@@ -40,6 +41,7 @@ export default entity({
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
 			Source.LightningLnd_Rest,
+			Source.Amboss_Graphql,
 		],
 	},
 	feeRatePpm: {
@@ -47,6 +49,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
+			Source.Amboss_Graphql,
 		],
 	},
 	updatedAtMs: {
@@ -54,6 +57,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
+			Source.Amboss_Graphql,
 		],
 	},
 	closingTransactionId: {

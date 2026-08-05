@@ -31,6 +31,7 @@ export default entity({
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
 			Source.LightningLnd_Rest,
+			Source.Amboss_Graphql,
 		],
 	},
 	color: {
@@ -38,6 +39,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
+			Source.Amboss_Graphql,
 		],
 	},
 	capacitySats: {
@@ -45,6 +47,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
+			Source.Amboss_Graphql,
 		],
 	},
 	channelCount: {
@@ -53,6 +56,7 @@ export default entity({
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
 			Source.LightningLnd_Rest,
+			Source.Amboss_Graphql,
 		],
 	},
 	firstSeenMs: {
@@ -67,6 +71,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
+			Source.Amboss_Graphql,
 		],
 	},
 	countryCode: {
@@ -74,6 +79,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
+			Source.Amboss_Graphql,
 		],
 	},
 	city: {
@@ -81,6 +87,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
+			Source.Amboss_Graphql,
 		],
 	},
 	networkAddresses: {
@@ -88,6 +95,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
+			Source.Amboss_Graphql,
 		],
 	},
 })({
