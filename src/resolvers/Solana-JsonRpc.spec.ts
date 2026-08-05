@@ -1,3 +1,4 @@
+import { QueryClient } from '@tanstack/query-core'
 import {
 	describe,
 	expect,
@@ -10,8 +11,16 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
-vi.mock('$/sources/Solana/JsonRpc/queries.ts', () => ({
+const {
+	getBlock,
+	getBlocks,
+	getSlot,
+	getVoteAccounts,
+	solanaRpcEndpoints,
+	subscribeSlot,
+} = vi.hoisted(() => ({
 	solanaRpcEndpoints: [
 		{
 			url: 'https://solana-rpc.publicnode.com',
@@ -92,13 +101,20 @@ vi.mock('$/sources/Solana/JsonRpc/queries.ts', () => ({
 			},
 		}],
 	}),
+	subscribeSlot: vi.fn(),
+}))
+
+vi.mock('$/sources/Solana/JsonRpc/queries.ts', () => ({
+	solanaRpcEndpoints,
+	getSlot,
+	getVoteAccounts,
+	getBlocks,
+	getBlock,
+	getBlockHeight: vi.fn().mockResolvedValue(90),
+	subscribeSlot,
 }))
 
 const { default: solanaJsonRpc } = await import('$/resolvers/Solana-JsonRpc.ts')
-const {
-	getBlock,
-	getBlocks,
-} = await import('$/sources/Solana/JsonRpc/queries.ts')
 
 const context = {
 	filters: [],
@@ -117,6 +133,39 @@ const networkSelector = {
 		reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
 	},
 }
+
+const networkTimestampsResolver = solanaJsonRpc.resolvers.find((candidate) => (
+	candidate.entityType === EntityType.Network
+	&& '$$timestamps' in candidate.projections
+	&& typeof candidate.projections.$$timestamps === 'function'
+	&& candidate.resolveLive != null
+))
+if (networkTimestampsResolver == null)
+	throw new Error('Solana Network $$timestamps resolveLive resolver is missing')
+
+const liveField = () => ({
+	replaceRows: vi.fn(),
+	invalidate: vi.fn(),
+	count: {
+		replaceRows: vi.fn(),
+		invalidate: vi.fn(),
+	},
+})
+
+const liveFields = () => ({
+	'$$timestamps': liveField(),
+})
+
+const startSlotStreamLive = (
+	fields: ReturnType<typeof liveFields>,
+	signal = new AbortController().signal
+) => networkTimestampsResolver.resolveLive.slotStream.start({
+	parentEntitySelector: networkSelector,
+	queryClient: new QueryClient(),
+	signal,
+	trigger: context,
+	fields,
+})
 
 describe('Solana JSON-RPC network state lists', () => {
 	it('owns the registered Solana RPC endpoints', async () => {
@@ -201,5 +250,124 @@ describe('Solana JSON-RPC network state lists', () => {
 		expect(timestampFields).not.toHaveProperty(entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], '$validator'))
 		expect(timestampFields).not.toHaveProperty(entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'slot'))
 		expect(timestampFields).not.toHaveProperty(entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'source'))
+	})
+})
+
+describe('Solana JSON-RPC Network slotSubscribe resolveLive canary', () => {
+	const observedAtMs = 1_784_678_400_000
+
+	it('declares slotStream publishing $$timestamps only', () => {
+		expect(networkTimestampsResolver.resolveLive.slotStream).toMatchObject({
+			facetPath: [],
+			publishes: {
+				'$$timestamps': true,
+			},
+		})
+		expect(Object.keys(networkTimestampsResolver.resolveLive)).toEqual(['slotStream'])
+	})
+
+	it('publishes $$timestamps absoluteSlot from slotSubscribe push only', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(observedAtMs)
+		getSlot.mockClear()
+		subscribeSlot.mockImplementation(async function* () {
+			yield {
+				slot: 373,
+				parent: 372,
+				root: 341,
+			}
+			yield {
+				slot: 374,
+				parent: 373,
+				root: 341,
+			}
+		})
+
+		const fields = liveFields()
+		await startSlotStreamLive(fields)
+
+		expect(subscribeSlot).toHaveBeenCalledTimes(1)
+		expect(subscribeSlot.mock.calls[0][0]).toBeInstanceOf(AbortSignal)
+		expect(getSlot).not.toHaveBeenCalled()
+		expect(fields.$$timestamps.replaceRows).toHaveBeenCalledTimes(2)
+		expect(fields.$$timestamps.replaceRows).toHaveBeenNthCalledWith(1, [{
+			source: Source.Solana_JsonRpc,
+			value: [{
+				[EntityMetaKey.Selector]: {
+					$network: networkSelector,
+					timestampMs: observedAtMs,
+					source: Source.Solana_JsonRpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Solana'], 'absoluteSlot')]: 373n,
+				},
+			}],
+		}])
+		expect(fields.$$timestamps.replaceRows).toHaveBeenNthCalledWith(2, [{
+			source: Source.Solana_JsonRpc,
+			value: [{
+				[EntityMetaKey.Selector]: {
+					$network: networkSelector,
+					timestampMs: observedAtMs,
+					source: Source.Solana_JsonRpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Solana'], 'absoluteSlot')]: 374n,
+				},
+			}],
+		}])
+		expect(fields.$$timestamps.invalidate).not.toHaveBeenCalled()
+	})
+
+	it('threads AbortSignal into subscribeSlot and stops publishing after abort', async () => {
+		const fields = liveFields()
+		const abortController = new AbortController()
+		subscribeSlot.mockImplementation(async function* (signal) {
+			yield {
+				slot: 400,
+				parent: 399,
+				root: 380,
+			}
+			await new Promise<void>((resolve) => {
+				signal.addEventListener('abort', () => resolve(), { once: true })
+			})
+			if (signal.aborted)
+				return
+			yield {
+				slot: 401,
+				parent: 400,
+				root: 380,
+			}
+		})
+
+		const liveResolution = startSlotStreamLive(fields, abortController.signal)
+		await vi.waitFor(() => {
+			expect(fields.$$timestamps.replaceRows).toHaveBeenCalledTimes(1)
+		})
+		abortController.abort()
+		await liveResolution
+
+		expect(subscribeSlot).toHaveBeenCalledWith(abortController.signal)
+		expect(fields.$$timestamps.replaceRows).toHaveBeenCalledTimes(1)
+		expect(getSlot).not.toHaveBeenCalled()
+	})
+
+	it('rejects unsupported networks before opening slotSubscribe', async () => {
+		const fields = liveFields()
+		subscribeSlot.mockClear()
+
+		await expect(networkTimestampsResolver.resolveLive.slotStream.start({
+			parentEntitySelector: {
+				caip2: {
+					namespace: 'solana',
+					reference: 'devnet',
+				},
+			},
+			queryClient: new QueryClient(),
+			signal: new AbortController().signal,
+			trigger: context,
+			fields,
+		})).rejects.toThrow('unsupported network')
+		expect(subscribeSlot).not.toHaveBeenCalled()
+		expect(getSlot).not.toHaveBeenCalled()
 	})
 })

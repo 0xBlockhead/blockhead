@@ -1,7 +1,6 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	networkBySlug,
@@ -44,6 +43,40 @@ const assertSolanaMainnet = (network: SolanaNetworkSelector) => {
 		throw new Error('Solana_JsonRpc: unsupported network')
 	}
 }
+
+const getSolanaNetworkHead = async () => {
+	const {
+		getBlockHeight,
+		getSlot,
+	} = await import('$/sources/Solana/JsonRpc/queries.ts')
+	const [
+		slot,
+		blockHeight,
+	] = await Promise.all([
+		getSlot(),
+		getBlockHeight(),
+	])
+	return {
+		absoluteSlot: BigInt(slot),
+		blockHeight: BigInt(blockHeight),
+		timestampMs: Date.now(),
+	}
+}
+
+const solanaNetworkHeadTimestampReference = (
+	network: SolanaNetworkSelector,
+	head: Awaited<ReturnType<typeof getSolanaNetworkHead>>
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network: network,
+		timestampMs: head.timestampMs,
+		source: Source.Solana_JsonRpc,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.Network_Timestamp, ['Solana'], 'absoluteSlot')]: head.absoluteSlot,
+		[entityFieldAddressKey(EntityType.Network_Timestamp, ['Solana'], 'blockHeight')]: head.blockHeight,
+	},
+})
 
 const solanaTransactionSnapshot = (
 	network: SolanaNetworkSelector,
@@ -494,17 +527,23 @@ export default {
 						if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
 						assertSolanaMainnet($network)
 						const {
+							getBlockHeight,
 							getEpochInfo,
 							getHealth,
+							getSlot,
 							getVersion,
 							getVoteAccounts,
 						} = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const [
+							slot,
+							blockHeight,
 							epochInfo,
-						health,
-						version,
-						voteAccounts,
+							health,
+							version,
+							voteAccounts,
 						] = await Promise.all([
+							getSlot(),
+							getBlockHeight(),
 							getEpochInfo(),
 							getHealth(),
 							getVersion(),
@@ -518,8 +557,8 @@ export default {
 							source: Source.Solana_JsonRpc,
 							ledgerModels: [NetworkLedgerModel.Account],
 							executionModels: [NetworkExecutionModel.SolanaRuntime],
-							absoluteSlot: BigInt(epochInfo.absoluteSlot),
-							blockHeight: BigInt(epochInfo.blockHeight),
+							absoluteSlot: BigInt(slot),
+							blockHeight: BigInt(blockHeight),
 							epoch: epochInfo.epoch,
 							slotIndex: epochInfo.slotIndex,
 							slotsInEpoch: epochInfo.slotsInEpoch,
@@ -1023,17 +1062,47 @@ export default {
 				Caip2: {
 					resolve: async ({ caip2 }) => {
 						assertSolanaMainnet({ caip2 })
+						const head = await getSolanaNetworkHead()
 						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: { caip2 },
-									timestampMs: Date.now(),
-									source: Source.Solana_JsonRpc,
-								},
-							},
+							solanaNetworkHeadTimestampReference({ caip2 }, head),
 						]
 					},
 				}
+			},
+			// slotSubscribe — https://solana.com/docs/rpc/websocket/slotsubscribe
+			resolveLive: {
+				slotStream: {
+					facetPath: [],
+					publishes: {
+						'$$timestamps': true,
+					},
+					start: async ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						assertSolanaMainnet(parentEntitySelector)
+						const { subscribeSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						for await (const notification of subscribeSlot(signal)) {
+							if (signal.aborted)
+								return
+
+							fields.$$timestamps.replaceRows([{
+								source: Source.Solana_JsonRpc,
+								value: [{
+									[EntityMetaKey.Selector]: {
+										$network: parentEntitySelector,
+										timestampMs: Date.now(),
+										source: Source.Solana_JsonRpc,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.Network_Timestamp, ['Solana'], 'absoluteSlot')]: BigInt(notification.slot),
+									},
+								}],
+							}])
+						}
+					},
+				},
 			},
 		})({
 				$$timestamps: (timestamps) => timestamps,
@@ -1240,4 +1309,4 @@ export default {
 			}),
 
 	],
-} satisfies RegisteredSourceResolverModule
+}

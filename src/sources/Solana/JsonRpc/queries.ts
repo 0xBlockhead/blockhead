@@ -19,6 +19,7 @@ import {
 } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/PublicNode/bindings.ts'
+import { solanaSlotLive } from '$/sources/Solana/JsonRpc/live.remote.ts'
 
 const binding = bindings[Source.Solana_JsonRpc].find(({ delivery }) => (
 	delivery === SourceDelivery.HttpProxy
@@ -63,6 +64,64 @@ export const getSlot = () => (
 		},
 	])
 )
+
+export const getBlockHeight = async () => {
+	const blockHeight = await jsonRpc2<number>(binding, 'getBlockHeight', [
+		{
+			commitment: 'finalized',
+		},
+	])
+	if (!Number.isSafeInteger(blockHeight) || blockHeight < 0)
+		throw new Error('Solana getBlockHeight returned an invalid block height')
+
+	return blockHeight
+}
+
+export const getRecentPerformanceSamples = async ({
+	limit,
+}: {
+	limit?: number
+} = {}) => {
+	if (limit != null && (!Number.isSafeInteger(limit) || limit < 0 || limit > 720))
+		throw new Error('Solana getRecentPerformanceSamples limit must be a safe integer from 0 through 720')
+	if (limit === 0)
+		return []
+
+	const samples = await jsonRpc2<{
+		slot: number
+		numTransactions: number
+		numSlots: number
+		samplePeriodSecs: number
+		numNonVoteTransactions?: number | null
+	}[]>(
+		binding,
+		'getRecentPerformanceSamples',
+		limit != null ? [limit] : []
+	)
+	if (limit != null && samples.length > limit)
+		throw new Error('Solana getRecentPerformanceSamples exceeded the requested limit')
+
+	for (const sample of samples) {
+		if (!Number.isSafeInteger(sample.slot) || sample.slot < 0)
+			throw new Error('Solana getRecentPerformanceSamples returned an invalid slot')
+		if (!Number.isSafeInteger(sample.numTransactions) || sample.numTransactions < 0)
+			throw new Error('Solana getRecentPerformanceSamples returned an invalid transaction count')
+		if (!Number.isSafeInteger(sample.numSlots) || sample.numSlots < 0)
+			throw new Error('Solana getRecentPerformanceSamples returned an invalid slot count')
+		if (!Number.isSafeInteger(sample.samplePeriodSecs) || sample.samplePeriodSecs < 0)
+			throw new Error('Solana getRecentPerformanceSamples returned an invalid sample period')
+		if (
+			sample.numNonVoteTransactions != null
+			&& (
+				!Number.isSafeInteger(sample.numNonVoteTransactions)
+				|| sample.numNonVoteTransactions < 0
+			)
+		)
+			throw new Error('Solana getRecentPerformanceSamples returned an invalid non-vote transaction count')
+	}
+
+	return samples
+}
 
 export const getBlocks = ({
 	startSlot,
@@ -296,3 +355,46 @@ export const getVoteAccounts = ({
 		},
 	])
 )
+
+// slotSubscribe — https://solana.com/docs/rpc/websocket/slotsubscribe
+// PublicNode RemoteLive wss://solana-rpc.publicnode.com
+export const subscribeSlot = async function* (
+	signal?: AbortSignal
+): AsyncGenerator<{
+	slot: number
+	parent: number
+	root: number
+}> {
+	if (signal?.aborted)
+		return
+
+	const liveBinding = bindings[Source.Solana_JsonRpc].find(({ delivery }) => (
+		delivery === SourceDelivery.RemoteLive
+	))
+	if (liveBinding == null)
+		throw new Error('Solana_JsonRpc: subscribeSlot requires the RemoteLive WebSocket binding')
+
+	const slots = solanaSlotLive({
+		targetKey: liveBinding.target.key,
+	})[Symbol.asyncIterator]()
+	const abort = () => {
+		void slots.return?.()
+	}
+	signal?.addEventListener('abort', abort, { once: true })
+
+	try {
+		for (
+			let result = await slots.next();
+			!result.done;
+			result = await slots.next()
+		) {
+			if (signal?.aborted)
+				return
+
+			yield result.value
+		}
+	} finally {
+		signal?.removeEventListener('abort', abort)
+		await slots.return?.()
+	}
+}

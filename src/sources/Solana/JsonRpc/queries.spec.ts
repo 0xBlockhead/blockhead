@@ -1,8 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import bindings from '$/sources/PublicNode/bindings.ts'
 import { SourceDelivery } from '$/sources/SourceBinding.ts'
-import { Source } from '$/sources/Source.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 
@@ -12,25 +10,31 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 }))
 
 const {
+	getBlockHeight,
+	getRecentPerformanceSamples,
 	getSignaturesForAddress,
-	getSlot,
 	getTransactionsForAddress,
 } = await import('$/sources/Solana/JsonRpc/queries.ts')
-
-const solanaMainnetHttpBinding = bindings[Source.Solana_JsonRpc][0],
-solanaMainnetWebSocketBinding = bindings[Source.Solana_JsonRpc][1]
 
 const pubkey = 'Account111111111111111111111111111111111'
 const firstSignature = 'Signature111111111111111111111111111111111111111111111111111111111111'
 const secondSignature = 'Signature222222222222222222222222222222222222222222222222222222222222'
 
-const rpcResponse = (result: object | object[] | null) => (
+const rpcResponse = (result: unknown) => (
 	new Response(JSON.stringify({
 		jsonrpc: '2.0',
 		id: 1,
 		result,
 	}))
 )
+
+const performanceSample = {
+	slot: 348_125,
+	numTransactions: 126,
+	numSlots: 126,
+	samplePeriodSecs: 60,
+	numNonVoteTransactions: 1,
+} as const
 
 const addressSignature = {
 	signature: firstSignature,
@@ -261,6 +265,110 @@ describe('Solana account transaction JSON-RPC', () => {
 				before: firstSignature,
 			},
 		})
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+})
+
+describe('Solana network head JSON-RPC', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('reads finalized block height through the HttpProxy source binding', async () => {
+		sourceFetch.mockResolvedValueOnce(rpcResponse(275_123_456))
+
+		await expect(getBlockHeight()).resolves.toBe(275_123_456)
+		expect(sourceFetch.mock.calls[0][0]).toMatchObject({
+			delivery: SourceDelivery.HttpProxy,
+		})
+		expect(sourceFetch.mock.calls[0][1]).toBe('https://solana-rpc.publicnode.com')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toEqual({
+			jsonrpc: '2.0',
+			id: 1,
+			method: 'getBlockHeight',
+			params: [
+				{
+					commitment: 'finalized',
+				},
+			],
+		})
+	})
+
+	it('fails closed on an invalid block height', async () => {
+		for (const result of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1, null]) {
+			sourceFetch.mockResolvedValueOnce(rpcResponse(result))
+			await expect(getBlockHeight()).rejects.toThrow('invalid block height')
+		}
+	})
+
+	it('loads bounded recent performance samples and fails closed on malformed rows', async () => {
+		sourceFetch.mockResolvedValueOnce(rpcResponse([
+			performanceSample,
+			{
+				...performanceSample,
+				slot: 347_999,
+			},
+		]))
+
+		await expect(getRecentPerformanceSamples({
+			limit: 2,
+		})).resolves.toEqual([
+			performanceSample,
+			{
+				...performanceSample,
+				slot: 347_999,
+			},
+		])
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toEqual({
+			jsonrpc: '2.0',
+			id: 1,
+			method: 'getRecentPerformanceSamples',
+			params: [2],
+		})
+
+		for (const { result, message, limit = 2 } of [
+			{
+				result: [performanceSample, performanceSample],
+				message: 'exceeded the requested limit',
+				limit: 1,
+			},
+			{
+				result: [{ ...performanceSample, slot: -1 }],
+				message: 'invalid slot',
+			},
+			{
+				result: [{ ...performanceSample, numTransactions: -1 }],
+				message: 'invalid transaction count',
+			},
+			{
+				result: [{ ...performanceSample, numSlots: 1.5 }],
+				message: 'invalid slot count',
+			},
+			{
+				result: [{ ...performanceSample, samplePeriodSecs: -1 }],
+				message: 'invalid sample period',
+			},
+			{
+				result: [{ ...performanceSample, numNonVoteTransactions: -1 }],
+				message: 'invalid non-vote transaction count',
+			},
+		]) {
+			sourceFetch.mockResolvedValueOnce(rpcResponse(result))
+			await expect(getRecentPerformanceSamples({
+				limit,
+			})).rejects.toThrow(message)
+		}
+	})
+
+	it('rejects an invalid performance sample limit and performs no transport for a zero limit', async () => {
+		for (const limit of [-1, 721, 0.5])
+			await expect(getRecentPerformanceSamples({
+				limit,
+			})).rejects.toThrow()
+
+		await expect(getRecentPerformanceSamples({
+			limit: 0,
+		})).resolves.toEqual([])
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })
