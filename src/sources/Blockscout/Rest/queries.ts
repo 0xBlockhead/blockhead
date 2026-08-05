@@ -11,6 +11,13 @@ import {
 	getBlockscoutResponse,
 } from '$/sources/Blockscout/Rest/client.ts'
 import { blockscoutV2ItemsCountMax } from '$/sources/Blockscout/Rest/constants.ts'
+import {
+	blockscoutBlockDetailEnvelope,
+	blockscoutBlocksPageEnvelope,
+	blockscoutTokenTransfersPageEnvelope,
+	blockscoutTransactionEnvelope,
+	blockscoutTransactionsPageEnvelope,
+} from '$/sources/Blockscout/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
@@ -89,6 +96,19 @@ const blockscoutItemsCount = (limit: number) => Math.min(
 	Math.max(Number.isFinite(limit) ? limit : 0, 0),
 	blockscoutV2ItemsCountMax
 )
+const assertBlockscoutEnvelope = (
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(value)
+	} catch {
+		throw new Error(`Blockscout_Rest: invalid ${label} response envelope`)
+	}
+}
 
 /**
  * Optional aggregate stats are not enabled by every Blockscout deployment.
@@ -108,13 +128,17 @@ export const getStats = async ({ chainId }: {
 	return response.json<BlockscoutStats>()
 }
 
-export const getBlockByNumber = ({ chainId, blockNumber }: {
+export const getBlockByNumber = async ({ chainId, blockNumber }: {
 	chainId: number
 	blockNumber: bigint
-}) => getBlockscoutJson<BlockscoutBlockDetails>({
-	binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
-	path: `/blocks/${blockNumber}`,
-})
+}) => {
+	const block = await getBlockscoutJson<BlockscoutBlockDetails>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: `/blocks/${blockNumber}`,
+	})
+	assertBlockscoutEnvelope(blockscoutBlockDetailEnvelope, block, 'block detail')
+	return block
+}
 
 export const getBlocks = async ({ chainId, limit }: {
 	chainId: number
@@ -130,7 +154,7 @@ export const getBlocks = async ({ chainId, limit }: {
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-
+	assertBlockscoutEnvelope(blockscoutBlocksPageEnvelope, wire, 'blocks')
 	return wire.items
 }
 
@@ -149,7 +173,7 @@ export const getBlockTransactions = async ({ chainId, blockNumber, limit }: {
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-
+	assertBlockscoutEnvelope(blockscoutTransactionsPageEnvelope, wire, 'block transactions')
 	return wire.items.map(validatedBlockscoutTransactionWire)
 }
 
@@ -165,7 +189,7 @@ export const getTransactionByHash = async ({ chainId, txHash }: {
 		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: `/transactions/${normalized}`,
 	})
-
+	assertBlockscoutEnvelope(blockscoutTransactionEnvelope, wire, 'transaction detail')
 	return validatedBlockscoutTransactionWire(wire)
 }
 
@@ -183,7 +207,7 @@ export const getTransactions = async ({ chainId, limit }: {
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-
+	assertBlockscoutEnvelope(blockscoutTransactionsPageEnvelope, wire, 'transactions')
 	return wire.items.map(validatedBlockscoutTransactionWire)
 }
 
@@ -209,11 +233,9 @@ export const getAddressTransactions = async ({ chainId, address, limit }: {
 	if (response.status === 404)
 		return []
 	await throwIfHttpNotOk(response, response.url)
-
-	return (
-		(await response.json<BlockscoutAddressTransactionsPage>())
-			.items.map(validatedBlockscoutTransactionWire)
-	)
+	const wire = await response.json<BlockscoutAddressTransactionsPage>()
+	assertBlockscoutEnvelope(blockscoutTransactionsPageEnvelope, wire, 'address transactions')
+	return wire.items.map(validatedBlockscoutTransactionWire)
 }
 
 export const getAddressDetails = ({ chainId, address }: {
@@ -266,8 +288,9 @@ export const getAddressTokenTransfers = async ({ chainId, address, limit }: {
 	if (response.status === 404)
 		return []
 	await throwIfHttpNotOk(response, response.url)
-
-	return (await response.json<BlockscoutAddressTokenTransfersPage>()).items
+	const wire = await response.json<BlockscoutAddressTokenTransfersPage>()
+	assertBlockscoutEnvelope(blockscoutTokenTransfersPageEnvelope, wire, 'address token transfers')
+	return wire.items
 }
 
 export const getTokenTransfers = async ({ chainId, limit }: {
@@ -277,13 +300,15 @@ export const getTokenTransfers = async ({ chainId, limit }: {
 	if (limit <= 0)
 		return []
 
-	return (await getBlockscoutJson<BlockscoutTokenTransfersPage>({
+	const wire = await getBlockscoutJson<BlockscoutTokenTransfersPage>({
 		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: '/token-transfers',
 		searchParams: {
 			limit: blockscoutItemsCount(limit),
 		},
-	})).items
+	})
+	assertBlockscoutEnvelope(blockscoutTokenTransfersPageEnvelope, wire, 'token transfers')
+	return wire.items
 }
 
 export const getTransactionTokenTransfers = async ({ chainId, txHash, limit }: {
@@ -298,13 +323,12 @@ export const getTransactionTokenTransfers = async ({ chainId, txHash, limit }: {
 	if (normalized == null)
 		return []
 
-	return (
-		(await getBlockscoutJson<BlockscoutTransactionTokenTransfersPage>({
-			binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
-			path: `/transactions/${normalized}/token-transfers`,
-		}))
-			.items.slice(0, limit)
-	)
+	const wire = await getBlockscoutJson<BlockscoutTransactionTokenTransfersPage>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: `/transactions/${normalized}/token-transfers`,
+	})
+	assertBlockscoutEnvelope(blockscoutTokenTransfersPageEnvelope, wire, 'transaction token transfers')
+	return wire.items.slice(0, limit)
 }
 
 export const getTransactionInternalTransactions = async ({ chainId, txHash, limit }: {

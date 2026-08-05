@@ -1,4 +1,50 @@
+import { type as arktype } from 'arktype'
+
 import type { components, paths } from '$/sources/Blockscout/OpenApi/openapi.d.ts'
+
+const blockscoutAddressEnvelope = arktype({
+	hash: 'string',
+})
+
+export const blockscoutBlockDetailEnvelope = arktype({
+	hash: 'string',
+	height: 'number',
+	miner: blockscoutAddressEnvelope,
+	parent_hash: 'string',
+	timestamp: 'string',
+	transactions_count: 'number',
+})
+export const blockscoutBlocksPageEnvelope = arktype({
+	items: arktype({
+		height: 'number',
+	}).array(),
+})
+export const blockscoutTransactionEnvelope = arktype({
+	from: blockscoutAddressEnvelope,
+	gas_limit: 'string',
+	hash: 'string',
+	nonce: 'number',
+	raw_input: 'string',
+	to: blockscoutAddressEnvelope,
+	value: 'string',
+})
+export const blockscoutTransactionsPageEnvelope = arktype({
+	items: blockscoutTransactionEnvelope.array(),
+})
+export const blockscoutTokenTransferEnvelope = arktype({
+	from: blockscoutAddressEnvelope,
+	log_index: 'number',
+	to: blockscoutAddressEnvelope,
+	token: {
+		address_hash: 'string',
+	},
+	token_type: '"ERC-20" | "ERC-404" | "ERC-721" | "ERC-1155" | "ERC-7984"',
+	total: 'object | null',
+	transaction_hash: 'string',
+})
+export const blockscoutTokenTransfersPageEnvelope = arktype({
+	items: blockscoutTokenTransferEnvelope.array(),
+})
 
 type Response<_Path extends keyof paths> = paths[_Path] extends {
 	get: {

@@ -4,6 +4,7 @@ import bindings from '$/sources/Blockscout/bindings.ts'
 import * as blockscoutQueries from '$/sources/Blockscout/Rest/queries.ts'
 import {
 	getAddressTransactions,
+	getBlockByNumber,
 	getBlockTransactions,
 	getBlocks,
 	getCode,
@@ -48,9 +49,29 @@ const transaction = {
 	gas_limit: '21000',
 	hash: hex('3', 64),
 	nonce: 4,
+	raw_input: '0x',
 	to: {
 		hash: hex('4', 40),
 	},
+	value: '0',
+} as const
+const tokenTransfer = {
+	from: {
+		hash: hex('5', 40),
+	},
+	log_index: 1,
+	to: {
+		hash: hex('6', 40),
+	},
+	token: {
+		address_hash: hex('7', 40),
+	},
+	token_type: 'ERC-20',
+	total: {
+		decimals: '6',
+		value: '1',
+	},
+	transaction_hash: hex('1', 64),
 } as const
 
 describe('Blockscout account-abstraction queries', () => {
@@ -202,6 +223,51 @@ describe('Blockscout account-abstraction queries', () => {
 		})).resolves.toEqual([block])
 	})
 
+	it('fails closed for malformed block and transaction detail envelopes', async () => {
+		vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(jsonResponse({
+				height: 12,
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				hash: hex('1', 64),
+			}))
+
+		await expect(getBlockByNumber({
+			chainId: 1,
+			blockNumber: 12n,
+		})).rejects.toThrow('Blockscout_Rest: invalid block detail response envelope')
+		await expect(getTransactionByHash({
+			chainId: 1,
+			txHash: hex('1', 64),
+		})).rejects.toThrow('Blockscout_Rest: invalid transaction detail response envelope')
+	})
+
+	it('fails closed for malformed block, transaction, and token list envelopes', async () => {
+		vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(jsonResponse({
+				items: [{}],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				items: [{}],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				items: [{}],
+			}))
+
+		await expect(getBlocks({
+			chainId: 1,
+			limit: 1,
+		})).rejects.toThrow('Blockscout_Rest: invalid blocks response envelope')
+		await expect(getTransactions({
+			chainId: 1,
+			limit: 1,
+		})).rejects.toThrow('Blockscout_Rest: invalid transactions response envelope')
+		await expect(getTokenTransfers({
+			chainId: 1,
+			limit: 1,
+		})).rejects.toThrow('Blockscout_Rest: invalid token transfers response envelope')
+	})
+
 	it('returns exact validated transaction wires from detail, network, address, and block endpoints', async () => {
 		const requestedTxHash = hex('A', 64)
 		const fetchMock = vi.spyOn(globalThis, 'fetch')
@@ -237,13 +303,10 @@ describe('Blockscout account-abstraction queries', () => {
 	})
 
 	it('uses the operation-specific token-transfer query signatures', async () => {
-		const transfer = {
-			transaction_hash: hex('1', 64),
-		}
 		const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => jsonResponse({
 			items: [
-				transfer,
-				transfer,
+				tokenTransfer,
+				tokenTransfer,
 			],
 		}))
 
