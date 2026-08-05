@@ -347,11 +347,8 @@ export const walletConnectionMethods = [
 		networkNamespaces: [
 			NetworkNamespace.Evm,
 			NetworkNamespace.Solana,
-			NetworkNamespace.Cosmos,
-			NetworkNamespace.Polkadot,
-			NetworkNamespace.Bitcoin,
 		],
-		caipNamespaces: ['eip155', 'solana', 'cosmos', 'polkadot', 'bip122'],
+		caipNamespaces: ['eip155', 'solana'],
 		capabilities: [
 			WalletCapability.Connect,
 			WalletCapability.Reconnect,
@@ -360,11 +357,8 @@ export const walletConnectionMethods = [
 			WalletCapability.WatchAccounts,
 			WalletCapability.WatchScopes,
 			WalletCapability.SignMessage,
-			WalletCapability.SignTransaction,
-			WalletCapability.SendTransaction,
-			WalletCapability.SignTypedData,
 		],
-		implementationStatus: WalletImplementationStatus.Modeled,
+		implementationStatus: WalletImplementationStatus.Implemented,
 		dependencyPolicy: 'minimal-required',
 	},
 	{

@@ -88,6 +88,7 @@ const createClient = ({
 			approval: () => approval.promise,
 		})),
 		disconnect: vi.fn(async () => {}),
+		request: vi.fn(async () => '0xsigned'),
 		session: {
 			getAll: () => sessions,
 		},
@@ -119,6 +120,7 @@ describe('WalletConnect v2 adapter', () => {
 		const on = vi.fn()
 		const off = vi.fn()
 		const disconnect = vi.fn(async () => {})
+		const request = vi.fn(async () => '0xsigned')
 		const connect = vi.fn(async () => ({
 			uri: 'wc:official@2',
 			approval: async () => session,
@@ -126,6 +128,7 @@ describe('WalletConnect v2 adapter', () => {
 		const client = walletConnectV2ClientFromSignClient({
 			connect,
 			disconnect,
+			request,
 			session: {
 				keys: [session.topic],
 				get: () => ({
@@ -315,6 +318,9 @@ describe('WalletConnect v2 adapter', () => {
 					WalletCapability.ListAccounts,
 					WalletCapability.WatchAccounts,
 					WalletCapability.WatchScopes,
+					WalletCapability.SignMessage,
+					WalletCapability.SendTransaction,
+					WalletCapability.SignTransaction,
 				],
 			},
 		])
@@ -337,7 +343,7 @@ describe('WalletConnect v2 adapter', () => {
 			],
 		})
 		expect((await connectionPromise)?.accounts.every((account) => (
-			!account.capabilities.includes(WalletCapability.SignMessage)
+			account.capabilities.includes(WalletCapability.SignMessage)
 		))).toBe(true)
 		expect(displayUri.mock.calls).toEqual([
 			['wc:proposal@2'],
@@ -390,6 +396,114 @@ describe('WalletConnect v2 adapter', () => {
 				accountAddress: '0x2222222222222222222222222222222222222222',
 			}],
 		})
+	})
+
+	it('requests an approved EVM message signature through the exact restored session topic', async () => {
+		const session = eip155Session('restored-signing-topic')
+		const mock = createClient({ sessions: [session] })
+		const adapter = createWalletConnectV2Adapter({
+			client: mock.client,
+			requestedScopes,
+		})
+		adapter.start(() => {})
+
+		await expect(adapter.signMessage?.(
+			'walletconnect-v2',
+			'0x1111111111111111111111111111111111111111',
+			'hello',
+			'restored-signing-topic'
+		)).resolves.toBe('0xsigned')
+		expect(mock.client.request).toHaveBeenCalledWith({
+			topic: 'restored-signing-topic',
+			chainId: 'eip155:1',
+			request: {
+				method: 'personal_sign',
+				params: [
+					'0x68656c6c6f',
+					'0x1111111111111111111111111111111111111111',
+				],
+			},
+		})
+	})
+
+	it('rejects missing method authority, chain mismatch, wallet rejection, and disconnected topics', async () => {
+		const missingMethod = createClient({
+			sessions: [{
+				...eip155Session('missing-method-topic'),
+				namespaces: {
+					eip155: {
+						...eip155Session().namespaces.eip155,
+						methods: [],
+					},
+				},
+			}],
+		})
+		const missingMethodAdapter = createWalletConnectV2Adapter({
+			client: missingMethod.client,
+			requestedScopes,
+		})
+		missingMethodAdapter.start(() => {})
+		await expect(missingMethodAdapter.signMessage?.(
+			'walletconnect-v2',
+			'0x1111111111111111111111111111111111111111',
+			'hello',
+			'missing-method-topic'
+		)).rejects.toThrow(
+			'WalletConnect session does not authorize personal_sign on eip155:1'
+		)
+
+		const approved = createClient({ sessions: [eip155Session('request-topic')] })
+		const rejection = new Error('User rejected signing request')
+		approved.client.request.mockRejectedValueOnce(rejection)
+		const adapter = createWalletConnectV2Adapter({
+			client: approved.client,
+			requestedScopes,
+		})
+		adapter.start(() => {})
+		await expect(adapter.signMessage?.(
+			'walletconnect-v2',
+			'0x9999999999999999999999999999999999999999',
+			'hello',
+			'request-topic'
+		)).rejects.toThrow('WalletConnect account is not authorized by this session')
+		await expect(adapter.signMessage?.(
+			'walletconnect-v2',
+			'0x1111111111111111111111111111111111111111',
+			'hello',
+			'request-topic'
+		)).rejects.toBe(rejection)
+
+		await adapter.disconnect('walletconnect-v2', 'request-topic')
+		await expect(adapter.signMessage?.(
+			'walletconnect-v2',
+			'0x1111111111111111111111111111111111111111',
+			'hello',
+			'request-topic'
+		)).rejects.toThrow('WalletConnect session is disconnected')
+	})
+
+	it('negotiates only capabilities represented by approved methods', async () => {
+		const mock = createClient()
+		const adapter = createWalletConnectV2Adapter({
+			client: mock.client,
+			requestedScopes: [{
+				namespace: 'solana',
+				reference: '4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ',
+				methods: ['solana_getAccounts'],
+				events: [],
+			}],
+		})
+		const candidates: WalletCandidate[][] = []
+		adapter.start((nextCandidates) => candidates.push(nextCandidates))
+
+		expect(candidates[0][0].capabilities).toEqual([
+			WalletCapability.Connect,
+			WalletCapability.Reconnect,
+			WalletCapability.Disconnect,
+			WalletCapability.ListAccounts,
+			WalletCapability.WatchAccounts,
+			WalletCapability.WatchScopes,
+		])
 	})
 
 	it('disconnects a settled session that approves no accounts', async () => {

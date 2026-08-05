@@ -89,6 +89,14 @@ export type WalletConnectV2Client = {
 			message: string
 		}
 	}): Promise<void>
+	request(input: {
+		topic: string
+		chainId: string
+		request: {
+			method: string
+			params: readonly JsonValue[]
+		}
+	}): Promise<JsonValue>
 	session: {
 		getAll(): readonly WalletConnectV2Session[]
 	}
@@ -118,6 +126,14 @@ interface WalletConnectV2SignClient {
 			message: string
 		}
 	}): Promise<void>
+	request(input: {
+		topic: string
+		chainId: string
+		request: {
+			method: string
+			params: readonly JsonValue[]
+		}
+	}): Promise<JsonValue>
 	session: {
 		keys: string[]
 		get(topic: string): WalletConnectV2Session
@@ -195,7 +211,7 @@ const maximumTimerDelayMs = 2_147_483_647
 const walletConnectAccountAddresses = arktype('string[]')
 const walletConnectChainReference = arktype('string | number.integer & number.safe')
 
-const walletConnectCapabilities = [
+const walletConnectConnectionCapabilities = [
 	WalletCapability.Connect,
 	WalletCapability.Reconnect,
 	WalletCapability.Disconnect,
@@ -204,15 +220,35 @@ const walletConnectCapabilities = [
 	WalletCapability.WatchScopes,
 ] satisfies WalletCapability[]
 
-const walletConnectCandidate = {
+const walletConnectCapabilities = (
+	methods: readonly string[]
+) => [
+	...walletConnectConnectionCapabilities,
+	...(methods.includes('personal_sign') ?
+		[WalletCapability.SignMessage]
+	:
+		[]
+	),
+	...(
+		methods.includes('eth_sendTransaction')
+		|| methods.includes('eth_signTransaction') ?
+			[WalletCapability.SendTransaction, WalletCapability.SignTransaction]
+		:
+			[]
+	),
+]
+
+const walletConnectCandidate = (
+	capabilities: WalletCapability[]
+): WalletCandidate => ({
 	id: WALLET_ID,
 	name: 'WalletConnect',
 	icon: '',
 	protocol: WalletProtocol.WalletConnectV2,
 	discoveryKind: WalletDiscoveryKind.QrDeeplink,
 	transportKind: WalletTransportKind.WalletConnectRelay,
-	capabilities: walletConnectCapabilities,
-} satisfies WalletCandidate
+	capabilities,
+})
 
 const parseCaip2 = (chainId: string) => {
 	const match = /^([^:]+):([^:]+)$/.exec(chainId)
@@ -348,7 +384,7 @@ const stateFromSession = (
 
 			accounts.push({
 				...account,
-				capabilities: walletConnectCapabilities,
+				capabilities: walletConnectCapabilities(namespace.methods),
 			})
 			if (!scopes.some((scope) => (
 				scope.namespace === account.namespace
@@ -425,6 +461,7 @@ export const walletConnectV2ClientFromSignClient = (
 		}
 	},
 	disconnect: (input) => signClient.disconnect(input),
+	request: (input) => signClient.request(input),
 	session: {
 		getAll: () => signClient.session.getAll().map(({
 			topic,
@@ -626,6 +663,9 @@ export const createWalletConnectV2Adapter = ({
 	const requestedChainIds = new Set(
 		Object.values(optionalNamespaces).flatMap(({ chains }) => chains)
 	)
+	const candidateCapabilities = walletConnectCapabilities(
+		Object.values(optionalNamespaces).flatMap(({ methods }) => methods)
+	)
 	const sessionStateByTopic = new Map<string, WalletConnectV2SessionState>()
 	const subscribersByTopic = new Map<
 		string,
@@ -708,7 +748,7 @@ export const createWalletConnectV2Adapter = ({
 
 		displayUriAttempt = undefined
 		onDisplayUri?.(undefined)
-		updateWalletConnectCandidates?.([walletConnectCandidate])
+		updateWalletConnectCandidates?.([walletConnectCandidate(candidateCapabilities)])
 	}
 
 	const disconnectRejectedSession = async (
@@ -749,7 +789,7 @@ export const createWalletConnectV2Adapter = ({
 				}
 				catch {}
 			}
-			updateCandidates([walletConnectCandidate])
+			updateCandidates([walletConnectCandidate(candidateCapabilities)])
 
 			stopClientEvents = client.listen((event) => {
 				const state = sessionStateByTopic.get(event.topic)
@@ -823,7 +863,12 @@ export const createWalletConnectV2Adapter = ({
 							...event.accountAddresses.map((accountAddress) => ({
 								...chain,
 								accountAddress,
-								capabilities: walletConnectCapabilities,
+								capabilities: walletConnectCapabilities(
+									state.scopes.find((scope) => (
+										scope.namespace === chain.namespace
+										&& scope.reference === chain.reference
+									))?.methods ?? []
+								),
 							})),
 						]
 						if (state.activeChainId == null)
@@ -903,7 +948,7 @@ export const createWalletConnectV2Adapter = ({
 				displayUriAttempt = attempt
 				onDisplayUri?.(proposal.uri)
 				updateWalletConnectCandidates?.([{
-					...walletConnectCandidate,
+					...walletConnectCandidate(candidateCapabilities),
 					connectionUri: proposal.uri,
 				}])
 			}
@@ -953,6 +998,50 @@ export const createWalletConnectV2Adapter = ({
 			sessionStateByTopic.set(session.topic, state)
 			scheduleExpiry(state)
 			return connectedConnection(state)
+		},
+		signMessage: async (
+			walletId,
+			accountAddress,
+			message,
+			connectionKey
+		) => {
+			if (walletId !== WALLET_ID || connectionKey == null)
+				throw new Error('WalletConnect message signing requires an exact session topic')
+
+			const state = sessionStateByTopic.get(connectionKey)
+			if (state == null)
+				throw new Error('WalletConnect session is disconnected')
+
+			const account = state.accounts.find((candidate) => (
+				candidate.namespace === 'eip155'
+				&& candidate.accountAddress.toLowerCase() === accountAddress.toLowerCase()
+			))
+			if (account == null)
+				throw new Error('WalletConnect account is not authorized by this session')
+
+			const chainId = `${account.namespace}:${account.reference}`
+			if (!state.scopes.some((scope) => (
+				scope.namespace === account.namespace
+				&& scope.reference === account.reference
+				&& scope.methods.includes('personal_sign')
+			)))
+				throw new Error(`WalletConnect session does not authorize personal_sign on ${chainId}`)
+
+			const signature = await client.request({
+				topic: connectionKey,
+				chainId,
+				request: {
+					method: 'personal_sign',
+					params: [
+						`0x${Array.from(new TextEncoder().encode(message), (byte) => byte.toString(16).padStart(2, '0')).join('')}`,
+						account.accountAddress,
+					],
+				},
+			})
+			if (typeof signature !== 'string' || !signature.startsWith('0x'))
+				throw new Error('WalletConnect returned an invalid personal_sign signature')
+
+			return signature
 		},
 		disconnect: async (walletId, connectionKey) => {
 			if (
