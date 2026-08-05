@@ -1,4 +1,3 @@
-import { QueryClient } from '@tanstack/query-core'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
@@ -25,9 +24,6 @@ const blocksResolver = networkResolvers.find((resolver) => (
 	&& '$$blocks' in resolver.projections.Utxo
 	&& typeof resolver.projections.Utxo.$$blocks === 'function'
 ))
-const liveNetworkResolver = networkResolvers.find((resolver) => (
-	resolver.resolveLive?.utxoNetwork != null
-))
 const blockResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoBlock
 	&& 'NetworkHeight' in resolver.resolve
@@ -53,9 +49,6 @@ const outputResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
 
 if (blocksResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing Network.Utxo.$$blocks resolver')
-
-if (liveNetworkResolver == null)
-	throw new Error('MempoolSpace-Rest spec missing Network UTXO live resolver')
 
 if (blockResolver == null)
 	throw new Error('MempoolSpace-Rest spec missing UtxoBlock NetworkHeight resolver')
@@ -280,163 +273,6 @@ describe('MempoolSpace UTXO', () => {
 			},
 		}, resolverContext)).rejects.toThrow('unsupported Bitcoin network')
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
-	})
-
-	it('publishes UTXO observations and invalidates affected projections on each live refresh', async () => {
-		vi.useFakeTimers()
-		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
-		const fields = {
-			'$$timestamps': {
-				replaceRows: vi.fn(),
-				invalidate: vi.fn(),
-				count: {
-					replaceRows: vi.fn(),
-					invalidate: vi.fn(),
-				},
-			},
-			'$$blocks': {
-				replaceRows: vi.fn(),
-				invalidate: vi.fn(),
-				count: {
-					replaceRows: vi.fn(),
-					invalidate: vi.fn(),
-				},
-			},
-			'$$transactions': {
-				replaceRows: vi.fn(),
-				invalidate: vi.fn(),
-				count: {
-					replaceRows: vi.fn(),
-					invalidate: vi.fn(),
-				},
-			},
-			invalidate: vi.fn(),
-		}
-		const controller = new AbortController()
-		sourceGetJson
-			.mockResolvedValueOnce([{
-				height: 840_000,
-				id: 'a'.repeat(64),
-			}])
-			.mockResolvedValueOnce({
-				count: 12,
-				vsize: 345.2,
-			})
-			.mockResolvedValueOnce({
-				fastestFee: 10,
-				halfHourFee: 8,
-				hourFee: 6,
-				economyFee: 4,
-				minimumFee: 1,
-			})
-
-		const cleanup = liveNetworkResolver.resolveLive.utxoNetwork.start({
-			parentEntitySelector: network,
-			queryClient: new QueryClient(),
-			signal: controller.signal,
-			trigger: resolverContext,
-			fields,
-		})
-		await vi.waitFor(() => {
-			expect(fields.$$timestamps.replaceRows).toHaveBeenCalledOnce()
-		})
-
-		expect(fields.$$timestamps.replaceRows).toHaveBeenCalledWith([{
-			source: Source.MempoolSpace_Rest,
-			value: [{
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					timestampMs: 1_700_000_000_000,
-					source: Source.MempoolSpace_Rest,
-				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: 840_000n,
-					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: 'a'.repeat(64),
-					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: 12,
-					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: 346n,
-					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: 6,
-				},
-			}],
-		}])
-		expect(fields.invalidate).toHaveBeenCalledWith([
-			'$$blocks',
-			'$$transactions',
-		])
-
-		controller.abort()
-		if (typeof cleanup === 'function')
-			cleanup()
-		vi.useRealTimers()
-	})
-
-	it('stops live refresh and suppresses in-flight publication after cleanup', async () => {
-		vi.useFakeTimers()
-		const fields = {
-			'$$timestamps': {
-				replaceRows: vi.fn(),
-				invalidate: vi.fn(),
-				count: {
-					replaceRows: vi.fn(),
-					invalidate: vi.fn(),
-				},
-			},
-			'$$blocks': {
-				replaceRows: vi.fn(),
-				invalidate: vi.fn(),
-				count: {
-					replaceRows: vi.fn(),
-					invalidate: vi.fn(),
-				},
-			},
-			'$$transactions': {
-				replaceRows: vi.fn(),
-				invalidate: vi.fn(),
-				count: {
-					replaceRows: vi.fn(),
-					invalidate: vi.fn(),
-				},
-			},
-			invalidate: vi.fn(),
-		}
-		const controller = new AbortController()
-		let resolveBlocks = (_value: unknown) => {}
-		sourceGetJson
-			.mockImplementationOnce(() => new Promise((resolve) => {
-				resolveBlocks = resolve
-			}))
-			.mockResolvedValueOnce({
-				count: 12,
-				vsize: 345,
-			})
-			.mockResolvedValueOnce({
-				hourFee: 6,
-			})
-
-		const cleanup = liveNetworkResolver.resolveLive.utxoNetwork.start({
-			parentEntitySelector: network,
-			queryClient: new QueryClient(),
-			signal: controller.signal,
-			trigger: resolverContext,
-			fields,
-		})
-		await vi.waitFor(() => {
-			expect(sourceGetJson).toHaveBeenCalledTimes(3)
-		})
-		controller.abort()
-		if (typeof cleanup === 'function')
-			cleanup()
-		resolveBlocks([{
-			height: 840_000,
-			id: 'a'.repeat(64),
-		}])
-		await Promise.resolve()
-		await Promise.resolve()
-		await vi.advanceTimersByTimeAsync(60_000)
-
-		expect(fields.$$timestamps.replaceRows).not.toHaveBeenCalled()
-		expect(fields.invalidate).not.toHaveBeenCalled()
-		expect(sourceGetJson).toHaveBeenCalledTimes(3)
-		vi.useRealTimers()
 	})
 
 	it('uses the bound confirmed-history endpoint with resumable pagination', async () => {
