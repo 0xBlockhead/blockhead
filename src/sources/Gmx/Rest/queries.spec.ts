@@ -172,6 +172,16 @@ describe('GMX markets/info operation', () => {
 		)
 	})
 
+	it('preserves a successful empty market list', async () => {
+		sourceGetJson.mockResolvedValueOnce([])
+
+		await expect(
+			getMarketsInfo({
+				chainId: 42161,
+			})
+		).resolves.toEqual([])
+	})
+
 	it('rejects unsupported chains before transport', async () => {
 		await expect(
 			getMarketsInfo({
@@ -196,6 +206,40 @@ describe('GMX markets/info operation', () => {
 		)
 			.rejects
 			.toThrow(`${Source.Gmx_Rest}: markets/info response is not an array`)
+	})
+
+	it('fails closed when a market omits a required metric', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				...ethMarketInfoWire,
+				longPoolAmount: undefined,
+			},
+		])
+
+		await expect(
+			getMarketsInfo({
+				chainId: 42161,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: market missing longPoolAmount`)
+	})
+
+	it('fails closed when a market omits a required token address', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				...ethMarketInfoWire,
+				indexTokenAddress: undefined,
+			},
+		])
+
+		await expect(
+			getMarketsInfo({
+				chainId: 42161,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: market missing index token`)
 	})
 
 	it('fails closed when a market boolean is malformed', async () => {

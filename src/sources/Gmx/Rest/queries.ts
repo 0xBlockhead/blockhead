@@ -4,7 +4,7 @@
  * @see https://docs.gmx.io/docs/api/overview/
  */
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import bindings from '$/sources/Gmx/bindings.ts'
+import { gmxRestBindingByChainId } from '$/sources/Gmx/bindings.ts'
 import {
 	gmxApiByChainId,
 	gmxMarketsInfoResponseMax,
@@ -17,24 +17,20 @@ import { Source } from '$/sources/Source.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
-const bindingByChainId = new Map(
-	bindings[Source.Gmx_Rest].map((binding) => [
-		Number(binding.target.key),
-		binding,
-	] as const)
-)
-
 const assertChainId = (chainId: number) => {
 	if (!Number.isSafeInteger(chainId) || chainId < 1)
 		throw new Error(`${Source.Gmx_Rest}: invalid chain id ${String(chainId)}`)
-	if (gmxApiByChainId[chainId] == null || bindingByChainId.get(chainId) == null)
+	if (gmxApiByChainId[chainId] == null || gmxRestBindingByChainId[chainId] == null)
 		throw new Error(`${Source.Gmx_Rest}: unsupported chain id ${String(chainId)}`)
 }
 
 const assertAddress = (
-	value: string,
+	value: string | undefined,
 	label: string
 ) => {
+	if (value == null || value.length < 1)
+		throw new Error(`${Source.Gmx_Rest}: market missing ${label}`)
+
 	const normalized = hexLowerOfByteSize(value, 20)
 	if (normalized == null)
 		throw new Error(`${Source.Gmx_Rest}: invalid ${label} ${value}`)
@@ -42,16 +38,16 @@ const assertAddress = (
 }
 
 const assertNonEmptyDecimalString = (
-	value: string,
+	value: string | undefined,
 	label: string
 ) => {
-	if (value.length < 1 || !/^(?:0|[1-9]\d*)$/.test(value))
+	if (value == null || value.length < 1 || !/^(?:0|[1-9]\d*)$/.test(value))
 		throw new Error(`${Source.Gmx_Rest}: market missing ${label}`)
 	return value
 }
 
 const assertBoolean = (
-	value: boolean,
+	value: boolean | undefined,
 	label: string
 ) => {
 	if (value !== true && value !== false)
@@ -63,7 +59,7 @@ const assertMarketInfoWire = (
 	wire: GmxMarketInfoWire,
 	chainId: number
 ): GmxMarketInfo => {
-	if (wire.name.length < 1)
+	if (wire.name == null || wire.name.length < 1)
 		throw new Error(`${Source.Gmx_Rest}: market missing name`)
 
 	return {
@@ -90,7 +86,7 @@ export const getMarketsInfo = async ({
 	chainId: number
 }) => {
 	assertChainId(chainId)
-	const binding = bindingByChainId.get(chainId)
+	const binding = gmxRestBindingByChainId[chainId]
 	if (binding == null)
 		throw new Error(`${Source.Gmx_Rest}: unsupported chain id ${String(chainId)}`)
 

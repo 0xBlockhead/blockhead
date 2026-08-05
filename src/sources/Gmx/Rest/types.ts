@@ -1,17 +1,17 @@
 /** Wire row from GMX API `GET /markets/info` (fields consumed for a market snapshot). */
 export type GmxMarketInfoWire = {
-	name: string
-	marketTokenAddress: string
-	indexTokenAddress: string
-	longTokenAddress: string
-	shortTokenAddress: string
-	isSpotOnly: boolean
-	isDisabled: boolean
-	longInterestUsd: string
-	shortInterestUsd: string
-	longPoolAmount: string
-	shortPoolAmount: string
-	fundingFactorPerSecond: string
+	name?: string
+	marketTokenAddress?: string
+	indexTokenAddress?: string
+	longTokenAddress?: string
+	shortTokenAddress?: string
+	isSpotOnly?: boolean
+	isDisabled?: boolean
+	longInterestUsd?: string
+	shortInterestUsd?: string
+	longPoolAmount?: string
+	shortPoolAmount?: string
+	fundingFactorPerSecond?: string
 }
 
 export type GmxMarketInfo = {

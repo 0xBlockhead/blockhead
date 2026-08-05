@@ -12,6 +12,7 @@ import {
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
+
 const gmxRestBindingAxes = {
 	source: Source.Gmx_Rest,
 	wireProtocol: WireProtocol.HttpRest,
@@ -28,7 +29,7 @@ const gmxRestBindingAxes = {
 	],
 } as const
 
-export default indexSourceBindings([
+const gmxRestBindings = [
 	{
 		...gmxRestBindingAxes,
 		target: {
@@ -86,4 +87,15 @@ export default indexSourceBindings([
 			},
 		],
 	},
-])
+] as const
+
+
+export const gmxRestBindingByChainId = Object.fromEntries(
+	gmxRestBindings.map((binding) => [
+		Number(binding.target.key),
+		binding,
+	])
+)
+
+
+export default indexSourceBindings(gmxRestBindings)
