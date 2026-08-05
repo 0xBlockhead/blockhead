@@ -940,7 +940,6 @@ describe('client resolver architecture', () => {
 
 			if (
 				relativePath !== 'routes/+layout.svelte'
-				&& relativePath !== 'routes/~/(manage)/manage/data/+page.svelte'
 			) {
 				expect(source, relativePath).not.toMatch(/\bentityCollectionByEntityType\b/)
 				expect(source, relativePath).not.toMatch(/\bentityFieldCollections\b/)
@@ -960,7 +959,6 @@ describe('client resolver architecture', () => {
 
 			if (
 				relativePath === 'routes/+layout.svelte'
-				|| relativePath === 'routes/~/(manage)/manage/data/+page.svelte'
 				|| relativePath.startsWith('routes/test/resource-boundary/')
 				|| relativePath.startsWith('routes/test/query-resource-adapter/')
 			)
