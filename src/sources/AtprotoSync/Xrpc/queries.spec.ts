@@ -1,0 +1,319 @@
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from 'vitest'
+import { encode } from 'cborg'
+import { readFileSync } from 'node:fs'
+
+import bindings from '$/sources/AtprotoSync/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	SourceDelivery,
+	SourceEndpointKind,
+} from '$/sources/SourceBinding.ts'
+
+
+const sourceFetch = vi.hoisted(() => vi.fn())
+const sourceLive = vi.hoisted(() => vi.fn())
+
+vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
+	sourceFetch,
+}))
+vi.mock('$/sources/_runtime/live.remote.ts', () => ({
+	sourceLive,
+}))
+
+const {
+	getRepo,
+	subscribeRepos,
+} = await import('$/sources/AtprotoSync/Xrpc/queries.ts')
+
+const remoteQueryBinding = bindings[Source.AtprotoSync_Xrpc].find((binding) => (
+	binding.delivery === SourceDelivery.RemoteQuery
+))
+const remoteLiveBinding = bindings[Source.AtprotoSync_Xrpc].find((binding) => (
+	binding.delivery === SourceDelivery.RemoteLive
+))
+
+if (remoteQueryBinding == null)
+	throw new Error('AtprotoSync_Xrpc: RemoteQuery binding is missing')
+if (remoteLiveBinding == null)
+	throw new Error('AtprotoSync_Xrpc: RemoteLive binding is missing')
+
+const serviceOrigin = 'https://pds.example'
+const did = 'did:plc:example'
+const carBytes = new Uint8Array([0x01, 0x02, 0x03, 0x04])
+
+const resolvedRemoteQueryBinding = {
+	...remoteQueryBinding,
+	endpoints: remoteQueryBinding.endpoints.map((endpoint) => (
+		endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
+			{
+				...endpoint,
+				locator: 'https://pds.example',
+			}
+		:
+			endpoint
+	)),
+}
+
+
+describe('AtprotoSync_Xrpc getRepo RemoteQuery transport', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+		sourceFetch.mockResolvedValue(new Response(carBytes, {
+			status: 200,
+			headers: {
+				'content-type': 'application/vnd.ipld.car',
+			},
+		}))
+	})
+
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	it('GETs com.atproto.sync.getRepo through sourceFetch with the resolved RemoteQuery binding', async () => {
+		await expect(getRepo({
+			binding: remoteQueryBinding,
+			serviceOrigin,
+			did,
+			since: '3jzfcijpj2z2a',
+		})).resolves.toEqual(carBytes)
+
+		expect(sourceFetch).toHaveBeenCalledTimes(1)
+		expect(sourceFetch).toHaveBeenCalledWith(
+			resolvedRemoteQueryBinding,
+			'https://pds.example/xrpc/com.atproto.sync.getRepo?did=did%3Aplc%3Aexample&since=3jzfcijpj2z2a',
+			{ signal: undefined }
+		)
+		expect(resolvedRemoteQueryBinding.delivery).toBe(SourceDelivery.RemoteQuery)
+		expect(remoteQueryBinding.endpoints[0]?.locator).toBe('https://{pds-host}')
+	})
+
+	it('rejects RemoteLive bindings before transport', async () => {
+		await expect(getRepo({
+			binding: remoteLiveBinding,
+			serviceOrigin,
+			did,
+		})).rejects.toThrow('AtprotoSync_Xrpc: getRepo requires the RemoteQuery HTTP binding')
+
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('rejects browser-side RemoteQuery before transport', async () => {
+		vi.stubGlobal('window', {})
+
+		await expect(getRepo({
+			binding: remoteQueryBinding,
+			serviceOrigin,
+			did,
+		})).rejects.toThrow('AtprotoSync_Xrpc: getRepo RemoteQuery must run through a SvelteKit query')
+
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('fails closed with AtprotoSync_Xrpc prefix on non-OK responses', async () => {
+		sourceFetch.mockResolvedValue(new Response(JSON.stringify({
+			error: 'RepoNotFound',
+			message: 'Repo not found',
+		}), {
+			status: 400,
+			statusText: 'Bad Request',
+			headers: {
+				'content-type': 'application/json',
+			},
+		}))
+
+		await expect(getRepo({
+			binding: remoteQueryBinding,
+			serviceOrigin,
+			did,
+		})).rejects.toThrow(/AtprotoSync_Xrpc:.*400/)
+	})
+
+	it.each([
+		'http://pds.example',
+		'https://user:p4ss@pds.example',
+		'https://127.0.0.1',
+		'https://10.0.0.1',
+		'https://169.254.169.254',
+		'https://[::1]',
+		'https://metadata.google.internal',
+		'https://pds.example/override',
+	])('rejects unsafe or non-origin service input %s before transport', async (unsafeServiceOrigin) => {
+		await expect(getRepo({
+			binding: remoteQueryBinding,
+			serviceOrigin: unsafeServiceOrigin,
+			did,
+		})).rejects.toThrow('AtprotoSync_Xrpc: invalid public HTTPS service origin')
+
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+})
+
+
+describe('AtprotoSync_Xrpc subscribeRepos RemoteLive transport', () => {
+	beforeEach(() => {
+		sourceLive.mockReset()
+	})
+
+	it('yields binary frames from the existing RemoteLive binding', async () => {
+		const frame = new Uint8Array([
+			...encode({
+				op: 1,
+				t: '#commit',
+			}),
+			...encode({
+				sequence: 1,
+			}),
+		])
+		sourceLive.mockImplementation(() => (async function* () {
+			yield {
+				type: 'connected',
+				source: Source.AtprotoSync_Xrpc,
+				targetKey: remoteLiveBinding.target.key,
+			}
+			yield {
+				type: 'message',
+				source: Source.AtprotoSync_Xrpc,
+				targetKey: remoteLiveBinding.target.key,
+				payload: frame,
+			}
+		})())
+
+		const frames = []
+		for await (const message of subscribeRepos({
+			binding: remoteLiveBinding,
+			serviceOrigin,
+			cursor: 7,
+		}))
+			frames.push(message)
+
+		expect(sourceLive).toHaveBeenCalledWith({
+			source: Source.AtprotoSync_Xrpc,
+			targetKey: remoteLiveBinding.target.key,
+			operationGroup: 'GenericSubscribe',
+			serviceOrigin,
+			cursor: 7,
+		})
+		expect(frames).toEqual([{
+			type: '#commit',
+			body: {
+				sequence: 1,
+			},
+		}])
+	})
+
+	it('rejects non-RemoteLive bindings before opening the stream', async () => {
+		await expect(async () => {
+			for await (const _message of subscribeRepos({
+				binding: remoteQueryBinding,
+				serviceOrigin,
+			}))
+				void _message
+		}).rejects.toThrow('AtprotoSync_Xrpc: subscribeRepos requires the RemoteLive WebSocket binding')
+
+		expect(sourceLive).not.toHaveBeenCalled()
+	})
+
+	it.each([
+		-1,
+		Number.MAX_SAFE_INTEGER + 1,
+	])('rejects unsafe cursor %s before opening the stream', async (cursor) => {
+		await expect(async () => {
+			for await (const _message of subscribeRepos({
+				binding: remoteLiveBinding,
+				serviceOrigin,
+				cursor,
+			}))
+				void _message
+		}).rejects.toThrow('subscribeRepos cursor must be a non-negative safe integer')
+
+		expect(sourceLive).not.toHaveBeenCalled()
+	})
+
+	it('fails on non-binary frames instead of silently skipping malformed transport data', async () => {
+		sourceLive.mockImplementation(() => (async function* () {
+			yield {
+				type: 'message',
+				source: Source.AtprotoSync_Xrpc,
+				targetKey: remoteLiveBinding.target.key,
+				payload: 'not binary',
+			}
+		})())
+
+		await expect(async () => {
+			for await (const _message of subscribeRepos({
+				binding: remoteLiveBinding,
+				serviceOrigin,
+			}))
+				void _message
+		}).rejects.toThrow('AtprotoSync_Xrpc: subscribeRepos received a non-binary WebSocket frame')
+	})
+
+	it('returns the remote iterator when aborted and when the consumer unsubscribes', async () => {
+		let returned = 0
+		sourceLive.mockImplementation(() => ({
+			[Symbol.asyncIterator]: () => ({
+				next: vi.fn()
+					.mockResolvedValueOnce({
+						done: false,
+						value: {
+							type: 'message',
+							source: Source.AtprotoSync_Xrpc,
+							targetKey: remoteLiveBinding.target.key,
+							payload: new Uint8Array([
+								...encode({
+									op: 1,
+									t: '#commit',
+								}),
+								...encode({}),
+							]),
+						},
+					})
+					.mockReturnValue(new Promise(() => {})),
+				return: vi.fn(() => {
+					returned += 1
+					return Promise.resolve({
+						done: true,
+					})
+				}),
+			}),
+		}))
+
+		const iterator = subscribeRepos({
+			binding: remoteLiveBinding,
+			serviceOrigin,
+		})[Symbol.asyncIterator]()
+		await iterator.next()
+		await iterator.return?.()
+
+		expect(returned).toBe(1)
+
+		const controller = new AbortController()
+		const abortedIterator = subscribeRepos({
+			binding: remoteLiveBinding,
+			serviceOrigin,
+			signal: controller.signal,
+		})[Symbol.asyncIterator]()
+		await abortedIterator.next()
+		controller.abort()
+
+		expect(returned).toBe(2)
+	})
+
+	it('keeps WebSocket ownership behind query.live with no polling', () => {
+		const source = readFileSync('src/sources/AtprotoSync/Xrpc/queries.ts', 'utf8')
+
+		expect(source).toContain("from '$/sources/_runtime/live.remote.ts'")
+		expect(source).not.toContain('.server.ts')
+		expect(source).not.toMatch(/\bnew\s+WebSocket\b/)
+		expect(source).not.toMatch(/\bsetTimeout\b|\bsetInterval\b|\bpoll\s*\(/)
+	})
+})

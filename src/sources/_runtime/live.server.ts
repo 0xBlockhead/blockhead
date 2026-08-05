@@ -15,6 +15,8 @@ export type SourceLiveRequest = {
 	source: Source
 	targetKey: string
 	operationGroup: SourceOperationGroup
+	serviceOrigin?: string
+	cursor?: number
 	grpc?: {
 		service: string
 		method: string
@@ -42,6 +44,19 @@ export const iterateSourceLive = async function* (
 
 	if (binding == null)
 		throw new Error(`${request.source}: no enabled RemoteLive binding for ${request.operationGroup}`)
+	if (
+		(request.serviceOrigin != null || request.cursor != null)
+		&& !binding.endpoints.some((endpoint) => (
+			endpoint.endpointKind === SourceEndpointKind.WebSocketUrl
+			&& endpoint.locator.includes('{pds-host}')
+		))
+	)
+		throw new Error(`${request.source}: fixed live endpoint rejects service overrides`)
+	if (
+		request.cursor != null
+		&& (!Number.isSafeInteger(request.cursor) || request.cursor < 0)
+	)
+		throw new Error(`${request.source}: live cursor must be a non-negative safe integer`)
 
 	if (binding.wireProtocol === WireProtocol.Grpc) {
 		if (webSocketInitialMessage != null)
@@ -96,8 +111,10 @@ export const iterateSourceLive = async function* (
 
 		yield* iterateWebSocketLive({
 			binding,
+			cursor: request.cursor,
 			initialMessage: webSocketInitialMessage,
 			operationGroup: request.operationGroup,
+			serviceOrigin: request.serviceOrigin,
 			signal,
 		})
 		return

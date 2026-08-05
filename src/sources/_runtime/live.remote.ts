@@ -12,6 +12,10 @@ const sourceLiveRequest = type({
 	source: type.enumerated(...Object.values(Source)),
 	targetKey: 'string',
 	operationGroup: type.enumerated(...Object.values(SourceOperationGroup)),
+	'serviceOrigin?': 'string',
+	'cursor?': type('number.integer').narrow((cursor) => (
+		Number.isSafeInteger(cursor) && cursor >= 0
+	)),
 	'grpc?': {
 		service: 'string',
 		method: 'string',
