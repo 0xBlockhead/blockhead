@@ -318,6 +318,23 @@ const nearNetworkTimestampReference = (
 		[entityFieldAddressKey(EntityType.NearNetwork_Timestamp, [], 'syncing')]: timestamp.syncing,
 	},
 })
+const nearBlockReference = (
+	network: NetworkId,
+	wireBlock: NearRpcBlock
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network: network,
+		height: BigInt(wireBlock.header.height),
+		hash: wireBlock.header.hash,
+	},
+	[EntityMetaKey.Fields]: Object.fromEntries(
+		Object.entries(nearBlockFields(network, wireBlock))
+			.map(([fieldName, fieldValue]) => [
+				entityFieldAddressKey(EntityType.NearBlock, [], fieldName),
+				fieldValue,
+			])
+	),
+})
 const getNearNetworkTimestampFields = async () => {
 	const {
 		getBlock,
@@ -904,6 +921,53 @@ export default {
 						return [nearNetworkTimestampReference(network, timestamp)]
 					},
 				}
+			},
+			resolveLive: {
+				finalHead: {
+					facetPath: [
+						'Near',
+					],
+					publishes: {
+						'$$timestamps': true,
+						'$$blocks': true,
+					},
+					start: ({
+						fields,
+						parentEntitySelector,
+						signal,
+					}) => {
+						assertNearMainnet(parentEntitySelector)
+						let timeout: ReturnType<typeof setTimeout> | undefined
+						const poll = async () => {
+							const timestamp = await getNearNetworkTimestampFields()
+							if (signal.aborted)
+								return
+							const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+							const headBlock = await getBlock({ blockId: timestamp.headHash })
+							if (signal.aborted)
+								return
+							fields.$$timestamps.replaceRows([{
+								source: Source.NearRpc_JsonRpc,
+								value: [nearNetworkTimestampReference(parentEntitySelector, timestamp)],
+							}])
+							fields.$$blocks.replaceRows([{
+								source: Source.NearRpc_JsonRpc,
+								value: [nearBlockReference(parentEntitySelector, headBlock)],
+							}])
+							timeout = setTimeout(() => { void poll() }, 1_000)
+						}
+						const abort = () => {
+							if (timeout != null)
+								clearTimeout(timeout)
+						}
+						signal.addEventListener('abort', abort, { once: true })
+						void poll()
+						return () => {
+							signal.removeEventListener('abort', abort)
+							abort()
+						}
+					},
+				},
 			},
 		})({
 			Near: {

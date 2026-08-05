@@ -56,12 +56,18 @@ if (networkValidatorsResolver == null)
 	throw new Error('NearRpc_JsonRpc spec missing NearNetwork.$$validators resolver')
 
 const networkTimestampsResolver = nearRpc.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'resolveLive' in resolver
+))
+const nearNetworkTimestampsResolver = nearRpc.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.NearNetwork
 	&& '$$timestamps' in resolver.projections
 ))
 
 if (networkTimestampsResolver == null)
 	throw new Error('NearRpc_JsonRpc spec missing NearNetwork.$$timestamps resolver')
+if (nearNetworkTimestampsResolver == null)
+	throw new Error('NearRpc_JsonRpc spec missing NearNetwork.$$timestamps snapshot resolver')
 
 const selector = {
 	$contract: {
@@ -456,14 +462,14 @@ describe('NEAR network reading facets', () => {
 				prev_epoch_kickout: [],
 			}))
 
-		const timestamps = await networkTimestampsResolver.resolve.Slug.resolve(network, context)
+		const timestamps = await nearNetworkTimestampsResolver.resolve.Slug.resolve(network, context)
 		expect(corsFetch.mock.calls.map((call) => JSON.parse(call[1].init.body).method)).toEqual([
 			'block',
 			'gas_price',
 			'status',
 			'validators',
 		])
-		expect(networkTimestampsResolver.projections.$$timestamps(timestamps)).toEqual([
+		expect(nearNetworkTimestampsResolver.projections.$$timestamps(timestamps)).toEqual([
 			expect.objectContaining({
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -480,6 +486,92 @@ describe('NEAR network reading facets', () => {
 				}),
 			}),
 		])
+	})
+})
+
+describe('NEAR live final head', () => {
+	beforeEach(() => {
+		corsFetch.mockReset()
+		vi.useFakeTimers()
+	})
+
+	it('publishes the final block and timestamp until exact abort cleanup', async () => {
+		const livePublisher = networkTimestampsResolver.resolveLive.finalHead
+		const replaceTimestamps = vi.fn()
+		const replaceBlocks = vi.fn()
+		const abortController = new AbortController()
+		corsFetch
+			.mockResolvedValueOnce(jsonRpcResult(wireBlock))
+			.mockResolvedValueOnce(jsonRpcResult({ gas_price: '100000000' }))
+			.mockResolvedValueOnce(jsonRpcResult({
+				chain_id: 'mainnet',
+				genesis_hash: 'genesis',
+				latest_protocol_version: 72,
+				protocol_version: 71,
+				sync_info: {
+					epoch_id: 'epoch-id',
+					epoch_start_height: 1_200_000,
+					latest_block_hash: wireBlock.header.hash,
+					latest_block_height: wireBlock.header.height,
+					latest_block_time: '2024-08-01T00:00:00.000Z',
+					syncing: false,
+				},
+				version: { version: '2.0.0' },
+			}))
+			.mockResolvedValueOnce(jsonRpcResult({
+				current_fishermen: [],
+				current_proposals: [],
+				current_validators: [],
+				epoch_height: 100,
+				epoch_start_height: 1_200_000,
+				next_fishermen: [],
+				next_validators: [],
+				prev_epoch_kickout: [],
+			}))
+			.mockResolvedValueOnce(jsonRpcResult(wireBlock))
+
+		const cleanup = await livePublisher.start({
+			parentEntitySelector: network,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: context,
+			fields: {
+				$$timestamps: {
+					replaceRows: replaceTimestamps,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				$$blocks: {
+					replaceRows: replaceBlocks,
+					invalidate: vi.fn(),
+					count: {
+						replaceRows: vi.fn(),
+						invalidate: vi.fn(),
+					},
+				},
+				invalidate: vi.fn(),
+			},
+		})
+		await vi.waitFor(() => {
+			expect(replaceTimestamps).toHaveBeenCalledOnce()
+			expect(replaceBlocks).toHaveBeenCalledOnce()
+		})
+		expect(replaceBlocks.mock.calls[0][0][0].value[0]).toEqual(expect.objectContaining({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				height,
+				hash: wireBlock.header.hash,
+			},
+		}))
+
+		abortController.abort()
+		cleanup?.()
+		await vi.advanceTimersByTimeAsync(2_000)
+		expect(corsFetch).toHaveBeenCalledTimes(5)
+		vi.useRealTimers()
 	})
 })
 
