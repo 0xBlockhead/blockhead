@@ -3,6 +3,7 @@ import test from 'node:test'
 
 import {
 	assertEveryRealWalletKindHasEcosystem,
+	WalletHarnessConnectionProtocol,
 	WalletHarnessCoverageKind,
 	WalletHarnessEcosystem,
 	walletHarnessEcosystemByEcosystem,
@@ -51,6 +52,50 @@ test('keeps Lightning and Farcaster in the denominator as non-extension architec
 		walletHarnessEcosystemByEcosystem[WalletHarnessEcosystem.Farcaster].extensionKinds,
 		[]
 	)
+})
+
+test('keeps Farcaster as the sole IdentityOverlay — never a RealWalletKind extension adapter', () => {
+	const identityOverlayRows = walletHarnessEcosystems.filter((row) => (
+		row.coverageKind === WalletHarnessCoverageKind.IdentityOverlay
+	))
+	assert.deepEqual(
+		identityOverlayRows.map((row) => row.ecosystem),
+		[WalletHarnessEcosystem.Farcaster]
+	)
+
+	const farcaster = walletHarnessEcosystemByEcosystem[WalletHarnessEcosystem.Farcaster]
+	assert.deepEqual(farcaster.connectionProtocols, [
+		WalletHarnessConnectionProtocol.FarcasterEvmProof,
+	])
+	assert.deepEqual(farcaster.caipNamespaces, ['eip155'])
+	assert.deepEqual(farcaster.extensionKinds, [])
+
+	for (const kind of realWalletKinds) {
+		assert.equal(
+			walletHarnessEcosystemsByExtensionKind(kind).some((row) => (
+				row.ecosystem === WalletHarnessEcosystem.Farcaster
+			)),
+			false,
+			`${kind} must not map into Farcaster`
+		)
+	}
+
+	for (const row of walletHarnessEcosystems) {
+		if (row.ecosystem === WalletHarnessEcosystem.Farcaster)
+			continue
+		assert.equal(
+			(row.connectionProtocols as readonly string[]).includes(
+				WalletHarnessConnectionProtocol.FarcasterEvmProof
+			),
+			false,
+			`${row.ecosystem} must not claim FarcasterEvmProof`
+		)
+		assert.notEqual(
+			row.coverageKind,
+			WalletHarnessCoverageKind.IdentityOverlay,
+			`${row.ecosystem} must not reuse IdentityOverlay`
+		)
+	}
 })
 
 test('enumerates irreducible ecosystems without free-string gaps', () => {

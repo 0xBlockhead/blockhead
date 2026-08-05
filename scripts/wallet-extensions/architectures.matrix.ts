@@ -18,8 +18,11 @@ import {
  * resolvers until a real node connection state exists. Do not invent a soft
  * wallet adapter to fill this gap.
  *
- * Farcaster: identity overlay over EVM `personal_sign` proof; CAIP-10 Account
- * stays orthogonal to `BlockheadWalletConnection` / Farcaster enrollment rows.
+ * Farcaster: identity overlay over EVM `personal_sign` proof — not a
+ * `WalletConnectionMethod`, not a `RealWalletKind`, not an injected extension
+ * adapter. Proof borrows an existing EVM wallet session; CAIP-10 Account stays
+ * orthogonal to `BlockheadWalletConnection` / Farcaster enrollment rows.
+ * Do not invent a Farcaster browser wallet adapter to fill this gap.
  */
 export type ArchitectureDenominatorScenario = {
 	id: string
@@ -135,8 +138,18 @@ export const assertArchitectureDenominatorScenarios = () => {
 		const ecosystemRow = walletHarnessEcosystemByEcosystem[scenario.ecosystem]
 		if (ecosystemRow.coverageKind !== scenario.coverageKind)
 			throw new Error(`${scenario.id}: expected coverageKind ${scenario.coverageKind}, got ${ecosystemRow.coverageKind}`)
+		if (
+			ecosystemRow.coverageKind !== WalletHarnessCoverageKind.ArchitectureOnly
+			&& ecosystemRow.coverageKind !== WalletHarnessCoverageKind.IdentityOverlay
+		)
+			throw new Error(`${scenario.id}: denominator coverage must be architecture-only or identity-overlay`)
 		if (ecosystemRow.extensionKinds.length !== 0)
 			throw new Error(`${scenario.id}: architecture denominator must not map to extension wallets`)
+		if (
+			ecosystemRow.connectionProtocols.length > 0
+			&& !(ecosystemRow.connectionProtocols as readonly WalletHarnessConnectionProtocol[]).includes(scenario.connectionProtocol)
+		)
+			throw new Error(`${scenario.id}: connectionProtocol must be declared on the ecosystem row`)
 		if (scenario.request.ecosystem !== scenario.ecosystem)
 			throw new Error(`${scenario.id}: request ecosystem must match scenario ecosystem`)
 		if (scenario.expectedOutcome !== 'unsupported')

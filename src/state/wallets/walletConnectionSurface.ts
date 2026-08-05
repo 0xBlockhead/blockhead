@@ -17,6 +17,8 @@ import type { WalletAdapter, WalletConnection } from './adapters/types.ts'
  * - `BlockheadWalletCapabilityGrant` is authorization with scope + lifecycle (schema entity);
  *   it is orthogonal to connection.accounts[].capabilities and is not yet projected onto
  *   WalletConnection discoverable state until session grant restore wires it
+ * - Farcaster is an identity overlay over EVM `personal_sign` proof (Account ⊥ WalletConnection);
+ *   it is not a `WalletConnectionMethod` and must not gain an injected extension adapter here
  */
 
 export enum WalletCapabilitySurfaceKind {

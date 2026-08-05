@@ -204,8 +204,12 @@ export const walletHarnessEcosystems = [
 	{
 		ecosystem: WalletHarnessEcosystem.Farcaster,
 		label: 'Farcaster',
+		/** Borrows eip155 for proof address shape only — not an EVM extension wallet. */
 		caipNamespaces: ['eip155'],
-		/** Identity overlay: EVM proof borrows wallet signing; Account ≠ BlockheadWalletConnection. */
+		/**
+		 * Identity overlay: EVM `personal_sign` proof borrows an existing wallet
+		 * session. Not a `WalletConnectionMethod` / injected adapter; Account ⊥ WalletConnection.
+		 */
 		coverageKind: WalletHarnessCoverageKind.IdentityOverlay,
 		connectionProtocols: [
 			WalletHarnessConnectionProtocol.FarcasterEvmProof,

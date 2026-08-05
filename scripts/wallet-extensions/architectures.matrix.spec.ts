@@ -30,6 +30,10 @@ test('keeps Lightning, Farcaster, Near, and Sui in the unsupported denominator',
 		assert.equal(scenario.expectedOutcome, 'unsupported')
 		assert.equal(scenario.request.method, scenario.request.method)
 		assert.notEqual(scenario.request.ecosystem, WalletHarnessEcosystem.Evm)
+		assert.deepEqual(
+			walletHarnessEcosystemByEcosystem[scenario.ecosystem].extensionKinds,
+			[]
+		)
 	}
 
 	assert.equal(
@@ -54,6 +58,21 @@ test('keeps Lightning, Farcaster, Near, and Sui in the unsupported denominator',
 		walletHarnessEcosystemByEcosystem[WalletHarnessEcosystem.Lightning].extensionKinds.length,
 		0
 	)
+
+	const farcaster = architectureDenominatorScenarios.find((scenario) => (
+		scenario.ecosystem === WalletHarnessEcosystem.Farcaster
+	))
+	assert.equal(farcaster?.connectionProtocol, WalletHarnessConnectionProtocol.FarcasterEvmProof)
+	assert.equal(farcaster?.request.kind, 'message')
+	assert.equal(farcaster?.request.method, 'personal_sign')
+	assert.equal(
+		walletHarnessEcosystemByEcosystem[WalletHarnessEcosystem.Farcaster].extensionKinds.length,
+		0
+	)
+	assert.equal(
+		walletHarnessEcosystemByEcosystem[WalletHarnessEcosystem.Farcaster].coverageKind,
+		WalletHarnessCoverageKind.IdentityOverlay
+	)
 })
 
 test('product wallet catalog has no Lightning soft-wallet protocol', async () => {
@@ -70,6 +89,35 @@ test('product wallet catalog has no Lightning soft-wallet protocol', async () =>
 			method.id.includes('lightning')
 			|| method.label.toLowerCase().includes('lightning')
 			|| method.caipNamespaces.includes('lightning')
+		)),
+		false
+	)
+})
+
+test('product wallet catalog has no Farcaster WalletConnectionMethod or injected adapter', async () => {
+	const {
+		walletConnectionMethods,
+		walletProtocols,
+		WalletProtocol,
+	} = await import('../../src/constants/Wallet.ts')
+
+	assert.equal(
+		Object.values(WalletProtocol).some((protocol) => (
+			protocol.toLowerCase().includes('farcaster')
+		)),
+		false
+	)
+	assert.equal(
+		walletProtocols.some((row) => (
+			row.protocol.toLowerCase().includes('farcaster')
+			|| row.label.toLowerCase().includes('farcaster')
+		)),
+		false
+	)
+	assert.equal(
+		walletConnectionMethods.some((method) => (
+			method.id.toLowerCase().includes('farcaster')
+			|| method.label.toLowerCase().includes('farcaster')
 		)),
 		false
 	)

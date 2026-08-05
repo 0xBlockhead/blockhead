@@ -212,4 +212,33 @@ describe('walletConnectionSurface', () => {
 			Object.values(WalletCapabilitySurfaceKind)
 		).not.toContain('grant')
 	})
+
+	it('keeps Farcaster identity overlay orthogonal to WalletConnectionMethod / adapter map', () => {
+		const farcasterMention = (value: string) => (
+			value.toLowerCase().includes('farcaster')
+		)
+
+		expect(
+			Object.values(WalletProtocol).some((protocol) => farcasterMention(protocol))
+		).toBe(false)
+
+		expect(
+			walletConnectionMethods.some((method) => (
+				farcasterMention(method.id)
+				|| farcasterMention(method.label)
+			))
+		).toBe(false)
+
+		expect(
+			Object.keys(walletConnectionMethodAdapterIdByMethodId).some((methodId) => (
+				farcasterMention(methodId)
+			))
+		).toBe(false)
+
+		expect(
+			Object.values(walletConnectionMethodAdapterIdByMethodId).some((adapterId) => (
+				farcasterMention(adapterId)
+			))
+		).toBe(false)
+	})
 })
