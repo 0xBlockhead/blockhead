@@ -164,7 +164,7 @@ describe('Bitcoin injected wallet adapter', () => {
 					},
 					{
 						address: mainnetWitnessV0,
-						purpose: 'ordinals',
+						purpose: 'payment',
 						network: 'livenet',
 					},
 					{
@@ -276,6 +276,126 @@ describe('Bitcoin injected wallet adapter', () => {
 				accountAddress: regtestWitnessV1,
 			},
 		])
+	})
+
+	it('keeps payment and ordinals purposes labeled, filters non-Bitcoin purposes, and dedupes connection accounts', async () => {
+		const requestDistinct = vi.fn(async () => ({
+			status: 'success',
+			result: {
+				addresses: [{
+					address: mainnetWitnessV0,
+					purpose: 'payment',
+					network: 'mainnet',
+				}, {
+					address: mainnetWitnessV1,
+					purpose: 'ordinals',
+					network: 'mainnet',
+				}, {
+					address: 'SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9GJV',
+					purpose: 'stacks',
+					network: 'mainnet',
+				}],
+			},
+		}))
+		vi.stubGlobal('window', {
+			XverseProviders: {
+				BitcoinProvider: { request: requestDistinct },
+			},
+		})
+		const adapter = createBitcoinInjectedAdapter()
+		adapter.start(() => {})
+
+		expect((await adapter.connect('bitcoin:xverse'))?.accounts.map((account) => account.accountAddress)).toEqual([
+			mainnetWitnessV0,
+			mainnetWitnessV1,
+		])
+		expect(requestDistinct).toHaveBeenCalledWith('wallet_connect', {
+			addresses: [
+				'payment',
+				'ordinals',
+			],
+		})
+
+		const requestSharedAddress = vi.fn(async () => ({
+			status: 'success',
+			result: {
+				addresses: [{
+					address: mainnetWitnessV0,
+					purpose: 'payment',
+					network: 'mainnet',
+				}, {
+					address: mainnetWitnessV0,
+					purpose: 'ordinals',
+					network: 'livenet',
+				}],
+			},
+		}))
+		vi.stubGlobal('window', {
+			XverseProviders: {
+				BitcoinProvider: { request: requestSharedAddress },
+			},
+		})
+		const sharedAddressAdapter = createBitcoinInjectedAdapter()
+		sharedAddressAdapter.start(() => {})
+
+		expect((await sharedAddressAdapter.connect('bitcoin:xverse'))?.accounts.map((account) => ({
+			reference: account.reference,
+			accountAddress: account.accountAddress,
+		}))).toEqual([{
+			reference: '000000000019d6689c085ae165831e93',
+			accountAddress: mainnetWitnessV0,
+		}])
+	})
+
+	it('rejects missing, unknown, and non-Bitcoin-purpose-only Sats Connect address sets', async () => {
+		for (const {
+			addresses,
+			message,
+		} of [
+			{
+				addresses: [{
+					address: mainnetWitnessV0,
+					network: 'mainnet',
+				}],
+				message: 'Bitcoin wallet address did not include its purpose',
+			},
+			{
+				addresses: [{
+					address: mainnetWitnessV0,
+					purpose: 'runes',
+					network: 'mainnet',
+				}],
+				message: 'Bitcoin wallet returned unsupported address purpose runes',
+			},
+			{
+				addresses: [{
+					address: 'SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9GJV',
+					purpose: 'stacks',
+					network: 'mainnet',
+				}],
+				message: 'Bitcoin wallet did not return any Bitcoin addresses',
+			},
+		]) {
+			const request = vi.fn(async () => ({
+				status: 'success',
+				result: {
+					addresses,
+				},
+			}))
+			vi.stubGlobal('window', {
+				XverseProviders: {
+					BitcoinProvider: { request },
+				},
+			})
+			const adapter = createBitcoinInjectedAdapter()
+			adapter.start(() => {})
+
+			await expect(
+				adapter.connect('bitcoin:xverse'),
+				message
+			).rejects.toThrow(message)
+			vi.unstubAllGlobals()
+		}
 	})
 
 	it('rejects foreign-network, checksum, encoding, version, and program violations', async () => {

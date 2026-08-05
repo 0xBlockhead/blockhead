@@ -7,13 +7,42 @@ import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletCandidate, WalletConnection, WalletNonEvmAccountCapability } from './types.ts'
 import { buildWalletConnection } from '../walletConnectionState.ts'
 
-type BitcoinAddress = {
+/**
+ * Sats Connect Bitcoin address purposes only.
+ * Stacks / Spark / Starknet purposes are non-Bitcoin and filtered out.
+ * UniSat injected `getAccounts` / `requestAccounts` return unlabeled strings — never invent a purpose there.
+ */
+const bitcoinAddressPurposes = [
+	'payment',
+	'ordinals',
+] as const
+
+type BitcoinAddressPurpose = (typeof bitcoinAddressPurposes)[number]
+
+const nonBitcoinSatsConnectPurposes = [
+	'spark',
+	'stacks',
+	'starknet',
+] as const
+
+type BitcoinLabeledAddress = {
+	address: string
+	network: string
+	purpose: BitcoinAddressPurpose
+}
+
+/** UniSat wire accounts — no Sats Connect purpose field on the injected API. */
+type BitcoinUnlabeledAddress = {
 	address: string
 	network: string
 }
 
+type BitcoinConnectionAddress =
+	| BitcoinLabeledAddress
+	| BitcoinUnlabeledAddress
+
 type BitcoinConnectionState = {
-	addresses: BitcoinAddress[]
+	addresses: BitcoinConnectionAddress[]
 	connectedAt: number
 	protocol: WalletProtocol
 	methods: string[]
@@ -129,7 +158,10 @@ const bitcoinNetwork = (network: string) => {
 
 const bitcoinReference = (network: string) => bitcoinNetwork(network).reference
 
-const normalizeBitcoinAddress = ({ address, network }: BitcoinAddress): BitcoinAddress => {
+const normalizeBitcoinWireAddress = (
+	address: string,
+	network: string
+): Pick<BitcoinConnectionAddress, 'address' | 'network'> => {
 	try {
 		const normalizedNetwork = network.toLowerCase()
 		const {
@@ -201,11 +233,37 @@ const normalizeBitcoinAddress = ({ address, network }: BitcoinAddress): BitcoinA
 	}
 }
 
-const normalizeBitcoinAddresses = (addresses: BitcoinAddress[]) => {
+const bitcoinAccountIdentity = ({
+	address,
+	network,
+}: Pick<BitcoinConnectionAddress, 'address' | 'network'>) => (
+	`${bitcoinReference(network)}:${address}`
+)
+
+const normalizeBitcoinLabeledAddresses = (addresses: BitcoinLabeledAddress[]) => {
+	const purposesByAccountId = new Map<string, Set<BitcoinAddressPurpose>>()
+	return addresses.flatMap((address) => {
+		const normalizedWire = normalizeBitcoinWireAddress(address.address, address.network)
+		const normalizedAddress = {
+			...normalizedWire,
+			purpose: address.purpose,
+		}
+		const accountId = bitcoinAccountIdentity(normalizedAddress)
+		const purposes = purposesByAccountId.get(accountId) ?? new Set<BitcoinAddressPurpose>()
+		if (purposes.has(normalizedAddress.purpose))
+			return []
+
+		purposes.add(normalizedAddress.purpose)
+		purposesByAccountId.set(accountId, purposes)
+		return [normalizedAddress]
+	})
+}
+
+const normalizeUnisatBitcoinAddresses = (addresses: BitcoinUnlabeledAddress[]) => {
 	const seenAccounts = new Set<string>()
 	return addresses.flatMap((address) => {
-		const normalizedAddress = normalizeBitcoinAddress(address)
-		const accountId = `${bitcoinReference(normalizedAddress.network)}:${normalizedAddress.address}`
+		const normalizedAddress = normalizeBitcoinWireAddress(address.address, address.network)
+		const accountId = bitcoinAccountIdentity(normalizedAddress)
 		if (seenAccounts.has(accountId)) return []
 
 		seenAccounts.add(accountId)
@@ -213,18 +271,25 @@ const normalizeBitcoinAddresses = (addresses: BitcoinAddress[]) => {
 	})
 }
 
-const bitcoinAddresses = (value: JsonValue): BitcoinAddress[] => {
+const bitcoinAddresses = (value: JsonValue): BitcoinLabeledAddress[] => {
 	const result = isJsonObject(value) && value.status === 'success' ? value.result : value
 	const addressesValue = isJsonObject(result) ? result.addresses : result
 	if (!isJsonArray(addressesValue))
 		throw new Error('Bitcoin wallet did not return an addresses array')
 
-	return normalizeBitcoinAddresses(addressesValue.flatMap((address) => {
+	return normalizeBitcoinLabeledAddresses(addressesValue.flatMap((address) => {
 		if (!isJsonObject(address) || !isJsonString(address.address))
 			throw new Error('Bitcoin wallet returned a non-canonical address')
 
-		if (address.purpose === 'stacks' || address.purpose === 'spark' || address.purpose === 'starknet')
+		if (!isJsonString(address.purpose))
+			throw new Error('Bitcoin wallet address did not include its purpose')
+
+		if (nonBitcoinSatsConnectPurposes.some((purpose) => purpose === address.purpose))
 			return []
+
+		const purpose = bitcoinAddressPurposes.find((bitcoinPurpose) => bitcoinPurpose === address.purpose)
+		if (purpose == null)
+			throw new Error(`Bitcoin wallet returned unsupported address purpose ${address.purpose}`)
 
 		if (!isJsonString(address.network))
 			throw new Error('Bitcoin wallet address did not include its network')
@@ -232,15 +297,16 @@ const bitcoinAddresses = (value: JsonValue): BitcoinAddress[] => {
 		return [{
 			address: address.address,
 			network: address.network,
+			purpose,
 		}]
 	}))
 }
 
-const unisatAddresses = (value: JsonValue, network: string): BitcoinAddress[] => {
+const unisatAddresses = (value: JsonValue, network: string): BitcoinUnlabeledAddress[] => {
 	if (!isJsonArray(value) || !value.every(isJsonString))
 		throw new Error('Bitcoin wallet did not return an accounts array')
 
-	return normalizeBitcoinAddresses(value.map((address) => ({ address, network })))
+	return normalizeUnisatBitcoinAddresses(value.map((address) => ({ address, network })))
 }
 
 const bitcoinConnection = (
@@ -251,12 +317,21 @@ const bitcoinConnection = (
 	:
 		BlockheadConnectionStatus.Disconnected
 ): WalletConnection => {
-	const accounts = state.addresses.map(({ address, network }) => ({
-		namespace: 'bip122',
-		reference: bitcoinReference(network),
-		accountAddress: address,
-		capabilities: [...bitcoinConnectionCapabilities],
-	}))
+	const accounts = [
+		...new Map(
+			state.addresses.map((row) => [
+				bitcoinAccountIdentity(row),
+				row,
+			] as const)
+		)
+			.values(),
+	]
+		.map(({ address, network }) => ({
+			namespace: 'bip122',
+			reference: bitcoinReference(network),
+			accountAddress: address,
+			capabilities: [...bitcoinConnectionCapabilities],
+		}))
 
 	return buildWalletConnection({
 		walletId,
@@ -295,7 +370,7 @@ export const createBitcoinInjectedAdapter = (): WalletAdapter => {
 		connectedAt: number
 	) => {
 		const addresses = bitcoinAddresses(await provider.request(method, method === 'wallet_connect' ? {
-			addresses: ['payment', 'ordinals'],
+			addresses: [...bitcoinAddressPurposes],
 		} : null))
 		if (!addresses.length)
 			throw new Error('Bitcoin wallet did not return any Bitcoin addresses')
