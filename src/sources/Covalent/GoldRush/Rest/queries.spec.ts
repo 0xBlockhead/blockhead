@@ -9,10 +9,15 @@ import {
 import bindings from '$/sources/Covalent/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
+import { goldRushChainNameByChainId } from '$/sources/Covalent/GoldRush/Rest/constants.ts'
 import {
 	getAddressTransactions,
 	getTokenBalances,
+	getTransaction,
+	goldRushChainName,
 } from '$/sources/Covalent/GoldRush/Rest/queries.ts'
+import transactionEmptyFixture from '$/sources/Covalent/GoldRush/Rest/fixtures/transaction-empty.json'
+import transactionErrorFixture from '$/sources/Covalent/GoldRush/Rest/fixtures/transaction-error.json'
 import transactionFixture from '$/sources/Covalent/GoldRush/Rest/fixtures/transaction.json'
 
 vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
@@ -56,6 +61,102 @@ const data = {
 
 beforeEach(() => {
 	vi.clearAllMocks()
+})
+
+describe('GoldRush chain catalog', () => {
+	it('keeps approved chain path segments in constants only', () => {
+		expect(goldRushChainNameByChainId[1]).toBe('eth-mainnet')
+		expect(goldRushChainName(8453)).toBe('base-mainnet')
+		expect(() => goldRushChainName(999)).toThrow('unsupported chain 999')
+	})
+})
+
+describe('GoldRush transaction_v2 detail', () => {
+	it('preserves one matching transaction and expansion fields', async () => {
+		vi.mocked(sourceGetJson).mockResolvedValueOnce(transactionFixture)
+
+		await expect(getTransaction({
+			chainId: 1,
+			chainName: 'eth-mainnet',
+			txHash: transactionFixture.data.items[0].tx_hash,
+			expansions: {
+				withInternal: true,
+				withState: true,
+				withInputData: true,
+			},
+		})).resolves.toMatchObject({
+			chain_id: 1,
+			items: [{
+				tx_hash: transactionFixture.data.items[0].tx_hash,
+				value: '1000000000000000000',
+				log_events: [{
+					log_offset: 3,
+				}],
+			}],
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			`https://api.covalenthq.com/v1/eth-mainnet/transaction_v2/${transactionFixture.data.items[0].tx_hash}/?with-internal=true&with-state=true&with-input-data=true`
+		)
+	})
+
+	it('fails closed on API error, empty items, and identity mismatch', async () => {
+		vi.mocked(sourceGetJson)
+			.mockResolvedValueOnce(transactionErrorFixture)
+			.mockResolvedValueOnce(transactionEmptyFixture)
+			.mockResolvedValueOnce({
+				...transactionFixture,
+				data: {
+					...transactionFixture.data,
+					chain_id: 137,
+				},
+			})
+
+		await expect(getTransaction({
+			chainId: 1,
+			chainName: 'eth-mainnet',
+			txHash: transactionFixture.data.items[0].tx_hash,
+		})).rejects.toThrow('Invalid API key')
+		await expect(getTransaction({
+			chainId: 1,
+			chainName: 'eth-mainnet',
+			txHash: transactionFixture.data.items[0].tx_hash,
+		})).rejects.toThrow('transaction not found')
+		await expect(getTransaction({
+			chainId: 1,
+			chainName: 'eth-mainnet',
+			txHash: transactionFixture.data.items[0].tx_hash,
+		})).rejects.toThrow('response chain does not match')
+	})
+
+	it('rejects malformed hashes and required expansions before accepting wire', async () => {
+		await expect(getTransaction({
+			chainId: 1,
+			chainName: 'eth-mainnet',
+			txHash: '0xdead',
+		})).rejects.toThrow('invalid transaction hash')
+		expect(sourceGetJson).not.toHaveBeenCalled()
+
+		vi.mocked(sourceGetJson).mockResolvedValueOnce({
+			...transactionFixture,
+			data: {
+				...transactionFixture.data,
+				items: [{
+					...transactionFixture.data.items[0],
+					internal_transfers: null,
+				}],
+			},
+		})
+
+		await expect(getTransaction({
+			chainId: 1,
+			chainName: 'eth-mainnet',
+			txHash: transactionFixture.data.items[0].tx_hash,
+			expansions: {
+				withInternal: true,
+			},
+		})).rejects.toThrow('internal transfers missing')
+	})
 })
 
 describe('GoldRush account token balances', () => {
@@ -295,5 +396,23 @@ describe('GoldRush account token balances', () => {
 			address,
 			page: 2,
 		})).rejects.toThrow('duplicate account transactions')
+	})
+
+	it('rejects blank quote currency on list envelopes', async () => {
+		vi.mocked(sourceGetJson).mockResolvedValueOnce({
+			data: {
+				...data,
+				quote_currency: '   ',
+			},
+			error: false,
+			error_message: null,
+			error_code: null,
+		})
+
+		await expect(getTokenBalances({
+			chainId: 1,
+			chainName: 'eth-mainnet',
+			address,
+		})).rejects.toThrow('invalid balance snapshot provenance')
 	})
 })
