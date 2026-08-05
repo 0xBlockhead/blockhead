@@ -7,9 +7,12 @@ import test from 'node:test'
 
 import { ambireWalletMatrixScenarios } from './Ambire/matrix.ts'
 import { backpackWalletMatrixScenarios } from './Backpack/matrix.ts'
+import { laceSidePanelBlockedObservation } from './Lace/driver.ts'
 import { laceWalletMatrixScenarios } from './Lace/matrix.ts'
 import { metamaskWalletMatrixScenarios } from './MetaMask/matrix.ts'
+import { tahoBlockedObservation } from './Taho/driver.ts'
 import { tahoWalletMatrixScenarios } from './Taho/matrix.ts'
+import { zerionTurnstileBlockedObservation } from './Zerion/driver.ts'
 import { zerionWalletMatrixScenarios } from './Zerion/matrix.ts'
 import {
 	assertWalletMatrixOutcomes,
@@ -177,28 +180,49 @@ test('records Lace side-panel automation as explicit blocked matrix cells', asyn
 			lifecycleEdgeCase: 'side-panel-recover-blocked',
 		},
 	])
-	await blockedByLifecycle(
-		'lace',
-		scenarios,
-		() => 'blocked'
+	await assertWalletMatrixOutcomes(
+		await runWalletCompatibilityMatrix({
+			driver: {
+				kind: 'lace',
+				run: async (matrixScenario) => laceSidePanelBlockedObservation(matrixScenario),
+			},
+			scenarios,
+		}),
+		[
+			'blocked',
+			'blocked',
+			'blocked',
+		],
+		'lace declared blockers'
 	)
 })
 
 test('records Taho account-2 blank Add Wallet and recover as blocked cells', async () => {
 	const scenarios = tahoWalletMatrixScenarios('0.66.0')
+	assert.deepEqual(scenarios.map(({ id, lifecycleEdgeCase }) => ({
+		id,
+		lifecycleEdgeCase,
+	})), [
+		{
+			id: 'taho-create-new-1',
+			lifecycleEdgeCase: 'connect-approve',
+		},
+		{
+			id: 'taho-create-new-2',
+			lifecycleEdgeCase: 'blank-add-wallet-tab-blocked',
+		},
+		{
+			id: 'taho-recover-3',
+			lifecycleEdgeCase: 'fixture-material-not-provided-blocked',
+		},
+	])
 	await assertWalletMatrixOutcomes(
 		await runWalletCompatibilityMatrix({
 			driver: {
 				kind: 'taho',
 				run: async (matrixScenario) => (
 					matrixScenario.accountOrdinal === 2 || matrixScenario.initializationFlow === 'recover' ?
-						{
-							outcome: 'blocked',
-							evidence: {
-								code: matrixScenario.lifecycleEdgeCase,
-								source: 'declared-blocker',
-							},
-						}
+						tahoBlockedObservation(matrixScenario)
 					:
 						{
 							accountAddress: '0xtaho1',
@@ -223,11 +247,37 @@ test('records Taho account-2 blank Add Wallet and recover as blocked cells', asy
 
 test('records Zerion Turnstile CAPTCHA onboarding as explicit blocked matrix cells', async () => {
 	const scenarios = zerionWalletMatrixScenarios('1.21.0')
-	assert.ok(scenarios.every(({ lifecycleEdgeCase }) => lifecycleEdgeCase.includes('blocked')))
-	await blockedByLifecycle(
-		'zerion',
-		scenarios,
-		() => 'blocked'
+	assert.deepEqual(scenarios.map(({ id, lifecycleEdgeCase }) => ({
+		id,
+		lifecycleEdgeCase,
+	})), [
+		{
+			id: 'zerion-create-new-1',
+			lifecycleEdgeCase: 'turnstile-captcha-blocked',
+		},
+		{
+			id: 'zerion-create-new-2',
+			lifecycleEdgeCase: 'turnstile-second-account-blocked',
+		},
+		{
+			id: 'zerion-recover-3',
+			lifecycleEdgeCase: 'turnstile-recover-blocked',
+		},
+	])
+	await assertWalletMatrixOutcomes(
+		await runWalletCompatibilityMatrix({
+			driver: {
+				kind: 'zerion',
+				run: async (matrixScenario) => zerionTurnstileBlockedObservation(matrixScenario),
+			},
+			scenarios,
+		}),
+		[
+			'blocked',
+			'blocked',
+			'blocked',
+		],
+		'zerion declared blockers'
 	)
 })
 
