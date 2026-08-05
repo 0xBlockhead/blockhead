@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
+import { WalletCapability, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import type { WalletConnection } from './adapters/types.ts'
 import {
@@ -360,6 +360,55 @@ describe('walletConnectionState', () => {
 			connectionKey: base.walletId,
 		})
 		expect(connectedEmpty).not.toHaveProperty('error')
+	})
+
+	it('strips SignTypedData and SwitchScope from non-eip155 accounts', () => {
+		const connection = buildWalletConnection({
+			walletId: 'bitcoin:unisat',
+			protocol: WalletProtocol.BitcoinInjected,
+			transportKind: WalletTransportKind.InjectedSigner,
+			scopes: [],
+			accounts: [{
+				namespace: 'bip122',
+				reference: '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
+				accountAddress: 'bc1qqypqxpq9qcrsszg2pvxq6rs0zqg3yyc5fcj4z3',
+				capabilities: [
+					WalletCapability.SignMessage,
+					WalletCapability.SignTypedData,
+					WalletCapability.SwitchScope,
+					WalletCapability.SignTransaction,
+				],
+			}],
+			status: BlockheadConnectionStatus.Connected,
+			selected: true,
+		})
+		expect(connection.accounts[0]?.capabilities).toEqual([
+			WalletCapability.SignMessage,
+			WalletCapability.SignTransaction,
+		])
+		expect(connection.activeAccount?.capabilities).toEqual([
+			WalletCapability.SignMessage,
+			WalletCapability.SignTransaction,
+		])
+
+		const evm = buildWalletConnection({
+			...base,
+			accounts: [{
+				...base.accounts[0],
+				capabilities: [
+					WalletCapability.SignMessage,
+					WalletCapability.SignTypedData,
+					WalletCapability.SwitchScope,
+				],
+			}],
+			status: BlockheadConnectionStatus.Connected,
+			selected: true,
+		})
+		expect(evm.accounts[0]?.capabilities).toEqual([
+			WalletCapability.SignMessage,
+			WalletCapability.SignTypedData,
+			WalletCapability.SwitchScope,
+		])
 	})
 
 	it('rejects illegal WalletConnection literals at the type level', () => {

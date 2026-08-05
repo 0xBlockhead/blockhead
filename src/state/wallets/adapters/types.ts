@@ -1,8 +1,8 @@
 import type {
-	WalletCapability,
 	WalletDiscoveryKind,
 } from '$/constants/Wallet.ts'
 import {
+	WalletCapability,
 	WalletProtocol,
 	WalletTransportKind,
 } from '$/constants/Wallet.ts'
@@ -21,12 +21,53 @@ export type WalletCandidate = {
 	capabilities: WalletCapability[]
 }
 
+/** EIP-712 typed data + chain switch — only meaningful on eip155 accounts. */
+export type WalletEvmOnlyCapability =
+	| WalletCapability.SignTypedData
+	| WalletCapability.SwitchScope
+
+/** Account/session capabilities that are valid outside eip155. */
+export type WalletNonEvmAccountCapability = Exclude<
+	WalletCapability,
+	WalletEvmOnlyCapability
+>
+
 export type WalletAccount = {
 	namespace: string
 	reference: string
 	accountAddress: string
 	capabilities: WalletCapability[]
 }
+
+export const walletEvmOnlyCapabilities = [
+	WalletCapability.SignTypedData,
+	WalletCapability.SwitchScope,
+] as const satisfies readonly WalletEvmOnlyCapability[]
+
+export const isWalletEvmOnlyCapability = (
+	capability: WalletCapability
+): capability is WalletEvmOnlyCapability => (
+	capability === WalletCapability.SignTypedData
+	|| capability === WalletCapability.SwitchScope
+)
+
+/**
+ * Strip EVM-only capabilities from non-eip155 accounts.
+ * eip155 accounts keep SignTypedData / SwitchScope when advertised.
+ */
+export const coerceWalletAccount = (
+	account: WalletAccount
+): WalletAccount => (
+	account.namespace === 'eip155' ?
+		account
+	:
+		{
+			...account,
+			capabilities: account.capabilities.filter((capability) => (
+				!isWalletEvmOnlyCapability(capability)
+			)),
+		}
+)
 
 export type WalletScope = {
 	namespace: string

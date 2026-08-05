@@ -556,6 +556,8 @@ describe('Bitcoin injected wallet adapter', () => {
 		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignMessage)
 		expect(connection?.scopes[0]?.methods).toContain('signMessage')
 		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignTransaction)
+		expect(connection?.accounts[0]?.capabilities).not.toContain(WalletCapability.SignTypedData)
+		expect(connection?.accounts[0]?.capabilities).not.toContain(WalletCapability.SwitchScope)
 
 		await expect(adapter.signMessage?.(
 			'bitcoin:unisat',

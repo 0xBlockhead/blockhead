@@ -11,7 +11,10 @@ import type {
 	WalletScope,
 	WalletSettledSession,
 } from './adapters/types.ts'
-import { isWalletAccountsNonEmpty } from './adapters/types.ts'
+import {
+	coerceWalletAccount,
+	isWalletAccountsNonEmpty,
+} from './adapters/types.ts'
 
 
 export type WalletConnectionWire = WalletConnectionBase & {
@@ -36,6 +39,16 @@ export const walletConnectionKey = (
 	?? connection.sessionId
 	?? connection.walletId
 )
+
+const coerceWalletConnectionBase = (
+	base: WalletConnectionBase
+): WalletConnectionBase => ({
+	...base,
+	accounts: base.accounts.map(coerceWalletAccount),
+	...(base.activeAccount != null && {
+		activeAccount: coerceWalletAccount(base.activeAccount),
+	}),
+})
 
 const connectionIdentity = (
 	base: WalletConnectionBase
@@ -83,12 +96,15 @@ const settledSession = (
 
 export const connectingWalletConnection = (
 	base: WalletConnectionBase
-): Extract<WalletConnection, { status: BlockheadConnectionStatus.Connecting }> => ({
-	...connectionIdentity(base),
-	...connectingSession(base),
-	status: BlockheadConnectionStatus.Connecting,
-	...(base.activeAccount != null && { activeAccount: base.activeAccount }),
-})
+): Extract<WalletConnection, { status: BlockheadConnectionStatus.Connecting }> => {
+	const coerced = coerceWalletConnectionBase(base)
+	return {
+		...connectionIdentity(coerced),
+		...connectingSession(coerced),
+		status: BlockheadConnectionStatus.Connecting,
+		...(coerced.activeAccount != null && { activeAccount: coerced.activeAccount }),
+	}
+}
 
 export const connectedWalletConnection = (
 	base: WalletConnectionBase & {
@@ -96,28 +112,29 @@ export const connectedWalletConnection = (
 		connectedAt?: number
 	}
 ): Extract<WalletConnection, { status: BlockheadConnectionStatus.Connected }> => {
+	const coerced = coerceWalletConnectionBase(base)
 	const activeAccount = (
-		base.activeAccount != null
-		&& base.accounts.some((account) => (
-			account.namespace === base.activeAccount?.namespace
-			&& account.reference === base.activeAccount.reference
-			&& account.accountAddress === base.activeAccount.accountAddress
+		coerced.activeAccount != null
+		&& coerced.accounts.some((account) => (
+			account.namespace === coerced.activeAccount?.namespace
+			&& account.reference === coerced.activeAccount.reference
+			&& account.accountAddress === coerced.activeAccount.accountAddress
 		))
 	) ?
-		base.activeAccount
+		coerced.activeAccount
 	:
-		base.accounts.at(0)
+		coerced.accounts.at(0)
 	const selected = (
 		base.selected
-		&& isWalletAccountsNonEmpty(base.accounts)
+		&& isWalletAccountsNonEmpty(coerced.accounts)
 		&& activeAccount != null
 	)
 
 	if (selected)
 		return {
-			...connectionIdentity(base),
-			...settledSession(base),
-			accounts: base.accounts,
+			...connectionIdentity(coerced),
+			...settledSession(coerced),
+			accounts: coerced.accounts,
 			activeAccount,
 			status: BlockheadConnectionStatus.Connected,
 			selected: true,
@@ -125,9 +142,9 @@ export const connectedWalletConnection = (
 		}
 
 	return {
-		...connectionIdentity(base),
-		...settledSession(base),
-		accounts: base.accounts,
+		...connectionIdentity(coerced),
+		...settledSession(coerced),
+		accounts: coerced.accounts,
 		status: BlockheadConnectionStatus.Connected,
 		selected: false,
 		...(activeAccount != null && { activeAccount }),
@@ -140,26 +157,32 @@ export const disconnectedWalletConnection = (
 		disconnectedAt?: number
 		connectedAt?: number
 	}
-): Extract<WalletConnection, { status: BlockheadConnectionStatus.Disconnected }> => ({
-	...connectionIdentity(base),
-	...settledSession(base),
-	status: BlockheadConnectionStatus.Disconnected,
-	...(base.disconnectedAt != null && { disconnectedAt: base.disconnectedAt }),
-	...(base.connectedAt != null && { connectedAt: base.connectedAt }),
-})
+): Extract<WalletConnection, { status: BlockheadConnectionStatus.Disconnected }> => {
+	const coerced = coerceWalletConnectionBase(base)
+	return {
+		...connectionIdentity(coerced),
+		...settledSession(coerced),
+		status: BlockheadConnectionStatus.Disconnected,
+		...(base.disconnectedAt != null && { disconnectedAt: base.disconnectedAt }),
+		...(base.connectedAt != null && { connectedAt: base.connectedAt }),
+	}
+}
 
 export const erroredWalletConnection = (
 	base: WalletConnectionBase & {
 		error: string
 		disconnectedAt?: number
 	}
-): Extract<WalletConnection, { status: BlockheadConnectionStatus.Error }> => ({
-	...connectionIdentity(base),
-	...settledSession(base),
-	status: BlockheadConnectionStatus.Error,
-	error: base.error,
-	...(base.disconnectedAt != null && { disconnectedAt: base.disconnectedAt }),
-})
+): Extract<WalletConnection, { status: BlockheadConnectionStatus.Error }> => {
+	const coerced = coerceWalletConnectionBase(base)
+	return {
+		...connectionIdentity(coerced),
+		...settledSession(coerced),
+		status: BlockheadConnectionStatus.Error,
+		error: base.error,
+		...(base.disconnectedAt != null && { disconnectedAt: base.disconnectedAt }),
+	}
+}
 
 export const buildWalletConnection = ({
 	status,

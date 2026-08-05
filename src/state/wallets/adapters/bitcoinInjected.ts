@@ -4,7 +4,7 @@ import { isJsonArray, isJsonObject, isJsonString, type JsonObject, type JsonValu
 import { base58, bech32, bech32m } from '@scure/base'
 import * as Hash from 'ox/Hash'
 import { SvelteMap } from 'svelte/reactivity'
-import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import type { WalletAdapter, WalletCandidate, WalletConnection, WalletNonEvmAccountCapability } from './types.ts'
 import { buildWalletConnection } from '../walletConnectionState.ts'
 
 type BitcoinAddress = {
@@ -108,7 +108,7 @@ const bitcoinNetworks = {
 const bitcoinSigningCapabilities = [
 	WalletCapability.SignMessage,
 	WalletCapability.SignTransaction,
-] satisfies WalletCapability[]
+] as const satisfies readonly WalletNonEvmAccountCapability[]
 
 const bitcoinConnectionCapabilities = [
 	WalletCapability.Connect,
@@ -117,7 +117,7 @@ const bitcoinConnectionCapabilities = [
 	WalletCapability.WatchAccounts,
 	WalletCapability.WatchScopes,
 	...bitcoinSigningCapabilities,
-] satisfies WalletCapability[]
+] as const satisfies readonly WalletNonEvmAccountCapability[]
 
 const bitcoinNetwork = (network: string) => {
 	const bitcoinNetwork = Object.entries(bitcoinNetworks).find(([name]) => name === network.toLowerCase())?.[1]
@@ -255,7 +255,7 @@ const bitcoinConnection = (
 		namespace: 'bip122',
 		reference: bitcoinReference(network),
 		accountAddress: address,
-		capabilities: bitcoinConnectionCapabilities,
+		capabilities: [...bitcoinConnectionCapabilities],
 	}))
 
 	return buildWalletConnection({
