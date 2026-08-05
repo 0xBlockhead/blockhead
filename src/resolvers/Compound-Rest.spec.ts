@@ -149,14 +149,15 @@ describe('Compound Rest resolver module', () => {
 		if (networkResolver == null)
 			throw new Error('missing Network resolver')
 
-		await expect(
-			networkResolver.resolve.Caip2.resolve(baseNetwork, context)
-		).resolves.toContainEqual({
+		const comets = await networkResolver.resolve.Caip2.resolve(baseNetwork, context)
+
+		expect(networkResolver.projections.Evm.$$compoundComets.select(comets)).toContainEqual({
 			[EntityMetaKey.Selector]: {
 				$network: baseNetwork,
 				cometAddress: baseCometAddress,
 			},
 		})
+		expect(networkResolver.projections.Evm.$$compoundComets.resolveCount(comets)).toBe(5)
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
@@ -178,7 +179,7 @@ describe('Compound Rest resolver module', () => {
 		expect(compoundCometResolver.projections.name(snapshot)).toBe('Compound USDC')
 		expect(compoundCometResolver.projections.baseTokenSymbol(snapshot)).toBe('USDC')
 		expect(compoundCometResolver.projections.collateralAssetCount(snapshot)).toBe(2)
-		expect(compoundCometResolver.projections.$$assets(snapshot)).toEqual([
+		expect(compoundCometResolver.projections.$$assets.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$comet: {
@@ -198,6 +199,7 @@ describe('Compound Rest resolver module', () => {
 				},
 			},
 		])
+		expect(compoundCometResolver.projections.$$assets.resolveCount(snapshot)).toBe(2)
 		expect(compoundCometResolver.projections.configuratorAddress(snapshot)).toBe(
 			'0x316f9708bb98af7da9c68c1c3b5e79039cd336e3'
 		)

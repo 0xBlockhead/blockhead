@@ -1,6 +1,5 @@
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -178,17 +177,20 @@ export default {
 			configuratorAddress: (comet) => comet.configuratorAddress,
 			rewardsAddress: (comet) => comet.rewardsAddress,
 			bulkerAddress: (comet) => comet.bulkerAddress,
-			$$assets: (comet) => (
-				comet.assets.map((asset) => ({
-					[EntityMetaKey.Selector]: {
-						$comet: {
-							$network: comet.$network[EntityMetaKey.Selector],
-							cometAddress: comet.cometAddress,
+			$$assets: {
+				select: (comet) => (
+					comet.assets.map((asset) => ({
+						[EntityMetaKey.Selector]: {
+							$comet: {
+								$network: comet.$network[EntityMetaKey.Selector],
+								cometAddress: comet.cometAddress,
+							},
+							symbol: asset.symbol,
 						},
-						symbol: asset.symbol,
-					},
-				}))
-			),
+					}))
+				),
+				resolveCount: (comet) => comet.collateralAssetCount,
+			},
 		}),
 
 		defineResolver({
@@ -242,8 +244,11 @@ export default {
 			},
 		})({
 			Evm: {
-				$$compoundComets: (comets) => comets,
+				$$compoundComets: {
+					select: (comets) => comets,
+					resolveCount: (comets) => comets.length,
+				},
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Compound_Rest>
+}
