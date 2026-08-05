@@ -1626,6 +1626,8 @@ describe('wallet connection runtime normalization', () => {
 					WalletCapability.ListAccounts,
 					WalletCapability.WatchAccounts,
 					WalletCapability.WatchScopes,
+					WalletCapability.SignMessage,
+					WalletCapability.SignTransaction,
 				],
 			}),
 			expect.objectContaining({
@@ -1775,6 +1777,9 @@ describe('wallet connection runtime normalization', () => {
 					WalletCapability.ListAccounts,
 					WalletCapability.WatchAccounts,
 					WalletCapability.WatchScopes,
+					WalletCapability.SignMessage,
+					WalletCapability.SignTransaction,
+					WalletCapability.SendTransaction,
 				],
 			}),
 		])
