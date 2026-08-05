@@ -39,8 +39,10 @@
 		"test:e2e:boundaries": "playwright test tests/e2e/boundary-updates.e2e.ts --workers=4",
 		"test:e2e:failfast": "playwright test tests/e2e/route-errors-failfast.e2e.ts",
 		"test:e2e:cors": "playwright test tests/e2e/cors-policy.e2e.ts",
+		"test:e2e:wallet-extensions": "WALLET_EXTENSIONS_E2E=1 PLAYWRIGHT_HEADLESS=0 playwright test --config playwright.wallet-extensions.config.ts",
 		"test:e2e:persistence": "VITE_BLOCKHEAD_E2E_PROBE=1 PLAYWRIGHT_DEDICATED_SERVER=1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts",
 		"test:e2e:persistence:probe": "VITE_BLOCKHEAD_E2E_PROBE=1 PLAYWRIGHT_DEDICATED_SERVER=1 E2E_PROBE_PATH=/network/eip155:1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts",
+		"wallet-extensions:acquire": "node scripts/wallet-extensions/acquire.mjs",
 		"verify": "pnpm run lint && pnpm run check && pnpm run check:e2e && pnpm run check:sources && pnpm run test:contracts"
 	},
 	"devDependencies": {

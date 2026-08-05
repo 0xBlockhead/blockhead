@@ -39,5 +39,6 @@ export default defineConfig({
 		'**/src/sources_/**',
 		'**/src/resolvers_/**',
 		'**/.worktrees/**',
+		'**/tests/e2e/wallet-extensions/**',
 	],
 })

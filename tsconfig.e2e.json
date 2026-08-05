@@ -20,6 +20,7 @@
 		".svelte-kit/types/**/$types.d.ts",
 		"playwright.config.ts",
 		"playwright.env.ts",
+		"playwright.wallet-extensions.config.ts",
 		"src/typescript/**/*.d.ts",
 		"src/**/*.e2e.js",
 		"src/**/*.e2e.ts",

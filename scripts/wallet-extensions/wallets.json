@@ -1,0 +1,56 @@
+{
+	"ambire": {
+		"version": "6.14.4",
+		"repository": "https://github.com/AmbireTech/extension",
+		"license": "GPL-3.0",
+		"url": "https://github.com/AmbireTech/extension/releases/download/v6.14.4/ambire-extension-v6.14.4-webkit.zip",
+		"sha256": "5b2c08c845055e1052b5d80439abc4a5d9ceda9bb6473e0c69d811249ae0a8ab",
+		"manifestRoot": ""
+	},
+	"backpack": {
+		"version": "0.10.1",
+		"repository": "https://github.com/coral-xyz/backpack",
+		"license": "GPL-3.0",
+		"url": "https://github.com/coral-xyz/backpack/releases/download/0.10.1-latest-4/build-beta-4.zip",
+		"sha256": "21fe6c4647699ce499adb2b46d6fe64d962295c047282acd3915d3ece3081697",
+		"manifestRoot": "build-beta"
+	},
+	"metamask": {
+		"version": "13.41.0",
+		"repository": "https://github.com/MetaMask/metamask-extension.git",
+		"commit": "61a42a48c7339c262547dfcd9856af9b86b881fc",
+		"buildDocumentation": "https://github.com/MetaMask/metamask-extension/blob/v13.41.0/docs/development/building-on-local.md",
+		"artifact": "dist/chrome"
+	},
+	"rabby": {
+		"version": "0.94.1",
+		"repository": "https://github.com/RabbyHub/Rabby.git",
+		"commit": "d3cdd4f228e3e24eedbbdfa187fdacc72803d188",
+		"buildCommand": "yarn install --immutable && yarn build:pro",
+		"artifact": "dist"
+	},
+	"taho": {
+		"version": "0.66.0",
+		"repository": "https://github.com/tahowallet/extension",
+		"license": "GPL-3.0",
+		"url": "https://github.com/tahowallet/extension/releases/download/v0.66.0/chrome.zip",
+		"sha256": "e14e560cb2188044b9c1f2a9e9641d9902c35c379a3b78e46980466eb5f6dfac",
+		"manifestRoot": ""
+	},
+	"unisat": {
+		"version": "1.7.17",
+		"repository": "https://github.com/unisat-wallet/wallet",
+		"license": "MIT",
+		"url": "https://github.com/unisat-wallet/wallet/releases/download/extension/v1.7.17/unisat-chrome-mv3-v1.7.17.zip",
+		"sha256": "c7ec1525e84320a62db44b91099e7528c95eeb7b23cb5cc647147f75bfe2d0ad",
+		"manifestRoot": ""
+	},
+	"zerion": {
+		"version": "1.41.2",
+		"repository": "https://github.com/zeriontech/zerion-wallet-extension",
+		"license": "GPL-3.0",
+		"url": "https://github.com/zeriontech/zerion-wallet-extension/releases/download/v1.41.2/zerion-wallet-extension-v1.41.2.zip",
+		"sha256": "80a8e04dd2c82180111e4354d420e908c6defc7a56cf50802754d899ed18ade1",
+		"manifestRoot": "zerion-wallet-extension-v1.41.2"
+	}
+}
