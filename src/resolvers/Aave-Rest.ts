@@ -1,3 +1,4 @@
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
@@ -29,16 +30,22 @@ const eip155ChainId = (network: NetworkId) => {
 const mapAaveMarketSnapshot = (
 	network: NetworkId,
 	market: AaveMarketWire
-) => ({
-	$network: {
-		[EntityMetaKey.Selector]: network,
-	},
-	poolAddress: market.address,
-	name: market.name,
-	icon: market.icon,
-	totalMarketSize: market.totalMarketSize,
-	totalAvailableLiquidity: market.totalAvailableLiquidity,
-})
+) => {
+	const poolAddress = hexLowerOfByteSize(market.address, 20)
+	if (poolAddress == null)
+		throw new Error(`${Source.Aave_Rest}: invalid market pool address`)
+
+	return {
+		$network: {
+			[EntityMetaKey.Selector]: network,
+		},
+		poolAddress,
+		name: market.name,
+		icon: market.icon,
+		totalMarketSize: market.totalMarketSize,
+		totalAvailableLiquidity: market.totalAvailableLiquidity,
+	}
+}
 
 export default {
 	source: Source.Aave_Rest,
