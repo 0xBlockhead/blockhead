@@ -333,8 +333,6 @@ export const walletConnectionMethods = [
 			WalletCapability.Connect,
 			WalletCapability.ListAccounts,
 			WalletCapability.WatchAccounts,
-			WalletCapability.SignMessage,
-			WalletCapability.SignTransaction,
 		],
 		implementationStatus: WalletImplementationStatus.Implemented,
 		dependencyPolicy: 'none',

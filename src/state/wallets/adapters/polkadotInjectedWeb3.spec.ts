@@ -15,21 +15,21 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 	})
 
 	it('exposes only implemented lifecycle capabilities and chain-scoped accounts', async () => {
+		const get = vi.fn(async () => [
+			{
+				address: genericAliceAddress,
+				genesisHash: null,
+			},
+			{
+				address: polkadotAddress,
+			},
+		])
 		vi.stubGlobal('window', {
 			injectedWeb3: {
 				polkadotjs: {
 					enable: vi.fn(async () => ({
 						accounts: {
-							get: async () => [
-								{
-									address: genericAliceAddress,
-									genesisHash: '0x91B171BB158E2D3848FA23A9F1C25182D',
-								},
-								{
-									address: polkadotAddress,
-									genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182',
-								},
-							],
+							get,
 							subscribe: () => () => {},
 						},
 					})),
@@ -61,9 +61,48 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 				events: ['accounts.subscribe'],
 			})],
 		}))
+		expect(get).toHaveBeenCalledWith(
+			undefined,
+			'0x91b171bb158e2d3848fa23a9f1c25182'
+		)
 	})
 
-	it('silently re-enables and restores multiple chain-scoped accounts after reload', async () => {
+	it('discovers delayed injected globals once and deduplicates alias sources', async () => {
+		vi.useFakeTimers()
+		const wallet = {
+			enable: vi.fn(async () => ({
+				accounts: {
+					get: async () => [],
+					subscribe: () => () => {},
+				},
+			})),
+		}
+		const injectedWindow: {
+			injectedWeb3?: Record<string, typeof wallet>
+		} = {}
+		vi.stubGlobal('window', injectedWindow)
+		const candidates: WalletCandidate[][] = []
+		const cleanup = createPolkadotInjectedWeb3Adapter().start((nextCandidates) => {
+			candidates.push(nextCandidates)
+		})
+
+		expect(candidates).toEqual([[]])
+		injectedWindow.injectedWeb3 = {
+			'polkadot-js': wallet,
+			polkadotjs: wallet,
+		}
+		await vi.advanceTimersByTimeAsync(100)
+		expect(candidates.at(-1)).toEqual([
+			expect.objectContaining({
+				id: 'polkadot:polkadot-js',
+			}),
+		])
+
+		cleanup()
+		vi.useRealTimers()
+	})
+
+	it('silently re-enables and restores only the authorized chain after reload', async () => {
 		let updateAccounts = (_accounts: {
 			address: string
 			genesisHash?: string | null
@@ -98,7 +137,8 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 		const restoreUpdates: WalletConnection[] = []
 		const restoreCleanup = adapter.subscribeConnection(
 			'polkadot:talisman',
-			(connection) => restoreUpdates.push(connection)
+			(connection) => restoreUpdates.push(connection),
+			'persisted-polkadot-connection'
 		)
 
 		await vi.waitFor(() => expect(restoreUpdates).toHaveLength(1))
@@ -110,20 +150,16 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 					accountAddress: polkadotAddress,
 					reference: '91b171bb158e2d3848fa23a9f1c25182',
 				}),
-				expect.objectContaining({
-					accountAddress: kusamaAddress,
-					reference: 'b0a8d493285c2df73290dfb7e61f870f',
-				}),
 			],
 		}))
 
 		updateAccounts([{
 			address: kusamaAddress,
-			genesisHash: '0xb0a8d493285c2df73290dfb7e61f870f',
+			genesisHash: null,
 		}])
 		expect(restoreUpdates.at(-1)?.activeAccount).toEqual(expect.objectContaining({
-			accountAddress: kusamaAddress,
-			reference: 'b0a8d493285c2df73290dfb7e61f870f',
+			accountAddress: polkadotAddress,
+			reference: '91b171bb158e2d3848fa23a9f1c25182',
 		}))
 
 		updateAccounts([])
@@ -138,11 +174,19 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 		expect(unsubscribe).toHaveBeenCalledOnce()
 	})
 
-	it('preserves enable approval rejection and keeps disconnect local', async () => {
+	it('preserves enable approval rejection and permits an explicit retry', async () => {
 		const rejection = new Error('Extension authorization rejected')
-		const enable = vi.fn(async () => {
-			throw rejection
-		})
+		const enable = vi.fn()
+			.mockRejectedValueOnce(rejection)
+			.mockResolvedValueOnce({
+				accounts: {
+					get: async () => [{
+						address: genericAliceAddress,
+						genesisHash: null,
+					}],
+					subscribe: () => () => {},
+				},
+			})
 		vi.stubGlobal('window', {
 			injectedWeb3: {
 				polkadotjs: { enable },
@@ -152,20 +196,62 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 		adapter.start(() => {})
 
 		await expect(adapter.connect('polkadot:polkadotjs')).rejects.toBe(rejection)
-		await adapter.disconnect('polkadot:polkadotjs')
-		expect(enable).toHaveBeenCalledOnce()
+		await expect(adapter.connect('polkadot:polkadotjs')).resolves.toEqual(
+			expect.objectContaining({
+				status: BlockheadConnectionStatus.Connected,
+			})
+		)
+		expect(enable).toHaveBeenCalledTimes(2)
 	})
 
-	it('ignores malformed or missing genesis scope identity', async () => {
+	it('revokes account update authority on disconnect', async () => {
+		let updateAccounts = (_accounts: {
+			address: string
+			genesisHash?: string | null
+		}[]) => {}
+		vi.stubGlobal('window', {
+			injectedWeb3: {
+				polkadotjs: {
+					enable: vi.fn(async () => ({
+						accounts: {
+							get: async () => [{
+								address: genericAliceAddress,
+								genesisHash: null,
+							}],
+							subscribe: (callback: typeof updateAccounts) => {
+								updateAccounts = callback
+
+								return () => {}
+							},
+						},
+					})),
+				},
+			},
+		})
+		const adapter = createPolkadotInjectedWeb3Adapter()
+		adapter.start(() => {})
+		await adapter.connect('polkadot:polkadotjs')
+		const updates: WalletConnection[] = []
+		adapter.subscribeConnection(
+			'polkadot:polkadotjs',
+			(connection) => updates.push(connection)
+		)
+
+		await adapter.disconnect('polkadot:polkadotjs')
+		updateAccounts([{
+			address: genericAliceAddress,
+			genesisHash: null,
+		}])
+		expect(updates).toEqual([])
+	})
+
+	it('ignores malformed genesis scope identity and addresses', async () => {
 		vi.stubGlobal('window', {
 			injectedWeb3: {
 				talisman: {
 					enable: vi.fn(async () => ({
 						accounts: {
 							get: async () => [
-								{
-									address: genericAliceAddress,
-								},
 								{
 									address: genericAliceAddress,
 									genesisHash: 'not-a-genesis-hash',
@@ -197,6 +283,44 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 		)
 	})
 
+	it('does not materialize accounts declared for a different chain', async () => {
+		vi.stubGlobal('window', {
+			injectedWeb3: {
+				talisman: {
+					enable: vi.fn(async () => ({
+						accounts: {
+							get: async () => [
+								{
+									address: kusamaAddress,
+									genesisHash: '0xb0a8d493285c2df73290dfb7e61f870f',
+								},
+								{
+									address: genericAliceAddress,
+									genesisHash: null,
+								},
+							],
+							subscribe: () => () => {},
+						},
+					})),
+				},
+			},
+		})
+		const adapter = createPolkadotInjectedWeb3Adapter()
+		adapter.start(() => {})
+
+		await expect(adapter.connect('polkadot:talisman')).resolves.toEqual(
+			expect.objectContaining({
+				status: BlockheadConnectionStatus.Connected,
+				accounts: [
+					expect.objectContaining({
+						accountAddress: polkadotAddress,
+						reference: '91b171bb158e2d3848fa23a9f1c25182',
+					}),
+				],
+			})
+		)
+	})
+
 	it('cancels cold re-enable before attaching an account listener', async () => {
 		const enable = Promise.withResolvers<{
 			accounts: {
@@ -221,7 +345,8 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 		const updates: WalletConnection[] = []
 		const cleanup = adapter.subscribeConnection(
 			'polkadot:talisman',
-			(connection) => updates.push(connection)
+			(connection) => updates.push(connection),
+			'persisted-polkadot-connection'
 		)
 
 		cleanup()
@@ -273,12 +398,13 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 		const updates: WalletConnection[] = []
 		const cleanup = adapter.subscribeConnection(
 			'polkadot:talisman',
-			(connection) => updates.push(connection)
+			(connection) => updates.push(connection),
+			'persisted-polkadot-connection'
 		)
 		await vi.waitFor(() => expect(subscribe).toHaveBeenCalledOnce())
 		updateAccounts([{
-			address: kusamaAddress,
-			genesisHash: '0xb0a8d493285c2df73290dfb7e61f870f',
+			address: genericAliceAddress,
+			genesisHash: null,
 		}])
 		initialAccounts.resolve([{
 			address: genericAliceAddress,
@@ -289,7 +415,7 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 
 		expect(updates).toEqual([
 			expect.objectContaining({
-				accounts: [expect.objectContaining({ accountAddress: kusamaAddress })],
+				accounts: [expect.objectContaining({ accountAddress: polkadotAddress })],
 			}),
 		])
 
