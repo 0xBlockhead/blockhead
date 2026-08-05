@@ -131,6 +131,7 @@ export const walletConnectionMethods = [
 			WalletCapability.Discover,
 			WalletCapability.Connect,
 			WalletCapability.Reconnect,
+			WalletCapability.Disconnect,
 			WalletCapability.ListAccounts,
 			WalletCapability.WatchAccounts,
 			WalletCapability.WatchScopes,
@@ -155,6 +156,7 @@ export const walletConnectionMethods = [
 		capabilities: [
 			WalletCapability.Connect,
 			WalletCapability.Reconnect,
+			WalletCapability.Disconnect,
 			WalletCapability.ListAccounts,
 			WalletCapability.WatchAccounts,
 			WalletCapability.WatchScopes,

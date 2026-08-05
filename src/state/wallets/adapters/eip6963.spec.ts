@@ -4,6 +4,7 @@ import { createEip6963Adapter, type Eip6963ProviderDetail } from './eip6963.ts'
 import type { Eip1193Provider } from './eip1193.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+import { WalletCapability } from '$/constants/Wallet.ts'
 
 const startAdapter = (provider: Eip1193Provider) => {
 	const eventListeners = new Map<string, (event: { detail: Eip6963ProviderDetail }) => void>()
@@ -445,6 +446,114 @@ describe('EIP-6963 connection events', () => {
 		}))
 
 		stopConnection()
+		stopDiscovery()
+	})
+
+	it('signs typed data via eth_signTypedData_v4', async () => {
+		const provider = {
+			request: vi.fn(async ({ method, params }) => {
+				if (method === 'eth_requestAccounts')
+					return ['0xd8da6bf26964af9d7eed9e403e826090792bed6a']
+				if (method === 'eth_chainId')
+					return '0x1'
+				if (method === 'eth_signTypedData_v4') {
+					expect(params).toEqual([
+						'0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+						expect.objectContaining({
+							primaryType: 'Mail',
+						}),
+					])
+					return '0xtypedsigned'
+				}
+				throw new Error(`unexpected ${method}`)
+			}),
+		} satisfies Eip1193Provider
+		const { adapter, stopDiscovery } = startAdapter(provider)
+		await adapter.connect('eip6963:example')
+
+		await expect(adapter.signTypedData?.(
+			'eip6963:example',
+			'0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+			{
+				types: {
+					EIP712Domain: [
+						{ name: 'name', type: 'string' },
+						{ name: 'version', type: 'string' },
+						{ name: 'chainId', type: 'uint256' },
+					],
+					Mail: [
+						{ name: 'contents', type: 'string' },
+					],
+				},
+				primaryType: 'Mail',
+				domain: {
+					name: 'Blockhead',
+					version: '1',
+					chainId: 1,
+				},
+				message: {
+					contents: 'hello',
+				},
+			}
+		)).resolves.toBe('0xtypedsigned')
+
+		stopDiscovery()
+	})
+
+	it('switches eip155 scope via wallet_switchEthereumChain and returns updated connection', async () => {
+		const provider = {
+			request: vi.fn(async ({ method, params }) => {
+				if (method === 'eth_requestAccounts')
+					return ['0xd8da6bf26964af9d7eed9e403e826090792bed6a']
+				if (method === 'eth_chainId')
+					return '0x1'
+				if (method === 'wallet_switchEthereumChain') {
+					expect(params).toEqual([
+						{
+							chainId: '0x89',
+						},
+					])
+					return null
+				}
+				throw new Error(`unexpected ${method}`)
+			}),
+		} satisfies Eip1193Provider
+		const { adapter, stopDiscovery } = startAdapter(provider)
+		await adapter.connect('eip6963:example')
+
+		await expect(adapter.switchScope?.(
+			'eip6963:example',
+			{
+				namespace: 'eip155',
+				reference: '137',
+			}
+		)).resolves.toEqual(
+			expect.objectContaining({
+				status: BlockheadConnectionStatus.Connected,
+				scopes: [
+					expect.objectContaining({
+						namespace: 'eip155',
+						reference: '137',
+						methods: expect.arrayContaining([
+							'eth_signTypedData_v4',
+							'wallet_switchEthereumChain',
+						]),
+					}),
+				],
+				accounts: [
+					expect.objectContaining({
+						reference: '137',
+						accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+						capabilities: expect.arrayContaining([
+							WalletCapability.Connect,
+							WalletCapability.SignTypedData,
+							WalletCapability.SwitchScope,
+						]),
+					}),
+				],
+			})
+		)
+
 		stopDiscovery()
 	})
 })

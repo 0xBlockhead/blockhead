@@ -1,6 +1,8 @@
 import {
 	type Eip1193Provider,
 	personalSign,
+	signTypedDataV4,
+	switchEthereumChain,
 } from './eip1193.ts'
 import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
@@ -78,8 +80,10 @@ const getChainReference = async (provider: Eip1193Provider) => (
 )
 
 const eipCapabilities = [
+	WalletCapability.Discover,
 	WalletCapability.Connect,
 	WalletCapability.Reconnect,
+	WalletCapability.Disconnect,
 	WalletCapability.ListAccounts,
 	WalletCapability.WatchAccounts,
 	WalletCapability.WatchScopes,
@@ -87,7 +91,24 @@ const eipCapabilities = [
 	WalletCapability.SignTransaction,
 	WalletCapability.SendTransaction,
 	WalletCapability.SignTypedData,
+	WalletCapability.SwitchScope,
 ] satisfies WalletCapability[]
+
+const eipScopeMethods = [
+	'eth_accounts',
+	'eth_requestAccounts',
+	'personal_sign',
+	'eth_signTypedData_v4',
+	'eth_signTransaction',
+	'eth_sendTransaction',
+	'wallet_switchEthereumChain',
+] as const
+
+const eipScopeEvents = [
+	'accountsChanged',
+	'chainChanged',
+	'disconnect',
+] as const
 
 export const eipCandidateFromDetail = (
 	detail: Eip6963ProviderDetail
@@ -123,15 +144,10 @@ export const eipConnectionFromAccounts = (
 					namespace: 'eip155',
 					reference: String(chainReference),
 					methods: [
-						'eth_accounts',
-						'eth_requestAccounts',
-						'personal_sign',
-						'eth_sendTransaction',
+						...eipScopeMethods,
 					],
 					events: [
-						'accountsChanged',
-						'chainChanged',
-						'disconnect',
+						...eipScopeEvents,
 					],
 				},
 			],
@@ -260,6 +276,37 @@ export const createEip6963Adapter = (): WalletAdapter => {
 				throw new Error('EIP-6963 provider is unavailable')
 
 			return personalSign(provider, accountAddress, message)
+		},
+		signTypedData: async (walletId, accountAddress, typedData) => {
+			const provider = providerByWalletId.get(walletId)
+			if (provider == null)
+				throw new Error('EIP-6963 provider is unavailable')
+
+			return signTypedDataV4(provider, accountAddress, typedData)
+		},
+		switchScope: async (walletId, scope) => {
+			const provider = providerByWalletId.get(walletId)
+			if (provider == null)
+				throw new Error('EIP-6963 provider is unavailable')
+			if (scope.namespace !== 'eip155')
+				throw new Error('EIP-6963 switchScope only supports eip155')
+
+			await switchEthereumChain(provider, scope.reference)
+			const state = eipStateByWalletId.get(walletId)
+			const accounts = state?.accounts ?? []
+			eipStateByWalletId.set(walletId, {
+				accounts,
+				chainReference: scope.reference,
+				connectedAt: state?.connectedAt ?? Date.now(),
+			})
+
+			return eipConnectionFromAccounts(
+				walletId,
+				accounts,
+				scope.reference,
+				BlockheadConnectionStatus.Connected,
+				eipStateByWalletId.get(walletId)?.connectedAt
+			)
 		},
 		disconnect: (walletId) => {
 			eipStateByWalletId.delete(walletId)

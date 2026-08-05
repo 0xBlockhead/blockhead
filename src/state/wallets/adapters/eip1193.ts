@@ -1,4 +1,5 @@
 import type { JsonObject, JsonValue } from '$/typescript/JsonValue.ts'
+import type { WalletTypedData } from './types.ts'
 
 export type Eip1193RequestArguments = {
 	method: string
@@ -63,6 +64,43 @@ export const personalSign = async (
 		throw new Error('Provider returned an invalid personal_sign signature')
 
 	return signature
+}
+
+export const signTypedDataV4 = async (
+	provider: Eip1193Provider,
+	accountAddress: string,
+	typedData: WalletTypedData
+) => {
+	const signature = await provider.request({
+		method: 'eth_signTypedData_v4',
+		params: [
+			accountAddress,
+			{
+				types: typedData.types,
+				primaryType: typedData.primaryType,
+				domain: typedData.domain,
+				message: typedData.message,
+			},
+		],
+	})
+	if (typeof signature !== 'string' || !signature.startsWith('0x'))
+		throw new Error('Provider returned an invalid eth_signTypedData_v4 signature')
+
+	return signature
+}
+
+export const switchEthereumChain = async (
+	provider: Eip1193Provider,
+	chainReference: string
+) => {
+	await provider.request({
+		method: 'wallet_switchEthereumChain',
+		params: [
+			{
+				chainId: `0x${BigInt(chainReference).toString(16)}`,
+			},
+		],
+	})
 }
 
 export const onAccountsChanged = (
