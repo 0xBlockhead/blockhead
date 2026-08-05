@@ -106,7 +106,7 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 		getCall.mockResolvedValue('0x')
 	})
 
-	it('registers pool, pool-block, position, and position-block resolvers without soft-empty many facets', () => {
+	it('registers canonical pool, pool-block, position, and position-block resolvers without soft-empty many facets', () => {
 		expect(uniswapV3Resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType.UniswapV3Pool,
 			EntityType.UniswapV3Pool_Block,
@@ -114,11 +114,19 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 			EntityType.UniswapV3Position_Block,
 		])
 
-		const poolResolver = uniswapV3Resolvers[0]
+		const poolResolver = uniswapV3Resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Pool
+		))
+		if (poolResolver == null)
+			throw new Error('missing UniswapV3Pool resolver')
 		expect(poolResolver.projections).not.toHaveProperty('$$blocks')
 		expect(poolResolver.projections).not.toHaveProperty('$$positions')
 
-		const positionResolver = uniswapV3Resolvers[2]
+		const positionResolver = uniswapV3Resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Position
+		))
+		if (positionResolver == null)
+			throw new Error('missing UniswapV3Position resolver')
 		expect(positionResolver.projections).not.toHaveProperty('$$blocks')
 	})
 

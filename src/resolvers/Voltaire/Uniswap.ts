@@ -168,6 +168,9 @@ export const uniswapV3Resolvers = [
 		resolve: {
 			PoolBlockNumber: {
 				resolve: async ({ $pool, blockNumber }) => {
+					if (!('poolAddress' in $pool))
+						throw new Error('Voltaire_JsonRpc: UniswapV3Pool_Block requires NetworkPoolAddress')
+
 					const chainId = chainIdFromNetwork($pool.$network)
 					const {
 						getPoolFeeGrowthGlobal0X128,
