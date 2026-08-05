@@ -5,7 +5,8 @@ import {
 } from '../ecosystems.ts'
 
 
-// Account 3 recover (and import-private-key) stay blocked: no safe fixture material in CI.
+// Account 3 recover stays blocked: no safe fixture material in CI.
+// Do not invent a recover or import-private-key pass — keep those cells explicitly blocked.
 export const petraWalletMatrixScenarios = (version: string) => ([
 	{
 		id: 'petra-create-new-1',
@@ -50,6 +51,6 @@ export const petraWalletMatrixScenarios = (version: string) => ([
 		connectionMethod: 'aptos:connect',
 		chain: 'aptos:1',
 		requestMethod: 'aptos:signMessage',
-		lifecycleEdgeCase: 'fixture-material-not-provided',
+		lifecycleEdgeCase: 'fixture-material-not-provided-blocked',
 	},
 ] as const satisfies readonly WalletMatrixScenario[])
