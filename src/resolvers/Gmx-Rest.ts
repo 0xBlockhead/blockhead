@@ -2,7 +2,6 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -61,6 +60,10 @@ export default {
 						marketTokenAddress,
 					}: GmxMarketId) => {
 						const chainId = eip155ChainId($network)
+						const { gmxApiByChainId } = await import('$/sources/Gmx/Rest/constants.ts')
+						if (gmxApiByChainId[chainId] == null)
+							throw new Error(`${Source.Gmx_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const normalizedMarketTokenAddress = hexLowerOfByteSize(marketTokenAddress, 20)
 						if (normalizedMarketTokenAddress == null)
 							throw new Error(`${Source.Gmx_Rest}: invalid market token ${marketTokenAddress}`)
@@ -106,6 +109,10 @@ export default {
 				Caip2: {
 					resolve: async (network, context) => {
 						const chainId = eip155ChainId(network)
+						const { gmxApiByChainId } = await import('$/sources/Gmx/Rest/constants.ts')
+						if (gmxApiByChainId[chainId] == null)
+							throw new Error(`${Source.Gmx_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const { getMarketsInfo } = await import('$/sources/Gmx/Rest/queries.ts')
 						return (await getMarketsInfo({
 							chainId,
@@ -126,4 +133,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Gmx_Rest>
+}

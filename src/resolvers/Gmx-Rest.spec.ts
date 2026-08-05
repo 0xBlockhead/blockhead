@@ -87,6 +87,24 @@ describe('GMX Rest resolver module', () => {
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
+	it('rejects unsupported GMX chains before transport', async () => {
+		if (gmxMarketResolver == null)
+			throw new Error('missing GmxMarket resolver')
+
+		await expect(
+			gmxMarketResolver.resolve.NetworkMarketTokenAddress.resolve({
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+				marketTokenAddress: ethMarketTokenAddress,
+			}, context)
+		).rejects.toThrow(`${Source.Gmx_Rest}: unsupported chain id 1`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
 	it('resolves a GMX V2 market snapshot by network and market token', async () => {
 		if (gmxMarketResolver == null)
 			throw new Error('missing GmxMarket resolver')
