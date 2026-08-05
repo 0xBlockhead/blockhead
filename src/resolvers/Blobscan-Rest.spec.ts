@@ -82,12 +82,14 @@ describe('Blobscan EVM blob resolvers', () => {
 
 	it('resolves blob identity and detail from the transaction selector', async () => {
 		getTransaction.mockResolvedValueOnce({
+			hash: txHash,
 			blockNumber: 25680860,
 			blobs: [{
 				versionedHash,
 			}],
 		})
 		getBlobDetail.mockResolvedValueOnce({
+			versionedHash,
 			commitment: '0xcommit',
 			dataStorageReferences: [{
 				storage: 'ipfs',
@@ -136,6 +138,7 @@ describe('Blobscan EVM blob resolvers', () => {
 
 	it('maps EvmTransaction.$$blobs from Blobscan transaction rows', async () => {
 		getTransaction.mockResolvedValueOnce({
+			hash: txHash,
 			blockNumber: 12,
 			blobs: [{
 				versionedHash,

@@ -1,24 +1,184 @@
+/**
+ * Blobscan REST reads for blobs, blob transactions, and blob-carrying blocks.
+ * @see https://docs.blobscan.com/docs/api
+ * @see https://api.blobscan.com (Swagger UI)
+ */
 import { throwHttpError } from '$/lib/http.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Blobscan/bindings.ts'
-import type {
-	BlobscanBlobDetail,
-	BlobscanBlobList,
-	BlobscanTransaction,
+import {
+	blobscanRestHostByChainId,
+	blobscanRestPageSizeMax,
+} from '$/sources/Blobscan/Rest/constants.ts'
+import {
+	blobscanBlobDetailEnvelope,
+	blobscanBlobListEnvelope,
+	blobscanBlockDetailEnvelope,
+	blobscanBlockListEnvelope,
+	blobscanTransactionEnvelope,
+	type BlobscanBlobDetail,
+	type BlobscanBlobList,
+	type BlobscanBlobListItem,
+	type BlobscanBlockDetail,
+	type BlobscanBlockList,
+	type BlobscanBlockListItem,
+	type BlobscanTransaction,
 } from '$/sources/Blobscan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const bindingByChainId = Object.fromEntries(
-	bindings[Source.Blobscan_Rest].map((binding) => [binding.target.key, binding])
+	bindings[Source.Blobscan_Rest].map((binding) => [
+		binding.target.key,
+		binding,
+	])
 )
+
+const bytes32HexPattern = /^0x[0-9a-fA-F]{64}$/
+const blobVersionedHashPattern = /^0x01[0-9a-fA-F]{62}$/
 
 const bindingForChain = (chainId: string) => {
 	const binding = bindingByChainId[chainId]
 	if (binding == null)
 		throw new Error(`Blobscan_Rest: no binding for chain ${chainId}`)
+	if (blobscanRestHostByChainId[Number(chainId)] == null)
+		throw new Error(`Blobscan_Rest: no REST host catalog row for chain ${chainId}`)
 
 	return binding
+}
+
+const assertEnvelope = (
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(value)
+	} catch {
+		throw new Error(`Blobscan_Rest: invalid ${label} response envelope`)
+	}
+}
+
+const assertBytes32Hex = (
+	value: string,
+	label: string
+) => {
+	if (!bytes32HexPattern.test(value))
+		throw new Error(`Blobscan_Rest: invalid ${label}`)
+}
+
+const assertBlobVersionedHash = (
+	value: string,
+	label: string
+) => {
+	if (!blobVersionedHashPattern.test(value))
+		throw new Error(`Blobscan_Rest: invalid ${label}`)
+}
+
+const assertSafeNonnegativeInteger = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isSafeInteger(value) || value < 0)
+		throw new Error(`Blobscan_Rest: invalid ${label}`)
+}
+
+const assertSafePositiveInteger = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isSafeInteger(value) || value < 1)
+		throw new Error(`Blobscan_Rest: invalid ${label}`)
+}
+
+const assertPageSize = (
+	pageSize: number
+) => {
+	if (!Number.isSafeInteger(pageSize) || pageSize < 1 || pageSize > blobscanRestPageSizeMax)
+		throw new Error(`Blobscan_Rest: page size must be between 1 and ${blobscanRestPageSizeMax}`)
+}
+
+const assertTransaction = (
+	transaction: BlobscanTransaction,
+	txHash?: string
+) => {
+	assertEnvelope(blobscanTransactionEnvelope, transaction, 'transaction')
+	assertBytes32Hex(transaction.hash, 'transaction hash')
+	assertSafePositiveInteger(transaction.blockNumber, 'transaction block number')
+	if (txHash != null && transaction.hash.toLowerCase() !== txHash.toLowerCase())
+		throw new Error(`Blobscan_Rest: mismatched transaction hash ${transaction.hash}`)
+	for (const blob of transaction.blobs)
+		assertBlobVersionedHash(blob.versionedHash, 'transaction blob versioned hash')
+}
+
+const assertBlobDetail = (
+	blob: BlobscanBlobDetail,
+	versionedHash?: string
+) => {
+	assertEnvelope(blobscanBlobDetailEnvelope, blob, 'blob detail')
+	assertBlobVersionedHash(blob.versionedHash, 'blob versioned hash')
+	if (blob.commitment === '')
+		throw new Error('Blobscan_Rest: blob missing commitment')
+	if (versionedHash != null && blob.versionedHash.toLowerCase() !== versionedHash.toLowerCase())
+		throw new Error(`Blobscan_Rest: mismatched blob versioned hash ${blob.versionedHash}`)
+	if (blob.txHash != null)
+		assertBytes32Hex(blob.txHash, 'blob transaction hash')
+	if (blob.blockNumber != null)
+		assertSafePositiveInteger(blob.blockNumber, 'blob block number')
+	if (blob.index != null)
+		assertSafeNonnegativeInteger(blob.index, 'blob index')
+}
+
+const assertBlobListItem = (
+	blob: BlobscanBlobListItem
+) => {
+	assertBlobVersionedHash(blob.versionedHash, 'blob list versioned hash')
+	if (blob.txHash != null)
+		assertBytes32Hex(blob.txHash, 'blob list transaction hash')
+	if (blob.blockHash != null)
+		assertBytes32Hex(blob.blockHash, 'blob list block hash')
+	if (blob.blockNumber != null)
+		assertSafePositiveInteger(blob.blockNumber, 'blob list block number')
+	if (blob.index != null)
+		assertSafeNonnegativeInteger(blob.index, 'blob list index')
+}
+
+const assertBlockDetail = (
+	block: BlobscanBlockDetail,
+	blockId?: string | number
+) => {
+	assertEnvelope(blobscanBlockDetailEnvelope, block, 'block detail')
+	assertBytes32Hex(block.hash, 'block hash')
+	assertSafePositiveInteger(block.number, 'block number')
+	if (block.timestamp === '' || !Number.isFinite(Date.parse(block.timestamp)))
+		throw new Error(`Blobscan_Rest: invalid block timestamp ${block.timestamp}`)
+	if (
+		blockId != null
+		&& (
+			typeof blockId === 'number' ?
+				block.number !== blockId
+			:
+				block.hash.toLowerCase() !== blockId.toLowerCase()
+				&& String(block.number) !== blockId
+		)
+	)
+		throw new Error(`Blobscan_Rest: mismatched block identity ${block.hash}`)
+	for (const transaction of block.transactions) {
+		assertBytes32Hex(transaction.hash, 'block transaction hash')
+		for (const blob of transaction.blobs)
+			assertBlobVersionedHash(blob.versionedHash, 'block blob versioned hash')
+	}
+}
+
+const assertBlockListItem = (
+	block: BlobscanBlockListItem
+) => {
+	assertBytes32Hex(block.hash, 'block list hash')
+	assertSafePositiveInteger(block.number, 'block list number')
+	if (block.timestamp === '' || !Number.isFinite(Date.parse(block.timestamp)))
+		throw new Error(`Blobscan_Rest: invalid block list timestamp ${block.timestamp}`)
 }
 
 const getOptional = async <_Response>(
@@ -45,6 +205,21 @@ const getRequired = async <_Response>(
 	return response.json<_Response>()
 }
 
+const listPageParams = ({
+	limit,
+	offset = 0,
+}: {
+	limit: number
+	offset?: number
+}) => {
+	assertPageSize(limit)
+	assertSafeNonnegativeInteger(offset, 'page offset')
+	return {
+		ps: limit,
+		p: Math.floor(offset / limit) + 1,
+	}
+}
+
 export const getTransaction = async (
 	chainId: string,
 	{
@@ -53,11 +228,17 @@ export const getTransaction = async (
 		txHash: string
 	}
 ) => {
+	assertBytes32Hex(txHash, 'transaction hash')
 	const binding = bindingForChain(chainId)
-	return getOptional<BlobscanTransaction>(
+	const transaction = await getOptional<BlobscanTransaction>(
 		binding,
 		httpUrl(binding, `/transactions/${encodeURIComponent(txHash)}`)
 	)
+	if (transaction == null)
+		return undefined
+
+	assertTransaction(transaction, txHash)
+	return transaction
 }
 
 export const getBlob = async (
@@ -68,11 +249,17 @@ export const getBlob = async (
 		versionedHash: string
 	}
 ) => {
+	assertBlobVersionedHash(versionedHash, 'blob versioned hash')
 	const binding = bindingForChain(chainId)
-	return getOptional<BlobscanBlobDetail>(
+	const blob = await getOptional<BlobscanBlobDetail>(
 		binding,
 		httpUrl(binding, `/blobs/${encodeURIComponent(versionedHash)}`)
 	)
+	if (blob == null)
+		return undefined
+
+	assertBlobDetail(blob, versionedHash)
+	return blob
 }
 
 export const listBlobs = async (
@@ -86,17 +273,72 @@ export const listBlobs = async (
 	}
 ) => {
 	const binding = bindingForChain(chainId)
-	const pageSize = Math.max(1, limit)
-	const page = Math.floor(Math.max(0, offset) / pageSize) + 1
 	const body = await getRequired<BlobscanBlobList>(
 		binding,
-		httpUrl(binding, '/blobs', {
-			ps: pageSize,
-			p: page,
-		})
+		httpUrl(binding, '/blobs', listPageParams({
+			limit,
+			offset,
+		}))
 	)
+	assertEnvelope(blobscanBlobListEnvelope, body, 'blob list')
+	if (body.blobs.length > limit)
+		throw new Error('Blobscan_Rest: blob list exceeds requested page size')
+	for (const blob of body.blobs)
+		assertBlobListItem(blob)
+	return body.blobs
+}
 
-	return body.blobs ?? []
+export const getBlock = async (
+	chainId: string,
+	{
+		blockId,
+	}: {
+		blockId: string | number
+	}
+) => {
+	if (typeof blockId === 'number')
+		assertSafePositiveInteger(blockId, 'block number')
+	else if (bytes32HexPattern.test(blockId))
+		assertBytes32Hex(blockId, 'block hash')
+	else if (!/^(?:0|[1-9]\d*)$/.test(blockId) || !Number.isSafeInteger(Number(blockId)) || Number(blockId) < 1)
+		throw new Error(`Blobscan_Rest: invalid block id ${blockId}`)
+
+	const binding = bindingForChain(chainId)
+	const block = await getOptional<BlobscanBlockDetail>(
+		binding,
+		httpUrl(binding, `/blocks/${encodeURIComponent(String(blockId))}`)
+	)
+	if (block == null)
+		return undefined
+
+	assertBlockDetail(block, blockId)
+	return block
+}
+
+export const listBlocks = async (
+	chainId: string,
+	{
+		limit,
+		offset = 0,
+	}: {
+		limit: number
+		offset?: number
+	}
+) => {
+	const binding = bindingForChain(chainId)
+	const body = await getRequired<BlobscanBlockList>(
+		binding,
+		httpUrl(binding, '/blocks', listPageParams({
+			limit,
+			offset,
+		}))
+	)
+	assertEnvelope(blobscanBlockListEnvelope, body, 'block list')
+	if (body.blocks.length > limit)
+		throw new Error('Blobscan_Rest: block list exceeds requested page size')
+	for (const block of body.blocks)
+		assertBlockListItem(block)
+	return body.blocks
 }
 
 export const getBlobDetail = async (
@@ -109,21 +351,22 @@ export const getBlobDetail = async (
 		blobIndex: number
 	}
 ) => {
+	assertSafeNonnegativeInteger(blobIndex, 'blob index')
 	const transaction = await getTransaction(chainId, {
 		txHash,
 	})
 	if (transaction == null)
 		return undefined
 
-	const row = transaction.blobs?.[blobIndex]
+	const row = transaction.blobs[blobIndex]
 	if (row == null)
 		throw new Error(`Blobscan_Rest: blob index ${blobIndex} missing on transaction ${txHash}`)
 
-	const versionedHash = row.versionedHash
-	if (versionedHash == null || versionedHash === '')
-		throw new Error(`Blobscan_Rest: blob versioned hash missing at index ${blobIndex}`)
-
-	return getBlob(chainId, {
-		versionedHash,
+	const blob = await getBlob(chainId, {
+		versionedHash: row.versionedHash,
 	})
+	if (blob == null)
+		throw new Error(`Blobscan_Rest: blob ${row.versionedHash} missing for transaction ${txHash}`)
+
+	return blob
 }
