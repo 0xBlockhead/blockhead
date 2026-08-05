@@ -166,12 +166,16 @@ describe('walletConnectionState', () => {
 			selected: true,
 			error: 'denied',
 		})
-		expect(errored).toEqual({
-			...base,
+		expect(errored).toMatchObject({
+			walletId: base.walletId,
+			protocol: base.protocol,
+			transportKind: base.transportKind,
 			status: BlockheadConnectionStatus.Error,
 			error: 'denied',
 		})
 		expect(errored).not.toHaveProperty('selected')
+		expect(errored).not.toHaveProperty('sessionTopic')
+		expect(walletConnectionError(errored)).toBe('denied')
 	})
 
 	it('applies selection only to Connected rows', () => {
