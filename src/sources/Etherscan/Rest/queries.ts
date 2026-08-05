@@ -10,6 +10,8 @@
 
 import type {
 	EtherscanAccountArray,
+	EtherscanContractCreation,
+	EtherscanContractSourceCode,
 	EtherscanErc1155TokenTransfer,
 	EtherscanErc20TokenTransfer,
 	EtherscanErc721TokenTransfer,
@@ -31,14 +33,29 @@ import {
 	etherscanV2GetProxyResult,
 	etherscanV2UnwrapAccountResultArray,
 } from '$/sources/Etherscan/Rest/client.ts'
-import { supportedChainIds } from '$/sources/Etherscan/Rest/constants.ts'
+import {
+	accountListMaxOffset,
+	contractCreationAbsentMessages,
+	contractUnverifiedMessages,
+	supportedChainIds,
+} from '$/sources/Etherscan/Rest/constants.ts'
+
+const contractUnverifiedMessageSet = new Set<string>(contractUnverifiedMessages)
+const contractCreationAbsentMessageSet = new Set<string>(contractCreationAbsentMessages)
 
 export const supportsChainId = (chainId: number) => (
 	supportedChainIds.some((supportedChainId) => supportedChainId === chainId)
 )
 
-/** Etherscan account list endpoints cap at 10_000 rows per request. */
-export const getAccountListMaxOffset = 10_000
+/** Re-export catalog cap for resolvers that page account lists. */
+export const getAccountListMaxOffset = accountListMaxOffset
+
+const requireTxHash = (txHash: string) => {
+	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
+	if (normalizedTxHash == null)
+		throw new Error(`Etherscan_Rest: invalid tx hash ${txHash}`)
+	return normalizedTxHash
+}
 
 const etherscanAccountListQuery = ({
 	address,
@@ -52,7 +69,7 @@ const etherscanAccountListQuery = ({
 	startblock: '0',
 	endblock: '99999999',
 	page: '1',
-	offset: String(Math.min(Math.max(1, offset), getAccountListMaxOffset)),
+	offset: String(Math.min(Math.max(1, offset), accountListMaxOffset)),
 	sort: 'desc',
 })
 
@@ -90,20 +107,17 @@ export const getTransactionByHash = async ({
 	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: string
-}) => {
-	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
-	if (normalizedTxHash == null) return null
-
-	return etherscanV2GetProxyResult<RpcTransaction>({
+}) => (
+	etherscanV2GetProxyResult<RpcTransaction>({
 		chainId,
 		publicEnv,
 		query: {
 			module: 'proxy',
 			action: 'eth_getTransactionByHash',
-			txhash: normalizedTxHash,
+			txhash: requireTxHash(txHash),
 		},
 	})
-}
+)
 
 /**
  * **`module=proxy`**, **`action=eth_getTransactionReceipt`**, **`txhash`**.
@@ -117,20 +131,17 @@ export const getTransactionReceipt = async ({
 	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: string
-}) => {
-	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
-	if (normalizedTxHash == null) return null
-
-	return etherscanV2GetProxyResult<RpcReceipt>({
+}) => (
+	etherscanV2GetProxyResult<RpcReceipt>({
 		chainId,
 		publicEnv,
 		query: {
 			module: 'proxy',
 			action: 'eth_getTransactionReceipt',
-			txhash: normalizedTxHash,
+			txhash: requireTxHash(txHash),
 		},
 	})
-}
+)
 
 /**
  * **`module=proxy`**, **`action=eth_blockNumber`**.
@@ -142,8 +153,8 @@ export const getBlockNumber = async ({
 }: {
 	publicEnv: SourcePublicEnv
 	chainId: number
-}) => {
-	const blockNumberHex = await etherscanV2GetProxyResult<string>({
+}) => (
+	etherscanV2GetProxyResult<string>({
 		chainId,
 		publicEnv,
 		query: {
@@ -151,8 +162,7 @@ export const getBlockNumber = async ({
 			action: 'eth_blockNumber',
 		},
 	})
-	return typeof blockNumberHex === 'string' ? blockNumberHex : null
-}
+)
 
 /**
  * **`module=proxy`**, **`action=eth_getBlockByNumber`**, **`tag`** (hex block number or **`latest`**), **`boolean`**.
@@ -211,16 +221,33 @@ export const getContractAbiJsonString = async ({
 			address,
 		},
 	})
-	if (wire.status === '1' && typeof wire.result === 'string' && wire.result.trim())
+	if (wire.status === '1' && wire.result.trim())
 		return wire.result
-
-	const sourceRow = await getContractSourceCode({
-		publicEnv,
-		chainId,
-		address,
-	})
-	const abi = sourceRow?.ABI
-	return typeof abi === 'string' && abi.trim() ? abi : null
+	if (
+		wire.status === '0'
+		&& (
+			contractUnverifiedMessageSet.has(wire.message)
+			|| contractUnverifiedMessageSet.has(wire.result)
+		)
+	) {
+		const sourceRow = await getContractSourceCode({
+			publicEnv,
+			chainId,
+			address,
+		})
+		const abi = sourceRow?.ABI
+		return typeof abi === 'string' && abi.trim() ? abi : null
+	}
+	throw new Error(
+		`Etherscan_Rest: getabi failed${
+			wire.result !== '' ?
+				`: ${wire.result}`
+			: wire.message !== '' ?
+				`: ${wire.message}`
+			:
+				''
+		}`
+	)
 }
 
 /**
@@ -236,7 +263,7 @@ export const getContractSourceCode = async ({
 	chainId: number
 	address: `0x${string}`
 }) => {
-	const wire = await etherscanV2GetJson<import('$/sources/Etherscan/Rest/types.ts').EtherscanContractSourceCode>({
+	const wire = await etherscanV2GetJson<EtherscanContractSourceCode>({
 		chainId,
 		publicEnv,
 		query: {
@@ -245,8 +272,29 @@ export const getContractSourceCode = async ({
 			address,
 		},
 	})
-	if (wire.status !== '1' || !Array.isArray(wire.result)) return null
-	return wire.result[0] ?? null
+	if (wire.status === '1' && Array.isArray(wire.result))
+		return wire.result[0] ?? null
+	if (
+		wire.status === '0'
+		&& (
+			(
+				typeof wire.result === 'string'
+				&& contractUnverifiedMessageSet.has(wire.result)
+			)
+			|| contractUnverifiedMessageSet.has(wire.message)
+		)
+	)
+		return null
+	throw new Error(
+		`Etherscan_Rest: getsourcecode failed${
+			typeof wire.result === 'string' && wire.result !== '' ?
+				`: ${wire.result}`
+			: wire.message !== '' ?
+				`: ${wire.message}`
+			:
+				''
+		}`
+	)
 }
 
 /**
@@ -262,7 +310,7 @@ export const getContractCreation = async ({
 	chainId: number
 	address: `0x${string}`
 }) => {
-	const wire = await etherscanV2GetJson<import('$/sources/Etherscan/Rest/types.ts').EtherscanContractCreation>({
+	const wire = await etherscanV2GetJson<EtherscanContractCreation>({
 		chainId,
 		publicEnv,
 		query: {
@@ -271,13 +319,34 @@ export const getContractCreation = async ({
 			contractaddresses: address,
 		},
 	})
-	if (wire.status !== '1' || !Array.isArray(wire.result)) return null
-	return (
-		wire.result.find((row) => (
-			row.contractAddress?.toLowerCase() === address.toLowerCase()
-		))
-		?? wire.result[0]
-
+	if (wire.status === '1' && Array.isArray(wire.result))
+		return (
+			wire.result.find((row) => (
+				row.contractAddress?.toLowerCase() === address.toLowerCase()
+			))
+			?? wire.result[0]
+			?? null
+		)
+	if (
+		wire.status === '0'
+		&& (
+			contractCreationAbsentMessageSet.has(wire.message)
+			|| (
+				typeof wire.result === 'string'
+				&& contractCreationAbsentMessageSet.has(wire.result)
+			)
+		)
+	)
+		return null
+	throw new Error(
+		`Etherscan_Rest: getcontractcreation failed${
+			typeof wire.result === 'string' && wire.result !== '' ?
+				`: ${wire.result}`
+			: wire.message !== '' ?
+				`: ${wire.message}`
+			:
+				''
+		}`
 	)
 }
 
@@ -347,7 +416,17 @@ export const getGasOracle = async ({
 			action: 'gasoracle',
 		},
 	})
-	if (wire.status !== '1') return null
+	if (wire.status !== '1')
+		throw new Error(
+			`Etherscan_Rest: gasoracle failed${
+				typeof wire.result === 'string' ?
+					`: ${wire.result}`
+				: wire.message !== '' ?
+					`: ${wire.message}`
+				:
+					''
+			}`
+		)
 	return wire.result
 }
 
@@ -428,7 +507,6 @@ export const getTokenTransfersByAddress = async ({
 			action: 'token1155tx',
 		}),
 	])
-	if (erc20Rows == null || erc721Rows == null || erc1155Rows == null) return null
 	const seen = new Set<string>()
 	return [
 		...erc20Rows.map<EtherscanTokenTransferTagged>((row) => ({
@@ -506,15 +584,15 @@ export const getTokenTransfersByTransaction = async ({
 	/** retained for call-site compatibility; receipt logs are complete for the tx */
 	offset?: number
 }) => {
-	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
-	if (normalizedTxHash == null) return null
+	const normalizedTxHash = requireTxHash(txHash)
 
 	const receipt = await getTransactionReceipt({
 		publicEnv,
 		chainId,
 		txHash: normalizedTxHash,
 	})
-	if (receipt == null) return null
+	if (receipt == null)
+		return []
 
 	return (receipt.logs ?? []).flatMap((log): EtherscanTokenTransferTagged[] => {
 		const topic0 = log.topics?.[0]?.toLowerCase()
@@ -648,17 +726,14 @@ export const getInternalTransactionsByTxHash = async ({
 	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: string
-}) => {
-	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
-	if (normalizedTxHash == null) return null
-
-	return etherscanAccountListRows<EtherscanInternalTransaction>({
+}) => (
+	etherscanAccountListRows<EtherscanInternalTransaction>({
 		publicEnv,
 		chainId,
 		query: {
 			module: 'account',
 			action: 'txlistinternal',
-			txhash: normalizedTxHash,
+			txhash: requireTxHash(txHash),
 		},
 	})
-}
+)

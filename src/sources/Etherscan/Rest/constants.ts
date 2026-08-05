@@ -2,6 +2,39 @@
  * Chains this client treats as Etherscan V2–capable (numeric **`chainid`** must match supported chains).
  * Snapshot of **`GET https://api.etherscan.io/v2/chainlist`** rows with **`status: 1`** (2026-08-04).
  */
+
+// Constants
+
+/** Etherscan account list endpoints cap at 10_000 rows per request. */
+export const accountListMaxOffset = 10_000
+
+/**
+ * `module=account` list endpoints treat these status-0 messages as successful empty lists.
+ * @see https://docs.etherscan.io/api-reference/endpoint/txlist
+ */
+export const accountEmptyMessages = [
+	'No transactions found',
+	'No records found',
+] as const
+
+/**
+ * `module=contract` **`getabi`** / **`getsourcecode`** — verified-absent (not a transport failure).
+ * @see https://docs.etherscan.io/api-reference/endpoint/getabi
+ */
+export const contractUnverifiedMessages = [
+	'Contract source code not verified',
+] as const
+
+/**
+ * `module=contract` **`getcontractcreation`** — no creation row for the address.
+ * @see https://docs.etherscan.io/api-reference/endpoint/getcontractcreation
+ */
+export const contractCreationAbsentMessages = [
+	'Contract source code not verified',
+	'No transaction found for this contract address',
+	'No contracts found',
+] as const
+
 export const supportedChainIds = [
 	1,
 	10,

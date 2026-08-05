@@ -2,17 +2,20 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const etherscanV2GetJson = vi.hoisted(() => vi.fn())
 
-vi.mock('$/sources/Etherscan/Rest/client.ts', () => ({
-	etherscanV2GetJson,
-	etherscanV2GetProxyResult: async (request: Parameters<typeof etherscanV2GetJson>[0]) => (
-		(await etherscanV2GetJson(request))?.result ?? null
-	),
-	etherscanV2UnwrapAccountResultArray: (
-		wire: { result?: unknown[] } | null
-	) => wire?.result ?? null,
-}))
+vi.mock('$/sources/Etherscan/Rest/client.ts', async (importOriginal) => {
+	const original = await importOriginal<typeof import('$/sources/Etherscan/Rest/client.ts')>()
+	return {
+		...original,
+		etherscanV2GetJson,
+		etherscanV2GetProxyResult: async (request: Parameters<typeof etherscanV2GetJson>[0]) => (
+			original.etherscanV2UnwrapProxyResult(await etherscanV2GetJson(request))
+		),
+		etherscanV2UnwrapAccountResultArray: original.etherscanV2UnwrapAccountResultArray,
+	}
+})
 
 const {
+	getGasOracle,
 	getInternalTransactionsByTxHash,
 	getTokenTransfersByAddress,
 	getTokenTransfersByTransaction,
@@ -21,12 +24,65 @@ const {
 	supportsChainId,
 } = await import('$/sources/Etherscan/Rest/queries.ts')
 
+const {
+	etherscanV2UnwrapAccountResultArray,
+	etherscanV2UnwrapProxyResult,
+} = await import('$/sources/Etherscan/Rest/client.ts')
+
 const publicEnv = {}
 const uppercaseTxHash = `0x${'A'.repeat(64)}`
 const normalizedTxHash = uppercaseTxHash.toLowerCase()
 const transferTopic0 = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 const fromTopic = `0x${'0'.repeat(24)}${'11'.repeat(20)}`
 const toTopic = `0x${'0'.repeat(24)}${'22'.repeat(20)}`
+
+describe('Etherscan fail-closed envelopes', () => {
+	it('unwraps successful account lists and known empty status-0 messages', () => {
+		expect(etherscanV2UnwrapAccountResultArray({
+			status: '1',
+			message: 'OK',
+			result: [{ hash: normalizedTxHash }],
+		})).toEqual([{ hash: normalizedTxHash }])
+		expect(etherscanV2UnwrapAccountResultArray({
+			status: '0',
+			message: 'No transactions found',
+			result: 'No transactions found',
+		})).toEqual([])
+		expect(etherscanV2UnwrapAccountResultArray({
+			status: '0',
+			message: 'No records found',
+			result: 'No records found',
+		})).toEqual([])
+	})
+
+	it('throws on account list hard failures instead of soft-null', () => {
+		expect(() => etherscanV2UnwrapAccountResultArray({
+			status: '0',
+			message: 'NOTOK',
+			result: 'Max rate limit reached',
+		})).toThrow('Etherscan_Rest: account list failed: Max rate limit reached')
+		expect(() => etherscanV2UnwrapAccountResultArray(null)).toThrow('account list response missing envelope')
+	})
+
+	it('throws on proxy NOTOK / JSON-RPC error; keeps null result as absence', () => {
+		expect(etherscanV2UnwrapProxyResult({
+			jsonrpc: '2.0',
+			id: 1,
+			result: null,
+		})).toBeNull()
+		expect(() => etherscanV2UnwrapProxyResult({
+			status: '0',
+			message: 'NOTOK',
+			result: 'Free API access is not supported for this chain',
+		})).toThrow('Etherscan_Rest: proxy NOTOK')
+		expect(() => etherscanV2UnwrapProxyResult({
+			error: {
+				code: -32000,
+				message: 'execution reverted',
+			},
+		})).toThrow('Etherscan_Rest: proxy error -32000: execution reverted')
+	})
+})
 
 describe('Etherscan transaction hash query boundaries', () => {
 	beforeEach(() => {
@@ -38,23 +94,23 @@ describe('Etherscan transaction hash query boundaries', () => {
 			publicEnv,
 			chainId: 1,
 			txHash: 'invalid',
-		})).resolves.toBeNull()
+		})).rejects.toThrow('Etherscan_Rest: invalid tx hash')
 		await expect(getTransactionReceipt({
 			publicEnv,
 			chainId: 1,
 			txHash: 'invalid',
-		})).resolves.toBeNull()
+		})).rejects.toThrow('Etherscan_Rest: invalid tx hash')
 		await expect(getTokenTransfersByTransaction({
 			publicEnv,
 			chainId: 1,
 			txHash: 'invalid',
 			offset: 1,
-		})).resolves.toBeNull()
+		})).rejects.toThrow('Etherscan_Rest: invalid tx hash')
 		await expect(getInternalTransactionsByTxHash({
 			publicEnv,
 			chainId: 1,
 			txHash: 'invalid',
-		})).resolves.toBeNull()
+		})).rejects.toThrow('Etherscan_Rest: invalid tx hash')
 
 		expect(etherscanV2GetJson).not.toHaveBeenCalled()
 	})
@@ -64,6 +120,7 @@ describe('Etherscan transaction hash query boundaries', () => {
 			query.action === 'txlistinternal' ?
 				{
 					status: '1',
+					message: 'OK',
 					result: [],
 				}
 			: query.action === 'eth_getTransactionByHash' ?
@@ -158,6 +215,7 @@ describe('Etherscan transaction hash query boundaries', () => {
 	it('requests account activity newest-first', async () => {
 		etherscanV2GetJson.mockResolvedValue({
 			status: '1',
+			message: 'OK',
 			result: [],
 		})
 		await getTokenTransfersByAddress({
@@ -169,6 +227,18 @@ describe('Etherscan transaction hash query boundaries', () => {
 		expect(etherscanV2GetJson.mock.calls.every(([{
 			query,
 		}]) => query.sort === 'desc')).toBe(true)
+	})
+
+	it('throws when gasoracle status is not OK', async () => {
+		etherscanV2GetJson.mockResolvedValue({
+			status: '0',
+			message: 'NOTOK',
+			result: 'Max rate limit reached',
+		})
+		await expect(getGasOracle({
+			publicEnv,
+			chainId: 1,
+		})).rejects.toThrow('Etherscan_Rest: gasoracle failed: Max rate limit reached')
 	})
 
 	it('accepts official V2 chainlist members and rejects unknowns', () => {

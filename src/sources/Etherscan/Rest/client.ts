@@ -21,48 +21,61 @@ import {
 } from '$/sources/_runtime/http.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/Etherscan/bindings.ts'
-import { supportedChainIds } from '$/sources/Etherscan/Rest/constants.ts'
+import {
+	accountEmptyMessages,
+	supportedChainIds,
+} from '$/sources/Etherscan/Rest/constants.ts'
 
 const binding = bindings[Source.Etherscan_Rest][0]
 
+const accountEmptyMessageSet = new Set<string>(accountEmptyMessages)
+
+const supportedChainIdSet = new Set<number>(supportedChainIds)
+
 /**
-	* Etherscan proxy wire: JSON-RPC `result`, or treat **`status: "0"`** / **`error`** as failure (not RPC data).
+	* Etherscan proxy wire: JSON-RPC `result` (may be **`null`** when absent), or throw on **`status: "0"`** / **`error`**.
 	*/
-export const etherscanV2UnwrapProxyResult = <T>(wire: EtherscanProxyJsonRpc<T> | null): T | null => (
-	wire == null
-	|| wire.error != null
-	|| wire.status === '0' ?
-		null
-	:
-		(wire.result ?? null)
-)
-
-const etherscanAccountEmptyMessages = new Set([
-	'No transactions found',
-	'No records found',
-])
+export const etherscanV2UnwrapProxyResult = <T>(wire: EtherscanProxyJsonRpc<T> | null): T | null => {
+	if (wire == null)
+		throw new Error('Etherscan_Rest: proxy response missing envelope')
+	if (wire.error != null)
+		throw new Error(`Etherscan_Rest: proxy error ${wire.error.code}: ${wire.error.message}`)
+	if (wire.status === '0')
+		throw new Error(`Etherscan_Rest: proxy NOTOK${typeof wire.result === 'string' && wire.result !== '' ? `: ${wire.result}` : wire.message != null && wire.message !== '' ? `: ${wire.message}` : ''}`)
+	return wire.result ?? null
+}
 
 /**
-	* `module=account` list endpoints — empty list on zero rows; **`null`** on hard failure.
+	* `module=account` list endpoints — empty list on known zero-row messages; throw on hard failure.
 	*/
 export const etherscanV2UnwrapAccountResultArray = <T>(
 	wire: EtherscanAccountArray<T> | null
-): T[] | null => {
-	if (wire == null) return null
-	if (wire.status === '1' && Array.isArray(wire.result)) return wire.result
+): T[] => {
+	if (wire == null)
+		throw new Error('Etherscan_Rest: account list response missing envelope')
+	if (wire.status === '1' && Array.isArray(wire.result))
+		return wire.result
 	if (
 		wire.status === '0'
 		&& (
-			etherscanAccountEmptyMessages.has(wire.message)
+			accountEmptyMessageSet.has(wire.message)
 			|| (
 				typeof wire.result === 'string'
-				&& etherscanAccountEmptyMessages.has(wire.result)
+				&& accountEmptyMessageSet.has(wire.result)
 			)
 		)
-	) {
+	)
 		return []
-	}
-	return null
+	throw new Error(
+		`Etherscan_Rest: account list failed${
+			typeof wire.result === 'string' && wire.result !== '' ?
+				`: ${wire.result}`
+			: wire.message !== '' ?
+				`: ${wire.message}`
+			:
+				''
+		}`
+	)
 }
 
 /**
@@ -78,7 +91,7 @@ export const etherscanV2GetJson = async <T>({
 	query: Record<string, string | undefined>
 	publicEnv: SourcePublicEnv
 }) => {
-	if (!supportedChainIds.some((supportedChainId) => supportedChainId === chainId))
+	if (!supportedChainIdSet.has(chainId))
 		throw new Error(`Etherscan_Rest: unsupported chain ${String(chainId)}`)
 
 	const search = new URLSearchParams()
