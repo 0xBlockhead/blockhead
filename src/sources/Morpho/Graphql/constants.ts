@@ -46,11 +46,15 @@ export const morphoGraphqlNetworks = [
 	},
 	{
 		chainId: 4217,
-		name: 'Tempo',
+		name: 'Tempo Mainnet',
 	},
 	{
 		chainId: 4663,
 		name: 'Robinhood Chain',
+	},
+	{
+		chainId: 5042,
+		name: 'Arc',
 	},
 	{
 		chainId: 8453,
@@ -58,7 +62,7 @@ export const morphoGraphqlNetworks = [
 	},
 	{
 		chainId: 42161,
-		name: 'Arbitrum',
+		name: 'Arbitrum One',
 	},
 	{
 		chainId: 747474,

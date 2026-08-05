@@ -1,6 +1,5 @@
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -65,6 +64,10 @@ export default {
 						marketId,
 					}: MorphoMarketId) => {
 						const chainId = eip155ChainId($network)
+						const { morphoBlueByChainId } = await import('$/sources/Morpho/Rest/constants.ts')
+						if (morphoBlueByChainId[chainId] == null)
+							throw new Error(`${Source.Morpho_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const {
 							getMarket,
 							getMarketState,
@@ -108,4 +111,4 @@ export default {
 			lastAccrualTimestamp: (market) => market.lastAccrualTimestamp,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Morpho_Rest>
+}

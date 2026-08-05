@@ -144,6 +144,31 @@ describe('Morpho GraphQL market enumeration', () => {
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
+	it('accepts every chain id advertised by Morpho GraphQL chains', async () => {
+		const {
+			morphoGraphqlNetworkByChainId,
+		} = await import('$/sources/Morpho/Graphql/constants.ts')
+
+		expect(morphoGraphqlNetworkByChainId[5042]?.name).toBe('Arc')
+		expect(morphoGraphqlNetworkByChainId[42161]?.name).toBe('Arbitrum One')
+		expect(morphoGraphqlNetworkByChainId[4217]?.name).toBe('Tempo Mainnet')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				markets: {
+					items: [],
+				},
+			},
+		})))
+
+		await expect(listMarkets({
+			chainIds: [
+				5042,
+			],
+		})).resolves.toEqual([])
+		expect(sourceFetch).toHaveBeenCalledTimes(1)
+	})
+
 	it('rejects invalid limits before transport', async () => {
 		await expect(listMarkets({
 			chainIds: [
