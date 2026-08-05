@@ -69273,9 +69273,9 @@ export const routes = defineRoutes(schema)({
 		},
 		[EntityType.BlockheadQuilibriumPendingTransaction]: {
 			"AccountStateTransactionAddress": {
-				kind: "Research",
-				decision: "Retain BlockheadQuilibriumPendingTransaction.AccountStateTransactionAddress as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#blockheadquilibriumpendingtransaction",
+				kind: "Blocked",
+				decision: "Retain BlockheadQuilibriumPendingTransaction.AccountStateTransactionAddress as non-public: no public Network+hash twin will be modeled because Quilibrium's only pending-transaction RPC (AccountService.ListPendingTransactions) requires a decryptable per-account keyRing, so it cannot serve an anonymous public lookup by hash.",
+				evidence: "NEEDS_APP.md#quilibriumpendingtransaction",
 			},
 		},
 		[EntityType.BlockheadRadicleNodeInventory_Timestamp]: {

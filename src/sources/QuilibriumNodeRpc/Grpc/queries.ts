@@ -1,3 +1,9 @@
+import type {
+	QuilibriumDecryptablePendingTransactionsAccountRequest,
+	QuilibriumGrpcUnaryCall,
+	QuilibriumPendingTransactionsAccountResponse,
+} from '$/sources/QuilibriumNodeRpc/Grpc/types.ts'
+
 const implicitAccountAddress = /^0x([0-9a-fA-F]{64})$/
 
 export const implicitAccountReference = (
@@ -17,3 +23,22 @@ export const implicitAccountReference = (
 		},
 	}
 }
+
+const accountService = 'quilibrium.node.node.pb.AccountService'
+
+export const listPendingTransactions = ({
+	callUnary,
+	request,
+}: {
+	callUnary: QuilibriumGrpcUnaryCall
+	request: QuilibriumDecryptablePendingTransactionsAccountRequest
+}) => (
+	callUnary<
+		QuilibriumDecryptablePendingTransactionsAccountRequest,
+		QuilibriumPendingTransactionsAccountResponse
+	>({
+		service: accountService,
+		method: 'ListPendingTransactions',
+		request,
+	})
+)
