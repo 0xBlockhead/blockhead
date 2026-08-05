@@ -102009,6 +102009,10 @@ export const app = {
 				path: "src/resolvers/Xrpl-JsonRpc.ts",
 			},
 			{
+				source: Source.XrplClio_JsonRpc,
+				path: "src/resolvers/XrplClio-JsonRpc.ts",
+			},
+			{
 				source: Source.Youtube_Rest,
 				path: "src/resolvers/Youtube-Rest.ts",
 			},
@@ -102033,10 +102037,6 @@ export const app = {
 				path: "src/resolvers/ZeroGChainScan-Rest.ts",
 			},
 			{
-			{
-				source: Source.XrplClio_JsonRpc,
-				path: "src/resolvers/XrplClio-JsonRpc.ts",
-			},
 				source: Source.ZeroGStorageNode_JsonRpc,
 				path: "src/resolvers/ZeroGStorageNode-JsonRpc.ts",
 			},
