@@ -234,6 +234,25 @@ type LocalBlockheadTransferIntent = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadTransferIntent>,
 	'$sessionAction'
 >
+type LocalBlockheadIntentInvocation = Omit<
+	EntityFieldValues<typeof schema, EntityType.BlockheadIntentInvocation>,
+	'$createdAction' | '$session'
+> & {
+	createdAction?: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>
+}
+type LocalBlockheadActionOutcome = Omit<
+	EntityFieldValues<typeof schema, EntityType.BlockheadActionOutcome>,
+	'$$evmTransactions' | '$intentOrder' | '$sessionAction' | '$simulation' | '$walletRequest' | '$$timestamps'
+> & {
+	intentOrder?: EntitySelector<typeof schema, EntityType.BlockheadIntentOrder>
+	simulation?: EntitySelector<typeof schema, EntityType.BlockheadSessionSimulation>
+	walletRequest?: EntitySelector<typeof schema, EntityType.BlockheadWalletRequest>
+	evmTransactions?: readonly EntitySelector<typeof schema, EntityType.EvmTransaction>[]
+}
+type LocalBlockheadActionOutcome_Timestamp = Omit<
+	EntityFieldValues<typeof schema, EntityType.BlockheadActionOutcome_Timestamp>,
+	'$outcome'
+>
 
 const writeLocalPresence = (
 	context: LocalMutationContext,
@@ -1555,6 +1574,231 @@ export const writeLocalBlockheadTransferIntent = async (
 	])
 
 	return entitySelector
+}
+
+export const writeLocalBlockheadIntentInvocation = async (
+	context: LocalMutationContext,
+	sessionEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
+	invocation: LocalBlockheadIntentInvocation
+) => {
+	const entitySelector = {
+		sessionId: sessionEntitySelector.id,
+		invocationId: invocation.invocationId,
+	}
+	const primitiveFields = {
+		sessionId: sessionEntitySelector.id,
+		invocationId: invocation.invocationId,
+		modality: invocation.modality,
+		sourceEntityType: invocation.sourceEntityType,
+		sourceSelector: invocation.sourceSelector,
+		targetEntityType: invocation.targetEntityType,
+		targetSelector: invocation.targetSelector,
+		sourcePlacement: invocation.sourcePlacement,
+		targetPlacement: invocation.targetPlacement,
+		invocationPayloadHash: invocation.invocationPayloadHash,
+		resolvedIntentType: invocation.resolvedIntentType,
+		intentDefinitionKey: invocation.intentDefinitionKey,
+		intentDefinitionHash: invocation.intentDefinitionHash,
+		selectedOptionIndex: invocation.selectedOptionIndex,
+		selectedOptionHash: invocation.selectedOptionHash,
+		createdAt: invocation.createdAt,
+	}
+	writeLocalPresence(context, EntityType.BlockheadIntentInvocation, entitySelector)
+	writeLocalPrimitiveFields(context, EntityType.BlockheadIntentInvocation, entitySelector, primitiveFields)
+	await Promise.all([
+		replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadIntentInvocation,
+			entitySelector,
+			'$session',
+			[sessionEntitySelector]
+		),
+		replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadIntentInvocation,
+			entitySelector,
+			'$createdAction',
+			invocation.createdAction === undefined ? [] : [invocation.createdAction]
+		),
+		writeLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadSession,
+			sessionEntitySelector,
+			'$$intentInvocations',
+			entitySelector
+		),
+	])
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadIntentInvocation].utils.waitForPersistence(),
+		...[
+			'$session',
+			'$createdAction',
+			...Object.keys(primitiveFields),
+		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadIntentInvocation][
+			entityFieldAddressKey(EntityType.BlockheadIntentInvocation, [], fieldName)
+		].utils.waitForPersistence()),
+		context.entityFieldCollections[EntityType.BlockheadSession][
+			entityFieldAddressKey(EntityType.BlockheadSession, [], '$$intentInvocations')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType.BlockheadSession][
+			entityFieldAddressKey(EntityType.BlockheadSession, [], '$$intentInvocations')
+		]?.utils.waitForPersistence(),
+	])
+
+	return entitySelector
+}
+
+export const writeLocalBlockheadActionOutcome = async (
+	context: LocalMutationContext,
+	sessionActionEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>,
+	outcome: LocalBlockheadActionOutcome,
+	observation: LocalBlockheadActionOutcome_Timestamp
+) => {
+	const entitySelector = {
+		sessionId: sessionActionEntitySelector.sessionId,
+		actionId: sessionActionEntitySelector.actionId,
+		outcomeId: outcome.outcomeId,
+	}
+	const observationEntitySelector = {
+		$outcome: entitySelector,
+		timestampMs: observation.timestampMs,
+		source: observation.source,
+	}
+	const primitiveFields = {
+		sessionId: sessionActionEntitySelector.sessionId,
+		actionId: sessionActionEntitySelector.actionId,
+		outcomeId: outcome.outcomeId,
+		outcomeKind: outcome.outcomeKind,
+		transactionId: outcome.transactionId,
+		bridgeTransferId: outcome.bridgeTransferId,
+		createdAt: outcome.createdAt,
+		outcomePayloadHash: outcome.outcomePayloadHash,
+	}
+	const observationPrimitiveFields = {
+		timestampMs: observation.timestampMs,
+		source: observation.source,
+		status: observation.status,
+		finality: observation.finality,
+		transactionId: observation.transactionId,
+		bridgeTransferId: observation.bridgeTransferId,
+		sourcePayloadHash: observation.sourcePayloadHash,
+		error: observation.error,
+	}
+	writeLocalPresence(context, EntityType.BlockheadActionOutcome, entitySelector)
+	writeLocalPrimitiveFields(context, EntityType.BlockheadActionOutcome, entitySelector, primitiveFields)
+	writeLocalPresence(context, EntityType.BlockheadActionOutcome_Timestamp, observationEntitySelector)
+	writeLocalPrimitiveFields(
+		context,
+		EntityType.BlockheadActionOutcome_Timestamp,
+		observationEntitySelector,
+		observationPrimitiveFields
+	)
+	await Promise.all([
+		replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$sessionAction',
+			[sessionActionEntitySelector]
+		),
+		replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$walletRequest',
+			outcome.walletRequest === undefined ? [] : [outcome.walletRequest]
+		),
+		replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$intentOrder',
+			outcome.intentOrder === undefined ? [] : [outcome.intentOrder]
+		),
+		replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$simulation',
+			outcome.simulation === undefined ? [] : [outcome.simulation]
+		),
+		replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$$evmTransactions',
+			outcome.evmTransactions ?? []
+		),
+		writeLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$$timestamps',
+			observationEntitySelector
+		),
+		replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadActionOutcome_Timestamp,
+			observationEntitySelector,
+			'$outcome',
+			[entitySelector]
+		),
+		writeLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadSessionAction,
+			sessionActionEntitySelector,
+			'$$outcomes',
+			entitySelector
+		),
+	])
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadActionOutcome].utils.waitForPersistence(),
+		context.entityCollections[EntityType.BlockheadActionOutcome_Timestamp].utils.waitForPersistence(),
+		...[
+			'$sessionAction',
+			'$walletRequest',
+			'$intentOrder',
+			'$simulation',
+			'$$evmTransactions',
+			'$$timestamps',
+			...Object.keys(primitiveFields),
+		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadActionOutcome][
+			entityFieldAddressKey(EntityType.BlockheadActionOutcome, [], fieldName)
+		].utils.waitForPersistence()),
+		...[
+			'$outcome',
+			...Object.keys(observationPrimitiveFields),
+		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadActionOutcome_Timestamp][
+			entityFieldAddressKey(EntityType.BlockheadActionOutcome_Timestamp, [], fieldName)
+		].utils.waitForPersistence()),
+		context.entityFieldCollections[EntityType.BlockheadSessionAction][
+			entityFieldAddressKey(EntityType.BlockheadSessionAction, [], '$$outcomes')
+		].utils.waitForPersistence(),
+		...[
+			[
+				EntityType.BlockheadActionOutcome,
+				'$$evmTransactions',
+			],
+			[
+				EntityType.BlockheadActionOutcome,
+				'$$timestamps',
+			],
+			[
+				EntityType.BlockheadSessionAction,
+				'$$outcomes',
+			],
+		].flatMap(([entityType, fieldName]) => {
+			const collection = context.entityFieldCountCollections[entityType][
+				entityFieldAddressKey(entityType, [], fieldName)
+			]
+			return collection === undefined ? [] : [collection.utils.waitForPersistence()]
+		}),
+	])
+
+	return {
+		entitySelector,
+		observationEntitySelector,
+	}
 }
 
 export const writeLocalBlockheadActionReadinessChecks = async (

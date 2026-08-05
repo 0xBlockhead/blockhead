@@ -23,8 +23,10 @@ import {
 	type LocalMutationContext,
 	updateLocalBlockheadSessionActionType,
 	writeLocalBlockheadAccount,
+	writeLocalBlockheadActionOutcome,
 	writeLocalBlockheadActionReadinessChecks,
 	writeLocalBlockheadEvmWalletRequest,
+	writeLocalBlockheadIntentInvocation,
 	writeLocalBlockheadLocalMediaIngest,
 	writeLocalBlockheadPanel,
 	writeLocalBlockheadPanelTree,
@@ -1844,6 +1846,151 @@ describe('local mutation authority journal', () => {
 				}),
 			}),
 		])
+
+		const invocationSelector = await writeLocalBlockheadIntentInvocation(
+			context,
+			preparationSessionSelector,
+			{
+				invocationId: 'invocation-1',
+				modality: 'click',
+				sourceEntityType: EntityType.Account,
+				sourceSelector: {
+					caip10: {
+						namespace: 'eip155',
+						reference: '1',
+						accountAddress: '0x1111111111111111111111111111111111111111',
+					},
+				},
+				targetEntityType: EntityType.Account,
+				targetSelector: {
+					caip10: {
+						namespace: 'eip155',
+						reference: '1',
+						accountAddress: '0x2222222222222222222222222222222222222222',
+					},
+				},
+				createdAt: 20,
+				createdAction: preparationActionSelector,
+			}
+		)
+		expect(invocationSelector).toEqual({
+			sessionId: preparationSessionSelector.id,
+			invocationId: 'invocation-1',
+		})
+		expect(context.entityFieldCollections[EntityType.BlockheadSession][entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'$$intentInvocations'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: stringify(invocationSelector),
+				}),
+			}),
+		])
+		expect(context.entityFieldCountCollections[EntityType.BlockheadSession][entityFieldAddressKey(
+			EntityType.BlockheadSession,
+			[],
+			'$$intentInvocations'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 1,
+			}),
+		])
+
+		const transactionSelector = {
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: '1',
+				},
+			},
+			txHash: '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+		}
+		const {
+			entitySelector: outcomeSelector,
+			observationEntitySelector: outcomeObservationSelector,
+		} = await writeLocalBlockheadActionOutcome(
+			context,
+			preparationActionSelector,
+			{
+				outcomeId: 'outcome-1',
+				outcomeKind: 'transaction',
+				transactionId: transactionSelector.txHash,
+				createdAt: 21,
+				evmTransactions: [transactionSelector],
+			},
+			{
+				timestampMs: 22,
+				source: Source.Local_Internal,
+				status: 'confirmed',
+				finality: 'local-final',
+				transactionId: transactionSelector.txHash,
+			}
+		)
+		expect(outcomeSelector).toEqual({
+			...preparationActionSelector,
+			outcomeId: 'outcome-1',
+		})
+		expect(outcomeObservationSelector).toEqual({
+			$outcome: outcomeSelector,
+			timestampMs: 22,
+			source: Source.Local_Internal,
+		})
+		expect(context.entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
+			EntityType.BlockheadSessionAction,
+			[],
+			'$$outcomes'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: stringify(outcomeSelector),
+				}),
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadActionOutcome][entityFieldAddressKey(
+			EntityType.BlockheadActionOutcome,
+			[],
+			'$$timestamps'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: expect.objectContaining({
+					[EntityMetaKey.SelectorKey]: stringify(outcomeObservationSelector),
+				}),
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadActionOutcome_Timestamp][entityFieldAddressKey(
+			EntityType.BlockheadActionOutcome_Timestamp,
+			[],
+			'finality'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 'local-final',
+			}),
+		])
+		expect(context.entityFieldCountCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
+			EntityType.BlockheadSessionAction,
+			[],
+			'$$outcomes'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 1,
+			}),
+		])
+		expect(context.entityFieldCountCollections[EntityType.BlockheadActionOutcome][entityFieldAddressKey(
+			EntityType.BlockheadActionOutcome,
+			[],
+			'$$timestamps'
+		)]?.toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 1,
+			}),
+		])
+		const intentOutcomeMutationSource = source.slice(
+			source.indexOf('export const writeLocalBlockheadIntentInvocation'),
+			source.indexOf('export const writeLocalBlockheadActionReadinessChecks')
+		)
+		expect(intentOutcomeMutationSource).not.toMatch(/\b(?:DataTransfer|drag)\w*/i)
 
 		const readinessCheck = {
 			checkId: 'rpc-simulation',
