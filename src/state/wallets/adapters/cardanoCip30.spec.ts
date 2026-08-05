@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { WalletCapability } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { createCardanoCip30Adapter } from './cardanoCip30.ts'
 import type { WalletConnection } from './types.ts'
@@ -276,5 +277,42 @@ describe('Cardano CIP-30 wallet adapter', () => {
 		await adapter.connect('cip30:nami')
 		await adapter.disconnect('cip30:nami')
 		expect(enable).toHaveBeenCalledOnce()
+	})
+
+	it('advertises SignMessage and signs via signData when connected', async () => {
+		const signData = vi.fn(async () => ({
+			signature: 'cip30-signature',
+			key: 'cip30-key',
+		}))
+		const enable = vi.fn(async () => ({
+			getNetworkId: async () => 1,
+			getUsedAddresses: async () => [mainnetAddress],
+			signData,
+		}))
+		vi.stubGlobal('window', {
+			cardano: {
+				nami: {
+					enable,
+				},
+			},
+		})
+		const adapter = createCardanoCip30Adapter()
+		adapter.start(() => {})
+
+		const connection = await adapter.connect('cip30:nami')
+		const accountAddress = connection!.accounts[0]!.accountAddress
+		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignMessage)
+		expect(connection?.scopes[0]?.methods).toContain('signData')
+		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignTransaction)
+
+		await expect(adapter.signMessage?.(
+			'cip30:nami',
+			accountAddress,
+			'Sign this Cardano challenge'
+		)).resolves.toBe('cip30-signature')
+		expect(signData).toHaveBeenCalledWith(
+			mainnetAddress,
+			expect.stringMatching(/^0x/),
+		)
 	})
 })
