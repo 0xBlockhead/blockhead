@@ -39,6 +39,17 @@ export const bitcoinCoreJsonRpcResolvers = <
 			throw new Error(`${source}: unsupported ${network.name} network`)
 	}
 
+	const getTransaction = async ({ $network, txId }: {
+		$network: EntitySelector<typeof schema, EntityType.Network>
+		txId: string
+	}) => {
+		assertNetwork($network)
+		const { getRawTransaction } = await loadQueries()
+		return getRawTransaction({
+			txId: txId,
+		})
+	}
+
 	return {
 		source,
 
@@ -114,15 +125,11 @@ export const bitcoinCoreJsonRpcResolvers = <
 				entityType: EntityType.UtxoTransaction,
 				resolve: {
 					NetworkTxId: {
-						resolve: async ({ $network, txId }) => {
-							assertNetwork($network)
-							const { getRawTransaction } = await loadQueries()
-							const transaction = await getRawTransaction({
-								txId: txId,
-							})
+						resolve: async (entitySelector) => {
+							const transaction = await getTransaction(entitySelector)
 							return {
 								[EntityMetaKey.Selector]: {
-									$network: $network,
+									$network: entitySelector.$network,
 									txId: transaction.txid,
 								},
 								version: transaction.version,
@@ -131,6 +138,22 @@ export const bitcoinCoreJsonRpcResolvers = <
 								virtualSizeBytes: transaction.vsize,
 								weightUnits: transaction.weight,
 								isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+								$$inputs: transaction.vin.map((_input, indexInTransaction) => (
+									{
+										[EntityMetaKey.Selector]: {
+											$transaction: entitySelector,
+											indexInTransaction,
+										},
+									}
+								)),
+								$$outputs: transaction.vout.map((_output, indexInTransaction) => (
+									{
+										[EntityMetaKey.Selector]: {
+											$transaction: entitySelector,
+											indexInTransaction,
+										},
+									}
+								)),
 							}
 						},
 					}
@@ -142,6 +165,87 @@ export const bitcoinCoreJsonRpcResolvers = <
 				virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
 				weightUnits: (snapshot) => snapshot.weightUnits,
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
+				$$inputs: (snapshot) => snapshot.$$inputs,
+				$$outputs: (snapshot) => snapshot.$$outputs,
+			}),
+
+			defineResolver({
+				entityType: EntityType.UtxoInput,
+				resolve: {
+					TransactionIndexInTransaction: {
+						resolve: async ({ $transaction, indexInTransaction }) => {
+							const input = (await getTransaction($transaction)).vin[indexInTransaction]
+							return {
+								[EntityMetaKey.Selector]: {
+									$transaction: $transaction,
+									indexInTransaction: indexInTransaction,
+								},
+								...(input.txid != null && input.vout != null && {
+									$spentOutput: {
+										[EntityMetaKey.Selector]: {
+											$transaction: {
+												$network: $transaction.$network,
+												txId: input.txid,
+											},
+											indexInTransaction: input.vout,
+										},
+									},
+								}),
+								...(input.coinbase != null && {
+									coinbaseScript: input.coinbase,
+								}),
+								...(input.scriptSig != null && {
+									scriptSigAsm: input.scriptSig.asm,
+								}),
+								sequence: input.sequence,
+								...(input.txinwitness != null && {
+									witness: input.txinwitness,
+								}),
+							}
+						},
+					}
+				},
+			})({
+				$spentOutput: (snapshot) => snapshot.$spentOutput,
+				coinbaseScript: (snapshot) => snapshot.coinbaseScript,
+				scriptSigAsm: (snapshot) => snapshot.scriptSigAsm,
+				sequence: (snapshot) => snapshot.sequence,
+				witness: (snapshot) => snapshot.witness ?? [],
+			}),
+
+			defineResolver({
+				entityType: EntityType.UtxoOutput,
+				resolve: {
+					TransactionIndexInTransaction: {
+						resolve: async ({ $transaction, indexInTransaction }) => {
+							const output = (await getTransaction($transaction)).vout[indexInTransaction]
+							return {
+								[EntityMetaKey.Selector]: {
+									$transaction: $transaction,
+									indexInTransaction: indexInTransaction,
+								},
+								valueSats: BigInt(Math.round(output.value * 100_000_000)),
+								scriptPubKeyAsm: output.scriptPubKey.asm,
+								scriptPubKeyHex: output.scriptPubKey.hex,
+								scriptPubKeyType: output.scriptPubKey.type,
+								...(output.scriptPubKey.address != null && {
+									$address: {
+										[EntityMetaKey.Selector]: {
+											$network: $transaction.$network,
+											address: output.scriptPubKey.address,
+										},
+									},
+								}),
+							}
+						},
+					}
+				},
+			})({
+				valueSats: (snapshot) => snapshot.valueSats,
+				scriptPubKeyAsm: (snapshot) => snapshot.scriptPubKeyAsm,
+				scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
+				scriptPubKeyType: (snapshot) => snapshot.scriptPubKeyType,
+				$address: (snapshot) => snapshot.$address,
 			}),
 		],
 	}

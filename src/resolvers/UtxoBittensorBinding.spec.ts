@@ -61,6 +61,7 @@ describe('UTXO and Bittensor resolver binding ownership', () => {
 			vsize: 100,
 			weight: 400,
 			vin: [],
+			vout: [],
 		})
 
 		await bitcoinCoreResolvers.resolvers.find((resolver) => (
