@@ -1,3 +1,4 @@
+import { type as arktype } from 'arktype'
 import { throwHttpError } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -26,6 +27,7 @@ import type {
 	HyperliquidValidatorSummary,
 	HyperliquidVaultDetails,
 } from '$/sources/Hyperliquid/Rest/types.ts'
+import { hyperliquidCandleIntervals } from '$/sources/Hyperliquid/Rest/constants.ts'
 import bindings from '$/sources/Hyperliquid/bindings.ts'
 
 const binding = bindings[Source.Hyperliquid].find(
@@ -34,6 +36,72 @@ const binding = bindings[Source.Hyperliquid].find(
 
 if (binding == null)
 	throw new Error('Hyperliquid_Rest: Info binding is missing')
+
+const hyperliquidPerpMarketEnvelope = arktype({
+	name: 'string',
+	szDecimals: 'number',
+	maxLeverage: 'number',
+	'onlyIsolated?': 'boolean',
+})
+const hyperliquidMetaEnvelope = arktype({
+	universe: hyperliquidPerpMarketEnvelope.array(),
+})
+const hyperliquidMetaAndAssetCtxsEnvelope = arktype('unknown[]')
+const hyperliquidSpotMetaEnvelope = arktype({
+	tokens: arktype({
+		name: 'string',
+		szDecimals: 'number',
+		weiDecimals: 'number',
+		index: 'number',
+		'tokenId?': 'string',
+	}).array(),
+	universe: arktype({
+		name: 'string',
+		tokens: [
+			'number',
+			'number',
+		],
+		index: 'number',
+		'isCanonical?': 'boolean',
+	}).array(),
+})
+const hyperliquidValidatorSummaryEnvelope = arktype({
+	validator: 'string',
+	signer: 'string',
+	name: 'string',
+	description: 'string',
+	nRecentBlocks: 'number',
+	stake: 'number',
+	isJailed: 'boolean',
+	isActive: 'boolean',
+	commission: 'string',
+})
+const hyperliquidVaultDetailsEnvelope = arktype({
+	name: 'string',
+	vaultAddress: 'string',
+	leader: 'string',
+	description: 'string',
+	portfolio: 'unknown',
+	apr: 'number',
+	followerState: 'unknown',
+	leaderFraction: 'number',
+	leaderCommission: 'number',
+	followers: arktype({
+		user: 'string',
+		vaultEquity: 'string',
+		pnl: 'string',
+		allTimePnl: 'string',
+		daysFollowing: 'number',
+		vaultEntryTime: 'number',
+		lockupUntil: 'number',
+	}).array(),
+	maxDistributable: 'number',
+	maxWithdrawable: 'number',
+	isClosed: 'boolean',
+	relationship: 'object | null',
+	allowDeposits: 'boolean',
+	alwaysCloseOnWithdraw: 'boolean',
+})
 
 export const hyperliquidRestEndpoints = binding.endpoints.map((endpoint) => ({
 	url: endpoint.locator,
@@ -72,21 +140,33 @@ export const getMeta = () => (
 /**
  * https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals
  */
-export const getMetaAndAssetCtxs = () => (
-	info<HyperliquidMetaAndAssetCtxs>({
+export const getMetaAndAssetCtxs = async () => {
+	const snapshot = await info<HyperliquidMetaAndAssetCtxs>({
 		body: {
 			type: 'metaAndAssetCtxs',
 		},
 	})
-)
+	if (
+		snapshot.length !== 2
+		|| !hyperliquidMetaEnvelope.allows(snapshot[0])
+		|| !hyperliquidMetaAndAssetCtxsEnvelope.allows(snapshot[1])
+	)
+		throw new Error('Hyperliquid_Rest: invalid metaAndAssetCtxs response envelope')
 
-export const getSpotMeta = () => (
-	info<HyperliquidSpotMeta>({
+	return snapshot
+}
+
+export const getSpotMeta = async () => {
+	const spotMeta = await info<HyperliquidSpotMeta>({
 		body: {
 			type: 'spotMeta',
 		},
 	})
-)
+	if (!hyperliquidSpotMetaEnvelope.allows(spotMeta))
+		throw new Error('Hyperliquid_Rest: invalid spotMeta response envelope')
+
+	return spotMeta
+}
 
 export const getClearinghouseState = ({
 	user,
@@ -179,13 +259,17 @@ export const getUserRole = ({
 	})
 )
 
-export const getValidatorSummaries = () => (
-	info<HyperliquidValidatorSummary[]>({
+export const getValidatorSummaries = async () => {
+	const validators = await info<HyperliquidValidatorSummary[]>({
 		body: {
 			type: 'validatorSummaries',
 		},
 	})
-)
+	if (!hyperliquidValidatorSummaryEnvelope.array().allows(validators))
+		throw new Error('Hyperliquid_Rest: invalid validatorSummaries response envelope')
+
+	return validators
+}
 
 export const getL2Book = ({
 	coin,
@@ -218,23 +302,6 @@ export const getL2Book = ({
 	})
 }
 
-const candleIntervals = new Set([
-	'1m',
-	'3m',
-	'5m',
-	'15m',
-	'30m',
-	'1h',
-	'2h',
-	'4h',
-	'8h',
-	'12h',
-	'1d',
-	'3d',
-	'1w',
-	'1M',
-])
-
 export const getCandleSnapshot = ({
 	coin,
 	interval,
@@ -249,7 +316,7 @@ export const getCandleSnapshot = ({
 	if (coin === '')
 		throw new Error('Hyperliquid_Rest: invalid candle coin')
 
-	if (!candleIntervals.has(interval))
+	if (!hyperliquidCandleIntervals.some((candleInterval) => candleInterval === interval))
 		throw new Error(`Hyperliquid_Rest: invalid candle interval ${interval}`)
 
 	if (!Number.isSafeInteger(startTime) || startTime < 0)
@@ -271,7 +338,7 @@ export const getCandleSnapshot = ({
 	})
 }
 
-export const getVaultDetails = ({
+export const getVaultDetails = async ({
 	vaultAddress,
 	user,
 }: {
@@ -284,13 +351,17 @@ export const getVaultDetails = ({
 	if (user != null && !/^0x[0-9a-fA-F]{40}$/.test(user))
 		throw new Error(`Hyperliquid_Rest: invalid vault user ${user}`)
 
-	return info<HyperliquidVaultDetails | null>({
+	const vault = await info<HyperliquidVaultDetails | null>({
 		body: {
 			type: 'vaultDetails',
 			vaultAddress,
 			...(user != null && { user }),
 		},
 	})
+	if (vault != null && !hyperliquidVaultDetailsEnvelope.allows(vault))
+		throw new Error('Hyperliquid_Rest: invalid vaultDetails response envelope')
+
+	return vault
 }
 
 export const getUserFees = ({

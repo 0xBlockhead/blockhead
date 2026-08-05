@@ -39,8 +39,6 @@ const assertSafeWireInteger = (
 	return BigInt(value)
 }
 
-const hyperliquidLiquidityProviderVaultAddress = '0xdfc24b077bc1425ad1dea75bcb6f8158e10df303'
-
 const scaleDecimalString = (
 	value: string,
 	decimals = 8
@@ -52,29 +50,15 @@ const scaleDecimalString = (
 	return BigInt(`${whole}${`${fraction}${'0'.repeat(decimals)}`.slice(0, decimals)}`)
 }
 
-const hyperliquidCandleInterval = (
+const hyperliquidCandleInterval = async (
 	timeInterval: {
 		unit: string
 		value: number
 	}
 ) => {
 	const interval = `${String(timeInterval.value)}${timeInterval.unit}`
-	if (
-		interval !== '1m'
-		&& interval !== '3m'
-		&& interval !== '5m'
-		&& interval !== '15m'
-		&& interval !== '30m'
-		&& interval !== '1h'
-		&& interval !== '2h'
-		&& interval !== '4h'
-		&& interval !== '8h'
-		&& interval !== '12h'
-		&& interval !== '1d'
-		&& interval !== '3d'
-		&& interval !== '1w'
-		&& interval !== '1M'
-	)
+	const { hyperliquidCandleIntervals } = await import('$/sources/Hyperliquid/Rest/constants.ts')
+	if (!hyperliquidCandleIntervals.some((candleInterval) => candleInterval === interval))
 		throw new Error(`Hyperliquid_Rest: unsupported candle interval ${interval}`)
 
 	return interval
@@ -118,6 +102,7 @@ const resolveHyperliquidNetworkMetadata = async (
 		getValidatorSummaries,
 		getVaultDetails,
 	} = await import('$/sources/Hyperliquid/Rest/queries.ts')
+	const { hyperliquidVaultByRole } = await import('$/sources/Hyperliquid/Rest/constants.ts')
 	const [
 		perpSnapshot,
 		spotMeta,
@@ -128,7 +113,7 @@ const resolveHyperliquidNetworkMetadata = async (
 		getSpotMeta(),
 		getValidatorSummaries(),
 		getVaultDetails({
-			vaultAddress: hyperliquidLiquidityProviderVaultAddress,
+			vaultAddress: hyperliquidVaultByRole.liquidityProvider.address,
 		}),
 	])
 	const perpMeta = assertPerpMarketSnapshot(perpSnapshot)
@@ -617,7 +602,7 @@ export default {
 						timestampMs,
 					}) => {
 						assertHyperliquidMainnet($network)
-						const interval = hyperliquidCandleInterval(timeInterval)
+						const interval = await hyperliquidCandleInterval(timeInterval)
 						const { getCandleSnapshot } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 						const candle = (await getCandleSnapshot({
 							coin: marketKey,

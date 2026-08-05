@@ -25,12 +25,14 @@ const {
 	getHistoricalOrders,
 	getL2Book,
 	getMetaAndAssetCtxs,
+	getSpotMeta,
 	getSpotClearinghouseState,
 	getUserAbstraction,
 	getUserDexAbstraction,
 	getUserFees,
 	getUserFillsByTime,
 	getUserVaultEquities,
+	getValidatorSummaries,
 	getVaultDetails,
 } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 
@@ -41,13 +43,42 @@ const binding = bindings[Source.Hyperliquid].find(
 if (binding == null)
 	throw new Error('Hyperliquid_Rest: Info binding is missing')
 
+const vaultDetails = {
+	name: 'Hyperliquidity Provider',
+	vaultAddress: '0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
+	leader: '0x1111111111111111111111111111111111111111',
+	description: 'market making vault',
+	portfolio: [],
+	apr: 0.1,
+	followerState: null,
+	leaderFraction: 0.1,
+	leaderCommission: 0.1,
+	followers: [],
+	maxDistributable: 1,
+	maxWithdrawable: 1,
+	isClosed: false,
+	relationship: null,
+	allowDeposits: true,
+	alwaysCloseOnWithdraw: false,
+}
+
 describe('Hyperliquid public account Info transport', () => {
 	beforeEach(() => {
 		corsFetch.mockReset()
-		corsFetch.mockResolvedValue({
+		corsFetch.mockImplementation(async (_url, options) => ({
 			ok: true,
-			json: async () => [],
+			json: async () => (
+				JSON.parse(options.init.body).type === 'metaAndAssetCtxs' ?
+					[{
+						universe: [],
+					}, []]
+				: JSON.parse(options.init.body).type === 'vaultDetails' ?
+					vaultDetails
+				:
+					[]
+			),
 		})
+	)
 	})
 
 	it.each([
@@ -224,7 +255,7 @@ describe('Hyperliquid public account Info transport', () => {
 		expect(corsFetch).not.toHaveBeenCalled()
 	})
 
-	it('rejects invalid candle and book requests before transport', () => {
+	it('rejects invalid candle, book, and vault requests before transport', async () => {
 		expect(() => getL2Book({
 			coin: '',
 		})).toThrow('invalid book coin')
@@ -233,9 +264,53 @@ describe('Hyperliquid public account Info transport', () => {
 			interval: '7h',
 			startTime: 1,
 		})).toThrow('invalid candle interval')
-		expect(() => getVaultDetails({
+		await expect(getVaultDetails({
 			vaultAddress: 'not-a-vault',
-		})).toThrow('invalid vault address')
+		})).rejects.toThrow('invalid vault address')
 		expect(corsFetch).not.toHaveBeenCalled()
+	})
+
+	it('fails closed for malformed perp catalog, network, and vault envelopes', async () => {
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [{
+				universe: [],
+			}],
+		})
+		await expect(getMetaAndAssetCtxs()).rejects.toThrow('Hyperliquid_Rest: invalid metaAndAssetCtxs response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				tokens: [],
+				universe: [{
+					name: 'PURR/USDC',
+					tokens: [1],
+					index: 0,
+				}],
+			}),
+		})
+		await expect(getSpotMeta()).rejects.toThrow('Hyperliquid_Rest: invalid spotMeta response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [{
+				validator: '0x1111111111111111111111111111111111111111',
+			}],
+		})
+		await expect(getValidatorSummaries()).rejects.toThrow('Hyperliquid_Rest: invalid validatorSummaries response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				...vaultDetails,
+				followers: [{
+					user: '0x1111111111111111111111111111111111111111',
+				}],
+			}),
+		})
+		await expect(getVaultDetails({
+			vaultAddress: vaultDetails.vaultAddress,
+		})).rejects.toThrow('Hyperliquid_Rest: invalid vaultDetails response envelope')
 	})
 })
