@@ -165,4 +165,17 @@ describe('Morpho Blue market operations', () => {
 			marketId: baseMarketId,
 		})).rejects.toThrow(`${Source.Morpho_Rest}: market response missing data`)
 	})
+
+	it('fails closed when market config omits a required address', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: {
+				...baseMarketConfig,
+				loan_token: undefined,
+			},
+		})
+		await expect(getMarket({
+			chainId: 8453,
+			marketId: baseMarketId,
+		})).rejects.toThrow(`${Source.Morpho_Rest}: market missing loan token`)
+	})
 })

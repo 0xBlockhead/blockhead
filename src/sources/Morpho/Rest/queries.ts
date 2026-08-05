@@ -30,8 +30,8 @@ const assertChainId = (chainId: number) => {
 		throw new Error(`${Source.Morpho_Rest}: unsupported chain id ${String(chainId)}`)
 }
 
-const assertMarketId = (marketId: string) => {
-	if (!morphoMarketIdPattern.test(marketId))
+const assertMarketId = (marketId: string | undefined) => {
+	if (marketId == null || !morphoMarketIdPattern.test(marketId))
 		throw new Error(`${Source.Morpho_Rest}: invalid market id ${marketId}`)
 	const normalized = hexLowerOfByteSize(marketId, 32)
 	if (normalized == null)
@@ -40,9 +40,11 @@ const assertMarketId = (marketId: string) => {
 }
 
 const assertAddress = (
-	value: string,
+	value: string | undefined,
 	label: string
 ) => {
+	if (value == null)
+		throw new Error(`${Source.Morpho_Rest}: market missing ${label}`)
 	const normalized = hexLowerOfByteSize(value, 20)
 	if (normalized == null)
 		throw new Error(`${Source.Morpho_Rest}: invalid ${label} ${value}`)
@@ -50,10 +52,10 @@ const assertAddress = (
 }
 
 const assertNonEmptyDecimalString = (
-	value: string,
+	value: string | undefined,
 	label: string
 ) => {
-	if (value.length < 1)
+	if (value == null || value.length < 1)
 		throw new Error(`${Source.Morpho_Rest}: market missing ${label}`)
 	return value
 }
@@ -102,7 +104,11 @@ const assertMarketStateWire = (
 	const marketId = assertMarketId(wire.market_id)
 	if (marketId !== expected.marketId)
 		throw new Error(`${Source.Morpho_Rest}: market state id mismatch`)
-	if (!Number.isSafeInteger(wire.last_accrual_timestamp) || wire.last_accrual_timestamp < 0)
+	if (
+		wire.last_accrual_timestamp == null
+		|| !Number.isSafeInteger(wire.last_accrual_timestamp)
+		|| wire.last_accrual_timestamp < 0
+	)
 		throw new Error(`${Source.Morpho_Rest}: invalid last_accrual_timestamp`)
 
 	return {

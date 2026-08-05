@@ -23,7 +23,10 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceFetch,
 }))
 
-const { listMarkets } = await import('$/sources/Morpho/Graphql/queries.ts')
+const {
+	getMarket,
+	listMarkets,
+} = await import('$/sources/Morpho/Graphql/queries.ts')
 
 const binding = bindings[Source.Morpho_Graphql][0]
 
@@ -86,7 +89,15 @@ describe('Morpho GraphQL market enumeration', () => {
 				8453,
 			],
 		})).resolves.toEqual([
-			market,
+			{
+				marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
+				chainId: 8453,
+				loanAssetAddress: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+				collateralAssetAddress: '0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf',
+				lltvWad: '860000000000000000',
+				irmAddress: '0x46415998764c29ab2a25cbea6254146d50d22687',
+				oracleAddress: '0x663becd10dae6c4a3dcd89f1d76c1174199639b9',
+			},
 		])
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
@@ -128,5 +139,62 @@ describe('Morpho GraphQL market enumeration', () => {
 			],
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: unsupported chain id`)
 		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('reads and verifies a market by its chain and id', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				marketById: market,
+			},
+		})))
+
+		await expect(getMarket({
+			chainId: 8453,
+			marketId: market.marketId,
+		})).resolves.toMatchObject({
+			marketId: market.marketId,
+			chainId: 8453,
+		})
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
+			variables: {
+				chainId: 8453,
+				marketId: market.marketId,
+			},
+		})
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('marketById')
+	})
+
+	it('fails closed when a detail response omits its market', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {},
+		})))
+
+		await expect(getMarket({
+			chainId: 8453,
+			marketId: market.marketId,
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: market response missing marketById`)
+	})
+
+	it('fails closed when a listed market violates its chain filter', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				markets: {
+					items: [
+						{
+							...market,
+							chain: {
+								id: 1,
+							},
+						},
+					],
+				},
+			},
+		})))
+
+		await expect(listMarkets({
+			chainIds: [
+				8453,
+			],
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: market chain filter violated`)
 	})
 })

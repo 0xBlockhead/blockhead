@@ -1,32 +1,32 @@
 export type MorphoBlueMarketConfigWire = {
-	chain_id: number
-	market_id: string
-	loan_token: string
-	collateral_token: string
-	oracle_address: string
-	irm_address: string
-	lltv_wad: string
-	creation_block_number: string
+	chain_id?: number
+	market_id?: string
+	loan_token?: string
+	collateral_token?: string
+	oracle_address?: string
+	irm_address?: string
+	lltv_wad?: string
+	creation_block_number?: string
 }
 
 export type MorphoBlueMarketStateWire = {
-	chain_id: number
-	market_id: string
-	last_indexed_block: string
-	last_accrual_timestamp: number
-	total_supply_assets: string
-	total_supply_shares: string
-	total_borrow_assets: string
-	total_borrow_shares: string
-	fee_wad: string
+	chain_id?: number
+	market_id?: string
+	last_indexed_block?: string
+	last_accrual_timestamp?: number
+	total_supply_assets?: string
+	total_supply_shares?: string
+	total_borrow_assets?: string
+	total_borrow_shares?: string
+	fee_wad?: string
 }
 
 export type MorphoBlueMarketConfigResponse = {
-	data: MorphoBlueMarketConfigWire
+	data?: MorphoBlueMarketConfigWire
 }
 
 export type MorphoBlueMarketStateResponse = {
-	data: MorphoBlueMarketStateWire
+	data?: MorphoBlueMarketStateWire
 }
 
 export type MorphoBlueMarketConfig = {
