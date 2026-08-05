@@ -80,16 +80,23 @@ describe('walletConnectionState', () => {
 			...base,
 			status: BlockheadConnectionStatus.Disconnected,
 			selected: true,
+			activeAccount: base.accounts[0],
+			sessionId: 'historical-session',
 			error: 'stale',
 			disconnectedAt: 5,
 		})
 		expect(disconnected.status).toBe(BlockheadConnectionStatus.Disconnected)
 		expect(disconnected).not.toHaveProperty('selected')
+		expect(disconnected.activeAccount).toBeUndefined()
+		expect(disconnected.sessionId).toBe('historical-session')
+		expect(disconnected.accounts[0].capabilities).toEqual([])
 		expect(disconnected).not.toHaveProperty('error')
 		expect(persistWalletConnection(disconnected)).toMatchObject({
 			status: BlockheadConnectionStatus.Disconnected,
 			selected: false,
+			sessionId: 'historical-session',
 		})
+		expect(persistWalletConnection(disconnected).activeAccount).toBeUndefined()
 		expect(persistWalletConnection(disconnected)).not.toHaveProperty('error')
 
 		const connected = walletConnectionFromPersisted({

@@ -201,6 +201,12 @@ export const walletConnectionFromPersisted = (
 	// Flat schema rows may carry contradictory selected/error/status; coerce to the machine.
 	buildWalletConnection({
 		...connection,
+		activeAccount: (
+			connection.status === BlockheadConnectionStatus.Connected ?
+				connection.activeAccount
+			:
+				undefined
+		),
 		selected: (
 			connection.status === BlockheadConnectionStatus.Connected
 			&& connection.selected
