@@ -177,6 +177,18 @@ type EthCall = (call: {
 }) => Promise<`0x${string}`>
 
 
+const decodeResponse = <Result>(
+	decode: () => Result,
+	label: string
+) => {
+	try {
+		return decode()
+	} catch {
+		throw new Error(`UniswapContracts_Evm: invalid ${label} response envelope`)
+	}
+}
+
+
 const assertAddress = (
 	value: string,
 	label: string
@@ -195,7 +207,10 @@ const decodeAddressResult = (
 	if (typeof response !== 'string' || response === '0x' || response.length < 66)
 		throw new Error(`UniswapContracts_Evm: empty ${label} result`)
 
-	const [address] = decodeParameters(ADDRESS_OUTPUT, toBytes(response))
+	const [address] = decodeResponse(
+		() => decodeParameters(ADDRESS_OUTPUT, toBytes(response)),
+		label
+	)
 	if (typeof address !== 'string')
 		throw new Error(`UniswapContracts_Evm: malformed ${label} address`)
 
@@ -215,9 +230,12 @@ const decodeUintAsNumber = (
 	if (typeof response !== 'string' || response === '0x' || response.length < 66)
 		throw new Error(`UniswapContracts_Evm: empty ${label} result`)
 
-	const [value] = decodeParameters(
-		label === 'tickSpacing' ? INT24_OUTPUT : UINT24_OUTPUT,
-		toBytes(response)
+	const [value] = decodeResponse(
+		() => decodeParameters(
+			label === 'tickSpacing' ? INT24_OUTPUT : UINT24_OUTPUT,
+			toBytes(response)
+		),
+		label
 	)
 	const asBigInt = typeof value === 'bigint' ? value : BigInt(String(value))
 	if (asBigInt > BigInt(maximum) || asBigInt < BigInt(-maximum))
@@ -238,7 +256,10 @@ const decodeUint128 = (
 	if (typeof response !== 'string' || response === '0x' || response.length < 66)
 		throw new Error(`UniswapContracts_Evm: empty ${label} result`)
 
-	const [value] = decodeParameters(UINT128_OUTPUT, toBytes(response))
+	const [value] = decodeResponse(
+		() => decodeParameters(UINT128_OUTPUT, toBytes(response)),
+		label
+	)
 	if (typeof value === 'bigint')
 		return value
 
@@ -253,7 +274,10 @@ const decodeUint256 = (
 	if (typeof response !== 'string' || response === '0x' || response.length < 66)
 		throw new Error(`UniswapContracts_Evm: empty ${label} result`)
 
-	const [value] = decodeParameters(UINT256_OUTPUT, toBytes(response))
+	const [value] = decodeResponse(
+		() => decodeParameters(UINT256_OUTPUT, toBytes(response)),
+		label
+	)
 	if (typeof value === 'bigint')
 		return value
 
@@ -274,13 +298,24 @@ const toSignedInt24Number = (
 }
 
 
+const assertUint256 = (
+	value: bigint,
+	label: string
+) => {
+	if (value < 0n || value > (2n ** 256n) - 1n)
+		throw new Error(`UniswapContracts_Evm: invalid ${label}`)
+
+	return value
+}
+
+
 const blockTagFor = (
 	blockNumber: bigint | 'latest'
 ) => (
 	blockNumber === 'latest' ?
 		'latest' as const
 	:
-		`0x${blockNumber.toString(16)}` as const
+		`0x${assertUint256(blockNumber, 'block number').toString(16)}` as const
 )
 
 
@@ -466,7 +501,10 @@ export const getPoolProtocolFees = async ({
 	const [
 		token0,
 		token1,
-	] = decodeParameters(PROTOCOL_FEES_OUTPUT, toBytes(response))
+	] = decodeResponse(
+		() => decodeParameters(PROTOCOL_FEES_OUTPUT, toBytes(response)),
+		'protocolFees'
+	)
 
 	return {
 		token0: typeof token0 === 'bigint' ? token0 : BigInt(String(token0)),
@@ -500,7 +538,10 @@ export const getPoolSlot0 = async ({
 		observationCardinalityNext,
 		feeProtocol,
 		unlocked,
-	] = decodeParameters(SLOT0_OUTPUT, toBytes(response))
+	] = decodeResponse(
+		() => decodeParameters(SLOT0_OUTPUT, toBytes(response)),
+		'slot0'
+	)
 
 	return {
 		sqrtPriceX96: typeof sqrtPriceX96 === 'bigint' ? sqrtPriceX96 : BigInt(String(sqrtPriceX96)),
@@ -509,7 +550,16 @@ export const getPoolSlot0 = async ({
 		observationCardinality: Number(observationCardinality),
 		observationCardinalityNext: Number(observationCardinalityNext),
 		feeProtocol: Number(feeProtocol),
-		unlocked: Boolean(unlocked),
+		unlocked: (
+			unlocked === true ?
+				true
+			: unlocked === false ?
+				false
+			:
+				(() => {
+					throw new Error('UniswapContracts_Evm: malformed slot0 unlocked')
+				})()
+		),
 	}
 }
 
@@ -529,27 +579,18 @@ export const getFactoryPool = async ({
 	fee: number
 	blockNumber?: bigint | 'latest'
 }) => {
-	const response = await getCall({
-		to: assertAddress(factoryAddress, 'factory address'),
-		input: encodeFunction(FACTORY_ABI, 'getPool', [
-			assertAddress(token0, 'token0'),
-			assertAddress(token1, 'token1'),
-			fee,
-		]),
-		blockTag: blockTagFor(blockNumber),
-	})
-	if (typeof response !== 'string' || response === '0x' || response.length < 66)
-		throw new Error('UniswapContracts_Evm: empty getPool result')
-
-	const [pool] = decodeParameters(ADDRESS_OUTPUT, toBytes(response))
-	if (typeof pool !== 'string')
-		throw new Error('UniswapContracts_Evm: malformed getPool address')
-
-	const normalized = hexLowerOfByteSize(pool, 20)
-	if (normalized == null || normalized === ZERO_ADDRESS)
-		throw new Error('UniswapContracts_Evm: getPool returned zero address')
-
-	return normalized
+	return decodeAddressResult(
+		await getCall({
+			to: assertAddress(factoryAddress, 'factory address'),
+			input: encodeFunction(FACTORY_ABI, 'getPool', [
+				assertAddress(token0, 'token0'),
+				assertAddress(token1, 'token1'),
+				fee,
+			]),
+			blockTag: blockTagFor(blockNumber),
+		}),
+		'getPool'
+	)
 }
 
 
@@ -567,7 +608,7 @@ export const getPositionOwner = async ({
 	decodeAddressResult(
 		await getCall({
 			to: assertAddress(positionManager, 'position manager'),
-			input: encodeFunction(NONFUNGIBLE_POSITION_MANAGER_ABI, 'ownerOf', [tokenId]),
+			input: encodeFunction(NONFUNGIBLE_POSITION_MANAGER_ABI, 'ownerOf', [assertUint256(tokenId, 'token id')]),
 			blockTag: blockTagFor(blockNumber),
 		}),
 		'ownerOf'
@@ -588,7 +629,7 @@ export const getPosition = async ({
 }) => {
 	const response = await getCall({
 		to: assertAddress(positionManager, 'position manager'),
-		input: encodeFunction(NONFUNGIBLE_POSITION_MANAGER_ABI, 'positions', [tokenId]),
+		input: encodeFunction(NONFUNGIBLE_POSITION_MANAGER_ABI, 'positions', [assertUint256(tokenId, 'token id')]),
 		blockTag: blockTagFor(blockNumber),
 	})
 	if (typeof response !== 'string' || response === '0x' || response.length < 2 + 12 * 64)
@@ -607,7 +648,10 @@ export const getPosition = async ({
 		feeGrowthInside1LastX128,
 		tokensOwed0,
 		tokensOwed1,
-	] = decodeParameters(POSITIONS_OUTPUT, toBytes(response))
+	] = decodeResponse(
+		() => decodeParameters(POSITIONS_OUTPUT, toBytes(response)),
+		'positions'
+	)
 
 	if (typeof token0 !== 'string' || typeof token1 !== 'string')
 		throw new Error('UniswapContracts_Evm: malformed positions tokens')
@@ -619,6 +663,7 @@ export const getPosition = async ({
 		|| token1Address == null
 		|| token0Address === ZERO_ADDRESS
 		|| token1Address === ZERO_ADDRESS
+		|| token0Address >= token1Address
 	)
 		throw new Error('UniswapContracts_Evm: invalid positions token addresses')
 
@@ -633,14 +678,19 @@ export const getPosition = async ({
 	if (!Number.isSafeInteger(feeNumber) || feeNumber < 0 || feeNumber > 0xffffff)
 		throw new Error('UniswapContracts_Evm: positions fee out of range')
 
+	const tickLowerNumber = toSignedInt24Number(tickLower)
+	const tickUpperNumber = toSignedInt24Number(tickUpper)
+	if (tickLowerNumber >= tickUpperNumber)
+		throw new Error('UniswapContracts_Evm: positions ticks out of order')
+
 	return {
 		nonce: typeof _nonce === 'bigint' ? _nonce : BigInt(String(_nonce)),
 		operator,
 		token0: token0Address,
 		token1: token1Address,
 		fee: feeNumber,
-		tickLower: toSignedInt24Number(tickLower),
-		tickUpper: toSignedInt24Number(tickUpper),
+		tickLower: tickLowerNumber,
+		tickUpper: tickUpperNumber,
 		liquidity: typeof liquidity === 'bigint' ? liquidity : BigInt(String(liquidity)),
 		feeGrowthInside0LastX128: (
 			typeof feeGrowthInside0LastX128 === 'bigint' ?

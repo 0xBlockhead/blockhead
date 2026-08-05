@@ -17,6 +17,7 @@ import {
 	getPoolProtocolFees,
 	getPoolSlot0,
 	getPosition,
+	getPositionOwner,
 	normalizeUniswapAddress,
 } from '$/sources/Uniswap/Contracts/queries.ts'
 
@@ -124,6 +125,21 @@ describe('Uniswap Contracts queries', () => {
 		expect(slot0.unlocked).toBe(true)
 	})
 
+	it('rejects malformed pool response envelopes with a source-scoped error', async () => {
+		await expect(getPoolSlot0({
+			getCall: async () => (`0x${'z'.repeat(7 * 64)}`) as `0x${string}`,
+			poolAddress: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+		})).rejects.toThrow('UniswapContracts_Evm: invalid slot0 response envelope')
+
+		await expect(getFactoryPool({
+			getCall: async () => (`0x${'z'.repeat(64)}`) as `0x${string}`,
+			factoryAddress: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
+			token0: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+			token1: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+			fee: 500,
+		})).rejects.toThrow('UniswapContracts_Evm: invalid getPool response envelope')
+	})
+
 	it('decodes pool fee growth globals and protocol fees', async () => {
 		const word = (hex: string) => hex.padStart(64, '0')
 		const feeGrowthResponse = (`0x${word('abc')}`) as `0x${string}`
@@ -209,11 +225,50 @@ describe('Uniswap Contracts queries', () => {
 		expect(position.tokensOwed1).toBe(2n)
 	})
 
+	it('rejects malformed position response envelopes with a source-scoped error', async () => {
+		await expect(getPosition({
+			getCall: async () => (`0x${'z'.repeat(12 * 64)}`) as `0x${string}`,
+			positionManager: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
+			tokenId: 1n,
+		})).rejects.toThrow('UniswapContracts_Evm: invalid positions response envelope')
+	})
+
 	it('rejects a position lookup whose uninitialized tokens prove it is absent', async () => {
 		await expect(getPosition({
 			getCall: async () => (`0x${'0'.repeat(12 * 64)}`) as `0x${string}`,
 			positionManager: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
 			tokenId: 1n,
 		})).rejects.toThrow('UniswapContracts_Evm: invalid positions token addresses')
+	})
+
+	it('rejects malformed position ranges and invalid uint256 request values', async () => {
+		const word = (hex: string) => hex.padStart(64, '0')
+		const response = (
+			'0x'
+			+ word('0')
+			+ word('0')
+			+ word('a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48')
+			+ word('c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2')
+			+ word('1f4')
+			+ word('0')
+			+ word('0')
+			+ word('0')
+			+ word('0')
+			+ word('0')
+			+ word('0')
+			+ word('0')
+		) as `0x${string}`
+
+		await expect(getPosition({
+			getCall: async () => response,
+			positionManager: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
+			tokenId: 1n,
+		})).rejects.toThrow('UniswapContracts_Evm: positions ticks out of order')
+
+		await expect(getPositionOwner({
+			getCall: async () => '0x',
+			positionManager: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
+			tokenId: -1n,
+		})).rejects.toThrow('UniswapContracts_Evm: invalid token id')
 	})
 })

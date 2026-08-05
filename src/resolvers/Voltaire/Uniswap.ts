@@ -109,6 +109,9 @@ export const uniswapV3Resolvers = [
 				resolve: async ({ $network, poolAddress }) => {
 					const chainId = chainIdFromNetwork($network)
 					const {
+						uniswapV3DeploymentByChainId,
+					} = await import('$/sources/Uniswap/Catalog/constants.ts')
+					const {
 						getPoolFactory,
 						getPoolToken0,
 						getPoolToken1,
@@ -116,6 +119,10 @@ export const uniswapV3Resolvers = [
 						getPoolTickSpacing,
 						normalizeUniswapAddress,
 					} = await import('$/sources/Uniswap/Contracts/queries.ts')
+
+					const deployment = uniswapV3DeploymentByChainId[chainId]
+					if (deployment == null)
+						throw new Error(`UniswapContracts_Evm: no Uniswap V3 factory for chain ${String(chainId)}`)
 
 					const address = normalizeUniswapAddress(poolAddress)
 					return withTransports(chainId, 'UniswapV3Pool', async (getCall) => {
@@ -132,6 +139,8 @@ export const uniswapV3Resolvers = [
 							getPoolFee({ getCall, poolAddress: address }),
 							getPoolTickSpacing({ getCall, poolAddress: address }),
 						])
+						if (factoryAddress !== deployment.factoryAddress)
+							throw new Error(`UniswapContracts_Evm: pool ${address} factory does not match Uniswap V3 deployment on chain ${String(chainId)}`)
 
 						return {
 							$factory: evmContractRef($network, factoryAddress),

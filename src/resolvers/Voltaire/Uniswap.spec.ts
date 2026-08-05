@@ -158,6 +158,27 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 		expect(snapshot).not.toHaveProperty('$$positions')
 	})
 
+	it('rejects a pool whose factory is not the chain deployment', async () => {
+		getPoolFactory.mockResolvedValue('0x1111111111111111111111111111111111111111')
+		getPoolToken0.mockResolvedValue(token0)
+		getPoolToken1.mockResolvedValue(token1)
+		getPoolFee.mockResolvedValue(500)
+		getPoolTickSpacing.mockResolvedValue(10)
+
+		const poolResolver = uniswapV3Resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Pool
+		))
+		if (poolResolver == null)
+			throw new Error('missing UniswapV3Pool resolver')
+
+		await expect(
+			poolResolver.resolve.NetworkPoolAddress.resolve({
+				$network: ethereumNetwork,
+				poolAddress,
+			}, context)
+		).rejects.toThrow('UniswapContracts_Evm: pool 0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640 factory does not match Uniswap V3 deployment on chain 1')
+	})
+
 	it('resolves pool block slot0 + liquidity + fee growth + protocol fees', async () => {
 		getPoolSlot0.mockResolvedValue({
 			sqrtPriceX96: 100n,
