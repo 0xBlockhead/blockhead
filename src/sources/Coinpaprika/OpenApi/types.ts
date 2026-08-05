@@ -1,7 +1,5 @@
 import type { paths } from '$/sources/Coinpaprika/OpenApi/openapi.d.ts'
 
-export type CoinpaprikaCurrencies = paths['/coins']['get']['responses'][200]['content']['application/json']
-
 export type CoinpaprikaCoin = paths['/coins/{coin_id}']['get']['responses'][200]['content']['application/json']
 export type CoinpaprikaCoinPath = paths['/coins/{coin_id}']['get']['parameters']['path']
 

@@ -3,12 +3,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CoinId } from '$/constants/Coin.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import {
+	coinpaprikaCoins,
 	coinpaprikaExchangeIdByMarketVenueId,
 	idByCoinId,
 } from '$/sources/Coinpaprika/OpenApi/constants.ts'
 import {
 	getCoinMarkets,
-	getCoins,
 	getExchangeMarkets,
 	getOhlcvHistorical,
 	getTickerById,
@@ -87,38 +87,11 @@ describe('Coinpaprika coin queries', () => {
 		)
 	})
 
-	it('loads the coin catalog through the registered browser proxy transport', async () => {
-		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify([
-			{
-				id: 'eth-ethereum',
-				name: 'Ethereum',
-				symbol: 'ETH',
-			},
-		]), {
-			headers: {
-				'content-type': 'application/json',
-			},
-		}))
-		vi.stubGlobal('fetch', fetchMock)
-		vi.stubGlobal('window', {})
-
-		await expect(getCoins({
-			publicEnv: {},
-		})).resolves.toEqual([
-			{
-				id: 'eth-ethereum',
-				name: 'Ethereum',
-				symbol: 'ETH',
-			},
-		])
-		expect(fetchMock).toHaveBeenCalledWith(
-			expect.stringContaining(encodeURIComponent('https://api.coinpaprika.com/v1/coins')),
-			expect.objectContaining({
-				headers: {
-					Accept: 'application/json',
-				},
-			})
-		)
+	it('keeps the supported coin catalog in source constants', () => {
+		expect(coinpaprikaCoins).toContainEqual({
+			coinId: CoinId.ETH,
+			wireId: 'eth-ethereum',
+		})
 	})
 
 	it('passes documented historical OHLC parameters through and returns raw rows', async () => {

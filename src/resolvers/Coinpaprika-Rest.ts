@@ -47,6 +47,16 @@ const coinpaprikaTickerTimestampMs = (ticker: CoinpaprikaTicker) => (
 		Date.parse(ticker.last_updated)
 )
 
+const coinpaprikaTickerForRequestedId = (
+	ticker: CoinpaprikaTicker,
+	coinpaprikaId: string
+) => {
+	if (ticker.id !== coinpaprikaId)
+		throw new Error('Coinpaprika_Rest: ticker response does not match requested coin')
+
+	return ticker
+}
+
 const coinpaprikaOhlcLookbackDayCount = (publicEnv: SourcePublicEnv) => (
 	optionalPublicEnvString(publicEnv, 'PUBLIC_COINPAPRIKA_API_KEY') == null ?
 		marketOhlcDailyTimeInterval.value
@@ -254,7 +264,6 @@ export default {
 			resolve: {
 				CoinId: {
 					resolve: async ({ coinId }, context) => {
-						const { coinById } = await import('$/constants/Coin.ts')
 						const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 						const { getCoinById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 						const coinpaprikaId = idByCoinId[coinId]
@@ -265,22 +274,19 @@ export default {
 							coinpaprikaId,
 						})
 
+						if (
+							coin.id !== coinpaprikaId
+							|| coin.name == null
+							|| coin.name === ''
+							|| coin.symbol == null
+							|| coin.symbol === ''
+						)
+							throw new Error('Coinpaprika_Rest: coin response does not match requested coin')
+
 						const logoMedia = mediaFromUrl(coin.logo, MediaType.Image)
-						const coinName = coin.name ?? ''
-						const coinSymbol = coin.symbol ?? ''
 						return {
-							name: (
-								coinName === '' ?
-									coinById[coinId].symbol
-								:
-									coinName
-							),
-							symbol: (
-								coinSymbol === '' ?
-									coinById[coinId].symbol
-								:
-									coinSymbol.toUpperCase()
-							),
+							name: coin.name,
+							symbol: coin.symbol.toUpperCase(),
 							...(logoMedia != null && { $logo: logoMedia }),
 						}
 					},
@@ -302,10 +308,13 @@ export default {
 						const coinpaprikaId = idByCoinId[coinId]
 						if (coinpaprikaId == null) throw new Error('Coinpaprika_Rest: coin not mapped')
 
-						const ticker = await getTickerById({
-							publicEnv: context.publicEnv,
-							coinpaprikaId,
-						})
+						const ticker = coinpaprikaTickerForRequestedId(
+							await getTickerById({
+								publicEnv: context.publicEnv,
+								coinpaprikaId,
+							}),
+							coinpaprikaId
+						)
 						const timestampMs = coinpaprikaTickerTimestampMs(ticker)
 						if (!Number.isFinite(timestampMs))
 							throw new Error('Coinpaprika_Rest: coin ticker clock missing')
@@ -338,10 +347,13 @@ export default {
 						const coinpaprikaId = idByCoinId[$coin.coinId]
 						if (coinpaprikaId == null) throw new Error('Coinpaprika_Rest: coin not mapped')
 
-						const ticker = await getTickerById({
-							publicEnv: context.publicEnv,
-							coinpaprikaId,
-						})
+						const ticker = coinpaprikaTickerForRequestedId(
+							await getTickerById({
+								publicEnv: context.publicEnv,
+								coinpaprikaId,
+							}),
+							coinpaprikaId
+						)
 						const timestampMs = coinpaprikaTickerTimestampMs(ticker)
 						if (!Number.isFinite(timestampMs))
 							throw new Error('Coinpaprika_Rest: coin ticker clock missing')
@@ -406,10 +418,13 @@ export default {
 						if (feedKey !== coinpaprikaId)
 							throw new Error('Coinpaprika_Rest: Market_Timestamp feedKey does not match Coinpaprika id')
 
-						const ticker = await getTickerById({
-							publicEnv: context.publicEnv,
-							coinpaprikaId,
-						})
+						const ticker = coinpaprikaTickerForRequestedId(
+							await getTickerById({
+								publicEnv: context.publicEnv,
+								coinpaprikaId,
+							}),
+							coinpaprikaId
+						)
 						const price = ticker.quotes?.USD.price
 						const updatedAtMs = coinpaprikaTickerTimestampMs(ticker)
 
@@ -489,37 +504,13 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
-					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => {
-						const { coinById } = await import('$/constants/Coin.ts')
-						const { coinIdByWireId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-						const { getCoins } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
-						return (
-							(await getCoins({
-								publicEnv: context.publicEnv,
-							}))
-								.flatMap((coin) => {
-									const coinId = coin.id == null ? undefined : coinIdByWireId.get(coin.id)
-									if (
-										coinId == null
-										|| !(coinId in coinById)
-										|| coin.name == null
-										|| coin.name === ''
-										|| coin.symbol == null
-										|| coin.symbol === ''
-									)
-										return []
-
-									return [{
-										[EntityMetaKey.Selector]: {
-											coinId,
-										},
-										[EntityMetaKey.Fields]: {
-											[entityFieldAddressKey(EntityType.Coin, [], 'name')]: coin.name,
-											[entityFieldAddressKey(EntityType.Coin, [], 'symbol')]: coin.symbol.toUpperCase(),
-										},
-									}]
-								})
-						)
+					resolve: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>) => {
+						const { coinpaprikaCoins } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
+						return coinpaprikaCoins.map(({ coinId }) => ({
+							[EntityMetaKey.Selector]: {
+								coinId,
+							},
+						}))
 					},
 				}
 			},
@@ -674,10 +665,13 @@ export default {
 						const coinId = $market.$base.assetKey
 						const coinpaprikaId = idByCoinId[coinId]
 						if (coinpaprikaId == null) throw new Error('Coinpaprika_Rest: coin price not mapped')
-						const ticker = await getTickerById({
-							publicEnv: context.publicEnv,
-							coinpaprikaId,
-						})
+						const ticker = coinpaprikaTickerForRequestedId(
+							await getTickerById({
+								publicEnv: context.publicEnv,
+								coinpaprikaId,
+							}),
+							coinpaprikaId
+						)
 						const updatedAtMs = coinpaprikaTickerTimestampMs(ticker)
 						if (!Number.isFinite(updatedAtMs))
 							throw new Error('Coinpaprika_Rest: ticker invalid')

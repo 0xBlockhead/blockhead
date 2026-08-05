@@ -9,7 +9,6 @@ import type {
 	CoinpaprikaCoin,
 	CoinpaprikaCoinMarkets,
 	CoinpaprikaCoinPath,
-	CoinpaprikaCurrencies,
 	CoinpaprikaExchangeMarkets,
 	CoinpaprikaExchangeMarketsPath,
 	CoinpaprikaOhlcvHistoricalQuery,
@@ -29,17 +28,6 @@ export const getCoinById = ({
 	getCoinpaprikaJson<CoinpaprikaCoin>(
 		publicEnv,
 		`/coins/${encodeURIComponent(coinpaprikaId)}`
-	)
-)
-
-export const getCoins = ({
-	publicEnv,
-}: {
-	publicEnv: SourcePublicEnv
-}) => (
-	getCoinpaprikaJson<CoinpaprikaCurrencies>(
-		publicEnv,
-		'/coins'
 	)
 )
 

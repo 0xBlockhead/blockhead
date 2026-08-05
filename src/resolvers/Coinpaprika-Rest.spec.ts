@@ -2,17 +2,18 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { CoinId } from '$/constants/Coin.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
-import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
+import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { coinpaprikaCoins } from '$/sources/Coinpaprika/OpenApi/constants.ts'
 import { Source } from '$/sources/Source.ts'
 
-const getCoins = vi.hoisted(() => vi.fn())
+const getCoinById = vi.hoisted(() => vi.fn())
 const getTickerById = vi.hoisted(() => vi.fn())
 const getExchangeMarkets = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Coinpaprika/OpenApi/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Coinpaprika/OpenApi/queries.ts')>(),
-	getCoins,
+	getCoinById,
 	getTickerById,
 	getExchangeMarkets,
 }))
@@ -30,24 +31,7 @@ const resolverContext = {
 }
 
 describe('Coinpaprika coin catalog resolver', () => {
-	it('emits mapped canonical selectors with structured identity fields', async () => {
-		getCoins.mockResolvedValue([
-			{
-				id: 'eth-ethereum',
-				name: 'Ethereum',
-				symbol: 'eth',
-			},
-			{
-				id: 'unknown-coin',
-				name: 'Unknown Coin',
-				symbol: 'unknown',
-			},
-			{
-				id: 'btc-bitcoin',
-				name: '',
-				symbol: 'btc',
-			},
-		])
+	it('emits only catalog-backed canonical selectors', async () => {
 		const resolver = coinpaprikaResolvers.resolvers.find((candidate) => (
 			candidate.entityType === EntityType._Global
 			&& '$$coins' in candidate.projections
@@ -59,21 +43,53 @@ describe('Coinpaprika coin catalog resolver', () => {
 			scope: 'global',
 		}, resolverContext)
 
-		expect(rows).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					coinId: CoinId.ETH,
-				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.Coin, [], 'name')]: 'Ethereum',
-					[entityFieldAddressKey(EntityType.Coin, [], 'symbol')]: 'ETH',
-				},
+		expect(rows).toHaveLength(coinpaprikaCoins.length)
+		expect(rows).toContainEqual({
+			[EntityMetaKey.Selector]: {
+				coinId: CoinId.AAVE,
 			},
-		])
+		})
+	})
+})
+
+describe('Coinpaprika coin detail resolver', () => {
+	it('rejects a response for a different catalog coin', async () => {
+		getCoinById.mockResolvedValue({
+			id: 'btc-bitcoin',
+			name: 'Bitcoin',
+			symbol: 'BTC',
+		})
+		const resolver = coinpaprikaResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Coin
+			&& 'name' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Coinpaprika coin detail resolver is not registered')
+
+		await expect(resolver.resolve['CoinId'].resolve({
+			coinId: CoinId.ETH,
+		}, resolverContext)).rejects.toThrow('Coinpaprika_Rest: coin response does not match requested coin')
 	})
 })
 
 describe('Coinpaprika coin timestamp resolvers', () => {
+	it('rejects a ticker response for a different catalog coin', async () => {
+		getTickerById.mockResolvedValue({
+			id: 'btc-bitcoin',
+			last_updated: '2026-08-04T09:00:00Z',
+		})
+		const resolver = coinpaprikaResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Coin
+			&& '$$timestamps' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Coinpaprika coin $$timestamps resolver is not registered')
+
+		await expect(resolver.resolve['CoinId'].resolve({
+			coinId: CoinId.ETH,
+		}, resolverContext)).rejects.toThrow('Coinpaprika_Rest: ticker response does not match requested coin')
+	})
+
 	it('projects $$timestamps from the ticker clock and maps Coin_Timestamp fields', async () => {
 		getTickerById.mockResolvedValue({
 			id: 'eth-ethereum',

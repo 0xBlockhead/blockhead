@@ -1,7 +1,7 @@
 import { CoinId } from '$/constants/Coin.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 
-const catalog = [
+export const coinpaprikaCoins = [
 	{ coinId: CoinId.AAVE, wireId: 'aave-new' },
 	{ coinId: CoinId.ADA, wireId: 'ada-cardano' },
 	{ coinId: CoinId.APT, wireId: 'apt-aptos' },
@@ -29,7 +29,7 @@ const catalog = [
 }[]
 
 export const idByCoinId = Object.fromEntries(
-	catalog
+	coinpaprikaCoins
 		.map((entry) => [
 			entry.coinId,
 			entry.wireId,
@@ -37,7 +37,7 @@ export const idByCoinId = Object.fromEntries(
 )
 
 export const coinIdByWireId = new Map(
-	catalog
+	coinpaprikaCoins
 		.map((entry) => [
 			entry.wireId,
 			entry.coinId,
