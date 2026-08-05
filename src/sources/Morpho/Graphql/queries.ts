@@ -102,20 +102,25 @@ const normalizeMarket = (
 /** List the first 100 Morpho Blue markets filtered to supported EIP-155 chains. */
 export const listMarkets = async ({
 	chainIds,
+	limit = morphoMarketPageLimit,
 }: {
 	chainIds: readonly number[]
+	limit?: number
 }) => {
 	if (chainIds.length < 1)
 		throw new Error(`${Source.Morpho_Graphql}: chainIds required`)
 	for (const chainId of chainIds)
 		assertChainId(chainId)
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > morphoMarketPageLimit)
+		throw new Error(`${Source.Morpho_Graphql}: limit must be between 1 and ${String(morphoMarketPageLimit)}`)
 
 	const data = await queryMorpho<MorphoGraphqlMarketsData>(`
 		query MorphoMarkets(
-			$chainIds: [Int!]
+			$chainIds: [Int!],
+			$limit: Int!
 		) {
 			markets(
-				first: ${String(morphoMarketPageLimit)}
+				first: $limit
 				orderBy: SupplyAssetsUsd
 				orderDirection: Desc
 				where: {
@@ -131,12 +136,13 @@ export const listMarkets = async ({
 		chainIds: [
 			...chainIds,
 		],
+		limit,
 	})
 	if (data.markets == null)
 		throw new Error(`${Source.Morpho_Graphql}: markets response missing markets`)
 	if (data.markets.items == null)
 		throw new Error(`${Source.Morpho_Graphql}: markets response missing items`)
-	if (data.markets.items.length > morphoMarketPageLimit)
+	if (data.markets.items.length > limit)
 		throw new Error(`${Source.Morpho_Graphql}: markets response exceeds page limit`)
 
 	return data.markets.items.map((market) => (

@@ -110,5 +110,8 @@ describe('Morpho GraphQL resolver module', () => {
 				},
 			},
 		])
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).variables).toMatchObject({
+			limit: 16,
+		})
 	})
 })

@@ -1,7 +1,6 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -39,8 +38,8 @@ export default {
 							chainIds: [
 								chainId,
 							],
+							limit: resolverContextRowLimit(context),
 						}))
-							.slice(0, resolverContextRowLimit(context))
 							.map((market) => ({
 								[EntityMetaKey.Selector]: {
 									$network: network,
@@ -56,4 +55,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Morpho_Graphql>
+}

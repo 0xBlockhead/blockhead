@@ -88,6 +88,7 @@ describe('Morpho GraphQL market enumeration', () => {
 			chainIds: [
 				8453,
 			],
+			limit: 16,
 		})).resolves.toEqual([
 			{
 				marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
@@ -111,9 +112,11 @@ describe('Morpho GraphQL market enumeration', () => {
 				chainIds: [
 					8453,
 				],
+				limit: 16,
 			},
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('chainId_in: $chainIds')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('first: $limit')
 	})
 
 	it('returns a successful empty market list', async () => {
@@ -138,6 +141,16 @@ describe('Morpho GraphQL market enumeration', () => {
 				999_999,
 			],
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: unsupported chain id`)
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('rejects invalid limits before transport', async () => {
+		await expect(listMarkets({
+			chainIds: [
+				8453,
+			],
+			limit: 101,
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: limit must be between 1 and 100`)
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
