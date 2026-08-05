@@ -233,45 +233,41 @@ describe('Osmosis LCD named operations', () => {
 		await expect(getPool('1')).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: pool id mismatch 2 !== 1`)
 	})
 
+	it('rejects a malformed pool envelope instead of yielding a partial detail', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pool: {
+				id: 'not-an-id',
+			},
+		})
+
+		await expect(getPool('1')).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: invalid pool response envelope`)
+	})
+
 	it('rejects a non-integer pool id before transport', () => {
 		expect(() => getPool('1.5')).toThrow(`${Source.Osmosis_LCD_Rest}: invalid pool id`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
-	it('lists pools with a bounded pagination limit', async () => {
+	it('lists all pools from the documented poolmanager endpoint', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			pools: [],
-			pagination: {
-				total: '0',
-			},
 		})
-		await expect(getPools({
-			limit: 10,
-		})).resolves.toEqual({
+		await expect(getPools()).resolves.toEqual({
 			pools: [],
-			pagination: {
-				total: '0',
-			},
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			httpUrl(binding, '/osmosis/poolmanager/v1beta1/pools?pagination.limit=10&pagination.count_total=true')
+			httpUrl(binding, '/osmosis/poolmanager/v1beta1/all-pools')
 		)
 	})
 
 	it('rejects a malformed pools envelope instead of treating it as empty', async () => {
-		sourceGetJson.mockResolvedValueOnce({
-			pagination: {
-				total: '0',
-			},
-		})
+		sourceGetJson.mockResolvedValueOnce({})
 
-		await expect(getPools({
-			limit: 10,
-		})).rejects.toThrow()
+		await expect(getPools()).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: invalid pools response envelope`)
 	})
 
-	it('rejects duplicate pools and a non-advancing page key', async () => {
+	it('rejects duplicate pool ids in the all-pools response', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			pools: [
 				{
@@ -281,41 +277,8 @@ describe('Osmosis LCD named operations', () => {
 					id: '1',
 				},
 			],
-			pagination: {
-				next_key: 'next',
-				total: '2',
-			},
 		})
-		await expect(getPools({
-			limit: 10,
-		})).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: pools page contains duplicate pool ids`)
-
-		sourceGetJson.mockResolvedValueOnce({
-			pools: [
-				{
-					id: '1',
-				},
-			],
-			pagination: {
-				next_key: 'same-page',
-				total: '2',
-			},
-		})
-		await expect(getPools({
-			limit: 10,
-			paginationKey: 'same-page',
-		})).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: pools pagination did not advance`)
-		expect(sourceGetJson).toHaveBeenLastCalledWith(
-			binding,
-			httpUrl(binding, '/osmosis/poolmanager/v1beta1/pools?pagination.limit=10&pagination.count_total=true&pagination.key=same-page')
-		)
-	})
-
-	it('rejects an out-of-range pools limit', () => {
-		expect(() => getPools({
-			limit: 0,
-		})).toThrow(`${Source.Osmosis_LCD_Rest}: invalid pools limit`)
-		expect(sourceGetJson).not.toHaveBeenCalled()
+		await expect(getPools()).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: all-pools response contains duplicate pool ids`)
 	})
 
 	it('reads a spot price for a pool', async () => {

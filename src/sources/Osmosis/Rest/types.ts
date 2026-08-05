@@ -105,7 +105,6 @@ export type OsmosisPoolResponse = {
 
 export type OsmosisPoolsResponse = {
 	pools: OsmosisPoolManagerPool[]
-	pagination?: OsmosisPagination
 }
 
 export type OsmosisSpotPriceResponse = {

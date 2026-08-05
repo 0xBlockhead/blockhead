@@ -579,10 +579,8 @@ export default {
 					const { getPools } = await import('$/sources/Osmosis/Rest/queries.ts')
 					const {
 						pools,
-					} = await getPools({
-						limit: resolverContextRowLimit(context),
-					})
-					return pools.map((pool) => ({
+					} = await getPools()
+					return pools.slice(0, resolverContextRowLimit(context)).map((pool) => ({
 						[EntityMetaKey.Selector]: {
 							$network: network,
 							poolId: pool.id,

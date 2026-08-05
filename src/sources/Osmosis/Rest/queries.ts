@@ -6,7 +6,7 @@ import { TransportType } from '$/constants/TransportType.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Osmosis/bindings.ts'
-import { osmosisPoolPageMaximumLimit } from '$/sources/Osmosis/Rest/constants.ts'
+import { osmosisPoolPaths } from '$/sources/Osmosis/Rest/constants.ts'
 import type {
 	OsmosisBlockResponse,
 	OsmosisDenomTraceResponse,
@@ -59,10 +59,6 @@ const osmosisPoolResponseWire = arktype({
 })
 const osmosisPoolsResponseWire = arktype({
 	pools: osmosisPoolWire.array(),
-	pagination: {
-		'next_key?': 'string | null',
-		total: '/^(0|[1-9][0-9]*)$/',
-	},
 })
 const assertPoolEnvelope = (response: unknown) => {
 	try {
@@ -195,7 +191,7 @@ export const getValidators = ({
 export const getPool = (poolId: string) => {
 	assertPoolId(poolId)
 	return lcdGetJson<unknown>(
-		`/osmosis/poolmanager/v1beta1/pools/${poolId}`
+		`${osmosisPoolPaths.byId}/${poolId}`
 	)
 		.then((response) => {
 			const envelope = assertPoolEnvelope(response)
@@ -206,42 +202,18 @@ export const getPool = (poolId: string) => {
 		})
 }
 
-export const getPools = ({
-	limit,
-	paginationKey,
-}: {
-	limit: number
-	paginationKey?: string
-}) => {
-	if (!Number.isSafeInteger(limit) || limit < 1 || limit > osmosisPoolPageMaximumLimit)
-		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid pools limit ${String(limit)}`)
-	if (paginationKey != null && paginationKey.length === 0)
-		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid pools pagination key`)
-
-	const parameters = new URLSearchParams({
-		'pagination.limit': String(limit),
-		'pagination.count_total': 'true',
-		...(paginationKey != null && {
-			'pagination.key': paginationKey,
-		}),
-	})
-	return lcdGetJson<unknown>(
-		`/osmosis/poolmanager/v1beta1/pools?${parameters}`
+export const getPools = () => (
+	lcdGetJson<unknown>(
+		osmosisPoolPaths.all
 	)
 		.then((response) => {
 			const envelope = assertPoolsEnvelope(response)
-			if (envelope.pools.length > limit)
-				throw new Error(`${Source.Osmosis_LCD_Rest}: pools page exceeds requested limit`)
 			if (new Set(envelope.pools.map((pool) => pool.id)).size !== envelope.pools.length)
-				throw new Error(`${Source.Osmosis_LCD_Rest}: pools page contains duplicate pool ids`)
-			if (Number(envelope.pagination.total) < envelope.pools.length)
-				throw new Error(`${Source.Osmosis_LCD_Rest}: pools pagination total is less than page length`)
-			if (envelope.pagination.next_key != null && envelope.pagination.next_key === paginationKey)
-				throw new Error(`${Source.Osmosis_LCD_Rest}: pools pagination did not advance`)
+				throw new Error(`${Source.Osmosis_LCD_Rest}: all-pools response contains duplicate pool ids`)
 
 			return envelope
 		})
-}
+)
 
 export const getSpotPrice = ({
 	poolId,

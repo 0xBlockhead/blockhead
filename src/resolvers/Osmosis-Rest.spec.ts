@@ -340,9 +340,6 @@ describe('Osmosis LCD resolver module', () => {
 					id: '678',
 				},
 			],
-			pagination: {
-				total: '2',
-			},
 		})
 
 		if (networkOsmosisPoolsResolver == null)
@@ -365,16 +362,12 @@ describe('Osmosis LCD resolver module', () => {
 		])
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			expect.anything(),
-			expect.stringContaining('/osmosis/poolmanager/v1beta1/pools?pagination.limit=16&pagination.count_total=true')
+			expect.stringContaining('/osmosis/poolmanager/v1beta1/all-pools')
 		)
 	})
 
 	it('rejects an invalid Osmosis pool list envelope', async () => {
-		sourceGetJson.mockResolvedValueOnce({
-			pagination: {
-				total: '0',
-			},
-		})
+		sourceGetJson.mockResolvedValueOnce({})
 
 		if (networkOsmosisPoolsResolver == null)
 			throw new Error('missing Network $$osmosisPools resolver')
