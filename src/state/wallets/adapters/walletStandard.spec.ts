@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { WalletCapability } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
+import { base58 } from '@scure/base'
 import { createWalletStandardAdapter } from './walletStandard.ts'
 import type { WalletCandidate, WalletConnection } from './types.ts'
 
@@ -32,6 +33,10 @@ const wallet = ({
 	name = 'Standard Wallet',
 	connect = vi.fn(async () => ({ accounts: [account()] })),
 	disconnect = vi.fn(async () => {}),
+	signMessage = vi.fn(async () => [{
+		signature: new Uint8Array(64).fill(7),
+	}]),
+	includeSignMessageFeature = false,
 } = {}) => {
 	const changeListeners = new Set<(properties: ChangeProperties) => void>()
 
@@ -56,6 +61,12 @@ const wallet = ({
 					version: '1.0.0' as const,
 					disconnect,
 				},
+				...(includeSignMessageFeature && {
+					'solana:signMessage': {
+						version: '1.0.0' as const,
+						signMessage,
+					},
+				}),
 			},
 		},
 		emitAccounts: (accounts: StandardAccount[]) => {
@@ -63,6 +74,7 @@ const wallet = ({
 		},
 		connect,
 		disconnect,
+		signMessage,
 		listenerCount: () => changeListeners.size,
 	}
 }
@@ -309,6 +321,84 @@ describe('Wallet Standard adapter', () => {
 		await expect(mounted.adapter.connect('wallet-standard:Malformed Wallet')).rejects.toThrow(
 			'Malformed Wallet does not implement standard:connect 1.0.0'
 		)
+		mounted.cleanup()
+	})
+
+	it('leaves Aptos AIP-62 wallets for the aptosAip62 adapter', () => {
+		const mounted = mountRegistry()
+		mounted.register({
+			name: 'Petra',
+			icon: '',
+			accounts: [],
+			features: {
+				'aptos:connect': {
+					version: '1.0.0',
+					connect: async () => ({
+						status: 'Approved',
+						args: {
+							address: '0xa11ce',
+						},
+					}),
+				},
+			},
+		})
+
+		expect(mounted.candidateUpdates.at(-1)).toEqual([])
+		mounted.cleanup()
+	})
+
+	it('advertises SignMessage and signs via solana:signMessage when the feature exists', async () => {
+		const mounted = mountRegistry()
+		const signMessage = vi.fn(async () => [{
+			signature: new Uint8Array(64).fill(7),
+		}])
+		const standardWallet = wallet({
+			includeSignMessageFeature: true,
+			signMessage,
+		})
+		mounted.register(standardWallet.provider)
+
+		expect(mounted.candidateUpdates.at(-1)?.[0]?.capabilities).toEqual([
+			WalletCapability.Discover,
+			WalletCapability.Connect,
+			WalletCapability.Reconnect,
+			WalletCapability.ListAccounts,
+			WalletCapability.WatchAccounts,
+			WalletCapability.Disconnect,
+			WalletCapability.SignMessage,
+		])
+
+		const connection = await mounted.adapter.connect('wallet-standard:Standard Wallet')
+		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignMessage)
+		expect(connection?.scopes[0]?.methods).toContain('solana:signMessage')
+
+		await expect(mounted.adapter.signMessage?.(
+			'wallet-standard:Standard Wallet',
+			firstSolanaAccount,
+			'Sign this private challenge',
+		)).resolves.toBe(base58.encode(new Uint8Array(64).fill(7)))
+
+		expect(signMessage).toHaveBeenCalledWith({
+			account: expect.objectContaining({
+				address: firstSolanaAccount,
+				features: ['solana:signMessage'],
+			}),
+			message: new TextEncoder().encode('Sign this private challenge'),
+		})
+		mounted.cleanup()
+	})
+
+	it('throws when solana:signMessage is missing on the wallet', async () => {
+		const mounted = mountRegistry()
+		const standardWallet = wallet()
+		mounted.register(standardWallet.provider)
+		await mounted.adapter.connect('wallet-standard:Standard Wallet')
+
+		await expect(mounted.adapter.signMessage?.(
+			'wallet-standard:Standard Wallet',
+			firstSolanaAccount,
+			'hello',
+		)).rejects.toThrow('Standard Wallet does not implement solana:signMessage 1.0.0')
 		mounted.cleanup()
 	})
 })

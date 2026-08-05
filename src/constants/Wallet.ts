@@ -234,7 +234,7 @@ export const walletConnectionMethods = [
 			WalletCapability.SignTransaction,
 			WalletCapability.SendTransaction,
 		],
-		implementationStatus: WalletImplementationStatus.DiscoveryImplemented,
+		implementationStatus: WalletImplementationStatus.Implemented,
 		dependencyPolicy: 'none',
 	},
 	{

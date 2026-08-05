@@ -33,22 +33,96 @@ type StandardDisconnectFeature = {
 	disconnect(): Promise<void>
 }
 
-type StandardWallet = {
-	readonly name: string
-	readonly icon?: string
-	readonly accounts?: readonly StandardWalletAccount[]
-	readonly features?: Readonly<Record<string, object | undefined>> & {
-		readonly 'standard:connect'?: StandardConnectFeature
-		readonly 'standard:events'?: StandardEventsFeature
-		readonly 'standard:disconnect'?: StandardDisconnectFeature
+type SolanaSignMessageFeature = {
+	readonly version: '1.0.0'
+	signMessage(input: {
+		readonly account: StandardWalletAccount
+		readonly message: Uint8Array
+	}): Promise<readonly {
+		readonly signature: Uint8Array
+	}[]>
+}
+
+export type AptosAccountInfo = {
+	readonly address: string | {
+		toString(): string
 	}
 }
 
-type WalletRegistryApi = {
+export type AptosNetworkInfo = {
+	readonly chainId: number
+	readonly name: string
+}
+
+export type AptosUserResponse<_Args> =
+	| {
+		readonly status: 'Approved'
+		readonly args: _Args
+	}
+	| {
+		readonly status: 'Rejected'
+	}
+
+export type AptosSignMessageOutput = {
+	readonly signature: string | string[]
+}
+
+export type AptosFeatures = {
+	readonly 'aptos:connect'?: {
+		readonly version: '1.0.0'
+		connect(silent?: boolean, network?: AptosNetworkInfo): Promise<AptosUserResponse<AptosAccountInfo>>
+	}
+	readonly 'aptos:disconnect'?: {
+		readonly version: '1.0.0'
+		disconnect(): Promise<void>
+	}
+	readonly 'aptos:account'?: {
+		readonly version: '1.0.0'
+		account(): Promise<AptosAccountInfo | null>
+	}
+	readonly 'aptos:network'?: {
+		readonly version: '1.0.0'
+		network(): Promise<AptosNetworkInfo>
+	}
+	readonly 'aptos:onAccountChange'?: {
+		readonly version: '1.0.0'
+		onAccountChange(listener: (account: AptosAccountInfo | null) => void): Promise<void>
+	}
+	readonly 'aptos:onNetworkChange'?: {
+		readonly version: '1.0.0'
+		onNetworkChange(listener: (network: AptosNetworkInfo) => void): Promise<void>
+	}
+	readonly 'aptos:signMessage'?: {
+		readonly version: '1.0.0'
+		signMessage(input: {
+			readonly message: string
+			readonly nonce: string
+			readonly account: StandardWalletAccount
+		}): Promise<AptosUserResponse<AptosSignMessageOutput>>
+	}
+	readonly 'aptos:signTransaction'?: {
+		readonly version: '1.0.0'
+		signTransaction(...args: never[]): Promise<unknown>
+	}
+}
+
+export type StandardWallet = {
+	readonly name: string
+	readonly icon?: string
+	readonly accounts?: readonly StandardWalletAccount[]
+	readonly features?: Readonly<Record<string, object | undefined>> & AptosFeatures & {
+		readonly 'standard:connect'?: StandardConnectFeature
+		readonly 'standard:events'?: StandardEventsFeature
+		readonly 'standard:disconnect'?: StandardDisconnectFeature
+		readonly 'solana:signMessage'?: SolanaSignMessageFeature
+	}
+}
+
+export type WalletRegistryApi = {
 	register(...wallets: StandardWallet[]): () => void
 }
 
-type RegisterWalletEvent = CustomEvent<
+export type RegisterWalletEvent = CustomEvent<
 	| ((api: WalletRegistryApi) => void)
 	| {
 		register(registerWallet: (wallet: StandardWallet) => void): void
@@ -85,6 +159,29 @@ const disconnectFeature = (wallet: StandardWallet) => {
 	return feature?.version === '1.0.0' && typeof feature.disconnect === 'function' ? feature : undefined
 }
 
+const signMessageFeature = (wallet: StandardWallet) => {
+	const feature = wallet.features?.['solana:signMessage']
+
+	// Wallet Standard providers are external runtime input; callable validation prevents false capability claims.
+	// oxlint-disable-next-line no-runtime-shape-guards/guards
+	return feature?.version === '1.0.0' && typeof feature.signMessage === 'function' ? feature : undefined
+}
+
+const accountFeatureCapabilities = (features: readonly string[]) => [
+	...(features.includes('solana:signMessage') ?
+		[WalletCapability.SignMessage]
+	:
+		[]),
+	...(features.includes('solana:signTransaction') ?
+		[WalletCapability.SignTransaction]
+	:
+		[]),
+	...(features.includes('solana:signAndSendTransaction') ?
+		[WalletCapability.SendTransaction]
+	:
+		[]),
+] satisfies WalletCapability[]
+
 const capabilitiesFromWallet = (wallet: StandardWallet) => [
 	WalletCapability.Discover,
 	...(connectFeature(wallet) == null ?
@@ -103,7 +200,26 @@ const capabilitiesFromWallet = (wallet: StandardWallet) => [
 		[]
 	:
 		[WalletCapability.Disconnect]),
+	...(signMessageFeature(wallet) == null ?
+		[]
+	:
+		[WalletCapability.SignMessage]),
 ] satisfies WalletCapability[]
+
+const capabilitiesFromAccount = (
+	wallet: StandardWallet,
+	account: StandardWalletAccount
+) => [
+	...capabilitiesFromWallet(wallet),
+	...accountFeatureCapabilities(account.features),
+] satisfies WalletCapability[]
+
+const normalizeSolanaSignature = (signature: Uint8Array | string) => (
+	typeof signature === 'string' ?
+		signature
+	:
+		base58.encode(signature)
+)
 
 const walletStandardChain = (chain: string) => (
 	chain === 'solana:mainnet' ?
@@ -147,7 +263,7 @@ const walletAccounts = (
 	return [[`${normalizedChain.namespace}:${normalizedChain.reference}:${accountAddress}`, {
 		...normalizedChain,
 		accountAddress,
-		capabilities: capabilitiesFromWallet(wallet),
+		capabilities: capabilitiesFromAccount(wallet, account),
 	}] as const]
 }))).values()]
 
@@ -196,6 +312,7 @@ export const createWalletStandardAdapter = (): WalletAdapter => {
 	const walletById = new Map<string, StandardWallet>()
 	const walletIdByWallet = new WeakMap<StandardWallet, string>()
 	const connectedAtByWalletId = new Map<string, number>()
+	const accountsByWalletId = new Map<string, readonly StandardWalletAccount[]>()
 	let updateCandidates: ((candidates: WalletCandidate[]) => void) | undefined
 
 	const emitCandidates = () => updateCandidates?.(
@@ -213,6 +330,9 @@ export const createWalletStandardAdapter = (): WalletAdapter => {
 		register: (...wallets) => {
 			for (const wallet of wallets) {
 				if (walletIdByWallet.has(wallet)) continue
+				// Aptos AIP-62 wallets share the Wallet Standard registry events but are owned by aptosAip62.
+				// oxlint-disable-next-line no-runtime-shape-guards/guards -- Callable aptos:connect is the AIP-62 ownership signal.
+				if (typeof wallet.features?.['aptos:connect']?.connect === 'function') continue
 
 				let walletId = `wallet-standard:${wallet.name}`
 				let duplicateIndex = 2
@@ -236,6 +356,7 @@ export const createWalletStandardAdapter = (): WalletAdapter => {
 					walletById.delete(walletId)
 					walletIdByWallet.delete(wallet)
 					connectedAtByWalletId.delete(walletId)
+					accountsByWalletId.delete(walletId)
 				}
 
 				emitCandidates()
@@ -271,6 +392,7 @@ export const createWalletStandardAdapter = (): WalletAdapter => {
 				updateCandidates = undefined
 				walletById.clear()
 				connectedAtByWalletId.clear()
+				accountsByWalletId.clear()
 			}
 		},
 		connect: async (walletId) => {
@@ -286,7 +408,33 @@ export const createWalletStandardAdapter = (): WalletAdapter => {
 				throw new Error(`${wallet.name} did not authorize a valid account on a supported chain`)
 
 			connectedAtByWalletId.set(walletId, Date.now())
+			accountsByWalletId.set(walletId, accounts)
 			return walletConnection(walletId, wallet, accounts, connectedAtByWalletId.get(walletId))
+		},
+		signMessage: async (walletId, accountAddress, message) => {
+			const wallet = walletById.get(walletId)
+			if (wallet == null)
+				throw new Error('Wallet Standard wallet is unavailable')
+
+			const solanaSignMessage = signMessageFeature(wallet)
+			if (solanaSignMessage == null)
+				throw new Error(`${wallet.name} does not implement solana:signMessage 1.0.0`)
+
+			const accounts = accountsByWalletId.get(walletId) ?? []
+			const account = accounts.find((candidate) => (
+				normalizeSolanaAccount(candidate.address) === accountAddress
+			))
+			if (account == null)
+				throw new Error(`${wallet.name} is not connected with Solana account ${accountAddress}`)
+
+			const [output] = await solanaSignMessage.signMessage({
+				account,
+				message: new TextEncoder().encode(message),
+			})
+			if (output?.signature == null)
+				throw new Error(`${wallet.name} returned an invalid solana:signMessage signature`)
+
+			return normalizeSolanaSignature(output.signature)
 		},
 		disconnect: async (walletId) => {
 			const wallet = walletById.get(walletId)
@@ -294,6 +442,7 @@ export const createWalletStandardAdapter = (): WalletAdapter => {
 
 			await disconnectFeature(wallet)?.disconnect()
 			connectedAtByWalletId.delete(walletId)
+			accountsByWalletId.delete(walletId)
 		},
 		subscribeConnection: (walletId, updateConnection) => {
 			const wallet = walletById.get(walletId)
@@ -306,6 +455,7 @@ export const createWalletStandardAdapter = (): WalletAdapter => {
 				if (accounts == null) return
 
 				connectionVersion++
+				accountsByWalletId.set(walletId, accounts)
 				updateConnection(walletConnection(
 					walletId,
 					wallet,
@@ -323,6 +473,7 @@ export const createWalletStandardAdapter = (): WalletAdapter => {
 
 					const connectedAt = Date.now()
 					connectedAtByWalletId.set(walletId, connectedAt)
+					accountsByWalletId.set(walletId, accounts)
 					updateConnection(walletConnection(
 						walletId,
 						wallet,
@@ -332,6 +483,7 @@ export const createWalletStandardAdapter = (): WalletAdapter => {
 				}).catch(() => {
 					if (!subscribed || connectionVersion !== restoreVersion) return
 
+					accountsByWalletId.delete(walletId)
 					updateConnection(walletConnection(
 						walletId,
 						wallet,
