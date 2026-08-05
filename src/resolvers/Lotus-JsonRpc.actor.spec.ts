@@ -11,13 +11,21 @@ import { Source } from '$/sources/Source.ts'
 const getActor = vi.fn()
 const getHead = vi.fn()
 const getIdAddress = vi.fn()
+const getMinerPower = vi.fn()
+const getNetworkVersion = vi.fn()
+const getTipSet = vi.fn()
 const getTipSetByHeight = vi.fn()
+const getVersion = vi.fn()
 
 vi.mock('$/sources/Lotus/JsonRpc/queries.ts', () => ({
 	getActor,
 	getHead,
 	getIdAddress,
+	getMinerPower,
+	getNetworkVersion,
+	getTipSet,
 	getTipSetByHeight,
+	getVersion,
 }))
 
 const context = {
@@ -50,15 +58,20 @@ const indexedActorResolver = indexed.resolverDefinitions.find((resolver) => (
 const lotusResolvers = resolverModules.find(({ source }) => source === Source.Lotus_JsonRpc)
 const actorResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinActor)
 const actorTimestampResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinActor_Timestamp)
+const networkTimestampResolver = lotusResolvers?.resolvers.find(({ entityType }) => entityType === EntityType.FilecoinNetwork_Timestamp)
 
-if (indexedActorResolver == null || actorResolver == null || actorTimestampResolver == null)
+if (indexedActorResolver == null || actorResolver == null || actorTimestampResolver == null || networkTimestampResolver == null)
 	throw new Error('missing indexed Lotus actor resolvers')
 
 beforeEach(() => {
 	getActor.mockReset()
 	getHead.mockReset()
 	getIdAddress.mockReset()
+	getMinerPower.mockReset()
+	getNetworkVersion.mockReset()
+	getTipSet.mockReset()
 	getTipSetByHeight.mockReset()
+	getVersion.mockReset()
 })
 
 it('indexes only the clocked Lotus observation relation on the stable actor', () => {
@@ -82,7 +95,7 @@ it('materializes current and historical actor state only at the exact selected t
 			Timestamp: 1_750_000_000,
 		}],
 	})
-	getTipSetByHeight.mockResolvedValue({
+	getTipSet.mockResolvedValue({
 		Height: 123,
 		Cids: [{ '/': 'bafy-head' }],
 		Blocks: [{
@@ -162,7 +175,7 @@ it.each([
 		source: Source.Lotus_JsonRpc,
 	},
 ])('rejects a mixed-head $name without reading mutable actor state', async ({ name, ...selector }) => {
-	getTipSetByHeight.mockResolvedValue({
+	getTipSet.mockResolvedValue({
 		Height: 123,
 		Cids: [{ '/': 'bafy-head' }],
 		Blocks: [{
@@ -191,6 +204,46 @@ it('rejects another source before reading the tipset or actor', async () => {
 		tipsetKey: 'bafy-head',
 		source: Source.Filfox_Rest,
 	}, context)).rejects.toThrow('unsupported actor observation source')
-	expect(getTipSetByHeight).not.toHaveBeenCalled()
+	expect(getTipSet).not.toHaveBeenCalled()
 	expect(getActor).not.toHaveBeenCalled()
+})
+
+it('resolves a persisted network observation from its immutable tipset', async () => {
+	getTipSet.mockResolvedValue({
+		Height: 123,
+		Cids: [{ '/': 'bafy-observed' }],
+		Blocks: [{
+			Miner: 'f01234',
+			Timestamp: 1_750_000_000,
+		}],
+	})
+	getVersion.mockResolvedValue({
+		Version: '1.32.0',
+		Agent: 'lotus',
+		BlockDelay: 30,
+	})
+	getNetworkVersion.mockResolvedValue(25)
+	getMinerPower.mockResolvedValue({
+		TotalPower: {
+			RawBytePower: '1',
+			QualityAdjPower: '2',
+		},
+	})
+
+	await expect(networkTimestampResolver.resolve['NetworkTimestampMsHeightTipsetKeySource'].resolve({
+		$network: network,
+		timestampMs: 1_750_000_000_000,
+		height: 123n,
+		tipsetKey: 'bafy-observed',
+		source: Source.Lotus_JsonRpc,
+	}, context)).resolves.toMatchObject({
+		headHeight: 123n,
+		headTipsetKey: 'bafy-observed',
+		headTimestampMs: 1_750_000_000_000,
+		networkVersion: 25,
+	})
+	expect(getTipSet).toHaveBeenCalledWith({
+		tipsetKey: [{ '/': 'bafy-observed' }],
+	})
+	expect(getHead).not.toHaveBeenCalled()
 })

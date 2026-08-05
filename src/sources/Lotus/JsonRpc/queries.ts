@@ -39,6 +39,16 @@ export const getTipSetByHeight = ({
 	])
 )
 
+export const getTipSet = ({
+	tipsetKey,
+}: {
+	tipsetKey: LotusTipsetKey
+}) => (
+	jsonRpc2<LotusTipset>(binding, 'Filecoin.ChainGetTipSet', [
+		tipsetKey,
+	])
+)
+
 export const getHead = () => (
 	jsonRpc2<LotusTipset>(binding, 'Filecoin.ChainHead', [])
 )

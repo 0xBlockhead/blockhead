@@ -39,9 +39,11 @@ const getSelectedTipset = async (
 	selectorTipsetKey: string
 ) => {
 	assertFilecoinMainnet(network)
-	const { getTipSetByHeight } = await import('$/sources/Lotus/JsonRpc/queries.ts')
-	const tipset = await getTipSetByHeight({
-		height,
+	const { getTipSet } = await import('$/sources/Lotus/JsonRpc/queries.ts')
+	const tipset = await getTipSet({
+		tipsetKey: selectorTipsetKey.split(',').map((cid) => ({
+			'/': cid,
+		})),
 	})
 	if (BigInt(tipset.Height) !== height || tipsetKey(tipset.Cids) !== selectorTipsetKey)
 		throw new Error(`Lotus_JsonRpc: tipset does not match ${height.toString()}/${selectorTipsetKey}`)
@@ -152,6 +154,8 @@ const latestNetworkTimestampReference = async (network: NetworkSelector) => {
 		[EntityMetaKey.Selector]: {
 			$network: network,
 			timestampMs: head.Blocks[0].Timestamp * 1000,
+			height: BigInt(head.Height),
+			tipsetKey: tipsetKey(head.Cids),
 			source: Source.Lotus_JsonRpc,
 		},
 	}]
@@ -231,19 +235,18 @@ export default {
 		defineResolver({
 			entityType: EntityType.FilecoinNetwork_Timestamp,
 			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({ $network, timestampMs, source }) => {
+				NetworkTimestampMsHeightTipsetKeySource: {
+					resolve: async ({ $network, timestampMs, height, tipsetKey: selectorTipsetKey, source }) => {
 						assertFilecoinMainnet($network)
 						if (source !== Source.Lotus_JsonRpc)
 							throw new Error(`Lotus_JsonRpc: unsupported network observation source ${source}`)
 
 						const {
-							getHead,
 							getMinerPower,
 							getNetworkVersion,
 							getVersion,
 						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
-						const head = await getHead()
+						const head = await getSelectedTipset($network, height, selectorTipsetKey)
 						const [
 							lotusVersion,
 							networkVersion,
