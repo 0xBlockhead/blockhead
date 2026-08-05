@@ -102,6 +102,18 @@ describe('Dexscreener public pair observations', () => {
 		})).rejects.toThrow('pair not found')
 	})
 
+	it('rejects uncatalogued chain path segments before HTTP', async () => {
+		await expect(getLatestPairs({
+			chainId: 'solana',
+			pairId: pair.pairAddress,
+		})).rejects.toThrow('unsupported chain solana')
+		await expect(getTokenPairs({
+			chainId: '',
+			tokenAddress: pair.baseToken.address,
+		})).rejects.toThrow('unsupported chain')
+		expect(getJson).not.toHaveBeenCalled()
+	})
+
 	it('accepts valid empty list envelopes for supported token and search lists', async () => {
 		getJson
 			.mockResolvedValueOnce([])
@@ -131,18 +143,18 @@ describe('Dexscreener public pair observations', () => {
 		await expect(getLatestPairs({
 			chainId: pair.chainId,
 			pairId: pair.pairAddress,
-		})).rejects.toThrow('response envelope')
+		})).rejects.toThrow('latest-pairs response envelope')
 		await expect(getTokenPairs({
 			chainId: pair.chainId,
 			tokenAddress: pair.baseToken.address,
-		})).rejects.toThrow('response envelope')
+		})).rejects.toThrow('token-pairs response envelope')
 		await expect(getTokens({
 			chainId: pair.chainId,
 			tokenAddresses: [pair.baseToken.address],
-		})).rejects.toThrow('response envelope')
+		})).rejects.toThrow('tokens response envelope')
 		await expect(getPairSearch({
 			q: 'WETH USDC',
-		})).rejects.toThrow('response envelope')
+		})).rejects.toThrow('pair-search response envelope')
 	})
 
 	it('requires token-pair rows to contain the exact requested token', async () => {
@@ -211,6 +223,31 @@ describe('Dexscreener public pair observations', () => {
 			},
 			'h24 buys',
 		],
+		[
+			'incomplete transaction counts',
+			{
+				pairs: [{
+					...pair,
+					txns: { h24: { buys: 1 } },
+				}],
+			},
+			'incomplete h24 transaction counts',
+		],
+		[
+			'empty pair labels',
+			{ pairs: [{ ...pair, labels: [''] }] },
+			'malformed pair labels',
+		],
+		[
+			'null pair row',
+			{ pairs: [null] },
+			'null pair row',
+		],
+		[
+			'incomplete pair identity',
+			{ pairs: [{ ...pair, quoteToken: { ...pair.quoteToken, address: '' } }] },
+			'incomplete pair identity',
+		],
 	])('rejects %s', async (_label, response, message) => {
 		getJson.mockResolvedValue(response)
 		await expect(getLatestPairs({
@@ -229,5 +266,20 @@ describe('Dexscreener public pair observations', () => {
 		await expect(getPairSearch({
 			q: 'WETH USDC',
 		})).rejects.toThrow('pair cardinality')
+	})
+
+	it('rejects malformed token address lists before HTTP', async () => {
+		await expect(getTokens({
+			chainId: pair.chainId,
+			tokenAddresses: [],
+		})).rejects.toThrow('malformed token address list')
+		await expect(getTokens({
+			chainId: pair.chainId,
+			tokenAddresses: [
+				pair.baseToken.address,
+				pair.baseToken.address,
+			],
+		})).rejects.toThrow('malformed token address list')
+		expect(getJson).not.toHaveBeenCalled()
 	})
 })

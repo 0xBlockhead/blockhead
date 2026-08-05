@@ -1,3 +1,8 @@
+// Types
+
+
+// Constants
+
 const chains = [
 	{ chainId: 1, apiChainId: 'ethereum' },
 	{ chainId: 10, apiChainId: 'optimism' },
@@ -24,6 +29,19 @@ const chains = [
 	chainId: number
 	apiChainId: string
 }[]
+
+/** Official `/tokens/v1/...` path allows up to 30 comma-separated addresses. */
+export const maximumTokenAddresses = 30
+
+/** Bound pair-list payloads from pair / token / search endpoints. */
+export const maximumPairs = 100
+
+export const maximumLabels = 32
+
+export const maximumTimeframes = 32
+
+
+// Lookups
 
 /** Dexscreener `{chainId}` path segment → EVM **`chainId`**. */
 export const apiChainIdByChainId = Object.fromEntries(
