@@ -1,0 +1,202 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import {
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { LightningChannelStatus } from '$/schema/LightningChannelStatus.ts'
+import { Source } from '$/sources/Source.ts'
+
+const getNode = vi.hoisted(() => vi.fn())
+const getEdge = vi.hoisted(() => vi.fn())
+const getPopularNodePubkeys = vi.hoisted(() => vi.fn())
+
+vi.mock('$/sources/Amboss/Graphql/queries.ts', () => ({
+	getNode,
+	getEdge,
+	getPopularNodePubkeys,
+}))
+
+import ambossGraphqlResolvers from '$/resolvers/Amboss-Graphql.ts'
+
+const publicKey = `02${'a'.repeat(64)}`
+const peerPublicKey = `03${'b'.repeat(64)}`
+const lightningNetwork = {
+	slug: 'lightning',
+} as const
+
+const resolverContext = {
+	filters: [],
+	sorts: [],
+	pagination: {},
+	selectorKeys: [],
+	parentSelectorKeys: [],
+	sources: [],
+	publicEnv: {},
+}
+
+const nodeResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.LightningNode
+	&& '$$timestamps' in resolver.projections
+))
+
+const nodeTimestampResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.LightningNode_Timestamp
+	&& 'alias' in resolver.projections
+))
+
+const channelResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.LightningChannel
+	&& '$node1' in resolver.projections
+))
+
+const channelTimestampResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.LightningChannel_Timestamp
+	&& 'status' in resolver.projections
+))
+
+if (
+	nodeResolver == null
+	|| nodeTimestampResolver == null
+	|| channelResolver == null
+	|| channelTimestampResolver == null
+)
+	throw new Error('Amboss_Graphql spec missing node/channel resolvers')
+
+describe('Amboss GraphQL Lightning node/channel resolvers', () => {
+	beforeEach(() => {
+		getNode.mockReset()
+		getEdge.mockReset()
+		getPopularNodePubkeys.mockReset()
+	})
+
+	it('rejects unsupported networks before transport', async () => {
+		await expect(nodeResolver.resolve.NetworkPublicKey.resolve({
+			$network: {
+				slug: 'bitcoin',
+			},
+			publicKey,
+		}, resolverContext)).rejects.toThrow('unsupported Lightning network')
+		expect(getNode).not.toHaveBeenCalled()
+	})
+
+	it('materializes fail-closed node observations from getNode', async () => {
+		getNode.mockResolvedValue({
+			graph_info: {
+				node: {
+					pub_key: publicKey,
+					alias: 'self',
+					color: '#abcdef',
+					last_update: 1_700_000_000,
+					addresses: [
+						{
+							addr: '1.2.3.4:9735',
+							ip_info: {
+								city: 'Austin',
+								country_code: 'US',
+							},
+						},
+					],
+				},
+				channels: {
+					num_channels: 12,
+					total_capacity: '500000000',
+				},
+			},
+		})
+
+		const nodeSnapshot = await nodeResolver.resolve.NetworkPublicKey.resolve({
+			$network: lightningNetwork,
+			publicKey,
+		}, resolverContext)
+
+		expect(nodeResolver.projections.$$timestamps(nodeSnapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$node: {
+						$network: lightningNetwork,
+						publicKey,
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.Amboss_Graphql,
+				},
+			},
+		])
+
+		const timestampSnapshot = await nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
+			$node: {
+				$network: lightningNetwork,
+				publicKey,
+			},
+			timestampMs: 1_700_000_000_000,
+			source: Source.Amboss_Graphql,
+		}, resolverContext)
+
+		expect(nodeTimestampResolver.projections.alias(timestampSnapshot)).toBe('self')
+		expect(nodeTimestampResolver.projections.capacitySats(timestampSnapshot)).toBe(500000000n)
+		expect(nodeTimestampResolver.projections.channelCount(timestampSnapshot)).toBe(12)
+		expect(nodeTimestampResolver.projections.countryCode(timestampSnapshot)).toBe('US')
+		expect(nodeTimestampResolver.projections.networkAddresses(timestampSnapshot)).toEqual([
+			'1.2.3.4:9735',
+		])
+	})
+
+	it('materializes fail-closed channel peers and observations from getEdge', async () => {
+		getEdge.mockResolvedValue({
+			long_channel_id: '123',
+			short_channel_id: '1x2x3',
+			graph: {
+				info: {
+					capacity: '1000000',
+					is_closed: false,
+					last_update: '1700000000',
+					node1_pub: publicKey,
+					node2_pub: peerPublicKey,
+					node1_policy: {
+						fee_rate_milli_msat: '250',
+						disabled: false,
+					},
+					node2_policy: null,
+				},
+			},
+		})
+
+		const channelSnapshot = await channelResolver.resolve.NetworkChannelId.resolve({
+			$network: lightningNetwork,
+			channelId: '1x2x3',
+		}, resolverContext)
+
+		expect(channelResolver.projections.shortChannelId(channelSnapshot)).toBe('1x2x3')
+		expect(channelResolver.projections.$node1(channelSnapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: lightningNetwork,
+				publicKey: peerPublicKey,
+			},
+		})
+		expect(channelResolver.projections.$$timestamps(channelSnapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$channel: {
+						$network: lightningNetwork,
+						channelId: '123',
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.Amboss_Graphql,
+				},
+			},
+		])
+
+		const timestampSnapshot = await channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
+			$channel: {
+				$network: lightningNetwork,
+				channelId: '123',
+			},
+			timestampMs: 1_700_000_000_000,
+			source: Source.Amboss_Graphql,
+		}, resolverContext)
+
+		expect(channelTimestampResolver.projections.status(timestampSnapshot)).toBe(LightningChannelStatus.Open)
+		expect(channelTimestampResolver.projections.capacitySats(timestampSnapshot)).toBe(1000000n)
+		expect(channelTimestampResolver.projections.feeRatePpm(timestampSnapshot)).toBe(250)
+	})
+})
