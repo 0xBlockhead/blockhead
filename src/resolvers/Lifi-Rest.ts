@@ -114,6 +114,27 @@ const lifiTransferStatusSnapshot = async (
 	if (status.receiving != null && toNetwork == null)
 		throw new Error('Lifi_Rest: destination network is not an EVM LI.FI chain')
 
+	if (hexLowerOfByteSize(status.sending.txHash, 32) == null)
+		throw new Error('Lifi_Rest: invalid source transaction hash')
+
+	if (
+		status.receiving != null
+		&& hexLowerOfByteSize(status.receiving.txHash, 32) == null
+	)
+		throw new Error('Lifi_Rest: invalid destination transaction hash')
+
+	if (
+		status.fromAddress != null
+		&& hexLowerOfByteSize(status.fromAddress, 20) == null
+	)
+		throw new Error('Lifi_Rest: invalid sender address')
+
+	if (
+		status.toAddress != null
+		&& hexLowerOfByteSize(status.toAddress, 20) == null
+	)
+		throw new Error('Lifi_Rest: invalid recipient address')
+
 	return {
 		status,
 		transferId,

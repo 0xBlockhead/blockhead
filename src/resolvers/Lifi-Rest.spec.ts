@@ -227,6 +227,26 @@ describe('LI.FI transfer status resolvers', () => {
 		).rejects.toThrow('transfer id does not match status')
 	})
 
+	it('rejects malformed EVM identities instead of omitting transfer fields', async () => {
+		fetchChains.mockResolvedValue(chains)
+		fetchTransferStatus.mockResolvedValue({
+			...status,
+			sending: {
+				...status.sending,
+				txHash: 'not-a-transaction-hash',
+			},
+		})
+		const resolver = lifiRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer
+		))
+		if (resolver == null)
+			throw new Error('LI.FI BridgeTransfer resolver is not registered')
+
+		await expect(
+			resolver.resolve.SourceTransferId.resolve(transfer)
+		).rejects.toThrow('invalid source transaction hash')
+	})
+
 	it('projects only status fields present in the official operation', async () => {
 		fetchChains.mockResolvedValue(chains)
 		fetchTransferStatus.mockResolvedValue(status)

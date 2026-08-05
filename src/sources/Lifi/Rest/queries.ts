@@ -24,6 +24,7 @@ import type {
 	LifiQuoteStepLike,
 	LifiStatusRequest,
 	LifiStatusResponse,
+	LifiStatusWireResponse,
 	LifiTokensResponse,
 	LifiToolsResponse,
 } from '$/sources/Lifi/Rest/types.ts'
@@ -206,7 +207,7 @@ export const fetchTransferStatus = async (
 	})}`
 	const response = await lifiRestFetch(path)
 	await throwIfLifiHttpNotOk(response, path)
-	const status = await response.json<LifiStatusResponse>()
+	const status = await response.json<LifiStatusWireResponse>()
 	if (
 		status.status !== 'NOT_FOUND'
 		&& status.status !== 'INVALID'
@@ -216,11 +217,28 @@ export const fetchTransferStatus = async (
 	)
 		throw new Error('Lifi_Rest: malformed transfer status')
 
-	if (status.status === 'NOT_FOUND')
-		return status
+	if (status.status === 'NOT_FOUND' || status.status === 'INVALID') {
+		if (
+			status.sending != null
+			|| status.receiving != null
+			|| status.tool != null
+			|| status.transactionId != null
+			|| status.fromAddress != null
+			|| status.toAddress != null
+			|| status.lifiExplorerLink != null
+			|| status.metadata != null
+			|| status.feeCosts != null
+			|| status.substatus != null
+		)
+			throw new Error('Lifi_Rest: malformed empty transfer status')
 
-	if (status.status === 'INVALID')
-		return status
+		return {
+			status: status.status,
+			...(status.substatusMessage != null && {
+				substatusMessage: status.substatusMessage,
+			}),
+		}
+	}
 
 	if (
 		status.sending == null

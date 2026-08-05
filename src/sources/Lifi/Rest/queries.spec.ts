@@ -390,6 +390,27 @@ describe('LI.FI transfer status', () => {
 		})
 	})
 
+	it('rejects empty 200s and nonempty NOT_FOUND envelopes', async () => {
+		vi.mocked(lifiRestFetch)
+			.mockResolvedValueOnce(new Response(JSON.stringify({})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				status: 'NOT_FOUND',
+				sending: {
+					txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+					amount: '100',
+					token: fromToken,
+					chainId: 1,
+				},
+			})))
+
+		await expect(fetchTransferStatus({
+			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		})).rejects.toThrow('malformed transfer status')
+		await expect(fetchTransferStatus({
+			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		})).rejects.toThrow('malformed empty transfer status')
+	})
+
 	it('rejects unknown statuses and blank canonical transfer identities', async () => {
 		vi.mocked(lifiRestFetch)
 			.mockResolvedValueOnce(new Response(JSON.stringify({

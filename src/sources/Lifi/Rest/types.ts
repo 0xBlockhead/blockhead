@@ -39,8 +39,27 @@ export type LifiStatusRequest = (
 	paths['/v1/status']['get']['parameters']['query']
 )
 
-export type LifiStatusResponse = (
+export type LifiStatusWireResponse = (
 	paths['/v1/status']['get']['responses'][200]['content']['application/json']
+)
+
+/**
+ * `NOT_FOUND` and `INVALID` are documented terminal lookup envelopes without
+ * a transfer payload. Every other status identifies a concrete transfer.
+ */
+export type LifiStatusResponse = (
+	| {
+		status: 'NOT_FOUND' | 'INVALID'
+		substatusMessage?: string
+	}
+	| (
+		Omit<LifiStatusWireResponse, 'sending' | 'status' | 'tool'>
+		& {
+			sending: NonNullable<LifiStatusWireResponse['sending']>
+			status: 'PENDING' | 'DONE' | 'FAILED'
+			tool: string
+		}
+	)
 )
 
 type GeneratedBridge = components['schemas']['Bridge']
