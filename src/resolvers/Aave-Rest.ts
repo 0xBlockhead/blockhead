@@ -69,12 +69,20 @@ export default {
 						poolAddress,
 					}: AaveMarketId) => {
 						const chainId = eip155ChainId($network)
+						const { aaveChainByChainId } = await import('$/sources/Aave/Rest/constants.ts')
+						if (aaveChainByChainId[chainId] == null)
+							throw new Error(`${Source.Aave_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const normalizedPoolAddress = hexLowerOfByteSize(poolAddress, 20)
+						if (normalizedPoolAddress == null)
+							throw new Error(`${Source.Aave_Rest}: invalid pool address ${poolAddress}`)
+
 						const { getMarket } = await import('$/sources/Aave/Rest/queries.ts')
 						return mapAaveMarketSnapshot(
 							$network,
 							await getMarket({
 								chainId,
-								poolAddress,
+								poolAddress: normalizedPoolAddress,
 							})
 						)
 					},
@@ -105,10 +113,19 @@ export default {
 						if (normalizedUnderlyingTokenAddress == null)
 							throw new Error(`${Source.Aave_Rest}: invalid underlying token address ${underlyingTokenAddress}`)
 
+						const chainId = eip155ChainId($market.$network)
+						const { aaveChainByChainId } = await import('$/sources/Aave/Rest/constants.ts')
+						if (aaveChainByChainId[chainId] == null)
+							throw new Error(`${Source.Aave_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const normalizedPoolAddress = hexLowerOfByteSize($market.poolAddress, 20)
+						if (normalizedPoolAddress == null)
+							throw new Error(`${Source.Aave_Rest}: invalid pool address ${$market.poolAddress}`)
+
 						const { getMarket } = await import('$/sources/Aave/Rest/queries.ts')
 						const market = await getMarket({
-							chainId: eip155ChainId($market.$network),
-							poolAddress: $market.poolAddress,
+							chainId,
+							poolAddress: normalizedPoolAddress,
 						})
 						const reserve = market.reserves.find((candidate) => (
 							candidate.underlyingToken.address === normalizedUnderlyingTokenAddress
@@ -158,6 +175,10 @@ export default {
 				Caip2: {
 					resolve: async (network, context) => {
 						const chainId = eip155ChainId(network)
+						const { aaveChainByChainId } = await import('$/sources/Aave/Rest/constants.ts')
+						if (aaveChainByChainId[chainId] == null)
+							throw new Error(`${Source.Aave_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const { listMarkets } = await import('$/sources/Aave/Rest/queries.ts')
 						return (await listMarkets({
 							chainIds: [

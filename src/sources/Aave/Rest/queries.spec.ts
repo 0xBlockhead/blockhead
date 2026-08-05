@@ -44,6 +44,66 @@ const ethereumMarket = {
 	},
 } as const
 
+const ethereumMarketSnapshot = {
+	...ethereumMarket,
+	reserves: [
+		{
+			underlyingToken: {
+				address: '0xA0b86991C6218B36C1d19D4a2e9Eb0cE3606eB48',
+				name: 'USD Coin',
+				symbol: 'USDC',
+				decimals: 6,
+				imageUrl: 'https://statics.aave.com/icons/tokens/usdc.svg',
+				chainId: 1,
+			},
+			isFrozen: false,
+			isPaused: false,
+			size: {
+				amount: {
+					value: '2290437225.192653',
+				},
+			},
+			supplyInfo: {
+				apy: {
+					value: '0.031245',
+				},
+			},
+			borrowInfo: {
+				apy: {
+					value: '0.042187',
+				},
+				availableLiquidity: {
+					amount: {
+						value: '1193820144.100001',
+					},
+				},
+			},
+		},
+		{
+			underlyingToken: {
+				address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+				name: 'Wrapped Ether',
+				symbol: 'WETH',
+				decimals: 18,
+				imageUrl: 'https://statics.aave.com/icons/tokens/weth.svg',
+				chainId: 1,
+			},
+			isFrozen: true,
+			isPaused: false,
+			size: {
+				amount: {
+					value: '100.5',
+				},
+			},
+			supplyInfo: {
+				apy: {
+					value: '0',
+				},
+			},
+		},
+	],
+} as const
+
 describe('Aave V3 GraphQL binding', () => {
 	it('targets the official AaveKit GraphQL endpoint', () => {
 		expect(binding.target).toEqual({
@@ -197,7 +257,7 @@ describe('Aave market list/detail operations', () => {
 
 	it('reads a market by pool address and chain id', async () => {
 		graphql.mockResolvedValueOnce({
-			market: ethereumMarket,
+			market: ethereumMarketSnapshot,
 		})
 		await expect(getMarket({
 			chainId: 1,
@@ -208,6 +268,23 @@ describe('Aave market list/detail operations', () => {
 			chain: {
 				chainId: 1,
 			},
+			reserves: [
+				{
+					underlyingToken: {
+						address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+					},
+					borrowInfo: {
+						apy: {
+							value: '0.042187',
+						},
+					},
+				},
+				{
+					underlyingToken: {
+						address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+					},
+				},
+			],
 		})
 		expect(graphql).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -220,6 +297,86 @@ describe('Aave market list/detail operations', () => {
 				},
 			})
 		)
+	})
+
+	it('requests the documented reserve snapshot fields in the primary market request', async () => {
+		graphql.mockResolvedValueOnce({
+			market: ethereumMarketSnapshot,
+		})
+
+		await getMarket({
+			chainId: 1,
+			poolAddress: ethereumMarket.address,
+		})
+
+		expect(graphql.mock.calls[0][0].query).toContain('reserves {')
+		expect(graphql.mock.calls[0][0].query).toContain('underlyingToken {')
+		expect(graphql.mock.calls[0][0].query).toContain('availableLiquidity {')
+		expect(graphql).toHaveBeenCalledTimes(1)
+	})
+
+	it('accepts a reserve without optional borrowInfo', async () => {
+		graphql.mockResolvedValueOnce({
+			market: {
+				...ethereumMarketSnapshot,
+				reserves: [
+					ethereumMarketSnapshot.reserves[1],
+				],
+			},
+		})
+
+		await expect(getMarket({
+			chainId: 1,
+			poolAddress: ethereumMarket.address,
+		})).resolves.toMatchObject({
+			reserves: [
+				{
+					isFrozen: true,
+					isPaused: false,
+				},
+			],
+		})
+	})
+
+	it('rejects a malformed reserve envelope', async () => {
+		graphql.mockResolvedValueOnce({
+			market: {
+				...ethereumMarketSnapshot,
+				reserves: [
+					{
+						...ethereumMarketSnapshot.reserves[0],
+						isPaused: 'false',
+					},
+				],
+			},
+		})
+
+		await expect(getMarket({
+			chainId: 1,
+			poolAddress: ethereumMarket.address,
+		})).rejects.toThrow(`${Source.Aave_Rest}: invalid market response envelope`)
+	})
+
+	it('rejects reserve identity mismatches', async () => {
+		graphql.mockResolvedValueOnce({
+			market: {
+				...ethereumMarketSnapshot,
+				reserves: [
+					{
+						...ethereumMarketSnapshot.reserves[0],
+						underlyingToken: {
+							...ethereumMarketSnapshot.reserves[0].underlyingToken,
+							chainId: 10,
+						},
+					},
+				],
+			},
+		})
+
+		await expect(getMarket({
+			chainId: 1,
+			poolAddress: ethereumMarket.address,
+		})).rejects.toThrow(`${Source.Aave_Rest}: reserve chain mismatch`)
 	})
 
 	it('rejects a response without detail data', async () => {
@@ -243,7 +400,7 @@ describe('Aave market list/detail operations', () => {
 	it('rejects malformed market detail envelopes', async () => {
 		graphql.mockResolvedValueOnce({
 			market: {
-				...ethereumMarket,
+				...ethereumMarketSnapshot,
 				totalAvailableLiquidity: null,
 			},
 		})

@@ -8,6 +8,7 @@ import bindings from '$/sources/Aave/bindings.ts'
 import { aaveChainByChainId } from '$/sources/Aave/Rest/constants.ts'
 import type {
 	AaveMarketData,
+	AaveMarketSnapshotWire,
 	AaveMarketWire,
 	AaveMarketsData,
 } from '$/sources/Aave/Rest/types.ts'
@@ -32,6 +33,43 @@ const marketFields = `
 		icon
 	}
 `
+
+const marketReserveFields = `
+	reserves {
+		underlyingToken {
+			address
+			name
+			symbol
+			decimals
+			imageUrl
+			chainId
+		}
+		isFrozen
+		isPaused
+		size {
+			amount {
+				value
+			}
+		}
+		supplyInfo {
+			apy {
+				value
+			}
+		}
+		borrowInfo {
+			apy {
+				value
+			}
+			availableLiquidity {
+				amount {
+					value
+				}
+			}
+		}
+	}
+`
+
+const decimalPattern = /^(?:0|[1-9]\d*)(?:\.\d+)?$/
 
 const assertChainId = (chainId: number) => {
 	if (!Number.isSafeInteger(chainId) || chainId < 1)
@@ -90,6 +128,41 @@ const assertMarketWire = (
 	}
 }
 
+const assertMarketSnapshotWire = (
+	market: AaveMarketSnapshotWire,
+	expected: {
+		chainId: number
+		poolAddress: `0x${string}`
+	}
+) => ({
+	...assertMarketWire(market, expected),
+	reserves: market.reserves.map((reserve) => {
+		if (reserve.underlyingToken.chainId !== expected.chainId)
+			throw new Error(`${Source.Aave_Rest}: reserve chain mismatch`)
+		const address = assertPoolAddress(reserve.underlyingToken.address)
+		if (
+			!decimalPattern.test(reserve.size.amount.value)
+			|| !decimalPattern.test(reserve.supplyInfo.apy.value)
+			|| (
+				reserve.borrowInfo != null
+				&& (
+					!decimalPattern.test(reserve.borrowInfo.apy.value)
+					|| !decimalPattern.test(reserve.borrowInfo.availableLiquidity.amount.value)
+				)
+			)
+		)
+			throw new Error(`${Source.Aave_Rest}: invalid reserve decimal value`)
+
+		return {
+			...reserve,
+			underlyingToken: {
+				...reserve.underlyingToken,
+				address,
+			},
+		}
+	}),
+})
+
 /** List Aave markets for one or more supported EIP-155 chain ids. */
 export const listMarkets = async ({
 	chainIds,
@@ -132,7 +205,10 @@ export const listMarkets = async ({
 	})
 }
 
-/** Fetch one Aave market by pool address and chain id. */
+/**
+ * Fetch one Aave market and its reserve snapshot by pool address and chain id.
+ * @see https://aave.com/docs/aave-v3/markets/data.md
+ */
 export const getMarket = async ({
 	chainId,
 	poolAddress,
@@ -149,6 +225,7 @@ export const getMarket = async ({
 			query Market($request: MarketRequest!) {
 				market(request: $request) {
 					${marketFields}
+					${marketReserveFields}
 				}
 			}
 		`,
@@ -167,7 +244,7 @@ export const getMarket = async ({
 		throw new Error(`${Source.Aave_Rest}: market not found ${normalizedPoolAddress} on chain ${String(chainId)}`)
 	assertEnvelope(aaveMarketEnvelope, data.market, 'market')
 
-	return assertMarketWire(data.market, {
+	return assertMarketSnapshotWire(data.market, {
 		chainId,
 		poolAddress: normalizedPoolAddress,
 	})

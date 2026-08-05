@@ -199,6 +199,37 @@ describe('Aave Rest resolver module', () => {
 		expect(aaveMarketResolver.projections.$$reserves.resolveCount(snapshot)).toBe(1)
 	})
 
+	it('rejects unsupported chains on AaveMarket before transport', async () => {
+		if (aaveMarketResolver == null)
+			throw new Error('missing AaveMarket resolver')
+
+		await expect(
+			aaveMarketResolver.resolve.NetworkPoolAddress.resolve({
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '11155111',
+					},
+				},
+				poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+			}, context)
+		).rejects.toThrow(`${Source.Aave_Rest}: unsupported chain id 11155111`)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
+	it('rejects invalid market pool addresses before transport', async () => {
+		if (aaveMarketResolver == null)
+			throw new Error('missing AaveMarket resolver')
+
+		await expect(
+			aaveMarketResolver.resolve.NetworkPoolAddress.resolve({
+				$network: ethereumNetwork,
+				poolAddress: '0xdead',
+			}, context)
+		).rejects.toThrow(`${Source.Aave_Rest}: invalid pool address 0xdead`)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
 	it('resolves one Aave reserve from the owning market snapshot', async () => {
 		if (aaveReserveResolver == null)
 			throw new Error('missing AaveReserve resolver')
@@ -220,6 +251,8 @@ describe('Aave Rest resolver module', () => {
 		expect(aaveReserveResolver.projections.availableLiquidity(snapshot)).toBe('750')
 		expect(aaveReserveResolver.projections.supplyApy(snapshot)).toBe('0.03')
 		expect(aaveReserveResolver.projections.borrowApy(snapshot)).toBe('0.05')
+		expect(aaveReserveResolver.projections.frozen(snapshot)).toBe(false)
+		expect(aaveReserveResolver.projections.paused(snapshot)).toBe(false)
 	})
 
 	it('matches Aave reserves when the selector address is checksum-cased', async () => {
@@ -242,5 +275,115 @@ describe('Aave Rest resolver module', () => {
 			'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
 		)
 		expect(aaveReserveResolver.projections.symbol(snapshot)).toBe('USDC')
+	})
+
+	it('omits optional borrow fields when borrowInfo is absent', async () => {
+		if (aaveReserveResolver == null)
+			throw new Error('missing AaveReserve resolver')
+
+		const {
+			borrowInfo: _borrowInfo,
+			...supplyOnlyReserve
+		} = ethereumMarket.reserves[0]
+
+		graphql.mockResolvedValueOnce({
+			market: {
+				...ethereumMarket,
+				reserves: [
+					{
+						...supplyOnlyReserve,
+						isFrozen: true,
+						isPaused: true,
+					},
+				],
+			},
+		})
+
+		const snapshot = await aaveReserveResolver.resolve.MarketUnderlyingTokenAddress.resolve({
+			$market: {
+				$network: ethereumNetwork,
+				poolAddress: ethereumMarket.address,
+			},
+			underlyingTokenAddress: ethereumMarket.reserves[0].underlyingToken.address,
+		}, context)
+
+		expect(aaveReserveResolver.projections.availableLiquidity(snapshot)).toBeUndefined()
+		expect(aaveReserveResolver.projections.borrowApy(snapshot)).toBeUndefined()
+		expect(aaveReserveResolver.projections.frozen(snapshot)).toBe(true)
+		expect(aaveReserveResolver.projections.paused(snapshot)).toBe(true)
+	})
+
+	it('rejects invalid underlying token addresses before transport', async () => {
+		if (aaveReserveResolver == null)
+			throw new Error('missing AaveReserve resolver')
+
+		await expect(
+			aaveReserveResolver.resolve.MarketUnderlyingTokenAddress.resolve({
+				$market: {
+					$network: ethereumNetwork,
+					poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				},
+				underlyingTokenAddress: '0xdead',
+			}, context)
+		).rejects.toThrow(`${Source.Aave_Rest}: invalid underlying token address 0xdead`)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
+	it('rejects unsupported chains on AaveReserve before transport', async () => {
+		if (aaveReserveResolver == null)
+			throw new Error('missing AaveReserve resolver')
+
+		await expect(
+			aaveReserveResolver.resolve.MarketUnderlyingTokenAddress.resolve({
+				$market: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '11155111',
+						},
+					},
+					poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				},
+				underlyingTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+			}, context)
+		).rejects.toThrow(`${Source.Aave_Rest}: unsupported chain id 11155111`)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
+	it('rejects invalid market pool addresses on AaveReserve before transport', async () => {
+		if (aaveReserveResolver == null)
+			throw new Error('missing AaveReserve resolver')
+
+		await expect(
+			aaveReserveResolver.resolve.MarketUnderlyingTokenAddress.resolve({
+				$market: {
+					$network: ethereumNetwork,
+					poolAddress: 'not-a-pool',
+				},
+				underlyingTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+			}, context)
+		).rejects.toThrow(`${Source.Aave_Rest}: invalid pool address not-a-pool`)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
+	it('throws when the requested reserve is missing from the market snapshot', async () => {
+		if (aaveReserveResolver == null)
+			throw new Error('missing AaveReserve resolver')
+
+		graphql.mockResolvedValueOnce({
+			market: ethereumMarket,
+		})
+
+		await expect(
+			aaveReserveResolver.resolve.MarketUnderlyingTokenAddress.resolve({
+				$market: {
+					$network: ethereumNetwork,
+					poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				},
+				underlyingTokenAddress: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+			}, context)
+		).rejects.toThrow(
+			`${Source.Aave_Rest}: reserve not found 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2`
+		)
 	})
 })
