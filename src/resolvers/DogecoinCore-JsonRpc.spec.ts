@@ -7,9 +7,11 @@ import bindings from '$/sources/DogecoinCore/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getBlock = vi.fn()
+const getRawTransaction = vi.fn()
 
 vi.mock('$/sources/DogecoinCore/JsonRpc/queries.ts', () => ({
 	getBlock,
+	getRawTransaction,
 }))
 
 const { default: dogecoinCoreResolvers } = await import('$/resolvers/DogecoinCore-JsonRpc.ts')
@@ -215,5 +217,155 @@ describe('Dogecoin Core AuxPoW resolvers', () => {
 			resolverContext
 		)).rejects.toThrow('unsupported Dogecoin network')
 		expect(getBlock).toHaveBeenCalledTimes(1)
+	})
+})
+
+
+const transactionResolver = dogecoinCoreResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoTransaction
+))
+const inputResolver = dogecoinCoreResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoInput
+))
+const outputResolver = dogecoinCoreResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoOutput
+))
+
+if (transactionResolver == null)
+	throw new Error('DogecoinCore-JsonRpc spec missing UtxoTransaction resolver')
+
+if (inputResolver == null || outputResolver == null)
+	throw new Error('DogecoinCore-JsonRpc spec missing child input/output resolver')
+
+describe('DogecoinCore UTXO', () => {
+	beforeEach(() => {
+		getRawTransaction.mockReset()
+	})
+
+	it('projects transaction child selectors from one verbose getrawtransaction', async () => {
+		const txId = 'd'.repeat(64)
+		getRawTransaction.mockResolvedValueOnce({
+			txid: txId,
+			version: 1,
+			locktime: 0,
+			size: 200,
+			vsize: 100,
+			weight: 400,
+			vin: [{
+				txid: 'e'.repeat(64),
+				vout: 0,
+				scriptSig: {
+					asm: 'input script',
+				},
+				sequence: 1,
+			}],
+			vout: [{
+				value: 1.5,
+				n: 0,
+				scriptPubKey: {
+					asm: 'output script',
+					hex: '76a914',
+					type: 'pubkeyhash',
+					address: 'DExampleAddress',
+				},
+			}],
+		})
+		const entitySelector = {
+			$network: {
+				slug: networkBySlug.dogecoin.slug,
+			},
+			txId,
+		}
+		const transaction = await transactionResolver.resolve[
+			'NetworkTxId'
+		].resolve(entitySelector, resolverContext)
+
+		expect(transactionResolver.projections.$$inputs(transaction)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: entitySelector,
+				indexInTransaction: 0,
+			},
+		}])
+		expect(transactionResolver.projections.$$outputs(transaction)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: entitySelector,
+				indexInTransaction: 0,
+			},
+		}])
+	})
+
+	it('resolves input and output fields from the same transaction response', async () => {
+		const txId = 'a'.repeat(64)
+		const spentTxId = 'b'.repeat(64)
+		getRawTransaction.mockResolvedValue({
+			txid: txId,
+			version: 1,
+			locktime: 0,
+			size: 200,
+			vsize: 100,
+			weight: 400,
+			vin: [{
+				txid: spentTxId,
+				vout: 2,
+				scriptSig: {
+					asm: 'spent input',
+				},
+				sequence: 0xffffffff,
+				txinwitness: [
+					'witness-item',
+				],
+			}],
+			vout: [{
+				value: 1.5,
+				n: 0,
+				scriptPubKey: {
+					asm: 'OP_DUP',
+					hex: '76a914',
+					type: 'pubkeyhash',
+					address: 'DExampleAddress',
+				},
+			}],
+		})
+		const $transaction = {
+			$network: {
+				slug: networkBySlug.dogecoin.slug,
+			},
+			txId,
+		}
+		const input = await inputResolver.resolve[
+			'TransactionIndexInTransaction'
+		].resolve({
+			$transaction,
+			indexInTransaction: 0,
+		}, resolverContext)
+		const output = await outputResolver.resolve[
+			'TransactionIndexInTransaction'
+		].resolve({
+			$transaction,
+			indexInTransaction: 0,
+		}, resolverContext)
+
+		expect(inputResolver.projections.$spentOutput(input)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: $transaction.$network,
+					txId: spentTxId,
+				},
+				indexInTransaction: 2,
+			},
+		})
+		expect(inputResolver.projections.scriptSigAsm(input)).toBe('spent input')
+		expect(inputResolver.projections.witness(input)).toEqual([
+			'witness-item',
+		])
+		expect(outputResolver.projections.valueSats(output)).toBe(150_000_000n)
+		expect(outputResolver.projections.scriptPubKeyType(output)).toBe('pubkeyhash')
+		expect(outputResolver.projections.$address(output)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: $transaction.$network,
+				address: 'DExampleAddress',
+			},
+		})
+		expect(getRawTransaction).toHaveBeenCalledTimes(2)
 	})
 })
