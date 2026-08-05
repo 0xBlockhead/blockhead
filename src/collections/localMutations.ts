@@ -5,6 +5,7 @@ import {
 import type { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { walletConnectionMethodByProtocolDiscoveryKindTransportKind } from '$/constants/Wallet.ts'
 import type { WalletConnection } from '$/state/wallets/adapters/types.ts'
+import { resolveWalletPrepSelection } from '$/state/wallets/walletRequestPreparation.ts'
 import {
 	type PersistedWalletConnection,
 	walletConnectionPersistRoundTrip,
@@ -1269,29 +1270,16 @@ export const writeLocalBlockheadWalletCapabilityGrant = async (
 		grantId: grant.grantId,
 	}
 	const hydrated = sessionCapabilityGrantFromPersisted(grant, now)
-	if (hydrated == null)
-		throw new Error(`Session capability grant expired or revoked: ${grant.grantId}`)
-
 	const applied = applySessionCapabilityGrantUpdate(
 		readLocalBlockheadWalletCapabilityGrant(context, entitySelector),
 		hydrated
 	)
 	const persisted = persistSessionCapabilityGrant(applied)
-	const scopeValue = persisted.scope
 	writeLocalPresence(context, EntityType.BlockheadWalletCapabilityGrant, entitySelector)
 	writeLocalPrimitiveFields(context, EntityType.BlockheadWalletCapabilityGrant, entitySelector, {
 		grantId: persisted.grantId,
 		authorizationKind: persisted.authorizationKind,
-		scope: (
-			typeof scopeValue === 'object'
-			|| typeof scopeValue === 'string'
-			|| typeof scopeValue === 'number'
-			|| typeof scopeValue === 'boolean'
-			|| typeof scopeValue === 'bigint'
-		) ?
-			scopeValue
-		:
-			undefined,
+		scope: persisted.scope,
 		issuedAt: persisted.issuedAt,
 		notBefore: persisted.notBefore,
 		expiresAt: persisted.expiresAt,
@@ -1406,7 +1394,8 @@ export const deleteLocalBlockheadWalletCapabilityGrant = async (
 
 export const deleteLocalBlockheadWalletCapabilityGrantsForConnection = async (
 	context: LocalMutationContext,
-	connectionKey: string
+	connectionKey: string,
+	revokedAt = Date.now()
 ) => {
 	const parentSelectorKey = entitySelectorKey(
 		schema,
@@ -1433,14 +1422,18 @@ export const deleteLocalBlockheadWalletCapabilityGrantsForConnection = async (
 			})
 			return grant == null ? [] : [grant]
 		})
-	const retainedGrantIds = new Set(
-		removeSessionCapabilityGrantsForConnection(grants, connectionKey)
-			.map((grant) => grant.grantId)
-	)
 	await Promise.all(
-		grants
-			.filter((grant) => !retainedGrantIds.has(grant.grantId))
-			.map((grant) => deleteLocalBlockheadWalletCapabilityGrant(context, grant.grantId))
+		removeSessionCapabilityGrantsForConnection(
+			grants,
+			connectionKey,
+			revokedAt
+		)
+			.filter((grant) => grant.connectionKey === connectionKey)
+			.map((grant) => writeLocalBlockheadWalletCapabilityGrant(
+				context,
+				grant,
+				revokedAt
+			))
 	)
 }
 
@@ -3050,8 +3043,25 @@ export const writeLocalBlockheadWalletRequestSubmittedAt = async (
 
 export const writeLocalBlockheadWalletRequest = async (
 	context: LocalMutationContext,
-	request: LocalBlockheadWalletRequest
+	request: LocalBlockheadWalletRequest,
+	connections: readonly WalletConnection[]
 ) => {
+	const selection = resolveWalletPrepSelection(connections)
+	if (!selection.ready)
+		throw new Error(selection.error)
+	if (request.walletConnection.connectionKey !== selection.connectionKey)
+		throw new Error('Wallet request connection does not match the selected wallet connection')
+	if (
+		request.account != null
+		&& (
+			!('caip10' in request.account)
+			|| request.account.caip10.namespace !== selection.account.namespace
+			|| request.account.caip10.reference !== selection.account.reference
+			|| request.account.caip10.accountAddress.toLowerCase() !== selection.account.accountAddress.toLowerCase()
+		)
+	)
+		throw new Error('Wallet request account does not match the selected wallet account')
+
 	const entitySelector = {
 		id: request.id,
 	}

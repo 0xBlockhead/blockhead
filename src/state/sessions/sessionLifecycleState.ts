@@ -49,7 +49,7 @@ export type SessionCapabilityGrant = {
 	grantId: string
 	connectionKey?: string
 	authorizationKind: string
-	scope: unknown
+	scope: object | string | number | boolean | bigint
 	methods: readonly string[]
 	resources: readonly string[]
 	issuedAt?: number
@@ -272,17 +272,23 @@ export const applySessionLifecycleUpdate = (
 	return previous
 }
 
-export const removeSessionLifecycle = (
-	sessions: readonly SessionLifecycle[],
-	sessionId: string
-): SessionLifecycle[] => (
-	sessions.filter((session) => session.id !== sessionId)
-)
-
 export const canRemoveSessionLifecycle = (
 	session: SessionLifecycle
 ) => (
 	session.status === BlockheadSessionStatus.Draft
+)
+
+/** Fail-closed: only Draft sessions leave the working set; Submitted/Finalized rows stay. */
+export const removeSessionLifecycle = (
+	sessions: readonly SessionLifecycle[],
+	sessionId: string
+): SessionLifecycle[] => (
+	sessions.filter((session) => (
+		!(
+			session.id === sessionId
+			&& canRemoveSessionLifecycle(session)
+		)
+	))
 )
 
 
@@ -328,17 +334,12 @@ export const persistSessionCapabilityGrant = (
 	...(grant.proofSummary != null && { proofSummary: grant.proofSummary }),
 })
 
-/** Reload hydrates only grants that are still usable (active or pending); expired/revoked drop. */
 export const sessionCapabilityGrantFromPersisted = (
 	grant: PersistedSessionCapabilityGrant,
-	now = Date.now()
-): SessionCapabilityGrant | undefined => {
-	const phase = sessionCapabilityGrantPhase(grant, now)
-	if (phase === 'expired' || phase === 'revoked')
-		return undefined
-
-	return persistSessionCapabilityGrant(grant)
-}
+	_now = Date.now()
+): SessionCapabilityGrant => (
+	persistSessionCapabilityGrant(grant)
+)
 
 export const revokeSessionCapabilityGrant = (
 	grant: SessionCapabilityGrant,
@@ -379,19 +380,22 @@ export const applySessionCapabilityGrantUpdate = (
 
 export const removeSessionCapabilityGrantsForConnection = (
 	grants: readonly SessionCapabilityGrant[],
-	connectionKey: string
+	connectionKey: string,
+	revokedAt = Date.now()
 ): SessionCapabilityGrant[] => (
-	grants.filter((grant) => grant.connectionKey !== connectionKey)
+	grants.map((grant) => (
+		grant.connectionKey === connectionKey && grant.revokedAt == null ?
+			revokeSessionCapabilityGrant(grant, revokedAt)
+		:
+			grant
+	))
 )
 
 export const retainCurrentSessionCapabilityGrants = (
 	grants: readonly SessionCapabilityGrant[],
-	now = Date.now()
+	_now = Date.now()
 ): SessionCapabilityGrant[] => (
-	grants.flatMap((grant) => {
-		const current = sessionCapabilityGrantFromPersisted(grant, now)
-		return current == null ? [] : [current]
-	})
+	grants.map(persistSessionCapabilityGrant)
 )
 
 
@@ -453,8 +457,8 @@ export const isSessionSimulationWithoutPreparedRequest = (
 	simulation: SessionSimulationObservation,
 	preparedRequest?: SessionPreparedRequestObservation | null
 ) => (
-	simulation.id !== ''
-	&& (preparedRequest?.id == null || preparedRequest.id === '')
+	simulation.id.trim() !== ''
+	&& (preparedRequest?.id == null || preparedRequest.id.trim() === '')
 	&& preparedRequest?.status !== 'prepared'
 )
 

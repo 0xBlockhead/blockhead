@@ -57,6 +57,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { entityDefinitionByType, schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { connectedWalletConnection } from '$/state/wallets/walletConnectionState.ts'
 
 const source = readFileSync(resolve('src/collections/localMutations.ts'), 'utf8')
 const farcasterMutationSource = source.slice(
@@ -281,10 +282,10 @@ describe('local session capability grant mutations', () => {
 		expect(sessionCapabilityGrantMutationSource).toContain('sessionCapabilityGrantFromPersisted(grant, now)')
 		expect(sessionCapabilityGrantMutationSource).toContain('applySessionCapabilityGrantUpdate(')
 		expect(sessionCapabilityGrantMutationSource).toContain('persistSessionCapabilityGrant(applied)')
-		expect(sessionCapabilityGrantMutationSource).toContain('removeSessionCapabilityGrantsForConnection(grants, connectionKey)')
+		expect(sessionCapabilityGrantMutationSource).toContain('removeSessionCapabilityGrantsForConnection(')
 	})
 
-	it('rejects expired reload grants, ignores stale reissues, and removes grants with their connection', async () => {
+	it('preserves inactive grants, ignores stale reissues, and revokes grants with their connection', async () => {
 		type MockRow = Record<string, object | string | number | boolean | bigint | undefined>
 		const collectionByAddress = new Map<string, {
 			toArray: MockRow[]
@@ -398,12 +399,24 @@ describe('local session capability grant mutations', () => {
 			issuedAt: 10,
 		} as const
 
-		await expect(writeLocalBlockheadWalletCapabilityGrant(context, {
+		await writeLocalBlockheadWalletCapabilityGrant(context, {
 			...grant,
 			expiresAt: 1,
-		}, 50)).rejects.toThrow('expired or revoked')
+		}, 50)
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletCapabilityGrant][entityFieldAddressKey(
+			EntityType.BlockheadWalletCapabilityGrant,
+			[],
+			'expiresAt'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 1,
+			}),
+		])
 
-		await writeLocalBlockheadWalletCapabilityGrant(context, grant, 50)
+		await writeLocalBlockheadWalletCapabilityGrant(context, {
+			...grant,
+			issuedAt: 20,
+		}, 50)
 		await writeLocalBlockheadWalletCapabilityGrant(context, {
 			...grant,
 			issuedAt: 5,
@@ -424,14 +437,25 @@ describe('local session capability grant mutations', () => {
 			grantId: 'grant-2',
 			connectionKey: 'conn-b',
 		}, 50)
-		await deleteLocalBlockheadWalletCapabilityGrantsForConnection(context, 'conn-a')
+		await deleteLocalBlockheadWalletCapabilityGrantsForConnection(context, 'conn-a', 50)
 		expect(context.entityCollections[EntityType.BlockheadWalletCapabilityGrant].toArray.map((row) => (
 			Object(row[EntityMetaKey.Selector]).grantId
-		))).toEqual([
+		))).toEqual(expect.arrayContaining([
+			'grant-1',
 			'grant-2',
+		]))
+		expect(context.entityCollections[EntityType.BlockheadWalletCapabilityGrant].toArray).toHaveLength(2)
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletCapabilityGrant][entityFieldAddressKey(
+			EntityType.BlockheadWalletCapabilityGrant,
+			[],
+			'revokedAt'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 50,
+			}),
 		])
 		await deleteLocalBlockheadWalletCapabilityGrant(context, 'grant-2')
-		expect(context.entityCollections[EntityType.BlockheadWalletCapabilityGrant].toArray).toHaveLength(0)
+		expect(context.entityCollections[EntityType.BlockheadWalletCapabilityGrant].toArray).toHaveLength(1)
 	})
 })
 
@@ -986,6 +1010,12 @@ describe('local mutation authority journal', () => {
 			[],
 			'$$blockheadAccounts'
 		)]?.toArray).toEqual([])
+		expect(persistedAddresses).not.toContain(`entity:${EntityType.BlockheadAccount}`)
+		expect(persistedAddresses).not.toContain(`field:${EntityType._Global}:${entityFieldAddressKey(
+			EntityType._Global,
+			[],
+			'$$blockheadAccounts'
+		)}`)
 		const activeAccountRow = context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
 			EntityType.BlockheadWalletConnection,
 			[],
@@ -1544,6 +1574,27 @@ describe('local mutation authority journal', () => {
 				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 			},
 		}
+		const walletConnections = [connectedWalletConnection({
+			walletId: 'eip6963:wallet-session',
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			connectionKey: walletConnectionSelector.connectionKey,
+			scopes: [{
+				namespace: accountSelector.caip10.namespace,
+				reference: accountSelector.caip10.reference,
+				methods: ['wallet_sendCalls'],
+				events: [],
+			}],
+			accounts: [{
+				...accountSelector.caip10,
+				capabilities: [WalletCapability.SendTransaction],
+			}],
+			activeAccount: {
+				...accountSelector.caip10,
+				capabilities: [WalletCapability.SendTransaction],
+			},
+			selected: true,
+		})]
 		const networkSelector = {
 			caip2: {
 				namespace: 'eip155',
@@ -1588,7 +1639,7 @@ describe('local mutation authority journal', () => {
 				],
 			},
 		} as const satisfies Parameters<typeof writeLocalBlockheadWalletRequest>[1]
-		await writeLocalBlockheadWalletRequest(context, walletRequestDefinition)
+		await writeLocalBlockheadWalletRequest(context, walletRequestDefinition, walletConnections)
 		const evmWalletRequestSelector = {
 			$walletRequest: walletRequestSelector,
 		}
@@ -1639,6 +1690,8 @@ describe('local mutation authority journal', () => {
 		)].toArray[0]?.[EntityMetaKey.Value]).toEqual(expect.objectContaining({
 			[EntityMetaKey.Selector]: simulationSelector,
 		}))
+		expect(context.entityCollections[EntityType.EvmTransaction].toArray).toHaveLength(0)
+		expect(persistedAddresses).not.toContain(`entity:${EntityType.EvmTransaction}`)
 		const walletRequestCallRows = context.entityFieldCollections[EntityType.BlockheadEvmWalletRequest][entityFieldAddressKey(
 			EntityType.BlockheadEvmWalletRequest,
 			[],
@@ -1671,7 +1724,7 @@ describe('local mutation authority journal', () => {
 		await expect(writeLocalBlockheadWalletRequest(context, {
 			...walletRequestDefinition,
 			requestMethod: 'eth_sendTransaction',
-		})).rejects.toThrow('Wallet request definition already exists: wallet-request-1')
+		}, walletConnections)).rejects.toThrow('Wallet request definition already exists: wallet-request-1')
 		await expect(writeLocalBlockheadEvmWalletRequest(
 			context,
 			walletRequestSelector,
@@ -1687,7 +1740,7 @@ describe('local mutation authority journal', () => {
 				...walletRequestDefinition.evm,
 				calls: [],
 			},
-		})).rejects.toThrow('Wallet request preparation requires at least one BlockheadWalletRequestCall.')
+		}, walletConnections)).rejects.toThrow('Wallet request preparation requires at least one BlockheadWalletRequestCall.')
 		expect(context.entityFieldCollections[EntityType.BlockheadWalletRequest][entityFieldAddressKey(
 			EntityType.BlockheadWalletRequest,
 			[],

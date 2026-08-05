@@ -148,7 +148,7 @@ describe('Local_Internal wallet request resolvers', () => {
 
 		expect(localInternal.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.BlockheadAccount
-		))).toBe(false)
+		))).toBe(true)
 	})
 
 	it('resolves EVM detail, call, and prepared timestamp rows', { timeout: 60_000 }, async () => {

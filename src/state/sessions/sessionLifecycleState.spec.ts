@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'
@@ -53,8 +54,26 @@ const grantBase = {
 	issuedAt: 10,
 } as const satisfies SessionCapabilityGrant
 
+const sessionsE2eSource = readFileSync(
+	new URL('../../routes/~/sessions/sessions.e2e.ts', import.meta.url),
+	'utf8'
+)
+const accountControlsE2eSource = readFileSync(
+	new URL('../../routes/~/accounts/account-controls.e2e.ts', import.meta.url),
+	'utf8'
+)
+
 
 describe('sessionLifecycleState', () => {
+	it('attaches sessions/account e2e prep-without-send journey proofs', () => {
+		expect(sessionsE2eSource).toMatch(/prepares a locked native transfer without sending/)
+		expect(sessionsE2eSource).toMatch(/Prep journey must not broadcast eth_sendTransaction/)
+		expect(sessionsE2eSource).toMatch(/Lock session/)
+		expect(sessionsE2eSource).toMatch(/Prepare EVM native transfer/)
+		expect(accountControlsE2eSource).toMatch(/prep-without-send/)
+		expect(accountControlsE2eSource).toMatch(/must not broadcast eth_sendTransaction/)
+	})
+
 	it('keeps Draft lock optional and requires lock on terminal statuses', () => {
 		const unlocked = draftSessionLifecycle(sessionBase)
 		const locked = draftSessionLifecycle({
@@ -180,9 +199,20 @@ describe('sessionLifecycleState', () => {
 		]
 		expect(canRemoveSessionLifecycle(draft)).toBe(true)
 		expect(canRemoveSessionLifecycle(submitted)).toBe(false)
-		expect(removeSessionLifecycle(sessions, 'session-1').map((session) => session.id)).toEqual([
-			'session-2',
+		expect(removeSessionLifecycle(sessions, 'session-1').map((session) => ({
+			id: session.id,
+			status: session.status,
+		}))).toEqual([
+			{
+				id: 'session-1',
+				status: BlockheadSessionStatus.Submitted,
+			},
+			{
+				id: 'session-2',
+				status: BlockheadSessionStatus.Draft,
+			},
 		])
+		expect(removeSessionLifecycle([submitted], 'session-1')).toEqual([submitted])
 	})
 })
 
@@ -203,15 +233,21 @@ describe('sessionCapabilityGrant lifecycle', () => {
 		expect(isActiveSessionCapabilityGrant(grantBase, 50)).toBe(true)
 	})
 
-	it('drops expired and revoked grants on reload hydration', () => {
+	it('preserves expired and revoked grants as durable lifecycle evidence', () => {
 		expect(sessionCapabilityGrantFromPersisted({
 			...grantBase,
 			expiresAt: 20,
-		}, 50)).toBeUndefined()
+		}, 50)).toMatchObject({
+			grantId: 'grant-1',
+			expiresAt: 20,
+		})
 		expect(sessionCapabilityGrantFromPersisted({
 			...grantBase,
 			revokedAt: 20,
-		}, 50)).toBeUndefined()
+		}, 50)).toMatchObject({
+			grantId: 'grant-1',
+			revokedAt: 20,
+		})
 		expect(sessionCapabilityGrantFromPersisted({
 			...grantBase,
 			notBefore: 60,
@@ -233,6 +269,8 @@ describe('sessionCapabilityGrant lifecycle', () => {
 			},
 		], 50).map((grant) => grant.grantId)).toEqual([
 			'grant-1',
+			'grant-expired',
+			'grant-revoked',
 		])
 	})
 
@@ -258,7 +296,7 @@ describe('sessionCapabilityGrant lifecycle', () => {
 		expect(applySessionCapabilityGrantUpdate(sameIssueActive, revoked)).toEqual(revoked)
 	})
 
-	it('removes grants when their connection is removed', () => {
+	it('revokes grants when their connection is removed', () => {
 		const grants = [
 			grantBase,
 			{
@@ -272,10 +310,18 @@ describe('sessionCapabilityGrant lifecycle', () => {
 				connectionKey: undefined,
 			},
 		]
-		expect(removeSessionCapabilityGrantsForConnection(grants, 'conn-a').map((grant) => grant.grantId)).toEqual([
-			'grant-2',
-			'grant-3',
+		expect(removeSessionCapabilityGrantsForConnection(grants, 'conn-a', 50)).toEqual([
+			{
+				...grantBase,
+				revokedAt: 50,
+			},
+			grants[1],
+			grants[2],
 		])
+		expect(isActiveSessionCapabilityGrant(
+			removeSessionCapabilityGrantsForConnection(grants, 'conn-a', 50)[0],
+			50
+		)).toBe(false)
 	})
 })
 
