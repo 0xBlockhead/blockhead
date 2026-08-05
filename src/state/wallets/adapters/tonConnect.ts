@@ -235,27 +235,39 @@ export const createTonConnectAdapter = (): WalletAdapter => {
 		start: (updateCandidates) => {
 			if (typeof window === 'undefined') return () => {}
 
-			const wallets = tonConnectWallets.flatMap(({ id, name, icon, wallet }) => {
-				const injectedWallet = wallet()
-				if (injectedWallet == null) return []
+			let candidateIds: string | undefined
+			const discover = () => {
+				const wallets = tonConnectWallets.flatMap(({ id, name, icon, wallet }) => {
+					const injectedWallet = wallet()
+					if (injectedWallet == null) return []
 
-				bridgeByWalletId.set(id, injectedWallet.tonconnect)
-				return [{
-					id,
-					name,
-					icon,
-					protocol: WalletProtocol.TonConnect,
-					discoveryKind: WalletDiscoveryKind.InjectedGlobal,
-					transportKind: WalletTransportKind.InjectedProvider,
-					capabilities: [
-						WalletCapability.Discover,
-						...tonConnectCapabilities,
-					],
-				} satisfies WalletCandidate]
-			})
-			updateCandidates(wallets)
+					bridgeByWalletId.set(id, injectedWallet.tonconnect)
+					return [{
+						id,
+						name,
+						icon,
+						protocol: WalletProtocol.TonConnect,
+						discoveryKind: WalletDiscoveryKind.InjectedGlobal,
+						transportKind: WalletTransportKind.InjectedProvider,
+						capabilities: [
+							WalletCapability.Discover,
+							...tonConnectCapabilities,
+						],
+					} satisfies WalletCandidate]
+				})
+				const nextCandidateIds = wallets.map(({ id }) => id).join('|')
+				if (nextCandidateIds === candidateIds) return
+
+				candidateIds = nextCandidateIds
+				updateCandidates(wallets)
+			}
+
+			discover()
+			const discoveryInterval = globalThis.setInterval(discover, 100)
 
 			return () => {
+				globalThis.clearInterval(discoveryInterval)
+
 				for (const walletId of bridgeByWalletId.keys())
 					nextLifecycleVersion(walletId)
 

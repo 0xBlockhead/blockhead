@@ -93,7 +93,29 @@ describe('TRON TIP-6963/TIP-1193 adapter', () => {
 		expect(windowListeners.has('TIP6963:announceProvider')).toBe(false)
 	})
 
-	it('connects multiple accounts with exact TRON CAIP scope and omits unsupported capabilities', async () => {
+	it('keeps discovery passive until explicit connection authority', async () => {
+		const {
+			announce,
+			provider,
+			providerListeners,
+		} = setup()
+		const adapter = createTronInjectedAdapter()
+		const stop = adapter.start(() => {})
+		announce()
+
+		expect(provider.request).not.toHaveBeenCalled()
+		expect(providerListeners.size).toBe(0)
+
+		await adapter.connect('tron-tip6963:tronlink')
+		expect(provider.request).toHaveBeenNthCalledWith(1, {
+			method: 'eth_requestAccounts',
+			params: [],
+		})
+
+		stop()
+	})
+
+	it('connects multiple accounts with exact TRON CAIP scope and advertised signing capabilities', async () => {
 		const { announce, provider, setAccounts } = setup()
 		const candidates: WalletCandidate[][] = []
 		const adapter = createTronInjectedAdapter()
@@ -112,6 +134,9 @@ describe('TRON TIP-6963/TIP-1193 adapter', () => {
 			WalletCapability.ListAccounts,
 			WalletCapability.WatchAccounts,
 			WalletCapability.WatchScopes,
+			WalletCapability.SignMessage,
+			WalletCapability.SignTransaction,
+			WalletCapability.SendTransaction,
 		])
 		const connection = await adapter.connect('tron-tip6963:tronlink')
 		expect(provider.request).toHaveBeenNthCalledWith(1, {
@@ -123,6 +148,11 @@ describe('TRON TIP-6963/TIP-1193 adapter', () => {
 			scopes: [expect.objectContaining({
 				namespace: 'tron',
 				reference: '0x2b6653dc',
+				methods: expect.arrayContaining([
+					'personal_sign',
+					'eth_signTransaction',
+					'eth_sendTransaction',
+				]),
 			})],
 			accounts: [
 				expect.objectContaining({
@@ -165,6 +195,30 @@ describe('TRON TIP-6963/TIP-1193 adapter', () => {
 			setReference(reference)
 			await expect(adapter.connect('tron-tip6963:tronlink')).rejects.toThrow('canonical chain ID')
 		}
+		stop()
+	})
+
+	it('preserves rejection and retries only through a new explicit connection request', async () => {
+		const { announce, provider } = setup()
+		const adapter = createTronInjectedAdapter()
+		const stop = adapter.start(() => {})
+		announce()
+		provider.request.mockRejectedValueOnce(Object.assign(new Error('User Rejected Request'), { code: 4001 }))
+
+		await expect(adapter.connect('tron-tip6963:tronlink')).rejects.toMatchObject({
+			code: 4001,
+			message: 'User Rejected Request',
+		})
+		expect(provider.request).toHaveBeenCalledTimes(1)
+		await expect(adapter.connect('tron-tip6963:tronlink')).resolves.toMatchObject({
+			status: BlockheadConnectionStatus.Connected,
+			accounts: [expect.objectContaining({ accountAddress: firstAddress })],
+		})
+		expect(provider.request).toHaveBeenNthCalledWith(2, {
+			method: 'eth_requestAccounts',
+			params: [],
+		})
+
 		stop()
 	})
 
@@ -366,5 +420,40 @@ describe('TRON TIP-6963/TIP-1193 adapter', () => {
 		unsubscribe()
 		expect(providerListeners.size).toBe(0)
 		stop()
+	})
+
+	it('advertises SignMessage and signs via personal_sign when connected', async () => {
+		const { announce, provider } = setup()
+		provider.request.mockImplementation(async ({ method, params }) => {
+			if (method === 'personal_sign')
+				return '0xsigned'
+
+			if (method === 'eth_chainId')
+				return '0x2b6653dc'
+
+			return [firstAddress]
+		})
+		const adapter = createTronInjectedAdapter()
+		adapter.start(() => {})
+		announce()
+
+		const connection = await adapter.connect('tron-tip6963:tronlink')
+		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignMessage)
+		expect(connection?.scopes[0]?.methods).toContain('personal_sign')
+		expect(connection?.scopes[0]?.methods).toContain('eth_signTransaction')
+		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignTransaction)
+
+		await expect(adapter.signMessage?.(
+			'tron-tip6963:tronlink',
+			firstAddress,
+			'Sign this TRON challenge'
+		)).resolves.toBe('0xsigned')
+		expect(provider.request).toHaveBeenCalledWith({
+			method: 'personal_sign',
+			params: [
+				expect.stringMatching(/^0x/),
+				firstAddress,
+			],
+		})
 	})
 })

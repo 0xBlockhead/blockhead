@@ -107,6 +107,38 @@ describe('TON Connect injected adapter', () => {
 		])
 	})
 
+	it('discovers Tonkeeper when its injected bridge arrives after adapter startup', async () => {
+		vi.useFakeTimers()
+		const injectedWindow = {
+			location: { origin: 'https://blockhead.info' },
+		}
+		vi.stubGlobal('window', injectedWindow)
+		const updates: WalletCandidate[][] = []
+		const stop = createTonConnectAdapter().start((candidates) => updates.push(candidates))
+
+		expect(updates).toEqual([[]])
+
+		Object.assign(injectedWindow, {
+			tonkeeper: {
+				tonconnect: createBridge(connectEvent()).bridge,
+			},
+		})
+		await vi.advanceTimersByTimeAsync(100)
+
+		expect(updates).toEqual([
+			[],
+			[
+				expect.objectContaining({
+					id: 'ton-connect:tonkeeper',
+					name: 'Tonkeeper',
+					protocol: WalletProtocol.TonConnect,
+				}),
+			],
+		])
+
+		stop()
+	})
+
 	it('restores the raw address, network, and truthful event surface', async () => {
 		const mock = createBridge(connectEvent(
 			'-3',

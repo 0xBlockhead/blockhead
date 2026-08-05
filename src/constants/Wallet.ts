@@ -189,7 +189,7 @@ export const walletConnectionMethods = [
 			WalletCapability.SignTransaction,
 			WalletCapability.SendTransaction,
 		],
-		implementationStatus: WalletImplementationStatus.DiscoveryImplemented,
+		implementationStatus: WalletImplementationStatus.Implemented,
 		dependencyPolicy: 'none',
 	},
 	{
@@ -212,7 +212,7 @@ export const walletConnectionMethods = [
 			WalletCapability.SignTransaction,
 			WalletCapability.SendTransaction,
 		],
-		implementationStatus: WalletImplementationStatus.DiscoveryImplemented,
+		implementationStatus: WalletImplementationStatus.Implemented,
 		dependencyPolicy: 'none',
 	},
 	{
@@ -460,11 +460,8 @@ export const walletConnectionMethods = [
 			WalletCapability.Connect,
 			WalletCapability.ListAccounts,
 			WalletCapability.WatchAccounts,
-			WalletCapability.SignMessage,
-			WalletCapability.SignTransaction,
-			WalletCapability.SendTransaction,
 		],
-		implementationStatus: WalletImplementationStatus.DiscoveryImplemented,
+		implementationStatus: WalletImplementationStatus.Implemented,
 		dependencyPolicy: 'minimal-required',
 	},
 	{

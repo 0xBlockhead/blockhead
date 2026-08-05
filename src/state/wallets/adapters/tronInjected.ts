@@ -5,6 +5,7 @@ import { base58 } from '@scure/base'
 import * as Hash from 'ox/Hash'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import { personalSign } from './eip1193.ts'
 import { buildWalletConnection } from '../walletConnectionState.ts'
 
 type TronRequestArguments = {
@@ -57,6 +58,9 @@ const tronConnectionCapabilities = [
 	WalletCapability.ListAccounts,
 	WalletCapability.WatchAccounts,
 	WalletCapability.WatchScopes,
+	WalletCapability.SignMessage,
+	WalletCapability.SignTransaction,
+	WalletCapability.SendTransaction,
 ] satisfies WalletCapability[]
 
 const tronReference = (value: JsonValue) => {
@@ -153,6 +157,9 @@ const tronConnection = (
 					'eth_accounts',
 					'eth_requestAccounts',
 					'eth_chainId',
+					'personal_sign',
+					'eth_signTransaction',
+					'eth_sendTransaction',
 				],
 				events: [
 					'accountsChanged',
@@ -235,6 +242,7 @@ export const createTronInjectedAdapter = (): WalletAdapter => {
 	const updateConnectionByWalletId = new SvelteMap<string, (connection: WalletConnection) => void>()
 	const updateVersionByWalletId = new SvelteMap<string, number>()
 	const announcedProviderByUuid = new Map<string, TronProviderDetail>()
+	let legacyInjectedFallbackTimeout: number | null = null
 
 	const candidate = (
 		walletId: string,
@@ -303,7 +311,24 @@ export const createTronInjectedAdapter = (): WalletAdapter => {
 				window.dispatchEvent(new Event(TRON_REQUEST_PROVIDER_EVENT))
 			}
 			const provider = window.tron ?? window.tronLink
-			if (announcedProviderByUuid.size === 0 && provider != null) {
+			if (supportsProviderEvents && provider != null) {
+				legacyInjectedFallbackTimeout = window.setTimeout(() => {
+					legacyInjectedFallbackTimeout = null
+					if (announcedProviderByUuid.size > 0) return
+
+					providerByWalletId.set(TRON_LEGACY_WALLET_ID, provider)
+					updateCandidates([
+						candidate(
+							TRON_LEGACY_WALLET_ID,
+							'TRON injected wallet',
+							'',
+							undefined,
+							WalletDiscoveryKind.InjectedGlobal
+						),
+					])
+				}, 0)
+			}
+			else if (provider != null) {
 				providerByWalletId.set(TRON_LEGACY_WALLET_ID, provider)
 				updateCandidates([
 					candidate(
@@ -321,9 +346,12 @@ export const createTronInjectedAdapter = (): WalletAdapter => {
 			return () => {
 				if (supportsProviderEvents)
 					window.removeEventListener(TRON_ANNOUNCE_PROVIDER_EVENT, announceProvider)
+				if (legacyInjectedFallbackTimeout != null)
+					window.clearTimeout(legacyInjectedFallbackTimeout)
 				for (const cleanup of cleanupByWalletId.values())
 					cleanup()
 
+				legacyInjectedFallbackTimeout = null
 				cleanupByWalletId.clear()
 				updateConnectionByWalletId.clear()
 				updateVersionByWalletId.clear()
@@ -350,6 +378,13 @@ export const createTronInjectedAdapter = (): WalletAdapter => {
 				state,
 				BlockheadConnectionStatus.Connected
 			)
+		},
+		signMessage: async (walletId, accountAddress, message) => {
+			const provider = providerByWalletId.get(walletId)
+			if (provider == null)
+				throw new Error('TRON wallet provider is unavailable')
+
+			return personalSign(provider, accountAddress, message)
 		},
 		disconnect: (walletId) => {
 			stateByWalletId.delete(walletId)
