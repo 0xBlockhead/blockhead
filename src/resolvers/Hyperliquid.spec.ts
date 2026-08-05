@@ -513,6 +513,20 @@ describe('Hyperliquid market catalog resolvers', () => {
 			'0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
 			'0x010461c14e146ac35fe42271bdc1134ee31c703a',
 		])
+
+		const parentNetworkResolver = hyperliquid.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& 'Hyperliquid' in resolver.projections
+			&& '$$spotPairs' in resolver.projections.Hyperliquid
+		))
+		expect(parentNetworkResolver).toBeTruthy()
+		const parentSnapshot = await parentNetworkResolver.resolve.Slug.resolve(account.$network, context)
+		expect(parentNetworkResolver.projections.Hyperliquid.$$spotPairs(parentSnapshot)).toEqual(
+			networkResolver.projections.$$spotPairs(snapshot)
+		)
+		expect(parentNetworkResolver.projections.Hyperliquid.$$vaults(parentSnapshot)).toEqual(
+			networkResolver.projections.$$vaults(snapshot)
+		)
 	})
 
 	it('rejects a perp market snapshot without a context for every market', async () => {

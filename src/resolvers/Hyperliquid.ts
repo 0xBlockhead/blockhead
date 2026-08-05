@@ -1080,6 +1080,8 @@ export default {
 				$$validators: (snapshot) => snapshot.$$validators,
 				$$perpMarkets: (snapshot) => snapshot.$$perpMarkets,
 				$$spotAssets: (snapshot) => snapshot.$$spotAssets,
+				$$spotPairs: (snapshot) => snapshot.$$spotPairs,
+				$$vaults: (snapshot) => snapshot.$$vaults,
 			},
 		}),
 	],
