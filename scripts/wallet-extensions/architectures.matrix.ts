@@ -10,6 +10,17 @@ import {
 
 // Types
 
+/**
+ * Architecture-only / identity-overlay denominator.
+ *
+ * Lightning: no browser extension wallet adapter and no product `src/state`
+ * Lightning connection machine — invoice/node surfaces stay schema + Amboss
+ * resolvers until a real node connection state exists. Do not invent a soft
+ * wallet adapter to fill this gap.
+ *
+ * Farcaster: identity overlay over EVM `personal_sign` proof; CAIP-10 Account
+ * stays orthogonal to `BlockheadWalletConnection` / Farcaster enrollment rows.
+ */
 export type ArchitectureDenominatorScenario = {
 	id: string
 	ecosystem: (

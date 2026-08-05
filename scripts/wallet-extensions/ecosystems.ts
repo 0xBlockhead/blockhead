@@ -194,6 +194,7 @@ export const walletHarnessEcosystems = [
 		ecosystem: WalletHarnessEcosystem.Lightning,
 		label: 'Lightning Network',
 		caipNamespaces: [],
+		/** Architecture-only: no soft wallet adapter; no product Lightning connection state. */
 		coverageKind: WalletHarnessCoverageKind.ArchitectureOnly,
 		connectionProtocols: [
 			WalletHarnessConnectionProtocol.LightningNode,
@@ -204,6 +205,7 @@ export const walletHarnessEcosystems = [
 		ecosystem: WalletHarnessEcosystem.Farcaster,
 		label: 'Farcaster',
 		caipNamespaces: ['eip155'],
+		/** Identity overlay: EVM proof borrows wallet signing; Account ≠ BlockheadWalletConnection. */
 		coverageKind: WalletHarnessCoverageKind.IdentityOverlay,
 		connectionProtocols: [
 			WalletHarnessConnectionProtocol.FarcasterEvmProof,
