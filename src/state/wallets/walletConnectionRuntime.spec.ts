@@ -43,6 +43,8 @@ const mountMockWalletRuntime = async ({
 	persistedTransportKind = WalletTransportKind.InjectedProvider,
 	persistedWalletId = 'eip6963:com.example.wallet',
 	signMessage = vi.fn(async () => '0xsigned'),
+	signTypedData = vi.fn(async () => '0xtyped'),
+	switchScope,
 }: {
 	candidateAvailable?: boolean
 	connectionResults?: (Error | WalletConnection)[]
@@ -71,6 +73,19 @@ const mountMockWalletRuntime = async ({
 	persistedTransportKind?: WalletTransportKind
 	persistedWalletId?: string
 	signMessage?: (walletId: string, accountAddress: string, message: string) => Promise<string>
+	signTypedData?: (
+		walletId: string,
+		accountAddress: string,
+		typedData: object
+	) => Promise<string>
+	switchScope?: (
+		walletId: string,
+		scope: {
+			namespace: string
+			reference: string
+		},
+		connectionKey?: string
+	) => Promise<WalletConnection | undefined>
 }) => {
 	const walletId = persistedWalletId
 	const account = {
@@ -150,6 +165,8 @@ const mountMockWalletRuntime = async ({
 				return connectionResult
 			},
 			signMessage,
+			signTypedData,
+			...(switchScope != null && { switchScope }),
 			disconnect,
 			subscribeConnection,
 		}),
@@ -457,6 +474,160 @@ describe('wallet connection runtime normalization', () => {
 		expect(JSON.stringify(writeWalletRequestObservation.mock.calls)).not.toContain('0xsigned')
 		expect(writeWalletRequestObservation.mock.calls[1][2]).not.toHaveProperty('transactionHash')
 		expect(writeWalletRequestObservation.mock.calls[1][2]).not.toHaveProperty('transactionId')
+	}, 30_000)
+
+	it('persists typed-data signing as hashes without claiming chain finality', async () => {
+		vi.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-0000000000td')
+		vi.spyOn(Date, 'now')
+			.mockReturnValueOnce(1_700_000_000_100)
+			.mockReturnValueOnce(1_700_000_000_101)
+		const typedData = {
+			types: {
+				EIP712Domain: [
+					{ name: 'name', type: 'string' },
+				],
+				Mail: [
+					{ name: 'contents', type: 'string' },
+				],
+			},
+			primaryType: 'Mail',
+			domain: {
+				name: 'Blockhead',
+			},
+			message: {
+				contents: 'hello',
+			},
+		}
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignTypedData],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const {
+			runtime,
+			writeWalletRequest,
+			writeWalletRequestObservation,
+		} = await mountMockWalletRuntime({
+			connectionResults: [connection],
+		})
+
+		await runtime.connect(connection.walletId)
+		expect(await runtime.signTypedData(connection.connectionKey, typedData)).toEqual({
+			accountAddress: connection.accounts[0].accountAddress,
+			signature: '0xtyped',
+		})
+
+		expect(writeWalletRequest.mock.calls[0][1]).toMatchObject({
+			requestKind: 'typed-data-signature',
+			requestMethod: 'eth_signTypedData_v4',
+		})
+		expect(JSON.stringify(writeWalletRequest.mock.calls)).not.toContain('hello')
+		expect(writeWalletRequestObservation.mock.calls.at(-1)?.[2]).toMatchObject({
+			status: 'signed',
+		})
+		expect(writeWalletRequestObservation.mock.calls.at(-1)?.[2]).not.toHaveProperty('transactionHash')
+	}, 30_000)
+
+	it('switches scope through the selected connected wallet and upserts discoverable scopes', async () => {
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [{
+				namespace: 'eip155',
+				reference: '1',
+				methods: ['wallet_switchEthereumChain'],
+				events: ['chainChanged'],
+			}],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SwitchScope],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const { runtime, writeConnection } = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			switchScope: async (_walletId, scope) => ({
+				...connection,
+				scopes: [{
+					namespace: scope.namespace,
+					reference: scope.reference,
+					methods: ['wallet_switchEthereumChain'],
+					events: ['chainChanged'],
+				}],
+				accounts: [{
+					...connection.accounts[0],
+					reference: scope.reference,
+				}],
+			}),
+		})
+
+		await runtime.connect(connection.walletId)
+		await runtime.switchScope(connection.connectionKey, {
+			namespace: 'eip155',
+			reference: '137',
+		})
+
+		expect(runtime.connections[0]).toMatchObject({
+			scopes: [
+				expect.objectContaining({
+					reference: '137',
+				}),
+			],
+			accounts: [
+				expect.objectContaining({
+					reference: '137',
+				}),
+			],
+		})
+		expect(writeConnection).toHaveBeenCalled()
+	}, 30_000)
+
+	it('exposes reconnect as the same connect lifecycle', async () => {
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.Reconnect],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const { runtime } = await mountMockWalletRuntime({
+			connectionResults: [
+				connection,
+				{
+					...connection,
+					connectedAt: 2,
+				},
+			],
+		})
+
+		await runtime.connect(connection.walletId)
+		await runtime.reconnect(connection.walletId)
+		expect(runtime.connections.some((entry) => (
+			entry.status === BlockheadConnectionStatus.Connected
+		))).toBe(true)
 	}, 30_000)
 
 	it('persists failed message-signing requests without fabricating submission evidence', async () => {

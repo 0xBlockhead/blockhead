@@ -29,7 +29,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { SvelteMap } from 'svelte/reactivity'
+import { SvelteMap, SvelteSet } from 'svelte/reactivity'
 import { createAptosInjectedAdapter } from './adapters/aptosInjected.ts'
 import { createBitcoinInjectedAdapter } from './adapters/bitcoinInjected.ts'
 import { createCardanoCip30Adapter } from './adapters/cardanoCip30.ts'
@@ -39,7 +39,7 @@ import { createPolkadotInjectedWeb3Adapter } from './adapters/polkadotInjectedWe
 import { createStarknetWalletApiAdapter } from './adapters/starknetWalletApi.ts'
 import { createTonConnectAdapter } from './adapters/tonConnect.ts'
 import { createTronInjectedAdapter } from './adapters/tronInjected.ts'
-import type { WalletAccount, WalletAdapter, WalletCandidate, WalletConnection } from './adapters/types.ts'
+import type { WalletAccount, WalletAdapter, WalletCandidate, WalletConnection, WalletTypedData } from './adapters/types.ts'
 import {
 	applyWalletConnectionSelection,
 	buildWalletConnection,
@@ -66,10 +66,22 @@ type WalletRuntime = {
 	connections: WalletConnection[]
 	registerAdapter(adapter: WalletAdapter): void
 	connect(walletId: string): Promise<void>
+	reconnect(walletId: string): Promise<void>
 	signMessage(connectionKey: string, message: string): Promise<{
 		accountAddress: string
 		signature: string
 	}>
+	signTypedData(connectionKey: string, typedData: WalletTypedData): Promise<{
+		accountAddress: string
+		signature: string
+	}>
+	switchScope(
+		connectionKey: string,
+		scope: {
+			namespace: string
+			reference: string
+		}
+	): Promise<void>
 	disconnect(connectionKey: string): Promise<void>
 	remove(connectionKey: string): Promise<void>
 	selectAccount(connectionKey: string, account: WalletAccount): void
@@ -93,13 +105,13 @@ const createWalletRuntimeState = (
 	const cleanupByConnectionKey = new SvelteMap<string, () => void>()
 	const connectionAttemptByConnectionKey = new SvelteMap<string, number>()
 	const adapterByWalletId = new SvelteMap<string, WalletAdapter>()
-	const registeredAdapterIds = new Set<string>()
+	const registeredAdapterIds = new SvelteSet<string>()
 	const adapterCleanups: (() => void)[] = []
 	const candidatesByAdapterId = new SvelteMap<string, WalletCandidate[]>()
 
 	let candidates = $state<WalletCandidate[]>([])
 	let connections = $state<WalletConnection[]>([])
-	const runtimeMutatedConnectionKeys = new Set<string>()
+	const runtimeMutatedConnectionKeys = new SvelteSet<string>()
 
 	const upsertConnection = async (
 		connection: WalletConnection,
@@ -536,8 +548,6 @@ const createWalletRuntimeState = (
 		const { account, connection } = selection
 		if (!account.capabilities.includes(WalletCapability.SignMessage))
 			throw new Error('Selected wallet account does not authorize message signing')
-		if (account.namespace !== 'eip155')
-			throw new Error('Farcaster connection proof requires an EVM wallet account')
 
 		const sign = adapterByWalletId.get(connection.walletId)?.signMessage
 		if (sign == null)
@@ -554,6 +564,16 @@ const createWalletRuntimeState = (
 			},
 		} as const satisfies EntitySelector<typeof schema, EntityType.Account>
 		const requestedAt = Date.now()
+		const requestMethod = (
+			account.namespace === 'eip155' ?
+				'personal_sign'
+			: account.namespace === 'solana' ?
+				'solana:signMessage'
+			: account.namespace === 'aptos' ?
+				'aptos:signMessage'
+			:
+				`${account.namespace}:signMessage`
+		)
 		await writeLocalBlockheadWalletRequest(context, {
 			id: walletRequestSelector.id,
 			walletConnection: {
@@ -561,10 +581,10 @@ const createWalletRuntimeState = (
 			},
 			account: accountSelector,
 			requestKind: 'message-signature',
-			requestMethod: 'personal_sign',
+			requestMethod,
 			requestPayloadHash: await hashWalletEvidence(JSON.stringify({
 				version: 1,
-				method: 'personal_sign',
+				method: requestMethod,
 				account: accountSelector.caip10,
 				message,
 			})),
@@ -578,7 +598,12 @@ const createWalletRuntimeState = (
 
 		let signature: string
 		try {
-			signature = await sign(connection.walletId, account.accountAddress, message)
+			signature = await sign(
+				connection.walletId,
+				account.accountAddress,
+				message,
+				connectionKey
+			)
 		}
 		catch (error) {
 			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
@@ -590,11 +615,7 @@ const createWalletRuntimeState = (
 			throw error
 		}
 
-		let signatureHash: string
-		try {
-			signatureHash = await hashWalletEvidence(signature)
-		}
-		catch (error) {
+		const signatureHash = await hashWalletEvidence(signature).catch(async (error) => {
 			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
 				timestampMs: Math.max(Date.now(), requestedAt + 1),
 				source: Source.Local_Internal,
@@ -602,7 +623,7 @@ const createWalletRuntimeState = (
 				error: 'Wallet signature evidence hashing failed',
 			})
 			throw error
-		}
+		})
 
 		const submittedAt = Math.max(Date.now(), requestedAt + 1)
 		try {
@@ -638,6 +659,166 @@ const createWalletRuntimeState = (
 		}
 	}
 
+	const signTypedData = async (
+		connectionKey: string,
+		typedData: WalletTypedData
+	) => {
+		const selection = resolveWalletPrepSelection(connections)
+		if (!selection.ready)
+			throw new Error(selection.error)
+		if (selection.connectionKey !== connectionKey)
+			throw new Error('Wallet request connectionKey does not match the selected wallet connection.')
+
+		const { account, connection } = selection
+		if (!account.capabilities.includes(WalletCapability.SignTypedData))
+			throw new Error('Selected wallet account does not authorize typed data signing')
+		if (account.namespace !== 'eip155')
+			throw new Error('Typed data signing requires an EVM wallet account')
+
+		const sign = adapterByWalletId.get(connection.walletId)?.signTypedData
+		if (sign == null)
+			throw new Error('Connected wallet does not expose executable typed data signing')
+
+		const walletRequestSelector = {
+			id: `wallet-request-${globalThis.crypto.randomUUID()}`,
+		} as const satisfies EntitySelector<typeof schema, EntityType.BlockheadWalletRequest>
+		const accountSelector = {
+			caip10: {
+				namespace: account.namespace,
+				reference: account.reference,
+				accountAddress: account.accountAddress,
+			},
+		} as const satisfies EntitySelector<typeof schema, EntityType.Account>
+		const requestedAt = Date.now()
+		await writeLocalBlockheadWalletRequest(context, {
+			id: walletRequestSelector.id,
+			walletConnection: {
+				connectionKey,
+			},
+			account: accountSelector,
+			requestKind: 'typed-data-signature',
+			requestMethod: 'eth_signTypedData_v4',
+			requestPayloadHash: await hashWalletEvidence(JSON.stringify({
+				version: 1,
+				method: 'eth_signTypedData_v4',
+				account: accountSelector.caip10,
+				typedData,
+			})),
+			requestedAt,
+		}, connections)
+		await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+			timestampMs: requestedAt,
+			source: Source.Local_Internal,
+			status: 'requested',
+		})
+
+		let signature: string
+		try {
+			signature = await sign(
+				connection.walletId,
+				account.accountAddress,
+				typedData,
+				connectionKey
+			)
+		}
+		catch (error) {
+			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+				timestampMs: Math.max(Date.now(), requestedAt + 1),
+				source: Source.Local_Internal,
+				status: 'failed',
+				error: 'Wallet typed data signing request failed',
+			})
+			throw error
+		}
+
+		const signatureHash = await hashWalletEvidence(signature).catch(async (error) => {
+			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+				timestampMs: Math.max(Date.now(), requestedAt + 1),
+				source: Source.Local_Internal,
+				status: 'audit-failed',
+				error: 'Wallet typed data signature evidence hashing failed',
+			})
+			throw error
+		})
+
+		const submittedAt = Math.max(Date.now(), requestedAt + 1)
+		try {
+			await writeLocalBlockheadWalletRequestSubmittedAt(
+				context,
+				walletRequestSelector,
+				submittedAt
+			)
+			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+				timestampMs: submittedAt,
+				source: Source.Local_Internal,
+				status: 'signed',
+				signatureHash,
+			})
+		}
+		catch {
+			try {
+				await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+					timestampMs: Math.max(Date.now(), submittedAt + 1),
+					source: Source.Local_Internal,
+					status: 'audit-failed',
+					signatureHash,
+					error: 'Wallet typed data signature succeeded but signed history persistence failed',
+				})
+			}
+			catch {}
+			throw new Error('Wallet typed data signature succeeded but audit persistence failed; do not retry as a wallet rejection')
+		}
+
+		return {
+			accountAddress: account.accountAddress,
+			signature,
+		}
+	}
+
+	const switchScope = async (
+		connectionKey: string,
+		scope: {
+			namespace: string
+			reference: string
+		}
+	) => {
+		const connection = connections.find((candidate) => (
+			walletConnectionKey(candidate) === connectionKey
+		))
+		if (connection == null)
+			throw new Error('Wallet connection is unavailable')
+		if (connection.status !== BlockheadConnectionStatus.Connected)
+			throw new Error('Wallet connection is not connected')
+
+		const account = connection.activeAccount ?? connection.accounts.at(0)
+		if (account == null)
+			throw new Error('Wallet connection has no account')
+		if (!account.capabilities.includes(WalletCapability.SwitchScope))
+			throw new Error('Selected wallet account does not authorize scope switching')
+
+		const switchScopeOnAdapter = adapterByWalletId.get(connection.walletId)?.switchScope
+		if (switchScopeOnAdapter == null)
+			throw new Error('Connected wallet does not expose executable scope switching')
+
+		const nextConnection = await switchScopeOnAdapter(
+			connection.walletId,
+			scope,
+			connectionKey
+		)
+		if (nextConnection == null)
+			throw new Error('Wallet did not return an updated connection after switchScope')
+
+		await upsertConnection(
+			preserveWalletConnectionSelection(
+				connection,
+				buildWalletConnection({
+					...nextConnection,
+					connectionKey,
+				})
+			)
+		)
+	}
+
 	const selectAccount = (
 		connectionKey: string,
 		account: WalletAccount
@@ -665,7 +846,10 @@ const createWalletRuntimeState = (
 		},
 		registerAdapter,
 		connect,
+		reconnect: connect,
 		signMessage,
+		signTypedData,
+		switchScope,
 		disconnect,
 		remove,
 		selectAccount,
@@ -729,6 +913,7 @@ export const mountWalletConnectionRuntime = (
 							reference: Caip2Reference.EthereumMainnet,
 							methods: [
 								'eth_accounts',
+								'personal_sign',
 							],
 							events: [
 								'accountsChanged',
