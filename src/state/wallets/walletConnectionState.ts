@@ -1,11 +1,17 @@
+import {
+	WalletProtocol,
+	type WalletTransportKind,
+} from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import type {
 	WalletAccount,
+	WalletConnectingSession,
 	WalletConnection,
 	WalletConnectionBase,
 	WalletScope,
+	WalletSettledSession,
 } from './adapters/types.ts'
-import type { WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
+import { isWalletAccountsNonEmpty } from './adapters/types.ts'
 
 
 export type PersistedWalletConnection = WalletConnectionBase & {
@@ -26,11 +32,57 @@ export const walletConnectionKey = (
 	?? connection.walletId
 )
 
+const connectionIdentity = (
+	base: WalletConnectionBase
+) => ({
+	walletId: base.walletId,
+	transportKind: base.transportKind,
+	scopes: base.scopes,
+	accounts: base.accounts,
+	...(base.connectionKey != null && { connectionKey: base.connectionKey }),
+})
+
+const connectingSession = (
+	base: WalletConnectionBase
+): WalletConnectingSession => (
+	base.protocol === WalletProtocol.WalletConnectV2 ?
+		{
+			protocol: WalletProtocol.WalletConnectV2,
+			...(base.sessionTopic != null && { sessionTopic: base.sessionTopic }),
+			...(base.sessionId != null && { sessionId: base.sessionId }),
+		}
+	:
+		{
+			protocol: base.protocol,
+			...(base.sessionId != null && { sessionId: base.sessionId }),
+		}
+)
+
+const settledSession = (
+	base: WalletConnectionBase
+): WalletSettledSession => {
+	if (base.protocol === WalletProtocol.WalletConnectV2) {
+		const sessionTopic = base.sessionTopic ?? base.sessionId ?? base.connectionKey ?? base.walletId
+		return {
+			protocol: WalletProtocol.WalletConnectV2,
+			sessionTopic,
+			...(base.sessionId != null && { sessionId: base.sessionId }),
+		}
+	}
+
+	return {
+		protocol: base.protocol,
+		...(base.sessionId != null && { sessionId: base.sessionId }),
+	}
+}
+
 export const connectingWalletConnection = (
 	base: WalletConnectionBase
 ): Extract<WalletConnection, { status: BlockheadConnectionStatus.Connecting }> => ({
-	...base,
+	...connectionIdentity(base),
+	...connectingSession(base),
 	status: BlockheadConnectionStatus.Connecting,
+	...(base.activeAccount != null && { activeAccount: base.activeAccount }),
 })
 
 export const connectedWalletConnection = (
@@ -39,7 +91,6 @@ export const connectedWalletConnection = (
 		connectedAt?: number
 	}
 ): Extract<WalletConnection, { status: BlockheadConnectionStatus.Connected }> => {
-	// EIP-1193 / Wallet Standard: selection only applies while accounts are present.
 	const activeAccount = (
 		base.activeAccount != null
 		&& base.accounts.some((account) => (
@@ -51,22 +102,32 @@ export const connectedWalletConnection = (
 		base.activeAccount
 	:
 		base.accounts.at(0)
-	const selected = base.selected && base.accounts.length > 0 && activeAccount != null
+	const selected = (
+		base.selected
+		&& isWalletAccountsNonEmpty(base.accounts)
+		&& activeAccount != null
+	)
 
-	return selected ?
-		{
-			...base,
+	if (selected)
+		return {
+			...connectionIdentity(base),
+			...settledSession(base),
+			accounts: base.accounts,
 			activeAccount,
 			status: BlockheadConnectionStatus.Connected,
 			selected: true,
+			...(base.connectedAt != null && { connectedAt: base.connectedAt }),
 		}
-	:
-		{
-			...base,
-			...(activeAccount != null ? { activeAccount } : { activeAccount: undefined }),
-			status: BlockheadConnectionStatus.Connected,
-			selected: false,
-		}
+
+	return {
+		...connectionIdentity(base),
+		...settledSession(base),
+		accounts: base.accounts,
+		status: BlockheadConnectionStatus.Connected,
+		selected: false,
+		...(activeAccount != null && { activeAccount }),
+		...(base.connectedAt != null && { connectedAt: base.connectedAt }),
+	}
 }
 
 export const disconnectedWalletConnection = (
@@ -75,8 +136,11 @@ export const disconnectedWalletConnection = (
 		connectedAt?: number
 	}
 ): Extract<WalletConnection, { status: BlockheadConnectionStatus.Disconnected }> => ({
-	...base,
+	...connectionIdentity(base),
+	...settledSession(base),
 	status: BlockheadConnectionStatus.Disconnected,
+	...(base.disconnectedAt != null && { disconnectedAt: base.disconnectedAt }),
+	...(base.connectedAt != null && { connectedAt: base.connectedAt }),
 })
 
 export const erroredWalletConnection = (
@@ -85,9 +149,11 @@ export const erroredWalletConnection = (
 		disconnectedAt?: number
 	}
 ): Extract<WalletConnection, { status: BlockheadConnectionStatus.Error }> => ({
-	...base,
+	...connectionIdentity(base),
+	...settledSession(base),
 	status: BlockheadConnectionStatus.Error,
 	error: base.error,
+	...(base.disconnectedAt != null && { disconnectedAt: base.disconnectedAt }),
 })
 
 export const buildWalletConnection = ({
@@ -157,9 +223,9 @@ export const persistWalletConnection = (
 		transportKind: connection.transportKind,
 		scopes: connection.scopes,
 		accounts: connection.accounts,
-		activeAccount: connection.activeAccount,
-		sessionId: connection.sessionId,
-		sessionTopic: connection.sessionTopic,
+		...(connection.activeAccount != null && { activeAccount: connection.activeAccount }),
+		...(connection.sessionId != null && { sessionId: connection.sessionId }),
+		...(connection.sessionTopic != null && { sessionTopic: connection.sessionTopic }),
 	}
 
 	switch (connection.status) {
@@ -198,7 +264,6 @@ export const persistWalletConnection = (
 export const walletConnectionFromPersisted = (
 	connection: PersistedWalletConnection
 ): WalletConnection => (
-	// Flat schema rows may carry contradictory selected/error/status; coerce to the machine.
 	buildWalletConnection({
 		...connection,
 		activeAccount: (
@@ -221,7 +286,7 @@ export const walletConnectionFromPersisted = (
 	})
 )
 
-/** Coerce any flat or machine row into a legal persisted snapshot (EIP-1193-shaped). */
+/** Coerce any flat or machine row into a legal persisted snapshot. */
 export const walletConnectionPersistRoundTrip = (
 	row: PersistedWalletConnection | WalletConnection
 ): PersistedWalletConnection => (
@@ -313,7 +378,6 @@ export const disconnectWalletConnection = (
 		accounts: connection.accounts,
 		disconnectedAt,
 		...(connection.connectionKey != null && { connectionKey: connection.connectionKey }),
-		...(connection.activeAccount != null && { activeAccount: connection.activeAccount }),
 		...(connection.sessionId != null && { sessionId: connection.sessionId }),
 		...(connection.sessionTopic != null && { sessionTopic: connection.sessionTopic }),
 		...(

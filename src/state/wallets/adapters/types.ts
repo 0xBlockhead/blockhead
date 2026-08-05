@@ -1,5 +1,13 @@
-import type { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
+import type {
+	WalletCapability,
+	WalletDiscoveryKind,
+} from '$/constants/Wallet.ts'
+import {
+	WalletProtocol,
+	WalletTransportKind,
+} from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
+
 
 export type WalletCandidate = {
 	id: string
@@ -27,6 +35,115 @@ export type WalletScope = {
 	events: string[]
 }
 
+/** Non-empty account list — required when Connected + selected. */
+export type WalletAccountsNonEmpty = readonly [
+	WalletAccount,
+	...WalletAccount[],
+]
+
+type WalletConnectionIdentity = {
+	connectionKey?: string
+	walletId: string
+	transportKind: WalletTransportKind
+	scopes: WalletScope[]
+}
+
+/**
+ * While Connecting, WalletConnect may not have a relay topic yet.
+ * Non-WC protocols never carry `sessionTopic`.
+ */
+export type WalletConnectingSession =
+	| {
+		protocol: WalletProtocol.WalletConnectV2
+		sessionTopic?: string
+		sessionId?: string
+	}
+	| {
+		protocol: Exclude<WalletProtocol, WalletProtocol.WalletConnectV2>
+		sessionId?: string
+		sessionTopic?: undefined
+	}
+
+/**
+ * After settle (Connected / Disconnected / Error):
+ * WalletConnect requires `sessionTopic`; other protocols forbid it.
+ */
+export type WalletSettledSession =
+	| {
+		protocol: WalletProtocol.WalletConnectV2
+		sessionTopic: string
+		sessionId?: string
+	}
+	| {
+		protocol: Exclude<WalletProtocol, WalletProtocol.WalletConnectV2>
+		sessionId?: string
+		sessionTopic?: undefined
+	}
+
+/**
+ * Status machine — illegal combos are unrepresentable:
+ * - `selected` exists only on Connected
+ * - Connected + selected:true requires nonempty accounts + activeAccount
+ * - Error always has `error`; other statuses forbid it
+ * - `sessionTopic` only on WalletConnect (optional while Connecting, required when settled)
+ * - Disconnected / Error never carry `activeAccount`
+ */
+export type WalletConnection =
+	| (
+		WalletConnectionIdentity
+		& WalletConnectingSession
+		& {
+			status: BlockheadConnectionStatus.Connecting
+			accounts: WalletAccount[]
+			activeAccount?: WalletAccount
+		}
+	)
+	| (
+		WalletConnectionIdentity
+		& WalletSettledSession
+		& {
+			status: BlockheadConnectionStatus.Connected
+			selected: true
+			accounts: WalletAccountsNonEmpty
+			activeAccount: WalletAccount
+			connectedAt?: number
+		}
+	)
+	| (
+		WalletConnectionIdentity
+		& WalletSettledSession
+		& {
+			status: BlockheadConnectionStatus.Connected
+			selected: false
+			accounts: WalletAccount[]
+			activeAccount?: WalletAccount
+			connectedAt?: number
+		}
+	)
+	| (
+		WalletConnectionIdentity
+		& WalletSettledSession
+		& {
+			status: BlockheadConnectionStatus.Disconnected
+			accounts: WalletAccount[]
+			activeAccount?: undefined
+			connectedAt?: number
+			disconnectedAt?: number
+		}
+	)
+	| (
+		WalletConnectionIdentity
+		& WalletSettledSession
+		& {
+			status: BlockheadConnectionStatus.Error
+			error: string
+			accounts: WalletAccount[]
+			activeAccount?: undefined
+			disconnectedAt?: number
+		}
+	)
+
+/** Flat construction/persistence bag — may be illegal; coerce via builders. */
 export type WalletConnectionBase = {
 	connectionKey?: string
 	walletId: string
@@ -38,41 +155,6 @@ export type WalletConnectionBase = {
 	sessionId?: string
 	sessionTopic?: string
 }
-
-export type WalletConnection =
-	| (
-		WalletConnectionBase & {
-			status: BlockheadConnectionStatus.Connecting
-		}
-	)
-	| (
-		WalletConnectionBase & {
-			status: BlockheadConnectionStatus.Connected
-			selected: true
-			connectedAt?: number
-		}
-	)
-	| (
-		WalletConnectionBase & {
-			status: BlockheadConnectionStatus.Connected
-			selected: false
-			connectedAt?: number
-		}
-	)
-	| (
-		WalletConnectionBase & {
-			status: BlockheadConnectionStatus.Disconnected
-			connectedAt?: number
-			disconnectedAt?: number
-		}
-	)
-	| (
-		WalletConnectionBase & {
-			status: BlockheadConnectionStatus.Error
-			error: string
-			disconnectedAt?: number
-		}
-	)
 
 export type WalletTypedData = {
 	types: Record<string, {
@@ -124,4 +206,10 @@ export const optionalDiscoveredCandidate = (
 		[candidate]
 	:
 		[]
+)
+
+export const isWalletAccountsNonEmpty = (
+	accounts: readonly WalletAccount[]
+): accounts is WalletAccountsNonEmpty => (
+	accounts.length > 0
 )

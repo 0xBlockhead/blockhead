@@ -50,13 +50,31 @@ describe('walletConnectionState', () => {
 			...base,
 			error: 'denied',
 		})
-		expect(connection).toEqual({
-			...base,
+		expect(connection).toMatchObject({
+			walletId: base.walletId,
+			protocol: base.protocol,
+			transportKind: base.transportKind,
 			status: BlockheadConnectionStatus.Error,
 			error: 'denied',
 		})
 		expect(connection).not.toHaveProperty('selected')
+		expect(connection).not.toHaveProperty('sessionTopic')
 		expect(walletConnectionError(connection)).toBe('denied')
+	})
+
+	it('forbids activeAccount on disconnected rows', () => {
+		const disconnected = disconnectWalletConnection(
+			connectedWalletConnection({
+				...base,
+				selected: true,
+				connectedAt: 10,
+			}),
+			20
+		)
+		expect(disconnected.status).toBe(BlockheadConnectionStatus.Disconnected)
+		expect(disconnected.activeAccount).toBeUndefined()
+		expect(disconnected).not.toHaveProperty('selected')
+		expect(disconnected.disconnectedAt).toBe(20)
 	})
 
 	it('keeps Connected.selected as an exclusive true/false branch', () => {
@@ -74,6 +92,34 @@ describe('walletConnectionState', () => {
 		expect(selected.selected).toBe(true)
 		expect(unselected.selected).toBe(false)
 	})
+
+	it('strips sessionTopic from non-WalletConnect protocols', () => {
+		const connected = connectedWalletConnection({
+			...base,
+			sessionTopic: 'should-not-persist',
+			selected: true,
+		})
+		expect(connected.protocol).toBe(WalletProtocol.Eip6963)
+		expect(connected.sessionTopic).toBeUndefined()
+	})
+
+	it('requires sessionTopic on settled WalletConnect connections', () => {
+		const connected = connectedWalletConnection({
+			walletId: 'walletconnect-v2',
+			protocol: WalletProtocol.WalletConnectV2,
+			transportKind: WalletTransportKind.WalletConnectRelay,
+			scopes: [],
+			accounts: [...base.accounts],
+			sessionTopic: 'topic-abc',
+			selected: true,
+		})
+		expect(connected).toMatchObject({
+			protocol: WalletProtocol.WalletConnectV2,
+			sessionTopic: 'topic-abc',
+			selected: true,
+		})
+	})
+
 
 	it('coerces illegal persisted combos when hydrating', () => {
 		const disconnected = walletConnectionFromPersisted({
@@ -245,14 +291,17 @@ describe('walletConnectionState', () => {
 			}),
 			99
 		)
-		expect(disconnected).toEqual({
-			...base,
+		expect(disconnected).toMatchObject({
+			walletId: base.walletId,
+			protocol: base.protocol,
+			transportKind: base.transportKind,
 			connectionKey: 'a',
-			activeAccount: base.accounts[0],
 			status: BlockheadConnectionStatus.Disconnected,
 			connectedAt: 1,
 			disconnectedAt: 99,
 		})
+		expect(disconnected.activeAccount).toBeUndefined()
+		expect(disconnected).not.toHaveProperty('selected')
 		expect(walletConnectionKey(disconnected)).toBe('a')
 	})
 
