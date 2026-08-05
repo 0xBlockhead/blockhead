@@ -45,7 +45,7 @@ const mountMockWalletRuntime = async ({
 	signMessage = vi.fn(async () => '0xsigned'),
 }: {
 	candidateAvailable?: boolean
-	connectionResults?: WalletConnection[]
+	connectionResults?: (Error | WalletConnection)[]
 	disconnect?: (walletId: string, connectionKey?: string) => void | Promise<void>
 	persistWalletRequest?: (context: object, request: object) => void | Promise<void>
 	persistWalletRequestObservation?: (
@@ -142,7 +142,13 @@ const mountMockWalletRuntime = async ({
 
 				return () => {}
 			},
-			connect: async () => connectionResults.shift(),
+			connect: async () => {
+				const connectionResult = connectionResults.shift()
+				if (connectionResult instanceof Error)
+					throw connectionResult
+
+				return connectionResult
+			},
 			signMessage,
 			disconnect,
 			subscribeConnection,
@@ -1957,6 +1963,73 @@ describe('wallet connection runtime normalization', () => {
 				selected: true,
 			},
 		])
+
+		runtime.destroy()
+	})
+
+	it('revokes rejected connect authority and permits a successful retry', async () => {
+		const connection = {
+			connectionKey: 'session-after-retry',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const {
+			deleteConnection,
+			runtime,
+			writeConnection,
+		} = await mountMockWalletRuntime({
+			connectionResults: [
+				new Error('User rejected wallet connection'),
+				connection,
+			],
+		})
+
+		await runtime.connect(connection.walletId)
+		expect(runtime.connections).toEqual([
+			expect.objectContaining({
+				walletId: connection.walletId,
+				status: BlockheadConnectionStatus.Error,
+				error: 'User rejected wallet connection',
+			}),
+		])
+		expect(runtime.connections[0]).not.toHaveProperty('selected')
+
+		await runtime.connect(connection.walletId)
+		expect(runtime.connections).toEqual([
+			expect.objectContaining({
+				connectionKey: connection.connectionKey,
+				status: BlockheadConnectionStatus.Connected,
+				selected: true,
+			}),
+		])
+		expect(deleteConnection).toHaveBeenCalledWith(
+			expect.anything(),
+			connection.walletId
+		)
+		expect(writeConnection.mock.calls.map(([, persistedConnection]) => persistedConnection)).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					walletId: connection.walletId,
+					status: BlockheadConnectionStatus.Error,
+					error: 'User rejected wallet connection',
+				}),
+				expect.objectContaining({
+					connectionKey: connection.connectionKey,
+					status: BlockheadConnectionStatus.Connected,
+					selected: true,
+				}),
+			])
+		)
 
 		runtime.destroy()
 	})
