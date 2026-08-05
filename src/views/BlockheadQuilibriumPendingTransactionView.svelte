@@ -24,7 +24,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
-			Source.QuilibriumNode_Grpc,
+			Source.QuilibriumNodeRpc_Grpc,
 		],
 	}))
 	const blockheadQuilibriumPendingTransaction = $derived(viewSelection({

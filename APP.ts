@@ -17252,7 +17252,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal, Source.QuilibriumNode_Grpc],
+							sources: [Source.Local_Internal, Source.QuilibriumNodeRpc_Grpc],
 							openFields: ["accountKind", "allowanceAddress", "signatureKeyAddress", "keyRingRefCount"],
 						},
 						summary: { title: ["accountAddress"], value: ["$network"], HeadingAfter: ["accountKind"] },
@@ -17291,7 +17291,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal, Source.QuilibriumNode_Grpc],
+							sources: [Source.Local_Internal, Source.QuilibriumNodeRpc_Grpc],
 							openFields: ["balance", "balanceObservedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: [{ field: "balance", format: "number" }], HeadingAfter: ["source"] },
@@ -17430,7 +17430,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal, Source.QuilibriumNode_Grpc],
+							sources: [Source.Local_Internal, Source.QuilibriumNodeRpc_Grpc],
 							openFields: ["coinAddress", "amount", "deliveryType", "deliveryAddress", "observedAt"],
 						},
 						summary: { title: ["transactionAddress"], value: [{ field: "amount", format: "number" }], HeadingAfter: ["deliveryType"] },
