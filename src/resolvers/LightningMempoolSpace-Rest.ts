@@ -1,7 +1,14 @@
+/**
+ * Public Lightning graph indexer (mempool.space).
+ *
+ * Owns `LightningNetwork` / `LightningNode` / `LightningChannel` (+ timestamps)
+ * only — never `BlockheadLightning*` connected-node session rows, and never a
+ * browser wallet / `WalletConnection` surface. Local LND session state lives on
+ * `LightningLnd_Rest`.
+ */
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -462,4 +469,4 @@ export default {
 			$$channels: (snapshot) => snapshot,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule
+}

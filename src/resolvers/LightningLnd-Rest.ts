@@ -1,7 +1,14 @@
+/**
+ * Connected LND REST — local node / session surface.
+ *
+ * Owns `BlockheadLightning*` rows (`connectionId` session identity, invoices,
+ * payments, channel state). May also project public `Lightning*` graph entities
+ * from the connected node. This is not a browser wallet adapter; public-graph
+ * indexing without a local node remains `LightningMempoolSpace_Rest`.
+ */
 import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -639,4 +646,4 @@ export default {
 		}),
 
 	],
-} satisfies RegisteredSourceResolverModule
+}

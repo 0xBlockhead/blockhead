@@ -79,6 +79,16 @@ export enum WalletImplementationStatus {
 	Modeled = 'modeled',
 }
 
+/**
+ * Product-side mirror of `WalletHarnessCoverageKind` in
+ * `scripts/wallet-extensions/ecosystems.ts` for architectures that stay in the
+ * wallet-coverage denominator without a browser extension / injected adapter.
+ */
+export enum WalletArchitectureCoverageKind {
+	ArchitectureOnly = 'architecture-only',
+	IdentityOverlay = 'identity-overlay',
+}
+
 export type WalletConnectionMethod = {
 	id: string
 	label: string
@@ -532,6 +542,27 @@ export const walletConnectionMethods = [
 	},
 ] as const satisfies readonly WalletConnectionMethod[]
 
+/**
+ * Network namespaces modeled in schema/sources but intentionally absent from
+ * `walletConnectionMethods`. Lightning is public-graph + local LND session state
+ * (`Lightning*` vs `BlockheadLightning*`), not a browser wallet connection.
+ * Mirrors `WalletHarnessEcosystem.Lightning` → `ArchitectureOnly` in
+ * `scripts/wallet-extensions/ecosystems.ts`.
+ */
+const walletArchitectureCoverages = [
+	{
+		networkNamespace: NetworkNamespace.Lightning,
+		label: 'Lightning Network',
+		coverageKind: WalletArchitectureCoverageKind.ArchitectureOnly,
+		connectionProtocol: 'lightning-node',
+	},
+] as const satisfies readonly {
+	networkNamespace: NetworkNamespace
+	label: string
+	coverageKind: WalletArchitectureCoverageKind
+	connectionProtocol: 'lightning-node'
+}[]
+
 const walletDiscoveryKinds = [
 	{ discoveryKind: WalletDiscoveryKind.InjectedEvent, label: 'Injected event' },
 	{ discoveryKind: WalletDiscoveryKind.InjectedGlobal, label: 'Injected global' },
@@ -667,6 +698,13 @@ export const walletConnectionMethodById = Object.fromEntries(
 	walletConnectionMethods.map((walletConnectionMethod) => [
 		walletConnectionMethod.id,
 		walletConnectionMethod,
+	])
+)
+
+export const walletArchitectureCoverageByNetworkNamespace = Object.fromEntries(
+	walletArchitectureCoverages.map((row) => [
+		row.networkNamespace,
+		row,
 	])
 )
 

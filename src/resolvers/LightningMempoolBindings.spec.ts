@@ -51,6 +51,28 @@ const context = {
 }
 
 describe('Lightning and mempool resolver bindings', () => {
+	it('keeps MempoolSpace on public graph entities and LND on local session rows', () => {
+		const mempoolEntityTypes = new Set(
+			lightningMempoolSpace.resolvers.map((resolver) => resolver.entityType)
+		)
+		const lndEntityTypes = new Set(
+			lightningLnd.resolvers.map((resolver) => resolver.entityType)
+		)
+
+		expect(mempoolEntityTypes.has(EntityType.LightningNetwork)).toBe(true)
+		expect(mempoolEntityTypes.has(EntityType.LightningNode)).toBe(true)
+		expect(mempoolEntityTypes.has(EntityType.LightningChannel)).toBe(true)
+		expect(
+			[...mempoolEntityTypes].some((entityType) => (
+				String(entityType).startsWith('BlockheadLightning')
+			))
+		).toBe(false)
+
+		expect(lndEntityTypes.has(EntityType.BlockheadLightningNodeState)).toBe(true)
+		expect(lndEntityTypes.has(EntityType.BlockheadLightningInvoice)).toBe(true)
+		expect(lndEntityTypes.has(EntityType.BlockheadLightningPayment)).toBe(true)
+	})
+
 	it('uses source-owned transport bindings', async () => {
 		getInfo.mockResolvedValue({
 			identity_pubkey: '02'.padEnd(66, '0'),
