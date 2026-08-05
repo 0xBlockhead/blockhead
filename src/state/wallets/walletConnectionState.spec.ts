@@ -139,9 +139,10 @@ describe('walletConnectionState', () => {
 		expect(disconnected).not.toHaveProperty('error')
 		expect(persistWalletConnection(disconnected)).toMatchObject({
 			status: BlockheadConnectionStatus.Disconnected,
-			selected: false,
 			sessionId: 'historical-session',
+			connectionKey: expect.any(String),
 		})
+		expect(persistWalletConnection(disconnected)).not.toHaveProperty('selected')
 		expect(persistWalletConnection(disconnected).activeAccount).toBeUndefined()
 		expect(persistWalletConnection(disconnected)).not.toHaveProperty('error')
 
@@ -329,12 +330,15 @@ describe('walletConnectionState', () => {
 			error: 'denied',
 			connectedAt: 9,
 		})
-		expect(snapped).toEqual({
-			...base,
+		expect(snapped).toMatchObject({
+			walletId: base.walletId,
+			protocol: base.protocol,
+			transportKind: base.transportKind,
 			status: BlockheadConnectionStatus.Error,
-			selected: false,
 			error: 'denied',
+			connectionKey: base.walletId,
 		})
+		expect(snapped).not.toHaveProperty('selected')
 		expect(snapped).not.toHaveProperty('connectedAt')
 
 		const connectedEmpty = walletConnectionPersistRoundTrip({
@@ -349,6 +353,7 @@ describe('walletConnectionState', () => {
 			status: BlockheadConnectionStatus.Connected,
 			selected: false,
 			connectedAt: 3,
+			connectionKey: base.walletId,
 		})
 		expect(connectedEmpty).not.toHaveProperty('error')
 	})

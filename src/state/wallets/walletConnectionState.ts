@@ -14,12 +14,17 @@ import type {
 import { isWalletAccountsNonEmpty } from './adapters/types.ts'
 
 
-export type PersistedWalletConnection = WalletConnectionBase & {
+export type WalletConnectionWire = WalletConnectionBase & {
 	status: BlockheadConnectionStatus
 	selected: boolean
 	connectedAt?: number
 	disconnectedAt?: number
 	error?: string
+}
+
+/** Durable snapshot after coercion — illegal status/session/selection combos are unrepresentable. */
+export type PersistedWalletConnection = WalletConnection & {
+	connectionKey: string
 }
 
 
@@ -215,71 +220,61 @@ export const walletConnectionError = (
 
 export const persistWalletConnection = (
 	connection: WalletConnection
-): PersistedWalletConnection => {
-	const base = {
-		connectionKey: connection.connectionKey,
+): PersistedWalletConnection => ({
+	...connection,
+	connectionKey: walletConnectionKey(connection),
+})
+
+export const walletConnectionFromPersisted = (
+	connection: WalletConnectionWire | PersistedWalletConnection
+): WalletConnection => (
+	buildWalletConnection({
+		connectionKey: connection.connectionKey ?? walletConnectionKey(connection),
 		walletId: connection.walletId,
 		protocol: connection.protocol,
 		transportKind: connection.transportKind,
 		scopes: connection.scopes,
 		accounts: connection.accounts,
-		...(connection.activeAccount != null && { activeAccount: connection.activeAccount }),
 		...(connection.sessionId != null && { sessionId: connection.sessionId }),
 		...(connection.sessionTopic != null && { sessionTopic: connection.sessionTopic }),
-	}
-
-	switch (connection.status) {
-		case BlockheadConnectionStatus.Connecting:
-			return {
-				...base,
-				status: connection.status,
-				selected: false,
-			}
-		case BlockheadConnectionStatus.Connected:
-			return {
-				...base,
-				status: connection.status,
-				selected: connection.selected,
-				...(connection.connectedAt != null && { connectedAt: connection.connectedAt }),
-			}
-		case BlockheadConnectionStatus.Disconnected:
-			return {
-				...base,
-				status: connection.status,
-				selected: false,
-				...(connection.connectedAt != null && { connectedAt: connection.connectedAt }),
-				...(connection.disconnectedAt != null && { disconnectedAt: connection.disconnectedAt }),
-			}
-		case BlockheadConnectionStatus.Error:
-			return {
-				...base,
-				status: connection.status,
-				selected: false,
-				error: connection.error,
-				...(connection.disconnectedAt != null && { disconnectedAt: connection.disconnectedAt }),
-			}
-	}
-}
-
-export const walletConnectionFromPersisted = (
-	connection: PersistedWalletConnection
-): WalletConnection => (
-	buildWalletConnection({
-		...connection,
 		activeAccount: (
 			connection.status === BlockheadConnectionStatus.Connected ?
 				connection.activeAccount
 			:
 				undefined
 		),
+		status: connection.status,
 		selected: (
 			connection.status === BlockheadConnectionStatus.Connected
-			&& connection.selected
+			&& (
+				'selected' in connection ?
+					connection.selected === true
+				:
+					false
+			)
 			&& connection.accounts.length > 0
 		),
 		...(
+			'connectedAt' in connection
+			&& connection.connectedAt != null
+			&& { connectedAt: connection.connectedAt }
+		),
+		...(
+			'disconnectedAt' in connection
+			&& connection.disconnectedAt != null
+			&& { disconnectedAt: connection.disconnectedAt }
+		),
+		...(
 			connection.status === BlockheadConnectionStatus.Error ?
-				{ error: connection.error }
+				{
+					error: (
+						'error' in connection
+						&& typeof connection.error === 'string'
+					) ?
+						connection.error
+					:
+						'Unknown wallet connection error'
+				}
 			:
 				{ error: undefined }
 		),
@@ -288,15 +283,10 @@ export const walletConnectionFromPersisted = (
 
 /** Coerce any flat or machine row into a legal persisted snapshot. */
 export const walletConnectionPersistRoundTrip = (
-	row: PersistedWalletConnection | WalletConnection
+	row: WalletConnectionWire | WalletConnection
 ): PersistedWalletConnection => (
 	persistWalletConnection(
-		walletConnectionFromPersisted(
-			'selected' in row ?
-				row
-			:
-				persistWalletConnection(row)
-		)
+		walletConnectionFromPersisted(row)
 	)
 )
 
