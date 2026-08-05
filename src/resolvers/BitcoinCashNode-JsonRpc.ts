@@ -1,6 +1,5 @@
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -27,6 +26,17 @@ const assertBitcoinCashMainnet = (network: NetworkId) => {
 	}
 }
 
+const getTransaction = async ({ $network, txId }: {
+	$network: NetworkId
+	txId: string
+}) => {
+	assertBitcoinCashMainnet($network)
+	const { getRawTransaction } = await import('$/sources/BitcoinCashNode/JsonRpc/queries.ts')
+	return getRawTransaction({
+		txId,
+	})
+}
+
 const getOutput = async ({ $transaction, indexInTransaction }: {
 	$transaction: {
 		$network: NetworkId
@@ -34,12 +44,7 @@ const getOutput = async ({ $transaction, indexInTransaction }: {
 	}
 	indexInTransaction: number
 }) => {
-	assertBitcoinCashMainnet($transaction.$network)
-	const { getRawTransaction } = await import('$/sources/BitcoinCashNode/JsonRpc/queries.ts')
-	const transaction = await getRawTransaction({
-		txId: $transaction.txId,
-	})
-	const output = transaction.vout.at(indexInTransaction)
+	const output = (await getTransaction($transaction)).vout.at(indexInTransaction)
 	if (output == null) throw new Error(`BitcoinCashNode_JsonRpc: output not found for ${$transaction.txId}:${String(indexInTransaction)}`)
 	return output
 }
@@ -49,12 +54,108 @@ export default {
 
 	resolvers: [
 		defineResolver({
+			entityType: EntityType.UtxoTransaction,
+			resolve: {
+				NetworkTxId: {
+					resolve: async (entitySelector) => {
+						const transaction = await getTransaction(entitySelector)
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: entitySelector.$network,
+								txId: transaction.txid,
+							},
+							version: transaction.version,
+							lockTime: transaction.locktime,
+							sizeBytes: transaction.size,
+							virtualSizeBytes: transaction.vsize,
+							weightUnits: transaction.weight,
+							isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+							$$inputs: transaction.vin.map((_input, indexInTransaction) => (
+								{
+									[EntityMetaKey.Selector]: {
+										$transaction: entitySelector,
+										indexInTransaction,
+									},
+								}
+							)),
+							$$outputs: transaction.vout.map((_output, indexInTransaction) => (
+								{
+									[EntityMetaKey.Selector]: {
+										$transaction: entitySelector,
+										indexInTransaction,
+									},
+								}
+							)),
+						}
+					},
+				}
+			},
+		})({
+				version: (snapshot) => snapshot.version,
+				lockTime: (snapshot) => snapshot.lockTime,
+				sizeBytes: (snapshot) => snapshot.sizeBytes,
+				virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
+				weightUnits: (snapshot) => snapshot.weightUnits,
+				isCoinbase: (snapshot) => snapshot.isCoinbase,
+				$$inputs: (snapshot) => snapshot.$$inputs,
+				$$outputs: (snapshot) => snapshot.$$outputs,
+			}),
+
+		defineResolver({
+			entityType: EntityType.UtxoInput,
+			resolve: {
+				TransactionIndexInTransaction: {
+					resolve: async ({ $transaction, indexInTransaction }) => {
+						const input = (await getTransaction($transaction)).vin[indexInTransaction]
+						return {
+							[EntityMetaKey.Selector]: {
+								$transaction: $transaction,
+								indexInTransaction: indexInTransaction,
+							},
+							...(input.txid != null && input.vout != null && {
+								$spentOutput: {
+									[EntityMetaKey.Selector]: {
+										$transaction: {
+											$network: $transaction.$network,
+											txId: input.txid,
+										},
+										indexInTransaction: input.vout,
+									},
+								},
+							}),
+							...(input.coinbase != null && {
+								coinbaseScript: input.coinbase,
+							}),
+							...(input.scriptSig != null && {
+								scriptSigAsm: input.scriptSig.asm,
+							}),
+							sequence: input.sequence,
+							...(input.txinwitness != null && {
+								witness: input.txinwitness,
+							}),
+						}
+					},
+				}
+			},
+		})({
+				$spentOutput: (snapshot) => snapshot.$spentOutput,
+				coinbaseScript: (snapshot) => snapshot.coinbaseScript,
+				scriptSigAsm: (snapshot) => snapshot.scriptSigAsm,
+				sequence: (snapshot) => snapshot.sequence,
+				witness: (snapshot) => snapshot.witness ?? [],
+			}),
+
+		defineResolver({
 			entityType: EntityType.UtxoOutput,
 			resolve: {
 				TransactionIndexInTransaction: {
 					resolve: async (entitySelector) => {
 						const output = await getOutput(entitySelector)
 						return {
+							[EntityMetaKey.Selector]: {
+								$transaction: entitySelector.$transaction,
+								indexInTransaction: entitySelector.indexInTransaction,
+							},
 							valueSats: BigInt(Math.round(output.value * 100_000_000)),
 							scriptPubKeyAsm: output.scriptPubKey.asm,
 							scriptPubKeyHex: output.scriptPubKey.hex,
@@ -166,4 +267,4 @@ export default {
 				commitmentHex: (snapshot) => snapshot.commitmentHex,
 			}),
 	],
-} satisfies RegisteredSourceResolverModule
+}
