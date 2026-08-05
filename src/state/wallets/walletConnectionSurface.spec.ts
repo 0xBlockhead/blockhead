@@ -17,11 +17,40 @@ import {
 	walletConnectionMethodAdapterIdByMethodId,
 } from './walletConnectionSurface.ts'
 import { createEip6963Adapter } from './adapters/eip6963.ts'
+import { createTronInjectedAdapter } from './adapters/tronInjected.ts'
+import { createCardanoCip30Adapter } from './adapters/cardanoCip30.ts'
+import { createCosmosOfflineSignerAdapter } from './adapters/cosmosOfflineSigner.ts'
+import { createTonConnectAdapter } from './adapters/tonConnect.ts'
+import { createStarknetWalletApiAdapter } from './adapters/starknetWalletApi.ts'
+import { createPolkadotInjectedWeb3Adapter } from './adapters/polkadotInjectedWeb3.ts'
+import { createBitcoinInjectedAdapter } from './adapters/bitcoinInjected.ts'
+import { createAptosInjectedAdapter } from './adapters/aptosInjected.ts'
+import type { WalletAdapter } from './adapters/types.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 
 
 describe('walletConnectionSurface', () => {
+	const assertImplementedAdapterHooks = (
+		methodId: string,
+		createAdapter: () => WalletAdapter
+	) => {
+		const adapter = createAdapter()
+		const method = walletConnectionMethods.find((entry) => entry.id === methodId)
+		expect(method).toBeTruthy()
+		for (const capability of method!.capabilities) {
+			const surface = walletCapabilitySurfaceByCapability[capability]
+			if (surface.kind === WalletCapabilitySurfaceKind.PrepOnly)
+				continue
+			if (surface.adapterHook == null)
+				continue
+			expect(
+				adapterExposesHook(adapter, surface.adapterHook),
+				`${methodId} missing adapter hook ${surface.adapterHook} for ${capability}`
+			).toBe(true)
+		}
+	}
+
 	it('accounts for every WalletCapability', () => {
 		expect(() => assertEveryWalletCapabilityHasSurface()).not.toThrow()
 		expect(walletCapabilitySurfaces).toHaveLength(Object.values(WalletCapability).length)
@@ -62,20 +91,24 @@ describe('walletConnectionSurface', () => {
 	})
 
 	it('eip6963 adapter exposes executable hooks for non-prep catalog capabilities', () => {
-		const adapter = createEip6963Adapter()
-		const method = walletConnectionMethods.find((entry) => entry.id === 'eip6963')
-		expect(method).toBeTruthy()
-		for (const capability of method!.capabilities) {
-			const surface = walletCapabilitySurfaceByCapability[capability]
-			if (surface.kind === WalletCapabilitySurfaceKind.PrepOnly)
-				continue
-			if (surface.adapterHook == null)
-				continue
-			expect(
-				adapterExposesHook(adapter, surface.adapterHook),
-				`eip6963 missing adapter hook ${surface.adapterHook} for ${capability}`
-			).toBe(true)
-		}
+		assertImplementedAdapterHooks('eip6963', createEip6963Adapter)
+	})
+
+	it.each([
+		['tron-tip6963', createTronInjectedAdapter],
+		['tron-tip1193', createTronInjectedAdapter],
+		['cardano-cip30', createCardanoCip30Adapter],
+		['cosmos-offline-signer', createCosmosOfflineSignerAdapter],
+		['ton-connect-injected', createTonConnectAdapter],
+		['starknet-wallet-api', createStarknetWalletApiAdapter],
+		['polkadot-injected-web3', createPolkadotInjectedWeb3Adapter],
+		['bitcoin-injected-globals', createBitcoinInjectedAdapter],
+		['aptos-injected-globals', createAptosInjectedAdapter],
+	] as const)('%s adapter exposes executable hooks for non-prep catalog capabilities', (
+		methodId,
+		createAdapter
+	) => {
+		assertImplementedAdapterHooks(methodId, createAdapter)
 	})
 
 	it('projects discoverable connection state (scopes methods/events, accounts, session)', () => {

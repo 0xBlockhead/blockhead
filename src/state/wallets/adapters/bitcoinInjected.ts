@@ -38,6 +38,8 @@ type UnisatProvider = {
 	requestAccounts(): Promise<JsonValue>
 	getAccounts(): Promise<JsonValue>
 	getChain(): Promise<UnisatChain>
+	signMessage?(message: string, type?: string): Promise<string>
+	signPsbt?(psbtHex: string): Promise<string>
 	on(event: 'accountsChanged' | 'networkChanged', listener: (payload: JsonValue) => void): void
 	removeListener(event: 'accountsChanged' | 'networkChanged', listener: (payload: JsonValue) => void): void
 }
@@ -103,12 +105,18 @@ const bitcoinNetworks = {
 	},
 } as const
 
+const bitcoinSigningCapabilities = [
+	WalletCapability.SignMessage,
+	WalletCapability.SignTransaction,
+] satisfies WalletCapability[]
+
 const bitcoinConnectionCapabilities = [
 	WalletCapability.Connect,
 	WalletCapability.Reconnect,
 	WalletCapability.ListAccounts,
 	WalletCapability.WatchAccounts,
 	WalletCapability.WatchScopes,
+	...bitcoinSigningCapabilities,
 ] satisfies WalletCapability[]
 
 const bitcoinNetwork = (network: string) => {
@@ -296,7 +304,16 @@ export const createBitcoinInjectedAdapter = (): WalletAdapter => {
 			addresses,
 			connectedAt,
 			protocol: WalletProtocol.SatsConnect,
-			methods: method === 'getAddresses' ? ['getAddresses'] : ['wallet_connect', 'wallet_getAccount', 'wallet_disconnect'],
+			methods: method === 'getAddresses' ?
+				['getAddresses', 'signMessage', 'signPsbt']
+			:
+				[
+					'wallet_connect',
+					'wallet_getAccount',
+					'wallet_disconnect',
+					'signMessage',
+					'signPsbt',
+				],
 			events: method === 'getAddresses' ? [] : ['accountChange', 'accountDisconnected', 'networkChange'],
 		}
 	}
@@ -312,7 +329,13 @@ export const createBitcoinInjectedAdapter = (): WalletAdapter => {
 			addresses: unisatAddresses(accounts, chain.network),
 			connectedAt,
 			protocol: WalletProtocol.BitcoinInjected,
-			methods: ['getAccounts', 'requestAccounts', 'getChain'],
+			methods: [
+				'getAccounts',
+				'requestAccounts',
+				'getChain',
+				'signMessage',
+				'signPsbt',
+			],
 			events: ['accountsChanged', 'networkChanged'],
 		}
 	}
@@ -407,6 +430,42 @@ export const createBitcoinInjectedAdapter = (): WalletAdapter => {
 
 			stateByWalletId.delete(walletId)
 		},
+		signMessage: async (walletId, accountAddress, message) => {
+			const provider = providerByWalletId.get(walletId)
+			if (provider == null)
+				throw new Error('Bitcoin wallet provider is unavailable')
+
+			if (provider.kind === 'unisat') {
+				const signMessage = provider.provider.signMessage
+				if (signMessage == null)
+					throw new Error('UniSat wallet does not implement signMessage')
+
+				const signature = await signMessage(message, 'ecdsa')
+				if (typeof signature !== 'string' || signature.length === 0)
+					throw new Error('UniSat wallet returned an invalid signMessage signature')
+
+				return signature
+			}
+
+			const response = await provider.provider.request('signMessage', {
+				payload: {
+					address: accountAddress,
+					message,
+				},
+			})
+			const result = isJsonObject(response) && response.status === 'success' ?
+				response.result
+			:
+				response
+			if (
+				!isJsonObject(result)
+				|| !isJsonString(result.signature)
+				|| result.signature.length === 0
+			)
+				throw new Error('Bitcoin wallet returned an invalid signMessage signature')
+
+			return result.signature
+		},
 		subscribeConnection: (walletId, updateConnection) => {
 			const provider = providerByWalletId.get(walletId)
 			if (provider == null) return () => {}
@@ -427,7 +486,13 @@ export const createBitcoinInjectedAdapter = (): WalletAdapter => {
 									addresses: unisatAddresses(accounts, chain.network),
 									connectedAt: state?.connectedAt ?? Date.now(),
 									protocol: WalletProtocol.BitcoinInjected,
-									methods: ['getAccounts', 'requestAccounts', 'getChain'],
+									methods: [
+										'getAccounts',
+										'requestAccounts',
+										'getChain',
+										'signMessage',
+										'signPsbt',
+									],
 									events: ['accountsChanged', 'networkChanged'],
 								})
 						}).catch(() => {})

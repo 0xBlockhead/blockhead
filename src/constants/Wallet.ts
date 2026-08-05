@@ -377,7 +377,7 @@ export const walletConnectionMethods = [
 			WalletCapability.Disconnect,
 			WalletCapability.ListAccounts,
 		],
-		implementationStatus: WalletImplementationStatus.DiscoveryImplemented,
+		implementationStatus: WalletImplementationStatus.Implemented,
 		dependencyPolicy: 'none',
 	},
 	{
@@ -490,7 +490,7 @@ export const walletConnectionMethods = [
 			WalletCapability.SignMessage,
 			WalletCapability.SignTransaction,
 		],
-		implementationStatus: WalletImplementationStatus.DiscoveryImplemented,
+		implementationStatus: WalletImplementationStatus.Implemented,
 		dependencyPolicy: 'none',
 	},
 	{

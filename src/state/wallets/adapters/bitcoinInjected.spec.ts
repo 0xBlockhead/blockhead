@@ -533,4 +533,84 @@ describe('Bitcoin injected wallet adapter', () => {
 			expect.objectContaining({ id: 'bitcoin:magiceden', capabilities: [WalletCapability.Discover] }),
 		]))
 	})
+
+	it('advertises SignMessage and signs via UniSat signMessage when connected', async () => {
+		const signMessage = vi.fn(async () => 'unisat-signature')
+		const provider = {
+			requestAccounts: vi.fn(async () => [mainnetWitnessV0]),
+			getAccounts: vi.fn(async () => [mainnetWitnessV0]),
+			getChain: vi.fn(async () => ({
+				enum: 'BITCOIN_MAINNET',
+				name: 'Bitcoin Mainnet',
+				network: 'livenet',
+			})),
+			signMessage,
+			on: vi.fn(),
+			removeListener: vi.fn(),
+		}
+		vi.stubGlobal('window', { unisat: provider })
+		const adapter = createBitcoinInjectedAdapter()
+		adapter.start(() => {})
+
+		const connection = await adapter.connect('bitcoin:unisat')
+		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignMessage)
+		expect(connection?.scopes[0]?.methods).toContain('signMessage')
+		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignTransaction)
+
+		await expect(adapter.signMessage?.(
+			'bitcoin:unisat',
+			mainnetWitnessV0,
+			'Sign this Bitcoin challenge'
+		)).resolves.toBe('unisat-signature')
+		expect(signMessage).toHaveBeenCalledWith('Sign this Bitcoin challenge', 'ecdsa')
+	})
+
+	it('advertises SignMessage and signs via Sats Connect signMessage when connected', async () => {
+		const request = vi.fn(async (method: string) => (
+			method === 'signMessage' ?
+				{
+					status: 'success',
+					result: {
+						signature: 'xverse-signature',
+					},
+				}
+			:
+				{
+					status: 'success',
+					result: {
+						addresses: [{
+							address: mainnetWitnessV0,
+							purpose: 'payment',
+							network: 'mainnet',
+						}],
+					},
+				}
+		))
+		vi.stubGlobal('window', {
+			XverseProviders: {
+				BitcoinProvider: {
+					request,
+					addListener: () => vi.fn(),
+				},
+			},
+		})
+		const adapter = createBitcoinInjectedAdapter()
+		adapter.start(() => {})
+
+		const connection = await adapter.connect('bitcoin:xverse')
+		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignMessage)
+		expect(connection?.scopes[0]?.methods).toContain('signMessage')
+
+		await expect(adapter.signMessage?.(
+			'bitcoin:xverse',
+			mainnetWitnessV0,
+			'Sign this Bitcoin challenge'
+		)).resolves.toBe('xverse-signature')
+		expect(request).toHaveBeenCalledWith('signMessage', {
+			payload: {
+				address: mainnetWitnessV0,
+				message: 'Sign this Bitcoin challenge',
+			},
+		})
+	})
 })
