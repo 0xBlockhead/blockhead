@@ -253,7 +253,7 @@ describe('Cosmos offline signer adapter', () => {
 		expect(listeners.has('leap_keystorechange')).toBe(false)
 	})
 
-	it('preserves enable approval and Leap disconnect rejection', async () => {
+	it('preserves enable approval and allows a rejected connection to retry', async () => {
 		const approvalRejection = new Error('User rejected Cosmos access')
 		const disconnectRejection = new Error('Leap rejected disconnect')
 		const { leap } = setup()
@@ -263,7 +263,66 @@ describe('Cosmos offline signer adapter', () => {
 		adapter.start(() => {})
 
 		await expect(adapter.connect('cosmos:leap')).rejects.toBe(approvalRejection)
+		await expect(adapter.connect('cosmos:leap')).resolves.toMatchObject({
+			status: BlockheadConnectionStatus.Connected,
+			accounts: [
+				expect.objectContaining({
+					accountAddress: cosmosAccountA,
+				}),
+			],
+		})
+		expect(leap.enable).toHaveBeenNthCalledWith(1, ['cosmoshub-4'])
+		expect(leap.enable).toHaveBeenNthCalledWith(2, ['cosmoshub-4'])
 		await expect(adapter.disconnect('cosmos:leap')).rejects.toBe(disconnectRejection)
+	})
+
+	it('discovers accounts independently for every declared chain', async () => {
+		const osmosisAccount = 'osmo1ruszzg3rysjjvfeg9y4zktpd9chnqvfj35zh5t'
+		const { leap } = setup()
+		leap.getOfflineSignerAuto.mockImplementation(async (chainId: string) => ({
+			getAccounts: async () => [{
+				address: chainId === 'osmosis-1' ? osmosisAccount : cosmosAccountA,
+				pubkey: new Uint8Array(),
+				algo: 'secp256k1',
+			}],
+		}))
+		const adapter = createCosmosOfflineSignerAdapter([
+			{
+				chainId: 'cosmoshub-4',
+				accountPrefix: 'cosmos',
+			},
+			{
+				chainId: 'osmosis-1',
+				accountPrefix: 'osmo',
+			},
+		])
+		adapter.start(() => {})
+
+		await expect(adapter.connect('cosmos:leap')).resolves.toMatchObject({
+			connectionKey: 'cosmos:leap:cosmoshub-4,osmosis-1',
+			scopes: [
+				expect.objectContaining({
+					reference: 'cosmoshub-4',
+				}),
+				expect.objectContaining({
+					reference: 'osmosis-1',
+				}),
+			],
+			accounts: [
+				expect.objectContaining({
+					reference: 'cosmoshub-4',
+					accountAddress: cosmosAccountA,
+				}),
+				expect.objectContaining({
+					reference: 'osmosis-1',
+					accountAddress: osmosisAccount,
+				}),
+			],
+		})
+		expect(leap.enable).toHaveBeenCalledWith([
+			'cosmoshub-4',
+			'osmosis-1',
+		])
 	})
 
 	it('cancels stale account reads and pending restore after cleanup', async () => {

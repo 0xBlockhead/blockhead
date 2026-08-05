@@ -1,3 +1,4 @@
+import { Caip2Reference } from '$/constants/Network.ts'
 import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { getWallet as getKeplrWallet } from '$/sources/Keplr/WalletApi/queries.ts'
@@ -9,7 +10,18 @@ import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletConnection } from './types.ts'
 import { buildWalletConnection } from '../walletConnectionState.ts'
 
-const COSMOS_HUB_CHAIN_ID = 'cosmoshub-4'
+export type CosmosChain = {
+	chainId: string
+	accountPrefix: string
+}
+
+const defaultCosmosChains = [
+	{
+		chainId: Caip2Reference.CosmosHub,
+		accountPrefix: 'cosmos',
+	},
+] as const satisfies readonly CosmosChain[]
+
 type CosmosWallet = Pick<KeplrWallet | LeapWallet, 'enable' | 'getOfflineSignerAuto'> & {
 	isConnected?: (chainId: string) => Promise<boolean>
 	disconnect?: (chainId: string) => Promise<boolean>
@@ -32,38 +44,48 @@ const cosmosConnectionCapabilities = (walletId: string) => [
 	WalletCapability.SignTransaction,
 ] satisfies WalletCapability[]
 
-const normalizeCosmosAccountAddress = (accountAddress: string) => {
+const normalizeCosmosAccountAddress = (
+	accountAddress: string,
+	chain: CosmosChain
+) => {
 	try {
 		const decodedAddress = bech32.decode(accountAddress)
-		if (decodedAddress.prefix !== 'cosmos')
+		if (decodedAddress.prefix !== chain.accountPrefix)
 			throw new Error('Unexpected Cosmos account address prefix')
 
-		return bech32.encode('cosmos', decodedAddress.words, false)
+		return bech32.encode(chain.accountPrefix, decodedAddress.words, false)
 	} catch {
-		throw new Error('Cosmos wallet returned an invalid cosmoshub-4 account address')
+		throw new Error(`Cosmos wallet returned an invalid ${chain.chainId} account address`)
 	}
 }
 
 const cosmosConnectionFromAccounts = (
 	walletId: string,
-	accountAddresses: string[],
+	accountsByChain: readonly {
+		chain: CosmosChain
+		accountAddresses: string[]
+	}[],
 	connectedAt: number
-): WalletConnection => (
-	buildWalletConnection({
-		connectionKey: `${walletId}:${COSMOS_HUB_CHAIN_ID}`,
+): WalletConnection => {
+	const accountCount = accountsByChain.reduce((
+		count,
+		{ accountAddresses }
+	) => count + accountAddresses.length, 0)
+
+	return buildWalletConnection({
+		connectionKey: `${walletId}:${accountsByChain.map(({ chain }) => chain.chainId).join(',')}`,
 		walletId,
 		status: (
-			accountAddresses.length ?
+			accountCount ?
 				BlockheadConnectionStatus.Connected
 			:
 				BlockheadConnectionStatus.Disconnected
 		),
 		protocol: WalletProtocol.CosmosOfflineSigner,
 		transportKind: WalletTransportKind.InjectedSigner,
-		scopes: [
-			{
+		scopes: accountsByChain.map(({ chain }) => ({
 				namespace: 'cosmos',
-				reference: COSMOS_HUB_CHAIN_ID,
+				reference: chain.chainId,
 				methods: [
 					'enable',
 					'getOfflineSignerAuto',
@@ -78,42 +100,54 @@ const cosmosConnectionFromAccounts = (
 					:
 						'keplr_keystorechange',
 				],
-			},
-		],
-		accounts: accountAddresses.map((accountAddress) => ({
-			namespace: 'cosmos',
-			reference: COSMOS_HUB_CHAIN_ID,
-			accountAddress,
-			capabilities: [
-				...cosmosConnectionCapabilities(walletId),
-			],
-		})),
-		selected: accountAddresses.length > 0,
+			})),
+		accounts: accountsByChain.flatMap(({ chain, accountAddresses }) => (
+			accountAddresses.map((accountAddress) => ({
+				namespace: 'cosmos',
+				reference: chain.chainId,
+				accountAddress,
+				capabilities: [
+					...cosmosConnectionCapabilities(walletId),
+				],
+			}))
+		)),
+		selected: accountCount > 0,
 		connectedAt,
-		...(accountAddresses.length === 0 && { disconnectedAt: Date.now() }),
+		...(accountCount === 0 && { disconnectedAt: Date.now() }),
 	})
-)
+}
 
 const readCosmosConnection = async (
 	walletId: string,
 	wallet: CosmosWallet,
+	chains: readonly CosmosChain[],
 	connectedAt: number,
 	enable: boolean
 ) => {
 	if (enable)
-		await wallet.enable(COSMOS_HUB_CHAIN_ID)
+		await wallet.enable(chains.map(({ chainId }) => chainId))
 
 	return cosmosConnectionFromAccounts(
 		walletId,
-		[...new Set(
-			(await (await wallet.getOfflineSignerAuto(COSMOS_HUB_CHAIN_ID)).getAccounts())
-				.map((account) => normalizeCosmosAccountAddress(account.address))
-		)],
+		await Promise.all(chains.map(async (chain) => ({
+			chain,
+			accountAddresses: [...new Set(
+				(await (await wallet.getOfflineSignerAuto(chain.chainId)).getAccounts())
+					.map((account) => normalizeCosmosAccountAddress(account.address, chain))
+			)],
+		}))),
 		connectedAt
 	)
 }
 
-export const createCosmosOfflineSignerAdapter = (): WalletAdapter => {
+export const createCosmosOfflineSignerAdapter = (
+	chains: readonly CosmosChain[] = defaultCosmosChains
+): WalletAdapter => {
+	if (!chains.length)
+		throw new Error('Cosmos offline signer adapter requires at least one declared chain')
+	if (new Set(chains.map(({ chainId }) => chainId)).size !== chains.length)
+		throw new Error('Cosmos offline signer adapter chain IDs must be unique')
+
 	const walletByWalletId = new SvelteMap<string, CosmosWallet>()
 	const connectedAtByWalletId = new SvelteMap<string, number>()
 
@@ -184,6 +218,7 @@ export const createCosmosOfflineSignerAdapter = (): WalletAdapter => {
 			const connection = await readCosmosConnection(
 				walletId,
 				wallet,
+				chains,
 				connectedAt,
 				true
 			)
@@ -197,7 +232,7 @@ export const createCosmosOfflineSignerAdapter = (): WalletAdapter => {
 		disconnect: async (walletId) => {
 			const wallet = walletByWalletId.get(walletId)
 			if (walletId === 'cosmos:leap' && wallet?.disconnect != null)
-				await wallet.disconnect(COSMOS_HUB_CHAIN_ID)
+				await Promise.all(chains.map(({ chainId }) => wallet.disconnect?.(chainId)))
 
 			connectedAtByWalletId.delete(walletId)
 		},
@@ -223,6 +258,7 @@ export const createCosmosOfflineSignerAdapter = (): WalletAdapter => {
 				void readCosmosConnection(
 					walletId,
 					wallet,
+					chains,
 					connectedAt,
 					false
 				).then((connection) => {
@@ -233,7 +269,10 @@ export const createCosmosOfflineSignerAdapter = (): WalletAdapter => {
 						updateConnection({
 						...cosmosConnectionFromAccounts(
 							walletId,
-							[],
+							chains.map((chain) => ({
+								chain,
+								accountAddresses: [],
+							})),
 							connectedAt
 						),
 						status: BlockheadConnectionStatus.Error,
@@ -245,17 +284,31 @@ export const createCosmosOfflineSignerAdapter = (): WalletAdapter => {
 			window.addEventListener(keystoreChangeEvent, onKeystoreChange)
 			if (restoring && walletId === 'cosmos:leap' && wallet.isConnected != null) {
 				const restoreVersion = readVersion
-				void wallet.isConnected(COSMOS_HUB_CHAIN_ID).then((connected) => {
+				void Promise.all(chains.map(({ chainId }) => wallet.isConnected?.(chainId))).then((connectedByChain) => {
 					if (!subscribed || readVersion !== restoreVersion) return
 
-					if (connected)
+					if (connectedByChain.every(Boolean))
 						onKeystoreChange()
 					else
-						updateConnection(cosmosConnectionFromAccounts(walletId, [], connectedAt))
+						updateConnection(cosmosConnectionFromAccounts(
+							walletId,
+							chains.map((chain) => ({
+								chain,
+								accountAddresses: [],
+							})),
+							connectedAt
+						))
 				}).catch((error) => {
 					if (subscribed && readVersion === restoreVersion)
 						updateConnection({
-						...cosmosConnectionFromAccounts(walletId, [], connectedAt),
+						...cosmosConnectionFromAccounts(
+							walletId,
+							chains.map((chain) => ({
+								chain,
+								accountAddresses: [],
+							})),
+							connectedAt
+						),
 						status: BlockheadConnectionStatus.Error,
 						error: String(error),
 					})
