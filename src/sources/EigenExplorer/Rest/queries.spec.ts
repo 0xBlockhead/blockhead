@@ -143,7 +143,7 @@ describe('EigenExplorer REST queries', () => {
 		})
 		await expect(getStakerDeposits(
 			stakerAddress
-		)).rejects.toThrow('foreign deposit')
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: foreign deposit`)
 	})
 
 	it('validates withdrawal identity and nested strategy shares', async () => {
@@ -319,13 +319,92 @@ describe('EigenExplorer REST queries', () => {
 
 		await expect(getOperatorRewardInfo(
 			operatorAddress
-		)).rejects.toThrow('duplicate reward information')
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: duplicate reward information`)
 		await expect(getStakerDeposits(
 			stakerAddress,
 			{
 				take: 101,
 			}
-		)).rejects.toThrow('between 1 and 100')
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: take must be between 1 and 100`)
 		expect(sourceFetch).toHaveBeenCalledTimes(1)
+	})
+
+	it('fail-closes on malformed list and detail response envelopes', async () => {
+		respond({
+			address: stakerAddress,
+		})
+		await expect(getStaker(
+			stakerAddress
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid staker response envelope`)
+
+		respond({
+			data: [{
+				transactionHash,
+				stakerAddress,
+				tokenAddress,
+				strategyAddress,
+				shares: '1',
+				createdAtBlock: 100,
+				createdAt: '2026-01-01T00:00:00.000Z',
+			}],
+		})
+		await expect(getStakerDeposits(
+			stakerAddress
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid staker deposits response envelope`)
+
+		respond({
+			data: 'not-an-array',
+			meta: {
+				total: 0,
+				skip: 0,
+				take: 100,
+			},
+		})
+		await expect(getStakerWithdrawals(
+			stakerAddress
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid staker withdrawals response envelope`)
+
+		respond({
+			address: operatorAddress,
+			metadataName: 'Example Operator',
+		})
+		await expect(getOperator(
+			operatorAddress
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid operator response envelope`)
+
+		respond({
+			address: operatorAddress,
+			rewardTokens: tokenAddress,
+			rewardStrategies: [strategyAddress],
+		})
+		await expect(getOperatorRewardInfo(
+			operatorAddress
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid operator rewards response envelope`)
+
+		respond({
+			address: avsAddress,
+			metadataName: 'Example AVS',
+			totalStakers: 12,
+		})
+		await expect(getAvs(
+			avsAddress
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid AVS response envelope`)
+
+		respond({
+			data: [{
+				address: operatorAddress,
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 25,
+			},
+		})
+		await expect(listAvsOperators(
+			avsAddress,
+			{
+				take: 25,
+			}
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid AVS operators response envelope`)
 	})
 })

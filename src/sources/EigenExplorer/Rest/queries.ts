@@ -12,12 +12,35 @@ import type {
 	EigenExplorerStaker,
 	EigenExplorerWithdrawal,
 } from '$/sources/EigenExplorer/Rest/types.ts'
+import {
+	eigenExplorerAvsEnvelope,
+	eigenExplorerDepositPageEnvelope,
+	eigenExplorerOperatorEnvelope,
+	eigenExplorerOperatorPageEnvelope,
+	eigenExplorerOperatorRewardInfoEnvelope,
+	eigenExplorerStakerEnvelope,
+	eigenExplorerWithdrawalPageEnvelope,
+} from '$/sources/EigenExplorer/Rest/types.ts'
 
 const binding = bindings[Source.EigenExplorer_Rest][0]
 
 const evmAddressPattern = /^0x[0-9a-f]{40}$/i
 const bytes32Pattern = /^0x[0-9a-f]{64}$/i
 const unsignedIntegerPattern = /^(0|[1-9][0-9]*)$/
+
+const assertEnvelope = (
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(value)
+	} catch {
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid ${label} response envelope`)
+	}
+}
 
 const fetchEigenExplorerJson = <_Json>(path: string) => (
 	sourceFetch(binding, httpUrl(binding, path), {
@@ -37,7 +60,7 @@ const assertAddress = (
 	label: string
 ) => {
 	if (!evmAddressPattern.test(address))
-		throw new Error(`EigenExplorer returned invalid ${label}`)
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid ${label}`)
 }
 
 const assertTimestamp = (
@@ -45,7 +68,7 @@ const assertTimestamp = (
 	label: string
 ) => {
 	if (!Number.isFinite(Date.parse(timestamp)))
-		throw new Error(`EigenExplorer returned invalid ${label}`)
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid ${label}`)
 }
 
 const assertOptionalHttpUrl = (
@@ -58,7 +81,7 @@ const assertOptionalHttpUrl = (
 	try {
 		new URL(value)
 	} catch {
-		throw new Error(`EigenExplorer returned invalid ${label}`)
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid ${label}`)
 	}
 }
 
@@ -67,7 +90,7 @@ const assertNonNegativeSafeInteger = (
 	label: string
 ) => {
 	if (!Number.isSafeInteger(value) || value < 0)
-		throw new Error(`EigenExplorer returned invalid ${label}`)
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid ${label}`)
 }
 
 const assertStrategyShares = (
@@ -82,12 +105,12 @@ const assertStrategyShares = (
 		assertAddress(value.strategyAddress, 'strategy address')
 
 		if (!unsignedIntegerPattern.test(value.shares))
-			throw new Error('EigenExplorer returned invalid strategy shares')
+			throw new Error(`${Source.EigenExplorer_Rest}: invalid strategy shares`)
 
 		const strategyAddress = value.strategyAddress.toLowerCase()
 
 		if (strategyAddresses.has(strategyAddress))
-			throw new Error('EigenExplorer returned duplicate strategy shares')
+			throw new Error(`${Source.EigenExplorer_Rest}: duplicate strategy shares`)
 
 		strategyAddresses.add(strategyAddress)
 	}
@@ -103,10 +126,10 @@ const paginationPath = ({
 	take: number
 }) => {
 	if (!Number.isSafeInteger(skip) || skip < 0)
-		throw new Error('EigenExplorer skip must be a nonnegative safe integer')
+		throw new Error(`${Source.EigenExplorer_Rest}: skip must be a nonnegative safe integer`)
 
 	if (!Number.isSafeInteger(take) || take < 1 || take > 100)
-		throw new Error('EigenExplorer take must be between 1 and 100')
+		throw new Error(`${Source.EigenExplorer_Rest}: take must be between 1 and 100`)
 
 	return `${path}?${new URLSearchParams({
 		skip: String(skip),
@@ -126,7 +149,7 @@ const assertPage = <_Row>(
 		|| page.meta.take !== take
 		|| page.data.length > take
 	)
-		throw new Error('EigenExplorer returned invalid pagination metadata')
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid pagination metadata`)
 
 	return page
 }
@@ -137,9 +160,10 @@ export const getStaker = async (address: string) => {
 	const staker = await fetchEigenExplorerJson<EigenExplorerStaker>(
 		`/stakers/${encodeURIComponent(address)}`
 	)
+	assertEnvelope(eigenExplorerStakerEnvelope, staker, 'staker')
 
 	if (staker.address.toLowerCase() !== address.toLowerCase())
-		throw new Error('EigenExplorer returned a foreign staker')
+		throw new Error(`${Source.EigenExplorer_Rest}: foreign staker`)
 
 	if (staker.operatorAddress !== null)
 		assertAddress(staker.operatorAddress, 'operator address')
@@ -148,7 +172,7 @@ export const getStaker = async (address: string) => {
 		!unsignedIntegerPattern.test(staker.createdAtBlock)
 		|| !unsignedIntegerPattern.test(staker.updatedAtBlock)
 	)
-		throw new Error('EigenExplorer returned invalid staker block identity')
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid staker block identity`)
 
 	assertTimestamp(staker.createdAt, 'staker creation timestamp')
 	assertTimestamp(staker.updatedAt, 'staker update timestamp')
@@ -169,25 +193,23 @@ export const getStakerDeposits = async (
 ) => {
 	assertAddress(address, 'staker address')
 
-	const page = assertPage(
-		await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerDeposit>>(
-			paginationPath({
-				path: `/stakers/${encodeURIComponent(address)}/deposits`,
-				skip,
-				take,
-			})
-		),
-		skip,
-		take
+	const wire = await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerDeposit>>(
+		paginationPath({
+			path: `/stakers/${encodeURIComponent(address)}/deposits`,
+			skip,
+			take,
+		})
 	)
+	assertEnvelope(eigenExplorerDepositPageEnvelope, wire, 'staker deposits')
+	const page = assertPage(wire, skip, take)
 	const identities = new Set<string>()
 
 	for (const deposit of page.data) {
 		if (deposit.stakerAddress.toLowerCase() !== address.toLowerCase())
-			throw new Error('EigenExplorer returned a foreign deposit')
+			throw new Error(`${Source.EigenExplorer_Rest}: foreign deposit`)
 
 		if (!bytes32Pattern.test(deposit.transactionHash))
-			throw new Error('EigenExplorer returned invalid deposit transaction hash')
+			throw new Error(`${Source.EigenExplorer_Rest}: invalid deposit transaction hash`)
 
 		assertAddress(deposit.tokenAddress, 'deposit token address')
 		assertAddress(deposit.strategyAddress, 'deposit strategy address')
@@ -197,14 +219,14 @@ export const getStakerDeposits = async (
 			|| !Number.isSafeInteger(deposit.createdAtBlock)
 			|| deposit.createdAtBlock < 0
 		)
-			throw new Error('EigenExplorer returned invalid deposit quantity')
+			throw new Error(`${Source.EigenExplorer_Rest}: invalid deposit quantity`)
 
 		assertTimestamp(deposit.createdAt, 'deposit timestamp')
 
 		const identity = `${deposit.transactionHash.toLowerCase()}:${deposit.strategyAddress.toLowerCase()}`
 
 		if (identities.has(identity))
-			throw new Error('EigenExplorer returned duplicate deposits')
+			throw new Error(`${Source.EigenExplorer_Rest}: duplicate deposits`)
 
 		identities.add(identity)
 	}
@@ -224,25 +246,23 @@ export const getStakerWithdrawals = async (
 ) => {
 	assertAddress(address, 'staker address')
 
-	const page = assertPage(
-		await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerWithdrawal>>(
-			paginationPath({
-				path: `/stakers/${encodeURIComponent(address)}/withdrawals`,
-				skip,
-				take,
-			})
-		),
-		skip,
-		take
+	const wire = await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerWithdrawal>>(
+		paginationPath({
+			path: `/stakers/${encodeURIComponent(address)}/withdrawals`,
+			skip,
+			take,
+		})
 	)
+	assertEnvelope(eigenExplorerWithdrawalPageEnvelope, wire, 'staker withdrawals')
+	const page = assertPage(wire, skip, take)
 	const withdrawalRoots = new Set<string>()
 
 	for (const withdrawal of page.data) {
 		if (withdrawal.stakerAddress.toLowerCase() !== address.toLowerCase())
-			throw new Error('EigenExplorer returned a foreign withdrawal')
+			throw new Error(`${Source.EigenExplorer_Rest}: foreign withdrawal`)
 
 		if (!bytes32Pattern.test(withdrawal.withdrawalRoot))
-			throw new Error('EigenExplorer returned invalid withdrawal root')
+			throw new Error(`${Source.EigenExplorer_Rest}: invalid withdrawal root`)
 
 		assertAddress(withdrawal.delegatedTo, 'withdrawal operator address')
 		assertAddress(withdrawal.withdrawerAddress, 'withdrawer address')
@@ -256,7 +276,7 @@ export const getStakerWithdrawals = async (
 			|| !Number.isSafeInteger(withdrawal.updatedAtBlock)
 			|| withdrawal.updatedAtBlock < 0
 		)
-			throw new Error('EigenExplorer returned invalid withdrawal identity')
+			throw new Error(`${Source.EigenExplorer_Rest}: invalid withdrawal identity`)
 
 		assertTimestamp(withdrawal.createdAt, 'withdrawal creation timestamp')
 		assertTimestamp(withdrawal.updatedAt, 'withdrawal update timestamp')
@@ -264,7 +284,7 @@ export const getStakerWithdrawals = async (
 		const withdrawalRoot = withdrawal.withdrawalRoot.toLowerCase()
 
 		if (withdrawalRoots.has(withdrawalRoot))
-			throw new Error('EigenExplorer returned duplicate withdrawals')
+			throw new Error(`${Source.EigenExplorer_Rest}: duplicate withdrawals`)
 
 		withdrawalRoots.add(withdrawalRoot)
 	}
@@ -278,15 +298,16 @@ export const getAvs = async (address: string) => {
 	const avs = await fetchEigenExplorerJson<EigenExplorerAvs>(
 		`/avs/${encodeURIComponent(address)}`
 	)
+	assertEnvelope(eigenExplorerAvsEnvelope, avs, 'AVS')
 
 	if (avs.address.toLowerCase() !== address.toLowerCase())
-		throw new Error('EigenExplorer returned a foreign AVS')
+		throw new Error(`${Source.EigenExplorer_Rest}: foreign AVS`)
 
 	if (
 		!unsignedIntegerPattern.test(avs.createdAtBlock)
 		|| !unsignedIntegerPattern.test(avs.updatedAtBlock)
 	)
-		throw new Error('EigenExplorer returned invalid AVS block identity')
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid AVS block identity`)
 
 	assertTimestamp(avs.createdAt, 'AVS creation timestamp')
 	assertTimestamp(avs.updatedAt, 'AVS update timestamp')
@@ -295,7 +316,7 @@ export const getAvs = async (address: string) => {
 	assertStrategyShares(avs.shares)
 
 	if (avs.metadataName.trim() === '')
-		throw new Error('EigenExplorer returned an empty AVS name')
+		throw new Error(`${Source.EigenExplorer_Rest}: empty AVS name`)
 
 	assertOptionalHttpUrl(avs.metadataWebsite, 'AVS website')
 	assertOptionalHttpUrl(avs.metadataLogo, 'AVS logo')
@@ -315,17 +336,15 @@ export const listAvsOperators = async (
 ) => {
 	assertAddress(address, 'AVS address')
 
-	const page = assertPage(
-		await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerOperator>>(
-			paginationPath({
-				path: `/avs/${encodeURIComponent(address)}/operators`,
-				skip,
-				take,
-			})
-		),
-		skip,
-		take
+	const wire = await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerOperator>>(
+		paginationPath({
+			path: `/avs/${encodeURIComponent(address)}/operators`,
+			skip,
+			take,
+		})
 	)
+	assertEnvelope(eigenExplorerOperatorPageEnvelope, wire, 'AVS operators')
+	const page = assertPage(wire, skip, take)
 	const operatorAddresses = new Set<string>()
 
 	for (const operator of page.data) {
@@ -335,14 +354,14 @@ export const listAvsOperators = async (
 			!unsignedIntegerPattern.test(operator.createdAtBlock)
 			|| !unsignedIntegerPattern.test(operator.updatedAtBlock)
 		)
-			throw new Error('EigenExplorer returned invalid operator block identity')
+			throw new Error(`${Source.EigenExplorer_Rest}: invalid operator block identity`)
 
 		assertTimestamp(operator.createdAt, 'operator creation timestamp')
 		assertTimestamp(operator.updatedAt, 'operator update timestamp')
 		assertStrategyShares(operator.shares)
 
 		if (operator.metadataName.trim() === '')
-			throw new Error('EigenExplorer returned an empty operator name')
+			throw new Error(`${Source.EigenExplorer_Rest}: empty operator name`)
 
 		assertOptionalHttpUrl(operator.metadataWebsite, 'operator website')
 		assertOptionalHttpUrl(operator.metadataLogo, 'operator logo')
@@ -350,7 +369,7 @@ export const listAvsOperators = async (
 		const normalizedAddress = operator.address.toLowerCase()
 
 		if (operatorAddresses.has(normalizedAddress))
-			throw new Error('EigenExplorer returned duplicate operators')
+			throw new Error(`${Source.EigenExplorer_Rest}: duplicate operators`)
 
 		operatorAddresses.add(normalizedAddress)
 	}
@@ -364,9 +383,10 @@ export const getOperatorRewardInfo = async (address: string) => {
 	const rewardInfo = await fetchEigenExplorerJson<EigenExplorerOperatorRewardInfo>(
 		`/operators/${encodeURIComponent(address)}/rewards`
 	)
+	assertEnvelope(eigenExplorerOperatorRewardInfoEnvelope, rewardInfo, 'operator rewards')
 
 	if (rewardInfo.address.toLowerCase() !== address.toLowerCase())
-		throw new Error('EigenExplorer returned foreign operator reward information')
+		throw new Error(`${Source.EigenExplorer_Rest}: foreign operator reward information`)
 
 	for (const tokenAddress of rewardInfo.rewardTokens)
 		assertAddress(tokenAddress, 'reward token address')
@@ -378,7 +398,7 @@ export const getOperatorRewardInfo = async (address: string) => {
 		new Set(rewardInfo.rewardTokens.map((value) => value.toLowerCase())).size !== rewardInfo.rewardTokens.length
 		|| new Set(rewardInfo.rewardStrategies.map((value) => value.toLowerCase())).size !== rewardInfo.rewardStrategies.length
 	)
-		throw new Error('EigenExplorer returned duplicate reward information')
+		throw new Error(`${Source.EigenExplorer_Rest}: duplicate reward information`)
 
 	return rewardInfo
 }
@@ -389,22 +409,23 @@ export const getOperator = async (address: string) => {
 	const operator = await fetchEigenExplorerJson<EigenExplorerOperator>(
 		`/operators/${encodeURIComponent(address)}`
 	)
+	assertEnvelope(eigenExplorerOperatorEnvelope, operator, 'operator')
 
 	if (operator.address.toLowerCase() !== address.toLowerCase())
-		throw new Error('EigenExplorer returned a foreign operator')
+		throw new Error(`${Source.EigenExplorer_Rest}: foreign operator`)
 
 	if (
 		!unsignedIntegerPattern.test(operator.createdAtBlock)
 		|| !unsignedIntegerPattern.test(operator.updatedAtBlock)
 	)
-		throw new Error('EigenExplorer returned invalid operator block identity')
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid operator block identity`)
 
 	assertTimestamp(operator.createdAt, 'operator creation timestamp')
 	assertTimestamp(operator.updatedAt, 'operator update timestamp')
 	assertStrategyShares(operator.shares)
 
 	if (operator.metadataName.trim() === '')
-		throw new Error('EigenExplorer returned an empty operator name')
+		throw new Error(`${Source.EigenExplorer_Rest}: empty operator name`)
 
 	assertOptionalHttpUrl(operator.metadataWebsite, 'operator website')
 	assertOptionalHttpUrl(operator.metadataLogo, 'operator logo')
