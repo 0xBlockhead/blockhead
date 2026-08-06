@@ -191,7 +191,7 @@ describe('GMX markets/info operation', () => {
 			.rejects
 			.toThrow(`${Source.Gmx_Rest}: unsupported chain id 1`)
 
-		.expect(sourceGetJson).not.toHaveBeenCalled()
+		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
 	it('fails closed when markets/info is not an array', async () => {
