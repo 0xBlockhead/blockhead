@@ -14,13 +14,17 @@ import { EntityType } from '$/schema/EntityType.ts'
 
 const getBlobDetail = vi.hoisted(() => vi.fn())
 const getTransaction = vi.hoisted(() => vi.fn())
+const getBlock = vi.hoisted(() => vi.fn())
 const listBlobs = vi.hoisted(() => vi.fn())
+const listBlocks = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Blobscan/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Blobscan/Rest/queries.ts')>(),
 	getBlobDetail,
 	getTransaction,
+	getBlock,
 	listBlobs,
+	listBlocks,
 }))
 
 const { default: blobscanRest } = await import('$/resolvers/Blobscan-Rest.ts')
@@ -64,12 +68,23 @@ const networkBlobsResolver = blobscanRest.resolvers.find((resolver) => (
 	&& 'Evm' in resolver.projections
 	&& '$$blobs' in resolver.projections.Evm
 ))
+const blockResolver = blobscanRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmBlock
+	&& 'blobGasUsed' in resolver.projections
+))
+const networkBlocksResolver = blobscanRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Evm' in resolver.projections
+	&& '$$blocks' in resolver.projections.Evm
+))
 
 if (
 	blobIdentityResolver == null
 	|| blobDetailResolver == null
 	|| transactionBlobsResolver == null
 	|| networkBlobsResolver == null
+	|| blockResolver == null
+	|| networkBlocksResolver == null
 )
 	throw new Error('Blobscan-Rest spec missing expected resolvers')
 
@@ -77,7 +92,9 @@ describe('Blobscan EVM blob resolvers', () => {
 	beforeEach(() => {
 		getBlobDetail.mockReset()
 		getTransaction.mockReset()
+		getBlock.mockReset()
 		listBlobs.mockReset()
+		listBlocks.mockReset()
 	})
 
 	it('resolves blob identity and detail from the transaction selector', async () => {
@@ -222,5 +239,81 @@ describe('Blobscan EVM blob resolvers', () => {
 			limit: 16,
 			offset: 0,
 		})
+	})
+
+	it('projects enrolled EvmBlock blob-gas fields from getBlock', async () => {
+		getBlock.mockResolvedValueOnce({
+			hash: '0xca22de2c1d7c8ac391921a2e3c96872ecf805a2d398813aa0f8cb995aa85ddea',
+			number: 12,
+			timestamp: '2026-08-05T02:08:35.000Z',
+			blobGasUsed: '131072',
+			excessBlobGas: '0',
+			transactions: [{
+				hash: txHash,
+				blobs: [{
+					versionedHash,
+				}],
+			}],
+		})
+
+		const block = await blockResolver.resolve.EvmNetworkBlockNumber.resolve({
+			$network: network,
+			blockNumber: 12n,
+		}, context)
+		expect(blockResolver.projections.hash(block, context)).toBe(
+			'0xca22de2c1d7c8ac391921a2e3c96872ecf805a2d398813aa0f8cb995aa85ddea'
+		)
+		expect(blockResolver.projections.timestamp(block, context)).toBe(
+			Math.floor(Date.parse('2026-08-05T02:08:35.000Z') / 1_000) * 1_000
+		)
+		expect(blockResolver.projections.blobGasUsed(block, context)).toBe(131072n)
+		expect(blockResolver.projections.excessBlobGas(block, context)).toBe(0n)
+		expect(blockResolver.projections.transactionCount(block, context)).toBe(1)
+	})
+
+	it('lists Network.Evm.$$blocks from Blobscan recent blocks', async () => {
+		listBlocks.mockResolvedValueOnce([{
+			hash: '0xca22de2c1d7c8ac391921a2e3c96872ecf805a2d398813aa0f8cb995aa85ddea',
+			number: 12,
+			timestamp: '2026-08-05T02:08:35.000Z',
+			blobGasUsed: '131072',
+			excessBlobGas: '0',
+			transactions: [{
+				hash: txHash,
+				blobs: [{
+					versionedHash,
+				}],
+			}],
+		}])
+
+		const rows = await networkBlocksResolver.resolve.Caip2.resolve(network, context)
+		expect(networkBlocksResolver.projections.Evm.$$blocks(rows, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				blockNumber: 12n,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'hash')]: (
+					'0xca22de2c1d7c8ac391921a2e3c96872ecf805a2d398813aa0f8cb995aa85ddea'
+				),
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'blockNumber')]: 12n,
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'timestamp')]: (
+					Math.floor(Date.parse('2026-08-05T02:08:35.000Z') / 1_000) * 1_000
+				),
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'blobGasUsed')]: 131072n,
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'excessBlobGas')]: 0n,
+				[entityFieldAddressKey(EntityType.EvmBlock, [], 'transactionCount')]: 1,
+			},
+		}])
+	})
+
+	it('hard-fails missing Blobscan blocks instead of soft-emptying EvmBlock', async () => {
+		getBlock.mockResolvedValueOnce(undefined)
+		await expect(
+			blockResolver.resolve.EvmNetworkBlockNumber.resolve({
+				$network: network,
+				blockNumber: 12n,
+			}, context)
+		).rejects.toThrow('block not found')
 	})
 })

@@ -163,6 +163,71 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.EvmBlock,
+			resolve: {
+				EvmNetworkBlockNumber: {
+					resolve: async ({ $network, blockNumber }) => {
+						if ($network.caip2.namespace !== 'eip155')
+							throw new Error('Blobscan_Rest: EvmBlock requires eip155')
+
+						const { getBlock } = await import(
+							'$/sources/Blobscan/Rest/queries.ts'
+						)
+						const block = await getBlock(
+							$network.caip2.reference,
+							{
+								blockId: String(blockNumber),
+							}
+						)
+						if (block == null)
+							throw new Error('Blobscan_Rest: block not found')
+
+						const hash = hexLowerOfByteSize(block.hash, 32)
+						if (hash == null)
+							throw new Error('Blobscan_Rest: block hash missing')
+
+						const timestampMs = Math.floor(Date.parse(block.timestamp) / 1_000) * 1_000
+						if (!Number.isFinite(timestampMs) || timestampMs < 0)
+							throw new Error('Blobscan_Rest: block timestamp missing')
+
+						const blobGasUsed = (
+							block.blobGasUsed == null || block.blobGasUsed === '' ?
+								undefined
+							:
+								BigInt(block.blobGasUsed)
+						)
+						const excessBlobGas = (
+							block.excessBlobGas == null || block.excessBlobGas === '' ?
+								undefined
+							:
+								BigInt(block.excessBlobGas)
+						)
+
+						return {
+							hash,
+							blockNumber: BigInt(block.number),
+							timestamp: timestampMs,
+							...(blobGasUsed != null && {
+								blobGasUsed,
+							}),
+							...(excessBlobGas != null && {
+								excessBlobGas,
+							}),
+							transactionCount: block.transactions.length,
+						}
+					},
+				},
+			},
+		})({
+			hash: (block) => block.hash,
+			blockNumber: (block) => block.blockNumber,
+			timestamp: (block) => block.timestamp,
+			blobGasUsed: (block) => block.blobGasUsed,
+			excessBlobGas: (block) => block.excessBlobGas,
+			transactionCount: (block) => block.transactionCount,
+		}),
+
+		defineResolver({
 			entityType: EntityType.EvmTransaction,
 			resolve: {
 				EvmNetworkTxHash: {
@@ -270,6 +335,80 @@ export default {
 		})({
 			Evm: {
 				$$blobs: (entity) => entity,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: async (entitySelector, context) => {
+						if (entitySelector.caip2.namespace !== 'eip155')
+							throw new Error('Blobscan_Rest: Network.$$blocks requires eip155')
+
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						if (limit === 0)
+							return []
+
+						const { listBlocks } = await import(
+							'$/sources/Blobscan/Rest/queries.ts'
+						)
+						const blocks = await listBlocks(
+							entitySelector.caip2.reference,
+							{
+								limit,
+								offset: context.pagination.offset ?? 0,
+							}
+						)
+
+						return blocks.flatMap((block) => {
+							const hash = hexLowerOfByteSize(block.hash, 32)
+							if (hash == null || !Number.isSafeInteger(block.number) || block.number < 1)
+								return []
+
+							const timestampMs = Math.floor(Date.parse(block.timestamp) / 1_000) * 1_000
+							const blobGasUsed = (
+								block.blobGasUsed == null || block.blobGasUsed === '' ?
+									undefined
+								:
+									BigInt(block.blobGasUsed)
+							)
+							const excessBlobGas = (
+								block.excessBlobGas == null || block.excessBlobGas === '' ?
+									undefined
+								:
+									BigInt(block.excessBlobGas)
+							)
+
+							return [{
+								[EntityMetaKey.Selector]: {
+									$network: entitySelector,
+									blockNumber: BigInt(block.number),
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.EvmBlock, [], 'hash')]: hash,
+									[entityFieldAddressKey(EntityType.EvmBlock, [], 'blockNumber')]: BigInt(block.number),
+									...(Number.isFinite(timestampMs) && timestampMs >= 0 && {
+										[entityFieldAddressKey(EntityType.EvmBlock, [], 'timestamp')]: timestampMs,
+									}),
+									...(blobGasUsed != null && {
+										[entityFieldAddressKey(EntityType.EvmBlock, [], 'blobGasUsed')]: blobGasUsed,
+									}),
+									...(excessBlobGas != null && {
+										[entityFieldAddressKey(EntityType.EvmBlock, [], 'excessBlobGas')]: excessBlobGas,
+									}),
+									...(block.transactions != null && {
+										[entityFieldAddressKey(EntityType.EvmBlock, [], 'transactionCount')]: block.transactions.length,
+									}),
+								},
+							}]
+						})
+					},
+				},
+			},
+		})({
+			Evm: {
+				$$blocks: (entity) => entity,
 			},
 		}),
 	],
