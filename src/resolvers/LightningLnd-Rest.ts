@@ -25,6 +25,7 @@ import type {
 	LndGetInfoResponse,
 	LndInvoice,
 	LndNetworkInfoResponse,
+	LndNodeInfoResponse,
 	LndPayment,
 } from '$/sources/LightningLnd/Rest/types.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
@@ -93,7 +94,9 @@ const lightningNodeTimestampFields = (
 		return {
 			alias: info.alias,
 			color: info.color,
+			capacitySats: undefined,
 			channelCount: (info.num_active_channels ?? 0) + (info.num_inactive_channels ?? 0),
+			updatedAtMs: undefined,
 			networkAddresses: info.uris ?? [],
 		}
 
@@ -104,8 +107,57 @@ const lightningNodeTimestampFields = (
 	return {
 		alias: undefined,
 		color: undefined,
+		capacitySats: undefined,
 		channelCount: channelsForNode.length,
-		networkAddresses: [],
+		updatedAtMs: undefined,
+		networkAddresses: [] as string[],
+	}
+}
+
+const lightningNodeTimestampFieldsFromGraph = (
+	info: LndNodeInfoResponse
+) => ({
+	alias: info.node.alias,
+	color: info.node.color,
+	capacitySats: bigintFromWire(info.total_capacity),
+	channelCount: info.num_channels,
+	updatedAtMs: timestampMsFromLndUpdate(info.node.last_update),
+	networkAddresses: (info.node.addresses ?? []).map((address) => address.addr),
+})
+
+const channelFieldsFromLndEdge = (
+	edge: LndChannelEdge,
+	timestampMs = timestampMsFromLndUpdate(edge.last_update) ?? Date.now()
+) => {
+	const channelPoint = (
+		edge.chan_point == null ?
+			undefined
+		:
+			channelPointParts(edge.chan_point)
+	)
+	return {
+		$node1: {
+			[EntityMetaKey.Selector]: {
+				$network: lightningNetwork,
+				publicKey: edge.node1_pub,
+			},
+		},
+		...(channelPoint != null && {
+			fundingTransactionId: channelPoint.fundingTransactionId,
+			fundingOutputIndex: channelPoint.fundingOutputIndex,
+		}),
+		$$timestamps: [
+			{
+				[EntityMetaKey.Selector]: {
+					$channel: {
+						$network: lightningNetwork,
+						channelId: edge.channel_id,
+					},
+					timestampMs,
+					source: Source.LightningLnd_Rest,
+				},
+			},
+		],
 	}
 }
 
@@ -170,15 +222,32 @@ const channelFieldsFromLndChannel = (
 const channelTimestampFieldsFromLndChannel = (channel: LndChannel) => ({
 	status: channelStatusFromLndChannel(channel),
 	capacitySats: bigintFromWire(channel.capacity),
+	feeRatePpm: undefined,
+	updatedAtMs: undefined,
 })
 
 const channelTimestampFieldsFromLndEdge = (
-	channel: LndChannel,
+	channel: LndChannel | undefined,
 	edge: LndChannelEdge
 ) => ({
-	...channelTimestampFieldsFromLndChannel(channel),
-	capacitySats: bigintFromWire(edge.capacity ?? channel.capacity),
+	...(
+		channel == null ?
+			{
+				status: (
+					edge.node1_policy?.disabled === true && edge.node2_policy?.disabled === true ?
+						LightningChannelStatus.Inactive
+					:
+						LightningChannelStatus.Active
+				),
+			}
+		:
+			channelTimestampFieldsFromLndChannel(channel)
+	),
+	capacitySats: bigintFromWire(edge.capacity ?? channel?.capacity),
 	updatedAtMs: edge.last_update == null ? undefined : edge.last_update * 1000,
+	...(edge.node1_policy?.fee_rate_milli_msat != null && {
+		feeRatePpm: Number(edge.node1_policy.fee_rate_milli_msat),
+	}),
 })
 
 const channelReferenceFromLndChannel = (channel: LndChannel) => ({
@@ -384,9 +453,17 @@ export default {
 				NetworkPublicKey: {
 					resolve: async ({ $network, publicKey }, context) => {
 						assertLightningNetwork($network)
-						const info = await lndInfo(context)
-						const channels = await lndChannels(context)
-						lightningNodeTimestampFields(publicKey, info, channels)
+						try {
+							const { getNodeInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
+							await getNodeInfo({
+								publicEnv: context.publicEnv,
+								publicKey,
+							})
+						} catch {
+							const info = await lndInfo(context)
+							const channels = await lndChannels(context)
+							lightningNodeTimestampFields(publicKey, info, channels)
+						}
 						return {
 							$$timestamps: [
 								{
@@ -415,9 +492,19 @@ export default {
 					resolve: async ({ $node, source }, context) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($node.$network)
-						const info = await lndInfo(context)
-						const channels = await lndChannels(context)
-						return lightningNodeTimestampFields($node.publicKey, info, channels)
+						try {
+							const { getNodeInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
+							return lightningNodeTimestampFieldsFromGraph(
+								await getNodeInfo({
+									publicEnv: context.publicEnv,
+									publicKey: $node.publicKey,
+								})
+							)
+						} catch {
+							const info = await lndInfo(context)
+							const channels = await lndChannels(context)
+							return lightningNodeTimestampFields($node.publicKey, info, channels)
+						}
 					},
 				},
 			},
@@ -429,7 +516,9 @@ export default {
 			source: (_timestamp, { source }) => source,
 			alias: (timestamp) => timestamp.alias,
 			color: (timestamp) => timestamp.color,
+			capacitySats: (timestamp) => timestamp.capacitySats,
 			channelCount: (timestamp) => timestamp.channelCount,
+			updatedAtMs: (timestamp) => timestamp.updatedAtMs,
 			networkAddresses: (timestamp) => timestamp.networkAddresses,
 		}),
 
@@ -439,24 +528,20 @@ export default {
 				NetworkChannelId: {
 					resolve: async ({ $network, channelId }, context) => {
 						assertLightningNetwork($network)
-						const channel = (await lndChannels(context)).find((channel) => channel.chan_id === channelId)
-						if (channel == null)
-							throw new Error(`LightningLnd_Rest: channel not found ${channelId}`)
-						let edge: LndChannelEdge | undefined
 						try {
 							const { getChannelInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
-							edge = await getChannelInfo({
-								publicEnv: context.publicEnv,
-								channelId: channel.chan_id,
-							})
-						} catch (error) {
-							if (!(error instanceof Error) || !error.message.includes('No "getChannelInfo" export is defined'))
-								throw error
+							return channelFieldsFromLndEdge(
+								await getChannelInfo({
+									publicEnv: context.publicEnv,
+									channelId,
+								})
+							)
+						} catch {
+							const channel = (await lndChannels(context)).find((channel) => channel.chan_id === channelId)
+							if (channel == null)
+								throw new Error(`LightningLnd_Rest: channel not found ${channelId}`)
+							return channelFieldsFromLndChannel(channel)
 						}
-						return channelFieldsFromLndChannel(
-							channel,
-							timestampMsFromLndUpdate(edge?.last_update)
-						)
 					},
 				},
 			},
@@ -475,20 +560,20 @@ export default {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($channel.$network)
 						const channel = (await lndChannels(context)).find((channel) => channel.chan_id === $channel.channelId)
-						if (channel == null)
-							throw new Error(`LightningLnd_Rest: channel not found ${$channel.channelId}`)
-						let edge: LndChannelEdge | undefined
 						try {
 							const { getChannelInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
-							edge = await getChannelInfo({
-								publicEnv: context.publicEnv,
-								channelId: channel.chan_id,
-							})
-						} catch (error) {
-							if (!(error instanceof Error) || !error.message.includes('No "getChannelInfo" export is defined'))
-								throw error
+							return channelTimestampFieldsFromLndEdge(
+								channel,
+								await getChannelInfo({
+									publicEnv: context.publicEnv,
+									channelId: $channel.channelId,
+								})
+							)
+						} catch {
+							if (channel == null)
+								throw new Error(`LightningLnd_Rest: channel not found ${$channel.channelId}`)
+							return channelTimestampFieldsFromLndChannel(channel)
 						}
-						return edge == null ? channelTimestampFieldsFromLndChannel(channel) : channelTimestampFieldsFromLndEdge(channel, edge)
 					},
 				},
 			},
@@ -500,6 +585,7 @@ export default {
 			source: (_timestamp, { source }) => source,
 			status: (timestamp) => timestamp.status,
 			capacitySats: (timestamp) => timestamp.capacitySats,
+			feeRatePpm: (timestamp) => timestamp.feeRatePpm,
 			updatedAtMs: (timestamp) => timestamp.updatedAtMs,
 		}),
 
@@ -722,14 +808,34 @@ export default {
 				NetworkPublicKey: {
 					resolve: async ({ $network, publicKey }, context) => {
 						assertLightningNetwork($network)
-						const info = await lndInfo(context)
-						return (await lndChannels(context))
-							.filter((channel) => (
-								publicKey === info.identity_pubkey
-								|| publicKey === channel.remote_pubkey
-							))
-							.slice(0, resolverContextRowLimit(context))
-							.map(channelReferenceFromLndChannel)
+						try {
+							const { getNodeInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
+							return (
+								(
+									await getNodeInfo({
+										publicEnv: context.publicEnv,
+										publicKey,
+										includeChannels: true,
+									})
+								).channels ?? []
+							)
+								.slice(0, resolverContextRowLimit(context))
+								.map((edge) => ({
+									[EntityMetaKey.Selector]: {
+										$network: lightningNetwork,
+										channelId: edge.channel_id,
+									},
+								}))
+						} catch {
+							const info = await lndInfo(context)
+							return (await lndChannels(context))
+								.filter((channel) => (
+									publicKey === info.identity_pubkey
+									|| publicKey === channel.remote_pubkey
+								))
+								.slice(0, resolverContextRowLimit(context))
+								.map(channelReferenceFromLndChannel)
+						}
 					},
 				},
 			},

@@ -88,9 +88,19 @@ const address = {
 const transactions = [
 	{
 		txid: 'a'.repeat(64),
+		vin: [],
+		vout: [],
+		status: {
+			confirmed: true,
+		},
 	},
 	{
 		txid: 'd'.repeat(64),
+		vin: [],
+		vout: [],
+		status: {
+			confirmed: true,
+		},
 	},
 ]
 
@@ -257,6 +267,8 @@ describe('MempoolSpace UTXO', () => {
 			{
 				height: 1,
 				id: 'a'.repeat(64),
+				timestamp: 1_700_000_000,
+				tx_count: 1,
 			},
 		])
 

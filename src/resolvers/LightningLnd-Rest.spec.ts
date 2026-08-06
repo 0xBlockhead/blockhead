@@ -5,19 +5,25 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
+	getChannelInfo,
 	getInfo,
+	getNodeInfo,
 	listChannels,
 	listInvoices,
 	listPayments,
 } = vi.hoisted(() => ({
+	getChannelInfo: vi.fn(),
 	getInfo: vi.fn(),
+	getNodeInfo: vi.fn(),
 	listChannels: vi.fn(),
 	listInvoices: vi.fn(),
 	listPayments: vi.fn(),
 }))
 
 vi.mock('$/sources/LightningLnd/Rest/queries.ts', () => ({
+	getChannelInfo,
 	getInfo,
+	getNodeInfo,
 	listChannels,
 	listInvoices,
 	listPayments,
@@ -42,6 +48,10 @@ const invoiceListResolver = lightningLnd.resolvers.find((resolver): resolver is 
 	resolver.entityType === EntityType.LightningNetwork
 	&& '$$invoices' in resolver.projections
 ))
+const nodeChannelsResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.LightningNode
+	&& '$$channels' in resolver.projections
+))
 if (
 	nodeStateResolver == null
 	|| nodeTimestampResolver == null
@@ -52,6 +62,7 @@ if (
 	|| paymentResolver == null
 	|| paymentTimestampResolver == null
 	|| invoiceListResolver == null
+	|| nodeChannelsResolver == null
 )
 	throw new Error('LightningLnd-Rest spec missing resolver')
 
@@ -69,13 +80,27 @@ const context = {
 		PUBLIC_LND_MACAROON_HEX: 'macaroon',
 	},
 }
+const localPublicKey = `02${'a'.repeat(64)}`
+const peerPublicKey = `03${'b'.repeat(64)}`
 const channel = {
 	active: true,
-	remote_pubkey: '02peer',
+	remote_pubkey: peerPublicKey,
 	channel_point: 'funding-transaction:7',
 	chan_id: '42',
 	capacity: '250000',
 	private: false,
+}
+const edge = {
+	channel_id: '42',
+	chan_point: 'funding-transaction:7',
+	last_update: 1_700_000_010,
+	node1_pub: localPublicKey,
+	node2_pub: peerPublicKey,
+	capacity: '250000',
+	node1_policy: {
+		fee_rate_milli_msat: '125',
+		disabled: false,
+	},
 }
 const invoice = {
 	r_hash_str: 'invoice-hash',
@@ -103,7 +128,7 @@ beforeEach(() => {
 describe('Lightning LND resolver ownership', () => {
 	it('owns the exact local connection identity and rejects other networks before transport', async () => {
 		getInfo.mockResolvedValue({
-			identity_pubkey: '02local',
+			identity_pubkey: localPublicKey,
 			alias: 'Local',
 		})
 		await expect(nodeStateResolver.resolve.ConnectionIdNetwork.resolve({
@@ -113,12 +138,12 @@ describe('Lightning LND resolver ownership', () => {
 			},
 		}, context)).resolves.toMatchObject({
 			connectionId: 'local-lnd',
-			lndPubkey: '02local',
+			lndPubkey: localPublicKey,
 			alias: 'Local',
 			$node: {
 				[EntityMetaKey.Selector]: {
 					$network: lightningNetwork,
-					publicKey: '02local',
+					publicKey: localPublicKey,
 				},
 			},
 		})
@@ -135,44 +160,75 @@ describe('Lightning LND resolver ownership', () => {
 		expect(getInfo).not.toHaveBeenCalled()
 	})
 
-	it('derives local and public-peer node observations without admitting private peers', async () => {
+	it('projects public-graph node capacity and falls back for private local peers', async () => {
+		getNodeInfo.mockResolvedValueOnce({
+			node: {
+				pub_key: peerPublicKey,
+				alias: 'Peer',
+				color: '#abcdef',
+				last_update: 1_700_000_000,
+				addresses: [{ addr: '1.2.3.4:9735' }],
+			},
+			num_channels: 3,
+			total_capacity: '9000000',
+		})
+
+		await expect(nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
+			$node: {
+				$network: lightningNetwork,
+				publicKey: peerPublicKey,
+			},
+			timestampMs: 1,
+			source: Source.LightningLnd_Rest,
+		}, context)).resolves.toMatchObject({
+			alias: 'Peer',
+			color: '#abcdef',
+			capacitySats: 9_000_000n,
+			channelCount: 3,
+			updatedAtMs: 1_700_000_000_000,
+			networkAddresses: ['1.2.3.4:9735'],
+		})
+
+		getNodeInfo.mockRejectedValueOnce(new Error('not in graph'))
 		getInfo.mockResolvedValue({
-			identity_pubkey: '02local',
+			identity_pubkey: localPublicKey,
 		})
 		listChannels.mockResolvedValue({
 			channels: [
 				channel,
 				{
 					...channel,
+					remote_pubkey: `02${'c'.repeat(64)}`,
 					chan_id: '43',
-				},
-				{
-					...channel,
-					remote_pubkey: '02private',
 					private: true,
 				},
 			],
 		})
-		const resolveNode = (publicKey: string) => (
-			nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
-				$node: {
-					$network: lightningNetwork,
-					publicKey,
-				},
-				timestampMs: 1,
-				source: Source.LightningLnd_Rest,
-			}, context)
-		)
 
-		await expect(resolveNode('02peer')).resolves.toMatchObject({
-			channelCount: 2,
+		await expect(nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
+			$node: {
+				$network: lightningNetwork,
+				publicKey: peerPublicKey,
+			},
+			timestampMs: 1,
+			source: Source.LightningLnd_Rest,
+		}, context)).resolves.toMatchObject({
+			channelCount: 1,
 			networkAddresses: [],
 		})
-		await expect(resolveNode('02private')).rejects.toThrow('node not found 02private')
+		await expect(nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
+			$node: {
+				$network: lightningNetwork,
+				publicKey: `02${'c'.repeat(64)}`,
+			},
+			timestampMs: 1,
+			source: Source.LightningLnd_Rest,
+		}, context)).rejects.toThrow('node not found')
 	})
 
-	it('keeps channel identity and observation fields separate and source-scoped', async () => {
+	it('resolves public graph channels with feeRatePpm and local fallback funding', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_001)
+		getChannelInfo.mockResolvedValue(edge)
 		listChannels.mockResolvedValue({ channels: [channel] })
 		const channelSelector = {
 			$network: lightningNetwork,
@@ -191,22 +247,67 @@ describe('Lightning LND resolver ownership', () => {
 			$$timestamps: [{
 				[EntityMetaKey.Selector]: {
 					...timestampSelector,
-					timestampMs: 1_700_000_000_001,
+					timestampMs: 1_700_000_010_000,
 				},
 			}],
 		})
-		const snapshot = await channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve(timestampSelector, context)
-		expect(snapshot).toEqual({
+		await expect(
+			channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve(timestampSelector, context)
+		).resolves.toEqual({
 			status: 'Active',
 			capacitySats: 250000n,
+			updatedAtMs: 1_700_000_010_000,
+			feeRatePpm: 125,
 		})
 
-		listChannels.mockClear()
-		await expect(channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
-			...timestampSelector,
-			source: Source.LightningMempoolSpace_Rest,
-		}, context)).rejects.toThrow('unsupported source')
-		expect(listChannels).not.toHaveBeenCalled()
+		getChannelInfo.mockRejectedValueOnce(new Error('edge missing'))
+		listChannels.mockResolvedValue({ channels: [channel] })
+		await expect(
+			channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve(timestampSelector, context)
+		).resolves.toEqual({
+			status: 'Active',
+			capacitySats: 250000n,
+			feeRatePpm: undefined,
+			updatedAtMs: undefined,
+		})
+	})
+
+	it('lists node channels from graph edges when available', async () => {
+		getNodeInfo.mockResolvedValue({
+			node: {
+				pub_key: peerPublicKey,
+			},
+			channels: [
+				edge,
+				{
+					...edge,
+					channel_id: '99',
+				},
+			],
+		})
+
+		await expect(nodeChannelsResolver.resolve.NetworkPublicKey.resolve({
+			$network: lightningNetwork,
+			publicKey: peerPublicKey,
+		}, context)).resolves.toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: lightningNetwork,
+					channelId: '42',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: lightningNetwork,
+					channelId: '99',
+				},
+			},
+		])
+		expect(getNodeInfo).toHaveBeenCalledWith({
+			publicEnv: context.publicEnv,
+			publicKey: peerPublicKey,
+			includeChannels: true,
+		})
 	})
 
 	it('omits hashless invoices and separates stable and observed invoice fields', async () => {

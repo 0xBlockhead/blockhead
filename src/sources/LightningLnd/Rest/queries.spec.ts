@@ -108,6 +108,29 @@ describe('LND authenticated public graph reads', () => {
 		await expect(getChannelInfo({
 			publicEnv,
 			channelId: '123',
-		})).rejects.toThrow('invalid channel last update')
+		})).rejects.toThrow('invalid channel edge envelope')
+	})
+
+	it('fail-closes list channels with lossy capacity and invalid funding points', async () => {
+		const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
+		respond({
+			channels: [{
+				remote_pubkey: peerPublicKey,
+				channel_point: 'txid:0',
+				chan_id: '1',
+				capacity: 'not-a-number',
+			}],
+		})
+		await expect(listChannels({ publicEnv })).rejects.toThrow('invalid list channels envelope')
+
+		respond({
+			channels: [{
+				remote_pubkey: peerPublicKey,
+				channel_point: 'missing-output',
+				chan_id: '1',
+				capacity: '1000',
+			}],
+		})
+		await expect(listChannels({ publicEnv })).rejects.toThrow('invalid channel funding point')
 	})
 })

@@ -19,19 +19,36 @@ const {
 	getBlock,
 	getBlockHashByHeight,
 	getAddressUtxos,
+	getMempoolStats,
 	getRecommendedFees,
 	getTransactionProtocolPayloads,
 } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 
 const binding = bindings[Source.MempoolSpace_Rest][0]
 
+const validBlock = {
+	id: 'a'.repeat(64),
+	height: 840_000,
+	timestamp: 1_700_000_000,
+	tx_count: 1,
+}
+
 describe('mempool.space Bitcoin REST binding', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
-		sourceGetJson.mockResolvedValue({})
 	})
 
 	it('preserves the Bitcoin API prefix and does not recover binding identity from the shared origin', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce(validBlock)
+			.mockResolvedValueOnce({
+				fastestFee: 20,
+				halfHourFee: 10,
+				hourFee: 5,
+				economyFee: 2,
+				minimumFee: 1,
+			})
+
 		await getBlock('block/hash')
 		await getRecommendedFees()
 
@@ -77,6 +94,24 @@ describe('mempool.space Bitcoin REST binding', () => {
 				'https://mempool.space/api/address/bc1qexample/utxo',
 			],
 		])
+	})
+
+	it('fail-closes malformed mempool stats and recommended fee envelopes', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			count: -1,
+			vsize: 1,
+			total_fee: 1,
+		})
+		await expect(getMempoolStats()).rejects.toThrow('invalid mempool stats envelope')
+
+		sourceGetJson.mockResolvedValueOnce({
+			fastestFee: 1,
+			halfHourFee: 1,
+			hourFee: Number.MAX_SAFE_INTEGER + 1,
+			economyFee: 1,
+			minimumFee: 1,
+		})
+		await expect(getRecommendedFees()).rejects.toThrow('invalid recommended fees envelope')
 	})
 
 	it('getTransactionProtocolPayloads extracts Runestone from the Esplora-compatible tx wire', async () => {

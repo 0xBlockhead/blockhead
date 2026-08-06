@@ -16,6 +16,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 }))
 
 const {
+	getAsset,
 	getBlock,
 	getTransactionProtocolPayloads,
 } = await import('$/sources/Esplora/Rest/queries.ts')
@@ -29,13 +30,23 @@ const liquidBinding = bindings[Source.Esplora_Rest].find(({ target }) => (
 if (bitcoinBinding == null || liquidBinding == null)
 	throw new Error('Esplora spec requires Bitcoin and Liquid bindings')
 
+const validBlock = {
+	id: 'a'.repeat(64),
+	height: 840_000,
+	timestamp: 1_700_000_000,
+	tx_count: 1,
+}
+
 describe('Esplora REST binding selection', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
-		sourceGetJson.mockResolvedValue({})
 	})
 
 	it('selects the exact target binding and preserves its API prefix', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce(validBlock)
+			.mockResolvedValueOnce(validBlock)
+
 		await getBlock({
 			blockHash: 'bitcoin-block',
 			target: bitcoinBinding.target.key,
@@ -55,6 +66,29 @@ describe('Esplora REST binding selection', () => {
 				'https://blockstream.info/liquid/api/block/liquid-block',
 			],
 		])
+	})
+
+	it('fail-closes malformed block and asset envelopes', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			id: 'not-a-hash',
+			height: 1,
+			timestamp: 1,
+			tx_count: 1,
+		})
+		await expect(getBlock({
+			blockHash: 'x',
+			target: bitcoinBinding.target.key,
+		})).rejects.toThrow('invalid block envelope')
+
+		sourceGetJson.mockResolvedValueOnce({
+			asset_id: 'asset',
+			chain_stats: { tx_count: -1 },
+			mempool_stats: { tx_count: 0 },
+		})
+		await expect(getAsset({
+			assetId: 'asset',
+			target: liquidBinding.target.key,
+		})).rejects.toThrow('invalid asset envelope')
 	})
 
 	it('getTransactionProtocolPayloads extracts Ordinals + Runes from the Esplora tx wire', async () => {

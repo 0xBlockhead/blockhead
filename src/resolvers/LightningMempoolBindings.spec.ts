@@ -110,7 +110,9 @@ describe('Lightning and mempool resolver bindings', () => {
 		expect(lndEntityTypes.has(EntityType.BlockheadLightningNodeState)).toBe(true)
 		expect(lndEntityTypes.has(EntityType.BlockheadLightningInvoice)).toBe(true)
 		expect(lndEntityTypes.has(EntityType.BlockheadLightningPayment)).toBe(true)
-		expect(lndEntityTypes.has(EntityType.LightningNetwork_Timestamp)).toBe(false)
+		expect(lndEntityTypes.has(EntityType.LightningNetwork_Timestamp)).toBe(true)
+		expect(lndEntityTypes.has(EntityType.LightningNode)).toBe(true)
+		expect(lndEntityTypes.has(EntityType.LightningChannel)).toBe(true)
 	})
 
 	it('declares no resolveLive publishers on either Lightning surface', () => {
@@ -171,6 +173,8 @@ describe('Lightning and mempool resolver bindings', () => {
 		}, context)).resolves.toEqual({
 			status: 'Active',
 			capacitySats: 250000n,
+			feeRatePpm: undefined,
+			updatedAtMs: undefined,
 		})
 		expect(getLightningStatistics).not.toHaveBeenCalled()
 	})

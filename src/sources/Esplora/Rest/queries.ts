@@ -3,12 +3,14 @@ import {
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Esplora/bindings.ts'
-import type {
-	EsploraAsset,
-	EsploraBlock,
-	EsploraTransaction,
-} from '$/sources/Esplora/Rest/types.ts'
+import {
+	assertEsploraEnvelope,
+	esploraAssetWire,
+	esploraBlockWire,
+	esploraTransactionWire,
+} from '$/sources/Esplora/Rest/envelopes.ts'
 import { Source } from '$/sources/Source.ts'
+import { type as arktype } from 'arktype'
 
 type EsploraTarget = typeof bindings[Source.Esplora_Rest][number]['target']['key']
 
@@ -16,7 +18,13 @@ const bindingByTarget = new Map(
 	bindings[Source.Esplora_Rest].map((binding) => [binding.target.key, binding] as const)
 )
 
-const getEsploraJson = <_Response>(target: EsploraTarget, path: string) => {
+const blockHashWire = arktype('/^[0-9a-fA-F]{64}$/')
+const txIdListWire = arktype('/^[0-9a-f]{64}$/').array()
+
+const getEsploraJson = async <_Response>(
+	target: EsploraTarget,
+	path: string
+) => {
 	const binding = bindingByTarget.get(target)
 	if (binding == null)
 		throw new Error(`Esplora_Rest: unsupported source target ${target}`)
@@ -27,34 +35,45 @@ const getEsploraJson = <_Response>(target: EsploraTarget, path: string) => {
 	)
 }
 
-export const getBlock = ({
+export const getBlock = async ({
 	blockHash,
 	target,
 }: {
 	blockHash: string
 	target: EsploraTarget
 }) => (
-	getEsploraJson<EsploraBlock>(target, `/block/${blockHash}`)
+	assertEsploraEnvelope(
+		esploraBlockWire,
+		await getEsploraJson(target, `/block/${blockHash}`),
+		'block'
+	)
 )
 
-export const getBlockHashByHeight = ({
+export const getBlockHashByHeight = async ({
 	height,
 	target,
 }: {
 	height: bigint
 	target: EsploraTarget
-}) => (
-	getEsploraJson<string>(target, `/block-height/${height.toString()}`)
-)
+}) => {
+	const hash = await getEsploraJson<unknown>(target, `/block-height/${height.toString()}`)
+	if (!blockHashWire.allows(hash))
+		throw new Error('Esplora_Rest: invalid block hash envelope')
+	return hash
+}
 
-export const getTransaction = ({
+export const getTransaction = async ({
 	target,
 	txId,
 }: {
 	target: EsploraTarget
 	txId: string
 }) => (
-	getEsploraJson<EsploraTransaction>(target, `/tx/${txId}`)
+	assertEsploraEnvelope(
+		esploraTransactionWire,
+		await getEsploraJson(target, `/tx/${txId}`),
+		'transaction'
+	)
 )
 
 /**
@@ -78,24 +97,36 @@ export const getTransactionProtocolPayloads = async ({
 	)
 }
 
-export const getMempoolTransactionIds = (target: EsploraTarget) => (
-	getEsploraJson<string[]>(target, '/mempool/txids')
+export const getMempoolTransactionIds = async (target: EsploraTarget) => (
+	assertEsploraEnvelope(
+		txIdListWire,
+		await getEsploraJson(target, '/mempool/txids'),
+		'mempool txids'
+	)
 )
 
-export const getAsset = ({
+export const getAsset = async ({
 	assetId,
 	target,
 }: {
 	assetId: string
 	target: EsploraTarget
 }) => (
-	getEsploraJson<EsploraAsset>(target, `/asset/${assetId}`)
+	assertEsploraEnvelope(
+		esploraAssetWire,
+		await getEsploraJson(target, `/asset/${assetId}`),
+		'asset'
+	)
 )
 
-export const listRegistryAssets = ({
+export const listRegistryAssets = async ({
 	target,
 }: {
 	target: EsploraTarget
 }) => (
-	getEsploraJson<EsploraAsset[]>(target, '/assets/registry')
+	assertEsploraEnvelope(
+		esploraAssetWire.array(),
+		await getEsploraJson(target, '/assets/registry'),
+		'asset registry'
+	)
 )
