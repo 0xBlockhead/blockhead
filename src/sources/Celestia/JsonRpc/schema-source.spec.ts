@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 import type {
 	BlobProofWire,
+	BlobWire,
 	ExtendedHeaderWire,
 	SyncStateWire,
 } from '$/sources/Celestia/JsonRpc/types.ts'
@@ -22,9 +23,11 @@ describe('Celestia Node OpenRPC schema-source', () => {
 		expect(readFileSync(resolve(openRpcDir, schemaSource.typesFile), 'utf8')).toContain('header_LocalHead_Result:')
 		expect(readFileSync(resolve(openRpcDir, schemaSource.typesFile), 'utf8')).toContain('header_SyncState_Result:')
 		expect(readFileSync(resolve(openRpcDir, schemaSource.typesFile), 'utf8')).toContain('blob_GetProof_Result:')
+		expect(readFileSync(resolve(openRpcDir, schemaSource.typesFile), 'utf8')).toContain('blob_Get_Result:')
+		expect(readFileSync(resolve(openRpcDir, schemaSource.typesFile), 'utf8')).toContain('header_GetByHash_Result:')
 	})
 
-	it('aliases ExtendedHeader, SyncState, and BlobProof wire shapes from generated OpenRPC schemas', () => {
+	it('aliases ExtendedHeader, SyncState, Blob, and BlobProof wire shapes from generated OpenRPC schemas', () => {
 		const header = {
 			header: {
 				chain_id: 'celestia',
@@ -58,9 +61,13 @@ describe('Celestia Node OpenRPC schema-source', () => {
 
 		// OpenRPC collapses proof item schemas; the generated result is still an array.
 		const proof = [{}] as const satisfies BlobProofWire
+		const blob = {
+			commitment: 'aHlbp+J9yub6hw/uhK6dP8hBLR2mFy78XNRRdLf2794=',
+		} as const satisfies BlobWire
 
 		expect(header.header?.chain_id).toBe('celestia')
 		expect(syncState.height).toBe(2)
 		expect(proof).toHaveLength(1)
+		expect(blob.commitment).toContain('aHlbp')
 	})
 })

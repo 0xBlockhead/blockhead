@@ -3,7 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import bindings from '$/sources/Celestia/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
+	getBlob,
 	getBlobProof,
+	getHeaderByHash,
 	getHeaderByHeight,
 	getHeaderLocalHead,
 	getHeaderNetworkHead,
@@ -153,8 +155,54 @@ describe('Celestia Node v0.28.4 read-only JSON-RPC contracts', () => {
 				commitment,
 			]
 		)
-		expect(jsonRpc2Mock.mock.calls.flatMap(([, method]) => method)).not.toContain('blob.Get')
 		expect(jsonRpc2Mock.mock.calls.flatMap(([, method]) => method)).not.toContain('blob.GetAll')
+	})
+
+	it('loads blobs and headers by hash through OpenRPC-named methods', async () => {
+		const blobData = `${'A'.repeat(43)}=`
+		jsonRpc2Mock
+			.mockResolvedValueOnce({
+				namespace,
+				data: blobData,
+				share_version: 0,
+				commitment,
+				index: -1,
+			})
+			.mockResolvedValueOnce(headerWire)
+
+		await expect(getBlob({
+			publicEnv,
+			height: 12_424_743n,
+			namespace,
+			commitment,
+		})).resolves.toEqual({
+			namespace,
+			data: blobData,
+			shareVersion: 0,
+			commitment,
+			index: -1,
+		})
+		await expect(getHeaderByHash(publicEnv, hash)).resolves.toMatchObject({
+			hash,
+			height: 9_007_199_254_740_991n,
+		})
+
+		expect(jsonRpc2Mock).toHaveBeenNthCalledWith(
+			1,
+			resolvedBinding,
+			'blob.Get',
+			[
+				12_424_743,
+				namespace,
+				commitment,
+			]
+		)
+		expect(jsonRpc2Mock).toHaveBeenNthCalledWith(
+			2,
+			resolvedBinding,
+			'header.GetByHash',
+			[hash]
+		)
 	})
 
 	it.each([
@@ -189,6 +237,12 @@ describe('Celestia Node v0.28.4 read-only JSON-RPC contracts', () => {
 		message,
 	}) => {
 		await expect(getBlobProof({
+			publicEnv,
+			height,
+			namespace: candidateNamespace,
+			commitment: candidateCommitment,
+		})).rejects.toThrow(message)
+		await expect(getBlob({
 			publicEnv,
 			height,
 			namespace: candidateNamespace,

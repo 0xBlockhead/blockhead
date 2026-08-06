@@ -14,6 +14,7 @@ import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import bindings from '$/sources/Celestia/bindings.ts'
 import type {
 	BlobProofWire,
+	BlobWire,
 	ExtendedHeaderWire,
 	SyncStateWire,
 } from '$/sources/Celestia/JsonRpc/types.ts'
@@ -63,6 +64,14 @@ const blobProofWire = arktype({
 	nodes: 'string[]',
 	is_max_namespace_ignored: 'boolean',
 }).array()
+
+const blobWire = arktype({
+	namespace: 'string',
+	data: 'string',
+	share_version: safeUnsignedInteger,
+	commitment: 'string',
+	index: 'number.integer',
+})
 
 const binding = bindings[Source.CelestiaNode][0]
 
@@ -190,6 +199,70 @@ export const getHeaderByHeight = async (
 		throw new Error('Celestia Node: header response has mismatched height')
 
 	return header
+}
+
+export const getHeaderByHash = async (
+	publicEnv: SourcePublicEnv,
+	hash: string
+) => {
+	assertHash(hash, 'header hash')
+	const header = extendedHeaderFromWire(extendedHeaderWire.assert(
+		await jsonRpc2<ExtendedHeaderWire>(
+			configuredBinding(publicEnv),
+			'header.GetByHash',
+			[hash]
+		)
+	))
+	if (header.hash !== hash.toLowerCase())
+		throw new Error('Celestia Node: header response has mismatched hash')
+
+	return header
+}
+
+export const getBlob = async ({
+	publicEnv,
+	height,
+	namespace,
+	commitment,
+}: {
+	publicEnv: SourcePublicEnv
+	height: bigint
+	namespace: string
+	commitment: string
+}) => {
+	assertHeight(height)
+	if (!namespacePattern.test(namespace))
+		throw new Error('Celestia Node: invalid blob namespace')
+	if (!commitmentPattern.test(commitment))
+		throw new Error('Celestia Node: invalid blob commitment')
+
+	const wire = blobWire.assert(await jsonRpc2<BlobWire>(
+		configuredBinding(publicEnv),
+		'blob.Get',
+		[
+			Number(height),
+			namespace,
+			commitment,
+		]
+	))
+	if (!namespacePattern.test(wire.namespace))
+		throw new Error('Celestia Node: invalid blob namespace in response')
+	if (!commitmentPattern.test(wire.commitment))
+		throw new Error('Celestia Node: invalid blob commitment in response')
+	if (!base64Pattern.test(wire.data))
+		throw new Error('Celestia Node: invalid blob data')
+	if (wire.namespace !== namespace)
+		throw new Error('Celestia Node: blob response has mismatched namespace')
+	if (wire.commitment !== commitment)
+		throw new Error('Celestia Node: blob response has mismatched commitment')
+
+	return {
+		namespace: wire.namespace,
+		data: wire.data,
+		shareVersion: wire.share_version,
+		commitment: wire.commitment,
+		index: wire.index,
+	}
 }
 
 export const getBlobProof = async ({
