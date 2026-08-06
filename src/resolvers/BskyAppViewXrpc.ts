@@ -173,19 +173,52 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { searchActorsTypeahead } = await loadQueries()
+						const { searchActors } = await loadQueries()
 						const limit = resolverContextRowLimit(context)
 						return (
-							((await searchActorsTypeahead({
+							((await searchActors({
 								limit,
 								q: 'bsky',
 							})).actors ?? [])
 								.flatMap((actor) => {
-								const did = optionalNonemptyString(actor.did)
-								return did == null ?
-									[]
-								:
-									[{ [EntityMetaKey.Selector]: { did } }]
+									const did = optionalNonemptyString(actor.did)
+									const handle = optionalNonemptyString(actor.handle)
+									if (did == null || handle == null)
+										return []
+									const displayName = optionalNonemptyString(actor.displayName)
+									const description = optionalNonemptyString(actor.description)
+									const indexedAt = optionalTimestampMs(actor.indexedAt)
+									const icon = mediaFromUrl(actor.avatar, MediaType.Image)
+									return [{
+										[EntityMetaKey.Selector]: { did },
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.AtprotoActor, [], 'did')]: did,
+											[entityFieldAddressKey(EntityType.AtprotoActor, [], 'handle')]: handle,
+											[entityFieldAddressKey(EntityType.AtprotoActor, [], '$$timestamps')]: [{
+												[EntityMetaKey.Selector]: {
+													$actor: { did },
+													timestampMs: Date.now(),
+													source,
+												},
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'source')]: source,
+													[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'handle')]: handle,
+													...(displayName != null && {
+														[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'displayName')]: displayName,
+													}),
+													...(description != null && {
+														[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'description')]: description,
+													}),
+													...(indexedAt != null && {
+														[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], 'indexedAt')]: indexedAt,
+													}),
+													...(icon != null && {
+														[entityFieldAddressKey(EntityType.AtprotoActor_Timestamp, [], '$icon')]: icon,
+													}),
+												},
+											}],
+										},
+									}]
 								})
 								.slice(0, limit)
 						)
@@ -209,12 +242,13 @@ export const bskyAppViewResolvers = (
 								q: 'bsky',
 							})).posts ?? [])
 								.flatMap((post) => {
-								const uri = optionalNonemptyString(post.uri)
-								return uri == null ?
-									[]
-								:
-									[{ [EntityMetaKey.Selector]: { uri } }]
+									const uri = optionalNonemptyString(post.uri)
+									return uri == null ?
+										[]
+									:
+										[atprotoPostReferenceFromPostView(post)]
 								})
+								.slice(0, limit)
 						)
 					},
 				}

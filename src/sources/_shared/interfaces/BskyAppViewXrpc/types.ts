@@ -236,6 +236,125 @@ export type BskyAppViewSearchActorsTypeaheadResponse = {
 	}[]
 }
 
+export type BskyAppViewSearchActorsResponse = {
+	actors?: {
+		did: string
+		handle: string
+		displayName?: string
+		description?: string
+		avatar?: string
+		indexedAt?: string
+	}[]
+	cursor?: string
+}
+
 export type BskyAppViewSearchPostsResponse = {
 	posts?: BskyAppViewPostView[]
+	cursor?: string
 }
+
+
+import {
+	type as arktype,
+	type Type,
+} from 'arktype'
+
+const bskyAppViewProfileWire = arktype({
+	did: 'string',
+	handle: 'string',
+	'displayName?': 'string',
+	'description?': 'string',
+	'avatar?': 'string',
+	'banner?': 'string',
+	'followersCount?': 'number.integer >= 0',
+	'followsCount?': 'number.integer >= 0',
+	'postsCount?': 'number.integer >= 0',
+	'indexedAt?': 'string',
+})
+
+const bskyAppViewPostRecordWire = arktype({
+	'$type?': 'string',
+	text: 'string',
+	createdAt: 'string',
+	'langs?': 'string[]',
+	'labels?': {
+		'values?': arktype({
+			'val?': 'string',
+		}).array(),
+	},
+	'reply?': {
+		'parent?': {
+			'uri?': 'string',
+			'cid?': 'string',
+		},
+		'root?': {
+			'uri?': 'string',
+			'cid?': 'string',
+		},
+	},
+})
+
+const bskyAppViewPostViewWire = arktype({
+	uri: 'string',
+	cid: 'string',
+	indexedAt: 'string',
+	'likeCount?': 'number.integer >= 0',
+	'repostCount?': 'number.integer >= 0',
+	'replyCount?': 'number.integer >= 0',
+	'quoteCount?': 'number.integer >= 0',
+	'bookmarkCount?': 'number.integer >= 0',
+	author: {
+		did: 'string',
+		handle: 'string',
+	},
+	record: bskyAppViewPostRecordWire,
+	'embed?': 'unknown',
+})
+
+export const atprotoIdentityResolveHandleResponseWire = arktype({
+	did: 'string',
+}) satisfies Type<AtprotoIdentityResolveHandleResponse>
+
+export const bskyAppViewProfileWireAssert = bskyAppViewProfileWire satisfies Type<BskyAppViewProfile>
+
+export const bskyAppViewGetPostsResponseWire = arktype({
+	posts: bskyAppViewPostViewWire.array(),
+}) satisfies Type<BskyAppViewGetPostsResponse>
+
+export const bskyAppViewGetAuthorFeedResponseWire = arktype({
+	feed: arktype({
+		post: bskyAppViewPostViewWire,
+		'reply?': 'unknown',
+		'reason?': {
+			'$type?': 'string',
+		},
+	}).array(),
+	'cursor?': 'string',
+}) satisfies Type<BskyAppViewGetAuthorFeedResponse>
+
+export const bskyAppViewGetPostThreadResponseWire = arktype({
+	'thread?': 'unknown',
+}) satisfies Type<{ thread?: unknown }>
+
+export const bskyAppViewSearchActorsTypeaheadResponseWire = arktype({
+	'actors?': arktype({
+		'did?': 'string',
+	}).array(),
+}) satisfies Type<BskyAppViewSearchActorsTypeaheadResponse>
+
+export const bskyAppViewSearchActorsResponseWire = arktype({
+	'actors?': arktype({
+		did: 'string',
+		handle: 'string',
+		'displayName?': 'string',
+		'description?': 'string',
+		'avatar?': 'string',
+		'indexedAt?': 'string',
+	}).array(),
+	'cursor?': 'string',
+}) satisfies Type<BskyAppViewSearchActorsResponse>
+
+export const bskyAppViewSearchPostsResponseWire = arktype({
+	'posts?': bskyAppViewPostViewWire.array(),
+	'cursor?': 'string',
+}) satisfies Type<BskyAppViewSearchPostsResponse>

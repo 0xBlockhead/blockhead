@@ -1,4 +1,9 @@
-import { beforeEach, expect, it, vi } from 'vitest'
+import {
+	beforeEach,
+	expect,
+	it,
+	vi,
+} from 'vitest'
 
 import {
 	SourceDelivery,
@@ -23,16 +28,23 @@ const {
 	getPosts,
 	getProfile,
 	resolveHandle,
+	searchActors,
 	searchActorsTypeahead,
 	searchPosts,
 } = publicAppViewQueries
 
 beforeEach(() => {
 	sourceGetJson.mockReset()
-	sourceGetJson.mockResolvedValue({})
+	sourceGetJson.mockResolvedValue({
+		did: 'did:plc:fixture',
+		handle: 'fixture.test',
+		posts: [],
+		feed: [],
+		actors: [],
+	})
 })
 
-it('uses each registered AppView proxy binding for the shared seven-operation interface', async () => {
+it('uses each registered AppView proxy binding for the shared eight-operation interface', async () => {
 	for (const {
 		queries,
 		source,
@@ -50,6 +62,13 @@ it('uses each registered AppView proxy binding for the shared seven-operation in
 		},
 	]) {
 		sourceGetJson.mockClear()
+		sourceGetJson.mockResolvedValue({
+			did: 'did:plc:fixture',
+			handle: 'fixture.test',
+			posts: [],
+			feed: [],
+			actors: [],
+		})
 		await queries.resolveHandle('alice.test')
 		await queries.getProfile('did:plc:profile')
 		await queries.getPosts([
@@ -64,11 +83,14 @@ it('uses each registered AppView proxy binding for the shared seven-operation in
 		await queries.searchActorsTypeahead({
 			q: 'alice & bob',
 		})
+		await queries.searchActors({
+			q: 'alice & bob',
+		})
 		await queries.searchPosts({
 			q: 'at://did:plc:search/app.bsky.feed.post/3search & reserved',
 		})
 
-		expect(sourceGetJson).toHaveBeenCalledTimes(7)
+		expect(sourceGetJson).toHaveBeenCalledTimes(8)
 		for (const [binding] of sourceGetJson.mock.calls) {
 			expect(binding.source).toBe(source)
 			expect(binding.target).toEqual({
@@ -87,6 +109,20 @@ it('uses each registered AppView proxy binding for the shared seven-operation in
 
 it('preserves repeated uri parameters and reserved values without direct fetch', async () => {
 	const directFetch = vi.spyOn(globalThis, 'fetch')
+	sourceGetJson
+		.mockResolvedValueOnce({ did: 'did:plc:resolved' })
+		.mockResolvedValueOnce({
+			posts: [{
+				uri: 'at://did:plc:first/app.bsky.feed.post/3first',
+				cid: 'bafyfixture',
+				indexedAt: '2025-01-01T00:00:00.000Z',
+				author: { did: 'did:plc:first', handle: 'first.test' },
+				record: { text: 'hi', createdAt: '2025-01-01T00:00:00.000Z' },
+			}],
+		})
+		.mockResolvedValueOnce({
+			posts: [],
+		})
 	await resolveHandle('alice+research@example.com')
 	await getPosts([
 		'at://did:plc:first/app.bsky.feed.post/3first?x=1&y=2',
@@ -128,4 +164,70 @@ it('does not transport an empty getPosts request', async () => {
 		posts: [],
 	})
 	expect(sourceGetJson).not.toHaveBeenCalled()
+})
+
+it('fail-closes malformed profile / posts / search envelopes', async () => {
+	sourceGetJson.mockResolvedValueOnce({ handle: 'missing-did.test' })
+	await expect(getProfile('did:plc:bad')).rejects.toThrow(
+		'BskyAppView_Xrpc: invalid profile response envelope'
+	)
+
+	sourceGetJson.mockResolvedValueOnce({ posts: [{ uri: 'at://incomplete' }] })
+	await expect(getPosts(['at://did:plc:x/app.bsky.feed.post/1'])).rejects.toThrow(
+		'BskyAppView_Xrpc: invalid posts response envelope'
+	)
+
+	sourceGetJson.mockResolvedValueOnce({ actors: [{ did: 12 }] })
+	await expect(searchActorsTypeahead({ q: 'x' })).rejects.toThrow(
+		'BskyAppView_Xrpc: invalid search-actors-typeahead response envelope'
+	)
+
+	sourceGetJson.mockResolvedValueOnce({ actors: [{ did: 'did:plc:x' }] })
+	await expect(searchActors({ q: 'x' })).rejects.toThrow(
+		'BskyAppView_Xrpc: invalid search-actors response envelope'
+	)
+
+	sourceGetJson.mockResolvedValueOnce({ feed: [{ post: { uri: 'bad' } }] })
+	await expect(getAuthorFeed({ actor: 'did:plc:x' })).rejects.toThrow(
+		'BskyAppView_Xrpc: invalid author-feed response envelope'
+	)
+})
+
+it('accepts zero engagement counts on posts and searchActors handles', async () => {
+	sourceGetJson.mockResolvedValueOnce({
+		posts: [{
+			uri: 'at://did:plc:zero/app.bsky.feed.post/3zero',
+			cid: 'bafyzero',
+			indexedAt: '2025-01-01T00:00:00.000Z',
+			likeCount: 0,
+			repostCount: 0,
+			replyCount: 0,
+			quoteCount: 0,
+			author: { did: 'did:plc:zero', handle: 'zero.test' },
+			record: { text: '', createdAt: '2025-01-01T00:00:00.000Z' },
+		}],
+	})
+	await expect(getPosts(['at://did:plc:zero/app.bsky.feed.post/3zero'])).resolves.toMatchObject({
+		posts: [{
+			likeCount: 0,
+			repostCount: 0,
+			replyCount: 0,
+			quoteCount: 0,
+		}],
+	})
+
+	sourceGetJson.mockResolvedValueOnce({
+		actors: [{
+			did: 'did:plc:alice',
+			handle: 'alice.test',
+			displayName: 'Alice',
+		}],
+	})
+	await expect(searchActors({ q: 'alice' })).resolves.toEqual({
+		actors: [{
+			did: 'did:plc:alice',
+			handle: 'alice.test',
+			displayName: 'Alice',
+		}],
+	})
 })

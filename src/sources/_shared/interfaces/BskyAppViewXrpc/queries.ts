@@ -6,9 +6,32 @@ import type {
 	BskyAppViewGetPostThreadResponse,
 	BskyAppViewGetPostsResponse,
 	BskyAppViewProfile,
+	BskyAppViewSearchActorsResponse,
 	BskyAppViewSearchActorsTypeaheadResponse,
 	BskyAppViewSearchPostsResponse,
 } from '$/sources/_shared/interfaces/BskyAppViewXrpc/types.ts'
+import {
+	atprotoIdentityResolveHandleResponseWire,
+	bskyAppViewGetAuthorFeedResponseWire,
+	bskyAppViewGetPostThreadResponseWire,
+	bskyAppViewGetPostsResponseWire,
+	bskyAppViewProfileWireAssert,
+	bskyAppViewSearchActorsResponseWire,
+	bskyAppViewSearchActorsTypeaheadResponseWire,
+	bskyAppViewSearchPostsResponseWire,
+} from '$/sources/_shared/interfaces/BskyAppViewXrpc/types.ts'
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`BskyAppView_Xrpc: invalid ${label} response envelope`)
+	}
+}
 
 export const bskyAppViewXrpc = (binding: SourceBinding) => {
 	const get = <_Response>(
@@ -25,24 +48,40 @@ export const bskyAppViewXrpc = (binding: SourceBinding) => {
 	)
 
 	return {
-		resolveHandle: (handle: string) => get<AtprotoIdentityResolveHandleResponse>(
-			'/com.atproto.identity.resolveHandle',
-			[['handle', handle]]
+		resolveHandle: async (handle: string) => (
+			assertEnvelope(
+				'resolve-handle',
+				atprotoIdentityResolveHandleResponseWire,
+				await get<AtprotoIdentityResolveHandleResponse>(
+					'/com.atproto.identity.resolveHandle',
+					[['handle', handle]]
+				)
+			)
 		),
-		getProfile: (actor: string) => get<BskyAppViewProfile>(
-			'/app.bsky.actor.getProfile',
-			[['actor', actor]]
+		getProfile: async (actor: string) => (
+			assertEnvelope(
+				'profile',
+				bskyAppViewProfileWireAssert,
+				await get<BskyAppViewProfile>(
+					'/app.bsky.actor.getProfile',
+					[['actor', actor]]
+				)
+			)
 		),
 		getPosts: async (uris: string[]) => (
 			uris.length === 0 ?
 				{ posts: [] }
 			:
-				get<BskyAppViewGetPostsResponse>(
-					'/app.bsky.feed.getPosts',
-					uris.map((uri) => ['uris', uri])
+				assertEnvelope(
+					'posts',
+					bskyAppViewGetPostsResponseWire,
+					await get<BskyAppViewGetPostsResponse>(
+						'/app.bsky.feed.getPosts',
+						uris.map((uri) => ['uris', uri])
+					)
 				)
 		),
-		getPostThread: (
+		getPostThread: async (
 			uri: string,
 			{
 				depth = 6,
@@ -51,15 +90,23 @@ export const bskyAppViewXrpc = (binding: SourceBinding) => {
 				depth?: number
 				parentHeight?: number
 			} = {}
-		) => get<BskyAppViewGetPostThreadResponse>(
-			'/app.bsky.feed.getPostThread',
-			[
-				['uri', uri],
-				['depth', depth],
-				['parentHeight', parentHeight],
-			]
-		),
-		getAuthorFeed: ({
+		) => {
+			const response = await get<BskyAppViewGetPostThreadResponse>(
+				'/app.bsky.feed.getPostThread',
+				[
+					['uri', uri],
+					['depth', depth],
+					['parentHeight', parentHeight],
+				]
+			)
+			assertEnvelope(
+				'post-thread',
+				bskyAppViewGetPostThreadResponseWire,
+				response
+			)
+			return response
+		},
+		getAuthorFeed: async ({
 			actor,
 			limit = 30,
 			cursor,
@@ -69,40 +116,83 @@ export const bskyAppViewXrpc = (binding: SourceBinding) => {
 			limit?: number
 			cursor?: string
 			includePins?: boolean
-		}) => get<BskyAppViewGetAuthorFeedResponse>(
-			'/app.bsky.feed.getAuthorFeed',
-			[
-				['actor', actor],
-				['limit', limit],
-				['includePins', String(includePins)],
-				['cursor', cursor == null || cursor === '' ? undefined : cursor],
-			]
+		}) => (
+			assertEnvelope(
+				'author-feed',
+				bskyAppViewGetAuthorFeedResponseWire,
+				await get<BskyAppViewGetAuthorFeedResponse>(
+					'/app.bsky.feed.getAuthorFeed',
+					[
+						['actor', actor],
+						['limit', limit],
+						['includePins', String(includePins)],
+						['cursor', cursor == null || cursor === '' ? undefined : cursor],
+					]
+				)
+			)
 		),
-		searchActorsTypeahead: ({
+		searchActorsTypeahead: async ({
 			limit = 25,
 			q,
 		}: {
 			limit?: number
 			q: string
-		}) => get<BskyAppViewSearchActorsTypeaheadResponse>(
-			'/app.bsky.actor.searchActorsTypeahead',
-			[
-				['limit', limit],
-				['q', q],
-			]
+		}) => (
+			assertEnvelope(
+				'search-actors-typeahead',
+				bskyAppViewSearchActorsTypeaheadResponseWire,
+				await get<BskyAppViewSearchActorsTypeaheadResponse>(
+					'/app.bsky.actor.searchActorsTypeahead',
+					[
+						['limit', limit],
+						['q', q],
+					]
+				)
+			)
 		),
-		searchPosts: ({
+		searchActors: async ({
 			limit = 25,
 			q,
+			cursor,
 		}: {
 			limit?: number
 			q: string
-		}) => get<BskyAppViewSearchPostsResponse>(
-			'/app.bsky.feed.searchPosts',
-			[
-				['limit', limit],
-				['q', q],
-			]
+			cursor?: string
+		}) => (
+			assertEnvelope(
+				'search-actors',
+				bskyAppViewSearchActorsResponseWire,
+				await get<BskyAppViewSearchActorsResponse>(
+					'/app.bsky.actor.searchActors',
+					[
+						['limit', limit],
+						['q', q],
+						['cursor', cursor == null || cursor === '' ? undefined : cursor],
+					]
+				)
+			)
+		),
+		searchPosts: async ({
+			limit = 25,
+			q,
+			cursor,
+		}: {
+			limit?: number
+			q: string
+			cursor?: string
+		}) => (
+			assertEnvelope(
+				'search-posts',
+				bskyAppViewSearchPostsResponseWire,
+				await get<BskyAppViewSearchPostsResponse>(
+					'/app.bsky.feed.searchPosts',
+					[
+						['limit', limit],
+						['q', q],
+						['cursor', cursor == null || cursor === '' ? undefined : cursor],
+					]
+				)
+			)
 		),
 	}
 }

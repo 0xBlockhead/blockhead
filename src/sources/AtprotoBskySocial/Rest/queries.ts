@@ -8,6 +8,7 @@ export const {
 	getPosts,
 	getProfile,
 	resolveHandle,
+	searchActors,
 	searchActorsTypeahead,
 	searchPosts,
 } = bskyAppViewXrpc(bindings[Source.Atproto_BskySocial_Xrpc][0])
