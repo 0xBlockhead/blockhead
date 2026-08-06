@@ -97,46 +97,44 @@ const resolveHyperliquidNetworkMetadata = async (
 ) => {
 	assertHyperliquidMainnet(network)
 	const {
+		getAllBorrowLendReserveStates,
 		getMetaAndAssetCtxs,
 		getSpotMeta,
 		getValidatorSummaries,
-		getVaultDetails,
+		getVaultSummaries,
 	} = await import('$/sources/Hyperliquid/Rest/queries.ts')
-	const { hyperliquidVaultByRole } = await import('$/sources/Hyperliquid/Rest/constants.ts')
 	const [
 		perpSnapshot,
 		spotMeta,
 		validators,
-		liquidityProviderVault,
+		vaultSummaries,
+		borrowLendReserves,
 	] = await Promise.all([
 		getMetaAndAssetCtxs(),
 		getSpotMeta(),
 		getValidatorSummaries(),
-		getVaultDetails({
-			vaultAddress: hyperliquidVaultByRole.liquidityProvider.address,
-		}),
+		getVaultSummaries(),
+		getAllBorrowLendReserveStates(),
 	])
 	const perpMeta = assertPerpMarketSnapshot(perpSnapshot)
-	if (liquidityProviderVault == null)
-		throw new Error('Hyperliquid_Rest: liquidity provider vault not found')
+	const vaultAddresses = new Set<string>()
+	for (const vault of vaultSummaries) {
+		assertHyperliquidAddress(vault.vaultAddress)
+		assertHyperliquidAddress(vault.leader)
+		const vaultAddressKey = vault.vaultAddress.toLowerCase()
+		if (vaultAddresses.has(vaultAddressKey))
+			throw new Error(`Hyperliquid_Rest: duplicate vault summary ${vault.vaultAddress}`)
 
-	const vaultAddresses = [
-		liquidityProviderVault.vaultAddress,
-		...(
-			liquidityProviderVault.relationship?.type === 'parent' ?
-				liquidityProviderVault.relationship.data.childAddresses
-			:
-				[]
-		),
-	]
-	for (const vaultAddress of vaultAddresses)
-		assertHyperliquidAddress(vaultAddress)
+		vaultAddresses.add(vaultAddressKey)
+	}
 
+	const timestampMs = Date.now()
 	return {
+		vaultCount: vaultSummaries.length,
 		$$timestamps: [{
 			[EntityMetaKey.Selector]: {
 				$network: network,
-				timestampMs: Date.now(),
+				timestampMs,
 				source: Source.Hyperliquid,
 			},
 			[EntityMetaKey.Fields]: {
@@ -150,7 +148,8 @@ const resolveHyperliquidNetworkMetadata = async (
 					(totalStake, validator) => totalStake + BigInt(validator.stake),
 					0n
 				),
-				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'vaultCount')]: vaultAddresses.length,
+				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'vaultCount')]: vaultSummaries.length,
+				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'borrowLendReserveCount')]: borrowLendReserves.length,
 			},
 		}],
 		$$validators: validators
@@ -207,12 +206,35 @@ const resolveHyperliquidNetworkMetadata = async (
 					},
 				},
 			})),
-		$$vaults: vaultAddresses
+		$$vaults: vaultSummaries
 			.slice(0, limit)
-			.map((vaultAddress) => ({
+			.map((vault) => ({
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					vaultAddress,
+					vaultAddress: vault.vaultAddress,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidVault, [], '$leader')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							address: vault.leader,
+						},
+					},
+					[entityFieldAddressKey(EntityType.HyperliquidVault, [], '$$timestamps')]: [{
+						[EntityMetaKey.Selector]: {
+							$vault: {
+								$network: network,
+								vaultAddress: vault.vaultAddress,
+							},
+							timestampMs,
+							source: Source.Hyperliquid,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'name')]: vault.name,
+							[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'isClosed')]: vault.isClosed,
+							[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'relationship')]: vault.relationship,
+						},
+					}],
 				},
 			})),
 	}
@@ -467,21 +489,42 @@ export default {
 					resolve: async ({ $network, vaultAddress }, context) => {
 						assertHyperliquidMainnet($network)
 						assertHyperliquidAddress(vaultAddress)
-						const { getVaultDetails } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-						const vault = await getVaultDetails({
-							vaultAddress,
-						})
-						if (vault == null)
+						const {
+							getVaultDetails,
+							getVaultSummaries,
+						} = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const [
+							vault,
+							vaultSummaries,
+						] = await Promise.all([
+							getVaultDetails({
+								vaultAddress,
+							}),
+							getVaultSummaries(),
+						])
+						const summary = vaultSummaries
+							.find((candidate) => candidate.vaultAddress.toLowerCase() === vaultAddress.toLowerCase())
+						if (vault == null && summary == null)
 							throw new Error(`Hyperliquid_Rest: vault not found for ${vaultAddress}`)
 
-						assertHyperliquidAddress(vault.leader)
+						const leader = vault?.leader ?? summary?.leader
+						if (leader == null)
+							throw new Error(`Hyperliquid_Rest: vault leader missing for ${vaultAddress}`)
+
+						assertHyperliquidAddress(leader)
 						const timestampMs = Date.now()
 						const limit = resolverContextRowLimit(context)
+						const name = vault?.name ?? summary?.name
+						const isClosed = vault?.isClosed ?? summary?.isClosed
+						const relationship = vault?.relationship ?? summary?.relationship
+						if (name == null || isClosed == null)
+							throw new Error(`Hyperliquid_Rest: vault summary fields missing for ${vaultAddress}`)
+
 						return {
 							$leader: {
 								[EntityMetaKey.Selector]: {
 									$network,
-									address: vault.leader,
+									address: leader,
 								},
 							},
 							$$timestamps: [{
@@ -494,49 +537,56 @@ export default {
 									source: Source.Hyperliquid,
 								},
 								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'name')]: vault.name,
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'description')]: vault.description,
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'apr')]: String(vault.apr),
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'leaderFraction')]: String(vault.leaderFraction),
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'leaderCommission')]: String(vault.leaderCommission),
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'maxDistributable')]: String(vault.maxDistributable),
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'maxWithdrawable')]: String(vault.maxWithdrawable),
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'isClosed')]: vault.isClosed,
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'allowDeposits')]: vault.allowDeposits,
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'alwaysCloseOnWithdraw')]: vault.alwaysCloseOnWithdraw,
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'relationship')]: vault.relationship,
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'portfolio')]: vault.portfolio,
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'followerCount')]: vault.followers.length,
-									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'followers')]: vault.followers,
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'name')]: name,
+									...(vault != null && {
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'description')]: vault.description,
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'apr')]: String(vault.apr),
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'leaderFraction')]: String(vault.leaderFraction),
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'leaderCommission')]: String(vault.leaderCommission),
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'maxDistributable')]: String(vault.maxDistributable),
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'maxWithdrawable')]: String(vault.maxWithdrawable),
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'allowDeposits')]: vault.allowDeposits,
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'alwaysCloseOnWithdraw')]: vault.alwaysCloseOnWithdraw,
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'portfolio')]: vault.portfolio,
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'followerCount')]: vault.followers.length,
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'followers')]: vault.followers,
+									}),
+									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'isClosed')]: isClosed,
+									...(relationship !== undefined && {
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'relationship')]: relationship,
+									}),
 								},
 							}],
-							$$equities: vault.followers
-								.slice(0, limit)
-								.map((follower) => {
-									assertHyperliquidAddress(follower.user)
-									return {
-										[EntityMetaKey.Selector]: {
-											$account: {
-												$network,
-												address: follower.user,
+							$$equities: (
+								vault?.followers
+									.slice(0, limit)
+									.map((follower) => {
+										assertHyperliquidAddress(follower.user)
+										return {
+											[EntityMetaKey.Selector]: {
+												$account: {
+													$network,
+													address: follower.user,
+												},
+												$vault: {
+													$network,
+													vaultAddress,
+												},
+												timestampMs,
+												source: Source.Hyperliquid,
 											},
-											$vault: {
-												$network,
-												vaultAddress,
+											[EntityMetaKey.Fields]: {
+												[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'equity')]: follower.vaultEquity,
+												[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'pnl')]: follower.pnl,
+												[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'allTimePnl')]: follower.allTimePnl,
+												[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'daysFollowing')]: follower.daysFollowing,
+												[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'vaultEntryTimeMs')]: follower.vaultEntryTime,
+												[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'lockupUntilMs')]: follower.lockupUntil,
 											},
-											timestampMs,
-											source: Source.Hyperliquid,
-										},
-										[EntityMetaKey.Fields]: {
-											[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'equity')]: follower.vaultEquity,
-											[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'pnl')]: follower.pnl,
-											[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'allTimePnl')]: follower.allTimePnl,
-											[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'daysFollowing')]: follower.daysFollowing,
-											[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'vaultEntryTimeMs')]: follower.vaultEntryTime,
-											[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'lockupUntilMs')]: follower.lockupUntil,
-										},
-									}
-								}),
+										}
+									})
+								?? []
+							),
 						}
 					},
 				}
@@ -785,24 +835,55 @@ export default {
 						if (!Number.isSafeInteger(offset) || offset < 0)
 							throw new Error('Hyperliquid_Rest: invalid order continuation')
 
-						const { getHistoricalOrders } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-						const orders = (await getHistoricalOrders({
-							user: account.address,
-						})).toSorted((left, right) => (
-							right.statusTimestamp - left.statusTimestamp
-							|| right.order.timestamp - left.order.timestamp
-							|| right.order.oid - left.order.oid
-						))
-						const orderIds = new Set<number>()
-						for (const historicalOrder of orders) {
+						const {
+							getFrontendOpenOrders,
+							getHistoricalOrders,
+						} = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const [
+							historicalOrders,
+							openOrders,
+						] = await Promise.all([
+							getHistoricalOrders({
+								user: account.address,
+							}),
+							getFrontendOpenOrders({
+								user: account.address,
+							}),
+						])
+						const orderByOid = new Map<number, {
+							order: (typeof historicalOrders)[number]['order']
+							status: string
+							statusTimestamp: number
+						}>()
+						for (const historicalOrder of historicalOrders) {
 							assertSafeWireInteger(historicalOrder.order.oid, 'order id')
 							assertSafeWireInteger(historicalOrder.order.timestamp, 'order timestamp')
 							assertSafeWireInteger(historicalOrder.statusTimestamp, 'order status timestamp')
-							if (orderIds.has(historicalOrder.order.oid))
+							if (orderByOid.has(historicalOrder.order.oid))
 								throw new Error(`Hyperliquid_Rest: duplicate historical order ${String(historicalOrder.order.oid)}`)
 
-							orderIds.add(historicalOrder.order.oid)
+							orderByOid.set(historicalOrder.order.oid, historicalOrder)
 						}
+
+						for (const openOrder of openOrders) {
+							assertSafeWireInteger(openOrder.oid, 'order id')
+							assertSafeWireInteger(openOrder.timestamp, 'order timestamp')
+							if (orderByOid.has(openOrder.oid))
+								continue
+
+							orderByOid.set(openOrder.oid, {
+								order: openOrder,
+								status: 'open',
+								statusTimestamp: openOrder.timestamp,
+							})
+						}
+
+						const orders = [...orderByOid.values()]
+							.toSorted((left, right) => (
+								right.statusTimestamp - left.statusTimestamp
+								|| right.order.timestamp - left.order.timestamp
+								|| right.order.oid - left.order.oid
+							))
 
 						return {
 							limit,
@@ -858,19 +939,103 @@ export default {
 				continuation: (page, account) => (
 					page.terminal ?
 						{
-							operation: 'historical-orders',
+							operation: 'account-orders',
 							target: account.address,
 							terminal: true,
 						}
 					:
 						{
-							operation: 'historical-orders',
+							operation: 'account-orders',
 							target: account.address,
 							terminal: false,
 							token: String(page.offset + page.limit),
 						}
 				),
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.HyperliquidOrder,
+			resolve: {
+				AccountOid: {
+					resolve: async ({ $account, oid }) => {
+						assertHyperliquidMainnet($account.$network)
+						assertHyperliquidAddress($account.address)
+						const oidNumber = Number(oid)
+						assertSafeWireInteger(oidNumber, 'order id')
+						if (BigInt(oidNumber) !== BigInt(oid))
+							throw new Error(`Hyperliquid_Rest: invalid order id ${String(oid)}`)
+
+						const { getOrderStatus } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const orderStatus = await getOrderStatus({
+							user: $account.address,
+							oid: oidNumber,
+						})
+						if (orderStatus.status !== 'order')
+							throw new Error(`Hyperliquid_Rest: order not found for ${String(oid)}`)
+
+						const {
+							order,
+							status,
+							statusTimestamp,
+						} = orderStatus.order
+						assertSafeWireInteger(order.oid, 'order id')
+						assertSafeWireInteger(order.timestamp, 'order timestamp')
+						assertSafeWireInteger(statusTimestamp, 'order status timestamp')
+						if (order.oid !== oidNumber)
+							throw new Error(`Hyperliquid_Rest: order id mismatch for ${String(oid)}`)
+
+						return {
+							coin: order.coin,
+							side: order.side,
+							orderType: order.orderType,
+							limitPrice: order.limitPx,
+							originalSize: order.origSz,
+							triggerCondition: order.triggerCondition,
+							triggerPrice: order.triggerPx,
+							reduceOnly: order.reduceOnly,
+							...(order.tif != null && {
+								tif: order.tif,
+							}),
+							isTrigger: order.isTrigger,
+							isPositionTpsl: order.isPositionTpsl,
+							...(order.cloid != null && {
+								cloid: order.cloid,
+							}),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$order: {
+										$account,
+										oid: assertSafeWireInteger(order.oid, 'order id'),
+									},
+									timestampMs: statusTimestamp,
+									source: Source.Hyperliquid,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: status,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: statusTimestamp,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: order.sz,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: order.children,
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			coin: (snapshot) => snapshot.coin,
+			side: (snapshot) => snapshot.side,
+			orderType: (snapshot) => snapshot.orderType,
+			limitPrice: (snapshot) => snapshot.limitPrice,
+			originalSize: (snapshot) => snapshot.originalSize,
+			triggerCondition: (snapshot) => snapshot.triggerCondition,
+			triggerPrice: (snapshot) => snapshot.triggerPrice,
+			reduceOnly: (snapshot) => snapshot.reduceOnly,
+			tif: (snapshot) => snapshot.tif,
+			isTrigger: (snapshot) => snapshot.isTrigger,
+			isPositionTpsl: (snapshot) => snapshot.isPositionTpsl,
+			cloid: (snapshot) => snapshot.cloid,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
 		defineResolver({
@@ -1061,7 +1226,10 @@ export default {
 			$$perpMarkets: (snapshot) => snapshot.$$perpMarkets,
 			$$spotAssets: (snapshot) => snapshot.$$spotAssets,
 			$$spotPairs: (snapshot) => snapshot.$$spotPairs,
-			$$vaults: (snapshot) => snapshot.$$vaults,
+			$$vaults: {
+				select: (snapshot) => snapshot.$$vaults,
+				resolveCount: (snapshot) => snapshot.vaultCount,
+			},
 		}),
 
 		defineResolver({
@@ -1081,7 +1249,10 @@ export default {
 				$$perpMarkets: (snapshot) => snapshot.$$perpMarkets,
 				$$spotAssets: (snapshot) => snapshot.$$spotAssets,
 				$$spotPairs: (snapshot) => snapshot.$$spotPairs,
-				$$vaults: (snapshot) => snapshot.$$vaults,
+				$$vaults: {
+					select: (snapshot) => snapshot.$$vaults,
+					resolveCount: (snapshot) => snapshot.vaultCount,
+				},
 			},
 		}),
 	],

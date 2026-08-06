@@ -197,33 +197,43 @@ describe('Hyperliquid public account resolvers', () => {
 	})
 
 	it('maps bounded historical orders with exact status observations', async () => {
-		corsFetch.mockImplementation(async () => ({
-			ok: true,
-			json: async () => [
-				{
-					order: {
-						coin: 'ETH',
-						side: 'A',
-						limitPx: '2412.7',
-						sz: '0',
-						oid: 2,
-						timestamp: 1_700_000_000_000,
-						triggerCondition: 'N/A',
-						isTrigger: false,
-						triggerPx: '0',
-						children: [],
-						isPositionTpsl: false,
-						reduceOnly: true,
-						orderType: 'Market',
-						origSz: '0.0076',
-						tif: 'FrontendMarket',
-						cloid: null,
-					},
-					status: 'filled',
-					statusTimestamp: 1_700_000_000_001,
-				},
-			],
-		}))
+		corsFetch.mockImplementation(async (_url, options) => {
+			const body = JSON.parse(options.init.body)
+			return {
+				ok: true,
+				json: async () => (
+					body.type === 'historicalOrders' ?
+						[
+							{
+								order: {
+									coin: 'ETH',
+									side: 'A',
+									limitPx: '2412.7',
+									sz: '0',
+									oid: 2,
+									timestamp: 1_700_000_000_000,
+									triggerCondition: 'N/A',
+									isTrigger: false,
+									triggerPx: '0',
+									children: [],
+									isPositionTpsl: false,
+									reduceOnly: true,
+									orderType: 'Market',
+									origSz: '0.0076',
+									tif: 'FrontendMarket',
+									cloid: null,
+								},
+								status: 'filled',
+								statusTimestamp: 1_700_000_000_001,
+							},
+						]
+					: body.type === 'frontendOpenOrders' ?
+						[]
+					:
+						null
+				),
+			}
+		})
 
 		const page = await ordersResolver.resolve[
 			'NetworkAddress'
@@ -239,6 +249,143 @@ describe('Hyperliquid public account resolvers', () => {
 			[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'orderType')]: 'Market',
 		})
 		expect(ordersResolver.projections.$$orders.continuation(page, account, context).terminal).toBe(true)
+	})
+
+	it('merges frontend open orders into $$orders when historical omits them', async () => {
+		corsFetch.mockImplementation(async (_url, options) => {
+			const body = JSON.parse(options.init.body)
+			return {
+				ok: true,
+				json: async () => (
+					body.type === 'historicalOrders' ?
+						[
+							{
+								order: {
+									coin: 'ETH',
+									side: 'A',
+									limitPx: '2412.7',
+									sz: '0',
+									oid: 2,
+									timestamp: 1_700_000_000_000,
+									triggerCondition: 'N/A',
+									isTrigger: false,
+									triggerPx: '0',
+									children: [],
+									isPositionTpsl: false,
+									reduceOnly: true,
+									orderType: 'Market',
+									origSz: '0.0076',
+									tif: 'FrontendMarket',
+									cloid: null,
+								},
+								status: 'filled',
+								statusTimestamp: 1_700_000_000_001,
+							},
+						]
+					: body.type === 'frontendOpenOrders' ?
+						[
+							{
+								coin: 'BTC',
+								side: 'B',
+								limitPx: '65000',
+								sz: '0.1',
+								oid: 9,
+								timestamp: 1_700_000_000_500,
+								triggerCondition: 'N/A',
+								isTrigger: false,
+								triggerPx: '0',
+								children: [],
+								isPositionTpsl: false,
+								reduceOnly: false,
+								orderType: 'Limit',
+								origSz: '0.1',
+								tif: 'Gtc',
+								cloid: null,
+							},
+						]
+					:
+						null
+				),
+			}
+		})
+
+		const page = await ordersResolver.resolve[
+			'NetworkAddress'
+		].resolve(account, {
+			...context,
+			pagination: {
+				limit: 10,
+			},
+		})
+		const orders = ordersResolver.projections.$$orders.select(page, account, context)
+
+		expect(orders.map((order) => order[EntityMetaKey.Selector].oid)).toEqual([9n, 2n])
+		expect(orders[0]?.[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'coin')]: 'BTC',
+			[entityFieldAddressKey(EntityType.HyperliquidOrder, [], '$$timestamps')]: [{
+				[EntityMetaKey.Selector]: {
+					$order: {
+						$account: account,
+						oid: 9n,
+					},
+					timestampMs: 1_700_000_000_500,
+					source: Source.Hyperliquid,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: 'open',
+					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: 1_700_000_000_500,
+					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: '0.1',
+					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: [],
+				},
+			}],
+		})
+	})
+
+	it('does not duplicate an open order already present in historicalOrders', async () => {
+		corsFetch.mockImplementation(async (_url, options) => {
+			const body = JSON.parse(options.init.body)
+			const openOrder = {
+				coin: 'ETH',
+				side: 'B',
+				limitPx: '2000',
+				sz: '1',
+				oid: 7,
+				timestamp: 1_700_000_000_100,
+				triggerCondition: 'N/A',
+				isTrigger: false,
+				triggerPx: '0',
+				children: [],
+				isPositionTpsl: false,
+				reduceOnly: false,
+				orderType: 'Limit',
+				origSz: '1',
+				tif: 'Gtc',
+				cloid: null,
+			}
+			return {
+				ok: true,
+				json: async () => (
+					body.type === 'historicalOrders' ?
+						[{
+							order: openOrder,
+							status: 'open',
+							statusTimestamp: 1_700_000_000_100,
+						}]
+					: body.type === 'frontendOpenOrders' ?
+						[openOrder]
+					:
+						null
+				),
+			}
+		})
+
+		const page = await ordersResolver.resolve[
+			'NetworkAddress'
+		].resolve(account, context)
+		const orders = ordersResolver.projections.$$orders.select(page, account, context)
+
+		expect(orders).toHaveLength(1)
+		expect(orders[0]?.[EntityMetaKey.Selector].oid).toBe(7n)
 	})
 
 	it('uses an inclusive time and trade-id cursor without replaying fills', async () => {
@@ -339,32 +486,107 @@ describe('Hyperliquid public account resolvers', () => {
 		}, context)).rejects.toThrow('invalid account address')
 		expect(corsFetch).not.toHaveBeenCalled()
 
-		corsFetch.mockImplementation(async () => ({
-			ok: true,
-			json: async () => [{
-				order: {
-					coin: 'ETH',
-					side: 'A',
-					limitPx: '1',
-					sz: '0',
-					oid: Number.MAX_SAFE_INTEGER + 1,
-					timestamp: 1,
-					triggerCondition: 'N/A',
-					isTrigger: false,
-					triggerPx: '0',
-					children: [],
-					isPositionTpsl: false,
-					reduceOnly: false,
-					orderType: 'Limit',
-					origSz: '1',
-				},
-				status: 'open',
-				statusTimestamp: 1,
-			}],
-		}))
+		corsFetch.mockImplementation(async (_url, options) => {
+			const body = JSON.parse(options.init.body)
+			return {
+				ok: true,
+				json: async () => (
+					body.type === 'historicalOrders' ?
+						[{
+							order: {
+								coin: 'ETH',
+								side: 'A',
+								limitPx: '1',
+								sz: '0',
+								oid: Number.MAX_SAFE_INTEGER + 1,
+								timestamp: 1,
+								triggerCondition: 'N/A',
+								isTrigger: false,
+								triggerPx: '0',
+								children: [],
+								isPositionTpsl: false,
+								reduceOnly: false,
+								orderType: 'Limit',
+								origSz: '1',
+							},
+							status: 'open',
+							statusTimestamp: 1,
+						}]
+					: body.type === 'frontendOpenOrders' ?
+						[]
+					:
+						null
+				),
+			}
+		})
 		await expect(ordersResolver.resolve[
 			'NetworkAddress'
 		].resolve(account, context)).rejects.toThrow('invalid order id')
+	})
+})
+
+describe('Hyperliquid order status resolver', () => {
+	beforeEach(() => {
+		vi.restoreAllMocks()
+		corsFetch.mockReset()
+	})
+
+	it('materializes a singular order from orderStatus', async () => {
+		const orderResolver = hyperliquid.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HyperliquidOrder
+		))
+		expect(orderResolver).toBeTruthy()
+
+		corsFetch.mockImplementation(async () => ({
+			ok: true,
+			json: async () => ({
+				status: 'order',
+				order: {
+					order: {
+						coin: 'ETH',
+						side: 'B',
+						limitPx: '2000',
+						sz: '1',
+						oid: 42,
+						timestamp: 1_700_000_000_000,
+						triggerCondition: 'N/A',
+						isTrigger: false,
+						triggerPx: '0',
+						children: [],
+						isPositionTpsl: false,
+						reduceOnly: false,
+						orderType: 'Limit',
+						origSz: '1',
+						tif: 'Gtc',
+						cloid: null,
+					},
+					status: 'open',
+					statusTimestamp: 1_700_000_000_000,
+				},
+			}),
+		}))
+
+		const snapshot = await orderResolver.resolve.AccountOid.resolve({
+			$account: account,
+			oid: 42n,
+		}, context)
+		expect(orderResolver.projections.coin(snapshot)).toBe('ETH')
+		expect(orderResolver.projections.$$timestamps(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$order: {
+					$account: account,
+					oid: 42n,
+				},
+				timestampMs: 1_700_000_000_000,
+				source: Source.Hyperliquid,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: 'open',
+				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: 1_700_000_000_000,
+				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: '1',
+				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: [],
+			},
+		}])
 	})
 })
 
@@ -374,7 +596,8 @@ describe('Hyperliquid market catalog resolvers', () => {
 		corsFetch.mockReset()
 	})
 
-	it('materializes spot pairs and HLP vault catalog from public Info snapshots', async () => {
+	it('materializes spot pairs and vault catalog from public Info snapshots', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_999)
 		corsFetch.mockImplementation(async (_url, options) => {
 			const body = JSON.parse(options.init.body)
 			return {
@@ -426,21 +649,14 @@ describe('Hyperliquid market catalog resolvers', () => {
 							isActive: true,
 							commission: '0.01',
 						}]
-					: body.type === 'vaultDetails' ?
-						{
+					: body.type === 'vaultSummaries' ?
+						[{
 							name: 'Hyperliquidity Provider (HLP)',
 							vaultAddress: '0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
 							leader: '0x677d831aef5328190852e24f13c46cac05f984e7',
-							description: 'hlp',
-							portfolio: [],
-							apr: 0.01,
-							followerState: null,
-							leaderFraction: 0.001,
-							leaderCommission: 0,
-							followers: [],
-							maxDistributable: 1,
-							maxWithdrawable: 0,
+							tvl: '1000',
 							isClosed: false,
+							createTimeMillis: 1_700_000_000_000,
 							relationship: {
 								type: 'parent',
 								data: {
@@ -449,9 +665,53 @@ describe('Hyperliquid market catalog resolvers', () => {
 									],
 								},
 							},
-							allowDeposits: true,
-							alwaysCloseOnWithdraw: false,
-						}
+						}, {
+							name: 'HLP child',
+							vaultAddress: '0x010461c14e146ac35fe42271bdc1134ee31c703a',
+							leader: '0x677d831aef5328190852e24f13c46cac05f984e7',
+							tvl: '100',
+							isClosed: false,
+							createTimeMillis: 1_700_000_000_100,
+							relationship: {
+								type: 'child',
+								data: {
+									parentAddress: '0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
+								},
+							},
+						}, {
+							name: 'Extra vault',
+							vaultAddress: '0xcccccccccccccccccccccccccccccccccccccccc',
+							leader: '0xdddddddddddddddddddddddddddddddddddddddd',
+							tvl: '50',
+							isClosed: true,
+							createTimeMillis: 1_700_000_000_200,
+							relationship: {
+								type: 'normal',
+							},
+						}]
+					: body.type === 'allBorrowLendReserveStates' ?
+						[
+							[0, {
+								borrowYearlyRate: '0.01',
+								supplyYearlyRate: '0.005',
+								balance: '1',
+								utilization: '0.5',
+								oraclePx: '1',
+								ltv: '0.8',
+								totalSupplied: '10',
+								totalBorrowed: '5',
+							}],
+							[1, {
+								borrowYearlyRate: '0.02',
+								supplyYearlyRate: '0.01',
+								balance: '2',
+								utilization: '0.4',
+								oraclePx: '2',
+								ltv: '0.7',
+								totalSupplied: '20',
+								totalBorrowed: '8',
+							}],
+						]
 					:
 						null
 				),
@@ -469,7 +729,7 @@ describe('Hyperliquid market catalog resolvers', () => {
 		expect(networkResolver.projections.$$timestamps(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: account.$network,
-				timestampMs: expect.any(Number),
+				timestampMs: 1_700_000_000_999,
 				source: Source.Hyperliquid,
 			},
 			[EntityMetaKey.Fields]: {
@@ -480,7 +740,8 @@ describe('Hyperliquid market catalog resolvers', () => {
 				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'activeValidatorCount')]: 1,
 				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'jailedValidatorCount')]: 0,
 				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'totalStake')]: 2n,
-				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'vaultCount')]: 2,
+				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'vaultCount')]: 3,
+				[entityFieldAddressKey(EntityType.HyperliquidNetwork_Timestamp, [], 'borrowLendReserveCount')]: 2,
 			},
 		}])
 		expect(networkResolver.projections.$$perpMarkets(snapshot)).toEqual([{
@@ -509,10 +770,33 @@ describe('Hyperliquid market catalog resolvers', () => {
 				},
 			},
 		}])
-		expect(networkResolver.projections.$$vaults(snapshot).map((vault) => vault[EntityMetaKey.Selector].vaultAddress)).toEqual([
+		expect(networkResolver.projections.$$vaults.resolveCount(snapshot)).toBe(3)
+		expect(networkResolver.projections.$$vaults.select(snapshot).map((vault) => vault[EntityMetaKey.Selector].vaultAddress)).toEqual([
 			'0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
 			'0x010461c14e146ac35fe42271bdc1134ee31c703a',
 		])
+		expect(networkResolver.projections.$$vaults.select(snapshot)[0]?.[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.HyperliquidVault, [], '$leader')]: {
+				[EntityMetaKey.Selector]: {
+					$network: account.$network,
+					address: '0x677d831aef5328190852e24f13c46cac05f984e7',
+				},
+			},
+			[entityFieldAddressKey(EntityType.HyperliquidVault, [], '$$timestamps')]: [{
+				[EntityMetaKey.Selector]: {
+					$vault: {
+						$network: account.$network,
+						vaultAddress: '0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
+					},
+					timestampMs: 1_700_000_000_999,
+					source: Source.Hyperliquid,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'name')]: 'Hyperliquidity Provider (HLP)',
+					[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'isClosed')]: false,
+				},
+			}],
+		})
 
 		const parentNetworkResolver = hyperliquid.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.Network
@@ -524,9 +808,72 @@ describe('Hyperliquid market catalog resolvers', () => {
 		expect(parentNetworkResolver.projections.Hyperliquid.$$spotPairs(parentSnapshot)).toEqual(
 			networkResolver.projections.$$spotPairs(snapshot)
 		)
-		expect(parentNetworkResolver.projections.Hyperliquid.$$vaults(parentSnapshot)).toEqual(
-			networkResolver.projections.$$vaults(snapshot)
+		expect(parentNetworkResolver.projections.Hyperliquid.$$vaults.select(parentSnapshot)).toEqual(
+			networkResolver.projections.$$vaults.select(snapshot)
 		)
+		expect(parentNetworkResolver.projections.Hyperliquid.$$vaults.resolveCount(parentSnapshot)).toBe(3)
+	})
+
+	it('fills vault summary fields when vaultDetails is absent', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_888)
+		const vaultResolver = hyperliquid.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HyperliquidVault
+		))
+		expect(vaultResolver).toBeTruthy()
+
+		corsFetch.mockImplementation(async (_url, options) => {
+			const body = JSON.parse(options.init.body)
+			return {
+				ok: true,
+				json: async () => (
+					body.type === 'vaultDetails' ?
+						null
+					: body.type === 'vaultSummaries' ?
+						[{
+							name: 'Summary only vault',
+							vaultAddress: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+							leader: '0xffffffffffffffffffffffffffffffffffffffff',
+							tvl: '12',
+							isClosed: false,
+							createTimeMillis: 1_700_000_000_000,
+							relationship: {
+								type: 'normal',
+							},
+						}]
+					:
+						null
+				),
+			}
+		})
+
+		const snapshot = await vaultResolver.resolve.NetworkVaultAddress.resolve({
+			$network: account.$network,
+			vaultAddress: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+		}, context)
+		expect(vaultResolver.projections.$leader(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				address: '0xffffffffffffffffffffffffffffffffffffffff',
+			},
+		})
+		expect(vaultResolver.projections.$$timestamps(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$vault: {
+					$network: account.$network,
+					vaultAddress: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+				},
+				timestampMs: 1_700_000_000_888,
+				source: Source.Hyperliquid,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'name')]: 'Summary only vault',
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'isClosed')]: false,
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'relationship')]: {
+					type: 'normal',
+				},
+			},
+		}])
+		expect(vaultResolver.projections.$$equities(snapshot)).toEqual([])
 	})
 
 	it('rejects a perp market snapshot without a context for every market', async () => {
