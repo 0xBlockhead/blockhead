@@ -62,6 +62,7 @@
 	{#snippet Value()}
 		<BitcoinRuneView
 			selection={select(EntityType.BitcoinRune, selection.entitySelector.$rune)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

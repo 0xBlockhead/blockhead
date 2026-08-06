@@ -41,6 +41,7 @@
 	import EvmActorCoinAllowancesView from '$/views/EvmActorCoinAllowancesView.svelte'
 	import EvmNetworkAccount_TimestampsView from '$/views/EvmNetworkAccount_TimestampsView.svelte'
 	import AaveReservePositionsView from '$/views/AaveReservePositionsView.svelte'
+	import CompoundPositionsView from '$/views/CompoundPositionsView.svelte'
 	import EulerEvkVaultPositionsView from '$/views/EulerEvkVaultPositionsView.svelte'
 	import GmxPositionsView from '$/views/GmxPositionsView.svelte'
 	import MorphoMarketPositionsView from '$/views/MorphoMarketPositionsView.svelte'
@@ -292,6 +293,10 @@
 						label: 'Aave',
 					},
 					{
+						id: 'evm-network-account-compound-positions',
+						label: 'Compound',
+					},
+					{
 						id: 'evm-network-account-euler-evk-vault-positions',
 						label: 'Euler',
 					},
@@ -336,6 +341,24 @@
 					collapsible={false}
 					title={label}
 					emptyText='No Aave reserve positions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionEvmNetworkAccountCompoundPositions({ id, label })}
+				<CompoundPositionsView
+					selection={
+						selection
+						.$$compoundPositions({
+							sources: [
+								Source.Compound_Rest,
+							],
+							limit: 32,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Compound positions.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

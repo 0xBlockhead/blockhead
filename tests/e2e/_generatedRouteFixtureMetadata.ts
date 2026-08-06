@@ -1887,6 +1887,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/inscription/[inscriptionId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/inscription/[inscriptionId=stringSegment]',
+		mappings: [
+			{
+				id: 'BitcoinOrdinalInscription.NetworkInscriptionId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/inscription/[inscriptionId]:BitcoinOrdinalInscription.NetworkInscriptionId'],
+				probeCases: [[[0, '1', ['inscriptionId', 'network']]]],
+				projectionPath: [
+					'Utxo',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/invoices': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/invoices',
 		mappings: [
@@ -2397,6 +2411,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'Network.Slug',
 				probeAtomPrefixes: ['/network/[network]:Network.Slug'],
 				probeCases: [[[0, '1', ['network']]], [[0, '2', ['network']]], [[0, '3', ['network']]], [[0, '4', ['network']]], [[0, '5', ['network']]], [[0, '6', ['network']]], [[0, '7', ['network']]], [[0, '8', ['network']]], [[0, '9', ['network']]], [[0, '10', ['network']]], [[0, '11', ['network']]], [[0, '12', ['network']]], [[0, '13', ['network']]], [[0, '14', ['network']]], [[0, '15', ['network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/rune/[runeId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rune/[runeId=stringSegment]',
+		mappings: [
+			{
+				id: 'BitcoinRune.NetworkRuneId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/rune/[runeId]:BitcoinRune.NetworkRuneId'],
+				probeCases: [[[0, '1', ['runeId', 'network']]]],
+				projectionPath: [
+					'Utxo',
+				],
 			},
 		],
 	},

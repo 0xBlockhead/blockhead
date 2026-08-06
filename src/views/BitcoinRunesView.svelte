@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -37,9 +39,24 @@
 >
 	{#snippet Item({ item: bitcoinRune })}
 		{@const bitcoinRuneSelector = bitcoinRune[EntityMetaKey.Selector]}
+		{@const network = bitcoinRuneSelector.$network}
 		<EntityView
 			entityType={EntityType.BitcoinRune}
 			entitySelector={bitcoinRuneSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rune/[runeId=stringSegment]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						runeId: bitcoinRuneSelector.runeId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[(bitcoinRune.spacedRune ?? ''), (bitcoinRune.rune ?? '')].filter(Boolean).join(' ') || 'Bitcoin Rune'}

@@ -72,6 +72,13 @@ export default entity({
 			Source.Aave_Rest,
 		],
 	},
+	$$compoundPositions: {
+		entityType: EntityType.CompoundPosition,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Compound_Rest,
+		],
+	},
 	$$eulerEvkVaultPositions: {
 		entityType: EntityType.EulerEvkVaultPosition,
 		cardinality: EntityFieldCardinality.Many,

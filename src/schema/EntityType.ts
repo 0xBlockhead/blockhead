@@ -388,6 +388,8 @@ export enum EntityType {
 	ComplianceModule = 'ComplianceModule',
 	CompoundComet = 'CompoundComet',
 	CompoundCometAsset = 'CompoundCometAsset',
+	CompoundPosition = 'CompoundPosition',
+	CompoundPositionCollateral = 'CompoundPositionCollateral',
 	ContractInterfaceMember = 'ContractInterfaceMember',
 	CosmosAccount = 'CosmosAccount',
 	CosmosAccount_Timestamp = 'CosmosAccount_Timestamp',

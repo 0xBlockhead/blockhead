@@ -1559,6 +1559,8 @@ export enum EntityType {
 	ComplianceModule = "ComplianceModule",
 	CompoundComet = "CompoundComet",
 	CompoundCometAsset = "CompoundCometAsset",
+	CompoundPosition = "CompoundPosition",
+	CompoundPositionCollateral = "CompoundPositionCollateral",
 	ContractInterfaceMember = "ContractInterfaceMember",
 	CosmosAccount = "CosmosAccount",
 	CosmosAccount_Timestamp = "CosmosAccount_Timestamp",
@@ -24696,6 +24698,58 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.CompoundPosition,
+				labels: { singular: "Compound position", plural: "Compound positions" },
+				description: "An account base supply/borrow balance and collateral set against one Compound III Comet market.",
+			})({
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount },
+				"$comet": { label: "Comet", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CompoundComet },
+				"baseTokenSymbol": { label: "Base token symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Compound_Rest] },
+				"baseTokenAddress": { label: "Base token address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
+				"suppliedBalance": { label: "Supplied balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Compound_Rest] },
+				"borrowedBalance": { label: "Borrowed balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Compound_Rest] },
+				"$$collaterals": { label: "Collateral balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CompoundPositionCollateral, defaultSources: [Source.Compound_Rest] },
+			})({
+				selectors: { "AccountComet": ["$account", "$comet"] },
+				views: {
+					singular: {
+						query: { sources: [Source.Compound_Rest] },
+						summary: { title: ["$comet", "baseTokenSymbol"], value: ["suppliedBalance", "borrowedBalance"] },
+						content: { dl: [
+							["$account", "$comet", "baseTokenSymbol", { field: "baseTokenAddress", format: "address" }],
+							["suppliedBalance", "borrowedBalance"],
+						] },
+						lists: [
+							{ field: "$$collaterals", component: "CompoundPositionCollateralsView", label: "Collateral", emptyText: "No Compound collateral balances." },
+						],
+					},
+					plural: { component: "CompoundPositionsView", title: "Compound positions" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.CompoundPositionCollateral,
+				labels: { singular: "Compound position collateral", plural: "Compound position collaterals" },
+				description: "An account collateral token balance within one Compound III Comet position.",
+			})({
+				"$position": { label: "Position", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CompoundPosition },
+				"$asset": { label: "Asset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CompoundCometAsset },
+				"balance": { label: "Balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Compound_Rest] },
+			})({
+				selectors: { "PositionAsset": ["$position", "$asset"] },
+				views: {
+					singular: {
+						query: { sources: [Source.Compound_Rest] },
+						summary: { title: ["$asset"], value: ["balance"] },
+						content: { dl: [
+							["$position", "$asset", "balance"],
+						] },
+					},
+					plural: { component: "CompoundPositionCollateralsView", title: "Compound position collaterals" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.ContractInterfaceMember,
 				labels: {
 					singular: "contract interface member",
@@ -30823,6 +30877,7 @@ export const schema = {
 				"$$nfts": { label: "NFTs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNft, defaultSources: [Source.OpenSea_Rest] },
 				"$$erc20TokenAllowances": { label: "erc20 token allowances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmActorCoinAllowance },
 				"$$aaveReservePositions": { label: "Aave reserve positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveReservePosition, defaultSources: [Source.Aave_Rest] },
+				"$$compoundPositions": { label: "Compound positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CompoundPosition, defaultSources: [Source.Compound_Rest] },
 				"$$eulerEvkVaultPositions": { label: "Euler EVK vault positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EulerEvkVaultPosition, defaultSources: [Source.Euler_Rest] },
 				"$$gmxPositions": { label: "GMX positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GmxPosition, defaultSources: [Source.Gmx_Rest] },
 				"$$morphoMarketPositions": { label: "Morpho market positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MorphoMarketPosition, defaultSources: [Source.Morpho_Graphql] },
@@ -30879,6 +30934,7 @@ export const schema = {
 								className: "network-view-collapsible-defi-positions",
 								sections: [
 									{ id: "evm-network-account-aave-reserve-positions", field: "$$aaveReservePositions", List: "AaveReservePositionsView", label: "Aave", emptyText: "No Aave reserve positions.", selection: { sources: [Source.Aave_Rest], limit: 32 } },
+									{ id: "evm-network-account-compound-positions", field: "$$compoundPositions", List: "CompoundPositionsView", label: "Compound", emptyText: "No Compound positions.", selection: { sources: [Source.Compound_Rest], limit: 32 } },
 									{ id: "evm-network-account-euler-evk-vault-positions", field: "$$eulerEvkVaultPositions", List: "EulerEvkVaultPositionsView", label: "Euler", emptyText: "No Euler vault positions.", selection: { sources: [Source.Euler_Rest], limit: 32 } },
 									{ id: "evm-network-account-gmx-positions", field: "$$gmxPositions", List: "GmxPositionsView", label: "GMX", emptyText: "No GMX positions.", selection: { sources: [Source.Gmx_Rest], limit: 32 } },
 									{ id: "evm-network-account-morpho-market-positions", field: "$$morphoMarketPositions", List: "MorphoMarketPositionsView", label: "Morpho markets", emptyText: "No Morpho market positions.", selection: { sources: [Source.Morpho_Graphql], limit: 32 } },
@@ -69415,20 +69471,6 @@ export const routes = defineRoutes(schema)({
 				},
 			},
 		},
-		[EntityType.BitcoinOrdinalInscription]: {
-			"NetworkInscriptionId": {
-				kind: "Research",
-				decision: "Retain BitcoinOrdinalInscription.NetworkInscriptionId as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#bitcoinordinalinscription",
-			},
-		},
-		[EntityType.BitcoinRune]: {
-			"NetworkRuneId": {
-				kind: "Research",
-				decision: "Retain BitcoinRune.NetworkRuneId as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#bitcoinrune",
-			},
-		},
 		[EntityType.BitcoinRuneBalance]: {
 			"UtxoOutputRune": {
 				kind: "Research",
@@ -70801,6 +70843,20 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain CompoundCometAsset.CometAssetSymbol as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#compoundcometasset",
+			},
+		},
+		[EntityType.CompoundPosition]: {
+			"AccountComet": {
+				kind: "Research",
+				decision: "Retain CompoundPosition.AccountComet as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#compoundposition",
+			},
+		},
+		[EntityType.CompoundPositionCollateral]: {
+			"PositionAsset": {
+				kind: "Research",
+				decision: "Retain CompoundPositionCollateral.PositionAsset as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#compoundpositioncollateral",
 			},
 		},
 		[EntityType.ContractInterfaceMember]: {
@@ -80463,6 +80519,54 @@ export const routes = defineRoutes(schema)({
 																},
 																params: {
 																	"positionId": ["positionId"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"inscription": {
+											children: {
+												"[inscriptionId]": {
+													selectors: {
+														[EntityType.BitcoinOrdinalInscription]: {
+															"NetworkInscriptionId": {
+																when: {
+																	path: ["namespace"],
+																	is: "Bitcoin",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Utxo"],
+																},
+																params: {
+																	"inscriptionId": ["inscriptionId"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"rune": {
+											children: {
+												"[runeId]": {
+													selectors: {
+														[EntityType.BitcoinRune]: {
+															"NetworkRuneId": {
+																when: {
+																	path: ["namespace"],
+																	is: "Bitcoin",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Utxo"],
+																},
+																params: {
+																	"runeId": ["runeId"],
 																},
 																page: {},
 															},
