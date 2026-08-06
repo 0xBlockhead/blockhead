@@ -49,6 +49,94 @@ const addressTransactionsDocument = graphql(`
 	}
 `)
 
+const latestCheckpointDocument = graphql(`
+	query SuiLatestCheckpoint {
+		checkpoint {
+			sequenceNumber
+			digest
+			previousCheckpointDigest
+			timestamp
+			networkTotalTransactions
+			epoch {
+				epochId
+				protocolConfigs {
+					protocolVersion
+				}
+			}
+		}
+	}
+`)
+
+const checkpointBySequenceDocument = graphql(`
+	query SuiCheckpointBySequence($sequenceNumber: UInt53!) {
+		checkpoint(sequenceNumber: $sequenceNumber) {
+			sequenceNumber
+			digest
+			previousCheckpointDigest
+			timestamp
+			networkTotalTransactions
+			epoch {
+				epochId
+				protocolConfigs {
+					protocolVersion
+				}
+			}
+		}
+	}
+`)
+
+const checkpointByDigestDocument = graphql(`
+	query SuiCheckpointByDigest($digest: String!) {
+		checkpoint(digest: $digest) {
+			sequenceNumber
+			digest
+			previousCheckpointDigest
+			timestamp
+			networkTotalTransactions
+			epoch {
+				epochId
+				protocolConfigs {
+					protocolVersion
+				}
+			}
+		}
+	}
+`)
+
+const transactionDocument = graphql(`
+	query SuiTransaction($digest: String!) {
+		transaction(digest: $digest) {
+			digest
+			sender {
+				address
+			}
+			kind {
+				__typename
+			}
+			gasInput {
+				gasBudget
+				gasPrice
+			}
+			effects {
+				status
+				effectsDigest
+				timestamp
+				gasEffects {
+					gasSummary {
+						computationCost
+						storageCost
+						storageRebate
+						nonRefundableStorageFee
+					}
+				}
+				checkpoint {
+					sequenceNumber
+				}
+			}
+		}
+	}
+`)
+
 export const normalizeSuiAddress = (address: string) => {
 	const match = /^0x([0-9a-f]{1,64})$/i.exec(address)
 	if (match == null)
@@ -91,6 +179,69 @@ const pagination = (
 		...(after != null && { after }),
 		...(pageInfo.hasNextPage && {
 			nextAfter: pageInfo.endCursor,
+		}),
+	}
+}
+
+const bigintFromWire = (
+	value: number | string,
+	label: string
+) => {
+	try {
+		const parsed = BigInt(value)
+		if (parsed < 0n)
+			throw new Error('negative')
+		return parsed
+	} catch {
+		throw new Error(`Sui GraphQL: invalid ${label}`)
+	}
+}
+
+const timestampMsFromWire = (
+	value: string | null | undefined,
+	label: string
+) => {
+	if (value == null)
+		return undefined
+	const timestampMs = Date.parse(value)
+	if (!Number.isFinite(timestampMs))
+		throw new Error(`Sui GraphQL: invalid ${label}`)
+	return timestampMs
+}
+
+type SuiCheckpointWire = {
+	sequenceNumber: number | string
+	digest: string | null
+	previousCheckpointDigest: string | null
+	timestamp: string | null
+	networkTotalTransactions: number | string | null
+	epoch: {
+		epochId: number | string
+		protocolConfigs: {
+			protocolVersion: number | string
+		} | null
+	} | null
+}
+
+const normalizeCheckpoint = (checkpoint: SuiCheckpointWire) => {
+	if (checkpoint.digest == null || checkpoint.digest === '')
+		throw new Error('Sui GraphQL checkpoint is missing digest')
+	const sequence = bigintFromWire(checkpoint.sequenceNumber, 'checkpoint sequence')
+	return {
+		sequence,
+		digest: checkpoint.digest,
+		...(checkpoint.previousCheckpointDigest != null && checkpoint.previousCheckpointDigest !== '' && {
+			previousDigest: checkpoint.previousCheckpointDigest,
+		}),
+		timestampMs: timestampMsFromWire(checkpoint.timestamp, 'checkpoint timestamp'),
+		...(checkpoint.networkTotalTransactions != null && {
+			totalTransactionCount: bigintFromWire(checkpoint.networkTotalTransactions, 'network total transactions'),
+		}),
+		...(checkpoint.epoch != null && {
+			epoch: bigintFromWire(checkpoint.epoch.epochId, 'epoch id'),
+			...(checkpoint.epoch.protocolConfigs != null && {
+				protocolVersion: bigintFromWire(checkpoint.epoch.protocolConfigs.protocolVersion, 'protocol version'),
+			}),
 		}),
 	}
 }
@@ -240,5 +391,113 @@ export const getAddressTransactions = async (
 			after,
 			result.transactions.pageInfo
 		),
+	}
+}
+
+export const getLatestCheckpoint = async () => {
+	const result = await executeSui(latestCheckpointDocument, {})
+	if (result.checkpoint == null)
+		throw new Error('Sui GraphQL latest checkpoint is missing')
+	return normalizeCheckpoint(result.checkpoint)
+}
+
+export const getCheckpointBySequence = async (sequence: bigint) => {
+	if (sequence < 0n)
+		throw new Error('Sui GraphQL checkpoint sequence must be nonnegative')
+	const result = await executeSui(
+		checkpointBySequenceDocument,
+		{
+			sequenceNumber: sequence.toString(),
+		}
+	)
+	if (result.checkpoint == null)
+		throw new Error(`Sui GraphQL checkpoint ${sequence.toString()} was not found`)
+	const checkpoint = normalizeCheckpoint(result.checkpoint)
+	if (checkpoint.sequence !== sequence)
+		throw new Error(`Sui GraphQL checkpoint sequence mismatch for ${sequence.toString()}`)
+	return checkpoint
+}
+
+export const getCheckpointByDigest = async (digest: string) => {
+	if (digest.length === 0)
+		throw new Error('Sui GraphQL checkpoint digest must not be empty')
+	const result = await executeSui(
+		checkpointByDigestDocument,
+		{
+			digest,
+		}
+	)
+	if (result.checkpoint == null)
+		throw new Error(`Sui GraphQL checkpoint ${digest} was not found`)
+	const checkpoint = normalizeCheckpoint(result.checkpoint)
+	if (checkpoint.digest !== digest)
+		throw new Error(`Sui GraphQL checkpoint digest mismatch for ${digest}`)
+	return checkpoint
+}
+
+export const getTransaction = async (digest: string) => {
+	if (digest.length === 0)
+		throw new Error('Sui GraphQL transaction digest must not be empty')
+	const result = await executeSui(
+		transactionDocument,
+		{
+			digest,
+		}
+	)
+	if (result.transaction == null)
+		throw new Error(`Sui GraphQL transaction ${digest} was not found`)
+	if (result.transaction.digest !== digest)
+		throw new Error(`Sui GraphQL transaction digest mismatch for ${digest}`)
+	if (result.transaction.effects?.checkpoint == null)
+		throw new Error(`Sui GraphQL transaction ${digest} is missing checkpoint effects`)
+
+	const checkpointSequence = bigintFromWire(
+		result.transaction.effects.checkpoint.sequenceNumber,
+		'transaction checkpoint sequence'
+	)
+	const sender = (
+		result.transaction.sender == null ?
+			undefined
+		:
+			normalizeSuiAddress(result.transaction.sender.address)
+	)
+	const gasSummary = result.transaction.effects.gasEffects?.gasSummary
+
+	return {
+		digest: result.transaction.digest,
+		...(sender != null && { sender }),
+		...(result.transaction.kind != null && {
+			transactionKind: result.transaction.kind.__typename,
+		}),
+		checkpointSequence,
+		...(result.transaction.effects.status != null && {
+			status: result.transaction.effects.status,
+		}),
+		...(result.transaction.effects.effectsDigest != null && result.transaction.effects.effectsDigest !== '' && {
+			effectsDigest: result.transaction.effects.effectsDigest,
+		}),
+		timestampMs: timestampMsFromWire(result.transaction.effects.timestamp, 'transaction timestamp'),
+		...(result.transaction.gasInput?.gasBudget != null && {
+			gasBudget: bigintFromWire(result.transaction.gasInput.gasBudget, 'gas budget'),
+		}),
+		...(result.transaction.gasInput?.gasPrice != null && {
+			gasPrice: bigintFromWire(result.transaction.gasInput.gasPrice, 'gas price'),
+		}),
+		...(gasSummary != null && {
+			gasUsed: {
+				...(gasSummary.computationCost != null && {
+					computationCost: bigintFromWire(gasSummary.computationCost, 'computation cost').toString(),
+				}),
+				...(gasSummary.storageCost != null && {
+					storageCost: bigintFromWire(gasSummary.storageCost, 'storage cost').toString(),
+				}),
+				...(gasSummary.storageRebate != null && {
+					storageRebate: bigintFromWire(gasSummary.storageRebate, 'storage rebate').toString(),
+				}),
+				...(gasSummary.nonRefundableStorageFee != null && {
+					nonRefundableStorageFee: bigintFromWire(gasSummary.nonRefundableStorageFee, 'non-refundable storage fee').toString(),
+				}),
+			},
+		}),
 	}
 }

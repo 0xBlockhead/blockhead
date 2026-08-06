@@ -19,6 +19,10 @@ vi.mock('$/sources/Sui/Graphql/client.ts', async (importOriginal) => ({
 const {
 	getAddressBalances,
 	getAddressTransactions,
+	getCheckpointByDigest,
+	getCheckpointBySequence,
+	getLatestCheckpoint,
+	getTransaction,
 } = await import('$/sources/Sui/Graphql/queries.ts')
 
 const binding = bindings[Source.Sui].find(
@@ -290,5 +294,152 @@ describe('Sui GraphQL account portfolio queries', () => {
 			},
 		})
 		expect(executeSui).not.toHaveBeenCalled()
+	})
+})
+
+const tipCheckpoint = {
+	sequenceNumber: 100,
+	digest: 'CheckpointDigest',
+	previousCheckpointDigest: 'PreviousDigest',
+	timestamp: '2026-08-06T12:00:00.000Z',
+	networkTotalTransactions: 1_000,
+	epoch: {
+		epochId: 42,
+		protocolConfigs: {
+			protocolVersion: 88,
+		},
+	},
+}
+
+describe('Sui GraphQL checkpoint and transaction queries', () => {
+	beforeEach(() => {
+		executeSui.mockReset()
+	})
+
+	it('normalizes latest / by-sequence / by-digest checkpoints', async () => {
+		executeSui
+			.mockResolvedValueOnce({
+				checkpoint: tipCheckpoint,
+			})
+			.mockResolvedValueOnce({
+				checkpoint: tipCheckpoint,
+			})
+			.mockResolvedValueOnce({
+				checkpoint: tipCheckpoint,
+			})
+
+		await expect(getLatestCheckpoint()).resolves.toEqual({
+			sequence: 100n,
+			digest: 'CheckpointDigest',
+			previousDigest: 'PreviousDigest',
+			timestampMs: Date.parse('2026-08-06T12:00:00.000Z'),
+			totalTransactionCount: 1000n,
+			epoch: 42n,
+			protocolVersion: 88n,
+		})
+		await expect(getCheckpointBySequence(100n)).resolves.toMatchObject({
+			sequence: 100n,
+			digest: 'CheckpointDigest',
+		})
+		await expect(getCheckpointByDigest('CheckpointDigest')).resolves.toMatchObject({
+			sequence: 100n,
+		})
+		expect(executeSui.mock.calls[1][1]).toEqual({
+			sequenceNumber: '100',
+		})
+		expect(print(executeSui.mock.calls[0][0])).toContain('checkpoint {')
+		expect(print(executeSui.mock.calls[2][0])).toContain('checkpoint(digest: $digest)')
+	})
+
+	it('projects transaction identity, kind, gas, and checkpoint effects', async () => {
+		executeSui.mockResolvedValueOnce({
+			transaction: {
+				digest: 'TransactionDigest',
+				sender: {
+					address: '0x2',
+				},
+				kind: {
+					__typename: 'ProgrammableTransaction',
+				},
+				gasInput: {
+					gasBudget: '1000',
+					gasPrice: '1000',
+				},
+				effects: {
+					status: 'SUCCESS',
+					effectsDigest: 'EffectsDigest',
+					timestamp: '2026-08-06T12:00:00.000Z',
+					gasEffects: {
+						gasSummary: {
+							computationCost: 10,
+							storageCost: 20,
+							storageRebate: 5,
+							nonRefundableStorageFee: 1,
+						},
+					},
+					checkpoint: {
+						sequenceNumber: 100,
+					},
+				},
+			},
+		})
+
+		await expect(getTransaction('TransactionDigest')).resolves.toEqual({
+			digest: 'TransactionDigest',
+			sender: `0x${'0'.repeat(63)}2`,
+			transactionKind: 'ProgrammableTransaction',
+			checkpointSequence: 100n,
+			status: 'SUCCESS',
+			effectsDigest: 'EffectsDigest',
+			timestampMs: Date.parse('2026-08-06T12:00:00.000Z'),
+			gasBudget: 1000n,
+			gasPrice: 1000n,
+			gasUsed: {
+				computationCost: '10',
+				storageCost: '20',
+				storageRebate: '5',
+				nonRefundableStorageFee: '1',
+			},
+		})
+		expect(print(executeSui.mock.calls[0][0])).toContain('transaction(digest: $digest)')
+	})
+
+	it('fail-closes missing checkpoint digests, sequence mismatches, and incomplete transactions', async () => {
+		executeSui
+			.mockResolvedValueOnce({
+				checkpoint: {
+					...tipCheckpoint,
+					digest: null,
+				},
+			})
+			.mockResolvedValueOnce({
+				checkpoint: {
+					...tipCheckpoint,
+					sequenceNumber: 99,
+				},
+			})
+			.mockResolvedValueOnce({
+				transaction: {
+					digest: 'TransactionDigest',
+					sender: null,
+					kind: null,
+					gasInput: null,
+					effects: {
+						status: 'SUCCESS',
+						effectsDigest: null,
+						timestamp: null,
+						gasEffects: null,
+						checkpoint: null,
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				transaction: null,
+			})
+
+		await expect(getLatestCheckpoint()).rejects.toThrow('missing digest')
+		await expect(getCheckpointBySequence(100n)).rejects.toThrow('sequence mismatch')
+		await expect(getTransaction('TransactionDigest')).rejects.toThrow('missing checkpoint effects')
+		await expect(getTransaction('TransactionDigest')).rejects.toThrow('was not found')
 	})
 })

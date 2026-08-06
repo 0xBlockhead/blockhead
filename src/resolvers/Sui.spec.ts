@@ -16,6 +16,21 @@ vi.mock('$/sources/Sui/Graphql/client.ts', async (importOriginal) => ({
 const { default: suiResolvers } = await import('$/resolvers/Sui.ts')
 const balancesResolver = suiResolvers.resolvers[0]
 const transactionsResolver = suiResolvers.resolvers[1]
+const networkResolver = suiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.SuiNetwork
+))
+const checkpointResolver = suiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.SuiCheckpoint
+))
+const transactionResolver = suiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.SuiTransaction
+))
+const transactionTimestampResolver = suiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.SuiTransaction_Timestamp
+))
+
+if (networkResolver == null || checkpointResolver == null || transactionResolver == null || transactionTimestampResolver == null)
+	throw new Error('Sui spec missing network/checkpoint/transaction resolvers')
 
 const canonicalAddress = `0x${'0'.repeat(63)}2`
 const account = {
@@ -245,5 +260,181 @@ describe('Sui GraphQL public-account resolver', () => {
 		await expect(transactionsResolver.resolve[
 			'NetworkAddress'
 		].resolve(account, context)).rejects.toThrow('hexadecimal address')
+	})
+})
+
+const suiNetwork = {
+	$network: {
+		slug: 'sui',
+	},
+} as const
+
+const tipCheckpointWire = {
+	sequenceNumber: 100,
+	digest: 'CheckpointDigest',
+	previousCheckpointDigest: 'PreviousDigest',
+	timestamp: '2026-08-06T12:00:00.000Z',
+	networkTotalTransactions: 1_000,
+	epoch: {
+		epochId: 42,
+		protocolConfigs: {
+			protocolVersion: 88,
+		},
+	},
+}
+
+describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
+	beforeEach(() => {
+		vi.restoreAllMocks()
+		executeSui.mockReset()
+	})
+
+	it('projects tip observation and checkpoint fields from the latest checkpoint', async () => {
+		executeSui.mockResolvedValueOnce({
+			checkpoint: tipCheckpointWire,
+		})
+		const snapshot = await networkResolver.resolve.Network.resolve(suiNetwork, context)
+		expect(networkResolver.projections.$$timestamps(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: suiNetwork,
+				timestampMs: Date.parse('2026-08-06T12:00:00.000Z'),
+				source: 'Sui',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'latestCheckpointSequence')]: 100n,
+				[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'latestCheckpointDigest')]: 'CheckpointDigest',
+				[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'epoch')]: 42n,
+				[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'protocolVersion')]: 88n,
+				[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'totalTransactionCount')]: 1000n,
+			},
+		}])
+		expect(networkResolver.projections.$$checkpoints(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: suiNetwork,
+				sequence: 100n,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'digest')]: 'CheckpointDigest',
+				[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'epoch')]: 42n,
+				[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'timestampMs')]: Date.parse('2026-08-06T12:00:00.000Z'),
+				[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'previousDigest')]: 'PreviousDigest',
+			},
+		}])
+	})
+
+	it('resolves checkpoint selectors and singular transaction snapshots', async () => {
+		executeSui
+			.mockResolvedValueOnce({
+				checkpoint: tipCheckpointWire,
+			})
+			.mockResolvedValueOnce({
+				transaction: {
+					digest: 'TransactionDigest',
+					sender: {
+						address: canonicalAddress,
+					},
+					kind: {
+						__typename: 'ProgrammableTransaction',
+					},
+					gasInput: {
+						gasBudget: '1000',
+						gasPrice: '1000',
+					},
+					effects: {
+						status: 'SUCCESS',
+						effectsDigest: 'EffectsDigest',
+						timestamp: '2026-08-06T12:00:00.000Z',
+						gasEffects: {
+							gasSummary: {
+								computationCost: 10,
+								storageCost: 20,
+								storageRebate: 5,
+								nonRefundableStorageFee: 1,
+							},
+						},
+						checkpoint: {
+							sequenceNumber: 100,
+						},
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				transaction: {
+					digest: 'TransactionDigest',
+					sender: {
+						address: canonicalAddress,
+					},
+					kind: {
+						__typename: 'ProgrammableTransaction',
+					},
+					gasInput: {
+						gasBudget: '1000',
+						gasPrice: '1000',
+					},
+					effects: {
+						status: 'SUCCESS',
+						effectsDigest: 'EffectsDigest',
+						timestamp: '2026-08-06T12:00:00.000Z',
+						gasEffects: {
+							gasSummary: {
+								computationCost: 10,
+								storageCost: 20,
+								storageRebate: 5,
+								nonRefundableStorageFee: 1,
+							},
+						},
+						checkpoint: {
+							sequenceNumber: 100,
+						},
+					},
+				},
+			})
+
+		const checkpoint = await checkpointResolver.resolve.NetworkSequence.resolve({
+			$network: suiNetwork,
+			sequence: 100n,
+		}, context)
+		expect(checkpointResolver.projections.digest(checkpoint)).toBe('CheckpointDigest')
+		expect(checkpointResolver.projections.sequence(checkpoint)).toBe(100n)
+
+		const transactionSnapshot = await transactionResolver.resolve.NetworkDigest.resolve({
+			$network: suiNetwork,
+			digest: 'TransactionDigest',
+		}, context)
+		expect(transactionResolver.projections.transactionKind(transactionSnapshot)).toBe('ProgrammableTransaction')
+		expect(transactionResolver.projections.$$timestamps(transactionSnapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: suiNetwork,
+					digest: 'TransactionDigest',
+				},
+				checkpointSequence: 100n,
+				source: 'Sui',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.SuiTransaction_Timestamp, [], 'timestampMs')]: Date.parse('2026-08-06T12:00:00.000Z'),
+				[entityFieldAddressKey(EntityType.SuiTransaction_Timestamp, [], 'status')]: 'SUCCESS',
+				[entityFieldAddressKey(EntityType.SuiTransaction_Timestamp, [], 'gasBudget')]: 1000n,
+				[entityFieldAddressKey(EntityType.SuiTransaction_Timestamp, [], 'gasPrice')]: 1000n,
+				[entityFieldAddressKey(EntityType.SuiTransaction_Timestamp, [], 'gasUsed')]: {
+					computationCost: '10',
+					storageCost: '20',
+					storageRebate: '5',
+					nonRefundableStorageFee: '1',
+				},
+				[entityFieldAddressKey(EntityType.SuiTransaction_Timestamp, [], 'effectsDigest')]: 'EffectsDigest',
+			},
+		}])
+
+		const observation = await transactionTimestampResolver.resolve.TransactionCheckpointSequenceSource.resolve({
+			$transaction: {
+				$network: suiNetwork,
+				digest: 'TransactionDigest',
+			},
+			checkpointSequence: 100n,
+			source: 'Sui',
+		}, context)
+		expect(transactionTimestampResolver.projections.status(observation)).toBe('SUCCESS')
+		expect(transactionTimestampResolver.projections.checkpointSequence(observation)).toBe(100n)
 	})
 })

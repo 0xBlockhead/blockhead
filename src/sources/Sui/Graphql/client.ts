@@ -23,7 +23,9 @@ export const graphql = initGraphQLTada<{
 	introspection: introspection
 	scalars: {
 		BigInt: string
+		DateTime: string
 		SuiAddress: string
+		UInt53: number | string
 	}
 }>()
 
