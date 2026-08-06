@@ -5,12 +5,16 @@ import {
 import type { IpfsNamespace } from '$/lib/ipfs.ts'
 import { parseIpfsCid } from '$/lib/multiformats.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceEndpointOrigin } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/Ipfs/bindings.ts'
 import {
+	ipfsDocsIpnsName,
+	ipfsGatewaySampleCid,
+} from '$/sources/Ipfs/Rest/constants.ts'
+import {
+	assertGatewayContentPath,
 	fetchOrderedGatewayContent,
 	getGatewayReachability as probeGatewayReachability,
-	trimGatewayPathSlashes,
+	listDeclaredGatewayOrigins as listBindingGatewayOrigins,
 } from '$/sources/_shared/interfaces/ContentGateway/queries.ts'
 import { ContentGatewayFamily } from '$/sources/_shared/interfaces/ContentGateway/types.ts'
 
@@ -60,7 +64,10 @@ export const getGatewayUrl = ({
 	gatewayOrigin: string
 }) => {
 	const trimmedTarget = trimIpfsSlashes(target.trim())
-	const trimmedPath = trimGatewayPathSlashes(contentPath?.trim() ?? '')
+	const trimmedPath = assertGatewayContentPath({
+		family: ContentGatewayFamily.Ipfs,
+		contentPath,
+	})
 	return `${gatewayOrigin}/${resolvedIpfsNamespace({
 		target: trimmedTarget,
 		namespace,
@@ -78,7 +85,10 @@ export const fetchBrowseResult = async ({
 	contentPath?: string
 	signal?: AbortSignal
 }) => {
-	const trimmedPath = trimGatewayPathSlashes(contentPath?.trim() ?? '')
+	const trimmedPath = assertGatewayContentPath({
+		family: ContentGatewayFamily.Ipfs,
+		contentPath,
+	})
 	const resolvedNamespace = resolvedIpfsNamespace({
 		target: trimIpfsSlashes(target.trim()),
 		namespace,
@@ -133,8 +143,20 @@ export const getGatewayReachability = async ({
 )
 
 export const listDeclaredGatewayOrigins = () => (
-	binding.endpoints.flatMap((endpoint) => {
-		const origin = sourceEndpointOrigin(endpoint)
-		return origin == null ? [] : [origin]
-	})
+	listBindingGatewayOrigins(binding)
+)
+
+export const listSeededExampleResources = () => (
+	[
+		{
+			namespace: 'ipfs' as const,
+			target: ipfsGatewaySampleCid,
+			contentPath: '',
+		},
+		{
+			namespace: 'ipns' as const,
+			target: ipfsDocsIpnsName,
+			contentPath: '',
+		},
+	]
 )

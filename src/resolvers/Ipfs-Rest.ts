@@ -8,6 +8,7 @@ import { ipfsResourceCanonicalUri } from '$/lib/ipfs.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -125,6 +126,60 @@ export default {
 				isCidSubdomainSafe: (snapshot) => snapshot.isCidSubdomainSafe,
 				$media: (snapshot) => snapshot.$media,
 			}),
+
+		defineResolver({
+			entityType: EntityType._GlobalIpfsAccess,
+			resolve: {
+				Scope: {
+					resolve: async ({ scope }) => {
+						if (scope !== '_GlobalIpfsAccess')
+							throw new Error(`Ipfs_Rest: unsupported scope ${scope}`)
+
+						const {
+							getGatewayReachability,
+							listSeededExampleResources,
+						} = await import('$/sources/Ipfs/Rest/queries.ts')
+						const reachability = await getGatewayReachability()
+						const seededExamples = listSeededExampleResources()
+						const timestampMs = Date.now()
+
+						return {
+							scope,
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$hub: { scope },
+										timestampMs,
+										source: Source.Ipfs_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType._GlobalIpfsAccess_Timestamp, [], 'declaredAccessEndpointCount')]:
+											reachability.declaredAccessEndpointCount,
+										[entityFieldAddressKey(EntityType._GlobalIpfsAccess_Timestamp, [], 'reachableAccessEndpointCount')]:
+											reachability.reachableAccessEndpointCount,
+										[entityFieldAddressKey(EntityType._GlobalIpfsAccess_Timestamp, [], 'reachable')]:
+											reachability.reachable,
+									},
+								},
+							],
+							$$observedResources: seededExamples.map((resource) => ({
+								[EntityMetaKey.Selector]: resource,
+							})),
+						}
+					},
+				},
+			},
+		})({
+			scope: (hub) => hub.scope,
+			$$timestamps: {
+				select: (hub) => hub.$$timestamps,
+				resolveCount: (hub) => hub.$$timestamps.length,
+			},
+			$$observedResources: {
+				select: (hub) => hub.$$observedResources,
+				resolveCount: (hub) => hub.$$observedResources.length,
+			},
+		}),
 
 		defineResolver({
 			entityType: EntityType._GlobalIpfsAccess_Timestamp,

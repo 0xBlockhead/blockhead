@@ -14,6 +14,8 @@ const {
 	assertSwarmGatewayReference,
 	fetchBrowseResult,
 	getGatewayReachability,
+	listDeclaredGatewayOrigins,
+	listSeededExampleResources,
 } = await import('$/sources/Swarm/Rest/queries.ts')
 const binding = bindings[Source.Swarm_Rest][0]
 
@@ -51,6 +53,15 @@ describe('Swarm gateway binding transport', () => {
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
+	it('fails closed on content paths with control characters before transport', async () => {
+		await expect(fetchBrowseResult({
+			reference: swarmDocsLandingReference,
+			contentPath: 'index\n.html',
+		})).rejects.toThrow('control characters')
+
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
 	it('fails over after network errors instead of aborting the whole browse', async () => {
 		sourceFetch
 			.mockRejectedValueOnce(new Error('offline'))
@@ -80,6 +91,18 @@ describe('Swarm gateway binding transport', () => {
 			reachableAccessEndpointCount: 2,
 			reachable: true,
 		})
+	})
+
+	it('lists binding origins and seeded browse examples', () => {
+		expect(listDeclaredGatewayOrigins()).toEqual(
+			binding.endpoints.map((endpoint) => new URL(endpoint.locator).origin)
+		)
+		expect(listSeededExampleResources()).toEqual([
+			{
+				reference: swarmDocsLandingReference,
+				contentPath: '',
+			},
+		])
 	})
 
 	it('normalizes 0x / scheme prefixes in assertSwarmGatewayReference', () => {

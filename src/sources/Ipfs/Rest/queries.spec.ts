@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/Ipfs/bindings.ts'
+import {
+	ipfsDocsIpnsName,
+	ipfsGatewaySampleCid,
+} from '$/sources/Ipfs/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceFetch = vi.fn()
@@ -13,6 +17,8 @@ const {
 	assertIpfsGatewayTarget,
 	fetchBrowseResult,
 	getGatewayReachability,
+	listDeclaredGatewayOrigins,
+	listSeededExampleResources,
 } = await import('$/sources/Ipfs/Rest/queries.ts')
 const binding = bindings[Source.Ipfs_Rest][0]
 
@@ -31,7 +37,7 @@ describe('IPFS gateway binding transport', () => {
 
 		await expect(fetchBrowseResult({
 			namespace: 'ipfs',
-			target: 'bafybeigdyrzt5sfp7udm7hu76uh7y26nf3fte7awh5x5fkdg4wq5rjlk4a',
+			target: ipfsGatewaySampleCid,
 		})).resolves.toMatchObject({
 			gatewayOrigin: new URL(binding.endpoints[0].locator).origin,
 			text: 'hello',
@@ -39,7 +45,7 @@ describe('IPFS gateway binding transport', () => {
 		expect(sourceFetch).toHaveBeenCalledOnce()
 		expect(sourceFetch.mock.calls[0][0]).toBe(binding)
 		expect(sourceFetch.mock.calls[0][1]).toBe(
-			`${binding.endpoints[0].locator}/ipfs/bafybeigdyrzt5sfp7udm7hu76uh7y26nf3fte7awh5x5fkdg4wq5rjlk4a`
+			`${binding.endpoints[0].locator}/ipfs/${ipfsGatewaySampleCid}`
 		)
 	})
 
@@ -48,6 +54,16 @@ describe('IPFS gateway binding transport', () => {
 			namespace: 'ipfs',
 			target: 'not-a-cid',
 		})).rejects.toThrow('invalid IPFS CID target')
+
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('fails closed on content paths with control characters before transport', async () => {
+		await expect(fetchBrowseResult({
+			namespace: 'ipfs',
+			target: ipfsGatewaySampleCid,
+			contentPath: 'nested\nfile',
+		})).rejects.toThrow('control characters')
 
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
@@ -68,7 +84,7 @@ describe('IPFS gateway binding transport', () => {
 
 		await expect(fetchBrowseResult({
 			namespace: 'ipfs',
-			target: 'bafybeigdyrzt5sfp7udm7hu76uh7y26nf3fte7awh5x5fkdg4wq5rjlk4a',
+			target: ipfsGatewaySampleCid,
 		})).resolves.toMatchObject({
 			gatewayOrigin: new URL(binding.endpoints[2].locator).origin,
 			text: 'recovered',
@@ -79,14 +95,33 @@ describe('IPFS gateway binding transport', () => {
 	it('reports declared gateway reachability without inventing endpoints', async () => {
 		sourceFetch
 			.mockResolvedValueOnce({ ok: true })
-			.mockResolvedValueOnce({ ok: false })
+			.mockResolvedValueOnce({ ok: false, status: 500 })
 			.mockRejectedValueOnce(new Error('offline'))
+			.mockRejectedValueOnce(new Error('offline get'))
 
 		await expect(getGatewayReachability()).resolves.toEqual({
 			declaredAccessEndpointCount: 3,
 			reachableAccessEndpointCount: 1,
 			reachable: true,
 		})
+	})
+
+	it('lists binding origins and seeded browse examples', () => {
+		expect(listDeclaredGatewayOrigins()).toEqual(
+			binding.endpoints.map((endpoint) => new URL(endpoint.locator).origin)
+		)
+		expect(listSeededExampleResources()).toEqual([
+			{
+				namespace: 'ipfs',
+				target: ipfsGatewaySampleCid,
+				contentPath: '',
+			},
+			{
+				namespace: 'ipns',
+				target: ipfsDocsIpnsName,
+				contentPath: '',
+			},
+		])
 	})
 
 	it('rejects blank and control-character IPNS targets', () => {

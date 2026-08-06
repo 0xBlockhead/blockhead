@@ -3,38 +3,72 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/Swarm/bindings.ts'
+import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
 
-const corsFetch = vi.fn()
+const sourceFetch = vi.hoisted(() => vi.fn())
 
-vi.mock('$/lib/http.ts', () => ({
-	corsFetch,
-	jsonErrorHintFromResponse: vi.fn(),
+vi.mock('$/sources/_runtime/http.ts', () => ({
+	sourceFetch,
 }))
 
 const resolverModule = (await import('$/resolvers/Swarm-Rest.ts')).default
 const binding = bindings[Source.Swarm_Rest][0]
+const accessHubResolver = resolverModule.resolvers.find((resolver) => (
+	resolver.entityType === EntityType._GlobalSwarmAccess
+))
 const accessTimestampResolver = resolverModule.resolvers.find((resolver) => (
 	resolver.entityType === EntityType._GlobalSwarmAccess_Timestamp
 ))
 
-if (accessTimestampResolver == null)
-	throw new Error('Swarm source binding or access timestamp resolver is not registered')
+if (accessHubResolver == null || accessTimestampResolver == null)
+	throw new Error('Swarm source binding or access resolvers are not registered')
 
+const resolveAccessHub = accessHubResolver.resolve[
+	'Scope'
+].resolve
 const resolveAccessTimestamp = accessTimestampResolver.resolve[
 	'HubTimestampMsSource'
 ].resolve
 
-describe('Swarm access timestamp resolver', () => {
+describe('Swarm access hub + timestamp resolvers', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 	})
 
+	it('emits a tip $$timestamps row with seeded counts and observed resources', async () => {
+		for (const _endpoint of binding.endpoints)
+			sourceFetch.mockResolvedValueOnce({ ok: true })
+
+		const snapshot = await resolveAccessHub({
+			scope: '_GlobalSwarmAccess',
+		})
+		expect(snapshot.scope).toBe('_GlobalSwarmAccess')
+		expect(snapshot.$$timestamps).toHaveLength(1)
+		expect(snapshot.$$timestamps[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$hub: {
+					scope: '_GlobalSwarmAccess',
+				},
+				source: Source.Swarm_Rest,
+			},
+		})
+		expect(typeof snapshot.$$timestamps[0][EntityMetaKey.Selector].timestampMs).toBe('number')
+		expect(accessHubResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+		expect(accessHubResolver.projections.$$observedResources.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					reference: swarmDocsLandingReference,
+					contentPath: '',
+				},
+			},
+		])
+		expect(accessHubResolver.projections.$$observedResources.resolveCount(snapshot)).toBe(1)
+	})
+
 	it('reports all declared gateways and preserves observation identity', async () => {
-		corsFetch
-			.mockResolvedValueOnce({ ok: true })
-			.mockResolvedValueOnce({ ok: true })
+		for (const _endpoint of binding.endpoints)
+			sourceFetch.mockResolvedValueOnce({ ok: true })
 
 		const snapshot = await resolveAccessTimestamp({
 			$hub: {
@@ -49,25 +83,30 @@ describe('Swarm access timestamp resolver', () => {
 			},
 			timestampMs: 1_750_000_000_000,
 			source: Source.Swarm_Rest,
-			declaredAccessEndpointCount: 2,
-			reachableAccessEndpointCount: 2,
+			declaredAccessEndpointCount: binding.endpoints.length,
+			reachableAccessEndpointCount: binding.endpoints.length,
 			reachable: true,
+			observedResourceCount: 1,
+			seededExampleCount: 1,
 		})
 		expect(accessTimestampResolver.projections.$hub(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
 				scope: '_GlobalSwarmAccess',
 			},
 		})
-		expect(corsFetch).toHaveBeenCalledTimes(2)
-		expect(corsFetch.mock.calls.map(([url]) => url)).toEqual(
+		expect(accessTimestampResolver.projections.observedResourceCount(snapshot)).toBe(1)
+		expect(accessTimestampResolver.projections.seededExampleCount(snapshot)).toBe(1)
+		expect(sourceFetch).toHaveBeenCalledTimes(binding.endpoints.length)
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual(
 			binding.endpoints.map((endpoint) => endpoint.locator)
 		)
 	})
 
 	it('counts partial and total gateway failure without inventing reachability', async () => {
-		corsFetch
-			.mockResolvedValueOnce({ ok: false })
+		sourceFetch
+			.mockResolvedValueOnce({ ok: false, status: 500 })
 			.mockRejectedValueOnce(new Error('offline'))
+			.mockRejectedValueOnce(new Error('offline get'))
 
 		await expect(resolveAccessTimestamp({
 			$hub: {
@@ -79,6 +118,8 @@ describe('Swarm access timestamp resolver', () => {
 			declaredAccessEndpointCount: 2,
 			reachableAccessEndpointCount: 0,
 			reachable: false,
+			observedResourceCount: 1,
+			seededExampleCount: 1,
 		})
 	})
 
@@ -91,6 +132,6 @@ describe('Swarm access timestamp resolver', () => {
 			source: Source.Constants_Internal,
 		})).rejects.toThrow('unsupported source')
 
-		expect(corsFetch).not.toHaveBeenCalled()
+		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })

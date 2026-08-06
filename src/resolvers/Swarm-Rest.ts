@@ -5,6 +5,7 @@ import {
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -101,6 +102,65 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType._GlobalSwarmAccess,
+			resolve: {
+				Scope: {
+					resolve: async ({ scope }) => {
+						if (scope !== '_GlobalSwarmAccess')
+							throw new Error(`Swarm_Rest: unsupported scope ${scope}`)
+
+						const {
+							getGatewayReachability,
+							listSeededExampleResources,
+						} = await import('$/sources/Swarm/Rest/queries.ts')
+						const reachability = await getGatewayReachability()
+						const seededExamples = listSeededExampleResources()
+						const timestampMs = Date.now()
+						const seededExampleCount = seededExamples.length
+
+						return {
+							scope,
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$hub: { scope },
+										timestampMs,
+										source: Source.Swarm_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'declaredAccessEndpointCount')]:
+											reachability.declaredAccessEndpointCount,
+										[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'reachableAccessEndpointCount')]:
+											reachability.reachableAccessEndpointCount,
+										[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'reachable')]:
+											reachability.reachable,
+										[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'observedResourceCount')]:
+											seededExampleCount,
+										[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'seededExampleCount')]:
+											seededExampleCount,
+									},
+								},
+							],
+							$$observedResources: seededExamples.map((resource) => ({
+								[EntityMetaKey.Selector]: resource,
+							})),
+						}
+					},
+				},
+			},
+		})({
+			scope: (hub) => hub.scope,
+			$$timestamps: {
+				select: (hub) => hub.$$timestamps,
+				resolveCount: (hub) => hub.$$timestamps.length,
+			},
+			$$observedResources: {
+				select: (hub) => hub.$$observedResources,
+				resolveCount: (hub) => hub.$$observedResources.length,
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType._GlobalSwarmAccess_Timestamp,
 			resolve: {
 				HubTimestampMsSource: {
@@ -112,13 +172,19 @@ export default {
 						if (source !== Source.Swarm_Rest)
 							throw new Error(`Swarm_Rest: unsupported source ${source}`)
 
+						const {
+							getGatewayReachability,
+							listSeededExampleResources,
+						} = await import('$/sources/Swarm/Rest/queries.ts')
+						const seededExampleCount = listSeededExampleResources().length
+
 						return {
 							$hub,
 							timestampMs,
 							source,
-							...(await (
-								await import('$/sources/Swarm/Rest/queries.ts')
-							).getGatewayReachability()),
+							...(await getGatewayReachability()),
+							observedResourceCount: seededExampleCount,
+							seededExampleCount,
 						}
 					},
 				},
@@ -131,6 +197,8 @@ export default {
 			source: (snapshot) => snapshot.source,
 			declaredAccessEndpointCount: (snapshot) => snapshot.declaredAccessEndpointCount,
 			reachableAccessEndpointCount: (snapshot) => snapshot.reachableAccessEndpointCount,
+			observedResourceCount: (snapshot) => snapshot.observedResourceCount,
+			seededExampleCount: (snapshot) => snapshot.seededExampleCount,
 			reachable: (snapshot) => snapshot.reachable,
 		}),
 	],

@@ -2458,6 +2458,13 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 			source: Source.TheGraph_Graphql,
 		},
 	},
+	[EntityType._GlobalIpfsAccess_Timestamp]: {
+		HubTimestampMsSource: {
+			$hub: { scope: '_GlobalIpfsAccess' },
+			timestampMs: 0,
+			source: Source.Ipfs_Rest,
+		},
+	},
 	[EntityType._GlobalSwarmAccess_Timestamp]: {
 		HubTimestampMsSource: {
 			$hub: { scope: '_GlobalSwarmAccess' },

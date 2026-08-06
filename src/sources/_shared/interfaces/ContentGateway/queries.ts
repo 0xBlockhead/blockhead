@@ -27,6 +27,21 @@ export const stripOptionalHexPrefix = (
 )
 
 
+export const assertGatewayContentPath = ({
+	family,
+	contentPath,
+}: {
+	family: ContentGatewayFamily
+	contentPath?: string
+}) => {
+	const trimmedPath = trimGatewayPathSlashes(contentPath?.trim() ?? '')
+	if (/[\u0000-\u001f\u007f]/.test(trimmedPath))
+		throw new Error(`${family}_Rest: content path contains control characters`)
+
+	return trimmedPath
+}
+
+
 export type ContentGatewayBrowseResult = {
 	gatewayOrigin: string
 	gatewayUrl: string
@@ -37,6 +52,63 @@ export type ContentGatewayBrowseResult = {
 	displayType: string
 	isContentTypeInferred: boolean
 	text?: string
+}
+
+
+export const listDeclaredGatewayOrigins = (
+	binding: SourceBinding
+) => (
+	binding.endpoints.flatMap((endpoint) => {
+		const origin = sourceEndpointOrigin(endpoint)
+		return origin == null ? [] : [origin]
+	})
+)
+
+
+export const isGatewayEndpointReachable = async ({
+	binding,
+	endpoint,
+	signal,
+}: {
+	binding: SourceBinding
+	endpoint: SourceEndpoint
+	signal?: AbortSignal
+}) => {
+	try {
+		const headResponse = await sourceFetch(binding, endpoint.locator, {
+			method: 'HEAD',
+			signal,
+		})
+		if (headResponse.ok)
+			return true
+
+		// Some public gateways reject or withhold HEAD; a cheap GET proves the origin is up.
+		if (
+			headResponse.status === 405
+			|| headResponse.status === 501
+			|| headResponse.status === 403
+		) {
+			return (
+				await sourceFetch(binding, endpoint.locator, {
+					method: 'GET',
+					signal,
+				})
+			).ok
+		}
+
+		return false
+	} catch {
+		try {
+			return (
+				await sourceFetch(binding, endpoint.locator, {
+					method: 'GET',
+					signal,
+				})
+			).ok
+		} catch {
+			return false
+		}
+	}
 }
 
 
@@ -120,18 +192,13 @@ export const getGatewayReachability = async ({
 }) => {
 	const endpoints = [...binding.endpoints]
 	const reachableAccessEndpointCount = (
-		await Promise.all(endpoints.map(async (endpoint) => {
-			try {
-				return (
-					await sourceFetch(binding, endpoint.locator, {
-						method: 'HEAD',
-						signal,
-					})
-				).ok
-			} catch {
-				return false
-			}
-		}))
+		await Promise.all(endpoints.map((endpoint) => (
+			isGatewayEndpointReachable({
+				binding,
+				endpoint,
+				signal,
+			})
+		)))
 	).filter(Boolean).length
 
 	return {

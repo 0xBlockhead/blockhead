@@ -1,10 +1,11 @@
 import { Source } from '$/sources/Source.ts'
-import { sourceEndpointOrigin } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/Swarm/bindings.ts'
-import { swarmOnlyReferencePattern } from '$/sources/Swarm/Rest/constants.ts'
+import { swarmDocsLandingReference, swarmOnlyReferencePattern } from '$/sources/Swarm/Rest/constants.ts'
 import {
+	assertGatewayContentPath,
 	fetchOrderedGatewayContent,
 	getGatewayReachability as probeGatewayReachability,
+	listDeclaredGatewayOrigins as listBindingGatewayOrigins,
 	stripOptionalHexPrefix,
 	trimGatewayPathSlashes,
 } from '$/sources/_shared/interfaces/ContentGateway/queries.ts'
@@ -47,7 +48,10 @@ export const getGatewayUrl = ({
 	gatewayOrigin: string
 }) => {
 	const trimmedReference = normalizeSwarmReference(reference)
-	const trimmedPath = trimGatewayPathSlashes(contentPath?.trim() ?? '')
+	const trimmedPath = assertGatewayContentPath({
+		family: ContentGatewayFamily.Swarm,
+		contentPath,
+	})
 	return `${gatewayOrigin}/bzz/${trimmedReference}${trimmedPath ? `/${trimmedPath}` : ''}`
 }
 
@@ -61,7 +65,10 @@ export const fetchBrowseResult = async ({
 	signal?: AbortSignal
 }) => {
 	const trimmedReference = assertSwarmGatewayReference(reference)
-	const trimmedPath = trimGatewayPathSlashes(contentPath?.trim() ?? '')
+	const trimmedPath = assertGatewayContentPath({
+		family: ContentGatewayFamily.Swarm,
+		contentPath,
+	})
 
 	const browseResult = await fetchOrderedGatewayContent({
 		binding,
@@ -109,8 +116,14 @@ export const getGatewayReachability = async ({
 )
 
 export const listDeclaredGatewayOrigins = () => (
-	binding.endpoints.flatMap((endpoint) => {
-		const origin = sourceEndpointOrigin(endpoint)
-		return origin == null ? [] : [origin]
-	})
+	listBindingGatewayOrigins(binding)
+)
+
+export const listSeededExampleResources = () => (
+	[
+		{
+			reference: swarmDocsLandingReference,
+			contentPath: '',
+		},
+	]
 )
