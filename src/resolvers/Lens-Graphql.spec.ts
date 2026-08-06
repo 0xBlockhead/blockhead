@@ -19,8 +19,10 @@ const {
 	queryAccounts,
 	queryFeed,
 	queryFeedPosts,
+	queryFeeds,
 	queryLatestPosts,
 	queryNamespace,
+	queryNamespaces,
 	queryPost,
 	queryPostComments,
 	queryPostsByAuthor,
@@ -32,8 +34,10 @@ const {
 	queryAccounts: vi.fn(),
 	queryFeed: vi.fn(),
 	queryFeedPosts: vi.fn(),
+	queryFeeds: vi.fn(),
 	queryLatestPosts: vi.fn(),
 	queryNamespace: vi.fn(),
+	queryNamespaces: vi.fn(),
 	queryPost: vi.fn(),
 	queryPostComments: vi.fn(),
 	queryPostsByAuthor: vi.fn(),
@@ -47,8 +51,10 @@ vi.mock('$/sources/Lens/Graphql/queries.ts', () => ({
 	queryAccounts,
 	queryFeed,
 	queryFeedPosts,
+	queryFeeds,
 	queryLatestPosts,
 	queryNamespace,
+	queryNamespaces,
 	queryPost,
 	queryPostComments,
 	queryPostsByAuthor,
@@ -76,8 +82,10 @@ describe('Lens_Graphql reading relationships', () => {
 		queryAccounts.mockReset()
 		queryFeed.mockReset()
 		queryFeedPosts.mockReset()
+		queryFeeds.mockReset()
 		queryLatestPosts.mockReset()
 		queryNamespace.mockReset()
+		queryNamespaces.mockReset()
 		queryPost.mockReset()
 		queryPostComments.mockReset()
 		queryPostsByAuthor.mockReset()
@@ -434,7 +442,7 @@ describe('Lens_Graphql reading relationships', () => {
 		expect(queryAccounts).toHaveBeenCalledWith(
 			64
 		)
-		await expect(lensGraphql.resolvers[8].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[10].resolve.Address.resolve({
 			address: '0x2222222222222222222222222222222222222222',
 		}, context)).resolves.toEqual({
 			address: '0x2222222222222222222222222222222222222222',
@@ -481,7 +489,7 @@ describe('Lens_Graphql reading relationships', () => {
 				address: '0x3333333333333333333333333333333333333333',
 			},
 		})
-		await expect(lensGraphql.resolvers[8].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[10].resolve.Address.resolve({
 			address: '0x2222222222222222222222222222222222222222',
 		}, context)).rejects.toThrow('feed response does not match request')
 	})
@@ -523,7 +531,7 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[9].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[11].resolve.Address.resolve({
 			address: '0x1111111111111111111111111111111111111111',
 		}, {
 			...context,
@@ -665,7 +673,7 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[10].resolve.Id.resolve({
+		await expect(lensGraphql.resolvers[12].resolve.Id.resolve({
 			id: 'username-1',
 		}, context)).resolves.toEqual({
 			id: 'username-1',
@@ -691,14 +699,14 @@ describe('Lens_Graphql reading relationships', () => {
 				},
 			},
 		})
-		await expect(lensGraphql.resolvers[10].resolve.NamespaceLocalName.resolve({
+		await expect(lensGraphql.resolvers[12].resolve.NamespaceLocalName.resolve({
 			namespace: namespaceAddress,
 			localName: 'alice',
 		}, context)).resolves.toMatchObject({
 			id: 'username-1',
 			localName: 'alice',
 		})
-		await expect(lensGraphql.resolvers[11].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[13].resolve.Address.resolve({
 			address: namespaceAddress,
 		}, context)).resolves.toEqual({
 			address: namespaceAddress,
@@ -715,7 +723,7 @@ describe('Lens_Graphql reading relationships', () => {
 			description: 'Canonical Lens namespace',
 			totalUsernames: 9,
 		})
-		await expect(lensGraphql.resolvers[12].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[14].resolve.Address.resolve({
 			address: namespaceAddress,
 		}, {
 			...context,
@@ -749,7 +757,7 @@ describe('Lens_Graphql reading relationships', () => {
 				ownedBy: '0x1111111111111111111111111111111111111111',
 			},
 		})
-		await expect(lensGraphql.resolvers[10].resolve.Id.resolve({
+		await expect(lensGraphql.resolvers[12].resolve.Id.resolve({
 			id: 'username-1',
 		}, context)).rejects.toThrow('username response does not match request')
 
@@ -759,8 +767,108 @@ describe('Lens_Graphql reading relationships', () => {
 				namespace: 'lens',
 			},
 		})
-		await expect(lensGraphql.resolvers[11].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[13].resolve.Address.resolve({
 			address: '0x2222222222222222222222222222222222222222',
 		}, context)).rejects.toThrow('namespace response does not match request')
+	})
+
+	it('projects LensNetwork.$$feeds and $$usernameNamespaces with enrolled summary fields', async () => {
+		queryFeeds.mockResolvedValue({
+			feeds: {
+				items: [
+					{
+						address: '2222222222222222222222222222222222222222',
+						owner: '0x1111111111111111111111111111111111111111',
+						createdAt: '2025-03-04T05:06:07.000Z',
+						metadata: {
+							name: 'Research',
+							description: 'Bounded research feed',
+						},
+					},
+				],
+			},
+		})
+		queryNamespaces.mockResolvedValue({
+			namespaces: {
+				items: [
+					{
+						address: '0x2222222222222222222222222222222222222222',
+						namespace: 'lens',
+						owner: '0x1111111111111111111111111111111111111111',
+						tokenName: 'Lens Handle',
+						tokenSymbol: 'LH',
+						createdAt: '2025-03-04T05:06:07.000Z',
+						metadata: {
+							description: 'Default Lens namespace',
+						},
+						stats: {
+							totalUsernames: 0,
+						},
+					},
+				],
+			},
+		})
+
+		const feedsResolver = lensGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.LensNetwork
+			&& '$$feeds' in resolver.projections
+		))
+		const namespacesResolver = lensGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.LensNetwork
+			&& '$$usernameNamespaces' in resolver.projections
+		))
+		if (feedsResolver == null || namespacesResolver == null || !('Scope' in feedsResolver.resolve) || !('Scope' in namespacesResolver.resolve))
+			throw new Error('Lens spec missing LensNetwork feed/namespace list resolvers')
+
+		await expect(feedsResolver.resolve.Scope.resolve({
+			scope: 'LensNetwork',
+		}, {
+			...context,
+			pagination: { limit: 3 },
+		})).resolves.toEqual([{
+			[EntityMetaKey.Selector]: {
+				address: '0x2222222222222222222222222222222222222222',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.LensFeed, [], 'address')]: '0x2222222222222222222222222222222222222222',
+				[entityFieldAddressKey(EntityType.LensFeed, [], 'owner')]: '0x1111111111111111111111111111111111111111',
+				[entityFieldAddressKey(EntityType.LensFeed, [], '$owner')]: {
+					[EntityMetaKey.Selector]: {
+						address: '0x1111111111111111111111111111111111111111',
+					},
+				},
+				[entityFieldAddressKey(EntityType.LensFeed, [], 'name')]: 'Research',
+				[entityFieldAddressKey(EntityType.LensFeed, [], 'description')]: 'Bounded research feed',
+				[entityFieldAddressKey(EntityType.LensFeed, [], 'createdAt')]: 1_741_064_767_000,
+			},
+		}])
+		expect(queryFeeds).toHaveBeenCalledWith(3)
+
+		await expect(namespacesResolver.resolve.Scope.resolve({
+			scope: 'LensNetwork',
+		}, {
+			...context,
+			pagination: { limit: 2 },
+		})).resolves.toEqual([{
+			[EntityMetaKey.Selector]: {
+				address: '0x2222222222222222222222222222222222222222',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'address')]: '0x2222222222222222222222222222222222222222',
+				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'namespace')]: 'lens',
+				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'owner')]: '0x1111111111111111111111111111111111111111',
+				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], '$owner')]: {
+					[EntityMetaKey.Selector]: {
+						address: '0x1111111111111111111111111111111111111111',
+					},
+				},
+				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'tokenName')]: 'Lens Handle',
+				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'tokenSymbol')]: 'LH',
+				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'createdAt')]: 1_741_064_767_000,
+				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'description')]: 'Default Lens namespace',
+				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'totalUsernames')]: 0,
+			},
+		}])
+		expect(queryNamespaces).toHaveBeenCalledWith(2)
 	})
 })

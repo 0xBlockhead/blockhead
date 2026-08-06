@@ -680,6 +680,89 @@ const lensGraphqlResolvers = {
 			}),
 
 		defineResolver({
+			entityType: EntityType.LensNetwork,
+			resolve: {
+				Scope: {
+					resolve: async (_entitySelector, context) => {
+						const { queryFeeds } = await import('$/sources/Lens/Graphql/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						return (await queryFeeds(limit)).feeds.items.flatMap((feed) => {
+							const address = lensEvmAddressFromWire(feed.address)
+							const owner = lensEvmAddressFromWire(feed.owner)
+							const name = optionalNonemptyString(feed.metadata?.name)
+							const description = optionalNonemptyString(feed.metadata?.description)
+							const createdAt = optionalTimestampMs(feed.createdAt)
+							return [{
+								[EntityMetaKey.Selector]: { address },
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.LensFeed, [], 'address')]: address,
+									[entityFieldAddressKey(EntityType.LensFeed, [], 'owner')]: owner,
+									[entityFieldAddressKey(EntityType.LensFeed, [], '$owner')]: {
+										[EntityMetaKey.Selector]: { address: owner },
+									},
+									...(name != null && {
+										[entityFieldAddressKey(EntityType.LensFeed, [], 'name')]: name,
+									}),
+									...(description != null && {
+										[entityFieldAddressKey(EntityType.LensFeed, [], 'description')]: description,
+									}),
+									...(createdAt != null && {
+										[entityFieldAddressKey(EntityType.LensFeed, [], 'createdAt')]: createdAt,
+									}),
+								},
+							}]
+						}).slice(0, limit)
+					},
+				},
+			},
+		})({
+				$$feeds: (feeds) => feeds,
+			}),
+
+		defineResolver({
+			entityType: EntityType.LensNetwork,
+			resolve: {
+				Scope: {
+					resolve: async (_entitySelector, context) => {
+						const { queryNamespaces } = await import('$/sources/Lens/Graphql/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						return (await queryNamespaces(limit)).namespaces.items.flatMap((namespace) => {
+							const resolved = lensUsernameNamespaceFromWire(namespace)
+							return [{
+								[EntityMetaKey.Selector]: { address: resolved.address },
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'address')]: resolved.address,
+									[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'namespace')]: resolved.namespace,
+									...(resolved.owner != null && {
+										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'owner')]: resolved.owner,
+										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], '$owner')]: resolved.$owner,
+									}),
+									...(resolved.tokenName != null && {
+										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'tokenName')]: resolved.tokenName,
+									}),
+									...(resolved.tokenSymbol != null && {
+										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'tokenSymbol')]: resolved.tokenSymbol,
+									}),
+									...(resolved.createdAt != null && {
+										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'createdAt')]: resolved.createdAt,
+									}),
+									...(resolved.description != null && {
+										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'description')]: resolved.description,
+									}),
+									...(resolved.totalUsernames != null && {
+										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'totalUsernames')]: resolved.totalUsernames,
+									}),
+								},
+							}]
+						}).slice(0, limit)
+					},
+				},
+			},
+		})({
+				$$usernameNamespaces: (namespaces) => namespaces,
+			}),
+
+		defineResolver({
 			entityType: EntityType.LensFeed,
 			resolve: {
 				Address: {
