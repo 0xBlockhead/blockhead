@@ -332,3 +332,154 @@ describe('LI.FI transfer status resolvers', () => {
 		expect(fetchChains).not.toHaveBeenCalled()
 	})
 })
+
+describe('LI.FI network catalog projections', () => {
+	afterEach(() => {
+		vi.restoreAllMocks()
+		fetchChains.mockReset()
+	})
+
+	it('projects enrolled name, environment, faucet urls, and native coin instance', async () => {
+		fetchChains.mockResolvedValue({
+			chains: [{
+				key: 'eth',
+				chainType: 'EVM',
+				name: 'Ethereum',
+				coin: 'ETH',
+				id: 1,
+				mainnet: true,
+				logoURI: 'https://example.com/eth.png',
+				faucetUrls: [
+					'https://faucet.example.com',
+					'',
+				],
+				nativeToken: {
+					address: '0x0000000000000000000000000000000000000000',
+					decimals: 18,
+					symbol: 'ETH',
+					chainId: 1,
+					name: 'Ether',
+				},
+				metamask: {
+					rpcUrls: [
+						'https://rpc.example.com',
+					],
+					blockExplorerUrls: [
+						'https://explorer.example.com',
+					],
+				},
+			}],
+		} satisfies LifiChainsResponse)
+
+		const resolver = lifiRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'name' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('LI.FI Network name resolver is not registered')
+
+		const snapshot = await resolver.resolve.Caip2.resolve({
+			caip2: {
+				namespace: 'eip155',
+				reference: '1',
+			},
+		})
+
+		expect(snapshot).toMatchObject({
+			name: 'Ethereum',
+			environment: 'Mainnet',
+			iconUrl: 'https://example.com/eth.png',
+		})
+		expect(resolver.projections.name(snapshot)).toBe('Ethereum')
+		expect(resolver.projections.environment(snapshot)).toBe('Mainnet')
+		expect(resolver.projections.$$faucetUrls(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				url: 'https://faucet.example.com/',
+			},
+		}])
+		expect(resolver.projections.Evm.$nativeCoinInstance(snapshot)).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+				type: 'NativeCurrency',
+			},
+		})
+	})
+
+	it('rejects blank catalog display names', async () => {
+		fetchChains.mockResolvedValue({
+			chains: [{
+				key: 'blank',
+				chainType: 'EVM',
+				name: '   ',
+				coin: 'ETH',
+				id: 1,
+				mainnet: true,
+			}],
+		} satisfies LifiChainsResponse)
+
+		const resolver = lifiRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'name' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('LI.FI Network name resolver is not registered')
+
+		await expect(resolver.resolve.Caip2.resolve({
+			caip2: {
+				namespace: 'eip155',
+				reference: '1',
+			},
+		})).rejects.toThrow('chain display name missing')
+	})
+})
+
+describe('LI.FI bridge route step counts', () => {
+	it('exposes authoritative $$steps resolveCount from the quote bundle', () => {
+		const resolver = lifiRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeRoute
+			&& '$$steps' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('LI.FI BridgeRoute resolver is not registered')
+
+		expect(resolver.projections.$$steps.resolveCount({
+			$$steps: [
+				{
+					[EntityMetaKey.Selector]: {
+						$route: {
+							fromChainId: 1,
+							toChainId: 10,
+							fromToken: '0x0',
+							toToken: '0x1',
+							fromAmount: 1n,
+							fromAddress: '0x2',
+							slippage: 0.005,
+							toAddress: '0x3',
+						},
+						indexInRoute: 0,
+					},
+				},
+				{
+					[EntityMetaKey.Selector]: {
+						$route: {
+							fromChainId: 1,
+							toChainId: 10,
+							fromToken: '0x0',
+							toToken: '0x1',
+							fromAmount: 1n,
+							fromAddress: '0x2',
+							slippage: 0.005,
+							toAddress: '0x3',
+						},
+						indexInRoute: 1,
+					},
+				},
+			],
+		})).toBe(2)
+	})
+})

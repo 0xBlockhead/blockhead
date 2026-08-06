@@ -499,6 +499,20 @@ describe('LI.FI transfer status', () => {
 		expect(bindings[Source.Lifi_Rest][0].source).toBe(Source.Lifi_Rest)
 	})
 
+	it('rejects blank chain display names in the catalog envelope', async () => {
+		vi.mocked(lifiRestFetch).mockResolvedValueOnce(new Response(JSON.stringify({
+			chains: [{
+				id: 1,
+				key: 'eth',
+				name: '  ',
+				coin: 'ETH',
+				mainnet: true,
+			}],
+		})))
+
+		await expect(fetchChains()).rejects.toThrow('malformed chains catalog')
+	})
+
 	it('rejects an empty transfer identifier before transport', async () => {
 		await expect(fetchTransferStatus({ txHash: ' ' })).rejects.toThrow(
 			'transfer status requires'

@@ -199,6 +199,7 @@ export async function fetchChains(
 		|| result.chains.some((chain) => (
 			!Number.isSafeInteger(chain.id)
 			|| chain.id <= 0
+			|| chain.name.trim() === ''
 			|| (chain.nativeToken != null && chain.nativeToken.chainId !== chain.id)
 		))
 	)

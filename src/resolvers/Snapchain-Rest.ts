@@ -52,6 +52,66 @@ const snapchainCastMentions = (cast: SnapchainCast) => (
 	cast.data?.castAddBody?.mentions
 )
 
+const snapchainCastEmbedEntries = (cast: SnapchainCast) => {
+	const castAddBody = cast.data?.castAddBody
+	const modernEmbeds = castAddBody?.embeds ?? []
+	const modernUrls = new Set(
+		modernEmbeds.flatMap((embed) => {
+			const url = optionalNonemptyString(embed.url)
+			return url == null ? [] : [url]
+		})
+	)
+	return [
+		...modernEmbeds.map((embed) => ({
+			url: optionalNonemptyString(embed.url),
+			castId: (
+				embed.castId?.fid != null
+				&& embed.castId.hash != null
+			) ?
+				{
+					fid: embed.castId.fid,
+					hash: lowerHex0xCastHash(embed.castId.hash),
+				}
+			:
+				undefined
+		})),
+		...(castAddBody?.embedsDeprecated ?? []).flatMap((deprecatedUrl) => {
+			const url = optionalNonemptyString(deprecatedUrl)
+			if (url == null || modernUrls.has(url))
+				return []
+			return [{
+				url,
+				castId: undefined,
+			}]
+		}),
+	]
+}
+
+const snapchainCastEmbedEntities = (
+	cast: SnapchainCast,
+	castSelector: {
+		fid: number
+		hash: `0x${string}`
+	},
+) => (
+	snapchainCastEmbedEntries(cast).map((embed, indexInCast) => ({
+		[EntityMetaKey.Selector]: {
+			$cast: castSelector,
+			indexInCast,
+		},
+		[EntityMetaKey.Fields]: {
+			...(embed.url != null && {
+				[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'url')]: embed.url,
+			}),
+			...(embed.castId != null && {
+				[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], '$embeddedCast')]: {
+					[EntityMetaKey.Selector]: embed.castId,
+				},
+			}),
+		},
+	} satisfies Entity<typeof schema, EntityType.FarcasterCastEmbed>))
+)
+
 const snapchainCastEntity = (cast: SnapchainCast) => {
 	if (cast.data?.fid == null)
 		return undefined
@@ -62,6 +122,10 @@ const snapchainCastEntity = (cast: SnapchainCast) => {
 	const parentCastId = cast.data.castAddBody?.parentCastId
 	const parentUrl = optionalNonemptyString(cast.data.castAddBody?.parentUrl)
 	const mentions = snapchainCastMentions(cast)
+	const embeds = snapchainCastEmbedEntities(cast, {
+		fid: cast.data.fid,
+		hash,
+	})
 	return {
 		[EntityMetaKey.Selector]: {
 			fid: cast.data.fid,
@@ -99,6 +163,9 @@ const snapchainCastEntity = (cast: SnapchainCast) => {
 				...(mentions.length > 0 && {
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], 'mentionedProfileFids')]: mentions,
 				}),
+			}),
+			...(embeds.length > 0 && {
+				[entityFieldAddressKey(EntityType.FarcasterCast, [], '$$embeds')]: embeds,
 			}),
 		},
 	} satisfies Entity<typeof schema, EntityType.FarcasterCast>
@@ -300,6 +367,13 @@ const snapchainUserDataType = (type: string | number | undefined) => {
 	}
 }
 
+const snapchainChannelParentUrlFromId = (channelId: string) => {
+	const id = channelId.trim()
+	if (id === '')
+		throw new Error('Snapchain_Rest: channel id required')
+	return `https://farcaster.xyz/~/channel/${id}`
+}
+
 export default {
 	source: Source.Snapchain_Rest,
 
@@ -455,7 +529,6 @@ export default {
 				FidHash: {
 					resolve: async ({ fid, hash }) => {
 						type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
-						type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
 						type CastFieldValues = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
 						const snapchainCast = await getSnapchainCast({
 							fid,
@@ -471,6 +544,10 @@ export default {
 						if (timestamp == null)
 							throw new Error('Snapchain_Rest: cast missing timestamp')
 
+						const castSelector = {
+							fid,
+							hash: castHash,
+						}
 						return {
 							fid,
 							hash: castHash,
@@ -508,32 +585,7 @@ export default {
 										},
 									} satisfies Entity<typeof schema, EntityType.FarcasterChannel>
 							),
-							$$embeds: (castAddBody?.embeds ?? []).flatMap((embed, indexInCast) => [
-								({
-									[EntityMetaKey.Selector]: {
-										$cast: {
-											fid,
-											hash: castHash,
-										},
-										indexInCast,
-									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'url')]: optionalNonemptyString(embed.url),
-										[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], '$embeddedCast')]: (
-											embed.castId?.fid != null
-											&& embed.castId.hash != null
-									) ?
-											{
-												[EntityMetaKey.Selector]: {
-													fid: embed.castId.fid,
-													hash: lowerHex0xCastHash(embed.castId.hash),
-												},
-											} satisfies CastEntity
-											:
-												undefined,
-									},
-								}) satisfies CastEmbedEntity,
-							]),
+							$$embeds: snapchainCastEmbedEntities(snapchainCast, castSelector),
 						} satisfies Partial<CastFieldValues>
 					},
 				},
@@ -607,31 +659,43 @@ export default {
 						if (!('fid' in $cast) || !('hash' in $cast))
 							throw new Error('Snapchain_Rest: cast embed id requires cast fid and hash')
 
-						const embed = (await getSnapchainCast({
+						const snapchainCast = await getSnapchainCast({
 							fid: $cast.fid,
 							hash: $cast.hash,
-						})).data?.castAddBody?.embeds?.[indexInCast]
+						})
+						const embed = snapchainCastEmbedEntries(snapchainCast)[indexInCast]
 						if (embed == null)
 							throw new Error('Snapchain_Rest: cast embed index not found')
+
+						const quotedPreviewText = (
+							embed.castId == null ?
+								undefined
+							:
+								optionalNonemptyString(
+									(await getSnapchainCast({
+										fid: embed.castId.fid,
+										hash: embed.castId.hash,
+									})).data?.castAddBody?.text
+								)
+						)
 
 						return {
 							$cast: {
 								[EntityMetaKey.Selector]: $cast,
 							},
 							indexInCast,
-							url: optionalNonemptyString(embed.url),
+							url: embed.url,
 							$embeddedCast: (
-								embed.castId?.fid != null
-									&& embed.castId.hash != null
-							) ?
-								{
-									[EntityMetaKey.Selector]: {
-										fid: embed.castId.fid,
-										hash: lowerHex0xCastHash(embed.castId.hash),
-									},
-								} satisfies CastEntity
-							:
-								undefined,
+								embed.castId == null ?
+									undefined
+								:
+									{
+										[EntityMetaKey.Selector]: embed.castId,
+									} satisfies CastEntity
+							),
+							...(quotedPreviewText != null && {
+								quotedPreviewText,
+							}),
 						} satisfies Partial<CastEmbedFields>
 					},
 				},
@@ -645,7 +709,7 @@ export default {
 			description: () => undefined,
 			iconUrl: () => undefined,
 			$icon: () => undefined,
-			quotedPreviewText: () => undefined,
+			quotedPreviewText: (embed) => embed.quotedPreviewText,
 		}),
 
 		defineResolver({
@@ -696,7 +760,44 @@ export default {
 				},
 			},
 		})({
-			$$timestamps: (timestamps) => timestamps,
+			$$timestamps: {
+				select: (timestamps) => timestamps,
+				resolveCount: (timestamps) => timestamps.length,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.FarcasterUser_Timestamp,
+			resolve: {
+				UserTimestampMsSource: {
+					resolve: async ({ $user, timestampMs, source }) => {
+						if (source !== Source.Snapchain_Rest)
+							throw new Error(`Snapchain_Rest: unsupported user timestamp source ${source}`)
+						if (!('fid' in $user))
+							throw new Error('Snapchain_Rest: user timestamp requires fid')
+
+						const {
+							followerCount,
+							followingCount,
+						} = await getSnapchainUserCounts($user.fid)
+						return {
+							$user: {
+								[EntityMetaKey.Selector]: $user,
+							},
+							timestampMs,
+							source,
+							followerCount,
+							followingCount,
+						}
+					},
+				},
+			},
+		})({
+			$user: (observation) => observation.$user,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+			followerCount: (observation) => observation.followerCount,
+			followingCount: (observation) => observation.followingCount,
 		}),
 
 		defineResolver({
@@ -757,12 +858,93 @@ export default {
 				},
 			},
 		})({
-			$$timestamps: (timestamps) => timestamps,
+			$$timestamps: {
+				select: (timestamps) => timestamps,
+				resolveCount: (timestamps) => timestamps.length,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.FarcasterCast_Timestamp,
+			resolve: {
+				CastTimestampMsSource: {
+					resolve: async ({ $cast, timestampMs, source }) => {
+						if (source !== Source.Snapchain_Rest)
+							throw new Error(`Snapchain_Rest: unsupported cast timestamp source ${source}`)
+						if (!('fid' in $cast) || !('hash' in $cast))
+							throw new Error('Snapchain_Rest: cast timestamp requires cast fid and hash')
+
+						const counts = await getSnapchainCastCounts({
+							fid: $cast.fid,
+							hash: $cast.hash,
+						})
+						return {
+							$cast: {
+								[EntityMetaKey.Selector]: $cast,
+							},
+							timestampMs,
+							source,
+							likeCount: counts.likeCount,
+							recastCount: counts.recastCount,
+							replyCount: counts.replyCount,
+						}
+					},
+				},
+			},
+		})({
+			$cast: (observation) => observation.$cast,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+			likeCount: (observation) => observation.likeCount,
+			recastCount: (observation) => observation.recastCount,
+			replyCount: (observation) => observation.replyCount,
 		}),
 
 		defineResolver({
 			entityType: EntityType.FarcasterChannel,
 			resolve: {
+				Id: {
+					resolve: async ({ id }) => ({
+						id,
+						parentUrl: snapchainChannelParentUrlFromId(id),
+					}),
+				},
+			},
+		})({
+			id: (channel) => channel.id,
+			parentUrl: (channel) => channel.parentUrl,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FarcasterChannel,
+			resolve: {
+				ParentUrl: {
+					resolve: async ({ parentUrl }) => {
+						const url = optionalNonemptyString(parentUrl)
+						if (url == null)
+							throw new Error('Snapchain_Rest: channel parentUrl required')
+						return {
+							parentUrl: url,
+						}
+					},
+				},
+			},
+		})({
+			parentUrl: (channel) => channel.parentUrl,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FarcasterChannel,
+			resolve: {
+				Id: {
+					resolve: async ({ id }, context) => (
+						(await getSnapchainCastsByParent(
+							{ url: snapchainChannelParentUrlFromId(id) },
+							resolverContextRowLimit(context)
+						))
+							.flatMap((cast) => snapchainCastEntity(cast) ?? [])
+					),
+				},
 				ParentUrl: {
 					resolve: async ({ parentUrl }, context) => {
 						return (
@@ -818,6 +1000,15 @@ export default {
 								})
 						)
 					},
+				},
+				ByChannel: {
+					resolve: async ({ channelId }, context) => (
+						(await getSnapchainCastsByParent(
+							{ url: snapchainChannelParentUrlFromId(channelId) },
+							resolverContextRowLimit(context)
+						))
+							.flatMap((cast) => snapchainCastEntity(cast) ?? [])
+					),
 				},
 				Following: {
 					resolve: async ({ viewerFid }, context) => {

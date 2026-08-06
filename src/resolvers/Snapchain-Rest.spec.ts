@@ -21,11 +21,13 @@ const countLinksByTargetFid = vi.hoisted(() => vi.fn())
 const getUserDataByFid = vi.hoisted(() => vi.fn())
 const getUsernameProofsByFid = vi.hoisted(() => vi.fn())
 const getVerificationsByFid = vi.hoisted(() => vi.fn())
+const getCastEngagementCountsForCast = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Snapchain/Rest/queries.ts', () => ({
 	countLinksByFid,
 	countLinksByTargetFid,
 	getCastById,
+	getCastEngagementCountsForCast,
 	getCastsByFid,
 	getCastsByParent,
 	getUserDataByFid,
@@ -278,7 +280,7 @@ describe('Snapchain Farcaster cast identity', () => {
 })
 
 describe('Snapchain Farcaster observations', () => {
-	it('materializes zero counts with source identity and exposes no direct historical resolver', async () => {
+	it('materializes zero counts with source identity and expose singular observation resolvers', async () => {
 		countLinksByTargetFid.mockResolvedValueOnce(0)
 		countLinksByFid.mockResolvedValueOnce(0)
 
@@ -297,6 +299,7 @@ describe('Snapchain Farcaster observations', () => {
 			timestampMs: expect.any(Number),
 			source: Source.Snapchain_Rest,
 		}))
+		expect(userTimestampsResolver.projections.$$timestamps.resolveCount(timestamps)).toBe(1)
 		expect(countLinksByTargetFid).toHaveBeenCalledWith({
 			targetFid: 42,
 			linkType: 'follow',
@@ -307,8 +310,12 @@ describe('Snapchain Farcaster observations', () => {
 		})
 		expect(snapchainResolvers.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.FarcasterUser_Timestamp
-			|| resolver.entityType === EntityType.FarcasterCast_Timestamp
-		))).toBe(false)
+			&& 'UserTimestampMsSource' in resolver.resolve
+		))).toBe(true)
+		expect(snapchainResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.FarcasterCast_Timestamp
+			&& 'CastTimestampMsSource' in resolver.resolve
+		))).toBe(true)
 	})
 
 	it('queries casts by the selected protocol parent URL', async () => {
@@ -323,6 +330,204 @@ describe('Snapchain Farcaster observations', () => {
 			url: parentUrl,
 			pageSize: 2,
 			pageToken: undefined,
+		})
+	})
+
+	it('maps channel id feed and channel casts onto the FIP-2 parent URL', async () => {
+		getCastsByParent.mockResolvedValue({ messages: [] })
+		const feedResolver = snapchainResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.FarcasterFeed
+			&& 'ByChannel' in resolver.resolve
+		))
+		const channelIdCastsResolver = snapchainResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.FarcasterChannel
+			&& '$$casts' in resolver.projections
+			&& 'Id' in resolver.resolve
+		))
+		const channelIdResolver = snapchainResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.FarcasterChannel
+			&& 'id' in resolver.projections
+		))
+		if (feedResolver == null || channelIdCastsResolver == null || channelIdResolver == null)
+			throw new Error('Snapchain spec missing channel-id feed/channel resolvers')
+
+		await expect(feedResolver.resolve.ByChannel.resolve(
+			{ variant: 'channel', channelId: 'design' },
+			context
+		)).resolves.toEqual([])
+		await expect(channelIdCastsResolver.resolve.Id.resolve(
+			{ id: 'design' },
+			context
+		)).resolves.toEqual([])
+		await expect(channelIdResolver.resolve.Id.resolve({
+			id: 'design',
+		})).resolves.toEqual({
+			id: 'design',
+			parentUrl: 'https://farcaster.xyz/~/channel/design',
+		})
+		expect(getCastsByParent).toHaveBeenCalledWith({
+			url: 'https://farcaster.xyz/~/channel/design',
+			pageSize: 2,
+			pageToken: undefined,
+		})
+	})
+})
+
+describe('Snapchain Farcaster embeds and singular timestamps', () => {
+	beforeEach(() => {
+		getCastById.mockReset()
+		getCastEngagementCountsForCast.mockReset()
+		countLinksByFid.mockReset()
+		countLinksByTargetFid.mockReset()
+	})
+
+	it('merges embedsDeprecated url embeds after modern embeds', async () => {
+		getCastById.mockResolvedValueOnce({
+			hash: parentHash,
+			data: {
+				fid: 42,
+				timestamp: 1_752_840_001,
+				castAddBody: {
+					text: 'with embeds',
+					embeds: [{
+						url: 'https://example.com/modern',
+					}],
+					embedsDeprecated: [
+						'https://example.com/modern',
+						'https://example.com/legacy',
+					],
+				},
+			},
+		})
+
+		await expect(castResolver.resolve.FidHash.resolve({
+			fid: 42,
+			hash: parentHash,
+		})).resolves.toMatchObject({
+			$$embeds: [
+				{
+					[EntityMetaKey.Selector]: {
+						$cast: { fid: 42, hash: parentHash },
+						indexInCast: 0,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'url')]: 'https://example.com/modern',
+					},
+				},
+				{
+					[EntityMetaKey.Selector]: {
+						$cast: { fid: 42, hash: parentHash },
+						indexInCast: 1,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.FarcasterCastEmbed, [], 'url')]: 'https://example.com/legacy',
+					},
+				},
+			],
+		})
+	})
+
+	it('projects quotedPreviewText from the embedded cast body', async () => {
+		const embedResolver = snapchainResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.FarcasterCastEmbed
+			&& 'quotedPreviewText' in resolver.projections
+		))
+		if (embedResolver == null)
+			throw new Error('Snapchain spec missing FarcasterCastEmbed resolver')
+
+		const embeddedHash = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+		getCastById
+			.mockResolvedValueOnce({
+				hash: parentHash,
+				data: {
+					fid: 42,
+					timestamp: 1_752_840_001,
+					castAddBody: {
+						text: 'parent',
+						embeds: [{
+							castId: {
+								fid: 7,
+								hash: embeddedHash,
+							},
+						}],
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				hash: embeddedHash,
+				data: {
+					fid: 7,
+					timestamp: 1_752_840_000,
+					castAddBody: {
+						text: 'Quoted body',
+					},
+				},
+			})
+
+		await expect(embedResolver.resolve.CastIndexInCast.resolve({
+			$cast: {
+				fid: 42,
+				hash: parentHash,
+			},
+			indexInCast: 0,
+		})).resolves.toMatchObject({
+			$embeddedCast: {
+				[EntityMetaKey.Selector]: {
+					fid: 7,
+					hash: embeddedHash,
+				},
+			},
+			quotedPreviewText: 'Quoted body',
+		})
+	})
+
+	it('resolves singular cast and user timestamp observations', async () => {
+		getCastById.mockResolvedValueOnce({
+			hash: parentHash,
+			data: {
+				fid: 42,
+				timestamp: 1_752_840_001,
+				castAddBody: {
+					text: 'cast',
+				},
+			},
+		})
+		getCastEngagementCountsForCast.mockResolvedValueOnce({
+			likeCount: 3,
+			recastCount: 1,
+			replyCount: 2,
+		})
+		countLinksByTargetFid.mockResolvedValueOnce(11)
+		countLinksByFid.mockResolvedValueOnce(7)
+
+		const castTimestampResolver = snapchainResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.FarcasterCast_Timestamp
+		))
+		const userTimestampResolver = snapchainResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.FarcasterUser_Timestamp
+		))
+		if (castTimestampResolver == null || userTimestampResolver == null)
+			throw new Error('Snapchain spec missing singular timestamp resolvers')
+
+		await expect(castTimestampResolver.resolve.CastTimestampMsSource.resolve({
+			$cast: {
+				fid: 42,
+				hash: parentHash,
+			},
+			timestampMs: 1_700_000_000_000,
+			source: Source.Snapchain_Rest,
+		})).resolves.toMatchObject({
+			likeCount: 3,
+			recastCount: 1,
+			replyCount: 2,
+		})
+		await expect(userTimestampResolver.resolve.UserTimestampMsSource.resolve({
+			$user: { fid: 42 },
+			timestampMs: 1_700_000_000_000,
+			source: Source.Snapchain_Rest,
+		})).resolves.toMatchObject({
+			followerCount: 11,
+			followingCount: 7,
 		})
 	})
 })

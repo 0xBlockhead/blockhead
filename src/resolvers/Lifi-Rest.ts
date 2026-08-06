@@ -2,7 +2,11 @@ import { type } from 'arktype'
 
 import { bridgeToolByKey } from '$/constants/Bridge.ts'
 import { CoinId } from '$/constants/Coin.ts'
+import { NetworkEnvironment } from '$/constants/Network.ts'
+import { resolveMediaUrlTransport } from '$/lib/media.ts'
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import type { ResolverContext } from '$/resolvers/$resolvers.ts'
+import type { CoinInstanceEntitySelector } from '$/resolvers/Coingecko/Rest/coinInstances.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -11,8 +15,7 @@ import {
 	evmChainCatalogExplorerUrlEntities,
 	evmChainCatalogUrlEntities,
 } from '$/resolvers/evm.ts'
-import type { CoinInstanceEntitySelector } from '$/resolvers/Coingecko/Rest/coinInstances.ts'
-import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { coinInstanceRefFromLifiToken } from '$/resolvers/Lifi/Rest/bridgeRouteSteps.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
@@ -199,9 +202,6 @@ const lifiBridgeTransferSnapshot = async (
 	} = await lifiTransferStatusSnapshot(
 		transfer
 	)
-	const { coinInstanceRefFromLifiToken } = await import(
-		'$/resolvers/Lifi/Rest/bridgeRouteSteps.ts'
-	)
 	const sourceTxHash = (
 		fromNetwork == null ?
 			undefined
@@ -293,24 +293,44 @@ const lifiBridgeTransferSnapshot = async (
 }
 
 const networkSnapshotFromLifiChain = (lifiChain: LifiChain) => {
+	const name = lifiChain.name.trim()
+	if (name === '')
+		throw new Error(`Lifi_Rest: chain display name missing for chain ${lifiChain.id}`)
+
 	const metamaskRpcUrls = (
 		(lifiChain.metamask?.rpcUrls ?? [])
 			.map((u) => u.trim())
 			.filter((u) => u.length > 0)
 	)
+	const iconUrl = resolveMediaUrlTransport(lifiChain.logoURI)?.url
+	const nativeCoinInstance = coinInstanceRefFromLifiToken(lifiChain.nativeToken)
 	return {
 		[EntityMetaKey.Selector]: { caip2: {
 			namespace: 'eip155' as const,
 			reference: String(lifiChain.id),
 		} },
+		name,
+		environment: (
+			lifiChain.mainnet ?
+				NetworkEnvironment.Mainnet
+			:
+				NetworkEnvironment.Testnet
+		),
+		...(iconUrl != null && {
+			iconUrl,
+		}),
 		...((
 			iconMedia
 		) => (
 			iconMedia != null && {
 				$icon: iconMedia,
 			}
-		))(mediaFromUrl(lifiChain.logoURI, MediaType.Image)),
+		))(mediaFromUrl(iconUrl ?? lifiChain.logoURI, MediaType.Image)),
 		$$rpcUrls: evmChainCatalogUrlEntities(metamaskRpcUrls),
+		$$faucetUrls: evmChainCatalogUrlEntities(lifiChain.faucetUrls ?? []),
+		...(nativeCoinInstance != null && {
+			$nativeCoinInstance: nativeCoinInstance,
+		}),
 	}
 }
 
@@ -318,9 +338,6 @@ const coinBridgeCapabilityRowsForCoin = async (
 	{ coinId }: EntitySelector<typeof schema, EntityType.Coin>
 ) => {
 	const { fetchTokens, fetchTools } = await import('$/sources/Lifi/Rest/queries.ts')
-	const { coinInstanceRefFromLifiToken } = await import(
-		'$/resolvers/Lifi/Rest/bridgeRouteSteps.ts'
-	)
 	const { coinBridgeCapabilityEntityRowsFromInstancesAndTools } = await import(
 		'$/resolvers/Lifi/Rest/coinBridgeCapabilityEntityRows.ts'
 	)
@@ -414,9 +431,14 @@ export default {
 				}
 			},
 		})({
+				name: (network) => network.name,
+				environment: (network) => network.environment,
+				iconUrl: (network) => network.iconUrl,
 				$icon: (network) => network.$icon,
+				$$faucetUrls: (network) => network.$$faucetUrls,
 				Evm: {
 					$$rpcUrls: (network) => network.$$rpcUrls,
+					$nativeCoinInstance: (network) => network.$nativeCoinInstance,
 				},
 			}),
 
@@ -462,9 +484,12 @@ export default {
 				}
 			},
 		})({
-				$$steps: (route) => route.$$steps.map((step) => ({
-					[EntityMetaKey.Selector]: step[EntityMetaKey.Selector],
-				})),
+				$$steps: {
+					select: (route) => route.$$steps.map((step) => ({
+						[EntityMetaKey.Selector]: step[EntityMetaKey.Selector],
+					})),
+					resolveCount: (route) => route.$$steps.length,
+				},
 				$fromNetwork: (route) => route.$fromNetwork,
 				$toNetwork: (route) => route.$toNetwork,
 				fromAmount: (route) => route.fromAmount,
