@@ -153,6 +153,36 @@ describe('GMX Rest resolver module', () => {
 			liquidationPrice: '500',
 			indexName: 'ETH',
 			poolName: 'WETH-USDC',
+			pendingBorrowingFeesUsd: '1',
+			increasedAtTime: '1700000000',
+			decreasedAtTime: '0',
+			fundingFeeAmount: '0',
+			claimableLongTokenAmount: '0',
+			claimableShortTokenAmount: '0',
+			positionFeeAmount: '0',
+			traderDiscountAmount: '0',
+			uiFeeAmount: '0',
+			pendingImpactAmount: '0',
+			remainingCollateralUsd: '999',
+			remainingCollateralAmount: '1',
+			hasLowCollateral: false,
+			leverageWithPnl: '1',
+			leverageWithoutPnl: '1',
+			pnlPercentage: '0',
+			pnlAfterFees: '0',
+			pnlAfterFeesPercentage: '0',
+			netValueAfterAllFees: '999',
+			pnlAfterAllFees: '0',
+			pnlAfterAllFeesPercentage: '0',
+			netValue: '1000',
+			netPriceImapctDeltaUsd: '0',
+			priceImpactDiffUsd: '0',
+			pendingImpactUsd: '0',
+			closePriceImpactDeltaUsd: '0',
+			closingFeeUsd: '0',
+			uiFeeUsd: '0',
+			pendingFundingFeesUsd: '0',
+			pendingClaimableFundingFeesUsd: '0',
 		})
 
 		const snapshot = await gmxPositionResolver.resolve.AccountContractKey.resolve({
@@ -162,6 +192,25 @@ describe('GMX Rest resolver module', () => {
 
 		expect(gmxPositionResolver.projections.isLong(snapshot)).toBe(true)
 		expect(gmxPositionResolver.projections.sizeInUsd(snapshot)).toBe('1000')
+		expect(gmxPositionResolver.projections.sizeInTokens(snapshot)).toBe('1')
+		expect(gmxPositionResolver.projections.collateralAmount(snapshot)).toBe('1')
+		expect(gmxPositionResolver.projections.collateralUsd(snapshot)).toBe('1000')
+		expect(gmxPositionResolver.projections.positionValueInUsd(snapshot)).toBe('1000')
+		expect(gmxPositionResolver.projections.pnl(snapshot)).toBe('0')
+		expect(gmxPositionResolver.projections.leverage(snapshot)).toBe('1')
+		expect(gmxPositionResolver.projections.entryPrice(snapshot)).toBe('1000')
+		expect(gmxPositionResolver.projections.markPrice(snapshot)).toBe('1000')
+		expect(gmxPositionResolver.projections.liquidationPrice(snapshot)).toBe('500')
+		expect(gmxPositionResolver.projections.indexName(snapshot)).toBe('ETH')
+		expect(gmxPositionResolver.projections.poolName(snapshot)).toBe('WETH-USDC')
+		expect(gmxPositionResolver.projections.collateralTokenAddress(snapshot)).toBe(
+			'0x82af49447d8a07e3bd95bd0d56f35241523fbab1'
+		)
+		expect(snapshot).not.toHaveProperty('pendingBorrowingFeesUsd')
+		expect(snapshot).not.toHaveProperty('hasLowCollateral')
+		expect(snapshot).not.toHaveProperty('leverageWithPnl')
+		expect(snapshot).not.toHaveProperty('increasedAtTime')
+		expect(Object.keys(gmxPositionResolver.projections)).not.toContain('pendingBorrowingFeesUsd')
 		expect(getPositionByKey).toHaveBeenCalledWith({
 			chainId: 42161,
 			contractKey,

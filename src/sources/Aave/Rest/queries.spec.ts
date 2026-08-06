@@ -681,4 +681,175 @@ describe('Aave account position operations', () => {
 			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid account positions response envelope`)
 	})
+
+	it('accepts expanded reserve wire (aToken / oracle / caps) while keeping enrolled scalars', async () => {
+		graphql.mockResolvedValueOnce({
+			market: {
+				...ethereumMarketSnapshot,
+				reserves: [
+					{
+						...ethereumMarketSnapshot.reserves[0],
+						aToken: {
+							...ethereumMarketSnapshot.reserves[0].underlyingToken,
+							address: '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
+							name: 'Aave Ethereum USDC',
+							symbol: 'aEthUSDC',
+						},
+						vToken: {
+							...ethereumMarketSnapshot.reserves[0].underlyingToken,
+							address: '0x72E95b8931767C79bA4Bee7C3C2A6fa6bD5e4E5c',
+							name: 'Aave Ethereum Variable Debt USDC',
+							symbol: 'variableDebtEthUSDC',
+						},
+						flashLoanEnabled: true,
+						usdExchangeRate: '1',
+						usdOracleAddress: '0x736bF902650874390e2fB8C5fCbE5F4d3F2eC6b0',
+						size: {
+							amount: {
+								value: '2290437225.192653',
+							},
+							usd: '2290437225.192653',
+						},
+						supplyInfo: {
+							apy: {
+								value: '0.031245',
+							},
+							canBeCollateral: true,
+							maxLTV: {
+								value: '0.75',
+							},
+							liquidationThreshold: {
+								value: '0.78',
+							},
+							liquidationBonus: {
+								value: '0.045',
+							},
+							supplyCapReached: false,
+							supplyCap: {
+								amount: {
+									value: '5000000000',
+								},
+								usd: '5000000000',
+							},
+						},
+						borrowInfo: {
+							apy: {
+								value: '0.042187',
+							},
+							availableLiquidity: {
+								amount: {
+									value: '1193820144.100001',
+								},
+								usd: '1193820144.100001',
+							},
+							utilizationRate: {
+								value: '0.48',
+							},
+							borrowCapReached: false,
+							borrowCap: {
+								amount: {
+									value: '4500000000',
+								},
+								usd: '4500000000',
+							},
+							total: {
+								amount: {
+									value: '1096617081.092652',
+								},
+								usd: '1096617081.092652',
+							},
+						},
+					},
+				],
+			},
+		})
+
+		await expect(getMarket({
+			chainId: 1,
+			poolAddress: ethereumMarket.address,
+		})).resolves.toMatchObject({
+			reserves: [
+				{
+					underlyingToken: {
+						symbol: 'USDC',
+					},
+					flashLoanEnabled: true,
+					usdExchangeRate: '1',
+					supplyInfo: {
+						canBeCollateral: true,
+						maxLTV: {
+							value: '0.75',
+						},
+					},
+					borrowInfo: {
+						utilizationRate: {
+							value: '0.48',
+						},
+					},
+				},
+			],
+		})
+	})
+
+	it('preserves optional currency name on account supply positions', async () => {
+		graphql
+			.mockResolvedValueOnce({
+				markets: [
+					ethereumMarket,
+				],
+			})
+			.mockResolvedValueOnce({
+				userSupplies: [
+					{
+						market: {
+							address: ethereumMarket.address,
+							chain: {
+								chainId: 1,
+							},
+						},
+						currency: {
+							address: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+							symbol: 'USDC',
+							decimals: 6,
+							name: 'USD Coin',
+							chainId: 1,
+						},
+						balance: {
+							amount: {
+								value: '10',
+							},
+							usd: '10',
+						},
+						apy: {
+							value: '0.01',
+						},
+						isCollateral: false,
+						canBeCollateral: true,
+					},
+				],
+				userBorrows: [],
+			})
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
+		})).resolves.toEqual([
+			{
+				protocol: 'Aave V3',
+				kind: 'supply',
+				chainId: 1,
+				account: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c',
+				poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				underlyingTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+				symbol: 'USDC',
+				decimals: 6,
+				name: 'USD Coin',
+				balance: '10',
+				balanceUsd: '10',
+				apy: '0.01',
+				isCollateral: false,
+				canBeCollateral: true,
+			},
+		])
+	})
 })

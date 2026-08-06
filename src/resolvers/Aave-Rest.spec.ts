@@ -511,4 +511,106 @@ describe('Aave Rest resolver module', () => {
 			`${Source.Aave_Rest}: reserve not found 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2`
 		)
 	})
+
+	it('omits empty reserve imageUrl (ZeroOrOne)', async () => {
+		if (aaveReserveResolver == null)
+			throw new Error('missing AaveReserve resolver')
+
+		graphql.mockResolvedValueOnce({
+			market: {
+				...ethereumMarket,
+				reserves: [
+					{
+						...ethereumMarket.reserves[0],
+						underlyingToken: {
+							...ethereumMarket.reserves[0].underlyingToken,
+							imageUrl: '',
+						},
+					},
+				],
+			},
+		})
+
+		const snapshot = await aaveReserveResolver.resolve.MarketUnderlyingTokenAddress.resolve({
+			$market: {
+				$network: ethereumNetwork,
+				poolAddress: ethereumMarket.address,
+			},
+			underlyingTokenAddress: ethereumMarket.reserves[0].underlyingToken.address,
+		}, context)
+
+		expect(aaveReserveResolver.projections.imageUrl(snapshot)).toBeUndefined()
+		expect(aaveReserveResolver.projections.symbol(snapshot)).toBe('USDC')
+	})
+
+	it('projects all enrolled AaveReservePosition fields and omits canBeCollateral', async () => {
+		const aaveReservePositionResolver = aaveRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.AaveReservePosition
+		))
+		if (aaveReservePositionResolver == null)
+			throw new Error('missing AaveReservePosition resolver')
+
+		const accountSelector = {
+			$network: ethereumNetwork,
+			$actor: {
+				address: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c',
+			},
+		}
+		const poolAddress = '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2'
+		const underlyingTokenAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+		getAccountPositions.mockResolvedValue([
+			{
+				protocol: 'Aave V3',
+				kind: 'supply',
+				chainId: 1,
+				account: accountSelector.$actor.address,
+				poolAddress,
+				underlyingTokenAddress,
+				symbol: 'USDC',
+				decimals: 6,
+				name: 'USD Coin',
+				balance: '1000.5',
+				balanceUsd: '1000.5',
+				apy: '0.03',
+				isCollateral: true,
+				canBeCollateral: true,
+			},
+			{
+				protocol: 'Aave V3',
+				kind: 'borrow',
+				chainId: 1,
+				account: accountSelector.$actor.address,
+				poolAddress,
+				underlyingTokenAddress,
+				symbol: 'USDC',
+				decimals: 6,
+				debt: '2.5',
+				debtUsd: '2.5',
+				apy: '0.05',
+			},
+		])
+
+		const snapshot = await aaveReservePositionResolver.resolve.AccountReserve.resolve({
+			$account: accountSelector,
+			$reserve: {
+				$market: {
+					$network: ethereumNetwork,
+					poolAddress,
+				},
+				underlyingTokenAddress,
+			},
+		}, context)
+
+		expect(aaveReservePositionResolver.projections.symbol(snapshot)).toBe('USDC')
+		expect(aaveReservePositionResolver.projections.decimals(snapshot)).toBe(6)
+		expect(aaveReservePositionResolver.projections.suppliedBalance(snapshot)).toBe('1000.5')
+		expect(aaveReservePositionResolver.projections.suppliedBalanceUsd(snapshot)).toBe('1000.5')
+		expect(aaveReservePositionResolver.projections.supplyApy(snapshot)).toBe('0.03')
+		expect(aaveReservePositionResolver.projections.isCollateral(snapshot)).toBe(true)
+		expect(aaveReservePositionResolver.projections.borrowedBalance(snapshot)).toBe('2.5')
+		expect(aaveReservePositionResolver.projections.borrowedBalanceUsd(snapshot)).toBe('2.5')
+		expect(aaveReservePositionResolver.projections.borrowApy(snapshot)).toBe('0.05')
+		expect(snapshot).not.toHaveProperty('canBeCollateral')
+		expect(Object.keys(aaveReservePositionResolver.projections)).not.toContain('canBeCollateral')
+	})
 })
