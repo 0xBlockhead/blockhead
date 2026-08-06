@@ -57,6 +57,9 @@ const blockMessagesResolver = blockResolvers.find((resolver) => (
 const messageResolver = filfoxRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FilecoinMessage
 ))
+const messageTimestampResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinMessage_Timestamp
+))
 const dealResolver = filfoxRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FilecoinDeal
 ))
@@ -84,6 +87,7 @@ if (
 	|| blockResolver == null
 	|| blockMessagesResolver == null
 	|| messageResolver == null
+	|| messageTimestampResolver == null
 	|| dealResolver == null
 	|| filecoinNetworkDealsResolver == null
 	|| networkDealsResolver == null
@@ -112,6 +116,7 @@ describe('Filfox REST resolvers', () => {
 			EntityType.FilecoinTipset,
 			EntityType.FilecoinBlock,
 			EntityType.FilecoinMessage,
+			EntityType.FilecoinMessage_Timestamp,
 			EntityType.FilecoinBlock,
 			EntityType.FilecoinMiner,
 			EntityType.FilecoinMiner_Timestamp,
@@ -244,9 +249,15 @@ describe('Filfox REST resolvers', () => {
 		expect(getBlock).not.toHaveBeenCalled()
 	})
 
-	it('projects message from/to fields from one Filfox message response', async () => {
+	it('projects message from/to fields and $$timestamps from one Filfox message response', async () => {
 		getMessage.mockResolvedValueOnce({
 			cid: 'bafy-msg',
+			height: 100,
+			timestamp: 1_700_000_000,
+			blocks: [
+				'bafy-a',
+				'bafy-b',
+			],
 			from: 'f1from',
 			to: 'f1to',
 			nonce: 3,
@@ -254,6 +265,10 @@ describe('Filfox REST resolvers', () => {
 			method: 'Send',
 			methodNumber: 0,
 			gasLimit: 50_000_000,
+			receipt: {
+				exitCode: 0,
+				gasUsed: 1234,
+			},
 		})
 
 		const snapshot = await messageResolver.resolve.NetworkCid.resolve({
@@ -277,6 +292,99 @@ describe('Filfox REST resolvers', () => {
 		expect(messageResolver.projections.nonce(snapshot)).toBe(3n)
 		expect(messageResolver.projections.valueAttoFil(snapshot)).toBe(1000n)
 		expect(messageResolver.projections.gasLimit(snapshot)).toBe(50_000_000n)
+		expect(messageResolver.projections.$$timestamps(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$message: {
+					$network: network,
+					cid: 'bafy-msg',
+				},
+				timestampMs: 1_700_000_000_000,
+				height: 100n,
+				tipsetKey: 'bafy-a,bafy-b',
+				source: Source.Filfox_Rest,
+			},
+		}])
+	})
+
+	it('omits $$timestamps when Filfox message lacks inclusion clocks', async () => {
+		getMessage.mockResolvedValueOnce({
+			cid: 'bafy-msg',
+			from: 'f1from',
+			to: 'f1to',
+			nonce: 3,
+			value: '1000',
+			method: 'Send',
+			methodNumber: 0,
+		})
+
+		const snapshot = await messageResolver.resolve.NetworkCid.resolve({
+			$network: network,
+			cid: 'bafy-msg',
+		}, context)
+
+		expect(messageResolver.projections.$$timestamps(snapshot)).toEqual([])
+	})
+
+	it('projects FilecoinMessage_Timestamp inclusion fields from getMessage + getTipset', async () => {
+		getMessage.mockResolvedValueOnce({
+			cid: 'bafy-msg',
+			height: 100,
+			timestamp: 1_700_000_000,
+			blocks: [
+				'bafy-a',
+				'bafy-b',
+			],
+			from: 'f1from',
+			to: 'f1to',
+			nonce: 1,
+			value: '0',
+			method: 'Send',
+			receipt: {
+				exitCode: 0,
+				gasUsed: 99,
+			},
+		})
+		getTipset.mockResolvedValueOnce({
+			height: 100,
+			timestamp: 1_700_000_000,
+			blocks: [
+				{
+					cid: 'bafy-a',
+					miner: 'f01000',
+				},
+				{
+					cid: 'bafy-b',
+					miner: 'f01001',
+				},
+			],
+		})
+
+		const snapshot = await messageTimestampResolver.resolve.MessageHeightTipsetKeySource.resolve({
+			$message: {
+				$network: network,
+				cid: 'bafy-msg',
+			},
+			height: 100n,
+			tipsetKey: 'bafy-a,bafy-b',
+			source: Source.Filfox_Rest,
+			timestampMs: 1_700_000_000_000,
+		}, context)
+
+		expect(messageTimestampResolver.projections.timestampMs(snapshot)).toBe(1_700_000_000_000)
+		expect(messageTimestampResolver.projections.height(snapshot)).toBe(100n)
+		expect(messageTimestampResolver.projections.tipsetKey(snapshot)).toBe('bafy-a,bafy-b')
+		expect(messageTimestampResolver.projections.source(snapshot)).toBe(Source.Filfox_Rest)
+		expect(messageTimestampResolver.projections.blockCids(snapshot)).toEqual([
+			'bafy-a',
+			'bafy-b',
+		])
+		expect(messageTimestampResolver.projections.$tipset(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				height: 100n,
+				tipsetKey: 'bafy-a,bafy-b',
+			},
+		})
 	})
 
 	it('propagates hard-fail HTTP from message lookup', async () => {

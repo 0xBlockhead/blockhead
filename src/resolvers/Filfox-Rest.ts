@@ -210,6 +210,12 @@ export default {
 						const message = await getMessage({
 							messageCid: cid,
 						})
+						const tipsetKey = (
+							message.blocks != null && message.blocks.length > 0 ?
+								message.blocks.join(',')
+							:
+								undefined
+						)
 						return {
 							$from: {
 								[EntityMetaKey.Selector]: {
@@ -231,6 +237,25 @@ export default {
 							...(message.gasLimit != null && {
 								gasLimit: BigInt(message.gasLimit),
 							}),
+							...(
+								message.height != null
+								&& message.timestamp != null
+								&& tipsetKey != null
+								&& {
+									$$timestamps: [{
+										[EntityMetaKey.Selector]: {
+											$message: {
+												$network,
+												cid,
+											},
+											timestampMs: message.timestamp * 1000,
+											height: BigInt(message.height),
+											tipsetKey,
+											source: Source.Filfox_Rest,
+										},
+									}],
+								}
+							),
 						}
 					},
 				},
@@ -242,6 +267,79 @@ export default {
 			nonce: (snapshot) => snapshot.nonce,
 			valueAttoFil: (snapshot) => snapshot.valueAttoFil,
 			gasLimit: (snapshot) => snapshot.gasLimit,
+			$$timestamps: (snapshot) => snapshot.$$timestamps ?? [],
+		}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinMessage_Timestamp,
+			resolve: {
+				MessageHeightTipsetKeySource: {
+					resolve: async ({
+						$message,
+						height,
+						tipsetKey,
+						source,
+					}) => {
+						assertFilecoinMainnet($message.$network)
+						if (source !== Source.Filfox_Rest)
+							throw new Error(`Filfox_Rest: unsupported message observation source ${source}`)
+
+						const {
+							getMessage,
+							getTipset,
+						} = await import('$/sources/Filfox/Rest/queries.ts')
+						const [
+							message,
+							tipset,
+						] = await Promise.all([
+							getMessage({
+								messageCid: $message.cid,
+							}),
+							getTipset({
+								height,
+							}),
+						])
+						if (
+							message.height == null
+							|| message.timestamp == null
+							|| message.blocks == null
+							|| message.blocks.length < 1
+						)
+							throw new Error(`Filfox_Rest: message ${$message.cid} missing inclusion observation`)
+
+						const messageTipsetKey = message.blocks.join(',')
+						if (
+							BigInt(message.height) !== height
+							|| messageTipsetKey !== tipsetKey
+							|| BigInt(tipset.height) !== height
+							|| tipsetKeyFromBlocks(tipset.blocks) !== tipsetKey
+						)
+							throw new Error(`Filfox_Rest: message observation tipset does not match ${height.toString()}/${tipsetKey}`)
+
+						return {
+							timestampMs: message.timestamp * 1000,
+							height,
+							tipsetKey,
+							source,
+							$tipset: {
+								[EntityMetaKey.Selector]: {
+									$network: $message.$network,
+									height,
+									tipsetKey,
+								},
+							},
+							blockCids: message.blocks,
+						}
+					},
+				},
+			},
+		})({
+			timestampMs: (timestamp) => timestamp.timestampMs,
+			height: (timestamp) => timestamp.height,
+			tipsetKey: (timestamp) => timestamp.tipsetKey,
+			source: (timestamp) => timestamp.source,
+			$tipset: (timestamp) => timestamp.$tipset,
+			blockCids: (timestamp) => timestamp.blockCids,
 		}),
 
 		defineResolver({

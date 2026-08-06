@@ -532,6 +532,21 @@ export default {
 			exponentAtPriceOne: (pool) => pool.exponentAtPriceOne,
 			spreadFactor: (pool) => pool.spreadFactor,
 			lastLiquidityUpdate: (pool) => pool.lastLiquidityUpdate,
+			positionCount: {
+				resolve: async ({
+					$network,
+					poolId,
+				}: OsmosisPoolId) => {
+					assertOsmosisNetwork($network)
+					const { getNumPoolPositions } = await import('$/sources/Osmosis/Rest/queries.ts')
+					const {
+						position_count: positionCount,
+					} = await getNumPoolPositions({
+						poolId,
+					})
+					return BigInt(positionCount)
+				},
+			},
 			$$assets: (pool) => (
 				pool.assets.map((asset) => ({
 					[EntityMetaKey.Selector]: {

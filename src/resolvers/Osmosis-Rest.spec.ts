@@ -518,6 +518,32 @@ describe('Osmosis LCD resolver module', () => {
 			expect.anything(),
 			expect.stringContaining('/osmosis/poolmanager/v1beta1/pools/1')
 		)
+		expect(osmosisPoolResolver.projections.positionCount).toEqual(expect.objectContaining({
+			resolve: expect.any(Function),
+		}))
+	})
+
+	it('projects OsmosisPool.positionCount from getNumPoolPositions', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			position_count: '42',
+		})
+
+		if (osmosisPoolResolver == null)
+			throw new Error('missing OsmosisPool resolver')
+
+		const positionCount = osmosisPoolResolver.projections.positionCount
+		if (typeof positionCount === 'function' || positionCount?.resolve == null)
+			throw new Error('missing OsmosisPool.positionCount field resolve')
+
+		await expect(positionCount.resolve({
+			$network: osmosisNetwork,
+			poolId: '1066',
+		}, context)).resolves.toBe(42n)
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.stringContaining('/osmosis/concentratedliquidity/v1beta1/num_pool_positions/1066')
+		)
+		expect(osmosisPoolResolver.projections).not.toHaveProperty('$$positions')
 	})
 
 	it('resolves OsmosisPoolAsset balances from the parent pool snapshot', async () => {
