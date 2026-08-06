@@ -534,7 +534,11 @@ export default {
 							getBlock,
 							getHealth,
 						} = await import('$/sources/AlgorandIndexer/Rest/queries.ts')
-						const health = await getHealth()
+						const { getStatus } = await import('$/sources/Algod/Rest/queries.ts')
+						const [health, status] = await Promise.all([
+							getHealth(),
+							getStatus(),
+						])
 						const latestRound = health.round ?? health.data?.round
 						if (latestRound == null || !Number.isSafeInteger(latestRound) || latestRound < 0)
 							throw new Error('AlgorandIndexer_Rest: health response missing tip round')
@@ -555,6 +559,12 @@ export default {
 										),
 									}
 								),
+								...(
+									status.catchpoint != null && status.catchpoint.length > 0 && {
+										[entityFieldAddressKey(EntityType.AlgorandNetwork_Timestamp, [], 'catchpoint')]: status.catchpoint,
+									}
+								),
+								[entityFieldAddressKey(EntityType.AlgorandNetwork_Timestamp, [], 'protocolVersion')]: status['last-version'],
 							},
 						}]
 					},

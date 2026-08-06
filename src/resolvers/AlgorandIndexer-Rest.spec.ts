@@ -17,6 +17,7 @@ const {
 	getAssetBalances,
 	getBlock,
 	getHealth,
+	getStatus,
 	getTransaction,
 	listApplicationBoxes,
 	listTransactions,
@@ -29,6 +30,7 @@ const {
 	getAssetBalances: vi.fn(),
 	getBlock: vi.fn(),
 	getHealth: vi.fn(),
+	getStatus: vi.fn(),
 	getTransaction: vi.fn(),
 	listApplicationBoxes: vi.fn(),
 	listTransactions: vi.fn(),
@@ -46,6 +48,10 @@ vi.mock('$/sources/AlgorandIndexer/Rest/queries.ts', () => ({
 	getTransaction,
 	listApplicationBoxes,
 	listTransactions,
+}))
+
+vi.mock('$/sources/Algod/Rest/queries.ts', () => ({
+	getStatus,
 }))
 
 const { default: algorandIndexerResolvers } = await import('$/resolvers/AlgorandIndexer-Rest.ts')
@@ -345,6 +351,17 @@ describe('Algorand Indexer deepened resolvers', () => {
 		getHealth.mockResolvedValueOnce({
 			round: 100,
 		})
+		getStatus.mockResolvedValueOnce({
+			'last-round': 100,
+			'last-version': 'https://github.com/algorandfoundation/specs/tree/example',
+			'next-version': 'https://github.com/algorandfoundation/specs/tree/example',
+			'next-version-round': 101,
+			'next-version-supported': true,
+			'stopped-at-unsupported-round': false,
+			'catchup-time': 0,
+			'time-since-last-round': 0,
+			catchpoint: '12345#ABCD',
+		})
 		getBlock.mockResolvedValueOnce({
 			round: 100,
 			timestamp: 1_700_000_100,
@@ -359,6 +376,10 @@ describe('Algorand Indexer deepened resolvers', () => {
 			throw new Error('missing network timestamp projection')
 		expect(networkTimestampProjection(networkTimestamps, network, resolverContext)[0][EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.AlgorandNetwork_Timestamp, [], 'latestRound')]: 100n,
+			[entityFieldAddressKey(EntityType.AlgorandNetwork_Timestamp, [], 'catchpoint')]: '12345#ABCD',
+			[entityFieldAddressKey(EntityType.AlgorandNetwork_Timestamp, [], 'protocolVersion')]: (
+				'https://github.com/algorandfoundation/specs/tree/example'
+			),
 		})
 
 		listTransactions.mockResolvedValueOnce({
