@@ -3,19 +3,11 @@ import type { components } from '$/sources/Youtube/Discovery/discovery.d.ts'
 
 export type YoutubeApiThumbnail = components['schemas']['Thumbnail']
 
-/** Shared snippet fields used across channel / video / playlist / search helpers. */
-export type YoutubeApiSnippet = {
-	title?: string
-	description?: string
-	publishedAt?: string
-	channelId?: string
-	channelTitle?: string
-	customUrl?: string
-	categoryId?: string
-	liveBroadcastContent?: string
-	thumbnails?: components['schemas']['ThumbnailDetails']
-	tags?: string[]
-}
+export type YoutubeApiSnippet =
+	| components['schemas']['ChannelSnippet']
+	| components['schemas']['VideoSnippet']
+	| components['schemas']['PlaylistSnippet']
+	| components['schemas']['SearchResultSnippet']
 
 export type YoutubeApiStatistics = components['schemas']['ChannelStatistics'] | components['schemas']['VideoStatistics']
 

@@ -9,6 +9,7 @@ import type {
 	YoutubeApiChannel,
 	YoutubeApiChannelsListResponse,
 	YoutubeApiComment,
+	YoutubeApiSnippet,
 	YoutubeApiVideo,
 	YoutubeApiVideosListResponse,
 } from '$/sources/Youtube/Rest/types.ts'
@@ -80,5 +81,16 @@ describe('Youtube Discovery schema-source', () => {
 		} as const satisfies YoutubeApiVideosListResponse
 		expect(channels.items?.[0]?.id).toBe('UC123')
 		expect(videos.items?.[0]?.id).toBe('vid')
+
+		const snippet = {
+			title: 'Video',
+			channelId: channel.id,
+			channelTitle: 'Channel',
+			categoryId: '22',
+			tags: ['tag'],
+			liveBroadcastContent: 'none',
+			customUrl: '@channel',
+		} as const satisfies YoutubeApiSnippet
+		expect(snippet.channelTitle).toBe('Channel')
 	})
 })
