@@ -43,11 +43,13 @@ const networkResolvers = morphoGraphql.resolvers.filter((resolver) => (
 const vaultResolver = morphoGraphql.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.MorphoVault
 ))
-const evmNetworkAccountResolver = morphoGraphql.resolvers.find((resolver) => (
+const morphoMarketPositionsResolver = morphoGraphql.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EvmNetworkAccount
+	&& '$$morphoMarketPositions' in resolver.projections
 ))
-const evmNetworkAccountTimestampResolver = morphoGraphql.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.EvmNetworkAccount_Timestamp
+const morphoVaultPositionsResolver = morphoGraphql.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount
+	&& '$$morphoVaultPositions' in resolver.projections
 ))
 
 const market = {
@@ -88,9 +90,9 @@ describe('Morpho GraphQL resolver module', () => {
 		getAccountPositions.mockReset()
 	})
 
-	it('publishes and resolves Morpho account market/vault positions onto contractPositions', async () => {
-		if (evmNetworkAccountResolver == null || evmNetworkAccountTimestampResolver == null)
-			throw new Error('missing Morpho account resolvers')
+	it('publishes Morpho account market and vault positions onto typed Many fields', async () => {
+		if (morphoMarketPositionsResolver == null || morphoVaultPositionsResolver == null)
+			throw new Error('missing Morpho account position resolvers')
 
 		const accountSelector = {
 			$network: {
@@ -103,21 +105,15 @@ describe('Morpho GraphQL resolver module', () => {
 				address: '0x821880a3e2bac432d67e5155e72bb655ef65fa5e',
 			},
 		}
-		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
-			accountSelector,
-			context
-		)
-		const [timestampReference] = evmNetworkAccountResolver.projections.$$timestamps(account)
-		if (timestampReference == null)
-			throw new Error('missing Morpho account timestamp')
-
+		const marketId = '0x698fe98247a40c5771537b5786b2f3f9d78eb487b4ce4d75533cd0e94d88a115'
+		const vaultAddress = '0xbeef01735c132ada46aa9aa4c54623caa92a64cb'
 		getAccountPositions.mockResolvedValue([
 			{
 				protocol: 'Morpho Blue',
 				kind: 'market',
 				chainId: 1,
 				account: accountSelector.$actor.address,
-				marketId: '0x698fe98247a40c5771537b5786b2f3f9d78eb487b4ce4d75533cd0e94d88a115',
+				marketId,
 				supplyAssets: '1000',
 				supplyShares: '1000',
 				borrowAssets: '0',
@@ -129,7 +125,7 @@ describe('Morpho GraphQL resolver module', () => {
 				kind: 'vault',
 				chainId: 1,
 				account: accountSelector.$actor.address,
-				vaultAddress: '0xbeef01735c132ada46aa9aa4c54623caa92a64cb',
+				vaultAddress,
 				vaultName: 'Steakhouse USDC',
 				vaultSymbol: 'steakUSDC',
 				assets: '500',
@@ -137,20 +133,36 @@ describe('Morpho GraphQL resolver module', () => {
 			},
 		])
 
-		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve(
-			timestampReference[EntityMetaKey.Selector],
+		const marketPositions = await morphoMarketPositionsResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
+			context
+		)
+		const vaultPositions = await morphoVaultPositionsResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
 			context
 		)
 
-		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([
-			expect.objectContaining({
-				kind: 'market',
-				marketId: '0x698fe98247a40c5771537b5786b2f3f9d78eb487b4ce4d75533cd0e94d88a115',
-			}),
-			expect.objectContaining({
-				kind: 'vault',
-				vaultSymbol: 'steakUSDC',
-			}),
+		expect(morphoMarketPositionsResolver.projections.$$morphoMarketPositions(marketPositions)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$account: accountSelector,
+					$market: {
+						$network: accountSelector.$network,
+						marketId,
+					},
+				},
+			},
+		])
+		expect(morphoVaultPositionsResolver.projections.$$morphoVaultPositions(vaultPositions)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$account: accountSelector,
+					$vault: {
+						$network: accountSelector.$network,
+						vaultAddress,
+					},
+				},
+			},
 		])
 		expect(getAccountPositions).toHaveBeenCalledWith({
 			chainId: 1,
@@ -159,24 +171,20 @@ describe('Morpho GraphQL resolver module', () => {
 	})
 
 	it('rejects unsupported Morpho chains on account positions before transport', async () => {
-		if (evmNetworkAccountTimestampResolver == null)
-			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
+		if (morphoMarketPositionsResolver == null)
+			throw new Error('missing Morpho market positions resolver')
 
 		await expect(
-			evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
-				$account: {
-					$network: {
-						caip2: {
-							namespace: 'eip155',
-							reference: '999999',
-						},
-					},
-					$actor: {
-						address: '0x821880a3e2bac432d67e5155e72bb655ef65fa5e',
+			morphoMarketPositionsResolver.resolve.EvmNetworkEvmAccount.resolve({
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '999999',
 					},
 				},
-				timestampMs: 1760000000000,
-				source: Source.Morpho_Graphql,
+				$actor: {
+					address: '0x821880a3e2bac432d67e5155e72bb655ef65fa5e',
+				},
 			}, context)
 		).rejects.toThrow(`${Source.Morpho_Graphql}: unsupported chain id 999999`)
 		expect(getAccountPositions).not.toHaveBeenCalled()

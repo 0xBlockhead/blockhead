@@ -9,13 +9,18 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import type { MorphoGraphqlVault } from '$/sources/Morpho/Graphql/types.ts'
+import type {
+	MorphoGraphqlAccountMarketPosition,
+	MorphoGraphqlAccountVaultPosition,
+	MorphoGraphqlVault,
+} from '$/sources/Morpho/Graphql/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type MorphoVaultId = EntitySelector<typeof schema, EntityType.MorphoVault>
+type MorphoMarketPositionId = EntitySelector<typeof schema, EntityType.MorphoMarketPosition>
+type MorphoVaultPositionId = EntitySelector<typeof schema, EntityType.MorphoVaultPosition>
 type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
-type EvmNetworkAccountTimestampId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount_Timestamp>
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -43,6 +48,55 @@ const mapMorphoVaultSnapshot = (
 	assetDecimals: vault.assetDecimals,
 })
 
+const mapMorphoMarketPositionSnapshot = (
+	$account: EvmNetworkAccountId,
+	position: MorphoGraphqlAccountMarketPosition,
+) => ({
+	$account: {
+		[EntityMetaKey.Selector]: $account,
+	},
+	$market: {
+		[EntityMetaKey.Selector]: {
+			$network: $account.$network,
+			marketId: position.marketId,
+		},
+	},
+	supplyAssets: position.supplyAssets,
+	supplyShares: position.supplyShares,
+	borrowAssets: position.borrowAssets,
+	borrowShares: position.borrowShares,
+	collateral: position.collateral,
+	...(position.supplyAssetsUsd != null && {
+		supplyAssetsUsd: position.supplyAssetsUsd,
+	}),
+	...(position.borrowAssetsUsd != null && {
+		borrowAssetsUsd: position.borrowAssetsUsd,
+	}),
+	...(position.collateralUsd != null && {
+		collateralUsd: position.collateralUsd,
+	}),
+})
+
+const mapMorphoVaultPositionSnapshot = (
+	$account: EvmNetworkAccountId,
+	position: MorphoGraphqlAccountVaultPosition,
+) => ({
+	$account: {
+		[EntityMetaKey.Selector]: $account,
+	},
+	$vault: {
+		[EntityMetaKey.Selector]: {
+			$network: $account.$network,
+			vaultAddress: position.vaultAddress,
+		},
+	},
+	assets: position.assets,
+	shares: position.shares,
+	...(position.assetsUsd != null && {
+		assetsUsd: position.assetsUsd,
+	}),
+})
+
 export default {
 	source: Source.Morpho_Graphql,
 
@@ -51,50 +105,177 @@ export default {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
-					resolve: async ({ $actor, $network }: EvmNetworkAccountId) => ({
-						$$timestamps: [
-							{
-								[EntityMetaKey.Selector]: {
-									$account: {
-										$actor,
-										$network,
-									},
-									timestampMs: Date.now(),
-									source: Source.Morpho_Graphql,
-								},
-							},
-						],
-					}),
-				},
-			},
-		})({
-			$$timestamps: (account) => account.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.EvmNetworkAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					resolve: async ({ $account, timestampMs, source }: EvmNetworkAccountTimestampId) => {
-						const chainId = eip155ChainId($account.$network)
+					resolve: async ({ $actor, $network }: EvmNetworkAccountId, context) => {
+						const chainId = eip155ChainId($network)
 						const { morphoGraphqlNetworkByChainId } = await import('$/sources/Morpho/Graphql/constants.ts')
 						if (morphoGraphqlNetworkByChainId[chainId] == null)
 							throw new Error(`${Source.Morpho_Graphql}: unsupported chain id ${String(chainId)}`)
 
 						const { getAccountPositions } = await import('$/sources/Morpho/Graphql/queries.ts')
-						return {
-							timestampMs,
-							source,
-							contractPositions: await getAccountPositions({
-								chainId,
-								account: $account.$actor.address,
-							}),
+						const $account = {
+							$actor,
+							$network,
 						}
+						const limit = resolverContextRowLimit(context)
+						return (
+							(await getAccountPositions({
+								chainId,
+								account: $actor.address,
+							}))
+								.filter((position) => position.kind === 'market')
+								.slice(0, limit)
+								.map((position) => ({
+									[EntityMetaKey.Selector]: {
+										$account,
+										$market: {
+											$network,
+											marketId: position.marketId,
+										},
+									},
+								}))
+						)
 					},
 				},
 			},
 		})({
-			contractPositions: (timestamp) => timestamp.contractPositions,
+			$$morphoMarketPositions: (positions) => positions,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			resolve: {
+				EvmNetworkEvmAccount: {
+					resolve: async ({ $actor, $network }: EvmNetworkAccountId, context) => {
+						const chainId = eip155ChainId($network)
+						const { morphoGraphqlNetworkByChainId } = await import('$/sources/Morpho/Graphql/constants.ts')
+						if (morphoGraphqlNetworkByChainId[chainId] == null)
+							throw new Error(`${Source.Morpho_Graphql}: unsupported chain id ${String(chainId)}`)
+
+						const { getAccountPositions } = await import('$/sources/Morpho/Graphql/queries.ts')
+						const $account = {
+							$actor,
+							$network,
+						}
+						const limit = resolverContextRowLimit(context)
+						return (
+							(await getAccountPositions({
+								chainId,
+								account: $actor.address,
+							}))
+								.filter((position) => position.kind === 'vault')
+								.slice(0, limit)
+								.map((position) => ({
+									[EntityMetaKey.Selector]: {
+										$account,
+										$vault: {
+											$network,
+											vaultAddress: position.vaultAddress,
+										},
+									},
+								}))
+						)
+					},
+				},
+			},
+		})({
+			$$morphoVaultPositions: (positions) => positions,
+		}),
+
+		defineResolver({
+			entityType: EntityType.MorphoMarketPosition,
+			resolve: {
+				AccountMarket: {
+					resolve: async ({
+						$account,
+						$market,
+					}: MorphoMarketPositionId) => {
+						const chainId = eip155ChainId($account.$network)
+						const { morphoGraphqlNetworkByChainId } = await import('$/sources/Morpho/Graphql/constants.ts')
+						if (morphoGraphqlNetworkByChainId[chainId] == null)
+							throw new Error(`${Source.Morpho_Graphql}: unsupported chain id ${String(chainId)}`)
+
+						const normalizedMarketId = hexLowerOfByteSize($market.marketId, 32)
+						if (normalizedMarketId == null)
+							throw new Error(`${Source.Morpho_Graphql}: invalid market id ${$market.marketId}`)
+
+						const { getAccountPositions } = await import('$/sources/Morpho/Graphql/queries.ts')
+						const position = (
+							await getAccountPositions({
+								chainId,
+								account: $account.$actor.address,
+							})
+						)
+							.find((candidate) => (
+								candidate.kind === 'market'
+								&& candidate.marketId === normalizedMarketId
+							))
+						if (position == null || position.kind !== 'market')
+							throw new Error(`${Source.Morpho_Graphql}: market position not found ${normalizedMarketId}`)
+
+						return mapMorphoMarketPositionSnapshot(
+							$account,
+							position
+						)
+					},
+				},
+			},
+		})({
+			$account: (position) => position.$account,
+			$market: (position) => position.$market,
+			supplyAssets: (position) => position.supplyAssets,
+			supplyShares: (position) => position.supplyShares,
+			borrowAssets: (position) => position.borrowAssets,
+			borrowShares: (position) => position.borrowShares,
+			collateral: (position) => position.collateral,
+			supplyAssetsUsd: (position) => position.supplyAssetsUsd,
+			borrowAssetsUsd: (position) => position.borrowAssetsUsd,
+			collateralUsd: (position) => position.collateralUsd,
+		}),
+
+		defineResolver({
+			entityType: EntityType.MorphoVaultPosition,
+			resolve: {
+				AccountVault: {
+					resolve: async ({
+						$account,
+						$vault,
+					}: MorphoVaultPositionId) => {
+						const chainId = eip155ChainId($account.$network)
+						const { morphoGraphqlNetworkByChainId } = await import('$/sources/Morpho/Graphql/constants.ts')
+						if (morphoGraphqlNetworkByChainId[chainId] == null)
+							throw new Error(`${Source.Morpho_Graphql}: unsupported chain id ${String(chainId)}`)
+
+						const normalizedVaultAddress = hexLowerOfByteSize($vault.vaultAddress, 20)
+						if (normalizedVaultAddress == null)
+							throw new Error(`${Source.Morpho_Graphql}: invalid vault address ${$vault.vaultAddress}`)
+
+						const { getAccountPositions } = await import('$/sources/Morpho/Graphql/queries.ts')
+						const position = (
+							await getAccountPositions({
+								chainId,
+								account: $account.$actor.address,
+							})
+						)
+							.find((candidate) => (
+								candidate.kind === 'vault'
+								&& candidate.vaultAddress === normalizedVaultAddress
+							))
+						if (position == null || position.kind !== 'vault')
+							throw new Error(`${Source.Morpho_Graphql}: vault position not found ${normalizedVaultAddress}`)
+
+						return mapMorphoVaultPositionSnapshot(
+							$account,
+							position
+						)
+					},
+				},
+			},
+		})({
+			$account: (position) => position.$account,
+			$vault: (position) => position.$vault,
+			assets: (position) => position.assets,
+			shares: (position) => position.shares,
+			assetsUsd: (position) => position.assetsUsd,
 		}),
 
 		defineResolver({
