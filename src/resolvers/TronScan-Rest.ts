@@ -461,6 +461,14 @@ export default {
 						assertTronMainnet($network)
 						const { getAccount } = await import('$/sources/TronScan/Rest/queries.ts')
 						const account = await getAccount(address)
+						const timestampMs = Date.now()
+						const balanceSun = bigintFromWire(account.balanceStr ?? account.balance)
+						const createdTimestampMs = account.date_created
+						const latestOperationTimestampMs = account.latest_operation_time
+						const totalTransactionCount = account.totalTransactionCount ?? account.transactions
+						const netLimit = bigintFromWire(account.bandwidth?.netRemaining ?? account.bandwidth?.freeNetRemaining)
+						const energyLimit = bigintFromWire(account.accountResource?.energyRemaining)
+						const isContract = account.contractMap?.[address]
 						return {
 							name: account.name,
 							...(account.contractMap?.[address] === true && {
@@ -478,8 +486,31 @@ export default {
 											$network,
 											address,
 										},
-										timestampMs: Date.now(),
+										timestampMs,
 										source: Source.TronScan_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										...(balanceSun != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'balanceSun')]: balanceSun,
+										}),
+										...(createdTimestampMs != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'createdTimestampMs')]: createdTimestampMs,
+										}),
+										...(latestOperationTimestampMs != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'latestOperationTimestampMs')]: latestOperationTimestampMs,
+										}),
+										...(totalTransactionCount != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'totalTransactionCount')]: totalTransactionCount,
+										}),
+										...(netLimit != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'netLimit')]: netLimit,
+										}),
+										...(energyLimit != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyLimit')]: energyLimit,
+										}),
+										...(isContract != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'isContract')]: isContract,
+										}),
 									},
 								},
 							],
@@ -531,12 +562,26 @@ export default {
 							limit,
 							start,
 							total: page.total,
-							transactions: page.data.map((transaction) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									transactionId: transaction.hash,
-								},
-							})),
+							transactions: page.data.map((transaction) => {
+								const fields = transactionFieldsFromTronScanTransaction($network, transaction)
+								return {
+									[EntityMetaKey.Selector]: {
+										$network,
+										transactionId: transaction.hash ?? transaction.transactionHash,
+									},
+									[EntityMetaKey.Fields]: Object.fromEntries(
+										Object.entries(fields).flatMap(([fieldName, value]) => (
+											value == null || fieldName.startsWith('$') || fieldName.startsWith('$$') ?
+												[]
+											:
+												[[
+													entityFieldAddressKey(EntityType.TronTransaction, [], fieldName),
+													value,
+												]]
+										))
+									),
+								}
+							}),
 						}
 					},
 				}

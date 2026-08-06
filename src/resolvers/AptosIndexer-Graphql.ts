@@ -1,7 +1,7 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
-import { EntityMetaKey, type EntitySelector } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey, type EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
@@ -110,6 +110,14 @@ export const aptosAccountTransactionsResolver = aptosIndexerResolver(
 							$network: entitySelector.$network,
 							version: bigintFromWire(transaction.transaction_version, 'transaction version'),
 						},
+						...(transaction.user_transaction != null && {
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.AptosTransaction, [], 'transactionKind')]: 'user_transaction',
+								...(transaction.user_transaction.sender != null && {
+									[entityFieldAddressKey(EntityType.AptosTransaction, [], 'sender')]: transaction.user_transaction.sender,
+								}),
+							},
+						}),
 					}))
 				},
 			},
@@ -134,19 +142,32 @@ export const aptosAccountBalancesResolver = aptosIndexerResolver(
 						resolverContextRowLimit(context),
 						context.pagination.offset ?? 0
 					))
-						.flatMap((balance) => (
-							balance.last_transaction_version == null ?
-								[]
-							:
-								[{
-									[EntityMetaKey.Selector]: {
-										$account: entitySelector,
-										storageId: balance.storage_id,
-										ledgerVersion: bigintFromWire(balance.last_transaction_version, 'balance last transaction version'),
-										source: Source.AptosIndexer_Graphql,
-									},
-								}]
-						))
+						.flatMap((balance) => {
+							if (balance.last_transaction_version == null)
+								return []
+
+							const timestampMs = timestampMsFromWire(balance.last_transaction_timestamp, 'balance last transaction timestamp')
+							return [{
+								[EntityMetaKey.Selector]: {
+									$account: entitySelector,
+									storageId: balance.storage_id,
+									ledgerVersion: bigintFromWire(balance.last_transaction_version, 'balance last transaction version'),
+									source: Source.AptosIndexer_Graphql,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'assetType')]: balance.asset_type,
+									[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'isPrimary')]: balance.is_primary,
+									[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'amount')]: bigintFromWire(balance.amount, 'balance amount'),
+									[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'ownerAddress')]: balance.owner_address,
+									...(balance.asset_type_v1 != null && {
+										[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'coinType')]: balance.asset_type_v1,
+									}),
+									...(timestampMs != null && {
+										[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'timestampMs')]: timestampMs,
+									}),
+								},
+							}]
+						})
 				},
 			},
 		},
@@ -218,6 +239,23 @@ export const aptosTransactionResolver = aptosIndexerResolver(
 						version,
 						transactionKind: 'user_transaction',
 						sender: transaction.sender,
+						$$timestamps: [{
+							[EntityMetaKey.Selector]: {
+								$transaction: {
+									$network,
+									version,
+								},
+								ledgerVersion: version,
+								source: Source.AptosIndexer_Graphql,
+							},
+							[EntityMetaKey.Fields]: {
+								...((timestampMs) => (
+									timestampMs != null && {
+										[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'timestampMs')]: timestampMs,
+									}
+								))(timestampMsFromWire(transaction.timestamp, 'transaction timestamp')),
+							},
+						}],
 					}
 				},
 			},
@@ -226,6 +264,7 @@ export const aptosTransactionResolver = aptosIndexerResolver(
 		version: (transaction) => transaction.version,
 		transactionKind: (transaction) => transaction.transactionKind,
 		sender: (transaction) => transaction.sender,
+		$$timestamps: (transaction) => transaction.$$timestamps,
 	})
 )
 

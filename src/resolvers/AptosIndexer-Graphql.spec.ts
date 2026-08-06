@@ -2,9 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import AptosCoinBalance_Timestamp from '$/schema/AptosCoinBalance_Timestamp.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/AptosIndexer/bindings.ts'
 import {
@@ -223,6 +225,10 @@ describe('Aptos Indexer resolver materialization', () => {
 				$network: aptosNetwork,
 				version: 42n,
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.AptosTransaction, [], 'transactionKind')]: 'user_transaction',
+				[entityFieldAddressKey(EntityType.AptosTransaction, [], 'sender')]: aptosAccount.address,
+			},
 		}])
 		expect(queries.getAccountTransactions).toHaveBeenCalledWith(
 			aptosAccount.address,
@@ -238,7 +244,38 @@ describe('Aptos Indexer resolver materialization', () => {
 			version: 42n,
 			transactionKind: 'user_transaction',
 			sender: aptosAccount.address,
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: aptosNetwork,
+						version: 42n,
+					},
+					ledgerVersion: 42n,
+					source: Source.AptosIndexer_Graphql,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'timestampMs')]: 1_784_016_000_000,
+				},
+			}],
 		})
+		expect(aptosTransactionResolver.projections.$$timestamps({
+			version: 42n,
+			transactionKind: 'user_transaction',
+			sender: aptosAccount.address,
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: aptosNetwork,
+						version: 42n,
+					},
+					ledgerVersion: 42n,
+					source: Source.AptosIndexer_Graphql,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'timestampMs')]: 1_784_016_000_000,
+				},
+			}],
+		})).toHaveLength(1)
 	})
 
 	it('accepts canonical Aptos identities and rejects unsupported networks before transport', async () => {
@@ -319,6 +356,14 @@ describe('Aptos Indexer resolver materialization', () => {
 					ledgerVersion: 42n,
 					source: Source.AptosIndexer_Graphql,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'assetType')]: balance.asset_type,
+					[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'isPrimary')]: true,
+					[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'amount')]: 25n,
+					[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'ownerAddress')]: aptosAccount.address,
+					[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'coinType')]: balance.asset_type_v1,
+					[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'timestampMs')]: 1_784_016_000_000,
+				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
@@ -326,6 +371,14 @@ describe('Aptos Indexer resolver materialization', () => {
 					storageId: secondaryBalance.storage_id,
 					ledgerVersion: 42n,
 					source: Source.AptosIndexer_Graphql,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'assetType')]: secondaryBalance.asset_type,
+					[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'isPrimary')]: false,
+					[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'amount')]: 7n,
+					[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'ownerAddress')]: aptosAccount.address,
+					[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'coinType')]: secondaryBalance.asset_type_v1,
+					[entityFieldAddressKey(EntityType.AptosCoinBalance_Timestamp, [], 'timestampMs')]: 1_784_016_000_000,
 				},
 			},
 		])

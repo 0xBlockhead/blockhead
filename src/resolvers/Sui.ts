@@ -192,6 +192,74 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.SuiAccount,
+			resolve: {
+				NetworkAddress: {
+					resolve: async (account, context) => {
+						assertSuiNetwork(account.$network.$network)
+						const {
+							getAddressObjects,
+							normalizeSuiAddress,
+						} = await import('$/sources/Sui/Graphql/queries.ts')
+						const address = normalizeSuiAddress(account.address)
+						const page = await getAddressObjects({
+							address,
+							limit: Math.min(resolverContextRowLimit(context), 50),
+							after: context.providerContinuationToken,
+						})
+
+						return {
+							address,
+							page,
+						}
+					},
+				},
+			},
+		})({
+			$$objects: {
+				select: ({ page }, account) => page.objects.map((object) => ({
+					[EntityMetaKey.Selector]: {
+						$network: account.$network,
+						objectId: object.objectId,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.SuiObject, [], '$$versions')]: [{
+							[EntityMetaKey.Selector]: {
+								$network: account.$network,
+								objectId: object.objectId,
+								version: object.version,
+								digest: object.digest,
+							},
+							[EntityMetaKey.Fields]: {
+								...(object.objectType != null && {
+									[entityFieldAddressKey(EntityType.SuiObjectVersion, [], 'objectType')]: object.objectType,
+								}),
+							},
+						}],
+					},
+				})),
+				continuation: ({
+					address,
+					page,
+				}) => (
+					page.pagination.nextAfter == null ?
+						{
+							operation: 'account-objects',
+							target: address,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'account-objects',
+							target: address,
+							terminal: false,
+							token: page.pagination.nextAfter,
+						}
+				),
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.SuiNetwork,
 			resolve: {
 				Network: {
@@ -553,6 +621,9 @@ export default {
 					...(command.functionName != null && {
 						[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'functionName')]: command.functionName,
 					}),
+					...('arguments' in command && command.arguments != null && {
+						[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'arguments')]: command.arguments,
+					}),
 				},
 			})),
 			$$objectChanges: ({
@@ -669,6 +740,153 @@ export default {
 			gasPrice: (transaction) => transaction.gasPrice,
 			gasUsed: (transaction) => transaction.gasUsed,
 			effectsDigest: (transaction) => transaction.effectsDigest,
+		}),
+
+		defineResolver({
+			entityType: EntityType.SuiObject,
+			resolve: {
+				NetworkObjectId: {
+					appliesTo: suiNetworkApplicability,
+					resolve: async ({
+						$network,
+						objectId,
+					}) => {
+						assertSuiNetworkEntity($network)
+						const { getObject } = await import('$/sources/Sui/Graphql/queries.ts')
+						const object = await getObject(objectId)
+						return {
+							$network,
+							object,
+						}
+					},
+				},
+			},
+		})({
+			objectId: ({ object }) => object.objectId,
+			$$versions: ({
+				$network,
+				object,
+			}) => [{
+				[EntityMetaKey.Selector]: {
+					$network,
+					objectId: object.objectId,
+					version: object.version,
+					digest: object.digest,
+				},
+				[EntityMetaKey.Fields]: {
+					...(object.ownerSelector != null && {
+						[entityFieldAddressKey(EntityType.SuiObjectVersion, [], 'ownerSelector')]: object.ownerSelector,
+					}),
+					...(object.objectType != null && {
+						[entityFieldAddressKey(EntityType.SuiObjectVersion, [], 'objectType')]: object.objectType,
+					}),
+					...(object.previousTransaction != null && {
+						[entityFieldAddressKey(EntityType.SuiObjectVersion, [], 'previousTransaction')]: object.previousTransaction,
+					}),
+					...(object.storageRebate != null && {
+						[entityFieldAddressKey(EntityType.SuiObjectVersion, [], 'storageRebate')]: object.storageRebate,
+					}),
+					...(object.contents != null && {
+						[entityFieldAddressKey(EntityType.SuiObjectVersion, [], 'contents')]: object.contents,
+					}),
+				},
+			}],
+		}),
+
+		defineResolver({
+			entityType: EntityType.SuiObjectVersion,
+			resolve: {
+				NetworkObjectIdVersionDigest: {
+					appliesTo: suiNetworkApplicability,
+					resolve: async ({
+						$network,
+						objectId,
+						version,
+						digest,
+					}) => {
+						assertSuiNetworkEntity($network)
+						const { getObject } = await import('$/sources/Sui/Graphql/queries.ts')
+						const object = await getObject(objectId)
+						if (object.version !== version || object.digest !== digest)
+							throw new Error('Sui: object version/digest mismatch')
+						return object
+					},
+				},
+			},
+		})({
+			digest: (object) => object.digest,
+			version: (object) => object.version,
+			ownerSelector: (object) => object.ownerSelector,
+			objectType: (object) => object.objectType,
+			previousTransaction: (object) => object.previousTransaction,
+			storageRebate: (object) => object.storageRebate,
+			contents: (object) => object.contents,
+		}),
+
+		defineResolver({
+			entityType: EntityType.SuiCoinType,
+			resolve: {
+				NetworkCoinType: {
+					appliesTo: suiNetworkApplicability,
+					resolve: async ({
+						$network,
+						coinType,
+					}) => {
+						assertSuiNetworkEntity($network)
+						const { getCoinMetadata } = await import('$/sources/Sui/Graphql/queries.ts')
+						return await getCoinMetadata(coinType)
+					},
+				},
+			},
+		})({
+			coinType: (coin) => coin.coinType,
+			decimals: (coin) => coin.decimals,
+			symbol: (coin) => coin.symbol,
+			name: (coin) => coin.name,
+			description: (coin) => coin.description,
+			iconUrl: (coin) => coin.iconUrl,
+		}),
+
+		defineResolver({
+			entityType: EntityType.SuiPackage,
+			resolve: {
+				NetworkOriginalPackageId: {
+					appliesTo: suiNetworkApplicability,
+					resolve: async ({
+						$network,
+						originalPackageId,
+					}) => {
+						assertSuiNetworkEntity($network)
+						const { getPackage } = await import('$/sources/Sui/Graphql/queries.ts')
+						const suiPackage = await getPackage(originalPackageId)
+						return {
+							$network,
+							suiPackage,
+						}
+					},
+				},
+			},
+		})({
+			originalPackageId: ({ suiPackage }) => suiPackage.packageId,
+			$$versions: ({
+				$network,
+				suiPackage,
+			}) => [{
+				[EntityMetaKey.Selector]: {
+					$network,
+					packageId: suiPackage.packageId,
+					version: suiPackage.version,
+					digest: suiPackage.digest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.SuiPackageVersion, [], '$package')]: {
+						[EntityMetaKey.Selector]: {
+							$network,
+							originalPackageId: suiPackage.packageId,
+						},
+					},
+				},
+			}],
 		}),
 	] as const,
 } satisfies RegisteredSourceResolverModule

@@ -93,7 +93,7 @@ describe('TronScan account transaction resolver', () => {
 		].appliesTo).toHaveLength(2)
 	})
 
-	it('materializes selector-only transaction membership and pagination', async () => {
+	it('materializes transaction membership Fields and pagination', async () => {
 		getAccountTransactions.mockResolvedValueOnce({
 			total: 10,
 			data: [
@@ -155,7 +155,7 @@ describe('TronScan account transaction resolver', () => {
 			},
 		])
 		expect(transactions.every((transaction) => (
-			!Object.hasOwn(transaction, EntityMetaKey.Fields)
+			Object.hasOwn(transaction, EntityMetaKey.Fields)
 		))).toBe(true)
 		expect(projection.continuation(page, account, resolverContext)).toEqual({
 			operation: 'account-transactions',

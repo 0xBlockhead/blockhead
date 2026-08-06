@@ -448,6 +448,10 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 										},
 									},
 								},
+								arguments: [{
+									__typename: 'Input',
+									ix: 0,
+								}],
 							}],
 						},
 					},
@@ -623,6 +627,10 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 				[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'packageId')]: canonicalAddress,
 				[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'moduleName')]: 'pay',
 				[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'functionName')]: 'transfer',
+				[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'arguments')]: [{
+					kind: 'Input',
+					ix: 0,
+				}],
 			},
 		}])
 		expect(transactionResolver.projections.$$balanceChanges(transactionSnapshot)).toEqual([{

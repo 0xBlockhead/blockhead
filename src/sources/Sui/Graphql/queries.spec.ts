@@ -18,10 +18,14 @@ vi.mock('$/sources/Sui/Graphql/client.ts', async (importOriginal) => ({
 
 const {
 	getAddressBalances,
+	getAddressObjects,
 	getAddressTransactions,
 	getCheckpointByDigest,
 	getCheckpointBySequence,
+	getCoinMetadata,
 	getLatestCheckpoint,
+	getObject,
+	getPackage,
 	getRecentTransactions,
 	getTransaction,
 } = await import('$/sources/Sui/Graphql/queries.ts')
@@ -406,9 +410,30 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 										},
 									},
 								},
+								arguments: [
+									{
+										__typename: 'Input',
+										ix: 0,
+									},
+									{
+										__typename: 'GasCoin',
+										_: true,
+									},
+								],
 							},
 							{
 								__typename: 'TransferObjectsCommand',
+								inputs: [
+									{
+										__typename: 'TxResult',
+										cmd: 0,
+										ix: 0,
+									},
+								],
+								address: {
+									__typename: 'Input',
+									ix: 1,
+								},
 							},
 						],
 					},
@@ -517,11 +542,33 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 					moduleName: 'pay',
 					functionName: 'transfer',
 					typeArguments: [],
+					arguments: [
+						{
+							kind: 'Input',
+							ix: 0,
+						},
+						{
+							kind: 'GasCoin',
+						},
+					],
 				},
 				{
 					commandIndex: 1,
 					commandKind: 'TransferObjectsCommand',
 					typeArguments: [],
+					arguments: {
+						inputs: [
+							{
+								kind: 'TxResult',
+								cmd: 0,
+								ix: 0,
+							},
+						],
+						address: {
+							kind: 'Input',
+							ix: 1,
+						},
+					},
 				},
 			],
 			balanceChanges: [{
@@ -559,6 +606,129 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 		expect(print(executeSui.mock.calls[0][0])).toContain('balanceChanges')
 		expect(print(executeSui.mock.calls[0][0])).toContain('objectChanges')
 		expect(print(executeSui.mock.calls[0][0])).toContain('MoveCallCommand')
+		expect(print(executeSui.mock.calls[0][0])).toContain('TransferObjectsCommand')
+	})
+
+	it('projects owned objects, object tip, coin metadata, and package modules', async () => {
+		executeSui
+			.mockResolvedValueOnce({
+				address: {
+					address: `0x${'0'.repeat(63)}2`,
+					objects: {
+						pageInfo,
+						nodes: [{
+							address: '0xabc',
+							version: 3,
+							digest: 'ObjectDigest',
+							asMoveObject: {
+								contents: {
+									type: {
+										repr: '0x2::coin::Coin<0x2::sui::SUI>',
+									},
+								},
+							},
+						}],
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				object: {
+					address: '0xabc',
+					version: 3,
+					digest: 'ObjectDigest',
+					storageRebate: '9',
+					previousTransaction: {
+						digest: 'PrevDigest',
+					},
+					owner: {
+						__typename: 'AddressOwner',
+						address: {
+							address: '0x2',
+						},
+					},
+					asMoveObject: {
+						contents: {
+							type: {
+								repr: '0x2::coin::Coin<0x2::sui::SUI>',
+							},
+							json: {
+								balance: '1',
+							},
+						},
+					},
+					asMovePackage: null,
+				},
+			})
+			.mockResolvedValueOnce({
+				coinMetadata: {
+					address: '0xabc',
+					decimals: 9,
+					symbol: 'SUI',
+					name: 'Sui',
+					description: 'Sui Coin',
+					iconUrl: 'https://example.com/sui.png',
+				},
+			})
+			.mockResolvedValueOnce({
+				package: {
+					address: '0x2',
+					version: 1,
+					digest: 'PackageDigest',
+					modules: {
+						nodes: [{
+							name: 'coin',
+						}],
+					},
+				},
+			})
+
+		await expect(getAddressObjects({
+			address: '0x2',
+			limit: 1,
+		})).resolves.toEqual({
+			objects: [{
+				objectId: `0x${'0'.repeat(61)}abc`,
+				version: 3n,
+				digest: 'ObjectDigest',
+				objectType: '0x2::coin::Coin<0x2::sui::SUI>',
+			}],
+			pagination: {
+				limit: 1,
+				nextAfter: 'next-cursor',
+			},
+		})
+		await expect(getObject('0xabc')).resolves.toEqual({
+			objectId: `0x${'0'.repeat(61)}abc`,
+			version: 3n,
+			digest: 'ObjectDigest',
+			ownerSelector: {
+				kind: 'AddressOwner',
+				address: `0x${'0'.repeat(63)}2`,
+			},
+			objectType: '0x2::coin::Coin<0x2::sui::SUI>',
+			previousTransaction: 'PrevDigest',
+			storageRebate: 9n,
+			contents: {
+				balance: '1',
+			},
+		})
+		await expect(getCoinMetadata('0x2::sui::SUI')).resolves.toEqual({
+			coinType: '0x2::sui::SUI',
+			metadataObjectId: `0x${'0'.repeat(61)}abc`,
+			decimals: 9,
+			symbol: 'SUI',
+			name: 'Sui',
+			description: 'Sui Coin',
+			iconUrl: 'https://example.com/sui.png',
+		})
+		await expect(getPackage('0x2')).resolves.toEqual({
+			packageId: `0x${'0'.repeat(63)}2`,
+			version: 1n,
+			digest: 'PackageDigest',
+			moduleNames: [
+				'coin',
+			],
+		})
 	})
 
 	it('fail-closes missing checkpoint digests, sequence mismatches, and incomplete transactions', async () => {

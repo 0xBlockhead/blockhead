@@ -49,6 +49,109 @@ const addressTransactionsDocument = graphql(`
 	}
 `)
 
+const addressObjectsDocument = graphql(`
+	query SuiAddressObjects($address: SuiAddress!, $first: Int!, $after: String) {
+		address(address: $address) {
+			address
+			objects(first: $first, after: $after) {
+				pageInfo {
+					hasNextPage
+					endCursor
+				}
+				nodes {
+					address
+					version
+					digest
+					asMoveObject {
+						contents {
+							type {
+								repr
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+`)
+
+const objectDocument = graphql(`
+	query SuiObject($address: SuiAddress!) {
+		object(address: $address) {
+			address
+			version
+			digest
+			storageRebate
+			previousTransaction {
+				digest
+			}
+			owner {
+				__typename
+				... on AddressOwner {
+					address {
+						address
+					}
+				}
+				... on ObjectOwner {
+					address {
+						address
+					}
+				}
+				... on Shared {
+					initialSharedVersion
+				}
+				... on ConsensusAddressOwner {
+					address {
+						address
+					}
+					startVersion
+				}
+			}
+			asMoveObject {
+				contents {
+					type {
+						repr
+					}
+					json
+				}
+			}
+			asMovePackage {
+				address
+				version
+				digest
+			}
+		}
+	}
+`)
+
+const coinMetadataDocument = graphql(`
+	query SuiCoinMetadata($coinType: String!) {
+		coinMetadata(coinType: $coinType) {
+			address
+			decimals
+			symbol
+			name
+			description
+			iconUrl
+		}
+	}
+`)
+
+const packageDocument = graphql(`
+	query SuiPackage($address: SuiAddress!) {
+		package(address: $address) {
+			address
+			version
+			digest
+			modules(first: 50) {
+				nodes {
+					name
+				}
+			}
+		}
+	}
+`)
+
 const recentTransactionsDocument = graphql(`
 	query SuiRecentTransactions($first: Int!, $after: String) {
 		transactions(
@@ -144,6 +247,143 @@ const transactionDocument = graphql(`
 										package {
 											address
 										}
+									}
+								}
+								arguments {
+									__typename
+									... on GasCoin {
+										_
+									}
+									... on Input {
+										ix
+									}
+									... on TxResult {
+										cmd
+										ix
+									}
+								}
+							}
+							... on TransferObjectsCommand {
+								inputs {
+									__typename
+									... on GasCoin {
+										_
+									}
+									... on Input {
+										ix
+									}
+									... on TxResult {
+										cmd
+										ix
+									}
+								}
+								address {
+									__typename
+									... on GasCoin {
+										_
+									}
+									... on Input {
+										ix
+									}
+									... on TxResult {
+										cmd
+										ix
+									}
+								}
+							}
+							... on SplitCoinsCommand {
+								coin {
+									__typename
+									... on GasCoin {
+										_
+									}
+									... on Input {
+										ix
+									}
+									... on TxResult {
+										cmd
+										ix
+									}
+								}
+								amounts {
+									__typename
+									... on GasCoin {
+										_
+									}
+									... on Input {
+										ix
+									}
+									... on TxResult {
+										cmd
+										ix
+									}
+								}
+							}
+							... on MergeCoinsCommand {
+								coin {
+									__typename
+									... on GasCoin {
+										_
+									}
+									... on Input {
+										ix
+									}
+									... on TxResult {
+										cmd
+										ix
+									}
+								}
+								coins {
+									__typename
+									... on GasCoin {
+										_
+									}
+									... on Input {
+										ix
+									}
+									... on TxResult {
+										cmd
+										ix
+									}
+								}
+							}
+							... on MakeMoveVecCommand {
+								type {
+									repr
+								}
+								elements {
+									__typename
+									... on GasCoin {
+										_
+									}
+									... on Input {
+										ix
+									}
+									... on TxResult {
+										cmd
+										ix
+									}
+								}
+							}
+							... on PublishCommand {
+								modules
+								dependencies
+							}
+							... on UpgradeCommand {
+								modules
+								dependencies
+								currentPackage
+								upgradeTicket {
+									__typename
+									... on GasCoin {
+										_
+									}
+									... on Input {
+										ix
+									}
+									... on TxResult {
+										cmd
+										ix
 									}
 								}
 							}
@@ -656,6 +896,42 @@ const signedBigintFromWire = (
 	}
 }
 
+const transactionArgumentFromWire = (
+	argument: {
+		__typename: string
+		_?: boolean | null
+		ix?: number | null
+		cmd?: number | null
+	}
+) => {
+	if (argument.__typename === 'GasCoin')
+		return {
+			kind: 'GasCoin',
+		}
+	if (argument.__typename === 'Input') {
+		if (argument.ix == null)
+			throw new Error('Sui GraphQL Input argument is missing ix')
+		return {
+			kind: 'Input',
+			ix: argument.ix,
+		}
+	}
+	if (argument.__typename === 'TxResult') {
+		if (argument.cmd == null)
+			throw new Error('Sui GraphQL TxResult argument is missing cmd')
+		return {
+			kind: 'TxResult',
+			cmd: argument.cmd,
+			...(argument.ix != null && {
+				ix: argument.ix,
+			}),
+		}
+	}
+	return {
+		kind: argument.__typename,
+	}
+}
+
 export const getTransaction = async (digest: string) => {
 	if (digest.length === 0)
 		throw new Error('Sui GraphQL transaction digest must not be empty')
@@ -688,6 +964,7 @@ export const getTransaction = async (digest: string) => {
 	const commands = (
 		kind != null && kind.__typename === 'ProgrammableTransaction' && 'commands' in kind && kind.commands != null ?
 			kind.commands.nodes.map((command, commandIndex) => {
+				const typeArguments = [] as string[]
 				if (command.__typename === 'MoveCallCommand' && 'function' in command) {
 					const moveFunction = command.function
 					const packageAddress = moveFunction.module.package?.address
@@ -699,13 +976,101 @@ export const getTransaction = async (digest: string) => {
 						packageId: normalizeSuiAddress(packageAddress),
 						moduleName: moveFunction.module.name,
 						functionName: moveFunction.name,
-						typeArguments: [] as string[],
+						typeArguments,
+						arguments: (
+							'arguments' in command && command.arguments != null ?
+								command.arguments.map(transactionArgumentFromWire)
+							:
+								[]
+						),
+					}
+				}
+				if (command.__typename === 'TransferObjectsCommand' && 'inputs' in command) {
+					return {
+						commandIndex,
+						commandKind: command.__typename,
+						typeArguments,
+						arguments: {
+							inputs: command.inputs.map(transactionArgumentFromWire),
+							...(command.address != null && {
+								address: transactionArgumentFromWire(command.address),
+							}),
+						},
+					}
+				}
+				if (command.__typename === 'SplitCoinsCommand' && 'amounts' in command) {
+					return {
+						commandIndex,
+						commandKind: command.__typename,
+						typeArguments,
+						arguments: {
+							...(command.coin != null && {
+								coin: transactionArgumentFromWire(command.coin),
+							}),
+							amounts: command.amounts.map(transactionArgumentFromWire),
+						},
+					}
+				}
+				if (command.__typename === 'MergeCoinsCommand' && 'coins' in command) {
+					return {
+						commandIndex,
+						commandKind: command.__typename,
+						typeArguments,
+						arguments: {
+							...(command.coin != null && {
+								coin: transactionArgumentFromWire(command.coin),
+							}),
+							coins: command.coins.map(transactionArgumentFromWire),
+						},
+					}
+				}
+				if (command.__typename === 'MakeMoveVecCommand') {
+					return {
+						commandIndex,
+						commandKind: command.__typename,
+						typeArguments,
+						arguments: {
+							...('type' in command && command.type != null && {
+								type: command.type.repr,
+							}),
+							...('elements' in command && command.elements != null && {
+								elements: command.elements.map(transactionArgumentFromWire),
+							}),
+						},
+					}
+				}
+				if (command.__typename === 'PublishCommand' && 'modules' in command) {
+					return {
+						commandIndex,
+						commandKind: command.__typename,
+						typeArguments,
+						arguments: {
+							modules: command.modules ?? [],
+							dependencies: (command.dependencies ?? []).map((dependency) => normalizeSuiAddress(dependency)),
+						},
+					}
+				}
+				if (command.__typename === 'UpgradeCommand' && 'modules' in command) {
+					return {
+						commandIndex,
+						commandKind: command.__typename,
+						typeArguments,
+						arguments: {
+							modules: command.modules ?? [],
+							dependencies: (command.dependencies ?? []).map((dependency) => normalizeSuiAddress(dependency)),
+							...(command.currentPackage != null && command.currentPackage !== '' && {
+								currentPackage: normalizeSuiAddress(command.currentPackage),
+							}),
+							...(command.upgradeTicket != null && {
+								upgradeTicket: transactionArgumentFromWire(command.upgradeTicket),
+							}),
+						},
 					}
 				}
 				return {
 					commandIndex,
 					commandKind: command.__typename,
-					typeArguments: [] as string[],
+					typeArguments,
 				}
 			})
 		:
@@ -821,5 +1186,183 @@ export const getTransaction = async (digest: string) => {
 		balanceChanges,
 		objectChanges,
 		events,
+	}
+}
+
+
+export const getAddressObjects = async ({
+	address,
+	limit,
+	after,
+}: {
+	address: string
+	limit: number
+	after?: string
+}) => {
+	assertPageRequest({
+		address,
+		limit,
+		after,
+	})
+	if (limit === 0)
+		return {
+			objects: [],
+			pagination: {
+				limit,
+				...(after != null && { after }),
+			},
+		}
+
+	const canonicalAddress = normalizeSuiAddress(address)
+	const result = await executeSui(
+		addressObjectsDocument,
+		{
+			address: canonicalAddress,
+			first: limit,
+			...(after != null && { after }),
+		}
+	)
+	if (result.address == null || result.address.objects == null)
+		throw new Error(`Sui GraphQL address objects did not find ${address}`)
+	if (normalizeSuiAddress(result.address.address) !== canonicalAddress)
+		throw new Error(`Sui GraphQL address objects returned a mismatched address for ${address}`)
+	if (result.address.objects.nodes.length > limit)
+		throw new Error('Sui GraphQL address objects exceeded the requested limit')
+
+	const objectIds = new Set<string>()
+	return {
+		objects: result.address.objects.nodes.map((object) => {
+			const objectId = normalizeSuiAddress(object.address)
+			if (objectIds.has(objectId))
+				throw new Error('Sui GraphQL address objects returned a duplicate object id')
+			objectIds.add(objectId)
+			if (object.version == null)
+				throw new Error('Sui GraphQL address object is missing version')
+			if (object.digest == null || object.digest === '')
+				throw new Error('Sui GraphQL address object is missing digest')
+			const objectType = object.asMoveObject?.contents?.type?.repr
+			return {
+				objectId,
+				version: bigintFromWire(object.version, 'object version'),
+				digest: object.digest,
+				...(objectType != null && objectType !== '' && {
+					objectType,
+				}),
+			}
+		}),
+		pagination: pagination(
+			limit,
+			after,
+			result.address.objects.pageInfo
+		),
+	}
+}
+
+export const getObject = async (objectId: string) => {
+	const address = normalizeSuiAddress(objectId)
+	const result = await executeSui(
+		objectDocument,
+		{
+			address,
+		}
+	)
+	if (result.object == null)
+		throw new Error(`Sui GraphQL object ${address} was not found`)
+	if (normalizeSuiAddress(result.object.address) !== address)
+		throw new Error(`Sui GraphQL object address mismatch for ${address}`)
+	if (result.object.version == null)
+		throw new Error(`Sui GraphQL object ${address} is missing version`)
+	if (result.object.digest == null || result.object.digest === '')
+		throw new Error(`Sui GraphQL object ${address} is missing digest`)
+	const objectType = result.object.asMoveObject?.contents?.type?.repr
+	return {
+		objectId: address,
+		version: bigintFromWire(result.object.version, 'object version'),
+		digest: result.object.digest,
+		...(result.object.owner != null && {
+			ownerSelector: ownerSelectorFromWire(result.object.owner),
+		}),
+		...(objectType != null && objectType !== '' && {
+			objectType,
+		}),
+		...(result.object.previousTransaction != null && {
+			previousTransaction: result.object.previousTransaction.digest,
+		}),
+		...(result.object.storageRebate != null && {
+			storageRebate: bigintFromWire(result.object.storageRebate, 'storage rebate'),
+		}),
+		...(result.object.asMoveObject?.contents?.json != null && {
+			contents: result.object.asMoveObject.contents.json,
+		}),
+		...(result.object.asMovePackage != null && {
+			packageId: normalizeSuiAddress(result.object.asMovePackage.address),
+			...(result.object.asMovePackage.version != null && {
+				packageVersion: bigintFromWire(result.object.asMovePackage.version, 'package version'),
+			}),
+			...(result.object.asMovePackage.digest != null && result.object.asMovePackage.digest !== '' && {
+				packageDigest: result.object.asMovePackage.digest,
+			}),
+		}),
+	}
+}
+
+export const getCoinMetadata = async (coinType: string) => {
+	if (coinType.length === 0)
+		throw new Error('Sui GraphQL coin type must not be empty')
+	const result = await executeSui(
+		coinMetadataDocument,
+		{
+			coinType,
+		}
+	)
+	if (result.coinMetadata == null)
+		throw new Error(`Sui GraphQL coin metadata for ${coinType} was not found`)
+	return {
+		coinType,
+		metadataObjectId: normalizeSuiAddress(result.coinMetadata.address),
+		...(result.coinMetadata.decimals != null && {
+			decimals: result.coinMetadata.decimals,
+		}),
+		...(result.coinMetadata.symbol != null && result.coinMetadata.symbol !== '' && {
+			symbol: result.coinMetadata.symbol,
+		}),
+		...(result.coinMetadata.name != null && result.coinMetadata.name !== '' && {
+			name: result.coinMetadata.name,
+		}),
+		...(result.coinMetadata.description != null && result.coinMetadata.description !== '' && {
+			description: result.coinMetadata.description,
+		}),
+		...(result.coinMetadata.iconUrl != null && result.coinMetadata.iconUrl !== '' && {
+			iconUrl: result.coinMetadata.iconUrl,
+		}),
+	}
+}
+
+export const getPackage = async (packageId: string) => {
+	const address = normalizeSuiAddress(packageId)
+	const result = await executeSui(
+		packageDocument,
+		{
+			address,
+		}
+	)
+	if (result.package == null)
+		throw new Error(`Sui GraphQL package ${address} was not found`)
+	if (normalizeSuiAddress(result.package.address) !== address)
+		throw new Error(`Sui GraphQL package address mismatch for ${address}`)
+	if (result.package.version == null)
+		throw new Error(`Sui GraphQL package ${address} is missing version`)
+	if (result.package.digest == null || result.package.digest === '')
+		throw new Error(`Sui GraphQL package ${address} is missing digest`)
+	const moduleNames = (result.package.modules?.nodes ?? []).map((module) => {
+		if (module.name.length === 0)
+			throw new Error('Sui GraphQL package module name must not be empty')
+		return module.name
+	})
+	return {
+		packageId: address,
+		version: bigintFromWire(result.package.version, 'package version'),
+		digest: result.package.digest,
+		moduleNames,
 	}
 }
