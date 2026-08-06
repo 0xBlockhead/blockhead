@@ -1,68 +1,134 @@
 import { execFile } from 'node:child_process'
-import { createHash } from 'node:crypto'
+import {
+	createHash,
+	randomUUID,
+} from 'node:crypto'
 import {
 	access,
 	mkdir,
 	readFile,
+	rename,
 	rm,
 	writeFile,
 } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 
 
-const descriptors = JSON.parse(await readFile(new URL('./wallets.json', import.meta.url), 'utf8'))
-const requestedWallets = process.argv.slice(2)
 const execute = promisify(execFile)
 
-if (requestedWallets.length === 0)
-	throw new Error(`Choose a pinned source build: ${Object.keys(descriptors).join(', ')}`)
+const publishArtifact = async (
+	stagingDirectory,
+	artifactDirectory,
+	manifestPath
+) => {
+	const lockDirectory = `${artifactDirectory}.lock`
 
-for (const wallet of requestedWallets) {
-	const descriptor = descriptors[wallet]
+	while (true) {
+		try {
+			await mkdir(resolve(artifactDirectory, '..'), {
+				recursive: true,
+			})
+			await mkdir(lockDirectory)
+			break
+		} catch (error) {
+			try {
+				await access(manifestPath)
+				return
+			} catch {
+			}
 
+			// EEXIST = another publisher holds the lock. ENOENT = parent was removed
+			// mid-flight (concurrent cleanup / interrupted root); recreate and retry.
+			if (error.code !== 'EEXIST' && error.code !== 'ENOENT')
+				throw error
+
+			await new Promise((resolveWait) => setTimeout(resolveWait, 10))
+		}
+	}
+
+	try {
+		try {
+			await access(manifestPath)
+			return
+		} catch {
+		}
+
+		await rm(artifactDirectory, {
+			force: true,
+			recursive: true,
+		})
+		await rename(stagingDirectory, artifactDirectory)
+	} finally {
+		await rm(lockDirectory, {
+			force: true,
+			recursive: true,
+		})
+	}
+}
+
+export const acquireWalletExtension = async (
+	wallet,
+	descriptor,
+	{
+		artifactRoot = resolve('test-results/wallet-extensions/artifacts'),
+		download = fetch,
+		extract = async (archive, directory) => (
+			execute('unzip', [
+				'-q',
+				archive,
+				'-d',
+				directory,
+			])
+		),
+	} = {}
+) => {
 	if (!descriptor)
-		throw new Error(`Unknown wallet "${wallet}". Available: ${Object.keys(descriptors).join(', ')}`)
+		throw new Error(`Unknown wallet "${wallet}"`)
 
 	if (descriptor.url) {
-		const artifactDirectory = resolve('test-results/wallet-extensions/artifacts', `${wallet}-${descriptor.version}`)
+		const artifactName = `${wallet}-${descriptor.version}`
+		const artifactDirectory = join(artifactRoot, artifactName)
 		const extensionDirectory = join(artifactDirectory, descriptor.manifestRoot)
+		const stagingDirectory = join(artifactRoot, `.${artifactName}-${randomUUID()}.partial`)
 
 		try {
 			await access(join(extensionDirectory, 'manifest.json'))
-			console.log(`${wallet}: ${extensionDirectory}`)
-			continue
+			return extensionDirectory
 		} catch {
-			await rm(artifactDirectory, {
+		}
+
+		try {
+			const response = await download(descriptor.url)
+			if (!response.ok)
+				throw new Error(`${wallet}: artifact download failed with ${response.status}`)
+
+			const artifact = Buffer.from(await response.arrayBuffer())
+			const digest = createHash('sha256').update(artifact).digest('hex')
+			if (digest !== descriptor.sha256)
+				throw new Error(`${wallet}: checksum mismatch, expected ${descriptor.sha256}, received ${digest}`)
+
+			await mkdir(stagingDirectory, {
+				recursive: true,
+			})
+			const archive = join(stagingDirectory, `${wallet}.zip`)
+			await writeFile(archive, artifact.subarray(descriptor.archiveOffset ?? 0))
+			await extract(archive, stagingDirectory)
+			await rm(archive)
+			await access(join(stagingDirectory, descriptor.manifestRoot, 'manifest.json'))
+			await publishArtifact(
+				stagingDirectory,
+				artifactDirectory,
+				join(extensionDirectory, 'manifest.json')
+			)
+			return extensionDirectory
+		} finally {
+			await rm(stagingDirectory, {
 				force: true,
 				recursive: true,
 			})
 		}
-
-		await mkdir(artifactDirectory, {
-			recursive: true,
-		})
-		const response = await fetch(descriptor.url)
-		if (!response.ok)
-			throw new Error(`${wallet}: artifact download failed with ${response.status}`)
-
-		const artifact = Buffer.from(await response.arrayBuffer())
-		const digest = createHash('sha256').update(artifact).digest('hex')
-		if (digest !== descriptor.sha256)
-			throw new Error(`${wallet}: checksum mismatch, expected ${descriptor.sha256}, received ${digest}`)
-
-		const archive = join(artifactDirectory, `${wallet}.zip`)
-		await writeFile(archive, artifact)
-		await execute('unzip', [
-			'-q',
-			archive,
-			'-d',
-			artifactDirectory,
-		])
-		await rm(archive)
-		await access(join(extensionDirectory, 'manifest.json'))
-		console.log(`${wallet}: ${extensionDirectory}`)
-		continue
 	}
 
 	const suppliedDirectory = process.env[`${wallet.toUpperCase()}_EXTENSION_DIR`]
@@ -75,5 +141,20 @@ for (const wallet of requestedWallets) {
 		].join(' '))
 
 	await access(resolve(suppliedDirectory, 'manifest.json'))
-	console.log(`${wallet}: ${resolve(suppliedDirectory)}`)
+	return resolve(suppliedDirectory)
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+	const descriptors = JSON.parse(await readFile(new URL('./wallets.json', import.meta.url), 'utf8'))
+	const requestedWallets = process.argv.slice(2)
+
+	if (requestedWallets.length === 0)
+		throw new Error(`Choose a pinned source build: ${Object.keys(descriptors).join(', ')}`)
+
+	for (const wallet of requestedWallets) {
+		if (!descriptors[wallet])
+			throw new Error(`Unknown wallet "${wallet}". Available: ${Object.keys(descriptors).join(', ')}`)
+
+		console.log(`${wallet}: ${await acquireWalletExtension(wallet, descriptors[wallet])}`)
+	}
 }
