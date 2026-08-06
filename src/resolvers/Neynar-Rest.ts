@@ -35,6 +35,30 @@ const zeroXLowerHexCastHash = (hash: string): CastHash => {
 	return `0x${hex.toLowerCase()}`
 }
 
+const neynarCastTimestamps = (
+	cast: NeynarCast,
+	castId: {
+		fid: number
+		hash: CastHash
+	}
+) => (
+	[{
+		[EntityMetaKey.Selector]: {
+			$cast: castId,
+			timestampMs: Date.now(),
+			source: Source.Neynar_Rest,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'likeCount')]:
+				cast.reactions.likes_count,
+			[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'recastCount')]:
+				cast.reactions.recasts_count,
+			[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'replyCount')]:
+				cast.replies.count,
+		},
+	}]
+)
+
 const neynarCastSummaryReference = (cast: NeynarCast) => {
 	if (
 		!Number.isSafeInteger(cast.author.fid)
@@ -304,6 +328,19 @@ export default {
 									address,
 								})),
 							],
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$user: { fid },
+									timestampMs: Date.now(),
+									source: Source.Neynar_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FarcasterUser_Timestamp, [], 'followerCount')]:
+										user.follower_count,
+									[entityFieldAddressKey(EntityType.FarcasterUser_Timestamp, [], 'followingCount')]:
+										user.following_count,
+								},
+							}],
 						}
 					},
 				},
@@ -316,6 +353,7 @@ export default {
 			bio: (user) => user.bio,
 			$primaryEvmAccount: (user) => user.$primaryEvmAccount,
 			$$verifiedAddresses: (user) => user.$$verifiedAddresses,
+			$$timestamps: (user) => user.$$timestamps,
 		}),
 
 		defineResolver({
@@ -539,6 +577,7 @@ export default {
 								mentionedProfileFids: undefined,
 								mentionedChannelIds: undefined,
 								$$embeds: [],
+								$$timestamps: [],
 								threadHash: undefined,
 								$channel: undefined,
 							}
@@ -609,6 +648,7 @@ export default {
 							mentionedProfileFids: mentionFids.length > 0 ? mentionFids : undefined,
 							mentionedChannelIds: mentionChIds.length > 0 ? mentionChIds : undefined,
 							$$embeds: neynarCastEmbedRows(cast, castId),
+							$$timestamps: neynarCastTimestamps(cast, castId),
 							...(cast.thread_hash != null && cast.thread_hash !== '' && {
 								threadHash: zeroXLowerHexCastHash(String(cast.thread_hash)),
 							}),
@@ -690,6 +730,7 @@ export default {
 							mentionedProfileFids: mentionFids.length > 0 ? mentionFids : undefined,
 							mentionedChannelIds: mentionChIds.length > 0 ? mentionChIds : undefined,
 							$$embeds: neynarCastEmbedRows(cast, castId),
+							$$timestamps: neynarCastTimestamps(cast, castId),
 							...(cast.thread_hash != null && cast.thread_hash !== '' && {
 								threadHash: zeroXLowerHexCastHash(String(cast.thread_hash)),
 							}),
@@ -717,6 +758,7 @@ export default {
 				mentionedProfileFids: (cast) => cast.mentionedProfileFids,
 				mentionedChannelIds: (cast) => cast.mentionedChannelIds,
 				$$embeds: (cast) => cast.$$embeds,
+				$$timestamps: (cast) => cast.$$timestamps,
 				threadHash: (cast) => cast.threadHash,
 				$channel: (cast) => cast.$channel,
 			}),

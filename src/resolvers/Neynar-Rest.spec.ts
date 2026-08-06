@@ -12,6 +12,7 @@ import type {
 	NeynarChannel,
 	NeynarUser,
 } from '$/sources/Neynar/Rest/types.ts'
+const getBulkUsers = vi.hoisted(() => vi.fn())
 const getCast = vi.hoisted(() => vi.fn())
 const getChannel = vi.hoisted(() => vi.fn())
 const getChannelMembersPage = vi.hoisted(() => vi.fn())
@@ -19,6 +20,7 @@ const getFeed = vi.hoisted(() => vi.fn())
 const getUserChannelsPage = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Neynar/Rest/queries.ts', () => ({
+	getBulkUsers,
 	getCast,
 	getChannel,
 	getChannelMembersPage,
@@ -629,11 +631,86 @@ describe('Neynar Farcaster cast resolver', () => {
 		}, resolverContext)).resolves.toEqual(expect.objectContaining({
 			fid: 42,
 			hash: '0xabcdef',
+			$$timestamps: [],
 		}))
 		expect(getCast).toHaveBeenLastCalledWith(resolverContext.publicEnv, {
 			identifier: '0xabcdef',
 			type: 'hash',
 		})
+	})
+
+	it('projects enrolled cast engagement observations from reactions/replies', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_768_435_200_000)
+		getCast.mockResolvedValueOnce(neynarCast(
+			{
+				hash: '0xabcdef',
+				fid: 42,
+				text: 'Counted cast',
+			},
+			{
+				reactions: {
+					likes: [],
+					likes_count: 0,
+					recasts: [],
+					recasts_count: 3,
+				},
+				replies: { count: 7 },
+			}
+		))
+
+		const cast = await castResolver.resolve['FidHash'].resolve({
+			fid: 42,
+			hash: '0xabcdef',
+		}, resolverContext)
+		expect(castResolver.projections.$$timestamps(cast)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$cast: {
+					fid: 42,
+					hash: '0xabcdef',
+				},
+				timestampMs: 1_768_435_200_000,
+				source: 'Neynar_Rest',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'likeCount')]: 0,
+				[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'recastCount')]: 3,
+				[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'replyCount')]: 7,
+			},
+		}])
+	})
+
+	it('projects enrolled user follower/following observations from bulk users', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_768_435_200_000)
+		const userResolver = neynarResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.FarcasterUser
+			&& '$$timestamps' in resolver.projections
+			&& '$$verifiedAddresses' in resolver.projections
+		))
+		if (userResolver == null || !('Fid' in userResolver.resolve))
+			throw new Error('Neynar spec missing FarcasterUser identity resolver')
+
+		getBulkUsers.mockResolvedValueOnce([{
+			...neynarUser(42, 'alice'),
+			follower_count: 0,
+			following_count: 11,
+			display_name: 'Alice',
+		}])
+
+		const user = await userResolver.resolve.Fid.resolve(
+			{ fid: 42 },
+			resolverContext
+		)
+		expect(userResolver.projections.$$timestamps(user)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$user: { fid: 42 },
+				timestampMs: 1_768_435_200_000,
+				source: 'Neynar_Rest',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FarcasterUser_Timestamp, [], 'followerCount')]: 0,
+				[entityFieldAddressKey(EntityType.FarcasterUser_Timestamp, [], 'followingCount')]: 11,
+			},
+		}])
 	})
 
 	for (const {
