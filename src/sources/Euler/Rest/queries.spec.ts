@@ -293,6 +293,23 @@ describe('Euler EVK vault operations', () => {
 		})).rejects.toThrow(`${Source.Euler_Rest}: vault missing interestFee`)
 	})
 
+	it('reads vault detail including createdAtBlock', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: {
+				...baseVaultDetail,
+				createdAtBlock: '12345',
+			},
+		})
+
+		await expect(getVault({
+			chainId: 1,
+			vaultAddress: baseVaultAddress,
+		})).resolves.toMatchObject({
+			vaultAddress: '0x00011d9a1eb3d7278b8df2391e2e32f6f9bcf293',
+			createdAtBlock: '12345',
+		})
+	})
+
 	it('rejects an unsupported chain id before transport', async () => {
 		await expect(listVaults({
 			chainId: 999999,

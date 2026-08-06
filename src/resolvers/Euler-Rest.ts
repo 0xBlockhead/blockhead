@@ -70,6 +70,9 @@ const mapEulerEvkVaultSnapshot = (
 	...(vault.interestFee != null && {
 		interestFee: vault.interestFee,
 	}),
+	...(vault.createdAtBlock != null && {
+		createdAtBlock: vault.createdAtBlock,
+	}),
 })
 
 const mapEulerEvkVaultPositionSnapshot = (
@@ -147,6 +150,7 @@ export default {
 			supplyCap: (vault) => vault.supplyCap,
 			borrowCap: (vault) => vault.borrowCap,
 			interestFee: (vault) => vault.interestFee,
+			createdAtBlock: (vault) => vault.createdAtBlock,
 		}),
 
 		defineResolver({

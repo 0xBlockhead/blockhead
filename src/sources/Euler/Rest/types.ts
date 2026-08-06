@@ -176,4 +176,5 @@ export type EulerEvkVaultDetail = EulerEvkVaultSummary & {
 	supplyCap?: string
 	borrowCap?: string
 	interestFee?: number
+	createdAtBlock?: string
 }

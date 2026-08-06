@@ -81,6 +81,7 @@ const baseVaultDetail = {
 	supplyCap: '0',
 	borrowCap: '0',
 	interestFee: 0.1,
+	createdAtBlock: '100',
 } as const
 
 describe('Euler Rest resolver module', () => {
@@ -260,6 +261,7 @@ describe('Euler Rest resolver module', () => {
 				fees: {
 					interestFee: 0.1,
 				},
+				createdAtBlock: '100',
 			},
 		})
 
@@ -278,6 +280,7 @@ describe('Euler Rest resolver module', () => {
 			'0x7516db548b7bbc551f7213f77a275af2eda6555d'
 		)
 		expect(eulerEvkVaultResolver.projections.interestFee(snapshot)).toBe(0.1)
+		expect(eulerEvkVaultResolver.projections.createdAtBlock(snapshot)).toBe('100')
 		expect(eulerEvkVaultResolver.projections.$network(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: baseNetwork,
 		})

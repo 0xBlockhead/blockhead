@@ -434,6 +434,28 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							createdAtBlock: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const createdAtBlock = entity.createdAtBlock}
+					{#if createdAtBlock != null}
+						<div>
+							<dt>Created at block</dt>
+							<dd>
+								{createdAtBlock}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 </EntityView>

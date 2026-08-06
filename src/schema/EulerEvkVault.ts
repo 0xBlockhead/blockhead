@@ -157,6 +157,13 @@ export default entity({
 			Source.Euler_Rest,
 		],
 	},
+	createdAtBlock: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Euler_Rest,
+		],
+	},
 })({
 	selectors: {
 		NetworkVaultAddress: [

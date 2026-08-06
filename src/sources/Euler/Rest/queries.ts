@@ -230,6 +230,9 @@ const assertDetailWire = (
 	...(wire.fees != null && {
 		interestFee: assertFiniteNumber(wire.fees.interestFee, 'interestFee'),
 	}),
+	...(wire.createdAtBlock != null && {
+		createdAtBlock: assertString(wire.createdAtBlock, 'createdAtBlock'),
+	}),
 })
 
 const assertLimit = (limit: number) => {

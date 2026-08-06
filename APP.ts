@@ -28694,6 +28694,7 @@ export const schema = {
 				"supplyCap": { label: "Supply cap", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Euler_Rest] },
 				"borrowCap": { label: "Borrow cap", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Euler_Rest] },
 				"interestFee": { label: "Interest fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Euler_Rest] },
+				"createdAtBlock": { label: "Created at block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Euler_Rest] },
 			})({
 				selectors: {
 					"NetworkVaultAddress": ["$network", "vaultAddress"],
@@ -28713,7 +28714,7 @@ export const schema = {
 							dl: [
 								["$network", { field: "vaultAddress", format: "address" }, "name", "symbol", "decimals"],
 								[{ field: "assetAddress", format: "address" }, "assetSymbol", "totalAssets", "totalBorrows", "utilization"],
-								["supplyApy", "borrowApy", "supplyCap", "borrowCap", "interestFee", { field: "dTokenAddress", format: "address" }, { field: "oracleAddress", format: "address" }, { field: "governorAddress", format: "address" }, "createdAt"],
+								["supplyApy", "borrowApy", "supplyCap", "borrowCap", "interestFee", { field: "dTokenAddress", format: "address" }, { field: "oracleAddress", format: "address" }, { field: "governorAddress", format: "address" }, "createdAt", "createdAtBlock"],
 							],
 						},
 					},
