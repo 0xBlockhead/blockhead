@@ -39,28 +39,6 @@ export default indexSourceBindings([
 		],
 	},
 	{
-		source: Source.McpDeclared_Protocol,
-		target: {
-			kind: SourceTargetKind.LocalDevice,
-			key: 'declared-mcp-server',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://{mcp-host}',
-				corsEnabled: false,
-			},
-		],
-		wireProtocol: WireProtocol.JsonRpc2,
-		apiFamily: ApiFamily.McpProtocol,
-		operationGroups: [
-			SourceOperationGroup.AgentCapabilityCatalog,
-			SourceOperationGroup.AgentRuntimeInvocation,
-		],
-		delivery: SourceDelivery.RemoteQuery,
-		credentials: [],
-	},
-	{
 		source: Source.McpPackageRegistry_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
