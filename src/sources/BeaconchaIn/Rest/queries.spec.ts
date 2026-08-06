@@ -337,4 +337,31 @@ describe('BeaconchaIn REST queries', () => {
 			expect.anything()
 		)
 	})
+
+	it('loads validators and fail-closes malformed balances', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: validatorWire,
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: {
+					...validatorWire,
+					balance: -1,
+				},
+			}))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getValidator(publicEnv, {
+			chainId: 1,
+			indexOrPubkey: 1,
+		})).resolves.toEqual(validatorWire)
+
+		await expect(getValidator(publicEnv, {
+			chainId: 1,
+			indexOrPubkey: 1,
+		})).rejects.toThrow('invalid validator balances')
+	})
 })

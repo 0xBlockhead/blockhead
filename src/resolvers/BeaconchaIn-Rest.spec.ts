@@ -7,7 +7,7 @@ import {
 } from 'vitest'
 
 import { slotsPerEpoch } from '$/constants/BeaconConsensus.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -89,6 +89,9 @@ const validatorResolver = beaconchaInRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconValidator
 	&& 'indexInNetwork' in resolver.projections
 ))
+const validatorTimestampResolver = beaconchaInRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconValidator_Timestamp
+))
 const validatorAttestationDutiesResolver = beaconchaInRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconValidator
 	&& 'attestationDuties' in resolver.projections
@@ -105,6 +108,7 @@ if (
 	|| withdrawalResolver == null
 	|| slashingResolver == null
 	|| validatorResolver == null
+	|| validatorTimestampResolver == null
 	|| validatorAttestationDutiesResolver == null
 )
 	throw new Error('BeaconchaIn resolver facets missing')
@@ -197,6 +201,9 @@ describe('BeaconchaIn-Rest resolvers', () => {
 			effective_balance: 32000000000,
 			status: 'active_online',
 			slashed: false,
+			last_attestation_slot: 319,
+			activation_epoch: 0,
+			withdrawal_credentials: '00' + 'dd'.repeat(31),
 		})
 
 		await expect(slotResolver.resolve.EvmNetworkSlot.resolve({
@@ -209,16 +216,35 @@ describe('BeaconchaIn-Rest resolvers', () => {
 			root: `0x${'11'.repeat(32)}`,
 		})
 
-		await expect(validatorResolver.resolve.NetworkIndexInNetwork.resolve({
+		const validator = await validatorResolver.resolve.NetworkIndexInNetwork.resolve({
 			$network: network,
 			indexInNetwork: 7,
-		}, context)).resolves.toMatchObject({
+		}, context)
+		expect(validator).toMatchObject({
 			indexInNetwork: 7,
 			balanceGwei: 32000000000n,
 			effectiveBalanceGwei: 32000000000n,
 			status: 'active_online',
 			slashed: false,
 		})
+		expect(validatorResolver.projections.$$timestamps(validator)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$validator: {
+						$network: network,
+						indexInNetwork: 7,
+					},
+					slot: 319,
+					source: Source.BeaconchaIn_Rest,
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.BeaconValidator_Timestamp, [], 'status')]: 'active_online',
+					[entityFieldAddressKey(EntityType.BeaconValidator_Timestamp, [], 'slashed')]: false,
+					[entityFieldAddressKey(EntityType.BeaconValidator_Timestamp, [], 'activationEpoch')]: 0,
+					[entityFieldAddressKey(EntityType.BeaconValidator_Timestamp, [], 'withdrawalCredentials')]: `0x${'00'}${'dd'.repeat(31)}`,
+				}),
+			},
+		])
 	})
 
 	it('resolves validators by pubkey and hard-fails unbound networks', async () => {
@@ -229,6 +255,7 @@ describe('BeaconchaIn-Rest resolvers', () => {
 			effective_balance: 32000000000,
 			status: 'active_offline',
 			slashed: true,
+			last_attestation_slot: 400,
 		})
 
 		await expect(validatorResolver.resolve.NetworkPubkey.resolve({
@@ -250,6 +277,87 @@ describe('BeaconchaIn-Rest resolvers', () => {
 			},
 			slot: 1,
 		}, context)).rejects.toThrow('no binding for chain 999')
+	})
+
+	it('projects tip BeaconValidator_Timestamp and rejects foreign observation slots', async () => {
+		getValidator
+			.mockResolvedValueOnce({
+				validator_index: 7,
+				pubkey: '0x' + 'aa'.repeat(48),
+				balance: 32000000000,
+				effective_balance: 32000000000,
+				status: 'active_online',
+				slashed: false,
+				last_attestation_slot: 319,
+				activation_eligibility_epoch: 0,
+				activation_epoch: 1,
+				exit_epoch: 18446744073709551615,
+				withdrawable_epoch: 18446744073709551615,
+			})
+			.mockResolvedValueOnce({
+				validator_index: 7,
+				pubkey: '0x' + 'aa'.repeat(48),
+				balance: 32000000000,
+				effective_balance: 32000000000,
+				status: 'active_online',
+				slashed: false,
+				last_attestation_slot: 319,
+			})
+
+		await expect(validatorTimestampResolver.resolve.ValidatorSlotSource.resolve({
+			$validator: {
+				$network: network,
+				indexInNetwork: 7,
+			},
+			slot: 319,
+			source: Source.BeaconchaIn_Rest,
+		}, context)).resolves.toMatchObject({
+			slot: 319,
+			source: Source.BeaconchaIn_Rest,
+			balanceGwei: 32000000000n,
+			activationEpoch: 1,
+			status: 'active_online',
+		})
+
+		await expect(validatorTimestampResolver.resolve.ValidatorSlotSource.resolve({
+			$validator: {
+				$network: network,
+				indexInNetwork: 7,
+			},
+			slot: 1,
+			source: Source.BeaconchaIn_Rest,
+		}, context)).rejects.toThrow('no validator observation at slot 1')
+	})
+
+	it('falls back to latest slot when last_attestation_slot is absent', async () => {
+		getValidator.mockResolvedValueOnce({
+			validator_index: 3,
+			pubkey: '0x' + 'cc'.repeat(48),
+			balance: 1,
+			effective_balance: 1,
+			status: 'pending_initialized',
+			slashed: false,
+		})
+		getSlot.mockResolvedValueOnce({
+			slot: 9600000,
+			epoch: 300000,
+			blockroot: '11'.repeat(32),
+			parentroot: '22'.repeat(32),
+			stateroot: '33'.repeat(32),
+			signature: '44'.repeat(96),
+			proposer: 1,
+			status: '1',
+		})
+
+		const validator = await validatorResolver.resolve.NetworkIndexInNetwork.resolve({
+			$network: network,
+			indexInNetwork: 3,
+		}, context)
+		expect(validatorResolver.projections.$$timestamps(validator)[0][EntityMetaKey.Selector].slot).toBe(9600000)
+		expect(getSlot).toHaveBeenCalledWith(context.publicEnv, {
+			chainId: 1,
+			slot: 'latest',
+		})
 	})
 
 	it('projects empty epoch slots as [] without soft-failing', async () => {

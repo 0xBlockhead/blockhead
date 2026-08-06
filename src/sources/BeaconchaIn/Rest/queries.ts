@@ -141,7 +141,7 @@ export const getSlot = (
 	)
 )
 
-export const getValidator = (
+export const getValidator = async (
 	publicEnv: SourcePublicEnv,
 	{
 		chainId,
@@ -150,8 +150,8 @@ export const getValidator = (
 		chainId: number
 		indexOrPubkey: number | string
 	}
-) => (
-	beaconchaInGetJson<BeaconchaInValidator>(
+) => {
+	const validator = await beaconchaInGetJson<BeaconchaInValidator>(
 		publicEnv,
 		{
 			chainId,
@@ -159,7 +159,52 @@ export const getValidator = (
 			label: 'BeaconchaIn GET validator',
 		}
 	)
-)
+	if (
+		!Number.isSafeInteger(validator.validator_index)
+		|| validator.validator_index < 0
+	)
+		throw new Error('BeaconchaIn_Rest: invalid validator_index')
+	if (
+		typeof validator.pubkey !== 'string'
+		|| validator.pubkey.trim() === ''
+	)
+		throw new Error('BeaconchaIn_Rest: missing validator pubkey')
+	if (
+		!Number.isSafeInteger(validator.balance)
+		|| validator.balance < 0
+		|| !Number.isSafeInteger(validator.effective_balance)
+		|| validator.effective_balance < 0
+	)
+		throw new Error('BeaconchaIn_Rest: invalid validator balances')
+	if (typeof validator.status !== 'string' || validator.status === '')
+		throw new Error('BeaconchaIn_Rest: missing validator status')
+	if (typeof validator.slashed !== 'boolean')
+		throw new Error('BeaconchaIn_Rest: missing validator slashed flag')
+	if (
+		validator.last_attestation_slot != null
+		&& (
+			!Number.isSafeInteger(validator.last_attestation_slot)
+			|| validator.last_attestation_slot < 0
+		)
+	)
+		throw new Error('BeaconchaIn_Rest: invalid last_attestation_slot')
+	for (const [label, value] of [
+		['activation_eligibility_epoch', validator.activation_eligibility_epoch],
+		['activation_epoch', validator.activation_epoch],
+		['exit_epoch', validator.exit_epoch],
+		['withdrawable_epoch', validator.withdrawable_epoch],
+	] as const) {
+		if (
+			value != null
+			&& (
+				!Number.isInteger(value)
+				|| value < 0
+			)
+		)
+			throw new Error(`BeaconchaIn_Rest: invalid ${label}`)
+	}
+	return validator
+}
 
 /** @see https://docs.beaconcha.in/api-reference/validators/validator-attestations-history */
 export const getValidatorAttestations = (

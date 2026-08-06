@@ -9,13 +9,16 @@ import {
 	type ResolverSelectorPattern,
 } from '$/resolvers/$resolvers.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 	type EntitySelectorForSelectorName,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { bindingByChainId } from '$/sources/BeaconchaIn/Rest/constants.ts'
+import type { BeaconchaInValidator } from '$/sources/BeaconchaIn/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const eip155NetworkApplicability = [{
@@ -44,6 +47,96 @@ const eip155ChainId = (
 	if (bindingByChainId[String(chainId)] == null)
 		throw new Error(`BeaconchaIn_Rest: no binding for chain ${String(chainId)}`)
 	return chainId
+}
+
+const validatorObservationSlot = async (
+	publicEnv: SourcePublicEnv,
+	chainId: number,
+	validator: BeaconchaInValidator
+) => {
+	if (validator.last_attestation_slot != null)
+		return validator.last_attestation_slot
+
+	const { getSlot } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
+	return (
+		await getSlot(
+			publicEnv,
+			{
+				chainId,
+				slot: 'latest',
+			}
+		)
+	).slot
+}
+
+const mapValidatorObservation = (
+	validator: BeaconchaInValidator
+) => ({
+	balanceGwei: BigInt(validator.balance),
+	effectiveBalanceGwei: BigInt(validator.effective_balance),
+	status: validator.status,
+	slashed: validator.slashed,
+	...(validator.activation_eligibility_epoch != null && {
+		activationEligibilityEpoch: validator.activation_eligibility_epoch,
+	}),
+	...(validator.activation_epoch != null && {
+		activationEpoch: validator.activation_epoch,
+	}),
+	...(validator.exit_epoch != null && {
+		exitEpoch: validator.exit_epoch,
+	}),
+	...(validator.withdrawable_epoch != null && {
+		withdrawableEpoch: validator.withdrawable_epoch,
+	}),
+	...(validator.withdrawal_credentials != null && validator.withdrawal_credentials !== '' && {
+		withdrawalCredentials: with0xHex(validator.withdrawal_credentials),
+	}),
+})
+
+const observationFields = (
+	observation: ReturnType<typeof mapValidatorObservation>
+) => (
+	Object.fromEntries(
+		Object.entries(observation).map(([field, value]) => [
+			entityFieldAddressKey(EntityType.BeaconValidator_Timestamp, [], field),
+			value,
+		])
+	)
+)
+
+const mapValidatorSnapshot = async (
+	publicEnv: SourcePublicEnv,
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	indexOrPubkey: number | string
+) => {
+	const { getValidator } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
+	const chainId = eip155ChainId($network)
+	const validator = await getValidator(
+		publicEnv,
+		{
+			chainId,
+			indexOrPubkey,
+		}
+	)
+	const observationSlot = await validatorObservationSlot(publicEnv, chainId, validator)
+	const observation = mapValidatorObservation(validator)
+	const validatorSelector = {
+		$network,
+		indexInNetwork: validator.validator_index,
+	}
+	return {
+		indexInNetwork: validator.validator_index,
+		pubkey: with0xHex(validator.pubkey),
+		...observation,
+		timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$validator: validatorSelector,
+				slot: observationSlot,
+				source: Source.BeaconchaIn_Rest,
+			},
+			[EntityMetaKey.Fields]: observationFields(observation),
+		}],
+	}
 }
 
 export default {
@@ -390,45 +483,23 @@ export default {
 			resolve: {
 				NetworkIndexInNetwork: {
 					appliesTo: eip155NetworkApplicability,
-					resolve: async ({ $network, indexInNetwork }, context) => {
-						const { getValidator } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
-						const validator = await getValidator(
+					resolve: async ({ $network, indexInNetwork }, context) => (
+						mapValidatorSnapshot(
 							context.publicEnv,
-							{
-								chainId: eip155ChainId($network),
-								indexOrPubkey: indexInNetwork,
-							}
+							$network,
+							indexInNetwork
 						)
-						return {
-							indexInNetwork: validator.validator_index,
-							pubkey: with0xHex(validator.pubkey),
-							balanceGwei: BigInt(validator.balance),
-							effectiveBalanceGwei: BigInt(validator.effective_balance),
-							status: validator.status,
-							slashed: validator.slashed,
-						}
-					},
+					),
 				},
 				NetworkPubkey: {
 					appliesTo: eip155NetworkApplicability,
-					resolve: async ({ $network, pubkey }, context) => {
-						const { getValidator } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
-						const validator = await getValidator(
+					resolve: async ({ $network, pubkey }, context) => (
+						mapValidatorSnapshot(
 							context.publicEnv,
-							{
-								chainId: eip155ChainId($network),
-								indexOrPubkey: pubkey,
-							}
+							$network,
+							pubkey
 						)
-						return {
-							indexInNetwork: validator.validator_index,
-							pubkey: with0xHex(validator.pubkey),
-							balanceGwei: BigInt(validator.balance),
-							effectiveBalanceGwei: BigInt(validator.effective_balance),
-							status: validator.status,
-							slashed: validator.slashed,
-						}
-					},
+					),
 				},
 			},
 		})({
@@ -438,6 +509,80 @@ export default {
 			effectiveBalanceGwei: (validator) => validator.effectiveBalanceGwei,
 			status: (validator) => validator.status,
 			slashed: (validator) => validator.slashed,
+			$$timestamps: (validator) => validator.timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconValidator_Timestamp,
+			resolve: {
+				ValidatorSlotSource: {
+					resolve: async ({
+						$validator,
+						slot,
+						source,
+					}, context) => {
+						if (source !== Source.BeaconchaIn_Rest)
+							throw new Error(`BeaconchaIn_Rest: unsupported source ${source}`)
+
+						const indexOrPubkey = (
+							'indexInNetwork' in $validator ?
+								$validator.indexInNetwork
+							:
+								$validator.pubkey
+						)
+						const snapshot = await mapValidatorSnapshot(
+							context.publicEnv,
+							$validator.$network,
+							indexOrPubkey
+						)
+						const observation = snapshot.timestamps[0]
+						if (observation == null)
+							throw new Error('BeaconchaIn_Rest: missing validator observation')
+						if (observation[EntityMetaKey.Selector].slot !== slot)
+							throw new Error(`BeaconchaIn_Rest: no validator observation at slot ${String(slot)}`)
+
+						return {
+							$validator: {
+								[EntityMetaKey.Selector]: observation[EntityMetaKey.Selector].$validator,
+							},
+							slot,
+							source,
+							balanceGwei: snapshot.balanceGwei,
+							effectiveBalanceGwei: snapshot.effectiveBalanceGwei,
+							status: snapshot.status,
+							slashed: snapshot.slashed,
+							...(snapshot.activationEligibilityEpoch != null && {
+								activationEligibilityEpoch: snapshot.activationEligibilityEpoch,
+							}),
+							...(snapshot.activationEpoch != null && {
+								activationEpoch: snapshot.activationEpoch,
+							}),
+							...(snapshot.exitEpoch != null && {
+								exitEpoch: snapshot.exitEpoch,
+							}),
+							...(snapshot.withdrawableEpoch != null && {
+								withdrawableEpoch: snapshot.withdrawableEpoch,
+							}),
+							...(snapshot.withdrawalCredentials != null && {
+								withdrawalCredentials: snapshot.withdrawalCredentials,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$validator: (observation) => observation.$validator,
+			slot: (observation) => observation.slot,
+			source: (observation) => observation.source,
+			balanceGwei: (observation) => observation.balanceGwei,
+			effectiveBalanceGwei: (observation) => observation.effectiveBalanceGwei,
+			status: (observation) => observation.status,
+			slashed: (observation) => observation.slashed,
+			activationEligibilityEpoch: (observation) => observation.activationEligibilityEpoch,
+			activationEpoch: (observation) => observation.activationEpoch,
+			exitEpoch: (observation) => observation.exitEpoch,
+			withdrawableEpoch: (observation) => observation.withdrawableEpoch,
+			withdrawalCredentials: (observation) => observation.withdrawalCredentials,
 		}),
 
 		defineResolver({
