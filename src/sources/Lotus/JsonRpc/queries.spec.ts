@@ -17,6 +17,7 @@ import {
 	getMinerSectorCount,
 	getMinerSectors,
 } from '$/sources/Lotus/JsonRpc/queries.ts'
+
 const fetchMock = vi.fn<typeof fetch>()
 
 const tipsetKey = [
@@ -35,12 +36,69 @@ const rpcResponse = (result: unknown) => new Response(JSON.stringify({
 	},
 })
 
+const actorEnvelope = {
+	Code: { '/': 'bafy2bzaceactorcode' },
+	Head: { '/': 'bafy2bzaceactorhead' },
+	Nonce: 1,
+	Balance: '1000',
+}
+
+const minerInfoEnvelope = {
+	Owner: 'f3owner',
+	Worker: 'f3worker',
+	PeerId: '12D3KooW',
+}
+
+const minerPowerEnvelope = {
+	MinerPower: {
+		RawBytePower: '10',
+		QualityAdjPower: '20',
+	},
+	TotalPower: {
+		RawBytePower: '100',
+		QualityAdjPower: '200',
+	},
+	HasMinPower: true,
+}
+
+const sectorEnvelope = {
+	SectorNumber: 1,
+	Activation: 10,
+	Expiration: 20,
+}
+
+const sectorCountEnvelope = {
+	Live: 1,
+	Active: 1,
+	Faulty: 0,
+	Total: 1,
+}
+
+const dealEnvelope = {
+	Proposal: {
+		PieceCID: { '/': 'baga-piece' },
+		PieceSize: 2048,
+		VerifiedDeal: true,
+		Client: 'f1client',
+		Provider: 'f01000',
+		StartEpoch: 10,
+		EndEpoch: 20,
+		StoragePricePerEpoch: '3',
+		ProviderCollateral: '5',
+		ClientCollateral: '4',
+	},
+	State: {
+		SectorStartEpoch: 11,
+		LastUpdatedEpoch: 12,
+		SlashEpoch: -1,
+	},
+}
+
 describe('Lotus JSON-RPC state queries', () => {
 	beforeEach(() => {
 		vi.stubGlobal('window', {})
 		vi.stubGlobal('fetch', fetchMock)
 		fetchMock.mockReset()
-		fetchMock.mockImplementation(async () => rpcResponse({}))
 	})
 
 	afterEach(() => {
@@ -48,6 +106,15 @@ describe('Lotus JSON-RPC state queries', () => {
 	})
 
 	it('uses one explicit tipset for actor, miner, sector, and count state', async () => {
+		fetchMock
+			.mockResolvedValueOnce(rpcResponse(actorEnvelope))
+			.mockResolvedValueOnce(rpcResponse('f01234'))
+			.mockResolvedValueOnce(rpcResponse(minerInfoEnvelope))
+			.mockResolvedValueOnce(rpcResponse(minerPowerEnvelope))
+			.mockResolvedValueOnce(rpcResponse([sectorEnvelope]))
+			.mockResolvedValueOnce(rpcResponse([sectorEnvelope]))
+			.mockResolvedValueOnce(rpcResponse(sectorCountEnvelope))
+
 		await getActor({
 			address: 'f01234',
 			tipsetKey,
@@ -127,25 +194,7 @@ describe('Lotus JSON-RPC state queries', () => {
 	})
 
 	it('reads a market storage deal at head or tipset', async () => {
-		fetchMock.mockResolvedValueOnce(rpcResponse({
-			Proposal: {
-				PieceCID: { '/': 'baga-piece' },
-				PieceSize: 2048,
-				VerifiedDeal: true,
-				Client: 'f1client',
-				Provider: 'f01000',
-				StartEpoch: 10,
-				EndEpoch: 20,
-				StoragePricePerEpoch: '3',
-				ProviderCollateral: '5',
-				ClientCollateral: '4',
-			},
-			State: {
-				SectorStartEpoch: 11,
-				LastUpdatedEpoch: 12,
-				SlashEpoch: -1,
-			},
-		}))
+		fetchMock.mockResolvedValueOnce(rpcResponse(dealEnvelope))
 
 		await expect(getMarketStorageDeal({
 			dealId: 42n,
@@ -167,5 +216,31 @@ describe('Lotus JSON-RPC state queries', () => {
 				params: [42, tipsetKey],
 			},
 		])
+	})
+
+	it('fail-closes malformed actor, miner, and deal envelopes', async () => {
+		fetchMock.mockResolvedValueOnce(rpcResponse({
+			Code: { '/': 'bafy' },
+		}))
+		await expect(getActor({
+			address: 'f01234',
+			tipsetKey,
+		})).rejects.toThrow('Lotus_JsonRpc: invalid actor response envelope')
+
+		fetchMock.mockResolvedValueOnce(rpcResponse({
+			Owner: 'f3owner',
+		}))
+		await expect(getMinerInfo({
+			minerAddress: 'f01234',
+			tipsetKey,
+		})).rejects.toThrow('Lotus_JsonRpc: invalid miner-info response envelope')
+
+		fetchMock.mockResolvedValueOnce(rpcResponse({
+			Proposal: dealEnvelope.Proposal,
+		}))
+		await expect(getMarketStorageDeal({
+			dealId: 42n,
+			tipsetKey,
+		})).rejects.toThrow('Lotus_JsonRpc: invalid market-storage-deal response envelope')
 	})
 })
