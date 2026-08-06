@@ -1,4 +1,5 @@
 import { networkBySlug } from '$/constants/Network.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -579,6 +580,85 @@ export default {
 			status: (observation) => observation.status,
 			blockHeight: (observation) => observation.blockHeight,
 			blockId: () => undefined,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network, context) => {
+						assertAvalanchePChain(network)
+						const limit = resolverContextRowLimit(context)
+						if (limit === 0)
+							return {
+								blocks: [],
+								blockCount: 0n,
+							}
+
+						const { getHeight } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
+						const tipHeight = bigintFromWire((await getHeight()).height, 'height')
+						const blockCount = tipHeight + 1n
+						return {
+							blockCount,
+							blocks: Array.from({
+								length: Math.min(Number(blockCount), limit),
+							}, (_value, blockOffset) => ({
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									height: tipHeight - BigInt(blockOffset),
+								},
+							})),
+						}
+					},
+				},
+			},
+		})({
+			Avalanche: {
+				$$blocks: {
+					select: (snapshot) => snapshot.blocks,
+					resolveCount: (snapshot) => snapshot.blockCount,
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network, context) => {
+						assertAvalanchePChain(network)
+						const { getSubnets } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
+						const wireSubnets = (await getSubnets()).subnets
+						return {
+							subnetCount: BigInt(wireSubnets.length),
+							subnets: wireSubnets
+								.slice(0, resolverContextRowLimit(context))
+								.map((subnet) => {
+									const threshold = Number(subnet.threshold)
+									return {
+										[EntityMetaKey.Selector]: {
+											subnetId: subnet.id,
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.AvalancheSubnet, [], 'controlKeys')]: subnet.controlKeys,
+											[entityFieldAddressKey(EntityType.AvalancheSubnet, [], 'ownerAddresses')]: subnet.controlKeys,
+											...(Number.isFinite(threshold) && {
+												[entityFieldAddressKey(EntityType.AvalancheSubnet, [], 'threshold')]: threshold,
+											}),
+										},
+									}
+								}),
+						}
+					},
+				},
+			},
+		})({
+			Avalanche: {
+				$$subnets: {
+					select: (snapshot) => snapshot.subnets,
+					resolveCount: (snapshot) => snapshot.subnetCount,
+				},
+			},
 		}),
 	] as const,
 } satisfies RegisteredSourceResolverModule

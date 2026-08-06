@@ -53,6 +53,7 @@ export default entity({
 		defaultSources: [
 			Source.Allium_Rest,
 			Source.Blockscout_Rest,
+			Source.GoldRushFoundational_Rest,
 		],
 	},
 	$$nfts: {

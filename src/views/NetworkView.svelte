@@ -117,6 +117,18 @@
 		], pendingEntity)
 	)
 
+	const avalanchePlatformVmJsonRpcSources = $derived(
+		networkApplicableSources([
+			Source.AvalanchePlatformVm_JsonRpc,
+		], pendingEntity)
+	)
+
+	const suiSources = $derived(
+		networkApplicableSources([
+			Source.Sui,
+		], pendingEntity)
+	)
+
 	const nearRpcJsonRpcSources = $derived(
 		networkApplicableSources([
 			Source.NearRpc_JsonRpc,
@@ -263,6 +275,11 @@
 	import ArweaveBlocksView from '$/views/ArweaveBlocksView.svelte'
 	import ArweaveTransactionsView from '$/views/ArweaveTransactionsView.svelte'
 	import ArweaveResourcesView from '$/views/ArweaveResourcesView.svelte'
+	import AvalanchePChainBlocksView from '$/views/AvalanchePChainBlocksView.svelte'
+	import AvalancheSubnetsView from '$/views/AvalancheSubnetsView.svelte'
+	import SuiNetwork_TimestampsView from '$/views/SuiNetwork_TimestampsView.svelte'
+	import SuiCheckpointsView from '$/views/SuiCheckpointsView.svelte'
+	import SuiTransactionsView from '$/views/SuiTransactionsView.svelte'
 	import NearNetwork_TimestampsView from '$/views/NearNetwork_TimestampsView.svelte'
 	import NearBlocksView from '$/views/NearBlocksView.svelte'
 	import NearValidatorsView from '$/views/NearValidatorsView.svelte'
@@ -4590,6 +4607,191 @@
 					{/snippet}
 
 				</CollapsibleTabs>
+			{/snippet}
+		</ProjectionBoundary>
+
+		<ProjectionBoundary
+			resource={selection.Avalanche}
+		>
+			{#snippet Applicable(projection)}
+				{@const avalancheChainActivitySections = [
+						...(
+							avalanchePlatformVmJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'avalanche-chain-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							avalanchePlatformVmJsonRpcSources.length > 0 ?
+								[
+									{
+										id: 'avalanche-chain-subnets',
+										label: 'Subnets',
+									},
+								]
+							:
+								[]
+						),
+					]}
+
+				{#if avalancheChainActivitySections.length > 0}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-avalanche-chain-activity'}
+						sectionIdPrefix={viewDomId}
+						sections={avalancheChainActivitySections}
+						data-card
+						class='network-view-collapsible-chain-activity'
+					>
+						{#snippet Summary()}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Chain activity</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionAvalancheChainBlocks({ id, label })}
+							<AvalanchePChainBlocksView
+								selection={
+									projection
+									.$$blocks({
+										sources: avalanchePlatformVmJsonRpcSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionAvalancheChainSubnets({ id, label })}
+							<AvalancheSubnetsView
+								selection={
+									projection
+									.$$subnets({
+										sources: avalanchePlatformVmJsonRpcSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/if}
+			{/snippet}
+		</ProjectionBoundary>
+
+		<ProjectionBoundary
+			resource={selection.Sui}
+		>
+			{#snippet Applicable(projection)}
+				{@const suiChainActivitySections = [
+						...(
+							suiSources.length > 0 ?
+								[
+									{
+										id: 'sui-chain-observations',
+										label: 'Observations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							suiSources.length > 0 ?
+								[
+									{
+										id: 'sui-chain-checkpoints',
+										label: 'Checkpoints',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							suiSources.length > 0 ?
+								[
+									{
+										id: 'sui-chain-transactions',
+										label: 'Transactions',
+									},
+								]
+							:
+								[]
+						),
+					]}
+
+				{#if suiChainActivitySections.length > 0}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-sui-chain-activity'}
+						sectionIdPrefix={viewDomId}
+						sections={suiChainActivitySections}
+						data-card
+						class='network-view-collapsible-chain-activity'
+					>
+						{#snippet Summary()}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Chain activity</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionSuiChainObservations({ id, label })}
+							<SuiNetwork_TimestampsView
+								selection={
+									projection
+									.$$timestamps({
+										sources: suiSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Sui network observations.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionSuiChainCheckpoints({ id, label })}
+							<SuiCheckpointsView
+								selection={
+									projection
+									.$$checkpoints({
+										sources: suiSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Sui checkpoints.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionSuiChainTransactions({ id, label })}
+							<SuiTransactionsView
+								selection={
+									projection
+									.$$transactions({
+										sources: suiSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Sui transactions.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/if}
 			{/snippet}
 		</ProjectionBoundary>
 

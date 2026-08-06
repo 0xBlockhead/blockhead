@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-254 providers register 286 sources and 510 bindings.
+254 providers register 286 sources and 511 bindings.
 
 ## Providers
 
@@ -575,7 +575,8 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Arweave_Rest","ContentAddressScheme","arweave","BrowserDirect","ArweaveGateway"] | Arweave | Arweave_Rest | ContentAddressScheme | arweave | HttpRest | ArweaveGateway | ContentGatewayRead | BrowserDirect |
 | ["Atproto_BskySocial_Xrpc","Global","bsky-social-appview","HttpProxy","XrpcLexicon"] | AtprotoBskySocial | Atproto_BskySocial_Xrpc | Global | bsky-social-appview | Xrpc | XrpcLexicon | GenericRead | HttpProxy |
 | ["Atproto_Xrpc","Global","bsky-public-appview","HttpProxy","XrpcLexicon"] | AtprotoBsky | Atproto_Xrpc | Global | bsky-public-appview | Xrpc | XrpcLexicon | GenericRead | HttpProxy |
-| ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteLive","AtprotoSync"] | AtprotoSync | AtprotoSync_Xrpc | Feed | atproto-sync | Xrpc | AtprotoSync | GenericRead, GenericSubscribe | RemoteLive |
+| ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteQuery","AtprotoSync"] | AtprotoSync | AtprotoSync_Xrpc | Feed | atproto-sync | Xrpc | AtprotoSync | GenericRead | RemoteQuery |
+| ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteLive","AtprotoSync"] | AtprotoSync | AtprotoSync_Xrpc | Feed | atproto-sync | Xrpc | AtprotoSync | GenericSubscribe | RemoteLive |
 | ["Avail","NetworkSlug","avail","RemoteQuery","SubstrateJsonRpc"] | Avail | Avail | NetworkSlug | avail | JsonRpc2 | SubstrateJsonRpc | GenericRead | RemoteQuery |
 | ["AvalancheInfo_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | AvalancheInfo | AvalancheInfo_JsonRpc | NetworkSlug | avalanche-p-chain | JsonRpc2 | JsonRpcApi | GenericRead | HttpProxy |
 | ["AvalanchePlatformVm_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | AvalanchePlatformVm | AvalanchePlatformVm_JsonRpc | NetworkSlug | avalanche-p-chain | JsonRpc2 | JsonRpcApi | GenericRead | HttpProxy |
@@ -1091,7 +1092,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Arweave_Rest","ContentAddressScheme","arweave","BrowserDirect","ArweaveGateway"] | HttpUrl | https://ar-io.net | https://ar-io.net | true |
 | ["Atproto_BskySocial_Xrpc","Global","bsky-social-appview","HttpProxy","XrpcLexicon"] | HttpUrl | https://bsky.social | https://bsky.social | false |
 | ["Atproto_Xrpc","Global","bsky-public-appview","HttpProxy","XrpcLexicon"] | HttpUrl | https://public.api.bsky.app | https://public.api.bsky.app | false |
-| ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteLive","AtprotoSync"] | HttpUrl | https://{pds-host} | https://{pds-host} | false |
+| ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteQuery","AtprotoSync"] | HttpUrl | https://{pds-host} | https://{pds-host} | false |
 | ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteLive","AtprotoSync"] | WebSocketUrl | wss://{pds-host}/xrpc/com.atproto.sync.subscribeRepos |  |  |
 | ["Avail","NetworkSlug","avail","RemoteQuery","SubstrateJsonRpc"] | HttpUrl | env:PUBLIC_AVAIL_RPC_URL |  | false |
 | ["AvalancheInfo_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | HttpUrl | https://api.avax.network/ext/info | https://api.avax.network | false |

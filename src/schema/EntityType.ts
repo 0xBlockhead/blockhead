@@ -18,6 +18,7 @@ export enum EntityType {
 	_GlobalEvmAbiCatalog = '_GlobalEvmAbiCatalog',
 	_GlobalEvmAbiCatalog_Timestamp = '_GlobalEvmAbiCatalog_Timestamp',
 	_GlobalIpfsAccess = '_GlobalIpfsAccess',
+	_GlobalIpfsAccess_Timestamp = '_GlobalIpfsAccess_Timestamp',
 	_GlobalNostrNetwork = '_GlobalNostrNetwork',
 	_GlobalNostrNetwork_Timestamp = '_GlobalNostrNetwork_Timestamp',
 	_GlobalRedditNetwork = '_GlobalRedditNetwork',

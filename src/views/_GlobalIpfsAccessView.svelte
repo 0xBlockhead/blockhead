@@ -20,6 +20,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IpfsResourcesView from '$/views/IpfsResourcesView.svelte'
+	import GlobalIpfsAccess_TimestampsView from '$/views/_GlobalIpfsAccess_TimestampsView.svelte'
 </script>
 
 
@@ -63,6 +64,21 @@
 						countResource={observedResourcesResource.count}
 						title='Observed resources'
 						id='observed-resources'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const timestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={timestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<GlobalIpfsAccess_TimestampsView
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
+						title='Observations'
+						id='timestamps'
 					/>
 				{/if}
 			{/snippet}

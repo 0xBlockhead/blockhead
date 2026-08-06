@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,6 +16,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -32,6 +35,42 @@
 	entityType={EntityType.SuiCheckpoint}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'Sui checkpoint'}
+	href={
+		href === undefined ?
+			(
+				'sequence' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/sui-checkpoint/[sequence=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in selection.entitySelector.$network.$network ?
+									caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+								:
+									selection.entitySelector.$network.$network.slug
+							),
+							sequence: String(selection.entitySelector.sequence),
+						}
+					)
+				:
+					'digest' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/sui-checkpoint-digest/[digest=stringSegment]',
+							{
+								network: (
+									'caip2' in selection.entitySelector.$network.$network ?
+										caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+									:
+										selection.entitySelector.$network.$network.slug
+								),
+								digest: selection.entitySelector.digest,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

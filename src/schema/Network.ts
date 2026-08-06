@@ -859,7 +859,50 @@ export default entity({
 				'namespace',
 			],
 			is: 'Avalanche',
-		})({}),
+		})({
+			$$blocks: {
+				entityType: EntityType.AvalanchePChainBlock,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.AvalanchePlatformVm_JsonRpc,
+				],
+			},
+			$$subnets: {
+				entityType: EntityType.AvalancheSubnet,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.AvalanchePlatformVm_JsonRpc,
+				],
+			},
+		}),
+		Sui: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Sui',
+		})({
+			$$timestamps: {
+				entityType: EntityType.SuiNetwork_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Sui,
+				],
+			},
+			$$checkpoints: {
+				entityType: EntityType.SuiCheckpoint,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Sui,
+				],
+			},
+			$$transactions: {
+				entityType: EntityType.SuiTransaction,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Sui,
+				],
+			},
+		}),
 		Near: facet({
 			path: [
 				'namespace',

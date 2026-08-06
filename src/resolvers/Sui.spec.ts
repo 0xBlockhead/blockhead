@@ -322,6 +322,107 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 		}])
 	})
 
+	const networkFacetCheckpointsResolver = suiResolvers.resolvers.find((resolver) => (
+		resolver.entityType === EntityType.Network
+		&& 'Sui' in resolver.projections
+		&& '$$checkpoints' in resolver.projections.Sui
+	))
+	const networkFacetTransactionsResolver = suiResolvers.resolvers.find((resolver) => (
+		resolver.entityType === EntityType.Network
+		&& 'Sui' in resolver.projections
+		&& '$$transactions' in resolver.projections.Sui
+		&& typeof resolver.projections.Sui.$$transactions === 'object'
+		&& 'select' in resolver.projections.Sui.$$transactions
+	))
+
+	if (networkFacetCheckpointsResolver == null || networkFacetTransactionsResolver == null)
+		throw new Error('Sui spec missing Network.Sui facet resolvers')
+
+	it('projects Network.Sui tip observations, checkpoint tip-walk, and recent transactions', async () => {
+		executeSui
+			.mockResolvedValueOnce({
+				checkpoint: tipCheckpointWire,
+			})
+			.mockResolvedValueOnce({
+				checkpoint: {
+					...tipCheckpointWire,
+					sequenceNumber: 99,
+					digest: 'PriorCheckpointDigest',
+				},
+			})
+			.mockResolvedValueOnce({
+				transactions: {
+					pageInfo: {
+						hasNextPage: false,
+						endCursor: null,
+					},
+					nodes: [{
+						digest: 'TransactionDigest',
+						sender: {
+							address: canonicalAddress,
+						},
+					}],
+				},
+			})
+
+		const facetSnapshot = await networkFacetCheckpointsResolver.resolve.Slug.resolve({
+			slug: 'sui',
+		}, context)
+		expect(networkFacetCheckpointsResolver.projections.Sui.$$timestamps(facetSnapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: suiNetwork,
+				timestampMs: Date.parse('2026-08-06T12:00:00.000Z'),
+				source: 'Sui',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'latestCheckpointSequence')]: 100n,
+				[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'latestCheckpointDigest')]: 'CheckpointDigest',
+				[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'epoch')]: 42n,
+				[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'protocolVersion')]: 88n,
+				[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'totalTransactionCount')]: 1000n,
+			},
+		}])
+		expect(networkFacetCheckpointsResolver.projections.Sui.$$checkpoints(facetSnapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: suiNetwork,
+					sequence: 100n,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'digest')]: 'CheckpointDigest',
+					[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'epoch')]: 42n,
+					[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'timestampMs')]: Date.parse('2026-08-06T12:00:00.000Z'),
+					[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'previousDigest')]: 'PreviousDigest',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: suiNetwork,
+					sequence: 99n,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'digest')]: 'PriorCheckpointDigest',
+					[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'epoch')]: 42n,
+					[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'timestampMs')]: Date.parse('2026-08-06T12:00:00.000Z'),
+					[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'previousDigest')]: 'PreviousDigest',
+				},
+			},
+		])
+
+		const transactionsSnapshot = await networkFacetTransactionsResolver.resolve.Slug.resolve({
+			slug: 'sui',
+		}, context)
+		expect(networkFacetTransactionsResolver.projections.Sui.$$transactions.select(transactionsSnapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: suiNetwork,
+				digest: 'TransactionDigest',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.SuiTransaction, [], 'sender')]: canonicalAddress,
+			},
+		}])
+	})
+
 	it('resolves checkpoint selectors and singular transaction snapshots', async () => {
 		executeSui
 			.mockResolvedValueOnce({

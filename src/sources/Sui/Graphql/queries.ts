@@ -49,6 +49,26 @@ const addressTransactionsDocument = graphql(`
 	}
 `)
 
+const recentTransactionsDocument = graphql(`
+	query SuiRecentTransactions($first: Int!, $after: String) {
+		transactions(
+			first: $first
+			after: $after
+		) {
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
+			nodes {
+				digest
+				sender {
+					address
+				}
+			}
+		}
+	}
+`)
+
 const latestCheckpointDocument = graphql(`
 	query SuiLatestCheckpoint {
 		checkpoint {
@@ -386,6 +406,69 @@ export const getAddressTransactions = async (
 
 	return {
 		transactions: result.transactions.nodes,
+		pagination: pagination(
+			limit,
+			after,
+			result.transactions.pageInfo
+		),
+	}
+}
+
+export const getRecentTransactions = async (
+	{
+		limit,
+		after,
+	}: {
+		limit: number
+		after?: string
+	}
+) => {
+	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 50)
+		throw new Error('Sui GraphQL page limit must be a safe integer from 0 through 50')
+	if (after === '')
+		throw new Error('Sui GraphQL page cursor must not be empty')
+	if (limit === 0)
+		return {
+			transactions: [],
+			pagination: {
+				limit,
+				...(after != null && { after }),
+			},
+		}
+
+	const result = await executeSui(
+		recentTransactionsDocument,
+		{
+			first: limit,
+			...(after != null && { after }),
+		}
+	)
+	if (result.transactions == null)
+		throw new Error('Sui GraphQL recent transactions are missing')
+	if (result.transactions.nodes.length > limit)
+		throw new Error('Sui GraphQL recent transactions exceeded the requested limit')
+
+	const digests = new Set<string>()
+	for (const transaction of result.transactions.nodes) {
+		if (transaction.digest.length === 0)
+			throw new Error('Sui GraphQL recent transactions returned an empty digest')
+		if (digests.has(transaction.digest))
+			throw new Error('Sui GraphQL recent transactions returned a duplicate digest')
+		if (transaction.sender != null)
+			normalizeSuiAddress(transaction.sender.address)
+
+		digests.add(transaction.digest)
+	}
+
+	return {
+		transactions: result.transactions.nodes.map((transaction) => ({
+			digest: transaction.digest,
+			...(transaction.sender != null && {
+				sender: {
+					address: normalizeSuiAddress(transaction.sender.address),
+				},
+			}),
+		})),
 		pagination: pagination(
 			limit,
 			after,

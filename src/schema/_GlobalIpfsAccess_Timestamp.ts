@@ -3,52 +3,55 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
-	entityType: EntityType.SuiCheckpoint,
+	entityType: EntityType._GlobalIpfsAccess_Timestamp,
 	labels: {
-		singular: 'sui checkpoint',
-		plural: 'sui checkpoints',
+		singular: 'global IPFS access timestamp',
+		plural: 'global IPFS access observations',
 	},
 })({
-	$network: {
-		entityType: EntityType.SuiNetwork,
+	$hub: {
+		entityType: EntityType._GlobalIpfsAccess,
 		cardinality: EntityFieldCardinality.One,
-	},
-	sequence: {
-		primitiveType: type('bigint').narrow((value) => value >= 0n),
-		cardinality: EntityFieldCardinality.One,
-	},
-	digest: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-	},
-	epoch: {
-		primitiveType: type('bigint'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	timestampMs: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	declaredAccessEndpointCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Ipfs_Rest,
+		],
 	},
-	previousDigest: {
-		primitiveType: type('string'),
+	reachableAccessEndpointCount: {
+		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Ipfs_Rest,
+		],
 	},
-	$$transactions: {
-		entityType: EntityType.SuiTransaction,
-		cardinality: EntityFieldCardinality.Many,
+	reachable: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Ipfs_Rest,
+		],
 	},
 })({
 	selectors: {
-		NetworkSequence: [
-			'$network',
-			'sequence',
-		],
-		NetworkDigest: [
-			'$network',
-			'digest',
+		HubTimestampMsSource: [
+			'$hub',
+			'timestampMs',
+			'source',
 		],
 	},
 })

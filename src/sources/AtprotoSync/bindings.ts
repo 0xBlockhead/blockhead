@@ -1,8 +1,9 @@
-// Generated from APP.ts — APP-free hand deepen: split RemoteQuery HTTP from RemoteLive WebSocket (see NEEDS_APP.md).
+// Generated from APP.ts.
 
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
+	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -27,9 +28,7 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Xrpc,
 		apiFamily: ApiFamily.AtprotoSync,
-		operationGroups: [
-			SourceOperationGroup.GenericRead,
-		],
+		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},

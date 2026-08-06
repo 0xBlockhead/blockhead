@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -19,6 +20,13 @@ export default entity({
 	$$observedResources: {
 		entityType: EntityType.IpfsResource,
 		cardinality: EntityFieldCardinality.Many,
+	},
+	$$timestamps: {
+		entityType: EntityType._GlobalIpfsAccess_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Ipfs_Rest,
+		],
 	},
 })({
 	selectors: {

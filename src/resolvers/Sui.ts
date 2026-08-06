@@ -257,6 +257,156 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					appliesTo: [
+						{
+							slug: networkBySlug.sui.slug,
+						},
+					],
+					resolve: async (network, context) => {
+						assertSuiNetwork(network)
+						const limit = Math.min(resolverContextRowLimit(context), 50)
+						const {
+							getCheckpointBySequence,
+							getLatestCheckpoint,
+						} = await import('$/sources/Sui/Graphql/queries.ts')
+						const tip = await getLatestCheckpoint()
+						const $network = {
+							$network: network,
+						} satisfies SuiNetworkSelector
+						const timestampMs = tip.timestampMs ?? Date.now()
+						const checkpoints = [
+							tip,
+							...await Promise.all(
+								Array.from({
+									length: Math.max(0, Math.min(Number(tip.sequence), limit) - 1),
+								}, (_value, offset) => (
+									getCheckpointBySequence(tip.sequence - BigInt(offset + 1))
+								))
+							),
+						]
+						return {
+							$network,
+							timestampMs,
+							tip,
+							checkpoints,
+						}
+					},
+				},
+			},
+		})({
+			Sui: {
+				$$timestamps: ({
+					$network,
+					tip,
+					timestampMs,
+				}) => [{
+					[EntityMetaKey.Selector]: {
+						$network,
+						timestampMs,
+						source: Source.Sui,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'latestCheckpointSequence')]: tip.sequence,
+						[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'latestCheckpointDigest')]: tip.digest,
+						...(tip.epoch != null && {
+							[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'epoch')]: tip.epoch,
+						}),
+						...(tip.protocolVersion != null && {
+							[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'protocolVersion')]: tip.protocolVersion,
+						}),
+						...(tip.totalTransactionCount != null && {
+							[entityFieldAddressKey(EntityType.SuiNetwork_Timestamp, [], 'totalTransactionCount')]: tip.totalTransactionCount,
+						}),
+					},
+				}],
+				$$checkpoints: ({
+					$network,
+					checkpoints,
+				}) => checkpoints.map((checkpoint) => ({
+					[EntityMetaKey.Selector]: {
+						$network,
+						sequence: checkpoint.sequence,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'digest')]: checkpoint.digest,
+						...(checkpoint.epoch != null && {
+							[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'epoch')]: checkpoint.epoch,
+						}),
+						...(checkpoint.timestampMs != null && {
+							[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'timestampMs')]: checkpoint.timestampMs,
+						}),
+						...(checkpoint.previousDigest != null && {
+							[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'previousDigest')]: checkpoint.previousDigest,
+						}),
+					},
+				})),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					appliesTo: [
+						{
+							slug: networkBySlug.sui.slug,
+						},
+					],
+					resolve: async (network, context) => {
+						assertSuiNetwork(network)
+						const { getRecentTransactions } = await import('$/sources/Sui/Graphql/queries.ts')
+						const page = await getRecentTransactions({
+							limit: Math.min(resolverContextRowLimit(context), 50),
+							after: context.providerContinuationToken,
+						})
+						const $network = {
+							$network: network,
+						} satisfies SuiNetworkSelector
+						return {
+							$network,
+							page,
+						}
+					},
+				},
+			},
+		})({
+			Sui: {
+				$$transactions: {
+					select: ({
+						$network,
+						page,
+					}) => page.transactions.map((transaction) => ({
+						[EntityMetaKey.Selector]: {
+							$network,
+							digest: transaction.digest,
+						},
+						...(transaction.sender != null && {
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.SuiTransaction, [], 'sender')]: transaction.sender.address,
+							},
+						}),
+					})),
+					continuation: ({ page }) => (
+						page.pagination.nextAfter == null ?
+							{
+								operation: 'network-transactions',
+								terminal: true,
+							}
+						:
+							{
+								operation: 'network-transactions',
+								terminal: false,
+								token: page.pagination.nextAfter,
+							}
+					),
+				},
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.SuiNetwork_Timestamp,
 			resolve: {
 				NetworkTimestampMsSource: {

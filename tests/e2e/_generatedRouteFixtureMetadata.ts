@@ -427,6 +427,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(ipfs)/ipfs/access/observations/[timestampMs]/[source]': {
+		routeId: '/(explore)/(ipfs)/ipfs/(ipfsProtocol)/access/(globalIpfsAccess)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		mappings: [
+			{
+				id: '_GlobalIpfsAccess_Timestamp.HubTimestampMsSource',
+				probeAtomPrefixes: ['/ipfs/access/observations/[timestampMs]/[source]:_GlobalIpfsAccess_Timestamp.HubTimestampMsSource'],
+				probeCases: [[[0, '1', ['timestampMs', 'source']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]',
 		mappings: [
@@ -2594,6 +2604,48 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				probeCases: [[[0, '1', ['poolId', 'network']]]],
 				projectionPath: [
 					'Cardano',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/sui-checkpoint-digest/[digest]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/sui-checkpoint-digest/[digest=stringSegment]',
+		mappings: [
+			{
+				id: 'SuiCheckpoint.NetworkDigest',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/sui-checkpoint-digest/[digest]:SuiCheckpoint.NetworkDigest'],
+				probeCases: [[[0, '1', ['digest', 'network']]]],
+				projectionPath: [
+					'Sui',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/sui-checkpoint/[sequence]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/sui-checkpoint/[sequence=nonNegativeBigInt]',
+		mappings: [
+			{
+				id: 'SuiCheckpoint.NetworkSequence',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/sui-checkpoint/[sequence]:SuiCheckpoint.NetworkSequence'],
+				probeCases: [[[0, '1', ['sequence', 'network']]]],
+				projectionPath: [
+					'Sui',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/sui-tx/[digest]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/sui-tx/[digest=stringSegment]',
+		mappings: [
+			{
+				id: 'SuiTransaction.NetworkDigest',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/sui-tx/[digest]:SuiTransaction.NetworkDigest'],
+				probeCases: [[[0, '1', ['digest', 'network']]]],
+				projectionPath: [
+					'Sui',
 				],
 			},
 		],

@@ -1189,6 +1189,7 @@ export enum EntityType {
 	_GlobalEvmAbiCatalog = "_GlobalEvmAbiCatalog",
 	_GlobalEvmAbiCatalog_Timestamp = "_GlobalEvmAbiCatalog_Timestamp",
 	_GlobalIpfsAccess = "_GlobalIpfsAccess",
+	_GlobalIpfsAccess_Timestamp = "_GlobalIpfsAccess_Timestamp",
 	_GlobalNostrNetwork = "_GlobalNostrNetwork",
 	_GlobalNostrNetwork_Timestamp = "_GlobalNostrNetwork_Timestamp",
 	_GlobalRedditNetwork = "_GlobalRedditNetwork",
@@ -5813,6 +5814,7 @@ export const schema = {
 			})({
 				"scope": { label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, primitiveType: { unit: "_GlobalIpfsAccess" } },
 				"$$observedResources": { label: "Observed resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.IpfsResource },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalIpfsAccess_Timestamp, defaultSources: [Source.Ipfs_Rest] },
 			})({
 				selectors: {
 					"Scope": ["scope"],
@@ -5825,10 +5827,53 @@ export const schema = {
 						},
 						lists: [
 							{ field: "$$observedResources", component: "IpfsResourcesView", emptyText: "No IPFS resources yet." },
+							{ field: "$$timestamps", component: "_GlobalIpfsAccess_TimestampsView", emptyText: "No IPFS access observations yet." },
 						],
 					},
 					plural: {
 						component: "_GlobalIpfsAccessesView",
+					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType._GlobalIpfsAccess_Timestamp,
+				labels: {
+					singular: "global IPFS access timestamp",
+					plural: "global IPFS access observations",
+				},
+			})({
+				"$hub": { label: "Hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalIpfsAccess },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"declaredAccessEndpointCount": { label: "Declared access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Ipfs_Rest] },
+				"reachableAccessEndpointCount": { label: "Reachable access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Ipfs_Rest] },
+				"reachable": { label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Ipfs_Rest] },
+			})({
+				selectors: {
+					"HubTimestampMsSource": ["$hub", "timestampMs", "source"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Constants_Internal, Source.Ipfs_Rest] },
+						summary: {
+							title: [{ field: "$hub" }],
+							value: [{ field: "timestampMs", format: "timestamp" }],
+						},
+						content: {
+							dl: [
+								[{ field: "$hub" }],
+								[
+									{ field: "timestampMs", format: "timestamp" },
+									"source",
+									{ field: "declaredAccessEndpointCount", format: "number" },
+									{ field: "reachableAccessEndpointCount", format: "number" },
+									"reachable",
+								],
+							],
+						},
+					},
+					plural: { component: "_GlobalIpfsAccess_TimestampsView",
 					},
 				},
 			}),
@@ -31216,7 +31261,7 @@ export const schema = {
 				"$$queuedTransactions": { label: "queued transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.SafeTransactionService_Rest] },
 				"$$tokenTransfers": { label: "token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer },
 				"$$internalTransfers": { label: "internal transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmInternalTransfer },
-				"$$ownedCoins": { label: "owned coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance, defaultSources: [Source.Allium_Rest, Source.Blockscout_Rest] },
+				"$$ownedCoins": { label: "owned coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance, defaultSources: [Source.Allium_Rest, Source.Blockscout_Rest, Source.GoldRushFoundational_Rest] },
 				"$$nfts": { label: "NFTs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNft, defaultSources: [Source.OpenSea_Rest] },
 				"$$erc20TokenAllowances": { label: "erc20 token allowances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmActorCoinAllowance },
 				"$$aaveReservePositions": { label: "Aave reserve positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveReservePosition, defaultSources: [Source.Aave_Rest] },
@@ -31350,7 +31395,7 @@ export const schema = {
 				"$coinInstance": { label: "Coin", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmCoinInstance },
 				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"decimals": { label: "Decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance_Timestamp },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance_Timestamp, defaultSources: [Source.Allium_Rest, Source.GoldRushFoundational_Rest] },
 				"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance_EvmBlock },
 			})({
 				selectors: {
@@ -31430,15 +31475,16 @@ export const schema = {
 				"$actorCoin": { label: "Actor coin", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkActorCoinBalance },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"blockNumber": { label: "Block number", description: "The block height or number in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"blockNumber": { label: "Block number", description: "The block height or number in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Allium_Rest, Source.GoldRushFoundational_Rest] },
 				"balance": {
 					label: "Balance",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "bigint",
+					defaultSources: [Source.Allium_Rest, Source.GoldRushFoundational_Rest],
 				},
-				"usdValue": { label: "USD value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"priceUsd": { label: "Price USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"usdValue": { label: "USD value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Allium_Rest, Source.GoldRushFoundational_Rest] },
+				"priceUsd": { label: "Price USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Allium_Rest, Source.GoldRushFoundational_Rest] },
 				"tokenMetadata": { label: "Token metadata", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
 			})({
 				selectors: {
@@ -44300,8 +44346,8 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"publicKey": { label: "Public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningNode_Timestamp, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
-				"$$channels": { label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningChannel },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningNode_Timestamp, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
+				"$$channels": { label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LightningChannel, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 			})({
 				selectors: {
 					"NetworkPublicKey": ["$network", "publicKey"],
@@ -44309,7 +44355,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest],
+							sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql],
 						},
 						summary: {
 							title: [{ field: "publicKey", format: "truncated" }],
@@ -49428,7 +49474,47 @@ export const schema = {
 					"Avalanche": facet({
 						path: ["namespace"],
 						is: "Avalanche",
-					})({}),
+					})({
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalanchePChainBlock, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+						"$$subnets": { label: "Subnets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalancheSubnet, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+					})({
+						singularView: {
+							carousels: [
+								{
+									id: "avalanche-chain-activity",
+									label: "Chain activity",
+									className: "network-view-collapsible-chain-activity",
+									sections: [
+										{ id: "avalanche-chain-blocks", field: ["Avalanche", "$$blocks"], List: "AvalanchePChainBlocksView", label: "Blocks", selection: { sources: [Source.AvalanchePlatformVm_JsonRpc], limit: 16 } },
+										{ id: "avalanche-chain-subnets", field: ["Avalanche", "$$subnets"], List: "AvalancheSubnetsView", label: "Subnets", selection: { sources: [Source.AvalanchePlatformVm_JsonRpc], limit: 16 } },
+									],
+								},
+							],
+						},
+					}),
+					"Sui": facet({
+						path: ["namespace"],
+						is: "Sui",
+					})({
+						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SuiNetwork_Timestamp, defaultSources: [Source.Sui] },
+						"$$checkpoints": { label: "Checkpoints", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SuiCheckpoint, defaultSources: [Source.Sui] },
+						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SuiTransaction, defaultSources: [Source.Sui] },
+					})({
+						singularView: {
+							carousels: [
+								{
+									id: "sui-chain-activity",
+									label: "Chain activity",
+									className: "network-view-collapsible-chain-activity",
+									sections: [
+										{ id: "sui-chain-observations", field: ["Sui", "$$timestamps"], List: "SuiNetwork_TimestampsView", label: "Observations", emptyText: "No Sui network observations.", selection: { sources: [Source.Sui], limit: 16 } },
+										{ id: "sui-chain-checkpoints", field: ["Sui", "$$checkpoints"], List: "SuiCheckpointsView", label: "Checkpoints", emptyText: "No Sui checkpoints.", selection: { sources: [Source.Sui], limit: 16 } },
+										{ id: "sui-chain-transactions", field: ["Sui", "$$transactions"], List: "SuiTransactionsView", label: "Transactions", emptyText: "No Sui transactions.", selection: { sources: [Source.Sui], limit: 16 } },
+									],
+								},
+							],
+						},
+					}),
 					"Near": facet({
 						path: ["namespace"],
 						is: "Near",
@@ -58427,7 +58513,7 @@ export const schema = {
 				"sequence": {
 					label: 'sequence',
 					type: EntityFieldType.Primitive,
-					valueType: "bigint",
+					valueType: "NonNegativeBigInt",
 					cardinality: EntityFieldCardinality.One,
 				},
 				"digest": {
@@ -74401,18 +74487,6 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#suibalancechange",
 			},
 		},
-		[EntityType.SuiCheckpoint]: {
-			"NetworkSequence": {
-				kind: "Research",
-				decision: "Retain SuiCheckpoint.NetworkSequence as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#suicheckpoint",
-			},
-			"NetworkDigest": {
-				kind: "Research",
-				decision: "Retain SuiCheckpoint.NetworkDigest as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#suicheckpoint",
-			},
-		},
 		[EntityType.SuiCoinBalance_Timestamp]: {
 			"AccountCoinTypeTimestampMsSource": {
 				kind: "Research",
@@ -74450,9 +74524,12 @@ export const routes = defineRoutes(schema)({
 		},
 		[EntityType.SuiNetwork]: {
 			"Network": {
-				kind: "Research",
-				decision: "Retain SuiNetwork.Network as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#suinetwork",
+				kind: "Facet",
+				target: {
+					entityType: EntityType.Network,
+					selectorName: "Slug",
+				},
+				facetPath: ["Sui"],
 			},
 		},
 		[EntityType.SuiNetwork_Timestamp]: {
@@ -74516,13 +74593,6 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain SuiRegulatedCoinState_Timestamp.CoinTypeTimestampMsSource as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#suiregulatedcoinstate_timestamp",
-			},
-		},
-		[EntityType.SuiTransaction]: {
-			"NetworkDigest": {
-				kind: "Research",
-				decision: "Retain SuiTransaction.NetworkDigest as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#suitransaction",
 			},
 		},
 		[EntityType.SuiTransaction_Timestamp]: {
@@ -78045,6 +78115,41 @@ export const routes = defineRoutes(schema)({
 											}
 										}
 									},
+									children: {
+										"observations": {
+											children: {
+												"[timestampMs]": {
+													children: {
+														"[source]": {
+															selectors: {
+																[EntityType._GlobalIpfsAccess_Timestamp]: {
+																	"HubTimestampMsSource": {
+
+																		params: {
+																			"timestampMs": [
+																				"timestampMs"
+																			], "source": [
+																				"source"
+																			]
+																		}, derivations: {
+																			"$hub": {
+																				kind: "object", fields: [
+																					{
+																						name: "scope", value: { kind: "literal", value: "_GlobalIpfsAccess" }
+																					},
+																				],
+																			}
+																		},
+																		page: {}
+																	}
+																}
+															},
+														}
+													}
+												}
+											}
+										}
+									},
 								}
 							}
 						},
@@ -81534,6 +81639,117 @@ export const routes = defineRoutes(schema)({
 																},
 																params: {
 																	"txId": ["txId"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"sui-checkpoint": {
+											children: {
+												"[sequence]": {
+													selectors: {
+														[EntityType.SuiCheckpoint]: {
+															"NetworkSequence": {
+																when: {
+																	path: ["namespace"],
+																	is: "Sui",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Sui"],
+																},
+																params: {
+																	"sequence": ["sequence"],
+																},
+																derivations: {
+																	"$network": {
+																		kind: "selector",
+																		entity: EntityType.SuiNetwork,
+																		selector: "Network",
+																		params: [
+																			{
+																				field: "$network",
+																				value: { kind: "pageSelector" },
+																			},
+																		],
+																	},
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"sui-checkpoint-digest": {
+											children: {
+												"[digest]": {
+													selectors: {
+														[EntityType.SuiCheckpoint]: {
+															"NetworkDigest": {
+																when: {
+																	path: ["namespace"],
+																	is: "Sui",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Sui"],
+																},
+																params: {
+																	"digest": ["digest"],
+																},
+																derivations: {
+																	"$network": {
+																		kind: "selector",
+																		entity: EntityType.SuiNetwork,
+																		selector: "Network",
+																		params: [
+																			{
+																				field: "$network",
+																				value: { kind: "pageSelector" },
+																			},
+																		],
+																	},
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"sui-tx": {
+											children: {
+												"[digest]": {
+													selectors: {
+														[EntityType.SuiTransaction]: {
+															"NetworkDigest": {
+																when: {
+																	path: ["namespace"],
+																	is: "Sui",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Sui"],
+																},
+																params: {
+																	"digest": ["digest"],
+																},
+																derivations: {
+																	"$network": {
+																		kind: "selector",
+																		entity: EntityType.SuiNetwork,
+																		selector: "Network",
+																		params: [
+																			{
+																				field: "$network",
+																				value: { kind: "pageSelector" },
+																			},
+																		],
+																	},
 																},
 																page: {},
 															},
@@ -88301,31 +88517,47 @@ export const app = {
 				source: Source.AtprotoSync_Xrpc,
 				provider: "AtprotoSync",
 				label: "AT Protocol sync XRPC",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Feed,
-						key: "atproto-sync",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Feed,
+							key: "atproto-sync",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://{pds-host}",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.Xrpc,
+						apiFamily: ApiFamily.AtprotoSync,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://{pds-host}",
-							corsEnabled: false,
+					{
+						target: {
+							kind: SourceTargetKind.Feed,
+							key: "atproto-sync",
 						},
-						{
-							endpointKind: SourceEndpointKind.WebSocketUrl,
-							locator: "wss://{pds-host}/xrpc/com.atproto.sync.subscribeRepos",
-						},
-					],
-					wireProtocol: WireProtocol.Xrpc,
-					apiFamily: ApiFamily.AtprotoSync,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-						SourceOperationGroup.GenericSubscribe,
-					],
-					delivery: SourceDelivery.RemoteLive,
-					credentials: [],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.WebSocketUrl,
+								locator: "wss://{pds-host}/xrpc/com.atproto.sync.subscribeRepos",
+							},
+						],
+						wireProtocol: WireProtocol.Xrpc,
+						apiFamily: ApiFamily.AtprotoSync,
+						operationGroups: [
+							SourceOperationGroup.GenericSubscribe,
+						],
+						delivery: SourceDelivery.RemoteLive,
+						credentials: [],
+					},
+				],
 			},
 			{
 				source: Source.Avail,
@@ -103726,6 +103958,10 @@ export const app = {
 				path: "src/resolvers/Atproto-Xrpc.ts",
 			},
 			{
+				source: Source.AtprotoSync_Xrpc,
+				path: "src/resolvers/AtprotoSync-Xrpc.ts",
+			},
+			{
 				source: Source.AvalancheInfo_JsonRpc,
 				path: "src/resolvers/AvalancheInfo-JsonRpc.ts",
 			},
@@ -103963,7 +104199,7 @@ export const app = {
 			},
 			{
 				source: Source.GoldRushFoundational_Rest,
-				path: "src/resolvers/GoldRush-Rest.ts",
+				path: "src/resolvers/Covalent-Rest.ts",
 			},
 			{
 				source: Source.HederaMirrorNode_Rest,

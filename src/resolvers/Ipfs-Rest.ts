@@ -125,5 +125,39 @@ export default {
 				isCidSubdomainSafe: (snapshot) => snapshot.isCidSubdomainSafe,
 				$media: (snapshot) => snapshot.$media,
 			}),
+
+		defineResolver({
+			entityType: EntityType._GlobalIpfsAccess_Timestamp,
+			resolve: {
+				HubTimestampMsSource: {
+					resolve: async ({
+						$hub,
+						timestampMs,
+						source,
+					}) => {
+						if (source !== Source.Ipfs_Rest)
+							throw new Error(`Ipfs_Rest: unsupported source ${source}`)
+
+						return {
+							$hub,
+							timestampMs,
+							source,
+							...(await (
+								await import('$/sources/Ipfs/Rest/queries.ts')
+							).getGatewayReachability()),
+						}
+					},
+				},
+			},
+		})({
+			$hub: (snapshot) => ({
+				[EntityMetaKey.Selector]: snapshot.$hub,
+			}),
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			source: (snapshot) => snapshot.source,
+			declaredAccessEndpointCount: (snapshot) => snapshot.declaredAccessEndpointCount,
+			reachableAccessEndpointCount: (snapshot) => snapshot.reachableAccessEndpointCount,
+			reachable: (snapshot) => snapshot.reachable,
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

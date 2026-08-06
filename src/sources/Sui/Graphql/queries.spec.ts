@@ -22,6 +22,7 @@ const {
 	getCheckpointByDigest,
 	getCheckpointBySequence,
 	getLatestCheckpoint,
+	getRecentTransactions,
 	getTransaction,
 } = await import('$/sources/Sui/Graphql/queries.ts')
 
@@ -349,6 +350,38 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 		})
 		expect(print(executeSui.mock.calls[0][0])).toContain('checkpoint {')
 		expect(print(executeSui.mock.calls[2][0])).toContain('checkpoint(digest: $digest)')
+	})
+
+	it('lists recent network transactions with pagination', async () => {
+		executeSui.mockResolvedValueOnce({
+			transactions: {
+				pageInfo,
+				nodes: [{
+					digest: 'TransactionDigest',
+					sender: {
+						address: '0x2',
+					},
+				}],
+			},
+		})
+
+		await expect(getRecentTransactions({
+			limit: 1,
+			after: 'cursor',
+		})).resolves.toEqual({
+			transactions: [{
+				digest: 'TransactionDigest',
+				sender: {
+					address: `0x${'0'.repeat(63)}2`,
+				},
+			}],
+			pagination: {
+				limit: 1,
+				after: 'cursor',
+				nextAfter: 'next-cursor',
+			},
+		})
+		expect(print(executeSui.mock.calls[0][0])).toContain('SuiRecentTransactions')
 	})
 
 	it('projects transaction identity, kind, gas, and checkpoint effects', async () => {

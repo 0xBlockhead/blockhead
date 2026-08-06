@@ -27,11 +27,17 @@ export default entity({
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
 			Source.LightningLnd_Rest,
+			Source.Amboss_Graphql,
 		],
 	},
 	$$channels: {
 		entityType: EntityType.LightningChannel,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.LightningMempoolSpace_Rest,
+			Source.LightningLnd_Rest,
+			Source.Amboss_Graphql,
+		],
 	},
 })({
 	selectors: {

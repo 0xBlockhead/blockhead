@@ -5,7 +5,10 @@ import {
 	vi,
 } from 'vitest'
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { avalanchePrimaryNetworkSubnetId } from '$/sources/AvalanchePlatformVm/JsonRpc/types.ts'
@@ -194,4 +197,91 @@ it('projects committed P-Chain transaction status observations', async () => {
 	expect(observation.status).toBe('Committed')
 	expect(observation.blockHeight).toBe(99n)
 	expect(observation.source).toBe(Source.AvalanchePlatformVm_JsonRpc)
+})
+
+const networkBlocksResolver = avalanchePlatformVm.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Avalanche' in resolver.projections
+	&& '$$blocks' in resolver.projections.Avalanche
+	&& typeof resolver.projections.Avalanche.$$blocks === 'object'
+	&& 'select' in resolver.projections.Avalanche.$$blocks
+))
+const networkSubnetsResolver = avalanchePlatformVm.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Avalanche' in resolver.projections
+	&& '$$subnets' in resolver.projections.Avalanche
+	&& typeof resolver.projections.Avalanche.$$subnets === 'object'
+	&& 'select' in resolver.projections.Avalanche.$$subnets
+))
+
+if (networkBlocksResolver == null || networkSubnetsResolver == null)
+	throw new Error('AvalanchePlatformVm_JsonRpc spec missing Network.Avalanche list resolvers')
+
+it('projects Network.Avalanche $$blocks tip walk and $$subnets from platform.getSubnets', async () => {
+	jsonRpc2
+		.mockResolvedValueOnce({
+			height: '3',
+		})
+		.mockResolvedValueOnce({
+			subnets: [
+				{
+					id: avalanchePrimaryNetworkSubnetId,
+					controlKeys: ['P-avax1control'],
+					threshold: '1',
+				},
+				{
+					id: 'subnet-2',
+					controlKeys: [],
+					threshold: '0',
+				},
+			],
+		})
+
+	const blocksSnapshot = await networkBlocksResolver.resolve.Slug.resolve({
+		slug: networkBySlug['avalanche-p-chain'].slug,
+	}, {
+		...context,
+		pagination: {
+			limit: 2,
+		},
+	})
+	expect(networkBlocksResolver.projections.Avalanche.$$blocks.select(blocksSnapshot)).toEqual([
+		{
+			[EntityMetaKey.Selector]: {
+				$network: {
+					slug: networkBySlug['avalanche-p-chain'].slug,
+				},
+				height: 3n,
+			},
+		},
+		{
+			[EntityMetaKey.Selector]: {
+				$network: {
+					slug: networkBySlug['avalanche-p-chain'].slug,
+				},
+				height: 2n,
+			},
+		},
+	])
+	expect(networkBlocksResolver.projections.Avalanche.$$blocks.resolveCount(blocksSnapshot)).toBe(4n)
+
+	const subnetsSnapshot = await networkSubnetsResolver.resolve.Slug.resolve({
+		slug: networkBySlug['avalanche-p-chain'].slug,
+	}, {
+		...context,
+		pagination: {
+			limit: 1,
+		},
+	})
+	expect(networkSubnetsResolver.projections.Avalanche.$$subnets.resolveCount(subnetsSnapshot)).toBe(2n)
+	expect(networkSubnetsResolver.projections.Avalanche.$$subnets.select(subnetsSnapshot)).toEqual([{
+		[EntityMetaKey.Selector]: {
+			subnetId: avalanchePrimaryNetworkSubnetId,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.AvalancheSubnet, [], 'controlKeys')]: ['P-avax1control'],
+			[entityFieldAddressKey(EntityType.AvalancheSubnet, [], 'ownerAddresses')]: ['P-avax1control'],
+			[entityFieldAddressKey(EntityType.AvalancheSubnet, [], 'threshold')]: 1,
+		},
+	}])
 })

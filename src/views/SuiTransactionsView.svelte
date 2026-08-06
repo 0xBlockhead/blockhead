@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,9 +29,24 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: suiTransaction })}
+		{@const suiTransactionSelector = suiTransaction[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.SuiTransaction}
-			entitySelector={suiTransaction[EntityMetaKey.Selector]}
+			entitySelector={suiTransactionSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/sui-tx/[digest=stringSegment]',
+					{
+						network: (
+							'caip2' in suiTransactionSelector.$network.$network ?
+								caip2StringFromValue(suiTransactionSelector.$network.$network.caip2)
+							:
+								suiTransactionSelector.$network.$network.slug
+						),
+						digest: suiTransactionSelector.digest,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				Sui transaction
