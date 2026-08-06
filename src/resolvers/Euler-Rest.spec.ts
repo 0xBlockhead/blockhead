@@ -137,6 +137,26 @@ describe('Euler Rest resolver module', () => {
 		})
 	})
 
+	it('preserves an empty Euler positions list on contractPositions', async () => {
+		if (evmNetworkAccountTimestampResolver == null)
+			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
+
+		getAccountPositions.mockResolvedValue([])
+
+		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+			$account: {
+				$network: baseNetwork,
+				$actor: {
+					address: '0x0000000000000000000000000000000000000001',
+				},
+			},
+			timestampMs: 1760000000000,
+			source: Source.Euler_Rest,
+		}, context)
+
+		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([])
+	})
+
 	it('rejects unsupported Euler chains on account positions before transport', async () => {
 		if (evmNetworkAccountTimestampResolver == null)
 			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
