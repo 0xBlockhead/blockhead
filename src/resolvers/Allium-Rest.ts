@@ -17,6 +17,7 @@ import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { apiChainByChainId } from '$/sources/Allium/Rest/constants.ts'
+import type { AlliumWalletBalance } from '$/sources/Allium/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const alliumNetworkForSelector = (
@@ -44,6 +45,48 @@ const alliumNetworkForSelector = (
 	return {
 		apiChain,
 		caip2: network.caip2,
+	}
+}
+
+const alliumBalanceObservation = (
+	walletTokenBalance: AlliumWalletBalance,
+	actorCoin: EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+) => {
+	const balanceText = walletTokenBalance.raw_balance_str
+	if (balanceText == null || !/^(0|[1-9][0-9]*)$/.test(balanceText))
+		throw new Error('Allium_Rest: wallet token balance amount missing')
+
+	const timestampMs = (
+		walletTokenBalance.block_timestamp == null || walletTokenBalance.block_timestamp === '' ?
+			undefined
+		:
+			Date.parse(walletTokenBalance.block_timestamp)
+	)
+	if (timestampMs == null || !Number.isFinite(timestampMs) || timestampMs < 0)
+		throw new Error('Allium_Rest: wallet token balance timestamp missing')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$actorCoin: actorCoin,
+			timestampMs,
+			source: Source.Allium_Rest,
+		},
+		balance: BigInt(balanceText),
+		...(
+			walletTokenBalance.block_number != null
+			&& Number.isSafeInteger(walletTokenBalance.block_number)
+			&& walletTokenBalance.block_number >= 0
+			&& {
+				blockNumber: BigInt(walletTokenBalance.block_number),
+			}
+		),
+		...(
+			walletTokenBalance.token?.price != null
+			&& Number.isFinite(walletTokenBalance.token.price)
+			&& {
+				priceUsd: walletTokenBalance.token.price,
+			}
+		),
 	}
 }
 
@@ -146,6 +189,11 @@ export default {
 							|| token.decimals == null
 						) throw new Error('Allium_Rest: wallet token balance incomplete')
 
+						const actorCoin = {
+							$actor,
+							$network,
+						} satisfies EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+
 						return {
 							$network,
 							$contract: undefined,
@@ -157,6 +205,9 @@ export default {
 							},
 							symbol: token.info.symbol.toUpperCase(),
 							decimals: token.decimals,
+							$$timestamps: [
+								alliumBalanceObservation(walletTokenBalance, actorCoin),
+							],
 						}
 					},
 				},
@@ -187,6 +238,11 @@ export default {
 							|| token.decimals == null
 						) throw new Error('Allium_Rest: wallet token balance incomplete')
 
+						const actorCoin = {
+							$actor,
+							$contract,
+						} satisfies EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+
 						return {
 							$network: $contract.$network,
 							$contract,
@@ -199,6 +255,9 @@ export default {
 							},
 							symbol: token.info.symbol.toUpperCase(),
 							decimals: token.decimals,
+							$$timestamps: [
+								alliumBalanceObservation(walletTokenBalance, actorCoin),
+							],
 						}
 					},
 				},
@@ -223,6 +282,76 @@ export default {
 			$coinInstance: (balance) => balance.$coinInstance,
 			symbol: (balance) => balance.symbol,
 			decimals: (balance) => balance.decimals,
+			$$timestamps: (balance) => balance.$$timestamps.map((timestamp) => ({
+				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+			})),
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkActorCoinBalance_Timestamp,
+			resolve: {
+				ActorCoinTimestampMsSource: {
+					resolve: async ({
+						$actorCoin,
+						timestampMs,
+						source,
+					}, context) => {
+						if (source !== Source.Allium_Rest)
+							throw new Error(`Allium_Rest: unsupported balance observation source ${source}`)
+						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+							throw new Error('Allium_Rest: invalid balance observation timestamp')
+
+						const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
+						const isErc20 = '$contract' in $actorCoin
+						const network = isErc20 ? $actorCoin.$contract.$network : $actorCoin.$network
+						const alliumNetwork = alliumNetworkForSelector(network)
+						const walletTokenBalance = (
+							(await getLatestWalletBalances({
+								publicEnv: context.publicEnv,
+								address: $actorCoin.$actor.address,
+								apiChain: alliumNetwork.apiChain,
+								withLiquidityInfo: false,
+							})).items
+								.find((candidate) => (
+									isErc20 ?
+										candidate.token?.type === 'evm_erc20'
+										&& candidate.token.address.toLowerCase() === $actorCoin.$contract.address.toLowerCase()
+									:
+										candidate.token?.type === 'native'
+								))
+						)
+						if (walletTokenBalance == null)
+							throw new Error('Allium_Rest: balance observation missing')
+
+						const observation = alliumBalanceObservation(
+							walletTokenBalance,
+							isErc20 ?
+								{
+									$actor: $actorCoin.$actor,
+									$contract: $actorCoin.$contract,
+								}
+							:
+								{
+									$actor: $actorCoin.$actor,
+									$network: $actorCoin.$network,
+								}
+						)
+						if (observation[EntityMetaKey.Selector].timestampMs !== timestampMs)
+							throw new Error('Allium_Rest: balance observation timestamp does not match request')
+
+						return observation
+					},
+				},
+			},
+		})({
+			$actorCoin: (observation) => ({
+				[EntityMetaKey.Selector]: observation[EntityMetaKey.Selector].$actorCoin,
+			}),
+			timestampMs: (observation) => observation[EntityMetaKey.Selector].timestampMs,
+			source: (observation) => observation[EntityMetaKey.Selector].source,
+			blockNumber: (observation) => observation.blockNumber,
+			balance: (observation) => observation.balance,
+			priceUsd: (observation) => observation.priceUsd,
 		}),
 
 		defineResolver({
