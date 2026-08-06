@@ -145,12 +145,15 @@ export default {
 							$network,
 						}
 						const limit = resolverContextRowLimit(context)
-						return (
-							(await getAccountPositions({
+						const marketPositions = (
+							await getAccountPositions({
 								chainId,
 								account: $actor.address,
-							}))
-								.filter((position) => position.kind === 'market')
+							})
+						)
+							.filter((position) => position.kind === 'market')
+						return {
+							positions: marketPositions
 								.slice(0, limit)
 								.map((position) => ({
 									[EntityMetaKey.Selector]: {
@@ -160,13 +163,17 @@ export default {
 											marketId: position.marketId,
 										},
 									},
-								}))
-						)
+								})),
+							positionCount: marketPositions.length,
+						}
 					},
 				},
 			},
 		})({
-			$$morphoMarketPositions: (positions) => positions,
+			$$morphoMarketPositions: {
+				select: (snapshot) => snapshot.positions,
+				resolveCount: (snapshot) => snapshot.positionCount,
+			},
 		}),
 
 		defineResolver({
@@ -185,12 +192,15 @@ export default {
 							$network,
 						}
 						const limit = resolverContextRowLimit(context)
-						return (
-							(await getAccountPositions({
+						const vaultPositions = (
+							await getAccountPositions({
 								chainId,
 								account: $actor.address,
-							}))
-								.filter((position) => position.kind === 'vault')
+							})
+						)
+							.filter((position) => position.kind === 'vault')
+						return {
+							positions: vaultPositions
 								.slice(0, limit)
 								.map((position) => ({
 									[EntityMetaKey.Selector]: {
@@ -200,13 +210,17 @@ export default {
 											vaultAddress: position.vaultAddress,
 										},
 									},
-								}))
-						)
+								})),
+							positionCount: vaultPositions.length,
+						}
 					},
 				},
 			},
 		})({
-			$$morphoVaultPositions: (positions) => positions,
+			$$morphoVaultPositions: {
+				select: (snapshot) => snapshot.positions,
+				resolveCount: (snapshot) => snapshot.positionCount,
+			},
 		}),
 
 		defineResolver({
@@ -388,24 +402,30 @@ export default {
 					resolve: async (network, context) => {
 						const chainId = eip155ChainId(network)
 						const { listMarkets } = await import('$/sources/Morpho/Graphql/queries.ts')
-						return (await listMarkets({
+						const page = await listMarkets({
 							chainIds: [
 								chainId,
 							],
 							limit: resolverContextRowLimit(context),
-						}))
-							.map((market) => ({
+						})
+						return {
+							markets: page.items.map((market) => ({
 								[EntityMetaKey.Selector]: {
 									$network: network,
 									marketId: market.marketId,
 								},
-							}))
+							})),
+							marketCount: page.countTotal,
+						}
 					},
 				},
 			},
 		})({
 			Evm: {
-				$$morphoMarkets: (markets) => markets,
+				$$morphoMarkets: {
+					select: (snapshot) => snapshot.markets,
+					resolveCount: (snapshot) => snapshot.marketCount,
+				},
 			},
 		}),
 
@@ -416,24 +436,30 @@ export default {
 					resolve: async (network, context) => {
 						const chainId = eip155ChainId(network)
 						const { listVaults } = await import('$/sources/Morpho/Graphql/queries.ts')
-						return (await listVaults({
+						const page = await listVaults({
 							chainIds: [
 								chainId,
 							],
 							limit: resolverContextRowLimit(context),
-						}))
-							.map((vault) => ({
+						})
+						return {
+							vaults: page.items.map((vault) => ({
 								[EntityMetaKey.Selector]: {
 									$network: network,
 									vaultAddress: vault.address,
 								},
-							}))
+							})),
+							vaultCount: page.countTotal,
+						}
 					},
 				},
 			},
 		})({
 			Evm: {
-				$$morphoVaults: (vaults) => vaults,
+				$$morphoVaults: {
+					select: (snapshot) => snapshot.vaults,
+					resolveCount: (snapshot) => snapshot.vaultCount,
+				},
 			},
 		}),
 	],

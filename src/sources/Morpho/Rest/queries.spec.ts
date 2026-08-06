@@ -176,6 +176,19 @@ describe('Morpho Blue market operations', () => {
 		await expect(getMarket({
 			chainId: 8453,
 			marketId: baseMarketId,
-		})).rejects.toThrow(`${Source.Morpho_Rest}: market missing loan token`)
+		})).rejects.toThrow(`${Source.Morpho_Rest}: invalid market response envelope`)
+	})
+
+	it('fails closed when market state envelope is malformed', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: {
+				...baseMarketState,
+				fee_wad: null,
+			},
+		})
+		await expect(getMarketState({
+			chainId: 8453,
+			marketId: baseMarketId,
+		})).rejects.toThrow(`${Source.Morpho_Rest}: invalid market state response envelope`)
 	})
 })

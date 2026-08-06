@@ -112,6 +112,9 @@ describe('Morpho GraphQL market enumeration', () => {
 					items: [
 						market,
 					],
+					pageInfo: {
+						countTotal: 1,
+					},
 				},
 			},
 		})))
@@ -121,26 +124,29 @@ describe('Morpho GraphQL market enumeration', () => {
 				8453,
 			],
 			limit: 16,
-		})).resolves.toEqual([
-			{
-				marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
-				chainId: 8453,
-				loanAssetAddress: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
-				collateralAssetAddress: '0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf',
-				lltvWad: '860000000000000000',
-				irmAddress: '0x46415998764c29ab2a25cbea6254146d50d22687',
-				oracleAddress: '0x663becd10dae6c4a3dcd89f1d76c1174199639b9',
-				creationBlockNumber: '19326981',
-				state: {
-					totalSupplyAssets: '1453572095573010',
-					totalSupplyShares: '1320911716664756276808',
-					totalBorrowAssets: '1315886527548583',
-					totalBorrowShares: '1181447494108739688848',
-					lastAccrualTimestamp: 1786052921,
-					lastIndexedBlock: '49631787',
+		})).resolves.toEqual({
+			items: [
+				{
+					marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
+					chainId: 8453,
+					loanAssetAddress: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+					collateralAssetAddress: '0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf',
+					lltvWad: '860000000000000000',
+					irmAddress: '0x46415998764c29ab2a25cbea6254146d50d22687',
+					oracleAddress: '0x663becd10dae6c4a3dcd89f1d76c1174199639b9',
+					creationBlockNumber: '19326981',
+					state: {
+						totalSupplyAssets: '1453572095573010',
+						totalSupplyShares: '1320911716664756276808',
+						totalBorrowAssets: '1315886527548583',
+						totalBorrowShares: '1181447494108739688848',
+						lastAccrualTimestamp: 1786052921,
+						lastIndexedBlock: '49631787',
+					},
 				},
-			},
-		])
+			],
+			countTotal: 1,
+		})
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
 			'https://api.morpho.org/graphql',
@@ -158,6 +164,7 @@ describe('Morpho GraphQL market enumeration', () => {
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('chainId_in: $chainIds')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('first: $limit')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('countTotal')
 	})
 
 	it('returns a successful empty market list', async () => {
@@ -165,6 +172,9 @@ describe('Morpho GraphQL market enumeration', () => {
 			data: {
 				markets: {
 					items: [],
+					pageInfo: {
+						countTotal: 0,
+					},
 				},
 			},
 		})))
@@ -173,7 +183,10 @@ describe('Morpho GraphQL market enumeration', () => {
 			chainIds: [
 				1,
 			],
-		})).resolves.toEqual([])
+		})).resolves.toEqual({
+			items: [],
+			countTotal: 0,
+		})
 	})
 
 	it('rejects unsupported chains before transport', async () => {
@@ -198,6 +211,9 @@ describe('Morpho GraphQL market enumeration', () => {
 			data: {
 				markets: {
 					items: [],
+					pageInfo: {
+						countTotal: 0,
+					},
 				},
 			},
 		})))
@@ -206,7 +222,10 @@ describe('Morpho GraphQL market enumeration', () => {
 			chainIds: [
 				5042,
 			],
-		})).resolves.toEqual([])
+		})).resolves.toEqual({
+			items: [],
+			countTotal: 0,
+		})
 		expect(sourceFetch).toHaveBeenCalledTimes(1)
 	})
 
@@ -374,6 +393,9 @@ describe('Morpho GraphQL market enumeration', () => {
 							},
 						},
 					],
+					pageInfo: {
+						countTotal: 1,
+					},
 				},
 			},
 		})))
@@ -398,6 +420,9 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 					items: [
 						vault,
 					],
+					pageInfo: {
+						countTotal: 1,
+					},
 				},
 			},
 		})))
@@ -407,23 +432,26 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 				1,
 			],
 			limit: 16,
-		})).resolves.toEqual([
-			{
-				address: '0xbeef01735c132ada46aa9aa4c54623caa92a64cb',
-				chainId: 1,
-				symbol: 'steakUSDC',
-				name: 'Steakhouse USDC',
-				listed: true,
-				assetAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-				assetDecimals: 6,
-				state: {
-					totalAssets: '1000000000000',
-					totalSupply: '999000000000000000000000',
-					lastAccrualTimestamp: 1786052921,
-					lastIndexedBlock: '21000000',
+		})).resolves.toEqual({
+			items: [
+				{
+					address: '0xbeef01735c132ada46aa9aa4c54623caa92a64cb',
+					chainId: 1,
+					symbol: 'steakUSDC',
+					name: 'Steakhouse USDC',
+					listed: true,
+					assetAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+					assetDecimals: 6,
+					state: {
+						totalAssets: '1000000000000',
+						totalSupply: '999000000000000000000000',
+						lastAccrualTimestamp: 1786052921,
+						lastIndexedBlock: '21000000',
+					},
 				},
-			},
-		])
+			],
+			countTotal: 1,
+		})
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
 			'https://api.morpho.org/graphql',
@@ -444,6 +472,7 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('orderBy: TotalAssetsUsd')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('totalAssets')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('totalSupply')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('countTotal')
 	})
 
 	it('returns a successful empty vault list', async () => {
@@ -451,6 +480,9 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 			data: {
 				vaults: {
 					items: [],
+					pageInfo: {
+						countTotal: 0,
+					},
 				},
 			},
 		})))
@@ -459,7 +491,10 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 			chainIds: [
 				8453,
 			],
-		})).resolves.toEqual([])
+		})).resolves.toEqual({
+			items: [],
+			countTotal: 0,
+		})
 	})
 
 	it('rejects unsupported chains before transport', async () => {
@@ -599,6 +634,9 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 							},
 						},
 					],
+					pageInfo: {
+						countTotal: 1,
+					},
 				},
 			},
 		})))

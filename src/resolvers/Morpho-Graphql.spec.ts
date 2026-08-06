@@ -154,7 +154,7 @@ describe('Morpho GraphQL resolver module', () => {
 			context
 		)
 
-		expect(morphoMarketPositionsResolver.projections.$$morphoMarketPositions(marketPositions)).toEqual([
+		expect(morphoMarketPositionsResolver.projections.$$morphoMarketPositions.select(marketPositions)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$account: accountSelector,
@@ -165,7 +165,8 @@ describe('Morpho GraphQL resolver module', () => {
 				},
 			},
 		])
-		expect(morphoVaultPositionsResolver.projections.$$morphoVaultPositions(vaultPositions)).toEqual([
+		expect(morphoMarketPositionsResolver.projections.$$morphoMarketPositions.resolveCount(marketPositions)).toBe(1)
+		expect(morphoVaultPositionsResolver.projections.$$morphoVaultPositions.select(vaultPositions)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$account: accountSelector,
@@ -176,6 +177,7 @@ describe('Morpho GraphQL resolver module', () => {
 				},
 			},
 		])
+		expect(morphoVaultPositionsResolver.projections.$$morphoVaultPositions.resolveCount(vaultPositions)).toBe(1)
 		expect(getAccountPositions).toHaveBeenCalledWith({
 			chainId: 1,
 			account: accountSelector.$actor.address,
@@ -238,6 +240,9 @@ describe('Morpho GraphQL resolver module', () => {
 					items: [
 						market,
 					],
+					pageInfo: {
+						countTotal: 42,
+					},
 				},
 			},
 		})))
@@ -250,9 +255,7 @@ describe('Morpho GraphQL resolver module', () => {
 		}
 
 		const snapshot = await networkResolver.resolve.Caip2.resolve(network, context)
-		const markets = networkResolver.projections.Evm.$$morphoMarkets(snapshot)
-
-		expect(markets).toEqual([
+		expect(networkResolver.projections.Evm.$$morphoMarkets.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -260,9 +263,11 @@ describe('Morpho GraphQL resolver module', () => {
 				},
 			},
 		])
+		expect(networkResolver.projections.Evm.$$morphoMarkets.resolveCount(snapshot)).toBe(42)
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).variables).toMatchObject({
 			limit: 16,
 		})
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('countTotal')
 	})
 
 	it('resolves $$morphoVaults selectors for the requested chain', async () => {
@@ -278,6 +283,9 @@ describe('Morpho GraphQL resolver module', () => {
 					items: [
 						vault,
 					],
+					pageInfo: {
+						countTotal: 17,
+					},
 				},
 			},
 		})))
@@ -290,9 +298,7 @@ describe('Morpho GraphQL resolver module', () => {
 		}
 
 		const snapshot = await networkResolver.resolve.Caip2.resolve(network, context)
-		const vaults = networkResolver.projections.Evm.$$morphoVaults(snapshot)
-
-		expect(vaults).toEqual([
+		expect(networkResolver.projections.Evm.$$morphoVaults.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -300,6 +306,7 @@ describe('Morpho GraphQL resolver module', () => {
 				},
 			},
 		])
+		expect(networkResolver.projections.Evm.$$morphoVaults.resolveCount(snapshot)).toBe(17)
 	})
 
 	it('resolves MorphoMarket snapshot with enrolled config + tip state fields', async () => {

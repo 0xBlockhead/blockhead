@@ -207,7 +207,7 @@ describe('Morpho Rest resolver module', () => {
 				$network: baseNetwork,
 				marketId: baseMarketId,
 			}, context)
-		).rejects.toThrow(`${Source.Morpho_Rest}: market missing loan token`)
+		).rejects.toThrow(`${Source.Morpho_Rest}: invalid market response envelope`)
 	})
 
 	it('fails closed when market state response omits data', async () => {
@@ -248,6 +248,6 @@ describe('Morpho Rest resolver module', () => {
 				$network: baseNetwork,
 				marketId: baseMarketId,
 			}, context)
-		).rejects.toThrow(`${Source.Morpho_Rest}: market missing total_supply_assets`)
+		).rejects.toThrow(`${Source.Morpho_Rest}: invalid market state response envelope`)
 	})
 })

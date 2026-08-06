@@ -17,11 +17,29 @@ import type {
 	MorphoBlueMarketStateResponse,
 	MorphoBlueMarketStateWire,
 } from '$/sources/Morpho/Rest/types.ts'
+import {
+	morphoBlueMarketConfigResponseWire,
+	morphoBlueMarketConfigWire,
+	morphoBlueMarketStateResponseWire,
+	morphoBlueMarketStateWire,
+} from '$/sources/Morpho/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
 const binding = bindings[Source.Morpho_Rest][0]
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`${Source.Morpho_Rest}: invalid ${label} response envelope`)
+	}
+}
 
 const assertChainId = (chainId: number) => {
 	if (!Number.isSafeInteger(chainId) || chainId < 1)
@@ -74,6 +92,7 @@ const assertMarketConfigWire = (
 		marketId: `0x${string}`
 	}
 ): MorphoBlueMarketConfig => {
+	assertEnvelope('market config', morphoBlueMarketConfigWire, wire)
 	if (wire.chain_id !== expected.chainId)
 		throw new Error(`${Source.Morpho_Rest}: market chain mismatch`)
 	const marketId = assertMarketId(wire.market_id)
@@ -99,17 +118,12 @@ const assertMarketStateWire = (
 		marketId: `0x${string}`
 	}
 ): MorphoBlueMarketState => {
+	assertEnvelope('market state', morphoBlueMarketStateWire, wire)
 	if (wire.chain_id !== expected.chainId)
 		throw new Error(`${Source.Morpho_Rest}: market state chain mismatch`)
 	const marketId = assertMarketId(wire.market_id)
 	if (marketId !== expected.marketId)
 		throw new Error(`${Source.Morpho_Rest}: market state id mismatch`)
-	if (
-		wire.last_accrual_timestamp == null
-		|| !Number.isSafeInteger(wire.last_accrual_timestamp)
-		|| wire.last_accrual_timestamp < 0
-	)
-		throw new Error(`${Source.Morpho_Rest}: invalid last_accrual_timestamp`)
 
 	return {
 		chainId: wire.chain_id,
@@ -134,9 +148,13 @@ export const getMarket = async ({
 }) => {
 	assertChainId(chainId)
 	const normalizedMarketId = assertMarketId(marketId)
-	const response = await sourceGetJson<MorphoBlueMarketConfigResponse>(
-		binding,
-		httpUrl(binding, marketSelectorPath(chainId, normalizedMarketId))
+	const response = assertEnvelope(
+		'market',
+		morphoBlueMarketConfigResponseWire,
+		await sourceGetJson<MorphoBlueMarketConfigResponse>(
+			binding,
+			httpUrl(binding, marketSelectorPath(chainId, normalizedMarketId))
+		)
 	)
 	if (response.data == null)
 		throw new Error(`${Source.Morpho_Rest}: market response missing data`)
@@ -157,9 +175,13 @@ export const getMarketState = async ({
 }) => {
 	assertChainId(chainId)
 	const normalizedMarketId = assertMarketId(marketId)
-	const response = await sourceGetJson<MorphoBlueMarketStateResponse>(
-		binding,
-		httpUrl(binding, `${marketSelectorPath(chainId, normalizedMarketId)}/state`)
+	const response = assertEnvelope(
+		'market state',
+		morphoBlueMarketStateResponseWire,
+		await sourceGetJson<MorphoBlueMarketStateResponse>(
+			binding,
+			httpUrl(binding, `${marketSelectorPath(chainId, normalizedMarketId)}/state`)
+		)
 	)
 	if (response.data == null)
 		throw new Error(`${Source.Morpho_Rest}: market state response missing data`)

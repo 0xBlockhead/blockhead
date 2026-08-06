@@ -56,6 +56,7 @@ const marketFields = `
 		borrowShares
 		timestamp
 		blockNumber
+		fee
 	}`
 
 const assertEnvelope = <_Value>(
@@ -191,16 +192,39 @@ const vaultFields = `
 		totalSupply
 		timestamp
 		blockNumber
+		totalAssetsUsd
+		apy
 	}`
+
+const assertOptionalFiniteNumber = (
+	value: number | undefined,
+	label: string
+) => {
+	if (value == null)
+		return undefined
+	if (!Number.isFinite(value))
+		throw new Error(`${Source.Morpho_Graphql}: invalid ${label} ${String(value)}`)
+	return value
+}
 
 const normalizeVaultState = (
 	wire: MorphoGraphqlVaultStateWire
-) => ({
-	totalAssets: assertGraphqlAmount(wire.totalAssets, 'totalAssets'),
-	totalSupply: assertGraphqlAmount(wire.totalSupply, 'totalSupply'),
-	lastAccrualTimestamp: wire.timestamp,
-	lastIndexedBlock: assertGraphqlAmount(wire.blockNumber, 'blockNumber'),
-})
+) => {
+	const totalAssetsUsd = assertOptionalFiniteNumber(wire.totalAssetsUsd, 'totalAssetsUsd')
+	const apy = assertOptionalFiniteNumber(wire.apy, 'apy')
+	return {
+		totalAssets: assertGraphqlAmount(wire.totalAssets, 'totalAssets'),
+		totalSupply: assertGraphqlAmount(wire.totalSupply, 'totalSupply'),
+		lastAccrualTimestamp: wire.timestamp,
+		lastIndexedBlock: assertGraphqlAmount(wire.blockNumber, 'blockNumber'),
+		...(totalAssetsUsd != null && {
+			totalAssetsUsd,
+		}),
+		...(apy != null && {
+			apy,
+		}),
+	}
+}
 
 const normalizeVault = (
 	wire: MorphoGraphqlVaultWire,
@@ -224,7 +248,7 @@ const normalizeVault = (
 	}
 }
 
-/** List the first 100 Morpho Blue markets filtered to supported EIP-155 chains. */
+/** List Morpho Blue markets filtered to supported EIP-155 chains, with authoritative `pageInfo.countTotal`. */
 export const listMarkets = async ({
 	chainIds,
 	limit = morphoMarketPageLimit,
@@ -258,6 +282,9 @@ export const listMarkets = async ({
 				items {
 					${marketFields}
 				}
+				pageInfo {
+					countTotal
+				}
 			}
 		}
 	`, {
@@ -269,10 +296,15 @@ export const listMarkets = async ({
 	)
 	if (data.markets.items.length > limit)
 		throw new Error(`${Source.Morpho_Graphql}: markets response exceeds page limit`)
+	if (data.markets.pageInfo.countTotal < data.markets.items.length)
+		throw new Error(`${Source.Morpho_Graphql}: markets countTotal below page length`)
 
-	return data.markets.items.map((market) => (
-		normalizeMarket(market, chainIds)
-	))
+	return {
+		items: data.markets.items.map((market) => (
+			normalizeMarket(market, chainIds)
+		)),
+		countTotal: data.markets.pageInfo.countTotal,
+	}
 }
 
 /** Read one Morpho Blue market by its EIP-155 chain and bytes32 market id. */
@@ -317,7 +349,7 @@ export const getMarket = async ({
 	return market
 }
 
-/** List the first 100 MetaMorpho vaults filtered to supported EIP-155 chains. */
+/** List MetaMorpho vaults filtered to supported EIP-155 chains, with authoritative `pageInfo.countTotal`. */
 export const listVaults = async ({
 	chainIds,
 	limit = morphoVaultPageLimit,
@@ -351,6 +383,9 @@ export const listVaults = async ({
 				items {
 					${vaultFields}
 				}
+				pageInfo {
+					countTotal
+				}
 			}
 		}
 	`, {
@@ -362,10 +397,15 @@ export const listVaults = async ({
 	)
 	if (data.vaults.items.length > limit)
 		throw new Error(`${Source.Morpho_Graphql}: vaults response exceeds page limit`)
+	if (data.vaults.pageInfo.countTotal < data.vaults.items.length)
+		throw new Error(`${Source.Morpho_Graphql}: vaults countTotal below page length`)
 
-	return data.vaults.items.map((vault) => (
-		normalizeVault(vault, chainIds)
-	))
+	return {
+		items: data.vaults.items.map((vault) => (
+			normalizeVault(vault, chainIds)
+		)),
+		countTotal: data.vaults.pageInfo.countTotal,
+	}
 }
 
 /** Read one MetaMorpho vault by its EIP-155 chain and vault contract address. */
@@ -408,17 +448,6 @@ export const getVault = async ({
 		throw new Error(`${Source.Morpho_Graphql}: vault address mismatch`)
 
 	return vault
-}
-
-const assertOptionalFiniteNumber = (
-	value: number | undefined,
-	label: string
-) => {
-	if (value == null)
-		return undefined
-	if (!Number.isFinite(value))
-		throw new Error(`${Source.Morpho_Graphql}: invalid ${label} ${String(value)}`)
-	return value
 }
 
 const normalizeMarketPosition = (

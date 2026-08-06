@@ -24,6 +24,8 @@ export const morphoGraphqlMarketStateWire = arktype({
 	borrowShares: morphoGraphqlAmountWire,
 	timestamp: 'number.integer >= 0',
 	blockNumber: morphoGraphqlAmountWire,
+	/** GraphQL Float fee — transport-only; enrolled feeWad uses Morpho_Rest. */
+	'fee?': 'number',
 })
 
 export const morphoGraphqlMarketWire = arktype({
@@ -38,9 +40,14 @@ export const morphoGraphqlMarketWire = arktype({
 	'state?': morphoGraphqlMarketStateWire.or(arktype('null')),
 })
 
+const morphoGraphqlPageInfoWire = arktype({
+	countTotal: 'number.integer >= 0',
+})
+
 export const morphoGraphqlMarketsDataWire = arktype({
 	markets: {
 		items: morphoGraphqlMarketWire.array(),
+		pageInfo: morphoGraphqlPageInfoWire,
 	},
 })
 
@@ -53,6 +60,9 @@ export const morphoGraphqlVaultStateWire = arktype({
 	totalSupply: morphoGraphqlAmountWire,
 	timestamp: 'number.integer >= 0',
 	blockNumber: morphoGraphqlAmountWire,
+	/** Float USD / APY — transport-only until APP enrolls vault tip metrics. */
+	'totalAssetsUsd?': 'number',
+	'apy?': 'number',
 })
 
 export const morphoGraphqlVaultWire = arktype({
@@ -68,6 +78,7 @@ export const morphoGraphqlVaultWire = arktype({
 export const morphoGraphqlVaultsDataWire = arktype({
 	vaults: {
 		items: morphoGraphqlVaultWire.array(),
+		pageInfo: morphoGraphqlPageInfoWire,
 	},
 })
 
@@ -145,6 +156,13 @@ export type MorphoGraphqlVaultState = {
 	totalSupply: string
 	lastAccrualTimestamp: number
 	lastIndexedBlock: string
+	totalAssetsUsd?: number
+	apy?: number
+}
+
+export type MorphoGraphqlListPage<_Item> = {
+	items: _Item[]
+	countTotal: number
 }
 
 export type MorphoGraphqlVault = {

@@ -1,25 +1,38 @@
-export type MorphoBlueMarketConfigWire = {
-	chain_id?: number
-	market_id?: string
-	loan_token?: string
-	collateral_token?: string
-	oracle_address?: string
-	irm_address?: string
-	lltv_wad?: string
-	creation_block_number?: string
-}
+import { type as arktype } from 'arktype'
 
-export type MorphoBlueMarketStateWire = {
-	chain_id?: number
-	market_id?: string
-	last_indexed_block?: string
-	last_accrual_timestamp?: number
-	total_supply_assets?: string
-	total_supply_shares?: string
-	total_borrow_assets?: string
-	total_borrow_shares?: string
-	fee_wad?: string
-}
+export const morphoBlueMarketConfigWire = arktype({
+	chain_id: 'number.integer > 0',
+	market_id: 'string',
+	loan_token: 'string',
+	collateral_token: 'string',
+	oracle_address: 'string',
+	irm_address: 'string',
+	lltv_wad: 'string',
+	creation_block_number: 'string',
+})
+
+export const morphoBlueMarketStateWire = arktype({
+	chain_id: 'number.integer > 0',
+	market_id: 'string',
+	last_indexed_block: 'string',
+	last_accrual_timestamp: 'number.integer >= 0',
+	total_supply_assets: 'string',
+	total_supply_shares: 'string',
+	total_borrow_assets: 'string',
+	total_borrow_shares: 'string',
+	fee_wad: 'string',
+})
+
+export const morphoBlueMarketConfigResponseWire = arktype({
+	'data?': morphoBlueMarketConfigWire,
+})
+
+export const morphoBlueMarketStateResponseWire = arktype({
+	'data?': morphoBlueMarketStateWire,
+})
+
+export type MorphoBlueMarketConfigWire = typeof morphoBlueMarketConfigWire.infer
+export type MorphoBlueMarketStateWire = typeof morphoBlueMarketStateWire.infer
 
 export type MorphoBlueMarketConfigResponse = {
 	data?: MorphoBlueMarketConfigWire
