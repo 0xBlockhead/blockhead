@@ -86,6 +86,10 @@ export const balancerPoolIdPattern = /^0x[0-9a-fA-F]{40}([0-9a-fA-F]{24})?$/
 export const balancerPoolListDefaultLimit = 16
 export const balancerPoolListMaxLimit = 100
 
+/** Bounded page size for the Balancer `poolEvents` list operation. */
+export const balancerPoolEventListDefaultLimit = 16
+export const balancerPoolEventListMaxLimit = 100
+
 
 // Lookups
 

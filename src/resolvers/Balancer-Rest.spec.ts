@@ -189,4 +189,30 @@ describe('Balancer Rest resolver module', () => {
 			}, context)
 		).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool response envelope`)
 	})
+
+	it('lists Network $$balancerPools with authoritative resolveCount from poolGetPoolsCount', async () => {
+		if (networkBalancerPoolsResolver == null)
+			throw new Error('missing Network $$balancerPools resolver')
+
+		graphql
+			.mockResolvedValueOnce({
+				poolGetPools: [
+					weightedV2Pool,
+				],
+			})
+			.mockResolvedValueOnce({
+				poolGetPoolsCount: 2355,
+			})
+
+		const snapshot = await networkBalancerPoolsResolver.resolve.Caip2.resolve(ethereumNetwork, context)
+		expect(networkBalancerPoolsResolver.projections.Evm.$$balancerPools.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: ethereumNetwork,
+					poolId: weightedV2PoolId,
+				},
+			},
+		])
+		expect(networkBalancerPoolsResolver.projections.Evm.$$balancerPools.resolveCount(snapshot)).toBe(2355)
+	})
 })

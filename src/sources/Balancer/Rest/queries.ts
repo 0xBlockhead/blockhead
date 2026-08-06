@@ -2,24 +2,43 @@
  * Balancer API named operations (GraphQL at api-v3.balancer.fi).
  * @see https://docs.balancer.fi/data-and-analytics/data-and-analytics/balancer-api/balancer-api.html
  * @see https://docs.balancer.fi/data-and-analytics/data-and-analytics/balancer-api/pool-details-with-apr.html
+ * @see https://docs.balancer.fi/data-and-analytics/data-and-analytics/balancer-api/user-pool-balance.html
+ * @see https://docs.balancer.fi/data-and-analytics/data-and-analytics/balancer-api/pools-top-ordered-tvl.html
  */
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import bindings from '$/sources/Balancer/bindings.ts'
 import {
 	balancerChainByChainId,
+	balancerPoolEventListDefaultLimit,
+	balancerPoolEventListMaxLimit,
 	balancerPoolListDefaultLimit,
 	balancerPoolListMaxLimit,
 	balancerPoolIdPattern,
 } from '$/sources/Balancer/Rest/constants.ts'
 import type {
+	BalancerAccountPoolBalance,
 	BalancerPool,
 	BalancerPoolData,
-	BalancerPoolsData,
+	BalancerPoolEvent,
+	BalancerPoolEventsData,
 	BalancerPoolWire,
+	BalancerPoolsCountData,
+	BalancerPoolsData,
+	BalancerVeBalUser,
+	BalancerVeBalUserBalanceData,
+	BalancerVeBalUserData,
+	BalancerVotingGauge,
+	BalancerVotingListData,
 } from '$/sources/Balancer/Rest/types.ts'
 import {
 	balancerPoolDetailEnvelope,
+	balancerPoolEventsEnvelope,
 	balancerPoolListEnvelope,
+	balancerPoolsCountEnvelope,
+	balancerUserBalanceEnvelope,
+	balancerVeBalUserBalanceEnvelope,
+	balancerVeBalUserEnvelope,
+	balancerVotingListEnvelope,
 } from '$/sources/Balancer/Rest/types.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
 import { Source } from '$/sources/Source.ts'
@@ -45,6 +64,33 @@ const poolFields = `
 		totalLiquidity
 		totalShares
 		swapFee
+		aprItems {
+			title
+			type
+			apr
+		}
+	}
+	staking {
+		type
+		gauge {
+			gaugeAddress
+			version
+		}
+	}
+`
+
+const userBalanceFields = `
+	userBalance {
+		stakedBalances {
+			balance
+			balanceUsd
+			stakingId
+			stakingType
+		}
+		walletBalance
+		walletBalanceUsd
+		totalBalance
+		totalBalanceUsd
 	}
 `
 
@@ -73,6 +119,16 @@ const assertAddress = (
 	return normalized
 }
 
+const assertTxHash = (
+	value: string,
+	label: string
+) => {
+	const normalized = hexLowerOfByteSize(value, 32)
+	if (normalized == null)
+		throw new Error(`${Source.Balancer_Rest}: invalid ${label} ${value}`)
+	return normalized
+}
+
 const assertNonEmptyString = (
 	value: string | undefined,
 	label: string
@@ -94,6 +150,29 @@ const assertEnvelope = (
 	} catch {
 		throw new Error(`${Source.Balancer_Rest}: invalid ${label} response envelope`)
 	}
+}
+
+const assertFiniteNumber = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isFinite(value))
+		throw new Error(`${Source.Balancer_Rest}: invalid ${label}`)
+	return value
+}
+
+const chainIdByGqlChain = Object.fromEntries(
+	Object.values(balancerChainByChainId).map((chain) => [
+		chain.gqlChain,
+		chain.chainId,
+	])
+) as Record<string, number>
+
+const assertGqlChainId = (gqlChain: string) => {
+	const chainId = chainIdByGqlChain[gqlChain]
+	if (chainId == null)
+		throw new Error(`${Source.Balancer_Rest}: unsupported GqlChain ${gqlChain}`)
+	return chainId
 }
 
 const assertPoolWire = (
@@ -127,6 +206,18 @@ const assertPoolWire = (
 	if (wire.poolTokens.length < 1)
 		throw new Error(`${Source.Balancer_Rest}: pool missing tokens`)
 
+	const aprItems = (wire.dynamicData.aprItems ?? []).map((item) => ({
+		title: assertNonEmptyString(item.title, 'apr title'),
+		type: assertNonEmptyString(item.type, 'apr type'),
+		apr: assertFiniteNumber(item.apr, 'apr'),
+	}))
+
+	const gauge = wire.staking?.gauge
+	if (wire.staking != null && wire.staking.type.length < 1)
+		throw new Error(`${Source.Balancer_Rest}: pool missing staking type`)
+	if (gauge != null && (!Number.isSafeInteger(gauge.version) || gauge.version < 1))
+		throw new Error(`${Source.Balancer_Rest}: invalid gauge version`)
+
 	return {
 		id,
 		address: assertAddress(wire.address, 'pool address'),
@@ -152,12 +243,71 @@ const assertPoolWire = (
 				}),
 			}
 		}),
+		aprItems,
+		...(wire.staking != null && {
+			stakingType: wire.staking.type,
+		}),
+		...(gauge != null && {
+			gaugeAddress: assertAddress(gauge.gaugeAddress, 'gauge address'),
+			gaugeVersion: gauge.version,
+		}),
 	}
 }
 
-const assertListLimit = (limit: number) => {
-	if (!Number.isSafeInteger(limit) || limit < 1 || limit > balancerPoolListMaxLimit)
-		throw new Error(`${Source.Balancer_Rest}: limit must be 1..${String(balancerPoolListMaxLimit)}`)
+const assertAccountPoolBalance = (
+	wire: BalancerPoolWire,
+	expected: {
+		chainId: number
+		gqlChain: string
+	}
+): BalancerAccountPoolBalance | undefined => {
+	const pool = assertPoolWire(wire, {
+		chainId: expected.chainId,
+		gqlChain: expected.gqlChain,
+	})
+	if (wire.userBalance === undefined)
+		throw new Error(`${Source.Balancer_Rest}: account pool balance missing userBalance`)
+	if (wire.userBalance == null)
+		return undefined
+
+	assertEnvelope(balancerUserBalanceEnvelope, wire.userBalance, 'user balance')
+	const totalBalance = assertNonEmptyString(wire.userBalance.totalBalance, 'totalBalance')
+	if (totalBalance === '0' || totalBalance === '0.0')
+		return undefined
+
+	return {
+		poolId: pool.id,
+		poolAddress: pool.address,
+		chainId: expected.chainId,
+		totalBalance,
+		totalBalanceUsd: assertFiniteNumber(wire.userBalance.totalBalanceUsd, 'totalBalanceUsd'),
+		walletBalance: assertNonEmptyString(wire.userBalance.walletBalance, 'walletBalance'),
+		walletBalanceUsd: assertFiniteNumber(wire.userBalance.walletBalanceUsd, 'walletBalanceUsd'),
+		stakedBalances: wire.userBalance.stakedBalances.map((staked) => ({
+			balance: assertNonEmptyString(staked.balance, 'staked balance'),
+			balanceUsd: assertFiniteNumber(staked.balanceUsd, 'staked balanceUsd'),
+			stakingId: assertNonEmptyString(staked.stakingId, 'stakingId'),
+			stakingType: assertNonEmptyString(staked.stakingType, 'stakingType'),
+		})),
+		...(pool.gaugeAddress != null && {
+			gaugeAddress: pool.gaugeAddress,
+		}),
+		...(pool.gaugeVersion != null && {
+			gaugeVersion: pool.gaugeVersion,
+		}),
+		...(pool.stakingType != null && {
+			stakingType: pool.stakingType,
+		}),
+	}
+}
+
+const assertListLimit = (
+	limit: number,
+	max: number,
+	label: string
+) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > max)
+		throw new Error(`${Source.Balancer_Rest}: ${label} must be 1..${String(max)}`)
 	return limit
 }
 
@@ -170,7 +320,7 @@ export const listPools = async ({
 	limit?: number
 }) => {
 	const chain = assertChainId(chainId)
-	assertListLimit(limit)
+	assertListLimit(limit, balancerPoolListMaxLimit, 'limit')
 
 	const data = await graphql<BalancerPoolsData>({
 		binding,
@@ -211,6 +361,40 @@ export const listPools = async ({
 	return pools
 }
 
+/** Authoritative on-chain indexed pool count for one EIP-155 chain (`poolGetPoolsCount`). */
+export const getPoolsCount = async ({
+	chainId,
+}: {
+	chainId: number
+}) => {
+	const chain = assertChainId(chainId)
+
+	const data = await graphql<BalancerPoolsCountData>({
+		binding,
+		query: `
+			query PoolGetPoolsCount($chain: GqlChain!) {
+				poolGetPoolsCount(
+					where: {
+						chainIn: [$chain]
+					}
+				)
+			}
+		`,
+		variables: {
+			chain: chain.gqlChain,
+		},
+	})
+	if (data == null)
+		throw new Error(`${Source.Balancer_Rest}: pool count response missing data`)
+	if (data.poolGetPoolsCount === undefined)
+		throw new Error(`${Source.Balancer_Rest}: pool count response poolGetPoolsCount is missing`)
+	assertEnvelope(balancerPoolsCountEnvelope, data.poolGetPoolsCount, 'pool count')
+	if (!Number.isSafeInteger(data.poolGetPoolsCount) || data.poolGetPoolsCount < 0)
+		throw new Error(`${Source.Balancer_Rest}: invalid pool count`)
+
+	return data.poolGetPoolsCount
+}
+
 /** Fetch one Balancer v2/v3 pool by EIP-155 chain id and native pool id. */
 export const getPool = async ({
 	chainId,
@@ -249,4 +433,298 @@ export const getPool = async ({
 		poolId: normalizedPoolId,
 		gqlChain: chain.gqlChain,
 	})
+}
+
+/**
+ * Account BPT wallet + staked balances via `poolGetPools(where.userAddress)`.
+ * Docs historically named this `userGetPoolBalances`; live API filters pools by userAddress.
+ * @see https://docs.balancer.fi/data-and-analytics/data-and-analytics/balancer-api/user-pool-balance.html
+ */
+export const getAccountPoolBalances = async ({
+	chainId,
+	account,
+	limit = balancerPoolListMaxLimit,
+}: {
+	chainId: number
+	account: string
+	limit?: number
+}) => {
+	const chain = assertChainId(chainId)
+	const normalizedAccount = assertAddress(account, 'account')
+	assertListLimit(limit, balancerPoolListMaxLimit, 'limit')
+
+	const data = await graphql<BalancerPoolsData>({
+		binding,
+		query: `
+			query AccountPoolBalances($chain: GqlChain!, $userAddress: String!, $first: Int!) {
+				poolGetPools(
+					first: $first
+					where: {
+						chainIn: [$chain]
+						userAddress: $userAddress
+					}
+				) {
+					${poolFields}
+					${userBalanceFields}
+				}
+			}
+		`,
+		variables: {
+			chain: chain.gqlChain,
+			userAddress: normalizedAccount,
+			first: limit,
+		},
+	})
+	if (data == null)
+		throw new Error(`${Source.Balancer_Rest}: account pool balances response missing data`)
+	if (data.poolGetPools === undefined)
+		throw new Error(`${Source.Balancer_Rest}: account pool balances response poolGetPools is missing`)
+	assertEnvelope(balancerPoolListEnvelope, data.poolGetPools, 'account pool balances')
+	if (data.poolGetPools.length > limit)
+		throw new Error(`${Source.Balancer_Rest}: account pool balances response exceeds requested limit ${String(limit)}`)
+
+	const balances = data.poolGetPools.flatMap((pool) => {
+		const balance = assertAccountPoolBalance(pool, {
+			chainId,
+			gqlChain: chain.gqlChain,
+		})
+		return balance == null ? [] : [balance]
+	})
+	if (new Set(balances.map((balance) => balance.poolId)).size !== balances.length)
+		throw new Error(`${Source.Balancer_Rest}: account pool balances response contains duplicate pool ids`)
+
+	return balances
+}
+
+/** veBAL voting-gauge list (`veBalGetVotingList`), optionally including killed gauges. */
+export const listVotingGauges = async ({
+	includeKilled = false,
+}: {
+	includeKilled?: boolean
+} = {}) => {
+	const data = await graphql<BalancerVotingListData>({
+		binding,
+		query: `
+			query VeBalGetVotingList($includeKilled: Boolean!) {
+				veBalGetVotingList(includeKilled: $includeKilled) {
+					id
+					address
+					chain
+					type
+					symbol
+					protocolVersion
+					gauge {
+						address
+						relativeWeightCap
+						isKilled
+					}
+					tokens {
+						address
+						symbol
+						logoURI
+					}
+				}
+			}
+		`,
+		variables: {
+			includeKilled,
+		},
+	})
+	if (data == null)
+		throw new Error(`${Source.Balancer_Rest}: voting list response missing data`)
+	if (data.veBalGetVotingList === undefined)
+		throw new Error(`${Source.Balancer_Rest}: voting list response veBalGetVotingList is missing`)
+	assertEnvelope(balancerVotingListEnvelope, data.veBalGetVotingList, 'voting list')
+
+	const gauges = data.veBalGetVotingList.map((wire): BalancerVotingGauge => {
+		const chainId = assertGqlChainId(wire.chain)
+		if (wire.protocolVersion !== 2 && wire.protocolVersion !== 3)
+			throw new Error(`${Source.Balancer_Rest}: unsupported voting pool protocolVersion ${String(wire.protocolVersion)}`)
+		if (wire.tokens.length < 1)
+			throw new Error(`${Source.Balancer_Rest}: voting pool missing tokens`)
+
+		return {
+			poolId: assertPoolId(wire.id),
+			poolAddress: assertAddress(wire.address, 'voting pool address'),
+			chainId,
+			poolType: assertNonEmptyString(wire.type, 'voting pool type'),
+			symbol: assertNonEmptyString(wire.symbol, 'voting pool symbol'),
+			protocolVersion: wire.protocolVersion,
+			gaugeAddress: assertAddress(wire.gauge.address, 'voting gauge address'),
+			isKilled: wire.gauge.isKilled,
+			...(wire.gauge.relativeWeightCap != null && wire.gauge.relativeWeightCap.length > 0 && {
+				relativeWeightCap: wire.gauge.relativeWeightCap,
+			}),
+			tokens: wire.tokens.map((token) => ({
+				address: assertAddress(token.address, 'voting token address'),
+				symbol: assertNonEmptyString(token.symbol, 'voting token symbol'),
+				...(token.logoURI != null && token.logoURI.length > 0 && {
+					logoURI: token.logoURI,
+				}),
+			})),
+		}
+	})
+	if (new Set(gauges.map((gauge) => `${gauge.chainId}:${gauge.gaugeAddress}`)).size !== gauges.length)
+		throw new Error(`${Source.Balancer_Rest}: voting list response contains duplicate gauges`)
+
+	return gauges
+}
+
+/** veBAL voting power balance string for one account on one chain. */
+export const getVeBalUserBalance = async ({
+	chainId,
+	account,
+}: {
+	chainId: number
+	account: string
+}) => {
+	const chain = assertChainId(chainId)
+	const normalizedAccount = assertAddress(account, 'account')
+
+	const data = await graphql<BalancerVeBalUserBalanceData>({
+		binding,
+		query: `
+			query VeBalGetUserBalance($address: String!, $chain: GqlChain!) {
+				veBalGetUserBalance(address: $address, chain: $chain)
+			}
+		`,
+		variables: {
+			address: normalizedAccount,
+			chain: chain.gqlChain,
+		},
+	})
+	if (data == null)
+		throw new Error(`${Source.Balancer_Rest}: veBAL balance response missing data`)
+	if (data.veBalGetUserBalance === undefined)
+		throw new Error(`${Source.Balancer_Rest}: veBAL balance response veBalGetUserBalance is missing`)
+	assertEnvelope(balancerVeBalUserBalanceEnvelope, data.veBalGetUserBalance, 'veBAL balance')
+	return assertNonEmptyString(data.veBalGetUserBalance, 'veBAL balance')
+}
+
+/** veBAL lock snapshot for one account on one chain (`veBalGetUser`). */
+export const getVeBalUser = async ({
+	chainId,
+	account,
+}: {
+	chainId: number
+	account: string
+}): Promise<BalancerVeBalUser> => {
+	const chain = assertChainId(chainId)
+	const normalizedAccount = assertAddress(account, 'account')
+
+	const data = await graphql<BalancerVeBalUserData>({
+		binding,
+		query: `
+			query VeBalGetUser($address: String!, $chain: GqlChain!) {
+				veBalGetUser(address: $address, chain: $chain) {
+					balance
+					locked
+					lockedUsd
+					rank
+				}
+			}
+		`,
+		variables: {
+			address: normalizedAccount,
+			chain: chain.gqlChain,
+		},
+	})
+	if (data == null)
+		throw new Error(`${Source.Balancer_Rest}: veBAL user response missing data`)
+	if (data.veBalGetUser === undefined)
+		throw new Error(`${Source.Balancer_Rest}: veBAL user response veBalGetUser is missing`)
+	if (data.veBalGetUser == null)
+		throw new Error(`${Source.Balancer_Rest}: veBAL user not found ${normalizedAccount} on chain ${String(chainId)}`)
+	assertEnvelope(balancerVeBalUserEnvelope, data.veBalGetUser, 'veBAL user')
+
+	return {
+		chainId,
+		account: normalizedAccount,
+		balance: assertNonEmptyString(data.veBalGetUser.balance, 'veBAL balance'),
+		locked: assertNonEmptyString(data.veBalGetUser.locked, 'veBAL locked'),
+		lockedUsd: assertNonEmptyString(data.veBalGetUser.lockedUsd, 'veBAL lockedUsd'),
+		...(data.veBalGetUser.rank != null && {
+			rank: data.veBalGetUser.rank,
+		}),
+	}
+}
+
+/** Recent pool events (`poolEvents`) for one EIP-155 chain, optionally filtered by pool id. */
+export const listPoolEvents = async ({
+	chainId,
+	poolId,
+	limit = balancerPoolEventListDefaultLimit,
+}: {
+	chainId: number
+	poolId?: string
+	limit?: number
+}): Promise<BalancerPoolEvent[]> => {
+	const chain = assertChainId(chainId)
+	assertListLimit(limit, balancerPoolEventListMaxLimit, 'limit')
+	const normalizedPoolId = poolId == null ? undefined : assertPoolId(poolId)
+
+	const data = await graphql<BalancerPoolEventsData>({
+		binding,
+		query: `
+			query PoolEvents($chain: GqlChain!, $first: Int!, $poolIdIn: [String!]) {
+				poolEvents(
+					first: $first
+					where: {
+						chainIn: [$chain]
+						poolIdIn: $poolIdIn
+					}
+				) {
+					id
+					type
+					chain
+					poolId
+					valueUSD
+					blockNumber
+					blockTimestamp
+					tx
+					userAddress
+				}
+			}
+		`,
+		variables: {
+			chain: chain.gqlChain,
+			first: limit,
+			poolIdIn: normalizedPoolId == null ? null : [normalizedPoolId],
+		},
+	})
+	if (data == null)
+		throw new Error(`${Source.Balancer_Rest}: pool events response missing data`)
+	if (data.poolEvents === undefined)
+		throw new Error(`${Source.Balancer_Rest}: pool events response poolEvents is missing`)
+	assertEnvelope(balancerPoolEventsEnvelope, data.poolEvents, 'pool events')
+	if (data.poolEvents.length > limit)
+		throw new Error(`${Source.Balancer_Rest}: pool events response exceeds requested limit ${String(limit)}`)
+
+	const events = data.poolEvents.map((wire): BalancerPoolEvent => {
+		if (wire.chain !== chain.gqlChain)
+			throw new Error(`${Source.Balancer_Rest}: pool event chain mismatch`)
+		if (!Number.isSafeInteger(wire.blockNumber) || wire.blockNumber < 0)
+			throw new Error(`${Source.Balancer_Rest}: invalid pool event blockNumber`)
+		if (!Number.isSafeInteger(wire.blockTimestamp) || wire.blockTimestamp < 0)
+			throw new Error(`${Source.Balancer_Rest}: invalid pool event blockTimestamp`)
+		const eventPoolId = assertPoolId(wire.poolId)
+		if (normalizedPoolId != null && eventPoolId !== normalizedPoolId)
+			throw new Error(`${Source.Balancer_Rest}: pool event poolId mismatch`)
+
+		return {
+			id: assertNonEmptyString(wire.id, 'pool event id'),
+			type: assertNonEmptyString(wire.type, 'pool event type'),
+			chainId,
+			poolId: eventPoolId,
+			valueUsd: assertFiniteNumber(wire.valueUSD, 'pool event valueUSD'),
+			blockNumber: wire.blockNumber,
+			blockTimestampMs: wire.blockTimestamp * 1000,
+			txHash: assertTxHash(wire.tx, 'pool event tx'),
+			userAddress: assertAddress(wire.userAddress, 'pool event userAddress'),
+		}
+	})
+	if (new Set(events.map((event) => event.id)).size !== events.length)
+		throw new Error(`${Source.Balancer_Rest}: pool events response contains duplicate ids`)
+
+	return events
 }

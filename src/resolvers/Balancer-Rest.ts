@@ -96,23 +96,36 @@ export default {
 						if (balancerChainByChainId[chainId] == null)
 							throw new Error(`${Source.Balancer_Rest}: unsupported chain id ${String(chainId)}`)
 
-						const { listPools } = await import('$/sources/Balancer/Rest/queries.ts')
-						return (await listPools({
+						const {
+							getPoolsCount,
+							listPools,
+						} = await import('$/sources/Balancer/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const pools = await listPools({
 							chainId,
-							limit: resolverContextRowLimit(context),
-						}))
-							.map((pool) => ({
+							limit,
+						})
+						const poolCount = await getPoolsCount({
+							chainId,
+						})
+						return {
+							pools: pools.map((pool) => ({
 								[EntityMetaKey.Selector]: {
 									$network: network,
 									poolId: pool.id,
 								},
-							}))
+							})),
+							poolCount,
+						}
 					},
 				},
 			},
 		})({
 			Evm: {
-				$$balancerPools: (pools) => pools,
+				$$balancerPools: {
+					select: (snapshot) => snapshot.pools,
+					resolveCount: (snapshot) => snapshot.poolCount,
+				},
 			},
 		}),
 	],

@@ -28,8 +28,14 @@ vi.mock('$/sources/_shared/wire/Graphql/client.ts', async (importOriginal) => ({
 }))
 
 const {
+	getAccountPoolBalances,
 	getPool,
+	getPoolsCount,
+	getVeBalUser,
+	getVeBalUserBalance,
+	listPoolEvents,
 	listPools,
+	listVotingGauges,
 } = await import('$/sources/Balancer/Rest/queries.ts')
 
 const binding = bindings[Source.Balancer_Rest][0]
@@ -170,6 +176,7 @@ describe('Balancer poolGetPool operation', () => {
 					weight: '0.8',
 				},
 			],
+			aprItems: [],
 		})
 		expect(graphql).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -369,5 +376,333 @@ describe('Balancer poolGetPools operation', () => {
 			chainId: 1,
 			limit: 2,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response contains duplicate pool ids`)
+	})
+})
+
+describe('Balancer poolGetPoolsCount operation', () => {
+	beforeEach(() => {
+		graphql.mockReset()
+	})
+
+	it('reads the authoritative pool count for one chain', async () => {
+		graphql.mockResolvedValueOnce({
+			poolGetPoolsCount: 2355,
+		})
+
+		await expect(getPoolsCount({
+			chainId: 1,
+		})).resolves.toBe(2355)
+		expect(graphql).toHaveBeenCalledWith(expect.objectContaining({
+			binding,
+			variables: {
+				chain: 'MAINNET',
+			},
+		}))
+	})
+
+	it('fails closed when the pool count operation is missing', async () => {
+		graphql.mockResolvedValueOnce({})
+
+		await expect(getPoolsCount({
+			chainId: 1,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: pool count response poolGetPoolsCount is missing`)
+	})
+
+	it('fails closed for a non-integer pool count', async () => {
+		graphql.mockResolvedValueOnce({
+			poolGetPoolsCount: 1.5,
+		})
+
+		await expect(getPoolsCount({
+			chainId: 1,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool count`)
+	})
+})
+
+describe('Balancer account pool balances operation', () => {
+	beforeEach(() => {
+		graphql.mockReset()
+	})
+
+	const account = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+
+	it('normalizes wallet and gauge staking balances for one account', async () => {
+		graphql.mockResolvedValueOnce({
+			poolGetPools: [
+				{
+					...weightedV2Pool,
+					staking: {
+						type: 'GAUGE',
+						gauge: {
+							gaugeAddress: '0xc13a3315806f097cee00e39c4285f5bf250dd8a4',
+							version: 1,
+						},
+					},
+					dynamicData: {
+						...weightedV2Pool.dynamicData,
+						aprItems: [
+							{
+								title: 'Swap fees',
+								type: 'SWAP_FEE',
+								apr: 0.012,
+							},
+						],
+					},
+					userBalance: {
+						totalBalance: '12.5',
+						totalBalanceUsd: 100.5,
+						walletBalance: '10.5',
+						walletBalanceUsd: 84.42,
+						stakedBalances: [
+							{
+								balance: '2.0',
+								balanceUsd: 16.08,
+								stakingId: '0xc13a3315806f097cee00e39c4285f5bf250dd8a4',
+								stakingType: 'GAUGE',
+							},
+						],
+					},
+				},
+				{
+					...stableV3Pool,
+					userBalance: {
+						totalBalance: '0',
+						totalBalanceUsd: 0,
+						walletBalance: '0',
+						walletBalanceUsd: 0,
+						stakedBalances: [],
+					},
+				},
+			],
+		})
+
+		await expect(getAccountPoolBalances({
+			chainId: 1,
+			account,
+			limit: 2,
+		})).resolves.toEqual([
+			{
+				poolId: weightedV2PoolId,
+				poolAddress: '0x3de27efa2f1aa663ae5d458857e731c129069f29',
+				chainId: 1,
+				totalBalance: '12.5',
+				totalBalanceUsd: 100.5,
+				walletBalance: '10.5',
+				walletBalanceUsd: 84.42,
+				stakedBalances: [
+					{
+						balance: '2.0',
+						balanceUsd: 16.08,
+						stakingId: '0xc13a3315806f097cee00e39c4285f5bf250dd8a4',
+						stakingType: 'GAUGE',
+					},
+				],
+				gaugeAddress: '0xc13a3315806f097cee00e39c4285f5bf250dd8a4',
+				gaugeVersion: 1,
+				stakingType: 'GAUGE',
+			},
+		])
+		expect(graphql).toHaveBeenCalledWith(expect.objectContaining({
+			variables: {
+				chain: 'MAINNET',
+				userAddress: account,
+				first: 2,
+			},
+		}))
+	})
+
+	it('rejects an invalid account before transport', async () => {
+		await expect(getAccountPoolBalances({
+			chainId: 1,
+			account: 'not-an-address',
+		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid account not-an-address`)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
+	it('fails closed when userBalance is absent on a filtered pool row', async () => {
+		graphql.mockResolvedValueOnce({
+			poolGetPools: [
+				weightedV2Pool,
+			],
+		})
+
+		await expect(getAccountPoolBalances({
+			chainId: 1,
+			account,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: account pool balance missing userBalance`)
+	})
+})
+
+describe('Balancer veBAL and voting gauge operations', () => {
+	beforeEach(() => {
+		graphql.mockReset()
+	})
+
+	it('lists voting gauges with pool token metadata', async () => {
+		graphql.mockResolvedValueOnce({
+			veBalGetVotingList: [
+				{
+					id: weightedV2PoolId,
+					address: '0x3de27efa2f1aa663ae5d458857e731c129069f29',
+					chain: 'MAINNET',
+					type: 'WEIGHTED',
+					symbol: '20wstETH-80AAVE',
+					protocolVersion: 2,
+					gauge: {
+						address: '0xc13a3315806f097cee00e39c4285f5bf250dd8a4',
+						relativeWeightCap: '0.02',
+						isKilled: false,
+					},
+					tokens: [
+						{
+							address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+							symbol: 'wstETH',
+							logoURI: 'https://example.com/wsteth.png',
+						},
+					],
+				},
+			],
+		})
+
+		await expect(listVotingGauges()).resolves.toEqual([
+			{
+				poolId: weightedV2PoolId,
+				poolAddress: '0x3de27efa2f1aa663ae5d458857e731c129069f29',
+				chainId: 1,
+				poolType: 'WEIGHTED',
+				symbol: '20wstETH-80AAVE',
+				protocolVersion: 2,
+				gaugeAddress: '0xc13a3315806f097cee00e39c4285f5bf250dd8a4',
+				isKilled: false,
+				relativeWeightCap: '0.02',
+				tokens: [
+					{
+						address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+						symbol: 'wstETH',
+						logoURI: 'https://example.com/wsteth.png',
+					},
+				],
+			},
+		])
+	})
+
+	it('reads veBAL balance and lock snapshot for one account', async () => {
+		graphql
+			.mockResolvedValueOnce({
+				veBalGetUserBalance: '12.5',
+			})
+			.mockResolvedValueOnce({
+				veBalGetUser: {
+					balance: '12.5',
+					locked: '100.0',
+					lockedUsd: '250.00',
+					rank: 42,
+				},
+			})
+
+		const account = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+		await expect(getVeBalUserBalance({
+			chainId: 1,
+			account,
+		})).resolves.toBe('12.5')
+		await expect(getVeBalUser({
+			chainId: 1,
+			account,
+		})).resolves.toEqual({
+			chainId: 1,
+			account,
+			balance: '12.5',
+			locked: '100.0',
+			lockedUsd: '250.00',
+			rank: 42,
+		})
+	})
+
+	it('fails closed when the voting list envelope is malformed', async () => {
+		graphql.mockResolvedValueOnce({
+			veBalGetVotingList: [
+				{
+					id: weightedV2PoolId,
+				},
+			],
+		})
+
+		await expect(listVotingGauges()).rejects.toThrow(`${Source.Balancer_Rest}: invalid voting list response envelope`)
+	})
+})
+
+describe('Balancer poolEvents operation', () => {
+	beforeEach(() => {
+		graphql.mockReset()
+	})
+
+	it('lists recent pool events for one chain and optional pool id', async () => {
+		graphql.mockResolvedValueOnce({
+			poolEvents: [
+				{
+					id: '0xd80ee5aeb80511d3a4a96503b44ccfa3f2af0c113daa42691bfc0f1baf43961dd4000000',
+					type: 'SWAP',
+					chain: 'MAINNET',
+					poolId: weightedV2PoolId,
+					valueUSD: 6.26,
+					blockNumber: 25698468,
+					blockTimestamp: 1786050083,
+					tx: '0xd80ee5aeb80511d3a4a96503b44ccfa3f2af0c113daa42691bfc0f1baf43961d',
+					userAddress: '0xa99b2d5cc6847849f9b9c051474964acf1cac543',
+				},
+			],
+		})
+
+		await expect(listPoolEvents({
+			chainId: 1,
+			poolId: weightedV2PoolId,
+			limit: 1,
+		})).resolves.toEqual([
+			{
+				id: '0xd80ee5aeb80511d3a4a96503b44ccfa3f2af0c113daa42691bfc0f1baf43961dd4000000',
+				type: 'SWAP',
+				chainId: 1,
+				poolId: weightedV2PoolId,
+				valueUsd: 6.26,
+				blockNumber: 25698468,
+				blockTimestampMs: 1786050083000,
+				txHash: '0xd80ee5aeb80511d3a4a96503b44ccfa3f2af0c113daa42691bfc0f1baf43961d',
+				userAddress: '0xa99b2d5cc6847849f9b9c051474964acf1cac543',
+			},
+		])
+	})
+
+	it('fails closed when pool events exceed the requested limit', async () => {
+		graphql.mockResolvedValueOnce({
+			poolEvents: [
+				{
+					id: 'a',
+					type: 'SWAP',
+					chain: 'MAINNET',
+					poolId: weightedV2PoolId,
+					valueUSD: 1,
+					blockNumber: 1,
+					blockTimestamp: 1,
+					tx: '0xd80ee5aeb80511d3a4a96503b44ccfa3f2af0c113daa42691bfc0f1baf43961d',
+					userAddress: '0xa99b2d5cc6847849f9b9c051474964acf1cac543',
+				},
+				{
+					id: 'b',
+					type: 'SWAP',
+					chain: 'MAINNET',
+					poolId: weightedV2PoolId,
+					valueUSD: 2,
+					blockNumber: 2,
+					blockTimestamp: 2,
+					tx: '0xe9fc04ec2db87aa9841bf8d2dc8b9d583af63a1b309ed425a8baa482ba3af98e',
+					userAddress: '0xa99b2d5cc6847849f9b9c051474964acf1cac543',
+				},
+			],
+		})
+
+		await expect(listPoolEvents({
+			chainId: 1,
+			limit: 1,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: pool events response exceeds requested limit 1`)
 	})
 })
