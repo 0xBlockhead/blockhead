@@ -79,7 +79,25 @@ const status = {
 		},
 		chainId: 10,
 		timestamp: 1_700_000_100,
+		gasAmount: '21000',
+		gasAmountUSD: '0.42',
 	},
+	feeCosts: [
+		{
+			name: 'LI.FI fee',
+			amount: '1000',
+			amountUSD: '0.01',
+			percentage: '0.001',
+			included: true,
+		},
+		{
+			name: 'Gas fee',
+			amount: '2000',
+			amountUSD: '0.02',
+			percentage: '0.002',
+			included: true,
+		},
+	],
 	status: 'DONE',
 	substatus: 'COMPLETED',
 	substatusMessage: 'The transfer is complete.',
@@ -115,6 +133,7 @@ describe('LI.FI transfer status resolvers', () => {
 			amountIn: 1_000_000_000_000_000_000n,
 			amountOut: 999_000_000_000_000_000n,
 			railId: 'Across',
+			bridgeFeeUsd: '0.03',
 			$sourceTx: {
 				[EntityMetaKey.Selector]: {
 					$network: {
@@ -138,13 +157,14 @@ describe('LI.FI transfer status resolvers', () => {
 				},
 			},
 		})
-		expect(resolver.projections.$$timestamps(snapshot)).toEqual([{
+		expect(resolver.projections.$$timestamps.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transfer: transfer,
 				timestampMs: 1_700_000_200_000,
 				source: Source.Lifi_Rest,
 			},
 		}])
+		expect(resolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
 	})
 
 	it('resolves source-tx selectors with fromChain and canonical transactionId', async () => {
@@ -267,7 +287,11 @@ describe('LI.FI transfer status resolvers', () => {
 			substatus: 'COMPLETED',
 			destinationTxHash,
 			completedAt: 1_700_000_100_000,
+			fillGasFee: 21000n,
+			fillGasFeeUsd: '0.42',
 		})
+		expect(resolver.projections.fillGasFee(snapshot)).toBe(21000n)
+		expect(resolver.projections.fillGasFeeUsd(snapshot)).toBe('0.42')
 		expect(resolver.projections).not.toHaveProperty('sourceConfirmations')
 		expect(resolver.projections).not.toHaveProperty('requiredConfirmations')
 		expect(resolver.projections).not.toHaveProperty('relayer')

@@ -12,6 +12,7 @@ import {
 	fetchTokens,
 	fetchTools,
 	fetchTransferStatus,
+	lifiBridgeFeeUsdFromFeeCosts,
 } from '$/sources/Lifi/Rest/queries.ts'
 import { lifiRestFetch } from '$/sources/Lifi/Rest/client.ts'
 import type {
@@ -503,6 +504,36 @@ describe('LI.FI transfer status', () => {
 			'transfer status requires'
 		)
 		expect(lifiRestFetch).not.toHaveBeenCalled()
+	})
+
+	it('fails closed on malformed status feeCosts / gas USD and sums bridgeFeeUsd', async () => {
+		vi.mocked(lifiRestFetch).mockResolvedValueOnce(new Response(JSON.stringify({
+			status: 'DONE',
+			tool: 'across',
+			transactionId: 'lifi-transfer-id',
+			sending: {
+				txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+				txLink: 'https://example.com/source',
+				amount: '100',
+				token: fromToken,
+				chainId: 1,
+			},
+			feeCosts: [{
+				amount: '1',
+				amountUSD: 'not-a-decimal',
+			}],
+		})))
+
+		await expect(fetchTransferStatus({
+			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		})).rejects.toThrow('malformed transfer fee cost')
+
+		expect(lifiBridgeFeeUsdFromFeeCosts([
+			{ amountUSD: '0.01' },
+			{ amountUSD: '0.02' },
+			{ amount: '9' },
+		])).toBe('0.03')
+		expect(lifiBridgeFeeUsdFromFeeCosts(undefined)).toBeUndefined()
 	})
 })
 

@@ -240,6 +240,7 @@ describe('Across BridgeTransfer resolvers', () => {
 				transferId,
 			},
 		}])
+		expect(resolver.projections.$$bridgeTransfers).not.toHaveProperty('resolveCount')
 		expect(resolver.projections.$$bridgeTransfers.continuation(bridgeTransfers)).toMatchObject({
 			operation: 'account-bridge-transfers',
 			target: 'across',

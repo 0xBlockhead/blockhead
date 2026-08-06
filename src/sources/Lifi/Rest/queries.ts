@@ -84,6 +84,60 @@ const assertTransactionInfo = (
 		|| info.token.chainId !== info.chainId
 	)
 		throw new Error(`Lifi_Rest: malformed ${label} transfer leg`)
+
+	if (
+		info.gasAmount != null
+		&& !unsignedIntegerPattern.test(info.gasAmount)
+	)
+		throw new Error(`Lifi_Rest: malformed ${label} gas amount`)
+
+	if (
+		info.gasAmountUSD != null
+		&& !decimalPattern.test(info.gasAmountUSD)
+	)
+		throw new Error(`Lifi_Rest: malformed ${label} gas amount USD`)
+}
+
+const assertStatusFeeCosts = (
+	feeCosts: NonNullable<LifiStatusWireResponse['feeCosts']> | undefined
+) => {
+	if (feeCosts == null) return
+	if (feeCosts.length > maximumCostRows)
+		throw new Error('Lifi_Rest: excessive transfer fee costs')
+	for (const row of feeCosts) {
+		if (
+			(row.amount != null && !unsignedIntegerPattern.test(row.amount))
+			|| (row.amountUSD != null && !decimalPattern.test(row.amountUSD))
+			|| (row.percentage != null && !decimalPattern.test(row.percentage))
+		)
+			throw new Error('Lifi_Rest: malformed transfer fee cost')
+	}
+}
+
+/**
+ * Sum enrolled `bridgeFeeUsd` candidates from official status `feeCosts.amountUSD`.
+ * Returns undefined when no decimal USD rows are present.
+ */
+export const lifiBridgeFeeUsdFromFeeCosts = (
+	feeCosts: NonNullable<LifiStatusWireResponse['feeCosts']> | undefined
+) => {
+	if (feeCosts == null || feeCosts.length === 0)
+		return undefined
+
+	let total = 0
+	let sawUsd = false
+	for (const row of feeCosts) {
+		if (row.amountUSD == null || row.amountUSD === '')
+			continue
+		if (!decimalPattern.test(row.amountUSD))
+			throw new Error('Lifi_Rest: malformed transfer fee cost USD')
+		total += Number(row.amountUSD)
+		sawUsd = true
+	}
+	if (!sawUsd || !Number.isFinite(total) || total < 0)
+		return undefined
+
+	return String(total)
 }
 
 const assertQuoteStep = (
@@ -251,6 +305,8 @@ export const fetchTransferStatus = async (
 
 	if (status.receiving != null)
 		assertTransactionInfo(status.receiving, 'receiving')
+
+	assertStatusFeeCosts(status.feeCosts)
 
 	if (
 		status.transactionId != null

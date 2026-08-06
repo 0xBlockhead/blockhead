@@ -227,6 +227,10 @@ const lifiBridgeTransferSnapshot = async (
 			hexLowerOfByteSize(status.toAddress, 20)
 	)
 	const bridgeTool = bridgeToolByKey[status.tool]
+	const {
+		lifiBridgeFeeUsdFromFeeCosts,
+	} = await import('$/sources/Lifi/Rest/queries.ts')
+	const bridgeFeeUsd = lifiBridgeFeeUsdFromFeeCosts(status.feeCosts)
 
 	return {
 		source: Source.Lifi_Rest,
@@ -274,6 +278,9 @@ const lifiBridgeTransferSnapshot = async (
 			settlementModel: bridgeTool.settlementModel,
 			verificationModel: bridgeTool.verificationModel,
 			assetOutcome: bridgeTool.assetOutcome,
+		}),
+		...(bridgeFeeUsd != null && {
+			bridgeFeeUsd,
 		}),
 		$$timestamps: [{
 			[EntityMetaKey.Selector]: {
@@ -603,7 +610,11 @@ export default {
 			settlementModel: (transfer) => transfer.settlementModel,
 			verificationModel: (transfer) => transfer.verificationModel,
 			assetOutcome: (transfer) => transfer.assetOutcome,
-			$$timestamps: (transfer) => transfer.$$timestamps,
+			bridgeFeeUsd: (transfer) => transfer.bridgeFeeUsd,
+			$$timestamps: {
+				select: (transfer) => transfer.$$timestamps,
+				resolveCount: (transfer) => transfer.$$timestamps.length,
+			},
 		}),
 
 		defineResolver({
@@ -626,6 +637,13 @@ export default {
 							:
 								hexLowerOfByteSize(status.receiving.txHash, 32)
 						)
+						const fillGasFee = (
+							status.receiving?.gasAmount != null ?
+								BigInt(status.receiving.gasAmount)
+							:
+								undefined
+						)
+						const fillGasFeeUsd = status.receiving?.gasAmountUSD
 
 						return {
 							$transfer: {
@@ -639,6 +657,8 @@ export default {
 							...(status.status === 'DONE' && status.receiving?.timestamp != null && {
 								completedAt: status.receiving.timestamp * 1_000,
 							}),
+							...(fillGasFee != null && { fillGasFee }),
+							...(fillGasFeeUsd != null && { fillGasFeeUsd }),
 							...((status.status === 'FAILED' || status.status === 'INVALID') && status.substatusMessage != null && {
 								error: status.substatusMessage,
 							}),
@@ -654,6 +674,8 @@ export default {
 			substatus: (observation) => observation.substatus,
 			destinationTxHash: (observation) => observation.destinationTxHash,
 			completedAt: (observation) => observation.completedAt,
+			fillGasFee: (observation) => observation.fillGasFee,
+			fillGasFeeUsd: (observation) => observation.fillGasFeeUsd,
 			error: (observation) => observation.error,
 		}),
 
