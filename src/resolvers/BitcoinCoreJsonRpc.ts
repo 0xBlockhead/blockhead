@@ -1,5 +1,14 @@
-import { defineResolver } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
+import {
+	bitcoinOrdinalInscriptionRefsFromPayloads,
+	bitcoinOrdinalInscriptionSnapshotFromPayload,
+	bitcoinRunestoneRefFromPayloads,
+	bitcoinRunestoneSnapshotFromPayload,
+	ordinalsPayloads,
+	parseBitcoinInscriptionId,
+	runestonePayload,
+} from '$/resolvers/bitcoinOrdinalsRunes.ts'
+import { defineResolver } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
 	type EntitySelector,
@@ -47,6 +56,20 @@ export const bitcoinCoreJsonRpcResolvers = <
 		const { getRawTransaction } = await loadQueries()
 		return getRawTransaction({
 			txId: txId,
+		})
+	}
+
+	const getBitcoinProtocolPayloads = async ({ $network, txId }: {
+		$network: EntitySelector<typeof schema, EntityType.Network>
+		txId: string
+	}) => {
+		assertNetwork($network)
+		if (source !== Source.BitcoinCore_JsonRpc)
+			return []
+
+		const { getTransactionProtocolPayloads } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
+		return getTransactionProtocolPayloads({
+			txId,
 		})
 	}
 
@@ -127,6 +150,8 @@ export const bitcoinCoreJsonRpcResolvers = <
 					NetworkTxId: {
 						resolve: async (entitySelector) => {
 							const transaction = await getTransaction(entitySelector)
+							const payloads = await getBitcoinProtocolPayloads(entitySelector)
+							const $bitcoinRunestone = bitcoinRunestoneRefFromPayloads(entitySelector, payloads)
 							return {
 								[EntityMetaKey.Selector]: {
 									$network: entitySelector.$network,
@@ -154,6 +179,13 @@ export const bitcoinCoreJsonRpcResolvers = <
 										},
 									}
 								)),
+								$$bitcoinOrdinalInscriptions: bitcoinOrdinalInscriptionRefsFromPayloads(
+									entitySelector.$network,
+									payloads
+								),
+								...($bitcoinRunestone != null && {
+									$bitcoinRunestone,
+								}),
 							}
 						},
 					}
@@ -167,6 +199,8 @@ export const bitcoinCoreJsonRpcResolvers = <
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
 				$$inputs: (snapshot) => snapshot.$$inputs,
 				$$outputs: (snapshot) => snapshot.$$outputs,
+				$$bitcoinOrdinalInscriptions: (snapshot) => snapshot.$$bitcoinOrdinalInscriptions,
+				$bitcoinRunestone: (snapshot) => snapshot.$bitcoinRunestone,
 			}),
 
 			defineResolver({
@@ -219,6 +253,8 @@ export const bitcoinCoreJsonRpcResolvers = <
 					TransactionIndexInTransaction: {
 						resolve: async ({ $transaction, indexInTransaction }) => {
 							const output = (await getTransaction($transaction)).vout[indexInTransaction]
+							const payloads = await getBitcoinProtocolPayloads($transaction)
+							const runestone = runestonePayload(payloads)
 							return {
 								[EntityMetaKey.Selector]: {
 									$transaction: $transaction,
@@ -236,6 +272,14 @@ export const bitcoinCoreJsonRpcResolvers = <
 										},
 									},
 								}),
+								...(runestone != null && runestone.location.outputIndex === indexInTransaction && {
+									$bitcoinRunestone: {
+										[EntityMetaKey.Selector]: {
+											$transaction,
+											outputIndex: indexInTransaction,
+										},
+									},
+								}),
 							}
 						},
 					}
@@ -246,7 +290,72 @@ export const bitcoinCoreJsonRpcResolvers = <
 				scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
 				scriptPubKeyType: (snapshot) => snapshot.scriptPubKeyType,
 				$address: (snapshot) => snapshot.$address,
+				$bitcoinRunestone: (snapshot) => snapshot.$bitcoinRunestone,
 			}),
+
+			...(source === Source.BitcoinCore_JsonRpc ?
+				[
+					defineResolver({
+						entityType: EntityType.BitcoinOrdinalInscription,
+						resolve: {
+							NetworkInscriptionId: {
+								resolve: async ({ $network, inscriptionId }) => {
+									const parsed = parseBitcoinInscriptionId(inscriptionId)
+									if (parsed == null)
+										throw new Error(`${source}: invalid inscription id ${inscriptionId}`)
+
+									const payloads = ordinalsPayloads(
+										await getBitcoinProtocolPayloads({
+											$network,
+											txId: parsed.txId,
+										})
+									)
+									const payload = payloads[parsed.inscriptionIndex]
+									if (payload == null)
+										throw new Error(`${source}: inscription ${inscriptionId} not found in reveal transaction`)
+
+									return bitcoinOrdinalInscriptionSnapshotFromPayload(
+										$network,
+										inscriptionId,
+										parsed.inscriptionIndex,
+										payload
+									)
+								},
+							},
+						},
+					})({
+						inscriptionIndex: (snapshot) => snapshot.inscriptionIndex,
+						$revealTransaction: (snapshot) => snapshot.$revealTransaction,
+						revealInputIndex: (snapshot) => snapshot.revealInputIndex,
+						revealWitnessIndex: (snapshot) => snapshot.revealWitnessIndex,
+						contentType: (snapshot) => snapshot.contentType,
+						bodyHex: (snapshot) => snapshot.bodyHex,
+						payloadHex: (snapshot) => snapshot.payloadHex,
+					}),
+
+					defineResolver({
+						entityType: EntityType.BitcoinRunestone,
+						resolve: {
+							TransactionOutputIndex: {
+								resolve: async ({ $transaction, outputIndex }) => {
+									const payloads = await getBitcoinProtocolPayloads($transaction)
+									const runestone = runestonePayload(payloads)
+									if (runestone == null || runestone.location.outputIndex !== outputIndex)
+										throw new Error(`${source}: runestone not found at output ${outputIndex}`)
+
+									return bitcoinRunestoneSnapshotFromPayload($transaction, runestone)
+								},
+							},
+						},
+					})({
+						$output: (snapshot) => snapshot.$output,
+						payloadHex: (snapshot) => snapshot.payloadHex,
+						isCenotaph: (snapshot) => snapshot.isCenotaph,
+					}),
+				]
+			:
+				[]
+			),
 		],
 	}
 }

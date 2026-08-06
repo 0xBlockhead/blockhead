@@ -1,5 +1,14 @@
 import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
+	bitcoinOrdinalInscriptionRefsFromPayloads,
+	bitcoinOrdinalInscriptionSnapshotFromPayload,
+	bitcoinRunestoneRefFromPayloads,
+	bitcoinRunestoneSnapshotFromPayload,
+	ordinalsPayloads,
+	parseBitcoinInscriptionId,
+	runestonePayload,
+} from '$/resolvers/bitcoinOrdinalsRunes.ts'
+import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
@@ -188,6 +197,9 @@ export default {
 					appliesTo: bitcoinNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						const transaction = await getTransaction(entitySelector)
+						const { getTransactionProtocolPayloads } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+						const payloads = await getTransactionProtocolPayloads(entitySelector.txId)
+						const $bitcoinRunestone = bitcoinRunestoneRefFromPayloads(entitySelector, payloads)
 						return {
 							[EntityMetaKey.Selector]: {
 								$network: entitySelector.$network,
@@ -225,6 +237,13 @@ export default {
 									indexInTransaction,
 								},
 							})),
+							$$bitcoinOrdinalInscriptions: bitcoinOrdinalInscriptionRefsFromPayloads(
+								entitySelector.$network,
+								payloads
+							),
+							...($bitcoinRunestone != null && {
+								$bitcoinRunestone,
+							}),
 						}
 					},
 				}
@@ -240,6 +259,8 @@ export default {
 				isCoinbase: (transaction) => transaction.isCoinbase,
 				$$inputs: (transaction) => transaction.$$inputs,
 				$$outputs: (transaction) => transaction.$$outputs,
+				$$bitcoinOrdinalInscriptions: (transaction) => transaction.$$bitcoinOrdinalInscriptions,
+				$bitcoinRunestone: (transaction) => transaction.$bitcoinRunestone,
 			}),
 
 		defineResolver({
@@ -437,6 +458,10 @@ export default {
 					appliesTo: bitcoinTransactionReferenceApplicability,
 					resolve: async ({ $transaction, indexInTransaction }) => {
 						const output = (await getTransaction($transaction)).vout[indexInTransaction]
+						const { getTransactionProtocolPayloads } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+						const runestone = runestonePayload(
+							await getTransactionProtocolPayloads($transaction.txId)
+						)
 						return {
 							[EntityMetaKey.Selector]: {
 								$transaction: $transaction,
@@ -456,6 +481,14 @@ export default {
 									},
 								},
 							}),
+							...(runestone != null && runestone.location.outputIndex === indexInTransaction && {
+								$bitcoinRunestone: {
+									[EntityMetaKey.Selector]: {
+										$transaction,
+										outputIndex: indexInTransaction,
+									},
+								},
+							}),
 						}
 					},
 				}
@@ -466,7 +499,70 @@ export default {
 				scriptPubKeyHex: (output) => output.scriptPubKeyHex,
 				scriptPubKeyType: (output) => output.scriptPubKeyType,
 				$address: (output) => output.$address,
+				$bitcoinRunestone: (output) => output.$bitcoinRunestone,
 			}),
+
+		defineResolver({
+			entityType: EntityType.BitcoinOrdinalInscription,
+			resolve: {
+				NetworkInscriptionId: {
+					appliesTo: bitcoinNetworkReferenceApplicability,
+					resolve: async ({ $network, inscriptionId }) => {
+						assertBitcoinMainnet($network)
+						const parsed = parseBitcoinInscriptionId(inscriptionId)
+						if (parsed == null)
+							throw new Error(`MempoolSpace_Rest: invalid inscription id ${inscriptionId}`)
+
+						const { getTransactionProtocolPayloads } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+						const payloads = ordinalsPayloads(
+							await getTransactionProtocolPayloads(parsed.txId)
+						)
+						const payload = payloads[parsed.inscriptionIndex]
+						if (payload == null)
+							throw new Error(`MempoolSpace_Rest: inscription ${inscriptionId} not found in reveal transaction`)
+
+						return bitcoinOrdinalInscriptionSnapshotFromPayload(
+							$network,
+							inscriptionId,
+							parsed.inscriptionIndex,
+							payload
+						)
+					},
+				},
+			},
+		})({
+			inscriptionIndex: (snapshot) => snapshot.inscriptionIndex,
+			$revealTransaction: (snapshot) => snapshot.$revealTransaction,
+			revealInputIndex: (snapshot) => snapshot.revealInputIndex,
+			revealWitnessIndex: (snapshot) => snapshot.revealWitnessIndex,
+			contentType: (snapshot) => snapshot.contentType,
+			bodyHex: (snapshot) => snapshot.bodyHex,
+			payloadHex: (snapshot) => snapshot.payloadHex,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BitcoinRunestone,
+			resolve: {
+				TransactionOutputIndex: {
+					appliesTo: bitcoinTransactionReferenceApplicability,
+					resolve: async ({ $transaction, outputIndex }) => {
+						assertBitcoinMainnet($transaction.$network)
+						const { getTransactionProtocolPayloads } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+						const runestone = runestonePayload(
+							await getTransactionProtocolPayloads($transaction.txId)
+						)
+						if (runestone == null || runestone.location.outputIndex !== outputIndex)
+							throw new Error(`MempoolSpace_Rest: runestone not found at output ${outputIndex}`)
+
+						return bitcoinRunestoneSnapshotFromPayload($transaction, runestone)
+					},
+				},
+			},
+		})({
+			$output: (snapshot) => snapshot.$output,
+			payloadHex: (snapshot) => snapshot.payloadHex,
+			isCenotaph: (snapshot) => snapshot.isCenotaph,
+		}),
 
 		defineResolver({
 			entityType: EntityType.Network_Timestamp,

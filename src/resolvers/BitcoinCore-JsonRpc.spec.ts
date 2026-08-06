@@ -5,9 +5,11 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
 const getRawTransaction = vi.fn()
+const getTransactionProtocolPayloads = vi.fn(async () => [])
 
 vi.mock('$/sources/BitcoinCore/JsonRpc/queries.ts', () => ({
 	getRawTransaction,
+	getTransactionProtocolPayloads,
 }))
 
 const { default: bitcoinCoreResolvers } = await import('$/resolvers/BitcoinCore-JsonRpc.ts')
@@ -35,6 +37,7 @@ const network = {
 describe('BitcoinCore UTXO', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+		getTransactionProtocolPayloads.mockResolvedValue([])
 	})
 
 	it('projects transaction fields and child selectors from one provider response', async () => {

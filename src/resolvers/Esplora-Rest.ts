@@ -1,5 +1,14 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
+	bitcoinOrdinalInscriptionRefsFromPayloads,
+	bitcoinOrdinalInscriptionSnapshotFromPayload,
+	bitcoinRunestoneRefFromPayloads,
+	bitcoinRunestoneSnapshotFromPayload,
+	ordinalsPayloads,
+	parseBitcoinInscriptionId,
+	runestonePayload,
+} from '$/resolvers/bitcoinOrdinalsRunes.ts'
+import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import {
@@ -129,11 +138,22 @@ export default {
 							$network,
 							txId,
 						} = entitySelector
-						const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
+						const { getTransaction, getTransactionProtocolPayloads } = await import('$/sources/Esplora/Rest/queries.ts')
+						const target = esploraTargetForNetwork($network)
 						const transaction = await getTransaction({
-							target: esploraTargetForNetwork($network),
+							target,
 							txId: txId,
 						})
+						const payloads = (
+							target === 'bip122:000000000019d6689c085ae165831e93' ?
+								await getTransactionProtocolPayloads({
+									target,
+									txId,
+								})
+							:
+								[]
+						)
+						const $bitcoinRunestone = bitcoinRunestoneRefFromPayloads(entitySelector, payloads)
 						return {
 							...(transaction.status.block_height != null && transaction.status.block_hash != null && {
 								$block: {
@@ -165,6 +185,10 @@ export default {
 									indexInTransaction,
 								},
 							})),
+							$$bitcoinOrdinalInscriptions: bitcoinOrdinalInscriptionRefsFromPayloads($network, payloads),
+							...($bitcoinRunestone != null && {
+								$bitcoinRunestone,
+							}),
 						}
 					},
 				}
@@ -180,6 +204,8 @@ export default {
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
 				$$inputs: (snapshot) => snapshot.$$inputs,
 				$$outputs: (snapshot) => snapshot.$$outputs,
+				$$bitcoinOrdinalInscriptions: (snapshot) => snapshot.$$bitcoinOrdinalInscriptions,
+				$bitcoinRunestone: (snapshot) => snapshot.$bitcoinRunestone,
 			}),
 
 		defineResolver({
@@ -235,14 +261,26 @@ export default {
 			resolve: {
 				TransactionIndexInTransaction: {
 					resolve: async ({ $transaction, indexInTransaction }) => {
-						const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
+						const { getTransaction, getTransactionProtocolPayloads } = await import('$/sources/Esplora/Rest/queries.ts')
+						const target = esploraTargetForNetwork($transaction.$network)
 						const output = (await getTransaction({
-							target: esploraTargetForNetwork($transaction.$network),
+							target,
 							txId: $transaction.txId,
 						})).vout[indexInTransaction]
 						const isConfidential = (
 							output.valuecommitment != null
 							|| output.assetcommitment != null
+						)
+						const runestone = (
+							target === 'bip122:000000000019d6689c085ae165831e93' ?
+								runestonePayload(
+									await getTransactionProtocolPayloads({
+										target,
+										txId: $transaction.txId,
+									})
+								)
+							:
+								undefined
 						)
 						return {
 							[EntityMetaKey.Selector]: {
@@ -283,6 +321,14 @@ export default {
 							...(isConfidential && {
 								isConfidential: true,
 							}),
+							...(runestone != null && runestone.location.outputIndex === indexInTransaction && {
+								$bitcoinRunestone: {
+									[EntityMetaKey.Selector]: {
+										$transaction,
+										outputIndex: indexInTransaction,
+									},
+								},
+							}),
 						}
 					},
 				}
@@ -294,6 +340,7 @@ export default {
 				scriptPubKeyType: (snapshot) => snapshot.scriptPubKeyType,
 				$address: (snapshot) => snapshot.$address,
 				isConfidential: (snapshot) => snapshot.isConfidential,
+				$bitcoinRunestone: (snapshot) => snapshot.$bitcoinRunestone,
 				Confidential: {
 					valueCommitment: (snapshot) => snapshot.valueCommitment,
 					assetCommitment: (snapshot) => snapshot.assetCommitment,
@@ -302,6 +349,78 @@ export default {
 					rangeProof: (snapshot) => snapshot.rangeProof,
 				},
 			}),
+
+		defineResolver({
+			entityType: EntityType.BitcoinOrdinalInscription,
+			resolve: {
+				NetworkInscriptionId: {
+					resolve: async ({ $network, inscriptionId }) => {
+						const target = esploraTargetForNetwork($network)
+						if (target !== 'bip122:000000000019d6689c085ae165831e93')
+							throw new Error('Esplora_Rest: Ordinals only on Bitcoin mainnet')
+
+						const parsed = parseBitcoinInscriptionId(inscriptionId)
+						if (parsed == null)
+							throw new Error(`Esplora_Rest: invalid inscription id ${inscriptionId}`)
+
+						const { getTransactionProtocolPayloads } = await import('$/sources/Esplora/Rest/queries.ts')
+						const payloads = ordinalsPayloads(
+							await getTransactionProtocolPayloads({
+								target,
+								txId: parsed.txId,
+							})
+						)
+						const payload = payloads[parsed.inscriptionIndex]
+						if (payload == null)
+							throw new Error(`Esplora_Rest: inscription ${inscriptionId} not found in reveal transaction`)
+
+						return bitcoinOrdinalInscriptionSnapshotFromPayload(
+							$network,
+							inscriptionId,
+							parsed.inscriptionIndex,
+							payload
+						)
+					},
+				},
+			},
+		})({
+			inscriptionIndex: (snapshot) => snapshot.inscriptionIndex,
+			$revealTransaction: (snapshot) => snapshot.$revealTransaction,
+			revealInputIndex: (snapshot) => snapshot.revealInputIndex,
+			revealWitnessIndex: (snapshot) => snapshot.revealWitnessIndex,
+			contentType: (snapshot) => snapshot.contentType,
+			bodyHex: (snapshot) => snapshot.bodyHex,
+			payloadHex: (snapshot) => snapshot.payloadHex,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BitcoinRunestone,
+			resolve: {
+				TransactionOutputIndex: {
+					resolve: async ({ $transaction, outputIndex }) => {
+						const target = esploraTargetForNetwork($transaction.$network)
+						if (target !== 'bip122:000000000019d6689c085ae165831e93')
+							throw new Error('Esplora_Rest: Runes only on Bitcoin mainnet')
+
+						const { getTransactionProtocolPayloads } = await import('$/sources/Esplora/Rest/queries.ts')
+						const runestone = runestonePayload(
+							await getTransactionProtocolPayloads({
+								target,
+								txId: $transaction.txId,
+							})
+						)
+						if (runestone == null || runestone.location.outputIndex !== outputIndex)
+							throw new Error(`Esplora_Rest: runestone not found at output ${outputIndex}`)
+
+						return bitcoinRunestoneSnapshotFromPayload($transaction, runestone)
+					},
+				},
+			},
+		})({
+			$output: (snapshot) => snapshot.$output,
+			payloadHex: (snapshot) => snapshot.payloadHex,
+			isCenotaph: (snapshot) => snapshot.isCenotaph,
+		}),
 
 		defineResolver({
 			entityType: EntityType.ElementsAsset,
