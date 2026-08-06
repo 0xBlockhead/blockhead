@@ -73,7 +73,6 @@ const sharedSpecificationProposalResolvers = [
 	litecoinLips,
 	nearNeps,
 	polkadotRfcs,
-	quilibriumDocs,
 	solanaSimds,
 	zcashZips,
 ] as const

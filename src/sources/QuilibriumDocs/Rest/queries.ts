@@ -4,10 +4,14 @@ import {
 	quilibriumServiceLayers,
 } from '$/constants/QuilibriumNetwork.ts'
 import { TransportType } from '$/constants/TransportType.ts'
+import {
+	quilibriumDocsBaseUrl,
+	quilibriumDocsPages,
+	quilibriumProtocolDocuments,
+} from '$/sources/QuilibriumDocs/Rest/constants.ts'
 import type {
 	QuilibriumDocsEndpoint,
 	QuilibriumDocsNodeInterface,
-	QuilibriumDocsPage,
 	QuilibriumDocsProtocolDocument,
 	QuilibriumDocsProtocolFact,
 	QuilibriumDocsServiceLayer,
@@ -17,18 +21,13 @@ import bindings from '$/sources/QuilibriumDocs/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
 
-const quilibriumDocsBaseUrl = 'https://docs.quilibrium.com'
-const binding = bindings[Source.QuilibriumDocs_Rest][0]
+const docsBinding = () => {
+	const binding = bindings[Source.QuilibriumDocs_Rest][0]
+	if (binding == null)
+		throw new Error('QuilibriumDocs_Rest: missing docs binding')
 
-const protocolDocuments = [
-	{
-		number: 1,
-		documentBody: 'Quilibrium protocol whitepaper and architecture reference.',
-		documentCategory: 'Protocol document',
-		documentStatus: 'Published',
-		documentTitle: 'Quilibrium peer-to-peer MPC platform whitepaper',
-	},
-] as const satisfies readonly QuilibriumDocsProtocolDocument[]
+	return binding
+}
 
 const assertQuilibriumNetwork = (networkSlug: string) => {
 	if (networkSlug !== 'quilibrium')
@@ -79,7 +78,7 @@ export const getServiceLayers = ({
 }
 
 export const listProtocolDocuments = () => (
-	protocolDocuments
+	quilibriumProtocolDocuments
 )
 
 export const getProtocolDocument = ({
@@ -87,47 +86,22 @@ export const getProtocolDocument = ({
 }: {
 	number: number
 }) => {
-	const document = protocolDocuments.find((protocolDocument) => protocolDocument.number === number)
+	const document = quilibriumProtocolDocuments.find((protocolDocument) => protocolDocument.number === number)
 	if (document == null)
 		throw new Error(`QuilibriumDocs_Rest: document not found ${number.toString()}`)
 
 	return document
 }
 
-export const getPages = [
-	{
-		url: `${quilibriumDocsBaseUrl}/docs/discover/what-is-quilibrium/`,
-		title: 'What is Quilibrium',
-	},
-	{
-		url: `${quilibriumDocsBaseUrl}/docs/protocol/overview/`,
-		title: 'Protocol overview',
-	},
-	{
-		url: `${quilibriumDocsBaseUrl}/docs/protocol/consensus/`,
-		title: 'Consensus mechanism',
-	},
-	{
-		url: `${quilibriumDocsBaseUrl}/docs/learn/oblivious-hypergraph/`,
-		title: 'Oblivious hypergraph',
-	},
-	{
-		url: `${quilibriumDocsBaseUrl}/docs/discover/quilibrium-kms/`,
-		title: 'Quilibrium KMS',
-	},
-	{
-		url: `${quilibriumDocsBaseUrl}/docs/api/q-storage/overview/`,
-		title: 'QStorage overview',
-	},
-	{
-		url: `${quilibriumDocsBaseUrl}/docs/build/q-service-apis/`,
-		title: 'Q service APIs',
-	},
-	{
-		url: `${quilibriumDocsBaseUrl}/docs/run-node/quick-start/`,
-		title: 'Node quick start',
-	},
-] as const satisfies readonly QuilibriumDocsPage[]
+export const getPrimaryProtocolDocument = (): QuilibriumDocsProtocolDocument => {
+	const document = quilibriumProtocolDocuments[0]
+	if (document == null)
+		throw new Error('QuilibriumDocs_Rest: no protocol documents')
+
+	return document
+}
+
+export const getPages = quilibriumDocsPages
 
 export const getPage = ({
 	url,
@@ -137,5 +111,8 @@ export const getPage = ({
 	if (!url.startsWith(`${quilibriumDocsBaseUrl}/`))
 		throw new Error(`QuilibriumDocs_Rest: url outside docs origin: ${url}`)
 
-	return getText(binding, url.slice(quilibriumDocsBaseUrl.length) || '/')
+	if (!quilibriumDocsPages.some((page) => page.url === url))
+		throw new Error(`QuilibriumDocs_Rest: unknown docs page: ${url}`)
+
+	return getText(docsBinding(), url.slice(quilibriumDocsBaseUrl.length) || '/')
 }

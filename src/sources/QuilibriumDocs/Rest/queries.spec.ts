@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import { quilibriumDocsBaseUrl } from '$/sources/QuilibriumDocs/Rest/constants.ts'
 import {
 	getDocsEndpoints,
 	getNodeInterfaces,
 	getPage,
 	getPages,
+	getPrimaryProtocolDocument,
 	getProtocolDocument,
 	getProtocolFacts,
 	getServiceLayers,
@@ -19,7 +21,7 @@ describe('QuilibriumDocs Rest queries', () => {
 			endpoint.url.startsWith('https://')
 			&& endpoint.providerName === 'Quilibrium docs'
 		))).toBe(true)
-		expect(endpoints.some((endpoint) => endpoint.url === 'https://docs.quilibrium.com')).toBe(true)
+		expect(endpoints.some((endpoint) => endpoint.url === quilibriumDocsBaseUrl)).toBe(true)
 	})
 
 	it('returns checked-in node interfaces only for quilibrium', () => {
@@ -85,6 +87,7 @@ describe('QuilibriumDocs Rest queries', () => {
 		expect(getProtocolDocument({ number: 1 }).documentTitle).toBe(
 			'Quilibrium peer-to-peer MPC platform whitepaper',
 		)
+		expect(getPrimaryProtocolDocument().number).toBe(1)
 	})
 
 	it('rejects unknown protocol document numbers', () => {
@@ -95,12 +98,21 @@ describe('QuilibriumDocs Rest queries', () => {
 
 	it('lists docs pages under the Quilibrium docs origin', () => {
 		expect(getPages.length).toBeGreaterThan(0)
-		expect(getPages.every((page) => page.url.startsWith('https://docs.quilibrium.com/'))).toBe(true)
+		expect(getPages.every((page) => page.url.startsWith(`${quilibriumDocsBaseUrl}/`))).toBe(true)
+		expect(getPages.some((page) => page.url.includes('/docs/protocol/consensus/'))).toBe(true)
+		expect(getPages.some((page) => page.url.includes('/docs/api/q-kms/overview/'))).toBe(true)
+		expect(getPages.some((page) => page.url.includes('/docs/run-node/qclient/setup/'))).toBe(true)
 	})
 
 	it('rejects page fetches outside the docs origin', () => {
 		expect(() => getPage({ url: 'https://quilibrium.com/' })).toThrow(
 			'QuilibriumDocs_Rest: url outside docs origin: https://quilibrium.com/',
+		)
+	})
+
+	it('rejects unknown docs pages under the docs origin', () => {
+		expect(() => getPage({ url: `${quilibriumDocsBaseUrl}/docs/unknown/` })).toThrow(
+			`QuilibriumDocs_Rest: unknown docs page: ${quilibriumDocsBaseUrl}/docs/unknown/`,
 		)
 	})
 })
