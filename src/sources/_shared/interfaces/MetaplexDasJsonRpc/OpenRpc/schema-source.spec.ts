@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 import type {
 	DasAsset,
+	DasAssetProof,
 	GetAssetsByOwnerResult,
 } from '$/sources/Helius/Das/types.ts'
 import { schemaSource } from '$/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/schema-source.ts'
@@ -19,9 +20,10 @@ describe('Metaplex DAS OpenRPC schema-source', () => {
 		expect(schemaSource.typesFile).toBe('./openrpc.d.ts')
 		expect(readFileSync(resolve(openRpcDir, schemaSource.schemaFile), 'utf8')).toContain('"getAssetsByOwner"')
 		expect(readFileSync(resolve(openRpcDir, schemaSource.typesFile), 'utf8')).toContain('AssetList:')
+		expect(readFileSync(resolve(openRpcDir, schemaSource.typesFile), 'utf8')).toContain('AssetProof:')
 	})
 
-	it('lets Helius DAS wire aliases satisfy generated Asset / AssetList', () => {
+	it('lets Helius DAS wire aliases satisfy generated Asset / AssetList / AssetProof', () => {
 		const asset = {
 			interface: 'V1_NFT',
 			id: 'Asset111111111111111111111111111111111111111',
@@ -43,6 +45,15 @@ describe('Metaplex DAS OpenRPC schema-source', () => {
 			items: [asset],
 		} as const satisfies GetAssetsByOwnerResult
 
+		const proof = {
+			leaf: 'Leaf111111111111111111111111111111111111111',
+			node_index: 1,
+			proof: ['Proof11111111111111111111111111111111111111'],
+			root: 'Root111111111111111111111111111111111111111',
+			tree_id: 'Tree111111111111111111111111111111111111111',
+		} as const satisfies DasAssetProof
+
 		expect(page.items[0]?.id).toBe(asset.id)
+		expect(proof.tree_id).toContain('Tree')
 	})
 })

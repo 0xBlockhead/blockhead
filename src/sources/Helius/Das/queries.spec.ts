@@ -8,9 +8,14 @@ import {
 } from 'vitest'
 
 import bindings from '$/sources/Helius/bindings.ts'
-import { getAssetsByOwner } from '$/sources/Helius/Das/queries.ts'
+import {
+	getAsset,
+	getAssetProof,
+	getAssetsByOwner,
+} from '$/sources/Helius/Das/queries.ts'
 import type {
 	DasAsset,
+	DasAssetProof,
 	GetAssetsByOwnerResult,
 } from '$/sources/Helius/Das/types.ts'
 import { Source } from '$/sources/Source.ts'
@@ -83,7 +88,84 @@ beforeEach(() => {
 	vi.clearAllMocks()
 })
 
+const assetProof = {
+	leaf: address(7),
+	node_index: 4,
+	proof: [address(8)],
+	root: address(9),
+	tree_id: address(6),
+} as const satisfies DasAssetProof
+
 describe('Helius Metaplex DAS transport', () => {
+	it('executes getAsset and getAssetProof through the Helius DAS binding', async () => {
+		vi.mocked(sourceFetch)
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				jsonrpc: '2.0',
+				id: `getAsset:${assetId}`,
+				result: asset,
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				jsonrpc: '2.0',
+				id: `getAssetProof:${assetId}`,
+				result: assetProof,
+			})))
+
+		await expect(getAsset({
+			id: assetId,
+			publicEnv: {
+				PUBLIC_HELIUS_API_KEY: 'helius key',
+			},
+		})).resolves.toEqual(asset)
+		await expect(getAssetProof({
+			id: assetId,
+			publicEnv: {
+				PUBLIC_HELIUS_API_KEY: 'helius key',
+			},
+		})).resolves.toEqual(assetProof)
+
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			1,
+			binding,
+			'https://mainnet.helius-rpc.com/?api-key=helius%20key',
+			{
+				method: 'POST',
+				headers: {
+					'content-type': 'application/json',
+				},
+				body: JSON.stringify({
+					jsonrpc: '2.0',
+					id: `getAsset:${assetId}`,
+					method: 'getAsset',
+					params: {
+						id: assetId,
+						displayOptions: {
+							showFungible: true,
+						},
+					},
+				}),
+			}
+		)
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			2,
+			binding,
+			'https://mainnet.helius-rpc.com/?api-key=helius%20key',
+			{
+				method: 'POST',
+				headers: {
+					'content-type': 'application/json',
+				},
+				body: JSON.stringify({
+					jsonrpc: '2.0',
+					id: `getAssetProof:${assetId}`,
+					method: 'getAssetProof',
+					params: {
+						id: assetId,
+					},
+				}),
+			}
+		)
+	})
+
 	it('executes the named owner-assets operation through the Helius DAS binding', async () => {
 		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify({
 			jsonrpc: '2.0',

@@ -1,4 +1,4 @@
-/** Wire types for the canonical Metaplex DAS `getAssetsByOwner` operation. */
+/** Wire types for Metaplex DAS operations, aliased from the checked-in OpenRPC schemas. */
 
 import type { components } from '$/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/openrpc.d.ts'
 
@@ -6,6 +6,14 @@ import type { components } from '$/sources/_shared/interfaces/MetaplexDasJsonRpc
 export type DasAsset = components['schemas']['Asset']
 
 export type DasAssetInterface = DasAsset['interface']
+
+export type DasAssetProof = components['schemas']['AssetProof']
+
+export type GetAssetParams = components['schemas']['GetAsset']
+
+export type GetAssetProofParams = components['schemas']['GetAssetProof']
+
+export type GetAssetsByOwnerParams = components['schemas']['GetAssetsByOwner']
 
 export type GetAssetsByOwnerResult = components['schemas']['AssetList']
 
