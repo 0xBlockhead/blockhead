@@ -15,14 +15,15 @@ import {
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/UniSat/bindings.ts'
-import type {
-	UniSatAddressInscriptionData,
-	UniSatEnvelope,
-	UniSatInscriptionInfo,
-	UniSatPaged,
-	UniSatRuneBalance,
-	UniSatRuneInfo,
-	UniSatUtxoInfo,
+import {
+	assertUniSatData,
+	unisatInscriptionInfoWire,
+	unisatPagedAddressInscriptionWire,
+	unisatPagedRuneBalanceWire,
+	unisatResponseEnvelopeWire,
+	unisatRuneBalanceListWire,
+	unisatRuneInfoWire,
+	unisatUtxoInfoOrNullWire,
 } from '$/sources/UniSat/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -49,7 +50,11 @@ const assertNonNegativeInteger = (
 
 const unisatGetJson = async <_Data>(
 	publicEnv: SourcePublicEnv,
-	path: string
+	path: string,
+	dataWire: {
+		assert: (value: unknown) => _Data
+	},
+	label: string
 ) => {
 	const url = new URL(
 		path,
@@ -64,11 +69,19 @@ const unisatGetJson = async <_Data>(
 	if (!response.ok)
 		await throwHttpError(`${Source.UniSat_Rest} GET ${url}`, response)
 
-	const envelope = await response.json() as UniSatEnvelope<_Data>
+	const envelope = assertUniSatData(
+		unisatResponseEnvelopeWire,
+		await response.json(),
+		`${label} response`
+	)
 	if (envelope.code !== 0)
 		throw new Error(`${Source.UniSat_Rest}: ${envelope.msg || `code ${String(envelope.code)}`}`)
 
-	return envelope.data
+	return assertUniSatData(
+		dataWire,
+		envelope.data,
+		label
+	)
 }
 
 export const getInscriptionInfo = async (
@@ -80,10 +93,15 @@ export const getInscriptionInfo = async (
 	}
 ) => {
 	assertNonEmpty(inscriptionId, 'inscriptionId')
-	return unisatGetJson<UniSatInscriptionInfo>(
+	const info = await unisatGetJson(
 		publicEnv,
-		`v1/indexer/inscription/info/${encodeURIComponent(inscriptionId)}`
+		`v1/indexer/inscription/info/${encodeURIComponent(inscriptionId)}`,
+		unisatInscriptionInfoWire,
+		'inscription info'
 	)
+	if (info.inscriptionId !== inscriptionId)
+		throw new Error(`${Source.UniSat_Rest}: inscriptionId mismatch`)
+	return info
 }
 
 export const getRuneInfo = async (
@@ -95,10 +113,15 @@ export const getRuneInfo = async (
 	}
 ) => {
 	assertNonEmpty(runeId, 'runeId')
-	return unisatGetJson<UniSatRuneInfo>(
+	const info = await unisatGetJson(
 		publicEnv,
-		`v1/indexer/runes/${encodeURIComponent(runeId)}/info`
+		`v1/indexer/runes/${encodeURIComponent(runeId)}/info`,
+		unisatRuneInfoWire,
+		'rune info'
 	)
+	if (info.runeid !== runeId)
+		throw new Error(`${Source.UniSat_Rest}: runeid mismatch`)
+	return info
 }
 
 export const getUtxoInfo = async (
@@ -113,10 +136,21 @@ export const getUtxoInfo = async (
 ) => {
 	assertNonEmpty(txId, 'txId')
 	assertNonNegativeInteger(outputIndex, 'outputIndex')
-	return unisatGetJson<UniSatUtxoInfo | null>(
+	const utxo = await unisatGetJson(
 		publicEnv,
-		`v1/indexer/utxo/${encodeURIComponent(txId)}/${outputIndex}`
+		`v1/indexer/utxo/${encodeURIComponent(txId)}/${outputIndex}`,
+		unisatUtxoInfoOrNullWire,
+		'utxo info'
 	)
+	if (
+		utxo != null
+		&& (
+			utxo.txid !== txId
+			|| utxo.vout !== outputIndex
+		)
+	)
+		throw new Error(`${Source.UniSat_Rest}: utxo identity mismatch`)
+	return utxo
 }
 
 export const getUtxoRuneBalances = async (
@@ -131,9 +165,11 @@ export const getUtxoRuneBalances = async (
 ) => {
 	assertNonEmpty(txId, 'txId')
 	assertNonNegativeInteger(outputIndex, 'outputIndex')
-	return unisatGetJson<UniSatRuneBalance[]>(
+	return unisatGetJson(
 		publicEnv,
-		`v1/indexer/runes/utxo/${encodeURIComponent(txId)}/${outputIndex}/balance`
+		`v1/indexer/runes/utxo/${encodeURIComponent(txId)}/${outputIndex}/balance`,
+		unisatRuneBalanceListWire,
+		'utxo rune balances'
 	)
 }
 
@@ -155,9 +191,11 @@ export const getAddressRuneBalances = async (
 	if (limit < 1 || limit > 500)
 		throw new Error(`${Source.UniSat_Rest}: limit must be 1..500`)
 
-	return unisatGetJson<UniSatPaged<UniSatRuneBalance>>(
+	return unisatGetJson(
 		publicEnv,
-		`v1/indexer/address/${encodeURIComponent(address)}/runes/balance-list?start=${start}&limit=${limit}`
+		`v1/indexer/address/${encodeURIComponent(address)}/runes/balance-list?start=${start}&limit=${limit}`,
+		unisatPagedRuneBalanceWire,
+		'address rune balances'
 	)
 }
 
@@ -179,8 +217,10 @@ export const getAddressInscriptions = async (
 	if (size < 1)
 		throw new Error(`${Source.UniSat_Rest}: size must be >= 1`)
 
-	return unisatGetJson<UniSatPaged<UniSatAddressInscriptionData>>(
+	return unisatGetJson(
 		publicEnv,
-		`v1/indexer/address/${encodeURIComponent(address)}/inscription-data?cursor=${cursor}&size=${size}`
+		`v1/indexer/address/${encodeURIComponent(address)}/inscription-data?cursor=${cursor}&size=${size}`,
+		unisatPagedAddressInscriptionWire,
+		'address inscriptions'
 	)
 }
