@@ -43,6 +43,9 @@ const networkResolvers = morphoGraphql.resolvers.filter((resolver) => (
 const vaultResolver = morphoGraphql.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.MorphoVault
 ))
+const marketResolver = morphoGraphql.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.MorphoMarket
+))
 const morphoMarketPositionsResolver = morphoGraphql.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EvmNetworkAccount
 	&& '$$morphoMarketPositions' in resolver.projections
@@ -54,6 +57,7 @@ const morphoVaultPositionsResolver = morphoGraphql.resolvers.find((resolver) => 
 
 const market = {
 	marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
+	creationBlockNumber: 19326981,
 	chain: {
 		id: 8453,
 	},
@@ -67,6 +71,14 @@ const market = {
 	irmAddress: '0x46415998764C29aB2a25CbeA6254146D50D22687',
 	oracle: {
 		address: '0x663BECd10daE6C4A3Dcd89F1d76c1174199639B9',
+	},
+	state: {
+		supplyAssets: 1453572095573010,
+		supplyShares: '1320911716664756276808',
+		borrowAssets: 1315886527548583,
+		borrowShares: '1181447494108739688848',
+		timestamp: 1786052921,
+		blockNumber: 49631787,
 	},
 }
 
@@ -190,9 +202,10 @@ describe('Morpho GraphQL resolver module', () => {
 		expect(getAccountPositions).not.toHaveBeenCalled()
 	})
 
-	it('registers under Morpho_Graphql for Network and MorphoVault', () => {
+	it('registers under Morpho_Graphql for Network, MorphoMarket, and MorphoVault', () => {
 		expect(morphoGraphql.source).toBe(Source.Morpho_Graphql)
 		expect(networkResolvers.length).toBe(2)
+		expect(marketResolver).toBeDefined()
 		expect(vaultResolver).toBeDefined()
 	})
 
@@ -287,6 +300,48 @@ describe('Morpho GraphQL resolver module', () => {
 				},
 			},
 		])
+	})
+
+	it('resolves MorphoMarket snapshot with enrolled config + tip state fields', async () => {
+		if (marketResolver == null)
+			throw new Error('missing MorphoMarket resolver')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				marketById: market,
+			},
+		})))
+
+		const network = {
+			caip2: {
+				namespace: 'eip155',
+				reference: '8453',
+			},
+		}
+
+		const snapshot = await marketResolver.resolve.NetworkMarketId.resolve({
+			$network: network,
+			marketId: market.marketId,
+		}, context)
+
+		expect(snapshot).toEqual({
+			$network: {
+				[EntityMetaKey.Selector]: network,
+			},
+			marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
+			loanAssetAddress: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+			collateralAssetAddress: '0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf',
+			oracleAddress: '0x663becd10dae6c4a3dcd89f1d76c1174199639b9',
+			irmAddress: '0x46415998764c29ab2a25cbea6254146d50d22687',
+			lltvWad: '860000000000000000',
+			creationBlockNumber: '19326981',
+			totalSupplyAssets: '1453572095573010',
+			totalSupplyShares: '1320911716664756276808',
+			totalBorrowAssets: '1315886527548583',
+			totalBorrowShares: '1181447494108739688848',
+			lastIndexedBlock: '49631787',
+			lastAccrualTimestamp: 1786052921,
+		})
 	})
 
 	it('resolves MorphoVault snapshot by network and vault address', async () => {

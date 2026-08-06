@@ -35,6 +35,7 @@ const binding = bindings[Source.Morpho_Graphql][0]
 
 const market = {
 	marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
+	creationBlockNumber: 19326981,
 	chain: {
 		id: 8453,
 	},
@@ -48,6 +49,14 @@ const market = {
 	irmAddress: '0x46415998764C29aB2a25CbeA6254146D50D22687',
 	oracle: {
 		address: '0x663BECd10daE6C4A3Dcd89F1d76c1174199639B9',
+	},
+	state: {
+		supplyAssets: 1453572095573010,
+		supplyShares: '1320911716664756276808',
+		borrowAssets: 1315886527548583,
+		borrowShares: '1181447494108739688848',
+		timestamp: 1786052921,
+		blockNumber: 49631787,
 	},
 }
 
@@ -115,6 +124,15 @@ describe('Morpho GraphQL market enumeration', () => {
 				lltvWad: '860000000000000000',
 				irmAddress: '0x46415998764c29ab2a25cbea6254146d50d22687',
 				oracleAddress: '0x663becd10dae6c4a3dcd89f1d76c1174199639b9',
+				creationBlockNumber: '19326981',
+				state: {
+					totalSupplyAssets: '1453572095573010',
+					totalSupplyShares: '1320911716664756276808',
+					totalBorrowAssets: '1315886527548583',
+					totalBorrowShares: '1181447494108739688848',
+					lastAccrualTimestamp: 1786052921,
+					lastIndexedBlock: '49631787',
+				},
 			},
 		])
 		expect(sourceFetch).toHaveBeenCalledWith(
@@ -206,9 +224,23 @@ describe('Morpho GraphQL market enumeration', () => {
 		await expect(getMarket({
 			chainId: 8453,
 			marketId: market.marketId,
-		})).resolves.toMatchObject({
-			marketId: market.marketId,
+		})).resolves.toEqual({
+			marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
 			chainId: 8453,
+			loanAssetAddress: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+			collateralAssetAddress: '0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf',
+			lltvWad: '860000000000000000',
+			irmAddress: '0x46415998764c29ab2a25cbea6254146d50d22687',
+			oracleAddress: '0x663becd10dae6c4a3dcd89f1d76c1174199639b9',
+			creationBlockNumber: '19326981',
+			state: {
+				totalSupplyAssets: '1453572095573010',
+				totalSupplyShares: '1320911716664756276808',
+				totalBorrowAssets: '1315886527548583',
+				totalBorrowShares: '1181447494108739688848',
+				lastAccrualTimestamp: 1786052921,
+				lastIndexedBlock: '49631787',
+			},
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
 			variables: {
@@ -217,6 +249,8 @@ describe('Morpho GraphQL market enumeration', () => {
 			},
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('marketById')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('creationBlockNumber')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('supplyAssets')
 	})
 
 	it('fails closed when a detail response omits its market', async () => {
@@ -228,6 +262,46 @@ describe('Morpho GraphQL market enumeration', () => {
 			chainId: 8453,
 			marketId: market.marketId,
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: market response missing marketById`)
+	})
+
+	it('fails closed when market envelope omits required assets', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				marketById: {
+					marketId: market.marketId,
+					chain: {
+						id: 8453,
+					},
+					lltv: market.lltv,
+					irmAddress: market.irmAddress,
+					oracle: market.oracle,
+				},
+			},
+		})))
+
+		await expect(getMarket({
+			chainId: 8453,
+			marketId: market.marketId,
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: invalid market response envelope`)
+	})
+
+	it('fails closed when supplyAssets exceeds safe integer number form', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				marketById: {
+					...market,
+					state: {
+						...market.state,
+						supplyAssets: Number.MAX_SAFE_INTEGER + 1,
+					},
+				},
+			},
+		})))
+
+		await expect(getMarket({
+			chainId: 8453,
+			marketId: market.marketId,
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: invalid supplyAssets`)
 	})
 
 	it('fails closed when a listed market violates its chain filter', async () => {
@@ -521,6 +595,6 @@ describe('Morpho GraphQL account positions', () => {
 		await expect(getAccountPositions({
 			chainId: 1,
 			account: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
-		})).rejects.toThrow(`${Source.Morpho_Graphql}: account positions missing marketPositions`)
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: invalid account positions response envelope`)
 	})
 })

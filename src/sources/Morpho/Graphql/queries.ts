@@ -12,26 +12,28 @@ import {
 	morphoVaultPageLimit,
 } from './constants.ts'
 import { queryMorpho } from './client.ts'
-import type {
-	MorphoGraphqlAccountMarketPosition,
-	MorphoGraphqlAccountMarketPositionWire,
-	MorphoGraphqlAccountPosition,
-	MorphoGraphqlAccountPositionsData,
-	MorphoGraphqlAccountVaultPosition,
-	MorphoGraphqlAccountVaultPositionWire,
-	MorphoGraphqlMarket,
-	MorphoGraphqlMarketData,
-	MorphoGraphqlMarketsData,
-	MorphoGraphqlMarketWire,
-	MorphoGraphqlVault,
-	MorphoGraphqlVaultData,
-	MorphoGraphqlVaultsData,
-	MorphoGraphqlVaultWire,
+import {
+	morphoGraphqlAccountPositionsDataWire,
+	morphoGraphqlMarketDataWire,
+	morphoGraphqlMarketsDataWire,
+	morphoGraphqlVaultDataWire,
+	morphoGraphqlVaultsDataWire,
+	type MorphoGraphqlAccountMarketPosition,
+	type MorphoGraphqlAccountMarketPositionWire,
+	type MorphoGraphqlAccountPosition,
+	type MorphoGraphqlAccountVaultPosition,
+	type MorphoGraphqlAccountVaultPositionWire,
+	type MorphoGraphqlMarket,
+	type MorphoGraphqlMarketStateWire,
+	type MorphoGraphqlMarketWire,
+	type MorphoGraphqlVault,
+	type MorphoGraphqlVaultWire,
 } from './types.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 
 const marketFields = `
 	marketId
+	creationBlockNumber
 	chain {
 		id
 	}
@@ -45,7 +47,27 @@ const marketFields = `
 	irmAddress
 	oracle {
 		address
+	}
+	state {
+		supplyAssets
+		supplyShares
+		borrowAssets
+		borrowShares
+		timestamp
+		blockNumber
 	}`
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`${Source.Morpho_Graphql}: invalid ${label} response envelope`)
+	}
+}
 
 const assertChainId = (chainId: number) => {
 	if (!Number.isSafeInteger(chainId) || chainId < 1)
@@ -101,21 +123,38 @@ const assertListed = (
 	return listed
 }
 
+const assertGraphqlAmount = (
+	value: string | number,
+	label: string
+) => {
+	if (typeof value === 'number') {
+		if (!Number.isSafeInteger(value) || value < 0)
+			throw new Error(`${Source.Morpho_Graphql}: invalid ${label} ${String(value)}`)
+		return String(value)
+	}
+	if (value.length < 1 || !/^(?:0|[1-9]\d*)$/.test(value))
+		throw new Error(`${Source.Morpho_Graphql}: invalid ${label} ${value}`)
+	return value
+}
+
+const normalizeMarketState = (
+	wire: MorphoGraphqlMarketStateWire
+) => ({
+	totalSupplyAssets: assertGraphqlAmount(wire.supplyAssets, 'supplyAssets'),
+	totalSupplyShares: assertGraphqlAmount(wire.supplyShares, 'supplyShares'),
+	totalBorrowAssets: assertGraphqlAmount(wire.borrowAssets, 'borrowAssets'),
+	totalBorrowShares: assertGraphqlAmount(wire.borrowShares, 'borrowShares'),
+	lastAccrualTimestamp: wire.timestamp,
+	lastIndexedBlock: assertGraphqlAmount(wire.blockNumber, 'blockNumber'),
+})
+
 const normalizeMarket = (
 	wire: MorphoGraphqlMarketWire,
 	chainIds: readonly number[]
 ): MorphoGraphqlMarket => {
-	if (wire.chain == null || wire.chain.id == null)
-		throw new Error(`${Source.Morpho_Graphql}: market missing chain id`)
 	assertChainId(wire.chain.id)
 	if (!chainIds.includes(wire.chain.id))
 		throw new Error(`${Source.Morpho_Graphql}: market chain filter violated`)
-	if (wire.loanAsset == null)
-		throw new Error(`${Source.Morpho_Graphql}: market missing loan asset`)
-	if (wire.collateralAsset == null)
-		throw new Error(`${Source.Morpho_Graphql}: market missing collateral asset`)
-	if (wire.oracle == null)
-		throw new Error(`${Source.Morpho_Graphql}: market missing oracle`)
 
 	return {
 		marketId: assertMarketId(wire.marketId),
@@ -125,6 +164,12 @@ const normalizeMarket = (
 		lltvWad: assertNonEmpty(wire.lltv, 'lltv'),
 		irmAddress: assertAddress(wire.irmAddress, 'irm address'),
 		oracleAddress: assertAddress(wire.oracle.address, 'oracle address'),
+		...(wire.creationBlockNumber != null && {
+			creationBlockNumber: String(wire.creationBlockNumber),
+		}),
+		...(wire.state != null && {
+			state: normalizeMarketState(wire.state),
+		}),
 	}
 }
 
@@ -145,13 +190,9 @@ const normalizeVault = (
 	wire: MorphoGraphqlVaultWire,
 	chainIds: readonly number[]
 ): MorphoGraphqlVault => {
-	if (wire.chain == null || wire.chain.id == null)
-		throw new Error(`${Source.Morpho_Graphql}: vault missing chain id`)
 	assertChainId(wire.chain.id)
 	if (!chainIds.includes(wire.chain.id))
 		throw new Error(`${Source.Morpho_Graphql}: vault chain filter violated`)
-	if (wire.asset == null)
-		throw new Error(`${Source.Morpho_Graphql}: vault missing asset`)
 
 	return {
 		address: assertAddress(wire.address, 'vault address'),
@@ -179,7 +220,10 @@ export const listMarkets = async ({
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > morphoMarketPageLimit)
 		throw new Error(`${Source.Morpho_Graphql}: limit must be between 1 and ${String(morphoMarketPageLimit)}`)
 
-	const data = await queryMorpho<MorphoGraphqlMarketsData>(`
+	const data = assertEnvelope(
+		'markets',
+		morphoGraphqlMarketsDataWire,
+		await queryMorpho(`
 		query MorphoMarkets(
 			$chainIds: [Int!],
 			$limit: Int!
@@ -198,15 +242,12 @@ export const listMarkets = async ({
 			}
 		}
 	`, {
-		chainIds: [
-			...chainIds,
-		],
-		limit,
-	})
-	if (data.markets == null)
-		throw new Error(`${Source.Morpho_Graphql}: markets response missing markets`)
-	if (data.markets.items == null)
-		throw new Error(`${Source.Morpho_Graphql}: markets response missing items`)
+			chainIds: [
+				...chainIds,
+			],
+			limit,
+		})
+	)
 	if (data.markets.items.length > limit)
 		throw new Error(`${Source.Morpho_Graphql}: markets response exceeds page limit`)
 
@@ -225,7 +266,10 @@ export const getMarket = async ({
 }) => {
 	assertChainId(chainId)
 	const normalizedMarketId = assertMarketId(marketId)
-	const data = await queryMorpho<MorphoGraphqlMarketData>(`
+	const data = assertEnvelope(
+		'market',
+		morphoGraphqlMarketDataWire,
+		await queryMorpho(`
 		query MorphoMarket(
 			$chainId: Int!,
 			$marketId: String!
@@ -238,9 +282,10 @@ export const getMarket = async ({
 			}
 		}
 	`, {
-		chainId,
-		marketId: normalizedMarketId,
-	})
+			chainId,
+			marketId: normalizedMarketId,
+		})
+	)
 	if (data.marketById == null)
 		throw new Error(`${Source.Morpho_Graphql}: market response missing marketById`)
 
@@ -268,7 +313,10 @@ export const listVaults = async ({
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > morphoVaultPageLimit)
 		throw new Error(`${Source.Morpho_Graphql}: limit must be between 1 and ${String(morphoVaultPageLimit)}`)
 
-	const data = await queryMorpho<MorphoGraphqlVaultsData>(`
+	const data = assertEnvelope(
+		'vaults',
+		morphoGraphqlVaultsDataWire,
+		await queryMorpho(`
 		query MorphoVaults(
 			$chainIds: [Int!],
 			$limit: Int!
@@ -287,15 +335,12 @@ export const listVaults = async ({
 			}
 		}
 	`, {
-		chainIds: [
-			...chainIds,
-		],
-		limit,
-	})
-	if (data.vaults == null)
-		throw new Error(`${Source.Morpho_Graphql}: vaults response missing vaults`)
-	if (data.vaults.items == null)
-		throw new Error(`${Source.Morpho_Graphql}: vaults response missing items`)
+			chainIds: [
+				...chainIds,
+			],
+			limit,
+		})
+	)
 	if (data.vaults.items.length > limit)
 		throw new Error(`${Source.Morpho_Graphql}: vaults response exceeds page limit`)
 
@@ -314,7 +359,10 @@ export const getVault = async ({
 }) => {
 	assertChainId(chainId)
 	const normalizedAddress = assertAddress(address, 'vault address')
-	const data = await queryMorpho<MorphoGraphqlVaultData>(`
+	const data = assertEnvelope(
+		'vault',
+		morphoGraphqlVaultDataWire,
+		await queryMorpho(`
 		query MorphoVault(
 			$chainId: Int!,
 			$address: String!
@@ -327,9 +375,10 @@ export const getVault = async ({
 			}
 		}
 	`, {
-		chainId,
-		address: normalizedAddress,
-	})
+			chainId,
+			address: normalizedAddress,
+		})
+	)
 	if (data.vaultByAddress == null)
 		throw new Error(`${Source.Morpho_Graphql}: vault response missing vaultByAddress`)
 
@@ -369,11 +418,6 @@ const normalizeMarketPosition = (
 		account: `0x${string}`
 	}
 ): MorphoGraphqlAccountMarketPosition | null => {
-	if (wire.market == null)
-		throw new Error(`${Source.Morpho_Graphql}: account market position missing market`)
-	if (wire.state == null)
-		throw new Error(`${Source.Morpho_Graphql}: account market position missing state`)
-
 	const supplyAssets = assertNonNegativeDecimalString(wire.state.supplyAssets, 'supplyAssets')
 	const supplyShares = assertNonNegativeDecimalString(wire.state.supplyShares, 'supplyShares')
 	const borrowAssets = assertNonNegativeDecimalString(wire.state.borrowAssets, 'borrowAssets')
@@ -416,11 +460,6 @@ const normalizeVaultPosition = (
 		account: `0x${string}`
 	}
 ): MorphoGraphqlAccountVaultPosition | null => {
-	if (wire.vault == null)
-		throw new Error(`${Source.Morpho_Graphql}: account vault position missing vault`)
-	if (wire.state == null)
-		throw new Error(`${Source.Morpho_Graphql}: account vault position missing state`)
-
 	const assets = assertNonNegativeDecimalString(wire.state.assets, 'assets')
 	const shares = assertNonNegativeDecimalString(wire.state.shares, 'shares')
 	if (assets === '0' && shares === '0')
@@ -456,7 +495,10 @@ export const getAccountPositions = async ({
 }): Promise<MorphoGraphqlAccountPosition[]> => {
 	assertChainId(chainId)
 	const normalizedAccount = assertAddress(account, 'account')
-	const data = await queryMorpho<MorphoGraphqlAccountPositionsData>(`
+	const data = assertEnvelope(
+		'account positions',
+		morphoGraphqlAccountPositionsDataWire,
+		await queryMorpho(`
 		query MorphoAccountPositions(
 			$chainId: Int!,
 			$address: String!
@@ -496,9 +538,10 @@ export const getAccountPositions = async ({
 			}
 		}
 	`, {
-		chainId,
-		address: normalizedAccount,
-	})
+			chainId,
+			address: normalizedAccount,
+		})
+	)
 
 	// Absent user means no indexed positions for this account on this chain.
 	if (data.userByAddress == null)
@@ -507,10 +550,6 @@ export const getAccountPositions = async ({
 	const responseAddress = assertAddress(data.userByAddress.address, 'account')
 	if (responseAddress !== normalizedAccount)
 		throw new Error(`${Source.Morpho_Graphql}: account positions address mismatch`)
-	if (data.userByAddress.marketPositions == null)
-		throw new Error(`${Source.Morpho_Graphql}: account positions missing marketPositions`)
-	if (data.userByAddress.vaultPositions == null)
-		throw new Error(`${Source.Morpho_Graphql}: account positions missing vaultPositions`)
 
 	return [
 		...data.userByAddress.marketPositions.map((wire) => (

@@ -12,11 +12,13 @@ import { schema } from '$/schema/index.ts'
 import type {
 	MorphoGraphqlAccountMarketPosition,
 	MorphoGraphqlAccountVaultPosition,
+	MorphoGraphqlMarket,
 	MorphoGraphqlVault,
 } from '$/sources/Morpho/Graphql/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+type MorphoMarketId = EntitySelector<typeof schema, EntityType.MorphoMarket>
 type MorphoVaultId = EntitySelector<typeof schema, EntityType.MorphoVault>
 type MorphoMarketPositionId = EntitySelector<typeof schema, EntityType.MorphoMarketPosition>
 type MorphoVaultPositionId = EntitySelector<typeof schema, EntityType.MorphoVaultPosition>
@@ -32,6 +34,32 @@ const eip155ChainId = (network: NetworkId) => {
 
 	return chainId
 }
+
+const mapMorphoMarketSnapshot = (
+	network: NetworkId,
+	market: MorphoGraphqlMarket,
+) => ({
+	$network: {
+		[EntityMetaKey.Selector]: network,
+	},
+	marketId: market.marketId,
+	loanAssetAddress: market.loanAssetAddress,
+	collateralAssetAddress: market.collateralAssetAddress,
+	oracleAddress: market.oracleAddress,
+	irmAddress: market.irmAddress,
+	lltvWad: market.lltvWad,
+	...(market.creationBlockNumber != null && {
+		creationBlockNumber: market.creationBlockNumber,
+	}),
+	...(market.state != null && {
+		totalSupplyAssets: market.state.totalSupplyAssets,
+		totalSupplyShares: market.state.totalSupplyShares,
+		totalBorrowAssets: market.state.totalBorrowAssets,
+		totalBorrowShares: market.state.totalBorrowShares,
+		lastIndexedBlock: market.state.lastIndexedBlock,
+		lastAccrualTimestamp: market.state.lastAccrualTimestamp,
+	}),
+})
 
 const mapMorphoVaultSnapshot = (
 	network: NetworkId,
@@ -276,6 +304,47 @@ export default {
 			assets: (position) => position.assets,
 			shares: (position) => position.shares,
 			assetsUsd: (position) => position.assetsUsd,
+		}),
+
+		defineResolver({
+			entityType: EntityType.MorphoMarket,
+			resolve: {
+				NetworkMarketId: {
+					resolve: async ({
+						$network,
+						marketId,
+					}: MorphoMarketId) => {
+						const chainId = eip155ChainId($network)
+						const normalizedMarketId = hexLowerOfByteSize(marketId, 32)
+						if (normalizedMarketId == null)
+							throw new Error(`${Source.Morpho_Graphql}: invalid market id ${marketId}`)
+
+						const { getMarket } = await import('$/sources/Morpho/Graphql/queries.ts')
+						return mapMorphoMarketSnapshot(
+							$network,
+							await getMarket({
+								chainId,
+								marketId: normalizedMarketId,
+							}),
+						)
+					},
+				},
+			},
+		})({
+			$network: (market) => market.$network,
+			marketId: (market) => market.marketId,
+			loanAssetAddress: (market) => market.loanAssetAddress,
+			collateralAssetAddress: (market) => market.collateralAssetAddress,
+			oracleAddress: (market) => market.oracleAddress,
+			irmAddress: (market) => market.irmAddress,
+			lltvWad: (market) => market.lltvWad,
+			creationBlockNumber: (market) => market.creationBlockNumber,
+			totalSupplyAssets: (market) => market.totalSupplyAssets,
+			totalSupplyShares: (market) => market.totalSupplyShares,
+			totalBorrowAssets: (market) => market.totalBorrowAssets,
+			totalBorrowShares: (market) => market.totalBorrowShares,
+			lastIndexedBlock: (market) => market.lastIndexedBlock,
+			lastAccrualTimestamp: (market) => market.lastAccrualTimestamp,
 		}),
 
 		defineResolver({
