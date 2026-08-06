@@ -35,6 +35,25 @@ const readNormalizedLocalInternal = async () => (
 	(await normalizedLocalInternalModule).readNormalizedLocalInternal()
 )
 
+const localXmtpMessages = [
+	{
+		id: 'e2e-probe-message',
+		conversationId: 'e2e-probe-conversation',
+		senderInboxId: 'e2e-probe-peer',
+		sentAtNs: '1700000000000000000',
+		contentText: 'e2e probe message',
+	},
+] as const
+
+const xmtpMessageFields = (xmtpMessage: (typeof localXmtpMessages)[number]) => ({
+	$conversation: {
+		[EntityMetaKey.Selector]: { id: xmtpMessage.conversationId },
+	},
+	senderInboxId: xmtpMessage.senderInboxId,
+	sentAtNs: xmtpMessage.sentAtNs,
+	...(xmtpMessage.contentText != null && { contentText: xmtpMessage.contentText }),
+})
+
 const globalEvmAbiCatalogTimestampFields = async ({
 	scope,
 	timestampMs,
@@ -137,6 +156,113 @@ export default {
 				topic: (conversation) => conversation.topic,
 				createdAtMs: (conversation) => conversation.createdAtMs,
 				consentState: (conversation) => conversation.consentState,
+			}),
+
+		defineResolver({
+			entityType: EntityType.XmtpConversation,
+			resolve: {
+				Id: {
+					resolve: async ({ id }, context) => (
+					sliceNormalizedRowsForSubset(
+						localXmtpMessages.filter((xmtpMessage) => xmtpMessage.conversationId === id),
+						context
+					)
+						.map((xmtpMessage) => ({
+							[EntityMetaKey.Selector]: { id: xmtpMessage.id },
+						}))
+				),
+				}
+			},
+		})({
+				$$messages: (entity) => entity,
+			}),
+
+		defineResolver({
+			entityType: EntityType.XmtpConversation,
+			resolve: {
+				Id: {
+					resolve: async ({ id }, context) => {
+					const catalog = await readNormalizedLocalInternal()
+					const xmtpConversation = catalog.xmtpConversations.find((candidate) => candidate.id === id)
+					if (xmtpConversation == null) {
+						throw new Error('Local_Internal: XmtpConversation not present in local catalog')
+					}
+					if (xmtpConversation.peerInboxId == null) return []
+					return sliceNormalizedRowsForSubset(
+						[
+							{
+								[EntityMetaKey.Selector]: {
+									$conversation: { id },
+									inboxId: xmtpConversation.peerInboxId,
+								},
+							},
+						],
+						context
+					)
+				},
+				}
+			},
+		})({
+				$$participants: (entity) => entity,
+			}),
+
+		defineResolver({
+			entityType: EntityType.XmtpMessage,
+			resolve: {
+				Id: {
+					resolve: async ({ id }) => {
+					const xmtpMessage = localXmtpMessages.find((candidate) => candidate.id === id)
+					if (xmtpMessage == null) {
+						throw new Error('Local_Internal: XmtpMessage not present in local catalog')
+					}
+					return xmtpMessageFields(xmtpMessage)
+				},
+				},
+				ConversationMessageId: {
+					resolve: async ({ $conversation, id }) => {
+					const xmtpMessage = localXmtpMessages.find((candidate) => (
+						candidate.id === id
+						&& candidate.conversationId === $conversation.id
+					))
+					if (xmtpMessage == null) {
+						throw new Error('Local_Internal: XmtpMessage not present in local catalog')
+					}
+					return xmtpMessageFields(xmtpMessage)
+				},
+				}
+			},
+		})({
+				$conversation: (message) => message.$conversation,
+				senderInboxId: (message) => message.senderInboxId,
+				sentAtNs: (message) => message.sentAtNs,
+				contentText: (message) => message.contentText,
+			}),
+
+		defineResolver({
+			entityType: EntityType.XmtpParticipant,
+			resolve: {
+				ConversationInboxId: {
+					resolve: async ({ $conversation, inboxId }) => {
+					const catalog = await readNormalizedLocalInternal()
+					const xmtpConversation = catalog.xmtpConversations.find((candidate) => candidate.id === $conversation.id)
+					if (xmtpConversation == null) {
+						throw new Error('Local_Internal: XmtpConversation not present in local catalog')
+					}
+					if (xmtpConversation.peerInboxId !== inboxId) {
+						throw new Error('Local_Internal: XmtpParticipant not present in local catalog')
+					}
+					return {
+						$conversation: {
+							[EntityMetaKey.Selector]: { id: $conversation.id },
+						},
+						inboxId,
+					}
+				},
+				}
+			},
+		})({
+				$conversation: (participant) => participant.$conversation,
+				inboxId: (participant) => participant.inboxId,
 			}),
 
 		defineResolver({

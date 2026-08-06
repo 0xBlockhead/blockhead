@@ -2138,7 +2138,9 @@ export enum EntityType {
 	WalletConnectionMethod = "WalletConnectionMethod",
 	WormholeVaa = "WormholeVaa",
 	XmtpConversation = "XmtpConversation",
+	XmtpMessage = "XmtpMessage",
 	XmtpNetwork = "XmtpNetwork",
+	XmtpParticipant = "XmtpParticipant",
 	XNetwork = "XNetwork",
 	XPost = "XPost",
 	XPost_Timestamp = "XPost_Timestamp",
@@ -64671,6 +64673,20 @@ export const schema = {
 				"topic": { label: "Topic", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"createdAtMs": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"consentState": { label: "Consent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "XmtpConversationConsentState" },
+				"$$messages": {
+					label: "Messages",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.XmtpMessage,
+					defaultSources: [Source.Local_Internal],
+				},
+				"$$participants": {
+					label: "Participants",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.XmtpParticipant,
+					defaultSources: [Source.Local_Internal],
+				},
 			})({
 				selectors: {
 					"Id": ["id"],
@@ -64695,8 +64711,70 @@ export const schema = {
 								[{ field: "id", format: "truncated" }],
 							],
 						},
+						carousels: [
+							{
+								id: "xmtp-conversation-depth",
+								label: "Conversation",
+								className: "network-view-collapsible-conversation",
+								sections: [
+									{ id: "xmtp-conversation-messages", field: "$$messages", List: "XmtpMessagesView", label: "Messages", emptyText: "No XMTP messages here yet." },
+									{ id: "xmtp-conversation-participants", field: "$$participants", List: "XmtpParticipantsView", label: "Participants", emptyText: "No XMTP participants here yet." },
+								],
+							},
+						],
 					},
 					plural: { component: "XmtpConversationsView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.XmtpMessage,
+				labels: {
+					singular: "XMTP message",
+					plural: "XMTP messages",
+				},
+			})({
+				"id": {
+					label: "ID",
+					description: "The identifier assigned by the source domain.",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.One,
+					valueType: "string",
+				},
+				"$conversation": { label: "Conversation", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.XmtpConversation },
+				"senderInboxId": { label: "Sender inbox ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"sentAtNs": { label: "Sent at (ns)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"contentText": { label: "Content", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+			})({
+				selectors: {
+					"Id": ["id"],
+					"ConversationMessageId": ["$conversation", "id"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Local_Internal],
+							fields: ["senderInboxId", "sentAtNs", "contentText"],
+						},
+						summary: {
+							title: [{ field: "contentText" }, { field: "id" }],
+							value: [{ field: "senderInboxId", format: "truncated" }],
+							HeadingAfter: [{ field: "sentAtNs" }],
+						},
+						content: {
+							body: {
+								field: "contentText",
+								format: "longText",
+							},
+							dl: [
+								[{ field: "$conversation" }],
+								[{ field: "senderInboxId", format: "truncated" }],
+								[{ field: "sentAtNs" }],
+								[{ field: "id", format: "truncated" }],
+							],
+						},
+					},
+					plural: { component: "XmtpMessagesView" },
 				},
 			}),
 
@@ -64759,6 +64837,39 @@ export const schema = {
 						},
 					},
 					plural: { component: "XmtpNetworksView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.XmtpParticipant,
+				labels: {
+					singular: "XMTP participant",
+					plural: "XMTP participants",
+				},
+			})({
+				"$conversation": { label: "Conversation", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.XmtpConversation },
+				"inboxId": { label: "Inbox ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+			})({
+				selectors: {
+					"ConversationInboxId": ["$conversation", "inboxId"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Local_Internal],
+						},
+						summary: {
+							title: [{ field: "inboxId", format: "truncated" }],
+							value: [{ field: "inboxId", format: "truncated" }],
+						},
+						content: {
+							dl: [
+								[{ field: "$conversation" }],
+								[{ field: "inboxId", format: "truncated" }],
+							],
+						},
+					},
+					plural: { component: "XmtpParticipantsView" },
 				},
 			}),
 
@@ -73375,6 +73486,25 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain WormholeVaa.EmitterChainEmitterSequence as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#wormholevaa",
+			},
+		},
+		[EntityType.XmtpMessage]: {
+			"Id": {
+				kind: "Research",
+				decision: "Retain XmtpMessage.Id as non-public until a product-valid message route under /xmtp/conversation is declared; Local_Internal Phase 1 seeds list via XmtpConversation.$$messages.",
+				evidence: "NEEDS_APP.md#xmtp-conversation-depth",
+			},
+			"ConversationMessageId": {
+				kind: "Research",
+				decision: "Retain XmtpMessage.ConversationMessageId as non-public until a product-valid nested message route under conversation is declared.",
+				evidence: "NEEDS_APP.md#xmtp-conversation-depth",
+			},
+		},
+		[EntityType.XmtpParticipant]: {
+			"ConversationInboxId": {
+				kind: "Research",
+				decision: "Retain XmtpParticipant.ConversationInboxId as non-public until a product-valid participant route under /xmtp/conversation is declared; Local_Internal Phase 1 derives peers via XmtpConversation.$$participants.",
+				evidence: "NEEDS_APP.md#xmtp-conversation-depth",
 			},
 		},
 		[EntityType.XrplAccount_Timestamp]: {
