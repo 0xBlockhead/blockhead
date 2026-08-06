@@ -4531,7 +4531,6 @@
 								.$$resources({
 									sources: [
 										Source.Arweave_Graphql,
-										Source.Arweave_Rest,
 									],
 									limit: 16,
 								})

@@ -13264,17 +13264,23 @@ export const schema = {
 				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
 				"divisibility": { label: "Divisibility", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
 				"etchingHeight": { label: "Etching height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
+				"etchingTxIndex": { label: "Etching tx index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
 				"etchingTimestampMs": { label: "Etching timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.UniSat_Rest] },
 				"$etchingTransaction": { label: "Etching transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoTransaction, defaultSources: [Source.UniSat_Rest] },
 				"premine": { label: "Premine", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
 				"supply": { label: "Supply", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+				"mints": { label: "Mints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+				"burned": { label: "Burned", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
 				"holders": { label: "Holders", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
+				"transactions": { label: "Transactions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
 				"mintable": { label: "Mintable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.UniSat_Rest] },
 				"remaining": { label: "Remaining", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
 				"termsAmount": { label: "Terms amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
 				"termsCap": { label: "Terms cap", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
 				"termsHeightStart": { label: "Terms height start", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
 				"termsHeightEnd": { label: "Terms height end", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
+				"termsOffsetStart": { label: "Terms offset start", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
+				"termsOffsetEnd": { label: "Terms offset end", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
 			})({
 				selectors: {
 					"NetworkRuneId": ["$network", "runeId"],
@@ -13286,8 +13292,8 @@ export const schema = {
 						content: {
 							dl: [
 								["$network", { field: "runeId", format: "truncated" }, "spacedRune", "rune", "number", "symbol", "divisibility", "$etchingTransaction"],
-								["etchingHeight", "etchingTimestampMs", "premine", "supply", "holders", "mintable", "remaining"],
-								["termsAmount", "termsCap", "termsHeightStart", "termsHeightEnd"],
+								["etchingHeight", "etchingTxIndex", "etchingTimestampMs", "premine", "supply", "mints", "burned", "holders", "transactions", "mintable", "remaining"],
+								["termsAmount", "termsCap", "termsHeightStart", "termsHeightEnd", "termsOffsetStart", "termsOffsetEnd"],
 							],
 						},
 					},
@@ -34150,11 +34156,11 @@ export const schema = {
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
 				"tipsetKey": { label: "Tipset key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$tipset": { label: "Tipset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinTipset, defaultSources: [Source.Lotus_JsonRpc] },
-				"idAddress": { label: "ID address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc] },
-				"actorCodeCid": { label: "Actor code CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc] },
+				"$tipset": { label: "Tipset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinTipset, defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"idAddress": { label: "ID address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"actorCodeCid": { label: "Actor code CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
 				"nonce": { label: "Nonce", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc] },
-				"balanceAttoFil": { label: "Balance attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc] },
+				"balanceAttoFil": { label: "Balance attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
 				"stateRootCid": { label: "State root CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc] },
 			})({
 				selectors: {
@@ -34163,7 +34169,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Lotus_JsonRpc],
+							sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
 						},
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
@@ -34539,17 +34545,17 @@ export const schema = {
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
 				"tipsetKey": { label: "Tipset key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$tipset": { label: "Tipset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinTipset, defaultSources: [Source.Lotus_JsonRpc] },
-				"$owner": { label: "Owner", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Lotus_JsonRpc] },
-				"$worker": { label: "Worker", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Lotus_JsonRpc] },
-				"peerId": { label: "Peer ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc] },
-				"rawBytePower": { label: "Raw byte power", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc] },
-				"qualityAdjustedPower": { label: "Quality adjusted power", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc] },
-				"networkRawBytePower": { label: "Network raw byte power", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc] },
-				"networkQualityAdjustedPower": { label: "Network quality adjusted power", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc] },
-				"activeSectorCount": { label: "Active sectors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Lotus_JsonRpc] },
-				"liveSectorCount": { label: "Live sectors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Lotus_JsonRpc] },
-				"faultySectorCount": { label: "Faulty sectors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Lotus_JsonRpc] },
+				"$tipset": { label: "Tipset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinTipset, defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"$owner": { label: "Owner", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"$worker": { label: "Worker", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"peerId": { label: "Peer ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"rawBytePower": { label: "Raw byte power", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"qualityAdjustedPower": { label: "Quality adjusted power", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"networkRawBytePower": { label: "Network raw byte power", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"networkQualityAdjustedPower": { label: "Network quality adjusted power", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"activeSectorCount": { label: "Active sectors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"liveSectorCount": { label: "Live sectors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
+				"faultySectorCount": { label: "Faulty sectors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
 			})({
 				selectors: {
 					"MinerHeightTipsetKeySource": ["$miner", "height", "tipsetKey", "source"],
@@ -34557,7 +34563,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Lotus_JsonRpc],
+							sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
 						},
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
@@ -48525,7 +48531,7 @@ export const schema = {
 						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveNetwork_Timestamp, defaultSources: [Source.Arweave_Graphql, Source.Arweave_Rest] },
 						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveBlock, defaultSources: [Source.Arweave_Graphql, Source.Arweave_Rest] },
 						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveTransaction, defaultSources: [Source.Arweave_Graphql] },
-						"$$resources": { label: "Resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveResource, defaultSources: [Source.Arweave_Graphql, Source.Arweave_Rest] },
+						"$$resources": { label: "Resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveResource, defaultSources: [Source.Arweave_Graphql] },
 					})({
 						singularView: {
 							carousels: [
@@ -48544,7 +48550,7 @@ export const schema = {
 									label: "Resources",
 									className: "network-view-collapsible-resources",
 									sections: [
-										{ id: "arweave-resource-list", field: ["Arweave", "$$resources"], List: "ArweaveResourcesView", label: "Resources", emptyText: "No Arweave resources.", selection: { sources: [Source.Arweave_Graphql, Source.Arweave_Rest], limit: 16 } },
+										{ id: "arweave-resource-list", field: ["Arweave", "$$resources"], List: "ArweaveResourcesView", label: "Resources", emptyText: "No Arweave resources.", selection: { sources: [Source.Arweave_Graphql], limit: 16 } },
 									],
 								},
 							],
@@ -65007,8 +65013,8 @@ export const schema = {
 				"isSpent": { label: "Spent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"$bitcoinCashCashTokenFungibleAmount": { label: "Bitcoin Cash CashToken fungible amount", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinCashCashTokenFungibleAmount },
 				"$bitcoinCashCashTokenNft": { label: "Bitcoin Cash CashToken NFT", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinCashCashTokenNft },
-				"$$bitcoinOrdinalInscriptions": { label: "Bitcoin Ordinal inscriptions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinOrdinalInscription },
-				"$$bitcoinRuneBalances": { label: "Bitcoin Rune balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinRuneBalance },
+				"$$bitcoinOrdinalInscriptions": { label: "Bitcoin Ordinal inscriptions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinOrdinalInscription, defaultSources: [Source.UniSat_Rest] },
+				"$$bitcoinRuneBalances": { label: "Bitcoin Rune balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinRuneBalance, defaultSources: [Source.UniSat_Rest] },
 				"$bitcoinRunestone": { label: "Bitcoin runestone", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinRunestone },
 			})({
 				selectors: {

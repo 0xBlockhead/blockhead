@@ -837,7 +837,6 @@ export default entity({
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Arweave_Graphql,
-					Source.Arweave_Rest,
 				],
 			},
 		}),

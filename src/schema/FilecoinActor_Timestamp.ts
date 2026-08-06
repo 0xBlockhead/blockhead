@@ -38,6 +38,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	idAddress: {
@@ -45,6 +46,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	actorCodeCid: {
@@ -52,6 +54,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	nonce: {
@@ -66,6 +69,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	stateRootCid: {

@@ -248,6 +248,28 @@
 				resource={
 					viewSelection({
 						fields: {
+							etchingTxIndex: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const etchingTxIndex = entity.etchingTxIndex}
+					{#if etchingTxIndex != null}
+						<div>
+							<dt>Etching tx index</dt>
+							<dd>
+								{etchingTxIndex}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
 							etchingTimestampMs: true,
 						},
 					})
@@ -314,6 +336,50 @@
 				resource={
 					viewSelection({
 						fields: {
+							mints: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const mints = entity.mints}
+					{#if mints != null}
+						<div>
+							<dt>Mints</dt>
+							<dd>
+								{mints}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							burned: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const burned = entity.burned}
+					{#if burned != null}
+						<div>
+							<dt>Burned</dt>
+							<dd>
+								{burned}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
 							holders: true,
 						},
 					})
@@ -326,6 +392,28 @@
 							<dt>Holders</dt>
 							<dd>
 								{holders}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							transactions: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const transactions = entity.transactions}
+					{#if transactions != null}
+						<div>
+							<dt>Transactions</dt>
+							<dd>
+								{transactions}
 							</dd>
 						</div>
 					{/if}
@@ -460,6 +548,50 @@
 							<dt>Terms height end</dt>
 							<dd>
 								{termsHeightEnd}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							termsOffsetStart: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const termsOffsetStart = entity.termsOffsetStart}
+					{#if termsOffsetStart != null}
+						<div>
+							<dt>Terms offset start</dt>
+							<dd>
+								{termsOffsetStart}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							termsOffsetEnd: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const termsOffsetEnd = entity.termsOffsetEnd}
+					{#if termsOffsetEnd != null}
+						<div>
+							<dt>Terms offset end</dt>
+							<dd>
+								{termsOffsetEnd}
 							</dd>
 						</div>
 					{/if}

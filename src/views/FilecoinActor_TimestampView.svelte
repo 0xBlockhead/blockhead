@@ -29,6 +29,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	}))
 	const filecoinActorTimestamp = $derived(viewSelection({

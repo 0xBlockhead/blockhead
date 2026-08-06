@@ -38,6 +38,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	$owner: {
@@ -45,6 +46,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	$worker: {
@@ -52,6 +54,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	peerId: {
@@ -59,6 +62,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	rawBytePower: {
@@ -66,6 +70,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	qualityAdjustedPower: {
@@ -73,6 +78,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	networkRawBytePower: {
@@ -80,6 +86,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	networkQualityAdjustedPower: {
@@ -87,6 +94,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	activeSectorCount: {
@@ -94,6 +102,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	liveSectorCount: {
@@ -101,6 +110,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 	faultySectorCount: {
@@ -108,6 +118,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 })({

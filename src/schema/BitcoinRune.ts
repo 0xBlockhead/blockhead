@@ -64,6 +64,13 @@ export default entity({
 			Source.UniSat_Rest,
 		],
 	},
+	etchingTxIndex: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
 	etchingTimestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -92,7 +99,28 @@ export default entity({
 			Source.UniSat_Rest,
 		],
 	},
+	mints: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	burned: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
 	holders: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	transactions: {
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
@@ -135,6 +163,20 @@ export default entity({
 		],
 	},
 	termsHeightEnd: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	termsOffsetStart: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	termsOffsetEnd: {
 		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

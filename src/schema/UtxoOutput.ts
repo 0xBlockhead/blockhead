@@ -3,6 +3,7 @@
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -60,10 +61,16 @@ export default entity({
 	$$bitcoinOrdinalInscriptions: {
 		entityType: EntityType.BitcoinOrdinalInscription,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
 	},
 	$$bitcoinRuneBalances: {
 		entityType: EntityType.BitcoinRuneBalance,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
 	},
 	$bitcoinRunestone: {
 		entityType: EntityType.BitcoinRunestone,
