@@ -438,6 +438,7 @@ export default {
 								spentOutputCount: chainStats.spent_txo_count,
 								fundedValueSats: BigInt(chainStats.funded_txo_sum),
 								spentValueSats: BigInt(chainStats.spent_txo_sum),
+								mempoolTransactionCount: address.mempool_stats.tx_count,
 							}
 						},
 					}
@@ -450,6 +451,7 @@ export default {
 					spentOutputCount: (address) => address.spentOutputCount,
 					fundedValueSats: (address) => address.fundedValueSats,
 					spentValueSats: (address) => address.spentValueSats,
+					mempoolTransactionCount: (address) => address.mempoolTransactionCount,
 				}),
 
 		defineResolver({
@@ -603,6 +605,7 @@ export default {
 							executionModels: [] satisfies NetworkExecutionModel[],
 							bestBlockHeight: BigInt(block.height),
 							bestBlockHash: block.id,
+							bestBlockTimeMs: block.timestamp * 1000,
 							mempoolTransactionCount: mempoolStats.count,
 							mempoolSizeBytes: BigInt(Math.ceil(mempoolStats.vsize)),
 							suggestedTransactionFeePerByteSats: fees.hourFee,
@@ -619,6 +622,7 @@ export default {
 				Utxo: {
 					bestBlockHeight: (timestamp) => timestamp.bestBlockHeight,
 					bestBlockHash: (timestamp) => timestamp.bestBlockHash,
+					bestBlockTimeMs: (timestamp) => timestamp.bestBlockTimeMs,
 					mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
 					mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
 					suggestedTransactionFeePerByteSats: (timestamp) => timestamp.suggestedTransactionFeePerByteSats,
@@ -664,6 +668,7 @@ export default {
 						[EntityMetaKey.Fields]: {
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: BigInt(block.height),
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: block.id,
+							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: block.timestamp * 1000,
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: mempoolStats.count,
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: BigInt(Math.ceil(mempoolStats.vsize)),
 							[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: fees.hourFee,

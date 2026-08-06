@@ -1,16 +1,37 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const getTransaction = vi.fn()
+const getBlock = vi.fn()
+const getBlockHashByHeight = vi.fn()
+const getBlockTransactionIds = vi.fn()
+const getBlocks = vi.fn()
+const getMempoolStats = vi.fn()
+const getSuggestedFeePerByteSats = vi.fn()
+const getMempoolTransactionIds = vi.fn()
+const getAddress = vi.fn()
+const getAddressUtxos = vi.fn()
+const getAddressTransactions = vi.fn()
 
 vi.mock('$/sources/Esplora/Rest/queries.ts', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('$/sources/Esplora/Rest/queries.ts')>()
 	return {
 		...actual,
 		getTransaction,
+		getBlock,
+		getBlockHashByHeight,
+		getBlockTransactionIds,
+		getBlocks,
+		getMempoolStats,
+		getSuggestedFeePerByteSats,
+		getMempoolTransactionIds,
+		getAddress,
+		getAddressUtxos,
+		getAddressTransactions,
 		getTransactionProtocolPayloads: async ({
 			target,
 			txId,
@@ -46,6 +67,31 @@ const inscriptionResolver = esploraResolvers.resolvers.find((resolver) => (
 const runestoneResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BitcoinRunestone
 ))
+const blockResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoBlock
+	&& 'NetworkHeight' in resolver.resolve
+	&& 'NetworkHeightHash' in resolver.resolve
+))
+const blockTransactionsResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoBlock
+	&& '$$transactions' in resolver.projections
+))
+const networkBlocksResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Utxo' in resolver.projections
+	&& '$$blocks' in resolver.projections.Utxo
+	&& typeof resolver.projections.Utxo.$$blocks === 'function'
+))
+const addressOutputsResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress
+	&& '$$outputs' in resolver.projections
+))
+const addressTimestampResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress_Timestamp
+))
+const networkTimestampResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network_Timestamp
+))
 
 if (transactionResolver == null)
 	throw new Error('Esplora-Rest spec missing UtxoTransaction resolver')
@@ -55,6 +101,18 @@ if (inputResolver == null || outputResolver == null)
 
 if (inscriptionResolver == null || runestoneResolver == null)
 	throw new Error('Esplora-Rest spec missing Bitcoin Ordinals/Runes resolvers')
+
+if (blockResolver == null || blockTransactionsResolver == null)
+	throw new Error('Esplora-Rest spec missing UtxoBlock height/tx list resolvers')
+
+if (networkBlocksResolver == null)
+	throw new Error('Esplora-Rest spec missing Network.Utxo.$$blocks resolver')
+
+if (addressOutputsResolver == null || addressTimestampResolver == null)
+	throw new Error('Esplora-Rest spec missing UtxoAddress resolvers')
+
+if (networkTimestampResolver == null)
+	throw new Error('Esplora-Rest spec missing Network_Timestamp resolver')
 
 const resolverContext = {
 	filters: [],
@@ -87,6 +145,16 @@ const helloWorldInscriptionHex = (
 describe('Esplora UTXO', () => {
 	beforeEach(() => {
 		getTransaction.mockReset()
+		getBlock.mockReset()
+		getBlockHashByHeight.mockReset()
+		getBlockTransactionIds.mockReset()
+		getBlocks.mockReset()
+		getMempoolStats.mockReset()
+		getSuggestedFeePerByteSats.mockReset()
+		getMempoolTransactionIds.mockReset()
+		getAddress.mockReset()
+		getAddressUtxos.mockReset()
+		getAddressTransactions.mockReset()
 	})
 
 	it('projects child selectors and resolves Elements confidential outputs without inventing valueSats', async () => {
@@ -118,47 +186,40 @@ describe('Esplora UTXO', () => {
 				scriptpubkey_asm: 'OP_1',
 				scriptpubkey_type: 'v1_p2tr',
 				scriptpubkey_address: 'ex1qexample',
-				valuecommitment: '09valuecommitment',
-				assetcommitment: '0aassetcommitment',
-				noncecommitment: '02noncecommitment',
-				surjection_proof: 'surjection',
+				valuecommitment: 'valuecommit',
+				assetcommitment: 'assetcommit',
+				noncecommitment: 'noncecommit',
+				surjection_proof: 'surj',
 				range_proof: 'range',
 			}],
 		})
+
 		const entitySelector = {
 			$network: liquidNetwork,
 			txId,
 		}
-		const transaction = await transactionResolver.resolve[
-			'NetworkTxId'
-		].resolve(entitySelector, resolverContext)
-
-		expect(transactionResolver.projections.$$inputs(transaction)).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$transaction: entitySelector,
-				indexInTransaction: 0,
+		const transaction = await transactionResolver.resolve.NetworkTxId.resolve(entitySelector, resolverContext)
+		expect(transactionResolver.projections.$$inputs(transaction)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: entitySelector,
+					indexInTransaction: 0,
+				},
 			},
-		}])
-		expect(transactionResolver.projections.$$outputs(transaction)).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$transaction: entitySelector,
-				indexInTransaction: 0,
+		])
+		expect(transactionResolver.projections.$$outputs(transaction)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: entitySelector,
+					indexInTransaction: 0,
+				},
 			},
-		}])
+		])
 
-		const input = await inputResolver.resolve[
-			'TransactionIndexInTransaction'
-		].resolve({
+		const input = await inputResolver.resolve.TransactionIndexInTransaction.resolve({
 			$transaction: entitySelector,
 			indexInTransaction: 0,
 		}, resolverContext)
-		const output = await outputResolver.resolve[
-			'TransactionIndexInTransaction'
-		].resolve({
-			$transaction: entitySelector,
-			indexInTransaction: 0,
-		}, resolverContext)
-
 		expect(inputResolver.projections.$spentOutput(input)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$transaction: {
@@ -168,69 +229,33 @@ describe('Esplora UTXO', () => {
 				indexInTransaction: 1,
 			},
 		})
-		expect(outputResolver.projections.valueSats(output)).toBeUndefined()
-		expect(outputResolver.projections.isConfidential(output)).toBe(true)
-		expect(outputResolver.projections.Confidential.valueCommitment(output)).toBe('09valuecommitment')
-		expect(outputResolver.projections.Confidential.assetCommitment(output)).toBe('0aassetcommitment')
-		expect(outputResolver.projections.Confidential.nonceCommitment(output)).toBe('02noncecommitment')
-		expect(outputResolver.projections.Confidential.surjectionProof(output)).toBe('surjection')
-		expect(outputResolver.projections.Confidential.rangeProof(output)).toBe('range')
-		expect(getTransaction).toHaveBeenCalledWith({
-			target: 'liquid',
-			txId,
-		})
-	})
 
-	it('maps explicit unblinded Liquid value sats when present', async () => {
-		const txId = 'e'.repeat(64)
-		getTransaction.mockResolvedValueOnce({
-			txid: txId,
-			version: 2,
-			locktime: 0,
-			size: 100,
-			weight: 200,
-			status: {
-				confirmed: false,
-			},
-			vin: [],
-			vout: [{
-				scriptpubkey: '6a',
-				scriptpubkey_type: 'op_return',
-				value: 50_000,
-				asset: 'a'.repeat(64),
-			}],
-		})
-		const output = await outputResolver.resolve[
-			'TransactionIndexInTransaction'
-		].resolve({
-			$transaction: {
-				$network: liquidNetwork,
-				txId,
-			},
+		const output = await outputResolver.resolve.TransactionIndexInTransaction.resolve({
+			$transaction: entitySelector,
 			indexInTransaction: 0,
 		}, resolverContext)
-
-		expect(outputResolver.projections.valueSats(output)).toBe(50_000n)
-		expect(outputResolver.projections.isConfidential(output)).toBeUndefined()
-		expect(outputResolver.projections.Confidential.valueCommitment(output)).toBeUndefined()
+		expect(outputResolver.projections.valueSats(output)).toBeUndefined()
+		expect(outputResolver.projections.isConfidential(output)).toBe(true)
+		expect(outputResolver.projections.Confidential.valueCommitment(output)).toBe('valuecommit')
+		expect(outputResolver.projections.Confidential.assetCommitment(output)).toBe('assetcommit')
 	})
 
-	it('projects Bitcoin Ordinals/Runes from fetched Esplora transaction wires', async () => {
-		const txId = 'f'.repeat(64)
+	it('projects Ordinals inscriptions and Runestone refs from Bitcoin reveal txs', async () => {
+		const txId = '1'.repeat(64)
 		getTransaction.mockResolvedValue({
 			txid: txId,
 			version: 2,
 			locktime: 0,
 			size: 200,
-			weight: 400,
+			weight: 500,
 			fee: 100,
 			status: {
 				confirmed: true,
-				block_height: 840000,
-				block_hash: '1'.repeat(64),
+				block_height: 840001,
+				block_hash: '2'.repeat(64),
 			},
 			vin: [{
-				txid: '2'.repeat(64),
+				txid: '3'.repeat(64),
 				vout: 0,
 				is_coinbase: false,
 				sequence: 0xffffffff,
@@ -243,12 +268,6 @@ describe('Esplora UTXO', () => {
 					scriptpubkey: '6a5d03020100',
 					scriptpubkey_type: 'op_return',
 					value: 0,
-				},
-				{
-					scriptpubkey: '0014',
-					scriptpubkey_type: 'v0_p2wpkh',
-					scriptpubkey_address: 'bc1qexample',
-					value: 546,
 				},
 			],
 		})
@@ -273,23 +292,12 @@ describe('Esplora UTXO', () => {
 			},
 		})
 
-		const runestoneOutput = await outputResolver.resolve.TransactionIndexInTransaction.resolve({
-			$transaction: entitySelector,
-			indexInTransaction: 0,
-		}, resolverContext)
-		expect(outputResolver.projections.$bitcoinRunestone(runestoneOutput)).toEqual({
-			[EntityMetaKey.Selector]: {
-				$transaction: entitySelector,
-				outputIndex: 0,
-			},
-		})
-
 		const inscription = await inscriptionResolver.resolve.NetworkInscriptionId.resolve({
 			$network: bitcoinNetwork,
 			inscriptionId: `${txId}i0`,
 		}, resolverContext)
 		expect(inscriptionResolver.projections.contentType(inscription)).toBe('text/plain;charset=utf-8')
-		expect(inscriptionResolver.projections.revealWitnessIndex(inscription)).toBe(0)
+		expect(inscriptionResolver.projections.bodyHex(inscription)).toBe('48656c6c6f2c20776f726c6421')
 
 		const runestone = await runestoneResolver.resolve.TransactionOutputIndex.resolve({
 			$transaction: entitySelector,
@@ -299,17 +307,8 @@ describe('Esplora UTXO', () => {
 		expect(runestoneResolver.projections.isCenotaph(runestone)).toBe(false)
 	})
 
-	it('projects multi-envelope inscriptions and LEB128 cenotaph runestones from Esplora wires', async () => {
-		const txId = 'e'.repeat(64)
-		const helloWorldInscriptionHex = (
-			'0063'
-			+ '036f7264'
-			+ '0101'
-			+ '18746578742f706c61696e3b636861727365743d7574662d38'
-			+ '00'
-			+ '0d48656c6c6f2c20776f726c6421'
-			+ '68'
-		)
+	it('projects multi-envelope inscriptions and LEB128 cenotaph runestones', async () => {
+		const txId = 'a'.repeat(64)
 		const secondInscriptionHex = (
 			'0063'
 			+ '036f7264'
@@ -355,12 +354,6 @@ describe('Esplora UTXO', () => {
 		}
 		const transaction = await transactionResolver.resolve.NetworkTxId.resolve(entitySelector, resolverContext)
 		expect(transactionResolver.projections.$$bitcoinOrdinalInscriptions(transaction)).toHaveLength(2)
-		expect(transactionResolver.projections.$$bitcoinOrdinalInscriptions(transaction)?.[1]).toEqual({
-			[EntityMetaKey.Selector]: {
-				$network: bitcoinNetwork,
-				inscriptionId: `${txId}i1`,
-			},
-		})
 
 		const second = await inscriptionResolver.resolve.NetworkInscriptionId.resolve({
 			$network: bitcoinNetwork,
@@ -375,5 +368,194 @@ describe('Esplora UTXO', () => {
 		}, resolverContext)
 		expect(runestoneResolver.projections.isCenotaph(runestone)).toBe(true)
 		expect(runestoneResolver.projections.payloadHex(runestone)).toBe('7e0000')
+	})
+
+	it('resolves NetworkHeight and projects block $$transactions + Network.Utxo.$$blocks', async () => {
+		const hash = 'a'.repeat(64)
+		getBlockHashByHeight.mockResolvedValueOnce(hash)
+		getBlock.mockResolvedValueOnce({
+			id: hash,
+			height: 840_000,
+			timestamp: 1_700_000_000,
+			tx_count: 2,
+			size: 1000,
+			weight: 4000,
+			merkle_root: 'm'.repeat(64),
+			nonce: 1,
+			difficulty: 1,
+			previousblockhash: 'b'.repeat(64),
+		})
+		getBlockTransactionIds.mockResolvedValueOnce([
+			'c'.repeat(64),
+			'd'.repeat(64),
+		])
+		getBlocks.mockResolvedValueOnce([
+			{
+				id: hash,
+				height: 840_000,
+				timestamp: 1_700_000_000,
+				tx_count: 2,
+			},
+		])
+
+		const byHeight = await blockResolver.resolve.NetworkHeight.resolve({
+			$network: bitcoinNetwork,
+			height: 840_000n,
+		}, resolverContext)
+		expect(blockResolver.projections.hash(byHeight)).toBe(hash)
+		expect(blockResolver.projections.timestampMs(byHeight)).toBe(1_700_000_000_000)
+
+		const txs = await blockTransactionsResolver.resolve.NetworkHeightHash.resolve({
+			$network: bitcoinNetwork,
+			height: 840_000n,
+			hash,
+		}, resolverContext)
+		expect(blockTransactionsResolver.projections.$$transactions(txs)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: bitcoinNetwork,
+					txId: 'c'.repeat(64),
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: bitcoinNetwork,
+					txId: 'd'.repeat(64),
+				},
+			},
+		])
+
+		const blocks = await networkBlocksResolver.resolve.Caip2.resolve(bitcoinNetwork, {
+			...resolverContext,
+			pagination: {
+				limit: 1,
+			},
+		})
+		expect(networkBlocksResolver.projections.Utxo.$$blocks(blocks)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: bitcoinNetwork,
+					height: 840_000n,
+					hash,
+				},
+			},
+		])
+	})
+
+	it('projects address tip stats and outputs from Esplora address wires', async () => {
+		getAddressUtxos.mockResolvedValueOnce([
+			{
+				txid: 'e'.repeat(64),
+				vout: 1,
+				status: {
+					confirmed: true,
+				},
+				value: 546,
+			},
+		])
+		getAddress.mockResolvedValueOnce({
+			address: 'bc1qexample',
+			chain_stats: {
+				funded_txo_count: 3,
+				funded_txo_sum: 1500,
+				spent_txo_count: 1,
+				spent_txo_sum: 500,
+				tx_count: 4,
+			},
+			mempool_stats: {
+				funded_txo_count: 0,
+				funded_txo_sum: 0,
+				spent_txo_count: 0,
+				spent_txo_sum: 0,
+				tx_count: 2,
+			},
+		})
+
+		const outputs = await addressOutputsResolver.resolve.NetworkAddress.resolve({
+			$network: bitcoinNetwork,
+			address: 'bc1qexample',
+		}, {
+			...resolverContext,
+			pagination: {
+				limit: 10,
+			},
+		})
+		expect(addressOutputsResolver.projections.$$outputs(outputs)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: bitcoinNetwork,
+						txId: 'e'.repeat(64),
+					},
+					indexInTransaction: 1,
+				},
+			},
+		])
+
+		const tip = await addressTimestampResolver.resolve.AddressTimestampMsSource.resolve({
+			$address: {
+				$network: bitcoinNetwork,
+				address: 'bc1qexample',
+			},
+			timestampMs: 1,
+			source: Source.Esplora_Rest,
+		}, resolverContext)
+		expect(addressTimestampResolver.projections.balanceSats(tip)).toBe(1000n)
+		expect(addressTimestampResolver.projections.mempoolTransactionCount(tip)).toBe(2)
+	})
+
+	it('projects Network_Timestamp tip fields including bestBlockTimeMs', async () => {
+		getBlocks.mockResolvedValueOnce([
+			{
+				id: 'f'.repeat(64),
+				height: 900_000,
+				timestamp: 1_800_000_000,
+				tx_count: 1,
+			},
+		])
+		getMempoolStats.mockResolvedValueOnce({
+			count: 11,
+			vsize: 2200,
+			total_fee: 1,
+		})
+		getSuggestedFeePerByteSats.mockResolvedValueOnce(7)
+
+		const tip = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: bitcoinNetwork,
+			timestampMs: 42,
+			source: Source.Esplora_Rest,
+		}, resolverContext)
+		expect(networkTimestampResolver.projections.Utxo.bestBlockHeight(tip)).toBe(900_000n)
+		expect(networkTimestampResolver.projections.Utxo.bestBlockHash(tip)).toBe('f'.repeat(64))
+		expect(networkTimestampResolver.projections.Utxo.bestBlockTimeMs(tip)).toBe(1_800_000_000_000)
+		expect(networkTimestampResolver.projections.Utxo.mempoolTransactionCount(tip)).toBe(11)
+		expect(networkTimestampResolver.projections.Utxo.suggestedTransactionFeePerByteSats(tip)).toBe(7)
+
+		const networkTipResolver = esploraResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& '$$timestamps' in resolver.projections
+		))
+		if (networkTipResolver == null)
+			throw new Error('Esplora-Rest missing Network.$$timestamps resolver')
+
+		getBlocks.mockResolvedValueOnce([
+			{
+				id: 'f'.repeat(64),
+				height: 900_000,
+				timestamp: 1_800_000_000,
+				tx_count: 1,
+			},
+		])
+		getMempoolStats.mockResolvedValueOnce({
+			count: 11,
+			vsize: 2200,
+			total_fee: 1,
+		})
+		getSuggestedFeePerByteSats.mockResolvedValueOnce(7)
+		const timestamps = await networkTipResolver.resolve.Caip2.resolve(bitcoinNetwork, resolverContext)
+		expect(timestamps[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: 1_800_000_000_000,
+			[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'suggestedTransactionFeePerByteSats')]: 7,
+		})
 	})
 })

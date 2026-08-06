@@ -2,11 +2,12 @@ import { type as arktype } from 'arktype'
 
 const unsignedSafe = arktype(`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`)
 const nonEmptyString = arktype('string > 0')
-const txIdWire = arktype('/^[0-9a-f]{64}$/')
-const blockHashWire = arktype('/^[0-9a-f]{64}$/')
+export const esploraTxIdWire = arktype('/^[0-9a-f]{64}$/')
+export const esploraBlockHashWire = arktype('/^[0-9a-fA-F]{64}$/')
+export const esploraTxIdListWire = esploraTxIdWire.array()
 
 export const esploraBlockWire = arktype({
-	id: blockHashWire,
+	id: esploraBlockHashWire,
 	height: unsignedSafe,
 	'version?': 'number.integer',
 	timestamp: unsignedSafe,
@@ -14,7 +15,7 @@ export const esploraBlockWire = arktype({
 	'size?': unsignedSafe,
 	'weight?': unsignedSafe,
 	'merkle_root?': 'string',
-	'previousblockhash?': blockHashWire,
+	'previousblockhash?': esploraBlockHashWire,
 	'mediantime?': unsignedSafe,
 	'nonce?': unsignedSafe,
 	'bits?': unsignedSafe,
@@ -37,7 +38,7 @@ const esploraOutputWire = arktype({
 })
 
 const esploraInputWire = arktype({
-	'txid?': txIdWire,
+	'txid?': esploraTxIdWire,
 	'vout?': unsignedSafe,
 	'prevout?': esploraOutputWire.or(arktype('null')),
 	'scriptsig?': 'string',
@@ -48,7 +49,7 @@ const esploraInputWire = arktype({
 })
 
 export const esploraTransactionWire = arktype({
-	txid: txIdWire,
+	txid: esploraTxIdWire,
 	'version?': 'number.integer',
 	'locktime?': unsignedSafe,
 	'size?': unsignedSafe,
@@ -57,7 +58,7 @@ export const esploraTransactionWire = arktype({
 	status: {
 		confirmed: 'boolean',
 		'block_height?': unsignedSafe,
-		'block_hash?': blockHashWire,
+		'block_hash?': esploraBlockHashWire,
 		'block_time?': unsignedSafe,
 	},
 	vin: esploraInputWire.array(),
@@ -91,6 +92,52 @@ export const esploraAssetWire = arktype({
 	chain_stats: esploraAssetStatsWire,
 	mempool_stats: esploraAssetStatsWire,
 })
+
+export const esploraAddressStatsWire = arktype({
+	funded_txo_count: unsignedSafe,
+	funded_txo_sum: unsignedSafe,
+	spent_txo_count: unsignedSafe,
+	spent_txo_sum: unsignedSafe,
+	tx_count: unsignedSafe,
+})
+
+export const esploraAddressWire = arktype({
+	address: nonEmptyString,
+	chain_stats: esploraAddressStatsWire,
+	mempool_stats: esploraAddressStatsWire,
+})
+
+export const esploraAddressUtxoWire = arktype({
+	txid: esploraTxIdWire,
+	vout: unsignedSafe,
+	status: {
+		confirmed: 'boolean',
+		'block_height?': unsignedSafe,
+		'block_hash?': esploraBlockHashWire,
+		'block_time?': unsignedSafe,
+	},
+	value: unsignedSafe,
+})
+
+export const esploraMempoolStatsWire = arktype({
+	count: unsignedSafe,
+	vsize: unsignedSafe,
+	total_fee: unsignedSafe,
+})
+
+export const mempoolSpaceRecommendedFeesWire = arktype({
+	fastestFee: unsignedSafe,
+	halfHourFee: unsignedSafe,
+	hourFee: unsignedSafe,
+	economyFee: unsignedSafe,
+	minimumFee: unsignedSafe,
+})
+
+/**
+ * Classic Esplora `/fee-estimates` map: confirmation-target → sat/vB.
+ * @see https://github.com/Blockstream/esplora/blob/master/API.md#get-fee-estimates
+ */
+export const esploraFeeEstimatesWire = arktype('Record<string, number>')
 
 export const assertEsploraEnvelope = <_Value>(
 	wire: {

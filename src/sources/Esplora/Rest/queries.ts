@@ -5,21 +5,23 @@ import {
 import bindings from '$/sources/Esplora/bindings.ts'
 import {
 	assertEsploraEnvelope,
+	esploraAddressUtxoWire,
+	esploraAddressWire,
 	esploraAssetWire,
+	esploraBlockHashWire,
 	esploraBlockWire,
+	esploraFeeEstimatesWire,
+	esploraMempoolStatsWire,
 	esploraTransactionWire,
+	esploraTxIdListWire,
 } from '$/sources/Esplora/Rest/envelopes.ts'
 import { Source } from '$/sources/Source.ts'
-import { type as arktype } from 'arktype'
 
 type EsploraTarget = typeof bindings[Source.Esplora_Rest][number]['target']['key']
 
 const bindingByTarget = new Map(
 	bindings[Source.Esplora_Rest].map((binding) => [binding.target.key, binding] as const)
 )
-
-const blockHashWire = arktype('/^[0-9a-fA-F]{64}$/')
-const txIdListWire = arktype('/^[0-9a-f]{64}$/').array()
 
 const getEsploraJson = async <_Response>(
 	target: EsploraTarget,
@@ -44,7 +46,7 @@ export const getBlock = async ({
 }) => (
 	assertEsploraEnvelope(
 		esploraBlockWire,
-		await getEsploraJson(target, `/block/${blockHash}`),
+		await getEsploraJson(target, `/block/${encodeURIComponent(blockHash)}`),
 		'block'
 	)
 )
@@ -57,10 +59,44 @@ export const getBlockHashByHeight = async ({
 	target: EsploraTarget
 }) => {
 	const hash = await getEsploraJson<unknown>(target, `/block-height/${height.toString()}`)
-	if (!blockHashWire.allows(hash))
+	if (!esploraBlockHashWire.allows(hash))
 		throw new Error('Esplora_Rest: invalid block hash envelope')
 	return hash
 }
+
+export const getBlockTransactionIds = async ({
+	blockHash,
+	target,
+}: {
+	blockHash: string
+	target: EsploraTarget
+}) => (
+	assertEsploraEnvelope(
+		esploraTxIdListWire,
+		await getEsploraJson(target, `/block/${encodeURIComponent(blockHash)}/txids`),
+		'block txids'
+	)
+)
+
+export const getBlocks = async ({
+	startHeight,
+	target,
+}: {
+	startHeight?: bigint
+	target: EsploraTarget
+}) => (
+	assertEsploraEnvelope(
+		esploraBlockWire.array(),
+		await getEsploraJson(
+			target,
+			startHeight == null ?
+				'/blocks'
+			:
+				`/blocks/${startHeight.toString()}`
+		),
+		'blocks'
+	)
+)
 
 export const getTransaction = async ({
 	target,
@@ -71,7 +107,7 @@ export const getTransaction = async ({
 }) => (
 	assertEsploraEnvelope(
 		esploraTransactionWire,
-		await getEsploraJson(target, `/tx/${txId}`),
+		await getEsploraJson(target, `/tx/${encodeURIComponent(txId)}`),
 		'transaction'
 	)
 )
@@ -97,11 +133,99 @@ export const getTransactionProtocolPayloads = async ({
 	)
 }
 
+export const getMempoolStats = async (
+	target: EsploraTarget
+) => (
+	assertEsploraEnvelope(
+		esploraMempoolStatsWire,
+		await getEsploraJson(target, '/mempool'),
+		'mempool stats'
+	)
+)
+
 export const getMempoolTransactionIds = async (target: EsploraTarget) => (
 	assertEsploraEnvelope(
-		txIdListWire,
+		esploraTxIdListWire,
 		await getEsploraJson(target, '/mempool/txids'),
 		'mempool txids'
+	)
+)
+
+export const getFeeEstimates = async (
+	target: EsploraTarget
+) => (
+	assertEsploraEnvelope(
+		esploraFeeEstimatesWire,
+		await getEsploraJson(target, '/fee-estimates'),
+		'fee estimates'
+	)
+)
+
+export const getSuggestedFeePerByteSats = async (
+	target: EsploraTarget
+) => {
+	const estimates = await getFeeEstimates(target)
+	const candidate = (
+		estimates['6']
+		?? estimates['3']
+		?? estimates['2']
+		?? estimates['1']
+		?? Object.values(estimates)[0]
+	)
+	if (candidate == null || !Number.isFinite(candidate) || candidate < 0)
+		throw new Error('Esplora_Rest: missing fee estimate')
+	return Math.ceil(candidate)
+}
+
+export const getAddress = async ({
+	address,
+	target,
+}: {
+	address: string
+	target: EsploraTarget
+}) => (
+	assertEsploraEnvelope(
+		esploraAddressWire,
+		await getEsploraJson(target, `/address/${encodeURIComponent(address)}`),
+		'address'
+	)
+)
+
+export const getAddressUtxos = async ({
+	address,
+	target,
+}: {
+	address: string
+	target: EsploraTarget
+}) => (
+	assertEsploraEnvelope(
+		esploraAddressUtxoWire.array(),
+		await getEsploraJson(target, `/address/${encodeURIComponent(address)}/utxo`),
+		'address utxos'
+	)
+)
+
+export const getAddressTransactions = async ({
+	address,
+	lastSeenTransactionId,
+	target,
+}: {
+	address: string
+	lastSeenTransactionId?: string
+	target: EsploraTarget
+}) => (
+	assertEsploraEnvelope(
+		esploraTransactionWire.array(),
+		await getEsploraJson(
+			target,
+			`/address/${encodeURIComponent(address)}/txs/chain${
+				lastSeenTransactionId == null ?
+					''
+				:
+					`/${encodeURIComponent(lastSeenTransactionId)}`
+			}`
+		),
+		'address transactions'
 	)
 )
 
@@ -114,7 +238,7 @@ export const getAsset = async ({
 }) => (
 	assertEsploraEnvelope(
 		esploraAssetWire,
-		await getEsploraJson(target, `/asset/${assetId}`),
+		await getEsploraJson(target, `/asset/${encodeURIComponent(assetId)}`),
 		'asset'
 	)
 )

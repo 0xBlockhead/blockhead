@@ -243,6 +243,71 @@ describe('MempoolSpace UTXO', () => {
 		}])
 	})
 
+	it('projects address tip mempoolTransactionCount and network tip bestBlockTimeMs', async () => {
+		const addressTimestampResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UtxoAddress_Timestamp
+		))
+		const networkTimestampResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network_Timestamp
+		))
+		if (addressTimestampResolver == null || networkTimestampResolver == null)
+			throw new Error('MempoolSpace-Rest missing tip timestamp resolvers')
+
+		sourceGetJson.mockResolvedValueOnce({
+			address: address.address,
+			chain_stats: {
+				funded_txo_count: 2,
+				funded_txo_sum: 1000,
+				spent_txo_count: 1,
+				spent_txo_sum: 400,
+				tx_count: 3,
+			},
+			mempool_stats: {
+				funded_txo_count: 0,
+				funded_txo_sum: 0,
+				spent_txo_count: 0,
+				spent_txo_sum: 0,
+				tx_count: 5,
+			},
+		})
+		const addressTip = await addressTimestampResolver.resolve.AddressTimestampMsSource.resolve({
+			$address: address,
+			timestampMs: 1,
+			source: Source.MempoolSpace_Rest,
+		}, resolverContext)
+		expect(addressTimestampResolver.projections.mempoolTransactionCount(addressTip)).toBe(5)
+		expect(addressTimestampResolver.projections.balanceSats(addressTip)).toBe(600n)
+
+		sourceGetJson
+			.mockResolvedValueOnce([
+				{
+					id: 'a'.repeat(64),
+					height: 840_000,
+					timestamp: 1_700_000_000,
+					tx_count: 1,
+				},
+			])
+			.mockResolvedValueOnce({
+				count: 9,
+				vsize: 1800,
+				total_fee: 1,
+			})
+			.mockResolvedValueOnce({
+				fastestFee: 20,
+				halfHourFee: 10,
+				hourFee: 6,
+				economyFee: 2,
+				minimumFee: 1,
+			})
+		const networkTip = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: network,
+			timestampMs: 2,
+			source: Source.MempoolSpace_Rest,
+		}, resolverContext)
+		expect(networkTimestampResolver.projections.Utxo.bestBlockTimeMs(networkTip)).toBe(1_700_000_000_000)
+		expect(networkTimestampResolver.projections.Utxo.suggestedTransactionFeePerByteSats(networkTip)).toBe(6)
+	})
+
 	it('limits every selector to canonical Bitcoin subjects', () => {
 		for (const resolver of mempoolSpaceResolvers.resolvers)
 			for (const selectorEntry of Object.values(resolver.resolve))

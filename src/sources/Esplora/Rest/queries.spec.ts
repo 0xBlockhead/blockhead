@@ -18,6 +18,11 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 const {
 	getAsset,
 	getBlock,
+	getBlocks,
+	getBlockTransactionIds,
+	getAddress,
+	getMempoolStats,
+	getSuggestedFeePerByteSats,
 	getTransactionProtocolPayloads,
 } = await import('$/sources/Esplora/Rest/queries.ts')
 
@@ -184,5 +189,74 @@ describe('Esplora REST binding selection', () => {
 				isCenotaph: true,
 			},
 		])
+	})
+
+	it('fail-closes tip blocks, block txids, mempool stats, fee estimates, and address envelopes', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce([validBlock])
+			.mockResolvedValueOnce(['aa'.repeat(32)])
+			.mockResolvedValueOnce({
+				count: 12,
+				vsize: 2400,
+				total_fee: 50_000,
+			})
+			.mockResolvedValueOnce({
+				'1': 20.5,
+				'6': 8.25,
+			})
+			.mockResolvedValueOnce({
+				address: 'bc1qexample',
+				chain_stats: {
+					funded_txo_count: 2,
+					funded_txo_sum: 1000,
+					spent_txo_count: 1,
+					spent_txo_sum: 400,
+					tx_count: 2,
+				},
+				mempool_stats: {
+					funded_txo_count: 0,
+					funded_txo_sum: 0,
+					spent_txo_count: 0,
+					spent_txo_sum: 0,
+					tx_count: 1,
+				},
+			})
+
+		await expect(getBlocks({
+			target: bitcoinBinding.target.key,
+		})).resolves.toEqual([validBlock])
+		await expect(getBlockTransactionIds({
+			blockHash: 'a'.repeat(64),
+			target: bitcoinBinding.target.key,
+		})).resolves.toEqual(['aa'.repeat(32)])
+		await expect(getMempoolStats(bitcoinBinding.target.key)).resolves.toMatchObject({
+			count: 12,
+			vsize: 2400,
+		})
+		await expect(getSuggestedFeePerByteSats(bitcoinBinding.target.key)).resolves.toBe(9)
+		await expect(getAddress({
+			address: 'bc1qexample',
+			target: bitcoinBinding.target.key,
+		})).resolves.toMatchObject({
+			address: 'bc1qexample',
+			mempool_stats: {
+				tx_count: 1,
+			},
+		})
+
+		expect(sourceGetJson.mock.calls.map(([, url]) => url)).toEqual([
+			'https://blockstream.info/api/blocks',
+			`https://blockstream.info/api/block/${'a'.repeat(64)}/txids`,
+			'https://blockstream.info/api/mempool',
+			'https://blockstream.info/api/fee-estimates',
+			'https://blockstream.info/api/address/bc1qexample',
+		])
+
+		sourceGetJson.mockResolvedValueOnce({
+			count: -1,
+			vsize: 1,
+			total_fee: 1,
+		})
+		await expect(getMempoolStats(bitcoinBinding.target.key)).rejects.toThrow('invalid mempool stats envelope')
 	})
 })

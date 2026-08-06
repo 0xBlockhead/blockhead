@@ -4,60 +4,20 @@ import {
 } from '$/sources/_runtime/http.ts'
 import {
 	assertEsploraEnvelope,
+	esploraAddressUtxoWire,
+	esploraAddressWire,
+	esploraBlockHashWire,
 	esploraBlockWire,
+	esploraMempoolStatsWire,
 	esploraTransactionWire,
+	esploraTxIdListWire,
+	mempoolSpaceRecommendedFeesWire,
 } from '$/sources/Esplora/Rest/envelopes.ts'
 import bindings from '$/sources/MempoolSpace/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { type as arktype } from 'arktype'
 
 const binding = bindings[Source.MempoolSpace_Rest][0]
 const sourceLabel = 'MempoolSpace_Rest'
-
-const unsignedSafe = arktype(`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`)
-const blockHashWire = arktype('/^[0-9a-fA-F]{64}$/')
-const txIdWire = arktype('/^[0-9a-f]{64}$/')
-const txIdListWire = txIdWire.array()
-
-const addressStatsWire = arktype({
-	funded_txo_count: unsignedSafe,
-	funded_txo_sum: unsignedSafe,
-	spent_txo_count: unsignedSafe,
-	spent_txo_sum: unsignedSafe,
-	tx_count: unsignedSafe,
-})
-
-const addressWire = arktype({
-	address: arktype('string > 0'),
-	chain_stats: addressStatsWire,
-	mempool_stats: addressStatsWire,
-})
-
-const addressUtxoWire = arktype({
-	txid: txIdWire,
-	vout: unsignedSafe,
-	status: {
-		confirmed: 'boolean',
-		'block_height?': unsignedSafe,
-		'block_hash?': blockHashWire,
-		'block_time?': unsignedSafe,
-	},
-	value: unsignedSafe,
-})
-
-const mempoolStatsWire = arktype({
-	count: unsignedSafe,
-	vsize: unsignedSafe,
-	total_fee: unsignedSafe,
-})
-
-const recommendedFeesWire = arktype({
-	fastestFee: unsignedSafe,
-	halfHourFee: unsignedSafe,
-	hourFee: unsignedSafe,
-	economyFee: unsignedSafe,
-	minimumFee: unsignedSafe,
-})
 
 const mempoolSpaceRestUrl = (
 	path: string
@@ -88,7 +48,7 @@ export const getBlockHashByHeight = async (
 	height: bigint
 ) => {
 	const hash = await getMempoolSpaceJson<unknown>(`block-height/${height.toString()}`)
-	if (!blockHashWire.allows(hash))
+	if (!esploraBlockHashWire.allows(hash))
 		throw new Error(`${sourceLabel}: invalid block hash envelope`)
 	return hash
 }
@@ -97,7 +57,7 @@ export const getBlockTransactionIds = async (
 	blockHash: string
 ) => (
 	assertEsploraEnvelope(
-		txIdListWire,
+		esploraTxIdListWire,
 		await getMempoolSpaceJson(`block/${encodeURIComponent(blockHash)}/txids`),
 		'block txids',
 		sourceLabel
@@ -148,7 +108,7 @@ export const getBlocks = async (
 
 export const getMempoolStats = async () => (
 	assertEsploraEnvelope(
-		mempoolStatsWire,
+		esploraMempoolStatsWire,
 		await getMempoolSpaceJson('mempool'),
 		'mempool stats',
 		sourceLabel
@@ -157,7 +117,7 @@ export const getMempoolStats = async () => (
 
 export const getMempoolTxids = async () => (
 	assertEsploraEnvelope(
-		txIdListWire,
+		esploraTxIdListWire,
 		await getMempoolSpaceJson('mempool/txids'),
 		'mempool txids',
 		sourceLabel
@@ -168,7 +128,7 @@ export const getAddress = async (
 	address: string
 ) => (
 	assertEsploraEnvelope(
-		addressWire,
+		esploraAddressWire,
 		await getMempoolSpaceJson(`address/${encodeURIComponent(address)}`),
 		'address',
 		sourceLabel
@@ -179,7 +139,7 @@ export const getAddressUtxos = async (
 	address: string
 ) => (
 	assertEsploraEnvelope(
-		addressUtxoWire.array(),
+		esploraAddressUtxoWire.array(),
 		await getMempoolSpaceJson(`address/${encodeURIComponent(address)}/utxo`),
 		'address utxos',
 		sourceLabel
@@ -207,7 +167,7 @@ export const getAddressTransactions = async (
 
 export const getRecommendedFees = async () => (
 	assertEsploraEnvelope(
-		recommendedFeesWire,
+		mempoolSpaceRecommendedFeesWire,
 		await getMempoolSpaceJson('v1/fees/recommended'),
 		'recommended fees',
 		sourceLabel
