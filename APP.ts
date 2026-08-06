@@ -19135,7 +19135,7 @@ export const schema = {
 				"protocol": { label: "Protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"transportKind": { label: "Transport", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"scopes": { label: "Scopes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "walletConnectionScopes" },
-				"selected": { label: "Selected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"selected": { label: "Selected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"connectedAt": { label: "Connected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"disconnectedAt": { label: "Disconnected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"sessionId": { label: "Session ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
