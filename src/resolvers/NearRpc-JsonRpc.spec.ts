@@ -620,3 +620,80 @@ describe('NEAR block query', () => {
 		})
 	})
 })
+
+describe('NEAR receipts and tx status projection', () => {
+	beforeEach(() => {
+		corsFetch.mockReset()
+	})
+
+	it('hydrates enrolled NearReceipt predecessor/receiver from EXPERIMENTAL_tx_status receipts', async () => {
+		const transactionResolver = nearRpc.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.NearTransaction
+		))
+		if (transactionResolver == null)
+			throw new Error('NearRpc_JsonRpc spec missing NearTransaction resolver')
+
+		corsFetch.mockResolvedValueOnce(jsonRpcResult({
+			transaction: {
+				hash: 'tx-hash',
+				signer_id: 'signer.near',
+				receiver_id: 'receiver.near',
+				nonce: 7,
+				actions: [{
+					Transfer: {
+						deposit: '1',
+					},
+				}],
+			},
+			transaction_outcome: {
+				id: 'outcome-tx',
+				outcome: {
+					gas_burnt: 10,
+					receipt_ids: ['receipt-1'],
+					status: {
+						SuccessValue: '',
+					},
+				},
+			},
+			receipts_outcome: [],
+			status: {
+				SuccessValue: '',
+			},
+			receipts: [{
+				predecessor_id: 'signer.near',
+				receiver_id: 'receiver.near',
+				receipt_id: 'receipt-1',
+				receipt: {
+					Action: {},
+				},
+			}],
+		}))
+
+		const transaction = await transactionResolver.resolve.NetworkHashSignerAccountId.resolve({
+			$network: network,
+			hash: 'tx-hash',
+			signerAccountId: 'signer.near',
+		}, context)
+		const receipts = transaction.$$executionOutcomes[0][EntityMetaKey.Fields][entityFieldAddressKey(EntityType.NearExecutionOutcome, [], '$$receipts')]
+		expect(receipts).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				receiptId: 'receipt-1',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.NearReceipt, [], '$predecessor')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						accountId: 'signer.near',
+					},
+				},
+				[entityFieldAddressKey(EntityType.NearReceipt, [], '$receiver')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						accountId: 'receiver.near',
+					},
+				},
+			},
+		}])
+	})
+})

@@ -128,7 +128,8 @@ const nearAccountFields = (account: NearRpcAccount) => ({
 })
 const nearExecutionOutcomeFields = (
 	network: NetworkId,
-	executionOutcome: NearRpcExecutionOutcome
+	executionOutcome: NearRpcExecutionOutcome,
+	receiptsById?: Map<string, NearRpcReceipt>
 ) => ({
 	status: (
 		(
@@ -145,13 +146,30 @@ const nearExecutionOutcomeFields = (
 		)
 	),
 	gasBurnt: BigInt(executionOutcome.outcome.gas_burnt),
-	$$receipts: executionOutcome.outcome.receipt_ids.map((receiptId) => ({
-		[EntityMetaKey.Selector]: {
-			$network: network,
-			receiptId,
-		},
-	})),
+	$$receipts: executionOutcome.outcome.receipt_ids.map((receiptId) => {
+		const receipt = receiptsById?.get(receiptId)
+		return {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				receiptId,
+			},
+			...(receipt != null && {
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.NearReceipt, [], '$predecessor')]: nearReceiptFields(network, receipt).$predecessor,
+					[entityFieldAddressKey(EntityType.NearReceipt, [], '$receiver')]: nearReceiptFields(network, receipt).$receiver,
+				},
+			}),
+		}
+	}),
 })
+const nearReceiptsById = (transactionStatus: NearRpcTransactionStatus) => (
+	new Map(
+		(transactionStatus.receipts ?? []).map((receipt) => [
+			receipt.receipt_id,
+			receipt,
+		])
+	)
+)
 const nearReceiptFields = (
 	network: NetworkId,
 	receipt: NearRpcReceipt
@@ -599,7 +617,8 @@ export default {
 							].map((executionOutcome) => {
 								const fields = nearExecutionOutcomeFields(
 									entitySelector.$network,
-									executionOutcome
+									executionOutcome,
+									nearReceiptsById(transactionStatus)
 								)
 								return {
 									[EntityMetaKey.Selector]: {
@@ -657,7 +676,8 @@ export default {
 							throw new Error(`NearRpc_JsonRpc: execution outcome ${outcomeId} not found for ${$transaction.hash}`)
 						return nearExecutionOutcomeFields(
 							$transaction.$network,
-							executionOutcome
+							executionOutcome,
+							nearReceiptsById(transactionStatus)
 						)
 					},
 				}

@@ -123,6 +123,7 @@ export type NearRpcTransactionStatus = {
 	receipts_outcome: NearRpcExecutionOutcome[]
 	status: JsonValue
 	transaction_outcome: NearRpcExecutionOutcome
+	receipts?: NearRpcReceipt[]
 }
 
 export type NearRpcReceipt = {
