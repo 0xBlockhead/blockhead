@@ -1,4 +1,5 @@
 import { networkBySlug } from '$/constants/Network.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
@@ -91,6 +92,78 @@ const optionalHexFee = (
 	return BigInt(value)
 }
 
+const continuationPage = (
+	token: string | undefined
+) => {
+	if (token == null)
+		return 1
+	if (!/^\d+$/.test(token))
+		throw new Error('Voyager_Rest: malformed page continuation')
+	const page = Number(token)
+	if (!Number.isSafeInteger(page) || page < 1)
+		throw new Error('Voyager_Rest: malformed page continuation')
+	return page
+}
+
+const projectBlockSnapshot = (
+	details: {
+		blockNumber?: number | null
+		hash?: string | null
+		timestamp?: number | null
+		stateRoot?: string | null
+		status?: string | null
+		prevBlockHash?: string | null
+		sequencerAddress?: string | null
+		ethGasPrice?: string | null
+		strkGasPrice?: string | null
+	},
+	requested?: {
+		blockHash?: string
+		blockNumber?: bigint
+	}
+) => {
+	if (details.hash == null)
+		throw new Error('Voyager_Rest: block response missing hash')
+	if (details.blockNumber == null || !Number.isSafeInteger(details.blockNumber) || details.blockNumber < 0)
+		throw new Error('Voyager_Rest: malformed block number')
+	if (requested?.blockHash != null)
+		assertMatchingFelt(requested.blockHash, details.hash, 'block hash')
+	if (requested?.blockNumber != null && BigInt(details.blockNumber) !== requested.blockNumber)
+		throw new Error('Voyager_Rest: block number mismatch')
+
+	return {
+		blockNumber: BigInt(details.blockNumber),
+		blockHash: canonicalFelt(details.hash, 'block hash'),
+		parentHash: (
+			details.prevBlockHash == null ?
+				undefined
+			:
+				canonicalFelt(details.prevBlockHash, 'parent hash')
+		),
+		newRoot: (
+			details.stateRoot == null ?
+				undefined
+			:
+				canonicalFelt(details.stateRoot, 'state root')
+		),
+		timestampMs: (
+			details.timestamp == null ?
+				undefined
+			:
+				unixSecondsToMs(details.timestamp, 'block timestamp')
+		),
+		sequencerAddress: (
+			details.sequencerAddress == null ?
+				undefined
+			:
+				canonicalFelt(details.sequencerAddress, 'sequencer address')
+		),
+		l1GasPrice: details.ethGasPrice ?? undefined,
+		l1DataGasPrice: details.strkGasPrice ?? undefined,
+		status: details.status ?? undefined,
+	}
+}
+
 export default {
 	source: Source.Voyager,
 
@@ -143,7 +216,11 @@ export default {
 							nonce: details.nonce ?? undefined,
 							version: details.version ?? undefined,
 							maxFee: optionalHexFee(details.maxFee),
-							calldata: details.calldata ?? [],
+							calldata: (
+								details.calldata ?? []
+							).flatMap((value) => (
+								value == null ? [] : [canonicalFelt(value, 'calldata limb')]
+							)),
 							signature: details.signature.flatMap((value) => (
 								value == null ? [] : [canonicalFelt(value, 'signature limb')]
 							)),
@@ -191,6 +268,93 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.StarknetTransaction,
+			resolve: {
+				NetworkTransactionHash: {
+					appliesTo: starknetNestedNetworkApplicability,
+					resolve: async (transaction, context) => {
+						assertStarknetMainnet(transaction.$network.$network)
+						const transactionHash = canonicalFelt(transaction.transactionHash, 'transaction hash')
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const page = continuationPage(context.providerContinuationToken)
+						const { listEvents } = await import('$/sources/Voyager/Rest/queries.ts')
+						return {
+							limit,
+							page,
+							response: await listEvents({
+								limit,
+								page,
+								txnHash: transactionHash,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$events: {
+				select: ({ response }, transaction) => response.items.flatMap((event, index) => {
+					if (event.number == null && event.selector == null && event.fromAddress == null)
+						return []
+
+					const eventIndex = event.number ?? index
+					const keys = (
+						event.selector == null ?
+							[]
+						:
+							[canonicalFelt(event.selector, 'event selector')]
+					)
+					const data = (
+						event.dataDecoded ?? []
+					).flatMap((decoded) => (
+						decoded.value == null || decoded.value.length === 0 ?
+							[]
+						:
+							[decoded.value]
+					))
+
+					return [{
+						[EntityMetaKey.Selector]: {
+							$transaction: {
+								$network: transaction.$network,
+								transactionHash: canonicalFelt(transaction.transactionHash, 'transaction hash'),
+							},
+							eventIndex,
+						},
+						[EntityMetaKey.Fields]: {
+							...(
+								event.fromAddress != null && {
+									[entityFieldAddressKey(EntityType.StarknetEvent, [], '$fromContract')]: {
+										[EntityMetaKey.Selector]: {
+											$network: transaction.$network,
+											address: canonicalFelt(event.fromAddress, 'event from address'),
+										},
+									},
+								}
+							),
+							[entityFieldAddressKey(EntityType.StarknetEvent, [], 'keys')]: keys,
+							[entityFieldAddressKey(EntityType.StarknetEvent, [], 'data')]: data,
+						},
+					}]
+				}),
+				continuation: ({ limit, page, response }, transaction) => (
+					limit === 0 || page >= response.lastPage || response.items.length === 0 ?
+						{
+							operation: 'transaction-events',
+							target: transaction.transactionHash,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'transaction-events',
+							target: transaction.transactionHash,
+							terminal: false,
+							token: String(page + 1),
+						}
+				),
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.StarknetBlock,
 			resolve: {
 				NetworkBlockHash: {
@@ -199,46 +363,31 @@ export default {
 						assertStarknetMainnet(block.$network.$network)
 						const blockHash = canonicalFelt(block.blockHash, 'block hash')
 						const { getBlockByHash } = await import('$/sources/Voyager/Rest/queries.ts')
-						const details = await getBlockByHash({
-							blockHash,
-						})
-						if (details.hash == null)
-							throw new Error('Voyager_Rest: block response missing hash')
-						assertMatchingFelt(blockHash, details.hash, 'block hash')
-						if (details.blockNumber == null || !Number.isSafeInteger(details.blockNumber) || details.blockNumber < 0)
-							throw new Error('Voyager_Rest: malformed block number')
-
-						return {
-							blockNumber: BigInt(details.blockNumber),
-							blockHash: canonicalFelt(details.hash, 'block hash'),
-							parentHash: (
-								details.prevBlockHash == null ?
-									undefined
-								:
-									canonicalFelt(details.prevBlockHash, 'parent hash')
-							),
-							newRoot: (
-								details.stateRoot == null ?
-									undefined
-								:
-									canonicalFelt(details.stateRoot, 'state root')
-							),
-							timestampMs: (
-								details.timestamp == null ?
-									undefined
-								:
-									unixSecondsToMs(details.timestamp, 'block timestamp')
-							),
-							sequencerAddress: (
-								details.sequencerAddress == null ?
-									undefined
-								:
-									canonicalFelt(details.sequencerAddress, 'sequencer address')
-							),
-							l1GasPrice: details.ethGasPrice ?? undefined,
-							l1DataGasPrice: details.strkGasPrice ?? undefined,
-							status: details.status ?? undefined,
-						}
+						return projectBlockSnapshot(
+							await getBlockByHash({
+								blockHash,
+							}),
+							{
+								blockHash,
+							}
+						)
+					},
+				},
+				NetworkBlockNumber: {
+					appliesTo: starknetNestedNetworkApplicability,
+					resolve: async (block) => {
+						assertStarknetMainnet(block.$network.$network)
+						if (block.blockNumber < 0n || block.blockNumber > BigInt(Number.MAX_SAFE_INTEGER))
+							throw new Error('Voyager_Rest: block number exceeds lossless JSON integer range')
+						const { getBlockByHash } = await import('$/sources/Voyager/Rest/queries.ts')
+						return projectBlockSnapshot(
+							await getBlockByHash({
+								blockHash: block.blockNumber.toString(),
+							}),
+							{
+								blockNumber: block.blockNumber,
+							}
+						)
 					},
 				},
 			},
@@ -252,6 +401,88 @@ export default {
 			l1GasPrice: (snapshot) => snapshot.l1GasPrice,
 			l1DataGasPrice: (snapshot) => snapshot.l1DataGasPrice,
 			status: (snapshot) => snapshot.status,
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetBlock,
+			resolve: {
+				NetworkBlockHash: {
+					appliesTo: starknetNestedNetworkApplicability,
+					resolve: async (block, context) => {
+						assertStarknetMainnet(block.$network.$network)
+						const blockHash = canonicalFelt(block.blockHash, 'block hash')
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const page = continuationPage(context.providerContinuationToken)
+						const { listTransactions } = await import('$/sources/Voyager/Rest/queries.ts')
+						return {
+							limit,
+							page,
+							response: await listTransactions({
+								limit,
+								page,
+								block: blockHash,
+							}),
+						}
+					},
+				},
+				NetworkBlockNumber: {
+					appliesTo: starknetNestedNetworkApplicability,
+					resolve: async (block, context) => {
+						assertStarknetMainnet(block.$network.$network)
+						if (block.blockNumber < 0n || block.blockNumber > BigInt(Number.MAX_SAFE_INTEGER))
+							throw new Error('Voyager_Rest: block number exceeds lossless JSON integer range')
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const page = continuationPage(context.providerContinuationToken)
+						const { listTransactions } = await import('$/sources/Voyager/Rest/queries.ts')
+						return {
+							limit,
+							page,
+							response: await listTransactions({
+								limit,
+								page,
+								block: block.blockNumber.toString(),
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$transactions: {
+				select: ({ response }, block) => response.items.map((item) => ({
+					[EntityMetaKey.Selector]: {
+						$network: block.$network,
+						transactionHash: canonicalFelt(item.hash, 'transaction hash'),
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StarknetTransaction, [], 'transactionKind')]: item.type,
+						...(
+							item.blockNumber != null && {
+								[entityFieldAddressKey(EntityType.StarknetTransaction, [], '$block')]: {
+									[EntityMetaKey.Selector]: {
+										$network: block.$network,
+										blockNumber: BigInt(item.blockNumber),
+									},
+								},
+							}
+						),
+					},
+				})),
+				continuation: ({ limit, page, response }, block) => (
+					limit === 0 || page >= response.lastPage || response.items.length === 0 ?
+						{
+							operation: 'block-transactions',
+							target: 'blockHash' in block ? block.blockHash : block.blockNumber.toString(),
+							terminal: true,
+						}
+					:
+						{
+							operation: 'block-transactions',
+							target: 'blockHash' in block ? block.blockHash : block.blockNumber.toString(),
+							terminal: false,
+							token: String(page + 1),
+						}
+				),
+			},
 		}),
 
 		defineResolver({
@@ -383,6 +614,123 @@ export default {
 			},
 		})({
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetNetwork,
+			resolve: {
+				Network: {
+					appliesTo: starknetNetworkApplicability,
+					resolve: async (starknetNetwork, context) => {
+						assertStarknetMainnet(starknetNetwork.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const page = continuationPage(context.providerContinuationToken)
+						const { listBlocks } = await import('$/sources/Voyager/Rest/queries.ts')
+						return {
+							limit,
+							page,
+							response: await listBlocks({
+								limit,
+								page,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$blocks: {
+				select: ({ response }, starknetNetwork) => response.items.flatMap((item) => {
+					if (item.blockNumber == null || item.hash == null)
+						return []
+
+					return [{
+						[EntityMetaKey.Selector]: {
+							$network: starknetNetwork,
+							blockNumber: BigInt(item.blockNumber),
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.StarknetBlock, [], 'blockHash')]: canonicalFelt(item.hash, 'block hash'),
+							...(
+								item.timestamp != null && {
+									[entityFieldAddressKey(EntityType.StarknetBlock, [], 'timestampMs')]: unixSecondsToMs(item.timestamp, 'block timestamp'),
+								}
+							),
+							[entityFieldAddressKey(EntityType.StarknetBlock, [], 'status')]: item.status ?? undefined,
+						},
+					}]
+				}),
+				continuation: ({ limit, page, response }) => (
+					limit === 0 || page >= response.lastPage || response.items.length === 0 ?
+						{
+							operation: 'network-blocks',
+							terminal: true,
+						}
+					:
+						{
+							operation: 'network-blocks',
+							terminal: false,
+							token: String(page + 1),
+						}
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetNetwork,
+			resolve: {
+				Network: {
+					appliesTo: starknetNetworkApplicability,
+					resolve: async (starknetNetwork, context) => {
+						assertStarknetMainnet(starknetNetwork.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const page = continuationPage(context.providerContinuationToken)
+						const { listTransactions } = await import('$/sources/Voyager/Rest/queries.ts')
+						return {
+							limit,
+							page,
+							response: await listTransactions({
+								limit,
+								page,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$transactions: {
+				select: ({ response }, starknetNetwork) => response.items.map((item) => ({
+					[EntityMetaKey.Selector]: {
+						$network: starknetNetwork,
+						transactionHash: canonicalFelt(item.hash, 'transaction hash'),
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StarknetTransaction, [], 'transactionKind')]: item.type,
+						...(
+							item.blockNumber != null && {
+								[entityFieldAddressKey(EntityType.StarknetTransaction, [], '$block')]: {
+									[EntityMetaKey.Selector]: {
+										$network: starknetNetwork,
+										blockNumber: BigInt(item.blockNumber),
+									},
+								},
+							}
+						),
+					},
+				})),
+				continuation: ({ limit, page, response }) => (
+					limit === 0 || page >= response.lastPage || response.items.length === 0 ?
+						{
+							operation: 'network-transactions',
+							terminal: true,
+						}
+					:
+						{
+							operation: 'network-transactions',
+							terminal: false,
+							token: String(page + 1),
+						}
+				),
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule
