@@ -13,11 +13,13 @@ import {
 } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import type {
+	CometBftBlockchainResponse,
 	CometBftBlockResponse,
 	CometBftTxResponse,
 } from '$/sources/CometBft/Rest/types.ts'
@@ -120,25 +122,78 @@ const cosmosTransactionFields = (
 	}
 }
 
+const cosmosBlockListFields = (
+	meta: CometBftBlockchainResponse['result']['block_metas'][number]
+) => ({
+	hash: meta.block_id.hash,
+	proposerConsensusAddress: meta.header.proposer_address,
+	timestampMs: Date.parse(meta.header.time),
+	transactionCount: Number(meta.num_txs),
+})
+
 const getCometBlockReferences = async (
 	network: NetworkId,
 	limit: number
 ) => {
 	assertCosmosHub(network)
-	const { getStatus } = await import('$/sources/CometBft/Rest/queries.ts')
+	const {
+		getBlockchain,
+		getStatus,
+	} = await import('$/sources/CometBft/Rest/queries.ts')
 	const status = await getStatus()
 	const latestBlockHeight = BigInt(status.result.sync_info.latest_block_height)
-	return Array.from({
-		length: Math.min(
-			Number(latestBlockHeight + 1n),
-			limit
-		),
-	}, (_value, blockOffset) => ({
-		[EntityMetaKey.Selector]: {
-			$network: network,
-			height: latestBlockHeight - BigInt(blockOffset),
-		},
-	}))
+	const rowCount = Math.min(
+		Number(latestBlockHeight + 1n),
+		limit
+	)
+	if (rowCount === 0)
+		return []
+
+	const minHeight = latestBlockHeight - BigInt(rowCount - 1)
+	const blockMetas: CometBftBlockchainResponse['result']['block_metas'] = []
+	for (
+		let windowMaxHeight = latestBlockHeight;
+		windowMaxHeight >= minHeight;
+		windowMaxHeight -= 100n
+	) {
+		const windowMinHeight = (
+			windowMaxHeight - 99n < minHeight ?
+				minHeight
+			:
+				windowMaxHeight - 99n
+		)
+		const blockchain = await getBlockchain({
+			minHeight: windowMinHeight,
+			maxHeight: windowMaxHeight,
+		})
+		blockMetas.push(...blockchain.result.block_metas)
+		if (windowMinHeight === minHeight)
+			break
+	}
+
+	return (
+		[...blockMetas]
+			.sort((left, right) => (
+				Number(BigInt(right.header.height) - BigInt(left.header.height))
+			))
+			.slice(0, rowCount)
+			.map((meta) => {
+				const fields = cosmosBlockListFields(meta)
+				return {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						height: BigInt(meta.header.height),
+					},
+					[EntityMetaKey.Fields]: Object.fromEntries(
+						Object.entries(fields)
+							.map(([fieldName, fieldValue]) => [
+								entityFieldAddressKey(EntityType.CosmosBlock, [], fieldName),
+								fieldValue,
+							])
+					),
+				}
+			})
+	)
 }
 
 export default {

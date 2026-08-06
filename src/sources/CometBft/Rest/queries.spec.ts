@@ -128,13 +128,26 @@ describe('CometBFT REST queries', () => {
 		getJson.mockResolvedValue({
 			result: {
 				last_height: '10',
-				block_metas: [],
+				block_metas: [
+					{
+						block_id: {
+							hash: 'META10',
+						},
+						header: {
+							height: '10',
+							time: '2026-01-01T00:00:10.000Z',
+							proposer_address: 'proposer',
+						},
+						num_txs: '3',
+					},
+				],
 			},
 		})
-		await getBlockchain({
+		const blockchain = await getBlockchain({
 			minHeight: 1n,
 			maxHeight: 10n,
 		})
+		expect(blockchain.result.block_metas[0].block_id.hash).toBe('META10')
 		expect(getJson).toHaveBeenCalledWith(
 			binding,
 			'/blockchain?minHeight=1&maxHeight=10'
@@ -144,5 +157,30 @@ describe('CometBFT REST queries', () => {
 			minHeight: 1n,
 			maxHeight: 200n,
 		})).toThrow('height window exceeds 100 blocks')
+	})
+
+	it('fail-closes malformed /blockchain envelopes', async () => {
+		getJson.mockResolvedValue({
+			result: {
+				last_height: '1',
+				block_metas: [
+					{
+						block_id: {
+							hash: '',
+						},
+						header: {
+							height: '1',
+							time: '2026-01-01T00:00:00.000Z',
+							proposer_address: 'proposer',
+						},
+						num_txs: '0',
+					},
+				],
+			},
+		})
+		await expect(getBlockchain({
+			minHeight: 1n,
+			maxHeight: 1n,
+		})).rejects.toThrow()
 	})
 })

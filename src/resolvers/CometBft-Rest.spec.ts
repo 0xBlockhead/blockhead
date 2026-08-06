@@ -7,7 +7,10 @@ import {
 } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	entityFieldAddressKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -15,12 +18,14 @@ const getBlock = vi.hoisted(() => vi.fn())
 const getBlockByHash = vi.hoisted(() => vi.fn())
 const getTx = vi.hoisted(() => vi.fn())
 const getStatus = vi.hoisted(() => vi.fn())
+const getBlockchain = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/CometBft/Rest/queries.ts', () => ({
 	getBlock,
 	getBlockByHash,
 	getTx,
 	getStatus,
+	getBlockchain,
 }))
 
 const { default: cometBft } = await import('$/resolvers/CometBft-Rest.ts')
@@ -72,6 +77,7 @@ beforeEach(() => {
 	getBlockByHash.mockReset()
 	getTx.mockReset()
 	getStatus.mockReset()
+	getBlockchain.mockReset()
 })
 
 describe('CometBFT resolver binding', () => {
@@ -242,7 +248,7 @@ describe('CometBFT resolver binding', () => {
 		})
 	})
 
-	it('lists Network.Cosmos.$$blocks from tip status height', async () => {
+	it('lists Network.Cosmos.$$blocks from /blockchain metas with enrolled hash fields', async () => {
 		getStatus.mockResolvedValue({
 			result: {
 				node_info: {
@@ -256,6 +262,46 @@ describe('CometBFT resolver binding', () => {
 				},
 			},
 		})
+		getBlockchain.mockResolvedValue({
+			result: {
+				last_height: '5',
+				block_metas: [
+					{
+						block_id: {
+							hash: 'HASH5',
+						},
+						header: {
+							height: '5',
+							time: '2026-01-01T00:00:05.000Z',
+							proposer_address: 'proposer-5',
+						},
+						num_txs: '2',
+					},
+					{
+						block_id: {
+							hash: 'HASH3',
+						},
+						header: {
+							height: '3',
+							time: '2026-01-01T00:00:03.000Z',
+							proposer_address: 'proposer-3',
+						},
+						num_txs: '0',
+					},
+					{
+						block_id: {
+							hash: 'HASH4',
+						},
+						header: {
+							height: '4',
+							time: '2026-01-01T00:00:04.000Z',
+							proposer_address: 'proposer-4',
+						},
+						num_txs: '1',
+					},
+				],
+			},
+		})
 
 		const snapshot = await networkBlocksResolver.resolve.Caip2.resolve(
 			cosmosNetwork,
@@ -266,11 +312,21 @@ describe('CometBFT resolver binding', () => {
 				},
 			}
 		)
+		expect(getBlockchain).toHaveBeenCalledWith({
+			minHeight: 3n,
+			maxHeight: 5n,
+		})
 		expect(networkBlocksResolver.projections.Cosmos.$$blocks(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: cosmosNetwork,
 					height: 5n,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'hash')]: 'HASH5',
+					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'proposerConsensusAddress')]: 'proposer-5',
+					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'timestampMs')]: Date.parse('2026-01-01T00:00:05.000Z'),
+					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'transactionCount')]: 2,
 				},
 			},
 			{
@@ -278,11 +334,23 @@ describe('CometBFT resolver binding', () => {
 					$network: cosmosNetwork,
 					height: 4n,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'hash')]: 'HASH4',
+					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'proposerConsensusAddress')]: 'proposer-4',
+					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'timestampMs')]: Date.parse('2026-01-01T00:00:04.000Z'),
+					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'transactionCount')]: 1,
+				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
 					$network: cosmosNetwork,
 					height: 3n,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'hash')]: 'HASH3',
+					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'proposerConsensusAddress')]: 'proposer-3',
+					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'timestampMs')]: Date.parse('2026-01-01T00:00:03.000Z'),
+					[entityFieldAddressKey(EntityType.CosmosBlock, [], 'transactionCount')]: 0,
 				},
 			},
 		])
