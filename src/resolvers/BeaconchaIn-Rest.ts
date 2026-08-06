@@ -439,5 +439,63 @@ export default {
 			status: (validator) => validator.status,
 			slashed: (validator) => validator.slashed,
 		}),
+
+		defineResolver({
+			entityType: EntityType.BeaconValidator,
+			resolve: {
+				NetworkIndexInNetwork: {
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, indexInNetwork }, context) => {
+						const { getValidatorAttestations } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
+						return (
+							(await getValidatorAttestations(
+								context.publicEnv,
+								{
+									chainId: eip155ChainId($network),
+									indexOrPubkey: indexInNetwork,
+								}
+							))
+								.slice(0, resolverContextRowLimit(context))
+								.map((attestation) => ({
+									attesterSlot: attestation.attesterslot,
+									epoch: attestation.epoch,
+									inclusionSlot: attestation.inclusionslot,
+									status: attestation.status,
+									...(attestation.committeeindex != null && {
+										committeeIndex: attestation.committeeindex,
+									}),
+								}))
+						)
+					},
+				},
+				NetworkPubkey: {
+					appliesTo: eip155NetworkApplicability,
+					resolve: async ({ $network, pubkey }, context) => {
+						const { getValidatorAttestations } = await import('$/sources/BeaconchaIn/Rest/queries.ts')
+						return (
+							(await getValidatorAttestations(
+								context.publicEnv,
+								{
+									chainId: eip155ChainId($network),
+									indexOrPubkey: pubkey,
+								}
+							))
+								.slice(0, resolverContextRowLimit(context))
+								.map((attestation) => ({
+									attesterSlot: attestation.attesterslot,
+									epoch: attestation.epoch,
+									inclusionSlot: attestation.inclusionslot,
+									status: attestation.status,
+									...(attestation.committeeindex != null && {
+										committeeIndex: attestation.committeeindex,
+									}),
+								}))
+						)
+					},
+				},
+			},
+		})({
+			attestationDuties: (duties) => duties,
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

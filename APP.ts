@@ -12672,6 +12672,7 @@ export const schema = {
 				},
 				"attestationDuties": {
 					label: "Attestation duties",
+					description: "Per-validator attestation duty history from Beaconcha.in (attester/inclusion slots + status). Not slot-scoped $$beaconAttestations entity refs.",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.Many,
 					valueType: "BeaconValidatorAttestationDuty",
@@ -12723,7 +12724,6 @@ export const schema = {
 									{
 										kind: _ViewItemKind.Block,
 										id: "attestationDuties",
-										fields: ["attestationDuties"],
 										Content: dedent `
 											<ResourceBoundary
 												resource={
@@ -12737,15 +12737,15 @@ export const schema = {
 													})
 												}
 											>
-												{#snippet children(attestationDutiesField)}
-													{#if attestationDutiesField.values.length > 0}
+												{#snippet children(entity)}
+													{#if entity.attestationDuties.values.length > 0}
 														<section data-column="gap-2">
 															<header>
 																<h3>Attestation duties</h3>
 															</header>
 
 															<ul data-column="gap-2">
-																{#each attestationDutiesField.values as duty, dutyIndex (dutyIndex)}
+																{#each entity.attestationDuties.values as duty, dutyIndex (dutyIndex)}
 																	<li data-row="wrap gap-2">
 																		<span>
 																			Epoch <NumberValue value={duty.epoch} />
