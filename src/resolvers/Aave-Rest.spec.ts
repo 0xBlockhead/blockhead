@@ -157,7 +157,7 @@ describe('Aave Rest resolver module', () => {
 			context
 		)
 
-		expect(evmNetworkAccountResolver.projections.$$aaveReservePositions(account)).toEqual([
+		expect(evmNetworkAccountResolver.projections.$$aaveReservePositions.select(account)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$account: accountSelector,
@@ -183,6 +183,7 @@ describe('Aave Rest resolver module', () => {
 				},
 			},
 		])
+		expect(evmNetworkAccountResolver.projections.$$aaveReservePositions.resolveCount(account)).toBe(2)
 		expect(getAccountPositions).toHaveBeenCalledWith({
 			chainId: 1,
 			account: accountSelector.$actor.address,
@@ -220,7 +221,8 @@ describe('Aave Rest resolver module', () => {
 				address: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c',
 			},
 		}, context)
-		expect(evmNetworkAccountResolver.projections.$$aaveReservePositions(account)).toEqual([])
+		expect(evmNetworkAccountResolver.projections.$$aaveReservePositions.select(account)).toEqual([])
+		expect(evmNetworkAccountResolver.projections.$$aaveReservePositions.resolveCount(account)).toBe(0)
 	})
 
 	it('registers under Aave_Rest for markets, reserves, and Network.$$aaveMarkets', () => {
@@ -274,7 +276,7 @@ describe('Aave Rest resolver module', () => {
 			ethereumNetwork,
 			context
 		)
-		expect(networkAaveMarketsResolver.projections.Evm.$$aaveMarkets(snapshot)).toEqual([
+		expect(networkAaveMarketsResolver.projections.Evm.$$aaveMarkets.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: ethereumNetwork,
@@ -282,6 +284,7 @@ describe('Aave Rest resolver module', () => {
 				},
 			},
 		])
+		expect(networkAaveMarketsResolver.projections.Evm.$$aaveMarkets.resolveCount(snapshot)).toBe(1)
 	})
 
 	it('resolves an Aave market snapshot by network and pool address', async () => {

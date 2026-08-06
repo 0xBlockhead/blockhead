@@ -594,6 +594,91 @@ describe('Aave account position operations', () => {
 		await expect(getAccountPositions({
 			chainId: 1,
 			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
-		})).rejects.toThrow(`${Source.Aave_Rest}: account positions missing userSupplies`)
+		})).rejects.toThrow(`${Source.Aave_Rest}: invalid account positions response envelope`)
+	})
+
+	it('fails closed when a supply row omits isCollateral', async () => {
+		graphql
+			.mockResolvedValueOnce({
+				markets: [
+					ethereumMarket,
+				],
+			})
+			.mockResolvedValueOnce({
+				userSupplies: [
+					{
+						market: {
+							address: ethereumMarket.address,
+							chain: {
+								chainId: 1,
+							},
+						},
+						currency: {
+							address: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+							symbol: 'USDC',
+							decimals: 6,
+							chainId: 1,
+						},
+						balance: {
+							amount: {
+								value: '1000.5',
+							},
+							usd: '1000.5',
+						},
+						apy: {
+							value: '0.03',
+						},
+						canBeCollateral: true,
+					},
+				],
+				userBorrows: [],
+			})
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
+		})).rejects.toThrow(`${Source.Aave_Rest}: invalid account positions response envelope`)
+	})
+
+	it('fails closed when a borrow debt amount is not a string', async () => {
+		graphql
+			.mockResolvedValueOnce({
+				markets: [
+					ethereumMarket,
+				],
+			})
+			.mockResolvedValueOnce({
+				userSupplies: [],
+				userBorrows: [
+					{
+						market: {
+							address: ethereumMarket.address,
+							chain: {
+								chainId: 1,
+							},
+						},
+						currency: {
+							address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+							symbol: 'WETH',
+							decimals: 18,
+							chainId: 1,
+						},
+						debt: {
+							amount: {
+								value: 2.5,
+							},
+							usd: '5000',
+						},
+						apy: {
+							value: '0.05',
+						},
+					},
+				],
+			})
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
+		})).rejects.toThrow(`${Source.Aave_Rest}: invalid account positions response envelope`)
 	})
 })

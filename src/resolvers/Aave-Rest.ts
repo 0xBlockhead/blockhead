@@ -101,20 +101,24 @@ const mergeAaveReservePositions = (
 		merged.set(key, row)
 	}
 
-	return [...merged.values()]
-		.slice(0, limit)
-		.map((position) => ({
-			[EntityMetaKey.Selector]: {
-				$account,
-				$reserve: {
-					$market: {
-						$network: $account.$network,
-						poolAddress: position.poolAddress,
+	const rows = [...merged.values()]
+	return {
+		positions: rows
+			.slice(0, limit)
+			.map((position) => ({
+				[EntityMetaKey.Selector]: {
+					$account,
+					$reserve: {
+						$market: {
+							$network: $account.$network,
+							poolAddress: position.poolAddress,
+						},
+						underlyingTokenAddress: position.underlyingTokenAddress,
 					},
-					underlyingTokenAddress: position.underlyingTokenAddress,
 				},
-			},
-		}))
+			})),
+		positionCount: rows.length,
+	}
 }
 
 const mapAaveReservePositionSnapshot = (
@@ -200,7 +204,10 @@ export default {
 				},
 			},
 		})({
-			$$aaveReservePositions: (positions) => positions,
+			$$aaveReservePositions: {
+				select: (snapshot) => snapshot.positions,
+				resolveCount: (snapshot) => snapshot.positionCount,
+			},
 		}),
 
 		defineResolver({
@@ -401,24 +408,31 @@ export default {
 							throw new Error(`${Source.Aave_Rest}: unsupported chain id ${String(chainId)}`)
 
 						const { listMarkets } = await import('$/sources/Aave/Rest/queries.ts')
-						return (await listMarkets({
+						const markets = await listMarkets({
 							chainIds: [
 								chainId,
 							],
-						}))
-							.slice(0, resolverContextRowLimit(context))
-							.map((market) => ({
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									poolAddress: market.address,
-								},
-							}))
+						})
+						return {
+							markets: markets
+								.slice(0, resolverContextRowLimit(context))
+								.map((market) => ({
+									[EntityMetaKey.Selector]: {
+										$network: network,
+										poolAddress: market.address,
+									},
+								})),
+							marketCount: markets.length,
+						}
 					},
 				},
 			},
 		})({
 			Evm: {
-				$$aaveMarkets: (markets) => markets,
+				$$aaveMarkets: {
+					select: (snapshot) => snapshot.markets,
+					resolveCount: (snapshot) => snapshot.marketCount,
+				},
 			},
 		}),
 	],

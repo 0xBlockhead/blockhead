@@ -19,6 +19,7 @@ import type {
 	AaveUserSupplyPositionWire,
 } from '$/sources/Aave/Rest/types.ts'
 import {
+	aaveAccountPositionsEnvelope,
 	aaveMarketEnvelope,
 	aaveMarketsEnvelope,
 } from '$/sources/Aave/Rest/types.ts'
@@ -468,10 +469,7 @@ export const getAccountPositions = async ({
 	})
 	if (data == null)
 		throw new Error(`${Source.Aave_Rest}: account positions response missing data`)
-	if (data.userSupplies == null)
-		throw new Error(`${Source.Aave_Rest}: account positions missing userSupplies`)
-	if (data.userBorrows == null)
-		throw new Error(`${Source.Aave_Rest}: account positions missing userBorrows`)
+	assertEnvelope(aaveAccountPositionsEnvelope, data, 'account positions')
 
 	const expected = {
 		chainId,

@@ -194,3 +194,53 @@ export const aaveMarketEnvelope = aaveMarketSummaryEnvelope.and({
 	}).array(),
 })
 export const aaveMarketsEnvelope = aaveMarketSummaryEnvelope.array()
+
+const aaveAccountPositionMarketWire = arktype({
+	address: 'string',
+	chain: {
+		chainId: 'number',
+	},
+})
+
+const aaveAccountPositionCurrencyWire = arktype({
+	address: 'string',
+	symbol: 'string',
+	decimals: 'number.integer >= 0',
+	'name?': 'string',
+	chainId: 'number',
+})
+
+export const aaveUserSupplyPositionEnvelope = arktype({
+	market: aaveAccountPositionMarketWire,
+	currency: aaveAccountPositionCurrencyWire,
+	balance: {
+		amount: {
+			value: 'string',
+		},
+		usd: 'string',
+	},
+	apy: {
+		value: 'string',
+	},
+	isCollateral: 'boolean',
+	canBeCollateral: 'boolean',
+})
+
+export const aaveUserBorrowPositionEnvelope = arktype({
+	market: aaveAccountPositionMarketWire,
+	currency: aaveAccountPositionCurrencyWire,
+	debt: {
+		amount: {
+			value: 'string',
+		},
+		usd: 'string',
+	},
+	apy: {
+		value: 'string',
+	},
+})
+
+export const aaveAccountPositionsEnvelope = arktype({
+	userSupplies: aaveUserSupplyPositionEnvelope.array(),
+	userBorrows: aaveUserBorrowPositionEnvelope.array(),
+})
