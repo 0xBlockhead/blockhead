@@ -82,6 +82,65 @@ const assertWinstonish = (
 	return asString
 }
 
+const assertBase64Url = (
+	value: string,
+	label: string
+) => {
+	if (value === '' || !/^[A-Za-z0-9_-]+$/.test(value))
+		throw new Error(`Arweave_Rest: invalid ${label}`)
+}
+
+const bytesFromBase64Url = (
+	value: string,
+	label: string
+) => {
+	assertBase64Url(value, label)
+	try {
+		return Uint8Array.from(
+			globalThis.atob(
+				value
+					.replaceAll('-', '+')
+					.replaceAll('_', '/')
+					.padEnd(Math.ceil(value.length / 4) * 4, '=')
+			),
+			(character) => character.charCodeAt(0)
+		)
+	} catch {
+		throw new Error(`Arweave_Rest: invalid ${label}`)
+	}
+}
+
+const base64UrlFromBytes = (
+	bytes: Uint8Array
+) => (
+	globalThis.btoa(String.fromCharCode(...bytes))
+		.replaceAll('+', '-')
+		.replaceAll('/', '_')
+		.replace(/=+$/g, '')
+)
+
+/** Owner wallet address = SHA-256(owner public key bytes), base64url. */
+export const ownerAddressFromOwnerKey = async (
+	ownerKey: string
+) => (
+	base64UrlFromBytes(
+		new Uint8Array(
+			await globalThis.crypto.subtle.digest(
+				'SHA-256',
+				bytesFromBase64Url(ownerKey, 'owner key')
+			)
+		)
+	)
+)
+
+/** Gateway REST tag name/value fields are base64url-encoded UTF-8. */
+export const decodeArweaveTagField = (
+	value: string,
+	label: string
+) => (
+	new TextDecoder().decode(bytesFromBase64Url(value, label))
+)
+
 const assertBlockWire = (
 	block: ArweaveBlockWire,
 	{
@@ -210,6 +269,9 @@ export const getTransaction = async (
 	)
 	if (transaction.id !== transactionId)
 		throw new Error('Arweave_Rest: transaction response has mismatched identity')
+	if (!Number.isSafeInteger(transaction.format) || transaction.format < 1)
+		throw new Error('Arweave_Rest: invalid transaction format')
+	assertBase64Url(transaction.owner, 'owner key')
 	assertUnsignedDecimal(transaction.quantity, 'transaction quantity')
 	assertUnsignedDecimal(transaction.reward, 'transaction reward')
 	assertUnsignedDecimal(transaction.data_size, 'transaction data size')
@@ -221,6 +283,16 @@ export const getTransaction = async (
 		&& !/^[A-Za-z0-9_-]{64}$/.test(transaction.last_tx)
 	)
 		throw new Error('Arweave_Rest: invalid transaction anchor')
+	if (transaction.data_root !== '')
+		assertBase64Url(transaction.data_root, 'data_root')
+	if (transaction.signature === '')
+		throw new Error('Arweave_Rest: missing transaction signature')
+	if (!Array.isArray(transaction.tags))
+		throw new Error('Arweave_Rest: transaction tags must be an array')
+	for (const tag of transaction.tags) {
+		assertBase64Url(tag.name, 'tag name')
+		assertBase64Url(tag.value, 'tag value')
+	}
 	return transaction
 }
 
@@ -228,10 +300,12 @@ export const getTransactionStatus = async (
 	transactionId: string
 ) => {
 	assertBase64UrlId(transactionId, 'transaction ID')
-	const status = await getJson<ArweaveTransactionStatus>(
+	const status = await getJson<ArweaveTransactionStatus | 'Pending'>(
 		binding,
 		`/tx/${encodeURIComponent(transactionId)}/status`
 	)
+	if (status === 'Pending')
+		return undefined
 	if (
 		!Number.isSafeInteger(status.block_height)
 		|| status.block_height < 0

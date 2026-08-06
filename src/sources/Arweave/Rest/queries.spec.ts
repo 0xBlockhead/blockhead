@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
+	decodeArweaveTagField,
 	fetchBrowseResult,
 	getBlockByHash,
 	getBlockByHeight,
@@ -8,6 +9,7 @@ import {
 	getTransaction,
 	getTransactionStatus,
 	getWalletBalance,
+	ownerAddressFromOwnerKey,
 } from '$/sources/Arweave/Rest/queries.ts'
 import * as httpRestClient from '$/sources/_shared/wire/HttpRest/client.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
@@ -135,12 +137,18 @@ describe('Arweave public gateway metadata', () => {
 			recipientAddress
 		)).resolves.toBe('9007199254740993')
 
+		const ownerKey = Buffer.alloc(512, 7).toString('base64url')
 		vi.spyOn(httpRestClient, 'getJson').mockResolvedValue({
 			format: 2,
 			id: transactionId,
 			last_tx: '',
-			owner: 'owner-key',
-			tags: [],
+			owner: ownerKey,
+			tags: [
+				{
+					name: 'QXBwLU5hbWU',
+					value: 'TXkgQXBw',
+				},
+			],
 			target: recipientAddress,
 			quantity: '1000000000000',
 			data: '',
@@ -154,7 +162,35 @@ describe('Arweave public gateway metadata', () => {
 		)).resolves.toMatchObject({
 			quantity: '1000000000000',
 			reward: '12345678901234567',
+			owner: ownerKey,
 		})
+	})
+
+	it('derives owner addresses and decodes gateway tag fields', async () => {
+		const ownerKey = Buffer.alloc(512, 7).toString('base64url')
+		await expect(ownerAddressFromOwnerKey(ownerKey)).resolves.toBe(
+			'FZMwRJYP0jp9qqyc5RNV8fOYlNHD_m3iG1myjOLHfnc'
+		)
+		expect(decodeArweaveTagField('QXBwLU5hbWU', 'tag name')).toBe('App-Name')
+		expect(decodeArweaveTagField('TXkgQXBw', 'tag value')).toBe('My App')
+		expect(() => decodeArweaveTagField('!!!', 'tag name')).toThrow('invalid tag name')
+	})
+
+	it('treats Pending status as absent confirmation and rejects malformed confirmed status', async () => {
+		const getJson = vi.spyOn(httpRestClient, 'getJson')
+		getJson.mockResolvedValueOnce('Pending')
+		await expect(getTransactionStatus(
+			transactionId
+		)).resolves.toBeUndefined()
+
+		getJson.mockResolvedValueOnce({
+			block_height: 1,
+			block_indep_hash: 'short',
+			number_of_confirmations: 1,
+		})
+		await expect(getTransactionStatus(
+			transactionId
+		)).rejects.toThrow('invalid status block hash')
 	})
 
 	it('rejects substituted transaction and malformed confirmed block identity', async () => {
@@ -167,13 +203,22 @@ describe('Arweave public gateway metadata', () => {
 		)).rejects.toThrow('mismatched identity')
 
 		getJson.mockResolvedValueOnce({
-			block_height: 1,
-			block_indep_hash: 'short',
-			number_of_confirmations: 1,
+			format: 2,
+			id: transactionId,
+			last_tx: '',
+			owner: '',
+			tags: [],
+			target: '',
+			quantity: '0',
+			data: '',
+			data_size: '0',
+			data_root: '',
+			reward: '0',
+			signature: 'signature',
 		})
-		await expect(getTransactionStatus(
+		await expect(getTransaction(
 			transactionId
-		)).rejects.toThrow('invalid status block hash')
+		)).rejects.toThrow('invalid owner key')
 	})
 
 	it.each([

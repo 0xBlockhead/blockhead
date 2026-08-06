@@ -13,12 +13,27 @@ import { Source } from '$/sources/Source.ts'
 const getNetworkInfo = vi.hoisted(() => vi.fn())
 const getBlockByHeight = vi.hoisted(() => vi.fn())
 const getBlockByHash = vi.hoisted(() => vi.fn())
+const getTransaction = vi.hoisted(() => vi.fn())
+const getTransactionStatus = vi.hoisted(() => vi.fn())
+const ownerAddressFromOwnerKey = vi.hoisted(() => vi.fn())
+const decodeArweaveTagField = vi.hoisted(() => vi.fn((value: string) => (
+	value === 'QXBwLU5hbWU' ?
+		'App-Name'
+	: value === 'TXkgQXBw' ?
+		'My App'
+	:
+		value
+)))
 const fetchBrowseResult = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Arweave/Rest/queries.ts', () => ({
 	getNetworkInfo,
 	getBlockByHeight,
 	getBlockByHash,
+	getTransaction,
+	getTransactionStatus,
+	ownerAddressFromOwnerKey,
+	decodeArweaveTagField,
 	fetchBrowseResult,
 }))
 
@@ -36,6 +51,9 @@ const networkTimestampResolver = arweaveRest.resolvers.find((resolver) => (
 const blockResolver = arweaveRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.ArweaveBlock
 ))
+const transactionResolver = arweaveRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.ArweaveTransaction
+))
 const resourceResolver = arweaveRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.ArweaveResource
 ))
@@ -48,12 +66,14 @@ if (
 	|| directoryNetworkResolver == null
 	|| networkTimestampResolver == null
 	|| blockResolver == null
+	|| transactionResolver == null
 	|| resourceResolver == null
 	|| resourceTimestampResolver == null
 )
 	throw new Error('Arweave-Rest spec missing resolvers')
 
 const transactionId = 'A'.repeat(43)
+const ownerAddress = 'C'.repeat(43)
 const blockId = 'D'.repeat(64)
 const previousBlockId = 'F'.repeat(64)
 const network = {
@@ -87,11 +107,116 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 		getNetworkInfo.mockReset()
 		getBlockByHeight.mockReset()
 		getBlockByHash.mockReset()
+		getTransaction.mockReset()
+		getTransactionStatus.mockReset()
+		ownerAddressFromOwnerKey.mockReset()
+		decodeArweaveTagField.mockClear()
 		fetchBrowseResult.mockReset()
 	})
 
 	it('registers against Arweave_Rest only', () => {
 		expect(arweaveRest.source).toBe(Source.Arweave_Rest)
+	})
+
+	it('maps GET /tx and status into ArweaveTransaction fields with decoded tags', async () => {
+		getTransaction.mockResolvedValueOnce({
+			format: 2,
+			id: transactionId,
+			last_tx: 'E'.repeat(43),
+			owner: 'owner-key-bytes',
+			tags: [
+				{
+					name: 'QXBwLU5hbWU',
+					value: 'TXkgQXBw',
+				},
+			],
+			target: 'B'.repeat(43),
+			quantity: '1000000000000',
+			data: '',
+			data_size: '12',
+			data_root: 'data-root',
+			reward: '9007199254740993',
+			signature: 'signature',
+		})
+		ownerAddressFromOwnerKey.mockResolvedValueOnce(ownerAddress)
+		getTransactionStatus.mockResolvedValueOnce({
+			block_height: 422_250,
+			block_indep_hash: blockId,
+			number_of_confirmations: 3,
+		})
+
+		const snapshot = await transactionResolver.resolve.NetworkTransactionId.resolve(
+			{
+				$network: arweaveNetwork,
+				transactionId,
+			},
+			context
+		)
+		expect(snapshot).toMatchObject({
+			transactionId,
+			ownerAddress,
+			targetAddress: 'B'.repeat(43),
+			quantityWinston: 1_000_000_000_000n,
+			rewardWinston: 9_007_199_254_740_993n,
+			signature: 'signature',
+			lastTx: 'E'.repeat(43),
+			dataRoot: 'data-root',
+			dataSizeBytes: 12n,
+			format: 2,
+			tags: [
+				{
+					name: 'App-Name',
+					value: 'My App',
+				},
+			],
+		})
+		expect(transactionResolver.projections.$block(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: arweaveNetwork,
+				height: 422_250n,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'indepHash')]: blockId,
+			},
+		})
+		expect(transactionResolver.projections.$resource(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				transactionId,
+				contentPath: '',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ArweaveResource, [], 'canonicalUri')]: `ar://${transactionId}`,
+			},
+		})
+	})
+
+	it('omits $block when gateway status is Pending', async () => {
+		getTransaction.mockResolvedValueOnce({
+			format: 2,
+			id: transactionId,
+			last_tx: '',
+			owner: 'owner-key-bytes',
+			tags: [],
+			target: '',
+			quantity: '0',
+			data: '',
+			data_size: '0',
+			data_root: '',
+			reward: '1',
+			signature: 'signature',
+		})
+		ownerAddressFromOwnerKey.mockResolvedValueOnce(ownerAddress)
+		getTransactionStatus.mockResolvedValueOnce(undefined)
+
+		const snapshot = await transactionResolver.resolve.NetworkTransactionId.resolve(
+			{
+				$network: arweaveNetwork,
+				transactionId,
+			},
+			context
+		)
+		expect(transactionResolver.projections.$block(snapshot)).toBeUndefined()
+		expect(transactionResolver.projections.$resource(snapshot)).toBeUndefined()
 	})
 
 	it('projects Network.Arweave tip timestamps and height-walked blocks', async () => {

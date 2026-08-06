@@ -1,5 +1,5 @@
 /**
- * Arweave gateway REST resolvers: network tip lists, full blocks, info timestamps, resource browse.
+ * Arweave gateway REST resolvers: network tip lists, full blocks, transactions, info timestamps, resource browse.
  * Global transaction / resource indexes stay on `Arweave_Graphql` (gateway REST has no listing API).
  * @see https://docs.arweave.org/developers/arweave-node-server/http-api
  */
@@ -342,6 +342,92 @@ export default {
 			hashListMerkle: (block) => block.hashListMerkle,
 			transactionCount: (block) => block.transactionCount,
 			$$transactions: (block) => block.transactions,
+		}),
+
+		defineResolver({
+			entityType: EntityType.ArweaveTransaction,
+			resolve: {
+				NetworkTransactionId: {
+					resolve: async ({
+						$network,
+						transactionId,
+					}) => {
+						assertArweaveNetworkHub($network)
+						const {
+							decodeArweaveTagField,
+							getTransaction,
+							getTransactionStatus,
+							ownerAddressFromOwnerKey,
+						} = await import('$/sources/Arweave/Rest/queries.ts')
+						const transaction = await getTransaction(transactionId)
+						const ownerAddress = await ownerAddressFromOwnerKey(transaction.owner)
+						const dataSizeBytes = BigInt(transaction.data_size)
+						const status = await getTransactionStatus(transactionId)
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							transactionId,
+							ownerAddress,
+							...(transaction.target !== '' && {
+								targetAddress: transaction.target,
+							}),
+							quantityWinston: BigInt(transaction.quantity),
+							rewardWinston: BigInt(transaction.reward),
+							signature: transaction.signature,
+							...(transaction.last_tx !== '' && {
+								lastTx: transaction.last_tx,
+							}),
+							...(transaction.data_root !== '' && {
+								dataRoot: transaction.data_root,
+							}),
+							dataSizeBytes,
+							tags: transaction.tags.map((tag) => ({
+								name: decodeArweaveTagField(tag.name, 'tag name'),
+								value: decodeArweaveTagField(tag.value, 'tag value'),
+							})),
+							format: transaction.format,
+							...(status != null && {
+								$block: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										height: BigInt(status.block_height),
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'indepHash')]: status.block_indep_hash,
+									},
+								},
+							}),
+							...(dataSizeBytes > 0n && {
+								$resource: {
+									[EntityMetaKey.Selector]: {
+										transactionId,
+										contentPath: '',
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.ArweaveResource, [], 'canonicalUri')]: arweaveCanonicalUri(transactionId, ''),
+									},
+								},
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$network: (transaction) => transaction.$network,
+			transactionId: (transaction) => transaction.transactionId,
+			ownerAddress: (transaction) => transaction.ownerAddress,
+			targetAddress: (transaction) => transaction.targetAddress,
+			quantityWinston: (transaction) => transaction.quantityWinston,
+			rewardWinston: (transaction) => transaction.rewardWinston,
+			signature: (transaction) => transaction.signature,
+			lastTx: (transaction) => transaction.lastTx,
+			dataRoot: (transaction) => transaction.dataRoot,
+			dataSizeBytes: (transaction) => transaction.dataSizeBytes,
+			tags: (transaction) => transaction.tags,
+			format: (transaction) => transaction.format,
+			$block: (transaction) => transaction.$block,
+			$resource: (transaction) => transaction.$resource,
 		}),
 
 		defineResolver({
