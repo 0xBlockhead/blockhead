@@ -6,15 +6,23 @@ import {
 } from 'vitest'
 
 import { CoinId } from '$/constants/Coin.ts'
+import {
+	MarketAssetKind,
+	MarketKind,
+} from '$/constants/Market.ts'
+import { Iso4217 } from '$/constants/Currency.ts'
+import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getSimplePrice = vi.hoisted(() => vi.fn())
+const getDerivativesExchange = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Coingecko/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Coingecko/Rest/queries.ts')>(),
 	getSimplePrice,
+	getDerivativesExchange,
 }))
 
 const { default: coingecko } = await import('$/resolvers/Coingecko-Rest.ts')
@@ -38,6 +46,8 @@ describe('CoinGecko resolver collapse', () => {
 		[EntityType.Market, '$$derivativeTimestamps'],
 		[EntityType.Market, '$$marketTimeIntervalTimestamps'],
 		[EntityType.Market_Derivative_Timestamp, 'fundingRate'],
+		[EntityType.Market_Derivative_Timestamp, 'markPrice'],
+		[EntityType.Market_Derivative_Timestamp, 'indexPrice'],
 		[EntityType.Market_Timestamp, 'price'],
 		[EntityType.Market_TimeInterval_Timestamp, 'open'],
 		[EntityType.Coin_Timestamp, 'marketCap'],
@@ -59,23 +69,14 @@ describe('CoinGecko resolver collapse', () => {
 		1,
 		1,
 		1,
+		1,
+		1,
 	])
 	})
 })
 
 describe('CoinGecko global market prices resolver', () => {
 	it('windows catalog spots while resolveCount stays complete', async () => {
-		getSimplePrice.mockResolvedValue({
-			bitcoin: {
-				usd: 100,
-				last_updated_at: 1_700_000_000,
-			},
-			ethereum: {
-				usd: 10,
-				last_updated_at: 1_700_000_001,
-			},
-		})
-
 		const resolver = coingecko.resolvers.find((candidate) => (
 			candidate.entityType === EntityType._Global
 			&& '$$marketPrices' in candidate.projections
@@ -111,5 +112,61 @@ describe('CoinGecko global market prices resolver', () => {
 		expect(resolver.projections.$$marketPrices.select(snapshot)).toEqual(snapshot.marketPrices)
 		expect(resolver.projections.$$marketPrices.resolveCount(snapshot)).toBe(2)
 		expect(snapshot.marketPrices[0]?.[EntityMetaKey.Selector].feedKey).toBe(idByCoinId[CoinId.BTC])
+	})
+})
+
+describe('CoinGecko derivative timestamp resolver', () => {
+	it('projects enrolled markPrice and indexPrice from last/index wire', async () => {
+		getDerivativesExchange.mockResolvedValue({
+			tickers: [{
+				coin_id: 'bitcoin',
+				target_coin_id: 'tether',
+				symbol: 'BTCUSDT',
+				last: 100_000.25,
+				index: 99_999.5,
+				last_traded: 1_700_000_000,
+				open_interest_usd: 1_000_000,
+				index_basis_percentage: 0.12,
+				funding_rate: 0.01,
+			}],
+		})
+
+		const resolver = coingecko.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Market_Derivative_Timestamp
+			&& 'markPrice' in candidate.projections
+			&& 'fundingRate' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Coingecko Market_Derivative_Timestamp mark/index resolver missing')
+
+		const $market = {
+			$base: {
+				kind: MarketAssetKind.Coin,
+				assetKey: CoinId.BTC,
+			},
+			$quote: {
+				kind: MarketAssetKind.Currency,
+				assetKey: Iso4217.USD,
+			},
+			$marketVenue: { marketVenueId: MarketVenueId.Binance },
+			marketKind: MarketKind.Perpetual,
+		}
+		const snapshot = await resolver.resolve.MarketTimestampMsFeedKey.resolve(
+			{
+				$market,
+				timestampMs: 1_700_000_000_000,
+				feedKey: 'coingecko:BTCUSDT',
+			},
+			resolverContext
+		)
+
+		expect(snapshot.markPrice).toBe(BigInt(Math.round(100_000.25 * 1e8)))
+		expect(snapshot.indexPrice).toBe(BigInt(Math.round(99_999.5 * 1e8)))
+		expect(resolver.projections.markPrice(snapshot)).toBe(snapshot.markPrice)
+		expect(resolver.projections.indexPrice(snapshot)).toBe(snapshot.indexPrice)
+		expect(getDerivativesExchange).toHaveBeenCalledWith({
+			publicEnv: {},
+			id: 'binance_futures',
+		})
 	})
 })

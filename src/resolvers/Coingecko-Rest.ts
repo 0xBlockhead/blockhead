@@ -323,6 +323,12 @@ export default {
 							fundingRate: ticker.funding_rate,
 							openInterestUsd: BigInt(Math.round(ticker.open_interest_usd)),
 							indexBasisPercent: ticker.index_basis_percentage,
+							...(Number.isFinite(ticker.last) && {
+								markPrice: BigInt(Math.round(ticker.last * 1e8)),
+							}),
+							...(Number.isFinite(ticker.index) && {
+								indexPrice: BigInt(Math.round(ticker.index * 1e8)),
+							}),
 							...(ticker.expired_at != null && {
 								expiredAtMs: ticker.expired_at * 1_000,
 							}),
@@ -337,6 +343,8 @@ export default {
 			fundingRate: (timestamp) => timestamp.fundingRate,
 			openInterestUsd: (timestamp) => timestamp.openInterestUsd,
 			indexBasisPercent: (timestamp) => timestamp.indexBasisPercent,
+			markPrice: (timestamp) => timestamp.markPrice,
+			indexPrice: (timestamp) => timestamp.indexPrice,
 			expiredAtMs: (timestamp) => timestamp.expiredAtMs,
 			lastTradedAtMs: (timestamp) => timestamp.lastTradedAtMs,
 			providerAssetId: (timestamp) => timestamp.providerAssetId,

@@ -288,6 +288,25 @@ describe('CoinGecko documented endpoints', () => {
 		)
 	})
 
+	it('fail-closes derivatives tickers missing last/index mark wire', async () => {
+		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			tickers: [{
+				coin_id: 'bitcoin',
+				target_coin_id: 'tether',
+				symbol: 'BTCUSDT',
+				last_traded: 1_700_000_000,
+				open_interest_usd: 1,
+				index_basis_percentage: 0.1,
+				funding_rate: 0.01,
+			}],
+		})))
+
+		await expect(getDerivativesExchange({
+			publicEnv: {},
+			id: 'binance_futures',
+		})).rejects.toThrow('invalid derivatives exchange response envelope')
+	})
+
 	it('batches documented simple price flags into one request', async () => {
 		const prices = {
 			bitcoin: {

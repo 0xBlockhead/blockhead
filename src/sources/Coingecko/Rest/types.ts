@@ -112,6 +112,8 @@ export const coingeckoDerivativesExchangeEnvelope = arktype({
 		coin_id: 'string',
 		target_coin_id: 'string',
 		symbol: 'string',
+		last: 'number',
+		index: 'number',
 		last_traded: 'number',
 		open_interest_usd: 'number',
 		index_basis_percentage: 'number',
