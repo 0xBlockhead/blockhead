@@ -45,7 +45,7 @@ import type {
 	SubscribeResult,
 	SubscribeSelection,
 } from '$/client/$client.svelte.ts'
-import { localMutationAuthorityKey } from '$/client/$client.svelte.ts'
+import { localMutationAuthorityKey, entityResolverSourcesForSelectorKeys } from '$/client/$client.svelte.ts'
 import { resolverPartsKey } from '$/resolvers/$resolvers.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -1280,6 +1280,12 @@ const subscribeEntitySelection = <
 		entityType,
 		selectorKey,
 	})
+	const selectorIdentitySources = entityResolverSourcesForSelectorKeys(
+		context.schema,
+		context.entityDefinitionByType[entityType],
+		[selectorKey],
+		context.resolverIndexes.resolverDefinitionsByEntityType[entityType] ?? [],
+	)
 	const entityRowsCollection = createLiveQueryCollection({
 		gcTime: 1,
 		startSync: true,
@@ -1652,6 +1658,7 @@ const subscribeEntitySelection = <
 						|| (
 							fields.length > 0
 							&& querySources?.includes(Source.Local_Internal) !== true
+							&& selectorIdentitySources.length === 0
 						)
 						|| (
 							!context.entityCollections[entityType].utils.isResolverSubsetLoading(

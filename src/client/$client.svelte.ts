@@ -2741,15 +2741,24 @@ const loadEntityRows = async <
 			validateEntitySelector(context.schema, entityDefinition, entitySelector).name
 		)] ?? []
 	)))]
+	const entitySourceSubset = (
+		sourceNames != null ?
+			{
+				...subset,
+				sources: sourceNames,
+			}
+		:
+			subset
+	)
 	const requestedEntitySources = requestedSources(
-		subset,
+		entitySourceSubset,
 		sourceNames,
 		resolvers.map((resolver) => String(resolver.source))
 	)
 	const sources = applicableResolverSources(
 		context.schema,
 		entityDefinition,
-		subset,
+		entitySourceSubset,
 		sourceNames,
 		resolvers,
 		entitySelectors
@@ -3763,13 +3772,24 @@ export const client = <
 					)],
 					sources: (loadSubsetOptions) => {
 						const subset = parseResolverSubset(loadSubsetOptions)
+						const identitySources = entityResolverSourcesForSelectorKeys(
+							schema,
+							entityDefinition,
+							subset.selectorKeys,
+							entityResolvers,
+						)
 						return [...new Set([
-							...entityResolverSourcesForSelectorKeys(
-								schema,
-								entityDefinition,
-								subset.selectorKeys,
-								entityResolvers,
-								subset.sources
+							...(
+								identitySources.length > 0 ?
+									identitySources
+								:
+									entityResolverSourcesForSelectorKeys(
+										schema,
+										entityDefinition,
+										subset.selectorKeys,
+										entityResolvers,
+										subset.sources,
+									)
 							),
 							...(includesEnabledLocalInternal(subset.sources, enabledSources) ? [Source.Local_Internal] : []),
 						])]
@@ -3794,13 +3814,24 @@ export const client = <
 					},
 					persistedRows: (loadSubsetOptions, rows, marker) => {
 						const subset = parseResolverSubset(loadSubsetOptions)
+						const identitySources = entityResolverSourcesForSelectorKeys(
+							schema,
+							entityDefinition,
+							subset.selectorKeys,
+							entityResolvers,
+						)
 						const sources = new Set([
-							...entityResolverSourcesForSelectorKeys(
-								schema,
-								entityDefinition,
-								subset.selectorKeys,
-								entityResolvers,
-								subset.sources
+							...(
+								identitySources.length > 0 ?
+									identitySources
+								:
+									entityResolverSourcesForSelectorKeys(
+										schema,
+										entityDefinition,
+										subset.selectorKeys,
+										entityResolvers,
+										subset.sources,
+									)
 							),
 							...(includesEnabledLocalInternal(subset.sources, enabledSources) ? [Source.Local_Internal] : []),
 						])
