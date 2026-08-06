@@ -126,3 +126,17 @@ export const bitcoinRunestoneSnapshotFromPayload = (
 	payloadHex: payload.payloadHex,
 	isCenotaph: payload.isCenotaph,
 })
+
+export const bitcoinOrdinalInscriptionRefsFromUtxoInscriptions = (
+	$network: NetworkId,
+	inscriptions: readonly {
+		inscriptionId: string
+	}[]
+) => (
+	inscriptions.map((inscription) => ({
+		[EntityMetaKey.Selector]: {
+			$network,
+			inscriptionId: inscription.inscriptionId,
+		},
+	}))
+)

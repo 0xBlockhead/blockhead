@@ -22,6 +22,7 @@ import type {
 	UniSatPaged,
 	UniSatRuneBalance,
 	UniSatRuneInfo,
+	UniSatUtxoInfo,
 } from '$/sources/UniSat/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -97,6 +98,24 @@ export const getRuneInfo = async (
 	return unisatGetJson<UniSatRuneInfo>(
 		publicEnv,
 		`v1/indexer/runes/${encodeURIComponent(runeId)}/info`
+	)
+}
+
+export const getUtxoInfo = async (
+	publicEnv: SourcePublicEnv,
+	{
+		txId,
+		outputIndex,
+	}: {
+		txId: string
+		outputIndex: number
+	}
+) => {
+	assertNonEmpty(txId, 'txId')
+	assertNonNegativeInteger(outputIndex, 'outputIndex')
+	return unisatGetJson<UniSatUtxoInfo | null>(
+		publicEnv,
+		`v1/indexer/utxo/${encodeURIComponent(txId)}/${outputIndex}`
 	)
 }
 

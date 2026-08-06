@@ -1,5 +1,6 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import {
+	bitcoinOrdinalInscriptionRefsFromUtxoInscriptions,
 	parseBitcoinInscriptionId,
 } from '$/resolvers/bitcoinOrdinalsRunes.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
@@ -51,14 +52,21 @@ export default {
 							inscriptionId,
 						})
 						const parsed = parseBitcoinInscriptionId(inscriptionId)
+						const inscriptionIndex = (
+							info.inscriptionIndex
+							?? parsed?.inscriptionIndex
+						)
+						const revealTxId = parsed?.txId
 						return {
 							inscriptionId,
-							...(parsed != null && {
-								inscriptionIndex: parsed.inscriptionIndex,
+							...(inscriptionIndex != null && {
+								inscriptionIndex,
+							}),
+							...(revealTxId != null && {
 								$revealTransaction: {
 									[EntityMetaKey.Selector]: {
 										$network,
-										txId: parsed.txId,
+										txId: revealTxId,
 									},
 								},
 							}),
@@ -144,9 +152,6 @@ export default {
 							...(info.height != null && {
 								etchingHeight: info.height,
 							}),
-							...(info.txidx != null && {
-								etchingTxIndex: info.txidx,
-							}),
 							...(info.timestamp != null && {
 								etchingTimestampMs: info.timestamp * 1000,
 							}),
@@ -167,20 +172,11 @@ export default {
 							...(info.premine != null && {
 								premine: info.premine,
 							}),
-							...(info.mints != null && {
-								mints: info.mints,
-							}),
-							...(info.burned != null && {
-								burned: info.burned,
-							}),
 							...(info.supply != null && {
 								supply: info.supply,
 							}),
 							...(info.holders != null && {
 								holders: info.holders,
-							}),
-							...(info.transactions != null && {
-								transactions: info.transactions,
 							}),
 							...(info.mintable != null && {
 								mintable: info.mintable,
@@ -374,6 +370,20 @@ export default {
 				},
 			},
 		})({
+			$$bitcoinOrdinalInscriptions: {
+				resolve: async ({ $transaction, indexInTransaction }, context) => {
+					assertBitcoinNetwork($transaction.$network)
+					const { getUtxoInfo } = await import('$/sources/UniSat/Rest/queries.ts')
+					const utxo = await getUtxoInfo(context.publicEnv, {
+						txId: $transaction.txId,
+						outputIndex: indexInTransaction,
+					})
+					return bitcoinOrdinalInscriptionRefsFromUtxoInscriptions(
+						$transaction.$network,
+						utxo?.inscriptions ?? []
+					)
+				},
+			},
 			$$bitcoinRuneBalances: {
 				resolve: async ({ $transaction, indexInTransaction }, context) => {
 					assertBitcoinNetwork($transaction.$network)

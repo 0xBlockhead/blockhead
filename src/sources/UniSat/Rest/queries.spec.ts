@@ -20,6 +20,7 @@ const {
 	getAddressRuneBalances,
 	getInscriptionInfo,
 	getRuneInfo,
+	getUtxoInfo,
 	getUtxoRuneBalances,
 } = await import('$/sources/UniSat/Rest/queries.ts')
 
@@ -139,6 +140,74 @@ describe('UniSat Rest queries', () => {
 
 		expect(sourceFetch.mock.calls[0]?.[1]).toBe(
 			`https://open-api.unisat.io/v1/indexer/runes/utxo/${'bb'.repeat(32)}/2/balance`
+		)
+	})
+
+	it('getUtxoInfo hits the utxo detail path and accepts null spent data', async () => {
+		sourceFetch.mockResolvedValueOnce(okJson({
+			txid: 'cc'.repeat(32),
+			vout: 1,
+			inscriptions: [
+				{
+					inscriptionId: `${'dd'.repeat(32)}i0`,
+				},
+			],
+		}))
+
+		await expect(
+			getUtxoInfo(publicEnv, {
+				txId: 'cc'.repeat(32),
+				outputIndex: 1,
+			})
+		).resolves.toMatchObject({
+			txid: 'cc'.repeat(32),
+			vout: 1,
+			inscriptions: [
+				{
+					inscriptionId: `${'dd'.repeat(32)}i0`,
+				},
+			],
+		})
+		expect(sourceFetch.mock.calls[0]?.[1]).toBe(
+			`https://open-api.unisat.io/v1/indexer/utxo/${'cc'.repeat(32)}/1`
+		)
+
+		sourceFetch.mockResolvedValueOnce(okJson(null))
+		await expect(
+			getUtxoInfo(publicEnv, {
+				txId: 'cc'.repeat(32),
+				outputIndex: 1,
+			})
+		).resolves.toBeNull()
+	})
+
+	it('getAddressInscriptions and getAddressRuneBalances hit list paths', async () => {
+		sourceFetch.mockResolvedValueOnce(okJson({
+			total: 0,
+			start: 0,
+			detail: [],
+		}))
+		await getAddressInscriptions(publicEnv, {
+			address: 'bc1qexample',
+			cursor: 4,
+			size: 8,
+		})
+		expect(sourceFetch.mock.calls[0]?.[1]).toBe(
+			'https://open-api.unisat.io/v1/indexer/address/bc1qexample/inscription-data?cursor=4&size=8'
+		)
+
+		sourceFetch.mockResolvedValueOnce(okJson({
+			total: 0,
+			start: 0,
+			detail: [],
+		}))
+		await getAddressRuneBalances(publicEnv, {
+			address: 'bc1qexample',
+			start: 2,
+			limit: 10,
+		})
+		expect(sourceFetch.mock.calls[1]?.[1]).toBe(
+			'https://open-api.unisat.io/v1/indexer/address/bc1qexample/runes/balance-list?start=2&limit=10'
 		)
 	})
 })

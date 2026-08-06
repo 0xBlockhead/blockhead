@@ -94,3 +94,31 @@ export type UniSatAddressInscriptionData = {
 	contentType?: string
 	utxo?: UniSatInscriptionUtxo
 }
+
+export type UniSatUtxoInscription = {
+	inscriptionId: string
+	inscriptionNumber?: number
+	offset?: number
+	moved?: boolean
+	sequence?: number
+	isCursed?: boolean
+	isVindicate?: boolean
+	isBRC20Ext?: boolean
+	isBRC20?: boolean
+}
+
+export type UniSatUtxoInfo = {
+	txid: string
+	vout: number
+	satoshi?: number
+	scriptType?: string
+	scriptPk?: string
+	codeType?: number
+	address?: string
+	height?: number
+	idx?: number
+	isOpInRBF?: boolean
+	isSpent?: boolean
+	inscriptionsCount?: number
+	inscriptions?: UniSatUtxoInscription[]
+}
