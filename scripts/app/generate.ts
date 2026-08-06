@@ -10110,7 +10110,7 @@ const generateSingularViewFile = (
 		!importSpec.from.endsWith('.svelte')
 		&& importSpec.from !== '$/routes/+layout.svelte'
 	))
-	const usesTruncatedValue = ['truncated', 'namespaceReference', 'url'].some((format) => viewFormats.has(format))
+	const usesTruncatedValue = ['address', 'truncated', 'namespaceReference', 'url'].some((format) => viewFormats.has(format))
 	const contextImportSpecs = mergeImports([
 		...declaredContextImportSpecs,
 		...(generatedUsesSelect ? [{
