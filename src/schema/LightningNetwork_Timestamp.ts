@@ -29,6 +29,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.LightningLnd_Rest,
 			Source.LightningMempoolSpace_Rest,
 		],
 	},
@@ -36,6 +37,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.LightningLnd_Rest,
 			Source.LightningMempoolSpace_Rest,
 		],
 	},
@@ -43,6 +45,7 @@ export default entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.LightningLnd_Rest,
 			Source.LightningMempoolSpace_Rest,
 		],
 	},
@@ -71,6 +74,7 @@ export default entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.LightningLnd_Rest,
 			Source.LightningMempoolSpace_Rest,
 		],
 	},
@@ -78,6 +82,7 @@ export default entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.LightningLnd_Rest,
 			Source.LightningMempoolSpace_Rest,
 		],
 	},

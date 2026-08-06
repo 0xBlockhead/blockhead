@@ -33,6 +33,7 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.Lifi_Rest,
 		],
 	},
 	substatus: {
@@ -41,6 +42,7 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.Lifi_Rest,
 		],
 	},
 	sourceConfirmations: {
@@ -57,6 +59,7 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.Lifi_Rest,
 		],
 	},
 	relayer: {
@@ -81,6 +84,7 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.Lifi_Rest,
 		],
 	},
 	fillGasFee: {
@@ -88,6 +92,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Across_Rest,
+			Source.Lifi_Rest,
 		],
 	},
 	fillGasFeeUsd: {
@@ -95,6 +100,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Across_Rest,
+			Source.Lifi_Rest,
 		],
 	},
 	error: {
@@ -103,6 +109,7 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.Lifi_Rest,
 		],
 	},
 })({

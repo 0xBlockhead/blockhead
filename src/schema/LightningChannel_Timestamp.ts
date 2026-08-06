@@ -66,6 +66,7 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.Amboss_Graphql,
 			Source.LightningMempoolSpace_Rest,
 		],
 	},
@@ -73,6 +74,7 @@ export default entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.Amboss_Graphql,
 			Source.LightningMempoolSpace_Rest,
 		],
 	},
@@ -80,6 +82,7 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.Amboss_Graphql,
 			Source.LightningMempoolSpace_Rest,
 		],
 	},
@@ -87,6 +90,7 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
+			Source.Amboss_Graphql,
 			Source.LightningMempoolSpace_Rest,
 		],
 	},

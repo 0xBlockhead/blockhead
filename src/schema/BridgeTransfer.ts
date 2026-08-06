@@ -93,6 +93,7 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.Lifi_Rest,
 		],
 	},
 	bridgeFeeUsd: {
@@ -100,6 +101,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Across_Rest,
+			Source.Lifi_Rest,
 		],
 	},
 	exclusiveRelayer: {
@@ -115,6 +117,7 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.Lifi_Rest,
 		],
 	},
 })({
