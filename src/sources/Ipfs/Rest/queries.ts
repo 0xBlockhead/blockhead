@@ -1,13 +1,18 @@
-import { jsonErrorHintFromResponse } from '$/lib/http.ts'
 import {
 	ipfsNamespaceForTarget,
 	trimIpfsSlashes,
 } from '$/lib/ipfs.ts'
 import type { IpfsNamespace } from '$/lib/ipfs.ts'
+import { parseIpfsCid } from '$/lib/multiformats.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceEndpointOrigin } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/Ipfs/bindings.ts'
-import { sourceFetch } from '$/sources/_runtime/http.ts'
+import {
+	fetchOrderedGatewayContent,
+	getGatewayReachability as probeGatewayReachability,
+	trimGatewayPathSlashes,
+} from '$/sources/_shared/interfaces/ContentGateway/queries.ts'
+import { ContentGatewayFamily } from '$/sources/_shared/interfaces/ContentGateway/types.ts'
 
 const binding = bindings[Source.Ipfs_Rest][0]
 
@@ -23,6 +28,26 @@ const resolvedIpfsNamespace = ({
 	namespace ?? ipfsNamespaceForTarget(target)
 )
 
+export const assertIpfsGatewayTarget = ({
+	namespace,
+	target,
+}: {
+	namespace: IpfsNamespace
+	target: string
+}) => {
+	const trimmedTarget = trimIpfsSlashes(target.trim())
+	if (trimmedTarget === '')
+		throw new Error('Ipfs_Rest: empty content target')
+
+	if (namespace === 'ipfs' && parseIpfsCid(trimmedTarget) == null)
+		throw new Error(`Ipfs_Rest: invalid IPFS CID target ${trimmedTarget}`)
+
+	if (namespace === 'ipns' && /[\u0000-\u001f\u007f]/.test(trimmedTarget))
+		throw new Error('Ipfs_Rest: IPNS target contains control characters')
+
+	return trimmedTarget
+}
+
 export const getGatewayUrl = ({
 	namespace,
 	target,
@@ -35,7 +60,7 @@ export const getGatewayUrl = ({
 	gatewayOrigin: string
 }) => {
 	const trimmedTarget = trimIpfsSlashes(target.trim())
-	const trimmedPath = trimIpfsSlashes(contentPath?.trim() ?? '')
+	const trimmedPath = trimGatewayPathSlashes(contentPath?.trim() ?? '')
 	return `${gatewayOrigin}/${resolvedIpfsNamespace({
 		target: trimmedTarget,
 		namespace,
@@ -53,64 +78,63 @@ export const fetchBrowseResult = async ({
 	contentPath?: string
 	signal?: AbortSignal
 }) => {
-	const trimmedTarget = trimIpfsSlashes(target.trim())
-	const trimmedPath = trimIpfsSlashes(contentPath?.trim() ?? '')
+	const trimmedPath = trimGatewayPathSlashes(contentPath?.trim() ?? '')
 	const resolvedNamespace = resolvedIpfsNamespace({
-		target: trimmedTarget,
+		target: trimIpfsSlashes(target.trim()),
 		namespace,
 	})
-	const failures: string[] = []
+	const trimmedTarget = assertIpfsGatewayTarget({
+		namespace: resolvedNamespace,
+		target,
+	})
 
-	for (const endpoint of binding.endpoints) {
-		const gatewayUrl = getGatewayUrl({
-			namespace: resolvedNamespace,
-			target: trimmedTarget,
-			contentPath: trimmedPath,
-			gatewayOrigin: endpoint.locator,
-		})
+	const browseResult = await fetchOrderedGatewayContent({
+		binding,
+		family: ContentGatewayFamily.Ipfs,
+		buildGatewayUrl: (gatewayOrigin) => (
+			getGatewayUrl({
+				namespace: resolvedNamespace,
+				target: trimmedTarget,
+				contentPath: trimmedPath,
+				gatewayOrigin,
+			})
+		),
+		fileNameFromGatewayUrl: (gatewayUrl) => (
+			gatewayUrlLastSegment.exec(gatewayUrl)?.[1]
+		),
+		signal,
+	})
 
-		let response: Response
-		try {
-			response = await sourceFetch(binding, gatewayUrl, { signal })
-		}
-		catch (error) {
-			failures.push(`${endpoint.locator}: ${error instanceof Error ? error.message : String(error)}`)
-			continue
-		}
-		if (!response.ok) {
-			const hint = await jsonErrorHintFromResponse(response)
-			failures.push(
-				hint ?
-					`${endpoint.locator} (${response.status}): ${hint}`
-				:
-					`${endpoint.locator} (${response.status} ${response.statusText})`
-			)
-			continue
-		}
-
-		const { parseContentResponse } = await import('$/sources/contentResponse.ts')
-		const parsedContent = await parseContentResponse({
-			response,
-			fileName: gatewayUrlLastSegment.exec(gatewayUrl)?.[1],
-		})
-
-		return {
-			namespace: resolvedNamespace,
-			target: trimmedTarget,
-			contentPath: trimmedPath,
-			gatewayOrigin: sourceEndpointOrigin(endpoint),
-			gatewayUrl,
-			fileName: parsedContent.fileName,
-			extension: parsedContent.extension,
-			contentType: parsedContent.contentType,
-			contentLength: parsedContent.contentLength,
-			displayType: parsedContent.displayType,
-			isContentTypeInferred: parsedContent.isContentTypeInferred,
-			text: parsedContent.text,
-		}
+	return {
+		namespace: resolvedNamespace,
+		target: trimmedTarget,
+		contentPath: trimmedPath,
+		gatewayOrigin: browseResult.gatewayOrigin,
+		gatewayUrl: browseResult.gatewayUrl,
+		fileName: browseResult.fileName,
+		extension: browseResult.extension,
+		contentType: browseResult.contentType,
+		contentLength: browseResult.contentLength,
+		displayType: browseResult.displayType,
+		isContentTypeInferred: browseResult.isContentTypeInferred,
+		text: browseResult.text,
 	}
-
-	throw new Error(
-		`Unable to load ${resolvedNamespace}://${trimmedTarget}${trimmedPath ? `/${trimmedPath}` : ''} from public gateways: ${failures.join('; ')}`
-	)
 }
+
+export const getGatewayReachability = async ({
+	signal,
+}: {
+	signal?: AbortSignal
+} = {}) => (
+	probeGatewayReachability({
+		binding,
+		signal,
+	})
+)
+
+export const listDeclaredGatewayOrigins = () => (
+	binding.endpoints.flatMap((endpoint) => {
+		const origin = sourceEndpointOrigin(endpoint)
+		return origin == null ? [] : [origin]
+	})
+)

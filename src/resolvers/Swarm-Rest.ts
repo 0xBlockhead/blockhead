@@ -19,18 +19,8 @@ export default {
 			resolve: {
 				ResourceAddress: {
 					resolve: async ({ contentPath, reference }) => {
-						const { swarmOnlyReferencePattern } = await import('$/sources/Swarm/Rest/constants.ts')
-						const normalizedReference = (
-							reference
-								.trim()
-								.replace(/^bzz:\/\//i, '')
-								.replace(/^swarm:\/\//i, '')
-								.replace(/^\/+|\/+$/g, '')
-								.replace(/^0x/i, '')
-						)
-						if (!swarmOnlyReferencePattern.test(normalizedReference))
-							throw new Error(`Swarm_Rest: invalid reference ${reference}`)
-						const { fetchBrowseResult } = await import('$/sources/Swarm/Rest/queries.ts')
+						const { assertSwarmGatewayReference, fetchBrowseResult } = await import('$/sources/Swarm/Rest/queries.ts')
+						const normalizedReference = assertSwarmGatewayReference(reference)
 						let browseResult
 						try {
 							browseResult = await fetchBrowseResult({

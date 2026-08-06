@@ -1,23 +1,20 @@
-import { jsonErrorHintFromResponse } from '$/lib/http.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceEndpointOrigin } from '$/sources/SourceBinding.ts'
-import { sourceFetch } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Swarm/bindings.ts'
+import { swarmOnlyReferencePattern } from '$/sources/Swarm/Rest/constants.ts'
+import {
+	fetchOrderedGatewayContent,
+	getGatewayReachability as probeGatewayReachability,
+	stripOptionalHexPrefix,
+	trimGatewayPathSlashes,
+} from '$/sources/_shared/interfaces/ContentGateway/queries.ts'
+import { ContentGatewayFamily } from '$/sources/_shared/interfaces/ContentGateway/types.ts'
 
 const binding = bindings[Source.Swarm_Rest][0]
 
-const stripHexPrefix = (value: string) => (
-	value.toLowerCase().startsWith('0x') ?
-		value.slice(2)
-	:
-		value
-)
-
-const trimSlashes = (value: string) => (
-	value.replace(/^\/+|\/+$/g, '')
-)
-
-const normalizeReference = (reference: string) => {
+export const normalizeSwarmReference = (
+	reference: string
+) => {
 	const trimmed = reference.trim()
 	const withoutScheme = (
 		trimmed.toLowerCase().startsWith('bzz://') ?
@@ -28,10 +25,19 @@ const normalizeReference = (reference: string) => {
 			:
 				trimmed
 	)
-	return stripHexPrefix(trimSlashes(withoutScheme))
+	return stripOptionalHexPrefix(trimGatewayPathSlashes(withoutScheme))
 }
 
-const getGatewayUrl = ({
+export const assertSwarmGatewayReference = (
+	reference: string
+) => {
+	const normalizedReference = normalizeSwarmReference(reference)
+	if (!swarmOnlyReferencePattern.test(normalizedReference))
+		throw new Error(`Swarm_Rest: invalid reference ${reference}`)
+	return normalizedReference
+}
+
+export const getGatewayUrl = ({
 	reference,
 	contentPath,
 	gatewayOrigin,
@@ -40,8 +46,8 @@ const getGatewayUrl = ({
 	contentPath?: string
 	gatewayOrigin: string
 }) => {
-	const trimmedReference = normalizeReference(reference)
-	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
+	const trimmedReference = normalizeSwarmReference(reference)
+	const trimmedPath = trimGatewayPathSlashes(contentPath?.trim() ?? '')
 	return `${gatewayOrigin}/bzz/${trimmedReference}${trimmedPath ? `/${trimmedPath}` : ''}`
 }
 
@@ -54,84 +60,57 @@ export const fetchBrowseResult = async ({
 	contentPath?: string
 	signal?: AbortSignal
 }) => {
-	const trimmedReference = normalizeReference(reference)
-	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
-	const failures: string[] = []
+	const trimmedReference = assertSwarmGatewayReference(reference)
+	const trimmedPath = trimGatewayPathSlashes(contentPath?.trim() ?? '')
 
-	for (const endpoint of binding.endpoints) {
-		const gatewayUrl = getGatewayUrl({
-			reference: trimmedReference,
-			contentPath: trimmedPath,
-			gatewayOrigin: endpoint.locator,
-		})
+	const browseResult = await fetchOrderedGatewayContent({
+		binding,
+		family: ContentGatewayFamily.Swarm,
+		buildGatewayUrl: (gatewayOrigin) => (
+			getGatewayUrl({
+				reference: trimmedReference,
+				contentPath: trimmedPath,
+				gatewayOrigin,
+			})
+		),
+		fileNameFromGatewayUrl: () => (
+			trimmedPath !== '' ?
+				trimmedPath.split('/').at(-1)
+			:
+				undefined
+		),
+		signal,
+	})
 
-		const response = await sourceFetch(binding, gatewayUrl, { signal })
-		if (!response.ok) {
-			const hint = await jsonErrorHintFromResponse(response)
-			failures.push(
-				hint ?
-					`${endpoint.locator} (${response.status}): ${hint}`
-				:
-					`${endpoint.locator} (${response.status} ${response.statusText})`
-			)
-			continue
-		}
-
-		const { parseContentResponse } = await import('$/sources/contentResponse.ts')
-		const parsedContent = await parseContentResponse({
-			response,
-			fileName: (
-				trimmedPath !== '' ?
-					trimmedPath.split('/').at(-1)
-				:
-					undefined
-			),
-		})
-
-		return {
-			reference: trimmedReference,
-			contentPath: trimmedPath,
-			gatewayOrigin: sourceEndpointOrigin(endpoint),
-			gatewayUrl,
-			fileName: parsedContent.fileName,
-			extension: parsedContent.extension,
-			contentType: parsedContent.contentType,
-			contentLength: parsedContent.contentLength,
-			displayType: parsedContent.displayType,
-			isContentTypeInferred: parsedContent.isContentTypeInferred,
-			text: parsedContent.text,
-		}
+	return {
+		reference: trimmedReference,
+		contentPath: trimmedPath,
+		gatewayOrigin: browseResult.gatewayOrigin,
+		gatewayUrl: browseResult.gatewayUrl,
+		fileName: browseResult.fileName,
+		extension: browseResult.extension,
+		contentType: browseResult.contentType,
+		contentLength: browseResult.contentLength,
+		displayType: browseResult.displayType,
+		isContentTypeInferred: browseResult.isContentTypeInferred,
+		text: browseResult.text,
 	}
-
-	throw new Error(
-		`Unable to load bzz://${trimmedReference}${trimmedPath ? `/${trimmedPath}` : ''} from public gateways: ${failures.join('; ')}`
-	)
 }
 
 export const getGatewayReachability = async ({
 	signal,
 }: {
 	signal?: AbortSignal
-} = {}) => {
-	const endpoints = binding.endpoints
-	const reachableAccessEndpointCount = (
-		await Promise.all(endpoints.map(async (endpoint) => {
-			try {
-				return (
-					await sourceFetch(binding, endpoint.locator, {
-						method: 'HEAD',
-						signal,
-					})
-				).ok
-			} catch {
-				return false
-			}
-		}))
-	).filter(Boolean).length
+} = {}) => (
+	probeGatewayReachability({
+		binding,
+		signal,
+	})
+)
 
-	return {
-		declaredAccessEndpointCount: endpoints.length,
-		reachableAccessEndpointCount,
-		reachable: reachableAccessEndpointCount > 0,
-	}
-}
+export const listDeclaredGatewayOrigins = () => (
+	binding.endpoints.flatMap((endpoint) => {
+		const origin = sourceEndpointOrigin(endpoint)
+		return origin == null ? [] : [origin]
+	})
+)
