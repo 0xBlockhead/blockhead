@@ -150,14 +150,17 @@ export default {
 				AccountTimestampMsSource: {
 					resolve: async ({ $account, timestampMs, source }: EvmNetworkAccountTimestampId) => {
 						const chainId = eip155ChainId($account.$network)
-						const address = $account.$actor.address
+						const { eulerEvkByChainId } = await import('$/sources/Euler/Rest/constants.ts')
+						if (eulerEvkByChainId[chainId] == null)
+							throw new Error(`${Source.Euler_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const { getAccountPositions } = await import('$/sources/Euler/Rest/queries.ts')
 						return {
 							timestampMs,
 							source,
 							contractPositions: await getAccountPositions({
 								chainId,
-								account: address,
+								account: $account.$actor.address,
 							}),
 						}
 					},

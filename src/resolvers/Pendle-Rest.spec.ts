@@ -99,7 +99,7 @@ describe('Pendle Rest resolver module', () => {
 		getAccountPositions.mockReset()
 	})
 
-	it('publishes and resolves Pendle account positions from on-chain PT, YT, and LP balances', async () => {
+	it('publishes and resolves Pendle account positions from on-chain PT, YT, SY, and LP balances', async () => {
 		if (evmNetworkAccountResolver == null || evmNetworkAccountTimestampResolver == null)
 			throw new Error('missing Pendle account resolvers')
 

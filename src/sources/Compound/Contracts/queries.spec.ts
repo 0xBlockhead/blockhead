@@ -26,7 +26,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceGetJson,
 }))
 
-const { getAccountPositions } = await import('$/sources/Compound/Contracts/queries.ts')
+const { getAccountPositions, getCometTipRates } = await import('$/sources/Compound/Contracts/queries.ts')
 
 const word = (value: bigint) => `0x${value.toString(16).padStart(64, '0')}`
 
@@ -112,6 +112,44 @@ describe('Compound III contract account operations', () => {
 		await expect(getAccountPositions({
 			chainId: 11155111,
 			account: '0x0000000000000000000000000000000000000001',
+		})).rejects.toThrow(`${Source.Compound_Rest}: no EVM execution binding for chain 11155111`)
+		expect(jsonRpc2).not.toHaveBeenCalled()
+	})
+
+	it('reads live tip utilization and per-second rates for a cataloged comet', async () => {
+		jsonRpc2
+			.mockResolvedValueOnce('0x64')
+			.mockResolvedValueOnce(word(850_000_000_000_000_000n))
+			.mockResolvedValueOnce(word(1_234n))
+			.mockResolvedValueOnce(word(5_678n))
+
+		await expect(getCometTipRates({
+			chainId: 8453,
+			cometAddress: '0xb125E6687d4313864e53df431d5425969c15Eb2F',
+		})).resolves.toEqual({
+			chainId: 8453,
+			cometAddress: '0xb125e6687d4313864e53df431d5425969c15eb2f',
+			blockNumber: 100n,
+			utilization: '850000000000000000',
+			supplyRatePerSecond: '1234',
+			borrowRatePerSecond: '5678',
+		})
+		expect(jsonRpc2).toHaveBeenCalledTimes(4)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('rejects tip-rate reads for unknown comets before transport', async () => {
+		await expect(getCometTipRates({
+			chainId: 8453,
+			cometAddress: '0x0000000000000000000000000000000000000001',
+		})).rejects.toThrow(`${Source.Compound_Rest}: unknown comet`)
+		expect(jsonRpc2).not.toHaveBeenCalled()
+	})
+
+	it('rejects tip-rate reads without a chain binding', async () => {
+		await expect(getCometTipRates({
+			chainId: 11155111,
+			cometAddress: '0xb125E6687d4313864e53df431d5425969c15Eb2F',
 		})).rejects.toThrow(`${Source.Compound_Rest}: no EVM execution binding for chain 11155111`)
 		expect(jsonRpc2).not.toHaveBeenCalled()
 	})
