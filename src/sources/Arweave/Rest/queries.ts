@@ -1,11 +1,18 @@
-import { jsonErrorHintFromResponse } from '$/lib/http.ts'
+/**
+ * Arweave gateway REST named operations.
+ * @see https://docs.arweave.org/developers/arweave-node-server/http-api
+ */
+import { jsonErrorHintFromResponse, throwHttpError } from '$/lib/http.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import {
 	getJson,
 	getText,
+	httpUrl,
 } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Arweave/bindings.ts'
 import type {
+	ArweaveBlockWire,
+	ArweaveNetworkInfoWire,
 	ArweaveTransactionStatus,
 	ArweaveTransactionWire,
 } from '$/sources/Arweave/Rest/types.ts'
@@ -54,6 +61,131 @@ const assertUnsignedDecimal = (
 ) => {
 	if (!/^(0|[1-9][0-9]*)$/.test(value))
 		throw new Error(`Arweave_Rest: invalid ${label}`)
+}
+
+const assertNonNegativeSafeInteger = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isSafeInteger(value) || value < 0)
+		throw new Error(`Arweave_Rest: invalid ${label}`)
+}
+
+const assertWinstonish = (
+	value: string | number | undefined,
+	label: string
+) => {
+	if (value == null)
+		return undefined
+	const asString = String(value)
+	assertUnsignedDecimal(asString, label)
+	return asString
+}
+
+const assertBlockWire = (
+	block: ArweaveBlockWire,
+	{
+		expectedHeight,
+		expectedIndepHash,
+	}: {
+		expectedHeight?: number
+		expectedIndepHash?: string
+	} = {}
+) => {
+	assertBlockHash(block.indep_hash, 'block indep_hash')
+	if (block.previous_block !== '')
+		assertBlockHash(block.previous_block, 'previous_block')
+	assertNonNegativeSafeInteger(block.timestamp, 'block timestamp')
+	assertNonNegativeSafeInteger(block.height, 'block height')
+	if (expectedHeight != null && block.height !== expectedHeight)
+		throw new Error(`Arweave_Rest: block height mismatch ${block.height} !== ${expectedHeight}`)
+	if (expectedIndepHash != null && block.indep_hash !== expectedIndepHash)
+		throw new Error('Arweave_Rest: block response has mismatched identity')
+	if (!Array.isArray(block.txs))
+		throw new Error('Arweave_Rest: block txs must be an array')
+	for (const transactionId of block.txs)
+		assertBase64UrlId(transactionId, 'block transaction ID')
+	if (new Set(block.txs).size !== block.txs.length)
+		throw new Error('Arweave_Rest: block txs contains duplicate transaction IDs')
+	if (block.tx_root != null && block.tx_root !== '' && !/^[A-Za-z0-9_-]+$/.test(block.tx_root))
+		throw new Error('Arweave_Rest: invalid tx_root')
+	if (block.wallet_list != null && block.wallet_list !== '' && !/^[A-Za-z0-9_-]+$/.test(block.wallet_list))
+		throw new Error('Arweave_Rest: invalid wallet_list')
+	if (block.hash_list_merkle != null && block.hash_list_merkle !== '' && !/^[A-Za-z0-9_-]+$/.test(block.hash_list_merkle))
+		throw new Error('Arweave_Rest: invalid hash_list_merkle')
+	if (
+		block.reward_addr != null
+		&& block.reward_addr !== ''
+		&& block.reward_addr !== 'unclaimed'
+		&& !/^[A-Za-z0-9_-]{43}$/.test(block.reward_addr)
+	)
+		throw new Error('Arweave_Rest: invalid reward_addr')
+	assertWinstonish(block.reward_pool, 'reward_pool')
+	assertWinstonish(block.weave_size, 'weave_size')
+	assertWinstonish(block.block_size, 'block_size')
+	assertWinstonish(block.cumulative_diff, 'cumulative_diff')
+	return block
+}
+
+const fetchBlockJson = async (
+	path: string
+) => {
+	const response = await sourceFetch(
+		binding,
+		httpUrl(binding, path),
+		{
+			headers: {
+				Accept: 'application/json',
+				'X-Block-Format': '2',
+			},
+		}
+	)
+	if (!response.ok)
+		await throwHttpError(`${Source.Arweave_Rest} ${path}`, response)
+
+	return response.json<ArweaveBlockWire>()
+}
+
+/** @see https://docs.arweave.org/developers/arweave-node-server/http-api#network-info */
+export const getNetworkInfo = async () => {
+	const info = await getJson<ArweaveNetworkInfoWire>(
+		binding,
+		'/info'
+	)
+	assertNonNegativeSafeInteger(info.height, 'network height')
+	assertNonNegativeSafeInteger(info.blocks, 'network blocks')
+	assertNonNegativeSafeInteger(info.peers, 'network peers')
+	assertNonNegativeSafeInteger(info.queue_length, 'network queue_length')
+	assertBlockHash(info.current, 'network current block hash')
+	if (info.network.trim() === '')
+		throw new Error('Arweave_Rest: network id missing')
+	return info
+}
+
+/** @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-block-by-hash-id */
+export const getBlockByHash = async (
+	indepHash: string
+) => {
+	assertBlockHash(indepHash, 'block indep_hash')
+	return assertBlockWire(
+		await fetchBlockJson(`/block/hash/${encodeURIComponent(indepHash)}`),
+		{
+			expectedIndepHash: indepHash,
+		}
+	)
+}
+
+/** @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-block-by-height */
+export const getBlockByHeight = async (
+	height: number
+) => {
+	assertNonNegativeSafeInteger(height, 'block height')
+	return assertBlockWire(
+		await fetchBlockJson(`/block/height/${height.toString()}`),
+		{
+			expectedHeight: height,
+		}
+	)
 }
 
 export const getWalletBalance = async (

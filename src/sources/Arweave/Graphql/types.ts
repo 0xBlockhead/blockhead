@@ -2,6 +2,15 @@ import type { FragmentOf } from 'gql.tada'
 
 import { graphql } from './client.ts'
 
+export const ArweaveGraphqlBlockFragment = graphql(`
+	fragment ArweaveGraphqlBlock on Block @_unmask {
+		id
+		timestamp
+		height
+		previous
+	}
+`)
+
 export const ArweaveGraphqlTransactionFragment = graphql(`
 	fragment ArweaveGraphqlTransaction on Transaction @_unmask {
 		id
@@ -35,4 +44,5 @@ export const ArweaveGraphqlTransactionFragment = graphql(`
 	}
 `)
 
+export type ArweaveGraphqlBlock = FragmentOf<typeof ArweaveGraphqlBlockFragment>
 export type ArweaveGraphqlTransaction = FragmentOf<typeof ArweaveGraphqlTransactionFragment>

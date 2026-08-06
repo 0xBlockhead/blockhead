@@ -1,5 +1,12 @@
+/**
+ * Arweave GraphQL named operations against arweave.net/graphql.
+ * @see https://arweave.net/graphql
+ * @see schema.graphql `block` / `blocks` / `transactions`
+ */
 import {
+	ArweaveGraphqlBlockFragment,
 	ArweaveGraphqlTransactionFragment,
+	type ArweaveGraphqlBlock,
 	type ArweaveGraphqlTransaction,
 } from '$/sources/Arweave/Graphql/types.ts'
 import bindings from '$/sources/Arweave/bindings.ts'
@@ -29,6 +36,7 @@ const ArweaveTransactions = graphql(`
 		$ids: [ID!]
 		$owners: [String!]
 		$recipients: [String!]
+		$block: RangeFilter
 	) {
 		transactions(
 			first: $first
@@ -36,6 +44,7 @@ const ArweaveTransactions = graphql(`
 			ids: $ids
 			owners: $owners
 			recipients: $recipients
+			block: $block
 			sort: HEIGHT_DESC
 		) {
 			pageInfo {
@@ -51,6 +60,45 @@ const ArweaveTransactions = graphql(`
 	}
 `, [
 	ArweaveGraphqlTransactionFragment,
+])
+
+const ArweaveBlock = graphql(`
+	query ArweaveBlock($id: String) {
+		block(id: $id) {
+			...ArweaveGraphqlBlock
+		}
+	}
+`, [
+	ArweaveGraphqlBlockFragment,
+])
+
+const ArweaveBlocks = graphql(`
+	query ArweaveBlocks(
+		$first: Int!
+		$after: String
+		$ids: [ID!]
+		$height: RangeFilter
+	) {
+		blocks(
+			first: $first
+			after: $after
+			ids: $ids
+			height: $height
+			sort: HEIGHT_DESC
+		) {
+			pageInfo {
+				hasNextPage
+			}
+			edges {
+				cursor
+				node {
+					...ArweaveGraphqlBlock
+				}
+			}
+		}
+	}
+`, [
+	ArweaveGraphqlBlockFragment,
 ])
 
 const assertAddress = (
@@ -77,6 +125,35 @@ const assertUnsignedDecimal = (
 		throw new Error(`Arweave_Graphql: invalid ${label}`)
 }
 
+const assertConfirmedBlock = (
+	block: ArweaveGraphqlBlock
+) => {
+	if (
+		block.id == null
+		|| block.timestamp == null
+		|| block.previous == null
+	)
+		throw new Error('Arweave_Graphql: incomplete confirmed block coordinates')
+
+	assertBlockHash(block.id, 'block ID')
+	if (block.previous !== '')
+		assertBlockHash(block.previous, 'previous block ID')
+	if (
+		!Number.isSafeInteger(block.height)
+		|| block.height < 0
+		|| !Number.isSafeInteger(block.timestamp)
+		|| block.timestamp < 0
+	)
+		throw new Error('Arweave_Graphql: invalid confirmed block coordinates')
+
+	return {
+		id: block.id,
+		timestamp: block.timestamp,
+		height: block.height,
+		previous: block.previous,
+	}
+}
+
 const assertTransaction = (
 	transaction: ArweaveGraphqlTransaction
 ) => {
@@ -87,25 +164,8 @@ const assertTransaction = (
 	assertUnsignedDecimal(transaction.fee.winston, 'fee winston')
 	assertUnsignedDecimal(transaction.quantity.winston, 'quantity winston')
 	assertUnsignedDecimal(transaction.data.size, 'data size')
-	if (transaction.block != null) {
-		if (
-			transaction.block.id == null
-			|| transaction.block.timestamp == null
-			|| transaction.block.previous == null
-		)
-			throw new Error('Arweave_Graphql: incomplete confirmed block coordinates')
-
-		assertBlockHash(transaction.block.id, 'block ID')
-		if (transaction.block.previous !== '')
-			assertBlockHash(transaction.block.previous, 'previous block ID')
-		if (
-			!Number.isSafeInteger(transaction.block.height)
-			|| transaction.block.height < 0
-			|| !Number.isSafeInteger(transaction.block.timestamp)
-			|| transaction.block.timestamp < 0
-		)
-			throw new Error('Arweave_Graphql: invalid confirmed block coordinates')
-	}
+	if (transaction.block != null)
+		assertConfirmedBlock(transaction.block)
 }
 
 const getTransactionPage = async ({
@@ -114,17 +174,27 @@ const getTransactionPage = async ({
 	ids,
 	owners,
 	recipients,
+	blockHeight,
 }: {
 	first: number
 	after?: string
 	ids?: string[]
 	owners?: string[]
 	recipients?: string[]
+	blockHeight?: number
 }) => {
 	if (!Number.isSafeInteger(first) || first < 1 || first > 100)
 		throw new Error('Arweave_Graphql: page size must be an integer from 1 through 100')
 	if (after === '')
 		throw new Error('Arweave_Graphql: cursor must not be empty')
+	if (
+		blockHeight != null
+		&& (
+			!Number.isSafeInteger(blockHeight)
+			|| blockHeight < 0
+		)
+	)
+		throw new Error('Arweave_Graphql: invalid block height filter')
 	for (const transactionId of ids ?? [])
 		assertAddress(transactionId, 'transaction ID')
 	for (const owner of owners ?? [])
@@ -137,6 +207,12 @@ const getTransactionPage = async ({
 		ids,
 		owners,
 		recipients,
+		...(blockHeight != null && {
+			block: {
+				min: blockHeight,
+				max: blockHeight,
+			},
+		}),
 	})
 	const { edges, pageInfo } = transactions
 	if (edges.length > first)
@@ -157,6 +233,14 @@ const getTransactionPage = async ({
 			throw new Error('Arweave_Graphql: owner filter was violated')
 		if (recipients != null && !recipients.includes(node.recipient))
 			throw new Error('Arweave_Graphql: recipient filter was violated')
+		if (
+			blockHeight != null
+			&& (
+				node.block == null
+				|| node.block.height !== blockHeight
+			)
+		)
+			throw new Error('Arweave_Graphql: block height filter was violated')
 	}
 	const nextCursor = pageInfo.hasNextPage ? edges.at(-1)?.cursor : undefined
 	if (pageInfo.hasNextPage && nextCursor == null)
@@ -164,6 +248,84 @@ const getTransactionPage = async ({
 	if (pageInfo.hasNextPage && nextCursor === after)
 		throw new Error('Arweave_Graphql: cursor did not advance')
 	return transactions
+}
+
+const getBlockPage = async ({
+	first,
+	after,
+	ids,
+	height,
+}: {
+	first: number
+	after?: string
+	ids?: string[]
+	height?: {
+		min?: number
+		max?: number
+	}
+}) => {
+	if (!Number.isSafeInteger(first) || first < 1 || first > 100)
+		throw new Error('Arweave_Graphql: page size must be an integer from 1 through 100')
+	if (after === '')
+		throw new Error('Arweave_Graphql: cursor must not be empty')
+	if (height != null) {
+		for (const bound of [height.min, height.max]) {
+			if (
+				bound != null
+				&& (
+					!Number.isSafeInteger(bound)
+					|| bound < 0
+				)
+			)
+				throw new Error('Arweave_Graphql: invalid block height filter')
+		}
+		if (
+			height.min != null
+			&& height.max != null
+			&& height.min > height.max
+		)
+			throw new Error('Arweave_Graphql: invalid block height range')
+	}
+	for (const blockId of ids ?? [])
+		assertBlockHash(blockId, 'block ID')
+	const { blocks } = await queryArweave(binding, ArweaveBlocks, {
+		first,
+		after,
+		ids,
+		height,
+	})
+	const { edges, pageInfo } = blocks
+	if (edges.length > first)
+		throw new Error('Arweave_Graphql: block page exceeds requested size')
+	const blockIds = new Set<string>()
+	const cursors = new Set<string>()
+	for (const { cursor, node } of edges) {
+		if (cursor === '' || cursors.has(cursor))
+			throw new Error('Arweave_Graphql: invalid or duplicate block cursor')
+		cursors.add(cursor)
+		const confirmed = assertConfirmedBlock(node)
+		if (blockIds.has(confirmed.id))
+			throw new Error('Arweave_Graphql: duplicate block in page')
+		blockIds.add(confirmed.id)
+		if (ids != null && !ids.includes(confirmed.id))
+			throw new Error('Arweave_Graphql: block ID filter was violated')
+		if (
+			height?.min != null
+			&& confirmed.height < height.min
+		)
+			throw new Error('Arweave_Graphql: block height filter was violated')
+		if (
+			height?.max != null
+			&& confirmed.height > height.max
+		)
+			throw new Error('Arweave_Graphql: block height filter was violated')
+	}
+	const nextCursor = pageInfo.hasNextPage ? edges.at(-1)?.cursor : undefined
+	if (pageInfo.hasNextPage && nextCursor == null)
+		throw new Error('Arweave_Graphql: next page has no cursor')
+	if (pageInfo.hasNextPage && nextCursor === after)
+		throw new Error('Arweave_Graphql: cursor did not advance')
+	return blocks
 }
 
 export const getTransactionById = async (
@@ -198,6 +360,24 @@ export const getTransactionsPage = (
 	})
 )
 
+export const getBlockTransactionsPage = (
+	{
+		height,
+		first,
+		after,
+	}: {
+		height: number
+		first: number
+		after?: string
+	}
+) => (
+	getTransactionPage({
+		first,
+		after,
+		blockHeight: height,
+	})
+)
+
 export const getAccountTransactionsPage = (
 	{
 		address,
@@ -226,5 +406,61 @@ export const getAccountTransactionsPage = (
 					address,
 				],
 			}),
+	})
+)
+
+export const getBlockById = async (
+	blockId: string
+) => {
+	assertBlockHash(blockId, 'block ID')
+	const { block } = await queryArweave(binding, ArweaveBlock, {
+		id: blockId,
+	})
+	if (block == null)
+		throw new Error('Arweave_Graphql: block was not found')
+
+	const confirmed = assertConfirmedBlock(block)
+	if (confirmed.id !== blockId)
+		throw new Error('Arweave_Graphql: returned a foreign block')
+
+	return confirmed
+}
+
+export const getBlockByHeight = async (
+	height: number
+) => {
+	if (!Number.isSafeInteger(height) || height < 0)
+		throw new Error('Arweave_Graphql: invalid block height')
+
+	const blocks = await getBlockPage({
+		first: 1,
+		height: {
+			min: height,
+			max: height,
+		},
+	})
+	const block = blocks.edges[0]?.node
+	if (block == null)
+		throw new Error('Arweave_Graphql: block was not found')
+
+	const confirmed = assertConfirmedBlock(block)
+	if (confirmed.height !== height)
+		throw new Error('Arweave_Graphql: returned a foreign block height')
+
+	return confirmed
+}
+
+export const getBlocksPage = (
+	{
+		first,
+		after,
+	}: {
+		first: number
+		after?: string
+	}
+) => (
+	getBlockPage({
+		first,
+		after,
 	})
 )
