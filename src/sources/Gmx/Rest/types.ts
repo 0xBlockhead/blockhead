@@ -1,3 +1,5 @@
+import { type as arktype } from 'arktype'
+
 /** Wire row from GMX API `GET /markets/info` (fields consumed for a market snapshot). */
 export type GmxMarketInfoWire = {
 	name?: string
@@ -139,3 +141,74 @@ export type GmxPositionInfo = {
 	pendingFundingFeesUsd: string
 	pendingClaimableFundingFeesUsd: string
 }
+
+export const gmxMarketInfoEnvelope = arktype({
+	name: 'string',
+	marketTokenAddress: 'string',
+	indexTokenAddress: 'string',
+	longTokenAddress: 'string',
+	shortTokenAddress: 'string',
+	isSpotOnly: 'boolean',
+	isDisabled: 'boolean',
+	longInterestUsd: 'string',
+	shortInterestUsd: 'string',
+	longPoolAmount: 'string',
+	shortPoolAmount: 'string',
+	fundingFactorPerSecond: 'string',
+})
+
+export const gmxMarketsInfoEnvelope = gmxMarketInfoEnvelope.array()
+
+export const gmxPositionInfoEnvelope = arktype({
+	key: 'string',
+	contractKey: 'string',
+	account: 'string',
+	marketAddress: 'string',
+	collateralTokenAddress: 'string',
+	sizeInUsd: 'string',
+	sizeInTokens: 'string',
+	collateralAmount: 'string',
+	pendingBorrowingFeesUsd: 'string',
+	increasedAtTime: 'string',
+	decreasedAtTime: 'string',
+	isLong: 'boolean',
+	fundingFeeAmount: 'string',
+	claimableLongTokenAmount: 'string',
+	claimableShortTokenAmount: 'string',
+	pnl: 'string',
+	positionFeeAmount: 'string',
+	traderDiscountAmount: 'string',
+	uiFeeAmount: 'string',
+	pendingImpactAmount: 'string',
+	positionValueInUsd: 'string',
+	'data?': 'string',
+	indexName: 'string',
+	poolName: 'string',
+	markPrice: 'string',
+	entryPrice: 'string',
+	liquidationPrice: 'string',
+	collateralUsd: 'string',
+	remainingCollateralUsd: 'string',
+	remainingCollateralAmount: 'string',
+	hasLowCollateral: 'boolean',
+	leverage: 'string',
+	leverageWithPnl: 'string',
+	leverageWithoutPnl: 'string',
+	pnlPercentage: 'string',
+	pnlAfterFees: 'string',
+	pnlAfterFeesPercentage: 'string',
+	netValueAfterAllFees: 'string',
+	pnlAfterAllFees: 'string',
+	pnlAfterAllFeesPercentage: 'string',
+	netValue: 'string',
+	netPriceImapctDeltaUsd: 'string',
+	priceImpactDiffUsd: 'string',
+	pendingImpactUsd: 'string',
+	closePriceImpactDeltaUsd: 'string',
+	closingFeeUsd: 'string',
+	uiFeeUsd: 'string',
+	pendingFundingFeesUsd: 'string',
+	pendingClaimableFundingFeesUsd: 'string',
+})
+
+export const gmxPositionsInfoEnvelope = gmxPositionInfoEnvelope.array()

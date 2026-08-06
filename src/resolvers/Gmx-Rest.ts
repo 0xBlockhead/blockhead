@@ -119,24 +119,29 @@ export default {
 							$actor,
 							$network,
 						}
-						return (
-							(await getPositionsInfo({
-								chainId,
-								address: $actor.address,
-							}))
+						const positions = await getPositionsInfo({
+							chainId,
+							address: $actor.address,
+						})
+						return {
+							positions: positions
 								.slice(0, resolverContextRowLimit(context))
 								.map((position) => ({
 									[EntityMetaKey.Selector]: {
 										$account,
 										contractKey: position.contractKey,
 									},
-								}))
-						)
+								})),
+							positionCount: positions.length,
+						}
 					},
 				},
 			},
 		})({
-			$$gmxPositions: (positions) => positions,
+			$$gmxPositions: {
+				select: (snapshot) => snapshot.positions,
+				resolveCount: (snapshot) => snapshot.positionCount,
+			},
 		}),
 
 		defineResolver({
@@ -250,22 +255,29 @@ export default {
 							throw new Error(`${Source.Gmx_Rest}: unsupported chain id ${String(chainId)}`)
 
 						const { getMarketsInfo } = await import('$/sources/Gmx/Rest/queries.ts')
-						return (await getMarketsInfo({
+						const markets = await getMarketsInfo({
 							chainId,
-						}))
-							.slice(0, resolverContextRowLimit(context))
-							.map((market) => ({
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									marketTokenAddress: market.marketTokenAddress,
-								},
-							}))
+						})
+						return {
+							markets: markets
+								.slice(0, resolverContextRowLimit(context))
+								.map((market) => ({
+									[EntityMetaKey.Selector]: {
+										$network: network,
+										marketTokenAddress: market.marketTokenAddress,
+									},
+								})),
+							marketCount: markets.length,
+						}
 					},
 				},
 			},
 		})({
 			Evm: {
-				$$gmxMarkets: (markets) => markets,
+				$$gmxMarkets: {
+					select: (snapshot) => snapshot.markets,
+					resolveCount: (snapshot) => snapshot.marketCount,
+				},
 			},
 		}),
 	],

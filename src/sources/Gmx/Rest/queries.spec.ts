@@ -205,7 +205,7 @@ describe('GMX markets/info operation', () => {
 			})
 		)
 			.rejects
-			.toThrow(`${Source.Gmx_Rest}: markets/info response is not an array`)
+			.toThrow(`${Source.Gmx_Rest}: invalid markets/info response envelope`)
 	})
 
 	it('fails closed when a market omits a required metric', async () => {
@@ -222,7 +222,7 @@ describe('GMX markets/info operation', () => {
 			})
 		)
 			.rejects
-			.toThrow(`${Source.Gmx_Rest}: market missing longPoolAmount`)
+			.toThrow(`${Source.Gmx_Rest}: invalid markets/info response envelope`)
 	})
 
 	it('fails closed when a market omits a required token address', async () => {
@@ -239,7 +239,7 @@ describe('GMX markets/info operation', () => {
 			})
 		)
 			.rejects
-			.toThrow(`${Source.Gmx_Rest}: market missing index token`)
+			.toThrow(`${Source.Gmx_Rest}: invalid markets/info response envelope`)
 	})
 
 	it('fails closed when a market boolean is malformed', async () => {
@@ -256,7 +256,24 @@ describe('GMX markets/info operation', () => {
 			})
 		)
 			.rejects
-			.toThrow(`${Source.Gmx_Rest}: market missing isDisabled`)
+			.toThrow(`${Source.Gmx_Rest}: invalid markets/info response envelope`)
+	})
+
+	it('fails closed when a market decimal metric is not a string', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				...ethMarketInfoWire,
+				fundingFactorPerSecond: 5447368087265348055555,
+			},
+		])
+
+		await expect(
+			getMarketsInfo({
+				chainId: 42161,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: invalid markets/info response envelope`)
 	})
 
 	it('fails closed for duplicate market tokens', async () => {
@@ -505,7 +522,7 @@ describe('GMX positions operations', () => {
 			})
 		)
 			.rejects
-			.toThrow(`${Source.Gmx_Rest}: positions response is not an array`)
+			.toThrow(`${Source.Gmx_Rest}: invalid positions response envelope`)
 	})
 
 	it('fails closed when a position omits positionValueInUsd', async () => {
@@ -523,7 +540,41 @@ describe('GMX positions operations', () => {
 			})
 		)
 			.rejects
-			.toThrow(`${Source.Gmx_Rest}: position missing positionValueInUsd`)
+			.toThrow(`${Source.Gmx_Rest}: invalid positions response envelope`)
+	})
+
+	it('fails closed when a position boolean is malformed', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				...hypePositionInfoWire,
+				isLong: 'true',
+			},
+		])
+
+		await expect(
+			getPositionsInfo({
+				chainId: 42161,
+				address: accountAddress,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: invalid positions response envelope`)
+	})
+
+	it('fails closed when positions/{key} omits markPrice', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...hypePositionInfoWire,
+			markPrice: undefined,
+		})
+
+		await expect(
+			getPositionByKey({
+				chainId: 42161,
+				contractKey: positionContractKey,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: invalid positions/{key} response envelope`)
 	})
 
 	it('fails closed when a position account mismatches the request', async () => {

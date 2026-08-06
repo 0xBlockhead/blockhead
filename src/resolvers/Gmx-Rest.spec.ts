@@ -108,7 +108,7 @@ describe('GMX Rest resolver module', () => {
 			context
 		)
 
-		expect(evmNetworkAccountResolver.projections.$$gmxPositions(account)).toEqual([
+		expect(evmNetworkAccountResolver.projections.$$gmxPositions.select(account)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$account: accountSelector,
@@ -116,6 +116,7 @@ describe('GMX Rest resolver module', () => {
 				},
 			},
 		])
+		expect(evmNetworkAccountResolver.projections.$$gmxPositions.resolveCount(account)).toBe(1)
 		expect(getPositionsInfo).toHaveBeenCalledWith({
 			chainId: 42161,
 			address: accountSelector.$actor.address,
@@ -200,7 +201,47 @@ describe('GMX Rest resolver module', () => {
 			},
 		}, context)
 
-		expect(evmNetworkAccountResolver.projections.$$gmxPositions(account)).toEqual([])
+		expect(evmNetworkAccountResolver.projections.$$gmxPositions.select(account)).toEqual([])
+		expect(evmNetworkAccountResolver.projections.$$gmxPositions.resolveCount(account)).toBe(0)
+	})
+
+	it('lists Network $$gmxMarkets with authoritative resolveCount from markets/info', async () => {
+		const networkGmxMarketsResolver = gmxRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& 'Evm' in resolver.projections
+			&& '$$gmxMarkets' in resolver.projections.Evm
+		))
+		if (networkGmxMarketsResolver == null)
+			throw new Error('missing Network $$gmxMarkets resolver')
+
+		sourceGetJson.mockResolvedValueOnce([
+			ethMarketInfoWire,
+			{
+				...ethMarketInfoWire,
+				name: 'BTC/USD [WBTC-USDC]',
+				marketTokenAddress: '0x47c031236e19d380FFF9b6545FBA11AE962DA90d',
+			},
+		])
+
+		const snapshot = await networkGmxMarketsResolver.resolve.Caip2.resolve(
+			baseNetwork,
+			context
+		)
+		expect(networkGmxMarketsResolver.projections.Evm.$$gmxMarkets.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: baseNetwork,
+					marketTokenAddress: '0x70d95587d40a2caf56bd97485ab3eec10bee6336',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: baseNetwork,
+					marketTokenAddress: '0x47c031236e19d380fff9b6545fba11ae962da90d',
+				},
+			},
+		])
+		expect(networkGmxMarketsResolver.projections.Evm.$$gmxMarkets.resolveCount(snapshot)).toBe(2)
 	})
 
 	it('registers under Gmx_Rest for GmxMarket', () => {

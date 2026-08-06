@@ -18,9 +18,26 @@ import type {
 	GmxPositionInfo,
 	GmxPositionInfoWire,
 } from '$/sources/Gmx/Rest/types.ts'
+import {
+	gmxMarketsInfoEnvelope,
+	gmxPositionInfoEnvelope,
+	gmxPositionsInfoEnvelope,
+} from '$/sources/Gmx/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`${Source.Gmx_Rest}: invalid ${label} response envelope`)
+	}
+}
 
 const assertChainId = (chainId: number) => {
 	if (!Number.isSafeInteger(chainId) || chainId < 1)
@@ -200,12 +217,11 @@ export const getMarketsInfo = async ({
 		binding,
 		httpUrl(binding, '/markets/info')
 	)
-	if (!Array.isArray(response))
-		throw new Error(`${Source.Gmx_Rest}: markets/info response is not an array`)
-	if (response.length > gmxMarketsInfoResponseMax)
+	const wires = assertEnvelope('markets/info', gmxMarketsInfoEnvelope, response)
+	if (wires.length > gmxMarketsInfoResponseMax)
 		throw new Error(`${Source.Gmx_Rest}: markets/info response exceeds ${String(gmxMarketsInfoResponseMax)} markets`)
 
-	const markets = response.map((wire) => (
+	const markets = wires.map((wire) => (
 		assertMarketInfoWire(wire, chainId)
 	))
 	if (new Set(markets.map((market) => market.marketTokenAddress)).size !== markets.length)
@@ -240,12 +256,11 @@ export const getPositionsInfo = async ({
 			includeRelatedOrders,
 		})
 	)
-	if (!Array.isArray(response))
-		throw new Error(`${Source.Gmx_Rest}: positions response is not an array`)
-	if (response.length > gmxPositionsInfoResponseMax)
+	const wires = assertEnvelope('positions', gmxPositionsInfoEnvelope, response)
+	if (wires.length > gmxPositionsInfoResponseMax)
 		throw new Error(`${Source.Gmx_Rest}: positions response exceeds ${String(gmxPositionsInfoResponseMax)} positions`)
 
-	const positions = response.map((wire) => (
+	const positions = wires.map((wire) => (
 		assertPositionInfoWire(wire, chainId)
 	))
 	for (const position of positions)
@@ -283,7 +298,8 @@ export const getPositionByKey = async ({
 	if (Array.isArray(response))
 		throw new Error(`${Source.Gmx_Rest}: positions/{key} response is not an object`)
 
-	const position = assertPositionInfoWire(response, chainId)
+	const wire = assertEnvelope('positions/{key}', gmxPositionInfoEnvelope, response)
+	const position = assertPositionInfoWire(wire, chainId)
 	if (position.contractKey !== normalizedContractKey)
 		throw new Error(`${Source.Gmx_Rest}: positions/{key} contractKey mismatch`)
 
