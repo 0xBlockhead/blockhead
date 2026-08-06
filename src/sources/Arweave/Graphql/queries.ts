@@ -299,6 +299,10 @@ const getBlockPage = async ({
 		throw new Error('Arweave_Graphql: block page exceeds requested size')
 	const blockIds = new Set<string>()
 	const cursors = new Set<string>()
+	const confirmedEdges = [] as {
+		cursor: string
+		node: ReturnType<typeof assertConfirmedBlock>
+	}[]
 	for (const { cursor, node } of edges) {
 		if (cursor === '' || cursors.has(cursor))
 			throw new Error('Arweave_Graphql: invalid or duplicate block cursor')
@@ -319,13 +323,20 @@ const getBlockPage = async ({
 			&& confirmed.height > height.max
 		)
 			throw new Error('Arweave_Graphql: block height filter was violated')
+		confirmedEdges.push({
+			cursor,
+			node: confirmed,
+		})
 	}
 	const nextCursor = pageInfo.hasNextPage ? edges.at(-1)?.cursor : undefined
 	if (pageInfo.hasNextPage && nextCursor == null)
 		throw new Error('Arweave_Graphql: next page has no cursor')
 	if (pageInfo.hasNextPage && nextCursor === after)
 		throw new Error('Arweave_Graphql: cursor did not advance')
-	return blocks
+	return {
+		pageInfo,
+		edges: confirmedEdges,
+	}
 }
 
 export const getTransactionById = async (

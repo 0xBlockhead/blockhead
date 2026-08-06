@@ -2,18 +2,131 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
 	fetchBrowseResult,
+	getBlockByHash,
+	getBlockByHeight,
+	getNetworkInfo,
 	getTransaction,
 	getTransactionStatus,
 	getWalletBalance,
 } from '$/sources/Arweave/Rest/queries.ts'
 import * as httpRestClient from '$/sources/_shared/wire/HttpRest/client.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
+
+vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => {
+	const original = await importOriginal<typeof import('$/sources/_runtime/http.ts')>()
+	return {
+		...original,
+		sourceFetch: vi.fn(original.sourceFetch),
+	}
+})
 
 const transactionId = 'A'.repeat(43)
 const recipientAddress = 'B'.repeat(43)
+const blockId = 'D'.repeat(64)
+const previousBlockId = 'F'.repeat(64)
 
 describe('Arweave public gateway metadata', () => {
 	afterEach(() => {
 		vi.unstubAllGlobals()
+		vi.mocked(sourceFetch).mockReset()
+	})
+
+	it('maps GET /info and GET /block/height with X-Block-Format 2', async () => {
+		vi.spyOn(httpRestClient, 'getJson').mockResolvedValueOnce({
+			network: 'arweave.N.1',
+			version: 5,
+			release: 43,
+			height: 551_511,
+			current: blockId,
+			blocks: 97_375,
+			peers: 64,
+			queue_length: 0,
+		})
+		await expect(getNetworkInfo()).resolves.toMatchObject({
+			height: 551_511,
+			current: blockId,
+			network: 'arweave.N.1',
+		})
+
+		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify({
+			indep_hash: blockId,
+			previous_block: previousBlockId,
+			timestamp: 1_586_440_919,
+			height: 422_250,
+			txs: [
+				transactionId,
+			],
+			tx_root: 'lsoo-p3Tj7oblZ-54WVPHoVguqgw5rA9Jf3lLH6H8zY',
+			reward_pool: 3_026_104_059_201_252,
+			weave_size: 407_672_420_044,
+			block_size: 937_455,
+			cumulative_diff: '99416580392277',
+		}), {
+			status: 200,
+			headers: {
+				'content-type': 'application/json',
+			},
+		}))
+		await expect(getBlockByHeight(422_250)).resolves.toMatchObject({
+			indep_hash: blockId,
+			height: 422_250,
+			txs: [
+				transactionId,
+			],
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.stringContaining('/block/height/422250'),
+			expect.objectContaining({
+				headers: expect.objectContaining({
+					'X-Block-Format': '2',
+				}),
+			})
+		)
+
+		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify({
+			indep_hash: blockId,
+			previous_block: previousBlockId,
+			timestamp: 1_586_440_919,
+			height: 422_250,
+			txs: [],
+		}), {
+			status: 200,
+			headers: {
+				'content-type': 'application/json',
+			},
+		}))
+		await expect(getBlockByHash(blockId)).resolves.toMatchObject({
+			indep_hash: blockId,
+		})
+	})
+
+	it('fail-closes mismatched block identity and invalid /info current hash', async () => {
+		vi.spyOn(httpRestClient, 'getJson').mockResolvedValueOnce({
+			network: 'arweave.N.1',
+			version: 5,
+			release: 43,
+			height: 1,
+			current: 'short',
+			blocks: 1,
+			peers: 1,
+			queue_length: 0,
+		})
+		await expect(getNetworkInfo()).rejects.toThrow('invalid network current block hash')
+
+		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify({
+			indep_hash: blockId,
+			previous_block: previousBlockId,
+			timestamp: 1,
+			height: 1,
+			txs: [],
+		}), {
+			status: 200,
+			headers: {
+				'content-type': 'application/json',
+			},
+		}))
+		await expect(getBlockByHeight(422_250)).rejects.toThrow('block height mismatch')
 	})
 
 	it('preserves wallet balances and transaction amounts as winston strings', async () => {

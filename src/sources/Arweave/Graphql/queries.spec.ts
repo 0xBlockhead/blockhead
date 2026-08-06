@@ -2,6 +2,9 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
 	getAccountTransactionsPage,
+	getBlockByHeight,
+	getBlockById,
+	getBlocksPage,
 	getTransactionById,
 } from '$/sources/Arweave/Graphql/queries.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
@@ -14,6 +17,7 @@ const transactionId = 'A'.repeat(43)
 const ownerAddress = 'B'.repeat(43)
 const recipientAddress = 'C'.repeat(43)
 const blockId = 'D'.repeat(64)
+const previousBlockId = 'F'.repeat(64)
 const cursor = 'cursor-1'
 const transaction = {
 	id: transactionId,
@@ -44,11 +48,17 @@ const transaction = {
 		id: blockId,
 		timestamp: 1_720_000_000,
 		height: 1_500_000,
-		previous: 'F'.repeat(64),
+		previous: previousBlockId,
 	},
 }
+const block = {
+	id: blockId,
+	timestamp: 1_720_000_000,
+	height: 1_500_000,
+	previous: previousBlockId,
+}
 
-describe('Arweave GraphQL public transaction discovery', () => {
+describe('Arweave GraphQL public transaction and block discovery', () => {
 	it('preserves exact IDs, winston units, tags, and confirmed block identity', async () => {
 		vi.mocked(graphql).mockResolvedValue({
 			transaction,
@@ -65,6 +75,65 @@ describe('Arweave GraphQL public transaction discovery', () => {
 				id: blockId,
 			},
 		})
+	})
+
+	it('resolves blocks by indep hash and height through GraphQL', async () => {
+		vi.mocked(graphql).mockResolvedValueOnce({
+			block,
+		})
+		await expect(getBlockById(blockId)).resolves.toEqual(block)
+
+		vi.mocked(graphql).mockResolvedValueOnce({
+			blocks: {
+				pageInfo: {
+					hasNextPage: false,
+				},
+				edges: [
+					{
+						cursor: 'block-1',
+						node: block,
+					},
+				],
+			},
+		})
+		await expect(getBlockByHeight(1_500_000)).resolves.toEqual(block)
+
+		vi.mocked(graphql).mockResolvedValueOnce({
+			blocks: {
+				pageInfo: {
+					hasNextPage: true,
+				},
+				edges: [
+					{
+						cursor: 'block-1',
+						node: block,
+					},
+				],
+			},
+		})
+		await expect(getBlocksPage({
+			first: 1,
+		})).resolves.toMatchObject({
+			pageInfo: {
+				hasNextPage: true,
+			},
+			edges: [
+				{
+					cursor: 'block-1',
+					node: block,
+				},
+			],
+		})
+	})
+
+	it('rejects incomplete GraphQL block coordinates', async () => {
+		vi.mocked(graphql).mockResolvedValueOnce({
+			block: {
+				...block,
+				id: null,
+			},
+		})
+		await expect(getBlockById(blockId)).rejects.toThrow('incomplete confirmed block coordinates')
 	})
 
 	it('keeps pending transactions blockless and advances opaque cursors', async () => {
