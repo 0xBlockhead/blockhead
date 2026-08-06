@@ -470,3 +470,29 @@ export const getSpotPrice = ({
 		`/osmosis/poolmanager/v1beta1/pools/${poolId}/prices?${search.toString()}`
 	)
 }
+
+const osmosisDenomMetadataWire = arktype({
+	metadata: {
+		base: 'string > 0',
+		display: 'string > 0',
+		symbol: 'string',
+	},
+})
+
+export const getDenomMetadata = ({
+	denom,
+}: {
+	denom: string
+}) => {
+	assertDenom(denom, 'denom')
+	return lcdGetJson<unknown>(
+		`/cosmos/bank/v1beta1/denoms_metadata/${encodeURIComponent(denom)}`
+	)
+		.then((response) => {
+			try {
+				return osmosisDenomMetadataWire.assert(response)
+			} catch {
+				throw new Error(`${Source.Osmosis_LCD_Rest}: invalid denom metadata response envelope`)
+			}
+		})
+}

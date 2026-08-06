@@ -305,6 +305,7 @@ describe('dYdX Indexer resolvers', () => {
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'blockHeight')]: 12345678901234567890n,
+				[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'indexerHeight')]: 12345678901234567890n,
 				[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'marketCount')]: 2,
 			},
 		}])
@@ -414,6 +415,7 @@ describe('dYdX Indexer resolvers', () => {
 				},
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'blockHeight')]: 12345678901234567890n,
+					[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'indexerHeight')]: 12345678901234567890n,
 					[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'marketCount')]: 2,
 				},
 			}],
@@ -717,8 +719,13 @@ describe('dYdX Indexer resolvers', () => {
 			context
 		)
 
-		expect(sourceGetJson).toHaveBeenCalledTimes(1)
-		expect(sourceGetJson.mock.calls[0][1]).toContain(`/v4/addresses/${address}/subaccountNumber/0`)
+		expect(sourceGetJson).toHaveBeenCalledTimes(2)
+		expect(sourceGetJson.mock.calls.map(([, url]) => url).some((url) => (
+			typeof url === 'string' && url.includes(`/v4/addresses/${address}/subaccountNumber/0`)
+		))).toBe(true)
+		expect(sourceGetJson.mock.calls.map(([, url]) => url).some((url) => (
+			typeof url === 'string' && url.includes('/v4/orders?')
+		))).toBe(true)
 		expect(dydxChainSubaccountResolver.projections.$$timestamps(
 			observation,
 			subaccount
@@ -733,6 +740,7 @@ describe('dYdX Indexer resolvers', () => {
 				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'equity')]: '1234.5',
 				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'freeCollateral')]: '987.25',
 				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'openPositionCount')]: 2,
+				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'openOrderCount')]: 1,
 			},
 		}])
 		expect(dydxChainSubaccountResolver.projections.$$positions.select(

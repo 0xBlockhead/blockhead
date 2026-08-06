@@ -23,8 +23,13 @@ export type CometBftTxResponse = {
 		index: number
 		tx_result: {
 			code: number
+			codespace?: string
 			gas_wanted: string
 			gas_used: string
+			log?: string
+			events?: {
+				type: string
+			}[]
 		}
 	}
 }

@@ -121,11 +121,13 @@ export const dydxChainNetworkResolver = defineResolver({
 					getHeight(),
 				])
 
+				const blockHeight = BigInt(heightObservation.value.height)
 				return {
 					markets: Object.values(marketsObservation.value.markets)
 						.slice(0, resolverContextRowLimit(context)),
 					marketCount: Object.keys(marketsObservation.value.markets).length,
-					blockHeight: BigInt(heightObservation.value.height),
+					blockHeight,
+					indexerHeight: blockHeight,
 					observedAtMs: parseTimestampMs(heightObservation.value.time, 'height time'),
 				}
 			},
@@ -172,6 +174,7 @@ export const dydxChainNetworkResolver = defineResolver({
 							[EntityMetaKey.Fields]: {
 								...(latestBlock !== undefined && {
 									[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'blockHeight')]: latestBlock.height,
+									[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'indexerHeight')]: latestBlock.height,
 								}),
 								...(marketCount !== undefined && {
 									[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'marketCount')]: marketCount,
@@ -409,6 +412,7 @@ export const dydxChainNetworkResolver = defineResolver({
 		},
 		[EntityMetaKey.Fields]: {
 			[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'blockHeight')]: snapshot.blockHeight,
+			[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'indexerHeight')]: snapshot.indexerHeight,
 			[entityFieldAddressKey(EntityType.DydxChainNetwork_Timestamp, [], 'marketCount')]: snapshot.marketCount,
 		},
 	}],
@@ -461,16 +465,44 @@ export const dydxChainSubaccountResolver = defineResolver({
 			appliesTo: dydxSubaccountApplicability,
 			resolve: async (entitySelector, context) => {
 				assertDydxSubaccount(entitySelector)
-				const { getSubaccount } = await import('$/sources/Dydx/Rest/queries.ts')
-				const observation = await getSubaccount({
-					address: entitySelector.$account.address,
-					subaccountNumber: entitySelector.subaccountNumber,
-				})
+				const {
+					getOrders,
+					getSubaccount,
+				} = await import('$/sources/Dydx/Rest/queries.ts')
+				const {
+					dydxPageLimitMax,
+				} = await import('$/sources/Dydx/Rest/constants.ts')
+				const [
+					observation,
+					ordersObservation,
+				] = await Promise.all([
+					getSubaccount({
+						address: entitySelector.$account.address,
+						subaccountNumber: entitySelector.subaccountNumber,
+					}),
+					getOrders({
+						address: entitySelector.$account.address,
+						subaccountNumber: entitySelector.subaccountNumber,
+						limit: dydxPageLimitMax,
+					}),
+				])
 
 				return {
 					...observation,
 					positions: Object.values(observation.value.openPerpetualPositions)
 						.slice(0, resolverContextRowLimit(context)),
+					...(
+						ordersObservation.value.length < dydxPageLimitMax ?
+							{
+								openOrderCount: ordersObservation.value.filter((order) => (
+									order.status === 'OPEN'
+									|| order.status === 'UNTRIGGERED'
+									|| order.status === 'BEST_EFFORT_OPENED'
+								)).length,
+							}
+						:
+							{}
+					),
 				}
 			},
 		},
@@ -510,6 +542,9 @@ export const dydxChainSubaccountResolver = defineResolver({
 			[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'equity')]: observation.value.equity,
 			[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'freeCollateral')]: observation.value.freeCollateral,
 			[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'openPositionCount')]: Object.keys(observation.value.openPerpetualPositions).length,
+			...('openOrderCount' in observation && observation.openOrderCount != null && {
+				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'openOrderCount')]: observation.openOrderCount,
+			}),
 		},
 	}],
 })

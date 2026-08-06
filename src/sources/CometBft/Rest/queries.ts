@@ -20,6 +20,17 @@ export const getBlock = ({
 	)
 )
 
+export const getBlockByHash = ({
+	hash,
+}: {
+	hash: string
+}) => (
+	getJson<CometBftBlockResponse>(
+		binding,
+		`/block_by_hash?hash=0x${hash.replace(/^0x/i, '')}`
+	)
+)
+
 export const getTx = ({
 	txHash,
 }: {

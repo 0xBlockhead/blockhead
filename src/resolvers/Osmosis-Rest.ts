@@ -490,7 +490,25 @@ export default {
 							...(channel != null && {
 								sourcePort: channel.sourcePort,
 								sourceChannel: channel.sourceChannel,
+								$channel: {
+									[EntityMetaKey.Selector]: {
+										$network: entitySelector.$network,
+										portId: channel.sourcePort,
+										channelId: channel.sourceChannel,
+									},
+								},
 							}),
+							$cosmosDenom: {
+								[EntityMetaKey.Selector]: {
+									$network: entitySelector.$network,
+									denom: (
+										denomHash != null ?
+											`ibc/${denomHash.toUpperCase()}`
+										:
+											denomTrace.base_denom
+									),
+								},
+							},
 						}
 					},
 				},
@@ -502,6 +520,8 @@ export default {
 			denomHash: (trace) => trace.denomHash,
 			sourcePort: (trace) => trace.sourcePort,
 			sourceChannel: (trace) => trace.sourceChannel,
+			$channel: (trace) => trace.$channel,
+			$cosmosDenom: (trace) => trace.$cosmosDenom,
 		}),
 
 		defineResolver({
@@ -558,6 +578,73 @@ export default {
 					},
 				}))
 			),
+			$$timestamps: {
+				resolve: async (
+					{
+						$network,
+						poolId,
+					}: OsmosisPoolId,
+					_context
+				) => {
+					assertOsmosisNetwork($network)
+					const pool = await resolveOsmosisPool({
+						$network,
+						poolId,
+					})
+					const baseAssetDenom = pool.token0Denom ?? pool.assets[0]?.denom
+					const quoteAssetDenom = pool.token1Denom ?? pool.assets[1]?.denom
+					if (baseAssetDenom == null || quoteAssetDenom == null || baseAssetDenom === quoteAssetDenom)
+						return undefined
+
+					const { getSpotPrice } = await import('$/sources/Osmosis/Rest/queries.ts')
+					const timestampMs = Date.now()
+					const $pool = {
+						$network,
+						poolId,
+					}
+					const [
+						forward,
+						reverse,
+					] = await Promise.all([
+						getSpotPrice({
+							poolId,
+							baseAssetDenom,
+							quoteAssetDenom,
+						}),
+						getSpotPrice({
+							poolId,
+							baseAssetDenom: quoteAssetDenom,
+							quoteAssetDenom: baseAssetDenom,
+						}),
+					])
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$pool,
+								timestampMs,
+								baseAssetDenom,
+								quoteAssetDenom,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'source')]: Source.Osmosis_LCD_Rest,
+								[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'spotPrice')]: forward.spot_price,
+							},
+						},
+						{
+							[EntityMetaKey.Selector]: {
+								$pool,
+								timestampMs,
+								baseAssetDenom: quoteAssetDenom,
+								quoteAssetDenom: baseAssetDenom,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'source')]: Source.Osmosis_LCD_Rest,
+								[entityFieldAddressKey(EntityType.OsmosisPool_Timestamp, [], 'spotPrice')]: reverse.spot_price,
+							},
+						},
+					]
+				},
+			},
 		}),
 
 		defineResolver({
@@ -635,12 +722,26 @@ export default {
 								offset + positions.length
 						)
 						return {
-							rows: positions.map((breakdown) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									positionId: breakdown.position.position_id,
-								},
-							})),
+							rows: positions.map((breakdown) => {
+								const position = mapOsmosisPositionSnapshot($network, breakdown)
+								return {
+									[EntityMetaKey.Selector]: {
+										$network,
+										positionId: breakdown.position.position_id,
+									},
+									[EntityMetaKey.Fields]: Object.fromEntries(
+										Object.entries(position)
+											.filter(([field]) => (
+												field !== '$network'
+												&& field !== 'positionId'
+											))
+											.map(([field, value]) => [
+												entityFieldAddressKey(EntityType.OsmosisPosition, [], field),
+												value,
+											])
+									),
+								}
+							}),
 							totalCount,
 						}
 					},
@@ -737,6 +838,33 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.CosmosDenom,
+			resolve: {
+				NetworkDenom: {
+					appliesTo: osmosisNetworkReferenceApplicability,
+					resolve: async ({ $network, denom }) => {
+						assertOsmosisNetwork($network)
+						const { getDenomMetadata } = await import('$/sources/Osmosis/Rest/queries.ts')
+						const {
+							metadata,
+						} = await getDenomMetadata({
+							denom,
+						})
+						return {
+							display: metadata.display,
+							base: metadata.base,
+							symbol: metadata.symbol,
+						}
+					},
+				},
+			},
+		})({
+			display: (denom) => denom.display,
+			base: (denom) => denom.base,
+			symbol: (denom) => denom.symbol,
+		}),
+
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: osmosisNetworkResolverSelectors(
 				async (network) => {
@@ -777,30 +905,13 @@ export default {
 					assertOsmosisNetwork(network)
 					const limit = resolverContextRowLimit(context)
 					const offset = context.pagination.offset ?? 0
-					const { getConcentratedLiquidityPools } = await import('$/sources/Osmosis/Rest/queries.ts')
+					const { getPools } = await import('$/sources/Osmosis/Rest/queries.ts')
 					const {
 						pools,
-						pagination,
-					} = await getConcentratedLiquidityPools({
-						limit,
-						offset,
-					})
-					const reportedTotal = (
-						pagination?.total == null ?
-							undefined
-						:
-							Number(pagination.total)
-					)
-					const totalCount = (
-						reportedTotal != null
-						&& Number.isSafeInteger(reportedTotal)
-						&& reportedTotal > 0 ?
-							reportedTotal
-						:
-							offset + pools.length
-					)
+					} = await getPools()
+					const window = pools.slice(offset, offset + limit)
 					return {
-						rows: pools.map((pool) => ({
+						rows: window.map((pool) => ({
 							[EntityMetaKey.Selector]: {
 								$network: network,
 								poolId: pool.id,
@@ -816,7 +927,7 @@ export default {
 									])
 							),
 						})),
-						totalCount,
+						totalCount: pools.length,
 					}
 				}
 			),
