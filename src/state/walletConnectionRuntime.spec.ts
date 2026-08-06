@@ -21,13 +21,79 @@ import {
 	type WalletConnectV2Session,
 } from './wallets/adapters/walletConnectV2.ts'
 import { createWalletStandardAdapter } from './wallets/adapters/walletStandard.ts'
-import type { WalletCandidate } from './wallets/adapters/types.ts'
+import type { WalletCandidate, WalletConnection } from './wallets/adapters/types.ts'
+import {
+	isSelectedWalletConnection,
+	walletConnectionError,
+	walletConnectionFromPersisted,
+} from './wallets/walletConnectionState.ts'
 
 
 afterEach(() => {
 	vi.useRealTimers()
 	vi.unstubAllGlobals()
 })
+
+
+/** Adapter/runtime rows must already be machine-legal: selected only Connected, error only Error. */
+const expectLegalWalletConnection = (connection: WalletConnection) => {
+	const coerced = walletConnectionFromPersisted(connection)
+	expect(coerced.status).toBe(connection.status)
+	expect(coerced.protocol).toBe(connection.protocol)
+	expect(coerced.walletId).toBe(connection.walletId)
+
+	if (connection.status === BlockheadConnectionStatus.Connected) {
+		expect(connection).toHaveProperty('selected')
+		expect(connection).not.toHaveProperty('error')
+		expect(walletConnectionError(connection)).toBeUndefined()
+		expect(coerced).toMatchObject({
+			status: BlockheadConnectionStatus.Connected,
+			selected: connection.selected,
+		})
+		expect(coerced).not.toHaveProperty('error')
+		if (connection.selected) {
+			expect(isSelectedWalletConnection(connection)).toBe(true)
+			expect(connection.accounts.length).toBeGreaterThan(0)
+			expect(connection.activeAccount).toEqual(expect.objectContaining({
+				accountAddress: expect.any(String),
+			}))
+		} else {
+			expect(isSelectedWalletConnection(connection)).toBe(false)
+		}
+	} else {
+		expect(connection).not.toHaveProperty('selected')
+		expect(isSelectedWalletConnection(connection)).toBe(false)
+		expect(coerced).not.toHaveProperty('selected')
+	}
+
+	if (connection.status === BlockheadConnectionStatus.Error) {
+		expect(connection.error.length).toBeGreaterThan(0)
+		expect(walletConnectionError(connection)).toBe(connection.error)
+		expect(connection.activeAccount).toBeUndefined()
+		expect(coerced).toMatchObject({
+			status: BlockheadConnectionStatus.Error,
+			error: connection.error,
+		})
+		expect(coerced).not.toHaveProperty('selected')
+	} else {
+		expect(connection).not.toHaveProperty('error')
+		expect(walletConnectionError(connection)).toBeUndefined()
+		expect(coerced).not.toHaveProperty('error')
+	}
+
+	if (
+		connection.status === BlockheadConnectionStatus.Disconnected
+		|| connection.status === BlockheadConnectionStatus.Error
+	)
+		expect(connection.activeAccount).toBeUndefined()
+
+	if (connection.protocol === WalletProtocol.WalletConnectV2) {
+		if (connection.status !== BlockheadConnectionStatus.Connecting)
+			expect(connection.sessionTopic).toEqual(expect.any(String))
+	} else {
+		expect(connection.sessionTopic).toBeUndefined()
+	}
+}
 
 
 describe('wallet catalog status vs active runtime mount+connect', () => {
@@ -100,8 +166,11 @@ describe('wallet catalog status vs active runtime mount+connect', () => {
 			discoveryKind: WalletDiscoveryKind.InjectedEvent,
 			capabilities: expect.arrayContaining([WalletCapability.Connect]),
 		})
-		await expect(tip6963Adapter.connect('tron-tip6963:tronlink')).resolves.toMatchObject({
+		const tip6963Connection = await tip6963Adapter.connect('tron-tip6963:tronlink')
+		expectLegalWalletConnection(tip6963Connection)
+		expect(tip6963Connection).toMatchObject({
 			status: BlockheadConnectionStatus.Connected,
+			selected: true,
 			protocol: WalletProtocol.TronTip1193,
 			accounts: [expect.objectContaining({ accountAddress: tip6963Address })],
 		})
@@ -122,12 +191,79 @@ describe('wallet catalog status vs active runtime mount+connect', () => {
 			discoveryKind: WalletDiscoveryKind.InjectedGlobal,
 			capabilities: expect.arrayContaining([WalletCapability.Connect]),
 		})
-		await expect(tip1193Adapter.connect('tron:injected')).resolves.toMatchObject({
+		const tip1193Connection = await tip1193Adapter.connect('tron:injected')
+		expectLegalWalletConnection(tip1193Connection)
+		expect(tip1193Connection).toMatchObject({
 			status: BlockheadConnectionStatus.Connected,
+			selected: true,
 			protocol: WalletProtocol.TronTip1193,
 			accounts: [expect.objectContaining({ accountAddress: tip1193Address })],
 		})
 		stopTip1193()
+	})
+
+	it('surfaces TRON account-change failures as Error rows without selected', async () => {
+		const tip6963Address = 'TZ5XixnRyraxJJy996Q1sip85PHWuj4793'
+		const windowListeners = new Map<string, (event: Event) => void>()
+		const providerListeners = new Map<string, (payload: unknown) => void>()
+		const tip6963Provider = {
+			request: vi.fn(async ({ method }: { method: string }) => (
+				method === 'eth_chainId' ? '0x2b6653dc' : [tip6963Address]
+			)),
+			on: (eventName: string, listener: (payload: unknown) => void) => {
+				providerListeners.set(eventName, listener)
+			},
+			removeListener: (eventName: string) => {
+				providerListeners.delete(eventName)
+			},
+		}
+
+		vi.stubGlobal('window', {
+			addEventListener: (eventName: string, listener: (event: Event) => void) => {
+				windowListeners.set(eventName, listener)
+			},
+			removeEventListener: (eventName: string) => {
+				windowListeners.delete(eventName)
+			},
+			dispatchEvent: () => true,
+			setTimeout,
+			clearTimeout,
+		})
+
+		const adapter = createTronInjectedAdapter()
+		const stop = adapter.start(() => {})
+		windowListeners.get('TIP6963:announceProvider')?.(new CustomEvent('TIP6963:announceProvider', {
+			detail: {
+				info: {
+					uuid: 'tronlink',
+					name: 'TronLink',
+					icon: '',
+					rdns: 'org.tronlink.wallet',
+				},
+				provider: tip6963Provider,
+			},
+		}))
+		await adapter.connect('tron-tip6963:tronlink')
+
+		const connections: WalletConnection[] = []
+		const unsubscribe = adapter.subscribeConnection(
+			'tron-tip6963:tronlink',
+			(connection) => connections.push(connection)
+		)
+		expect(() => providerListeners.get('accountsChanged')?.([
+			'not-a-tron-address',
+		])).not.toThrow()
+		const errored = connections.at(-1)
+		if (errored == null)
+			throw new Error('expected TRON Error connection after accountsChanged')
+		expectLegalWalletConnection(errored)
+		expect(errored).toMatchObject({
+			status: BlockheadConnectionStatus.Error,
+			error: expect.stringContaining('TRON wallet returned a non-canonical account address'),
+		})
+		expect(errored).not.toHaveProperty('selected')
+		unsubscribe()
+		stop()
 	})
 
 	it('connects Aptos AIP-62, Wallet Standard, TON Connect injected, Starknet, and Bitcoin injected globals', async () => {
@@ -210,8 +346,11 @@ describe('wallet catalog status vs active runtime mount+connect', () => {
 		expect(standardCandidates.at(-1) ?? []).not.toContainEqual(expect.objectContaining({
 			name: 'Petra',
 		}))
-		await expect(aptosAdapter.connect('aptos-aip62:Petra')).resolves.toMatchObject({
+		const aptosConnection = await aptosAdapter.connect('aptos-aip62:Petra')
+		expectLegalWalletConnection(aptosConnection)
+		expect(aptosConnection).toMatchObject({
 			status: BlockheadConnectionStatus.Connected,
+			selected: true,
 			protocol: WalletProtocol.AptosAip62,
 			accounts: [
 				expect.objectContaining({
@@ -259,8 +398,11 @@ describe('wallet catalog status vs active runtime mount+connect', () => {
 			id: 'wallet-standard:Standard Wallet',
 			capabilities: expect.arrayContaining([WalletCapability.Connect]),
 		})
-		await expect(standardAdapter.connect('wallet-standard:Standard Wallet')).resolves.toMatchObject({
+		const standardConnection = await standardAdapter.connect('wallet-standard:Standard Wallet')
+		expectLegalWalletConnection(standardConnection)
+		expect(standardConnection).toMatchObject({
 			status: BlockheadConnectionStatus.Connected,
+			selected: true,
 			protocol: WalletProtocol.WalletStandard,
 		})
 		stopStandard()
@@ -290,8 +432,11 @@ describe('wallet catalog status vs active runtime mount+connect', () => {
 		})
 		const tonAdapter = createTonConnectAdapter()
 		tonAdapter.start(() => {})
-		await expect(tonAdapter.connect('ton-connect:tonkeeper')).resolves.toMatchObject({
+		const tonConnection = await tonAdapter.connect('ton-connect:tonkeeper')
+		expectLegalWalletConnection(tonConnection)
+		expect(tonConnection).toMatchObject({
 			status: BlockheadConnectionStatus.Connected,
+			selected: true,
 			protocol: WalletProtocol.TonConnect,
 			transportKind: WalletTransportKind.InjectedProvider,
 		})
@@ -313,8 +458,11 @@ describe('wallet catalog status vs active runtime mount+connect', () => {
 		})
 		const starknetAdapter = createStarknetWalletApiAdapter()
 		starknetAdapter.start(() => {})
-		await expect(starknetAdapter.connect('starknet:argentx')).resolves.toMatchObject({
+		const starknetConnection = await starknetAdapter.connect('starknet:argentx')
+		expectLegalWalletConnection(starknetConnection)
+		expect(starknetConnection).toMatchObject({
 			status: BlockheadConnectionStatus.Connected,
+			selected: true,
 			protocol: WalletProtocol.StarknetWalletApi,
 		})
 
@@ -339,8 +487,11 @@ describe('wallet catalog status vs active runtime mount+connect', () => {
 			protocol: WalletProtocol.BitcoinInjected,
 			capabilities: expect.arrayContaining([WalletCapability.Connect]),
 		})
-		await expect(bitcoinAdapter.connect('bitcoin:unisat')).resolves.toMatchObject({
+		const bitcoinConnection = await bitcoinAdapter.connect('bitcoin:unisat')
+		expectLegalWalletConnection(bitcoinConnection)
+		expect(bitcoinConnection).toMatchObject({
 			status: BlockheadConnectionStatus.Connected,
+			selected: true,
 			protocol: WalletProtocol.BitcoinInjected,
 		})
 	})
@@ -394,11 +545,15 @@ describe('wallet catalog status vs active runtime mount+connect', () => {
 			capabilities: expect.arrayContaining([WalletCapability.Connect]),
 		}))
 		approval.resolve(session)
-		await expect(connection).resolves.toMatchObject({
+		const settled = await connection
+		expectLegalWalletConnection(settled)
+		expect(settled).toMatchObject({
 			status: BlockheadConnectionStatus.Connected,
+			selected: true,
 			walletId: 'walletconnect-v2',
 			protocol: WalletProtocol.WalletConnectV2,
 			transportKind: WalletTransportKind.WalletConnectRelay,
+			sessionTopic: 'session-topic',
 		})
 		stop()
 	})

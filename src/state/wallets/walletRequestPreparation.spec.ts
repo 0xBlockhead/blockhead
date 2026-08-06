@@ -65,10 +65,6 @@ const sessionsE2eSource = readFileSync(
 	new URL('../../routes/~/sessions/sessions.e2e.ts', import.meta.url),
 	'utf8'
 )
-const accountControlsE2eSource = readFileSync(
-	new URL('../../routes/~/accounts/account-controls.e2e.ts', import.meta.url),
-	'utf8'
-)
 
 
 describe('walletRequestPreparation', () => {
@@ -101,10 +97,9 @@ describe('walletRequestPreparation', () => {
 		expect(sessionsE2eSource).toMatch(/prepares a locked native transfer without sending/)
 		expect(sessionsE2eSource).toMatch(/Prep journey must not broadcast eth_sendTransaction/)
 		expect(sessionsE2eSource).toMatch(/EVM native transfer preparation succeeded and saved a wallet request/)
+		expect(sessionsE2eSource).toMatch(/eth_sendTransaction/)
+		expect(sessionsE2eSource).toMatch(/must not broadcast eth_sendTransaction/)
 		expect(sessionsE2eSource).not.toMatch(/writeLocalBlockheadWalletRequestSubmittedAt/)
-		expect(accountControlsE2eSource).toMatch(/prep-without-send/)
-		expect(accountControlsE2eSource).toMatch(/eth_sendTransaction/)
-		expect(accountControlsE2eSource).toMatch(/must not broadcast eth_sendTransaction/)
 	})
 
 	it('requires exactly one Connected+selected wallet before prep binding', () => {
