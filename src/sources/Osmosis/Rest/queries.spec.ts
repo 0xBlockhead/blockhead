@@ -50,12 +50,12 @@ describe('Osmosis LCD binding', () => {
 		expect(binding.source).toBe(Source.Osmosis_LCD_Rest)
 		expect(binding.apiFamily).toBe(ApiFamily.CosmosLcdApi)
 		expect(binding.wireProtocol).toBe(WireProtocol.HttpRest)
-		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
+		expect(binding.delivery).toBe(SourceDelivery.BrowserDirect)
 		expect(binding.endpoints).toEqual([
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: osmosisLcdRestUrl,
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 		])
 	})
@@ -243,6 +243,14 @@ describe('Osmosis LCD named operations', () => {
 		await expect(getPool('1')).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: invalid pool response envelope`)
 	})
 
+	it('rejects a pool detail without an identity', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pool: {},
+		})
+
+		await expect(getPool('1')).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: invalid pool response envelope`)
+	})
+
 	it('rejects a non-integer pool id before transport', () => {
 		expect(() => getPool('1.5')).toThrow(`${Source.Osmosis_LCD_Rest}: invalid pool id`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
@@ -261,8 +269,29 @@ describe('Osmosis LCD named operations', () => {
 		)
 	})
 
+	it('does not invent the unimplemented paginated pools list path', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pools: [],
+		})
+		await getPools()
+		expect(sourceGetJson.mock.calls[0][1]).not.toContain('/osmosis/poolmanager/v1beta1/pools?')
+		expect(sourceGetJson.mock.calls[0][1]).toContain('/osmosis/poolmanager/v1beta1/all-pools')
+	})
+
 	it('rejects a malformed pools envelope instead of treating it as empty', async () => {
 		sourceGetJson.mockResolvedValueOnce({})
+
+		await expect(getPools()).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: invalid pools response envelope`)
+	})
+
+	it('rejects a pool list containing an invalid pool identity', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pools: [
+				{
+					id: '01',
+				},
+			],
+		})
 
 		await expect(getPools()).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: invalid pools response envelope`)
 	})
