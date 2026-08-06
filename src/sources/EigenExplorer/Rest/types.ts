@@ -108,6 +108,11 @@ export type EigenExplorerSlash = {
 	updatedAtBlock: number
 }
 
+export type EigenExplorerRewardStrategy = {
+	strategyAddress: string
+	tokens: string[]
+}
+
 
 export const eigenExplorerStrategySharesEnvelope = arktype({
 	strategyAddress: 'string',
@@ -201,6 +206,21 @@ export const eigenExplorerWithdrawalPageEnvelope = arktype({
 export const eigenExplorerOperatorPageEnvelope = arktype({
 	data: eigenExplorerOperatorEnvelope.array(),
 	meta: eigenExplorerPageMetaEnvelope,
+})
+
+export const eigenExplorerAvsPageEnvelope = arktype({
+	data: eigenExplorerAvsEnvelope.array(),
+	meta: eigenExplorerPageMetaEnvelope,
+})
+
+export const eigenExplorerRewardStrategyEnvelope = arktype({
+	strategyAddress: 'string',
+	tokens: 'string[]',
+})
+
+export const eigenExplorerRewardStrategiesEnvelope = arktype({
+	strategies: eigenExplorerRewardStrategyEnvelope.array(),
+	total: 'number',
 })
 
 export const eigenExplorerAllocationEnvelope = arktype({

@@ -14,11 +14,14 @@ const getAvs = vi.hoisted(() => vi.fn())
 const getOperator = vi.hoisted(() => vi.fn())
 const getOperatorRewardInfo = vi.hoisted(() => vi.fn())
 const getStrategyTvl = vi.hoisted(() => vi.fn())
+const listAvss = vi.hoisted(() => vi.fn())
 const listAvsAllocations = vi.hoisted(() => vi.fn())
 const listAvsOperators = vi.hoisted(() => vi.fn())
 const listAvsSlashes = vi.hoisted(() => vi.fn())
 const listOperatorAllocations = vi.hoisted(() => vi.fn())
+const listOperators = vi.hoisted(() => vi.fn())
 const listOperatorSlashes = vi.hoisted(() => vi.fn())
+const listStrategies = vi.hoisted(() => vi.fn())
 const getStaker = vi.hoisted(() => vi.fn())
 const getStakerDeposits = vi.hoisted(() => vi.fn())
 const getStakerWithdrawals = vi.hoisted(() => vi.fn())
@@ -28,11 +31,14 @@ vi.mock('$/sources/EigenExplorer/Rest/queries.ts', () => ({
 	getOperator,
 	getOperatorRewardInfo,
 	getStrategyTvl,
+	listAvss,
 	listAvsAllocations,
 	listAvsOperators,
 	listAvsSlashes,
 	listOperatorAllocations,
+	listOperators,
 	listOperatorSlashes,
+	listStrategies,
 	getStaker,
 	getStakerDeposits,
 	getStakerWithdrawals,
@@ -55,6 +61,9 @@ const [
 	operatorSlashesResolver,
 	avsSlashesResolver,
 	slashEventResolver,
+	protocolOperatorsResolver,
+	protocolAvssResolver,
+	protocolStrategiesResolver,
 ] = eigenExplorerResolvers.resolvers
 const stakerAddress = '0x1111111111111111111111111111111111111111'
 const operatorAddress = '0x2222222222222222222222222222222222222222'
@@ -92,6 +101,9 @@ const operatorSelector = {
 const avsSelector = {
 	$network: network,
 	avsAddress,
+}
+const protocolSelector = {
+	$network: network,
 }
 const avsTimestampSelector = {
 	$avs: {
@@ -647,5 +659,119 @@ describe('EigenExplorer allocation and slash resolvers', () => {
 		expect(slashEventResolver.projections.slashedShares(slashEvent)).toBe(900719925474099312345n)
 		expect(slashEventResolver.projections.reason(slashEvent)).toBe('temp')
 		expect(slashEventResolver.projections.blockNumber(slashEvent)).toBe(3325343n)
+	})
+})
+
+describe('EigenExplorer protocol hub catalog resolvers', () => {
+	beforeEach(() => {
+		vi.restoreAllMocks()
+		listOperators.mockReset()
+		listAvss.mockReset()
+		listStrategies.mockReset()
+		listOperators.mockResolvedValue({
+			data: [{
+				address: operatorAddress,
+				metadataName: 'Example Operator',
+				metadataDescription: null,
+				metadataWebsite: null,
+				metadataLogo: null,
+				createdAtBlock: '100',
+				updatedAtBlock: '101',
+				createdAt: '2026-01-01T00:00:00.000Z',
+				updatedAt: '2026-01-02T00:00:00.000Z',
+				shares: [{
+					strategyAddress,
+					shares: '42',
+				}],
+			}],
+			meta: {
+				total: 40,
+				skip: 0,
+				take: 100,
+			},
+		})
+		listAvss.mockResolvedValue({
+			data: [{
+				address: avsAddress,
+				metadataName: 'Example AVS',
+				metadataDescription: null,
+				metadataWebsite: null,
+				metadataLogo: null,
+				totalStakers: 12,
+				totalOperators: 3,
+				createdAtBlock: '100',
+				updatedAtBlock: '101',
+				createdAt: '2026-01-01T00:00:00.000Z',
+				updatedAt: '2026-01-02T00:00:00.000Z',
+				shares: [{
+					strategyAddress,
+					shares: '42',
+				}],
+			}],
+			meta: {
+				total: 18,
+				skip: 0,
+				take: 100,
+			},
+		})
+		listStrategies.mockResolvedValue({
+			data: [{
+				strategyAddress,
+				tokens: [tokenAddress],
+			}],
+			meta: {
+				total: 3,
+				skip: 0,
+				take: 100,
+			},
+		})
+	})
+
+	it('projects protocol $$operators / $$avss / $$strategies with counts and continuation', async () => {
+		const operators = await protocolOperatorsResolver.resolve.Network.resolve(
+			protocolSelector,
+			context
+		)
+		expect(protocolOperatorsResolver.projections.$$operators.select(operators)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				operatorAddress,
+			},
+		}])
+		expect(protocolOperatorsResolver.projections.$$operators.resolveCount(operators)).toBe(40)
+		expect(protocolOperatorsResolver.projections.$$operators.continuation(operators)).toEqual({
+			operation: 'protocol-operators',
+			target: 'eigen-explorer',
+			terminal: false,
+			token: '1',
+		})
+
+		const avss = await protocolAvssResolver.resolve.Network.resolve(
+			protocolSelector,
+			context
+		)
+		expect(protocolAvssResolver.projections.$$avss.select(avss)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				avsAddress,
+			},
+		}])
+		expect(protocolAvssResolver.projections.$$avss.resolveCount(avss)).toBe(18)
+
+		const strategies = await protocolStrategiesResolver.resolve.Network.resolve(
+			protocolSelector,
+			context
+		)
+		expect(protocolStrategiesResolver.projections.$$strategies.select(strategies)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				strategyAddress,
+			},
+		}])
+		expect(protocolStrategiesResolver.projections.$$strategies.resolveCount(strategies)).toBe(3)
+		expect(listStrategies).toHaveBeenCalledWith({
+			skip: 0,
+			take: 64,
+		})
 	})
 })

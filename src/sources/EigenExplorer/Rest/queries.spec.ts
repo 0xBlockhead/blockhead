@@ -14,11 +14,14 @@ import {
 	getOperator,
 	getOperatorRewardInfo,
 	getStrategyTvl,
+	listAvss,
 	listAvsAllocations,
 	listAvsOperators,
 	listAvsSlashes,
 	listOperatorAllocations,
+	listOperators,
 	listOperatorSlashes,
+	listStrategies,
 	getStaker,
 	getStakerDeposits,
 	getStakerWithdrawals,
@@ -551,5 +554,163 @@ describe('EigenExplorer REST queries', () => {
 		await expect(getStrategyTvl(
 			strategyAddress
 		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid strategy TVL response envelope`)
+	})
+
+	it('paginates protocol operator and AVS catalogs', async () => {
+		const operator = {
+			address: operatorAddress,
+			metadataName: 'Example Operator',
+			metadataDescription: null,
+			metadataWebsite: null,
+			metadataLogo: null,
+			createdAtBlock: '100',
+			updatedAtBlock: '101',
+			createdAt: '2026-01-01T00:00:00.000Z',
+			updatedAt: '2026-01-02T00:00:00.000Z',
+			shares: [{
+				strategyAddress,
+				shares: '42',
+			}],
+		}
+		const avs = {
+			address: avsAddress,
+			metadataName: 'Example AVS',
+			metadataDescription: null,
+			metadataWebsite: null,
+			metadataLogo: null,
+			totalStakers: 12,
+			totalOperators: 3,
+			createdAtBlock: '100',
+			updatedAtBlock: '101',
+			createdAt: '2026-01-01T00:00:00.000Z',
+			updatedAt: '2026-01-02T00:00:00.000Z',
+			shares: [{
+				strategyAddress,
+				shares: '42',
+			}],
+		}
+
+		respond({
+			data: [operator],
+			meta: {
+				total: 40,
+				skip: 0,
+				take: 25,
+			},
+		})
+		await expect(listOperators({
+			take: 25,
+		})).resolves.toMatchObject({
+			data: [operator],
+			meta: {
+				total: 40,
+			},
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			'https://api.eigenexplorer.test/operators?skip=0&take=25',
+			{
+				headers: {
+					accept: 'application/json',
+				},
+			}
+		)
+
+		respond({
+			data: [avs],
+			meta: {
+				total: 18,
+				skip: 0,
+				take: 25,
+			},
+		})
+		await expect(listAvss({
+			take: 25,
+		})).resolves.toMatchObject({
+			data: [avs],
+			meta: {
+				total: 18,
+			},
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			'https://api.eigenexplorer.test/avs?skip=0&take=25',
+			{
+				headers: {
+					accept: 'application/json',
+				},
+			}
+		)
+
+		respond({
+			data: [{
+				address: operatorAddress,
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 25,
+			},
+		})
+		await expect(listOperators({
+			take: 25,
+		})).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid operators response envelope`)
+	})
+
+	it('slices reward strategy catalog with authoritative total', async () => {
+		const strategies = [
+			{
+				strategyAddress,
+				tokens: [tokenAddress],
+			},
+			{
+				strategyAddress: '0x5555555555555555555555555555555555555555',
+				tokens: [tokenAddress],
+			},
+			{
+				strategyAddress: '0x6666666666666666666666666666666666666666',
+				tokens: [tokenAddress],
+			},
+		]
+
+		respond({
+			strategies,
+			total: 3,
+		})
+		await expect(listStrategies({
+			skip: 1,
+			take: 1,
+		})).resolves.toEqual({
+			data: [strategies[1]],
+			meta: {
+				total: 3,
+				skip: 1,
+				take: 1,
+			},
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			'https://api.eigenexplorer.test/rewards/strategies',
+			{
+				headers: {
+					accept: 'application/json',
+				},
+			}
+		)
+
+		respond({
+			strategies,
+			total: 2,
+		})
+		await expect(listStrategies()).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid strategies total`)
+
+		respond({
+			strategies: [{
+				strategyAddress,
+				tokens: ['not-an-address'],
+			}],
+			total: 1,
+		})
+		await expect(listStrategies()).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid reward token address`)
 	})
 })

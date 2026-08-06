@@ -1029,5 +1029,173 @@ export default {
 			source: (slash) => slash.source,
 			slashId: (slash) => slash.slashId,
 		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerProtocol,
+			resolve: {
+				Network: {
+					appliesTo: ethereumMainnetApplicability,
+					resolve: async ({
+						$network,
+					}, context) => {
+						assertEthereumMainnet($network)
+
+						const skip = eigenExplorerPaginationSkip(context)
+						const take = Math.min(resolverContextRowLimit(context), 100)
+						const { listOperators } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const page = await listOperators({
+							skip,
+							take,
+						})
+
+						return {
+							skip,
+							totalCount: page.meta.total,
+							rows: page.data.map((operator) => {
+								const operatorAddress = hexLowerOfByteSize(operator.address, 20)
+								if (operatorAddress == null)
+									throw new Error('EigenExplorer_Rest: operator address not normalized')
+
+								return {
+									[EntityMetaKey.Selector]: {
+										$network: ethereumNetwork,
+										operatorAddress,
+									},
+								}
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$operators: {
+				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.totalCount,
+				continuation: (snapshot) => {
+					const nextSkip = snapshot.skip + snapshot.rows.length
+
+					return {
+						operation: 'protocol-operators',
+						target: 'eigen-explorer',
+						terminal: nextSkip >= snapshot.totalCount,
+						...(nextSkip < snapshot.totalCount && {
+							token: String(nextSkip),
+						}),
+					}
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerProtocol,
+			resolve: {
+				Network: {
+					appliesTo: ethereumMainnetApplicability,
+					resolve: async ({
+						$network,
+					}, context) => {
+						assertEthereumMainnet($network)
+
+						const skip = eigenExplorerPaginationSkip(context)
+						const take = Math.min(resolverContextRowLimit(context), 100)
+						const { listAvss } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const page = await listAvss({
+							skip,
+							take,
+						})
+
+						return {
+							skip,
+							totalCount: page.meta.total,
+							rows: page.data.map((avs) => {
+								const address = hexLowerOfByteSize(avs.address, 20)
+								if (address == null)
+									throw new Error('EigenExplorer_Rest: AVS address not normalized')
+
+								return {
+									[EntityMetaKey.Selector]: {
+										$network: ethereumNetwork,
+										avsAddress: address,
+									},
+								}
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$avss: {
+				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.totalCount,
+				continuation: (snapshot) => {
+					const nextSkip = snapshot.skip + snapshot.rows.length
+
+					return {
+						operation: 'protocol-avss',
+						target: 'eigen-explorer',
+						terminal: nextSkip >= snapshot.totalCount,
+						...(nextSkip < snapshot.totalCount && {
+							token: String(nextSkip),
+						}),
+					}
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerProtocol,
+			resolve: {
+				Network: {
+					appliesTo: ethereumMainnetApplicability,
+					resolve: async ({
+						$network,
+					}, context) => {
+						assertEthereumMainnet($network)
+
+						const skip = eigenExplorerPaginationSkip(context)
+						const take = Math.min(resolverContextRowLimit(context), 100)
+						const { listStrategies } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const page = await listStrategies({
+							skip,
+							take,
+						})
+
+						return {
+							skip,
+							totalCount: page.meta.total,
+							rows: page.data.map((strategy) => {
+								const strategyAddress = hexLowerOfByteSize(strategy.strategyAddress, 20)
+								if (strategyAddress == null)
+									throw new Error('EigenExplorer_Rest: strategy address not normalized')
+
+								return {
+									[EntityMetaKey.Selector]: {
+										$network: ethereumNetwork,
+										strategyAddress,
+									},
+								}
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$strategies: {
+				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.totalCount,
+				continuation: (snapshot) => {
+					const nextSkip = snapshot.skip + snapshot.rows.length
+
+					return {
+						operation: 'protocol-strategies',
+						target: 'eigen-explorer',
+						terminal: nextSkip >= snapshot.totalCount,
+						...(nextSkip < snapshot.totalCount && {
+							token: String(nextSkip),
+						}),
+					}
+				},
+			},
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

@@ -10,6 +10,7 @@ import type {
 	EigenExplorerOperator,
 	EigenExplorerOperatorRewardInfo,
 	EigenExplorerPage,
+	EigenExplorerRewardStrategy,
 	EigenExplorerSlash,
 	EigenExplorerStaker,
 	EigenExplorerWithdrawal,
@@ -17,10 +18,12 @@ import type {
 import {
 	eigenExplorerAllocationPageEnvelope,
 	eigenExplorerAvsEnvelope,
+	eigenExplorerAvsPageEnvelope,
 	eigenExplorerDepositPageEnvelope,
 	eigenExplorerOperatorEnvelope,
 	eigenExplorerOperatorPageEnvelope,
 	eigenExplorerOperatorRewardInfoEnvelope,
+	eigenExplorerRewardStrategiesEnvelope,
 	eigenExplorerSlashPageEnvelope,
 	eigenExplorerStakerEnvelope,
 	eigenExplorerStrategyTvlEnvelope,
@@ -297,16 +300,32 @@ export const getStakerWithdrawals = async (
 	return page
 }
 
-export const getAvs = async (address: string) => {
-	assertAddress(address, 'AVS address')
+const assertOperatorRecord = (
+	operator: EigenExplorerOperator
+) => {
+	assertAddress(operator.address, 'operator address')
 
-	const avs = await fetchEigenExplorerJson<EigenExplorerAvs>(
-		`/avs/${encodeURIComponent(address)}`
+	if (
+		!unsignedIntegerPattern.test(operator.createdAtBlock)
+		|| !unsignedIntegerPattern.test(operator.updatedAtBlock)
 	)
-	assertEnvelope(eigenExplorerAvsEnvelope, avs, 'AVS')
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid operator block identity`)
 
-	if (avs.address.toLowerCase() !== address.toLowerCase())
-		throw new Error(`${Source.EigenExplorer_Rest}: foreign AVS`)
+	assertTimestamp(operator.createdAt, 'operator creation timestamp')
+	assertTimestamp(operator.updatedAt, 'operator update timestamp')
+	assertStrategyShares(operator.shares)
+
+	if (operator.metadataName.trim() === '')
+		throw new Error(`${Source.EigenExplorer_Rest}: empty operator name`)
+
+	assertOptionalHttpUrl(operator.metadataWebsite, 'operator website')
+	assertOptionalHttpUrl(operator.metadataLogo, 'operator logo')
+}
+
+const assertAvsRecord = (
+	avs: EigenExplorerAvs
+) => {
+	assertAddress(avs.address, 'AVS address')
 
 	if (
 		!unsignedIntegerPattern.test(avs.createdAtBlock)
@@ -325,8 +344,150 @@ export const getAvs = async (address: string) => {
 
 	assertOptionalHttpUrl(avs.metadataWebsite, 'AVS website')
 	assertOptionalHttpUrl(avs.metadataLogo, 'AVS logo')
+}
+
+export const getAvs = async (address: string) => {
+	assertAddress(address, 'AVS address')
+
+	const avs = await fetchEigenExplorerJson<EigenExplorerAvs>(
+		`/avs/${encodeURIComponent(address)}`
+	)
+	assertEnvelope(eigenExplorerAvsEnvelope, avs, 'AVS')
+	assertAvsRecord(avs)
+
+	if (avs.address.toLowerCase() !== address.toLowerCase())
+		throw new Error(`${Source.EigenExplorer_Rest}: foreign AVS`)
 
 	return avs
+}
+
+export const listOperators = async (
+	{
+		skip = 0,
+		take = 100,
+	}: {
+		skip?: number
+		take?: number
+	} = {}
+) => {
+	const wire = await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerOperator>>(
+		paginationPath({
+			path: '/operators',
+			skip,
+			take,
+		})
+	)
+	assertEnvelope(eigenExplorerOperatorPageEnvelope, wire, 'operators')
+	const page = assertPage(wire, skip, take)
+	const operatorAddresses = new Set<string>()
+
+	for (const operator of page.data) {
+		assertOperatorRecord(operator)
+
+		const normalizedAddress = operator.address.toLowerCase()
+
+		if (operatorAddresses.has(normalizedAddress))
+			throw new Error(`${Source.EigenExplorer_Rest}: duplicate operators`)
+
+		operatorAddresses.add(normalizedAddress)
+	}
+
+	return page
+}
+
+export const listAvss = async (
+	{
+		skip = 0,
+		take = 100,
+	}: {
+		skip?: number
+		take?: number
+	} = {}
+) => {
+	const wire = await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerAvs>>(
+		paginationPath({
+			path: '/avs',
+			skip,
+			take,
+		})
+	)
+	assertEnvelope(eigenExplorerAvsPageEnvelope, wire, 'AVSs')
+	const page = assertPage(wire, skip, take)
+	const avsAddresses = new Set<string>()
+
+	for (const avs of page.data) {
+		assertAvsRecord(avs)
+
+		const normalizedAddress = avs.address.toLowerCase()
+
+		if (avsAddresses.has(normalizedAddress))
+			throw new Error(`${Source.EigenExplorer_Rest}: duplicate AVSs`)
+
+		avsAddresses.add(normalizedAddress)
+	}
+
+	return page
+}
+
+export const listStrategies = async (
+	{
+		skip = 0,
+		take = 100,
+	}: {
+		skip?: number
+		take?: number
+	} = {}
+) => {
+	if (!Number.isSafeInteger(skip) || skip < 0)
+		throw new Error(`${Source.EigenExplorer_Rest}: skip must be a nonnegative safe integer`)
+
+	if (!Number.isSafeInteger(take) || take < 1 || take > 100)
+		throw new Error(`${Source.EigenExplorer_Rest}: take must be between 1 and 100`)
+
+	const wire = await fetchEigenExplorerJson<{
+		strategies: EigenExplorerRewardStrategy[]
+		total: number
+	}>(
+		'/rewards/strategies'
+	)
+	assertEnvelope(eigenExplorerRewardStrategiesEnvelope, wire, 'strategies')
+
+	if (
+		!Number.isSafeInteger(wire.total)
+		|| wire.total < 0
+		|| wire.strategies.length !== wire.total
+	)
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid strategies total`)
+
+	const strategyAddresses = new Set<string>()
+
+	for (const strategy of wire.strategies) {
+		assertAddress(strategy.strategyAddress, 'strategy address')
+
+		for (const tokenAddress of strategy.tokens)
+			assertAddress(tokenAddress, 'reward token address')
+
+		if (
+			new Set(strategy.tokens.map((value) => value.toLowerCase())).size !== strategy.tokens.length
+		)
+			throw new Error(`${Source.EigenExplorer_Rest}: duplicate reward tokens`)
+
+		const normalizedAddress = strategy.strategyAddress.toLowerCase()
+
+		if (strategyAddresses.has(normalizedAddress))
+			throw new Error(`${Source.EigenExplorer_Rest}: duplicate strategies`)
+
+		strategyAddresses.add(normalizedAddress)
+	}
+
+	return {
+		data: wire.strategies.slice(skip, skip + take),
+		meta: {
+			total: wire.total,
+			skip,
+			take,
+		},
+	} satisfies EigenExplorerPage<EigenExplorerRewardStrategy>
 }
 
 export const listAvsOperators = async (
@@ -353,23 +514,7 @@ export const listAvsOperators = async (
 	const operatorAddresses = new Set<string>()
 
 	for (const operator of page.data) {
-		assertAddress(operator.address, 'operator address')
-
-		if (
-			!unsignedIntegerPattern.test(operator.createdAtBlock)
-			|| !unsignedIntegerPattern.test(operator.updatedAtBlock)
-		)
-			throw new Error(`${Source.EigenExplorer_Rest}: invalid operator block identity`)
-
-		assertTimestamp(operator.createdAt, 'operator creation timestamp')
-		assertTimestamp(operator.updatedAt, 'operator update timestamp')
-		assertStrategyShares(operator.shares)
-
-		if (operator.metadataName.trim() === '')
-			throw new Error(`${Source.EigenExplorer_Rest}: empty operator name`)
-
-		assertOptionalHttpUrl(operator.metadataWebsite, 'operator website')
-		assertOptionalHttpUrl(operator.metadataLogo, 'operator logo')
+		assertOperatorRecord(operator)
 
 		const normalizedAddress = operator.address.toLowerCase()
 
@@ -415,25 +560,10 @@ export const getOperator = async (address: string) => {
 		`/operators/${encodeURIComponent(address)}`
 	)
 	assertEnvelope(eigenExplorerOperatorEnvelope, operator, 'operator')
+	assertOperatorRecord(operator)
 
 	if (operator.address.toLowerCase() !== address.toLowerCase())
 		throw new Error(`${Source.EigenExplorer_Rest}: foreign operator`)
-
-	if (
-		!unsignedIntegerPattern.test(operator.createdAtBlock)
-		|| !unsignedIntegerPattern.test(operator.updatedAtBlock)
-	)
-		throw new Error(`${Source.EigenExplorer_Rest}: invalid operator block identity`)
-
-	assertTimestamp(operator.createdAt, 'operator creation timestamp')
-	assertTimestamp(operator.updatedAt, 'operator update timestamp')
-	assertStrategyShares(operator.shares)
-
-	if (operator.metadataName.trim() === '')
-		throw new Error(`${Source.EigenExplorer_Rest}: empty operator name`)
-
-	assertOptionalHttpUrl(operator.metadataWebsite, 'operator website')
-	assertOptionalHttpUrl(operator.metadataLogo, 'operator logo')
 
 	return operator
 }
