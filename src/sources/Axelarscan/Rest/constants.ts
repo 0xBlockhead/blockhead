@@ -1,7 +1,8 @@
 /**
- * Axelarscan GMP `searchGMP` page limits + status catalogs.
+ * Axelarscan GMP `searchGMP` page limits + status catalogs + EVM chain keys.
  * Page size max verified live against api.axelarscan.io (size > 25 → 400).
  * Wire statuses from axelarjs `GMPTxStatus` (`packages/api/src/gmp/types.ts`).
+ * EVM chain keys match Axelarscan `call.chain` / destinationChain identifiers.
  */
 
 
@@ -37,6 +38,11 @@ type AxelarscanGmpSimplifiedStatusRow = {
 		| 'failed'
 	)
 	label: string
+}
+
+type AxelarscanEvmChainRow = {
+	chainKey: string
+	chainId: number
 }
 
 
@@ -107,7 +113,7 @@ export const axelarscanGmpStatuses = [
 	},
 	{
 		status: 'executable_without_gas_paid',
-		label: 'Executable without gas payment',
+		label: 'Executable without gas fee paid',
 	},
 	{
 		status: 'insufficient_fee',
@@ -134,6 +140,27 @@ export const axelarscanGmpSimplifiedStatuses = [
 	},
 ] as const satisfies readonly AxelarscanGmpSimplifiedStatusRow[]
 
+export const axelarscanEvmChains = [
+	{ chainKey: 'ethereum', chainId: 1 },
+	{ chainKey: 'binance', chainId: 56 },
+	{ chainKey: 'avalanche', chainId: 43114 },
+	{ chainKey: 'polygon', chainId: 137 },
+	{ chainKey: 'arbitrum', chainId: 42161 },
+	{ chainKey: 'optimism', chainId: 10 },
+	{ chainKey: 'fantom', chainId: 250 },
+	{ chainKey: 'moonbeam', chainId: 1284 },
+	{ chainKey: 'celo', chainId: 42220 },
+	{ chainKey: 'kava', chainId: 2222 },
+	{ chainKey: 'filecoin', chainId: 314 },
+	{ chainKey: 'linea', chainId: 59144 },
+	{ chainKey: 'base', chainId: 8453 },
+	{ chainKey: 'mantle', chainId: 5000 },
+	{ chainKey: 'scroll', chainId: 534352 },
+	{ chainKey: 'blast', chainId: 81457 },
+	{ chainKey: 'fraxtal', chainId: 252 },
+	{ chainKey: 'immutable', chainId: 13371 },
+] as const satisfies readonly AxelarscanEvmChainRow[]
+
 
 // Lookups
 
@@ -143,4 +170,8 @@ export const axelarscanGmpStatusByStatus = Object.fromEntries(
 
 export const axelarscanGmpSimplifiedStatusBySimplifiedStatus = Object.fromEntries(
 	axelarscanGmpSimplifiedStatuses.map((row) => [row.simplifiedStatus, row])
+)
+
+export const axelarscanEvmChainIdByChainKey = Object.fromEntries(
+	axelarscanEvmChains.map((row) => [row.chainKey, row.chainId])
 )
