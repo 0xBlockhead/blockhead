@@ -11,10 +11,15 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
+const getAccountPositions = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
 	sourceGetJson,
+}))
+vi.mock('$/sources/Euler/Rest/queries.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/Euler/Rest/queries.ts')>(),
+	getAccountPositions,
 }))
 
 const { default: eulerRest } = await import('$/resolvers/Euler-Rest.ts')
@@ -47,6 +52,12 @@ const networkEulerEvkVaultsResolver = eulerRest.resolvers.find((resolver) => (
 	&& 'Evm' in resolver.projections
 	&& '$$eulerEvkVaults' in resolver.projections.Evm
 ))
+const evmNetworkAccountResolver = eulerRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount
+))
+const evmNetworkAccountTimestampResolver = eulerRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount_Timestamp
+))
 
 const baseVaultAddress = '0x00011d9A1EB3d7278b8DF2391e2E32f6f9bcF293'
 
@@ -77,6 +88,77 @@ const baseVaultDetail = {
 describe('Euler Rest resolver module', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
+		getAccountPositions.mockReset()
+	})
+
+	it('publishes and resolves Euler EVC account positions onto contractPositions', async () => {
+		if (evmNetworkAccountResolver == null || evmNetworkAccountTimestampResolver == null)
+			throw new Error('missing Euler account resolvers')
+
+		const accountSelector = {
+			$network: baseNetwork,
+			$actor: {
+				address: '0x0000000000000000000000000000000000000001',
+			},
+		}
+		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
+			context
+		)
+		const [timestampReference] = evmNetworkAccountResolver.projections.$$timestamps(account)
+		if (timestampReference == null)
+			throw new Error('missing Euler account timestamp')
+
+		getAccountPositions.mockResolvedValue([
+			{
+				chainId: 1,
+				account: accountSelector.$actor.address,
+				vaultAddress: '0x01864ae3c7d5f507cc4c24ca67b4cabbdda37ecd',
+				vaultType: 'evk',
+				assets: '627',
+				borrowed: '0',
+			},
+		])
+
+		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve(
+			timestampReference[EntityMetaKey.Selector],
+			context
+		)
+
+		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([
+			expect.objectContaining({
+				vaultAddress: '0x01864ae3c7d5f507cc4c24ca67b4cabbdda37ecd',
+				assets: '627',
+			}),
+		])
+		expect(getAccountPositions).toHaveBeenCalledWith({
+			chainId: 1,
+			account: accountSelector.$actor.address,
+		})
+	})
+
+	it('rejects unsupported Euler chains on account positions before transport', async () => {
+		if (evmNetworkAccountTimestampResolver == null)
+			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
+
+		await expect(
+			evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+				$account: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '999999',
+						},
+					},
+					$actor: {
+						address: '0x0000000000000000000000000000000000000001',
+					},
+				},
+				timestampMs: 1760000000000,
+				source: Source.Euler_Rest,
+			}, context)
+		).rejects.toThrow(`${Source.Euler_Rest}: unsupported chain id 999999`)
+		expect(getAccountPositions).not.toHaveBeenCalled()
 	})
 
 	it('registers under Euler_Rest for EulerEvkVault', () => {

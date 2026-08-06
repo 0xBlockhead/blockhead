@@ -11,10 +11,15 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
+const getPositionsInfo = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
 	sourceGetJson,
+}))
+vi.mock('$/sources/Gmx/Rest/queries.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/Gmx/Rest/queries.ts')>(),
+	getPositionsInfo,
 }))
 
 const { default: gmxRest } = await import('$/resolvers/Gmx-Rest.ts')
@@ -41,6 +46,12 @@ const context = {
 const gmxMarketResolver = gmxRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.GmxMarket
 ))
+const evmNetworkAccountResolver = gmxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount
+))
+const evmNetworkAccountTimestampResolver = gmxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount_Timestamp
+))
 
 const ethMarketTokenAddress = '0x70d95587d40A2caf56bd97485aB3Eec10Bee6336'
 
@@ -62,6 +73,98 @@ const ethMarketInfoWire = {
 describe('GMX Rest resolver module', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
+		getPositionsInfo.mockReset()
+	})
+
+	it('publishes and resolves GMX account positions onto contractPositions', async () => {
+		if (evmNetworkAccountResolver == null || evmNetworkAccountTimestampResolver == null)
+			throw new Error('missing GMX account resolvers')
+
+		const accountSelector = {
+			$network: baseNetwork,
+			$actor: {
+				address: '0xd2c66b256eb277cba30b6fccf4ab5f871452da77',
+			},
+		}
+		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
+			context
+		)
+		const [timestampReference] = evmNetworkAccountResolver.projections.$$timestamps(account)
+		if (timestampReference == null)
+			throw new Error('missing GMX account timestamp')
+
+		getPositionsInfo.mockResolvedValue([
+			{
+				chainId: 42161,
+				contractKey: '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+				account: accountSelector.$actor.address,
+				marketAddress: ethMarketTokenAddress.toLowerCase(),
+				isLong: true,
+				sizeInUsd: '1000',
+				positionValueInUsd: '1000',
+			},
+		])
+
+		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve(
+			timestampReference[EntityMetaKey.Selector],
+			context
+		)
+
+		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([
+			expect.objectContaining({
+				contractKey: '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+				isLong: true,
+			}),
+		])
+		expect(getPositionsInfo).toHaveBeenCalledWith({
+			chainId: 42161,
+			address: accountSelector.$actor.address,
+		})
+	})
+
+	it('rejects unsupported GMX chains on account positions before transport', async () => {
+		if (evmNetworkAccountTimestampResolver == null)
+			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
+
+		await expect(
+			evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+				$account: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+					$actor: {
+						address: '0xd2c66b256eb277cba30b6fccf4ab5f871452da77',
+					},
+				},
+				timestampMs: 1760000000000,
+				source: Source.Gmx_Rest,
+			}, context)
+		).rejects.toThrow(`${Source.Gmx_Rest}: unsupported chain id 1`)
+		expect(getPositionsInfo).not.toHaveBeenCalled()
+	})
+
+	it('preserves an empty GMX positions list on contractPositions', async () => {
+		if (evmNetworkAccountTimestampResolver == null)
+			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
+
+		getPositionsInfo.mockResolvedValue([])
+
+		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+			$account: {
+				$network: baseNetwork,
+				$actor: {
+					address: '0xd2c66b256eb277cba30b6fccf4ab5f871452da77',
+				},
+			},
+			timestampMs: 1760000000000,
+			source: Source.Gmx_Rest,
+		}, context)
+
+		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([])
 	})
 
 	it('registers under Gmx_Rest for GmxMarket', () => {

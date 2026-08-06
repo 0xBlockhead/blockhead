@@ -24,6 +24,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 }))
 
 const {
+	getAccountPositions,
 	getMarket,
 	getVault,
 	listMarkets,
@@ -396,5 +397,130 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 				1,
 			],
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: vault chain filter violated`)
+	})
+})
+
+describe('Morpho GraphQL account positions', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('reads market and vault positions from userByAddress', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				userByAddress: {
+					address: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
+					marketPositions: [
+						{
+							market: {
+								marketId: '0x698fe98247a40c5771537b5786b2f3f9d78eb487b4ce4d75533cd0e94d88a115',
+							},
+							state: {
+								supplyAssets: '1000',
+								supplyShares: '1000',
+								borrowAssets: '0',
+								borrowShares: '0',
+								collateral: '0',
+								supplyAssetsUsd: 1,
+							},
+						},
+						{
+							market: {
+								marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
+							},
+							state: {
+								supplyAssets: '0',
+								supplyShares: '0',
+								borrowAssets: '0',
+								borrowShares: '0',
+								collateral: '0',
+							},
+						},
+					],
+					vaultPositions: [
+						{
+							vault: {
+								address: '0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB',
+								name: 'Steakhouse USDC',
+								symbol: 'steakUSDC',
+							},
+							state: {
+								assets: '500',
+								shares: '500',
+								assetsUsd: 0.5,
+							},
+						},
+					],
+				},
+			},
+		})))
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
+		})).resolves.toEqual([
+			{
+				protocol: 'Morpho Blue',
+				kind: 'market',
+				chainId: 1,
+				account: '0x821880a3e2bac432d67e5155e72bb655ef65fa5e',
+				marketId: '0x698fe98247a40c5771537b5786b2f3f9d78eb487b4ce4d75533cd0e94d88a115',
+				supplyAssets: '1000',
+				supplyShares: '1000',
+				borrowAssets: '0',
+				borrowShares: '0',
+				collateral: '0',
+				supplyAssetsUsd: 1,
+			},
+			{
+				protocol: 'Morpho Vault',
+				kind: 'vault',
+				chainId: 1,
+				account: '0x821880a3e2bac432d67e5155e72bb655ef65fa5e',
+				vaultAddress: '0xbeef01735c132ada46aa9aa4c54623caa92a64cb',
+				vaultName: 'Steakhouse USDC',
+				vaultSymbol: 'steakUSDC',
+				assets: '500',
+				shares: '500',
+				assetsUsd: 0.5,
+			},
+		])
+	})
+
+	it('returns an empty list when userByAddress is null', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				userByAddress: null,
+			},
+		})))
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
+		})).resolves.toEqual([])
+	})
+
+	it('rejects unsupported chains before transport', async () => {
+		await expect(getAccountPositions({
+			chainId: 999999,
+			account: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: unsupported chain id 999999`)
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('fails closed when marketPositions is omitted', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				userByAddress: {
+					address: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
+					vaultPositions: [],
+				},
+			},
+		})))
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: account positions missing marketPositions`)
 	})
 })
