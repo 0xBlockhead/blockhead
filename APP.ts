@@ -12672,7 +12672,7 @@ export const schema = {
 				},
 				"attestationDuties": {
 					label: "Attestation duties",
-					description: "Per-validator attestation duty history from Beaconcha.in (attester/inclusion slots + status). Not slot-scoped $$beaconAttestations entity refs.",
+					description: "Per-validator attestation duty history from Beaconcha.in (attester/inclusion slots + status). Not slot-scoped $$beaconAttestations entity refs. BeaconchaIn_Rest facet omitted until a sources-scoped lease owns getValidatorAttestations (GET /validator/{indexOrPubkey}/attestations); APP write_set excludes Rest queries.",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.Many,
 					valueType: "BeaconValidatorAttestationDuty",
