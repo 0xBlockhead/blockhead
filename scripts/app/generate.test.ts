@@ -3479,6 +3479,53 @@ test('renders facet applicability through projection boundaries', () => {
 		assert.doesNotMatch(sectionSnippet[0], /\{#if .*marketKind/)
 })
 
+test('gates Elements confidential UTXO commitments on UtxoOutput Confidential facet', () => {
+	const utxoOutput = app.schema.entities.find((entity) => entity.entityType === EntityType.UtxoOutput)
+	assert.ok(utxoOutput)
+	const confidentialFacet = utxoOutput.facets?.find((facet) => facet.name === 'Confidential')
+	assert.ok(confidentialFacet)
+	assert.deepEqual(confidentialFacet.condition.path, ['isConfidential'])
+	assert.equal(confidentialFacet.condition.is, true)
+	for (const fieldName of [
+		'assetCommitment',
+		'valueCommitment',
+		'nonceCommitment',
+		'surjectionProof',
+		'rangeProof',
+	])
+		assert.equal(
+			confidentialFacet.fields?.some((field) => field.name === fieldName),
+			true,
+			fieldName,
+		)
+	for (const fieldName of [
+		'assetCommitment',
+		'valueCommitment',
+		'nonceCommitment',
+		'surjectionProof',
+		'rangeProof',
+	])
+		assert.equal(
+			utxoOutput.fields.some((field) => field.name === fieldName),
+			false,
+			`${fieldName} must not be a base field`,
+		)
+
+	const utxoOutputSchema = baselineCompiledApp.generatedFiles.find((file) => file.path === 'src/schema/UtxoOutput.ts')
+	const utxoOutputView = baselineCompiledApp.generatedFiles.find((file) => file.path === 'src/views/UtxoOutputView.svelte')
+	assert.ok(utxoOutputSchema)
+	assert.ok(utxoOutputView)
+	const renderedSchema = renderGeneratedFile(utxoOutputSchema)
+	const renderedView = renderGeneratedFile(utxoOutputView)
+
+	assert.match(renderedSchema, /Confidential: facet\(\{[\s\S]*?path: \[[\s\S]*?'isConfidential',[\s\S]*?is: true,/)
+	assert.doesNotMatch(renderedSchema.slice(0, renderedSchema.indexOf('facets:')), /\n\tvalueCommitment:/)
+	assert.match(renderedView, /<ProjectionBoundary\s+resource=\{selection\.Confidential\}/)
+	assert.match(renderedView, /\{#snippet Applicable\(projection\)\}[\s\S]*?projection\.valueCommitment/)
+	assert.match(renderedView, /valueSats: true/)
+	assert.doesNotMatch(renderedView, /valueCommitment: true/)
+})
+
 test('emits every source-axis enum and only valid enum references in provider rows', () => {
 	const generatedFiles = baselineCompiledApp.generatedFiles
 	const sourceBinding = generatedFiles.find((generatedFile) => generatedFile.path === 'src/sources/SourceBinding.ts')
