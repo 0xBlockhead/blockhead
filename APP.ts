@@ -832,7 +832,7 @@ export const sourceBindingCompatibility = [
 	{ wireProtocol: WireProtocol.InProcess, apiFamilies: [ApiFamily.CardanoLocalStateQuery, ApiFamily.LocalParser], endpointKinds: [SourceEndpointKind.LocalProcess], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.AcpProtocol, ApiFamily.McpProtocol], endpointKinds: [SourceEndpointKind.LocalProcess], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.BitcoinJsonRpc, ApiFamily.FilecoinLotusJsonRpc, ApiFamily.MoneroDaemonJsonRpc, ApiFamily.SubstrateJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
-	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.CelestiaNodeJsonRpc, ApiFamily.MetaplexDasJsonRpc, ApiFamily.StarknetJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: [SourceOperationGroup.GenericRead], artifactKinds: [SourceArtifactKind.GenerationManifest, SourceArtifactKind.OpenRpcSpec, SourceArtifactKind.OpenRpcTypes, SourceArtifactKind.HandwrittenTypes] },
+	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.CelestiaNodeJsonRpc, ApiFamily.MetaplexDasJsonRpc, ApiFamily.StarknetJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: [SourceOperationGroup.GenericRead], artifactKinds: [SourceArtifactKind.GenerationManifest, SourceArtifactKind.HandwrittenTypes, SourceArtifactKind.OpenRpcSpec, SourceArtifactKind.OpenRpcTypes] },
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.EvmExecutionJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl, SourceEndpointKind.WebSocketUrl], operationGroups: [SourceOperationGroup.EvmRpcCore, SourceOperationGroup.EvmRpcSubscribe, SourceOperationGroup.EvmRpcTrace, SourceOperationGroup.EvmRpcTxpool], artifactKinds: [SourceArtifactKind.GenerationManifest, SourceArtifactKind.OpenRpcSpec, SourceArtifactKind.OpenRpcTypes] },
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.JsonRpcApi, ApiFamily.SolanaJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl, SourceEndpointKind.WebSocketUrl], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.LocalFile, apiFamilies: [ApiFamily.GitObject, ApiFamily.LocalParser, ApiFamily.LocalStateStore], endpointKinds: [SourceEndpointKind.LocalFilePath], operationGroups: true, artifactKinds: true },
@@ -1210,6 +1210,7 @@ export enum EntityType {
 	A2aTask_Timestamp = "A2aTask_Timestamp",
 	A2aTaskEvent = "A2aTaskEvent",
 	AaveMarket = "AaveMarket",
+	AaveReserve = "AaveReserve",
 	Account = "Account",
 	AcpAgentProgram = "AcpAgentProgram",
 	AcpAgentProgramVersion = "AcpAgentProgramVersion",
@@ -6938,6 +6939,7 @@ export const schema = {
 				"icon": { label: "Icon", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Aave_Rest] },
 				"totalMarketSize": { label: "Total market size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
 				"totalAvailableLiquidity": { label: "Total available liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"$$reserves": { label: "Reserves", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveReserve, defaultSources: [Source.Aave_Rest] },
 			})({
 				selectors: {
 					"NetworkPoolAddress": ["$network", "poolAddress"],
@@ -6959,8 +6961,55 @@ export const schema = {
 								["totalMarketSize", "totalAvailableLiquidity"],
 							],
 						},
+						lists: [
+							{ field: "$$reserves", component: "AaveReservesView", label: "Reserves", emptyText: "No reserves." },
+						],
 					},
 					plural: { component: "AaveMarketsView", title: "Aave markets" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.AaveReserve,
+				labels: {
+					singular: "Aave reserve",
+					plural: "Aave reserves",
+				},
+				description: "A token reserve configured within an Aave V3 lending market.",
+			})({
+				"$market": { label: "Market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AaveMarket },
+				"underlyingTokenAddress": { label: "Underlying token", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Aave_Rest] },
+				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Aave_Rest] },
+				"decimals": { label: "Decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Aave_Rest] },
+				"imageUrl": { label: "Image", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString", defaultSources: [Source.Aave_Rest] },
+				"totalSupplied": { label: "Total supplied", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"availableLiquidity": { label: "Available liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"supplyApy": { label: "Supply APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"borrowApy": { label: "Borrow APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"frozen": { label: "Frozen", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Aave_Rest] },
+				"paused": { label: "Paused", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Aave_Rest] },
+			})({
+				selectors: {
+					"MarketUnderlyingTokenAddress": ["$market", "underlyingTokenAddress"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Aave_Rest],
+						},
+						summary: {
+							title: ["symbol"],
+							value: ["name"],
+						},
+						content: {
+							dl: [
+								["$market", { field: "underlyingTokenAddress", format: "truncated" }, "symbol", "name", "decimals"],
+								["totalSupplied", "availableLiquidity", "supplyApy", "borrowApy", "frozen", "paused"],
+							],
+						},
+					},
+					plural: { component: "AaveReservesView", title: "Aave reserves" },
 				},
 			}),
 
@@ -79895,6 +79944,32 @@ export const routes = defineRoutes(schema)({
 															},
 														},
 													},
+													children: {
+														"reserve": {
+															children: {
+																"[underlyingTokenAddress]": {
+																	selectors: {
+																		[EntityType.AaveReserve]: {
+																			"MarketUnderlyingTokenAddress": {
+																				when: {
+																					path: ["namespace"],
+																					is: "Evm",
+																				},
+																				projection: {
+																					entityType: EntityType.Network,
+																					facetPath: ["Evm"],
+																				},
+																				params: {
+																					"underlyingTokenAddress": ["underlyingTokenAddress"],
+																				},
+																				page: {},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
 												},
 											},
 										},
@@ -88314,6 +88389,10 @@ export const app = {
 							path: "src/sources/Celestia/JsonRpc/schema-source.ts",
 						},
 						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Celestia/JsonRpc/types.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenRpcSpec,
 							path: "src/sources/Celestia/JsonRpc/openrpc.json",
 							generated: true,
@@ -88323,10 +88402,6 @@ export const app = {
 							kind: SourceArtifactKind.OpenRpcTypes,
 							path: "src/sources/Celestia/JsonRpc/openrpc.d.ts",
 							generated: true,
-						},
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Celestia/JsonRpc/types.ts",
 						},
 					],
 				},
@@ -91318,22 +91393,22 @@ export const app = {
 							},
 						],
 						artifacts: [
-							{
+						{
 								kind: SourceArtifactKind.GenerationManifest,
 								path: "src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/schema-source.ts",
 							},
-							{
+						{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Helius/Das/types.ts",
+							},
+						{
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/metaplex-das-api.json",
 							},
-							{
+						{
 								kind: SourceArtifactKind.OpenRpcTypes,
 								path: "src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/openrpc.d.ts",
 								generated: true,
-							},
-							{
-								kind: SourceArtifactKind.HandwrittenTypes,
-								path: "src/sources/Helius/Das/types.ts",
 							},
 						],
 					},
@@ -93982,6 +94057,10 @@ export const app = {
 							path: "src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/schema-source.ts",
 						},
 						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Pathfinder/JsonRpc/types.ts",
+						},
+						{
 							kind: SourceArtifactKind.OpenRpcSpec,
 							path: "src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.json",
 						},
@@ -93989,10 +94068,6 @@ export const app = {
 							kind: SourceArtifactKind.OpenRpcTypes,
 							path: "src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.d.ts",
 							generated: true,
-						},
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Pathfinder/JsonRpc/types.ts",
 						},
 					],
 				},
