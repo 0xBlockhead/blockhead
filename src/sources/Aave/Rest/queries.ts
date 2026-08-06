@@ -7,10 +7,16 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import bindings from '$/sources/Aave/bindings.ts'
 import { aaveChainByChainId } from '$/sources/Aave/Rest/constants.ts'
 import type {
+	AaveAccountBorrowPosition,
+	AaveAccountPosition,
+	AaveAccountPositionsData,
+	AaveAccountSupplyPosition,
 	AaveMarketData,
 	AaveMarketSnapshotWire,
 	AaveMarketWire,
 	AaveMarketsData,
+	AaveUserBorrowPositionWire,
+	AaveUserSupplyPositionWire,
 } from '$/sources/Aave/Rest/types.ts'
 import {
 	aaveMarketEnvelope,
@@ -248,4 +254,232 @@ export const getMarket = async ({
 		chainId,
 		poolAddress: normalizedPoolAddress,
 	})
+}
+
+const assertAccount = (account: string) => {
+	const normalized = hexLowerOfByteSize(account, 20)
+	if (normalized == null)
+		throw new Error(`${Source.Aave_Rest}: invalid account ${account}`)
+	return normalized
+}
+
+const assertCurrency = (
+	currency: AaveUserSupplyPositionWire['currency'] | AaveUserBorrowPositionWire['currency'],
+	expectedChainId: number
+) => {
+	if (currency.chainId !== expectedChainId)
+		throw new Error(`${Source.Aave_Rest}: account position currency chain mismatch`)
+	if (currency.symbol.length < 1)
+		throw new Error(`${Source.Aave_Rest}: account position missing currency symbol`)
+	if (!Number.isSafeInteger(currency.decimals) || currency.decimals < 0)
+		throw new Error(`${Source.Aave_Rest}: account position missing currency decimals`)
+	return {
+		underlyingTokenAddress: assertPoolAddress(currency.address),
+		symbol: currency.symbol,
+		decimals: currency.decimals,
+	}
+}
+
+const assertDecimalAmount = (
+	value: string | undefined,
+	label: string
+) => {
+	if (value == null || value.length < 1 || !decimalPattern.test(value))
+		throw new Error(`${Source.Aave_Rest}: account position missing ${label}`)
+	return value
+}
+
+const assertBoolean = (
+	value: boolean | undefined,
+	label: string
+) => {
+	if (value !== true && value !== false)
+		throw new Error(`${Source.Aave_Rest}: account position missing ${label}`)
+	return value
+}
+
+const normalizeSupplyPosition = (
+	wire: AaveUserSupplyPositionWire,
+	expected: {
+		chainId: number
+		account: `0x${string}`
+		poolAddresses: ReadonlySet<`0x${string}`>
+	}
+): AaveAccountSupplyPosition | null => {
+	if (wire.market.chain.chainId !== expected.chainId)
+		throw new Error(`${Source.Aave_Rest}: account supply position chain mismatch`)
+	const poolAddress = assertPoolAddress(wire.market.address)
+	if (!expected.poolAddresses.has(poolAddress))
+		throw new Error(`${Source.Aave_Rest}: account supply position market filter violated`)
+	const balance = assertDecimalAmount(wire.balance.amount.value, 'balance')
+	if (balance === '0')
+		return null
+
+	const currency = assertCurrency(wire.currency, expected.chainId)
+	return {
+		protocol: 'Aave V3',
+		kind: 'supply',
+		chainId: expected.chainId,
+		account: expected.account,
+		poolAddress,
+		...currency,
+		balance,
+		balanceUsd: assertDecimalAmount(wire.balance.usd, 'balanceUsd'),
+		apy: assertDecimalAmount(wire.apy.value, 'apy'),
+		isCollateral: assertBoolean(wire.isCollateral, 'isCollateral'),
+		canBeCollateral: assertBoolean(wire.canBeCollateral, 'canBeCollateral'),
+	}
+}
+
+const normalizeBorrowPosition = (
+	wire: AaveUserBorrowPositionWire,
+	expected: {
+		chainId: number
+		account: `0x${string}`
+		poolAddresses: ReadonlySet<`0x${string}`>
+	}
+): AaveAccountBorrowPosition | null => {
+	if (wire.market.chain.chainId !== expected.chainId)
+		throw new Error(`${Source.Aave_Rest}: account borrow position chain mismatch`)
+	const poolAddress = assertPoolAddress(wire.market.address)
+	if (!expected.poolAddresses.has(poolAddress))
+		throw new Error(`${Source.Aave_Rest}: account borrow position market filter violated`)
+	const debt = assertDecimalAmount(wire.debt.amount.value, 'debt')
+	if (debt === '0')
+		return null
+
+	const currency = assertCurrency(wire.currency, expected.chainId)
+	return {
+		protocol: 'Aave V3',
+		kind: 'borrow',
+		chainId: expected.chainId,
+		account: expected.account,
+		poolAddress,
+		...currency,
+		debt,
+		debtUsd: assertDecimalAmount(wire.debt.usd, 'debtUsd'),
+		apy: assertDecimalAmount(wire.apy.value, 'apy'),
+	}
+}
+
+/**
+ * Account supply + borrow reserve positions across every Aave market on one chain.
+ * Discovers pool addresses via `markets`, then reads documented `userSupplies` / `userBorrows`.
+ * @see https://aave.com/docs/aave-v3/markets/data.md
+ * @see https://aave.com/docs/aave-v3/getting-started/graphql.md
+ */
+export const getAccountPositions = async ({
+	chainId,
+	account,
+}: {
+	chainId: number
+	account: string
+}): Promise<AaveAccountPosition[]> => {
+	assertChainId(chainId)
+	const normalizedAccount = assertAccount(account)
+	const markets = await listMarkets({
+		chainIds: [
+			chainId,
+		],
+	})
+	if (markets.length < 1)
+		return []
+
+	const marketRefs = markets.map((market) => ({
+		address: market.address,
+		chainId,
+	}))
+	const poolAddresses = new Set(markets.map((market) => market.address))
+
+	const data = await graphql<AaveAccountPositionsData>({
+		binding,
+		query: `
+			query AccountPositions(
+				$supplies: UserSuppliesRequest!,
+				$borrows: UserBorrowsRequest!
+			) {
+				userSupplies(request: $supplies) {
+					market {
+						address
+						chain {
+							chainId
+						}
+					}
+					currency {
+						address
+						symbol
+						decimals
+						chainId
+					}
+					balance {
+						amount {
+							value
+						}
+						usd
+					}
+					apy {
+						value
+					}
+					isCollateral
+					canBeCollateral
+				}
+				userBorrows(request: $borrows) {
+					market {
+						address
+						chain {
+							chainId
+						}
+					}
+					currency {
+						address
+						symbol
+						decimals
+						chainId
+					}
+					debt {
+						amount {
+							value
+						}
+						usd
+					}
+					apy {
+						value
+					}
+				}
+			}
+		`,
+		variables: {
+			supplies: {
+				markets: marketRefs,
+				user: normalizedAccount,
+				collateralsOnly: false,
+				orderBy: {
+					name: 'ASC',
+				},
+			},
+			borrows: {
+				markets: marketRefs,
+				user: normalizedAccount,
+				orderBy: {
+					name: 'ASC',
+				},
+			},
+		},
+	})
+	if (data == null)
+		throw new Error(`${Source.Aave_Rest}: account positions response missing data`)
+	if (data.userSupplies == null)
+		throw new Error(`${Source.Aave_Rest}: account positions missing userSupplies`)
+	if (data.userBorrows == null)
+		throw new Error(`${Source.Aave_Rest}: account positions missing userBorrows`)
+
+	const expected = {
+		chainId,
+		account: normalizedAccount,
+		poolAddresses,
+	}
+	return [
+		...data.userSupplies.map((wire) => normalizeSupplyPosition(wire, expected)),
+		...data.userBorrows.map((wire) => normalizeBorrowPosition(wire, expected)),
+	].filter((position) => position != null)
 }

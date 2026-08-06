@@ -56,6 +56,97 @@ export type AaveMarketData = {
 	market: AaveMarketSnapshotWire | null
 }
 
+export type AaveUserSupplyPositionWire = {
+	market: {
+		address: string
+		chain: {
+			chainId: number
+		}
+	}
+	currency: {
+		address: string
+		symbol: string
+		decimals: number
+		name?: string
+		chainId: number
+	}
+	balance: {
+		amount: {
+			value: string
+		}
+		usd: string
+	}
+	apy: {
+		value: string
+	}
+	isCollateral: boolean
+	canBeCollateral: boolean
+}
+
+export type AaveUserBorrowPositionWire = {
+	market: {
+		address: string
+		chain: {
+			chainId: number
+		}
+	}
+	currency: {
+		address: string
+		symbol: string
+		decimals: number
+		name?: string
+		chainId: number
+	}
+	debt: {
+		amount: {
+			value: string
+		}
+		usd: string
+	}
+	apy: {
+		value: string
+	}
+}
+
+export type AaveAccountPositionsData = {
+	userSupplies: AaveUserSupplyPositionWire[]
+	userBorrows: AaveUserBorrowPositionWire[]
+}
+
+export type AaveAccountSupplyPosition = {
+	protocol: 'Aave V3'
+	kind: 'supply'
+	chainId: number
+	account: `0x${string}`
+	poolAddress: `0x${string}`
+	underlyingTokenAddress: `0x${string}`
+	symbol: string
+	decimals: number
+	balance: string
+	balanceUsd: string
+	apy: string
+	isCollateral: boolean
+	canBeCollateral: boolean
+}
+
+export type AaveAccountBorrowPosition = {
+	protocol: 'Aave V3'
+	kind: 'borrow'
+	chainId: number
+	account: `0x${string}`
+	poolAddress: `0x${string}`
+	underlyingTokenAddress: `0x${string}`
+	symbol: string
+	decimals: number
+	debt: string
+	debtUsd: string
+	apy: string
+}
+
+export type AaveAccountPosition =
+	| AaveAccountSupplyPosition
+	| AaveAccountBorrowPosition
+
 const aaveMarketSummaryEnvelope = arktype({
 	name: 'string',
 	address: 'string',

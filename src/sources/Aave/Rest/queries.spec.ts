@@ -25,6 +25,7 @@ vi.mock('$/sources/_shared/wire/Graphql/client.ts', async (importOriginal) => ({
 }))
 
 const {
+	getAccountPositions,
 	getMarket,
 	listMarkets,
 } = await import('$/sources/Aave/Rest/queries.ts')
@@ -427,5 +428,172 @@ describe('Aave market list/detail operations', () => {
 			poolAddress: 'not-an-address',
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid pool address`)
 		expect(graphql).not.toHaveBeenCalled()
+	})
+})
+
+describe('Aave account position operations', () => {
+	beforeEach(() => {
+		graphql.mockReset()
+	})
+
+	it('reads supply and borrow positions across markets on one chain', async () => {
+		graphql
+			.mockResolvedValueOnce({
+				markets: [
+					ethereumMarket,
+				],
+			})
+			.mockResolvedValueOnce({
+				userSupplies: [
+					{
+						market: {
+							address: ethereumMarket.address,
+							chain: {
+								chainId: 1,
+							},
+						},
+						currency: {
+							address: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+							symbol: 'USDC',
+							decimals: 6,
+							chainId: 1,
+						},
+						balance: {
+							amount: {
+								value: '1000.5',
+							},
+							usd: '1000.5',
+						},
+						apy: {
+							value: '0.03',
+						},
+						isCollateral: true,
+						canBeCollateral: true,
+					},
+				],
+				userBorrows: [
+					{
+						market: {
+							address: ethereumMarket.address,
+							chain: {
+								chainId: 1,
+							},
+						},
+						currency: {
+							address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+							symbol: 'WETH',
+							decimals: 18,
+							chainId: 1,
+						},
+						debt: {
+							amount: {
+								value: '2.5',
+							},
+							usd: '5000',
+						},
+						apy: {
+							value: '0.05',
+						},
+					},
+				],
+			})
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
+		})).resolves.toEqual([
+			{
+				protocol: 'Aave V3',
+				kind: 'supply',
+				chainId: 1,
+				account: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c',
+				poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				underlyingTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+				symbol: 'USDC',
+				decimals: 6,
+				balance: '1000.5',
+				balanceUsd: '1000.5',
+				apy: '0.03',
+				isCollateral: true,
+				canBeCollateral: true,
+			},
+			{
+				protocol: 'Aave V3',
+				kind: 'borrow',
+				chainId: 1,
+				account: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c',
+				poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				underlyingTokenAddress: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+				symbol: 'WETH',
+				decimals: 18,
+				debt: '2.5',
+				debtUsd: '5000',
+				apy: '0.05',
+			},
+		])
+		expect(graphql).toHaveBeenCalledTimes(2)
+	})
+
+	it('returns an empty list when the chain has no markets', async () => {
+		graphql.mockResolvedValueOnce({
+			markets: [],
+		})
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
+		})).resolves.toEqual([])
+		expect(graphql).toHaveBeenCalledTimes(1)
+	})
+
+	it('returns an empty list when supplies and borrows are empty', async () => {
+		graphql
+			.mockResolvedValueOnce({
+				markets: [
+					ethereumMarket,
+				],
+			})
+			.mockResolvedValueOnce({
+				userSupplies: [],
+				userBorrows: [],
+			})
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: '0x0000000000000000000000000000000000000001',
+		})).resolves.toEqual([])
+	})
+
+	it('rejects unsupported chains before transport', async () => {
+		await expect(getAccountPositions({
+			chainId: 11155111,
+			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
+		})).rejects.toThrow(`${Source.Aave_Rest}: unsupported chain id 11155111`)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
+	it('rejects an invalid account before transport', async () => {
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: 'not-an-address',
+		})).rejects.toThrow(`${Source.Aave_Rest}: invalid account not-an-address`)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
+	it('fails closed when userSupplies is omitted', async () => {
+		graphql
+			.mockResolvedValueOnce({
+				markets: [
+					ethereumMarket,
+				],
+			})
+			.mockResolvedValueOnce({
+				userBorrows: [],
+			})
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
+		})).rejects.toThrow(`${Source.Aave_Rest}: account positions missing userSupplies`)
 	})
 })
