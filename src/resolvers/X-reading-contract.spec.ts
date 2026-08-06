@@ -22,6 +22,7 @@ const fxEmbedQueries = vi.hoisted(() => ({
 const xQueries = vi.hoisted(() => ({
 	getTweet: vi.fn(),
 	getUser: vi.fn(),
+	getUserByUsername: vi.fn(),
 	listUserTweets: vi.fn(),
 	searchRecentTweets: vi.fn(),
 }))
@@ -311,6 +312,12 @@ describe('X reading identity and observation contract', () => {
 			status: {
 				type: 'status',
 				id: '1890000000000000000',
+				text: 'Quoting',
+				created_timestamp: 1_768_435_200,
+				author: {
+					id: '44196397',
+					screen_name: 'fixture_reader',
+				},
 				quote: {
 					type: 'status',
 					id: '1880000000000000000',
@@ -343,6 +350,12 @@ describe('X reading identity and observation contract', () => {
 			status: {
 				type: 'status',
 				id: '1890000000000000000',
+				text: 'Quoting tombstone',
+				created_timestamp: 1_768_435_200,
+				author: {
+					id: '44196397',
+					screen_name: 'fixture_reader',
+				},
 				quote: {
 					type: 'tombstone',
 					id: '1880000000000000000',
