@@ -111,6 +111,24 @@ describe('Pendle Rest resolver module', () => {
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
+	it('rejects unsupported Pendle chains before transport', async () => {
+		if (pendleMarketResolver == null)
+			throw new Error('missing PendleMarket resolver')
+
+		await expect(
+			pendleMarketResolver.resolve.NetworkMarketAddress.resolve({
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '999999',
+					},
+				},
+				marketAddress: baseMarketAddress,
+			}, context)
+		).rejects.toThrow(`${Source.Pendle_Rest}: unsupported chain id 999999`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
 	it('resolves a Pendle market snapshot by network and market address', async () => {
 		if (pendleMarketResolver == null)
 			throw new Error('missing PendleMarket resolver')

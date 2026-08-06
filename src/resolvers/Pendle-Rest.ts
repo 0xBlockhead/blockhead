@@ -2,7 +2,6 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -70,6 +69,10 @@ export default {
 						marketAddress,
 					}: PendleMarketId) => {
 						const chainId = eip155ChainId($network)
+						const { pendleByChainId } = await import('$/sources/Pendle/Rest/constants.ts')
+						if (pendleByChainId[chainId] == null)
+							throw new Error(`${Source.Pendle_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const normalizedMarketAddress = hexLowerOfByteSize(marketAddress, 20)
 						if (normalizedMarketAddress == null)
 							throw new Error(`${Source.Pendle_Rest}: invalid market address ${marketAddress}`)
@@ -123,6 +126,10 @@ export default {
 				Caip2: {
 					resolve: async (network, context) => {
 						const chainId = eip155ChainId(network)
+						const { pendleByChainId } = await import('$/sources/Pendle/Rest/constants.ts')
+						if (pendleByChainId[chainId] == null)
+							throw new Error(`${Source.Pendle_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const { listMarkets } = await import('$/sources/Pendle/Rest/queries.ts')
 						const { markets } = await listMarkets({
 							chainId,
@@ -143,4 +150,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Pendle_Rest>
+}
