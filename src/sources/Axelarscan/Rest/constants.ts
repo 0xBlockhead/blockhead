@@ -159,6 +159,11 @@ export const axelarscanEvmChains = [
 	{ chainKey: 'blast', chainId: 81457 },
 	{ chainKey: 'fraxtal', chainId: 252 },
 	{ chainKey: 'immutable', chainId: 13371 },
+	{ chainKey: 'sei', chainId: 1329 },
+	{ chainKey: 'centrifuge', chainId: 2031 },
+	{ chainKey: 'aurora', chainId: 1313161554 },
+	{ chainKey: 'polygon-zkevm', chainId: 1101 },
+	{ chainKey: 'bsc', chainId: 56 },
 ] as const satisfies readonly AxelarscanEvmChainRow[]
 
 

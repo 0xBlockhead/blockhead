@@ -9,22 +9,27 @@
 import { duneFetch } from '$/sources/Dune/Rest/client.ts'
 import {
 	duneApiPaths,
+	duneExecutionPathSuffixes,
 	duneExecutionStatusByState,
 	dunePerformanceTierByPerformance,
 } from '$/sources/Dune/Rest/constants.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type {
+	DuneCancelExecutionResponse,
 	DuneExecuteQueryBody,
 	DuneExecuteQueryResponse,
 	DuneExecutionResult,
+	DuneExecutionStatusResponse,
 	DuneGetExecutionResultsParams,
 	DuneQueryMetadata,
 	DuneUsageBillingPeriod,
 	DuneUsageResponse,
 } from '$/sources/Dune/Rest/types.ts'
 import {
+	duneCancelExecutionResponseEnvelope,
 	duneExecuteQueryResponseEnvelope,
 	duneExecutionResultEnvelope,
+	duneExecutionStatusEnvelope,
 	duneQueryMetadataEnvelope,
 	duneUsageResponseEnvelope,
 } from '$/sources/Dune/Rest/types.ts'
@@ -163,8 +168,55 @@ export const getExecutionResults = async (
 	return assertExecutionResult(
 		await duneFetch<DuneExecutionResult>(
 			publicEnv,
-			`${duneApiPaths.execution}/${executionId}/results${duneExecutionResultsSearch(params)}`
+			`${duneApiPaths.execution}/${executionId}/${duneExecutionPathSuffixes.results}${duneExecutionResultsSearch(params)}`
 		)
+	)
+}
+
+/**
+ * `GET /api/v1/execution/{execution_id}/status` — state + optional failure details (no credit charge).
+ * @see https://docs.dune.com/api-reference/executions/endpoint/get-execution-status.md
+ */
+export const getExecutionStatus = async (
+	publicEnv: SourcePublicEnv,
+	executionId: string
+) => {
+	if (executionId.trim() === '')
+		throw new Error('Dune_Rest: invalid execution id')
+	const status = assertEnvelope<DuneExecutionStatusResponse>(
+		duneExecutionStatusEnvelope,
+		await duneFetch<DuneExecutionStatusResponse>(
+			publicEnv,
+			`${duneApiPaths.execution}/${executionId}/${duneExecutionPathSuffixes.status}`
+		),
+		'execution status'
+	)
+	if (status.execution_id.trim() === '')
+		throw new Error('Dune_Rest: execution status missing execution_id')
+	assertExecutionStatus(status.state)
+	return status
+}
+
+/**
+ * `POST /api/v1/execution/{execution_id}/cancel` — cancel a pending/executing run.
+ * @see https://docs.dune.com/api-reference/executions/endpoint/cancel-execution.md
+ */
+export const cancelExecution = async (
+	publicEnv: SourcePublicEnv,
+	executionId: string
+) => {
+	if (executionId.trim() === '')
+		throw new Error('Dune_Rest: invalid execution id')
+	return assertEnvelope<DuneCancelExecutionResponse>(
+		duneCancelExecutionResponseEnvelope,
+		await duneFetch<DuneCancelExecutionResponse>(
+			publicEnv,
+			`${duneApiPaths.execution}/${executionId}/${duneExecutionPathSuffixes.cancel}`,
+			{
+				method: 'POST',
+			}
+		),
+		'cancel execution'
 	)
 }
 

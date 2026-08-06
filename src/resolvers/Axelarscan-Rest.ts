@@ -1,5 +1,6 @@
 import { BridgeAssetOutcome } from '$/constants/Bridge.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -13,6 +14,16 @@ import { schema } from '$/schema/index.ts'
 import { axelarscanEvmChainIdByChainKey } from '$/sources/Axelarscan/Rest/constants.ts'
 import type { AxelarscanGmpMessage } from '$/sources/Axelarscan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
+
+
+const axelarscanMessageLogIndex = (
+	event: {
+		_logIndex?: number
+		logIndex?: number
+	}
+) => (
+	event._logIndex ?? event.logIndex
+)
 
 
 const axelarscanEvmNetworkRef = (chainKey: string) => {
@@ -64,6 +75,43 @@ const axelarscanObservationMs = (message: AxelarscanGmpMessage) => (
 	) * 1_000
 )
 
+const axelarscanFillGasFee = (message: AxelarscanGmpMessage) => {
+	const gasUsed = message.executed?.receipt?.gasUsed
+	const effectiveGasPrice = message.executed?.receipt?.effectiveGasPrice
+	if (gasUsed == null || effectiveGasPrice == null)
+		return undefined
+	if (!/^(?:0|[1-9]\d*)$/.test(gasUsed) || !/^(?:0|[1-9]\d*)$/.test(effectiveGasPrice))
+		throw new Error('Axelarscan_Rest: invalid fill gas fee units')
+	return BigInt(gasUsed) * BigInt(effectiveGasPrice)
+}
+
+const axelarscanBridgeFeeUsd = (message: AxelarscanGmpMessage) => {
+	const feeUsd = message.fees?.base_fee_usd ?? message.fees?.source_base_fee_usd
+	if (feeUsd == null)
+		return undefined
+	if (!Number.isFinite(feeUsd) || feeUsd < 0)
+		throw new Error('Axelarscan_Rest: invalid bridge fee usd')
+	return String(feeUsd)
+}
+
+const axelarscanSourceConfirmations = (message: AxelarscanGmpMessage) => (
+	message.call.receipt?.confirmations
+)
+
+const axelarscanRelayer = (message: AxelarscanGmpMessage) => {
+	for (const candidate of [
+		message.executed?.relayerAddress,
+		message.executed?.from,
+		message.executed?.receipt?.from,
+	]) {
+		if (candidate == null)
+			continue
+		const normalized = hexLowerOfByteSize(candidate, 20)
+		if (normalized != null)
+			return normalized
+	}
+}
+
 const axelarscanBridgeTransferSnapshot = (
 	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>,
 	message: AxelarscanGmpMessage
@@ -78,6 +126,10 @@ const axelarscanBridgeTransferSnapshot = (
 			axelarscanEvmTxHash(message.executed.transactionHash, 'destination transaction hash')
 	)
 	const timestampMs = axelarscanObservationMs(message)
+	const messageLogIndex = axelarscanMessageLogIndex(message.call)
+	if (messageLogIndex == null)
+		throw new Error('Axelarscan_Rest: call missing message log index')
+	const bridgeFeeUsd = axelarscanBridgeFeeUsd(message)
 
 	return {
 		source: Source.Axelarscan_Rest,
@@ -88,7 +140,7 @@ const axelarscanBridgeTransferSnapshot = (
 				txHash: sourceTxHash,
 			},
 		},
-		logIndex: message.call.logIndex,
+		logIndex: messageLogIndex,
 		...(destinationTxHash != null && {
 			$destinationTx: {
 				[EntityMetaKey.Selector]: {
@@ -98,14 +150,22 @@ const axelarscanBridgeTransferSnapshot = (
 			},
 		}),
 		$sender: axelarscanEvmAddressRef(message.call.returnValues.sender, 'sender'),
-		$recipient: axelarscanEvmAddressRef(
-			message.call.returnValues.destinationContractAddress,
-			'recipient'
+		...(
+			hexLowerOfByteSize(message.call.returnValues.destinationContractAddress, 20) != null
+			&& {
+				$recipient: axelarscanEvmAddressRef(
+					message.call.returnValues.destinationContractAddress,
+					'recipient'
+				),
+			}
 		),
 		$fromNetwork: fromNetwork,
 		$toNetwork: toNetwork,
-		// GMP search rows are cross-chain messages; token amounts are not a searchGMP wire field.
+		// GMP search rows are cross-chain messages; token amounts stay transport-only (Across owns amountIn/Out).
 		assetOutcome: BridgeAssetOutcome.MessageOnly,
+		...(bridgeFeeUsd != null && {
+			bridgeFeeUsd,
+		}),
 		$$timestamps: [{
 			[EntityMetaKey.Selector]: {
 				$transfer: transfer,
@@ -140,13 +200,26 @@ const loadAxelarscanMessage = async (
 		candidate.message_id === transfer.transferId
 		|| (
 			candidate.call.transactionHash.toLowerCase() === transactionHash.toLowerCase()
-			&& candidate.call.logIndex === logIndex
+			&& axelarscanMessageLogIndex(candidate.call) === logIndex
 		)
 	))
 	if (message == null)
 		throw new Error(`Axelarscan_Rest: GMP message not found for ${transfer.transferId}`)
 
 	return message
+}
+
+const axelarscanPaginationSkip = (
+	context: ResolverContext
+) => {
+	const skip = context.providerContinuationToken == null ?
+		context.pagination.offset ?? 0
+	:
+		Number(context.providerContinuationToken)
+	if (!Number.isSafeInteger(skip) || skip < 0)
+		throw new Error('Axelarscan_Rest: invalid pagination offset')
+
+	return skip
 }
 
 
@@ -201,6 +274,7 @@ export default {
 			$fromNetwork: (transfer) => transfer.$fromNetwork,
 			$toNetwork: (transfer) => transfer.$toNetwork,
 			assetOutcome: (transfer) => transfer.assetOutcome,
+			bridgeFeeUsd: (transfer) => transfer.bridgeFeeUsd,
 			$$timestamps: (transfer) => transfer.$$timestamps,
 		}),
 
@@ -232,14 +306,9 @@ export default {
 							:
 								axelarscanEvmTxHash(message.executed.transactionHash, 'destination transaction hash')
 						)
-						const relayer = (
-							message.executed?.relayerAddress == null ?
-								undefined
-							:
-								hexLowerOfByteSize(message.executed.relayerAddress, 20)
-						)
-						if (message.executed?.relayerAddress != null && relayer == null)
-							throw new Error('Axelarscan_Rest: invalid relayer address')
+						const relayer = axelarscanRelayer(message)
+						const fillGasFee = axelarscanFillGasFee(message)
+						const sourceConfirmations = axelarscanSourceConfirmations(message)
 
 						return {
 							$transfer: {
@@ -255,12 +324,18 @@ export default {
 							...(relayer != null && {
 								relayer,
 							}),
+							...(sourceConfirmations != null && {
+								sourceConfirmations,
+							}),
 							...(
 								message.executed != null
 								&& {
 									completedAt: message.executed.block_timestamp * 1_000,
 								}
 							),
+							...(fillGasFee != null && {
+								fillGasFee,
+							}),
 							...(message.simplified_status === 'failed' && {
 								error: message.status,
 							}),
@@ -276,8 +351,93 @@ export default {
 			substatus: (observation) => observation.substatus,
 			destinationTxHash: (observation) => observation.destinationTxHash,
 			relayer: (observation) => observation.relayer,
+			sourceConfirmations: (observation) => observation.sourceConfirmations,
 			completedAt: (observation) => observation.completedAt,
+			fillGasFee: (observation) => observation.fillGasFee,
 			error: (observation) => observation.error,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmAccount,
+			resolve: {
+				Address: {
+					resolve: async ({ address }, context) => {
+						const skip = axelarscanPaginationSkip(context)
+						const limit = Math.min(resolverContextRowLimit(context), 25)
+						const { getGmpMessages } = await import('$/sources/Axelarscan/Rest/queries.ts')
+						const page = await getGmpMessages({
+							senderAddress: address,
+							from: skip,
+							size: limit,
+						})
+
+						return {
+							skip,
+							limit,
+							total: page.total,
+							rows: page.data.flatMap((message) => (
+								axelarscanEvmChainIdByChainKey[message.call.chain.toLowerCase()] == null
+								|| axelarscanEvmChainIdByChainKey[message.call.returnValues.destinationChain.toLowerCase()] == null ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											source: Source.Axelarscan_Rest,
+											transferId: message.message_id,
+										},
+									}]
+							)),
+						}
+					},
+				},
+				AddressInteropAddress: {
+					resolve: async ({ address }, context) => {
+						const skip = axelarscanPaginationSkip(context)
+						const limit = Math.min(resolverContextRowLimit(context), 25)
+						const { getGmpMessages } = await import('$/sources/Axelarscan/Rest/queries.ts')
+						const page = await getGmpMessages({
+							senderAddress: address,
+							from: skip,
+							size: limit,
+						})
+
+						return {
+							skip,
+							limit,
+							total: page.total,
+							rows: page.data.flatMap((message) => (
+								axelarscanEvmChainIdByChainKey[message.call.chain.toLowerCase()] == null
+								|| axelarscanEvmChainIdByChainKey[message.call.returnValues.destinationChain.toLowerCase()] == null ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											source: Source.Axelarscan_Rest,
+											transferId: message.message_id,
+										},
+									}]
+							)),
+						}
+					},
+				},
+			},
+		})({
+			$$bridgeTransfers: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot) => {
+					const nextSkip = snapshot.skip + snapshot.limit
+					const terminal = nextSkip >= snapshot.total
+
+					return {
+						operation: 'account-bridge-transfers',
+						target: 'axelarscan',
+						terminal,
+						...(!terminal && {
+							token: String(nextSkip),
+						}),
+					}
+				},
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

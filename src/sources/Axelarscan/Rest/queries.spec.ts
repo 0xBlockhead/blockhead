@@ -149,6 +149,53 @@ describe('Axelarscan GMP queries', () => {
 		})
 	})
 
+	it('filters account lists by senderAddress and rejects foreign senders', async () => {
+		await getGmpMessages({
+			size: 1,
+			from: 0,
+			senderAddress: sourceAddress,
+		})
+		expect(getJson).toHaveBeenCalledWith(
+			binding,
+			`/gmp/searchGMP?size=1&from=0&senderAddress=${encodeURIComponent(sourceAddress)}`
+		)
+
+		getJson.mockResolvedValueOnce(response())
+		await expect(getGmpMessages({
+			senderAddress: '0xForeign',
+		})).rejects.toThrow('foreign sender message')
+	})
+
+	it('accepts message ids keyed by _logIndex when logIndex differs', async () => {
+		const liveStyle = structuredClone(message)
+		liveStyle.call.logIndex = 519
+		liveStyle.call._logIndex = 1
+		liveStyle.call.id = `${sourceTransactionHash}_2_519`
+		liveStyle.message_id = `${sourceTransactionHash}-1`
+		liveStyle.approved!.returnValues.sourceEventIndex = '519'
+		liveStyle.executed!.sourceTransactionLogIndex = 519
+		getJson.mockResolvedValue(response([liveStyle]))
+
+		await expect(getGmpMessages({
+			size: 1,
+		})).resolves.toMatchObject({
+			data: [{
+				message_id: `${sourceTransactionHash}-1`,
+			}],
+		})
+	})
+
+	it('fail-closes arktype envelopes for searchGMP pages', async () => {
+		getJson.mockResolvedValueOnce({
+			data: 'nope',
+			total: 0,
+			time_spent: 1,
+		})
+		await expect(getGmpMessages({
+			size: 1,
+		})).rejects.toThrow('invalid searchGMP response envelope')
+	})
+
 	it('returns an empty list when searchGMP has zero messages', async () => {
 		getJson.mockResolvedValue(response([]))
 
@@ -172,8 +219,8 @@ describe('Axelarscan GMP queries', () => {
 
 	it.each([
 		['null response', null, 'searchGMP missing response'],
-		['omitted data', { total: 0, time_spent: 1 }, 'searchGMP missing data'],
-		['non-array data', { data: null, total: 0, time_spent: 1 }, 'searchGMP missing data'],
+		['omitted data', { total: 0, time_spent: 1 }, 'invalid searchGMP response envelope'],
+		['non-array data', { data: null, total: 0, time_spent: 1 }, 'invalid searchGMP response envelope'],
 		[
 			'upstream error envelope',
 			{

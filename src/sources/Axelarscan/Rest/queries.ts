@@ -11,10 +11,46 @@ import type {
 	AxelarscanGmpMessage,
 	AxelarscanGmpResponse,
 } from '$/sources/Axelarscan/Rest/types.ts'
+import {
+	axelarscanErrorEnvelope,
+	axelarscanGmpResponseEnvelope,
+} from '$/sources/Axelarscan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const bytes32Pattern = /^0x[0-9a-fA-F]{64}$/
+
+const omitUndefinedJson = (
+	value: unknown
+): unknown => {
+	if (Array.isArray(value))
+		return value.map(omitUndefinedJson)
+	if (value != null && typeof value === 'object')
+		return Object.fromEntries(
+			Object.entries(value)
+				.filter(([, entry]) => entry !== undefined)
+				.map(([key, entry]) => [
+					key,
+					omitUndefinedJson(entry),
+				])
+		)
+	return value
+}
+
+const assertEnvelope = <_Value>(
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(omitUndefinedJson(value))
+	} catch {
+		throw new Error(`Axelarscan_Rest: invalid ${label} response envelope`)
+	}
+	return value as _Value
+}
 
 const assertOpaqueIdentity = (value: string, name: string) => {
 	if (value.length < 1 || value.length > 1_024 || value.includes('/') || value.includes('\\'))
@@ -26,46 +62,60 @@ const assertSafeNonnegativeInteger = (value: number, name: string) => {
 		throw new Error(`Axelarscan_Rest: invalid ${name}`)
 }
 
-const assertEvent = (event: AxelarscanEvent) => {
-	for (const [name, value] of Object.entries({
-		chain: event.chain,
-		'transaction hash': event.transactionHash,
-		event: event.event,
-	}))
-		assertOpaqueIdentity(value, name)
-	for (const [name, value] of Object.entries({
-		'transaction index': event.transactionIndex,
-		'log index': event.logIndex,
-		'block number': event.blockNumber,
-		'block timestamp': event.block_timestamp,
-	}))
-		assertSafeNonnegativeInteger(value, name)
-	if (event.id !== `${event.transactionHash}_${event.transactionIndex}_${event.logIndex}`)
-		throw new Error('Axelarscan_Rest: mismatched event identity')
-	if (
-		event.receipt != null
-		&& (
-			!integerStringPattern.test(event.receipt.gasUsed)
-			|| !integerStringPattern.test(event.receipt.effectiveGasPrice)
-		)
-	)
-		throw new Error('Axelarscan_Rest: invalid lossless receipt unit')
-}
-
 const sameIdentity = (left: string, right: string) => left.toLowerCase() === right.toLowerCase()
 
+/** Axelarscan message ids key off `_logIndex` when present (explorer event index), else `logIndex`. */
+export const axelarscanMessageLogIndex = (event: Pick<AxelarscanEvent, '_logIndex' | 'logIndex'>) => (
+	event._logIndex ?? event.logIndex
+)
+
+const assertEvent = (event: AxelarscanEvent, role: string) => {
+	for (const [name, value] of Object.entries({
+		[`${role} chain`]: event.chain,
+		[`${role} transaction hash`]: event.transactionHash,
+		[`${role} event`]: event.event,
+	}))
+		assertOpaqueIdentity(value, name)
+	assertSafeNonnegativeInteger(event.block_timestamp, `${role} block timestamp`)
+	if (event.transactionIndex != null)
+		assertSafeNonnegativeInteger(event.transactionIndex, `${role} transaction index`)
+	if (event.logIndex != null)
+		assertSafeNonnegativeInteger(event.logIndex, `${role} log index`)
+	if (event._logIndex != null)
+		assertSafeNonnegativeInteger(event._logIndex, `${role} message log index`)
+	if (
+		event.id != null
+		&& event.transactionIndex != null
+		&& event.logIndex != null
+		&& event.id !== `${event.transactionHash}_${event.transactionIndex}_${event.logIndex}`
+	)
+		throw new Error(`Axelarscan_Rest: mismatched ${role} event identity`)
+	if (
+		event.receipt?.gasUsed != null
+		&& !integerStringPattern.test(event.receipt.gasUsed)
+		|| event.receipt?.effectiveGasPrice != null
+		&& !integerStringPattern.test(event.receipt.effectiveGasPrice)
+	)
+		throw new Error(`Axelarscan_Rest: invalid lossless ${role} receipt unit`)
+}
+
 const assertMessage = (message: AxelarscanGmpMessage) => {
-	assertEvent(message.call)
+	assertEvent(message.call, 'call')
 	for (const [name, value] of Object.entries({
 		sender: message.call.returnValues.sender,
 		'destination chain': message.call.returnValues.destinationChain,
 		'destination address': message.call.returnValues.destinationContractAddress,
-		payload: message.call.returnValues.payload,
+		payload: message.call.returnValues.payload ?? '',
 	}))
-		assertOpaqueIdentity(value, name)
+		if (name !== 'payload' || value !== '')
+			assertOpaqueIdentity(value, name)
 	if (!bytes32Pattern.test(message.call.returnValues.payloadHash))
 		throw new Error('Axelarscan_Rest: invalid payload hash')
-	if (message.message_id !== `${message.call.transactionHash}-${message.call.logIndex}`)
+
+	const messageLogIndex = axelarscanMessageLogIndex(message.call)
+	if (messageLogIndex == null)
+		throw new Error('Axelarscan_Rest: call missing message log index')
+	if (message.message_id !== `${message.call.transactionHash}-${messageLogIndex}`)
 		throw new Error('Axelarscan_Rest: mismatched message identity')
 	if (message.command_id != null && !bytes32Pattern.test(message.command_id))
 		throw new Error('Axelarscan_Rest: invalid command identity')
@@ -75,7 +125,7 @@ const assertMessage = (message: AxelarscanGmpMessage) => {
 		throw new Error(`Axelarscan_Rest: unknown simplified status ${message.simplified_status}`)
 
 	if (message.gas_paid != null) {
-		assertEvent(message.gas_paid)
+		assertEvent(message.gas_paid, 'gas payment')
 		if (
 			!integerStringPattern.test(message.gas_paid.returnValues.gasFeeAmount)
 			|| !sameIdentity(message.gas_paid.chain, message.call.chain)
@@ -115,14 +165,19 @@ const assertMessage = (message: AxelarscanGmpMessage) => {
 	}
 
 	if (message.approved != null) {
-		assertEvent(message.approved)
+		assertEvent(message.approved, 'approval')
+		const sourceEventIndex = String(message.approved.returnValues.sourceEventIndex)
 		if (
 			message.command_id == null
 			|| !sameIdentity(message.approved.chain, message.call.returnValues.destinationChain)
 			|| !sameIdentity(message.approved.returnValues.sourceChain, message.call.chain)
 			|| !sameIdentity(message.approved.returnValues.sourceAddress, message.call.returnValues.sender)
 			|| !sameIdentity(message.approved.returnValues.sourceTxHash, message.call.transactionHash)
-			|| message.approved.returnValues.sourceEventIndex !== String(message.call.logIndex)
+			|| (
+				message.call.logIndex != null
+				&& sourceEventIndex !== String(message.call.logIndex)
+				&& sourceEventIndex !== String(messageLogIndex)
+			)
 			|| !sameIdentity(
 				message.approved.returnValues.contractAddress,
 				message.call.returnValues.destinationContractAddress
@@ -137,12 +192,23 @@ const assertMessage = (message: AxelarscanGmpMessage) => {
 	}
 
 	if (message.executed != null) {
-		assertEvent(message.executed)
+		assertEvent(message.executed, 'execution')
 		if (
 			!sameIdentity(message.executed.chain, message.call.returnValues.destinationChain)
 			|| !sameIdentity(message.executed.sourceTransactionHash, message.call.transactionHash)
-			|| message.executed.sourceTransactionIndex !== message.call.transactionIndex
-			|| message.executed.sourceTransactionLogIndex !== message.call.logIndex
+		)
+			throw new Error('Axelarscan_Rest: mismatched destination execution')
+		if (
+			message.executed.sourceTransactionIndex != null
+			&& message.call.transactionIndex != null
+			&& message.executed.sourceTransactionIndex !== message.call.transactionIndex
+		)
+			throw new Error('Axelarscan_Rest: mismatched destination execution')
+		if (
+			message.executed.sourceTransactionLogIndex != null
+			&& message.call.logIndex != null
+			&& message.executed.sourceTransactionLogIndex !== message.call.logIndex
+			&& message.executed.sourceTransactionLogIndex !== messageLogIndex
 		)
 			throw new Error('Axelarscan_Rest: mismatched destination execution')
 	}
@@ -177,7 +243,8 @@ const assertGmpResponse = (
 ) => {
 	if (response == null)
 		throw new Error('Axelarscan_Rest: searchGMP missing response')
-	if ('error' in response && response.error)
+	if ('error' in response && response.error) {
+		assertEnvelope(axelarscanErrorEnvelope, response, 'searchGMP error')
 		throw new Error(
 			`Axelarscan_Rest: ${
 				typeof response.message === 'string' && response.message.length > 0 ?
@@ -186,25 +253,24 @@ const assertGmpResponse = (
 					'searchGMP failed'
 			}`
 		)
-	if (!Array.isArray(response.data))
-		throw new Error('Axelarscan_Rest: searchGMP missing data')
-	assertSafeNonnegativeInteger(response.total, 'total')
-	assertSafeNonnegativeInteger(response.time_spent, 'query time')
-	if (response.data.length > size)
+	}
+	const page = assertEnvelope<AxelarscanGmpResponse>(
+		axelarscanGmpResponseEnvelope,
+		response,
+		'searchGMP'
+	)
+	if (page.data.length > size)
 		throw new Error('Axelarscan_Rest: response exceeds requested size')
-	for (const message of response.data)
+	for (const message of page.data)
 		assertMessage(message)
-	return response
+	return page
 }
 
-/**
- * Axelarscan GMP list/detail via unique upstream `GET /gmp/searchGMP`.
- * Successful empty `data: []` is valid; missing/malformed envelopes throw.
- */
-export const getGmpMessages = (query:
+export type AxelarscanGmpSearchQuery =
 	| {
 		destinationChain?: never
 		from?: never
+		senderAddress?: never
 		size?: never
 		sourceChain?: never
 		transactionHash: string
@@ -212,11 +278,18 @@ export const getGmpMessages = (query:
 	| {
 		destinationChain?: string
 		from?: number
+		senderAddress?: string
 		size?: number
 		sourceChain?: string
 		transactionHash?: never
 	}
-) => {
+
+/**
+ * Axelarscan GMP list/detail via unique upstream `GET /gmp/searchGMP`.
+ * Successful empty `data: []` is valid; missing/malformed envelopes throw.
+ * Account lists use `senderAddress` (alias of Axelarscan `sourceAddress` / `sender`).
+ */
+export const getGmpMessages = (query: AxelarscanGmpSearchQuery) => {
 	const from = query.from ?? 0
 	const size = (
 		query.transactionHash == null ?
@@ -230,6 +303,8 @@ export const getGmpMessages = (query:
 			assertOpaqueIdentity(query.sourceChain, 'source chain')
 		if (query.destinationChain != null)
 			assertOpaqueIdentity(query.destinationChain, 'destination chain')
+		if (query.senderAddress != null)
+			assertOpaqueIdentity(query.senderAddress, 'sender address')
 	} else
 		assertOpaqueIdentity(query.transactionHash, 'transaction hash')
 
@@ -242,6 +317,7 @@ export const getGmpMessages = (query:
 					from: String(from),
 					...(query.sourceChain != null && { sourceChain: query.sourceChain }),
 					...(query.destinationChain != null && { destinationChain: query.destinationChain }),
+					...(query.senderAddress != null && { senderAddress: query.senderAddress }),
 				}
 				:
 				{
@@ -262,8 +338,8 @@ export const getGmpMessages = (query:
 				].some((candidate) => candidate != null && sameIdentity(candidate, query.transactionHash)))
 			)
 				throw new Error('Axelarscan_Rest: foreign transaction message')
-		} else
-			for (const message of page.data)
+		} else {
+			for (const message of page.data) {
 				if (
 					query.sourceChain != null
 					&& !sameIdentity(message.call.chain, query.sourceChain)
@@ -271,6 +347,13 @@ export const getGmpMessages = (query:
 					&& !sameIdentity(message.call.returnValues.destinationChain, query.destinationChain)
 				)
 					throw new Error('Axelarscan_Rest: foreign chain message')
+				if (
+					query.senderAddress != null
+					&& !sameIdentity(message.call.returnValues.sender, query.senderAddress)
+				)
+					throw new Error('Axelarscan_Rest: foreign sender message')
+			}
+		}
 		return page
 	})
 }

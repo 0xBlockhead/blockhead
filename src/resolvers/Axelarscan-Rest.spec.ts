@@ -14,7 +14,8 @@ import type { AxelarscanGmpMessage } from '$/sources/Axelarscan/Rest/types.ts'
 
 const getGmpMessages = vi.fn()
 
-vi.mock('$/sources/Axelarscan/Rest/queries.ts', () => ({
+vi.mock('$/sources/Axelarscan/Rest/queries.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/Axelarscan/Rest/queries.ts')>(),
 	getGmpMessages,
 }))
 
@@ -26,11 +27,16 @@ const bridgeTransferResolver = axelarscanResolvers.resolvers.find((resolver) => 
 const bridgeTransferTimestampResolver = axelarscanResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BridgeTransfer_Timestamp
 ))
+const evmAccountResolver = axelarscanResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmAccount
+))
 
 if (bridgeTransferResolver == null)
 	throw new Error('Axelarscan_Rest: BridgeTransfer resolver missing')
 if (bridgeTransferTimestampResolver == null)
 	throw new Error('Axelarscan_Rest: BridgeTransfer_Timestamp resolver missing')
+if (evmAccountResolver == null)
+	throw new Error('Axelarscan_Rest: EvmAccount resolver missing')
 
 const sourceTransactionHash = `0x${'1'.repeat(64)}`
 const executionTransactionHash = `0x${'4'.repeat(64)}`
@@ -44,11 +50,17 @@ const message = {
 		chain: 'moonbeam',
 		transactionHash: sourceTransactionHash,
 		transactionIndex: 2,
-		logIndex: 1,
-		id: `${sourceTransactionHash}_2_1`,
+		logIndex: 519,
+		_logIndex: 1,
+		id: `${sourceTransactionHash}_2_519`,
 		blockNumber: 1_000,
 		block_timestamp: 1_784_780_000,
 		event: 'ContractCall',
+		receipt: {
+			confirmations: 12,
+			gasUsed: '21000',
+			effectiveGasPrice: '1000',
+		},
 		returnValues: {
 			sender: sourceAddress,
 			destinationChain: 'base',
@@ -69,8 +81,16 @@ const message = {
 		event: 'execute',
 		sourceTransactionHash,
 		sourceTransactionIndex: 2,
-		sourceTransactionLogIndex: 1,
+		sourceTransactionLogIndex: 519,
 		relayerAddress,
+		receipt: {
+			gasUsed: '397688',
+			effectiveGasPrice: '6000000',
+			confirmations: 5,
+		},
+	},
+	fees: {
+		base_fee_usd: 0.014628501,
 	},
 	status: 'executed',
 	simplified_status: 'received',
@@ -113,6 +133,7 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 		expect(bridgeTransferResolver.projections.transferId(snapshot)).toBe(message.message_id)
 		expect(bridgeTransferResolver.projections.logIndex(snapshot)).toBe(1)
 		expect(bridgeTransferResolver.projections.assetOutcome(snapshot)).toBe(BridgeAssetOutcome.MessageOnly)
+		expect(bridgeTransferResolver.projections.bridgeFeeUsd(snapshot)).toBe('0.014628501')
 		expect(bridgeTransferResolver.projections.$fromNetwork(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
 				caip2: {
@@ -195,6 +216,56 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 		expect(bridgeTransferTimestampResolver.projections.destinationTxHash(observation)).toBe(executionTransactionHash)
 		expect(bridgeTransferTimestampResolver.projections.relayer(observation)).toBe(relayerAddress)
 		expect(bridgeTransferTimestampResolver.projections.completedAt(observation)).toBe(1_784_780_004_000)
+		expect(bridgeTransferTimestampResolver.projections.sourceConfirmations(observation)).toBe(12)
+		expect(bridgeTransferTimestampResolver.projections.fillGasFee(observation)).toBe(397688n * 6000000n)
+	})
+
+	it('lists EvmAccount.$$bridgeTransfers by senderAddress with offset continuation', async () => {
+		getGmpMessages.mockResolvedValueOnce({
+			data: [message, {
+				...message,
+				call: {
+					...message.call,
+					chain: 'cosmoshub',
+					returnValues: {
+						...message.call.returnValues,
+						destinationChain: 'osmosis',
+					},
+				},
+				message_id: `${sourceTransactionHash}-99`,
+			}],
+			total: 42,
+			time_spent: 1,
+		})
+
+		const snapshot = await evmAccountResolver.resolve.AddressInteropAddress.resolve({
+			address: sourceAddress,
+			interopAddress: undefined,
+		}, {
+			...resolverContext,
+			pagination: {
+				offset: 0,
+			},
+		})
+
+		expect(getGmpMessages).toHaveBeenCalledWith({
+			senderAddress: sourceAddress,
+			from: 0,
+			size: 25,
+		})
+		expect(evmAccountResolver.projections.$$bridgeTransfers.select(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				source: Source.Axelarscan_Rest,
+				transferId: message.message_id,
+			},
+		}])
+		expect(evmAccountResolver.projections.$$bridgeTransfers).not.toHaveProperty('resolveCount')
+		expect(evmAccountResolver.projections.$$bridgeTransfers.continuation(snapshot)).toMatchObject({
+			operation: 'account-bridge-transfers',
+			target: 'axelarscan',
+			terminal: false,
+			token: '25',
+		})
 	})
 
 	it('rejects non-EVM GMP legs and clock mismatches before projection', async () => {
@@ -227,5 +298,34 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 			timestampMs: 1,
 			source: Source.Axelarscan_Rest,
 		}, resolverContext)).rejects.toThrow('observation clock mismatch')
+	})
+
+	it('omits cosmos relayer identities instead of failing closed', async () => {
+		getGmpMessages.mockResolvedValueOnce({
+			data: [{
+				...message,
+				executed: {
+					...message.executed!,
+					relayerAddress: 'axelar1j4ypvp2m8n0jxj5thtfampd42vjl3chlnuv9e4',
+					from: undefined,
+					receipt: {
+						...message.executed!.receipt!,
+						from: undefined,
+					},
+				},
+			}],
+			total: 1,
+			time_spent: 1,
+		})
+
+		const observation = await bridgeTransferTimestampResolver.resolve.TransferTimestampMsSource.resolve({
+			$transfer: {
+				source: Source.Axelarscan_Rest,
+				transferId: message.message_id,
+			},
+			timestampMs: 1_784_780_004_000,
+			source: Source.Axelarscan_Rest,
+		}, resolverContext)
+		expect(bridgeTransferTimestampResolver.projections.relayer(observation)).toBeUndefined()
 	})
 })

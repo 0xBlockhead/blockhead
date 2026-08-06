@@ -8,12 +8,15 @@ import {
 
 import {
 	duneApiPaths,
+	duneExecutionPathSuffixes,
 	duneExecutionStatusByState,
 	dunePerformanceTiers,
 } from '$/sources/Dune/Rest/constants.ts'
 import {
+	cancelExecution,
 	executeQuery,
 	getExecutionResults,
+	getExecutionStatus,
 	getLatestQueryResults,
 	getQuery,
 	getUsage,
@@ -39,7 +42,7 @@ describe('Dune REST queries', () => {
 		vi.unstubAllGlobals()
 	})
 
-	it('routes query metadata, execute, results, latest results, and usage through cataloged paths', async () => {
+	it('routes query metadata, execute, results, status, cancel, latest results, and usage through cataloged paths', async () => {
 		const fetchMock = vi.fn<typeof fetch>()
 			.mockResolvedValueOnce(jsonResponse({ query_id: 42, name: 'demo' }))
 			.mockResolvedValueOnce(jsonResponse({
@@ -51,6 +54,14 @@ describe('Dune REST queries', () => {
 				state: 'QUERY_STATE_COMPLETED',
 				is_execution_finished: true,
 				result: { rows: [{ a: 1 }] },
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				execution_id: 'exec-1',
+				state: 'QUERY_STATE_EXECUTING',
+				execution_cost_credits: 0,
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				success: true,
 			}))
 			.mockResolvedValueOnce(jsonResponse({
 				execution_id: 'exec-2',
@@ -75,6 +86,14 @@ describe('Dune REST queries', () => {
 			execution_id: 'exec-1',
 			result: { rows: [{ a: 1 }] },
 		})
+		await expect(getExecutionStatus(publicEnv, 'exec-1')).resolves.toMatchObject({
+			execution_id: 'exec-1',
+			state: 'QUERY_STATE_EXECUTING',
+			execution_cost_credits: 0,
+		})
+		await expect(cancelExecution(publicEnv, 'exec-1')).resolves.toEqual({
+			success: true,
+		})
 		await expect(getLatestQueryResults(publicEnv, 42, { limit: 5 })).resolves.toMatchObject({
 			execution_id: 'exec-2',
 		})
@@ -85,11 +104,16 @@ describe('Dune REST queries', () => {
 		const urls = fetchMock.mock.calls.map((call) => String(call[0]))
 		expect(urls[0]).toContain(encodeURIComponent(`${duneApiPaths.query}/42?include_contributors=true`))
 		expect(urls[1]).toContain(encodeURIComponent(`${duneApiPaths.query}/42/execute`))
-		expect(urls[2]).toContain(encodeURIComponent(`${duneApiPaths.execution}/exec-1/results?`))
+		expect(urls[2]).toContain(encodeURIComponent(`${duneApiPaths.execution}/exec-1/${duneExecutionPathSuffixes.results}?`))
 		expect(urls[2]).toContain('limit%3D10')
-		expect(urls[3]).toContain(encodeURIComponent(`${duneApiPaths.query}/42/results?`))
-		expect(urls[3]).toContain('limit%3D5')
-		expect(urls[4]).toContain(encodeURIComponent(duneApiPaths.usage))
+		expect(urls[3]).toContain(encodeURIComponent(`${duneApiPaths.execution}/exec-1/${duneExecutionPathSuffixes.status}`))
+		expect(urls[4]).toContain(encodeURIComponent(`${duneApiPaths.execution}/exec-1/${duneExecutionPathSuffixes.cancel}`))
+		expect(fetchMock.mock.calls[4]?.[1]).toMatchObject({
+			method: 'POST',
+		})
+		expect(urls[5]).toContain(encodeURIComponent(`${duneApiPaths.query}/42/results?`))
+		expect(urls[5]).toContain('limit%3D5')
+		expect(urls[6]).toContain(encodeURIComponent(duneApiPaths.usage))
 		expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({
 			method: 'POST',
 			body: JSON.stringify({ performance: 'medium' }),
@@ -118,6 +142,21 @@ describe('Dune REST queries', () => {
 		await expect(getExecutionResults(publicEnv, 'exec')).rejects.toThrow(/502/)
 		await expect(getLatestQueryResults(publicEnv, 1)).rejects.toThrow(/503/)
 		await expect(getUsage(publicEnv)).rejects.toThrow(/401/)
+	})
+
+	it('hard-fails HTTP errors on execution status and cancel', async () => {
+		vi.stubGlobal('window', {})
+		vi.stubGlobal('fetch', vi.fn<typeof fetch>(async (input) => {
+			const url = String(input)
+			if (url.includes('%2Fstatus') || url.includes('/status'))
+				return jsonResponse({ error: 'nope' }, 429)
+			if (url.includes('%2Fcancel') || url.includes('/cancel'))
+				return jsonResponse({ error: 'nope' }, 400)
+			return jsonResponse({ error: 'unexpected' }, 500)
+		}))
+
+		await expect(getExecutionStatus(publicEnv, 'exec')).rejects.toThrow(/429/)
+		await expect(cancelExecution(publicEnv, 'exec')).rejects.toThrow(/400/)
 	})
 
 	it('hard-fails execute payloads missing execution_id or unknown state', async () => {
@@ -184,7 +223,7 @@ describe('Dune REST queries', () => {
 		})).toThrow('missing billing credits')
 	})
 
-	it('fail-closes arktype envelopes for query metadata and usage shapes', async () => {
+	it('fail-closes arktype envelopes for query metadata, usage, status, and cancel shapes', async () => {
 		vi.stubGlobal('window', {})
 		vi.stubGlobal('fetch', vi.fn<typeof fetch>()
 			.mockResolvedValueOnce(jsonResponse({
@@ -194,9 +233,18 @@ describe('Dune REST queries', () => {
 			.mockResolvedValueOnce(jsonResponse({
 				billingPeriods: 'nope',
 			}))
+			.mockResolvedValueOnce(jsonResponse({
+				execution_id: 'exec-1',
+				state: 'QUERY_STATE_BOGUS',
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				success: 'yes',
+			}))
 		)
 
 		await expect(getQuery(publicEnv, 1)).rejects.toThrow('invalid query metadata response envelope')
 		await expect(getUsage(publicEnv)).rejects.toThrow('invalid usage response envelope')
+		await expect(getExecutionStatus(publicEnv, 'exec-1')).rejects.toThrow('invalid execution status response envelope')
+		await expect(cancelExecution(publicEnv, 'exec-1')).rejects.toThrow('invalid cancel execution response envelope')
 	})
 })

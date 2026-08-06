@@ -98,6 +98,13 @@ export const duneApiPaths = {
 	usage: '/api/v1/usage',
 } as const
 
+/** Relative suffixes under `/api/v1/execution/{execution_id}/…`. */
+export const duneExecutionPathSuffixes = {
+	results: 'results',
+	status: 'status',
+	cancel: 'cancel',
+} as const
+
 
 // Lookups
 

@@ -102,9 +102,30 @@ export const duneExecutionResultEnvelope = arktype({
 	'error?': duneQueryResultErrorEnvelope,
 })
 
+/** Status endpoint — no result rows; may include credit cost + failure details. */
+export const duneExecutionStatusEnvelope = arktype({
+	execution_id: 'string',
+	state: duneExecutionStateWire,
+	'query_id?': 'number',
+	'submitted_at?': 'string',
+	'expires_at?': 'string',
+	'execution_started_at?': 'string',
+	'execution_ended_at?': 'string',
+	'cancelled_at?': 'string',
+	'is_execution_finished?': 'boolean',
+	'execution_cost_credits?': 'number',
+	'error?': duneQueryResultErrorEnvelope,
+})
+
+export const duneCancelExecutionResponseEnvelope = arktype({
+	success: 'boolean',
+})
+
 export const duneUsageBillingPeriodEnvelope = arktype({
 	'credits_used?': 'number',
 	'credits_included?': 'number',
+	'start_date?': 'string',
+	'end_date?': 'string',
 })
 
 export const duneUsageResponseEnvelope = arktype({
@@ -191,6 +212,24 @@ export type DuneExecutionResult = {
 	error?: DuneQueryResultError
 }
 
+export type DuneExecutionStatusResponse = {
+	execution_id: string
+	state: DuneExecutionStatus
+	query_id?: number
+	submitted_at?: string
+	expires_at?: string
+	execution_started_at?: string
+	execution_ended_at?: string
+	cancelled_at?: string
+	is_execution_finished?: boolean
+	execution_cost_credits?: number
+	error?: DuneQueryResultError
+}
+
+export type DuneCancelExecutionResponse = {
+	success: boolean
+}
+
 export type DuneExecuteQueryBody = {
 	query_parameters?: Record<string, JsonValue>
 	performance?: DunePerformanceTier
@@ -210,6 +249,8 @@ export type DuneGetExecutionResultsParams = {
 export type DuneUsageBillingPeriod = {
 	credits_used?: number
 	credits_included?: number
+	start_date?: string
+	end_date?: string
 }
 
 /** `POST /api/v1/usage` — camelCase or snake_case billing periods per plan/docs. */
