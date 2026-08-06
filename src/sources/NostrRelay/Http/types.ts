@@ -45,6 +45,9 @@ export const nostrRelayInformationDocumentEnvelope = arktype({
 	'terms_of_service?': 'string',
 	'icon?': 'string',
 	'banner?': 'string',
+	'language_tags?': 'string[]',
+	'relay_countries?': 'string[]',
+	'tags?': 'string[]',
 })
 
 export type NostrRelayLimitation = typeof nostrRelayLimitationEnvelope.infer

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -9,6 +9,7 @@ const getRawTransaction = vi.fn()
 const getBlock = vi.fn()
 const getBlockCount = vi.fn()
 const getBlockHash = vi.fn()
+const getMempoolInfo = vi.fn()
 const getTransparentAddressUtxos = vi.fn()
 
 vi.mock('$/sources/BitcoinCashNode/JsonRpc/queries.ts', () => ({
@@ -16,6 +17,7 @@ vi.mock('$/sources/BitcoinCashNode/JsonRpc/queries.ts', () => ({
 	getBlock,
 	getBlockCount,
 	getBlockHash,
+	getMempoolInfo,
 	getTransparentAddressUtxos,
 }))
 
@@ -48,6 +50,13 @@ const addressOutputsResolver = bitcoinCashNodeResolvers.resolvers.find((resolver
 const addressTimestampResolver = bitcoinCashNodeResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoAddress_Timestamp
 ))
+const networkTimestampResolver = bitcoinCashNodeResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network_Timestamp
+))
+const networkTimestampsResolver = bitcoinCashNodeResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& '$$timestamps' in resolver.projections
+))
 
 if (transactionResolver == null)
 	throw new Error('BitcoinCashNode-JsonRpc spec missing UtxoTransaction resolver')
@@ -60,6 +69,9 @@ if (blockResolver == null || networkBlocksResolver == null)
 
 if (addressOutputsResolver == null || addressTimestampResolver == null)
 	throw new Error('BitcoinCashNode-JsonRpc spec missing address UTXO resolvers')
+
+if (networkTimestampResolver == null || networkTimestampsResolver == null)
+	throw new Error('BitcoinCashNode-JsonRpc spec missing network tip observation resolvers')
 
 const network = {
 	caip2: networkBySlug['bitcoin-cash'].caip2,
@@ -317,6 +329,69 @@ describe('BitcoinCashNode UTXO', () => {
 		}, resolverContext)
 		expect(addressTimestampResolver.projections.balanceSats(observation)).toBe(12_345n)
 		expect(addressTimestampResolver.projections.unspentOutputCount(observation)).toBe(1)
+	})
+
+	it('projects Network_Timestamp tip fields from block tip + getmempoolinfo', async () => {
+		const tipHash = 'a'.repeat(64)
+		getBlockCount.mockResolvedValue(850_000)
+		getBlockHash.mockResolvedValue(tipHash)
+		getBlock.mockResolvedValue({
+			hash: tipHash,
+			height: 850_000,
+			version: 1,
+			versionHex: '00000001',
+			merkleroot: 'b'.repeat(64),
+			time: 1_700_000_000,
+			mediantime: 1_700_000_000,
+			nonce: 1,
+			bits: '1a00ffff',
+			difficulty: 1,
+			chainwork: '01',
+			nTx: 2,
+			tx: ['c'.repeat(64), 'd'.repeat(64)],
+		})
+		getMempoolInfo.mockResolvedValue({
+			loaded: true,
+			size: 17,
+			bytes: 9_001,
+			usage: 10_000,
+			total_fee: 0.01,
+			maxmempool: 300_000_000,
+			mempoolminfee: 0.00001,
+			minrelaytxfee: 0.00001,
+		})
+
+		const tip = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: network,
+			timestampMs: 1_700_000_000_000,
+			source: Source.BitcoinCashNode_JsonRpc,
+		}, resolverContext)
+
+		expect(networkTimestampResolver.projections.Utxo.bestBlockHeight(tip)).toBe(850_000n)
+		expect(networkTimestampResolver.projections.Utxo.bestBlockHash(tip)).toBe(tipHash)
+		expect(networkTimestampResolver.projections.Utxo.bestBlockTimeMs(tip)).toBe(1_700_000_000_000)
+		expect(networkTimestampResolver.projections.Utxo.blockCount(tip)).toBe(850_001n)
+		expect(networkTimestampResolver.projections.Utxo.mempoolTransactionCount(tip)).toBe(17)
+		expect(networkTimestampResolver.projections.Utxo.mempoolSizeBytes(tip)).toBe(9_001n)
+
+		const timestamps = await networkTimestampsResolver.resolve.Caip2.resolve(network, resolverContext)
+		expect(networkTimestampsResolver.projections.$$timestamps(timestamps)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					timestampMs: expect.any(Number),
+					source: Source.BitcoinCashNode_JsonRpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: 850_000n,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: tipHash,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: 1_700_000_000_000,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: 850_001n,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: 17,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: 9_001n,
+				},
+			},
+		])
 	})
 
 	it('fails closed on unsupported networks before transport', async () => {

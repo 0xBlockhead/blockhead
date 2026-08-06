@@ -2,8 +2,13 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { networkBySlug } from '$/constants/Network.ts'
 import {
+	networkBySlug,
+	NetworkExecutionModel,
+	NetworkLedgerModel,
+} from '$/constants/Network.ts'
+import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -130,6 +135,57 @@ const resolveUtxoBlocks = async (
 			}))
 		),
 	}
+}
+
+const resolveNetworkTipObservation = async (network: NetworkId) => {
+	assertBitcoinCashMainnet(network)
+	const {
+		getBlock,
+		getBlockCount,
+		getBlockHash,
+		getMempoolInfo,
+	} = await import('$/sources/BitcoinCashNode/JsonRpc/queries.ts')
+	const tipHeight = await getBlockCount()
+	const [bestBlockHash, mempoolInfo] = await Promise.all([
+		getBlockHash({
+			height: BigInt(tipHeight),
+		}),
+		getMempoolInfo(),
+	])
+	const tipBlock = await getBlock({
+		blockHash: bestBlockHash,
+	})
+	if (typeof tipBlock === 'string')
+		throw new Error('BitcoinCashNode_JsonRpc: expected verbose tip block')
+	return {
+		bestBlockHeight: BigInt(tipHeight),
+		bestBlockHash,
+		bestBlockTimeMs: tipBlock.time * 1000,
+		blockCount: BigInt(tipHeight + 1),
+		mempoolTransactionCount: mempoolInfo.size,
+		mempoolSizeBytes: BigInt(mempoolInfo.bytes),
+	}
+}
+
+const resolveNetworkTipTimestamps = async (network: NetworkId) => {
+	const tip = await resolveNetworkTipObservation(network)
+	return [
+		{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				timestampMs: Date.now(),
+				source: Source.BitcoinCashNode_JsonRpc,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: tip.bestBlockHeight,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: tip.bestBlockHash,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: tip.bestBlockTimeMs,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: tip.blockCount,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: tip.mempoolTransactionCount,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: tip.mempoolSizeBytes,
+			},
+		},
+	]
 }
 
 export default {
@@ -483,6 +539,76 @@ export default {
 					select: (snapshot) => snapshot.blocks,
 					resolveCount: (snapshot) => BigInt(snapshot.tipHeight + 1),
 				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: resolveNetworkTipTimestamps,
+				},
+				Slug: {
+					resolve: resolveNetworkTipTimestamps,
+				},
+			},
+		})({
+			$$timestamps: (timestamps) => timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					appliesTo: [
+						{
+							$network: {
+								caip2: networkBySlug['bitcoin-cash'].caip2,
+							},
+							source: Source.BitcoinCashNode_JsonRpc,
+						},
+						{
+							$network: {
+								slug: networkBySlug['bitcoin-cash'].slug,
+							},
+							source: Source.BitcoinCashNode_JsonRpc,
+						},
+					],
+					resolve: async ({
+						$network,
+						timestampMs,
+						source,
+					}) => {
+						if (source !== Source.BitcoinCashNode_JsonRpc)
+							throw new Error(`BitcoinCashNode_JsonRpc: unsupported network timestamp source ${source}`)
+
+						const tip = await resolveNetworkTipObservation($network)
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							timestampMs,
+							source,
+							ledgerModels: [NetworkLedgerModel.Utxo],
+							executionModels: [] satisfies NetworkExecutionModel[],
+							...tip,
+						}
+					},
+				},
+			},
+		})({
+			$network: (timestamp) => timestamp.$network,
+			timestampMs: (timestamp) => timestamp.timestampMs,
+			source: (timestamp) => timestamp.source,
+			ledgerModels: (timestamp) => timestamp.ledgerModels,
+			executionModels: (timestamp) => timestamp.executionModels,
+			Utxo: {
+				bestBlockHeight: (timestamp) => timestamp.bestBlockHeight,
+				bestBlockHash: (timestamp) => timestamp.bestBlockHash,
+				bestBlockTimeMs: (timestamp) => timestamp.bestBlockTimeMs,
+				blockCount: (timestamp) => timestamp.blockCount,
+				mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
+				mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
 			},
 		}),
 	],

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/DogecoinCore/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -10,6 +10,7 @@ const getBlock = vi.fn()
 const getRawTransaction = vi.fn()
 const getBlockCount = vi.fn()
 const getBlockHash = vi.fn()
+const getMempoolInfo = vi.fn()
 const getTransparentAddressUtxos = vi.fn()
 
 vi.mock('$/sources/DogecoinCore/JsonRpc/queries.ts', () => ({
@@ -17,6 +18,7 @@ vi.mock('$/sources/DogecoinCore/JsonRpc/queries.ts', () => ({
 	getRawTransaction,
 	getBlockCount,
 	getBlockHash,
+	getMempoolInfo,
 	getTransparentAddressUtxos,
 }))
 
@@ -146,6 +148,15 @@ const addressTimestampResolver = dogecoinCoreResolvers.resolvers.find((resolver)
 	resolver.entityType === EntityType.UtxoAddress_Timestamp
 ))
 
+const networkTimestampResolver = dogecoinCoreResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network_Timestamp
+))
+
+const networkTimestampsResolver = dogecoinCoreResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& '$$timestamps' in resolver.projections
+))
+
 if (auxPowResolver == null || branchResolver == null || parentHeaderResolver == null)
 	throw new Error('DogecoinCore-JsonRpc spec missing AuxPoW resolvers')
 
@@ -154,6 +165,9 @@ if (blockResolver == null || networkBlocksResolver == null)
 
 if (addressOutputsResolver == null || addressTimestampResolver == null)
 	throw new Error('DogecoinCore-JsonRpc spec missing address UTXO resolvers')
+
+if (networkTimestampResolver == null || networkTimestampsResolver == null)
+	throw new Error('DogecoinCore-JsonRpc spec missing network tip observation resolvers')
 
 describe('Dogecoin Core AuxPoW resolvers', () => {
 	beforeEach(() => {
@@ -298,6 +312,7 @@ describe('DogecoinCore UTXO', () => {
 		getBlock.mockReset()
 		getBlockCount.mockReset()
 		getBlockHash.mockReset()
+		getMempoolInfo.mockReset()
 		getTransparentAddressUtxos.mockReset()
 	})
 
@@ -516,5 +531,59 @@ describe('DogecoinCore UTXO', () => {
 		}, resolverContext)
 		expect(addressTimestampResolver.projections.balanceSats(observation)).toBe(50_000_000n)
 		expect(addressTimestampResolver.projections.unspentOutputCount(observation)).toBe(1)
+	})
+
+	it('projects Network_Timestamp tip fields from block tip + getmempoolinfo', async () => {
+		const network = {
+			slug: networkBySlug.dogecoin.slug,
+		}
+		getBlockCount.mockResolvedValue(5_000_000)
+		getBlockHash.mockResolvedValue(blockHash)
+		getBlock.mockResolvedValue({
+			...auxPowBlock,
+			auxpow: undefined,
+		})
+		getMempoolInfo.mockResolvedValue({
+			loaded: true,
+			size: 42,
+			bytes: 12_345,
+			usage: 20_000,
+			total_fee: 0.1,
+			maxmempool: 300_000_000,
+			mempoolminfee: 0.00001,
+			minrelaytxfee: 0.00001,
+		})
+
+		const tip = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: network,
+			timestampMs: 1_700_000_000_000,
+			source: Source.DogecoinCore_JsonRpc,
+		}, resolverContext)
+
+		expect(networkTimestampResolver.projections.Utxo.bestBlockHeight(tip)).toBe(5_000_000n)
+		expect(networkTimestampResolver.projections.Utxo.bestBlockHash(tip)).toBe(blockHash)
+		expect(networkTimestampResolver.projections.Utxo.bestBlockTimeMs(tip)).toBe(1_750_000_000_000)
+		expect(networkTimestampResolver.projections.Utxo.blockCount(tip)).toBe(5_000_001n)
+		expect(networkTimestampResolver.projections.Utxo.mempoolTransactionCount(tip)).toBe(42)
+		expect(networkTimestampResolver.projections.Utxo.mempoolSizeBytes(tip)).toBe(12_345n)
+
+		const timestamps = await networkTimestampsResolver.resolve.Slug.resolve(network, resolverContext)
+		expect(networkTimestampsResolver.projections.$$timestamps(timestamps)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					timestampMs: expect.any(Number),
+					source: Source.DogecoinCore_JsonRpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: 5_000_000n,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: blockHash,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: 1_750_000_000_000,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: 5_000_001n,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: 42,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: 12_345n,
+				},
+			},
+		])
 	})
 })

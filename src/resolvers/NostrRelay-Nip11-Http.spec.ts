@@ -116,6 +116,55 @@ describe('NostrRelay NIP-11 Http resolver', () => {
 				relayUrl: boundRelayUrl.replace(/\/$/, ''),
 			},
 		})
+		expect(snapshot).not.toHaveProperty('language_tags')
+		expect(snapshot).not.toHaveProperty('relay_countries')
+		expect(snapshot).not.toHaveProperty('tags')
+		expect(snapshot).not.toHaveProperty('languageTags')
+		expect(snapshot).not.toHaveProperty('relayCountries')
+	})
+
+	it('keeps NIP-11 language_tags / relay_countries / tags unprojected', async () => {
+		if (timestampResolver == null || boundRelayUrl == null)
+			throw new Error('missing NIP-11 timestamp resolver or binding')
+
+		fetchRelayInformation.mockResolvedValue({
+			name: 'relay.example',
+			language_tags: [
+				'en',
+			],
+			relay_countries: [
+				'US',
+			],
+			tags: [
+				'nsfw',
+			],
+		})
+
+		const snapshot = await timestampResolver.resolve.RelayTimestampMsSource.resolve({
+			$relay: {
+				relayUrl: boundRelayUrl,
+			},
+			timestampMs: 1_700_000_000_000,
+			source: Source.NostrRelay_Nip11_Http,
+		}, {
+			filters: [],
+			sorts: [],
+			pagination: {
+				limit: 16,
+			},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		})
+
+		expect(timestampResolver.projections.name(snapshot)).toBe('relay.example')
+		expect(snapshot).not.toHaveProperty('language_tags')
+		expect(snapshot).not.toHaveProperty('relay_countries')
+		expect(snapshot).not.toHaveProperty('tags')
+		expect(Object.keys(timestampResolver.projections)).not.toContain('languageTags')
+		expect(Object.keys(timestampResolver.projections)).not.toContain('relayCountries')
+		expect(Object.keys(timestampResolver.projections)).not.toContain('tags')
 	})
 
 	it('marks unreachable when NIP-11 transport fails', async () => {

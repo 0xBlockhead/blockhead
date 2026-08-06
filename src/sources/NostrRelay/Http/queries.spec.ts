@@ -66,6 +66,68 @@ describe('NostrRelay NIP-11 Http transport', () => {
 		})
 	})
 
+	it('accepts NIP-11 transport leftovers without requiring enrolled projection', async () => {
+		if (boundRelayUrl == null)
+			throw new Error('missing NIP-11 binding')
+
+		sourceFetch.mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				name: 'relay.example',
+				language_tags: [
+					'en',
+					'ja',
+				],
+				relay_countries: [
+					'US',
+					'JP',
+				],
+				tags: [
+					'nsfw',
+					'media',
+				],
+			}),
+		})
+
+		await expect(
+			fetchRelayInformation({
+				relayUrl: boundRelayUrl,
+			})
+		).resolves.toEqual({
+			name: 'relay.example',
+			language_tags: [
+				'en',
+				'ja',
+			],
+			relay_countries: [
+				'US',
+				'JP',
+			],
+			tags: [
+				'nsfw',
+				'media',
+			],
+		})
+	})
+
+	it('fail-closes malformed language_tags leftovers', async () => {
+		if (boundRelayUrl == null)
+			throw new Error('missing NIP-11 binding')
+
+		sourceFetch.mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				language_tags: 'en',
+			}),
+		})
+
+		await expect(
+			fetchRelayInformation({
+				relayUrl: boundRelayUrl,
+			})
+		).rejects.toThrow('NostrRelay_Nip11_Http: invalid NIP-11 response envelope')
+	})
+
 	it('fail-closes malformed supported_nips', async () => {
 		if (boundRelayUrl == null)
 			throw new Error('missing NIP-11 binding')
