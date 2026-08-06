@@ -102,6 +102,14 @@
 				layout={EntityLayout.Title}
 			/>
 		</span>
+
+		<ResourceBoundary resource={osmosisPool}>
+			{#snippet children(entity)}
+				{#if entity.typeUrl?.includes('concentratedliquidity')}
+					<span data-text="muted">Concentrated liquidity</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content()}
