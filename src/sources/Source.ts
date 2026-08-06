@@ -258,6 +258,7 @@ export enum Source {
 	TrustWalletAssets_Github = 'TrustWalletAssets_Github',
 	Tzkt_Rest = 'Tzkt_Rest',
 	UniswapContracts_Evm = 'UniswapContracts_Evm',
+	UniSat_Rest = 'UniSat_Rest',
 	Voltaire_JsonRpc = 'Voltaire_JsonRpc',
 	Voyager = 'Voyager',
 	WakuNode = 'WakuNode',
