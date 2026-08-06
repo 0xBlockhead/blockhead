@@ -193,6 +193,7 @@ export default entity({
 				defaultSources: [
 					Source.Voltaire_JsonRpc,
 					Source.Blockscout_Rest,
+					Source.Blobscan_Rest,
 				],
 			},
 			$$transactions: {
@@ -334,6 +335,7 @@ export default entity({
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Voltaire_JsonRpc,
+					Source.Blobscan_Rest,
 				],
 			},
 			$$contracts: {
@@ -1094,6 +1096,7 @@ export default entity({
 				}),
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
+					Source.Blockfrost_Rest,
 					Source.CardanoKoios_Rest,
 				],
 			},
@@ -1101,6 +1104,7 @@ export default entity({
 				entityType: EntityType.CardanoNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
+					Source.Blockfrost_Rest,
 					Source.CardanoKoios_Rest,
 				],
 			},
@@ -1108,6 +1112,7 @@ export default entity({
 				entityType: EntityType.CardanoBlock,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
+					Source.Blockfrost_Rest,
 					Source.CardanoKoios_Rest,
 				],
 			},
@@ -1115,6 +1120,7 @@ export default entity({
 				entityType: EntityType.CardanoTransaction,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
+					Source.Blockfrost_Rest,
 					Source.CardanoKoios_Rest,
 				],
 			},
@@ -1122,6 +1128,7 @@ export default entity({
 				entityType: EntityType.CardanoStakePool,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
+					Source.Blockfrost_Rest,
 					Source.CardanoKoios_Rest,
 				],
 			},
@@ -1129,6 +1136,7 @@ export default entity({
 				entityType: EntityType.CardanoDRep,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
+					Source.Blockfrost_Rest,
 					Source.CardanoKoios_Rest,
 				],
 			},
@@ -1136,6 +1144,7 @@ export default entity({
 				entityType: EntityType.CardanoGovernanceProposal,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
+					Source.Blockfrost_Rest,
 					Source.CardanoKoios_Rest,
 				],
 			},
@@ -1143,6 +1152,7 @@ export default entity({
 				entityType: EntityType.CardanoNativeAsset,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
+					Source.Blockfrost_Rest,
 					Source.CardanoKoios_Rest,
 				],
 			},
@@ -1150,6 +1160,7 @@ export default entity({
 				entityType: EntityType.CardanoProtocolParameters_Epoch,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
+					Source.Blockfrost_Rest,
 					Source.CardanoKoios_Rest,
 				],
 			},
@@ -1157,6 +1168,7 @@ export default entity({
 				entityType: EntityType.CardanoCommittee_Epoch,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
+					Source.Blockfrost_Rest,
 					Source.CardanoKoios_Rest,
 				],
 			},

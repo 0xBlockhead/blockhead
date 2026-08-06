@@ -68,15 +68,15 @@
 			}
 		})()
 	)
-	const voltaireJsonRpcSources = $derived(
-		networkApplicableSources([
-			Source.Voltaire_JsonRpc,
-		], pendingEntity)
-	)
-
 	const blockscoutRestSources = $derived(
 		networkApplicableSources([
 			Source.Blockscout_Rest,
+		], pendingEntity)
+	)
+
+	const voltaireJsonRpcSources = $derived(
+		networkApplicableSources([
+			Source.Voltaire_JsonRpc,
 		], pendingEntity)
 	)
 
@@ -149,8 +149,9 @@
 		], pendingEntity)
 	)
 
-	const cardanoKoiosRestSources = $derived(
+	const blockfrostRestAndCardanoKoiosRestSources = $derived(
 		networkApplicableSources([
+			Source.Blockfrost_Rest,
 			Source.CardanoKoios_Rest,
 		], pendingEntity)
 	)
@@ -1609,6 +1610,12 @@
 					{/snippet}
 
 				</CollapsibleTabs>
+				{@const evmExecutionBlocksSources = networkApplicableSources([
+						Source.Voltaire_JsonRpc,
+						Source.Blockscout_Rest,
+						Source.Blobscan_Rest,
+					], pendingEntity)}
+
 				{@const evmExecutionGasEstimatesSources = networkApplicableSources([
 						Source.Blockscout_Rest,
 						Source.Etherscan_Rest,
@@ -1620,7 +1627,7 @@
 							label: 'Upgrades',
 						},
 						...(
-							voltaireJsonRpcSources.length > 0 ?
+							evmExecutionBlocksSources.length > 0 ?
 								[
 									{
 										id: 'evm-execution-blocks',
@@ -1728,7 +1735,7 @@
 								selection={
 									projection
 									.$$blocks({
-										sources: voltaireJsonRpcSources,
+										sources: evmExecutionBlocksSources,
 										limit: 4,
 									})
 								}
@@ -5693,7 +5700,7 @@
 			{#snippet Applicable(projection)}
 				{@const cardanoChainActivitySections = [
 						...(
-							cardanoKoiosRestSources.length > 0 ?
+							blockfrostRestAndCardanoKoiosRestSources.length > 0 ?
 								[
 									{
 										id: 'cardano-chain-observations',
@@ -5704,7 +5711,7 @@
 								[]
 						),
 						...(
-							cardanoKoiosRestSources.length > 0 ?
+							blockfrostRestAndCardanoKoiosRestSources.length > 0 ?
 								[
 									{
 										id: 'cardano-chain-blocks',
@@ -5715,7 +5722,7 @@
 								[]
 						),
 						...(
-							cardanoKoiosRestSources.length > 0 ?
+							blockfrostRestAndCardanoKoiosRestSources.length > 0 ?
 								[
 									{
 										id: 'cardano-chain-transactions',
@@ -5746,7 +5753,7 @@
 								selection={
 									projection
 									.$$timestamps({
-										sources: cardanoKoiosRestSources,
+										sources: blockfrostRestAndCardanoKoiosRestSources,
 										limit: 16,
 									})
 								}
@@ -5761,7 +5768,7 @@
 								selection={
 									projection
 									.$$blocks({
-										sources: cardanoKoiosRestSources,
+										sources: blockfrostRestAndCardanoKoiosRestSources,
 										limit: 16,
 									})
 								}
@@ -5776,7 +5783,7 @@
 								selection={
 									projection
 									.$$transactions({
-										sources: cardanoKoiosRestSources,
+										sources: blockfrostRestAndCardanoKoiosRestSources,
 										limit: 16,
 									})
 								}
@@ -5790,7 +5797,7 @@
 				{/if}
 				{@const cardanoStakeDelegationSections = [
 						...(
-							cardanoKoiosRestSources.length > 0 ?
+							blockfrostRestAndCardanoKoiosRestSources.length > 0 ?
 								[
 									{
 										id: 'cardano-stake-pools',
@@ -5821,7 +5828,7 @@
 								selection={
 									projection
 									.$$stakePools({
-										sources: cardanoKoiosRestSources,
+										sources: blockfrostRestAndCardanoKoiosRestSources,
 										limit: 16,
 									})
 								}
@@ -5835,7 +5842,7 @@
 				{/if}
 				{@const cardanoGovernanceSections = [
 						...(
-							cardanoKoiosRestSources.length > 0 ?
+							blockfrostRestAndCardanoKoiosRestSources.length > 0 ?
 								[
 									{
 										id: 'cardano-governance-dreps',
@@ -5846,7 +5853,7 @@
 								[]
 						),
 						...(
-							cardanoKoiosRestSources.length > 0 ?
+							blockfrostRestAndCardanoKoiosRestSources.length > 0 ?
 								[
 									{
 										id: 'cardano-governance-proposals',
@@ -5857,7 +5864,7 @@
 								[]
 						),
 						...(
-							cardanoKoiosRestSources.length > 0 ?
+							blockfrostRestAndCardanoKoiosRestSources.length > 0 ?
 								[
 									{
 										id: 'cardano-governance-committee',
@@ -5888,7 +5895,7 @@
 								selection={
 									projection
 									.$$dReps({
-										sources: cardanoKoiosRestSources,
+										sources: blockfrostRestAndCardanoKoiosRestSources,
 										limit: 16,
 									})
 								}
@@ -5903,7 +5910,7 @@
 								selection={
 									projection
 									.$$governanceProposals({
-										sources: cardanoKoiosRestSources,
+										sources: blockfrostRestAndCardanoKoiosRestSources,
 										limit: 16,
 									})
 								}
@@ -5918,7 +5925,7 @@
 								selection={
 									projection
 									.$$committeeEpochs({
-										sources: cardanoKoiosRestSources,
+										sources: blockfrostRestAndCardanoKoiosRestSources,
 										limit: 16,
 									})
 								}
@@ -5932,7 +5939,7 @@
 				{/if}
 				{@const cardanoAssetsProtocolSections = [
 						...(
-							cardanoKoiosRestSources.length > 0 ?
+							blockfrostRestAndCardanoKoiosRestSources.length > 0 ?
 								[
 									{
 										id: 'cardano-assets-native',
@@ -5943,7 +5950,7 @@
 								[]
 						),
 						...(
-							cardanoKoiosRestSources.length > 0 ?
+							blockfrostRestAndCardanoKoiosRestSources.length > 0 ?
 								[
 									{
 										id: 'cardano-protocol-parameters',
@@ -5974,7 +5981,7 @@
 								selection={
 									projection
 									.$$assets({
-										sources: cardanoKoiosRestSources,
+										sources: blockfrostRestAndCardanoKoiosRestSources,
 										limit: 16,
 									})
 								}
@@ -5989,7 +5996,7 @@
 								selection={
 									projection
 									.$$protocolParameterEpochs({
-										sources: cardanoKoiosRestSources,
+										sources: blockfrostRestAndCardanoKoiosRestSources,
 										limit: 16,
 									})
 								}
@@ -6003,7 +6010,7 @@
 				{/if}
 				{@const cardanoResourcesSections = [
 						...(
-							cardanoKoiosRestSources.length > 0 ?
+							blockfrostRestAndCardanoKoiosRestSources.length > 0 ?
 								[
 									{
 										id: 'cardano-resources-endpoints',
@@ -6035,7 +6042,7 @@
 								resource={
 									projection
 									.restEndpoints({
-										sources: cardanoKoiosRestSources,
+										sources: blockfrostRestAndCardanoKoiosRestSources,
 									})
 								}
 							>

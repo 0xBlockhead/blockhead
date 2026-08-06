@@ -45,6 +45,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Across_Rest,
+			Source.Axelarscan_Rest,
 		],
 	},
 })({

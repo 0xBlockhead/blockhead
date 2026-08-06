@@ -21098,10 +21098,10 @@ export const schema = {
 				"railId": { label: "rail ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"settlementModel": { label: "settlement model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"verificationModel": { label: "verification model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"assetOutcome": { label: "asset outcome", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"assetOutcome": { label: "asset outcome", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest] },
 				"bridgeFeeUsd": { label: "bridge fee USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Across_Rest] },
 				"exclusiveRelayer": { label: "exclusive relayer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Across_Rest] },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BridgeTransfer_Timestamp },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BridgeTransfer_Timestamp, defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest] },
 			})({
 				selectors: {
 					"SourceTransferId": ["source", "transferId"],
@@ -21111,7 +21111,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Across_Rest, Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
 							fields: ["transferId"],
 							openFields: ["logIndex", "originChainId", "depositId", "amountIn", "amountOut", "railId", "settlementModel", "verificationModel", "assetOutcome", "bridgeFeeUsd", "exclusiveRelayer"],
 						},
@@ -21147,18 +21147,18 @@ export const schema = {
 				"$transfer": { label: "transfer", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BridgeTransfer },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"substatus": { label: "substatus", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest] },
+				"substatus": { label: "substatus", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest] },
 				"sourceConfirmations": { label: "source confirmations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"requiredConfirmations": { label: "required confirmations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"destinationTxHash": { label: "destination tx hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
-				"relayer": { label: "relayer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress" },
+				"destinationTxHash": { label: "destination tx hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest] },
+				"relayer": { label: "relayer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest] },
 				"refundTxHash": { label: "refund tx hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
 				"estimatedCompletionMs": { label: "estimated completion ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"completedAt": { label: "completed AT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"completedAt": { label: "completed AT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest] },
 				"fillGasFee": { label: "fill gas fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Across_Rest] },
 				"fillGasFeeUsd": { label: "fill gas fee USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Across_Rest] },
-				"error": { label: "error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"error": { label: "error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest] },
 			})({
 				selectors: {
 					"TransferTimestampMsSource": ["$transfer", "timestampMs", "source"],
@@ -21166,7 +21166,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Across_Rest, Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
 							openFields: ["status", "substatus", "sourceConfirmations", "requiredConfirmations", "destinationTxHash", "relayer", "refundTxHash", "estimatedCompletionMs", "completedAt", "fillGasFee", "fillGasFeeUsd", "error"],
 						},
 						summary: {
@@ -29261,7 +29261,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BridgeTransfer,
-					defaultSources: [Source.Across_Rest],
+					defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest],
 				},
 			})({
 				selectors: {
@@ -29652,7 +29652,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.SqdPortal_RawHttp, Source.Voltaire_JsonRpc],
+							sources: [Source.SqdPortal_RawHttp, Source.Voltaire_JsonRpc, Source.Blobscan_Rest, Source.Blockscout_Rest],
 							fields: [
 								"blockNumber",
 								"hash",
@@ -31408,7 +31408,7 @@ export const schema = {
 				"$coinInstance": { label: "Coin", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmCoinInstance },
 				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"decimals": { label: "Decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance_Timestamp, defaultSources: [Source.Allium_Rest, Source.GoldRushFoundational_Rest] },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance_Timestamp, defaultSources: [Source.Allium_Rest, Source.Blockscout_Rest, Source.GoldRushFoundational_Rest] },
 				"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance_EvmBlock },
 			})({
 				selectors: {
@@ -31488,16 +31488,16 @@ export const schema = {
 				"$actorCoin": { label: "Actor coin", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkActorCoinBalance },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"blockNumber": { label: "Block number", description: "The block height or number in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Allium_Rest, Source.GoldRushFoundational_Rest] },
+				"blockNumber": { label: "Block number", description: "The block height or number in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Allium_Rest, Source.Blockscout_Rest, Source.GoldRushFoundational_Rest] },
 				"balance": {
 					label: "Balance",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "bigint",
-					defaultSources: [Source.Allium_Rest, Source.GoldRushFoundational_Rest],
+					defaultSources: [Source.Allium_Rest, Source.Blockscout_Rest, Source.GoldRushFoundational_Rest],
 				},
-				"usdValue": { label: "USD value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Allium_Rest, Source.GoldRushFoundational_Rest] },
-				"priceUsd": { label: "Price USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Allium_Rest, Source.GoldRushFoundational_Rest] },
+				"usdValue": { label: "USD value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Allium_Rest, Source.Blockscout_Rest, Source.GoldRushFoundational_Rest] },
+				"priceUsd": { label: "Price USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Allium_Rest, Source.Blockscout_Rest, Source.GoldRushFoundational_Rest] },
 				"tokenMetadata": { label: "Token metadata", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
 			})({
 				selectors: {
@@ -48839,7 +48839,7 @@ export const schema = {
 						"$$executionUpgrades": { label: "Execution upgrades", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumExecutionUpgrade, defaultSources: [Source.Constants_Internal] },
 						"$$consensusUpgrades": { label: "Consensus upgrades", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumConsensusUpgrade, defaultSources: [Source.Constants_Internal] },
 						"$$timestamps": { label: "EVM observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_Timestamp, defaultSources: [Source.Voltaire_JsonRpc] },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmBlock, defaultSources: [Source.Voltaire_JsonRpc, Source.Blockscout_Rest] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmBlock, defaultSources: [Source.Voltaire_JsonRpc, Source.Blockscout_Rest, Source.Blobscan_Rest] },
 						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.Blockscout_Rest] },
 						"$$txpoolTimestamps": { label: "Txpool timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_Txpool_Timestamp, defaultSources: [Source.Voltaire_JsonRpc] },
 						"$$gasFeeBlocks": { label: "Gas fee blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_GasFee_Block, defaultSources: [Source.Voltaire_JsonRpc] },
@@ -48859,7 +48859,7 @@ export const schema = {
 						"$$mevRelays": { label: "MEV relays", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MevRelay, defaultSources: [Source.Constants_Internal] },
 						"$$mevBuilders": { label: "MEV builders", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MevBuilder, defaultSources: [Source.MevRelay_Rest] },
 						"$$mevProposerPayloadDelivered": { label: "MEV proposer payloads delivered", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MevRelay_ProposerPayloadDelivered, defaultSources: [Source.MevRelay_Rest] },
-						"$$blobs": { label: "Blobs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmBlob, defaultSources: [Source.Voltaire_JsonRpc] },
+						"$$blobs": { label: "Blobs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmBlob, defaultSources: [Source.Voltaire_JsonRpc, Source.Blobscan_Rest] },
 						"$$contracts": { label: "Contracts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmContract, defaultSources: [Source.Blockscout_Rest] },
 						"$$precompiles": { label: "Precompiles", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmContract, defaultSources: [Source.Constants_Internal] },
 						"$nativeCoin": { label: "Native coin", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Coin, defaultSources: [Source.Constants_Internal] },
@@ -49067,7 +49067,7 @@ export const schema = {
 									className: "network-view-collapsible-execution",
 									sections: [
 										{ id: "evm-execution-upgrades", field: ["Evm", "$$executionUpgrades"], List: "EthereumExecutionUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
-										{ id: "evm-execution-blocks", field: ["Evm", "$$blocks"], List: "EvmBlocksView", label: "Blocks", selection: { sources: [Source.Voltaire_JsonRpc], limit: 4 } },
+										{ id: "evm-execution-blocks", field: ["Evm", "$$blocks"], List: "EvmBlocksView", label: "Blocks", selection: { sources: [Source.Voltaire_JsonRpc, Source.Blockscout_Rest, Source.Blobscan_Rest], limit: 4 } },
 										{ id: "evm-execution-transactions", field: ["Evm", "$$transactions"], List: "EvmTransactionsView", label: "Transactions", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 										{ id: "evm-execution-mempool", field: ["Evm", "$$txpoolTimestamps"], List: "EvmNetwork_Txpool_TimestampsView", label: "Mempool", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
 										{ id: "evm-execution-gas-blocks", field: ["Evm", "$$gasFeeBlocks"], List: "EvmNetwork_GasFee_BlocksView", label: "Fee market", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
@@ -49716,16 +49716,16 @@ export const schema = {
 						path: ["namespace"],
 						is: "Cardano",
 					})({
-						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.CardanoKoios_Rest] },
-						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNetwork_Timestamp, defaultSources: [Source.CardanoKoios_Rest] },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoBlock, defaultSources: [Source.CardanoKoios_Rest] },
-						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoTransaction, defaultSources: [Source.CardanoKoios_Rest] },
-						"$$stakePools": { label: "Stake pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoStakePool, defaultSources: [Source.CardanoKoios_Rest] },
-						"$$dReps": { label: "DReps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoDRep, defaultSources: [Source.CardanoKoios_Rest] },
-						"$$governanceProposals": { label: "Governance proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoGovernanceProposal, defaultSources: [Source.CardanoKoios_Rest] },
-						"$$assets": { label: "Native assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNativeAsset, defaultSources: [Source.CardanoKoios_Rest] },
-						"$$protocolParameterEpochs": { label: "Protocol parameter epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoProtocolParameters_Epoch, defaultSources: [Source.CardanoKoios_Rest] },
-						"$$committeeEpochs": { label: "Committee epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoCommittee_Epoch, defaultSources: [Source.CardanoKoios_Rest] }
+						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
+						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNetwork_Timestamp, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoBlock, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
+						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoTransaction, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
+						"$$stakePools": { label: "Stake pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoStakePool, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
+						"$$dReps": { label: "DReps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoDRep, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
+						"$$governanceProposals": { label: "Governance proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoGovernanceProposal, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
+						"$$assets": { label: "Native assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNativeAsset, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
+						"$$protocolParameterEpochs": { label: "Protocol parameter epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoProtocolParameters_Epoch, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
+						"$$committeeEpochs": { label: "Committee epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoCommittee_Epoch, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] }
 					})({
 						singularView: {
 							carousels: [
@@ -49734,9 +49734,9 @@ export const schema = {
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "cardano-chain-observations", field: ["Cardano", "$$timestamps"], List: "CardanoNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
-										{ id: "cardano-chain-blocks", field: ["Cardano", "$$blocks"], List: "CardanoBlocksView", label: "Blocks", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
-										{ id: "cardano-chain-transactions", field: ["Cardano", "$$transactions"], List: "CardanoTransactionsView", label: "Transactions", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
+										{ id: "cardano-chain-observations", field: ["Cardano", "$$timestamps"], List: "CardanoNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
+										{ id: "cardano-chain-blocks", field: ["Cardano", "$$blocks"], List: "CardanoBlocksView", label: "Blocks", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
+										{ id: "cardano-chain-transactions", field: ["Cardano", "$$transactions"], List: "CardanoTransactionsView", label: "Transactions", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -49744,7 +49744,7 @@ export const schema = {
 									label: "Stake and delegation",
 									className: "network-view-collapsible-stake-delegation",
 									sections: [
-										{ id: "cardano-stake-pools", field: ["Cardano", "$$stakePools"], List: "CardanoStakePoolsView", label: "Stake pools", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
+										{ id: "cardano-stake-pools", field: ["Cardano", "$$stakePools"], List: "CardanoStakePoolsView", label: "Stake pools", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -49752,9 +49752,9 @@ export const schema = {
 									label: "Governance",
 									className: "network-view-collapsible-governance",
 									sections: [
-										{ id: "cardano-governance-dreps", field: ["Cardano", "$$dReps"], List: "CardanoDRepsView", label: "DReps", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
-						{ id: "cardano-governance-proposals", field: ["Cardano", "$$governanceProposals"], List: "CardanoGovernanceProposalsView", label: "Proposals", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
-						{ id: "cardano-governance-committee", field: ["Cardano", "$$committeeEpochs"], List: "CardanoCommittee_EpochsView", label: "Committee epochs", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
+										{ id: "cardano-governance-dreps", field: ["Cardano", "$$dReps"], List: "CardanoDRepsView", label: "DReps", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
+						{ id: "cardano-governance-proposals", field: ["Cardano", "$$governanceProposals"], List: "CardanoGovernanceProposalsView", label: "Proposals", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
+						{ id: "cardano-governance-committee", field: ["Cardano", "$$committeeEpochs"], List: "CardanoCommittee_EpochsView", label: "Committee epochs", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -49762,8 +49762,8 @@ export const schema = {
 									label: "Assets and protocol",
 									className: "network-view-collapsible-assets",
 									sections: [
-										{ id: "cardano-assets-native", field: ["Cardano", "$$assets"], List: "CardanoNativeAssetsView", label: "Native assets", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
-										{ id: "cardano-protocol-parameters", field: ["Cardano", "$$protocolParameterEpochs"], List: "CardanoProtocolParameters_EpochsView", label: "Protocol parameters", selection: { sources: [Source.CardanoKoios_Rest], limit: 16 } },
+										{ id: "cardano-assets-native", field: ["Cardano", "$$assets"], List: "CardanoNativeAssetsView", label: "Native assets", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
+										{ id: "cardano-protocol-parameters", field: ["Cardano", "$$protocolParameterEpochs"], List: "CardanoProtocolParameters_EpochsView", label: "Protocol parameters", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -104145,6 +104145,10 @@ export const app = {
 			{
 				source: Source.AvalanchePlatformVm_JsonRpc,
 				path: "src/resolvers/AvalanchePlatformVm-JsonRpc.ts",
+			},
+			{
+				source: Source.Axelarscan_Rest,
+				path: "src/resolvers/Axelarscan-Rest.ts",
 			},
 			{
 				source: Source.Balancer_Rest,

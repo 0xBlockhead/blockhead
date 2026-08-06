@@ -30,10 +30,18 @@ export default entity({
 	status: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+			Source.Axelarscan_Rest,
+		],
 	},
 	substatus: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+			Source.Axelarscan_Rest,
+		],
 	},
 	sourceConfirmations: {
 		primitiveType: type('number'),
@@ -46,10 +54,18 @@ export default entity({
 	destinationTxHash: {
 		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+			Source.Axelarscan_Rest,
+		],
 	},
 	relayer: {
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+			Source.Axelarscan_Rest,
+		],
 	},
 	refundTxHash: {
 		primitiveType: ZeroExHex,
@@ -62,6 +78,10 @@ export default entity({
 	completedAt: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+			Source.Axelarscan_Rest,
+		],
 	},
 	fillGasFee: {
 		primitiveType: type('bigint'),
@@ -80,6 +100,10 @@ export default entity({
 	error: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+			Source.Axelarscan_Rest,
+		],
 	},
 })({
 	selectors: {

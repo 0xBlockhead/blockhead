@@ -30,6 +30,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Allium_Rest,
+			Source.Blockscout_Rest,
 			Source.GoldRushFoundational_Rest,
 		],
 	},
@@ -38,6 +39,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Allium_Rest,
+			Source.Blockscout_Rest,
 			Source.GoldRushFoundational_Rest,
 		],
 	},
@@ -46,6 +48,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Allium_Rest,
+			Source.Blockscout_Rest,
 			Source.GoldRushFoundational_Rest,
 		],
 	},
@@ -54,6 +57,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Allium_Rest,
+			Source.Blockscout_Rest,
 			Source.GoldRushFoundational_Rest,
 		],
 	},

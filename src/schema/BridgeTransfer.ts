@@ -90,6 +90,10 @@ export default entity({
 	assetOutcome: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+			Source.Axelarscan_Rest,
+		],
 	},
 	bridgeFeeUsd: {
 		primitiveType: NonNegativeDecimalString,
@@ -108,6 +112,10 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.BridgeTransfer_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Across_Rest,
+			Source.Axelarscan_Rest,
+		],
 	},
 })({
 	selectors: {

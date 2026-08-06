@@ -23,6 +23,8 @@
 					sources: [
 						Source.SqdPortal_RawHttp,
 						Source.Voltaire_JsonRpc,
+						Source.Blobscan_Rest,
+						Source.Blockscout_Rest,
 					],
 					fields: {
 						hash: true,

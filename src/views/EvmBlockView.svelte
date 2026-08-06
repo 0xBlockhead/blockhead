@@ -31,6 +31,8 @@
 		sources: selection.sources ?? [
 			Source.SqdPortal_RawHttp,
 			Source.Voltaire_JsonRpc,
+			Source.Blobscan_Rest,
+			Source.Blockscout_Rest,
 		],
 	}))
 	const evmBlock = $derived(viewSelection({
