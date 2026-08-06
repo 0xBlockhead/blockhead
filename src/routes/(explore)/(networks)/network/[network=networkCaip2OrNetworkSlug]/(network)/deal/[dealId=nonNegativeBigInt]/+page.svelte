@@ -19,6 +19,7 @@
 	const pageSelection = $derived(select(EntityType.FilecoinDeal, data.selector, {
 		sources: [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	}))
 
