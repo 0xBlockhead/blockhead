@@ -7,6 +7,7 @@ import {
 
 // Account 3 recover stays blocked: no safe fixture material in CI.
 // Do not invent a recover or import-private-key pass — keep those cells explicitly blocked.
+// Headed Connect approval chrome is mapped through prompt.html (see petraDriver.decideConnection).
 export const petraWalletMatrixScenarios = (version: string) => ([
 	{
 		id: 'petra-create-new-1',

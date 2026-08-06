@@ -106,3 +106,34 @@ test('declares UniSat ordinals purpose as an explicit unsupported matrix cell', 
 		'unisat ordinals purpose honesty'
 	)
 })
+
+test('keeps proven UniSat create-new bridges separate from blocked recover', async () => {
+	const scenarios = unisatWalletMatrixScenarios('1.7.17')
+	await assertWalletMatrixOutcomes(
+		await runWalletCompatibilityMatrix({
+			driver: {
+				kind: 'unisat',
+				run: async (scenario) => (
+					scenario.initializationFlow === 'recover' ?
+						unisatBlockedObservation(scenario)
+					:
+						{
+							accountAddress: `bc1qunisat${scenario.accountOrdinal}`,
+							outcome: 'pass',
+							evidence: {
+								code: scenario.lifecycleEdgeCase,
+								source: 'unit-bridge-contract',
+							},
+						}
+				),
+			},
+			scenarios,
+		}),
+		[
+			'pass',
+			'pass',
+			'blocked',
+		],
+		'unisat proven bridge / blocked recovery'
+	)
+})

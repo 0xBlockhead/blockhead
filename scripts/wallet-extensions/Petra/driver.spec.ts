@@ -6,6 +6,7 @@ import {
 	runWalletCompatibilityMatrix,
 } from '../WalletCompatibilityMatrix.ts'
 import {
+	isPetraPromptPageUrl,
 	petraBlockedObservation,
 	petraDriver,
 } from './driver.ts'
@@ -48,6 +49,18 @@ test('keeps the Petra account lifecycle shard free of invented recover / key-imp
 	)
 })
 
+test('maps headed Connect chrome to Petra prompt.html URLs', () => {
+	const extensionId = 'ejjladinnckdgjemekebdpeokbikhfci'
+	assert.equal(isPetraPromptPageUrl(`chrome-extension://${extensionId}/prompt.html`, extensionId), true)
+	assert.equal(isPetraPromptPageUrl(`chrome-extension://${extensionId}/prompt.html#/`, extensionId), true)
+	assert.equal(isPetraPromptPageUrl(`chrome-extension://${extensionId}/index.html`, extensionId), false)
+	assert.equal(isPetraPromptPageUrl(`chrome-extension://other/prompt.html`, extensionId), false)
+	assert.equal(typeof petraDriver.waitForRequest, 'function')
+	assert.equal(typeof petraDriver.approveConnection, 'function')
+	assert.equal(typeof petraDriver.rejectConnection, 'function')
+	assert.equal(typeof petraDriver.decideConnection, 'function')
+})
+
 test('declares Petra recover as an explicit blocked matrix cell', async () => {
 	const scenarios = petraWalletMatrixScenarios('2.5.0').filter((scenario) => (
 		scenario.lifecycleEdgeCase === 'fixture-material-not-provided-blocked'
@@ -78,5 +91,36 @@ test('declares Petra recover as an explicit blocked matrix cell', async () => {
 			'blocked',
 		],
 		'petra recover / key-import honesty'
+	)
+})
+
+test('keeps proven Petra create-new bridges separate from blocked recover', async () => {
+	const scenarios = petraWalletMatrixScenarios('2.5.0')
+	await assertWalletMatrixOutcomes(
+		await runWalletCompatibilityMatrix({
+			driver: {
+				kind: 'petra',
+				run: async (scenario) => (
+					scenario.initializationFlow === 'recover' ?
+						petraBlockedObservation(scenario)
+					:
+						{
+							accountAddress: `0xpetra${scenario.accountOrdinal}`,
+							outcome: 'pass',
+							evidence: {
+								code: scenario.lifecycleEdgeCase,
+								source: 'unit-bridge-contract',
+							},
+						}
+				),
+			},
+			scenarios,
+		}),
+		[
+			'pass',
+			'pass',
+			'blocked',
+		],
+		'petra proven bridge / blocked recovery'
 	)
 })

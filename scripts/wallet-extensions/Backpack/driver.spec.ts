@@ -73,3 +73,34 @@ test('declares Backpack recover as an explicit blocked matrix cell', async () =>
 		'backpack recover honesty'
 	)
 })
+
+test('keeps proven Backpack create-new and watch-only bridges separate from blocked recover', async () => {
+	const scenarios = backpackWalletMatrixScenarios('0.10.211')
+	await assertWalletMatrixOutcomes(
+		await runWalletCompatibilityMatrix({
+			driver: {
+				kind: 'backpack',
+				run: async (scenario) => (
+					scenario.initializationFlow === 'recover' ?
+						backpackBlockedObservation(scenario)
+					:
+						{
+							accountAddress: `solbackpack${scenario.accountOrdinal}`,
+							outcome: 'pass',
+							evidence: {
+								code: scenario.lifecycleEdgeCase,
+								source: 'unit-bridge-contract',
+							},
+						}
+				),
+			},
+			scenarios,
+		}),
+		[
+			'pass',
+			'pass',
+			'blocked',
+		],
+		'backpack proven bridge / blocked recovery'
+	)
+})

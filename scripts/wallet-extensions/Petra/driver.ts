@@ -5,7 +5,6 @@ import type {
 	WalletMatrixScenario,
 } from '../WalletCompatibilityMatrix.ts'
 import {
-	acquireExtensionPage,
 	openExtensionPage,
 	type LoadedWalletExtension,
 	type WalletDriver,
@@ -42,6 +41,14 @@ export const petraBlockedObservation = (
 	}
 )
 
+export const isPetraPromptPageUrl = (
+	url: string,
+	extensionId: string
+) => (
+	url.startsWith(`chrome-extension://${extensionId}/`)
+	&& url.includes('/prompt.html')
+)
+
 const aptosAddress = async (page: Page) => (
 	page.getByRole('button', {
 		name: 'Copy Address',
@@ -61,6 +68,70 @@ const openPopup = async (
 ) => (
 	openExtensionPage(context, extension, 'index.html')
 )
+
+const petraDecisionButton = (
+	page: Page,
+	decision: 'approve' | 'reject'
+) => (
+	page.getByRole('button', {
+		name: (
+			decision === 'approve' ?
+				/^(?:Connect|Approve|Confirm|Allow)$/i
+			:
+				/^(?:Reject|Cancel|Deny|Close)$/i
+		),
+	}).first()
+)
+
+const findPetraPromptDecision = async (
+	context: BrowserContext,
+	extension: LoadedWalletExtension,
+	decision: 'approve' | 'reject',
+	previousPages: Set<Page>
+) => {
+	const extensionPages = context.pages().filter((page) => (
+		page.url().startsWith(`chrome-extension://${extension.id}/`)
+	))
+	const rankedPages = [
+		...extensionPages.filter((page) => (
+			!previousPages.has(page)
+			&& isPetraPromptPageUrl(page.url(), extension.id)
+		)),
+		...extensionPages.filter((page) => (
+			isPetraPromptPageUrl(page.url(), extension.id)
+		)),
+		...extensionPages.filter((page) => !previousPages.has(page)),
+		...extensionPages,
+	]
+	const seen = new Set<Page>()
+	for (const page of rankedPages) {
+		if (seen.has(page))
+			continue
+		seen.add(page)
+
+		const promptRoot = page.locator('#prompt, [id="prompt"], [data-testid="prompt"]').first()
+		if (
+			isPetraPromptPageUrl(page.url(), extension.id)
+			|| await promptRoot.isVisible().catch(() => false)
+		) {
+			const decisionButton = petraDecisionButton(page, decision)
+			if (await decisionButton.isVisible().catch(() => false))
+				return {
+					page,
+					decisionButton,
+				}
+		}
+
+		const decisionButton = petraDecisionButton(page, decision)
+		if (await decisionButton.isVisible().catch(() => false))
+			return {
+				page,
+				decisionButton,
+			}
+	}
+
+	return undefined
+}
 
 export const petraDriver = {
 	kind: 'petra',
@@ -153,32 +224,47 @@ export const petraDriver = {
 			page,
 		}
 	},
+	waitForRequest: async (
+		context: BrowserContext,
+		extension: LoadedWalletExtension,
+		previousPages = new Set(context.pages())
+	) => {
+		const deadline = Date.now() + 30_000
+		while (Date.now() < deadline) {
+			const match = await findPetraPromptDecision(context, extension, 'approve', previousPages)
+				?? await findPetraPromptDecision(context, extension, 'reject', previousPages)
+			if (match != null)
+				return match.page
+
+			await new Promise((resolve) => globalThis.setTimeout(resolve, 100))
+		}
+
+		throw new Error(`Petra prompt.html Connect chrome was not observed for ${extension.id}`)
+	},
+	approveConnection: async (page: Page) => {
+		await petraDecisionButton(page, 'approve').click()
+	},
+	rejectConnection: async (page: Page) => {
+		await petraDecisionButton(page, 'reject').click()
+	},
 	decideConnection: async (
 		context: BrowserContext,
 		extension: LoadedWalletExtension,
 		decision: 'approve' | 'reject',
 		previousPages = new Set(context.pages())
 	) => {
-		const page = await acquireExtensionPage(context, extension, {
-			previousPages,
-			timeoutMs: 20_000,
-		}).catch(() => undefined)
-		if (page == null)
-			return false
+		const deadline = Date.now() + 30_000
+		while (Date.now() < deadline) {
+			const match = await findPetraPromptDecision(context, extension, decision, previousPages)
+			if (match != null) {
+				await match.decisionButton.click()
+				return true
+			}
 
-		const decisionButton = page.getByRole('button', {
-			name: (
-				decision === 'approve' ?
-					/^(?:Connect|Approve|Confirm)$/i
-				:
-					/^(?:Reject|Cancel|Deny)$/i
-			),
-		}).first()
-		if (!await decisionButton.isVisible().catch(() => false))
-			return false
+			await new Promise((resolve) => globalThis.setTimeout(resolve, 100))
+		}
 
-		await decisionButton.click()
-		return true
+		return false
 	},
 } as const satisfies WalletDriver<'petra'> & {
 	createAccounts: (
