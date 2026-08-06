@@ -49,6 +49,18 @@ export const EnsDomainFragment = graphql(`
 			contentHash
 			texts
 			coinTypes
+			events {
+				__typename
+				blockNumber
+				... on TextChanged {
+					key
+					value
+				}
+				... on MulticoinAddrChanged {
+					coinType
+					addr
+				}
+			}
 		}
 		ttl
 		isMigrated

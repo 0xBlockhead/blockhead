@@ -48,6 +48,61 @@ const evmAccountFromSubgraphAccount = (
 		}
 }
 
+const ensRecordTipValueFromDomain = (
+	domain: {
+		resolver?: {
+			events?: readonly {
+				__typename: string
+				blockNumber: number
+				key?: string
+				value?: string | null
+				coinType?: unknown
+				addr?: unknown
+			}[] | null
+		} | null
+	},
+	recordKey: string
+) => {
+	const events = domain.resolver?.events ?? []
+	if (recordKey.startsWith('text:')) {
+		const textKey = recordKey.slice('text:'.length)
+		const latest = events
+			.filter((event) => (
+				event.__typename === 'TextChanged'
+				&& event.key === textKey
+			))
+			.reduce<(typeof events)[number] | null>((current, event) => (
+				current == null || event.blockNumber > current.blockNumber ?
+					event
+				:
+					current
+			), null)
+		return latest?.value == null ?
+			undefined
+		:
+			String(latest.value)
+	}
+	if (recordKey.startsWith('coin:')) {
+		const coinType = recordKey.slice('coin:'.length)
+		const latest = events
+			.filter((event) => (
+				event.__typename === 'MulticoinAddrChanged'
+				&& String(event.coinType) === coinType
+			))
+			.reduce<(typeof events)[number] | null>((current, event) => (
+				current == null || event.blockNumber > current.blockNumber ?
+					event
+				:
+					current
+			), null)
+		return latest?.addr == null ?
+			undefined
+		:
+			String(latest.addr)
+	}
+	return undefined
+}
+
 export default {
 	source: Source.TheGraph_Graphql,
 
@@ -393,24 +448,103 @@ export default {
 			entityType: EntityType.EnsRecord,
 			resolve: {
 				NameRecordKey: {
-					resolve: ({ recordKey }) => {
+					resolve: async ({ $name, recordKey }, context) => {
+						const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+						const normalizedName = ensToString(ensNormalizeNode($name.name))
+						const domains = await getName({
+							publicEnv: context.publicEnv,
+							name: normalizedName,
+						})
+						if (domains == null)
+							throw new Error('TheGraph_Graphql: ENS record name not in subgraph')
+						const matchingEnsDomain = domains.find((candidate) => candidate.name === normalizedName)
+						if (matchingEnsDomain == null)
+							throw new Error('TheGraph_Graphql: ENS record name not in subgraph')
+
 						const coinType = recordKey.startsWith('coin:') ?
 							Number(recordKey.slice('coin:'.length))
 						:
 							undefined
+						const observedAtMs = Date.now()
 
 						return {
+							$name: {
+								[EntityMetaKey.Selector]: {
+									name: normalizedName,
+								},
+							},
 							recordKey,
 							recordKind: recordKey.startsWith('coin:') ? 'coin' : 'text',
 							...(coinType == null || Number.isNaN(coinType) ? {} : { coinType }),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$record: {
+										$name: {
+											name: normalizedName,
+										},
+										recordKey,
+									},
+									timestampMs: observedAtMs,
+									source: Source.TheGraph_Graphql,
+								},
+							}],
 						}
 					},
 				},
 			},
 		})({
+				$name: (ensRecord) => ensRecord.$name,
 				recordKey: (ensRecord) => ensRecord.recordKey,
 				recordKind: (ensRecord) => ensRecord.recordKind,
 				coinType: (ensRecord) => ensRecord.coinType,
+				$$timestamps: {
+					select: (ensRecord) => ensRecord.$$timestamps,
+					resolveCount: (ensRecord) => ensRecord.$$timestamps.length,
+				},
+			}),
+
+		defineResolver({
+			entityType: EntityType.EnsRecord_Timestamp,
+			resolve: {
+				RecordTimestampMsSource: {
+					resolve: async ({ $record, timestampMs, source }, context) => {
+						if (source !== Source.TheGraph_Graphql)
+							throw new Error('TheGraph_Graphql: EnsRecord_Timestamp selector source mismatch')
+
+						const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+						const normalizedName = ensToString(ensNormalizeNode($record.$name.name))
+						const domains = await getName({
+							publicEnv: context.publicEnv,
+							name: normalizedName,
+						})
+						if (domains == null)
+							throw new Error('TheGraph_Graphql: ENS record observation name not in subgraph')
+						const matchingEnsDomain = domains.find((candidate) => candidate.name === normalizedName)
+						if (matchingEnsDomain == null)
+							throw new Error('TheGraph_Graphql: ENS record observation name not in subgraph')
+
+						const value = ensRecordTipValueFromDomain(matchingEnsDomain, $record.recordKey)
+						return {
+							$record: {
+								[EntityMetaKey.Selector]: {
+									$name: {
+										name: normalizedName,
+									},
+									recordKey: $record.recordKey,
+								},
+							},
+							timestampMs,
+							source,
+							...(value !== undefined && { value }),
+						}
+					},
+				},
+			},
+		})({
+				$record: (observation) => observation.$record,
+				timestampMs: (observation) => observation.timestampMs,
+				source: (observation) => observation.source,
+				value: (observation) => observation.value,
 			}),
 
 		defineResolver({

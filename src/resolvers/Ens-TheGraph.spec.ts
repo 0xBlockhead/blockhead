@@ -135,6 +135,20 @@ const vitalikDomainWire = {
 		contentHash: '0xcontent',
 		texts: ['url'],
 		coinTypes: ['60'],
+		events: [
+			{
+				__typename: 'TextChanged' as const,
+				blockNumber: 100,
+				key: 'url',
+				value: 'https://vitalik.ca',
+			},
+			{
+				__typename: 'MulticoinAddrChanged' as const,
+				blockNumber: 101,
+				coinType: '60',
+				addr: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+			},
+		],
 	},
 	ttl: '300',
 	isMigrated: true,
@@ -387,37 +401,169 @@ describe('Ens-TheGraph ENS name observation resolver', () => {
 	})
 })
 
+const ensRecordTimestampResolver = ensTheGraphResolvers.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof ensTheGraphResolvers.resolvers[number],
+	{ entityType: EntityType.EnsRecord_Timestamp }
+> => resolver.entityType === EntityType.EnsRecord_Timestamp)
+
+if (ensRecordTimestampResolver == null)
+	throw new Error('Ens-TheGraph spec missing EnsRecord_Timestamp resolver')
+
 describe('Ens-TheGraph EnsRecord resolver', () => {
-	it('derives text and coin record display fields from record keys', () => {
-		expect(
-			ensRecordResolver.resolve['NameRecordKey'].resolve(
+	it('derives text/coin fields and tip $$timestamps from subgraph record keys', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000)
+		getName.mockResolvedValueOnce([vitalikDomainWire])
+
+		const textRecord = await ensRecordResolver.resolve['NameRecordKey'].resolve(
+			{
+				$name: {
+					name: 'vitalik.eth',
+				},
+				recordKey: 'text:url',
+			},
+			resolverContext
+		)
+		expect(textRecord).toEqual({
+			$name: {
+				[EntityMetaKey.Selector]: {
+					name: 'vitalik.eth',
+				},
+			},
+			recordKey: 'text:url',
+			recordKind: 'text',
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$record: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'text:url',
+					},
+					timestampMs: 1_800_000_000_000,
+					source: Source.TheGraph_Graphql,
+				},
+			}],
+		})
+		expect(ensRecordResolver.projections.$$timestamps.resolveCount(textRecord)).toBe(1)
+
+		getName.mockResolvedValueOnce([vitalikDomainWire])
+		const coinRecord = await ensRecordResolver.resolve['NameRecordKey'].resolve(
+			{
+				$name: {
+					name: 'vitalik.eth',
+				},
+				recordKey: 'coin:60',
+			},
+			resolverContext
+		)
+		expect(coinRecord).toEqual({
+			$name: {
+				[EntityMetaKey.Selector]: {
+					name: 'vitalik.eth',
+				},
+			},
+			recordKey: 'coin:60',
+			recordKind: 'coin',
+			coinType: 60,
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$record: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'coin:60',
+					},
+					timestampMs: 1_800_000_000_000,
+					source: Source.TheGraph_Graphql,
+				},
+			}],
+		})
+	})
+})
+
+describe('Ens-TheGraph EnsRecord_Timestamp resolver', () => {
+	it('projects tip record values from TextChanged / MulticoinAddrChanged events', async () => {
+		getName.mockResolvedValueOnce([vitalikDomainWire])
+
+		await expect(
+			ensRecordTimestampResolver.resolve['RecordTimestampMsSource'].resolve(
 				{
+					$record: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'text:url',
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.TheGraph_Graphql,
+				},
+				resolverContext
+			)
+		).resolves.toEqual({
+			$record: {
+				[EntityMetaKey.Selector]: {
 					$name: {
 						name: 'vitalik.eth',
 					},
 					recordKey: 'text:url',
 				},
+			},
+			timestampMs: 1_700_000_000_000,
+			source: Source.TheGraph_Graphql,
+			value: 'https://vitalik.ca',
+		})
+
+		getName.mockResolvedValueOnce([vitalikDomainWire])
+		await expect(
+			ensRecordTimestampResolver.resolve['RecordTimestampMsSource'].resolve(
+				{
+					$record: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'coin:60',
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.TheGraph_Graphql,
+				},
 				resolverContext
 			)
-		).toEqual({
-			recordKey: 'text:url',
-			recordKind: 'text',
-		})
-		expect(
-			ensRecordResolver.resolve['NameRecordKey'].resolve(
-				{
+		).resolves.toEqual({
+			$record: {
+				[EntityMetaKey.Selector]: {
 					$name: {
 						name: 'vitalik.eth',
 					},
 					recordKey: 'coin:60',
 				},
+			},
+			timestampMs: 1_700_000_000_000,
+			source: Source.TheGraph_Graphql,
+			value: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+		})
+	})
+
+	it('rejects foreign source selectors before querying the subgraph', async () => {
+		vi.clearAllMocks()
+
+		await expect(
+			ensRecordTimestampResolver.resolve['RecordTimestampMsSource'].resolve(
+				{
+					$record: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'text:url',
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.Voltaire_JsonRpc,
+				},
 				resolverContext
 			)
-		).toEqual({
-			recordKey: 'coin:60',
-			recordKind: 'coin',
-			coinType: 60,
-		})
+		).rejects.toThrow('selector source mismatch')
+		expect(getName).not.toHaveBeenCalled()
 	})
 })
 
