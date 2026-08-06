@@ -13,10 +13,14 @@ import { Source } from '$/sources/Source.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
+const getAccountPositions = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
 	sourceGetJson,
+}))
+vi.mock('$/sources/Pendle/Contracts/queries.ts', () => ({
+	getAccountPositions,
 }))
 
 const { default: pendleRest } = await import('$/resolvers/Pendle-Rest.ts')
@@ -42,6 +46,12 @@ const context = {
 
 const pendleMarketResolver = pendleRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.PendleMarket
+))
+const evmNetworkAccountResolver = pendleRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount
+))
+const evmNetworkAccountTimestampResolver = pendleRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount_Timestamp
 ))
 
 const baseMarketAddress = '0x00b321d89a8c36b3929f20b7955080baed706d1b'
@@ -86,6 +96,61 @@ const baseMarketWire = {
 describe('Pendle Rest resolver module', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
+		getAccountPositions.mockReset()
+	})
+
+	it('publishes and resolves Pendle account positions from on-chain PT, YT, and LP balances', async () => {
+		if (evmNetworkAccountResolver == null || evmNetworkAccountTimestampResolver == null)
+			throw new Error('missing Pendle account resolvers')
+
+		const accountSelector = {
+			$network: baseNetwork,
+			$actor: {
+				address: '0x0000000000000000000000000000000000000001',
+			},
+		}
+		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
+			context
+		)
+		const [timestampReference] = evmNetworkAccountResolver.projections.$$timestamps(account)
+
+		getAccountPositions.mockResolvedValue({
+			blockNumber: 123n,
+			positions: [
+				{
+					protocol: 'Pendle V2',
+					chainId: 1,
+					marketAddress: baseMarketAddress,
+					marketName: 'USD0++',
+					expiryTimestampMs: Date.parse(baseMarketWire.expiry),
+					balances: [
+						{
+							kind: 'YT',
+							address: '0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+							balance: '1000000',
+						},
+					],
+				},
+			],
+		})
+
+		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve(
+			timestampReference[EntityMetaKey.Selector],
+			context
+		)
+
+		expect(evmNetworkAccountTimestampResolver.projections.blockNumber(snapshot)).toBe(123n)
+		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([
+			expect.objectContaining({
+				protocol: 'Pendle V2',
+				marketAddress: baseMarketAddress,
+			}),
+		])
+		expect(getAccountPositions).toHaveBeenCalledWith({
+			chainId: 1,
+			account: accountSelector.$actor.address,
+		})
 	})
 
 	it('registers under Pendle_Rest for PendleMarket', () => {

@@ -14,6 +14,8 @@ import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type PendleMarketId = EntitySelector<typeof schema, EntityType.PendleMarket>
+type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
+type EvmNetworkAccountTimestampId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount_Timestamp>
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -61,6 +63,55 @@ export default {
 
 	resolvers: [
 		defineResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			resolve: {
+				EvmNetworkEvmAccount: {
+					resolve: async ({ $actor, $network }: EvmNetworkAccountId) => ({
+						$$timestamps: [
+							{
+								[EntityMetaKey.Selector]: {
+									$account: {
+										$actor,
+										$network,
+									},
+									timestampMs: Date.now(),
+									source: Source.Pendle_Rest,
+								},
+							},
+						],
+					}),
+				},
+			},
+		})({
+			$$timestamps: (account) => account.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount_Timestamp,
+			resolve: {
+				AccountTimestampMsSource: {
+					resolve: async ({ $account, timestampMs, source }: EvmNetworkAccountTimestampId) => {
+						const { getAccountPositions } = await import('$/sources/Pendle/Contracts/queries.ts')
+						const { blockNumber, positions } = await getAccountPositions({
+							chainId: eip155ChainId($account.$network),
+							account: $account.$actor.address,
+						})
+
+						return {
+							timestampMs,
+							source,
+							blockNumber,
+							contractPositions: positions,
+						}
+					},
+				},
+			},
+		})({
+			blockNumber: (timestamp) => timestamp.blockNumber,
+			contractPositions: (timestamp) => timestamp.contractPositions,
+		}),
+
+		defineResolver({
 			entityType: EntityType.PendleMarket,
 			resolve: {
 				NetworkMarketAddress: {
@@ -84,7 +135,7 @@ export default {
 								normalizedMarketAddress,
 							],
 							limit: 1,
-						})).markets[0]
+						})).markets.at(0)
 						if (market != null)
 							return mapPendleMarketSnapshot(
 								$network,
