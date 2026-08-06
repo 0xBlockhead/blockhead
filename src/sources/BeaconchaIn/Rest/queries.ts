@@ -16,6 +16,7 @@ import type {
 	BeaconchaInResponse,
 	BeaconchaInSlot,
 	BeaconchaInValidator,
+	BeaconchaInValidatorAttestation,
 	BeaconchaInWithdrawal,
 } from '$/sources/BeaconchaIn/Rest/types.ts'
 
@@ -159,6 +160,40 @@ export const getValidator = (
 		}
 	)
 )
+
+/** @see https://docs.beaconcha.in/api-reference/validators/validator-attestations-history */
+export const getValidatorAttestations = (
+	publicEnv: SourcePublicEnv,
+	{
+		chainId,
+		indexOrPubkey,
+		startEpoch,
+		endEpoch,
+		slim,
+	}: {
+		chainId: number
+		indexOrPubkey: number | string
+		startEpoch?: number
+		endEpoch?: number
+		slim?: boolean
+	}
+) => {
+	const search = new URLSearchParams(
+		Object.entries({
+			...(startEpoch != null && { startEpoch: String(startEpoch) }),
+			...(endEpoch != null && { endEpoch: String(endEpoch) }),
+			...(slim != null && { slim: String(slim) }),
+		})
+	)
+	return beaconchaInGetList<BeaconchaInValidatorAttestation>(
+		publicEnv,
+		{
+			chainId,
+			path: `/validator/${encodeURIComponent(String(indexOrPubkey))}/attestations${search.size === 0 ? '' : `?${search}`}`,
+			label: 'BeaconchaIn GET validator attestations',
+		}
+	)
+}
 
 export const getSlotAttestations = (
 	publicEnv: SourcePublicEnv,

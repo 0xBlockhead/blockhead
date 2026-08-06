@@ -17,6 +17,7 @@ import {
 	getSlotProposerSlashings,
 	getSlotWithdrawals,
 	getValidator,
+	getValidatorAttestations,
 } from '$/sources/BeaconchaIn/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -275,5 +276,65 @@ describe('BeaconchaIn REST queries', () => {
 			chainId: 1,
 			slot: 9600000,
 		})).rejects.toThrow('returned a non-list payload')
+	})
+
+	it('loads validator attestations history with optional epoch window and slim', async () => {
+		const attestationWire = {
+			attesterslot: 12779525,
+			epoch: 399360,
+			inclusionslot: 12779526,
+			status: 1,
+			validatorindex: 20,
+			committeeindex: 0,
+			week: 253,
+			week_start: '2025-10-07T12:00:23Z',
+			week_end: '2025-10-14T12:00:23Z',
+		}
+		const fetchMock = vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: [attestationWire],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: [{
+					attesterslot: 12779525,
+					epoch: 399360,
+					inclusionslot: 0,
+					status: 0,
+					validatorindex: 20,
+				}],
+			}))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getValidatorAttestations(publicEnv, {
+			chainId: 1,
+			indexOrPubkey: 20,
+		})).resolves.toEqual([attestationWire])
+
+		expect(fetchMock).toHaveBeenCalledWith(
+			expect.stringMatching(/validator%2F20%2Fattestations$/),
+			expect.anything()
+		)
+
+		await expect(getValidatorAttestations(publicEnv, {
+			chainId: 1,
+			indexOrPubkey: 20,
+			startEpoch: 399260,
+			endEpoch: 399359,
+			slim: true,
+		})).resolves.toEqual([{
+			attesterslot: 12779525,
+			epoch: 399360,
+			inclusionslot: 0,
+			status: 0,
+			validatorindex: 20,
+		}])
+
+		expect(fetchMock).toHaveBeenLastCalledWith(
+			expect.stringMatching(/validator%2F20%2Fattestations%3FstartEpoch%3D399260%26endEpoch%3D399359%26slim%3Dtrue$/),
+			expect.anything()
+		)
 	})
 })

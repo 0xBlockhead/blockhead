@@ -79,6 +79,24 @@ export type BeaconchaInAttestation = {
 	validators?: number[]
 }
 
+/**
+ * Per-validator attestation duty within an epoch window.
+ * When `slim=true`, `week` / `week_start` / `week_end` / `committeeindex` are omitted.
+ * @see https://docs.beaconcha.in/api-reference/validators/validator-attestations-history
+ */
+export type BeaconchaInValidatorAttestation = {
+	attesterslot: number
+	epoch: number
+	inclusionslot: number
+	/** `1` included on-chain; `0` missed */
+	status: number
+	validatorindex: number
+	committeeindex?: number
+	week?: number
+	week_start?: string
+	week_end?: string
+}
+
 /** @see https://docs.beaconcha.in/api-reference/slots/withdrawals-for-a-slot */
 export type BeaconchaInWithdrawal = {
 	address: string
