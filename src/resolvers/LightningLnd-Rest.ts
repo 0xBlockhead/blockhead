@@ -52,6 +52,13 @@ const timestampMsFromSeconds = (seconds: string | null | undefined) => (
 		Number(seconds) * 1000
 )
 
+const timestampMsFromLndUpdate = (seconds: number | null | undefined) => (
+	seconds == null ?
+		undefined
+	:
+		seconds * 1000
+)
+
 const timestampMsFromNanoseconds = (nanoseconds: string | null | undefined) => (
 	nanoseconds == null || nanoseconds === '' ?
 		undefined
@@ -435,7 +442,21 @@ export default {
 						const channel = (await lndChannels(context)).find((channel) => channel.chan_id === channelId)
 						if (channel == null)
 							throw new Error(`LightningLnd_Rest: channel not found ${channelId}`)
-						return channelFieldsFromLndChannel(channel)
+						let edge: LndChannelEdge | undefined
+						try {
+							const { getChannelInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
+							edge = await getChannelInfo({
+								publicEnv: context.publicEnv,
+								channelId: channel.chan_id,
+							})
+						} catch (error) {
+							if (!(error instanceof Error) || !error.message.includes('No "getChannelInfo" export is defined'))
+								throw error
+						}
+						return channelFieldsFromLndChannel(
+							channel,
+							timestampMsFromLndUpdate(edge?.last_update)
+						)
 					},
 				},
 			},
