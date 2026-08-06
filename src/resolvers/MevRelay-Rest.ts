@@ -162,7 +162,6 @@ export default {
 						}
 
 						return {
-							reachable: true,
 							deliveredPayloadSampleCount: deliveredPayloads.length,
 							builderSampleCount: builderPubkeys.size,
 							...(windowStartSlot != null && { windowStartSlot }),
@@ -173,7 +172,6 @@ export default {
 				},
 			},
 		})({
-				reachable: (snapshot) => snapshot.reachable,
 				deliveredPayloadSampleCount: (snapshot) => snapshot.deliveredPayloadSampleCount,
 				builderSampleCount: (snapshot) => snapshot.builderSampleCount,
 				windowStartSlot: (snapshot) => snapshot.windowStartSlot,
