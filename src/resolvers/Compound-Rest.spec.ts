@@ -158,7 +158,7 @@ describe('Compound Rest resolver module', () => {
 		})
 	})
 
-	it('preserves an empty Compound positions list on contractPositions', async () => {
+	it('preserves an empty Compound positions list on contractPositions (confirms soft-empty [] is accurate)', async () => {
 		if (evmNetworkAccountTimestampResolver == null)
 			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
 
