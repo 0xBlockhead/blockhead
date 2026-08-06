@@ -13,6 +13,7 @@ import type {
 } from '$/sources/Blockscout/Rest/types.ts'
 
 const getAddressDetails = vi.hoisted(() => vi.fn())
+const getAddressCounters = vi.hoisted(() => vi.fn())
 const getAddressCoinBalanceHistory = vi.hoisted(() => vi.fn())
 const getAddressTokenBalances = vi.hoisted(() => vi.fn())
 const getBlocks = vi.hoisted(() => vi.fn())
@@ -27,6 +28,7 @@ const getUserOperationsPage = vi.hoisted(() => vi.fn())
 vi.mock('$/sources/Blockscout/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Blockscout/Rest/queries.ts')>(),
 	getAddressDetails,
+	getAddressCounters,
 	getAddressCoinBalanceHistory,
 	getAddressTokenBalances,
 	getBlocks,
@@ -630,5 +632,128 @@ describe('Blockscout_Rest balance observations', () => {
 				address: tokenAddress,
 			},
 		}, context)).rejects.toThrow('tip block missing for balance observation clock')
+	})
+})
+
+describe('Blockscout EvmNetworkAccount_Timestamp', () => {
+	const address = '0x1111111111111111111111111111111111111111'
+	const tipTimestamp = '2024-01-02T03:04:05.000Z'
+	const tipTimestampMs = Math.floor(Date.parse(tipTimestamp) / 1_000) * 1_000
+
+	const accountTimestampsResolver = blockscoutRest.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.EvmNetworkAccount
+		&& '$$timestamps' in candidate.projections
+	))
+	const accountTimestampResolver = blockscoutRest.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.EvmNetworkAccount_Timestamp
+		&& 'isContract' in candidate.projections
+		&& 'transactionCount' in candidate.projections
+	))
+
+	if (
+		accountTimestampsResolver == null
+		|| !('EvmNetworkEvmAccount' in accountTimestampsResolver.resolve)
+		|| accountTimestampResolver == null
+		|| !('AccountTimestampMsSource' in accountTimestampResolver.resolve)
+	)
+		throw new Error('Blockscout_Rest: missing EvmNetworkAccount timestamp resolvers')
+
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('projects tip account observations from counters + address details', async () => {
+		getBlocks.mockResolvedValue([{
+			height: 22_800_001,
+		}])
+		getBlockByNumber.mockResolvedValue({
+			hash: txHash,
+			height: 22_800_001,
+			miner: {
+				hash: address,
+			},
+			parent_hash: txHash,
+			timestamp: tipTimestamp,
+			transactions_count: 1,
+		})
+		getAddressCounters.mockResolvedValue({
+			gas_usage_count: '0',
+			token_transfers_count: '4',
+			transactions_count: '12',
+			validations_count: '0',
+		})
+		getAddressDetails.mockResolvedValue({
+			is_contract: true,
+		})
+
+		const account = await accountTimestampsResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$actor: {
+				address,
+			},
+			$network: network,
+		}, context)
+		expect(accountTimestampsResolver.projections.$$timestamps(account)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: {
+					$network: network,
+					$actor: {
+						address,
+					},
+				},
+				timestampMs: tipTimestampMs,
+				source: Source.Blockscout_Rest,
+			},
+		}])
+
+		const observation = await accountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+			$account: {
+				$network: network,
+				$actor: {
+					address,
+				},
+			},
+			timestampMs: tipTimestampMs,
+			source: Source.Blockscout_Rest,
+		}, context)
+		expect(accountTimestampResolver.projections.blockNumber(observation)).toBe(22_800_001n)
+		expect(accountTimestampResolver.projections.transactionCount(observation)).toBe(12n)
+		expect(accountTimestampResolver.projections.tokenTransferCount(observation)).toBe(4)
+		expect(accountTimestampResolver.projections.isContract(observation)).toBe(true)
+	})
+
+	it('fail-closes singular account observations on tip-clock mismatch', async () => {
+		getBlocks.mockResolvedValue([{
+			height: 22_800_001,
+		}])
+		getBlockByNumber.mockResolvedValue({
+			hash: txHash,
+			height: 22_800_001,
+			miner: {
+				hash: address,
+			},
+			parent_hash: txHash,
+			timestamp: tipTimestamp,
+			transactions_count: 1,
+		})
+		getAddressCounters.mockResolvedValue({
+			gas_usage_count: '0',
+			token_transfers_count: '0',
+			transactions_count: '0',
+			validations_count: '0',
+		})
+		getAddressDetails.mockResolvedValue({
+			is_contract: false,
+		})
+
+		await expect(accountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+			$account: {
+				$network: network,
+				$actor: {
+					address,
+				},
+			},
+			timestampMs: tipTimestampMs + 1_000,
+			source: Source.Blockscout_Rest,
+		}, context)).rejects.toThrow('account observation timestamp does not match request')
 	})
 })

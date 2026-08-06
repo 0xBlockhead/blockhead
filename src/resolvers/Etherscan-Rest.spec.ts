@@ -2,12 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const getTokenTransfersByAddress = vi.hoisted(() => vi.fn())
 const getTokenTransfersByTransaction = vi.hoisted(() => vi.fn())
 const getTransactionByHash = vi.hoisted(() => vi.fn())
 const getTransactionReceipt = vi.hoisted(() => vi.fn())
 const getBlockNumber = vi.hoisted(() => vi.fn())
+const getBlockByNumber = vi.hoisted(() => vi.fn())
+const getCode = vi.hoisted(() => vi.fn())
 const getTransactionsByAddress = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Etherscan/Rest/queries.ts', async (importOriginal) => ({
@@ -17,6 +20,8 @@ vi.mock('$/sources/Etherscan/Rest/queries.ts', async (importOriginal) => ({
 	getTransactionByHash,
 	getTransactionReceipt,
 	getBlockNumber,
+	getBlockByNumber,
+	getCode,
 	getTransactionsByAddress,
 }))
 
@@ -285,5 +290,99 @@ describe('Etherscan Network selectors', () => {
 				},
 			},
 		])
+	})
+
+	it('projects tip EvmNetworkAccount observations from eth_getCode + tip block', async () => {
+		getBlockNumber.mockResolvedValue('0x159a91')
+		getBlockByNumber.mockResolvedValue({
+			number: '0x159a91',
+			timestamp: '0x65a4b665',
+		})
+		getCode.mockResolvedValue('0x60806040')
+
+		const accountResolver = etherscanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmNetworkAccount
+			&& '$$timestamps' in candidate.projections
+		))
+		const timestampResolver = etherscanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmNetworkAccount_Timestamp
+			&& 'isContract' in candidate.projections
+		))
+		if (
+			accountResolver == null
+			|| !('EvmNetworkEvmAccount' in accountResolver.resolve)
+			|| timestampResolver == null
+			|| !('AccountTimestampMsSource' in timestampResolver.resolve)
+		)
+			throw new Error('Etherscan_Rest: missing EvmNetworkAccount timestamp resolvers')
+
+		const $network = {
+			slug: 'ethereum',
+		} as const
+		const account = await accountResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$actor: {
+				address,
+			},
+			$network,
+		}, context)
+		expect(accountResolver.projections.$$timestamps(account)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: {
+					$network,
+					$actor: {
+						address,
+					},
+				},
+				timestampMs: 0x65a4b665 * 1_000,
+				source: Source.Etherscan_Rest,
+			},
+		}])
+
+		const observation = await timestampResolver.resolve.AccountTimestampMsSource.resolve({
+			$account: {
+				$network,
+				$actor: {
+					address,
+				},
+			},
+			timestampMs: 0x65a4b665 * 1_000,
+			source: Source.Etherscan_Rest,
+		}, context)
+		expect(timestampResolver.projections.blockNumber(observation)).toBe(0x159a91n)
+		expect(timestampResolver.projections.isContract(observation)).toBe(true)
+	})
+
+	it('projects enrolled blob gas fields on EvmBlock', async () => {
+		getBlockByNumber.mockResolvedValue({
+			hash: `0x${'bb'.repeat(32)}`,
+			parentHash: `0x${'aa'.repeat(32)}`,
+			miner: address,
+			timestamp: '0x10',
+			gasUsed: '0x5208',
+			gasLimit: '0x1c9c380',
+			baseFeePerGas: '0x1',
+			blobGasUsed: '0x20000',
+			excessBlobGas: '0x0',
+			transactions: [txHash],
+		})
+		const resolver = etherscanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmBlock
+			&& 'blobGasUsed' in candidate.projections
+			&& 'excessBlobGas' in candidate.projections
+		))
+		if (
+			resolver == null
+			|| !('EvmNetworkBlockNumber' in resolver.resolve)
+		)
+			throw new Error('Etherscan_Rest: missing EvmBlock blob gas projections')
+
+		const entity = await resolver.resolve.EvmNetworkBlockNumber.resolve({
+			$network: {
+				slug: 'ethereum',
+			},
+			blockNumber: 16n,
+		}, context)
+		expect(resolver.projections.blobGasUsed(entity)).toBe(0x20000n)
+		expect(resolver.projections.excessBlobGas(entity)).toBe(0n)
 	})
 })

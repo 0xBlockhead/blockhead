@@ -874,6 +874,58 @@ const blockscoutTipBlockObservationClock = async (
 	}
 }
 
+const blockscoutEvmNetworkAccountObservation = async ({
+	$network,
+	$actor,
+}: {
+	$network: EvmNetworkId
+	$actor: EntitySelector<typeof schema, EntityType.EvmAccount>
+}) => {
+	const address = hexLowerOfByteSize($actor.address, 20)
+	if (address == null)
+		throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
+
+	const chainId = evmChainIdFromNetworkSelector($network)
+	const {
+		getAddressCounters,
+		getAddressDetails,
+	} = await import('$/sources/Blockscout/Rest/queries.ts')
+	const [counters, details, tipClock] = await Promise.all([
+		getAddressCounters({
+			chainId,
+			address,
+		}),
+		getAddressDetails({
+			chainId,
+			address,
+		}),
+		blockscoutTipBlockObservationClock(chainId),
+	])
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$account: {
+				$network,
+				$actor,
+			},
+			timestampMs: tipClock.timestampMs,
+			source: Source.Blockscout_Rest,
+		},
+		blockNumber: tipClock.blockNumber,
+		transactionCount: BigInt(blockscoutCountFromDecimalString(
+			counters.transactions_count,
+			'transactions_count'
+		)),
+		tokenTransferCount: blockscoutCountFromDecimalString(
+			counters.token_transfers_count,
+			'token_transfers_count'
+		),
+		...(details.is_contract != null && {
+			isContract: details.is_contract,
+		}),
+	}
+}
+
 const blockscoutNativeBalanceObservation = ({
 	actorCoin,
 	value,
@@ -2287,6 +2339,71 @@ export default {
 			$$tokenTransfers: {
 				resolveCount: (counts) => counts.tokenTransferCount,
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			resolve: {
+				EvmNetworkEvmAccount: {
+					resolve: async ({ $actor, $network }) => {
+						const address = hexLowerOfByteSize($actor.address, 20)
+						if (address == null)
+							throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
+
+						const tipClock = await blockscoutTipBlockObservationClock(
+							evmChainIdFromNetworkSelector($network)
+						)
+						return {
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$account: {
+											$network,
+											$actor,
+										},
+										timestampMs: tipClock.timestampMs,
+										source: Source.Blockscout_Rest,
+									},
+								},
+							],
+						}
+					},
+				},
+			},
+		})({
+			$$timestamps: (account) => account.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount_Timestamp,
+			resolve: {
+				AccountTimestampMsSource: {
+					resolve: async ({
+						$account,
+						timestampMs,
+						source,
+					}) => {
+						if (source !== Source.Blockscout_Rest)
+							throw new Error(`Blockscout_Rest: unsupported account observation source ${source}`)
+						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+							throw new Error('Blockscout_Rest: invalid account observation timestamp')
+
+						const observation = await blockscoutEvmNetworkAccountObservation({
+							$network: $account.$network,
+							$actor: $account.$actor,
+						})
+						if (observation[EntityMetaKey.Selector].timestampMs !== timestampMs)
+							throw new Error('Blockscout_Rest: account observation timestamp does not match request')
+
+						return observation
+					},
+				},
+			},
+		})({
+			blockNumber: (observation) => observation.blockNumber,
+			transactionCount: (observation) => observation.transactionCount,
+			tokenTransferCount: (observation) => observation.tokenTransferCount,
+			isContract: (observation) => observation.isContract,
 		}),
 
 		defineResolver({
