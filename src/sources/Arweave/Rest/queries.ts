@@ -10,24 +10,37 @@ import {
 	httpUrl,
 } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Arweave/bindings.ts'
-import type {
-	ArweaveBlockWire,
-	ArweaveNetworkInfoWire,
-	ArweaveTransactionStatus,
-	ArweaveTransactionWire,
+import {
+	arweaveBlockWire,
+	arweaveNetworkInfoWire,
+	arweaveTransactionOffsetWire,
+	arweaveTransactionStatusWire,
+	arweaveTransactionWire,
+	type ArweaveBlockWire,
+	type ArweaveTransactionStatus,
 } from '$/sources/Arweave/Rest/types.ts'
 import { sourceEndpointOrigin } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
 
 const gatewayUrlLastSegment = /([^/]+)$/
-const transactionOffset = arktype({
-	offset: 'string',
-	size: 'string',
-})
 const binding = bindings[Source.Arweave_Rest][0]
 
 const trimSlashes = (value: string) => value.replace(/^\/+|\/+$/g, '')
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: {
+		assert: (value: unknown) => _Value
+	},
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`Arweave_Rest: invalid ${label} response envelope`)
+	}
+}
 
 const arweaveGatewayEndpoints = () => {
 	const endpoints = binding.endpoints.filter((endpoint) => (
@@ -151,19 +164,12 @@ const assertBlockWire = (
 		expectedIndepHash?: string
 	} = {}
 ) => {
-	assertBlockHash(block.indep_hash, 'block indep_hash')
 	if (block.previous_block !== '')
 		assertBlockHash(block.previous_block, 'previous_block')
-	assertNonNegativeSafeInteger(block.timestamp, 'block timestamp')
-	assertNonNegativeSafeInteger(block.height, 'block height')
 	if (expectedHeight != null && block.height !== expectedHeight)
 		throw new Error(`Arweave_Rest: block height mismatch ${block.height} !== ${expectedHeight}`)
 	if (expectedIndepHash != null && block.indep_hash !== expectedIndepHash)
 		throw new Error('Arweave_Rest: block response has mismatched identity')
-	if (!Array.isArray(block.txs))
-		throw new Error('Arweave_Rest: block txs must be an array')
-	for (const transactionId of block.txs)
-		assertBase64UrlId(transactionId, 'block transaction ID')
 	if (new Set(block.txs).size !== block.txs.length)
 		throw new Error('Arweave_Rest: block txs contains duplicate transaction IDs')
 	if (block.tx_root != null && block.tx_root !== '' && !/^[A-Za-z0-9_-]+$/.test(block.tx_root))
@@ -202,23 +208,84 @@ const fetchBlockJson = async (
 	if (!response.ok)
 		await throwHttpError(`${Source.Arweave_Rest} ${path}`, response)
 
-	return response.json<ArweaveBlockWire>()
+	return assertEnvelope(
+		'block',
+		arweaveBlockWire,
+		await response.json()
+	)
 }
 
 /** @see https://docs.arweave.org/developers/arweave-node-server/http-api#network-info */
 export const getNetworkInfo = async () => {
-	const info = await getJson<ArweaveNetworkInfoWire>(
-		binding,
-		'/info'
+	const info = assertEnvelope(
+		'network-info',
+		arweaveNetworkInfoWire,
+		await getJson(
+			binding,
+			'/info'
+		)
 	)
-	assertNonNegativeSafeInteger(info.height, 'network height')
-	assertNonNegativeSafeInteger(info.blocks, 'network blocks')
-	assertNonNegativeSafeInteger(info.peers, 'network peers')
-	assertNonNegativeSafeInteger(info.queue_length, 'network queue_length')
-	assertBlockHash(info.current, 'network current block hash')
 	if (info.network.trim() === '')
 		throw new Error('Arweave_Rest: network id missing')
 	return info
+}
+
+/**
+ * Active peer host:port list from the contacted gateway.
+ * @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-nodes-peer-list
+ */
+export const getPeers = async () => {
+	const peers = assertEnvelope(
+		'peers',
+		arktype('string > 0').array(),
+		await getJson(
+			binding,
+			'/peers'
+		)
+	)
+	for (const peer of peers) {
+		if (peer.includes('://') || peer.includes(' '))
+			throw new Error('Arweave_Rest: invalid peer endpoint')
+	}
+	return peers
+}
+
+/**
+ * Current transaction anchor (recent block indep hash).
+ * @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-transaction-anchor
+ */
+export const getTxAnchor = async () => {
+	const anchor = (await getText(
+		binding,
+		'/tx_anchor'
+	)).trim()
+	assertBlockHash(anchor, 'tx_anchor')
+	return anchor
+}
+
+/**
+ * Minimum fee in winstons to store `byteSize` bytes (optionally targeting a wallet).
+ * @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-estimated-transaction-price
+ */
+export const getPrice = async ({
+	byteSize,
+	target,
+}: {
+	byteSize: number
+	target?: string
+}) => {
+	assertNonNegativeSafeInteger(byteSize, 'byte size')
+	if (target != null)
+		assertBase64UrlId(target, 'price target')
+	const priceWinston = (await getText(
+		binding,
+		target == null ?
+			`/price/${byteSize.toString()}`
+		:
+			`/price/${byteSize.toString()}/${encodeURIComponent(target)}`
+	)).trim()
+	assertUnsignedDecimal(priceWinston, 'price')
+	return priceWinston
 }
 
 /** @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-block-by-hash-id */
@@ -263,18 +330,16 @@ export const getTransaction = async (
 	transactionId: string
 ) => {
 	assertBase64UrlId(transactionId, 'transaction ID')
-	const transaction = await getJson<ArweaveTransactionWire>(
-		binding,
-		`/tx/${encodeURIComponent(transactionId)}`
+	const transaction = assertEnvelope(
+		'transaction',
+		arweaveTransactionWire,
+		await getJson(
+			binding,
+			`/tx/${encodeURIComponent(transactionId)}`
+		)
 	)
 	if (transaction.id !== transactionId)
 		throw new Error('Arweave_Rest: transaction response has mismatched identity')
-	if (!Number.isSafeInteger(transaction.format) || transaction.format < 1)
-		throw new Error('Arweave_Rest: invalid transaction format')
-	assertBase64Url(transaction.owner, 'owner key')
-	assertUnsignedDecimal(transaction.quantity, 'transaction quantity')
-	assertUnsignedDecimal(transaction.reward, 'transaction reward')
-	assertUnsignedDecimal(transaction.data_size, 'transaction data size')
 	if (transaction.target !== '')
 		assertBase64UrlId(transaction.target, 'transaction target')
 	if (
@@ -285,14 +350,6 @@ export const getTransaction = async (
 		throw new Error('Arweave_Rest: invalid transaction anchor')
 	if (transaction.data_root !== '')
 		assertBase64Url(transaction.data_root, 'data_root')
-	if (transaction.signature === '')
-		throw new Error('Arweave_Rest: missing transaction signature')
-	if (!Array.isArray(transaction.tags))
-		throw new Error('Arweave_Rest: transaction tags must be an array')
-	for (const tag of transaction.tags) {
-		assertBase64Url(tag.name, 'tag name')
-		assertBase64Url(tag.value, 'tag value')
-	}
 	return transaction
 }
 
@@ -306,15 +363,29 @@ export const getTransactionStatus = async (
 	)
 	if (status === 'Pending')
 		return undefined
-	if (
-		!Number.isSafeInteger(status.block_height)
-		|| status.block_height < 0
-		|| !Number.isSafeInteger(status.number_of_confirmations)
-		|| status.number_of_confirmations < 0
+	return assertEnvelope(
+		'transaction-status',
+		arweaveTransactionStatusWire,
+		status
 	)
-		throw new Error('Arweave_Rest: invalid transaction status')
-	assertBlockHash(status.block_indep_hash, 'status block hash')
-	return status
+}
+
+/**
+ * Weave byte offset + size for a confirmed transaction's data.
+ * @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-transaction-offset
+ */
+export const getTransactionOffset = async (
+	transactionId: string
+) => {
+	assertBase64UrlId(transactionId, 'transaction ID')
+	return assertEnvelope(
+		'transaction-offset',
+		arweaveTransactionOffsetWire,
+		await getJson(
+			binding,
+			`/tx/${encodeURIComponent(transactionId)}/offset`
+		)
+	)
 }
 
 export const getGatewayUrl = ({
@@ -376,9 +447,7 @@ export const fetchBrowseResult = async ({
 				continue
 			}
 			try {
-				const metadata = transactionOffset.assert(await metadataResponse.json())
-				assertUnsignedDecimal(metadata.offset, 'transaction offset')
-				assertUnsignedDecimal(metadata.size, 'transaction offset size')
+				const metadata = arweaveTransactionOffsetWire.assert(await metadataResponse.json())
 				contentLength = BigInt(metadata.size)
 			} catch {
 				failures.push(`${endpoint.locator}: invalid transaction offset size`)

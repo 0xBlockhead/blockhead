@@ -1,27 +1,119 @@
-export type FilfoxTipset = {
-	height: number
-	timestamp: number
-	messageCount?: number
-	blocks: {
-		cid: string
-		miner: string
-		messageCount?: number
-		winCount?: number
-		reward?: string
-		penalty?: string
-	}[]
-}
+import { type as arktype } from 'arktype'
 
-export type FilfoxBlock = {
-	cid: string
-	height: number
-	timestamp: number
-	miner: string
-	winCount?: number
-	parents: string[]
-	parentWeight: string
-	messageCount: number
-}
+
+const nonNegativeInteger = arktype('number.integer >= 0')
+const integer = arktype('number.integer')
+const nonEmptyString = arktype('string > 0')
+const attoFil = arktype('/^\\d+$/')
+
+
+export const filfoxTipsetBlockWire = arktype({
+	cid: nonEmptyString,
+	miner: nonEmptyString,
+	'messageCount?': nonNegativeInteger,
+	'winCount?': integer,
+	'reward?': 'string',
+	'penalty?': 'string',
+})
+
+export const filfoxTipsetWire = arktype({
+	height: nonNegativeInteger,
+	timestamp: nonNegativeInteger,
+	'messageCount?': nonNegativeInteger,
+	blocks: filfoxTipsetBlockWire.array(),
+})
+
+export const filfoxBlockWire = arktype({
+	cid: nonEmptyString,
+	height: nonNegativeInteger,
+	timestamp: nonNegativeInteger,
+	miner: nonEmptyString,
+	'winCount?': integer,
+	parents: 'string[]',
+	parentWeight: attoFil,
+	messageCount: nonNegativeInteger,
+})
+
+export const filfoxAddressBalanceWire = arktype({
+	address: nonEmptyString,
+	balance: attoFil,
+})
+
+export const filfoxAddressWire = arktype({
+	id: nonEmptyString,
+	address: nonEmptyString,
+	'robust?': 'string',
+	'actor?': 'string',
+	balance: attoFil,
+	'messageCount?': nonNegativeInteger,
+	'timestamp?': nonNegativeInteger,
+	'miner?': {
+		'owner?': filfoxAddressBalanceWire,
+		'worker?': filfoxAddressBalanceWire,
+		'beneficiary?': filfoxAddressBalanceWire,
+		'peerId?': 'string',
+		'rawBytePower?': attoFil,
+		qualityAdjPower: attoFil,
+		'networkRawBytePower?': attoFil,
+		'networkQualityAdjPower?': attoFil,
+		'sectors?': {
+			live: nonNegativeInteger,
+			active: nonNegativeInteger,
+			faulty: nonNegativeInteger,
+			'recovering?': nonNegativeInteger,
+		},
+	},
+})
+
+export const filfoxOverviewWire = arktype({
+	height: nonNegativeInteger,
+	timestamp: nonNegativeInteger,
+	'totalRawBytePower?': attoFil,
+	'totalQualityAdjPower?': attoFil,
+	'activeMiners?': nonNegativeInteger,
+	'baseFee?': attoFil,
+	'averageTipsetInterval?': 'number',
+	'averageTipsetBlocks?': 'number',
+	'dailyMessages?': nonNegativeInteger,
+})
+
+const filfoxDealTagWire = arktype({
+	name: 'string',
+	signed: 'boolean',
+})
+
+export const filfoxDealListItemWire = arktype({
+	id: nonNegativeInteger,
+	height: nonNegativeInteger,
+	timestamp: nonNegativeInteger,
+	pieceSize: nonNegativeInteger,
+	verifiedDeal: 'boolean',
+	client: nonEmptyString,
+	provider: nonEmptyString,
+	startEpoch: nonNegativeInteger,
+	startTimestamp: nonNegativeInteger,
+	endEpoch: nonNegativeInteger,
+	endTimestamp: nonNegativeInteger,
+	// Filfox wire typo — keep literal key.
+	stroagePrice: attoFil,
+})
+
+export const filfoxDealsPageWire = arktype({
+	totalCount: nonNegativeInteger,
+	deals: filfoxDealListItemWire.array(),
+})
+
+export const filfoxDealWire = filfoxDealListItemWire.and(arktype({
+	pieceCid: nonEmptyString,
+	clientTag: filfoxDealTagWire,
+	providerTag: filfoxDealTagWire,
+	storagePricePerEpoch: attoFil,
+	clientCollateral: attoFil,
+	providerCollateral: attoFil,
+}))
+
+export type FilfoxTipset = typeof filfoxTipsetWire.infer
+export type FilfoxBlock = typeof filfoxBlockWire.infer
 
 /**
  * Receipt on Filfox message list/detail wires.
@@ -156,80 +248,9 @@ export type FilfoxMessagesPage = {
 	methods?: unknown[]
 }
 
-export type FilfoxAddress = {
-	id: string
-	address: string
-	robust?: string
-	actor?: string
-	balance: string
-	messageCount?: number
-	timestamp?: number
-	miner?: {
-		owner?: FilfoxAddressBalance
-		worker?: FilfoxAddressBalance
-		beneficiary?: FilfoxAddressBalance
-		peerId?: string
-		rawBytePower?: string
-		qualityAdjPower: string
-		networkRawBytePower?: string
-		networkQualityAdjPower?: string
-		sectors?: {
-			live: number
-			active: number
-			faulty: number
-			recovering?: number
-		}
-	}
-}
-
-export type FilfoxAddressBalance = {
-	address: string
-	balance: string
-}
-
-export type FilfoxOverview = {
-	height: number
-	timestamp: number
-	totalRawBytePower?: string
-	totalQualityAdjPower?: string
-	activeMiners?: number
-	baseFee?: string
-	averageTipsetInterval?: number
-	averageTipsetBlocks?: number
-	dailyMessages?: number
-}
-
-export type FilfoxDealListItem = {
-	id: number
-	height: number
-	timestamp: number
-	pieceSize: number
-	verifiedDeal: boolean
-	client: string
-	provider: string
-	startEpoch: number
-	startTimestamp: number
-	endEpoch: number
-	endTimestamp: number
-	stroagePrice: string
-}
-
-export type FilfoxDealsPage = {
-	totalCount: number
-	deals: FilfoxDealListItem[]
-}
-
-export type FilfoxDeal = FilfoxDealListItem & {
-	pieceCid: string
-	clientTag: {
-		name: string
-		signed: boolean
-	}
-	providerTag: {
-		name: string
-		signed: boolean
-	}
-	storagePricePerEpoch: string
-	clientCollateral: string
-	providerCollateral: string
-}
+export type FilfoxAddress = typeof filfoxAddressWire.infer
+export type FilfoxAddressBalance = typeof filfoxAddressBalanceWire.infer
+export type FilfoxOverview = typeof filfoxOverviewWire.infer
+export type FilfoxDealListItem = typeof filfoxDealListItemWire.infer
+export type FilfoxDealsPage = typeof filfoxDealsPageWire.infer
+export type FilfoxDeal = typeof filfoxDealWire.infer

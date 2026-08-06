@@ -36,6 +36,7 @@ const ArweaveTransactions = graphql(`
 		$ids: [ID!]
 		$owners: [String!]
 		$recipients: [String!]
+		$tags: [TagFilter!]
 		$block: RangeFilter
 	) {
 		transactions(
@@ -44,6 +45,7 @@ const ArweaveTransactions = graphql(`
 			ids: $ids
 			owners: $owners
 			recipients: $recipients
+			tags: $tags
 			block: $block
 			sort: HEIGHT_DESC
 		) {
@@ -174,6 +176,7 @@ const getTransactionPage = async ({
 	ids,
 	owners,
 	recipients,
+	tags,
 	blockHeight,
 }: {
 	first: number
@@ -181,6 +184,10 @@ const getTransactionPage = async ({
 	ids?: string[]
 	owners?: string[]
 	recipients?: string[]
+	tags?: {
+		name: string
+		values: string[]
+	}[]
 	blockHeight?: number
 }) => {
 	if (!Number.isSafeInteger(first) || first < 1 || first > 100)
@@ -201,12 +208,17 @@ const getTransactionPage = async ({
 		assertAddress(owner, 'owner address')
 	for (const recipient of recipients ?? [])
 		assertAddress(recipient, 'recipient address')
+	for (const tag of tags ?? []) {
+		if (tag.name === '' || tag.values.length === 0 || tag.values.some((value) => value === ''))
+			throw new Error('Arweave_Graphql: invalid tag filter')
+	}
 	const { transactions } = await queryArweave(binding, ArweaveTransactions, {
 		first,
 		after,
 		ids,
 		owners,
 		recipients,
+		tags,
 		...(blockHeight != null && {
 			block: {
 				min: blockHeight,
@@ -241,6 +253,14 @@ const getTransactionPage = async ({
 			)
 		)
 			throw new Error('Arweave_Graphql: block height filter was violated')
+		for (const tag of tags ?? []) {
+			const matches = node.tags.some((nodeTag) => (
+				nodeTag.name === tag.name
+				&& tag.values.includes(nodeTag.value)
+			))
+			if (!matches)
+				throw new Error('Arweave_Graphql: tag filter was violated')
+		}
 	}
 	const nextCursor = pageInfo.hasNextPage ? edges.at(-1)?.cursor : undefined
 	if (pageInfo.hasNextPage && nextCursor == null)
@@ -419,6 +439,31 @@ export const getAccountTransactionsPage = (
 			}),
 	})
 )
+
+/** Tag-filtered transaction discovery (`TagFilter` leftovers on GraphQL `transactions`). */
+export const getTaggedTransactionsPage = (
+	{
+		tags,
+		first,
+		after,
+	}: {
+		tags: {
+			name: string
+			values: string[]
+		}[]
+		first: number
+		after?: string
+	}
+) => {
+	if (tags.length === 0)
+		throw new Error('Arweave_Graphql: tag filter required')
+
+	return getTransactionPage({
+		first,
+		after,
+		tags,
+	})
+}
 
 export const getBlockById = async (
 	blockId: string

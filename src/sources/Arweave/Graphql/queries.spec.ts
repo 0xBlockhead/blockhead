@@ -5,6 +5,7 @@ import {
 	getBlockByHeight,
 	getBlockById,
 	getBlocksPage,
+	getTaggedTransactionsPage,
 	getTransactionById,
 } from '$/sources/Arweave/Graphql/queries.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
@@ -188,6 +189,65 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 		await expect(getTransactionById(
 			transactionId
 		)).rejects.toThrow('incomplete confirmed block coordinates')
+	})
+
+	it('filters tagged transactions and fail-closes filter violations', async () => {
+		vi.mocked(graphql).mockResolvedValueOnce({
+			transactions: {
+				pageInfo: {
+					hasNextPage: false,
+				},
+				edges: [
+					{
+						cursor,
+						node: transaction,
+					},
+				],
+			},
+		})
+		await expect(getTaggedTransactionsPage({
+			tags: [{
+				name: 'Content-Type',
+				values: [
+					'text/plain',
+				],
+			}],
+			first: 1,
+		})).resolves.toMatchObject({
+			edges: [{
+				node: {
+					id: transactionId,
+				},
+			}],
+		})
+
+		vi.mocked(graphql).mockResolvedValueOnce({
+			transactions: {
+				pageInfo: {
+					hasNextPage: false,
+				},
+				edges: [
+					{
+						cursor,
+						node: transaction,
+					},
+				],
+			},
+		})
+		await expect(getTaggedTransactionsPage({
+			tags: [{
+				name: 'App-Name',
+				values: [
+					'Missing',
+				],
+			}],
+			first: 1,
+		})).rejects.toThrow('tag filter was violated')
+
+		expect(() => getTaggedTransactionsPage({
+			tags: [],
+			first: 1,
+		})).toThrow('tag filter required')
 	})
 
 	it('rejects foreign owner rows, duplicate cursors, and stalled pagination', async () => {

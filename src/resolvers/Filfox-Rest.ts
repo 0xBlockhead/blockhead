@@ -647,42 +647,51 @@ export default {
 					resolve: async ({ $network, cid }, context) => {
 						assertFilecoinMainnet($network)
 						const { getBlockMessages } = await import('$/sources/Filfox/Rest/queries.ts')
-						return (await getBlockMessages({
+						const page = await getBlockMessages({
 							blockCid: cid,
 							pageSize: resolverContextRowLimit(context),
-						})).messages.map((message) => ({
-							[EntityMetaKey.Selector]: {
-								$network,
-								cid: message.cid,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.FilecoinMessage, [], '$from')]: {
-									[EntityMetaKey.Selector]: {
-										$network,
-										address: message.from,
-									},
+						})
+						return {
+							messageCount: page.totalCount,
+							messages: page.messages.map((message) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									cid: message.cid,
 								},
-								[entityFieldAddressKey(EntityType.FilecoinMessage, [], '$to')]: {
-									[EntityMetaKey.Selector]: {
-										$network,
-										address: message.to,
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FilecoinMessage, [], '$from')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											address: message.from,
+										},
 									},
+									[entityFieldAddressKey(EntityType.FilecoinMessage, [], '$to')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											address: message.to,
+										},
+									},
+									...(message.nonce != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'nonce')]: BigInt(message.nonce),
+									}),
+									[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'valueAttoFil')]: BigInt(message.value),
+									...(message.methodNumber != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'method')]: message.methodNumber,
+									}),
+									...(message.gasLimit != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'gasLimit')]: BigInt(message.gasLimit),
+									}),
 								},
-								[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'nonce')]: BigInt(message.nonce),
-								[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'valueAttoFil')]: BigInt(message.value),
-								...(message.methodNumber != null && {
-									[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'method')]: message.methodNumber,
-								}),
-								...(message.gasLimit != null && {
-									[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'gasLimit')]: BigInt(message.gasLimit),
-								}),
-							},
-						}))
+							})),
+						}
 					},
 				},
 			},
 		})({
-			$$messages: (snapshot) => snapshot,
+			$$messages: {
+				select: (snapshot) => snapshot.messages,
+				resolveCount: (snapshot) => snapshot.messageCount,
+			},
 		}),
 
 		defineResolver({

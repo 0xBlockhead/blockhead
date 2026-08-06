@@ -91,8 +91,66 @@ describe('Filfox REST queries', () => {
 	})
 
 	it('appends the API-family prefix for every product endpoint', async () => {
+		const tipset = {
+			height: 42,
+			timestamp: 1_700_000_000,
+			blocks: [{
+				cid: 'bafy-block',
+				miner: 'f01000',
+			}],
+		}
+		const block = {
+			cid: 'bafy-block',
+			height: 42,
+			timestamp: 1_700_000_000,
+			miner: 'f01000',
+			parents: [
+				'bafy-parent',
+			],
+			parentWeight: '1',
+			messageCount: 0,
+		}
+		const address = {
+			id: 'f01234',
+			address: 'f1abc',
+			balance: '0',
+		}
+		const overview = {
+			height: 42,
+			timestamp: 1_700_000_000,
+		}
+		const dealsPage = {
+			totalCount: 0,
+			deals: [],
+		}
+		const deal = {
+			id: 42,
+			height: 100,
+			timestamp: 1_700_000_000,
+			pieceCid: 'baga-piece',
+			pieceSize: 2048,
+			verifiedDeal: true,
+			client: 'f1client',
+			clientTag: {
+				name: 'Official',
+				signed: false,
+			},
+			provider: 'f01000',
+			providerTag: {
+				name: 'Official',
+				signed: false,
+			},
+			startEpoch: 101,
+			startTimestamp: 1_700_000_030,
+			endEpoch: 201,
+			endTimestamp: 1_700_003_030,
+			storagePricePerEpoch: '0',
+			stroagePrice: '0',
+			clientCollateral: '1',
+			providerCollateral: '2',
+		}
 		sourceGetJson
-			.mockResolvedValueOnce({})
+			.mockResolvedValueOnce(tipset)
 			.mockResolvedValueOnce(messageDetail)
 			.mockResolvedValueOnce([])
 			.mockResolvedValueOnce([])
@@ -100,19 +158,19 @@ describe('Filfox REST queries', () => {
 				totalCount: 0,
 				messages: [],
 			})
-			.mockResolvedValueOnce({})
+			.mockResolvedValueOnce(block)
 			.mockResolvedValueOnce({
 				totalCount: 0,
 				messages: [],
 			})
-			.mockResolvedValueOnce({})
+			.mockResolvedValueOnce(address)
 			.mockResolvedValueOnce({
 				totalCount: 0,
 				messages: [],
 			})
-			.mockResolvedValueOnce({})
-			.mockResolvedValueOnce({})
-			.mockResolvedValueOnce({})
+			.mockResolvedValueOnce(overview)
+			.mockResolvedValueOnce(dealsPage)
+			.mockResolvedValueOnce(deal)
 
 		await getTipset({
 			height: 42n,
@@ -540,5 +598,95 @@ describe('Filfox REST queries', () => {
 			clientCollateral: '1',
 			providerCollateral: '2',
 		})
+	})
+
+	it('fail-closes tipset / block / address / overview / deal leftover envelopes', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			height: 42,
+			timestamp: 1_700_000_000,
+		})
+		await expect(getTipset({
+			height: 42n,
+		})).rejects.toThrow(`${Source.Filfox_Rest}: invalid tipset response envelope`)
+
+		sourceGetJson.mockResolvedValueOnce({
+			height: 41,
+			timestamp: 1_700_000_000,
+			blocks: [{
+				cid: 'bafy-block',
+				miner: 'f01000',
+			}],
+		})
+		await expect(getTipset({
+			height: 42n,
+		})).rejects.toThrow(`${Source.Filfox_Rest}: tipset height mismatch`)
+
+		sourceGetJson.mockResolvedValueOnce({
+			cid: 'bafy-other',
+			height: 1,
+			timestamp: 1,
+			miner: 'f01000',
+			parents: [],
+			parentWeight: '0',
+			messageCount: 0,
+		})
+		await expect(getBlock({
+			blockCid: 'bafy-block',
+		})).rejects.toThrow(`${Source.Filfox_Rest}: block cid mismatch`)
+
+		sourceGetJson.mockResolvedValueOnce({
+			id: 'f099',
+			address: 'f1other',
+			balance: '0',
+		})
+		await expect(getAddress({
+			address: 'f01234',
+		})).rejects.toThrow(`${Source.Filfox_Rest}: address identity mismatch`)
+
+		sourceGetJson.mockResolvedValueOnce({
+			height: '42',
+			timestamp: 1,
+		})
+		await expect(getOverview()).rejects.toThrow(
+			`${Source.Filfox_Rest}: invalid overview response envelope`
+		)
+
+		sourceGetJson.mockResolvedValueOnce({
+			deals: [],
+		})
+		await expect(getDeals({
+			page: 0,
+			pageSize: 1,
+		})).rejects.toThrow(`${Source.Filfox_Rest}: invalid deals response envelope`)
+
+		sourceGetJson.mockResolvedValueOnce({
+			id: 41,
+			height: 100,
+			timestamp: 1_700_000_000,
+			pieceCid: 'baga-piece',
+			pieceSize: 2048,
+			verifiedDeal: true,
+			client: 'f1client',
+			clientTag: {
+				name: 'Official',
+				signed: false,
+			},
+			provider: 'f01000',
+			providerTag: {
+				name: 'Official',
+				signed: false,
+			},
+			startEpoch: 101,
+			startTimestamp: 1_700_000_030,
+			endEpoch: 201,
+			endTimestamp: 1_700_003_030,
+			storagePricePerEpoch: '0',
+			stroagePrice: '0',
+			clientCollateral: '1',
+			providerCollateral: '2',
+		})
+		await expect(getDeal({
+			dealId: 42n,
+		})).rejects.toThrow(`${Source.Filfox_Rest}: deal id mismatch`)
 	})
 })

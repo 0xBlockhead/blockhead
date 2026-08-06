@@ -6,8 +6,12 @@ import {
 	getBlockByHash,
 	getBlockByHeight,
 	getNetworkInfo,
+	getPeers,
+	getPrice,
 	getTransaction,
+	getTransactionOffset,
 	getTransactionStatus,
+	getTxAnchor,
 	getWalletBalance,
 	ownerAddressFromOwnerKey,
 } from '$/sources/Arweave/Rest/queries.ts'
@@ -114,7 +118,7 @@ describe('Arweave public gateway metadata', () => {
 			peers: 1,
 			queue_length: 0,
 		})
-		await expect(getNetworkInfo()).rejects.toThrow('invalid network current block hash')
+		await expect(getNetworkInfo()).rejects.toThrow('invalid network-info response envelope')
 
 		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify({
 			indep_hash: blockId,
@@ -129,6 +133,71 @@ describe('Arweave public gateway metadata', () => {
 			},
 		}))
 		await expect(getBlockByHeight(422_250)).rejects.toThrow('block height mismatch')
+	})
+
+	it('accepts peers / tx_anchor / price / tx offset leftovers and fail-closes malformed envelopes', async () => {
+		const getJson = vi.spyOn(httpRestClient, 'getJson')
+		const getText = vi.spyOn(httpRestClient, 'getText')
+
+		getJson.mockResolvedValueOnce([
+			'1.2.3.4:1984',
+			'[::1]:1984',
+		])
+		await expect(getPeers()).resolves.toEqual([
+			'1.2.3.4:1984',
+			'[::1]:1984',
+		])
+
+		getJson.mockResolvedValueOnce([
+			'https://evil.example',
+		])
+		await expect(getPeers()).rejects.toThrow('invalid peer endpoint')
+
+		getText.mockResolvedValueOnce(`${blockId}\n`)
+		await expect(getTxAnchor()).resolves.toBe(blockId)
+
+		getText.mockResolvedValueOnce('short')
+		await expect(getTxAnchor()).rejects.toThrow('invalid tx_anchor')
+
+		getText.mockResolvedValueOnce('321004937')
+		await expect(getPrice({
+			byteSize: 0,
+		})).resolves.toBe('321004937')
+
+		getText.mockResolvedValueOnce('321004937')
+		await expect(getPrice({
+			byteSize: 256,
+			target: recipientAddress,
+		})).resolves.toBe('321004937')
+		expect(getText).toHaveBeenLastCalledWith(
+			expect.anything(),
+			`/price/256/${recipientAddress}`
+		)
+
+		getText.mockResolvedValueOnce('-1')
+		await expect(getPrice({
+			byteSize: 0,
+		})).rejects.toThrow('invalid price')
+
+		getJson.mockResolvedValueOnce({
+			offset: '100',
+			size: '42',
+		})
+		await expect(getTransactionOffset(transactionId)).resolves.toEqual({
+			offset: '100',
+			size: '42',
+		})
+		expect(getJson).toHaveBeenLastCalledWith(
+			expect.anything(),
+			`/tx/${transactionId}/offset`
+		)
+
+		getJson.mockResolvedValueOnce({
+			offset: '100',
+		})
+		await expect(getTransactionOffset(transactionId)).rejects.toThrow(
+			'invalid transaction-offset response envelope'
+		)
 	})
 
 	it('preserves wallet balances and transaction amounts as winston strings', async () => {
@@ -190,7 +259,7 @@ describe('Arweave public gateway metadata', () => {
 		})
 		await expect(getTransactionStatus(
 			transactionId
-		)).rejects.toThrow('invalid status block hash')
+		)).rejects.toThrow('invalid transaction-status response envelope')
 	})
 
 	it('rejects substituted transaction and malformed confirmed block identity', async () => {
@@ -200,7 +269,7 @@ describe('Arweave public gateway metadata', () => {
 		})
 		await expect(getTransaction(
 			transactionId
-		)).rejects.toThrow('mismatched identity')
+		)).rejects.toThrow('invalid transaction response envelope')
 
 		getJson.mockResolvedValueOnce({
 			format: 2,
@@ -218,7 +287,25 @@ describe('Arweave public gateway metadata', () => {
 		})
 		await expect(getTransaction(
 			transactionId
-		)).rejects.toThrow('invalid owner key')
+		)).rejects.toThrow('invalid transaction response envelope')
+
+		getJson.mockResolvedValueOnce({
+			format: 2,
+			id: 'Z'.repeat(43),
+			last_tx: '',
+			owner: Buffer.alloc(32, 1).toString('base64url'),
+			tags: [],
+			target: '',
+			quantity: '0',
+			data: '',
+			data_size: '0',
+			data_root: '',
+			reward: '0',
+			signature: 'signature',
+		})
+		await expect(getTransaction(
+			transactionId
+		)).rejects.toThrow('mismatched identity')
 	})
 
 	it.each([

@@ -559,9 +559,9 @@ describe('Filfox REST resolvers', () => {
 		}, context)).rejects.toThrow('404')
 	})
 
-	it('lists block messages with nested field enrichment', async () => {
+	it('lists block messages with nested field enrichment and authoritative resolveCount', async () => {
 		getBlockMessages.mockResolvedValueOnce({
-			totalCount: 1,
+			totalCount: 9,
 			messages: [{
 				cid: 'bafy-msg',
 				from: 'f1from',
@@ -577,7 +577,7 @@ describe('Filfox REST resolvers', () => {
 			cid: 'bafy-block',
 		}, context)
 
-		expect(blockMessagesResolver.projections.$$messages(snapshot)).toEqual([
+		expect(blockMessagesResolver.projections.$$messages.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -601,6 +601,7 @@ describe('Filfox REST resolvers', () => {
 				},
 			},
 		])
+		expect(blockMessagesResolver.projections.$$messages.resolveCount?.(snapshot)).toBe(9)
 		expect(getBlockMessages).toHaveBeenCalledWith({
 			blockCid: 'bafy-block',
 			pageSize: 8,

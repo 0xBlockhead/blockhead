@@ -2,16 +2,16 @@ import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
-import type {
-	FilfoxAddress,
-	FilfoxBlock,
-	FilfoxDeal,
-	FilfoxDealsPage,
-	FilfoxMessage,
-	FilfoxMessageEvent,
-	FilfoxMessagesPage,
-	FilfoxOverview,
-	FilfoxTipset,
+import {
+	filfoxAddressWire,
+	filfoxBlockWire,
+	filfoxDealWire,
+	filfoxDealsPageWire,
+	filfoxOverviewWire,
+	filfoxTipsetWire,
+	type FilfoxMessage,
+	type FilfoxMessageEvent,
+	type FilfoxMessagesPage,
 } from '$/sources/Filfox/Rest/types.ts'
 import bindings from '$/sources/Filfox/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -190,15 +190,40 @@ const assertPage = (page: number) => {
 		throw new Error(`${Source.Filfox_Rest}: invalid page ${String(page)}`)
 }
 
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: {
+		assert: (value: unknown) => _Value
+	},
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`${Source.Filfox_Rest}: invalid ${label} response envelope`)
+	}
+}
+
 export const getTipset = ({
 	height,
 }: {
 	height: bigint
 }) => (
-	sourceGetJson<FilfoxTipset>(
+	sourceGetJson<unknown>(
 		binding,
 		`${baseUrl}/tipset/${height.toString()}`
 	)
+		.then((response) => {
+			const tipset = assertEnvelope(
+				'tipset',
+				filfoxTipsetWire,
+				response
+			)
+			if (BigInt(tipset.height) !== height)
+				throw new Error(`${Source.Filfox_Rest}: tipset height mismatch ${String(tipset.height)} !== ${height.toString()}`)
+
+			return tipset
+		})
 )
 
 /**
@@ -299,12 +324,26 @@ export const getBlock = ({
 	blockCid,
 }: {
 	blockCid: string
-}) => (
-	sourceGetJson<FilfoxBlock>(
+}) => {
+	if (blockCid === '')
+		throw new Error(`${Source.Filfox_Rest}: empty block cid`)
+
+	return sourceGetJson<unknown>(
 		binding,
 		`${baseUrl}/block/${blockCid}`
 	)
-)
+		.then((response) => {
+			const block = assertEnvelope(
+				'block',
+				filfoxBlockWire,
+				response
+			)
+			if (block.cid !== blockCid)
+				throw new Error(`${Source.Filfox_Rest}: block cid mismatch ${block.cid} !== ${blockCid}`)
+
+			return block
+		})
+}
 
 export const getBlockMessages = ({
 	blockCid,
@@ -353,18 +392,43 @@ export const getAddress = ({
 	address,
 }: {
 	address: string
-}) => (
-	sourceGetJson<FilfoxAddress>(
+}) => {
+	if (address === '')
+		throw new Error(`${Source.Filfox_Rest}: empty address`)
+
+	return sourceGetJson<unknown>(
 		binding,
 		`${baseUrl}/address/${address}`
 	)
-)
+		.then((response) => {
+			const row = assertEnvelope(
+				'address',
+				filfoxAddressWire,
+				response
+			)
+			if (
+				row.address !== address
+				&& row.id !== address
+				&& row.robust !== address
+			)
+				throw new Error(`${Source.Filfox_Rest}: address identity mismatch`)
+
+			return row
+		})
+}
 
 export const getOverview = () => (
-	sourceGetJson<FilfoxOverview>(
+	sourceGetJson<unknown>(
 		binding,
 		`${baseUrl}/overview`
 	)
+		.then((response) => (
+			assertEnvelope(
+				'overview',
+				filfoxOverviewWire,
+				response
+			)
+		))
 )
 
 export const getDeals = ({
@@ -373,20 +437,43 @@ export const getDeals = ({
 }: {
 	page: number
 	pageSize: number
-}) => (
-	sourceGetJson<FilfoxDealsPage>(
+}) => {
+	assertPage(page)
+	assertPageSize(pageSize)
+	return sourceGetJson<unknown>(
 		binding,
 		`${baseUrl}/deal/list?pageSize=${pageSize.toString()}&page=${page.toString()}`
 	)
-)
+		.then((response) => (
+			assertEnvelope(
+				'deals',
+				filfoxDealsPageWire,
+				response
+			)
+		))
+}
 
 export const getDeal = ({
 	dealId,
 }: {
 	dealId: bigint
-}) => (
-	sourceGetJson<FilfoxDeal>(
+}) => {
+	if (dealId < 0n)
+		throw new Error(`${Source.Filfox_Rest}: invalid deal id`)
+
+	return sourceGetJson<unknown>(
 		binding,
 		`${baseUrl}/deal/${dealId.toString()}`
 	)
-)
+		.then((response) => {
+			const deal = assertEnvelope(
+				'deal',
+				filfoxDealWire,
+				response
+			)
+			if (BigInt(deal.id) !== dealId)
+				throw new Error(`${Source.Filfox_Rest}: deal id mismatch ${String(deal.id)} !== ${dealId.toString()}`)
+
+			return deal
+		})
+}
