@@ -184,4 +184,50 @@ describe('Curve Rest resolver module', () => {
 		expect(curvePoolResolver.projections.name(snapshot)).toBe('Curve.fi DAI/USDC/USDT')
 		expect(curvePoolResolver.projections.symbol(snapshot)).toBe('3Crv')
 	})
+
+	it('propagates malformed pool list envelopes instead of resolving an empty detail', async () => {
+		if (curvePoolResolver == null)
+			throw new Error('missing CurvePool resolver')
+
+		sourceGetJson.mockResolvedValueOnce({
+			success: false,
+			data: {
+				poolList: [],
+			},
+		})
+
+		await expect(curvePoolResolver.resolve.NetworkPoolAddress.resolve({
+			$network: baseNetwork,
+			poolAddress: threePoolAddress,
+		}, context)).rejects.toThrow(`${Source.Curve_Rest}: invalid pool list response envelope`)
+	})
+
+	it('propagates malformed pool detail envelopes instead of resolving a partial pool', async () => {
+		if (curvePoolResolver == null)
+			throw new Error('missing CurvePool resolver')
+
+		sourceGetJson
+			.mockResolvedValueOnce({
+				success: true,
+				data: {
+					poolList: [
+						{
+							type: 'main',
+							address: threePoolAddress,
+						},
+					],
+				},
+			})
+			.mockResolvedValueOnce({
+				success: false,
+				data: {
+					poolData: [],
+				},
+			})
+
+		await expect(curvePoolResolver.resolve.NetworkPoolAddress.resolve({
+			$network: baseNetwork,
+			poolAddress: threePoolAddress,
+		}, context)).rejects.toThrow(`${Source.Curve_Rest}: invalid pools response envelope`)
+	})
 })
