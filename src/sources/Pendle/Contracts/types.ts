@@ -5,7 +5,7 @@ export type PendleAccountPosition = {
 	marketName: string
 	expiryTimestampMs: number
 	balances: {
-		kind: 'PT' | 'YT' | 'LP'
+		kind: 'PT' | 'YT' | 'SY' | 'LP'
 		address: `0x${string}`
 		balance: string
 	}[]

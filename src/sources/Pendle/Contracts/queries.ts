@@ -30,7 +30,7 @@ const UINT256_OUTPUT = [
 
 const decodeBalance = (
 	response: `0x${string}`,
-	tokenKind: 'PT' | 'YT' | 'LP'
+	tokenKind: 'PT' | 'YT' | 'SY' | 'LP'
 ) => {
 	if (response === '0x')
 		throw new Error(`${Source.Pendle_Rest}: empty ${tokenKind} balanceOf result`)
@@ -43,7 +43,7 @@ const decodeBalance = (
 }
 
 /**
- * Reads PT, YT, and market-LP ERC-20 balances for every Pendle market on one chain.
+ * Reads PT, YT, SY, and market-LP ERC-20 balances for every Pendle market on one chain.
  * Market discovery and token addresses come from Pendle's markets catalog; balances
  * are pinned to one EVM block so the returned account snapshot is internally coherent.
  */
@@ -101,6 +101,10 @@ export const getAccountPositions = async ({
 				{
 					kind: 'YT' as const,
 					address: market.ytAddress,
+				},
+				{
+					kind: 'SY' as const,
+					address: market.syAddress,
 				},
 				{
 					kind: 'LP' as const,

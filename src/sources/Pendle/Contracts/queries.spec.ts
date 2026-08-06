@@ -62,7 +62,7 @@ describe('Pendle contract account operations', () => {
 		])
 	})
 
-	it('reads PT, YT, and LP balances at one block and keeps only active markets', async () => {
+	it('reads PT, YT, SY, and LP balances at one block and keeps only active markets', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			total: 1,
 			limit: 100,
@@ -108,6 +108,7 @@ describe('Pendle contract account operations', () => {
 			.mockResolvedValueOnce('0x64')
 			.mockResolvedValueOnce(word(5n))
 			.mockResolvedValueOnce(word(0n))
+			.mockResolvedValueOnce(word(9n))
 			.mockResolvedValueOnce(word(7n))
 
 		await expect(getAccountPositions({
@@ -129,6 +130,11 @@ describe('Pendle contract account operations', () => {
 							balance: '5',
 						},
 						{
+							kind: 'SY',
+							address: '0x47bce1bb5d9a9072161ec25009bcd6e8d367b7d3',
+							balance: '9',
+						},
+						{
 							kind: 'LP',
 							address: marketAddress,
 							balance: '7',
@@ -137,7 +143,7 @@ describe('Pendle contract account operations', () => {
 				},
 			],
 		})
-		expect(jsonRpc2).toHaveBeenCalledTimes(4)
+		expect(jsonRpc2).toHaveBeenCalledTimes(5)
 	})
 
 	it('rejects account reads without a chain binding', async () => {
