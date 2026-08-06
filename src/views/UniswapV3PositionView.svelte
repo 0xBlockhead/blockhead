@@ -38,6 +38,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import UniswapV3PoolView from '$/views/UniswapV3PoolView.svelte'
 	import UniswapV3Position_BlocksView from '$/views/UniswapV3Position_BlocksView.svelte'
 </script>
