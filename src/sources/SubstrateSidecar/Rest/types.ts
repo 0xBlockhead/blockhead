@@ -1,13 +1,23 @@
+export type SidecarBlockEvent = {
+	method:
+		| string
+		| {
+			pallet: string
+			method: string
+		}
+	data?: unknown
+	extrinsicIndex?: number
+}
+
 export type SidecarBlock = {
 	number: string
 	hash: string
 	parentHash: string
 	stateRoot: string
 	extrinsicsRoot: string
+	authorId?: string
 	onInitialize?: {
-		events?: {
-			method: string
-		}[]
+		events?: SidecarBlockEvent[]
 	}
 	extrinsics: {
 		method: {
@@ -15,18 +25,19 @@ export type SidecarBlock = {
 			method: string
 		}
 		signature?: {
-			signer?: string
-		}
+			signer?:
+				| string
+				| {
+					id?: string
+					address?: string
+				}
+		} | null
 		hash?: string
-		events?: {
-			method: string
-		}[]
+		events?: SidecarBlockEvent[]
 		success?: boolean
 	}[]
 	onFinalize?: {
-		events?: {
-			method: string
-		}[]
+		events?: SidecarBlockEvent[]
 	}
 }
 
@@ -48,11 +59,15 @@ export type SidecarAccountBalanceInfo = {
 export type SidecarRuntimeMetadata = {
 	pallets: {
 		name: string
-		index?: number
+		index?: number | string
 	}[]
 }
 
 export type SidecarStakingValidators = {
+	at?: {
+		hash?: string
+		height?: string
+	}
 	validators?: {
 		accountId?: string
 		address?: string
@@ -61,4 +76,19 @@ export type SidecarStakingValidators = {
 		commission?: string | number
 		totalStake?: string
 	}[]
+}
+
+export type SidecarAccountAssetBalance = {
+	assetId: string | number
+	balance: string
+	isFrozen?: boolean
+	isSufficient?: boolean
+}
+
+export type SidecarAccountAssetBalances = {
+	at: {
+		hash: string
+		height: string
+	}
+	assets: SidecarAccountAssetBalance[]
 }

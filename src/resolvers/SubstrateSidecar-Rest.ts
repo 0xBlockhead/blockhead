@@ -12,16 +12,18 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import type { SidecarBlock } from '$/sources/SubstrateSidecar/Rest/types.ts'
-
-type SidecarBlockEvent = {
-	method: string
-	extrinsicIndex?: number
-}
+import type {
+	SidecarBlock,
+	SidecarBlockEvent,
+} from '$/sources/SubstrateSidecar/Rest/types.ts'
 
 type PolkadotNetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 type NetworkId = PolkadotNetworkId | { $network: PolkadotNetworkId }
+
+type SidecarBlockEventWithExtrinsic = SidecarBlockEvent & {
+	extrinsicIndex?: number
+}
 
 const assertPolkadotMainnet = (network: NetworkId) => {
 	if ('$network' in network) {
@@ -43,34 +45,58 @@ const assertPolkadotMainnet = (network: NetworkId) => {
 	}
 }
 
+const extrinsicSignerAccountId = (
+	signer: NonNullable<NonNullable<SidecarBlock['extrinsics'][number]['signature']>['signer']>
+) => (
+	typeof signer === 'string' ?
+		signer
+	: typeof signer.id === 'string' ?
+		signer.id
+	: typeof signer.address === 'string' ?
+		signer.address
+	:
+		undefined
+)
+
 const polkadotExtrinsicFields = (
 	network: PolkadotNetworkId,
 	extrinsic: SidecarBlock['extrinsics'][number]
-) => ({
-	...(extrinsic.hash != null && {
-		hash: extrinsic.hash,
-	}),
-	...(extrinsic.signature?.signer != null && {
-		$signer: {
+) => {
+	const signerAccountId = (
+		extrinsic.signature?.signer != null ?
+			extrinsicSignerAccountId(extrinsic.signature.signer)
+		:
+			undefined
+	)
+
+	return {
+		...(extrinsic.hash != null && {
+			hash: extrinsic.hash,
+		}),
+		...(signerAccountId != null && {
+			$signer: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					accountId: signerAccountId,
+				},
+			},
+		}),
+		$pallet: {
 			[EntityMetaKey.Selector]: {
 				$network: network,
-				accountId: extrinsic.signature.signer,
+				palletName: extrinsic.method.pallet,
 			},
 		},
-	}),
-	$pallet: {
-		[EntityMetaKey.Selector]: {
-			$network: network,
-			palletName: extrinsic.method.pallet,
-		},
-	},
-	callName: extrinsic.method.method,
-	...(extrinsic.success != null && {
-		success: extrinsic.success,
-	}),
-})
+		callName: extrinsic.method.method,
+		...(extrinsic.success != null && {
+			success: extrinsic.success,
+		}),
+	}
+}
 
-const polkadotBlockEvents = (block: SidecarBlock) => [
+const polkadotBlockEvents = (
+	block: SidecarBlock
+): SidecarBlockEventWithExtrinsic[] => [
 	...(block.onInitialize?.events ?? []),
 	...block.extrinsics.flatMap((extrinsic, extrinsicIndex) => (
 		(extrinsic.events ?? []).map((event) => ({
@@ -81,15 +107,42 @@ const polkadotBlockEvents = (block: SidecarBlock) => [
 	...(block.onFinalize?.events ?? []),
 ]
 
+const polkadotEventIdentity = (
+	event: SidecarBlockEventWithExtrinsic
+) => {
+	if (typeof event.method === 'string') {
+		const [
+			palletName,
+			...eventNameParts
+		] = event.method.split('.')
+		const eventName = eventNameParts.join('.')
+		if (palletName.length === 0 || eventName.length === 0)
+			throw new Error('SubstrateSidecar_Rest: malformed event method')
+
+		return {
+			palletName,
+			eventName,
+		}
+	}
+
+	if (event.method.pallet.length === 0 || event.method.method.length === 0)
+		throw new Error('SubstrateSidecar_Rest: malformed event method')
+
+	return {
+		palletName: event.method.pallet,
+		eventName: event.method.method,
+	}
+}
+
 const polkadotEventFields = (
 	network: PolkadotNetworkId,
 	block: SidecarBlock,
-	event: SidecarBlockEvent
+	event: SidecarBlockEventWithExtrinsic
 ) => {
-	const [
+	const {
 		palletName,
 		eventName,
-	] = event.method.split('.')
+	} = polkadotEventIdentity(event)
 
 	return {
 		...(event.extrinsicIndex != null && {
@@ -112,6 +165,67 @@ const polkadotEventFields = (
 		},
 		eventName,
 	}
+}
+
+const polkadotBlockSnapshot = (
+	network: PolkadotNetworkId,
+	block: SidecarBlock
+) => ({
+	hash: block.hash,
+	...(BigInt(block.number) > 0n && {
+		$parent: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				blockNumber: BigInt(block.number) - 1n,
+				hash: block.parentHash,
+			},
+		},
+	}),
+	stateRoot: block.stateRoot,
+	extrinsicsRoot: block.extrinsicsRoot,
+	$$extrinsics: block.extrinsics.map((extrinsic, extrinsicIndex) => ({
+		[EntityMetaKey.Selector]: {
+			$block: {
+				$network: network,
+				blockNumber: BigInt(block.number),
+				hash: block.hash,
+			},
+			indexInBlock: extrinsicIndex,
+		},
+		...polkadotExtrinsicFields(network, extrinsic),
+	})),
+	$$events: polkadotBlockEvents(block).map((event, eventIndex) => ({
+		[EntityMetaKey.Selector]: {
+			$block: {
+				$network: network,
+				blockNumber: BigInt(block.number),
+				hash: block.hash,
+			},
+			indexInBlock: eventIndex,
+		},
+		...polkadotEventFields(
+			network,
+			block,
+			event
+		),
+	})),
+})
+
+const polkadotPalletIndex = (
+	index: number | string | undefined
+) => {
+	if (index == null)
+		return undefined
+	if (typeof index === 'number') {
+		if (!Number.isSafeInteger(index) || index < 0)
+			throw new Error('SubstrateSidecar_Rest: malformed pallet index')
+
+		return index
+	}
+	if (!/^(?:0|[1-9]\d*)$/.test(index))
+		throw new Error('SubstrateSidecar_Rest: malformed pallet index')
+
+	return Number(index)
 }
 
 const polkadotAccountTimestampFields = (
@@ -167,53 +281,32 @@ export default {
 		defineResolver({
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
+				NetworkBlockNumber: {
+					resolve: async ({ $network, blockNumber }) => {
+						assertPolkadotMainnet($network)
+						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+						const block = await getBlock({
+							blockId: blockNumber,
+						})
+						if (BigInt(block.number) !== blockNumber)
+							throw new Error(`SubstrateSidecar_Rest: block number mismatch for ${blockNumber}`)
+
+						return polkadotBlockSnapshot($network, block)
+					},
+				},
 				NetworkBlockNumberHash: {
-					resolve: async ({ $network, hash }) => {
+					resolve: async ({ $network, blockNumber, hash }) => {
 						assertPolkadotMainnet($network)
 						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 						const block = await getBlock({
 							blockId: hash,
 						})
-						return {
-							hash: block.hash,
-							...(BigInt(block.number) > 0n && {
-								$parent: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										blockNumber: BigInt(block.number) - 1n,
-										hash: block.parentHash,
-									},
-								},
-							}),
-							stateRoot: block.stateRoot,
-							extrinsicsRoot: block.extrinsicsRoot,
-							$$extrinsics: block.extrinsics.map((extrinsic, extrinsicIndex) => ({
-								[EntityMetaKey.Selector]: {
-									$block: {
-										$network,
-										blockNumber: BigInt(block.number),
-										hash: block.hash,
-									},
-									indexInBlock: extrinsicIndex,
-								},
-								...polkadotExtrinsicFields($network, extrinsic),
-							})),
-							$$events: polkadotBlockEvents(block).map((event, eventIndex) => ({
-								[EntityMetaKey.Selector]: {
-									$block: {
-										$network,
-										blockNumber: BigInt(block.number),
-										hash: block.hash,
-									},
-									indexInBlock: eventIndex,
-								},
-								...polkadotEventFields(
-									$network,
-									block,
-									event
-								),
-							})),
-						}
+						if (BigInt(block.number) !== blockNumber)
+							throw new Error(`SubstrateSidecar_Rest: block number mismatch for ${hash}`)
+						if (block.hash !== hash)
+							throw new Error(`SubstrateSidecar_Rest: block hash mismatch for ${hash}`)
+
+						return polkadotBlockSnapshot($network, block)
 					},
 				},
 			},
@@ -373,13 +466,76 @@ export default {
 							.find((runtimePallet) => runtimePallet.name === palletName)
 						if (pallet == null) throw new Error(`SubstrateSidecar_Rest: pallet not found for ${palletName}`)
 						return {
-							index: pallet.index,
+							index: polkadotPalletIndex(pallet.index),
 						}
 					},
 				}
 			},
 		})({
 				index: (pallet) => pallet.index,
+			}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network, context) => {
+						assertPolkadotMainnet(network)
+						const {
+							getBlock,
+							getBlockHead,
+						} = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+						const head = await getBlockHead()
+						const limit = resolverContextRowLimit(context)
+						const headNumber = BigInt(head.number)
+						const blocks = [
+							head,
+						]
+						for (
+							let blockOffset = 1n;
+							blocks.length < limit && headNumber >= blockOffset;
+							blockOffset += 1n
+						) {
+							blocks.push(
+								await getBlock({
+									blockId: headNumber - blockOffset,
+								})
+							)
+						}
+
+						return blocks.map((block) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								blockNumber: BigInt(block.number),
+								hash: block.hash,
+							},
+						}))
+					},
+				},
+			},
+		})({
+				Polkadot: {
+					$$blocks: (blocks) => blocks,
+				},
+			}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network) => {
+						assertPolkadotMainnet(network)
+						const { getBlockHead } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+						return BigInt((await getBlockHead()).number) + 1n
+					},
+				},
+			},
+		})({
+				Polkadot: {
+					$$blocks: {
+						resolveCount: (count) => count,
+					},
+				},
 			}),
 
 		defineResolver({
