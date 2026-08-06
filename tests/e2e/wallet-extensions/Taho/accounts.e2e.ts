@@ -5,9 +5,12 @@ import {
 	createTahoWallet,
 	openTaho,
 	selectTahoAccount,
+	tahoBlockedObservation,
 } from '../../../../scripts/wallet-extensions/Taho/driver.ts'
 import { tahoWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/Taho/matrix.ts'
 import {
+	assertWalletMatrixOutcomes,
+	logWalletMatrixResults,
 	runWalletCompatibilityMatrix,
 } from '../../../../scripts/wallet-extensions/WalletCompatibilityMatrix.ts'
 import {
@@ -65,17 +68,11 @@ test('creates two Taho accounts and propagates accountsChanged to Blockhead', as
 		driver: {
 			kind: 'taho',
 			run: async (scenario) => (
-				scenario.initializationFlow === 'recover' ?
-					{
-						outcome: 'blocked',
-						evidence: {
-							code: 'no-safe-fixture-material',
-							source: 'test-environment',
-						},
-					}
+				scenario.accountOrdinal === 2 || scenario.initializationFlow === 'recover' ?
+					tahoBlockedObservation(scenario)
 				:
 					{
-						accountAddress: scenario.accountOrdinal === 1 ? firstAccount : `taho-account-${scenario.accountOrdinal}`,
+						accountAddress: firstAccount,
 						outcome: 'pass',
 						evidence: {
 							code: `taho-${scenario.lifecycleEdgeCase}-verified`,
@@ -87,10 +84,9 @@ test('creates two Taho accounts and propagates accountsChanged to Blockhead', as
 		scenarios: tahoWalletMatrixScenarios(taho.manifest.version),
 		step: (name, run) => test.step(name, run),
 	})
-	expect(results.map(({ outcome }) => outcome)).toEqual([
-		'pass',
-		'pass',
-		'blocked',
-	])
-	console.log(JSON.stringify(results, null, 2))
+	assertWalletMatrixOutcomes(results, ['pass', 'blocked', 'blocked'], 'taho-real-extension')
+	logWalletMatrixResults(results, {
+		label: 'taho-real-extension',
+		expectedOutcomes: ['pass', 'blocked', 'blocked'],
+	})
 })
