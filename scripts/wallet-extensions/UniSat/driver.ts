@@ -41,6 +41,14 @@ export const unisatOrdinalsPurposeUnsupportedObservation = (): WalletMatrixObser
 	}
 )
 
+export const isUniSatApprovalPageUrl = (
+	url: string,
+	extensionId: string
+) => (
+	url.startsWith(`chrome-extension://${extensionId}/`)
+	&& url.includes('/notification.html#/approval')
+)
+
 export const unisatDriver = {
 	kind: 'unisat',
 	open: (context: BrowserContext, extension: LoadedWalletExtension): Promise<Page> => (
@@ -119,14 +127,10 @@ export const unisatDriver = {
 		extension: LoadedWalletExtension
 	) => {
 		await context.waitForEvent('page', {
-			predicate: (page) => (
-				page.url().startsWith(`chrome-extension://${extension.id}/`)
-				&& page.url().includes('/notification.html#/approval')
-			),
+			predicate: (page) => isUniSatApprovalPageUrl(page.url(), extension.id),
 		}).catch(() => undefined)
 		const approvalPage = context.pages().find((page) => (
-			page.url().startsWith(`chrome-extension://${extension.id}/`)
-			&& page.url().includes('/notification.html#/approval')
+			isUniSatApprovalPageUrl(page.url(), extension.id)
 		))
 		if (!approvalPage)
 			throw new Error('UniSat approval page was not found')

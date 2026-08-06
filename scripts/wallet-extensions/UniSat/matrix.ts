@@ -9,6 +9,8 @@ import {
 // Do not invent a recover pass — keep that cell explicitly blocked until a
 // fixture-backed recovery contract is wired.
 // This shard proves create-new + derived account switch.
+// Headed Connect approval chrome is mapped through notification.html#/approval
+// (see isUniSatApprovalPageUrl / unisatDriver.waitForApproval).
 // Ordinals purpose is a separate unsupported cell: UniSat injected getAccounts/requestAccounts
 // return unlabeled address strings and must not fake a Sats Connect payment/ordinals role split.
 export const unisatWalletMatrixScenarios = (version: string) => ([

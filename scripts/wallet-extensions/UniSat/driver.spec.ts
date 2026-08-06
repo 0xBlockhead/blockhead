@@ -6,6 +6,7 @@ import {
 	runWalletCompatibilityMatrix,
 } from '../WalletCompatibilityMatrix.ts'
 import {
+	isUniSatApprovalPageUrl,
 	unisatBlockedObservation,
 	unisatOrdinalsPurposeUnsupportedObservation,
 	unisatDriver,
@@ -43,6 +44,29 @@ test('keeps the UniSat account lifecycle shard free of invented recover / ordina
 			lifecycleEdgeCase: 'fixture-material-not-provided-blocked',
 		},
 	])
+})
+
+test('maps headed Connect chrome to UniSat notification.html#/approval URLs', () => {
+	const extensionId = 'ppbibelpcjmhbdihakflkdcoccbgbkpo'
+	assert.equal(
+		isUniSatApprovalPageUrl(`chrome-extension://${extensionId}/notification.html#/approval`, extensionId),
+		true
+	)
+	assert.equal(
+		isUniSatApprovalPageUrl(`chrome-extension://${extensionId}/notification.html#/approval?id=1`, extensionId),
+		true
+	)
+	assert.equal(
+		isUniSatApprovalPageUrl(`chrome-extension://${extensionId}/index.html`, extensionId),
+		false
+	)
+	assert.equal(
+		isUniSatApprovalPageUrl(`chrome-extension://other/notification.html#/approval`, extensionId),
+		false
+	)
+	assert.equal(typeof unisatDriver.waitForApproval, 'function')
+	assert.equal(typeof unisatDriver.approveConnection, 'function')
+	assert.equal(typeof unisatDriver.rejectConnection, 'function')
 })
 
 test('declares UniSat recover as an explicit blocked matrix cell', async () => {
