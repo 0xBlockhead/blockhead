@@ -15,8 +15,10 @@ export const EasScanAttestationFragment = graphql(`
 		revocationTime
 		expirationTime
 		time
+		timeCreated
 		data
 		txid
+		isOffchain
 	}
 `)
 
@@ -57,8 +59,14 @@ export const easScanAttestationEnvelope = arktype({
 	revocationTime: easScanNonNegativeSafeInteger,
 	expirationTime: easScanNonNegativeSafeInteger,
 	time: easScanNonNegativeSafeInteger,
+	timeCreated: easScanNonNegativeSafeInteger,
 	data: easScanBytes,
 	txid: easScanBytes32,
+	isOffchain: 'boolean',
+})
+
+export const easScanAttestationsPageEnvelope = arktype({
+	attestations: easScanAttestationEnvelope.array(),
 })
 
 export const easScanSchemaEnvelope = arktype({
@@ -73,6 +81,10 @@ export const easScanSchemaEnvelope = arktype({
 	_count: {
 		attestations: easScanNonNegativeSafeInteger,
 	},
+})
+
+export const easScanSchemasPageEnvelope = arktype({
+	schemas: easScanSchemaEnvelope.array(),
 })
 
 export const easScanAttestationCountEnvelope = arktype({

@@ -5,7 +5,9 @@ import {
 	EasScanSchemaFragment,
 	easScanAttestationCountEnvelope,
 	easScanAttestationEnvelope,
+	easScanAttestationsPageEnvelope,
 	easScanSchemaEnvelope,
+	easScanSchemasPageEnvelope,
 	type EasScanAttestation,
 	type EasScanSchema,
 } from '$/sources/EasScan/Graphql/types.ts'
@@ -87,6 +89,23 @@ const EasScanSchema = graphql(`
 	EasScanSchemaFragment,
 ])
 
+const EasScanSchemas = graphql(`
+	query EasScanSchemas(
+		$skip: Int!
+		$take: Int!
+	) {
+		schemas(
+			skip: $skip
+			take: $take
+			orderBy: { time: desc }
+		) {
+			...EasScanSchema
+		}
+	}
+`, [
+	EasScanSchemaFragment,
+])
+
 const EasScanAttestationCount = graphql(`
 	query EasScanAttestationCount($where: AttestationWhereInput!) {
 		aggregateAttestation(where: $where) {
@@ -125,6 +144,7 @@ const assertAttestation = (
 	if (
 		(!attestation.revocable && attestation.revocationTime !== 0)
 		|| attestation.revoked !== (attestation.revocationTime !== 0)
+		|| attestation.timeCreated > attestation.time
 	)
 		throw new Error('EasScan returned invalid attestation lifecycle')
 }
@@ -178,13 +198,17 @@ const listAttestations = async ({
 	if (!Number.isSafeInteger(take) || take < 1 || take > 100)
 		throw new Error('EasScan take must be between 1 and 100')
 
-	const response = await queryEasScan(easScanBindingForNetwork(network), EasScanAttestations, {
-		where,
-		skip,
-		take,
-	})
+	const response = assertEnvelope(
+		'attestations page',
+		easScanAttestationsPageEnvelope,
+		await queryEasScan(easScanBindingForNetwork(network), EasScanAttestations, {
+			where,
+			skip,
+			take,
+		})
+	)
 
-	if (response === undefined || response.attestations.length > take)
+	if (response.attestations.length > take)
 		throw new Error('EasScan returned invalid attestation page')
 
 	const attestationUids = new Set<string>()
@@ -259,6 +283,49 @@ export const getSchema = async ({
 		throw new Error('EasScan returned a foreign schema')
 
 	return response.schema
+}
+
+/** Network-scoped schema catalog page (APP still needed for Network.$$easSchemas enrollment). */
+export const listSchemas = async ({
+	network,
+	skip = 0,
+	take = 100,
+}: {
+	network: string
+	skip?: number
+	take?: number
+}) => {
+	if (!Number.isSafeInteger(skip) || skip < 0)
+		throw new Error('EasScan skip must be a nonnegative safe integer')
+
+	if (!Number.isSafeInteger(take) || take < 1 || take > 100)
+		throw new Error('EasScan take must be between 1 and 100')
+
+	const response = assertEnvelope(
+		'schemas page',
+		easScanSchemasPageEnvelope,
+		await queryEasScan(easScanBindingForNetwork(network), EasScanSchemas, {
+			skip,
+			take,
+		})
+	)
+
+	if (response.schemas.length > take)
+		throw new Error('EasScan returned invalid schema page')
+
+	const schemaUids = new Set<string>()
+
+	for (const schema of response.schemas) {
+		assertSchema(schema)
+
+		const schemaUid = schema.id.toLowerCase()
+		if (schemaUids.has(schemaUid))
+			throw new Error('EasScan returned duplicate schemas')
+
+		schemaUids.add(schemaUid)
+	}
+
+	return response.schemas
 }
 
 export const getAttestationsByAttester = ({

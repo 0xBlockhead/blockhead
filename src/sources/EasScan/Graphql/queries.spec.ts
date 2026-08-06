@@ -44,8 +44,10 @@ const attestation = {
 	revocationTime: 1_700_000_100,
 	expirationTime: 1_800_000_000,
 	time: 1_700_000_000,
+	timeCreated: 1_700_000_000,
 	data: '0x1234',
 	txid: transactionHash,
+	isOffchain: false,
 }
 
 const easSchema = {
