@@ -41,6 +41,9 @@ describe('Compound III contract account operations', () => {
 			apiFamily === ApiFamily.EvmExecutionJsonRpc
 		))
 
+		expect(bindings[Source.Compound_Rest].filter(({ apiFamily }) => (
+			apiFamily === ApiFamily.RestJson
+		))).toHaveLength(1)
 		expect(executionBindings).toHaveLength(10)
 		expect(executionBindings.every(({ delivery, target, wireProtocol }) => (
 			delivery === SourceDelivery.HttpProxy
