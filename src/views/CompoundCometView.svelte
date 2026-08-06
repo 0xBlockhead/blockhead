@@ -38,6 +38,7 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CompoundCometAssetsView from '$/views/CompoundCometAssetsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
