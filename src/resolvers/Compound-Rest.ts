@@ -17,6 +17,8 @@ import { Source } from '$/sources/Source.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type CompoundCometId = EntitySelector<typeof schema, EntityType.CompoundComet>
 type CompoundCometAssetId = EntitySelector<typeof schema, EntityType.CompoundCometAsset>
+type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
+type EvmNetworkAccountTimestampId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount_Timestamp>
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -151,6 +153,55 @@ export default {
 	source: Source.Compound_Rest,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			resolve: {
+				EvmNetworkEvmAccount: {
+					resolve: async ({ $actor, $network }: EvmNetworkAccountId) => ({
+						$$timestamps: [
+							{
+								[EntityMetaKey.Selector]: {
+									$account: {
+										$actor,
+										$network,
+									},
+									timestampMs: Date.now(),
+									source: Source.Compound_Rest,
+								},
+							},
+						],
+					}),
+				},
+			},
+		})({
+			$$timestamps: (account) => account.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount_Timestamp,
+			resolve: {
+				AccountTimestampMsSource: {
+					resolve: async ({ $account, timestampMs, source }: EvmNetworkAccountTimestampId) => {
+						const { getAccountPositions } = await import('$/sources/Compound/Contracts/queries.ts')
+						const { blockNumber, positions } = await getAccountPositions({
+							chainId: eip155ChainId($account.$network),
+							account: $account.$actor.address,
+						})
+
+						return {
+							timestampMs,
+							source,
+							blockNumber,
+							contractPositions: positions,
+						}
+					},
+				},
+			},
+		})({
+			blockNumber: (timestamp) => timestamp.blockNumber,
+			contractPositions: (timestamp) => timestamp.contractPositions,
+		}),
+
 		defineResolver({
 			entityType: EntityType.CompoundComet,
 			resolve: {

@@ -93,6 +93,12 @@ describe('Compound III deployment binding', () => {
 			&& deployment.marketSlug === 'usdc'
 		))).toBe(true)
 		expect(compoundCometByChainIdAndAddress[`8453:${baseCometAddress}`]?.marketSlug).toBe('usdc')
+		expect(compoundCometDeployments).toHaveLength(28)
+		expect(
+			new Set(compoundCometDeployments.map((deployment) => (
+				`${deployment.networkSlug}/${deployment.marketSlug}`
+			))).size
+		).toBe(28)
 	})
 })
 

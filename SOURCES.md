@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-253 providers register 285 sources and 488 bindings.
+253 providers register 285 sources and 498 bindings.
 
 ## Providers
 
@@ -646,6 +646,16 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Coinpaprika_Rest","Global","pro-api","HttpProxy","OpenApiHttp"] | Coinpaprika | Coinpaprika_Rest | Global | pro-api | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["CometBft_Rest","Caip2Network","cosmos:cosmoshub-4","BrowserDirect","RestJson"] | CometBft | CometBft_Rest | Caip2Network | cosmos:cosmoshub-4 | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["Compound_Rest","GitRepository","compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments","BrowserDirect","RestJson"] | Compound | Compound_Rest | GitRepository | compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments | HttpRest | RestJson | GenericRead | BrowserDirect |
+| ["Compound_Rest","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | Compound | Compound_Rest | Eip155Chain | 1 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Compound_Rest","Eip155Chain","10","HttpProxy","EvmExecutionJsonRpc"] | Compound | Compound_Rest | Eip155Chain | 10 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Compound_Rest","Eip155Chain","130","HttpProxy","EvmExecutionJsonRpc"] | Compound | Compound_Rest | Eip155Chain | 130 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Compound_Rest","Eip155Chain","137","HttpProxy","EvmExecutionJsonRpc"] | Compound | Compound_Rest | Eip155Chain | 137 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Compound_Rest","Eip155Chain","2020","HttpProxy","EvmExecutionJsonRpc"] | Compound | Compound_Rest | Eip155Chain | 2020 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Compound_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | Compound | Compound_Rest | Eip155Chain | 5000 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Compound_Rest","Eip155Chain","8453","HttpProxy","EvmExecutionJsonRpc"] | Compound | Compound_Rest | Eip155Chain | 8453 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Compound_Rest","Eip155Chain","42161","HttpProxy","EvmExecutionJsonRpc"] | Compound | Compound_Rest | Eip155Chain | 42161 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Compound_Rest","Eip155Chain","59144","HttpProxy","EvmExecutionJsonRpc"] | Compound | Compound_Rest | Eip155Chain | 59144 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Compound_Rest","Eip155Chain","534352","HttpProxy","EvmExecutionJsonRpc"] | Compound | Compound_Rest | Eip155Chain | 534352 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | ["Conseil_Postgres","SqlDataset","conseil","ServerOnly","Postgres"] | Conseil | Conseil_Postgres | SqlDataset | conseil | Sql | Postgres | GenericRead | ServerOnly |
 | ["Constants_Internal","Global","checked-in-catalog","BrowserDirect","CatalogRows"] | _Constants | Constants_Internal | Global | checked-in-catalog | InProcess | CatalogRows | GenericRead | BrowserDirect |
 | ["CosmosAdrs_Github","GitRepository","cosmos/cosmos-sdk@main:docs/architecture","BrowserDirect","GithubContentsApi"] | CosmosAdrs | CosmosAdrs_Github | GitRepository | cosmos/cosmos-sdk@main:docs/architecture | HttpRest | GithubContentsApi | GithubRepositoryContents | BrowserDirect |
@@ -1147,6 +1157,16 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Coinpaprika_Rest","Global","pro-api","HttpProxy","OpenApiHttp"] | HttpUrl | https://api-pro.coinpaprika.com/v1 | https://api-pro.coinpaprika.com | false |
 | ["CometBft_Rest","Caip2Network","cosmos:cosmoshub-4","BrowserDirect","RestJson"] | HttpUrl | https://cosmos-rpc.publicnode.com | https://cosmos-rpc.publicnode.com | true |
 | ["Compound_Rest","GitRepository","compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments","BrowserDirect","RestJson"] | HttpUrl | https://raw.githubusercontent.com/compound-finance/comet/f766f51583c23acc33b2a7824654ef2029a96804/ | https://raw.githubusercontent.com | true |
+| ["Compound_Rest","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://ethereum.publicnode.com | https://ethereum.publicnode.com | false |
+| ["Compound_Rest","Eip155Chain","10","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://mainnet.optimism.io | https://mainnet.optimism.io | false |
+| ["Compound_Rest","Eip155Chain","130","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://unichain-rpc.publicnode.com | https://unichain-rpc.publicnode.com | false |
+| ["Compound_Rest","Eip155Chain","137","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://polygon-rpc.com | https://polygon-rpc.com | false |
+| ["Compound_Rest","Eip155Chain","2020","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://api.roninchain.com/rpc | https://api.roninchain.com | false |
+| ["Compound_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.mantle.xyz | https://rpc.mantle.xyz | false |
+| ["Compound_Rest","Eip155Chain","8453","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://mainnet.base.org | https://mainnet.base.org | false |
+| ["Compound_Rest","Eip155Chain","42161","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://arb1.arbitrum.io/rpc | https://arb1.arbitrum.io | false |
+| ["Compound_Rest","Eip155Chain","59144","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.linea.build | https://rpc.linea.build | false |
+| ["Compound_Rest","Eip155Chain","534352","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.scroll.io | https://rpc.scroll.io | false |
 | ["Conseil_Postgres","SqlDataset","conseil","ServerOnly","Postgres"] | PostgresDsn | env:CONSEIL_DATABASE_URL |  |  |
 | ["Constants_Internal","Global","checked-in-catalog","BrowserDirect","CatalogRows"] | InProcess | src/constants/** |  |  |
 | ["CosmosAdrs_Github","GitRepository","cosmos/cosmos-sdk@main:docs/architecture","BrowserDirect","GithubContentsApi"] | HttpUrl | https://api.github.com | https://api.github.com | true |
@@ -1868,6 +1888,26 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Coinpaprika_Rest","Global","free-api","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/Coinpaprika/OpenApi/openapi.d.ts | yes |  |  |
 | ["CometBft_Rest","Caip2Network","cosmos:cosmoshub-4","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/CometBft/Rest/types.ts | no |  |  |
 | ["Compound_Rest","GitRepository","compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Compound/Rest/types.ts | no |  | https://docs.compound.finance/ |
+| ["Compound_Rest","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Compound_Rest","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Compound_Rest","Eip155Chain","10","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Compound_Rest","Eip155Chain","10","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Compound_Rest","Eip155Chain","130","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Compound_Rest","Eip155Chain","130","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Compound_Rest","Eip155Chain","137","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Compound_Rest","Eip155Chain","137","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Compound_Rest","Eip155Chain","2020","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Compound_Rest","Eip155Chain","2020","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Compound_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Compound_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Compound_Rest","Eip155Chain","8453","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Compound_Rest","Eip155Chain","8453","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Compound_Rest","Eip155Chain","42161","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Compound_Rest","Eip155Chain","42161","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Compound_Rest","Eip155Chain","59144","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Compound_Rest","Eip155Chain","59144","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Compound_Rest","Eip155Chain","534352","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Compound_Rest","Eip155Chain","534352","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["CosmosSdk_Rest","Caip2Network","cosmos:cosmoshub-4","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/CosmosSdk/Rest/types.ts | no |  |  |
 | ["Curve_Rest","Global","curve-api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Curve/Rest/types.ts | no |  | https://api.curve.finance/v1/documentation/ |
 | ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/Defillama/OpenApi/schema-source.ts | no |  |  |

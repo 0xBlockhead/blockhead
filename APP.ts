@@ -88644,33 +88644,76 @@ export const app = {
 				source: Source.Compound_Rest,
 				provider: "Compound",
 				label: "Compound comet deployments",
-				binding: {
-					target: {
-						kind: SourceTargetKind.GitRepository,
-						key: "compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://raw.githubusercontent.com/compound-finance/comet/f766f51583c23acc33b2a7824654ef2029a96804/",
-							corsEnabled: true,
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.GitRepository,
+							key: "compound-finance/comet@f766f51583c23acc33b2a7824654ef2029a96804:deployments",
 						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.BrowserDirect,
-					credentials: [],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Compound/Rest/types.ts",
-							referenceUrl: "https://docs.compound.finance/",
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://raw.githubusercontent.com/compound-finance/comet/f766f51583c23acc33b2a7824654ef2029a96804/",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Compound/Rest/types.ts",
+								referenceUrl: "https://docs.compound.finance/",
+							},
+						],
 						},
-					],
-				},
+					...[
+						{ key: "1", locator: "https://ethereum.publicnode.com" },
+						{ key: "10", locator: "https://mainnet.optimism.io" },
+						{ key: "130", locator: "https://unichain-rpc.publicnode.com" },
+						{ key: "137", locator: "https://polygon-rpc.com" },
+						{ key: "2020", locator: "https://api.roninchain.com/rpc" },
+						{ key: "5000", locator: "https://rpc.mantle.xyz" },
+						{ key: "8453", locator: "https://mainnet.base.org" },
+						{ key: "42161", locator: "https://arb1.arbitrum.io/rpc" },
+						{ key: "59144", locator: "https://rpc.linea.build" },
+						{ key: "534352", locator: "https://rpc.scroll.io" },
+					].map(({ key, locator }) => ({
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key,
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator,
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.JsonRpc2,
+						apiFamily: ApiFamily.EvmExecutionJsonRpc,
+						operationGroups: [
+							SourceOperationGroup.EvmRpcCore,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
+							},
+						],
+					})),
+				],
 			},
 			{
 				source: Source.Conseil_Postgres,

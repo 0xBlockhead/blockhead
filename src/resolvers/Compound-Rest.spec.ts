@@ -11,10 +11,14 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
+const getAccountPositions = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
 	sourceGetJson,
+}))
+vi.mock('$/sources/Compound/Contracts/queries.ts', () => ({
+	getAccountPositions,
 }))
 
 const { default: compoundRest } = await import('$/resolvers/Compound-Rest.ts')
@@ -47,6 +51,12 @@ const compoundCometAssetResolver = compoundRest.resolvers.find((resolver) => (
 ))
 const networkResolver = compoundRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
+))
+const evmNetworkAccountResolver = compoundRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount
+))
+const evmNetworkAccountTimestampResolver = compoundRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount_Timestamp
 ))
 
 const baseCometAddress = '0xb125e6687d4313864e53df431d5425969c15eb2f'
@@ -90,6 +100,62 @@ const baseRoots = {
 describe('Compound Rest resolver module', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
+		getAccountPositions.mockReset()
+	})
+
+	it('publishes and resolves Compound account positions from the on-chain binding', async () => {
+		if (evmNetworkAccountResolver == null || evmNetworkAccountTimestampResolver == null)
+			throw new Error('missing Compound account resolvers')
+
+		const accountSelector = {
+			$network: baseNetwork,
+			$actor: {
+				address: '0x0000000000000000000000000000000000000001',
+			},
+		}
+		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
+			context
+		)
+		const [timestampReference] = evmNetworkAccountResolver.projections.$$timestamps(account)
+		if (timestampReference == null)
+			throw new Error('missing Compound account timestamp')
+
+		getAccountPositions.mockResolvedValue({
+			blockNumber: 123n,
+			positions: [
+				{
+					protocol: 'Compound III',
+					chainId: 8453,
+					marketSlug: 'usdc',
+					cometAddress: baseCometAddress,
+					baseToken: {
+						symbol: 'USDC',
+						address: baseConfiguration.baseTokenAddress.toLowerCase(),
+						suppliedBalance: '1000000',
+						borrowedBalance: '0',
+					},
+					collateral: [],
+				},
+			],
+		})
+
+		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve(
+			timestampReference[EntityMetaKey.Selector],
+			context
+		)
+
+		expect(evmNetworkAccountTimestampResolver.projections.blockNumber(snapshot)).toBe(123n)
+		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([
+			expect.objectContaining({
+				protocol: 'Compound III',
+				marketSlug: 'usdc',
+			}),
+		])
+		expect(getAccountPositions).toHaveBeenCalledWith({
+			chainId: 8453,
+			account: accountSelector.$actor.address,
+		})
 	})
 
 	it('registers under Compound_Rest for CompoundComet', () => {
