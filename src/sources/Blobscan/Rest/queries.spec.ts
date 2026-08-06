@@ -148,6 +148,34 @@ describe('Blobscan REST queries', () => {
 		})).rejects.toThrow('500')
 	})
 
+	it('accepts live transaction inclusion fields and strips undeclared keys', async () => {
+		vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(jsonResponse({
+				hash: txHash,
+				blockNumber: 12,
+				from: '0xc1b634853cb333d3ad8663715b08f41a3aec47cc',
+				to: '0x1c479675ad559dc151f6ec7ed3fbf8cee79582b6',
+				index: 71,
+				blobGasUsed: '393216',
+				maxFeePerBlobGas: '73140170',
+				category: 'rollup',
+				rollup: 'arbitrum',
+				blobs: [{
+					versionedHash,
+				}],
+			}))
+
+		await expect(getTransaction('1', {
+			txHash,
+		})).resolves.toMatchObject({
+			from: '0xc1b634853cb333d3ad8663715b08f41a3aec47cc',
+			to: '0x1c479675ad559dc151f6ec7ed3fbf8cee79582b6',
+			index: 71,
+			blobGasUsed: '393216',
+			maxFeePerBlobGas: '73140170',
+		})
+	})
+
 	it('fail-closes malformed blob and block list envelopes', async () => {
 		vi.spyOn(globalThis, 'fetch')
 			.mockResolvedValueOnce(jsonResponse({}))

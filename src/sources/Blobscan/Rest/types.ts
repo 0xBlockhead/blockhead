@@ -15,7 +15,14 @@ export const blobscanTransactionEnvelope = arktype({
 	hash: 'string',
 	blockNumber: 'number',
 	blobs: transactionBlobEnvelope.array(),
-})
+	'from?': 'string',
+	'to?': 'string',
+	'index?': 'number',
+	'blockHash?': 'string',
+	'blockTimestamp?': 'string',
+	'blobGasUsed?': 'string',
+	'maxFeePerBlobGas?': 'string',
+}).onUndeclaredKey('delete')
 
 export const blobscanBlobDetailEnvelope = arktype({
 	versionedHash: 'string',
@@ -31,7 +38,7 @@ export const blobscanBlobDetailEnvelope = arktype({
 		'index?': 'number',
 		'blockNumber?': 'number',
 	}).array(),
-})
+}).onUndeclaredKey('delete')
 
 export const blobscanBlobListItemEnvelope = arktype({
 	versionedHash: 'string',
@@ -44,16 +51,16 @@ export const blobscanBlobListItemEnvelope = arktype({
 	'usageSize?': 'number',
 	'txIndex?': 'number',
 	'dataStorageReferences?': blobDataStorageReferenceEnvelope.array(),
-})
+}).onUndeclaredKey('delete')
 
 export const blobscanBlobListEnvelope = arktype({
 	blobs: blobscanBlobListItemEnvelope.array(),
-})
+}).onUndeclaredKey('delete')
 
 const blockTransactionEnvelope = arktype({
 	hash: 'string',
 	blobs: transactionBlobEnvelope.array(),
-})
+}).onUndeclaredKey('delete')
 
 export const blobscanBlockDetailEnvelope = arktype({
 	hash: 'string',
@@ -65,7 +72,7 @@ export const blobscanBlockDetailEnvelope = arktype({
 	'excessBlobGas?': 'string',
 	'blobGasPrice?': 'string',
 	transactions: blockTransactionEnvelope.array(),
-})
+}).onUndeclaredKey('delete')
 
 export const blobscanBlockListItemEnvelope = arktype({
 	hash: 'string',
@@ -77,11 +84,11 @@ export const blobscanBlockListItemEnvelope = arktype({
 	'excessBlobGas?': 'string',
 	'blobGasPrice?': 'string',
 	'transactions?': blockTransactionEnvelope.array(),
-})
+}).onUndeclaredKey('delete')
 
 export const blobscanBlockListEnvelope = arktype({
 	blocks: blobscanBlockListItemEnvelope.array(),
-})
+}).onUndeclaredKey('delete')
 
 export type BlobscanBlobDataStorageReference = typeof blobDataStorageReferenceEnvelope.infer
 export type BlobscanTransactionBlob = typeof transactionBlobEnvelope.infer

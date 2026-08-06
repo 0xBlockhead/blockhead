@@ -71,6 +71,7 @@ const networkBlobsResolver = blobscanRest.resolvers.find((resolver) => (
 const blockResolver = blobscanRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EvmBlock
 	&& 'blobGasUsed' in resolver.projections
+	&& '$$transactions' in resolver.projections
 ))
 const networkBlocksResolver = blobscanRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
@@ -241,7 +242,7 @@ describe('Blobscan EVM blob resolvers', () => {
 		})
 	})
 
-	it('projects enrolled EvmBlock blob-gas fields from getBlock', async () => {
+	it('projects enrolled EvmBlock blob-gas fields and $$transactions from getBlock', async () => {
 		getBlock.mockResolvedValueOnce({
 			hash: '0xca22de2c1d7c8ac391921a2e3c96872ecf805a2d398813aa0f8cb995aa85ddea',
 			number: 12,
@@ -269,6 +270,79 @@ describe('Blobscan EVM blob resolvers', () => {
 		expect(blockResolver.projections.blobGasUsed(block, context)).toBe(131072n)
 		expect(blockResolver.projections.excessBlobGas(block, context)).toBe(0n)
 		expect(blockResolver.projections.transactionCount(block, context)).toBe(1)
+		expect(blockResolver.projections.$$transactions(block, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				txHash,
+			},
+		}])
+	})
+
+	it('resolves EvmBlock by hash and projects enrolled Blobscan transaction fields', async () => {
+		const blockHash = '0xca22de2c1d7c8ac391921a2e3c96872ecf805a2d398813aa0f8cb995aa85ddea'
+		getBlock.mockResolvedValueOnce({
+			hash: blockHash,
+			number: 12,
+			timestamp: '2026-08-05T02:08:35.000Z',
+			blobGasUsed: '131072',
+			excessBlobGas: '0',
+			transactions: [{
+				hash: txHash,
+				blobs: [{
+					versionedHash,
+				}],
+			}],
+		})
+		getTransaction.mockResolvedValueOnce({
+			hash: txHash,
+			blockNumber: 12,
+			from: '0xc1b634853cb333d3ad8663715b08f41a3aec47cc',
+			to: '0x1c479675ad559dc151f6ec7ed3fbf8cee79582b6',
+			index: 71,
+			blobGasUsed: '393216',
+			maxFeePerBlobGas: '73140170',
+			blobs: [{
+				versionedHash,
+			}],
+		})
+
+		const block = await blockResolver.resolve.EvmNetworkBlockHash.resolve({
+			$network: network,
+			hash: blockHash,
+		}, context)
+		expect(blockResolver.projections.blockNumber(block, context)).toBe(12n)
+		expect(blockResolver.projections.hash(block, context)).toBe(blockHash)
+
+		const transactionInclusionResolver = blobscanRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.EvmTransaction
+			&& 'indexInBlock' in resolver.projections
+		))
+		if (transactionInclusionResolver == null)
+			throw new Error('Blobscan-Rest missing EvmTransaction inclusion resolver')
+
+		const transaction = await transactionInclusionResolver.resolve.EvmNetworkTxHash.resolve({
+			$network: network,
+			txHash,
+		}, context)
+		expect(transactionInclusionResolver.projections.$block(transaction, context)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				blockNumber: 12n,
+			},
+		})
+		expect(transactionInclusionResolver.projections.$from(transaction, context)).toEqual({
+			[EntityMetaKey.Selector]: {
+				address: '0xc1b634853cb333d3ad8663715b08f41a3aec47cc',
+			},
+		})
+		expect(transactionInclusionResolver.projections.$to(transaction, context)).toEqual({
+			[EntityMetaKey.Selector]: {
+				address: '0x1c479675ad559dc151f6ec7ed3fbf8cee79582b6',
+			},
+		})
+		expect(transactionInclusionResolver.projections.indexInBlock(transaction, context)).toBe(71)
+		expect(transactionInclusionResolver.projections.Blob.blobGasUsed(transaction, context)).toBe(393216n)
+		expect(transactionInclusionResolver.projections.Blob.maxFeePerBlobGas(transaction, context)).toBe(73140170n)
 	})
 
 	it('lists Network.Evm.$$blocks from Blobscan recent blocks', async () => {

@@ -35,6 +35,7 @@ const bindingByChainId = Object.fromEntries(
 )
 
 const bytes32HexPattern = /^0x[0-9a-fA-F]{64}$/
+const addressHexPattern = /^0x[0-9a-fA-F]{40}$/
 const blobVersionedHashPattern = /^0x01[0-9a-fA-F]{62}$/
 
 const bindingForChain = (chainId: string) => {
@@ -66,6 +67,14 @@ const assertBytes32Hex = (
 	label: string
 ) => {
 	if (!bytes32HexPattern.test(value))
+		throw new Error(`Blobscan_Rest: invalid ${label}`)
+}
+
+const assertAddressHex = (
+	value: string,
+	label: string
+) => {
+	if (!addressHexPattern.test(value))
 		throw new Error(`Blobscan_Rest: invalid ${label}`)
 }
 
@@ -109,6 +118,12 @@ const assertTransaction = (
 	assertSafePositiveInteger(transaction.blockNumber, 'transaction block number')
 	if (txHash != null && transaction.hash.toLowerCase() !== txHash.toLowerCase())
 		throw new Error(`Blobscan_Rest: mismatched transaction hash ${transaction.hash}`)
+	if (transaction.from != null)
+		assertAddressHex(transaction.from, 'transaction from')
+	if (transaction.to != null)
+		assertAddressHex(transaction.to, 'transaction to')
+	if (transaction.index != null)
+		assertSafeNonnegativeInteger(transaction.index, 'transaction index')
 	for (const blob of transaction.blobs)
 		assertBlobVersionedHash(blob.versionedHash, 'transaction blob versioned hash')
 }

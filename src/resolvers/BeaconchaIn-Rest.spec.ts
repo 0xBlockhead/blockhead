@@ -159,20 +159,48 @@ describe('BeaconchaIn-Rest resolvers', () => {
 		expect(beaconchaInRest.source).toBe(Source.BeaconchaIn_Rest)
 	})
 
-	it('projects epoch slots as BeaconSlot selectors', async () => {
+	it('projects epoch slots with enrolled fields and authoritative resolveCount', async () => {
 		getEpochSlots.mockResolvedValueOnce([
-			{ slot: 320 },
-			{ slot: 321 },
+			{
+				slot: 320,
+				epoch: 10,
+				blockroot: '11'.repeat(32),
+				parentroot: '22'.repeat(32),
+				stateroot: '33'.repeat(32),
+				signature: '44'.repeat(96),
+				proposer: 7,
+				status: '1',
+			},
+			{
+				slot: 321,
+				epoch: 10,
+				blockroot: '55'.repeat(32),
+				parentroot: '66'.repeat(32),
+				stateroot: '77'.repeat(32),
+				signature: '88'.repeat(96),
+				proposer: 8,
+				status: '2',
+			},
 		])
 
-		await expect(epochSlotsResolver.resolve.EvmNetworkEpoch.resolve({
+		const snapshot = await epochSlotsResolver.resolve.EvmNetworkEpoch.resolve({
 			$network: network,
 			epoch: 10,
-		}, context)).resolves.toEqual([
+		}, context)
+		expect(epochSlotsResolver.projections.$$beaconSlots.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					slot: 320,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 10,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: 7,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'11'.repeat(32)}`,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'parentRoot')]: `0x${'22'.repeat(32)}`,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'stateRoot')]: `0x${'33'.repeat(32)}`,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'signature')]: `0x${'44'.repeat(96)}`,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: true,
 				},
 			},
 			{
@@ -180,8 +208,18 @@ describe('BeaconchaIn-Rest resolvers', () => {
 					$network: network,
 					slot: 321,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 10,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: 8,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: `0x${'55'.repeat(32)}`,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'parentRoot')]: `0x${'66'.repeat(32)}`,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'stateRoot')]: `0x${'77'.repeat(32)}`,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'signature')]: `0x${'88'.repeat(96)}`,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: false,
+				},
 			},
 		])
+		expect(epochSlotsResolver.projections.$$beaconSlots.resolveCount(snapshot)).toBe(2)
 	})
 
 	it('maps slot and validator wire into schema fields', async () => {
@@ -363,13 +401,15 @@ describe('BeaconchaIn-Rest resolvers', () => {
 	it('projects empty epoch slots as [] without soft-failing', async () => {
 		getEpochSlots.mockResolvedValueOnce([])
 
-		await expect(epochSlotsResolver.resolve.EvmNetworkEpoch.resolve({
+		const snapshot = await epochSlotsResolver.resolve.EvmNetworkEpoch.resolve({
 			$network: network,
 			epoch: 10,
-		}, context)).resolves.toEqual([])
+		}, context)
+		expect(epochSlotsResolver.projections.$$beaconSlots.select(snapshot)).toEqual([])
+		expect(epochSlotsResolver.projections.$$beaconSlots.resolveCount(snapshot)).toBe(0)
 	})
 
-	it('projects slot duties and hard-fails missing duty rows', async () => {
+	it('projects slot duties with inline fields, resolveCount, and hard-fails missing duty rows', async () => {
 		getSlotAttestations
 			.mockResolvedValueOnce([
 				{
@@ -397,36 +437,60 @@ describe('BeaconchaIn-Rest resolvers', () => {
 		])
 		getSlotAttesterSlashings.mockResolvedValueOnce([])
 
-		await expect(slotAttestationsResolver.resolve.EvmNetworkSlot.resolve({
+		const attestations = await slotAttestationsResolver.resolve.EvmNetworkSlot.resolve({
 			$network: network,
 			slot: 320,
-		}, context)).resolves.toEqual([
+		}, context)
+		expect(slotAttestationsResolver.projections.$$beaconAttestations.select(attestations)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					slot: 320,
 					indexInSlot: 2,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BeaconAttestation, [], 'committeeIndex')]: 4,
+					[entityFieldAddressKey(EntityType.BeaconAttestation, [], 'aggregationBits')]: '0xff',
+				},
 			},
 		])
+		expect(slotAttestationsResolver.projections.$$beaconAttestations.resolveCount(attestations)).toBe(1)
 
-		await expect(slotWithdrawalsResolver.resolve.EvmNetworkSlot.resolve({
+		const withdrawals = await slotWithdrawalsResolver.resolve.EvmNetworkSlot.resolve({
 			$network: network,
 			slot: 320,
-		}, context)).resolves.toEqual([
+		}, context)
+		expect(slotWithdrawalsResolver.projections.$$beaconWithdrawals.select(withdrawals)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					slot: 320,
 					indexInSlot: 100,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'validatorIndex')]: 7,
+					[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], 'amountGwei')]: 42n,
+					[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], '$validator')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							indexInNetwork: 7,
+						},
+					},
+					[entityFieldAddressKey(EntityType.BeaconWithdrawal, [], '$account')]: {
+						[EntityMetaKey.Selector]: {
+							address: `0x${'cc'.repeat(20)}`,
+						},
+					},
+				},
 			},
 		])
+		expect(slotWithdrawalsResolver.projections.$$beaconWithdrawals.resolveCount(withdrawals)).toBe(1)
 
-		await expect(slotSlashingsResolver.resolve.EvmNetworkSlot.resolve({
+		const slashings = await slotSlashingsResolver.resolve.EvmNetworkSlot.resolve({
 			$network: network,
 			slot: 320,
-		}, context)).resolves.toEqual([
+		}, context)
+		expect(slotSlashingsResolver.projections.$$beaconSlashings.select(slashings)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -436,6 +500,7 @@ describe('BeaconchaIn-Rest resolvers', () => {
 				},
 			},
 		])
+		expect(slotSlashingsResolver.projections.$$beaconSlashings.resolveCount(slashings)).toBe(1)
 
 		await expect(attestationResolver.resolve.EvmNetworkSlotIndexInSlot.resolve({
 			$network: network,
@@ -542,10 +607,11 @@ describe('BeaconchaIn-Rest resolvers', () => {
 			.mockResolvedValueOnce([])
 			.mockRejectedValueOnce(new Error('BeaconchaIn GET validator attestations failed: 500'))
 
-		await expect(validatorAttestationDutiesResolver.resolve.NetworkIndexInNetwork.resolve({
+		const duties = await validatorAttestationDutiesResolver.resolve.NetworkIndexInNetwork.resolve({
 			$network: network,
 			indexInNetwork: 20,
-		}, context)).resolves.toEqual([
+		}, context)
+		expect(validatorAttestationDutiesResolver.projections.attestationDuties.select(duties)).toEqual([
 			{
 				attesterSlot: 12779525,
 				epoch: 399360,
@@ -560,11 +626,14 @@ describe('BeaconchaIn-Rest resolvers', () => {
 				status: 0,
 			},
 		])
+		expect(validatorAttestationDutiesResolver.projections.attestationDuties.resolveCount(duties)).toBe(2)
 
-		await expect(validatorAttestationDutiesResolver.resolve.NetworkPubkey.resolve({
+		const emptyDuties = await validatorAttestationDutiesResolver.resolve.NetworkPubkey.resolve({
 			$network: network,
 			pubkey: `0x${'aa'.repeat(48)}`,
-		}, context)).resolves.toEqual([])
+		}, context)
+		expect(validatorAttestationDutiesResolver.projections.attestationDuties.select(emptyDuties)).toEqual([])
+		expect(validatorAttestationDutiesResolver.projections.attestationDuties.resolveCount(emptyDuties)).toBe(0)
 
 		await expect(validatorAttestationDutiesResolver.resolve.NetworkIndexInNetwork.resolve({
 			$network: network,
@@ -574,6 +643,59 @@ describe('BeaconchaIn-Rest resolvers', () => {
 		expect(
 			'resolveLive' in validatorAttestationDutiesResolver.projections.attestationDuties
 		).toBe(false)
+	})
+
+	it('lists Network tip beacon epochs and slots from latest head', async () => {
+		const networkEpochsResolver = beaconchaInRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& 'Evm' in resolver.projections
+			&& '$$beaconEpochs' in resolver.projections.Evm
+		))
+		const networkSlotsResolver = beaconchaInRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& 'Evm' in resolver.projections
+			&& '$$beaconSlots' in resolver.projections.Evm
+		))
+		if (networkEpochsResolver == null || networkSlotsResolver == null)
+			throw new Error('BeaconchaIn network tip facets missing')
+
+		getEpoch.mockResolvedValueOnce({
+			epoch: 12,
+			finalized: true,
+			globalparticipationrate: 0.9,
+			validatorscount: 1,
+			attestationscount: 1,
+			attesterslashingscount: 0,
+			proposerslashingscount: 0,
+			withdrawalcount: 0,
+		})
+		getSlot.mockResolvedValueOnce({
+			slot: 400,
+			epoch: 12,
+			blockroot: '11'.repeat(32),
+			parentroot: '22'.repeat(32),
+			stateroot: '33'.repeat(32),
+			signature: '44'.repeat(96),
+			proposer: 1,
+			status: '1',
+		})
+
+		const tipContext = {
+			...context,
+			pagination: {
+				limit: 3,
+			},
+		}
+		await expect(networkEpochsResolver.resolve.Caip2.resolve(network, tipContext)).resolves.toEqual([
+			{ [EntityMetaKey.Selector]: { $network: network, epoch: 12 } },
+			{ [EntityMetaKey.Selector]: { $network: network, epoch: 11 } },
+			{ [EntityMetaKey.Selector]: { $network: network, epoch: 10 } },
+		])
+		await expect(networkSlotsResolver.resolve.Caip2.resolve(network, tipContext)).resolves.toEqual([
+			{ [EntityMetaKey.Selector]: { $network: network, slot: 400 } },
+			{ [EntityMetaKey.Selector]: { $network: network, slot: 399 } },
+			{ [EntityMetaKey.Selector]: { $network: network, slot: 398 } },
+		])
 	})
 
 	it('omits unsupported committee facets', () => {

@@ -10,6 +10,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import type { BlobscanBlockDetail } from '$/sources/Blobscan/Rest/types.ts'
 
 const blobDataStorageReferencesFromWire = (
 	references: {
@@ -80,6 +81,65 @@ const evmBlobRefsFromTransactionBlobs = ({
 		}]
 	})
 )
+
+const mapEvmBlockFromWire = (
+	$network: {
+		caip2: {
+			namespace: string
+			reference: string
+		}
+	},
+	block: BlobscanBlockDetail
+) => {
+	if ($network.caip2.namespace !== 'eip155')
+		throw new Error('Blobscan_Rest: EvmBlock requires eip155')
+
+	const hash = hexLowerOfByteSize(block.hash, 32)
+	if (hash == null)
+		throw new Error('Blobscan_Rest: block hash missing')
+
+	const timestampMs = Math.floor(Date.parse(block.timestamp) / 1_000) * 1_000
+	if (!Number.isFinite(timestampMs) || timestampMs < 0)
+		throw new Error('Blobscan_Rest: block timestamp missing')
+
+	const blobGasUsed = (
+		block.blobGasUsed == null || block.blobGasUsed === '' ?
+			undefined
+		:
+			BigInt(block.blobGasUsed)
+	)
+	const excessBlobGas = (
+		block.excessBlobGas == null || block.excessBlobGas === '' ?
+			undefined
+		:
+			BigInt(block.excessBlobGas)
+	)
+
+	return {
+		hash,
+		blockNumber: BigInt(block.number),
+		timestamp: timestampMs,
+		...(blobGasUsed != null && {
+			blobGasUsed,
+		}),
+		...(excessBlobGas != null && {
+			excessBlobGas,
+		}),
+		transactionCount: block.transactions.length,
+		transactions: block.transactions.flatMap((transaction) => {
+			const txHash = hexLowerOfByteSize(transaction.hash, 32)
+			if (txHash == null)
+				return []
+
+			return [{
+				[EntityMetaKey.Selector]: {
+					$network,
+					txHash,
+				},
+			}]
+		}),
+	}
+}
 
 export default {
 	source: Source.Blobscan_Rest,
@@ -167,9 +227,6 @@ export default {
 			resolve: {
 				EvmNetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber }) => {
-						if ($network.caip2.namespace !== 'eip155')
-							throw new Error('Blobscan_Rest: EvmBlock requires eip155')
-
 						const { getBlock } = await import(
 							'$/sources/Blobscan/Rest/queries.ts'
 						)
@@ -182,39 +239,24 @@ export default {
 						if (block == null)
 							throw new Error('Blobscan_Rest: block not found')
 
-						const hash = hexLowerOfByteSize(block.hash, 32)
-						if (hash == null)
-							throw new Error('Blobscan_Rest: block hash missing')
-
-						const timestampMs = Math.floor(Date.parse(block.timestamp) / 1_000) * 1_000
-						if (!Number.isFinite(timestampMs) || timestampMs < 0)
-							throw new Error('Blobscan_Rest: block timestamp missing')
-
-						const blobGasUsed = (
-							block.blobGasUsed == null || block.blobGasUsed === '' ?
-								undefined
-							:
-								BigInt(block.blobGasUsed)
+						return mapEvmBlockFromWire($network, block)
+					},
+				},
+				EvmNetworkBlockHash: {
+					resolve: async ({ $network, hash: hashSelector }) => {
+						const { getBlock } = await import(
+							'$/sources/Blobscan/Rest/queries.ts'
 						)
-						const excessBlobGas = (
-							block.excessBlobGas == null || block.excessBlobGas === '' ?
-								undefined
-							:
-								BigInt(block.excessBlobGas)
+						const block = await getBlock(
+							$network.caip2.reference,
+							{
+								blockId: hashSelector,
+							}
 						)
+						if (block == null)
+							throw new Error('Blobscan_Rest: block not found')
 
-						return {
-							hash,
-							blockNumber: BigInt(block.number),
-							timestamp: timestampMs,
-							...(blobGasUsed != null && {
-								blobGasUsed,
-							}),
-							...(excessBlobGas != null && {
-								excessBlobGas,
-							}),
-							transactionCount: block.transactions.length,
-						}
+						return mapEvmBlockFromWire($network, block)
 					},
 				},
 			},
@@ -225,6 +267,94 @@ export default {
 			blobGasUsed: (block) => block.blobGasUsed,
 			excessBlobGas: (block) => block.excessBlobGas,
 			transactionCount: (block) => block.transactionCount,
+			$$transactions: (block) => block.transactions,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmTransaction,
+			resolve: {
+				EvmNetworkTxHash: {
+					resolve: async ({ $network, txHash }) => {
+						const { getTransaction } = await import(
+							'$/sources/Blobscan/Rest/queries.ts'
+						)
+						const transaction = await getTransaction(
+							$network.caip2.reference,
+							{
+								txHash,
+							}
+						)
+						if (transaction == null)
+							throw new Error('Blobscan_Rest: transaction not found')
+
+						const from = (
+							transaction.from == null ?
+								undefined
+							:
+								hexLowerOfByteSize(transaction.from, 20)
+						)
+						const to = (
+							transaction.to == null ?
+								undefined
+							:
+								hexLowerOfByteSize(transaction.to, 20)
+						)
+						const blobGasUsed = (
+							transaction.blobGasUsed == null || transaction.blobGasUsed === '' ?
+								undefined
+							:
+								BigInt(transaction.blobGasUsed)
+						)
+						const maxFeePerBlobGas = (
+							transaction.maxFeePerBlobGas == null || transaction.maxFeePerBlobGas === '' ?
+								undefined
+							:
+								BigInt(transaction.maxFeePerBlobGas)
+						)
+
+						return {
+							$block: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									blockNumber: BigInt(transaction.blockNumber),
+								},
+							},
+							...(from != null && {
+								$from: {
+									[EntityMetaKey.Selector]: {
+										address: from,
+									},
+								},
+							}),
+							...(to != null && {
+								$to: {
+									[EntityMetaKey.Selector]: {
+										address: to,
+									},
+								},
+							}),
+							...(transaction.index != null && {
+								indexInBlock: transaction.index,
+							}),
+							...(blobGasUsed != null && {
+								blobGasUsed,
+							}),
+							...(maxFeePerBlobGas != null && {
+								maxFeePerBlobGas,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$block: (transaction) => transaction.$block,
+			$from: (transaction) => transaction.$from,
+			$to: (transaction) => transaction.$to,
+			indexInBlock: (transaction) => transaction.indexInBlock,
+			Blob: {
+				blobGasUsed: (transaction) => transaction.blobGasUsed,
+				maxFeePerBlobGas: (transaction) => transaction.maxFeePerBlobGas,
+			},
 		}),
 
 		defineResolver({
