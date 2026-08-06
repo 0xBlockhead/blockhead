@@ -244,6 +244,158 @@ export const decipherRunestoneScript = (scriptHex: string) => {
 	}
 }
 
+/**
+ * Unsigned LEB128 integers from a Runestone payload buffer.
+ * @see https://docs.ordinals.com/runes/specification.html
+ */
+export const readLeb128Integers = (payloadHex: string) => {
+	const integers: bigint[] = []
+	let offset = 0
+	let truncated = false
+
+	while (offset + 2 <= payloadHex.length) {
+		let value = 0n
+		let shift = 0n
+		let completed = false
+
+		while (offset + 2 <= payloadHex.length) {
+			const byte = BigInt(hexByte(payloadHex, offset))
+			offset += 2
+			value |= (byte & 0x7fn) << shift
+			if ((byte & 0x80n) === 0n) {
+				completed = true
+				break
+			}
+			shift += 7n
+			if (shift > 63n) {
+				truncated = true
+				return {
+					integers,
+					truncated: true,
+				}
+			}
+		}
+
+		if (!completed) {
+			truncated = true
+			break
+		}
+
+		integers.push(value)
+	}
+
+	if (offset < payloadHex.length)
+		truncated = true
+
+	return {
+		integers,
+		truncated,
+	}
+}
+
+/**
+ * Even tags are protocol fields; tag `0` (Body) begins the edict stream.
+ * Odd tags are recognized for etching metadata but left as raw integers here
+ * (APP owns typed Rune / Runestone Research selectors).
+ */
+export const RunestoneTag = {
+	Body: 0n,
+	Flags: 2n,
+	Rune: 4n,
+	Premine: 6n,
+	Cap: 8n,
+	Amount: 10n,
+	HeightStart: 12n,
+	HeightEnd: 14n,
+	OffsetStart: 16n,
+	OffsetEnd: 18n,
+	Mint: 20n,
+	Pointer: 22n,
+	Cenotaph: 126n,
+	Divisibility: 1n,
+	Spacers: 3n,
+	Symbol: 5n,
+	Nop: 127n,
+} as const
+
+export type DecodedRunestoneEdict = {
+	runeIdBlock: bigint
+	runeIdTx: bigint
+	amount: bigint
+	output: bigint
+}
+
+export type DecodedRunestonePayload = {
+	integers: bigint[]
+	/** Tag → value list (even protocol tags before Body). */
+	fields: Map<bigint, bigint[]>
+	edicts: DecodedRunestoneEdict[]
+	/** True when LEB128 truncated, Body missing pairing, or Cenotaph tag present. */
+	isCenotaph: boolean
+}
+
+export const decodeRunestonePayload = (
+	payloadHex: string,
+	{
+		scriptIsCenotaph = false,
+	}: {
+		scriptIsCenotaph?: boolean
+	} = {}
+): DecodedRunestonePayload => {
+	const {
+		integers,
+		truncated,
+	} = readLeb128Integers(payloadHex)
+	const fields = new Map<bigint, bigint[]>()
+	const edicts: DecodedRunestoneEdict[] = []
+	let isCenotaph = scriptIsCenotaph || truncated
+	let index = 0
+
+	while (index < integers.length) {
+		const tag = integers[index]!
+		index += 1
+
+		if (tag === RunestoneTag.Body)
+			break
+
+		if (index >= integers.length) {
+			isCenotaph = true
+			break
+		}
+
+		const value = integers[index]!
+		index += 1
+		const existing = fields.get(tag)
+		if (existing == null)
+			fields.set(tag, [value])
+		else
+			existing.push(value)
+
+		if (tag === RunestoneTag.Cenotaph)
+			isCenotaph = true
+	}
+
+	while (index + 3 < integers.length) {
+		edicts.push({
+			runeIdBlock: integers[index]!,
+			runeIdTx: integers[index + 1]!,
+			amount: integers[index + 2]!,
+			output: integers[index + 3]!,
+		})
+		index += 4
+	}
+
+	if (index !== integers.length)
+		isCenotaph = true
+
+	return {
+		integers,
+		fields,
+		edicts,
+		isCenotaph,
+	}
+}
+
 const extractFromWitnessAndOutputs = ({
 	transactionId,
 	vin,
