@@ -1,11 +1,147 @@
 import { Source } from '$/sources/Source.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
-import type { McpRegistryServers } from '$/sources/Mcp/Rest/types.ts'
+import type {
+	McpRegistryServerDetailEnvelope,
+	McpRegistryServerListEnvelope,
+} from '$/sources/Mcp/Rest/types.ts'
+import { type } from 'arktype'
 
-export const getRegistryServers = (binding: SourceBinding) => {
+const mcpRegistryServerEnvelope = type({
+	name: 'string',
+	description: 'string',
+	version: 'string',
+	'title?': 'string',
+	'repository?': {
+		'id?': 'string',
+		source: 'string',
+		url: 'string',
+		'subfolder?': 'string',
+	},
+	'websiteUrl?': 'string',
+	'packages?': 'unknown[]',
+	'remotes?': 'unknown[]',
+	'_meta?': 'object',
+})
+
+const registryServerListEnvelope = type({
+	servers: type({
+		server: mcpRegistryServerEnvelope,
+	}).array(),
+	'metadata?': {
+		'nextCursor?': 'string | null',
+		'count?': 'number',
+	},
+})
+
+const registryServerDetailEnvelope = type({
+	server: mcpRegistryServerEnvelope,
+})
+
+type RegistryServerListOptions = {
+	cursor?: string
+	limit?: number
+	search?: string
+	updatedSince?: string
+	version?: string
+	includeDeleted?: boolean
+}
+
+const assertRegistryServerListEnvelope = (
+	response: McpRegistryServerListEnvelope
+) => {
+	try {
+		registryServerListEnvelope.assert(response)
+	} catch {
+		throw new Error('McpPackageRegistry_Rest: invalid server list response envelope')
+	}
+	return response
+}
+
+const assertRegistryServerDetailEnvelope = (
+	response: McpRegistryServerDetailEnvelope
+) => {
+	try {
+		registryServerDetailEnvelope.assert(response)
+	} catch {
+		throw new Error('McpPackageRegistry_Rest: invalid server detail response envelope')
+	}
+	return response
+}
+
+const assertRegistryServerName = (serverName: string) => {
+	if (serverName.trim().length === 0)
+		throw new Error('McpPackageRegistry_Rest: server name must not be empty')
+}
+
+const assertRegistryServerVersion = (version: string) => {
+	if (version.trim().length === 0)
+		throw new Error('McpPackageRegistry_Rest: server version must not be empty')
+}
+
+const assertRegistryServerListOptions = (options: RegistryServerListOptions) => {
+	if (options.cursor === '')
+		throw new Error('McpPackageRegistry_Rest: cursor must not be empty')
+	if (options.limit != null && (!Number.isSafeInteger(options.limit) || options.limit < 1))
+		throw new Error('McpPackageRegistry_Rest: limit must be a positive safe integer')
+}
+
+export const getRegistryServers = (
+	binding: SourceBinding,
+	options: RegistryServerListOptions = {}
+) => {
 	if (binding.source !== Source.McpPackageRegistry_Rest)
 		throw new Error('MCP registry server list requires McpPackageRegistry_Rest binding')
+	assertRegistryServerListOptions(options)
 
-	return getJson<McpRegistryServers>(binding)
+	const query = new URLSearchParams()
+	if (options.cursor != null) query.set('cursor', options.cursor)
+	if (options.limit != null) query.set('limit', String(options.limit))
+	if (options.search != null) query.set('search', options.search)
+	if (options.updatedSince != null) query.set('updated_since', options.updatedSince)
+	if (options.version != null) query.set('version', options.version)
+	if (options.includeDeleted != null) query.set('include_deleted', String(options.includeDeleted))
+
+	return getJson<McpRegistryServerListEnvelope>(
+		binding,
+		query.size === 0 ? '' : `?${query.toString()}`
+	).then(assertRegistryServerListEnvelope)
+}
+
+export const getRegistryServerVersions = (
+	binding: SourceBinding,
+	serverName: string,
+	options: Omit<RegistryServerListOptions, 'version'> = {}
+) => {
+	if (binding.source !== Source.McpPackageRegistry_Rest)
+		throw new Error('MCP registry server version list requires McpPackageRegistry_Rest binding')
+	assertRegistryServerName(serverName)
+	assertRegistryServerListOptions(options)
+
+	const query = new URLSearchParams()
+	if (options.cursor != null) query.set('cursor', options.cursor)
+	if (options.limit != null) query.set('limit', String(options.limit))
+	if (options.updatedSince != null) query.set('updated_since', options.updatedSince)
+	if (options.includeDeleted != null) query.set('include_deleted', String(options.includeDeleted))
+
+	return getJson<McpRegistryServerListEnvelope>(
+		binding,
+		`/${encodeURIComponent(serverName)}/versions${query.size === 0 ? '' : `?${query.toString()}`}`
+	).then(assertRegistryServerListEnvelope)
+}
+
+export const getRegistryServer = (
+	binding: SourceBinding,
+	serverName: string,
+	version = 'latest',
+) => {
+	if (binding.source !== Source.McpPackageRegistry_Rest)
+		throw new Error('MCP registry server detail requires McpPackageRegistry_Rest binding')
+	assertRegistryServerName(serverName)
+	assertRegistryServerVersion(version)
+
+	return getJson<McpRegistryServerDetailEnvelope>(
+		binding,
+		`/${encodeURIComponent(serverName)}/versions/${encodeURIComponent(version)}`
+	).then(assertRegistryServerDetailEnvelope)
 }

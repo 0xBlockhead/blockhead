@@ -52,7 +52,11 @@ export type McpRegistryServer = {
 export type McpRegistryServers = {
 	servers: McpRegistryServer[]
 	metadata?: {
-		nextCursor?: string
+		nextCursor?: string | null
 		count?: number
 	}
 }
+
+export type McpRegistryServerListEnvelope = McpRegistryServers
+
+export type McpRegistryServerDetailEnvelope = McpRegistryServer
