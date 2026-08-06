@@ -744,17 +744,19 @@ export default {
 						} = await import('$/sources/Coingecko/Rest/constants.ts')
 						const { getSimplePrice } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const lim = resolverContextRowLimit(context)
-						const catalogCoinIds = coingeckoCatalogCoinIds.slice(0, lim)
-						if (catalogCoinIds.length === 0)
-							return []
+						if (coingeckoCatalogCoinIds.length === 0)
+							return {
+								marketPrices: [],
+								marketPriceCount: 0,
+							}
 
 						const prices = await getSimplePrice({
 							publicEnv: context.publicEnv,
-							ids: catalogCoinIds.map((coinId) => idByCoinId[coinId]).join(','),
+							ids: coingeckoCatalogCoinIds.map((coinId) => idByCoinId[coinId]).join(','),
 							vs_currencies: 'usd',
 							include_last_updated_at: true,
 						})
-						return catalogCoinIds.flatMap((coinId) => {
+						const marketPrices = coingeckoCatalogCoinIds.flatMap((coinId) => {
 							const coingeckoId = idByCoinId[coinId]
 							const spot = coingeckoSimplePriceSpot(prices[coingeckoId])
 							if (spot == null)
@@ -770,11 +772,18 @@ export default {
 								},
 							]
 						})
+						return {
+							marketPrices: marketPrices.slice(0, lim),
+							marketPriceCount: marketPrices.length,
+						}
 					},
 				}
 			},
 		})({
-				$$marketPrices: (globalScope) => globalScope,
+				$$marketPrices: {
+					select: (snapshot) => snapshot.marketPrices,
+					resolveCount: (snapshot) => snapshot.marketPriceCount,
+				},
 			}),
 
 		defineResolver({

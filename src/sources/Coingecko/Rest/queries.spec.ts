@@ -99,6 +99,12 @@ describe('CoinGecko documented endpoints', () => {
 			.mockResolvedValueOnce(new Response(JSON.stringify({
 				tickers: {},
 			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify([
+				{ name: 'Ethereum' },
+			])))
+			.mockResolvedValueOnce(new Response(JSON.stringify([
+				[1, 2, 3],
+			])))
 
 		await expect(getCoinsMarkets({
 			publicEnv: {},
@@ -118,6 +124,37 @@ describe('CoinGecko documented endpoints', () => {
 			publicEnv: {},
 			id: 'bitcoin',
 		})).rejects.toThrow('Coingecko_Rest: invalid coin tickers response envelope')
+		await expect(getAssetPlatforms({
+			publicEnv: {},
+		})).rejects.toThrow('Coingecko_Rest: invalid asset platforms response envelope')
+		await expect(getCoinOhlc({
+			publicEnv: {},
+			id: 'bitcoin',
+			vs_currency: 'usd',
+			days: 7,
+		})).rejects.toThrow('Coingecko_Rest: invalid OHLC response envelope')
+	})
+
+	it('fail-closes coin envelopes missing required id / market-data shape', async () => {
+		coingeckoFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				symbol: 'btc',
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				id: 'bitcoin',
+				market_data: {
+					market_cap_rank: '1',
+				},
+			})))
+
+		await expect(getCoin({
+			publicEnv: {},
+			id: 'bitcoin',
+		})).rejects.toThrow('Coingecko_Rest: invalid coin response envelope')
+		await expect(getCoin({
+			publicEnv: {},
+			id: 'bitcoin',
+		})).rejects.toThrow('Coingecko_Rest: invalid coin response envelope')
 	})
 
 	it('rejects malformed detail and incomplete market price envelopes', async () => {
