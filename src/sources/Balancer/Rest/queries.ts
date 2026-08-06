@@ -17,6 +17,10 @@ import type {
 	BalancerPoolsData,
 	BalancerPoolWire,
 } from '$/sources/Balancer/Rest/types.ts'
+import {
+	balancerPoolDetailEnvelope,
+	balancerPoolListEnvelope,
+} from '$/sources/Balancer/Rest/types.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -70,12 +74,26 @@ const assertAddress = (
 }
 
 const assertNonEmptyString = (
-	value: string,
+	value: string | undefined,
 	label: string
 ) => {
-	if (value.length < 1)
+	if (value == null || value.length < 1)
 		throw new Error(`${Source.Balancer_Rest}: pool missing ${label}`)
 	return value
+}
+
+const assertEnvelope = (
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(value)
+	} catch {
+		throw new Error(`${Source.Balancer_Rest}: invalid ${label} response envelope`)
+	}
 }
 
 const assertPoolWire = (
@@ -177,8 +195,9 @@ export const listPools = async ({
 	if (data == null)
 		throw new Error(`${Source.Balancer_Rest}: pool list response missing data`)
 
-	if (!Array.isArray(data.poolGetPools))
-		throw new Error(`${Source.Balancer_Rest}: pool list response poolGetPools is not an array`)
+	if (data.poolGetPools === undefined)
+		throw new Error(`${Source.Balancer_Rest}: pool list response poolGetPools is missing`)
+	assertEnvelope(balancerPoolListEnvelope, data.poolGetPools, 'pool list')
 	if (data.poolGetPools.length > limit)
 		throw new Error(`${Source.Balancer_Rest}: pool list response exceeds requested limit ${String(limit)}`)
 
@@ -223,6 +242,7 @@ export const getPool = async ({
 		throw new Error(`${Source.Balancer_Rest}: pool response missing poolGetPool`)
 	if (data.poolGetPool == null)
 		throw new Error(`${Source.Balancer_Rest}: pool not found ${normalizedPoolId} on chain ${String(chainId)}`)
+	assertEnvelope(balancerPoolDetailEnvelope, data.poolGetPool, 'pool')
 
 	return assertPoolWire(data.poolGetPool, {
 		chainId,

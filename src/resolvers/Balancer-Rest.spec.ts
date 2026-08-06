@@ -171,4 +171,22 @@ describe('Balancer Rest resolver module', () => {
 			totalShares: '78351.308448723247365152',
 		})
 	})
+
+	it('fails closed when the pool snapshot payload is malformed', async () => {
+		if (balancerPoolResolver == null)
+			throw new Error('missing BalancerPool resolver')
+
+		graphql.mockResolvedValueOnce({
+			poolGetPool: {
+				id: weightedV2PoolId,
+			},
+		})
+
+		await expect(
+			balancerPoolResolver.resolve.NetworkPoolId.resolve({
+				$network: ethereumNetwork,
+				poolId: weightedV2PoolId,
+			}, context)
+		).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool response envelope`)
+	})
 })

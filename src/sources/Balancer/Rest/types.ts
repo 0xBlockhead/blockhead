@@ -1,3 +1,5 @@
+import { type as arktype } from 'arktype'
+
 export type BalancerPoolTokenWire = {
 	address: string
 	symbol: string
@@ -52,3 +54,31 @@ export type BalancerPool = {
 		weight?: string
 	}[]
 }
+
+const balancerPoolTokenEnvelope = arktype({
+	address: 'string',
+	symbol: 'string',
+	balance: 'string',
+	decimals: 'number',
+	'weight?': 'string | null',
+})
+
+const balancerPoolEnvelope = arktype({
+	id: 'string',
+	address: 'string',
+	name: 'string',
+	type: 'string',
+	version: 'number',
+	protocolVersion: 'number',
+	chain: 'string',
+	poolTokens: balancerPoolTokenEnvelope.array(),
+	dynamicData: {
+		totalLiquidity: 'string',
+		totalShares: 'string',
+		swapFee: 'string',
+	},
+})
+
+export const balancerPoolListEnvelope = balancerPoolEnvelope.array()
+
+export const balancerPoolDetailEnvelope = balancerPoolEnvelope

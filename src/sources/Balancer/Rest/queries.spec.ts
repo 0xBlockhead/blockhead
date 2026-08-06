@@ -231,6 +231,19 @@ describe('Balancer poolGetPool operation', () => {
 			poolId: weightedV2PoolId,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool response missing poolGetPool`)
 	})
+
+	it('fails closed when the pool detail envelope is malformed', async () => {
+		graphql.mockResolvedValueOnce({
+			poolGetPool: {
+				id: weightedV2PoolId,
+			},
+		})
+
+		await expect(getPool({
+			chainId: 1,
+			poolId: weightedV2PoolId,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool response envelope`)
+	})
 })
 
 describe('Balancer poolGetPools operation', () => {
@@ -297,12 +310,26 @@ describe('Balancer poolGetPools operation', () => {
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response missing data`)
 	})
 
-	it('fails closed when the pool list operation is absent or malformed', async () => {
+	it('fails closed when the pool list operation is absent', async () => {
 		graphql.mockResolvedValueOnce({})
 
 		await expect(listPools({
 			chainId: 1,
-		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response poolGetPools is not an array`)
+		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response poolGetPools is missing`)
+	})
+
+	it('fails closed when the pool list envelope is malformed', async () => {
+		graphql.mockResolvedValueOnce({
+			poolGetPools: [
+				{
+					id: weightedV2PoolId,
+				},
+			],
+		})
+
+		await expect(listPools({
+			chainId: 1,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool list response envelope`)
 
 		graphql.mockResolvedValueOnce({
 			poolGetPools: null,
@@ -310,7 +337,7 @@ describe('Balancer poolGetPools operation', () => {
 
 		await expect(listPools({
 			chainId: 1,
-		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response poolGetPools is not an array`)
+		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool list response envelope`)
 	})
 
 	it('fails closed when the pool list exceeds its requested limit', async () => {
