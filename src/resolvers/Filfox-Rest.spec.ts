@@ -60,6 +60,9 @@ const messageResolver = filfoxRest.resolvers.find((resolver) => (
 const messageTimestampResolver = filfoxRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FilecoinMessage_Timestamp
 ))
+const messageReceiptResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinMessageReceipt
+))
 const dealResolver = filfoxRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FilecoinDeal
 ))
@@ -88,6 +91,7 @@ if (
 	|| blockMessagesResolver == null
 	|| messageResolver == null
 	|| messageTimestampResolver == null
+	|| messageReceiptResolver == null
 	|| dealResolver == null
 	|| filecoinNetworkDealsResolver == null
 	|| networkDealsResolver == null
@@ -117,6 +121,7 @@ describe('Filfox REST resolvers', () => {
 			EntityType.FilecoinBlock,
 			EntityType.FilecoinMessage,
 			EntityType.FilecoinMessage_Timestamp,
+			EntityType.FilecoinMessageReceipt,
 			EntityType.FilecoinBlock,
 			EntityType.FilecoinMiner,
 			EntityType.FilecoinMiner_Timestamp,
@@ -304,6 +309,29 @@ describe('Filfox REST resolvers', () => {
 				source: Source.Filfox_Rest,
 			},
 		}])
+		expect(messageResolver.projections.$receipt(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$message: {
+					$network: network,
+					cid: 'bafy-msg',
+				},
+				tipsetKey: 'bafy-a,bafy-b',
+				source: Source.Filfox_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'exitCode')]: 0,
+				[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'gasUsed')]: 1234n,
+				[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'height')]: 100n,
+				[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], '$tipset')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						height: 100n,
+						tipsetKey: 'bafy-a,bafy-b',
+					},
+				},
+				[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'blockCid')]: 'bafy-a',
+			},
+		})
 	})
 
 	it('omits $$timestamps when Filfox message lacks inclusion clocks', async () => {
@@ -323,6 +351,75 @@ describe('Filfox REST resolvers', () => {
 		}, context)
 
 		expect(messageResolver.projections.$$timestamps(snapshot)).toEqual([])
+	})
+
+	it('omits $receipt when Filfox message lacks receipt or tipset blocks', async () => {
+		getMessage.mockResolvedValueOnce({
+			cid: 'bafy-msg',
+			from: 'f1from',
+			to: 'f1to',
+			nonce: 3,
+			value: '1000',
+			method: 'Send',
+			methodNumber: 0,
+			receipt: {
+				exitCode: 0,
+				gasUsed: 99,
+			},
+		})
+
+		const snapshot = await messageResolver.resolve.NetworkCid.resolve({
+			$network: network,
+			cid: 'bafy-msg',
+		}, context)
+
+		expect(messageResolver.projections.$receipt(snapshot)).toBeUndefined()
+	})
+
+	it('projects FilecoinMessageReceipt fields from getMessage.receipt', async () => {
+		getMessage.mockResolvedValueOnce({
+			cid: 'bafy-msg',
+			height: 100,
+			timestamp: 1_700_000_000,
+			blocks: [
+				'bafy-a',
+				'bafy-b',
+			],
+			from: 'f1from',
+			to: 'f1to',
+			nonce: 1,
+			value: '0',
+			method: 'Send',
+			receipt: {
+				exitCode: 0,
+				return: '0x40',
+				gasUsed: 99,
+			},
+		})
+
+		const snapshot = await messageReceiptResolver.resolve.MessageTipsetKeySource.resolve({
+			$message: {
+				$network: network,
+				cid: 'bafy-msg',
+			},
+			tipsetKey: 'bafy-a,bafy-b',
+			source: Source.Filfox_Rest,
+		}, context)
+
+		expect(messageReceiptResolver.projections.exitCode(snapshot)).toBe(0)
+		expect(messageReceiptResolver.projections.returnData(snapshot)).toBe('0x40')
+		expect(messageReceiptResolver.projections.gasUsed(snapshot)).toBe(99n)
+		expect(messageReceiptResolver.projections.height(snapshot)).toBe(100n)
+		expect(messageReceiptResolver.projections.blockCid(snapshot)).toBe('bafy-a')
+		expect(messageReceiptResolver.projections.tipsetKey(snapshot)).toBe('bafy-a,bafy-b')
+		expect(messageReceiptResolver.projections.source(snapshot)).toBe(Source.Filfox_Rest)
+		expect(messageReceiptResolver.projections.$tipset(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				height: 100n,
+				tipsetKey: 'bafy-a,bafy-b',
+			},
+		})
 	})
 
 	it('projects FilecoinMessage_Timestamp inclusion fields from getMessage + getTipset', async () => {

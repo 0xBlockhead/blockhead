@@ -127,7 +127,34 @@ const responseByInfoType = {
 	userDexAbstraction: false,
 	approvedBuilders: ['0x476fa87b4d3818f437f38f1263bee508d7672d82'],
 	borrowLendUserState: {
-		tokenToState: [],
+		tokenToState: [
+			[
+				0,
+				{
+					borrow: {
+						basis: '0.0',
+						value: '0.0',
+					},
+					supply: {
+						basis: '44.69',
+						value: '44.70',
+					},
+				},
+			],
+			[
+				1105,
+				{
+					borrow: {
+						basis: '1.0',
+						value: '1.1',
+					},
+					supply: {
+						basis: '0.0',
+						value: '0.0',
+					},
+				},
+			],
+		],
 		health: 'healthy',
 		healthFactor: null,
 	},
@@ -192,8 +219,61 @@ describe('Hyperliquid public account resolvers', () => {
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userAbstraction')]: 'default',
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userDexAbstraction')]: false,
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'approvedBuilders')]: responseByInfoType.approvedBuilders,
-			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendState')]: responseByInfoType.borrowLendUserState,
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendHealth')]: 'healthy',
 		})
+		expect(timestamps[0]?.[EntityMetaKey.Fields]).not.toHaveProperty(
+			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendHealthFactor')
+		)
+		expect(accountPortfolioResolver.projections.$$borrowLendPositions(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$account: account,
+					tokenIndex: 0,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], '$reserve')]: {
+						[EntityMetaKey.Selector]: {
+							$network: account.$network,
+							tokenIndex: 0,
+						},
+					},
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], '$asset')]: {
+						[EntityMetaKey.Selector]: {
+							$network: account.$network,
+							assetId: 0,
+						},
+					},
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], 'borrowBasis')]: '0.0',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], 'borrowValue')]: '0.0',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], 'supplyBasis')]: '44.69',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], 'supplyValue')]: '44.70',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$account: account,
+					tokenIndex: 1105,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], '$reserve')]: {
+						[EntityMetaKey.Selector]: {
+							$network: account.$network,
+							tokenIndex: 1105,
+						},
+					},
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], '$asset')]: {
+						[EntityMetaKey.Selector]: {
+							$network: account.$network,
+							assetId: 1105,
+						},
+					},
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], 'borrowBasis')]: '1.0',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], 'borrowValue')]: '1.1',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], 'supplyBasis')]: '0.0',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], 'supplyValue')]: '0.0',
+				},
+			},
+		])
 	})
 
 	it('maps bounded historical orders with exact status observations', async () => {
@@ -965,6 +1045,50 @@ describe('Hyperliquid market catalog resolvers', () => {
 		})
 		expect(reserveResolver.projections.borrowYearlyRate(snapshot)).toBe('0.01')
 		expect(reserveResolver.projections.totalBorrowed(snapshot)).toBe('5')
+	})
+
+	it('projects a borrow/lend position by account token index from borrowLendUserState', async () => {
+		const positionResolver = hyperliquid.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HyperliquidBorrowLendPosition
+		))
+		expect(positionResolver).toBeTruthy()
+
+		corsFetch.mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				tokenToState: [
+					[
+						1105,
+						{
+							borrow: {
+								basis: '1.0',
+								value: '1.1',
+							},
+							supply: {
+								basis: '0.0',
+								value: '0.0',
+							},
+						},
+					],
+				],
+				health: 'healthy',
+				healthFactor: '1.5',
+			}),
+		})
+
+		const snapshot = await positionResolver.resolve.AccountTokenIndex.resolve({
+			$account: account,
+			tokenIndex: 1105,
+		}, context)
+		expect(positionResolver.projections.$reserve(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				tokenIndex: 1105,
+			},
+		})
+		expect(positionResolver.projections.borrowBasis(snapshot)).toBe('1.0')
+		expect(positionResolver.projections.borrowValue(snapshot)).toBe('1.1')
+		expect(positionResolver.projections.supplyValue(snapshot)).toBe('0.0')
 	})
 
 	it('rejects a perp market snapshot without a context for every market', async () => {

@@ -256,6 +256,44 @@ export default {
 									}],
 								}
 							),
+							...(
+								message.receipt != null
+								&& tipsetKey != null
+								&& {
+									$receipt: {
+										[EntityMetaKey.Selector]: {
+											$message: {
+												$network,
+												cid,
+											},
+											tipsetKey,
+											source: Source.Filfox_Rest,
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'exitCode')]: message.receipt.exitCode,
+											...(message.receipt.return != null && {
+												[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'returnData')]: message.receipt.return,
+											}),
+											...(message.receipt.gasUsed != null && {
+												[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'gasUsed')]: BigInt(message.receipt.gasUsed),
+											}),
+											...(message.height != null && {
+												[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'height')]: BigInt(message.height),
+												[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], '$tipset')]: {
+													[EntityMetaKey.Selector]: {
+														$network,
+														height: BigInt(message.height),
+														tipsetKey,
+													},
+												},
+											}),
+											...(message.blocks != null && message.blocks[0] != null && {
+												[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'blockCid')]: message.blocks[0],
+											}),
+										},
+									},
+								}
+							),
 						}
 					},
 				},
@@ -268,6 +306,7 @@ export default {
 			valueAttoFil: (snapshot) => snapshot.valueAttoFil,
 			gasLimit: (snapshot) => snapshot.gasLimit,
 			$$timestamps: (snapshot) => snapshot.$$timestamps ?? [],
+			$receipt: (snapshot) => snapshot.$receipt,
 		}),
 
 		defineResolver({
@@ -340,6 +379,73 @@ export default {
 			source: (timestamp) => timestamp.source,
 			$tipset: (timestamp) => timestamp.$tipset,
 			blockCids: (timestamp) => timestamp.blockCids,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinMessageReceipt,
+			resolve: {
+				MessageTipsetKeySource: {
+					resolve: async ({
+						$message,
+						tipsetKey,
+						source,
+					}) => {
+						assertFilecoinMainnet($message.$network)
+						if (source !== Source.Filfox_Rest)
+							throw new Error(`Filfox_Rest: unsupported message receipt source ${source}`)
+
+						const { getMessage } = await import('$/sources/Filfox/Rest/queries.ts')
+						const message = await getMessage({
+							messageCid: $message.cid,
+						})
+						if (message.receipt == null)
+							throw new Error(`Filfox_Rest: message ${$message.cid} missing receipt`)
+
+						if (
+							message.blocks == null
+							|| message.blocks.length < 1
+							|| message.blocks.join(',') !== tipsetKey
+						)
+							throw new Error(`Filfox_Rest: message receipt tipset does not match ${tipsetKey}`)
+
+						return {
+							$message: {
+								[EntityMetaKey.Selector]: $message,
+							},
+							tipsetKey,
+							source,
+							...(message.height != null && {
+								height: BigInt(message.height),
+								$tipset: {
+									[EntityMetaKey.Selector]: {
+										$network: $message.$network,
+										height: BigInt(message.height),
+										tipsetKey,
+									},
+								},
+							}),
+							blockCid: message.blocks[0],
+							exitCode: message.receipt.exitCode,
+							...(message.receipt.return != null && {
+								returnData: message.receipt.return,
+							}),
+							...(message.receipt.gasUsed != null && {
+								gasUsed: BigInt(message.receipt.gasUsed),
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$message: (receipt) => receipt.$message,
+			tipsetKey: (receipt) => receipt.tipsetKey,
+			source: (receipt) => receipt.source,
+			$tipset: (receipt) => receipt.$tipset,
+			height: (receipt) => receipt.height,
+			blockCid: (receipt) => receipt.blockCid,
+			exitCode: (receipt) => receipt.exitCode,
+			returnData: (receipt) => receipt.returnData,
+			gasUsed: (receipt) => receipt.gasUsed,
 		}),
 
 		defineResolver({

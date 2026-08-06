@@ -853,9 +853,39 @@ export default {
 									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userAbstraction')]: userAbstraction,
 									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userDexAbstraction')]: userDexAbstraction,
 									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'approvedBuilders')]: approvedBuilders,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendState')]: borrowLendState,
+									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendHealth')]: borrowLendState.health,
+									...(borrowLendState.healthFactor != null && {
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendHealthFactor')]: borrowLendState.healthFactor,
+									}),
 								},
 							}],
+							$$borrowLendPositions: borrowLendState.tokenToState.map(([tokenIndex, position]) => ({
+								[EntityMetaKey.Selector]: {
+									$account: {
+										$network,
+										address,
+									},
+									tokenIndex,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], '$reserve')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											tokenIndex,
+										},
+									},
+									[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], '$asset')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											assetId: tokenIndex,
+										},
+									},
+									[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], 'borrowBasis')]: position.borrow.basis,
+									[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], 'borrowValue')]: position.borrow.value,
+									[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], 'supplyBasis')]: position.supply.basis,
+									[entityFieldAddressKey(EntityType.HyperliquidBorrowLendPosition, [], 'supplyValue')]: position.supply.value,
+								},
+							})),
 						}
 					},
 				}
@@ -864,6 +894,7 @@ export default {
 			accountRole: (snapshot) => snapshot.accountRole,
 			$masterAccount: (snapshot) => snapshot.$masterAccount,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
+			$$borrowLendPositions: (snapshot) => snapshot.$$borrowLendPositions,
 		}),
 
 		defineResolver({
@@ -1313,6 +1344,67 @@ export default {
 			ltv: (snapshot) => snapshot.ltv,
 			totalSupplied: (snapshot) => snapshot.totalSupplied,
 			totalBorrowed: (snapshot) => snapshot.totalBorrowed,
+		}),
+
+		defineResolver({
+			entityType: EntityType.HyperliquidBorrowLendPosition,
+			resolve: {
+				AccountTokenIndex: {
+					resolve: async ({
+						$account,
+						tokenIndex,
+					}) => {
+						assertHyperliquidMainnet($account.$network)
+						assertHyperliquidAddress($account.address)
+						if (!Number.isSafeInteger(tokenIndex) || tokenIndex < 0)
+							throw new Error(`Hyperliquid_Rest: invalid borrow/lend position token index ${String(tokenIndex)}`)
+
+						const { getBorrowLendUserState } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const state = await getBorrowLendUserState({
+							user: $account.address,
+						})
+						const row = state.tokenToState.find(([index]) => index === tokenIndex)
+						if (row == null)
+							throw new Error(`Hyperliquid_Rest: borrow/lend position not found for token index ${String(tokenIndex)}`)
+
+						const [
+							,
+							position,
+						] = row
+						return {
+							$account: {
+								[EntityMetaKey.Selector]: $account,
+							},
+							tokenIndex,
+							$reserve: {
+								[EntityMetaKey.Selector]: {
+									$network: $account.$network,
+									tokenIndex,
+								},
+							},
+							$asset: {
+								[EntityMetaKey.Selector]: {
+									$network: $account.$network,
+									assetId: tokenIndex,
+								},
+							},
+							borrowBasis: position.borrow.basis,
+							borrowValue: position.borrow.value,
+							supplyBasis: position.supply.basis,
+							supplyValue: position.supply.value,
+						}
+					},
+				},
+			},
+		})({
+			$account: (snapshot) => snapshot.$account,
+			tokenIndex: (snapshot) => snapshot.tokenIndex,
+			$reserve: (snapshot) => snapshot.$reserve,
+			$asset: (snapshot) => snapshot.$asset,
+			borrowBasis: (snapshot) => snapshot.borrowBasis,
+			borrowValue: (snapshot) => snapshot.borrowValue,
+			supplyBasis: (snapshot) => snapshot.supplyBasis,
+			supplyValue: (snapshot) => snapshot.supplyValue,
 		}),
 
 		defineResolver({
