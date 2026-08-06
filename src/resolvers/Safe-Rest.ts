@@ -136,18 +136,29 @@ export default {
 						const txHash = hexLowerOfByteSize(creation.transactionHash, 32)
 						if (txHash == null)
 							throw new Error('SafeTransactionService_Rest: creation transaction hash not normalized')
+						const creator = hexLowerOfByteSize(creation.creator, 20)
+						if (creator == null)
+							throw new Error('SafeTransactionService_Rest: creation creator not normalized')
 
 						return {
-							[EntityMetaKey.Selector]: {
-								$network: evmNetworkSelectorFromChainId(chainId),
-								txHash,
+							$creationTransaction: {
+								[EntityMetaKey.Selector]: {
+									$network: evmNetworkSelectorFromChainId(chainId),
+									txHash,
+								},
+							},
+							$deployer: {
+								[EntityMetaKey.Selector]: {
+									address: creator,
+								},
 							},
 						}
 					},
 				},
 			},
 		})({
-			$creationTransaction: (creationTransaction) => creationTransaction,
+			$creationTransaction: (creation) => creation.$creationTransaction,
+			$deployer: (creation) => creation.$deployer,
 		}),
 
 		defineResolver({

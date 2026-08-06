@@ -87,6 +87,42 @@ export const listVerifiedContractsPath = ({
 	return `/contracts/${chainId}${query === '' ? '' : `?${query}`}`
 }
 
+const assertLookupSubject = (
+	lookup: SourcifyContractLookup,
+	{
+		chainId,
+		address,
+	}: {
+		chainId: number
+		address: `0x${string}`
+	}
+) => {
+	if (lookup.chainId != null && Number(lookup.chainId) !== chainId)
+		throw new Error('Sourcify_Rest: contract lookup belongs to a different chain')
+	if (lookup.address != null && lookup.address.toLowerCase() !== address)
+		throw new Error('Sourcify_Rest: contract lookup belongs to a different address')
+}
+
+const assertMatchListChainSubject = (
+	results: SourcifyContractMatchSummary[],
+	chainId: number
+) => {
+	for (const row of results) {
+		if (row.chainId != null && Number(row.chainId) !== chainId)
+			throw new Error('Sourcify_Rest: verified contract list includes a different chain')
+	}
+}
+
+const assertMatchListAddressSubject = (
+	results: SourcifyContractMatchSummary[],
+	address: `0x${string}`
+) => {
+	for (const row of results) {
+		if (row.address != null && row.address.toLowerCase() !== address)
+			throw new Error('Sourcify_Rest: contract match list includes a different address')
+	}
+}
+
 /** `GET /v2/contract/{chainId}/{address}` — verified contract lookup with product fields. */
 export const getContractLookup = async ({
 	chainId,
@@ -95,10 +131,11 @@ export const getContractLookup = async ({
 	chainId: number
 	address: `0x${string}`
 }) => {
+	const normalizedAddress = zeroExLowerCase(address)
 	const json = await sourcifyGetJsonOrNull({
 		path: getContractLookupPath({
 			chainId,
-			address: zeroExLowerCase(address),
+			address: normalizedAddress,
 		}),
 	})
 	if (json == null) return null
@@ -107,6 +144,10 @@ export const getContractLookup = async ({
 		sourcifyContractLookupEnvelope,
 		json
 	) as SourcifyContractLookup
+	assertLookupSubject(lookup, {
+		chainId,
+		address: normalizedAddress,
+	})
 	if (!hasVerificationMatch(lookup)) return null
 	return lookup
 }
@@ -117,17 +158,20 @@ export const getContractLookupsByAddress = async ({
 }: {
 	address: `0x${string}`
 }) => {
+	const normalizedAddress = zeroExLowerCase(address)
 	const json = await sourcifyGetJsonOrNull({
 		path: getContractLookupsByAddressPath({
-			address: zeroExLowerCase(address),
+			address: normalizedAddress,
 		}),
 	})
 	if (json == null) return null
-	return assertEnvelope(
+	const results = assertEnvelope(
 		'contract match list',
 		sourcifyContractMatchListEnvelope,
 		json
 	).results as SourcifyContractMatchSummary[]
+	assertMatchListAddressSubject(results, normalizedAddress)
+	return results
 }
 
 /** `GET /v2/contracts/{chainId}` — paginated verified-contract summaries for a chain. */
@@ -151,9 +195,11 @@ export const listVerifiedContracts = async ({
 		}),
 	})
 	if (json == null) return null
-	return assertEnvelope(
+	const results = assertEnvelope(
 		'verified contract list',
 		sourcifyContractMatchListEnvelope,
 		json
 	).results as SourcifyContractMatchSummary[]
+	assertMatchListChainSubject(results, chainId)
+	return results
 }

@@ -148,30 +148,37 @@ describe('Safe Transaction Service resolver module', () => {
 		expect(contractResolver.projections.$guard(snapshot)).toBeUndefined()
 	})
 
-	it('maps Safe creation onto EvmContract $creationTransaction', async () => {
+	it('maps Safe creation onto EvmContract $creationTransaction and $deployer', async () => {
 		const creationHash = `0x${'3'.repeat(64)}`
 		sourceGetJson.mockResolvedValue({
 			created: '2024-01-01T00:00:00Z',
 			creator: ownerAddress,
 			transactionHash: creationHash,
 			factoryAddress: masterCopy,
-			masterCopy,
+			masterCopy: `0x${'5'.repeat(40)}`,
 		})
 
 		const creationResolver = safeRest.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.EvmContract
 			&& '$creationTransaction' in resolver.projections
+			&& '$deployer' in resolver.projections
 		))
 		if (creationResolver == null)
-			throw new Error('missing EvmContract.$creationTransaction resolver')
+			throw new Error('missing EvmContract creation resolver')
 
-		await expect(creationResolver.resolve.EvmNetworkAddress.resolve({
+		const snapshot = await creationResolver.resolve.EvmNetworkAddress.resolve({
 			$network: network,
 			address: safeAddress,
-		}, context)).resolves.toEqual({
+		}, context)
+		expect(creationResolver.projections.$creationTransaction(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$network: network,
 				txHash: creationHash,
+			},
+		})
+		expect(creationResolver.projections.$deployer(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				address: ownerAddress,
 			},
 		})
 	})

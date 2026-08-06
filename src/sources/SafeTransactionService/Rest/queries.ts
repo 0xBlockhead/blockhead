@@ -211,7 +211,7 @@ export const getSafeCreation = async ({
 }) => {
 	const binding = requireSafeTransactionServiceBinding(chainId)
 	const checksummedSafeAddress = checksumAddress(safeAddress, 'Safe address')
-	return assertEnvelope(
+	const creation = assertEnvelope(
 		'Safe creation',
 		safeCreationEnvelope,
 		await request<SafeCreation>({
@@ -219,6 +219,16 @@ export const getSafeCreation = async ({
 			path: `/api/v1/safes/${encodeURIComponent(checksummedSafeAddress)}/creation/`,
 		})
 	)
+	// Creation wire does not echo the Safe address; bind factory/masterCopy/creator identities instead.
+	if (creation.factoryAddress.toLowerCase() === checksummedSafeAddress.toLowerCase())
+		throw new Error('SafeTransactionService_Rest: creation factory cannot be the Safe itself')
+	if (creation.masterCopy.toLowerCase() === checksummedSafeAddress.toLowerCase())
+		throw new Error('SafeTransactionService_Rest: creation masterCopy cannot be the Safe itself')
+	if (creation.creator.toLowerCase() === checksummedSafeAddress.toLowerCase())
+		throw new Error('SafeTransactionService_Rest: creation creator cannot be the Safe itself')
+	if (creation.factoryAddress.toLowerCase() === creation.masterCopy.toLowerCase())
+		throw new Error('SafeTransactionService_Rest: creation factory and masterCopy must differ')
+	return creation
 }
 
 export const getSafeMultisigTransactions = async ({

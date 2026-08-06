@@ -220,6 +220,34 @@ describe('Safe Transaction Service public multisig queries', () => {
 		)
 	})
 
+	it('rejects Safe creation identities that collapse onto the Safe address', async () => {
+		sourceGetJson.mockResolvedValue({
+			created: '2024-01-01T00:00:00Z',
+			creator: ownerAddress,
+			transactionHash: `0x${'3'.repeat(64)}`,
+			factoryAddress: safeAddress,
+			masterCopy,
+		})
+		await expect(getSafeCreation({
+			chainId,
+			safeAddress,
+		})).rejects.toThrow('creation factory cannot be the Safe itself')
+	})
+
+	it('rejects Safe creation envelopes where factory and masterCopy collide', async () => {
+		sourceGetJson.mockResolvedValue({
+			created: '2024-01-01T00:00:00Z',
+			creator: ownerAddress,
+			transactionHash: `0x${'3'.repeat(64)}`,
+			factoryAddress: masterCopy,
+			masterCopy,
+		})
+		await expect(getSafeCreation({
+			chainId,
+			safeAddress,
+		})).rejects.toThrow('creation factory and masterCopy must differ')
+	})
+
 	it('fail-closes malformed Safe creation envelopes', async () => {
 		sourceGetJson.mockResolvedValue({
 			created: '2024-01-01T00:00:00Z',

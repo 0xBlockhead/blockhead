@@ -22,7 +22,9 @@ export const sourcifyContractMetadataEnvelope = arktype({
 		'version?': 'string',
 	},
 	'language?': 'string',
-	'sources?': arktype('Record<string, unknown>'),
+	'sources?': arktype({
+		'[string]': sourcifyContractSourceEnvelope,
+	}),
 	'fullyQualifiedName?': 'string',
 	'storageLayout?': jsonUnknown,
 })
@@ -83,7 +85,9 @@ export const sourcifyContractLookupEnvelope = arktype({
 	'abi?': jsonUnknown.array(),
 	'compilation?': sourcifyContractCompilationEnvelope,
 	'deployment?': sourcifyContractDeploymentEnvelope,
-	'sources?': arktype('Record<string, unknown>'),
+	'sources?': arktype({
+		'[string]': sourcifyContractSourceEnvelope,
+	}),
 	'metadata?': sourcifyContractMetadataEnvelope,
 	'storageLayout?': jsonUnknown,
 	'proxyResolution?': sourcifyProxyResolutionEnvelope,

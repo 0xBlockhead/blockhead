@@ -137,6 +137,65 @@ describe('Sourcify REST product queries', () => {
 		})).rejects.toThrow('invalid verified contract list response envelope')
 	})
 
+	it('rejects contract lookups that substitute a different chain or address', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			match: 'exact_match',
+			chainId: '10',
+			address: depositContract.toLowerCase(),
+			abi: [],
+		}))
+
+		await expect(getContractLookup({
+			chainId: 1,
+			address: depositContract,
+		})).rejects.toThrow('belongs to a different chain')
+
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			match: 'exact_match',
+			chainId: '1',
+			address: '0x1111111111111111111111111111111111111111',
+			abi: [],
+		}))
+
+		await expect(getContractLookup({
+			chainId: 1,
+			address: depositContract,
+		})).rejects.toThrow('belongs to a different address')
+	})
+
+	it('rejects verified-contract list rows that escape the requested chain', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			results: [
+				{
+					match: 'exact_match',
+					chainId: '10',
+					address: depositContract.toLowerCase(),
+				},
+			],
+		}))
+
+		await expect(listVerifiedContracts({
+			chainId: 1,
+			limit: 10,
+		})).rejects.toThrow('includes a different chain')
+	})
+
+	it('rejects all-chain match summaries that substitute a different address', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			results: [
+				{
+					match: 'exact_match',
+					chainId: '1',
+					address: '0x1111111111111111111111111111111111111111',
+				},
+			],
+		}))
+
+		await expect(getContractLookupsByAddress({
+			address: depositContract,
+		})).rejects.toThrow('includes a different address')
+	})
+
 	it('lists verified contracts with clamped pagination and continuation', async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
 			results: [
