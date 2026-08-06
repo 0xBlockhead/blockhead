@@ -1,4 +1,9 @@
-import { expect, it, vi } from 'vitest'
+import {
+	beforeEach,
+	expect,
+	it,
+	vi,
+} from 'vitest'
 const { bindings, sourceGetJson } = vi.hoisted(() => ({
 	bindings: {
 		CashuMint_Rest: [
@@ -19,12 +24,112 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	firstHttpUrlForBinding: (binding: typeof bindings.CashuMint_Rest[number]) => binding.endpoints[0]?.locator,
 	sourceGetJson,
 }))
-const { getMintInfo } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
-it('dispatches a mint through its exact editable binding', () => {
-	getMintInfo('https://first.mint')
-	getMintInfo('https://second.mint')
-	expect(sourceGetJson.mock.calls).toEqual(bindings.CashuMint_Rest.map((binding) => [
-		binding,
-		`${binding.target.key}/v1/info`,
-	]))
+const {
+	getMintInfo,
+	getMintKeysets,
+	getMintKeys,
+	getMintKeysForKeyset,
+} = await import('$/sources/Cashu/Mint/Rest/queries.ts')
+
+beforeEach(() => {
+	sourceGetJson.mockReset()
+})
+
+it('dispatches each Cashu endpoint through its exact binding and preserves keyset URL encoding', async () => {
+	sourceGetJson
+		.mockResolvedValueOnce({
+			name: 'First mint',
+		})
+		.mockResolvedValueOnce({
+			keysets: [],
+		})
+		.mockResolvedValueOnce({
+			keysets: [],
+		})
+		.mockResolvedValueOnce({
+			keysets: [],
+		})
+
+	await expect(getMintInfo('https://first.mint')).resolves.toEqual({
+		name: 'First mint',
+	})
+	await expect(getMintKeysets('https://second.mint')).resolves.toEqual({
+		keysets: [],
+	})
+	await expect(getMintKeys('https://second.mint')).resolves.toEqual({
+		keysets: [],
+	})
+	await expect(getMintKeysForKeyset('https://second.mint', {
+		keysetId: 'keyset/with spaces',
+	})).resolves.toEqual({
+		keysets: [],
+	})
+
+	expect(sourceGetJson.mock.calls).toEqual([
+		[
+			bindings.CashuMint_Rest[0],
+			'https://first.mint/v1/info',
+		],
+		[
+			bindings.CashuMint_Rest[1],
+			'https://second.mint/v1/keysets',
+		],
+		[
+			bindings.CashuMint_Rest[1],
+			'https://second.mint/v1/keys',
+		],
+		[
+			bindings.CashuMint_Rest[1],
+			'https://second.mint/v1/keys/keyset%2Fwith%20spaces',
+		],
+	])
+})
+
+it('fails closed on unsupported mint info responses', async () => {
+	sourceGetJson.mockResolvedValueOnce({})
+
+	await expect(getMintInfo('https://first.mint')).rejects.toThrow(
+		'CashuMint_Rest: unsupported mint info response for mint https://first.mint'
+	)
+})
+
+it('fails closed on malformed mint keysets responses', async () => {
+	sourceGetJson.mockResolvedValueOnce({
+		keysets: [
+			{
+				id: 1,
+				unit: 'sat',
+				active: true,
+			},
+		],
+	})
+
+	await expect(getMintKeysets('https://first.mint')).rejects.toThrow(
+		'CashuMint_Rest: malformed mint keysets response: id must be a string for mint https://first.mint'
+	)
+})
+
+it('fails closed on malformed mint keys responses', async () => {
+	sourceGetJson.mockResolvedValueOnce({
+		keysets: [
+			{
+				id: 'keyset-id',
+				unit: 'sat',
+				active: true,
+				keys: {
+					1: 2,
+				},
+			},
+		],
+	})
+
+	await expect(getMintKeys('https://first.mint')).rejects.toThrow(
+		'CashuMint_Rest: malformed mint keys response: keys.1 must be a string for mint https://first.mint'
+	)
+})
+
+it('preserves source query rejections', async () => {
+	sourceGetJson.mockRejectedValueOnce(new Error('network down'))
+
+	await expect(getMintKeysets('https://first.mint')).rejects.toThrow('network down')
 })
