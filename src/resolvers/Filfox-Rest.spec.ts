@@ -433,6 +433,24 @@ describe('Filfox REST resolvers', () => {
 		expect(dealResolver.projections.storagePricePerEpochAttoFil(snapshot)).toBe(3n)
 		expect(dealResolver.projections.providerCollateralAttoFil(snapshot)).toBe(5n)
 		expect(dealResolver.projections.clientCollateralAttoFil(snapshot)).toBe(4n)
+		expect(dealResolver.projections.$$timestamps(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$deal: {
+						$network: network,
+						dealId: 42n,
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.Filfox_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'height')]: 100n,
+					[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'verifiedDeal')]: true,
+					[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'providerCollateralAttoFil')]: 5n,
+					[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'clientCollateralAttoFil')]: 4n,
+				},
+			},
+		])
 	})
 
 	it('lists deals through FilecoinNetwork and Network Filecoin projections', async () => {
