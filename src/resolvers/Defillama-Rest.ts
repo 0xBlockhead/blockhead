@@ -4,9 +4,13 @@ import {
 	marketOhlcDailyTimeInterval,
 	marketOhlcDefaultLookbackDayCount,
 } from '$/constants/Market.ts'
+import { seededCoinSpotUsdMarketByCoinId } from '$/constants/MarketCatalog.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
-import { isSeededCoinCurrencyMarket } from '$/resolvers/market.ts'
+import {
+	isSeededCoinCurrencyMarket,
+	marketSelectorFromCatalogCoinCurrencyMarket,
+} from '$/resolvers/market.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
@@ -388,6 +392,92 @@ export default {
 			},
 		})({
 			$icon: (icon) => icon,
+		}),
+
+		defineResolver({
+			entityType: EntityType._Global,
+			resolve: {
+				Scope: {
+					resolve: async () => {
+						const { CoinId, coinById } = await import('$/constants/Coin.ts')
+						const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
+						return (
+							Object.values(CoinId)
+								.filter((coinId) => (
+									defillamaCurrentPriceIdByCoinId[coinId] != null
+									&& coinId in coinById
+								))
+								.map((coinId) => ({
+									[EntityMetaKey.Selector]: {
+										coinId,
+									},
+								}))
+						)
+					},
+				},
+			},
+		})({
+			$$coins: {
+				select: (coins) => coins,
+				resolveCount: (coins) => coins.length,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType._Global,
+			resolve: {
+				Scope: {
+					resolve: async (_globalScope, context) => {
+						const { CoinId, coinById } = await import('$/constants/Coin.ts')
+						const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
+						const lim = resolverContextRowLimit(context)
+						const catalogEntries = (
+							Object.values(CoinId)
+								.flatMap((coinId) => {
+									const requestedId = defillamaCurrentPriceIdByCoinId[coinId]
+									if (requestedId == null || !(coinId in coinById))
+										return []
+
+									return [{
+										coinId,
+										requestedId,
+									}]
+								})
+						)
+						const prices = (
+							await getConfiguredCurrentPrices(
+								catalogEntries.map(({ requestedId }) => requestedId),
+								context.publicEnv
+							)
+						).coins
+						const marketPrices = catalogEntries.flatMap(({
+							coinId,
+							requestedId,
+						}) => {
+							const price = currentPriceForRequestedId(prices, requestedId)
+							if (price == null)
+								return []
+
+							return [{
+								[EntityMetaKey.Selector]: {
+									$market: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
+									timestampMs: price.timestamp * 1_000,
+									feedKey: requestedId,
+								},
+							}]
+						})
+						return {
+							marketPrices: marketPrices.slice(0, lim),
+							marketPriceCount: marketPrices.length,
+						}
+					},
+				},
+			},
+		})({
+			$$marketPrices: {
+				select: (snapshot) => snapshot.marketPrices,
+				resolveCount: (snapshot) => snapshot.marketPriceCount,
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

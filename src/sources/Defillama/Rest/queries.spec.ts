@@ -8,6 +8,7 @@ import {
 
 import bindings from '$/sources/Defillama/bindings.ts'
 import {
+	getChainsTvl,
 	getChart,
 	getChainIconUrl,
 	getCurrentPrices,
@@ -19,6 +20,8 @@ import {
 	getProFirstPrices,
 	getProHistoricalPrices,
 	getProPercentageChange,
+	getProtocols,
+	getProtocolTvl,
 } from '$/sources/Defillama/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -346,5 +349,109 @@ describe('DeFiLlama REST endpoint selection', () => {
 		expect(getChainIconUrl('polygon zkevm')).toBe(
 			'https://icons.llama.fi/polygon%20zkevm.png'
 		)
+	})
+
+	it('uses the public TVL API for protocols / chains / protocol tvl', async () => {
+		sourceGetJson.mockResolvedValueOnce([])
+		await getProtocols()
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bindingByTargetKey['api-public'],
+			'https://api.llama.fi/protocols'
+		)
+
+		sourceGetJson.mockResolvedValueOnce([])
+		await getChainsTvl()
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bindingByTargetKey['api-public'],
+			'https://api.llama.fi/v2/chains'
+		)
+
+		sourceGetJson.mockResolvedValueOnce(1_234_567.89)
+		await expect(getProtocolTvl({
+			protocol: 'aave',
+		})).resolves.toBe(1_234_567.89)
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bindingByTargetKey['api-public'],
+			'https://api.llama.fi/tvl/aave'
+		)
+	})
+
+	it('accepts protocol and chain TVL envelopes', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				id: '1',
+				name: 'Aave',
+				tvl: 5_200_000_000,
+				chains: [
+					'Ethereum',
+				],
+				chainTvls: {
+					Ethereum: 3_200_000_000,
+				},
+			},
+		])
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				name: 'Ethereum',
+				tvl: 65_998_652_431.4,
+				chainId: 1,
+				gecko_id: 'ethereum',
+				tokenSymbol: 'ETH',
+				cmcId: '1027',
+			},
+		])
+
+		await expect(getProtocols()).resolves.toHaveLength(1)
+		await expect(getChainsTvl()).resolves.toEqual([
+			expect.objectContaining({
+				name: 'Ethereum',
+				chainId: 1,
+			}),
+		])
+	})
+
+	it.each([
+		{
+			label: 'protocols',
+			query: () => getProtocols(),
+			response: [
+				{
+					tvl: '5200000000',
+				},
+			],
+		},
+		{
+			label: 'chains tvl',
+			query: () => getChainsTvl(),
+			response: [
+				{
+					tvl: '65',
+				},
+			],
+		},
+		{
+			label: 'protocol tvl',
+			query: () => getProtocolTvl({
+				protocol: 'aave',
+			}),
+			response: {
+				tvl: 1_234,
+			},
+		},
+	])('fails closed for malformed $label envelopes', async ({
+		query,
+		response,
+		label,
+	}) => {
+		sourceGetJson.mockResolvedValue(response)
+
+		await expect(query()).rejects.toThrow(`Defillama_Rest: invalid ${label} response envelope`)
+	})
+
+	it('rejects empty protocol slug before transport', async () => {
+		await expect(getProtocolTvl({
+			protocol: '',
+		})).rejects.toThrow('malformed protocol slug')
+		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 })

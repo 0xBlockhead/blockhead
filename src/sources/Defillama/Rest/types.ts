@@ -1,6 +1,7 @@
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type { paths } from '$/sources/Defillama/OpenApi/openapi.d.ts'
 import type { paths as proPaths } from '$/sources/Defillama/OpenApi/Pro/openapi.d.ts'
+import { type as arktype } from 'arktype'
 
 type CurrentPricesOperation = paths['/prices/current/{coins}']['get']
 type CurrentPricesResponse = (
@@ -193,3 +194,88 @@ export type DefillamaProPercentageResponse = DynamicCoinResponse<
 	ProPercentageResponse,
 	number
 >
+
+export type DefillamaProtocolsResponse = paths['/protocols']['get']['responses'][200]['content']['application/json']
+export type DefillamaChainsTvlResponse = paths['/v2/chains']['get']['responses'][200]['content']['application/json']
+export type DefillamaProtocolTvlResponse = paths['/tvl/{protocol}']['get']['responses'][200]['content']['application/json']
+
+export type GetDefillamaProtocolTvlArgs = {
+	protocol: string
+}
+
+
+const defillamaPriceWire = arktype({
+	price: 'number',
+	symbol: 'string',
+	timestamp: 'number',
+	'decimals?': 'number',
+	'confidence?': 'number',
+})
+const defillamaFirstPriceWire = arktype({
+	'price?': 'number',
+	'symbol?': 'string',
+	'timestamp?': 'number',
+})
+const defillamaChartPriceWire = arktype({
+	'timestamp?': 'number',
+	'price?': 'number',
+})
+const defillamaChartCoinWire = arktype({
+	confidence: 'number',
+	prices: defillamaChartPriceWire.array(),
+	symbol: 'string',
+	'decimals?': 'number',
+})
+
+export const defillamaCurrentPricesEnvelope = arktype({
+	coins: {
+		'[string]': defillamaPriceWire,
+	},
+})
+export const defillamaHistoricalPricesEnvelope = arktype({
+	coins: {
+		'[string]': defillamaPriceWire,
+	},
+})
+export const defillamaFirstPricesEnvelope = arktype({
+	coins: {
+		'[string]': defillamaFirstPriceWire,
+	},
+})
+export const defillamaChartEnvelope = arktype({
+	coins: {
+		'[string]': defillamaChartCoinWire,
+	},
+})
+export const defillamaPercentageEnvelope = arktype({
+	coins: {
+		'[string]': 'number',
+	},
+})
+
+export const defillamaProtocolListRowEnvelope = arktype({
+	'id?': 'string',
+	'name?': 'string',
+	'symbol?': 'string',
+	'category?': 'string',
+	'chains?': 'string[]',
+	'tvl?': 'number',
+	'chainTvls?': {
+		'[string]': 'number',
+	},
+	'change_1d?': 'number',
+	'change_7d?': 'number',
+})
+export const defillamaProtocolsEnvelope = defillamaProtocolListRowEnvelope.array()
+
+export const defillamaChainTvlRowEnvelope = arktype({
+	'gecko_id?': 'string | null',
+	'tvl?': 'number',
+	'tokenSymbol?': 'string | null',
+	'cmcId?': 'string | null',
+	'name?': 'string',
+	'chainId?': 'number | null',
+})
+export const defillamaChainsTvlEnvelope = defillamaChainTvlRowEnvelope.array()
+
+export const defillamaProtocolTvlEnvelope = arktype('number')

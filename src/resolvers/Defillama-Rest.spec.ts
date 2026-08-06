@@ -289,3 +289,65 @@ describe('Defillama REST daily chart projection', () => {
 		expect(marketChartPointResolver.projections).not.toHaveProperty('low')
 	})
 })
+
+describe('Defillama REST global catalog resolvers', () => {
+	it('emits catalog-backed $$coins with authoritative resolveCount', async () => {
+		const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
+		const resolver = defillama.resolvers.find((candidate) => (
+			candidate.entityType === EntityType._Global
+			&& '$$coins' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Defillama global coin resolver is not registered')
+
+		const rows = await resolver.resolve['Scope'].resolve({
+			scope: 'global',
+		}, context)
+
+		expect(rows).toHaveLength(Object.keys(defillamaCurrentPriceIdByCoinId).length)
+		expect(rows).toContainEqual({
+			[EntityMetaKey.Selector]: {
+				coinId: CoinId.ETH,
+			},
+		})
+		expect(resolver.projections.$$coins.select(rows)).toEqual(rows)
+		expect(resolver.projections.$$coins.resolveCount(rows)).toBe(rows.length)
+	})
+
+	it('windows $$marketPrices while resolveCount stays complete', async () => {
+		const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
+		const coins = Object.fromEntries(
+			Object.values(defillamaCurrentPriceIdByCoinId)
+				.map((requestedId) => [
+					requestedId,
+					{
+						price: 1,
+						symbol: 'X',
+						timestamp: timestampSeconds,
+					},
+				])
+		)
+		getProCurrentPrices.mockResolvedValueOnce({
+			coins,
+		})
+
+		const resolver = defillama.resolvers.find((candidate) => (
+			candidate.entityType === EntityType._Global
+			&& '$$marketPrices' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Defillama global $$marketPrices resolver is not registered')
+
+		const snapshot = await resolver.resolve['Scope'].resolve({
+			scope: 'global',
+		}, {
+			...context,
+			pagination: { limit: 2 },
+		})
+
+		expect(snapshot.marketPrices).toHaveLength(2)
+		expect(snapshot.marketPriceCount).toBe(Object.keys(defillamaCurrentPriceIdByCoinId).length)
+		expect(resolver.projections.$$marketPrices.select(snapshot)).toEqual(snapshot.marketPrices)
+		expect(resolver.projections.$$marketPrices.resolveCount(snapshot)).toBe(snapshot.marketPriceCount)
+	})
+})

@@ -53,6 +53,40 @@ export default indexSourceBindings([
 		source: Source.Defillama_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
+			key: 'api-public',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api.llama.fi',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.OpenApiHttp,
+		operationGroups: genericReadOperationGroups,
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/Defillama/OpenApi/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiSpec,
+				path: 'src/sources/Defillama/OpenApi/openapi.json',
+			},
+			{
+				kind: SourceArtifactKind.OpenApiTypes,
+				path: 'src/sources/Defillama/OpenApi/openapi.d.ts',
+				generated: true,
+			},
+		],
+	},
+	{
+		source: Source.Defillama_Rest,
+		target: {
+			kind: SourceTargetKind.Global,
 			key: 'chain-icons',
 		},
 		endpoints: [

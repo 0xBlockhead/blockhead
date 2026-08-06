@@ -8,6 +8,7 @@
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import bindings from '$/sources/Defillama/bindings.ts'
 import type {
+	DefillamaChainsTvlResponse,
 	DefillamaChartResponse,
 	DefillamaCurrentPricesResponse,
 	DefillamaFirstPricesResponse,
@@ -17,23 +18,35 @@ import type {
 	DefillamaProFirstPricesResponse,
 	DefillamaProHistoricalPricesResponse,
 	DefillamaProPercentageResponse,
+	DefillamaProtocolsResponse,
+	DefillamaProtocolTvlResponse,
 	GetDefillamaChartArgs,
 	GetDefillamaCurrentPricesArgs,
 	GetDefillamaFirstPricesArgs,
 	GetDefillamaHistoricalPricesArgs,
 	GetDefillamaPercentageArgs,
+	GetDefillamaProtocolTvlArgs,
 	GetProDefillamaChartArgs,
 	GetProDefillamaCurrentPricesArgs,
 	GetProDefillamaFirstPricesArgs,
 	GetProDefillamaHistoricalPricesArgs,
 	GetProDefillamaPercentageArgs,
 } from '$/sources/Defillama/Rest/types.ts'
+import {
+	defillamaChainsTvlEnvelope,
+	defillamaChartEnvelope,
+	defillamaCurrentPricesEnvelope,
+	defillamaFirstPricesEnvelope,
+	defillamaHistoricalPricesEnvelope,
+	defillamaPercentageEnvelope,
+	defillamaProtocolsEnvelope,
+	defillamaProtocolTvlEnvelope,
+} from '$/sources/Defillama/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
-import { type as arktype } from 'arktype'
 
 const bindingByTargetKey = Object.fromEntries(
 	bindings[Source.Defillama_Rest].map((binding) => ([
@@ -42,56 +55,9 @@ const bindingByTargetKey = Object.fromEntries(
 	] as const))
 )
 const publicCoinsBinding = bindingByTargetKey['coins-public']
+const publicApiBinding = bindingByTargetKey['api-public']
 const proCoinsBinding = bindingByTargetKey['coins-pro']
 const iconBinding = bindingByTargetKey['chain-icons']
-
-const defillamaPriceWire = arktype({
-	price: 'number',
-	symbol: 'string',
-	timestamp: 'number',
-	'decimals?': 'number',
-	'confidence?': 'number',
-})
-const defillamaFirstPriceWire = arktype({
-	'price?': 'number',
-	'symbol?': 'string',
-	'timestamp?': 'number',
-})
-const defillamaChartPriceWire = arktype({
-	'timestamp?': 'number',
-	'price?': 'number',
-})
-const defillamaChartCoinWire = arktype({
-	confidence: 'number',
-	prices: defillamaChartPriceWire.array(),
-	symbol: 'string',
-	'decimals?': 'number',
-})
-const defillamaCurrentPricesEnvelope = arktype({
-	coins: {
-		'[string]': defillamaPriceWire,
-	},
-})
-const defillamaHistoricalPricesEnvelope = arktype({
-	coins: {
-		'[string]': defillamaPriceWire,
-	},
-})
-const defillamaFirstPricesEnvelope = arktype({
-	coins: {
-		'[string]': defillamaFirstPriceWire,
-	},
-})
-const defillamaChartEnvelope = arktype({
-	coins: {
-		'[string]': defillamaChartCoinWire,
-	},
-})
-const defillamaPercentageEnvelope = arktype({
-	coins: {
-		'[string]': 'number',
-	},
-})
 
 const assertEnvelope = (
 	envelope: {
@@ -416,6 +382,50 @@ export const getProPercentageChange = async ({
 		requestUrl,
 		defillamaPercentageEnvelope,
 		'Pro percentage'
+	)
+}
+
+/** `GET /protocols` on the public TVL API — protocol list with current TVL. */
+export const getProtocols = async () => (
+	getDefillamaJson<DefillamaProtocolsResponse>(
+		publicApiBinding,
+		new URL(
+			'/protocols',
+			firstHttpUrlForBinding(publicApiBinding)
+		),
+		defillamaProtocolsEnvelope,
+		'protocols'
+	)
+)
+
+/** `GET /v2/chains` on the public TVL API — chain TVL snapshot. */
+export const getChainsTvl = async () => (
+	getDefillamaJson<DefillamaChainsTvlResponse>(
+		publicApiBinding,
+		new URL(
+			'/v2/chains',
+			firstHttpUrlForBinding(publicApiBinding)
+		),
+		defillamaChainsTvlEnvelope,
+		'chains tvl'
+	)
+)
+
+/** `GET /tvl/{protocol}` on the public TVL API — current protocol TVL USD number. */
+export const getProtocolTvl = async ({
+	protocol,
+}: GetDefillamaProtocolTvlArgs) => {
+	if (protocol === '')
+		throw new Error('Defillama_Rest: malformed protocol slug')
+
+	return getDefillamaJson<DefillamaProtocolTvlResponse>(
+		publicApiBinding,
+		new URL(
+			`/tvl/${encodeURIComponent(protocol)}`,
+			firstHttpUrlForBinding(publicApiBinding)
+		),
+		defillamaProtocolTvlEnvelope,
+		'protocol tvl'
 	)
 }
 
