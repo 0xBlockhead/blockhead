@@ -15,10 +15,10 @@ import { Source } from '$/sources/Source.ts'
 import type {
 	BlockId,
 	BlockWithTxHashes,
+	Event,
 	TransactionReceiptWithBlockInfo,
 	TransactionWithHash,
-} from '$/sources/Pathfinder/JsonRpc/types.ts'
-import type { Event } from '$/sources/_shared/interfaces/StarknetJsonRpc/types.ts'
+} from '$/sources/_shared/interfaces/StarknetJsonRpc/types.ts'
 
 type NetworkIdentity = EntitySelector<typeof schema, EntityType.Network>
 type StarknetNetworkIdentity = EntitySelector<typeof schema, EntityType.StarknetNetwork>
@@ -263,9 +263,9 @@ const transactionFields = (
 		throw new Error('Pathfinder: transaction hash mismatch')
 
 	const senderAddress = (
-		transaction.sender_address != null ?
+		'sender_address' in transaction ?
 			validatedFelt(transaction.sender_address, 'sender address')
-		: transaction.contract_address != null ?
+		: 'contract_address' in transaction ?
 			validatedFelt(transaction.contract_address, 'contract address')
 		:
 			undefined
