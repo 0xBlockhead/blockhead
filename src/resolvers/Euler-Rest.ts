@@ -1,3 +1,4 @@
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
@@ -8,13 +9,16 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import type { EulerEvkVaultDetail } from '$/sources/Euler/Rest/types.ts'
+import type {
+	EulerAccountPosition,
+	EulerEvkVaultDetail,
+} from '$/sources/Euler/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type EulerEvkVaultId = EntitySelector<typeof schema, EntityType.EulerEvkVault>
+type EulerEvkVaultPositionId = EntitySelector<typeof schema, EntityType.EulerEvkVaultPosition>
 type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
-type EvmNetworkAccountTimestampId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount_Timestamp>
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -66,6 +70,31 @@ const mapEulerEvkVaultSnapshot = (
 	...(vault.interestFee != null && {
 		interestFee: vault.interestFee,
 	}),
+})
+
+const mapEulerEvkVaultPositionSnapshot = (
+	$account: EvmNetworkAccountId,
+	position: EulerAccountPosition
+) => ({
+	$account: {
+		[EntityMetaKey.Selector]: $account,
+	},
+	$vault: {
+		[EntityMetaKey.Selector]: {
+			$network: $account.$network,
+			vaultAddress: position.vaultAddress,
+		},
+	},
+	vaultType: position.vaultType,
+	assetAddress: position.assetAddress,
+	shares: position.shares,
+	assets: position.assets,
+	borrowed: position.borrowed,
+	assetsValue: position.assetsValue,
+	debtValue: position.debtValue,
+	isCollateral: position.isCollateral,
+	isController: position.isController,
+	balanceForwarderEnabled: position.balanceForwarderEnabled,
 })
 
 export default {
@@ -124,50 +153,88 @@ export default {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
-					resolve: async ({ $actor, $network }: EvmNetworkAccountId, context) => ({
-						$$timestamps: [
-							{
-								[EntityMetaKey.Selector]: {
-									$account: {
-										$actor,
-										$network,
-									},
-									timestampMs: Date.now(),
-									source: Source.Euler_Rest,
-								},
-							},
-						],
-					}),
-				},
-			},
-		})({
-			$$timestamps: (account) => account.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.EvmNetworkAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					resolve: async ({ $account, timestampMs, source }: EvmNetworkAccountTimestampId) => {
-						const chainId = eip155ChainId($account.$network)
+					resolve: async ({ $actor, $network }: EvmNetworkAccountId, context) => {
+						const chainId = eip155ChainId($network)
 						const { eulerEvkByChainId } = await import('$/sources/Euler/Rest/constants.ts')
 						if (eulerEvkByChainId[chainId] == null)
 							throw new Error(`${Source.Euler_Rest}: unsupported chain id ${String(chainId)}`)
 
 						const { getAccountPositions } = await import('$/sources/Euler/Rest/queries.ts')
-						return {
-							timestampMs,
-							source,
-							contractPositions: await getAccountPositions({
-								chainId,
-								account: $account.$actor.address,
-							}),
+						const $account = {
+							$actor,
+							$network,
 						}
+						return (
+							(await getAccountPositions({
+								chainId,
+								account: $actor.address,
+							}))
+								.slice(0, resolverContextRowLimit(context))
+								.map((position) => ({
+									[EntityMetaKey.Selector]: {
+										$account,
+										$vault: {
+											$network,
+											vaultAddress: position.vaultAddress,
+										},
+									},
+								}))
+						)
 					},
 				},
 			},
 		})({
-			contractPositions: (timestamp) => timestamp.contractPositions,
+			$$eulerEvkVaultPositions: (positions) => positions,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EulerEvkVaultPosition,
+			resolve: {
+				AccountVault: {
+					resolve: async ({
+						$account,
+						$vault,
+					}: EulerEvkVaultPositionId) => {
+						const chainId = eip155ChainId($account.$network)
+						const { eulerEvkByChainId } = await import('$/sources/Euler/Rest/constants.ts')
+						if (eulerEvkByChainId[chainId] == null)
+							throw new Error(`${Source.Euler_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const normalizedVaultAddress = hexLowerOfByteSize($vault.vaultAddress, 20)
+						if (normalizedVaultAddress == null)
+							throw new Error(`${Source.Euler_Rest}: invalid vault address ${$vault.vaultAddress}`)
+
+						const { getAccountPositions } = await import('$/sources/Euler/Rest/queries.ts')
+						const position = (
+							await getAccountPositions({
+								chainId,
+								account: $account.$actor.address,
+							})
+						)
+							.find((candidate) => candidate.vaultAddress === normalizedVaultAddress)
+						if (position == null)
+							throw new Error(`${Source.Euler_Rest}: vault position not found ${normalizedVaultAddress}`)
+
+						return mapEulerEvkVaultPositionSnapshot(
+							$account,
+							position
+						)
+					},
+				},
+			},
+		})({
+			$account: (position) => position.$account,
+			$vault: (position) => position.$vault,
+			vaultType: (position) => position.vaultType,
+			assetAddress: (position) => position.assetAddress,
+			shares: (position) => position.shares,
+			assets: (position) => position.assets,
+			borrowed: (position) => position.borrowed,
+			assetsValue: (position) => position.assetsValue,
+			debtValue: (position) => position.debtValue,
+			isCollateral: (position) => position.isCollateral,
+			isController: (position) => position.isController,
+			balanceForwarderEnabled: (position) => position.balanceForwarderEnabled,
 		}),
 
 		defineResolver({
