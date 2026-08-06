@@ -17,8 +17,11 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
 	sourceGetJson,
 }))
+const getCometTipRates = vi.hoisted(() => vi.fn())
+
 vi.mock('$/sources/Compound/Contracts/queries.ts', () => ({
 	getAccountPositions,
+	getCometTipRates,
 }))
 
 const { default: compoundRest } = await import('$/resolvers/Compound-Rest.ts')
@@ -111,6 +114,15 @@ describe('Compound Rest resolver module', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
 		getAccountPositions.mockReset()
+		getCometTipRates.mockReset()
+		getCometTipRates.mockResolvedValue({
+			chainId: 8453,
+			cometAddress: '0xb125e6687d4313864e53df431d5425969c15eb2f',
+			blockNumber: 1n,
+			utilization: '500000000000000000',
+			supplyRatePerSecond: '1000000000',
+			borrowRatePerSecond: '2000000000',
+		})
 	})
 
 	// Account positions intentionally resolve through the Comet EVM contract binding, not deployment REST.

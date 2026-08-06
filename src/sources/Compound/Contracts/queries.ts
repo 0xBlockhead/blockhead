@@ -200,8 +200,9 @@ export const getAccountPositions = async ({
 }
 
 /**
- * Live tip utilization + supply/borrow per-second rates for one cataloged Comet.
- * Does not convert to APY — schema fields for that still need APP enrollment.
+ * Live tip utilization + supply/borrow APY for one cataloged Comet.
+ * Per-second rates from `getSupplyRate` / `getBorrowRate` convert as
+ * `(1 + rate/1e18)^31536000 - 1`; utilization is WAD (`/1e18`).
  * @see https://docs.compound.finance/interest-rates/
  */
 export const getCometTipRates = async ({

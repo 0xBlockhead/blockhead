@@ -142,12 +142,36 @@ const resolveCompoundComet = async ({
 		roots,
 	} = await resolveCompoundCometDeployment($network, cometAddress)
 
-	return mapCompoundCometSnapshot(
-		$network,
-		marketSlug,
-		configuration,
-		roots
+	const { getCometTipRates } = await import('$/sources/Compound/Contracts/queries.ts')
+	const tipRates = await getCometTipRates({
+		chainId: eip155ChainId($network),
+		cometAddress,
+	})
+	const wad = 1e18
+	const secondsPerYear = 31_536_000
+	const tipApy = (ratePerSecond: string) => (
+		(1 + Number(ratePerSecond) / wad) ** secondsPerYear - 1
 	)
+
+	return {
+		...mapCompoundCometSnapshot(
+			$network,
+			marketSlug,
+			configuration,
+			roots
+		),
+		supplyKink: configuration.rates.supplyKink,
+		supplySlopeLow: configuration.rates.supplySlopeLow,
+		supplySlopeHigh: configuration.rates.supplySlopeHigh,
+		supplyBase: configuration.rates.supplyBase,
+		borrowKink: configuration.rates.borrowKink,
+		borrowSlopeLow: configuration.rates.borrowSlopeLow,
+		borrowSlopeHigh: configuration.rates.borrowSlopeHigh,
+		borrowBase: configuration.rates.borrowBase,
+		utilization: Number(tipRates.utilization) / wad,
+		supplyApy: tipApy(tipRates.supplyRatePerSecond),
+		borrowApy: tipApy(tipRates.borrowRatePerSecond),
+	}
 }
 
 export default {
@@ -235,6 +259,17 @@ export default {
 			configuratorAddress: (comet) => comet.configuratorAddress,
 			rewardsAddress: (comet) => comet.rewardsAddress,
 			bulkerAddress: (comet) => comet.bulkerAddress,
+			supplyKink: (comet) => comet.supplyKink,
+			supplySlopeLow: (comet) => comet.supplySlopeLow,
+			supplySlopeHigh: (comet) => comet.supplySlopeHigh,
+			supplyBase: (comet) => comet.supplyBase,
+			borrowKink: (comet) => comet.borrowKink,
+			borrowSlopeLow: (comet) => comet.borrowSlopeLow,
+			borrowSlopeHigh: (comet) => comet.borrowSlopeHigh,
+			borrowBase: (comet) => comet.borrowBase,
+			utilization: (comet) => comet.utilization,
+			supplyApy: (comet) => comet.supplyApy,
+			borrowApy: (comet) => comet.borrowApy,
 			$$assets: {
 				select: (comet) => (
 					comet.assets.map((asset) => ({
