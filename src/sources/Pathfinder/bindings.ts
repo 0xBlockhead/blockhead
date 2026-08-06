@@ -38,7 +38,7 @@ export default indexSourceBindings([
 			},
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
-				path: 'src/sources/_shared/interfaces/StarknetJsonRpc/types.ts',
+				path: 'src/sources/Pathfinder/JsonRpc/types.ts',
 			},
 			{
 				kind: SourceArtifactKind.OpenRpcSpec,

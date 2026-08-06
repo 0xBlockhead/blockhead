@@ -33943,7 +33943,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Filfox_Rest],
+							sources: [Source.Filfox_Rest, Source.Lotus_JsonRpc],
 						},
 						summary: {
 							title: [{ field: "dealId", format: "number" }],
