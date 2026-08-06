@@ -12,9 +12,11 @@ import type {
 	OsmosisDenomTraceResponse,
 	OsmosisLiquidityPerTickRangeResponse,
 	OsmosisNodeInfoResponse,
+	OsmosisPositionByIdResponse,
 	OsmosisSpotPriceResponse,
 	OsmosisStakingPoolResponse,
 	OsmosisSyncingResponse,
+	OsmosisUserPositionsResponse,
 	OsmosisValidatorsResponse,
 } from '$/sources/Osmosis/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
@@ -75,6 +77,36 @@ const osmosisLiquidityPerTickRangeResponseWire = arktype({
 		upper_tick: 'string',
 	}).array(),
 })
+const osmosisCoinWire = arktype({
+	denom: 'string',
+	amount: 'string',
+})
+const osmosisFullPositionBreakdownWire = arktype({
+	position: {
+		position_id: '/^(0|[1-9][0-9]*)$/',
+		address: 'string',
+		pool_id: '/^(0|[1-9][0-9]*)$/',
+		lower_tick: 'string',
+		upper_tick: 'string',
+		'join_time?': 'string',
+		liquidity: 'string',
+	},
+	'asset0?': osmosisCoinWire,
+	'asset1?': osmosisCoinWire,
+	'claimable_spread_rewards?': osmosisCoinWire.array(),
+	'claimable_incentives?': osmosisCoinWire.array(),
+	'forfeited_incentives?': osmosisCoinWire.array(),
+})
+const osmosisPositionByIdResponseWire = arktype({
+	position: osmosisFullPositionBreakdownWire,
+})
+const osmosisUserPositionsResponseWire = arktype({
+	positions: osmosisFullPositionBreakdownWire.array(),
+	'pagination?': {
+		'next_key?': 'string | null',
+		'total?': 'string',
+	},
+})
 const assertPoolEnvelope = (response: unknown) => {
 	try {
 		return osmosisPoolResponseWire.assert(response)
@@ -96,6 +128,20 @@ const assertLiquidityPerTickRangeEnvelope = (response: unknown) => {
 		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid liquidity-per-tick-range response envelope`)
 	}
 }
+const assertPositionByIdEnvelope = (response: unknown) => {
+	try {
+		return osmosisPositionByIdResponseWire.assert(response)
+	} catch {
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid position-by-id response envelope`)
+	}
+}
+const assertUserPositionsEnvelope = (response: unknown) => {
+	try {
+		return osmosisUserPositionsResponseWire.assert(response)
+	} catch {
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid user-positions response envelope`)
+	}
+}
 
 const lcdGetJson = <_Json>(path: string) => (
 	sourceGetJson<_Json>(
@@ -113,6 +159,16 @@ export const osmosisLcdRestEndpoints = binding.endpoints.map(({ locator: url }) 
 const assertPoolId = (poolId: string) => {
 	if (!/^(0|[1-9]\d*)$/.test(poolId))
 		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid pool id ${poolId}`)
+}
+
+const assertPositionId = (positionId: string) => {
+	if (!/^(0|[1-9]\d*)$/.test(positionId))
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid position id ${positionId}`)
+}
+
+const assertOwnerAddress = (address: string) => {
+	if (!/^osmo1[0-9a-z]{38,58}$/.test(address))
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid owner address ${address}`)
 }
 
 const assertDenom = (denom: string, label: string) => {
@@ -285,6 +341,63 @@ export const getLiquidityPerTickRange = ({
 		.then((response) => (
 			assertLiquidityPerTickRangeEnvelope(response) as OsmosisLiquidityPerTickRangeResponse
 		))
+}
+
+/**
+ * Full CL position breakdown by position id.
+ * @see https://github.com/osmosis-labs/osmosis/blob/main/proto/osmosis/concentratedliquidity/v1beta1/query.proto PositionById
+ */
+export const getPositionById = ({
+	positionId,
+}: {
+	positionId: string
+}) => {
+	assertPositionId(positionId)
+	const parameters = new URLSearchParams({
+		position_id: positionId,
+	})
+	return lcdGetJson<unknown>(
+		`${osmosisPoolPaths.positionById}?${parameters}`
+	)
+		.then((response) => (
+			assertPositionByIdEnvelope(response) as OsmosisPositionByIdResponse
+		))
+}
+
+/**
+ * All CL positions for an Osmosis bech32 owner (paginated).
+ * @see https://github.com/osmosis-labs/osmosis/blob/main/proto/osmosis/concentratedliquidity/v1beta1/query.proto UserPositions
+ */
+export const getPositionsByOwner = ({
+	address,
+	limit = 24,
+	offset = 0,
+}: {
+	address: string
+	limit?: number
+	offset?: number
+}) => {
+	assertOwnerAddress(address)
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid user positions limit ${String(limit)}`)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid user positions offset ${String(offset)}`)
+
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.offset': String(offset),
+		'pagination.count_total': 'true',
+	})
+	return lcdGetJson<unknown>(
+		`${osmosisPoolPaths.userPositions}/${address}?${parameters}`
+	)
+		.then((response) => {
+			const envelope = assertUserPositionsEnvelope(response) as OsmosisUserPositionsResponse
+			if (new Set(envelope.positions.map((row) => row.position.position_id)).size !== envelope.positions.length)
+				throw new Error(`${Source.Osmosis_LCD_Rest}: user positions response contains duplicate position ids`)
+
+			return envelope
+		})
 }
 
 export const getSpotPrice = ({

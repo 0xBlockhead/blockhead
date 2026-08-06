@@ -121,6 +121,34 @@ export type OsmosisLiquidityPerTickRangeResponse = {
 	liquidity: OsmosisLiquidityPerTickRange[]
 }
 
+export type OsmosisConcentratedPosition = {
+	position_id: string
+	address: string
+	pool_id: string
+	lower_tick: string
+	upper_tick: string
+	join_time?: string
+	liquidity: string
+}
+
+export type OsmosisFullPositionBreakdown = {
+	position: OsmosisConcentratedPosition
+	asset0?: OsmosisCoin
+	asset1?: OsmosisCoin
+	claimable_spread_rewards?: OsmosisCoin[]
+	claimable_incentives?: OsmosisCoin[]
+	forfeited_incentives?: OsmosisCoin[]
+}
+
+export type OsmosisPositionByIdResponse = {
+	position: OsmosisFullPositionBreakdown
+}
+
+export type OsmosisUserPositionsResponse = {
+	positions: OsmosisFullPositionBreakdown[]
+	pagination?: OsmosisPagination
+}
+
 export type OsmosisSpotPriceResponse = {
 	spot_price: string
 }

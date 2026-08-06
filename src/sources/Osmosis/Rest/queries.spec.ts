@@ -33,6 +33,8 @@ const {
 	getNodeInfo,
 	getPool,
 	getPools,
+	getPositionById,
+	getPositionsByOwner,
 	getSpotPrice,
 	getStakingPool,
 	getSyncing,
@@ -52,12 +54,12 @@ describe('Osmosis LCD binding', () => {
 		expect(binding.source).toBe(Source.Osmosis_LCD_Rest)
 		expect(binding.apiFamily).toBe(ApiFamily.CosmosLcdApi)
 		expect(binding.wireProtocol).toBe(WireProtocol.HttpRest)
-		expect(binding.delivery).toBe(SourceDelivery.BrowserDirect)
+		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
 		expect(binding.endpoints).toEqual([
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: osmosisLcdRestUrl,
-				corsEnabled: true,
+				corsEnabled: false,
 			},
 		])
 	})
@@ -385,6 +387,119 @@ describe('Osmosis LCD named operations', () => {
 			binding,
 			httpUrl(binding, '/osmosis/concentratedliquidity/v1beta1/liquidity_per_tick_range?pool_id=1066')
 		)
+	})
+
+	it('reads a concentrated liquidity position by id', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			position: {
+				position: {
+					position_id: '12',
+					address: 'osmo1pnw2u5yn26vhhr2t32r8x54zegxfe0q9zr247t',
+					pool_id: '1066',
+					lower_tick: '112018000',
+					upper_tick: '112019000',
+					join_time: '2023-07-13T15:49:04.609471378Z',
+					liquidity: '224848961317.008313490668491648',
+				},
+				asset0: {
+					denom: 'uosmo',
+					amount: '10',
+				},
+				asset1: {
+					denom: 'ibc/0CD3A0285E1341859B5E86B6AB7682F023D03E97607CCC1DC95706411D866DF7',
+					amount: '0',
+				},
+				claimable_spread_rewards: [],
+				claimable_incentives: [],
+				forfeited_incentives: [],
+			},
+		})
+		await expect(getPositionById({
+			positionId: '12',
+		})).resolves.toMatchObject({
+			position: {
+				position: {
+					position_id: '12',
+					pool_id: '1066',
+				},
+				asset0: {
+					denom: 'uosmo',
+					amount: '10',
+				},
+			},
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, '/osmosis/concentratedliquidity/v1beta1/position_by_id?position_id=12')
+		)
+	})
+
+	it('rejects invalid position ids before transport', () => {
+		expect(() => getPositionById({
+			positionId: '12.5',
+		})).toThrow(`${Source.Osmosis_LCD_Rest}: invalid position id 12.5`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('reads concentrated liquidity positions for an owner with pagination', async () => {
+		const address = 'osmo1pnw2u5yn26vhhr2t32r8x54zegxfe0q9zr247t'
+		sourceGetJson.mockResolvedValueOnce({
+			positions: [
+				{
+					position: {
+						position_id: '12',
+						address,
+						pool_id: '1066',
+						lower_tick: '1',
+						upper_tick: '2',
+						liquidity: '1',
+					},
+				},
+			],
+			pagination: {
+				next_key: null,
+				total: '1',
+			},
+		})
+		await expect(getPositionsByOwner({
+			address,
+			limit: 1,
+			offset: 0,
+		})).resolves.toMatchObject({
+			positions: [
+				{
+					position: {
+						position_id: '12',
+					},
+				},
+			],
+			pagination: {
+				total: '1',
+			},
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, `/osmosis/concentratedliquidity/v1beta1/positions/${address}?pagination.limit=1&pagination.offset=0&pagination.count_total=true`)
+		)
+	})
+
+	it('rejects invalid owner addresses before transport', () => {
+		expect(() => getPositionsByOwner({
+			address: 'cosmos1invalid',
+		})).toThrow(`${Source.Osmosis_LCD_Rest}: invalid owner address cosmos1invalid`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('preserves an empty owner positions list', async () => {
+		const address = 'osmo1pnw2u5yn26vhhr2t32r8x54zegxfe0q9zr247t'
+		sourceGetJson.mockResolvedValueOnce({
+			positions: [],
+		})
+		await expect(getPositionsByOwner({
+			address,
+		})).resolves.toEqual({
+			positions: [],
+		})
 	})
 
 	it('reads a spot price for a pool', async () => {
