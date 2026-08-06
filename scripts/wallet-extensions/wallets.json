@@ -1,4 +1,13 @@
 {
+	"argent-x": {
+		"version": "5.23.0",
+		"repository": "https://github.com/argentlabs/argent-x",
+		"commit": "e3545daa417d6b60332b6112816d5e3b13c34358",
+		"license": "Argent non-commercial source license",
+		"url": "https://github.com/argentlabs/argent-x/releases/download/v5.23.0/argent-extension-chrome.zip",
+		"sha256": "86fbe9e1edca1f6300da09a308a90bc1ebbe806424db60b5953e03c71d091b3e",
+		"manifestRoot": ""
+	},
 	"ambire": {
 		"version": "6.14.4",
 		"repository": "https://github.com/AmbireTech/extension",
@@ -8,12 +17,34 @@
 		"manifestRoot": ""
 	},
 	"backpack": {
-		"version": "0.10.1",
-		"repository": "https://github.com/coral-xyz/backpack",
-		"license": "GPL-3.0",
-		"url": "https://github.com/coral-xyz/backpack/releases/download/0.10.1-latest-4/build-beta-4.zip",
-		"sha256": "21fe6c4647699ce499adb2b46d6fe64d962295c047282acd3915d3ece3081697",
-		"manifestRoot": "build-beta"
+		"version": "0.10.211",
+		"repository": "https://chromewebstore.google.com/detail/backpack/aflkmfhebedbjioipglgcbcmnbpgliof",
+		"license": "proprietary",
+		"url": "https://clients2.google.com/service/update2/crx?response=redirect&prodversion=140.0.7339.0&acceptformat=crx3&x=id%3Daflkmfhebedbjioipglgcbcmnbpgliof%26installsource%3Dondemand%26uc",
+		"sha256": "723fe2ac466b1f2ecd5e27f0bd1983aab3be04e0c223b7213eb498c994780d97",
+		"archiveOffset": 1321,
+		"manifestRoot": ""
+	},
+	"keplr": {
+		"version": "0.13.41",
+		"repository": "https://github.com/chainapsis/keplr-wallet",
+		"distribution": "https://chromewebstore.google.com/detail/keplr/dmkamcknogkgcdfhhbddcghachkejeap",
+		"license": "Apache-2.0; official managed builds include closed-source submodules",
+		"url": "https://clients2.google.com/service/update2/crx?response=redirect&prodversion=140.0.7339.0&acceptformat=crx3&x=id%3Ddmkamcknogkgcdfhhbddcghachkejeap%26installsource%3Dondemand%26uc",
+		"sha256": "7f62697382730def4afefa149659ec133423616020080b09ea42e664edd9fe4c",
+		"archiveOffset": 1322,
+		"manifestRoot": ""
+	},
+	"lace": {
+		"version": "2.2.0",
+		"repository": "https://github.com/input-output-hk/lace",
+		"release": "https://github.com/input-output-hk/lace/releases/tag/lace-extension%402.2.0",
+		"distribution": "https://microsoftedge.microsoft.com/addons/detail/lace/efeiemlfnahiidnjglmehaihacglceia",
+		"license": "Apache-2.0",
+		"url": "https://edge.microsoft.com/extensionwebstorebase/v1/crx?response=redirect&x=id%3Defeiemlfnahiidnjglmehaihacglceia%26installsource%3Dondemand%26uc",
+		"sha256": "d6e167e4fb6dab94aa6500b276e678195d92fcd90a5e65ca513c3e5e281f2069",
+		"archiveOffset": 1320,
+		"manifestRoot": ""
 	},
 	"metamask": {
 		"version": "13.41.0",
@@ -21,6 +52,25 @@
 		"commit": "61a42a48c7339c262547dfcd9856af9b86b881fc",
 		"buildDocumentation": "https://github.com/MetaMask/metamask-extension/blob/v13.41.0/docs/development/building-on-local.md",
 		"artifact": "dist/chrome"
+	},
+	"petra": {
+		"version": "2.5.0",
+		"repository": "https://github.com/aptos-labs/petra-wallet",
+		"distribution": "https://chromewebstore.google.com/detail/petra-aptos-wallet/ejjladinnckdgjemekebdpeokbikhfci",
+		"license": "proprietary",
+		"url": "https://clients2.google.com/service/update2/crx?response=redirect&prodversion=140.0.7339.0&acceptformat=crx3&x=id%3Dejjladinnckdgjemekebdpeokbikhfci%26installsource%3Dondemand%26uc",
+		"sha256": "504c73ff9d6d78d5a5497e9bfbedd60caa073d8838ff868ec337d1f0afbb488f",
+		"archiveOffset": 1321,
+		"manifestRoot": ""
+	},
+	"polkadot-js": {
+		"version": "0.63.1",
+		"repository": "https://github.com/polkadot-js/extension",
+		"commit": "987784c81e04dea2d6f886895a3c9bb18e0adf6c",
+		"license": "Apache-2.0",
+		"url": "https://github.com/polkadot-js/extension/releases/download/v0.63.1/master-chrome-build.zip",
+		"sha256": "382871bea456d654c215442a069106d18e31bd867021f0c41fe9455fb7022ac1",
+		"manifestRoot": ""
 	},
 	"rabby": {
 		"version": "0.94.1",
@@ -35,6 +85,15 @@
 		"license": "GPL-3.0",
 		"url": "https://github.com/tahowallet/extension/releases/download/v0.66.0/chrome.zip",
 		"sha256": "e14e560cb2188044b9c1f2a9e9641d9902c35c379a3b78e46980466eb5f6dfac",
+		"manifestRoot": ""
+	},
+	"tonkeeper": {
+		"version": "26.6.1",
+		"repository": "https://github.com/tonkeeper/tonkeeper-web",
+		"commit": "190ad6b9bd090db5d48ca81ff181e28d993cf91c",
+		"license": "Apache-2.0",
+		"url": "https://github.com/tonkeeper/tonkeeper-web/releases/download/v26.6.1/tonkeeper_chrome_v26.6.1.zip",
+		"sha256": "32f16f38e23c79e195a3d5c033dc3316752dc53959d7b44607cd4c6e1300993e",
 		"manifestRoot": ""
 	},
 	"unisat": {
