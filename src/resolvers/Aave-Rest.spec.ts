@@ -11,10 +11,15 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const graphql = vi.hoisted(() => vi.fn())
+const getAccountPositions = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_shared/wire/Graphql/client.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/_shared/wire/Graphql/client.ts')>(),
 	graphql,
+}))
+vi.mock('$/sources/Aave/Rest/queries.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/Aave/Rest/queries.ts')>(),
+	getAccountPositions,
 }))
 
 const { default: aaveRest } = await import('$/resolvers/Aave-Rest.ts')
@@ -48,6 +53,12 @@ const networkAaveMarketsResolver = aaveRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
 	&& '$$aaveMarkets' in resolver.projections.Evm
+))
+const evmNetworkAccountResolver = aaveRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount
+))
+const evmNetworkAccountTimestampResolver = aaveRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount_Timestamp
 ))
 
 const ethereumMarket = {
@@ -99,6 +110,121 @@ const ethereumMarket = {
 describe('Aave Rest resolver module', () => {
 	beforeEach(() => {
 		graphql.mockReset()
+		getAccountPositions.mockReset()
+	})
+
+	it('publishes and resolves Aave account supply/borrow positions onto contractPositions', async () => {
+		if (evmNetworkAccountResolver == null || evmNetworkAccountTimestampResolver == null)
+			throw new Error('missing Aave account resolvers')
+
+		const accountSelector = {
+			$network: ethereumNetwork,
+			$actor: {
+				address: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c',
+			},
+		}
+		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
+			context
+		)
+		const [timestampReference] = evmNetworkAccountResolver.projections.$$timestamps(account)
+		if (timestampReference == null)
+			throw new Error('missing Aave account timestamp')
+
+		getAccountPositions.mockResolvedValue([
+			{
+				protocol: 'Aave V3',
+				kind: 'supply',
+				chainId: 1,
+				account: accountSelector.$actor.address,
+				poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				underlyingTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+				symbol: 'USDC',
+				decimals: 6,
+				balance: '1000.5',
+				balanceUsd: '1000.5',
+				apy: '0.03',
+				isCollateral: true,
+				canBeCollateral: true,
+			},
+			{
+				protocol: 'Aave V3',
+				kind: 'borrow',
+				chainId: 1,
+				account: accountSelector.$actor.address,
+				poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				underlyingTokenAddress: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+				symbol: 'WETH',
+				decimals: 18,
+				debt: '2.5',
+				debtUsd: '5000',
+				apy: '0.05',
+			},
+		])
+
+		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve(
+			timestampReference[EntityMetaKey.Selector],
+			context
+		)
+
+		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([
+			expect.objectContaining({
+				kind: 'supply',
+				symbol: 'USDC',
+			}),
+			expect.objectContaining({
+				kind: 'borrow',
+				symbol: 'WETH',
+			}),
+		])
+		expect(getAccountPositions).toHaveBeenCalledWith({
+			chainId: 1,
+			account: accountSelector.$actor.address,
+		})
+	})
+
+	it('rejects unsupported Aave chains on account positions before transport', async () => {
+		if (evmNetworkAccountTimestampResolver == null)
+			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
+
+		await expect(
+			evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+				$account: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '11155111',
+						},
+					},
+					$actor: {
+						address: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c',
+					},
+				},
+				timestampMs: 1760000000000,
+				source: Source.Aave_Rest,
+			}, context)
+		).rejects.toThrow(`${Source.Aave_Rest}: unsupported chain id 11155111`)
+		expect(getAccountPositions).not.toHaveBeenCalled()
+	})
+
+	it('preserves an empty Aave positions list on contractPositions', async () => {
+		if (evmNetworkAccountTimestampResolver == null)
+			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
+
+		getAccountPositions.mockResolvedValue([])
+
+		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+			$account: {
+				$network: ethereumNetwork,
+				$actor: {
+					address: '0x0000000000000000000000000000000000000001',
+				},
+			},
+			timestampMs: 1760000000000,
+			source: Source.Aave_Rest,
+		}, context)
+
+		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([])
 	})
 
 	it('registers under Aave_Rest for markets, reserves, and Network.$$aaveMarkets', () => {

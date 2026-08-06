@@ -15,6 +15,8 @@ import { Source } from '$/sources/Source.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type AaveMarketId = EntitySelector<typeof schema, EntityType.AaveMarket>
 type AaveReserveId = EntitySelector<typeof schema, EntityType.AaveReserve>
+type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
+type EvmNetworkAccountTimestampId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount_Timestamp>
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -60,6 +62,56 @@ export default {
 	source: Source.Aave_Rest,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			resolve: {
+				EvmNetworkEvmAccount: {
+					resolve: async ({ $actor, $network }: EvmNetworkAccountId) => ({
+						$$timestamps: [
+							{
+								[EntityMetaKey.Selector]: {
+									$account: {
+										$actor,
+										$network,
+									},
+									timestampMs: Date.now(),
+									source: Source.Aave_Rest,
+								},
+							},
+						],
+					}),
+				},
+			},
+		})({
+			$$timestamps: (account) => account.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount_Timestamp,
+			resolve: {
+				AccountTimestampMsSource: {
+					resolve: async ({ $account, timestampMs, source }: EvmNetworkAccountTimestampId) => {
+						const chainId = eip155ChainId($account.$network)
+						const { aaveChainByChainId } = await import('$/sources/Aave/Rest/constants.ts')
+						if (aaveChainByChainId[chainId] == null)
+							throw new Error(`${Source.Aave_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const { getAccountPositions } = await import('$/sources/Aave/Rest/queries.ts')
+						return {
+							timestampMs,
+							source,
+							contractPositions: await getAccountPositions({
+								chainId,
+								account: $account.$actor.address,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			contractPositions: (timestamp) => timestamp.contractPositions,
+		}),
+
 		defineResolver({
 			entityType: EntityType.AaveMarket,
 			resolve: {
