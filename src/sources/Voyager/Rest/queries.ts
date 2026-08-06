@@ -118,6 +118,49 @@ const listEventsWire = arktype({
 	lastPage: nonNegativeInteger,
 })
 
+const listContractsWire = arktype({
+	items: arktype({
+		address: felt,
+		blockNumber: nonNegativeInteger,
+		classHash: felt,
+		'type?': 'string|null',
+		'creationTimestamp?': nonNegativeInteger.or('null'),
+		'version?': 'string|null',
+		'blockHash?': felt.or('null'),
+		'isAccount?': 'boolean|null',
+		'isErcToken?': 'boolean|null',
+		'isProxy?': 'boolean|null',
+	}).array(),
+	lastPage: nonNegativeInteger,
+})
+
+const listClassesWire = arktype({
+	items: arktype({
+		hash: felt,
+		transactionHash: felt,
+		'version?': 'string|null',
+		'type?': nonNegativeInteger.or('null'),
+		'isAccount?': 'boolean|null',
+		'isProxy?': 'boolean|null',
+		'isErcToken?': 'boolean|null',
+		'creationTimestamp?': nonNegativeInteger.or('null'),
+	}).array(),
+	lastPage: nonNegativeInteger,
+})
+
+const listClassContractsWire = arktype({
+	items: arktype({
+		address: felt,
+		'creationTimestamp?': nonNegativeInteger.or('null'),
+		'txnCount?': nonNegativeInteger.or('null'),
+		'starknetId?': 'string|null',
+		'accountCallCount?': nonNegativeInteger.or('null'),
+		'contractAlias?': 'string|null',
+		'constructorCalldata?': arktype(felt.or('null')).array().or('null'),
+	}).array(),
+	lastPage: nonNegativeInteger,
+})
+
 const assertEnvelope = <_Value>(
 	wire: {
 		assert: (value: unknown) => _Value
@@ -338,5 +381,102 @@ export const listEvents = async (
 	)
 	if (response.items.length > pageSize(limit))
 		throw new Error('Voyager_Rest: events page exceeds requested page size')
+	return response
+}
+
+export const listContracts = async (
+	{
+		limit,
+		page,
+		type,
+	}: {
+		limit: number
+		page?: number
+		type?: 'account' | 'erc20' | 'erc721' | 'erc1155' | 'unknown' | 'proxy'
+	}
+) => {
+	if (limit === 0)
+		return {
+			items: [],
+			lastPage: 0,
+		}
+
+	const parameters = new URLSearchParams({
+		p: pageNumber(page).toString(),
+		ps: pageSize(limit).toString(),
+	})
+	if (type != null)
+		parameters.set('type', type)
+
+	const response = assertEnvelope(
+		listContractsWire,
+		await getJson<unknown>(binding, `/contracts?${parameters.toString()}`),
+		'contracts page'
+	)
+	if (response.items.length > pageSize(limit))
+		throw new Error('Voyager_Rest: contracts page exceeds requested page size')
+	return response
+}
+
+export const listClasses = async (
+	{
+		limit,
+		page,
+	}: {
+		limit: number
+		page?: number
+	}
+) => {
+	if (limit === 0)
+		return {
+			items: [],
+			lastPage: 0,
+		}
+
+	const parameters = new URLSearchParams({
+		p: pageNumber(page).toString(),
+		ps: pageSize(limit).toString(),
+	})
+	const response = assertEnvelope(
+		listClassesWire,
+		await getJson<unknown>(binding, `/classes?${parameters.toString()}`),
+		'classes page'
+	)
+	if (response.items.length > pageSize(limit))
+		throw new Error('Voyager_Rest: classes page exceeds requested page size')
+	return response
+}
+
+export const listClassContracts = async (
+	{
+		classHash,
+		limit,
+		page,
+	}: {
+		classHash: string
+		limit: number
+		page?: number
+	}
+) => {
+	if (limit === 0)
+		return {
+			items: [],
+			lastPage: 0,
+		}
+
+	const parameters = new URLSearchParams({
+		p: pageNumber(page).toString(),
+		ps: pageSize(limit).toString(),
+	})
+	const response = assertEnvelope(
+		listClassContractsWire,
+		await getJson<unknown>(
+			binding,
+			`/classes/${encodeURIComponent(classHash)}/contracts?${parameters.toString()}`
+		),
+		'class contracts page'
+	)
+	if (response.items.length > pageSize(limit))
+		throw new Error('Voyager_Rest: class contracts page exceeds requested page size')
 	return response
 }

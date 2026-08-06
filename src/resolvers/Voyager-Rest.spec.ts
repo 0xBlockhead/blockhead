@@ -22,6 +22,9 @@ const {
 	getNetworkStats,
 	getTransactionByHash,
 	listBlocks,
+	listClasses,
+	listClassContracts,
+	listContracts,
 	listEvents,
 	listTransactions,
 } = vi.hoisted(() => ({
@@ -32,6 +35,9 @@ const {
 	getNetworkStats: vi.fn(),
 	getTransactionByHash: vi.fn(),
 	listBlocks: vi.fn(),
+	listClasses: vi.fn(),
+	listClassContracts: vi.fn(),
+	listContracts: vi.fn(),
 	listEvents: vi.fn(),
 	listTransactions: vi.fn(),
 }))
@@ -44,6 +50,9 @@ vi.mock('$/sources/Voyager/Rest/queries.ts', () => ({
 	getNetworkStats,
 	getTransactionByHash,
 	listBlocks,
+	listClasses,
+	listClassContracts,
+	listContracts,
 	listEvents,
 	listTransactions,
 }))
@@ -71,6 +80,11 @@ const contractResolver = voyagerRest.resolvers.find((resolver) => (
 ))
 const classResolver = voyagerRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.StarknetClass
+	&& 'classHash' in resolver.projections
+))
+const classContractsResolver = voyagerRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetClass
+	&& '$$contracts' in resolver.projections
 ))
 const networkResolver = voyagerRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.StarknetNetwork
@@ -84,6 +98,14 @@ const networkTransactionsResolver = voyagerRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.StarknetNetwork
 	&& '$$transactions' in resolver.projections
 ))
+const networkContractsResolver = voyagerRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetNetwork
+	&& '$$contracts' in resolver.projections
+))
+const networkClassesResolver = voyagerRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetNetwork
+	&& '$$classes' in resolver.projections
+))
 
 if (
 	transactionResolver == null
@@ -92,9 +114,12 @@ if (
 	|| blockTransactionsResolver == null
 	|| contractResolver == null
 	|| classResolver == null
+	|| classContractsResolver == null
 	|| networkResolver == null
 	|| networkBlocksResolver == null
 	|| networkTransactionsResolver == null
+	|| networkContractsResolver == null
+	|| networkClassesResolver == null
 )
 	throw new Error('Voyager spec missing deepened resolvers')
 
@@ -374,6 +399,87 @@ describe('Voyager Rest resolvers', () => {
 			throw new Error('missing network tx projection')
 		expect(networkTxProjection.select(networkTxPage, starknetNetwork, context)[0][EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.StarknetTransaction, [], 'transactionKind')]: 'DECLARE',
+		})
+	})
+
+	it('projects network contract/class catalogs and class contract lists', async () => {
+		listContracts.mockResolvedValueOnce({
+			items: [{
+				address: '0x07b7',
+				blockNumber: 10,
+				classHash: '0x0360',
+			}],
+			lastPage: 2,
+		})
+		const contractsPage = await networkContractsResolver.resolve.Network.resolve(starknetNetwork, context)
+		const contractsProjection = networkContractsResolver.projections.$$contracts
+		if (typeof contractsProjection === 'function' || contractsProjection.select == null)
+			throw new Error('missing network contracts projection')
+		expect(contractsProjection.select(contractsPage, starknetNetwork, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: starknetNetwork,
+				address: '0x7b7',
+			},
+		}])
+		expect(contractsProjection.continuation?.(contractsPage)).toEqual({
+			operation: 'network-contracts',
+			terminal: false,
+			token: '2',
+		})
+		expect(listContracts).toHaveBeenCalledWith({
+			limit: 16,
+			page: 1,
+		})
+
+		listClasses.mockResolvedValueOnce({
+			items: [{
+				hash: '0x04ad',
+				transactionHash: '0x749e',
+				version: '2.12.2',
+			}],
+			lastPage: 1,
+		})
+		const classesPage = await networkClassesResolver.resolve.Network.resolve(starknetNetwork, context)
+		const classesProjection = networkClassesResolver.projections.$$classes
+		if (typeof classesProjection === 'function' || classesProjection.select == null)
+			throw new Error('missing network classes projection')
+		expect(classesProjection.select(classesPage, starknetNetwork, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: starknetNetwork,
+				classHash: '0x4ad',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetClass, [], 'declaredByTransactionHash')]: '0x749e',
+				[entityFieldAddressKey(EntityType.StarknetClass, [], 'contractClassVersion')]: '2.12.2',
+			},
+		}])
+
+		listClassContracts.mockResolvedValueOnce({
+			items: [{
+				address: '0x0368',
+				creationTimestamp: 1,
+				txnCount: 0,
+			}],
+			lastPage: 1,
+		})
+		const klass = {
+			$network: starknetNetwork,
+			classHash: '0x421',
+		}
+		const classContractsPage = await classContractsResolver.resolve.NetworkClassHash.resolve(klass, context)
+		const classContractsProjection = classContractsResolver.projections.$$contracts
+		if (typeof classContractsProjection === 'function' || classContractsProjection.select == null)
+			throw new Error('missing class contracts projection')
+		expect(classContractsProjection.select(classContractsPage, klass, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: starknetNetwork,
+				address: '0x368',
+			},
+		}])
+		expect(listClassContracts).toHaveBeenCalledWith({
+			classHash: '0x421',
+			limit: 16,
+			page: 1,
 		})
 	})
 

@@ -560,6 +560,53 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.StarknetClass,
+			resolve: {
+				NetworkClassHash: {
+					appliesTo: starknetNestedNetworkApplicability,
+					resolve: async (klass, context) => {
+						assertStarknetMainnet(klass.$network.$network)
+						const classHash = canonicalFelt(klass.classHash, 'class hash')
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const page = continuationPage(context.providerContinuationToken)
+						const { listClassContracts } = await import('$/sources/Voyager/Rest/queries.ts')
+						return {
+							limit,
+							page,
+							response: await listClassContracts({
+								classHash,
+								limit,
+								page,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$contracts: {
+				select: ({ response }, klass) => response.items.map((item) => ({
+					[EntityMetaKey.Selector]: {
+						$network: klass.$network,
+						address: canonicalFelt(item.address, 'contract address'),
+					},
+				})),
+				continuation: ({ limit, page, response }) => (
+					limit === 0 || page >= response.lastPage || response.items.length === 0 ?
+						{
+							operation: 'class-contracts',
+							terminal: true,
+						}
+					:
+						{
+							operation: 'class-contracts',
+							terminal: false,
+							token: String(page + 1),
+						}
+				),
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.StarknetNetwork,
 			resolve: {
 				Network: {
@@ -726,6 +773,106 @@ export default {
 					:
 						{
 							operation: 'network-transactions',
+							terminal: false,
+							token: String(page + 1),
+						}
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetNetwork,
+			resolve: {
+				Network: {
+					appliesTo: starknetNetworkApplicability,
+					resolve: async (starknetNetwork, context) => {
+						assertStarknetMainnet(starknetNetwork.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const page = continuationPage(context.providerContinuationToken)
+						const { listContracts } = await import('$/sources/Voyager/Rest/queries.ts')
+						return {
+							limit,
+							page,
+							response: await listContracts({
+								limit,
+								page,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$contracts: {
+				select: ({ response }, starknetNetwork) => response.items.map((item) => ({
+					[EntityMetaKey.Selector]: {
+						$network: starknetNetwork,
+						address: canonicalFelt(item.address, 'contract address'),
+					},
+				})),
+				continuation: ({ limit, page, response }) => (
+					limit === 0 || page >= response.lastPage || response.items.length === 0 ?
+						{
+							operation: 'network-contracts',
+							terminal: true,
+						}
+					:
+						{
+							operation: 'network-contracts',
+							terminal: false,
+							token: String(page + 1),
+						}
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetNetwork,
+			resolve: {
+				Network: {
+					appliesTo: starknetNetworkApplicability,
+					resolve: async (starknetNetwork, context) => {
+						assertStarknetMainnet(starknetNetwork.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const page = continuationPage(context.providerContinuationToken)
+						const { listClasses } = await import('$/sources/Voyager/Rest/queries.ts')
+						return {
+							limit,
+							page,
+							response: await listClasses({
+								limit,
+								page,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$classes: {
+				select: ({ response }, starknetNetwork) => response.items.map((item) => ({
+					[EntityMetaKey.Selector]: {
+						$network: starknetNetwork,
+						classHash: canonicalFelt(item.hash, 'class hash'),
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StarknetClass, [], 'declaredByTransactionHash')]: (
+							canonicalFelt(item.transactionHash, 'declare transaction hash')
+						),
+						...(
+							item.version != null && {
+								[entityFieldAddressKey(EntityType.StarknetClass, [], 'contractClassVersion')]: item.version,
+							}
+						),
+					},
+				})),
+				continuation: ({ limit, page, response }) => (
+					limit === 0 || page >= response.lastPage || response.items.length === 0 ?
+						{
+							operation: 'network-classes',
+							terminal: true,
+						}
+					:
+						{
+							operation: 'network-classes',
 							terminal: false,
 							token: String(page + 1),
 						}

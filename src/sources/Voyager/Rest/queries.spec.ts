@@ -24,6 +24,9 @@ const {
 	getNetworkStats,
 	getTransactionByHash,
 	listBlocks,
+	listClasses,
+	listClassContracts,
+	listContracts,
 	listEvents,
 	listTransactions,
 } = queries
@@ -157,6 +160,7 @@ describe('Voyager OpenAPI operations', () => {
 				number: 1,
 			}],
 		})
+		expect(getJson).toHaveBeenCalledWith(binding, '/events?p=1&ps=10&txnHash=0xabc')
 
 		getJson.mockResolvedValueOnce({
 			items: 'nope',
@@ -165,6 +169,71 @@ describe('Voyager OpenAPI operations', () => {
 		await expect(listBlocks({
 			limit: 10,
 		})).rejects.toThrow('invalid blocks page envelope')
+	})
+
+	it('lists contracts, classes, and class contracts with arktype fail-closed envelopes', async () => {
+		getJson.mockResolvedValueOnce({
+			items: [{
+				address: '0x07b7',
+				blockNumber: 1655799,
+				classHash: '0x0360',
+				type: 'Ready',
+			}],
+			lastPage: 4,
+		})
+		await expect(listContracts({
+			limit: 16,
+			page: 2,
+			type: 'account',
+		})).resolves.toMatchObject({
+			lastPage: 4,
+		})
+		expect(getJson).toHaveBeenCalledWith(binding, '/contracts?p=2&ps=25&type=account')
+
+		getJson.mockResolvedValueOnce({
+			items: [{
+				hash: '0x04ad',
+				transactionHash: '0x749e',
+				version: '2.12.2',
+			}],
+			lastPage: 6853,
+		})
+		await expect(listClasses({
+			limit: 10,
+		})).resolves.toMatchObject({
+			items: [{
+				hash: '0x04ad',
+			}],
+		})
+		expect(getJson).toHaveBeenCalledWith(binding, '/classes?p=1&ps=10')
+
+		getJson.mockResolvedValueOnce({
+			items: [{
+				address: '0x0368',
+				creationTimestamp: 1757525503,
+				txnCount: 0,
+			}],
+			lastPage: 1,
+		})
+		await expect(listClassContracts({
+			classHash: '0xabc/def',
+			limit: 25,
+		})).resolves.toMatchObject({
+			items: [{
+				address: '0x0368',
+			}],
+		})
+		expect(getJson).toHaveBeenCalledWith(binding, '/classes/0xabc%2Fdef/contracts?p=1&ps=25')
+
+		getJson.mockResolvedValueOnce({
+			items: [{
+				address: 1,
+			}],
+			lastPage: 1,
+		})
+		await expect(listContracts({
+			limit: 10,
+		})).rejects.toThrow('Voyager_Rest: invalid contracts page envelope')
 	})
 
 	it('exports deepened endpoint operations', () => {
@@ -176,6 +245,9 @@ describe('Voyager OpenAPI operations', () => {
 			'getNetworkStats',
 			'getTransactionByHash',
 			'listBlocks',
+			'listClassContracts',
+			'listClasses',
+			'listContracts',
 			'listEvents',
 			'listTransactions',
 		])
