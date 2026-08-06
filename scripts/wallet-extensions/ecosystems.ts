@@ -221,7 +221,9 @@ export const walletHarnessEcosystems = [
 		label: 'NEAR',
 		caipNamespaces: ['near'],
 		coverageKind: WalletHarnessCoverageKind.ArchitectureOnly,
-		connectionProtocols: [],
+		connectionProtocols: [
+			WalletHarnessConnectionProtocol.WalletConnectV2,
+		],
 		extensionKinds: [],
 	},
 	{
@@ -229,7 +231,9 @@ export const walletHarnessEcosystems = [
 		label: 'Sui',
 		caipNamespaces: ['sui'],
 		coverageKind: WalletHarnessCoverageKind.ArchitectureOnly,
-		connectionProtocols: [],
+		connectionProtocols: [
+			WalletHarnessConnectionProtocol.WalletConnectV2,
+		],
 		extensionKinds: [],
 	},
 ] as const satisfies readonly WalletHarnessEcosystemDefinition[]

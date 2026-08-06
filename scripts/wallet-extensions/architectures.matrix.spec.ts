@@ -30,6 +30,11 @@ test('keeps Lightning, Farcaster, Near, and Sui in the unsupported denominator',
 		assert.equal(scenario.expectedOutcome, 'unsupported')
 		assert.equal(scenario.request.method, scenario.request.method)
 		assert.notEqual(scenario.request.ecosystem, WalletHarnessEcosystem.Evm)
+		assert.ok(
+			walletHarnessEcosystemByEcosystem[scenario.ecosystem].connectionProtocols.includes(
+				scenario.connectionProtocol
+			)
+		)
 		assert.deepEqual(
 			walletHarnessEcosystemByEcosystem[scenario.ecosystem].extensionKinds,
 			[]

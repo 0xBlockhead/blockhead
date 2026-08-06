@@ -145,10 +145,7 @@ export const assertArchitectureDenominatorScenarios = () => {
 			throw new Error(`${scenario.id}: denominator coverage must be architecture-only or identity-overlay`)
 		if (ecosystemRow.extensionKinds.length !== 0)
 			throw new Error(`${scenario.id}: architecture denominator must not map to extension wallets`)
-		if (
-			ecosystemRow.connectionProtocols.length > 0
-			&& !(ecosystemRow.connectionProtocols as readonly WalletHarnessConnectionProtocol[]).includes(scenario.connectionProtocol)
-		)
+		if (!(ecosystemRow.connectionProtocols as readonly WalletHarnessConnectionProtocol[]).includes(scenario.connectionProtocol))
 			throw new Error(`${scenario.id}: connectionProtocol must be declared on the ecosystem row`)
 		if (scenario.request.ecosystem !== scenario.ecosystem)
 			throw new Error(`${scenario.id}: request ecosystem must match scenario ecosystem`)
