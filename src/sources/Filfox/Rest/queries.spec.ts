@@ -16,16 +16,71 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 
 const {
 	getAddress,
+	getAddressMessages,
 	getBlock,
 	getBlockMessages,
 	getDeal,
 	getDeals,
 	getMessage,
+	getMessages,
 	getOverview,
 	getTipset,
 } = await import('$/sources/Filfox/Rest/queries.ts')
 
 const binding = bindings[Source.Filfox_Rest][0]
+
+const messageDetail = {
+	cid: 'bafy-message',
+	height: 6_258_067,
+	timestamp: 1_786_048_410,
+	confirmations: 1,
+	blocks: [
+		'bafy-block-a',
+		'bafy-block-b',
+	],
+	version: 0,
+	from: 'f1from',
+	fromId: 'f01234',
+	fromActor: 'account',
+	to: 'f1to',
+	toId: 'f05678',
+	toActor: 'account',
+	nonce: 3,
+	value: '1000',
+	gasLimit: 50_000_000,
+	gasFeeCap: '100',
+	gasPremium: '100',
+	method: 'Send',
+	methodNumber: 0,
+	params: '',
+	receipt: {
+		exitCode: 0,
+		return: '0x40',
+		gasUsed: 1_234_567,
+	},
+	size: 120,
+	error: '',
+	baseFee: '100',
+	fee: {
+		baseFeeBurn: '1',
+		overEstimationBurn: '2',
+		minerPenalty: '0',
+		minerTip: '3',
+		refund: '4',
+	},
+	transfers: [{
+		from: 'f1from',
+		fromId: 'f01234',
+		to: 'f099',
+		toId: 'f099',
+		value: '1',
+		type: 'burn-fee',
+	}],
+	ethTransactionHash: '0xabc',
+	eventLogCount: 0,
+	subcallCount: 0,
+	tokenTransfers: [],
+} as const
 
 describe('Filfox REST queries', () => {
 	beforeEach(() => {
@@ -34,11 +89,37 @@ describe('Filfox REST queries', () => {
 	})
 
 	it('appends the API-family prefix for every product endpoint', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({})
+			.mockResolvedValueOnce(messageDetail)
+			.mockResolvedValueOnce({
+				totalCount: 0,
+				messages: [],
+			})
+			.mockResolvedValueOnce({})
+			.mockResolvedValueOnce({
+				totalCount: 0,
+				messages: [],
+			})
+			.mockResolvedValueOnce({})
+			.mockResolvedValueOnce({
+				totalCount: 0,
+				messages: [],
+			})
+			.mockResolvedValueOnce({})
+			.mockResolvedValueOnce({})
+			.mockResolvedValueOnce({})
+
 		await getTipset({
 			height: 42n,
 		})
 		await getMessage({
 			messageCid: 'bafy-message',
+		})
+		await getMessages({
+			page: 0,
+			pageSize: 16,
+			method: 'PublishStorageDeals',
 		})
 		await getBlock({
 			blockCid: 'bafy-block',
@@ -49,6 +130,11 @@ describe('Filfox REST queries', () => {
 		})
 		await getAddress({
 			address: 'f01234',
+		})
+		await getAddressMessages({
+			address: 'f01234',
+			page: 1,
+			pageSize: 8,
 		})
 		await getOverview()
 		await getDeals({
@@ -70,6 +156,10 @@ describe('Filfox REST queries', () => {
 			],
 			[
 				binding,
+				'https://filfox.info/api/v1/message/list?page=0&pageSize=16&method=PublishStorageDeals',
+			],
+			[
+				binding,
 				'https://filfox.info/api/v1/block/bafy-block',
 			],
 			[
@@ -79,6 +169,10 @@ describe('Filfox REST queries', () => {
 			[
 				binding,
 				'https://filfox.info/api/v1/address/f01234',
+			],
+			[
+				binding,
+				'https://filfox.info/api/v1/address/f01234/messages?page=1&pageSize=8',
 			],
 			[
 				binding,
@@ -95,6 +189,63 @@ describe('Filfox REST queries', () => {
 		])
 	})
 
+	it('returns message height/timestamp/blocks/receipt envelopes unchanged', async () => {
+		sourceGetJson.mockResolvedValueOnce(messageDetail)
+
+		await expect(getMessage({
+			messageCid: 'bafy-message',
+		})).resolves.toEqual(messageDetail)
+	})
+
+	it('rejects a message detail whose cid does not match the request', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...messageDetail,
+			cid: 'bafy-other',
+		})
+
+		await expect(getMessage({
+			messageCid: 'bafy-message',
+		})).rejects.toThrow(`${Source.Filfox_Rest}: message cid mismatch bafy-other !== bafy-message`)
+	})
+
+	it('rejects a malformed message detail envelope instead of soft-emptying', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			cid: 'bafy-message',
+			from: 'f1from',
+			to: 'f1to',
+			value: '0',
+			method: 'Send',
+		})
+
+		await expect(getMessage({
+			messageCid: 'bafy-message',
+		})).rejects.toThrow(`${Source.Filfox_Rest}: invalid message response envelope`)
+	})
+
+	it('rejects malformed message receipt / blocks shapes', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...messageDetail,
+			receipt: {
+				exitCode: '0',
+			},
+		})
+		await expect(getMessage({
+			messageCid: 'bafy-message',
+		})).rejects.toThrow(`${Source.Filfox_Rest}: invalid message response envelope`)
+
+		sourceGetJson.mockResolvedValueOnce({
+			...messageDetail,
+			blocks: [
+				{
+					cid: 'bafy-block-a',
+				},
+			],
+		})
+		await expect(getMessage({
+			messageCid: 'bafy-message',
+		})).rejects.toThrow(`${Source.Filfox_Rest}: invalid message response envelope`)
+	})
+
 	it('hard-fails when sourceGetJson rejects instead of soft-emptying', async () => {
 		sourceGetJson.mockRejectedValueOnce(new Error('GET https://filfox.info/api/v1/message/missing → 404'))
 
@@ -102,6 +253,94 @@ describe('Filfox REST queries', () => {
 			messageCid: 'missing',
 		})).rejects.toThrow('404')
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
+	})
+
+	it('rejects empty message cids before transport', () => {
+		expect(() => getMessage({
+			messageCid: '',
+		})).toThrow(`${Source.Filfox_Rest}: empty message cid`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('returns typed global / address / block message list pages with observation clocks', async () => {
+		const listPage = {
+			totalCount: 2,
+			messages: [{
+				cid: 'bafy-msg-1',
+				height: 100,
+				timestamp: 1_700_000_000,
+				from: 'f1from',
+				to: 'f1to',
+				nonce: 1,
+				value: '0',
+				method: 'Send',
+				receipt: {
+					exitCode: 0,
+					return: '0x40',
+				},
+			}],
+			methods: [],
+		}
+		sourceGetJson
+			.mockResolvedValueOnce(listPage)
+			.mockResolvedValueOnce(listPage)
+			.mockResolvedValueOnce(listPage)
+
+		await expect(getMessages({
+			page: 0,
+			pageSize: 1,
+		})).resolves.toEqual(listPage)
+		await expect(getAddressMessages({
+			address: 'f01234',
+			page: 0,
+			pageSize: 1,
+		})).resolves.toEqual(listPage)
+		await expect(getBlockMessages({
+			blockCid: 'bafy-block',
+			pageSize: 1,
+		})).resolves.toEqual(listPage)
+	})
+
+	it('rejects malformed message list envelopes instead of treating them as empty', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			messages: [],
+		})
+		await expect(getMessages({
+			page: 0,
+			pageSize: 1,
+		})).rejects.toThrow(`${Source.Filfox_Rest}: invalid messages response envelope`)
+
+		sourceGetJson.mockResolvedValueOnce({
+			totalCount: 1,
+			messages: [{
+				cid: 'bafy-msg',
+				from: 'f1from',
+				to: 'f1to',
+				value: '0',
+				method: 'Send',
+				height: '100',
+			}],
+		})
+		await expect(getBlockMessages({
+			blockCid: 'bafy-block',
+			pageSize: 1,
+		})).rejects.toThrow(`${Source.Filfox_Rest}: invalid messages response envelope`)
+	})
+
+	it('rejects invalid message list pagination before transport', () => {
+		expect(() => getMessages({
+			page: -1,
+			pageSize: 1,
+		})).toThrow(`${Source.Filfox_Rest}: invalid page -1`)
+		expect(() => getAddressMessages({
+			address: 'f01234',
+			pageSize: 0,
+		})).toThrow(`${Source.Filfox_Rest}: invalid pageSize 0`)
+		expect(() => getBlockMessages({
+			blockCid: 'bafy-block',
+			pageSize: 101,
+		})).toThrow(`${Source.Filfox_Rest}: invalid pageSize 101`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
 	it('returns typed deal list and detail responses unchanged', async () => {

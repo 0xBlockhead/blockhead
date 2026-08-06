@@ -428,8 +428,13 @@ export const getPositionsByOwner = ({
 /**
  * Count of CL positions in a concentrated liquidity pool.
  * LCD path exists in proto; some public LCD nodes currently return gRPC Unimplemented.
- * There is no honest pool-wide position *list* endpoint — only this count.
+ *
+ * There is no honest pool-wide position *list* on LCD or Osmosis SQS:
+ * - CL query.proto exposes `UserPositions` (by owner), `PositionById`, and `NumPoolPositions` (count) only — no PoolPositions RPC.
+ * - SQS (`https://sqs.osmosis.zone`) documents `/pools` + router/system endpoints only; `/positions` and `/pools/{id}/positions` 404.
+ * Do not invent a list transport. Owner lists: {@link getPositionsByOwner}. Count-only: this function.
  * @see https://github.com/osmosis-labs/osmosis/blob/main/proto/osmosis/concentratedliquidity/v1beta1/query.proto NumPoolPositions
+ * @see https://github.com/osmosis-labs/sqs
  */
 export const getNumPoolPositions = ({
 	poolId,

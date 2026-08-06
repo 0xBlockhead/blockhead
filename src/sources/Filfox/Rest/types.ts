@@ -23,23 +23,89 @@ export type FilfoxBlock = {
 	messageCount: number
 }
 
-export type FilfoxMessage = {
+/**
+ * Receipt on Filfox message list/detail wires.
+ * Detail includes `gasUsed`; list rows often omit it.
+ */
+export type FilfoxMessageReceipt = {
+	exitCode: number
+	return?: string
+	gasUsed?: number
+}
+
+export type FilfoxMessageFee = {
+	baseFeeBurn: string
+	overEstimationBurn: string
+	minerPenalty: string
+	minerTip: string
+	refund: string
+}
+
+export type FilfoxMessageTransfer = {
+	from: string
+	fromId?: string
+	to: string
+	toId?: string
+	toTag?: {
+		name: string
+		signed: boolean
+	}
+	value: string
+	type: string
+}
+
+/**
+ * Shared message row fields from Filfox list surfaces
+ * (`/message/list`, `/block/{cid}/messages`, `/address/{address}/messages`).
+ * Observation clocks (`height` / `timestamp`) are present on included messages;
+ * `blocks` is detail-only (`GET /message/{cid}`).
+ */
+export type FilfoxMessageListItem = {
 	cid: string
 	height?: number
 	timestamp?: number
-	blocks?: string[]
 	from: string
 	to: string
-	nonce: number
+	nonce?: number
 	value: string
 	method: string
 	methodNumber?: number
+	evmMethod?: string
+	params?: string
+	receipt?: FilfoxMessageReceipt
 	gasLimit?: number
+}
+
+/**
+ * `GET /api/v1/message/{cid}` detail — includes tipset inclusion (`height` /
+ * `timestamp` / `blocks`) and receipt-adjacent fee/transfer fields when executed.
+ */
+export type FilfoxMessage = FilfoxMessageListItem & {
+	blocks?: string[]
+	confirmations?: number
+	version?: number
+	fromId?: string
+	fromActor?: string
+	toId?: string
+	toActor?: string
+	nonce: number
+	gasFeeCap?: string
+	gasPremium?: string
+	size?: number
+	error?: string
+	baseFee?: string
+	fee?: FilfoxMessageFee
+	transfers?: FilfoxMessageTransfer[]
+	ethTransactionHash?: string
+	eventLogCount?: number
+	subcallCount?: number
+	tokenTransfers?: unknown[]
 }
 
 export type FilfoxMessagesPage = {
 	totalCount: number
-	messages: FilfoxMessage[]
+	messages: FilfoxMessageListItem[]
+	methods?: unknown[]
 }
 
 export type FilfoxAddress = {
