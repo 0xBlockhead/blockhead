@@ -12724,7 +12724,6 @@ export const schema = {
 									{
 										kind: _ViewItemKind.Block,
 										id: "attestationDuties",
-										label: "Attestation duties",
 										fields: ["attestationDuties"],
 										Content: dedent `
 											{#if entity.attestationDuties.values.length}
