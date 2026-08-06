@@ -7,6 +7,7 @@
  * @see https://api.curve.finance/v1/getAllGauges
  * @see https://api.curve.finance/v1/getAllGaugesStatus
  * @see https://api.curve.finance/v1/getLendingVaults/all/{blockchainId}
+ * @see https://api.curve.finance/v1/getVolumes/{blockchainId}
  *
  * Official Curve API has no account LP / gauge staking position endpoints —
  * do not invent user-balance queries here.
@@ -29,9 +30,11 @@ import type {
 	CurvePoolCoinWire,
 	CurvePoolListItem,
 	CurvePoolListResponse,
+	CurvePoolVolumeSnapshot,
 	CurvePoolsResponse,
 	CurvePoolSnapshot,
 	CurvePoolWire,
+	CurveVolumesResponse,
 } from '$/sources/Curve/Rest/types.ts'
 import {
 	curveAllGaugesEnvelope,
@@ -40,6 +43,7 @@ import {
 	curveLendingVaultsEnvelope,
 	curvePoolListEnvelope,
 	curvePoolsEnvelope,
+	curveVolumesEnvelope,
 } from '$/sources/Curve/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -269,6 +273,8 @@ const mapPoolWire = (
 		:
 			assertAddress(wire.gaugeAddress, 'gauge address')
 	)
+	const poolGaugeCrvApy = optionalApyPair(wire.gaugeCrvApy, 'gaugeCrvApy')
+	const poolGaugeFutureCrvApy = optionalApyPair(wire.gaugeFutureCrvApy, 'gaugeFutureCrvApy')
 
 	return {
 		blockchainId,
@@ -306,6 +312,30 @@ const mapPoolWire = (
 		}),
 		...(wire.creationTs != null && {
 			creationTs: assertSafeInteger(wire.creationTs, 'creation timestamp'),
+		}),
+		...(wire.usdTotalExcludingBasePool != null && {
+			usdTotalExcludingBasePool: assertFiniteNumber(wire.usdTotalExcludingBasePool, 'USD total excluding base pool'),
+		}),
+		...(wire.isBroken != null && {
+			isBroken: wire.isBroken,
+		}),
+		...(wire.usesRateOracle != null && {
+			usesRateOracle: wire.usesRateOracle,
+		}),
+		...(wire.assetType != null && {
+			assetType: assertSafeInteger(wire.assetType, 'asset type'),
+		}),
+		...(wire.implementation != null && wire.implementation !== '' && {
+			implementation: wire.implementation,
+		}),
+		...(poolGaugeCrvApy != null && {
+			gaugeCrvApy: poolGaugeCrvApy,
+		}),
+		...(poolGaugeFutureCrvApy != null && {
+			gaugeFutureCrvApy: poolGaugeFutureCrvApy,
+		}),
+		...(wire.poolUrls?.swap != null && wire.poolUrls.swap.length > 0 && {
+			swapUrls: wire.poolUrls.swap.map((url) => assertLabeledNonEmptyString(url, 'swap url')),
 		}),
 	}
 }
@@ -779,3 +809,66 @@ export const getLendingVault = async ({
 		throw new Error(`${Source.Curve_Rest}: lending vault ${address} not found on chain ${String(chainId)}`)
 	return vault
 }
+
+/** `GET /getVolumes/{blockchainId}` — pool volume / APY rows for one chain. */
+export const listPoolVolumes = async ({
+	chainId,
+}: {
+	chainId: number
+}): Promise<CurvePoolVolumeSnapshot[]> => {
+	const platform = assertChainId(chainId)
+	const response = await curveGetJson<CurveVolumesResponse>(
+		`/v1/getVolumes/${platform.blockchainId}`
+	)
+	assertEnvelope(curveVolumesEnvelope, response, 'pool volumes')
+	if (response.data.pools.length > maximumPoolsPerChain)
+		throw new Error(`${Source.Curve_Rest}: excessive pool volumes response`)
+
+	const volumes = response.data.pools.map((wire) => {
+		const registryId = assertRegistryId(
+			assertLabeledNonEmptyString(wire.type, 'registry'),
+			platform.registries
+		)
+		return {
+			blockchainId: platform.blockchainId,
+			chainId: platform.chainId,
+			registryId,
+			poolAddress: assertPoolAddress(wire.address),
+			volumeUsd: assertFiniteNumber(wire.volumeUSD, 'volume USD'),
+			...(optionalFiniteNumber(wire.latestDailyApyPcent, 'latest daily APY percent') != null && {
+				latestDailyApyPcent: optionalFiniteNumber(wire.latestDailyApyPcent, 'latest daily APY percent'),
+			}),
+			...(optionalFiniteNumber(wire.latestWeeklyApyPcent, 'latest weekly APY percent') != null && {
+				latestWeeklyApyPcent: optionalFiniteNumber(wire.latestWeeklyApyPcent, 'latest weekly APY percent'),
+			}),
+			...(optionalFiniteNumber(wire.includedApyPcentFromLsts, 'included APY percent from LSTs') != null && {
+				includedApyPcentFromLsts: optionalFiniteNumber(wire.includedApyPcentFromLsts, 'included APY percent from LSTs'),
+			}),
+			...(wire.virtualPrice != null && String(wire.virtualPrice).trim() !== '' && {
+				virtualPrice: assertNonNegativeDecimalString(String(wire.virtualPrice), 'virtual price'),
+			}),
+		}
+	})
+	if (new Set(volumes.map((row) => row.poolAddress)).size !== volumes.length)
+		throw new Error(`${Source.Curve_Rest}: pool volumes response contains duplicate pool addresses`)
+	return volumes
+}
+
+/** Pool volume detail by chain + pool address. */
+export const getPoolVolume = async ({
+	chainId,
+	poolAddress,
+}: {
+	chainId: number
+	poolAddress: string
+}): Promise<CurvePoolVolumeSnapshot> => {
+	const address = assertPoolAddress(poolAddress)
+	const volume = (await listPoolVolumes({
+		chainId,
+	}))
+		.find((item) => item.poolAddress === address)
+	if (volume == null)
+		throw new Error(`${Source.Curve_Rest}: pool volume ${address} not found on chain ${String(chainId)}`)
+	return volume
+}
+

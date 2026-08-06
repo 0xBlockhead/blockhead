@@ -9,6 +9,7 @@ import {
 } from '$/sources/_runtime/http.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
+	HyperliquidAllMids,
 	HyperliquidBorrowLendReserveStateRow,
 	HyperliquidBorrowLendUserState,
 	HyperliquidCandle,
@@ -16,13 +17,18 @@ import type {
 	HyperliquidDelegatorSummary,
 	HyperliquidFill,
 	HyperliquidFrontendOrder,
+	HyperliquidFundingHistoryRow,
 	HyperliquidHistoricalOrder,
 	HyperliquidL2Book,
 	HyperliquidMeta,
 	HyperliquidMetaAndAssetCtxs,
+	HyperliquidOpenOrder,
 	HyperliquidOrderStatus,
+	HyperliquidPortfolio,
+	HyperliquidPredictedFunding,
 	HyperliquidSpotClearinghouseState,
 	HyperliquidSpotMeta,
+	HyperliquidSpotMetaAndAssetCtxs,
 	HyperliquidUserAbstraction,
 	HyperliquidUserFees,
 	HyperliquidUserRole,
@@ -324,6 +330,65 @@ const hyperliquidOrderStatusEnvelope = arktype({
 	status: 'string',
 	'order?': hyperliquidHistoricalOrderEnvelope,
 })
+const hyperliquidOpenOrderEnvelope = arktype({
+	coin: 'string',
+	limitPx: 'string',
+	oid: 'number',
+	side: 'string',
+	sz: 'string',
+	timestamp: 'number',
+})
+const hyperliquidPortfolioWindowEnvelope = arktype({
+	accountValueHistory: arktype([
+		'number',
+		'string',
+	]).array(),
+	pnlHistory: arktype([
+		'number',
+		'string',
+	]).array(),
+	vlm: 'string',
+})
+const hyperliquidPortfolioEnvelope = arktype([
+	'string',
+	hyperliquidPortfolioWindowEnvelope,
+]).array()
+const hyperliquidPredictedFundingVenueEnvelope = arktype({
+	fundingRate: 'string',
+	nextFundingTime: 'number',
+	fundingIntervalHours: 'number',
+})
+const hyperliquidPredictedFundingEnvelope = arktype([
+	'string',
+	arktype([
+		'string',
+		hyperliquidPredictedFundingVenueEnvelope,
+	]).array(),
+])
+const hyperliquidFundingHistoryRowEnvelope = arktype({
+	coin: 'string',
+	fundingRate: 'string',
+	premium: 'string',
+	time: 'number',
+})
+const hyperliquidSpotAssetCtxEnvelope = arktype({
+	prevDayPx: 'string',
+	dayNtlVlm: 'string',
+	markPx: 'string',
+	midPx: 'string | null',
+	circulatingSupply: 'string',
+	coin: 'string',
+	totalSupply: 'string',
+	'dayBaseVlm?': 'string',
+})
+
+const assertInfoAddress = (
+	user: string,
+	label = 'account address'
+) => {
+	if (!/^0x[0-9a-fA-F]{40}$/.test(user))
+		throw new Error(`Hyperliquid_Rest: invalid ${label} ${user}`)
+}
 
 export const hyperliquidRestEndpoints = binding.endpoints.map((endpoint) => ({
 	url: endpoint.locator,
@@ -792,4 +857,197 @@ export const getOrderStatus = async ({
 		throw new Error('Hyperliquid_Rest: invalid orderStatus response envelope')
 
 	return status
+}
+
+/**
+ * https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-mids-for-all-coins
+ */
+export const getAllMids = async ({
+	dex,
+}: {
+	dex?: string
+} = {}) => {
+	const mids = await info<HyperliquidAllMids>({
+		body: {
+			type: 'allMids',
+			...(dex != null && {
+				dex,
+			}),
+		},
+	})
+	if (!arktype('Record<string, string>').allows(mids))
+		throw new Error('Hyperliquid_Rest: invalid allMids response envelope')
+
+	return mids
+}
+
+/**
+ * https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-open-orders
+ */
+export const getOpenOrders = async ({
+	user,
+	dex,
+}: {
+	user: string
+	dex?: string
+}) => {
+	assertInfoAddress(user)
+	const orders = await info<HyperliquidOpenOrder[]>({
+		body: {
+			type: 'openOrders',
+			user,
+			...(dex != null && {
+				dex,
+			}),
+		},
+	})
+	if (!hyperliquidOpenOrderEnvelope.array().allows(orders))
+		throw new Error('Hyperliquid_Rest: invalid openOrders response envelope')
+
+	return orders
+}
+
+/**
+ * https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+ * Returns at most 2000 most recent fills.
+ */
+export const getUserFills = async ({
+	user,
+	aggregateByTime = false,
+}: {
+	user: string
+	aggregateByTime?: boolean
+}) => {
+	assertInfoAddress(user)
+	const fills = await info<HyperliquidFill[]>({
+		body: {
+			type: 'userFills',
+			user,
+			aggregateByTime,
+		},
+	})
+	if (!hyperliquidFillEnvelope.array().allows(fills))
+		throw new Error('Hyperliquid_Rest: invalid userFills response envelope')
+
+	return fills
+}
+
+/**
+ * https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-portfolio
+ */
+export const getPortfolio = async ({
+	user,
+}: {
+	user: string
+}) => {
+	assertInfoAddress(user)
+	const portfolio = await info<HyperliquidPortfolio>({
+		body: {
+			type: 'portfolio',
+			user,
+		},
+	})
+	if (!hyperliquidPortfolioEnvelope.allows(portfolio))
+		throw new Error('Hyperliquid_Rest: invalid portfolio response envelope')
+
+	return portfolio
+}
+
+/**
+ * https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-predicted-fundings
+ */
+export const getPredictedFundings = async () => {
+	const fundings = await info<HyperliquidPredictedFunding[]>({
+		body: {
+			type: 'predictedFundings',
+		},
+	})
+	if (!hyperliquidPredictedFundingEnvelope.array().allows(fundings))
+		throw new Error('Hyperliquid_Rest: invalid predictedFundings response envelope')
+
+	for (const [coin] of fundings) {
+		if (coin === '')
+			throw new Error('Hyperliquid_Rest: invalid predicted funding coin')
+	}
+
+	return fundings
+}
+
+/**
+ * https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#query-perps-at-open-interest-caps
+ */
+export const getPerpsAtOpenInterestCap = async () => {
+	const coins = await info<string[]>({
+		body: {
+			type: 'perpsAtOpenInterestCap',
+		},
+	})
+	if (!arktype('string[]').allows(coins))
+		throw new Error('Hyperliquid_Rest: invalid perpsAtOpenInterestCap response envelope')
+
+	for (const coin of coins) {
+		if (coin === '')
+			throw new Error('Hyperliquid_Rest: invalid open-interest-cap coin')
+	}
+
+	return coins
+}
+
+/**
+ * https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-metadata-and-asset-contexts
+ */
+export const getSpotMetaAndAssetCtxs = async () => {
+	const snapshot = await info<HyperliquidSpotMetaAndAssetCtxs>({
+		body: {
+			type: 'spotMetaAndAssetCtxs',
+		},
+	})
+	if (
+		snapshot.length !== 2
+		|| !hyperliquidSpotMetaEnvelope.allows(snapshot[0])
+		|| !hyperliquidSpotAssetCtxEnvelope.array().allows(snapshot[1])
+	)
+		throw new Error('Hyperliquid_Rest: invalid spotMetaAndAssetCtxs response envelope')
+
+	if (snapshot[0].universe.length !== snapshot[1].length)
+		throw new Error('Hyperliquid_Rest: spotMetaAndAssetCtxs universe/ctx length mismatch')
+
+	return snapshot
+}
+
+/**
+ * https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates
+ */
+export const getFundingHistory = async ({
+	coin,
+	startTime,
+	endTime,
+}: {
+	coin: string
+	startTime: number
+	endTime?: number
+}) => {
+	if (coin === '')
+		throw new Error('Hyperliquid_Rest: invalid funding history coin')
+
+	if (!Number.isSafeInteger(startTime) || startTime < 0)
+		throw new Error(`Hyperliquid_Rest: invalid funding history start time ${startTime}`)
+
+	if (endTime != null && (!Number.isSafeInteger(endTime) || endTime < startTime))
+		throw new Error(`Hyperliquid_Rest: invalid funding history end time ${endTime}`)
+
+	const rows = await info<HyperliquidFundingHistoryRow[]>({
+		body: {
+			type: 'fundingHistory',
+			coin,
+			startTime,
+			...(endTime != null && {
+				endTime,
+			}),
+		},
+	})
+	if (!hyperliquidFundingHistoryRowEnvelope.array().allows(rows))
+		throw new Error('Hyperliquid_Rest: invalid fundingHistory response envelope')
+
+	return rows
 }

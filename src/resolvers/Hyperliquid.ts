@@ -1008,6 +1008,10 @@ export default {
 								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: status,
 								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: statusTimestamp,
 								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: order.sz,
+								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: order.sz,
+								...(Number.isFinite(Number(order.origSz)) && Number.isFinite(Number(order.sz)) && {
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: String(Number(order.origSz) - Number(order.sz)),
+								}),
 								[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: order.children,
 							},
 						}],
@@ -1092,6 +1096,10 @@ export default {
 									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: status,
 									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: statusTimestamp,
 									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: order.sz,
+									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: order.sz,
+									...(Number.isFinite(Number(order.origSz)) && Number.isFinite(Number(order.sz)) && {
+										[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: String(Number(order.origSz) - Number(order.sz)),
+									}),
 									[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: order.children,
 								},
 							}],
@@ -1138,11 +1146,21 @@ export default {
 						)
 							throw new Error('Hyperliquid_Rest: invalid fill continuation')
 
-						const { getUserFillsByTime } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-						const response = await getUserFillsByTime({
-							user: account.address,
-							startTime: cursorTime,
-						})
+						const {
+							getUserFills,
+							getUserFillsByTime,
+						} = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const response = (
+							cursorTime === 0 && cursorTid === -1 ?
+								await getUserFills({
+									user: account.address,
+								})
+							:
+								await getUserFillsByTime({
+									user: account.address,
+									startTime: cursorTime,
+								})
+						)
 						const fillIds = new Set<number>()
 						for (const fill of response) {
 							assertSafeWireInteger(fill.tid, 'fill trade id')

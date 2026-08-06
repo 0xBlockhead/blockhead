@@ -19,20 +19,28 @@ vi.mock('$/lib/http.ts', () => ({
 const {
 	getApprovedBuilders,
 	getAllBorrowLendReserveStates,
+	getAllMids,
 	getBorrowLendUserState,
 	getClearinghouseState,
 	getCandleSnapshot,
 	getDelegatorSummary,
+	getFundingHistory,
 	getFrontendOpenOrders,
 	getHistoricalOrders,
 	getL2Book,
 	getMetaAndAssetCtxs,
+	getOpenOrders,
 	getOrderStatus,
+	getPerpsAtOpenInterestCap,
+	getPortfolio,
+	getPredictedFundings,
 	getSpotMeta,
+	getSpotMetaAndAssetCtxs,
 	getSpotClearinghouseState,
 	getUserAbstraction,
 	getUserDexAbstraction,
 	getUserFees,
+	getUserFills,
 	getUserFillsByTime,
 	getUserVaultEquities,
 	getValidatorSummaries,
@@ -659,5 +667,277 @@ describe('Hyperliquid public account Info transport', () => {
 			],
 		})
 		await expect(getMetaAndAssetCtxs()).rejects.toThrow('Hyperliquid_Rest: invalid metaAndAssetCtxs response envelope')
+	})
+
+	it('accepts allMids, openOrders, userFills, portfolio, predictedFundings, OI caps, spot ctxs, and fundingHistory', async () => {
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				ETH: '2000.5',
+				BTC: '40000',
+			}),
+		})
+		await expect(getAllMids()).resolves.toEqual({
+			ETH: '2000.5',
+			BTC: '40000',
+		})
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [{
+				coin: 'BTC',
+				limitPx: '29792.0',
+				oid: 91490942,
+				side: 'A',
+				sz: '0.0',
+				timestamp: 1681247412573,
+			}],
+		})
+		await expect(getOpenOrders({
+			user: '0x1111111111111111111111111111111111111111',
+		})).resolves.toEqual([{
+			coin: 'BTC',
+			limitPx: '29792.0',
+			oid: 91490942,
+			side: 'A',
+			sz: '0.0',
+			timestamp: 1681247412573,
+		}])
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [{
+				closedPnl: '0.0',
+				coin: 'AVAX',
+				crossed: false,
+				dir: 'Open Long',
+				hash: '0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8',
+				oid: 90542681,
+				px: '18.435',
+				side: 'B',
+				startPosition: '26.86',
+				sz: '93.53',
+				time: 1681222254710,
+				fee: '0.01',
+				feeToken: 'USDC',
+				tid: 118906512037719,
+				builderFee: '0.01',
+				twapId: null,
+			}],
+		})
+		await expect(getUserFills({
+			user: '0x1111111111111111111111111111111111111111',
+		})).resolves.toHaveLength(1)
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [[
+				'day',
+				{
+					accountValueHistory: [[
+						1,
+						'100',
+					]],
+					pnlHistory: [[
+						1,
+						'1',
+					]],
+					vlm: '10',
+				},
+			]],
+		})
+		await expect(getPortfolio({
+			user: '0x1111111111111111111111111111111111111111',
+		})).resolves.toEqual([[
+			'day',
+			{
+				accountValueHistory: [[
+					1,
+					'100',
+				]],
+				pnlHistory: [[
+					1,
+					'1',
+				]],
+				vlm: '10',
+			},
+		]])
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [[
+				'ETH',
+				[[
+					'HlPerp',
+					{
+						fundingRate: '0.0000125',
+						nextFundingTime: 1_700_000_000_000,
+						fundingIntervalHours: 1,
+					},
+				]],
+			]],
+		})
+		await expect(getPredictedFundings()).resolves.toHaveLength(1)
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [
+				'CANTO',
+				'FTM',
+			],
+		})
+		await expect(getPerpsAtOpenInterestCap()).resolves.toEqual([
+			'CANTO',
+			'FTM',
+		])
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [
+				{
+					tokens: [{
+						name: 'USDC',
+						szDecimals: 8,
+						weiDecimals: 8,
+						index: 0,
+					}],
+					universe: [{
+						name: 'PURR/USDC',
+						tokens: [
+							1,
+							0,
+						],
+						index: 0,
+						isCanonical: true,
+					}],
+				},
+				[{
+					prevDayPx: '0.06',
+					dayNtlVlm: '1',
+					markPx: '0.07',
+					midPx: '0.07',
+					circulatingSupply: '1',
+					coin: 'PURR/USDC',
+					totalSupply: '1',
+					dayBaseVlm: '2',
+				}],
+			],
+		})
+		await expect(getSpotMetaAndAssetCtxs()).resolves.toHaveLength(2)
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [{
+				coin: 'ETH',
+				fundingRate: '0.0001',
+				premium: '0.0002',
+				time: 1_700_000_000_000,
+			}],
+		})
+		await expect(getFundingHistory({
+			coin: 'ETH',
+			startTime: 1_700_000_000_000,
+		})).resolves.toEqual([{
+			coin: 'ETH',
+			fundingRate: '0.0001',
+			premium: '0.0002',
+			time: 1_700_000_000_000,
+		}])
+	})
+
+	it('fails closed for malformed leftover Info envelopes', async () => {
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				ETH: 1,
+			}),
+		})
+		await expect(getAllMids()).rejects.toThrow('Hyperliquid_Rest: invalid allMids response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [{
+				coin: 'BTC',
+			}],
+		})
+		await expect(getOpenOrders({
+			user: '0x1111111111111111111111111111111111111111',
+		})).rejects.toThrow('Hyperliquid_Rest: invalid openOrders response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [{
+				coin: 'ETH',
+			}],
+		})
+		await expect(getUserFills({
+			user: '0x1111111111111111111111111111111111111111',
+		})).rejects.toThrow('Hyperliquid_Rest: invalid userFills response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [[
+				'day',
+				{
+					vlm: '1',
+				},
+			]],
+		})
+		await expect(getPortfolio({
+			user: '0x1111111111111111111111111111111111111111',
+		})).rejects.toThrow('Hyperliquid_Rest: invalid portfolio response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [[
+				'ETH',
+				[[
+					'HlPerp',
+					{
+						fundingRate: '0.1',
+					},
+				]],
+			]],
+		})
+		await expect(getPredictedFundings()).rejects.toThrow('Hyperliquid_Rest: invalid predictedFundings response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [
+				1,
+			],
+		})
+		await expect(getPerpsAtOpenInterestCap()).rejects.toThrow('Hyperliquid_Rest: invalid perpsAtOpenInterestCap response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [
+				{
+					tokens: [],
+					universe: [{
+						name: 'PURR/USDC',
+						tokens: [
+							1,
+							0,
+						],
+						index: 0,
+					}],
+				},
+				[],
+			],
+		})
+		await expect(getSpotMetaAndAssetCtxs()).rejects.toThrow('Hyperliquid_Rest: spotMetaAndAssetCtxs universe/ctx length mismatch')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [{
+				coin: 'ETH',
+				fundingRate: '0.1',
+			}],
+		})
+		await expect(getFundingHistory({
+			coin: 'ETH',
+			startTime: 1,
+		})).rejects.toThrow('Hyperliquid_Rest: invalid fundingHistory response envelope')
 	})
 })

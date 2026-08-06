@@ -327,6 +327,24 @@ describe('Hyperliquid public account resolvers', () => {
 		expect(orders[0]?.[EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'coin')]: 'ETH',
 			[entityFieldAddressKey(EntityType.HyperliquidOrder, [], 'orderType')]: 'Market',
+			[entityFieldAddressKey(EntityType.HyperliquidOrder, [], '$$timestamps')]: [{
+				[EntityMetaKey.Selector]: {
+					$order: {
+						$account: account,
+						oid: 2n,
+					},
+					timestampMs: 1_700_000_000_001,
+					source: Source.Hyperliquid,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: 'filled',
+					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: 1_700_000_000_001,
+					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: '0',
+					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: '0',
+					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: '0.0076',
+					[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: [],
+				},
+			}],
 		})
 		expect(ordersResolver.projections.$$orders.continuation(page, account, context).terminal).toBe(true)
 	})
@@ -664,6 +682,8 @@ describe('Hyperliquid order status resolver', () => {
 				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'status')]: 'open',
 				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'statusTimestampMs')]: 1_700_000_000_000,
 				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'size')]: '1',
+				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'remainingSize')]: '1',
+				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'filledSize')]: '0',
 				[entityFieldAddressKey(EntityType.HyperliquidOrder_Timestamp, [], 'children')]: [],
 			},
 		}])

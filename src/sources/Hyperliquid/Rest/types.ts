@@ -369,3 +369,68 @@ export type HyperliquidOrderStatus = (
 		status: 'unknownOid' | 'unknownCloid' | string
 	}
 )
+
+export type HyperliquidOpenOrder = {
+	coin: string
+	limitPx: string
+	oid: number
+	side: string
+	sz: string
+	timestamp: number
+}
+
+export type HyperliquidAllMids = Record<string, string>
+
+export type HyperliquidPortfolioWindow = {
+	accountValueHistory: [
+		timestampMs: number,
+		accountValue: string,
+	][]
+	pnlHistory: [
+		timestampMs: number,
+		pnl: string,
+	][]
+	vlm: string
+}
+
+export type HyperliquidPortfolio = [
+	window: string,
+	state: HyperliquidPortfolioWindow,
+][]
+
+export type HyperliquidPredictedFundingVenue = {
+	fundingRate: string
+	nextFundingTime: number
+	fundingIntervalHours: number
+}
+
+export type HyperliquidPredictedFunding = [
+	coin: string,
+	venues: [
+		venue: string,
+		state: HyperliquidPredictedFundingVenue,
+	][],
+]
+
+export type HyperliquidFundingHistoryRow = {
+	coin: string
+	fundingRate: string
+	premium: string
+	time: number
+}
+
+export type HyperliquidSpotAssetCtx = {
+	prevDayPx: string
+	dayNtlVlm: string
+	markPx: string
+	midPx: string | null
+	circulatingSupply: string
+	coin: string
+	totalSupply: string
+	dayBaseVlm?: string
+}
+
+export type HyperliquidSpotMetaAndAssetCtxs = [
+	HyperliquidSpotMeta,
+	HyperliquidSpotAssetCtx[],
+]

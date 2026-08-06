@@ -32,11 +32,13 @@ const {
 	getGaugesStatus,
 	getLendingVault,
 	getPool,
+	getPoolVolume,
 	listGauges,
 	listLendingVaults,
 	listPools,
 	listPoolsByRegistry,
 	listPoolsOnChain,
+	listPoolVolumes,
 } = await import('$/sources/Curve/Rest/queries.ts')
 
 const binding = bindings[Source.Curve_Rest][0]
@@ -97,11 +99,29 @@ const threePoolWire = {
 	amplificationCoefficient: '4000',
 	totalSupply: '153873339037508580484005791',
 	usdTotal: 159936280.19153345,
+	usdTotalExcludingBasePool: 159517334.6903782,
 	isMetaPool: false,
+	isBroken: false,
+	usesRateOracle: false,
 	gaugeAddress: threePoolGaugeAddress,
+	assetType: 0,
 	assetTypeName: 'usd',
 	creationBlockNumber: 10809473,
 	creationTs: 1599422178,
+	implementation: '',
+	gaugeCrvApy: [
+		1.5892053264738892e-05,
+		3.973013316184723e-05,
+	],
+	gaugeFutureCrvApy: [
+		1.5578021726125323e-05,
+		3.894505431531331e-05,
+	],
+	poolUrls: {
+		swap: [
+			'https://curve.finance/dex/#/ethereum/pools/3pool/swap',
+		],
+	},
 } as const
 
 const threePoolSnapshot = {
@@ -150,11 +170,26 @@ const threePoolSnapshot = {
 	amplificationCoefficient: '4000',
 	totalSupply: '153873339037508580484005791',
 	usdTotal: 159936280.19153345,
+	usdTotalExcludingBasePool: 159517334.6903782,
 	isMetaPool: false,
+	isBroken: false,
+	usesRateOracle: false,
 	gaugeAddress: '0xbfcf63294ad7105dea65aa58f8ae5be2d9d0952a',
+	assetType: 0,
 	assetTypeName: 'usd',
 	creationBlockNumber: 10809473,
 	creationTs: 1599422178,
+	gaugeCrvApy: [
+		1.5892053264738892e-05,
+		3.973013316184723e-05,
+	],
+	gaugeFutureCrvApy: [
+		1.5578021726125323e-05,
+		3.894505431531331e-05,
+	],
+	swapUrls: [
+		'https://curve.finance/dex/#/ethereum/pools/3pool/swap',
+	],
 } as const
 
 const threePoolGaugeWire = {

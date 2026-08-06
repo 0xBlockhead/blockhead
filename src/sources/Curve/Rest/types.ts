@@ -46,11 +46,23 @@ export type CurvePoolWire = {
 	amplificationCoefficient?: string | null
 	totalSupply?: string | null
 	usdTotal?: number | null
+	usdTotalExcludingBasePool?: number | null
 	isMetaPool?: boolean
+	isBroken?: boolean
+	usesRateOracle?: boolean
 	gaugeAddress?: string | null
+	assetType?: number | null
 	assetTypeName?: string | null
 	creationBlockNumber?: number | null
 	creationTs?: number | null
+	implementation?: string | null
+	gaugeCrvApy?: number[] | null
+	gaugeFutureCrvApy?: number[] | null
+	poolUrls?: {
+		swap?: string[] | null
+		deposit?: string[] | null
+		withdraw?: string[] | null
+	} | null
 }
 
 export type CurvePoolsResponse = {
@@ -223,11 +235,23 @@ const curvePoolEnvelope = arktype({
 	'amplificationCoefficient?': 'string | null',
 	'totalSupply?': 'string | null',
 	'usdTotal?': 'number | null',
+	'usdTotalExcludingBasePool?': 'number | null',
 	'isMetaPool?': 'boolean',
+	'isBroken?': 'boolean',
+	'usesRateOracle?': 'boolean',
 	'gaugeAddress?': 'string | null',
+	'assetType?': 'number | null',
 	'assetTypeName?': 'string | null',
 	'creationBlockNumber?': 'number | null',
 	'creationTs?': 'number | null',
+	'implementation?': 'string | null',
+	'gaugeCrvApy?': 'number[] | null',
+	'gaugeFutureCrvApy?': 'number[] | null',
+	'poolUrls?': arktype({
+		'swap?': 'string[] | null',
+		'deposit?': 'string[] | null',
+		'withdraw?': 'string[] | null',
+	}).or('null'),
 })
 
 export const curvePoolListEnvelope = arktype({
@@ -497,4 +521,52 @@ export type CurveLendingVaultSnapshot = {
 	availableToBorrow?: number
 	availableToBorrowUsd?: number
 	usdTotal?: number
+}
+
+export type CurvePoolVolumeWire = {
+	address: string
+	type: string
+	volumeUSD: number
+	latestDailyApyPcent?: number | null
+	latestWeeklyApyPcent?: number | null
+	includedApyPcentFromLsts?: number | null
+	virtualPrice?: number | string | null
+}
+
+export type CurveVolumesResponse = {
+	success: boolean
+	data: {
+		pools: CurvePoolVolumeWire[]
+		totalVolumes?: number
+	}
+	generatedTimeMs?: number
+}
+
+export const curveVolumesEnvelope = arktype({
+	success: 'true',
+	data: {
+		pools: arktype({
+			address: 'string',
+			type: 'string',
+			volumeUSD: 'number',
+			'latestDailyApyPcent?': 'number | null',
+			'latestWeeklyApyPcent?': 'number | null',
+			'includedApyPcentFromLsts?': 'number | null',
+			'virtualPrice?': 'number | string | null',
+		}).array(),
+		'totalVolumes?': 'number',
+	},
+	'generatedTimeMs?': 'number',
+})
+
+export type CurvePoolVolumeSnapshot = {
+	blockchainId: string
+	chainId: number
+	registryId: string
+	poolAddress: `0x${string}`
+	volumeUsd: number
+	latestDailyApyPcent?: number
+	latestWeeklyApyPcent?: number
+	includedApyPcentFromLsts?: number
+	virtualPrice?: string
 }
