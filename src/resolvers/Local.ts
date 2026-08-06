@@ -378,7 +378,12 @@ export default {
 								},
 							},
 						}),
-						selected: blockheadWalletConnection.selected,
+						...(
+							blockheadWalletConnection.status === 'connected'
+							&& {
+								selected: blockheadWalletConnection.selected === true,
+							}
+						),
 						...(blockheadWalletConnection.connectedAt != null && { connectedAt: blockheadWalletConnection.connectedAt }),
 						...(blockheadWalletConnection.disconnectedAt != null && { disconnectedAt: blockheadWalletConnection.disconnectedAt }),
 						...(blockheadWalletConnection.sessionId != null && { sessionId: blockheadWalletConnection.sessionId }),

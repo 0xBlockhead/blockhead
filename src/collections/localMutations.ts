@@ -2664,12 +2664,12 @@ export const writeLocalBlockheadWalletConnection = async (
 	]
 	// Always write optional lifecycle fields (undefined clears stale error/selected timestamps).
 	writeLocalPrimitiveFields(context, EntityType.BlockheadWalletConnection, entitySelector, {
-		selected: persisted.selected,
-		connectedAt: persisted.connectedAt,
-		disconnectedAt: persisted.disconnectedAt,
+		selected: 'selected' in persisted ? persisted.selected : undefined,
+		connectedAt: 'connectedAt' in persisted ? persisted.connectedAt : undefined,
+		disconnectedAt: 'disconnectedAt' in persisted ? persisted.disconnectedAt : undefined,
 		sessionId: persisted.sessionId,
 		sessionTopic: persisted.sessionTopic,
-		error: persisted.error,
+		error: 'error' in persisted ? persisted.error : undefined,
 	})
 	relationshipApplications.push(writeLocalEntityReferenceField(
 		context,

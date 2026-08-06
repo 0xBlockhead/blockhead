@@ -61,7 +61,7 @@ export type NormalizedBlockheadWalletConnection = {
 		reference: string
 		accountAddress: string
 	}
-	selected: boolean
+	selected?: boolean
 	connectedAt?: number
 	disconnectedAt?: number
 	sessionId?: string

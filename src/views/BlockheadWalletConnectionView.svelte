@@ -164,18 +164,21 @@
 				</dd>
 			</div>
 
-			<div>
-				<dt>Selected</dt>
-				<dd>
-					<ResourceBoundary
-						resource={blockheadWalletConnection}
-					>
-						{#snippet children(entity)}
-							{entity.selected ? 'Yes' : 'No'}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={blockheadWalletConnection}
+			>
+				{#snippet children(entity)}
+					{@const selected = entity.selected}
+					{#if selected != null}
+						<div>
+							<dt>Selected</dt>
+							<dd>
+								{selected ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">

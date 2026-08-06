@@ -124,6 +124,7 @@ describe('Local_Internal wallet request resolvers', () => {
 			{ connectionKey: 'e2e-probe-wallet-connection' },
 			context
 		)).resolves.toMatchObject({
+			selected: true,
 			$$accounts: [
 				{
 					[EntityMetaKey.Selector]: {
@@ -149,6 +150,13 @@ describe('Local_Internal wallet request resolvers', () => {
 		expect(localInternal.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.BlockheadAccount
 		))).toBe(true)
+	})
+
+	it('gates selected on Connected status in the Local wallet-connection resolver', async () => {
+		const { readFile } = await import('node:fs/promises')
+		const source = await readFile(new URL('./Local.ts', import.meta.url), 'utf8')
+		expect(source).toMatch(/blockheadWalletConnection\.status === 'connected'[\s\S]*?selected:/)
+		expect(source).not.toMatch(/selected: blockheadWalletConnection\.selected,/)
 	})
 
 	it('resolves EVM detail, call, and prepared timestamp rows', { timeout: 60_000 }, async () => {

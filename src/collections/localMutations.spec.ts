@@ -87,8 +87,8 @@ const sessionCapabilityGrantMutationSource = source.slice(
 describe('local wallet connection mutations', () => {
 	it('coerces flat connection rows through the wallet connection state machine before persistence', () => {
 		expect(walletConnectionMutationSource).toContain('walletConnectionPersistRoundTrip(connection)')
-		expect(walletConnectionMutationSource).toContain('selected: persisted.selected')
-		expect(walletConnectionMutationSource).toContain('error: persisted.error')
+		expect(walletConnectionMutationSource).toContain("selected: 'selected' in persisted ? persisted.selected : undefined")
+		expect(walletConnectionMutationSource).toContain("error: 'error' in persisted ? persisted.error : undefined")
 		expect(walletConnectionMutationSource).not.toContain('persistWalletConnection(connection)')
 	})
 })
