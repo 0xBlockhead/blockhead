@@ -1,7 +1,9 @@
 import {
+	beforeEach,
 	describe,
 	expect,
 	it,
+	vi,
 } from 'vitest'
 
 import uniswapContractsEvm from '$/resolvers/UniswapContracts-Evm.ts'
@@ -11,6 +13,32 @@ import { Source } from '$/sources/Source.ts'
 import {
 	uniswapV3Pools,
 } from '$/sources/Uniswap/Catalog/constants.ts'
+
+
+const getLogs = vi.hoisted(() => vi.fn())
+const getPosition = vi.hoisted(() => vi.fn())
+const getFactoryPool = vi.hoisted(() => vi.fn())
+
+vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
+	voltaireJsonRpcTransports: {
+		httpTransportsByChainId: {
+			1: [{
+				diagnosticLabel: 'mock-rpc',
+				getLogs,
+				getCall: vi.fn(),
+			}],
+		},
+	},
+}))
+
+vi.mock('$/sources/Uniswap/Contracts/queries.ts', async () => {
+	const actual = await vi.importActual<typeof import('$/sources/Uniswap/Contracts/queries.ts')>('$/sources/Uniswap/Contracts/queries.ts')
+	return {
+		...actual,
+		getPosition,
+		getFactoryPool,
+	}
+})
 
 
 const context = {
@@ -32,12 +60,22 @@ const ethereumNetwork = {
 	},
 }
 
+const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+
 
 describe('UniswapContracts_Evm resolver', () => {
+	beforeEach(() => {
+		getLogs.mockReset()
+		getPosition.mockReset()
+		getFactoryPool.mockReset()
+		getLogs.mockResolvedValue([])
+	})
+
 	it('registers global hub + pool resolvers', () => {
 		expect(uniswapContractsEvm.source).toBe(Source.UniswapContracts_Evm)
 		expect(uniswapContractsEvm.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType._Global,
+			EntityType.UniswapV3Pool,
 			EntityType.UniswapV3Pool,
 		])
 	})
@@ -171,14 +209,77 @@ describe('UniswapContracts_Evm resolver', () => {
 		).rejects.toThrow('UniswapContracts_Evm: pool 0xffffffffffffffffffffffffffffffffffffffff not in Uniswap V3 catalog for chain 1')
 	})
 
-	it('does not claim soft-empty $$blocks or $$positions facets', () => {
+	it('lists current NFPM positions scoped to the pool from Transfer logs', async () => {
+		getLogs.mockResolvedValue([{
+			transactionHash: `0x${'1'.repeat(64)}`,
+			topics: [
+				transferTopic,
+				`0x${'0'.repeat(64)}`,
+				`0x${'1'.repeat(24)}1111111111111111111111111111111111111111`,
+				`0x${'0'.repeat(63)}7`,
+			],
+		}])
+		getPosition.mockResolvedValue({
+			token0: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+			token1: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+			fee: 500,
+			tickLower: -60,
+			tickUpper: 60,
+			liquidity: 1n,
+			feeGrowthInside0LastX128: 0n,
+			feeGrowthInside1LastX128: 0n,
+			tokensOwed0: 0n,
+			tokensOwed1: 0n,
+		})
+		getFactoryPool.mockResolvedValue('0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640')
+
 		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool
+			&& typeof resolver.projections.$$positions === 'object'
+		))
+		if (poolResolver == null)
+			throw new Error('missing UniswapV3Pool resolver')
+
+		const snapshot = await poolResolver.resolve.NetworkPoolAddress.resolve({
+			$network: ethereumNetwork,
+			poolAddress: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640',
+		}, context)
+
+		expect(poolResolver.projections.$$positions.select(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				positionManager: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
+				tokenId: 7n,
+			},
+		}])
+	})
+
+	it('fails closed when the position log endpoint fails', async () => {
+		getLogs.mockRejectedValue(new Error('range unavailable'))
+
+		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Pool
+			&& typeof resolver.projections.$$positions === 'object'
+		))
+		if (poolResolver == null)
+			throw new Error('missing UniswapV3Pool positions resolver')
+
+		await expect(
+			poolResolver.resolve.NetworkPoolAddress.resolve({
+				$network: ethereumNetwork,
+				poolAddress: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640',
+			}, context)
+		).rejects.toThrow('UniswapContracts_Evm: all position log endpoints failed')
+	})
+
+	it('does not claim soft-empty $$blocks facet', () => {
+		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Pool
+			&& typeof resolver.projections.$$positions === 'object'
 		))
 		if (poolResolver == null)
 			throw new Error('missing UniswapV3Pool resolver')
 
 		expect(poolResolver.projections).not.toHaveProperty('$$blocks')
-		expect(poolResolver.projections).not.toHaveProperty('$$positions')
+		expect(poolResolver.projections).toHaveProperty('$$positions')
 	})
 })

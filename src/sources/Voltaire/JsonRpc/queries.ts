@@ -16,8 +16,13 @@ import bindings from '$/sources/Voltaire/bindings.ts'
 import { parseVoltaireCallTraceRpc } from '$/sources/Voltaire/JsonRpc/CallTrace.ts'
 import { ens } from '$/sources/Voltaire/JsonRpc/ens.ts'
 import { evmExecutionJsonRpc } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
+import { narrowRpcLog } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
-import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
+import {
+	isJsonArray,
+	isJsonObject,
+	type JsonValue,
+} from '$/typescript/JsonValue.ts'
 
 type Provider = {
 	request: (request: {
@@ -108,6 +113,31 @@ const executionTransport = (
 		diagnosticLabel: `${sourceBindingId(binding)} ${endpoint.endpointKind} ${endpoint.locator}`,
 		origin: endpoint.locator,
 		...jsonRpc,
+		getLogs: async ({
+			address,
+			topic0,
+		}: {
+			address: `0x${string}`
+			topic0: `0x${string}`
+		}) => {
+			const result = await jsonValueFromProviderRequest(request({
+				method: 'eth_getLogs',
+				params: [{
+					address,
+					topics: [[topic0]],
+					fromBlock: '0x0',
+					toBlock: 'latest',
+				}],
+			}))
+			if (!isJsonArray(result))
+				throw new Error('Voltaire_JsonRpc: eth_getLogs returned a malformed result')
+
+			const logs = result.map(narrowRpcLog)
+			if (logs.some((log) => log == null))
+				throw new Error('Voltaire_JsonRpc: eth_getLogs returned a malformed log')
+
+			return logs
+		},
 		...ens({ request }),
 		getRecentBlockWires: async ({
 			recentBlockDepth,

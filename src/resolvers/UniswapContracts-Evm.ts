@@ -2,7 +2,6 @@ import { networks } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -11,6 +10,9 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+
+
+const ERC721_TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' as const
 
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
@@ -129,5 +131,99 @@ export default {
 			tickSpacing: (entity) => entity.tickSpacing,
 			$poolContract: (entity) => entity.$poolContract,
 		}),
+
+		defineResolver({
+			entityType: EntityType.UniswapV3Pool,
+			resolve: {
+				NetworkPoolAddress: {
+					resolve: async ({ $network, poolAddress }, context) => {
+						const {
+							uniswapV3DeploymentByChainId,
+							uniswapV3PoolByChainIdAndAddress,
+						} = await import('$/sources/Uniswap/Catalog/constants.ts')
+						const {
+							getFactoryPool,
+							getPosition,
+							normalizeUniswapAddress,
+						} = await import('$/sources/Uniswap/Contracts/queries.ts')
+						const chainId = chainIdFromNetwork($network)
+						const address = normalizeUniswapAddress(poolAddress)
+						const catalogEntry = uniswapV3PoolByChainIdAndAddress[`${chainId}:${address}`]
+						if (catalogEntry == null)
+							throw new Error(`UniswapContracts_Evm: pool ${address} not in Uniswap V3 catalog for chain ${String(chainId)}`)
+						const factoryAddress = uniswapV3DeploymentByChainId[chainId]?.factoryAddress
+						const positionManager = uniswapV3DeploymentByChainId[chainId]?.nonfungiblePositionManagerAddress
+						if (factoryAddress == null || positionManager == null)
+							throw new Error(`UniswapContracts_Evm: no Uniswap V3 deployment for chain ${String(chainId)}`)
+
+						const voltaireTransports = (await import('$/sources/Voltaire/JsonRpc/queries.ts')).voltaireJsonRpcTransports.httpTransportsByChainId[chainId] ?? []
+						if (voltaireTransports.length === 0)
+							throw new Error(`UniswapContracts_Evm: no JSON-RPC URL for UniswapV3Pool.$$positions on chain ${String(chainId)}`)
+
+						const errors: string[] = []
+						for (const transport of voltaireTransports) {
+							try {
+								const logs = await transport.getLogs({
+									address: positionManager,
+									topic0: ERC721_TRANSFER_TOPIC,
+								})
+								const tokenIds = new Map<bigint, boolean>()
+								for (const log of logs) {
+									const topics = log.topics ?? []
+									const tokenIdHex = topics.at(3)
+									if (tokenIdHex == null) continue
+									const tokenId = (() => {
+										try {
+											return BigInt(tokenIdHex)
+										} catch {
+											return undefined
+										}
+									})()
+									if (tokenId == null || tokenId < 0n) continue
+									const recipient = topics.at(2)
+									tokenIds.set(tokenId, recipient != null && normalizeUniswapAddress(`0x${recipient.slice(-40)}`) !== '0x0000000000000000000000000000000000000000')
+								}
+
+								const positions = []
+								for (const [tokenId, active] of tokenIds) {
+									if (!active) continue
+									const position = await getPosition({
+										getCall: transport.getCall,
+										positionManager,
+										tokenId,
+									})
+									const positionPool = await getFactoryPool({
+										getCall: transport.getCall,
+										factoryAddress,
+										token0: position.token0,
+										token1: position.token1,
+										fee: position.fee,
+									})
+									if (normalizeUniswapAddress(positionPool) !== address) continue
+									positions.push({
+										[EntityMetaKey.Selector]: {
+											positionManager,
+											tokenId,
+										},
+									})
+									if (positions.length >= resolverContextRowLimit(context)) break
+								}
+								return {
+									$$positions: positions,
+								}
+							} catch (error) {
+								errors.push(`${transport.diagnosticLabel}: ${error instanceof Error ? error.message : String(error)}`)
+							}
+						}
+						throw new Error(`UniswapContracts_Evm: all position log endpoints failed for pool ${address} on chain ${String(chainId)}${errors.length > 0 ? `: ${errors.join('; ')}` : ''}`)
+					},
+				},
+			},
+		})({
+			$$positions: {
+				select: (entity) => entity.$$positions,
+				resolveCount: (entity) => entity.$$positions.length,
+			},
+		})
 	],
-} satisfies RegisteredSourceResolverModule
+}
