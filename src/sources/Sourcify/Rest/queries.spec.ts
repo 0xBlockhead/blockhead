@@ -111,6 +111,32 @@ describe('Sourcify REST product queries', () => {
 		})).resolves.toBeNull()
 	})
 
+	it('fail-closes malformed contract lookup envelopes', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			match: 'exact_match',
+			chainId: 1,
+			address: depositContract.toLowerCase(),
+		}))
+
+		await expect(getContractLookup({
+			chainId: 1,
+			address: depositContract,
+		})).rejects.toThrow('invalid contract lookup response envelope')
+	})
+
+	it('fail-closes malformed verified-contract list envelopes', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			results: {
+				match: 'exact_match',
+			},
+		}))
+
+		await expect(listVerifiedContracts({
+			chainId: 1,
+			limit: 10,
+		})).rejects.toThrow('invalid verified contract list response envelope')
+	})
+
 	it('lists verified contracts with clamped pagination and continuation', async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
 			results: [

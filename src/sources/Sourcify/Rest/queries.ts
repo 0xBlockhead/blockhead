@@ -1,10 +1,41 @@
 import { zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { sourcifyGetJsonOrNull } from '$/sources/Sourcify/Rest/client.ts'
 import { contractLookupFields } from '$/sources/Sourcify/Rest/constants.ts'
-import type {
-	SourcifyContractLookup,
-	SourcifyContractMatchList,
+import {
+	sourcifyContractLookupEnvelope,
+	sourcifyContractMatchListEnvelope,
+	type SourcifyContractLookup,
+	type SourcifyContractMatchSummary,
 } from '$/sources/Sourcify/Rest/types.ts'
+
+const omitUndefinedJson = (
+	value: unknown
+): unknown => {
+	if (Array.isArray(value))
+		return value.map(omitUndefinedJson)
+	if (value != null && typeof value === 'object')
+		return Object.fromEntries(
+			Object.entries(value)
+				.filter(([, entry]) => entry !== undefined)
+				.map(([key, entry]) => [
+					key,
+					omitUndefinedJson(entry),
+				])
+		)
+	return value
+}
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(omitUndefinedJson(response))
+	} catch {
+		throw new Error(`Sourcify_Rest: invalid ${label} response envelope`)
+	}
+}
 
 const hasVerificationMatch = (
 	json: SourcifyContractLookup
@@ -64,14 +95,20 @@ export const getContractLookup = async ({
 	chainId: number
 	address: `0x${string}`
 }) => {
-	const json = await sourcifyGetJsonOrNull<SourcifyContractLookup>({
+	const json = await sourcifyGetJsonOrNull({
 		path: getContractLookupPath({
 			chainId,
 			address: zeroExLowerCase(address),
 		}),
 	})
-	if (json == null || !hasVerificationMatch(json)) return null
-	return json
+	if (json == null) return null
+	const lookup = assertEnvelope(
+		'contract lookup',
+		sourcifyContractLookupEnvelope,
+		json
+	) as SourcifyContractLookup
+	if (!hasVerificationMatch(lookup)) return null
+	return lookup
 }
 
 /** `GET /v2/contract/all-chains/{address}` — match summaries for one address across chains. */
@@ -80,13 +117,17 @@ export const getContractLookupsByAddress = async ({
 }: {
 	address: `0x${string}`
 }) => {
-	const json = await sourcifyGetJsonOrNull<SourcifyContractMatchList>({
+	const json = await sourcifyGetJsonOrNull({
 		path: getContractLookupsByAddressPath({
 			address: zeroExLowerCase(address),
 		}),
 	})
 	if (json == null) return null
-	return json.results
+	return assertEnvelope(
+		'contract match list',
+		sourcifyContractMatchListEnvelope,
+		json
+	).results as SourcifyContractMatchSummary[]
 }
 
 /** `GET /v2/contracts/{chainId}` — paginated verified-contract summaries for a chain. */
@@ -101,7 +142,7 @@ export const listVerifiedContracts = async ({
 	sort?: 'asc' | 'desc'
 	afterMatchId?: string
 }) => {
-	const json = await sourcifyGetJsonOrNull<SourcifyContractMatchList>({
+	const json = await sourcifyGetJsonOrNull({
 		path: listVerifiedContractsPath({
 			chainId,
 			limit,
@@ -110,5 +151,9 @@ export const listVerifiedContracts = async ({
 		}),
 	})
 	if (json == null) return null
-	return json.results
+	return assertEnvelope(
+		'verified contract list',
+		sourcifyContractMatchListEnvelope,
+		json
+	).results as SourcifyContractMatchSummary[]
 }
