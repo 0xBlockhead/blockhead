@@ -47,6 +47,7 @@
 					select(EntityType.FilecoinActor, data.selector, {
 						sources: [
 							Source.Lotus_JsonRpc,
+							Source.Filfox_Rest,
 						],
 					})
 				}

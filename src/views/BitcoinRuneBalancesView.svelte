@@ -32,6 +32,7 @@
 					fields: {
 						spacedRune: true,
 						rune: true,
+						number: true,
 					},
 				},
 			},

@@ -2242,6 +2242,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/osmosis-position/[positionId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/osmosis-position/[positionId=stringSegment]',
+		mappings: [
+			{
+				id: 'OsmosisPosition.NetworkPositionId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/osmosis-position/[positionId]:OsmosisPosition.NetworkPositionId'],
+				probeCases: [[[0, '1', ['positionId', 'network']]]],
+				projectionPath: [
+					'Cosmos',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/pallet/[palletName]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/pallet/[palletName=stringSegment]',
 		mappings: [

@@ -33,6 +33,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Lotus_JsonRpc,
+			Source.Filfox_Rest,
 		],
 	},
 })({

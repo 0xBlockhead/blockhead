@@ -36,6 +36,13 @@ export default entity({
 			Source.CosmosSdk_Rest,
 		],
 	},
+	$$osmosisPositions: {
+		entityType: EntityType.OsmosisPosition,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Osmosis_LCD_Rest,
+		],
+	},
 })({
 	selectors: {
 		NetworkAddress: [

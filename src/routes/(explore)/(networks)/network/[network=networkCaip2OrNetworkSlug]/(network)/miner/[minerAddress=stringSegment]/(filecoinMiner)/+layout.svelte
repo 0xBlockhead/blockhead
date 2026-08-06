@@ -47,6 +47,7 @@
 					select(EntityType.FilecoinMiner, data.selector, {
 						sources: [
 							Source.Lotus_JsonRpc,
+							Source.Filfox_Rest,
 						],
 					})
 				}

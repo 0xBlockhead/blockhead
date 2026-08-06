@@ -27,6 +27,13 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	liquidityKind: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Osmosis_LCD_Rest,
+		],
+	},
 	address: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -83,12 +90,23 @@ export default entity({
 		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	lastLiquidityUpdate: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Osmosis_LCD_Rest,
+		],
+	},
 	$$assets: {
 		entityType: EntityType.OsmosisPoolAsset,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Osmosis_LCD_Rest,
 		],
+	},
+	$$positions: {
+		entityType: EntityType.OsmosisPosition,
+		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
 		entityType: EntityType.OsmosisPool_Timestamp,

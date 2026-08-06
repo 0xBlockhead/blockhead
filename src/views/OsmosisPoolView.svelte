@@ -36,6 +36,7 @@
 			typeUrl: true,
 			swapFee: true,
 			exitFee: true,
+			liquidityKind: true,
 		},
 	}))
 	const titleFallback = $derived([selection.entitySelector.poolId, (prefetched.typeUrl ?? '')].filter(Boolean).join(' ') || 'Osmosis pool')
@@ -49,6 +50,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import OsmosisPoolAssetsView from '$/views/OsmosisPoolAssetsView.svelte'
+	import OsmosisPositionsView from '$/views/OsmosisPositionsView.svelte'
 	import OsmosisPool_TimestampsView from '$/views/OsmosisPool_TimestampsView.svelte'
 </script>
 
@@ -96,17 +98,19 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<span data-text="muted">
-			<NetworkView
-				selection={select(EntityType.Network, selection.entitySelector.$network)}
-				layout={EntityLayout.Title}
-			/>
-		</span>
-
 		<ResourceBoundary resource={osmosisPool}>
 			{#snippet children(entity)}
-				{#if entity.typeUrl?.includes('concentratedliquidity')}
-					<span data-text="muted">Concentrated liquidity</span>
+				<span data-text="muted">
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						layout={EntityLayout.Title}
+					/>
+				</span>
+				{@const liquidityKind = entity.liquidityKind}
+				{#if liquidityKind != null}
+					<span data-text="muted">
+						{liquidityKind}
+					</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -147,6 +151,22 @@
 								>
 									<TruncatedValue value={typeUrl} />
 								</a>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={osmosisPool}
+			>
+				{#snippet children(entity)}
+					{@const liquidityKind = entity.liquidityKind}
+					{#if liquidityKind != null}
+						<div>
+							<dt>Liquidity kind</dt>
+							<dd>
+								{liquidityKind}
 							</dd>
 						</div>
 					{/if}
@@ -291,6 +311,28 @@
 							<dt>Total shares denom</dt>
 							<dd>
 								{totalSharesDenom}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							lastLiquidityUpdate: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const lastLiquidityUpdate = entity.lastLiquidityUpdate}
+					{#if lastLiquidityUpdate != null}
+						<div>
+							<dt>Last liquidity update</dt>
+							<dd>
+								{lastLiquidityUpdate}
 							</dd>
 						</div>
 					{/if}
@@ -466,6 +508,10 @@
 						label: 'Assets',
 					},
 					{
+						id: 'osmosis-pool-positions',
+						label: 'Positions',
+					},
+					{
 						id: 'osmosis-pool-spot',
 						label: 'Spot prices',
 					},
@@ -493,6 +539,23 @@
 					collapsible={false}
 					title={label}
 					emptyText='No pool assets.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionOsmosisPoolPositions({ id, label })}
+				<OsmosisPositionsView
+					selection={
+						selection
+						.$$positions({
+							sources: [
+								Source.Osmosis_LCD_Rest,
+							],
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No concentrated liquidity positions.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

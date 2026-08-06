@@ -30,6 +30,7 @@
 				spacedRune: true,
 				rune: true,
 				runeId: true,
+				number: true,
 			},
 		})
 	}
@@ -45,7 +46,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{bitcoinRuneSelector.runeId}
+				{[bitcoinRuneSelector.runeId, String(bitcoinRune.number ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

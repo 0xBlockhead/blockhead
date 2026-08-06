@@ -765,6 +765,7 @@ export enum EntityType {
 	OsmosisPool = 'OsmosisPool',
 	OsmosisPool_Timestamp = 'OsmosisPool_Timestamp',
 	OsmosisPoolAsset = 'OsmosisPoolAsset',
+	OsmosisPosition = 'OsmosisPosition',
 	PayjoinDirectory = 'PayjoinDirectory',
 	PayjoinEndpoint = 'PayjoinEndpoint',
 	PayjoinEndpoint_Timestamp = 'PayjoinEndpoint_Timestamp',

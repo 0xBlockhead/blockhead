@@ -36,6 +36,13 @@ export default entity({
 			Source.UniSat_Rest,
 		],
 	},
+	number: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
 	symbol: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -50,8 +57,85 @@ export default entity({
 			Source.UniSat_Rest,
 		],
 	},
+	etchingHeight: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	etchingTimestampMs: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
 	$etchingTransaction: {
 		entityType: EntityType.UtxoTransaction,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	premine: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	supply: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	holders: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	mintable: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	remaining: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	termsAmount: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	termsCap: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	termsHeightStart: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	termsHeightEnd: {
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.UniSat_Rest,

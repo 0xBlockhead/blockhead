@@ -6,6 +6,7 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -30,6 +31,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CosmosAccount_TimestampsView from '$/views/CosmosAccount_TimestampsView.svelte'
 	import CosmosTransactionsView from '$/views/CosmosTransactionsView.svelte'
+	import OsmosisPositionsView from '$/views/OsmosisPositionsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -124,6 +126,26 @@
 						countResource={transactionsResource.count}
 						title='Transactions'
 						id='transactions'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const osmosisPositionsResource = selection
+			.$$osmosisPositions({
+				sources: [
+					Source.Osmosis_LCD_Rest,
+				],
+			})}
+		<ResourceBoundary
+			resource={osmosisPositionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<OsmosisPositionsView
+						selection={osmosisPositionsResource}
+						countResource={osmosisPositionsResource.count}
+						title='Osmosis positions'
+						id='osmosis-positions'
 					/>
 				{/if}
 			{/snippet}

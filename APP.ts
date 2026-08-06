@@ -1936,6 +1936,7 @@ export enum EntityType {
 	OsmosisPool = "OsmosisPool",
 	OsmosisPool_Timestamp = "OsmosisPool_Timestamp",
 	OsmosisPoolAsset = "OsmosisPoolAsset",
+	OsmosisPosition = "OsmosisPosition",
 	PayjoinDirectory = "PayjoinDirectory",
 	PayjoinEndpoint = "PayjoinEndpoint",
 	PayjoinEndpoint_Timestamp = "PayjoinEndpoint_Timestamp",
@@ -13256,9 +13257,21 @@ export const schema = {
 				"runeId": { label: "Rune ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"rune": { label: "Rune", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
 				"spacedRune": { label: "Spaced rune", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+				"number": { label: "Number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
 				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
 				"divisibility": { label: "Divisibility", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
+				"etchingHeight": { label: "Etching height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
+				"etchingTimestampMs": { label: "Etching timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.UniSat_Rest] },
 				"$etchingTransaction": { label: "Etching transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoTransaction, defaultSources: [Source.UniSat_Rest] },
+				"premine": { label: "Premine", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+				"supply": { label: "Supply", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+				"holders": { label: "Holders", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
+				"mintable": { label: "Mintable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.UniSat_Rest] },
+				"remaining": { label: "Remaining", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+				"termsAmount": { label: "Terms amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+				"termsCap": { label: "Terms cap", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+				"termsHeightStart": { label: "Terms height start", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
+				"termsHeightEnd": { label: "Terms height end", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
 			})({
 				selectors: {
 					"NetworkRuneId": ["$network", "runeId"],
@@ -13266,10 +13279,12 @@ export const schema = {
 				views: {
 					singular: {
 						query: { sources: [Source.UniSat_Rest] },
-						summary: { title: ["spacedRune", "rune"], value: [{ field: "runeId", format: "truncated" }] },
+						summary: { title: ["spacedRune", "rune"], value: [{ field: "runeId", format: "truncated" }, "number"] },
 						content: {
 							dl: [
-								["$network", { field: "runeId", format: "truncated" }, "spacedRune", "rune", "symbol", "divisibility", "$etchingTransaction"],
+								["$network", { field: "runeId", format: "truncated" }, "spacedRune", "rune", "number", "symbol", "divisibility", "$etchingTransaction"],
+								["etchingHeight", "etchingTimestampMs", "premine", "supply", "holders", "mintable", "remaining"],
+								["termsAmount", "termsCap", "termsHeightStart", "termsHeightEnd"],
 							],
 						},
 					},
@@ -24726,6 +24741,7 @@ export const schema = {
 				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$$timestamps": { label: "Timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosAccount_Timestamp, defaultSources: [Source.CosmosSdk_Rest, Source.Mintscan] },
 				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosTransaction, defaultSources: [Source.CosmosSdk_Rest] },
+				"$$osmosisPositions": { label: "Osmosis positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPosition, defaultSources: [Source.Osmosis_LCD_Rest] },
 			})({
 				selectors: {
 					"NetworkAddress": ["$network", "address"],
@@ -24742,6 +24758,7 @@ export const schema = {
 						lists: [
 							{ field: "$$timestamps", component: "CosmosAccount_TimestampsView", label: "Account snapshots", emptyText: "No Cosmos account observations." },
 							{ field: "$$transactions", component: "CosmosTransactionsView", label: "Transactions", emptyText: "No Cosmos transactions." },
+							{ field: "$$osmosisPositions", component: "OsmosisPositionsView", label: "Osmosis positions", emptyText: "No Osmosis concentrated liquidity positions.", query: { sources: [Source.Osmosis_LCD_Rest] } },
 						],
 					},
 					plural: { component: "CosmosAccountsView", title: "Accounts", },
@@ -34017,7 +34034,7 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"address": { label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinActor_Timestamp, defaultSources: [Source.Lotus_JsonRpc] },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinActor_Timestamp, defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
 			})({
 				selectors: {
 					"NetworkAddress": ["$network", "address"],
@@ -34025,14 +34042,14 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Lotus_JsonRpc],
+							sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
 						},
 						latest: [
 							{
 								field: "$$timestamps",
 								label: "Latest observation",
 								query: {
-									sources: [Source.Lotus_JsonRpc],
+									sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
 									limit: 16,
 								},
 								fields: ["height", "timestampMs", "balanceAttoFil", "source"],
@@ -34299,12 +34316,12 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"cid": { label: "CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$from": { label: "From", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest] },
-				"$to": { label: "To", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest] },
-				"method": { label: "Method", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Filfox_Rest] },
-				"nonce": { label: "Nonce", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
-				"valueAttoFil": { label: "Value attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
-				"gasLimit": { label: "Gas limit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"$from": { label: "From", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"$to": { label: "To", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"method": { label: "Method", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"nonce": { label: "Nonce", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"valueAttoFil": { label: "Value attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"gasLimit": { label: "Gas limit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
 			})({
 				selectors: {
 					"NetworkCid": ["$network", "cid"],
@@ -34312,7 +34329,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Filfox_Rest],
+							sources: [Source.Filfox_Rest, Source.Lotus_JsonRpc],
 						},
 						summary: {
 							title: [{ field: "cid", format: "truncated" }],
@@ -34336,7 +34353,7 @@ export const schema = {
 					},
 					plural: { component: "FilecoinMessagesView",
 						query: {
-							sources: [Source.Filfox_Rest],
+							sources: [Source.Filfox_Rest, Source.Lotus_JsonRpc],
 						},
 					},
 				},
@@ -34405,7 +34422,7 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"minerAddress": { label: "Miner address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$$sectors": { label: "Sectors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinSector, defaultSources: [Source.Lotus_JsonRpc] },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMiner_Timestamp, defaultSources: [Source.Lotus_JsonRpc] },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMiner_Timestamp, defaultSources: [Source.Lotus_JsonRpc, Source.Filfox_Rest] },
 			})({
 				selectors: {
 					"NetworkMinerAddress": ["$network", "minerAddress"],
@@ -34413,14 +34430,14 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Lotus_JsonRpc],
+							sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
 						},
 						latest: [
 							{
 								field: "$$timestamps",
 								label: "Latest observation",
 								query: {
-									sources: [Source.Lotus_JsonRpc],
+									sources: [Source.Lotus_JsonRpc, Source.Filfox_Rest],
 									limit: 16,
 								},
 								fields: ["height", "timestampMs", "qualityAdjustedPower", "liveSectorCount", "source"],
@@ -48445,10 +48462,10 @@ export const schema = {
 						path: ["namespace"],
 						is: "Arweave",
 					})({
-						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveNetwork_Timestamp, defaultSources: [Source.Arweave_Graphql] },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveBlock, defaultSources: [Source.Arweave_Graphql] },
+						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveNetwork_Timestamp, defaultSources: [Source.Arweave_Graphql, Source.Arweave_Rest] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveBlock, defaultSources: [Source.Arweave_Graphql, Source.Arweave_Rest] },
 						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveTransaction, defaultSources: [Source.Arweave_Graphql] },
-						"$$resources": { label: "Resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveResource, defaultSources: [Source.Arweave_Graphql] },
+						"$$resources": { label: "Resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveResource, defaultSources: [Source.Arweave_Graphql, Source.Arweave_Rest] },
 					})({
 						singularView: {
 							carousels: [
@@ -48457,8 +48474,8 @@ export const schema = {
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "arweave-chain-observations", field: ["Arweave", "$$timestamps"], List: "ArweaveNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Arweave_Graphql], limit: 16 } },
-										{ id: "arweave-chain-blocks", field: ["Arweave", "$$blocks"], List: "ArweaveBlocksView", label: "Blocks", selection: { sources: [Source.Arweave_Graphql], limit: 16 } },
+										{ id: "arweave-chain-observations", field: ["Arweave", "$$timestamps"], List: "ArweaveNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Arweave_Graphql, Source.Arweave_Rest], limit: 16 } },
+										{ id: "arweave-chain-blocks", field: ["Arweave", "$$blocks"], List: "ArweaveBlocksView", label: "Blocks", selection: { sources: [Source.Arweave_Graphql, Source.Arweave_Rest], limit: 16 } },
 										{ id: "arweave-chain-transactions", field: ["Arweave", "$$transactions"], List: "ArweaveTransactionsView", label: "Transactions", selection: { sources: [Source.Arweave_Graphql], limit: 16 } },
 									],
 								},
@@ -48467,7 +48484,7 @@ export const schema = {
 									label: "Resources",
 									className: "network-view-collapsible-resources",
 									sections: [
-										{ id: "arweave-resource-list", field: ["Arweave", "$$resources"], List: "ArweaveResourcesView", label: "Resources", emptyText: "No Arweave resources.", selection: { sources: [Source.Arweave_Graphql], limit: 16 } },
+										{ id: "arweave-resource-list", field: ["Arweave", "$$resources"], List: "ArweaveResourcesView", label: "Resources", emptyText: "No Arweave resources.", selection: { sources: [Source.Arweave_Graphql, Source.Arweave_Rest], limit: 16 } },
 									],
 								},
 							],
@@ -50665,6 +50682,7 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"poolId": { label: "Pool ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"typeUrl": { label: "Type URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"liquidityKind": { label: "Liquidity kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
 				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"swapFee": { label: "Swap fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
 				"exitFee": { label: "Exit fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
@@ -50679,7 +50697,9 @@ export const schema = {
 				"tickSpacing": { label: "Tick spacing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"exponentAtPriceOne": { label: "Exponent at price one", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"spreadFactor": { label: "Spread factor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"lastLiquidityUpdate": { label: "Last liquidity update", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
 				"$$assets": { label: "Assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPoolAsset, defaultSources: [Source.Osmosis_LCD_Rest] },
+				"$$positions": { label: "Positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPosition },
 				"$$timestamps": { label: "Spot prices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPool_Timestamp },
 			})({
 				selectors: {
@@ -50693,13 +50713,13 @@ export const schema = {
 						summary: {
 							title: ["poolId", "typeUrl"],
 							value: ["swapFee", "exitFee"],
-							HeadingAfter: ["$network"],
+							HeadingAfter: ["$network", "liquidityKind"],
 						},
 						closed: ["poolId", "typeUrl", "swapFee"],
 						content: {
 							dl: [
-								["$network", "poolId", "typeUrl", { field: "address", format: "truncated" }],
-								["swapFee", "exitFee", "spreadFactor", "totalWeight", "totalSharesAmount", "totalSharesDenom"],
+								["$network", "poolId", "typeUrl", "liquidityKind", { field: "address", format: "truncated" }],
+								["swapFee", "exitFee", "spreadFactor", "totalWeight", "totalSharesAmount", "totalSharesDenom", "lastLiquidityUpdate"],
 								["token0Denom", "token1Denom", "currentSqrtPrice", "currentTick", "currentTickLiquidity", "tickSpacing", "exponentAtPriceOne"],
 							],
 						},
@@ -50710,6 +50730,7 @@ export const schema = {
 								className: "network-view-collapsible-balances",
 								sections: [
 									{ id: "osmosis-pool-assets", field: "$$assets", List: "OsmosisPoolAssetsView", label: "Assets", emptyText: "No pool assets.", selection: { sources: [Source.Osmosis_LCD_Rest] } },
+									{ id: "osmosis-pool-positions", field: "$$positions", List: "OsmosisPositionsView", label: "Positions", emptyText: "No concentrated liquidity positions.", selection: { sources: [Source.Osmosis_LCD_Rest] } },
 									{ id: "osmosis-pool-spot", field: "$$timestamps", List: "OsmosisPool_TimestampsView", label: "Spot prices", emptyText: "No spot price observations." },
 								],
 							},
@@ -50790,6 +50811,53 @@ export const schema = {
 						},
 					},
 					plural: { component: "OsmosisPoolAssetsView", title: "Pool assets" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.OsmosisPosition,
+				labels: {
+					singular: "Osmosis position",
+					plural: "Osmosis positions",
+				},
+				description: "An Osmosis concentrated-liquidity position identified by numeric position id on cosmos:osmosis-1.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"positionId": { label: "Position ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.OsmosisPool, defaultSources: [Source.Osmosis_LCD_Rest] },
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.CosmosAccount, defaultSources: [Source.Osmosis_LCD_Rest] },
+				"tickLower": { label: "Tick lower", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"tickUpper": { label: "Tick upper", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"liquidity": { label: "Liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"joinTime": { label: "Join time", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"asset0Amount": { label: "Asset 0 amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"asset0Denom": { label: "Asset 0 denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"asset1Amount": { label: "Asset 1 amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"asset1Denom": { label: "Asset 1 denom", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"claimableSpreadRewards": { label: "Claimable spread rewards", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
+			})({
+				selectors: {
+					"NetworkPositionId": ["$network", "positionId"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Osmosis_LCD_Rest],
+						},
+						summary: {
+							title: ["positionId"],
+							value: ["liquidity", "tickLower", "tickUpper"],
+							HeadingAfter: ["$pool"],
+						},
+						content: {
+							dl: [
+								["$network", "positionId", "$pool", "$account"],
+								["tickLower", "tickUpper", "liquidity", "joinTime"],
+								["asset0Denom", "asset0Amount", "asset1Denom", "asset1Amount", "claimableSpreadRewards"],
+							],
+						},
+					},
+					plural: { component: "OsmosisPositionsView", title: "Osmosis positions" },
 				},
 			}),
 
@@ -80334,6 +80402,30 @@ export const routes = defineRoutes(schema)({
 																},
 																params: {
 																	"poolId": ["poolId"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"osmosis-position": {
+											children: {
+												"[positionId]": {
+													selectors: {
+														[EntityType.OsmosisPosition]: {
+															"NetworkPositionId": {
+																when: {
+																	path: ["namespace"],
+																	is: "Cosmos",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Cosmos"],
+																},
+																params: {
+																	"positionId": ["positionId"],
 																},
 																page: {},
 															},

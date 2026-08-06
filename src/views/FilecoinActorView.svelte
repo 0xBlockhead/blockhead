@@ -72,6 +72,7 @@
 							.$$timestamps({
 								sources: [
 									Source.Lotus_JsonRpc,
+									Source.Filfox_Rest,
 								],
 								fields: {
 									height: true,
@@ -93,6 +94,7 @@
 										select(EntityType.FilecoinActor_Timestamp, filecoinActorTimestampSelector, {
 											sources: [
 												Source.Lotus_JsonRpc,
+												Source.Filfox_Rest,
 											],
 										})
 									}

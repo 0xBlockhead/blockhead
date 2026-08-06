@@ -16,27 +16,26 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.FilecoinActor, data.selector, {
+	const pageSelection = $derived(select(EntityType.OsmosisPosition, data.selector, {
 		sources: [
-			Source.Lotus_JsonRpc,
-			Source.Filfox_Rest,
+			Source.Osmosis_LCD_Rest,
 		],
 	}))
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import FilecoinActorView from '$/views/FilecoinActorView.svelte'
+	import OsmosisPositionView from '$/views/OsmosisPositionView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.address || 'filecoin actor')} • filecoin actor • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.positionId || 'Osmosis position')} • Osmosis position • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	<FilecoinActorView
+	<OsmosisPositionView
 		selection={pageSelection}
 	/>
 </Page>

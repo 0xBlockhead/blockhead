@@ -24,6 +24,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Filfox_Rest,
+			Source.Lotus_JsonRpc,
 		],
 	}))
 	const filecoinMessage = $derived(viewSelection({
