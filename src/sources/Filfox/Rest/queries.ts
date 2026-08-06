@@ -8,6 +8,7 @@ import type {
 	FilfoxDeal,
 	FilfoxDealsPage,
 	FilfoxMessage,
+	FilfoxMessageEvent,
 	FilfoxMessagesPage,
 	FilfoxOverview,
 	FilfoxTipset,
@@ -95,7 +96,56 @@ const filfoxMessageDetailWire = arktype({
 	'ethTransactionHash?': 'string',
 	'eventLogCount?': 'number.integer',
 	'subcallCount?': 'number.integer',
-	'tokenTransfers?': 'unknown[]',
+	'tokenTransfers?': arktype({
+		from: 'string',
+		to: 'string',
+		value: 'string',
+		'type?': 'string',
+		'token?': 'string',
+		'tokenId?': 'string',
+		'tokenName?': 'string',
+		'tokenSymbol?': 'string',
+		'fromId?': 'string',
+		'toId?': 'string',
+	}).array(),
+})
+
+const filfoxMessageEventWire = arktype({
+	address: 'string',
+	'name?': 'string',
+	data: 'string',
+	topics: 'string[]',
+	'removed?': 'boolean',
+	'logIndex?': 'number.integer',
+})
+
+const filfoxMessageSubcallWire = arktype({
+	from: 'string',
+	'fromId?': 'string',
+	'fromActor?': 'string',
+	to: 'string',
+	'toId?': 'string',
+	'toActor?': 'string',
+	value: 'string',
+	method: 'string',
+	'methodNumber?': 'number.integer',
+	'params?': 'string',
+	'receipt?': filfoxMessageReceiptWire,
+	// Nested trees validated one level deep; deeper nests stay typed in TS.
+	'subcalls?': arktype({
+		from: 'string',
+		'fromId?': 'string',
+		'fromActor?': 'string',
+		to: 'string',
+		'toId?': 'string',
+		'toActor?': 'string',
+		value: 'string',
+		method: 'string',
+		'methodNumber?': 'number.integer',
+		'params?': 'string',
+		'receipt?': filfoxMessageReceiptWire,
+		'subcalls?': 'unknown[]',
+	}).array(),
 })
 
 const assertMessagesPageEnvelope = (response: unknown): FilfoxMessagesPage => {
@@ -111,6 +161,22 @@ const assertMessageDetailEnvelope = (response: unknown): FilfoxMessage => {
 		return filfoxMessageDetailWire.assert(response)
 	} catch {
 		throw new Error(`${Source.Filfox_Rest}: invalid message response envelope`)
+	}
+}
+
+const assertMessageEventsEnvelope = (response: unknown): FilfoxMessageEvent[] => {
+	try {
+		return filfoxMessageEventWire.array().assert(response)
+	} catch {
+		throw new Error(`${Source.Filfox_Rest}: invalid message events response envelope`)
+	}
+}
+
+const assertMessageSubcallsEnvelope = (response: unknown) => {
+	try {
+		return filfoxMessageSubcallWire.array().assert(response)
+	} catch {
+		throw new Error(`${Source.Filfox_Rest}: invalid message subcalls response envelope`)
 	}
 }
 
@@ -159,6 +225,44 @@ export const getMessage = ({
 
 			return message
 		})
+}
+
+/**
+ * EVM-style event logs for an executed message (`eventLogCount` on detail).
+ * @see https://filfox.info/api/v1/message/{cid}/events
+ */
+export const getMessageEvents = ({
+	messageCid,
+}: {
+	messageCid: string
+}) => {
+	if (messageCid === '')
+		throw new Error(`${Source.Filfox_Rest}: empty message cid`)
+
+	return sourceGetJson<unknown>(
+		binding,
+		`${baseUrl}/message/${messageCid}/events`
+	)
+		.then(assertMessageEventsEnvelope)
+}
+
+/**
+ * Nested actor subcalls for an executed message (`subcallCount` on detail).
+ * @see https://filfox.info/api/v1/message/{cid}/subcalls
+ */
+export const getMessageSubcalls = ({
+	messageCid,
+}: {
+	messageCid: string
+}) => {
+	if (messageCid === '')
+		throw new Error(`${Source.Filfox_Rest}: empty message cid`)
+
+	return sourceGetJson<unknown>(
+		binding,
+		`${baseUrl}/message/${messageCid}/subcalls`
+	)
+		.then(assertMessageSubcallsEnvelope)
 }
 
 /**

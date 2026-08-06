@@ -55,6 +55,54 @@ export type FilfoxMessageTransfer = {
 }
 
 /**
+ * EVM-style log on `GET /message/{cid}/events` (count on detail as `eventLogCount`).
+ */
+export type FilfoxMessageEvent = {
+	address: string
+	name?: string
+	data: string
+	topics: string[]
+	removed?: boolean
+	logIndex?: number
+}
+
+/**
+ * Nested actor call on `GET /message/{cid}/subcalls` (count on detail as `subcallCount`).
+ * `receipt` mirrors message-list receipts (often omits `gasUsed`).
+ */
+export type FilfoxMessageSubcall = {
+	from: string
+	fromId?: string
+	fromActor?: string
+	to: string
+	toId?: string
+	toActor?: string
+	value: string
+	method: string
+	methodNumber?: number
+	params?: string
+	receipt?: FilfoxMessageReceipt
+	subcalls?: FilfoxMessageSubcall[]
+}
+
+/**
+ * Token transfer rows on message detail (`tokenTransfers`).
+ * Observed empty on many messages; typed from Filfox explorer token-transfer cards.
+ */
+export type FilfoxMessageTokenTransfer = {
+	from: string
+	to: string
+	value: string
+	type?: string
+	token?: string
+	tokenId?: string
+	tokenName?: string
+	tokenSymbol?: string
+	fromId?: string
+	toId?: string
+}
+
+/**
  * Shared message row fields from Filfox list surfaces
  * (`/message/list`, `/block/{cid}/messages`, `/address/{address}/messages`).
  * Observation clocks (`height` / `timestamp`) are present on included messages;
@@ -99,7 +147,7 @@ export type FilfoxMessage = FilfoxMessageListItem & {
 	ethTransactionHash?: string
 	eventLogCount?: number
 	subcallCount?: number
-	tokenTransfers?: unknown[]
+	tokenTransfers?: FilfoxMessageTokenTransfer[]
 }
 
 export type FilfoxMessagesPage = {

@@ -22,6 +22,8 @@ const {
 	getDeal,
 	getDeals,
 	getMessage,
+	getMessageEvents,
+	getMessageSubcalls,
 	getMessages,
 	getOverview,
 	getTipset,
@@ -92,6 +94,8 @@ describe('Filfox REST queries', () => {
 		sourceGetJson
 			.mockResolvedValueOnce({})
 			.mockResolvedValueOnce(messageDetail)
+			.mockResolvedValueOnce([])
+			.mockResolvedValueOnce([])
 			.mockResolvedValueOnce({
 				totalCount: 0,
 				messages: [],
@@ -114,6 +118,12 @@ describe('Filfox REST queries', () => {
 			height: 42n,
 		})
 		await getMessage({
+			messageCid: 'bafy-message',
+		})
+		await getMessageEvents({
+			messageCid: 'bafy-message',
+		})
+		await getMessageSubcalls({
 			messageCid: 'bafy-message',
 		})
 		await getMessages({
@@ -153,6 +163,14 @@ describe('Filfox REST queries', () => {
 			[
 				binding,
 				'https://filfox.info/api/v1/message/bafy-message',
+			],
+			[
+				binding,
+				'https://filfox.info/api/v1/message/bafy-message/events',
+			],
+			[
+				binding,
+				'https://filfox.info/api/v1/message/bafy-message/subcalls',
 			],
 			[
 				binding,
@@ -259,7 +277,122 @@ describe('Filfox REST queries', () => {
 		expect(() => getMessage({
 			messageCid: '',
 		})).toThrow(`${Source.Filfox_Rest}: empty message cid`)
+		expect(() => getMessageEvents({
+			messageCid: '',
+		})).toThrow(`${Source.Filfox_Rest}: empty message cid`)
+		expect(() => getMessageSubcalls({
+			messageCid: '',
+		})).toThrow(`${Source.Filfox_Rest}: empty message cid`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('returns typed message event and subcall envelopes', async () => {
+		const events = [{
+			address: 'f410fxloqxewby4oqfz6ved3eycdwkoh2evl7wlysraq',
+			name: 'PiecesAdded(uint256,uint256[],(bytes)[])',
+			data: '0x00',
+			topics: [
+				'0x396df50222a87662e94bb7d173792d5e61fe0b193b6ccf791f7ce433f0b28207',
+			],
+			removed: false,
+			logIndex: 45,
+		}]
+		const subcalls = [{
+			from: 'f03677600',
+			fromId: 'f03677600',
+			fromActor: 'evm',
+			to: 'f03785034',
+			toId: 'f03785034',
+			toActor: 'evm',
+			value: '0',
+			method: 'GetBytecode',
+			methodNumber: 3,
+			params: '0x',
+			receipt: {
+				exitCode: 0,
+				return: '0xd82a',
+			},
+			subcalls: [],
+		}]
+		sourceGetJson
+			.mockResolvedValueOnce(events)
+			.mockResolvedValueOnce(subcalls)
+
+		await expect(getMessageEvents({
+			messageCid: 'bafy-message',
+		})).resolves.toEqual(events)
+		await expect(getMessageSubcalls({
+			messageCid: 'bafy-message',
+		})).resolves.toEqual(subcalls)
+		expect(sourceGetJson.mock.calls).toEqual([
+			[
+				binding,
+				'https://filfox.info/api/v1/message/bafy-message/events',
+			],
+			[
+				binding,
+				'https://filfox.info/api/v1/message/bafy-message/subcalls',
+			],
+		])
+	})
+
+	it('rejects malformed message event / subcall envelopes instead of soft-emptying', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				address: 'f410',
+				data: '0x00',
+			},
+		])
+		await expect(getMessageEvents({
+			messageCid: 'bafy-message',
+		})).rejects.toThrow(`${Source.Filfox_Rest}: invalid message events response envelope`)
+
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				from: 'f1',
+				to: 'f2',
+				value: '0',
+			},
+		])
+		await expect(getMessageSubcalls({
+			messageCid: 'bafy-message',
+		})).rejects.toThrow(`${Source.Filfox_Rest}: invalid message subcalls response envelope`)
+	})
+
+	it('accepts typed tokenTransfers on message detail', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...messageDetail,
+			tokenTransfers: [{
+				from: 'f1from',
+				to: 'f1to',
+				value: '100',
+				type: 'erc20',
+				token: 'f410token',
+				tokenSymbol: 'USDFC',
+			}],
+		})
+
+		await expect(getMessage({
+			messageCid: 'bafy-message',
+		})).resolves.toMatchObject({
+			tokenTransfers: [{
+				tokenSymbol: 'USDFC',
+				value: '100',
+			}],
+		})
+	})
+
+	it('rejects malformed tokenTransfers on message detail', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...messageDetail,
+			tokenTransfers: [{
+				from: 'f1from',
+				value: '100',
+			}],
+		})
+		await expect(getMessage({
+			messageCid: 'bafy-message',
+		})).rejects.toThrow(`${Source.Filfox_Rest}: invalid message response envelope`)
 	})
 
 	it('returns typed global / address / block message list pages with observation clocks', async () => {
