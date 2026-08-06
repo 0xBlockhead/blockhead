@@ -1,3 +1,5 @@
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -7,6 +9,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import type { CompoundCometAccountPosition } from '$/sources/Compound/Contracts/types.ts'
 import type {
 	CompoundCometConfiguration,
 	CompoundCometConfigurationAsset,
@@ -17,8 +20,9 @@ import { Source } from '$/sources/Source.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type CompoundCometId = EntitySelector<typeof schema, EntityType.CompoundComet>
 type CompoundCometAssetId = EntitySelector<typeof schema, EntityType.CompoundCometAsset>
+type CompoundPositionId = EntitySelector<typeof schema, EntityType.CompoundPosition>
+type CompoundPositionCollateralId = EntitySelector<typeof schema, EntityType.CompoundPositionCollateral>
 type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
-type EvmNetworkAccountTimestampId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount_Timestamp>
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -174,6 +178,49 @@ const resolveCompoundComet = async ({
 	}
 }
 
+const compoundPositionSelector = (
+	$account: EvmNetworkAccountId,
+	cometAddress: `0x${string}`
+) => ({
+	$account,
+	$comet: {
+		$network: $account.$network,
+		cometAddress,
+	},
+})
+
+const mapCompoundPositionSnapshot = (
+	$account: EvmNetworkAccountId,
+	position: CompoundCometAccountPosition
+) => {
+	const $position = compoundPositionSelector($account, position.cometAddress)
+	return {
+		$account: {
+			[EntityMetaKey.Selector]: $account,
+		},
+		$comet: {
+			[EntityMetaKey.Selector]: $position.$comet,
+		},
+		baseTokenSymbol: position.baseToken.symbol,
+		baseTokenAddress: position.baseToken.address,
+		...(position.baseToken.suppliedBalance !== '0' && {
+			suppliedBalance: position.baseToken.suppliedBalance,
+		}),
+		...(position.baseToken.borrowedBalance !== '0' && {
+			borrowedBalance: position.baseToken.borrowedBalance,
+		}),
+		$$collaterals: position.collateral.map((collateral) => ({
+			[EntityMetaKey.Selector]: {
+				$position,
+				$asset: {
+					$comet: $position.$comet,
+					symbol: collateral.symbol,
+				},
+			},
+		})),
+	}
+}
+
 export default {
 	source: Source.Compound_Rest,
 
@@ -182,49 +229,125 @@ export default {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
-					resolve: async ({ $actor, $network }: EvmNetworkAccountId) => ({
-						$$timestamps: [
-							{
-								[EntityMetaKey.Selector]: {
-									$account: {
-										$actor,
-										$network,
-									},
-									timestampMs: Date.now(),
-									source: Source.Compound_Rest,
-								},
-							},
-						],
-					}),
+					resolve: async ({ $actor, $network }: EvmNetworkAccountId, context) => {
+						const chainId = eip155ChainId($network)
+						const { compoundNetworkByChainId } = await import('$/sources/Compound/Rest/constants.ts')
+						if (compoundNetworkByChainId[chainId] == null)
+							throw new Error(`${Source.Compound_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const { getAccountPositions } = await import('$/sources/Compound/Contracts/queries.ts')
+						const $account = {
+							$actor,
+							$network,
+						}
+						return (
+							(await getAccountPositions({
+								chainId,
+								account: $actor.address,
+							})).positions
+								.slice(0, resolverContextRowLimit(context))
+								.map((position) => ({
+									[EntityMetaKey.Selector]: compoundPositionSelector($account, position.cometAddress),
+								}))
+						)
+					},
 				},
 			},
 		})({
-			$$timestamps: (account) => account.$$timestamps,
+			$$compoundPositions: (positions) => positions,
 		}),
 
 		defineResolver({
-			entityType: EntityType.EvmNetworkAccount_Timestamp,
+			entityType: EntityType.CompoundPosition,
 			resolve: {
-				AccountTimestampMsSource: {
-					resolve: async ({ $account, timestampMs, source }: EvmNetworkAccountTimestampId) => {
+				AccountComet: {
+					resolve: async ({
+						$account,
+						$comet,
+					}: CompoundPositionId) => {
+						const chainId = eip155ChainId($account.$network)
+						const { compoundNetworkByChainId } = await import('$/sources/Compound/Rest/constants.ts')
+						if (compoundNetworkByChainId[chainId] == null)
+							throw new Error(`${Source.Compound_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const normalizedCometAddress = hexLowerOfByteSize($comet.cometAddress, 20)
+						if (normalizedCometAddress == null)
+							throw new Error(`${Source.Compound_Rest}: invalid comet address ${$comet.cometAddress}`)
+
 						const { getAccountPositions } = await import('$/sources/Compound/Contracts/queries.ts')
-						const { blockNumber, positions } = await getAccountPositions({
-							chainId: eip155ChainId($account.$network),
-							account: $account.$actor.address,
-						})
+						const position = (
+							await getAccountPositions({
+								chainId,
+								account: $account.$actor.address,
+							})
+						).positions.find((candidate) => candidate.cometAddress === normalizedCometAddress)
+						if (position == null)
+							throw new Error(`${Source.Compound_Rest}: position not found for comet ${normalizedCometAddress}`)
+
+						return mapCompoundPositionSnapshot($account, position)
+					},
+				},
+			},
+		})({
+			$account: (position) => position.$account,
+			$comet: (position) => position.$comet,
+			baseTokenSymbol: (position) => position.baseTokenSymbol,
+			baseTokenAddress: (position) => position.baseTokenAddress,
+			suppliedBalance: (position) => position.suppliedBalance,
+			borrowedBalance: (position) => position.borrowedBalance,
+			$$collaterals: {
+				select: (position) => position.$$collaterals,
+				resolveCount: (position) => position.$$collaterals.length,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.CompoundPositionCollateral,
+			resolve: {
+				PositionAsset: {
+					resolve: async ({
+						$position,
+						$asset,
+					}: CompoundPositionCollateralId) => {
+						const chainId = eip155ChainId($position.$account.$network)
+						const { compoundNetworkByChainId } = await import('$/sources/Compound/Rest/constants.ts')
+						if (compoundNetworkByChainId[chainId] == null)
+							throw new Error(`${Source.Compound_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const normalizedCometAddress = hexLowerOfByteSize($position.$comet.cometAddress, 20)
+						if (normalizedCometAddress == null)
+							throw new Error(`${Source.Compound_Rest}: invalid comet address ${$position.$comet.cometAddress}`)
+
+						const { getAccountPositions } = await import('$/sources/Compound/Contracts/queries.ts')
+						const position = (
+							await getAccountPositions({
+								chainId,
+								account: $position.$account.$actor.address,
+							})
+						).positions.find((candidate) => candidate.cometAddress === normalizedCometAddress)
+						if (position == null)
+							throw new Error(`${Source.Compound_Rest}: position not found for comet ${normalizedCometAddress}`)
+
+						const collateral = position.collateral.find((candidate) => candidate.symbol === $asset.symbol)
+						if (collateral == null)
+							throw new Error(`${Source.Compound_Rest}: position has no collateral ${$asset.symbol}`)
 
 						return {
-							timestampMs,
-							source,
-							blockNumber,
-							contractPositions: positions,
+							$position: {
+								[EntityMetaKey.Selector]: $position,
+							},
+							$asset: {
+								[EntityMetaKey.Selector]: $asset,
+							},
+							balance: collateral.balance,
 						}
 					},
 				},
 			},
 		})({
-			blockNumber: (timestamp) => timestamp.blockNumber,
-			contractPositions: (timestamp) => timestamp.contractPositions,
+			$position: (collateral) => collateral.$position,
+			$asset: (collateral) => collateral.$asset,
+			balance: (collateral) => collateral.balance,
 		}),
 
 		defineResolver({

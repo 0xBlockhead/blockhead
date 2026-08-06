@@ -57,9 +57,13 @@ const networkResolver = compoundRest.resolvers.find((resolver) => (
 ))
 const evmNetworkAccountResolver = compoundRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EvmNetworkAccount
+	&& '$$compoundPositions' in resolver.projections
 ))
-const evmNetworkAccountTimestampResolver = compoundRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.EvmNetworkAccount_Timestamp
+const compoundPositionResolver = compoundRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CompoundPosition
+))
+const compoundPositionCollateralResolver = compoundRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CompoundPositionCollateral
 ))
 
 const baseCometAddress = '0xb125e6687d4313864e53df431d5425969c15eb2f'
@@ -127,8 +131,8 @@ describe('Compound Rest resolver module', () => {
 
 	// Account positions intentionally resolve through the Comet EVM contract binding, not deployment REST.
 	it('publishes and resolves Compound account positions from the on-chain binding', async () => {
-		if (evmNetworkAccountResolver == null || evmNetworkAccountTimestampResolver == null)
-			throw new Error('missing Compound account resolvers')
+		if (evmNetworkAccountResolver == null || compoundPositionResolver == null)
+			throw new Error('missing Compound account position resolvers')
 
 		const accountSelector = {
 			$network: baseNetwork,
@@ -136,14 +140,6 @@ describe('Compound Rest resolver module', () => {
 				address: '0x0000000000000000000000000000000000000001',
 			},
 		}
-		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
-			accountSelector,
-			context
-		)
-		const [timestampReference] = evmNetworkAccountResolver.projections.$$timestamps(account)
-		if (timestampReference == null)
-			throw new Error('missing Compound account timestamp')
-
 		getAccountPositions.mockResolvedValue({
 			blockNumber: 123n,
 			positions: [
@@ -158,51 +154,137 @@ describe('Compound Rest resolver module', () => {
 						suppliedBalance: '1000000',
 						borrowedBalance: '0',
 					},
-					collateral: [],
+					collateral: [
+						{
+							symbol: 'WETH',
+							address: '0x4200000000000000000000000000000000000006',
+							balance: '1000',
+						},
+					],
 				},
 			],
 		})
 
-		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve(
-			timestampReference[EntityMetaKey.Selector],
+		const positions = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
 			context
 		)
-
-		expect(evmNetworkAccountTimestampResolver.projections.blockNumber(snapshot)).toBe(123n)
-		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([
-			expect.objectContaining({
-				protocol: 'Compound III',
-				marketSlug: 'usdc',
-			}),
+		expect(evmNetworkAccountResolver.projections.$$compoundPositions(positions)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$account: accountSelector,
+					$comet: {
+						$network: baseNetwork,
+						cometAddress: baseCometAddress,
+					},
+				},
+			},
 		])
 		expect(getAccountPositions).toHaveBeenCalledWith({
 			chainId: 8453,
 			account: accountSelector.$actor.address,
 		})
+
+		const snapshot = await compoundPositionResolver.resolve.AccountComet.resolve({
+			$account: accountSelector,
+			$comet: {
+				$network: baseNetwork,
+				cometAddress: baseCometAddress,
+			},
+		}, context)
+		expect(compoundPositionResolver.projections.baseTokenSymbol(snapshot)).toBe('USDC')
+		expect(compoundPositionResolver.projections.suppliedBalance(snapshot)).toBe('1000000')
+		expect(compoundPositionResolver.projections.borrowedBalance(snapshot)).toBe(undefined)
+		expect(compoundPositionResolver.projections.$$collaterals.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$position: {
+						$account: accountSelector,
+						$comet: {
+							$network: baseNetwork,
+							cometAddress: baseCometAddress,
+						},
+					},
+					$asset: {
+						$comet: {
+							$network: baseNetwork,
+							cometAddress: baseCometAddress,
+						},
+						symbol: 'WETH',
+					},
+				},
+			},
+		])
 	})
 
-	it('preserves an empty Compound positions list on contractPositions (confirms soft-empty [] is accurate)', async () => {
-		if (evmNetworkAccountTimestampResolver == null)
-			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
+	it('preserves an empty Compound positions list on $$compoundPositions (confirms soft-empty [] is accurate)', async () => {
+		if (evmNetworkAccountResolver == null)
+			throw new Error('missing EvmNetworkAccount Compound positions resolver')
 
 		getAccountPositions.mockResolvedValue({
 			blockNumber: 456n,
 			positions: [],
 		})
 
-		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+		const positions = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$network: baseNetwork,
+			$actor: {
+				address: '0x0000000000000000000000000000000000000001',
+			},
+		}, context)
+
+		expect(evmNetworkAccountResolver.projections.$$compoundPositions(positions)).toEqual([])
+	})
+
+	it('resolves Compound position collateral balances by PositionAsset', async () => {
+		if (compoundPositionCollateralResolver == null)
+			throw new Error('missing CompoundPositionCollateral resolver')
+
+		const $position = {
 			$account: {
 				$network: baseNetwork,
 				$actor: {
 					address: '0x0000000000000000000000000000000000000001',
 				},
 			},
-			timestampMs: 1760000000000,
-			source: Source.Compound_Rest,
-		}, context)
+			$comet: {
+				$network: baseNetwork,
+				cometAddress: baseCometAddress,
+			},
+		}
+		getAccountPositions.mockResolvedValue({
+			blockNumber: 123n,
+			positions: [
+				{
+					protocol: 'Compound III',
+					chainId: 8453,
+					marketSlug: 'usdc',
+					cometAddress: baseCometAddress,
+					baseToken: {
+						symbol: 'USDC',
+						address: baseConfiguration.baseTokenAddress.toLowerCase(),
+						suppliedBalance: '0',
+						borrowedBalance: '0',
+					},
+					collateral: [
+						{
+							symbol: 'WETH',
+							address: '0x4200000000000000000000000000000000000006',
+							balance: '1000',
+						},
+					],
+				},
+			],
+		})
 
-		expect(evmNetworkAccountTimestampResolver.projections.blockNumber(snapshot)).toBe(456n)
-		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([])
+		const snapshot = await compoundPositionCollateralResolver.resolve.PositionAsset.resolve({
+			$position,
+			$asset: {
+				$comet: $position.$comet,
+				symbol: 'WETH',
+			},
+		}, context)
+		expect(compoundPositionCollateralResolver.projections.balance(snapshot)).toBe('1000')
 	})
 
 	it('registers under Compound_Rest for CompoundComet', () => {
