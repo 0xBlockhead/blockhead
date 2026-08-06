@@ -42,6 +42,12 @@ const balancerPoolResolver = balancerRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BalancerPool
 ))
 
+const networkBalancerPoolsResolver = balancerRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Evm' in resolver.projections
+	&& '$$balancerPools' in resolver.projections.Evm
+))
+
 const weightedV2PoolId = '0x3de27efa2f1aa663ae5d458857e731c129069f29000200000000000000000588'
 
 const weightedV2Pool = {
@@ -100,6 +106,39 @@ describe('Balancer Rest resolver module', () => {
 				poolId: weightedV2PoolId,
 			}, context)
 		).rejects.toThrow(`${Source.Balancer_Rest}: network must use the eip155 CAIP-2 namespace`)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
+	it('rejects unsupported Balancer chains on BalancerPool before transport', async () => {
+		if (balancerPoolResolver == null)
+			throw new Error('missing BalancerPool resolver')
+
+		await expect(
+			balancerPoolResolver.resolve.NetworkPoolId.resolve({
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '999999',
+					},
+				},
+				poolId: weightedV2PoolId,
+			}, context)
+		).rejects.toThrow(`${Source.Balancer_Rest}: unsupported chain id 999999`)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
+	it('rejects unsupported Balancer chains on Network $$balancerPools before transport', async () => {
+		if (networkBalancerPoolsResolver == null)
+			throw new Error('missing Network $$balancerPools resolver')
+
+		await expect(
+			networkBalancerPoolsResolver.resolve.Caip2.resolve({
+				caip2: {
+					namespace: 'eip155',
+					reference: '999999',
+				},
+			}, context)
+		).rejects.toThrow(`${Source.Balancer_Rest}: unsupported chain id 999999`)
 		expect(graphql).not.toHaveBeenCalled()
 	})
 

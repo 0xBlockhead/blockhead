@@ -1,7 +1,6 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -58,6 +57,10 @@ export default {
 						poolId,
 					}: BalancerPoolId) => {
 						const chainId = eip155ChainId($network)
+						const { balancerChainByChainId } = await import('$/sources/Balancer/Rest/constants.ts')
+						if (balancerChainByChainId[chainId] == null)
+							throw new Error(`${Source.Balancer_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const { getPool } = await import('$/sources/Balancer/Rest/queries.ts')
 						return mapBalancerPoolSnapshot(
 							$network,
@@ -89,6 +92,10 @@ export default {
 				Caip2: {
 					resolve: async (network, context) => {
 						const chainId = eip155ChainId(network)
+						const { balancerChainByChainId } = await import('$/sources/Balancer/Rest/constants.ts')
+						if (balancerChainByChainId[chainId] == null)
+							throw new Error(`${Source.Balancer_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const { listPools } = await import('$/sources/Balancer/Rest/queries.ts')
 						return (await listPools({
 							chainId,
@@ -109,4 +116,4 @@ export default {
 			},
 		}),
 	],
-} as const satisfies RegisteredSourceResolverModule<Source.Balancer_Rest>
+} as const
