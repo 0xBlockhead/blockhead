@@ -5,7 +5,8 @@ import {
 } from '../ecosystems.ts'
 
 
-// Recover needs mnemonic fixture material; this shard proves create-new accounts only.
+// Account 3 recover stays blocked: no safe fixture material in CI.
+// Do not invent a recover pass — keep that cell explicitly blocked.
 export const keplrWalletMatrixScenarios = (version: string) => ([
 	{
 		id: 'keplr-create-new-1',
@@ -50,6 +51,6 @@ export const keplrWalletMatrixScenarios = (version: string) => ([
 		connectionMethod: 'enable',
 		chain: 'cosmos:cosmoshub-4',
 		requestMethod: 'getOfflineSignerAuto',
-		lifecycleEdgeCase: 'fixture-material-not-provided',
+		lifecycleEdgeCase: 'fixture-material-not-provided-blocked',
 	},
 ] as const satisfies readonly WalletMatrixScenario[])

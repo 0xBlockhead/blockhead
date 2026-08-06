@@ -6,12 +6,19 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import { ambireWalletMatrixScenarios } from './Ambire/matrix.ts'
+import { backpackBlockedObservation } from './Backpack/driver.ts'
 import { backpackWalletMatrixScenarios } from './Backpack/matrix.ts'
+import { keplrBlockedObservation } from './Keplr/driver.ts'
+import { keplrWalletMatrixScenarios } from './Keplr/matrix.ts'
 import { laceSidePanelBlockedObservation } from './Lace/driver.ts'
 import { laceWalletMatrixScenarios } from './Lace/matrix.ts'
 import { metamaskWalletMatrixScenarios } from './MetaMask/matrix.ts'
 import { tahoBlockedObservation } from './Taho/driver.ts'
 import { tahoWalletMatrixScenarios } from './Taho/matrix.ts'
+import { tonkeeperBlockedObservation } from './Tonkeeper/driver.ts'
+import { tonkeeperWalletMatrixScenarios } from './Tonkeeper/matrix.ts'
+import { unisatBlockedObservation } from './UniSat/driver.ts'
+import { unisatWalletMatrixScenarios } from './UniSat/matrix.ts'
 import { zerionTurnstileBlockedObservation } from './Zerion/driver.ts'
 import { zerionWalletMatrixScenarios } from './Zerion/matrix.ts'
 import {
@@ -94,34 +101,66 @@ test('declares the proven Ambire lifecycle and blocked signer recovery', () => {
 	])
 })
 
-test('declares distinct Backpack create-new, watch-only, and blocked recover flows', () => {
+test('declares distinct Backpack create-new, watch-only, and blocked recover flows', async () => {
 	const scenarios = backpackWalletMatrixScenarios('0.10.211')
 	assert.deepEqual(scenarios.map(({
 		id,
 		initializationFlow,
 		accountOrdinal,
+		lifecycleEdgeCase,
 	}) => ({
 		id,
 		initializationFlow,
 		accountOrdinal,
+		lifecycleEdgeCase,
 	})), [
 		{
 			id: 'backpack-create-new-1',
 			initializationFlow: 'create-new',
 			accountOrdinal: 1,
+			lifecycleEdgeCase: 'reject-retry-approve',
 		},
 		{
 			id: 'backpack-watch-only-2',
 			initializationFlow: 'watch-only',
 			accountOrdinal: 2,
+			lifecycleEdgeCase: 'account-switch',
 		},
 		{
 			id: 'backpack-recover-3',
 			initializationFlow: 'recover',
 			accountOrdinal: 3,
+			lifecycleEdgeCase: 'fixture-material-not-provided-blocked',
 		},
 	])
 	assert.equal(new Set(scenarios.map(({ initializationFlow }) => initializationFlow)).size, 3)
+	await assertWalletMatrixOutcomes(
+		await runWalletCompatibilityMatrix({
+			driver: {
+				kind: 'backpack',
+				run: async (matrixScenario) => (
+					matrixScenario.initializationFlow === 'recover' ?
+						backpackBlockedObservation(matrixScenario)
+					:
+						{
+							accountAddress: `solbackpack${matrixScenario.accountOrdinal}`,
+							outcome: 'pass',
+							evidence: {
+								code: matrixScenario.lifecycleEdgeCase,
+								source: 'declared-blocker',
+							},
+						}
+				),
+			},
+			scenarios,
+		}),
+		[
+			'pass',
+			'pass',
+			'blocked',
+		],
+		'backpack declared blockers'
+	)
 })
 
 test('records Ambire recover as an explicit blocked matrix cell', async () => {
@@ -278,6 +317,150 @@ test('records Zerion Turnstile CAPTCHA onboarding as explicit blocked matrix cel
 			'blocked',
 		],
 		'zerion declared blockers'
+	)
+})
+
+test('records Keplr recover as an explicit blocked matrix cell', async () => {
+	const scenarios = keplrWalletMatrixScenarios('0.13.41')
+	assert.deepEqual(scenarios.map(({ id, lifecycleEdgeCase }) => ({
+		id,
+		lifecycleEdgeCase,
+	})), [
+		{
+			id: 'keplr-create-new-1',
+			lifecycleEdgeCase: 'connect-approve',
+		},
+		{
+			id: 'keplr-create-new-2',
+			lifecycleEdgeCase: 'account-switch-disconnect-reload',
+		},
+		{
+			id: 'keplr-recover-3',
+			lifecycleEdgeCase: 'fixture-material-not-provided-blocked',
+		},
+	])
+	await assertWalletMatrixOutcomes(
+		await runWalletCompatibilityMatrix({
+			driver: {
+				kind: 'keplr',
+				run: async (matrixScenario) => (
+					matrixScenario.initializationFlow === 'recover' ?
+						keplrBlockedObservation(matrixScenario)
+					:
+						{
+							accountAddress: `cosmos1keplr${matrixScenario.accountOrdinal}`,
+							outcome: 'pass',
+							evidence: {
+								code: matrixScenario.lifecycleEdgeCase,
+								source: 'declared-blocker',
+							},
+						}
+				),
+			},
+			scenarios,
+		}),
+		[
+			'pass',
+			'pass',
+			'blocked',
+		],
+		'keplr declared blockers'
+	)
+})
+
+test('records Tonkeeper recover as an explicit blocked matrix cell', async () => {
+	const scenarios = tonkeeperWalletMatrixScenarios('26.6.1')
+	assert.deepEqual(scenarios.map(({ id, lifecycleEdgeCase }) => ({
+		id,
+		lifecycleEdgeCase,
+	})), [
+		{
+			id: 'tonkeeper-create-new-1',
+			lifecycleEdgeCase: 'discover-connect-disconnect',
+		},
+		{
+			id: 'tonkeeper-create-new-2',
+			lifecycleEdgeCase: 'second-account-onboard',
+		},
+		{
+			id: 'tonkeeper-recover-3',
+			lifecycleEdgeCase: 'fixture-material-not-provided-blocked',
+		},
+	])
+	await assertWalletMatrixOutcomes(
+		await runWalletCompatibilityMatrix({
+			driver: {
+				kind: 'tonkeeper',
+				run: async (matrixScenario) => (
+					matrixScenario.initializationFlow === 'recover' ?
+						tonkeeperBlockedObservation(matrixScenario)
+					:
+						{
+							accountAddress: `tonkeeper-account-${matrixScenario.accountOrdinal}`,
+							outcome: 'pass',
+							evidence: {
+								code: matrixScenario.lifecycleEdgeCase,
+								source: 'declared-blocker',
+							},
+						}
+				),
+			},
+			scenarios,
+		}),
+		[
+			'pass',
+			'pass',
+			'blocked',
+		],
+		'tonkeeper declared blockers'
+	)
+})
+
+test('records UniSat recover as an explicit blocked matrix cell', async () => {
+	const scenarios = unisatWalletMatrixScenarios('1.7.17')
+	assert.deepEqual(scenarios.map(({ id, lifecycleEdgeCase }) => ({
+		id,
+		lifecycleEdgeCase,
+	})), [
+		{
+			id: 'unisat-create-new-1',
+			lifecycleEdgeCase: 'reject-retry-approve',
+		},
+		{
+			id: 'unisat-create-new-2',
+			lifecycleEdgeCase: 'account-switch-disconnect',
+		},
+		{
+			id: 'unisat-recover-3',
+			lifecycleEdgeCase: 'fixture-material-not-provided-blocked',
+		},
+	])
+	await assertWalletMatrixOutcomes(
+		await runWalletCompatibilityMatrix({
+			driver: {
+				kind: 'unisat',
+				run: async (matrixScenario) => (
+					matrixScenario.initializationFlow === 'recover' ?
+						unisatBlockedObservation(matrixScenario)
+					:
+						{
+							accountAddress: `bc1qunisat${matrixScenario.accountOrdinal}`,
+							outcome: 'pass',
+							evidence: {
+								code: matrixScenario.lifecycleEdgeCase,
+								source: 'declared-blocker',
+							},
+						}
+				),
+			},
+			scenarios,
+		}),
+		[
+			'pass',
+			'pass',
+			'blocked',
+		],
+		'unisat declared blockers'
 	)
 })
 

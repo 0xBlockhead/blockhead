@@ -50,6 +50,6 @@ export const backpackWalletMatrixScenarios = (version: string) => ([
 		connectionMethod: 'standard:connect',
 		chain: 'solana:mainnet',
 		requestMethod: 'solana:signTransaction',
-		lifecycleEdgeCase: 'fixture-material-not-provided',
+		lifecycleEdgeCase: 'fixture-material-not-provided-blocked',
 	},
 ] as const satisfies readonly WalletMatrixScenario[])

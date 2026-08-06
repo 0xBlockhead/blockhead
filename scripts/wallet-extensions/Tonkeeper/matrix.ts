@@ -5,7 +5,9 @@ import {
 } from '../ecosystems.ts'
 
 
-// Recover needs mnemonic fixture material; second create-new may be unavailable depending on extension UI.
+// Account 3 recover stays blocked: no safe fixture material in CI.
+// Do not invent a recover pass — keep that cell explicitly blocked.
+// Second create-new may be unavailable depending on extension UI.
 export const tonkeeperWalletMatrixScenarios = (version: string) => ([
 	{
 		id: 'tonkeeper-create-new-1',
@@ -50,6 +52,6 @@ export const tonkeeperWalletMatrixScenarios = (version: string) => ([
 		connectionMethod: 'connect',
 		chain: 'ton:-239',
 		requestMethod: 'listen',
-		lifecycleEdgeCase: 'fixture-material-not-provided',
+		lifecycleEdgeCase: 'fixture-material-not-provided-blocked',
 	},
 ] as const satisfies readonly WalletMatrixScenario[])

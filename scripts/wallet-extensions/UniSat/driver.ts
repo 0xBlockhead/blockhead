@@ -3,9 +3,32 @@ import type {
 	Page,
 } from 'playwright'
 
-import type { WalletMatrixObservation } from '../WalletCompatibilityMatrix.ts'
+import type {
+	WalletMatrixObservation,
+	WalletMatrixScenario,
+} from '../WalletCompatibilityMatrix.ts'
 import type { LoadedWalletExtension } from '../WalletExtensionHarness.ts'
 
+
+const unisatBlockedDetail = (lifecycleEdgeCase: string) => (
+	lifecycleEdgeCase === 'fixture-material-not-provided-blocked' ?
+		'UniSat recover has no safe fixture material in unattended automation'
+	:
+		'UniSat lifecycle automation is blocked'
+)
+
+export const unisatBlockedObservation = (
+	scenario: Pick<WalletMatrixScenario, 'lifecycleEdgeCase'>
+): WalletMatrixObservation => (
+	{
+		outcome: 'blocked',
+		evidence: {
+			code: scenario.lifecycleEdgeCase,
+			detail: unisatBlockedDetail(scenario.lifecycleEdgeCase),
+			source: 'declared-blocker',
+		},
+	}
+)
 
 export const unisatOrdinalsPurposeUnsupportedObservation = (): WalletMatrixObservation => (
 	{
