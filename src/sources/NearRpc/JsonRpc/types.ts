@@ -37,29 +37,50 @@ export type NearRpcGasPrice = {
 	gas_price: string
 }
 
-export type NearRpcValidators = {
-	current_fishermen: NearRpcValidator[]
-	current_proposals: NearRpcValidator[]
-	current_validators: NearRpcValidator[]
-	epoch_height: number
-	epoch_start_height: number
-	next_fishermen: NearRpcValidator[]
-	next_validators: NearRpcValidator[]
-	prev_epoch_kickout: {
-		account_id: string
-		reason: JsonValue
-	}[]
+export type NearRpcValidatorStake = {
+	account_id: string
+	public_key: string
+	stake: string
+	validator_stake_struct_version?: string
 }
 
-export type NearRpcValidator = {
+export type NearRpcNextValidator = {
+	account_id: string
+	public_key: string
+	stake: string
+	shards: number[]
+}
+
+export type NearRpcCurrentValidator = {
 	account_id: string
 	public_key: string
 	stake: string
 	is_slashed: boolean
-	num_expected_blocks?: number
-	num_produced_blocks?: number
+	shards: number[]
+	num_expected_blocks: number
+	num_produced_blocks: number
 	num_expected_chunks?: number
 	num_produced_chunks?: number
+	num_expected_endorsements?: number
+	num_produced_endorsements?: number
+	shards_endorsed?: number[]
+}
+
+/** @deprecated Prefer NearRpcCurrentValidator — kept for resolver call-site typing. */
+export type NearRpcValidator = NearRpcCurrentValidator
+
+export type NearRpcValidators = {
+	current_fishermen: NearRpcValidatorStake[]
+	current_proposals: NearRpcValidatorStake[]
+	current_validators: NearRpcCurrentValidator[]
+	epoch_height: number
+	epoch_start_height: number
+	next_fishermen: NearRpcValidatorStake[]
+	next_validators: NearRpcNextValidator[]
+	prev_epoch_kickout: {
+		account_id: string
+		reason: JsonValue
+	}[]
 }
 
 export type NearRpcChunkHeader = {
@@ -103,7 +124,7 @@ export type NearRpcAction = {
 	}
 	AddKey?: {
 		public_key: string
-		access_key: NearRpcAccessKey
+		access_key: NearRpcAccessKeyBody
 	}
 	DeleteKey?: {
 		public_key: string
@@ -113,7 +134,12 @@ export type NearRpcAction = {
 	}
 	Delegate?: {
 		delegate_action: {
+			sender_id?: string
+			receiver_id?: string
 			actions: NearRpcAction[]
+			nonce?: number
+			max_block_height?: number
+			public_key?: string
 		}
 	}
 }
@@ -126,11 +152,39 @@ export type NearRpcTransactionStatus = {
 	receipts?: NearRpcReceipt[]
 }
 
+export type NearRpcReceiptAction = {
+	Action: {
+		signer_id: string
+		signer_public_key: string
+		gas_price: string
+		actions: NearRpcAction[]
+		input_data_ids: string[]
+		output_data_receivers: {
+			data_id: string
+			receiver_id: string
+		}[]
+	}
+}
+
+export type NearRpcReceiptData = {
+	Data: {
+		data_id: string
+		data: string | null
+	}
+}
+
 export type NearRpcReceipt = {
 	predecessor_id: string
 	receiver_id: string
 	receipt_id: string
-	receipt: JsonValue
+	receipt: NearRpcReceiptAction | NearRpcReceiptData
+}
+
+export type NearRpcExecutionOutcomeStatus = {
+	SuccessValue?: string
+	SuccessReceiptId?: string
+	Failure?: JsonValue
+	Unknown?: JsonValue
 }
 
 export type NearRpcExecutionOutcome = {
@@ -138,22 +192,25 @@ export type NearRpcExecutionOutcome = {
 	outcome: {
 		gas_burnt: number
 		receipt_ids: string[]
-		status: {
-			SuccessValue?: string
-			SuccessReceiptId?: string
-			Failure?: JsonValue
-			Unknown?: JsonValue
-		}
+		status: NearRpcExecutionOutcomeStatus
+		executor_id?: string
+		logs?: string[]
+		tokens_burnt?: string
 	}
+	block_hash?: string
 }
 
 export type NearRpcAccount = {
 	amount: string
+	locked: string
 	code_hash: string
 	storage_usage: number
+	storage_paid_at: number
+	block_height: number
+	block_hash: string
 }
 
-export type NearRpcAccessKey = {
+export type NearRpcAccessKeyBody = {
 	nonce: number
 	permission: (
 		| 'FullAccess'
@@ -167,11 +224,18 @@ export type NearRpcAccessKey = {
 	)
 }
 
+export type NearRpcAccessKey = NearRpcAccessKeyBody & {
+	block_height: number
+	block_hash: string
+}
+
 export type NearRpcAccessKeyList = {
 	keys: {
 		public_key: string
-		access_key: NearRpcAccessKey
+		access_key: NearRpcAccessKeyBody
 	}[]
+	block_height: number
+	block_hash: string
 }
 
 export type NearRpcViewState = {

@@ -12,10 +12,29 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 }))
 
 const {
+	getGasPrice,
 	getReceipt,
 	getTxStatus,
+	getValidators,
+	viewAccessKey,
+	viewAccessKeyList,
 	viewAccount,
 } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+
+const actionReceiptBody = {
+	Action: {
+		signer_id: 'signer.near',
+		signer_public_key: 'ed25519:signer',
+		gas_price: '100000000',
+		actions: [{
+			Transfer: {
+				deposit: '1',
+			},
+		}],
+		input_data_ids: [],
+		output_data_receivers: [],
+	},
+} as const
 
 beforeEach(() => {
 	jsonRpc2.mockReset()
@@ -31,6 +50,34 @@ it('fail-closes malformed receipt and transaction-status envelopes', async () =>
 				hash: 'hash',
 			},
 		})
+		.mockResolvedValueOnce({
+			predecessor_id: 'signer.near',
+			receiver_id: 'receiver.near',
+			receipt_id: 'receipt-1',
+			receipt: {
+				Action: {},
+			},
+		})
+		.mockResolvedValueOnce({
+			current_fishermen: [],
+			current_proposals: [],
+			current_validators: [{
+				account_id: 'alice.near',
+				public_key: 'ed25519:alice',
+				stake: '1000',
+				is_slashed: false,
+			}],
+			epoch_height: 1,
+			epoch_start_height: 1,
+			next_fishermen: [],
+			next_validators: [],
+			prev_epoch_kickout: [],
+		})
+		.mockResolvedValueOnce({
+			amount: '10',
+			code_hash: '11111111111111111111111111111111',
+			storage_usage: 100,
+		})
 
 	await expect(getReceipt({
 		receiptId: 'receipt-1',
@@ -39,6 +86,13 @@ it('fail-closes malformed receipt and transaction-status envelopes', async () =>
 		txHash: 'hash',
 		senderAccountId: 'signer.near',
 	})).rejects.toThrow('invalid tx status response envelope')
+	await expect(getReceipt({
+		receiptId: 'receipt-1',
+	})).rejects.toThrow('invalid receipt response envelope')
+	await expect(getValidators()).rejects.toThrow('invalid validators response envelope')
+	await expect(viewAccount({
+		accountId: 'signer.near',
+	})).rejects.toThrow('invalid account response envelope')
 })
 
 it('accepts EXPERIMENTAL_tx_status receipts and receipt predecessor/receiver wires', async () => {
@@ -47,9 +101,7 @@ it('accepts EXPERIMENTAL_tx_status receipts and receipt predecessor/receiver wir
 			predecessor_id: 'signer.near',
 			receiver_id: 'receiver.near',
 			receipt_id: 'receipt-1',
-			receipt: {
-				Action: {},
-			},
+			receipt: actionReceiptBody,
 		})
 		.mockResolvedValueOnce({
 			transaction: {
@@ -71,6 +123,9 @@ it('accepts EXPERIMENTAL_tx_status receipts and receipt predecessor/receiver wir
 					status: {
 						SuccessValue: '',
 					},
+					executor_id: 'signer.near',
+					logs: [],
+					tokens_burnt: '0',
 				},
 			},
 			receipts_outcome: [{
@@ -81,6 +136,9 @@ it('accepts EXPERIMENTAL_tx_status receipts and receipt predecessor/receiver wir
 					status: {
 						SuccessValue: '',
 					},
+					executor_id: 'receiver.near',
+					logs: [],
+					tokens_burnt: '0',
 				},
 			}],
 			status: {
@@ -90,15 +148,75 @@ it('accepts EXPERIMENTAL_tx_status receipts and receipt predecessor/receiver wir
 				predecessor_id: 'signer.near',
 				receiver_id: 'receiver.near',
 				receipt_id: 'receipt-1',
-				receipt: {
-					Action: {},
-				},
+				receipt: actionReceiptBody,
 			}],
 		})
 		.mockResolvedValueOnce({
 			amount: '10',
+			locked: '0',
 			code_hash: '11111111111111111111111111111111',
 			storage_usage: 100,
+			storage_paid_at: 0,
+			block_height: 123,
+			block_hash: 'account-block-hash',
+		})
+		.mockResolvedValueOnce({
+			nonce: 7,
+			permission: 'FullAccess',
+			block_height: 124,
+			block_hash: 'access-key-block-hash',
+		})
+		.mockResolvedValueOnce({
+			keys: [{
+				public_key: 'ed25519:key',
+				access_key: {
+					nonce: 7,
+					permission: 'FullAccess',
+				},
+			}],
+			block_height: 125,
+			block_hash: 'access-key-list-block-hash',
+		})
+		.mockResolvedValueOnce({
+			gas_price: '100000000',
+		})
+		.mockResolvedValueOnce({
+			current_fishermen: [],
+			current_proposals: [{
+				account_id: 'proposal.near',
+				public_key: 'ed25519:proposal',
+				stake: '1',
+				validator_stake_struct_version: 'V1',
+			}],
+			current_validators: [{
+				account_id: 'alice.near',
+				public_key: 'ed25519:alice',
+				stake: '1000',
+				is_slashed: false,
+				shards: [0],
+				num_expected_blocks: 10,
+				num_produced_blocks: 9,
+				num_expected_chunks: 20,
+				num_produced_chunks: 18,
+			}],
+			epoch_height: 100,
+			epoch_start_height: 1_200_000,
+			next_fishermen: [],
+			next_validators: [{
+				account_id: 'next.near',
+				public_key: 'ed25519:next',
+				stake: '1',
+				shards: [0],
+			}],
+			prev_epoch_kickout: [{
+				account_id: 'kicked.near',
+				reason: {
+					NotEnoughBlocks: {
+						expected: 10,
+						produced: 1,
+					},
+				},
+			}],
 		})
 
 	await expect(getReceipt({
@@ -106,6 +224,16 @@ it('accepts EXPERIMENTAL_tx_status receipts and receipt predecessor/receiver wir
 	})).resolves.toMatchObject({
 		receipt_id: 'receipt-1',
 		predecessor_id: 'signer.near',
+		receipt: {
+			Action: {
+				signer_id: 'signer.near',
+				actions: [{
+					Transfer: {
+						deposit: '1',
+					},
+				}],
+			},
+		},
 	})
 	await expect(getTxStatus({
 		txHash: 'hash',
@@ -119,6 +247,39 @@ it('accepts EXPERIMENTAL_tx_status receipts and receipt predecessor/receiver wir
 		accountId: 'signer.near',
 	})).resolves.toMatchObject({
 		amount: '10',
+		locked: '0',
+		block_height: 123,
+	})
+	await expect(viewAccessKey({
+		accountId: 'signer.near',
+		publicKey: 'ed25519:key',
+	})).resolves.toMatchObject({
+		nonce: 7,
+		block_height: 124,
+	})
+	await expect(viewAccessKeyList({
+		accountId: 'signer.near',
+	})).resolves.toMatchObject({
+		block_height: 125,
+		keys: [{
+			public_key: 'ed25519:key',
+		}],
+	})
+	await expect(getGasPrice()).resolves.toMatchObject({
+		gas_price: '100000000',
+	})
+	await expect(getValidators()).resolves.toMatchObject({
+		current_proposals: [{
+			account_id: 'proposal.near',
+		}],
+		current_validators: [{
+			account_id: 'alice.near',
+			shards: [0],
+		}],
+		next_validators: [{
+			account_id: 'next.near',
+			shards: [0],
+		}],
 	})
 })
 

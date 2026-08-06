@@ -25,7 +25,63 @@ export const nearRpcEndpoints = binding.endpoints.map((endpoint) => ({
 	providerName: 'NEAR',
 }))
 
-const nearActionWire = arktype('Record<string, unknown>')
+const nearAccessKeyPermissionWire = arktype("'FullAccess'").or(arktype({
+	FunctionCall: {
+		allowance: 'string | null',
+		receiver_id: 'string',
+		method_names: 'string[]',
+	},
+}))
+
+const nearAccessKeyBodyWire = arktype({
+	nonce: 'number.integer',
+	permission: nearAccessKeyPermissionWire,
+})
+
+const nearAccessKeyWire = nearAccessKeyBodyWire.and(arktype({
+	block_height: 'number.integer',
+	block_hash: 'string',
+}))
+
+const nearActionWire = arktype({
+	'CreateAccount?': arktype({}),
+	'DeployContract?': arktype({
+		code: 'string',
+	}),
+	'FunctionCall?': arktype({
+		method_name: 'string',
+		args: 'string',
+		gas: 'number.integer',
+		deposit: 'string',
+	}),
+	'Transfer?': arktype({
+		deposit: 'string',
+	}),
+	'Stake?': arktype({
+		stake: 'string',
+		public_key: 'string',
+	}),
+	'AddKey?': arktype({
+		public_key: 'string',
+		access_key: nearAccessKeyBodyWire,
+	}),
+	'DeleteKey?': arktype({
+		public_key: 'string',
+	}),
+	'DeleteAccount?': arktype({
+		beneficiary_id: 'string',
+	}),
+	'Delegate?': arktype({
+		delegate_action: {
+			'sender_id?': 'string',
+			'receiver_id?': 'string',
+			actions: 'unknown[]',
+			'nonce?': 'number.integer',
+			'max_block_height?': 'number.integer',
+			'public_key?': 'string',
+		},
+	}),
+})
 
 const nearTransactionWire = arktype({
 	hash: 'string',
@@ -35,12 +91,44 @@ const nearTransactionWire = arktype({
 	actions: nearActionWire.array(),
 })
 
+const nearExecutionOutcomeStatusWire = arktype({
+	'SuccessValue?': 'string',
+	'SuccessReceiptId?': 'string',
+	'Failure?': 'unknown',
+	'Unknown?': 'unknown',
+})
+
 const nearExecutionOutcomeWire = arktype({
 	id: 'string',
 	outcome: {
 		gas_burnt: 'number.integer',
 		receipt_ids: 'string[]',
-		status: 'Record<string, unknown>',
+		status: nearExecutionOutcomeStatusWire,
+		'executor_id?': 'string',
+		'logs?': 'string[]',
+		'tokens_burnt?': 'string',
+	},
+	'block_hash?': 'string',
+})
+
+const nearReceiptActionWire = arktype({
+	Action: {
+		signer_id: 'string',
+		signer_public_key: 'string',
+		gas_price: 'string',
+		actions: nearActionWire.array(),
+		input_data_ids: 'string[]',
+		output_data_receivers: arktype({
+			data_id: 'string',
+			receiver_id: 'string',
+		}).array(),
+	},
+})
+
+const nearReceiptDataWire = arktype({
+	Data: {
+		data_id: 'string',
+		data: 'string | null',
 	},
 })
 
@@ -48,7 +136,7 @@ const nearReceiptWire = arktype({
 	predecessor_id: 'string',
 	receiver_id: 'string',
 	receipt_id: 'string',
-	receipt: 'unknown',
+	receipt: nearReceiptActionWire.or(nearReceiptDataWire),
 })
 
 const nearTransactionStatusWire = arktype({
@@ -78,26 +166,21 @@ const nearBlockWire = arktype({
 
 const nearAccountWire = arktype({
 	amount: 'string',
+	locked: 'string',
 	code_hash: 'string',
 	storage_usage: 'number.integer',
-})
-
-const nearAccessKeyWire = arktype({
-	nonce: 'number.integer',
-	permission: arktype("'FullAccess'").or(arktype({
-		FunctionCall: {
-			allowance: 'string | null',
-			receiver_id: 'string',
-			method_names: 'string[]',
-		},
-	})),
+	storage_paid_at: 'number.integer',
+	block_height: 'number.integer',
+	block_hash: 'string',
 })
 
 const nearAccessKeyListWire = arktype({
 	keys: arktype({
 		public_key: 'string',
-		access_key: nearAccessKeyWire,
+		access_key: nearAccessKeyBodyWire,
 	}).array(),
+	block_height: 'number.integer',
+	block_hash: 'string',
 })
 
 const nearViewStateWire = arktype({
@@ -135,25 +218,43 @@ const nearGasPriceWire = arktype({
 	gas_price: 'string',
 })
 
-const nearValidatorWire = arktype({
+const nearValidatorStakeWire = arktype({
+	account_id: 'string',
+	public_key: 'string',
+	stake: 'string',
+	'validator_stake_struct_version?': 'string',
+})
+
+const nearNextValidatorWire = arktype({
+	account_id: 'string',
+	public_key: 'string',
+	stake: 'string',
+	shards: 'number.integer[]',
+})
+
+const nearCurrentValidatorWire = arktype({
 	account_id: 'string',
 	public_key: 'string',
 	stake: 'string',
 	is_slashed: 'boolean',
-	'num_expected_blocks?': 'number.integer',
-	'num_produced_blocks?': 'number.integer',
+	shards: 'number.integer[]',
+	num_expected_blocks: 'number.integer',
+	num_produced_blocks: 'number.integer',
 	'num_expected_chunks?': 'number.integer',
 	'num_produced_chunks?': 'number.integer',
+	'num_expected_endorsements?': 'number.integer',
+	'num_produced_endorsements?': 'number.integer',
+	'shards_endorsed?': 'number.integer[]',
 })
 
 const nearValidatorsWire = arktype({
-	current_fishermen: nearValidatorWire.array(),
-	current_proposals: nearValidatorWire.array(),
-	current_validators: nearValidatorWire.array(),
+	current_fishermen: nearValidatorStakeWire.array(),
+	current_proposals: nearValidatorStakeWire.array(),
+	current_validators: nearCurrentValidatorWire.array(),
 	epoch_height: 'number.integer',
 	epoch_start_height: 'number.integer',
-	next_fishermen: nearValidatorWire.array(),
-	next_validators: nearValidatorWire.array(),
+	next_fishermen: nearValidatorStakeWire.array(),
+	next_validators: nearNextValidatorWire.array(),
 	prev_epoch_kickout: arktype({
 		account_id: 'string',
 		reason: 'unknown',

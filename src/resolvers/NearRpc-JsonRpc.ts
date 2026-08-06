@@ -16,16 +16,17 @@ import { Source } from '$/sources/Source.ts'
 import { nearRpcEndpoints } from '$/sources/NearRpc/JsonRpc/queries.ts'
 import type {
 	NearRpcAccessKey,
+	NearRpcAccessKeyBody,
 	NearRpcAccount,
 	NearRpcAction,
 	NearRpcBlock,
+	NearRpcCurrentValidator,
 	NearRpcExecutionOutcome,
 	NearRpcGasPrice,
 	NearRpcReceipt,
 	NearRpcStatus,
 	NearRpcTransaction,
 	NearRpcTransactionStatus,
-	NearRpcValidator,
 	NearRpcValidators,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
@@ -110,7 +111,7 @@ const nearActionReference = (
 		},
 	}
 }
-const nearAccessKeyFields = (accessKey: NearRpcAccessKey) => ({
+const nearAccessKeyBodyFields = (accessKey: NearRpcAccessKeyBody) => ({
 	nonce: BigInt(accessKey.nonce),
 	permission: accessKey.permission === 'FullAccess' ? 'FullAccess' : 'FunctionCall',
 	...(accessKey.permission !== 'FullAccess' && {
@@ -121,10 +122,18 @@ const nearAccessKeyFields = (accessKey: NearRpcAccessKey) => ({
 		methodNames: accessKey.permission.FunctionCall.method_names,
 	}),
 })
+const nearAccessKeyFields = (accessKey: NearRpcAccessKey) => ({
+	...nearAccessKeyBodyFields(accessKey),
+	blockHeight: BigInt(accessKey.block_height),
+	blockHash: accessKey.block_hash,
+})
 const nearAccountFields = (account: NearRpcAccount) => ({
 	amountYoctoNear: BigInt(account.amount),
+	lockedYoctoNear: BigInt(account.locked),
 	storageUsageBytes: BigInt(account.storage_usage),
 	codeHash: account.code_hash,
+	blockHeight: BigInt(account.block_height),
+	blockHash: account.block_hash,
 })
 const nearExecutionOutcomeFields = (
 	network: NetworkId,
@@ -187,16 +196,13 @@ const nearReceiptFields = (
 		},
 	},
 })
-const nearValidatorFields = (validator: NearRpcValidator) => ({
+const nearValidatorFields = (validator: NearRpcCurrentValidator) => ({
 	publicKey: validator.public_key,
 	stakeYoctoNear: BigInt(validator.stake),
 	isSlashed: validator.is_slashed,
-	...(validator.num_expected_blocks != null && {
-		expectedBlocks: validator.num_expected_blocks,
-	}),
-	...(validator.num_produced_blocks != null && {
-		producedBlocks: validator.num_produced_blocks,
-	}),
+	expectedBlocks: validator.num_expected_blocks,
+	producedBlocks: validator.num_produced_blocks,
+	shards: validator.shards,
 	...(validator.num_expected_chunks != null && {
 		expectedChunks: validator.num_expected_chunks,
 	}),
@@ -806,8 +812,11 @@ export default {
 			},
 		})({
 			amountYoctoNear: (timestamp) => timestamp.amountYoctoNear,
+			lockedYoctoNear: (timestamp) => timestamp.lockedYoctoNear,
 			storageUsageBytes: (timestamp) => timestamp.storageUsageBytes,
 			codeHash: (timestamp) => timestamp.codeHash,
+			blockHeight: (timestamp) => timestamp.blockHeight,
+			blockHash: (timestamp) => timestamp.blockHash,
 		}),
 		defineResolver({
 			entityType: EntityType.NearContract_Timestamp,
@@ -826,6 +835,8 @@ export default {
 			},
 		})({
 			codeHash: (timestamp) => timestamp.codeHash,
+			blockHeight: (timestamp) => timestamp.blockHeight,
+			blockHash: (timestamp) => timestamp.blockHash,
 		}),
 		defineResolver({
 			entityType: EntityType.NearAccessKey,
@@ -863,6 +874,8 @@ export default {
 			allowanceYoctoNear: (timestamp) => timestamp.allowanceYoctoNear,
 			receiverId: (timestamp) => timestamp.receiverId,
 			methodNames: (timestamp) => timestamp.methodNames ?? [],
+			blockHeight: (timestamp) => timestamp.blockHeight,
+			blockHash: (timestamp) => timestamp.blockHash,
 		}),
 		defineResolver({
 			entityType: EntityType.NearValidator,
@@ -916,6 +929,7 @@ export default {
 			producedBlocks: (timestamp) => timestamp.producedBlocks,
 			expectedChunks: (timestamp) => timestamp.expectedChunks,
 			producedChunks: (timestamp) => timestamp.producedChunks,
+			shards: (timestamp) => timestamp.shards,
 		}),
 		defineResolver({
 			entityType: EntityType.NearNetwork,
