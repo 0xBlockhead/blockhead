@@ -12,9 +12,18 @@ test('reports real wallet providers discovered by Blockhead', async ({
 }) => {
 	await page.goto(`${baseURL ?? 'http://127.0.0.1:5173'}/~/wallets`)
 	await expect(walletConnectionsStatus(page)).toBeAttached()
-	await page.waitForTimeout(2_000)
+	await expect.poll(async () => (
+		(await walletConnectionsStatus(page).innerText()).length
+	)).toBeGreaterThan(0)
 
 	const report = await reportWalletProviderDiscovery(page, extensions)
+	expect(report.loadedExtensions.length).toBe(extensions.length)
+	expect(report.loadedExtensions.every(({ id }) => /^[a-p]{32}$/.test(id))).toBe(true)
+	expect(report.walletConnections.length).toBeGreaterThan(0)
+
+	if (extensions.some(({ kind }) => kind === 'harness-only'))
+		await expect(page.locator('html')).toHaveAttribute('data-blockhead-wallet-harness', 'loaded')
+
 	console.log(JSON.stringify({
 		label: 'wallet-provider-discovery',
 		loadedExtensionCount: report.loadedExtensions.length,

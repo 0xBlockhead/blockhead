@@ -1,6 +1,7 @@
 import { resolve } from 'node:path'
 
 import {
+	expect,
 	test as base,
 	type BrowserContext,
 	type Page,
@@ -31,7 +32,14 @@ export const test = base.extend<{
 		const harness = await launchWalletExtensions({
 			extensionDirectories,
 			headless: process.env.PLAYWRIGHT_WALLET_HEADLESS === '1',
+			serviceWorkerTimeoutMs: Number(process.env.WALLET_EXTENSION_SW_TIMEOUT_MS ?? 45_000),
 		})
+
+		expect(harness.extensions.length).toBe(extensionDirectories.length)
+		for (const extension of harness.extensions) {
+			expect(extension.serviceWorker.url()).toContain(`chrome-extension://${extension.id}/`)
+			expect(extension.manifest.manifest_version).toBe(3)
+		}
 
 		await use(harness)
 		await harness.close()
@@ -47,4 +55,4 @@ export const test = base.extend<{
 	},
 })
 
-export { expect } from '@playwright/test'
+export { expect }
