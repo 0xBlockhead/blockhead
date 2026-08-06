@@ -1,3 +1,9 @@
+/**
+ * Celestia Node read-only JSON-RPC (OpenRPC v0.28.4).
+ * @see https://docs.celestia.org/build/rpc/node-api/
+ * @see https://docs.celestia.org/specs/openrpc-v0.28.4.json
+ */
+
 import { type as arktype } from 'arktype'
 
 import {
@@ -6,6 +12,11 @@ import {
 } from '$/sources/$sources.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import bindings from '$/sources/Celestia/bindings.ts'
+import type {
+	BlobProofWire,
+	ExtendedHeaderWire,
+	SyncStateWire,
+} from '$/sources/Celestia/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const hashPattern = /^[0-9a-fA-F]{64}$/
@@ -114,7 +125,7 @@ const extendedHeaderFromWire = (
 export const getHeaderSyncState = async (
 	publicEnv: SourcePublicEnv
 ) => {
-	const wire = syncStateWire.assert(await jsonRpc2<unknown>(
+	const wire = syncStateWire.assert(await jsonRpc2<SyncStateWire>(
 		configuredBinding(publicEnv),
 		'header.SyncState',
 		[]
@@ -143,7 +154,7 @@ export const getHeaderLocalHead = async (
 	publicEnv: SourcePublicEnv
 ) => (
 	extendedHeaderFromWire(extendedHeaderWire.assert(
-		await jsonRpc2<unknown>(
+		await jsonRpc2<ExtendedHeaderWire>(
 			configuredBinding(publicEnv),
 			'header.LocalHead',
 			[]
@@ -155,7 +166,7 @@ export const getHeaderNetworkHead = async (
 	publicEnv: SourcePublicEnv
 ) => (
 	extendedHeaderFromWire(extendedHeaderWire.assert(
-		await jsonRpc2<unknown>(
+		await jsonRpc2<ExtendedHeaderWire>(
 			configuredBinding(publicEnv),
 			'header.NetworkHead',
 			[]
@@ -169,7 +180,7 @@ export const getHeaderByHeight = async (
 ) => {
 	assertHeight(height)
 	const header = extendedHeaderFromWire(extendedHeaderWire.assert(
-		await jsonRpc2<unknown>(
+		await jsonRpc2<ExtendedHeaderWire>(
 			configuredBinding(publicEnv),
 			'header.GetByHeight',
 			[Number(height)]
@@ -198,7 +209,7 @@ export const getBlobProof = async ({
 	if (!commitmentPattern.test(commitment))
 		throw new Error('Celestia Node: invalid blob commitment')
 
-	const proof = blobProofWire.assert(await jsonRpc2<unknown>(
+	const proof = blobProofWire.assert(await jsonRpc2<BlobProofWire>(
 		configuredBinding(publicEnv),
 		'blob.GetProof',
 		[
