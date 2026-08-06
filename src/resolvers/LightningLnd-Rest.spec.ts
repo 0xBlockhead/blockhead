@@ -7,6 +7,7 @@ import { Source } from '$/sources/Source.ts'
 const {
 	getChannelInfo,
 	getInfo,
+	getNetworkInfo,
 	getNodeInfo,
 	listChannels,
 	listInvoices,
@@ -14,6 +15,7 @@ const {
 } = vi.hoisted(() => ({
 	getChannelInfo: vi.fn(),
 	getInfo: vi.fn(),
+	getNetworkInfo: vi.fn(),
 	getNodeInfo: vi.fn(),
 	listChannels: vi.fn(),
 	listInvoices: vi.fn(),
@@ -23,6 +25,7 @@ const {
 vi.mock('$/sources/LightningLnd/Rest/queries.ts', () => ({
 	getChannelInfo,
 	getInfo,
+	getNetworkInfo,
 	getNodeInfo,
 	listChannels,
 	listInvoices,
@@ -36,7 +39,30 @@ type InvoiceListResolver = Extract<
 	{ projections: Record<'$$invoices', unknown> }
 >
 
-const nodeStateResolver = lightningLnd.resolvers.find((resolver) => resolver.entityType === EntityType.BlockheadLightningNodeState)
+const nodeStateResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadLightningNodeState
+	&& 'lndPubkey' in resolver.projections
+))
+const nodeStateTimestampResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadLightningNodeState_Timestamp
+))
+const nodeChannelStatesResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadLightningNodeState
+	&& '$$channelStates' in resolver.projections
+))
+const channelStateResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadLightningChannelState
+	&& 'private' in resolver.projections
+))
+const channelStateTimestampResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadLightningChannelState_Timestamp
+))
+const htlcResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BlockheadLightningHtlc
+))
+const networkTimestampResolver = lightningLnd.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.LightningNetwork_Timestamp
+))
 const nodeTimestampResolver = lightningLnd.resolvers.find((resolver) => resolver.entityType === EntityType.LightningNode_Timestamp)
 const channelResolver = lightningLnd.resolvers.find((resolver) => resolver.entityType === EntityType.LightningChannel)
 const channelTimestampResolver = lightningLnd.resolvers.find((resolver) => resolver.entityType === EntityType.LightningChannel_Timestamp)
@@ -54,6 +80,12 @@ const nodeChannelsResolver = lightningLnd.resolvers.find((resolver) => (
 ))
 if (
 	nodeStateResolver == null
+	|| nodeStateTimestampResolver == null
+	|| nodeChannelStatesResolver == null
+	|| channelStateResolver == null
+	|| channelStateTimestampResolver == null
+	|| htlcResolver == null
+	|| networkTimestampResolver == null
 	|| nodeTimestampResolver == null
 	|| channelResolver == null
 	|| channelTimestampResolver == null
@@ -88,7 +120,25 @@ const channel = {
 	channel_point: 'funding-transaction:7',
 	chan_id: '42',
 	capacity: '250000',
+	local_balance: '100000',
+	remote_balance: '150000',
+	unsettled_balance: '0',
+	commit_fee: '183',
+	commit_weight: '600',
+	fee_per_kw: '253',
+	num_updates: '69',
 	private: false,
+	initiator: true,
+	pending_htlcs: [
+		{
+			incoming: true,
+			amount: '12',
+			hash_lock: 'aa',
+			expiration_height: 800_001,
+			htlc_index: '7',
+			state: 'Accepted',
+		},
+	],
 }
 const edge = {
 	channel_id: '42',
@@ -364,6 +414,155 @@ describe('Lightning LND resolver ownership', () => {
 			status: 'Succeeded',
 			failureReason: '',
 			preimage: 'preimage',
+		})
+	})
+
+	it('projects local node tip sync fields and channel state balances including private peers', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_111_000)
+		getInfo.mockResolvedValue({
+			identity_pubkey: localPublicKey,
+			alias: 'Local',
+			synced_to_chain: true,
+			synced_to_graph: false,
+			block_height: 800_000,
+			best_header_timestamp: '1700000111',
+			num_peers: 4,
+			num_active_channels: 1,
+			num_inactive_channels: 0,
+			num_pending_channels: 2,
+		})
+		listChannels.mockResolvedValue({
+			channels: [
+				channel,
+				{
+					...channel,
+					chan_id: '43',
+					private: true,
+					pending_htlcs: [],
+				},
+			],
+		})
+
+		const localNodeState = {
+			connectionId: 'local-lnd',
+			$network: {
+				$network: lightningNetwork,
+			},
+		} as const
+		const channelSelector = {
+			$network: lightningNetwork,
+			channelId: '43',
+		}
+
+		await expect(nodeStateTimestampResolver.resolve.LocalNodeStateTimestampMsSource.resolve({
+			$localNodeState: localNodeState,
+			timestampMs: 1,
+			source: Source.LightningLnd_Rest,
+		}, context)).resolves.toEqual({
+			syncedToChain: true,
+			syncedToGraph: false,
+			blockHeight: 800000n,
+			bestHeaderTimestampMs: 1_700_000_111_000,
+			peerCount: 4,
+			activeChannelCount: 1,
+			inactiveChannelCount: 0,
+			pendingChannelCount: 2,
+		})
+
+		await expect(nodeChannelStatesResolver.resolve.ConnectionIdNetwork.resolve(localNodeState, context)).resolves.toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$localNodeState: localNodeState,
+					$channel: {
+						$network: lightningNetwork,
+						channelId: '42',
+					},
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$localNodeState: localNodeState,
+					$channel: channelSelector,
+				},
+			},
+		])
+
+		await expect(channelStateResolver.resolve.LocalNodeStateChannel.resolve({
+			$localNodeState: localNodeState,
+			$channel: channelSelector,
+		}, context)).resolves.toMatchObject({
+			private: true,
+			initiator: true,
+		})
+
+		await expect(channelStateTimestampResolver.resolve.ChannelStateTimestampMsSource.resolve({
+			$channelState: {
+				$localNodeState: localNodeState,
+				$channel: {
+					$network: lightningNetwork,
+					channelId: '42',
+				},
+			},
+			timestampMs: 1,
+			source: Source.LightningLnd_Rest,
+		}, context)).resolves.toEqual({
+			localBalanceSats: 100000n,
+			remoteBalanceSats: 150000n,
+			unsettledBalanceSats: 0n,
+			active: true,
+			commitFeeSats: 183n,
+			commitWeight: 600n,
+			feePerKw: 253n,
+			numUpdates: 69n,
+			lastSyncedAt: 1_700_000_111_000,
+		})
+
+		await expect(htlcResolver.resolve.ChannelStateHtlcIndex.resolve({
+			$channelState: {
+				$localNodeState: localNodeState,
+				$channel: {
+					$network: lightningNetwork,
+					channelId: '42',
+				},
+			},
+			htlcIndex: 7,
+		}, context)).resolves.toEqual({
+			htlcIndex: 7,
+			$channel: {
+				[EntityMetaKey.Selector]: {
+					$network: lightningNetwork,
+					channelId: '42',
+				},
+			},
+			direction: 'Incoming',
+			amountMsat: 12000n,
+			expiryHeight: 800001n,
+			hashLock: 'aa',
+			state: 'Accepted',
+		})
+	})
+
+	it('projects enrolled Lightning network tip capacities from graph info', async () => {
+		getNetworkInfo.mockResolvedValue({
+			num_nodes: 20_000,
+			num_channels: 80_000,
+			total_network_capacity: '5000000000000',
+			avg_channel_size: 62_500,
+			median_channel_size_sat: '50000',
+		})
+
+		await expect(networkTimestampResolver.resolve.LightningNetworkTimestampMsSource.resolve({
+			$lightningNetwork: {
+				$network: lightningNetwork,
+			},
+			timestampMs: 1,
+			source: Source.LightningLnd_Rest,
+		}, context)).resolves.toEqual({
+			nodeCount: 20_000,
+			channelCount: 80_000,
+			totalCapacitySats: 5_000_000_000_000n,
+			averageCapacitySats: 62500n,
+			medianCapacitySats: 50000n,
 		})
 	})
 })

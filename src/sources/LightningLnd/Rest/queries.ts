@@ -45,6 +45,11 @@ const getInfoWire = arktype({
 	'num_active_channels?': unsignedSafe,
 	'num_inactive_channels?': unsignedSafe,
 	'num_pending_channels?': unsignedSafe,
+	'num_peers?': unsignedSafe,
+	'block_height?': unsignedSafe,
+	'best_header_timestamp?': losslessUnsignedString,
+	'synced_to_chain?': 'boolean',
+	'synced_to_graph?': 'boolean',
 	'uris?': 'string[]',
 })
 
@@ -82,6 +87,15 @@ const nodeInfoWire = arktype({
 	'channels?': channelEdgeWire.array(),
 })
 
+const htlcWire = arktype({
+	'incoming?': 'boolean',
+	'amount?': losslessUnsignedString,
+	'hash_lock?': 'string',
+	'expiration_height?': unsignedSafe,
+	'htlc_index?': losslessUnsignedString,
+	'state?': 'string',
+})
+
 const channelWire = arktype({
 	'active?': 'boolean',
 	remote_pubkey: compressedPublicKey,
@@ -97,7 +111,7 @@ const channelWire = arktype({
 	'private?': 'boolean',
 	'initiator?': 'boolean',
 	'num_updates?': losslessUnsignedString,
-	'pending_htlcs?': arktype('unknown[]'),
+	'pending_htlcs?': htlcWire.array(),
 })
 
 const listChannelsWire = arktype({

@@ -133,6 +133,10 @@ describe('Amboss public Lightning graph queries', () => {
 						node2_pub: peerPublicKey,
 						node1_policy: null,
 						node2_policy: null,
+						closed_info: null,
+						transactions: {
+							close_transaction: null,
+						},
 					},
 				},
 			},
@@ -149,6 +153,68 @@ describe('Amboss public Lightning graph queries', () => {
 				},
 			},
 		})
+	})
+
+	it('fail-closes closed edges missing closed_info or with invalid closed_date', async () => {
+		queryAmboss.mockResolvedValue({
+			getEdge: {
+				long_channel_id: '123',
+				short_channel_id: '1x2x3',
+				graph: {
+					info: {
+						capacity: '1000000',
+						is_closed: true,
+						last_update: '1700000000',
+						chan_point: 'fundingtxid:0',
+						node1_pub: publicKey,
+						node2_pub: peerPublicKey,
+						node1_policy: null,
+						node2_policy: null,
+						closed_info: null,
+						transactions: {
+							close_transaction: null,
+						},
+					},
+				},
+			},
+		})
+		await expect(getEdge({
+			channelId: '123',
+		})).rejects.toThrow('missing closed_info')
+
+		queryAmboss.mockResolvedValue({
+			getEdge: {
+				long_channel_id: '123',
+				short_channel_id: '1x2x3',
+				graph: {
+					info: {
+						capacity: '1000000',
+						is_closed: true,
+						last_update: '1700000000',
+						chan_point: 'fundingtxid:0',
+						node1_pub: publicKey,
+						node2_pub: peerPublicKey,
+						node1_policy: null,
+						node2_policy: null,
+						closed_info: {
+							close_transaction_id: 'closetxid',
+							closed_date: 'not-a-date',
+							closed_height: 1,
+							closure_type: 'MUTUAL',
+						},
+						transactions: {
+							close_transaction: {
+								id: 'closetxid',
+								fee: '1',
+							},
+						},
+					},
+				},
+			},
+		})
+		await expect(getEdge({
+			channelId: '123',
+		})).rejects.toThrow('invalid channel closed_date')
 	})
 
 	it('rejects channel envelopes missing graph identity or capacity', async () => {

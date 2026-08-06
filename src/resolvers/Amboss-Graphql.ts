@@ -72,10 +72,23 @@ const nodeSnapshotFromAmbossNode = (
 	}
 }
 
+const timestampMsFromAmbossDate = (value: string) => {
+	const timestampMs = Date.parse(value)
+	if (!Number.isFinite(timestampMs))
+		throw new Error('Amboss_Graphql: invalid channel closed_date')
+	return timestampMs
+}
+
 const channelTimestampSnapshotFromAmbossEdge = (
 	edge: Awaited<ReturnType<typeof import('$/sources/Amboss/Graphql/queries.ts').getEdge>>
 ) => {
 	const edgeInfo = edge.graph.info
+	const closedInfo = edgeInfo.closed_info
+	const closeTransaction = edgeInfo.transactions.close_transaction
+	const closingTransactionId = (
+		closedInfo?.close_transaction_id
+		?? closeTransaction?.id
+	)
 
 	return {
 		status: statusFromAmboss(edgeInfo.is_closed),
@@ -83,6 +96,18 @@ const channelTimestampSnapshotFromAmbossEdge = (
 		updatedAtMs: timestampMsFromChannelWire(edgeInfo.last_update),
 		...(edgeInfo.node1_policy != null && {
 			feeRatePpm: Number(edgeInfo.node1_policy.fee_rate_milli_msat),
+		}),
+		...(closingTransactionId != null && closingTransactionId !== '' && {
+			closingTransactionId,
+		}),
+		...(closeTransaction?.fee != null && {
+			closingFeeSats: BigInt(closeTransaction.fee),
+		}),
+		...(closedInfo?.closure_type != null && {
+			closingReason: closedInfo.closure_type,
+		}),
+		...(closedInfo != null && {
+			closedAtMs: timestampMsFromAmbossDate(closedInfo.closed_date),
 		}),
 	}
 }
@@ -303,6 +328,10 @@ export default {
 			capacitySats: (snapshot) => snapshot.capacitySats,
 			feeRatePpm: (snapshot) => snapshot.feeRatePpm,
 			updatedAtMs: (snapshot) => snapshot.updatedAtMs,
+			closingTransactionId: (snapshot) => snapshot.closingTransactionId,
+			closingFeeSats: (snapshot) => snapshot.closingFeeSats,
+			closingReason: (snapshot) => snapshot.closingReason,
+			closedAtMs: (snapshot) => snapshot.closedAtMs,
 		}),
 
 		defineResolver({

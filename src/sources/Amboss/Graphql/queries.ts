@@ -112,6 +112,32 @@ const assertChannelPoint = (
 	}
 }
 
+const assertClosedEdge = (
+	closedInfo: {
+		close_transaction_id?: string | null
+		closed_date: string
+		closed_height: number
+		closure_type?: string | null
+	} | null | undefined,
+	isClosed: boolean
+) => {
+	if (!isClosed) {
+		if (closedInfo != null)
+			throw new Error('Amboss_Graphql: open channel must not include closed_info')
+		return
+	}
+	if (closedInfo == null)
+		throw new Error('Amboss_Graphql: closed channel is missing closed_info')
+	if (closedInfo.closed_date === '')
+		throw new Error('Amboss_Graphql: invalid channel closed_date')
+	if (!Number.isFinite(Date.parse(closedInfo.closed_date)))
+		throw new Error('Amboss_Graphql: invalid channel closed_date')
+	if (!Number.isSafeInteger(closedInfo.closed_height) || closedInfo.closed_height < 0)
+		throw new Error('Amboss_Graphql: invalid channel closed_height')
+	if (closedInfo.close_transaction_id != null && closedInfo.close_transaction_id === '')
+		throw new Error('Amboss_Graphql: close transaction id must not be empty')
+}
+
 export const getEdge = async ({
 	channelId,
 }: {
@@ -140,6 +166,18 @@ export const getEdge = async ({
 								fee_rate_milli_msat
 								disabled
 							}
+							closed_info {
+								close_transaction_id
+								closed_date
+								closed_height
+								closure_type
+							}
+							transactions {
+								close_transaction {
+									id
+									fee
+								}
+							}
 						}
 					}
 				}
@@ -162,6 +200,13 @@ export const getEdge = async ({
 	assertLosslessUnsigned(edgeInfo.node1_policy?.fee_rate_milli_msat, 'node1 fee rate')
 	assertLosslessUnsigned(edgeInfo.node2_policy?.fee_rate_milli_msat, 'node2 fee rate')
 	assertChannelPoint(edgeInfo.chan_point)
+	assertClosedEdge(edgeInfo.closed_info, edgeInfo.is_closed)
+	const closeTransaction = edgeInfo.transactions.close_transaction
+	if (closeTransaction != null) {
+		if (closeTransaction.id === '')
+			throw new Error('Amboss_Graphql: close transaction id must not be empty')
+		assertLosslessUnsigned(closeTransaction.fee, 'close transaction fee')
+	}
 	return {
 		long_channel_id: edge.long_channel_id,
 		short_channel_id: edge.short_channel_id,

@@ -6,6 +6,11 @@ export type LndGetInfoResponse = {
 	num_active_channels?: number
 	num_inactive_channels?: number
 	num_pending_channels?: number
+	num_peers?: number
+	block_height?: number
+	best_header_timestamp?: string
+	synced_to_chain?: boolean
+	synced_to_graph?: boolean
 	uris?: string[]
 }
 

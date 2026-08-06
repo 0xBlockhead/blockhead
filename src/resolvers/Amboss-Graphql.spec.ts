@@ -216,6 +216,10 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 						disabled: false,
 					},
 					node2_policy: null,
+					closed_info: null,
+					transactions: {
+						close_transaction: null,
+					},
 				},
 			},
 		})
@@ -259,5 +263,53 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 		expect(channelTimestampResolver.projections.status(timestampSnapshot)).toBe(LightningChannelStatus.Open)
 		expect(channelTimestampResolver.projections.capacitySats(timestampSnapshot)).toBe(1000000n)
 		expect(channelTimestampResolver.projections.feeRatePpm(timestampSnapshot)).toBe(250)
+		expect(channelTimestampResolver.projections.closingTransactionId(timestampSnapshot)).toBeUndefined()
+		expect(channelTimestampResolver.projections.closedAtMs(timestampSnapshot)).toBeUndefined()
+	})
+
+	it('projects enrolled closing clocks from Amboss closed_info', async () => {
+		getEdge.mockResolvedValue({
+			long_channel_id: '123',
+			short_channel_id: '1x2x3',
+			graph: {
+				info: {
+					capacity: '1000000',
+					is_closed: true,
+					last_update: '1700000100',
+					chan_point: 'abcdef0123456789:1',
+					node1_pub: publicKey,
+					node2_pub: peerPublicKey,
+					node1_policy: null,
+					node2_policy: null,
+					closed_info: {
+						close_transaction_id: 'closetxid',
+						closed_date: '2023-11-14T22:15:00.000Z',
+						closed_height: 800_000,
+						closure_type: 'MUTUAL',
+					},
+					transactions: {
+						close_transaction: {
+							id: 'closetxid',
+							fee: '2500',
+						},
+					},
+				},
+			},
+		})
+
+		const timestampSnapshot = await channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
+			$channel: {
+				$network: lightningNetwork,
+				channelId: '123',
+			},
+			timestampMs: 1,
+			source: Source.Amboss_Graphql,
+		}, resolverContext)
+
+		expect(channelTimestampResolver.projections.status(timestampSnapshot)).toBe(LightningChannelStatus.Closed)
+		expect(channelTimestampResolver.projections.closingTransactionId(timestampSnapshot)).toBe('closetxid')
+		expect(channelTimestampResolver.projections.closingFeeSats(timestampSnapshot)).toBe(2500n)
+		expect(channelTimestampResolver.projections.closingReason(timestampSnapshot)).toBe('MUTUAL')
+		expect(channelTimestampResolver.projections.closedAtMs(timestampSnapshot)).toBe(Date.parse('2023-11-14T22:15:00.000Z'))
 	})
 })

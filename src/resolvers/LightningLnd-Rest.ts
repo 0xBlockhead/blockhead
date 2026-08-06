@@ -348,12 +348,89 @@ const lndChannels = async (context: ResolverContext) => {
 		.filter((channel) => channel.private === false)
 }
 
+const lndLocalChannels = async (context: ResolverContext) => {
+	const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
+	return (await listChannels({
+		publicEnv: context.publicEnv,
+	})).channels ?? []
+}
+
 const lndInfo = async (context: ResolverContext) => {
 	const { getInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
 	return getInfo({
 		publicEnv: context.publicEnv,
 	})
 }
+
+const channelStateTimestampFieldsFromLndChannel = (channel: LndChannel) => ({
+	localBalanceSats: bigintFromWire(channel.local_balance),
+	remoteBalanceSats: bigintFromWire(channel.remote_balance),
+	unsettledBalanceSats: bigintFromWire(channel.unsettled_balance),
+	active: channel.active,
+	commitFeeSats: bigintFromWire(channel.commit_fee),
+	commitWeight: bigintFromWire(channel.commit_weight),
+	feePerKw: bigintFromWire(channel.fee_per_kw),
+	numUpdates: bigintFromWire(channel.num_updates),
+	lastSyncedAt: Date.now(),
+})
+
+const htlcFieldsFromLndHtlc = (
+	channel: LndChannel,
+	htlc: NonNullable<LndChannel['pending_htlcs']>[number],
+	fallbackIndex: number
+) => {
+	const htlcIndex = (
+		htlc.htlc_index == null || htlc.htlc_index === '' ?
+			fallbackIndex
+		:
+			Number(htlc.htlc_index)
+	)
+	if (!Number.isSafeInteger(htlcIndex) || htlcIndex < 0)
+		throw new Error(`LightningLnd_Rest: invalid HTLC index ${htlc.htlc_index}`)
+
+	const amountSats = bigintFromWire(htlc.amount)
+
+	return {
+		htlcIndex,
+		$channel: {
+			[EntityMetaKey.Selector]: {
+				$network: lightningNetwork,
+				channelId: channel.chan_id,
+			},
+		},
+		direction: (
+			htlc.incoming === true ?
+				'Incoming'
+			: htlc.incoming === false ?
+				'Outgoing'
+			:
+				undefined
+		),
+		...(amountSats != null && {
+			amountMsat: amountSats * 1000n,
+		}),
+		...(htlc.expiration_height != null && {
+			expiryHeight: BigInt(htlc.expiration_height),
+		}),
+		hashLock: htlc.hash_lock,
+		state: htlc.state,
+	}
+}
+
+const nodeStateTimestampFieldsFromLndInfo = (info: LndGetInfoResponse) => ({
+	syncedToChain: info.synced_to_chain,
+	syncedToGraph: info.synced_to_graph,
+	...(info.block_height != null && {
+		blockHeight: BigInt(info.block_height),
+	}),
+	...(info.best_header_timestamp != null && info.best_header_timestamp !== '' && {
+		bestHeaderTimestampMs: Number(info.best_header_timestamp) * 1000,
+	}),
+	peerCount: info.num_peers,
+	activeChannelCount: info.num_active_channels,
+	inactiveChannelCount: info.num_inactive_channels,
+	pendingChannelCount: info.num_pending_channels,
+})
 
 export default {
 	source: Source.LightningLnd_Rest,
@@ -422,6 +499,7 @@ export default {
 					resolve: async ({ connectionId, $network }, context) => {
 						assertLightningNetwork($network.$network)
 						const info = await lndInfo(context)
+						const timestampMs = Date.now()
 						return {
 							connectionId,
 							$network: {
@@ -435,6 +513,18 @@ export default {
 									publicKey: info.identity_pubkey,
 								},
 							},
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$localNodeState: {
+											connectionId,
+											$network,
+										},
+										timestampMs,
+										source: Source.LightningLnd_Rest,
+									},
+								},
+							],
 						}
 					},
 				},
@@ -445,6 +535,176 @@ export default {
 			lndPubkey: (state) => state.lndPubkey,
 			alias: (state) => state.alias,
 			$node: (state) => state.$node,
+			$$timestamps: (state) => state.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadLightningNodeState_Timestamp,
+			resolve: {
+				LocalNodeStateTimestampMsSource: {
+					resolve: async ({ $localNodeState, source }, context) => {
+						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
+						assertLightningNetwork($localNodeState.$network.$network)
+						return nodeStateTimestampFieldsFromLndInfo(await lndInfo(context))
+					},
+				},
+			},
+		})({
+			syncedToChain: (snapshot) => snapshot.syncedToChain,
+			syncedToGraph: (snapshot) => snapshot.syncedToGraph,
+			blockHeight: (snapshot) => snapshot.blockHeight,
+			bestHeaderTimestampMs: (snapshot) => snapshot.bestHeaderTimestampMs,
+			peerCount: (snapshot) => snapshot.peerCount,
+			activeChannelCount: (snapshot) => snapshot.activeChannelCount,
+			inactiveChannelCount: (snapshot) => snapshot.inactiveChannelCount,
+			pendingChannelCount: (snapshot) => snapshot.pendingChannelCount,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadLightningNodeState,
+			resolve: {
+				ConnectionIdNetwork: {
+					resolve: async ({ connectionId, $network }, context) => {
+						assertLightningNetwork($network.$network)
+						return (await lndLocalChannels(context))
+							.slice(0, resolverContextRowLimit(context))
+							.map((channel) => ({
+								[EntityMetaKey.Selector]: {
+									$localNodeState: {
+										connectionId,
+										$network,
+									},
+									$channel: {
+										$network: $network.$network,
+										channelId: channel.chan_id,
+									},
+								},
+							}))
+					},
+				},
+			},
+		})({
+			$$channelStates: (channelStates) => channelStates,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadLightningChannelState,
+			resolve: {
+				LocalNodeStateChannel: {
+					resolve: async ({ $localNodeState, $channel }, context) => {
+						assertLightningNetwork($localNodeState.$network.$network)
+						assertLightningNetwork($channel.$network)
+						const channel = (await lndLocalChannels(context)).find((channel) => channel.chan_id === $channel.channelId)
+						if (channel == null)
+							throw new Error(`LightningLnd_Rest: channel not found ${$channel.channelId}`)
+						const timestampMs = Date.now()
+						return {
+							private: channel.private,
+							initiator: channel.initiator,
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$channelState: {
+											$localNodeState,
+											$channel,
+										},
+										timestampMs,
+										source: Source.LightningLnd_Rest,
+									},
+								},
+							],
+						}
+					},
+				},
+			},
+		})({
+			private: (state) => state.private,
+			initiator: (state) => state.initiator,
+			$$timestamps: (state) => state.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadLightningChannelState_Timestamp,
+			resolve: {
+				ChannelStateTimestampMsSource: {
+					resolve: async ({ $channelState, source }, context) => {
+						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
+						assertLightningNetwork($channelState.$localNodeState.$network.$network)
+						assertLightningNetwork($channelState.$channel.$network)
+						const channel = (await lndLocalChannels(context)).find((channel) => channel.chan_id === $channelState.$channel.channelId)
+						if (channel == null)
+							throw new Error(`LightningLnd_Rest: channel not found ${$channelState.$channel.channelId}`)
+						return channelStateTimestampFieldsFromLndChannel(channel)
+					},
+				},
+			},
+		})({
+			localBalanceSats: (snapshot) => snapshot.localBalanceSats,
+			remoteBalanceSats: (snapshot) => snapshot.remoteBalanceSats,
+			unsettledBalanceSats: (snapshot) => snapshot.unsettledBalanceSats,
+			active: (snapshot) => snapshot.active,
+			commitFeeSats: (snapshot) => snapshot.commitFeeSats,
+			commitWeight: (snapshot) => snapshot.commitWeight,
+			feePerKw: (snapshot) => snapshot.feePerKw,
+			numUpdates: (snapshot) => snapshot.numUpdates,
+			lastSyncedAt: (snapshot) => snapshot.lastSyncedAt,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadLightningChannelState,
+			resolve: {
+				LocalNodeStateChannel: {
+					resolve: async ({ $localNodeState, $channel }, context) => {
+						assertLightningNetwork($localNodeState.$network.$network)
+						assertLightningNetwork($channel.$network)
+						const channel = (await lndLocalChannels(context)).find((channel) => channel.chan_id === $channel.channelId)
+						if (channel == null)
+							throw new Error(`LightningLnd_Rest: channel not found ${$channel.channelId}`)
+						return (channel.pending_htlcs ?? []).map((htlc, index) => {
+							const fields = htlcFieldsFromLndHtlc(channel, htlc, index)
+							return {
+								[EntityMetaKey.Selector]: {
+									$channelState: {
+										$localNodeState,
+										$channel,
+									},
+									htlcIndex: fields.htlcIndex,
+								},
+							}
+						})
+					},
+				},
+			},
+		})({
+			$$htlcs: (htlcs) => htlcs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadLightningHtlc,
+			resolve: {
+				ChannelStateHtlcIndex: {
+					resolve: async ({ $channelState, htlcIndex }, context) => {
+						assertLightningNetwork($channelState.$localNodeState.$network.$network)
+						assertLightningNetwork($channelState.$channel.$network)
+						const channel = (await lndLocalChannels(context)).find((channel) => channel.chan_id === $channelState.$channel.channelId)
+						if (channel == null)
+							throw new Error(`LightningLnd_Rest: channel not found ${$channelState.$channel.channelId}`)
+						for (const [index, htlc] of (channel.pending_htlcs ?? []).entries()) {
+							const fields = htlcFieldsFromLndHtlc(channel, htlc, index)
+							if (fields.htlcIndex === htlcIndex)
+								return fields
+						}
+						throw new Error(`LightningLnd_Rest: HTLC not found ${$channelState.$channel.channelId}:${htlcIndex}`)
+					},
+				},
+			},
+		})({
+			$channel: (htlc) => htlc.$channel,
+			direction: (htlc) => htlc.direction,
+			amountMsat: (htlc) => htlc.amountMsat,
+			expiryHeight: (htlc) => htlc.expiryHeight,
+			hashLock: (htlc) => htlc.hashLock,
+			state: (htlc) => htlc.state,
 		}),
 
 		defineResolver({
