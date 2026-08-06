@@ -19,6 +19,7 @@ const getSlotWithdrawals = vi.hoisted(() => vi.fn())
 const getSlotAttesterSlashings = vi.hoisted(() => vi.fn())
 const getSlotProposerSlashings = vi.hoisted(() => vi.fn())
 const getValidator = vi.hoisted(() => vi.fn())
+const getValidatorAttestations = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/BeaconchaIn/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/BeaconchaIn/Rest/queries.ts')>(),
@@ -30,6 +31,7 @@ vi.mock('$/sources/BeaconchaIn/Rest/queries.ts', async (importOriginal) => ({
 	getSlotAttesterSlashings,
 	getSlotProposerSlashings,
 	getValidator,
+	getValidatorAttestations,
 }))
 
 const { default: beaconchaInRest } = await import('$/resolvers/BeaconchaIn-Rest.ts')
@@ -85,6 +87,11 @@ const slashingResolver = beaconchaInRest.resolvers.find((resolver) => (
 ))
 const validatorResolver = beaconchaInRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconValidator
+	&& 'indexInNetwork' in resolver.projections
+))
+const validatorAttestationDutiesResolver = beaconchaInRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconValidator
+	&& 'attestationDuties' in resolver.projections
 ))
 
 if (
@@ -98,6 +105,7 @@ if (
 	|| withdrawalResolver == null
 	|| slashingResolver == null
 	|| validatorResolver == null
+	|| validatorAttestationDutiesResolver == null
 )
 	throw new Error('BeaconchaIn resolver facets missing')
 
@@ -112,6 +120,7 @@ describe('BeaconchaIn-Rest resolvers', () => {
 		getSlotAttesterSlashings.mockReset()
 		getSlotProposerSlashings.mockReset()
 		getValidator.mockReset()
+		getValidatorAttestations.mockReset()
 	})
 
 	it('maps epoch overview into schema fields', async () => {
@@ -401,6 +410,62 @@ describe('BeaconchaIn-Rest resolvers', () => {
 			indexInSlot: 1,
 			slot: 320,
 		})
+	})
+
+	it('maps validator attestation duties and hard-fails HTTP errors', async () => {
+		getValidatorAttestations
+			.mockResolvedValueOnce([
+				{
+					attesterslot: 12779525,
+					epoch: 399360,
+					inclusionslot: 12779526,
+					status: 1,
+					validatorindex: 20,
+					committeeindex: 0,
+				},
+				{
+					attesterslot: 12779557,
+					epoch: 399361,
+					inclusionslot: 0,
+					status: 0,
+					validatorindex: 20,
+				},
+			])
+			.mockResolvedValueOnce([])
+			.mockRejectedValueOnce(new Error('BeaconchaIn GET validator attestations failed: 500'))
+
+		await expect(validatorAttestationDutiesResolver.resolve.NetworkIndexInNetwork.resolve({
+			$network: network,
+			indexInNetwork: 20,
+		}, context)).resolves.toEqual([
+			{
+				attesterSlot: 12779525,
+				epoch: 399360,
+				inclusionSlot: 12779526,
+				status: 1,
+				committeeIndex: 0,
+			},
+			{
+				attesterSlot: 12779557,
+				epoch: 399361,
+				inclusionSlot: 0,
+				status: 0,
+			},
+		])
+
+		await expect(validatorAttestationDutiesResolver.resolve.NetworkPubkey.resolve({
+			$network: network,
+			pubkey: `0x${'aa'.repeat(48)}`,
+		}, context)).resolves.toEqual([])
+
+		await expect(validatorAttestationDutiesResolver.resolve.NetworkIndexInNetwork.resolve({
+			$network: network,
+			indexInNetwork: 20,
+		}, context)).rejects.toThrow('validator attestations failed')
+
+		expect(
+			'resolveLive' in validatorAttestationDutiesResolver.projections.attestationDuties
+		).toBe(false)
 	})
 
 	it('omits unsupported committee facets', () => {
