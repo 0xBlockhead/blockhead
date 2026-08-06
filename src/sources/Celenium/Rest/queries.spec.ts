@@ -4,12 +4,19 @@ import bindings from '$/sources/Celenium/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	getAddress,
+	getBlobMetadata,
 	getBlock,
+	getBlockByHash,
+	getBlockCount,
 	getHead,
+	getNamespace,
 	getTransaction,
 	listBlobMetadata,
+	listBlockBlobs,
 	listBlocks,
+	listNamespaceBlobs,
 	listNamespaces,
+	namespaceHashFromId,
 } from '$/sources/Celenium/Rest/queries.ts'
 import * as sourceHttp from '$/sources/_runtime/http.ts'
 
@@ -58,10 +65,27 @@ describe('Celenium mainnet public indexer contracts', () => {
 			total_blobs_size: 4_403_903_879_869,
 			total_supply: '11734771038079209007199254740993',
 			synced: true,
+			total_namespaces: 1_095,
+			id: 1,
+			version: 9,
+			name: 'celestia_indexer',
+			total_validators: 313,
 		}
 		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue(head)
 
-		await expect(getHead()).resolves.toEqual(head)
+		await expect(getHead()).resolves.toEqual({
+			chain_id: 'celestia',
+			last_height: 12_424_720,
+			hash,
+			last_time: '2026-07-23T04:48:08Z',
+			total_tx: 64_039_630,
+			total_accounts: 1_697_994,
+			total_fee: '4276859431859007199254740993',
+			total_blobs_size: 4_403_903_879_869,
+			total_supply: '11734771038079209007199254740993',
+			synced: true,
+			total_namespaces: 1_095,
+		})
 	})
 
 	it('rejects foreign head and substituted block identities', async () => {
@@ -263,5 +287,206 @@ describe('Celenium mainnet public indexer contracts', () => {
 		})
 
 		await expect(getTransaction(hash)).rejects.toThrow('mismatched identity')
+	})
+
+	it('resolves block hash via search then height detail', async () => {
+		const sourceGetJson = vi.spyOn(sourceHttp, 'sourceGetJson')
+		sourceGetJson
+			.mockResolvedValueOnce([
+				{
+					type: 'block',
+					result: {
+						height: blockWire.height,
+						hash: hash.toUpperCase(),
+					},
+				},
+			])
+			.mockResolvedValueOnce(blockWire)
+
+		await expect(getBlockByHash(hash)).resolves.toEqual(blockWire)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			1,
+			binding,
+			`https://api.celenium.io/v1/search?query=${hash}`
+		)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			2,
+			binding,
+			`https://api.celenium.io/v1/block/${blockWire.height}?stats=true`
+		)
+	})
+
+	it('fail-closes block count and namespace detail leftovers', async () => {
+		const sourceGetJson = vi.spyOn(sourceHttp, 'sourceGetJson')
+		sourceGetJson.mockResolvedValueOnce(12_424_720)
+		await expect(getBlockCount()).resolves.toBe(12_424_720)
+
+		sourceGetJson.mockResolvedValueOnce({
+			size: 24_857,
+			blobs_count: 4,
+			version: 0,
+			namespace_id: namespaceId,
+			hash: namespaceHash,
+			last_height: 12_424_720,
+			name: 'PayForBlobs',
+			reserved: false,
+			pfb_count: 4,
+		})
+		await expect(getNamespace(`00${namespaceId}`)).resolves.toEqual({
+			size: 24_857,
+			blobs_count: 4,
+			version: 0,
+			namespace_id: namespaceId,
+			hash: namespaceHash,
+			last_height: 12_424_720,
+			name: 'PayForBlobs',
+			reserved: false,
+		})
+		expect(sourceGetJson).toHaveBeenLastCalledWith(
+			binding,
+			`https://api.celenium.io/v1/namespace/${namespaceId}/0`
+		)
+
+		sourceGetJson.mockResolvedValueOnce('not-a-count')
+		await expect(getBlockCount()).rejects.toThrow()
+	})
+
+	it('lists block and namespace blob leftovers with nested wires', async () => {
+		const sourceGetJson = vi.spyOn(sourceHttp, 'sourceGetJson')
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				commitment,
+				size: 379,
+				share_version: 0,
+				height: 12_424_743,
+				time: '2026-07-23T04:49:13Z',
+				content_type: 'application/octet-stream',
+				namespace: {
+					version: 0,
+					namespace_id: namespaceId,
+					hash: namespaceHash,
+					blobs_count: 1,
+				},
+				tx: {
+					hash,
+				},
+				signer: {
+					hash: address,
+				},
+			},
+		])
+		await expect(listBlockBlobs({
+			height: 12_424_743n,
+			limit: 1,
+			offset: 0,
+		})).resolves.toEqual([
+			{
+				commitment,
+				size: 379,
+				share_version: 0,
+				height: 12_424_743,
+				time: '2026-07-23T04:49:13Z',
+				content_type: 'application/octet-stream',
+				namespace: namespaceHash,
+				namespaceVersion: 0,
+				namespaceId,
+				tx_hash: hash,
+				signer: {
+					hash: address,
+				},
+			},
+		])
+
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				commitment,
+				size: 11,
+				share_version: 0,
+				height: 12_424_720,
+				time: '2026-07-23T04:48:08Z',
+				content_type: 'text/plain; charset=utf-8',
+				tx_hash: hash,
+				signer: {
+					hash: address,
+				},
+			},
+		])
+		await expect(listNamespaceBlobs({
+			namespaceId: `00${namespaceId}`,
+			limit: 1,
+			offset: 0,
+		})).resolves.toEqual([
+			{
+				commitment,
+				size: 11,
+				share_version: 0,
+				height: 12_424_720,
+				time: '2026-07-23T04:48:08Z',
+				content_type: 'text/plain; charset=utf-8',
+				namespace: namespaceHashFromId(`00${namespaceId}`),
+				namespaceVersion: 0,
+				namespaceId,
+				tx_hash: hash,
+				signer: {
+					hash: address,
+				},
+			},
+		])
+	})
+
+	it('posts blob metadata without downloading blob bodies', async () => {
+		const canonicalNamespaceHash = namespaceHashFromId(`00${namespaceId}`)
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(
+			new Response(JSON.stringify({
+				commitment,
+				size: 379,
+				share_version: 0,
+				height: 12_424_743,
+				time: '2026-07-23T04:49:13Z',
+				content_type: 'application/octet-stream',
+				namespace: {
+					version: 0,
+					namespace_id: namespaceId,
+					hash: canonicalNamespaceHash,
+				},
+				tx: {
+					hash,
+				},
+				signer: {
+					hash: address,
+				},
+				data: 'must not enter metadata',
+			}), {
+				status: 200,
+				headers: {
+					'content-type': 'application/json',
+				},
+			})
+		)
+
+		await expect(getBlobMetadata({
+			height: 12_424_743n,
+			namespaceId: `00${namespaceId}`,
+			commitment,
+		})).resolves.toEqual({
+			commitment,
+			size: 379,
+			share_version: 0,
+			height: 12_424_743,
+			time: '2026-07-23T04:49:13Z',
+			content_type: 'application/octet-stream',
+			namespace: canonicalNamespaceHash,
+			tx_hash: hash,
+			signer: {
+				hash: address,
+			},
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			'https://api.celenium.io/v1/blob/metadata',
+			expect.objectContaining({
+				method: 'POST',
+			})
+		)
 	})
 })

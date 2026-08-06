@@ -20,6 +20,107 @@ const assertCelestiaMainnet = (
 		throw new Error('Celenium_Rest: unsupported network')
 }
 
+const blobFieldsFromMetadata = (
+	blob: {
+		share_version: number
+		size: number
+		signer: {
+			hash: string
+		}
+		tx_hash: string
+		height: number
+	},
+	$network: EntitySelector<typeof schema, EntityType.CelestiaNetwork>
+) => ({
+	shareVersion: blob.share_version,
+	sizeBytes: BigInt(blob.size),
+	signer: blob.signer.hash,
+	txHash: blob.tx_hash.toLowerCase(),
+	$block: {
+		[EntityMetaKey.Selector]: {
+			$network,
+			height: BigInt(blob.height),
+		},
+	},
+})
+
+const blobRefFromMetadata = (
+	blob: {
+		commitment: string
+		share_version: number
+		size: number
+		signer: {
+			hash: string
+		}
+		tx_hash: string
+		height: number
+		namespace: string
+		namespaceVersion?: number
+		namespaceId?: string
+	},
+	$network: EntitySelector<typeof schema, EntityType.CelestiaNetwork>
+) => {
+	const namespaceId = (
+		blob.namespaceVersion != null && blob.namespaceId != null ?
+			(
+				blob.namespaceVersion.toString(16).padStart(2, '0')
+				+ blob.namespaceId.toLowerCase()
+			)
+		:
+			Hex.fromBytes(Uint8Array.from(
+				globalThis.atob(blob.namespace),
+				(character) => character.charCodeAt(0)
+			)).slice(2)
+	)
+	const fields = blobFieldsFromMetadata(blob, $network)
+	return {
+		[EntityMetaKey.Selector]: {
+			$namespace: {
+				$network,
+				namespaceId,
+			},
+			height: BigInt(blob.height),
+			commitment: blob.commitment,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'shareVersion')]: fields.shareVersion,
+			[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'sizeBytes')]: fields.sizeBytes,
+			[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'signer')]: fields.signer,
+			[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'txHash')]: fields.txHash,
+			[entityFieldAddressKey(EntityType.CelestiaBlob, [], '$block')]: fields.$block,
+		},
+	}
+}
+
+const blockFieldsFromWire = (
+	block: {
+		hash: string
+		app_hash: string
+		data_hash: string
+		proposer: {
+			cons_address: string
+		}
+		time: string
+		stats: {
+			blobs_count: number
+			tx_count: number
+		}
+	}
+) => {
+	const timestampMs = Date.parse(block.time)
+	if (!Number.isFinite(timestampMs))
+		throw new Error('Celenium_Rest: invalid block time')
+	return {
+		hash: block.hash.toLowerCase(),
+		appHash: block.app_hash.toLowerCase(),
+		dataHash: block.data_hash.toLowerCase(),
+		proposerAddress: block.proposer.cons_address.toLowerCase(),
+		timestampMs,
+		blobCount: block.stats.blobs_count,
+		transactionCount: block.stats.tx_count,
+	}
+}
+
 export default {
 	source: Source.Celenium_Rest,
 
@@ -69,19 +170,48 @@ export default {
 								limit,
 								offset: context.pagination.offset ?? 0,
 							})
-						).map((block) => ({
-							[EntityMetaKey.Selector]: {
-								$network: {
-									$network,
+						).map((block) => {
+							const fields = blockFieldsFromWire(block)
+							return {
+								[EntityMetaKey.Selector]: {
+									$network: {
+										$network,
+									},
+									height: BigInt(block.height),
 								},
-								height: BigInt(block.height),
-							},
-						}))
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'hash')]: fields.hash,
+									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'appHash')]: fields.appHash,
+									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'dataHash')]: fields.dataHash,
+									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'proposerAddress')]: fields.proposerAddress,
+									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'timestampMs')]: fields.timestampMs,
+									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'blobCount')]: fields.blobCount,
+									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'transactionCount')]: fields.transactionCount,
+								},
+							}
+						})
 					},
 				},
 			},
 		})({
 				$$blocks: (blocks) => blocks,
+			}),
+
+		defineResolver({
+			entityType: EntityType.CelestiaNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }) => {
+						assertCelestiaMainnet($network)
+						const { getBlockCount } = await import('$/sources/Celenium/Rest/queries.ts')
+						return await getBlockCount()
+					},
+				},
+			},
+		})({
+				$$blocks: {
+					resolveCount: (count) => count,
+				},
 			}),
 
 		defineResolver({
@@ -152,40 +282,15 @@ export default {
 							return []
 
 						const { listBlobMetadata } = await import('$/sources/Celenium/Rest/queries.ts')
+						const $celestiaNetwork = {
+							$network,
+						}
 						return (
 							await listBlobMetadata({
 								limit,
 								offset: context.pagination.offset ?? 0,
 							})
-						).map((blob) => ({
-							[EntityMetaKey.Selector]: {
-								$namespace: {
-									$network: {
-										$network,
-									},
-									namespaceId: Hex.fromBytes(Uint8Array.from(
-										globalThis.atob(blob.namespace),
-										(character) => character.charCodeAt(0)
-									)).slice(2),
-								},
-								height: BigInt(blob.height),
-								commitment: blob.commitment,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'shareVersion')]: blob.share_version,
-								[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'sizeBytes')]: BigInt(blob.size),
-								[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'signer')]: blob.signer.hash,
-								[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'txHash')]: blob.tx_hash.toLowerCase(),
-								[entityFieldAddressKey(EntityType.CelestiaBlob, [], '$block')]: {
-									[EntityMetaKey.Selector]: {
-										$network: {
-											$network,
-										},
-										height: BigInt(blob.height),
-									},
-								},
-							},
-						}))
+						).map((blob) => blobRefFromMetadata(blob, $celestiaNetwork))
 					},
 				},
 			},
@@ -200,30 +305,147 @@ export default {
 					resolve: async ({ $network, height }) => {
 						assertCelestiaMainnet($network.$network)
 						const { getBlock } = await import('$/sources/Celenium/Rest/queries.ts')
-						const block = await getBlock(height)
-						const timestampMs = Date.parse(block.time)
-						if (!Number.isFinite(timestampMs))
-							throw new Error('Celenium_Rest: invalid block time')
 						return {
-							hash: block.hash.toLowerCase(),
-							appHash: block.app_hash.toLowerCase(),
-							dataHash: block.data_hash.toLowerCase(),
-							proposerAddress: block.proposer.cons_address.toLowerCase(),
-							timestampMs,
-							blobCount: block.stats.blobs_count,
-							transactionCount: block.stats.tx_count,
+							...blockFieldsFromWire(await getBlock(height)),
+							height,
+						}
+					},
+				},
+				NetworkHash: {
+					resolve: async ({ $network, hash }) => {
+						assertCelestiaMainnet($network.$network)
+						const { getBlockByHash } = await import('$/sources/Celenium/Rest/queries.ts')
+						const block = await getBlockByHash(hash)
+						return {
+							...blockFieldsFromWire(block),
+							height: BigInt(block.height),
 						}
 					},
 				},
 			},
 		})({
 				hash: (block) => block.hash,
+				height: (block) => block.height,
 				appHash: (block) => block.appHash,
 				dataHash: (block) => block.dataHash,
 				proposerAddress: (block) => block.proposerAddress,
 				timestampMs: (block) => block.timestampMs,
 				blobCount: (block) => block.blobCount,
 				transactionCount: (block) => block.transactionCount,
+			}),
+
+		defineResolver({
+			entityType: EntityType.CelestiaBlock,
+			resolve: {
+				NetworkHeight: {
+					resolve: async ({ $network, height }, context) => {
+						assertCelestiaMainnet($network.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						if (limit === 0)
+							return []
+						const { listBlockBlobs } = await import('$/sources/Celenium/Rest/queries.ts')
+						return (
+							await listBlockBlobs({
+								height,
+								limit,
+								offset: context.pagination.offset ?? 0,
+							})
+						).map((blob) => blobRefFromMetadata(blob, $network))
+					},
+				},
+			},
+		})({
+				$$blobs: (blobs) => blobs,
+			}),
+
+		defineResolver({
+			entityType: EntityType.CelestiaNamespace,
+			resolve: {
+				NetworkNamespaceId: {
+					resolve: async ({ $network, namespaceId }) => {
+						assertCelestiaMainnet($network.$network)
+						const { getNamespace } = await import('$/sources/Celenium/Rest/queries.ts')
+						const namespace = await getNamespace(namespaceId)
+						const timestampMs = Date.now()
+						return {
+							namespaceVersion: namespace.version,
+							...(namespace.name != null && {
+								label: namespace.name,
+							}),
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$namespace: {
+											$network,
+											namespaceId,
+										},
+										timestampMs,
+										source: Source.Celenium_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.CelestiaNamespace_Timestamp, [], 'height')]: BigInt(namespace.last_height),
+										[entityFieldAddressKey(EntityType.CelestiaNamespace_Timestamp, [], 'blobCount')]: namespace.blobs_count,
+									},
+								},
+							],
+						}
+					},
+				},
+			},
+		})({
+				namespaceVersion: (namespace) => namespace.namespaceVersion,
+				label: (namespace) => namespace.label,
+				$$timestamps: (namespace) => namespace.$$timestamps,
+			}),
+
+		defineResolver({
+			entityType: EntityType.CelestiaNamespace,
+			resolve: {
+				NetworkNamespaceId: {
+					resolve: async ({ $network, namespaceId }, context) => {
+						assertCelestiaMainnet($network.$network)
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						if (limit === 0)
+							return []
+						const { listNamespaceBlobs } = await import('$/sources/Celenium/Rest/queries.ts')
+						return (
+							await listNamespaceBlobs({
+								namespaceId,
+								limit,
+								offset: context.pagination.offset ?? 0,
+							})
+						).map((blob) => blobRefFromMetadata(blob, $network))
+					},
+				},
+			},
+		})({
+				$$blobs: (blobs) => blobs,
+			}),
+
+		defineResolver({
+			entityType: EntityType.CelestiaBlob,
+			resolve: {
+				NamespaceHeightCommitment: {
+					resolve: async ({ $namespace, height, commitment }) => {
+						assertCelestiaMainnet($namespace.$network.$network)
+						const { getBlobMetadata } = await import('$/sources/Celenium/Rest/queries.ts')
+						return blobFieldsFromMetadata(
+							await getBlobMetadata({
+								height,
+								namespaceId: $namespace.namespaceId,
+								commitment,
+							}),
+							$namespace.$network
+						)
+					},
+				},
+			},
+		})({
+				shareVersion: (blob) => blob.shareVersion,
+				sizeBytes: (blob) => blob.sizeBytes,
+				signer: (blob) => blob.signer,
+				txHash: (blob) => blob.txHash,
+				$block: (blob) => blob.$block,
 			}),
 
 		defineResolver({
@@ -287,6 +509,9 @@ export default {
 							latestHash: head.hash.toLowerCase(),
 							latestBlockTimeMs,
 							syncing: !head.synced,
+							...(head.total_namespaces != null && {
+								namespaceCount: head.total_namespaces,
+							}),
 						}
 					},
 				},
@@ -299,6 +524,7 @@ export default {
 				latestHash: (timestamp) => timestamp.latestHash,
 				latestBlockTimeMs: (timestamp) => timestamp.latestBlockTimeMs,
 				syncing: (timestamp) => timestamp.syncing,
+				namespaceCount: (timestamp) => timestamp.namespaceCount,
 			}),
 	],
 } satisfies RegisteredSourceResolverModule

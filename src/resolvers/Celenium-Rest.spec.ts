@@ -19,19 +19,31 @@ import { Source } from '$/sources/Source.ts'
 
 const getHead = vi.hoisted(() => vi.fn())
 const getBlock = vi.hoisted(() => vi.fn())
+const getBlockByHash = vi.hoisted(() => vi.fn())
+const getBlockCount = vi.hoisted(() => vi.fn())
+const getBlobMetadata = vi.hoisted(() => vi.fn())
+const getNamespace = vi.hoisted(() => vi.fn())
 const getTransaction = vi.hoisted(() => vi.fn())
 const listBlocks = vi.hoisted(() => vi.fn())
 const listNamespaces = vi.hoisted(() => vi.fn())
 const listBlobMetadata = vi.hoisted(() => vi.fn())
+const listBlockBlobs = vi.hoisted(() => vi.fn())
+const listNamespaceBlobs = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Celenium/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Celenium/Rest/queries.ts')>(),
 	getHead,
 	getBlock,
+	getBlockByHash,
+	getBlockCount,
+	getBlobMetadata,
+	getNamespace,
 	getTransaction,
 	listBlocks,
 	listNamespaces,
 	listBlobMetadata,
+	listBlockBlobs,
+	listNamespaceBlobs,
 }))
 
 const { default: celeniumRest } = await import('$/resolvers/Celenium-Rest.ts')
@@ -61,9 +73,33 @@ const timestampResolver = celeniumRest.resolvers.find((resolver) => (
 const blocksResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaNetwork
 	&& '$$blocks' in resolver.projections
+	&& typeof resolver.projections.$$blocks === 'function'
+))
+const blocksCountResolver = celeniumRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CelestiaNetwork
+	&& '$$blocks' in resolver.projections
+	&& typeof resolver.projections.$$blocks === 'object'
+	&& resolver.projections.$$blocks != null
+	&& 'resolveCount' in resolver.projections.$$blocks
 ))
 const blockResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaBlock
+	&& 'hash' in resolver.projections
+))
+const blockBlobsResolver = celeniumRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CelestiaBlock
+	&& '$$blobs' in resolver.projections
+))
+const namespaceResolver = celeniumRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CelestiaNamespace
+	&& 'namespaceVersion' in resolver.projections
+))
+const namespaceBlobsResolver = celeniumRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CelestiaNamespace
+	&& '$$blobs' in resolver.projections
+))
+const blobResolver = celeniumRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CelestiaBlob
 ))
 const transactionResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CosmosTransaction
@@ -81,7 +117,12 @@ if (
 	networkResolver == null
 	|| timestampResolver == null
 	|| blocksResolver == null
+	|| blocksCountResolver == null
 	|| blockResolver == null
+	|| blockBlobsResolver == null
+	|| namespaceResolver == null
+	|| namespaceBlobsResolver == null
+	|| blobResolver == null
 	|| transactionResolver == null
 	|| namespacesResolver == null
 	|| blobsResolver == null
@@ -197,6 +238,30 @@ describe('Celenium REST head projection', () => {
 		})
 	})
 
+	it('projects enrolled namespaceCount from head total_namespaces', async () => {
+		getHead.mockResolvedValue({
+			chain_id: 'celestia',
+			last_height: 12_424_720,
+			hash: 'A'.repeat(64),
+			last_time: '2026-07-23T04:48:08Z',
+			total_tx: 64_039_630,
+			total_accounts: 1_697_994,
+			total_fee: '427685943185',
+			total_blobs_size: 4_403_903_879_869,
+			total_supply: '1173477103807920',
+			total_namespaces: 1_095,
+			synced: true,
+		})
+
+		await expect(timestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: celestiaNetwork,
+			timestampMs: 1_784_782_088_000,
+			source: Source.Celenium_Rest,
+		})).resolves.toMatchObject({
+			namespaceCount: 1_095,
+		})
+	})
+
 	it('rejects a head row that does not match the addressed observation time', async () => {
 		getHead.mockResolvedValue({
 			chain_id: 'celestia',
@@ -257,6 +322,15 @@ describe('Celenium REST head projection', () => {
 					$network: celestiaNetwork,
 					height: 12_424_720n,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'hash')]: 'a'.repeat(64),
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'appHash')]: 'c'.repeat(64),
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'dataHash')]: 'd'.repeat(64),
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'proposerAddress')]: 'e'.repeat(40),
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'timestampMs')]: 1_784_782_088_000,
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'blobCount')]: 4,
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'transactionCount')]: 5,
+				},
 			},
 		])
 		expect(listBlocks).toHaveBeenCalledWith({
@@ -296,8 +370,66 @@ describe('Celenium REST head projection', () => {
 			timestampMs: 1_784_782_088_000,
 			blobCount: 4,
 			transactionCount: 5,
+			height: 12_424_720n,
 		})
 		expect(getBlock).toHaveBeenCalledWith(12_424_720n)
+	})
+
+	it('projects NetworkHash through search-backed block detail', async () => {
+		getBlockByHash.mockResolvedValue({
+			height: 12_424_720,
+			hash: 'A'.repeat(64),
+			parent_hash: 'B'.repeat(64),
+			app_hash: 'C'.repeat(64),
+			data_hash: 'D'.repeat(64),
+			time: '2026-07-23T04:48:08Z',
+			proposer: {
+				cons_address: 'E'.repeat(40),
+			},
+			stats: {
+				tx_count: 5,
+				blobs_count: 4,
+				blobs_size: 24_857,
+				fee: '1000',
+				bytes_in_block: 50_000,
+			},
+		})
+
+		await expect(blockResolver.resolve.NetworkHash.resolve({
+			$network: celestiaNetwork,
+			hash: 'a'.repeat(64),
+		})).resolves.toEqual({
+			hash: 'a'.repeat(64),
+			appHash: 'c'.repeat(64),
+			dataHash: 'd'.repeat(64),
+			proposerAddress: 'e'.repeat(40),
+			timestampMs: 1_784_782_088_000,
+			blobCount: 4,
+			transactionCount: 5,
+			height: 12_424_720n,
+		})
+		expect(getBlockByHash).toHaveBeenCalledWith('a'.repeat(64))
+	})
+
+	it('projects $$blocks resolveCount from /v1/block/count', async () => {
+		getBlockCount.mockResolvedValue(12_424_721)
+		const resolveCount = (
+			'Network' in blocksCountResolver.resolve ?
+				blocksCountResolver.resolve.Network.resolve
+			:
+				undefined
+		)
+		if (resolveCount == null)
+			throw new Error('Celenium REST block count resolver is not registered')
+		await expect(resolveCount({
+			$network: network,
+		}, context)).resolves.toBe(12_424_721)
+		expect(
+			typeof blocksCountResolver.projections.$$blocks === 'object'
+			&& blocksCountResolver.projections.$$blocks != null
+			&& 'resolveCount' in blocksCountResolver.projections.$$blocks
+			&& blocksCountResolver.projections.$$blocks.resolveCount(12_424_721)
+		).toBe(12_424_721)
 	})
 
 	it('projects native transaction units into the addressed Cosmos transaction', async () => {
@@ -449,6 +581,139 @@ describe('Celenium REST head projection', () => {
 		expect(listBlobMetadata).toHaveBeenCalledWith({
 			limit: 1,
 			offset: 4,
+		})
+	})
+
+	it('projects singular namespace, block blobs, namespace blobs, and blob metadata leftovers', async () => {
+		getNamespace.mockResolvedValue({
+			size: 24_857,
+			blobs_count: 4,
+			version: 0,
+			namespace_id: 'A'.repeat(56),
+			hash: `${'B'.repeat(39)}=`,
+			last_height: 12_424_720,
+			name: 'PayForBlobs',
+			reserved: false,
+		})
+		const namespaceId = `00${'a'.repeat(56)}`
+		await expect(namespaceResolver.resolve.NetworkNamespaceId.resolve({
+			$network: celestiaNetwork,
+			namespaceId,
+		})).resolves.toMatchObject({
+			namespaceVersion: 0,
+			label: 'PayForBlobs',
+		})
+
+		listBlockBlobs.mockResolvedValue([
+			{
+				commitment: `${'B'.repeat(43)}=`,
+				size: 379,
+				share_version: 0,
+				height: 12_424_743,
+				time: '2026-07-23T04:49:13Z',
+				content_type: 'application/octet-stream',
+				namespace: `${'A'.repeat(39)}=`,
+				namespaceVersion: 0,
+				namespaceId: 'a'.repeat(56),
+				tx_hash: 'A'.repeat(64),
+				signer: {
+					hash: 'celestia1zwpvejau8kzhttlc39wmfggyf8n3eaxlpvd86u',
+				},
+			},
+		])
+		await expect(blockBlobsResolver.resolve.NetworkHeight.resolve({
+			$network: celestiaNetwork,
+			height: 12_424_743n,
+		}, {
+			...context,
+			pagination: {
+				limit: 1,
+				offset: 0,
+			},
+		})).resolves.toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$namespace: {
+						$network: celestiaNetwork,
+						namespaceId: `00${'a'.repeat(56)}`,
+					},
+					height: 12_424_743n,
+					commitment: `${'B'.repeat(43)}=`,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'shareVersion')]: 0,
+					[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'sizeBytes')]: 379n,
+					[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'signer')]: 'celestia1zwpvejau8kzhttlc39wmfggyf8n3eaxlpvd86u',
+					[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'txHash')]: 'a'.repeat(64),
+					[entityFieldAddressKey(EntityType.CelestiaBlob, [], '$block')]: {
+						[EntityMetaKey.Selector]: {
+							$network: celestiaNetwork,
+							height: 12_424_743n,
+						},
+					},
+				},
+			},
+		])
+
+		listNamespaceBlobs.mockResolvedValue([
+			{
+				commitment: `${'B'.repeat(43)}=`,
+				size: 11,
+				share_version: 1,
+				height: 12_424_720,
+				time: '2026-07-23T04:48:08Z',
+				content_type: 'text/plain',
+				namespace: `${'A'.repeat(39)}=`,
+				namespaceVersion: 0,
+				namespaceId: 'a'.repeat(56),
+				tx_hash: 'A'.repeat(64),
+				signer: {
+					hash: 'celestia1zwpvejau8kzhttlc39wmfggyf8n3eaxlpvd86u',
+				},
+			},
+		])
+		await expect(namespaceBlobsResolver.resolve.NetworkNamespaceId.resolve({
+			$network: celestiaNetwork,
+			namespaceId,
+		}, {
+			...context,
+			pagination: {
+				limit: 1,
+				offset: 0,
+			},
+		})).resolves.toHaveLength(1)
+
+		getBlobMetadata.mockResolvedValue({
+			commitment: `${'B'.repeat(43)}=`,
+			size: 379,
+			share_version: 0,
+			height: 12_424_743,
+			time: '2026-07-23T04:49:13Z',
+			content_type: 'application/octet-stream',
+			namespace: `${'A'.repeat(39)}=`,
+			tx_hash: 'A'.repeat(64),
+			signer: {
+				hash: 'celestia1zwpvejau8kzhttlc39wmfggyf8n3eaxlpvd86u',
+			},
+		})
+		await expect(blobResolver.resolve.NamespaceHeightCommitment.resolve({
+			$namespace: {
+				$network: celestiaNetwork,
+				namespaceId,
+			},
+			height: 12_424_743n,
+			commitment: `${'B'.repeat(43)}=`,
+		})).resolves.toEqual({
+			shareVersion: 0,
+			sizeBytes: 379n,
+			signer: 'celestia1zwpvejau8kzhttlc39wmfggyf8n3eaxlpvd86u',
+			txHash: 'a'.repeat(64),
+			$block: {
+				[EntityMetaKey.Selector]: {
+					$network: celestiaNetwork,
+					height: 12_424_743n,
+				},
+			},
 		})
 	})
 
