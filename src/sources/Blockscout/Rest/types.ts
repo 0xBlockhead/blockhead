@@ -49,6 +49,11 @@ export const blockscoutTokenBalanceEnvelope = arktype({
 	token: arktype({
 		address_hash: 'string',
 		'type?': 'string | null',
+		'symbol?': 'string | null',
+		'decimals?': 'string | null',
+		'exchange_rate?': 'string | null',
+		'name?': 'string | null',
+		'icon_url?': 'string | null',
 	}).or(arktype.null),
 	'token_id?': 'string | null',
 	value: 'string',
@@ -56,6 +61,16 @@ export const blockscoutTokenBalanceEnvelope = arktype({
 export const blockscoutTokenBalancesEnvelope = blockscoutTokenBalanceEnvelope.array()
 export const blockscoutAddressTokensPageEnvelope = arktype({
 	items: blockscoutTokenBalanceEnvelope.array(),
+})
+export const blockscoutCoinBalanceEnvelope = arktype({
+	block_number: 'number',
+	block_timestamp: 'string',
+	value: 'string',
+	'delta?': 'string',
+	'transaction_hash?': 'string | null',
+})
+export const blockscoutCoinBalanceHistoryPageEnvelope = arktype({
+	items: blockscoutCoinBalanceEnvelope.array(),
 })
 
 type Response<_Path extends keyof paths> = paths[_Path] extends {
@@ -126,6 +141,8 @@ export type BlockscoutTransactionTokenTransfersPage = WithTokenTransferItems<Res
 export type BlockscoutTokenBalance = components['schemas']['TokenBalance']
 export type BlockscoutAddressTokenBalances = BlockscoutTokenBalance[]
 export type BlockscoutAddressTokensPage = Response<'/v2/addresses/{address_hash_param}/tokens'>
+export type BlockscoutCoinBalance = components['schemas']['CoinBalance']
+export type BlockscoutCoinBalanceHistoryPage = Response<'/v2/addresses/{address_hash_param}/coin-balance-history'>
 export type BlockscoutTransactionInternalTransactionsPage = Response<'/v2/transactions/{transaction_hash_param}/internal-transactions'>
 export type BlockscoutAddressInternalTransactionsPage = Response<'/v2/addresses/{address_hash_param}/internal-transactions'>
 // The schema documents these pagination keys but emits `Record<string, unknown>` for the response object.

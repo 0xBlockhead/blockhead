@@ -13,6 +13,10 @@ import type {
 } from '$/sources/Blockscout/Rest/types.ts'
 
 const getAddressDetails = vi.hoisted(() => vi.fn())
+const getAddressCoinBalanceHistory = vi.hoisted(() => vi.fn())
+const getAddressTokenBalances = vi.hoisted(() => vi.fn())
+const getBlocks = vi.hoisted(() => vi.fn())
+const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getErc4337BundlerDetail = vi.hoisted(() => vi.fn())
 const getErc4337SmartAccountList = vi.hoisted(() => vi.fn())
 const getStats = vi.hoisted(() => vi.fn())
@@ -23,6 +27,10 @@ const getUserOperationsPage = vi.hoisted(() => vi.fn())
 vi.mock('$/sources/Blockscout/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Blockscout/Rest/queries.ts')>(),
 	getAddressDetails,
+	getAddressCoinBalanceHistory,
+	getAddressTokenBalances,
+	getBlocks,
+	getBlockByNumber,
 	getErc4337BundlerDetail,
 	getErc4337SmartAccountList,
 	getStats,
@@ -415,5 +423,212 @@ describe('Blockscout EVM log identity', () => {
 			topic0: receiptLogs[1].topics[0],
 			data: '0x02',
 		})
+	})
+})
+
+describe('Blockscout_Rest balance observations', () => {
+	const address = '0x1111111111111111111111111111111111111111'
+	const tokenAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+	const tipTimestamp = '2026-01-01T00:00:00.000Z'
+	const tipTimestampMs = Math.floor(Date.parse(tipTimestamp) / 1_000) * 1_000
+
+	const balanceResolver = blockscoutRest.resolvers.find((resolver) => (
+		resolver.entityType === EntityType.EvmNetworkActorCoinBalance
+		&& '$$timestamps' in resolver.projections
+	))
+	const balanceTimestampResolver = blockscoutRest.resolvers.find((resolver) => (
+		resolver.entityType === EntityType.EvmNetworkActorCoinBalance_Timestamp
+	))
+	const ownedCoinsResolver = blockscoutRest.resolvers.find((resolver) => (
+		resolver.entityType === EntityType.EvmNetworkAccount
+		&& '$$ownedCoins' in resolver.projections
+	))
+
+	if (balanceResolver == null || balanceTimestampResolver == null || ownedCoinsResolver == null)
+		throw new Error('Blockscout_Rest spec missing balance observation resolvers')
+
+	beforeEach(() => {
+		getAddressDetails.mockReset()
+		getAddressCoinBalanceHistory.mockReset()
+		getAddressTokenBalances.mockReset()
+		getBlocks.mockReset()
+		getBlockByNumber.mockReset()
+	})
+
+	it('lists native + ERC-20 owned coins and projects tip observations', async () => {
+		getAddressDetails.mockResolvedValue({
+			coin_balance: '2000000000000000000',
+			block_number_balance_updated_at: 22_800_000,
+			exchange_rate: '3200.5',
+		})
+		getAddressTokenBalances.mockResolvedValue([
+			{
+				token: {
+					address_hash: tokenAddress,
+					type: 'ERC-20',
+					symbol: 'USDC',
+					decimals: '6',
+					exchange_rate: '1',
+				},
+				token_id: null,
+				value: '1000000',
+			},
+			{
+				token: {
+					address_hash: '0x2222222222222222222222222222222222222222',
+					type: 'ERC-721',
+					symbol: 'NFT',
+					decimals: '0',
+				},
+				token_id: '1',
+				value: '1',
+			},
+		])
+		getAddressCoinBalanceHistory.mockResolvedValue([
+			{
+				block_number: 22_800_000,
+				block_timestamp: tipTimestamp,
+				value: '2000000000000000000',
+			},
+		])
+		getBlocks.mockResolvedValue([
+			{
+				height: 22_800_001,
+			},
+		])
+		getBlockByNumber.mockResolvedValue({
+			hash: txHash,
+			height: 22_800_001,
+			miner: {
+				hash: address,
+			},
+			parent_hash: txHash,
+			timestamp: tipTimestamp,
+			transactions_count: 1,
+		})
+
+		const owned = await ownedCoinsResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$actor: {
+				address,
+			},
+			$network: network,
+		}, context)
+		expect(owned).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$actor: {
+						address,
+					},
+					$network: network,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$actor: {
+						address,
+					},
+					$contract: {
+						$network: network,
+						address: tokenAddress,
+					},
+				},
+			},
+		])
+
+		const native = await balanceResolver.resolve.EvmAccountNativeCoinInstance.resolve({
+			$actor: {
+				address,
+			},
+			$network: network,
+		}, context)
+		expect(native).toMatchObject({
+			symbol: 'ETH',
+			decimals: 18,
+			$coinInstance: {
+				[EntityMetaKey.Selector]: {
+					type: CoinInstanceType.NativeCurrency,
+				},
+			},
+		})
+		expect(balanceResolver.projections.$$timestamps(native)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$actorCoin: {
+					$actor: {
+						address,
+					},
+					$network: network,
+				},
+				timestampMs: tipTimestampMs,
+				source: Source.Blockscout_Rest,
+			},
+		}])
+
+		const nativeObservation = await balanceTimestampResolver.resolve.ActorCoinTimestampMsSource.resolve({
+			$actorCoin: {
+				$actor: {
+					address,
+				},
+				$network: network,
+			},
+			timestampMs: tipTimestampMs,
+			source: Source.Blockscout_Rest,
+		}, context)
+		expect(balanceTimestampResolver.projections.balance(nativeObservation)).toBe(2_000_000_000_000_000_000n)
+		expect(balanceTimestampResolver.projections.blockNumber(nativeObservation)).toBe(22_800_000n)
+		expect(balanceTimestampResolver.projections.priceUsd(nativeObservation)).toBe(3200.5)
+
+		const erc20 = await balanceResolver.resolve.EvmAccountErc20CoinInstance.resolve({
+			$actor: {
+				address,
+			},
+			$contract: {
+				$network: network,
+				address: tokenAddress,
+			},
+		}, context)
+		expect(erc20).toMatchObject({
+			symbol: 'USDC',
+			decimals: 6,
+		})
+		expect(balanceResolver.projections.$$timestamps(erc20)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$actorCoin: {
+					$actor: {
+						address,
+					},
+					$contract: {
+						$network: network,
+						address: tokenAddress,
+					},
+				},
+				timestampMs: tipTimestampMs,
+				source: Source.Blockscout_Rest,
+			},
+		}])
+	})
+
+	it('hard-fails incomplete ERC-20 tip clocks instead of soft-emptying', async () => {
+		getAddressTokenBalances.mockResolvedValue([
+			{
+				token: {
+					address_hash: tokenAddress,
+					type: 'ERC-20',
+					symbol: 'USDC',
+					decimals: '6',
+				},
+				value: '1',
+			},
+		])
+		getBlocks.mockResolvedValue([])
+
+		await expect(balanceResolver.resolve.EvmAccountErc20CoinInstance.resolve({
+			$actor: {
+				address,
+			},
+			$contract: {
+				$network: network,
+				address: tokenAddress,
+			},
+		}, context)).rejects.toThrow('tip block missing for balance observation clock')
 	})
 })

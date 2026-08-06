@@ -15,6 +15,7 @@ import {
 	blockscoutAddressTokensPageEnvelope,
 	blockscoutBlockDetailEnvelope,
 	blockscoutBlocksPageEnvelope,
+	blockscoutCoinBalanceHistoryPageEnvelope,
 	blockscoutTokenBalancesEnvelope,
 	blockscoutTokenTransfersPageEnvelope,
 	blockscoutTransactionEnvelope,
@@ -33,6 +34,8 @@ import type {
 	BlockscoutAddressTokenTransfersPage,
 	BlockscoutAddressTokensPage,
 	BlockscoutAddressTransactionsPage,
+	BlockscoutCoinBalance,
+	BlockscoutCoinBalanceHistoryPage,
 	BlockscoutBlockDetails,
 	BlockscoutBlocksPage,
 	BlockscoutBlockTransactionsPage,
@@ -331,6 +334,43 @@ export const getAddressTokenBalances = async ({ chainId, address }: {
 	const wire = await response.json<BlockscoutAddressTokenBalances>()
 	assertBlockscoutEnvelope(blockscoutTokenBalancesEnvelope, wire, 'address token balances')
 	return wire.map(validatedBlockscoutTokenBalanceWire)
+}
+
+/**
+ * Native coin balance change history for an address.
+ * @see https://docs.blockscout.com/devs/apis/rest/addresses#get-coin-balance-history-by-address
+ */
+export const getAddressCoinBalanceHistory = async ({ chainId, address, limit }: {
+	chainId: number
+	address: `0x${string}`
+	limit: number
+}): Promise<BlockscoutCoinBalance[]> => {
+	if (limit <= 0)
+		return []
+
+	const normalized = hexLowerOfByteSize(address, 20)
+	if (normalized == null)
+		throw new Error('Blockscout address coin balance history: invalid address')
+
+	const wire = await getBlockscoutJson<BlockscoutCoinBalanceHistoryPage>({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: `/addresses/${normalized}/coin-balance-history`,
+		searchParams: {
+			items_count: blockscoutItemsCount(limit),
+		},
+	})
+	assertBlockscoutEnvelope(blockscoutCoinBalanceHistoryPageEnvelope, wire, 'address coin balance history')
+	return wire.items.slice(0, limit).map((item) => {
+		BigInt(item.value)
+		if (item.delta != null && item.delta !== '')
+			BigInt(item.delta)
+		if (!Number.isSafeInteger(item.block_number) || item.block_number < 0)
+			throw new Error('Blockscout_Rest: invalid coin balance history block_number')
+		const timestampMs = Date.parse(item.block_timestamp)
+		if (!Number.isFinite(timestampMs) || timestampMs < 0)
+			throw new Error('Blockscout_Rest: invalid coin balance history block_timestamp')
+		return item
+	})
 }
 
 /**

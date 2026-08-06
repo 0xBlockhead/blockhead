@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import bindings from '$/sources/Blockscout/bindings.ts'
 import * as blockscoutQueries from '$/sources/Blockscout/Rest/queries.ts'
 import {
+	getAddressCoinBalanceHistory,
 	getAddressTokenBalances,
 	getAddressTokens,
 	getAddressTransactions,
@@ -418,6 +419,46 @@ describe('Blockscout account-abstraction queries', () => {
 		expect(decodeURIComponent(String(fetchMock.mock.calls[0][0]))).toContain(
 			`/api/v2/addresses/${hex('a', 40)}/token-balances`
 		)
+	})
+
+	it('returns native coin balance history from /coin-balance-history', async () => {
+		const historyItem = {
+			block_number: 22_800_000,
+			block_timestamp: '2026-01-01T00:00:00.000Z',
+			delta: '100',
+			transaction_hash: hex('c', 64),
+			value: '1000000000000000000',
+		}
+		const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			items: [historyItem],
+		}))
+
+		await expect(getAddressCoinBalanceHistory({
+			chainId: 1,
+			address: hex('a', 40),
+			limit: 5,
+		})).resolves.toEqual([
+			historyItem,
+		])
+		expect(decodeURIComponent(String(fetchMock.mock.calls[0][0]))).toContain(
+			`/api/v2/addresses/${hex('a', 40)}/coin-balance-history`
+		)
+		expect(decodeURIComponent(String(fetchMock.mock.calls[0][0]))).toContain('items_count=5')
+	})
+
+	it('fails closed for malformed coin balance history envelopes', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			items: [{
+				block_number: 1,
+				value: '1',
+			}],
+		}))
+
+		await expect(getAddressCoinBalanceHistory({
+			chainId: 1,
+			address: hex('a', 40),
+			limit: 5,
+		})).rejects.toThrow('Blockscout_Rest: invalid address coin balance history response envelope')
 	})
 
 	it('returns paginated address tokens with optional type filter', async () => {

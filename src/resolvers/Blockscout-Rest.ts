@@ -828,6 +828,134 @@ const blockscoutCountFromDecimalString = (
 	return count
 }
 
+const blockscoutNativeCoinForChain = async (
+	chainId: number
+) => {
+	const { blockscoutNativeCoinOverrides } = await import('$/sources/Blockscout/Rest/constants.ts')
+	const { coinById } = await import('$/constants/Coin.ts')
+	const nativeCoinId = (
+		blockscoutNativeCoinOverrides.find((override) => override.chainId === chainId)?.nativeCoinId
+		?? CoinId.ETH
+	)
+	const coin = coinById[nativeCoinId]
+	if (coin == null || coin.symbol.trim() === '')
+		throw new Error(`Blockscout_Rest: native coin missing for chain ${chainId}`)
+
+	return {
+		nativeCoinId,
+		symbol: coin.symbol.toUpperCase(),
+		decimals: 18,
+	}
+}
+
+const blockscoutTipBlockObservationClock = async (
+	chainId: number
+) => {
+	const { getBlocks } = await import('$/sources/Blockscout/Rest/queries.ts')
+	const [tip] = await getBlocks({
+		chainId,
+		limit: 1,
+	})
+	if (tip == null || !Number.isSafeInteger(tip.height) || tip.height < 0)
+		throw new Error('Blockscout_Rest: tip block missing for balance observation clock')
+
+	const { getBlockByNumber } = await import('$/sources/Blockscout/Rest/queries.ts')
+	const tipDetail = await getBlockByNumber({
+		chainId,
+		blockNumber: BigInt(tip.height),
+	})
+	const timestampMs = Math.floor(Date.parse(tipDetail.timestamp) / 1_000) * 1_000
+	if (!Number.isFinite(timestampMs) || timestampMs < 0)
+		throw new Error('Blockscout_Rest: tip block timestamp missing for balance observation clock')
+
+	return {
+		blockNumber: BigInt(tip.height),
+		timestampMs,
+	}
+}
+
+const blockscoutNativeBalanceObservation = ({
+	actorCoin,
+	value,
+	blockNumber,
+	blockTimestamp,
+	exchangeRate,
+}: {
+	actorCoin: EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+	value: string
+	blockNumber: number
+	blockTimestamp: string
+	exchangeRate?: string | null
+}) => {
+	if (!/^(0|[1-9][0-9]*)$/.test(value))
+		throw new Error('Blockscout_Rest: native coin balance amount missing')
+	if (!Number.isSafeInteger(blockNumber) || blockNumber < 0)
+		throw new Error('Blockscout_Rest: native coin balance block missing')
+
+	const timestampMs = Math.floor(Date.parse(blockTimestamp) / 1_000) * 1_000
+	if (!Number.isFinite(timestampMs) || timestampMs < 0)
+		throw new Error('Blockscout_Rest: native coin balance timestamp missing')
+
+	const priceUsd = (
+		exchangeRate == null || exchangeRate === '' ?
+			undefined
+		:
+			Number(exchangeRate)
+	)
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$actorCoin: actorCoin,
+			timestampMs,
+			source: Source.Blockscout_Rest,
+		},
+		balance: BigInt(value),
+		blockNumber: BigInt(blockNumber),
+		...(priceUsd != null && Number.isFinite(priceUsd) && {
+			priceUsd,
+		}),
+	}
+}
+
+const blockscoutErc20BalanceObservation = ({
+	actorCoin,
+	value,
+	blockNumber,
+	timestampMs,
+	exchangeRate,
+}: {
+	actorCoin: EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+	value: string
+	blockNumber: bigint
+	timestampMs: number
+	exchangeRate?: string | null
+}) => {
+	if (!/^(0|[1-9][0-9]*)$/.test(value))
+		throw new Error('Blockscout_Rest: ERC-20 balance amount missing')
+	if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+		throw new Error('Blockscout_Rest: ERC-20 balance tip clock missing')
+
+	const priceUsd = (
+		exchangeRate == null || exchangeRate === '' ?
+			undefined
+		:
+			Number(exchangeRate)
+	)
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$actorCoin: actorCoin,
+			timestampMs,
+			source: Source.Blockscout_Rest,
+		},
+		balance: BigInt(value),
+		blockNumber,
+		...(priceUsd != null && Number.isFinite(priceUsd) && {
+			priceUsd,
+		}),
+	}
+}
+
 const erc4337ContractField = (
 	{ $network, address }:
 		| EntitySelector<typeof schema, EntityType.Erc4337SmartAccount>
@@ -2166,25 +2294,54 @@ export default {
 			resolve: {
 				EvmNetworkEvmAccount: {
 					resolve: async ({ $actor, $network }) => {
-						const { getAddressTokenBalances } = await import('$/sources/Blockscout/Rest/queries.ts')
+						const {
+							getAddressDetails,
+							getAddressTokenBalances,
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
 						const address = hexLowerOfByteSize($actor.address, 20)
 						if (address == null)
 							throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
 
-						const balances = await getAddressTokenBalances({
-							chainId: evmChainIdFromNetworkSelector($network),
-							address,
-						})
-						return balances.flatMap((balance) => {
+						const chainId = evmChainIdFromNetworkSelector($network)
+						const [details, balances] = await Promise.all([
+							getAddressDetails({
+								chainId,
+								address,
+							}),
+							getAddressTokenBalances({
+								chainId,
+								address,
+							}),
+						])
+
+						type EvmNetworkActorCoinBalanceEntitySelector = EntitySelector<
+							typeof schema,
+							EntityType.EvmNetworkActorCoinBalance
+						>
+
+						const nativeBalance = details.coin_balance
+						const ownedCoins: { [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }[] = (
+							nativeBalance != null && nativeBalance !== '' && /^(0|[1-9][0-9]*)$/.test(nativeBalance) ?
+								[{
+									[EntityMetaKey.Selector]: {
+										$actor,
+										$network,
+									},
+								}]
+							:
+								[]
+						)
+
+						for (const balance of balances) {
 							if (balance.token == null)
-								return []
+								continue
 							const tokenType = balance.token.type
 							if (tokenType !== 'ERC-20' && tokenType !== 'ERC-404')
-								return []
+								continue
 							const contractAddress = hexLowerOfByteSize(balance.token.address_hash, 20)
 							if (contractAddress == null)
-								return []
-							return [{
+								continue
+							ownedCoins.push({
 								[EntityMetaKey.Selector]: {
 									$actor,
 									$contract: {
@@ -2192,13 +2349,320 @@ export default {
 										address: contractAddress,
 									},
 								},
-							}]
-						})
+							})
+						}
+
+						return ownedCoins
 					},
 				},
 			},
 		})({
 			$$ownedCoins: (ownedCoins) => ownedCoins,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkActorCoinBalance,
+			resolve: {
+				EvmAccountNativeCoinInstance: {
+					resolve: async ({ $actor, $network }) => {
+						const {
+							getAddressCoinBalanceHistory,
+							getAddressDetails,
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
+						const {
+							blockscoutV2ItemsCountMax,
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
+						const address = hexLowerOfByteSize($actor.address, 20)
+						if (address == null)
+							throw new Error('Blockscout_Rest: native balance wallet address not normalized')
+
+						const chainId = evmChainIdFromNetworkSelector($network)
+						const [nativeCoin, details, history] = await Promise.all([
+							blockscoutNativeCoinForChain(chainId),
+							getAddressDetails({
+								chainId,
+								address,
+							}),
+							getAddressCoinBalanceHistory({
+								chainId,
+								address,
+								limit: blockscoutV2ItemsCountMax,
+							}),
+						])
+
+						const actorCoin = {
+							$actor,
+							$network,
+						} satisfies EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+
+						const observations = (
+							history.length > 0 ?
+								history.map((item) => (
+									blockscoutNativeBalanceObservation({
+										actorCoin,
+										value: item.value,
+										blockNumber: item.block_number,
+										blockTimestamp: item.block_timestamp,
+										exchangeRate: details.exchange_rate,
+									})
+								))
+							: details.coin_balance != null && details.coin_balance !== '' && details.block_number_balance_updated_at != null ?
+								((clock) => [
+									blockscoutNativeBalanceObservation({
+										actorCoin,
+										value: details.coin_balance!,
+										blockNumber: details.block_number_balance_updated_at!,
+										blockTimestamp: clock.timestamp,
+										exchangeRate: details.exchange_rate,
+									}),
+								])(
+									await (async () => {
+										const { getBlockByNumber } = await import('$/sources/Blockscout/Rest/queries.ts')
+										return getBlockByNumber({
+											chainId,
+											blockNumber: BigInt(details.block_number_balance_updated_at!),
+										})
+									})()
+								)
+							:
+								[]
+						)
+						if (observations.length === 0)
+							throw new Error('Blockscout_Rest: native coin balance observation missing')
+
+						return {
+							$network,
+							$contract: undefined,
+							$coinInstance: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									type: CoinInstanceType.NativeCurrency,
+								},
+							},
+							symbol: nativeCoin.symbol,
+							decimals: nativeCoin.decimals,
+							$$timestamps: observations,
+						}
+					},
+				},
+				EvmAccountErc20CoinInstance: {
+					resolve: async ({ $actor, $contract }) => {
+						const { getAddressTokenBalances } = await import('$/sources/Blockscout/Rest/queries.ts')
+						const address = hexLowerOfByteSize($actor.address, 20)
+						if (address == null)
+							throw new Error('Blockscout_Rest: ERC-20 balance wallet address not normalized')
+
+						const chainId = evmChainIdFromNetworkSelector($contract.$network)
+						const [balances, tipClock] = await Promise.all([
+							getAddressTokenBalances({
+								chainId,
+								address,
+							}),
+							blockscoutTipBlockObservationClock(chainId),
+						])
+						const balance = balances.find((candidate) => {
+							if (candidate.token == null)
+								return false
+							const tokenType = candidate.token.type
+							if (tokenType !== 'ERC-20' && tokenType !== 'ERC-404')
+								return false
+							const contractAddress = hexLowerOfByteSize(candidate.token.address_hash, 20)
+							return contractAddress === $contract.address
+						})
+						if (balance?.token == null)
+							throw new Error('Blockscout_Rest: ERC-20 token balance missing')
+
+						const symbol = balance.token.symbol?.trim()
+						if (symbol == null || symbol === '')
+							throw new Error('Blockscout_Rest: ERC-20 token symbol missing')
+						const decimals = Number(balance.token.decimals ?? '')
+						if (!Number.isSafeInteger(decimals) || decimals < 0)
+							throw new Error('Blockscout_Rest: ERC-20 token decimals missing')
+
+						const actorCoin = {
+							$actor,
+							$contract,
+						} satisfies EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+
+						return {
+							$network: $contract.$network,
+							$contract,
+							$coinInstance: {
+								[EntityMetaKey.Selector]: {
+									$network: $contract.$network,
+									type: CoinInstanceType.Erc20Token,
+									$contract,
+								},
+							},
+							symbol: symbol.toUpperCase(),
+							decimals,
+							$$timestamps: [
+								blockscoutErc20BalanceObservation({
+									actorCoin,
+									value: balance.value,
+									blockNumber: tipClock.blockNumber,
+									timestampMs: tipClock.timestampMs,
+									exchangeRate: balance.token.exchange_rate,
+								}),
+							],
+						}
+					},
+				},
+			},
+		})({
+			$network: (balance) => ({
+				[EntityMetaKey.Selector]: balance.$network,
+			}),
+			$contract: {
+				parentSelectors: [
+					'EvmAccountErc20CoinInstance',
+				],
+				select: (balance) => {
+					if (balance.$contract == null)
+						throw new Error('Blockscout_Rest: ERC-20 balance is missing contract')
+
+					return {
+						[EntityMetaKey.Selector]: balance.$contract,
+					}
+				},
+			},
+			$coinInstance: (balance) => balance.$coinInstance,
+			symbol: (balance) => balance.symbol,
+			decimals: (balance) => balance.decimals,
+			$$timestamps: (balance) => balance.$$timestamps.map((timestamp) => ({
+				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+			})),
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkActorCoinBalance_Timestamp,
+			resolve: {
+				ActorCoinTimestampMsSource: {
+					resolve: async ({
+						$actorCoin,
+						timestampMs,
+						source,
+					}) => {
+						if (source !== Source.Blockscout_Rest)
+							throw new Error(`Blockscout_Rest: unsupported balance observation source ${source}`)
+						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+							throw new Error('Blockscout_Rest: invalid balance observation timestamp')
+
+						const isErc20 = '$contract' in $actorCoin
+						const address = hexLowerOfByteSize($actorCoin.$actor.address, 20)
+						if (address == null)
+							throw new Error('Blockscout_Rest: balance observation wallet address not normalized')
+
+						if (isErc20) {
+							const { getAddressTokenBalances } = await import('$/sources/Blockscout/Rest/queries.ts')
+							const chainId = evmChainIdFromNetworkSelector($actorCoin.$contract.$network)
+							const [balances, tipClock] = await Promise.all([
+								getAddressTokenBalances({
+									chainId,
+									address,
+								}),
+								blockscoutTipBlockObservationClock(chainId),
+							])
+							const balance = balances.find((candidate) => {
+								if (candidate.token == null)
+									return false
+								const tokenType = candidate.token.type
+								if (tokenType !== 'ERC-20' && tokenType !== 'ERC-404')
+									return false
+								const contractAddress = hexLowerOfByteSize(candidate.token.address_hash, 20)
+								return contractAddress === $actorCoin.$contract.address
+							})
+							if (balance?.token == null)
+								throw new Error('Blockscout_Rest: balance observation missing')
+
+							const observation = blockscoutErc20BalanceObservation({
+								actorCoin: {
+									$actor: $actorCoin.$actor,
+									$contract: $actorCoin.$contract,
+								},
+								value: balance.value,
+								blockNumber: tipClock.blockNumber,
+								timestampMs: tipClock.timestampMs,
+								exchangeRate: balance.token.exchange_rate,
+							})
+							if (observation[EntityMetaKey.Selector].timestampMs !== timestampMs)
+								throw new Error('Blockscout_Rest: balance observation timestamp does not match request')
+
+							return observation
+						}
+
+						const {
+							getAddressCoinBalanceHistory,
+							getAddressDetails,
+						} = await import('$/sources/Blockscout/Rest/queries.ts')
+						const {
+							blockscoutV2ItemsCountMax,
+						} = await import('$/sources/Blockscout/Rest/constants.ts')
+						const chainId = evmChainIdFromNetworkSelector($actorCoin.$network)
+						const [details, history] = await Promise.all([
+							getAddressDetails({
+								chainId,
+								address,
+							}),
+							getAddressCoinBalanceHistory({
+								chainId,
+								address,
+								limit: blockscoutV2ItemsCountMax,
+							}),
+						])
+						const actorCoin = {
+							$actor: $actorCoin.$actor,
+							$network: $actorCoin.$network,
+						} satisfies EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+
+						const fromHistory = history.find((item) => (
+							Math.floor(Date.parse(item.block_timestamp) / 1_000) * 1_000 === timestampMs
+						))
+						if (fromHistory != null) {
+							return blockscoutNativeBalanceObservation({
+								actorCoin,
+								value: fromHistory.value,
+								blockNumber: fromHistory.block_number,
+								blockTimestamp: fromHistory.block_timestamp,
+								exchangeRate: details.exchange_rate,
+							})
+						}
+
+						if (
+							details.coin_balance == null
+							|| details.coin_balance === ''
+							|| details.block_number_balance_updated_at == null
+						)
+							throw new Error('Blockscout_Rest: balance observation missing')
+
+						const { getBlockByNumber } = await import('$/sources/Blockscout/Rest/queries.ts')
+						const block = await getBlockByNumber({
+							chainId,
+							blockNumber: BigInt(details.block_number_balance_updated_at),
+						})
+						const observation = blockscoutNativeBalanceObservation({
+							actorCoin,
+							value: details.coin_balance,
+							blockNumber: details.block_number_balance_updated_at,
+							blockTimestamp: block.timestamp,
+							exchangeRate: details.exchange_rate,
+						})
+						if (observation[EntityMetaKey.Selector].timestampMs !== timestampMs)
+							throw new Error('Blockscout_Rest: balance observation timestamp does not match request')
+
+						return observation
+					},
+				},
+			},
+		})({
+			$actorCoin: (observation) => ({
+				[EntityMetaKey.Selector]: observation[EntityMetaKey.Selector].$actorCoin,
+			}),
+			timestampMs: (observation) => observation[EntityMetaKey.Selector].timestampMs,
+			source: (observation) => observation[EntityMetaKey.Selector].source,
+			blockNumber: (observation) => observation.blockNumber,
+			balance: (observation) => observation.balance,
+			priceUsd: (observation) => observation.priceUsd,
 		}),
 
 		defineResolver({
