@@ -76,6 +76,13 @@ export default entity({
 			Source.Filfox_Rest,
 		],
 	},
+	$receipt: {
+		entityType: EntityType.FilecoinMessageReceipt,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Filfox_Rest,
+		],
+	},
 })({
 	selectors: {
 		NetworkCid: [

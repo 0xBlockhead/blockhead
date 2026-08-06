@@ -1773,6 +1773,7 @@ export enum EntityType {
 	HyperliquidAccount = "HyperliquidAccount",
 	HyperliquidAccount_Timestamp = "HyperliquidAccount_Timestamp",
 	HyperliquidBlock = "HyperliquidBlock",
+	HyperliquidBorrowLendPosition = "HyperliquidBorrowLendPosition",
 	HyperliquidBorrowLendReserve = "HyperliquidBorrowLendReserve",
 	HyperliquidFill = "HyperliquidFill",
 	HyperliquidMarket_TimeInterval_Timestamp = "HyperliquidMarket_TimeInterval_Timestamp",
@@ -34551,6 +34552,7 @@ export const schema = {
 				"valueAttoFil": { label: "Value attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
 				"gasLimit": { label: "Gas limit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessage_Timestamp, defaultSources: [Source.Filfox_Rest] },
+				"$receipt": { label: "Receipt", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinMessageReceipt, defaultSources: [Source.Filfox_Rest] },
 			})({
 				selectors: {
 					"NetworkCid": ["$network", "cid"],
@@ -34590,6 +34592,7 @@ export const schema = {
 									{ field: "nonce", format: "number" },
 									{ field: "valueAttoFil", format: "numberValue" },
 									{ field: "gasLimit", format: "numberValue" },
+									"$receipt",
 								],
 							],
 						},
@@ -34659,16 +34662,17 @@ export const schema = {
 					singular: "filecoin message receipt",
 					plural: "filecoin message receipts",
 				},
+				description: "Execution receipt for a Filecoin message in a tipset context — exit code, gas used, and return data from Filfox getMessage.receipt (Lotus ChainGetMessage alone does not).",
 			})({
 				"$message": { label: "Message", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinMessage },
 				"tipsetKey": { label: "Tipset key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$tipset": { label: "Tipset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinTipset },
-				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"blockCid": { label: "Block CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"exitCode": { label: "Exit code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"returnData": { label: "Return data", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"gasUsed": { label: "Gas used", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"$tipset": { label: "Tipset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinTipset, defaultSources: [Source.Filfox_Rest] },
+				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"blockCid": { label: "Block CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"exitCode": { label: "Exit code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Filfox_Rest] },
+				"returnData": { label: "Return data", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"gasUsed": { label: "Gas used", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
 				"replacedMessageCid": { label: "Replaced message CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
@@ -38855,6 +38859,13 @@ export const schema = {
 					entityType: EntityType.HyperliquidVaultEquity_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
 				},
+				"$$borrowLendPositions": {
+					label: "borrow lend positions",
+					type: EntityFieldType.EntitiesReference,
+					entityType: EntityType.HyperliquidBorrowLendPosition,
+					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Hyperliquid],
+				},
 			})({
 				selectors: {
 					"NetworkAddress": [
@@ -38873,6 +38884,7 @@ export const schema = {
 									{ id: "hyperliquid-account-orders", field: "$$orders", List: "HyperliquidOrdersView", label: "Orders", emptyText: "No orders." },
 									{ id: "hyperliquid-account-fills", field: "$$fills", List: "HyperliquidFillsView", label: "Fills", emptyText: "No fills." },
 									{ id: "hyperliquid-account-vault-equities", field: "$$vaultEquities", List: "HyperliquidVaultEquity_TimestampsView", label: "Vault Equities", emptyText: "No vault equities." },
+									{ id: "hyperliquid-account-borrow-lend-positions", field: "$$borrowLendPositions", List: "HyperliquidBorrowLendPositionsView", label: "Borrow/lend", emptyText: "No borrow/lend positions.", selection: { sources: [Source.Hyperliquid], limit: 32 } },
 								],
 							},
 							{
@@ -38994,11 +39006,19 @@ export const schema = {
 					primitiveType: { primitive: "unknown" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
-				"borrowLendState": {
-					label: "borrow lend state",
+				"borrowLendHealth": {
+					label: "borrow lend health",
 					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "unknown" },
+					primitiveType: { primitive: "string" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"borrowLendHealthFactor": {
+					label: "borrow lend health factor",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
 				},
 			})({
 				selectors: {
@@ -39062,6 +39082,96 @@ export const schema = {
 				},
 				views: {
 					plural: { component: "HyperliquidBlocksView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.HyperliquidBorrowLendPosition,
+				labels: {
+					singular: "hyperliquid borrow lend position",
+					plural: "hyperliquid borrow lend positions",
+				},
+				description: "An account borrow/lend balance against one Hyperliquid spot token index from borrowLendUserState.tokenToState.",
+			})({
+				"$account": {
+					label: "account",
+					type: EntityFieldType.EntityReference,
+					entityType: EntityType.HyperliquidAccount,
+					cardinality: EntityFieldCardinality.One,
+				},
+				"tokenIndex": {
+					label: "token index",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "number" },
+					cardinality: EntityFieldCardinality.One,
+				},
+				"$reserve": {
+					label: "reserve",
+					type: EntityFieldType.EntityReference,
+					entityType: EntityType.HyperliquidBorrowLendReserve,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"$asset": {
+					label: "spot asset",
+					type: EntityFieldType.EntityReference,
+					entityType: EntityType.HyperliquidSpotAsset,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"borrowBasis": {
+					label: "borrow basis",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"borrowValue": {
+					label: "borrow value",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"supplyBasis": {
+					label: "supply basis",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"supplyValue": {
+					label: "supply value",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+			})({
+				selectors: {
+					"AccountTokenIndex": [
+						"$account",
+						"tokenIndex",
+					],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Hyperliquid],
+						},
+						summary: {
+							title: [{ field: "tokenIndex", format: "number" }],
+							value: ["supplyValue", "borrowValue"],
+							HeadingAfter: ["$account", "$asset"],
+						},
+						content: {
+							dl: [
+								["$account", { field: "tokenIndex", format: "number" }, "$reserve", "$asset"],
+								["borrowBasis", "borrowValue", "supplyBasis", "supplyValue"],
+							],
+						},
+					},
+					plural: { component: "HyperliquidBorrowLendPositionsView" },
 				},
 			}),
 
@@ -72373,6 +72483,13 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain HyperliquidBlock.Height as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidblock",
+			},
+		},
+		[EntityType.HyperliquidBorrowLendPosition]: {
+			"AccountTokenIndex": {
+				kind: "Research",
+				decision: "Retain HyperliquidBorrowLendPosition.AccountTokenIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "NEEDS_APP.md#hyperliquid-vault-catalog--open-orders--borrow-lend-reserves",
 			},
 		},
 		[EntityType.HyperliquidBorrowLendReserve]: {

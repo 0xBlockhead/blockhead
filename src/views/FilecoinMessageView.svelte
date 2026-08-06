@@ -41,6 +41,7 @@
 	import FilecoinMessage_TimestampsView from '$/views/FilecoinMessage_TimestampsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import FilecoinActorView from '$/views/FilecoinActorView.svelte'
+	import FilecoinMessageReceiptView from '$/views/FilecoinMessageReceiptView.svelte'
 	import FilecoinMessage_TimestampView from '$/views/FilecoinMessage_TimestampView.svelte'
 </script>
 
@@ -285,6 +286,24 @@
 							<dd>
 								<NumberValue
 									value={gasLimit}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$receipt}
+			>
+				{#snippet children(filecoinMessageReceipt)}
+					{#if filecoinMessageReceipt != null}
+						<div>
+							<dt>Receipt</dt>
+							<dd>
+								<FilecoinMessageReceiptView
+									selection={select(EntityType.FilecoinMessageReceipt, filecoinMessageReceipt[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
 								/>
 							</dd>
 						</div>

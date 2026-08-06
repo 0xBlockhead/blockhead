@@ -190,6 +190,50 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							borrowLendHealth: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const borrowLendHealth = entity.borrowLendHealth}
+					{#if borrowLendHealth != null}
+						<div>
+							<dt>borrow lend health</dt>
+							<dd>
+								{borrowLendHealth}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							borrowLendHealthFactor: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const borrowLendHealthFactor = entity.borrowLendHealthFactor}
+					{#if borrowLendHealthFactor != null}
+						<div>
+							<dt>borrow lend health factor</dt>
+							<dd>
+								{borrowLendHealthFactor}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 </EntityView>

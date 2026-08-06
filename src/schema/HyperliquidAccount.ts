@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -47,6 +48,13 @@ export default entity({
 	$$vaultEquities: {
 		entityType: EntityType.HyperliquidVaultEquity_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+	},
+	$$borrowLendPositions: {
+		entityType: EntityType.HyperliquidBorrowLendPosition,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Hyperliquid,
+		],
 	},
 })({
 	selectors: {

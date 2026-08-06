@@ -602,6 +602,7 @@ export enum EntityType {
 	HyperliquidAccount = 'HyperliquidAccount',
 	HyperliquidAccount_Timestamp = 'HyperliquidAccount_Timestamp',
 	HyperliquidBlock = 'HyperliquidBlock',
+	HyperliquidBorrowLendPosition = 'HyperliquidBorrowLendPosition',
 	HyperliquidBorrowLendReserve = 'HyperliquidBorrowLendReserve',
 	HyperliquidFill = 'HyperliquidFill',
 	HyperliquidMarket_TimeInterval_Timestamp = 'HyperliquidMarket_TimeInterval_Timestamp',

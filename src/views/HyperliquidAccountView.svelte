@@ -6,6 +6,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -31,6 +32,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import HyperliquidAccountView from '$/views/HyperliquidAccountView.svelte'
+	import HyperliquidBorrowLendPositionsView from '$/views/HyperliquidBorrowLendPositionsView.svelte'
 </script>
 
 
@@ -136,6 +138,10 @@
 						id: 'hyperliquid-account-vault-equities',
 						label: 'Vault Equities',
 					},
+					{
+						id: 'hyperliquid-account-borrow-lend-positions',
+						label: 'Borrow/lend',
+					},
 				]
 			}
 			data-card
@@ -202,6 +208,24 @@
 						/>
 					{/snippet}
 				</EntitiesList>
+			{/snippet}
+
+			{#snippet SectionHyperliquidAccountBorrowLendPositions({ id, label })}
+				<HyperliquidBorrowLendPositionsView
+					selection={
+						selection
+						.$$borrowLendPositions({
+							sources: [
+								Source.Hyperliquid,
+							],
+							limit: 32,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No borrow/lend positions.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
