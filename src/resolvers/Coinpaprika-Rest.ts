@@ -515,7 +515,10 @@ export default {
 				}
 			},
 		})({
-				$$coins: (globalScope) => globalScope,
+				$$coins: {
+					select: (globalScope) => globalScope,
+					resolveCount: (globalScope) => globalScope.length,
+				},
 			}),
 
 		defineResolver({
@@ -526,7 +529,7 @@ export default {
 						const { coinById } = await import('$/constants/Coin.ts')
 						const { getTickers } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 						const lim = resolverContextRowLimit(context)
-						return (await getTickers({
+						const marketPrices = (await getTickers({
 							publicEnv: context.publicEnv,
 						})).flatMap((ticker) => {
 							const coinId = coinIdByWireId.get(ticker.id)
@@ -545,12 +548,19 @@ export default {
 									feedKey: ticker.id,
 								},
 							}]
-						}).slice(0, lim)
+						})
+						return {
+							marketPrices: marketPrices.slice(0, lim),
+							marketPriceCount: marketPrices.length,
+						}
 					},
 				}
 			},
 		})({
-				$$marketPrices: (globalScope) => globalScope,
+				$$marketPrices: {
+					select: (snapshot) => snapshot.marketPrices,
+					resolveCount: (snapshot) => snapshot.marketPriceCount,
+				},
 			}),
 
 

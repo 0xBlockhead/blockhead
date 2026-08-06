@@ -8,6 +8,7 @@ import {
 	idByCoinId,
 } from '$/sources/Coinpaprika/OpenApi/constants.ts'
 import {
+	getCoinById,
 	getCoinMarkets,
 	getExchangeMarkets,
 	getOhlcvHistorical,
@@ -164,5 +165,37 @@ describe('Coinpaprika coin queries', () => {
 			)),
 			expect.any(Object)
 		)
+	})
+
+	it('fail-closes malformed coin / ticker / ohlcv / markets envelopes', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(new Response(JSON.stringify({ name: 'Bitcoin' })))
+			.mockResolvedValueOnce(new Response(JSON.stringify({ symbol: 'BTC' })))
+			.mockResolvedValueOnce(new Response(JSON.stringify({ id: 'btc-bitcoin' })))
+			.mockResolvedValueOnce(new Response(JSON.stringify({ open: 1 })))
+			.mockResolvedValueOnce(new Response(JSON.stringify({ pair: 'BTC/USDT' })))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getCoinById({
+			publicEnv: {},
+			coinpaprikaId: 'btc-bitcoin',
+		})).rejects.toThrow('invalid coin response envelope')
+		await expect(getTickerById({
+			publicEnv: {},
+			coinpaprikaId: 'btc-bitcoin',
+		})).rejects.toThrow('invalid ticker response envelope')
+		await expect(getTickers({
+			publicEnv: {},
+		})).rejects.toThrow('invalid tickers response envelope')
+		await expect(getOhlcvHistorical({
+			publicEnv: {},
+			coinpaprikaId: 'btc-bitcoin',
+			start: '2026-07-01',
+		})).rejects.toThrow('invalid ohlcv historical response envelope')
+		await expect(getCoinMarkets({
+			publicEnv: {},
+			coinpaprikaId: 'btc-bitcoin',
+		})).rejects.toThrow('invalid coin markets response envelope')
 	})
 })

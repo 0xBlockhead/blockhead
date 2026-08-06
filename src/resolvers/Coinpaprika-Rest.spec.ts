@@ -9,12 +9,14 @@ import { Source } from '$/sources/Source.ts'
 
 const getCoinById = vi.hoisted(() => vi.fn())
 const getTickerById = vi.hoisted(() => vi.fn())
+const getTickers = vi.hoisted(() => vi.fn())
 const getExchangeMarkets = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Coinpaprika/OpenApi/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Coinpaprika/OpenApi/queries.ts')>(),
 	getCoinById,
 	getTickerById,
+	getTickers,
 	getExchangeMarkets,
 }))
 
@@ -31,7 +33,7 @@ const resolverContext = {
 }
 
 describe('Coinpaprika coin catalog resolver', () => {
-	it('emits only catalog-backed canonical selectors', async () => {
+	it('emits only catalog-backed canonical selectors with authoritative resolveCount', async () => {
 		const resolver = coinpaprikaResolvers.resolvers.find((candidate) => (
 			candidate.entityType === EntityType._Global
 			&& '$$coins' in candidate.projections
@@ -49,6 +51,47 @@ describe('Coinpaprika coin catalog resolver', () => {
 				coinId: CoinId.AAVE,
 			},
 		})
+		expect(resolver.projections.$$coins.select(rows)).toEqual(rows)
+		expect(resolver.projections.$$coins.resolveCount(rows)).toBe(coinpaprikaCoins.length)
+	})
+})
+
+describe('Coinpaprika global market prices resolver', () => {
+	it('windows catalog tickers while resolveCount stays complete', async () => {
+		getTickers.mockResolvedValue([
+			{
+				id: 'eth-ethereum',
+				last_updated: '2026-08-04T09:00:00Z',
+			},
+			{
+				id: 'btc-bitcoin',
+				last_updated: '2026-08-04T09:00:00Z',
+			},
+			{
+				id: 'unknown-coin',
+				last_updated: '2026-08-04T09:00:00Z',
+			},
+		])
+
+		const resolver = coinpaprikaResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType._Global
+			&& '$$marketPrices' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Coinpaprika global $$marketPrices resolver is not registered')
+
+		const snapshot = await resolver.resolve['Scope'].resolve({
+			scope: 'global',
+		}, {
+			...resolverContext,
+			pagination: { limit: 1 },
+		})
+
+		expect(snapshot.marketPrices).toHaveLength(1)
+		expect(snapshot.marketPriceCount).toBe(2)
+		expect(resolver.projections.$$marketPrices.select(snapshot)).toEqual(snapshot.marketPrices)
+		expect(resolver.projections.$$marketPrices.resolveCount(snapshot)).toBe(2)
+		expect(snapshot.marketPrices[0]?.[EntityMetaKey.Selector].feedKey).toBe('eth-ethereum')
 	})
 })
 
