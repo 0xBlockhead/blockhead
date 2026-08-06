@@ -58,7 +58,13 @@ export type SolanaRpcInstruction = {
 	stackHeight?: number
 }
 
+export type SolanaRpcContext = {
+	slot: number
+	apiVersion?: string
+}
+
 export type SolanaRpcAccountInfo = {
+	context: SolanaRpcContext
 	value: {
 		lamports: number
 		owner: string
@@ -68,48 +74,79 @@ export type SolanaRpcAccountInfo = {
 	} | null
 }
 
+export type SolanaRpcParsedTokenMintInfo = {
+	supply: string
+	decimals: number
+	isInitialized?: boolean
+	mintAuthority?: string | null
+	freezeAuthority?: string | null
+}
+
 export type SolanaRpcParsedTokenMintAccountInfo = {
+	context: SolanaRpcContext
 	value: {
 		data: {
 			parsed: {
-				info: {
-					supply: string
-					decimals: number
-					isInitialized?: boolean
-					mintAuthority?: string | null
-					freezeAuthority?: string | null
-				}
+				info: SolanaRpcParsedTokenMintInfo
 			}
 		}
 	} | null
 }
 
+export type SolanaRpcParsedTokenAccountAmount = {
+	amount: string
+	decimals: number
+	uiAmountString?: string
+}
+
+export type SolanaRpcParsedTokenAccountInfoFields = {
+	mint: string
+	owner: string
+	tokenAmount: SolanaRpcParsedTokenAccountAmount
+	state?: string
+	isNative?: boolean
+	delegate?: string
+	delegatedAmount?: {
+		amount: string
+	}
+	rentExemptReserve?: {
+		amount: string
+	}
+	closeAuthority?: string
+}
+
 export type SolanaRpcParsedTokenAccountInfo = {
+	context: SolanaRpcContext
 	value: {
 		data: {
 			parsed: {
-				info: {
-					mint: string
-					owner: string
-					tokenAmount: {
-						amount: string
-						decimals: number
-						uiAmountString?: string
-					}
-					state?: string
-					isNative?: boolean
-					delegate?: string
-					delegatedAmount?: {
-						amount: string
-					}
-					rentExemptReserve?: {
-						amount: string
-					}
-					closeAuthority?: string
-				}
+				info: SolanaRpcParsedTokenAccountInfoFields
 			}
 		}
 	} | null
+}
+
+export type SolanaRpcTokenAccountByOwner = {
+	pubkey: string
+	account: {
+		lamports: number
+		owner: string
+		executable: boolean
+		rentEpoch: number
+		data: {
+			program: string
+			parsed: {
+				info: SolanaRpcParsedTokenAccountInfoFields
+				type?: string
+			}
+			space?: number
+		}
+	}
+}
+
+export type SolanaRpcTokenAccountsByOwner = {
+	context: SolanaRpcContext
+	value: SolanaRpcTokenAccountByOwner[]
 }
 
 export type SolanaRpcSignatureStatus = {

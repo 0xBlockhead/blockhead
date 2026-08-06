@@ -386,6 +386,9 @@ describe('Solana account / validator / epoch JSON-RPC envelopes', () => {
 		} = await import('$/sources/Solana/JsonRpc/queries.ts')
 
 		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			context: {
+				slot: 42,
+			},
 			value: {
 				lamports: 1,
 				owner: '11111111111111111111111111111111',
@@ -397,6 +400,9 @@ describe('Solana account / validator / epoch JSON-RPC envelopes', () => {
 		await expect(getAccountInfo({
 			pubkey,
 		})).resolves.toMatchObject({
+			context: {
+				slot: 42,
+			},
 			value: {
 				lamports: 1,
 				owner: '11111111111111111111111111111111',
@@ -404,6 +410,22 @@ describe('Solana account / validator / epoch JSON-RPC envelopes', () => {
 		})
 
 		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			value: {
+				lamports: 1,
+				owner: '11111111111111111111111111111111',
+				executable: false,
+				rentEpoch: 0,
+				data: ['AQ==', 'base64'],
+			},
+		}))
+		await expect(getAccountInfo({
+			pubkey,
+		})).rejects.toThrow('invalid account info response envelope')
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			context: {
+				slot: 42,
+			},
 			value: {
 				lamports: -1,
 				owner: '11111111111111111111111111111111',
@@ -470,5 +492,174 @@ describe('Solana account / validator / epoch JSON-RPC envelopes', () => {
 			slotsInEpoch: 432_000,
 		}))
 		await expect(getEpochInfo()).rejects.toThrow('invalid epoch info response envelope')
+	})
+})
+
+describe('Solana getTokenAccountsByOwner JSON-RPC envelopes', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	const tokenAccountPubkey = 'TokenAccount111111111111111111111111111111'
+	const mintAddress = 'Mint111111111111111111111111111111111111111'
+	const tokenAccountRow = {
+		pubkey: tokenAccountPubkey,
+		account: {
+			lamports: 2_039_280,
+			owner: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+			executable: false,
+			rentEpoch: 18_446_744_073_709_551_615,
+			data: {
+				program: 'spl-token',
+				parsed: {
+					info: {
+						mint: mintAddress,
+						owner: pubkey,
+						state: 'initialized',
+						tokenAmount: {
+							amount: '1000000',
+							decimals: 6,
+							uiAmountString: '1',
+						},
+					},
+					type: 'account',
+				},
+				space: 165,
+			},
+		},
+	} as const
+
+	it('returns parsed token accounts with context.slot and default Token program filter', async () => {
+		const {
+			getTokenAccountsByOwner,
+			solanaTokenProgramId,
+		} = await import('$/sources/Solana/JsonRpc/queries.ts')
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			context: {
+				apiVersion: '2.0.0',
+				slot: 341_197_933,
+			},
+			value: [tokenAccountRow],
+		}))
+
+		await expect(getTokenAccountsByOwner({
+			owner: pubkey,
+			limit: 16,
+		})).resolves.toEqual({
+			context: {
+				apiVersion: '2.0.0',
+				slot: 341_197_933,
+			},
+			value: [tokenAccountRow],
+		})
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
+			method: 'getTokenAccountsByOwner',
+			params: [
+				pubkey,
+				{
+					programId: solanaTokenProgramId,
+				},
+				{
+					commitment: 'confirmed',
+					encoding: 'jsonParsed',
+				},
+			],
+		})
+	})
+
+	it('filters by mint, slices client limit, and fail-closes bad envelopes / ownership', async () => {
+		const { getTokenAccountsByOwner } = await import('$/sources/Solana/JsonRpc/queries.ts')
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			context: {
+				slot: 10,
+			},
+			value: [
+				tokenAccountRow,
+				{
+					...tokenAccountRow,
+					pubkey: 'TokenAccount222222222222222222222222222222',
+				},
+			],
+		}))
+		await expect(getTokenAccountsByOwner({
+			owner: pubkey,
+			mint: mintAddress,
+			limit: 1,
+		})).resolves.toMatchObject({
+			context: {
+				slot: 10,
+			},
+			value: [
+				{
+					pubkey: tokenAccountPubkey,
+				},
+			],
+		})
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).params[1]).toEqual({
+			mint: mintAddress,
+		})
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			value: [tokenAccountRow],
+		}))
+		await expect(getTokenAccountsByOwner({
+			owner: pubkey,
+		})).rejects.toThrow('invalid token accounts by owner response envelope')
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			context: {
+				slot: 10,
+			},
+			value: [
+				{
+					...tokenAccountRow,
+					account: {
+						...tokenAccountRow.account,
+						data: {
+							...tokenAccountRow.account.data,
+							parsed: {
+								...tokenAccountRow.account.data.parsed,
+								info: {
+									...tokenAccountRow.account.data.parsed.info,
+									owner: 'OtherOwner111111111111111111111111111111',
+								},
+							},
+						},
+					},
+				},
+			],
+		}))
+		await expect(getTokenAccountsByOwner({
+			owner: pubkey,
+		})).rejects.toThrow(`token account outside owner ${pubkey}`)
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			context: {
+				slot: 10,
+			},
+			value: [
+				tokenAccountRow,
+				tokenAccountRow,
+			],
+		}))
+		await expect(getTokenAccountsByOwner({
+			owner: pubkey,
+		})).rejects.toThrow('duplicate token account pubkey')
+
+		await expect(getTokenAccountsByOwner({
+			owner: '',
+		})).rejects.toThrow('owner must not be empty')
+		await expect(getTokenAccountsByOwner({
+			owner: pubkey,
+			limit: 0,
+		})).resolves.toEqual({
+			context: {
+				slot: 0,
+			},
+			value: [],
+		})
+		expect(sourceFetch).toHaveBeenCalledTimes(4)
 	})
 })

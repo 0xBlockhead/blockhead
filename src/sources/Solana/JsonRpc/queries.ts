@@ -9,6 +9,7 @@ import type {
 	SolanaRpcParsedTokenAccountInfo,
 	SolanaRpcParsedTokenMintAccountInfo,
 	SolanaRpcSignatureStatus,
+	SolanaRpcTokenAccountsByOwner,
 	SolanaRpcTransaction,
 	SolanaRpcVersion,
 	SolanaRpcVoteAccounts,
@@ -44,6 +45,37 @@ export const solanaRpcEndpoints = bindings[Source.Solana_JsonRpc].flatMap(({ end
 
 const nonNegativeSafeInteger = 'number.integer >= 0 & number <= 9007199254740991'
 const solanaCommitmentWire = arktype("'confirmed' | 'finalized' | 'processed'").or('null')
+
+/** Classic SPL Token program id — default filter for getTokenAccountsByOwner when mint is omitted. */
+export const solanaTokenProgramId = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'
+
+/** Token-2022 program id — optional getTokenAccountsByOwner programId filter. */
+export const solanaToken2022ProgramId = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'
+
+const solanaRpcContextWire = arktype({
+	slot: nonNegativeSafeInteger,
+	'apiVersion?': 'string',
+})
+
+const solanaParsedTokenAccountInfoFieldsWire = arktype({
+	mint: 'string > 0',
+	owner: 'string > 0',
+	tokenAmount: {
+		amount: '/^(0|[1-9][0-9]*)$/',
+		decimals: 'number.integer >= 0 & number <= 255',
+		'uiAmountString?': 'string',
+	},
+	'state?': 'string',
+	'isNative?': 'boolean',
+	'delegate?': 'string',
+	'delegatedAmount?': {
+		amount: '/^(0|[1-9][0-9]*)$/',
+	},
+	'rentExemptReserve?': {
+		amount: '/^(0|[1-9][0-9]*)$/',
+	},
+	'closeAuthority?': 'string',
+})
 
 const solanaInstructionWire = arktype({
 	programId: 'string > 0',
@@ -118,16 +150,18 @@ const solanaPerformanceSampleWire = arktype({
 })
 
 const solanaAccountInfoWire = arktype({
+	context: solanaRpcContextWire,
 	value: arktype({
 		lamports: nonNegativeSafeInteger,
 		owner: 'string > 0',
 		executable: 'boolean',
-		rentEpoch: nonNegativeSafeInteger,
+		rentEpoch: 'number >= 0',
 		data: arktype(['string', 'string']),
 	}).or('null'),
 })
 
 const solanaParsedTokenMintAccountInfoWire = arktype({
+	context: solanaRpcContextWire,
 	value: arktype({
 		data: {
 			parsed: {
@@ -144,31 +178,35 @@ const solanaParsedTokenMintAccountInfoWire = arktype({
 })
 
 const solanaParsedTokenAccountInfoWire = arktype({
+	context: solanaRpcContextWire,
 	value: arktype({
 		data: {
 			parsed: {
-				info: {
-					mint: 'string > 0',
-					owner: 'string > 0',
-					tokenAmount: {
-						amount: '/^(0|[1-9][0-9]*)$/',
-						decimals: 'number.integer >= 0 & number <= 255',
-						'uiAmountString?': 'string',
-					},
-					'state?': 'string',
-					'isNative?': 'boolean',
-					'delegate?': 'string',
-					'delegatedAmount?': {
-						amount: '/^(0|[1-9][0-9]*)$/',
-					},
-					'rentExemptReserve?': {
-						amount: '/^(0|[1-9][0-9]*)$/',
-					},
-					'closeAuthority?': 'string',
-				},
+				info: solanaParsedTokenAccountInfoFieldsWire,
 			},
 		},
 	}).or('null'),
+})
+
+const solanaTokenAccountsByOwnerWire = arktype({
+	context: solanaRpcContextWire,
+	value: arktype({
+		pubkey: 'string > 0',
+		account: {
+			lamports: nonNegativeSafeInteger,
+			owner: 'string > 0',
+			executable: 'boolean',
+			rentEpoch: 'number >= 0',
+			data: {
+				program: 'string > 0',
+				parsed: {
+					info: solanaParsedTokenAccountInfoFieldsWire,
+					'type?': 'string',
+				},
+				'space?': nonNegativeSafeInteger,
+			},
+		},
+	}).array(),
 })
 
 const solanaSignatureStatusWire = arktype({
@@ -531,6 +569,80 @@ export const getParsedTokenAccountInfo = async ({
 		])
 	) as SolanaRpcParsedTokenAccountInfo
 )
+
+export const getTokenAccountsByOwner = async ({
+	owner,
+	mint,
+	programId = solanaTokenProgramId,
+	commitment = 'confirmed',
+	limit,
+}: {
+	owner: string
+	mint?: string
+	programId?: string
+	commitment?: SolanaRpcCommitment
+	limit?: number
+}) => {
+	if (owner.length === 0)
+		throw new Error('Solana getTokenAccountsByOwner owner must not be empty')
+	if (mint != null && mint.length === 0)
+		throw new Error('Solana getTokenAccountsByOwner mint must not be empty')
+	if (mint == null && programId.length === 0)
+		throw new Error('Solana getTokenAccountsByOwner programId must not be empty')
+	if (limit != null && (!Number.isSafeInteger(limit) || limit < 0))
+		throw new Error('Solana getTokenAccountsByOwner limit must be a non-negative safe integer')
+	if (limit === 0)
+		return {
+			context: {
+				slot: 0,
+			},
+			value: [],
+		} satisfies SolanaRpcTokenAccountsByOwner
+
+	const response = assertEnvelope(
+		'token accounts by owner',
+		solanaTokenAccountsByOwnerWire,
+		await jsonRpc2<unknown>(binding, 'getTokenAccountsByOwner', [
+			owner,
+			(
+				mint != null ?
+					{
+						mint,
+					}
+				:
+					{
+						programId,
+					}
+			),
+			{
+				commitment,
+				encoding: 'jsonParsed',
+			},
+		])
+	) as SolanaRpcTokenAccountsByOwner
+
+	const seenPubkeys = new Set<string>()
+	for (const tokenAccount of response.value) {
+		if (seenPubkeys.has(tokenAccount.pubkey))
+			throw new Error('Solana getTokenAccountsByOwner returned a duplicate token account pubkey')
+		if (tokenAccount.account.data.parsed.info.owner !== owner)
+			throw new Error(`Solana getTokenAccountsByOwner returned a token account outside owner ${owner}`)
+		if (mint != null && tokenAccount.account.data.parsed.info.mint !== mint)
+			throw new Error(`Solana getTokenAccountsByOwner returned a token account outside mint ${mint}`)
+
+		seenPubkeys.add(tokenAccount.pubkey)
+	}
+
+	return (
+		limit == null || response.value.length <= limit ?
+			response
+		:
+			{
+				context: response.context,
+				value: response.value.slice(0, limit),
+			}
+	)
+}
 
 export const getSignatureStatuses = async ({
 	signatures,

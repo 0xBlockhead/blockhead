@@ -737,7 +737,7 @@ export default {
 				NetworkPubkey: {
 					resolve: async ({ $network, pubkey }) => {
 						assertSolanaMainnet($network)
-						const { getAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const { getAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getAccountInfo({
 							pubkey: pubkey,
 						})
@@ -750,7 +750,7 @@ export default {
 											$network,
 											pubkey,
 										},
-										slot: BigInt(await getSlot()),
+										slot: BigInt(accountInfo.context.slot),
 										source: Source.Solana_JsonRpc,
 									},
 								},
@@ -821,7 +821,7 @@ export default {
 				NetworkMintAddress: {
 					resolve: async ({ $network, mintAddress }) => {
 						assertSolanaMainnet($network)
-						const { getParsedTokenMintAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const { getParsedTokenMintAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getParsedTokenMintAccountInfo({
 							pubkey: mintAddress,
 						})
@@ -834,7 +834,7 @@ export default {
 											$network,
 											mintAddress,
 										},
-										slot: BigInt(await getSlot()),
+										slot: BigInt(accountInfo.context.slot),
 										source: Source.Solana_JsonRpc,
 									},
 								},
@@ -891,7 +891,7 @@ export default {
 				NetworkTokenAccountPubkey: {
 					resolve: async ({ $network, tokenAccountPubkey }) => {
 						assertSolanaMainnet($network)
-						const { getParsedTokenAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const { getParsedTokenAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
 						const accountInfo = await getParsedTokenAccountInfo({
 							pubkey: tokenAccountPubkey,
 						})
@@ -939,7 +939,7 @@ export default {
 											$network,
 											tokenAccountPubkey,
 										},
-										slot: BigInt(await getSlot()),
+										slot: BigInt(accountInfo.context.slot),
 										source: Source.Solana_JsonRpc,
 									},
 								},

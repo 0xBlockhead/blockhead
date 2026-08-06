@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/query-core'
 import {
+	beforeEach,
 	describe,
 	expect,
 	it,
@@ -14,9 +15,13 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
+	getAccountInfo,
 	getBlock,
 	getBlocks,
+	getParsedTokenAccountInfo,
+	getParsedTokenMintAccountInfo,
 	getSlot,
+	getTokenAccountsByOwner,
 	getVoteAccounts,
 	solanaRpcEndpoints,
 	subscribeSlot,
@@ -34,6 +39,10 @@ const {
 		},
 	],
 	getSlot: vi.fn().mockResolvedValue(100),
+	getAccountInfo: vi.fn(),
+	getParsedTokenAccountInfo: vi.fn(),
+	getParsedTokenMintAccountInfo: vi.fn(),
+	getTokenAccountsByOwner: vi.fn(),
 	getVoteAccounts: vi.fn().mockResolvedValue({
 		current: [{
 			activatedStake: 1_000,
@@ -107,6 +116,10 @@ const {
 vi.mock('$/sources/Solana/JsonRpc/queries.ts', () => ({
 	solanaRpcEndpoints,
 	getSlot,
+	getAccountInfo,
+	getParsedTokenAccountInfo,
+	getParsedTokenMintAccountInfo,
+	getTokenAccountsByOwner,
 	getVoteAccounts,
 	getBlocks,
 	getBlock,
@@ -250,6 +263,107 @@ describe('Solana JSON-RPC network state lists', () => {
 		expect(timestampFields).not.toHaveProperty(entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], '$validator'))
 		expect(timestampFields).not.toHaveProperty(entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'slot'))
 		expect(timestampFields).not.toHaveProperty(entityFieldAddressKey(EntityType.SolanaValidator_Timestamp, [], 'source'))
+	})
+})
+
+describe('Solana JSON-RPC account observation clocks use context.slot', () => {
+	beforeEach(() => {
+		getSlot.mockClear()
+		getAccountInfo.mockReset()
+		getParsedTokenAccountInfo.mockReset()
+		getParsedTokenMintAccountInfo.mockReset()
+	})
+
+	it('SolanaAccount / SolanaTokenAccount / SolanaTokenMint tip slots come from RPC context, not getSlot', async () => {
+		getAccountInfo.mockResolvedValueOnce({
+			context: {
+				slot: 777,
+			},
+			value: {
+				lamports: 1,
+				owner: '11111111111111111111111111111111',
+				executable: false,
+				rentEpoch: 0,
+				data: ['AQ==', 'base64'],
+			},
+		})
+		getParsedTokenAccountInfo.mockResolvedValueOnce({
+			context: {
+				slot: 888,
+			},
+			value: {
+				data: {
+					parsed: {
+						info: {
+							mint: 'mint-1',
+							owner: 'owner-1',
+							tokenAmount: {
+								amount: '1',
+								decimals: 0,
+							},
+						},
+					},
+				},
+			},
+		})
+		getParsedTokenMintAccountInfo.mockResolvedValueOnce({
+			context: {
+				slot: 999,
+			},
+			value: {
+				data: {
+					parsed: {
+						info: {
+							supply: '1',
+							decimals: 0,
+						},
+					},
+				},
+			},
+		})
+
+		const accountResolver = solanaJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.SolanaAccount
+			&& 'NetworkPubkey' in candidate.resolve
+		))
+		const tokenAccountResolver = solanaJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.SolanaTokenAccount
+			&& 'NetworkTokenAccountPubkey' in candidate.resolve
+		))
+		const tokenMintResolver = solanaJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.SolanaTokenMint
+			&& 'NetworkMintAddress' in candidate.resolve
+		))
+		if (accountResolver == null || tokenAccountResolver == null || tokenMintResolver == null)
+			throw new Error('Solana account/token resolvers missing')
+
+		const account = await accountResolver.resolve.NetworkPubkey.resolve(
+			{
+				$network: networkSelector,
+				pubkey: 'account-1',
+			},
+			context
+		)
+		const tokenAccount = await tokenAccountResolver.resolve.NetworkTokenAccountPubkey.resolve(
+			{
+				$network: networkSelector,
+				tokenAccountPubkey: 'token-account-1',
+			},
+			context
+		)
+		const tokenMint = await tokenMintResolver.resolve.NetworkMintAddress.resolve(
+			{
+				$network: networkSelector,
+				mintAddress: 'mint-1',
+			},
+			context
+		)
+
+		expect(account.$$timestamps[0][EntityMetaKey.Selector].slot).toBe(777n)
+		expect(tokenAccount.$$timestamps[0][EntityMetaKey.Selector].slot).toBe(888n)
+		expect(tokenMint.$$timestamps[0][EntityMetaKey.Selector].slot).toBe(999n)
+		expect(getSlot).not.toHaveBeenCalled()
+		expect(getTokenAccountsByOwner).not.toHaveBeenCalled()
 	})
 })
 
