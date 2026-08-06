@@ -9,11 +9,13 @@ import { Source } from '$/sources/Source.ts'
 
 const getNode = vi.hoisted(() => vi.fn())
 const getEdge = vi.hoisted(() => vi.fn())
+const getNodeChannels = vi.hoisted(() => vi.fn())
 const getPopularNodePubkeys = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Amboss/Graphql/queries.ts', () => ({
 	getNode,
 	getEdge,
+	getNodeChannels,
 	getPopularNodePubkeys,
 }))
 
@@ -40,6 +42,11 @@ const nodeResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
 	&& '$$timestamps' in resolver.projections
 ))
 
+const nodeChannelsResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.LightningNode
+	&& '$$channels' in resolver.projections
+))
+
 const nodeTimestampResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.LightningNode_Timestamp
 	&& 'alias' in resolver.projections
@@ -57,6 +64,7 @@ const channelTimestampResolver = ambossGraphqlResolvers.resolvers.find((resolver
 
 if (
 	nodeResolver == null
+	|| nodeChannelsResolver == null
 	|| nodeTimestampResolver == null
 	|| channelResolver == null
 	|| channelTimestampResolver == null
@@ -67,6 +75,7 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 	beforeEach(() => {
 		getNode.mockReset()
 		getEdge.mockReset()
+		getNodeChannels.mockReset()
 		getPopularNodePubkeys.mockReset()
 	})
 
@@ -141,7 +150,56 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 		])
 	})
 
-	it('materializes fail-closed channel peers and observations from getEdge', async () => {
+	it('lists node channels with authoritative resolveCount and continuation', async () => {
+		getNodeChannels.mockResolvedValue({
+			num_channels: 2,
+			channel_list: {
+				list: [
+					{
+						long_channel_id: '123',
+						short_channel_id: '1x2x3',
+						chan_point: 'fundingtxid:0',
+						capacity: '1000000',
+						last_update: 1_700_000_000,
+						node1_pub: publicKey,
+						node2_pub: peerPublicKey,
+					},
+				],
+				pagination: {
+					limit: 1,
+					offset: 0,
+				},
+			},
+		})
+
+		const snapshot = await nodeChannelsResolver.resolve.NetworkPublicKey.resolve({
+			$network: lightningNetwork,
+			publicKey,
+		}, {
+			...resolverContext,
+			pagination: {
+				limit: 1,
+			},
+		})
+
+		expect(nodeChannelsResolver.projections.$$channels.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: lightningNetwork,
+					channelId: '123',
+				},
+			},
+		])
+		expect(nodeChannelsResolver.projections.$$channels.resolveCount?.(snapshot)).toBe(2)
+		expect(nodeChannelsResolver.projections.$$channels.continuation?.(snapshot)).toEqual({
+			operation: 'node-channels',
+			target: 'amboss',
+			terminal: false,
+			token: '1',
+		})
+	})
+
+	it('materializes fail-closed channel peers, funding, and observations from getEdge', async () => {
 		getEdge.mockResolvedValue({
 			long_channel_id: '123',
 			short_channel_id: '1x2x3',
@@ -150,6 +208,7 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 					capacity: '1000000',
 					is_closed: false,
 					last_update: '1700000000',
+					chan_point: 'abcdef0123456789:1',
 					node1_pub: publicKey,
 					node2_pub: peerPublicKey,
 					node1_policy: {
@@ -167,6 +226,8 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 		}, resolverContext)
 
 		expect(channelResolver.projections.shortChannelId(channelSnapshot)).toBe('1x2x3')
+		expect(channelResolver.projections.fundingTransactionId(channelSnapshot)).toBe('abcdef0123456789')
+		expect(channelResolver.projections.fundingOutputIndex(channelSnapshot)).toBe(1)
 		expect(channelResolver.projections.$node1(channelSnapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$network: lightningNetwork,

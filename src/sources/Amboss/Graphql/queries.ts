@@ -94,6 +94,24 @@ export const getNode = async ({
 	}
 }
 
+const assertChannelPoint = (
+	chanPoint: string
+) => {
+	const [fundingTransactionId, outputIndex] = chanPoint.split(':')
+	if (
+		fundingTransactionId == null
+		|| fundingTransactionId === ''
+		|| outputIndex == null
+		|| !/^(0|[1-9][0-9]*)$/.test(outputIndex)
+	)
+		throw new Error('Amboss_Graphql: invalid channel funding point')
+
+	return {
+		fundingTransactionId,
+		fundingOutputIndex: Number(outputIndex),
+	}
+}
+
 export const getEdge = async ({
 	channelId,
 }: {
@@ -111,6 +129,7 @@ export const getEdge = async ({
 							capacity
 							is_closed
 							last_update
+							chan_point
 							node1_pub
 							node2_pub
 							node1_policy {
@@ -142,12 +161,99 @@ export const getEdge = async ({
 	assertLosslessUnsigned(edgeInfo.capacity, 'channel capacity')
 	assertLosslessUnsigned(edgeInfo.node1_policy?.fee_rate_milli_msat, 'node1 fee rate')
 	assertLosslessUnsigned(edgeInfo.node2_policy?.fee_rate_milli_msat, 'node2 fee rate')
+	assertChannelPoint(edgeInfo.chan_point)
 	return {
 		long_channel_id: edge.long_channel_id,
 		short_channel_id: edge.short_channel_id,
 		graph: {
 			info: edgeInfo,
 		},
+	}
+}
+
+export const getNodeChannels = async ({
+	publicKey,
+	limit,
+	offset = 0,
+}: {
+	publicKey: string
+	limit: number
+	offset?: number
+}) => {
+	assertPublicKey(publicKey)
+	if (!Number.isSafeInteger(limit) || limit < 1)
+		throw new Error('Amboss_Graphql: channel list limit must be a positive safe integer')
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error('Amboss_Graphql: channel list offset must be a nonnegative safe integer')
+
+	const node = await queryAmboss(
+		graphql(`
+			query GetAmbossNodeChannels($pubkey: String!, $limit: Float!, $offset: Float!) {
+				getNode(pubkey: $pubkey) {
+					graph_info {
+						channels {
+							num_channels
+							channel_list(page: { limit: $limit, offset: $offset }) {
+								list {
+									long_channel_id
+									short_channel_id
+									chan_point
+									capacity
+									last_update
+									node1_pub
+									node2_pub
+								}
+								pagination {
+									limit
+									offset
+								}
+							}
+						}
+					}
+				}
+			}
+		`),
+		{
+			pubkey: publicKey,
+			limit,
+			offset,
+		}
+	).then((data) => data.getNode)
+	if (node == null)
+		throw new Error('Amboss_Graphql: node channels response is missing')
+	const channels = node.graph_info.channels
+	if (channels == null)
+		throw new Error('Amboss_Graphql: node channels response is missing channel catalog')
+
+	assertSafeUnsigned(channels.num_channels, 'channel count')
+	assertSafeUnsigned(channels.channel_list.pagination.limit, 'channel page limit')
+	assertSafeUnsigned(channels.channel_list.pagination.offset, 'channel page offset')
+	if (channels.channel_list.pagination.offset !== offset)
+		throw new Error('Amboss_Graphql: channel page offset does not match request')
+
+	const channelIdentities = new Set<string>()
+	for (const channel of channels.channel_list.list) {
+		assertChannelId(channel.long_channel_id)
+		assertChannelId(channel.short_channel_id)
+		assertPublicKey(channel.node1_pub)
+		assertPublicKey(channel.node2_pub)
+		assertLosslessUnsigned(channel.capacity, 'channel capacity')
+		assertChannelPoint(channel.chan_point)
+		if (!Number.isFinite(channel.last_update) || channel.last_update < 0)
+			throw new Error('Amboss_Graphql: invalid channel last_update')
+		if (
+			channel.node1_pub !== publicKey
+			&& channel.node2_pub !== publicKey
+		)
+			throw new Error('Amboss_Graphql: channel list row is not owned by requested node')
+		if (channelIdentities.has(channel.long_channel_id))
+			throw new Error('Amboss_Graphql: duplicate channel identities')
+		channelIdentities.add(channel.long_channel_id)
+	}
+
+	return {
+		num_channels: channels.num_channels,
+		channel_list: channels.channel_list,
 	}
 }
 

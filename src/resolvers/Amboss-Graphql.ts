@@ -87,6 +87,37 @@ const channelTimestampSnapshotFromAmbossEdge = (
 	}
 }
 
+const channelFundingFromChanPoint = (
+	chanPoint: string
+) => {
+	const [fundingTransactionId, outputIndex] = chanPoint.split(':')
+	if (
+		fundingTransactionId == null
+		|| fundingTransactionId === ''
+		|| outputIndex == null
+		|| !/^(0|[1-9][0-9]*)$/.test(outputIndex)
+	)
+		throw new Error('Amboss_Graphql: invalid channel funding point')
+
+	return {
+		fundingTransactionId,
+		fundingOutputIndex: Number(outputIndex),
+	}
+}
+
+const ambossChannelListOffset = (
+	context: import('$/resolvers/$resolvers.ts').ResolverContext
+) => {
+	const offset = context.providerContinuationToken == null ?
+		context.pagination.offset ?? 0
+	:
+		Number(context.providerContinuationToken)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error('Amboss_Graphql: invalid channel list offset')
+
+	return offset
+}
+
 export default {
 	source: Source.Amboss_Graphql,
 
@@ -150,6 +181,57 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.LightningNode,
+			resolve: {
+				NetworkPublicKey: {
+					resolve: async ({ $network, publicKey }, context) => {
+						assertLightningNetwork($network)
+						const offset = ambossChannelListOffset(context)
+						const limit = resolverContextRowLimit(context)
+						const { getNodeChannels } = await import('$/sources/Amboss/Graphql/queries.ts')
+						const channels = await getNodeChannels({
+							publicKey,
+							limit,
+							offset,
+						})
+						return {
+							offset,
+							limit,
+							channelCount: channels.num_channels,
+							rows: channels.channel_list.list.map((channel) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									channelId: channel.long_channel_id,
+								},
+							})),
+						}
+					},
+				}
+			},
+		})({
+			$$channels: {
+				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.channelCount,
+				continuation: (snapshot) => {
+					const nextOffset = snapshot.offset + snapshot.rows.length
+					const terminal = (
+						snapshot.rows.length < snapshot.limit
+						|| nextOffset >= snapshot.channelCount
+					)
+
+					return {
+						operation: 'node-channels',
+						target: 'amboss',
+						terminal,
+						...(!terminal && {
+							token: String(nextOffset),
+						}),
+					}
+				},
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.LightningChannel,
 			resolve: {
 				NetworkChannelId: {
@@ -160,6 +242,7 @@ export default {
 							channelId,
 						})
 						const edgeInfo = edge.graph.info
+						const funding = channelFundingFromChanPoint(edgeInfo.chan_point)
 
 						return {
 							[EntityMetaKey.Selector]: {
@@ -167,6 +250,8 @@ export default {
 								channelId: edge.long_channel_id,
 							},
 							shortChannelId: edge.short_channel_id,
+							fundingTransactionId: funding.fundingTransactionId,
+							fundingOutputIndex: funding.fundingOutputIndex,
 							$node1: {
 								[EntityMetaKey.Selector]: {
 									$network,
@@ -191,6 +276,8 @@ export default {
 			},
 		})({
 			shortChannelId: (snapshot) => snapshot.shortChannelId,
+			fundingTransactionId: (snapshot) => snapshot.fundingTransactionId,
+			fundingOutputIndex: (snapshot) => snapshot.fundingOutputIndex,
 			$node1: (snapshot) => snapshot.$node1,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),

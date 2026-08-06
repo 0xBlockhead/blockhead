@@ -13,6 +13,7 @@ vi.mock('$/sources/Amboss/Graphql/client.ts', async (importOriginal) => ({
 import {
 	getEdge,
 	getNode,
+	getNodeChannels,
 	getPopularNodePubkeys,
 } from '$/sources/Amboss/Graphql/queries.ts'
 
@@ -127,6 +128,7 @@ describe('Amboss public Lightning graph queries', () => {
 						capacity: '1000000',
 						is_closed: false,
 						last_update: '1700000000',
+						chan_point: 'fundingtxid:0',
 						node1_pub: publicKey,
 						node2_pub: peerPublicKey,
 						node1_policy: null,
@@ -143,6 +145,7 @@ describe('Amboss public Lightning graph queries', () => {
 			graph: {
 				info: {
 					capacity: '1000000',
+					chan_point: 'fundingtxid:0',
 				},
 			},
 		})
@@ -170,6 +173,7 @@ describe('Amboss public Lightning graph queries', () => {
 						capacity: '1e6',
 						is_closed: false,
 						last_update: '1700000000',
+						chan_point: 'fundingtxid:0',
 						node1_pub: publicKey,
 						node2_pub: peerPublicKey,
 						node1_policy: null,
@@ -194,6 +198,7 @@ describe('Amboss public Lightning graph queries', () => {
 						capacity: '1000000',
 						is_closed: false,
 						last_update: '1700000000',
+						chan_point: 'fundingtxid:0',
 						node1_pub: publicKey,
 						node2_pub: peerPublicKey,
 						node1_policy: null,
@@ -206,6 +211,79 @@ describe('Amboss public Lightning graph queries', () => {
 		await expect(getEdge({
 			channelId: '123',
 		})).rejects.toThrow('mismatched identity')
+	})
+
+	it('lists node channels fail-closed with ownership and funding checks', async () => {
+		queryAmboss.mockResolvedValue({
+			getNode: {
+				graph_info: {
+					channels: {
+						num_channels: 1,
+						channel_list: {
+							list: [
+								{
+									long_channel_id: '123',
+									short_channel_id: '1x2x3',
+									chan_point: 'fundingtxid:0',
+									capacity: '1000000',
+									last_update: 1_700_000_000,
+									node1_pub: publicKey,
+									node2_pub: peerPublicKey,
+								},
+							],
+							pagination: {
+								limit: 10,
+								offset: 0,
+							},
+						},
+					},
+				},
+			},
+		})
+
+		await expect(getNodeChannels({
+			publicKey,
+			limit: 10,
+		})).resolves.toMatchObject({
+			num_channels: 1,
+			channel_list: {
+				list: [{
+					long_channel_id: '123',
+				}],
+			},
+		})
+
+		queryAmboss.mockResolvedValue({
+			getNode: {
+				graph_info: {
+					channels: {
+						num_channels: 1,
+						channel_list: {
+							list: [
+								{
+									long_channel_id: '123',
+									short_channel_id: '1x2x3',
+									chan_point: 'bad',
+									capacity: '1000000',
+									last_update: 1_700_000_000,
+									node1_pub: publicKey,
+									node2_pub: peerPublicKey,
+								},
+							],
+							pagination: {
+								limit: 10,
+								offset: 0,
+							},
+						},
+					},
+				},
+			},
+		})
+
+		await expect(getNodeChannels({
+			publicKey,
+			limit: 10,
+		})).rejects.toThrow('invalid channel funding point')
 	})
 
 	it('rejects malformed or duplicate popular node identities', async () => {
