@@ -498,15 +498,30 @@ describe('Filfox REST resolvers', () => {
 			},
 		}]
 
-		expect(filecoinNetworkDealsResolver.projections.$$deals(
+		expect(filecoinNetworkDealsResolver.projections.$$deals.select(
 			await filecoinNetworkDealsResolver.resolve.Network.resolve({
 				$network: network,
-			}, context)
+			}, context),
+			{
+				$network: network,
+			},
+			context
 		)).toEqual(expected)
-		expect(networkDealsResolver.projections.Filecoin.$$deals(
-			await networkDealsResolver.resolve.Slug.resolve(network, context)
+		expect(networkDealsResolver.projections.Filecoin.$$deals.select(
+			await networkDealsResolver.resolve.Slug.resolve(network, context),
+			network,
+			context
 		)).toEqual(expected)
-		expect(getDeals).toHaveBeenNthCalledWith(1, {
+		expect(filecoinNetworkDealsResolver.projections.$$deals.resolveCount?.(
+			await filecoinNetworkDealsResolver.resolve.Network.resolve({
+				$network: network,
+			}, context),
+			{
+				$network: network,
+			},
+			context
+		)).toBe(1)
+		expect(getDeals).toHaveBeenCalledWith({
 			page: 0,
 			pageSize: 8,
 		})
@@ -572,6 +587,9 @@ describe('Filfox REST resolvers', () => {
 					tipsetKey: 'bafy1,bafy2',
 					source: Source.Filfox_Rest,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.FilecoinMiner_Timestamp, [], 'timestampMs')]: 1_700_000_000_000,
+				},
 			},
 		])
 
@@ -585,6 +603,7 @@ describe('Filfox REST resolvers', () => {
 			source: Source.Filfox_Rest,
 		}, context)
 		expect(minerTimestampResolver.projections.qualityAdjustedPower(snapshot)).toBe(20n)
+		expect(minerTimestampResolver.projections.timestampMs(snapshot)).toBe(1_700_000_000_000)
 		expect(minerTimestampResolver.projections.activeSectorCount(snapshot)).toBe(4)
 		expect(minerTimestampResolver.projections.$owner(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
@@ -627,6 +646,7 @@ describe('Filfox REST resolvers', () => {
 						$network: network,
 						address: 'f1actor',
 					},
+					timestampMs: 1_700_000_000_000,
 					height: 100n,
 					tipsetKey: 'bafy1',
 					source: Source.Filfox_Rest,
@@ -643,6 +663,7 @@ describe('Filfox REST resolvers', () => {
 			tipsetKey: 'bafy1',
 			source: Source.Filfox_Rest,
 		}, context)
+		expect(actorTimestampResolver.projections.timestampMs(snapshot)).toBe(1_700_000_000_000)
 		expect(actorTimestampResolver.projections.idAddress(snapshot)).toBe('f01234')
 		expect(actorTimestampResolver.projections.balanceAttoFil(snapshot)).toBe(999n)
 		expect(actorTimestampResolver.projections.actorCodeCid(snapshot)).toBe('account')

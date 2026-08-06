@@ -1,13 +1,16 @@
 /**
- * Arweave gateway REST resolvers: full blocks, network info timestamps, resource browse.
+ * Arweave gateway REST resolvers: network tip lists, full blocks, info timestamps, resource browse.
+ * Global transaction / resource indexes stay on `Arweave_Graphql` (gateway REST has no listing API).
  * @see https://docs.arweave.org/developers/arweave-node-server/http-api
  */
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -17,9 +20,11 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceEndpointOrigin } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/Arweave/bindings.ts'
+import type { ArweaveBlockWire } from '$/sources/Arweave/Rest/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type ArweaveNetworkId = EntitySelector<typeof schema, EntityType.ArweaveNetwork>
+type ResolverContext = Parameters<typeof resolverContextRowLimit>[0]
 
 const arweaveSlugNetwork = {
 	slug: 'arweave' as const,
@@ -65,7 +70,7 @@ const bigintFromWire = (
 
 const mapBlockWire = (
 	network: NetworkId,
-	block: Awaited<ReturnType<typeof import('$/sources/Arweave/Rest/queries.ts').getBlockByHeight>>
+	block: ArweaveBlockWire
 ) => ({
 	$network: {
 		[EntityMetaKey.Selector]: {
@@ -113,10 +118,134 @@ const mapBlockWire = (
 	})),
 })
 
+const blockEdgeRow = (
+	network: NetworkId,
+	block: ArweaveBlockWire
+) => ({
+	[EntityMetaKey.Selector]: {
+		$network: {
+			$network: network,
+		},
+		height: BigInt(block.height),
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'indepHash')]: block.indep_hash,
+		...(block.previous_block !== '' && {
+			[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'previousBlock')]: block.previous_block,
+		}),
+		[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'timestampMs')]: block.timestamp * 1000,
+		[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'transactionCount')]: block.txs.length,
+	},
+})
+
+const networkTipSnapshot = async (
+	network: NetworkId,
+	context: ResolverContext
+) => {
+	const {
+		getBlockByHeight,
+		getNetworkInfo,
+	} = await import('$/sources/Arweave/Rest/queries.ts')
+	const info = await getNetworkInfo()
+	const pageSize = resolverContextRowLimit(context)
+	const offset = context.pagination.offset ?? 0
+	const tipHeight = info.height
+	const startHeight = tipHeight - offset
+	const heights = (
+		pageSize === 0 || startHeight < 0 ?
+			[]
+		:
+			Array.from(
+				{
+					length: Math.min(pageSize, startHeight + 1),
+				},
+				(_, index) => startHeight - index
+			)
+	)
+	const blocks = await Promise.all(
+		heights.map((height) => getBlockByHeight(height))
+	)
+	return {
+		$network: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+			},
+		},
+		blockCount: tipHeight + 1,
+		blocks: blocks.map((block) => blockEdgeRow(network, block)),
+		timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$network: {
+					$network: network,
+				},
+				timestampMs: Date.now(),
+				source: Source.Arweave_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'latestHeight')]: BigInt(info.height),
+				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'latestBlockHash')]: info.current,
+				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'currentBlockHash')]: info.current,
+				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'networkId')]: info.network,
+				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'peerCount')]: info.peers,
+				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'queuedTransactionCount')]: info.queue_length,
+				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'gatewayOrigin')]: gatewayOrigin(),
+				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'reachable')]: true,
+			},
+		}],
+	}
+}
+
 export default {
 	source: Source.Arweave_Rest,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.ArweaveNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }, context) => {
+						assertArweaveNetwork($network)
+						return networkTipSnapshot($network, context)
+					},
+				},
+			},
+		})({
+			$network: (snapshot) => snapshot.$network,
+			$$timestamps: (snapshot) => snapshot.timestamps,
+			$$blocks: {
+				select: (snapshot) => snapshot.blocks,
+				resolveCount: (snapshot) => snapshot.blockCount,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					appliesTo: [
+						arweaveSlugNetwork,
+					],
+					resolve: async (network, context) => {
+						assertArweaveNetwork(network)
+						const snapshot = await networkTipSnapshot(network, context)
+						return {
+							blockCount: snapshot.blockCount,
+							blocks: snapshot.blocks,
+							timestamps: snapshot.timestamps,
+						}
+					},
+				},
+			},
+		})({
+			Arweave: {
+				$$timestamps: (snapshot) => snapshot.timestamps,
+				$$blocks: {
+					select: (snapshot) => snapshot.blocks,
+					resolveCount: (snapshot) => snapshot.blockCount,
+				},
+			},
+		}),
+
 		defineResolver({
 			entityType: EntityType.ArweaveNetwork_Timestamp,
 			resolve: {

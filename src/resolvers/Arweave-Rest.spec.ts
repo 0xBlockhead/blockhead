@@ -6,7 +6,7 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -24,6 +24,12 @@ vi.mock('$/sources/Arweave/Rest/queries.ts', () => ({
 
 const { default: arweaveRest } = await import('$/resolvers/Arweave-Rest.ts')
 
+const networkResolver = arweaveRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.ArweaveNetwork
+))
+const directoryNetworkResolver = arweaveRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+))
 const networkTimestampResolver = arweaveRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.ArweaveNetwork_Timestamp
 ))
@@ -38,7 +44,9 @@ const resourceTimestampResolver = arweaveRest.resolvers.find((resolver) => (
 ))
 
 if (
-	networkTimestampResolver == null
+	networkResolver == null
+	|| directoryNetworkResolver == null
+	|| networkTimestampResolver == null
 	|| blockResolver == null
 	|| resourceResolver == null
 	|| resourceTimestampResolver == null
@@ -56,10 +64,22 @@ const arweaveNetwork = {
 }
 const context = {
 	filters: [],
-	pagination: {},
+	pagination: {
+		limit: 2,
+	},
 	selectorKeys: [],
 	parentSelectorKeys: [],
 	publicEnv: {},
+}
+
+const tipBlockWire = {
+	indep_hash: blockId,
+	previous_block: previousBlockId,
+	timestamp: 1_720_000_000,
+	height: 551_511,
+	txs: [
+		transactionId,
+	],
 }
 
 describe('Arweave_Rest block / info / resource browse resolvers', () => {
@@ -72,6 +92,130 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 
 	it('registers against Arweave_Rest only', () => {
 		expect(arweaveRest.source).toBe(Source.Arweave_Rest)
+	})
+
+	it('projects Network.Arweave tip timestamps and height-walked blocks', async () => {
+		getNetworkInfo.mockResolvedValueOnce({
+			network: 'arweave.N.1',
+			version: 5,
+			release: 43,
+			height: 551_511,
+			current: blockId,
+			blocks: 97_375,
+			peers: 64,
+			queue_length: 0,
+		})
+		getBlockByHeight
+			.mockResolvedValueOnce(tipBlockWire)
+			.mockResolvedValueOnce({
+				...tipBlockWire,
+				height: 551_510,
+				indep_hash: 'E'.repeat(64),
+				previous_block: 'G'.repeat(64),
+				txs: [],
+			})
+
+		const snapshot = await networkResolver.resolve.Network.resolve(
+			{
+				$network: network,
+			},
+			context
+		)
+		expect(networkResolver.projections.$$timestamps(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: arweaveNetwork,
+					timestampMs: expect.any(Number),
+					source: Source.Arweave_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'latestHeight')]: 551_511n,
+					[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'latestBlockHash')]: blockId,
+					[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'currentBlockHash')]: blockId,
+					[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'networkId')]: 'arweave.N.1',
+					[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'peerCount')]: 64,
+					[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'queuedTransactionCount')]: 0,
+					[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'gatewayOrigin')]: 'https://arweave.net',
+					[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'reachable')]: true,
+				},
+			},
+		])
+		expect(networkResolver.projections.$$blocks.select(
+			snapshot,
+			arweaveNetwork,
+			context
+		)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: arweaveNetwork,
+					height: 551_511n,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'indepHash')]: blockId,
+					[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'previousBlock')]: previousBlockId,
+					[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'timestampMs')]: 1_720_000_000_000,
+					[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'transactionCount')]: 1,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: arweaveNetwork,
+					height: 551_510n,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'indepHash')]: 'E'.repeat(64),
+					[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'previousBlock')]: 'G'.repeat(64),
+					[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'timestampMs')]: 1_720_000_000_000,
+					[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'transactionCount')]: 0,
+				},
+			},
+		])
+		expect(networkResolver.projections.$$blocks.resolveCount?.(
+			snapshot,
+			arweaveNetwork,
+			context
+		)).toBe(551_512)
+		expect(getBlockByHeight).toHaveBeenNthCalledWith(1, 551_511)
+		expect(getBlockByHeight).toHaveBeenNthCalledWith(2, 551_510)
+		expect(networkResolver.projections).not.toHaveProperty('$$resources')
+		expect(networkResolver.projections).not.toHaveProperty('$$transactions')
+	})
+
+	it('projects Directory Network.Arweave block and timestamp facets', async () => {
+		getNetworkInfo.mockResolvedValueOnce({
+			network: 'arweave.N.1',
+			version: 5,
+			release: 43,
+			height: 10,
+			current: blockId,
+			blocks: 10,
+			peers: 1,
+			queue_length: 0,
+		})
+		getBlockByHeight.mockResolvedValueOnce({
+			...tipBlockWire,
+			height: 10,
+		})
+		const snapshot = await directoryNetworkResolver.resolve.Slug.resolve(
+			network,
+			{
+				...context,
+				pagination: {
+					limit: 1,
+				},
+			}
+		)
+		expect(directoryNetworkResolver.projections.Arweave.$$blocks.select(
+			snapshot,
+			network,
+			context
+		)).toHaveLength(1)
+		expect(directoryNetworkResolver.projections.Arweave.$$timestamps(snapshot)).toHaveLength(1)
+		expect(directoryNetworkResolver.projections.Arweave.$$blocks.resolveCount?.(
+			snapshot,
+			network,
+			context
+		)).toBe(11)
 	})
 
 	it('maps GET /info into ArweaveNetwork_Timestamp fields', async () => {

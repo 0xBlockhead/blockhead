@@ -44,34 +44,38 @@ const listDeals = async (
 ) => {
 	assertFilecoinMainnet(network)
 	const pageSize = resolverContextRowLimit(context)
-	return (await (await import('$/sources/Filfox/Rest/queries.ts')).getDeals({
+	const page = await (await import('$/sources/Filfox/Rest/queries.ts')).getDeals({
 		page: Math.floor((context.pagination.offset ?? 0) / pageSize),
 		pageSize,
-	})).deals.map((deal) => ({
-		[EntityMetaKey.Selector]: {
-			$network: network,
-			dealId: BigInt(deal.id),
-		},
-		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.FilecoinDeal, [], '$provider')]: {
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					minerAddress: deal.provider,
-				},
+	})
+	return {
+		dealCount: page.totalCount,
+		deals: page.deals.map((deal) => ({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				dealId: BigInt(deal.id),
 			},
-			[entityFieldAddressKey(EntityType.FilecoinDeal, [], '$client')]: {
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					address: deal.client,
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], '$provider')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						minerAddress: deal.provider,
+					},
 				},
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], '$client')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						address: deal.client,
+					},
+				},
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'pieceSizeBytes')]: BigInt(deal.pieceSize),
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'verifiedDeal')]: deal.verifiedDeal,
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'startEpoch')]: BigInt(deal.startEpoch),
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'endEpoch')]: BigInt(deal.endEpoch),
+				[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'storagePricePerEpochAttoFil')]: BigInt(deal.stroagePrice),
 			},
-			[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'pieceSizeBytes')]: BigInt(deal.pieceSize),
-			[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'verifiedDeal')]: deal.verifiedDeal,
-			[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'startEpoch')]: BigInt(deal.startEpoch),
-			[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'endEpoch')]: BigInt(deal.endEpoch),
-			[entityFieldAddressKey(EntityType.FilecoinDeal, [], 'storagePricePerEpochAttoFil')]: BigInt(deal.stroagePrice),
-		},
-	}))
+		})),
+	}
 }
 
 export default {
@@ -322,6 +326,9 @@ export default {
 									tipsetKey: tipsetKeyFromBlocks(tipset.blocks),
 									source: Source.Filfox_Rest,
 								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FilecoinMiner_Timestamp, [], 'timestampMs')]: tipset.timestamp * 1000,
+								},
 							}],
 						}
 					},
@@ -370,6 +377,7 @@ export default {
 
 						const miner = address.miner
 						return {
+							timestampMs: tipset.timestamp * 1000,
 							height,
 							tipsetKey,
 							$tipset: {
@@ -418,6 +426,7 @@ export default {
 				},
 			},
 		})({
+			timestampMs: (timestamp) => timestamp.timestampMs,
 			height: (timestamp) => timestamp.height,
 			tipsetKey: (timestamp) => timestamp.tipsetKey,
 			$tipset: (timestamp) => timestamp.$tipset,
@@ -454,6 +463,7 @@ export default {
 										$network,
 										address: actorAddress,
 									},
+									timestampMs: tipset.timestamp * 1000,
 									height: BigInt(tipset.height),
 									tipsetKey: tipsetKeyFromBlocks(tipset.blocks),
 									source: Source.Filfox_Rest,
@@ -503,6 +513,7 @@ export default {
 							throw new Error(`Filfox_Rest: actor observation tipset does not match ${height.toString()}/${tipsetKey}`)
 
 						return {
+							timestampMs: tipset.timestamp * 1000,
 							height,
 							tipsetKey,
 							$tipset: {
@@ -522,6 +533,7 @@ export default {
 				},
 			},
 		})({
+			timestampMs: (timestamp) => timestamp.timestampMs,
 			height: (timestamp) => timestamp.height,
 			tipsetKey: (timestamp) => timestamp.tipsetKey,
 			$tipset: (timestamp) => timestamp.$tipset,
@@ -605,7 +617,10 @@ export default {
 				},
 			},
 		})({
-			$$deals: (deals) => deals,
+			$$deals: {
+				select: (page) => page.deals,
+				resolveCount: (page) => page.dealCount,
+			},
 		}),
 
 		defineResolver({
@@ -617,7 +632,10 @@ export default {
 			},
 		})({
 			Filecoin: {
-				$$deals: (deals) => deals,
+				$$deals: {
+					select: (page) => page.deals,
+					resolveCount: (page) => page.dealCount,
+				},
 			},
 		}),
 	],
