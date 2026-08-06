@@ -236,6 +236,101 @@ describe('Curve pool operations', () => {
 		])
 	})
 
+	it('rejects malformed optional pool fields instead of omitting them', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				poolData: [
+					{
+						...threePoolWire,
+						virtualPrice: '',
+					},
+				],
+			},
+		})
+
+		await expect(listPoolsByRegistry({
+			chainId: 1,
+			registryId: 'main',
+		})).rejects.toThrow('Curve_Rest: pool has invalid virtual price')
+
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				poolData: [
+					{
+						...threePoolWire,
+						creationTs: 1599422178.5,
+					},
+				],
+			},
+		})
+
+		await expect(listPoolsByRegistry({
+			chainId: 1,
+			registryId: 'main',
+		})).rejects.toThrow('Curve_Rest: pool has invalid creation timestamp')
+	})
+
+	it('rejects duplicate pool addresses in list and registry envelopes', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({
+				success: true,
+				data: {
+					poolList: [
+						{
+							type: 'main',
+							address: threePoolAddress,
+						},
+						{
+							type: 'main',
+							address: threePoolAddress,
+						},
+					],
+				},
+			})
+
+		await expect(listPools({
+			chainId: 1,
+		})).rejects.toThrow('Curve_Rest: pool list contains duplicate pool addresses')
+
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				poolData: [
+					threePoolWire,
+					threePoolWire,
+				],
+			},
+		})
+
+		await expect(listPoolsByRegistry({
+			chainId: 1,
+			registryId: 'main',
+		})).rejects.toThrow('Curve_Rest: pools response contains duplicate pool addresses')
+	})
+
+	it('rejects inconsistent pool coin metadata', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				poolData: [
+					{
+						...threePoolWire,
+						decimals: [
+							'18',
+						],
+					},
+				],
+			},
+		})
+
+		await expect(listPoolsByRegistry({
+			chainId: 1,
+			registryId: 'main',
+		})).rejects.toThrow('Curve_Rest: pool 0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7 has mismatched coin metadata')
+	})
+
 	it('discovers a pool registry before resolving its detail', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			success: true,

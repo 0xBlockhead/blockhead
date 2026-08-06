@@ -74,8 +74,35 @@ const assertNonEmptyString = (
 	value: string | null | undefined,
 	label: string
 ) => {
-	if (value == null || value === '')
+	if (value == null || value.trim() === '')
 		throw new Error(`${Source.Curve_Rest}: pool missing ${label}`)
+	return value
+}
+
+const assertNonNegativeDecimalString = (
+	value: string,
+	label: string
+) => {
+	if (!/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value))
+		throw new Error(`${Source.Curve_Rest}: pool has invalid ${label}`)
+	return value
+}
+
+const assertFiniteNumber = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isFinite(value))
+		throw new Error(`${Source.Curve_Rest}: pool has invalid ${label}`)
+	return value
+}
+
+const assertSafeInteger = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isSafeInteger(value))
+		throw new Error(`${Source.Curve_Rest}: pool has invalid ${label}`)
 	return value
 }
 
@@ -105,7 +132,10 @@ const mapPoolWire = (
 		registryId: string
 	}
 ): CurvePoolSnapshot => {
+	assertNonEmptyString(wire.id, 'id')
 	const poolAddress = assertAddress(wire.address, 'pool address')
+	if (wire.coinsAddresses.length !== wire.decimals.length)
+		throw new Error(`${Source.Curve_Rest}: pool ${poolAddress} has mismatched coin metadata`)
 	const coinAddresses = wire.coinsAddresses
 		.map((address) => assertAddress(address, 'coin address'))
 		.filter((address) => address !== '0x0000000000000000000000000000000000000000')
@@ -122,32 +152,32 @@ const mapPoolWire = (
 		symbol: assertNonEmptyString(wire.symbol, 'symbol'),
 		lpTokenAddress: assertAddress(wire.lpTokenAddress, 'lp token address'),
 		coinAddresses,
-		...(wire.virtualPrice != null && wire.virtualPrice !== '' && {
-			virtualPrice: wire.virtualPrice,
+		...(wire.virtualPrice != null && {
+			virtualPrice: assertNonNegativeDecimalString(wire.virtualPrice, 'virtual price'),
 		}),
-		...(wire.amplificationCoefficient != null && wire.amplificationCoefficient !== '' && {
-			amplificationCoefficient: wire.amplificationCoefficient,
+		...(wire.amplificationCoefficient != null && {
+			amplificationCoefficient: assertNonNegativeDecimalString(wire.amplificationCoefficient, 'amplification coefficient'),
 		}),
-		...(wire.totalSupply != null && wire.totalSupply !== '' && {
-			totalSupply: wire.totalSupply,
+		...(wire.totalSupply != null && {
+			totalSupply: assertNonNegativeDecimalString(wire.totalSupply, 'total supply'),
 		}),
-		...(wire.usdTotal != null && Number.isFinite(wire.usdTotal) && {
-			usdTotal: wire.usdTotal,
+		...(wire.usdTotal != null && {
+			usdTotal: assertFiniteNumber(wire.usdTotal, 'USD total'),
 		}),
 		...(wire.isMetaPool != null && {
 			isMetaPool: wire.isMetaPool,
 		}),
-		...(wire.gaugeAddress != null && wire.gaugeAddress !== '' && {
+		...(wire.gaugeAddress != null && {
 			gaugeAddress: assertAddress(wire.gaugeAddress, 'gauge address'),
 		}),
-		...(wire.assetTypeName != null && wire.assetTypeName !== '' && {
-			assetTypeName: wire.assetTypeName,
+		...(wire.assetTypeName != null && {
+			assetTypeName: assertNonEmptyString(wire.assetTypeName, 'asset type name'),
 		}),
-		...(wire.creationBlockNumber != null && Number.isSafeInteger(wire.creationBlockNumber) && {
-			creationBlockNumber: wire.creationBlockNumber,
+		...(wire.creationBlockNumber != null && {
+			creationBlockNumber: assertSafeInteger(wire.creationBlockNumber, 'creation block number'),
 		}),
-		...(wire.creationTs != null && Number.isSafeInteger(wire.creationTs) && {
-			creationTs: wire.creationTs,
+		...(wire.creationTs != null && {
+			creationTs: assertSafeInteger(wire.creationTs, 'creation timestamp'),
 		}),
 	}
 }
@@ -166,16 +196,18 @@ export const listPools = async ({
 	if (response.data.poolList.length > maximumPoolsPerChain)
 		throw new Error(`${Source.Curve_Rest}: excessive pool list`)
 
-	return response.data.poolList.map((item) => {
-		if (item.type === '' || item.address === '')
-			throw new Error(`${Source.Curve_Rest}: malformed pool list item`)
+	const pools = response.data.poolList.map((item) => {
+		const type = assertNonEmptyString(item.type, 'registry')
 		return {
 			blockchainId: platform.blockchainId,
 			chainId: platform.chainId,
-			registryId: assertRegistryId(item.type, platform.registries),
+			registryId: assertRegistryId(type, platform.registries),
 			poolAddress: assertPoolAddress(item.address),
 		}
 	})
+	if (new Set(pools.map((pool) => pool.poolAddress)).size !== pools.length)
+		throw new Error(`${Source.Curve_Rest}: pool list contains duplicate pool addresses`)
+	return pools
 }
 
 /** `GET /getPools/{blockchainId}/{registryId}` — full pool rows for one registry. */
@@ -195,13 +227,16 @@ export const listPoolsByRegistry = async ({
 	if (response.data.poolData.length > maximumPoolsPerChain)
 		throw new Error(`${Source.Curve_Rest}: excessive pools response`)
 
-	return response.data.poolData.map((wire) => (
+	const pools = response.data.poolData.map((wire) => (
 		mapPoolWire(wire, {
 			blockchainId: platform.blockchainId,
 			chainId: platform.chainId,
 			registryId: registry,
 		})
 	))
+	if (new Set(pools.map((pool) => pool.poolAddress)).size !== pools.length)
+		throw new Error(`${Source.Curve_Rest}: pools response contains duplicate pool addresses`)
+	return pools
 }
 
 /**
