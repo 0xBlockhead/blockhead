@@ -24,7 +24,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AaveReserve> = $props()
 
-	const network = $derived(selection.entitySelector.$market.$network)
+	const market = $derived(selection.entitySelector.$market)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Aave_Rest,
@@ -56,12 +56,12 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/aave-market/[poolAddress=evmAddress]/(aaveMarket)/reserve/[underlyingTokenAddress=evmAddress]',
 				{
 					network: (
-						'caip2' in network ?
-							caip2StringFromValue(network.caip2)
+						'caip2' in market.$network ?
+							caip2StringFromValue(market.$network.caip2)
 						:
-							network.slug
+							market.$network.slug
 					),
-					poolAddress: selection.entitySelector.$market.poolAddress,
+					poolAddress: market.poolAddress,
 					underlyingTokenAddress: selection.entitySelector.underlyingTokenAddress,
 				}
 			)
@@ -151,7 +151,9 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+		</dl>
 
+		<dl data-column-item="center">
 			<div>
 				<dt>Total supplied</dt>
 				<dd>

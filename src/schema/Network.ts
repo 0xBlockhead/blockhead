@@ -439,6 +439,13 @@ export default entity({
 					Source.Morpho_Graphql,
 				],
 			},
+			$$morphoVaults: {
+				entityType: EntityType.MorphoVault,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Morpho_Graphql,
+				],
+			},
 			$$pendleMarkets: {
 				entityType: EntityType.PendleMarket,
 				cardinality: EntityFieldCardinality.Many,

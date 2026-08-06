@@ -3,8 +3,6 @@
 import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchEvmAddress } from '$/params/evmAddress.ts'
-import { match as matchNetworkCaip2 } from '$/params/networkCaip2.ts'
-import { match as matchNetworkSlug } from '$/params/networkSlug.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import AaveMarketSchema from '$/schema/AaveMarket.ts'
 import { schema } from '$/schema/index.ts'
@@ -23,7 +21,6 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 			&& parentData.projectionNetwork.namespace === 'Evm'
 		)
 		&& matchEvmAddress(params.poolAddress)
-		&& (matchNetworkCaip2(params.network) || matchNetworkSlug(params.network))
 	))
 		error(404, 'Route mapping not applicable')
 
@@ -31,9 +28,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		schema,
 		AaveMarketSchema,
 		{
-			$network: {
-				caip2: parentData.projectionNetwork.caip2,
-			},
+			$network: parentData.selector,
 			poolAddress: params.poolAddress,
 		},
 		'NetworkPoolAddress'

@@ -6,7 +6,9 @@ import { match as matchEip155ChainId } from '$/params/eip155ChainId.ts'
 import { match as matchEvmAddress } from '$/params/evmAddress.ts'
 import { match as matchEvmTopicHash } from '$/params/evmTopicHash.ts'
 import { match as matchEvmTxHash } from '$/params/evmTxHash.ts'
-import { match as matchEvmTxHashOrSolanaSignatureOrUtxoTxId } from '$/params/evmTxHashOrSolanaSignatureOrUtxoTxId.ts'
+import {
+	match as matchEvmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment,
+} from '$/params/evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment.ts'
 import { match as matchFarcasterFid } from '$/params/farcasterFid.ts'
 import { match as matchIpfsNamespace } from '$/params/ipfsNamespace.ts'
 import { match as matchIso4217 } from '$/params/iso4217.ts'
@@ -43,7 +45,7 @@ export const matchE2eRouteParam = (matcher: string, value: string) => {
 		case 'networkCaip2OrNetworkSlug': return matchNetworkCaip2OrNetworkSlug(value)
 		case 'stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey': return matchStringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey(value)
 		case 'evmTxHash': return matchEvmTxHash(value)
-		case 'evmTxHashOrSolanaSignatureOrUtxoTxId': return matchEvmTxHashOrSolanaSignatureOrUtxoTxId(value)
+		case 'evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment': return matchEvmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment(value)
 		case 'networkCaip2': return matchNetworkCaip2(value)
 		case 'absoluteUrl': return matchAbsoluteUrl(value)
 		case 'zeroExHex': return matchZeroExHex(value)
@@ -734,7 +736,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
 		mappings: [
 			{
 				id: 'EvmTransaction.EvmNetworkTxHash',
@@ -772,10 +774,19 @@ export const e2eRouteFixtureMetadataByNodeId = {
 					'Utxo',
 				],
 			},
+			{
+				id: 'ArweaveTransaction.NetworkTransactionId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/tx/[transactionId]:ArweaveTransaction.NetworkTransactionId'],
+				probeCases: [[[0, '1', ['transactionId', 'network']]]],
+				projectionPath: [
+					'Arweave',
+				],
+			},
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/input/[inputIndex]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/input/[inputIndex=nonNegativeInteger]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/input/[inputIndex=nonNegativeInteger]',
 		mappings: [
 			{
 				id: 'CardanoTxInput.TransactionInputIndex',
@@ -798,7 +809,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/inputs': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/inputs',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/inputs',
 		mappings: [
 			{
 				id: 'EvmTransaction.EvmNetworkTxHash',
@@ -836,10 +847,19 @@ export const e2eRouteFixtureMetadataByNodeId = {
 					'Utxo',
 				],
 			},
+			{
+				id: 'ArweaveTransaction.NetworkTransactionId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/tx/[transactionId]:ArweaveTransaction.NetworkTransactionId'],
+				probeCases: [[[0, '1', ['transactionId', 'network']]]],
+				projectionPath: [
+					'Arweave',
+				],
+			},
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]',
 		mappings: [
 			{
 				id: 'SolanaInstruction.SolanaTransactionIndexInTransaction',
@@ -853,7 +873,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/instruction/[instructionKind]/[indexInTransaction]/inner/[indexInInstruction]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/(solanaInstruction)/inner/[indexInInstruction=nonNegativeInteger]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/(solanaInstruction)/inner/[indexInInstruction=nonNegativeInteger]',
 		mappings: [
 			{
 				id: 'SolanaInstruction.SolanaTransactionIndexInInstruction',
@@ -867,7 +887,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/internal-transfer/[indexInTransaction]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/internal-transfer/[indexInTransaction=nonNegativeInteger]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/internal-transfer/[indexInTransaction=nonNegativeInteger]',
 		mappings: [
 			{
 				id: 'EvmInternalTransfer.TransactionIndexInTransaction',
@@ -881,7 +901,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/log/[indexInTransaction]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/log/[indexInTransaction=nonNegativeInteger]',
 		mappings: [
 			{
 				id: 'EvmLog.TransactionIndexInTransaction',
@@ -895,7 +915,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/log/[indexInTransaction]/token-transfer/[transferIndex]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]/(evmLog)/token-transfer/[transferIndex=nonNegativeInteger]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/log/[indexInTransaction=nonNegativeInteger]/(evmLog)/token-transfer/[transferIndex=nonNegativeInteger]',
 		mappings: [
 			{
 				id: 'EvmTokenTransfer.LogIndexInLog',
@@ -909,7 +929,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/output/[outputIndex]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/output/[outputIndex=nonNegativeInteger]',
 		mappings: [
 			{
 				id: 'CardanoTxOutput.TransactionOutputIndex',
@@ -932,7 +952,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/outputs': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/outputs',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/outputs',
 		mappings: [
 			{
 				id: 'EvmTransaction.EvmNetworkTxHash',
@@ -970,10 +990,19 @@ export const e2eRouteFixtureMetadataByNodeId = {
 					'Utxo',
 				],
 			},
+			{
+				id: 'ArweaveTransaction.NetworkTransactionId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/tx/[transactionId]:ArweaveTransaction.NetworkTransactionId'],
+				probeCases: [[[0, '1', ['transactionId', 'network']]]],
+				projectionPath: [
+					'Arweave',
+				],
+			},
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/shielded-action/[pool]/[actionKind]/[actionIndex]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/shielded-action/[pool=stringSegment]/[actionKind=stringSegment]/[actionIndex=nonNegativeInteger]',
 		mappings: [
 			{
 				id: 'ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction',
@@ -987,7 +1016,7 @@ export const e2eRouteFixtureMetadataByNodeId = {
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/shielded-actions': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/shielded-actions',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/shielded-actions',
 		mappings: [
 			{
 				id: 'EvmTransaction.EvmNetworkTxHash',
@@ -1023,6 +1052,15 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				probeCases: [[[0, '1', ['transactionId', 'network']]]],
 				projectionPath: [
 					'Utxo',
+				],
+			},
+			{
+				id: 'ArweaveTransaction.NetworkTransactionId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/tx/[transactionId]:ArweaveTransaction.NetworkTransactionId'],
+				probeCases: [[[0, '1', ['transactionId', 'network']]]],
+				projectionPath: [
+					'Arweave',
 				],
 			},
 		],
@@ -1077,6 +1115,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				projectionEntity: 'Network',
 				probeAtomPrefixes: ['/network/[network]/aave-market/[poolAddress]:AaveMarket.NetworkPoolAddress'],
 				probeCases: [[[0, '1', ['poolAddress', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/aave-market/[poolAddress]/reserve/[underlyingTokenAddress]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/aave-market/[poolAddress=evmAddress]/(aaveMarket)/reserve/[underlyingTokenAddress=evmAddress]',
+		mappings: [
+			{
+				id: 'AaveReserve.MarketUnderlyingTokenAddress',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/aave-market/[poolAddress]/reserve/[underlyingTokenAddress]:AaveReserve.MarketUnderlyingTokenAddress'],
+				probeCases: [[[0, '1', ['underlyingTokenAddress', 'poolAddress', 'network']]]],
 				projectionPath: [
 					'Evm',
 				],
@@ -2058,6 +2110,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				projectionEntity: 'Network',
 				probeAtomPrefixes: ['/network/[network]/morpho-market/[marketId]:MorphoMarket.NetworkMarketId'],
 				probeCases: [[[0, '1', ['marketId', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/morpho-vault/[vaultAddress]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/morpho-vault/[vaultAddress=evmAddress]',
+		mappings: [
+			{
+				id: 'MorphoVault.NetworkVaultAddress',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/morpho-vault/[vaultAddress]:MorphoVault.NetworkVaultAddress'],
+				probeCases: [[[0, '1', ['vaultAddress', 'network']]]],
 				projectionPath: [
 					'Evm',
 				],

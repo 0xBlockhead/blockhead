@@ -37,7 +37,7 @@
 >
 	{#snippet Item({ item: aaveReserve })}
 		{@const aaveReserveSelector = aaveReserve[EntityMetaKey.Selector]}
-		{@const network = aaveReserveSelector.$market.$network}
+		{@const market = aaveReserveSelector.$market}
 		<EntityView
 			entityType={EntityType.AaveReserve}
 			entitySelector={aaveReserveSelector}
@@ -46,12 +46,12 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/aave-market/[poolAddress=evmAddress]/(aaveMarket)/reserve/[underlyingTokenAddress=evmAddress]',
 					{
 						network: (
-							'caip2' in network ?
-								caip2StringFromValue(network.caip2)
+							'caip2' in market.$network ?
+								caip2StringFromValue(market.$network.caip2)
 							:
-								network.slug
+								market.$network.slug
 						),
-						poolAddress: aaveReserveSelector.$market.poolAddress,
+						poolAddress: market.poolAddress,
 						underlyingTokenAddress: aaveReserveSelector.underlyingTokenAddress,
 					}
 				)
