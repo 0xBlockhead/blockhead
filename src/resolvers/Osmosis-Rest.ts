@@ -13,11 +13,16 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import bindings from '$/sources/Osmosis/bindings.ts'
 import { osmosisLcdRestEndpoints } from '$/sources/Osmosis/Rest/queries.ts'
-import type { OsmosisPoolManagerPool } from '$/sources/Osmosis/Rest/types.ts'
+import type {
+	OsmosisFullPositionBreakdown,
+	OsmosisPoolManagerPool,
+} from '$/sources/Osmosis/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type OsmosisPoolId = EntitySelector<typeof schema, EntityType.OsmosisPool>
+type OsmosisPositionId = EntitySelector<typeof schema, EntityType.OsmosisPosition>
+type CosmosAccountId = EntitySelector<typeof schema, EntityType.CosmosAccount>
 
 const osmosisBinding = bindings[Source.Osmosis_LCD_Rest][0]
 const osmosisLcdCaip2NetworkKey = osmosisBinding.target.key
@@ -166,59 +171,142 @@ const osmosisPoolAssetsFromWire = (wire: OsmosisPoolManagerPool) => (
 	?? []
 )
 
+const osmosisLiquidityKindFromTypeUrl = (typeUrl: string | undefined) => (
+	typeUrl == null ?
+		undefined
+	: typeUrl.includes('concentratedliquidity') ?
+		'Concentrated liquidity'
+	: typeUrl.includes('stableswap') ?
+		'Stableswap'
+	: typeUrl.includes('cosmwasm') ?
+		'CosmWasm'
+	: typeUrl.includes('gamm') ?
+		'Balancer'
+	:
+		undefined
+)
+
+const osmosisClaimableSpreadRewardsText = (
+	coins: OsmosisFullPositionBreakdown['claimable_spread_rewards']
+) => (
+	coins == null || coins.length === 0 ?
+		undefined
+	:
+		coins
+			.map((coin) => `${coin.amount}${coin.denom}`)
+			.join(',')
+)
+
+const mapOsmosisPositionSnapshot = (
+	network: NetworkId,
+	breakdown: OsmosisFullPositionBreakdown
+) => {
+	const {
+		position,
+		asset0,
+		asset1,
+		claimable_spread_rewards: claimableSpreadRewards,
+	} = breakdown
+	const claimableSpreadRewardsText = osmosisClaimableSpreadRewardsText(claimableSpreadRewards)
+	return {
+		$network: {
+			[EntityMetaKey.Selector]: network,
+		},
+		positionId: position.position_id,
+		$pool: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				poolId: position.pool_id,
+			},
+		},
+		$account: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				address: position.address,
+			},
+		},
+		tickLower: position.lower_tick,
+		tickUpper: position.upper_tick,
+		liquidity: position.liquidity,
+		...(position.join_time != null && {
+			joinTime: position.join_time,
+		}),
+		...(asset0 != null && {
+			asset0Amount: asset0.amount,
+			asset0Denom: asset0.denom,
+		}),
+		...(asset1 != null && {
+			asset1Amount: asset1.amount,
+			asset1Denom: asset1.denom,
+		}),
+		...(claimableSpreadRewardsText != null && {
+			claimableSpreadRewards: claimableSpreadRewardsText,
+		}),
+	}
+}
+
 const mapOsmosisPoolSnapshot = (
 	network: NetworkId,
 	wire: OsmosisPoolManagerPool
-) => ({
-	$network: {
-		[EntityMetaKey.Selector]: network,
-	},
-	poolId: wire.id,
-	...(wire['@type'] != null && {
-		typeUrl: wire['@type'],
-	}),
-	...(wire.address != null && {
-		address: wire.address,
-	}),
-	...(wire.pool_params?.swap_fee != null && {
-		swapFee: wire.pool_params.swap_fee,
-	}),
-	...(wire.pool_params?.exit_fee != null && {
-		exitFee: wire.pool_params.exit_fee,
-	}),
-	...(wire.total_weight != null && {
-		totalWeight: wire.total_weight,
-	}),
-	...(wire.total_shares != null && {
-		totalSharesAmount: wire.total_shares.amount,
-		totalSharesDenom: wire.total_shares.denom,
-	}),
-	...(wire.token0 != null && {
-		token0Denom: wire.token0,
-	}),
-	...(wire.token1 != null && {
-		token1Denom: wire.token1,
-	}),
-	...(wire.current_sqrt_price != null && {
-		currentSqrtPrice: wire.current_sqrt_price,
-	}),
-	...(wire.current_tick != null && {
-		currentTick: wire.current_tick,
-	}),
-	...(wire.current_tick_liquidity != null && {
-		currentTickLiquidity: wire.current_tick_liquidity,
-	}),
-	...(wire.tick_spacing != null && {
-		tickSpacing: wire.tick_spacing,
-	}),
-	...(wire.exponent_at_price_one != null && {
-		exponentAtPriceOne: wire.exponent_at_price_one,
-	}),
-	...(wire.spread_factor != null && {
-		spreadFactor: wire.spread_factor,
-	}),
-	assets: osmosisPoolAssetsFromWire(wire),
-})
+) => {
+	const liquidityKind = osmosisLiquidityKindFromTypeUrl(wire['@type'])
+	return {
+		$network: {
+			[EntityMetaKey.Selector]: network,
+		},
+		poolId: wire.id,
+		...(wire['@type'] != null && {
+			typeUrl: wire['@type'],
+		}),
+		...(liquidityKind != null && {
+			liquidityKind,
+		}),
+		...(wire.address != null && {
+			address: wire.address,
+		}),
+		...(wire.pool_params?.swap_fee != null && {
+			swapFee: wire.pool_params.swap_fee,
+		}),
+		...(wire.pool_params?.exit_fee != null && {
+			exitFee: wire.pool_params.exit_fee,
+		}),
+		...(wire.total_weight != null && {
+			totalWeight: wire.total_weight,
+		}),
+		...(wire.total_shares != null && {
+			totalSharesAmount: wire.total_shares.amount,
+			totalSharesDenom: wire.total_shares.denom,
+		}),
+		...(wire.token0 != null && {
+			token0Denom: wire.token0,
+		}),
+		...(wire.token1 != null && {
+			token1Denom: wire.token1,
+		}),
+		...(wire.current_sqrt_price != null && {
+			currentSqrtPrice: wire.current_sqrt_price,
+		}),
+		...(wire.current_tick != null && {
+			currentTick: wire.current_tick,
+		}),
+		...(wire.current_tick_liquidity != null && {
+			currentTickLiquidity: wire.current_tick_liquidity,
+		}),
+		...(wire.tick_spacing != null && {
+			tickSpacing: wire.tick_spacing,
+		}),
+		...(wire.exponent_at_price_one != null && {
+			exponentAtPriceOne: wire.exponent_at_price_one,
+		}),
+		...(wire.spread_factor != null && {
+			spreadFactor: wire.spread_factor,
+		}),
+		...(wire.last_liquidity_update != null && {
+			lastLiquidityUpdate: wire.last_liquidity_update,
+		}),
+		assets: osmosisPoolAssetsFromWire(wire),
+	}
+}
 
 const resolveOsmosisPool = async (
 	entitySelector: OsmosisPoolId
@@ -428,6 +516,7 @@ export default {
 			$network: (pool) => pool.$network,
 			poolId: (pool) => pool.poolId,
 			typeUrl: (pool) => pool.typeUrl,
+			liquidityKind: (pool) => pool.liquidityKind,
 			address: (pool) => pool.address,
 			swapFee: (pool) => pool.swapFee,
 			exitFee: (pool) => pool.exitFee,
@@ -442,6 +531,7 @@ export default {
 			tickSpacing: (pool) => pool.tickSpacing,
 			exponentAtPriceOne: (pool) => pool.exponentAtPriceOne,
 			spreadFactor: (pool) => pool.spreadFactor,
+			lastLiquidityUpdate: (pool) => pool.lastLiquidityUpdate,
 			$$assets: (pool) => (
 				pool.assets.map((asset) => ({
 					[EntityMetaKey.Selector]: {
@@ -453,6 +543,99 @@ export default {
 					},
 				}))
 			),
+		}),
+
+		defineResolver({
+			entityType: EntityType.OsmosisPosition,
+			resolve: {
+				NetworkPositionId: {
+					appliesTo: osmosisNetworkReferenceApplicability,
+					resolve: async ({
+						$network,
+						positionId,
+					}: OsmosisPositionId) => {
+						assertOsmosisNetwork($network)
+						const { getPositionById } = await import('$/sources/Osmosis/Rest/queries.ts')
+						const {
+							position,
+						} = await getPositionById({
+							positionId,
+						})
+						if (position.position.position_id !== positionId)
+							throw new Error(`${Source.Osmosis_LCD_Rest}: position id mismatch ${position.position.position_id} !== ${positionId}`)
+
+						return mapOsmosisPositionSnapshot($network, position)
+					},
+				},
+			},
+		})({
+			$network: (position) => position.$network,
+			positionId: (position) => position.positionId,
+			$pool: (position) => position.$pool,
+			$account: (position) => position.$account,
+			tickLower: (position) => position.tickLower,
+			tickUpper: (position) => position.tickUpper,
+			liquidity: (position) => position.liquidity,
+			joinTime: (position) => position.joinTime,
+			asset0Amount: (position) => position.asset0Amount,
+			asset0Denom: (position) => position.asset0Denom,
+			asset1Amount: (position) => position.asset1Amount,
+			asset1Denom: (position) => position.asset1Denom,
+			claimableSpreadRewards: (position) => position.claimableSpreadRewards,
+		}),
+
+		defineResolver({
+			entityType: EntityType.CosmosAccount,
+			resolve: {
+				NetworkAddress: {
+					appliesTo: osmosisNetworkReferenceApplicability,
+					resolve: async ({
+						$network,
+						address,
+					}: CosmosAccountId, context) => {
+						assertOsmosisNetwork($network)
+						const limit = resolverContextRowLimit(context)
+						const offset = context.pagination.offset ?? 0
+						const { getPositionsByOwner } = await import('$/sources/Osmosis/Rest/queries.ts')
+						const {
+							positions,
+							pagination,
+						} = await getPositionsByOwner({
+							address,
+							limit,
+							offset,
+						})
+						const reportedTotal = (
+							pagination?.total == null ?
+								undefined
+							:
+								Number(pagination.total)
+						)
+						const totalCount = (
+							reportedTotal != null
+							&& Number.isSafeInteger(reportedTotal)
+							&& reportedTotal >= 0 ?
+								reportedTotal
+							:
+								offset + positions.length
+						)
+						return {
+							rows: positions.map((breakdown) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									positionId: breakdown.position.position_id,
+								},
+							})),
+							totalCount,
+						}
+					},
+				},
+			},
+		})({
+			$$osmosisPositions: {
+				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.totalCount,
+			},
 		}),
 
 		defineResolver({

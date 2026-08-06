@@ -70,6 +70,13 @@ const denomTraceResolver = osmosisRest.resolvers.find((resolver) => (
 const osmosisPoolResolver = osmosisRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.OsmosisPool
 ))
+const osmosisPositionResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.OsmosisPosition
+))
+const cosmosAccountOsmosisPositionsResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CosmosAccount
+	&& '$$osmosisPositions' in resolver.projections
+))
 const osmosisPoolAssetResolver = osmosisRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.OsmosisPoolAsset
 ))
@@ -91,6 +98,8 @@ describe('Osmosis LCD resolver module', () => {
 			EntityType.CosmosBlock,
 			EntityType.IbcDenomTrace,
 			EntityType.OsmosisPool,
+			EntityType.OsmosisPosition,
+			EntityType.CosmosAccount,
 			EntityType.OsmosisPoolAsset,
 			EntityType.OsmosisPool_Timestamp,
 			EntityType.Network,
@@ -102,6 +111,8 @@ describe('Osmosis LCD resolver module', () => {
 		expect(blockResolver).toBeDefined()
 		expect(denomTraceResolver).toBeDefined()
 		expect(osmosisPoolResolver).toBeDefined()
+		expect(osmosisPositionResolver).toBeDefined()
+		expect(cosmosAccountOsmosisPositionsResolver).toBeDefined()
 		expect(osmosisPoolAssetResolver).toBeDefined()
 		expect(osmosisPoolTimestampResolver).toBeDefined()
 		expect(networkTimestampsResolver).toBeDefined()
@@ -366,6 +377,7 @@ describe('Osmosis LCD resolver module', () => {
 				},
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'typeUrl')]: '/osmosis.concentratedliquidity.v1beta1.Pool',
+					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'liquidityKind')]: 'Concentrated liquidity',
 					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'token0Denom')]: 'uosmo',
 					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'token1Denom')]: 'uion',
 					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'currentTick')]: '1',
@@ -380,6 +392,7 @@ describe('Osmosis LCD resolver module', () => {
 				},
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'typeUrl')]: '/osmosis.concentratedliquidity.v1beta1.Pool',
+					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'liquidityKind')]: 'Concentrated liquidity',
 					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'token0Denom')]: 'uosmo',
 					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'token1Denom')]: 'uatom',
 				},
@@ -572,4 +585,110 @@ describe('Osmosis LCD resolver module', () => {
 			expect.stringMatching(/\/osmosis\/poolmanager\/v1beta1\/pools\/1\/prices\?/)
 		)
 	})
+
+	it('resolves OsmosisPosition by network + position id', async () => {
+		if (osmosisPositionResolver == null)
+			throw new Error('missing OsmosisPosition resolver')
+
+		sourceGetJson.mockResolvedValueOnce({
+			position: {
+				position: {
+					position_id: '12',
+					address: 'osmo1pnw2u5yn26vhhr2t32r8x54zegxfe0q9zr247t',
+					pool_id: '1066',
+					lower_tick: '1',
+					upper_tick: '2',
+					join_time: '2023-07-13T15:49:04.609471378Z',
+					liquidity: '10',
+				},
+				asset0: {
+					denom: 'uosmo',
+					amount: '5',
+				},
+				asset1: {
+					denom: 'uion',
+					amount: '0',
+				},
+				claimable_spread_rewards: [
+					{
+						denom: 'uosmo',
+						amount: '1',
+					},
+				],
+			},
+		})
+
+		const snapshot = await osmosisPositionResolver.resolve.NetworkPositionId.resolve({
+			$network: osmosisNetwork,
+			positionId: '12',
+		}, context)
+
+		expect(osmosisPositionResolver.projections.positionId(snapshot)).toBe('12')
+		expect(osmosisPositionResolver.projections.liquidity(snapshot)).toBe('10')
+		expect(osmosisPositionResolver.projections.tickLower(snapshot)).toBe('1')
+		expect(osmosisPositionResolver.projections.$pool(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: osmosisNetwork,
+				poolId: '1066',
+			},
+		})
+		expect(osmosisPositionResolver.projections.claimableSpreadRewards(snapshot)).toBe('1uosmo')
+	})
+
+	it('publishes owner CL positions onto CosmosAccount.$$osmosisPositions', async () => {
+		if (cosmosAccountOsmosisPositionsResolver == null)
+			throw new Error('missing CosmosAccount $$osmosisPositions resolver')
+
+		const address = 'osmo1pnw2u5yn26vhhr2t32r8x54zegxfe0q9zr247t'
+		sourceGetJson.mockResolvedValueOnce({
+			positions: [
+				{
+					position: {
+						position_id: '12',
+						address,
+						pool_id: '1066',
+						lower_tick: '1',
+						upper_tick: '2',
+						liquidity: '10',
+					},
+				},
+			],
+			pagination: {
+				total: '1',
+			},
+		})
+
+		const snapshot = await cosmosAccountOsmosisPositionsResolver.resolve.NetworkAddress.resolve({
+			$network: osmosisNetwork,
+			address,
+		}, context)
+
+		expect(cosmosAccountOsmosisPositionsResolver.projections.$$osmosisPositions.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: osmosisNetwork,
+					positionId: '12',
+				},
+			},
+		])
+		expect(cosmosAccountOsmosisPositionsResolver.projections.$$osmosisPositions.resolveCount(snapshot)).toBe(1)
+	})
+
+	it('preserves an empty CosmosAccount $$osmosisPositions list', async () => {
+		if (cosmosAccountOsmosisPositionsResolver == null)
+			throw new Error('missing CosmosAccount $$osmosisPositions resolver')
+
+		const address = 'osmo1pnw2u5yn26vhhr2t32r8x54zegxfe0q9zr247t'
+		sourceGetJson.mockResolvedValueOnce({
+			positions: [],
+		})
+
+		const snapshot = await cosmosAccountOsmosisPositionsResolver.resolve.NetworkAddress.resolve({
+			$network: osmosisNetwork,
+			address,
+		}, context)
+
+		expect(cosmosAccountOsmosisPositionsResolver.projections.$$osmosisPositions.select(snapshot)).toEqual([])
+	})
+
 })
