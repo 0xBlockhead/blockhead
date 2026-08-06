@@ -16,9 +16,11 @@ const {
 	getAsset,
 	getAssetBalances,
 	getBlock,
+	getBlockHash,
 	getHealth,
 	getStatus,
 	getTransaction,
+	getTransactionProof,
 	listApplicationBoxes,
 	listTransactions,
 } = vi.hoisted(() => ({
@@ -29,9 +31,11 @@ const {
 	getAsset: vi.fn(),
 	getAssetBalances: vi.fn(),
 	getBlock: vi.fn(),
+	getBlockHash: vi.fn(),
 	getHealth: vi.fn(),
 	getStatus: vi.fn(),
 	getTransaction: vi.fn(),
+	getTransactionProof: vi.fn(),
 	listApplicationBoxes: vi.fn(),
 	listTransactions: vi.fn(),
 }))
@@ -51,7 +55,9 @@ vi.mock('$/sources/AlgorandIndexer/Rest/queries.ts', () => ({
 }))
 
 vi.mock('$/sources/Algod/Rest/queries.ts', () => ({
+	getBlockHash,
 	getStatus,
+	getTransactionProof,
 }))
 
 const { default: algorandIndexerResolvers } = await import('$/resolvers/AlgorandIndexer-Rest.ts')
@@ -82,6 +88,14 @@ const boxesResolver = algorandIndexerResolvers.resolvers.find((resolver) => (
 ))
 const transactionResolver = algorandIndexerResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AlgorandTransaction
+	&& 'sender' in resolver.projections
+))
+const transactionProofsResolver = algorandIndexerResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AlgorandTransaction
+	&& '$$proofs' in resolver.projections
+))
+const transactionProofResolver = algorandIndexerResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AlgorandTransactionProof
 ))
 const roundResolver = algorandIndexerResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AlgorandRound
@@ -108,6 +122,8 @@ if (
 	|| applicationResolver == null
 	|| boxesResolver == null
 	|| transactionResolver == null
+	|| transactionProofsResolver == null
+	|| transactionProofResolver == null
 	|| roundResolver == null
 	|| networkTimestampsResolver == null
 	|| networkTransactionsResolver == null
@@ -340,6 +356,9 @@ describe('Algorand Indexer deepened resolvers', () => {
 			'genesis-hash': 'wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=',
 			proposer: account.address,
 		})
+		getBlockHash.mockResolvedValueOnce({
+			blockHash: '5ZWEXQT2PGYESRO5TNMWSHMPPP63Z6ZLODAVGZ66C7OEE5FOVVPA',
+		})
 		const roundSnapshot = await roundResolver.resolve.NetworkRound.resolve({
 			$network: network,
 			round: 40n,
@@ -347,6 +366,49 @@ describe('Algorand Indexer deepened resolvers', () => {
 		expect(roundResolver.projections.timestampMs(roundSnapshot)).toBe(1_700_000_000_000)
 		expect(roundResolver.projections.proposer(roundSnapshot)).toBe(account.address)
 		expect(roundResolver.projections.genesisHash(roundSnapshot)).toMatch(/^0x/)
+		expect(roundResolver.projections.hash(roundSnapshot)).toBe(
+			'0xee6c4bc27a79b04945dd9b59691d8f7bfdbcfb2b70c15367de17dc4274aead5e'
+		)
+		expect(getBlockHash).toHaveBeenCalledWith(40n)
+
+		getTransaction.mockResolvedValueOnce({
+			'current-round': 52,
+			transaction: {
+				id: 'TXPROOF1ABCDEFGHIJKLMNOPQRSTUVWXYZ234567ABCDEFGHIJKLMN',
+				sender: account.address,
+				fee: 1000,
+				'tx-type': 'pay',
+				'confirmed-round': 40,
+			},
+		})
+		getTransactionProof.mockResolvedValueOnce({
+			hashtype: 'sha512_256',
+			idx: 0,
+			proof: 'vwCgYDrrRWbU76XEUqd8ewEvZrcRroSn96Ss+rHnVFpZyGSisR944QB1wvQpj+8u+Bhs9T1tnzWUTgMpeeHQn08Ncqo0ylkFmhuSHmFLx+mfcFZnkeHfXOu18cQRSWvK',
+			stibhash: 'JKa8pryIvuAe+9B7+755U2Epv4F9umLZ5Quy5aXp0bI=',
+			treedepth: 3,
+		})
+		const proofs = await transactionProofsResolver.resolve.NetworkTxId.resolve({
+			$network: network,
+			txId: 'TXPROOF1ABCDEFGHIJKLMNOPQRSTUVWXYZ234567ABCDEFGHIJKLMN',
+		}, resolverContext)
+		expect(transactionProofsResolver.projections.$$proofs(proofs)).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: network,
+						txId: 'TXPROOF1ABCDEFGHIJKLMNOPQRSTUVWXYZ234567ABCDEFGHIJKLMN',
+					},
+					round: 40n,
+					hashType: 'sha512_256',
+					source: Source.Nodely,
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.AlgorandTransactionProof, [], 'treeDepth')]: 3,
+					[entityFieldAddressKey(EntityType.AlgorandTransactionProof, [], 'stibHash')]: expect.stringMatching(/^0x/),
+				}),
+			}),
+		])
 
 		getHealth.mockResolvedValueOnce({
 			round: 100,

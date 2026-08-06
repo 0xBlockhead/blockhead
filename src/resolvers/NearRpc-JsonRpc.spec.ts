@@ -417,6 +417,74 @@ describe('NEAR network reading facets', () => {
 		])
 	})
 
+	it('projects enrolled kickoutReason on validator timestamps when prev_epoch_kickout matches', async () => {
+		const validatorTimestampResolver = nearRpc.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.NearValidator_Timestamp
+		))
+		if (validatorTimestampResolver == null)
+			throw new Error('NearRpc_JsonRpc spec missing NearValidator_Timestamp resolver')
+
+		corsFetch.mockResolvedValueOnce(jsonRpcResult({
+			current_fishermen: [],
+			current_proposals: [],
+			current_validators: [{
+				account_id: 'alice.near',
+				public_key: 'ed25519:alice',
+				stake: '1000',
+				is_slashed: false,
+				shards: [0, 2],
+				num_expected_blocks: 10,
+				num_produced_blocks: 9,
+				num_expected_chunks: 20,
+				num_produced_chunks: 18,
+			}],
+			epoch_height: 100,
+			epoch_start_height: 1_200_000,
+			next_fishermen: [],
+			next_validators: [],
+			prev_epoch_kickout: [{
+				account_id: 'alice.near',
+				reason: {
+					NotEnoughBlocks: {
+						expected: 10,
+						produced: 1,
+					},
+				},
+			}],
+		}))
+
+		const timestamp = await validatorTimestampResolver.resolve.ValidatorEpochIdSource.resolve({
+			$validator: {
+				$network: network,
+				accountId: 'alice.near',
+			},
+			epochId: 'epoch-id',
+			source: Source.NearRpc_JsonRpc,
+		}, context)
+
+		expect(validatorTimestampResolver.projections.shards(timestamp)).toEqual([0, 2])
+		expect(validatorTimestampResolver.projections.kickoutReason(timestamp)).toEqual({
+			NotEnoughBlocks: {
+				expected: 10,
+				produced: 1,
+			},
+		})
+		expect(Object.keys(validatorTimestampResolver.projections).sort()).toEqual([
+			'epochHeight',
+			'epochStartHeight',
+			'expectedBlocks',
+			'expectedChunks',
+			'isSlashed',
+			'kickoutReason',
+			'producedBlocks',
+			'producedChunks',
+			'publicKey',
+			'shards',
+			'stakeYoctoNear',
+			'validatorSetRole',
+		])
+	})
+
 	it('materializes a network timestamp snapshot from head status gas and validators', async () => {
 		corsFetch
 			.mockResolvedValueOnce(jsonRpcResult(wireBlock))

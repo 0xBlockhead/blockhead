@@ -3,12 +3,14 @@ import bindings from '$/sources/Nodely/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily } from '$/sources/SourceBinding.ts'
 import type {
+	AlgodBlockHash,
 	AlgodNodeStatus,
 	AlgodParticipationKey,
 	AlgodPendingTransaction,
 	AlgodPendingTransactions,
 	AlgodSignedTransaction,
 	AlgodTransactionParams,
+	AlgodTransactionProof,
 } from '$/sources/Algod/Rest/types.ts'
 import { type as arktype } from 'arktype'
 
@@ -123,6 +125,20 @@ const transactionParamsWire = arktype({
 	'genesis-id': nonEmptyString,
 	'last-round': unsigned,
 	'min-fee': unsigned,
+})
+
+const blockHashWire = arktype({
+	blockHash: arktype('/^[A-Z2-7]+$/'),
+})
+
+const transactionProofHashTypeWire = arktype("'sha512_256'").or(arktype("'sha256'"))
+
+const transactionProofWire = arktype({
+	hashtype: transactionProofHashTypeWire,
+	idx: unsigned,
+	proof: nonEmptyBase64ish,
+	stibhash: nonEmptyBase64ish,
+	treedepth: unsigned,
 })
 
 const assertEnvelope = <_Value>(
@@ -294,4 +310,58 @@ export const getParticipationKey = async (
 		throw new Error('Algod_Rest: participation key response does not match the subject')
 	assertAddress(key.address, 'participation key address')
 	return key
+}
+
+export const getBlockHash = async (
+	round: bigint | number
+): Promise<AlgodBlockHash> => {
+	if (
+		typeof round === 'bigint' ?
+			round < 0n || round > BigInt(Number.MAX_SAFE_INTEGER)
+		:
+			!Number.isSafeInteger(round) || round < 0
+	)
+		throw new Error('Algod_Rest: block round must be a non-negative safe integer')
+
+	return assertEnvelope(
+		blockHashWire,
+		await query(`/v2/blocks/${round.toString()}/hash`),
+		'block hash'
+	) as AlgodBlockHash
+}
+
+export const getTransactionProof = async (
+	{
+		round,
+		txId,
+		hashType = 'sha512_256',
+	}: {
+		round: bigint | number
+		txId: string
+		hashType?: 'sha512_256' | 'sha256'
+	}
+): Promise<AlgodTransactionProof> => {
+	if (
+		typeof round === 'bigint' ?
+			round < 0n || round > BigInt(Number.MAX_SAFE_INTEGER)
+		:
+			!Number.isSafeInteger(round) || round < 0
+	)
+		throw new Error('Algod_Rest: proof round must be a non-negative safe integer')
+	assertTxId(txId)
+	if (!transactionProofHashTypeWire.allows(hashType))
+		throw new Error('Algod_Rest: invalid proof hashtype')
+
+	const proof = assertEnvelope(
+		transactionProofWire,
+		await query(
+			`/v2/blocks/${round.toString()}/transactions/${encodeURIComponent(txId)}/proof?hashtype=${encodeURIComponent(hashType)}`
+		),
+		'transaction proof'
+	) as AlgodTransactionProof
+
+	if (proof.hashtype !== hashType)
+		throw new Error('Algod_Rest: transaction proof hashtype does not match the request')
+
+	return proof
 }

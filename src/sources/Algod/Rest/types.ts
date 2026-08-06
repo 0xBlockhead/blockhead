@@ -96,3 +96,15 @@ export type AlgodTransactionParams = {
 	'last-round': number
 	'min-fee': number
 }
+
+export type AlgodBlockHash = {
+	blockHash: string
+}
+
+export type AlgodTransactionProof = {
+	hashtype: 'sha512_256' | 'sha256'
+	idx: number
+	proof: string
+	stibhash: string
+	treedepth: number
+}

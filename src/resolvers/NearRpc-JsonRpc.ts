@@ -909,11 +909,17 @@ export default {
 							$validator.$network,
 							$validator.accountId
 						)
+						const kickout = validatorSet.prev_epoch_kickout.find((candidate) => (
+							candidate.account_id === $validator.accountId
+						))
 						return {
 							epochHeight: BigInt(validatorSet.epoch_height),
 							epochStartHeight: BigInt(validatorSet.epoch_start_height),
 							validatorSetRole: 'current',
 							...nearValidatorFields(validator),
+							...(kickout != null && {
+								kickoutReason: kickout.reason,
+							}),
 						}
 					},
 				}
@@ -930,6 +936,7 @@ export default {
 			expectedChunks: (timestamp) => timestamp.expectedChunks,
 			producedChunks: (timestamp) => timestamp.producedChunks,
 			shards: (timestamp) => timestamp.shards,
+			kickoutReason: (timestamp) => timestamp.kickoutReason,
 		}),
 		defineResolver({
 			entityType: EntityType.NearNetwork,

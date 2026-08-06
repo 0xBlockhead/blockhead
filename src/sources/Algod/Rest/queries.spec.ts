@@ -11,6 +11,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 }))
 
 const {
+	getBlockHash,
 	getParticipationKey,
 	getParticipationKeys,
 	getPendingTransaction,
@@ -18,6 +19,7 @@ const {
 	getPendingTransactionsByAddress,
 	getStatus,
 	getTransactionParams,
+	getTransactionProof,
 } = await import('$/sources/Algod/Rest/queries.ts')
 
 const account = 'CCOSLTGG2BNX2FQATPIWW5PRDEEEYI74BY2FGNUYEP4UPO24I5STKK43GM'
@@ -286,5 +288,74 @@ describe('Algod Rest transport', () => {
 		await expect(getParticipationKey('participation-key-1')).rejects.toThrow(
 			'Algod_Rest: invalid participation key envelope'
 		)
+	})
+
+	it('loads fail-closed block hashes and transaction proofs', async () => {
+		getJson.mockResolvedValueOnce({
+			blockHash: '5ZWEXQT2PGYESRO5TNMWSHMPPP63Z6ZLODAVGZ66C7OEE5FOVVPA',
+		})
+		await expect(getBlockHash(63823782n)).resolves.toEqual({
+			blockHash: '5ZWEXQT2PGYESRO5TNMWSHMPPP63Z6ZLODAVGZ66C7OEE5FOVVPA',
+		})
+		expect(getJson).toHaveBeenCalledWith(
+			expect.objectContaining({
+				apiFamily: ApiFamily.AlgodRestApi,
+			}),
+			'/v2/blocks/63823782/hash'
+		)
+
+		getJson.mockResolvedValueOnce({
+			blockHash: 'not-base32!',
+		})
+		await expect(getBlockHash(1)).rejects.toThrow('Algod_Rest: invalid block hash envelope')
+		await expect(getBlockHash(-1)).rejects.toThrow('Algod_Rest: block round must be a non-negative safe integer')
+
+		const txId = '5WVG6OBH3OEJ4KO3DAFZMOKG2TDGWWAHB3WHNZ632JRXQTFV2BSA'
+		getJson.mockResolvedValueOnce({
+			hashtype: 'sha512_256',
+			idx: 0,
+			proof: 'vwCgYDrrRWbU76XEUqd8ewEvZrcRroSn96Ss+rHnVFpZyGSisR944QB1wvQpj+8u+Bhs9T1tnzWUTgMpeeHQn08Ncqo0ylkFmhuSHmFLx+mfcFZnkeHfXOu18cQRSWvK',
+			stibhash: 'JKa8pryIvuAe+9B7+755U2Epv4F9umLZ5Quy5aXp0bI=',
+			treedepth: 3,
+		})
+		await expect(getTransactionProof({
+			round: 63823782,
+			txId,
+		})).resolves.toMatchObject({
+			hashtype: 'sha512_256',
+			idx: 0,
+			treedepth: 3,
+		})
+		expect(getJson).toHaveBeenCalledWith(
+			expect.objectContaining({
+				apiFamily: ApiFamily.AlgodRestApi,
+			}),
+			`/v2/blocks/63823782/transactions/${txId}/proof?hashtype=sha512_256`
+		)
+
+		getJson.mockResolvedValueOnce({
+			hashtype: 'sha256',
+			idx: 0,
+			proof: 'vwCgYDrrRWbU76XEUqd8ewEvZrcRroSn96Ss+rHnVFpZyGSisR944QB1wvQpj+8u+Bhs9T1tnzWUTgMpeeHQn08Ncqo0ylkFmhuSHmFLx+mfcFZnkeHfXOu18cQRSWvK',
+			stibhash: 'JKa8pryIvuAe+9B7+755U2Epv4F9umLZ5Quy5aXp0bI=',
+			treedepth: 3,
+		})
+		await expect(getTransactionProof({
+			round: 63823782,
+			txId,
+			hashType: 'sha512_256',
+		})).rejects.toThrow('Algod_Rest: transaction proof hashtype does not match the request')
+
+		getJson.mockResolvedValueOnce({
+			hashtype: 'sha512_256',
+			idx: -1,
+			proof: 'x',
+			stibhash: 'y',
+			treedepth: 0,
+		})
+		await expect(getTransactionProof({
+			round: 1,
+			txId,
+		})).rejects.toThrow('Algod_Rest: invalid transaction proof envelope')
 	})
 })

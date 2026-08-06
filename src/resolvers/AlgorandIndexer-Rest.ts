@@ -10,6 +10,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { AlgorandIndexerTransaction } from '$/sources/AlgorandIndexer/Rest/types.ts'
+import { bases } from 'multiformats/basics'
 
 type AlgorandNetworkId = EntitySelector<typeof schema, EntityType.AlgorandNetwork>
 
@@ -61,6 +62,36 @@ const base64ToZeroExHex = (
 		throw new Error(`AlgorandIndexer_Rest: malformed ${label}`)
 	}
 }
+
+const algorandBase32DigestToZeroExHex = (
+	value: string,
+	label: string
+) => {
+	try {
+		const bytes = bases.base32upper.decoder.decode(`B${value}`)
+		if (bytes.length !== 32)
+			throw new Error('expected 32-byte digest')
+		return `0x${[...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('')}` as const
+	} catch {
+		throw new Error(`AlgorandIndexer_Rest: malformed ${label}`)
+	}
+}
+
+const defaultTransactionProofHashType = 'sha512_256' as const
+
+const transactionProofFields = (
+	proof: {
+		hashtype: string
+		proof: string
+		stibhash: string
+		treedepth: number
+	}
+) => ({
+	hashType: proof.hashtype,
+	proofBytes: proof.proof,
+	stibHash: base64ToZeroExHex(proof.stibhash, 'transaction proof stibhash'),
+	treeDepth: proof.treedepth,
+})
 
 const optionalSafeBigInt = (
 	value: number | undefined
@@ -494,6 +525,95 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.AlgorandTransaction,
+			resolve: {
+				NetworkTxId: {
+					appliesTo: algorandNestedNetworkApplicability,
+					resolve: async (transaction, context) => {
+						assertAlgorandMainnet(transaction.$network)
+						if (resolverContextRowLimit(context) === 0)
+							return []
+
+						const { getTransaction } = await import('$/sources/AlgorandIndexer/Rest/queries.ts')
+						const response = await getTransaction(transaction.txId)
+						const round = optionalSafeBigInt(response.transaction['confirmed-round'])
+						if (round == null)
+							throw new Error('AlgorandIndexer_Rest: transaction proof requires a confirmed round')
+
+						const { getTransactionProof } = await import('$/sources/Algod/Rest/queries.ts')
+						const proof = await getTransactionProof({
+							round,
+							txId: transaction.txId,
+							hashType: defaultTransactionProofHashType,
+						})
+						const fields = transactionProofFields(proof)
+						return [{
+							[EntityMetaKey.Selector]: {
+								$transaction: transaction,
+								round,
+								hashType: proof.hashtype,
+								source: Source.Nodely,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.AlgorandTransactionProof, [], 'proofBytes')]: fields.proofBytes,
+								[entityFieldAddressKey(EntityType.AlgorandTransactionProof, [], 'stibHash')]: fields.stibHash,
+								[entityFieldAddressKey(EntityType.AlgorandTransactionProof, [], 'treeDepth')]: fields.treeDepth,
+							},
+						}]
+					},
+				},
+			},
+		})({
+			$$proofs: (proofs) => proofs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.AlgorandTransactionProof,
+			resolve: {
+				TransactionRoundHashTypeSource: {
+					appliesTo: [{
+						$transaction: {
+							$network: {
+								$network: {
+									slug: networkBySlug.algorand.slug,
+								},
+							},
+						},
+					}],
+					resolve: async (proof) => {
+						assertAlgorandMainnet(proof.$transaction.$network)
+						if (
+							proof.hashType !== 'sha512_256'
+							&& proof.hashType !== 'sha256'
+						)
+							throw new Error(`AlgorandIndexer_Rest: unsupported proof hashtype ${proof.hashType}`)
+
+						const { getTransaction } = await import('$/sources/AlgorandIndexer/Rest/queries.ts')
+						const response = await getTransaction(proof.$transaction.txId)
+						const confirmedRound = optionalSafeBigInt(response.transaction['confirmed-round'])
+						if (confirmedRound == null)
+							throw new Error('AlgorandIndexer_Rest: transaction proof requires a confirmed round')
+						if (confirmedRound !== proof.round)
+							throw new Error('AlgorandIndexer_Rest: transaction proof round does not match confirmed round')
+
+						const { getTransactionProof } = await import('$/sources/Algod/Rest/queries.ts')
+						return transactionProofFields(
+							await getTransactionProof({
+								round: proof.round,
+								txId: proof.$transaction.txId,
+								hashType: proof.hashType,
+							})
+						)
+					},
+				},
+			},
+		})({
+			proofBytes: (snapshot) => snapshot.proofBytes,
+			stibHash: (snapshot) => snapshot.stibHash,
+			treeDepth: (snapshot) => snapshot.treeDepth,
+		}),
+
+		defineResolver({
 			entityType: EntityType.AlgorandRound,
 			resolve: {
 				NetworkRound: {
@@ -501,8 +621,16 @@ export default {
 					resolve: async (round) => {
 						assertAlgorandMainnet(round.$network)
 						const { getBlock } = await import('$/sources/AlgorandIndexer/Rest/queries.ts')
-						const block = await getBlock(round.round)
+						const { getBlockHash } = await import('$/sources/Algod/Rest/queries.ts')
+						const [
+							block,
+							blockHash,
+						] = await Promise.all([
+							getBlock(round.round),
+							getBlockHash(round.round),
+						])
 						return {
+							hash: algorandBase32DigestToZeroExHex(blockHash.blockHash, 'block hash'),
 							timestampMs: block.timestamp * 1_000,
 							...(
 								block['genesis-hash'] != null && block['genesis-hash'].length > 0 && {
@@ -515,6 +643,7 @@ export default {
 				},
 			},
 		})({
+			hash: (snapshot) => snapshot.hash,
 			timestampMs: (snapshot) => snapshot.timestampMs,
 			genesisHash: (snapshot) => snapshot.genesisHash,
 			proposer: (snapshot) => snapshot.proposer,
