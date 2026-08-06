@@ -59,6 +59,160 @@ const eigenExplorerPaginationSkip = (
 	return skip
 }
 
+const allocationMagnitude = (
+	magnitude: string
+) => {
+	const value = Number(magnitude)
+	if (!Number.isSafeInteger(value) || value < 0)
+		throw new Error('EigenExplorer_Rest: allocation magnitude not a safe integer')
+
+	return value
+}
+
+const slashIdForStrategy = ({
+	operatorSetId,
+	createdAtBlock,
+	strategyAddress,
+}: {
+	operatorSetId: number
+	createdAtBlock: number
+	strategyAddress: string
+}) => (
+	`${operatorSetId}:${createdAtBlock}:${strategyAddress.toLowerCase()}`
+)
+
+const allocationObservation = (
+	allocation: {
+		avsAddress: string
+		operatorSetId: number
+		operatorAddress: string
+		strategyAddress: string
+		magnitude: string
+		updatedAt: string
+	}
+) => {
+	const operatorAddress = hexLowerOfByteSize(allocation.operatorAddress, 20)
+	const avsAddress = hexLowerOfByteSize(allocation.avsAddress, 20)
+	const strategyAddress = hexLowerOfByteSize(allocation.strategyAddress, 20)
+	if (
+		operatorAddress == null
+		|| avsAddress == null
+		|| strategyAddress == null
+	)
+		throw new Error('EigenExplorer_Rest: allocation address not normalized')
+
+	const timestampMs = Date.parse(allocation.updatedAt)
+	if (!Number.isFinite(timestampMs))
+		throw new Error('EigenExplorer_Rest: invalid allocation timestamp')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$operator: {
+				$network: ethereumNetwork,
+				operatorAddress,
+			},
+			$avs: {
+				$network: ethereumNetwork,
+				avsAddress,
+			},
+			$strategy: {
+				$network: ethereumNetwork,
+				strategyAddress,
+			},
+			timestampMs,
+			source: Source.EigenExplorer_Rest,
+		},
+		[EntityMetaKey.Fields]: {
+			allocationMagnitude: allocationMagnitude(allocation.magnitude),
+			operatorSetId: String(allocation.operatorSetId),
+		},
+	}
+}
+
+const slashObservations = (
+	slash: {
+		avsAddress: string
+		operatorSetId: number
+		operatorAddress: string
+		strategies: string[]
+		wadSlashed: string[]
+		description: string
+		createdAt: string
+		createdAtBlock: number
+	}
+) => {
+	const operatorAddress = hexLowerOfByteSize(slash.operatorAddress, 20)
+	const avsAddress = hexLowerOfByteSize(slash.avsAddress, 20)
+	if (operatorAddress == null || avsAddress == null)
+		throw new Error('EigenExplorer_Rest: slash address not normalized')
+
+	const timestampMs = Date.parse(slash.createdAt)
+	if (!Number.isFinite(timestampMs))
+		throw new Error('EigenExplorer_Rest: invalid slash timestamp')
+
+	return slash.strategies.map((strategyAddressWire, index) => {
+		const strategyAddress = hexLowerOfByteSize(strategyAddressWire, 20)
+		if (strategyAddress == null)
+			throw new Error('EigenExplorer_Rest: slash strategy address not normalized')
+
+		const wadSlashed = slash.wadSlashed[index]
+		if (wadSlashed == null)
+			throw new Error('EigenExplorer_Rest: slash wad missing')
+
+		return {
+			[EntityMetaKey.Selector]: {
+				$operator: {
+					$network: ethereumNetwork,
+					operatorAddress,
+				},
+				$avs: {
+					$network: ethereumNetwork,
+					avsAddress,
+				},
+				source: Source.EigenExplorer_Rest,
+				slashId: slashIdForStrategy({
+					operatorSetId: slash.operatorSetId,
+					createdAtBlock: slash.createdAtBlock,
+					strategyAddress,
+				}),
+			},
+			[EntityMetaKey.Fields]: {
+				$network: {
+					[EntityMetaKey.Selector]: ethereumNetwork,
+				},
+				$operator: {
+					[EntityMetaKey.Selector]: {
+						$network: ethereumNetwork,
+						operatorAddress,
+					},
+				},
+				$avs: {
+					[EntityMetaKey.Selector]: {
+						$network: ethereumNetwork,
+						avsAddress,
+					},
+				},
+				$strategy: {
+					[EntityMetaKey.Selector]: {
+						$network: ethereumNetwork,
+						strategyAddress,
+					},
+				},
+				slashedShares: BigInt(wadSlashed),
+				reason: slash.description,
+				blockNumber: BigInt(slash.createdAtBlock),
+				timestampMs,
+				source: Source.EigenExplorer_Rest,
+				slashId: slashIdForStrategy({
+					operatorSetId: slash.operatorSetId,
+					createdAtBlock: slash.createdAtBlock,
+					strategyAddress,
+				}),
+			},
+		}
+	})
+}
+
 export default {
 	source: Source.EigenExplorer_Rest,
 
@@ -511,6 +665,369 @@ export default {
 			blockNumber: (timestamp) => timestamp.blockNumber,
 			operatorCount: (timestamp) => timestamp.operatorCount,
 			strategyCount: (timestamp) => timestamp.strategyCount,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerStrategy,
+			resolve: {
+				NetworkStrategyAddress: {
+					appliesTo: ethereumMainnetApplicability,
+					resolve: async ({
+						$network,
+						strategyAddress,
+					}) => {
+						assertEthereumMainnet($network)
+
+						const address = hexLowerOfByteSize(strategyAddress, 20)
+						if (address == null)
+							throw new Error('EigenExplorer_Rest: strategy address not normalized')
+
+						const { getStrategyTvl } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						await getStrategyTvl(address)
+
+						return {
+							$strategyContract: {
+								[EntityMetaKey.Selector]: {
+									$network: ethereumNetwork,
+									address,
+								},
+							},
+						}
+					},
+				},
+			},
+		})({
+			$strategyContract: (strategy) => strategy.$strategyContract,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerOperator,
+			resolve: {
+				NetworkOperatorAddress: {
+					appliesTo: ethereumMainnetApplicability,
+					resolve: async ({
+						$network,
+						operatorAddress,
+					}, context) => {
+						assertEthereumMainnet($network)
+
+						const skip = eigenExplorerPaginationSkip(context)
+						const take = Math.min(resolverContextRowLimit(context), 100)
+						const { listOperatorAllocations } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const page = await listOperatorAllocations(operatorAddress, {
+							skip,
+							take,
+						})
+
+						return {
+							skip,
+							totalCount: page.meta.total,
+							rows: page.data.map((allocation) => (
+								{
+									[EntityMetaKey.Selector]: allocationObservation(allocation)[EntityMetaKey.Selector],
+								}
+							)),
+						}
+					},
+				},
+			},
+		})({
+			$$allocations: {
+				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.totalCount,
+				continuation: (snapshot) => {
+					const nextSkip = snapshot.skip + snapshot.rows.length
+
+					return {
+						operation: 'operator-allocations',
+						target: 'eigen-explorer',
+						terminal: nextSkip >= snapshot.totalCount,
+						...(nextSkip < snapshot.totalCount && {
+							token: String(nextSkip),
+						}),
+					}
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerAvs,
+			resolve: {
+				NetworkAvsAddress: {
+					appliesTo: ethereumMainnetApplicability,
+					resolve: async ({
+						$network,
+						avsAddress,
+					}, context) => {
+						assertEthereumMainnet($network)
+
+						const skip = eigenExplorerPaginationSkip(context)
+						const take = Math.min(resolverContextRowLimit(context), 100)
+						const { listAvsAllocations } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const page = await listAvsAllocations(avsAddress, {
+							skip,
+							take,
+						})
+
+						return {
+							skip,
+							totalCount: page.meta.total,
+							rows: page.data.map((allocation) => (
+								{
+									[EntityMetaKey.Selector]: allocationObservation(allocation)[EntityMetaKey.Selector],
+								}
+							)),
+						}
+					},
+				},
+			},
+		})({
+			$$allocations: {
+				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.totalCount,
+				continuation: (snapshot) => {
+					const nextSkip = snapshot.skip + snapshot.rows.length
+
+					return {
+						operation: 'avs-allocations',
+						target: 'eigen-explorer',
+						terminal: nextSkip >= snapshot.totalCount,
+						...(nextSkip < snapshot.totalCount && {
+							token: String(nextSkip),
+						}),
+					}
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerAllocation_Timestamp,
+			resolve: {
+				OperatorAvsStrategyTimestampMsSource: {
+					appliesTo: [
+						{
+							$operator: {
+								$network: {
+									caip2: networkBySlug.ethereum.caip2,
+								},
+							},
+							source: Source.EigenExplorer_Rest,
+						},
+						{
+							$operator: {
+								$network: {
+									slug: networkBySlug.ethereum.slug,
+								},
+							},
+							source: Source.EigenExplorer_Rest,
+						},
+					],
+					resolve: async ({
+						$operator,
+						$avs,
+						$strategy,
+						timestampMs,
+						source,
+					}) => {
+						assertEthereumMainnet($operator.$network)
+						assertEthereumMainnet($avs.$network)
+						assertEthereumMainnet($strategy.$network)
+						if (source !== Source.EigenExplorer_Rest)
+							throw new Error('EigenExplorer_Rest: observation source mismatch')
+
+						const { listOperatorAllocations } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const page = await listOperatorAllocations($operator.operatorAddress, {
+							take: 100,
+						})
+						const allocation = page.data.find((candidate) => (
+							candidate.avsAddress.toLowerCase() === $avs.avsAddress.toLowerCase()
+							&& candidate.strategyAddress.toLowerCase() === $strategy.strategyAddress.toLowerCase()
+							&& Date.parse(candidate.updatedAt) === timestampMs
+						))
+						if (allocation == null)
+							throw new Error('EigenExplorer_Rest: allocation observation mismatch')
+
+						return {
+							allocationMagnitude: allocationMagnitude(allocation.magnitude),
+							operatorSetId: String(allocation.operatorSetId),
+						}
+					},
+				},
+			},
+		})({
+			allocationMagnitude: (allocation) => allocation.allocationMagnitude,
+			operatorSetId: (allocation) => allocation.operatorSetId,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerOperator,
+			resolve: {
+				NetworkOperatorAddress: {
+					appliesTo: ethereumMainnetApplicability,
+					resolve: async ({
+						$network,
+						operatorAddress,
+					}, context) => {
+						assertEthereumMainnet($network)
+
+						const skip = eigenExplorerPaginationSkip(context)
+						const take = Math.min(resolverContextRowLimit(context), 100)
+						const { listOperatorSlashes } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const page = await listOperatorSlashes(operatorAddress, {
+							skip,
+							take,
+						})
+
+						return {
+							skip,
+							pageCount: page.data.length,
+							totalCount: page.meta.total,
+							rows: page.data.flatMap((slash) => (
+								slashObservations(slash).map((observation) => (
+									{
+										[EntityMetaKey.Selector]: observation[EntityMetaKey.Selector],
+									}
+								))
+							)),
+						}
+					},
+				},
+			},
+		})({
+			$$slashingEvents: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot) => {
+					const nextSkip = snapshot.skip + snapshot.pageCount
+
+					return {
+						operation: 'operator-slashes',
+						target: 'eigen-explorer',
+						terminal: nextSkip >= snapshot.totalCount,
+						...(nextSkip < snapshot.totalCount && {
+							token: String(nextSkip),
+						}),
+					}
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerAvs,
+			resolve: {
+				NetworkAvsAddress: {
+					appliesTo: ethereumMainnetApplicability,
+					resolve: async ({
+						$network,
+						avsAddress,
+					}, context) => {
+						assertEthereumMainnet($network)
+
+						const skip = eigenExplorerPaginationSkip(context)
+						const take = Math.min(resolverContextRowLimit(context), 100)
+						const { listAvsSlashes } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const page = await listAvsSlashes(avsAddress, {
+							skip,
+							take,
+						})
+
+						return {
+							skip,
+							pageCount: page.data.length,
+							totalCount: page.meta.total,
+							rows: page.data.flatMap((slash) => (
+								slashObservations(slash).map((observation) => (
+									{
+										[EntityMetaKey.Selector]: observation[EntityMetaKey.Selector],
+									}
+								))
+							)),
+						}
+					},
+				},
+			},
+		})({
+			$$slashingEvents: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot) => {
+					const nextSkip = snapshot.skip + snapshot.pageCount
+
+					return {
+						operation: 'avs-slashes',
+						target: 'eigen-explorer',
+						terminal: nextSkip >= snapshot.totalCount,
+						...(nextSkip < snapshot.totalCount && {
+							token: String(nextSkip),
+						}),
+					}
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EigenLayerSlashingEvent,
+			resolve: {
+				OperatorAvsSourceSlashId: {
+					appliesTo: [
+						{
+							$operator: {
+								$network: {
+									caip2: networkBySlug.ethereum.caip2,
+								},
+							},
+							source: Source.EigenExplorer_Rest,
+						},
+						{
+							$operator: {
+								$network: {
+									slug: networkBySlug.ethereum.slug,
+								},
+							},
+							source: Source.EigenExplorer_Rest,
+						},
+					],
+					resolve: async ({
+						$operator,
+						$avs,
+						source,
+						slashId,
+					}) => {
+						assertEthereumMainnet($operator.$network)
+						assertEthereumMainnet($avs.$network)
+						if (source !== Source.EigenExplorer_Rest)
+							throw new Error('EigenExplorer_Rest: slash source mismatch')
+
+						const { listOperatorSlashes } = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const page = await listOperatorSlashes($operator.operatorAddress, {
+							take: 100,
+						})
+						const avsAddress = hexLowerOfByteSize($avs.avsAddress, 20)
+						if (avsAddress == null)
+							throw new Error('EigenExplorer_Rest: AVS address not normalized')
+
+						const observation = page.data
+							.flatMap((slash) => slashObservations(slash))
+							.find((candidate) => (
+								candidate[EntityMetaKey.Selector].slashId === slashId
+								&& candidate[EntityMetaKey.Selector].$avs.avsAddress === avsAddress
+							))
+						if (observation == null)
+							throw new Error('EigenExplorer_Rest: slash observation mismatch')
+
+						return observation[EntityMetaKey.Fields]
+					},
+				},
+			},
+		})({
+			$network: (slash) => slash.$network,
+			$operator: (slash) => slash.$operator,
+			$avs: (slash) => slash.$avs,
+			$strategy: (slash) => slash.$strategy,
+			slashedShares: (slash) => slash.slashedShares,
+			reason: (slash) => slash.reason,
+			blockNumber: (slash) => slash.blockNumber,
+			timestampMs: (slash) => slash.timestampMs,
+			source: (slash) => slash.source,
+			slashId: (slash) => slash.slashId,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

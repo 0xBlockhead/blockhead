@@ -13,7 +13,12 @@ import {
 	getAvs,
 	getOperator,
 	getOperatorRewardInfo,
+	getStrategyTvl,
+	listAvsAllocations,
 	listAvsOperators,
+	listAvsSlashes,
+	listOperatorAllocations,
+	listOperatorSlashes,
 	getStaker,
 	getStakerDeposits,
 	getStakerWithdrawals,
@@ -406,5 +411,145 @@ describe('EigenExplorer REST queries', () => {
 				take: 25,
 			}
 		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid AVS operators response envelope`)
+	})
+
+	it('validates operator and AVS allocation pages with subject scoping', async () => {
+		const allocation = {
+			avsAddress,
+			operatorSetId: 0,
+			operatorAddress,
+			strategyAddress,
+			magnitude: '100000',
+			effectBlock: 3326552,
+			createdAt: '2025-02-01T00:00:00.000Z',
+			createdAtBlock: 3325343,
+			updatedAt: '2025-02-01T00:00:00.000Z',
+			updatedAtBlock: 3325343,
+		}
+
+		respond({
+			data: [allocation],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+		await expect(listOperatorAllocations(
+			operatorAddress
+		)).resolves.toMatchObject({
+			data: [allocation],
+			meta: {
+				total: 1,
+			},
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			`https://api.eigenexplorer.test/operators/${operatorAddress}/allocations?skip=0&take=100`,
+			{
+				headers: {
+					accept: 'application/json',
+				},
+			}
+		)
+
+		respond({
+			data: [{
+				...allocation,
+				operatorAddress: stakerAddress,
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+		await expect(listOperatorAllocations(
+			operatorAddress
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: foreign allocation operator`)
+
+		respond({
+			data: [allocation],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+		await expect(listAvsAllocations(
+			avsAddress
+		)).resolves.toMatchObject({
+			data: [allocation],
+		})
+	})
+
+	it('validates slash pages and strategy TVL envelopes', async () => {
+		const slash = {
+			avsAddress,
+			operatorSetId: 0,
+			operatorAddress,
+			strategies: [strategyAddress],
+			wadSlashed: ['900719925474099312345'],
+			description: 'temp',
+			createdAt: '2025-02-01T00:00:00.000Z',
+			createdAtBlock: 3325343,
+			updatedAt: '2025-02-01T00:00:00.000Z',
+			updatedAtBlock: 3325343,
+		}
+
+		respond({
+			data: [slash],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+		await expect(listOperatorSlashes(
+			operatorAddress
+		)).resolves.toMatchObject({
+			data: [slash],
+		})
+
+		respond({
+			data: [{
+				...slash,
+				wadSlashed: ['1', '2'],
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+		await expect(listAvsSlashes(
+			avsAddress
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid slash identity`)
+
+		respond({
+			tvl: 12.5,
+			tvlEth: 10,
+		})
+		await expect(getStrategyTvl(
+			strategyAddress
+		)).resolves.toMatchObject({
+			tvl: 12.5,
+			tvlEth: 10,
+		})
+
+		respond({
+			tvl: -1,
+			tvlEth: 10,
+		})
+		await expect(getStrategyTvl(
+			strategyAddress
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid strategy TVL`)
+
+		respond({
+			tvlEth: 10,
+		})
+		await expect(getStrategyTvl(
+			strategyAddress
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid strategy TVL response envelope`)
 	})
 })

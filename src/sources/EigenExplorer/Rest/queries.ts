@@ -4,21 +4,26 @@ import { Source } from '$/sources/Source.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import type {
+	EigenExplorerAllocation,
 	EigenExplorerAvs,
 	EigenExplorerDeposit,
 	EigenExplorerOperator,
 	EigenExplorerOperatorRewardInfo,
 	EigenExplorerPage,
+	EigenExplorerSlash,
 	EigenExplorerStaker,
 	EigenExplorerWithdrawal,
 } from '$/sources/EigenExplorer/Rest/types.ts'
 import {
+	eigenExplorerAllocationPageEnvelope,
 	eigenExplorerAvsEnvelope,
 	eigenExplorerDepositPageEnvelope,
 	eigenExplorerOperatorEnvelope,
 	eigenExplorerOperatorPageEnvelope,
 	eigenExplorerOperatorRewardInfoEnvelope,
+	eigenExplorerSlashPageEnvelope,
 	eigenExplorerStakerEnvelope,
+	eigenExplorerStrategyTvlEnvelope,
 	eigenExplorerWithdrawalPageEnvelope,
 } from '$/sources/EigenExplorer/Rest/types.ts'
 
@@ -431,4 +436,285 @@ export const getOperator = async (address: string) => {
 	assertOptionalHttpUrl(operator.metadataLogo, 'operator logo')
 
 	return operator
+}
+
+const assertAllocationPage = (
+	page: EigenExplorerPage<EigenExplorerAllocation>,
+	{
+		skip,
+		take,
+		operatorAddress,
+		avsAddress,
+	}: {
+		skip: number
+		take: number
+		operatorAddress?: string
+		avsAddress?: string
+	}
+) => {
+	assertPage(page, skip, take)
+	const identities = new Set<string>()
+
+	for (const allocation of page.data) {
+		assertAddress(allocation.avsAddress, 'allocation AVS address')
+		assertAddress(allocation.operatorAddress, 'allocation operator address')
+		assertAddress(allocation.strategyAddress, 'allocation strategy address')
+
+		if (
+			!unsignedIntegerPattern.test(allocation.magnitude)
+			|| !Number.isSafeInteger(allocation.operatorSetId)
+			|| allocation.operatorSetId < 0
+			|| !Number.isSafeInteger(allocation.effectBlock)
+			|| allocation.effectBlock < 0
+			|| !Number.isSafeInteger(allocation.createdAtBlock)
+			|| allocation.createdAtBlock < 0
+			|| !Number.isSafeInteger(allocation.updatedAtBlock)
+			|| allocation.updatedAtBlock < 0
+		)
+			throw new Error(`${Source.EigenExplorer_Rest}: invalid allocation identity`)
+
+		assertTimestamp(allocation.createdAt, 'allocation creation timestamp')
+		assertTimestamp(allocation.updatedAt, 'allocation update timestamp')
+
+		if (
+			operatorAddress != null
+			&& allocation.operatorAddress.toLowerCase() !== operatorAddress.toLowerCase()
+		)
+			throw new Error(`${Source.EigenExplorer_Rest}: foreign allocation operator`)
+
+		if (
+			avsAddress != null
+			&& allocation.avsAddress.toLowerCase() !== avsAddress.toLowerCase()
+		)
+			throw new Error(`${Source.EigenExplorer_Rest}: foreign allocation AVS`)
+
+		const identity = [
+			allocation.operatorAddress.toLowerCase(),
+			allocation.avsAddress.toLowerCase(),
+			String(allocation.operatorSetId),
+			allocation.strategyAddress.toLowerCase(),
+			String(allocation.effectBlock),
+		].join(':')
+
+		if (identities.has(identity))
+			throw new Error(`${Source.EigenExplorer_Rest}: duplicate allocations`)
+
+		identities.add(identity)
+	}
+
+	return page
+}
+
+const assertSlashPage = (
+	page: EigenExplorerPage<EigenExplorerSlash>,
+	{
+		skip,
+		take,
+		operatorAddress,
+		avsAddress,
+	}: {
+		skip: number
+		take: number
+		operatorAddress?: string
+		avsAddress?: string
+	}
+) => {
+	assertPage(page, skip, take)
+	const identities = new Set<string>()
+
+	for (const slash of page.data) {
+		assertAddress(slash.avsAddress, 'slash AVS address')
+		assertAddress(slash.operatorAddress, 'slash operator address')
+
+		if (
+			!Number.isSafeInteger(slash.operatorSetId)
+			|| slash.operatorSetId < 0
+			|| !Number.isSafeInteger(slash.createdAtBlock)
+			|| slash.createdAtBlock < 0
+			|| !Number.isSafeInteger(slash.updatedAtBlock)
+			|| slash.updatedAtBlock < 0
+			|| slash.strategies.length === 0
+			|| slash.strategies.length !== slash.wadSlashed.length
+		)
+			throw new Error(`${Source.EigenExplorer_Rest}: invalid slash identity`)
+
+		for (const strategyAddress of slash.strategies)
+			assertAddress(strategyAddress, 'slash strategy address')
+
+		for (const wad of slash.wadSlashed) {
+			if (!unsignedIntegerPattern.test(wad))
+				throw new Error(`${Source.EigenExplorer_Rest}: invalid slash wad`)
+		}
+
+		if (slash.description.trim() === '')
+			throw new Error(`${Source.EigenExplorer_Rest}: empty slash description`)
+
+		assertTimestamp(slash.createdAt, 'slash creation timestamp')
+		assertTimestamp(slash.updatedAt, 'slash update timestamp')
+
+		if (
+			operatorAddress != null
+			&& slash.operatorAddress.toLowerCase() !== operatorAddress.toLowerCase()
+		)
+			throw new Error(`${Source.EigenExplorer_Rest}: foreign slash operator`)
+
+		if (
+			avsAddress != null
+			&& slash.avsAddress.toLowerCase() !== avsAddress.toLowerCase()
+		)
+			throw new Error(`${Source.EigenExplorer_Rest}: foreign slash AVS`)
+
+		const identity = [
+			slash.operatorAddress.toLowerCase(),
+			slash.avsAddress.toLowerCase(),
+			String(slash.operatorSetId),
+			String(slash.createdAtBlock),
+			slash.strategies.map((value) => value.toLowerCase()).join(','),
+		].join(':')
+
+		if (identities.has(identity))
+			throw new Error(`${Source.EigenExplorer_Rest}: duplicate slashes`)
+
+		identities.add(identity)
+	}
+
+	return page
+}
+
+export const listOperatorAllocations = async (
+	address: string,
+	{
+		skip = 0,
+		take = 100,
+	}: {
+		skip?: number
+		take?: number
+	} = {}
+) => {
+	assertAddress(address, 'operator address')
+
+	const wire = await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerAllocation>>(
+		paginationPath({
+			path: `/operators/${encodeURIComponent(address)}/allocations`,
+			skip,
+			take,
+		})
+	)
+	assertEnvelope(eigenExplorerAllocationPageEnvelope, wire, 'operator allocations')
+	return assertAllocationPage(wire, {
+		skip,
+		take,
+		operatorAddress: address,
+	})
+}
+
+export const listAvsAllocations = async (
+	address: string,
+	{
+		skip = 0,
+		take = 100,
+	}: {
+		skip?: number
+		take?: number
+	} = {}
+) => {
+	assertAddress(address, 'AVS address')
+
+	const wire = await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerAllocation>>(
+		paginationPath({
+			path: `/avs/${encodeURIComponent(address)}/allocations`,
+			skip,
+			take,
+		})
+	)
+	assertEnvelope(eigenExplorerAllocationPageEnvelope, wire, 'AVS allocations')
+	return assertAllocationPage(wire, {
+		skip,
+		take,
+		avsAddress: address,
+	})
+}
+
+export const listOperatorSlashes = async (
+	address: string,
+	{
+		skip = 0,
+		take = 100,
+	}: {
+		skip?: number
+		take?: number
+	} = {}
+) => {
+	assertAddress(address, 'operator address')
+
+	const wire = await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerSlash>>(
+		paginationPath({
+			path: `/operators/${encodeURIComponent(address)}/slashed`,
+			skip,
+			take,
+		})
+	)
+	assertEnvelope(eigenExplorerSlashPageEnvelope, wire, 'operator slashes')
+	return assertSlashPage(wire, {
+		skip,
+		take,
+		operatorAddress: address,
+	})
+}
+
+export const listAvsSlashes = async (
+	address: string,
+	{
+		skip = 0,
+		take = 100,
+	}: {
+		skip?: number
+		take?: number
+	} = {}
+) => {
+	assertAddress(address, 'AVS address')
+
+	const wire = await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerSlash>>(
+		paginationPath({
+			path: `/avs/${encodeURIComponent(address)}/slashed`,
+			skip,
+			take,
+		})
+	)
+	assertEnvelope(eigenExplorerSlashPageEnvelope, wire, 'AVS slashes')
+	return assertSlashPage(wire, {
+		skip,
+		take,
+		avsAddress: address,
+	})
+}
+
+export const getStrategyTvl = async (strategyAddress: string) => {
+	assertAddress(strategyAddress, 'strategy address')
+
+	const tvl = await fetchEigenExplorerJson<{
+		tvl: number
+		tvlEth: number
+		change24h?: {
+			value: number
+			percent: number
+		}
+		change7d?: {
+			value: number
+			percent: number
+		}
+	}>(
+		`/metrics/tvl/restaking/${encodeURIComponent(strategyAddress)}`
+	)
+	assertEnvelope(eigenExplorerStrategyTvlEnvelope, tvl, 'strategy TVL')
+
+	if (
+		!Number.isFinite(tvl.tvl)
+		|| tvl.tvl < 0
+		|| !Number.isFinite(tvl.tvlEth)
+		|| tvl.tvlEth < 0
+	)
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid strategy TVL`)
+
+	return tvl
 }

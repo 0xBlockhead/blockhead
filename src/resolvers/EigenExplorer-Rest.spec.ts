@@ -13,7 +13,12 @@ import { Source } from '$/sources/Source.ts'
 const getAvs = vi.hoisted(() => vi.fn())
 const getOperator = vi.hoisted(() => vi.fn())
 const getOperatorRewardInfo = vi.hoisted(() => vi.fn())
+const getStrategyTvl = vi.hoisted(() => vi.fn())
+const listAvsAllocations = vi.hoisted(() => vi.fn())
 const listAvsOperators = vi.hoisted(() => vi.fn())
+const listAvsSlashes = vi.hoisted(() => vi.fn())
+const listOperatorAllocations = vi.hoisted(() => vi.fn())
+const listOperatorSlashes = vi.hoisted(() => vi.fn())
 const getStaker = vi.hoisted(() => vi.fn())
 const getStakerDeposits = vi.hoisted(() => vi.fn())
 const getStakerWithdrawals = vi.hoisted(() => vi.fn())
@@ -22,7 +27,12 @@ vi.mock('$/sources/EigenExplorer/Rest/queries.ts', () => ({
 	getAvs,
 	getOperator,
 	getOperatorRewardInfo,
+	getStrategyTvl,
+	listAvsAllocations,
 	listAvsOperators,
+	listAvsSlashes,
+	listOperatorAllocations,
+	listOperatorSlashes,
 	getStaker,
 	getStakerDeposits,
 	getStakerWithdrawals,
@@ -38,6 +48,13 @@ const [
 	avsTimestampsResolver,
 	avsOperatorsResolver,
 	avsTimestampResolver,
+	strategyResolver,
+	operatorAllocationsResolver,
+	avsAllocationsResolver,
+	allocationTimestampResolver,
+	operatorSlashesResolver,
+	avsSlashesResolver,
+	slashEventResolver,
 ] = eigenExplorerResolvers.resolvers
 const stakerAddress = '0x1111111111111111111111111111111111111111'
 const operatorAddress = '0x2222222222222222222222222222222222222222'
@@ -426,5 +443,209 @@ describe('EigenExplorer AVS resolvers', () => {
 			...avsTimestampSelector,
 			timestampMs: timestampMs + 1,
 		}, context)).rejects.toThrow('timestamp mismatch')
+	})
+})
+
+describe('EigenExplorer allocation and slash resolvers', () => {
+	const allocationUpdatedAt = '2025-02-01T00:00:00.000Z'
+	const allocation = {
+		avsAddress,
+		operatorSetId: 0,
+		operatorAddress,
+		strategyAddress,
+		magnitude: '100000',
+		effectBlock: 3326552,
+		createdAt: allocationUpdatedAt,
+		createdAtBlock: 3325343,
+		updatedAt: allocationUpdatedAt,
+		updatedAtBlock: 3325343,
+	}
+	const slash = {
+		avsAddress,
+		operatorSetId: 0,
+		operatorAddress,
+		strategies: [strategyAddress],
+		wadSlashed: ['900719925474099312345'],
+		description: 'temp',
+		createdAt: allocationUpdatedAt,
+		createdAtBlock: 3325343,
+		updatedAt: allocationUpdatedAt,
+		updatedAtBlock: 3325343,
+	}
+
+	beforeEach(() => {
+		vi.restoreAllMocks()
+		getStrategyTvl.mockReset()
+		listOperatorAllocations.mockReset()
+		listAvsAllocations.mockReset()
+		listOperatorSlashes.mockReset()
+		listAvsSlashes.mockReset()
+		getStrategyTvl.mockResolvedValue({
+			tvl: 12.5,
+			tvlEth: 10,
+		})
+		listOperatorAllocations.mockResolvedValue({
+			data: [allocation],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+		listAvsAllocations.mockResolvedValue({
+			data: [allocation],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+		listOperatorSlashes.mockResolvedValue({
+			data: [slash],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+		listAvsSlashes.mockResolvedValue({
+			data: [slash],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+	})
+
+	it('projects strategy contract identity after TVL existence check', async () => {
+		const strategy = await strategyResolver.resolve.NetworkStrategyAddress.resolve({
+			$network: network,
+			strategyAddress,
+		}, context)
+
+		expect(strategyResolver.projections.$strategyContract(strategy)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				address: strategyAddress,
+			},
+		})
+		expect(getStrategyTvl).toHaveBeenCalledWith(strategyAddress)
+	})
+
+	it('projects operator and AVS allocation rows with authoritative counts', async () => {
+		const operatorAllocations = await operatorAllocationsResolver.resolve.NetworkOperatorAddress.resolve(
+			operatorSelector,
+			context
+		)
+		expect(operatorAllocationsResolver.projections.$$allocations.select(operatorAllocations)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$operator: {
+					$network: network,
+					operatorAddress,
+				},
+				$avs: {
+					$network: network,
+					avsAddress,
+				},
+				$strategy: {
+					$network: network,
+					strategyAddress,
+				},
+				timestampMs: Date.parse(allocationUpdatedAt),
+				source: Source.EigenExplorer_Rest,
+			},
+		}])
+		expect(operatorAllocationsResolver.projections.$$allocations.resolveCount(operatorAllocations)).toBe(1)
+
+		const avsAllocations = await avsAllocationsResolver.resolve.NetworkAvsAddress.resolve(
+			avsSelector,
+			context
+		)
+		expect(avsAllocationsResolver.projections.$$allocations.select(avsAllocations)).toHaveLength(1)
+	})
+
+	it('projects allocation observation fields and rejects clock mismatch', async () => {
+		const observation = await allocationTimestampResolver.resolve.OperatorAvsStrategyTimestampMsSource.resolve({
+			$operator: {
+				$network: network,
+				operatorAddress,
+			},
+			$avs: {
+				$network: network,
+				avsAddress,
+			},
+			$strategy: {
+				$network: network,
+				strategyAddress,
+			},
+			timestampMs: Date.parse(allocationUpdatedAt),
+			source: Source.EigenExplorer_Rest,
+		}, context)
+
+		expect(allocationTimestampResolver.projections.allocationMagnitude(observation)).toBe(100000)
+		expect(allocationTimestampResolver.projections.operatorSetId(observation)).toBe('0')
+
+		await expect(allocationTimestampResolver.resolve.OperatorAvsStrategyTimestampMsSource.resolve({
+			$operator: {
+				$network: network,
+				operatorAddress,
+			},
+			$avs: {
+				$network: network,
+				avsAddress,
+			},
+			$strategy: {
+				$network: network,
+				strategyAddress,
+			},
+			timestampMs: Date.parse(allocationUpdatedAt) + 1,
+			source: Source.EigenExplorer_Rest,
+		}, context)).rejects.toThrow('allocation observation mismatch')
+	})
+
+	it('projects slash rows and singular OperatorAvsSourceSlashId fields', async () => {
+		const operatorSlashes = await operatorSlashesResolver.resolve.NetworkOperatorAddress.resolve(
+			operatorSelector,
+			context
+		)
+		const slashId = `0:3325343:${strategyAddress}`
+		expect(operatorSlashesResolver.projections.$$slashingEvents.select(operatorSlashes)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$operator: {
+					$network: network,
+					operatorAddress,
+				},
+				$avs: {
+					$network: network,
+					avsAddress,
+				},
+				source: Source.EigenExplorer_Rest,
+				slashId,
+			},
+		}])
+
+		const avsSlashes = await avsSlashesResolver.resolve.NetworkAvsAddress.resolve(
+			avsSelector,
+			context
+		)
+		expect(avsSlashesResolver.projections.$$slashingEvents.select(avsSlashes)).toHaveLength(1)
+
+		const slashEvent = await slashEventResolver.resolve.OperatorAvsSourceSlashId.resolve({
+			$operator: {
+				$network: network,
+				operatorAddress,
+			},
+			$avs: {
+				$network: network,
+				avsAddress,
+			},
+			source: Source.EigenExplorer_Rest,
+			slashId,
+		}, context)
+
+		expect(slashEventResolver.projections.slashedShares(slashEvent)).toBe(900719925474099312345n)
+		expect(slashEventResolver.projections.reason(slashEvent)).toBe('temp')
+		expect(slashEventResolver.projections.blockNumber(slashEvent)).toBe(3325343n)
 	})
 })

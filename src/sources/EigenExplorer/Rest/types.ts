@@ -82,6 +82,32 @@ export type EigenExplorerAvs = {
 	shares: EigenExplorerStrategyShares[]
 }
 
+export type EigenExplorerAllocation = {
+	avsAddress: string
+	operatorSetId: number
+	operatorAddress: string
+	strategyAddress: string
+	magnitude: string
+	effectBlock: number
+	createdAt: string
+	createdAtBlock: number
+	updatedAt: string
+	updatedAtBlock: number
+}
+
+export type EigenExplorerSlash = {
+	avsAddress: string
+	operatorSetId: number
+	operatorAddress: string
+	strategies: string[]
+	wadSlashed: string[]
+	description: string
+	createdAt: string
+	createdAtBlock: number
+	updatedAt: string
+	updatedAtBlock: number
+}
+
 
 export const eigenExplorerStrategySharesEnvelope = arktype({
 	strategyAddress: 'string',
@@ -175,4 +201,53 @@ export const eigenExplorerWithdrawalPageEnvelope = arktype({
 export const eigenExplorerOperatorPageEnvelope = arktype({
 	data: eigenExplorerOperatorEnvelope.array(),
 	meta: eigenExplorerPageMetaEnvelope,
+})
+
+export const eigenExplorerAllocationEnvelope = arktype({
+	avsAddress: 'string',
+	operatorSetId: 'number',
+	operatorAddress: 'string',
+	strategyAddress: 'string',
+	magnitude: 'string',
+	effectBlock: 'number',
+	createdAt: 'string',
+	createdAtBlock: 'number',
+	updatedAt: 'string',
+	updatedAtBlock: 'number',
+})
+
+export const eigenExplorerSlashEnvelope = arktype({
+	avsAddress: 'string',
+	operatorSetId: 'number',
+	operatorAddress: 'string',
+	strategies: 'string[]',
+	wadSlashed: 'string[]',
+	description: 'string',
+	createdAt: 'string',
+	createdAtBlock: 'number',
+	updatedAt: 'string',
+	updatedAtBlock: 'number',
+})
+
+export const eigenExplorerAllocationPageEnvelope = arktype({
+	data: eigenExplorerAllocationEnvelope.array(),
+	meta: eigenExplorerPageMetaEnvelope,
+})
+
+export const eigenExplorerSlashPageEnvelope = arktype({
+	data: eigenExplorerSlashEnvelope.array(),
+	meta: eigenExplorerPageMetaEnvelope,
+})
+
+export const eigenExplorerStrategyTvlEnvelope = arktype({
+	tvl: 'number',
+	tvlEth: 'number',
+	'change24h?': {
+		value: 'number',
+		percent: 'number',
+	},
+	'change7d?': {
+		value: 'number',
+		percent: 'number',
+	},
 })
