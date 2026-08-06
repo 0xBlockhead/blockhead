@@ -96,6 +96,13 @@ export default entity({
 			Source.Hyperliquid,
 		],
 	},
+	$$borrowLendReserves: {
+		entityType: EntityType.HyperliquidBorrowLendReserve,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Hyperliquid,
+		],
+	},
 })({
 	selectors: {
 		Network: [

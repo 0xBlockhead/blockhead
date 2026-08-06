@@ -225,6 +225,7 @@
 	import BalancerPoolsView from '$/views/BalancerPoolsView.svelte'
 	import CompoundCometsView from '$/views/CompoundCometsView.svelte'
 	import CurvePoolsView from '$/views/CurvePoolsView.svelte'
+	import CurveLendingVaultsView from '$/views/CurveLendingVaultsView.svelte'
 	import EulerEvkVaultsView from '$/views/EulerEvkVaultsView.svelte'
 	import GmxMarketsView from '$/views/GmxMarketsView.svelte'
 	import MorphoMarketsView from '$/views/MorphoMarketsView.svelte'
@@ -289,6 +290,7 @@
 	import HyperliquidNetwork_TimestampsView from '$/views/HyperliquidNetwork_TimestampsView.svelte'
 	import HyperliquidPerpMarketsView from '$/views/HyperliquidPerpMarketsView.svelte'
 	import HyperliquidSpotAssetsView from '$/views/HyperliquidSpotAssetsView.svelte'
+	import HyperliquidBorrowLendReservesView from '$/views/HyperliquidBorrowLendReservesView.svelte'
 	import SpecificationProposalView from '$/views/SpecificationProposalView.svelte'
 </script>
 
@@ -2599,6 +2601,10 @@
 							label: 'Curve pools',
 						},
 						{
+							id: 'evm-defi-curve-lending-vaults',
+							label: 'Curve Lend vaults',
+						},
+						{
 							id: 'evm-defi-euler-vaults',
 							label: 'Euler vaults',
 						},
@@ -2721,6 +2727,24 @@
 								collapsible={false}
 								title={label}
 								emptyText='No Curve pools.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionEvmDefiCurveLendingVaults({ id, label })}
+							<CurveLendingVaultsView
+								selection={
+									projection
+									.$$curveLendingVaults({
+										sources: [
+											Source.Curve_Rest,
+										],
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Curve Lend vaults.'
 								id={`${id}-list`}
 							/>
 						{/snippet}
@@ -6321,6 +6345,17 @@
 							:
 								[]
 						),
+						...(
+							hyperliquidSources.length > 0 ?
+								[
+									{
+										id: 'hyperliquid-markets-borrow-lend-reserves',
+										label: 'Borrow/lend reserves',
+									},
+								]
+							:
+								[]
+						),
 					]}
 
 				{#if hyperliquidMarketsSections.length > 0}
@@ -6417,6 +6452,22 @@
 									/>
 								{/snippet}
 							</EntitiesList>
+						{/snippet}
+
+						{#snippet SectionHyperliquidMarketsBorrowLendReserves({ id, label })}
+							<HyperliquidBorrowLendReservesView
+								selection={
+									projection
+									.$$borrowLendReserves({
+										sources: hyperliquidSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Hyperliquid borrow/lend reserves.'
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 					</CollapsibleTabs>

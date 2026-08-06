@@ -1578,6 +1578,7 @@ export enum EntityType {
 	Currency = "Currency",
 	Currency_Timestamp = "Currency_Timestamp",
 	CurveGauge = "CurveGauge",
+	CurveLendingVault = "CurveLendingVault",
 	CurvePool = "CurvePool",
 	CurvePoolCoin = "CurvePoolCoin",
 	DogecoinAuxPowMerkleBranch = "DogecoinAuxPowMerkleBranch",
@@ -1772,6 +1773,7 @@ export enum EntityType {
 	HyperliquidAccount = "HyperliquidAccount",
 	HyperliquidAccount_Timestamp = "HyperliquidAccount_Timestamp",
 	HyperliquidBlock = "HyperliquidBlock",
+	HyperliquidBorrowLendReserve = "HyperliquidBorrowLendReserve",
 	HyperliquidFill = "HyperliquidFill",
 	HyperliquidMarket_TimeInterval_Timestamp = "HyperliquidMarket_TimeInterval_Timestamp",
 	HyperliquidNetwork = "HyperliquidNetwork",
@@ -25483,6 +25485,74 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.CurveLendingVault,
+				labels: {
+					singular: "Curve Lend vault",
+					plural: "Curve Lend vaults",
+				},
+				description: "A Curve Lend (crvUSD lending) vault on an EIP-155 network — borrow/collateral assets, rates, and optional gauge from Curve REST getLendingVaults.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"vaultAddress": { label: "Vault address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Curve_Rest] },
+				"registryId": { label: "Registry ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Curve_Rest] },
+				"controllerAddress": { label: "Controller address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Curve_Rest] },
+				"ammAddress": { label: "AMM address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Curve_Rest] },
+				"monetaryPolicyAddress": { label: "Monetary policy address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Curve_Rest] },
+				"borrowedAssetAddress": { label: "Borrowed asset address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Curve_Rest] },
+				"borrowedAssetSymbol": { label: "Borrowed asset symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Curve_Rest] },
+				"borrowedAssetDecimals": { label: "Borrowed asset decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"borrowedAssetUsdPrice": { label: "Borrowed asset USD price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"collateralAssetAddress": { label: "Collateral asset address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Curve_Rest] },
+				"collateralAssetSymbol": { label: "Collateral asset symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Curve_Rest] },
+				"collateralAssetDecimals": { label: "Collateral asset decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"collateralAssetUsdPrice": { label: "Collateral asset USD price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"$gauge": { label: "Gauge", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.CurveGauge, defaultSources: [Source.Curve_Rest] },
+				"borrowApr": { label: "Borrow APR", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"borrowApy": { label: "Borrow APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"lendApr": { label: "Lend APR", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"lendApy": { label: "Lend APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"pricePerShare": { label: "Price per share", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"totalShares": { label: "Total shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"totalSupplied": { label: "Total supplied", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"totalSuppliedUsd": { label: "Total supplied (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"totalBorrowed": { label: "Total borrowed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"totalBorrowedUsd": { label: "Total borrowed (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"availableToBorrow": { label: "Available to borrow", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"availableToBorrowUsd": { label: "Available to borrow (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"usdTotal": { label: "Total value (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+			})({
+				selectors: {
+					"NetworkVaultAddress": ["$network", "vaultAddress"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Curve_Rest],
+						},
+						summary: {
+							title: ["name"],
+							value: ["lendApy", "borrowApy", "usdTotal"],
+							HeadingAfter: ["$network"],
+						},
+						closed: ["name", { field: "vaultAddress", format: "address" }],
+						content: {
+							dl: [
+								["$network", { field: "vaultAddress", format: "address" }, "name", "registryId"],
+								[{ field: "controllerAddress", format: "address" }, { field: "ammAddress", format: "address" }, { field: "monetaryPolicyAddress", format: "address" }, "$gauge"],
+								[{ field: "borrowedAssetAddress", format: "address" }, "borrowedAssetSymbol", { field: "borrowedAssetDecimals", format: "number" }, { field: "borrowedAssetUsdPrice", format: "number" }],
+								[{ field: "collateralAssetAddress", format: "address" }, "collateralAssetSymbol", { field: "collateralAssetDecimals", format: "number" }, { field: "collateralAssetUsdPrice", format: "number" }],
+								[{ field: "borrowApr", format: "number" }, { field: "borrowApy", format: "number" }, { field: "lendApr", format: "number" }, { field: "lendApy", format: "number" }],
+								[{ field: "pricePerShare", format: "number" }, { field: "totalShares", format: "number" }, { field: "totalSupplied", format: "number" }, { field: "totalSuppliedUsd", format: "number" }],
+								[{ field: "totalBorrowed", format: "number" }, { field: "totalBorrowedUsd", format: "number" }, { field: "availableToBorrow", format: "number" }, { field: "availableToBorrowUsd", format: "number" }, { field: "usdTotal", format: "number" }],
+							],
+						},
+					},
+					plural: { component: "CurveLendingVaultsView", title: "Curve Lend vaults" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.CurvePool,
 				labels: {
 					singular: "Curve pool",
@@ -38996,6 +39066,117 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.HyperliquidBorrowLendReserve,
+				labels: {
+					singular: "hyperliquid borrow lend reserve",
+					plural: "hyperliquid borrow lend reserves",
+				},
+				description: "A Hyperliquid borrow/lend reserve keyed by spot token index — rates, balances, and utilization from allBorrowLendReserveStates.",
+			})({
+				"$network": {
+					label: "network",
+					type: EntityFieldType.EntityReference,
+					entityType: EntityType.Network,
+					cardinality: EntityFieldCardinality.One,
+				},
+				"tokenIndex": {
+					label: "token index",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "number" },
+					cardinality: EntityFieldCardinality.One,
+				},
+				"$asset": {
+					label: "spot asset",
+					type: EntityFieldType.EntityReference,
+					entityType: EntityType.HyperliquidSpotAsset,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"borrowYearlyRate": {
+					label: "borrow yearly rate",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"supplyYearlyRate": {
+					label: "supply yearly rate",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"balance": {
+					label: "balance",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"utilization": {
+					label: "utilization",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"oraclePx": {
+					label: "oracle price",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"ltv": {
+					label: "LTV",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"totalSupplied": {
+					label: "total supplied",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"totalBorrowed": {
+					label: "total borrowed",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+			})({
+				selectors: {
+					"NetworkTokenIndex": [
+						"$network",
+						"tokenIndex",
+					],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Hyperliquid],
+						},
+						summary: {
+							title: [{ field: "tokenIndex", format: "number" }],
+							value: ["supplyYearlyRate", "borrowYearlyRate", "utilization"],
+							HeadingAfter: ["$network", "$asset"],
+						},
+						content: {
+							dl: [
+								["$network", { field: "tokenIndex", format: "number" }, "$asset"],
+								["borrowYearlyRate", "supplyYearlyRate", "balance", "utilization", "oraclePx", "ltv", "totalSupplied", "totalBorrowed"],
+							],
+						},
+					},
+					plural: { component: "HyperliquidBorrowLendReservesView" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.HyperliquidFill,
 				labels: {
 					singular: "hyperliquid fill",
@@ -39312,6 +39493,13 @@ export const schema = {
 					cardinality: EntityFieldCardinality.Many,
 					defaultSources: [Source.Hyperliquid],
 				},
+				"$$borrowLendReserves": {
+					label: "borrow lend reserves",
+					type: EntityFieldType.EntitiesReference,
+					entityType: EntityType.HyperliquidBorrowLendReserve,
+					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Hyperliquid],
+				},
 			})({
 				selectors: {
 					"Network": [
@@ -39360,6 +39548,7 @@ export const schema = {
 									{ id: "hyperliquid-spot-pairs", field: "$$spotPairs", List: "HyperliquidSpotPairsView", label: "Spot pairs", emptyText: "No Hyperliquid spot pairs.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 									{ id: "hyperliquid-perp-markets", field: "$$perpMarkets", List: "HyperliquidPerpMarketsView", label: "Perp markets", emptyText: "No Hyperliquid perp markets.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 									{ id: "hyperliquid-vaults", field: "$$vaults", List: "HyperliquidVaultsView", label: "Vaults", emptyText: "No Hyperliquid vaults.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+									{ id: "hyperliquid-borrow-lend-reserves", field: "$$borrowLendReserves", List: "HyperliquidBorrowLendReservesView", label: "Borrow/lend reserves", emptyText: "No Hyperliquid borrow/lend reserves.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 								],
 							},
 						],
@@ -40458,6 +40647,22 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "string" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+				},
+				"tvl": {
+					label: "TVL",
+					description: "Vault total value locked from Hyperliquid vaultSummaries (string decimal).",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "string" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
+				},
+				"createTimeMillis": {
+					label: "Create time",
+					description: "Vault creation time in Unix milliseconds from Hyperliquid vaultSummaries.",
+					type: EntityFieldType.Primitive,
+					primitiveType: { primitive: "number" },
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Hyperliquid],
 				},
 				"apr": {
 					label: "apr",
@@ -48106,6 +48311,7 @@ export const schema = {
 						"$$balancerPools": { label: "Balancer pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BalancerPool, defaultSources: [Source.Balancer_Rest] },
 						"$$compoundComets": { label: "Compound comets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CompoundComet, defaultSources: [Source.Compound_Rest] },
 						"$$curvePools": { label: "Curve pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CurvePool, defaultSources: [Source.Curve_Rest] },
+						"$$curveLendingVaults": { label: "Curve Lend vaults", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CurveLendingVault, defaultSources: [Source.Curve_Rest] },
 						"$$eulerEvkVaults": { label: "Euler vaults", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EulerEvkVault, defaultSources: [Source.Euler_Rest] },
 						"$$gmxMarkets": { label: "GMX markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GmxMarket, defaultSources: [Source.Gmx_Rest] },
 						"$$morphoMarkets": { label: "Morpho markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MorphoMarket, defaultSources: [Source.Morpho_Graphql] },
@@ -48339,6 +48545,7 @@ export const schema = {
 										{ id: "evm-defi-balancer-pools", field: ["Evm", "$$balancerPools"], List: "BalancerPoolsView", label: "Balancer pools", emptyText: "No Balancer pools.", selection: { sources: [Source.Balancer_Rest], limit: 16 } },
 										{ id: "evm-defi-compound-comets", field: ["Evm", "$$compoundComets"], List: "CompoundCometsView", label: "Compound comets", emptyText: "No Compound comets.", selection: { sources: [Source.Compound_Rest], limit: 16 } },
 										{ id: "evm-defi-curve-pools", field: ["Evm", "$$curvePools"], List: "CurvePoolsView", label: "Curve pools", emptyText: "No Curve pools.", selection: { sources: [Source.Curve_Rest], limit: 16 } },
+										{ id: "evm-defi-curve-lending-vaults", field: ["Evm", "$$curveLendingVaults"], List: "CurveLendingVaultsView", label: "Curve Lend vaults", emptyText: "No Curve Lend vaults.", selection: { sources: [Source.Curve_Rest], limit: 16 } },
 										{ id: "evm-defi-euler-vaults", field: ["Evm", "$$eulerEvkVaults"], List: "EulerEvkVaultsView", label: "Euler vaults", emptyText: "No Euler vaults.", selection: { sources: [Source.Euler_Rest], limit: 16 } },
 										{ id: "evm-defi-gmx-markets", field: ["Evm", "$$gmxMarkets"], List: "GmxMarketsView", label: "GMX markets", emptyText: "No GMX markets.", selection: { sources: [Source.Gmx_Rest], limit: 16 } },
 										{ id: "evm-defi-morpho-markets", field: ["Evm", "$$morphoMarkets"], List: "MorphoMarketsView", label: "Morpho markets", emptyText: "No Morpho markets.", selection: { sources: [Source.Morpho_Graphql], limit: 16 } },
@@ -49070,6 +49277,7 @@ export const schema = {
 						"$$spotPairs": { label: "Spot pairs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidSpotPair, defaultSources: [Source.Hyperliquid] },
 						"$$perpMarkets": { label: "Perp markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidPerpMarket, defaultSources: [Source.Hyperliquid] },
 						"$$vaults": { label: "Vaults", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidVault, defaultSources: [Source.Hyperliquid] },
+						"$$borrowLendReserves": { label: "Borrow/lend reserves", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.HyperliquidBorrowLendReserve, defaultSources: [Source.Hyperliquid] },
 					})({
 						singularView: {
 							carousels: [
@@ -49100,6 +49308,7 @@ export const schema = {
 										{ id: "hyperliquid-markets-spot-assets", field: ["Hyperliquid", "$$spotAssets"], List: "HyperliquidSpotAssetsView", label: "Spot assets", emptyText: "No Hyperliquid spot assets.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 										{ id: "hyperliquid-markets-spot-pairs", field: ["Hyperliquid", "$$spotPairs"], List: "HyperliquidSpotPairsView", label: "Spot pairs", emptyText: "No Hyperliquid spot pairs.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 										{ id: "hyperliquid-markets-vaults", field: ["Hyperliquid", "$$vaults"], List: "HyperliquidVaultsView", label: "Vaults", emptyText: "No Hyperliquid vaults.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
+										{ id: "hyperliquid-markets-borrow-lend-reserves", field: ["Hyperliquid", "$$borrowLendReserves"], List: "HyperliquidBorrowLendReservesView", label: "Borrow/lend reserves", emptyText: "No Hyperliquid borrow/lend reserves.", selection: { sources: [Source.Hyperliquid], limit: 16 } },
 									],
 								},
 								{
@@ -71125,6 +71334,13 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#curvegauge",
 			},
 		},
+		[EntityType.CurveLendingVault]: {
+			"NetworkVaultAddress": {
+				kind: "Research",
+				decision: "Retain CurveLendingVault.NetworkVaultAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#curvelendingvault",
+			},
+		},
 		[EntityType.CurvePool]: {
 			"NetworkPoolAddress": {
 				kind: "Research",
@@ -72157,6 +72373,13 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain HyperliquidBlock.Height as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidblock",
+			},
+		},
+		[EntityType.HyperliquidBorrowLendReserve]: {
+			"NetworkTokenIndex": {
+				kind: "Research",
+				decision: "Retain HyperliquidBorrowLendReserve.NetworkTokenIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidborrowlendreserve",
 			},
 		},
 		[EntityType.HyperliquidFill]: {

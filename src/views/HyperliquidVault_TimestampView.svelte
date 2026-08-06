@@ -107,6 +107,50 @@
 				resource={
 					selection({
 						fields: {
+							tvl: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const tvl = entity.tvl}
+					{#if tvl != null}
+						<div>
+							<dt>TVL</dt>
+							<dd>
+								{tvl}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							createTimeMillis: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const createTimeMillis = entity.createTimeMillis}
+					{#if createTimeMillis != null}
+						<div>
+							<dt>Create time</dt>
+							<dd>
+								{createTimeMillis}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
 							apr: true,
 						},
 					})

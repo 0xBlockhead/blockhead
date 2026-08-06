@@ -418,6 +418,13 @@ export default entity({
 					Source.Curve_Rest,
 				],
 			},
+			$$curveLendingVaults: {
+				entityType: EntityType.CurveLendingVault,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Curve_Rest,
+				],
+			},
 			$$eulerEvkVaults: {
 				entityType: EntityType.EulerEvkVault,
 				cardinality: EntityFieldCardinality.Many,
@@ -1272,6 +1279,13 @@ export default entity({
 			},
 			$$vaults: {
 				entityType: EntityType.HyperliquidVault,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Hyperliquid,
+				],
+			},
+			$$borrowLendReserves: {
+				entityType: EntityType.HyperliquidBorrowLendReserve,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Hyperliquid,

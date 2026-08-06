@@ -33,6 +33,7 @@
 	import HyperliquidNetwork_TimestampsView from '$/views/HyperliquidNetwork_TimestampsView.svelte'
 	import HyperliquidSpotAssetsView from '$/views/HyperliquidSpotAssetsView.svelte'
 	import HyperliquidPerpMarketsView from '$/views/HyperliquidPerpMarketsView.svelte'
+	import HyperliquidBorrowLendReservesView from '$/views/HyperliquidBorrowLendReservesView.svelte'
 </script>
 
 
@@ -244,6 +245,10 @@
 						id: 'hyperliquid-vaults',
 						label: 'Vaults',
 					},
+					{
+						id: 'hyperliquid-borrow-lend-reserves',
+						label: 'Borrow/lend reserves',
+					},
 				]
 			}
 			data-card
@@ -343,6 +348,24 @@
 						/>
 					{/snippet}
 				</EntitiesList>
+			{/snippet}
+
+			{#snippet SectionHyperliquidBorrowLendReserves({ id, label })}
+				<HyperliquidBorrowLendReservesView
+					selection={
+						selection
+						.$$borrowLendReserves({
+							sources: [
+								Source.Hyperliquid,
+							],
+							limit: 16,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Hyperliquid borrow/lend reserves.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
