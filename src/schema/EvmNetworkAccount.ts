@@ -100,6 +100,13 @@ export default entity({
 			Source.Morpho_Graphql,
 		],
 	},
+	$$pendlePositions: {
+		entityType: EntityType.PendlePosition,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Pendle_Rest,
+		],
+	},
 })({
 	selectors: {
 		EvmNetworkEvmAccount: [

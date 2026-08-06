@@ -45,6 +45,7 @@
 	import GmxPositionsView from '$/views/GmxPositionsView.svelte'
 	import MorphoMarketPositionsView from '$/views/MorphoMarketPositionsView.svelte'
 	import MorphoVaultPositionsView from '$/views/MorphoVaultPositionsView.svelte'
+	import PendlePositionsView from '$/views/PendlePositionsView.svelte'
 </script>
 
 
@@ -306,6 +307,10 @@
 						id: 'evm-network-account-morpho-vault-positions',
 						label: 'Morpho vaults',
 					},
+					{
+						id: 'evm-network-account-pendle-positions',
+						label: 'Pendle',
+					},
 				]
 			}
 			data-card
@@ -403,6 +408,24 @@
 					collapsible={false}
 					title={label}
 					emptyText='No Morpho vault positions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionEvmNetworkAccountPendlePositions({ id, label })}
+				<PendlePositionsView
+					selection={
+						selection
+						.$$pendlePositions({
+							sources: [
+								Source.Pendle_Rest,
+							],
+							limit: 32,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Pendle positions.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

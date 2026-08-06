@@ -1943,6 +1943,7 @@ export enum EntityType {
 	Payout = "Payout",
 	PayoutClaim_Timestamp = "PayoutClaim_Timestamp",
 	PendleMarket = "PendleMarket",
+	PendlePosition = "PendlePosition",
 	PolkadotAccount = "PolkadotAccount",
 	PolkadotAccount_Timestamp = "PolkadotAccount_Timestamp",
 	PolkadotAsset = "PolkadotAsset",
@@ -30826,6 +30827,7 @@ export const schema = {
 				"$$gmxPositions": { label: "GMX positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GmxPosition, defaultSources: [Source.Gmx_Rest] },
 				"$$morphoMarketPositions": { label: "Morpho market positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MorphoMarketPosition, defaultSources: [Source.Morpho_Graphql] },
 				"$$morphoVaultPositions": { label: "Morpho vault positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MorphoVaultPosition, defaultSources: [Source.Morpho_Graphql] },
+				"$$pendlePositions": { label: "Pendle positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PendlePosition, defaultSources: [Source.Pendle_Rest] },
 			})({
 				selectors: {
 					"EvmNetworkEvmAccount": ["$network", "$actor"],
@@ -30881,6 +30883,7 @@ export const schema = {
 									{ id: "evm-network-account-gmx-positions", field: "$$gmxPositions", List: "GmxPositionsView", label: "GMX", emptyText: "No GMX positions.", selection: { sources: [Source.Gmx_Rest], limit: 32 } },
 									{ id: "evm-network-account-morpho-market-positions", field: "$$morphoMarketPositions", List: "MorphoMarketPositionsView", label: "Morpho markets", emptyText: "No Morpho market positions.", selection: { sources: [Source.Morpho_Graphql], limit: 32 } },
 									{ id: "evm-network-account-morpho-vault-positions", field: "$$morphoVaultPositions", List: "MorphoVaultPositionsView", label: "Morpho vaults", emptyText: "No Morpho vault positions.", selection: { sources: [Source.Morpho_Graphql], limit: 32 } },
+									{ id: "evm-network-account-pendle-positions", field: "$$pendlePositions", List: "PendlePositionsView", label: "Pendle", emptyText: "No Pendle positions.", selection: { sources: [Source.Pendle_Rest], limit: 32 } },
 								],
 							},
 						],
@@ -51103,6 +51106,32 @@ export const schema = {
 						},
 					},
 					plural: { component: "PendleMarketsView", title: "Pendle markets" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.PendlePosition,
+				labels: { singular: "Pendle position", plural: "Pendle positions" },
+				description: "An account PT/YT/SY/LP balance set against one Pendle V2 market.",
+			})({
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount },
+				"$market": { label: "Market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.PendleMarket },
+				"ptBalance": { label: "PT balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Pendle_Rest] },
+				"ytBalance": { label: "YT balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Pendle_Rest] },
+				"syBalance": { label: "SY balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Pendle_Rest] },
+				"lpBalance": { label: "LP balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Pendle_Rest] },
+			})({
+				selectors: { "AccountMarket": ["$account", "$market"] },
+				views: {
+					singular: {
+						query: { sources: [Source.Pendle_Rest] },
+						summary: { title: ["$market"], value: ["ptBalance", "ytBalance", "syBalance", "lpBalance"] },
+						content: { dl: [
+							["$account", "$market"],
+							["ptBalance", "ytBalance", "syBalance", "lpBalance"],
+						] },
+					},
+					plural: { component: "PendlePositionsView", title: "Pendle positions" },
 				},
 			}),
 
@@ -72831,6 +72860,13 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain PendleMarket.NetworkMarketAddress as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#pendlemarket",
+			},
+		},
+		[EntityType.PendlePosition]: {
+			"AccountMarket": {
+				kind: "Research",
+				decision: "Retain PendlePosition.AccountMarket as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#pendleposition",
 			},
 		},
 		[EntityType.PolkadotAsset]: {

@@ -772,6 +772,7 @@ import PayjoinEndpointSchema from '$/schema/PayjoinEndpoint.ts'
 import PayoutSchema from '$/schema/Payout.ts'
 import PayoutClaim_TimestampSchema from '$/schema/PayoutClaim_Timestamp.ts'
 import PendleMarketSchema from '$/schema/PendleMarket.ts'
+import PendlePositionSchema from '$/schema/PendlePosition.ts'
 import PolkadotAccount_TimestampSchema from '$/schema/PolkadotAccount_Timestamp.ts'
 import PolkadotAccountSchema from '$/schema/PolkadotAccount.ts'
 import PolkadotAsset_TimestampSchema from '$/schema/PolkadotAsset_Timestamp.ts'
@@ -1847,6 +1848,7 @@ const schemaChunk15 = [
 	PayoutSchema,
 	PayoutClaim_TimestampSchema,
 	PendleMarketSchema,
+	PendlePositionSchema,
 	PolkadotAccountSchema,
 	PolkadotAccount_TimestampSchema,
 	PolkadotAssetSchema,
@@ -1875,10 +1877,10 @@ const schemaChunk15 = [
 	RadiclePatchSchema,
 	RadicleRepositorySchema,
 	RadicleSignedRefSchema,
-	RadicleSignedRef_TimestampSchema,
 ] as const
 
 const schemaChunk16 = [
+	RadicleSignedRef_TimestampSchema,
 	RedditCommentSchema,
 	RedditComment_TimestampSchema,
 	RedditLinkSchema,
@@ -1928,10 +1930,10 @@ const schemaChunk16 = [
 	StarknetStorageEntrySchema,
 	StarknetStorageEntry_TimestampSchema,
 	StarknetTransactionSchema,
-	StarknetTransaction_TimestampSchema,
 ] as const
 
 const schemaChunk17 = [
+	StarknetTransaction_TimestampSchema,
 	StellarAccountSchema,
 	StellarAccount_TimestampSchema,
 	StellarAccountSignerSchema,
@@ -1981,10 +1983,10 @@ const schemaChunk17 = [
 	TezosBakerSchema,
 	TezosBaker_Cycle_TimestampSchema,
 	TezosBaker_TimestampSchema,
-	TezosBakingRightSchema,
 ] as const
 
 const schemaChunk18 = [
+	TezosBakingRightSchema,
 	TezosBakingRight_TimestampSchema,
 	TezosBigMapSchema,
 	TezosBigMap_TimestampSchema,
@@ -2034,10 +2036,10 @@ const schemaChunk18 = [
 	TonWorkchainSchema,
 	TransferRestrictionSchema,
 	TransferRestrictionCheck_TimestampSchema,
-	TronAccountSchema,
 ] as const
 
 const schemaChunk19 = [
+	TronAccountSchema,
 	TronAccount_TimestampSchema,
 	TronAccountTokenBalance_TimestampSchema,
 	TronBlockSchema,
@@ -2087,10 +2089,10 @@ const schemaChunk19 = [
 	XrplTrustlineSchema,
 	XrplTrustline_TimestampSchema,
 	XUserSchema,
-	XUser_TimestampSchema,
 ] as const
 
 const schemaChunk20 = [
+	XUser_TimestampSchema,
 	YoutubeChannelSchema,
 	YoutubeChannel_TimestampSchema,
 	YoutubeCommentSchema,

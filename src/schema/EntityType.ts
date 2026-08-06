@@ -772,6 +772,7 @@ export enum EntityType {
 	Payout = 'Payout',
 	PayoutClaim_Timestamp = 'PayoutClaim_Timestamp',
 	PendleMarket = 'PendleMarket',
+	PendlePosition = 'PendlePosition',
 	PolkadotAccount = 'PolkadotAccount',
 	PolkadotAccount_Timestamp = 'PolkadotAccount_Timestamp',
 	PolkadotAsset = 'PolkadotAsset',
