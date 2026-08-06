@@ -135,6 +135,36 @@ test('acquires the same wallet concurrently without ENOENT or leaked staging', a
 	})
 })
 
+test('allows a fresh acquisition after a coalesced acquisition fails', async () => {
+	await withArtifactRoot(async (artifactRoot) => {
+		let downloads = 0
+		const flakyDownload = async () => {
+			downloads++
+			if (downloads === 1)
+				throw new Error('temporary download failure')
+			return download()
+		}
+		const options = {
+			artifactRoot,
+			download: flakyDownload,
+			extract,
+		}
+
+		await assert.rejects(
+			Promise.all([
+				acquireWalletExtension('fixture', descriptor, options),
+				acquireWalletExtension('fixture', descriptor, options),
+			]),
+			/temporary download failure/
+		)
+		assert.equal(
+			await acquireWalletExtension('fixture', descriptor, options),
+			join(artifactRoot, 'fixture-1.0.0')
+		)
+		assert.equal(downloads, 2)
+	})
+})
+
 test('retries lock acquisition when the artifact parent disappears mid-flight', async () => {
 	await withArtifactRoot(async (artifactRoot) => {
 		let downloads = 0
