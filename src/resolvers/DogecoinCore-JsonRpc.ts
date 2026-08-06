@@ -1,6 +1,7 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
@@ -9,6 +10,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertDogecoinMainnet = (network: NetworkId) => {
@@ -20,8 +22,87 @@ const assertDogecoinMainnet = (network: NetworkId) => {
 			)
 		:
 			network.slug !== networkBySlug.dogecoin.slug
-	) {
+	)
 		throw new Error('DogecoinCore_JsonRpc: unsupported Dogecoin network')
+}
+
+const utxoBlockSnapshot = async (
+	$network: NetworkId,
+	blockHash: string
+) => {
+	const { getBlock } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
+	const block = await getBlock({
+		blockHash,
+	})
+	return {
+		hash: block.hash,
+		...(block.previousblockhash != null && {
+			$parent: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					height: BigInt(block.height - 1),
+					hash: block.previousblockhash,
+				},
+			},
+		}),
+		timestampMs: block.time * 1000,
+		merkleRoot: block.merkleroot,
+		nonce: block.nonce,
+		difficulty: block.difficulty,
+		...(block.size != null && {
+			sizeBytes: block.size,
+		}),
+		...(block.weight != null && {
+			weightUnits: block.weight,
+		}),
+		transactionCount: block.nTx,
+		$$transactions: block.tx.map((transaction) => (
+			typeof transaction === 'string' ?
+				{
+					[EntityMetaKey.Selector]: {
+						$network,
+						txId: transaction,
+					},
+				}
+			:
+				{
+					[EntityMetaKey.Selector]: {
+						$network,
+						txId: transaction.txid,
+					},
+				}
+		)),
+	}
+}
+
+const resolveUtxoBlocks = async (
+	network: NetworkId,
+	context: Parameters<typeof resolverContextRowLimit>[0]
+) => {
+	assertDogecoinMainnet(network)
+	const {
+		getBlockCount,
+		getBlockHash,
+	} = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
+	const tipHeight = await getBlockCount()
+	const limit = resolverContextRowLimit(context)
+	const heights = Array.from(
+		{ length: Math.min(limit, tipHeight + 1) },
+		(_, index) => tipHeight - index
+	).filter((height) => height >= 0)
+	return {
+		tipHeight,
+		blocks: await Promise.all(
+			heights.map(async (height) => ({
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: BigInt(height),
+					hash: await getBlockHash({
+						height: BigInt(height),
+					}),
+				},
+			}))
+		),
 	}
 }
 
@@ -125,8 +206,6 @@ export default {
 						})
 						if (block.auxpow == null)
 							throw new Error('DogecoinCore_JsonRpc: block does not contain AuxPoW')
-						if (!/^[0-9a-fA-F]{160}$/.test(block.auxpow.parentblock))
-							throw new Error('DogecoinCore_JsonRpc: malformed AuxPoW parent block header')
 
 						return {
 							merkleRoot: (
@@ -162,71 +241,37 @@ export default {
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
+				NetworkHeight: {
+					resolve: async ({ $network, height }) => {
+						assertDogecoinMainnet($network)
+						const { getBlockHash } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
+						return utxoBlockSnapshot(
+							$network,
+							await getBlockHash({
+								height,
+							})
+						)
+					},
+				},
 				NetworkHeightHash: {
 					resolve: async ({ $network, hash }) => {
 						assertDogecoinMainnet($network)
-						const {
-							getBlock,
-						} = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
-						const block = await getBlock({
-							blockHash: hash,
-						})
-						if (typeof block === 'string')
-							throw new Error('DogecoinCore_JsonRpc: expected verbose block')
-						return {
-							hash: block.hash,
-							...(block.previousblockhash != null && {
-								$parent: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										height: BigInt(block.height - 1),
-										hash: block.previousblockhash,
-									},
-								},
-							}),
-							timestampMs: block.time * 1000,
-							merkleRoot: block.merkleroot,
-							nonce: block.nonce,
-							difficulty: block.difficulty,
-							...(block.size != null && {
-								sizeBytes: block.size,
-							}),
-							...(block.weight != null && {
-								weightUnits: block.weight,
-							}),
-							transactionCount: block.nTx,
-							$$transactions: block.tx.map((transaction) => (
-								typeof transaction === 'string' ?
-									{
-										[EntityMetaKey.Selector]: {
-											$network,
-											txId: transaction,
-										},
-									}
-								:
-									{
-										[EntityMetaKey.Selector]: {
-											$network,
-											txId: transaction.txid,
-										},
-									}
-							)),
-						}
+						return utxoBlockSnapshot($network, hash)
 					},
-				}
+				},
 			},
 		})({
-				hash: (snapshot) => snapshot.hash,
-				$parent: (snapshot) => snapshot.$parent,
-				timestampMs: (snapshot) => snapshot.timestampMs,
-				merkleRoot: (snapshot) => snapshot.merkleRoot,
-				nonce: (snapshot) => snapshot.nonce,
-				difficulty: (snapshot) => snapshot.difficulty,
-				sizeBytes: (snapshot) => snapshot.sizeBytes,
-				weightUnits: (snapshot) => snapshot.weightUnits,
-				transactionCount: (snapshot) => snapshot.transactionCount,
-				$$transactions: (snapshot) => snapshot.$$transactions,
-			}),
+			hash: (snapshot) => snapshot.hash,
+			$parent: (snapshot) => snapshot.$parent,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			merkleRoot: (snapshot) => snapshot.merkleRoot,
+			nonce: (snapshot) => snapshot.nonce,
+			difficulty: (snapshot) => snapshot.difficulty,
+			sizeBytes: (snapshot) => snapshot.sizeBytes,
+			weightUnits: (snapshot) => snapshot.weightUnits,
+			transactionCount: (snapshot) => snapshot.transactionCount,
+			$$transactions: (snapshot) => snapshot.$$transactions,
+		}),
 
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
@@ -240,13 +285,11 @@ export default {
 						assertDogecoinMainnet($network)
 						const { getRawTransaction } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 						const transaction = await getRawTransaction({
-							txId: txId,
+							txId,
 						})
-						if (typeof transaction === 'string')
-							throw new Error('DogecoinCore_JsonRpc: expected verbose transaction')
 						return {
 							[EntityMetaKey.Selector]: {
-								$network: $network,
+								$network,
 								txId: transaction.txid,
 							},
 							version: transaction.version,
@@ -273,18 +316,18 @@ export default {
 							)),
 						}
 					},
-				}
+				},
 			},
 		})({
-				version: (snapshot) => snapshot.version,
-				lockTime: (snapshot) => snapshot.lockTime,
-				sizeBytes: (snapshot) => snapshot.sizeBytes,
-				virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
-				weightUnits: (snapshot) => snapshot.weightUnits,
-				isCoinbase: (snapshot) => snapshot.isCoinbase,
-				$$inputs: (snapshot) => snapshot.$$inputs,
-				$$outputs: (snapshot) => snapshot.$$outputs,
-			}),
+			version: (snapshot) => snapshot.version,
+			lockTime: (snapshot) => snapshot.lockTime,
+			sizeBytes: (snapshot) => snapshot.sizeBytes,
+			virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
+			weightUnits: (snapshot) => snapshot.weightUnits,
+			isCoinbase: (snapshot) => snapshot.isCoinbase,
+			$$inputs: (snapshot) => snapshot.$$inputs,
+			$$outputs: (snapshot) => snapshot.$$outputs,
+		}),
 
 		defineResolver({
 			entityType: EntityType.UtxoInput,
@@ -296,13 +339,11 @@ export default {
 						const transaction = await getRawTransaction({
 							txId: $transaction.txId,
 						})
-						if (typeof transaction === 'string')
-							throw new Error('DogecoinCore_JsonRpc: expected verbose transaction')
 						const input = transaction.vin[indexInTransaction]
 						return {
 							[EntityMetaKey.Selector]: {
-								$transaction: $transaction,
-								indexInTransaction: indexInTransaction,
+								$transaction,
+								indexInTransaction,
 							},
 							...(input.txid != null && input.vout != null && {
 								$spentOutput: {
@@ -327,15 +368,15 @@ export default {
 							}),
 						}
 					},
-				}
+				},
 			},
 		})({
-				$spentOutput: (snapshot) => snapshot.$spentOutput,
-				coinbaseScript: (snapshot) => snapshot.coinbaseScript,
-				scriptSigAsm: (snapshot) => snapshot.scriptSigAsm,
-				sequence: (snapshot) => snapshot.sequence,
-				witness: (snapshot) => snapshot.witness ?? [],
-			}),
+			$spentOutput: (snapshot) => snapshot.$spentOutput,
+			coinbaseScript: (snapshot) => snapshot.coinbaseScript,
+			scriptSigAsm: (snapshot) => snapshot.scriptSigAsm,
+			sequence: (snapshot) => snapshot.sequence,
+			witness: (snapshot) => snapshot.witness ?? [],
+		}),
 
 		defineResolver({
 			entityType: EntityType.UtxoOutput,
@@ -347,13 +388,11 @@ export default {
 						const transaction = await getRawTransaction({
 							txId: $transaction.txId,
 						})
-						if (typeof transaction === 'string')
-							throw new Error('DogecoinCore_JsonRpc: expected verbose transaction')
 						const output = transaction.vout[indexInTransaction]
 						return {
 							[EntityMetaKey.Selector]: {
-								$transaction: $transaction,
-								indexInTransaction: indexInTransaction,
+								$transaction,
+								indexInTransaction,
 							},
 							valueSats: BigInt(Math.round(output.value * 100_000_000)),
 							scriptPubKeyAsm: output.scriptPubKey.asm,
@@ -369,14 +408,112 @@ export default {
 							}),
 						}
 					},
-				}
+				},
 			},
 		})({
-				valueSats: (snapshot) => snapshot.valueSats,
-				scriptPubKeyAsm: (snapshot) => snapshot.scriptPubKeyAsm,
-				scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
-				scriptPubKeyType: (snapshot) => snapshot.scriptPubKeyType,
-				$address: (snapshot) => snapshot.$address,
-			}),
+			valueSats: (snapshot) => snapshot.valueSats,
+			scriptPubKeyAsm: (snapshot) => snapshot.scriptPubKeyAsm,
+			scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
+			scriptPubKeyType: (snapshot) => snapshot.scriptPubKeyType,
+			$address: (snapshot) => snapshot.$address,
+		}),
+
+		defineResolver({
+			entityType: EntityType.UtxoAddress,
+			resolve: {
+				NetworkAddress: {
+					resolve: async ({ $network, address }, context) => {
+						assertDogecoinMainnet($network)
+						const { getTransparentAddressUtxos } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
+						const { unspents } = await getTransparentAddressUtxos({
+							address,
+							maxResults: resolverContextRowLimit(context),
+						})
+						return unspents.map((utxo) => ({
+							[EntityMetaKey.Selector]: {
+								$transaction: {
+									$network,
+									txId: utxo.txid,
+								},
+								indexInTransaction: utxo.vout,
+							},
+						}))
+					},
+				},
+			},
+		})({
+			$$outputs: (outputs) => outputs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.UtxoAddress,
+			resolve: {
+				NetworkAddress: {
+					resolve: async ({ $network, address: addressSelector }) => {
+						assertDogecoinMainnet($network)
+						return {
+							address: addressSelector,
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$address: {
+											$network,
+											address: addressSelector,
+										},
+										timestampMs: Date.now(),
+										source: Source.DogecoinCore_JsonRpc,
+									},
+								},
+							],
+						}
+					},
+				},
+			},
+		})({
+			address: (address) => address.address,
+			$$timestamps: (address) => address.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.UtxoAddress_Timestamp,
+			resolve: {
+				AddressTimestampMsSource: {
+					resolve: async ({ $address }) => {
+						assertDogecoinMainnet($address.$network)
+						const { getTransparentAddressUtxos } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
+						const scan = await getTransparentAddressUtxos({
+							address: $address.address,
+							maxResults: 10_000,
+						})
+						return {
+							balanceSats: scan.totalAmountSatoshis,
+							unspentOutputCount: scan.unspents.length,
+						}
+					},
+				},
+			},
+		})({
+			balanceSats: (observation) => observation.balanceSats,
+			unspentOutputCount: (observation) => observation.unspentOutputCount,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: resolveUtxoBlocks,
+				},
+				Slug: {
+					resolve: resolveUtxoBlocks,
+				},
+			},
+		})({
+			Utxo: {
+				$$blocks: {
+					select: (snapshot) => snapshot.blocks,
+					resolveCount: (snapshot) => BigInt(snapshot.tipHeight + 1),
+				},
+			},
+		}),
 	],
 }

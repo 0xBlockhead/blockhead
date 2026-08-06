@@ -8,10 +8,16 @@ import { Source } from '$/sources/Source.ts'
 
 const getBlock = vi.fn()
 const getRawTransaction = vi.fn()
+const getBlockCount = vi.fn()
+const getBlockHash = vi.fn()
+const getTransparentAddressUtxos = vi.fn()
 
 vi.mock('$/sources/DogecoinCore/JsonRpc/queries.ts', () => ({
 	getBlock,
 	getRawTransaction,
+	getBlockCount,
+	getBlockHash,
+	getTransparentAddressUtxos,
 }))
 
 const { default: dogecoinCoreResolvers } = await import('$/resolvers/DogecoinCore-JsonRpc.ts')
@@ -21,19 +27,24 @@ const dogecoinMainnetBinding = bindings[Source.DogecoinCore_JsonRpc][0]
 const resolverContext = {
 	filters: [],
 	sorts: [],
-	pagination: {},
+	pagination: {
+		limit: 2,
+	},
 	selectorKeys: [],
 	parentSelectorKeys: [],
 	sources: [],
 	publicEnv: {},
 }
 
+const blockHash = 'a'.repeat(64)
+const parentHash = 'b'.repeat(64)
+
 const blockSelector = {
 	$network: {
 		slug: networkBySlug.dogecoin.slug,
 	},
 	height: 5_000_000n,
-	hash: 'dogecoin-block-hash',
+	hash: blockHash,
 }
 
 const auxPowSelector = {
@@ -46,10 +57,24 @@ const parentMerkleRootWire = Array.from(
 ).join('')
 
 const auxPowBlock = {
+	hash: blockHash,
+	height: 5_000_000,
+	version: 1,
+	versionHex: '00000001',
+	merkleroot: 'c'.repeat(64),
+	time: 1_750_000_000,
+	mediantime: 1_750_000_000,
+	nonce: 1,
+	bits: '1a00ffff',
+	difficulty: 1,
+	chainwork: '01',
+	nTx: 1,
+	previousblockhash: parentHash,
+	tx: ['d'.repeat(64)],
 	auxpow: {
 		tx: {
-			txid: 'coinbase-transaction',
-			hash: 'coinbase-transaction',
+			txid: 'e'.repeat(64),
+			hash: 'e'.repeat(64),
 			version: 1,
 			size: 1,
 			vsize: 1,
@@ -99,8 +124,36 @@ const parentHeaderResolver = dogecoinCoreResolvers.resolvers.find((
 	{ entityType: EntityType.DogecoinAuxPowParentBlockHeader }
 > => resolver.entityType === EntityType.DogecoinAuxPowParentBlockHeader)
 
+const blockResolver = dogecoinCoreResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoBlock
+	&& 'NetworkHeight' in resolver.resolve
+))
+
+const networkBlocksResolver = dogecoinCoreResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Utxo' in resolver.projections
+	&& '$$blocks' in resolver.projections.Utxo
+	&& typeof resolver.projections.Utxo.$$blocks === 'object'
+	&& 'select' in resolver.projections.Utxo.$$blocks
+))
+
+const addressOutputsResolver = dogecoinCoreResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress
+	&& '$$outputs' in resolver.projections
+))
+
+const addressTimestampResolver = dogecoinCoreResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress_Timestamp
+))
+
 if (auxPowResolver == null || branchResolver == null || parentHeaderResolver == null)
 	throw new Error('DogecoinCore-JsonRpc spec missing AuxPoW resolvers')
+
+if (blockResolver == null || networkBlocksResolver == null)
+	throw new Error('DogecoinCore-JsonRpc spec missing UTXO block / network list resolvers')
+
+if (addressOutputsResolver == null || addressTimestampResolver == null)
+	throw new Error('DogecoinCore-JsonRpc spec missing address UTXO resolvers')
 
 describe('Dogecoin Core AuxPoW resolvers', () => {
 	beforeEach(() => {
@@ -196,7 +249,10 @@ describe('Dogecoin Core AuxPoW resolvers', () => {
 	})
 
 	it('rejects non-AuxPoW blocks and non-Dogecoin parents', async () => {
-		getBlock.mockResolvedValueOnce({})
+		getBlock.mockResolvedValueOnce({
+			...auxPowBlock,
+			auxpow: undefined,
+		})
 
 		await expect(auxPowResolver.resolve['Block'].resolve(
 			{
@@ -220,7 +276,6 @@ describe('Dogecoin Core AuxPoW resolvers', () => {
 	})
 })
 
-
 const transactionResolver = dogecoinCoreResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoTransaction
 ))
@@ -240,6 +295,10 @@ if (inputResolver == null || outputResolver == null)
 describe('DogecoinCore UTXO', () => {
 	beforeEach(() => {
 		getRawTransaction.mockReset()
+		getBlock.mockReset()
+		getBlockCount.mockReset()
+		getBlockHash.mockReset()
+		getTransparentAddressUtxos.mockReset()
 	})
 
 	it('projects transaction child selectors from one verbose getrawtransaction', async () => {
@@ -367,5 +426,95 @@ describe('DogecoinCore UTXO', () => {
 			},
 		})
 		expect(getRawTransaction).toHaveBeenCalledTimes(2)
+	})
+
+	it('projects Network.Utxo.$$blocks tip walk and height-resolved UtxoBlock', async () => {
+		getBlockCount.mockResolvedValueOnce(5)
+		getBlockHash
+			.mockResolvedValueOnce('1'.repeat(64))
+			.mockResolvedValueOnce('2'.repeat(64))
+		getBlock.mockResolvedValueOnce({
+			...auxPowBlock,
+			hash: '1'.repeat(64),
+			height: 5,
+			auxpow: undefined,
+			tx: ['3'.repeat(64)],
+		})
+
+		const network = {
+			slug: networkBySlug.dogecoin.slug,
+		}
+		const blocksSnapshot = await networkBlocksResolver.resolve.Slug.resolve(
+			network,
+			resolverContext
+		)
+		expect(networkBlocksResolver.projections.Utxo.$$blocks.select(blocksSnapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: 5n,
+					hash: '1'.repeat(64),
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: 4n,
+					hash: '2'.repeat(64),
+				},
+			},
+		])
+		expect(networkBlocksResolver.projections.Utxo.$$blocks.resolveCount(blocksSnapshot)).toBe(6n)
+
+		const block = await blockResolver.resolve.NetworkHeight.resolve({
+			$network: network,
+			height: 5n,
+		}, resolverContext)
+		expect(blockResolver.projections.hash(block)).toBe('1'.repeat(64))
+		expect(blockResolver.projections.transactionCount(block)).toBe(1)
+		expect(getBlockHash).toHaveBeenCalledWith({
+			height: 5n,
+		})
+		expect(dogecoinMainnetBinding).toBeTruthy()
+	})
+
+	it('projects address $$outputs and tip balance observations from scantxoutset', async () => {
+		const address = 'DExampleAddress0123456789ABCDEF'
+		const network = {
+			slug: networkBySlug.dogecoin.slug,
+		}
+		getTransparentAddressUtxos.mockResolvedValue({
+			unspents: [{
+				txid: '4'.repeat(64),
+				vout: 1,
+				valueSatoshis: 50_000_000n,
+			}],
+			totalAmountSatoshis: 50_000_000n,
+		})
+
+		const outputs = await addressOutputsResolver.resolve.NetworkAddress.resolve({
+			$network: network,
+			address,
+		}, resolverContext)
+		expect(addressOutputsResolver.projections.$$outputs(outputs)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: network,
+					txId: '4'.repeat(64),
+				},
+				indexInTransaction: 1,
+			},
+		}])
+
+		const observation = await addressTimestampResolver.resolve.AddressTimestampMsSource.resolve({
+			$address: {
+				$network: network,
+				address,
+			},
+			timestampMs: 1,
+			source: Source.DogecoinCore_JsonRpc,
+		}, resolverContext)
+		expect(addressTimestampResolver.projections.balanceSats(observation)).toBe(50_000_000n)
+		expect(addressTimestampResolver.projections.unspentOutputCount(observation)).toBe(1)
 	})
 })

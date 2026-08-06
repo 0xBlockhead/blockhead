@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import bindings from '$/sources/BitcoinCore/bindings.ts'
 import dogecoinCoreBindings from '$/sources/DogecoinCore/bindings.ts'
 import type { DogecoinCoreBlock } from '$/sources/DogecoinCore/JsonRpc/types.ts'
-import litecoinCoreBindings from '$/sources/LitecoinCore/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const jsonRpc2 = vi.fn()
@@ -13,27 +11,25 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 }))
 
 const {
-	getBlock: getBitcoinBlock,
-	getRawTransaction: getBitcoinRawTransaction,
-} = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
-const {
 	getBlock: getDogecoinBlock,
+	getBlockCount,
+	getBlockHash,
+	getRawTransaction,
+	getTransparentAddressUtxos,
 } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
-const {
-	getBlock: getLitecoinBlock,
-	getRawTransaction: getLitecoinRawTransaction,
-} = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
 
-const bitcoinMainnetBinding = bindings[Source.BitcoinCore_JsonRpc][0]
 const dogecoinMainnetBinding = dogecoinCoreBindings[Source.DogecoinCore_JsonRpc][0]
-const litecoinMainnetBinding = litecoinCoreBindings[Source.LitecoinCore_JsonRpc][0]
+
+const blockHash = 'a'.repeat(64)
+const parentHash = 'b'.repeat(64)
+const txId = 'c'.repeat(64)
 
 const block = {
-	hash: 'dogecoin-block-hash',
+	hash: blockHash,
 	height: 5_000_000,
 	version: 1,
 	versionHex: '00000001',
-	merkleroot: 'block-merkle-root',
+	merkleroot: 'd'.repeat(64),
 	time: 1_750_000_000,
 	mediantime: 1_750_000_000,
 	nonce: 1,
@@ -41,11 +37,12 @@ const block = {
 	difficulty: 1,
 	chainwork: '01',
 	nTx: 1,
-	tx: [],
+	previousblockhash: parentHash,
+	tx: [txId],
 	auxpow: {
 		tx: {
-			txid: 'coinbase-transaction',
-			hash: 'coinbase-transaction',
+			txid: 'e'.repeat(64),
+			hash: 'e'.repeat(64),
 			version: 1,
 			size: 1,
 			vsize: 1,
@@ -57,10 +54,10 @@ const block = {
 		index: 0,
 		chainindex: 1,
 		merklebranch: [
-			'coinbase-branch',
+			'f'.repeat(64),
 		],
 		chainmerklebranch: [
-			'chain-branch',
+			'1'.repeat(64),
 		],
 		parentblock: '00'.repeat(80),
 	},
@@ -71,85 +68,155 @@ describe('Dogecoin Core JSON-RPC', () => {
 		jsonRpc2.mockReset()
 	})
 
-	it('preserves the typed AuxPoW extension from verbose getblock', async () => {
+	it('asserts verbose getblock envelopes and preserves AuxPoW', async () => {
 		jsonRpc2.mockResolvedValueOnce(block)
 
 		await expect(getDogecoinBlock({
-			blockHash: block.hash,
+			blockHash,
 		})).resolves.toEqual(block)
 		expect(jsonRpc2).toHaveBeenCalledWith(
 			dogecoinMainnetBinding,
 			'getblock',
 			[
-				block.hash,
+				blockHash,
 				2,
 			]
 		)
 	})
 
-	it('fails closed on a JSON-RPC error', async () => {
-		jsonRpc2.mockRejectedValueOnce(new Error('JSON-RPC getblock: Block not found'))
-
+	it('fails closed on malformed block envelopes and AuxPoW headers', async () => {
+		jsonRpc2.mockResolvedValueOnce({
+			hash: blockHash,
+		})
 		await expect(getDogecoinBlock({
-			blockHash: 'missing',
-		})).rejects.toThrow('Block not found')
+			blockHash,
+		})).rejects.toThrow('invalid block response envelope')
+
+		jsonRpc2.mockResolvedValueOnce({
+			...block,
+			auxpow: {
+				...block.auxpow,
+				parentblock: '00'.repeat(10),
+			},
+		})
+		await expect(getDogecoinBlock({
+			blockHash,
+		})).rejects.toThrow('malformed AuxPoW parent block header')
 	})
 
-	it('keeps each protocol family request attached to its canonical binding', async () => {
-		jsonRpc2.mockResolvedValue(block)
+	it('asserts getrawtransaction envelopes', async () => {
+		const transaction = {
+			txid: txId,
+			hash: txId,
+			version: 1,
+			size: 100,
+			vsize: 100,
+			weight: 400,
+			locktime: 0,
+			vin: [],
+			vout: [{
+				value: 1,
+				n: 0,
+				scriptPubKey: {
+					asm: 'OP_DUP',
+					hex: '76',
+					type: 'pubkeyhash',
+					address: 'DExampleAddress0123456789ABCDEF',
+				},
+			}],
+		}
+		jsonRpc2.mockResolvedValueOnce(transaction)
+		await expect(getRawTransaction({
+			txId,
+		})).resolves.toEqual(transaction)
 
-		await getBitcoinBlock({
-			blockHash: block.hash,
+		jsonRpc2.mockResolvedValueOnce({
+			txid: txId,
 		})
-		await getDogecoinBlock({
-			blockHash: block.hash,
+		await expect(getRawTransaction({
+			txId,
+		})).rejects.toThrow('invalid transaction response envelope')
+	})
+
+	it('loads tip height and height→hash mappings with fail-closed envelopes', async () => {
+		jsonRpc2.mockResolvedValueOnce(5_000_000)
+		await expect(getBlockCount()).resolves.toBe(5_000_000)
+
+		jsonRpc2.mockResolvedValueOnce(-1)
+		await expect(getBlockCount()).rejects.toThrow('invalid block count response envelope')
+
+		jsonRpc2.mockResolvedValueOnce(blockHash)
+		await expect(getBlockHash({
+			height: 5_000_000n,
+		})).resolves.toBe(blockHash)
+
+		jsonRpc2.mockResolvedValueOnce('not-a-hash')
+		await expect(getBlockHash({
+			height: 1n,
+		})).rejects.toThrow('invalid block hash')
+	})
+
+	it('scans transparent address UTXOs with fail-closed validation', async () => {
+		const address = 'DExampleAddress0123456789ABCDEF'
+		jsonRpc2.mockResolvedValueOnce({
+			isvalid: true,
+			address,
 		})
-		await getLitecoinBlock({
-			blockHash: block.hash,
+		jsonRpc2.mockResolvedValueOnce({
+			success: true,
+			unspents: [{
+				txid: txId,
+				vout: 1,
+				scriptPubKey: '76a91400',
+				amount: 12.3456789,
+				height: 5_000_000,
+			}],
+			total_amount: 12.3456789,
 		})
 
-		expect(jsonRpc2.mock.calls.map((call) => call[0])).toEqual([
-			bitcoinMainnetBinding,
+		await expect(getTransparentAddressUtxos({
+			address,
+			maxResults: 25,
+		})).resolves.toMatchObject({
+			unspents: [{
+				valueSatoshis: 1_234_567_890n,
+			}],
+			totalAmountSatoshis: 1_234_567_890n,
+		})
+		expect(jsonRpc2).toHaveBeenNthCalledWith(
+			2,
 			dogecoinMainnetBinding,
-			litecoinMainnetBinding,
-		])
+			'scantxoutset',
+			[
+				'start',
+				[`addr(${address})`],
+			]
+		)
 	})
 
-	it('uses each protocol family decoded response parameter', async () => {
-		jsonRpc2.mockResolvedValue('wire-result')
+	it('fails closed on incomplete address scans and zero-cardinality short-circuits', async () => {
+		const address = 'DExampleAddress0123456789ABCDEF'
+		jsonRpc2.mockResolvedValueOnce({
+			isvalid: true,
+			address,
+		})
+		jsonRpc2.mockResolvedValueOnce({
+			success: false,
+			unspents: [],
+			total_amount: 0,
+		})
+		await expect(getTransparentAddressUtxos({
+			address,
+			maxResults: 1,
+		})).rejects.toThrow('did not complete')
 
-		await getBitcoinBlock({
-			blockHash: block.hash,
+		await expect(getTransparentAddressUtxos({
+			address,
+			maxResults: 0,
+		})).resolves.toMatchObject({
+			unspents: [],
+			totalAmountSatoshis: 0n,
 		})
-		await getBitcoinRawTransaction({
-			txId: 'bitcoin-transaction',
-		})
-		await getLitecoinRawTransaction({
-			txId: 'litecoin-transaction',
-		})
-
-		expect(jsonRpc2.mock.calls.map((call) => call.slice(1))).toEqual([
-			[
-				'getblock',
-				[
-					block.hash,
-					2,
-				],
-			],
-			[
-				'getrawtransaction',
-				[
-					'bitcoin-transaction',
-					1,
-				],
-			],
-			[
-				'getrawtransaction',
-				[
-					'litecoin-transaction',
-					true,
-				],
-			],
-		])
+		expect(jsonRpc2).toHaveBeenCalledTimes(2)
 	})
 })
