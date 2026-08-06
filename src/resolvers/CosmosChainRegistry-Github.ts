@@ -17,28 +17,71 @@ import type {
 	CosmosChainRegistryAssetList,
 	CosmosChainRegistryChain,
 } from '$/sources/CosmosChainRegistry/Github/types.ts'
+
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
-const assertCosmosRegistryNetwork = (network: NetworkId) => {
-	if (
+type CosmosRegistryNetworkRow = {
+	chainName: string
+	chainId: string
+	slug: string
+	environment: NetworkEnvironment
+}
+
+const cosmosRegistryNetworks = [
+	{
+		chainName: 'cosmoshub',
+		chainId: 'cosmoshub-4',
+		slug: 'cosmos',
+		environment: NetworkEnvironment.Mainnet,
+	},
+	{
+		chainName: 'osmosis',
+		chainId: 'osmosis-1',
+		slug: 'osmosis',
+		environment: NetworkEnvironment.Mainnet,
+	},
+	{
+		chainName: 'dydx',
+		chainId: 'dydx-mainnet-1',
+		slug: 'dydx',
+		environment: NetworkEnvironment.Mainnet,
+	},
+] as const satisfies readonly CosmosRegistryNetworkRow[]
+
+const cosmosRegistryNetworkByChainId = Object.fromEntries(
+	cosmosRegistryNetworks.map((row) => [row.chainId, row])
+)
+
+const cosmosRegistryNetworkBySlug = Object.fromEntries(
+	cosmosRegistryNetworks.map((row) => [row.slug, row])
+)
+
+const cosmosNetworkRow = (network: NetworkId) => {
+	const row = (
 		'caip2' in network ?
-			network.caip2.namespace !== 'cosmos' || network.caip2.reference !== 'cosmoshub-4'
+			network.caip2.namespace === 'cosmos' ?
+				cosmosRegistryNetworkByChainId[network.caip2.reference]
+			:
+				undefined
 		:
-			network.slug !== 'cosmos'
+			cosmosRegistryNetworkBySlug[network.slug]
 	)
+	if (row == null)
 		throw new Error('CosmosChainRegistry_Github: unsupported network')
+
+	return row
 }
 
 const cosmosNetworkApplicability = {
-	Caip2: [{
+	Caip2: cosmosRegistryNetworks.map((row) => ({
 		caip2: {
-			namespace: 'cosmos',
-			reference: 'cosmoshub-4',
+			namespace: 'cosmos' as const,
+			reference: row.chainId,
 		},
-	}],
-	Slug: [{
-		slug: 'cosmos',
-	}],
+	})),
+	Slug: cosmosRegistryNetworks.map((row) => ({
+		slug: row.slug,
+	})),
 } as const
 
 const cosmosNetworkSelectors = <_Snapshot extends object>(
@@ -53,11 +96,6 @@ const cosmosNetworkSelectors = <_Snapshot extends object>(
 		resolve,
 	},
 })
-
-const chainNameForNetwork = (network: NetworkId) => {
-	assertCosmosRegistryNetwork(network)
-	return 'cosmoshub'
-}
 
 const iconMediaFromChain = (chain: CosmosChainRegistryChain) => {
 	const url = chain.logo_URIs?.svg ?? chain.logo_URIs?.png ?? chain.images?.[0]?.svg ?? chain.images?.[0]?.png
@@ -97,14 +135,17 @@ export default {
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkSelectors(async (entitySelector) => {
+				const row = cosmosNetworkRow(entitySelector)
 				const { getChain } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
 				const chain = await getChain({
-					chainName: chainNameForNetwork(entitySelector),
+					chainName: row.chainName,
 				})
+				if (chain.chain_id !== row.chainId)
+					throw new Error(`CosmosChainRegistry_Github: mismatched chain_id ${chain.chain_id}`)
 				const iconMedia = iconMediaFromChain(chain)
 				return {
 					name: chain.pretty_name ?? chain.chain_name,
-					environment: NetworkEnvironment.Mainnet,
+					environment: row.environment,
 					...(iconMedia != null && { $icon: iconMedia }),
 				}
 			}),
@@ -119,28 +160,28 @@ export default {
 			resolve: {
 				NetworkKindAssetKey: {
 					appliesTo: [
-						{
+						...cosmosRegistryNetworks.map((row) => ({
 							$network: {
 								caip2: {
-									namespace: 'cosmos',
-									reference: 'cosmoshub-4',
+									namespace: 'cosmos' as const,
+									reference: row.chainId,
 								},
 							},
 							kind: AssetInstanceKind.Denom,
-						},
-						{
+						})),
+						...cosmosRegistryNetworks.map((row) => ({
 							$network: {
-								slug: 'cosmos',
+								slug: row.slug,
 							},
 							kind: AssetInstanceKind.Denom,
-						},
+						})),
 					],
 					resolve: async ({ $network, assetKey, kind }) => {
-						assertCosmosRegistryNetwork($network)
+						const row = cosmosNetworkRow($network)
 						if (kind !== AssetInstanceKind.Denom) throw new Error('CosmosChainRegistry_Github: only denom asset instances are supported')
 						const { getAssetList } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
 						const asset = (await getAssetList({
-							chainName: chainNameForNetwork($network),
+							chainName: row.chainName,
 						})).assets.find((registryAsset) => registryAsset.base === assetKey)
 						if (asset == null) throw new Error(`CosmosChainRegistry_Github: asset not found for ${assetKey}`)
 						return assetInstanceFields(asset)
@@ -156,11 +197,12 @@ export default {
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkSelectors(async (entitySelector) => {
+				const row = cosmosNetworkRow(entitySelector)
 				const { getAssetList } = await import('$/sources/CosmosChainRegistry/Github/queries.ts')
 				return assetInstanceRows(
 					entitySelector,
 					await getAssetList({
-						chainName: chainNameForNetwork(entitySelector),
+						chainName: row.chainName,
 					})
 				)
 			}),
