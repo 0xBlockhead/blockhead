@@ -228,6 +228,16 @@ describe('Covalent GoldRush product resolvers', () => {
 					type: CoinInstanceType.NativeCurrency,
 				},
 			},
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					timestampMs: Date.parse('2026-01-01T00:00:01.000Z'),
+					source: Source.GoldRushFoundational_Rest,
+				},
+				balance: 1_000_000_000_000_000_000n,
+				blockNumber: 22_800_000n,
+				usdValue: 1,
+				priceUsd: 1,
+			}],
 		})
 
 		await expect(balanceResolver.resolve.EvmAccountErc20CoinInstance.resolve(
@@ -254,7 +264,106 @@ describe('Covalent GoldRush product resolvers', () => {
 					type: CoinInstanceType.Erc20Token,
 				},
 			},
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					timestampMs: Date.parse('2026-01-01T00:00:01.000Z'),
+					source: Source.GoldRushFoundational_Rest,
+				},
+				balance: 2_500_000n,
+				blockNumber: 22_800_000n,
+				usdValue: 2.5,
+				priceUsd: 1,
+			}],
 		})
+	})
+
+	it('projects singular balance observations and paginates account transactions', async () => {
+		const balanceTimestampResolver = covalentResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.EvmNetworkActorCoinBalance_Timestamp
+		))
+		if (balanceTimestampResolver == null)
+			throw new Error('missing GoldRush balance timestamp resolver')
+
+		sourceGetJson.mockResolvedValueOnce(balanceEnvelope)
+		const observation = await balanceTimestampResolver.resolve.ActorCoinTimestampMsSource.resolve(
+			{
+				$actorCoin: {
+					$actor: {
+						address,
+					},
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+				},
+				timestampMs: Date.parse('2026-01-01T00:00:01.000Z'),
+				source: Source.GoldRushFoundational_Rest,
+			},
+			emptyContext
+		)
+		expect(balanceTimestampResolver.projections.balance(observation)).toBe(1_000_000_000_000_000_000n)
+		expect(balanceTimestampResolver.projections.blockNumber(observation)).toBe(22_800_000n)
+
+		sourceGetJson.mockResolvedValueOnce({
+			data: {
+				address,
+				updated_at: '2026-01-01T00:00:01.000Z',
+				quote_currency: 'USD',
+				chain_id: 1,
+				chain_name: 'eth-mainnet',
+				chain_tip_height: 22_900_000,
+				chain_tip_signed_at: '2026-01-01T00:00:00.000Z',
+				current_page: 1,
+				links: {
+					prev: 'https://api.covalenthq.com/v1/eth-mainnet/address/x/transactions_v3/page/0/',
+					next: null,
+				},
+				items: transactionFixture.data.items,
+			},
+			error: false,
+			error_message: null,
+			error_code: null,
+		})
+
+		const page = await accountTransactionsResolver.resolve.EvmNetworkEvmAccount.resolve(
+			{
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+				$actor: {
+					address,
+				},
+			},
+			{
+				...emptyContext,
+				providerContinuationToken: '1',
+			}
+		)
+		expect(accountTransactionsResolver.projections.$$transactions.select(page)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+				txHash: transactionFixture.data.items[0].tx_hash,
+			},
+		}])
+		expect(accountTransactionsResolver.projections.$$transactions.continuation?.(page)).toEqual({
+			operation: 'account-transactions',
+			target: 'goldrush',
+			terminal: true,
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			goldRushBinding,
+			`https://api.covalenthq.com/v1/eth-mainnet/address/${address}/transactions_v3/page/1/?no-logs=true&block-signed-at-asc=false`
+		)
 	})
 
 	it('lists account transactions from transactions_v3 page 0', async () => {
@@ -270,7 +379,7 @@ describe('Covalent GoldRush product resolvers', () => {
 				current_page: 0,
 				links: {
 					prev: null,
-					next: null,
+					next: 'https://api.covalenthq.com/v1/eth-mainnet/address/x/transactions_v3/page/1/',
 				},
 				items: transactionFixture.data.items,
 			},
@@ -279,7 +388,7 @@ describe('Covalent GoldRush product resolvers', () => {
 			error_code: null,
 		})
 
-		await expect(accountTransactionsResolver.resolve.EvmNetworkEvmAccount.resolve(
+		const page = await accountTransactionsResolver.resolve.EvmNetworkEvmAccount.resolve(
 			{
 				$network: {
 					caip2: {
@@ -292,7 +401,8 @@ describe('Covalent GoldRush product resolvers', () => {
 				},
 			},
 			emptyContext
-		)).resolves.toEqual([{
+		)
+		expect(accountTransactionsResolver.projections.$$transactions.select(page)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: {
 					caip2: {
@@ -303,6 +413,12 @@ describe('Covalent GoldRush product resolvers', () => {
 				txHash: transactionFixture.data.items[0].tx_hash,
 			},
 		}])
+		expect(accountTransactionsResolver.projections.$$transactions.continuation?.(page)).toEqual({
+			operation: 'account-transactions',
+			target: 'goldrush',
+			terminal: false,
+			token: '1',
+		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			goldRushBinding,
 			`https://api.covalenthq.com/v1/eth-mainnet/address/${address}/transactions_v3/page/0/?no-logs=true&block-signed-at-asc=false`
@@ -351,13 +467,14 @@ describe('Covalent GoldRush product resolvers', () => {
 })
 
 describe('Covalent GoldRush product entity types', () => {
-	it('registers transaction, account, and balance resolvers for GoldRush', () => {
+	it('registers transaction, account, balance, and observation resolvers for GoldRush', () => {
 		expect(covalentResolvers.source).toBe(Source.GoldRushFoundational_Rest)
 		expect(covalentResolvers.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType.EvmTransaction,
 			EntityType.EvmNetworkAccount,
 			EntityType.EvmNetworkAccount,
 			EntityType.EvmNetworkActorCoinBalance,
+			EntityType.EvmNetworkActorCoinBalance_Timestamp,
 		])
 	})
 })

@@ -2,7 +2,10 @@ import { EvmTransactionExecutionStatus } from '$/constants/Evm.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { evmChainIdFromNetworkSelector, evmNetworkSelectorFromChainId } from '$/resolvers/evm.ts'
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ResolverContext,
+} from '$/resolvers/$resolvers.ts'
 import {
 	EntityMetaKey,
 	type Entity,
@@ -11,6 +14,10 @@ import {
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import type {
+	GoldRushTokenBalanceItem,
+	GoldRushTokenBalancesData,
+} from '$/sources/Covalent/GoldRush/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 
@@ -40,6 +47,53 @@ const goldRushChainForNetwork = (
 	return {
 		chainId,
 		$network: evmNetworkSelectorFromChainId(chainId),
+	}
+}
+
+const goldRushAccountTransactionPage = (
+	context: ResolverContext
+) => {
+	const page = context.providerContinuationToken == null ?
+		0
+	:
+		Number(context.providerContinuationToken)
+	if (!Number.isSafeInteger(page) || page < 0)
+		throw new Error('GoldRushFoundational_Rest: invalid transaction page continuation')
+
+	return page
+}
+
+const timestampMsFromGoldRushIso = (
+	value: string,
+	label: string
+) => {
+	const timestampMs = Date.parse(value)
+	if (!Number.isFinite(timestampMs) || timestampMs < 0)
+		throw new Error(`GoldRushFoundational_Rest: invalid ${label}`)
+
+	return timestampMs
+}
+
+const goldRushBalanceObservation = (
+	balance: GoldRushTokenBalanceItem,
+	balances: GoldRushTokenBalancesData,
+	actorCoin: EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+) => {
+	const timestampMs = timestampMsFromGoldRushIso(balances.updated_at, 'balance updated_at')
+	return {
+		[EntityMetaKey.Selector]: {
+			$actorCoin: actorCoin,
+			timestampMs,
+			source: Source.GoldRushFoundational_Rest,
+		},
+		blockNumber: nonnegativeSafeBigInt(balance.block_height),
+		balance: nonnegativeBigInt(balance.balance),
+		...(balance.quote != null && Number.isFinite(balance.quote) && {
+			usdValue: balance.quote,
+		}),
+		...(balance.quote_rate != null && Number.isFinite(balance.quote_rate) && {
+			priceUsd: balance.quote_rate,
+		}),
 	}
 }
 
@@ -194,36 +248,51 @@ export default {
 						if (address == null)
 							throw new Error('GoldRushFoundational_Rest: invalid account address')
 
+						const pageIndex = goldRushAccountTransactionPage(context)
 						const page = await getAddressTransactions({
 							chainId,
 							chainName: goldRushChainName(chainId),
 							address,
-							page: 0,
+							page: pageIndex,
 							noLogs: true,
 						})
 						const limit = resolverContextRowLimit(context)
 
-						return (
-							page.items
-								.slice(0, limit)
-								.map((transaction) => {
-									const txHash = hexLowerOfByteSize(transaction.tx_hash, 32)
-									if (txHash == null)
-										throw new Error('GoldRushFoundational_Rest: invalid account transaction hash')
+						return {
+							pageIndex,
+							hasNextPage: page.links.next != null,
+							rows: (
+								page.items
+									.slice(0, limit)
+									.map((transaction) => {
+										const txHash = hexLowerOfByteSize(transaction.tx_hash, 32)
+										if (txHash == null)
+											throw new Error('GoldRushFoundational_Rest: invalid account transaction hash')
 
-									return {
-										[EntityMetaKey.Selector]: {
-											$network: network,
-											txHash,
-										},
-									} satisfies Entity<typeof schema, EntityType.EvmTransaction>
-								})
-						)
+										return {
+											[EntityMetaKey.Selector]: {
+												$network: network,
+												txHash,
+											},
+										} satisfies Entity<typeof schema, EntityType.EvmTransaction>
+									})
+							),
+						}
 					},
 				},
 			},
 		})({
-			$$transactions: (transactions) => transactions,
+			$$transactions: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot) => ({
+					operation: 'account-transactions',
+					target: 'goldrush',
+					terminal: !snapshot.hasNextPage,
+					...(snapshot.hasNextPage && {
+						token: String(snapshot.pageIndex + 1),
+					}),
+				}),
+			},
 		}),
 
 		defineResolver({
@@ -237,19 +306,24 @@ export default {
 						if (address == null)
 							throw new Error('GoldRushFoundational_Rest: invalid account address')
 
-						const balance = (
-							(await getTokenBalances({
-								chainId,
-								chainName: goldRushChainName(chainId),
-								address,
-							})).items
-								.find((candidate) => candidate.is_native_token)
-						)
+						const balances = await getTokenBalances({
+							chainId,
+							chainName: goldRushChainName(chainId),
+							address,
+						})
+						const balance = balances.items.find((candidate) => candidate.is_native_token)
 						if (
 							balance == null
 							|| balance.contract_ticker_symbol.trim() === ''
 						)
 							throw new Error('GoldRushFoundational_Rest: native token balance missing')
+
+						const actorCoin = {
+							$actor: {
+								address,
+							},
+							$network: network,
+						} satisfies EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
 
 						return {
 							$network: network,
@@ -262,6 +336,9 @@ export default {
 							},
 							symbol: balance.contract_ticker_symbol.toUpperCase(),
 							decimals: balance.contract_decimals,
+							$$timestamps: [
+								goldRushBalanceObservation(balance, balances, actorCoin),
+							],
 						}
 					},
 				},
@@ -276,22 +353,30 @@ export default {
 						if (contractAddress == null)
 							throw new Error('GoldRushFoundational_Rest: invalid token contract address')
 
-						const balance = (
-							(await getTokenBalances({
-								chainId,
-								chainName: goldRushChainName(chainId),
-								address,
-							})).items
-								.find((candidate) => (
-									!candidate.is_native_token
-									&& candidate.contract_address.toLowerCase() === contractAddress
-								))
-						)
+						const balances = await getTokenBalances({
+							chainId,
+							chainName: goldRushChainName(chainId),
+							address,
+						})
+						const balance = balances.items.find((candidate) => (
+							!candidate.is_native_token
+							&& candidate.contract_address.toLowerCase() === contractAddress
+						))
 						if (
 							balance == null
 							|| balance.contract_ticker_symbol.trim() === ''
 						)
 							throw new Error('GoldRushFoundational_Rest: ERC-20 token balance missing')
+
+						const actorCoin = {
+							$actor: {
+								address,
+							},
+							$contract: {
+								$network: network,
+								address: contractAddress,
+							},
+						} satisfies EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
 
 						return {
 							$network: network,
@@ -311,6 +396,9 @@ export default {
 							},
 							symbol: balance.contract_ticker_symbol.toUpperCase(),
 							decimals: balance.contract_decimals,
+							$$timestamps: [
+								goldRushBalanceObservation(balance, balances, actorCoin),
+							],
 						}
 					},
 				},
@@ -335,6 +423,101 @@ export default {
 			$coinInstance: (balance) => balance.$coinInstance,
 			symbol: (balance) => balance.symbol,
 			decimals: (balance) => balance.decimals,
+			$$timestamps: (balance) => balance.$$timestamps.map((timestamp) => ({
+				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+			})),
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkActorCoinBalance_Timestamp,
+			resolve: {
+				ActorCoinTimestampMsSource: {
+					resolve: async ({
+						$actorCoin,
+						timestampMs,
+						source,
+					}) => {
+						if (source !== Source.GoldRushFoundational_Rest)
+							throw new Error(`GoldRushFoundational_Rest: unsupported balance observation source ${source}`)
+						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+							throw new Error('GoldRushFoundational_Rest: invalid balance observation timestamp')
+
+						const { getTokenBalances, goldRushChainName } = await import('$/sources/Covalent/GoldRush/Rest/queries.ts')
+						const address = hexLowerOfByteSize($actorCoin.$actor.address, 20)
+						if (address == null)
+							throw new Error('GoldRushFoundational_Rest: invalid account address')
+
+						const isErc20 = '$contract' in $actorCoin
+						const network = (
+							isErc20 ?
+								$actorCoin.$contract.$network
+							:
+								$actorCoin.$network
+						)
+						const { chainId, $network } = goldRushChainForNetwork(network)
+						const balances = await getTokenBalances({
+							chainId,
+							chainName: goldRushChainName(chainId),
+							address,
+						})
+						const contractAddress = (
+							isErc20 ?
+								hexLowerOfByteSize($actorCoin.$contract.address, 20)
+							:
+								undefined
+						)
+						if (isErc20 && contractAddress == null)
+							throw new Error('GoldRushFoundational_Rest: invalid token contract address')
+
+						const balance = (
+							isErc20 ?
+								balances.items.find((candidate) => (
+									!candidate.is_native_token
+									&& candidate.contract_address.toLowerCase() === contractAddress
+								))
+							:
+								balances.items.find((candidate) => candidate.is_native_token)
+						)
+						if (balance == null)
+							throw new Error('GoldRushFoundational_Rest: balance observation missing')
+
+						const actorCoin = (
+							isErc20 && contractAddress != null ?
+								{
+									$actor: {
+										address,
+									},
+									$contract: {
+										$network,
+										address: contractAddress,
+									},
+								}
+							:
+								{
+									$actor: {
+										address,
+									},
+									$network,
+								}
+						) satisfies EntitySelector<typeof schema, EntityType.EvmNetworkActorCoinBalance>
+						const observation = goldRushBalanceObservation(balance, balances, actorCoin)
+						if (observation[EntityMetaKey.Selector].timestampMs !== timestampMs)
+							throw new Error('GoldRushFoundational_Rest: balance observation timestamp does not match request')
+
+						return observation
+					},
+				},
+			},
+		})({
+			$actorCoin: (observation) => ({
+				[EntityMetaKey.Selector]: observation[EntityMetaKey.Selector].$actorCoin,
+			}),
+			timestampMs: (observation) => observation[EntityMetaKey.Selector].timestampMs,
+			source: (observation) => observation[EntityMetaKey.Selector].source,
+			blockNumber: (observation) => observation.blockNumber,
+			balance: (observation) => observation.balance,
+			usdValue: (observation) => observation.usdValue,
+			priceUsd: (observation) => observation.priceUsd,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule
