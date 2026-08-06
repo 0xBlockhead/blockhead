@@ -14,6 +14,8 @@ import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type GmxMarketId = EntitySelector<typeof schema, EntityType.GmxMarket>
+type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
+type EvmNetworkAccountTimestampId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount_Timestamp>
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -51,6 +53,56 @@ export default {
 	source: Source.Gmx_Rest,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			resolve: {
+				EvmNetworkEvmAccount: {
+					resolve: async ({ $actor, $network }: EvmNetworkAccountId) => ({
+						$$timestamps: [
+							{
+								[EntityMetaKey.Selector]: {
+									$account: {
+										$actor,
+										$network,
+									},
+									timestampMs: Date.now(),
+									source: Source.Gmx_Rest,
+								},
+							},
+						],
+					}),
+				},
+			},
+		})({
+			$$timestamps: (account) => account.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount_Timestamp,
+			resolve: {
+				AccountTimestampMsSource: {
+					resolve: async ({ $account, timestampMs, source }: EvmNetworkAccountTimestampId) => {
+						const chainId = eip155ChainId($account.$network)
+						const { gmxApiByChainId } = await import('$/sources/Gmx/Rest/constants.ts')
+						if (gmxApiByChainId[chainId] == null)
+							throw new Error(`${Source.Gmx_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const { getPositionsInfo } = await import('$/sources/Gmx/Rest/queries.ts')
+						return {
+							timestampMs,
+							source,
+							contractPositions: await getPositionsInfo({
+								chainId,
+								address: $account.$actor.address,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			contractPositions: (timestamp) => timestamp.contractPositions,
+		}),
+
 		defineResolver({
 			entityType: EntityType.GmxMarket,
 			resolve: {
