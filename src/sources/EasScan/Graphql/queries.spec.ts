@@ -211,7 +211,7 @@ describe('EasScan GraphQL public reads', () => {
 		expect(graphql).toHaveBeenCalledTimes(1)
 	})
 
-	it('fails closed on malformed revocation, counts, and duplicate identities', async () => {
+	it('fails closed on malformed revocation, counts, duplicate identities, and arktype envelopes', async () => {
 		vi.mocked(graphql)
 			.mockResolvedValueOnce({
 				attestation: {
@@ -240,6 +240,12 @@ describe('EasScan GraphQL public reads', () => {
 					},
 				},
 			})
+			.mockResolvedValueOnce({
+				attestation: {
+					...attestation,
+					id: '0xdead',
+				},
+			})
 
 		await expect(getAttestation({
 			network: 'eip155:1',
@@ -257,5 +263,9 @@ describe('EasScan GraphQL public reads', () => {
 			network: 'eip155:1',
 			schemaUid,
 		})).rejects.toThrow('invalid schema registration')
+		await expect(getAttestation({
+			network: 'eip155:1',
+			uid,
+		})).rejects.toThrow('invalid attestation envelope')
 	})
 })

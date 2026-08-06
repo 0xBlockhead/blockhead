@@ -3,6 +3,9 @@ import type { VariablesOf } from 'gql.tada'
 import {
 	EasScanAttestationFragment,
 	EasScanSchemaFragment,
+	easScanAttestationCountEnvelope,
+	easScanAttestationEnvelope,
+	easScanSchemaEnvelope,
 	type EasScanAttestation,
 	type EasScanSchema,
 } from '$/sources/EasScan/Graphql/types.ts'
@@ -13,9 +16,20 @@ import {
 	queryEasScan,
 } from './client.ts'
 
-const bytesPattern = /^0x(?:[0-9a-f]{2})*$/i
 const bytes32Pattern = /^0x[0-9a-f]{64}$/i
 const evmAddressPattern = /^0x[0-9a-f]{40}$/i
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`EasScan returned invalid ${label}`)
+	}
+}
 
 const easScanBindingByNetwork = new Map(
 	Object.values(bindings)
@@ -102,22 +116,14 @@ const assertAddress = (
 const assertAttestation = (
 	attestation: EasScanAttestation
 ) => {
-	assertUid(attestation.id, 'attestation UID')
-	assertUid(attestation.schemaId, 'schema UID')
-	assertUid(attestation.refUID, 'reference UID')
-	assertUid(attestation.txid, 'attestation transaction hash')
-	assertAddress(attestation.attester, 'attester')
-	assertAddress(attestation.recipient, 'recipient')
+	assertEnvelope(
+		'attestation envelope',
+		easScanAttestationEnvelope,
+		attestation
+	)
 
 	if (
-		!bytesPattern.test(attestation.data)
-		|| !Number.isSafeInteger(attestation.time)
-		|| attestation.time < 0
-		|| !Number.isSafeInteger(attestation.expirationTime)
-		|| attestation.expirationTime < 0
-		|| !Number.isSafeInteger(attestation.revocationTime)
-		|| attestation.revocationTime < 0
-		|| (!attestation.revocable && attestation.revocationTime !== 0)
+		(!attestation.revocable && attestation.revocationTime !== 0)
 		|| attestation.revoked !== (attestation.revocationTime !== 0)
 	)
 		throw new Error('EasScan returned invalid attestation lifecycle')
@@ -126,19 +132,11 @@ const assertAttestation = (
 const assertSchema = (
 	schema: EasScanSchema
 ) => {
-	assertUid(schema.id, 'schema UID')
-	assertAddress(schema.creator, 'schema creator')
-	assertAddress(schema.resolver, 'schema resolver')
-	assertUid(schema.txid, 'schema transaction hash')
-
-	if (
-		!Number.isSafeInteger(schema.time)
-		|| schema.time < 0
-		|| !/^(0|[1-9][0-9]*)$/.test(schema.index)
-		|| !Number.isSafeInteger(schema._count.attestations)
-		|| schema._count.attestations < 0
+	assertEnvelope(
+		'schema registration',
+		easScanSchemaEnvelope,
+		schema
 	)
-		throw new Error('EasScan returned invalid schema registration')
 }
 
 const countAttestations = async ({
@@ -148,12 +146,16 @@ const countAttestations = async ({
 	network: string
 	where: VariablesOf<typeof EasScanAttestationCount>['where']
 }) => {
-	const response = await queryEasScan(easScanBindingForNetwork(network), EasScanAttestationCount, {
-		where,
-	})
+	const response = assertEnvelope(
+		'attestation count',
+		easScanAttestationCountEnvelope,
+		await queryEasScan(easScanBindingForNetwork(network), EasScanAttestationCount, {
+			where,
+		})
+	)
 
-	const count = response?.aggregateAttestation._count?._all
-	if (response === undefined || !Number.isSafeInteger(count) || count < 0)
+	const count = response.aggregateAttestation._count?._all
+	if (count == null)
 		throw new Error('EasScan returned invalid attestation count')
 
 	return count

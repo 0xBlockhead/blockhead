@@ -144,6 +144,7 @@ const vitalikDomainWire = {
 describe('Ens-TheGraph entity resolver', () => {
 	it('maps gql EnsDomain wire into schema fields without runtime typeof guards', async () => {
 		expect(ensNameResolver).toBeDefined()
+		vi.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000)
 		getName.mockResolvedValueOnce([vitalikDomainWire])
 
 		const resolvedEntity = await ensNameResolver.resolve['NormalizedName'].resolve(
@@ -206,6 +207,17 @@ describe('Ens-TheGraph entity resolver', () => {
 							name: 'vitalik.eth',
 						},
 						recordKey: 'coin:60',
+					},
+				},
+			],
+			$$timestamps: [
+				{
+					[EntityMetaKey.Selector]: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						timestampMs: 1_800_000_000_000,
+						source: Source.TheGraph_Graphql,
 					},
 				},
 			],

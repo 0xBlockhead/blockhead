@@ -153,7 +153,6 @@ export default {
 								},
 							})),
 						]
-						const ttl = bigintFromSubgraphScalar(matchingEnsDomain.ttl)
 
 						return {
 							name: normalizedName,
@@ -205,10 +204,15 @@ export default {
 							...(recordEntities.length > 0 && {
 								$$records: recordEntities,
 							}),
-							...(ttl != null && {
-								ttl,
-							}),
-							isMigrated: matchingEnsDomain.isMigrated,
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$name: {
+										name: normalizedName,
+									},
+									timestampMs: Date.now(),
+									source: Source.TheGraph_Graphql,
+								},
+							}],
 						}
 					},
 				},
@@ -227,6 +231,7 @@ export default {
 				resolverTextKeys: (ensName) => ensName.resolverTextKeys,
 				resolverCoinTypes: (ensName) => ensName.resolverCoinTypes,
 				$$records: (ensName) => ensName.$$records ?? [],
+				$$timestamps: (ensName) => ensName.$$timestamps,
 			}),
 
 		defineResolver({
