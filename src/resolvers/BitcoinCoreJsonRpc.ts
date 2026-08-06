@@ -67,10 +67,22 @@ export const bitcoinCoreJsonRpcResolvers = <
 		if (source !== Source.BitcoinCore_JsonRpc)
 			return []
 
-		const { getTransactionProtocolPayloads } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
-		return getTransactionProtocolPayloads({
+		const transaction = await getTransaction({
+			$network,
 			txId,
 		})
+		const { extractProtocolPayloads } = await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
+		return extractProtocolPayloads(transaction)
+	}
+
+	const bitcoinProtocolPayloadsFromTransaction = async (
+		transaction: Awaited<ReturnType<typeof getTransaction>>
+	) => {
+		if (source !== Source.BitcoinCore_JsonRpc)
+			return []
+
+		const { extractProtocolPayloads } = await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
+		return extractProtocolPayloads(transaction)
 	}
 
 	return {
@@ -150,7 +162,7 @@ export const bitcoinCoreJsonRpcResolvers = <
 					NetworkTxId: {
 						resolve: async (entitySelector) => {
 							const transaction = await getTransaction(entitySelector)
-							const payloads = await getBitcoinProtocolPayloads(entitySelector)
+							const payloads = await bitcoinProtocolPayloadsFromTransaction(transaction)
 							const $bitcoinRunestone = bitcoinRunestoneRefFromPayloads(entitySelector, payloads)
 							return {
 								[EntityMetaKey.Selector]: {
@@ -252,9 +264,11 @@ export const bitcoinCoreJsonRpcResolvers = <
 				resolve: {
 					TransactionIndexInTransaction: {
 						resolve: async ({ $transaction, indexInTransaction }) => {
-							const output = (await getTransaction($transaction)).vout[indexInTransaction]
-							const payloads = await getBitcoinProtocolPayloads($transaction)
-							const runestone = runestonePayload(payloads)
+							const transaction = await getTransaction($transaction)
+							const output = transaction.vout[indexInTransaction]
+							const runestone = runestonePayload(
+								await bitcoinProtocolPayloadsFromTransaction(transaction)
+							)
 							return {
 								[EntityMetaKey.Selector]: {
 									$transaction: $transaction,

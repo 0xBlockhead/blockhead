@@ -138,7 +138,7 @@ export default {
 							$network,
 							txId,
 						} = entitySelector
-						const { getTransaction, getTransactionProtocolPayloads } = await import('$/sources/Esplora/Rest/queries.ts')
+						const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
 						const target = esploraTargetForNetwork($network)
 						const transaction = await getTransaction({
 							target,
@@ -146,10 +146,9 @@ export default {
 						})
 						const payloads = (
 							target === 'bip122:000000000019d6689c085ae165831e93' ?
-								await getTransactionProtocolPayloads({
-									target,
-									txId,
-								})
+								(
+									await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
+								).extractEsploraProtocolPayloads(transaction)
 							:
 								[]
 						)
@@ -261,12 +260,13 @@ export default {
 			resolve: {
 				TransactionIndexInTransaction: {
 					resolve: async ({ $transaction, indexInTransaction }) => {
-						const { getTransaction, getTransactionProtocolPayloads } = await import('$/sources/Esplora/Rest/queries.ts')
+						const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
 						const target = esploraTargetForNetwork($transaction.$network)
-						const output = (await getTransaction({
+						const transaction = await getTransaction({
 							target,
 							txId: $transaction.txId,
-						})).vout[indexInTransaction]
+						})
+						const output = transaction.vout[indexInTransaction]
 						const isConfidential = (
 							output.valuecommitment != null
 							|| output.assetcommitment != null
@@ -274,10 +274,9 @@ export default {
 						const runestone = (
 							target === 'bip122:000000000019d6689c085ae165831e93' ?
 								runestonePayload(
-									await getTransactionProtocolPayloads({
-										target,
-										txId: $transaction.txId,
-									})
+									(
+										await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
+									).extractEsploraProtocolPayloads(transaction)
 								)
 							:
 								undefined

@@ -197,8 +197,9 @@ export default {
 					appliesTo: bitcoinNetworkReferenceApplicability,
 					resolve: async (entitySelector) => {
 						const transaction = await getTransaction(entitySelector)
-						const { getTransactionProtocolPayloads } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-						const payloads = await getTransactionProtocolPayloads(entitySelector.txId)
+						const payloads = (
+							await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
+						).extractEsploraProtocolPayloads(transaction)
 						const $bitcoinRunestone = bitcoinRunestoneRefFromPayloads(entitySelector, payloads)
 						return {
 							[EntityMetaKey.Selector]: {
@@ -457,10 +458,12 @@ export default {
 				TransactionIndexInTransaction: {
 					appliesTo: bitcoinTransactionReferenceApplicability,
 					resolve: async ({ $transaction, indexInTransaction }) => {
-						const output = (await getTransaction($transaction)).vout[indexInTransaction]
-						const { getTransactionProtocolPayloads } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+						const transaction = await getTransaction($transaction)
+						const output = transaction.vout[indexInTransaction]
 						const runestone = runestonePayload(
-							await getTransactionProtocolPayloads($transaction.txId)
+							(
+								await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
+							).extractEsploraProtocolPayloads(transaction)
 						)
 						return {
 							[EntityMetaKey.Selector]: {
