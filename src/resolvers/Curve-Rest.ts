@@ -11,6 +11,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import type {
 	CurveGaugeSnapshot,
+	CurveLendingVaultSnapshot,
 	CurvePoolCoinSnapshot,
 	CurvePoolSnapshot,
 } from '$/sources/Curve/Rest/types.ts'
@@ -20,6 +21,7 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type CurvePoolId = EntitySelector<typeof schema, EntityType.CurvePool>
 type CurveGaugeId = EntitySelector<typeof schema, EntityType.CurveGauge>
 type CurvePoolCoinId = EntitySelector<typeof schema, EntityType.CurvePoolCoin>
+type CurveLendingVaultId = EntitySelector<typeof schema, EntityType.CurveLendingVault>
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -142,6 +144,80 @@ const mapCurvePoolSnapshot = (
 		)),
 	}
 }
+
+const mapCurveLendingVaultSnapshot = (
+	network: NetworkId,
+	vault: CurveLendingVaultSnapshot
+) => ({
+	$network: {
+		[EntityMetaKey.Selector]: network,
+	},
+	vaultAddress: vault.vaultAddress,
+	name: vault.name,
+	registryId: vault.registryId,
+	controllerAddress: vault.controllerAddress,
+	ammAddress: vault.ammAddress,
+	monetaryPolicyAddress: vault.monetaryPolicyAddress,
+	borrowedAssetAddress: vault.borrowedAsset.address,
+	borrowedAssetSymbol: vault.borrowedAsset.symbol,
+	borrowedAssetDecimals: vault.borrowedAsset.decimals,
+	...(vault.borrowedAsset.usdPrice != null && {
+		borrowedAssetUsdPrice: vault.borrowedAsset.usdPrice,
+	}),
+	collateralAssetAddress: vault.collateralAsset.address,
+	collateralAssetSymbol: vault.collateralAsset.symbol,
+	collateralAssetDecimals: vault.collateralAsset.decimals,
+	...(vault.collateralAsset.usdPrice != null && {
+		collateralAssetUsdPrice: vault.collateralAsset.usdPrice,
+	}),
+	...(vault.gaugeAddress != null && {
+		$gauge: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				gaugeAddress: vault.gaugeAddress,
+			},
+		},
+	}),
+	...(vault.borrowApr != null && {
+		borrowApr: vault.borrowApr,
+	}),
+	...(vault.borrowApy != null && {
+		borrowApy: vault.borrowApy,
+	}),
+	...(vault.lendApr != null && {
+		lendApr: vault.lendApr,
+	}),
+	...(vault.lendApy != null && {
+		lendApy: vault.lendApy,
+	}),
+	...(vault.pricePerShare != null && {
+		pricePerShare: vault.pricePerShare,
+	}),
+	...(vault.totalShares != null && {
+		totalShares: vault.totalShares,
+	}),
+	...(vault.totalSupplied != null && {
+		totalSupplied: vault.totalSupplied,
+	}),
+	...(vault.totalSuppliedUsd != null && {
+		totalSuppliedUsd: vault.totalSuppliedUsd,
+	}),
+	...(vault.totalBorrowed != null && {
+		totalBorrowed: vault.totalBorrowed,
+	}),
+	...(vault.totalBorrowedUsd != null && {
+		totalBorrowedUsd: vault.totalBorrowedUsd,
+	}),
+	...(vault.availableToBorrow != null && {
+		availableToBorrow: vault.availableToBorrow,
+	}),
+	...(vault.availableToBorrowUsd != null && {
+		availableToBorrowUsd: vault.availableToBorrowUsd,
+	}),
+	...(vault.usdTotal != null && {
+		usdTotal: vault.usdTotal,
+	}),
+})
 
 export default {
 	source: Source.Curve_Rest,
@@ -269,6 +345,62 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.CurveLendingVault,
+			resolve: {
+				NetworkVaultAddress: {
+					resolve: async ({
+						$network,
+						vaultAddress,
+					}: CurveLendingVaultId) => {
+						const chainId = eip155ChainId($network)
+						const { curvePlatformByChainId } = await import('$/sources/Curve/Rest/constants.ts')
+						if (curvePlatformByChainId[chainId] == null)
+							throw new Error(`${Source.Curve_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const { getLendingVault } = await import('$/sources/Curve/Rest/queries.ts')
+						return mapCurveLendingVaultSnapshot(
+							$network,
+							await getLendingVault({
+								chainId,
+								vaultAddress,
+							})
+						)
+					},
+				},
+			},
+		})({
+			$network: (vault) => vault.$network,
+			vaultAddress: (vault) => vault.vaultAddress,
+			name: (vault) => vault.name,
+			registryId: (vault) => vault.registryId,
+			controllerAddress: (vault) => vault.controllerAddress,
+			ammAddress: (vault) => vault.ammAddress,
+			monetaryPolicyAddress: (vault) => vault.monetaryPolicyAddress,
+			borrowedAssetAddress: (vault) => vault.borrowedAssetAddress,
+			borrowedAssetSymbol: (vault) => vault.borrowedAssetSymbol,
+			borrowedAssetDecimals: (vault) => vault.borrowedAssetDecimals,
+			borrowedAssetUsdPrice: (vault) => vault.borrowedAssetUsdPrice,
+			collateralAssetAddress: (vault) => vault.collateralAssetAddress,
+			collateralAssetSymbol: (vault) => vault.collateralAssetSymbol,
+			collateralAssetDecimals: (vault) => vault.collateralAssetDecimals,
+			collateralAssetUsdPrice: (vault) => vault.collateralAssetUsdPrice,
+			$gauge: (vault) => vault.$gauge,
+			borrowApr: (vault) => vault.borrowApr,
+			borrowApy: (vault) => vault.borrowApy,
+			lendApr: (vault) => vault.lendApr,
+			lendApy: (vault) => vault.lendApy,
+			pricePerShare: (vault) => vault.pricePerShare,
+			totalShares: (vault) => vault.totalShares,
+			totalSupplied: (vault) => vault.totalSupplied,
+			totalSuppliedUsd: (vault) => vault.totalSuppliedUsd,
+			totalBorrowed: (vault) => vault.totalBorrowed,
+			totalBorrowedUsd: (vault) => vault.totalBorrowedUsd,
+			availableToBorrow: (vault) => vault.availableToBorrow,
+			availableToBorrowUsd: (vault) => vault.availableToBorrowUsd,
+			usdTotal: (vault) => vault.usdTotal,
+		}),
+
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
@@ -278,20 +410,41 @@ export default {
 						if (curvePlatformByChainId[chainId] == null)
 							throw new Error(`${Source.Curve_Rest}: unsupported chain id ${String(chainId)}`)
 
-						const { listPools } = await import('$/sources/Curve/Rest/queries.ts')
-						const pools = await listPools({
-							chainId,
-						})
+						const {
+							listLendingVaults,
+							listPools,
+						} = await import('$/sources/Curve/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const [
+							pools,
+							lendingVaults,
+						] = await Promise.all([
+							listPools({
+								chainId,
+							}),
+							listLendingVaults({
+								chainId,
+							}),
+						])
 						return {
 							pools: pools
-								.slice(0, resolverContextRowLimit(context))
+								.slice(0, limit)
 								.map((pool) => ({
 									[EntityMetaKey.Selector]: {
 										$network: network,
 										poolAddress: pool.poolAddress,
 									},
 								})),
-							totalCount: pools.length,
+							poolCount: pools.length,
+							lendingVaults: lendingVaults
+								.slice(0, limit)
+								.map((vault) => ({
+									[EntityMetaKey.Selector]: {
+										$network: network,
+										vaultAddress: vault.vaultAddress,
+									},
+								})),
+							lendingVaultCount: lendingVaults.length,
 						}
 					},
 				},
@@ -300,7 +453,11 @@ export default {
 			Evm: {
 				$$curvePools: {
 					select: (snapshot) => snapshot.pools,
-					resolveCount: (snapshot) => snapshot.totalCount,
+					resolveCount: (snapshot) => snapshot.poolCount,
+				},
+				$$curveLendingVaults: {
+					select: (snapshot) => snapshot.lendingVaults,
+					resolveCount: (snapshot) => snapshot.lendingVaultCount,
 				},
 			},
 		}),

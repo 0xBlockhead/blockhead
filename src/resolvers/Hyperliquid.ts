@@ -128,9 +128,21 @@ const resolveHyperliquidNetworkMetadata = async (
 		vaultAddresses.add(vaultAddressKey)
 	}
 
+	const tokenIndexes = new Set<number>()
+	for (const [tokenIndex] of borrowLendReserves) {
+		if (!Number.isSafeInteger(tokenIndex) || tokenIndex < 0)
+			throw new Error(`Hyperliquid_Rest: invalid borrow/lend token index ${String(tokenIndex)}`)
+
+		if (tokenIndexes.has(tokenIndex))
+			throw new Error(`Hyperliquid_Rest: duplicate borrow/lend reserve ${String(tokenIndex)}`)
+
+		tokenIndexes.add(tokenIndex)
+	}
+
 	const timestampMs = Date.now()
 	return {
 		vaultCount: vaultSummaries.length,
+		borrowLendReserveCount: borrowLendReserves.length,
 		$$timestamps: [{
 			[EntityMetaKey.Selector]: {
 				$network: network,
@@ -231,10 +243,36 @@ const resolveHyperliquidNetworkMetadata = async (
 						},
 						[EntityMetaKey.Fields]: {
 							[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'name')]: vault.name,
+							[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'tvl')]: vault.tvl,
+							[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'createTimeMillis')]: vault.createTimeMillis,
 							[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'isClosed')]: vault.isClosed,
 							[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'relationship')]: vault.relationship,
 						},
 					}],
+				},
+			})),
+		$$borrowLendReserves: borrowLendReserves
+			.slice(0, limit)
+			.map(([tokenIndex, state]) => ({
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					tokenIndex,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], '$asset')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							assetId: tokenIndex,
+						},
+					},
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'borrowYearlyRate')]: state.borrowYearlyRate,
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'supplyYearlyRate')]: state.supplyYearlyRate,
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'balance')]: state.balance,
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'utilization')]: state.utilization,
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'oraclePx')]: state.oraclePx,
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'ltv')]: state.ltv,
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'totalSupplied')]: state.totalSupplied,
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'totalBorrowed')]: state.totalBorrowed,
 				},
 			})),
 	}
@@ -517,6 +555,8 @@ export default {
 						const name = vault?.name ?? summary?.name
 						const isClosed = vault?.isClosed ?? summary?.isClosed
 						const relationship = vault?.relationship ?? summary?.relationship
+						const tvl = summary?.tvl
+						const createTimeMillis = summary?.createTimeMillis
 						if (name == null || isClosed == null)
 							throw new Error(`Hyperliquid_Rest: vault summary fields missing for ${vaultAddress}`)
 
@@ -538,6 +578,12 @@ export default {
 								},
 								[EntityMetaKey.Fields]: {
 									[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'name')]: name,
+									...(tvl != null && {
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'tvl')]: tvl,
+									}),
+									...(createTimeMillis != null && {
+										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'createTimeMillis')]: createTimeMillis,
+									}),
 									...(vault != null && {
 										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'description')]: vault.description,
 										[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'apr')]: String(vault.apr),
@@ -1211,6 +1257,65 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.HyperliquidBorrowLendReserve,
+			resolve: {
+				NetworkTokenIndex: {
+					resolve: async ({
+						$network,
+						tokenIndex,
+					}) => {
+						assertHyperliquidMainnet($network)
+						if (!Number.isSafeInteger(tokenIndex) || tokenIndex < 0)
+							throw new Error(`Hyperliquid_Rest: invalid borrow/lend token index ${String(tokenIndex)}`)
+
+						const { getAllBorrowLendReserveStates } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+						const reserves = await getAllBorrowLendReserveStates()
+						const row = reserves.find(([index]) => index === tokenIndex)
+						if (row == null)
+							throw new Error(`Hyperliquid_Rest: borrow/lend reserve not found for token index ${String(tokenIndex)}`)
+
+						const [
+							,
+							state,
+						] = row
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							tokenIndex,
+							$asset: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									assetId: tokenIndex,
+								},
+							},
+							borrowYearlyRate: state.borrowYearlyRate,
+							supplyYearlyRate: state.supplyYearlyRate,
+							balance: state.balance,
+							utilization: state.utilization,
+							oraclePx: state.oraclePx,
+							ltv: state.ltv,
+							totalSupplied: state.totalSupplied,
+							totalBorrowed: state.totalBorrowed,
+						}
+					},
+				},
+			},
+		})({
+			$network: (snapshot) => snapshot.$network,
+			tokenIndex: (snapshot) => snapshot.tokenIndex,
+			$asset: (snapshot) => snapshot.$asset,
+			borrowYearlyRate: (snapshot) => snapshot.borrowYearlyRate,
+			supplyYearlyRate: (snapshot) => snapshot.supplyYearlyRate,
+			balance: (snapshot) => snapshot.balance,
+			utilization: (snapshot) => snapshot.utilization,
+			oraclePx: (snapshot) => snapshot.oraclePx,
+			ltv: (snapshot) => snapshot.ltv,
+			totalSupplied: (snapshot) => snapshot.totalSupplied,
+			totalBorrowed: (snapshot) => snapshot.totalBorrowed,
+		}),
+
+		defineResolver({
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: {
 				Network: {
@@ -1229,6 +1334,10 @@ export default {
 			$$vaults: {
 				select: (snapshot) => snapshot.$$vaults,
 				resolveCount: (snapshot) => snapshot.vaultCount,
+			},
+			$$borrowLendReserves: {
+				select: (snapshot) => snapshot.$$borrowLendReserves,
+				resolveCount: (snapshot) => snapshot.borrowLendReserveCount,
 			},
 		}),
 
@@ -1252,6 +1361,10 @@ export default {
 				$$vaults: {
 					select: (snapshot) => snapshot.$$vaults,
 					resolveCount: (snapshot) => snapshot.vaultCount,
+				},
+				$$borrowLendReserves: {
+					select: (snapshot) => snapshot.$$borrowLendReserves,
+					resolveCount: (snapshot) => snapshot.borrowLendReserveCount,
 				},
 			},
 		}),

@@ -793,10 +793,59 @@ describe('Hyperliquid market catalog resolvers', () => {
 				},
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'name')]: 'Hyperliquidity Provider (HLP)',
+					[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'tvl')]: '1000',
+					[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'createTimeMillis')]: 1_700_000_000_000,
 					[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'isClosed')]: false,
 				},
 			}],
 		})
+		expect(networkResolver.projections.$$borrowLendReserves.resolveCount(snapshot)).toBe(2)
+		expect(networkResolver.projections.$$borrowLendReserves.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: account.$network,
+					tokenIndex: 0,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], '$asset')]: {
+						[EntityMetaKey.Selector]: {
+							$network: account.$network,
+							assetId: 0,
+						},
+					},
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'borrowYearlyRate')]: '0.01',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'supplyYearlyRate')]: '0.005',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'balance')]: '1',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'utilization')]: '0.5',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'oraclePx')]: '1',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'ltv')]: '0.8',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'totalSupplied')]: '10',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'totalBorrowed')]: '5',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: account.$network,
+					tokenIndex: 1,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], '$asset')]: {
+						[EntityMetaKey.Selector]: {
+							$network: account.$network,
+							assetId: 1,
+						},
+					},
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'borrowYearlyRate')]: '0.02',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'supplyYearlyRate')]: '0.01',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'balance')]: '2',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'utilization')]: '0.4',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'oraclePx')]: '2',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'ltv')]: '0.7',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'totalSupplied')]: '20',
+					[entityFieldAddressKey(EntityType.HyperliquidBorrowLendReserve, [], 'totalBorrowed')]: '8',
+				},
+			},
+		])
 
 		const parentNetworkResolver = hyperliquid.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.Network
@@ -812,6 +861,10 @@ describe('Hyperliquid market catalog resolvers', () => {
 			networkResolver.projections.$$vaults.select(snapshot)
 		)
 		expect(parentNetworkResolver.projections.Hyperliquid.$$vaults.resolveCount(parentSnapshot)).toBe(3)
+		expect(parentNetworkResolver.projections.Hyperliquid.$$borrowLendReserves.select(parentSnapshot)).toEqual(
+			networkResolver.projections.$$borrowLendReserves.select(snapshot)
+		)
+		expect(parentNetworkResolver.projections.Hyperliquid.$$borrowLendReserves.resolveCount(parentSnapshot)).toBe(2)
 	})
 
 	it('fills vault summary fields when vaultDetails is absent', async () => {
@@ -867,6 +920,8 @@ describe('Hyperliquid market catalog resolvers', () => {
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'name')]: 'Summary only vault',
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'tvl')]: '12',
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'createTimeMillis')]: 1_700_000_000_000,
 				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'isClosed')]: false,
 				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'relationship')]: {
 					type: 'normal',
@@ -874,6 +929,42 @@ describe('Hyperliquid market catalog resolvers', () => {
 			},
 		}])
 		expect(vaultResolver.projections.$$equities(snapshot)).toEqual([])
+	})
+
+	it('projects a borrow/lend reserve by token index from allBorrowLendReserveStates', async () => {
+		const reserveResolver = hyperliquid.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HyperliquidBorrowLendReserve
+		))
+		expect(reserveResolver).toBeTruthy()
+
+		corsFetch.mockResolvedValue({
+			ok: true,
+			json: async () => [
+				[0, {
+					borrowYearlyRate: '0.01',
+					supplyYearlyRate: '0.005',
+					balance: '1',
+					utilization: '0.5',
+					oraclePx: '1',
+					ltv: '0.8',
+					totalSupplied: '10',
+					totalBorrowed: '5',
+				}],
+			],
+		})
+
+		const snapshot = await reserveResolver.resolve.NetworkTokenIndex.resolve({
+			$network: account.$network,
+			tokenIndex: 0,
+		}, context)
+		expect(reserveResolver.projections.$asset(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				assetId: 0,
+			},
+		})
+		expect(reserveResolver.projections.borrowYearlyRate(snapshot)).toBe('0.01')
+		expect(reserveResolver.projections.totalBorrowed(snapshot)).toBe('5')
 	})
 
 	it('rejects a perp market snapshot without a context for every market', async () => {

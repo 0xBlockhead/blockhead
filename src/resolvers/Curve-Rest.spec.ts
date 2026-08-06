@@ -47,11 +47,15 @@ const curvePoolCoinResolver = curveRest.resolvers.find((resolver) => (
 const curveGaugeResolver = curveRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CurveGauge
 ))
+const curveLendingVaultResolver = curveRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CurveLendingVault
+))
 
 const networkCurvePoolsResolver = curveRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
 	&& '$$curvePools' in resolver.projections.Evm
+	&& '$$curveLendingVaults' in resolver.projections.Evm
 ))
 
 const threePoolAddress = '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7'
@@ -394,20 +398,109 @@ describe('Curve Rest resolver module', () => {
 			throw new Error('missing Network $$curvePools resolver')
 
 		const secondPoolAddress = '0xDC24316b9AE028F1497c275EB9192a3Ea0f67022'
-		sourceGetJson.mockResolvedValueOnce({
-			success: true,
-			data: {
-				poolList: [
-					{
-						type: 'main',
-						address: threePoolAddress,
+		const lendingVaultAddress = '0x8cf1DE26729cfB7137AF1A6B2a665e099EC319b5'
+		sourceGetJson.mockImplementation(async (_binding: unknown, url: string) => {
+			if (String(url).includes('/getPoolList/'))
+				return {
+					success: true,
+					data: {
+						poolList: [
+							{
+								type: 'main',
+								address: threePoolAddress,
+							},
+							{
+								type: 'main',
+								address: secondPoolAddress,
+							},
+						],
 					},
-					{
-						type: 'main',
-						address: secondPoolAddress,
+				}
+
+			if (String(url).includes('/getLendingVaults/'))
+				return {
+					success: true,
+					data: {
+						lendingVaultData: [
+							{
+								id: 'oneway-0',
+								name: 'Borrow crvUSD (wstETH collateral)',
+								address: lendingVaultAddress,
+								controllerAddress: '0x1E0165DbD2019441aB7927C018701f3138114D71',
+								ammAddress: '0x847D7a5e4Aa4b380043B2908C29a92E2e5157E64',
+								monetaryPolicyAddress: '0x066a89BdF4eFb6aD58427D278f16B7a2C53c3ceE',
+								rates: {
+									borrowApr: 0.1738,
+									borrowApy: 0.1897,
+									lendApr: 0.0052,
+									lendApy: 0.0052,
+								},
+								gaugeAddress: '0x222d910ef37c06774e1edb9dc9459664f73776f0',
+								assets: {
+									borrowed: {
+										symbol: 'crvUSD',
+										decimals: 18,
+										address: '0xf939e0a03fb07f59a73314e73794be0e57ac1b4e',
+										blockchainId: 'ethereum',
+										usdPrice: 1,
+									},
+									collateral: {
+										symbol: 'wstETH',
+										decimals: 18,
+										address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+										blockchainId: 'ethereum',
+										usdPrice: 2366.23,
+									},
+								},
+								vaultShares: {
+									pricePerShare: 0.00107597892961056,
+									totalShares: 68216.41,
+								},
+								totalSupplied: {
+									total: 73.4,
+									usdTotal: 73.39,
+								},
+								borrowed: {
+									total: 2.19,
+									usdTotal: 2.19,
+								},
+								availableToBorrow: {
+									total: 71.21,
+									usdTotal: 71.2,
+								},
+								usdTotal: 73.39,
+								blockchainId: 'ethereum',
+								registryId: 'oneway',
+							},
+							{
+								id: 'oneway-1',
+								name: 'Second vault',
+								address: '0x1111111111111111111111111111111111111111',
+								controllerAddress: '0x2222222222222222222222222222222222222222',
+								ammAddress: '0x3333333333333333333333333333333333333333',
+								monetaryPolicyAddress: '0x4444444444444444444444444444444444444444',
+								assets: {
+									borrowed: {
+										symbol: 'crvUSD',
+										decimals: 18,
+										address: '0xf939e0a03fb07f59a73314e73794be0e57ac1b4e',
+										blockchainId: 'ethereum',
+									},
+									collateral: {
+										symbol: 'ETH',
+										decimals: 18,
+										address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+										blockchainId: 'ethereum',
+									},
+								},
+								blockchainId: 'ethereum',
+								registryId: 'oneway',
+							},
+						],
 					},
-				],
-			},
+				}
+
+			throw new Error(`unexpected Curve url ${url}`)
 		})
 
 		const snapshot = await networkCurvePoolsResolver.resolve.Caip2.resolve(
@@ -429,5 +522,95 @@ describe('Curve Rest resolver module', () => {
 			},
 		])
 		expect(networkCurvePoolsResolver.projections.Evm.$$curvePools.resolveCount(snapshot)).toBe(2)
+		expect(networkCurvePoolsResolver.projections.Evm.$$curveLendingVaults.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: baseNetwork,
+					vaultAddress: '0x8cf1de26729cfb7137af1a6b2a665e099ec319b5',
+				},
+			},
+		])
+		expect(networkCurvePoolsResolver.projections.Evm.$$curveLendingVaults.resolveCount(snapshot)).toBe(2)
+	})
+
+	it('maps a Curve Lend vault snapshot from getLendingVaults', async () => {
+		if (curveLendingVaultResolver == null)
+			throw new Error('missing CurveLendingVault resolver')
+
+		const vaultAddress = '0x8cf1DE26729cfB7137AF1A6B2a665e099EC319b5'
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				lendingVaultData: [
+					{
+						id: 'oneway-0',
+						name: 'Borrow crvUSD (wstETH collateral)',
+						address: vaultAddress,
+						controllerAddress: '0x1E0165DbD2019441aB7927C018701f3138114D71',
+						ammAddress: '0x847D7a5e4Aa4b380043B2908C29a92E2e5157E64',
+						monetaryPolicyAddress: '0x066a89BdF4eFb6aD58427D278f16B7a2C53c3ceE',
+						rates: {
+							borrowApr: 0.1738,
+							borrowApy: 0.1897,
+							lendApr: 0.0052,
+							lendApy: 0.0052,
+						},
+						gaugeAddress: '0x222d910ef37c06774e1edb9dc9459664f73776f0',
+						assets: {
+							borrowed: {
+								symbol: 'crvUSD',
+								decimals: 18,
+								address: '0xf939e0a03fb07f59a73314e73794be0e57ac1b4e',
+								blockchainId: 'ethereum',
+								usdPrice: 1,
+							},
+							collateral: {
+								symbol: 'wstETH',
+								decimals: 18,
+								address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+								blockchainId: 'ethereum',
+								usdPrice: 2366.23,
+							},
+						},
+						vaultShares: {
+							pricePerShare: 0.00107597892961056,
+							totalShares: 68216.41,
+						},
+						totalSupplied: {
+							total: 73.4,
+							usdTotal: 73.39,
+						},
+						borrowed: {
+							total: 2.19,
+							usdTotal: 2.19,
+						},
+						availableToBorrow: {
+							total: 71.21,
+							usdTotal: 71.2,
+						},
+						usdTotal: 73.39,
+						blockchainId: 'ethereum',
+						registryId: 'oneway',
+					},
+				],
+			},
+		})
+
+		const snapshot = await curveLendingVaultResolver.resolve.NetworkVaultAddress.resolve({
+			$network: baseNetwork,
+			vaultAddress,
+		}, context)
+
+		expect(curveLendingVaultResolver.projections.name(snapshot)).toBe('Borrow crvUSD (wstETH collateral)')
+		expect(curveLendingVaultResolver.projections.vaultAddress(snapshot)).toBe('0x8cf1de26729cfb7137af1a6b2a665e099ec319b5')
+		expect(curveLendingVaultResolver.projections.borrowedAssetSymbol(snapshot)).toBe('crvUSD')
+		expect(curveLendingVaultResolver.projections.collateralAssetSymbol(snapshot)).toBe('wstETH')
+		expect(curveLendingVaultResolver.projections.lendApy(snapshot)).toBe(0.0052)
+		expect(curveLendingVaultResolver.projections.$gauge(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: baseNetwork,
+				gaugeAddress: '0x222d910ef37c06774e1edb9dc9459664f73776f0',
+			},
+		})
 	})
 })
