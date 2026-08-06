@@ -20,7 +20,6 @@ const resolverLoaderEntries = [
 	[Source.AptosFullnode_Rest, () => import('./AptosFullnode-Rest.ts')],
 	[Source.AptosIndexer_Graphql, () => import('./AptosIndexer-Graphql.ts')],
 	[Source.Arweave_Graphql, () => import('./Arweave-Graphql.ts')],
-	[Source.Arweave_Rest, () => import('./Arweave-Rest.ts')],
 	[Source.Atproto_BskySocial_Xrpc, () => import('./Atproto-BskySocial-Xrpc.ts')],
 	[Source.Atproto_Xrpc, () => import('./Atproto-Xrpc.ts')],
 	[Source.Balancer_Rest, () => import('./Balancer-Rest.ts')],

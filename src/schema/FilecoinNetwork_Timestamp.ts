@@ -21,14 +21,6 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	height: {
-		primitiveType: type('bigint').narrow((value) => value >= 0n),
-		cardinality: EntityFieldCardinality.One,
-	},
-	tipsetKey: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-	},
 	source: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
@@ -119,11 +111,9 @@ export default entity({
 	},
 })({
 	selectors: {
-		NetworkTimestampMsHeightTipsetKeySource: [
+		NetworkTimestampMsSource: [
 			'$network',
 			'timestampMs',
-			'height',
-			'tipsetKey',
 			'source',
 		],
 	},
