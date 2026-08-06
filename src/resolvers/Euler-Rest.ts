@@ -13,6 +13,8 @@ import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type EulerEvkVaultId = EntitySelector<typeof schema, EntityType.EulerEvkVault>
+type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
+type EvmNetworkAccountTimestampId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount_Timestamp>
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -116,6 +118,53 @@ export default {
 			supplyCap: (vault) => vault.supplyCap,
 			borrowCap: (vault) => vault.borrowCap,
 			interestFee: (vault) => vault.interestFee,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			resolve: {
+				EvmNetworkEvmAccount: {
+					resolve: async ({ $actor, $network }: EvmNetworkAccountId, context) => ({
+						$$timestamps: [
+							{
+								[EntityMetaKey.Selector]: {
+									$account: {
+										$actor,
+										$network,
+									},
+									timestampMs: Date.now(),
+									source: Source.Euler_Rest,
+								},
+							},
+						],
+					}),
+				},
+			},
+		})({
+			$$timestamps: (account) => account.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount_Timestamp,
+			resolve: {
+				AccountTimestampMsSource: {
+					resolve: async ({ $account, timestampMs, source }: EvmNetworkAccountTimestampId) => {
+						const chainId = eip155ChainId($account.$network)
+						const address = $account.$actor.address
+						const { getAccountPositions } = await import('$/sources/Euler/Rest/queries.ts')
+						return {
+							timestampMs,
+							source,
+							contractPositions: await getAccountPositions({
+								chainId,
+								account: address,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			contractPositions: (timestamp) => timestamp.contractPositions,
 		}),
 
 		defineResolver({
