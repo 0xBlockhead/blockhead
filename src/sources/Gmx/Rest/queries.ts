@@ -133,6 +133,15 @@ const optionalNonEmptyDecimalString = (
 		undefined
 )
 
+const optionalSignedDecimalString = (
+	value: string | undefined
+) => (
+	value != null && value.length > 0 && /^-?(?:0|[1-9]\d*)$/.test(value) ?
+		value
+	:
+		undefined
+)
+
 const assertMarketInfoWire = (
 	wire: GmxMarketInfoWire,
 	chainId: number
@@ -147,6 +156,20 @@ const assertMarketInfoWire = (
 	const poolValueMax = optionalNonEmptyDecimalString(wire.poolValueMax)
 	const poolValueMin = optionalNonEmptyDecimalString(wire.poolValueMin)
 	const totalBorrowingFees = optionalNonEmptyDecimalString(wire.totalBorrowingFees)
+	const virtualInventoryForPositions = optionalSignedDecimalString(wire.virtualInventoryForPositions)
+	const virtualInventoryForPositionsInTokens = optionalSignedDecimalString(wire.virtualInventoryForPositionsInTokens)
+	const virtualPoolAmountForLongToken = optionalNonEmptyDecimalString(wire.virtualPoolAmountForLongToken)
+	const virtualPoolAmountForShortToken = optionalNonEmptyDecimalString(wire.virtualPoolAmountForShortToken)
+	const positionImpactFactorPositive = optionalNonEmptyDecimalString(wire.positionImpactFactorPositive)
+	const positionImpactFactorNegative = optionalNonEmptyDecimalString(wire.positionImpactFactorNegative)
+	const positionImpactPoolAmount = optionalNonEmptyDecimalString(wire.positionImpactPoolAmount)
+	const maxOpenInterestLong = optionalNonEmptyDecimalString(wire.maxOpenInterestLong)
+	const maxOpenInterestShort = optionalNonEmptyDecimalString(wire.maxOpenInterestShort)
+	const maxLongPoolAmount = optionalNonEmptyDecimalString(wire.maxLongPoolAmount)
+	const maxShortPoolAmount = optionalNonEmptyDecimalString(wire.maxShortPoolAmount)
+	const minCollateralFactor = optionalNonEmptyDecimalString(wire.minCollateralFactor)
+	const swapImpactPoolAmountLong = optionalNonEmptyDecimalString(wire.swapImpactPoolAmountLong)
+	const swapImpactPoolAmountShort = optionalNonEmptyDecimalString(wire.swapImpactPoolAmountShort)
 
 	return {
 		chainId,
@@ -188,6 +211,48 @@ const assertMarketInfoWire = (
 		}),
 		...(totalBorrowingFees != null && {
 			totalBorrowingFees,
+		}),
+		...(virtualInventoryForPositions != null && {
+			virtualInventoryForPositions,
+		}),
+		...(virtualInventoryForPositionsInTokens != null && {
+			virtualInventoryForPositionsInTokens,
+		}),
+		...(virtualPoolAmountForLongToken != null && {
+			virtualPoolAmountForLongToken,
+		}),
+		...(virtualPoolAmountForShortToken != null && {
+			virtualPoolAmountForShortToken,
+		}),
+		...(positionImpactFactorPositive != null && {
+			positionImpactFactorPositive,
+		}),
+		...(positionImpactFactorNegative != null && {
+			positionImpactFactorNegative,
+		}),
+		...(positionImpactPoolAmount != null && {
+			positionImpactPoolAmount,
+		}),
+		...(maxOpenInterestLong != null && {
+			maxOpenInterestLong,
+		}),
+		...(maxOpenInterestShort != null && {
+			maxOpenInterestShort,
+		}),
+		...(maxLongPoolAmount != null && {
+			maxLongPoolAmount,
+		}),
+		...(maxShortPoolAmount != null && {
+			maxShortPoolAmount,
+		}),
+		...(minCollateralFactor != null && {
+			minCollateralFactor,
+		}),
+		...(swapImpactPoolAmountLong != null && {
+			swapImpactPoolAmountLong,
+		}),
+		...(swapImpactPoolAmountShort != null && {
+			swapImpactPoolAmountShort,
 		}),
 	}
 }

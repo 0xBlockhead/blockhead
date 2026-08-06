@@ -339,7 +339,12 @@ describe('GMX Rest resolver module', () => {
 			throw new Error('missing GmxMarket resolver')
 
 		sourceGetJson.mockResolvedValueOnce([
-			ethMarketInfoWire,
+			{
+				...ethMarketInfoWire,
+				virtualInventoryForPositions: '-1',
+				positionImpactFactorPositive: '2',
+				maxOpenInterestLong: '3',
+			},
 		])
 
 		const snapshot = await gmxMarketResolver.resolve.NetworkMarketTokenAddress.resolve({
@@ -357,6 +362,10 @@ describe('GMX Rest resolver module', () => {
 		expect(gmxMarketResolver.projections.$network(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: baseNetwork,
 		})
+		expect(snapshot).not.toHaveProperty('virtualInventoryForPositions')
+		expect(snapshot).not.toHaveProperty('positionImpactFactorPositive')
+		expect(snapshot).not.toHaveProperty('maxOpenInterestLong')
+		expect(Object.keys(gmxMarketResolver.projections)).not.toContain('virtualInventoryForPositions')
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	})
 

@@ -682,10 +682,25 @@ describe('Aave account position operations', () => {
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid account positions response envelope`)
 	})
 
-	it('accepts expanded reserve wire (aToken / oracle / caps) while keeping enrolled scalars', async () => {
+	it('accepts expanded reserve + eMode wire and normalizes aToken / oracle addresses', async () => {
 		graphql.mockResolvedValueOnce({
 			market: {
 				...ethereumMarketSnapshot,
+				eModeCategories: [
+					{
+						id: 1,
+						label: 'ETH correlated',
+						maxLTV: {
+							value: '0.93',
+						},
+						liquidationThreshold: {
+							value: '0.95',
+						},
+						liquidationPenalty: {
+							value: '0.01',
+						},
+					},
+				],
 				reserves: [
 					{
 						...ethereumMarketSnapshot.reserves[0],
@@ -768,13 +783,32 @@ describe('Aave account position operations', () => {
 			chainId: 1,
 			poolAddress: ethereumMarket.address,
 		})).resolves.toMatchObject({
+			eModeCategories: [
+				{
+					id: 1,
+					label: 'ETH correlated',
+					maxLTV: {
+						value: '0.93',
+					},
+				},
+			],
 			reserves: [
 				{
 					underlyingToken: {
 						symbol: 'USDC',
+						address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+					},
+					aToken: {
+						address: '0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c',
+						symbol: 'aEthUSDC',
+					},
+					vToken: {
+						address: '0x72e95b8931767c79ba4bee7c3c2a6fa6bd5e4e5c',
+						symbol: 'variableDebtEthUSDC',
 					},
 					flashLoanEnabled: true,
 					usdExchangeRate: '1',
+					usdOracleAddress: '0x736bf902650874390e2fb8c5fcbe5f4d3f2ec6b0',
 					supplyInfo: {
 						canBeCollateral: true,
 						maxLTV: {
@@ -789,6 +823,34 @@ describe('Aave account position operations', () => {
 				},
 			],
 		})
+	})
+
+	it('fails closed when eMode category decimals are malformed', async () => {
+		graphql.mockResolvedValueOnce({
+			market: {
+				...ethereumMarketSnapshot,
+				eModeCategories: [
+					{
+						id: 1,
+						label: 'ETH correlated',
+						maxLTV: {
+							value: 'not-a-decimal',
+						},
+						liquidationThreshold: {
+							value: '0.95',
+						},
+						liquidationPenalty: {
+							value: '0.01',
+						},
+					},
+				],
+			},
+		})
+
+		await expect(getMarket({
+			chainId: 1,
+			poolAddress: ethereumMarket.address,
+		})).rejects.toThrow(`${Source.Aave_Rest}: invalid eMode decimal value`)
 	})
 
 	it('preserves optional currency name on account supply positions', async () => {

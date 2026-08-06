@@ -41,6 +41,22 @@ const marketFields = `
 	}
 `
 
+const marketEmodeFields = `
+	eModeCategories {
+		id
+		label
+		maxLTV {
+			value
+		}
+		liquidationThreshold {
+			value
+		}
+		liquidationPenalty {
+			value
+		}
+	}
+`
+
 const aaveCurrencyFields = `
 	address
 	name
@@ -183,40 +199,105 @@ const assertMarketWire = (
 	}
 }
 
+const assertOptionalCurrency = (
+	currency: AaveMarketSnapshotWire['reserves'][number]['aToken'],
+	expectedChainId: number,
+	label: string
+) => {
+	if (currency == null)
+		return undefined
+	if (currency.chainId !== expectedChainId)
+		throw new Error(`${Source.Aave_Rest}: ${label} chain mismatch`)
+	return {
+		...currency,
+		address: assertPoolAddress(currency.address),
+	}
+}
+
 const assertMarketSnapshotWire = (
 	market: AaveMarketSnapshotWire,
 	expected: {
 		chainId: number
 		poolAddress: `0x${string}`
 	}
-) => ({
-	...assertMarketWire(market, expected),
-	reserves: market.reserves.map((reserve) => {
-		if (reserve.underlyingToken.chainId !== expected.chainId)
-			throw new Error(`${Source.Aave_Rest}: reserve chain mismatch`)
-		const address = assertPoolAddress(reserve.underlyingToken.address)
+) => {
+	const asserted = assertMarketWire(market, expected)
+	const eModeCategories = market.eModeCategories?.map((category) => {
+		if (category.label.length < 1)
+			throw new Error(`${Source.Aave_Rest}: eMode category missing label`)
 		if (
-			!decimalPattern.test(reserve.size.amount.value)
-			|| !decimalPattern.test(reserve.supplyInfo.apy.value)
-			|| (
-				reserve.borrowInfo != null
-				&& (
-					!decimalPattern.test(reserve.borrowInfo.apy.value)
-					|| !decimalPattern.test(reserve.borrowInfo.availableLiquidity.amount.value)
+			!decimalPattern.test(category.maxLTV.value)
+			|| !decimalPattern.test(category.liquidationThreshold.value)
+			|| !decimalPattern.test(category.liquidationPenalty.value)
+		)
+			throw new Error(`${Source.Aave_Rest}: invalid eMode decimal value`)
+		return category
+	})
+
+	return {
+		...asserted,
+		...(eModeCategories != null && {
+			eModeCategories,
+		}),
+		reserves: market.reserves.map((reserve) => {
+			if (reserve.underlyingToken.chainId !== expected.chainId)
+				throw new Error(`${Source.Aave_Rest}: reserve chain mismatch`)
+			const address = assertPoolAddress(reserve.underlyingToken.address)
+			const aToken = assertOptionalCurrency(reserve.aToken, expected.chainId, 'aToken')
+			const vToken = assertOptionalCurrency(reserve.vToken, expected.chainId, 'vToken')
+			const usdOracleAddress = (
+				reserve.usdOracleAddress != null && reserve.usdOracleAddress.length > 0 ?
+					assertPoolAddress(reserve.usdOracleAddress)
+				:
+					undefined
+			)
+			if (
+				!decimalPattern.test(reserve.size.amount.value)
+				|| !decimalPattern.test(reserve.supplyInfo.apy.value)
+				|| (
+					reserve.usdExchangeRate != null
+					&& !decimalPattern.test(reserve.usdExchangeRate)
+				)
+				|| (
+					reserve.borrowInfo != null
+					&& (
+						!decimalPattern.test(reserve.borrowInfo.apy.value)
+						|| !decimalPattern.test(reserve.borrowInfo.availableLiquidity.amount.value)
+						|| (
+							reserve.borrowInfo.utilizationRate != null
+							&& !decimalPattern.test(reserve.borrowInfo.utilizationRate.value)
+						)
+					)
 				)
 			)
-		)
-			throw new Error(`${Source.Aave_Rest}: invalid reserve decimal value`)
+				throw new Error(`${Source.Aave_Rest}: invalid reserve decimal value`)
 
-		return {
-			...reserve,
-			underlyingToken: {
-				...reserve.underlyingToken,
-				address,
-			},
-		}
-	}),
-})
+			const {
+				aToken: _aToken,
+				vToken: _vToken,
+				usdOracleAddress: _usdOracleAddress,
+				...reserveRest
+			} = reserve
+
+			return {
+				...reserveRest,
+				underlyingToken: {
+					...reserve.underlyingToken,
+					address,
+				},
+				...(aToken != null && {
+					aToken,
+				}),
+				...(vToken != null && {
+					vToken,
+				}),
+				...(usdOracleAddress != null && {
+					usdOracleAddress,
+				}),
+			}
+		}),
+	}
+}
 
 /** List Aave markets for one or more supported EIP-155 chain ids. */
 export const listMarkets = async ({
@@ -280,6 +361,7 @@ export const getMarket = async ({
 			query Market($request: MarketRequest!) {
 				market(request: $request) {
 					${marketFields}
+					${marketEmodeFields}
 					${marketReserveFields}
 				}
 			}

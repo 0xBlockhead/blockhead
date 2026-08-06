@@ -292,7 +292,24 @@ describe('Aave Rest resolver module', () => {
 			throw new Error('missing AaveMarket resolver')
 
 		graphql.mockResolvedValueOnce({
-			market: ethereumMarket,
+			market: {
+				...ethereumMarket,
+				eModeCategories: [
+					{
+						id: 1,
+						label: 'ETH correlated',
+						maxLTV: {
+							value: '0.93',
+						},
+						liquidationThreshold: {
+							value: '0.95',
+						},
+						liquidationPenalty: {
+							value: '0.01',
+						},
+					},
+				],
+			},
 		})
 
 		const snapshot = await aaveMarketResolver.resolve.NetworkPoolAddress.resolve({
@@ -322,6 +339,8 @@ describe('Aave Rest resolver module', () => {
 			},
 		])
 		expect(aaveMarketResolver.projections.$$reserves.resolveCount(snapshot)).toBe(1)
+		expect(snapshot).not.toHaveProperty('eModeCategories')
+		expect(Object.keys(aaveMarketResolver.projections)).not.toContain('eModeCategories')
 	})
 
 	it('rejects unsupported chains on AaveMarket before transport', async () => {

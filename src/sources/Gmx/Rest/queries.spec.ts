@@ -182,7 +182,7 @@ describe('GMX markets/info operation', () => {
 		).resolves.toEqual([])
 	})
 
-	it('accepts expanded markets/info wire and keeps borrowing / pool-value transport-only', async () => {
+	it('accepts expanded markets/info wire and keeps borrowing / pool-value / virtual-inventory / impact transport-only', async () => {
 		sourceGetJson.mockResolvedValueOnce([
 			{
 				...ethMarketInfoWire,
@@ -195,6 +195,20 @@ describe('GMX markets/info operation', () => {
 				poolValueMax: '888197856206554643200826204778664729',
 				poolValueMin: '888171650043940338630884878818664729',
 				totalBorrowingFees: '354324936748213529016856038382164',
+				virtualInventoryForPositions: '-204352594385535414637463679334473886',
+				virtualInventoryForPositionsInTokens: '-12345',
+				virtualPoolAmountForLongToken: '13725459730245369856100',
+				virtualPoolAmountForShortToken: '25156239374534',
+				positionImpactFactorPositive: '910017365357238000000000',
+				positionImpactFactorNegative: '1365026048035857100000000',
+				positionImpactPoolAmount: '0',
+				maxOpenInterestLong: '1000000000000000000000000000000',
+				maxOpenInterestShort: '1000000000000000000000000000000',
+				maxLongPoolAmount: '110000000000000000000',
+				maxShortPoolAmount: '500000000000',
+				minCollateralFactor: '10000000000000000000000000000',
+				swapImpactPoolAmountLong: '117174811031582048',
+				swapImpactPoolAmountShort: '10234635',
 			},
 		])
 
@@ -228,6 +242,55 @@ describe('GMX markets/info operation', () => {
 					poolValueMax: '888197856206554643200826204778664729',
 					poolValueMin: '888171650043940338630884878818664729',
 					totalBorrowingFees: '354324936748213529016856038382164',
+					virtualInventoryForPositions: '-204352594385535414637463679334473886',
+					virtualInventoryForPositionsInTokens: '-12345',
+					virtualPoolAmountForLongToken: '13725459730245369856100',
+					virtualPoolAmountForShortToken: '25156239374534',
+					positionImpactFactorPositive: '910017365357238000000000',
+					positionImpactFactorNegative: '1365026048035857100000000',
+					positionImpactPoolAmount: '0',
+					maxOpenInterestLong: '1000000000000000000000000000000',
+					maxOpenInterestShort: '1000000000000000000000000000000',
+					maxLongPoolAmount: '110000000000000000000',
+					maxShortPoolAmount: '500000000000',
+					minCollateralFactor: '10000000000000000000000000000',
+					swapImpactPoolAmountLong: '117174811031582048',
+					swapImpactPoolAmountShort: '10234635',
+				},
+			])
+	})
+
+	it('drops malformed optional virtual-inventory / impact wire instead of failing the market', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				...ethMarketInfoWire,
+				virtualInventoryForPositions: 'not-a-decimal',
+				positionImpactFactorPositive: '',
+				maxOpenInterestLong: '-1',
+			},
+		])
+
+		await expect(
+			getMarketsInfo({
+				chainId: 42161,
+			})
+		)
+			.resolves
+			.toEqual([
+				{
+					chainId: 42161,
+					name: 'ETH/USD [WETH-USDC]',
+					marketTokenAddress: '0x70d95587d40a2caf56bd97485ab3eec10bee6336',
+					indexTokenAddress: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+					longTokenAddress: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+					shortTokenAddress: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+					isSpotOnly: false,
+					isDisabled: false,
+					longInterestUsd: '11844876917225365753752459368138129000',
+					shortInterestUsd: '15383126719457743771450388674116662232',
+					longPoolAmount: '11412900167379942479683',
+					shortPoolAmount: '20907313850254',
+					fundingFactorPerSecond: '5447368087265348055555',
 				},
 			])
 	})

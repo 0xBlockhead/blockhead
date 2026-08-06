@@ -28,6 +28,20 @@ export type GmxMarketInfoWire = {
 	poolValueMax?: string
 	poolValueMin?: string
 	totalBorrowingFees?: string
+	virtualInventoryForPositions?: string
+	virtualInventoryForPositionsInTokens?: string
+	virtualPoolAmountForLongToken?: string
+	virtualPoolAmountForShortToken?: string
+	positionImpactFactorPositive?: string
+	positionImpactFactorNegative?: string
+	positionImpactPoolAmount?: string
+	maxOpenInterestLong?: string
+	maxOpenInterestShort?: string
+	maxLongPoolAmount?: string
+	maxShortPoolAmount?: string
+	minCollateralFactor?: string
+	swapImpactPoolAmountLong?: string
+	swapImpactPoolAmountShort?: string
 	data?: string
 }
 
@@ -63,6 +77,34 @@ export type GmxMarketInfo = {
 	poolValueMin?: string
 	/** Transport-only — not enrolled on `GmxMarket`. */
 	totalBorrowingFees?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	virtualInventoryForPositions?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	virtualInventoryForPositionsInTokens?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	virtualPoolAmountForLongToken?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	virtualPoolAmountForShortToken?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	positionImpactFactorPositive?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	positionImpactFactorNegative?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	positionImpactPoolAmount?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxOpenInterestLong?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxOpenInterestShort?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxLongPoolAmount?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxShortPoolAmount?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	minCollateralFactor?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	swapImpactPoolAmountLong?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	swapImpactPoolAmountShort?: string
 }
 
 /**
@@ -197,6 +239,20 @@ export const gmxMarketInfoEnvelope = arktype({
 	'poolValueMax?': 'string',
 	'poolValueMin?': 'string',
 	'totalBorrowingFees?': 'string',
+	'virtualInventoryForPositions?': 'string',
+	'virtualInventoryForPositionsInTokens?': 'string',
+	'virtualPoolAmountForLongToken?': 'string',
+	'virtualPoolAmountForShortToken?': 'string',
+	'positionImpactFactorPositive?': 'string',
+	'positionImpactFactorNegative?': 'string',
+	'positionImpactPoolAmount?': 'string',
+	'maxOpenInterestLong?': 'string',
+	'maxOpenInterestShort?': 'string',
+	'maxLongPoolAmount?': 'string',
+	'maxShortPoolAmount?': 'string',
+	'minCollateralFactor?': 'string',
+	'swapImpactPoolAmountLong?': 'string',
+	'swapImpactPoolAmountShort?': 'string',
 	'data?': 'string',
 })
 

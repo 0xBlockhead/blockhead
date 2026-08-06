@@ -6,6 +6,18 @@ export type AaveChainWire = {
 	icon?: string
 }
 
+export type AaveAmountWire = {
+	value: string
+}
+
+export type AaveEmodeCategoryWire = {
+	id: number
+	label: string
+	maxLTV: AaveAmountWire
+	liquidationThreshold: AaveAmountWire
+	liquidationPenalty: AaveAmountWire
+}
+
 export type AaveMarketWire = {
 	name: string
 	address: string
@@ -13,10 +25,8 @@ export type AaveMarketWire = {
 	totalMarketSize: string
 	totalAvailableLiquidity: string
 	chain: AaveChainWire
-}
-
-export type AaveAmountWire = {
-	value: string
+	/** Transport-only — not enrolled on `AaveMarket`. */
+	eModeCategories?: AaveEmodeCategoryWire[]
 }
 
 export type AaveTokenAmountWire = {
@@ -204,7 +214,16 @@ const aaveMarketSummaryEnvelope = arktype({
 	},
 })
 
+const aaveEmodeCategoryEnvelope = arktype({
+	id: 'number.integer >= 0',
+	label: 'string',
+	maxLTV: aaveAmountEnvelope,
+	liquidationThreshold: aaveAmountEnvelope,
+	liquidationPenalty: aaveAmountEnvelope,
+})
+
 export const aaveMarketEnvelope = aaveMarketSummaryEnvelope.and({
+	'eModeCategories?': aaveEmodeCategoryEnvelope.array(),
 	reserves: arktype({
 		underlyingToken: aaveCurrencyEnvelope,
 		'aToken?': aaveCurrencyEnvelope,
