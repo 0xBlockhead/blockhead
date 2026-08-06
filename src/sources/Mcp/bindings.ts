@@ -25,7 +25,7 @@ export default indexSourceBindings([
 				locator: 'mcp',
 			},
 		],
-		wireProtocol: WireProtocol.Mcp,
+		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.McpProtocol,
 		operationGroups: [
 			SourceOperationGroup.AgentCapabilityCatalog,
@@ -51,7 +51,7 @@ export default indexSourceBindings([
 				corsEnabled: false,
 			},
 		],
-		wireProtocol: WireProtocol.Mcp,
+		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.McpProtocol,
 		operationGroups: [
 			SourceOperationGroup.AgentCapabilityCatalog,

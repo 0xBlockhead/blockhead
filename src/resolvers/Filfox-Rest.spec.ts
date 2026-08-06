@@ -11,6 +11,8 @@ const getDeal = vi.hoisted(() => vi.fn())
 const getDeals = vi.hoisted(() => vi.fn())
 const getMessage = vi.hoisted(() => vi.fn())
 const getTipset = vi.hoisted(() => vi.fn())
+const getAddress = vi.hoisted(() => vi.fn())
+const getOverview = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Filfox/Rest/queries.ts', () => ({
 	getBlock,
@@ -19,6 +21,8 @@ vi.mock('$/sources/Filfox/Rest/queries.ts', () => ({
 	getDeals,
 	getMessage,
 	getTipset,
+	getAddress,
+	getOverview,
 }))
 
 const { default: filfoxRest } = await import('$/resolvers/Filfox-Rest.ts')
@@ -62,6 +66,18 @@ const filecoinNetworkDealsResolver = filfoxRest.resolvers.find((resolver) => (
 const networkDealsResolver = filfoxRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 ))
+const minerResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinMiner
+))
+const minerTimestampResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinMiner_Timestamp
+))
+const actorResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinActor
+))
+const actorTimestampResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinActor_Timestamp
+))
 
 if (
 	tipsetResolver == null
@@ -71,6 +87,10 @@ if (
 	|| dealResolver == null
 	|| filecoinNetworkDealsResolver == null
 	|| networkDealsResolver == null
+	|| minerResolver == null
+	|| minerTimestampResolver == null
+	|| actorResolver == null
+	|| actorTimestampResolver == null
 )
 	throw new Error('Filfox-Rest spec missing required resolvers')
 
@@ -82,24 +102,25 @@ describe('Filfox REST resolvers', () => {
 		getDeals.mockReset()
 		getMessage.mockReset()
 		getTipset.mockReset()
+		getAddress.mockReset()
+		getOverview.mockReset()
 	})
 
-	it('registers chain and storage-deal product surfaces without actor state', () => {
+	it('registers chain, deal, miner, and actor product surfaces', () => {
 		expect(filfoxRest.source).toBe(Source.Filfox_Rest)
 		expect(filfoxRest.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType.FilecoinTipset,
 			EntityType.FilecoinBlock,
 			EntityType.FilecoinMessage,
 			EntityType.FilecoinBlock,
+			EntityType.FilecoinMiner,
+			EntityType.FilecoinMiner_Timestamp,
+			EntityType.FilecoinActor,
+			EntityType.FilecoinActor_Timestamp,
 			EntityType.FilecoinDeal,
 			EntityType.FilecoinNetwork,
 			EntityType.Network,
 		])
-		expect(filfoxRest.resolvers.some((resolver) => (
-			resolver.entityType === EntityType.FilecoinActor
-			|| resolver.entityType === EntityType.FilecoinActor_Timestamp
-			|| resolver.entityType === EntityType.FilecoinMiner
-		))).toBe(false)
 	})
 
 	it('rejects non-Filecoin networks before HTTP', async () => {
@@ -471,5 +492,141 @@ describe('Filfox REST resolvers', () => {
 			page: 0,
 			pageSize: 8,
 		})
+	})
+
+	it('maps Filfox address power into miner observations keyed by tipset', async () => {
+		getOverview.mockResolvedValue({
+			height: 100,
+			timestamp: 1_700_000_000,
+		})
+		getTipset.mockResolvedValue({
+			height: 100,
+			timestamp: 1_700_000_000,
+			blocks: [
+				{
+					cid: 'bafy1',
+					miner: 'f01000',
+				},
+				{
+					cid: 'bafy2',
+					miner: 'f01001',
+				},
+			],
+		})
+		getAddress.mockResolvedValue({
+			id: 'f01000',
+			address: 'f01000',
+			balance: '1',
+			miner: {
+				owner: {
+					address: 'f1owner',
+					balance: '2',
+				},
+				worker: {
+					address: 'f1worker',
+					balance: '3',
+				},
+				peerId: '12D3',
+				rawBytePower: '10',
+				qualityAdjPower: '20',
+				networkRawBytePower: '100',
+				networkQualityAdjPower: '200',
+				sectors: {
+					live: 5,
+					active: 4,
+					faulty: 1,
+				},
+			},
+		})
+
+		const miner = await minerResolver.resolve.NetworkMinerAddress.resolve({
+			$network: network,
+			minerAddress: 'f01000',
+		}, context)
+		expect(minerResolver.projections.$$timestamps(miner)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$miner: {
+						$network: network,
+						minerAddress: 'f01000',
+					},
+					height: 100n,
+					tipsetKey: 'bafy1,bafy2',
+					source: Source.Filfox_Rest,
+				},
+			},
+		])
+
+		const snapshot = await minerTimestampResolver.resolve.MinerHeightTipsetKeySource.resolve({
+			$miner: {
+				$network: network,
+				minerAddress: 'f01000',
+			},
+			height: 100n,
+			tipsetKey: 'bafy1,bafy2',
+			source: Source.Filfox_Rest,
+		}, context)
+		expect(minerTimestampResolver.projections.qualityAdjustedPower(snapshot)).toBe(20n)
+		expect(minerTimestampResolver.projections.activeSectorCount(snapshot)).toBe(4)
+		expect(minerTimestampResolver.projections.$owner(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				address: 'f1owner',
+			},
+		})
+	})
+
+	it('maps Filfox address balance into actor observations keyed by tipset', async () => {
+		getOverview.mockResolvedValue({
+			height: 100,
+			timestamp: 1_700_000_000,
+		})
+		getTipset.mockResolvedValue({
+			height: 100,
+			timestamp: 1_700_000_000,
+			blocks: [
+				{
+					cid: 'bafy1',
+					miner: 'f01000',
+				},
+			],
+		})
+		getAddress.mockResolvedValue({
+			id: 'f01234',
+			address: 'f1actor',
+			actor: 'account',
+			balance: '999',
+		})
+
+		const actor = await actorResolver.resolve.NetworkAddress.resolve({
+			$network: network,
+			address: 'f1actor',
+		}, context)
+		expect(actorResolver.projections.$$timestamps(actor)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$actor: {
+						$network: network,
+						address: 'f1actor',
+					},
+					height: 100n,
+					tipsetKey: 'bafy1',
+					source: Source.Filfox_Rest,
+				},
+			},
+		])
+
+		const snapshot = await actorTimestampResolver.resolve.ActorHeightTipsetKeySource.resolve({
+			$actor: {
+				$network: network,
+				address: 'f1actor',
+			},
+			height: 100n,
+			tipsetKey: 'bafy1',
+			source: Source.Filfox_Rest,
+		}, context)
+		expect(actorTimestampResolver.projections.idAddress(snapshot)).toBe('f01234')
+		expect(actorTimestampResolver.projections.balanceAttoFil(snapshot)).toBe(999n)
+		expect(actorTimestampResolver.projections.actorCodeCid(snapshot)).toBe('account')
 	})
 })

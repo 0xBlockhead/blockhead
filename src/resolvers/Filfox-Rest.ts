@@ -270,6 +270,12 @@ export default {
 								},
 								[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'nonce')]: BigInt(message.nonce),
 								[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'valueAttoFil')]: BigInt(message.value),
+								...(message.methodNumber != null && {
+									[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'method')]: message.methodNumber,
+								}),
+								...(message.gasLimit != null && {
+									[entityFieldAddressKey(EntityType.FilecoinMessage, [], 'gasLimit')]: BigInt(message.gasLimit),
+								}),
 							},
 						}))
 					},
@@ -277,6 +283,251 @@ export default {
 			},
 		})({
 			$$messages: (snapshot) => snapshot,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinMiner,
+			resolve: {
+				NetworkMinerAddress: {
+					resolve: async ({ $network, minerAddress }) => {
+						assertFilecoinMainnet($network)
+						const {
+							getAddress,
+							getOverview,
+							getTipset,
+						} = await import('$/sources/Filfox/Rest/queries.ts')
+						const [
+							address,
+							overview,
+						] = await Promise.all([
+							getAddress({
+								address: minerAddress,
+							}),
+							getOverview(),
+						])
+						if (address.miner == null)
+							throw new Error(`Filfox_Rest: ${minerAddress} is not a miner actor`)
+
+						const tipset = await getTipset({
+							height: BigInt(overview.height),
+						})
+						return {
+							timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$miner: {
+										$network,
+										minerAddress,
+									},
+									height: BigInt(tipset.height),
+									tipsetKey: tipsetKeyFromBlocks(tipset.blocks),
+									source: Source.Filfox_Rest,
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			$$timestamps: (miner) => miner.timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinMiner_Timestamp,
+			resolve: {
+				MinerHeightTipsetKeySource: {
+					resolve: async ({
+						$miner,
+						height,
+						tipsetKey,
+						source,
+					}) => {
+						assertFilecoinMainnet($miner.$network)
+						if (source !== Source.Filfox_Rest)
+							throw new Error(`Filfox_Rest: unsupported miner observation source ${source}`)
+
+						const {
+							getAddress,
+							getTipset,
+						} = await import('$/sources/Filfox/Rest/queries.ts')
+						const [
+							tipset,
+							address,
+						] = await Promise.all([
+							getTipset({
+								height,
+							}),
+							getAddress({
+								address: $miner.minerAddress,
+							}),
+						])
+						if (
+							BigInt(tipset.height) !== height
+							|| tipsetKeyFromBlocks(tipset.blocks) !== tipsetKey
+						)
+							throw new Error(`Filfox_Rest: miner observation tipset does not match ${height.toString()}/${tipsetKey}`)
+						if (address.miner == null)
+							throw new Error(`Filfox_Rest: ${$miner.minerAddress} is not a miner actor`)
+
+						const miner = address.miner
+						return {
+							height,
+							tipsetKey,
+							$tipset: {
+								[EntityMetaKey.Selector]: {
+									$network: $miner.$network,
+									height,
+									tipsetKey,
+								},
+							},
+							...(miner.owner?.address != null && {
+								$owner: {
+									[EntityMetaKey.Selector]: {
+										$network: $miner.$network,
+										address: miner.owner.address,
+									},
+								},
+							}),
+							...(miner.worker?.address != null && {
+								$worker: {
+									[EntityMetaKey.Selector]: {
+										$network: $miner.$network,
+										address: miner.worker.address,
+									},
+								},
+							}),
+							...(miner.peerId != null && miner.peerId !== '' && {
+								peerId: miner.peerId,
+							}),
+							...(miner.rawBytePower != null && {
+								rawBytePower: BigInt(miner.rawBytePower),
+							}),
+							qualityAdjustedPower: BigInt(miner.qualityAdjPower),
+							...(miner.networkRawBytePower != null && {
+								networkRawBytePower: BigInt(miner.networkRawBytePower),
+							}),
+							...(miner.networkQualityAdjPower != null && {
+								networkQualityAdjustedPower: BigInt(miner.networkQualityAdjPower),
+							}),
+							...(miner.sectors != null && {
+								activeSectorCount: miner.sectors.active,
+								liveSectorCount: miner.sectors.live,
+								faultySectorCount: miner.sectors.faulty,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			height: (timestamp) => timestamp.height,
+			tipsetKey: (timestamp) => timestamp.tipsetKey,
+			$tipset: (timestamp) => timestamp.$tipset,
+			$owner: (timestamp) => timestamp.$owner,
+			$worker: (timestamp) => timestamp.$worker,
+			peerId: (timestamp) => timestamp.peerId,
+			rawBytePower: (timestamp) => timestamp.rawBytePower,
+			qualityAdjustedPower: (timestamp) => timestamp.qualityAdjustedPower,
+			networkRawBytePower: (timestamp) => timestamp.networkRawBytePower,
+			networkQualityAdjustedPower: (timestamp) => timestamp.networkQualityAdjustedPower,
+			activeSectorCount: (timestamp) => timestamp.activeSectorCount,
+			liveSectorCount: (timestamp) => timestamp.liveSectorCount,
+			faultySectorCount: (timestamp) => timestamp.faultySectorCount,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinActor,
+			resolve: {
+				NetworkAddress: {
+					resolve: async ({ $network, address: actorAddress }) => {
+						assertFilecoinMainnet($network)
+						const {
+							getOverview,
+							getTipset,
+						} = await import('$/sources/Filfox/Rest/queries.ts')
+						const overview = await getOverview()
+						const tipset = await getTipset({
+							height: BigInt(overview.height),
+						})
+						return {
+							timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$actor: {
+										$network,
+										address: actorAddress,
+									},
+									height: BigInt(tipset.height),
+									tipsetKey: tipsetKeyFromBlocks(tipset.blocks),
+									source: Source.Filfox_Rest,
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			$$timestamps: (actor) => actor.timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinActor_Timestamp,
+			resolve: {
+				ActorHeightTipsetKeySource: {
+					resolve: async ({
+						$actor,
+						height,
+						tipsetKey,
+						source,
+					}) => {
+						assertFilecoinMainnet($actor.$network)
+						if (source !== Source.Filfox_Rest)
+							throw new Error(`Filfox_Rest: unsupported actor observation source ${source}`)
+
+						const {
+							getAddress,
+							getTipset,
+						} = await import('$/sources/Filfox/Rest/queries.ts')
+						const [
+							tipset,
+							address,
+						] = await Promise.all([
+							getTipset({
+								height,
+							}),
+							getAddress({
+								address: $actor.address,
+							}),
+						])
+						if (
+							BigInt(tipset.height) !== height
+							|| tipsetKeyFromBlocks(tipset.blocks) !== tipsetKey
+						)
+							throw new Error(`Filfox_Rest: actor observation tipset does not match ${height.toString()}/${tipsetKey}`)
+
+						return {
+							height,
+							tipsetKey,
+							$tipset: {
+								[EntityMetaKey.Selector]: {
+									$network: $actor.$network,
+									height,
+									tipsetKey,
+								},
+							},
+							idAddress: address.id,
+							balanceAttoFil: BigInt(address.balance),
+							...(address.actor != null && address.actor !== '' && {
+								actorCodeCid: address.actor,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			height: (timestamp) => timestamp.height,
+			tipsetKey: (timestamp) => timestamp.tipsetKey,
+			$tipset: (timestamp) => timestamp.$tipset,
+			idAddress: (timestamp) => timestamp.idAddress,
+			actorCodeCid: (timestamp) => timestamp.actorCodeCid,
+			balanceAttoFil: (timestamp) => timestamp.balanceAttoFil,
 		}),
 
 		defineResolver({
@@ -312,6 +563,22 @@ export default {
 							storagePricePerEpochAttoFil: BigInt(deal.storagePricePerEpoch),
 							providerCollateralAttoFil: BigInt(deal.providerCollateral),
 							clientCollateralAttoFil: BigInt(deal.clientCollateral),
+							timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$deal: {
+										$network,
+										dealId,
+									},
+									timestampMs: deal.timestamp * 1000,
+									source: Source.Filfox_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'height')]: BigInt(deal.height),
+									[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'verifiedDeal')]: deal.verifiedDeal,
+									[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'providerCollateralAttoFil')]: BigInt(deal.providerCollateral),
+									[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'clientCollateralAttoFil')]: BigInt(deal.clientCollateral),
+								},
+							}],
 						}
 					},
 				},
@@ -327,6 +594,7 @@ export default {
 			storagePricePerEpochAttoFil: (deal) => deal.storagePricePerEpochAttoFil,
 			providerCollateralAttoFil: (deal) => deal.providerCollateralAttoFil,
 			clientCollateralAttoFil: (deal) => deal.clientCollateralAttoFil,
+			$$timestamps: (deal) => deal.timestamps,
 		}),
 
 		defineResolver({
