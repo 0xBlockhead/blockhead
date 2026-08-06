@@ -384,7 +384,7 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 		expect(print(executeSui.mock.calls[0][0])).toContain('SuiRecentTransactions')
 	})
 
-	it('projects transaction identity, kind, gas, and checkpoint effects', async () => {
+	it('projects transaction identity, kind, gas, checkpoint effects, and nested facets', async () => {
 		executeSui.mockResolvedValueOnce({
 			transaction: {
 				digest: 'TransactionDigest',
@@ -393,6 +393,25 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 				},
 				kind: {
 					__typename: 'ProgrammableTransaction',
+					commands: {
+						nodes: [
+							{
+								__typename: 'MoveCallCommand',
+								function: {
+									name: 'transfer',
+									module: {
+										name: 'pay',
+										package: {
+											address: '0x2',
+										},
+									},
+								},
+							},
+							{
+								__typename: 'TransferObjectsCommand',
+							},
+						],
+					},
 				},
 				gasInput: {
 					gasBudget: '1000',
@@ -412,6 +431,63 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 					},
 					checkpoint: {
 						sequenceNumber: 100,
+					},
+					balanceChanges: {
+						nodes: [{
+							owner: {
+								address: '0x2',
+							},
+							coinType: {
+								repr: '0x2::sui::SUI',
+							},
+							amount: '-100',
+						}],
+					},
+					objectChanges: {
+						nodes: [{
+							address: '0xabc',
+							idCreated: true,
+							idDeleted: false,
+							outputState: {
+								version: 1,
+								digest: 'ObjectDigest',
+								asMoveObject: {
+									contents: {
+										type: {
+											repr: '0x2::coin::Coin<0x2::sui::SUI>',
+										},
+									},
+								},
+								owner: {
+									__typename: 'AddressOwner',
+									address: {
+										address: '0x2',
+									},
+								},
+							},
+						}],
+					},
+					events: {
+						nodes: [{
+							sequenceNumber: 0,
+							sender: {
+								address: '0x2',
+							},
+							contents: {
+								type: {
+									repr: '0x2::coin::TransferEvent',
+								},
+								json: {
+									amount: '1',
+								},
+							},
+							transactionModule: {
+								name: 'pay',
+								package: {
+									address: '0x2',
+								},
+							},
+						}],
 					},
 				},
 			},
@@ -433,8 +509,56 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 				storageRebate: '5',
 				nonRefundableStorageFee: '1',
 			},
+			commands: [
+				{
+					commandIndex: 0,
+					commandKind: 'MoveCallCommand',
+					packageId: `0x${'0'.repeat(63)}2`,
+					moduleName: 'pay',
+					functionName: 'transfer',
+					typeArguments: [],
+				},
+				{
+					commandIndex: 1,
+					commandKind: 'TransferObjectsCommand',
+					typeArguments: [],
+				},
+			],
+			balanceChanges: [{
+				changeIndex: 0,
+				ownerSelector: {
+					kind: 'Address',
+					address: `0x${'0'.repeat(63)}2`,
+				},
+				coinType: '0x2::sui::SUI',
+				amountDelta: -100n,
+			}],
+			objectChanges: [{
+				changeIndex: 0,
+				changeKind: 'Created',
+				objectId: `0x${'0'.repeat(61)}abc`,
+				objectType: '0x2::coin::Coin<0x2::sui::SUI>',
+				ownerSelector: {
+					kind: 'AddressOwner',
+					address: `0x${'0'.repeat(63)}2`,
+				},
+				version: 1n,
+				digest: 'ObjectDigest',
+			}],
+			events: [{
+				eventIndex: 0,
+				eventType: '0x2::coin::TransferEvent',
+				packageId: `0x${'0'.repeat(63)}2`,
+				moduleName: 'pay',
+				sender: `0x${'0'.repeat(63)}2`,
+				value: {
+					amount: '1',
+				},
+			}],
 		})
-		expect(print(executeSui.mock.calls[0][0])).toContain('transaction(digest: $digest)')
+		expect(print(executeSui.mock.calls[0][0])).toContain('balanceChanges')
+		expect(print(executeSui.mock.calls[0][0])).toContain('objectChanges')
+		expect(print(executeSui.mock.calls[0][0])).toContain('MoveCallCommand')
 	})
 
 	it('fail-closes missing checkpoint digests, sequence mismatches, and incomplete transactions', async () => {

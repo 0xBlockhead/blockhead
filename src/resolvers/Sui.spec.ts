@@ -436,6 +436,20 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 					},
 					kind: {
 						__typename: 'ProgrammableTransaction',
+						commands: {
+							nodes: [{
+								__typename: 'MoveCallCommand',
+								function: {
+									name: 'transfer',
+									module: {
+										name: 'pay',
+										package: {
+											address: canonicalAddress,
+										},
+									},
+								},
+							}],
+						},
 					},
 					gasInput: {
 						gasBudget: '1000',
@@ -455,6 +469,63 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 						},
 						checkpoint: {
 							sequenceNumber: 100,
+						},
+						balanceChanges: {
+							nodes: [{
+								owner: {
+									address: canonicalAddress,
+								},
+								coinType: {
+									repr: '0x2::sui::SUI',
+								},
+								amount: '-42',
+							}],
+						},
+						objectChanges: {
+							nodes: [{
+								address: canonicalAddress,
+								idCreated: false,
+								idDeleted: false,
+								outputState: {
+									version: 9,
+									digest: 'ObjectDigest',
+									asMoveObject: {
+										contents: {
+											type: {
+												repr: '0x2::coin::Coin<0x2::sui::SUI>',
+											},
+										},
+									},
+									owner: {
+										__typename: 'AddressOwner',
+										address: {
+											address: canonicalAddress,
+										},
+									},
+								},
+							}],
+						},
+						events: {
+							nodes: [{
+								sequenceNumber: 0,
+								sender: {
+									address: canonicalAddress,
+								},
+								contents: {
+									type: {
+										repr: '0x2::coin::TransferEvent',
+									},
+									json: {
+										ok: true,
+									},
+								},
+								transactionModule: {
+									name: 'pay',
+									package: {
+										address: canonicalAddress,
+									},
+								},
+							}],
 						},
 					},
 				},
@@ -467,6 +538,9 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 					},
 					kind: {
 						__typename: 'ProgrammableTransaction',
+						commands: {
+							nodes: [],
+						},
 					},
 					gasInput: {
 						gasBudget: '1000',
@@ -486,6 +560,15 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 						},
 						checkpoint: {
 							sequenceNumber: 100,
+						},
+						balanceChanges: {
+							nodes: [],
+						},
+						objectChanges: {
+							nodes: [],
+						},
+						events: {
+							nodes: [],
 						},
 					},
 				},
@@ -524,6 +607,81 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 					nonRefundableStorageFee: '1',
 				},
 				[entityFieldAddressKey(EntityType.SuiTransaction_Timestamp, [], 'effectsDigest')]: 'EffectsDigest',
+			},
+		}])
+		expect(transactionResolver.projections.$$commands(transactionSnapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: suiNetwork,
+					digest: 'TransactionDigest',
+				},
+				commandIndex: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'commandKind')]: 'MoveCallCommand',
+				[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'typeArguments')]: [],
+				[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'packageId')]: canonicalAddress,
+				[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'moduleName')]: 'pay',
+				[entityFieldAddressKey(EntityType.SuiProgrammableTransactionCommand, [], 'functionName')]: 'transfer',
+			},
+		}])
+		expect(transactionResolver.projections.$$balanceChanges(transactionSnapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: suiNetwork,
+					digest: 'TransactionDigest',
+				},
+				changeIndex: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.SuiBalanceChange, [], 'amountDelta')]: -42n,
+				[entityFieldAddressKey(EntityType.SuiBalanceChange, [], 'ownerSelector')]: {
+					kind: 'Address',
+					address: canonicalAddress,
+				},
+				[entityFieldAddressKey(EntityType.SuiBalanceChange, [], 'coinType')]: '0x2::sui::SUI',
+				[entityFieldAddressKey(EntityType.SuiBalanceChange, [], '$coinType')]: {
+					[EntityMetaKey.Selector]: {
+						$network: suiNetwork,
+						coinType: '0x2::sui::SUI',
+					},
+				},
+			},
+		}])
+		expect(transactionResolver.projections.$$objectChanges(transactionSnapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: suiNetwork,
+					digest: 'TransactionDigest',
+				},
+				changeIndex: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'changeKind')]: 'Mutated',
+				[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'objectId')]: canonicalAddress,
+				[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'objectType')]: '0x2::coin::Coin<0x2::sui::SUI>',
+				[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'ownerSelector')]: {
+					kind: 'AddressOwner',
+					address: canonicalAddress,
+				},
+				[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'version')]: 9n,
+				[entityFieldAddressKey(EntityType.SuiObjectChange, [], 'digest')]: 'ObjectDigest',
+			},
+		}])
+		expect(transactionResolver.projections.$$events(transactionSnapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: suiNetwork,
+				transactionDigest: 'TransactionDigest',
+				eventIndex: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.SuiEvent, [], 'eventType')]: '0x2::coin::TransferEvent',
+				[entityFieldAddressKey(EntityType.SuiEvent, [], 'packageId')]: canonicalAddress,
+				[entityFieldAddressKey(EntityType.SuiEvent, [], 'moduleName')]: 'pay',
+				[entityFieldAddressKey(EntityType.SuiEvent, [], 'sender')]: canonicalAddress,
+				[entityFieldAddressKey(EntityType.SuiEvent, [], 'value')]: {
+					ok: true,
+				},
 			},
 		}])
 

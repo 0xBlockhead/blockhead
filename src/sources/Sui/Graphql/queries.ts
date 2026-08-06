@@ -132,6 +132,24 @@ const transactionDocument = graphql(`
 			}
 			kind {
 				__typename
+				... on ProgrammableTransaction {
+					commands(first: 50) {
+						nodes {
+							__typename
+							... on MoveCallCommand {
+								function {
+									name
+									module {
+										name
+										package {
+											address
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 			gasInput {
 				gasBudget
@@ -151,6 +169,77 @@ const transactionDocument = graphql(`
 				}
 				checkpoint {
 					sequenceNumber
+				}
+				balanceChanges(first: 50) {
+					nodes {
+						owner {
+							address
+						}
+						coinType {
+							repr
+						}
+						amount
+					}
+				}
+				objectChanges(first: 50) {
+					nodes {
+						address
+						idCreated
+						idDeleted
+						outputState {
+							version
+							digest
+							asMoveObject {
+								contents {
+									type {
+										repr
+									}
+								}
+							}
+							owner {
+								__typename
+								... on AddressOwner {
+									address {
+										address
+									}
+								}
+								... on ObjectOwner {
+									address {
+										address
+									}
+								}
+								... on Shared {
+									initialSharedVersion
+								}
+								... on ConsensusAddressOwner {
+									address {
+										address
+									}
+									startVersion
+								}
+							}
+						}
+					}
+				}
+				events(first: 50) {
+					nodes {
+						sequenceNumber
+						sender {
+							address
+						}
+						contents {
+							type {
+								repr
+							}
+							json
+						}
+						transactionModule {
+							name
+							package {
+								address
+							}
+						}
+					}
 				}
 			}
 		}
@@ -518,6 +607,55 @@ export const getCheckpointByDigest = async (digest: string) => {
 	return checkpoint
 }
 
+const ownerSelectorFromWire = (
+	owner: {
+		__typename: string
+		address?: {
+			address: string
+		} | null
+		initialSharedVersion?: number | string | null
+		startVersion?: number | string | null
+	} | null | undefined
+) => {
+	if (owner == null)
+		return undefined
+	if (owner.__typename === 'AddressOwner' || owner.__typename === 'ObjectOwner' || owner.__typename === 'ConsensusAddressOwner') {
+		if (owner.address == null)
+			throw new Error(`Sui GraphQL: ${owner.__typename} is missing address`)
+		return {
+			kind: owner.__typename,
+			address: normalizeSuiAddress(owner.address.address),
+			...(owner.__typename === 'ConsensusAddressOwner' && owner.startVersion != null && {
+				startVersion: bigintFromWire(owner.startVersion, 'consensus owner start version'),
+			}),
+		}
+	}
+	if (owner.__typename === 'Shared') {
+		return {
+			kind: 'Shared',
+			...(owner.initialSharedVersion != null && {
+				initialSharedVersion: bigintFromWire(owner.initialSharedVersion, 'shared initial version'),
+			}),
+		}
+	}
+	return {
+		kind: owner.__typename,
+	}
+}
+
+const signedBigintFromWire = (
+	value: string | number | null | undefined,
+	label: string
+) => {
+	if (value == null)
+		throw new Error(`Sui GraphQL: missing ${label}`)
+	try {
+		return BigInt(value)
+	} catch {
+		throw new Error(`Sui GraphQL: invalid ${label}`)
+	}
+}
+
 export const getTransaction = async (digest: string) => {
 	if (digest.length === 0)
 		throw new Error('Sui GraphQL transaction digest must not be empty')
@@ -534,8 +672,9 @@ export const getTransaction = async (digest: string) => {
 	if (result.transaction.effects?.checkpoint == null)
 		throw new Error(`Sui GraphQL transaction ${digest} is missing checkpoint effects`)
 
+	const effects = result.transaction.effects
 	const checkpointSequence = bigintFromWire(
-		result.transaction.effects.checkpoint.sequenceNumber,
+		effects.checkpoint.sequenceNumber,
 		'transaction checkpoint sequence'
 	)
 	const sender = (
@@ -544,22 +683,118 @@ export const getTransaction = async (digest: string) => {
 		:
 			normalizeSuiAddress(result.transaction.sender.address)
 	)
-	const gasSummary = result.transaction.effects.gasEffects?.gasSummary
+	const gasSummary = effects.gasEffects?.gasSummary
+	const kind = result.transaction.kind
+	const commands = (
+		kind != null && kind.__typename === 'ProgrammableTransaction' && 'commands' in kind && kind.commands != null ?
+			kind.commands.nodes.map((command, commandIndex) => {
+				if (command.__typename === 'MoveCallCommand' && 'function' in command) {
+					const moveFunction = command.function
+					const packageAddress = moveFunction.module.package?.address
+					if (packageAddress == null || packageAddress === '')
+						throw new Error('Sui GraphQL MoveCallCommand is missing package address')
+					return {
+						commandIndex,
+						commandKind: command.__typename,
+						packageId: normalizeSuiAddress(packageAddress),
+						moduleName: moveFunction.module.name,
+						functionName: moveFunction.name,
+						typeArguments: [] as string[],
+					}
+				}
+				return {
+					commandIndex,
+					commandKind: command.__typename,
+					typeArguments: [] as string[],
+				}
+			})
+		:
+			[]
+	)
+
+	const balanceChanges = (effects.balanceChanges?.nodes ?? []).map((change, changeIndex) => {
+		if (change.coinType == null || change.coinType.repr.length === 0)
+			throw new Error('Sui GraphQL balance change is missing coin type')
+		return {
+			changeIndex,
+			...(change.owner != null && {
+				ownerSelector: {
+					kind: 'Address',
+					address: normalizeSuiAddress(change.owner.address),
+				},
+			}),
+			coinType: change.coinType.repr,
+			amountDelta: signedBigintFromWire(change.amount, 'balance change amount'),
+		}
+	})
+
+	const objectChanges = (effects.objectChanges?.nodes ?? []).map((change, changeIndex) => {
+		if (change.address.length === 0)
+			throw new Error('Sui GraphQL object change is missing object id')
+		const output = change.outputState
+		const objectType = output?.asMoveObject?.contents?.type?.repr
+		const changeKind = (
+			change.idCreated === true ?
+				'Created'
+			: change.idDeleted === true ?
+				'Deleted'
+			:
+				'Mutated'
+		)
+		return {
+			changeIndex,
+			changeKind,
+			objectId: normalizeSuiAddress(change.address),
+			...(objectType != null && objectType !== '' && { objectType }),
+			...(output?.owner != null && {
+				ownerSelector: ownerSelectorFromWire(output.owner),
+			}),
+			...(output?.version != null && {
+				version: bigintFromWire(output.version, 'object version'),
+			}),
+			...(output?.digest != null && output.digest !== '' && {
+				digest: output.digest,
+			}),
+		}
+	})
+
+	const events = (effects.events?.nodes ?? []).map((event) => {
+		const eventType = event.contents?.type?.repr
+		if (eventType == null || eventType === '')
+			throw new Error('Sui GraphQL event is missing type')
+		const packageAddress = event.transactionModule?.package?.address
+		return {
+			eventIndex: Number(event.sequenceNumber),
+			eventType,
+			...(packageAddress != null && packageAddress !== '' && {
+				packageId: normalizeSuiAddress(packageAddress),
+			}),
+			...(event.transactionModule != null && {
+				moduleName: event.transactionModule.name,
+			}),
+			...(event.sender != null && {
+				sender: normalizeSuiAddress(event.sender.address),
+			}),
+			...(event.contents?.json != null && {
+				value: event.contents.json,
+			}),
+		}
+	})
 
 	return {
 		digest: result.transaction.digest,
 		...(sender != null && { sender }),
-		...(result.transaction.kind != null && {
-			transactionKind: result.transaction.kind.__typename,
+		...(kind != null && {
+			transactionKind: kind.__typename,
 		}),
 		checkpointSequence,
-		...(result.transaction.effects.status != null && {
-			status: result.transaction.effects.status,
+		...(effects.status != null && {
+			status: effects.status,
 		}),
-		...(result.transaction.effects.effectsDigest != null && result.transaction.effects.effectsDigest !== '' && {
-			effectsDigest: result.transaction.effects.effectsDigest,
+		...(effects.effectsDigest != null && effects.effectsDigest !== '' && {
+			effectsDigest: effects.effectsDigest,
 		}),
-		timestampMs: timestampMsFromWire(result.transaction.effects.timestamp, 'transaction timestamp'),
+		timestampMs: timestampMsFromWire(effects.timestamp, 'transaction timestamp'),
 		...(result.transaction.gasInput?.gasBudget != null && {
 			gasBudget: bigintFromWire(result.transaction.gasInput.gasBudget, 'gas budget'),
 		}),
@@ -582,5 +817,9 @@ export const getTransaction = async (digest: string) => {
 				}),
 			},
 		}),
+		commands,
+		balanceChanges,
+		objectChanges,
+		events,
 	}
 }
