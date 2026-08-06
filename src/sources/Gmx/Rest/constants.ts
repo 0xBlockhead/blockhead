@@ -55,6 +55,9 @@ export const gmxApiDeployments = [
 /** Fail-closed ceiling for `GET /markets/info` array size. */
 export const gmxMarketsInfoResponseMax = 500
 
+/** Fail-closed ceiling for `GET /positions` array size. */
+export const gmxPositionsInfoResponseMax = 500
+
 
 // Lookups
 

@@ -28,7 +28,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceGetJson,
 }))
 
-const { getMarketsInfo } = await import('$/sources/Gmx/Rest/queries.ts')
+const { getMarketsInfo, getPositionByKey, getPositionsInfo } = await import('$/sources/Gmx/Rest/queries.ts')
 
 const arbitrumBinding = bindings[Source.Gmx_Rest].find((binding) => (
 	binding.target.key === '42161'
@@ -191,7 +191,7 @@ describe('GMX markets/info operation', () => {
 			.rejects
 			.toThrow(`${Source.Gmx_Rest}: unsupported chain id 1`)
 
-		expect(sourceGetJson).not.toHaveBeenCalled()
+		.expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
 	it('fails closed when markets/info is not an array', async () => {
@@ -275,5 +275,306 @@ describe('GMX markets/info operation', () => {
 		)
 			.rejects
 			.toThrow(`${Source.Gmx_Rest}: markets/info response contains duplicate market tokens`)
+	})
+})
+
+const accountAddress = '0xD2C66B256Eb277Cba30b6FcCf4aB5F871452dA77'
+const positionContractKey = '0x28c600b71a4a047cf2b2d8aae918d030bc2ecdf380ffd0794e492a8ff1e540fe'
+
+const hypePositionInfoWire = {
+	key: `${accountAddress}:0xBcb8FE13d02b023e8f94f6881Cc0192fd918A5C0:0xaf88d065e77c8cC2239327C5EDb3A432268e5831:false`,
+	contractKey: positionContractKey,
+	account: accountAddress,
+	marketAddress: '0xBcb8FE13d02b023e8f94f6881Cc0192fd918A5C0',
+	collateralTokenAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+	sizeInUsd: '192117260450461080669733736500000000',
+	sizeInTokens: '342165315190',
+	collateralAmount: '3845775280',
+	pendingBorrowingFeesUsd: '538567792752741562519309192234',
+	increasedAtTime: '1786038798',
+	decreasedAtTime: '0',
+	isLong: false,
+	fundingFeeAmount: '0',
+	claimableLongTokenAmount: '198',
+	claimableShortTokenAmount: '447096',
+	pnl: '-233788809952387203706983875000000',
+	positionFeeAmount: '115286017',
+	traderDiscountAmount: '0',
+	uiFeeAmount: '0',
+	pendingImpactAmount: '-15993617',
+	positionValueInUsd: '3481934038682740360650319202736789',
+	data: '',
+	indexName: 'HYPE/USD',
+	poolName: 'BTC-USDC',
+	markPrice: '56215823381631596250000000000000',
+	entryPrice: '56147497107876301303295094075721',
+	liquidationPrice: '56675975955704991845031000000000',
+	collateralUsd: '3845252843953159660042196000000000',
+	remainingCollateralUsd: '3844714276160406918479676690807766',
+	remainingCollateralAmount: '3845236639',
+	hasLowCollateral: true,
+	leverage: '532044',
+	leverageWithPnl: '532044',
+	leverageWithoutPnl: '499691',
+	pnlPercentage: '-607',
+	pnlAfterFees: '-234327377745139945269503184192234',
+	pnlAfterFeesPercentage: '-609',
+	netValueAfterAllFees: '3481250135511046248670946767469291',
+	pnlAfterAllFees: '-364002708442113411371249232530709',
+	pnlAfterAllFeesPercentage: '-946',
+	netValue: '3610925466208019714772692815807766',
+	netPriceImapctDeltaUsd: '-14404974426696817699905806438475',
+	priceImpactDiffUsd: '0',
+	pendingImpactUsd: '-8990943485054605855211362500000',
+	closePriceImpactDeltaUsd: '-5414030941642211844694443938475',
+	closingFeeUsd: '115270356270276648401840241900000',
+	uiFeeUsd: '0',
+	pendingFundingFeesUsd: '0',
+	pendingClaimableFundingFeesUsd: '574766621831242719967200000000',
+} as const
+
+const normalizedHypePosition = {
+	chainId: 42161,
+	key: hypePositionInfoWire.key,
+	contractKey: '0x28c600b71a4a047cf2b2d8aae918d030bc2ecdf380ffd0794e492a8ff1e540fe',
+	account: '0xd2c66b256eb277cba30b6fccf4ab5f871452da77',
+	marketAddress: '0xbcb8fe13d02b023e8f94f6881cc0192fd918a5c0',
+	collateralTokenAddress: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+	sizeInUsd: '192117260450461080669733736500000000',
+	sizeInTokens: '342165315190',
+	collateralAmount: '3845775280',
+	pendingBorrowingFeesUsd: '538567792752741562519309192234',
+	increasedAtTime: '1786038798',
+	decreasedAtTime: '0',
+	isLong: false,
+	fundingFeeAmount: '0',
+	claimableLongTokenAmount: '198',
+	claimableShortTokenAmount: '447096',
+	pnl: '-233788809952387203706983875000000',
+	positionFeeAmount: '115286017',
+	traderDiscountAmount: '0',
+	uiFeeAmount: '0',
+	pendingImpactAmount: '-15993617',
+	positionValueInUsd: '3481934038682740360650319202736789',
+	indexName: 'HYPE/USD',
+	poolName: 'BTC-USDC',
+	markPrice: '56215823381631596250000000000000',
+	entryPrice: '56147497107876301303295094075721',
+	liquidationPrice: '56675975955704991845031000000000',
+	collateralUsd: '3845252843953159660042196000000000',
+	remainingCollateralUsd: '3844714276160406918479676690807766',
+	remainingCollateralAmount: '3845236639',
+	hasLowCollateral: true,
+	leverage: '532044',
+	leverageWithPnl: '532044',
+	leverageWithoutPnl: '499691',
+	pnlPercentage: '-607',
+	pnlAfterFees: '-234327377745139945269503184192234',
+	pnlAfterFeesPercentage: '-609',
+	netValueAfterAllFees: '3481250135511046248670946767469291',
+	pnlAfterAllFees: '-364002708442113411371249232530709',
+	pnlAfterAllFeesPercentage: '-946',
+	netValue: '3610925466208019714772692815807766',
+	netPriceImapctDeltaUsd: '-14404974426696817699905806438475',
+	priceImpactDiffUsd: '0',
+	pendingImpactUsd: '-8990943485054605855211362500000',
+	closePriceImpactDeltaUsd: '-5414030941642211844694443938475',
+	closingFeeUsd: '115270356270276648401840241900000',
+	uiFeeUsd: '0',
+	pendingFundingFeesUsd: '0',
+	pendingClaimableFundingFeesUsd: '574766621831242719967200000000',
+} as const
+
+describe('GMX positions operations', () => {
+	beforeEach(() => {
+		sourceGetJson.mockReset()
+	})
+
+	it('reads account positions for a supported chain', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			hypePositionInfoWire,
+		])
+
+		await expect(
+			getPositionsInfo({
+				chainId: 42161,
+				address: accountAddress,
+				includeRelatedOrders: true,
+			})
+		)
+			.resolves
+			.toEqual([
+				normalizedHypePosition,
+			])
+
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			arbitrumBinding,
+			httpUrl(arbitrumBinding!, '/positions', {
+				address: '0xd2c66b256eb277cba30b6fccf4ab5f871452da77',
+				includeRelatedOrders: true,
+			})
+		)
+	})
+
+	it('reads a single position by contractKey', async () => {
+		sourceGetJson.mockResolvedValueOnce(hypePositionInfoWire)
+
+		await expect(
+			getPositionByKey({
+				chainId: 42161,
+				contractKey: positionContractKey,
+			})
+		)
+			.resolves
+			.toEqual(normalizedHypePosition)
+
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			arbitrumBinding,
+			httpUrl(arbitrumBinding!, `/positions/${normalizedHypePosition.contractKey}`)
+		)
+	})
+
+	it('preserves a successful empty positions list', async () => {
+		sourceGetJson.mockResolvedValueOnce([])
+
+		await expect(
+			getPositionsInfo({
+				chainId: 42161,
+				address: accountAddress,
+			})
+		).resolves.toEqual([])
+	})
+
+	it('rejects unsupported chains before transport', async () => {
+		await expect(
+			getPositionsInfo({
+				chainId: 1,
+				address: accountAddress,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: unsupported chain id 1`)
+
+		await expect(
+			getPositionByKey({
+				chainId: 1,
+				contractKey: positionContractKey,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: unsupported chain id 1`)
+
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('rejects invalid account addresses before transport', async () => {
+		await expect(
+			getPositionsInfo({
+				chainId: 42161,
+				address: 'not-an-address',
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: invalid account not-an-address`)
+
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('rejects invalid contract keys before transport', async () => {
+		await expect(
+			getPositionByKey({
+				chainId: 42161,
+				contractKey: '0x1234',
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: invalid contractKey 0x1234`)
+
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('fails closed when positions is not an array', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			positions: [],
+		})
+
+		await expect(
+			getPositionsInfo({
+				chainId: 42161,
+				address: accountAddress,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: positions response is not an array`)
+	})
+
+	it('fails closed when a position omits positionValueInUsd', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				...hypePositionInfoWire,
+				positionValueInUsd: undefined,
+			},
+		])
+
+		await expect(
+			getPositionsInfo({
+				chainId: 42161,
+				address: accountAddress,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: position missing positionValueInUsd`)
+	})
+
+	it('fails closed when a position account mismatches the request', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				...hypePositionInfoWire,
+				account: '0x0000000000000000000000000000000000000001',
+			},
+		])
+
+		await expect(
+			getPositionsInfo({
+				chainId: 42161,
+				address: accountAddress,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: positions response account mismatch`)
+	})
+
+	it('fails closed for duplicate contract keys', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			hypePositionInfoWire,
+			{
+				...hypePositionInfoWire,
+				key: `${accountAddress}:duplicate`,
+			},
+		])
+
+		await expect(
+			getPositionsInfo({
+				chainId: 42161,
+				address: accountAddress,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: positions response contains duplicate contract keys`)
+	})
+
+	it('fails closed when positions/{key} returns an array', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			hypePositionInfoWire,
+		])
+
+		await expect(
+			getPositionByKey({
+				chainId: 42161,
+				contractKey: positionContractKey,
+			})
+		)
+			.rejects
+			.toThrow(`${Source.Gmx_Rest}: positions/{key} response is not an object`)
 	})
 })
