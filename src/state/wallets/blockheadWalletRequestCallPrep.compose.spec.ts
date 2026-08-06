@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import { WalletCapability, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'
+import { Source } from '$/sources/Source.ts'
+import { sessionSimulationObservation } from '$/state/sessions/sessionLifecycleState.ts'
+import {
+	preparedWalletRequestRejection,
+} from './preparedWalletRequestRejection.ts'
 import {
 	draftSessionLifecycle,
 	isEditableSessionLifecycle,
@@ -211,5 +216,61 @@ describe('BlockheadWalletRequestCall prep compose', () => {
 		expect(isEditableSessionLifecycle(unlocked!)).toBe(true)
 		expect(isPreparedWalletRequestWithoutSend(executable.observation)).toBe(true)
 		expect(executable.observation).not.toHaveProperty('submittedAt')
+	})
+
+	it('composes connected-wallet prep, simulation evidence, and rejection without submission', () => {
+		const executable = resolveExecutableWalletRequestPrep({
+			connections: [selectedConnection],
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: account.accountAddress,
+			calls: orderedCalls,
+		})
+		if (!executable.ready)
+			throw new Error('expected executable prep')
+
+		const simulation = sessionSimulationObservation({
+			id: 'simulation-call-prep',
+			sessionId: 'session-call-prep',
+			status: 'succeeded',
+			createdAt: 10,
+			paramsHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		})
+		const rejection = preparedWalletRequestRejection({
+			request: {
+				id: 'wallet-request-call-prep',
+				requestKind: 'transaction',
+				requestMethod: 'eth_sendTransaction',
+				requestedAt: 10,
+			},
+			preparedObservation: {
+				...executable.observation,
+				timestampMs: 20,
+			},
+			rejectedAt: 21,
+		})
+
+		expect(executable.gate.connection).toBe(selectedConnection)
+		expect(executable.gate.account).toBe(account)
+		expect(simulation).toMatchObject({
+			status: 'succeeded',
+			sessionId: 'session-call-prep',
+			completedAt: 10,
+		})
+		expect(rejection).toEqual({
+			walletRequestSelector: {
+				id: 'wallet-request-call-prep',
+			},
+			observation: {
+				timestampMs: 21,
+				source: Source.Local_Internal,
+				status: 'failed',
+				error: 'Wallet signing request rejected',
+			},
+		})
+		expect(rejection.observation).not.toHaveProperty('submittedAt')
+		expect(rejection.observation).not.toHaveProperty('evmTransactionIds')
+		expect(selectedConnection.selected).toBe(true)
+		expect(selectedConnection.activeAccount).toBe(account)
 	})
 })
