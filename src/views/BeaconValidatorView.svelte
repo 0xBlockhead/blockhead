@@ -269,7 +269,7 @@
 				}
 			>
 				{#snippet children(entity)}
-					{#if entity.attestationDuties.values.length > 0}
+					{#if entity.attestationDuties.values.length}
 						<section data-column="gap-2">
 							<header>
 								<h3>Attestation duties</h3>
