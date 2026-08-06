@@ -17,6 +17,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 
 const {
 	getBlock,
+	getTransactionProtocolPayloads,
 } = await import('$/sources/Esplora/Rest/queries.ts')
 
 const bitcoinBinding = bindings[Source.Esplora_Rest].find(({ target }) => (
@@ -54,5 +55,60 @@ describe('Esplora REST binding selection', () => {
 				'https://blockstream.info/liquid/api/block/liquid-block',
 			],
 		])
+	})
+
+	it('getTransactionProtocolPayloads extracts Ordinals + Runes from the Esplora tx wire', async () => {
+		const txId = 'aa'.repeat(32)
+		sourceGetJson.mockResolvedValueOnce({
+			txid: txId,
+			version: 2,
+			locktime: 0,
+			size: 100,
+			weight: 400,
+			fee: 100,
+			vin: [
+				{
+					txid: 'bb'.repeat(32),
+					vout: 0,
+					prevout: null,
+					scriptsig: '',
+					scriptsig_asm: '',
+					witness: [
+						'0063036f7264010118746578742f706c61696e3b636861727365743d7574662d38000d48656c6c6f2c20776f726c642168',
+					],
+					is_coinbase: false,
+					sequence: 0xffffffff,
+				},
+			],
+			vout: [
+				{
+					scriptpubkey: '6a5d03010203',
+					scriptpubkey_asm: '',
+					scriptpubkey_type: 'op_return',
+					value: 0,
+				},
+			],
+			status: {
+				confirmed: true,
+			},
+		})
+
+		const payloads = await getTransactionProtocolPayloads({
+			target: bitcoinBinding.target.key,
+			txId,
+		})
+
+		expect(payloads).toHaveLength(2)
+		expect(payloads[0]).toMatchObject({
+			protocol: 'Ordinals',
+			transactionId: txId,
+			contentType: 'text/plain;charset=utf-8',
+		})
+		expect(payloads[1]).toMatchObject({
+			protocol: 'Runes',
+			transactionId: txId,
+			payloadHex: '010203',
+			isCenotaph: false,
+		})
 	})
 })

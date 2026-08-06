@@ -20,6 +20,7 @@ const {
 	getBlockHashByHeight,
 	getAddressUtxos,
 	getRecommendedFees,
+	getTransactionProtocolPayloads,
 } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 
 const binding = bindings[Source.MempoolSpace_Rest][0]
@@ -75,6 +76,43 @@ describe('mempool.space Bitcoin REST binding', () => {
 				binding,
 				'https://mempool.space/api/address/bc1qexample/utxo',
 			],
+		])
+	})
+
+	it('getTransactionProtocolPayloads extracts Runestone from the Esplora-compatible tx wire', async () => {
+		const txId = 'cc'.repeat(32)
+		sourceGetJson.mockResolvedValueOnce({
+			txid: txId,
+			version: 2,
+			locktime: 0,
+			size: 100,
+			weight: 400,
+			vin: [],
+			vout: [
+				{
+					scriptpubkey: '6a5d51',
+					scriptpubkey_asm: '',
+					scriptpubkey_type: 'op_return',
+					value: 0,
+				},
+			],
+			status: {
+				confirmed: false,
+			},
+		})
+
+		await expect(
+			getTransactionProtocolPayloads(txId)
+		).resolves.toEqual([
+			{
+				protocol: 'Runes',
+				transactionId: txId,
+				location: {
+					outputIndex: 0,
+				},
+				payloadHex: '',
+				isCenotaph: true,
+			},
 		])
 	})
 })

@@ -52,6 +52,21 @@ export const getTransaction = (
 	mempoolSpaceRestUrl(`tx/${encodeURIComponent(txId)}`)
 )
 
+/**
+ * Extract Ordinals envelopes + Runestone from a mempool.space (Esplora-compatible) transaction.
+ * @see https://mempool.space/docs/api/rest
+ * @see https://docs.ordinals.com/inscriptions.html
+ * @see https://docs.ordinals.com/runes/specification.html
+ */
+export const getTransactionProtocolPayloads = async (
+	txId: string
+) => {
+	const { extractEsploraProtocolPayloads } = await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
+	return extractEsploraProtocolPayloads(
+		await getTransaction(txId)
+	)
+}
+
 export const getBlocks = (
 	startHeight?: bigint
 ) => sourceGetJson<EsploraBlock[]>(

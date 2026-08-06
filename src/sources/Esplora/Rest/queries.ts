@@ -57,6 +57,27 @@ export const getTransaction = ({
 	getEsploraJson<EsploraTransaction>(target, `/tx/${txId}`)
 )
 
+/**
+ * Extract Ordinals envelopes + Runestone from an Esplora transaction wire.
+ * @see https://docs.ordinals.com/inscriptions.html
+ * @see https://docs.ordinals.com/runes/specification.html
+ */
+export const getTransactionProtocolPayloads = async ({
+	target,
+	txId,
+}: {
+	target: EsploraTarget
+	txId: string
+}) => {
+	const { extractEsploraProtocolPayloads } = await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
+	return extractEsploraProtocolPayloads(
+		await getTransaction({
+			target,
+			txId,
+		})
+	)
+}
+
 export const getMempoolTransactionIds = (target: EsploraTarget) => (
 	getEsploraJson<string[]>(target, '/mempool/txids')
 )
