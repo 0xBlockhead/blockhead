@@ -439,6 +439,7 @@ export enum Source {
 	TronTip6963_WalletApi = "TronTip6963_WalletApi",
 	TrustWalletAssets_Github = "TrustWalletAssets_Github",
 	Tzkt_Rest = "Tzkt_Rest",
+	UniSat_Rest = "UniSat_Rest",
 	UniswapContracts_Evm = "UniswapContracts_Evm",
 	Voltaire_JsonRpc = "Voltaire_JsonRpc",
 	Voyager = "Voyager",
@@ -703,6 +704,7 @@ export enum SourceProvider {
 	TronTip6963 = "TronTip6963",
 	TrustWalletAssets = "TrustWalletAssets",
 	Tzkt = "Tzkt",
+	UniSat = "UniSat",
 	Uniswap = "Uniswap",
 	Voltaire = "Voltaire",
 	Voyager = "Voyager",
@@ -1211,6 +1213,7 @@ export enum EntityType {
 	A2aTaskEvent = "A2aTaskEvent",
 	AaveMarket = "AaveMarket",
 	AaveReserve = "AaveReserve",
+	AaveReservePosition = "AaveReservePosition",
 	Account = "Account",
 	AcpAgentProgram = "AcpAgentProgram",
 	AcpAgentProgramVersion = "AcpAgentProgramVersion",
@@ -1335,6 +1338,10 @@ export enum EntityType {
 	BitcoinCashCashTokenCommitment = "BitcoinCashCashTokenCommitment",
 	BitcoinCashCashTokenFungibleAmount = "BitcoinCashCashTokenFungibleAmount",
 	BitcoinCashCashTokenNft = "BitcoinCashCashTokenNft",
+	BitcoinOrdinalInscription = "BitcoinOrdinalInscription",
+	BitcoinRune = "BitcoinRune",
+	BitcoinRuneBalance = "BitcoinRuneBalance",
+	BitcoinRunestone = "BitcoinRunestone",
 	BittensorBlock = "BittensorBlock",
 	BittensorMetagraph_Timestamp = "BittensorMetagraph_Timestamp",
 	BittensorNetwork = "BittensorNetwork",
@@ -1631,6 +1638,7 @@ export enum EntityType {
 	EthereumExecutionUpgrade = "EthereumExecutionUpgrade",
 	EthereumNetworkUpgrade = "EthereumNetworkUpgrade",
 	EulerEvkVault = "EulerEvkVault",
+	EulerEvkVaultPosition = "EulerEvkVaultPosition",
 	EvmAccount = "EvmAccount",
 	EvmActorCoinAllowance = "EvmActorCoinAllowance",
 	EvmActorCoinAllowance_Block = "EvmActorCoinAllowance_Block",
@@ -1721,6 +1729,7 @@ export enum EntityType {
 	GitTreeEntry = "GitTreeEntry",
 	GitTreePathResolution = "GitTreePathResolution",
 	GmxMarket = "GmxMarket",
+	GmxPosition = "GmxPosition",
 	HederaAccount = "HederaAccount",
 	HederaAccount_Timestamp = "HederaAccount_Timestamp",
 	HederaAllowance = "HederaAllowance",
@@ -1877,7 +1886,9 @@ export enum EntityType {
 	MoneroStealthOutput = "MoneroStealthOutput",
 	MoneroTransaction = "MoneroTransaction",
 	MorphoMarket = "MorphoMarket",
+	MorphoMarketPosition = "MorphoMarketPosition",
 	MorphoVault = "MorphoVault",
+	MorphoVaultPosition = "MorphoVaultPosition",
 	MoveFunction = "MoveFunction",
 	MoveModule = "MoveModule",
 	MoveModule_Timestamp = "MoveModule_Timestamp",
@@ -7010,6 +7021,38 @@ export const schema = {
 						},
 					},
 					plural: { component: "AaveReservesView", title: "Aave reserves" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.AaveReservePosition,
+				labels: { singular: "Aave reserve position", plural: "Aave reserve positions" },
+				description: "An account supply and/or borrow balance against one Aave V3 reserve.",
+			})({
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount },
+				"$reserve": { label: "Reserve", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AaveReserve },
+				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Aave_Rest] },
+				"decimals": { label: "Decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Aave_Rest] },
+				"suppliedBalance": { label: "Supplied balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"suppliedBalanceUsd": { label: "Supplied balance (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"supplyApy": { label: "Supply APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"isCollateral": { label: "Used as collateral", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Aave_Rest] },
+				"borrowedBalance": { label: "Borrowed balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"borrowedBalanceUsd": { label: "Borrowed balance (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"borrowApy": { label: "Borrow APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+			})({
+				selectors: { "AccountReserve": ["$account", "$reserve"] },
+				views: {
+					singular: {
+						query: { sources: [Source.Aave_Rest] },
+						summary: { title: ["symbol"], value: ["suppliedBalance", "borrowedBalance"] },
+						content: { dl: [
+							["$account", "$reserve", "symbol", "decimals"],
+							["suppliedBalance", "suppliedBalanceUsd", "supplyApy", "isCollateral"],
+							["borrowedBalance", "borrowedBalanceUsd", "borrowApy"],
+						] },
+					},
+					plural: { component: "AaveReservePositionsView", title: "Aave reserve positions" },
 				},
 			}),
 
@@ -13148,6 +13191,153 @@ export const schema = {
 						},
 					},
 					plural: { component: "BitcoinCashCashTokenNFTsView", },
+				},
+			}),
+
+
+			entity({
+				entityType: EntityType.BitcoinOrdinalInscription,
+				labels: {
+					singular: "Bitcoin Ordinal inscription",
+					plural: "Bitcoin Ordinal inscriptions",
+				},
+				description: "Ordinals inscription envelope (reveal witness OP_FALSE OP_IF … PUSH \"ord\"). Identity is the reveal transaction inscription index (`{txid}i{n}`), not a generic UTXO NFT.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"inscriptionId": { label: "Inscription ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"inscriptionIndex": { label: "Inscription index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest, Source.UniSat_Rest] },
+				"$revealTransaction": { label: "Reveal transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoTransaction, defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest, Source.UniSat_Rest] },
+				"revealInputIndex": { label: "Reveal input index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+				"revealWitnessIndex": { label: "Reveal witness index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+				"$contentOutput": { label: "Content output", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoOutput, defaultSources: [Source.UniSat_Rest] },
+				"contentType": { label: "Content type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest, Source.UniSat_Rest] },
+				"contentLength": { label: "Content length", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
+				"bodyHex": { label: "Body hex", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+				"contentBody": { label: "Content body", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+				"payloadHex": { label: "Payload hex", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+				"inscriptionNumber": { label: "Inscription number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.UniSat_Rest] },
+				"genesisHeight": { label: "Genesis height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
+				"genesisTimestampMs": { label: "Genesis timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.UniSat_Rest] },
+				"satOffset": { label: "Sat offset", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
+				"$address": { label: "Address", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoAddress, defaultSources: [Source.UniSat_Rest] },
+			})({
+				selectors: {
+					"NetworkInscriptionId": ["$network", "inscriptionId"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest, Source.UniSat_Rest],
+						},
+						summary: {
+							title: [{ field: "inscriptionId", format: "truncated" }],
+							value: ["contentType"],
+						},
+						content: {
+							dl: [
+								["$network", { field: "inscriptionId", format: "truncated" }, "inscriptionIndex", "contentType", "contentLength"],
+								["$revealTransaction", "revealInputIndex", "revealWitnessIndex", "$contentOutput", "$address"],
+							],
+						},
+					},
+					plural: { component: "BitcoinOrdinalInscriptionsView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BitcoinRune,
+				labels: {
+					singular: "Bitcoin Rune",
+					plural: "Bitcoin Runes",
+				},
+				description: "Runes etched asset (`block:tx` rune id). Distinct from CashTokens and from the per-transaction runestone OP_RETURN message.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"runeId": { label: "Rune ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"rune": { label: "Rune", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+				"spacedRune": { label: "Spaced rune", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+				"divisibility": { label: "Divisibility", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
+				"$etchingTransaction": { label: "Etching transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoTransaction, defaultSources: [Source.UniSat_Rest] },
+			})({
+				selectors: {
+					"NetworkRuneId": ["$network", "runeId"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.UniSat_Rest] },
+						summary: { title: ["spacedRune", "rune"], value: [{ field: "runeId", format: "truncated" }] },
+						content: {
+							dl: [
+								["$network", { field: "runeId", format: "truncated" }, "spacedRune", "rune", "symbol", "divisibility", "$etchingTransaction"],
+							],
+						},
+					},
+					plural: { component: "BitcoinRunesView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BitcoinRuneBalance,
+				labels: {
+					singular: "Bitcoin Rune balance",
+					plural: "Bitcoin Rune balances",
+				},
+				description: "Runes balance attached to a Bitcoin UTXO (txid:vout) or address view.",
+			})({
+				"$output": { label: "Output", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoOutput },
+				"$address": { label: "Address", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoAddress },
+				"$rune": { label: "Rune", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BitcoinRune, defaultSources: [Source.UniSat_Rest] },
+				"amount": { label: "Amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+				"divisibility": { label: "Divisibility", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
+				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.UniSat_Rest] },
+			})({
+				selectors: {
+					"UtxoOutputRune": ["$output", "$rune"],
+					"UtxoAddressRune": ["$address", "$rune"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.UniSat_Rest] },
+						summary: { title: ["amount"], value: ["$rune"] },
+						content: {
+							dl: [
+								["$rune", "amount", "symbol", "divisibility", "$output", "$address"],
+							],
+						},
+					},
+					plural: { component: "BitcoinRuneBalancesView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BitcoinRunestone,
+				labels: {
+					singular: "Bitcoin runestone",
+					plural: "Bitcoin runestones",
+				},
+				description: "Runes protocol message: first OP_RETURN OP_13 output in a Bitcoin transaction.",
+			})({
+				"$transaction": { label: "Transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.UtxoTransaction },
+				"outputIndex": { label: "Output index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"$output": { label: "Output", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoOutput, defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+				"payloadHex": { label: "Payload hex", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+				"isCenotaph": { label: "Cenotaph", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+			})({
+				selectors: {
+					"TransactionOutputIndex": ["$transaction", "outputIndex"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+						summary: { title: [{ field: "outputIndex", format: "number" }], value: ["isCenotaph"] },
+						content: {
+							dl: [
+								["$transaction", { field: "outputIndex", format: "number" }, "$output", "payloadHex", "isCenotaph"],
+							],
+						},
+					},
+					plural: { component: "BitcoinRunestonesView" },
 				},
 			}),
 
@@ -24405,6 +24595,17 @@ export const schema = {
 				"configuratorAddress": { label: "Configurator address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
 				"rewardsAddress": { label: "Rewards address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
 				"bulkerAddress": { label: "Bulker address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
+				"supplyKink": { label: "Supply kink", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"supplySlopeLow": { label: "Supply slope low", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"supplySlopeHigh": { label: "Supply slope high", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"supplyBase": { label: "Supply base", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"borrowKink": { label: "Borrow kink", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"borrowSlopeLow": { label: "Borrow slope low", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"borrowSlopeHigh": { label: "Borrow slope high", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"borrowBase": { label: "Borrow base", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"utilization": { label: "Utilization", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"supplyApy": { label: "Supply APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Compound_Rest] },
+				"borrowApy": { label: "Borrow APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Compound_Rest] },
 			})({
 				selectors: {
 					"NetworkCometAddress": ["$network", "cometAddress"],
@@ -24425,6 +24626,8 @@ export const schema = {
 								["$network", { field: "cometAddress", format: "address" }, "name", "symbol", "marketSlug"],
 								["baseTokenSymbol", { field: "baseTokenAddress", format: "address" }, { field: "baseTokenPriceFeedAddress", format: "address" }, "collateralAssetCount"],
 								["borrowMin", "targetReserves", { field: "governorAddress", format: "address" }, { field: "pauseGuardianAddress", format: "address" }, { field: "configuratorAddress", format: "address" }, { field: "rewardsAddress", format: "address" }, { field: "bulkerAddress", format: "address" }],
+								["supplyKink", "supplySlopeLow", "supplySlopeHigh", "supplyBase", "borrowKink", "borrowSlopeLow", "borrowSlopeHigh", "borrowBase"],
+								["utilization", "supplyApy", "borrowApy"],
 							],
 						},
 						lists: [
@@ -28502,6 +28705,39 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.EulerEvkVaultPosition,
+				labels: { singular: "Euler EVK vault position", plural: "Euler EVK vault positions" },
+				description: "An account balance in an Euler v2 EVK vault (shares, assets, and debt).",
+			})({
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount },
+				"$vault": { label: "Vault", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EulerEvkVault },
+				"vaultType": { label: "Vault type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Euler_Rest] },
+				"assetAddress": { label: "Asset address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Euler_Rest] },
+				"shares": { label: "Shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Euler_Rest] },
+				"assets": { label: "Assets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Euler_Rest] },
+				"borrowed": { label: "Borrowed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Euler_Rest] },
+				"assetsValue": { label: "Assets value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Euler_Rest] },
+				"debtValue": { label: "Debt value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Euler_Rest] },
+				"isCollateral": { label: "Collateral", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Euler_Rest] },
+				"isController": { label: "Controller", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Euler_Rest] },
+				"balanceForwarderEnabled": { label: "Balance forwarder enabled", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Euler_Rest] },
+			})({
+				selectors: { "AccountVault": ["$account", "$vault"] },
+				views: {
+					singular: {
+						query: { sources: [Source.Euler_Rest] },
+						summary: { title: ["$vault"], value: ["assets", "borrowed"] },
+						content: { dl: [
+							["$account", "$vault", "vaultType", { field: "assetAddress", format: "address" }],
+							["shares", "assets", "borrowed", "assetsValue", "debtValue"],
+							["isCollateral", "isController", "balanceForwarderEnabled"],
+						] },
+					},
+					plural: { component: "EulerEvkVaultPositionsView", title: "Euler EVK vault positions" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.EvmAccount,
 				labels: {
 					singular: "EVM account",
@@ -30567,6 +30803,11 @@ export const schema = {
 				"$$ownedCoins": { label: "owned coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance, defaultSources: [Source.Allium_Rest] },
 				"$$nfts": { label: "NFTs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNft, defaultSources: [Source.OpenSea_Rest] },
 				"$$erc20TokenAllowances": { label: "erc20 token allowances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmActorCoinAllowance },
+				"$$aaveReservePositions": { label: "Aave reserve positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveReservePosition, defaultSources: [Source.Aave_Rest] },
+				"$$eulerEvkVaultPositions": { label: "Euler EVK vault positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EulerEvkVaultPosition, defaultSources: [Source.Euler_Rest] },
+				"$$gmxPositions": { label: "GMX positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GmxPosition, defaultSources: [Source.Gmx_Rest] },
+				"$$morphoMarketPositions": { label: "Morpho market positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MorphoMarketPosition, defaultSources: [Source.Morpho_Graphql] },
+				"$$morphoVaultPositions": { label: "Morpho vault positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MorphoVaultPosition, defaultSources: [Source.Morpho_Graphql] },
 			})({
 				selectors: {
 					"EvmNetworkEvmAccount": ["$network", "$actor"],
@@ -30610,6 +30851,18 @@ export const schema = {
 								className: "network-view-collapsible-observations",
 								sections: [
 									{ id: "evm-network-account-timestamps", field: "$$timestamps", List: "EvmNetworkAccount_TimestampsView", label: "Observations", emptyText: "No account observations yet." },
+								],
+							},
+							{
+								id: "evm-network-account-defi-positions",
+								label: "DeFi positions",
+								className: "network-view-collapsible-defi-positions",
+								sections: [
+									{ id: "evm-network-account-aave-reserve-positions", field: "$$aaveReservePositions", List: "AaveReservePositionsView", label: "Aave", emptyText: "No Aave reserve positions.", selection: { sources: [Source.Aave_Rest], limit: 32 } },
+									{ id: "evm-network-account-euler-evk-vault-positions", field: "$$eulerEvkVaultPositions", List: "EulerEvkVaultPositionsView", label: "Euler", emptyText: "No Euler vault positions.", selection: { sources: [Source.Euler_Rest], limit: 32 } },
+									{ id: "evm-network-account-gmx-positions", field: "$$gmxPositions", List: "GmxPositionsView", label: "GMX", emptyText: "No GMX positions.", selection: { sources: [Source.Gmx_Rest], limit: 32 } },
+									{ id: "evm-network-account-morpho-market-positions", field: "$$morphoMarketPositions", List: "MorphoMarketPositionsView", label: "Morpho markets", emptyText: "No Morpho market positions.", selection: { sources: [Source.Morpho_Graphql], limit: 32 } },
+									{ id: "evm-network-account-morpho-vault-positions", field: "$$morphoVaultPositions", List: "MorphoVaultPositionsView", label: "Morpho vaults", emptyText: "No Morpho vault positions.", selection: { sources: [Source.Morpho_Graphql], limit: 32 } },
 								],
 							},
 						],
@@ -35340,6 +35593,44 @@ export const schema = {
 						},
 					},
 					plural: { component: "GmxMarketsView", title: "GMX markets" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.GmxPosition,
+				labels: { singular: "GMX position", plural: "GMX positions" },
+				description: "A GMX V2 perpetual position for an EVM account, identified by bytes32 contract key.",
+			})({
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount },
+				"contractKey": { label: "Contract key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "EvmTxHash" },
+				"$market": { label: "Market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.GmxMarket, defaultSources: [Source.Gmx_Rest] },
+				"collateralTokenAddress": { label: "Collateral token", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Gmx_Rest] },
+				"isLong": { label: "Long", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Gmx_Rest] },
+				"sizeInUsd": { label: "Size (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+				"sizeInTokens": { label: "Size (tokens)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+				"collateralAmount": { label: "Collateral amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+				"collateralUsd": { label: "Collateral (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+				"positionValueInUsd": { label: "Position value (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+				"pnl": { label: "PnL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "DecimalString", defaultSources: [Source.Gmx_Rest] },
+				"leverage": { label: "Leverage", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+				"entryPrice": { label: "Entry price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+				"markPrice": { label: "Mark price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+				"liquidationPrice": { label: "Liquidation price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Gmx_Rest] },
+				"indexName": { label: "Index name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Gmx_Rest] },
+				"poolName": { label: "Pool name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Gmx_Rest] },
+			})({
+				selectors: { "AccountContractKey": ["$account", "contractKey"] },
+				views: {
+					singular: {
+						query: { sources: [Source.Gmx_Rest] },
+						summary: { title: ["indexName", "poolName"], value: ["sizeInUsd", "pnl"] },
+						content: { dl: [
+							["$account", { field: "contractKey", format: "truncated" }, "$market", "isLong"],
+							[{ field: "collateralTokenAddress", format: "address" }, "sizeInUsd", "sizeInTokens", "collateralAmount", "collateralUsd", "positionValueInUsd"],
+							["pnl", "leverage", "entryPrice", "markPrice", "liquidationPrice", "indexName", "poolName"],
+						] },
+					},
+					plural: { component: "GmxPositionsView", title: "GMX positions" },
 				},
 			}),
 
@@ -46240,6 +46531,37 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.MorphoMarketPosition,
+				labels: { singular: "Morpho market position", plural: "Morpho market positions" },
+				description: "An account supply/borrow/collateral position in a Morpho Blue market.",
+			})({
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount },
+				"$market": { label: "Market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.MorphoMarket },
+				"supplyAssets": { label: "Supply assets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Graphql] },
+				"supplyShares": { label: "Supply shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Graphql] },
+				"borrowAssets": { label: "Borrow assets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Graphql] },
+				"borrowShares": { label: "Borrow shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Graphql] },
+				"collateral": { label: "Collateral", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Graphql] },
+				"supplyAssetsUsd": { label: "Supply assets (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Morpho_Graphql] },
+				"borrowAssetsUsd": { label: "Borrow assets (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Morpho_Graphql] },
+				"collateralUsd": { label: "Collateral (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Morpho_Graphql] },
+			})({
+				selectors: { "AccountMarket": ["$account", "$market"] },
+				views: {
+					singular: {
+						query: { sources: [Source.Morpho_Graphql] },
+						summary: { title: ["$market"], value: ["supplyAssets", "borrowAssets", "collateral"] },
+						content: { dl: [
+							["$account", "$market"],
+							["supplyAssets", "supplyShares", "borrowAssets", "borrowShares", "collateral"],
+							["supplyAssetsUsd", "borrowAssetsUsd", "collateralUsd"],
+						] },
+					},
+					plural: { component: "MorphoMarketPositionsView", title: "Morpho market positions" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.MorphoVault,
 				labels: {
 					singular: "Morpho vault",
@@ -46277,6 +46599,28 @@ export const schema = {
 						},
 					},
 					plural: { component: "MorphoVaultsView", title: "Morpho vaults" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.MorphoVaultPosition,
+				labels: { singular: "Morpho vault position", plural: "Morpho vault positions" },
+				description: "An account share balance in a MetaMorpho vault.",
+			})({
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount },
+				"$vault": { label: "Vault", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.MorphoVault },
+				"assets": { label: "Assets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Graphql] },
+				"shares": { label: "Shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Graphql] },
+				"assetsUsd": { label: "Assets (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Morpho_Graphql] },
+			})({
+				selectors: { "AccountVault": ["$account", "$vault"] },
+				views: {
+					singular: {
+						query: { sources: [Source.Morpho_Graphql] },
+						summary: { title: ["$vault"], value: ["assets", "shares"] },
+						content: { dl: [["$account", "$vault"], ["assets", "shares", "assetsUsd"]] },
+					},
+					plural: { component: "MorphoVaultPositionsView", title: "Morpho vault positions" },
 				},
 			}),
 
@@ -64327,6 +64671,8 @@ export const schema = {
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoAddress_Timestamp },
 				"$$outputs": { label: "Outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoOutput },
 				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction, defaultSources: [Source.MempoolSpace_Rest] },
+				"$$bitcoinOrdinalInscriptions": { label: "Bitcoin Ordinal inscriptions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinOrdinalInscription, defaultSources: [Source.UniSat_Rest] },
+				"$$bitcoinRuneBalances": { label: "Bitcoin Rune balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinRuneBalance, defaultSources: [Source.UniSat_Rest] },
 			})({
 				selectors: {
 					"NetworkAddress": ["$network", "address"],
@@ -64507,6 +64853,9 @@ export const schema = {
 				"isSpent": { label: "Spent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"$bitcoinCashCashTokenFungibleAmount": { label: "Bitcoin Cash CashToken fungible amount", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinCashCashTokenFungibleAmount },
 				"$bitcoinCashCashTokenNft": { label: "Bitcoin Cash CashToken NFT", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinCashCashTokenNft },
+				"$$bitcoinOrdinalInscriptions": { label: "Bitcoin Ordinal inscriptions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinOrdinalInscription },
+				"$$bitcoinRuneBalances": { label: "Bitcoin Rune balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinRuneBalance },
+				"$bitcoinRunestone": { label: "Bitcoin runestone", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinRunestone },
 			})({
 				selectors: {
 					"TransactionIndexInTransaction": ["$transaction", "indexInTransaction"],
@@ -64572,6 +64921,8 @@ export const schema = {
 				"$$inputs": { label: "Inputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoInput },
 				"$$outputs": { label: "Outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoOutput },
 				"$$zcashShieldedActions": { label: "Zcash shielded actions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ZcashShieldedAction },
+				"$$bitcoinOrdinalInscriptions": { label: "Bitcoin Ordinal inscriptions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinOrdinalInscription },
+				"$bitcoinRunestone": { label: "Bitcoin runestone", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinRunestone },
 			})({
 				selectors: {
 					"NetworkTxId": ["$network", "txId"],
@@ -68082,6 +68433,13 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#a2ataskevent",
 			},
 		},
+		[EntityType.AaveReservePosition]: {
+			"AccountReserve": {
+				kind: "Research",
+				decision: "Retain AaveReservePosition.AccountReserve as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#aavereserveposition",
+			},
+		},
 		[EntityType.Account]: {
 			"Caip10": {
 				kind: "Research",
@@ -70765,6 +71123,13 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#eulerevkvault",
 			},
 		},
+		[EntityType.EulerEvkVaultPosition]: {
+			"AccountVault": {
+				kind: "Research",
+				decision: "Retain EulerEvkVaultPosition.AccountVault as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#eulerevkvaultposition",
+			},
+		},
 		[EntityType.EvmAccount]: {
 			"AddressInteropAddress": {
 				kind: "Research",
@@ -71123,6 +71488,27 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain GmxMarket.NetworkMarketTokenAddress as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#gmxmarket",
+			},
+		},
+		[EntityType.GmxPosition]: {
+			"AccountContractKey": {
+				kind: "Research",
+				decision: "Retain GmxPosition.AccountContractKey as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#gmxposition",
+			},
+		},
+		[EntityType.MorphoMarketPosition]: {
+			"AccountMarket": {
+				kind: "Research",
+				decision: "Retain MorphoMarketPosition.AccountMarket as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#morphomarketposition",
+			},
+		},
+		[EntityType.MorphoVaultPosition]: {
+			"AccountVault": {
+				kind: "Research",
+				decision: "Retain MorphoVaultPosition.AccountVault as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#morphovaultposition",
 			},
 		},
 		[EntityType.HederaAccount_Timestamp]: {
@@ -85983,6 +86369,10 @@ export const app = {
 				label: "TzKT",
 			},
 			{
+				provider: "UniSat",
+				label: "UniSat",
+			},
+			{
 				provider: "Uniswap",
 				label: "Uniswap",
 			},
@@ -98551,6 +98941,43 @@ export const app = {
 				},
 			},
 			{
+				source: Source.UniSat_Rest,
+				provider: "UniSat",
+				label: "UniSat OpenAPI",
+				binding: {
+					target: {
+						kind: SourceTargetKind.Caip2Network,
+						key: "bip122:000000000019d6689c085ae165831e93",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "https://open-api.unisat.io",
+							corsEnabled: false,
+						},
+					],
+					wireProtocol: WireProtocol.HttpRest,
+					apiFamily: ApiFamily.RestJson,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.HttpProxy,
+					credentials: [
+						{
+							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_UNISAT_API_KEY",
+										type: "string > 0",
+									},
+								],
+							},
+						},
+					],
+				},
+			},
+			{
 				source: Source.UniswapContracts_Evm,
 				provider: "Uniswap",
 				label: "Uniswap V3 contract catalog",
@@ -102524,6 +102951,10 @@ export const app = {
 			{
 				source: Source.Tzkt_Rest,
 				path: "src/resolvers/Tzkt-Rest.ts",
+			},
+			{
+				source: Source.UniSat_Rest,
+				path: "src/resolvers/UniSat-Rest.ts",
 			},
 			{
 				source: Source.UniswapContracts_Evm,

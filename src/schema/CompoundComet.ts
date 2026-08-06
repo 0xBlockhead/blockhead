@@ -129,6 +129,83 @@ export default entity({
 			Source.Compound_Rest,
 		],
 	},
+	supplyKink: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Compound_Rest,
+		],
+	},
+	supplySlopeLow: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Compound_Rest,
+		],
+	},
+	supplySlopeHigh: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Compound_Rest,
+		],
+	},
+	supplyBase: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Compound_Rest,
+		],
+	},
+	borrowKink: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Compound_Rest,
+		],
+	},
+	borrowSlopeLow: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Compound_Rest,
+		],
+	},
+	borrowSlopeHigh: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Compound_Rest,
+		],
+	},
+	borrowBase: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Compound_Rest,
+		],
+	},
+	utilization: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Compound_Rest,
+		],
+	},
+	supplyApy: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Compound_Rest,
+		],
+	},
+	borrowApy: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Compound_Rest,
+		],
+	},
 })({
 	selectors: {
 		NetworkCometAddress: [

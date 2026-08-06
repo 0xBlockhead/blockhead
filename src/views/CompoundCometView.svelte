@@ -369,6 +369,252 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							supplyKink: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const supplyKink = entity.supplyKink}
+					{#if supplyKink != null}
+						<div>
+							<dt>Supply kink</dt>
+							<dd>
+								{supplyKink}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							supplySlopeLow: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const supplySlopeLow = entity.supplySlopeLow}
+					{#if supplySlopeLow != null}
+						<div>
+							<dt>Supply slope low</dt>
+							<dd>
+								{supplySlopeLow}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							supplySlopeHigh: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const supplySlopeHigh = entity.supplySlopeHigh}
+					{#if supplySlopeHigh != null}
+						<div>
+							<dt>Supply slope high</dt>
+							<dd>
+								{supplySlopeHigh}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							supplyBase: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const supplyBase = entity.supplyBase}
+					{#if supplyBase != null}
+						<div>
+							<dt>Supply base</dt>
+							<dd>
+								{supplyBase}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							borrowKink: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const borrowKink = entity.borrowKink}
+					{#if borrowKink != null}
+						<div>
+							<dt>Borrow kink</dt>
+							<dd>
+								{borrowKink}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							borrowSlopeLow: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const borrowSlopeLow = entity.borrowSlopeLow}
+					{#if borrowSlopeLow != null}
+						<div>
+							<dt>Borrow slope low</dt>
+							<dd>
+								{borrowSlopeLow}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							borrowSlopeHigh: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const borrowSlopeHigh = entity.borrowSlopeHigh}
+					{#if borrowSlopeHigh != null}
+						<div>
+							<dt>Borrow slope high</dt>
+							<dd>
+								{borrowSlopeHigh}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							borrowBase: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const borrowBase = entity.borrowBase}
+					{#if borrowBase != null}
+						<div>
+							<dt>Borrow base</dt>
+							<dd>
+								{borrowBase}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							utilization: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const utilization = entity.utilization}
+					{#if utilization != null}
+						<div>
+							<dt>Utilization</dt>
+							<dd>
+								{utilization}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							supplyApy: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const supplyApy = entity.supplyApy}
+					{#if supplyApy != null}
+						<div>
+							<dt>Supply APY</dt>
+							<dd>
+								{supplyApy}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							borrowApy: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const borrowApy = entity.borrowApy}
+					{#if borrowApy != null}
+						<div>
+							<dt>Borrow APY</dt>
+							<dd>
+								{borrowApy}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

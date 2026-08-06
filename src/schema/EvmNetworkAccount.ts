@@ -65,6 +65,41 @@ export default entity({
 		entityType: EntityType.EvmActorCoinAllowance,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$aaveReservePositions: {
+		entityType: EntityType.AaveReservePosition,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Aave_Rest,
+		],
+	},
+	$$eulerEvkVaultPositions: {
+		entityType: EntityType.EulerEvkVaultPosition,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Euler_Rest,
+		],
+	},
+	$$gmxPositions: {
+		entityType: EntityType.GmxPosition,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Gmx_Rest,
+		],
+	},
+	$$morphoMarketPositions: {
+		entityType: EntityType.MorphoMarketPosition,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Morpho_Graphql,
+		],
+	},
+	$$morphoVaultPositions: {
+		entityType: EntityType.MorphoVaultPosition,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Morpho_Graphql,
+		],
+	},
 })({
 	selectors: {
 		EvmNetworkEvmAccount: [

@@ -7,6 +7,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -39,6 +40,11 @@
 	import EvmNftsView from '$/views/EvmNftsView.svelte'
 	import EvmActorCoinAllowancesView from '$/views/EvmActorCoinAllowancesView.svelte'
 	import EvmNetworkAccount_TimestampsView from '$/views/EvmNetworkAccount_TimestampsView.svelte'
+	import AaveReservePositionsView from '$/views/AaveReservePositionsView.svelte'
+	import EulerEvkVaultPositionsView from '$/views/EulerEvkVaultPositionsView.svelte'
+	import GmxPositionsView from '$/views/GmxPositionsView.svelte'
+	import MorphoMarketPositionsView from '$/views/MorphoMarketPositionsView.svelte'
+	import MorphoVaultPositionsView from '$/views/MorphoVaultPositionsView.svelte'
 </script>
 
 
@@ -269,6 +275,134 @@
 					collapsible={false}
 					title={label}
 					emptyText='No account observations yet.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-evm-network-account-defi-positions'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'evm-network-account-aave-reserve-positions',
+						label: 'Aave',
+					},
+					{
+						id: 'evm-network-account-euler-evk-vault-positions',
+						label: 'Euler',
+					},
+					{
+						id: 'evm-network-account-gmx-positions',
+						label: 'GMX',
+					},
+					{
+						id: 'evm-network-account-morpho-market-positions',
+						label: 'Morpho markets',
+					},
+					{
+						id: 'evm-network-account-morpho-vault-positions',
+						label: 'Morpho vaults',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-defi-positions'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>DeFi positions</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionEvmNetworkAccountAaveReservePositions({ id, label })}
+				<AaveReservePositionsView
+					selection={
+						selection
+						.$$aaveReservePositions({
+							sources: [
+								Source.Aave_Rest,
+							],
+							limit: 32,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Aave reserve positions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionEvmNetworkAccountEulerEvkVaultPositions({ id, label })}
+				<EulerEvkVaultPositionsView
+					selection={
+						selection
+						.$$eulerEvkVaultPositions({
+							sources: [
+								Source.Euler_Rest,
+							],
+							limit: 32,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Euler vault positions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionEvmNetworkAccountGmxPositions({ id, label })}
+				<GmxPositionsView
+					selection={
+						selection
+						.$$gmxPositions({
+							sources: [
+								Source.Gmx_Rest,
+							],
+							limit: 32,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No GMX positions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionEvmNetworkAccountMorphoMarketPositions({ id, label })}
+				<MorphoMarketPositionsView
+					selection={
+						selection
+						.$$morphoMarketPositions({
+							sources: [
+								Source.Morpho_Graphql,
+							],
+							limit: 32,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Morpho market positions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionEvmNetworkAccountMorphoVaultPositions({ id, label })}
+				<MorphoVaultPositionsView
+					selection={
+						selection
+						.$$morphoVaultPositions({
+							sources: [
+								Source.Morpho_Graphql,
+							],
+							limit: 32,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Morpho vault positions.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
