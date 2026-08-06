@@ -279,8 +279,22 @@ export type HyperliquidUserAbstraction = (
 	| 'dexAbstraction'
 )
 
+export type HyperliquidBorrowLendPositionState = {
+	borrow: {
+		basis: string
+		value: string
+	}
+	supply: {
+		basis: string
+		value: string
+	}
+}
+
 export type HyperliquidBorrowLendUserState = {
-	tokenToState: JsonValue[]
+	tokenToState: [
+		tokenIndex: number,
+		state: HyperliquidBorrowLendPositionState,
+	][]
 	health: string
 	healthFactor: string | null
 }

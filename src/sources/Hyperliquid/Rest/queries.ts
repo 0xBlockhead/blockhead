@@ -150,6 +150,24 @@ const hyperliquidBorrowLendReserveStateRowEnvelope = arktype([
 	'number',
 	hyperliquidBorrowLendReserveStateEnvelope,
 ])
+const hyperliquidBorrowLendPositionStateEnvelope = arktype({
+	borrow: {
+		basis: 'string',
+		value: 'string',
+	},
+	supply: {
+		basis: 'string',
+		value: 'string',
+	},
+})
+const hyperliquidBorrowLendUserStateEnvelope = arktype({
+	tokenToState: arktype([
+		'number',
+		hyperliquidBorrowLendPositionStateEnvelope,
+	]).array(),
+	health: 'string',
+	healthFactor: 'string | null',
+})
 const hyperliquidOrderStatusEnvelope = arktype({
 	status: 'string',
 	'order?': {
@@ -502,18 +520,27 @@ export const getApprovedBuilders = ({
 	})
 )
 
-export const getBorrowLendUserState = ({
+export const getBorrowLendUserState = async ({
 	user,
 }: {
 	user: string
-}) => (
-	info<HyperliquidBorrowLendUserState>({
+}) => {
+	const state = await info<HyperliquidBorrowLendUserState>({
 		body: {
 			type: 'borrowLendUserState',
 			user,
 		},
 	})
-)
+	if (!hyperliquidBorrowLendUserStateEnvelope.allows(state))
+		throw new Error('Hyperliquid_Rest: invalid borrowLendUserState response envelope')
+
+	for (const [tokenIndex] of state.tokenToState) {
+		if (!Number.isSafeInteger(tokenIndex) || tokenIndex < 0)
+			throw new Error(`Hyperliquid_Rest: invalid borrow/lend position token index ${String(tokenIndex)}`)
+	}
+
+	return state
+}
 
 export const getAllBorrowLendReserveStates = async () => {
 	const reserves = await info<HyperliquidBorrowLendReserveStateRow[]>({

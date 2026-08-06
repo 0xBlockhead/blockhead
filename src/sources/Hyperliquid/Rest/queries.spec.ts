@@ -78,6 +78,12 @@ describe('Hyperliquid public account Info transport', () => {
 					}, []]
 				: JSON.parse(options.init.body).type === 'vaultDetails' ?
 					vaultDetails
+				: JSON.parse(options.init.body).type === 'borrowLendUserState' ?
+					{
+						tokenToState: [],
+						health: 'healthy',
+						healthFactor: null,
+					}
 				:
 					[]
 			),
@@ -377,6 +383,18 @@ describe('Hyperliquid public account Info transport', () => {
 		await expect(getVaultDetails({
 			vaultAddress: vaultDetails.vaultAddress,
 		})).rejects.toThrow('Hyperliquid_Rest: invalid vaultDetails response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				tokenToState: 'not-rows',
+				health: 'healthy',
+				healthFactor: null,
+			}),
+		})
+		await expect(getBorrowLendUserState({
+			user: '0x1111111111111111111111111111111111111111',
+		})).rejects.toThrow('Hyperliquid_Rest: invalid borrowLendUserState response envelope')
 	})
 
 	it('accepts documented metaAndAssetCtxs marginTables and marginTableId fields', async () => {
