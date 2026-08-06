@@ -13,6 +13,9 @@ import {
 import type {
 	EulerEvkVaultDetail,
 	EulerEvkVaultSummary,
+	EulerAccountPosition,
+	EulerAccountPositionWire,
+	EulerAccountPositionsResponse,
 	EulerVaultDetailResponse,
 	EulerVaultDetailWire,
 	EulerVaultListResponse,
@@ -62,6 +65,76 @@ const assertAddress = (
 	if (normalized == null)
 		throw new Error(`${Source.Euler_Rest}: invalid ${label} ${value}`)
 	return normalized
+}
+
+const assertBoolean = (value: boolean | undefined, label: string) => {
+	if (value == null)
+		throw new Error(`${Source.Euler_Rest}: account position missing ${label}`)
+	return value
+}
+
+const assertString = (value: string | undefined, label: string) => {
+	if (value == null || value.length < 1)
+		throw new Error(`${Source.Euler_Rest}: account position missing ${label}`)
+	return value
+}
+
+const assertObject = <T extends object>(value: T | undefined, label: string) => {
+	if (value == null)
+		throw new Error(`${Source.Euler_Rest}: account position missing ${label}`)
+	return value
+}
+
+const assertAccountPositionWire = (
+	wire: EulerAccountPositionWire,
+	expected: {
+		chainId: number
+		account: `0x${string}`
+	}
+): EulerAccountPosition => {
+	if (wire.chainId !== expected.chainId)
+		throw new Error(`${Source.Euler_Rest}: account position chain mismatch`)
+	const account = assertAddress(wire.account, 'account')
+	if (account !== expected.account)
+		throw new Error(`${Source.Euler_Rest}: account position account mismatch`)
+	const vaultAddress = assertAddress(wire.vault, 'vault')
+	if (wire.vaultType == null || wire.vaultType.length < 1)
+		throw new Error(`${Source.Euler_Rest}: account position missing vaultType`)
+	const assetAddress = assertAddress(wire.asset, 'asset')
+	const subAccount = assertObject(wire.subAccount, 'subAccount')
+	const snapshot = assertObject(wire.snapshot, 'snapshot')
+
+	return {
+		chainId: expected.chainId,
+		account,
+		vaultAddress,
+		vaultType: wire.vaultType,
+		assetAddress,
+		shares: assertNonNegativeDecimalString(wire.shares, 'shares'),
+		assets: assertNonNegativeDecimalString(wire.assets, 'assets'),
+		borrowed: assertNonNegativeDecimalString(wire.borrowed, 'borrowed'),
+		assetsValue: assertNonNegativeDecimalString(wire.assetsValue, 'assetsValue'),
+		debtValue: assertNonNegativeDecimalString(wire.debtValue, 'debtValue'),
+		isCollateral: assertBoolean(wire.isCollateral, 'isCollateral'),
+		balanceForwarderEnabled: assertBoolean(wire.balanceForwarderEnabled, 'balanceForwarderEnabled'),
+		isController: assertBoolean(wire.isController, 'isController'),
+		liquidity: wire.liquidity ?? null,
+		subAccount: {
+			owner: assertAddress(subAccount.owner, 'subAccount.owner'),
+			timestamp: assertString(subAccount.timestamp, 'subAccount.timestamp'),
+			lastAccountStatusCheckTimestamp: assertString(subAccount.lastAccountStatusCheckTimestamp, 'subAccount.lastAccountStatusCheckTimestamp'),
+			enabledControllers: (subAccount.enabledControllers ?? []).map((address) => assertAddress(address, 'subAccount.enabledControllers')),
+			enabledCollaterals: (subAccount.enabledCollaterals ?? []).map((address) => assertAddress(address, 'subAccount.enabledCollaterals')),
+			isLockdownMode: assertBoolean(subAccount.isLockdownMode, 'subAccount.isLockdownMode'),
+			isPermitDisabledMode: assertBoolean(subAccount.isPermitDisabledMode, 'subAccount.isPermitDisabledMode'),
+		},
+		snapshot: {
+			timestamp: assertString(snapshot.timestamp, 'snapshot.timestamp'),
+			ageSeconds: assertFiniteNumber(snapshot.ageSeconds, 'snapshot.ageSeconds'),
+			source: assertString(snapshot.source, 'snapshot.source'),
+			method: assertString(snapshot.method, 'snapshot.method'),
+		},
+	}
 }
 
 const assertNonNegativeDecimalString = (
@@ -224,4 +297,38 @@ export const getVault = async ({
 		chainId,
 		vaultAddress: normalizedVaultAddress,
 	})
+}
+
+/** Fetch the EVC account-vault positions indexed for one supported chain. */
+export const getAccountPositions = async ({
+	chainId,
+	account,
+	limit = eulerVaultListDefaultLimit,
+	offset = 0,
+}: {
+	chainId: number
+	account: string
+	limit?: number
+	offset?: number
+}) => {
+	assertChainId(chainId)
+	const normalizedAccount = assertAddress(account, 'account')
+	assertLimit(limit)
+	assertOffset(offset)
+
+	const response = await sourceGetJson<EulerAccountPositionsResponse>(
+		binding,
+		httpUrl(binding, `/v3/accounts/${normalizedAccount}/positions`, {
+			chainId,
+			limit,
+			offset,
+		})
+	)
+	if (response.data == null)
+		throw new Error(`${Source.Euler_Rest}: account positions response missing data`)
+
+	return response.data.map((wire) => assertAccountPositionWire(wire, {
+		chainId,
+		account: normalizedAccount,
+	}))
 }

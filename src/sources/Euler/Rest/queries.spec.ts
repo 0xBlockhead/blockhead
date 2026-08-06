@@ -30,6 +30,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 }))
 
 const {
+	getAccountPositions,
 	getVault,
 	listVaults,
 } = await import('$/sources/Euler/Rest/queries.ts')
@@ -73,6 +74,38 @@ const baseVaultDetail = {
 	borrowCap: '0',
 	fees: {
 		interestFee: 0.1,
+	},
+} as const
+
+const baseAccountPosition = {
+	chainId: 1,
+	account: baseVaultAddress,
+	vault: '0x01864aE3c7d5f507cC4c24cA67B4CABbDdA37EcD',
+	vaultType: 'evk',
+	asset: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+	shares: '617',
+	assets: '627',
+	borrowed: '0',
+	assetsValue: '627',
+	debtValue: '0',
+	isCollateral: false,
+	balanceForwarderEnabled: false,
+	isController: false,
+	liquidity: null,
+	subAccount: {
+		owner: '0x0000000000000000000000000000000000000000',
+		timestamp: '2026-08-05T13:08:35.000Z',
+		lastAccountStatusCheckTimestamp: '1970-01-01T00:00:00.000Z',
+		enabledControllers: [],
+		enabledCollaterals: [],
+		isLockdownMode: false,
+		isPermitDisabledMode: false,
+	},
+	snapshot: {
+		timestamp: '2026-08-06T01:56:42.000Z',
+		ageSeconds: 1,
+		source: 'accountLensVaultInfo',
+		method: 'live-read-through',
 	},
 } as const
 
@@ -281,5 +314,53 @@ describe('Euler EVK vault operations', () => {
 			chainId: 1,
 			vaultAddress: baseVaultAddress,
 		})).rejects.toThrow(`${Source.Euler_Rest}: vault response missing data`)
+	})
+
+	it('reads EVC account positions for a supported chain', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: [
+				baseAccountPosition,
+			],
+			meta: {
+				hasMore: false,
+				offset: 0,
+				limit: eulerVaultListDefaultLimit,
+			},
+		})
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: baseVaultAddress,
+		})).resolves.toMatchObject([{
+			chainId: 1,
+			account: baseVaultAddress.toLowerCase(),
+			vaultAddress: baseAccountPosition.vault.toLowerCase(),
+			assets: '627',
+		}])
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, `/v3/accounts/${baseVaultAddress.toLowerCase()}/positions`, {
+				chainId: 1,
+				limit: eulerVaultListDefaultLimit,
+				offset: 0,
+			})
+		)
+	})
+
+	it('fails closed when an account position response has no data', async () => {
+		sourceGetJson.mockResolvedValueOnce({})
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: baseVaultAddress,
+		})).rejects.toThrow(`${Source.Euler_Rest}: account positions response missing data`)
+	})
+
+	it('rejects an unsupported account-position chain before transport', async () => {
+		await expect(getAccountPositions({
+			chainId: 999999,
+			account: baseVaultAddress,
+		})).rejects.toThrow(`${Source.Euler_Rest}: unsupported chain id`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 })
