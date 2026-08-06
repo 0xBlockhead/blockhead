@@ -70,14 +70,19 @@ const evmContractRef = (
 })
 
 
+type UniswapGetCall = (call: {
+	to: `0x${string}`
+	input: `0x${string}`
+	blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
+}) => Promise<`0x${string}`>
+
 const withTransports = async <_Result>(
 	chainId: number,
 	fieldName: string,
-	resolve: (getCall: (call: {
-		to: `0x${string}`
-		input: `0x${string}`
-		blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
-	}) => Promise<`0x${string}`>) => Promise<_Result>
+	resolve: (
+		getCall: UniswapGetCall,
+		getBlockNumber: () => Promise<bigint>,
+	) => Promise<_Result>
 ) => {
 	const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
 	if (jsonRpcTransports.length === 0)
@@ -86,13 +91,16 @@ const withTransports = async <_Result>(
 	const errors: string[] = []
 	for (const jsonRpcTransport of jsonRpcTransports) {
 		try {
-			return await resolve((call) => (
-				jsonRpcTransport.getCall({
-					to: call.to,
-					input: call.input,
-					blockTag: call.blockTag,
-				})
-			))
+			return await resolve(
+				(call) => (
+					jsonRpcTransport.getCall({
+						to: call.to,
+						input: call.input,
+						blockTag: call.blockTag,
+					})
+				),
+				() => jsonRpcTransport.getBlockNumber()
+			)
 		} catch (error) {
 			errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
 		}
@@ -161,6 +169,115 @@ export const uniswapV3Resolvers = [
 		fee: (entity) => entity.fee,
 		tickSpacing: (entity) => entity.tickSpacing,
 		$poolContract: (entity) => entity.$poolContract,
+	}),
+
+	defineResolver({
+		entityType: EntityType.UniswapV3Pool,
+		resolve: {
+			Token0Token1Fee: {
+				resolve: async ({ $token0, $token1, fee }) => {
+					if (!('address' in $token0) || !('address' in $token1))
+						throw new Error('Voltaire_JsonRpc: UniswapV3Pool.Token0Token1Fee requires EvmContract address selectors')
+
+					const chainId = chainIdFromNetwork($token0.$network)
+					if (chainIdFromNetwork($token1.$network) !== chainId)
+						throw new Error('Voltaire_JsonRpc: UniswapV3Pool.Token0Token1Fee token networks must match')
+
+					const {
+						uniswapV3DeploymentByChainId,
+						uniswapV3FeeTierByFee,
+					} = await import('$/sources/Uniswap/Catalog/constants.ts')
+					const {
+						getFactoryPool,
+						getPoolTickSpacing,
+						normalizeUniswapAddress,
+					} = await import('$/sources/Uniswap/Contracts/queries.ts')
+
+					const deployment = uniswapV3DeploymentByChainId[chainId]
+					if (deployment == null)
+						throw new Error(`Voltaire_JsonRpc: no Uniswap V3 factory for chain ${String(chainId)}`)
+
+					const token0 = normalizeUniswapAddress($token0.address)
+					const token1 = normalizeUniswapAddress($token1.address)
+					if (!Number.isSafeInteger(fee) || fee < 0)
+						throw new Error(`Voltaire_JsonRpc: invalid Uniswap V3 fee ${String(fee)}`)
+					if (uniswapV3FeeTierByFee[fee] == null)
+						throw new Error(`Voltaire_JsonRpc: unsupported Uniswap V3 fee tier ${String(fee)}`)
+
+					const $network = $token0.$network
+					return withTransports(chainId, 'UniswapV3Pool.Token0Token1Fee', async (getCall) => {
+						const poolAddress = await getFactoryPool({
+							getCall,
+							factoryAddress: deployment.factoryAddress,
+							token0,
+							token1,
+							fee,
+						})
+						const tickSpacing = await getPoolTickSpacing({
+							getCall,
+							poolAddress,
+						})
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							poolAddress,
+							$factory: evmContractRef($network, deployment.factoryAddress),
+							$token0: evmContractRef($network, token0),
+							$token1: evmContractRef($network, token1),
+							fee,
+							tickSpacing,
+							$poolContract: evmContractRef($network, poolAddress),
+						}
+					})
+				},
+			},
+		},
+	})({
+		$network: (entity) => entity.$network,
+		poolAddress: (entity) => entity.poolAddress,
+		$factory: (entity) => entity.$factory,
+		$token0: (entity) => entity.$token0,
+		$token1: (entity) => entity.$token1,
+		fee: (entity) => entity.fee,
+		tickSpacing: (entity) => entity.tickSpacing,
+		$poolContract: (entity) => entity.$poolContract,
+	}),
+
+	defineResolver({
+		entityType: EntityType.UniswapV3Pool,
+		resolve: {
+			NetworkPoolAddress: {
+				resolve: async ({ $network, poolAddress }) => {
+					const chainId = chainIdFromNetwork($network)
+					const {
+						normalizeUniswapAddress,
+					} = await import('$/sources/Uniswap/Contracts/queries.ts')
+					const address = normalizeUniswapAddress(poolAddress)
+					return withTransports(chainId, 'UniswapV3Pool.$$blocks', async (_getCall, getBlockNumber) => {
+						const blockNumber = await getBlockNumber()
+						return {
+							$$blocks: [
+								{
+									[EntityMetaKey.Selector]: {
+										$pool: {
+											$network,
+											poolAddress: address,
+										},
+										blockNumber,
+									},
+								},
+							],
+						}
+					})
+				},
+			},
+		},
+	})({
+		$$blocks: {
+			select: (entity) => entity.$$blocks,
+			resolveCount: (entity) => entity.$$blocks.length,
+		},
 	}),
 
 	defineResolver({
@@ -302,6 +419,62 @@ export const uniswapV3Resolvers = [
 		$pool: (entity) => entity.$pool,
 		tickLower: (entity) => entity.tickLower,
 		tickUpper: (entity) => entity.tickUpper,
+	}),
+
+	defineResolver({
+		entityType: EntityType.UniswapV3Position,
+		resolve: {
+			PositionManagerTokenId: {
+				resolve: async ({ positionManager, tokenId }) => {
+					const {
+						uniswapV3DeploymentsByNonfungiblePositionManagerAddress,
+					} = await import('$/sources/Uniswap/Catalog/constants.ts')
+					const {
+						normalizeUniswapAddress,
+					} = await import('$/sources/Uniswap/Contracts/queries.ts')
+
+					const manager = normalizeUniswapAddress(positionManager)
+					const chainIds = (
+						uniswapV3DeploymentsByNonfungiblePositionManagerAddress[manager]
+							?.map((deployment) => deployment.chainId)
+						?? []
+					)
+					if (chainIds.length === 0)
+						throw new Error(`Voltaire_JsonRpc: unknown Uniswap V3 position manager ${manager}`)
+
+					const errors: string[] = []
+					for (const chainId of chainIds) {
+						try {
+							return await withTransports(chainId, 'UniswapV3Position.$$blocks', async (_getCall, getBlockNumber) => {
+								const blockNumber = await getBlockNumber()
+								return {
+									$$blocks: [
+										{
+											[EntityMetaKey.Selector]: {
+												$position: {
+													positionManager: manager,
+													tokenId,
+												},
+												blockNumber,
+											},
+										},
+									],
+								}
+							})
+						} catch (error) {
+							errors.push(`chain ${String(chainId)}: ${errorMessage(error)}`)
+						}
+					}
+
+					throw new Error(`Voltaire_JsonRpc: UniswapV3Position.$$blocks failed for ${manager}/${String(tokenId)}${errors.length > 0 ? `: ${errors.join('; ')}` : ''}`)
+				},
+			},
+		},
+	})({
+		$$blocks: {
+			select: (entity) => entity.$$blocks,
+			resolveCount: (entity) => entity.$$blocks.length,
+		},
 	}),
 
 	defineResolver({

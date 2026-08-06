@@ -11,6 +11,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 
 
 const getCall = vi.hoisted(() => vi.fn())
+const getBlockNumber = vi.hoisted(() => vi.fn())
 
 const getPoolFactory = vi.hoisted(() => vi.fn())
 const getPoolToken0 = vi.hoisted(() => vi.fn())
@@ -36,6 +37,7 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 				{
 					diagnosticLabel: 'mock-rpc',
 					getCall,
+					getBlockNumber,
 				},
 			],
 		},
@@ -90,6 +92,7 @@ const positionManager = '0xc36442b4a4522e871399cd717abdd847ab11fe88'
 describe('Voltaire Uniswap V3 resolvers', () => {
 	beforeEach(() => {
 		getCall.mockReset()
+		getBlockNumber.mockReset()
 		getPoolFactory.mockReset()
 		getPoolToken0.mockReset()
 		getPoolToken1.mockReset()
@@ -104,33 +107,34 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 		getPosition.mockReset()
 		getPositionOwner.mockReset()
 		getCall.mockResolvedValue('0x')
+		getBlockNumber.mockResolvedValue(12_345_678n)
 	})
 
-	it('registers canonical pool, pool-block, position, and position-block resolvers without soft-empty many facets', () => {
+	it('registers pool identity, Token0Token1Fee, tip $$blocks, pool-block, position, tip $$blocks, and position-block resolvers', () => {
 		expect(uniswapV3Resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType.UniswapV3Pool,
+			EntityType.UniswapV3Pool,
+			EntityType.UniswapV3Pool,
 			EntityType.UniswapV3Pool_Block,
+			EntityType.UniswapV3Position,
 			EntityType.UniswapV3Position,
 			EntityType.UniswapV3Position_Block,
 		])
 
-		const poolResolver = uniswapV3Resolvers.find((resolver) => (
+		const poolResolvers = uniswapV3Resolvers.filter((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool
 		))
-		if (poolResolver == null)
-			throw new Error('missing UniswapV3Pool resolver')
-		expect(poolResolver.projections).not.toHaveProperty('$$blocks')
-		expect(poolResolver.projections).not.toHaveProperty('$$positions')
+		expect(poolResolvers.some((resolver) => '$$blocks' in resolver.projections)).toBe(true)
+		expect(poolResolvers.some((resolver) => 'Token0Token1Fee' in resolver.resolve)).toBe(true)
+		expect(poolResolvers.every((resolver) => !('$$positions' in resolver.projections))).toBe(true)
 
-		const positionResolver = uniswapV3Resolvers.find((resolver) => (
+		const positionResolvers = uniswapV3Resolvers.filter((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Position
 		))
-		if (positionResolver == null)
-			throw new Error('missing UniswapV3Position resolver')
-		expect(positionResolver.projections).not.toHaveProperty('$$blocks')
+		expect(positionResolvers.some((resolver) => '$$blocks' in resolver.projections)).toBe(true)
 	})
 
-	it('resolves pool identity from eth_call helpers and omits list facets', async () => {
+	it('resolves pool identity from eth_call helpers without soft-empty many facets', async () => {
 		getPoolFactory.mockResolvedValue(factoryAddress)
 		getPoolToken0.mockResolvedValue(token0)
 		getPoolToken1.mockResolvedValue(token1)
@@ -139,9 +143,11 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 
 		const poolResolver = uniswapV3Resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool
+			&& 'NetworkPoolAddress' in resolver.resolve
+			&& '$factory' in resolver.projections
 		))
 		if (poolResolver == null)
-			throw new Error('missing UniswapV3Pool resolver')
+			throw new Error('missing UniswapV3Pool identity resolver')
 
 		const snapshot = await poolResolver.resolve.NetworkPoolAddress.resolve({
 			$network: ethereumNetwork,
@@ -166,6 +172,70 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 		expect(snapshot).not.toHaveProperty('$$positions')
 	})
 
+	it('resolves Token0Token1Fee via factory getPool and projects poolAddress', async () => {
+		getFactoryPool.mockResolvedValue(poolAddress)
+		getPoolTickSpacing.mockResolvedValue(10)
+
+		const poolResolver = uniswapV3Resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Pool
+			&& 'Token0Token1Fee' in resolver.resolve
+		))
+		if (poolResolver == null)
+			throw new Error('missing UniswapV3Pool Token0Token1Fee resolver')
+
+		const snapshot = await poolResolver.resolve.Token0Token1Fee.resolve({
+			$token0: {
+				$network: ethereumNetwork,
+				address: token0,
+			},
+			$token1: {
+				$network: ethereumNetwork,
+				address: token1,
+			},
+			fee: 500,
+		}, context)
+
+		expect(poolResolver.projections.poolAddress(snapshot)).toBe(poolAddress)
+		expect(poolResolver.projections.$network(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: ethereumNetwork,
+		})
+		expect(poolResolver.projections.tickSpacing(snapshot)).toBe(10)
+		expect(getFactoryPool).toHaveBeenCalledWith(expect.objectContaining({
+			factoryAddress,
+			token0,
+			token1,
+			fee: 500,
+		}))
+	})
+
+	it('projects tip UniswapV3Pool.$$blocks from eth_blockNumber', async () => {
+		const poolResolver = uniswapV3Resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Pool
+			&& '$$blocks' in resolver.projections
+		))
+		if (poolResolver == null)
+			throw new Error('missing UniswapV3Pool $$blocks resolver')
+
+		const snapshot = await poolResolver.resolve.NetworkPoolAddress.resolve({
+			$network: ethereumNetwork,
+			poolAddress,
+		}, context)
+
+		expect(poolResolver.projections.$$blocks.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$pool: {
+						$network: ethereumNetwork,
+						poolAddress,
+					},
+					blockNumber: 12_345_678n,
+				},
+			},
+		])
+		expect(poolResolver.projections.$$blocks.resolveCount(snapshot)).toBe(1)
+		expect(getBlockNumber).toHaveBeenCalled()
+	})
+
 	it('rejects a pool whose factory is not the chain deployment', async () => {
 		getPoolFactory.mockResolvedValue('0x1111111111111111111111111111111111111111')
 		getPoolToken0.mockResolvedValue(token0)
@@ -175,9 +245,11 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 
 		const poolResolver = uniswapV3Resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool
+			&& 'NetworkPoolAddress' in resolver.resolve
+			&& '$factory' in resolver.projections
 		))
 		if (poolResolver == null)
-			throw new Error('missing UniswapV3Pool resolver')
+			throw new Error('missing UniswapV3Pool identity resolver')
 
 		await expect(
 			poolResolver.resolve.NetworkPoolAddress.resolve({
@@ -246,9 +318,10 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 
 		const positionResolver = uniswapV3Resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Position
+			&& '$pool' in resolver.projections
 		))
 		if (positionResolver == null)
-			throw new Error('missing UniswapV3Position resolver')
+			throw new Error('missing UniswapV3Position identity resolver')
 
 		const snapshot = await positionResolver.resolve.PositionManagerTokenId.resolve({
 			positionManager,
@@ -264,6 +337,33 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 		expect(positionResolver.projections.tickLower(snapshot)).toBe(-60)
 		expect(positionResolver.projections.tickUpper(snapshot)).toBe(60)
 		expect(snapshot).not.toHaveProperty('$$blocks')
+	})
+
+	it('projects tip UniswapV3Position.$$blocks from eth_blockNumber', async () => {
+		const positionResolver = uniswapV3Resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Position
+			&& '$$blocks' in resolver.projections
+		))
+		if (positionResolver == null)
+			throw new Error('missing UniswapV3Position $$blocks resolver')
+
+		const snapshot = await positionResolver.resolve.PositionManagerTokenId.resolve({
+			positionManager,
+			tokenId: 7n,
+		}, context)
+
+		expect(positionResolver.projections.$$blocks.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$position: {
+						positionManager,
+						tokenId: 7n,
+					},
+					blockNumber: 12_345_678n,
+				},
+			},
+		])
+		expect(positionResolver.projections.$$blocks.resolveCount(snapshot)).toBe(1)
 	})
 
 	it('resolves position block owner, liquidity, owed tokens, and fee-growth checkpoints', async () => {
@@ -310,9 +410,11 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 	it('throws when JSON-RPC transports are missing for the pool chain', async () => {
 		const poolResolver = uniswapV3Resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool
+			&& 'NetworkPoolAddress' in resolver.resolve
+			&& '$factory' in resolver.projections
 		))
 		if (poolResolver == null)
-			throw new Error('missing UniswapV3Pool resolver')
+			throw new Error('missing UniswapV3Pool identity resolver')
 
 		await expect(
 			poolResolver.resolve.NetworkPoolAddress.resolve({
@@ -330,9 +432,10 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 	it('rejects Base-native NFPM when only Ethereum JSON-RPC transports are mocked', async () => {
 		const positionResolver = uniswapV3Resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Position
+			&& '$pool' in resolver.projections
 		))
 		if (positionResolver == null)
-			throw new Error('missing UniswapV3Position resolver')
+			throw new Error('missing UniswapV3Position identity resolver')
 
 		await expect(
 			positionResolver.resolve.PositionManagerTokenId.resolve({

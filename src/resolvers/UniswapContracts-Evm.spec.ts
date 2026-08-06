@@ -77,6 +77,7 @@ describe('UniswapContracts_Evm resolver', () => {
 			EntityType._Global,
 			EntityType.UniswapV3Pool,
 			EntityType.UniswapV3Pool,
+			EntityType.UniswapV3Pool,
 		])
 	})
 
@@ -109,9 +110,12 @@ describe('UniswapContracts_Evm resolver', () => {
 	it('resolves a catalog pool with factory, tokens, fee, and tickSpacing', async () => {
 		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool
+			&& 'NetworkPoolAddress' in resolver.resolve
+			&& '$factory' in resolver.projections
+			&& !('$$positions' in resolver.projections)
 		))
 		if (poolResolver == null)
-			throw new Error('missing UniswapV3Pool resolver')
+			throw new Error('missing UniswapV3Pool catalog resolver')
 
 		const snapshot = await poolResolver.resolve.NetworkPoolAddress.resolve({
 			$network: ethereumNetwork,
@@ -149,9 +153,12 @@ describe('UniswapContracts_Evm resolver', () => {
 	it('resolves Base catalog pools against Base-native factory deployment', async () => {
 		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool
+			&& 'NetworkPoolAddress' in resolver.resolve
+			&& '$factory' in resolver.projections
+			&& !('$$positions' in resolver.projections)
 		))
 		if (poolResolver == null)
-			throw new Error('missing UniswapV3Pool resolver')
+			throw new Error('missing UniswapV3Pool catalog resolver')
 
 		const baseNetwork = {
 			caip2: {
@@ -177,9 +184,12 @@ describe('UniswapContracts_Evm resolver', () => {
 	it('rejects networks without a Uniswap V3 factory deployment', async () => {
 		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool
+			&& 'NetworkPoolAddress' in resolver.resolve
+			&& '$factory' in resolver.projections
+			&& !('$$positions' in resolver.projections)
 		))
 		if (poolResolver == null)
-			throw new Error('missing UniswapV3Pool resolver')
+			throw new Error('missing UniswapV3Pool catalog resolver')
 
 		await expect(
 			poolResolver.resolve.NetworkPoolAddress.resolve({
@@ -197,9 +207,12 @@ describe('UniswapContracts_Evm resolver', () => {
 	it('rejects pools absent from the Uniswap V3 catalog on a supported chain', async () => {
 		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool
+			&& 'NetworkPoolAddress' in resolver.resolve
+			&& '$factory' in resolver.projections
+			&& !('$$positions' in resolver.projections)
 		))
 		if (poolResolver == null)
-			throw new Error('missing UniswapV3Pool resolver')
+			throw new Error('missing UniswapV3Pool catalog resolver')
 
 		await expect(
 			poolResolver.resolve.NetworkPoolAddress.resolve({
@@ -207,6 +220,34 @@ describe('UniswapContracts_Evm resolver', () => {
 				poolAddress: `0x${'f'.repeat(40)}`,
 			}, context)
 		).rejects.toThrow('UniswapContracts_Evm: pool 0xffffffffffffffffffffffffffffffffffffffff not in Uniswap V3 catalog for chain 1')
+	})
+
+
+	it('resolves Token0Token1Fee from the seeded catalog', async () => {
+		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Pool
+			&& 'Token0Token1Fee' in resolver.resolve
+		))
+		if (poolResolver == null)
+			throw new Error('missing UniswapV3Pool Token0Token1Fee resolver')
+
+		const snapshot = await poolResolver.resolve.Token0Token1Fee.resolve({
+			$token0: {
+				$network: ethereumNetwork,
+				address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+			},
+			$token1: {
+				$network: ethereumNetwork,
+				address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+			},
+			fee: 500,
+		}, context)
+
+		expect(poolResolver.projections.poolAddress(snapshot)).toBe('0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640')
+		expect(poolResolver.projections.tickSpacing(snapshot)).toBe(10)
+		expect(poolResolver.projections.$network(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: ethereumNetwork,
+		})
 	})
 
 	it('lists current NFPM positions scoped to the pool from Transfer logs', async () => {

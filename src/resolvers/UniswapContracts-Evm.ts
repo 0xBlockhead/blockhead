@@ -135,6 +135,76 @@ export default {
 		defineResolver({
 			entityType: EntityType.UniswapV3Pool,
 			resolve: {
+				Token0Token1Fee: {
+					resolve: async ({ $token0, $token1, fee }) => {
+						if (!('address' in $token0) || !('address' in $token1))
+							throw new Error('UniswapContracts_Evm: Token0Token1Fee requires EvmContract address selectors')
+
+						const {
+							uniswapV3DeploymentByChainId,
+							uniswapV3FeeTierByFee,
+							uniswapV3Pools,
+						} = await import('$/sources/Uniswap/Catalog/constants.ts')
+						const {
+							normalizeUniswapAddress,
+						} = await import('$/sources/Uniswap/Contracts/queries.ts')
+
+						const chainId = chainIdFromNetwork($token0.$network)
+						if (chainIdFromNetwork($token1.$network) !== chainId)
+							throw new Error('UniswapContracts_Evm: Token0Token1Fee token networks must match')
+
+						const factoryAddress = uniswapV3DeploymentByChainId[chainId]?.factoryAddress
+						if (factoryAddress == null)
+							throw new Error(`UniswapContracts_Evm: no Uniswap V3 factory for chain ${String(chainId)}`)
+
+						const token0 = normalizeUniswapAddress($token0.address)
+						const token1 = normalizeUniswapAddress($token1.address)
+						const catalogEntry = uniswapV3Pools.find((pool) => (
+							pool.chainId === chainId
+							&& pool.token0 === token0
+							&& pool.token1 === token1
+							&& pool.fee === fee
+						))
+						if (catalogEntry == null)
+							throw new Error(`UniswapContracts_Evm: pool not in Uniswap V3 catalog for ${token0}/${token1}/${String(fee)} on chain ${String(chainId)}`)
+
+						const tickSpacing = (
+							catalogEntry.tickSpacing
+							?? uniswapV3FeeTierByFee[catalogEntry.fee]?.tickSpacing
+						)
+						if (tickSpacing == null)
+							throw new Error(`UniswapContracts_Evm: no tick spacing for fee ${String(catalogEntry.fee)}`)
+
+						const $network = $token0.$network
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							poolAddress: catalogEntry.poolAddress,
+							$factory: evmContractRef($network, factoryAddress),
+							$poolContract: evmContractRef($network, catalogEntry.poolAddress),
+							$token0: evmContractRef($network, catalogEntry.token0),
+							$token1: evmContractRef($network, catalogEntry.token1),
+							fee: catalogEntry.fee,
+							tickSpacing,
+						}
+					},
+				},
+			},
+		})({
+			$network: (entity) => entity.$network,
+			poolAddress: (entity) => entity.poolAddress,
+			$factory: (entity) => entity.$factory,
+			$token0: (entity) => entity.$token0,
+			$token1: (entity) => entity.$token1,
+			fee: (entity) => entity.fee,
+			tickSpacing: (entity) => entity.tickSpacing,
+			$poolContract: (entity) => entity.$poolContract,
+		}),
+
+		defineResolver({
+			entityType: EntityType.UniswapV3Pool,
+			resolve: {
 				NetworkPoolAddress: {
 					resolve: async ({ $network, poolAddress }, context) => {
 						const {
