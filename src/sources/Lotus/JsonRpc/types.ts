@@ -79,3 +79,28 @@ export type LotusMinerInfo = {
 	Worker: string
 	PeerId?: string
 }
+
+export type LotusMarketDealProposal = {
+	PieceCID: { '/': string }
+	PieceSize: number
+	VerifiedDeal: boolean
+	Client: string
+	Provider: string
+	Label?: string
+	StartEpoch: number
+	EndEpoch: number
+	StoragePricePerEpoch: string
+	ProviderCollateral: string
+	ClientCollateral: string
+}
+
+export type LotusMarketDealState = {
+	SectorStartEpoch: number
+	LastUpdatedEpoch: number
+	SlashEpoch: number
+}
+
+export type LotusMarketDeal = {
+	Proposal: LotusMarketDealProposal
+	State: LotusMarketDealState
+}

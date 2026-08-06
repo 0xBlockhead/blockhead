@@ -5,6 +5,7 @@ import bindings from '$/sources/Lotus/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	LotusActor,
+	LotusMarketDeal,
 	LotusMinerInfo,
 	LotusMinerPower,
 	LotusMinerSectorCount,
@@ -168,3 +169,19 @@ export const getMinerSectorCount = ({
 		tipsetKey,
 	])
 )
+
+export const getMarketStorageDeal = ({
+	dealId,
+	tipsetKey = null,
+}: {
+	dealId: bigint
+	tipsetKey?: LotusTipsetKey | null
+}) => {
+	if (dealId < 0n)
+		throw new Error('Lotus_JsonRpc: invalid deal id')
+
+	return jsonRpc2<LotusMarketDeal>(binding, 'Filecoin.StateMarketStorageDeal', [
+		Number(dealId),
+		tipsetKey,
+	])
+}

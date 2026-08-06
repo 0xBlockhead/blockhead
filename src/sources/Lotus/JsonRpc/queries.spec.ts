@@ -10,6 +10,7 @@ import {
 import {
 	getActor,
 	getIdAddress,
+	getMarketStorageDeal,
 	getMinerActiveSectors,
 	getMinerInfo,
 	getMinerPower,
@@ -121,6 +122,49 @@ describe('Lotus JSON-RPC state queries', () => {
 				id: 1,
 				method: 'Filecoin.StateMinerSectorCount',
 				params: ['f01234', tipsetKey],
+			},
+		])
+	})
+
+	it('reads a market storage deal at head or tipset', async () => {
+		fetchMock.mockResolvedValueOnce(rpcResponse({
+			Proposal: {
+				PieceCID: { '/': 'baga-piece' },
+				PieceSize: 2048,
+				VerifiedDeal: true,
+				Client: 'f1client',
+				Provider: 'f01000',
+				StartEpoch: 10,
+				EndEpoch: 20,
+				StoragePricePerEpoch: '3',
+				ProviderCollateral: '5',
+				ClientCollateral: '4',
+			},
+			State: {
+				SectorStartEpoch: 11,
+				LastUpdatedEpoch: 12,
+				SlashEpoch: -1,
+			},
+		}))
+
+		await expect(getMarketStorageDeal({
+			dealId: 42n,
+			tipsetKey,
+		})).resolves.toMatchObject({
+			Proposal: {
+				Provider: 'f01000',
+				PieceSize: 2048,
+			},
+			State: {
+				SectorStartEpoch: 11,
+			},
+		})
+		expect(fetchMock.mock.calls.map(([, init]) => JSON.parse(String(init?.body)))).toEqual([
+			{
+				jsonrpc: '2.0',
+				id: 1,
+				method: 'Filecoin.StateMarketStorageDeal',
+				params: [42, tipsetKey],
 			},
 		])
 	})
