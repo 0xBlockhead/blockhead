@@ -41,6 +41,7 @@ export default entity({
 		defaultSources: [
 			Source.Constants_Internal,
 			Source.Atproto_Xrpc,
+			Source.Atproto_BskySocial_Xrpc,
 		],
 	},
 	$$observedPosts: {
@@ -49,6 +50,7 @@ export default entity({
 		defaultSources: [
 			Source.Constants_Internal,
 			Source.Atproto_Xrpc,
+			Source.Atproto_BskySocial_Xrpc,
 		],
 	},
 	$$timestamps: {

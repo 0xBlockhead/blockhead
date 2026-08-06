@@ -22,6 +22,7 @@
 	}, {
 		sources: [
 			Source.Atproto_Xrpc,
+			Source.Atproto_BskySocial_Xrpc,
 		],
 		fields: {
 			did: true,

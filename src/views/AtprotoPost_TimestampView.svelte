@@ -153,6 +153,30 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							bookmarkCount: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const bookmarkCount = entity.bookmarkCount}
+					{#if bookmarkCount != null}
+						<div>
+							<dt>Bookmarks</dt>
+							<dd>
+								<NumberValue
+									value={bookmarkCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 </EntityView>

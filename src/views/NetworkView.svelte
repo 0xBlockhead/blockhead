@@ -111,6 +111,19 @@
 		], pendingEntity)
 	)
 
+	const celeniumRestAndCelestiaNodeSources = $derived(
+		networkApplicableSources([
+			Source.Celenium_Rest,
+			Source.CelestiaNode,
+		], pendingEntity)
+	)
+
+	const availSources = $derived(
+		networkApplicableSources([
+			Source.Avail,
+		], pendingEntity)
+	)
+
 	const avalanchePlatformVmJsonRpcSources = $derived(
 		networkApplicableSources([
 			Source.AvalanchePlatformVm_JsonRpc,
@@ -262,6 +275,12 @@
 	import ZeroGNetwork_TimestampsView from '$/views/ZeroGNetwork_TimestampsView.svelte'
 	import ZeroGDataBlobsView from '$/views/ZeroGDataBlobsView.svelte'
 	import ZeroGStorageLogEntriesView from '$/views/ZeroGStorageLogEntriesView.svelte'
+	import CelestiaNetwork_TimestampsView from '$/views/CelestiaNetwork_TimestampsView.svelte'
+	import CelestiaBlocksView from '$/views/CelestiaBlocksView.svelte'
+	import CelestiaNamespacesView from '$/views/CelestiaNamespacesView.svelte'
+	import CelestiaBlobsView from '$/views/CelestiaBlobsView.svelte'
+	import AvailNetwork_TimestampsView from '$/views/AvailNetwork_TimestampsView.svelte'
+	import AvailBlocksView from '$/views/AvailBlocksView.svelte'
 	import FilecoinNetwork_TimestampsView from '$/views/FilecoinNetwork_TimestampsView.svelte'
 	import FilecoinTipsetsView from '$/views/FilecoinTipsetsView.svelte'
 	import FilecoinDealsView from '$/views/FilecoinDealsView.svelte'
@@ -4292,6 +4311,228 @@
 					{/snippet}
 
 				</CollapsibleTabs>
+			{/snippet}
+		</ProjectionBoundary>
+
+		<ProjectionBoundary
+			resource={selection.Celestia}
+		>
+			{#snippet Applicable(projection)}
+				{@const celestiaChainActivitySections = [
+						...(
+							celeniumRestAndCelestiaNodeSources.length > 0 ?
+								[
+									{
+										id: 'celestia-chain-observations',
+										label: 'Observations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							celeniumRestAndCelestiaNodeSources.length > 0 ?
+								[
+									{
+										id: 'celestia-chain-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+					]}
+
+				{#if celestiaChainActivitySections.length > 0}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-celestia-chain-activity'}
+						sectionIdPrefix={viewDomId}
+						sections={celestiaChainActivitySections}
+						data-card
+						class='network-view-collapsible-chain-activity'
+					>
+						{#snippet Summary()}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Chain activity</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionCelestiaChainObservations({ id, label })}
+							<CelestiaNetwork_TimestampsView
+								selection={
+									projection
+									.$$timestamps({
+										sources: celeniumRestAndCelestiaNodeSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No observations yet.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionCelestiaChainBlocks({ id, label })}
+							<CelestiaBlocksView
+								selection={
+									projection
+									.$$blocks({
+										sources: celeniumRestAndCelestiaNodeSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No blocks found.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/if}
+
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-celestia-data-availability'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'celestia-namespaces',
+								label: 'Namespaces',
+							},
+							{
+								id: 'celestia-blobs',
+								label: 'Blobs',
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-data-availability'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Data availability</HeadingComponent>
+						</header>
+					{/snippet}
+
+					{#snippet SectionCelestiaNamespaces({ id, label })}
+						<CelestiaNamespacesView
+							selection={
+								projection
+								.$$namespaces({
+									sources: [
+										Source.Celenium_Rest,
+									],
+									limit: 16,
+								})
+							}
+							collapsible={false}
+							title={label}
+							emptyText='No namespaces found.'
+							id={`${id}-list`}
+						/>
+					{/snippet}
+
+					{#snippet SectionCelestiaBlobs({ id, label })}
+						<CelestiaBlobsView
+							selection={
+								projection
+								.$$blobs({
+									sources: [
+										Source.Celenium_Rest,
+									],
+									limit: 16,
+								})
+							}
+							collapsible={false}
+							title={label}
+							emptyText='No blobs found.'
+							id={`${id}-list`}
+						/>
+					{/snippet}
+
+				</CollapsibleTabs>
+			{/snippet}
+		</ProjectionBoundary>
+
+		<ProjectionBoundary
+			resource={selection.Avail}
+		>
+			{#snippet Applicable(projection)}
+				{@const availChainActivitySections = [
+						...(
+							availSources.length > 0 ?
+								[
+									{
+										id: 'avail-chain-observations',
+										label: 'Observations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							availSources.length > 0 ?
+								[
+									{
+										id: 'avail-chain-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+					]}
+
+				{#if availChainActivitySections.length > 0}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-avail-chain-activity'}
+						sectionIdPrefix={viewDomId}
+						sections={availChainActivitySections}
+						data-card
+						class='network-view-collapsible-chain-activity'
+					>
+						{#snippet Summary()}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Chain activity</HeadingComponent>
+							</header>
+						{/snippet}
+
+						{#snippet SectionAvailChainObservations({ id, label })}
+							<AvailNetwork_TimestampsView
+								selection={
+									projection
+									.$$timestamps({
+										sources: availSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No observations yet.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionAvailChainBlocks({ id, label })}
+							<AvailBlocksView
+								selection={
+									projection
+									.$$blocks({
+										sources: availSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No blocks found.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/if}
 			{/snippet}
 		</ProjectionBoundary>
 

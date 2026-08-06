@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -23,26 +24,49 @@ export default entity({
 	hash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Celenium_Rest,
+			Source.CelestiaNode,
+		],
 	},
 	appHash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Celenium_Rest,
+			Source.CelestiaNode,
+		],
 	},
 	dataHash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Celenium_Rest,
+			Source.CelestiaNode,
+		],
 	},
 	proposerAddress: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Celenium_Rest,
+			Source.CelestiaNode,
+		],
 	},
 	timestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Celenium_Rest,
+			Source.CelestiaNode,
+		],
 	},
 	blobCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Celenium_Rest,
+		],
 	},
 	namespaceCount: {
 		primitiveType: type('number'),
@@ -51,6 +75,9 @@ export default entity({
 	transactionCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Celenium_Rest,
+		],
 	},
 	$$blobs: {
 		entityType: EntityType.CelestiaBlob,

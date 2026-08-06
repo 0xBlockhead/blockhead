@@ -46,6 +46,7 @@
 					select(EntityType.AtprotoActor, data.selector, {
 						sources: [
 							Source.Atproto_Xrpc,
+							Source.Atproto_BskySocial_Xrpc,
 						],
 					})
 				}

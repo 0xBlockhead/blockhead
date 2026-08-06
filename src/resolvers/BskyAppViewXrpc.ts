@@ -157,6 +157,7 @@ export const bskyAppViewResolvers = (
 							...(postView.repostCount != null && { repostCount: postView.repostCount }),
 							...(postView.replyCount != null && { replyCount: postView.replyCount }),
 							...(postView.quoteCount != null && { quoteCount: postView.quoteCount }),
+							...(postView.bookmarkCount != null && { bookmarkCount: postView.bookmarkCount }),
 						}
 					},
 				}
@@ -166,6 +167,7 @@ export const bskyAppViewResolvers = (
 				repostCount: (timestamp) => timestamp.repostCount,
 				replyCount: (timestamp) => timestamp.replyCount,
 				quoteCount: (timestamp) => timestamp.quoteCount,
+				bookmarkCount: (timestamp) => timestamp.bookmarkCount,
 			}),
 
 		defineResolver({

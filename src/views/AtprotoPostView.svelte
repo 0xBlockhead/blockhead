@@ -27,6 +27,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Atproto_Xrpc,
+			Source.Atproto_BskySocial_Xrpc,
 		],
 	}))
 	const atprotoPost = $derived(viewSelection({

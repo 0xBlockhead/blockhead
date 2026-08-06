@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -23,18 +24,30 @@ export default entity({
 	blockHash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Avail,
+		],
 	},
 	parentHash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Avail,
+		],
 	},
 	stateRoot: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Avail,
+		],
 	},
 	extrinsicsRoot: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Avail,
+		],
 	},
 	timestampMs: {
 		primitiveType: type('number'),
@@ -43,6 +56,9 @@ export default entity({
 	extrinsicCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Avail,
+		],
 	},
 	dataSubmissionCount: {
 		primitiveType: type('number'),
@@ -55,6 +71,9 @@ export default entity({
 	$parent: {
 		entityType: EntityType.AvailBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Avail,
+		],
 	},
 	$$dataSubmissions: {
 		entityType: EntityType.AvailDataSubmission,

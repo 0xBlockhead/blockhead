@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -19,30 +20,57 @@ export default entity({
 	timestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Celenium_Rest,
+			Source.CelestiaNode,
+		],
 	},
 	source: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Celenium_Rest,
+			Source.CelestiaNode,
+		],
 	},
 	latestHeight: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Celenium_Rest,
+			Source.CelestiaNode,
+		],
 	},
 	latestHash: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Celenium_Rest,
+			Source.CelestiaNode,
+		],
 	},
 	latestBlockTimeMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Celenium_Rest,
+			Source.CelestiaNode,
+		],
 	},
 	syncing: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Celenium_Rest,
+			Source.CelestiaNode,
+		],
 	},
 	health: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.CelestiaNode,
+		],
 	},
 	blobCount: {
 		primitiveType: type('number'),
@@ -55,10 +83,16 @@ export default entity({
 	sampledHeaderHeight: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.CelestiaNode,
+		],
 	},
 	nodeType: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.CelestiaNode,
+		],
 	},
 })({
 	selectors: {

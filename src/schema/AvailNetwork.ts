@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 export default entity({
 	entityType: EntityType.AvailNetwork,
@@ -18,10 +19,16 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.AvailNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Avail,
+		],
 	},
 	$$blocks: {
 		entityType: EntityType.AvailBlock,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Avail,
+		],
 	},
 	$$appIds: {
 		entityType: EntityType.AvailAppId,

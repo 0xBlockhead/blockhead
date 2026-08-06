@@ -19,6 +19,7 @@
 	const pageSelection = $derived(select(EntityType.AtprotoPost, data.selector, {
 		sources: [
 			Source.Atproto_Xrpc,
+			Source.Atproto_BskySocial_Xrpc,
 		],
 		fields: {
 			text: true,

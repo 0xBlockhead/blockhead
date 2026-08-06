@@ -29,6 +29,8 @@
 		.$$observedActors({
 			sources: [
 				Source.Constants_Internal,
+				Source.Atproto_Xrpc,
+				Source.Atproto_BskySocial_Xrpc,
 			],
 		})}
 

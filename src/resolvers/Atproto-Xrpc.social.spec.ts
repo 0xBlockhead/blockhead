@@ -64,6 +64,7 @@ const postView = {
 	repostCount: 2,
 	replyCount: 1,
 	quoteCount: 0,
+	bookmarkCount: 0,
 	author: {
 		did: 'did:plc:alice',
 		handle: 'alice.test',
@@ -176,6 +177,7 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 			repostCount: 2,
 			replyCount: 1,
 			quoteCount: 0,
+			bookmarkCount: 0,
 		})
 	})
 })
