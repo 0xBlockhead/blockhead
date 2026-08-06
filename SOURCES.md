@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-253 providers register 285 sources and 498 bindings.
+254 providers register 286 sources and 510 bindings.
 
 ## Providers
 
@@ -242,6 +242,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | TronTip6963 | TRON TIP-6963 |
 | TrustWalletAssets | Trust Wallet Assets |
 | Tzkt | TzKT |
+| UniSat | UniSat |
 | Uniswap | Uniswap |
 | Voltaire | Voltaire |
 | Voyager | Voyager |
@@ -524,6 +525,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | TronTip6963_WalletApi | TronTip6963 | TRON TIP-6963 wallet API |
 | TrustWalletAssets_Github | TrustWalletAssets | Trust Wallet Assets GitHub |
 | Tzkt_Rest | Tzkt | TzKT REST |
+| UniSat_Rest | UniSat | UniSat OpenAPI |
 | UniswapContracts_Evm | Uniswap | Uniswap V3 contract catalog |
 | Voltaire_JsonRpc | Voltaire | Voltaire JSON-RPC |
 | Voyager | Voyager | Voyager |
@@ -821,6 +823,17 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["PayjoinOhttpRelay_Http","Global","ohttp-relay","RemoteQuery","RestJson"] | Payjoin | PayjoinOhttpRelay_Http | Global | ohttp-relay | RawHttp | RestJson | GenericRead | RemoteQuery |
 | ["PayjoinReceiver_Http","Global","receiver","RemoteQuery","RestJson"] | Payjoin | PayjoinReceiver_Http | Global | receiver | RawHttp | RestJson | GenericRead | RemoteQuery |
 | ["Pendle_Rest","Global","pendle-api","BrowserDirect","RestJson"] | Pendle | Pendle_Rest | Global | pendle-api | HttpRest | RestJson | GenericRead | BrowserDirect |
+| ["Pendle_Rest","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 1 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Pendle_Rest","Eip155Chain","10","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 10 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Pendle_Rest","Eip155Chain","56","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 56 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Pendle_Rest","Eip155Chain","143","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 143 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Pendle_Rest","Eip155Chain","146","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 146 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Pendle_Rest","Eip155Chain","999","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 999 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Pendle_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 5000 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Pendle_Rest","Eip155Chain","8453","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 8453 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Pendle_Rest","Eip155Chain","9745","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 9745 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Pendle_Rest","Eip155Chain","42161","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 42161 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Pendle_Rest","Eip155Chain","80094","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 80094 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | ["Petra_WalletApi","LocalDevice","petra","BrowserDirect","WalletApi"] | Petra | Petra_WalletApi | LocalDevice | petra | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | ["Piped_Rest","Global","piped-api","BrowserDirect","RestJson"] | Piped | Piped_Rest | Global | piped-api | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["PlugWallet_WalletApi","LocalDevice","plug-wallet","BrowserDirect","WalletApi"] | PlugWallet | PlugWallet_WalletApi | LocalDevice | plug-wallet | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
@@ -947,6 +960,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["TronTip6963_WalletApi","LocalDevice","tron-tip6963","BrowserDirect","WalletApi"] | TronTip6963 | TronTip6963_WalletApi | LocalDevice | tron-tip6963 | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | ["TrustWalletAssets_Github","GitRepository","trustwallet/assets@master:blockchains","BrowserDirect","GithubContentsApi"] | TrustWalletAssets | TrustWalletAssets_Github | GitRepository | trustwallet/assets@master:blockchains | HttpRest | GithubContentsApi | GithubRepositoryContents | BrowserDirect |
 | ["Tzkt_Rest","Caip2Network","tezos:NetXdQprcVkpaWU","HttpProxy","RestJson"] | Tzkt | Tzkt_Rest | Caip2Network | tezos:NetXdQprcVkpaWU | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["UniSat_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","HttpProxy","RestJson"] | UniSat | UniSat_Rest | Caip2Network | bip122:000000000019d6689c085ae165831e93 | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["UniswapContracts_Evm","Global","uniswap-v3-evm-contract-catalog","BrowserDirect","CatalogRows"] | Uniswap | UniswapContracts_Evm | Global | uniswap-v3-evm-contract-catalog | InProcess | CatalogRows | GenericRead | BrowserDirect |
 | ["Voltaire_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | Voltaire | Voltaire_JsonRpc | Eip155Chain | 1 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore, EvmRpcTrace | HttpProxy |
 | ["Voltaire_JsonRpc","Eip155Chain","1","RemoteLive","EvmExecutionJsonRpc"] | Voltaire | Voltaire_JsonRpc | Eip155Chain | 1 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcSubscribe | RemoteLive |
@@ -1353,6 +1367,17 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["PayjoinOhttpRelay_Http","Global","ohttp-relay","RemoteQuery","RestJson"] | HttpUrl | https://{payjoin-ohttp-relay-host} | https://{payjoin-ohttp-relay-host} | false |
 | ["PayjoinReceiver_Http","Global","receiver","RemoteQuery","RestJson"] | HttpUrl | https://{payjoin-receiver-host} | https://{payjoin-receiver-host} | false |
 | ["Pendle_Rest","Global","pendle-api","BrowserDirect","RestJson"] | HttpUrl | https://api-v2.pendle.finance/core | https://api-v2.pendle.finance | true |
+| ["Pendle_Rest","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://ethereum.publicnode.com | https://ethereum.publicnode.com | false |
+| ["Pendle_Rest","Eip155Chain","10","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://mainnet.optimism.io | https://mainnet.optimism.io | false |
+| ["Pendle_Rest","Eip155Chain","56","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://binance.llamarpc.com | https://binance.llamarpc.com | false |
+| ["Pendle_Rest","Eip155Chain","143","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.monad.xyz | https://rpc.monad.xyz | false |
+| ["Pendle_Rest","Eip155Chain","146","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.soniclabs.com | https://rpc.soniclabs.com | false |
+| ["Pendle_Rest","Eip155Chain","999","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://hyperliquid.drpc.org | https://hyperliquid.drpc.org | false |
+| ["Pendle_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.mantle.xyz | https://rpc.mantle.xyz | false |
+| ["Pendle_Rest","Eip155Chain","8453","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://mainnet.base.org | https://mainnet.base.org | false |
+| ["Pendle_Rest","Eip155Chain","9745","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.plasma.to | https://rpc.plasma.to | false |
+| ["Pendle_Rest","Eip155Chain","42161","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://arb1.arbitrum.io/rpc | https://arb1.arbitrum.io | false |
+| ["Pendle_Rest","Eip155Chain","80094","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.berachain.com | https://rpc.berachain.com | false |
 | ["Petra_WalletApi","LocalDevice","petra","BrowserDirect","WalletApi"] | BrowserWalletProvider | petra |  |  |
 | ["Piped_Rest","Global","piped-api","BrowserDirect","RestJson"] | HttpUrl | https://api.piped.private.coffee | https://api.piped.private.coffee | true |
 | ["PlugWallet_WalletApi","LocalDevice","plug-wallet","BrowserDirect","WalletApi"] | BrowserWalletProvider | plug |  |  |
@@ -1487,6 +1512,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["TronTip6963_WalletApi","LocalDevice","tron-tip6963","BrowserDirect","WalletApi"] | BrowserWalletProvider | tron-tip6963 |  |  |
 | ["TrustWalletAssets_Github","GitRepository","trustwallet/assets@master:blockchains","BrowserDirect","GithubContentsApi"] | HttpUrl | https://raw.githubusercontent.com | https://raw.githubusercontent.com | true |
 | ["Tzkt_Rest","Caip2Network","tezos:NetXdQprcVkpaWU","HttpProxy","RestJson"] | HttpUrl | https://api.tzkt.io | https://api.tzkt.io | false |
+| ["UniSat_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","HttpProxy","RestJson"] | HttpUrl | https://open-api.unisat.io | https://open-api.unisat.io | false |
 | ["UniswapContracts_Evm","Global","uniswap-v3-evm-contract-catalog","BrowserDirect","CatalogRows"] | InProcess | uniswap-v3-evm-contract-catalog |  |  |
 | ["Voltaire_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://ethereum.publicnode.com | https://ethereum.publicnode.com | false |
 | ["Voltaire_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://eth.drpc.org | https://eth.drpc.org | true |
@@ -1772,6 +1798,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["TronScan_Rest","Caip2Network","tron:0x2b6653dc","HttpProxy","RestJson"] | RuntimeSecret | no |  |
 | ["TronTip1193_WalletApi","LocalDevice","tron-tip1193","BrowserDirect","WalletApi"] | UserDelegated | no |  |
 | ["TronTip6963_WalletApi","LocalDevice","tron-tip6963","BrowserDirect","WalletApi"] | UserDelegated | no |  |
+| ["UniSat_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","HttpProxy","RestJson"] | PublicConfig | yes | PUBLIC_UNISAT_API_KEY |
 | ["Voyager","NetworkSlug","starknet","HttpProxy","OpenApiHttp"] | RuntimeSecret | no |  |
 | ["WalletConnect_SignClient","LocalDevice","walletconnect-sign-client","BrowserDirect","WalletApi"] | UserDelegated | no |  |
 | ["WalletStandard_WalletApi","LocalDevice","wallet-standard","BrowserDirect","WalletApi"] | UserDelegated | no |  |
@@ -1871,7 +1898,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Blockscout_Rest","Eip155Chain","11155111","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["CashuMint_Rest","Global","https://8333.space:3338","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Cashu/Mint/Rest/types.ts | no |  |  |
 | ["CelestiaNode","NetworkSlug","celestia","RemoteQuery","CelestiaNodeJsonRpc"] | GenerationManifest | src/sources/Celestia/JsonRpc/schema-source.ts | no |  |  |
+| ["CelestiaNode","NetworkSlug","celestia","RemoteQuery","CelestiaNodeJsonRpc"] | HandwrittenTypes | src/sources/Celestia/JsonRpc/types.ts | no |  |  |
 | ["CelestiaNode","NetworkSlug","celestia","RemoteQuery","CelestiaNodeJsonRpc"] | OpenRpcSpec | src/sources/Celestia/JsonRpc/openrpc.json | yes | https://docs.celestia.org/specs/openrpc-v0.28.4.json |  |
+| ["CelestiaNode","NetworkSlug","celestia","RemoteQuery","CelestiaNodeJsonRpc"] | OpenRpcTypes | src/sources/Celestia/JsonRpc/openrpc.d.ts | yes |  |  |
 | ["Chainlist_Rest","Global","rpcs-json","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Chainlist/Rest/types.ts | no |  |  |
 | ["CircleCctpIris","Global","circle-cctp-iris-api","BrowserDirect","OpenApiHttp"] | GenerationManifest | src/sources/CircleCctp/OpenApi/schema-source.ts | no |  |  |
 | ["CircleCctpIris","Global","circle-cctp-iris-api","BrowserDirect","OpenApiHttp"] | OpenApiSpec | src/sources/CircleCctp/OpenApi/openapi.yaml | yes | https://developers.circle.com/openapi/cctp.yaml |  |
@@ -1986,7 +2015,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["HederaSdk_Grpc","Caip2Network","hedera:mainnet","ServerOnly","GrpcService"] | Proto | src/sources/HederaSdk/Grpc/proto | no |  |  |
 | ["Helius","Caip2Network","solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Helius/Rest/types.ts | no |  |  |
 | ["Helius","Caip2Network","solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp","BrowserDirect","MetaplexDasJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Helius","Caip2Network","solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp","BrowserDirect","MetaplexDasJsonRpc"] | HandwrittenTypes | src/sources/Helius/Das/types.ts | no |  |  |
 | ["Helius","Caip2Network","solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp","BrowserDirect","MetaplexDasJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/metaplex-das-api.json | no |  |  |
+| ["Helius","Caip2Network","solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp","BrowserDirect","MetaplexDasJsonRpc"] | OpenRpcTypes | src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/openrpc.d.ts | yes |  |  |
 | ["Hyperliquid","NetworkSlug","hyperliquid","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Hyperliquid/Rest/types.ts | no |  |  |
 | ["Hyperliquid","Eip155Chain","999","BrowserDirect","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
 | ["Hyperliquid","Eip155Chain","999","BrowserDirect","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
@@ -2044,9 +2075,33 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["OpenSea_Rest","Global","opensea-api","ServerOnly","OpenApiHttp"] | OpenApiTypes | src/sources/OpenSea/OpenApi/openapi.d.ts | yes |  |  |
 | ["Osmosis_LCD_Rest","Caip2Network","cosmos:osmosis-1","HttpProxy","CosmosLcdApi"] | HandwrittenTypes | src/sources/Osmosis/Rest/types.ts | no |  |  |
 | ["Pathfinder","NetworkSlug","starknet","LocalOnly","StarknetJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pathfinder","NetworkSlug","starknet","LocalOnly","StarknetJsonRpc"] | HandwrittenTypes | src/sources/Pathfinder/JsonRpc/types.ts | no |  |  |
 | ["Pathfinder","NetworkSlug","starknet","LocalOnly","StarknetJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.json | no |  |  |
+| ["Pathfinder","NetworkSlug","starknet","LocalOnly","StarknetJsonRpc"] | OpenRpcTypes | src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.d.ts | yes |  |  |
 | ["PayjoinDirectory_Rest","Global","directory","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Payjoin/Directory/Rest/queries.ts | no |  |  |
 | ["Pendle_Rest","Global","pendle-api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Pendle/Rest/types.ts | no |  | https://docs.pendle.finance/pendle-v2-dev/Backend/ApiOverview |
+| ["Pendle_Rest","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pendle_Rest","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Pendle_Rest","Eip155Chain","10","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pendle_Rest","Eip155Chain","10","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Pendle_Rest","Eip155Chain","56","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pendle_Rest","Eip155Chain","56","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Pendle_Rest","Eip155Chain","143","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pendle_Rest","Eip155Chain","143","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Pendle_Rest","Eip155Chain","146","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pendle_Rest","Eip155Chain","146","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Pendle_Rest","Eip155Chain","999","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pendle_Rest","Eip155Chain","999","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Pendle_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pendle_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Pendle_Rest","Eip155Chain","8453","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pendle_Rest","Eip155Chain","8453","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Pendle_Rest","Eip155Chain","9745","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pendle_Rest","Eip155Chain","9745","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Pendle_Rest","Eip155Chain","42161","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pendle_Rest","Eip155Chain","42161","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Pendle_Rest","Eip155Chain","80094","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pendle_Rest","Eip155Chain","80094","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["Piped_Rest","Global","piped-api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Piped/Rest/types.ts | no |  |  |
 | ["Polkadot_JsonRpc","Caip2Network","polkadot:91b171bb158e2d3848fa23a9f1c25182","BrowserDirect","SubstrateJsonRpc"] | HandwrittenTypes | src/sources/Polkadot/JsonRpc/types.ts | no |  |  |
 | ["Primal_Rest","Global","primal-api","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Primal/Rest/types.ts | no |  |  |
@@ -2153,6 +2208,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["TronGrid_Rest","Caip2Network","tron:0x2b6653dc","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/TronGrid/Rest/types.ts | no |  |  |
 | ["TronScan_Rest","Caip2Network","tron:0x2b6653dc","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/TronScan/Rest/types.ts | no |  |  |
 | ["TronSolidityNode_Rest","LocalDevice","tron-solidity-node","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/_shared/interfaces/TronNodeRest/types.ts | no |  |  |
+| ["UniSat_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/UniSat/Rest/types.ts | no |  | https://docs.unisat.io/developer-support/open-api-documentation.md |
 | ["Voltaire_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
 | ["Voltaire_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["Voltaire_JsonRpc","Eip155Chain","1","RemoteLive","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |

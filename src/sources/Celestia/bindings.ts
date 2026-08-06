@@ -46,10 +46,19 @@ export default indexSourceBindings([
 				path: 'src/sources/Celestia/JsonRpc/schema-source.ts',
 			},
 			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Celestia/JsonRpc/types.ts',
+			},
+			{
 				kind: SourceArtifactKind.OpenRpcSpec,
 				path: 'src/sources/Celestia/JsonRpc/openrpc.json',
 				generated: true,
 				officialUrl: 'https://docs.celestia.org/specs/openrpc-v0.28.4.json',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcTypes,
+				path: 'src/sources/Celestia/JsonRpc/openrpc.d.ts',
+				generated: true,
 			},
 		],
 	},

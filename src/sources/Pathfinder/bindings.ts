@@ -37,8 +37,17 @@ export default indexSourceBindings([
 				path: 'src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/_shared/interfaces/StarknetJsonRpc/types.ts',
+			},
+			{
 				kind: SourceArtifactKind.OpenRpcSpec,
 				path: 'src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.json',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcTypes,
+				path: 'src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.d.ts',
+				generated: true,
 			},
 		],
 	},

@@ -73,8 +73,17 @@ export default indexSourceBindings([
 				path: 'src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Helius/Das/types.ts',
+			},
+			{
 				kind: SourceArtifactKind.OpenRpcSpec,
 				path: 'src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/metaplex-das-api.json',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcTypes,
+				path: 'src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/openrpc.d.ts',
+				generated: true,
 			},
 		],
 	},

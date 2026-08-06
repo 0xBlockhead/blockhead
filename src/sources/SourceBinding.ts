@@ -365,8 +365,15 @@ type SourceBindingCompatibility =
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.JsonRpc2,
-		ApiFamily.BitcoinJsonRpc | ApiFamily.CelestiaNodeJsonRpc | ApiFamily.FilecoinLotusJsonRpc | ApiFamily.MetaplexDasJsonRpc | ApiFamily.MoneroDaemonJsonRpc | ApiFamily.StarknetJsonRpc | ApiFamily.SubstrateJsonRpc,
+		ApiFamily.BitcoinJsonRpc | ApiFamily.FilecoinLotusJsonRpc | ApiFamily.MoneroDaemonJsonRpc | ApiFamily.SubstrateJsonRpc,
 		SourceEndpointKind.HttpUrl
+	>
+	| SourceBindingCompatibilityRow<
+		WireProtocol.JsonRpc2,
+		ApiFamily.CelestiaNodeJsonRpc | ApiFamily.MetaplexDasJsonRpc | ApiFamily.StarknetJsonRpc,
+		SourceEndpointKind.HttpUrl,
+		SourceOperationGroup.GenericRead,
+		SourceArtifactKind.GenerationManifest | SourceArtifactKind.HandwrittenTypes | SourceArtifactKind.OpenRpcSpec | SourceArtifactKind.OpenRpcTypes
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.JsonRpc2,
