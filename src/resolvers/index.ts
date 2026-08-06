@@ -157,6 +157,7 @@ const resolverLoaderEntries = [
 	[Source.TronSolidityNode_Rest, () => import('./TronSolidityNode-Rest.ts')],
 	[Source.TrustWalletAssets_Github, () => import('./TrustWalletAssets-Github.ts')],
 	[Source.Tzkt_Rest, () => import('./Tzkt-Rest.ts')],
+	[Source.UniSat_Rest, () => import('./UniSat-Rest.ts')],
 	[Source.UniswapContracts_Evm, () => import('./UniswapContracts-Evm.ts')],
 	[Source.Voltaire_JsonRpc, () => import('./Voltaire-JsonRpc.ts')],
 	[Source.Voyager, () => import('./Voyager-Rest.ts')],

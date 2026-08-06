@@ -57,6 +57,18 @@ export default entity({
 		entityType: EntityType.BitcoinCashCashTokenNft,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	$$bitcoinOrdinalInscriptions: {
+		entityType: EntityType.BitcoinOrdinalInscription,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$bitcoinRuneBalances: {
+		entityType: EntityType.BitcoinRuneBalance,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$bitcoinRunestone: {
+		entityType: EntityType.BitcoinRunestone,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 })({
 	selectors: {
 		TransactionIndexInTransaction: [

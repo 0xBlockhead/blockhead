@@ -69317,6 +69317,39 @@ export const routes = defineRoutes(schema)({
 				},
 			},
 		},
+		[EntityType.BitcoinOrdinalInscription]: {
+			"NetworkInscriptionId": {
+				kind: "Research",
+				decision: "Retain BitcoinOrdinalInscription.NetworkInscriptionId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bitcoinordinalinscription",
+			},
+		},
+		[EntityType.BitcoinRune]: {
+			"NetworkRuneId": {
+				kind: "Research",
+				decision: "Retain BitcoinRune.NetworkRuneId as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bitcoinrune",
+			},
+		},
+		[EntityType.BitcoinRuneBalance]: {
+			"UtxoOutputRune": {
+				kind: "Research",
+				decision: "Retain BitcoinRuneBalance.UtxoOutputRune as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bitcoinrunebalance",
+			},
+			"UtxoAddressRune": {
+				kind: "Research",
+				decision: "Retain BitcoinRuneBalance.UtxoAddressRune as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bitcoinrunebalance",
+			},
+		},
+		[EntityType.BitcoinRunestone]: {
+			"TransactionOutputIndex": {
+				kind: "Research",
+				decision: "Retain BitcoinRunestone.TransactionOutputIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#bitcoinrunestone",
+			},
+		},
 		[EntityType.BittensorBlock]: {
 			"NetworkBlockNumberHash": {
 				kind: "Research",

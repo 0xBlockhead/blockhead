@@ -234,6 +234,7 @@ import tronTip1193SourceProvider from './TronTip1193/index.ts'
 import tronTip6963SourceProvider from './TronTip6963/index.ts'
 import trustWalletAssetsSourceProvider from './TrustWalletAssets/index.ts'
 import tzktSourceProvider from './Tzkt/index.ts'
+import uniSatSourceProvider from './UniSat/index.ts'
 import uniswapSourceProvider from './Uniswap/index.ts'
 import voltaireSourceProvider from './Voltaire/index.ts'
 import voyagerSourceProvider from './Voyager/index.ts'
@@ -489,6 +490,7 @@ const sourceProviders = [
 	tronTip6963SourceProvider,
 	trustWalletAssetsSourceProvider,
 	tzktSourceProvider,
+	uniSatSourceProvider,
 	uniswapSourceProvider,
 	voltaireSourceProvider,
 	voyagerSourceProvider,

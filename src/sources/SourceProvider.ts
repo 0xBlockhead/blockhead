@@ -233,6 +233,7 @@ export enum SourceProvider {
 	TronTip6963 = 'TronTip6963',
 	TrustWalletAssets = 'TrustWalletAssets',
 	Tzkt = 'Tzkt',
+	UniSat = 'UniSat',
 	Uniswap = 'Uniswap',
 	Voltaire = 'Voltaire',
 	Voyager = 'Voyager',

@@ -1,8 +1,9 @@
-import bindings from '$/sources/UniSat/bindings.ts'
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
 import type { SourceProviderDefinition } from '$/sources/SourceProviderDefinition.ts'
-
+import bindings from '$/sources/UniSat/bindings.ts'
 
 export default {
 	provider: SourceProvider.UniSat,

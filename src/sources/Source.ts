@@ -257,6 +257,7 @@ export enum Source {
 	TronTip6963_WalletApi = 'TronTip6963_WalletApi',
 	TrustWalletAssets_Github = 'TrustWalletAssets_Github',
 	Tzkt_Rest = 'Tzkt_Rest',
+	UniSat_Rest = 'UniSat_Rest',
 	UniswapContracts_Evm = 'UniswapContracts_Evm',
 	Voltaire_JsonRpc = 'Voltaire_JsonRpc',
 	Voyager = 'Voyager',

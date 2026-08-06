@@ -36,6 +36,20 @@ export default entity({
 			Source.MempoolSpace_Rest,
 		],
 	},
+	$$bitcoinOrdinalInscriptions: {
+		entityType: EntityType.BitcoinOrdinalInscription,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
+	$$bitcoinRuneBalances: {
+		entityType: EntityType.BitcoinRuneBalance,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.UniSat_Rest,
+		],
+	},
 })({
 	selectors: {
 		NetworkAddress: [

@@ -64,6 +64,14 @@ export default entity({
 		entityType: EntityType.ZcashShieldedAction,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$bitcoinOrdinalInscriptions: {
+		entityType: EntityType.BitcoinOrdinalInscription,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$bitcoinRunestone: {
+		entityType: EntityType.BitcoinRunestone,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 })({
 	selectors: {
 		NetworkTxId: [

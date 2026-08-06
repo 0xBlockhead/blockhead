@@ -1,9 +1,10 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
 	genericReadOperationGroups,
 	indexSourceBindings,
-	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -12,13 +13,6 @@ import {
 } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
-
-/**
- * UniSat OpenAPI indexer (inscriptions + runes).
- * @see https://docs.unisat.io/developer-support/open-api-documentation.md
- * @see https://docs.unisat.io/developer-support/open-api-documentation/api-for-bitcoin/general/inscriptions/get-inscription-info.md
- * @see https://docs.unisat.io/developer-support/open-api-documentation/api-for-bitcoin/runes/get-runes-info.md
- */
 export default indexSourceBindings([
 	{
 		source: Source.UniSat_Rest,
@@ -43,13 +37,6 @@ export default indexSourceBindings([
 				env: arktype({
 					'PUBLIC_UNISAT_API_KEY': 'string > 0',
 				}),
-			},
-		],
-		artifacts: [
-			{
-				kind: SourceArtifactKind.HandwrittenTypes,
-				path: 'src/sources/UniSat/Rest/types.ts',
-				referenceUrl: 'https://docs.unisat.io/developer-support/open-api-documentation.md',
 			},
 		],
 	},
