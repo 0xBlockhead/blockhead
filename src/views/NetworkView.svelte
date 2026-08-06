@@ -86,6 +86,13 @@
 		], pendingEntity)
 	)
 
+	const cosmosSdkRestAndCometBftRestSources = $derived(
+		networkApplicableSources([
+			Source.CosmosSdk_Rest,
+			Source.CometBft_Rest,
+		], pendingEntity)
+	)
+
 	const cosmosSdkRestSources = $derived(
 		networkApplicableSources([
 			Source.CosmosSdk_Rest,
@@ -251,9 +258,13 @@
 	import MorphoMarketsView from '$/views/MorphoMarketsView.svelte'
 	import MorphoVaultsView from '$/views/MorphoVaultsView.svelte'
 	import PendleMarketsView from '$/views/PendleMarketsView.svelte'
+	import Network_TimestampsView from '$/views/Network_TimestampsView.svelte'
 	import CosmosBlocksView from '$/views/CosmosBlocksView.svelte'
 	import CosmosValidatorsView from '$/views/CosmosValidatorsView.svelte'
 	import CosmosAccountsView from '$/views/CosmosAccountsView.svelte'
+	import IbcChannelsView from '$/views/IbcChannelsView.svelte'
+	import IbcClientsView from '$/views/IbcClientsView.svelte'
+	import IbcConnectionsView from '$/views/IbcConnectionsView.svelte'
 	import OsmosisPoolsView from '$/views/OsmosisPoolsView.svelte'
 	import CosmosGovernanceProposalsView from '$/views/CosmosGovernanceProposalsView.svelte'
 	import PolkadotBlocksView from '$/views/PolkadotBlocksView.svelte'
@@ -265,7 +276,6 @@
 	import SolanaProgramsView from '$/views/SolanaProgramsView.svelte'
 	import SolanaTokenAccountsView from '$/views/SolanaTokenAccountsView.svelte'
 	import SolanaTokenMintsView from '$/views/SolanaTokenMintsView.svelte'
-	import Network_TimestampsView from '$/views/Network_TimestampsView.svelte'
 	import UtxoBlocksView from '$/views/UtxoBlocksView.svelte'
 	import UtxoTransactionsView from '$/views/UtxoTransactionsView.svelte'
 	import ZcashShieldedPoolsView from '$/views/ZcashShieldedPoolsView.svelte'
@@ -2901,7 +2911,18 @@
 			{#snippet Applicable(projection)}
 				{@const cosmosConsensusBlockProductionSections = [
 						...(
-							cosmosSdkRestSources.length > 0 ?
+							cosmosSdkRestAndCometBftRestSources.length > 0 ?
+								[
+									{
+										id: 'cosmos-consensus-observations',
+										label: 'Observations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							cosmosSdkRestAndCometBftRestSources.length > 0 ?
 								[
 									{
 										id: 'cosmos-consensus-blocks',
@@ -2950,12 +2971,27 @@
 							</header>
 						{/snippet}
 
+						{#snippet SectionCosmosConsensusObservations({ id, label })}
+							<Network_TimestampsView
+								selection={
+									selection
+									.$$timestamps({
+										sources: cosmosSdkRestAndCometBftRestSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
 						{#snippet SectionCosmosConsensusBlocks({ id, label })}
 							<CosmosBlocksView
 								selection={
 									projection
 									.$$blocks({
-										sources: cosmosSdkRestSources,
+										sources: cosmosSdkRestAndCometBftRestSources,
 										limit: 16,
 									})
 								}
@@ -3021,6 +3057,118 @@
 								}
 								collapsible={false}
 								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/if}
+				{@const cosmosIbcSections = [
+						...(
+							cosmosSdkRestSources.length > 0 ?
+								[
+									{
+										id: 'cosmos-ibc-channels',
+										label: 'Channels',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							cosmosSdkRestSources.length > 0 ?
+								[
+									{
+										id: 'cosmos-ibc-clients',
+										label: 'Clients',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							cosmosSdkRestSources.length > 0 ?
+								[
+									{
+										id: 'cosmos-ibc-connections',
+										label: 'Connections',
+									},
+								]
+							:
+								[]
+						),
+					]}
+
+				{#if cosmosIbcSections.length > 0}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-cosmos-ibc'}
+						sectionIdPrefix={viewDomId}
+						sections={cosmosIbcSections}
+						data-card
+						class='network-view-collapsible-ibc'
+					>
+						{#snippet Summary()}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>IBC</HeadingComponent>
+								<Tooltip>
+									{#snippet Content()}
+										<p>
+											IBC channels, clients, and connections exposed by this Cosmos SDK network.
+										</p>
+									{/snippet}
+
+									<abbr
+										class="entity-heading-tip"
+										aria-label='IBC help'
+									>ⓘ</abbr>
+								</Tooltip>
+							</header>
+						{/snippet}
+
+						{#snippet SectionCosmosIbcChannels({ id, label })}
+							<IbcChannelsView
+								selection={
+									projection
+									.$$ibcChannels({
+										sources: cosmosSdkRestSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No IBC channels.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionCosmosIbcClients({ id, label })}
+							<IbcClientsView
+								selection={
+									projection
+									.$$ibcClients({
+										sources: cosmosSdkRestSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No IBC clients.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionCosmosIbcConnections({ id, label })}
+							<IbcConnectionsView
+								selection={
+									projection
+									.$$ibcConnections({
+										sources: cosmosSdkRestSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No IBC connections.'
 								id={`${id}-list`}
 							/>
 						{/snippet}
@@ -3881,6 +4029,13 @@
 			resource={selection.Utxo}
 		>
 			{#snippet Applicable(projection)}
+				{@const utxoChainActivityUtxoConsensusBlocksSources = networkApplicableSources([
+						Source.MempoolSpace_Rest,
+						Source.Blockchair_Rest,
+						Source.DogecoinCore_JsonRpc,
+						Source.BitcoinCashNode_JsonRpc,
+					], pendingEntity)}
+
 				{@const utxoChainActivitySections = [
 						...(
 							mempoolSpaceRestAndBlockchairRestSources.length > 0 ?
@@ -3894,7 +4049,7 @@
 								[]
 						),
 						...(
-							mempoolSpaceRestAndBlockchairRestSources.length > 0 ?
+							utxoChainActivityUtxoConsensusBlocksSources.length > 0 ?
 								[
 									{
 										id: 'utxo-consensus-blocks',
@@ -3940,7 +4095,7 @@
 								selection={
 									projection
 									.$$blocks({
-										sources: mempoolSpaceRestAndBlockchairRestSources,
+										sources: utxoChainActivityUtxoConsensusBlocksSources,
 										limit: 16,
 									})
 								}

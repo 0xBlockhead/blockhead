@@ -49,6 +49,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
+			Source.LightningLnd_Rest,
 			Source.Amboss_Graphql,
 		],
 	},
@@ -57,6 +58,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.LightningMempoolSpace_Rest,
+			Source.LightningLnd_Rest,
 			Source.Amboss_Graphql,
 		],
 	},

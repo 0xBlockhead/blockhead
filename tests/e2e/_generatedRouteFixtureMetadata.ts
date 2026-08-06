@@ -1939,6 +1939,93 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/ibc-channels': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ibc-channels',
+		mappings: [
+			{
+				id: 'Network.Caip2',
+				probeAtomPrefixes: ['/network/[network]:Network.Caip2'],
+				probeCases: [[[0, '1', ['network']]]],
+			},
+			{
+				id: 'Network.Slug',
+				probeAtomPrefixes: ['/network/[network]:Network.Slug'],
+				probeCases: [[[0, '1', ['network']]], [[0, '2', ['network']]], [[0, '3', ['network']]], [[0, '4', ['network']]], [[0, '5', ['network']]], [[0, '6', ['network']]], [[0, '7', ['network']]], [[0, '8', ['network']]], [[0, '9', ['network']]], [[0, '10', ['network']]], [[0, '11', ['network']]], [[0, '12', ['network']]], [[0, '13', ['network']]], [[0, '14', ['network']]], [[0, '15', ['network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/ibc-channels/[portId]/[channelId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ibc-channels/[portId=stringSegment]/[channelId=stringSegment]',
+		mappings: [
+			{
+				id: 'IbcChannel.NetworkPortIdChannelId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/ibc-channels/[portId]/[channelId]:IbcChannel.NetworkPortIdChannelId'],
+				probeCases: [[[0, '1', ['portId', 'channelId', 'network']]]],
+				projectionPath: [
+					'Cosmos',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/ibc-clients': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ibc-clients',
+		mappings: [
+			{
+				id: 'Network.Caip2',
+				probeAtomPrefixes: ['/network/[network]:Network.Caip2'],
+				probeCases: [[[0, '1', ['network']]]],
+			},
+			{
+				id: 'Network.Slug',
+				probeAtomPrefixes: ['/network/[network]:Network.Slug'],
+				probeCases: [[[0, '1', ['network']]], [[0, '2', ['network']]], [[0, '3', ['network']]], [[0, '4', ['network']]], [[0, '5', ['network']]], [[0, '6', ['network']]], [[0, '7', ['network']]], [[0, '8', ['network']]], [[0, '9', ['network']]], [[0, '10', ['network']]], [[0, '11', ['network']]], [[0, '12', ['network']]], [[0, '13', ['network']]], [[0, '14', ['network']]], [[0, '15', ['network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/ibc-clients/[clientId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ibc-clients/[clientId=stringSegment]',
+		mappings: [
+			{
+				id: 'IbcClient.NetworkClientId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/ibc-clients/[clientId]:IbcClient.NetworkClientId'],
+				probeCases: [[[0, '1', ['clientId', 'network']]]],
+				projectionPath: [
+					'Cosmos',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/ibc-connections': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ibc-connections',
+		mappings: [
+			{
+				id: 'Network.Caip2',
+				probeAtomPrefixes: ['/network/[network]:Network.Caip2'],
+				probeCases: [[[0, '1', ['network']]]],
+			},
+			{
+				id: 'Network.Slug',
+				probeAtomPrefixes: ['/network/[network]:Network.Slug'],
+				probeCases: [[[0, '1', ['network']]], [[0, '2', ['network']]], [[0, '3', ['network']]], [[0, '4', ['network']]], [[0, '5', ['network']]], [[0, '6', ['network']]], [[0, '7', ['network']]], [[0, '8', ['network']]], [[0, '9', ['network']]], [[0, '10', ['network']]], [[0, '11', ['network']]], [[0, '12', ['network']]], [[0, '13', ['network']]], [[0, '14', ['network']]], [[0, '15', ['network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/ibc-connections/[connectionId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ibc-connections/[connectionId=stringSegment]',
+		mappings: [
+			{
+				id: 'IbcConnection.NetworkConnectionId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/ibc-connections/[connectionId]:IbcConnection.NetworkConnectionId'],
+				probeCases: [[[0, '1', ['connectionId', 'network']]]],
+				projectionPath: [
+					'Cosmos',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/inscription/[inscriptionId]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/inscription/[inscriptionId=stringSegment]',
 		mappings: [

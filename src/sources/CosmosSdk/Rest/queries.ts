@@ -595,6 +595,26 @@ const cosmosSdkIbcClientStateResponseWire = arktype({
 	},
 })
 
+const cosmosSdkIbcClientStatesResponseWire = arktype({
+	client_states: arktype({
+		client_id: 'string > 0',
+		client_state: {
+			'@type': 'string > 0',
+			chain_id: 'string > 0',
+			trust_level: {
+				numerator: '/^(0|[1-9][0-9]*)$/',
+				denominator: '/^[1-9][0-9]*$/',
+			},
+			trusting_period: 'string > 0',
+			unbonding_period: 'string > 0',
+			max_clock_drift: 'string > 0',
+			frozen_height: cosmosSdkIbcHeightWire,
+			latest_height: cosmosSdkIbcHeightWire,
+		},
+	}).array(),
+	'pagination?': cosmosSdkIbcPagination,
+})
+
 const cosmosSdkIbcDenomTraceResponseWire = arktype({
 	denom_trace: {
 		path: 'string > 0',
@@ -708,6 +728,30 @@ export const getIbcClientState = ({
 		`${base}/ibc/core/client/v1/client_states/${encodeURIComponent(clientId)}`
 	).then((response) => (
 		cosmosSdkIbcClientStateResponseWire.assert(response)
+	))
+}
+
+export const getIbcClientStates = ({
+	limit = 24,
+	paginationKey,
+}: {
+	limit?: number
+	paginationKey?: string
+}) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`CosmosSdk_Rest: invalid IBC client page limit ${limit}`)
+
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.count_total': 'true',
+		...(paginationKey != null && { 'pagination.key': paginationKey }),
+	})
+
+	return sourceGetJson(
+		binding,
+		`${base}/ibc/core/client/v1/client_states?${parameters}`
+	).then((response) => (
+		cosmosSdkIbcClientStatesResponseWire.assert(response)
 	))
 }
 

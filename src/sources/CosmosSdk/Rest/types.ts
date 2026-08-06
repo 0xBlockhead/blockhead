@@ -346,6 +346,14 @@ export type CosmosSdkIbcClientStateResponse = {
 	client_state: CosmosSdkIbcTendermintClientState
 }
 
+export type CosmosSdkIbcClientStatesResponse = {
+	client_states: {
+		client_id: string
+		client_state: CosmosSdkIbcTendermintClientState
+	}[]
+	pagination?: CosmosSdkPagination
+}
+
 export type CosmosSdkIbcDenomTraceResponse = {
 	denom_trace: {
 		path: string

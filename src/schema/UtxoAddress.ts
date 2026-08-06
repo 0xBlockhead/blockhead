@@ -24,10 +24,22 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.UtxoAddress_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.MempoolSpace_Rest,
+			Source.Blockchair_Rest,
+			Source.DogecoinCore_JsonRpc,
+			Source.BitcoinCashNode_JsonRpc,
+		],
 	},
 	$$outputs: {
 		entityType: EntityType.UtxoOutput,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.MempoolSpace_Rest,
+			Source.Blockchair_Rest,
+			Source.DogecoinCore_JsonRpc,
+			Source.BitcoinCashNode_JsonRpc,
+		],
 	},
 	$$transactions: {
 		entityType: EntityType.UtxoTransaction,

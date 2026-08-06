@@ -4,6 +4,7 @@ import { NetworkExecutionModel, NetworkLedgerModel } from '$/constants/Network.t
 import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -53,54 +54,100 @@ export default entity({
 			latestBlockHeight: {
 				primitiveType: type('bigint'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+					Source.CometBft_Rest,
+				],
 			},
 			latestBlockHash: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+					Source.CometBft_Rest,
+				],
 			},
 			latestBlockTimeMs: {
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+					Source.CometBft_Rest,
+				],
 			},
 			latestBlockTransactionCount: {
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+					Source.CometBft_Rest,
+				],
 			},
 			chainId: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+					Source.CometBft_Rest,
+				],
 			},
 			nodeNetwork: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+					Source.CometBft_Rest,
+				],
 			},
 			applicationName: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 			applicationVersion: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 			cosmosSdkVersion: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 			isSyncing: {
 				primitiveType: type('boolean'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+					Source.CometBft_Rest,
+				],
 			},
 			bondedValidatorCount: {
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 			bondedTokens: {
 				primitiveType: type('bigint'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 			notBondedTokens: {
 				primitiveType: type('bigint'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
 			},
 		}),
 		Polkadot: facet({

@@ -887,4 +887,118 @@ describe('Cosmos SDK IBC queries', () => {
 			channelId: 'channel-141',
 		})).rejects.toThrow()
 	})
+
+	it('lists IBC channels / clients / connections with pagination totals', async () => {
+		const {
+			getIbcChannels,
+			getIbcClientStates,
+			getIbcConnections,
+		} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+
+		getJson
+			.mockResolvedValueOnce({
+				channels: [
+					{
+						state: 'STATE_OPEN',
+						ordering: 'ORDER_UNORDERED',
+						counterparty: {
+							port_id: 'transfer',
+							channel_id: 'channel-0',
+						},
+						connection_hops: [
+							'connection-0',
+						],
+						version: 'ics20-1',
+						port_id: 'transfer',
+						channel_id: 'channel-141',
+					},
+				],
+				pagination: {
+					total: '42',
+				},
+			})
+			.mockResolvedValueOnce({
+				client_states: [
+					{
+						client_id: '07-tendermint-1',
+						client_state: {
+							'@type': '/ibc.lightclients.tendermint.v1.ClientState',
+							chain_id: 'osmosis-1',
+							trust_level: {
+								numerator: '1',
+								denominator: '3',
+							},
+							trusting_period: '1209600s',
+							unbonding_period: '1814400s',
+							max_clock_drift: '600s',
+							frozen_height: {
+								revision_number: '0',
+								revision_height: '0',
+							},
+							latest_height: {
+								revision_number: '1',
+								revision_height: '9',
+							},
+						},
+					},
+				],
+				pagination: {
+					total: '7',
+				},
+			})
+			.mockResolvedValueOnce({
+				connections: [
+					{
+						id: 'connection-0',
+						client_id: '07-tendermint-1',
+						state: 'STATE_OPEN',
+						counterparty: {
+							client_id: '07-tendermint-0',
+							connection_id: 'connection-0',
+						},
+						delay_period: '0',
+					},
+				],
+				pagination: {
+					total: '3',
+				},
+			})
+
+		await expect(getIbcChannels({
+			limit: 16,
+		})).resolves.toMatchObject({
+			channels: [
+				{
+					channel_id: 'channel-141',
+				},
+			],
+			pagination: {
+				total: '42',
+			},
+		})
+		await expect(getIbcClientStates({
+			limit: 16,
+		})).resolves.toMatchObject({
+			client_states: [
+				{
+					client_id: '07-tendermint-1',
+				},
+			],
+		})
+		await expect(getIbcConnections({
+			limit: 16,
+		})).resolves.toMatchObject({
+			connections: [
+				{
+					id: 'connection-0',
+				},
+			],
+		})
+
+		expect(getJson.mock.calls.map((call) => call[0])).toEqual([
+			'https://rest.cosmos.directory/cosmoshub/ibc/core/channel/v1/channels?pagination.limit=16&pagination.count_total=true',
+			'https://rest.cosmos.directory/cosmoshub/ibc/core/client/v1/client_states?pagination.limit=16&pagination.count_total=true',
+			'https://rest.cosmos.directory/cosmoshub/ibc/core/connection/v1/connections?pagination.limit=16&pagination.count_total=true',
+		])
+	})
 })

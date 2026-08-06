@@ -538,6 +538,7 @@ export default entity({
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.CosmosSdk_Rest,
+					Source.CometBft_Rest,
 				],
 			},
 			$$accounts: {
@@ -556,6 +557,27 @@ export default entity({
 			},
 			$$governanceProposals: {
 				entityType: EntityType.CosmosGovernanceProposal,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
+			},
+			$$ibcChannels: {
+				entityType: EntityType.IbcChannel,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
+			},
+			$$ibcClients: {
+				entityType: EntityType.IbcClient,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.CosmosSdk_Rest,
+				],
+			},
+			$$ibcConnections: {
+				entityType: EntityType.IbcConnection,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.CosmosSdk_Rest,
@@ -681,6 +703,8 @@ export default entity({
 				defaultSources: [
 					Source.MempoolSpace_Rest,
 					Source.Blockchair_Rest,
+					Source.DogecoinCore_JsonRpc,
+					Source.BitcoinCashNode_JsonRpc,
 				],
 			},
 			$$transactions: {

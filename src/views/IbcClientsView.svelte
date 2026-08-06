@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -36,9 +38,24 @@
 >
 	{#snippet Item({ item: ibcClient })}
 		{@const ibcClientSelector = ibcClient[EntityMetaKey.Selector]}
+		{@const network = ibcClientSelector.$network}
 		<EntityView
 			entityType={EntityType.IbcClient}
 			entitySelector={ibcClientSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ibc-clients/[clientId=stringSegment]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						clientId: ibcClientSelector.clientId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{ibcClientSelector.clientId || 'IBC client'}

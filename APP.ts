@@ -44225,8 +44225,8 @@ export const schema = {
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "LightningChannelStatus", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"capacitySats": { label: "Capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
-				"feeRatePpm": { label: "Fee rate ppm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.Amboss_Graphql] },
-				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.Amboss_Graphql] },
+				"feeRatePpm": { label: "Fee rate ppm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
+				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"closingTransactionId": { label: "Closing transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest] },
 				"closingFeeSats": { label: "Closing fee sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest] },
 				"closingReason": { label: "Closing reason", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest] },
@@ -44415,14 +44415,14 @@ export const schema = {
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"alias": { label: "Alias", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
-				"color": { label: "Color", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.Amboss_Graphql] },
-				"capacitySats": { label: "Capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.Amboss_Graphql] },
+				"color": { label: "Color", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
+				"capacitySats": { label: "Capacity sats", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"channelCount": { label: "Channels", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"firstSeenMs": { label: "First seen", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest] },
-				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.Amboss_Graphql] },
+				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 				"countryCode": { label: "Country", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.Amboss_Graphql] },
 				"city": { label: "City", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.Amboss_Graphql] },
-				"networkAddresses": { label: "Network addresses", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.Amboss_Graphql] },
+				"networkAddresses": { label: "Network addresses", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
 			})({
 				selectors: {
 					"NodeTimestampMsSource": ["$node", "timestampMs", "source"],
@@ -49124,10 +49124,13 @@ export const schema = {
 						includes: "CosmosSdk",
 					})({
 						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.CosmosSdk_Rest] },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosBlock, defaultSources: [Source.CosmosSdk_Rest] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosBlock, defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
 						"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosAccount, defaultSources: [Source.CosmosSdk_Rest] },
 						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosValidator, defaultSources: [Source.CosmosSdk_Rest] },
 						"$$governanceProposals": { label: "Governance proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosGovernanceProposal, defaultSources: [Source.CosmosSdk_Rest] },
+						"$$ibcChannels": { label: "IBC channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.IbcChannel, defaultSources: [Source.CosmosSdk_Rest] },
+						"$$ibcClients": { label: "IBC clients", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.IbcClient, defaultSources: [Source.CosmosSdk_Rest] },
+						"$$ibcConnections": { label: "IBC connections", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.IbcConnection, defaultSources: [Source.CosmosSdk_Rest] },
 						"$$osmosisPools": { label: "Osmosis pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPool, defaultSources: [Source.Osmosis_LCD_Rest] }
 					})({
 						singularView: {
@@ -49138,7 +49141,8 @@ export const schema = {
 									description: "CometBFT block production and validator state exposed by this Cosmos SDK network.",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "cosmos-consensus-blocks", field: ["Cosmos", "$$blocks"], List: "CosmosBlocksView", label: "Blocks", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
+										{ id: "cosmos-consensus-observations", field: "$$timestamps", List: "Network_TimestampsView", label: "Observations", selection: { sources: [Source.CosmosSdk_Rest, Source.CometBft_Rest], limit: 16 } },
+										{ id: "cosmos-consensus-blocks", field: ["Cosmos", "$$blocks"], List: "CosmosBlocksView", label: "Blocks", selection: { sources: [Source.CosmosSdk_Rest, Source.CometBft_Rest], limit: 16 } },
 										{ id: "cosmos-consensus-validators", field: ["Cosmos", "$$validators"], List: "CosmosValidatorsView", label: "Validators", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
 									],
 								},
@@ -49148,6 +49152,17 @@ export const schema = {
 									className: "network-view-collapsible-contracts-accounts",
 									sections: [
 										{ id: "cosmos-contracts-accounts-accounts", field: ["Cosmos", "$$accounts"], List: "CosmosAccountsView", label: "Accounts", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
+									],
+								},
+								{
+									id: "cosmos-ibc",
+									label: "IBC",
+									description: "IBC channels, clients, and connections exposed by this Cosmos SDK network.",
+									className: "network-view-collapsible-ibc",
+									sections: [
+										{ id: "cosmos-ibc-channels", field: ["Cosmos", "$$ibcChannels"], List: "IbcChannelsView", label: "Channels", emptyText: "No IBC channels.", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
+										{ id: "cosmos-ibc-clients", field: ["Cosmos", "$$ibcClients"], List: "IbcClientsView", label: "Clients", emptyText: "No IBC clients.", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
+										{ id: "cosmos-ibc-connections", field: ["Cosmos", "$$ibcConnections"], List: "IbcConnectionsView", label: "Connections", emptyText: "No IBC connections.", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -49304,7 +49319,7 @@ export const schema = {
 						path: ["ledgerModels"],
 						includes: "Utxo",
 					})({
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoBlock, defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoBlock, defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.BitcoinCashNode_JsonRpc] },
 						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction, defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest] }
 					})({
 						singularView: {
@@ -49315,7 +49330,7 @@ export const schema = {
 									className: "network-view-collapsible-chain-activity",
 									sections: [
 										{ id: "utxo-consensus-observations", field: "$$timestamps", List: "Network_TimestampsView", label: "Observations", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest], limit: 16 } },
-										{ id: "utxo-consensus-blocks", field: ["Utxo", "$$blocks"], List: "UtxoBlocksView", label: "Blocks", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest], limit: 16 } },
+										{ id: "utxo-consensus-blocks", field: ["Utxo", "$$blocks"], List: "UtxoBlocksView", label: "Blocks", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.BitcoinCashNode_JsonRpc], limit: 16 } },
 									],
 								},
 								{
@@ -50244,19 +50259,19 @@ export const schema = {
 				},
 				facets: {
 					Cosmos: facet({ path: ["executionModels"], includes: "CosmosSdk" })({
-						"latestBlockHeight": { label: "Latest block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-						"latestBlockHash": { label: "Latest block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-						"latestBlockTimeMs": { label: "Latest block time", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-						"latestBlockTransactionCount": { label: "Latest block transactions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-						"chainId": { label: "Chain ID", description: "The chain identifier used by the network family.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-						"nodeNetwork": { label: "Node network", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-						"applicationName": { label: "Application name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-						"applicationVersion": { label: "Application version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-						"cosmosSdkVersion": { label: "Cosmos SDK version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-						"isSyncing": { label: "Syncing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-						"bondedValidatorCount": { label: "Bonded validators", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-						"bondedTokens": { label: "Bonded tokens", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-						"notBondedTokens": { label: "Not bonded tokens", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"latestBlockHeight": { label: "Latest block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
+						"latestBlockHash": { label: "Latest block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
+						"latestBlockTimeMs": { label: "Latest block time", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
+						"latestBlockTransactionCount": { label: "Latest block transactions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
+						"chainId": { label: "Chain ID", description: "The chain identifier used by the network family.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
+						"nodeNetwork": { label: "Node network", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
+						"applicationName": { label: "Application name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest] },
+						"applicationVersion": { label: "Application version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest] },
+						"cosmosSdkVersion": { label: "Cosmos SDK version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest] },
+						"isSyncing": { label: "Syncing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
+						"bondedValidatorCount": { label: "Bonded validators", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.CosmosSdk_Rest] },
+						"bondedTokens": { label: "Bonded tokens", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.CosmosSdk_Rest] },
+						"notBondedTokens": { label: "Not bonded tokens", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.CosmosSdk_Rest] },
 					}),
 					Polkadot: facet({ path: ["executionModels"], includes: "PolkadotRuntime" })({
 						"finalizedBlockNumber": { label: "Finalized block number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -65855,8 +65870,8 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoAddress_Timestamp },
-				"$$outputs": { label: "Outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoOutput },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoAddress_Timestamp, defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.BitcoinCashNode_JsonRpc] },
+				"$$outputs": { label: "Outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoOutput, defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.BitcoinCashNode_JsonRpc] },
 				"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoTransaction, defaultSources: [Source.MempoolSpace_Rest] },
 				"$$bitcoinOrdinalInscriptions": { label: "Bitcoin Ordinal inscriptions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinOrdinalInscription, defaultSources: [Source.UniSat_Rest] },
 				"$$bitcoinRuneBalances": { label: "Bitcoin Rune balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinRuneBalance, defaultSources: [Source.UniSat_Rest] },
@@ -65878,7 +65893,7 @@ export const schema = {
 								label: "Activity",
 								className: "network-view-collapsible-activity",
 								sections: [
-									{ id: "utxo-address-outputs", field: "$$outputs", List: "UtxoOutputsView", label: "Outputs", emptyText: "No outputs." },
+									{ id: "utxo-address-outputs", field: "$$outputs", List: "UtxoOutputsView", label: "Outputs", emptyText: "No outputs.", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.BitcoinCashNode_JsonRpc], limit: 16 } },
 									{ id: "utxo-address-transactions", field: "$$transactions", List: "UtxoTransactionsView", label: "Transactions", emptyText: "No transactions." },
 								],
 							},
@@ -65887,7 +65902,7 @@ export const schema = {
 								label: "Observations",
 								className: "network-view-collapsible-observations",
 								sections: [
-									{ id: "utxo-address-timestamps", field: "$$timestamps", List: "UtxoAddress_TimestampsView", label: "Timestamps", emptyText: "No timestamps." },
+									{ id: "utxo-address-timestamps", field: "$$timestamps", List: "UtxoAddress_TimestampsView", label: "Timestamps", emptyText: "No timestamps.", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.BitcoinCashNode_JsonRpc], limit: 16 } },
 								],
 							},
 						],
@@ -65906,14 +65921,14 @@ export const schema = {
 				"$address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.UtxoAddress },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"balanceSats": { label: "Balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"fundedOutputCount": { label: "Funded output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"fundedValueSats": { label: "Funded value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"spentOutputCount": { label: "Spent output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"spentValueSats": { label: "Spent value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"unspentOutputCount": { label: "Unspent output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"mempoolTransactionCount": { label: "Mempool transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"balanceSats": { label: "Balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.BitcoinCashNode_JsonRpc] },
+				"fundedOutputCount": { label: "Funded output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest] },
+				"fundedValueSats": { label: "Funded value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest] },
+				"spentOutputCount": { label: "Spent output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest] },
+				"spentValueSats": { label: "Spent value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest] },
+				"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest] },
+				"unspentOutputCount": { label: "Unspent output count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest, Source.DogecoinCore_JsonRpc, Source.BitcoinCashNode_JsonRpc] },
+				"mempoolTransactionCount": { label: "Mempool transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest] },
 			})({
 				selectors: {
 					"AddressTimestampMsSource": ["$address", "timestampMs", "source"],
@@ -73223,27 +73238,6 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain HyperliquidVaultEquity_Timestamp.AccountVaultTimestampMsSource as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#hyperliquidvaultequity_timestamp",
-			},
-		},
-		[EntityType.IbcChannel]: {
-			"NetworkPortIdChannelId": {
-				kind: "Research",
-				decision: "Retain IbcChannel.NetworkPortIdChannelId as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#ibcchannel",
-			},
-		},
-		[EntityType.IbcClient]: {
-			"NetworkClientId": {
-				kind: "Research",
-				decision: "Retain IbcClient.NetworkClientId as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#ibcclient",
-			},
-		},
-		[EntityType.IbcConnection]: {
-			"NetworkConnectionId": {
-				kind: "Research",
-				decision: "Retain IbcConnection.NetworkConnectionId as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#ibcconnection",
 			},
 		},
 		[EntityType.IbcDenomTrace]: {
@@ -81633,6 +81627,119 @@ export const routes = defineRoutes(schema)({
 																},
 																params: {
 																	"poolId": ["poolId"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"ibc-channels": {
+											collections: [
+												{
+													field: [
+														EntityType.Network,
+														["Cosmos", "$$ibcChannels"],
+													],
+													page: {
+														view: { component: "IbcChannelsView" },
+														text: { title: "IBC channels" },
+													},
+												},
+											],
+											children: {
+												"[portId]": {
+													children: {
+														"[channelId]": {
+															selectors: {
+																[EntityType.IbcChannel]: {
+																	"NetworkPortIdChannelId": {
+																		when: {
+																			path: ["namespace"],
+																			is: "Cosmos",
+																		},
+																		projection: {
+																			entityType: EntityType.Network,
+																			facetPath: ["Cosmos"],
+																		},
+																		params: {
+																			"portId": ["portId"],
+																			"channelId": ["channelId"],
+																		},
+																		page: {},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+										"ibc-clients": {
+											collections: [
+												{
+													field: [
+														EntityType.Network,
+														["Cosmos", "$$ibcClients"],
+													],
+													page: {
+														view: { component: "IbcClientsView" },
+														text: { title: "IBC clients" },
+													},
+												},
+											],
+											children: {
+												"[clientId]": {
+													selectors: {
+														[EntityType.IbcClient]: {
+															"NetworkClientId": {
+																when: {
+																	path: ["namespace"],
+																	is: "Cosmos",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Cosmos"],
+																},
+																params: {
+																	"clientId": ["clientId"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"ibc-connections": {
+											collections: [
+												{
+													field: [
+														EntityType.Network,
+														["Cosmos", "$$ibcConnections"],
+													],
+													page: {
+														view: { component: "IbcConnectionsView" },
+														text: { title: "IBC connections" },
+													},
+												},
+											],
+											children: {
+												"[connectionId]": {
+													selectors: {
+														[EntityType.IbcConnection]: {
+															"NetworkConnectionId": {
+																when: {
+																	path: ["namespace"],
+																	is: "Cosmos",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Cosmos"],
+																},
+																params: {
+																	"connectionId": ["connectionId"],
 																},
 																page: {},
 															},

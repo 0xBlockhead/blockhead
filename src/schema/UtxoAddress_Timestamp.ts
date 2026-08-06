@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -27,34 +28,70 @@ export default entity({
 	balanceSats: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MempoolSpace_Rest,
+			Source.Blockchair_Rest,
+			Source.DogecoinCore_JsonRpc,
+			Source.BitcoinCashNode_JsonRpc,
+		],
 	},
 	fundedOutputCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MempoolSpace_Rest,
+			Source.Blockchair_Rest,
+		],
 	},
 	fundedValueSats: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MempoolSpace_Rest,
+			Source.Blockchair_Rest,
+		],
 	},
 	spentOutputCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MempoolSpace_Rest,
+			Source.Blockchair_Rest,
+		],
 	},
 	spentValueSats: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MempoolSpace_Rest,
+			Source.Blockchair_Rest,
+		],
 	},
 	transactionCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MempoolSpace_Rest,
+			Source.Blockchair_Rest,
+		],
 	},
 	unspentOutputCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MempoolSpace_Rest,
+			Source.Blockchair_Rest,
+			Source.DogecoinCore_JsonRpc,
+			Source.BitcoinCashNode_JsonRpc,
+		],
 	},
 	mempoolTransactionCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.MempoolSpace_Rest,
+			Source.Blockchair_Rest,
+		],
 	},
 })({
 	selectors: {

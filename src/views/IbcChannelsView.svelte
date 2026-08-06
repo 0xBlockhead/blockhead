@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -37,9 +39,25 @@
 >
 	{#snippet Item({ item: ibcChannel })}
 		{@const ibcChannelSelector = ibcChannel[EntityMetaKey.Selector]}
+		{@const network = ibcChannelSelector.$network}
 		<EntityView
 			entityType={EntityType.IbcChannel}
 			entitySelector={ibcChannelSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ibc-channels/[portId=stringSegment]/[channelId=stringSegment]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						portId: ibcChannelSelector.portId,
+						channelId: ibcChannelSelector.channelId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{ibcChannelSelector.channelId || 'IBC channel'}

@@ -1080,6 +1080,107 @@ export default {
 				},
 			}),
 
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: cosmosNetworkResolverSelectors(
+				async (network, context) => {
+					assertCosmosHub(network)
+					const {
+						getIbcChannels,
+					} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+					const response = await getIbcChannels({
+						limit: resolverContextRowLimit(context),
+					})
+					return {
+						rows: response.channels.map((channel) => {
+							const portId = channel.port_id
+							const channelId = channel.channel_id
+							if (portId == null || portId === '' || channelId == null || channelId === '')
+								throw new Error('CosmosSdk_Rest: IBC channel list row missing port or channel id')
+
+							return {
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									portId,
+									channelId,
+								},
+							}
+						}),
+						totalCount: cosmosPaginationCount(response.pagination?.total, 'IBC channel'),
+					}
+				}
+			),
+		})({
+			Cosmos: {
+				$$ibcChannels: {
+					select: (snapshot) => snapshot.rows,
+					resolveCount: (snapshot) => snapshot.totalCount,
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: cosmosNetworkResolverSelectors(
+				async (network, context) => {
+					assertCosmosHub(network)
+					const {
+						getIbcClientStates,
+					} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+					const response = await getIbcClientStates({
+						limit: resolverContextRowLimit(context),
+					})
+					return {
+						rows: response.client_states.map((client) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								clientId: client.client_id,
+							},
+						})),
+						totalCount: cosmosPaginationCount(response.pagination?.total, 'IBC client'),
+					}
+				}
+			),
+		})({
+			Cosmos: {
+				$$ibcClients: {
+					select: (snapshot) => snapshot.rows,
+					resolveCount: (snapshot) => snapshot.totalCount,
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: cosmosNetworkResolverSelectors(
+				async (network, context) => {
+					assertCosmosHub(network)
+					const {
+						getIbcConnections,
+					} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+					const response = await getIbcConnections({
+						limit: resolverContextRowLimit(context),
+					})
+					return {
+						rows: response.connections.map((connection) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								connectionId: connection.id,
+							},
+						})),
+						totalCount: cosmosPaginationCount(response.pagination?.total, 'IBC connection'),
+					}
+				}
+			),
+		})({
+			Cosmos: {
+				$$ibcConnections: {
+					select: (snapshot) => snapshot.rows,
+					resolveCount: (snapshot) => snapshot.totalCount,
+				},
+			},
+		}),
+
 
 		defineResolver({
 			entityType: EntityType.CosmosAccount,

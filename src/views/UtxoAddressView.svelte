@@ -7,6 +7,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -129,7 +130,18 @@
 
 			{#snippet SectionUtxoAddressOutputs({ id, label })}
 				<UtxoOutputsView
-					selection={selection.$$outputs}
+					selection={
+						selection
+						.$$outputs({
+							sources: [
+								Source.MempoolSpace_Rest,
+								Source.Blockchair_Rest,
+								Source.DogecoinCore_JsonRpc,
+								Source.BitcoinCashNode_JsonRpc,
+							],
+							limit: 16,
+						})
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No outputs.'
@@ -171,7 +183,18 @@
 
 			{#snippet SectionUtxoAddressTimestamps({ id, label })}
 				<UtxoAddress_TimestampsView
-					selection={selection.$$timestamps}
+					selection={
+						selection
+						.$$timestamps({
+							sources: [
+								Source.MempoolSpace_Rest,
+								Source.Blockchair_Rest,
+								Source.DogecoinCore_JsonRpc,
+								Source.BitcoinCashNode_JsonRpc,
+							],
+							limit: 16,
+						})
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No timestamps.'
