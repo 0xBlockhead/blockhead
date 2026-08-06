@@ -167,6 +167,40 @@ describe('Across public bridge queries', () => {
 		})).rejects.toThrow('foreign depositor deposit')
 	})
 
+	it('preserves successful empty lists and rejects malformed deposit envelopes', async () => {
+		sourceGetJson.mockResolvedValue([])
+		await expect(getDeposits({ depositor })).resolves.toEqual([])
+
+		sourceGetJson.mockResolvedValue({})
+		await expect(getDeposit({
+			originChainId: 8453,
+			depositId,
+		})).rejects.toThrow('invalid deposit response envelope')
+
+		sourceGetJson.mockResolvedValue({
+			deposit,
+		})
+		await expect(getDeposit({
+			originChainId: 8453,
+			depositId,
+		})).rejects.toThrow('invalid deposit response envelope')
+
+		sourceGetJson.mockResolvedValue({
+			deposit,
+		pagination: {
+				currentIndex: 0,
+				maxIndex: -1,
+			},
+		})
+		await expect(getDeposit({
+			originChainId: 8453,
+			depositId,
+		})).rejects.toThrow('invalid deposit pagination envelope')
+
+		sourceGetJson.mockResolvedValue({ deposits: [] })
+		await expect(getDeposits({ depositor })).rejects.toThrow('invalid deposits response envelope')
+	})
+
 	it('preserves quote amounts, fee percentages, limits, and route identity', async () => {
 		sourceGetJson.mockResolvedValue({
 			estimatedFillTimeSec: 2,

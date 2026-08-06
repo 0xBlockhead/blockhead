@@ -230,6 +230,19 @@ describe('Across BridgeTransfer resolvers', () => {
 		}])
 	})
 
+	it('preserves an empty depositor-scoped list without inventing transfers', async () => {
+		getDeposits.mockResolvedValue([])
+		const resolver = across.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmAccount
+		))
+		if (resolver == null)
+			throw new Error('Across_Rest: EvmAccount resolver missing')
+
+		await expect(resolver.resolve.AddressInteropAddress.resolve({
+			address: depositor,
+		})).resolves.toEqual([])
+	})
+
 	it('fails closed on a depositor deposit missing a deposit id', async () => {
 		getDeposits.mockResolvedValue([{
 			...deposit,

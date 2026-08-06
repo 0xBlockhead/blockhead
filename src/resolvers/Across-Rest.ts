@@ -7,12 +7,13 @@ import {
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
 	type EntitySelector,
+	type EntitySelectorForSelectorName,
 } from '$/schema/$schema.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { acrossChainByChainId } from '$/sources/Across/Rest/constants.ts'
@@ -117,7 +118,11 @@ const acrossCoinInstanceRef = (
 	return {
 		[EntityMetaKey.Selector]: {
 			$network: acrossEvmNetworkRef(chainId)[EntityMetaKey.Selector],
-			address,
+			type: CoinInstanceType.Erc20Token,
+			$contract: {
+				$network: acrossEvmNetworkRef(chainId)[EntityMetaKey.Selector],
+				address,
+			},
 		},
 	}
 }
@@ -183,7 +188,11 @@ const acrossBridgeTransferSnapshot = (
 }
 
 const loadAcrossDeposit = async (
-	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>
+	transfer: EntitySelectorForSelectorName<
+		typeof schema,
+		EntityType.BridgeTransfer,
+		'SourceTransferId'
+	>
 ) => {
 	if (transfer.source !== Source.Across_Rest)
 		throw new Error(`Across_Rest: unsupported bridge transfer source ${transfer.source}`)
@@ -275,6 +284,11 @@ export default {
 					}) => {
 						if (source !== Source.Across_Rest)
 							throw new Error(`Across_Rest: unsupported bridge transfer timestamp source ${source}`)
+						if (
+							!('source' in $transfer)
+							|| !('transferId' in $transfer)
+						)
+							throw new Error('Across_Rest: bridge transfer timestamp requires SourceTransferId')
 
 						const deposit = await loadAcrossDeposit($transfer)
 						const observedAtMs = acrossObservationMs(deposit)
@@ -365,4 +379,4 @@ export default {
 			$$bridgeTransfers: (bridgeTransfers) => bridgeTransfers,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule
+}
