@@ -16,12 +16,11 @@ import { sourceBindings } from '$/sources/$sourceProviders.ts'
 
 
 describe('Mcp source bindings', () => {
-	it('models declared MCP stdio and Streamable HTTP over WireProtocol.Mcp', () => {
-		expect(WireProtocol.Mcp).toBe('Mcp')
+	it('models declared MCP stdio over JsonRpc2/McpProtocol from APP', () => {
 		expect(mcpBindings[Source.McpDeclared_Protocol]).toEqual([
 			expect.objectContaining({
 				source: Source.McpDeclared_Protocol,
-				wireProtocol: WireProtocol.Mcp,
+				wireProtocol: WireProtocol.JsonRpc2,
 				apiFamily: ApiFamily.McpProtocol,
 				endpoints: [
 					{
@@ -31,23 +30,10 @@ describe('Mcp source bindings', () => {
 				],
 				delivery: SourceDelivery.LocalOnly,
 			}),
-			expect.objectContaining({
-				source: Source.McpDeclared_Protocol,
-				wireProtocol: WireProtocol.Mcp,
-				apiFamily: ApiFamily.McpProtocol,
-				endpoints: [
-					{
-						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: 'https://{mcp-host}',
-						corsEnabled: false,
-					},
-				],
-				delivery: SourceDelivery.RemoteQuery,
-			}),
 		])
 	})
 
-	it('keeps the package registry on HttpRest/RestJson, not WireProtocol.Mcp', () => {
+	it('keeps the package registry on HttpRest/RestJson', () => {
 		expect(mcpBindings[Source.McpPackageRegistry_Rest]).toEqual([
 			expect.objectContaining({
 				source: Source.McpPackageRegistry_Rest,
@@ -65,7 +51,7 @@ describe('Mcp source bindings', () => {
 		])
 	})
 
-	it('accepts only Mcp/McpProtocol and HttpRest/RestJson among MCP provider bindings', () => {
+	it('accepts only JsonRpc2/McpProtocol local and HttpRest/RestJson among MCP provider bindings', () => {
 		expect(
 			Object.values(mcpBindings)
 				.flat()
@@ -73,28 +59,24 @@ describe('Mcp source bindings', () => {
 				.sort()
 		).toEqual([
 			`${WireProtocol.HttpRest}/${ApiFamily.RestJson}/${SourceDelivery.RemoteQuery}`,
-			`${WireProtocol.Mcp}/${ApiFamily.McpProtocol}/${SourceDelivery.LocalOnly}`,
-			`${WireProtocol.Mcp}/${ApiFamily.McpProtocol}/${SourceDelivery.RemoteQuery}`,
+			`${WireProtocol.JsonRpc2}/${ApiFamily.McpProtocol}/${SourceDelivery.LocalOnly}`,
 		])
 	})
 
-	it('rejects collapsing McpProtocol onto JsonRpc2 or HttpRest anywhere in the registry', () => {
-		const invalidPairs = [
-			[WireProtocol.JsonRpc2, ApiFamily.McpProtocol],
-			[WireProtocol.HttpRest, ApiFamily.McpProtocol],
-			[WireProtocol.Mcp, ApiFamily.RestJson],
-			[WireProtocol.Mcp, ApiFamily.JsonRpcApi],
-			[WireProtocol.Mcp, ApiFamily.AcpProtocol],
-		] as const
+	it('rejects collapsing McpProtocol onto HttpRest or non-local JsonRpc2 anywhere in the registry', () => {
+		expect(
+			sourceBindings.some((binding) => (
+				binding.wireProtocol === WireProtocol.HttpRest
+				&& binding.apiFamily === ApiFamily.McpProtocol
+			))
+		).toBe(false)
 
-		for (const [wireProtocol, apiFamily] of invalidPairs) {
-			expect(
-				sourceBindings.some((binding) => (
-					binding.wireProtocol === wireProtocol
-					&& binding.apiFamily === apiFamily
-				)),
-				`${wireProtocol}/${apiFamily}`
-			).toBe(false)
-		}
+		expect(
+			sourceBindings.some((binding) => (
+				binding.wireProtocol === WireProtocol.JsonRpc2
+				&& binding.apiFamily === ApiFamily.McpProtocol
+				&& binding.delivery !== SourceDelivery.LocalOnly
+			))
+		).toBe(false)
 	})
 })
