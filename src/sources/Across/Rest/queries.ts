@@ -12,6 +12,12 @@ import type {
 	AcrossDepositStatusResponse,
 	AcrossSuggestedFees,
 } from '$/sources/Across/Rest/types.ts'
+import {
+	acrossDepositResponseEnvelope,
+	acrossDepositStatusResponseEnvelope,
+	acrossDepositsEnvelope,
+	acrossSuggestedFeesEnvelope,
+} from '$/sources/Across/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Across_Rest][0]
@@ -21,6 +27,20 @@ const decimalStringPattern = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/
 const fetchAcrossJson = <_Json>(path: string) => (
 	sourceGetJson<_Json>(binding, httpUrl(binding, path))
 )
+
+const assertEnvelope = (
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(value)
+	} catch {
+		throw new Error(`Across_Rest: invalid ${label} response envelope`)
+	}
+}
 
 const assertChainId = (chainId: number) => {
 	if (!Number.isSafeInteger(chainId) || chainId < 1)
@@ -67,10 +87,7 @@ const assertTimestamp = (value: string, name: string) => {
 		throw new Error(`Across_Rest: invalid ${name}`)
 }
 
-const assertDeposit = (deposit: AcrossDeposit | null) => {
-	if (deposit == null)
-		throw new Error('Across_Rest: invalid deposit response envelope')
-
+const assertDeposit = (deposit: AcrossDeposit) => {
 	assertChainId(deposit.originChainId)
 	assertChainId(deposit.destinationChainId)
 	if (deposit.depositId != null)
@@ -116,10 +133,9 @@ const assertDeposit = (deposit: AcrossDeposit | null) => {
 }
 
 const assertDepositResponse = (
-	response: Partial<AcrossDepositResponse> | null
-): response is AcrossDepositResponse => {
-	if (response == null || response.deposit == null || response.pagination == null)
-		throw new Error('Across_Rest: invalid deposit response envelope')
+	response: AcrossDepositResponse
+) => {
+	assertEnvelope(acrossDepositResponseEnvelope, response, 'deposit')
 	if (
 		!Number.isSafeInteger(response.pagination.currentIndex)
 		|| !Number.isSafeInteger(response.pagination.maxIndex)
@@ -127,7 +143,7 @@ const assertDepositResponse = (
 		|| response.pagination.maxIndex < response.pagination.currentIndex
 	)
 		throw new Error('Across_Rest: invalid deposit pagination envelope')
-	return true
+	return response
 }
 
 export const getDeposit = async (query: (
@@ -153,18 +169,19 @@ export const getDeposit = async (query: (
 	} else
 		assertOpaqueIdentity(query.depositTxnRef, 'deposit transaction reference')
 
-	const response = await fetchAcrossJson<Partial<AcrossDepositResponse> | null>(
-		`/api/deposit?${new URLSearchParams({
-			...(query.depositTxnRef == null ? {
-				originChainId: String(query.originChainId),
-				depositId: query.depositId,
-			} : {
-				depositTxnRef: query.depositTxnRef,
-			}),
-			index: String(index),
-		})}`
+	const response = assertDepositResponse(
+		await fetchAcrossJson<AcrossDepositResponse>(
+			`/api/deposit?${new URLSearchParams({
+				...(query.depositTxnRef == null ? {
+					originChainId: String(query.originChainId),
+					depositId: query.depositId,
+				} : {
+					depositTxnRef: query.depositTxnRef,
+				}),
+				index: String(index),
+			})}`
+		)
 	)
-	assertDepositResponse(response)
 	assertDeposit(response.deposit)
 	if (query.depositTxnRef == null) {
 		if (
@@ -196,6 +213,7 @@ export const getDepositStatus = async ({
 			depositId,
 		})}`
 	)
+	assertEnvelope(acrossDepositStatusResponseEnvelope, status, 'deposit status')
 	if (status.originChainId !== originChainId || status.depositId !== depositId)
 		throw new Error('Across_Rest: mismatched deposit status identity')
 	assertChainId(status.originChainId)
@@ -227,15 +245,14 @@ export const getDeposits = async ({
 		throw new Error(`Across_Rest: invalid page limit ${limit}`)
 	if (!Number.isSafeInteger(skip) || skip < 0 || skip > 100_000)
 		throw new Error(`Across_Rest: invalid page offset ${skip}`)
-	const deposits = await fetchAcrossJson<AcrossDeposit[] | null>(
+	const deposits = await fetchAcrossJson<AcrossDeposit[]>(
 		`/api/deposits?${new URLSearchParams({
 			depositor,
 			limit: String(limit),
 			skip: String(skip),
 		})}`
 	)
-	if (deposits == null || !Array.isArray(deposits))
-		throw new Error('Across_Rest: invalid deposits response envelope')
+	assertEnvelope(acrossDepositsEnvelope, deposits, 'deposits')
 	if (deposits.length > limit)
 		throw new Error('Across_Rest: deposit response exceeds requested limit')
 	for (const deposit of deposits) {
@@ -273,6 +290,7 @@ export const getSuggestedFees = async ({
 			amount,
 		})}`
 	)
+	assertEnvelope(acrossSuggestedFeesEnvelope, fees, 'suggested fees')
 	if (
 		fees.inputToken.chainId !== originChainId
 		|| fees.outputToken.chainId !== destinationChainId

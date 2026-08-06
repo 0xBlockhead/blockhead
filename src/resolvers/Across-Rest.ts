@@ -5,6 +5,7 @@ import {
 	BridgeVerificationModel,
 } from '$/constants/Bridge.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -212,6 +213,19 @@ const loadAcrossDeposit = async (
 	return deposit
 }
 
+const acrossPaginationSkip = (
+	context: ResolverContext
+) => {
+	const skip = context.providerContinuationToken == null ?
+		context.pagination.offset ?? 0
+	:
+		Number(context.providerContinuationToken)
+	if (!Number.isSafeInteger(skip) || skip < 0)
+		throw new Error('Across_Rest: invalid pagination offset')
+
+	return skip
+}
+
 
 export default {
 	source: Source.Across_Rest,
@@ -316,6 +330,18 @@ export default {
 						if (deposit.relayer != null && relayer == null)
 							throw new Error('Across_Rest: invalid relayer address')
 
+						const fillDeadlineMs = (
+							deposit.fillDeadline == null ?
+								undefined
+							:
+								Date.parse(deposit.fillDeadline)
+						)
+						if (
+							deposit.fillDeadline != null
+							&& !Number.isFinite(fillDeadlineMs)
+						)
+							throw new Error('Across_Rest: invalid fill deadline')
+
 						return {
 							$transfer: {
 								[EntityMetaKey.Selector]: $transfer,
@@ -338,6 +364,14 @@ export default {
 									completedAt: Date.parse(deposit.fillBlockTimestamp),
 								}
 							),
+							...(
+								fillDeadlineMs != null
+								&& deposit.status !== 'filled'
+								&& deposit.status !== 'refunded'
+								&& {
+									estimatedCompletionMs: fillDeadlineMs,
+								}
+							),
 						}
 					},
 				},
@@ -351,32 +385,58 @@ export default {
 			relayer: (observation) => observation.relayer,
 			refundTxHash: (observation) => observation.refundTxHash,
 			completedAt: (observation) => observation.completedAt,
+			estimatedCompletionMs: (observation) => observation.estimatedCompletionMs,
 		}),
 
 		defineResolver({
 			entityType: EntityType.EvmAccount,
 			resolve: {
 				AddressInteropAddress: {
-					resolve: async ({ address }) => {
+					resolve: async ({ address }, context) => {
+						const skip = acrossPaginationSkip(context)
+						const limit = Math.min(resolverContextRowLimit(context), 100)
 						const { getDeposits } = await import('$/sources/Across/Rest/queries.ts')
-						return (await getDeposits({
+						const deposits = await getDeposits({
 							depositor: address,
-						})).map((deposit) => {
-							if (deposit.depositId == null)
-								throw new Error('Across_Rest: deposit missing deposit id')
-
-							return {
-								[EntityMetaKey.Selector]: {
-									source: Source.Across_Rest,
-									transferId: `${deposit.originChainId}/${deposit.depositId}`,
-								},
-							}
+							limit,
+							skip,
 						})
+
+						return {
+							skip,
+							limit,
+							rows: deposits.map((deposit) => {
+								if (deposit.depositId == null)
+									throw new Error('Across_Rest: deposit missing deposit id')
+
+								return {
+									[EntityMetaKey.Selector]: {
+										source: Source.Across_Rest,
+										transferId: `${deposit.originChainId}/${deposit.depositId}`,
+									},
+								}
+							}),
+						}
 					},
 				},
 			},
 		})({
-			$$bridgeTransfers: (bridgeTransfers) => bridgeTransfers,
+			$$bridgeTransfers: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot) => {
+					const nextSkip = snapshot.skip + snapshot.rows.length
+					const terminal = snapshot.rows.length < snapshot.limit
+
+					return {
+						operation: 'account-bridge-transfers',
+						target: 'across',
+						terminal,
+						...(!terminal && {
+							token: String(nextSkip),
+						}),
+					}
+				},
+			},
 		}),
 	],
 }

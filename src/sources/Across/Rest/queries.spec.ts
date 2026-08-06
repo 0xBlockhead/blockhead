@@ -199,6 +199,20 @@ describe('Across public bridge queries', () => {
 
 		sourceGetJson.mockResolvedValue({ deposits: [] })
 		await expect(getDeposits({ depositor })).rejects.toThrow('invalid deposits response envelope')
+
+		sourceGetJson.mockResolvedValue([{
+			...deposit,
+			status: 'filled',
+		}])
+		await expect(getDeposits({ depositor })).resolves.toHaveLength(1)
+
+		sourceGetJson.mockResolvedValue([
+			{
+				...deposit,
+				id: 'not-a-number',
+			},
+		])
+		await expect(getDeposits({ depositor })).rejects.toThrow('invalid deposits response envelope')
 	})
 
 	it('preserves quote amounts, fee percentages, limits, and route identity', async () => {

@@ -6,7 +6,6 @@ import {
 	vi,
 } from 'vitest'
 
-import { loadResolvers } from '$/resolvers/index.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -215,19 +214,65 @@ describe('Across BridgeTransfer resolvers', () => {
 		if (resolver == null)
 			throw new Error('Across_Rest: EvmAccount resolver missing')
 
-		const bridgeTransfers = await resolver.resolve.AddressInteropAddress.resolve({
-			address: depositor,
-		})
+		const bridgeTransfers = await resolver.resolve.AddressInteropAddress.resolve(
+			{
+				address: depositor,
+			},
+			{
+				pagination: {
+					limit: 50,
+				},
+			}
+		)
 
 		expect(getDeposits).toHaveBeenCalledWith({
 			depositor,
+			limit: 50,
+			skip: 0,
 		})
-		expect(resolver.projections.$$bridgeTransfers(bridgeTransfers)).toEqual([{
+		expect(resolver.projections.$$bridgeTransfers.select(bridgeTransfers)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				source: Source.Across_Rest,
 				transferId,
 			},
 		}])
+		expect(resolver.projections.$$bridgeTransfers.continuation(bridgeTransfers)).toMatchObject({
+			operation: 'account-bridge-transfers',
+			target: 'across',
+			terminal: true,
+		})
+	})
+
+	it('continues depositor-scoped deposits when the page is full', async () => {
+		getDeposits.mockResolvedValue([deposit])
+		const resolver = across.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmAccount
+		))
+		if (resolver == null)
+			throw new Error('Across_Rest: EvmAccount resolver missing')
+
+		const bridgeTransfers = await resolver.resolve.AddressInteropAddress.resolve(
+			{
+				address: depositor,
+			},
+			{
+				pagination: {
+					limit: 1,
+				},
+			}
+		)
+
+		expect(getDeposits).toHaveBeenCalledWith({
+			depositor,
+			limit: 1,
+			skip: 0,
+		})
+		expect(resolver.projections.$$bridgeTransfers.continuation(bridgeTransfers)).toEqual({
+			operation: 'account-bridge-transfers',
+			target: 'across',
+			terminal: false,
+			token: '1',
+		})
 	})
 
 	it('preserves an empty depositor-scoped list without inventing transfers', async () => {
@@ -238,9 +283,17 @@ describe('Across BridgeTransfer resolvers', () => {
 		if (resolver == null)
 			throw new Error('Across_Rest: EvmAccount resolver missing')
 
-		await expect(resolver.resolve.AddressInteropAddress.resolve({
-			address: depositor,
-		})).resolves.toEqual([])
+		const bridgeTransfers = await resolver.resolve.AddressInteropAddress.resolve(
+			{
+				address: depositor,
+			},
+			{
+				pagination: {
+					limit: 50,
+				},
+			}
+		)
+		expect(resolver.projections.$$bridgeTransfers.select(bridgeTransfers)).toEqual([])
 	})
 
 	it('fails closed on a depositor deposit missing a deposit id', async () => {
@@ -254,16 +307,55 @@ describe('Across BridgeTransfer resolvers', () => {
 		if (resolver == null)
 			throw new Error('Across_Rest: EvmAccount resolver missing')
 
-		await expect(resolver.resolve.AddressInteropAddress.resolve({
-			address: depositor,
-		})).rejects.toThrow('deposit missing deposit id')
+		await expect(resolver.resolve.AddressInteropAddress.resolve(
+			{
+				address: depositor,
+			},
+			{
+				pagination: {
+					limit: 50,
+				},
+			}
+		)).rejects.toThrow('deposit missing deposit id')
 	})
 
-	it('registers the Across source lazily', async () => {
-		await expect(loadResolvers(new Set([
-			Source.Across_Rest,
-		]))).resolves.toMatchObject([{
+	it('projects fill-deadline estimates for unfinished transfers', async () => {
+		getDeposit.mockResolvedValue({
+			deposit: {
+				...deposit,
+				status: 'pending',
+				fillTxnRef: null,
+				fillBlockTimestamp: null,
+				fillBlockNumber: null,
+				relayer: null,
+			},
+			pagination: {
+				currentIndex: 0,
+				maxIndex: 0,
+			},
+		})
+		const resolver = across.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer_Timestamp
+		))
+		if (resolver == null)
+			throw new Error('Across_Rest: BridgeTransfer_Timestamp resolver missing')
+
+		const snapshot = await resolver.resolve.TransferTimestampMsSource.resolve({
+			$transfer: transfer,
+			timestampMs: Date.parse(deposit.depositBlockTimestamp),
 			source: Source.Across_Rest,
-		}])
+		})
+
+		expect(snapshot).toMatchObject({
+			status: 'pending',
+			estimatedCompletionMs: Date.parse(deposit.fillDeadline!),
+		})
+		expect(snapshot).not.toHaveProperty('completedAt')
+		expect(snapshot).not.toHaveProperty('destinationTxHash')
+	})
+
+	it('exports Across_Rest as the registered source module', () => {
+		expect(across.source).toBe(Source.Across_Rest)
+		expect(across.resolvers.length).toBeGreaterThan(0)
 	})
 })
