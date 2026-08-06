@@ -1312,6 +1312,7 @@ export default entity({
 				defaultSources: [
 					Source.Xrpl_Rippled,
 					Source.XrplClio_JsonRpc,
+					Source.XrpScan_Rest,
 				],
 			},
 			$$transactions: {

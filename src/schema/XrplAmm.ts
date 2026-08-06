@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -23,26 +24,50 @@ export default entity({
 	assetCurrency: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
+		],
 	},
 	assetIssuer: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
+		],
 	},
 	asset2Currency: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
+		],
 	},
 	asset2Issuer: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
+		],
 	},
 	lpTokenCurrency: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.XrplAmm_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
+		],
 	},
 })({
 	selectors: {

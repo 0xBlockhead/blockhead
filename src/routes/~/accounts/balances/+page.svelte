@@ -80,6 +80,7 @@
 		.$$timestamps({
 			sources: [
 				Source.Xrpl_Rippled,
+				Source.XrpScan_Rest,
 			],
 		}))
 

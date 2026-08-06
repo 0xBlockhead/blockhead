@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -31,26 +32,50 @@ export default entity({
 	assetAmount: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
+		],
 	},
 	asset2Amount: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
+		],
 	},
 	lpTokenBalance: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
+		],
 	},
 	tradingFee: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
+		],
 	},
 	auctionSlot: {
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
+		],
 	},
 	voteSlots: {
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
+		],
 	},
 	$ledgerEntry: {
 		entityType: EntityType.XrplLedgerEntry,

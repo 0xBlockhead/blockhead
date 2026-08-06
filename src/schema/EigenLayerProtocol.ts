@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -47,14 +48,23 @@ export default entity({
 	$$operators: {
 		entityType: EntityType.EigenLayerOperator,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.EigenExplorer_Rest,
+		],
 	},
 	$$avss: {
 		entityType: EntityType.EigenLayerAvs,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.EigenExplorer_Rest,
+		],
 	},
 	$$strategies: {
 		entityType: EntityType.EigenLayerStrategy,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.EigenExplorer_Rest,
+		],
 	},
 	$$rewards: {
 		entityType: EntityType.EigenLayerReward_Timestamp,

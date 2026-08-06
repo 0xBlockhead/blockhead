@@ -7,6 +7,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -135,7 +136,15 @@
 
 			{#snippet SectionXrplAccountTransactions({ id, label })}
 				<XrplTransactionsView
-					selection={selection.$$transactions}
+					selection={
+						selection
+						.$$transactions({
+							sources: [
+								Source.Xrpl_Rippled,
+								Source.XrpScan_Rest,
+							],
+						})
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No transactions.'
@@ -177,7 +186,16 @@
 
 			{#snippet SectionXrplAccountTimestamps({ id, label })}
 				<XrplAccount_TimestampsView
-					selection={selection.$$timestamps}
+					selection={
+						selection
+						.$$timestamps({
+							sources: [
+								Source.Bithomp,
+								Source.Xrpl_Rippled,
+								Source.XrpScan_Rest,
+							],
+						})
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No timestamps.'

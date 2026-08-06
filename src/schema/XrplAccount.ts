@@ -33,6 +33,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
 		],
 	},
 	$$trustlines: {
@@ -48,6 +49,7 @@ export default entity({
 		defaultSources: [
 			Source.Bithomp,
 			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
 		],
 	},
 })({

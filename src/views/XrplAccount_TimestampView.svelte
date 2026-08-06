@@ -24,6 +24,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Xrpl_Rippled,
+			Source.XrpScan_Rest,
 		],
 	}))
 	const xrplAccountTimestamp = $derived(viewSelection({

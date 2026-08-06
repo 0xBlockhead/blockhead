@@ -6426,6 +6426,7 @@
 				{@const xrplChainActivityXrplChainLedgersSources = networkApplicableSources([
 						Source.Xrpl_Rippled,
 						Source.XrplClio_JsonRpc,
+						Source.XrpScan_Rest,
 					], pendingEntity)}
 
 				{@const xrplChainActivitySections = [

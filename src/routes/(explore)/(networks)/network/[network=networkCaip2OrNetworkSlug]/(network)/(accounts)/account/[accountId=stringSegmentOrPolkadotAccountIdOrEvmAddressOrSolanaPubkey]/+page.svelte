@@ -146,6 +146,7 @@
 				select(EntityType.XrplAccount, data.selector, {
 					sources: [
 						Source.Xrpl_Rippled,
+						Source.XrpScan_Rest,
 					],
 				})
 		}

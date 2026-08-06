@@ -252,7 +252,14 @@
 
 			{#snippet SectionEigenlayerOperators({ id, label })}
 				<EigenLayerOperatorsView
-					selection={selection.$$operators}
+					selection={
+						selection
+						.$$operators({
+							sources: [
+								Source.EigenExplorer_Rest,
+							],
+						})
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No EigenLayer operators.'
@@ -262,7 +269,14 @@
 
 			{#snippet SectionEigenlayerAvss({ id, label })}
 				<EigenLayerAVSsView
-					selection={selection.$$avss}
+					selection={
+						selection
+						.$$avss({
+							sources: [
+								Source.EigenExplorer_Rest,
+							],
+						})
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No EigenLayer AVSs.'
@@ -272,7 +286,14 @@
 
 			{#snippet SectionEigenlayerStrategies({ id, label })}
 				<EigenLayerStrategiesView
-					selection={selection.$$strategies}
+					selection={
+						selection
+						.$$strategies({
+							sources: [
+								Source.EigenExplorer_Rest,
+							],
+						})
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No EigenLayer strategies.'

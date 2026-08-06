@@ -13005,7 +13005,7 @@ export const schema = {
 				},
 				"attestationDuties": {
 					label: "Attestation duties",
-					description: "Per-validator attestation duty history from Beaconcha.in (attester/inclusion slots + status). Not slot-scoped $$beaconAttestations entity refs. BeaconchaIn_Rest facet omitted until a sources-scoped lease owns getValidatorAttestations (GET /validator/{indexOrPubkey}/attestations); APP write_set excludes Rest queries.",
+					description: "Per-validator attestation duty history from Beaconcha.in (attester/inclusion slots + status) via BeaconchaIn_Rest getValidatorAttestations (GET /validator/{indexOrPubkey}/attestations). Not slot-scoped $$beaconAttestations entity refs.",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.Many,
 					valueType: "BeaconValidatorAttestationDuty",
@@ -26713,9 +26713,9 @@ export const schema = {
 				"$allocationManager": { label: "allocation manager", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract },
 				"$rewardsCoordinator": { label: "rewards coordinator", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract },
 				"$slasher": { label: "slasher", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract },
-				"$$operators": { label: "operators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EigenLayerOperator },
-				"$$avss": { label: "AVSs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EigenLayerAvs },
-				"$$strategies": { label: "strategies", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EigenLayerStrategy },
+				"$$operators": { label: "operators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EigenLayerOperator, defaultSources: [Source.EigenExplorer_Rest] },
+				"$$avss": { label: "AVSs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EigenLayerAvs, defaultSources: [Source.EigenExplorer_Rest] },
+				"$$strategies": { label: "strategies", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EigenLayerStrategy, defaultSources: [Source.EigenExplorer_Rest] },
 				"$$rewards": { label: "rewards", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EigenLayerReward_Timestamp },
 				"$$slashingEvents": { label: "slashing events", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EigenLayerSlashingEvent },
 			})({
@@ -26742,9 +26742,9 @@ export const schema = {
 								label: "Directory",
 								className: "network-view-collapsible-directory",
 								sections: [
-									{ id: "eigenlayer-operators", field: "$$operators", List: "EigenLayerOperatorsView", label: "Operators", emptyText: "No EigenLayer operators." },
-									{ id: "eigenlayer-avss", field: "$$avss", List: "EigenLayerAVSsView", label: "AVSs", emptyText: "No EigenLayer AVSs." },
-									{ id: "eigenlayer-strategies", field: "$$strategies", List: "EigenLayerStrategiesView", label: "Strategies", emptyText: "No EigenLayer strategies." },
+									{ id: "eigenlayer-operators", field: "$$operators", List: "EigenLayerOperatorsView", label: "Operators", emptyText: "No EigenLayer operators.", selection: { sources: [Source.EigenExplorer_Rest] } },
+									{ id: "eigenlayer-avss", field: "$$avss", List: "EigenLayerAVSsView", label: "AVSs", emptyText: "No EigenLayer AVSs.", selection: { sources: [Source.EigenExplorer_Rest] } },
+									{ id: "eigenlayer-strategies", field: "$$strategies", List: "EigenLayerStrategiesView", label: "Strategies", emptyText: "No EigenLayer strategies.", selection: { sources: [Source.EigenExplorer_Rest] } },
 								],
 							},
 							{
@@ -49868,7 +49868,7 @@ export const schema = {
 						"$$amendments": { label: "Amendments", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplAmendment, defaultSources: [Source.Xrpl_Rippled] },
 						"$$amms": { label: "AMMs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplAmm, defaultSources: [Source.Xrpl_Rippled] },
 						"$$ledgerEntries": { label: "Ledger entries", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplLedgerEntry, defaultSources: [Source.Xrpl_Rippled] },
-						"$$ledgers": { label: "Ledgers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplLedger, defaultSources: [Source.Xrpl_Rippled, Source.XrplClio_JsonRpc] },
+						"$$ledgers": { label: "Ledgers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplLedger, defaultSources: [Source.Xrpl_Rippled, Source.XrplClio_JsonRpc, Source.XrpScan_Rest] },
 						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplTransaction, defaultSources: [Source.Xrpl_Rippled] },
 					})({
 						singularView: {
@@ -49878,7 +49878,7 @@ export const schema = {
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "xrpl-chain-ledgers", field: ["Xrpl", "$$ledgers"], List: "XrplLedgersView", label: "Ledgers", selection: { sources: [Source.Xrpl_Rippled, Source.XrplClio_JsonRpc], limit: 16 }, emptyText: "No XRPL ledgers." },
+										{ id: "xrpl-chain-ledgers", field: ["Xrpl", "$$ledgers"], List: "XrplLedgersView", label: "Ledgers", selection: { sources: [Source.Xrpl_Rippled, Source.XrplClio_JsonRpc, Source.XrpScan_Rest], limit: 16 }, emptyText: "No XRPL ledgers." },
 										{ id: "xrpl-chain-transactions", field: ["Xrpl", "$$transactions"], List: "XrplTransactionsView", label: "Transactions", selection: { sources: [Source.Xrpl_Rippled], limit: 16 }, emptyText: "No XRPL transactions." },
 									],
 								},
@@ -66690,7 +66690,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.XrplTransaction,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Xrpl_Rippled],
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"$$trustlines": {
 					label: 'trustlines',
@@ -66704,7 +66704,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.XrplAccount_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Bithomp, Source.Xrpl_Rippled],
+					defaultSources: [Source.Bithomp, Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 			})({
 				selectors: {
@@ -66716,7 +66716,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Xrpl_Rippled],
+							sources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 						},
 						summary: {
 							title: ["account"],
@@ -66732,7 +66732,7 @@ export const schema = {
 								className: "network-view-collapsible-activity",
 								sections: [
 									{ id: "xrpl-account-ledger-entries", field: "$$ledgerEntries", List: "XrplLedgerEntriesView", label: "Ledger Entries", emptyText: "No ledger entries." },
-									{ id: "xrpl-account-transactions", field: "$$transactions", List: "XrplTransactionsView", label: "Transactions", emptyText: "No transactions." },
+									{ id: "xrpl-account-transactions", field: "$$transactions", List: "XrplTransactionsView", label: "Transactions", emptyText: "No transactions.", selection: { sources: [Source.Xrpl_Rippled, Source.XrpScan_Rest] } },
 									{ id: "xrpl-account-trustlines", field: "$$trustlines", List: "XrplTrustlinesView", label: "Trustlines", emptyText: "No trustlines." },
 								],
 							},
@@ -66741,7 +66741,7 @@ export const schema = {
 								label: "Observations",
 								className: "network-view-collapsible-observations",
 								sections: [
-									{ id: "xrpl-account-timestamps", field: "$$timestamps", List: "XrplAccount_TimestampsView", label: "Timestamps", emptyText: "No timestamps." },
+									{ id: "xrpl-account-timestamps", field: "$$timestamps", List: "XrplAccount_TimestampsView", label: "Timestamps", emptyText: "No timestamps.", selection: { sources: [Source.Bithomp, Source.Xrpl_Rippled, Source.XrpScan_Rest] } },
 								],
 							},
 						],
@@ -66788,24 +66788,28 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "bigint",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"ownerCount": {
 					label: 'owner count',
 					type: EntityFieldType.Primitive,
 					valueType: "number",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"sequence": {
 					label: 'sequence',
 					type: EntityFieldType.Primitive,
 					valueType: "number",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"flags": {
 					label: 'flags',
 					type: EntityFieldType.Primitive,
 					valueType: "NonNegativeInteger",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 			})({
 				selectors: {
@@ -66818,7 +66822,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Xrpl_Rippled],
+							sources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 							openFields: ["timestampMs", "balanceDrops", "ownerCount", "sequence", "flags"],
 						},
 						summary: {
@@ -66975,36 +66979,42 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.One,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"assetIssuer": {
 					label: 'asset issuer',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"asset2Currency": {
 					label: 'asset2 currency',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.One,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"asset2Issuer": {
 					label: 'asset2 issuer',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"lpTokenCurrency": {
 					label: 'lp token currency',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"$$timestamps": {
 					label: 'timestamps',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.XrplAmm_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 			})({
 				selectors: {
@@ -67056,36 +67066,42 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"asset2Amount": {
 					label: 'asset2 amount',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"lpTokenBalance": {
 					label: 'lp token balance',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"tradingFee": {
 					label: 'trading fee',
 					type: EntityFieldType.Primitive,
 					valueType: "number",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"auctionSlot": {
 					label: 'auction slot',
 					type: EntityFieldType.Primitive,
 					valueType: "unknown",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"voteSlots": {
 					label: 'vote slots',
 					type: EntityFieldType.Primitive,
 					valueType: "unknown",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"$ledgerEntry": {
 					label: 'ledger entry',
@@ -67130,54 +67146,63 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.One,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"closeTimeMs": {
 					label: 'close time ms',
 					type: EntityFieldType.Primitive,
 					valueType: "number",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"validated": {
 					label: 'validated',
 					type: EntityFieldType.Primitive,
 					valueType: "boolean",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 				"totalCoinsDrops": {
 					label: 'total coins drops',
 					type: EntityFieldType.Primitive,
 					valueType: "bigint",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"parentHash": {
 					label: 'parent hash',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"accountHash": {
 					label: 'account hash',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 				"transactionHash": {
 					label: 'transaction hash',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"$$transactions": {
 					label: 'transactions',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.XrplTransaction,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"$$ledgerEntries": {
 					label: 'ledger entries',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.XrplLedgerEntry,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Xrpl_Rippled],
 				},
 			})({
 				selectors: {
@@ -67219,30 +67244,35 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.One,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"account": {
 					label: 'account',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"previousTransactionHash": {
 					label: 'previous transaction hash',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"previousTransactionLedgerIndex": {
 					label: 'previous transaction ledger index',
 					type: EntityFieldType.Primitive,
 					valueType: "bigint",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"fields": {
 					label: 'fields',
 					type: EntityFieldType.Primitive,
 					valueType: "unknown",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 			})({
 				selectors: {
@@ -67281,24 +67311,28 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.One,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"account": {
 					label: 'account',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
 					cardinality: EntityFieldCardinality.One,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"sequence": {
 					label: 'sequence',
 					type: EntityFieldType.Primitive,
 					valueType: "number",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"$$timestamps": {
 					label: 'timestamps',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.XrplTransaction_Timestamp,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Xrpl_Rippled, Source.XrpScan_Rest],
 				},
 				"$$affectedEntries": {
 					label: 'affected entries',
@@ -75641,7 +75675,7 @@ export const routes = defineRoutes(schema)({
 								},
 								{
 									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Xrpl", "$account", "$$timestamps"],
-									query: { sources: [Source.Xrpl_Rippled] },
+									query: { sources: [Source.Xrpl_Rippled, Source.XrpScan_Rest] },
 									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
 									page: { text: { title: "XRPL balances" } },
 								},
@@ -104729,6 +104763,10 @@ export const app = {
 			{
 				source: Source.XrplClio_JsonRpc,
 				path: "src/resolvers/XrplClio-JsonRpc.ts",
+			},
+			{
+				source: Source.XrpScan_Rest,
+				path: "src/resolvers/XrpScan-Rest.ts",
 			},
 			{
 				source: Source.Youtube_Rest,
