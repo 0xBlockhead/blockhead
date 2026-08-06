@@ -1,3 +1,7 @@
+import {
+	type as arktype,
+	type Type,
+} from 'arktype'
 import type {
 	JsonObject,
 	JsonValue,
@@ -7,97 +11,126 @@ export type XrplLedgerSpecifier = 'validated' | number
 
 export type XrplMarker = JsonValue
 
-export type XrplServerInfoResult = {
+const xrplIssuedAssetWire = arktype({
+	currency: 'string > 0',
+	'issuer?': 'string > 0',
+	'value?': 'string',
+})
+
+export type XrplIssuedAsset = typeof xrplIssuedAssetWire.infer
+
+export const xrplServerInfoWire = arktype({
 	info: {
-		complete_ledgers?: string
-		load_factor?: number
-		peers?: number
-		validated_ledger?: {
-			hash: string
-			seq: number
-		}
-	}
-}
+		'complete_ledgers?': 'string',
+		'load_factor?': 'number',
+		'peers?': 'number.integer >= 0',
+		'validated_ledger?': {
+			hash: 'string > 0',
+			seq: 'number.integer >= 0',
+		},
+	},
+})
 
-export type XrplLedgerResult = {
-	ledger_hash: string
-	ledger_index: number
-	validated: boolean
-}
+export type XrplServerInfoResult = typeof xrplServerInfoWire.infer
 
-export type XrplIssuedAsset = {
-	currency: string
-	issuer?: string
-	value?: string
-}
+export const xrplLedgerWire = arktype({
+	ledger_hash: 'string > 0',
+	ledger_index: 'number.integer >= 0',
+	validated: 'boolean',
+})
 
-export type XrplLedgerStateObject = {
-	index: string
-	LedgerEntryType: string
-	Account?: string
-	PreviousTxnID?: string
-	PreviousTxnLgrSeq?: number
-	Asset?: XrplIssuedAsset
-	Asset2?: XrplIssuedAsset
-	LPTokenBalance?: XrplIssuedAsset
-}
+export type XrplLedgerResult = typeof xrplLedgerWire.infer
 
-export type XrplLedgerDataResult = {
-	ledger_hash: string
-	ledger_index: number
-	state: readonly XrplLedgerStateObject[]
+export const xrplLedgerStateObjectWire = arktype({
+	index: 'string > 0',
+	LedgerEntryType: 'string > 0',
+	'Account?': 'string > 0',
+	'PreviousTxnID?': 'string > 0',
+	'PreviousTxnLgrSeq?': 'number.integer >= 0',
+	'Asset?': xrplIssuedAssetWire,
+	'Asset2?': xrplIssuedAssetWire,
+	'LPTokenBalance?': xrplIssuedAssetWire,
+	'TradingFee?': 'number.integer >= 0',
+	'AuctionSlot?': 'unknown',
+	'VoteSlots?': 'unknown',
+})
+
+export type XrplLedgerStateObject = typeof xrplLedgerStateObjectWire.infer
+
+export const xrplLedgerDataWire = arktype({
+	ledger_hash: 'string > 0',
+	ledger_index: 'number.integer >= 0',
+	state: xrplLedgerStateObjectWire.array(),
+	'marker?': 'unknown',
+})
+
+export type XrplLedgerDataResult = typeof xrplLedgerDataWire.infer & {
 	marker?: XrplMarker
 }
 
-export type XrplAccountRoot = {
-	Account: string
-	Balance: string
-	Flags: number
-	LedgerEntryType: string
-	OwnerCount: number
-	Sequence: number
-	PreviousTxnID?: string
-	PreviousTxnLgrSeq?: number
-	index?: string
-}
+export const xrplAccountRootWire = arktype({
+	Account: 'string > 0',
+	Balance: 'string',
+	Flags: 'number.integer >= 0',
+	LedgerEntryType: 'string > 0',
+	OwnerCount: 'number.integer >= 0',
+	Sequence: 'number.integer >= 0',
+	'PreviousTxnID?': 'string > 0',
+	'PreviousTxnLgrSeq?': 'number.integer >= 0',
+	'index?': 'string > 0',
+})
 
-export type XrplAccountInfoResult = {
-	account_data: XrplAccountRoot
-	ledger_hash?: string
-	ledger_index?: number
-	validated: boolean
-}
+export type XrplAccountRoot = typeof xrplAccountRootWire.infer
 
-export type XrplAccountObjectsResult = {
-	account: string
-	account_objects: readonly XrplLedgerStateObject[]
-	ledger_hash?: string
-	ledger_index?: number
-	limit?: number
+export const xrplAccountInfoWire = arktype({
+	account_data: xrplAccountRootWire,
+	'ledger_hash?': 'string > 0',
+	'ledger_index?': 'number.integer >= 0',
+	validated: 'boolean',
+})
+
+export type XrplAccountInfoResult = typeof xrplAccountInfoWire.infer
+
+export const xrplAccountObjectsWire = arktype({
+	account: 'string > 0',
+	account_objects: xrplLedgerStateObjectWire.array(),
+	'ledger_hash?': 'string > 0',
+	'ledger_index?': 'number.integer >= 0',
+	'limit?': 'number.integer >= 0',
+	'marker?': 'unknown',
+	validated: 'boolean',
+})
+
+export type XrplAccountObjectsResult = typeof xrplAccountObjectsWire.infer & {
 	marker?: XrplMarker
-	validated: boolean
 }
 
-export type XrplAccountLine = {
-	account: string
-	balance: string
-	currency: string
-	limit: string
-	limit_peer: string
-	no_ripple?: boolean
-	no_ripple_peer?: boolean
-	authorized?: boolean
-	peer_authorized?: boolean
-}
+export const xrplAccountLineWire = arktype({
+	account: 'string > 0',
+	balance: 'string',
+	currency: 'string > 0',
+	limit: 'string',
+	limit_peer: 'string',
+	'no_ripple?': 'boolean',
+	'no_ripple_peer?': 'boolean',
+	'authorized?': 'boolean',
+	'peer_authorized?': 'boolean',
+})
 
-export type XrplAccountLinesResult = {
-	account: string
-	ledger_hash?: string
-	ledger_index?: number
-	lines: readonly XrplAccountLine[]
-	limit?: number
+export type XrplAccountLine = typeof xrplAccountLineWire.infer
+
+export const xrplAccountLinesWire = arktype({
+	account: 'string > 0',
+	'ledger_hash?': 'string > 0',
+	'ledger_index?': 'number.integer >= 0',
+	lines: xrplAccountLineWire.array(),
+	'limit?': 'number.integer >= 0',
+	'marker?': 'unknown',
+	validated: 'boolean',
+})
+
+export type XrplAccountLinesResult = typeof xrplAccountLinesWire.infer & {
 	marker?: XrplMarker
-	validated: boolean
 }
 
 export type XrplAccountTransactionJson = JsonObject & {
@@ -113,46 +146,102 @@ export type XrplAccountTransactionMeta = JsonObject & {
 	TransactionResult?: string
 }
 
-export type XrplAccountTransaction = {
-	close_time_iso?: string
-	hash?: string
-	ledger_hash?: string
-	ledger_index: number
+export const xrplAccountTransactionWire = arktype({
+	'close_time_iso?': 'string',
+	'hash?': 'string > 0',
+	'ledger_hash?': 'string > 0',
+	ledger_index: 'number.integer >= 0',
+	meta: arktype('Record<string, unknown>'),
+	'tx?': arktype('Record<string, unknown>'),
+	'tx_json?': arktype('Record<string, unknown>'),
+	validated: 'boolean',
+})
+
+export type XrplAccountTransaction = typeof xrplAccountTransactionWire.infer & {
 	meta: XrplAccountTransactionMeta
 	tx?: XrplAccountTransactionJson
 	tx_json?: XrplAccountTransactionJson
-	validated: boolean
 }
 
-export type XrplAccountTransactionsResult = {
-	account: string
-	ledger_index_min: number
-	ledger_index_max: number
-	limit?: number
+export const xrplAccountTransactionsWire = arktype({
+	account: 'string > 0',
+	ledger_index_min: 'number.integer',
+	ledger_index_max: 'number.integer',
+	'limit?': 'number.integer >= 0',
+	'marker?': 'unknown',
+	transactions: xrplAccountTransactionWire.array(),
+	validated: 'boolean',
+})
+
+export type XrplAccountTransactionsResult = typeof xrplAccountTransactionsWire.infer & {
 	marker?: XrplMarker
 	transactions: readonly XrplAccountTransaction[]
-	validated: boolean
 }
 
-export type XrplLedgerTransaction = {
-	hash: string
-	TransactionType: string
-	Account: string
-	Sequence?: number
-}
+export const xrplLedgerTransactionWire = arktype({
+	hash: 'string > 0',
+	TransactionType: 'string > 0',
+	Account: 'string > 0',
+	'Sequence?': 'number.integer >= 0',
+})
 
-export type XrplLedgerWithTransactionsResult = XrplLedgerResult & {
-	transactions?: readonly XrplLedgerTransaction[]
-}
+export type XrplLedgerTransaction = typeof xrplLedgerTransactionWire.infer
 
-export type XrplFeature = {
-	name?: string
-	enabled?: boolean
-	supported?: boolean
-	vetoed?: boolean
-	default?: boolean
-}
+export const xrplLedgerWithTransactionsWire = xrplLedgerWire.and({
+	'transactions?': xrplLedgerTransactionWire.array(),
+})
+
+export type XrplLedgerWithTransactionsResult = typeof xrplLedgerWithTransactionsWire.infer
+
+export const xrplFeatureWire = arktype({
+	'name?': 'string > 0',
+	'enabled?': 'boolean',
+	'supported?': 'boolean',
+	'vetoed?': 'boolean',
+	'default?': 'boolean',
+})
+
+export type XrplFeature = typeof xrplFeatureWire.infer
 
 export type XrplFeatureResult = {
 	readonly [amendmentId: string]: XrplFeature
 }
+
+export const xrplAmmAmountWire = arktype('string').or(xrplIssuedAssetWire)
+
+export const xrplAmmInfoAmmWire = arktype({
+	account: 'string > 0',
+	amount: xrplAmmAmountWire,
+	amount2: xrplAmmAmountWire,
+	'asset_frozen?': 'boolean',
+	'asset2_frozen?': 'boolean',
+	'auction_slot?': 'unknown',
+	lp_token: xrplIssuedAssetWire,
+	trading_fee: 'number.integer >= 0',
+	'vote_slots?': 'unknown',
+})
+
+export type XrplAmmInfoAmm = typeof xrplAmmInfoAmmWire.infer
+
+export const xrplAmmInfoWire = arktype({
+	amm: xrplAmmInfoAmmWire,
+	'ledger_hash?': 'string > 0',
+	'ledger_index?': 'number.integer >= 0',
+	'ledger_current_index?': 'number.integer >= 0',
+	validated: 'boolean',
+})
+
+export type XrplAmmInfoResult = typeof xrplAmmInfoWire.infer
+
+export const xrplIssuedAsset = xrplIssuedAssetWire satisfies Type<XrplIssuedAsset>
+export const xrplServerInfo = xrplServerInfoWire satisfies Type<XrplServerInfoResult>
+export const xrplLedger = xrplLedgerWire satisfies Type<XrplLedgerResult>
+export const xrplLedgerStateObject = xrplLedgerStateObjectWire satisfies Type<XrplLedgerStateObject>
+export const xrplLedgerData = xrplLedgerDataWire
+export const xrplAccountInfo = xrplAccountInfoWire satisfies Type<XrplAccountInfoResult>
+export const xrplAccountObjects = xrplAccountObjectsWire
+export const xrplAccountLines = xrplAccountLinesWire
+export const xrplAccountTransactions = xrplAccountTransactionsWire
+export const xrplLedgerWithTransactions = xrplLedgerWithTransactionsWire
+export const xrplFeature = xrplFeatureWire satisfies Type<XrplFeature>
+export const xrplAmmInfo = xrplAmmInfoWire satisfies Type<XrplAmmInfoResult>

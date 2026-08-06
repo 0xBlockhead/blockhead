@@ -1,0 +1,31 @@
+{
+	"amm": {
+		"account": "rExampleAmm",
+		"amount": {
+			"currency": "USD",
+			"issuer": "rExampleIssuer",
+			"value": "500"
+		},
+		"amount2": "1000000",
+		"lp_token": {
+			"currency": "03C4B0B8E8D5A5F0",
+			"issuer": "rExampleAmm",
+			"value": "2500"
+		},
+		"trading_fee": 500,
+		"auction_slot": {
+			"account": "rAuction",
+			"discounted_fee": 0,
+			"expiration": 780640213,
+			"price": {
+				"currency": "03C4B0B8E8D5A5F0",
+				"issuer": "rExampleAmm",
+				"value": "0"
+			}
+		},
+		"vote_slots": []
+	},
+	"ledger_hash": "VALIDATED_LEDGER_HASH",
+	"ledger_index": 93412781,
+	"validated": true
+}

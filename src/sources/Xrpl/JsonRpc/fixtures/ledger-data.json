@@ -28,8 +28,11 @@
 				"currency": "XRP"
 			},
 			"LPTokenBalance": {
-				"currency": "03C4B0B8E8D5A5F0"
-			}
+				"currency": "03C4B0B8E8D5A5F0",
+				"issuer": "rExampleAmm",
+				"value": "2500"
+			},
+			"TradingFee": 500
 		}
 	]
 }

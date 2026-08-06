@@ -23,6 +23,7 @@ import {
 	getAccountLines,
 	getAccountObjects,
 	getAccountTransactions,
+	getAmmInfo,
 	getFeatures,
 	getValidatedLedgerData,
 	getServerInfo,
@@ -34,6 +35,7 @@ import type {
 	XrplAccountLinesResult,
 	XrplAccountObjectsResult,
 	XrplAccountTransactionsResult,
+	XrplAmmInfoResult,
 	XrplFeatureResult,
 	XrplLedgerDataResult,
 	XrplLedgerResult,
@@ -74,6 +76,10 @@ const ledgerTransactions = JSON.parse(readFileSync(
 	new URL('../sources/Xrpl/JsonRpc/fixtures/ledger-transactions.json', import.meta.url),
 	'utf8'
 )) satisfies XrplLedgerWithTransactionsResult
+const ammInfo = JSON.parse(readFileSync(
+	new URL('../sources/Xrpl/JsonRpc/fixtures/amm-info.json', import.meta.url),
+	'utf8'
+)) satisfies XrplAmmInfoResult
 const account = {
 	$network: {
 		caip2: networkBySlug.xrpl.caip2,
@@ -305,16 +311,59 @@ describe('XRPL rippled queries', () => {
 		])
 	})
 
-	it('rejects provider limits outside rippled bounds before transport', () => {
+	it('rejects provider limits outside rippled bounds before transport', async () => {
 		for (const query of [
 			() => getValidatedLedgerData(0),
 			() => getAccountObjects(account.account, 401),
 			() => getAccountLines(account.account, 0),
 			() => getAccountTransactions(account.account, 401),
 		])
-			expect(query).toThrow('invalid')
+			await expect(query()).rejects.toThrow('invalid')
 
 		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('fails closed on malformed arktype envelopes', async () => {
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
+			ledger_hash: '',
+			ledger_index: 1,
+			validated: true,
+		}))
+		await expect(getValidatedLedger()).rejects.toThrow('invalid ledger response envelope')
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
+			'': {
+				name: 'Broken',
+			},
+		}))
+		await expect(getFeatures()).rejects.toThrow('invalid feature response envelope')
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
+			amm: {
+				account: 'rExampleAmm',
+				amount: '1',
+				amount2: '2',
+				lp_token: {
+					currency: '',
+				},
+				trading_fee: 0,
+			},
+			validated: true,
+			ledger_index: 1,
+		}))
+		await expect(getAmmInfo('rExampleAmm')).rejects.toThrow('invalid amm_info response envelope')
+	})
+
+	it('loads typed amm_info for a validated AMM account', async () => {
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse(ammInfo))
+		await expect(getAmmInfo('rExampleAmm')).resolves.toEqual(ammInfo)
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
+			method: 'amm_info',
+			params: [{
+				amm_account: 'rExampleAmm',
+				ledger_index: 'validated',
+			}],
+		})
 	})
 })
 describe('XRPL rippled account resolver', () => {
@@ -803,7 +852,7 @@ describe('XRPL rippled network resolver', () => {
 		}))
 		await expect(resolverFor('$$ledgers').resolve['Caip2'].resolve({
 			caip2: networkBySlug.xrpl.caip2,
-		}, context)).rejects.toThrow('malformed validated ledger index')
+		}, context)).rejects.toThrow('invalid ledger response envelope')
 
 		sourceFetch.mockResolvedValueOnce(jsonRpcResponse({
 			...validatedLedger,
@@ -819,6 +868,120 @@ describe('XRPL rippled network resolver', () => {
 		}))
 		await expect(resolverFor('$$ledgers').resolve['Caip2'].resolve({
 			caip2: networkBySlug.xrpl.caip2,
-		}, context)).rejects.toThrow('malformed validated ledger hash')
+		}, context)).rejects.toThrow('invalid ledger response envelope')
+	})
+})
+
+describe('XRPL rippled amendment and AMM entity resolvers', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	const amendment = {
+		$network: {
+			caip2: networkBySlug.xrpl.caip2,
+		},
+		amendmentId: '567A9B7D9E5C4A3B2C1D0E0F11121314',
+	}
+	const amm = {
+		$network: {
+			caip2: networkBySlug.xrpl.caip2,
+		},
+		ammAccount: 'rExampleAmm',
+	}
+
+	it('projects amendment tip observations from feature + validated ledger', async () => {
+		const resolver = xrpl.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.XrplAmendment
+			&& '$$timestamps' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Xrpl_Rippled spec missing XrplAmendment.$$timestamps resolver')
+
+		sourceFetch
+			.mockResolvedValueOnce(jsonRpcResponse(features))
+			.mockResolvedValueOnce(jsonRpcResponse(validatedLedger))
+
+		const snapshot = await resolver.resolve['NetworkAmendmentId'].resolve(amendment)
+		expect(resolver.projections.name(snapshot)).toBe('ExampleAmendment')
+		expect(resolver.projections.$$timestamps(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$amendment: amendment,
+				ledgerIndex: 93_412_781n,
+				source: Source.Xrpl_Rippled,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.XrplAmendment_Timestamp, [], 'enabled')]: true,
+				[entityFieldAddressKey(EntityType.XrplAmendment_Timestamp, [], 'supported')]: true,
+				[entityFieldAddressKey(EntityType.XrplAmendment_Timestamp, [], 'status')]: 'enabled',
+			},
+		}])
+	})
+
+	it('projects AMM tip observations from amm_info', async () => {
+		const resolver = xrpl.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.XrplAmm
+			&& '$$timestamps' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Xrpl_Rippled spec missing XrplAmm.$$timestamps resolver')
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse(ammInfo))
+		const snapshot = await resolver.resolve['NetworkAmmAccount'].resolve(amm)
+		expect(resolver.projections.assetCurrency(snapshot)).toBe('USD')
+		expect(resolver.projections.assetIssuer(snapshot)).toBe('rExampleIssuer')
+		expect(resolver.projections.asset2Currency(snapshot)).toBe('XRP')
+		expect(resolver.projections.lpTokenCurrency(snapshot)).toBe('03C4B0B8E8D5A5F0')
+		expect(resolver.projections.$$timestamps(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$amm: amm,
+				ledgerIndex: 93_412_781n,
+				source: Source.Xrpl_Rippled,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'assetAmount')]: '500',
+				[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'asset2Amount')]: '1000000',
+				[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'lpTokenBalance')]: '2500',
+				[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'tradingFee')]: 500,
+				[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'auctionSlot')]: ammInfo.amm.auction_slot,
+				[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'voteSlots')]: [],
+			},
+		}])
+	})
+
+	it('rehydrates AMM and amendment timestamp selectors against tip state', async () => {
+		const amendmentTimestampResolver = xrpl.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.XrplAmendment_Timestamp
+		))
+		const ammTimestampResolver = xrpl.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.XrplAmm_Timestamp
+		))
+		if (amendmentTimestampResolver == null || ammTimestampResolver == null)
+			throw new Error('Xrpl_Rippled spec missing amendment/AMM timestamp resolvers')
+
+		sourceFetch
+			.mockResolvedValueOnce(jsonRpcResponse(features))
+			.mockResolvedValueOnce(jsonRpcResponse(validatedLedger))
+		await expect(amendmentTimestampResolver.resolve['AmendmentLedgerIndexSource'].resolve({
+			$amendment: amendment,
+			ledgerIndex: 93_412_781n,
+			source: Source.Xrpl_Rippled,
+		})).resolves.toMatchObject({
+			enabled: true,
+			supported: true,
+			status: 'enabled',
+		})
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse(ammInfo))
+		await expect(ammTimestampResolver.resolve['AmmLedgerIndexSource'].resolve({
+			$amm: amm,
+			ledgerIndex: 93_412_781n,
+			source: Source.Xrpl_Rippled,
+		})).resolves.toMatchObject({
+			assetAmount: '500',
+			asset2Amount: '1000000',
+			lpTokenBalance: '2500',
+			tradingFee: 500,
+		})
 	})
 })

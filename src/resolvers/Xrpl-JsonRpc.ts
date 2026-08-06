@@ -808,5 +808,251 @@ export default {
 				$$transactions: (transactions) => transactions,
 			},
 		}),
+
+		defineResolver({
+			entityType: EntityType.XrplAmendment,
+			resolve: {
+				NetworkAmendmentId: {
+					resolve: async (amendment) => {
+						assertXrplNetwork(amendment.$network)
+						const {
+							getFeatures,
+							getValidatedLedger,
+						} = await import('$/sources/Xrpl/JsonRpc/queries.ts')
+						const [
+							features,
+							ledger,
+						] = await Promise.all([
+							getFeatures(),
+							getValidatedLedger(),
+						])
+						const feature = features[amendment.amendmentId]
+						if (feature == null)
+							throw new Error('Xrpl_Rippled: amendment is not advertised by this rippled')
+						if (!ledger.validated)
+							throw new Error('Xrpl_Rippled: ledger is not validated')
+						const ledgerIndex = validatedLedgerIndex(ledger.ledger_index)
+						return {
+							...(feature.name != null && {
+								name: feature.name,
+							}),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$amendment: amendment,
+									ledgerIndex,
+									source: Source.Xrpl_Rippled,
+								},
+								[EntityMetaKey.Fields]: {
+									...(feature.enabled != null && {
+										[entityFieldAddressKey(EntityType.XrplAmendment_Timestamp, [], 'enabled')]: feature.enabled,
+									}),
+									...(feature.supported != null && {
+										[entityFieldAddressKey(EntityType.XrplAmendment_Timestamp, [], 'supported')]: feature.supported,
+									}),
+									[entityFieldAddressKey(EntityType.XrplAmendment_Timestamp, [], 'status')]: (
+										feature.enabled === true ?
+											'enabled'
+										: feature.supported === true ?
+											'supported'
+										: feature.vetoed === true ?
+											'vetoed'
+										:
+											'unknown'
+									),
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			name: (snapshot) => snapshot.name,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.XrplAmendment_Timestamp,
+			resolve: {
+				AmendmentLedgerIndexSource: {
+					resolve: async ({ $amendment, ledgerIndex, source }) => {
+						assertXrplNetwork($amendment.$network)
+						if (source !== Source.Xrpl_Rippled)
+							throw new Error('Xrpl_Rippled: amendment observation source does not match')
+						if (ledgerIndex > BigInt(Number.MAX_SAFE_INTEGER))
+							throw new Error('Xrpl_Rippled: amendment observation ledger index is too large')
+
+						const {
+							getFeatures,
+							getValidatedLedger,
+						} = await import('$/sources/Xrpl/JsonRpc/queries.ts')
+						const [
+							features,
+							ledger,
+						] = await Promise.all([
+							getFeatures(),
+							getValidatedLedger(),
+						])
+						const feature = features[$amendment.amendmentId]
+						if (feature == null)
+							throw new Error('Xrpl_Rippled: amendment is not advertised by this rippled')
+						if (!ledger.validated)
+							throw new Error('Xrpl_Rippled: ledger is not validated')
+						const tipLedgerIndex = validatedLedgerIndex(ledger.ledger_index)
+						if (tipLedgerIndex !== ledgerIndex)
+							throw new Error('Xrpl_Rippled: amendment observation ledger index does not match tip')
+
+						return {
+							...(feature.enabled != null && {
+								enabled: feature.enabled,
+							}),
+							...(feature.supported != null && {
+								supported: feature.supported,
+							}),
+							status: (
+								feature.enabled === true ?
+									'enabled'
+								: feature.supported === true ?
+									'supported'
+								: feature.vetoed === true ?
+									'vetoed'
+								:
+									'unknown'
+							),
+						}
+					},
+				},
+			},
+		})({
+			enabled: (observation) => observation.enabled,
+			supported: (observation) => observation.supported,
+			status: (observation) => observation.status,
+		}),
+
+		defineResolver({
+			entityType: EntityType.XrplAmm,
+			resolve: {
+				NetworkAmmAccount: {
+					resolve: async (amm) => {
+						assertXrplNetwork(amm.$network)
+						const { getAmmInfo } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
+						const ammInfo = await getAmmInfo(amm.ammAccount)
+						if (!ammInfo.validated)
+							throw new Error('Xrpl_Rippled: AMM info is not validated')
+						if (ammInfo.amm.account !== amm.ammAccount)
+							throw new Error('Xrpl_Rippled: AMM response does not match the subject')
+						const tipLedgerIndex = ammInfo.ledger_index ?? ammInfo.ledger_current_index
+						if (tipLedgerIndex == null)
+							throw new Error('Xrpl_Rippled: AMM response is missing its validated ledger index')
+						const ledgerIndex = validatedLedgerIndex(tipLedgerIndex)
+						const { amount, amount2, lp_token, trading_fee, auction_slot, vote_slots } = ammInfo.amm
+						return {
+							assetCurrency: typeof amount === 'string' ? 'XRP' : amount.currency,
+							...(typeof amount !== 'string' && amount.issuer != null && {
+								assetIssuer: amount.issuer,
+							}),
+							asset2Currency: typeof amount2 === 'string' ? 'XRP' : amount2.currency,
+							...(typeof amount2 !== 'string' && amount2.issuer != null && {
+								asset2Issuer: amount2.issuer,
+							}),
+							...(lp_token.currency.length > 0 && {
+								lpTokenCurrency: lp_token.currency,
+							}),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$amm: amm,
+									ledgerIndex,
+									source: Source.Xrpl_Rippled,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'assetAmount')]: (
+										typeof amount === 'string' ?
+											amount
+										:
+											amount.value ?? ''
+									),
+									[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'asset2Amount')]: (
+										typeof amount2 === 'string' ?
+											amount2
+										:
+											amount2.value ?? ''
+									),
+									...(lp_token.value != null && {
+										[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'lpTokenBalance')]: lp_token.value,
+									}),
+									[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'tradingFee')]: trading_fee,
+									...(auction_slot != null && {
+										[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'auctionSlot')]: auction_slot,
+									}),
+									...(vote_slots != null && {
+										[entityFieldAddressKey(EntityType.XrplAmm_Timestamp, [], 'voteSlots')]: vote_slots,
+									}),
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			assetCurrency: (snapshot) => snapshot.assetCurrency,
+			assetIssuer: (snapshot) => snapshot.assetIssuer,
+			asset2Currency: (snapshot) => snapshot.asset2Currency,
+			asset2Issuer: (snapshot) => snapshot.asset2Issuer,
+			lpTokenCurrency: (snapshot) => snapshot.lpTokenCurrency,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.XrplAmm_Timestamp,
+			resolve: {
+				AmmLedgerIndexSource: {
+					resolve: async ({ $amm, ledgerIndex, source }) => {
+						assertXrplNetwork($amm.$network)
+						if (source !== Source.Xrpl_Rippled)
+							throw new Error('Xrpl_Rippled: AMM observation source does not match')
+						if (ledgerIndex > BigInt(Number.MAX_SAFE_INTEGER))
+							throw new Error('Xrpl_Rippled: AMM observation ledger index is too large')
+
+						const { getAmmInfo } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
+						const ammInfo = await getAmmInfo(
+							$amm.ammAccount,
+							Number(ledgerIndex)
+						)
+						if (!ammInfo.validated)
+							throw new Error('Xrpl_Rippled: AMM info is not validated')
+						if (ammInfo.amm.account !== $amm.ammAccount)
+							throw new Error('Xrpl_Rippled: AMM response does not match the subject')
+						const tipLedgerIndex = ammInfo.ledger_index ?? ammInfo.ledger_current_index
+						if (tipLedgerIndex == null)
+							throw new Error('Xrpl_Rippled: AMM response is missing its validated ledger index')
+						const observationLedgerIndex = validatedLedgerIndex(tipLedgerIndex)
+						if (observationLedgerIndex !== ledgerIndex)
+							throw new Error('Xrpl_Rippled: AMM observation ledger index does not match')
+
+						const { amount, amount2, lp_token, trading_fee, auction_slot, vote_slots } = ammInfo.amm
+						return {
+							assetAmount: typeof amount === 'string' ? amount : amount.value ?? '',
+							asset2Amount: typeof amount2 === 'string' ? amount2 : amount2.value ?? '',
+							...(lp_token.value != null && {
+								lpTokenBalance: lp_token.value,
+							}),
+							tradingFee: trading_fee,
+							...(auction_slot != null && {
+								auctionSlot: auction_slot,
+							}),
+							...(vote_slots != null && {
+								voteSlots: vote_slots,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			assetAmount: (observation) => observation.assetAmount,
+			asset2Amount: (observation) => observation.asset2Amount,
+			lpTokenBalance: (observation) => observation.lpTokenBalance,
+			tradingFee: (observation) => observation.tradingFee,
+			auctionSlot: (observation) => observation.auctionSlot,
+			voteSlots: (observation) => observation.voteSlots,
+		}),
 	],
 }
