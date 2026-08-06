@@ -437,11 +437,17 @@ export const reportWalletProviderDiscovery = async (
 	})),
 	injectedGlobals: await page.evaluate(() => (
 		[
+			'aptos',
 			'backpack',
 			'bitcoin',
+			'cardano',
 			'ethereum',
+			'keplr',
 			'phantom',
 			'solana',
+			'starknet',
+			'ton',
+			'tron',
 			'unisat',
 		].filter((name) => Object.hasOwn(globalThis, name))
 	)),
