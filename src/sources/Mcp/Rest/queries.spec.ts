@@ -70,9 +70,14 @@ describe('MCP registry REST queries', () => {
 			'McpPackageRegistry_Rest: invalid server list response envelope'
 		)
 
-		sourceGetJson.mockResolvedValueOnce({ name: 'missing fields' })
+		sourceGetJson.mockResolvedValueOnce({ server: { name: 'missing fields' } })
 		await expect(getRegistryServer(binding, 'io.example/server')).rejects.toThrow(
 			'McpPackageRegistry_Rest: invalid server detail response envelope'
+		)
+
+		sourceGetJson.mockResolvedValueOnce({ versions: ['1.0.0'] })
+		await expect(getRegistryServerVersions(binding, 'io.example/server')).rejects.toThrow(
+			'McpPackageRegistry_Rest: invalid server versions response envelope'
 		)
 	})
 
@@ -90,24 +95,33 @@ describe('MCP registry REST queries', () => {
 	})
 
 	it('uses the registry version-list and detail paths', async () => {
+		const listed = {
+			servers: [{ server }],
+			metadata: {
+				nextCursor: null,
+				count: 1,
+			},
+		}
+		const detail = { server }
+
 		sourceGetJson
-			.mockResolvedValueOnce({ versions: ['1.0.0'] })
-			.mockResolvedValueOnce(server)
+			.mockResolvedValueOnce(listed)
+			.mockResolvedValueOnce(detail)
 
 		await expect(getRegistryServerVersions(binding, 'io.example/server', {
 			cursor: 'next',
-		})).resolves.toEqual({ versions: ['1.0.0'] })
-		await getRegistryServer(binding, 'io.example/server', '1.0.0')
+		})).resolves.toEqual(listed)
+		await expect(getRegistryServer(binding, 'io.example/server', '1.0.0')).resolves.toEqual(detail)
 
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
-		1,
-		binding,
+			1,
+			binding,
 			httpUrl(binding, '/io.example%2Fserver/versions?cursor=next')
 		)
 		expect(sourceGetJson).toHaveBeenNthCalledWith(
-		2,
-		binding,
-		httpUrl(binding, '/io.example%2Fserver/versions/1.0.0')
+			2,
+			binding,
+			httpUrl(binding, '/io.example%2Fserver/versions/1.0.0')
 		)
 	})
 })

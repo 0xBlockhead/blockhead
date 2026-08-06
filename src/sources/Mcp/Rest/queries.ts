@@ -25,21 +25,22 @@ const mcpRegistryServerEnvelope = type({
 	'_meta?': 'object',
 })
 
+const registryServerResponseEnvelope = type({
+	server: mcpRegistryServerEnvelope,
+	'_meta?': 'object',
+})
+
 const registryServerListEnvelope = type({
-	servers: type({
-		server: mcpRegistryServerEnvelope,
-	}).array(),
+	servers: registryServerResponseEnvelope.array(),
 	'metadata?': {
 		'nextCursor?': 'string | null',
 		'count?': 'number',
 	},
 })
 
-const registryServerDetailEnvelope = mcpRegistryServerEnvelope
+const registryServerDetailEnvelope = registryServerResponseEnvelope
 
-const registryServerVersionsEnvelope = type({
-	versions: 'string[]',
-})
+const registryServerVersionsEnvelope = registryServerListEnvelope
 
 type RegistryServerListOptions = {
 	cursor?: string

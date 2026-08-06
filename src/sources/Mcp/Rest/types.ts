@@ -59,8 +59,6 @@ export type McpRegistryServers = {
 
 export type McpRegistryServerListEnvelope = McpRegistryServers
 
-export type McpRegistryServerDetailEnvelope = McpServerDetail
+export type McpRegistryServerDetailEnvelope = McpRegistryServer
 
-export type McpRegistryServerVersionsEnvelope = {
-	versions: string[]
-}
+export type McpRegistryServerVersionsEnvelope = McpRegistryServers
