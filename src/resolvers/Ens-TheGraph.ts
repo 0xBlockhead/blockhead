@@ -51,13 +51,16 @@ const evmAccountFromSubgraphAccount = (
 const ensRecordTipValueFromDomain = (
 	domain: {
 		resolver?: {
+			addr?: {
+				id: string
+			} | null
 			events?: readonly {
 				__typename: string
 				blockNumber: number
 				key?: string
 				value?: string | null
 				coinType?: unknown
-				addr?: unknown
+				addr?: string | null
 			}[] | null
 		} | null
 	},
@@ -84,7 +87,7 @@ const ensRecordTipValueFromDomain = (
 	}
 	if (recordKey.startsWith('coin:')) {
 		const coinType = recordKey.slice('coin:'.length)
-		const latest = events
+		const latestMulticoin = events
 			.filter((event) => (
 				event.__typename === 'MulticoinAddrChanged'
 				&& String(event.coinType) === coinType
@@ -95,10 +98,14 @@ const ensRecordTipValueFromDomain = (
 				:
 					current
 			), null)
-		return latest?.addr == null ?
-			undefined
-		:
-			String(latest.addr)
+		if (latestMulticoin?.addr != null)
+			return String(latestMulticoin.addr)
+
+		// Legacy ETH tip: subgraph `resolver.addr` when MulticoinAddrChanged is absent for coin type 60.
+		if (coinType === '60' && domain.resolver?.addr?.id != null)
+			return String(domain.resolver.addr.id)
+
+		return undefined
 	}
 	return undefined
 }
@@ -208,6 +215,21 @@ export default {
 								},
 							})),
 						]
+						const textRecords = Object.fromEntries(
+							resolverTextKeys.flatMap((textKey) => {
+								const value = ensRecordTipValueFromDomain(
+									matchingEnsDomain,
+									`text:${textKey}`
+								)
+								return value === undefined ?
+									[]
+								:
+									[[
+										textKey,
+										value,
+									]]
+							})
+						)
 
 						return {
 							name: normalizedName,
@@ -255,6 +277,9 @@ export default {
 							...(resolverCoinTypes.length > 0 && {
 								resolverCoinTypes,
 							}),
+							...(Object.keys(textRecords).length > 0 && {
+								textRecords,
+							}),
 							$$records: recordEntities,
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
@@ -285,6 +310,7 @@ export default {
 				$ownerActor: (ensName) => ensName.$ownerActor,
 				resolverTextKeys: (ensName) => ensName.resolverTextKeys,
 				resolverCoinTypes: (ensName) => ensName.resolverCoinTypes,
+				textRecords: (ensName) => ensName.textRecords,
 				$$records: {
 					select: (ensName) => ensName.$$records,
 					resolveCount: (ensName) => ensName.$$records.length,

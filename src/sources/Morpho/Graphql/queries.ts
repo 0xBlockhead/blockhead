@@ -35,14 +35,19 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 const marketFields = `
 	marketId
 	creationBlockNumber
+	listed
 	chain {
 		id
 	}
 	loanAsset {
 		address
+		symbol
+		decimals
 	}
 	collateralAsset {
 		address
+		symbol
+		decimals
 	}
 	lltv
 	irmAddress
@@ -57,6 +62,17 @@ const marketFields = `
 		timestamp
 		blockNumber
 		fee
+		utilization
+		supplyApy
+		borrowApy
+		liquidityAssets
+		collateralAssets
+		supplyAssetsUsd
+		borrowAssetsUsd
+		collateralAssetsUsd
+		liquidityAssetsUsd
+		netSupplyApy
+		netBorrowApy
 	}`
 
 const assertEnvelope = <_Value>(
@@ -139,16 +155,76 @@ const assertGraphqlAmount = (
 	return value
 }
 
+const assertOptionalFiniteNumber = (
+	value: number | undefined,
+	label: string
+) => {
+	if (value == null)
+		return undefined
+	if (!Number.isFinite(value))
+		throw new Error(`${Source.Morpho_Graphql}: invalid ${label} ${String(value)}`)
+	return value
+}
+
 const normalizeMarketState = (
 	wire: MorphoGraphqlMarketStateWire
-) => ({
-	totalSupplyAssets: assertGraphqlAmount(wire.supplyAssets, 'supplyAssets'),
-	totalSupplyShares: assertGraphqlAmount(wire.supplyShares, 'supplyShares'),
-	totalBorrowAssets: assertGraphqlAmount(wire.borrowAssets, 'borrowAssets'),
-	totalBorrowShares: assertGraphqlAmount(wire.borrowShares, 'borrowShares'),
-	lastAccrualTimestamp: wire.timestamp,
-	lastIndexedBlock: assertGraphqlAmount(wire.blockNumber, 'blockNumber'),
-})
+) => {
+	const supplyAssetsUsd = assertOptionalFiniteNumber(wire.supplyAssetsUsd, 'supplyAssetsUsd')
+	const borrowAssetsUsd = assertOptionalFiniteNumber(wire.borrowAssetsUsd, 'borrowAssetsUsd')
+	const collateralAssetsUsd = assertOptionalFiniteNumber(wire.collateralAssetsUsd, 'collateralAssetsUsd')
+	const liquidityAssetsUsd = assertOptionalFiniteNumber(wire.liquidityAssetsUsd, 'liquidityAssetsUsd')
+	const netSupplyApy = assertOptionalFiniteNumber(wire.netSupplyApy, 'netSupplyApy')
+	const netBorrowApy = assertOptionalFiniteNumber(wire.netBorrowApy, 'netBorrowApy')
+	const collateralAssets = (
+		wire.collateralAssets == null ?
+			undefined
+		:
+			assertGraphqlAmount(wire.collateralAssets, 'collateralAssets')
+	)
+	if (!Number.isFinite(wire.fee))
+		throw new Error(`${Source.Morpho_Graphql}: invalid fee ${String(wire.fee)}`)
+	if (!Number.isFinite(wire.utilization))
+		throw new Error(`${Source.Morpho_Graphql}: invalid utilization ${String(wire.utilization)}`)
+	if (!Number.isFinite(wire.supplyApy))
+		throw new Error(`${Source.Morpho_Graphql}: invalid supplyApy ${String(wire.supplyApy)}`)
+	if (!Number.isFinite(wire.borrowApy))
+		throw new Error(`${Source.Morpho_Graphql}: invalid borrowApy ${String(wire.borrowApy)}`)
+
+	return {
+		totalSupplyAssets: assertGraphqlAmount(wire.supplyAssets, 'supplyAssets'),
+		totalSupplyShares: assertGraphqlAmount(wire.supplyShares, 'supplyShares'),
+		totalBorrowAssets: assertGraphqlAmount(wire.borrowAssets, 'borrowAssets'),
+		totalBorrowShares: assertGraphqlAmount(wire.borrowShares, 'borrowShares'),
+		lastAccrualTimestamp: wire.timestamp,
+		lastIndexedBlock: assertGraphqlAmount(wire.blockNumber, 'blockNumber'),
+		fee: wire.fee,
+		utilization: wire.utilization,
+		supplyApy: wire.supplyApy,
+		borrowApy: wire.borrowApy,
+		liquidityAssets: assertGraphqlAmount(wire.liquidityAssets, 'liquidityAssets'),
+		...(collateralAssets != null && {
+			collateralAssets,
+		}),
+		...(supplyAssetsUsd != null && {
+			supplyAssetsUsd,
+		}),
+		...(borrowAssetsUsd != null && {
+			borrowAssetsUsd,
+		}),
+		...(collateralAssetsUsd != null && {
+			collateralAssetsUsd,
+		}),
+		...(liquidityAssetsUsd != null && {
+			liquidityAssetsUsd,
+		}),
+		...(netSupplyApy != null && {
+			netSupplyApy,
+		}),
+		...(netBorrowApy != null && {
+			netBorrowApy,
+		}),
+	}
+}
 
 const normalizeMarket = (
 	wire: MorphoGraphqlMarketWire,
@@ -157,6 +233,31 @@ const normalizeMarket = (
 	assertChainId(wire.chain.id)
 	if (!chainIds.includes(wire.chain.id))
 		throw new Error(`${Source.Morpho_Graphql}: market chain filter violated`)
+
+	const loanAssetSymbol = (
+		wire.loanAsset.symbol == null || wire.loanAsset.symbol.length < 1 ?
+			undefined
+		:
+			wire.loanAsset.symbol
+	)
+	const collateralAssetSymbol = (
+		wire.collateralAsset.symbol == null || wire.collateralAsset.symbol.length < 1 ?
+			undefined
+		:
+			wire.collateralAsset.symbol
+	)
+	const loanAssetDecimals = (
+		wire.loanAsset.decimals == null ?
+			undefined
+		:
+			assertDecimals(wire.loanAsset.decimals, 'loan asset decimals')
+	)
+	const collateralAssetDecimals = (
+		wire.collateralAsset.decimals == null ?
+			undefined
+		:
+			assertDecimals(wire.collateralAsset.decimals, 'collateral asset decimals')
+	)
 
 	return {
 		marketId: assertMarketId(wire.marketId),
@@ -168,6 +269,21 @@ const normalizeMarket = (
 		oracleAddress: assertAddress(wire.oracle.address, 'oracle address'),
 		...(wire.creationBlockNumber != null && {
 			creationBlockNumber: assertGraphqlAmount(wire.creationBlockNumber, 'creationBlockNumber'),
+		}),
+		...(wire.listed != null && {
+			listed: wire.listed,
+		}),
+		...(loanAssetSymbol != null && {
+			loanAssetSymbol,
+		}),
+		...(loanAssetDecimals != null && {
+			loanAssetDecimals,
+		}),
+		...(collateralAssetSymbol != null && {
+			collateralAssetSymbol,
+		}),
+		...(collateralAssetDecimals != null && {
+			collateralAssetDecimals,
 		}),
 		...(wire.state != null && {
 			state: normalizeMarketState(wire.state),
@@ -194,24 +310,19 @@ const vaultFields = `
 		blockNumber
 		totalAssetsUsd
 		apy
+		netApy
+		fee
+		sharePriceUsd
 	}`
-
-const assertOptionalFiniteNumber = (
-	value: number | undefined,
-	label: string
-) => {
-	if (value == null)
-		return undefined
-	if (!Number.isFinite(value))
-		throw new Error(`${Source.Morpho_Graphql}: invalid ${label} ${String(value)}`)
-	return value
-}
 
 const normalizeVaultState = (
 	wire: MorphoGraphqlVaultStateWire
 ) => {
 	const totalAssetsUsd = assertOptionalFiniteNumber(wire.totalAssetsUsd, 'totalAssetsUsd')
 	const apy = assertOptionalFiniteNumber(wire.apy, 'apy')
+	const netApy = assertOptionalFiniteNumber(wire.netApy, 'netApy')
+	const fee = assertOptionalFiniteNumber(wire.fee, 'fee')
+	const sharePriceUsd = assertOptionalFiniteNumber(wire.sharePriceUsd, 'sharePriceUsd')
 	return {
 		totalAssets: assertGraphqlAmount(wire.totalAssets, 'totalAssets'),
 		totalSupply: assertGraphqlAmount(wire.totalSupply, 'totalSupply'),
@@ -222,6 +333,15 @@ const normalizeVaultState = (
 		}),
 		...(apy != null && {
 			apy,
+		}),
+		...(netApy != null && {
+			netApy,
+		}),
+		...(fee != null && {
+			fee,
+		}),
+		...(sharePriceUsd != null && {
+			sharePriceUsd,
 		}),
 	}
 }

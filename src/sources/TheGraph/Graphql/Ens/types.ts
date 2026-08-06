@@ -60,6 +60,11 @@ export const EnsDomainFragment = graphql(`
 					coinType
 					addr
 				}
+				... on AddrChanged {
+					addr {
+						id
+					}
+				}
 			}
 		}
 		ttl

@@ -7,6 +7,9 @@ const morphoGraphqlChainWire = arktype({
 
 const morphoGraphqlAddressAssetWire = arktype({
 	address: 'string',
+	/** Optional metadata — transport-only until APP enrolls asset label fields. */
+	'symbol?': 'string',
+	'decimals?': 'number.integer >= 0',
 })
 
 const morphoGraphqlVaultAssetWire = arktype({
@@ -25,12 +28,25 @@ export const morphoGraphqlMarketStateWire = arktype({
 	timestamp: 'number.integer >= 0',
 	blockNumber: morphoGraphqlAmountWire,
 	/** GraphQL Float fee — transport-only; enrolled feeWad uses Morpho_Rest. */
-	'fee?': 'number',
+	fee: 'number',
+	utilization: 'number',
+	supplyApy: 'number',
+	borrowApy: 'number',
+	liquidityAssets: morphoGraphqlAmountWire,
+	'collateralAssets?': morphoGraphqlAmountWire.or(arktype('null')),
+	'supplyAssetsUsd?': 'number',
+	'borrowAssetsUsd?': 'number',
+	'collateralAssetsUsd?': 'number',
+	'liquidityAssetsUsd?': 'number',
+	'netSupplyApy?': 'number',
+	'netBorrowApy?': 'number',
 })
 
 export const morphoGraphqlMarketWire = arktype({
 	marketId: 'string',
 	'creationBlockNumber?': morphoGraphqlAmountWire,
+	/** GraphQL listed flag — transport-only (no enrolled MorphoMarket.listed). */
+	'listed?': 'boolean',
 	chain: morphoGraphqlChainWire,
 	loanAsset: morphoGraphqlAddressAssetWire,
 	collateralAsset: morphoGraphqlAddressAssetWire,
@@ -60,9 +76,12 @@ export const morphoGraphqlVaultStateWire = arktype({
 	totalSupply: morphoGraphqlAmountWire,
 	timestamp: 'number.integer >= 0',
 	blockNumber: morphoGraphqlAmountWire,
-	/** Float USD / APY — transport-only until APP enrolls vault tip metrics. */
+	/** Float tip metrics — transport-only until APP enrolls MorphoVault observation fields. */
 	'totalAssetsUsd?': 'number',
 	'apy?': 'number',
+	'netApy?': 'number',
+	'fee?': 'number',
+	'sharePriceUsd?': 'number',
 })
 
 export const morphoGraphqlVaultWire = arktype({
@@ -137,6 +156,19 @@ export type MorphoGraphqlMarketState = {
 	totalBorrowShares: string
 	lastAccrualTimestamp: number
 	lastIndexedBlock: string
+	/** GraphQL Float fee — lossy vs Rest feeWad; transport-only. */
+	fee: number
+	utilization: number
+	supplyApy: number
+	borrowApy: number
+	liquidityAssets: string
+	collateralAssets?: string
+	supplyAssetsUsd?: number
+	borrowAssetsUsd?: number
+	collateralAssetsUsd?: number
+	liquidityAssetsUsd?: number
+	netSupplyApy?: number
+	netBorrowApy?: number
 }
 
 export type MorphoGraphqlMarket = {
@@ -148,6 +180,11 @@ export type MorphoGraphqlMarket = {
 	irmAddress: `0x${string}`
 	oracleAddress: `0x${string}`
 	creationBlockNumber?: string
+	listed?: boolean
+	loanAssetSymbol?: string
+	loanAssetDecimals?: number
+	collateralAssetSymbol?: string
+	collateralAssetDecimals?: number
 	state?: MorphoGraphqlMarketState
 }
 
@@ -158,6 +195,9 @@ export type MorphoGraphqlVaultState = {
 	lastIndexedBlock: string
 	totalAssetsUsd?: number
 	apy?: number
+	netApy?: number
+	fee?: number
+	sharePriceUsd?: number
 }
 
 export type MorphoGraphqlListPage<_Item> = {

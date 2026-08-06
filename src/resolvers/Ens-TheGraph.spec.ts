@@ -208,6 +208,9 @@ describe('Ens-TheGraph entity resolver', () => {
 			},
 			resolverTextKeys: ['url'],
 			resolverCoinTypes: ['60'],
+			textRecords: {
+				url: 'https://vitalik.ca',
+			},
 			$$records: [
 				{
 					[EntityMetaKey.Selector]: {
@@ -542,6 +545,51 @@ describe('Ens-TheGraph EnsRecord_Timestamp resolver', () => {
 			timestampMs: 1_700_000_000_000,
 			source: Source.TheGraph_Graphql,
 			value: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+		})
+	})
+
+	it('falls back to resolver.addr tip for coin:60 when MulticoinAddrChanged is absent', async () => {
+		getName.mockResolvedValueOnce([{
+			...vitalikDomainWire,
+			resolver: {
+				...vitalikDomainWire.resolver,
+				addr: {
+					id: '0xD8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+				},
+				events: [
+					{
+						__typename: 'TextChanged' as const,
+						blockNumber: 100,
+						key: 'url',
+						value: 'https://vitalik.ca',
+					},
+					{
+						__typename: 'AddrChanged' as const,
+						blockNumber: 99,
+						addr: {
+							id: '0xD8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+						},
+					},
+				],
+			},
+		}])
+
+		await expect(
+			ensRecordTimestampResolver.resolve['RecordTimestampMsSource'].resolve(
+				{
+					$record: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'coin:60',
+					},
+					timestampMs: 1_700_000_000_000,
+					source: Source.TheGraph_Graphql,
+				},
+				resolverContext
+			)
+		).resolves.toMatchObject({
+			value: '0xD8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
 		})
 	})
 

@@ -36,14 +36,19 @@ const binding = bindings[Source.Morpho_Graphql][0]
 const market = {
 	marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
 	creationBlockNumber: 19326981,
+	listed: true,
 	chain: {
 		id: 8453,
 	},
 	loanAsset: {
 		address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+		symbol: 'USDC',
+		decimals: 6,
 	},
 	collateralAsset: {
 		address: '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf',
+		symbol: 'cbBTC',
+		decimals: 8,
 	},
 	lltv: '860000000000000000',
 	irmAddress: '0x46415998764C29aB2a25CbeA6254146D50D22687',
@@ -57,6 +62,18 @@ const market = {
 		borrowShares: '1181447494108739688848',
 		timestamp: 1786052921,
 		blockNumber: 49631787,
+		fee: 0.05,
+		utilization: 0.905,
+		supplyApy: 0.041,
+		borrowApy: 0.048,
+		liquidityAssets: 137685568024427,
+		collateralAssets: '25000000000',
+		supplyAssetsUsd: 1453.57,
+		borrowAssetsUsd: 1315.88,
+		collateralAssetsUsd: 2_500_000,
+		liquidityAssetsUsd: 137.68,
+		netSupplyApy: 0.043,
+		netBorrowApy: 0.046,
 	},
 }
 
@@ -77,6 +94,11 @@ const vault = {
 		totalSupply: '999000000000000000000000',
 		timestamp: 1786052921,
 		blockNumber: 21000000,
+		totalAssetsUsd: 1_000_000,
+		apy: 0.052,
+		netApy: 0.049,
+		fee: 0.1,
+		sharePriceUsd: 1.001,
 	},
 }
 
@@ -135,6 +157,11 @@ describe('Morpho GraphQL market enumeration', () => {
 					irmAddress: '0x46415998764c29ab2a25cbea6254146d50d22687',
 					oracleAddress: '0x663becd10dae6c4a3dcd89f1d76c1174199639b9',
 					creationBlockNumber: '19326981',
+					listed: true,
+					loanAssetSymbol: 'USDC',
+					loanAssetDecimals: 6,
+					collateralAssetSymbol: 'cbBTC',
+					collateralAssetDecimals: 8,
 					state: {
 						totalSupplyAssets: '1453572095573010',
 						totalSupplyShares: '1320911716664756276808',
@@ -142,6 +169,18 @@ describe('Morpho GraphQL market enumeration', () => {
 						totalBorrowShares: '1181447494108739688848',
 						lastAccrualTimestamp: 1786052921,
 						lastIndexedBlock: '49631787',
+						fee: 0.05,
+						utilization: 0.905,
+						supplyApy: 0.041,
+						borrowApy: 0.048,
+						liquidityAssets: '137685568024427',
+						collateralAssets: '25000000000',
+						supplyAssetsUsd: 1453.57,
+						borrowAssetsUsd: 1315.88,
+						collateralAssetsUsd: 2_500_000,
+						liquidityAssetsUsd: 137.68,
+						netSupplyApy: 0.043,
+						netBorrowApy: 0.046,
 					},
 				},
 			],
@@ -165,6 +204,12 @@ describe('Morpho GraphQL market enumeration', () => {
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('chainId_in: $chainIds')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('first: $limit')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('countTotal')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('utilization')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('supplyApy')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('liquidityAssets')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('listed')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('netSupplyApy')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('symbol')
 	})
 
 	it('returns a successful empty market list', async () => {
@@ -258,6 +303,11 @@ describe('Morpho GraphQL market enumeration', () => {
 			irmAddress: '0x46415998764c29ab2a25cbea6254146d50d22687',
 			oracleAddress: '0x663becd10dae6c4a3dcd89f1d76c1174199639b9',
 			creationBlockNumber: '19326981',
+			listed: true,
+			loanAssetSymbol: 'USDC',
+			loanAssetDecimals: 6,
+			collateralAssetSymbol: 'cbBTC',
+			collateralAssetDecimals: 8,
 			state: {
 				totalSupplyAssets: '1453572095573010',
 				totalSupplyShares: '1320911716664756276808',
@@ -265,6 +315,18 @@ describe('Morpho GraphQL market enumeration', () => {
 				totalBorrowShares: '1181447494108739688848',
 				lastAccrualTimestamp: 1786052921,
 				lastIndexedBlock: '49631787',
+				fee: 0.05,
+				utilization: 0.905,
+				supplyApy: 0.041,
+				borrowApy: 0.048,
+				liquidityAssets: '137685568024427',
+				collateralAssets: '25000000000',
+				supplyAssetsUsd: 1453.57,
+				borrowAssetsUsd: 1315.88,
+				collateralAssetsUsd: 2_500_000,
+				liquidityAssetsUsd: 137.68,
+				netSupplyApy: 0.043,
+				netBorrowApy: 0.046,
 			},
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
@@ -276,6 +338,8 @@ describe('Morpho GraphQL market enumeration', () => {
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('marketById')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('creationBlockNumber')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('supplyAssets')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('borrowApy')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('collateralAssets')
 	})
 
 	it('fails closed when a detail response omits its market', async () => {
@@ -329,6 +393,46 @@ describe('Morpho GraphQL market enumeration', () => {
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: invalid supplyAssets`)
 	})
 
+	it('fails closed when market tip utilization is non-finite', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				marketById: {
+					...market,
+					state: {
+						...market.state,
+						utilization: Number.NaN,
+					},
+				},
+			},
+		})))
+
+		await expect(getMarket({
+			chainId: 8453,
+			marketId: market.marketId,
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: invalid market response envelope`)
+	})
+
+	it('retains GraphQL fee / APY / liquidity tip leftovers on transport without requiring enrolled projection', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				marketById: market,
+			},
+		})))
+
+		await expect(getMarket({
+			chainId: 8453,
+			marketId: market.marketId,
+		})).resolves.toMatchObject({
+			state: {
+				fee: 0.05,
+				utilization: 0.905,
+				supplyApy: 0.041,
+				borrowApy: 0.048,
+				liquidityAssets: '137685568024427',
+			},
+		})
+	})
+
 	it('omits market tip state when GraphQL state is null', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 			data: {
@@ -351,6 +455,11 @@ describe('Morpho GraphQL market enumeration', () => {
 			irmAddress: '0x46415998764c29ab2a25cbea6254146d50d22687',
 			oracleAddress: '0x663becd10dae6c4a3dcd89f1d76c1174199639b9',
 			creationBlockNumber: '19326981',
+			listed: true,
+			loanAssetSymbol: 'USDC',
+			loanAssetDecimals: 6,
+			collateralAssetSymbol: 'cbBTC',
+			collateralAssetDecimals: 8,
 		})
 	})
 
@@ -447,6 +556,11 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 						totalSupply: '999000000000000000000000',
 						lastAccrualTimestamp: 1786052921,
 						lastIndexedBlock: '21000000',
+						totalAssetsUsd: 1_000_000,
+						apy: 0.052,
+						netApy: 0.049,
+						fee: 0.1,
+						sharePriceUsd: 1.001,
 					},
 				},
 			],
@@ -472,6 +586,8 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('orderBy: TotalAssetsUsd')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('totalAssets')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('totalSupply')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('netApy')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('sharePriceUsd')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('countTotal')
 	})
 

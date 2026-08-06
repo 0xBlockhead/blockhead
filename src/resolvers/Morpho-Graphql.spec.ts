@@ -58,14 +58,19 @@ const morphoVaultPositionsResolver = morphoGraphql.resolvers.find((resolver) => 
 const market = {
 	marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
 	creationBlockNumber: 19326981,
+	listed: true,
 	chain: {
 		id: 8453,
 	},
 	loanAsset: {
 		address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+		symbol: 'USDC',
+		decimals: 6,
 	},
 	collateralAsset: {
 		address: '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf',
+		symbol: 'cbBTC',
+		decimals: 8,
 	},
 	lltv: '860000000000000000',
 	irmAddress: '0x46415998764C29aB2a25CbeA6254146D50D22687',
@@ -79,6 +84,11 @@ const market = {
 		borrowShares: '1181447494108739688848',
 		timestamp: 1786052921,
 		blockNumber: 49631787,
+		fee: 0.05,
+		utilization: 0.905,
+		supplyApy: 0.041,
+		borrowApy: 0.048,
+		liquidityAssets: 137685568024427,
 	},
 }
 
@@ -349,6 +359,11 @@ describe('Morpho GraphQL resolver module', () => {
 			lastIndexedBlock: '49631787',
 			lastAccrualTimestamp: 1786052921,
 		})
+		expect(snapshot).not.toHaveProperty('fee')
+		expect(snapshot).not.toHaveProperty('utilization')
+		expect(snapshot).not.toHaveProperty('supplyApy')
+		expect(snapshot).not.toHaveProperty('listed')
+		expect(snapshot).not.toHaveProperty('loanAssetSymbol')
 	})
 
 	it('omits MorphoMarket tip fields when GraphQL state is null', async () => {
