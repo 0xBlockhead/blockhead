@@ -91,9 +91,14 @@ export default {
 			resolve: {
 				AccountTimestampMsSource: {
 					resolve: async ({ $account, timestampMs, source }: EvmNetworkAccountTimestampId) => {
+						const chainId = eip155ChainId($account.$network)
+						const { pendleByChainId } = await import('$/sources/Pendle/Rest/constants.ts')
+						if (pendleByChainId[chainId] == null)
+							throw new Error(`${Source.Pendle_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const { getAccountPositions } = await import('$/sources/Pendle/Contracts/queries.ts')
 						const { blockNumber, positions } = await getAccountPositions({
-							chainId: eip155ChainId($account.$network),
+							chainId,
 							account: $account.$actor.address,
 						})
 
