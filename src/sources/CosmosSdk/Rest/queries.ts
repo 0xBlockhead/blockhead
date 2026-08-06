@@ -518,3 +518,253 @@ export const getContractInfo = ({
 		`${base}/cosmwasm/wasm/v1/contract/${address}`
 	)
 )
+
+const cosmosSdkIbcPagination = {
+	'next_key?': 'string | null',
+	'total?': '/^(0|[1-9][0-9]*)$/',
+} as const
+
+const cosmosSdkIbcChannelWire = arktype({
+	state: 'string > 0',
+	ordering: 'string > 0',
+	counterparty: {
+		port_id: 'string > 0',
+		channel_id: 'string',
+	},
+	connection_hops: arktype('string > 0').array(),
+	version: 'string',
+	'port_id?': 'string > 0',
+	'channel_id?': 'string > 0',
+})
+
+const cosmosSdkIbcChannelResponseWire = arktype({
+	channel: cosmosSdkIbcChannelWire,
+})
+
+const cosmosSdkIbcChannelsResponseWire = arktype({
+	channels: cosmosSdkIbcChannelWire.array(),
+	'pagination?': cosmosSdkIbcPagination,
+})
+
+const cosmosSdkIbcConnectionWire = arktype({
+	client_id: 'string > 0',
+	state: 'string > 0',
+	counterparty: {
+		client_id: 'string > 0',
+		connection_id: 'string',
+	},
+	delay_period: '/^(0|[1-9][0-9]*)$/',
+})
+
+const cosmosSdkIbcConnectionResponseWire = arktype({
+	connection: cosmosSdkIbcConnectionWire,
+})
+
+const cosmosSdkIbcConnectionsResponseWire = arktype({
+	connections: arktype({
+		id: 'string > 0',
+		client_id: 'string > 0',
+		state: 'string > 0',
+		counterparty: {
+			client_id: 'string > 0',
+			connection_id: 'string',
+		},
+		delay_period: '/^(0|[1-9][0-9]*)$/',
+	}).array(),
+	'pagination?': cosmosSdkIbcPagination,
+})
+
+const cosmosSdkIbcHeightWire = arktype({
+	revision_number: '/^(0|[1-9][0-9]*)$/',
+	revision_height: '/^(0|[1-9][0-9]*)$/',
+})
+
+const cosmosSdkIbcClientStateResponseWire = arktype({
+	client_state: {
+		'@type': 'string > 0',
+		chain_id: 'string > 0',
+		trust_level: {
+			numerator: '/^(0|[1-9][0-9]*)$/',
+			denominator: '/^[1-9][0-9]*$/',
+		},
+		trusting_period: 'string > 0',
+		unbonding_period: 'string > 0',
+		max_clock_drift: 'string > 0',
+		frozen_height: cosmosSdkIbcHeightWire,
+		latest_height: cosmosSdkIbcHeightWire,
+	},
+})
+
+const cosmosSdkIbcDenomTraceResponseWire = arktype({
+	denom_trace: {
+		path: 'string > 0',
+		base_denom: 'string > 0',
+	},
+})
+
+const cosmosSdkIbcNextSequenceSendResponseWire = arktype({
+	next_sequence_send: '/^(0|[1-9][0-9]*)$/',
+})
+
+const cosmosSdkIbcNextSequenceReceiveResponseWire = arktype({
+	next_sequence_receive: '/^(0|[1-9][0-9]*)$/',
+})
+
+const assertIbcIdentity = (
+	value: string,
+	name: string
+) => {
+	if (value.length === 0 || value.includes('/') || value.includes('\\'))
+		throw new Error(`CosmosSdk_Rest: invalid ${name}`)
+}
+
+export const getIbcChannel = ({
+	portId,
+	channelId,
+}: {
+	portId: string
+	channelId: string
+}) => {
+	assertIbcIdentity(portId, 'port id')
+	assertIbcIdentity(channelId, 'channel id')
+	return sourceGetJson(
+		binding,
+		`${base}/ibc/core/channel/v1/channels/${encodeURIComponent(channelId)}/ports/${encodeURIComponent(portId)}`
+	).then((response) => (
+		cosmosSdkIbcChannelResponseWire.assert(response)
+	))
+}
+
+export const getIbcChannels = ({
+	limit = 24,
+	paginationKey,
+}: {
+	limit?: number
+	paginationKey?: string
+}) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`CosmosSdk_Rest: invalid IBC channel page limit ${limit}`)
+
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.count_total': 'true',
+		...(paginationKey != null && { 'pagination.key': paginationKey }),
+	})
+
+	return sourceGetJson(
+		binding,
+		`${base}/ibc/core/channel/v1/channels?${parameters}`
+	).then((response) => (
+		cosmosSdkIbcChannelsResponseWire.assert(response)
+	))
+}
+
+export const getIbcConnection = ({
+	connectionId,
+}: {
+	connectionId: string
+}) => {
+	assertIbcIdentity(connectionId, 'connection id')
+	return sourceGetJson(
+		binding,
+		`${base}/ibc/core/connection/v1/connections/${encodeURIComponent(connectionId)}`
+	).then((response) => (
+		cosmosSdkIbcConnectionResponseWire.assert(response)
+	))
+}
+
+export const getIbcConnections = ({
+	limit = 24,
+	paginationKey,
+}: {
+	limit?: number
+	paginationKey?: string
+}) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`CosmosSdk_Rest: invalid IBC connection page limit ${limit}`)
+
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.count_total': 'true',
+		...(paginationKey != null && { 'pagination.key': paginationKey }),
+	})
+
+	return sourceGetJson(
+		binding,
+		`${base}/ibc/core/connection/v1/connections?${parameters}`
+	).then((response) => (
+		cosmosSdkIbcConnectionsResponseWire.assert(response)
+	))
+}
+
+export const getIbcClientState = ({
+	clientId,
+}: {
+	clientId: string
+}) => {
+	assertIbcIdentity(clientId, 'client id')
+	return sourceGetJson(
+		binding,
+		`${base}/ibc/core/client/v1/client_states/${encodeURIComponent(clientId)}`
+	).then((response) => (
+		cosmosSdkIbcClientStateResponseWire.assert(response)
+	))
+}
+
+export const getIbcDenomTrace = ({
+	hash,
+}: {
+	hash: string
+}) => {
+	const normalized = (
+		hash.startsWith('ibc/') ?
+			hash.slice('ibc/'.length)
+		: hash.startsWith('hash:') ?
+			hash.slice('hash:'.length)
+		:
+			hash
+	)
+	if (!/^[0-9A-Fa-f]{64}$/.test(normalized))
+		throw new Error(`CosmosSdk_Rest: invalid denom hash ${hash}`)
+
+	return sourceGetJson(
+		binding,
+		`${base}/ibc/apps/transfer/v1/denom_traces/${normalized}`
+	).then((response) => (
+		cosmosSdkIbcDenomTraceResponseWire.assert(response)
+	))
+}
+
+export const getIbcNextSequenceSend = ({
+	portId,
+	channelId,
+}: {
+	portId: string
+	channelId: string
+}) => {
+	assertIbcIdentity(portId, 'port id')
+	assertIbcIdentity(channelId, 'channel id')
+	return sourceGetJson(
+		binding,
+		`${base}/ibc/core/channel/v1/channels/${encodeURIComponent(channelId)}/ports/${encodeURIComponent(portId)}/next_sequence_send`
+	).then((response) => (
+		cosmosSdkIbcNextSequenceSendResponseWire.assert(response)
+	))
+}
+
+export const getIbcNextSequenceReceive = ({
+	portId,
+	channelId,
+}: {
+	portId: string
+	channelId: string
+}) => {
+	assertIbcIdentity(portId, 'port id')
+	assertIbcIdentity(channelId, 'channel id')
+	return sourceGetJson(
+		binding,
+		`${base}/ibc/core/channel/v1/channels/${encodeURIComponent(channelId)}/ports/${encodeURIComponent(portId)}/next_sequence`
+	).then((response) => (
+		cosmosSdkIbcNextSequenceReceiveResponseWire.assert(response)
+	))
+}

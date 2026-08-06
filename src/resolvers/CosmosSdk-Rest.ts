@@ -155,6 +155,38 @@ const cosmosUnsignedInteger = (
 	return BigInt(value)
 }
 
+const cosmosDurationToNs = (
+	value: string,
+	label: string
+) => {
+	const match = /^(0|[1-9]\d*)(?:\.(\d{1,9}))?s$/.exec(value)
+	if (match == null)
+		throw new Error(`CosmosSdk_Rest: invalid ${label} duration ${value}`)
+
+	const wholeSeconds = BigInt(match[1]!)
+	const fraction = match[2] ?? ''
+	const nanos = BigInt(fraction.padEnd(9, '0'))
+	return wholeSeconds * 1_000_000_000n + nanos
+}
+
+const channelPartsFromPath = (
+	path: string
+) => {
+	const hops = path.split('/')
+	if (hops.length < 2 || hops.length % 2 !== 0)
+		return
+
+	const sourcePort = hops[hops.length - 2]
+	const sourceChannel = hops[hops.length - 1]
+	if (sourcePort == null || sourceChannel == null || sourcePort === '' || sourceChannel === '')
+		return
+
+	return {
+		sourcePort,
+		sourceChannel,
+	}
+}
+
 const cosmosValidatorFields = (validator: {
 	operator_address?: string
 	consensus_pubkey?: JsonValue
@@ -1167,5 +1199,304 @@ export default {
 					),
 				},
 			}),
+
+		defineResolver({
+			entityType: EntityType.IbcChannel,
+			resolve: {
+				NetworkPortIdChannelId: {
+					appliesTo: cosmosNetworkReferenceApplicability,
+					resolve: async ({
+						$network,
+						portId,
+						channelId,
+					}) => {
+						assertCosmosHub($network)
+						const {
+							getIbcChannel,
+							getIbcClientState,
+							getIbcConnection,
+							getIbcNextSequenceReceive,
+							getIbcNextSequenceSend,
+						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+						const {
+							channel,
+						} = await getIbcChannel({
+							portId,
+							channelId,
+						})
+						const connectionId = channel.connection_hops[0]
+						if (connectionId == null || connectionId === '')
+							throw new Error('CosmosSdk_Rest: IBC channel missing connection hop')
+
+						const [
+							{
+								connection,
+							},
+							nextSequenceSend,
+							nextSequenceReceive,
+						] = await Promise.all([
+							getIbcConnection({
+								connectionId,
+							}),
+							getIbcNextSequenceSend({
+								portId,
+								channelId,
+							}),
+							getIbcNextSequenceReceive({
+								portId,
+								channelId,
+							}),
+						])
+						const {
+							client_state: clientState,
+						} = await getIbcClientState({
+							clientId: connection.client_id,
+						})
+
+						return {
+							$connection: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									connectionId,
+								},
+							},
+							$client: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									clientId: connection.client_id,
+								},
+							},
+							counterpartyChainId: clientState.chain_id,
+							counterpartyPortId: channel.counterparty.port_id,
+							counterpartyChannelId: channel.counterparty.channel_id,
+							state: channel.state,
+							ordering: channel.ordering,
+							version: channel.version,
+							nextSequenceSend: cosmosUnsignedInteger(
+								nextSequenceSend.next_sequence_send,
+								'next sequence send'
+							),
+							nextSequenceReceive: cosmosUnsignedInteger(
+								nextSequenceReceive.next_sequence_receive,
+								'next sequence receive'
+							),
+						}
+					},
+				},
+			},
+		})({
+			$connection: (channel) => channel.$connection,
+			$client: (channel) => channel.$client,
+			counterpartyChainId: (channel) => channel.counterpartyChainId,
+			counterpartyPortId: (channel) => channel.counterpartyPortId,
+			counterpartyChannelId: (channel) => channel.counterpartyChannelId,
+			state: (channel) => channel.state,
+			ordering: (channel) => channel.ordering,
+			version: (channel) => channel.version,
+			nextSequenceSend: (channel) => channel.nextSequenceSend,
+			nextSequenceReceive: (channel) => channel.nextSequenceReceive,
+		}),
+
+		defineResolver({
+			entityType: EntityType.IbcConnection,
+			resolve: {
+				NetworkConnectionId: {
+					appliesTo: cosmosNetworkReferenceApplicability,
+					resolve: async ({
+						$network,
+						connectionId,
+					}) => {
+						assertCosmosHub($network)
+						const {
+							getIbcConnection,
+						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+						const {
+							connection,
+						} = await getIbcConnection({
+							connectionId,
+						})
+						return {
+							clientId: connection.client_id,
+							$client: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									clientId: connection.client_id,
+								},
+							},
+							counterpartyClientId: connection.counterparty.client_id,
+							...(connection.counterparty.connection_id !== '' && {
+								counterpartyConnectionId: connection.counterparty.connection_id,
+							}),
+							state: connection.state,
+							delayPeriodNs: cosmosUnsignedInteger(
+								connection.delay_period,
+								'delay period'
+							),
+						}
+					},
+				},
+			},
+		})({
+			clientId: (connection) => connection.clientId,
+			$client: (connection) => connection.$client,
+			counterpartyClientId: (connection) => connection.counterpartyClientId,
+			counterpartyConnectionId: (connection) => connection.counterpartyConnectionId,
+			state: (connection) => connection.state,
+			delayPeriodNs: (connection) => connection.delayPeriodNs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.IbcClient,
+			resolve: {
+				NetworkClientId: {
+					appliesTo: cosmosNetworkReferenceApplicability,
+					resolve: async ({
+						$network,
+						clientId,
+					}) => {
+						assertCosmosHub($network)
+						const {
+							getIbcClientState,
+						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+						const {
+							client_state: clientState,
+						} = await getIbcClientState({
+							clientId,
+						})
+						const clientType = (
+							clientState['@type'].includes('tendermint') ?
+								'07-tendermint'
+							:
+								clientState['@type']
+						)
+						return {
+							clientType,
+							latestHeight: clientState.latest_height,
+							frozenHeight: clientState.frozen_height,
+							trustLevel: `${clientState.trust_level.numerator}/${clientState.trust_level.denominator}`,
+							trustingPeriodNs: cosmosDurationToNs(
+								clientState.trusting_period,
+								'trusting period'
+							),
+							unbondingPeriodNs: cosmosDurationToNs(
+								clientState.unbonding_period,
+								'unbonding period'
+							),
+							maxClockDriftNs: cosmosDurationToNs(
+								clientState.max_clock_drift,
+								'max clock drift'
+							),
+							counterpartyChainId: clientState.chain_id,
+						}
+					},
+				},
+			},
+		})({
+			clientType: (client) => client.clientType,
+			latestHeight: (client) => client.latestHeight,
+			frozenHeight: (client) => client.frozenHeight,
+			trustLevel: (client) => client.trustLevel,
+			trustingPeriodNs: (client) => client.trustingPeriodNs,
+			unbondingPeriodNs: (client) => client.unbondingPeriodNs,
+			maxClockDriftNs: (client) => client.maxClockDriftNs,
+			counterpartyChainId: (client) => client.counterpartyChainId,
+		}),
+
+		defineResolver({
+			entityType: EntityType.IbcDenomTrace,
+			resolve: {
+				NetworkTraceKey: {
+					appliesTo: cosmosNetworkReferenceApplicability,
+					resolve: async ({
+						$network,
+						traceKey,
+					}) => {
+						assertCosmosHub($network)
+						if (traceKey.startsWith('trace:')) {
+							const body = traceKey.slice('trace:'.length)
+							const separator = body.lastIndexOf('/')
+							if (separator <= 0 || separator === body.length - 1)
+								throw new Error('CosmosSdk_Rest: invalid denom trace path key')
+
+							const path = body.slice(0, separator)
+							const baseDenom = body.slice(separator + 1)
+							const channel = channelPartsFromPath(path)
+							return {
+								path,
+								baseDenom,
+								displayDenom: baseDenom,
+								...(channel != null && {
+									sourcePort: channel.sourcePort,
+									sourceChannel: channel.sourceChannel,
+									$channel: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											portId: channel.sourcePort,
+											channelId: channel.sourceChannel,
+										},
+									},
+								}),
+								$cosmosDenom: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										denom: baseDenom,
+									},
+								},
+							}
+						}
+
+						const {
+							getIbcDenomTrace,
+						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+						const {
+							denom_trace: denomTrace,
+						} = await getIbcDenomTrace({
+							hash: traceKey,
+						})
+						const denomHash = (
+							traceKey.startsWith('hash:') ?
+								traceKey.slice('hash:'.length).toLowerCase()
+							: traceKey.startsWith('ibc/') ?
+								traceKey.slice('ibc/'.length).toLowerCase()
+							:
+								traceKey.toLowerCase()
+						)
+						const channel = channelPartsFromPath(denomTrace.path)
+						return {
+							path: denomTrace.path,
+							baseDenom: denomTrace.base_denom,
+							displayDenom: denomTrace.base_denom,
+							denomHash,
+							...(channel != null && {
+								sourcePort: channel.sourcePort,
+								sourceChannel: channel.sourceChannel,
+								$channel: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										portId: channel.sourcePort,
+										channelId: channel.sourceChannel,
+									},
+								},
+							}),
+							$cosmosDenom: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									denom: `ibc/${denomHash.toUpperCase()}`,
+								},
+							},
+						}
+					},
+				},
+			},
+		})({
+			path: (trace) => trace.path,
+			baseDenom: (trace) => trace.baseDenom,
+			displayDenom: (trace) => trace.displayDenom,
+			denomHash: (trace) => trace.denomHash,
+			sourcePort: (trace) => trace.sourcePort,
+			sourceChannel: (trace) => trace.sourceChannel,
+			$channel: (trace) => trace.$channel,
+			$cosmosDenom: (trace) => trace.$cosmosDenom,
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

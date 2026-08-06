@@ -14,11 +14,13 @@ import { Source } from '$/sources/Source.ts'
 const getBlock = vi.hoisted(() => vi.fn())
 const getBlockByHash = vi.hoisted(() => vi.fn())
 const getTx = vi.hoisted(() => vi.fn())
+const getStatus = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/CometBft/Rest/queries.ts', () => ({
 	getBlock,
 	getBlockByHash,
 	getTx,
+	getStatus,
 }))
 
 const { default: cometBft } = await import('$/resolvers/CometBft-Rest.ts')
@@ -43,14 +45,33 @@ const blockResolver = cometBft.resolvers.find((candidate) => (
 const transactionResolver = cometBft.resolvers.find((candidate) => (
 	candidate.entityType === EntityType.CosmosTransaction
 ))
+const networkTimestampResolver = cometBft.resolvers.find((candidate) => (
+	candidate.entityType === EntityType.Network_Timestamp
+))
+const networkBlocksResolver = cometBft.resolvers.find((candidate) => (
+	candidate.entityType === EntityType.Network
+	&& 'Cosmos' in candidate.projections
+	&& '$$blocks' in candidate.projections.Cosmos
+))
+const networkTimestampsResolver = cometBft.resolvers.find((candidate) => (
+	candidate.entityType === EntityType.Network
+	&& '$$timestamps' in candidate.projections
+))
 
-if (blockResolver == null || transactionResolver == null)
+if (
+	blockResolver == null
+	|| transactionResolver == null
+	|| networkTimestampResolver == null
+	|| networkBlocksResolver == null
+	|| networkTimestampsResolver == null
+)
 	throw new Error('CometBft-Rest spec missing resolvers')
 
 beforeEach(() => {
 	getBlock.mockReset()
 	getBlockByHash.mockReset()
 	getTx.mockReset()
+	getStatus.mockReset()
 })
 
 describe('CometBFT resolver binding', () => {
@@ -164,6 +185,123 @@ describe('CometBFT resolver binding', () => {
 				height: 9n,
 			},
 		})
+	})
+
+	it('projects Network_Timestamp tip fields from /status + tip block', async () => {
+		getStatus.mockResolvedValue({
+			result: {
+				node_info: {
+					network: 'cosmoshub-4',
+				},
+				sync_info: {
+					latest_block_hash: 'TIPHASH',
+					latest_block_height: '100',
+					latest_block_time: '2026-01-01T00:00:00.000Z',
+					catching_up: true,
+				},
+			},
+		})
+		getBlock.mockResolvedValue({
+			result: {
+				block_id: {
+					hash: 'TIPHASH',
+				},
+				block: {
+					header: {
+						height: '100',
+						proposer_address: 'proposer',
+						time: '2026-01-01T00:00:10.000Z',
+					},
+					data: {
+						txs: [
+							'a',
+							'b',
+							'c',
+						],
+					},
+				},
+			},
+		})
+
+		const snapshot = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: cosmosNetwork,
+			timestampMs: 1_700_000_000_000,
+			source: Source.CometBft_Rest,
+		}, context)
+
+		expect(networkTimestampResolver.projections.Cosmos.latestBlockHeight(snapshot)).toBe(100n)
+		expect(networkTimestampResolver.projections.Cosmos.latestBlockHash(snapshot)).toBe('TIPHASH')
+		expect(networkTimestampResolver.projections.Cosmos.latestBlockTimeMs(snapshot)).toBe(
+			Date.parse('2026-01-01T00:00:10.000Z')
+		)
+		expect(networkTimestampResolver.projections.Cosmos.latestBlockTransactionCount(snapshot)).toBe(3)
+		expect(networkTimestampResolver.projections.Cosmos.chainId(snapshot)).toBe('cosmoshub-4')
+		expect(networkTimestampResolver.projections.Cosmos.isSyncing(snapshot)).toBe(true)
+		expect(getBlock).toHaveBeenCalledWith({
+			height: 100n,
+		})
+	})
+
+	it('lists Network.Cosmos.$$blocks from tip status height', async () => {
+		getStatus.mockResolvedValue({
+			result: {
+				node_info: {
+					network: 'cosmoshub-4',
+				},
+				sync_info: {
+					latest_block_hash: 'TIPHASH',
+					latest_block_height: '5',
+					latest_block_time: '2026-01-01T00:00:00.000Z',
+					catching_up: false,
+				},
+			},
+		})
+
+		const snapshot = await networkBlocksResolver.resolve.Caip2.resolve(
+			cosmosNetwork,
+			{
+				...context,
+				pagination: {
+					limit: 3,
+				},
+			}
+		)
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: cosmosNetwork,
+					height: 5n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: cosmosNetwork,
+					height: 4n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: cosmosNetwork,
+					height: 3n,
+				},
+			},
+		])
+	})
+
+	it('exposes Network.$$timestamps tip handle for CometBft_Rest', async () => {
+		const snapshot = await networkTimestampsResolver.resolve.Caip2.resolve(
+			cosmosNetwork,
+			context
+		)
+		expect(networkTimestampsResolver.projections.$$timestamps(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: cosmosNetwork,
+					timestampMs: expect.any(Number),
+					source: Source.CometBft_Rest,
+				},
+			},
+		])
 	})
 
 	it('registers CometBft_Rest source', () => {

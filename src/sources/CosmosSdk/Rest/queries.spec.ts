@@ -756,3 +756,135 @@ describe('Cosmos SDK x/gov v1 transport', () => {
 		await expect(getProposal({ proposalId: '1' })).resolves.toBe(response)
 	})
 })
+
+describe('Cosmos SDK IBC queries', () => {
+	beforeEach(() => {
+		getJson.mockReset()
+	})
+
+	it('reads channel / connection / client / denom-trace / sequence paths', async () => {
+		const {
+			getIbcChannel,
+			getIbcClientState,
+			getIbcConnection,
+			getIbcDenomTrace,
+			getIbcNextSequenceSend,
+		} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+
+		getJson
+			.mockResolvedValueOnce({
+				channel: {
+					state: 'STATE_OPEN',
+					ordering: 'ORDER_UNORDERED',
+					counterparty: {
+						port_id: 'transfer',
+						channel_id: 'channel-0',
+					},
+					connection_hops: [
+						'connection-257',
+					],
+					version: 'ics20-1',
+				},
+			})
+			.mockResolvedValueOnce({
+				connection: {
+					client_id: '07-tendermint-1',
+					state: 'STATE_OPEN',
+					counterparty: {
+						client_id: '07-tendermint-0',
+						connection_id: 'connection-0',
+					},
+					delay_period: '0',
+				},
+			})
+			.mockResolvedValueOnce({
+				client_state: {
+					'@type': '/ibc.lightclients.tendermint.v1.ClientState',
+					chain_id: 'osmosis-1',
+					trust_level: {
+						numerator: '1',
+						denominator: '3',
+					},
+					trusting_period: '1209600s',
+					unbonding_period: '1814400s',
+					max_clock_drift: '600s',
+					frozen_height: {
+						revision_number: '0',
+						revision_height: '0',
+					},
+					latest_height: {
+						revision_number: '1',
+						revision_height: '9',
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				denom_trace: {
+					path: 'transfer/channel-141',
+					base_denom: 'uatom',
+				},
+			})
+			.mockResolvedValueOnce({
+				next_sequence_send: '42',
+			})
+
+		await expect(getIbcChannel({
+			portId: 'transfer',
+			channelId: 'channel-141',
+		})).resolves.toMatchObject({
+			channel: {
+				state: 'STATE_OPEN',
+			},
+		})
+		await expect(getIbcConnection({
+			connectionId: 'connection-257',
+		})).resolves.toMatchObject({
+			connection: {
+				client_id: '07-tendermint-1',
+			},
+		})
+		await expect(getIbcClientState({
+			clientId: '07-tendermint-1',
+		})).resolves.toMatchObject({
+			client_state: {
+				chain_id: 'osmosis-1',
+			},
+		})
+		await expect(getIbcDenomTrace({
+			hash: 'a'.repeat(64),
+		})).resolves.toMatchObject({
+			denom_trace: {
+				base_denom: 'uatom',
+			},
+		})
+		await expect(getIbcNextSequenceSend({
+			portId: 'transfer',
+			channelId: 'channel-141',
+		})).resolves.toEqual({
+			next_sequence_send: '42',
+		})
+
+		expect(getJson.mock.calls.map((call) => call[0])).toEqual([
+			'https://rest.cosmos.directory/cosmoshub/ibc/core/channel/v1/channels/channel-141/ports/transfer',
+			'https://rest.cosmos.directory/cosmoshub/ibc/core/connection/v1/connections/connection-257',
+			'https://rest.cosmos.directory/cosmoshub/ibc/core/client/v1/client_states/07-tendermint-1',
+			`https://rest.cosmos.directory/cosmoshub/ibc/apps/transfer/v1/denom_traces/${'a'.repeat(64)}`,
+			'https://rest.cosmos.directory/cosmoshub/ibc/core/channel/v1/channels/channel-141/ports/transfer/next_sequence_send',
+		])
+	})
+
+	it('fail-closes malformed IBC channel envelopes', async () => {
+		const {
+			getIbcChannel,
+		} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+		getJson.mockResolvedValueOnce({
+			channel: {
+				state: 'STATE_OPEN',
+			},
+		})
+		await expect(getIbcChannel({
+			portId: 'transfer',
+			channelId: 'channel-141',
+		})).rejects.toThrow()
+	})
+})

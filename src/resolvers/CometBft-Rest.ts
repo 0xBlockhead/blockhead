@@ -2,7 +2,15 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import { networkBySlug } from '$/constants/Network.ts'
+import {
+	resolverContextRowLimit,
+	type ResolverContext,
+} from '$/resolvers/$resolvers.ts'
+import {
+	networkBySlug,
+	NetworkExecutionModel,
+	NetworkLedgerModel,
+} from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 	type EntitySelector,
@@ -19,12 +27,56 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const assertCosmosHub = (network: NetworkId) => {
 	if (
-		!('caip2' in network)
-		|| network.caip2.namespace !== networkBySlug.cosmos.caip2.namespace
-		|| network.caip2.reference !== networkBySlug.cosmos.caip2.reference
+		(
+			'slug' in network
+			&& network.slug === networkBySlug.cosmos.slug
+		)
+		|| (
+			'caip2' in network
+			&& network.caip2.namespace === networkBySlug.cosmos.caip2.namespace
+			&& network.caip2.reference === networkBySlug.cosmos.caip2.reference
+		)
 	)
-		throw new Error('CometBft_Rest: unsupported network')
+		return
+
+	throw new Error('CometBft_Rest: unsupported network')
 }
+
+const cosmosNetworkApplicability = [
+	{
+		caip2: networkBySlug.cosmos.caip2,
+	},
+	{
+		slug: 'cosmos',
+	},
+] as const
+
+const cosmosNetworkResolverSelectors = <_Snapshot extends object>(
+	resolve: (
+		network: NetworkId,
+		context: ResolverContext
+	) => Promise<_Snapshot>
+) => ({
+	Caip2: {
+		appliesTo: [cosmosNetworkApplicability[0]],
+		resolve,
+	},
+	Slug: {
+		appliesTo: [cosmosNetworkApplicability[1]],
+		resolve,
+	},
+})
+
+const cosmosNetworkTimestampApplicability = [
+	{
+		$network: cosmosNetworkApplicability[0],
+		source: Source.CometBft_Rest,
+	},
+	{
+		$network: cosmosNetworkApplicability[1],
+		source: Source.CometBft_Rest,
+	},
+] as const
 
 const cosmosBlockFields = (wireBlock: CometBftBlockResponse) => ({
 	hash: wireBlock.result.block_id.hash,
@@ -66,6 +118,27 @@ const cosmosTransactionFields = (
 			eventTypes: [...new Set(events.map((event) => event.type))],
 		}),
 	}
+}
+
+const getCometBlockReferences = async (
+	network: NetworkId,
+	limit: number
+) => {
+	assertCosmosHub(network)
+	const { getStatus } = await import('$/sources/CometBft/Rest/queries.ts')
+	const status = await getStatus()
+	const latestBlockHeight = BigInt(status.result.sync_info.latest_block_height)
+	return Array.from({
+		length: Math.min(
+			Number(latestBlockHeight + 1n),
+			limit
+		),
+	}, (_value, blockOffset) => ({
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			height: latestBlockHeight - BigInt(blockOffset),
+		},
+	}))
 }
 
 export default {
@@ -140,6 +213,92 @@ export default {
 			gasUsed: (snapshot) => snapshot.gasUsed,
 			rawLog: (snapshot) => snapshot.rawLog,
 			eventTypes: (snapshot) => snapshot.eventTypes,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					appliesTo: cosmosNetworkTimestampApplicability,
+					resolve: async ({
+						$network,
+						timestampMs,
+						source,
+					}) => {
+						assertCosmosHub($network)
+						const {
+							getBlock,
+							getStatus,
+						} = await import('$/sources/CometBft/Rest/queries.ts')
+						const status = await getStatus()
+						const latestHeight = BigInt(status.result.sync_info.latest_block_height)
+						const tipBlock = await getBlock({
+							height: latestHeight,
+						})
+						const tip = cosmosBlockFields(tipBlock)
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							timestampMs,
+							source,
+							ledgerModels: [NetworkLedgerModel.Account],
+							executionModels: [NetworkExecutionModel.CosmosSdk],
+							latestBlockHeight: tip.height,
+							latestBlockHash: tip.hash,
+							latestBlockTimeMs: tip.timestampMs,
+							latestBlockTransactionCount: tip.transactionCount,
+							chainId: status.result.node_info.network,
+							nodeNetwork: status.result.node_info.network,
+							isSyncing: status.result.sync_info.catching_up,
+						}
+					},
+				},
+			},
+		})({
+			$network: (timestamp) => timestamp.$network,
+			timestampMs: (timestamp) => timestamp.timestampMs,
+			source: (timestamp) => timestamp.source,
+			ledgerModels: (timestamp) => timestamp.ledgerModels,
+			executionModels: (timestamp) => timestamp.executionModels,
+			Cosmos: {
+				latestBlockHeight: (timestamp) => timestamp.latestBlockHeight,
+				latestBlockHash: (timestamp) => timestamp.latestBlockHash,
+				latestBlockTimeMs: (timestamp) => timestamp.latestBlockTimeMs,
+				latestBlockTransactionCount: (timestamp) => timestamp.latestBlockTransactionCount,
+				chainId: (timestamp) => timestamp.chainId,
+				nodeNetwork: (timestamp) => timestamp.nodeNetwork,
+				isSyncing: (timestamp) => timestamp.isSyncing,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: cosmosNetworkResolverSelectors(async (network) => ([
+				{
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						timestampMs: Date.now(),
+						source: Source.CometBft_Rest,
+					},
+				},
+			])),
+		})({
+			$$timestamps: (timestamps) => timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: cosmosNetworkResolverSelectors(async (network, context) => (
+				getCometBlockReferences(
+					network,
+					resolverContextRowLimit(context)
+				)
+			)),
+		})({
+			Cosmos: {
+				$$blocks: (blocks) => blocks,
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

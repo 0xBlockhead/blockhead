@@ -279,3 +279,84 @@ export type CosmosSdkDelegationRewardsResponse = {
 	}[]
 	total: CosmosSdkCoin[]
 }
+
+export type CosmosSdkIbcHeight = {
+	revision_number: string
+	revision_height: string
+}
+
+export type CosmosSdkIbcChannel = {
+	state: string
+	ordering: string
+	counterparty: {
+		port_id: string
+		channel_id: string
+	}
+	connection_hops: string[]
+	version: string
+	port_id?: string
+	channel_id?: string
+}
+
+export type CosmosSdkIbcChannelResponse = {
+	channel: CosmosSdkIbcChannel
+}
+
+export type CosmosSdkIbcChannelsResponse = {
+	channels: CosmosSdkIbcChannel[]
+	pagination?: CosmosSdkPagination
+}
+
+export type CosmosSdkIbcConnection = {
+	client_id: string
+	state: string
+	counterparty: {
+		client_id: string
+		connection_id: string
+	}
+	delay_period: string
+}
+
+export type CosmosSdkIbcConnectionResponse = {
+	connection: CosmosSdkIbcConnection
+}
+
+export type CosmosSdkIbcConnectionsResponse = {
+	connections: (CosmosSdkIbcConnection & {
+		id: string
+	})[]
+	pagination?: CosmosSdkPagination
+}
+
+export type CosmosSdkIbcTendermintClientState = {
+	'@type': string
+	chain_id: string
+	trust_level: {
+		numerator: string
+		denominator: string
+	}
+	trusting_period: string
+	unbonding_period: string
+	max_clock_drift: string
+	frozen_height: CosmosSdkIbcHeight
+	latest_height: CosmosSdkIbcHeight
+}
+
+export type CosmosSdkIbcClientStateResponse = {
+	client_state: CosmosSdkIbcTendermintClientState
+}
+
+export type CosmosSdkIbcDenomTraceResponse = {
+	denom_trace: {
+		path: string
+		base_denom: string
+	}
+}
+
+export type CosmosSdkIbcNextSequenceSendResponse = {
+	next_sequence_send: string
+}
+
+export type CosmosSdkIbcNextSequenceReceiveResponse = {
+	next_sequence_receive: string
+}
