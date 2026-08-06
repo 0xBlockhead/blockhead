@@ -220,13 +220,25 @@ describe('Aptos Fullnode typed operations', () => {
 				authentication_key: '0xauth',
 			}))
 			.mockResolvedValueOnce(jsonAptosResponse([]))
-			.mockResolvedValueOnce(jsonAptosResponse([]))
+			.mockResolvedValueOnce(jsonAptosResponse([{
+				bytecode: '0xabcdef',
+				abi: {
+					address: '0xa/b',
+					name: 'coin',
+					friends: [],
+					exposed_functions: [],
+					structs: [],
+				},
+			}]))
 			.mockResolvedValueOnce(jsonAptosResponse({
-				block_height: '9',
-				block_hash: '0xblock',
-				block_timestamp: '1720000000123456',
-				first_version: '40',
-				last_version: '42',
+				bytecode: '0xabcdef',
+				abi: {
+					address: '0xa/b',
+					name: 'coin',
+					friends: [],
+					exposed_functions: [],
+					structs: [],
+				},
 			}))
 			.mockResolvedValueOnce(jsonAptosResponse({
 				block_height: '9',
@@ -235,10 +247,15 @@ describe('Aptos Fullnode typed operations', () => {
 				first_version: '40',
 				last_version: '42',
 			}))
-			.mockResolvedValueOnce(jsonAptosResponse([]))
 			.mockResolvedValueOnce(jsonAptosResponse({
-				value: '1',
+				block_height: '9',
+				block_hash: '0xblock',
+				block_timestamp: '1720000000123456',
+				first_version: '40',
+				last_version: '42',
 			}))
+			.mockResolvedValueOnce(jsonAptosResponse([]))
+			.mockResolvedValueOnce(jsonAptosResponse('1'))
 			.mockResolvedValueOnce(jsonAptosResponse(transaction))
 			.mockResolvedValueOnce(jsonAptosResponse(transaction))
 
@@ -246,6 +263,7 @@ describe('Aptos Fullnode typed operations', () => {
 		await queries.getAccount('0xa/b', 42n)
 		await queries.getAccountResources('0xa/b', 42n)
 		await queries.getAccountModules('0xa/b', 42n)
+		await queries.getAccountModule('0xa/b', 'coin', 42n)
 		await queries.getBlockByHeight(9n)
 		await queries.getBlockByVersion(42n, false)
 		await queries.getEventsByEventHandle('0xa/b', '0x1::event::Handle', 'events', 2n, 10)
@@ -274,6 +292,7 @@ describe('Aptos Fullnode typed operations', () => {
 			'https://fullnode.test/v1/accounts/0xa%2Fb?ledger_version=42',
 			'https://fullnode.test/v1/accounts/0xa%2Fb/resources?ledger_version=42',
 			'https://fullnode.test/v1/accounts/0xa%2Fb/modules?ledger_version=42',
+			'https://fullnode.test/v1/accounts/0xa%2Fb/module/coin?ledger_version=42',
 			'https://fullnode.test/v1/blocks/by_height/9?with_transactions=true',
 			'https://fullnode.test/v1/blocks/by_version/42?with_transactions=false',
 			'https://fullnode.test/v1/accounts/0xa%2Fb/events/0x1%3A%3Aevent%3A%3AHandle/events?start=2&limit=10',
@@ -285,7 +304,7 @@ describe('Aptos Fullnode typed operations', () => {
 			body: ledgerInfo,
 			metadata,
 		})
-		expect(sourceFetch.mock.calls[7][2]).toEqual({
+		expect(sourceFetch.mock.calls[8][2]).toEqual({
 			method: 'POST',
 			headers: {
 				'content-type': 'application/json',
@@ -390,6 +409,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 			authenticationKey: '0xauth',
 			timestampMs: 1_720_000_000_123,
 			blockHeight: 9n,
+			epoch: 8n,
 		})
 		expect(getBlockByVersion).toHaveBeenCalledWith(42n, false)
 	})
@@ -470,7 +490,10 @@ describe('Aptos Fullnode resolver materialization', () => {
 				[EntityMetaKey.Selector]: aptosTransaction,
 			}],
 		})
-		expect(versionBlock).toEqual(heightBlock)
+		expect(versionBlock).toEqual({
+			...heightBlock,
+			version: 42n,
+		})
 
 		const transactionResolver = resolverFor(EntityType.AptosTransaction)
 		const byVersion = await transactionResolver.resolve['NetworkVersion'].resolve(aptosTransaction, resolverContext)
@@ -573,6 +596,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 			},
 		}]))
 		vi.spyOn(queries, 'getTransactionByVersion').mockResolvedValue(response(transaction))
+		vi.spyOn(queries, 'getBlockByVersion').mockResolvedValue(response(block))
 
 		await expect(resolverFor(EntityType.AptosAccountResource_Timestamp).resolve[
 			'ResourceLedgerVersionSource'
@@ -595,6 +619,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 			source: Source.AptosFullnode_Rest,
 		}, resolverContext)
 		expect(transactionObservation.timestampMs).toBe(1_720_000_000_123)
+		expect(transactionObservation.blockHeight).toBe(9n)
 	})
 
 	it('rejects malformed wire identities, mismatched clocks, and foreign provenance', async () => {

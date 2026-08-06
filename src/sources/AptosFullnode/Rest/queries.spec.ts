@@ -9,8 +9,11 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 
 const {
 	getAccount,
+	getAccountModule,
+	getAccountModules,
 	getBlockByHeight,
 	getLedgerInfo,
+	getTableItem,
 	getTransactionByVersion,
 } = await import('$/sources/AptosFullnode/Rest/queries.ts')
 
@@ -121,5 +124,73 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 		await expect(getAccount('0xa11ce')).rejects.toThrow('invalid account response envelope')
 		await expect(getBlockByHeight(9n)).rejects.toThrow('invalid block response envelope')
 		await expect(getTransactionByVersion(42n)).rejects.toThrow('invalid transaction response envelope')
+	})
+
+	it('accepts Move-module bytecode and table-item value envelopes', async () => {
+		const moduleBody = {
+			bytecode: '0xabcdef',
+			abi: {
+				address: '0xa11ce',
+				name: 'payments',
+				friends: [],
+				exposed_functions: [],
+				structs: [],
+			},
+		}
+		sourceFetch
+			.mockResolvedValueOnce(jsonResponse([moduleBody]))
+			.mockResolvedValueOnce(jsonResponse(moduleBody))
+			.mockResolvedValueOnce(jsonResponse('7'))
+			.mockResolvedValueOnce(jsonResponse({
+				coin: {
+					value: '1',
+				},
+			}))
+
+		await expect(getAccountModules('0xa11ce')).resolves.toMatchObject({
+			body: [moduleBody],
+		})
+		await expect(getAccountModule('0xa11ce', 'payments')).resolves.toMatchObject({
+			body: moduleBody,
+		})
+		await expect(getTableItem('0xhandle', {
+			key_type: 'address',
+			value_type: 'u64',
+			key: '0xa11ce',
+		})).resolves.toMatchObject({
+			body: '7',
+		})
+		await expect(getTableItem('0xhandle', {
+			key_type: '0x1::string::String',
+			value_type: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
+			key: 'alice',
+		})).resolves.toMatchObject({
+			body: {
+				coin: {
+					value: '1',
+				},
+			},
+		})
+	})
+
+	it('fail-closes malformed Move-module / table-item envelopes', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(jsonResponse([{
+				bytecode: 'not-hex',
+			}]))
+			.mockResolvedValueOnce(jsonResponse({
+				bytecode: '0xab',
+				abi: {
+					address: '0xa11ce',
+					name: 'payments',
+				},
+			}))
+
+		await expect(getAccountModules('0xa11ce')).rejects.toThrow('invalid account module response envelope')
+		await expect(getAccountModule('0xa11ce', 'payments')).rejects.toThrow('invalid account module response envelope')
+		await expect(getTableItem(
+			'0xhandle',
+			JSON.parse('{"key_type":"address","value_type":"u64"}')
+		)).rejects.toThrow('invalid table item request response envelope')
 	})
 })

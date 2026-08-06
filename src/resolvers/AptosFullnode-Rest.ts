@@ -125,12 +125,14 @@ const committedTransaction = (transaction: AptosTransaction): AptosCommittedTran
 
 const blockFields = (
 	block: AptosBlock,
-	$network: AptosNetworkIdentity
+	$network: AptosNetworkIdentity,
+	version?: bigint
 ) => ({
 		height: bigintFromWire(block.block_height, 'block height'),
 		firstVersion: bigintFromWire(block.first_version, 'block first version'),
 		lastVersion: bigintFromWire(block.last_version, 'block last version'),
 		timestampMs: timestampMsFromMicroseconds(block.block_timestamp, 'block timestamp'),
+		...(version != null && { version }),
 		transactions: (block.transactions ?? []).map((transaction) => ({
 			[EntityMetaKey.Selector]: {
 				$network,
@@ -502,6 +504,7 @@ export default {
 						return accountObservationFields(response.body, {
 							blockHeight: block.height,
 							timestampMs: block.timestampMs,
+							epoch: metadataFields(response.metadata).epoch,
 						})
 					},
 				},
@@ -598,12 +601,13 @@ export default {
 						if (version < bigintFromWire(block.first_version, 'block first version') || version > bigintFromWire(block.last_version, 'block last version'))
 							throw new Error('AptosFullnode_Rest: block does not contain requested version')
 
-						return blockFields(block, $network)
+						return blockFields(block, $network, version)
 					},
 				},
 			},
 		})({
 			height: (block) => block.height,
+			version: (block) => block.version,
 			firstVersion: (block) => block.firstVersion,
 			lastVersion: (block) => block.lastVersion,
 			timestampMs: (block) => block.timestampMs,
@@ -651,15 +655,26 @@ export default {
 						assertSource(source)
 						if ('version' in $transaction && $transaction.version !== ledgerVersion)
 							throw new Error('AptosFullnode_Rest: transaction observation ledger version mismatch')
-						const { getTransactionByVersion } = await import('$/sources/AptosFullnode/Rest/queries.ts')
-						const transaction = committedTransaction((await getTransactionByVersion(ledgerVersion)).body)
+						const {
+							getBlockByVersion,
+							getTransactionByVersion,
+						} = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const [transactionResponse, blockResponse] = await Promise.all([
+							getTransactionByVersion(ledgerVersion),
+							getBlockByVersion(ledgerVersion, false),
+						])
+						const transaction = committedTransaction(transactionResponse.body)
 						if ('hash' in $transaction && transaction.hash !== $transaction.hash)
 							throw new Error('AptosFullnode_Rest: transaction hash mismatch')
+						const block = blockFields(blockResponse.body, $transaction.$network, ledgerVersion)
+						if (ledgerVersion < block.firstVersion || ledgerVersion > block.lastVersion)
+							throw new Error('AptosFullnode_Rest: transaction observation block does not contain ledger version')
 
 						return {
 							...('timestamp' in transaction && {
 								timestampMs: timestampMsFromMicroseconds(transaction.timestamp, 'transaction timestamp'),
 							}),
+							blockHeight: block.height,
 							success: transaction.success,
 							vmStatus: transaction.vm_status,
 							...('gas_unit_price' in transaction && { gasUnitPrice: bigintFromWire(transaction.gas_unit_price, 'gas unit price') }),
@@ -671,6 +686,7 @@ export default {
 			},
 		})({
 			timestampMs: (transaction) => transaction.timestampMs,
+			blockHeight: (transaction) => transaction.blockHeight,
 			success: (transaction) => transaction.success,
 			vmStatus: (transaction) => transaction.vmStatus,
 			gasUnitPrice: (transaction) => transaction.gasUnitPrice,
@@ -743,6 +759,77 @@ export default {
 			$resource: (change) => change.$resource,
 			$module: (change) => change.$module,
 			value: (change) => change.value,
+		}),
+
+		defineResolver({
+			entityType: EntityType.MoveModule,
+			resolve: {
+				NetworkAddressModuleName: {
+					appliesTo: aptosNetworkApplicability,
+					resolve: async (entitySelector) => {
+						assertAptosMainnet(entitySelector.$network)
+						const { getAccountModule } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const response = await getAccountModule(entitySelector.address, entitySelector.moduleName)
+						if (response.body.abi != null && response.body.abi.name !== entitySelector.moduleName)
+							throw new Error('AptosFullnode_Rest: module name mismatch')
+						const ledger = metadataFields(response.metadata)
+
+						return [{
+							[EntityMetaKey.Selector]: {
+								$module: entitySelector,
+								timestampMs: ledger.timestampMs,
+								source: Source.AptosFullnode_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.MoveModule_Timestamp, [], 'bytecode')]: response.body.bytecode,
+								[entityFieldAddressKey(EntityType.MoveModule_Timestamp, [], 'abi')]: response.body.abi,
+								[entityFieldAddressKey(EntityType.MoveModule_Timestamp, [], 'ledgerVersion')]: ledger.ledgerVersion,
+							},
+						}]
+					},
+				},
+			},
+		})({
+			$$timestamps: (timestamps) => timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.MoveModule_Timestamp,
+			resolve: {
+				ModuleTimestampMsSource: {
+					appliesTo: [
+						{
+							$module: aptosNetworkApplicability[0],
+							source: Source.AptosFullnode_Rest,
+						},
+						{
+							$module: aptosNetworkApplicability[1],
+							source: Source.AptosFullnode_Rest,
+						},
+					],
+					resolve: async ({ $module, timestampMs, source }) => {
+						assertAptosMainnet($module.$network)
+						assertSource(source)
+						const { getAccountModule } = await import('$/sources/AptosFullnode/Rest/queries.ts')
+						const response = await getAccountModule($module.address, $module.moduleName)
+						const ledger = metadataFields(response.metadata)
+						if (ledger.timestampMs !== timestampMs)
+							throw new Error('AptosFullnode_Rest: module observation timestamp mismatch')
+						if (response.body.abi != null && response.body.abi.name !== $module.moduleName)
+							throw new Error('AptosFullnode_Rest: module name mismatch')
+
+						return {
+							bytecode: response.body.bytecode,
+							...(response.body.abi != null && { abi: response.body.abi }),
+							ledgerVersion: ledger.ledgerVersion,
+						}
+					},
+				},
+			},
+		})({
+			bytecode: (module) => module.bytecode,
+			abi: (module) => module.abi,
+			ledgerVersion: (module) => module.ledgerVersion,
 		}),
 	].map((resolver) => ({
 		...resolver,

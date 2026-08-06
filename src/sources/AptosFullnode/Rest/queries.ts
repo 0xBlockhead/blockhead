@@ -8,7 +8,10 @@ import {
 	aptosBlockWire,
 	aptosEventWire,
 	aptosLedgerInfoWire,
+	aptosMoveModuleBytecodeWire,
 	aptosMoveResourceWire,
+	aptosTableItemRequestWire,
+	aptosTableItemValueWire,
 	aptosTransactionWire,
 	type AptosAccount,
 	type AptosBlock,
@@ -168,20 +171,45 @@ export const getAccountResources = async (
 	}
 }
 
-export const getAccountModules = (
+export const getAccountModules = async (
 	address: string,
 	ledgerVersion?: bigint
-) => (
-	request(`accounts/${encodeURIComponent(address)}/modules${ledgerVersionQuery(ledgerVersion)}`)
-		.then((response) => {
-			if (!Array.isArray(response.body))
-				throw new Error('AptosFullnode_Rest: invalid account modules response envelope')
-			return {
-				body: response.body as AptosMoveModule[],
-				metadata: response.metadata,
-			}
-		})
-)
+) => {
+	if (address.length === 0)
+		throw new Error('AptosFullnode_Rest: account address must not be empty')
+
+	const response = await request(
+		`accounts/${encodeURIComponent(address)}/modules${ledgerVersionQuery(ledgerVersion)}`
+	)
+	if (!Array.isArray(response.body))
+		throw new Error('AptosFullnode_Rest: invalid account modules response envelope')
+
+	return {
+		body: response.body.map((module) => (
+			assertEnvelope('account module', aptosMoveModuleBytecodeWire, module)
+		)) as AptosMoveModule[],
+		metadata: response.metadata,
+	}
+}
+
+export const getAccountModule = async (
+	address: string,
+	moduleName: string,
+	ledgerVersion?: bigint
+) => {
+	if (address.length === 0)
+		throw new Error('AptosFullnode_Rest: account address must not be empty')
+	if (moduleName.length === 0)
+		throw new Error('AptosFullnode_Rest: module name must not be empty')
+
+	const response = await request(
+		`accounts/${encodeURIComponent(address)}/module/${encodeURIComponent(moduleName)}${ledgerVersionQuery(ledgerVersion)}`
+	)
+	return {
+		body: assertEnvelope('account module', aptosMoveModuleBytecodeWire, response.body) as AptosMoveModule,
+		metadata: response.metadata,
+	}
+}
 
 export const getBlockByHeight = async (
 	height: bigint,
@@ -237,6 +265,10 @@ export const getTableItem = async <_Value>(
 	requestBody: AptosTableItemRequest,
 	ledgerVersion?: bigint
 ) => {
+	if (tableHandle.length === 0)
+		throw new Error('AptosFullnode_Rest: table handle must not be empty')
+
+	const body = assertEnvelope('table item request', aptosTableItemRequestWire, requestBody)
 	const response = await request(
 		`tables/${encodeURIComponent(tableHandle)}/item${ledgerVersionQuery(ledgerVersion)}`,
 		{
@@ -244,11 +276,11 @@ export const getTableItem = async <_Value>(
 			headers: {
 				'content-type': 'application/json',
 			},
-			body: JSON.stringify(requestBody),
+			body: JSON.stringify(body),
 		}
 	)
 	return {
-		body: response.body as _Value,
+		body: assertEnvelope('table item value', aptosTableItemValueWire, response.body) as _Value,
 		metadata: response.metadata,
 	}
 }
