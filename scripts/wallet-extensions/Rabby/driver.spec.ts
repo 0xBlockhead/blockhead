@@ -5,8 +5,19 @@ import {
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { rabbyUnsupportedMatrixDriver } from './driver.ts'
+import {
+	isRabbyNotificationPageUrl,
+	rabbyUnsupportedMatrixDriver,
+} from './driver.ts'
 
+
+test('maps headed Connect/sign chrome to Rabby notification.html URLs', () => {
+	const extensionId = 'acmacodkjbdgmoleebolmdjonilkdbch'
+	assert.equal(isRabbyNotificationPageUrl(`chrome-extension://${extensionId}/notification.html`, extensionId), true)
+	assert.equal(isRabbyNotificationPageUrl(`chrome-extension://${extensionId}/notification.html#/approval`, extensionId), true)
+	assert.equal(isRabbyNotificationPageUrl(`chrome-extension://${extensionId}/index.html`, extensionId), false)
+	assert.equal(isRabbyNotificationPageUrl(`chrome-extension://other/notification.html`, extensionId), false)
+})
 
 test('reports explicit secret-free evidence without a Rabby extension directory', async () => {
 	const observation = await rabbyUnsupportedMatrixDriver().run({

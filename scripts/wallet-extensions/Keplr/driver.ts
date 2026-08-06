@@ -30,6 +30,15 @@ export const keplrBlockedObservation = (
 	}
 )
 
+/** Keplr Connect / suggest-chain chrome surfaces as popup.html (optionally #/suggest-chain). */
+export const isKeplrPopupPageUrl = (
+	url: string,
+	extensionId: string
+) => (
+	url.startsWith(`chrome-extension://${extensionId}/`)
+	&& url.includes('/popup.html')
+)
+
 export const keplrDriver = {
 	kind: 'keplr',
 	open: (context: BrowserContext, extension: LoadedWalletExtension): Promise<Page> => (

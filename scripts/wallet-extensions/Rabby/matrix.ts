@@ -5,6 +5,7 @@ import {
 } from '../ecosystems.ts'
 
 
+// Headed Connect / sign chrome is mapped through notification.html (see isRabbyNotificationPageUrl).
 export const rabbyWalletMatrixScenarios = (version: string) => ([
 	{
 		id: 'rabby-create-new-1',

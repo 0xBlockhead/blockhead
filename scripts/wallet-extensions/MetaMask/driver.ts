@@ -33,6 +33,15 @@ export const metamaskUnsupportedEnvironmentEvidence = () => ({
 	},
 } as const)
 
+/** MetaMask Connect / sign chrome surfaces as notification.html. */
+export const isMetaMaskNotificationPageUrl = (
+	url: string,
+	extensionId: string
+) => (
+	url.startsWith(`chrome-extension://${extensionId}/`)
+	&& url.includes('/notification.html')
+)
+
 export const metamaskUiGeneration = (version: string) => {
 	const major = Number.parseInt(version.split('.')[0] ?? '', 10)
 	if (!Number.isInteger(major) || major < 11)

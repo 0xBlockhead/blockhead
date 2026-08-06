@@ -5,6 +5,7 @@ import {
 } from '../ecosystems.ts'
 
 
+// Headed Connect / sign chrome is mapped through notification.html (see isMetaMaskNotificationPageUrl).
 export const metamaskWalletMatrixScenarios = (version: string) => ([
 	{
 		id: 'metamask-create-new-1',

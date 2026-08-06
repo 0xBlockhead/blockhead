@@ -59,6 +59,15 @@ export const rabbyUnsupportedMatrixDriver = (): WalletMatrixDriver => ({
 	}),
 })
 
+/** Rabby Connect / sign chrome surfaces as notification.html. */
+export const isRabbyNotificationPageUrl = (
+	url: string,
+	extensionId: string
+) => (
+	url.startsWith(`chrome-extension://${extensionId}/`)
+	&& url.includes('/notification.html')
+)
+
 export const rabbyDriver = {
 	approveConnection: (page) => (
 		clickButton(page, /connect|approve/i)

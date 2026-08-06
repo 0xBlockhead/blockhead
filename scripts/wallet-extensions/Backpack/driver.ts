@@ -29,6 +29,15 @@ export const backpackBlockedObservation = (
 	}
 )
 
+/** Backpack Connect chrome surfaces as popup.html. */
+export const isBackpackPopupPageUrl = (
+	url: string,
+	extensionId: string
+) => (
+	url.startsWith(`chrome-extension://${extensionId}/`)
+	&& url.includes('/popup.html')
+)
+
 const base58Alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 const encodeBase58 = (bytes: Uint8Array) => {

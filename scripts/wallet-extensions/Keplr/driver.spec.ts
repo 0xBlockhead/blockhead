@@ -6,11 +6,20 @@ import {
 	runWalletCompatibilityMatrix,
 } from '../WalletCompatibilityMatrix.ts'
 import {
+	isKeplrPopupPageUrl,
 	keplrBlockedObservation,
 	keplrDriver,
 } from './driver.ts'
 import { keplrWalletMatrixScenarios } from './matrix.ts'
 
+
+test('maps headed Connect chrome to Keplr popup.html URLs', () => {
+	const extensionId = 'dmkamcknogkgcdfhhbddcghachkejeap'
+	assert.equal(isKeplrPopupPageUrl(`chrome-extension://${extensionId}/popup.html`, extensionId), true)
+	assert.equal(isKeplrPopupPageUrl(`chrome-extension://${extensionId}/popup.html#/suggest-chain`, extensionId), true)
+	assert.equal(isKeplrPopupPageUrl(`chrome-extension://${extensionId}/register.html`, extensionId), false)
+	assert.equal(isKeplrPopupPageUrl(`chrome-extension://other/popup.html`, extensionId), false)
+})
 
 test('keeps the Keplr account lifecycle shard free of invented recover passes', () => {
 	assert.equal(keplrDriver.kind, 'keplr')

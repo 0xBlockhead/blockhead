@@ -8,6 +8,7 @@ import {
 // Account 3 recover stays blocked: this shard accepts no safe fixture material.
 // Do not invent a recover pass — keep that cell explicitly blocked until a
 // fixture-backed recovery contract is wired.
+// Headed Connect / suggest-chain chrome is mapped through popup.html (see isKeplrPopupPageUrl).
 export const keplrWalletMatrixScenarios = (version: string) => ([
 	{
 		id: 'keplr-create-new-1',

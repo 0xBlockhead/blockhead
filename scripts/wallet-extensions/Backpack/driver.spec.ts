@@ -8,9 +8,18 @@ import {
 import {
 	backpackBlockedObservation,
 	backpackDriver,
+	isBackpackPopupPageUrl,
 } from './driver.ts'
 import { backpackWalletMatrixScenarios } from './matrix.ts'
 
+
+test('maps headed Connect chrome to Backpack popup.html URLs', () => {
+	const extensionId = 'aflkmfhebedbjioipglgcbcmnbpgliof'
+	assert.equal(isBackpackPopupPageUrl(`chrome-extension://${extensionId}/popup.html`, extensionId), true)
+	assert.equal(isBackpackPopupPageUrl(`chrome-extension://${extensionId}/popup.html#/`, extensionId), true)
+	assert.equal(isBackpackPopupPageUrl(`chrome-extension://${extensionId}/options.html`, extensionId), false)
+	assert.equal(isBackpackPopupPageUrl(`chrome-extension://other/popup.html`, extensionId), false)
+})
 
 test('keeps the Backpack account lifecycle shard free of invented recover passes', () => {
 	assert.equal(backpackDriver.kind, 'backpack')
