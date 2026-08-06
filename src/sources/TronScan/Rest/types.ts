@@ -1,3 +1,8 @@
+import {
+	type as arktype,
+	type Type,
+} from 'arktype'
+
 export type TronScanBlock = {
 	number: number
 	hash?: string
@@ -10,9 +15,25 @@ export type TronScanBlock = {
 	transactionCount?: number
 }
 
+export const tronScanBlockWire = arktype({
+	number: 'number.integer >= 0',
+	'hash?': 'string',
+	'parentHash?': 'string',
+	'timestamp?': 'number.integer >= 0',
+	'witnessAddress?': 'string',
+	'txTrieRoot?': 'string',
+	'version?': 'number.integer',
+	'nrOfTrx?': 'number.integer >= 0',
+	'transactionCount?': 'number.integer >= 0',
+}) satisfies Type<TronScanBlock>
+
 export type TronScanBlocks = {
 	data: TronScanBlock[]
 }
+
+export const tronScanBlocksWire = arktype({
+	data: tronScanBlockWire.array(),
+}) satisfies Type<TronScanBlocks>
 
 export type TronScanAccount = {
 	address?: string
@@ -32,6 +53,25 @@ export type TronScanAccount = {
 		energyRemaining?: number
 	}
 }
+
+export const tronScanAccountWire = arktype({
+	'address?': 'string',
+	'name?': 'string',
+	'balance?': 'number | string',
+	'balanceStr?': 'string',
+	'totalTransactionCount?': 'number.integer >= 0',
+	'transactions?': 'number.integer >= 0',
+	'date_created?': 'number.integer >= 0',
+	'latest_operation_time?': 'number.integer >= 0',
+	'contractMap?': 'Record<string, boolean>',
+	'bandwidth?': {
+		'freeNetRemaining?': 'number.integer >= 0',
+		'netRemaining?': 'number.integer >= 0',
+	},
+	'accountResource?': {
+		'energyRemaining?': 'number.integer >= 0',
+	},
+}).and(arktype('Record<string, unknown>'))
 
 export type TronScanTransaction = {
 	hash?: string
@@ -63,9 +103,43 @@ export type TronScanTransaction = {
 	}
 }
 
+export const tronScanTransactionWire = arktype({
+	'hash?': 'string',
+	'transactionHash?': 'string',
+	'block?': 'number.integer >= 0',
+	'blockNumber?': 'number.integer >= 0',
+	'timestamp?': 'number.integer >= 0',
+	'confirmed?': 'boolean',
+	'revert?': 'boolean',
+	'contractType?': 'number | string',
+	'contractRet?': 'string',
+	'result?': 'string',
+	'contractData?': {
+		'owner_address?': 'string',
+		'to_address?': 'string',
+		'contract_address?': 'string',
+		'amount?': 'number | string',
+		'asset_name?': 'string',
+	},
+	'ownerAddress?': 'string',
+	'toAddress?': 'string',
+	'toAddressList?': 'string[]',
+	'contractAddress?': 'string',
+	'amount?': 'number | string',
+	'cost?': {
+		'fee?': 'number.integer >= 0',
+		'net_fee?': 'number.integer >= 0',
+		'energy_fee?': 'number.integer >= 0',
+	},
+}).and(arktype('Record<string, unknown>'))
+
 export type TronScanListTransaction = TronScanTransaction & {
 	hash: string
 }
+
+export const tronScanListTransactionWire = tronScanTransactionWire.and(arktype({
+	hash: 'string',
+}))
 
 export type TronScanTransactions = {
 	total: number
@@ -74,9 +148,20 @@ export type TronScanTransactions = {
 	data: TronScanListTransaction[]
 }
 
+export const tronScanTransactionsWire = arktype({
+	total: 'number.integer >= 0',
+	'rangeTotal?': 'number.integer >= 0',
+	'wholeChainTxCount?': 'number.integer >= 0',
+	data: tronScanListTransactionWire.array(),
+})
+
 export type TronScanTransactionDetail = TronScanTransaction & {
 	data?: TronScanTransaction[]
 }
+
+export const tronScanTransactionDetailWire = tronScanTransactionWire.and(arktype({
+	'data?': tronScanTransactionWire.array(),
+}))
 
 export type TronScanContract = {
 	address?: string

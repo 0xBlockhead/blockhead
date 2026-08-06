@@ -2,16 +2,20 @@ import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
-import type {
-	TronScanAccount,
-	TronScanAccountTokens,
-	TronScanBlocks,
-	TronScanContractDetail,
-	TronScanTokenOverview,
-	TronScanTransactionDetail,
-	TronScanTransactions,
-	TronScanTrc10Tokens,
-	TronScanTrc20Transfers,
+import {
+	tronScanAccountWire,
+	tronScanBlocksWire,
+	tronScanTransactionDetailWire,
+	tronScanTransactionsWire,
+	type TronScanAccount,
+	type TronScanAccountTokens,
+	type TronScanBlocks,
+	type TronScanContractDetail,
+	type TronScanTokenOverview,
+	type TronScanTransactionDetail,
+	type TronScanTransactions,
+	type TronScanTrc10Tokens,
+	type TronScanTrc20Transfers,
 } from '$/sources/TronScan/Rest/types.ts'
 import bindings from '$/sources/TronScan/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -20,21 +24,41 @@ const binding = bindings[Source.TronScan_Rest][0]
 
 const tronScanUrl = (path: string) => new URL(path, firstHttpUrlForBinding(binding))
 
-export const getBlock = (
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`TronScan_Rest: invalid ${label} response envelope`)
+	}
+}
+
+export const getBlock = async (
 	height: bigint
 ) => {
 	const url = tronScanUrl('/api/block')
 	url.searchParams.set('number', height.toString())
 	url.searchParams.set('limit', '1')
-	return sourceGetJson<TronScanBlocks>(binding, url.toString())
+	return assertEnvelope(
+		'blocks',
+		tronScanBlocksWire,
+		await sourceGetJson(binding, url.toString())
+	) as TronScanBlocks
 }
 
-export const getAccount = (
+export const getAccount = async (
 	address: string
 ) => {
 	const url = tronScanUrl('/api/accountv2')
 	url.searchParams.set('address', address)
-	return sourceGetJson<TronScanAccount>(binding, url.toString())
+	return assertEnvelope(
+		'account',
+		tronScanAccountWire,
+		await sourceGetJson(binding, url.toString())
+	) as TronScanAccount
 }
 
 export const getAccountTokens = (
@@ -50,15 +74,19 @@ export const getAccountTokens = (
 	return sourceGetJson<TronScanAccountTokens>(binding, url.toString())
 }
 
-export const getTransaction = (
+export const getTransaction = async (
 	transactionId: string
 ) => {
 	const url = tronScanUrl('/api/transaction-info')
 	url.searchParams.set('hash', transactionId)
-	return sourceGetJson<TronScanTransactionDetail>(binding, url.toString())
+	return assertEnvelope(
+		'transaction',
+		tronScanTransactionDetailWire,
+		await sourceGetJson(binding, url.toString())
+	) as TronScanTransactionDetail
 }
 
-export const getAccountTransactions = (
+export const getAccountTransactions = async (
 	address: string,
 	limit: number,
 	start = 0
@@ -75,7 +103,11 @@ export const getAccountTransactions = (
 	url.searchParams.set('start', start.toString())
 	url.searchParams.set('address', address)
 
-	return sourceGetJson<TronScanTransactions>(binding, url.toString())
+	return assertEnvelope(
+		'account transactions',
+		tronScanTransactionsWire,
+		await sourceGetJson(binding, url.toString())
+	) as TronScanTransactions
 }
 
 export const getContract = (
