@@ -43,10 +43,24 @@ const coingeckoMarketDataWire = arktype({
 	'last_updated?': 'string | null',
 	'market_cap_rank?': 'number | null',
 	'market_cap?': coingeckoUsdAmountWire,
-	'price_change_percentage_24h?': 'number | null',
-	'total_supply?': 'number | null',
-	'current_price?': coingeckoUsdAmountWire,
+	'fully_diluted_valuation?': coingeckoUsdAmountWire,
 	'total_volume?': coingeckoUsdAmountWire,
+	'current_price?': coingeckoUsdAmountWire,
+	'ath?': coingeckoUsdAmountWire,
+	'ath_change_percentage?': coingeckoUsdAmountWire,
+	'ath_date?': {
+		'usd?': 'string | null',
+	},
+	'price_change_percentage_24h?': 'number | null',
+	'price_change_percentage_7d?': 'number | null',
+	'price_change_percentage_14d?': 'number | null',
+	'price_change_percentage_30d?': 'number | null',
+	'price_change_percentage_60d?': 'number | null',
+	'price_change_percentage_200d?': 'number | null',
+	'price_change_percentage_1y?': 'number | null',
+	'circulating_supply?': 'number | null',
+	'total_supply?': 'number | null',
+	'max_supply?': 'number | null',
 })
 
 const coingeckoDetailPlatformWire = arktype({
@@ -77,11 +91,22 @@ export const coingeckoCoinsMarketEnvelope = arktype({
 	id: 'string',
 	'symbol?': 'string',
 	'name?': 'string',
+	'image?': 'string',
 	'current_price?': 'number | null',
 	'market_cap?': 'number | null',
 	'market_cap_rank?': 'number | null',
+	'fully_diluted_valuation?': 'number | null',
 	'total_volume?': 'number | null',
+	'high_24h?': 'number | null',
+	'low_24h?': 'number | null',
 	'price_change_percentage_24h?': 'number | null',
+	'circulating_supply?': 'number | null',
+	'total_supply?': 'number | null',
+	'max_supply?': 'number | null',
+	'ath?': 'number | null',
+	'ath_change_percentage?': 'number | null',
+	'ath_date?': 'string | null',
+	'last_updated?': 'string | null',
 }).array()
 
 export const coingeckoAssetPlatformEnvelope = arktype({
@@ -96,18 +121,39 @@ export const coingeckoAssetPlatformEnvelope = arktype({
 export const coingeckoAssetPlatformsEnvelope = coingeckoAssetPlatformEnvelope.array()
 
 export const coingeckoCoinTickersEnvelope = arktype({
+	'name?': 'string',
 	tickers: arktype({
 		coin_id: 'string',
 		base: 'string',
 		target: 'string',
 		'target_coin_id?': 'string',
+		'last?': 'number | null',
+		'volume?': 'number | null',
+		'bid_ask_spread_percentage?': 'number | null',
+		'timestamp?': 'string | null',
+		'last_traded_at?': 'string | null',
+		'converted_last?': {
+			'usd?': 'number | null',
+		},
+		'converted_volume?': {
+			'usd?': 'number | null',
+		},
+		'is_anomaly?': 'boolean',
+		'is_stale?': 'boolean',
+		'trade_url?': 'string | null',
 		market: {
 			identifier: 'string',
+			'name?': 'string',
 		},
 	}).array(),
 })
 
 export const coingeckoDerivativesExchangeEnvelope = arktype({
+	'name?': 'string',
+	'open_interest_btc?': 'number | null',
+	'trade_volume_24h_btc?': 'number | null',
+	'number_of_perpetual_pairs?': 'number | null',
+	'number_of_futures_pairs?': 'number | null',
 	tickers: arktype({
 		coin_id: 'string',
 		target_coin_id: 'string',
@@ -118,6 +164,8 @@ export const coingeckoDerivativesExchangeEnvelope = arktype({
 		open_interest_usd: 'number',
 		index_basis_percentage: 'number',
 		funding_rate: 'number',
+		'bid_ask_spread?': 'number | null',
+		'volume_24h?': 'number | null',
 		'contract_type?': 'string',
 		'expired_at?': 'number | null',
 	}).array(),

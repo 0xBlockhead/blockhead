@@ -455,7 +455,12 @@ export default {
 						if (coin == null) throw new Error('Coingecko_Rest: coin not returned by API')
 
 						const logoUrl = coin.image == null ? undefined : coin.image.large
-						const logoMedia = logoUrl == null ? undefined : mediaFromUrl(logoUrl, MediaType.Image)
+						const logoMedia = (
+							logoUrl == null || logoUrl === '' ?
+								undefined
+							:
+								mediaFromUrl(logoUrl, MediaType.Image)
+						)
 
 						const coinName = coin.name
 						return {
@@ -635,6 +640,9 @@ export default {
 							ids: coingeckoId,
 							vs_currencies: 'usd',
 							include_last_updated_at: true,
+							include_market_cap: true,
+							include_24hr_vol: true,
+							include_24hr_change: true,
 						}))[coingeckoId])
 						if (spot == null) throw new Error('Coingecko_Rest: coin market spot not returned')
 						const { usd, lastUpdatedAtSec } = spot
@@ -763,6 +771,9 @@ export default {
 							ids: coingeckoCatalogCoinIds.map((coinId) => idByCoinId[coinId]).join(','),
 							vs_currencies: 'usd',
 							include_last_updated_at: true,
+							include_market_cap: true,
+							include_24hr_vol: true,
+							include_24hr_change: true,
 						})
 						const marketPrices = coingeckoCatalogCoinIds.flatMap((coinId) => {
 							const coingeckoId = idByCoinId[coinId]
@@ -1095,6 +1106,9 @@ export default {
 							ids: coingeckoId,
 							vs_currencies: 'usd',
 							include_last_updated_at: true,
+							include_market_cap: true,
+							include_24hr_vol: true,
+							include_24hr_change: true,
 						}))[coingeckoId])
 						if (spot == null) throw new Error('Coingecko_Rest: coin market spot not returned')
 						return [

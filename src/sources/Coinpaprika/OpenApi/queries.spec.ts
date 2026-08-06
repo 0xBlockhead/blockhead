@@ -167,6 +167,134 @@ describe('Coinpaprika coin queries', () => {
 		)
 	})
 
+	it('accepts ticker and market leftover legs used only as transport', async () => {
+		const ticker = {
+			id: 'eth-ethereum',
+			name: 'Ethereum',
+			symbol: 'ETH',
+			rank: 2,
+			circulating_supply: 120_000_000,
+			total_supply: 120_000_000,
+			max_supply: 0,
+			beta_value: 1.1,
+			last_updated: '2026-08-04T09:00:00Z',
+			quotes: {
+				USD: {
+					price: 3200,
+					volume_24h: 10_000_000_000,
+					volume_24h_change_24h: -2.5,
+					market_cap: 400_000_000_000,
+					market_cap_change_24h: 1.6,
+					percent_change_1h: 0.1,
+					percent_change_24h: 1.25,
+					percent_change_7d: 0.28,
+					percent_change_30d: 27.39,
+					ath_price: 4800,
+					percent_from_price_ath: -33,
+				},
+			},
+		}
+		const markets = [{
+			exchange_id: 'binance',
+			exchange_name: 'Binance',
+			pair: 'ETH/USDT',
+			base_currency_id: 'eth-ethereum',
+			quote_currency_id: 'usdt-tether',
+			category: 'Spot',
+			fee_type: 'Percentage',
+			outlier: false,
+			adjusted_volume_24h_share: 30.29,
+			quotes: {
+				USD: {
+					price: 3200,
+					volume_24h: 1_000_000,
+				},
+			},
+		}]
+		const fetchMock = vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(new Response(JSON.stringify(ticker)))
+			.mockResolvedValueOnce(new Response(JSON.stringify(markets)))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getTickerById({
+			publicEnv: {},
+			coinpaprikaId: 'eth-ethereum',
+		})).resolves.toMatchObject({
+			circulating_supply: 120_000_000,
+			max_supply: 0,
+			quotes: {
+				USD: {
+					percent_change_7d: 0.28,
+					volume_24h: 10_000_000_000,
+				},
+			},
+		})
+		await expect(getCoinMarkets({
+			publicEnv: {},
+			coinpaprikaId: 'eth-ethereum',
+		})).resolves.toMatchObject([{
+			category: 'Spot',
+			adjusted_volume_24h_share: 30.29,
+		}])
+	})
+
+	it('accepts coin metadata leftovers beside enrolled name/symbol/logo', async () => {
+		const coin = {
+			id: 'eth-ethereum',
+			name: 'Ethereum',
+			symbol: 'ETH',
+			rank: 2,
+			is_new: false,
+			is_active: true,
+			type: 'coin',
+			logo: 'https://static.coinpaprika.com/coin/eth-ethereum/logo.png',
+			description: 'Ethereum',
+			open_source: true,
+			proof_type: 'Proof of Stake',
+		}
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify(coin)))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getCoinById({
+			publicEnv: {},
+			coinpaprikaId: 'eth-ethereum',
+		})).resolves.toMatchObject({
+			proof_type: 'Proof of Stake',
+			is_active: true,
+		})
+	})
+
+	it('fail-closes ticker leftovers with non-numeric circulating_supply', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+			id: 'eth-ethereum',
+			circulating_supply: '120000000',
+		})))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getTickerById({
+			publicEnv: {},
+			coinpaprikaId: 'eth-ethereum',
+		})).rejects.toThrow('invalid ticker response envelope')
+	})
+
+	it('fail-closes market leftovers with non-boolean outlier', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify([{
+			pair: 'ETH/USDT',
+			category: 'Spot',
+			outlier: 'false',
+		}])))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getCoinMarkets({
+			publicEnv: {},
+			coinpaprikaId: 'eth-ethereum',
+		})).rejects.toThrow('invalid coin markets response envelope')
+	})
+
 	it('fail-closes malformed coin / ticker / ohlcv / markets envelopes', async () => {
 		const fetchMock = vi.fn<typeof fetch>()
 			.mockResolvedValueOnce(new Response(JSON.stringify({ name: 'Bitcoin' })))

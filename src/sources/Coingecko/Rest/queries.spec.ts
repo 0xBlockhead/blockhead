@@ -32,6 +32,149 @@ describe('CoinGecko documented endpoints', () => {
 		})))
 	})
 
+	it('accepts coin market_data leftovers without projecting them onto Coin_Timestamp', async () => {
+		const coin = {
+			id: 'bitcoin',
+			symbol: 'btc',
+			name: 'Bitcoin',
+			image: {
+				large: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
+			},
+			market_data: {
+				last_updated: '2026-08-06T12:00:00.000Z',
+				market_cap_rank: 1,
+				market_cap: {
+					usd: 1_000_000_000_000,
+				},
+				fully_diluted_valuation: {
+					usd: 1_050_000_000_000,
+				},
+				total_volume: {
+					usd: 30_000_000_000,
+				},
+				price_change_percentage_24h: 1.5,
+				price_change_percentage_7d: -2.1,
+				price_change_percentage_30d: 4.2,
+				circulating_supply: 19_700_000,
+				total_supply: 21_000_000,
+				max_supply: 21_000_000,
+			},
+		}
+		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify(coin)))
+
+		await expect(getCoin({
+			publicEnv: {},
+			id: 'bitcoin',
+		})).resolves.toMatchObject({
+			market_data: {
+				circulating_supply: 19_700_000,
+				max_supply: 21_000_000,
+				price_change_percentage_7d: -2.1,
+				total_volume: {
+					usd: 30_000_000_000,
+				},
+			},
+		})
+	})
+
+	it('accepts coins/markets + ticker leftover legs used only as transport', async () => {
+		coingeckoFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify([{
+				id: 'bitcoin',
+				symbol: 'btc',
+				name: 'Bitcoin',
+				current_price: 100_000,
+				market_cap: 1_000_000_000_000,
+				market_cap_rank: 1,
+				fully_diluted_valuation: 1_050_000_000_000,
+				total_volume: 30_000_000_000,
+				circulating_supply: 19_700_000,
+				total_supply: 21_000_000,
+				max_supply: 21_000_000,
+				ath: 120_000,
+				ath_change_percentage: -10,
+				last_updated: '2026-08-06T12:00:00.000Z',
+			}])))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				name: 'Bitcoin',
+				tickers: [{
+					coin_id: 'bitcoin',
+					base: 'BTC',
+					target: 'USD',
+					last: 100_000,
+					volume: 1_000,
+					bid_ask_spread_percentage: 0.01,
+					converted_last: {
+						usd: 100_000,
+					},
+					converted_volume: {
+						usd: 1_000_000,
+					},
+					is_anomaly: false,
+					is_stale: false,
+					market: {
+						identifier: 'gdax',
+						name: 'Coinbase Exchange',
+					},
+				}],
+			})))
+
+		await expect(getCoinsMarkets({
+			publicEnv: {},
+			vs_currency: 'usd',
+		})).resolves.toMatchObject([{
+			circulating_supply: 19_700_000,
+			max_supply: 21_000_000,
+			fully_diluted_valuation: 1_050_000_000_000,
+		}])
+		await expect(getCoinTickers({
+			publicEnv: {},
+			id: 'bitcoin',
+		})).resolves.toMatchObject({
+			tickers: [{
+				last: 100_000,
+				volume: 1_000,
+				converted_volume: {
+					usd: 1_000_000,
+				},
+			}],
+		})
+	})
+
+	it('accepts derivatives exchange leftover volume legs beside enrolled mark/index', async () => {
+		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			name: 'Binance (Futures)',
+			open_interest_btc: 100,
+			trade_volume_24h_btc: 50,
+			number_of_perpetual_pairs: 200,
+			tickers: [{
+				coin_id: 'bitcoin',
+				target_coin_id: 'tether',
+				symbol: 'BTCUSDT',
+				last: 100_000,
+				index: 99_999,
+				last_traded: 1_700_000_000,
+				open_interest_usd: 1_000_000,
+				index_basis_percentage: 0.1,
+				funding_rate: 0.01,
+				volume_24h: 5_000,
+				bid_ask_spread: 0.02,
+			}],
+		})))
+
+		await expect(getDerivativesExchange({
+			publicEnv: {},
+			id: 'binance_futures',
+		})).resolves.toMatchObject({
+			trade_volume_24h_btc: 50,
+			tickers: [{
+				volume_24h: 5_000,
+				last: 100_000,
+				index: 99_999,
+			}],
+		})
+	})
+
 	it('requests coin market data with the documented detail flags', async () => {
 		const coin = {
 			id: 'bitcoin',
@@ -305,6 +448,32 @@ describe('CoinGecko documented endpoints', () => {
 			publicEnv: {},
 			id: 'binance_futures',
 		})).rejects.toThrow('invalid derivatives exchange response envelope')
+	})
+
+	it('fail-closes coin leftovers with non-numeric circulating_supply', async () => {
+		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			id: 'bitcoin',
+			market_data: {
+				circulating_supply: '19700000',
+			},
+		})))
+
+		await expect(getCoin({
+			publicEnv: {},
+			id: 'bitcoin',
+		})).rejects.toThrow('Coingecko_Rest: invalid coin response envelope')
+	})
+
+	it('fail-closes coins/markets leftovers with non-numeric max_supply', async () => {
+		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify([{
+			id: 'bitcoin',
+			max_supply: '21000000',
+		}])))
+
+		await expect(getCoinsMarkets({
+			publicEnv: {},
+			vs_currency: 'usd',
+		})).rejects.toThrow('Coingecko_Rest: invalid coins markets response envelope')
 	})
 
 	it('batches documented simple price flags into one request', async () => {

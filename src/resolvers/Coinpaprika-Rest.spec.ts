@@ -137,12 +137,17 @@ describe('Coinpaprika coin timestamp resolvers', () => {
 		getTickerById.mockResolvedValue({
 			id: 'eth-ethereum',
 			rank: 2,
+			circulating_supply: 120_000_000,
 			total_supply: 120_000_000,
+			max_supply: 0,
 			last_updated: '2026-08-04T09:00:00Z',
 			quotes: {
 				USD: {
 					market_cap: 400_000_000_000,
+					volume_24h: 10_000_000_000,
 					percent_change_24h: 1.25,
+					percent_change_7d: 0.28,
+					percent_change_30d: 27.39,
 				},
 			},
 		})
@@ -176,13 +181,15 @@ describe('Coinpaprika coin timestamp resolvers', () => {
 		if (coinTimestampResolver == null)
 			throw new Error('Coinpaprika Coin_Timestamp resolver is not registered')
 
-		await expect(coinTimestampResolver.resolve['CoinTimestampMsSource'].resolve({
+		const snapshot = await coinTimestampResolver.resolve['CoinTimestampMsSource'].resolve({
 			$coin: {
 				coinId: CoinId.ETH,
 			},
 			timestampMs: Date.parse('2026-08-04T09:00:00Z'),
 			source: Source.Coinpaprika_Rest,
-		}, resolverContext)).resolves.toEqual({
+		}, resolverContext)
+
+		expect(snapshot).toEqual({
 			marketCapRank: 2,
 			marketCap: 400_000_000_000n,
 			marketCapUsd: 400_000_000_000,
@@ -191,6 +198,39 @@ describe('Coinpaprika coin timestamp resolvers', () => {
 			transport: 'coinpaprika-ticker',
 			providerAssetId: 'eth-ethereum',
 		})
+		expect(snapshot).not.toHaveProperty('circulatingSupply')
+		expect(snapshot).not.toHaveProperty('maxSupply')
+		expect(snapshot).not.toHaveProperty('volume24h')
+		expect(snapshot).not.toHaveProperty('change7dPercent')
+	})
+})
+
+describe('Coinpaprika coin detail leftovers', () => {
+	it('omits empty logo for ZeroOrOne $logo', async () => {
+		getCoinById.mockResolvedValue({
+			id: 'eth-ethereum',
+			name: 'Ethereum',
+			symbol: 'ETH',
+			logo: '',
+			description: 'Ethereum',
+			proof_type: 'Proof of Stake',
+		})
+		const resolver = coinpaprikaResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Coin
+			&& 'name' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Coinpaprika coin detail resolver is not registered')
+
+		const coin = await resolver.resolve['CoinId'].resolve({
+			coinId: CoinId.ETH,
+		}, resolverContext)
+
+		expect(coin).toEqual({
+			name: 'Ethereum',
+			symbol: 'ETH',
+		})
+		expect(coin).not.toHaveProperty('$logo')
 	})
 })
 
@@ -203,12 +243,26 @@ describe('Coinpaprika market venue markets', () => {
 				quote_currency_id: 'usdt-tether',
 				category: 'Spot',
 				pair: 'BTC/USDT',
+				adjusted_volume_24h_share: 30.29,
 			},
 			{
 				base_currency_id: 'btc-bitcoin',
 				quote_currency_id: 'usd-us-dollars',
 				category: 'Spot',
 				pair: 'BTC/USD',
+			},
+			{
+				base_currency_id: 'btc-bitcoin',
+				quote_currency_id: 'usdt-tether',
+				category: 'Perpetuals',
+				pair: 'BTC/USDT',
+				reported_volume_24h_share: 12.5,
+			},
+			{
+				base_currency_id: 'btc-bitcoin',
+				quote_currency_id: 'usdt-tether',
+				category: 'Futures',
+				pair: 'BTC/USDT-0626',
 			},
 			{
 				base_currency_id: 'unknown-coin',
@@ -244,6 +298,38 @@ describe('Coinpaprika market venue markets', () => {
 						marketVenueId: MarketVenueId.Coinbase,
 					},
 					marketKind: 'Spot',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$base: {
+						kind: 'Coin',
+						assetKey: CoinId.BTC,
+					},
+					$quote: {
+						kind: 'Currency',
+						assetKey: 'USD',
+					},
+					$marketVenue: {
+						marketVenueId: MarketVenueId.Coinbase,
+					},
+					marketKind: 'Perpetual',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$base: {
+						kind: 'Coin',
+						assetKey: CoinId.BTC,
+					},
+					$quote: {
+						kind: 'Currency',
+						assetKey: 'USD',
+					},
+					$marketVenue: {
+						marketVenueId: MarketVenueId.Coinbase,
+					},
+					marketKind: 'Futures',
 				},
 			},
 		])

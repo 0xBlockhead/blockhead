@@ -283,7 +283,12 @@ export default {
 						)
 							throw new Error('Coinpaprika_Rest: coin response does not match requested coin')
 
-						const logoMedia = mediaFromUrl(coin.logo, MediaType.Image)
+						const logoMedia = (
+							coin.logo == null || coin.logo === '' ?
+								undefined
+							:
+								mediaFromUrl(coin.logo, MediaType.Image)
+						)
 						return {
 							name: coin.name,
 							symbol: coin.symbol.toUpperCase(),
