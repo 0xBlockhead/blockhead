@@ -10,6 +10,22 @@ export type CompoundCometConfigurationAssetWire = {
 	supplyCap: string
 }
 
+/**
+ * Interest-rate curve params from official `configuration.json` `rates`.
+ * @see https://docs.compound.finance/interest-rates/
+ * @see https://docs.compound.finance/helper-functions/#get-protocol-configuration
+ */
+export type CompoundCometRatesWire = {
+	supplyKink: number
+	supplySlopeLow: number
+	supplySlopeHigh: number
+	supplyBase: number
+	borrowKink: number
+	borrowSlopeLow: number
+	borrowSlopeHigh: number
+	borrowBase: number
+}
+
 export type CompoundCometConfigurationWire = {
 	name: string
 	symbol: string
@@ -22,16 +38,7 @@ export type CompoundCometConfigurationWire = {
 	storeFrontPriceFactor?: number
 	targetReserves?: string
 	rewardTokenAddress?: string
-	rates?: {
-		supplyKink: number
-		supplySlopeLow: number
-		supplySlopeHigh: number
-		supplyBase: number
-		borrowKink: number
-		borrowSlopeLow: number
-		borrowSlopeHigh: number
-		borrowBase: number
-	}
+	rates: CompoundCometRatesWire
 	assets: Record<string, CompoundCometConfigurationAssetWire>
 }
 
@@ -54,7 +61,7 @@ export const compoundCometConfigurationEnvelope = arktype({
 	'storeFrontPriceFactor?': 'number',
 	'targetReserves?': 'string',
 	'rewardTokenAddress?': 'string',
-	'rates?': {
+	rates: {
 		supplyKink: 'number',
 		supplySlopeLow: 'number',
 		supplySlopeHigh: 'number',
@@ -94,6 +101,22 @@ export type CompoundCometConfigurationAsset = {
 	supplyCap: string
 }
 
+/**
+ * Normalized Comet interest-rate model from deployment `rates`
+ * (kink utilization + piecewise slopes/base — not live utilization/APY).
+ * @see https://docs.compound.finance/interest-rates/
+ */
+export type CompoundCometRates = {
+	supplyKink: number
+	supplySlopeLow: number
+	supplySlopeHigh: number
+	supplyBase: number
+	borrowKink: number
+	borrowSlopeLow: number
+	borrowSlopeHigh: number
+	borrowBase: number
+}
+
 export type CompoundCometConfiguration = {
 	name: string
 	symbol: string
@@ -106,6 +129,7 @@ export type CompoundCometConfiguration = {
 	storeFrontPriceFactor?: number
 	targetReserves?: string
 	rewardTokenAddress?: `0x${string}`
+	rates: CompoundCometRates
 	collateralAssetCount: number
 	assets: CompoundCometConfigurationAsset[]
 }
