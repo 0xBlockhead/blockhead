@@ -364,24 +364,34 @@ export const listPools = async ({
 /** Authoritative on-chain indexed pool count for one EIP-155 chain (`poolGetPoolsCount`). */
 export const getPoolsCount = async ({
 	chainId,
+	userAddress,
 }: {
 	chainId: number
+	userAddress?: string
 }) => {
 	const chain = assertChainId(chainId)
+	const normalizedUserAddress = (
+		userAddress == null ?
+			undefined
+		:
+			assertAddress(userAddress, 'account')
+	)
 
 	const data = await graphql<BalancerPoolsCountData>({
 		binding,
 		query: `
-			query PoolGetPoolsCount($chain: GqlChain!) {
+			query PoolGetPoolsCount($chain: GqlChain!, $userAddress: String) {
 				poolGetPoolsCount(
 					where: {
 						chainIn: [$chain]
+						userAddress: $userAddress
 					}
 				)
 			}
 		`,
 		variables: {
 			chain: chain.gqlChain,
+			userAddress: normalizedUserAddress ?? null,
 		},
 	})
 	if (data == null)

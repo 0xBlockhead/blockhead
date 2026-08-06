@@ -396,6 +396,26 @@ describe('Balancer poolGetPoolsCount operation', () => {
 			binding,
 			variables: {
 				chain: 'MAINNET',
+				userAddress: null,
+			},
+		}))
+		expect(graphql.mock.calls[0][0].query).toContain('userAddress: $userAddress')
+	})
+
+	it('reads account-scoped pool count via poolGetPoolsCount(userAddress)', async () => {
+		graphql.mockResolvedValueOnce({
+			poolGetPoolsCount: 3,
+		})
+
+		await expect(getPoolsCount({
+			chainId: 1,
+			userAddress: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+		})).resolves.toBe(3)
+		expect(graphql).toHaveBeenCalledWith(expect.objectContaining({
+			binding,
+			variables: {
+				chain: 'MAINNET',
+				userAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
 			},
 		}))
 	})

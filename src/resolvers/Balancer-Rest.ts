@@ -381,12 +381,17 @@ export default {
 						}
 						const {
 							getAccountPoolBalances,
+							getPoolsCount,
 							getVeBalUser,
 						} = await import('$/sources/Balancer/Rest/queries.ts')
 						const balances = await getAccountPoolBalances({
 							chainId,
 							account: $actor.address,
 							limit: resolverContextRowLimit(context),
+						})
+						const balanceCount = await getPoolsCount({
+							chainId,
+							userAddress: $actor.address,
 						})
 						const veBal = await getVeBalUser({
 							chainId,
@@ -419,6 +424,7 @@ export default {
 									}),
 								},
 							})),
+							balancerPoolBalanceCount: balanceCount,
 							...(veBal != null && {
 								$veBal: {
 									[EntityMetaKey.Selector]: {
@@ -439,7 +445,10 @@ export default {
 				},
 			},
 		})({
-			$$balancerPoolBalances: (snapshot) => snapshot.$$balancerPoolBalances,
+			$$balancerPoolBalances: {
+				select: (snapshot) => snapshot.$$balancerPoolBalances,
+				resolveCount: (snapshot) => snapshot.balancerPoolBalanceCount,
+			},
 			$veBal: (snapshot) => snapshot.$veBal,
 		}),
 
@@ -466,11 +475,10 @@ export default {
 						const poolCount = await getPoolsCount({
 							chainId,
 						})
-						const gauges = (await listVotingGauges({
+						const gaugesForChain = (await listVotingGauges({
 							includeKilled: false,
 						}))
 							.filter((gauge) => gauge.chainId === chainId)
-							.slice(0, limit)
 						return {
 							pools: pools.map((pool) => ({
 								[EntityMetaKey.Selector]: {
@@ -479,27 +487,30 @@ export default {
 								},
 							})),
 							poolCount,
-							gauges: gauges.map((gauge) => ({
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									gaugeAddress: gauge.gaugeAddress,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.BalancerGauge, [], '$pool')]: {
-										[EntityMetaKey.Selector]: {
-											$network: network,
-											poolId: gauge.poolId,
-										},
+							gauges: gaugesForChain
+								.slice(0, limit)
+								.map((gauge) => ({
+									[EntityMetaKey.Selector]: {
+										$network: network,
+										gaugeAddress: gauge.gaugeAddress,
 									},
-									[entityFieldAddressKey(EntityType.BalancerGauge, [], 'isKilled')]: gauge.isKilled,
-									[entityFieldAddressKey(EntityType.BalancerGauge, [], 'poolSymbol')]: gauge.symbol,
-									[entityFieldAddressKey(EntityType.BalancerGauge, [], 'poolType')]: gauge.poolType,
-									[entityFieldAddressKey(EntityType.BalancerGauge, [], 'protocolVersion')]: gauge.protocolVersion,
-									...(gauge.relativeWeightCap != null && {
-										[entityFieldAddressKey(EntityType.BalancerGauge, [], 'relativeWeightCap')]: gauge.relativeWeightCap,
-									}),
-								},
-							})),
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.BalancerGauge, [], '$pool')]: {
+											[EntityMetaKey.Selector]: {
+												$network: network,
+												poolId: gauge.poolId,
+											},
+										},
+										[entityFieldAddressKey(EntityType.BalancerGauge, [], 'isKilled')]: gauge.isKilled,
+										[entityFieldAddressKey(EntityType.BalancerGauge, [], 'poolSymbol')]: gauge.symbol,
+										[entityFieldAddressKey(EntityType.BalancerGauge, [], 'poolType')]: gauge.poolType,
+										[entityFieldAddressKey(EntityType.BalancerGauge, [], 'protocolVersion')]: gauge.protocolVersion,
+										...(gauge.relativeWeightCap != null && {
+											[entityFieldAddressKey(EntityType.BalancerGauge, [], 'relativeWeightCap')]: gauge.relativeWeightCap,
+										}),
+									},
+								})),
+							gaugeCount: gaugesForChain.length,
 						}
 					},
 				},
@@ -510,7 +521,10 @@ export default {
 					select: (snapshot) => snapshot.pools,
 					resolveCount: (snapshot) => snapshot.poolCount,
 				},
-				$$balancerGauges: (snapshot) => snapshot.gauges,
+				$$balancerGauges: {
+					select: (snapshot) => snapshot.gauges,
+					resolveCount: (snapshot) => snapshot.gaugeCount,
+				},
 			},
 		}),
 	],
