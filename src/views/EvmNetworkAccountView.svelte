@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -31,8 +32,10 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import BalancerVeBalBalanceView from '$/views/BalancerVeBalBalanceView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
 	import EvmInternalTransfersView from '$/views/EvmInternalTransfersView.svelte'
@@ -47,6 +50,7 @@
 	import MorphoMarketPositionsView from '$/views/MorphoMarketPositionsView.svelte'
 	import MorphoVaultPositionsView from '$/views/MorphoVaultPositionsView.svelte'
 	import PendlePositionsView from '$/views/PendlePositionsView.svelte'
+	import BalancerAccountPoolBalancesView from '$/views/BalancerAccountPoolBalancesView.svelte'
 </script>
 
 
@@ -113,6 +117,25 @@
 					/>
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={selection.$veBal}
+			>
+				{#snippet children(balancerVeBalBalance)}
+					{#if balancerVeBalBalance != null}
+						<div>
+							<dt>veBAL</dt>
+							<dd>
+								<BalancerVeBalBalanceView
+									selection={select(EntityType.BalancerVeBalBalance, balancerVeBalBalance[EntityMetaKey.Selector])}
+									prefetched={balancerVeBalBalance}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
@@ -316,6 +339,10 @@
 						id: 'evm-network-account-pendle-positions',
 						label: 'Pendle',
 					},
+					{
+						id: 'evm-network-account-balancer-pool-balances',
+						label: 'Balancer',
+					},
 				]
 			}
 			data-card
@@ -449,6 +476,24 @@
 					collapsible={false}
 					title={label}
 					emptyText='No Pendle positions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionEvmNetworkAccountBalancerPoolBalances({ id, label })}
+				<BalancerAccountPoolBalancesView
+					selection={
+						selection
+						.$$balancerPoolBalances({
+							sources: [
+								Source.Balancer_Rest,
+							],
+							limit: 32,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Balancer pool balances.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

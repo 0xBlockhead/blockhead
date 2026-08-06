@@ -1323,7 +1323,11 @@ export enum EntityType {
 	AvalancheSubnet_Timestamp = "AvalancheSubnet_Timestamp",
 	AvalancheValidator = "AvalancheValidator",
 	AvalancheValidator_Timestamp = "AvalancheValidator_Timestamp",
+	BalancerAccountPoolBalance = "BalancerAccountPoolBalance",
+	BalancerGauge = "BalancerGauge",
 	BalancerPool = "BalancerPool",
+	BalancerPoolAprItem = "BalancerPoolAprItem",
+	BalancerVeBalBalance = "BalancerVeBalBalance",
 	BeaconAttestation = "BeaconAttestation",
 	BeaconCommittee = "BeaconCommittee",
 	BeaconEpoch = "BeaconEpoch",
@@ -1704,7 +1708,12 @@ export enum EntityType {
 	FilecoinDeal_Timestamp = "FilecoinDeal_Timestamp",
 	FilecoinMessage = "FilecoinMessage",
 	FilecoinMessage_Timestamp = "FilecoinMessage_Timestamp",
+	FilecoinMessageEvent = "FilecoinMessageEvent",
+	FilecoinMessageFee = "FilecoinMessageFee",
 	FilecoinMessageReceipt = "FilecoinMessageReceipt",
+	FilecoinMessageSubcall = "FilecoinMessageSubcall",
+	FilecoinMessageTokenTransfer = "FilecoinMessageTokenTransfer",
+	FilecoinMessageTransfer = "FilecoinMessageTransfer",
 	FilecoinMiner = "FilecoinMiner",
 	FilecoinMiner_Timestamp = "FilecoinMiner_Timestamp",
 	FilecoinNetwork = "FilecoinNetwork",
@@ -12193,6 +12202,89 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.BalancerAccountPoolBalance,
+				labels: {
+					singular: "Balancer account pool balance",
+					plural: "Balancer account pool balances",
+				},
+				description: "An EVM account's BPT wallet and total balance in one Balancer pool from poolGetPools(where.userAddress).",
+			})({
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount },
+				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BalancerPool, defaultSources: [Source.Balancer_Rest] },
+				"totalBalance": { label: "Total balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
+				"totalBalanceUsd": { label: "Total balance (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Balancer_Rest] },
+				"walletBalance": { label: "Wallet balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
+				"walletBalanceUsd": { label: "Wallet balance (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Balancer_Rest] },
+				"$gauge": { label: "Gauge", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BalancerGauge, defaultSources: [Source.Balancer_Rest] },
+				"stakingType": { label: "Staking type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Balancer_Rest] },
+			})({
+				selectors: {
+					"AccountPool": ["$account", "$pool"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Balancer_Rest],
+						},
+						summary: {
+							title: ["$pool"],
+							value: ["totalBalance", "totalBalanceUsd"],
+							HeadingAfter: ["$account"],
+						},
+						content: {
+							dl: [
+								["$account", "$pool", "$gauge", "stakingType"],
+								["totalBalance", { field: "totalBalanceUsd", format: "number" }, "walletBalance", { field: "walletBalanceUsd", format: "number" }],
+							],
+						},
+					},
+					plural: { component: "BalancerAccountPoolBalancesView", title: "Balancer account pool balances" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BalancerGauge,
+				labels: {
+					singular: "Balancer gauge",
+					plural: "Balancer gauges",
+				},
+				description: "A Balancer liquidity gauge contract on an EIP-155 network (pool staking / veBAL voting surface).",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"gaugeAddress": { label: "Gauge address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BalancerPool, defaultSources: [Source.Balancer_Rest] },
+				"version": { label: "Version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Balancer_Rest] },
+				"isKilled": { label: "Killed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Balancer_Rest] },
+				"relativeWeightCap": { label: "Relative weight cap", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
+				"poolSymbol": { label: "Pool symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Balancer_Rest] },
+				"poolType": { label: "Pool type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Balancer_Rest] },
+				"protocolVersion": { label: "Protocol version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Balancer_Rest] },
+			})({
+				selectors: {
+					"NetworkGaugeAddress": ["$network", "gaugeAddress"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Balancer_Rest],
+						},
+						summary: {
+							title: ["poolSymbol", { field: "gaugeAddress", format: "address" }],
+							value: ["isKilled", "relativeWeightCap"],
+							HeadingAfter: ["$network", "$pool"],
+						},
+						content: {
+							dl: [
+								["$network", { field: "gaugeAddress", format: "address" }, "$pool", "poolSymbol"],
+								["poolType", { field: "protocolVersion", format: "number" }, { field: "version", format: "number" }, "isKilled", "relativeWeightCap"],
+							],
+						},
+					},
+					plural: { component: "BalancerGaugesView", title: "Balancer gauges" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.BalancerPool,
 				labels: {
 					singular: "Balancer pool",
@@ -12211,6 +12303,8 @@ export const schema = {
 				"swapFee": { label: "Swap fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
 				"totalLiquidity": { label: "Total liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
 				"totalShares": { label: "Total shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
+				"$gauge": { label: "Gauge", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BalancerGauge, defaultSources: [Source.Balancer_Rest] },
+				"$$aprItems": { label: "APR items", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BalancerPoolAprItem, defaultSources: [Source.Balancer_Rest] },
 			})({
 				selectors: {
 					"NetworkPoolId": ["$network", "poolId"],
@@ -12229,12 +12323,88 @@ export const schema = {
 						content: {
 							dl: [
 								["$network", { field: "address", format: "address" }, "poolId", "name"],
-								["poolType", "version", "protocolVersion", { field: "vaultAddress", format: "address" }],
+								["poolType", "version", "protocolVersion", { field: "vaultAddress", format: "address" }, "$gauge"],
 								["swapFee", "totalLiquidity", "totalShares"],
 							],
 						},
+						lists: [
+							{ field: "$$aprItems", component: "BalancerPoolAprItemsView", label: "APR items", emptyText: "No APR items." },
+						],
 					},
 					plural: { component: "BalancerPoolsView", title: "Balancer pools" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BalancerPoolAprItem,
+				labels: {
+					singular: "Balancer pool APR item",
+					plural: "Balancer pool APR items",
+				},
+				description: "One titled APR component on a Balancer pool snapshot (dynamicData.aprItems).",
+			})({
+				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BalancerPool },
+				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"aprType": { label: "APR type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"apr": { label: "APR", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Balancer_Rest] },
+			})({
+				selectors: {
+					"PoolTitleAprType": ["$pool", "title", "aprType"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Balancer_Rest],
+						},
+						summary: {
+							title: ["title"],
+							value: [{ field: "apr", format: "number" }],
+							HeadingAfter: ["aprType"],
+						},
+						content: {
+							dl: [
+								["$pool", "title", "aprType", { field: "apr", format: "number" }],
+							],
+						},
+					},
+					plural: { component: "BalancerPoolAprItemsView", title: "Balancer pool APR items" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BalancerVeBalBalance,
+				labels: {
+					singular: "Balancer veBAL balance",
+					plural: "Balancer veBAL balances",
+				},
+				description: "An EVM account's veBAL voting-power lock snapshot from veBalGetUser / veBalGetUserBalance.",
+			})({
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount },
+				"balance": { label: "Balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
+				"locked": { label: "Locked", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
+				"lockedUsd": { label: "Locked (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Balancer_Rest] },
+				"rank": { label: "Rank", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Balancer_Rest] },
+			})({
+				selectors: {
+					"Account": ["$account"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Balancer_Rest],
+						},
+						summary: {
+							title: ["balance"],
+							value: ["locked", "lockedUsd"],
+							HeadingAfter: ["$account"],
+						},
+						content: {
+							dl: [
+								["$account", "balance", "locked", "lockedUsd", { field: "rank", format: "number" }],
+							],
+						},
+					},
+					plural: { component: "BalancerVeBalBalancesView", title: "Balancer veBAL balances" },
 				},
 			}),
 
@@ -31042,7 +31212,7 @@ export const schema = {
 				"$$queuedTransactions": { label: "queued transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.SafeTransactionService_Rest] },
 				"$$tokenTransfers": { label: "token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer },
 				"$$internalTransfers": { label: "internal transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmInternalTransfer },
-				"$$ownedCoins": { label: "owned coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance, defaultSources: [Source.Allium_Rest] },
+				"$$ownedCoins": { label: "owned coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance, defaultSources: [Source.Allium_Rest, Source.Blockscout_Rest] },
 				"$$nfts": { label: "NFTs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNft, defaultSources: [Source.OpenSea_Rest] },
 				"$$erc20TokenAllowances": { label: "erc20 token allowances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmActorCoinAllowance },
 				"$$aaveReservePositions": { label: "Aave reserve positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveReservePosition, defaultSources: [Source.Aave_Rest] },
@@ -31052,6 +31222,8 @@ export const schema = {
 				"$$morphoMarketPositions": { label: "Morpho market positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MorphoMarketPosition, defaultSources: [Source.Morpho_Graphql] },
 				"$$morphoVaultPositions": { label: "Morpho vault positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MorphoVaultPosition, defaultSources: [Source.Morpho_Graphql] },
 				"$$pendlePositions": { label: "Pendle positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PendlePosition, defaultSources: [Source.Pendle_Rest] },
+				"$$balancerPoolBalances": { label: "Balancer pool balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BalancerAccountPoolBalance, defaultSources: [Source.Balancer_Rest] },
+				"$veBal": { label: "veBAL", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BalancerVeBalBalance, defaultSources: [Source.Balancer_Rest] },
 			})({
 				selectors: {
 					"EvmNetworkEvmAccount": ["$network", "$actor"],
@@ -31064,7 +31236,7 @@ export const schema = {
 						},
 						content: {
 							dl: [
-								["$network", "$actor"],
+								["$network", "$actor", "$veBal"],
 							],
 						},
 						carousels: [
@@ -31109,6 +31281,7 @@ export const schema = {
 									{ id: "evm-network-account-morpho-market-positions", field: "$$morphoMarketPositions", List: "MorphoMarketPositionsView", label: "Morpho markets", emptyText: "No Morpho market positions.", selection: { sources: [Source.Morpho_Graphql], limit: 32 } },
 									{ id: "evm-network-account-morpho-vault-positions", field: "$$morphoVaultPositions", List: "MorphoVaultPositionsView", label: "Morpho vaults", emptyText: "No Morpho vault positions.", selection: { sources: [Source.Morpho_Graphql], limit: 32 } },
 									{ id: "evm-network-account-pendle-positions", field: "$$pendlePositions", List: "PendlePositionsView", label: "Pendle", emptyText: "No Pendle positions.", selection: { sources: [Source.Pendle_Rest], limit: 32 } },
+									{ id: "evm-network-account-balancer-pool-balances", field: "$$balancerPoolBalances", List: "BalancerAccountPoolBalancesView", label: "Balancer", emptyText: "No Balancer pool balances.", selection: { sources: [Source.Balancer_Rest], limit: 32 } },
 								],
 							},
 						],
@@ -34553,6 +34726,11 @@ export const schema = {
 				"gasLimit": { label: "Gas limit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessage_Timestamp, defaultSources: [Source.Filfox_Rest] },
 				"$receipt": { label: "Receipt", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinMessageReceipt, defaultSources: [Source.Filfox_Rest] },
+				"$fee": { label: "Fee", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinMessageFee, defaultSources: [Source.Filfox_Rest] },
+				"$$transfers": { label: "Transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessageTransfer, defaultSources: [Source.Filfox_Rest] },
+				"$$tokenTransfers": { label: "Token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessageTokenTransfer, defaultSources: [Source.Filfox_Rest] },
+				"$$events": { label: "Events", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessageEvent, defaultSources: [Source.Filfox_Rest] },
+				"$$subcalls": { label: "Subcalls", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessageSubcall, defaultSources: [Source.Filfox_Rest] },
 			})({
 				selectors: {
 					"NetworkCid": ["$network", "cid"],
@@ -34593,11 +34771,16 @@ export const schema = {
 									{ field: "valueAttoFil", format: "numberValue" },
 									{ field: "gasLimit", format: "numberValue" },
 									"$receipt",
+									"$fee",
 								],
 							],
 						},
 						lists: [
 							{ field: "$$timestamps", component: "FilecoinMessage_TimestampsView", label: "Observations" },
+							{ field: "$$transfers", component: "FilecoinMessageTransfersView", label: "Transfers", emptyText: "No value transfers." },
+							{ field: "$$tokenTransfers", component: "FilecoinMessageTokenTransfersView", label: "Token transfers", emptyText: "No token transfers." },
+							{ field: "$$events", component: "FilecoinMessageEventsView", label: "Events", emptyText: "No events." },
+							{ field: "$$subcalls", component: "FilecoinMessageSubcallsView", label: "Subcalls", emptyText: "No subcalls." },
 						],
 					},
 					plural: { component: "FilecoinMessagesView",
@@ -34657,6 +34840,87 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.FilecoinMessageEvent,
+				labels: {
+					singular: "filecoin message event",
+					plural: "filecoin message events",
+				},
+				description: "An EVM-style log emitted while executing a Filecoin message (Filfox getMessageEvents).",
+			})({
+				"$message": { label: "Message", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinMessage },
+				"index": { label: "Index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"address": { label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"data": { label: "Data", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"topics": { label: "Topics", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"removed": { label: "Removed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Filfox_Rest] },
+				"logIndex": { label: "Log index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Filfox_Rest] },
+			})({
+				selectors: {
+					"MessageIndex": ["$message", "index"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Filfox_Rest],
+						},
+						summary: {
+							title: ["name", "address"],
+							value: [{ field: "index", format: "number" }],
+							HeadingAfter: ["$message"],
+						},
+						content: {
+							dl: [
+								["$message", { field: "index", format: "number" }, "address", "name", { field: "logIndex", format: "number" }, "removed"],
+								["data", "topics"],
+							],
+						},
+					},
+					plural: { component: "FilecoinMessageEventsView", title: "Filecoin message events" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.FilecoinMessageFee,
+				labels: {
+					singular: "filecoin message fee",
+					plural: "filecoin message fees",
+				},
+				description: "Gas fee breakdown for an executed Filecoin message from Filfox getMessage.fee (Lotus ChainGetMessage alone does not).",
+			})({
+				"$message": { label: "Message", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinMessage },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"baseFeeBurn": { label: "Base fee burn", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"overEstimationBurn": { label: "Over-estimation burn", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"minerPenalty": { label: "Miner penalty", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"minerTip": { label: "Miner tip", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"refund": { label: "Refund", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+			})({
+				selectors: {
+					"MessageSource": ["$message", "source"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Filfox_Rest],
+						},
+						summary: {
+							title: ["source"],
+							value: [{ field: "minerTip", format: "numberValue" }],
+							HeadingAfter: ["$message"],
+						},
+						content: {
+							dl: [
+								["$message", "source"],
+								[{ field: "baseFeeBurn", format: "numberValue" }, { field: "overEstimationBurn", format: "numberValue" }, { field: "minerPenalty", format: "numberValue" }, { field: "minerTip", format: "numberValue" }, { field: "refund", format: "numberValue" }],
+							],
+						},
+					},
+					plural: { component: "FilecoinMessageFeesView", title: "Filecoin message fees" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.FilecoinMessageReceipt,
 				labels: {
 					singular: "filecoin message receipt",
@@ -34707,6 +34971,131 @@ export const schema = {
 					},
 					plural: { component: "FilecoinMessageReceiptsView",
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.FilecoinMessageSubcall,
+				labels: {
+					singular: "filecoin message subcall",
+					plural: "filecoin message subcalls",
+				},
+				description: "A nested actor call observed while executing a Filecoin message (Filfox getMessageSubcalls). Top-level rows only; deeper nests stay on the wire until a path selector is enrolled.",
+			})({
+				"$message": { label: "Message", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinMessage },
+				"index": { label: "Index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"$from": { label: "From", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest] },
+				"$to": { label: "To", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest] },
+				"valueAttoFil": { label: "Value attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"method": { label: "Method", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"methodNumber": { label: "Method number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Filfox_Rest] },
+				"params": { label: "Params", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"exitCode": { label: "Exit code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Filfox_Rest] },
+				"returnData": { label: "Return data", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"gasUsed": { label: "Gas used", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+			})({
+				selectors: {
+					"MessageIndex": ["$message", "index"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Filfox_Rest],
+						},
+						summary: {
+							title: ["method"],
+							value: ["$from", "$to"],
+							HeadingAfter: [{ field: "valueAttoFil", format: "numberValue" }],
+						},
+						content: {
+							dl: [
+								["$message", { field: "index", format: "number" }, "$from", "$to", "method", { field: "methodNumber", format: "number" }],
+								[{ field: "valueAttoFil", format: "numberValue" }, "params", { field: "exitCode", format: "number" }, "returnData", { field: "gasUsed", format: "numberValue" }],
+							],
+						},
+					},
+					plural: { component: "FilecoinMessageSubcallsView", title: "Filecoin message subcalls" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.FilecoinMessageTokenTransfer,
+				labels: {
+					singular: "filecoin message token transfer",
+					plural: "filecoin message token transfers",
+				},
+				description: "A token transfer row on Filfox message detail (tokenTransfers).",
+			})({
+				"$message": { label: "Message", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinMessage },
+				"index": { label: "Index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"$from": { label: "From", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest] },
+				"$to": { label: "To", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest] },
+				"value": { label: "Value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"transferType": { label: "Transfer type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"token": { label: "Token", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"tokenId": { label: "Token ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"tokenName": { label: "Token name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+				"tokenSymbol": { label: "Token symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+			})({
+				selectors: {
+					"MessageIndex": ["$message", "index"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Filfox_Rest],
+						},
+						summary: {
+							title: ["tokenSymbol", "token"],
+							value: ["value"],
+							HeadingAfter: ["$from", "$to"],
+						},
+						content: {
+							dl: [
+								["$message", { field: "index", format: "number" }, "$from", "$to", "value", "transferType"],
+								["token", "tokenId", "tokenName", "tokenSymbol"],
+							],
+						},
+					},
+					plural: { component: "FilecoinMessageTokenTransfersView", title: "Filecoin message token transfers" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.FilecoinMessageTransfer,
+				labels: {
+					singular: "filecoin message transfer",
+					plural: "filecoin message transfers",
+				},
+				description: "A native value transfer observed on Filfox message detail (transfers).",
+			})({
+				"$message": { label: "Message", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinMessage },
+				"index": { label: "Index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"$from": { label: "From", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest] },
+				"$to": { label: "To", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinActor, defaultSources: [Source.Filfox_Rest] },
+				"valueAttoFil": { label: "Value attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint", defaultSources: [Source.Filfox_Rest] },
+				"transferType": { label: "Transfer type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+			})({
+				selectors: {
+					"MessageIndex": ["$message", "index"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Filfox_Rest],
+						},
+						summary: {
+							title: ["transferType"],
+							value: [{ field: "valueAttoFil", format: "numberValue" }],
+							HeadingAfter: ["$from", "$to"],
+						},
+						content: {
+							dl: [
+								["$message", { field: "index", format: "number" }, "$from", "$to", { field: "valueAttoFil", format: "numberValue" }, "transferType"],
+							],
+						},
+					},
+					plural: { component: "FilecoinMessageTransfersView", title: "Filecoin message transfers" },
 				},
 			}),
 
@@ -48419,6 +48808,7 @@ export const schema = {
 						"$$userOperations": { label: "User operations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmUserOperation, defaultSources: [Source.Blockscout_Rest] },
 						"$$aaveMarkets": { label: "Aave markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveMarket, defaultSources: [Source.Aave_Rest] },
 						"$$balancerPools": { label: "Balancer pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BalancerPool, defaultSources: [Source.Balancer_Rest] },
+						"$$balancerGauges": { label: "Balancer gauges", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BalancerGauge, defaultSources: [Source.Balancer_Rest] },
 						"$$compoundComets": { label: "Compound comets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CompoundComet, defaultSources: [Source.Compound_Rest] },
 						"$$curvePools": { label: "Curve pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CurvePool, defaultSources: [Source.Curve_Rest] },
 						"$$curveLendingVaults": { label: "Curve Lend vaults", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CurveLendingVault, defaultSources: [Source.Curve_Rest] },
@@ -48653,6 +49043,7 @@ export const schema = {
 									sections: [
 										{ id: "evm-defi-aave-markets", field: ["Evm", "$$aaveMarkets"], List: "AaveMarketsView", label: "Aave markets", emptyText: "No Aave markets.", selection: { sources: [Source.Aave_Rest], limit: 16 } },
 										{ id: "evm-defi-balancer-pools", field: ["Evm", "$$balancerPools"], List: "BalancerPoolsView", label: "Balancer pools", emptyText: "No Balancer pools.", selection: { sources: [Source.Balancer_Rest], limit: 16 } },
+										{ id: "evm-defi-balancer-gauges", field: ["Evm", "$$balancerGauges"], List: "BalancerGaugesView", label: "Balancer gauges", emptyText: "No Balancer gauges.", selection: { sources: [Source.Balancer_Rest], limit: 16 } },
 										{ id: "evm-defi-compound-comets", field: ["Evm", "$$compoundComets"], List: "CompoundCometsView", label: "Compound comets", emptyText: "No Compound comets.", selection: { sources: [Source.Compound_Rest], limit: 16 } },
 										{ id: "evm-defi-curve-pools", field: ["Evm", "$$curvePools"], List: "CurvePoolsView", label: "Curve pools", emptyText: "No Curve pools.", selection: { sources: [Source.Curve_Rest], limit: 16 } },
 										{ id: "evm-defi-curve-lending-vaults", field: ["Evm", "$$curveLendingVaults"], List: "CurveLendingVaultsView", label: "Curve Lend vaults", emptyText: "No Curve Lend vaults.", selection: { sources: [Source.Curve_Rest], limit: 16 } },
@@ -69898,11 +70289,39 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#avalanchevalidator_timestamp",
 			},
 		},
+		[EntityType.BalancerAccountPoolBalance]: {
+			"AccountPool": {
+				kind: "Research",
+				decision: "Retain BalancerAccountPoolBalance.AccountPool as non-public until a product-valid selector placement is declared.",
+				evidence: "NEEDS_APP.md#balancer-pools--gauges--account-lp-positions",
+			},
+		},
+		[EntityType.BalancerGauge]: {
+			"NetworkGaugeAddress": {
+				kind: "Research",
+				decision: "Retain BalancerGauge.NetworkGaugeAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "NEEDS_APP.md#balancer-pools--gauges--account-lp-positions",
+			},
+		},
 		[EntityType.BalancerPool]: {
 			"NetworkPoolId": {
 				kind: "Research",
 				decision: "Retain BalancerPool.NetworkPoolId as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#balancerpool",
+			},
+		},
+		[EntityType.BalancerPoolAprItem]: {
+			"PoolTitleAprType": {
+				kind: "Research",
+				decision: "Retain BalancerPoolAprItem.PoolTitleAprType as non-public until a product-valid selector placement is declared.",
+				evidence: "NEEDS_APP.md#balancer-pools--gauges--account-lp-positions",
+			},
+		},
+		[EntityType.BalancerVeBalBalance]: {
+			"Account": {
+				kind: "Research",
+				decision: "Retain BalancerVeBalBalance.Account as non-public until a product-valid selector placement is declared.",
+				evidence: "NEEDS_APP.md#balancer-pools--gauges--account-lp-positions",
 			},
 		},
 		[EntityType.BeaconValidator]: {
@@ -71979,11 +72398,46 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#filecoinmessage_timestamp",
 			},
 		},
+		[EntityType.FilecoinMessageEvent]: {
+			"MessageIndex": {
+				kind: "Research",
+				decision: "Retain FilecoinMessageEvent.MessageIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "NEEDS_APP.md#filfox--lotus-dual-source-defaults-for-miner-actor-and-message-fields",
+			},
+		},
+		[EntityType.FilecoinMessageFee]: {
+			"MessageSource": {
+				kind: "Research",
+				decision: "Retain FilecoinMessageFee.MessageSource as non-public until a product-valid selector placement is declared.",
+				evidence: "NEEDS_APP.md#filfox--lotus-dual-source-defaults-for-miner-actor-and-message-fields",
+			},
+		},
 		[EntityType.FilecoinMessageReceipt]: {
 			"MessageTipsetKeySource": {
 				kind: "Research",
 				decision: "Retain FilecoinMessageReceipt.MessageTipsetKeySource as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#filecoinmessagereceipt",
+			},
+		},
+		[EntityType.FilecoinMessageSubcall]: {
+			"MessageIndex": {
+				kind: "Research",
+				decision: "Retain FilecoinMessageSubcall.MessageIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "NEEDS_APP.md#filfox--lotus-dual-source-defaults-for-miner-actor-and-message-fields",
+			},
+		},
+		[EntityType.FilecoinMessageTokenTransfer]: {
+			"MessageIndex": {
+				kind: "Research",
+				decision: "Retain FilecoinMessageTokenTransfer.MessageIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "NEEDS_APP.md#filfox--lotus-dual-source-defaults-for-miner-actor-and-message-fields",
+			},
+		},
+		[EntityType.FilecoinMessageTransfer]: {
+			"MessageIndex": {
+				kind: "Research",
+				decision: "Retain FilecoinMessageTransfer.MessageIndex as non-public until a product-valid selector placement is declared.",
+				evidence: "NEEDS_APP.md#filfox--lotus-dual-source-defaults-for-miner-actor-and-message-fields",
 			},
 		},
 		[EntityType.FilecoinNetwork]: {

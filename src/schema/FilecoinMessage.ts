@@ -83,6 +83,41 @@ export default entity({
 			Source.Filfox_Rest,
 		],
 	},
+	$fee: {
+		entityType: EntityType.FilecoinMessageFee,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Filfox_Rest,
+		],
+	},
+	$$transfers: {
+		entityType: EntityType.FilecoinMessageTransfer,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Filfox_Rest,
+		],
+	},
+	$$tokenTransfers: {
+		entityType: EntityType.FilecoinMessageTokenTransfer,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Filfox_Rest,
+		],
+	},
+	$$events: {
+		entityType: EntityType.FilecoinMessageEvent,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Filfox_Rest,
+		],
+	},
+	$$subcalls: {
+		entityType: EntityType.FilecoinMessageSubcall,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Filfox_Rest,
+		],
+	},
 })({
 	selectors: {
 		NetworkCid: [

@@ -223,6 +223,7 @@
 	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
 	import AaveMarketsView from '$/views/AaveMarketsView.svelte'
 	import BalancerPoolsView from '$/views/BalancerPoolsView.svelte'
+	import BalancerGaugesView from '$/views/BalancerGaugesView.svelte'
 	import CompoundCometsView from '$/views/CompoundCometsView.svelte'
 	import CurvePoolsView from '$/views/CurvePoolsView.svelte'
 	import CurveLendingVaultsView from '$/views/CurveLendingVaultsView.svelte'
@@ -2593,6 +2594,10 @@
 							label: 'Balancer pools',
 						},
 						{
+							id: 'evm-defi-balancer-gauges',
+							label: 'Balancer gauges',
+						},
+						{
 							id: 'evm-defi-compound-comets',
 							label: 'Compound comets',
 						},
@@ -2691,6 +2696,24 @@
 								collapsible={false}
 								title={label}
 								emptyText='No Balancer pools.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionEvmDefiBalancerGauges({ id, label })}
+							<BalancerGaugesView
+								selection={
+									projection
+									.$$balancerGauges({
+										sources: [
+											Source.Balancer_Rest,
+										],
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Balancer gauges.'
 								id={`${id}-list`}
 							/>
 						{/snippet}

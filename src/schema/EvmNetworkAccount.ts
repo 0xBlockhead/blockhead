@@ -52,6 +52,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Allium_Rest,
+			Source.Blockscout_Rest,
 		],
 	},
 	$$nfts: {
@@ -112,6 +113,20 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Pendle_Rest,
+		],
+	},
+	$$balancerPoolBalances: {
+		entityType: EntityType.BalancerAccountPoolBalance,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Balancer_Rest,
+		],
+	},
+	$veBal: {
+		entityType: EntityType.BalancerVeBalBalance,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Balancer_Rest,
 		],
 	},
 })({

@@ -9,103 +9,75 @@ import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
-	entityType: EntityType.BalancerPool,
+	entityType: EntityType.BalancerGauge,
 	labels: {
-		singular: 'Balancer pool',
-		plural: 'Balancer pools',
+		singular: 'Balancer gauge',
+		plural: 'Balancer gauges',
 	},
-	description: 'A Balancer v2/v3 pool identified by EIP-155 network + native pool id (v2 bytes32 poolId, v3 pool address), with Vault accounting per docs.balancer.fi.',
+	description: 'A Balancer liquidity gauge contract on an EIP-155 network (pool staking / veBAL voting surface).',
 })({
 	$network: {
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
-	poolId: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-	},
-	address: {
+	gaugeAddress: {
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Balancer_Rest,
-		],
 	},
-	name: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Balancer_Rest,
-		],
-	},
-	poolType: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
+	$pool: {
+		entityType: EntityType.BalancerPool,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Balancer_Rest,
 		],
 	},
 	version: {
 		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Balancer_Rest,
+		],
+	},
+	isKilled: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Balancer_Rest,
+		],
+	},
+	relativeWeightCap: {
+		primitiveType: NonNegativeDecimalString,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Balancer_Rest,
+		],
+	},
+	poolSymbol: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Balancer_Rest,
+		],
+	},
+	poolType: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Balancer_Rest,
 		],
 	},
 	protocolVersion: {
 		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Balancer_Rest,
-		],
-	},
-	vaultAddress: {
-		primitiveType: EvmAddress,
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Balancer_Rest,
-		],
-	},
-	swapFee: {
-		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Balancer_Rest,
-		],
-	},
-	totalLiquidity: {
-		primitiveType: NonNegativeDecimalString,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Balancer_Rest,
-		],
-	},
-	totalShares: {
-		primitiveType: NonNegativeDecimalString,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Balancer_Rest,
-		],
-	},
-	$gauge: {
-		entityType: EntityType.BalancerGauge,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Balancer_Rest,
-		],
-	},
-	$$aprItems: {
-		entityType: EntityType.BalancerPoolAprItem,
-		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Balancer_Rest,
 		],
 	},
 })({
 	selectors: {
-		NetworkPoolId: [
+		NetworkGaugeAddress: [
 			'$network',
-			'poolId',
+			'gaugeAddress',
 		],
 	},
 })

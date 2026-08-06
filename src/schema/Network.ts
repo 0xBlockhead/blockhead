@@ -404,6 +404,13 @@ export default entity({
 					Source.Balancer_Rest,
 				],
 			},
+			$$balancerGauges: {
+				entityType: EntityType.BalancerGauge,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Balancer_Rest,
+				],
+			},
 			$$compoundComets: {
 				entityType: EntityType.CompoundComet,
 				cardinality: EntityFieldCardinality.Many,

@@ -39,9 +39,14 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import FilecoinMessage_TimestampsView from '$/views/FilecoinMessage_TimestampsView.svelte'
+	import FilecoinMessageTransfersView from '$/views/FilecoinMessageTransfersView.svelte'
+	import FilecoinMessageTokenTransfersView from '$/views/FilecoinMessageTokenTransfersView.svelte'
+	import FilecoinMessageEventsView from '$/views/FilecoinMessageEventsView.svelte'
+	import FilecoinMessageSubcallsView from '$/views/FilecoinMessageSubcallsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import FilecoinActorView from '$/views/FilecoinActorView.svelte'
 	import FilecoinMessageReceiptView from '$/views/FilecoinMessageReceiptView.svelte'
+	import FilecoinMessageFeeView from '$/views/FilecoinMessageFeeView.svelte'
 	import FilecoinMessage_TimestampView from '$/views/FilecoinMessage_TimestampView.svelte'
 </script>
 
@@ -310,6 +315,24 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$fee}
+			>
+				{#snippet children(filecoinMessageFee)}
+					{#if filecoinMessageFee != null}
+						<div>
+							<dt>Fee</dt>
+							<dd>
+								<FilecoinMessageFeeView
+									selection={select(EntityType.FilecoinMessageFee, filecoinMessageFee[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
@@ -325,6 +348,66 @@
 						countResource={timestampsResource.count}
 						title='Observations'
 						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const transfersResource = selection.$$transfers}
+		<ResourceBoundary
+			resource={transfersResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<FilecoinMessageTransfersView
+						selection={transfersResource}
+						countResource={transfersResource.count}
+						title='Transfers'
+						id='transfers'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const tokenTransfersResource = selection.$$tokenTransfers}
+		<ResourceBoundary
+			resource={tokenTransfersResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<FilecoinMessageTokenTransfersView
+						selection={tokenTransfersResource}
+						countResource={tokenTransfersResource.count}
+						title='Token transfers'
+						id='token-transfers'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const eventsResource = selection.$$events}
+		<ResourceBoundary
+			resource={eventsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<FilecoinMessageEventsView
+						selection={eventsResource}
+						countResource={eventsResource.count}
+						title='Events'
+						id='events'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const subcallsResource = selection.$$subcalls}
+		<ResourceBoundary
+			resource={subcallsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<FilecoinMessageSubcallsView
+						selection={subcallsResource}
+						countResource={subcallsResource.count}
+						title='Subcalls'
+						id='subcalls'
 					/>
 				{/if}
 			{/snippet}

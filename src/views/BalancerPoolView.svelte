@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -39,7 +40,9 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import BalancerPoolAprItemsView from '$/views/BalancerPoolAprItemsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import BalancerGaugeView from '$/views/BalancerGaugeView.svelte'
 </script>
 
 
@@ -198,6 +201,25 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={selection.$gauge}
+			>
+				{#snippet children(balancerGauge)}
+					{#if balancerGauge != null}
+						<div>
+							<dt>Gauge</dt>
+							<dd>
+								<BalancerGaugeView
+									selection={select(EntityType.BalancerGauge, balancerGauge[EntityMetaKey.Selector])}
+									prefetched={balancerGauge}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">
@@ -261,5 +283,23 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const aprItemsResource = selection.$$aprItems}
+		<ResourceBoundary
+			resource={aprItemsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BalancerPoolAprItemsView
+						selection={aprItemsResource}
+						countResource={aprItemsResource.count}
+						title='APR items'
+						id='apr-items'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>
