@@ -27,6 +27,7 @@ import {
 	type MorphoGraphqlMarketStateWire,
 	type MorphoGraphqlMarketWire,
 	type MorphoGraphqlVault,
+	type MorphoGraphqlVaultStateWire,
 	type MorphoGraphqlVaultWire,
 } from './types.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
@@ -165,7 +166,7 @@ const normalizeMarket = (
 		irmAddress: assertAddress(wire.irmAddress, 'irm address'),
 		oracleAddress: assertAddress(wire.oracle.address, 'oracle address'),
 		...(wire.creationBlockNumber != null && {
-			creationBlockNumber: String(wire.creationBlockNumber),
+			creationBlockNumber: assertGraphqlAmount(wire.creationBlockNumber, 'creationBlockNumber'),
 		}),
 		...(wire.state != null && {
 			state: normalizeMarketState(wire.state),
@@ -184,7 +185,22 @@ const vaultFields = `
 	}
 	chain {
 		id
+	}
+	state {
+		totalAssets
+		totalSupply
+		timestamp
+		blockNumber
 	}`
+
+const normalizeVaultState = (
+	wire: MorphoGraphqlVaultStateWire
+) => ({
+	totalAssets: assertGraphqlAmount(wire.totalAssets, 'totalAssets'),
+	totalSupply: assertGraphqlAmount(wire.totalSupply, 'totalSupply'),
+	lastAccrualTimestamp: wire.timestamp,
+	lastIndexedBlock: assertGraphqlAmount(wire.blockNumber, 'blockNumber'),
+})
 
 const normalizeVault = (
 	wire: MorphoGraphqlVaultWire,
@@ -202,6 +218,9 @@ const normalizeVault = (
 		listed: assertListed(wire.listed),
 		assetAddress: assertAddress(wire.asset.address, 'vault asset address'),
 		assetDecimals: assertDecimals(wire.asset.decimals, 'vault asset decimals'),
+		...(wire.state != null && {
+			state: normalizeVaultState(wire.state),
+		}),
 	}
 }
 
@@ -391,15 +410,6 @@ export const getVault = async ({
 	return vault
 }
 
-const assertNonNegativeDecimalString = (
-	value: string | undefined,
-	label: string
-) => {
-	if (value == null || value.length < 1 || !/^(?:0|[1-9]\d*)$/.test(value))
-		throw new Error(`${Source.Morpho_Graphql}: account position missing ${label}`)
-	return value
-}
-
 const assertOptionalFiniteNumber = (
 	value: number | undefined,
 	label: string
@@ -418,11 +428,11 @@ const normalizeMarketPosition = (
 		account: `0x${string}`
 	}
 ): MorphoGraphqlAccountMarketPosition | null => {
-	const supplyAssets = assertNonNegativeDecimalString(wire.state.supplyAssets, 'supplyAssets')
-	const supplyShares = assertNonNegativeDecimalString(wire.state.supplyShares, 'supplyShares')
-	const borrowAssets = assertNonNegativeDecimalString(wire.state.borrowAssets, 'borrowAssets')
-	const borrowShares = assertNonNegativeDecimalString(wire.state.borrowShares, 'borrowShares')
-	const collateral = assertNonNegativeDecimalString(wire.state.collateral, 'collateral')
+	const supplyAssets = assertGraphqlAmount(wire.state.supplyAssets, 'supplyAssets')
+	const supplyShares = assertGraphqlAmount(wire.state.supplyShares, 'supplyShares')
+	const borrowAssets = assertGraphqlAmount(wire.state.borrowAssets, 'borrowAssets')
+	const borrowShares = assertGraphqlAmount(wire.state.borrowShares, 'borrowShares')
+	const collateral = assertGraphqlAmount(wire.state.collateral, 'collateral')
 	if (
 		supplyAssets === '0'
 		&& supplyShares === '0'
@@ -460,8 +470,8 @@ const normalizeVaultPosition = (
 		account: `0x${string}`
 	}
 ): MorphoGraphqlAccountVaultPosition | null => {
-	const assets = assertNonNegativeDecimalString(wire.state.assets, 'assets')
-	const shares = assertNonNegativeDecimalString(wire.state.shares, 'shares')
+	const assets = assertGraphqlAmount(wire.state.assets, 'assets')
+	const shares = assertGraphqlAmount(wire.state.shares, 'shares')
 	if (assets === '0' && shares === '0')
 		return null
 

@@ -28,7 +28,7 @@ export const morphoGraphqlMarketStateWire = arktype({
 
 export const morphoGraphqlMarketWire = arktype({
 	marketId: 'string',
-	'creationBlockNumber?': 'number.integer >= 0',
+	'creationBlockNumber?': morphoGraphqlAmountWire,
 	chain: morphoGraphqlChainWire,
 	loanAsset: morphoGraphqlAddressAssetWire,
 	collateralAsset: morphoGraphqlAddressAssetWire,
@@ -48,6 +48,13 @@ export const morphoGraphqlMarketDataWire = arktype({
 	'marketById?': morphoGraphqlMarketWire.or(arktype('null')),
 })
 
+export const morphoGraphqlVaultStateWire = arktype({
+	totalAssets: morphoGraphqlAmountWire,
+	totalSupply: morphoGraphqlAmountWire,
+	timestamp: 'number.integer >= 0',
+	blockNumber: morphoGraphqlAmountWire,
+})
+
 export const morphoGraphqlVaultWire = arktype({
 	address: 'string',
 	symbol: 'string',
@@ -55,6 +62,7 @@ export const morphoGraphqlVaultWire = arktype({
 	listed: 'boolean',
 	asset: morphoGraphqlVaultAssetWire,
 	chain: morphoGraphqlChainWire,
+	'state?': morphoGraphqlVaultStateWire.or(arktype('null')),
 })
 
 export const morphoGraphqlVaultsDataWire = arktype({
@@ -72,11 +80,11 @@ export const morphoGraphqlAccountMarketPositionWire = arktype({
 		marketId: 'string',
 	},
 	state: {
-		supplyAssets: 'string',
-		supplyShares: 'string',
-		borrowAssets: 'string',
-		borrowShares: 'string',
-		collateral: 'string',
+		supplyAssets: morphoGraphqlAmountWire,
+		supplyShares: morphoGraphqlAmountWire,
+		borrowAssets: morphoGraphqlAmountWire,
+		borrowShares: morphoGraphqlAmountWire,
+		collateral: morphoGraphqlAmountWire,
 		'supplyAssetsUsd?': 'number',
 		'borrowAssetsUsd?': 'number',
 		'collateralUsd?': 'number',
@@ -90,8 +98,8 @@ export const morphoGraphqlAccountVaultPositionWire = arktype({
 		symbol: 'string',
 	},
 	state: {
-		assets: 'string',
-		shares: 'string',
+		assets: morphoGraphqlAmountWire,
+		shares: morphoGraphqlAmountWire,
 		'assetsUsd?': 'number',
 	},
 })
@@ -107,6 +115,7 @@ export const morphoGraphqlAccountPositionsDataWire = arktype({
 export type MorphoGraphqlMarketWire = typeof morphoGraphqlMarketWire.infer
 export type MorphoGraphqlMarketStateWire = typeof morphoGraphqlMarketStateWire.infer
 export type MorphoGraphqlVaultWire = typeof morphoGraphqlVaultWire.infer
+export type MorphoGraphqlVaultStateWire = typeof morphoGraphqlVaultStateWire.infer
 export type MorphoGraphqlAccountMarketPositionWire = typeof morphoGraphqlAccountMarketPositionWire.infer
 export type MorphoGraphqlAccountVaultPositionWire = typeof morphoGraphqlAccountVaultPositionWire.infer
 
@@ -131,6 +140,13 @@ export type MorphoGraphqlMarket = {
 	state?: MorphoGraphqlMarketState
 }
 
+export type MorphoGraphqlVaultState = {
+	totalAssets: string
+	totalSupply: string
+	lastAccrualTimestamp: number
+	lastIndexedBlock: string
+}
+
 export type MorphoGraphqlVault = {
 	address: `0x${string}`
 	chainId: number
@@ -139,6 +155,7 @@ export type MorphoGraphqlVault = {
 	listed: boolean
 	assetAddress: `0x${string}`
 	assetDecimals: number
+	state?: MorphoGraphqlVaultState
 }
 
 export type MorphoGraphqlAccountMarketPosition = {
