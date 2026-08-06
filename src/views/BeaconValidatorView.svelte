@@ -265,9 +265,6 @@
 						fields: {
 							attestationDuties: true,
 						},
-						sources: [
-							Source.BeaconchaIn_Rest,
-						],
 					})
 				}
 			>
