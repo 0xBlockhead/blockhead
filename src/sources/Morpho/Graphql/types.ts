@@ -69,3 +69,73 @@ export type MorphoGraphqlVaultsData = {
 export type MorphoGraphqlVaultData = {
 	vaultByAddress?: MorphoGraphqlVaultWire
 }
+
+export type MorphoGraphqlAccountMarketPositionWire = {
+	market?: {
+		marketId?: string
+	}
+	state?: {
+		supplyAssets?: string
+		supplyShares?: string
+		borrowAssets?: string
+		borrowShares?: string
+		collateral?: string
+		supplyAssetsUsd?: number
+		borrowAssetsUsd?: number
+		collateralUsd?: number
+	}
+}
+
+export type MorphoGraphqlAccountVaultPositionWire = {
+	vault?: {
+		address?: string
+		name?: string
+		symbol?: string
+	}
+	state?: {
+		assets?: string
+		shares?: string
+		assetsUsd?: number
+	}
+}
+
+export type MorphoGraphqlAccountPositionsData = {
+	userByAddress?: {
+		address?: string
+		marketPositions?: MorphoGraphqlAccountMarketPositionWire[]
+		vaultPositions?: MorphoGraphqlAccountVaultPositionWire[]
+	} | null
+}
+
+export type MorphoGraphqlAccountMarketPosition = {
+	protocol: 'Morpho Blue'
+	kind: 'market'
+	chainId: number
+	account: `0x${string}`
+	marketId: `0x${string}`
+	supplyAssets: string
+	supplyShares: string
+	borrowAssets: string
+	borrowShares: string
+	collateral: string
+	supplyAssetsUsd?: number
+	borrowAssetsUsd?: number
+	collateralUsd?: number
+}
+
+export type MorphoGraphqlAccountVaultPosition = {
+	protocol: 'Morpho Vault'
+	kind: 'vault'
+	chainId: number
+	account: `0x${string}`
+	vaultAddress: `0x${string}`
+	vaultName: string
+	vaultSymbol: string
+	assets: string
+	shares: string
+	assetsUsd?: number
+}
+
+export type MorphoGraphqlAccountPosition =
+	| MorphoGraphqlAccountMarketPosition
+	| MorphoGraphqlAccountVaultPosition

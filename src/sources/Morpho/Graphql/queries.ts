@@ -13,6 +13,12 @@ import {
 } from './constants.ts'
 import { queryMorpho } from './client.ts'
 import type {
+	MorphoGraphqlAccountMarketPosition,
+	MorphoGraphqlAccountMarketPositionWire,
+	MorphoGraphqlAccountPosition,
+	MorphoGraphqlAccountPositionsData,
+	MorphoGraphqlAccountVaultPosition,
+	MorphoGraphqlAccountVaultPositionWire,
 	MorphoGraphqlMarket,
 	MorphoGraphqlMarketData,
 	MorphoGraphqlMarketsData,
@@ -334,4 +340,190 @@ export const getVault = async ({
 		throw new Error(`${Source.Morpho_Graphql}: vault address mismatch`)
 
 	return vault
+}
+
+const assertNonNegativeDecimalString = (
+	value: string | undefined,
+	label: string
+) => {
+	if (value == null || value.length < 1 || !/^(?:0|[1-9]\d*)$/.test(value))
+		throw new Error(`${Source.Morpho_Graphql}: account position missing ${label}`)
+	return value
+}
+
+const assertOptionalFiniteNumber = (
+	value: number | undefined,
+	label: string
+) => {
+	if (value == null)
+		return undefined
+	if (!Number.isFinite(value))
+		throw new Error(`${Source.Morpho_Graphql}: invalid ${label} ${String(value)}`)
+	return value
+}
+
+const normalizeMarketPosition = (
+	wire: MorphoGraphqlAccountMarketPositionWire,
+	expected: {
+		chainId: number
+		account: `0x${string}`
+	}
+): MorphoGraphqlAccountMarketPosition | null => {
+	if (wire.market == null)
+		throw new Error(`${Source.Morpho_Graphql}: account market position missing market`)
+	if (wire.state == null)
+		throw new Error(`${Source.Morpho_Graphql}: account market position missing state`)
+
+	const supplyAssets = assertNonNegativeDecimalString(wire.state.supplyAssets, 'supplyAssets')
+	const supplyShares = assertNonNegativeDecimalString(wire.state.supplyShares, 'supplyShares')
+	const borrowAssets = assertNonNegativeDecimalString(wire.state.borrowAssets, 'borrowAssets')
+	const borrowShares = assertNonNegativeDecimalString(wire.state.borrowShares, 'borrowShares')
+	const collateral = assertNonNegativeDecimalString(wire.state.collateral, 'collateral')
+	if (
+		supplyAssets === '0'
+		&& supplyShares === '0'
+		&& borrowAssets === '0'
+		&& borrowShares === '0'
+		&& collateral === '0'
+	)
+		return null
+
+	const supplyAssetsUsd = assertOptionalFiniteNumber(wire.state.supplyAssetsUsd, 'supplyAssetsUsd')
+	const borrowAssetsUsd = assertOptionalFiniteNumber(wire.state.borrowAssetsUsd, 'borrowAssetsUsd')
+	const collateralUsd = assertOptionalFiniteNumber(wire.state.collateralUsd, 'collateralUsd')
+
+	return {
+		protocol: 'Morpho Blue',
+		kind: 'market',
+		chainId: expected.chainId,
+		account: expected.account,
+		marketId: assertMarketId(wire.market.marketId),
+		supplyAssets,
+		supplyShares,
+		borrowAssets,
+		borrowShares,
+		collateral,
+		...(supplyAssetsUsd != null && { supplyAssetsUsd }),
+		...(borrowAssetsUsd != null && { borrowAssetsUsd }),
+		...(collateralUsd != null && { collateralUsd }),
+	}
+}
+
+const normalizeVaultPosition = (
+	wire: MorphoGraphqlAccountVaultPositionWire,
+	expected: {
+		chainId: number
+		account: `0x${string}`
+	}
+): MorphoGraphqlAccountVaultPosition | null => {
+	if (wire.vault == null)
+		throw new Error(`${Source.Morpho_Graphql}: account vault position missing vault`)
+	if (wire.state == null)
+		throw new Error(`${Source.Morpho_Graphql}: account vault position missing state`)
+
+	const assets = assertNonNegativeDecimalString(wire.state.assets, 'assets')
+	const shares = assertNonNegativeDecimalString(wire.state.shares, 'shares')
+	if (assets === '0' && shares === '0')
+		return null
+
+	const assetsUsd = assertOptionalFiniteNumber(wire.state.assetsUsd, 'assetsUsd')
+
+	return {
+		protocol: 'Morpho Vault',
+		kind: 'vault',
+		chainId: expected.chainId,
+		account: expected.account,
+		vaultAddress: assertAddress(wire.vault.address, 'vault address'),
+		vaultName: assertNonEmpty(wire.vault.name, 'vault name'),
+		vaultSymbol: assertNonEmpty(wire.vault.symbol, 'vault symbol'),
+		assets,
+		shares,
+		...(assetsUsd != null && { assetsUsd }),
+	}
+}
+
+/**
+ * Account Morpho Blue market + MetaMorpho vault positions via documented `userByAddress`.
+ * @see https://docs.morpho.org/tools/offchain/api/morpho/
+ * @see https://docs.morpho.org/tools/offchain/api/morpho-vaults/
+ */
+export const getAccountPositions = async ({
+	chainId,
+	account,
+}: {
+	chainId: number
+	account: string
+}): Promise<MorphoGraphqlAccountPosition[]> => {
+	assertChainId(chainId)
+	const normalizedAccount = assertAddress(account, 'account')
+	const data = await queryMorpho<MorphoGraphqlAccountPositionsData>(`
+		query MorphoAccountPositions(
+			$chainId: Int!,
+			$address: String!
+		) {
+			userByAddress(
+				chainId: $chainId,
+				address: $address
+			) {
+				address
+				marketPositions {
+					market {
+						marketId
+					}
+					state {
+						supplyAssets
+						supplyShares
+						borrowAssets
+						borrowShares
+						collateral
+						supplyAssetsUsd
+						borrowAssetsUsd
+						collateralUsd
+					}
+				}
+				vaultPositions {
+					vault {
+						address
+						name
+						symbol
+					}
+					state {
+						assets
+						shares
+						assetsUsd
+					}
+				}
+			}
+		}
+	`, {
+		chainId,
+		address: normalizedAccount,
+	})
+
+	// Absent user means no indexed positions for this account on this chain.
+	if (data.userByAddress == null)
+		return []
+
+	const responseAddress = assertAddress(data.userByAddress.address, 'account')
+	if (responseAddress !== normalizedAccount)
+		throw new Error(`${Source.Morpho_Graphql}: account positions address mismatch`)
+	if (data.userByAddress.marketPositions == null)
+		throw new Error(`${Source.Morpho_Graphql}: account positions missing marketPositions`)
+	if (data.userByAddress.vaultPositions == null)
+		throw new Error(`${Source.Morpho_Graphql}: account positions missing vaultPositions`)
+
+	return [
+		...data.userByAddress.marketPositions.map((wire) => (
+			normalizeMarketPosition(wire, {
+				chainId,
+				account: normalizedAccount,
+			})
+		)),
+		...data.userByAddress.vaultPositions.map((wire) => (
+			normalizeVaultPosition(wire, {
+				chainId,
+				account: normalizedAccount,
+			})
+		)),
+	].filter((position) => position != null)
 }
