@@ -7,6 +7,12 @@ import type {
 	RedditPublicApiListingRequest,
 	RedditPublicApiSubredditAbout,
 } from '$/sources/RedditPublic/Rest/types.ts'
+import {
+	redditPublicCommentsWire,
+	redditPublicInfoResponseWire,
+	redditPublicListingWire,
+	redditPublicSubredditAboutWire,
+} from '$/sources/RedditPublic/Rest/types.ts'
 
 const redditListingLimit = (limit: number) => {
 	if (!Number.isSafeInteger(limit) || limit < 0)
@@ -14,17 +20,37 @@ const redditListingLimit = (limit: number) => {
 	return Math.min(100, limit)
 }
 
-export const getInfo = (id: string) => (
-	redditJsonGet<RedditPublicApiInfoResponse>(
-		`/api/info.json?${(
-			new URLSearchParams({ id, raw_json: '1' }).toString()
-		)}`
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`Reddit_PublicJson: invalid ${label} response envelope`)
+	}
+}
+
+export const getInfo = async (id: string) => (
+	assertEnvelope(
+		'info',
+		redditPublicInfoResponseWire,
+		await redditJsonGet<RedditPublicApiInfoResponse>(
+			`/api/info.json?${(
+				new URLSearchParams({ id, raw_json: '1' }).toString()
+			)}`
+		)
 	)
 )
 
-export const getSubredditAbout = (name: string) => (
-	redditJsonGet<RedditPublicApiSubredditAbout>(
-		`/r/${encodeURIComponent(name)}/about.json?raw_json=1`
+export const getSubredditAbout = async (name: string) => (
+	assertEnvelope(
+		'subreddit-about',
+		redditPublicSubredditAboutWire,
+		await redditJsonGet<RedditPublicApiSubredditAbout>(
+			`/r/${encodeURIComponent(name)}/about.json?raw_json=1`
+		)
 	)
 )
 
@@ -37,18 +63,22 @@ export const listSubredditLinks = async (
 		return {
 			kind: 'Listing',
 			data: { children: [] },
-		}
+		} satisfies RedditPublicApiListing
 
-	return redditJsonGet<RedditPublicApiListing>(
-		`/r/${encodeURIComponent(name)}/${request.sort}.json?${(
-			new URLSearchParams({
-				...(request.after !== undefined && {
-					after: request.after,
-				}),
-				limit: String(limit),
-				raw_json: '1',
-			}).toString()
-		)}`
+	return assertEnvelope(
+		'listing',
+		redditPublicListingWire,
+		await redditJsonGet<RedditPublicApiListing>(
+			`/r/${encodeURIComponent(name)}/${request.sort}.json?${(
+				new URLSearchParams({
+					...(request.after !== undefined && {
+						after: request.after,
+					}),
+					limit: String(limit),
+					raw_json: '1',
+				}).toString()
+			)}`
+		)
 	)
 }
 
@@ -63,12 +93,16 @@ export const getCommentsByArticleId = async (
 			{ kind: 'Listing', data: { children: [] } },
 		] satisfies RedditPublicApiListing[]
 
-	return redditJsonGet<RedditPublicApiListing[]>(
-		`/comments/${encodeURIComponent(articleId)}.json?${(
-			new URLSearchParams({
-				limit: String(boundedLimit),
-				raw_json: '1',
-			}).toString()
-		)}`
+	return assertEnvelope(
+		'comments',
+		redditPublicCommentsWire,
+		await redditJsonGet<RedditPublicApiListing[]>(
+			`/comments/${encodeURIComponent(articleId)}.json?${(
+				new URLSearchParams({
+					limit: String(boundedLimit),
+					raw_json: '1',
+				}).toString()
+			)}`
+		)
 	)
 }

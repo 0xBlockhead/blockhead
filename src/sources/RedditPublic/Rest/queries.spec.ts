@@ -27,6 +27,29 @@ describe('Reddit Public listing hard-fail', () => {
 		redditJsonGet.mockReset()
 	})
 
+	it('fails closed on malformed listing / about / comments envelopes', async () => {
+		const {
+			getCommentsByArticleId,
+			getSubredditAbout,
+		} = await import('$/sources/RedditPublic/Rest/queries.ts')
+
+		redditJsonGet.mockResolvedValueOnce({ kind: 'Listing', data: null })
+		await expect(listSubredditLinks('ethereum', {
+			limit: 25,
+			sort: 'hot',
+		})).rejects.toThrow('Reddit_PublicJson: invalid listing response envelope')
+
+		redditJsonGet.mockResolvedValueOnce({ kind: 't5', data: { display_name: 1 } })
+		await expect(getSubredditAbout('ethereum')).rejects.toThrow(
+			'Reddit_PublicJson: invalid subreddit-about response envelope'
+		)
+
+		redditJsonGet.mockResolvedValueOnce({ kind: 'Listing', data: { children: [] } })
+		await expect(getCommentsByArticleId('abc', 10)).rejects.toThrow(
+			'Reddit_PublicJson: invalid comments response envelope'
+		)
+	})
+
 	it('rethrows transport failures for the first hot page', async () => {
 		redditJsonGet.mockRejectedValue(new Error('JSON unavailable'))
 

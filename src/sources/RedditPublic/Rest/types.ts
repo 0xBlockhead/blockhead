@@ -1,3 +1,7 @@
+import {
+	type as arktype,
+	type Type,
+} from 'arktype'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export type RedditPublicApiThing = {
@@ -60,3 +64,41 @@ export type RedditPublicApiSubredditAbout = {
 		community_icon?: string
 	}
 }
+
+
+const redditPublicThingWire = arktype({
+	kind: 'string',
+	data: 'Record<string, unknown>',
+})
+
+export const redditPublicListingWire = arktype({
+	kind: "'Listing'",
+	data: {
+		'after?': 'string | null',
+		'children?': redditPublicThingWire.array(),
+	},
+}) satisfies Type<RedditPublicApiListing>
+
+export const redditPublicInfoResponseWire = arktype({
+	kind: "'Listing'",
+	data: {
+		children: redditPublicThingWire.array(),
+	},
+}) satisfies Type<RedditPublicApiInfoResponse>
+
+export const redditPublicSubredditAboutWire = arktype({
+	kind: "'t5'",
+	data: {
+		display_name: 'string',
+		title: 'string',
+		public_description: 'string',
+		'subscribers?': 'number.integer >= 0',
+		'active_user_count?': 'number.integer >= 0',
+		'created_utc?': 'number',
+		'over18?': 'boolean',
+		'icon_img?': 'string',
+		'community_icon?': 'string',
+	},
+}) satisfies Type<RedditPublicApiSubredditAbout>
+
+export const redditPublicCommentsWire = redditPublicListingWire.array()

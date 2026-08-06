@@ -1,3 +1,7 @@
+import {
+	type as arktype,
+	type Type,
+} from 'arktype'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export type RedditOAuthTokenResponse = {
@@ -65,3 +69,46 @@ export type RedditApiSubredditAbout = {
 		community_icon?: string
 	}
 }
+
+
+const redditApiThingWire = arktype({
+	kind: 'string',
+	data: 'Record<string, unknown>',
+})
+
+export const redditApiListingWire = arktype({
+	kind: "'Listing'",
+	data: {
+		'after?': 'string | null',
+		'children?': redditApiThingWire.array(),
+	},
+}) satisfies Type<RedditApiListing>
+
+export const redditApiInfoResponseWire = arktype({
+	kind: "'Listing'",
+	data: {
+		children: redditApiThingWire.array(),
+	},
+}) satisfies Type<RedditApiInfoResponse>
+
+export const redditApiSubredditAboutWire = arktype({
+	kind: "'t5'",
+	data: {
+		display_name: 'string',
+		title: 'string',
+		public_description: 'string',
+		'subscribers?': 'number.integer >= 0',
+		'active_user_count?': 'number.integer >= 0',
+		'created_utc?': 'number',
+		'over18?': 'boolean',
+		'icon_img?': 'string',
+		'community_icon?': 'string',
+	},
+}) satisfies Type<RedditApiSubredditAbout>
+
+export const redditApiCommentsWire = redditApiListingWire.array()
+
+export const redditOAuthTokenResponseWire = arktype({
+	'access_token?': 'string',
+	'expires_in?': 'number.integer > 0',
+}) satisfies Type<RedditOAuthTokenResponse>

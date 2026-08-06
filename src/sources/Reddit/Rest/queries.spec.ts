@@ -31,6 +31,15 @@ describe('Reddit OAuth listing requests', () => {
 		})
 	})
 
+	it('fails closed on malformed listing envelopes', async () => {
+		oauthGetJson.mockResolvedValueOnce({ kind: 'Listing', data: 'nope' })
+		await expect(listSubredditLinks(
+			{},
+			'ethereum',
+			25
+		)).rejects.toThrow('Reddit_Rest: invalid listing response envelope')
+	})
+
 	it('preserves the opaque after token and subreddit sort partition', async () => {
 		await expect(listSubredditLinks(
 			{},
