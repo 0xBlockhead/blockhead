@@ -1,8 +1,13 @@
 import { randomBytes } from 'node:crypto'
 
-import { zerionDriver } from '../../../../scripts/wallet-extensions/Zerion/driver.ts'
+import {
+	zerionDriver,
+	zerionTurnstileBlockedObservation,
+} from '../../../../scripts/wallet-extensions/Zerion/driver.ts'
 import { zerionWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/Zerion/matrix.ts'
 import {
+	assertWalletMatrixOutcomes,
+	logWalletMatrixResults,
 	runWalletCompatibilityMatrix,
 } from '../../../../scripts/wallet-extensions/WalletCompatibilityMatrix.ts'
 import {
@@ -27,7 +32,7 @@ test('runs the real Zerion EIP-6963 account lifecycle', async ({
 	if (!extension)
 		throw new Error('Zerion lifecycle proof requires the unpacked Zerion extension')
 
-	let captchaBlocked = false
+	const scenarios = zerionWalletMatrixScenarios(extension.manifest.version)
 	let walletPage
 	try {
 		walletPage = await zerionDriver.onboard(
@@ -37,26 +42,22 @@ test('runs the real Zerion EIP-6963 account lifecycle', async ({
 		)
 	}
 	catch (error) {
-		captchaBlocked = /Turnstile|CAPTCHA/i.test(String(error))
-		if (!captchaBlocked)
+		if (!/Turnstile|CAPTCHA/i.test(String(error)))
 			throw error
 
 		const results = await runWalletCompatibilityMatrix({
 			driver: {
 				kind: 'zerion',
-				run: async () => ({
-					outcome: 'blocked',
-					evidence: {
-						code: 'zerion-turnstile-captcha-blocked',
-						source: 'real-extension',
-					},
-				}),
+				run: async (scenario) => zerionTurnstileBlockedObservation(scenario),
 			},
-			scenarios: zerionWalletMatrixScenarios(extension.manifest.version),
+			scenarios,
 			step: (name, run) => test.step(name, run),
 		})
-		expect(results.every(({ outcome }) => outcome === 'blocked')).toBe(true)
-		console.log(JSON.stringify(results, null, 2))
+		assertWalletMatrixOutcomes(results, ['blocked', 'blocked', 'blocked'], 'zerion-turnstile-blocked')
+		logWalletMatrixResults(results, {
+			label: 'zerion-turnstile-blocked',
+			expectedOutcomes: ['blocked', 'blocked', 'blocked'],
+		})
 		throw error
 	}
 
@@ -102,7 +103,6 @@ test('runs the real Zerion EIP-6963 account lifecycle', async ({
 	await walletPage.bringToFront()
 	await walletPage.getByText(/^0x[0-9a-fA-F…]+$/).first().click()
 	const addAccountButton = walletPage.getByText(/Add Account|Create Account/i).first()
-	let secondAccountCreated = false
 	if (await addAccountButton.isVisible()) {
 		await addAccountButton.click()
 		await walletPage.getByText(/Create New Account|Create Account/i).last().click()
@@ -112,7 +112,6 @@ test('runs the real Zerion EIP-6963 account lifecycle', async ({
 		})
 		await page.getByRole('radio').last().check()
 		await expect(page.getByRole('radio').last()).toBeChecked()
-		secondAccountCreated = true
 	}
 
 	await disconnectWalletButton(page).click()
@@ -123,42 +122,17 @@ test('runs the real Zerion EIP-6963 account lifecycle', async ({
 	})
 	await expect(walletConnectionsStatusById(page)).toContainText('Active connections: 0.')
 
-	if (!captchaBlocked) {
-		const results = await runWalletCompatibilityMatrix({
-			driver: {
-				kind: 'zerion',
-				run: async (scenario) => (
-					scenario.initializationFlow === 'recover' ?
-						{
-							outcome: 'blocked',
-							evidence: {
-								code: 'no-safe-fixture-material',
-								source: 'test-environment',
-							},
-						}
-					: scenario.accountOrdinal === 2 && !secondAccountCreated ?
-						{
-							outcome: 'blocked',
-							evidence: {
-								code: 'second-account-ui-unavailable',
-								source: 'real-extension',
-							},
-						}
-					:
-						{
-							accountAddress: `zerion-account-${scenario.accountOrdinal}`,
-							outcome: 'pass',
-							evidence: {
-								code: `zerion-${scenario.lifecycleEdgeCase}-verified`,
-								source: 'real-extension',
-							},
-						}
-				),
-			},
-			scenarios: zerionWalletMatrixScenarios(extension.manifest.version),
-			step: (name, run) => test.step(name, run),
-		})
-		expect(results).toHaveLength(3)
-		console.log(JSON.stringify(results, null, 2))
-	}
+	const results = await runWalletCompatibilityMatrix({
+		driver: {
+			kind: 'zerion',
+			run: async (scenario) => zerionTurnstileBlockedObservation(scenario),
+		},
+		scenarios,
+		step: (name, run) => test.step(name, run),
+	})
+	assertWalletMatrixOutcomes(results, ['blocked', 'blocked', 'blocked'], 'zerion-turnstile-declared')
+	logWalletMatrixResults(results, {
+		label: 'zerion-turnstile-declared',
+		expectedOutcomes: ['blocked', 'blocked', 'blocked'],
+	})
 })
