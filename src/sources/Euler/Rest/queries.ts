@@ -11,11 +11,13 @@ import {
 	eulerVaultListMaxLimit,
 } from '$/sources/Euler/Rest/constants.ts'
 import type {
-	EulerEvkVaultDetail,
-	EulerEvkVaultSummary,
 	EulerAccountPosition,
+	EulerAccountPositionLiquidity,
+	EulerAccountPositionLiquidityWire,
 	EulerAccountPositionWire,
 	EulerAccountPositionsResponse,
+	EulerEvkVaultDetail,
+	EulerEvkVaultSummary,
 	EulerVaultDetailResponse,
 	EulerVaultDetailWire,
 	EulerVaultListResponse,
@@ -85,6 +87,68 @@ const assertObject = <T extends object>(value: T | undefined, label: string) => 
 	return value
 }
 
+const assertLiquidityValue = (
+	value: {
+		value?: string
+		valueUsd?: number
+	} | undefined,
+	label: string
+) => {
+	if (value == null)
+		return undefined
+	if (value.value == null || value.value.length < 1)
+		throw new Error(`${Source.Euler_Rest}: account position missing ${label}.value`)
+
+	return {
+		value: assertNonNegativeDecimalString(value.value, `${label}.value`),
+		...(value.valueUsd != null && {
+			valueUsd: assertFiniteNumber(value.valueUsd, `${label}.valueUsd`),
+		}),
+	}
+}
+
+const assertAccountPositionLiquidity = (
+	liquidity: EulerAccountPositionLiquidityWire | null | undefined
+): EulerAccountPositionLiquidity => {
+	if (liquidity == null)
+		return null
+
+	const daysToLiquidation = liquidity.daysToLiquidation
+	if (
+		daysToLiquidation == null
+		|| (
+			daysToLiquidation !== 'Infinity'
+			&& daysToLiquidation !== 'MoreThanAYear'
+			&& !Number.isFinite(daysToLiquidation)
+		)
+	)
+		throw new Error(`${Source.Euler_Rest}: account position missing liquidity.daysToLiquidation`)
+
+	return {
+		vaultAddress: assertAddress(liquidity.vaultAddress, 'liquidity.vaultAddress'),
+		unitOfAccount: assertAddress(liquidity.unitOfAccount, 'liquidity.unitOfAccount'),
+		daysToLiquidation,
+		...(assertLiquidityValue(liquidity.liabilityValue, 'liquidity.liabilityValue') != null && {
+			liabilityValue: assertLiquidityValue(liquidity.liabilityValue, 'liquidity.liabilityValue'),
+		}),
+		...(assertLiquidityValue(liquidity.totalCollateralValue, 'liquidity.totalCollateralValue') != null && {
+			totalCollateralValue: assertLiquidityValue(liquidity.totalCollateralValue, 'liquidity.totalCollateralValue'),
+		}),
+		collaterals: (liquidity.collaterals ?? []).map((collateral, index) => ({
+			address: assertAddress(collateral.address, `liquidity.collaterals[${String(index)}].address`),
+			...(assertLiquidityValue(collateral.value, `liquidity.collaterals[${String(index)}].value`) != null && {
+				value: assertLiquidityValue(collateral.value, `liquidity.collaterals[${String(index)}].value`),
+			}),
+			...(collateral.marketPriceUsd != null && {
+				marketPriceUsd: assertFiniteNumber(collateral.marketPriceUsd, `liquidity.collaterals[${String(index)}].marketPriceUsd`),
+			}),
+			...(collateral.valueUsd != null && {
+				valueUsd: assertFiniteNumber(collateral.valueUsd, `liquidity.collaterals[${String(index)}].valueUsd`),
+			}),
+		})),
+	}
+}
+
 const assertAccountPositionWire = (
 	wire: EulerAccountPositionWire,
 	expected: {
@@ -118,7 +182,7 @@ const assertAccountPositionWire = (
 		isCollateral: assertBoolean(wire.isCollateral, 'isCollateral'),
 		balanceForwarderEnabled: assertBoolean(wire.balanceForwarderEnabled, 'balanceForwarderEnabled'),
 		isController: assertBoolean(wire.isController, 'isController'),
-		liquidity: wire.liquidity ?? null,
+		liquidity: assertAccountPositionLiquidity(wire.liquidity),
 		subAccount: {
 			owner: assertAddress(subAccount.owner, 'subAccount.owner'),
 			timestamp: assertString(subAccount.timestamp, 'subAccount.timestamp'),
@@ -185,14 +249,29 @@ const assertSummaryWire = (
 	if (vaultAddress !== expected.vaultAddress)
 		throw new Error(`${Source.Euler_Rest}: vault address mismatch`)
 
+	const assetName = wire.asset.name?.trim()
+	const assetDecimals = wire.asset.decimals
+
 	return {
 		chainId: wire.chainId,
 		vaultAddress,
+		vaultType: 'evk',
 		name: wire.name,
 		symbol: wire.symbol,
 		decimals: wire.decimals,
 		assetAddress: assertVaultAddress(wire.asset.address),
 		assetSymbol: wire.asset.symbol,
+		...(assetName != null && assetName !== '' && {
+			assetName,
+		}),
+		...(
+			assetDecimals != null
+			&& Number.isSafeInteger(assetDecimals)
+			&& assetDecimals >= 0
+			&& {
+				assetDecimals,
+			}
+		),
 		totalAssets: assertNonNegativeDecimalString(wire.totalAssets, 'totalAssets'),
 		totalBorrows: assertNonNegativeDecimalString(wire.totalBorrows, 'totalBorrows'),
 		totalSupplyUsd: assertFiniteNumber(wire.totalSupplyUsd, 'totalSupplyUsd'),
@@ -201,6 +280,9 @@ const assertSummaryWire = (
 		supplyApy: assertFiniteNumber(wire.supplyApy, 'supplyApy'),
 		borrowApy: assertFiniteNumber(wire.borrowApy, 'borrowApy'),
 		createdAt: wire.createdAt,
+		...(wire.snapshotTimestamp != null && wire.snapshotTimestamp.length > 0 && {
+			snapshotTimestamp: wire.snapshotTimestamp,
+		}),
 	}
 }
 
@@ -210,30 +292,120 @@ const assertDetailWire = (
 		chainId: number
 		vaultAddress: `0x${string}`
 	}
-): EulerEvkVaultDetail => ({
-	...assertSummaryWire(wire, expected),
-	...(assertOptionalAddress(wire.dToken, 'dToken') != null && {
-		dTokenAddress: assertOptionalAddress(wire.dToken, 'dToken'),
-	}),
-	...(wire.oracle != null && {
-		oracleAddress: assertAddress(wire.oracle.oracle, 'oracle'),
-	}),
-	...(assertOptionalAddress(wire.governor, 'governor') != null && {
-		governorAddress: assertOptionalAddress(wire.governor, 'governor'),
-	}),
-	...(wire.supplyCap != null && {
-		supplyCap: assertNonNegativeDecimalString(wire.supplyCap, 'supplyCap'),
-	}),
-	...(wire.borrowCap != null && {
-		borrowCap: assertNonNegativeDecimalString(wire.borrowCap, 'borrowCap'),
-	}),
-	...(wire.fees != null && {
-		interestFee: assertFiniteNumber(wire.fees.interestFee, 'interestFee'),
-	}),
-	...(wire.createdAtBlock != null && {
-		createdAtBlock: assertString(wire.createdAtBlock, 'createdAtBlock'),
-	}),
-})
+): EulerEvkVaultDetail => {
+	const summary = assertSummaryWire(wire, expected)
+	const dTokenAddress = assertOptionalAddress(wire.dToken, 'dToken')
+	const governorAddress = assertOptionalAddress(wire.governor, 'governor')
+	const governorAdminAddress = assertOptionalAddress(wire.governorAdmin, 'governorAdmin')
+	const creatorAddress = assertOptionalAddress(wire.creator, 'creator')
+	const unitOfAccountAddress = (
+		wire.unitOfAccount == null ?
+			undefined
+		:
+			assertOptionalAddress(wire.unitOfAccount.address, 'unitOfAccount')
+	)
+	const unitOfAccountSymbol = wire.unitOfAccount?.symbol?.trim()
+	const oracleName = wire.oracle?.name?.trim()
+	const governorFeeReceiver = assertOptionalAddress(wire.fees?.governorFeeReceiver, 'governorFeeReceiver')
+	const protocolFeeReceiver = assertOptionalAddress(wire.fees?.protocolFeeReceiver, 'protocolFeeReceiver')
+	const exchangeRate = wire.exchangeRate?.trim()
+
+	return {
+		...summary,
+		...(dTokenAddress != null && {
+			dTokenAddress,
+		}),
+		...(wire.oracle != null && {
+			oracleAddress: assertAddress(wire.oracle.oracle, 'oracle'),
+			...(oracleName != null && oracleName !== '' && {
+				oracleName,
+			}),
+		}),
+		...(governorAddress != null && {
+			governorAddress,
+		}),
+		...(governorAdminAddress != null && {
+			governorAdminAddress,
+		}),
+		...(creatorAddress != null && {
+			creatorAddress,
+		}),
+		...(unitOfAccountAddress != null && {
+			unitOfAccountAddress,
+		}),
+		...(unitOfAccountSymbol != null && unitOfAccountSymbol !== '' && {
+			unitOfAccountSymbol,
+		}),
+		...(wire.supplyCap != null && {
+			supplyCap: assertNonNegativeDecimalString(wire.supplyCap, 'supplyCap'),
+		}),
+		...(wire.borrowCap != null && {
+			borrowCap: assertNonNegativeDecimalString(wire.borrowCap, 'borrowCap'),
+		}),
+		...(wire.totalShares != null && {
+			totalShares: assertNonNegativeDecimalString(wire.totalShares, 'totalShares'),
+		}),
+		...(wire.totalBorrowed != null && {
+			totalBorrowed: assertNonNegativeDecimalString(wire.totalBorrowed, 'totalBorrowed'),
+		}),
+		...(wire.totalCash != null && {
+			totalCash: assertNonNegativeDecimalString(wire.totalCash, 'totalCash'),
+		}),
+		...(wire.cash != null && {
+			cash: assertNonNegativeDecimalString(wire.cash, 'cash'),
+		}),
+		...(wire.interestRate != null && {
+			interestRate: assertNonNegativeDecimalString(wire.interestRate, 'interestRate'),
+		}),
+		...(wire.interestAccumulator != null && {
+			interestAccumulator: assertNonNegativeDecimalString(wire.interestAccumulator, 'interestAccumulator'),
+		}),
+		...(wire.accumulatedFees != null && {
+			accumulatedFees: assertNonNegativeDecimalString(wire.accumulatedFees, 'accumulatedFees'),
+		}),
+		...(wire.fees != null && {
+			interestFee: assertFiniteNumber(wire.fees.interestFee, 'interestFee'),
+			...(wire.fees.accumulatedFeesShares != null && {
+				accumulatedFeesShares: assertNonNegativeDecimalString(wire.fees.accumulatedFeesShares, 'accumulatedFeesShares'),
+			}),
+			...(wire.fees.accumulatedFeesAssets != null && {
+				accumulatedFeesAssets: assertNonNegativeDecimalString(wire.fees.accumulatedFeesAssets, 'accumulatedFeesAssets'),
+			}),
+			...(governorFeeReceiver != null && {
+				governorFeeReceiver,
+			}),
+			...(protocolFeeReceiver != null && {
+				protocolFeeReceiver,
+			}),
+			...(wire.fees.protocolFeeShare != null && {
+				protocolFeeShare: assertFiniteNumber(wire.fees.protocolFeeShare, 'protocolFeeShare'),
+			}),
+		}),
+		...(wire.interestRates != null && {
+			...(wire.interestRates.borrowSPY != null && wire.interestRates.borrowSPY.length > 0 && {
+				borrowSpy: wire.interestRates.borrowSPY,
+			}),
+			...(wire.interestRates.borrowAPY != null && wire.interestRates.borrowAPY.length > 0 && {
+				borrowApyExact: wire.interestRates.borrowAPY,
+			}),
+			...(wire.interestRates.supplyAPY != null && wire.interestRates.supplyAPY.length > 0 && {
+				supplyApyExact: wire.interestRates.supplyAPY,
+			}),
+		}),
+		...(wire.createdAtBlock != null && {
+			createdAtBlock: assertString(wire.createdAtBlock, 'createdAtBlock'),
+		}),
+		...(wire.timestamp != null && wire.timestamp.length > 0 && {
+			observationTimestamp: wire.timestamp,
+		}),
+		...(wire.evcCompatibleAsset != null && {
+			evcCompatibleAsset: wire.evcCompatibleAsset,
+		}),
+		...(exchangeRate != null && exchangeRate !== '' && {
+			exchangeRate,
+		}),
+	}
+}
 
 const assertLimit = (limit: number) => {
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > eulerVaultListMaxLimit)

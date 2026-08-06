@@ -36,6 +36,31 @@ import { type as arktype } from 'arktype'
 
 const binding = bindings[Source.OpenSea_Rest][0]
 
+/** OpenAPI Trait — transport-typed; no enrolled EvmNft trait bag. */
+const openSeaTraitWire = arktype({
+	trait_type: 'string',
+	value: 'unknown',
+	'display_type?': 'string',
+	'max_value?': 'string',
+})
+
+/** OpenAPI Rarity — transport-only until APP enrolls NFT rarity. */
+const openSeaRarityWire = arktype({
+	strategy_id: 'string',
+	strategy_version: 'string',
+	'rank?': 'number',
+})
+
+const openSeaOwnerWire = arktype({
+	address: 'string',
+	quantity: 'number',
+	quantity_string: 'string',
+})
+
+/**
+ * OpenAPI Nft list row + optional media / valuation leftovers.
+ * Enrolled EvmNft projections still only use standard / URI / name / description / image / active.
+ */
 const openSeaNftWire = arktype({
 	identifier: 'string',
 	collection: 'string',
@@ -45,17 +70,25 @@ const openSeaNftWire = arktype({
 	updated_at: 'string',
 	is_disabled: 'boolean',
 	is_nsfw: 'boolean',
-	traits: 'unknown[]',
+	traits: openSeaTraitWire.array(),
+	'name?': 'string',
+	'description?': 'string',
+	'image_url?': 'string',
+	'display_image_url?': 'string',
+	'display_animation_url?': 'string',
+	'metadata_url?': 'string',
+	'original_image_url?': 'string',
+	'original_animation_url?': 'string',
+	'estimated_value_usd?': 'number',
+	'decimals?': 'number',
 })
 const openSeaNftDetailedWire = arktype({
 	...openSeaNftWire.definition,
 	creator: 'string',
 	is_suspicious: 'boolean',
-	owners: arktype({
-		address: 'string',
-		quantity: 'number',
-		quantity_string: 'string',
-	}).array(),
+	owners: openSeaOwnerWire.array(),
+	'animation_url?': 'string',
+	'rarity?': openSeaRarityWire,
 })
 const openSeaNftListEnvelope = arktype({
 	nfts: openSeaNftWire.array(),
@@ -63,6 +96,38 @@ const openSeaNftListEnvelope = arktype({
 })
 const openSeaNftEnvelope = arktype({
 	nft: openSeaNftDetailedWire,
+})
+const openSeaNftOwnersEnvelope = arktype({
+	owners: openSeaOwnerWire.array(),
+	'next?': 'string',
+})
+/** Shared AssetEventsResponse spine — event-type payloads stay transport-only. */
+const openSeaAssetEventsEnvelope = arktype({
+	asset_events: arktype({
+		event_type: 'string',
+		event_timestamp: 'number',
+	}).array(),
+	'next?': 'string',
+})
+const openSeaContractEnvelope = arktype({
+	address: 'string',
+	collection: 'string',
+	'chain?': 'string',
+	'contract_standard?': 'string',
+	'name?': 'string',
+})
+const openSeaCollectionEnvelope = arktype({
+	collection: 'string',
+	contracts: arktype({
+		address: 'string',
+		chain: 'string',
+	}).array(),
+	'name?': 'string',
+	'description?': 'string',
+	'image_url?': 'string',
+	'banner_image_url?': 'string',
+	'opensea_url?': 'string',
+	'total_supply?': 'number',
 })
 
 const assertEnvelope = (
@@ -154,9 +219,7 @@ const requireNftList = <
 const requireOwnersList = (
 	body: OpenSeaNftOwnersResponse
 ) => {
-	if (!Array.isArray(body.owners))
-		throw new Error('OpenSea_Rest: NFT owners response missing owners array')
-
+	assertEnvelope(openSeaNftOwnersEnvelope, body, 'NFT owners')
 	return body
 }
 
@@ -168,9 +231,7 @@ const requireAssetEvents = <
 	body: _Response,
 	surface: string
 ) => {
-	if (!Array.isArray(body.asset_events))
-		throw new Error(`OpenSea_Rest: ${surface} response missing asset_events array`)
-
+	assertEnvelope(openSeaAssetEventsEnvelope, body, surface)
 	return body
 }
 
@@ -277,11 +338,7 @@ export const getContract = async ({
 		path: `/api/v2/chain/${encodeURIComponent(chain)}/contract/${encodeURIComponent(address)}`,
 	})
 
-	if (body.address == null || body.address === '')
-		throw new Error('OpenSea_Rest: contract response missing address')
-	if (body.collection == null || body.collection === '')
-		throw new Error('OpenSea_Rest: contract response missing collection')
-
+	assertEnvelope(openSeaContractEnvelope, body, 'contract')
 	return body
 }
 
@@ -389,11 +446,7 @@ export const getCollection = async ({
 		path: `/api/v2/collections/${encodeURIComponent(slug)}`,
 	})
 
-	if (body.collection == null || body.collection === '')
-		throw new Error('OpenSea_Rest: collection response missing collection slug')
-	if (!Array.isArray(body.contracts))
-		throw new Error('OpenSea_Rest: collection response missing contracts array')
-
+	assertEnvelope(openSeaCollectionEnvelope, body, 'collection')
 	return body
 }
 

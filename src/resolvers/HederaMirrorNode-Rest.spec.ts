@@ -352,6 +352,36 @@ describe('Hedera Mirror Node account query and resolver', () => {
 		}, context)).rejects.toThrow('unsupported network')
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
+
+	it('fails closed on malformed account transport leftovers without projecting them', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			...accountFixture,
+			ethereum_nonce: -1,
+		} satisfies HederaMirrorNodeAccount)))
+		await expect(hederaMirrorNode.resolvers[0].resolve[
+			'NetworkAccountId'
+		].resolve({
+			$network: network,
+			accountId: '0.0.98',
+		}, context)).rejects.toThrow('malformed ethereum nonce')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			...accountFixture,
+			balance: {
+				...accountFixture.balance,
+				tokens: [{
+					token_id: 'not-an-id',
+					balance: '1',
+				}],
+			},
+		} satisfies HederaMirrorNodeAccount)))
+		await expect(hederaMirrorNode.resolvers[0].resolve[
+			'NetworkAccountId'
+		].resolve({
+			$network: network,
+			accountId: '0.0.98',
+		}, context)).rejects.toThrow('malformed account token balance token ID')
+	})
 })
 
 describe('Hedera Mirror Node block resolver', () => {
@@ -433,6 +463,32 @@ describe('Hedera Mirror Node block resolver', () => {
 			$network: network,
 			blockNumber: 77n,
 		}, context)).rejects.toThrow('malformed gas used')
+	})
+
+	it('fails closed on empty previous_hash leftover without projecting it', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			...fixture,
+			previous_hash: '',
+		})))
+		await expect(hederaMirrorNode.resolvers[2].resolve[
+			'NetworkBlockNumber'
+		].resolve({
+			$network: network,
+			blockNumber: 77n,
+		}, context)).rejects.toThrow('malformed previous block hash')
+	})
+
+	it('fails closed on negative block size leftover', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			...fixture,
+			size: -1,
+		})))
+		await expect(hederaMirrorNode.resolvers[2].resolve[
+			'NetworkBlockNumber'
+		].resolve({
+			$network: network,
+			blockNumber: 77n,
+		}, context)).rejects.toThrow('malformed block size')
 	})
 
 	it('keeps a nullable wire gas total absent from the optional schema field', async () => {

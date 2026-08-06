@@ -2,7 +2,7 @@ export type EulerAssetRefWire = {
 	address?: string
 	symbol?: string
 	decimals?: number
-	name?: string
+	name?: string | null
 }
 
 export type EulerOracleInfoWire = {
@@ -12,6 +12,18 @@ export type EulerOracleInfoWire = {
 
 export type EulerVaultFeesWire = {
 	interestFee?: number
+	accumulatedFeesShares?: string
+	accumulatedFeesAssets?: string
+	governorFeeReceiver?: string
+	protocolFeeReceiver?: string
+	protocolFeeShare?: number
+}
+
+/** Contract interest-rate decimals — transport-only; enrolled APYs use float supplyApy/borrowApy. */
+export type EulerVaultInterestRatesWire = {
+	borrowSPY?: string
+	borrowAPY?: string
+	supplyAPY?: string
 }
 
 export type EulerVaultSummaryWire = {
@@ -38,13 +50,23 @@ export type EulerVaultDetailWire = EulerVaultSummaryWire & {
 	oracle?: EulerOracleInfoWire
 	governor?: string
 	governorAdmin?: string
+	creator?: string
+	unitOfAccount?: EulerAssetRefWire
 	supplyCap?: string
 	borrowCap?: string
 	totalShares?: string
 	totalBorrowed?: string
 	totalCash?: string
+	cash?: string
+	interestRate?: string
+	interestAccumulator?: string
+	accumulatedFees?: string
 	fees?: EulerVaultFeesWire
+	interestRates?: EulerVaultInterestRatesWire
 	createdAtBlock?: string
+	timestamp?: string
+	evcCompatibleAsset?: boolean
+	exchangeRate?: string | null
 }
 
 export type EulerVaultListResponse = {
@@ -77,6 +99,25 @@ export type EulerAccountPositionSnapshotWire = {
 	method?: string
 }
 
+export type EulerAccountLiquidityValueWire = {
+	value?: string
+	valueUsd?: number
+}
+
+export type EulerAccountPositionLiquidityWire = {
+	vaultAddress?: string
+	unitOfAccount?: string
+	daysToLiquidation?: number | 'Infinity' | 'MoreThanAYear'
+	liabilityValue?: EulerAccountLiquidityValueWire
+	totalCollateralValue?: EulerAccountLiquidityValueWire
+	collaterals?: {
+		address?: string
+		value?: EulerAccountLiquidityValueWire
+		marketPriceUsd?: number
+		valueUsd?: number
+	}[]
+}
+
 export type EulerAccountPositionWire = {
 	chainId?: number
 	account?: string
@@ -91,7 +132,7 @@ export type EulerAccountPositionWire = {
 	isCollateral?: boolean
 	balanceForwarderEnabled?: boolean
 	isController?: boolean
-	liquidity?: unknown
+	liquidity?: EulerAccountPositionLiquidityWire | null
 	subAccount?: EulerAccountPositionSubAccountWire
 	snapshot?: EulerAccountPositionSnapshotWire
 }
@@ -119,6 +160,29 @@ export type EulerAccountPositionsResponse = {
 	}
 }
 
+export type EulerAccountPositionLiquidity = {
+	vaultAddress: `0x${string}`
+	unitOfAccount: `0x${string}`
+	daysToLiquidation: number | 'Infinity' | 'MoreThanAYear'
+	liabilityValue?: {
+		value: string
+		valueUsd?: number
+	}
+	totalCollateralValue?: {
+		value: string
+		valueUsd?: number
+	}
+	collaterals: {
+		address: `0x${string}`
+		value?: {
+			value: string
+			valueUsd?: number
+		}
+		marketPriceUsd?: number
+		valueUsd?: number
+	}[]
+} | null
+
 export type EulerAccountPosition = {
 	chainId: number
 	account: `0x${string}`
@@ -133,7 +197,8 @@ export type EulerAccountPosition = {
 	isCollateral: boolean
 	balanceForwarderEnabled: boolean
 	isController: boolean
-	liquidity: unknown
+	/** Transport-only liquidity lens — unenrolled on EulerEvkVaultPosition. */
+	liquidity: EulerAccountPositionLiquidity
 	subAccount: {
 		owner: `0x${string}`
 		timestamp: string
@@ -154,11 +219,15 @@ export type EulerAccountPosition = {
 export type EulerEvkVaultSummary = {
 	chainId: number
 	vaultAddress: `0x${string}`
+	vaultType: 'evk'
 	name: string
 	symbol: string
 	decimals: number
 	assetAddress: `0x${string}`
 	assetSymbol: string
+	/** Transport-only asset metadata leftovers. */
+	assetName?: string
+	assetDecimals?: number
 	totalAssets: string
 	totalBorrows: string
 	totalSupplyUsd: number
@@ -167,14 +236,41 @@ export type EulerEvkVaultSummary = {
 	supplyApy: number
 	borrowApy: number
 	createdAt: string
+	snapshotTimestamp?: string
 }
 
 export type EulerEvkVaultDetail = EulerEvkVaultSummary & {
 	dTokenAddress?: `0x${string}`
 	oracleAddress?: `0x${string}`
+	/** Transport-only oracle label. */
+	oracleName?: string
 	governorAddress?: `0x${string}`
+	governorAdminAddress?: `0x${string}`
+	creatorAddress?: `0x${string}`
+	unitOfAccountAddress?: `0x${string}`
+	unitOfAccountSymbol?: string
 	supplyCap?: string
 	borrowCap?: string
+	/** Raw share/borrow/cash leftovers — unenrolled beside totalAssets/totalBorrows. */
+	totalShares?: string
+	totalBorrowed?: string
+	totalCash?: string
+	cash?: string
+	interestRate?: string
+	interestAccumulator?: string
+	accumulatedFees?: string
 	interestFee?: number
+	accumulatedFeesShares?: string
+	accumulatedFeesAssets?: string
+	governorFeeReceiver?: `0x${string}`
+	protocolFeeReceiver?: `0x${string}`
+	protocolFeeShare?: number
+	/** Exact decimal-string APYs from interestRates — unenrolled beside float supplyApy/borrowApy. */
+	borrowSpy?: string
+	borrowApyExact?: string
+	supplyApyExact?: string
 	createdAtBlock?: string
+	observationTimestamp?: string
+	evcCompatibleAsset?: boolean
+	exchangeRate?: string
 }

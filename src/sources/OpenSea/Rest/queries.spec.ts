@@ -318,6 +318,65 @@ describe('OpenSea NFT endpoints', () => {
 			identifier: '1',
 		})).rejects.toThrow('invalid NFT response envelope')
 	})
+
+	it('accepts NFT detail transport leftovers (rarity / animation / valuation) without projecting them', async () => {
+		const leftoverNft = {
+			...detailedNft,
+			animation_url: 'https://images.example/nft.mp4',
+			display_animation_url: 'https://images.example/nft-display.mp4',
+			original_image_url: 'https://images.example/nft-original.png',
+			estimated_value_usd: 12.5,
+			decimals: 0,
+			rarity: {
+				strategy_id: 'openrarity',
+				strategy_version: '1.0',
+				rank: 42,
+			},
+			traits: [{
+				trait_type: 'Background',
+				value: 'Blue',
+				display_type: 'string',
+			}],
+		} satisfies OpenSeaNftResponse['nft']
+
+		respond({
+			nft: leftoverNft,
+		})
+
+		await expect(getNft({
+			credential: 'secret',
+			chain: 'ethereum',
+			address: contract,
+			identifier: leftoverNft.identifier,
+		})).resolves.toEqual({
+			nft: leftoverNft,
+		})
+	})
+
+	it('hard-fails NFT rarity leftovers that violate the OpenAPI spine', async () => {
+		vi.mocked(sourceFetch).mockResolvedValueOnce(
+			new Response(JSON.stringify({
+				nft: {
+					...detailedNft,
+					rarity: {
+						strategy_id: 'openrarity',
+					},
+				},
+			}), {
+				status: 200,
+				headers: {
+					'content-type': 'application/json',
+				},
+			})
+		)
+
+		await expect(getNft({
+			credential: 'secret',
+			chain: 'ethereum',
+			address: contract,
+			identifier: '1',
+		})).rejects.toThrow('invalid NFT response envelope')
+	})
 })
 
 describe('OpenSea contract / owners / collection endpoints', () => {
@@ -504,6 +563,41 @@ describe('OpenSea contract / owners / collection endpoints', () => {
 		await expect(getCollection({
 			credential: 'secret',
 			slug: 'slug',
-		})).rejects.toThrow('missing contracts array')
+		})).rejects.toThrow('invalid collection response envelope')
+	})
+
+	it('hard-fails NFT owners payloads that omit owners', async () => {
+		respond({
+			next: 'cursor',
+		} as OpenSeaNftOwnersResponse)
+
+		await expect(getNftOwners({
+			credential: 'secret',
+			chain: 'ethereum',
+			address: contract,
+			identifier: '1',
+		})).rejects.toThrow('invalid NFT owners response envelope')
+	})
+
+	it('hard-fails asset event payloads that omit event_timestamp', async () => {
+		vi.mocked(sourceFetch).mockResolvedValueOnce(
+			new Response(JSON.stringify({
+				asset_events: [{
+					event_type: 'sale',
+				}],
+			}), {
+				status: 200,
+				headers: {
+					'content-type': 'application/json',
+				},
+			})
+		)
+
+		await expect(getNftEvents({
+			credential: 'secret',
+			chain: 'ethereum',
+			address: contract,
+			identifier: '1',
+		})).rejects.toThrow('invalid NFT events response envelope')
 	})
 })

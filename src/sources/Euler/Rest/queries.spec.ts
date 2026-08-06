@@ -159,11 +159,14 @@ describe('Euler EVK vault operations', () => {
 			{
 				chainId: 1,
 				vaultAddress: '0x00011d9a1eb3d7278b8df2391e2e32f6f9bcf293',
+				vaultType: 'evk',
 				name: 'EVK Vault ePT-USDS-14AUG2025-2',
 				symbol: 'ePT-USDS-14AUG2025-2',
 				decimals: 18,
 				assetAddress: '0xffec096c087c13cc268497b89a613cace4df9a48',
 				assetSymbol: 'PT-USDS-14AUG2025',
+				assetName: 'PT USDS Stablecoin 14AUG2025',
+				assetDecimals: 18,
 				totalAssets: '0',
 				totalBorrows: '0',
 				totalSupplyUsd: 0,
@@ -310,6 +313,91 @@ describe('Euler EVK vault operations', () => {
 		})
 	})
 
+	it('normalizes vault detail transport leftovers without requiring APP enrollment', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: {
+				...baseVaultDetail,
+				creator: '0x1111111111111111111111111111111111111111',
+				governorAdmin: '0x2222222222222222222222222222222222222222',
+				unitOfAccount: {
+					address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+					symbol: 'USDC',
+					decimals: 6,
+				},
+				totalShares: '1000',
+				totalBorrowed: '250',
+				totalCash: '750',
+				cash: '750',
+				interestRate: '123',
+				interestAccumulator: '456',
+				accumulatedFees: '7',
+				fees: {
+					interestFee: 0.1,
+					accumulatedFeesShares: '8',
+					accumulatedFeesAssets: '9',
+					governorFeeReceiver: '0x3333333333333333333333333333333333333333',
+					protocolFeeReceiver: '0x4444444444444444444444444444444444444444',
+					protocolFeeShare: 0.05,
+				},
+				interestRates: {
+					borrowSPY: '0.000000001',
+					borrowAPY: '0.05',
+					supplyAPY: '0.04',
+				},
+				timestamp: '2026-08-06T00:00:00.000Z',
+				evcCompatibleAsset: true,
+				exchangeRate: '1.01',
+			},
+		})
+
+		await expect(getVault({
+			chainId: 1,
+			vaultAddress: baseVaultAddress,
+		})).resolves.toMatchObject({
+			vaultType: 'evk',
+			oracleName: 'EulerRouter',
+			assetName: 'PT USDS Stablecoin 14AUG2025',
+			creatorAddress: '0x1111111111111111111111111111111111111111',
+			governorAdminAddress: '0x2222222222222222222222222222222222222222',
+			unitOfAccountAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+			unitOfAccountSymbol: 'USDC',
+			totalShares: '1000',
+			totalBorrowed: '250',
+			totalCash: '750',
+			cash: '750',
+			borrowSpy: '0.000000001',
+			borrowApyExact: '0.05',
+			supplyApyExact: '0.04',
+			protocolFeeShare: 0.05,
+			observationTimestamp: '2026-08-06T00:00:00.000Z',
+			evcCompatibleAsset: true,
+			exchangeRate: '1.01',
+		})
+	})
+
+	it('omits empty interestRates leftover strings while keeping nonempty exact APYs', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: {
+				...baseVaultDetail,
+				interestRates: {
+					borrowSPY: '',
+					borrowAPY: '0.05',
+					supplyAPY: '0.04',
+				},
+			},
+		})
+
+		const vault = await getVault({
+			chainId: 1,
+			vaultAddress: baseVaultAddress,
+		})
+		expect(vault).toMatchObject({
+			borrowApyExact: '0.05',
+			supplyApyExact: '0.04',
+		})
+		expect(vault).not.toHaveProperty('borrowSpy')
+	})
+
 	it('rejects an unsupported chain id before transport', async () => {
 		await expect(listVaults({
 			chainId: 999999,
@@ -353,6 +441,7 @@ describe('Euler EVK vault operations', () => {
 			account: baseVaultAddress.toLowerCase(),
 			vaultAddress: baseAccountPosition.vault.toLowerCase(),
 			assets: '627',
+			liquidity: null,
 		}])
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
@@ -362,6 +451,66 @@ describe('Euler EVK vault operations', () => {
 				offset: 0,
 			})
 		)
+	})
+
+	it('normalizes account position liquidity leftovers fail-closed', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: [{
+				...baseAccountPosition,
+				liquidity: {
+					vaultAddress: baseAccountPosition.vault,
+					unitOfAccount: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+					daysToLiquidation: 'Infinity',
+					liabilityValue: {
+						value: '0',
+						valueUsd: 0,
+					},
+					totalCollateralValue: {
+						value: '627',
+						valueUsd: 627,
+					},
+					collaterals: [{
+						address: baseAccountPosition.asset,
+						value: {
+							value: '627',
+						},
+						valueUsd: 627,
+					}],
+				},
+			}],
+		})
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: baseVaultAddress,
+		})).resolves.toMatchObject([{
+			liquidity: {
+				vaultAddress: baseAccountPosition.vault.toLowerCase(),
+				unitOfAccount: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+				daysToLiquidation: 'Infinity',
+				collaterals: [{
+					address: baseAccountPosition.asset.toLowerCase(),
+					valueUsd: 627,
+				}],
+			},
+		}])
+	})
+
+	it('fails closed when account position liquidity omits daysToLiquidation', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: [{
+				...baseAccountPosition,
+				liquidity: {
+					vaultAddress: baseAccountPosition.vault,
+					unitOfAccount: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+				},
+			}],
+		})
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: baseVaultAddress,
+		})).rejects.toThrow(`${Source.Euler_Rest}: account position missing liquidity.daysToLiquidation`)
 	})
 
 	it('fails closed when an account position response has no data', async () => {

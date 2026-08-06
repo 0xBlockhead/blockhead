@@ -118,17 +118,35 @@ const hederaContinuation = (
 
 const blockFields = (
 	block: HederaMirrorNodeBlock
-) => ({
-	blockNumber: BigInt(nonnegativeSafeInteger(block.number, 'block number')),
-	blockHash: block.hash,
-	consensusStartTimestamp: block.timestamp.from,
-	consensusEndTimestamp: block.timestamp.to,
-	...(block.gas_used != null && {
-		gasUsed: BigInt(nonnegativeSafeInteger(block.gas_used, 'gas used')),
-	}),
-	recordFileName: block.name,
-	transactionCount: nonnegativeSafeInteger(block.count, 'transaction count'),
-})
+) => {
+	timestampMs(block.timestamp.from, 'block consensus start')
+	timestampMs(block.timestamp.to, 'block consensus end')
+	if (block.hash.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed block hash')
+	if (block.previous_hash.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed previous block hash')
+	if (block.name.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed record file name')
+	// Transport leftovers: hapi_version / logs_bloom / size / previous_hash — unenrolled on HederaBlock.
+	if (block.hapi_version != null && block.hapi_version.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed hapi version')
+	if (block.logs_bloom != null && block.logs_bloom.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed logs bloom')
+	if (block.size != null)
+		nonnegativeSafeInteger(block.size, 'block size')
+
+	return {
+		blockNumber: BigInt(nonnegativeSafeInteger(block.number, 'block number')),
+		blockHash: block.hash,
+		consensusStartTimestamp: block.timestamp.from,
+		consensusEndTimestamp: block.timestamp.to,
+		...(block.gas_used != null && {
+			gasUsed: BigInt(nonnegativeSafeInteger(block.gas_used, 'gas used')),
+		}),
+		recordFileName: block.name,
+		transactionCount: nonnegativeSafeInteger(block.count, 'transaction count'),
+	}
+}
 
 const assertHederaMirrorSource = (
 	source: string
@@ -308,6 +326,11 @@ const nodeSnapshot = (
 		)
 	)))
 		throw new Error('HederaMirrorNode_Rest: malformed node service endpoints')
+	// Transport leftovers: decline_reward / reward_rate_start / associated_registered_nodes / admin_key —
+	// unenrolled on HederaNode_Timestamp (deleted remains enrolled but absent from Mirror Node wire).
+	nonnegativeBigInt(node.reward_rate_start, 'node reward rate start')
+	for (const associatedNodeId of node.associated_registered_nodes)
+		nonnegativeSafeInteger(Number(associatedNodeId), 'associated registered node ID')
 
 	const nodeSelector = {
 		$network: network,
@@ -362,6 +385,20 @@ const transactionSnapshot = (
 		throw new Error('HederaMirrorNode_Rest: malformed transaction type')
 	if (transaction.node != null)
 		hederaEntityId(transaction.node, 'transaction node account')
+	// Transport leftovers: bytes / memo_base64 / max_fee / valid_duration_seconds / parent_consensus_timestamp /
+	// high_volume* / staking_reward_transfers / batch_key — unenrolled beside projected HederaTransaction fields.
+	if (transaction.valid_duration_seconds != null)
+		nonnegativeBigInt(transaction.valid_duration_seconds, 'valid duration seconds')
+	if (transaction.parent_consensus_timestamp != null)
+		timestampMs(transaction.parent_consensus_timestamp, 'parent consensus timestamp')
+	if (transaction.max_fee.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed max fee')
+	nonnegativeBigInt(transaction.max_fee, 'max fee')
+	if (
+		!Number.isFinite(transaction.high_volume_pricing_multiplier)
+		|| transaction.high_volume_pricing_multiplier < 0
+	)
+		throw new Error('HederaMirrorNode_Rest: malformed high volume pricing multiplier')
 
 	const transactionSelector = {
 		$network: network,
@@ -510,6 +547,20 @@ export default {
 						if (account.account !== accountId)
 							throw new Error('HederaMirrorNode_Rest: response account does not match request')
 						const accountTimestampMs = timestampMs(account.balance.timestamp, 'account balance timestamp')
+						// Transport leftovers: created_timestamp / ethereum_nonce / max_automatic_token_associations /
+						// stake_period_start / balance.tokens — unenrolled on HederaAccount_Timestamp.
+						if (account.created_timestamp != null)
+							timestampMs(account.created_timestamp, 'account created timestamp')
+						if (account.stake_period_start != null)
+							timestampMs(account.stake_period_start, 'account stake period start')
+						if (account.ethereum_nonce != null)
+							nonnegativeSafeInteger(account.ethereum_nonce, 'ethereum nonce')
+						if (account.max_automatic_token_associations != null)
+							nonnegativeSafeInteger(account.max_automatic_token_associations, 'max automatic token associations')
+						for (const tokenBalance of account.balance.tokens) {
+							hederaEntityId(tokenBalance.token_id, 'account token balance token ID')
+							nonnegativeBigInt(tokenBalance.balance, 'account token balance')
+						}
 						const evmAddress = account.evm_address == null ?
 							undefined
 						:
