@@ -69,6 +69,16 @@ const baseConfiguration = {
 	baseTokenPriceFeed: '0x7e860098F58bBFC8648a4311b374B1D669a2bc6B',
 	borrowMin: '1e0',
 	targetReserves: '5000000e6',
+	rates: {
+		supplyKink: 0.85,
+		supplySlopeLow: 0.048,
+		supplySlopeHigh: 1.6,
+		supplyBase: 0,
+		borrowKink: 0.85,
+		borrowSlopeLow: 0.053,
+		borrowSlopeHigh: 1.8,
+		borrowBase: 0.015,
+	},
 	assets: {
 		WETH: {
 			address: '0x4200000000000000000000000000000000000006',
@@ -288,6 +298,7 @@ describe('Compound Rest resolver module', () => {
 		expect(compoundCometResolver.projections.name(snapshot)).toBe('Compound USDC')
 		expect(compoundCometResolver.projections.baseTokenSymbol(snapshot)).toBe('USDC')
 		expect(compoundCometResolver.projections.collateralAssetCount(snapshot)).toBe(2)
+		expect(snapshot.rates).toEqual(baseConfiguration.rates)
 		expect(compoundCometResolver.projections.$$assets.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -316,6 +327,26 @@ describe('Compound Rest resolver module', () => {
 			[EntityMetaKey.Selector]: baseNetwork,
 		})
 		expect(sourceGetJson).toHaveBeenCalledTimes(2)
+	})
+
+	it('fails closed when Compound configuration omits required rates', async () => {
+		if (compoundCometResolver == null)
+			throw new Error('missing CompoundComet resolver')
+
+		const {
+			rates: _rates,
+			...configurationWithoutRates
+		} = baseConfiguration
+		sourceGetJson
+			.mockResolvedValueOnce(configurationWithoutRates)
+			.mockResolvedValueOnce(baseRoots)
+
+		await expect(
+			compoundCometResolver.resolve.NetworkCometAddress.resolve({
+				$network: baseNetwork,
+				cometAddress: baseCometAddress,
+			}, context)
+		).rejects.toThrow(`${Source.Compound_Rest}: invalid configuration response envelope`)
 	})
 
 	it('resolves a Compound Comet collateral asset by comet and symbol', async () => {

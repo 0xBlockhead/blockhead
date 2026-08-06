@@ -45,6 +45,16 @@ const baseConfiguration = {
 	borrowMin: '1e0',
 	pauseGuardian: '0x3cb4653f3b45f448d9100b118b75a1503281d2ee',
 	targetReserves: '5000000e6',
+	rates: {
+		supplyKink: 0.85,
+		supplySlopeLow: 0.048,
+		supplySlopeHigh: 1.6,
+		supplyBase: 0,
+		borrowKink: 0.85,
+		borrowSlopeLow: 0.053,
+		borrowSlopeHigh: 1.8,
+		borrowBase: 0.015,
+	},
 	assets: {
 		WETH: {
 			address: '0x4200000000000000000000000000000000000006',
@@ -121,6 +131,16 @@ describe('Compound III deployment operations', () => {
 			borrowMin: '1e0',
 			pauseGuardianAddress: '0x3cb4653f3b45f448d9100b118b75a1503281d2ee',
 			targetReserves: '5000000e6',
+			rates: {
+				supplyKink: 0.85,
+				supplySlopeLow: 0.048,
+				supplySlopeHigh: 1.6,
+				supplyBase: 0,
+				borrowKink: 0.85,
+				borrowSlopeLow: 0.053,
+				borrowSlopeHigh: 1.8,
+				borrowBase: 0.015,
+			},
 			collateralAssetCount: 1,
 			assets: [
 				{
@@ -207,6 +227,7 @@ describe('Compound III deployment operations', () => {
 		})).resolves.toMatchObject({
 			collateralAssetCount: 0,
 			assets: [],
+			rates: baseConfiguration.rates,
 		})
 		await expect(getConfiguration({
 			networkSlug: 'base',
@@ -217,5 +238,31 @@ describe('Compound III deployment operations', () => {
 			marketSlug: 'usdc',
 			expectedCometAddress: baseCometAddress,
 		})).rejects.toThrow(`${Source.Compound_Rest}: invalid roots response envelope`)
+	})
+
+	it('rejects configuration envelopes missing required rates', async () => {
+		const {
+			rates: _rates,
+			...configurationWithoutRates
+		} = baseConfiguration
+		sourceGetJson.mockResolvedValueOnce(configurationWithoutRates)
+		await expect(getConfiguration({
+			networkSlug: 'base',
+			marketSlug: 'usdc',
+		})).rejects.toThrow(`${Source.Compound_Rest}: invalid configuration response envelope`)
+	})
+
+	it('rejects negative rate curve parameters', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...baseConfiguration,
+			rates: {
+				...baseConfiguration.rates,
+				supplyKink: -0.1,
+			},
+		})
+		await expect(getConfiguration({
+			networkSlug: 'base',
+			marketSlug: 'usdc',
+		})).rejects.toThrow(`${Source.Compound_Rest}: configuration rates.supplyKink must be a finite non-negative number`)
 	})
 })

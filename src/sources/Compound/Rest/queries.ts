@@ -1,6 +1,10 @@
 /**
  * Compound III deployment artifact operations (official comet repo).
- * @see https://docs.compound.finance/
+ * Interest-rate curve params come from `configuration.json` `rates`
+ * (kink + piecewise slopes/base). Live utilization / supply+borrow rates
+ * require on-chain `getUtilization` / `getSupplyRate` / `getBorrowRate`.
+ * @see https://docs.compound.finance/interest-rates/
+ * @see https://docs.compound.finance/helper-functions/#get-protocol-configuration
  * @see https://github.com/compound-finance/comet/tree/f766f51583c23acc33b2a7824654ef2029a96804/deployments
  */
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
@@ -10,6 +14,8 @@ import type {
 	CompoundCometConfigurationAsset,
 	CompoundCometConfigurationAssetWire,
 	CompoundCometConfigurationWire,
+	CompoundCometRates,
+	CompoundCometRatesWire,
 	CompoundCometRoots,
 	CompoundCometRootsWire,
 } from '$/sources/Compound/Rest/types.ts'
@@ -94,6 +100,29 @@ const assertConfigurationAssetWire = (
 	}
 }
 
+const assertFiniteRate = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isFinite(value) || value < 0)
+		throw new Error(`${Source.Compound_Rest}: configuration rates.${label} must be a finite non-negative number`)
+	return value
+}
+
+/** Assert official `rates` curve params (required on cataloged Comet configs). */
+const assertRatesWire = (
+	rates: CompoundCometRatesWire
+): CompoundCometRates => ({
+	supplyKink: assertFiniteRate(rates.supplyKink, 'supplyKink'),
+	supplySlopeLow: assertFiniteRate(rates.supplySlopeLow, 'supplySlopeLow'),
+	supplySlopeHigh: assertFiniteRate(rates.supplySlopeHigh, 'supplySlopeHigh'),
+	supplyBase: assertFiniteRate(rates.supplyBase, 'supplyBase'),
+	borrowKink: assertFiniteRate(rates.borrowKink, 'borrowKink'),
+	borrowSlopeLow: assertFiniteRate(rates.borrowSlopeLow, 'borrowSlopeLow'),
+	borrowSlopeHigh: assertFiniteRate(rates.borrowSlopeHigh, 'borrowSlopeHigh'),
+	borrowBase: assertFiniteRate(rates.borrowBase, 'borrowBase'),
+})
+
 const assertConfigurationWire = (
 	wire: CompoundCometConfigurationWire
 ): CompoundCometConfiguration => {
@@ -134,6 +163,7 @@ const assertConfigurationWire = (
 		...(wire.rewardTokenAddress != null && {
 			rewardTokenAddress: assertAddress(wire.rewardTokenAddress, 'rewardTokenAddress'),
 		}),
+		rates: assertRatesWire(wire.rates),
 		collateralAssetCount: assets.length,
 		assets,
 	}

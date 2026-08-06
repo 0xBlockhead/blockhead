@@ -64,6 +64,16 @@ describe('Compound III contract account operations', () => {
 			baseToken: 'USDC',
 			baseTokenAddress: '0x06eFdBFaB61A73C7E752b4e46FDEB38097dECea5',
 			baseTokenPriceFeed: '0x43d12Fb3AfCAd5347fA764EeAB105478337b7200',
+			rates: {
+				supplyKink: 0.85,
+				supplySlopeLow: 0.048,
+				supplySlopeHigh: 1.6,
+				supplyBase: 0,
+				borrowKink: 0.85,
+				borrowSlopeLow: 0.053,
+				borrowSlopeHigh: 1.8,
+				borrowBase: 0.015,
+			},
 			assets: {
 				WETH: {
 					address: '0x5300000000000000000000000000000000000004',

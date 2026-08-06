@@ -90,6 +90,7 @@ const mapCompoundCometSnapshot = (
 	baseTokenAddress: configuration.baseTokenAddress,
 	baseTokenPriceFeedAddress: configuration.baseTokenPriceFeedAddress,
 	collateralAssetCount: configuration.collateralAssetCount,
+	rates: configuration.rates,
 	...(configuration.borrowMin != null && {
 		borrowMin: configuration.borrowMin,
 	}),
