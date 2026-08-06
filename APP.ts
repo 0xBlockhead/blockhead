@@ -3876,6 +3876,12 @@ export const schema = {
 				},
 			},
 			{
+				id: "BeaconValidatorAttestationDuty",
+				type: {
+					raw: "type({ attesterSlot: 'number.integer >= 0', epoch: 'number.integer >= 0', inclusionSlot: 'number.integer >= 0', status: 'number.integer', 'committeeIndex?': 'number.integer >= 0' })",
+				},
+			},
+			{
 				id: "bigint",
 				type: { primitive: "bigint" },
 			},
@@ -12663,6 +12669,13 @@ export const schema = {
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.BeaconValidator_Timestamp,
 				},
+				"attestationDuties": {
+					label: "Attestation duties",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.Many,
+					valueType: "BeaconValidatorAttestationDuty",
+					defaultSources: [Source.BeaconchaIn_Rest],
+				},
 			})({
 				selectors: {
 					"NetworkIndexInNetwork": ["$network", "indexInNetwork"],
@@ -12700,6 +12713,84 @@ export const schema = {
 								[
 									{ field: "pubkey", format: "truncated" },
 									"$network",
+								],
+							],
+						},
+						details: {
+							blocks: [
+								[
+									{
+										kind: _ViewItemKind.Block,
+										id: "attestationDuties",
+										fields: ["attestationDuties"],
+										Content: dedent `
+											<ResourceBoundary
+												resource={
+													selection({
+														fields: {
+															attestationDuties: true,
+														},
+														sources: [
+															Source.BeaconchaIn_Rest,
+														],
+													})
+												}
+											>
+												{#snippet children(attestationDutiesField)}
+													{#if attestationDutiesField.values.length > 0}
+														<section data-column="gap-2">
+															<header>
+																<h3>Attestation duties</h3>
+															</header>
+
+															<ul data-column="gap-2">
+																{#each attestationDutiesField.values as duty, dutyIndex (dutyIndex)}
+																	<li data-row="wrap gap-2">
+																		<span>
+																			Epoch <NumberValue value={duty.epoch} />
+																		</span>
+
+																		<span data-text="muted">·</span>
+
+																		<span>
+																			Attester <NumberValue value={duty.attesterSlot} />
+																		</span>
+
+																		<span data-text="muted">·</span>
+
+																		<span>
+																			Inclusion <NumberValue value={duty.inclusionSlot} />
+																		</span>
+
+																		<span data-text="muted">·</span>
+
+																		<span>
+																			{
+																				duty.status === 1 ?
+																					'Included'
+																				: duty.status === 0 ?
+																					'Missed'
+																				:
+																					duty.status
+																			}
+																		</span>
+
+																		{#if duty.committeeIndex != null}
+																			<span data-text="muted">·</span>
+
+																			<span>
+																				Committee <NumberValue value={duty.committeeIndex} />
+																			</span>
+																		{/if}
+																	</li>
+																{/each}
+															</ul>
+														</section>
+													{/if}
+												{/snippet}
+											</ResourceBoundary>
+										`,
+									},
 								],
 							],
 						},
