@@ -344,6 +344,43 @@ describe('Morpho GraphQL resolver module', () => {
 		})
 	})
 
+	it('omits MorphoMarket tip fields when GraphQL state is null', async () => {
+		if (marketResolver == null)
+			throw new Error('missing MorphoMarket resolver')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				marketById: {
+					...market,
+					state: null,
+				},
+			},
+		})))
+
+		const network = {
+			caip2: {
+				namespace: 'eip155',
+				reference: '8453',
+			},
+		}
+
+		await expect(marketResolver.resolve.NetworkMarketId.resolve({
+			$network: network,
+			marketId: market.marketId,
+		}, context)).resolves.toEqual({
+			$network: {
+				[EntityMetaKey.Selector]: network,
+			},
+			marketId: '0x9103c3b4e834476c9a62ea009ba2c884ee42e94e6e314a26f04d312434191836',
+			loanAssetAddress: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+			collateralAssetAddress: '0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf',
+			oracleAddress: '0x663becd10dae6c4a3dcd89f1d76c1174199639b9',
+			irmAddress: '0x46415998764c29ab2a25cbea6254146d50d22687',
+			lltvWad: '860000000000000000',
+			creationBlockNumber: '19326981',
+		})
+	})
+
 	it('resolves MorphoVault snapshot by network and vault address', async () => {
 		if (vaultResolver == null)
 			throw new Error('missing MorphoVault resolver')
