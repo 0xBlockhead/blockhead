@@ -362,6 +362,46 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType.FilecoinMessage,
+			resolve: {
+				NetworkCid: {
+					resolve: async ({ $network, cid }) => {
+						assertFilecoinMainnet($network)
+						const { getMessage } = await import('$/sources/Lotus/JsonRpc/queries.ts')
+						const message = await getMessage({
+							messageCid: cid,
+						})
+						return {
+							$from: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									address: message.From,
+								},
+							},
+							$to: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									address: message.To,
+								},
+							},
+							method: message.Method,
+							nonce: BigInt(message.Nonce),
+							valueAttoFil: BigInt(message.Value),
+							gasLimit: BigInt(message.GasLimit),
+						}
+					},
+				},
+			},
+		})({
+			$from: (message) => message.$from,
+			$to: (message) => message.$to,
+			method: (message) => message.method,
+			nonce: (message) => message.nonce,
+			valueAttoFil: (message) => message.valueAttoFil,
+			gasLimit: (message) => message.gasLimit,
+		}),
+
+		defineResolver({
 			entityType: EntityType.FilecoinSector,
 			resolve: {
 				FilecoinMinerSectorNumber: {
@@ -690,5 +730,163 @@ export default {
 				$$sectors: (miner) => miner.sectors,
 				$$timestamps: (miner) => miner.timestamps,
 			}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinDeal,
+			resolve: {
+				NetworkDealId: {
+					resolve: async ({ $network, dealId }) => {
+						assertFilecoinMainnet($network)
+						const {
+							getHead,
+							getMarketStorageDeal,
+						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
+						const head = await getHead()
+						const deal = await getMarketStorageDeal({
+							dealId,
+							tipsetKey: head.Cids,
+						})
+						return {
+							$provider: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									minerAddress: deal.Proposal.Provider,
+								},
+							},
+							$client: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									address: deal.Proposal.Client,
+								},
+							},
+							pieceCid: deal.Proposal.PieceCID['/'],
+							pieceSizeBytes: BigInt(deal.Proposal.PieceSize),
+							verifiedDeal: deal.Proposal.VerifiedDeal,
+							startEpoch: BigInt(deal.Proposal.StartEpoch),
+							endEpoch: BigInt(deal.Proposal.EndEpoch),
+							storagePricePerEpochAttoFil: BigInt(deal.Proposal.StoragePricePerEpoch),
+							providerCollateralAttoFil: BigInt(deal.Proposal.ProviderCollateral),
+							clientCollateralAttoFil: BigInt(deal.Proposal.ClientCollateral),
+							timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$deal: {
+										$network,
+										dealId,
+									},
+									timestampMs: head.Blocks[0]?.Timestamp != null ?
+										head.Blocks[0].Timestamp * 1000
+									:
+										Date.now(),
+									source: Source.Lotus_JsonRpc,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'height')]: BigInt(head.Height),
+									[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'tipsetKey')]: tipsetKey(head.Cids),
+									[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], '$tipset')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											height: BigInt(head.Height),
+											tipsetKey: tipsetKey(head.Cids),
+										},
+									},
+									...(deal.State.SectorStartEpoch >= 0 && {
+										[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'sectorStartEpoch')]: BigInt(deal.State.SectorStartEpoch),
+									}),
+									...(deal.State.LastUpdatedEpoch >= 0 && {
+										[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'lastUpdatedEpoch')]: BigInt(deal.State.LastUpdatedEpoch),
+									}),
+									...(deal.State.SlashEpoch >= 0 && {
+										[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'slashEpoch')]: BigInt(deal.State.SlashEpoch),
+									}),
+									[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'verifiedDeal')]: deal.Proposal.VerifiedDeal,
+									[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'providerCollateralAttoFil')]: BigInt(deal.Proposal.ProviderCollateral),
+									[entityFieldAddressKey(EntityType.FilecoinDeal_Timestamp, [], 'clientCollateralAttoFil')]: BigInt(deal.Proposal.ClientCollateral),
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			$provider: (deal) => deal.$provider,
+			$client: (deal) => deal.$client,
+			pieceCid: (deal) => deal.pieceCid,
+			pieceSizeBytes: (deal) => deal.pieceSizeBytes,
+			verifiedDeal: (deal) => deal.verifiedDeal,
+			startEpoch: (deal) => deal.startEpoch,
+			endEpoch: (deal) => deal.endEpoch,
+			storagePricePerEpochAttoFil: (deal) => deal.storagePricePerEpochAttoFil,
+			providerCollateralAttoFil: (deal) => deal.providerCollateralAttoFil,
+			clientCollateralAttoFil: (deal) => deal.clientCollateralAttoFil,
+			$$timestamps: (deal) => deal.timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinDeal_Timestamp,
+			resolve: {
+				DealTimestampMsSource: {
+					resolve: async ({
+						$deal,
+						timestampMs,
+						source,
+					}) => {
+						assertFilecoinMainnet($deal.$network)
+						if (source !== Source.Lotus_JsonRpc)
+							throw new Error(`Lotus_JsonRpc: unsupported source ${source}`)
+
+						const {
+							getHead,
+							getMarketStorageDeal,
+						} = await import('$/sources/Lotus/JsonRpc/queries.ts')
+						const head = await getHead()
+						const deal = await getMarketStorageDeal({
+							dealId: $deal.dealId,
+							tipsetKey: head.Cids,
+						})
+						return {
+							$deal: {
+								[EntityMetaKey.Selector]: $deal,
+							},
+							timestampMs,
+							source,
+							height: BigInt(head.Height),
+							tipsetKey: tipsetKey(head.Cids),
+							$tipset: {
+								[EntityMetaKey.Selector]: {
+									$network: $deal.$network,
+									height: BigInt(head.Height),
+									tipsetKey: tipsetKey(head.Cids),
+								},
+							},
+							...(deal.State.SectorStartEpoch >= 0 && {
+								sectorStartEpoch: BigInt(deal.State.SectorStartEpoch),
+							}),
+							...(deal.State.LastUpdatedEpoch >= 0 && {
+								lastUpdatedEpoch: BigInt(deal.State.LastUpdatedEpoch),
+							}),
+							...(deal.State.SlashEpoch >= 0 && {
+								slashEpoch: BigInt(deal.State.SlashEpoch),
+							}),
+							verifiedDeal: deal.Proposal.VerifiedDeal,
+							providerCollateralAttoFil: BigInt(deal.Proposal.ProviderCollateral),
+							clientCollateralAttoFil: BigInt(deal.Proposal.ClientCollateral),
+						}
+					},
+				},
+			},
+		})({
+			$deal: (observation) => observation.$deal,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+			height: (observation) => observation.height,
+			tipsetKey: (observation) => observation.tipsetKey,
+			$tipset: (observation) => observation.$tipset,
+			sectorStartEpoch: (observation) => observation.sectorStartEpoch,
+			lastUpdatedEpoch: (observation) => observation.lastUpdatedEpoch,
+			slashEpoch: (observation) => observation.slashEpoch,
+			verifiedDeal: (observation) => observation.verifiedDeal,
+			providerCollateralAttoFil: (observation) => observation.providerCollateralAttoFil,
+			clientCollateralAttoFil: (observation) => observation.clientCollateralAttoFil,
+		}),
 	],
 } satisfies RegisteredSourceResolverModule
