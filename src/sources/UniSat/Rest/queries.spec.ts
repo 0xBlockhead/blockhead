@@ -47,23 +47,24 @@ describe('UniSat Rest queries', () => {
 	})
 
 	it('getInscriptionInfo requests the docs path with Bearer auth', async () => {
+		const inscriptionId = 'aa'.repeat(32) + 'i0'
 		sourceFetch.mockResolvedValueOnce(okJson({
-			inscriptionId: 'aa'.repeat(32) + 'i0',
+			inscriptionId,
 			contentType: 'text/plain',
 		}))
 
 		await expect(
 			getInscriptionInfo(publicEnv, {
-				inscriptionId: 'aa'.repeat(32) + 'i0',
+				inscriptionId,
 			})
 		).resolves.toMatchObject({
-			inscriptionId: 'aa'.repeat(32) + 'i0',
+			inscriptionId,
 			contentType: 'text/plain',
 		})
 
 		expect(sourceFetch).toHaveBeenCalledWith(
 			expect.anything(),
-			'https://open-api.unisat.io/v1/indexer/inscription/info/' + encodeURIComponent('aa'.repeat(32) + 'i0'),
+			'https://open-api.unisat.io/v1/indexer/inscription/info/' + encodeURIComponent(inscriptionId),
 			{
 				headers: {
 					Authorization: 'Bearer test-unisat-key',
@@ -94,6 +95,88 @@ describe('UniSat Rest queries', () => {
 				runeId: '840000:1',
 			})
 		).rejects.toThrow(`${Source.UniSat_Rest}: not found`)
+	})
+
+	it('fail-closes malformed response and data envelopes', async () => {
+		sourceFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				msg: 'missing code',
+				data: {},
+			}),
+		})
+		await expect(
+			getInscriptionInfo(publicEnv, {
+				inscriptionId: `${'aa'.repeat(32)}i0`,
+			})
+		).rejects.toThrow(`${Source.UniSat_Rest}: invalid inscription info response envelope`)
+
+		sourceFetch.mockResolvedValueOnce(okJson({
+			rune: 'MISSING_RUNEID',
+		}))
+		await expect(
+			getRuneInfo(publicEnv, {
+				runeId: '840000:1',
+			})
+		).rejects.toThrow(`${Source.UniSat_Rest}: invalid rune info envelope`)
+
+		sourceFetch.mockResolvedValueOnce(okJson({
+			total: 1,
+			start: 0,
+			detail: [
+				{
+					amount: '1',
+				},
+			],
+		}))
+		await expect(
+			getAddressRuneBalances(publicEnv, {
+				address: 'bc1qexample',
+			})
+		).rejects.toThrow(`${Source.UniSat_Rest}: invalid address rune balances envelope`)
+
+		sourceFetch.mockResolvedValueOnce(okJson([
+			{
+				runeid: '840000:1',
+			},
+		]))
+		await expect(
+			getUtxoRuneBalances(publicEnv, {
+				txId: 'aa'.repeat(32),
+				outputIndex: 0,
+			})
+		).rejects.toThrow(`${Source.UniSat_Rest}: invalid utxo rune balances envelope`)
+	})
+
+	it('fail-closes identity mismatches on inscription / rune / utxo detail', async () => {
+		sourceFetch.mockResolvedValueOnce(okJson({
+			inscriptionId: `${'bb'.repeat(32)}i0`,
+		}))
+		await expect(
+			getInscriptionInfo(publicEnv, {
+				inscriptionId: `${'aa'.repeat(32)}i0`,
+			})
+		).rejects.toThrow(`${Source.UniSat_Rest}: inscriptionId mismatch`)
+
+		sourceFetch.mockResolvedValueOnce(okJson({
+			runeid: '840000:2',
+		}))
+		await expect(
+			getRuneInfo(publicEnv, {
+				runeId: '840000:1',
+			})
+		).rejects.toThrow(`${Source.UniSat_Rest}: runeid mismatch`)
+
+		sourceFetch.mockResolvedValueOnce(okJson({
+			txid: 'cc'.repeat(32),
+			vout: 9,
+		}))
+		await expect(
+			getUtxoInfo(publicEnv, {
+				txId: 'aa'.repeat(32),
+				outputIndex: 0,
+			})
+		).rejects.toThrow(`${Source.UniSat_Rest}: utxo identity mismatch`)
 	})
 
 	it('getUtxoRuneBalances and address list queries reject invalid pagination', async () => {
@@ -179,6 +262,52 @@ describe('UniSat Rest queries', () => {
 				outputIndex: 1,
 			})
 		).resolves.toBeNull()
+	})
+
+	it('accepts rune info terms nulls and address inscription pages', async () => {
+		sourceFetch.mockResolvedValueOnce(okJson({
+			runeid: '840000:1',
+			terms: null,
+			mintable: false,
+			remaining: '0',
+		}))
+		await expect(
+			getRuneInfo(publicEnv, {
+				runeId: '840000:1',
+			})
+		).resolves.toMatchObject({
+			runeid: '840000:1',
+			terms: null,
+			mintable: false,
+		})
+
+		sourceFetch.mockResolvedValueOnce(okJson({
+			total: 1,
+			start: 0,
+			detail: [
+				{
+					inscriptionId: `${'aa'.repeat(32)}i0`,
+					contentType: 'image/png',
+					utxo: {
+						txid: 'bb'.repeat(32),
+						vout: 0,
+					},
+				},
+			],
+		}))
+		await expect(
+			getAddressInscriptions(publicEnv, {
+				address: 'bc1qexample',
+			})
+		).resolves.toMatchObject({
+			total: 1,
+			detail: [
+				{
+					inscriptionId: `${'aa'.repeat(32)}i0`,
+					contentType: 'image/png',
+				},
+			],
+		})
 	})
 
 	it('getAddressInscriptions and getAddressRuneBalances hit list paths', async () => {
