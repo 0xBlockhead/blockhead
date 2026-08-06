@@ -228,6 +228,7 @@
 	import EulerEvkVaultsView from '$/views/EulerEvkVaultsView.svelte'
 	import GmxMarketsView from '$/views/GmxMarketsView.svelte'
 	import MorphoMarketsView from '$/views/MorphoMarketsView.svelte'
+	import MorphoVaultsView from '$/views/MorphoVaultsView.svelte'
 	import PendleMarketsView from '$/views/PendleMarketsView.svelte'
 	import CosmosBlocksView from '$/views/CosmosBlocksView.svelte'
 	import CosmosValidatorsView from '$/views/CosmosValidatorsView.svelte'
@@ -2613,6 +2614,10 @@
 							label: 'Morpho markets',
 						},
 						{
+							id: 'evm-defi-morpho-vaults',
+							label: 'Morpho vaults',
+						},
+						{
 							id: 'evm-defi-pendle-markets',
 							label: 'Pendle markets',
 						},
@@ -2764,6 +2769,24 @@
 								collapsible={false}
 								title={label}
 								emptyText='No Morpho markets.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+						{#snippet SectionEvmDefiMorphoVaults({ id, label })}
+							<MorphoVaultsView
+								selection={
+									projection
+									.$$morphoVaults({
+										sources: [
+											Source.Morpho_Graphql,
+										],
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Morpho vaults.'
 								id={`${id}-list`}
 							/>
 						{/snippet}

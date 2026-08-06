@@ -31,8 +31,12 @@ const context = {
 	publicEnv: {},
 }
 
-const networkResolver = morphoGraphql.resolvers.find((resolver) => (
+const networkResolvers = morphoGraphql.resolvers.filter((resolver) => (
 	resolver.entityType === EntityType.Network
+))
+
+const vaultResolver = morphoGraphql.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.MorphoVault
 ))
 
 const market = {
@@ -53,17 +57,33 @@ const market = {
 	},
 }
 
+const vault = {
+	address: '0xBEEF000000000000000000000000000000000001',
+	symbol: 'mvUSDC',
+	name: 'MetaMorpho USDC',
+	listed: true,
+	asset: {
+		address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+		decimals: 6,
+	},
+	chain: {
+		id: 8453,
+	},
+}
+
 describe('Morpho GraphQL resolver module', () => {
 	beforeEach(() => {
 		sourceFetch.mockReset()
 	})
 
-	it('registers under Morpho_Graphql for Network', () => {
+	it('registers under Morpho_Graphql for Network and MorphoVault', () => {
 		expect(morphoGraphql.source).toBe(Source.Morpho_Graphql)
-		expect(networkResolver).toBeDefined()
+		expect(networkResolvers.length).toBe(2)
+		expect(vaultResolver).toBeDefined()
 	})
 
 	it('rejects non-eip155 networks before transport', async () => {
+		const networkResolver = networkResolvers[0]
 		if (networkResolver == null)
 			throw new Error('missing Network resolver')
 
@@ -79,8 +99,11 @@ describe('Morpho GraphQL resolver module', () => {
 	})
 
 	it('resolves $$morphoMarkets selectors for the requested chain', async () => {
+		const networkResolver = networkResolvers.find((resolver) => (
+			resolver.projections.Evm.$$morphoMarkets != null
+		))
 		if (networkResolver == null)
-			throw new Error('missing Network resolver')
+			throw new Error('missing Network $$morphoMarkets resolver')
 
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 			data: {
@@ -112,6 +135,78 @@ describe('Morpho GraphQL resolver module', () => {
 		])
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).variables).toMatchObject({
 			limit: 16,
+		})
+	})
+
+	it('resolves $$morphoVaults selectors for the requested chain', async () => {
+		const networkResolver = networkResolvers.find((resolver) => (
+			resolver.projections.Evm.$$morphoVaults != null
+		))
+		if (networkResolver == null)
+			throw new Error('missing Network $$morphoVaults resolver')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				vaults: {
+					items: [
+						vault,
+					],
+				},
+			},
+		})))
+
+		const network = {
+			caip2: {
+				namespace: 'eip155',
+				reference: '8453',
+			},
+		}
+
+		const snapshot = await networkResolver.resolve.Caip2.resolve(network, context)
+		const vaults = networkResolver.projections.Evm.$$morphoVaults(snapshot)
+
+		expect(vaults).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					vaultAddress: '0xbeef000000000000000000000000000000000001',
+				},
+			},
+		])
+	})
+
+	it('resolves MorphoVault snapshot by network and vault address', async () => {
+		if (vaultResolver == null)
+			throw new Error('missing MorphoVault resolver')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				vaultByAddress: vault,
+			},
+		})))
+
+		const network = {
+			caip2: {
+				namespace: 'eip155',
+				reference: '8453',
+			},
+		}
+
+		const snapshot = await vaultResolver.resolve.NetworkVaultAddress.resolve({
+			$network: network,
+			vaultAddress: vault.address,
+		}, context)
+
+		expect(snapshot).toEqual({
+			$network: {
+				[EntityMetaKey.Selector]: network,
+			},
+			vaultAddress: '0xbeef000000000000000000000000000000000001',
+			name: vault.name,
+			symbol: vault.symbol,
+			listed: vault.listed,
+			assetAddress: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+			assetDecimals: vault.asset.decimals,
 		})
 	})
 })

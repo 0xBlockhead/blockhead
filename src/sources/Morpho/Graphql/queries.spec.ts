@@ -25,7 +25,9 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const {
 	getMarket,
+	getVault,
 	listMarkets,
+	listVaults,
 } = await import('$/sources/Morpho/Graphql/queries.ts')
 
 const binding = bindings[Source.Morpho_Graphql][0]
@@ -45,6 +47,20 @@ const market = {
 	irmAddress: '0x46415998764C29aB2a25CbeA6254146D50D22687',
 	oracle: {
 		address: '0x663BECd10daE6C4A3Dcd89F1d76c1174199639B9',
+	},
+}
+
+const vault = {
+	address: '0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB',
+	symbol: 'steakUSDC',
+	name: 'Steakhouse USDC',
+	listed: true,
+	asset: {
+		address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+		decimals: 6,
+	},
+	chain: {
+		id: 1,
 	},
 }
 
@@ -234,5 +250,151 @@ describe('Morpho GraphQL market enumeration', () => {
 				8453,
 			],
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: market chain filter violated`)
+	})
+})
+
+describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('posts the documented chain-filtered vaults query', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				vaults: {
+					items: [
+						vault,
+					],
+				},
+			},
+		})))
+
+		await expect(listVaults({
+			chainIds: [
+				1,
+			],
+			limit: 16,
+		})).resolves.toEqual([
+			{
+				address: '0xbeef01735c132ada46aa9aa4c54623caa92a64cb',
+				chainId: 1,
+				symbol: 'steakUSDC',
+				name: 'Steakhouse USDC',
+				listed: true,
+				assetAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+				assetDecimals: 6,
+			},
+		])
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			'https://api.morpho.org/graphql',
+			expect.objectContaining({
+				method: 'POST',
+			})
+		)
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
+			variables: {
+				chainIds: [
+					1,
+				],
+				limit: 16,
+			},
+		})
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('chainId_in: $chainIds')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('first: $limit')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('orderBy: TotalAssetsUsd')
+	})
+
+	it('returns a successful empty vault list', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				vaults: {
+					items: [],
+				},
+			},
+		})))
+
+		await expect(listVaults({
+			chainIds: [
+				8453,
+			],
+		})).resolves.toEqual([])
+	})
+
+	it('rejects unsupported chains before transport', async () => {
+		await expect(listVaults({
+			chainIds: [
+				999_999,
+			],
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: unsupported chain id`)
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('rejects invalid limits before transport', async () => {
+		await expect(listVaults({
+			chainIds: [
+				1,
+			],
+			limit: 101,
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: limit must be between 1 and 100`)
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('reads and verifies a vault by its chain and address', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				vaultByAddress: vault,
+			},
+		})))
+
+		await expect(getVault({
+			chainId: 1,
+			address: vault.address,
+		})).resolves.toMatchObject({
+			address: '0xbeef01735c132ada46aa9aa4c54623caa92a64cb',
+			chainId: 1,
+			symbol: 'steakUSDC',
+		})
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
+			variables: {
+				chainId: 1,
+				address: '0xbeef01735c132ada46aa9aa4c54623caa92a64cb',
+			},
+		})
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('vaultByAddress')
+	})
+
+	it('fails closed when a detail response omits its vault', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {},
+		})))
+
+		await expect(getVault({
+			chainId: 1,
+			address: vault.address,
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: vault response missing vaultByAddress`)
+	})
+
+	it('fails closed when a listed vault violates its chain filter', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				vaults: {
+					items: [
+						{
+							...vault,
+							chain: {
+								id: 8453,
+							},
+						},
+					],
+				},
+			},
+		})))
+
+		await expect(listVaults({
+			chainIds: [
+				1,
+			],
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: vault chain filter violated`)
 	})
 })

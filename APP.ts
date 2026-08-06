@@ -1875,6 +1875,7 @@ export enum EntityType {
 	MoneroStealthOutput = "MoneroStealthOutput",
 	MoneroTransaction = "MoneroTransaction",
 	MorphoMarket = "MorphoMarket",
+	MorphoVault = "MorphoVault",
 	MoveFunction = "MoveFunction",
 	MoveModule = "MoveModule",
 	MoveModule_Timestamp = "MoveModule_Timestamp",
@@ -46201,6 +46202,47 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.MorphoVault,
+				labels: {
+					singular: "Morpho vault",
+					plural: "Morpho vaults",
+				},
+				description: "A MetaMorpho vault on an EIP-155 network, identified by vault contract address.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"vaultAddress": { label: "Vault address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Morpho_Graphql] },
+				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Morpho_Graphql] },
+				"listed": { label: "Listed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Morpho_Graphql] },
+				"assetAddress": { label: "Asset address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Morpho_Graphql] },
+				"assetDecimals": { label: "Asset decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Morpho_Graphql] },
+			})({
+				selectors: {
+					"NetworkVaultAddress": ["$network", "vaultAddress"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Morpho_Graphql],
+						},
+						summary: {
+							title: ["name", "symbol"],
+							value: ["listed", { field: "assetAddress", format: "address" }],
+							HeadingAfter: ["$network"],
+						},
+						closed: ["name", { field: "vaultAddress", format: "address" }],
+						content: {
+							dl: [
+								["$network", { field: "vaultAddress", format: "address" }, "name", "symbol", "listed"],
+								[{ field: "assetAddress", format: "address" }, "assetDecimals"],
+							],
+						},
+					},
+					plural: { component: "MorphoVaultsView", title: "Morpho vaults" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.MoveFunction,
 				labels: {
 					singular: "move function",
@@ -47444,6 +47486,7 @@ export const schema = {
 						"$$eulerEvkVaults": { label: "Euler vaults", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EulerEvkVault, defaultSources: [Source.Euler_Rest] },
 						"$$gmxMarkets": { label: "GMX markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GmxMarket, defaultSources: [Source.Gmx_Rest] },
 						"$$morphoMarkets": { label: "Morpho markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MorphoMarket, defaultSources: [Source.Morpho_Graphql] },
+						"$$morphoVaults": { label: "Morpho vaults", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MorphoVault, defaultSources: [Source.Morpho_Graphql] },
 						"$$pendleMarkets": { label: "Pendle markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PendleMarket, defaultSources: [Source.Pendle_Rest] },
 						"$$bridges": { label: "Bridges", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkBridge, defaultSources: [Source.Chainlist_Rest, Source.EthereumLists_Rest] },
 						"$$erc20TokenTransfers": { label: "ERC-20 token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer, defaultSources: [Source.Blockscout_Rest] },
@@ -47676,6 +47719,7 @@ export const schema = {
 										{ id: "evm-defi-euler-vaults", field: ["Evm", "$$eulerEvkVaults"], List: "EulerEvkVaultsView", label: "Euler vaults", emptyText: "No Euler vaults.", selection: { sources: [Source.Euler_Rest], limit: 16 } },
 										{ id: "evm-defi-gmx-markets", field: ["Evm", "$$gmxMarkets"], List: "GmxMarketsView", label: "GMX markets", emptyText: "No GMX markets.", selection: { sources: [Source.Gmx_Rest], limit: 16 } },
 										{ id: "evm-defi-morpho-markets", field: ["Evm", "$$morphoMarkets"], List: "MorphoMarketsView", label: "Morpho markets", emptyText: "No Morpho markets.", selection: { sources: [Source.Morpho_Graphql], limit: 16 } },
+										{ id: "evm-defi-morpho-vaults", field: ["Evm", "$$morphoVaults"], List: "MorphoVaultsView", label: "Morpho vaults", emptyText: "No Morpho vaults.", selection: { sources: [Source.Morpho_Graphql], limit: 16 } },
 										{ id: "evm-defi-pendle-markets", field: ["Evm", "$$pendleMarkets"], List: "PendleMarketsView", label: "Pendle markets", emptyText: "No Pendle markets.", selection: { sources: [Source.Pendle_Rest], limit: 16 } },
 									],
 								},
@@ -79681,6 +79725,30 @@ export const routes = defineRoutes(schema)({
 																},
 																params: {
 																	"marketId": ["marketId"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"morpho-vault": {
+											children: {
+												"[vaultAddress]": {
+													selectors: {
+														[EntityType.MorphoVault]: {
+															"NetworkVaultAddress": {
+																when: {
+																	path: ["namespace"],
+																	is: "Evm",
+																},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Evm"],
+																},
+																params: {
+																	"vaultAddress": ["vaultAddress"],
 																},
 																page: {},
 															},

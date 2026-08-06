@@ -73,6 +73,9 @@ export const morphoGraphqlNetworks = [
 /** Morpho's documented default market page size. */
 export const morphoMarketPageLimit = 100
 
+/** Morpho's documented default vault page size. */
+export const morphoVaultPageLimit = 100
+
 /** Morpho Blue market id (bytes32). */
 export const morphoMarketIdPattern = /^0x[0-9a-fA-F]{64}$/
 
