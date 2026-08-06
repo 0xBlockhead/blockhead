@@ -1,7 +1,6 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -79,11 +78,16 @@ export default {
 						$network,
 						vaultAddress,
 					}: EulerEvkVaultId) => {
+						const chainId = eip155ChainId($network)
+						const { eulerEvkByChainId } = await import('$/sources/Euler/Rest/constants.ts')
+						if (eulerEvkByChainId[chainId] == null)
+							throw new Error(`${Source.Euler_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const { getVault } = await import('$/sources/Euler/Rest/queries.ts')
 						return mapEulerEvkVaultSnapshot(
 							$network,
 							await getVault({
-								chainId: eip155ChainId($network),
+								chainId,
 								vaultAddress,
 							})
 						)
@@ -120,6 +124,10 @@ export default {
 				Caip2: {
 					resolve: async (network, context) => {
 						const chainId = eip155ChainId(network)
+						const { eulerEvkByChainId } = await import('$/sources/Euler/Rest/constants.ts')
+						if (eulerEvkByChainId[chainId] == null)
+							throw new Error(`${Source.Euler_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const { listVaults } = await import('$/sources/Euler/Rest/queries.ts')
 						return (await listVaults({
 							chainId,
@@ -140,4 +148,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Euler_Rest>
+}

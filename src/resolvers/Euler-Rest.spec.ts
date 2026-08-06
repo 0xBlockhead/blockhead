@@ -42,6 +42,12 @@ const eulerEvkVaultResolver = eulerRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EulerEvkVault
 ))
 
+const networkEulerEvkVaultsResolver = eulerRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Evm' in resolver.projections
+	&& '$$eulerEvkVaults' in resolver.projections.Evm
+))
+
 const baseVaultAddress = '0x00011d9A1EB3d7278b8DF2391e2E32f6f9bcF293'
 
 const baseVaultDetail = {
@@ -93,6 +99,39 @@ describe('Euler Rest resolver module', () => {
 				vaultAddress: baseVaultAddress,
 			}, context)
 		).rejects.toThrow(`${Source.Euler_Rest}: network must use the eip155 CAIP-2 namespace`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('rejects unsupported Euler chains on EulerEvkVault before transport', async () => {
+		if (eulerEvkVaultResolver == null)
+			throw new Error('missing EulerEvkVault resolver')
+
+		await expect(
+			eulerEvkVaultResolver.resolve.NetworkVaultAddress.resolve({
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '999999',
+					},
+				},
+				vaultAddress: baseVaultAddress,
+			}, context)
+		).rejects.toThrow(`${Source.Euler_Rest}: unsupported chain id 999999`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('rejects unsupported Euler chains on Network $$eulerEvkVaults before transport', async () => {
+		if (networkEulerEvkVaultsResolver == null)
+			throw new Error('missing Network $$eulerEvkVaults resolver')
+
+		await expect(
+			networkEulerEvkVaultsResolver.resolve.Caip2.resolve({
+				caip2: {
+					namespace: 'eip155',
+					reference: '999999',
+				},
+			}, context)
+		).rejects.toThrow(`${Source.Euler_Rest}: unsupported chain id 999999`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
