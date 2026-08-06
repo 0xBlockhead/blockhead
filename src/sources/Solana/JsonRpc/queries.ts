@@ -20,6 +20,7 @@ import {
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/PublicNode/bindings.ts'
 import { solanaSlotLive } from '$/sources/Solana/JsonRpc/live.remote.ts'
+import { type as arktype } from 'arktype'
 
 const binding = bindings[Source.Solana_JsonRpc].find(({ delivery }) => (
 	delivery === SourceDelivery.HttpProxy
@@ -41,12 +42,190 @@ export const solanaRpcEndpoints = bindings[Source.Solana_JsonRpc].flatMap(({ end
 	}))
 ))
 
-export const getBlock = ({
+const nonNegativeSafeInteger = 'number.integer >= 0 & number <= 9007199254740991'
+const solanaCommitmentWire = arktype("'confirmed' | 'finalized' | 'processed'").or('null')
+
+const solanaInstructionWire = arktype({
+	programId: 'string > 0',
+	'program?': 'string',
+	'parsed?': {
+		'type?': 'string',
+		'info?': {
+			'account?': 'string',
+			'destination?': 'string',
+			'mint?': 'string',
+			'newAccount?': 'string',
+			'source?': 'string',
+		},
+	},
+	'accounts?': 'string[]',
+	'data?': 'string',
+	'stackHeight?': nonNegativeSafeInteger,
+})
+
+const solanaAccountKeyWire = arktype({
+	pubkey: 'string > 0',
+	signer: 'boolean',
+	writable: 'boolean',
+	'source?': 'string',
+})
+
+const solanaTransactionWire = arktype({
+	'slot?': nonNegativeSafeInteger,
+	'blockTime?': arktype(nonNegativeSafeInteger).or('null'),
+	transaction: {
+		signatures: arktype('string > 0').array(),
+		message: {
+			accountKeys: solanaAccountKeyWire.array(),
+			instructions: solanaInstructionWire.array(),
+		},
+	},
+	'meta?': {
+		err: 'unknown',
+		fee: nonNegativeSafeInteger,
+		'computeUnitsConsumed?': nonNegativeSafeInteger,
+		'innerInstructions?': arktype({
+			index: nonNegativeSafeInteger,
+			instructions: solanaInstructionWire.array(),
+		}).array(),
+	},
+})
+
+const solanaBlockWire = arktype({
+	'blockHeight?': nonNegativeSafeInteger,
+	'blockTime?': arktype(nonNegativeSafeInteger).or('null'),
+	blockhash: 'string > 0',
+	parentSlot: nonNegativeSafeInteger,
+	previousBlockhash: 'string > 0',
+	transactions: solanaTransactionWire.array(),
+})
+
+const solanaAddressSignatureWire = arktype({
+	signature: 'string > 0',
+	slot: nonNegativeSafeInteger,
+	err: 'unknown',
+	memo: arktype('string').or('null'),
+	blockTime: arktype(nonNegativeSafeInteger).or('null'),
+	confirmationStatus: solanaCommitmentWire,
+})
+
+const solanaPerformanceSampleWire = arktype({
+	slot: nonNegativeSafeInteger,
+	numTransactions: nonNegativeSafeInteger,
+	numSlots: nonNegativeSafeInteger,
+	samplePeriodSecs: nonNegativeSafeInteger,
+	'numNonVoteTransactions?': arktype(nonNegativeSafeInteger).or('null'),
+})
+
+const solanaAccountInfoWire = arktype({
+	value: arktype({
+		lamports: nonNegativeSafeInteger,
+		owner: 'string > 0',
+		executable: 'boolean',
+		rentEpoch: nonNegativeSafeInteger,
+		data: arktype(['string', 'string']),
+	}).or('null'),
+})
+
+const solanaParsedTokenMintAccountInfoWire = arktype({
+	value: arktype({
+		data: {
+			parsed: {
+				info: {
+					supply: '/^(0|[1-9][0-9]*)$/',
+					decimals: 'number.integer >= 0 & number <= 255',
+					'isInitialized?': 'boolean',
+					'mintAuthority?': arktype('string').or('null'),
+					'freezeAuthority?': arktype('string').or('null'),
+				},
+			},
+		},
+	}).or('null'),
+})
+
+const solanaParsedTokenAccountInfoWire = arktype({
+	value: arktype({
+		data: {
+			parsed: {
+				info: {
+					mint: 'string > 0',
+					owner: 'string > 0',
+					tokenAmount: {
+						amount: '/^(0|[1-9][0-9]*)$/',
+						decimals: 'number.integer >= 0 & number <= 255',
+						'uiAmountString?': 'string',
+					},
+					'state?': 'string',
+					'isNative?': 'boolean',
+					'delegate?': 'string',
+					'delegatedAmount?': {
+						amount: '/^(0|[1-9][0-9]*)$/',
+					},
+					'rentExemptReserve?': {
+						amount: '/^(0|[1-9][0-9]*)$/',
+					},
+					'closeAuthority?': 'string',
+				},
+			},
+		},
+	}).or('null'),
+})
+
+const solanaSignatureStatusWire = arktype({
+	slot: nonNegativeSafeInteger,
+	confirmations: arktype(nonNegativeSafeInteger).or('null'),
+	err: 'unknown',
+	'confirmationStatus?': 'string',
+})
+
+const solanaVoteAccountWire = arktype({
+	activatedStake: nonNegativeSafeInteger,
+	commission: 'number.integer >= 0 & number <= 100',
+	epochVoteAccount: 'boolean',
+	'epochCredits?': 'unknown',
+	lastVote: nonNegativeSafeInteger,
+	nodePubkey: 'string > 0',
+	rootSlot: nonNegativeSafeInteger,
+	votePubkey: 'string > 0',
+})
+
+const solanaVoteAccountsWire = arktype({
+	current: solanaVoteAccountWire.array(),
+	delinquent: solanaVoteAccountWire.array(),
+})
+
+const solanaEpochInfoWire = arktype({
+	absoluteSlot: nonNegativeSafeInteger,
+	blockHeight: nonNegativeSafeInteger,
+	epoch: nonNegativeSafeInteger,
+	slotIndex: nonNegativeSafeInteger,
+	slotsInEpoch: nonNegativeSafeInteger,
+	'transactionCount?': nonNegativeSafeInteger,
+})
+
+const solanaVersionWire = arktype({
+	'solana-core': 'string > 0',
+	'feature-set?': nonNegativeSafeInteger,
+})
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`${Source.Solana_JsonRpc}: invalid ${label} response envelope`)
+	}
+}
+
+export const getBlock = async ({
 	slot,
 }: {
 	slot: bigint
-}) => (
-	jsonRpc2<SolanaRpcBlock | null>(binding, 'getBlock', [
+}) => {
+	const block = await jsonRpc2<unknown>(binding, 'getBlock', [
 		Number(slot),
 		{
 			encoding: 'jsonParsed',
@@ -55,26 +234,38 @@ export const getBlock = ({
 			maxSupportedTransactionVersion: 0,
 		},
 	])
-)
+	if (block == null)
+		return null
 
-export const getSlot = () => (
-	jsonRpc2<number>(binding, 'getSlot', [
-		{
-			commitment: 'finalized',
-		},
-	])
+	return assertEnvelope('block', solanaBlockWire, block) as SolanaRpcBlock
+}
+
+export const getSlot = async () => (
+	assertEnvelope(
+		'slot',
+		arktype(nonNegativeSafeInteger),
+		await jsonRpc2<unknown>(binding, 'getSlot', [
+			{
+				commitment: 'finalized',
+			},
+		])
+	)
 )
 
 export const getBlockHeight = async () => {
-	const blockHeight = await jsonRpc2<number>(binding, 'getBlockHeight', [
+	const blockHeight = await jsonRpc2<unknown>(binding, 'getBlockHeight', [
 		{
 			commitment: 'finalized',
 		},
 	])
-	if (!Number.isSafeInteger(blockHeight) || blockHeight < 0)
+	if (!Number.isSafeInteger(blockHeight) || (blockHeight as number) < 0)
 		throw new Error('Solana getBlockHeight returned an invalid block height')
 
-	return blockHeight
+	return assertEnvelope(
+		'block height',
+		arktype(nonNegativeSafeInteger),
+		blockHeight
+	)
 }
 
 export const getRecentPerformanceSamples = async ({
@@ -87,82 +278,77 @@ export const getRecentPerformanceSamples = async ({
 	if (limit === 0)
 		return []
 
-	const samples = await jsonRpc2<{
-		slot: number
-		numTransactions: number
-		numSlots: number
-		samplePeriodSecs: number
-		numNonVoteTransactions?: number | null
-	}[]>(
-		binding,
-		'getRecentPerformanceSamples',
-		limit != null ? [limit] : []
+	const samples = assertEnvelope(
+		'performance samples',
+		solanaPerformanceSampleWire.array(),
+		await jsonRpc2<unknown>(
+			binding,
+			'getRecentPerformanceSamples',
+			limit != null ? [limit] : []
+		)
 	)
 	if (limit != null && samples.length > limit)
 		throw new Error('Solana getRecentPerformanceSamples exceeded the requested limit')
 
-	for (const sample of samples) {
-		if (!Number.isSafeInteger(sample.slot) || sample.slot < 0)
-			throw new Error('Solana getRecentPerformanceSamples returned an invalid slot')
-		if (!Number.isSafeInteger(sample.numTransactions) || sample.numTransactions < 0)
-			throw new Error('Solana getRecentPerformanceSamples returned an invalid transaction count')
-		if (!Number.isSafeInteger(sample.numSlots) || sample.numSlots < 0)
-			throw new Error('Solana getRecentPerformanceSamples returned an invalid slot count')
-		if (!Number.isSafeInteger(sample.samplePeriodSecs) || sample.samplePeriodSecs < 0)
-			throw new Error('Solana getRecentPerformanceSamples returned an invalid sample period')
-		if (
-			sample.numNonVoteTransactions != null
-			&& (
-				!Number.isSafeInteger(sample.numNonVoteTransactions)
-				|| sample.numNonVoteTransactions < 0
-			)
-		)
-			throw new Error('Solana getRecentPerformanceSamples returned an invalid non-vote transaction count')
-	}
-
 	return samples
 }
 
-export const getBlocks = ({
+export const getBlocks = async ({
 	startSlot,
 	endSlot,
 }: {
 	startSlot: bigint
 	endSlot: bigint
 }) => (
-	jsonRpc2<number[]>(binding, 'getBlocks', [
-		Number(startSlot),
-		Number(endSlot),
-		{
-			commitment: 'finalized',
-		},
-	])
+	assertEnvelope(
+		'blocks',
+		arktype(nonNegativeSafeInteger).array(),
+		await jsonRpc2<unknown>(binding, 'getBlocks', [
+			Number(startSlot),
+			Number(endSlot),
+			{
+				commitment: 'finalized',
+			},
+		])
+	)
 )
 
-export const getEpochInfo = () => (
-	jsonRpc2<SolanaRpcEpochInfo>(binding, 'getEpochInfo', [
-		{
-			commitment: 'finalized',
-		},
-	])
+export const getEpochInfo = async () => (
+	assertEnvelope(
+		'epoch info',
+		solanaEpochInfoWire,
+		await jsonRpc2<unknown>(binding, 'getEpochInfo', [
+			{
+				commitment: 'finalized',
+			},
+		])
+	) as SolanaRpcEpochInfo
 )
 
-export const getHealth = () => (
-	jsonRpc2<string>(binding, 'getHealth', [])
+export const getHealth = async () => (
+	assertEnvelope(
+		'health',
+		arktype('string > 0'),
+		await jsonRpc2<unknown>(binding, 'getHealth', [])
+	)
 )
 
-export const getVersion = () => (
-	jsonRpc2<SolanaRpcVersion>(binding, 'getVersion', [])
+export const getVersion = async () => (
+	assertEnvelope(
+		'version',
+		solanaVersionWire,
+		await jsonRpc2<unknown>(binding, 'getVersion', [])
+	) as SolanaRpcVersion
 )
 
-export const getTransaction = ({
+export const getTransaction = async ({
 	signature,
 	commitment = 'confirmed',
 }: {
 	signature: string
 	commitment?: SolanaRpcCommitment
-}) => (
-	jsonRpc2<SolanaRpcTransaction | null>(binding, 'getTransaction', [
+}) => {
+	const transaction = await jsonRpc2<unknown>(binding, 'getTransaction', [
 		signature,
 		{
 			commitment,
@@ -170,7 +356,15 @@ export const getTransaction = ({
 			maxSupportedTransactionVersion: 0,
 		},
 	])
-)
+	if (transaction == null)
+		return null
+
+	return assertEnvelope(
+		'transaction',
+		solanaTransactionWire,
+		transaction
+	) as SolanaRpcTransaction
+}
 
 export const getSignaturesForAddress = async ({
 	pubkey,
@@ -203,31 +397,26 @@ export const getSignaturesForAddress = async ({
 			},
 		}
 
-	const signatures = await jsonRpc2<SolanaRpcAddressSignature[]>(binding, 'getSignaturesForAddress', [
-		pubkey,
-		{
-			commitment,
-			limit,
-			...(before != null && { before }),
-			...(until != null && { until }),
-		},
-	])
+	const signatures = assertEnvelope(
+		'address signatures',
+		solanaAddressSignatureWire.array(),
+		await jsonRpc2<unknown>(binding, 'getSignaturesForAddress', [
+			pubkey,
+			{
+				commitment,
+				limit,
+				...(before != null && { before }),
+				...(until != null && { until }),
+			},
+		])
+	) as SolanaRpcAddressSignature[]
 	if (signatures.length > limit)
 		throw new Error('Solana getSignaturesForAddress exceeded the requested limit')
 
 	const seenSignatures = new Set<string>()
 	for (const signature of signatures) {
-		if (signature.signature.length === 0)
-			throw new Error('Solana getSignaturesForAddress returned an empty transaction signature')
 		if (seenSignatures.has(signature.signature))
 			throw new Error('Solana getSignaturesForAddress returned a duplicate transaction signature')
-		if (!Number.isSafeInteger(signature.slot) || signature.slot < 0)
-			throw new Error('Solana getSignaturesForAddress returned an invalid slot')
-		if (
-			signature.blockTime != null
-			&& (!Number.isSafeInteger(signature.blockTime) || signature.blockTime < 0)
-		)
-			throw new Error('Solana getSignaturesForAddress returned an invalid block time')
 
 		seenSignatures.add(signature.signature)
 	}
@@ -292,68 +481,90 @@ export const getTransactionsForAddress = async ({
 	}
 }
 
-export const getAccountInfo = ({
+export const getAccountInfo = async ({
 	pubkey,
 }: {
 	pubkey: string
 }) => (
-	jsonRpc2<SolanaRpcAccountInfo>(binding, 'getAccountInfo', [
-		pubkey,
-		{
-			encoding: 'base64',
-		},
-	])
+	assertEnvelope(
+		'account info',
+		solanaAccountInfoWire,
+		await jsonRpc2<unknown>(binding, 'getAccountInfo', [
+			pubkey,
+			{
+				encoding: 'base64',
+			},
+		])
+	) as SolanaRpcAccountInfo
 )
 
-export const getParsedTokenMintAccountInfo = ({
+export const getParsedTokenMintAccountInfo = async ({
 	pubkey,
 }: {
 	pubkey: string
 }) => (
-	jsonRpc2<SolanaRpcParsedTokenMintAccountInfo>(binding, 'getAccountInfo', [
-		pubkey,
-		{
-			encoding: 'jsonParsed',
-		},
-	])
+	assertEnvelope(
+		'token mint account info',
+		solanaParsedTokenMintAccountInfoWire,
+		await jsonRpc2<unknown>(binding, 'getAccountInfo', [
+			pubkey,
+			{
+				encoding: 'jsonParsed',
+			},
+		])
+	) as SolanaRpcParsedTokenMintAccountInfo
 )
 
-export const getParsedTokenAccountInfo = ({
+export const getParsedTokenAccountInfo = async ({
 	pubkey,
 }: {
 	pubkey: string
 }) => (
-	jsonRpc2<SolanaRpcParsedTokenAccountInfo>(binding, 'getAccountInfo', [
-		pubkey,
-		{
-			encoding: 'jsonParsed',
-		},
-	])
+	assertEnvelope(
+		'token account info',
+		solanaParsedTokenAccountInfoWire,
+		await jsonRpc2<unknown>(binding, 'getAccountInfo', [
+			pubkey,
+			{
+				encoding: 'jsonParsed',
+			},
+		])
+	) as SolanaRpcParsedTokenAccountInfo
 )
 
-export const getSignatureStatuses = ({
+export const getSignatureStatuses = async ({
 	signatures,
 }: {
 	signatures: readonly string[]
 }) => (
-	jsonRpc2<{
+	assertEnvelope(
+		'signature statuses',
+		arktype({
+			value: solanaSignatureStatusWire.or('null').array(),
+		}),
+		await jsonRpc2<unknown>(binding, 'getSignatureStatuses', [[...signatures]])
+	) as {
 		value: (SolanaRpcSignatureStatus | null)[]
-	}>(binding, 'getSignatureStatuses', [[...signatures]])
+	}
 )
 
-export const getVoteAccounts = ({
+export const getVoteAccounts = async ({
 	votePubkey,
 }: {
 	votePubkey?: string
 }) => (
-	jsonRpc2<SolanaRpcVoteAccounts>(binding, 'getVoteAccounts', [
-		{
-			commitment: 'finalized',
-			...(votePubkey != null && {
-				votePubkey,
-			}),
-		},
-	])
+	assertEnvelope(
+		'vote accounts',
+		solanaVoteAccountsWire,
+		await jsonRpc2<unknown>(binding, 'getVoteAccounts', [
+			{
+				commitment: 'finalized',
+				...(votePubkey != null && {
+					votePubkey,
+				}),
+			},
+		])
+	) as SolanaRpcVoteAccounts
 )
 
 // slotSubscribe — https://solana.com/docs/rpc/websocket/slotsubscribe

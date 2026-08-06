@@ -176,15 +176,15 @@ describe('Solana account transaction JSON-RPC', () => {
 			},
 			{
 				result: [{ ...addressSignature, signature: '' }],
-				message: 'empty transaction signature',
+				message: 'invalid address signatures response envelope',
 			},
 			{
 				result: [{ ...addressSignature, slot: -1 }],
-				message: 'invalid slot',
+				message: 'invalid address signatures response envelope',
 			},
 			{
 				result: [{ ...addressSignature, blockTime: -1 }],
-				message: 'invalid block time',
+				message: 'invalid address signatures response envelope',
 			},
 			{
 				result: [
@@ -334,23 +334,23 @@ describe('Solana network head JSON-RPC', () => {
 			},
 			{
 				result: [{ ...performanceSample, slot: -1 }],
-				message: 'invalid slot',
+				message: 'invalid performance samples response envelope',
 			},
 			{
 				result: [{ ...performanceSample, numTransactions: -1 }],
-				message: 'invalid transaction count',
+				message: 'invalid performance samples response envelope',
 			},
 			{
 				result: [{ ...performanceSample, numSlots: 1.5 }],
-				message: 'invalid slot count',
+				message: 'invalid performance samples response envelope',
 			},
 			{
 				result: [{ ...performanceSample, samplePeriodSecs: -1 }],
-				message: 'invalid sample period',
+				message: 'invalid performance samples response envelope',
 			},
 			{
 				result: [{ ...performanceSample, numNonVoteTransactions: -1 }],
-				message: 'invalid non-vote transaction count',
+				message: 'invalid performance samples response envelope',
 			},
 		]) {
 			sourceFetch.mockResolvedValueOnce(rpcResponse(result))
@@ -370,5 +370,105 @@ describe('Solana network head JSON-RPC', () => {
 			limit: 0,
 		})).resolves.toEqual([])
 		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+})
+
+describe('Solana account / validator / epoch JSON-RPC envelopes', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('fail-closes account info and vote account envelopes', async () => {
+		const {
+			getAccountInfo,
+			getEpochInfo,
+			getVoteAccounts,
+		} = await import('$/sources/Solana/JsonRpc/queries.ts')
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			value: {
+				lamports: 1,
+				owner: '11111111111111111111111111111111',
+				executable: false,
+				rentEpoch: 0,
+				data: ['AQ==', 'base64'],
+			},
+		}))
+		await expect(getAccountInfo({
+			pubkey,
+		})).resolves.toMatchObject({
+			value: {
+				lamports: 1,
+				owner: '11111111111111111111111111111111',
+			},
+		})
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			value: {
+				lamports: -1,
+				owner: '11111111111111111111111111111111',
+				executable: false,
+				rentEpoch: 0,
+				data: ['AQ==', 'base64'],
+			},
+		}))
+		await expect(getAccountInfo({
+			pubkey,
+		})).rejects.toThrow('invalid account info response envelope')
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			current: [{
+				activatedStake: 10,
+				commission: 5,
+				epochVoteAccount: true,
+				lastVote: 1,
+				nodePubkey: 'Node111111111111111111111111111111111111111',
+				rootSlot: 1,
+				votePubkey: 'Vote111111111111111111111111111111111111111',
+			}],
+			delinquent: [],
+		}))
+		await expect(getVoteAccounts({})).resolves.toMatchObject({
+			current: [
+				{
+					commission: 5,
+				},
+			],
+		})
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			current: [{
+				activatedStake: 10,
+				commission: 101,
+				epochVoteAccount: true,
+				lastVote: 1,
+				nodePubkey: 'Node111111111111111111111111111111111111111',
+				rootSlot: 1,
+				votePubkey: 'Vote111111111111111111111111111111111111111',
+			}],
+			delinquent: [],
+		}))
+		await expect(getVoteAccounts({})).rejects.toThrow('invalid vote accounts response envelope')
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			absoluteSlot: 1,
+			blockHeight: 1,
+			epoch: 1,
+			slotIndex: 1,
+			slotsInEpoch: 432_000,
+		}))
+		await expect(getEpochInfo()).resolves.toMatchObject({
+			epoch: 1,
+			slotsInEpoch: 432_000,
+		})
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			absoluteSlot: -1,
+			blockHeight: 1,
+			epoch: 1,
+			slotIndex: 1,
+			slotsInEpoch: 432_000,
+		}))
+		await expect(getEpochInfo()).rejects.toThrow('invalid epoch info response envelope')
 	})
 })
