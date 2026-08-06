@@ -22,12 +22,11 @@ import type {
 	YoutubeApiCommentThread,
 	YoutubeApiPlaylist,
 	YoutubeApiSnippet,
-	YoutubeApiThumbnail,
 	YoutubeApiVideo,
 } from '$/sources/Youtube/Rest/types.ts'
 
 
-const youtubeThumbnailUrl = (thumbnails: Partial<Record<string, YoutubeApiThumbnail>> | undefined) => (
+const youtubeThumbnailUrl = (thumbnails: YoutubeApiSnippet['thumbnails']) => (
 	optionalNonemptyString(
 		thumbnails?.maxres?.url
 		?? thumbnails?.standard?.url
@@ -106,12 +105,7 @@ const youtubeCommentReference = (
 	commentId: string,
 	comment: YoutubeApiComment
 ) => {
-	const authorChannelId = (
-		typeof comment.snippet?.authorChannelId === 'string' ?
-			optionalNonemptyString(comment.snippet.authorChannelId)
-		:
-			optionalNonemptyString(comment.snippet?.authorChannelId?.value)
-	)
+	const authorChannelId = optionalNonemptyString(comment.snippet?.authorChannelId?.value)
 	const parentCommentId = optionalNonemptyString(comment.snippet?.parentId)
 
 	return {
@@ -411,12 +405,7 @@ export default {
 						if (videoId != null && videoId !== videoIdSelector)
 							throw new Error('Youtube_Rest: comment does not belong to requested video')
 						const parentId = optionalNonemptyString(snippet?.parentId)
-						const authorChannelId = (
-							typeof snippet?.authorChannelId === 'string' ?
-								optionalNonemptyString(snippet.authorChannelId)
-							:
-								optionalNonemptyString(snippet?.authorChannelId?.value)
-						)
+						const authorChannelId = optionalNonemptyString(snippet?.authorChannelId?.value)
 						const authorDisplayName = optionalNonemptyString(snippet?.authorDisplayName)
 						const publishedAt = optionalNonemptyString(snippet?.publishedAt)
 						const publishedAtMs = optionalTimestampMs(snippet?.publishedAt)

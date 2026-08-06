@@ -5,4 +5,5 @@
 export const schemaSource = {
 	schemaUrl: 'https://youtube.googleapis.com/$discovery/rest?version=v3',
 	schemaFile: './youtube-v3.json',
+	typesFile: './discovery.d.ts',
 } as const

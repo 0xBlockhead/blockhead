@@ -5,4 +5,5 @@
 export const schemaSource = {
 	schemaUrl: 'https://raw.githubusercontent.com/starkware-libs/starknet-specs/v0.10.2/api/starknet_api_openrpc.json',
 	schemaFile: './openrpc.json',
+	typesFile: './openrpc.d.ts',
 } as const

@@ -1,9 +1,9 @@
-export type YoutubeApiThumbnail = {
-	url?: string
-	width?: number
-	height?: number
-}
+import type { components } from '$/sources/Youtube/Discovery/discovery.d.ts'
 
+
+export type YoutubeApiThumbnail = components['schemas']['Thumbnail']
+
+/** Shared snippet fields used across channel / video / playlist / search helpers. */
 export type YoutubeApiSnippet = {
 	title?: string
 	description?: string
@@ -13,143 +13,52 @@ export type YoutubeApiSnippet = {
 	customUrl?: string
 	categoryId?: string
 	liveBroadcastContent?: string
-	thumbnails?: Record<string, YoutubeApiThumbnail>
+	thumbnails?: components['schemas']['ThumbnailDetails']
 	tags?: string[]
 }
 
-export type YoutubeApiStatistics = {
-	viewCount?: string
-	likeCount?: string
-	commentCount?: string
-	subscriberCount?: string
-	videoCount?: string
-}
+export type YoutubeApiStatistics = components['schemas']['ChannelStatistics'] | components['schemas']['VideoStatistics']
 
-export type YoutubeApiChannel = {
-	id?: string
-	snippet?: YoutubeApiSnippet
-	statistics?: YoutubeApiStatistics
-}
+export type YoutubeApiChannel = components['schemas']['Channel']
 
-export type YoutubeApiContentDetails = {
-	duration?: string
-}
+export type YoutubeApiContentDetails = components['schemas']['VideoContentDetails']
 
-export type YoutubeApiVideo = {
-	id?: string
-	snippet?: YoutubeApiSnippet
-	statistics?: YoutubeApiStatistics
-	contentDetails?: YoutubeApiContentDetails
-}
+export type YoutubeApiVideo = components['schemas']['Video']
 
-export type YoutubeApiPlaylistContentDetails = {
-	itemCount?: number
-}
+export type YoutubeApiPlaylistContentDetails = components['schemas']['PlaylistContentDetails']
 
-export type YoutubeApiPlaylist = {
-	id?: string
-	snippet?: YoutubeApiSnippet
-	contentDetails?: YoutubeApiPlaylistContentDetails
-}
+export type YoutubeApiPlaylist = components['schemas']['Playlist']
 
-export type YoutubeApiResourceId = {
-	kind?: string
-	videoId?: string
-}
+export type YoutubeApiResourceId = components['schemas']['ResourceId']
 
-export type YoutubeApiPlaylistItemSnippet = YoutubeApiSnippet & {
-	playlistId?: string
-	position?: number
-	resourceId?: YoutubeApiResourceId
-}
+export type YoutubeApiPlaylistItemSnippet = components['schemas']['PlaylistItemSnippet']
 
-export type YoutubeApiPlaylistItemContentDetails = {
-	videoId?: string
-	videoPublishedAt?: string
-}
+export type YoutubeApiPlaylistItemContentDetails = components['schemas']['PlaylistItemContentDetails']
 
-export type YoutubeApiPlaylistItem = {
-	id?: string
-	snippet?: YoutubeApiPlaylistItemSnippet
-	contentDetails?: YoutubeApiPlaylistItemContentDetails
-}
+export type YoutubeApiPlaylistItem = components['schemas']['PlaylistItem']
 
-export type YoutubeApiCommentSnippet = {
-	authorDisplayName?: string
-	authorProfileImageUrl?: string
-	authorChannelUrl?: string
-	authorChannelId?: string | { value?: string }
-	videoId?: string
-	textDisplay?: string
-	textOriginal?: string
-	parentId?: string
-	likeCount?: number
-	publishedAt?: string
-	updatedAt?: string
-}
+export type YoutubeApiCommentSnippet = components['schemas']['CommentSnippet']
 
-export type YoutubeApiComment = {
-	id?: string
-	snippet?: YoutubeApiCommentSnippet
-}
+export type YoutubeApiComment = components['schemas']['Comment']
 
-export type YoutubeApiCommentThreadSnippet = {
-	channelId?: string
-	videoId?: string
-	topLevelComment?: YoutubeApiComment
-	canReply?: boolean
-	totalReplyCount?: number
-	isPublic?: boolean
-}
+export type YoutubeApiCommentThreadSnippet = components['schemas']['CommentThreadSnippet']
 
-export type YoutubeApiCommentThreadReplies = {
-	comments?: YoutubeApiComment[]
-}
+export type YoutubeApiCommentThreadReplies = components['schemas']['CommentThreadReplies']
 
-export type YoutubeApiCommentThread = {
-	id?: string
-	snippet?: YoutubeApiCommentThreadSnippet
-	replies?: YoutubeApiCommentThreadReplies
-}
+export type YoutubeApiCommentThread = components['schemas']['CommentThread']
 
-export type YoutubeApiChannelsListResponse = {
-	items?: YoutubeApiChannel[]
-}
+export type YoutubeApiChannelsListResponse = components['schemas']['ChannelListResponse']
 
-export type YoutubeApiVideosListResponse = {
-	items?: YoutubeApiVideo[]
-}
+export type YoutubeApiVideosListResponse = components['schemas']['VideoListResponse']
 
-export type YoutubeApiPlaylistsListResponse = {
-	items?: YoutubeApiPlaylist[]
-	nextPageToken?: string
-}
+export type YoutubeApiPlaylistsListResponse = components['schemas']['PlaylistListResponse']
 
-export type YoutubeApiPlaylistItemsListResponse = {
-	items?: YoutubeApiPlaylistItem[]
-	nextPageToken?: string
-}
+export type YoutubeApiPlaylistItemsListResponse = components['schemas']['PlaylistItemListResponse']
 
-export type YoutubeApiCommentThreadsListResponse = {
-	items?: YoutubeApiCommentThread[]
-	nextPageToken?: string
-}
+export type YoutubeApiCommentThreadsListResponse = components['schemas']['CommentThreadListResponse']
 
-export type YoutubeApiCommentsListResponse = {
-	items?: YoutubeApiComment[]
-	nextPageToken?: string
-}
+export type YoutubeApiCommentsListResponse = components['schemas']['CommentListResponse']
 
-export type YoutubeApiSearchResult = {
-	id?: {
-		kind?: string
-		channelId?: string
-		videoId?: string
-	}
-	snippet?: YoutubeApiSnippet
-}
+export type YoutubeApiSearchResult = components['schemas']['SearchResult']
 
-export type YoutubeApiSearchListResponse = {
-	items?: YoutubeApiSearchResult[]
-	nextPageToken?: string
-}
+export type YoutubeApiSearchListResponse = components['schemas']['SearchListResponse']
