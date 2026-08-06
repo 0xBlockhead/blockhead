@@ -189,25 +189,59 @@ const resolverContext = {
 	publicEnv: {},
 }
 
+const aptosResponseHeaders = {
+	'x-aptos-chain-id': metadata.chainId,
+	'x-aptos-ledger-version': metadata.ledgerVersion,
+	'x-aptos-ledger-oldest-version': metadata.oldestLedgerVersion,
+	'x-aptos-ledger-timestampusec': metadata.ledgerTimestampUsec,
+	'x-aptos-epoch': metadata.epoch,
+	'x-aptos-block-height': metadata.blockHeight,
+	'x-aptos-oldest-block-height': metadata.oldestBlockHeight,
+}
+
+const jsonAptosResponse = (body: unknown) => (
+	new Response(JSON.stringify(body), {
+		status: 200,
+		headers: aptosResponseHeaders,
+	})
+)
+
 describe('Aptos Fullnode typed operations', () => {
 	beforeEach(() => {
 		vi.restoreAllMocks()
 		sourceFetch.mockReset()
-		sourceFetch.mockImplementation(async () => new Response('{}', {
-			status: 200,
-			headers: {
-				'x-aptos-chain-id': metadata.chainId,
-				'x-aptos-ledger-version': metadata.ledgerVersion,
-				'x-aptos-ledger-oldest-version': metadata.oldestLedgerVersion,
-				'x-aptos-ledger-timestampusec': metadata.ledgerTimestampUsec,
-				'x-aptos-epoch': metadata.epoch,
-				'x-aptos-block-height': metadata.blockHeight,
-				'x-aptos-oldest-block-height': metadata.oldestBlockHeight,
-			},
-		}))
 	})
 
 	it('addresses every core REST operation without a generic query surface', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(jsonAptosResponse(ledgerInfo))
+			.mockResolvedValueOnce(jsonAptosResponse({
+				sequence_number: '8',
+				authentication_key: '0xauth',
+			}))
+			.mockResolvedValueOnce(jsonAptosResponse([]))
+			.mockResolvedValueOnce(jsonAptosResponse([]))
+			.mockResolvedValueOnce(jsonAptosResponse({
+				block_height: '9',
+				block_hash: '0xblock',
+				block_timestamp: '1720000000123456',
+				first_version: '40',
+				last_version: '42',
+			}))
+			.mockResolvedValueOnce(jsonAptosResponse({
+				block_height: '9',
+				block_hash: '0xblock',
+				block_timestamp: '1720000000123456',
+				first_version: '40',
+				last_version: '42',
+			}))
+			.mockResolvedValueOnce(jsonAptosResponse([]))
+			.mockResolvedValueOnce(jsonAptosResponse({
+				value: '1',
+			}))
+			.mockResolvedValueOnce(jsonAptosResponse(transaction))
+			.mockResolvedValueOnce(jsonAptosResponse(transaction))
+
 		const ledgerResponse = await queries.getLedgerInfo()
 		await queries.getAccount('0xa/b', 42n)
 		await queries.getAccountResources('0xa/b', 42n)
@@ -248,7 +282,7 @@ describe('Aptos Fullnode typed operations', () => {
 			'https://fullnode.test/v1/transactions/by_version/42',
 		])
 		expect(ledgerResponse).toEqual({
-			body: {},
+			body: ledgerInfo,
 			metadata,
 		})
 		expect(sourceFetch.mock.calls[7][2]).toEqual({
