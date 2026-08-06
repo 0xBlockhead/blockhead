@@ -22,6 +22,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Reddit_PublicJson,
+			Source.Reddit_Rest,
 		],
 	},
 	$$observedLinks: {
@@ -29,6 +30,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Reddit_PublicJson,
+			Source.Reddit_Rest,
 		],
 	},
 	$$timestamps: {

@@ -32,6 +32,7 @@
 		selection({
 			sources: selection.sources ?? [
 				Source.Reddit_PublicJson,
+				Source.Reddit_Rest,
 			],
 		})
 	}

@@ -42,6 +42,7 @@ export default entity({
 		entityType: EntityType.XUser,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
+			Source.X_Rest,
 			Source.X_FxEmbed_Rest,
 		],
 	},
@@ -49,6 +50,7 @@ export default entity({
 		entityType: EntityType.XPost,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
+			Source.X_Rest,
 			Source.X_FxEmbed_Rest,
 		],
 	},

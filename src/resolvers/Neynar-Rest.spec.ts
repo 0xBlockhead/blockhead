@@ -76,9 +76,17 @@ if (
 const castResolver = neynarResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FarcasterCast
 	&& 'text' in resolver.projections
+	&& 'Hash' in resolver.resolve
+	&& 'UsernameHashPrefix' in resolver.resolve
 ))
 
-if (castResolver == null)
+if (
+	castResolver == null
+	|| !('FidHash' in castResolver.resolve)
+	|| !('ClientUrl' in castResolver.resolve)
+	|| !('Hash' in castResolver.resolve)
+	|| !('UsernameHashPrefix' in castResolver.resolve)
+)
 	throw new Error('Neynar spec missing FarcasterCast resolver')
 
 const resolverContext = {
@@ -639,6 +647,57 @@ describe('Neynar Farcaster cast resolver', () => {
 		})
 	})
 
+	it('projects UsernameHashPrefix via Warpcast URL lookup', async () => {
+		getCast.mockResolvedValueOnce(neynarCast({
+			hash: '0xabcdef12',
+			fid: 42,
+			username: 'alice',
+			text: 'Prefix cast',
+			timestamp: '2026-07-16T00:00:00.000Z',
+		}))
+
+		const cast = await castResolver.resolve['UsernameHashPrefix'].resolve({
+			username: 'alice',
+			hashPrefix: '0xabcdef',
+		}, resolverContext)
+
+		expect(getCast).toHaveBeenLastCalledWith(resolverContext.publicEnv, {
+			identifier: 'https://warpcast.com/alice/0xabcdef',
+			type: 'url',
+		})
+		expect(cast).toEqual(expect.objectContaining({
+			fid: 42,
+			hash: '0xabcdef12',
+			username: 'alice',
+			hashPrefix: '0xabcdef',
+			clientUrl: 'https://warpcast.com/alice/0xabcdef',
+			text: 'Prefix cast',
+		}))
+	})
+
+	it('projects Hash via hash-only Neynar lookup', async () => {
+		getCast.mockResolvedValueOnce(neynarCast({
+			hash: '0xabcdef',
+			fid: 42,
+			text: 'Hash cast',
+			timestamp: '2026-07-16T00:00:00.000Z',
+		}))
+
+		const cast = await castResolver.resolve['Hash'].resolve({
+			hash: '0xABCDEF',
+		}, resolverContext)
+
+		expect(getCast).toHaveBeenLastCalledWith(resolverContext.publicEnv, {
+			identifier: '0xabcdef',
+			type: 'hash',
+		})
+		expect(cast).toEqual(expect.objectContaining({
+			fid: 42,
+			hash: '0xabcdef',
+			text: 'Hash cast',
+		}))
+	})
+
 	it('projects enrolled cast engagement observations from reactions/replies', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_768_435_200_000)
 		getCast.mockResolvedValueOnce(neynarCast(
@@ -769,7 +828,7 @@ describe('Neynar Farcaster cast resolver', () => {
 			},
 		},
 	]) {
-		it(`${label} for both public selectors`, async () => {
+		it(`${label} across FidHash, Hash, ClientUrl, and UsernameHashPrefix`, async () => {
 			for (const {
 				query,
 				selector,
@@ -788,6 +847,16 @@ describe('Neynar Farcaster cast resolver', () => {
 				},
 				{
 					query: {
+						identifier: '0xabcdef',
+						type: 'hash',
+					} as const,
+					selector: {
+						hash: '0xabcdef',
+					},
+					resolve: castResolver.resolve['Hash'].resolve,
+				},
+				{
+					query: {
 						identifier: 'https://warpcast.com/alice/0xabcdef',
 						type: 'url',
 					} as const,
@@ -796,11 +865,23 @@ describe('Neynar Farcaster cast resolver', () => {
 					},
 					resolve: castResolver.resolve['ClientUrl'].resolve,
 				},
+				{
+					query: {
+						identifier: 'https://warpcast.com/alice/0xabcdef',
+						type: 'url',
+					} as const,
+					selector: {
+						username: 'alice',
+						hashPrefix: '0xabcdef',
+					},
+					resolve: castResolver.resolve['UsernameHashPrefix'].resolve,
+				},
 			]) {
 				getCast.mockResolvedValueOnce(neynarCast(
 					{
 						hash: '0xabcdef',
 						fid: 42,
+						username: 'alice',
 						text: 'Thread fixture',
 						timestamp: '2026-07-16T00:00:00.000Z',
 					},

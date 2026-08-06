@@ -19,6 +19,7 @@
 	const pageSelection = $derived(select(EntityType.RedditLink, data.selector, {
 		sources: [
 			Source.Reddit_PublicJson,
+			Source.Reddit_Rest,
 		],
 		fields: {
 			title: true,

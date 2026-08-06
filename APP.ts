@@ -6104,14 +6104,14 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RedditSubreddit,
-					defaultSources: [Source.Reddit_PublicJson],
+					defaultSources: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 				},
 				"$$observedLinks": {
 					label: "Popular submissions",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RedditLink,
-					defaultSources: [Source.Reddit_PublicJson],
+					defaultSources: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 				},
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalRedditNetwork_Timestamp },
 			})({
@@ -6121,7 +6121,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Reddit_PublicJson],
+							sources: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 						},
 						carousels: [
 							{
@@ -6138,7 +6138,7 @@ export const schema = {
 					plural: { component: "_GlobalRedditNetworksView",
 						query: {
 							sources: {
-								default: [Source.Reddit_PublicJson],
+								default: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 							},
 						},
 					},
@@ -47465,19 +47465,19 @@ export const schema = {
 			})({
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"marketId": { label: "Market ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "EvmTxHash" },
-				"loanAssetAddress": { label: "Loan asset", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Morpho_Rest] },
-				"collateralAssetAddress": { label: "Collateral asset", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Morpho_Rest] },
-				"oracleAddress": { label: "Oracle", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Morpho_Rest] },
-				"irmAddress": { label: "IRM", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Morpho_Rest] },
-				"lltvWad": { label: "LLTV (WAD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest] },
-				"creationBlockNumber": { label: "Creation block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Morpho_Rest] },
-				"totalSupplyAssets": { label: "Total supply assets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest] },
-				"totalSupplyShares": { label: "Total supply shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest] },
-				"totalBorrowAssets": { label: "Total borrow assets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest] },
-				"totalBorrowShares": { label: "Total borrow shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest] },
+				"loanAssetAddress": { label: "Loan asset", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Morpho_Rest, Source.Morpho_Graphql] },
+				"collateralAssetAddress": { label: "Collateral asset", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Morpho_Rest, Source.Morpho_Graphql] },
+				"oracleAddress": { label: "Oracle", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Morpho_Rest, Source.Morpho_Graphql] },
+				"irmAddress": { label: "IRM", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Morpho_Rest, Source.Morpho_Graphql] },
+				"lltvWad": { label: "LLTV (WAD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest, Source.Morpho_Graphql] },
+				"creationBlockNumber": { label: "Creation block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Morpho_Rest, Source.Morpho_Graphql] },
+				"totalSupplyAssets": { label: "Total supply assets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest, Source.Morpho_Graphql] },
+				"totalSupplyShares": { label: "Total supply shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest, Source.Morpho_Graphql] },
+				"totalBorrowAssets": { label: "Total borrow assets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest, Source.Morpho_Graphql] },
+				"totalBorrowShares": { label: "Total borrow shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest, Source.Morpho_Graphql] },
 				"feeWad": { label: "Fee (WAD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Morpho_Rest] },
-				"lastIndexedBlock": { label: "Last indexed block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Morpho_Rest] },
-				"lastAccrualTimestamp": { label: "Last accrual", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Morpho_Rest] },
+				"lastIndexedBlock": { label: "Last indexed block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Morpho_Rest, Source.Morpho_Graphql] },
+				"lastAccrualTimestamp": { label: "Last accrual", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Morpho_Rest, Source.Morpho_Graphql] },
 			})({
 				selectors: {
 					"NetworkMarketId": ["$network", "marketId"],
@@ -47485,7 +47485,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Morpho_Rest],
+							sources: [Source.Morpho_Rest, Source.Morpho_Graphql],
 						},
 						summary: {
 							title: [{ field: "marketId", format: "truncated" }],
@@ -49180,7 +49180,7 @@ export const schema = {
 						includes: "PolkadotRuntime",
 					})({
 						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Polkadot_JsonRpc] },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotBlock, defaultSources: [Source.Polkadot_JsonRpc] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotBlock, defaultSources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest] },
 						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotValidator, defaultSources: [Source.SubstrateSidecar_Rest] }
 					})({
 						singularView: {
@@ -49190,7 +49190,7 @@ export const schema = {
 									label: "Consensus and block production",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "polkadot-consensus-blocks", field: ["Polkadot", "$$blocks"], List: "PolkadotBlocksView", label: "Blocks", selection: { sources: [Source.Polkadot_JsonRpc], limit: 16 } },
+										{ id: "polkadot-consensus-blocks", field: ["Polkadot", "$$blocks"], List: "PolkadotBlocksView", label: "Blocks", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
 										{ id: "polkadot-consensus-validators", field: ["Polkadot", "$$validators"], List: "PolkadotValidatorsView", label: "Validators", selection: { sources: [Source.SubstrateSidecar_Rest], limit: 16 } },
 									],
 								},
@@ -53661,14 +53661,14 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RedditComment_Timestamp,
-					defaultSources: [Source.Reddit_PublicJson],
+					defaultSources: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 				},
 				"$$replies": {
 					label: "Replies",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RedditComment,
-					defaultSources: [Source.Reddit_PublicJson],
+					defaultSources: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 				},
 			})({
 				selectors: {
@@ -53677,7 +53677,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Reddit_PublicJson],
+							sources: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 						},
 						summary: {
 							title: [
@@ -53755,7 +53755,7 @@ export const schema = {
 						},
 						query: {
 							sources: {
-								default: [Source.Reddit_PublicJson],
+								default: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 							},
 						},
 					},
@@ -53890,14 +53890,14 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RedditLink_Timestamp,
-					defaultSources: [Source.Reddit_PublicJson],
+					defaultSources: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 				},
 				"$$comments": {
 					label: "Comments",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RedditComment,
-					defaultSources: [Source.Reddit_PublicJson],
+					defaultSources: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 				},
 			})({
 				selectors: {
@@ -53906,7 +53906,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Reddit_PublicJson],
+							sources: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 						},
 						summary: {
 							title: [
@@ -53990,7 +53990,7 @@ export const schema = {
 						},
 						query: {
 							sources: {
-								default: [Source.Reddit_PublicJson],
+								default: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 							},
 						},
 					},
@@ -54171,14 +54171,14 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RedditSubreddit_Timestamp,
-					defaultSources: [Source.Reddit_PublicJson],
+					defaultSources: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 				},
 				"$$links": {
 					label: "Submissions",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RedditLink,
-					defaultSources: [Source.Reddit_PublicJson],
+					defaultSources: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 				},
 			})({
 				selectors: {
@@ -54187,7 +54187,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Reddit_PublicJson],
+							sources: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 						},
 						summary: {
 							icon: "$icon",
@@ -54251,7 +54251,7 @@ export const schema = {
 						},
 						query: {
 							sources: {
-								default: [Source.Reddit_PublicJson],
+								default: [Source.Reddit_PublicJson, Source.Reddit_Rest],
 							},
 						},
 					},
@@ -66420,14 +66420,14 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.XUser,
-					defaultSources: [Source.X_FxEmbed_Rest],
+					defaultSources: [Source.X_Rest, Source.X_FxEmbed_Rest],
 				},
 				"$$xPosts": {
 					label: "Posts",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.XPost,
-					defaultSources: [Source.X_FxEmbed_Rest],
+					defaultSources: [Source.X_Rest, Source.X_FxEmbed_Rest],
 				},
 			})({
 				selectors: {
@@ -72394,7 +72394,7 @@ export const routes = defineRoutes(schema)({
 		[EntityType.FarcasterCast]: {
 			"Hash": {
 				kind: "Research",
-				decision: "Retain FarcasterCast.Hash as non-public until a product-valid selector placement is declared.",
+				decision: "Retain FarcasterCast.Hash as Research — FidHash and UsernameHashPrefix (/cast/[fid]/[hash], /c/[fname]/[hash]) already cover product-valid cast routes; hash-only lookup stays resolver-capable without a public Directory placement.",
 				evidence: "maps/schema-entity-existence-ledger.md#farcastercast",
 			},
 			"ClientUrl": {
@@ -103962,6 +103962,10 @@ export const app = {
 				path: "src/resolvers/AtprotoSync-Xrpc.ts",
 			},
 			{
+				source: Source.Avail,
+				path: "src/resolvers/Avail-JsonRpc.ts",
+			},
+			{
 				source: Source.AvalancheInfo_JsonRpc,
 				path: "src/resolvers/AvalancheInfo-JsonRpc.ts",
 			},
@@ -104040,6 +104044,10 @@ export const app = {
 			{
 				source: Source.Celenium_Rest,
 				path: "src/resolvers/Celenium-Rest.ts",
+			},
+			{
+				source: Source.CelestiaNode,
+				path: "src/resolvers/CelestiaNode-JsonRpc.ts",
 			},
 			{
 				source: Source.Chainlist_Rest,

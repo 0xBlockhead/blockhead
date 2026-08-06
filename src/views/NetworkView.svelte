@@ -92,12 +92,6 @@
 		], pendingEntity)
 	)
 
-	const polkadotJsonRpcSources = $derived(
-		networkApplicableSources([
-			Source.Polkadot_JsonRpc,
-		], pendingEntity)
-	)
-
 	const solanaJsonRpcSources = $derived(
 		networkApplicableSources([
 			Source.Solana_JsonRpc,
@@ -3255,9 +3249,14 @@
 			resource={selection.Polkadot}
 		>
 			{#snippet Applicable(projection)}
+				{@const polkadotConsensusBlockProductionPolkadotConsensusBlocksSources = networkApplicableSources([
+						Source.Polkadot_JsonRpc,
+						Source.SubstrateSidecar_Rest,
+					], pendingEntity)}
+
 				{@const polkadotConsensusBlockProductionSections = [
 						...(
-							polkadotJsonRpcSources.length > 0 ?
+							polkadotConsensusBlockProductionPolkadotConsensusBlocksSources.length > 0 ?
 								[
 									{
 										id: 'polkadot-consensus-blocks',
@@ -3292,7 +3291,7 @@
 								selection={
 									projection
 									.$$blocks({
-										sources: polkadotJsonRpcSources,
+										sources: polkadotConsensusBlockProductionPolkadotConsensusBlocksSources,
 										limit: 16,
 									})
 								}
@@ -3321,9 +3320,13 @@
 
 					</CollapsibleTabs>
 				{/if}
+				{@const polkadotResourcesEndpointsSources = networkApplicableSources([
+						Source.Polkadot_JsonRpc,
+					], pendingEntity)}
+
 				{@const polkadotResourcesSections = [
 						...(
-							polkadotJsonRpcSources.length > 0 ?
+							polkadotResourcesEndpointsSources.length > 0 ?
 								[
 									{
 										id: 'polkadot-resources-endpoints',
@@ -3355,7 +3358,7 @@
 								resource={
 									projection
 									.rpcEndpoints({
-										sources: polkadotJsonRpcSources,
+										sources: polkadotResourcesEndpointsSources,
 									})
 								}
 							>

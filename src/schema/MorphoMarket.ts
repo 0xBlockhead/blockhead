@@ -29,6 +29,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Morpho_Rest,
+			Source.Morpho_Graphql,
 		],
 	},
 	collateralAssetAddress: {
@@ -36,6 +37,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Morpho_Rest,
+			Source.Morpho_Graphql,
 		],
 	},
 	oracleAddress: {
@@ -43,6 +45,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Morpho_Rest,
+			Source.Morpho_Graphql,
 		],
 	},
 	irmAddress: {
@@ -50,6 +53,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Morpho_Rest,
+			Source.Morpho_Graphql,
 		],
 	},
 	lltvWad: {
@@ -57,6 +61,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Morpho_Rest,
+			Source.Morpho_Graphql,
 		],
 	},
 	creationBlockNumber: {
@@ -64,6 +69,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Morpho_Rest,
+			Source.Morpho_Graphql,
 		],
 	},
 	totalSupplyAssets: {
@@ -71,6 +77,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Morpho_Rest,
+			Source.Morpho_Graphql,
 		],
 	},
 	totalSupplyShares: {
@@ -78,6 +85,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Morpho_Rest,
+			Source.Morpho_Graphql,
 		],
 	},
 	totalBorrowAssets: {
@@ -85,6 +93,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Morpho_Rest,
+			Source.Morpho_Graphql,
 		],
 	},
 	totalBorrowShares: {
@@ -92,6 +101,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Morpho_Rest,
+			Source.Morpho_Graphql,
 		],
 	},
 	feeWad: {
@@ -106,6 +116,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Morpho_Rest,
+			Source.Morpho_Graphql,
 		],
 	},
 	lastAccrualTimestamp: {
@@ -113,6 +124,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Morpho_Rest,
+			Source.Morpho_Graphql,
 		],
 	},
 })({

@@ -46,6 +46,7 @@
 					select(EntityType.RedditSubreddit, data.selector, {
 						sources: [
 							Source.Reddit_PublicJson,
+							Source.Reddit_Rest,
 						],
 					})
 				}

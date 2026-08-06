@@ -27,6 +27,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Morpho_Rest,
+			Source.Morpho_Graphql,
 		],
 	}))
 	const morphoMarket = $derived(viewSelection({

@@ -50,6 +50,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Reddit_PublicJson,
+			Source.Reddit_Rest,
 		],
 	},
 	$$comments: {
@@ -57,6 +58,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Reddit_PublicJson,
+			Source.Reddit_Rest,
 		],
 	},
 })({

@@ -38,6 +38,7 @@
 				select(EntityType._GlobalRedditNetwork, data.selector, {
 					sources: [
 						Source.Reddit_PublicJson,
+						Source.Reddit_Rest,
 					],
 				})
 			}

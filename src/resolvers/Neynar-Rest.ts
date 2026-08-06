@@ -59,6 +59,88 @@ const neynarCastTimestamps = (
 	}]
 )
 
+
+const neynarCastSnapshot = (
+	cast: NeynarCast,
+	extras?: {
+		clientUrl?: string
+		username?: string
+		hashPrefix?: CastHash
+	},
+) => {
+	const castHash = zeroXLowerHexCastHash(cast.hash)
+	const timestamp = Date.parse(cast.timestamp)
+	if (!Number.isFinite(timestamp))
+		throw new Error('Neynar_Rest: cast missing timestamp')
+	const castId = {
+		fid: cast.author.fid,
+		hash: castHash,
+	}
+	const mentionFids = (
+		cast.mentioned_profiles.map((user) => user.fid)
+	)
+	const mentionChIds = (
+		cast.mentioned_channels
+			.map((channel) => optionalNonemptyString(channel.id))
+			.filter((idValue): idValue is string => idValue != null)
+	)
+	const channelId = optionalNonemptyString(cast.channel?.id)
+	const parentUrl = optionalNonemptyString(cast.parent_url)
+	const rootParentUrl = optionalNonemptyString(cast.root_parent_url)
+	const username = extras?.username ?? (
+		cast.author.username !== '' ? cast.author.username : undefined
+	)
+	return {
+		fid: cast.author.fid,
+		hash: castHash,
+		...(extras?.clientUrl != null && { clientUrl: extras.clientUrl }),
+		...(username != null && { username }),
+		...(extras?.hashPrefix != null && { hashPrefix: extras.hashPrefix }),
+		$author: {
+			[EntityMetaKey.Selector]: { fid: cast.author.fid },
+		},
+		$postedViaApp: (
+			cast.app?.fid == null ?
+				undefined
+			:
+				({
+					[EntityMetaKey.Selector]: { fid: cast.app.fid },
+				})
+		),
+		text: optionalNonemptyString(cast.text) ?? '',
+		$parentCast: (
+			cast.parent_author.fid == null
+			|| cast.parent_hash == null
+			|| cast.parent_hash === '' ?
+				undefined
+			:
+				{
+					[EntityMetaKey.Selector]: {
+						fid: cast.parent_author.fid,
+						hash: zeroXLowerHexCastHash(String(cast.parent_hash)),
+					},
+				}
+		),
+		...(parentUrl != null && { parentUrl }),
+		...(rootParentUrl != null && { rootParentUrl }),
+		timestamp,
+		mentionedProfileFids: mentionFids.length > 0 ? mentionFids : undefined,
+		mentionedChannelIds: mentionChIds.length > 0 ? mentionChIds : undefined,
+		$$embeds: neynarCastEmbedRows(cast, castId),
+		$$timestamps: neynarCastTimestamps(cast, castId),
+		...(cast.thread_hash != null && cast.thread_hash !== '' && {
+			threadHash: zeroXLowerHexCastHash(String(cast.thread_hash)),
+		}),
+		$channel: (
+			channelId == null ? undefined : {
+				[EntityMetaKey.Selector]: {
+					id: channelId,
+				},
+			}
+		),
+	}
+}
+
 const neynarCastSummaryReference = (cast: NeynarCast) => {
 	if (
 		!Number.isSafeInteger(cast.author.fid)
@@ -744,10 +826,63 @@ export default {
 						}
 					},
 				},
+				Hash: {
+					resolve: async ({ hash }, context) => {
+						const {
+							getCast,
+						} = await import('$/sources/Neynar/Rest/queries.ts')
+						const castHash = zeroXLowerHexCastHash(hash)
+						const cast = await getCast(
+							context.publicEnv,
+							{
+								identifier: castHash,
+								type: 'hash',
+							}
+						)
+						if (cast == null)
+							throw new Error('Neynar_Rest: cast not found')
+						const resolvedHash = zeroXLowerHexCastHash(cast.hash)
+						if (resolvedHash !== castHash)
+							throw new Error('Neynar_Rest: cast hash mismatch')
+						return neynarCastSnapshot(cast)
+					},
+				},
+				UsernameHashPrefix: {
+					resolve: async ({ username, hashPrefix }, context) => {
+						const {
+							getCast,
+						} = await import('$/sources/Neynar/Rest/queries.ts')
+						const normalizedPrefix = zeroXLowerHexCastHash(hashPrefix)
+						const clientUrl = `https://warpcast.com/${username}/${normalizedPrefix}`
+						const cast = await getCast(context.publicEnv, {
+							identifier: clientUrl,
+							type: 'url',
+						})
+						if (cast == null)
+							throw new Error('Neynar_Rest: cast not found')
+						const castHash = zeroXLowerHexCastHash(cast.hash)
+						if (!castHash.startsWith(normalizedPrefix))
+							throw new Error('Neynar_Rest: cast hash prefix mismatch')
+						if (
+							cast.author.username != null
+							&& cast.author.username !== ''
+							&& cast.author.username.toLowerCase() !== username.toLowerCase()
+						)
+							throw new Error('Neynar_Rest: cast author username mismatch')
+						return neynarCastSnapshot(cast, {
+							clientUrl,
+							username,
+							hashPrefix: normalizedPrefix,
+						})
+					},
+				},
 			},
 		})({
 				fid: (cast) => cast.fid,
 				hash: (cast) => cast.hash,
+				username: (cast) => cast.username,
+				hashPrefix: (cast) => cast.hashPrefix,
+				clientUrl: (cast) => cast.clientUrl,
 				$author: (cast) => cast.$author,
 				$postedViaApp: (cast) => cast.$postedViaApp,
 				text: (cast) => cast.text,
@@ -842,6 +977,92 @@ export default {
 										...reply[EntityMetaKey.Fields],
 										[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
 											[EntityMetaKey.Selector]: { clientUrl },
+										},
+									},
+								})),
+						}
+					},
+				},
+				Hash: {
+					resolve: async ({ hash }, context) => {
+						const { getCastConversation } = await import('$/sources/Neynar/Rest/queries.ts')
+						const parentHash = zeroXLowerHexCastHash(hash)
+						const conversationCast = (
+							await getCastConversation(
+								context.publicEnv,
+								{
+									identifier: parentHash,
+									type: 'hash',
+								}
+							)
+						)?.conversation.cast
+						if (conversationCast == null)
+							throw new Error('Neynar_Rest: conversation subject not found')
+						if (zeroXLowerHexCastHash(conversationCast.hash) !== parentHash)
+							throw new Error('Neynar_Rest: conversation subject mismatch')
+						const fid = conversationCast.author.fid
+						return {
+							$$directReplies: (
+								conversationCast.direct_replies
+							).filter((reply) => (
+								reply.parent_author.fid === fid
+								&& reply.parent_hash != null
+								&& zeroXLowerHexCastHash(reply.parent_hash) === parentHash
+							)).flatMap(neynarCastSummaryReference)
+								.map((reply) => ({
+									...reply,
+									[EntityMetaKey.Fields]: {
+										...reply[EntityMetaKey.Fields],
+										[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
+											[EntityMetaKey.Selector]: {
+												hash: parentHash,
+											},
+										},
+									},
+								})),
+						}
+					},
+				},
+				UsernameHashPrefix: {
+					resolve: async ({ username, hashPrefix }, context) => {
+						const { getCastConversation } = await import('$/sources/Neynar/Rest/queries.ts')
+						const normalizedPrefix = zeroXLowerHexCastHash(hashPrefix)
+						const clientUrl = `https://warpcast.com/${username}/${normalizedPrefix}`
+						const conversationCast = (
+							await getCastConversation(
+								context.publicEnv,
+								{
+									identifier: clientUrl,
+									type: 'url',
+								}
+							)
+						)?.conversation.cast
+						if (
+							conversationCast == null
+							|| !ZeroExHex.allows(conversationCast.hash)
+							|| conversationCast.hash === '0x'
+						)
+							throw new Error('Neynar_Rest: conversation subject not found')
+						const parentHash = zeroXLowerHexCastHash(conversationCast.hash)
+						if (!parentHash.startsWith(normalizedPrefix))
+							throw new Error('Neynar_Rest: conversation subject hash prefix mismatch')
+						return {
+							$$directReplies: (
+								conversationCast.direct_replies
+							).filter((reply) => (
+								reply.parent_author.fid === conversationCast.author.fid
+								&& reply.parent_hash != null
+								&& zeroXLowerHexCastHash(reply.parent_hash) === parentHash
+							)).flatMap(neynarCastSummaryReference)
+								.map((reply) => ({
+									...reply,
+									[EntityMetaKey.Fields]: {
+										...reply[EntityMetaKey.Fields],
+										[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
+											[EntityMetaKey.Selector]: {
+												username,
+												hashPrefix: normalizedPrefix,
+											},
 										},
 									},
 								})),

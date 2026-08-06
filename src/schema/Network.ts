@@ -591,6 +591,7 @@ export default entity({
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Polkadot_JsonRpc,
+					Source.SubstrateSidecar_Rest,
 				],
 			},
 			$$validators: {

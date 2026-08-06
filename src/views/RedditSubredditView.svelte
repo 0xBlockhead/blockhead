@@ -27,6 +27,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Reddit_PublicJson,
+			Source.Reddit_Rest,
 		],
 	}))
 	const redditSubreddit = $derived(viewSelection({
