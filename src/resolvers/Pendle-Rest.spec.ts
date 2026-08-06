@@ -124,6 +124,10 @@ describe('Pendle Rest resolver module', () => {
 					marketAddress: baseMarketAddress,
 					marketName: 'USD0++',
 					expiryTimestampMs: Date.parse(baseMarketWire.expiry),
+					ptAddress: '0x270d664d2fc7d962012a787aec8661ca83df24eb',
+					ytAddress: '0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+					syAddress: '0x47bce1bb5d9a9072161ec25009bcd6e8d367b7d3',
+					underlyingAssetAddress: '0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
 					balances: [
 						{
 							kind: 'YT',
@@ -145,12 +149,43 @@ describe('Pendle Rest resolver module', () => {
 			expect.objectContaining({
 				protocol: 'Pendle V2',
 				marketAddress: baseMarketAddress,
+				ptAddress: '0x270d664d2fc7d962012a787aec8661ca83df24eb',
+				balances: [
+					expect.objectContaining({
+						kind: 'YT',
+						balance: '1000000',
+					}),
+				],
 			}),
 		])
 		expect(getAccountPositions).toHaveBeenCalledWith({
 			chainId: 1,
 			account: accountSelector.$actor.address,
 		})
+	})
+
+	it('rejects non-eip155 networks on account positions before transport', async () => {
+		if (evmNetworkAccountTimestampResolver == null)
+			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
+
+		await expect(
+			evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+				$account: {
+					$network: {
+						caip2: {
+							namespace: 'cosmos',
+							reference: 'osmosis-1',
+						},
+					},
+					$actor: {
+						address: '0x0000000000000000000000000000000000000001',
+					},
+				},
+				timestampMs: 1760000000000,
+				source: Source.Pendle_Rest,
+			}, context)
+		).rejects.toThrow(`${Source.Pendle_Rest}: network must use the eip155 CAIP-2 namespace`)
+		expect(getAccountPositions).not.toHaveBeenCalled()
 	})
 
 	it('rejects unsupported Pendle chains on account positions before transport', async () => {
