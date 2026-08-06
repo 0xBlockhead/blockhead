@@ -158,6 +158,7 @@ export default {
 							name: normalizedName,
 							normalizedName,
 							node: String(matchingEnsDomain.id),
+							subdomainCount: matchingEnsDomain.subdomainCount,
 							...(matchingEnsDomain.labelName != null
 								&& matchingEnsDomain.labelName !== '' && {
 								labelName: matchingEnsDomain.labelName,
@@ -173,9 +174,7 @@ export default {
 									},
 								},
 							}),
-							...(subdomainEnsNameEntities.length > 0 && {
-								$$subdomains: subdomainEnsNameEntities,
-							}),
+							$$subdomains: subdomainEnsNameEntities,
 							...(resolverAddress != null && {
 								$resolverContract: {
 									[EntityMetaKey.Selector]: {
@@ -201,9 +200,7 @@ export default {
 							...(resolverCoinTypes.length > 0 && {
 								resolverCoinTypes,
 							}),
-							...(recordEntities.length > 0 && {
-								$$records: recordEntities,
-							}),
+							$$records: recordEntities,
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$name: {
@@ -224,14 +221,23 @@ export default {
 				labelName: (ensName) => ensName.labelName,
 				labelhash: (ensName) => ensName.labelhash,
 				$parent: (ensName) => ensName.$parent,
-				$$subdomains: (ensName) => ensName.$$subdomains ?? [],
+				$$subdomains: {
+					select: (ensName) => ensName.$$subdomains,
+					resolveCount: (ensName) => ensName.subdomainCount,
+				},
 				$resolverContract: (ensName) => ensName.$resolverContract,
 				$subgraphResolvedActor: (ensName) => ensName.$subgraphResolvedActor,
 				$ownerActor: (ensName) => ensName.$ownerActor,
 				resolverTextKeys: (ensName) => ensName.resolverTextKeys,
 				resolverCoinTypes: (ensName) => ensName.resolverCoinTypes,
-				$$records: (ensName) => ensName.$$records ?? [],
-				$$timestamps: (ensName) => ensName.$$timestamps,
+				$$records: {
+					select: (ensName) => ensName.$$records,
+					resolveCount: (ensName) => ensName.$$records.length,
+				},
+				$$timestamps: {
+					select: (ensName) => ensName.$$timestamps,
+					resolveCount: (ensName) => ensName.$$timestamps.length,
+				},
 			}),
 
 		defineResolver({
@@ -320,28 +326,67 @@ export default {
 			resolve: {
 				AddressInteropAddress: {
 					resolve: async ({ address }, context) => {
-						const { getDomainsByOwner } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
-						return (
-							(await getDomainsByOwner({
+						const {
+							getDomainsByOwner,
+							getDomainsByResolvedAddress,
+						} = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+						const accountAddress = zeroExLowerCase(address)
+						const [
+							ownedDomains,
+							resolvedDomains,
+						] = await Promise.all([
+							getDomainsByOwner({
 								publicEnv: context.publicEnv,
-								owner: zeroExLowerCase(address),
-							}))
-								.flatMap((domain) => (
-									domain.name != null && domain.name !== '' ?
-										[{
-											[EntityMetaKey.Selector]: {
-												name: domain.name,
-											},
-										}]
-									:
-										[]
-								))
+								owner: accountAddress,
+							}),
+							getDomainsByResolvedAddress({
+								publicEnv: context.publicEnv,
+								resolvedAddress: accountAddress,
+							}),
+						])
+						const ensNamesOwned = ownedDomains.flatMap((domain) => (
+							domain.name != null && domain.name !== '' ?
+								[{
+									[EntityMetaKey.Selector]: {
+										name: domain.name,
+									},
+								}]
+							:
+								[]
+						))
+						const ownedNameByNormalized = new Set(
+							ensNamesOwned.map((ensName) => ensName[EntityMetaKey.Selector].name)
 						)
+						const primaryResolvedDomain = (
+							resolvedDomains.find((domain) => (
+								domain.name != null
+								&& domain.name !== ''
+								&& ownedNameByNormalized.has(domain.name)
+							))
+							?? resolvedDomains.find((domain) => (
+								domain.name != null
+								&& domain.name !== ''
+							))
+						)
+						return {
+							ensNamesOwned,
+							...(primaryResolvedDomain?.name != null && primaryResolvedDomain.name !== '' && {
+								$primaryName: {
+									[EntityMetaKey.Selector]: {
+										name: primaryResolvedDomain.name,
+									},
+								},
+							}),
+						}
 					},
 				},
 			},
 		})({
-				$$ensNamesOwned: (ensNamesOwned) => ensNamesOwned,
+				$$ensNamesOwned: {
+					select: (snapshot) => snapshot.ensNamesOwned,
+					resolveCount: (snapshot) => snapshot.ensNamesOwned.length,
+				},
+				$primaryName: (snapshot) => snapshot.$primaryName,
 			}),
 
 		defineResolver({

@@ -11,6 +11,7 @@ import bindings from '$/sources/TheGraph/bindings.ts'
 
 const getName = vi.fn()
 const getDomainsByOwner = vi.fn()
+const getDomainsByResolvedAddress = vi.fn()
 const getDomainsContaining = vi.fn()
 const getEnsSubgraphReachability = vi.fn()
 
@@ -22,6 +23,7 @@ vi.mock('@tevm/voltaire/Ens', () => ({
 vi.mock('$/sources/TheGraph/Graphql/Ens/queries.ts', () => ({
 	getName,
 	getDomainsByOwner,
+	getDomainsByResolvedAddress,
 	getDomainsContaining,
 	getEnsSubgraphReachability,
 }))
@@ -221,7 +223,11 @@ describe('Ens-TheGraph entity resolver', () => {
 					},
 				},
 			],
+			subdomainCount: 1,
 		})
+		expect(ensNameResolver.projections.$$subdomains.resolveCount(resolvedEntity)).toBe(1)
+		expect(ensNameResolver.projections.$$records.resolveCount(resolvedEntity)).toBe(2)
+		expect(ensNameResolver.projections.$$timestamps.resolveCount(resolvedEntity)).toBe(1)
 	})
 
 	it('omits invalid subgraph account references', async () => {
@@ -415,8 +421,8 @@ describe('Ens-TheGraph EnsRecord resolver', () => {
 	})
 })
 
-describe('Ens-TheGraph $$ensNamesOwned field resolver', () => {
-	it('returns ens name entity refs for owned domains', async () => {
+describe('Ens-TheGraph EvmAccount identity field resolver', () => {
+	it('projects owned names with resolveCount and prefers an owned resolved primary name', async () => {
 		expect(ensNamesOwnedResolver).toBeDefined()
 		getDomainsByOwner.mockResolvedValueOnce([
 			{
@@ -428,8 +434,18 @@ describe('Ens-TheGraph $$ensNamesOwned field resolver', () => {
 				name: '',
 			},
 		])
+		getDomainsByResolvedAddress.mockResolvedValueOnce([
+			{
+				...vitalikDomainWire,
+				name: 'forward-only.eth',
+			},
+			{
+				...vitalikDomainWire,
+				name: 'owned.eth',
+			},
+		])
 
-		const resolvedEntity = await ensNamesOwnedResolver.resolve['AddressInteropAddress'].resolve(
+		const snapshot = await ensNamesOwnedResolver.resolve['AddressInteropAddress'].resolve(
 			{
 				address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
 				interopAddress: 'eip155:1:0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
@@ -437,13 +453,112 @@ describe('Ens-TheGraph $$ensNamesOwned field resolver', () => {
 			resolverContext
 		)
 
-		expect(resolvedEntity).toEqual([
+		expect(getDomainsByOwner).toHaveBeenCalledWith({
+			publicEnv: {},
+			owner: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+		})
+		expect(getDomainsByResolvedAddress).toHaveBeenCalledWith({
+			publicEnv: {},
+			resolvedAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+		})
+		expect(snapshot).toEqual({
+			ensNamesOwned: [
+				{
+					[EntityMetaKey.Selector]: {
+						name: 'owned.eth',
+					},
+				},
+			],
+			$primaryName: {
+				[EntityMetaKey.Selector]: {
+					name: 'owned.eth',
+				},
+			},
+		})
+		expect(ensNamesOwnedResolver.projections.$$ensNamesOwned.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					name: 'owned.eth',
 				},
 			},
 		])
+		expect(ensNamesOwnedResolver.projections.$$ensNamesOwned.resolveCount(snapshot)).toBe(1)
+		expect(ensNamesOwnedResolver.projections.$primaryName(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				name: 'owned.eth',
+			},
+		})
+	})
+
+	it('falls back to the oldest forward-resolved name when none are owned', async () => {
+		getDomainsByOwner.mockResolvedValueOnce([])
+		getDomainsByResolvedAddress.mockResolvedValueOnce([
+			{
+				...vitalikDomainWire,
+				name: 'earliest.eth',
+			},
+			{
+				...vitalikDomainWire,
+				name: 'later.eth',
+			},
+		])
+
+		const snapshot = await ensNamesOwnedResolver.resolve['AddressInteropAddress'].resolve(
+			{
+				address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+				interopAddress: 'eip155:1:0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+			},
+			resolverContext
+		)
+
+		expect(snapshot).toEqual({
+			ensNamesOwned: [],
+			$primaryName: {
+				[EntityMetaKey.Selector]: {
+					name: 'earliest.eth',
+				},
+			},
+		})
+		expect(ensNamesOwnedResolver.projections.$$ensNamesOwned.resolveCount(snapshot)).toBe(0)
+		expect(ensNamesOwnedResolver.projections.$primaryName(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				name: 'earliest.eth',
+			},
+		})
+	})
+
+	it('omits $primaryName when the subgraph has no named forward resolution', async () => {
+		getDomainsByOwner.mockResolvedValueOnce([
+			{
+				...vitalikDomainWire,
+				name: 'owned.eth',
+			},
+		])
+		getDomainsByResolvedAddress.mockResolvedValueOnce([
+			{
+				...vitalikDomainWire,
+				name: '',
+			},
+		])
+
+		const snapshot = await ensNamesOwnedResolver.resolve['AddressInteropAddress'].resolve(
+			{
+				address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+				interopAddress: 'eip155:1:0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+			},
+			resolverContext
+		)
+
+		expect(snapshot).toEqual({
+			ensNamesOwned: [
+				{
+					[EntityMetaKey.Selector]: {
+						name: 'owned.eth',
+					},
+				},
+			],
+		})
+		expect(ensNamesOwnedResolver.projections.$primaryName(snapshot)).toBeUndefined()
 	})
 })
 

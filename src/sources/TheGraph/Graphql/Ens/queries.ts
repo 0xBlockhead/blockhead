@@ -127,3 +127,38 @@ export const getDomainsByOwner = async ({
 		)
 	).domains
 )
+
+/** Domains whose resolver `addr` / resolvedAddress points at this account (forward reverse-lookup). */
+export const getDomainsByResolvedAddress = async ({
+	publicEnv,
+	resolvedAddress,
+}: {
+	publicEnv: SourcePublicEnv
+	resolvedAddress: string
+}) => (
+	(
+		await queryEns(
+			publicEnv,
+			graphql(`
+				query EnsDomainsByResolvedAddress(
+					$resolvedAddress: String!
+				) {
+					domains(
+						where: {
+							resolvedAddress: $resolvedAddress
+						}
+						orderBy: createdAt
+						orderDirection: asc
+					) {
+						...EnsDomain
+					}
+				}
+			`, [
+				EnsDomainFragment,
+			]),
+			{
+				resolvedAddress,
+			}
+		)
+	).domains
+)
