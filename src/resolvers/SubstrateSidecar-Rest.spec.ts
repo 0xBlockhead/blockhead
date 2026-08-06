@@ -285,3 +285,76 @@ describe('Substrate Sidecar Polkadot block / pallet projections', () => {
 		expect(sourceFetch.mock.calls[1][1]).toBe('http://127.0.0.1:8080/blocks/9')
 	})
 })
+
+describe('Substrate Sidecar network observation + validator leftovers', () => {
+	const networkTimestampResolver = sidecar.resolvers.find((
+		resolver
+	): resolver is Extract<
+		typeof sidecar.resolvers[number],
+		{ entityType: EntityType.Network_Timestamp }
+	> => resolver.entityType === EntityType.Network_Timestamp)
+
+	const validatorResolver = sidecar.resolvers.find((
+		resolver
+	): resolver is Extract<
+		typeof sidecar.resolvers[number],
+		{ entityType: EntityType.PolkadotValidator }
+	> => resolver.entityType === EntityType.PolkadotValidator)
+
+	if (networkTimestampResolver == null || validatorResolver == null)
+		throw new Error('Substrate Sidecar network/validator resolvers are missing')
+
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('projects Network_Timestamp from head + /runtime', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify(block)))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				at: {
+					hash: block.hash,
+					height: block.number,
+				},
+				specName: 'polkadot',
+				implName: 'parity-polkadot',
+				authoringVersion: 0,
+				specVersion: 1007001,
+				transactionVersion: 26,
+				stateVersion: 1,
+			})))
+
+		const snapshot = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: account.$network,
+			timestampMs: 1_753_000_100_000,
+			source: Source.SubstrateSidecar_Rest,
+		}, context)
+
+		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/blocks/head?finalized=true')
+		expect(sourceFetch.mock.calls[1][1]).toBe('http://127.0.0.1:8080/runtime')
+		expect(networkTimestampResolver.projections.Polkadot.finalizedBlockNumber(snapshot)).toBe(10n)
+		expect(networkTimestampResolver.projections.Polkadot.finalizedBlockHash(snapshot)).toBe(block.hash)
+		expect(networkTimestampResolver.projections.Polkadot.finalizedExtrinsicCount(snapshot)).toBe(1)
+		expect(networkTimestampResolver.projections.Polkadot.runtimeSpecName(snapshot)).toBe('polkadot')
+		expect(networkTimestampResolver.projections.Polkadot.runtimeSpecVersion(snapshot)).toBe(1007001)
+		expect(networkTimestampResolver.projections.Polkadot.transactionVersion(snapshot)).toBe(26)
+		expect(networkTimestampResolver.projections.Polkadot.stateVersion(snapshot)).toBe(1)
+	})
+
+	it('resolves a validator stash from the staking list when public Sidecar answers', async () => {
+		const stashAccountId = '15oF4uVJwmo4qjQJeHCDruaKdS2nG6t6dD6rJ8X2vY8rKzq'
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			validators: [
+				{
+					accountId: stashAccountId,
+					totalStake: '1000',
+				},
+			],
+		})))
+		await expect(validatorResolver.resolve.NetworkStashAccountId.resolve({
+			$network: account.$network,
+			stashAccountId,
+		}, context)).resolves.toEqual({})
+		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/pallets/staking/validators')
+	})
+})

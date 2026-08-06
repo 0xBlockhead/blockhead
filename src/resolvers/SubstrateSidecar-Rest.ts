@@ -3,7 +3,11 @@ import {
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { networkBySlug } from '$/constants/Network.ts'
+import {
+	NetworkExecutionModel,
+	NetworkLedgerModel,
+	networkBySlug,
+} from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 	type EntitySelector,
@@ -343,7 +347,7 @@ export default {
 						assertPolkadotMainnet($block.$network)
 						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 						const block = await getBlock({
-							blockId: $block.blockNumber.toString(),
+							blockId: $block.hash ?? $block.blockNumber.toString(),
 						})
 						const extrinsic = block.extrinsics.at(indexInBlock)
 						if (extrinsic == null)
@@ -371,7 +375,7 @@ export default {
 						assertPolkadotMainnet($block.$network)
 						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 						const block = await getBlock({
-							blockId: $block.blockNumber.toString(),
+							blockId: $block.hash ?? $block.blockNumber.toString(),
 						})
 						const event = polkadotBlockEvents(block).at(indexInBlock)
 						if (event == null)
@@ -473,6 +477,117 @@ export default {
 			},
 		})({
 				index: (pallet) => pallet.index,
+			}),
+
+		defineResolver({
+			entityType: EntityType.PolkadotValidator,
+			resolve: {
+				NetworkStashAccountId: {
+					resolve: async ({ $network, stashAccountId }) => {
+						assertPolkadotMainnet($network)
+						if (stashAccountId.length === 0)
+							throw new Error('SubstrateSidecar_Rest: stash account ID must not be empty')
+						const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+						const validators = (await getStakingValidators()).validators
+						if (validators == null)
+							throw new Error('SubstrateSidecar_Rest: validators unavailable')
+						const validator = validators.find((candidate) => (
+							candidate.accountId === stashAccountId
+							|| candidate.address === stashAccountId
+							|| candidate.stashId === stashAccountId
+						))
+						if (validator == null)
+							throw new Error(`SubstrateSidecar_Rest: validator not found for ${stashAccountId}`)
+
+						return {}
+					},
+				},
+			},
+		})({}),
+
+		defineResolver({
+			entityType: EntityType.Network_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					resolve: async ({
+						$network,
+						timestampMs,
+						source,
+					}) => {
+						if (source !== Source.SubstrateSidecar_Rest)
+							throw new Error(`SubstrateSidecar_Rest: unsupported source ${source}`)
+						assertPolkadotMainnet($network)
+						const {
+							getBlockHead,
+							getRuntimeSpec,
+						} = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+						const [
+							head,
+							runtime,
+						] = await Promise.all([
+							getBlockHead(),
+							getRuntimeSpec(),
+						])
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							timestampMs,
+							source,
+							ledgerModels: [NetworkLedgerModel.Account],
+							executionModels: [NetworkExecutionModel.PolkadotRuntime],
+							finalizedBlockNumber: BigInt(head.number),
+							finalizedBlockHash: head.hash,
+							finalizedExtrinsicCount: head.extrinsics.length,
+							runtimeSpecName: runtime.specName,
+							runtimeSpecVersion: runtime.specVersion,
+							...(runtime.transactionVersion != null && {
+								transactionVersion: runtime.transactionVersion,
+							}),
+							...(runtime.stateVersion != null && {
+								stateVersion: runtime.stateVersion,
+							}),
+						}
+					},
+				},
+			},
+		})({
+				$network: (timestamp) => timestamp.$network,
+				timestampMs: (timestamp) => timestamp.timestampMs,
+				source: (timestamp) => timestamp.source,
+				ledgerModels: (timestamp) => timestamp.ledgerModels,
+				executionModels: (timestamp) => timestamp.executionModels,
+				Polkadot: {
+					finalizedBlockNumber: (timestamp) => timestamp.finalizedBlockNumber,
+					finalizedBlockHash: (timestamp) => timestamp.finalizedBlockHash,
+					finalizedExtrinsicCount: (timestamp) => timestamp.finalizedExtrinsicCount,
+					runtimeSpecName: (timestamp) => timestamp.runtimeSpecName,
+					runtimeSpecVersion: (timestamp) => timestamp.runtimeSpecVersion,
+					transactionVersion: (timestamp) => timestamp.transactionVersion,
+					stateVersion: (timestamp) => timestamp.stateVersion,
+				},
+			}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network) => {
+						assertPolkadotMainnet(network)
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									timestampMs: Date.now(),
+									source: Source.SubstrateSidecar_Rest,
+								},
+							},
+						]
+					},
+				},
+			},
+		})({
+				$$timestamps: (timestamps) => timestamps,
 			}),
 
 		defineResolver({
