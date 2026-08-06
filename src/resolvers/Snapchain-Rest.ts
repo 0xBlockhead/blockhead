@@ -44,17 +44,50 @@ const snapchainCastTimestampMs = (farcasterTimestamp: number | undefined) => (
 	undefined
 )
 
-const snapchainCastEntity = (cast: SnapchainCast) => (
-	cast.data?.fid == null ?
-		undefined
-	:
-		({
-			[EntityMetaKey.Selector]: {
-				fid: cast.data.fid,
-				hash: lowerHex0xCastHash(cast.hash),
+const snapchainCastEntity = (cast: SnapchainCast) => {
+	if (cast.data?.fid == null)
+		return undefined
+
+	const hash = lowerHex0xCastHash(cast.hash)
+	const text = optionalNonemptyString(cast.data.castAddBody?.text)
+	const timestamp = snapchainCastTimestampMs(cast.data.timestamp)
+	const parentCastId = cast.data.castAddBody?.parentCastId
+	const parentUrl = optionalNonemptyString(cast.data.castAddBody?.parentUrl)
+	return {
+		[EntityMetaKey.Selector]: {
+			fid: cast.data.fid,
+			hash,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.FarcasterCast, [], 'fid')]: cast.data.fid,
+			[entityFieldAddressKey(EntityType.FarcasterCast, [], 'hash')]: hash,
+			[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
+				[EntityMetaKey.Selector]: { fid: cast.data.fid },
 			},
-		} satisfies Entity<typeof schema, EntityType.FarcasterCast>)
-)
+			[entityFieldAddressKey(EntityType.FarcasterCast, [], 'text')]: text ?? '',
+			...(timestamp != null && {
+				[entityFieldAddressKey(EntityType.FarcasterCast, [], 'timestamp')]: timestamp,
+			}),
+			...(
+				parentCastId?.fid != null
+				&& parentCastId.hash != null
+			) && {
+				[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
+					[EntityMetaKey.Selector]: {
+						fid: parentCastId.fid,
+						hash: lowerHex0xCastHash(parentCastId.hash),
+					},
+				},
+			},
+			...(parentUrl != null && {
+				[entityFieldAddressKey(EntityType.FarcasterCast, [], 'parentUrl')]: parentUrl,
+				[entityFieldAddressKey(EntityType.FarcasterCast, [], '$channel')]: {
+					[EntityMetaKey.Selector]: { parentUrl },
+				},
+			}),
+		},
+	} satisfies Entity<typeof schema, EntityType.FarcasterCast>
+}
 
 const getSnapchainCast = async ({
 	fid,
@@ -159,12 +192,14 @@ const getSnapchainFids = async (rowLimit: number) => {
 }
 
 const getSnapchainUserCounts = async (fid: number) => {
-	const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+	const {
+		countLinksByFid,
+		countLinksByTargetFid,
+	} = await import('$/sources/Snapchain/Rest/queries.ts')
 	const [followerCount, followingCount] = await Promise.all([
-		countLinksByFid({
-			fid,
+		countLinksByTargetFid({
+			targetFid: fid,
 			linkType: 'follow',
-			reverse: true,
 		}),
 		countLinksByFid({
 			fid,

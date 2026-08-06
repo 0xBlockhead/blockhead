@@ -24,11 +24,34 @@ import type {
 	SnapchainUsernameProofsResponse,
 	SnapchainVerification,
 } from '$/sources/Snapchain/Rest/types.ts'
+import {
+	snapchainCastPageWire,
+	snapchainCastResponseWire,
+	snapchainFidsPageWire,
+	snapchainLinkPageWire,
+	snapchainOnChainEventsPageWire,
+	snapchainReactionPageWire,
+	snapchainUserDataPageWire,
+	snapchainUsernameProofsResponseWire,
+	snapchainVerificationPageWire,
+} from '$/sources/Snapchain/Rest/types.ts'
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`Snapchain_Rest: invalid ${label} response envelope`)
+	}
+}
 
 /**
  * `GET /v1/fids`
  */
-export const getFids = ({
+export const getFids = async ({
 	shardId = defaultShardId,
 	pageSize = snapchainMaxPageSize,
 	pageToken,
@@ -39,34 +62,42 @@ export const getFids = ({
 	pageToken?: string
 	reverse?: boolean
 } = {}) => (
-	snapchainGet<SnapchainFidsPage>('/v1/fids', {
-		shard_id: shardId,
-		pageSize,
-		pageToken,
-		reverse,
-	})
+	assertEnvelope(
+		'fids',
+		snapchainFidsPageWire,
+		await snapchainGet<SnapchainFidsPage>('/v1/fids', {
+			shard_id: shardId,
+			pageSize,
+			pageToken,
+			reverse,
+		})
+	)
 )
 
 /**
  * `GET /v1/castById`
  */
-export const getCastById = ({
+export const getCastById = async ({
 	fid,
 	hash,
 }: {
 	fid: number
 	hash: `0x${string}`
 }) => (
-	snapchainGet<SnapchainCast>('/v1/castById', {
-		fid,
-		hash,
-	})
+	assertEnvelope(
+		'cast',
+		snapchainCastResponseWire,
+		await snapchainGet<SnapchainCast>('/v1/castById', {
+			fid,
+			hash,
+		})
+	)
 )
 
 /**
  * `GET /v1/castsByFid`
  */
-export const getCastsByFid = ({
+export const getCastsByFid = async ({
 	fid,
 	pageSize = snapchainDefaultCastTimelinePageSize,
 	pageToken,
@@ -81,20 +112,24 @@ export const getCastsByFid = ({
 	startTimestamp?: number
 	stopTimestamp?: number
 }) => (
-	snapchainGet<SnapchainPage<SnapchainCast>>('/v1/castsByFid', {
-		fid,
-		pageSize,
-		pageToken,
-		reverse,
-		startTimestamp,
-		stopTimestamp,
-	})
+	assertEnvelope(
+		'casts-by-fid',
+		snapchainCastPageWire,
+		await snapchainGet<SnapchainPage<SnapchainCast>>('/v1/castsByFid', {
+			fid,
+			pageSize,
+			pageToken,
+			reverse,
+			startTimestamp,
+			stopTimestamp,
+		})
+	)
 )
 
 /**
  * `GET /v1/castsByParent`
  */
-export const getCastsByParent = ({
+export const getCastsByParent = async ({
 	url,
 	fid,
 	hash,
@@ -107,19 +142,23 @@ export const getCastsByParent = ({
 	pageSize?: number
 	pageToken?: string
 }) => (
-	snapchainGet<SnapchainPage<SnapchainCast>>('/v1/castsByParent', {
-		url,
-		fid,
-		hash,
-		pageSize,
-		pageToken,
-	})
+	assertEnvelope(
+		'casts-by-parent',
+		snapchainCastPageWire,
+		await snapchainGet<SnapchainPage<SnapchainCast>>('/v1/castsByParent', {
+			url,
+			fid,
+			hash,
+			pageSize,
+			pageToken,
+		})
+	)
 )
 
 /**
  * `GET /v1/reactionsByCast`
  */
-export const getReactionsByCast = ({
+export const getReactionsByCast = async ({
 	targetFid,
 	targetHash,
 	reactionType,
@@ -134,20 +173,24 @@ export const getReactionsByCast = ({
 	pageToken?: string
 	reverse?: boolean
 }) => (
-	snapchainGet<SnapchainPage<SnapchainReaction>>('/v1/reactionsByCast', {
-		target_fid: targetFid,
-		target_hash: targetHash,
-		reaction_type: reactionType,
-		pageSize,
-		pageToken,
-		reverse,
-	})
+	assertEnvelope(
+		'reactions-by-cast',
+		snapchainReactionPageWire,
+		await snapchainGet<SnapchainPage<SnapchainReaction>>('/v1/reactionsByCast', {
+			target_fid: targetFid,
+			target_hash: targetHash,
+			reaction_type: reactionType,
+			pageSize,
+			pageToken,
+			reverse,
+		})
+	)
 )
 
 /**
  * `GET /v1/userDataByFid`
  */
-export const getUserDataByFid = ({
+export const getUserDataByFid = async ({
 	fid,
 	pageSize = snapchainMaxPageSize,
 	pageToken,
@@ -158,18 +201,22 @@ export const getUserDataByFid = ({
 	pageToken?: string
 	reverse?: boolean
 }) => (
-	snapchainGet<SnapchainPage<SnapchainUserData>>('/v1/userDataByFid', {
-		fid,
-		pageSize,
-		pageToken,
-		reverse,
-	})
+	assertEnvelope(
+		'user-data',
+		snapchainUserDataPageWire,
+		await snapchainGet<SnapchainPage<SnapchainUserData>>('/v1/userDataByFid', {
+			fid,
+			pageSize,
+			pageToken,
+			reverse,
+		})
+	)
 )
 
 /**
  * `GET /v1/userNameProofsByFid`
  */
-export const getUsernameProofsByFid = ({
+export const getUsernameProofsByFid = async ({
 	fid,
 	pageSize = snapchainMaxPageSize,
 	pageToken,
@@ -180,18 +227,22 @@ export const getUsernameProofsByFid = ({
 	pageToken?: string
 	reverse?: boolean
 }) => (
-	snapchainGet<SnapchainUsernameProofsResponse>('/v1/userNameProofsByFid', {
-		fid,
-		pageSize,
-		pageToken,
-		reverse,
-	})
+	assertEnvelope(
+		'username-proofs',
+		snapchainUsernameProofsResponseWire,
+		await snapchainGet<SnapchainUsernameProofsResponse>('/v1/userNameProofsByFid', {
+			fid,
+			pageSize,
+			pageToken,
+			reverse,
+		})
+	)
 )
 
 /**
  * `GET /v1/verificationsByFid`
  */
-export const getVerificationsByFid = ({
+export const getVerificationsByFid = async ({
 	fid,
 	address,
 	pageSize = snapchainMaxPageSize,
@@ -204,13 +255,17 @@ export const getVerificationsByFid = ({
 	pageToken?: string
 	reverse?: boolean
 }) => (
-	snapchainGet<SnapchainPage<SnapchainVerification>>('/v1/verificationsByFid', {
-		fid,
-		address,
-		pageSize,
-		pageToken,
-		reverse,
-	})
+	assertEnvelope(
+		'verifications',
+		snapchainVerificationPageWire,
+		await snapchainGet<SnapchainPage<SnapchainVerification>>('/v1/verificationsByFid', {
+			fid,
+			address,
+			pageSize,
+			pageToken,
+			reverse,
+		})
+	)
 )
 
 const countReactionsForCastTarget = async ({
@@ -305,7 +360,7 @@ export const getCastEngagementCountsForCast = async ({
 /**
  * `GET /v1/linksByFid`
  */
-export const getLinksByFid = ({
+export const getLinksByFid = async ({
 	fid,
 	linkType = 'follow',
 	pageSize = snapchainMaxPageSize,
@@ -318,13 +373,46 @@ export const getLinksByFid = ({
 	pageToken?: string
 	reverse?: boolean
 }) => (
-	snapchainGet<SnapchainPage<SnapchainLink>>('/v1/linksByFid', {
-		fid,
-		link_type: linkType,
-		pageSize,
-		pageToken,
-		reverse,
-	})
+	assertEnvelope(
+		'links-by-fid',
+		snapchainLinkPageWire,
+		await snapchainGet<SnapchainPage<SnapchainLink>>('/v1/linksByFid', {
+			fid,
+			link_type: linkType,
+			pageSize,
+			pageToken,
+			reverse,
+		})
+	)
+)
+
+/**
+ * `GET /v1/linksByTargetFid`
+ */
+export const getLinksByTargetFid = async ({
+	targetFid,
+	linkType = 'follow',
+	pageSize = snapchainMaxPageSize,
+	pageToken,
+	reverse,
+}: {
+	targetFid: number
+	linkType?: string
+	pageSize?: number
+	pageToken?: string
+	reverse?: boolean
+}) => (
+	assertEnvelope(
+		'links-by-target-fid',
+		snapchainLinkPageWire,
+		await snapchainGet<SnapchainPage<SnapchainLink>>('/v1/linksByTargetFid', {
+			target_fid: targetFid,
+			link_type: linkType,
+			pageSize,
+			pageToken,
+			reverse,
+		})
+	)
 )
 
 export const countLinksByFid = async ({
@@ -351,10 +439,34 @@ export const countLinksByFid = async ({
 	return linkCount
 }
 
+export const countLinksByTargetFid = async ({
+	targetFid,
+	linkType = 'follow',
+	reverse,
+}: {
+	targetFid: number
+	linkType?: string
+	reverse?: boolean
+}) => {
+	let linkCount = 0
+	let pageToken: string | undefined
+	do {
+		const page = await getLinksByTargetFid({
+			targetFid,
+			linkType,
+			pageToken,
+			reverse,
+		})
+		linkCount += page.messages?.length ?? 0
+		pageToken = page.nextPageToken
+	} while (pageToken != null)
+	return linkCount
+}
+
 /**
  * `GET /v1/onChainEventsByFid` — ID registry events for custody address lookup.
  */
-export const getOnChainIdRegisterEventsByFid = ({
+export const getOnChainIdRegisterEventsByFid = async ({
 	fid,
 	pageSize = snapchainMaxPageSize,
 	pageToken,
@@ -365,11 +477,15 @@ export const getOnChainIdRegisterEventsByFid = ({
 	pageToken?: string
 	reverse?: boolean
 }) => (
-	snapchainGet<SnapchainOnChainEventsPage>('/v1/onChainEventsByFid', {
-		fid,
-		event_type: 'EVENT_TYPE_ID_REGISTER',
-		pageSize,
-		pageToken,
-		reverse,
-	})
+	assertEnvelope(
+		'on-chain-id-register-events',
+		snapchainOnChainEventsPageWire,
+		await snapchainGet<SnapchainOnChainEventsPage>('/v1/onChainEventsByFid', {
+			fid,
+			event_type: 'EVENT_TYPE_ID_REGISTER',
+			pageSize,
+			pageToken,
+			reverse,
+		})
+	)
 )

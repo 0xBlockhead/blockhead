@@ -17,12 +17,14 @@ const getCastsByParent = vi.hoisted(() => vi.fn())
 const getCastById = vi.hoisted(() => vi.fn())
 const getCastsByFid = vi.hoisted(() => vi.fn())
 const countLinksByFid = vi.hoisted(() => vi.fn())
+const countLinksByTargetFid = vi.hoisted(() => vi.fn())
 const getUserDataByFid = vi.hoisted(() => vi.fn())
 const getUsernameProofsByFid = vi.hoisted(() => vi.fn())
 const getVerificationsByFid = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Snapchain/Rest/queries.ts', () => ({
 	countLinksByFid,
+	countLinksByTargetFid,
 	getCastById,
 	getCastsByFid,
 	getCastsByParent,
@@ -251,7 +253,8 @@ describe('Snapchain Farcaster cast identity', () => {
 
 describe('Snapchain Farcaster observations', () => {
 	it('materializes zero counts with source identity and exposes no direct historical resolver', async () => {
-		countLinksByFid.mockResolvedValueOnce(0).mockResolvedValueOnce(0)
+		countLinksByTargetFid.mockResolvedValueOnce(0)
+		countLinksByFid.mockResolvedValueOnce(0)
 
 		const timestamps = await userTimestampsResolver.resolve.Fid.resolve({ fid: 42 })
 		expect(timestamps).toMatchObject([{
@@ -268,6 +271,14 @@ describe('Snapchain Farcaster observations', () => {
 			timestampMs: expect.any(Number),
 			source: Source.Snapchain_Rest,
 		}))
+		expect(countLinksByTargetFid).toHaveBeenCalledWith({
+			targetFid: 42,
+			linkType: 'follow',
+		})
+		expect(countLinksByFid).toHaveBeenCalledWith({
+			fid: 42,
+			linkType: 'follow',
+		})
 		expect(snapchainResolvers.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.FarcasterUser_Timestamp
 			|| resolver.entityType === EntityType.FarcasterCast_Timestamp
@@ -358,6 +369,21 @@ describe('Snapchain Farcaster account ownership', () => {
 			[EntityMetaKey.Selector]: {
 				fid: 42,
 				hash: parentHash,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FarcasterCast, [], 'fid')]: 42,
+				[entityFieldAddressKey(EntityType.FarcasterCast, [], 'hash')]: parentHash,
+				[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
+					[EntityMetaKey.Selector]: { fid: 42 },
+				},
+				[entityFieldAddressKey(EntityType.FarcasterCast, [], 'text')]: 'Reply 42',
+				[entityFieldAddressKey(EntityType.FarcasterCast, [], 'timestamp')]: 1_752_840_001_000,
+				[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
+					[EntityMetaKey.Selector]: {
+						fid: 42,
+						hash: parentHash,
+					},
+				},
 			},
 		}])
 	})
