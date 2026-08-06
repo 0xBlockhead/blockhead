@@ -7,6 +7,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -33,6 +34,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import SolanaAccount_TimestampsView from '$/views/SolanaAccount_TimestampsView.svelte'
+	import SolanaTokenAccountsView from '$/views/SolanaTokenAccountsView.svelte'
 </script>
 
 
@@ -122,6 +124,46 @@
 					collapsible={false}
 					title={label}
 					emptyText='No Solana account observations.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-solana-account-token-accounts'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'solana-account-token-accounts',
+						label: 'Token accounts',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-token-accounts'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Token accounts</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionSolanaAccountTokenAccounts({ id, label })}
+				<SolanaTokenAccountsView
+					selection={
+						selection
+						.$$tokenAccounts({
+							sources: [
+								Source.Solana_JsonRpc,
+							],
+							limit: 32,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Solana token accounts.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

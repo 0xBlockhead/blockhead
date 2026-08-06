@@ -28,6 +28,13 @@ export default entity({
 			Source.Solana_JsonRpc,
 		],
 	},
+	$$tokenAccounts: {
+		entityType: EntityType.SolanaTokenAccount,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Solana_JsonRpc,
+		],
+	},
 })({
 	selectors: {
 		NetworkPubkey: [

@@ -367,6 +367,94 @@ describe('Solana JSON-RPC account observation clocks use context.slot', () => {
 	})
 })
 
+describe('SolanaAccount.$$tokenAccounts from getTokenAccountsByOwner', () => {
+	beforeEach(() => {
+		getTokenAccountsByOwner.mockReset()
+	})
+
+	it('projects owner-scoped token account refs with mint/owner and tip timestamps', async () => {
+		getTokenAccountsByOwner.mockResolvedValueOnce({
+			context: {
+				slot: 4242,
+			},
+			value: [
+				{
+					pubkey: 'token-account-1',
+					account: {
+						data: {
+							parsed: {
+								info: {
+									mint: 'mint-1',
+									owner: 'account-1',
+									delegate: 'delegate-1',
+									closeAuthority: 'close-1',
+									tokenAmount: {
+										amount: '10',
+										decimals: 6,
+									},
+								},
+							},
+						},
+					},
+				},
+			],
+		})
+
+		const tokenAccountsResolver = solanaJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.SolanaAccount
+			&& 'NetworkPubkey' in candidate.resolve
+			&& 'projections' in candidate
+			&& '$$tokenAccounts' in candidate.projections
+		))
+		if (tokenAccountsResolver == null)
+			throw new Error('SolanaAccount.$$tokenAccounts resolver missing')
+
+		const snapshot = await tokenAccountsResolver.resolve.NetworkPubkey.resolve(
+			{
+				$network: networkSelector,
+				pubkey: 'account-1',
+			},
+			context
+		)
+
+		expect(getTokenAccountsByOwner).toHaveBeenCalledWith({
+			owner: 'account-1',
+			limit: expect.any(Number),
+		})
+		expect(snapshot.$$tokenAccounts).toHaveLength(1)
+		expect(snapshot.$$tokenAccounts[0][EntityMetaKey.Selector]).toEqual({
+			$network: networkSelector,
+			tokenAccountPubkey: 'token-account-1',
+		})
+		expect(snapshot.$$tokenAccounts[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.SolanaTokenAccount, [], '$mint')]: {
+				[EntityMetaKey.Selector]: {
+					$network: networkSelector,
+					mintAddress: 'mint-1',
+				},
+			},
+			[entityFieldAddressKey(EntityType.SolanaTokenAccount, [], '$owner')]: {
+				[EntityMetaKey.Selector]: {
+					$network: networkSelector,
+					pubkey: 'account-1',
+				},
+			},
+			[entityFieldAddressKey(EntityType.SolanaTokenAccount, [], '$$timestamps')]: [
+				{
+					[EntityMetaKey.Selector]: {
+						$tokenAccount: {
+							$network: networkSelector,
+							tokenAccountPubkey: 'token-account-1',
+						},
+						slot: 4242n,
+						source: Source.Solana_JsonRpc,
+					},
+				},
+			],
+		})
+	})
+})
+
 describe('Solana JSON-RPC Network slotSubscribe resolveLive canary', () => {
 	const observedAtMs = 1_784_678_400_000
 

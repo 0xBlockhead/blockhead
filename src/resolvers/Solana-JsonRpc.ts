@@ -764,6 +764,83 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType.SolanaAccount,
+			resolve: {
+				NetworkPubkey: {
+					resolve: async ({ $network, pubkey }, context) => {
+						assertSolanaMainnet($network)
+						const { getTokenAccountsByOwner } = await import('$/sources/Solana/JsonRpc/queries.ts')
+						const page = await getTokenAccountsByOwner({
+							owner: pubkey,
+							limit: resolverContextRowLimit(context),
+						})
+						return {
+							$$tokenAccounts: page.value.map((tokenAccount) => {
+								const info = tokenAccount.account.data.parsed.info
+								return {
+									[EntityMetaKey.Selector]: {
+										$network,
+										tokenAccountPubkey: tokenAccount.pubkey,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.SolanaTokenAccount, [], '$account')]: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												pubkey: tokenAccount.pubkey,
+											},
+										},
+										[entityFieldAddressKey(EntityType.SolanaTokenAccount, [], '$mint')]: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												mintAddress: info.mint,
+											},
+										},
+										[entityFieldAddressKey(EntityType.SolanaTokenAccount, [], '$owner')]: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												pubkey: info.owner,
+											},
+										},
+										...(info.delegate != null && {
+											[entityFieldAddressKey(EntityType.SolanaTokenAccount, [], '$delegate')]: {
+												[EntityMetaKey.Selector]: {
+													$network,
+													pubkey: info.delegate,
+												},
+											},
+										}),
+										...(info.closeAuthority != null && {
+											[entityFieldAddressKey(EntityType.SolanaTokenAccount, [], '$closeAuthority')]: {
+												[EntityMetaKey.Selector]: {
+													$network,
+													pubkey: info.closeAuthority,
+												},
+											},
+										}),
+										[entityFieldAddressKey(EntityType.SolanaTokenAccount, [], '$$timestamps')]: [
+											{
+												[EntityMetaKey.Selector]: {
+													$tokenAccount: {
+														$network,
+														tokenAccountPubkey: tokenAccount.pubkey,
+													},
+													slot: BigInt(page.context.slot),
+													source: Source.Solana_JsonRpc,
+												},
+											},
+										],
+									},
+								}
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$tokenAccounts: (account) => account.$$tokenAccounts,
+		}),
+
+		defineResolver({
 			entityType: EntityType.SolanaAccount_Timestamp,
 			resolve: {
 				AccountSlotSource: {

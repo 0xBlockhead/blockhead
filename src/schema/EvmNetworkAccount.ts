@@ -29,6 +29,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Blockscout_Rest,
+			Source.GoldRushFoundational_Rest,
 			Source.SafeTransactionService_Rest,
 		],
 	},

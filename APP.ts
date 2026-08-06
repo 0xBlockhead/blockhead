@@ -31270,7 +31270,7 @@ export const schema = {
 				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"$actor": { label: "actor", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkAccount_Timestamp },
-				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.Blockscout_Rest, Source.SafeTransactionService_Rest] },
+				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.Blockscout_Rest, Source.GoldRushFoundational_Rest, Source.SafeTransactionService_Rest] },
 				"$$queuedTransactions": { label: "queued transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.SafeTransactionService_Rest] },
 				"$$tokenTransfers": { label: "token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer },
 				"$$internalTransfers": { label: "internal transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmInternalTransfer },
@@ -55145,6 +55145,7 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"pubkey": { label: "Public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "SolanaPubkey" },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaAccount_Timestamp, defaultSources: [Source.Solana_JsonRpc] },
+				"$$tokenAccounts": { label: "Token accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SolanaTokenAccount, defaultSources: [Source.Solana_JsonRpc] },
 			})({
 				selectors: {
 					"NetworkPubkey": ["$network", "pubkey"],
@@ -55163,6 +55164,14 @@ export const schema = {
 								className: "network-view-collapsible-observations",
 								sections: [
 									{ id: "solana-account-timestamps", field: "$$timestamps", List: "SolanaAccount_TimestampsView", label: "Observations", emptyText: "No Solana account observations." },
+								],
+							},
+							{
+								id: "solana-account-token-accounts",
+								label: "Token accounts",
+								className: "network-view-collapsible-token-accounts",
+								sections: [
+									{ id: "solana-account-token-accounts", field: "$$tokenAccounts", List: "SolanaTokenAccountsView", label: "Token accounts", emptyText: "No Solana token accounts.", selection: { sources: [Source.Solana_JsonRpc], limit: 32 } },
 								],
 							},
 						],

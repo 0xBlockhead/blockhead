@@ -7830,9 +7830,10 @@ test('keeps audited source truth mutation-complete', () => {
 				[EntityType.SolanaTransaction, '$$instructions'],
 				[EntityType.SolanaInstruction, '$$accounts'],
 			].flatMap(([entityType, fieldName]) => field(entityType as EntityType, fieldName as string)?.defaultSources?.includes(Source.Solana_JsonRpc) ? [] : [`${entityType}.${fieldName}`]).concat(
-				field(EntityType.SolanaAccount, '$$tokenAccounts') == null && field(EntityType.SolanaTokenMint, '$$tokenAccounts') == null
-					&& !renderedEntity(EntityType.SolanaAccount).includes('solana-account-token-accounts')
-					&& !renderedEntity(EntityType.SolanaTokenMint).includes('solana-token-mint-token-accounts') ? [] : ['unsupported Solana tokenAccounts']
+				JSON.stringify(field(EntityType.SolanaAccount, '$$tokenAccounts')?.defaultSources) === JSON.stringify([Source.Solana_JsonRpc])
+					&& field(EntityType.SolanaTokenMint, '$$tokenAccounts') == null
+					&& renderedEntity(EntityType.SolanaAccount).includes('solana-account-token-accounts')
+					&& !renderedEntity(EntityType.SolanaTokenMint).includes('solana-token-mint-token-accounts') ? [] : ['SolanaAccount.$$tokenAccounts']
 			)
 		if (family === 'Cosmos')
 			return [
