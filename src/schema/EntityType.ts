@@ -41,6 +41,7 @@ export enum EntityType {
 	A2aTask_Timestamp = 'A2aTask_Timestamp',
 	A2aTaskEvent = 'A2aTaskEvent',
 	AaveMarket = 'AaveMarket',
+	AaveReserve = 'AaveReserve',
 	Account = 'Account',
 	AcpAgentProgram = 'AcpAgentProgram',
 	AcpAgentProgramVersion = 'AcpAgentProgramVersion',
