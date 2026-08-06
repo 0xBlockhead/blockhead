@@ -256,4 +256,86 @@
 			</div>
 		</dl>
 	{/snippet}
+
+	{#snippet Details()}
+		<section data-column="gap-2">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							attestationDuties: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									attestationDuties: true,
+								},
+								sources: [
+									Source.BeaconchaIn_Rest,
+								],
+							})
+						}
+					>
+						{#snippet children(attestationDutiesField)}
+							{#if attestationDutiesField.values.length > 0}
+								<section data-column="gap-2">
+									<header>
+										<h3>Attestation duties</h3>
+									</header>
+
+									<ul data-column="gap-2">
+										{#each attestationDutiesField.values as duty, dutyIndex (dutyIndex)}
+											<li data-row="wrap gap-2">
+												<span>
+													Epoch <NumberValue value={duty.epoch} />
+												</span>
+
+												<span data-text="muted">·</span>
+
+												<span>
+													Attester <NumberValue value={duty.attesterSlot} />
+												</span>
+
+												<span data-text="muted">·</span>
+
+												<span>
+													Inclusion <NumberValue value={duty.inclusionSlot} />
+												</span>
+
+												<span data-text="muted">·</span>
+
+												<span>
+													{
+														duty.status === 1 ?
+															'Included'
+														: duty.status === 0 ?
+															'Missed'
+														:
+															duty.status
+													}
+												</span>
+
+												{#if duty.committeeIndex != null}
+													<span data-text="muted">·</span>
+
+													<span>
+														Committee <NumberValue value={duty.committeeIndex} />
+													</span>
+												{/if}
+											</li>
+										{/each}
+									</ul>
+								</section>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</section>
+	{/snippet}
 </EntityView>
