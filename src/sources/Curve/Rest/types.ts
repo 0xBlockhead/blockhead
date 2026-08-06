@@ -484,8 +484,10 @@ export type CurveLendingVaultSnapshot = {
 	gaugeAddress?: `0x${string}`
 	borrowApr?: number
 	borrowApy?: number
+	borrowApyPcent?: number
 	lendApr?: number
 	lendApy?: number
+	lendApyPcent?: number
 	pricePerShare?: number
 	totalShares?: number
 	totalSupplied?: number

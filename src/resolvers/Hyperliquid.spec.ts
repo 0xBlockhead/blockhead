@@ -692,7 +692,18 @@ describe('Hyperliquid market catalog resolvers', () => {
 							}],
 						}, [
 							{
+								funding: '0.0001',
+								openInterest: '1',
+								prevDayPx: '1900',
+								dayNtlVlm: '1000',
+								premium: '0.0001',
+								oraclePx: '2000',
 								markPx: '2000',
+								midPx: '2000',
+								impactPxs: [
+									'1999',
+									'2001',
+								],
 							},
 						]]
 					: body.type === 'spotMeta' ?

@@ -64,7 +64,21 @@ const hyperliquidMetaEnvelope = arktype({
 	]).array(),
 	'collateralToken?': 'number',
 })
-const hyperliquidMetaAndAssetCtxsEnvelope = arktype('unknown[]')
+const hyperliquidAssetCtxEnvelope = arktype({
+	funding: 'string',
+	openInterest: 'string',
+	prevDayPx: 'string',
+	dayNtlVlm: 'string',
+	premium: 'string | null',
+	oraclePx: 'string',
+	markPx: 'string',
+	midPx: 'string | null',
+	impactPxs: arktype([
+		'string',
+		'string',
+	]).or(arktype.null),
+	'dayBaseVlm?': 'string',
+})
 const hyperliquidSpotMetaEnvelope = arktype({
 	tokens: arktype({
 		name: 'string',
@@ -168,30 +182,147 @@ const hyperliquidBorrowLendUserStateEnvelope = arktype({
 	health: 'string',
 	healthFactor: 'string | null',
 })
+const hyperliquidMarginSummaryEnvelope = arktype({
+	accountValue: 'string',
+	totalNtlPos: 'string',
+	totalRawUsd: 'string',
+	totalMarginUsed: 'string',
+})
+const hyperliquidClearinghouseStateEnvelope = arktype({
+	marginSummary: hyperliquidMarginSummaryEnvelope,
+	crossMarginSummary: hyperliquidMarginSummaryEnvelope,
+	assetPositions: arktype({
+		type: 'string',
+		position: {
+			coin: 'string',
+			szi: 'string',
+			'entryPx?': 'string | null',
+			positionValue: 'string',
+			unrealizedPnl: 'string',
+			returnOnEquity: 'string',
+			'liquidationPx?': 'string | null',
+			marginUsed: 'string',
+			maxLeverage: 'number',
+			cumFunding: {
+				allTime: 'string',
+				sinceChange: 'string',
+				sinceOpen: 'string',
+			},
+			leverage: 'unknown',
+		},
+	}).array(),
+	withdrawable: 'string',
+	crossMaintenanceMarginUsed: 'string',
+	time: 'number',
+})
+const hyperliquidSpotClearinghouseStateEnvelope = arktype({
+	balances: arktype({
+		coin: 'string',
+		token: 'number',
+		total: 'string',
+		hold: 'string',
+		entryNtl: 'string',
+	}).array(),
+})
+const hyperliquidFrontendOrderEnvelope = arktype({
+	coin: 'string',
+	side: 'string',
+	limitPx: 'string',
+	sz: 'string',
+	oid: 'number',
+	timestamp: 'number',
+	triggerCondition: 'string',
+	isTrigger: 'boolean',
+	triggerPx: 'string',
+	children: 'unknown[]',
+	isPositionTpsl: 'boolean',
+	reduceOnly: 'boolean',
+	orderType: 'string',
+	origSz: 'string',
+	'tif?': 'string',
+	'cloid?': 'string | null',
+})
+const hyperliquidHistoricalOrderEnvelope = arktype({
+	order: hyperliquidFrontendOrderEnvelope,
+	status: 'string',
+	statusTimestamp: 'number',
+})
+const hyperliquidFillEnvelope = arktype({
+	closedPnl: 'string',
+	coin: 'string',
+	crossed: 'boolean',
+	dir: 'string',
+	hash: 'string',
+	oid: 'number',
+	px: 'string',
+	side: 'string',
+	startPosition: 'string',
+	sz: 'string',
+	time: 'number',
+	fee: 'string',
+	feeToken: 'string',
+	tid: 'number',
+	'builderFee?': 'string',
+	'twapId?': 'number | null',
+})
+const hyperliquidUserVaultEquityEnvelope = arktype({
+	vaultAddress: 'string',
+	equity: 'string',
+})
+const hyperliquidUserFeesEnvelope = arktype({
+	dailyUserVlm: 'unknown[]',
+	feeSchedule: 'unknown',
+	userCrossRate: 'string',
+	userAddRate: 'string',
+	userSpotCrossRate: 'string',
+	userSpotAddRate: 'string',
+	activeReferralDiscount: 'string',
+	trial: 'unknown',
+	feeTrialReward: 'string',
+	nextTrialAvailableTimestamp: 'number | null',
+	stakingLink: 'unknown',
+	activeStakingDiscount: 'unknown',
+})
+const hyperliquidDelegatorSummaryEnvelope = arktype({
+	delegated: 'string',
+	undelegated: 'string',
+	totalPendingWithdrawal: 'string',
+	nPendingWithdrawals: 'number',
+})
+const hyperliquidUserAbstractionEnvelope = arktype(
+	"'unifiedAccount' | 'portfolioMargin' | 'disabled' | 'default' | 'dexAbstraction'"
+)
+const hyperliquidL2BookEnvelope = arktype({
+	coin: 'string',
+	time: 'number',
+	levels: [
+		arktype({
+			px: 'string',
+			sz: 'string',
+			n: 'number',
+		}).array(),
+		arktype({
+			px: 'string',
+			sz: 'string',
+			n: 'number',
+		}).array(),
+	],
+})
+const hyperliquidCandleEnvelope = arktype({
+	t: 'number',
+	T: 'number',
+	s: 'string',
+	i: 'string',
+	o: 'string',
+	c: 'string',
+	h: 'string',
+	l: 'string',
+	v: 'string',
+	n: 'number',
+})
 const hyperliquidOrderStatusEnvelope = arktype({
 	status: 'string',
-	'order?': {
-		order: {
-			coin: 'string',
-			side: 'string',
-			limitPx: 'string',
-			sz: 'string',
-			oid: 'number',
-			timestamp: 'number',
-			triggerCondition: 'string',
-			isTrigger: 'boolean',
-			triggerPx: 'string',
-			children: 'unknown[]',
-			isPositionTpsl: 'boolean',
-			reduceOnly: 'boolean',
-			orderType: 'string',
-			origSz: 'string',
-			'tif?': 'string',
-			'cloid?': 'string | null',
-		},
-		status: 'string',
-		statusTimestamp: 'number',
-	},
+	'order?': hyperliquidHistoricalOrderEnvelope,
 })
 
 export const hyperliquidRestEndpoints = binding.endpoints.map((endpoint) => ({
@@ -240,7 +371,7 @@ export const getMetaAndAssetCtxs = async () => {
 	if (
 		snapshot.length !== 2
 		|| !hyperliquidMetaEnvelope.allows(snapshot[0])
-		|| !hyperliquidMetaAndAssetCtxsEnvelope.allows(snapshot[1])
+		|| !hyperliquidAssetCtxEnvelope.array().allows(snapshot[1])
 	)
 		throw new Error('Hyperliquid_Rest: invalid metaAndAssetCtxs response envelope')
 
@@ -259,46 +390,58 @@ export const getSpotMeta = async () => {
 	return spotMeta
 }
 
-export const getClearinghouseState = ({
+export const getClearinghouseState = async ({
 	user,
 }: {
 	user: string
-}) => (
-	info<HyperliquidClearinghouseState>({
+}) => {
+	const state = await info<HyperliquidClearinghouseState>({
 		body: {
 			type: 'clearinghouseState',
 			user,
 		},
 	})
-)
+	if (!hyperliquidClearinghouseStateEnvelope.allows(state))
+		throw new Error('Hyperliquid_Rest: invalid clearinghouseState response envelope')
 
-export const getSpotClearinghouseState = ({
+	return state
+}
+
+export const getSpotClearinghouseState = async ({
 	user,
 }: {
 	user: string
-}) => (
-	info<HyperliquidSpotClearinghouseState>({
+}) => {
+	const state = await info<HyperliquidSpotClearinghouseState>({
 		body: {
 			type: 'spotClearinghouseState',
 			user,
 		},
 	})
-)
+	if (!hyperliquidSpotClearinghouseStateEnvelope.allows(state))
+		throw new Error('Hyperliquid_Rest: invalid spotClearinghouseState response envelope')
 
-export const getHistoricalOrders = ({
+	return state
+}
+
+export const getHistoricalOrders = async ({
 	user,
 }: {
 	user: string
-}) => (
-	info<HyperliquidHistoricalOrder[]>({
+}) => {
+	const orders = await info<HyperliquidHistoricalOrder[]>({
 		body: {
 			type: 'historicalOrders',
 			user,
 		},
 	})
-)
+	if (!hyperliquidHistoricalOrderEnvelope.array().allows(orders))
+		throw new Error('Hyperliquid_Rest: invalid historicalOrders response envelope')
 
-export const getUserFillsByTime = ({
+	return orders
+}
+
+export const getUserFillsByTime = async ({
 	user,
 	startTime,
 	endTime,
@@ -313,7 +456,7 @@ export const getUserFillsByTime = ({
 	if (endTime != null && (!Number.isSafeInteger(endTime) || endTime < startTime))
 		throw new Error(`Hyperliquid_Rest: invalid fill end time ${endTime}`)
 
-	return info<HyperliquidFill[]>({
+	const fills = await info<HyperliquidFill[]>({
 		body: {
 			type: 'userFillsByTime',
 			user,
@@ -322,20 +465,28 @@ export const getUserFillsByTime = ({
 			aggregateByTime: false,
 		},
 	})
+	if (!hyperliquidFillEnvelope.array().allows(fills))
+		throw new Error('Hyperliquid_Rest: invalid userFillsByTime response envelope')
+
+	return fills
 }
 
-export const getUserVaultEquities = ({
+export const getUserVaultEquities = async ({
 	user,
 }: {
 	user: string
-}) => (
-	info<HyperliquidUserVaultEquity[]>({
+}) => {
+	const equities = await info<HyperliquidUserVaultEquity[]>({
 		body: {
 			type: 'userVaultEquities',
 			user,
 		},
 	})
-)
+	if (!hyperliquidUserVaultEquityEnvelope.array().allows(equities))
+		throw new Error('Hyperliquid_Rest: invalid userVaultEquities response envelope')
+
+	return equities
+}
 
 export const getUserRole = ({
 	user,
@@ -362,7 +513,7 @@ export const getValidatorSummaries = async () => {
 	return validators
 }
 
-export const getL2Book = ({
+export const getL2Book = async ({
 	coin,
 	nSigFigs,
 	mantissa,
@@ -383,7 +534,7 @@ export const getL2Book = ({
 	if (mantissa != null && mantissa !== 1 && mantissa !== 2 && mantissa !== 5)
 		throw new Error(`Hyperliquid_Rest: invalid book mantissa ${String(mantissa)}`)
 
-	return info<HyperliquidL2Book>({
+	const book = await info<HyperliquidL2Book>({
 		body: {
 			type: 'l2Book',
 			coin,
@@ -391,9 +542,13 @@ export const getL2Book = ({
 			...(mantissa != null && { mantissa }),
 		},
 	})
+	if (!hyperliquidL2BookEnvelope.allows(book))
+		throw new Error('Hyperliquid_Rest: invalid l2Book response envelope')
+
+	return book
 }
 
-export const getCandleSnapshot = ({
+export const getCandleSnapshot = async ({
 	coin,
 	interval,
 	startTime,
@@ -416,7 +571,7 @@ export const getCandleSnapshot = ({
 	if (endTime != null && (!Number.isSafeInteger(endTime) || endTime < startTime))
 		throw new Error(`Hyperliquid_Rest: invalid candle end time ${endTime}`)
 
-	return info<HyperliquidCandle[]>({
+	const candles = await info<HyperliquidCandle[]>({
 		body: {
 			type: 'candleSnapshot',
 			req: {
@@ -427,6 +582,10 @@ export const getCandleSnapshot = ({
 			},
 		},
 	})
+	if (!hyperliquidCandleEnvelope.array().allows(candles))
+		throw new Error('Hyperliquid_Rest: invalid candleSnapshot response envelope')
+
+	return candles
 }
 
 export const getVaultDetails = async ({
@@ -455,44 +614,56 @@ export const getVaultDetails = async ({
 	return vault
 }
 
-export const getUserFees = ({
+export const getUserFees = async ({
 	user,
 }: {
 	user: string
-}) => (
-	info<HyperliquidUserFees>({
+}) => {
+	const fees = await info<HyperliquidUserFees>({
 		body: {
 			type: 'userFees',
 			user,
 		},
 	})
-)
+	if (!hyperliquidUserFeesEnvelope.allows(fees))
+		throw new Error('Hyperliquid_Rest: invalid userFees response envelope')
 
-export const getDelegatorSummary = ({
+	return fees
+}
+
+export const getDelegatorSummary = async ({
 	user,
 }: {
 	user: string
-}) => (
-	info<HyperliquidDelegatorSummary>({
+}) => {
+	const summary = await info<HyperliquidDelegatorSummary>({
 		body: {
 			type: 'delegatorSummary',
 			user,
 		},
 	})
-)
+	if (!hyperliquidDelegatorSummaryEnvelope.allows(summary))
+		throw new Error('Hyperliquid_Rest: invalid delegatorSummary response envelope')
 
-export const getUserAbstraction = ({
+	return summary
+}
+
+export const getUserAbstraction = async ({
 	user,
 }: {
 	user: string
-}) => (
-	info<HyperliquidUserAbstraction>({
+}) => {
+	const abstraction = await info<HyperliquidUserAbstraction>({
 		body: {
 			type: 'userAbstraction',
 			user,
 		},
 	})
-)
+	if (!hyperliquidUserAbstractionEnvelope.allows(abstraction))
+		throw new Error('Hyperliquid_Rest: invalid userAbstraction response envelope')
+
+	return abstraction
+}
 
 export const getUserDexAbstraction = ({
 	user,
@@ -507,18 +678,22 @@ export const getUserDexAbstraction = ({
 	})
 )
 
-export const getApprovedBuilders = ({
+export const getApprovedBuilders = async ({
 	user,
 }: {
 	user: string
-}) => (
-	info<string[]>({
+}) => {
+	const builders = await info<string[]>({
 		body: {
 			type: 'approvedBuilders',
 			user,
 		},
 	})
-)
+	if (!arktype('string[]').allows(builders))
+		throw new Error('Hyperliquid_Rest: invalid approvedBuilders response envelope')
+
+	return builders
+}
 
 export const getBorrowLendUserState = async ({
 	user,
@@ -571,18 +746,22 @@ export const getVaultSummaries = async () => {
 	return vaults
 }
 
-export const getFrontendOpenOrders = ({
+export const getFrontendOpenOrders = async ({
 	user,
 }: {
 	user: string
-}) => (
-	info<HyperliquidFrontendOrder[]>({
+}) => {
+	const orders = await info<HyperliquidFrontendOrder[]>({
 		body: {
 			type: 'frontendOpenOrders',
 			user,
 		},
 	})
-)
+	if (!hyperliquidFrontendOrderEnvelope.array().allows(orders))
+		throw new Error('Hyperliquid_Rest: invalid frontendOpenOrders response envelope')
+
+	return orders
+}
 
 export const getOrderStatus = async ({
 	user,

@@ -456,8 +456,10 @@ const mapLendingVaultWire = (
 	)
 	const borrowApr = optionalFiniteNumber(wire.rates?.borrowApr, 'borrow APR')
 	const borrowApy = optionalFiniteNumber(wire.rates?.borrowApy, 'borrow APY')
+	const borrowApyPcent = optionalFiniteNumber(wire.rates?.borrowApyPcent, 'borrow APY percent')
 	const lendApr = optionalFiniteNumber(wire.rates?.lendApr, 'lend APR')
 	const lendApy = optionalFiniteNumber(wire.rates?.lendApy, 'lend APY')
+	const lendApyPcent = optionalFiniteNumber(wire.rates?.lendApyPcent, 'lend APY percent')
 	const pricePerShare = optionalFiniteNumber(wire.vaultShares?.pricePerShare, 'price per share')
 	const totalShares = optionalFiniteNumber(wire.vaultShares?.totalShares, 'total shares')
 	const totalSupplied = optionalFiniteNumber(wire.totalSupplied?.total, 'total supplied')
@@ -489,11 +491,17 @@ const mapLendingVaultWire = (
 		...(borrowApy != null && {
 			borrowApy,
 		}),
+		...(borrowApyPcent != null && {
+			borrowApyPcent,
+		}),
 		...(lendApr != null && {
 			lendApr,
 		}),
 		...(lendApy != null && {
 			lendApy,
+		}),
+		...(lendApyPcent != null && {
+			lendApyPcent,
 		}),
 		...(pricePerShare != null && {
 			pricePerShare,

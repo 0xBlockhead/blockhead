@@ -71,22 +71,83 @@ describe('Hyperliquid public account Info transport', () => {
 		corsFetch.mockReset()
 		corsFetch.mockImplementation(async (_url, options) => ({
 			ok: true,
-			json: async () => (
-				JSON.parse(options.init.body).type === 'metaAndAssetCtxs' ?
-					[{
-						universe: [],
-					}, []]
-				: JSON.parse(options.init.body).type === 'vaultDetails' ?
-					vaultDetails
-				: JSON.parse(options.init.body).type === 'borrowLendUserState' ?
-					{
-						tokenToState: [],
-						health: 'healthy',
-						healthFactor: null,
-					}
-				:
-					[]
-			),
+			json: async () => {
+				const body = JSON.parse(options.init.body)
+				return (
+					body.type === 'metaAndAssetCtxs' ?
+						[{
+							universe: [],
+						}, []]
+					: body.type === 'vaultDetails' ?
+						vaultDetails
+					: body.type === 'borrowLendUserState' ?
+						{
+							tokenToState: [],
+							health: 'healthy',
+							healthFactor: null,
+						}
+					: body.type === 'clearinghouseState' ?
+						{
+							marginSummary: {
+								accountValue: '0',
+								totalNtlPos: '0',
+								totalRawUsd: '0',
+								totalMarginUsed: '0',
+							},
+							crossMarginSummary: {
+								accountValue: '0',
+								totalNtlPos: '0',
+								totalRawUsd: '0',
+								totalMarginUsed: '0',
+							},
+							assetPositions: [],
+							withdrawable: '0',
+							crossMaintenanceMarginUsed: '0',
+							time: 1,
+						}
+					: body.type === 'spotClearinghouseState' ?
+						{
+							balances: [],
+						}
+					: body.type === 'userFees' ?
+						{
+							dailyUserVlm: [],
+							feeSchedule: {},
+							userCrossRate: '0',
+							userAddRate: '0',
+							userSpotCrossRate: '0',
+							userSpotAddRate: '0',
+							activeReferralDiscount: '0',
+							trial: null,
+							feeTrialReward: '0',
+							nextTrialAvailableTimestamp: null,
+							stakingLink: null,
+							activeStakingDiscount: {},
+						}
+					: body.type === 'delegatorSummary' ?
+						{
+							delegated: '0',
+							undelegated: '0',
+							totalPendingWithdrawal: '0',
+							nPendingWithdrawals: 0,
+						}
+					: body.type === 'userAbstraction' ?
+						'default'
+					: body.type === 'userDexAbstraction' ?
+						false
+					: body.type === 'l2Book' ?
+						{
+							coin: 'ETH',
+							time: 1,
+							levels: [
+								[],
+								[],
+							],
+						}
+					:
+						[]
+				)
+			},
 		})
 	)
 	})
@@ -317,24 +378,24 @@ describe('Hyperliquid public account Info transport', () => {
 		{ startTime: 1.5 },
 		{ startTime: 10, endTime: 9 },
 		{ startTime: 10, endTime: Number.MAX_SAFE_INTEGER + 1 },
-	])('rejects invalid fill windows before transport', ({ startTime, endTime }) => {
-		expect(() => getUserFillsByTime({
+	])('rejects invalid fill windows before transport', async ({ startTime, endTime }) => {
+		await expect(getUserFillsByTime({
 			user: '0x1111111111111111111111111111111111111111',
 			startTime,
 			...(endTime != null && { endTime }),
-		})).toThrow('Hyperliquid_Rest: invalid fill')
+		})).rejects.toThrow('Hyperliquid_Rest: invalid fill')
 		expect(corsFetch).not.toHaveBeenCalled()
 	})
 
 	it('rejects invalid candle, book, and vault requests before transport', async () => {
-		expect(() => getL2Book({
+		await expect(getL2Book({
 			coin: '',
-		})).toThrow('invalid book coin')
-		expect(() => getCandleSnapshot({
+		})).rejects.toThrow('invalid book coin')
+		await expect(getCandleSnapshot({
 			coin: 'ETH',
 			interval: '7h',
 			startTime: 1,
-		})).toThrow('invalid candle interval')
+		})).rejects.toThrow('invalid candle interval')
 		await expect(getVaultDetails({
 			vaultAddress: 'not-a-vault',
 		})).rejects.toThrow('invalid vault address')
@@ -427,8 +488,15 @@ describe('Hyperliquid public account Info transport', () => {
 					openInterest: '1',
 					prevDayPx: '1',
 					dayNtlVlm: '1',
+					premium: '0.0001',
+					oraclePx: '1',
 					markPx: '1',
 					midPx: '1',
+					impactPxs: [
+						'0.9',
+						'1.1',
+					],
+					dayBaseVlm: '0.5',
 				}],
 			],
 		})
@@ -443,7 +511,153 @@ describe('Hyperliquid public account Info transport', () => {
 			},
 			[{
 				markPx: '1',
+				dayBaseVlm: '0.5',
 			}],
 		])
+	})
+
+	it('accepts null premium/impactPxs asset contexts and optional fill builderFee', async () => {
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [
+				{
+					universe: [{
+						name: 'ETH',
+						szDecimals: 4,
+						maxLeverage: 50,
+					}],
+				},
+				[{
+					funding: '0.0',
+					openInterest: '12.208',
+					prevDayPx: '447.49',
+					dayNtlVlm: '0.0',
+					premium: null,
+					oraclePx: '450.78',
+					markPx: '465.13',
+					midPx: '464.92',
+					impactPxs: null,
+					dayBaseVlm: '0.0',
+				}],
+			],
+		})
+		await expect(getMetaAndAssetCtxs()).resolves.toMatchObject([
+			{
+				universe: [{
+					name: 'ETH',
+				}],
+			},
+			[{
+				premium: null,
+				impactPxs: null,
+			}],
+		])
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [{
+				closedPnl: '0.0',
+				coin: 'AVAX',
+				crossed: false,
+				dir: 'Open Long',
+				hash: '0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8',
+				oid: 90542681,
+				px: '18.435',
+				side: 'B',
+				startPosition: '26.86',
+				sz: '93.53',
+				time: 1681222254710,
+				fee: '0.01',
+				feeToken: 'USDC',
+				builderFee: '0.01',
+				tid: 118906512037719,
+				twapId: null,
+			}],
+		})
+		await expect(getUserFillsByTime({
+			user: '0x1111111111111111111111111111111111111111',
+			startTime: 1,
+		})).resolves.toEqual([{
+			closedPnl: '0.0',
+			coin: 'AVAX',
+			crossed: false,
+			dir: 'Open Long',
+			hash: '0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8',
+			oid: 90542681,
+			px: '18.435',
+			side: 'B',
+			startPosition: '26.86',
+			sz: '93.53',
+			time: 1681222254710,
+			fee: '0.01',
+			feeToken: 'USDC',
+			builderFee: '0.01',
+			tid: 118906512037719,
+			twapId: null,
+		}])
+	})
+
+	it('fails closed for malformed clearinghouse, fills, open orders, and fees envelopes', async () => {
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				marginSummary: {
+					accountValue: '1',
+				},
+			}),
+		})
+		await expect(getClearinghouseState({
+			user: '0x1111111111111111111111111111111111111111',
+		})).rejects.toThrow('Hyperliquid_Rest: invalid clearinghouseState response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [{
+				coin: 'ETH',
+				oid: 1,
+			}],
+		})
+		await expect(getUserFillsByTime({
+			user: '0x1111111111111111111111111111111111111111',
+			startTime: 1,
+		})).rejects.toThrow('Hyperliquid_Rest: invalid userFillsByTime response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [{
+				coin: 'ETH',
+			}],
+		})
+		await expect(getFrontendOpenOrders({
+			user: '0x1111111111111111111111111111111111111111',
+		})).rejects.toThrow('Hyperliquid_Rest: invalid frontendOpenOrders response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				userCrossRate: '0',
+			}),
+		})
+		await expect(getUserFees({
+			user: '0x1111111111111111111111111111111111111111',
+		})).rejects.toThrow('Hyperliquid_Rest: invalid userFees response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [
+				{
+					universe: [{
+						name: 'BTC',
+						szDecimals: 5,
+						maxLeverage: 40,
+					}],
+				},
+				[{
+					funding: '0.0001',
+					markPx: '1',
+				}],
+			],
+		})
+		await expect(getMetaAndAssetCtxs()).rejects.toThrow('Hyperliquid_Rest: invalid metaAndAssetCtxs response envelope')
 	})
 })

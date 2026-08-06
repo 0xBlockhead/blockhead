@@ -23,9 +23,25 @@ export type HyperliquidMeta = {
 	collateralToken?: number
 }
 
+export type HyperliquidAssetCtx = {
+	funding: string
+	openInterest: string
+	prevDayPx: string
+	dayNtlVlm: string
+	premium: string | null
+	oraclePx: string
+	markPx: string
+	midPx: string | null
+	impactPxs: [
+		string,
+		string,
+	] | null
+	dayBaseVlm?: string
+}
+
 export type HyperliquidMetaAndAssetCtxs = [
 	HyperliquidMeta,
-	JsonValue[],
+	HyperliquidAssetCtx[],
 ]
 
 export type HyperliquidSpotMeta = {
@@ -139,6 +155,8 @@ export type HyperliquidFill = {
 	fee: string
 	feeToken: string
 	tid: number
+	builderFee?: string
+	twapId?: number | null
 }
 
 export type HyperliquidUserVaultEquity = {
