@@ -271,7 +271,10 @@ export default {
 				}
 			},
 		})({
-				$$coins: (coins) => coins,
+				$$coins: {
+					select: (coins) => coins,
+					resolveCount: (coins) => coins.length,
+				},
 			}),
 
 		defineResolver({
@@ -285,11 +288,10 @@ export default {
 							'$/sources/CoinMarketCap/Rest/queries.ts'
 						)
 						const lim = resolverContextRowLimit(context)
-						return (
-							(await Promise.all(
+						const marketPrices = (
+							await Promise.all(
 								Object.values(CoinId)
 									.filter((coinId) => idByCoinId[coinId] != null && coinId in coinById)
-									.slice(0, lim)
 									.map(async (coinId) => {
 										const coinMarketCapId = idByCoinId[coinId]
 										if (coinMarketCapId == null)
@@ -317,13 +319,20 @@ export default {
 											},
 										]
 									})
-							)).flat()
-						)
+							)
+						).flat()
+						return {
+							marketPrices: marketPrices.slice(0, lim),
+							marketPriceCount: marketPrices.length,
+						}
 					},
 				}
 			},
 		})({
-				$$marketPrices: (marketPrices) => marketPrices,
+				$$marketPrices: {
+					select: (snapshot) => snapshot.marketPrices,
+					resolveCount: (snapshot) => snapshot.marketPriceCount,
+				},
 			}),
 
 		defineResolver({

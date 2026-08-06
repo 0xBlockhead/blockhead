@@ -1,3 +1,5 @@
+import { type as arktype } from 'arktype'
+
 export type CoinMarketCapStatus = {
 	timestamp?: string
 	error_code?: number
@@ -80,3 +82,93 @@ export type CoinMarketCapOhlcvHistoricalResponse = {
 	status?: CoinMarketCapStatus
 	data?: Record<string, CoinMarketCapOhlcvHistoricalCoin>
 }
+
+
+const coinMarketCapStatusWire = arktype({
+	'timestamp?': 'string',
+	'error_code?': 'number',
+	'error_message?': 'string | null',
+	'credit_count?': 'number',
+})
+
+const coinMarketCapUsdQuoteWire = arktype({
+	'price?': 'number',
+	'market_cap?': 'number',
+	'volume_24h?': 'number',
+	'last_updated?': 'string',
+})
+
+const coinMarketCapQuoteWire = arktype({
+	'id?': 'number',
+	'name?': 'string',
+	'symbol?': 'string',
+	'slug?': 'string',
+	'quote?': {
+		'USD?': coinMarketCapUsdQuoteWire,
+	},
+})
+
+export const coinMarketCapQuotesLatestEnvelope = arktype({
+	'status?': coinMarketCapStatusWire,
+	'data?': {
+		'[string]': coinMarketCapQuoteWire,
+	},
+})
+
+const coinMarketCapPlatformWire = arktype({
+	'id?': 'number',
+	'name?': 'string',
+	'symbol?': 'string',
+	'slug?': 'string',
+	'token_address?': 'string',
+})
+
+const coinMarketCapInfoWire = arktype({
+	'id?': 'number',
+	'name?': 'string',
+	'symbol?': 'string',
+	'slug?': 'string',
+	'logo?': 'string',
+	'platform?': coinMarketCapPlatformWire.or(arktype.null),
+})
+
+export const coinMarketCapInfoLatestEnvelope = arktype({
+	'status?': coinMarketCapStatusWire,
+	'data?': {
+		'[string]': coinMarketCapInfoWire,
+	},
+})
+
+const coinMarketCapOhlcvUsdQuoteWire = arktype({
+	'open?': 'number',
+	'high?': 'number',
+	'low?': 'number',
+	'close?': 'number',
+	'volume?': 'number',
+	'market_cap?': 'number',
+	'timestamp?': 'string',
+})
+
+const coinMarketCapOhlcvQuoteWire = arktype({
+	'time_open?': 'string',
+	'time_close?': 'string',
+	'time_high?': 'string',
+	'time_low?': 'string',
+	'quote?': {
+		'USD?': coinMarketCapOhlcvUsdQuoteWire,
+	},
+})
+
+const coinMarketCapOhlcvHistoricalCoinWire = arktype({
+	'id?': 'number',
+	'name?': 'string',
+	'symbol?': 'string',
+	'quotes?': coinMarketCapOhlcvQuoteWire.array(),
+})
+
+export const coinMarketCapOhlcvHistoricalEnvelope = arktype({
+	'status?': coinMarketCapStatusWire,
+	'data?': {
+		'[string]': coinMarketCapOhlcvHistoricalCoinWire,
+	},
+})
