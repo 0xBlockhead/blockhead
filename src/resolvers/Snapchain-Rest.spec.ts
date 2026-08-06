@@ -232,6 +232,32 @@ describe('Snapchain Farcaster cast identity', () => {
 		})
 	})
 
+	it('projects enrolled mentions onto mentionedProfileFids', async () => {
+		getCastById.mockResolvedValueOnce({
+			hash: parentHash,
+			data: {
+				type: 'MESSAGE_TYPE_CAST_ADD',
+				fid: 42,
+				timestamp: 1_752_840_001,
+				network: 'FARCASTER_NETWORK_MAINNET',
+				castAddBody: {
+					text: 'hi @bob',
+					mentions: [7, 9],
+					mentionsPositions: [3],
+				},
+			},
+			hashScheme: 'HASH_SCHEME_BLAKE3',
+		})
+
+		await expect(castResolver.resolve.FidHash.resolve({
+			fid: 42,
+			hash: parentHash,
+		})).resolves.toMatchObject({
+			mentions: [7, 9],
+			mentionedProfileFids: [7, 9],
+		})
+	})
+
 	it('rejects a provider row for a different fid/hash subject', async () => {
 		getCastById.mockResolvedValueOnce({
 			hash: parentHash,
@@ -334,6 +360,7 @@ describe('Snapchain Farcaster account ownership', () => {
 				{
 					fid: 42,
 					name: 'alice',
+					type: 'USERNAME_TYPE_FNAME',
 				},
 			],
 		})
@@ -386,5 +413,74 @@ describe('Snapchain Farcaster account ownership', () => {
 				},
 			},
 		}])
+	})
+
+	it('prefers fname proofs, USER_DATA username fallback, primary EVM userData, and legacy ETH verifications', async () => {
+		getUserDataByFid.mockResolvedValueOnce({
+			messages: [
+				{
+					data: {
+						fid: 42,
+						userDataBody: {
+							type: 6,
+							value: 'alice-from-userdata',
+						},
+					},
+				},
+				{
+					data: {
+						fid: 42,
+						userDataBody: {
+							type: 'USER_DATA_PRIMARY_ADDRESS_ETHEREUM',
+							value: '0x91031dcfdea024b4d51e775486111d2b2a715871',
+						},
+					},
+				},
+			],
+		})
+		getUsernameProofsByFid.mockResolvedValueOnce({
+			proofs: [
+				{
+					fid: 42,
+					name: 'alice.eth',
+					type: 'USERNAME_TYPE_ENS_L1',
+				},
+				{
+					fid: 42,
+					name: 'alice',
+					type: 'USERNAME_TYPE_FNAME',
+				},
+			],
+		})
+		getVerificationsByFid.mockResolvedValueOnce({
+			messages: [{
+				data: {
+					fid: 42,
+					verificationAddEthAddressBody: {
+						address: '0x74232bf61e994655592747e20bdf6fa9b9476f79',
+						ethSignature: 'ethsig',
+						blockHash: '0xd74860c4bbf574d5ad60f03a478a30f990e05ac723e138a5c860cdb3095f4296',
+					},
+				},
+			}],
+		})
+
+		await expect(userResolver.resolve['Fid'].resolve({
+			fid: 42,
+		})).resolves.toMatchObject({
+			username: 'alice',
+			$primaryEvmAccount: {
+				[EntityMetaKey.Selector]: {
+					address: '0x91031dcfdea024b4d51e775486111d2b2a715871',
+				},
+			},
+			$$verifiedAddresses: [{
+				[EntityMetaKey.Selector]: {
+					fid: 42,
+					protocol: 'ethereum',
+					address: '0x74232bf61e994655592747e20bdf6fa9b9476f79',
+				},
+			}],
+		})
 	})
 })
