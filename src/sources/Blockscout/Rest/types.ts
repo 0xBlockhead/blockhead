@@ -13,11 +13,24 @@ export const blockscoutBlockDetailEnvelope = arktype({
 	parent_hash: 'string',
 	timestamp: 'string',
 	transactions_count: 'number',
+	'gas_used?': 'string',
+	'gas_limit?': 'string',
+	'base_fee_per_gas?': 'string | null',
 })
 export const blockscoutBlocksPageEnvelope = arktype({
 	items: arktype({
 		height: 'number',
 	}).array(),
+})
+export const blockscoutSignedAuthorizationEnvelope = arktype({
+	address_hash: 'string',
+	authority: 'string',
+	chain_id: 'number',
+	nonce: 'string',
+	r: 'string',
+	s: 'string',
+	v: 'number',
+	'status?': '"ok" | "invalid_chain_id" | "invalid_signature" | "invalid_nonce" | null',
 })
 export const blockscoutTransactionEnvelope = arktype({
 	from: blockscoutAddressEnvelope,
@@ -27,6 +40,15 @@ export const blockscoutTransactionEnvelope = arktype({
 	raw_input: 'string',
 	to: blockscoutAddressEnvelope,
 	value: 'string',
+	'type?': 'number | null',
+	'status?': '"ok" | "error" | null',
+	'gas_used?': 'string | null',
+	'gas_price?': 'string | null',
+	'max_fee_per_gas?': 'string | null',
+	'max_priority_fee_per_gas?': 'string | null',
+	'block_number?': 'number | null',
+	'position?': 'number | null',
+	'authorization_list?': blockscoutSignedAuthorizationEnvelope.array().or(arktype.null),
 })
 export const blockscoutTransactionsPageEnvelope = arktype({
 	items: blockscoutTransactionEnvelope.array(),

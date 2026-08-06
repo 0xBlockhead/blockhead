@@ -757,3 +757,84 @@ describe('Blockscout EvmNetworkAccount_Timestamp', () => {
 		}, context)).rejects.toThrow('account observation timestamp does not match request')
 	})
 })
+
+describe('Blockscout EvmTransaction enrolled leftovers', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		getTransactionLogs.mockResolvedValue([])
+	})
+
+	it('projects $block and SetCode.$$authorizations from transaction detail', async () => {
+		const delegation = '0x5555555555555555555555555555555555555555'
+		const authority = '0x6666666666666666666666666666666666666666'
+		getTransactionByHash.mockResolvedValue({
+			from: {
+				hash: '0x1111111111111111111111111111111111111111',
+			},
+			to: {
+				hash: '0x2222222222222222222222222222222222222222',
+			},
+			gas_limit: '21000',
+			gas_price: '1',
+			gas_used: '21000',
+			hash: txHash,
+			nonce: 4,
+			raw_input: '0x',
+			value: '0',
+			type: 4,
+			status: 'ok',
+			block_number: 12,
+			position: 3,
+			max_fee_per_gas: '2',
+			max_priority_fee_per_gas: '1',
+			created_contract: null,
+			authorization_list: [{
+				address_hash: delegation,
+				authority,
+				chain_id: 1,
+				nonce: '7',
+				r: '1',
+				s: '2',
+				v: 1,
+				status: 'ok',
+			}],
+		})
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+			&& 'EvmNetworkTxHash' in candidate.resolve
+			&& '$block' in candidate.projections
+			&& 'SetCode' in candidate.projections
+			&& '$$authorizations' in candidate.projections.SetCode
+		))
+		if (
+			resolver == null
+			|| !('EvmNetworkTxHash' in resolver.resolve)
+		)
+			throw new Error('Blockscout_Rest: missing EvmTransaction $block / SetCode projections')
+
+		const entity = await resolver.resolve.EvmNetworkTxHash.resolve({
+			$network: network,
+			txHash,
+		}, context)
+		expect(resolver.projections.$block(entity)?.[EntityMetaKey.Selector]).toEqual({
+			$network: network,
+			blockNumber: 12n,
+		})
+		const authorizations = resolver.projections.SetCode.$$authorizations.select(entity)
+		expect(authorizations).toHaveLength(1)
+		expect(authorizations[0]?.[EntityMetaKey.Selector]).toEqual({
+			$transaction: {
+				$network: network,
+				txHash,
+			},
+			authorizationIndex: 0,
+		})
+		expect(authorizations[0]?.delegationAddress).toBe(delegation)
+		expect(authorizations[0]?.authority).toBe(authority)
+		expect(authorizations[0]?.chainId).toBe(1n)
+		expect(authorizations[0]?.nonce).toBe(7n)
+		expect(authorizations[0]?.yParity).toBe(1)
+		expect(authorizations[0]?.verificationStatus).toBe('ok')
+		expect(resolver.projections.SetCode.$$authorizations.resolveCount(entity)).toBe(1)
+	})
+})

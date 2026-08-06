@@ -385,4 +385,67 @@ describe('Etherscan Network selectors', () => {
 		expect(resolver.projections.blobGasUsed(entity)).toBe(0x20000n)
 		expect(resolver.projections.excessBlobGas(entity)).toBe(0n)
 	})
+
+	it('projects enrolled Blob.$$blobs from proxy blobVersionedHashes', async () => {
+		const versionedHash = `0x01${'ab'.repeat(31)}`
+		getTransactionByHash.mockResolvedValue({
+			hash: txHash,
+			from: address,
+			to: '0x2222222222222222222222222222222222222222',
+			blockNumber: '0x10',
+			transactionIndex: '0x1',
+			value: '0x0',
+			nonce: '0x3',
+			input: '0x',
+			gas: '0x5208',
+			gasPrice: '0x1',
+			type: '0x3',
+			maxFeePerGas: '0x2',
+			maxPriorityFeePerGas: '0x1',
+			maxFeePerBlobGas: '0x5',
+			blobVersionedHashes: [versionedHash, `0x00${'cd'.repeat(31)}`],
+			r: `0x${'11'.repeat(32)}`,
+			s: `0x${'22'.repeat(32)}`,
+			v: '0x1',
+		})
+		getTransactionReceipt.mockResolvedValue({
+			status: '0x1',
+			gasUsed: '0x5208',
+			cumulativeGasUsed: '0x5208',
+			effectiveGasPrice: '0x1',
+			blobGasUsed: '0x20000',
+			logs: [],
+		})
+		const resolver = etherscanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+			&& 'Blob' in candidate.projections
+			&& '$$blobs' in candidate.projections.Blob
+		))
+		if (
+			resolver == null
+			|| !('EvmNetworkTxHash' in resolver.resolve)
+		)
+			throw new Error('Etherscan_Rest: missing EvmTransaction Blob.$$blobs projection')
+
+		const $network = {
+			slug: 'ethereum',
+		} as const
+		const entity = await resolver.resolve.EvmNetworkTxHash.resolve({
+			$network,
+			txHash,
+		}, context)
+		const blobs = resolver.projections.Blob.$$blobs.select(entity)
+		expect(blobs).toHaveLength(1)
+		expect(blobs[0]?.[EntityMetaKey.Selector]).toEqual({
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: 0,
+		})
+		expect(blobs[0]?.versionedHash).toBe(versionedHash)
+		expect(resolver.projections.Blob.$$blobs.resolveCount(entity)).toBe(1)
+		expect(resolver.projections.Blob.blobGasUsed(entity)).toBe(0x20000n)
+		expect(resolver.projections.Blob.maxFeePerBlobGas(entity)).toBe(5n)
+	})
 })

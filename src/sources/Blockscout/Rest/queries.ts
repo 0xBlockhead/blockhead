@@ -94,9 +94,20 @@ const validatedBlockscoutTransactionWire = (wire: BlockscoutTransaction) => {
 		wire.gas_price,
 		wire.max_fee_per_gas,
 		wire.max_priority_fee_per_gas,
+		wire.gas_used,
 	])
 		if (quantity != null && quantity !== '')
 			BigInt(quantity)
+
+	for (const authorization of wire.authorization_list ?? []) {
+		BigInt(authorization.nonce)
+		BigInt(authorization.r)
+		BigInt(authorization.s)
+		if (!Number.isSafeInteger(authorization.chain_id) || authorization.chain_id < 0)
+			throw new Error('Blockscout_Rest: invalid authorization chain_id')
+		if (!Number.isSafeInteger(authorization.v) || authorization.v < 0)
+			throw new Error('Blockscout_Rest: invalid authorization y_parity')
+	}
 
 	return wire
 }

@@ -40,6 +40,7 @@ import type {
 	BlockscoutErc4337RegistryEntry,
 	BlockscoutStats,
 	BlockscoutTokenTransfer,
+	BlockscoutTransaction,
 	BlockscoutTransactionLog,
 	BlockscoutUserOperationListItem,
 } from '$/sources/Blockscout/Rest/types.ts'
@@ -266,6 +267,92 @@ const evmTransactionKindFromSignedFields = ({
 				EvmTransactionKind.NativeTransfer
 			:
 				EvmTransactionKind.ContractCall
+)
+
+const zeroExHexFromIntegerQuantity = (
+	raw: string | number | null | undefined,
+	byteSize: 20 | 32,
+) => {
+	if (raw == null || raw === '')
+		return undefined
+
+	try {
+		const value = BigInt(raw)
+		if (value < 0n)
+			return undefined
+
+		return hexLowerOfByteSize(
+			`0x${value.toString(16).padStart(byteSize * 2, '0')}`,
+			byteSize
+		)
+	} catch {
+		return undefined
+	}
+}
+
+const eip7702AuthorizationEntitiesFromBlockscoutWire = ({
+	$network,
+	txHash,
+	authorizationList,
+}: {
+	$network: EvmNetworkId
+	txHash: `0x${string}`
+	authorizationList: NonNullable<BlockscoutTransaction['authorization_list']>
+}) => (
+	authorizationList.flatMap((authorization, authorizationIndex) => {
+		const delegationAddress = hexLowerOfByteSize(authorization.address_hash, 20)
+		const authority = hexLowerOfByteSize(authorization.authority, 20)
+		const r = zeroExHexFromIntegerQuantity(authorization.r, 32)
+		const s = zeroExHexFromIntegerQuantity(authorization.s, 32)
+		const nonce = blockscoutQuantityToBigInt(authorization.nonce)
+		if (
+			delegationAddress == null
+			|| r == null
+			|| s == null
+			|| nonce == null
+			|| !Number.isSafeInteger(authorization.chain_id)
+			|| authorization.chain_id < 0
+			|| !Number.isSafeInteger(authorization.v)
+			|| authorization.v < 0
+		)
+			return []
+
+		return [{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network,
+					txHash,
+				},
+				authorizationIndex,
+			},
+			chainId: BigInt(authorization.chain_id),
+			delegationAddress,
+			nonce,
+			yParity: authorization.v,
+			r,
+			s,
+			...(authority != null && {
+				authority,
+				$authorityAccount: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						$actor: {
+							address: authority,
+						},
+					},
+				} satisfies Entity<typeof schema, EntityType.EvmNetworkAccount>,
+			}),
+			$delegationContract: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					address: delegationAddress,
+				},
+			} satisfies Entity<typeof schema, EntityType.EvmContract>,
+			...(authorization.status != null && {
+				verificationStatus: authorization.status,
+			}),
+		}]
+	})
 )
 
 const evmInternalCallTypeFromWire = (
@@ -1292,6 +1379,16 @@ export default {
 									} satisfies Entity<typeof schema, EntityType.EvmContract>,
 								}
 							))(createdContractAddress)),
+							$$authorizations: (
+								transaction.authorization_list == null ?
+									[]
+								:
+									eip7702AuthorizationEntitiesFromBlockscoutWire({
+										$network,
+										txHash,
+										authorizationList: transaction.authorization_list,
+									})
+							),
 							$$logs: (
 								receiptLogs.flatMap((log, indexInTransaction) => {
 									const id = evmLogEntitySelectorFromWire({
@@ -1310,6 +1407,7 @@ export default {
 				}
 			},
 		})({
+			$block: (transaction) => transaction.$block,
 			$from: (transaction) => {
 				if (transaction.$from == null)
 					throw new Error('Blockscout_Rest: transaction is missing from address')
@@ -1339,6 +1437,12 @@ export default {
 			FeeMarket: {
 				maxFeePerGas: (transaction) => transaction.maxFeePerGas,
 				maxPriorityFeePerGas: (transaction) => transaction.maxPriorityFeePerGas,
+			},
+			SetCode: {
+				$$authorizations: {
+					select: (transaction) => transaction.$$authorizations,
+					resolveCount: (transaction) => transaction.$$authorizations.length,
+				},
 			},
 			$$logs: {
 				select: (transaction) => transaction.$$logs.map((log) => ({

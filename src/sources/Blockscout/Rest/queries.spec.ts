@@ -245,6 +245,27 @@ describe('Blockscout account-abstraction queries', () => {
 		})).rejects.toThrow('Blockscout_Rest: invalid transaction detail response envelope')
 	})
 
+	it('fails closed for malformed EIP-7702 authorization quantities on transaction detail', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			...transaction,
+			authorization_list: [{
+				address_hash: hex('8', 40),
+				authority: hex('9', 40),
+				chain_id: 1,
+				nonce: 'not-a-number',
+				r: '1',
+				s: '2',
+				v: 0,
+				status: 'ok',
+			}],
+		}))
+
+		await expect(getTransactionByHash({
+			chainId: 1,
+			txHash: transaction.hash,
+		})).rejects.toThrow()
+	})
+
 	it('fails closed for malformed block, transaction, and token list envelopes', async () => {
 		vi.spyOn(globalThis, 'fetch')
 			.mockResolvedValueOnce(jsonResponse({

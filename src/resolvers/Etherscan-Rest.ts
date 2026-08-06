@@ -607,6 +607,49 @@ const evmTransactionKindFromSignedFields = ({
 				EvmTransactionKind.ContractCall
 )
 
+const evmBlobEntityRefsFromEtherscanTx = ({
+	$network,
+	txHash,
+	blobVersionedHashes,
+	blockNumber,
+}: {
+	$network: EvmNetworkId
+	txHash: `0x${string}`
+	blobVersionedHashes: readonly string[] | undefined
+	blockNumber?: bigint
+}) => (
+	(blobVersionedHashes ?? []).flatMap((blobVersionedHash, blobIndex) => {
+		const versionedHash = hexLowerOfByteSize(blobVersionedHash, 32)
+		if (versionedHash == null || !versionedHash.startsWith('0x01'))
+			return []
+
+		return [{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network,
+					txHash,
+				},
+				indexInTransaction: blobIndex,
+			},
+			versionedHash,
+			$transaction: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					txHash,
+				},
+			} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
+			...(blockNumber != null && {
+				$block: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						blockNumber,
+					},
+				} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+			}),
+		}]
+	})
+)
+
 const evmLogEntityFromRpcWire = (
 	entitySelector: EntitySelector<typeof schema, EntityType.EvmLog>,
 	log: RpcLog
@@ -1311,6 +1354,12 @@ export default {
 									},
 								} satisfies Entity<typeof schema, EntityType.EvmContract>,
 							}),
+							$$blobs: evmBlobEntityRefsFromEtherscanTx({
+								$network,
+								txHash,
+								blobVersionedHashes: jsonRpcTransaction.blobVersionedHashes,
+								blockNumber: containingBlockNumber ?? undefined,
+							}),
 							$$logs: (
 								(receipt?.logs ?? [])
 									.flatMap((log) => {
@@ -1371,6 +1420,10 @@ export default {
 			Blob: {
 				blobGasUsed: (transaction) => transaction.blobGasUsed,
 				maxFeePerBlobGas: (transaction) => transaction.maxFeePerBlobGas,
+				$$blobs: {
+					select: (transaction) => transaction.$$blobs,
+					resolveCount: (transaction) => transaction.$$blobs.length,
+				},
 			},
 			$$logs: {
 				select: (transaction) => transaction.$$logs.map((log) => ({
