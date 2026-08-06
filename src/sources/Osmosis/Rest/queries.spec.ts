@@ -605,6 +605,96 @@ describe('Osmosis LCD named operations', () => {
 		)
 	})
 
+	it('rejects a malformed spot price envelope', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			price: '1.25',
+		})
+		await expect(getSpotPrice({
+			poolId: '1',
+			baseAssetDenom: 'uosmo',
+			quoteAssetDenom: 'uion',
+		})).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: invalid spot price response envelope`)
+	})
+
+	it('lists IBC channels and connection channels from Osmosis LCD', async () => {
+		const {
+			getIbcChannels,
+			getIbcConnectionChannels,
+		} = await import('$/sources/Osmosis/Rest/queries.ts')
+
+		sourceGetJson
+			.mockResolvedValueOnce({
+				channels: [
+					{
+						state: 'STATE_OPEN',
+						ordering: 'ORDER_UNORDERED',
+						counterparty: {
+							port_id: 'transfer',
+							channel_id: 'channel-141',
+						},
+						connection_hops: [
+							'connection-0',
+						],
+						version: 'ics20-1',
+						port_id: 'transfer',
+						channel_id: 'channel-0',
+					},
+				],
+				pagination: {
+					total: '12',
+				},
+			})
+			.mockResolvedValueOnce({
+				channels: [
+					{
+						state: 'STATE_OPEN',
+						ordering: 'ORDER_UNORDERED',
+						counterparty: {
+							port_id: 'transfer',
+							channel_id: 'channel-141',
+						},
+						connection_hops: [
+							'connection-0',
+						],
+						version: 'ics20-1',
+						port_id: 'transfer',
+						channel_id: 'channel-0',
+					},
+				],
+				pagination: {
+					total: '1',
+				},
+			})
+
+		await expect(getIbcChannels({
+			limit: 16,
+		})).resolves.toMatchObject({
+			pagination: {
+				total: '12',
+			},
+		})
+		await expect(getIbcConnectionChannels({
+			connectionId: 'connection-0',
+			limit: 16,
+		})).resolves.toMatchObject({
+			channels: [
+				{
+					channel_id: 'channel-0',
+				},
+			],
+		})
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			1,
+			binding,
+			httpUrl(binding, '/ibc/core/channel/v1/channels?pagination.limit=16&pagination.count_total=true')
+		)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			2,
+			binding,
+			httpUrl(binding, '/ibc/core/channel/v1/connections/connection-0/channels?pagination.limit=16&pagination.count_total=true')
+		)
+	})
+
 	it('fetches an ICS-20 denom trace by hash', async () => {
 		const hash = 'a'.repeat(64)
 		sourceGetJson.mockResolvedValueOnce({

@@ -106,6 +106,15 @@ describe('Osmosis LCD resolver module', () => {
 			EntityType.Network,
 			EntityType.Network,
 			EntityType.Network,
+			EntityType.Network,
+			EntityType.Network,
+			EntityType.Network,
+			EntityType.IbcChannel,
+			EntityType.IbcConnection,
+			EntityType.IbcConnection,
+			EntityType.IbcClient,
+			EntityType.IbcClient,
+			EntityType.IbcClient,
 		])
 		expect(networkRestEndpointsResolver).toBeDefined()
 		expect(timestampResolver).toBeDefined()

@@ -450,6 +450,10 @@ export const getNumPoolPositions = ({
 		))
 }
 
+const osmosisSpotPriceResponseWire = arktype({
+	spot_price: 'string > 0',
+})
+
 export const getSpotPrice = ({
 	poolId,
 	baseAssetDenom,
@@ -466,9 +470,320 @@ export const getSpotPrice = ({
 		base_asset_denom: baseAssetDenom,
 		quote_asset_denom: quoteAssetDenom,
 	})
-	return lcdGetJson<OsmosisSpotPriceResponse>(
+	return lcdGetJson<unknown>(
 		`/osmosis/poolmanager/v1beta1/pools/${poolId}/prices?${search.toString()}`
 	)
+		.then((response) => {
+			try {
+				return osmosisSpotPriceResponseWire.assert(response) as OsmosisSpotPriceResponse
+			} catch {
+				throw new Error(`${Source.Osmosis_LCD_Rest}: invalid spot price response envelope`)
+			}
+		})
+}
+
+const osmosisIbcPagination = {
+	'next_key?': 'string | null',
+	'total?': '/^(0|[1-9][0-9]*)$/',
+} as const
+
+const osmosisIbcChannelWire = arktype({
+	state: 'string > 0',
+	ordering: 'string > 0',
+	counterparty: {
+		port_id: 'string > 0',
+		channel_id: 'string',
+	},
+	connection_hops: arktype('string > 0').array(),
+	version: 'string',
+	'port_id?': 'string > 0',
+	'channel_id?': 'string > 0',
+})
+
+const osmosisIbcChannelsResponseWire = arktype({
+	channels: osmosisIbcChannelWire.array(),
+	'pagination?': osmosisIbcPagination,
+})
+
+const osmosisIbcChannelResponseWire = arktype({
+	channel: osmosisIbcChannelWire,
+})
+
+const osmosisIbcConnectionWire = arktype({
+	client_id: 'string > 0',
+	state: 'string > 0',
+	counterparty: {
+		client_id: 'string > 0',
+		connection_id: 'string',
+	},
+	delay_period: '/^(0|[1-9][0-9]*)$/',
+})
+
+const osmosisIbcConnectionResponseWire = arktype({
+	connection: osmosisIbcConnectionWire,
+})
+
+const osmosisIbcConnectionsResponseWire = arktype({
+	connections: arktype({
+		id: 'string > 0',
+		client_id: 'string > 0',
+		state: 'string > 0',
+		counterparty: {
+			client_id: 'string > 0',
+			connection_id: 'string',
+		},
+		delay_period: '/^(0|[1-9][0-9]*)$/',
+	}).array(),
+	'pagination?': osmosisIbcPagination,
+})
+
+const osmosisIbcHeightWire = arktype({
+	revision_number: '/^(0|[1-9][0-9]*)$/',
+	revision_height: '/^(0|[1-9][0-9]*)$/',
+})
+
+const osmosisIbcClientStateResponseWire = arktype({
+	client_state: {
+		'@type': 'string > 0',
+		chain_id: 'string > 0',
+		trust_level: {
+			numerator: '/^(0|[1-9][0-9]*)$/',
+			denominator: '/^[1-9][0-9]*$/',
+		},
+		trusting_period: 'string > 0',
+		unbonding_period: 'string > 0',
+		max_clock_drift: 'string > 0',
+		frozen_height: osmosisIbcHeightWire,
+		latest_height: osmosisIbcHeightWire,
+	},
+})
+
+const osmosisIbcClientStatesResponseWire = arktype({
+	client_states: arktype({
+		client_id: 'string > 0',
+		client_state: {
+			'@type': 'string > 0',
+			chain_id: 'string > 0',
+			trust_level: {
+				numerator: '/^(0|[1-9][0-9]*)$/',
+				denominator: '/^[1-9][0-9]*$/',
+			},
+			trusting_period: 'string > 0',
+			unbonding_period: 'string > 0',
+			max_clock_drift: 'string > 0',
+			frozen_height: osmosisIbcHeightWire,
+			latest_height: osmosisIbcHeightWire,
+		},
+	}).array(),
+	'pagination?': osmosisIbcPagination,
+})
+
+const osmosisIbcNextSequenceSendResponseWire = arktype({
+	next_sequence_send: '/^(0|[1-9][0-9]*)$/',
+})
+
+const osmosisIbcNextSequenceReceiveResponseWire = arktype({
+	next_sequence_receive: '/^(0|[1-9][0-9]*)$/',
+})
+
+const osmosisIbcClientConnectionsResponseWire = arktype({
+	connection_paths: arktype('string > 0').array(),
+})
+
+const assertIbcIdentity = (
+	value: string,
+	name: string
+) => {
+	if (value.length === 0 || value.includes('/') || value.includes('\\'))
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid ${name}`)
+}
+
+export const getIbcChannel = ({
+	portId,
+	channelId,
+}: {
+	portId: string
+	channelId: string
+}) => {
+	assertIbcIdentity(portId, 'port id')
+	assertIbcIdentity(channelId, 'channel id')
+	return lcdGetJson<unknown>(
+		`/ibc/core/channel/v1/channels/${encodeURIComponent(channelId)}/ports/${encodeURIComponent(portId)}`
+	)
+		.then((response) => (
+			osmosisIbcChannelResponseWire.assert(response)
+		))
+}
+
+export const getIbcChannels = ({
+	limit = 24,
+	paginationKey,
+}: {
+	limit?: number
+	paginationKey?: string
+} = {}) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid IBC channel page limit ${limit}`)
+
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.count_total': 'true',
+		...(paginationKey != null && { 'pagination.key': paginationKey }),
+	})
+	return lcdGetJson<unknown>(
+		`/ibc/core/channel/v1/channels?${parameters}`
+	)
+		.then((response) => (
+			osmosisIbcChannelsResponseWire.assert(response)
+		))
+}
+
+export const getIbcConnectionChannels = ({
+	connectionId,
+	limit = 24,
+	paginationKey,
+}: {
+	connectionId: string
+	limit?: number
+	paginationKey?: string
+}) => {
+	assertIbcIdentity(connectionId, 'connection id')
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid IBC connection channel page limit ${limit}`)
+
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.count_total': 'true',
+		...(paginationKey != null && { 'pagination.key': paginationKey }),
+	})
+	return lcdGetJson<unknown>(
+		`/ibc/core/channel/v1/connections/${encodeURIComponent(connectionId)}/channels?${parameters}`
+	)
+		.then((response) => (
+			osmosisIbcChannelsResponseWire.assert(response)
+		))
+}
+
+export const getIbcConnection = ({
+	connectionId,
+}: {
+	connectionId: string
+}) => {
+	assertIbcIdentity(connectionId, 'connection id')
+	return lcdGetJson<unknown>(
+		`/ibc/core/connection/v1/connections/${encodeURIComponent(connectionId)}`
+	)
+		.then((response) => (
+			osmosisIbcConnectionResponseWire.assert(response)
+		))
+}
+
+export const getIbcConnections = ({
+	limit = 24,
+	paginationKey,
+}: {
+	limit?: number
+	paginationKey?: string
+} = {}) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid IBC connection page limit ${limit}`)
+
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.count_total': 'true',
+		...(paginationKey != null && { 'pagination.key': paginationKey }),
+	})
+	return lcdGetJson<unknown>(
+		`/ibc/core/connection/v1/connections?${parameters}`
+	)
+		.then((response) => (
+			osmosisIbcConnectionsResponseWire.assert(response)
+		))
+}
+
+export const getIbcClientState = ({
+	clientId,
+}: {
+	clientId: string
+}) => {
+	assertIbcIdentity(clientId, 'client id')
+	return lcdGetJson<unknown>(
+		`/ibc/core/client/v1/client_states/${encodeURIComponent(clientId)}`
+	)
+		.then((response) => (
+			osmosisIbcClientStateResponseWire.assert(response)
+		))
+}
+
+export const getIbcClientStates = ({
+	limit = 24,
+	paginationKey,
+}: {
+	limit?: number
+	paginationKey?: string
+} = {}) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid IBC client page limit ${limit}`)
+
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.count_total': 'true',
+		...(paginationKey != null && { 'pagination.key': paginationKey }),
+	})
+	return lcdGetJson<unknown>(
+		`/ibc/core/client/v1/client_states?${parameters}`
+	)
+		.then((response) => (
+			osmosisIbcClientStatesResponseWire.assert(response)
+		))
+}
+
+export const getIbcClientConnections = ({
+	clientId,
+}: {
+	clientId: string
+}) => {
+	assertIbcIdentity(clientId, 'client id')
+	return lcdGetJson<unknown>(
+		`/ibc/core/connection/v1/client_connections/${encodeURIComponent(clientId)}`
+	)
+		.then((response) => (
+			osmosisIbcClientConnectionsResponseWire.assert(response)
+		))
+}
+
+export const getIbcNextSequenceSend = ({
+	portId,
+	channelId,
+}: {
+	portId: string
+	channelId: string
+}) => {
+	assertIbcIdentity(portId, 'port id')
+	assertIbcIdentity(channelId, 'channel id')
+	return lcdGetJson<unknown>(
+		`/ibc/core/channel/v1/channels/${encodeURIComponent(channelId)}/ports/${encodeURIComponent(portId)}/next_sequence_send`
+	)
+		.then((response) => (
+			osmosisIbcNextSequenceSendResponseWire.assert(response)
+		))
+}
+
+export const getIbcNextSequenceReceive = ({
+	portId,
+	channelId,
+}: {
+	portId: string
+	channelId: string
+}) => {
+	assertIbcIdentity(portId, 'port id')
+	assertIbcIdentity(channelId, 'channel id')
+	return lcdGetJson<unknown>(
+		`/ibc/core/channel/v1/channels/${encodeURIComponent(channelId)}/ports/${encodeURIComponent(portId)}/next_sequence`
+	)
+		.then((response) => (
+			osmosisIbcNextSequenceReceiveResponseWire.assert(response)
+		))
 }
 
 const osmosisDenomMetadataWire = arktype({

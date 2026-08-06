@@ -307,6 +307,10 @@ export type CosmosSdkIbcChannelsResponse = {
 	pagination?: CosmosSdkPagination
 }
 
+export type CosmosSdkIbcClientConnectionsResponse = {
+	connection_paths: string[]
+}
+
 export type CosmosSdkIbcConnection = {
 	client_id: string
 	state: string

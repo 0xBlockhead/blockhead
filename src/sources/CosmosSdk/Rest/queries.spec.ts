@@ -1001,4 +1001,65 @@ describe('Cosmos SDK IBC queries', () => {
 			'https://rest.cosmos.directory/cosmoshub/ibc/core/connection/v1/connections?pagination.limit=16&pagination.count_total=true',
 		])
 	})
+
+	it('lists connection channels and client connections', async () => {
+		const {
+			getIbcClientConnections,
+			getIbcConnectionChannels,
+		} = await import('$/sources/CosmosSdk/Rest/queries.ts')
+
+		getJson
+			.mockResolvedValueOnce({
+				channels: [
+					{
+						state: 'STATE_OPEN',
+						ordering: 'ORDER_UNORDERED',
+						counterparty: {
+							port_id: 'transfer',
+							channel_id: 'channel-0',
+						},
+						connection_hops: [
+							'connection-0',
+						],
+						version: 'ics20-1',
+						port_id: 'transfer',
+						channel_id: 'channel-141',
+					},
+				],
+				pagination: {
+					total: '5',
+				},
+			})
+			.mockResolvedValueOnce({
+				connection_paths: [
+					'connections/connection-0',
+				],
+			})
+
+		await expect(getIbcConnectionChannels({
+			connectionId: 'connection-0',
+			limit: 16,
+		})).resolves.toMatchObject({
+			channels: [
+				{
+					channel_id: 'channel-141',
+				},
+			],
+			pagination: {
+				total: '5',
+			},
+		})
+		await expect(getIbcClientConnections({
+			clientId: '07-tendermint-1',
+		})).resolves.toEqual({
+			connection_paths: [
+				'connections/connection-0',
+			],
+		})
+
+		expect(getJson.mock.calls.map((call) => call[0])).toEqual([
+			'https://rest.cosmos.directory/cosmoshub/ibc/core/channel/v1/connections/connection-0/channels?pagination.limit=16&pagination.count_total=true',
+			'https://rest.cosmos.directory/cosmoshub/ibc/core/connection/v1/client_connections/07-tendermint-1',
+		])
+	})
 })

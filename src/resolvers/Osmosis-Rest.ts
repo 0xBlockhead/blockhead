@@ -3,7 +3,11 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import { NetworkExecutionModel, NetworkLedgerModel } from '$/constants/Network.ts'
+import {
+	networkByCaip2,
+	NetworkExecutionModel,
+	NetworkLedgerModel,
+} from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -133,6 +137,84 @@ const channelPartsFromPath = (path: string) => {
 		sourcePort: segments[segments.length - 2],
 		sourceChannel: segments[segments.length - 1],
 	}
+}
+
+const osmosisIbcConnectionIdFromPath = (
+	path: string
+) => {
+	if (path.startsWith('connections/')) {
+		const connectionId = path.slice('connections/'.length)
+		if (connectionId === '' || connectionId.includes('/'))
+			throw new Error(`${Source.Osmosis_LCD_Rest}: invalid IBC connection path ${path}`)
+
+		return connectionId
+	}
+
+	if (path.includes('/'))
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid IBC connection path ${path}`)
+
+	return path
+}
+
+const osmosisCounterpartyNetworkReference = (
+	counterpartyChainId: string
+) => {
+	const catalog = networkByCaip2[`cosmos:${counterpartyChainId}`]
+	if (catalog == null || !('caip2' in catalog))
+		return
+
+	return {
+		[EntityMetaKey.Selector]: {
+			caip2: catalog.caip2,
+		},
+	}
+}
+
+const osmosisIbcChannelListRows = (
+	network: NetworkId,
+	channels: {
+		port_id?: string
+		channel_id?: string
+	}[]
+) => (
+	channels.map((channel) => {
+		const portId = channel.port_id
+		const channelId = channel.channel_id
+		if (portId == null || portId === '' || channelId == null || channelId === '')
+			throw new Error(`${Source.Osmosis_LCD_Rest}: IBC channel list row missing port or channel id`)
+
+		return {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				portId,
+				channelId,
+			},
+		}
+	})
+)
+
+const osmosisUnsignedInteger = (
+	value: string,
+	label: string
+) => {
+	if (!/^(0|[1-9]\d*)$/.test(value))
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid ${label} ${value}`)
+
+	return BigInt(value)
+}
+
+const osmosisDurationToNs = (
+	value: string,
+	label: string
+) => {
+	const match = /^(0|[1-9]\d*)(?:\.(\d{1,9}))?s$/.exec(value)
+	if (match == null)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid ${label} duration ${value}`)
+
+	const wholeSeconds = BigInt(match[1]!)
+	const fraction = match[2] ?? ''
+	const nanos = BigInt(fraction.padEnd(9, '0'))
+	return wholeSeconds * 1_000_000_000n + nanos
 }
 
 const getOsmosisBlockReferences = async (
@@ -938,6 +1020,432 @@ export default {
 					resolveCount: (snapshot) => snapshot.totalCount,
 				},
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: osmosisNetworkResolverSelectors(
+				async (network, context) => {
+					assertOsmosisNetwork(network)
+					const {
+						getIbcChannels,
+					} = await import('$/sources/Osmosis/Rest/queries.ts')
+					const response = await getIbcChannels({
+						limit: resolverContextRowLimit(context),
+					})
+					return {
+						rows: osmosisIbcChannelListRows(network, response.channels),
+						totalCount: osmosisPaginationCount(response.pagination?.total, 'IBC channel'),
+					}
+				}
+			),
+		})({
+			Cosmos: {
+				$$ibcChannels: {
+					select: (snapshot) => snapshot.rows,
+					resolveCount: (snapshot) => snapshot.totalCount,
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: osmosisNetworkResolverSelectors(
+				async (network, context) => {
+					assertOsmosisNetwork(network)
+					const {
+						getIbcClientStates,
+					} = await import('$/sources/Osmosis/Rest/queries.ts')
+					const response = await getIbcClientStates({
+						limit: resolverContextRowLimit(context),
+					})
+					return {
+						rows: response.client_states.map((client) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								clientId: client.client_id,
+							},
+						})),
+						totalCount: osmosisPaginationCount(response.pagination?.total, 'IBC client'),
+					}
+				}
+			),
+		})({
+			Cosmos: {
+				$$ibcClients: {
+					select: (snapshot) => snapshot.rows,
+					resolveCount: (snapshot) => snapshot.totalCount,
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: osmosisNetworkResolverSelectors(
+				async (network, context) => {
+					assertOsmosisNetwork(network)
+					const {
+						getIbcConnections,
+					} = await import('$/sources/Osmosis/Rest/queries.ts')
+					const response = await getIbcConnections({
+						limit: resolverContextRowLimit(context),
+					})
+					return {
+						rows: response.connections.map((connection) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								connectionId: connection.id,
+							},
+						})),
+						totalCount: osmosisPaginationCount(response.pagination?.total, 'IBC connection'),
+					}
+				}
+			),
+		})({
+			Cosmos: {
+				$$ibcConnections: {
+					select: (snapshot) => snapshot.rows,
+					resolveCount: (snapshot) => snapshot.totalCount,
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.IbcChannel,
+			resolve: {
+				NetworkPortIdChannelId: {
+					appliesTo: osmosisNetworkReferenceApplicability,
+					resolve: async ({
+						$network,
+						portId,
+						channelId,
+					}) => {
+						assertOsmosisNetwork($network)
+						const {
+							getIbcChannel,
+							getIbcClientState,
+							getIbcConnection,
+							getIbcNextSequenceReceive,
+							getIbcNextSequenceSend,
+						} = await import('$/sources/Osmosis/Rest/queries.ts')
+						const {
+							channel,
+						} = await getIbcChannel({
+							portId,
+							channelId,
+						})
+						const connectionId = channel.connection_hops[0]
+						if (connectionId == null || connectionId === '')
+							throw new Error(`${Source.Osmosis_LCD_Rest}: IBC channel missing connection hop`)
+
+						const [
+							{
+								connection,
+							},
+							nextSequenceSend,
+							nextSequenceReceive,
+						] = await Promise.all([
+							getIbcConnection({
+								connectionId,
+							}),
+							getIbcNextSequenceSend({
+								portId,
+								channelId,
+							}),
+							getIbcNextSequenceReceive({
+								portId,
+								channelId,
+							}),
+						])
+						const {
+							client_state: clientState,
+						} = await getIbcClientState({
+							clientId: connection.client_id,
+						})
+						const $counterpartyNetwork = osmosisCounterpartyNetworkReference(clientState.chain_id)
+						return {
+							$connection: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									connectionId,
+								},
+							},
+							$client: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									clientId: connection.client_id,
+								},
+							},
+							counterpartyChainId: clientState.chain_id,
+							...($counterpartyNetwork != null && {
+								$counterpartyNetwork,
+							}),
+							counterpartyPortId: channel.counterparty.port_id,
+							counterpartyChannelId: channel.counterparty.channel_id,
+							state: channel.state,
+							ordering: channel.ordering,
+							version: channel.version,
+							nextSequenceSend: osmosisUnsignedInteger(
+								nextSequenceSend.next_sequence_send,
+								'next sequence send'
+							),
+							nextSequenceReceive: osmosisUnsignedInteger(
+								nextSequenceReceive.next_sequence_receive,
+								'next sequence receive'
+							),
+						}
+					},
+				},
+			},
+		})({
+			$connection: (channel) => channel.$connection,
+			$client: (channel) => channel.$client,
+			counterpartyChainId: (channel) => channel.counterpartyChainId,
+			$counterpartyNetwork: (channel) => channel.$counterpartyNetwork,
+			counterpartyPortId: (channel) => channel.counterpartyPortId,
+			counterpartyChannelId: (channel) => channel.counterpartyChannelId,
+			state: (channel) => channel.state,
+			ordering: (channel) => channel.ordering,
+			version: (channel) => channel.version,
+			nextSequenceSend: (channel) => channel.nextSequenceSend,
+			nextSequenceReceive: (channel) => channel.nextSequenceReceive,
+		}),
+
+		defineResolver({
+			entityType: EntityType.IbcConnection,
+			resolve: {
+				NetworkConnectionId: {
+					appliesTo: osmosisNetworkReferenceApplicability,
+					resolve: async ({
+						$network,
+						connectionId,
+					}, context) => {
+						assertOsmosisNetwork($network)
+						const {
+							getIbcConnectionChannels,
+						} = await import('$/sources/Osmosis/Rest/queries.ts')
+						const response = await getIbcConnectionChannels({
+							connectionId,
+							limit: resolverContextRowLimit(context),
+						})
+						return {
+							rows: osmosisIbcChannelListRows($network, response.channels),
+							totalCount: osmosisPaginationCount(response.pagination?.total, 'IBC connection channel'),
+						}
+					},
+				},
+			},
+		})({
+			$$channels: {
+				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.totalCount,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.IbcConnection,
+			resolve: {
+				NetworkConnectionId: {
+					appliesTo: osmosisNetworkReferenceApplicability,
+					resolve: async ({
+						$network,
+						connectionId,
+					}) => {
+						assertOsmosisNetwork($network)
+						const {
+							getIbcConnection,
+						} = await import('$/sources/Osmosis/Rest/queries.ts')
+						const {
+							connection,
+						} = await getIbcConnection({
+							connectionId,
+						})
+						return {
+							clientId: connection.client_id,
+							$client: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									clientId: connection.client_id,
+								},
+							},
+							counterpartyClientId: connection.counterparty.client_id,
+							...(connection.counterparty.connection_id !== '' && {
+								counterpartyConnectionId: connection.counterparty.connection_id,
+							}),
+							state: connection.state,
+							delayPeriodNs: osmosisUnsignedInteger(
+								connection.delay_period,
+								'delay period'
+							),
+						}
+					},
+				},
+			},
+		})({
+			clientId: (connection) => connection.clientId,
+			$client: (connection) => connection.$client,
+			counterpartyClientId: (connection) => connection.counterpartyClientId,
+			counterpartyConnectionId: (connection) => connection.counterpartyConnectionId,
+			state: (connection) => connection.state,
+			delayPeriodNs: (connection) => connection.delayPeriodNs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.IbcClient,
+			resolve: {
+				NetworkClientId: {
+					appliesTo: osmosisNetworkReferenceApplicability,
+					resolve: async ({
+						$network,
+						clientId,
+					}) => {
+						assertOsmosisNetwork($network)
+						const {
+							getIbcClientConnections,
+						} = await import('$/sources/Osmosis/Rest/queries.ts')
+						const {
+							connection_paths: connectionPaths,
+						} = await getIbcClientConnections({
+							clientId,
+						})
+						return {
+							rows: connectionPaths.map((path) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									connectionId: osmosisIbcConnectionIdFromPath(path),
+								},
+							})),
+							totalCount: connectionPaths.length,
+						}
+					},
+				},
+			},
+		})({
+			$$connections: {
+				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.totalCount,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.IbcClient,
+			resolve: {
+				NetworkClientId: {
+					appliesTo: osmosisNetworkReferenceApplicability,
+					resolve: async ({
+						$network,
+						clientId,
+					}, context) => {
+						assertOsmosisNetwork($network)
+						const {
+							getIbcClientConnections,
+							getIbcConnectionChannels,
+						} = await import('$/sources/Osmosis/Rest/queries.ts')
+						const {
+							connection_paths: connectionPaths,
+						} = await getIbcClientConnections({
+							clientId,
+						})
+						const limit = resolverContextRowLimit(context)
+						const connectionIds = connectionPaths.map(osmosisIbcConnectionIdFromPath)
+						const channelPages = await Promise.all(
+							connectionIds.map((connectionId) => (
+								getIbcConnectionChannels({
+									connectionId,
+									limit,
+								})
+							))
+						)
+						const rows = []
+						for (const page of channelPages) {
+							for (const row of osmosisIbcChannelListRows($network, page.channels)) {
+								if (rows.length >= limit)
+									break
+
+								rows.push(row)
+							}
+							if (rows.length >= limit)
+								break
+						}
+						return {
+							rows,
+							totalCount: channelPages.reduce(
+								(sum, page) => (
+									sum + osmosisPaginationCount(page.pagination?.total, 'IBC client channel')
+								),
+								0
+							),
+						}
+					},
+				},
+			},
+		})({
+			$$channels: {
+				select: (snapshot) => snapshot.rows,
+				resolveCount: (snapshot) => snapshot.totalCount,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.IbcClient,
+			resolve: {
+				NetworkClientId: {
+					appliesTo: osmosisNetworkReferenceApplicability,
+					resolve: async ({
+						$network,
+						clientId,
+					}) => {
+						assertOsmosisNetwork($network)
+						const {
+							getIbcClientState,
+						} = await import('$/sources/Osmosis/Rest/queries.ts')
+						const {
+							client_state: clientState,
+						} = await getIbcClientState({
+							clientId,
+						})
+						const clientType = (
+							clientState['@type'].includes('tendermint') ?
+								'07-tendermint'
+							:
+								clientState['@type']
+						)
+						const $counterpartyNetwork = osmosisCounterpartyNetworkReference(clientState.chain_id)
+						return {
+							clientType,
+							latestHeight: clientState.latest_height,
+							frozenHeight: clientState.frozen_height,
+							trustLevel: `${clientState.trust_level.numerator}/${clientState.trust_level.denominator}`,
+							trustingPeriodNs: osmosisDurationToNs(
+								clientState.trusting_period,
+								'trusting period'
+							),
+							unbondingPeriodNs: osmosisDurationToNs(
+								clientState.unbonding_period,
+								'unbonding period'
+							),
+							maxClockDriftNs: osmosisDurationToNs(
+								clientState.max_clock_drift,
+								'max clock drift'
+							),
+							counterpartyChainId: clientState.chain_id,
+							...($counterpartyNetwork != null && {
+								$counterpartyNetwork,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			clientType: (client) => client.clientType,
+			latestHeight: (client) => client.latestHeight,
+			frozenHeight: (client) => client.frozenHeight,
+			trustLevel: (client) => client.trustLevel,
+			trustingPeriodNs: (client) => client.trustingPeriodNs,
+			unbondingPeriodNs: (client) => client.unbondingPeriodNs,
+			maxClockDriftNs: (client) => client.maxClockDriftNs,
+			counterpartyChainId: (client) => client.counterpartyChainId,
+			$counterpartyNetwork: (client) => client.$counterpartyNetwork,
 		}),
 	],
 }

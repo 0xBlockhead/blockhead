@@ -14,8 +14,10 @@ const getIbcChannel = vi.hoisted(() => vi.fn())
 const getIbcChannels = vi.hoisted(() => vi.fn())
 const getIbcClientState = vi.hoisted(() => vi.fn())
 const getIbcClientStates = vi.hoisted(() => vi.fn())
+const getIbcClientConnections = vi.hoisted(() => vi.fn())
 const getIbcConnection = vi.hoisted(() => vi.fn())
 const getIbcConnections = vi.hoisted(() => vi.fn())
+const getIbcConnectionChannels = vi.hoisted(() => vi.fn())
 const getIbcDenomTrace = vi.hoisted(() => vi.fn())
 const getIbcNextSequenceReceive = vi.hoisted(() => vi.fn())
 const getIbcNextSequenceSend = vi.hoisted(() => vi.fn())
@@ -26,8 +28,10 @@ vi.mock('$/sources/CosmosSdk/Rest/queries.ts', async (importOriginal) => ({
 	getIbcChannels,
 	getIbcClientState,
 	getIbcClientStates,
+	getIbcClientConnections,
 	getIbcConnection,
 	getIbcConnections,
+	getIbcConnectionChannels,
 	getIbcDenomTrace,
 	getIbcNextSequenceReceive,
 	getIbcNextSequenceSend,
@@ -51,12 +55,15 @@ const context = {
 
 const ibcChannelResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.IbcChannel
+	&& 'state' in resolver.projections
 ))
 const ibcConnectionResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.IbcConnection
+	&& 'clientId' in resolver.projections
 ))
 const ibcClientResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.IbcClient
+	&& 'clientType' in resolver.projections
 ))
 const ibcDenomTraceResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.IbcDenomTrace
@@ -85,6 +92,27 @@ const ibcConnectionsListResolver = cosmosSdk.resolvers.find((resolver) => (
 	&& resolver.projections.Cosmos.$$ibcConnections != null
 	&& 'select' in resolver.projections.Cosmos.$$ibcConnections
 ))
+const ibcConnectionChannelsResolver = cosmosSdk.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.IbcConnection
+	&& '$$channels' in resolver.projections
+	&& typeof resolver.projections.$$channels === 'object'
+	&& resolver.projections.$$channels != null
+	&& 'select' in resolver.projections.$$channels
+))
+const ibcClientConnectionsResolver = cosmosSdk.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.IbcClient
+	&& '$$connections' in resolver.projections
+	&& typeof resolver.projections.$$connections === 'object'
+	&& resolver.projections.$$connections != null
+	&& 'select' in resolver.projections.$$connections
+))
+const ibcClientChannelsResolver = cosmosSdk.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.IbcClient
+	&& '$$channels' in resolver.projections
+	&& typeof resolver.projections.$$channels === 'object'
+	&& resolver.projections.$$channels != null
+	&& 'select' in resolver.projections.$$channels
+))
 
 if (
 	ibcChannelResolver == null
@@ -94,6 +122,9 @@ if (
 	|| ibcChannelsListResolver == null
 	|| ibcClientsListResolver == null
 	|| ibcConnectionsListResolver == null
+	|| ibcConnectionChannelsResolver == null
+	|| ibcClientConnectionsResolver == null
+	|| ibcClientChannelsResolver == null
 )
 	throw new Error('CosmosSdk IBC resolvers missing')
 
@@ -102,8 +133,10 @@ beforeEach(() => {
 	getIbcChannels.mockReset()
 	getIbcClientState.mockReset()
 	getIbcClientStates.mockReset()
+	getIbcClientConnections.mockReset()
 	getIbcConnection.mockReset()
 	getIbcConnections.mockReset()
+	getIbcConnectionChannels.mockReset()
 	getIbcDenomTrace.mockReset()
 	getIbcNextSequenceReceive.mockReset()
 	getIbcNextSequenceSend.mockReset()
@@ -188,6 +221,11 @@ describe('CosmosSdk IBC resolvers', () => {
 			[EntityMetaKey.Selector]: {
 				$network: cosmosNetwork,
 				clientId: '07-tendermint-259',
+			},
+		})
+		expect(ibcChannelResolver.projections.$counterpartyNetwork(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				caip2: networkBySlug.osmosis.caip2,
 			},
 		})
 	})
@@ -423,5 +461,104 @@ describe('CosmosSdk IBC resolvers', () => {
 			},
 		])
 		expect(ibcConnectionsListResolver.projections.Cosmos.$$ibcConnections.resolveCount(connectionsSnapshot)).toBe(3)
+	})
+
+	it('projects IbcConnection.$$channels and IbcClient.$$connections / $$channels with resolveCount', async () => {
+		getIbcConnectionChannels.mockResolvedValue({
+			channels: [
+				{
+					state: 'STATE_OPEN',
+					ordering: 'ORDER_UNORDERED',
+					counterparty: {
+						port_id: 'transfer',
+						channel_id: 'channel-0',
+					},
+					connection_hops: [
+						'connection-257',
+					],
+					version: 'ics20-1',
+					port_id: 'transfer',
+					channel_id: 'channel-141',
+				},
+			],
+			pagination: {
+				total: '5',
+			},
+		})
+		getIbcClientConnections.mockResolvedValue({
+			connection_paths: [
+				'connections/connection-257',
+				'connection-258',
+			],
+		})
+
+		const connectionChannels = await ibcConnectionChannelsResolver.resolve.NetworkConnectionId.resolve({
+			$network: cosmosNetwork,
+			connectionId: 'connection-257',
+		}, {
+			...context,
+			pagination: {
+				limit: 16,
+			},
+		})
+		expect(ibcConnectionChannelsResolver.projections.$$channels.select(connectionChannels)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: cosmosNetwork,
+					portId: 'transfer',
+					channelId: 'channel-141',
+				},
+			},
+		])
+		expect(ibcConnectionChannelsResolver.projections.$$channels.resolveCount(connectionChannels)).toBe(5)
+
+		const clientConnections = await ibcClientConnectionsResolver.resolve.NetworkClientId.resolve({
+			$network: cosmosNetwork,
+			clientId: '07-tendermint-259',
+		}, context)
+		expect(ibcClientConnectionsResolver.projections.$$connections.select(clientConnections)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: cosmosNetwork,
+					connectionId: 'connection-257',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: cosmosNetwork,
+					connectionId: 'connection-258',
+				},
+			},
+		])
+		expect(ibcClientConnectionsResolver.projections.$$connections.resolveCount(clientConnections)).toBe(2)
+
+		getIbcClientConnections.mockResolvedValue({
+			connection_paths: [
+				'connections/connection-257',
+			],
+		})
+		const clientChannels = await ibcClientChannelsResolver.resolve.NetworkClientId.resolve({
+			$network: cosmosNetwork,
+			clientId: '07-tendermint-259',
+		}, {
+			...context,
+			pagination: {
+				limit: 16,
+			},
+		})
+		expect(ibcClientChannelsResolver.projections.$$channels.select(clientChannels)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: cosmosNetwork,
+					portId: 'transfer',
+					channelId: 'channel-141',
+				},
+			},
+		])
+		expect(ibcClientChannelsResolver.projections.$$channels.resolveCount(clientChannels)).toBe(5)
+		expect(getIbcConnectionChannels).toHaveBeenCalledWith({
+			connectionId: 'connection-257',
+			limit: 16,
+		})
 	})
 })

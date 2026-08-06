@@ -679,6 +679,33 @@ export const getIbcChannels = ({
 	))
 }
 
+export const getIbcConnectionChannels = ({
+	connectionId,
+	limit = 24,
+	paginationKey,
+}: {
+	connectionId: string
+	limit?: number
+	paginationKey?: string
+}) => {
+	assertIbcIdentity(connectionId, 'connection id')
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`CosmosSdk_Rest: invalid IBC connection channel page limit ${limit}`)
+
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.count_total': 'true',
+		...(paginationKey != null && { 'pagination.key': paginationKey }),
+	})
+
+	return sourceGetJson(
+		binding,
+		`${base}/ibc/core/channel/v1/connections/${encodeURIComponent(connectionId)}/channels?${parameters}`
+	).then((response) => (
+		cosmosSdkIbcChannelsResponseWire.assert(response)
+	))
+}
+
 export const getIbcConnection = ({
 	connectionId,
 }: {
@@ -728,6 +755,24 @@ export const getIbcClientState = ({
 		`${base}/ibc/core/client/v1/client_states/${encodeURIComponent(clientId)}`
 	).then((response) => (
 		cosmosSdkIbcClientStateResponseWire.assert(response)
+	))
+}
+
+const cosmosSdkIbcClientConnectionsResponseWire = arktype({
+	connection_paths: arktype('string > 0').array(),
+})
+
+export const getIbcClientConnections = ({
+	clientId,
+}: {
+	clientId: string
+}) => {
+	assertIbcIdentity(clientId, 'client id')
+	return sourceGetJson(
+		binding,
+		`${base}/ibc/core/connection/v1/client_connections/${encodeURIComponent(clientId)}`
+	).then((response) => (
+		cosmosSdkIbcClientConnectionsResponseWire.assert(response)
 	))
 }
 
