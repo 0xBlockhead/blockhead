@@ -54,6 +54,11 @@ export const networkNamespaces = [
 		nativeAssetCoinId: CoinId.AVAX,
 	},
 	{
+		namespace: NetworkNamespace.Arweave,
+		...unregisteredNetworkStack,
+		nativeAssetCoinId: CoinId.AR,
+	},
+	{
 		namespace: NetworkNamespace.Bittensor,
 		networkStackId: NetworkStackId.Bittensor,
 		executionEnvironmentIds: [

@@ -257,6 +257,10 @@
 	import FilecoinNetwork_TimestampsView from '$/views/FilecoinNetwork_TimestampsView.svelte'
 	import FilecoinTipsetsView from '$/views/FilecoinTipsetsView.svelte'
 	import FilecoinDealsView from '$/views/FilecoinDealsView.svelte'
+	import ArweaveNetwork_TimestampsView from '$/views/ArweaveNetwork_TimestampsView.svelte'
+	import ArweaveBlocksView from '$/views/ArweaveBlocksView.svelte'
+	import ArweaveTransactionsView from '$/views/ArweaveTransactionsView.svelte'
+	import ArweaveResourcesView from '$/views/ArweaveResourcesView.svelte'
 	import NearNetwork_TimestampsView from '$/views/NearNetwork_TimestampsView.svelte'
 	import NearBlocksView from '$/views/NearBlocksView.svelte'
 	import NearValidatorsView from '$/views/NearValidatorsView.svelte'
@@ -4407,6 +4411,133 @@
 								</section>
 							{/snippet}
 						</ResourceBoundary>
+					{/snippet}
+
+				</CollapsibleTabs>
+			{/snippet}
+		</ProjectionBoundary>
+
+		<ProjectionBoundary
+			resource={selection.Arweave}
+		>
+			{#snippet Applicable(projection)}
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-arweave-chain-activity'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'arweave-chain-observations',
+								label: 'Observations',
+							},
+							{
+								id: 'arweave-chain-blocks',
+								label: 'Blocks',
+							},
+							{
+								id: 'arweave-chain-transactions',
+								label: 'Transactions',
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-chain-activity'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Chain activity</HeadingComponent>
+						</header>
+					{/snippet}
+
+					{#snippet SectionArweaveChainObservations({ id, label })}
+						<ArweaveNetwork_TimestampsView
+							selection={
+								projection
+								.$$timestamps({
+									sources: [
+										Source.Arweave_Graphql,
+									],
+									limit: 16,
+								})
+							}
+							collapsible={false}
+							title={label}
+							id={`${id}-list`}
+						/>
+					{/snippet}
+
+					{#snippet SectionArweaveChainBlocks({ id, label })}
+						<ArweaveBlocksView
+							selection={
+								projection
+								.$$blocks({
+									sources: [
+										Source.Arweave_Graphql,
+									],
+									limit: 16,
+								})
+							}
+							collapsible={false}
+							title={label}
+							id={`${id}-list`}
+						/>
+					{/snippet}
+
+					{#snippet SectionArweaveChainTransactions({ id, label })}
+						<ArweaveTransactionsView
+							selection={
+								projection
+								.$$transactions({
+									sources: [
+										Source.Arweave_Graphql,
+									],
+									limit: 16,
+								})
+							}
+							collapsible={false}
+							title={label}
+							id={`${id}-list`}
+						/>
+					{/snippet}
+
+				</CollapsibleTabs>
+
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-arweave-resources'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'arweave-resource-list',
+								label: 'Resources',
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-resources'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Resources</HeadingComponent>
+						</header>
+					{/snippet}
+
+					{#snippet SectionArweaveResourceList({ id, label })}
+						<ArweaveResourcesView
+							selection={
+								projection
+								.$$resources({
+									sources: [
+										Source.Arweave_Graphql,
+									],
+									limit: 16,
+								})
+							}
+							collapsible={false}
+							title={label}
+							emptyText='No Arweave resources.'
+							id={`${id}-list`}
+						/>
 					{/snippet}
 
 				</CollapsibleTabs>

@@ -796,6 +796,41 @@ export default entity({
 				],
 			},
 		}),
+		Arweave: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Arweave',
+		})({
+			$$timestamps: {
+				entityType: EntityType.ArweaveNetwork_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Arweave_Graphql,
+				],
+			},
+			$$blocks: {
+				entityType: EntityType.ArweaveBlock,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Arweave_Graphql,
+				],
+			},
+			$$transactions: {
+				entityType: EntityType.ArweaveTransaction,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Arweave_Graphql,
+				],
+			},
+			$$resources: {
+				entityType: EntityType.ArweaveResource,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Arweave_Graphql,
+				],
+			},
+		}),
 		Near: facet({
 			path: [
 				'namespace',

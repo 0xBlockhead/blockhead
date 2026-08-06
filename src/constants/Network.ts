@@ -3,6 +3,7 @@ export enum NetworkNamespace {
 	Aptos = 'Aptos',
 	Avail = 'Avail',
 	Avalanche = 'Avalanche',
+	Arweave = 'Arweave',
 	Bittensor = 'Bittensor',
 	Bitcoin = 'Bitcoin',
 	BitcoinCash = 'BitcoinCash',
@@ -193,6 +194,14 @@ export const networks = [
 		namespace: NetworkNamespace.Avalanche,
 		environment: NetworkEnvironment.Mainnet,
 		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
+	},
+	{
+		slug: 'arweave',
+		name: 'Arweave',
+		namespace: NetworkNamespace.Arweave,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [],
 		executionModels: [],
 	},
 	{

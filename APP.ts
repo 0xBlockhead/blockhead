@@ -48059,6 +48059,37 @@ export const schema = {
 								},
 							],
 						} }),
+					"Arweave": facet({
+						path: ["namespace"],
+						is: "Arweave",
+					})({
+						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveNetwork_Timestamp, defaultSources: [Source.Arweave_Graphql] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveBlock, defaultSources: [Source.Arweave_Graphql] },
+						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveTransaction, defaultSources: [Source.Arweave_Graphql] },
+						"$$resources": { label: "Resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveResource, defaultSources: [Source.Arweave_Graphql] },
+					})({
+						singularView: {
+							carousels: [
+								{
+									id: "arweave-chain-activity",
+									label: "Chain activity",
+									className: "network-view-collapsible-chain-activity",
+									sections: [
+										{ id: "arweave-chain-observations", field: ["Arweave", "$$timestamps"], List: "ArweaveNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Arweave_Graphql], limit: 16 } },
+										{ id: "arweave-chain-blocks", field: ["Arweave", "$$blocks"], List: "ArweaveBlocksView", label: "Blocks", selection: { sources: [Source.Arweave_Graphql], limit: 16 } },
+										{ id: "arweave-chain-transactions", field: ["Arweave", "$$transactions"], List: "ArweaveTransactionsView", label: "Transactions", selection: { sources: [Source.Arweave_Graphql], limit: 16 } },
+									],
+								},
+								{
+									id: "arweave-resources",
+									label: "Resources",
+									className: "network-view-collapsible-resources",
+									sections: [
+										{ id: "arweave-resource-list", field: ["Arweave", "$$resources"], List: "ArweaveResourcesView", label: "Resources", emptyText: "No Arweave resources.", selection: { sources: [Source.Arweave_Graphql], limit: 16 } },
+									],
+								},
+							],
+						} }),
 					"Near": facet({
 						path: ["namespace"],
 						is: "Near",
@@ -68505,9 +68536,12 @@ export const routes = defineRoutes(schema)({
 		},
 		[EntityType.ArweaveNetwork]: {
 			"Network": {
-				kind: "Research",
-				decision: "Retain ArweaveNetwork.Network as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#arweavenetwork",
+				kind: "Facet",
+				target: {
+					entityType: EntityType.Network,
+					selectorName: "Slug",
+				},
+				facetPath: ["Arweave"],
 			},
 		},
 		[EntityType.ArweaveNetwork_Timestamp]: {
@@ -68529,13 +68563,6 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain ArweaveResource_Timestamp.ResourceTimestampMsSource as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#arweaveresource_timestamp",
-			},
-		},
-		[EntityType.ArweaveTransaction]: {
-			"NetworkTransactionId": {
-				kind: "Research",
-				decision: "Retain ArweaveTransaction.NetworkTransactionId as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#arweavetransaction",
 			},
 		},
 		[EntityType.AssetClass]: {
@@ -77860,7 +77887,36 @@ export const routes = defineRoutes(schema)({
 
 																		page: {}
 																	}
-																}
+																},
+																[EntityType.ArweaveTransaction]: {
+																	"NetworkTransactionId": {
+																		when: {
+																			path: ["namespace"],
+																			is: "Arweave",
+																		},
+																		projection: {
+																			entityType: EntityType.Network,
+																			facetPath: ["Arweave"],
+																		},
+																		params: {
+																			"transactionId": ["transactionId"],
+																		},
+																		derivations: {
+																			"$network": {
+																				kind: "selector",
+																				entity: EntityType.ArweaveNetwork,
+																				selector: "Network",
+																				params: [
+																					{
+																						field: "$network",
+																						value: { kind: "pageSelector" },
+																					},
+																				],
+																			},
+																		},
+																		page: {},
+																	},
+																},
 															},
 															children: {
 																"log": {
@@ -101681,6 +101737,10 @@ export const app = {
 			{
 				source: Source.AptosIndexer_Graphql,
 				path: "src/resolvers/AptosIndexer-Graphql.ts",
+			},
+			{
+				source: Source.Arweave_Graphql,
+				path: "src/resolvers/Arweave-Graphql.ts",
 			},
 			{
 				source: Source.Atproto_BskySocial_Xrpc,

@@ -183,6 +183,21 @@ export const getTransactionById = async (
 	return transaction
 }
 
+export const getTransactionsPage = (
+	{
+		first,
+		after,
+	}: {
+		first: number
+		after?: string
+	}
+) => (
+	getTransactionPage({
+		first,
+		after,
+	})
+)
+
 export const getAccountTransactionsPage = (
 	{
 		address,
