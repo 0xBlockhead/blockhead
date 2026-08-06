@@ -1,7 +1,12 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
+import {
+	evmChainIdFromNetworkSelector,
+	evmNetworkSelectorFromChainId,
+} from '$/resolvers/evm.ts'
 import { evmAbiFromJsonValue } from '$/lib/evmAbi.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
@@ -89,6 +94,45 @@ export default {
 	source: Source.Sourcify_Rest,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: async (entitySelector, context) => {
+						if ((context.pagination.offset ?? 0) > 0)
+							return []
+
+						const chainId = evmChainIdFromNetworkSelector(entitySelector)
+						const { listVerifiedContracts } = await import('$/sources/Sourcify/Rest/queries.ts')
+						const results = await listVerifiedContracts({
+							chainId,
+							limit: Math.min(200, Math.max(1, resolverContextRowLimit(context))),
+							sort: 'desc',
+						})
+						if (results == null) return []
+
+						const $network = evmNetworkSelectorFromChainId(chainId)
+						return results.flatMap((row) => {
+							if (row.address == null) return []
+							const address = hexLowerOfByteSize(row.address, 20)
+							if (address == null) return []
+							if (row.chainId != null && Number(row.chainId) !== chainId) return []
+							return [{
+								[EntityMetaKey.Selector]: {
+									$network,
+									address,
+								},
+							}]
+						})
+					},
+				},
+			},
+		})({
+			Evm: {
+				$$contracts: (contracts) => contracts,
+			},
+		}),
+
 		defineResolver({
 			entityType: EntityType.EvmContractVerification,
 			resolve: {

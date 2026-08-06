@@ -11,9 +11,11 @@ import { EntityType } from '$/schema/EntityType.ts'
 import type { SourcifyContractLookup } from '$/sources/Sourcify/Rest/types.ts'
 
 const getContractLookup = vi.hoisted(() => vi.fn())
+const listVerifiedContracts = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Sourcify/Rest/queries.ts', () => ({
 	getContractLookup,
+	listVerifiedContracts,
 }))
 
 const { default: sourcifyRest } = await import('$/resolvers/Sourcify-Rest.ts')
@@ -95,9 +97,79 @@ const findResolver = (
 	return resolver
 }
 
+const networkContext = {
+	filters: [],
+	sorts: [],
+	pagination: {
+		limit: 16,
+		offset: 0,
+	},
+	selectorKeys: [],
+	parentSelectorKeys: [],
+	sources: [],
+	publicEnv: {},
+}
+
 describe('Sourcify REST resolvers', () => {
 	beforeEach(() => {
 		getContractLookup.mockReset()
+		listVerifiedContracts.mockReset()
+	})
+
+	it('projects Network.Evm.$$contracts from verified-contract list', async () => {
+		listVerifiedContracts.mockResolvedValue([
+			{
+				match: 'exact_match',
+				chainId: '1',
+				address: contract.address,
+				matchId: '2115',
+			},
+			{
+				match: 'exact_match',
+				chainId: '1',
+				address: 'not-an-address',
+			},
+		])
+
+		const networkResolver = sourcifyRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& candidate.resolve.Caip2 != null
+		))
+		if (networkResolver == null)
+			throw new Error('Sourcify REST spec missing Network.Caip2 $$contracts')
+
+		const contracts = await networkResolver.resolve.Caip2.resolve(network, networkContext)
+		expect(networkResolver.projections.Evm.$$contracts(contracts)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					address: contract.address,
+				},
+			},
+		])
+		expect(listVerifiedContracts).toHaveBeenCalledWith({
+			chainId: 1,
+			limit: 16,
+			sort: 'desc',
+		})
+	})
+
+	it('returns an empty Network.Evm.$$contracts page when offset is nonzero', async () => {
+		const networkResolver = sourcifyRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& candidate.resolve.Caip2 != null
+		))
+		if (networkResolver == null)
+			throw new Error('Sourcify REST spec missing Network.Caip2 $$contracts')
+
+		await expect(networkResolver.resolve.Caip2.resolve(network, {
+			...networkContext,
+			pagination: {
+				limit: 16,
+				offset: 16,
+			},
+		})).resolves.toEqual([])
+		expect(listVerifiedContracts).not.toHaveBeenCalled()
 	})
 
 	it('projects verification, compilation, and source bundle from one lookup', async () => {
