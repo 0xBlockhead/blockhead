@@ -131,8 +131,7 @@ test('acquires the same wallet concurrently without ENOENT or leaked staging', a
 			'{"manifest_version":3}'
 		)
 		assert.deepEqual(await readdir(artifactRoot), ['fixture-1.0.0'])
-		assert.ok(downloads >= 1)
-		assert.ok(downloads <= 8)
+		assert.equal(downloads, 1)
 	})
 })
 

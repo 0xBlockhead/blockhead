@@ -17,6 +17,7 @@ import { promisify } from 'node:util'
 
 
 const execute = promisify(execFile)
+const acquisitionByArtifactDirectory = new Map()
 
 const publishArtifact = async (
 	stagingDirectory,
@@ -91,7 +92,6 @@ export const acquireWalletExtension = async (
 		const artifactName = `${wallet}-${descriptor.version}`
 		const artifactDirectory = join(artifactRoot, artifactName)
 		const extensionDirectory = join(artifactDirectory, descriptor.manifestRoot)
-		const stagingDirectory = join(artifactRoot, `.${artifactName}-${randomUUID()}.partial`)
 
 		try {
 			await access(join(extensionDirectory, 'manifest.json'))
@@ -99,35 +99,49 @@ export const acquireWalletExtension = async (
 		} catch {
 		}
 
+		if (acquisitionByArtifactDirectory.has(artifactDirectory))
+			return acquisitionByArtifactDirectory.get(artifactDirectory)
+
+		const acquisition = (async () => {
+			const stagingDirectory = join(artifactRoot, `.${artifactName}-${randomUUID()}.partial`)
+
+			try {
+				const response = await download(descriptor.url)
+				if (!response.ok)
+					throw new Error(`${wallet}: artifact download failed with ${response.status}`)
+
+				const artifact = Buffer.from(await response.arrayBuffer())
+				const digest = createHash('sha256').update(artifact).digest('hex')
+				if (digest !== descriptor.sha256)
+					throw new Error(`${wallet}: checksum mismatch, expected ${descriptor.sha256}, received ${digest}`)
+
+				await mkdir(stagingDirectory, {
+					recursive: true,
+				})
+				const archive = join(stagingDirectory, `${wallet}.zip`)
+				await writeFile(archive, artifact.subarray(descriptor.archiveOffset ?? 0))
+				await extract(archive, stagingDirectory)
+				await rm(archive)
+				await access(join(stagingDirectory, descriptor.manifestRoot, 'manifest.json'))
+				await publishArtifact(
+					stagingDirectory,
+					artifactDirectory,
+					join(extensionDirectory, 'manifest.json')
+				)
+				return extensionDirectory
+			} finally {
+				await rm(stagingDirectory, {
+					force: true,
+					recursive: true,
+				})
+			}
+		})()
+		acquisitionByArtifactDirectory.set(artifactDirectory, acquisition)
+
 		try {
-			const response = await download(descriptor.url)
-			if (!response.ok)
-				throw new Error(`${wallet}: artifact download failed with ${response.status}`)
-
-			const artifact = Buffer.from(await response.arrayBuffer())
-			const digest = createHash('sha256').update(artifact).digest('hex')
-			if (digest !== descriptor.sha256)
-				throw new Error(`${wallet}: checksum mismatch, expected ${descriptor.sha256}, received ${digest}`)
-
-			await mkdir(stagingDirectory, {
-				recursive: true,
-			})
-			const archive = join(stagingDirectory, `${wallet}.zip`)
-			await writeFile(archive, artifact.subarray(descriptor.archiveOffset ?? 0))
-			await extract(archive, stagingDirectory)
-			await rm(archive)
-			await access(join(stagingDirectory, descriptor.manifestRoot, 'manifest.json'))
-			await publishArtifact(
-				stagingDirectory,
-				artifactDirectory,
-				join(extensionDirectory, 'manifest.json')
-			)
-			return extensionDirectory
+			return await acquisition
 		} finally {
-			await rm(stagingDirectory, {
-				force: true,
-				recursive: true,
-			})
+			acquisitionByArtifactDirectory.delete(artifactDirectory)
 		}
 	}
 
