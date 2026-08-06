@@ -475,6 +475,50 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							bridgeFeeUsd: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const bridgeFeeUsd = entity.bridgeFeeUsd}
+					{#if bridgeFeeUsd != null}
+						<div>
+							<dt>bridge fee USD</dt>
+							<dd>
+								{bridgeFeeUsd}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							exclusiveRelayer: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const exclusiveRelayer = entity.exclusiveRelayer}
+					{#if exclusiveRelayer != null}
+						<div>
+							<dt>exclusive relayer</dt>
+							<dd>
+								{exclusiveRelayer}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 

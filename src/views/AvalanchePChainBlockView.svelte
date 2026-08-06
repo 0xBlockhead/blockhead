@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,11 +17,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvalanchePChainBlock> = $props()
 
+	const network = $derived(selection.entitySelector.$network)
 	const avalanchePChainBlock = $derived(selection({
 		fields: {
 			height: true,
@@ -43,6 +47,42 @@
 	entityType={EntityType.AvalanchePChainBlock}
 	entitySelector={selection.entitySelector}
 	title={title ?? (String(prefetched.height ?? '') || (prefetched.blockId ?? '') || 'avalanche p chain block')}
+	href={
+		href === undefined ?
+			(
+				'height' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/avalanche-block/[height=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							height: String(selection.entitySelector.height),
+						}
+					)
+				:
+					'blockId' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/avalanche-block-id/[blockId=stringSegment]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								blockId: selection.entitySelector.blockId,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

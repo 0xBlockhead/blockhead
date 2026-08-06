@@ -3,6 +3,9 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { NonNegativeDecimalString } from '$/schema/NonNegativeDecimalString.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -87,6 +90,20 @@ export default entity({
 	assetOutcome: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	bridgeFeeUsd: {
+		primitiveType: NonNegativeDecimalString,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+		],
+	},
+	exclusiveRelayer: {
+		primitiveType: EvmAddress,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.BridgeTransfer_Timestamp,

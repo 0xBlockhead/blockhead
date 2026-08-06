@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -35,9 +37,42 @@
 	}
 >
 	{#snippet Item({ item: avalanchePChainBlock })}
+		{@const avalanchePChainBlockSelector = avalanchePChainBlock[EntityMetaKey.Selector]}
+		{@const network = avalanchePChainBlockSelector.$network}
 		<EntityView
 			entityType={EntityType.AvalanchePChainBlock}
-			entitySelector={avalanchePChainBlock[EntityMetaKey.Selector]}
+			entitySelector={avalanchePChainBlockSelector}
+			href={
+				'height' in avalanchePChainBlockSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/avalanche-block/[height=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							height: String(avalanchePChainBlockSelector.height),
+						}
+					)
+				:
+					'blockId' in avalanchePChainBlockSelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/avalanche-block-id/[blockId=stringSegment]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								blockId: avalanchePChainBlockSelector.blockId,
+							}
+						)
+					:
+						undefined
+			}
 		>
 			{#snippet Title()}
 				{avalanchePChainBlock.height}

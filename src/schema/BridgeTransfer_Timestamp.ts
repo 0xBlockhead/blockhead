@@ -3,7 +3,9 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { NonNegativeDecimalString } from '$/schema/NonNegativeDecimalString.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -60,6 +62,20 @@ export default entity({
 	completedAt: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	fillGasFee: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+		],
+	},
+	fillGasFeeUsd: {
+		primitiveType: NonNegativeDecimalString,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Across_Rest,
+		],
 	},
 	error: {
 		primitiveType: type('string'),

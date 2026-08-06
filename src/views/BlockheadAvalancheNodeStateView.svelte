@@ -23,7 +23,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Local_Internal,
+			Source.AvalancheInfo_JsonRpc,
 		],
 	}))
 	const blockheadAvalancheNodeState = $derived(viewSelection({

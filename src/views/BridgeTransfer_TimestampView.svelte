@@ -22,6 +22,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
+			Source.Across_Rest,
 			Source.Lifi_Rest,
 			Source.Allium_Rest,
 			Source.Dune_Rest,
@@ -285,6 +286,52 @@
 							<dt>completed AT</dt>
 							<dd>
 								<Timestamp timestamp={completedAt} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							fillGasFee: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const fillGasFee = entity.fillGasFee}
+					{#if fillGasFee != null}
+						<div>
+							<dt>fill gas fee</dt>
+							<dd>
+								<NumberValue
+									value={fillGasFee}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							fillGasFeeUsd: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const fillGasFeeUsd = entity.fillGasFeeUsd}
+					{#if fillGasFeeUsd != null}
+						<div>
+							<dt>fill gas fee USD</dt>
+							<dd>
+								{fillGasFeeUsd}
 							</dd>
 						</div>
 					{/if}

@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -27,34 +28,58 @@ export default entity({
 	endTimeMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	stakeAmountNavax: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	txId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	rewardOwnerAddresses: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	potentialRewardNavax: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	delegationFeePercent: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	$subnet: {
 		entityType: EntityType.AvalancheSubnet,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	$network: {
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	$$timestamps: {
 		entityType: EntityType.AvalancheValidator_Timestamp,

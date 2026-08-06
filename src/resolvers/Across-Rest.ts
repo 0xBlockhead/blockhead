@@ -146,6 +146,14 @@ const acrossBridgeTransferSnapshot = (
 			acrossEvmTxHash(deposit.fillTxnRef, 'fill transaction hash')
 	)
 	const timestampMs = acrossObservationMs(deposit)
+	const exclusiveRelayer = (
+		deposit.exclusiveRelayer == null ?
+			undefined
+		:
+			hexLowerOfByteSize(deposit.exclusiveRelayer, 20)
+	)
+	if (deposit.exclusiveRelayer != null && exclusiveRelayer == null)
+		throw new Error('Across_Rest: invalid exclusive relayer address')
 
 	return {
 		source: Source.Across_Rest,
@@ -178,6 +186,12 @@ const acrossBridgeTransferSnapshot = (
 		settlementModel: BridgeSettlementModel.IntentFill,
 		verificationModel: BridgeVerificationModel.Optimistic,
 		assetOutcome: BridgeAssetOutcome.SameNative,
+		...(deposit.bridgeFeeUsd != null && {
+			bridgeFeeUsd: deposit.bridgeFeeUsd,
+		}),
+		...(exclusiveRelayer != null && {
+			exclusiveRelayer,
+		}),
 		$$timestamps: [{
 			[EntityMetaKey.Selector]: {
 				$transfer: transfer,
@@ -284,6 +298,8 @@ export default {
 			settlementModel: (transfer) => transfer.settlementModel,
 			verificationModel: (transfer) => transfer.verificationModel,
 			assetOutcome: (transfer) => transfer.assetOutcome,
+			bridgeFeeUsd: (transfer) => transfer.bridgeFeeUsd,
+			exclusiveRelayer: (transfer) => transfer.exclusiveRelayer,
 			$$timestamps: (transfer) => transfer.$$timestamps,
 		}),
 
@@ -372,6 +388,12 @@ export default {
 									estimatedCompletionMs: fillDeadlineMs,
 								}
 							),
+							...(deposit.fillGasFee != null && {
+								fillGasFee: BigInt(deposit.fillGasFee),
+							}),
+							...(deposit.fillGasFeeUsd != null && {
+								fillGasFeeUsd: deposit.fillGasFeeUsd,
+							}),
 						}
 					},
 				},
@@ -386,6 +408,8 @@ export default {
 			refundTxHash: (observation) => observation.refundTxHash,
 			completedAt: (observation) => observation.completedAt,
 			estimatedCompletionMs: (observation) => observation.estimatedCompletionMs,
+			fillGasFee: (observation) => observation.fillGasFee,
+			fillGasFeeUsd: (observation) => observation.fillGasFeeUsd,
 		}),
 
 		defineResolver({

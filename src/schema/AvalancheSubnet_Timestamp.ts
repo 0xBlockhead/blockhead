@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -19,30 +20,51 @@ export default entity({
 	timestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	source: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	validatorCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	delegatorCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	totalStakeNavax: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	chainCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	pendingValidatorCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 })({
 	selectors: {

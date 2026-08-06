@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.AvalanchePChainTransaction>, 'prefetched'> = $props()
 
+	const network = $derived(selection.entitySelector.$network)
 	const avalanchePChainTransaction = $derived(selection({
 		fields: {
 			txType: true,
@@ -43,6 +47,23 @@
 	entityType={EntityType.AvalanchePChainTransaction}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/avalanche-tx/[txId=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					txId: selection.entitySelector.txId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

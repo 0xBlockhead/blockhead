@@ -1291,6 +1291,48 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/avalanche-block-id/[blockId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/avalanche-block-id/[blockId=stringSegment]',
+		mappings: [
+			{
+				id: 'AvalanchePChainBlock.NetworkBlockId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/avalanche-block-id/[blockId]:AvalanchePChainBlock.NetworkBlockId'],
+				probeCases: [[[0, '1', ['blockId', 'network']]]],
+				projectionPath: [
+					'Avalanche',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/avalanche-block/[height]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/avalanche-block/[height=nonNegativeBigInt]',
+		mappings: [
+			{
+				id: 'AvalanchePChainBlock.NetworkHeight',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/avalanche-block/[height]:AvalanchePChainBlock.NetworkHeight'],
+				probeCases: [[[0, '1', ['height', 'network']]]],
+				projectionPath: [
+					'Avalanche',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/avalanche-tx/[txId]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/avalanche-tx/[txId=stringSegment]',
+		mappings: [
+			{
+				id: 'AvalanchePChainTransaction.NetworkTxId',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/avalanche-tx/[txId]:AvalanchePChainTransaction.NetworkTxId'],
+				probeCases: [[[0, '1', ['txId', 'network']]]],
+				projectionPath: [
+					'Avalanche',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/blobs': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/blobs',
 		mappings: [

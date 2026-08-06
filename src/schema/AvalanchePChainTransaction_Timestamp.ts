@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -19,18 +20,30 @@ export default entity({
 	timestampMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	source: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	status: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	blockHeight: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	blockId: {
 		primitiveType: type('string'),

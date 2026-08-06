@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -36,9 +38,24 @@
 >
 	{#snippet Item({ item: avalanchePChainTransaction })}
 		{@const avalanchePChainTransactionSelector = avalanchePChainTransaction[EntityMetaKey.Selector]}
+		{@const network = avalanchePChainTransactionSelector.$network}
 		<EntityView
 			entityType={EntityType.AvalanchePChainTransaction}
 			entitySelector={avalanchePChainTransactionSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/avalanche-tx/[txId=stringSegment]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						txId: avalanchePChainTransactionSelector.txId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{avalanchePChainTransactionSelector.txId || 'avalanche p chain transaction'}

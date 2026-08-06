@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -19,14 +20,23 @@ export default entity({
 	$subnet: {
 		entityType: EntityType.AvalancheSubnet,
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	vmId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	chainName: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	chainAlias: {
 		primitiveType: type('string'),
@@ -35,6 +45,9 @@ export default entity({
 	$network: {
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.AvalanchePlatformVm_JsonRpc,
+		],
 	},
 	genesisDataHash: {
 		primitiveType: type('string'),

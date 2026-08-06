@@ -854,6 +854,12 @@ export default entity({
 				],
 			},
 		}),
+		Avalanche: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Avalanche',
+		})({}),
 		Near: facet({
 			path: [
 				'namespace',

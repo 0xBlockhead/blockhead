@@ -101,6 +101,8 @@ describe('Across BridgeTransfer resolvers', () => {
 			assetOutcome: 'SameNative',
 			amountIn: BigInt(deposit.inputAmount),
 			amountOut: BigInt(deposit.outputAmount),
+			bridgeFeeUsd: deposit.bridgeFeeUsd,
+			exclusiveRelayer: deposit.exclusiveRelayer.toLowerCase(),
 			$sourceTx: {
 				[EntityMetaKey.Selector]: {
 					$network: {
@@ -168,6 +170,8 @@ describe('Across BridgeTransfer resolvers', () => {
 			destinationTxHash: fillTxnRef.toLowerCase(),
 			relayer: deposit.relayer.toLowerCase(),
 			completedAt: Date.parse(deposit.fillBlockTimestamp),
+			fillGasFee: BigInt(deposit.fillGasFee),
+			fillGasFeeUsd: deposit.fillGasFeeUsd,
 		})
 		expect(snapshot).not.toHaveProperty('refundTxHash')
 	})

@@ -11839,11 +11839,11 @@ export const schema = {
 				},
 			})({
 				"blockchainId": { label: "blockchain ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$subnet": { label: "subnet", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AvalancheSubnet },
-				"vmId": { label: "vm ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"chainName": { label: "chain name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"$subnet": { label: "subnet", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AvalancheSubnet, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"vmId": { label: "vm ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"chainName": { label: "chain name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"chainAlias": { label: "chain alias", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
+				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"genesisDataHash": { label: "genesis data hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"createdAtTxId": { label: "created AT transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
@@ -11876,14 +11876,14 @@ export const schema = {
 					plural: "avalanche delegators",
 				},
 			})({
-				"$validator": { label: "validator", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AvalancheValidator },
+				"$validator": { label: "validator", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AvalancheValidator, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"txId": { label: "transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"delegatorAddress": { label: "delegator address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"stakeAmountNavax": { label: "stake amount navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"startTimeMs": { label: "start time ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"endTimeMs": { label: "end time ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"rewardOwnerAddresses": { label: "reward owner addresses", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
-				"potentialRewardNavax": { label: "potential reward navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"delegatorAddress": { label: "delegator address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"stakeAmountNavax": { label: "stake amount navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"startTimeMs": { label: "start time ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"endTimeMs": { label: "end time ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"rewardOwnerAddresses": { label: "reward owner addresses", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"potentialRewardNavax": { label: "potential reward navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 			})({
 				selectors: {
 					"ValidatorTxId": ["$validator", "txId"],
@@ -11915,13 +11915,13 @@ export const schema = {
 				},
 			})({
 				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
-				"height": { label: "Height", description: "The block or ledger height in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
-				"blockId": { label: "block ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"parentBlockId": { label: "parent block ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"encoding": { label: "encoding", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"txCount": { label: "transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalanchePChainTransaction },
+				"height": { label: "Height", description: "The block or ledger height in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"blockId": { label: "block ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"parentBlockId": { label: "parent block ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"encoding": { label: "encoding", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"txCount": { label: "transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalanchePChainTransaction, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 			})({
 				selectors: {
 					"NetworkHeight": ["$network", "height"],
@@ -11971,7 +11971,7 @@ export const schema = {
 				"sourceChain": { label: "source chain", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"destinationChain": { label: "destination chain", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"payload": { label: "payload", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalanchePChainTransaction_Timestamp },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalanchePChainTransaction_Timestamp, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 			})({
 				selectors: {
 					"NetworkTxId": ["$network", "txId"],
@@ -12007,10 +12007,10 @@ export const schema = {
 				},
 			})({
 				"$transaction": { label: "transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AvalanchePChainTransaction },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"blockHeight": { label: "block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"blockHeight": { label: "block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"blockId": { label: "block ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
@@ -12044,12 +12044,12 @@ export const schema = {
 			})({
 				"subnetId": { label: "subnet ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"ownerAddresses": { label: "owner addresses", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
-				"threshold": { label: "threshold", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"controlKeys": { label: "control keys", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
-				"$$blockchains": { label: "blockchains", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalancheBlockchain },
-				"$$validators": { label: "validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalancheValidator },
-				"$$delegators": { label: "delegators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalancheDelegator },
+				"ownerAddresses": { label: "owner addresses", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"threshold": { label: "threshold", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"controlKeys": { label: "control keys", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"$$blockchains": { label: "blockchains", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalancheBlockchain, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"$$validators": { label: "validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalancheValidator, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"$$delegators": { label: "delegators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalancheDelegator, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalancheSubnet_Timestamp },
 			})({
 				selectors: {
@@ -12087,13 +12087,13 @@ export const schema = {
 				},
 			})({
 				"$subnet": { label: "subnet", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AvalancheSubnet },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"validatorCount": { label: "validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"delegatorCount": { label: "delegator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"totalStakeNavax": { label: "total stake navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"chainCount": { label: "chain count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"pendingValidatorCount": { label: "pending validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"validatorCount": { label: "validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"delegatorCount": { label: "delegator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"totalStakeNavax": { label: "total stake navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"chainCount": { label: "chain count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"pendingValidatorCount": { label: "pending validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 			})({
 				selectors: {
 					"SubnetTimestampMsSource": ["$subnet", "timestampMs", "source"],
@@ -12127,14 +12127,14 @@ export const schema = {
 				"nodeId": { label: "node ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"subnetId": { label: "subnet ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"startTimeMs": { label: "start time ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"endTimeMs": { label: "end time ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"stakeAmountNavax": { label: "stake amount navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"txId": { label: "transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"rewardOwnerAddresses": { label: "reward owner addresses", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
-				"potentialRewardNavax": { label: "potential reward navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"delegationFeePercent": { label: "delegation fee percent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"$subnet": { label: "subnet", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AvalancheSubnet },
-				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
+				"endTimeMs": { label: "end time ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"stakeAmountNavax": { label: "stake amount navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"txId": { label: "transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"rewardOwnerAddresses": { label: "reward owner addresses", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"potentialRewardNavax": { label: "potential reward navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"delegationFeePercent": { label: "delegation fee percent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"$subnet": { label: "subnet", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AvalancheSubnet, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network, defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvalancheValidator_Timestamp },
 			})({
 				selectors: {
@@ -12171,13 +12171,13 @@ export const schema = {
 				},
 			})({
 				"$validator": { label: "validator", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AvalancheValidator },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"connected": { label: "connected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-				"uptimePercent": { label: "uptime percent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"validatorSetKind": { label: "validator set kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"observedStakeNavax": { label: "observed stake navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"observedDelegatorCount": { label: "observed delegator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"connected": { label: "connected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"uptimePercent": { label: "uptime percent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"validatorSetKind": { label: "validator set kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"observedStakeNavax": { label: "observed stake navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"observedDelegatorCount": { label: "observed delegator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 			})({
 				selectors: {
 					"ValidatorTimestampMsSource": ["$validator", "timestampMs", "source"],
@@ -15069,11 +15069,11 @@ export const schema = {
 				},
 			})({
 				"nodeId": { label: "node ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
+				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network, defaultSources: [Source.AvalancheInfo_JsonRpc] },
 				"nodeIp": { label: "node IP", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"nodePopPublicKey": { label: "node pop public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
-				"nodePopProofOfPossession": { label: "node pop proof of possession", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadAvalancheNodeState_Timestamp },
+				"nodePopPublicKey": { label: "node pop public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex", defaultSources: [Source.AvalancheInfo_JsonRpc] },
+				"nodePopProofOfPossession": { label: "node pop proof of possession", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex", defaultSources: [Source.AvalancheInfo_JsonRpc] },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadAvalancheNodeState_Timestamp, defaultSources: [Source.AvalancheInfo_JsonRpc] },
 			})({
 				selectors: {
 					"NodeId": ["nodeId"],
@@ -15081,7 +15081,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.AvalancheInfo_JsonRpc],
 							openFields: ["nodeIp", "nodePopPublicKey", "nodePopProofOfPossession"],
 						},
 						summary: { title: ["nodeId"], value: ["$network"], HeadingAfter: ["nodeIp"] },
@@ -15107,16 +15107,16 @@ export const schema = {
 				},
 			})({
 				"$nodeState": { label: "node state", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadAvalancheNodeState },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"networkName": { label: "network name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"nodeVersion": { label: "node version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"databaseVersion": { label: "database version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"gitCommit": { label: "Git commit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"rpcProtocolVersion": { label: "RPC protocol version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"connectedPeerCount": { label: "connected peer count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"uptimePercent": { label: "uptime percent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"vmVersions": { label: "vm versions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.AvalancheInfo_JsonRpc] },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.AvalancheInfo_JsonRpc] },
+				"networkName": { label: "network name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalancheInfo_JsonRpc] },
+				"nodeVersion": { label: "node version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalancheInfo_JsonRpc] },
+				"databaseVersion": { label: "database version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalancheInfo_JsonRpc] },
+				"gitCommit": { label: "Git commit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalancheInfo_JsonRpc] },
+				"rpcProtocolVersion": { label: "RPC protocol version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalancheInfo_JsonRpc] },
+				"connectedPeerCount": { label: "connected peer count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalancheInfo_JsonRpc] },
+				"uptimePercent": { label: "uptime percent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalancheInfo_JsonRpc] },
+				"vmVersions": { label: "vm versions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown", defaultSources: [Source.AvalancheInfo_JsonRpc] },
 				"lastSyncedAt": { label: "last synced AT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 			})({
 				selectors: {
@@ -15125,7 +15125,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.AvalancheInfo_JsonRpc],
 							openFields: ["networkName", "nodeVersion", "databaseVersion", "gitCommit", "rpcProtocolVersion", "connectedPeerCount", "uptimePercent", "vmVersions", "lastSyncedAt"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["nodeVersion", "networkName"], HeadingAfter: [{ field: "connectedPeerCount", format: "number" }] },
@@ -21041,6 +21041,8 @@ export const schema = {
 				"settlementModel": { label: "settlement model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"verificationModel": { label: "verification model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"assetOutcome": { label: "asset outcome", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"bridgeFeeUsd": { label: "bridge fee USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Across_Rest] },
+				"exclusiveRelayer": { label: "exclusive relayer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Across_Rest] },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BridgeTransfer_Timestamp },
 			})({
 				selectors: {
@@ -21053,7 +21055,7 @@ export const schema = {
 						query: {
 							sources: [Source.Across_Rest, Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
 							fields: ["transferId"],
-							openFields: ["logIndex", "originChainId", "depositId", "amountIn", "amountOut", "railId", "settlementModel", "verificationModel", "assetOutcome"],
+							openFields: ["logIndex", "originChainId", "depositId", "amountIn", "amountOut", "railId", "settlementModel", "verificationModel", "assetOutcome", "bridgeFeeUsd", "exclusiveRelayer"],
 						},
 						summary: {
 							title: ["transferId"],
@@ -21064,7 +21066,7 @@ export const schema = {
 								["transferId", "source", "$sourceTx", "logIndex", "$destinationTx"],
 								[{ field: "originChainId", format: "number" }, { field: "depositId", format: "number" }],
 								["$sender", "$recipient", "$fromNetwork", "$toNetwork", "$fromToken", "$toToken"],
-								[{ field: "amountIn", format: "number" }, { field: "amountOut", format: "number" }, "railId", "settlementModel", "verificationModel", "assetOutcome"],
+								[{ field: "amountIn", format: "number" }, { field: "amountOut", format: "number" }, "railId", "settlementModel", "verificationModel", "assetOutcome", "bridgeFeeUsd", "exclusiveRelayer"],
 							],
 						},
 						lists: [
@@ -21096,6 +21098,8 @@ export const schema = {
 				"refundTxHash": { label: "refund tx hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
 				"estimatedCompletionMs": { label: "estimated completion ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"completedAt": { label: "completed AT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"fillGasFee": { label: "fill gas fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Across_Rest] },
+				"fillGasFeeUsd": { label: "fill gas fee USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Across_Rest] },
 				"error": { label: "error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
@@ -21104,8 +21108,8 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
-							openFields: ["status", "substatus", "sourceConfirmations", "requiredConfirmations", "destinationTxHash", "relayer", "refundTxHash", "estimatedCompletionMs", "completedAt", "error"],
+							sources: [Source.Across_Rest, Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
+							openFields: ["status", "substatus", "sourceConfirmations", "requiredConfirmations", "destinationTxHash", "relayer", "refundTxHash", "estimatedCompletionMs", "completedAt", "fillGasFee", "fillGasFeeUsd", "error"],
 						},
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
@@ -21116,7 +21120,7 @@ export const schema = {
 							dl: [
 								["$transfer", { field: "timestampMs", format: "timestamp" }, "source", "status", "substatus"],
 								[{ field: "sourceConfirmations", format: "number" }, { field: "requiredConfirmations", format: "number" }, "destinationTxHash", "relayer", "refundTxHash"],
-								[{ field: "estimatedCompletionMs", format: "timestamp" }, { field: "completedAt", format: "timestamp" }, "error"],
+								[{ field: "estimatedCompletionMs", format: "timestamp" }, { field: "completedAt", format: "timestamp" }, { field: "fillGasFee", format: "number" }, "fillGasFeeUsd", "error"],
 							],
 						},
 					},
@@ -49421,6 +49425,10 @@ export const schema = {
 								},
 							],
 						} }),
+					"Avalanche": facet({
+						path: ["namespace"],
+						is: "Avalanche",
+					})({}),
 					"Near": facet({
 						path: ["namespace"],
 						is: "Near",
@@ -70235,25 +70243,6 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#avalanchedelegator",
 			},
 		},
-		[EntityType.AvalanchePChainBlock]: {
-			"NetworkHeight": {
-				kind: "Research",
-				decision: "Retain AvalanchePChainBlock.NetworkHeight as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#avalanchepchainblock",
-			},
-			"NetworkBlockId": {
-				kind: "Research",
-				decision: "Retain AvalanchePChainBlock.NetworkBlockId as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#avalanchepchainblock",
-			},
-		},
-		[EntityType.AvalanchePChainTransaction]: {
-			"NetworkTxId": {
-				kind: "Research",
-				decision: "Retain AvalanchePChainTransaction.NetworkTxId as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#avalanchepchaintransaction",
-			},
-		},
 		[EntityType.AvalanchePChainTransaction_Timestamp]: {
 			"TransactionTimestampMsSource": {
 				kind: "Research",
@@ -70264,8 +70253,8 @@ export const routes = defineRoutes(schema)({
 		[EntityType.AvalancheSubnet]: {
 			"SubnetId": {
 				kind: "Research",
-				decision: "Retain AvalancheSubnet.SubnetId as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#avalanchesubnet",
+				decision: "Retain AvalancheSubnet.SubnetId as non-public until a product-valid Directory placement is declared — selector is subnetId-only (not network-scoped), so nested network routes cannot bind `network`.",
+				evidence: "NEEDS_APP.md#avalanche-info--platformvm-p-chain-enrollment-wiring",
 			},
 		},
 		[EntityType.AvalancheSubnet_Timestamp]: {
@@ -81473,6 +81462,78 @@ export const routes = defineRoutes(schema)({
 																},
 																params: {
 																	"poolId": ["poolId"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"avalanche-block": {
+											children: {
+												"[height]": {
+													selectors: {
+														[EntityType.AvalanchePChainBlock]: {
+															"NetworkHeight": {
+																when: {
+																	path: ["namespace"],
+																		is: "Avalanche",
+																	},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Avalanche"],
+																},
+																params: {
+																	"height": ["height"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"avalanche-block-id": {
+											children: {
+												"[blockId]": {
+													selectors: {
+														[EntityType.AvalanchePChainBlock]: {
+															"NetworkBlockId": {
+																when: {
+																	path: ["namespace"],
+																		is: "Avalanche",
+																	},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Avalanche"],
+																},
+																params: {
+																	"blockId": ["blockId"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+										"avalanche-tx": {
+											children: {
+												"[txId]": {
+													selectors: {
+														[EntityType.AvalanchePChainTransaction]: {
+															"NetworkTxId": {
+																when: {
+																	path: ["namespace"],
+																		is: "Avalanche",
+																	},
+																projection: {
+																	entityType: EntityType.Network,
+																	facetPath: ["Avalanche"],
+																},
+																params: {
+																	"txId": ["txId"],
 																},
 																page: {},
 															},
@@ -103629,6 +103690,10 @@ export const app = {
 				path: "src/resolvers/AcpRegistry-Rest.ts",
 			},
 			{
+				source: Source.Across_Rest,
+				path: "src/resolvers/Across-Rest.ts",
+			},
+			{
 				source: Source.Allium_Rest,
 				path: "src/resolvers/Allium-Rest.ts",
 			},
@@ -103649,12 +103714,24 @@ export const app = {
 				path: "src/resolvers/Arweave-Graphql.ts",
 			},
 			{
+				source: Source.Arweave_Rest,
+				path: "src/resolvers/Arweave-Rest.ts",
+			},
+			{
 				source: Source.Atproto_BskySocial_Xrpc,
 				path: "src/resolvers/Atproto-BskySocial-Xrpc.ts",
 			},
 			{
 				source: Source.Atproto_Xrpc,
 				path: "src/resolvers/Atproto-Xrpc.ts",
+			},
+			{
+				source: Source.AvalancheInfo_JsonRpc,
+				path: "src/resolvers/AvalancheInfo-JsonRpc.ts",
+			},
+			{
+				source: Source.AvalanchePlatformVm_JsonRpc,
+				path: "src/resolvers/AvalanchePlatformVm-JsonRpc.ts",
 			},
 			{
 				source: Source.Balancer_Rest,

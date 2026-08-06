@@ -22,7 +22,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Local_Internal,
+			Source.AvalancheInfo_JsonRpc,
 		],
 	}))
 	const blockheadAvalancheNodeStateTimestamp = $derived(viewSelection({
