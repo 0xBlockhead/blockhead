@@ -93876,33 +93876,77 @@ export const app = {
 				source: Source.Pendle_Rest,
 				provider: "Pendle",
 				label: "Pendle API",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "pendle-api",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "pendle-api",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://api-v2.pendle.finance/core",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Pendle/Rest/types.ts",
+								referenceUrl: "https://docs.pendle.finance/pendle-v2-dev/Backend/ApiOverview",
+							},
+						],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api-v2.pendle.finance/core",
-							corsEnabled: true,
+					...[
+						{ key: "1", locator: "https://ethereum.publicnode.com" },
+						{ key: "10", locator: "https://mainnet.optimism.io" },
+						{ key: "56", locator: "https://binance.llamarpc.com" },
+						{ key: "143", locator: "https://rpc.monad.xyz" },
+						{ key: "146", locator: "https://rpc.soniclabs.com" },
+						{ key: "999", locator: "https://hyperliquid.drpc.org" },
+						{ key: "5000", locator: "https://rpc.mantle.xyz" },
+						{ key: "8453", locator: "https://mainnet.base.org" },
+						{ key: "9745", locator: "https://rpc.plasma.to" },
+						{ key: "42161", locator: "https://arb1.arbitrum.io/rpc" },
+						{ key: "80094", locator: "https://rpc.berachain.com" },
+					].map(({ key, locator }) => ({
+						target: {
+							kind: SourceTargetKind.Eip155Chain,
+							key,
 						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.BrowserDirect,
-					credentials: [],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/Pendle/Rest/types.ts",
-							referenceUrl: "https://docs.pendle.finance/pendle-v2-dev/Backend/ApiOverview",
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator,
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.JsonRpc2,
+						apiFamily: ApiFamily.EvmExecutionJsonRpc,
+						operationGroups: [
+							SourceOperationGroup.EvmRpcCore,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenRpcSpec,
+								path: "src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src",
+							},
+						],
+					})),
+				],
 			},
 			{
 				source: Source.Petra_WalletApi,
