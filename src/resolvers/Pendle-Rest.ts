@@ -118,11 +118,14 @@ export default {
 							$actor,
 							$network,
 						}
-						return (
-							(await getAccountPositions({
+						const positions = (
+							await getAccountPositions({
 								chainId,
 								account: $actor.address,
-							})).positions
+							})
+						).positions
+						return {
+							positions: positions
 								.slice(0, resolverContextRowLimit(context))
 								.map((position) => ({
 									[EntityMetaKey.Selector]: {
@@ -132,15 +135,16 @@ export default {
 											marketAddress: position.marketAddress,
 										},
 									},
-								}))
-						)
+								})),
+							positionCount: positions.length,
+						}
 					},
 				},
 			},
 		})({
 			$$pendlePositions: {
-				select: (positions) => positions,
-				resolveCount: (positions) => positions.length,
+				select: (snapshot) => snapshot.positions,
+				resolveCount: (snapshot) => snapshot.positionCount,
 			},
 		}),
 

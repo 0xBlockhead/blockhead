@@ -193,9 +193,22 @@ describe('Compound Rest resolver module', () => {
 				cometAddress: baseCometAddress,
 			},
 		}, context)
+		expect(compoundPositionResolver.projections.$account(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: accountSelector,
+		})
+		expect(compoundPositionResolver.projections.$comet(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: baseNetwork,
+				cometAddress: baseCometAddress,
+			},
+		})
 		expect(compoundPositionResolver.projections.baseTokenSymbol(snapshot)).toBe('USDC')
+		expect(compoundPositionResolver.projections.baseTokenAddress(snapshot)).toBe(
+			baseConfiguration.baseTokenAddress.toLowerCase()
+		)
 		expect(compoundPositionResolver.projections.suppliedBalance(snapshot)).toBe('1000000')
 		expect(compoundPositionResolver.projections.borrowedBalance(snapshot)).toBe(undefined)
+		expect(compoundPositionResolver.projections.$$collaterals.resolveCount(snapshot)).toBe(1)
 		expect(compoundPositionResolver.projections.$$collaterals.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -218,6 +231,48 @@ describe('Compound Rest resolver module', () => {
 		])
 	})
 
+	it('projects borrowedBalance when the account has a nonzero Comet borrow', async () => {
+		if (compoundPositionResolver == null)
+			throw new Error('missing CompoundPosition resolver')
+
+		getAccountPositions.mockResolvedValue({
+			blockNumber: 123n,
+			positions: [
+				{
+					protocol: 'Compound III',
+					chainId: 8453,
+					marketSlug: 'usdc',
+					cometAddress: baseCometAddress,
+					baseToken: {
+						symbol: 'USDC',
+						address: baseConfiguration.baseTokenAddress.toLowerCase(),
+						suppliedBalance: '0',
+						borrowedBalance: '500000',
+					},
+					collateral: [],
+				},
+			],
+		})
+
+		const snapshot = await compoundPositionResolver.resolve.AccountComet.resolve({
+			$account: {
+				$network: baseNetwork,
+				$actor: {
+					address: '0x0000000000000000000000000000000000000001',
+				},
+			},
+			$comet: {
+				$network: baseNetwork,
+				cometAddress: baseCometAddress,
+			},
+		}, context)
+
+		expect(compoundPositionResolver.projections.suppliedBalance(snapshot)).toBe(undefined)
+		expect(compoundPositionResolver.projections.borrowedBalance(snapshot)).toBe('500000')
+		expect(compoundPositionResolver.projections.$$collaterals.select(snapshot)).toEqual([])
+		expect(compoundPositionResolver.projections.$$collaterals.resolveCount(snapshot)).toBe(0)
+	})
+
 	it('preserves an empty Compound positions list on $$compoundPositions (confirms soft-empty [] is accurate)', async () => {
 		if (evmNetworkAccountResolver == null)
 			throw new Error('missing EvmNetworkAccount Compound positions resolver')
@@ -236,6 +291,73 @@ describe('Compound Rest resolver module', () => {
 
 		expect(evmNetworkAccountResolver.projections.$$compoundPositions.select(positions)).toEqual([])
 		expect(evmNetworkAccountResolver.projections.$$compoundPositions.resolveCount(positions)).toBe(0)
+	})
+
+	it('keeps authoritative $$compoundPositions resolveCount when the row limit windows the list', async () => {
+		if (evmNetworkAccountResolver == null)
+			throw new Error('missing EvmNetworkAccount Compound positions resolver')
+
+		const accountSelector = {
+			$network: baseNetwork,
+			$actor: {
+				address: '0x0000000000000000000000000000000000000001',
+			},
+		}
+		const secondCometAddress = '0x9c4ec768c28520b50860ea7a37138999d544a775'
+		getAccountPositions.mockResolvedValue({
+			blockNumber: 789n,
+			positions: [
+				{
+					protocol: 'Compound III',
+					chainId: 8453,
+					marketSlug: 'usdc',
+					cometAddress: baseCometAddress,
+					baseToken: {
+						symbol: 'USDC',
+						address: baseConfiguration.baseTokenAddress.toLowerCase(),
+						suppliedBalance: '1',
+						borrowedBalance: '0',
+					},
+					collateral: [],
+				},
+				{
+					protocol: 'Compound III',
+					chainId: 8453,
+					marketSlug: 'usdbc',
+					cometAddress: secondCometAddress,
+					baseToken: {
+						symbol: 'USDbC',
+						address: '0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca',
+						suppliedBalance: '0',
+						borrowedBalance: '2',
+					},
+					collateral: [],
+				},
+			],
+		})
+
+		const snapshot = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
+			{
+				...context,
+				pagination: {
+					limit: 1,
+				},
+			}
+		)
+
+		expect(evmNetworkAccountResolver.projections.$$compoundPositions.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$account: accountSelector,
+					$comet: {
+						$network: baseNetwork,
+						cometAddress: baseCometAddress,
+					},
+				},
+			},
+		])
+		expect(evmNetworkAccountResolver.projections.$$compoundPositions.resolveCount(snapshot)).toBe(2)
 	})
 
 	it('resolves Compound position collateral balances by PositionAsset', async () => {
@@ -392,9 +514,35 @@ describe('Compound Rest resolver module', () => {
 		expect(compoundCometResolver.projections.cometAddress(snapshot)).toBe(baseCometAddress)
 		expect(compoundCometResolver.projections.marketSlug(snapshot)).toBe('usdc')
 		expect(compoundCometResolver.projections.name(snapshot)).toBe('Compound USDC')
+		expect(compoundCometResolver.projections.symbol(snapshot)).toBe('cUSDCv3')
 		expect(compoundCometResolver.projections.baseTokenSymbol(snapshot)).toBe('USDC')
+		expect(compoundCometResolver.projections.baseTokenAddress(snapshot)).toBe(
+			'0x833589fcd6edb6e08f4c7c32d4f71b54bda02913'
+		)
+		expect(compoundCometResolver.projections.baseTokenPriceFeedAddress(snapshot)).toBe(
+			'0x7e860098f58bbfc8648a4311b374b1d669a2bc6b'
+		)
 		expect(compoundCometResolver.projections.collateralAssetCount(snapshot)).toBe(2)
+		expect(compoundCometResolver.projections.borrowMin(snapshot)).toBe('1e0')
+		expect(compoundCometResolver.projections.targetReserves(snapshot)).toBe('5000000e6')
+		expect(compoundCometResolver.projections.governorAddress(snapshot)).toBe(undefined)
+		expect(compoundCometResolver.projections.pauseGuardianAddress(snapshot)).toBe(undefined)
 		expect(snapshot.rates).toEqual(baseConfiguration.rates)
+		expect(compoundCometResolver.projections.supplyKink(snapshot)).toBe(0.85)
+		expect(compoundCometResolver.projections.supplySlopeLow(snapshot)).toBe(0.048)
+		expect(compoundCometResolver.projections.supplySlopeHigh(snapshot)).toBe(1.6)
+		expect(compoundCometResolver.projections.supplyBase(snapshot)).toBe(0)
+		expect(compoundCometResolver.projections.borrowKink(snapshot)).toBe(0.85)
+		expect(compoundCometResolver.projections.borrowSlopeLow(snapshot)).toBe(0.053)
+		expect(compoundCometResolver.projections.borrowSlopeHigh(snapshot)).toBe(1.8)
+		expect(compoundCometResolver.projections.borrowBase(snapshot)).toBe(0.015)
+		expect(compoundCometResolver.projections.utilization(snapshot)).toBe(0.5)
+		expect(compoundCometResolver.projections.supplyApy(snapshot)).toBeCloseTo(0.03203853099053755)
+		expect(compoundCometResolver.projections.borrowApy(snapshot)).toBeCloseTo(0.06510352195723823)
+		expect(getCometTipRates).toHaveBeenCalledWith({
+			chainId: 8453,
+			cometAddress: baseCometAddress,
+		})
 		expect(compoundCometResolver.projections.$$assets.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -419,6 +567,10 @@ describe('Compound Rest resolver module', () => {
 		expect(compoundCometResolver.projections.configuratorAddress(snapshot)).toBe(
 			'0x316f9708bb98af7da9c68c1c3b5e79039cd336e3'
 		)
+		expect(compoundCometResolver.projections.rewardsAddress(snapshot)).toBe(
+			'0x1b0e765f6224c21223aea2af16c1c46e38885a40'
+		)
+		expect(compoundCometResolver.projections.bulkerAddress(snapshot)).toBe(undefined)
 		expect(compoundCometResolver.projections.$network(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: baseNetwork,
 		})

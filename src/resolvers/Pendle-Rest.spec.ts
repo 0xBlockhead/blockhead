@@ -206,12 +206,157 @@ describe('Pendle Rest resolver module', () => {
 
 		expect(pendlePositionResolver.projections.ytBalance(snapshot)).toBe('1000000')
 		expect(pendlePositionResolver.projections.ptBalance(snapshot)).toBe('2')
+		expect(pendlePositionResolver.projections.syBalance(snapshot)).toBe(undefined)
+		expect(pendlePositionResolver.projections.lpBalance(snapshot)).toBe(undefined)
+		expect(pendlePositionResolver.projections.$account(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: accountSelector,
+		})
 		expect(pendlePositionResolver.projections.$market(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$network: baseNetwork,
 				marketAddress: baseMarketAddress,
 			},
 		})
+	})
+
+	it('projects every enrolled PendlePosition balance when present', async () => {
+		if (pendlePositionResolver == null)
+			throw new Error('missing PendlePosition resolver')
+
+		const accountSelector = {
+			$network: baseNetwork,
+			$actor: {
+				address: '0x0000000000000000000000000000000000000001',
+			},
+		}
+		getAccountPositions.mockResolvedValue({
+			blockNumber: 123n,
+			positions: [
+				{
+					protocol: 'Pendle V2',
+					chainId: 1,
+					marketAddress: baseMarketAddress,
+					marketName: 'USD0++',
+					expiryTimestampMs: Date.parse(baseMarketWire.expiry),
+					ptAddress: '0x270d664d2fc7d962012a787aec8661ca83df24eb',
+					ytAddress: '0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+					syAddress: '0x47bce1bb5d9a9072161ec25009bcd6e8d367b7d3',
+					underlyingAssetAddress: '0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+					balances: [
+						{
+							kind: 'PT',
+							address: '0x270d664d2fc7d962012a787aec8661ca83df24eb',
+							balance: '11',
+						},
+						{
+							kind: 'YT',
+							address: '0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+							balance: '22',
+						},
+						{
+							kind: 'SY',
+							address: '0x47bce1bb5d9a9072161ec25009bcd6e8d367b7d3',
+							balance: '33',
+						},
+						{
+							kind: 'LP',
+							address: baseMarketAddress,
+							balance: '44',
+						},
+					],
+				},
+			],
+		})
+
+		const snapshot = await pendlePositionResolver.resolve.AccountMarket.resolve({
+			$account: accountSelector,
+			$market: {
+				$network: baseNetwork,
+				marketAddress: baseMarketAddress,
+			},
+		}, context)
+
+		expect(pendlePositionResolver.projections.ptBalance(snapshot)).toBe('11')
+		expect(pendlePositionResolver.projections.ytBalance(snapshot)).toBe('22')
+		expect(pendlePositionResolver.projections.syBalance(snapshot)).toBe('33')
+		expect(pendlePositionResolver.projections.lpBalance(snapshot)).toBe('44')
+	})
+
+	it('keeps authoritative $$pendlePositions resolveCount when the row limit windows the list', async () => {
+		if (evmNetworkAccountResolver == null)
+			throw new Error('missing Pendle account resolver')
+
+		const accountSelector = {
+			$network: baseNetwork,
+			$actor: {
+				address: '0x0000000000000000000000000000000000000001',
+			},
+		}
+		const secondMarketAddress = '0x1111111111111111111111111111111111111111'
+		getAccountPositions.mockResolvedValue({
+			blockNumber: 123n,
+			positions: [
+				{
+					protocol: 'Pendle V2',
+					chainId: 1,
+					marketAddress: baseMarketAddress,
+					marketName: 'USD0++',
+					expiryTimestampMs: Date.parse(baseMarketWire.expiry),
+					ptAddress: '0x270d664d2fc7d962012a787aec8661ca83df24eb',
+					ytAddress: '0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+					syAddress: '0x47bce1bb5d9a9072161ec25009bcd6e8d367b7d3',
+					underlyingAssetAddress: '0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+					balances: [
+						{
+							kind: 'YT',
+							address: '0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+							balance: '1',
+						},
+					],
+				},
+				{
+					protocol: 'Pendle V2',
+					chainId: 1,
+					marketAddress: secondMarketAddress,
+					marketName: 'Other',
+					expiryTimestampMs: Date.parse(baseMarketWire.expiry),
+					ptAddress: '0x270d664d2fc7d962012a787aec8661ca83df24eb',
+					ytAddress: '0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+					syAddress: '0x47bce1bb5d9a9072161ec25009bcd6e8d367b7d3',
+					underlyingAssetAddress: '0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+					balances: [
+						{
+							kind: 'LP',
+							address: secondMarketAddress,
+							balance: '2',
+						},
+					],
+				},
+			],
+		})
+
+		const snapshot = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
+			{
+				...context,
+				pagination: {
+					limit: 1,
+				},
+			}
+		)
+
+		expect(evmNetworkAccountResolver.projections.$$pendlePositions.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$account: accountSelector,
+					$market: {
+						$network: baseNetwork,
+						marketAddress: baseMarketAddress,
+					},
+				},
+			},
+		])
+		expect(evmNetworkAccountResolver.projections.$$pendlePositions.resolveCount(snapshot)).toBe(2)
 	})
 
 	it('rejects non-eip155 networks on account positions before transport', async () => {
@@ -334,9 +479,35 @@ describe('Pendle Rest resolver module', () => {
 		expect(pendleMarketResolver.projections.marketAddress(snapshot)).toBe(baseMarketAddress)
 		expect(pendleMarketResolver.projections.name(snapshot)).toBe('USD0++')
 		expect(pendleMarketResolver.projections.protocol(snapshot)).toBe('Usual')
-		expect(pendleMarketResolver.projections.impliedApy(snapshot)).toBe(0.7088987080424998)
+		expect(pendleMarketResolver.projections.icon(snapshot)).toBe(baseMarketWire.icon)
+		expect(pendleMarketResolver.projections.expiryTimestampMs(snapshot)).toBe(
+			Date.parse(baseMarketWire.expiry)
+		)
 		expect(pendleMarketResolver.projections.ptAddress(snapshot)).toBe(
 			'0x270d664d2fc7d962012a787aec8661ca83df24eb'
+		)
+		expect(pendleMarketResolver.projections.ytAddress(snapshot)).toBe(
+			'0x4f0b4e6512630480b868e62a8a1d3451b0e9192d'
+		)
+		expect(pendleMarketResolver.projections.syAddress(snapshot)).toBe(
+			'0x47bce1bb5d9a9072161ec25009bcd6e8d367b7d3'
+		)
+		expect(pendleMarketResolver.projections.underlyingAssetAddress(snapshot)).toBe(
+			'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0'
+		)
+		expect(pendleMarketResolver.projections.impliedApy(snapshot)).toBe(0.7088987080424998)
+		expect(pendleMarketResolver.projections.underlyingApy(snapshot)).toBe(0)
+		expect(pendleMarketResolver.projections.totalTvlUsd(snapshot)).toBe(7075.869756555831)
+		expect(pendleMarketResolver.projections.liquidityUsd(snapshot)).toBe(7075.869756555831)
+		expect(pendleMarketResolver.projections.tradingVolumeUsd(snapshot)).toBe(0)
+		expect(pendleMarketResolver.projections.feeRate(snapshot)).toBe(0.000999999999916401)
+		expect(pendleMarketResolver.projections.totalPt(snapshot)).toBe(178401.28677910106)
+		expect(pendleMarketResolver.projections.totalSy(snapshot)).toBe(7462.289393383086)
+		expect(pendleMarketResolver.projections.totalSupply(snapshot)).toBe(93250.65624517394)
+		expect(pendleMarketResolver.projections.isPrime(snapshot)).toBe(false)
+		expect(pendleMarketResolver.projections.isNew(snapshot)).toBe(false)
+		expect(pendleMarketResolver.projections.observedAtTimestampMs(snapshot)).toBe(
+			Date.parse(baseMarketWire.timestamp)
 		)
 		expect(pendleMarketResolver.projections.$network(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: baseNetwork,
@@ -345,6 +516,61 @@ describe('Pendle Rest resolver module', () => {
 			bindings[Source.Pendle_Rest][0],
 			httpUrl(bindings[Source.Pendle_Rest][0], `/v2/markets/all?chainId=1&ids=1-${baseMarketAddress}&skip=0&limit=1`)
 		)
+	})
+
+	it('omits empty Pendle market icon (ZeroOrOne)', async () => {
+		if (pendleMarketResolver == null)
+			throw new Error('missing PendleMarket resolver')
+
+		sourceGetJson.mockResolvedValueOnce({
+			total: 1,
+			limit: 100,
+			skip: 0,
+			results: [
+				{
+					...baseMarketWire,
+					icon: '',
+				},
+			],
+		})
+
+		const snapshot = await pendleMarketResolver.resolve.NetworkMarketAddress.resolve({
+			$network: baseNetwork,
+			marketAddress: baseMarketAddress,
+		}, context)
+
+		expect(pendleMarketResolver.projections.icon(snapshot)).toBe(undefined)
+	})
+
+	it('fails closed when markets/all omits enrolled details fields', async () => {
+		if (pendleMarketResolver == null)
+			throw new Error('missing PendleMarket resolver')
+
+		const {
+			details: {
+				impliedApy: _impliedApy,
+				...detailsWithoutImpliedApy
+			},
+			...marketWithoutImpliedApy
+		} = baseMarketWire
+		sourceGetJson.mockResolvedValueOnce({
+			total: 1,
+			limit: 100,
+			skip: 0,
+			results: [
+				{
+					...marketWithoutImpliedApy,
+					details: detailsWithoutImpliedApy,
+				},
+			],
+		})
+
+		await expect(
+			pendleMarketResolver.resolve.NetworkMarketAddress.resolve({
+				$network: baseNetwork,
+				marketAddress: baseMarketAddress,
+			}, context)
+		).rejects.toThrow(`${Source.Pendle_Rest}: invalid markets/all response envelope`)
 	})
 
 	it('throws when the market is absent from markets/all', async () => {
