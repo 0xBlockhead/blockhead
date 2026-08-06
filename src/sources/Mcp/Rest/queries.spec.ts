@@ -70,9 +70,7 @@ describe('MCP registry REST queries', () => {
 			'McpPackageRegistry_Rest: invalid server list response envelope'
 		)
 
-		sourceGetJson.mockResolvedValueOnce({
-			server: { name: 'missing fields' },
-		})
+		sourceGetJson.mockResolvedValueOnce({ name: 'missing fields' })
 		await expect(getRegistryServer(binding, 'io.example/server')).rejects.toThrow(
 			'McpPackageRegistry_Rest: invalid server detail response envelope'
 		)
@@ -93,12 +91,12 @@ describe('MCP registry REST queries', () => {
 
 	it('uses the registry version-list and detail paths', async () => {
 		sourceGetJson
-			.mockResolvedValueOnce({ servers: [{ server }] })
-			.mockResolvedValueOnce({ server })
+			.mockResolvedValueOnce({ versions: ['1.0.0'] })
+			.mockResolvedValueOnce(server)
 
-		await getRegistryServerVersions(binding, 'io.example/server', {
+		await expect(getRegistryServerVersions(binding, 'io.example/server', {
 			cursor: 'next',
-		})
+		})).resolves.toEqual({ versions: ['1.0.0'] })
 		await getRegistryServer(binding, 'io.example/server', '1.0.0')
 
 		expect(sourceGetJson).toHaveBeenNthCalledWith(

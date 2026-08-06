@@ -20,7 +20,7 @@ type McpPackage = {
 	environmentVariables?: JsonValue[]
 }
 
-type McpServerDetail = {
+export type McpServerDetail = {
 	name: string
 	description: string
 	version: string
@@ -59,4 +59,8 @@ export type McpRegistryServers = {
 
 export type McpRegistryServerListEnvelope = McpRegistryServers
 
-export type McpRegistryServerDetailEnvelope = McpRegistryServer
+export type McpRegistryServerDetailEnvelope = McpServerDetail
+
+export type McpRegistryServerVersionsEnvelope = {
+	versions: string[]
+}

@@ -4,6 +4,7 @@ import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
 	McpRegistryServerDetailEnvelope,
 	McpRegistryServerListEnvelope,
+	McpRegistryServerVersionsEnvelope,
 } from '$/sources/Mcp/Rest/types.ts'
 import { type } from 'arktype'
 
@@ -34,8 +35,10 @@ const registryServerListEnvelope = type({
 	},
 })
 
-const registryServerDetailEnvelope = type({
-	server: mcpRegistryServerEnvelope,
+const registryServerDetailEnvelope = mcpRegistryServerEnvelope
+
+const registryServerVersionsEnvelope = type({
+	versions: 'string[]',
 })
 
 type RegistryServerListOptions = {
@@ -65,6 +68,17 @@ const assertRegistryServerDetailEnvelope = (
 		registryServerDetailEnvelope.assert(response)
 	} catch {
 		throw new Error('McpPackageRegistry_Rest: invalid server detail response envelope')
+	}
+	return response
+}
+
+const assertRegistryServerVersionsEnvelope = (
+	response: McpRegistryServerVersionsEnvelope
+) => {
+	try {
+		registryServerVersionsEnvelope.assert(response)
+	} catch {
+		throw new Error('McpPackageRegistry_Rest: invalid server versions response envelope')
 	}
 	return response
 }
@@ -124,10 +138,10 @@ export const getRegistryServerVersions = (
 	if (options.updatedSince != null) query.set('updated_since', options.updatedSince)
 	if (options.includeDeleted != null) query.set('include_deleted', String(options.includeDeleted))
 
-	return getJson<McpRegistryServerListEnvelope>(
+	return getJson<McpRegistryServerVersionsEnvelope>(
 		binding,
 		`/${encodeURIComponent(serverName)}/versions${query.size === 0 ? '' : `?${query.toString()}`}`
-	).then(assertRegistryServerListEnvelope)
+	).then(assertRegistryServerVersionsEnvelope)
 }
 
 export const getRegistryServer = (
