@@ -1,8 +1,13 @@
 import { randomBytes } from 'node:crypto'
 
-import { laceDriver } from '../../../../scripts/wallet-extensions/Lace/driver.ts'
+import {
+	laceDriver,
+	laceSidePanelBlockedObservation,
+} from '../../../../scripts/wallet-extensions/Lace/driver.ts'
 import { laceWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/Lace/matrix.ts'
 import {
+	assertWalletMatrixOutcomes,
+	logWalletMatrixResults,
 	runWalletCompatibilityMatrix,
 } from '../../../../scripts/wallet-extensions/WalletCompatibilityMatrix.ts'
 import {
@@ -38,8 +43,8 @@ test('discovers Lace CIP-30 and exercises two ephemeral accounts through Blockhe
 		name: 'lace',
 	})
 
+	const scenarios = laceWalletMatrixScenarios(extension.manifest.version)
 	const password = randomBytes(24).toString('base64url')
-	let sidePanelBlocked = false
 	try {
 		await laceDriver.createAccounts(
 			context,
@@ -48,7 +53,6 @@ test('discovers Lace CIP-30 and exercises two ephemeral accounts through Blockhe
 		)
 	}
 	catch (error) {
-		sidePanelBlocked = true
 		const walletPage = context.pages().find((candidate) => candidate.url().startsWith(`chrome-extension://${extension.id}/`))
 		const controls = JSON.stringify(await walletPage?.locator('button, input').evaluateAll((controls) => controls.map((control) => ({
 			ariaLabel: control.getAttribute('aria-label'),
@@ -60,20 +64,16 @@ test('discovers Lace CIP-30 and exercises two ephemeral accounts through Blockhe
 		const results = await runWalletCompatibilityMatrix({
 			driver: {
 				kind: 'lace',
-				run: async () => ({
-					outcome: 'blocked',
-					evidence: {
-						code: 'lace-side-panel-onboarding-not-executable',
-						detail: `URL: ${walletPage?.url() ?? '<closed>'}. Controls: ${controls}`,
-						source: 'real-extension',
-					},
-				}),
+				run: async (scenario) => laceSidePanelBlockedObservation(scenario),
 			},
-			scenarios: laceWalletMatrixScenarios(extension.manifest.version),
+			scenarios,
 			step: (name, run) => test.step(name, run),
 		})
-		expect(results.every(({ outcome }) => outcome === 'blocked')).toBe(true)
-		console.log(JSON.stringify(results, null, 2))
+		assertWalletMatrixOutcomes(results, ['blocked', 'blocked', 'blocked'], 'lace-side-panel-blocked')
+		logWalletMatrixResults(results, {
+			label: 'lace-side-panel-blocked',
+			expectedOutcomes: ['blocked', 'blocked', 'blocked'],
+		})
 		throw new Error(`Lace 2.2.0 injects window.cardano.lace, but its headed onboarding/account automation is not yet executable. URL: ${walletPage?.url() ?? '<closed>'}. Controls: ${controls}`, {
 			cause: error,
 		})
@@ -117,38 +117,17 @@ test('discovers Lace CIP-30 and exercises two ephemeral accounts through Blockhe
 		exact: true,
 	})).toBeAttached()
 
-	if (!sidePanelBlocked) {
-		const results = await runWalletCompatibilityMatrix({
-			driver: {
-				kind: 'lace',
-				run: async (scenario) => (
-					scenario.initializationFlow === 'recover' ?
-						{
-							outcome: 'blocked',
-							evidence: {
-								code: 'no-safe-fixture-material',
-								source: 'test-environment',
-							},
-						}
-					:
-						{
-							accountAddress: `lace-account-${scenario.accountOrdinal}`,
-							outcome: 'pass',
-							evidence: {
-								code: `lace-${scenario.lifecycleEdgeCase}-verified`,
-								source: 'real-extension',
-							},
-						}
-				),
-			},
-			scenarios: laceWalletMatrixScenarios(extension.manifest.version),
-			step: (name, run) => test.step(name, run),
-		})
-		expect(results.map(({ outcome }) => outcome)).toEqual([
-			'pass',
-			'pass',
-			'blocked',
-		])
-		console.log(JSON.stringify(results, null, 2))
-	}
+	const results = await runWalletCompatibilityMatrix({
+		driver: {
+			kind: 'lace',
+			run: async (scenario) => laceSidePanelBlockedObservation(scenario),
+		},
+		scenarios,
+		step: (name, run) => test.step(name, run),
+	})
+	assertWalletMatrixOutcomes(results, ['blocked', 'blocked', 'blocked'], 'lace-side-panel-declared')
+	logWalletMatrixResults(results, {
+		label: 'lace-side-panel-declared',
+		expectedOutcomes: ['blocked', 'blocked', 'blocked'],
+	})
 })
