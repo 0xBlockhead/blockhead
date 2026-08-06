@@ -31,11 +31,27 @@ vi.mock('$/sources/Arweave/Graphql/queries.ts', () => ({
 
 const arweaveResolvers = (await import('$/resolvers/Arweave-Graphql.ts')).default
 
-const networkResolver = arweaveResolvers.resolvers.find((resolver) => (
+const networkTransactionsResolver = arweaveResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.ArweaveNetwork
+	&& '$$transactions' in resolver.projections
 ))
-const directoryNetworkResolver = arweaveResolvers.resolvers.find((resolver) => (
+const networkBlocksResolver = arweaveResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.ArweaveNetwork
+	&& '$$blocks' in resolver.projections
+))
+const networkTimestampsResolver = arweaveResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.ArweaveNetwork
+	&& '$$timestamps' in resolver.projections
+))
+const directoryNetworkTransactionsResolver = arweaveResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
+	&& 'Arweave' in resolver.projections
+	&& '$$transactions' in resolver.projections.Arweave
+))
+const directoryNetworkBlocksResolver = arweaveResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Arweave' in resolver.projections
+	&& '$$blocks' in resolver.projections.Arweave
 ))
 const transactionResolver = arweaveResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.ArweaveTransaction
@@ -51,8 +67,11 @@ const networkTimestampResolver = arweaveResolvers.resolvers.find((resolver) => (
 ))
 
 if (
-	networkResolver == null
-	|| directoryNetworkResolver == null
+	networkTransactionsResolver == null
+	|| networkBlocksResolver == null
+	|| networkTimestampsResolver == null
+	|| directoryNetworkTransactionsResolver == null
+	|| directoryNetworkBlocksResolver == null
 	|| transactionResolver == null
 	|| blockResolver == null
 	|| resourceResolver == null
@@ -141,22 +160,38 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 	it('materializes the Arweave network hub for the content-address scheme slug', async () => {
 		getTransactionsPage.mockResolvedValueOnce(emptyPage)
 		getBlocksPage.mockResolvedValueOnce(emptyPage)
-		const snapshot = await networkResolver.resolve.Network.resolve(
+		const transactionsSnapshot = await networkTransactionsResolver.resolve.Network.resolve(
 			{
 				$network: network,
 			},
 			context
 		)
-		expect(snapshot).toMatchObject({
+		const blocksSnapshot = await networkBlocksResolver.resolve.Network.resolve(
+			{
+				$network: network,
+			},
+			context
+		)
+		const timestampsSnapshot = await networkTimestampsResolver.resolve.Network.resolve(
+			{
+				$network: network,
+			},
+			context
+		)
+		expect(transactionsSnapshot).toMatchObject({
 			$network: {
 				[EntityMetaKey.Selector]: network,
 			},
 			transactions: emptyPage,
+		})
+		expect(blocksSnapshot).toMatchObject({
 			blocks: emptyPage,
 		})
-		expect(snapshot.timestamps).toHaveLength(1)
+		expect(timestampsSnapshot.timestamps).toHaveLength(1)
+		expect(getTransactionsPage).toHaveBeenCalledTimes(1)
+		expect(getBlocksPage).toHaveBeenCalledTimes(1)
 
-		await expect(networkResolver.resolve.Network.resolve(
+		await expect(networkTransactionsResolver.resolve.Network.resolve(
 			{
 				$network: {
 					slug: 'celestia',
@@ -166,7 +201,7 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 		)).rejects.toThrow('unsupported network')
 	})
 
-	it('maps GraphQL transaction and block pages into network facets', async () => {
+	it('keeps transaction and block continuation cursors on independent hub resolvers', async () => {
 		getTransactionsPage.mockResolvedValueOnce({
 			edges: [
 				{
@@ -195,15 +230,36 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 				hasNextPage: true,
 			},
 		})
-		const snapshot = await networkResolver.resolve.Network.resolve(
+
+		const transactionsSnapshot = await networkTransactionsResolver.resolve.Network.resolve(
 			{
 				$network: network,
 			},
-			context
+			{
+				...context,
+				providerContinuationToken: 'tx-only-cursor',
+			}
+		)
+		const blocksSnapshot = await networkBlocksResolver.resolve.Network.resolve(
+			{
+				$network: network,
+			},
+			{
+				...context,
+				providerContinuationToken: 'block-only-cursor',
+			}
 		)
 
-		expect(networkResolver.projections.$$transactions.select(
-			snapshot,
+		expect(getTransactionsPage).toHaveBeenCalledWith({
+			first: 64,
+			after: 'tx-only-cursor',
+		})
+		expect(getBlocksPage).toHaveBeenCalledWith({
+			first: 64,
+			after: 'block-only-cursor',
+		})
+		expect(networkTransactionsResolver.projections.$$transactions.select(
+			transactionsSnapshot,
 			arweaveNetwork,
 			context
 		)).toEqual([
@@ -233,8 +289,8 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 				},
 			},
 		])
-		expect(networkResolver.projections.$$blocks.select(
-			snapshot,
+		expect(networkBlocksResolver.projections.$$blocks.select(
+			blocksSnapshot,
 			arweaveNetwork,
 			context
 		)).toEqual([
@@ -250,8 +306,8 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 				},
 			},
 		])
-		expect(networkResolver.projections.$$resources.select(
-			snapshot,
+		expect(networkTransactionsResolver.projections.$$resources.select(
+			transactionsSnapshot,
 			arweaveNetwork,
 			context
 		)).toEqual([
@@ -271,8 +327,8 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 				},
 			},
 		])
-		expect(networkResolver.projections.$$blocks.continuation(
-			snapshot,
+		expect(networkBlocksResolver.projections.$$blocks.continuation(
+			blocksSnapshot,
 			arweaveNetwork,
 			context
 		)).toEqual({
@@ -296,14 +352,15 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 				hasNextPage: false,
 			},
 		})
-		const snapshot = await directoryNetworkResolver.resolve.Slug.resolve(network, context)
-		expect(directoryNetworkResolver.projections.Arweave.$$blocks.select(
-			snapshot,
+		const transactionsSnapshot = await directoryNetworkTransactionsResolver.resolve.Slug.resolve(network, context)
+		const blocksSnapshot = await directoryNetworkBlocksResolver.resolve.Slug.resolve(network, context)
+		expect(directoryNetworkBlocksResolver.projections.Arweave.$$blocks.select(
+			blocksSnapshot,
 			network,
 			context
 		)).toHaveLength(1)
-		expect(directoryNetworkResolver.projections.Arweave.$$resources.select(
-			snapshot,
+		expect(directoryNetworkTransactionsResolver.projections.Arweave.$$resources.select(
+			transactionsSnapshot,
 			network,
 			context
 		)).toEqual([])

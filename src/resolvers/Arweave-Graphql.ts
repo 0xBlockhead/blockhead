@@ -307,28 +307,83 @@ export default {
 						assertArweaveNetwork($network)
 						const queries = await import('$/sources/Arweave/Graphql/queries.ts')
 						const first = Math.min(resolverContextRowLimit(context), 100)
-						const emptyPage = {
-							edges: [],
-							pageInfo: {
-								hasNextPage: false,
-							},
-						}
-						const [transactions, blocks] = await Promise.all([
-							first === 0 ? emptyPage : queries.getTransactionsPage({
-								first,
-								after: context.providerContinuationToken,
-							}),
-							first === 0 ? emptyPage : queries.getBlocksPage({
-								first,
-								after: context.providerContinuationToken,
-							}),
-						])
+						const transactions = (
+							first === 0 ?
+								{
+									edges: [],
+									pageInfo: {
+										hasNextPage: false,
+									},
+								}
+							:
+								await queries.getTransactionsPage({
+									first,
+									after: context.providerContinuationToken,
+								})
+						)
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
 							},
 							transactions,
+						}
+					},
+				},
+			},
+		})({
+			$network: (network) => network.$network,
+			$$transactions: {
+				select: (snapshot, network) => transactionEdgeRows(network.$network, snapshot.transactions),
+				continuation: (snapshot) => transactionPageContinuation(snapshot.transactions, 'transactions'),
+			},
+			$$resources: {
+				select: (snapshot, network) => resourceRowsFromTransactionPage(network.$network, snapshot.transactions),
+				continuation: (snapshot) => transactionPageContinuation(snapshot.transactions, 'resources'),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.ArweaveNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }, context) => {
+						assertArweaveNetwork($network)
+						const queries = await import('$/sources/Arweave/Graphql/queries.ts')
+						const first = Math.min(resolverContextRowLimit(context), 100)
+						const blocks = (
+							first === 0 ?
+								{
+									edges: [],
+									pageInfo: {
+										hasNextPage: false,
+									},
+								}
+							:
+								await queries.getBlocksPage({
+									first,
+									after: context.providerContinuationToken,
+								})
+						)
+						return {
 							blocks,
+						}
+					},
+				},
+			},
+		})({
+			$$blocks: {
+				select: (snapshot, network) => blockEdgeRows(network.$network, snapshot.blocks),
+				continuation: (snapshot) => blockPageContinuation(snapshot.blocks),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.ArweaveNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }) => {
+						assertArweaveNetwork($network)
+						return {
 							timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$network: {
@@ -343,19 +398,6 @@ export default {
 				},
 			},
 		})({
-			$network: (network) => network.$network,
-			$$transactions: {
-				select: (snapshot, network) => transactionEdgeRows(network.$network, snapshot.transactions),
-				continuation: (snapshot) => transactionPageContinuation(snapshot.transactions, 'transactions'),
-			},
-			$$blocks: {
-				select: (snapshot, network) => blockEdgeRows(network.$network, snapshot.blocks),
-				continuation: (snapshot) => blockPageContinuation(snapshot.blocks),
-			},
-			$$resources: {
-				select: (snapshot, network) => resourceRowsFromTransactionPage(network.$network, snapshot.transactions),
-				continuation: (snapshot) => transactionPageContinuation(snapshot.transactions, 'resources'),
-			},
 			$$timestamps: (snapshot) => snapshot.timestamps,
 		}),
 
@@ -370,25 +412,89 @@ export default {
 						assertArweaveNetwork(network)
 						const queries = await import('$/sources/Arweave/Graphql/queries.ts')
 						const first = Math.min(resolverContextRowLimit(context), 100)
-						const emptyPage = {
-							edges: [],
-							pageInfo: {
-								hasNextPage: false,
-							},
-						}
-						const [transactions, blocks] = await Promise.all([
-							first === 0 ? emptyPage : queries.getTransactionsPage({
-								first,
-								after: context.providerContinuationToken,
-							}),
-							first === 0 ? emptyPage : queries.getBlocksPage({
-								first,
-								after: context.providerContinuationToken,
-							}),
-						])
+						const transactions = (
+							first === 0 ?
+								{
+									edges: [],
+									pageInfo: {
+										hasNextPage: false,
+									},
+								}
+							:
+								await queries.getTransactionsPage({
+									first,
+									after: context.providerContinuationToken,
+								})
+						)
 						return {
 							transactions,
+						}
+					},
+				},
+			},
+		})({
+			Arweave: {
+				$$transactions: {
+					select: (snapshot, network) => transactionEdgeRows(network, snapshot.transactions),
+					continuation: (snapshot) => transactionPageContinuation(snapshot.transactions, 'transactions'),
+				},
+				$$resources: {
+					select: (snapshot, network) => resourceRowsFromTransactionPage(network, snapshot.transactions),
+					continuation: (snapshot) => transactionPageContinuation(snapshot.transactions, 'resources'),
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					appliesTo: [
+						arweaveSlugNetwork,
+					],
+					resolve: async (network, context) => {
+						assertArweaveNetwork(network)
+						const queries = await import('$/sources/Arweave/Graphql/queries.ts')
+						const first = Math.min(resolverContextRowLimit(context), 100)
+						const blocks = (
+							first === 0 ?
+								{
+									edges: [],
+									pageInfo: {
+										hasNextPage: false,
+									},
+								}
+							:
+								await queries.getBlocksPage({
+									first,
+									after: context.providerContinuationToken,
+								})
+						)
+						return {
 							blocks,
+						}
+					},
+				},
+			},
+		})({
+			Arweave: {
+				$$blocks: {
+					select: (snapshot, network) => blockEdgeRows(network, snapshot.blocks),
+					continuation: (snapshot) => blockPageContinuation(snapshot.blocks),
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					appliesTo: [
+						arweaveSlugNetwork,
+					],
+					resolve: async (network) => {
+						assertArweaveNetwork(network)
+						return {
 							timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$network: {
@@ -404,18 +510,6 @@ export default {
 			},
 		})({
 			Arweave: {
-				$$transactions: {
-					select: (snapshot, network) => transactionEdgeRows(network, snapshot.transactions),
-					continuation: (snapshot) => transactionPageContinuation(snapshot.transactions, 'transactions'),
-				},
-				$$blocks: {
-					select: (snapshot, network) => blockEdgeRows(network, snapshot.blocks),
-					continuation: (snapshot) => blockPageContinuation(snapshot.blocks),
-				},
-				$$resources: {
-					select: (snapshot, network) => resourceRowsFromTransactionPage(network, snapshot.transactions),
-					continuation: (snapshot) => transactionPageContinuation(snapshot.transactions, 'resources'),
-				},
 				$$timestamps: (snapshot) => snapshot.timestamps,
 			},
 		}),
