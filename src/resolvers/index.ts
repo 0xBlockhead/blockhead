@@ -154,6 +154,7 @@ const resolverLoaderEntries = [
 	[Source.Sui, () => import('./Sui.ts')],
 	[Source.Superchain_Github, () => import('./Superchain-Github.ts')],
 	[Source.Swarm_Rest, () => import('./Swarm-Rest.ts')],
+	[Source.TezosDappetizer_Postgres, () => import('./TezosDappetizer-Postgres.ts')],
 	[Source.TheGraph_Graphql, () => import('./Ens-TheGraph.ts')],
 	[Source.ThreeXpl_Rest, () => import('./ThreeXpl-Rest.ts')],
 	[Source.TonApi_Rest, () => import('./TonApi-Rest.ts')],

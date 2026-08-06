@@ -6,6 +6,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -104,7 +105,14 @@
 					emptyText='No Tezos network observations.'
 					open={true}
 					id={`${id}-list`}
-					resource={selection.$$timestamps()}
+					resource={
+						selection
+						.$$timestamps({
+							sources: [
+								Source.Tzkt_Rest,
+							],
+						})()
+					}
 				>
 					{#snippet Item({ item: tezosNetworkTimestamp })}
 						<EntityView
@@ -123,7 +131,15 @@
 					emptyText='No Tezos blocks.'
 					open={true}
 					id={`${id}-list`}
-					resource={selection.$$blocks()}
+					resource={
+						selection
+						.$$blocks({
+							sources: [
+								Source.Tzkt_Rest,
+								Source.TezosDappetizer_Postgres,
+							],
+						})()
+					}
 				>
 					{#snippet Item({ item: tezosBlock })}
 						<EntityView
@@ -142,7 +158,14 @@
 					emptyText='No Tezos operation groups.'
 					open={true}
 					id={`${id}-list`}
-					resource={selection.$$operationGroups()}
+					resource={
+						selection
+						.$$operationGroups({
+							sources: [
+								Source.Tzkt_Rest,
+							],
+						})()
+					}
 				>
 					{#snippet Item({ item: tezosOperationGroup })}
 						<EntityView
@@ -161,7 +184,14 @@
 					emptyText='No Tezos operations.'
 					open={true}
 					id={`${id}-list`}
-					resource={selection.$$operations()}
+					resource={
+						selection
+						.$$operations({
+							sources: [
+								Source.Tzkt_Rest,
+							],
+						})()
+					}
 				>
 					{#snippet Item({ item: tezosOperation })}
 						<EntityView
@@ -206,7 +236,14 @@
 					emptyText='No Tezos accounts.'
 					open={true}
 					id={`${id}-list`}
-					resource={selection.$$accounts()}
+					resource={
+						selection
+						.$$accounts({
+							sources: [
+								Source.Tzkt_Rest,
+							],
+						})()
+					}
 				>
 					{#snippet Item({ item: tezosAccount })}
 						<EntityView
@@ -225,7 +262,15 @@
 					emptyText='No Tezos contracts.'
 					open={true}
 					id={`${id}-list`}
-					resource={selection.$$contracts()}
+					resource={
+						selection
+						.$$contracts({
+							sources: [
+								Source.Tzkt_Rest,
+								Source.TezosDappetizer_Postgres,
+							],
+						})()
+					}
 				>
 					{#snippet Item({ item: tezosContract })}
 						<EntityView
@@ -357,7 +402,15 @@
 					emptyText='No Tezos tokens.'
 					open={true}
 					id={`${id}-list`}
-					resource={selection.$$tokens()}
+					resource={
+						selection
+						.$$tokens({
+							sources: [
+								Source.Tzkt_Rest,
+								Source.TezosDappetizer_Postgres,
+							],
+						})()
+					}
 				>
 					{#snippet Item({ item: tezosToken })}
 						<EntityView
@@ -376,7 +429,15 @@
 					emptyText='No Tezos token transfers.'
 					open={true}
 					id={`${id}-list`}
-					resource={selection.$$tokenTransfers()}
+					resource={
+						selection
+						.$$tokenTransfers({
+							sources: [
+								Source.Tzkt_Rest,
+								Source.TezosDappetizer_Postgres,
+							],
+						})()
+					}
 				>
 					{#snippet Item({ item: tezosTokenTransfer })}
 						<EntityView
