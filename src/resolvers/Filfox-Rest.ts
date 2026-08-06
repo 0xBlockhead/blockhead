@@ -206,16 +206,36 @@ export default {
 				NetworkCid: {
 					resolve: async ({ $network, cid }) => {
 						assertFilecoinMainnet($network)
-						const { getMessage } = await import('$/sources/Filfox/Rest/queries.ts')
-						const message = await getMessage({
-							messageCid: cid,
-						})
+						const {
+							getMessage,
+							getMessageEvents,
+							getMessageSubcalls,
+						} = await import('$/sources/Filfox/Rest/queries.ts')
+						const [
+							message,
+							events,
+							subcalls,
+						] = await Promise.all([
+							getMessage({
+								messageCid: cid,
+							}),
+							getMessageEvents({
+								messageCid: cid,
+							}),
+							getMessageSubcalls({
+								messageCid: cid,
+							}),
+						])
 						const tipsetKey = (
 							message.blocks != null && message.blocks.length > 0 ?
 								message.blocks.join(',')
 							:
 								undefined
 						)
+						const messageSelector = {
+							$network,
+							cid,
+						}
 						return {
 							$from: {
 								[EntityMetaKey.Selector]: {
@@ -244,10 +264,7 @@ export default {
 								&& {
 									$$timestamps: [{
 										[EntityMetaKey.Selector]: {
-											$message: {
-												$network,
-												cid,
-											},
+											$message: messageSelector,
 											timestampMs: message.timestamp * 1000,
 											height: BigInt(message.height),
 											tipsetKey,
@@ -262,10 +279,7 @@ export default {
 								&& {
 									$receipt: {
 										[EntityMetaKey.Selector]: {
-											$message: {
-												$network,
-												cid,
-											},
+											$message: messageSelector,
 											tipsetKey,
 											source: Source.Filfox_Rest,
 										},
@@ -294,6 +308,136 @@ export default {
 									},
 								}
 							),
+							...(message.fee != null && {
+								$fee: {
+									[EntityMetaKey.Selector]: {
+										$message: messageSelector,
+										source: Source.Filfox_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.FilecoinMessageFee, [], 'baseFeeBurn')]: BigInt(message.fee.baseFeeBurn),
+										[entityFieldAddressKey(EntityType.FilecoinMessageFee, [], 'overEstimationBurn')]: BigInt(message.fee.overEstimationBurn),
+										[entityFieldAddressKey(EntityType.FilecoinMessageFee, [], 'minerPenalty')]: BigInt(message.fee.minerPenalty),
+										[entityFieldAddressKey(EntityType.FilecoinMessageFee, [], 'minerTip')]: BigInt(message.fee.minerTip),
+										[entityFieldAddressKey(EntityType.FilecoinMessageFee, [], 'refund')]: BigInt(message.fee.refund),
+									},
+								},
+							}),
+							$$transfers: (message.transfers ?? []).map((transfer, index) => ({
+								[EntityMetaKey.Selector]: {
+									$message: messageSelector,
+									index,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FilecoinMessageTransfer, [], '$from')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											address: transfer.from,
+										},
+									},
+									[entityFieldAddressKey(EntityType.FilecoinMessageTransfer, [], '$to')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											address: transfer.to,
+										},
+									},
+									[entityFieldAddressKey(EntityType.FilecoinMessageTransfer, [], 'valueAttoFil')]: BigInt(transfer.value),
+									[entityFieldAddressKey(EntityType.FilecoinMessageTransfer, [], 'transferType')]: transfer.type,
+								},
+							})),
+							$$tokenTransfers: (message.tokenTransfers ?? []).map((transfer, index) => ({
+								[EntityMetaKey.Selector]: {
+									$message: messageSelector,
+									index,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FilecoinMessageTokenTransfer, [], '$from')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											address: transfer.from,
+										},
+									},
+									[entityFieldAddressKey(EntityType.FilecoinMessageTokenTransfer, [], '$to')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											address: transfer.to,
+										},
+									},
+									[entityFieldAddressKey(EntityType.FilecoinMessageTokenTransfer, [], 'value')]: transfer.value,
+									...(transfer.type != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessageTokenTransfer, [], 'transferType')]: transfer.type,
+									}),
+									...(transfer.token != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessageTokenTransfer, [], 'token')]: transfer.token,
+									}),
+									...(transfer.tokenId != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessageTokenTransfer, [], 'tokenId')]: transfer.tokenId,
+									}),
+									...(transfer.tokenName != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessageTokenTransfer, [], 'tokenName')]: transfer.tokenName,
+									}),
+									...(transfer.tokenSymbol != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessageTokenTransfer, [], 'tokenSymbol')]: transfer.tokenSymbol,
+									}),
+								},
+							})),
+							$$events: events.map((event, index) => ({
+								[EntityMetaKey.Selector]: {
+									$message: messageSelector,
+									index,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FilecoinMessageEvent, [], 'address')]: event.address,
+									...(event.name != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessageEvent, [], 'name')]: event.name,
+									}),
+									[entityFieldAddressKey(EntityType.FilecoinMessageEvent, [], 'data')]: event.data,
+									[entityFieldAddressKey(EntityType.FilecoinMessageEvent, [], 'topics')]: event.topics,
+									...(event.removed != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessageEvent, [], 'removed')]: event.removed,
+									}),
+									...(event.logIndex != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessageEvent, [], 'logIndex')]: event.logIndex,
+									}),
+								},
+							})),
+							$$subcalls: subcalls.map((subcall, index) => ({
+								[EntityMetaKey.Selector]: {
+									$message: messageSelector,
+									index,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], '$from')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											address: subcall.from,
+										},
+									},
+									[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], '$to')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											address: subcall.to,
+										},
+									},
+									[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'valueAttoFil')]: BigInt(subcall.value),
+									[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'method')]: subcall.method,
+									...(subcall.methodNumber != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'methodNumber')]: subcall.methodNumber,
+									}),
+									...(subcall.params != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'params')]: subcall.params,
+									}),
+									...(subcall.receipt != null && {
+										[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'exitCode')]: subcall.receipt.exitCode,
+										...(subcall.receipt.return != null && {
+											[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'returnData')]: subcall.receipt.return,
+										}),
+										...(subcall.receipt.gasUsed != null && {
+											[entityFieldAddressKey(EntityType.FilecoinMessageSubcall, [], 'gasUsed')]: BigInt(subcall.receipt.gasUsed),
+										}),
+									}),
+								},
+							})),
 						}
 					},
 				},
@@ -307,6 +451,11 @@ export default {
 			gasLimit: (snapshot) => snapshot.gasLimit,
 			$$timestamps: (snapshot) => snapshot.$$timestamps ?? [],
 			$receipt: (snapshot) => snapshot.$receipt,
+			$fee: (snapshot) => snapshot.$fee,
+			$$transfers: (snapshot) => snapshot.$$transfers,
+			$$tokenTransfers: (snapshot) => snapshot.$$tokenTransfers,
+			$$events: (snapshot) => snapshot.$$events,
+			$$subcalls: (snapshot) => snapshot.$$subcalls,
 		}),
 
 		defineResolver({
@@ -446,6 +595,49 @@ export default {
 			exitCode: (receipt) => receipt.exitCode,
 			returnData: (receipt) => receipt.returnData,
 			gasUsed: (receipt) => receipt.gasUsed,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinMessageFee,
+			resolve: {
+				MessageSource: {
+					resolve: async ({
+						$message,
+						source,
+					}) => {
+						assertFilecoinMainnet($message.$network)
+						if (source !== Source.Filfox_Rest)
+							throw new Error(`Filfox_Rest: unsupported message fee source ${source}`)
+
+						const { getMessage } = await import('$/sources/Filfox/Rest/queries.ts')
+						const message = await getMessage({
+							messageCid: $message.cid,
+						})
+						if (message.fee == null)
+							throw new Error(`Filfox_Rest: message ${$message.cid} missing fee`)
+
+						return {
+							$message: {
+								[EntityMetaKey.Selector]: $message,
+							},
+							source,
+							baseFeeBurn: BigInt(message.fee.baseFeeBurn),
+							overEstimationBurn: BigInt(message.fee.overEstimationBurn),
+							minerPenalty: BigInt(message.fee.minerPenalty),
+							minerTip: BigInt(message.fee.minerTip),
+							refund: BigInt(message.fee.refund),
+						}
+					},
+				},
+			},
+		})({
+			$message: (fee) => fee.$message,
+			source: (fee) => fee.source,
+			baseFeeBurn: (fee) => fee.baseFeeBurn,
+			overEstimationBurn: (fee) => fee.overEstimationBurn,
+			minerPenalty: (fee) => fee.minerPenalty,
+			minerTip: (fee) => fee.minerTip,
+			refund: (fee) => fee.refund,
 		}),
 
 		defineResolver({

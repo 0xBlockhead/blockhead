@@ -169,6 +169,7 @@ describe('Balancer Rest resolver module', () => {
 			swapFee: '0.00292',
 			totalLiquidity: '11356688.22',
 			totalShares: '78351.308448723247365152',
+			$$aprItems: [],
 		})
 	})
 
@@ -203,6 +204,9 @@ describe('Balancer Rest resolver module', () => {
 			.mockResolvedValueOnce({
 				poolGetPoolsCount: 2355,
 			})
+			.mockResolvedValueOnce({
+				veBalGetVotingList: [],
+			})
 
 		const snapshot = await networkBalancerPoolsResolver.resolve.Caip2.resolve(ethereumNetwork, context)
 		expect(networkBalancerPoolsResolver.projections.Evm.$$balancerPools.select(snapshot)).toEqual([
@@ -214,5 +218,6 @@ describe('Balancer Rest resolver module', () => {
 			},
 		])
 		expect(networkBalancerPoolsResolver.projections.Evm.$$balancerPools.resolveCount(snapshot)).toBe(2355)
+		expect(networkBalancerPoolsResolver.projections.Evm.$$balancerGauges(snapshot)).toEqual([])
 	})
 })

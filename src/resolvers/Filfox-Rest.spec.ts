@@ -10,6 +10,8 @@ const getBlockMessages = vi.hoisted(() => vi.fn())
 const getDeal = vi.hoisted(() => vi.fn())
 const getDeals = vi.hoisted(() => vi.fn())
 const getMessage = vi.hoisted(() => vi.fn())
+const getMessageEvents = vi.hoisted(() => vi.fn())
+const getMessageSubcalls = vi.hoisted(() => vi.fn())
 const getTipset = vi.hoisted(() => vi.fn())
 const getAddress = vi.hoisted(() => vi.fn())
 const getOverview = vi.hoisted(() => vi.fn())
@@ -20,6 +22,8 @@ vi.mock('$/sources/Filfox/Rest/queries.ts', () => ({
 	getDeal,
 	getDeals,
 	getMessage,
+	getMessageEvents,
+	getMessageSubcalls,
 	getTipset,
 	getAddress,
 	getOverview,
@@ -109,6 +113,10 @@ describe('Filfox REST resolvers', () => {
 		getDeal.mockReset()
 		getDeals.mockReset()
 		getMessage.mockReset()
+		getMessageEvents.mockReset()
+		getMessageSubcalls.mockReset()
+		getMessageEvents.mockResolvedValue([])
+		getMessageSubcalls.mockResolvedValue([])
 		getTipset.mockReset()
 		getAddress.mockReset()
 		getOverview.mockReset()
@@ -122,6 +130,7 @@ describe('Filfox REST resolvers', () => {
 			EntityType.FilecoinMessage,
 			EntityType.FilecoinMessage_Timestamp,
 			EntityType.FilecoinMessageReceipt,
+			EntityType.FilecoinMessageFee,
 			EntityType.FilecoinBlock,
 			EntityType.FilecoinMiner,
 			EntityType.FilecoinMiner_Timestamp,
@@ -274,7 +283,44 @@ describe('Filfox REST resolvers', () => {
 				exitCode: 0,
 				gasUsed: 1234,
 			},
+			fee: {
+				baseFeeBurn: '10',
+				overEstimationBurn: '20',
+				minerPenalty: '0',
+				minerTip: '30',
+				refund: '40',
+			},
+			transfers: [{
+				from: 'f1from',
+				to: 'f1to',
+				value: '1000',
+				type: 'transfer',
+			}],
+			tokenTransfers: [{
+				from: 'f1from',
+				to: 'f1to',
+				value: '5',
+				tokenSymbol: 'USDFC',
+			}],
 		})
+		getMessageEvents.mockResolvedValueOnce([{
+			address: '0xabc',
+			data: '0x',
+			topics: [
+				'0x1',
+			],
+			logIndex: 0,
+		}])
+		getMessageSubcalls.mockResolvedValueOnce([{
+			from: 'f1from',
+			to: 'f1to',
+			value: '0',
+			method: 'InvokeEVM',
+			methodNumber: 3844450837,
+			receipt: {
+				exitCode: 0,
+			},
+		}])
 
 		const snapshot = await messageResolver.resolve.NetworkCid.resolve({
 			$network: network,
@@ -332,6 +378,26 @@ describe('Filfox REST resolvers', () => {
 				[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'blockCid')]: 'bafy-a',
 			},
 		})
+		expect(messageResolver.projections.$fee(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$message: {
+					$network: network,
+					cid: 'bafy-msg',
+				},
+				source: Source.Filfox_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FilecoinMessageFee, [], 'baseFeeBurn')]: 10n,
+				[entityFieldAddressKey(EntityType.FilecoinMessageFee, [], 'overEstimationBurn')]: 20n,
+				[entityFieldAddressKey(EntityType.FilecoinMessageFee, [], 'minerPenalty')]: 0n,
+				[entityFieldAddressKey(EntityType.FilecoinMessageFee, [], 'minerTip')]: 30n,
+				[entityFieldAddressKey(EntityType.FilecoinMessageFee, [], 'refund')]: 40n,
+			},
+		})
+		expect(messageResolver.projections.$$transfers(snapshot)).toHaveLength(1)
+		expect(messageResolver.projections.$$tokenTransfers(snapshot)).toHaveLength(1)
+		expect(messageResolver.projections.$$events(snapshot)).toHaveLength(1)
+		expect(messageResolver.projections.$$subcalls(snapshot)).toHaveLength(1)
 	})
 
 	it('omits $$timestamps when Filfox message lacks inclusion clocks', async () => {

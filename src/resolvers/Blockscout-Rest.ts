@@ -2162,6 +2162,46 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			resolve: {
+				EvmNetworkEvmAccount: {
+					resolve: async ({ $actor, $network }) => {
+						const { getAddressTokenBalances } = await import('$/sources/Blockscout/Rest/queries.ts')
+						const address = hexLowerOfByteSize($actor.address, 20)
+						if (address == null)
+							throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
+
+						const balances = await getAddressTokenBalances({
+							chainId: evmChainIdFromNetworkSelector($network),
+							address,
+						})
+						return balances.flatMap((balance) => {
+							if (balance.token == null)
+								return []
+							const tokenType = balance.token.type
+							if (tokenType !== 'ERC-20' && tokenType !== 'ERC-404')
+								return []
+							const contractAddress = hexLowerOfByteSize(balance.token.address_hash, 20)
+							if (contractAddress == null)
+								return []
+							return [{
+								[EntityMetaKey.Selector]: {
+									$actor,
+									$contract: {
+										$network,
+										address: contractAddress,
+									},
+								},
+							}]
+						})
+					},
+				},
+			},
+		})({
+			$$ownedCoins: (ownedCoins) => ownedCoins,
+		}),
+
+		defineResolver({
 			entityType: EntityType.EvmBlock,
 			resolve: {
 				EvmNetworkBlockNumber: {

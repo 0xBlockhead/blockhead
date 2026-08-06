@@ -4,15 +4,24 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import type { BalancerPool } from '$/sources/Balancer/Rest/types.ts'
+import type {
+	BalancerAccountPoolBalance,
+	BalancerPool,
+	BalancerVotingGauge,
+} from '$/sources/Balancer/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type BalancerPoolId = EntitySelector<typeof schema, EntityType.BalancerPool>
+type BalancerGaugeId = EntitySelector<typeof schema, EntityType.BalancerGauge>
+type BalancerAccountPoolBalanceId = EntitySelector<typeof schema, EntityType.BalancerAccountPoolBalance>
+type BalancerVeBalBalanceId = EntitySelector<typeof schema, EntityType.BalancerVeBalBalance>
+type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -25,23 +34,127 @@ const eip155ChainId = (network: NetworkId) => {
 	return chainId
 }
 
+const accountAddress = (account: EvmNetworkAccountId) => {
+	const address = account.$actor.address
+	if (address.length < 1)
+		throw new Error(`${Source.Balancer_Rest}: account address missing`)
+	return address
+}
+
 const mapBalancerPoolSnapshot = (
 	network: NetworkId,
 	pool: BalancerPool
+) => {
+	const poolSelector = {
+		$network: network,
+		poolId: pool.id,
+	}
+	return {
+		$network: {
+			[EntityMetaKey.Selector]: network,
+		},
+		poolId: pool.id,
+		address: pool.address,
+		name: pool.name,
+		poolType: pool.type,
+		version: pool.version,
+		protocolVersion: pool.protocolVersion,
+		vaultAddress: pool.vaultAddress,
+		swapFee: pool.swapFee,
+		totalLiquidity: pool.totalLiquidity,
+		totalShares: pool.totalShares,
+		...(pool.gaugeAddress != null && {
+			$gauge: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					gaugeAddress: pool.gaugeAddress,
+				},
+				[EntityMetaKey.Fields]: {
+					...(pool.gaugeVersion != null && {
+						[entityFieldAddressKey(EntityType.BalancerGauge, [], 'version')]: pool.gaugeVersion,
+					}),
+					[entityFieldAddressKey(EntityType.BalancerGauge, [], '$pool')]: {
+						[EntityMetaKey.Selector]: poolSelector,
+					},
+				},
+			},
+		}),
+		$$aprItems: pool.aprItems.map((item) => ({
+			[EntityMetaKey.Selector]: {
+				$pool: poolSelector,
+				title: item.title,
+				aprType: item.type,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.BalancerPoolAprItem, [], 'apr')]: item.apr,
+			},
+		})),
+	}
+}
+
+const mapVotingGaugeSnapshot = (
+	gauge: BalancerVotingGauge
+) => {
+	const network = {
+		caip2: {
+			namespace: 'eip155' as const,
+			reference: String(gauge.chainId),
+		},
+	}
+	return {
+		$network: {
+			[EntityMetaKey.Selector]: network,
+		},
+		gaugeAddress: gauge.gaugeAddress,
+		$pool: {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				poolId: gauge.poolId,
+			},
+		},
+		isKilled: gauge.isKilled,
+		poolSymbol: gauge.symbol,
+		poolType: gauge.poolType,
+		protocolVersion: gauge.protocolVersion,
+		...(gauge.relativeWeightCap != null && {
+			relativeWeightCap: gauge.relativeWeightCap,
+		}),
+	}
+}
+
+const mapAccountPoolBalanceSnapshot = (
+	account: EvmNetworkAccountId,
+	balance: BalancerAccountPoolBalance
 ) => ({
-	$network: {
-		[EntityMetaKey.Selector]: network,
+	$account: {
+		[EntityMetaKey.Selector]: account,
 	},
-	poolId: pool.id,
-	address: pool.address,
-	name: pool.name,
-	poolType: pool.type,
-	version: pool.version,
-	protocolVersion: pool.protocolVersion,
-	vaultAddress: pool.vaultAddress,
-	swapFee: pool.swapFee,
-	totalLiquidity: pool.totalLiquidity,
-	totalShares: pool.totalShares,
+	$pool: {
+		[EntityMetaKey.Selector]: {
+			$network: account.$network,
+			poolId: balance.poolId,
+		},
+	},
+	totalBalance: balance.totalBalance,
+	totalBalanceUsd: balance.totalBalanceUsd,
+	walletBalance: balance.walletBalance,
+	walletBalanceUsd: balance.walletBalanceUsd,
+	...(balance.gaugeAddress != null && {
+		$gauge: {
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				gaugeAddress: balance.gaugeAddress,
+			},
+			...(balance.gaugeVersion != null && {
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BalancerGauge, [], 'version')]: balance.gaugeVersion,
+				},
+			}),
+		},
+	}),
+	...(balance.stakingType != null && {
+		stakingType: balance.stakingType,
+	}),
 })
 
 export default {
@@ -84,6 +197,250 @@ export default {
 			swapFee: (pool) => pool.swapFee,
 			totalLiquidity: (pool) => pool.totalLiquidity,
 			totalShares: (pool) => pool.totalShares,
+			$gauge: (pool) => pool.$gauge,
+			$$aprItems: (pool) => pool.$$aprItems,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BalancerPoolAprItem,
+			resolve: {
+				PoolTitleAprType: {
+					resolve: async ({
+						$pool,
+						title,
+						aprType,
+					}) => {
+						const chainId = eip155ChainId($pool.$network)
+						const { balancerChainByChainId } = await import('$/sources/Balancer/Rest/constants.ts')
+						if (balancerChainByChainId[chainId] == null)
+							throw new Error(`${Source.Balancer_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const { getPool } = await import('$/sources/Balancer/Rest/queries.ts')
+						const pool = await getPool({
+							chainId,
+							poolId: $pool.poolId,
+						})
+						const item = pool.aprItems.find((candidate) => (
+							candidate.title === title
+							&& candidate.type === aprType
+						))
+						if (item == null)
+							throw new Error(`${Source.Balancer_Rest}: APR item not found ${title}/${aprType}`)
+
+						return {
+							$pool: {
+								[EntityMetaKey.Selector]: $pool,
+							},
+							title: item.title,
+							aprType: item.type,
+							apr: item.apr,
+						}
+					},
+				},
+			},
+		})({
+			$pool: (item) => item.$pool,
+			title: (item) => item.title,
+			aprType: (item) => item.aprType,
+			apr: (item) => item.apr,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BalancerGauge,
+			resolve: {
+				NetworkGaugeAddress: {
+					resolve: async ({
+						$network,
+						gaugeAddress,
+					}: BalancerGaugeId) => {
+						const chainId = eip155ChainId($network)
+						const { balancerChainByChainId } = await import('$/sources/Balancer/Rest/constants.ts')
+						if (balancerChainByChainId[chainId] == null)
+							throw new Error(`${Source.Balancer_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const { listVotingGauges } = await import('$/sources/Balancer/Rest/queries.ts')
+						const gauge = (await listVotingGauges({
+							includeKilled: true,
+						})).find((candidate) => (
+							candidate.chainId === chainId
+							&& candidate.gaugeAddress === gaugeAddress
+						))
+						if (gauge == null)
+							throw new Error(`${Source.Balancer_Rest}: voting gauge not found ${gaugeAddress} on chain ${String(chainId)}`)
+
+						return mapVotingGaugeSnapshot(gauge)
+					},
+				},
+			},
+		})({
+			$network: (gauge) => gauge.$network,
+			gaugeAddress: (gauge) => gauge.gaugeAddress,
+			$pool: (gauge) => gauge.$pool,
+			isKilled: (gauge) => gauge.isKilled,
+			relativeWeightCap: (gauge) => gauge.relativeWeightCap,
+			poolSymbol: (gauge) => gauge.poolSymbol,
+			poolType: (gauge) => gauge.poolType,
+			protocolVersion: (gauge) => gauge.protocolVersion,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BalancerAccountPoolBalance,
+			resolve: {
+				AccountPool: {
+					resolve: async ({
+						$account,
+						$pool,
+					}: BalancerAccountPoolBalanceId, context) => {
+						const chainId = eip155ChainId($account.$network)
+						if (eip155ChainId($pool.$network) !== chainId)
+							throw new Error(`${Source.Balancer_Rest}: account and pool networks must match`)
+
+						const { balancerChainByChainId } = await import('$/sources/Balancer/Rest/constants.ts')
+						if (balancerChainByChainId[chainId] == null)
+							throw new Error(`${Source.Balancer_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const { getAccountPoolBalances } = await import('$/sources/Balancer/Rest/queries.ts')
+						const balance = (await getAccountPoolBalances({
+							chainId,
+							account: accountAddress($account),
+							limit: resolverContextRowLimit(context),
+						})).find((candidate) => candidate.poolId === $pool.poolId)
+						if (balance == null)
+							throw new Error(`${Source.Balancer_Rest}: account pool balance not found for ${$pool.poolId}`)
+
+						return mapAccountPoolBalanceSnapshot($account, balance)
+					},
+				},
+			},
+		})({
+			$account: (balance) => balance.$account,
+			$pool: (balance) => balance.$pool,
+			totalBalance: (balance) => balance.totalBalance,
+			totalBalanceUsd: (balance) => balance.totalBalanceUsd,
+			walletBalance: (balance) => balance.walletBalance,
+			walletBalanceUsd: (balance) => balance.walletBalanceUsd,
+			$gauge: (balance) => balance.$gauge,
+			stakingType: (balance) => balance.stakingType,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BalancerVeBalBalance,
+			resolve: {
+				Account: {
+					resolve: async ({
+						$account,
+					}: BalancerVeBalBalanceId) => {
+						const chainId = eip155ChainId($account.$network)
+						const { balancerChainByChainId } = await import('$/sources/Balancer/Rest/constants.ts')
+						if (balancerChainByChainId[chainId] == null)
+							throw new Error(`${Source.Balancer_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const { getVeBalUser } = await import('$/sources/Balancer/Rest/queries.ts')
+						const veBal = await getVeBalUser({
+							chainId,
+							account: accountAddress($account),
+						})
+						return {
+							$account: {
+								[EntityMetaKey.Selector]: $account,
+							},
+							balance: veBal.balance,
+							locked: veBal.locked,
+							lockedUsd: veBal.lockedUsd,
+							...(veBal.rank != null && {
+								rank: veBal.rank,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$account: (veBal) => veBal.$account,
+			balance: (veBal) => veBal.balance,
+			locked: (veBal) => veBal.locked,
+			lockedUsd: (veBal) => veBal.lockedUsd,
+			rank: (veBal) => veBal.rank,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetworkAccount,
+			resolve: {
+				EvmNetworkEvmAccount: {
+					resolve: async ({
+						$actor,
+						$network,
+					}: EvmNetworkAccountId, context) => {
+						const chainId = eip155ChainId($network)
+						const { balancerChainByChainId } = await import('$/sources/Balancer/Rest/constants.ts')
+						if (balancerChainByChainId[chainId] == null)
+							throw new Error(`${Source.Balancer_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const account = {
+							$network,
+							$actor,
+						}
+						const {
+							getAccountPoolBalances,
+							getVeBalUser,
+						} = await import('$/sources/Balancer/Rest/queries.ts')
+						const balances = await getAccountPoolBalances({
+							chainId,
+							account: $actor.address,
+							limit: resolverContextRowLimit(context),
+						})
+						const veBal = await getVeBalUser({
+							chainId,
+							account: $actor.address,
+						}).catch(() => undefined)
+						return {
+							$$balancerPoolBalances: balances.map((balance) => ({
+								[EntityMetaKey.Selector]: {
+									$account: account,
+									$pool: {
+										$network,
+										poolId: balance.poolId,
+									},
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.BalancerAccountPoolBalance, [], 'totalBalance')]: balance.totalBalance,
+									[entityFieldAddressKey(EntityType.BalancerAccountPoolBalance, [], 'totalBalanceUsd')]: balance.totalBalanceUsd,
+									[entityFieldAddressKey(EntityType.BalancerAccountPoolBalance, [], 'walletBalance')]: balance.walletBalance,
+									[entityFieldAddressKey(EntityType.BalancerAccountPoolBalance, [], 'walletBalanceUsd')]: balance.walletBalanceUsd,
+									...(balance.stakingType != null && {
+										[entityFieldAddressKey(EntityType.BalancerAccountPoolBalance, [], 'stakingType')]: balance.stakingType,
+									}),
+									...(balance.gaugeAddress != null && {
+										[entityFieldAddressKey(EntityType.BalancerAccountPoolBalance, [], '$gauge')]: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												gaugeAddress: balance.gaugeAddress,
+											},
+										},
+									}),
+								},
+							})),
+							...(veBal != null && {
+								$veBal: {
+									[EntityMetaKey.Selector]: {
+										$account: account,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.BalancerVeBalBalance, [], 'balance')]: veBal.balance,
+										[entityFieldAddressKey(EntityType.BalancerVeBalBalance, [], 'locked')]: veBal.locked,
+										[entityFieldAddressKey(EntityType.BalancerVeBalBalance, [], 'lockedUsd')]: veBal.lockedUsd,
+										...(veBal.rank != null && {
+											[entityFieldAddressKey(EntityType.BalancerVeBalBalance, [], 'rank')]: veBal.rank,
+										}),
+									},
+								},
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$balancerPoolBalances: (snapshot) => snapshot.$$balancerPoolBalances,
+			$veBal: (snapshot) => snapshot.$veBal,
 		}),
 
 		defineResolver({
@@ -99,6 +456,7 @@ export default {
 						const {
 							getPoolsCount,
 							listPools,
+							listVotingGauges,
 						} = await import('$/sources/Balancer/Rest/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						const pools = await listPools({
@@ -108,6 +466,11 @@ export default {
 						const poolCount = await getPoolsCount({
 							chainId,
 						})
+						const gauges = (await listVotingGauges({
+							includeKilled: false,
+						}))
+							.filter((gauge) => gauge.chainId === chainId)
+							.slice(0, limit)
 						return {
 							pools: pools.map((pool) => ({
 								[EntityMetaKey.Selector]: {
@@ -116,6 +479,27 @@ export default {
 								},
 							})),
 							poolCount,
+							gauges: gauges.map((gauge) => ({
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									gaugeAddress: gauge.gaugeAddress,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.BalancerGauge, [], '$pool')]: {
+										[EntityMetaKey.Selector]: {
+											$network: network,
+											poolId: gauge.poolId,
+										},
+									},
+									[entityFieldAddressKey(EntityType.BalancerGauge, [], 'isKilled')]: gauge.isKilled,
+									[entityFieldAddressKey(EntityType.BalancerGauge, [], 'poolSymbol')]: gauge.symbol,
+									[entityFieldAddressKey(EntityType.BalancerGauge, [], 'poolType')]: gauge.poolType,
+									[entityFieldAddressKey(EntityType.BalancerGauge, [], 'protocolVersion')]: gauge.protocolVersion,
+									...(gauge.relativeWeightCap != null && {
+										[entityFieldAddressKey(EntityType.BalancerGauge, [], 'relativeWeightCap')]: gauge.relativeWeightCap,
+									}),
+								},
+							})),
 						}
 					},
 				},
@@ -126,6 +510,7 @@ export default {
 					select: (snapshot) => snapshot.pools,
 					resolveCount: (snapshot) => snapshot.poolCount,
 				},
+				$$balancerGauges: (snapshot) => snapshot.gauges,
 			},
 		}),
 	],
