@@ -5,6 +5,7 @@ import {
 } from '../ecosystems.ts'
 
 
+// Headed Connect / sign chrome is mapped through popup.html (see isTahoPopupPageUrl).
 // Account 2 Add Wallet opens a blank tab on Taho 0.66.0; recover has no safe fixture.
 // Keep those cells explicitly blocked — do not invent pass outcomes for blank-add-wallet / recover.
 export const tahoWalletMatrixScenarios = (version: string) => ([

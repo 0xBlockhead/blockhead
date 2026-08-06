@@ -8,9 +8,18 @@ import {
 import {
 	ambireBlockedObservation,
 	ambireDriver,
+	isAmbireRequestWindowPageUrl,
 } from './driver.ts'
 import { ambireWalletMatrixScenarios } from './matrix.ts'
 
+
+test('maps headed Connect chrome to Ambire request-window.html URLs', () => {
+	const extensionId = 'ehgjhhccekheigondknlnekfhejhcdbf'
+	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://${extensionId}/request-window.html`, extensionId), true)
+	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://${extensionId}/request-window.html#/`, extensionId), true)
+	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://${extensionId}/tab.html`, extensionId), false)
+	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://other/request-window.html`, extensionId), false)
+})
 
 test('keeps the Ambire account lifecycle shard free of invented recover passes', () => {
 	assert.equal(ambireDriver.kind, 'ambire')

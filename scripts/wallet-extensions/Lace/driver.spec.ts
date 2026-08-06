@@ -6,11 +6,20 @@ import {
 	runWalletCompatibilityMatrix,
 } from '../WalletCompatibilityMatrix.ts'
 import {
+	isLaceExpoPageUrl,
 	laceDriver,
 	laceSidePanelBlockedObservation,
 } from './driver.ts'
 import { laceWalletMatrixScenarios } from './matrix.ts'
 
+
+test('maps headed CIP-30 Connect chrome to Lace expo/index.html URLs', () => {
+	const extensionId = 'gafhhkghbfjjkeiendhlofajokpaflmk'
+	assert.equal(isLaceExpoPageUrl(`chrome-extension://${extensionId}/expo/index.html`, extensionId), true)
+	assert.equal(isLaceExpoPageUrl(`chrome-extension://${extensionId}/expo/index.html#/`, extensionId), true)
+	assert.equal(isLaceExpoPageUrl(`chrome-extension://${extensionId}/hw-usb-picker.html`, extensionId), false)
+	assert.equal(isLaceExpoPageUrl(`chrome-extension://other/expo/index.html`, extensionId), false)
+})
 
 test('keeps the Lace account lifecycle shard free of invented side-panel passes', () => {
 	assert.equal(laceDriver.kind, 'lace')

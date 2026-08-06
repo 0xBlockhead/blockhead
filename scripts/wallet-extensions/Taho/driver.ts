@@ -46,6 +46,15 @@ export const tahoDriver = {
 	kind: 'taho',
 } as const
 
+/** Taho Connect / sign chrome surfaces as popup.html (distinct from tab.html onboarding). */
+export const isTahoPopupPageUrl = (
+	url: string,
+	extensionId: string
+) => (
+	url.startsWith(`chrome-extension://${extensionId}/`)
+	&& url.includes('/popup.html')
+)
+
 const clickFirstVisible = async (page: Page, names: RegExp[]) => {
 	const deadline = Date.now() + 15_000
 	while (Date.now() < deadline) {
@@ -210,10 +219,13 @@ export const createTahoWallet = async (page: Page): Promise<TahoAccounts> => {
 }
 
 export const approveTahoConnection = async (context: BrowserContext, extensionId: string) => {
-	const approval = await context.waitForEvent('page', {
-		predicate: (page) => page.url().startsWith(`chrome-extension://${extensionId}/`),
-		timeout: 15_000,
-	})
+	const approval = (
+		context.pages().find((page) => isTahoPopupPageUrl(page.url(), extensionId))
+		?? await context.waitForEvent('page', {
+			predicate: (page) => isTahoPopupPageUrl(page.url(), extensionId),
+			timeout: 15_000,
+		})
+	)
 	await approval.waitForLoadState('domcontentloaded')
 	await clickFirstVisible(approval, [
 		/Connect/i,

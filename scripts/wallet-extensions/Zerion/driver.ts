@@ -47,6 +47,18 @@ export const zerionTurnstileBlockedObservation = (
 	}
 )
 
+/**
+ * Zerion Connect chrome surfaces as hashed popup entrypoints (`popup.<hash>.html`),
+ * not the sidepanel onboarding surface.
+ */
+export const isZerionPopupPageUrl = (
+	url: string,
+	extensionId: string
+) => (
+	url.startsWith(`chrome-extension://${extensionId}/`)
+	&& /\/popup(?:\.[^/?#]+)?\.html(?:$|[?#])/.test(url)
+)
+
 const expectNoTurnstile = async (page: Page) => {
 	await page.waitForTimeout(1_000)
 	if (await page.locator('iframe[src*="turnstile"]').isVisible())
@@ -125,15 +137,26 @@ export const zerionDriver = {
 	) => {
 		const existingRequestPage = context.pages().find((page) => (
 			!previousPages.has(page)
-			&& page.url().startsWith(`chrome-extension://${extension.id}/`)
+			&& isZerionPopupPageUrl(page.url(), extension.id)
 		))
 		if (existingRequestPage)
 			return existingRequestPage
 
 		return context.waitForEvent('page', {
-			predicate: (page) => page.url().startsWith(`chrome-extension://${extension.id}/`),
+			predicate: (page) => (
+				!previousPages.has(page)
+				&& isZerionPopupPageUrl(page.url(), extension.id)
+			),
 			timeout: 30_000,
-		})
+		}).catch(() => (
+			context.waitForEvent('page', {
+				predicate: (page) => (
+					!previousPages.has(page)
+					&& page.url().startsWith(`chrome-extension://${extension.id}/`)
+				),
+				timeout: 30_000,
+			})
+		))
 	},
 	approveConnection: async (page: Page) => {
 		await page.getByRole('button', {

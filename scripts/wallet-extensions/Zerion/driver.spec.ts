@@ -6,11 +6,21 @@ import {
 	runWalletCompatibilityMatrix,
 } from '../WalletCompatibilityMatrix.ts'
 import {
+	isZerionPopupPageUrl,
 	zerionDriver,
 	zerionTurnstileBlockedObservation,
 } from './driver.ts'
 import { zerionWalletMatrixScenarios } from './matrix.ts'
 
+
+test('maps headed Connect chrome to Zerion hashed popup.html URLs', () => {
+	const extensionId = 'klghhnkeealcohjjanjjdaeeggmfmlpl'
+	assert.equal(isZerionPopupPageUrl(`chrome-extension://${extensionId}/popup.8e8f209b.html`, extensionId), true)
+	assert.equal(isZerionPopupPageUrl(`chrome-extension://${extensionId}/popup.8e8f209b.html#/`, extensionId), true)
+	assert.equal(isZerionPopupPageUrl(`chrome-extension://${extensionId}/popup.html`, extensionId), true)
+	assert.equal(isZerionPopupPageUrl(`chrome-extension://${extensionId}/sidepanel.21ca0c41.html`, extensionId), false)
+	assert.equal(isZerionPopupPageUrl(`chrome-extension://other/popup.8e8f209b.html`, extensionId), false)
+})
 
 test('keeps the Zerion account lifecycle shard free of invented Turnstile CAPTCHA passes', () => {
 	assert.equal(zerionDriver.kind, 'zerion')

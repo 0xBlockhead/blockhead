@@ -29,6 +29,15 @@ export const ambireBlockedObservation = (
 	}
 )
 
+/** Ambire Connect / dapp request chrome surfaces as request-window.html. */
+export const isAmbireRequestWindowPageUrl = (
+	url: string,
+	extensionId: string
+) => (
+	url.startsWith(`chrome-extension://${extensionId}/`)
+	&& url.includes('/request-window.html')
+)
+
 export const ambireDriver = {
 	approveConnection: (page) => (
 		page.locator('[data-testid="dapp-connect-button"]').click()
@@ -37,14 +46,30 @@ export const ambireDriver = {
 	open: (context, extension) => (
 		openExtensionPage(context, extension, 'tab.html')
 	),
-	waitForRequest: async (context, extension, previousPages) => (
-		acquireExtensionPage(context, extension, {
-			previousPages,
-		}).then(async (page) => {
-			await page.waitForLoadState('domcontentloaded')
-			return page
-		})
-	),
+	waitForRequest: async (context, extension, previousPages) => {
+		const existingRequestPage = context.pages().find((page) => (
+			!previousPages.has(page)
+			&& isAmbireRequestWindowPageUrl(page.url(), extension.id)
+		))
+		if (existingRequestPage) {
+			await existingRequestPage.waitForLoadState('domcontentloaded')
+			return existingRequestPage
+		}
+
+		const page = await context.waitForEvent('page', {
+			predicate: (candidate) => (
+				!previousPages.has(candidate)
+				&& isAmbireRequestWindowPageUrl(candidate.url(), extension.id)
+			),
+			timeout: 30_000,
+		}).catch(() => (
+			acquireExtensionPage(context, extension, {
+				previousPages,
+			})
+		))
+		await page.waitForLoadState('domcontentloaded')
+		return page
+	},
 	rejectConnection: (page) => (
 		page.getByText('Deny', {
 			exact: true,

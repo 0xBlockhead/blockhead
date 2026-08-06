@@ -44,6 +44,18 @@ export const laceSidePanelBlockedObservation = (
 	}
 )
 
+/**
+ * Lace 2.2.0 CIP-30 Connect chrome surfaces through the expo SPA (`expo/index.html`).
+ * The v1 `dappConnector.html` entrypoint is absent from the pinned package.
+ */
+export const isLaceExpoPageUrl = (
+	url: string,
+	extensionId: string
+) => (
+	url.startsWith(`chrome-extension://${extensionId}/`)
+	&& url.includes('/expo/index.html')
+)
+
 const openSidePanel = (
 	context: BrowserContext,
 	extension: LoadedWalletExtension

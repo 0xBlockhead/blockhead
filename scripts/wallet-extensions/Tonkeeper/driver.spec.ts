@@ -6,11 +6,20 @@ import {
 	runWalletCompatibilityMatrix,
 } from '../WalletCompatibilityMatrix.ts'
 import {
+	isTonkeeperIndexPageUrl,
 	tonkeeperBlockedObservation,
 	tonkeeperDriver,
 } from './driver.ts'
 import { tonkeeperWalletMatrixScenarios } from './matrix.ts'
 
+
+test('maps headed TonConnect chrome to Tonkeeper index.html URLs', () => {
+	const extensionId = 'omaabbefbmiifabbmlbohnckoonlcani'
+	assert.equal(isTonkeeperIndexPageUrl(`chrome-extension://${extensionId}/index.html`, extensionId), true)
+	assert.equal(isTonkeeperIndexPageUrl(`chrome-extension://${extensionId}/index.html#/`, extensionId), true)
+	assert.equal(isTonkeeperIndexPageUrl(`chrome-extension://${extensionId}/background.js`, extensionId), false)
+	assert.equal(isTonkeeperIndexPageUrl(`chrome-extension://other/index.html`, extensionId), false)
+})
 
 test('keeps the Tonkeeper account lifecycle shard free of invented recover passes', () => {
 	assert.equal(tonkeeperDriver.kind, 'tonkeeper')

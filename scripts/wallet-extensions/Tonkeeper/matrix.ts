@@ -5,6 +5,7 @@ import {
 } from '../ecosystems.ts'
 
 
+// Headed TonConnect chrome is mapped through index.html (see isTonkeeperIndexPageUrl).
 // Account 3 recover stays blocked: this shard accepts no safe fixture material.
 // Do not invent a recover pass — keep that cell explicitly blocked until a
 // fixture-backed recovery contract is wired.

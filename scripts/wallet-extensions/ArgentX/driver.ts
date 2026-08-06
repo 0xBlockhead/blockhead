@@ -42,6 +42,15 @@ export const argentXBlockedObservation = (
 	}
 )
 
+/** Argent X Connect chrome surfaces as the SPA index.html window (no separate notification.html). */
+export const isArgentXIndexPageUrl = (
+	url: string,
+	extensionId: string
+) => (
+	url.startsWith(`chrome-extension://${extensionId}/`)
+	&& url.includes('/index.html')
+)
+
 const click = async (
 	page: Page,
 	name: string | RegExp
@@ -107,7 +116,7 @@ export const argentXDriver = {
 	) => {
 		const deadline = Date.now() + 15_000
 		while (Date.now() < deadline) {
-			for (const page of context.pages().filter((page) => page.url().startsWith(`chrome-extension://${extensionId}/`))) {
+			for (const page of context.pages().filter((page) => isArgentXIndexPageUrl(page.url(), extensionId))) {
 				const decisionButton = page.getByRole('button', {
 					name: decision === 'approve' ? /^Connect$/ : /reject|cancel/i,
 				})

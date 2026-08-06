@@ -33,6 +33,15 @@ export const polkadotJsDriver = {
 	kind: 'polkadot-js',
 } as const
 
+/** polkadot-js Connect / authorize chrome surfaces as notification.html. */
+export const isPolkadotJsNotificationPageUrl = (
+	url: string,
+	extensionId: string
+) => (
+	url.startsWith(`chrome-extension://${extensionId}/`)
+	&& url.includes('/notification.html')
+)
+
 const addAccount = async (page: Page, name: string) => {
 	await page.getByText('Create new account', {
 		exact: true,
@@ -88,10 +97,13 @@ export const approvePolkadotJsConnection = async (
 	context: BrowserContext,
 	extensionId: string
 ) => {
-	const approval = await context.waitForEvent('page', {
-		predicate: (page) => page.url().startsWith(`chrome-extension://${extensionId}/notification.html`),
-		timeout: 15_000,
-	})
+	const approval = (
+		context.pages().find((page) => isPolkadotJsNotificationPageUrl(page.url(), extensionId))
+		?? await context.waitForEvent('page', {
+			predicate: (page) => isPolkadotJsNotificationPageUrl(page.url(), extensionId),
+			timeout: 15_000,
+		})
+	)
 	await approval.waitForLoadState('domcontentloaded')
 	await approval.getByText('Select all', {
 		exact: true,

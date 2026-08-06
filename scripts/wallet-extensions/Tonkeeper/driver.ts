@@ -34,6 +34,15 @@ export const tonkeeperBlockedObservation = (
 	}
 )
 
+/** Tonkeeper TonConnect chrome surfaces as the SPA index.html window (no separate notification.html). */
+export const isTonkeeperIndexPageUrl = (
+	url: string,
+	extensionId: string
+) => (
+	url.startsWith(`chrome-extension://${extensionId}/`)
+	&& url.includes('/index.html')
+)
+
 const createWallet = async (
 	page: Page,
 	name: string,
@@ -160,12 +169,27 @@ export const tonkeeperDriver = {
 		context: BrowserContext,
 		extension: LoadedWalletExtension,
 		previousPages: Set<Page>
-	) => (
-		acquireExtensionPage(context, extension, {
-			previousPages,
-			timeoutMs: 60_000,
-		})
-	),
+	) => {
+		const existing = context.pages().find((page) => (
+			!previousPages.has(page)
+			&& isTonkeeperIndexPageUrl(page.url(), extension.id)
+		))
+		if (existing)
+			return Promise.resolve(existing)
+
+		return context.waitForEvent('page', {
+			predicate: (page) => (
+				!previousPages.has(page)
+				&& isTonkeeperIndexPageUrl(page.url(), extension.id)
+			),
+			timeout: 60_000,
+		}).catch(() => (
+			acquireExtensionPage(context, extension, {
+				previousPages,
+				timeoutMs: 60_000,
+			})
+		))
+	},
 	approveConnection: async (page: Page, password: string) => {
 		const connectButton = page.getByRole('button', {
 			name: 'Connect wallet',

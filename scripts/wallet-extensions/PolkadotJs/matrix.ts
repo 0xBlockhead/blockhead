@@ -5,6 +5,7 @@ import {
 } from '../ecosystems.ts'
 
 
+// Headed Connect / authorize chrome is mapped through notification.html (see isPolkadotJsNotificationPageUrl).
 // Account 3 recover is blocked: third initialization flow is not independently available in the shard.
 export const polkadotJsWalletMatrixScenarios = (version: string) => ([
 	{

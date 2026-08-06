@@ -6,11 +6,20 @@ import {
 	runWalletCompatibilityMatrix,
 } from '../WalletCompatibilityMatrix.ts'
 import {
+	isTahoPopupPageUrl,
 	tahoBlockedObservation,
 	tahoDriver,
 } from './driver.ts'
 import { tahoWalletMatrixScenarios } from './matrix.ts'
 
+
+test('maps headed Connect chrome to Taho popup.html URLs', () => {
+	const extensionId = 'eajafomhmkipbjmfmhebemolkcicgfmd'
+	assert.equal(isTahoPopupPageUrl(`chrome-extension://${extensionId}/popup.html`, extensionId), true)
+	assert.equal(isTahoPopupPageUrl(`chrome-extension://${extensionId}/popup.html#/`, extensionId), true)
+	assert.equal(isTahoPopupPageUrl(`chrome-extension://${extensionId}/tab.html#/onboarding`, extensionId), false)
+	assert.equal(isTahoPopupPageUrl(`chrome-extension://other/popup.html`, extensionId), false)
+})
 
 test('keeps the Taho account lifecycle shard free of invented blank-add-wallet / recover passes', () => {
 	assert.equal(tahoDriver.kind, 'taho')

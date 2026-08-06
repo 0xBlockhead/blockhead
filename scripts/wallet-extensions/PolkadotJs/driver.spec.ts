@@ -6,11 +6,20 @@ import {
 	runWalletCompatibilityMatrix,
 } from '../WalletCompatibilityMatrix.ts'
 import {
+	isPolkadotJsNotificationPageUrl,
 	polkadotJsBlockedObservation,
 	polkadotJsDriver,
 } from './driver.ts'
 import { polkadotJsWalletMatrixScenarios } from './matrix.ts'
 
+
+test('maps headed Connect chrome to polkadot-js notification.html URLs', () => {
+	const extensionId = 'mopnmbcafieddcagagdcbnhejhlodfdd'
+	assert.equal(isPolkadotJsNotificationPageUrl(`chrome-extension://${extensionId}/notification.html`, extensionId), true)
+	assert.equal(isPolkadotJsNotificationPageUrl(`chrome-extension://${extensionId}/notification.html#/`, extensionId), true)
+	assert.equal(isPolkadotJsNotificationPageUrl(`chrome-extension://${extensionId}/index.html`, extensionId), false)
+	assert.equal(isPolkadotJsNotificationPageUrl(`chrome-extension://other/notification.html`, extensionId), false)
+})
 
 test('keeps the polkadot-js account lifecycle shard free of invented recover passes', () => {
 	assert.equal(polkadotJsDriver.kind, 'polkadot-js')

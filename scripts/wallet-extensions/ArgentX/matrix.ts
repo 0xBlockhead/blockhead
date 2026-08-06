@@ -5,6 +5,7 @@ import {
 } from '../ecosystems.ts'
 
 
+// Headed Connect chrome is mapped through index.html (see isArgentXIndexPageUrl).
 // Recover has no safe restore fixture; source-available build carries Argent non-commercial license.
 // Keep that cell explicitly blocked — do not invent a recover pass.
 export const argentXWalletMatrixScenarios = (version: string) => ([

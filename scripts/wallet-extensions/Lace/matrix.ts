@@ -5,6 +5,7 @@ import {
 } from '../ecosystems.ts'
 
 
+// Headed CIP-30 Connect chrome is mapped through expo/index.html (see isLaceExpoPageUrl).
 // All three cells stay explicitly blocked: Lace 2.2.0 headed expo side-panel
 // create-new / second-account / recover automation is not reliably executable.
 // Do not invent pass or soft-pass outcomes for these lifecycle edge cases.

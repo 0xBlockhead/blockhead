@@ -5,6 +5,7 @@ import {
 } from '../ecosystems.ts'
 
 
+// Headed Connect chrome is mapped through request-window.html (see isAmbireRequestWindowPageUrl).
 // Recover derivation for a third Ambire signer is blocked in automation (internal HD derivation UI).
 // Keep that cell explicitly blocked — do not invent a recover pass.
 export const ambireWalletMatrixScenarios = (version: string) => ([

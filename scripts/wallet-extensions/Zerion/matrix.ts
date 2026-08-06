@@ -5,6 +5,7 @@ import {
 } from '../ecosystems.ts'
 
 
+// Headed Connect chrome is mapped through hashed popup.<hash>.html (see isZerionPopupPageUrl).
 // Cloudflare Turnstile CAPTCHA blocks unattended Zerion onboarding; completing CAPTCHA is not safe automation.
 export const zerionWalletMatrixScenarios = (version: string) => ([
 	{
