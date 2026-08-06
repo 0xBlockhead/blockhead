@@ -28,3 +28,21 @@ export type BlobWire = CelestiaSchemas['blob_Get_Result']
  * @see https://docs.celestia.org/specs/openrpc-v0.28.4.json
  */
 export type BlobProofWire = CelestiaSchemas['blob_GetProof_Result']
+
+/**
+ * Wire blob list from Celestia Node OpenRPC `blob.GetAll`.
+ * @see https://docs.celestia.org/build/rpc/node-api/
+ */
+export type BlobsWire = CelestiaSchemas['blob_GetAll_Result']
+
+/**
+ * Wire DAS sampling stats from Celestia Node OpenRPC `das.SamplingStats`.
+ * @see https://docs.celestia.org/build/rpc/node-api/
+ */
+export type DasSamplingStatsWire = CelestiaSchemas['das_SamplingStats_Result']
+
+/**
+ * Wire node info from Celestia Node OpenRPC `node.Info` (admin on many public nodes).
+ * @see https://docs.celestia.org/build/rpc/node-api/
+ */
+export type NodeInfoWire = CelestiaSchemas['node_Info_Result']

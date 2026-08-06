@@ -1,0 +1,239 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	defineResolver,
+	type RegisteredSourceResolverModule,
+} from '$/resolvers/defineResolver.ts'
+import {
+	EntityMetaKey,
+	type EntitySelector,
+} from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
+import { Source } from '$/sources/Source.ts'
+
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const assertAvailMainnet = (network: NetworkId) => {
+	if (!('slug' in network) || network.slug !== 'avail')
+		throw new Error('Avail: unsupported network')
+}
+
+export default {
+	source: Source.Avail,
+
+	resolvers: [
+		defineResolver({
+			entityType: EntityType.AvailNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }, context) => {
+						assertAvailMainnet($network)
+						const {
+							getFinalizedHead,
+							getNetworkIdentity,
+						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						await getNetworkIdentity(context.publicEnv)
+						await getFinalizedHead(context.publicEnv)
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$network: {
+										$network,
+									},
+									timestampMs: Date.now(),
+									source: Source.Avail,
+								},
+							},
+						]
+					},
+				},
+			},
+		})({
+			$$timestamps: (timestamps) => timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.AvailNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }, context) => {
+						assertAvailMainnet($network)
+						const limit = resolverContextRowLimit(context)
+						if (limit === 0)
+							return []
+
+						const {
+							getHeader,
+							getBlockHash,
+						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						const tipHash = await getBlockHash(context.publicEnv)
+						const tip = await getHeader(context.publicEnv, tipHash)
+						const tipNumber = tip.blockNumber
+						return Array.from({
+							length: Math.min(Number(tipNumber + 1n), limit),
+						}, (_value, blockOffset) => ({
+							[EntityMetaKey.Selector]: {
+								$network: {
+									$network,
+								},
+								blockNumber: tipNumber - BigInt(blockOffset),
+							},
+						}))
+					},
+				},
+			},
+		})({
+			$$blocks: (blocks) => blocks,
+		}),
+
+		defineResolver({
+			entityType: EntityType.AvailNetwork_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					resolve: async ({
+						$network,
+						timestampMs,
+						source,
+					}, context) => {
+						assertAvailMainnet($network.$network)
+						if (source !== Source.Avail)
+							throw new Error(`Avail: unsupported observation source ${source}`)
+
+						const {
+							getBlockHash,
+							getFinalizedHead,
+							getHeader,
+							getNetworkIdentity,
+							getSystemHealth,
+							getSystemSyncState,
+						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						const publicEnv = context.publicEnv
+						const [
+							identity,
+							latestHash,
+							finalized,
+							health,
+							syncState,
+						] = await Promise.all([
+							getNetworkIdentity(publicEnv),
+							getBlockHash(publicEnv),
+							getFinalizedHead(publicEnv),
+							getSystemHealth(publicEnv),
+							getSystemSyncState(publicEnv),
+						])
+						const latest = await getHeader(publicEnv, latestHash)
+						if (identity.chainName !== 'Avail DA Mainnet')
+							throw new Error('Avail: foreign chain name')
+
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							timestampMs,
+							source,
+							latestBlockNumber: latest.blockNumber,
+							latestBlockHash: latestHash,
+							finalizedBlockNumber: finalized.blockNumber,
+							finalizedBlockHash: finalized.hash,
+							syncing: health.isSyncing || syncState.currentBlock < syncState.highestBlock,
+							health: (
+								health.isSyncing ?
+									'syncing'
+								: health.peers === 0 && health.shouldHavePeers ?
+									'no-peers'
+								:
+									'ok'
+							),
+						}
+					},
+				},
+			},
+		})({
+			$network: (timestamp) => timestamp.$network,
+			timestampMs: (timestamp) => timestamp.timestampMs,
+			source: (timestamp) => timestamp.source,
+			latestBlockNumber: (timestamp) => timestamp.latestBlockNumber,
+			latestBlockHash: (timestamp) => timestamp.latestBlockHash,
+			finalizedBlockNumber: (timestamp) => timestamp.finalizedBlockNumber,
+			finalizedBlockHash: (timestamp) => timestamp.finalizedBlockHash,
+			syncing: (timestamp) => timestamp.syncing,
+			health: (timestamp) => timestamp.health,
+		}),
+
+		defineResolver({
+			entityType: EntityType.AvailBlock,
+			resolve: {
+				NetworkBlockNumber: {
+					resolve: async ({ $network, blockNumber }, context) => {
+						assertAvailMainnet($network.$network)
+						const {
+							getBlock,
+							getHeaderByBlockNumber,
+						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						const header = await getHeaderByBlockNumber(
+							context.publicEnv,
+							blockNumber
+						)
+						const block = await getBlock(
+							context.publicEnv,
+							header.hash
+						)
+						return {
+							blockNumber: header.blockNumber,
+							blockHash: header.hash,
+							parentHash: header.parentHash,
+							stateRoot: header.stateRoot,
+							extrinsicsRoot: header.extrinsicsRoot,
+							extrinsicCount: block.extrinsicCount,
+							...(header.blockNumber > 0n && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										blockNumber: header.blockNumber - 1n,
+									},
+								},
+							}),
+						}
+					},
+				},
+				NetworkBlockHash: {
+					resolve: async ({ $network, blockHash }, context) => {
+						assertAvailMainnet($network.$network)
+						const {
+							getBlock,
+						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						const block = await getBlock(
+							context.publicEnv,
+							blockHash
+						)
+						const resolvedHash = block.hash ?? blockHash.toLowerCase()
+						return {
+							blockNumber: block.blockNumber,
+							blockHash: resolvedHash,
+							parentHash: block.parentHash,
+							stateRoot: block.stateRoot,
+							extrinsicsRoot: block.extrinsicsRoot,
+							extrinsicCount: block.extrinsicCount,
+							...(block.blockNumber > 0n && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										blockNumber: block.blockNumber - 1n,
+									},
+								},
+							}),
+						}
+					},
+				},
+			},
+		})({
+			blockNumber: (block) => block.blockNumber,
+			blockHash: (block) => block.blockHash,
+			parentHash: (block) => block.parentHash,
+			stateRoot: (block) => block.stateRoot,
+			extrinsicsRoot: (block) => block.extrinsicsRoot,
+			extrinsicCount: (block) => block.extrinsicCount,
+			$parent: (block) => block.$parent,
+		}),
+	],
+} satisfies RegisteredSourceResolverModule

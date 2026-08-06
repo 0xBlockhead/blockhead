@@ -24,6 +24,25 @@ const headerWire = arktype({
 	},
 })
 
+const blockWire = arktype({
+	block: {
+		header: headerWire,
+		extrinsics: 'string[]',
+	},
+})
+
+const systemHealthWire = arktype({
+	peers: 'number.integer >= 0',
+	isSyncing: 'boolean',
+	shouldHavePeers: 'boolean',
+})
+
+const systemSyncStateWire = arktype({
+	startingBlock: 'number.integer >= 0',
+	currentBlock: 'number.integer >= 0',
+	highestBlock: 'number.integer >= 0',
+})
+
 const binding = bindings[Source.Avail][0]
 
 const request = <_Result extends JsonValue>(
@@ -104,6 +123,34 @@ export const getNetworkIdentity = async (
 	}
 }
 
+export const getSystemHealth = async (
+	publicEnv: SourcePublicEnv
+) => {
+	const wire = systemHealthWire.assert(await request<JsonValue>(
+		publicEnv,
+		'system_health'
+	))
+	return {
+		peers: wire.peers,
+		isSyncing: wire.isSyncing,
+		shouldHavePeers: wire.shouldHavePeers,
+	}
+}
+
+export const getSystemSyncState = async (
+	publicEnv: SourcePublicEnv
+) => {
+	const wire = systemSyncStateWire.assert(await request<JsonValue>(
+		publicEnv,
+		'system_syncState'
+	))
+	return {
+		startingBlock: BigInt(wire.startingBlock),
+		currentBlock: BigInt(wire.currentBlock),
+		highestBlock: BigInt(wire.highestBlock),
+	}
+}
+
 export const getFinalizedHead = async (
 	publicEnv: SourcePublicEnv
 ) => {
@@ -150,4 +197,45 @@ export const getHeader = async (
 		hash: blockHash,
 		finalized: false,
 	})
+}
+
+export const getBlock = async (
+	publicEnv: SourcePublicEnv,
+	blockHash: string
+) => {
+	assertHash(blockHash, 'block hash')
+	const wire = blockWire.assert(await request<JsonValue>(
+		publicEnv,
+		'chain_getBlock',
+		[blockHash]
+	))
+	const header = headerFromWire({
+		wire: wire.block.header,
+		hash: blockHash,
+		finalized: false,
+	})
+	for (const extrinsic of wire.block.extrinsics)
+		if (!/^0x(?:[0-9a-fA-F]{2})*$/.test(extrinsic))
+			throw new Error('Avail: invalid extrinsic encoding')
+	return {
+		...header,
+		extrinsicCount: wire.block.extrinsics.length,
+		extrinsics: wire.block.extrinsics,
+	}
+}
+
+export const getHeaderByBlockNumber = async (
+	publicEnv: SourcePublicEnv,
+	blockNumber: bigint
+) => {
+	const hash = await getBlockHash(publicEnv, blockNumber)
+	const header = await getHeader(publicEnv, hash)
+	if (header.blockNumber !== blockNumber)
+		throw new Error(`Avail: header block number mismatch ${header.blockNumber} !== ${blockNumber}`)
+	if (header.hash == null)
+		throw new Error('Avail: header missing block hash')
+	return {
+		...header,
+		hash: header.hash,
+	}
 }

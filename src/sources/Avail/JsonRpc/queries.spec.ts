@@ -3,10 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import bindings from '$/sources/Avail/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
+	getBlock,
 	getBlockHash,
 	getFinalizedHead,
 	getHeader,
+	getHeaderByBlockNumber,
 	getNetworkIdentity,
+	getSystemHealth,
+	getSystemSyncState,
 } from '$/sources/Avail/JsonRpc/queries.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 
@@ -140,5 +144,81 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 			blockHash
 		)).rejects.toThrow('invalid block hash')
 		expect(jsonRpc2Mock).not.toHaveBeenCalled()
+	})
+
+	it('loads signed blocks with extrinsic counts and system health', async () => {
+		jsonRpc2Mock
+			.mockResolvedValueOnce({
+				block: {
+					header: headerWire,
+					extrinsics: [
+						'0x00',
+						'0x01',
+					],
+				},
+			})
+		await expect(getBlock(
+			publicEnv,
+			hash
+		)).resolves.toMatchObject({
+			hash,
+			blockNumber: 4_294_967_295n,
+			extrinsicCount: 2,
+		})
+
+		jsonRpc2Mock.mockResolvedValueOnce({
+			peers: 12,
+			isSyncing: false,
+			shouldHavePeers: true,
+		})
+		await expect(getSystemHealth(publicEnv)).resolves.toEqual({
+			peers: 12,
+			isSyncing: false,
+			shouldHavePeers: true,
+		})
+
+		jsonRpc2Mock.mockResolvedValueOnce({
+			startingBlock: 0,
+			currentBlock: 10,
+			highestBlock: 12,
+		})
+		await expect(getSystemSyncState(publicEnv)).resolves.toEqual({
+			startingBlock: 0n,
+			currentBlock: 10n,
+			highestBlock: 12n,
+		})
+	})
+
+	it('resolves headers by block number through hash then header', async () => {
+		jsonRpc2Mock
+			.mockResolvedValueOnce(hash)
+			.mockResolvedValueOnce(headerWire)
+		await expect(getHeaderByBlockNumber(
+			publicEnv,
+			4_294_967_295n
+		)).resolves.toMatchObject({
+			hash,
+			blockNumber: 4_294_967_295n,
+		})
+	})
+
+	it('fails closed on malformed health and block envelopes', async () => {
+		jsonRpc2Mock.mockResolvedValueOnce({
+			peers: -1,
+			isSyncing: false,
+			shouldHavePeers: true,
+		})
+		await expect(getSystemHealth(publicEnv)).rejects.toThrow()
+
+		jsonRpc2Mock.mockResolvedValueOnce({
+			block: {
+				header: headerWire,
+				extrinsics: ['not-hex'],
+			},
+		})
+		await expect(getBlock(
+			publicEnv,
+			hash
+		)).rejects.toThrow('invalid extrinsic encoding')
 	})
 })

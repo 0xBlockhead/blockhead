@@ -14,8 +14,11 @@ import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import bindings from '$/sources/Celestia/bindings.ts'
 import type {
 	BlobProofWire,
+	BlobsWire,
 	BlobWire,
+	DasSamplingStatsWire,
 	ExtendedHeaderWire,
+	NodeInfoWire,
 	SyncStateWire,
 } from '$/sources/Celestia/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
@@ -72,6 +75,28 @@ const blobWire = arktype({
 	commitment: 'string',
 	index: 'number.integer',
 })
+
+const blobsWire = blobWire.array()
+
+const dasSamplingStatsWire = arktype({
+	head_of_sampled_chain: safeUnsignedInteger,
+	head_of_catchup: safeUnsignedInteger,
+	network_head_height: safeUnsignedInteger,
+	'concurrency?': safeUnsignedInteger,
+	catch_up_done: 'boolean',
+	is_running: 'boolean',
+})
+
+const nodeInfoWire = arktype({
+	type: 'number.integer >= 0',
+	api_version: 'string',
+})
+
+const nodeTypeLabelByType = {
+	1: 'bridge',
+	2: 'full',
+	3: 'light',
+} as const
 
 const binding = bindings[Source.CelestiaNode][0]
 
@@ -219,6 +244,53 @@ export const getHeaderByHash = async (
 	return header
 }
 
+const sizeBytesFromBase64 = (data: string) => {
+	const padding = (
+		data.endsWith('==') ?
+			2
+		: data.endsWith('=') ?
+			1
+		:
+			0
+	)
+	return BigInt(((data.length * 3) / 4) - padding)
+}
+
+const blobFromWire = (wire: typeof blobWire.infer) => {
+	if (!namespacePattern.test(wire.namespace))
+		throw new Error('Celestia Node: invalid blob namespace in response')
+	if (!commitmentPattern.test(wire.commitment))
+		throw new Error('Celestia Node: invalid blob commitment in response')
+	if (!base64Pattern.test(wire.data))
+		throw new Error('Celestia Node: invalid blob data')
+
+	return {
+		namespace: wire.namespace,
+		data: wire.data,
+		shareVersion: wire.share_version,
+		commitment: wire.commitment,
+		index: wire.index,
+		sizeBytes: sizeBytesFromBase64(wire.data),
+	}
+}
+
+/**
+ * Normalize enrolled namespace ids into Celestia Node base64 namespaces.
+ * Accepts Node base64 (`…=`) or Celenium-style hex (`versionByte` + 28-byte id).
+ */
+export const namespaceForNodeRpc = (namespaceId: string) => {
+	if (namespacePattern.test(namespaceId))
+		return namespaceId
+	if (!/^[0-9a-fA-F]{58}$/.test(namespaceId))
+		throw new Error('Celestia Node: invalid blob namespace')
+	const bytes = Uint8Array.from(
+		(namespaceId.match(/.{2}/g) ?? []).map((pair) => Number.parseInt(pair, 16))
+	)
+	if (bytes.length !== 29)
+		throw new Error('Celestia Node: invalid blob namespace')
+	return globalThis.btoa(String.fromCharCode(...bytes))
+}
+
 export const getBlob = async ({
 	publicEnv,
 	height,
@@ -231,38 +303,53 @@ export const getBlob = async ({
 	commitment: string
 }) => {
 	assertHeight(height)
-	if (!namespacePattern.test(namespace))
-		throw new Error('Celestia Node: invalid blob namespace')
+	const rpcNamespace = namespaceForNodeRpc(namespace)
 	if (!commitmentPattern.test(commitment))
 		throw new Error('Celestia Node: invalid blob commitment')
 
-	const wire = blobWire.assert(await jsonRpc2<BlobWire>(
+	const blob = blobFromWire(blobWire.assert(await jsonRpc2<BlobWire>(
 		configuredBinding(publicEnv),
 		'blob.Get',
 		[
 			Number(height),
-			namespace,
+			rpcNamespace,
 			commitment,
 		]
-	))
-	if (!namespacePattern.test(wire.namespace))
-		throw new Error('Celestia Node: invalid blob namespace in response')
-	if (!commitmentPattern.test(wire.commitment))
-		throw new Error('Celestia Node: invalid blob commitment in response')
-	if (!base64Pattern.test(wire.data))
-		throw new Error('Celestia Node: invalid blob data')
-	if (wire.namespace !== namespace)
+	)))
+	if (blob.namespace !== rpcNamespace)
 		throw new Error('Celestia Node: blob response has mismatched namespace')
-	if (wire.commitment !== commitment)
+	if (blob.commitment !== commitment)
 		throw new Error('Celestia Node: blob response has mismatched commitment')
 
-	return {
-		namespace: wire.namespace,
-		data: wire.data,
-		shareVersion: wire.share_version,
-		commitment: wire.commitment,
-		index: wire.index,
-	}
+	return blob
+}
+
+export const getBlobsByNamespace = async ({
+	publicEnv,
+	height,
+	namespaces,
+}: {
+	publicEnv: SourcePublicEnv
+	height: bigint
+	namespaces: readonly string[]
+}) => {
+	assertHeight(height)
+	if (namespaces.length === 0)
+		throw new Error('Celestia Node: namespaces required')
+	const rpcNamespaces = namespaces.map((namespace) => namespaceForNodeRpc(namespace))
+	for (const namespace of rpcNamespaces)
+		if (!namespacePattern.test(namespace))
+			throw new Error('Celestia Node: invalid blob namespace')
+
+	const wires = blobsWire.assert(await jsonRpc2<BlobsWire>(
+		configuredBinding(publicEnv),
+		'blob.GetAll',
+		[
+			Number(height),
+			rpcNamespaces,
+		]
+	))
+	return wires.map((wire) => blobFromWire(wire))
 }
 
 export const getBlobProof = async ({
@@ -277,8 +364,7 @@ export const getBlobProof = async ({
 	commitment: string
 }) => {
 	assertHeight(height)
-	if (!namespacePattern.test(namespace))
-		throw new Error('Celestia Node: invalid blob namespace')
+	const rpcNamespace = namespaceForNodeRpc(namespace)
 	if (!commitmentPattern.test(commitment))
 		throw new Error('Celestia Node: invalid blob commitment')
 
@@ -287,7 +373,7 @@ export const getBlobProof = async ({
 		'blob.GetProof',
 		[
 			Number(height),
-			namespace,
+			rpcNamespace,
 			commitment,
 		]
 	))
@@ -297,4 +383,102 @@ export const getBlobProof = async ({
 				throw new Error('Celestia Node: invalid blob proof node')
 
 	return proof
+}
+
+export const isBlobIncluded = async ({
+	publicEnv,
+	height,
+	namespace,
+	commitment,
+	proof,
+}: {
+	publicEnv: SourcePublicEnv
+	height: bigint
+	namespace: string
+	commitment: string
+	proof: typeof blobProofWire.infer
+}) => {
+	assertHeight(height)
+	const rpcNamespace = namespaceForNodeRpc(namespace)
+	if (!commitmentPattern.test(commitment))
+		throw new Error('Celestia Node: invalid blob commitment')
+
+	const included = arktype('boolean').assert(await jsonRpc2<boolean>(
+		configuredBinding(publicEnv),
+		'blob.Included',
+		[
+			Number(height),
+			rpcNamespace,
+			proof,
+			commitment,
+		]
+	))
+	return included
+}
+
+export const getDasSamplingStats = async (
+	publicEnv: SourcePublicEnv
+) => {
+	const wire = dasSamplingStatsWire.assert(await jsonRpc2<DasSamplingStatsWire>(
+		configuredBinding(publicEnv),
+		'das.SamplingStats',
+		[]
+	))
+	return {
+		sampledHeaderHeight: BigInt(wire.head_of_sampled_chain),
+		catchupHeight: BigInt(wire.head_of_catchup),
+		networkHeadHeight: BigInt(wire.network_head_height),
+		...(wire.concurrency != null && {
+			concurrency: wire.concurrency,
+		}),
+		catchUpDone: wire.catch_up_done,
+		isRunning: wire.is_running,
+	}
+}
+
+export const getNodeReady = async (
+	publicEnv: SourcePublicEnv
+) => (
+	arktype('boolean').assert(await jsonRpc2<boolean>(
+		configuredBinding(publicEnv),
+		'node.Ready',
+		[]
+	))
+)
+
+export const getNodeInfo = async (
+	publicEnv: SourcePublicEnv
+) => {
+	const wire = nodeInfoWire.assert(await jsonRpc2<NodeInfoWire>(
+		configuredBinding(publicEnv),
+		'node.Info',
+		[]
+	))
+	return {
+		nodeType: (
+			wire.type === 1 || wire.type === 2 || wire.type === 3 ?
+				nodeTypeLabelByType[wire.type]
+			:
+				String(wire.type)
+		),
+		apiVersion: wire.api_version,
+	}
+}
+
+/**
+ * `share.SharesAvailable` returns null when DA shares for the height are available.
+ * Failures surface as JSON-RPC errors from the node.
+ */
+export const assertSharesAvailable = async (
+	publicEnv: SourcePublicEnv,
+	height: bigint
+) => {
+	assertHeight(height)
+	const result = await jsonRpc2<null>(
+		configuredBinding(publicEnv),
+		'share.SharesAvailable',
+		[Number(height)]
+	)
+	if (result != null)
+		throw new Error('Celestia Node: unexpected SharesAvailable result')
 }

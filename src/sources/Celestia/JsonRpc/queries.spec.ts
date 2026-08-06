@@ -5,11 +5,17 @@ import { Source } from '$/sources/Source.ts'
 import {
 	getBlob,
 	getBlobProof,
+	getBlobsByNamespace,
+	getDasSamplingStats,
 	getHeaderByHash,
 	getHeaderByHeight,
 	getHeaderLocalHead,
 	getHeaderNetworkHead,
 	getHeaderSyncState,
+	getNodeInfo,
+	getNodeReady,
+	isBlobIncluded,
+	namespaceForNodeRpc,
 } from '$/sources/Celestia/JsonRpc/queries.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 
@@ -181,6 +187,7 @@ describe('Celestia Node v0.28.4 read-only JSON-RPC contracts', () => {
 			shareVersion: 0,
 			commitment,
 			index: -1,
+			sizeBytes: 32n,
 		})
 		await expect(getHeaderByHash(publicEnv, hash)).resolves.toMatchObject({
 			hash,
@@ -286,5 +293,102 @@ describe('Celestia Node v0.28.4 read-only JSON-RPC contracts', () => {
 			namespace,
 			commitment,
 		})).rejects.toThrow('invalid blob proof node')
+	})
+
+	it('lists blobs by namespace and reports size from base64 payload', async () => {
+		jsonRpc2Mock.mockResolvedValueOnce([
+			{
+				namespace,
+				data: 'AAAA',
+				share_version: 0,
+				commitment,
+				index: 1,
+			},
+		])
+		await expect(getBlobsByNamespace({
+			publicEnv,
+			height: 42n,
+			namespaces: [namespace],
+		})).resolves.toEqual([
+			{
+				namespace,
+				data: 'AAAA',
+				shareVersion: 0,
+				commitment,
+				index: 1,
+				sizeBytes: 3n,
+			},
+		])
+		expect(jsonRpc2Mock).toHaveBeenCalledWith(
+			resolvedBinding,
+			'blob.GetAll',
+			[
+				42,
+				[namespace],
+			]
+		)
+	})
+
+	it('normalizes Celenium hex namespaces to Node base64', () => {
+		const hex = `00${'ab'.repeat(28)}`
+		expect(namespaceForNodeRpc(hex)).toMatch(/^[A-Za-z0-9+/]{39}=$/)
+		expect(namespaceForNodeRpc(namespace)).toBe(namespace)
+	})
+
+	it('projects DAS sampling stats and node readiness', async () => {
+		jsonRpc2Mock.mockResolvedValueOnce({
+			head_of_sampled_chain: 10,
+			head_of_catchup: 20,
+			network_head_height: 30,
+			catch_up_done: false,
+			is_running: true,
+		})
+		await expect(getDasSamplingStats(publicEnv)).resolves.toEqual({
+			sampledHeaderHeight: 10n,
+			catchupHeight: 20n,
+			networkHeadHeight: 30n,
+			catchUpDone: false,
+			isRunning: true,
+		})
+
+		jsonRpc2Mock.mockResolvedValueOnce(true)
+		await expect(getNodeReady(publicEnv)).resolves.toBe(true)
+
+		jsonRpc2Mock.mockResolvedValueOnce({
+			type: 3,
+			api_version: 'v0.28.4',
+		})
+		await expect(getNodeInfo(publicEnv)).resolves.toEqual({
+			nodeType: 'light',
+			apiVersion: 'v0.28.4',
+		})
+	})
+
+	it('checks blob inclusion with a prior proof', async () => {
+		const proof = [
+			{
+				end: 8,
+				nodes: ['AAAA'],
+				is_max_namespace_ignored: false,
+			},
+		]
+		jsonRpc2Mock.mockResolvedValueOnce(true)
+		await expect(isBlobIncluded({
+			publicEnv,
+			height: 1n,
+			namespace,
+			commitment,
+			proof,
+		})).resolves.toBe(true)
+		expect(jsonRpc2Mock).toHaveBeenCalledWith(
+			resolvedBinding,
+			'blob.Included',
+			[
+				1,
+				namespace,
+				proof,
+				commitment,
+			]
+		)
 	})
 })
