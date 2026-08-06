@@ -9,15 +9,18 @@ import {
 } from '$/sources/_runtime/http.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
+	HyperliquidBorrowLendReserveStateRow,
 	HyperliquidBorrowLendUserState,
 	HyperliquidCandle,
 	HyperliquidClearinghouseState,
 	HyperliquidDelegatorSummary,
 	HyperliquidFill,
+	HyperliquidFrontendOrder,
 	HyperliquidHistoricalOrder,
 	HyperliquidL2Book,
 	HyperliquidMeta,
 	HyperliquidMetaAndAssetCtxs,
+	HyperliquidOrderStatus,
 	HyperliquidSpotClearinghouseState,
 	HyperliquidSpotMeta,
 	HyperliquidUserAbstraction,
@@ -26,6 +29,7 @@ import type {
 	HyperliquidUserVaultEquity,
 	HyperliquidValidatorSummary,
 	HyperliquidVaultDetails,
+	HyperliquidVaultSummary,
 } from '$/sources/Hyperliquid/Rest/types.ts'
 import { hyperliquidCandleIntervals } from '$/sources/Hyperliquid/Rest/constants.ts'
 import bindings from '$/sources/Hyperliquid/bindings.ts'
@@ -122,6 +126,54 @@ const hyperliquidVaultDetailsEnvelope = arktype({
 	relationship: 'object | null',
 	allowDeposits: 'boolean',
 	alwaysCloseOnWithdraw: 'boolean',
+})
+const hyperliquidVaultSummaryEnvelope = arktype({
+	name: 'string',
+	vaultAddress: 'string',
+	leader: 'string',
+	tvl: 'string',
+	isClosed: 'boolean',
+	createTimeMillis: 'number',
+	relationship: 'object | null',
+})
+const hyperliquidBorrowLendReserveStateEnvelope = arktype({
+	borrowYearlyRate: 'string',
+	supplyYearlyRate: 'string',
+	balance: 'string',
+	utilization: 'string',
+	oraclePx: 'string',
+	ltv: 'string',
+	totalSupplied: 'string',
+	totalBorrowed: 'string',
+})
+const hyperliquidBorrowLendReserveStateRowEnvelope = arktype([
+	'number',
+	hyperliquidBorrowLendReserveStateEnvelope,
+])
+const hyperliquidOrderStatusEnvelope = arktype({
+	status: 'string',
+	'order?': {
+		order: {
+			coin: 'string',
+			side: 'string',
+			limitPx: 'string',
+			sz: 'string',
+			oid: 'number',
+			timestamp: 'number',
+			triggerCondition: 'string',
+			isTrigger: 'boolean',
+			triggerPx: 'string',
+			children: 'unknown[]',
+			isPositionTpsl: 'boolean',
+			reduceOnly: 'boolean',
+			orderType: 'string',
+			origSz: 'string',
+			'tif?': 'string',
+			'cloid?': 'string | null',
+		},
+		status: 'string',
+		statusTimestamp: 'number',
+	},
 })
 
 export const hyperliquidRestEndpoints = binding.endpoints.map((endpoint) => ({
@@ -462,3 +514,76 @@ export const getBorrowLendUserState = ({
 		},
 	})
 )
+
+export const getAllBorrowLendReserveStates = async () => {
+	const reserves = await info<HyperliquidBorrowLendReserveStateRow[]>({
+		body: {
+			type: 'allBorrowLendReserveStates',
+		},
+	})
+	if (!hyperliquidBorrowLendReserveStateRowEnvelope.array().allows(reserves))
+		throw new Error('Hyperliquid_Rest: invalid allBorrowLendReserveStates response envelope')
+
+	for (const [tokenIndex] of reserves) {
+		if (!Number.isSafeInteger(tokenIndex) || tokenIndex < 0)
+			throw new Error(`Hyperliquid_Rest: invalid borrow/lend reserve token index ${String(tokenIndex)}`)
+	}
+
+	return reserves
+}
+
+export const getVaultSummaries = async () => {
+	const vaults = await info<HyperliquidVaultSummary[]>({
+		body: {
+			type: 'vaultSummaries',
+		},
+	})
+	if (!hyperliquidVaultSummaryEnvelope.array().allows(vaults))
+		throw new Error('Hyperliquid_Rest: invalid vaultSummaries response envelope')
+
+	return vaults
+}
+
+export const getFrontendOpenOrders = ({
+	user,
+}: {
+	user: string
+}) => (
+	info<HyperliquidFrontendOrder[]>({
+		body: {
+			type: 'frontendOpenOrders',
+			user,
+		},
+	})
+)
+
+export const getOrderStatus = async ({
+	user,
+	oid,
+}: {
+	user: string
+	oid: number | string
+}) => {
+	if (!/^0x[0-9a-fA-F]{40}$/.test(user))
+		throw new Error(`Hyperliquid_Rest: invalid account address ${user}`)
+
+	if (
+		typeof oid === 'number' ?
+			!Number.isSafeInteger(oid) || oid < 0
+		:
+			!/^[0-9a-fA-F]{32}$/.test(oid)
+	)
+		throw new Error(`Hyperliquid_Rest: invalid order id ${String(oid)}`)
+
+	const status = await info<HyperliquidOrderStatus>({
+		body: {
+			type: 'orderStatus',
+			user,
+			oid,
+		},
+	})
+	if (!hyperliquidOrderStatusEnvelope.allows(status))
+		throw new Error('Hyperliquid_Rest: invalid orderStatus response envelope')
+
+	return status
+}

@@ -284,3 +284,56 @@ export type HyperliquidBorrowLendUserState = {
 	health: string
 	healthFactor: string | null
 }
+
+export type HyperliquidBorrowLendReserveState = {
+	borrowYearlyRate: string
+	supplyYearlyRate: string
+	balance: string
+	utilization: string
+	oraclePx: string
+	ltv: string
+	totalSupplied: string
+	totalBorrowed: string
+}
+
+export type HyperliquidBorrowLendReserveStateRow = [
+	tokenIndex: number,
+	state: HyperliquidBorrowLendReserveState,
+]
+
+export type HyperliquidVaultSummary = {
+	name: string
+	vaultAddress: string
+	leader: string
+	tvl: string
+	isClosed: boolean
+	createTimeMillis: number
+	relationship: (
+		| {
+			type: 'parent'
+			data: {
+				childAddresses: string[]
+			}
+		}
+		| {
+			type: 'child'
+			data: {
+				parentAddress?: string
+			}
+		}
+		| {
+			type: 'normal'
+		}
+		| null
+	)
+}
+
+export type HyperliquidOrderStatus = (
+	| {
+		status: 'order'
+		order: HyperliquidHistoricalOrder
+	}
+	| {
+		status: 'unknownOid' | 'unknownCloid' | string
+	}
+)

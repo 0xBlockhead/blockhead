@@ -18,13 +18,16 @@ vi.mock('$/lib/http.ts', () => ({
 
 const {
 	getApprovedBuilders,
+	getAllBorrowLendReserveStates,
 	getBorrowLendUserState,
 	getClearinghouseState,
 	getCandleSnapshot,
 	getDelegatorSummary,
+	getFrontendOpenOrders,
 	getHistoricalOrders,
 	getL2Book,
 	getMetaAndAssetCtxs,
+	getOrderStatus,
 	getSpotMeta,
 	getSpotClearinghouseState,
 	getUserAbstraction,
@@ -34,6 +37,7 @@ const {
 	getUserVaultEquities,
 	getValidatorSummaries,
 	getVaultDetails,
+	getVaultSummaries,
 } = await import('$/sources/Hyperliquid/Rest/queries.ts')
 
 const binding = bindings[Source.Hyperliquid].find(
@@ -227,6 +231,27 @@ describe('Hyperliquid public account Info transport', () => {
 				user: '0x1111111111111111111111111111111111111111',
 			},
 		},
+		{
+			query: () => getAllBorrowLendReserveStates(),
+			body: {
+				type: 'allBorrowLendReserveStates',
+			},
+		},
+		{
+			query: () => getVaultSummaries(),
+			body: {
+				type: 'vaultSummaries',
+			},
+		},
+		{
+			query: () => getFrontendOpenOrders({
+				user: '0x1111111111111111111111111111111111111111',
+			}),
+			body: {
+				type: 'frontendOpenOrders',
+				user: '0x1111111111111111111111111111111111111111',
+			},
+		},
 	])('posts the exact read-only Info request body', async ({ query, body }) => {
 		await query()
 
@@ -239,6 +264,46 @@ describe('Hyperliquid public account Info transport', () => {
 				}),
 			})
 		)
+	})
+
+	it('posts orderStatus and validates the status envelope', async () => {
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				status: 'unknownOid',
+			}),
+		})
+		await expect(getOrderStatus({
+			user: '0x1111111111111111111111111111111111111111',
+			oid: 42,
+		})).resolves.toEqual({
+			status: 'unknownOid',
+		})
+		expect(corsFetch).toHaveBeenCalledWith(
+			'https://api.hyperliquid.xyz/info',
+			expect.objectContaining({
+				init: expect.objectContaining({
+					method: 'POST',
+					body: JSON.stringify({
+						type: 'orderStatus',
+						user: '0x1111111111111111111111111111111111111111',
+						oid: 42,
+					}),
+				}),
+			})
+		)
+	})
+
+	it('rejects invalid orderStatus selectors before transport', async () => {
+		await expect(getOrderStatus({
+			user: 'not-an-address',
+			oid: 1,
+		})).rejects.toThrow('invalid account address')
+		await expect(getOrderStatus({
+			user: '0x1111111111111111111111111111111111111111',
+			oid: -1,
+		})).rejects.toThrow('invalid order id')
+		expect(corsFetch).not.toHaveBeenCalled()
 	})
 
 	it.each([
