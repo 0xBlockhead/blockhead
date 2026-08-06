@@ -234,7 +234,6 @@ export enum SourceProvider {
 	TrustWalletAssets = 'TrustWalletAssets',
 	Tzkt = 'Tzkt',
 	Uniswap = 'Uniswap',
-	UniSat = 'UniSat',
 	Voltaire = 'Voltaire',
 	Voyager = 'Voyager',
 	WakuNode = 'WakuNode',
