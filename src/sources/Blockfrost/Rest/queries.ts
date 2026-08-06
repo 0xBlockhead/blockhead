@@ -2,38 +2,36 @@ import { throwHttpError } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { firstHttpUrlForBinding, sourceFetch } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Blockfrost/bindings.ts'
-import type {
-	BlockfrostAccount,
-	BlockfrostAccountAddresses,
-	BlockfrostAddress,
-	BlockfrostAddressTotal,
-	BlockfrostAddressTransactions,
-	BlockfrostAddressUtxos,
-	BlockfrostAsset,
-	BlockfrostAssets,
-	BlockfrostBlock,
-	BlockfrostBlocks,
-	BlockfrostCommittee,
-	BlockfrostCommitteeVotes,
-	BlockfrostDReps,
-	BlockfrostDRep,
-	BlockfrostDRepMetadata,
-	BlockfrostDRepVotes,
-	BlockfrostEpoch,
-	BlockfrostGovernanceProposals,
-	BlockfrostGovernanceProposalWire,
-	BlockfrostGovernanceProposalMetadata,
-	BlockfrostGovernanceProposalVotes,
-	BlockfrostHealth,
-	BlockfrostNetwork,
-	BlockfrostProtocolParameters,
-	BlockfrostStakePools,
-	BlockfrostStakePool,
-	BlockfrostStakePoolMetadata,
-	BlockfrostTransaction,
-	BlockfrostTransactionUtxos,
-	BlockfrostTransactions,
-} from '$/sources/Blockfrost/Rest/types.ts'
+import {
+	assertBlockfrostEnvelope,
+	blockfrostAccountAddressWire,
+	blockfrostAccountWire,
+	blockfrostAddressTotalWire,
+	blockfrostAddressTransactionWire,
+	blockfrostAddressUtxoWire,
+	blockfrostAddressWire,
+	blockfrostAssetListItemWire,
+	blockfrostAssetWire,
+	blockfrostBlockWire,
+	blockfrostCommitteeVoteWire,
+	blockfrostCommitteeWire,
+	blockfrostDRepListItemWire,
+	blockfrostDRepMetadataWire,
+	blockfrostDRepVoteWire,
+	blockfrostDRepWire,
+	blockfrostEpochWire,
+	blockfrostGovernanceProposalListItemWire,
+	blockfrostGovernanceProposalMetadataWire,
+	blockfrostGovernanceProposalVoteWire,
+	blockfrostGovernanceProposalWire,
+	blockfrostHealthWire,
+	blockfrostNetworkWire,
+	blockfrostProtocolParametersWire,
+	blockfrostStakePoolMetadataWire,
+	blockfrostStakePoolWire,
+	blockfrostTransactionUtxosWire,
+	blockfrostTransactionWire,
+} from '$/sources/Blockfrost/Rest/envelopes.ts'
 import {
 	blockfrostDRepIdentityMetadata,
 	blockfrostGovernanceActionTagByGovernanceType,
@@ -50,7 +48,7 @@ export const restEndpoints = [{
 	providerName: 'Blockfrost',
 }]
 
-const request = async <_Response>({
+const request = async ({
 	path,
 }: {
 	path: string
@@ -63,16 +61,16 @@ const request = async <_Response>({
 	if (!response.ok)
 		await throwHttpError('Blockfrost_Rest', response)
 
-	return response.json<_Response>()
+	return response.json()
 }
 
-const get = <_Response>(path: string) => (
-	request<_Response>({
+const get = (path: string) => (
+	request({
 		path,
 	})
 )
 
-const getOptional = async <_Response>(path: string) => {
+const getOptional = async (path: string) => {
 	const response = await sourceFetch(
 		binding,
 		new URL(path, firstHttpUrlForBinding(binding)).toString()
@@ -82,10 +80,10 @@ const getOptional = async <_Response>(path: string) => {
 	if (!response.ok)
 		await throwHttpError('Blockfrost_Rest', response)
 
-	return response.json<_Response>()
+	return response.json()
 }
 
-const listPage = <_Response>(
+const listPage = async (
 	path: string,
 	count: number,
 	order?: 'asc' | 'desc',
@@ -97,85 +95,133 @@ const listPage = <_Response>(
 		throw new Error('Blockfrost_Rest: list page must be a positive integer')
 
 	return count === 0
-		? Promise.resolve<_Response[]>([])
-		: get<_Response[]>(
+		? []
+		: get(
 			`${path}?count=${count.toString()}${order == null ? '' : `&order=${order}`}${page == null ? '' : `&page=${page.toString()}`}`
 		)
 }
 
-export const getHealth = () => (
-	get<BlockfrostHealth>('health')
+export const getHealth = async () => (
+	assertBlockfrostEnvelope(
+		blockfrostHealthWire,
+		await get('health'),
+		'health'
+	)
 )
 
-export const getLatestBlock = () => (
-	get<BlockfrostBlock>('blocks/latest')
+export const getLatestBlock = async () => (
+	assertBlockfrostEnvelope(
+		blockfrostBlockWire,
+		await get('blocks/latest'),
+		'block'
+	)
 )
 
-export const getAccount = (stakeAddress: string) => (
-	get<BlockfrostAccount>(`accounts/${encodeURIComponent(stakeAddress)}`)
+export const getAccount = async (stakeAddress: string) => (
+	assertBlockfrostEnvelope(
+		blockfrostAccountWire,
+		await get(`accounts/${encodeURIComponent(stakeAddress)}`),
+		'account'
+	)
 )
 
-export const listAccountAddresses = (
+export const listAccountAddresses = async (
 	stakeAddress: string,
 	count: number,
 	page = 1
 ) => (
-	listPage<BlockfrostAccountAddresses[number]>(
-		`accounts/${encodeURIComponent(stakeAddress)}/addresses`,
-		count,
-		'asc',
-		page
+	assertBlockfrostEnvelope(
+		blockfrostAccountAddressWire.array(),
+		await listPage(
+			`accounts/${encodeURIComponent(stakeAddress)}/addresses`,
+			count,
+			'asc',
+			page
+		),
+		'account addresses'
 	)
 )
 
-export const getAddress = (address: string) => (
-	get<BlockfrostAddress>(`addresses/${encodeURIComponent(address)}`)
+export const getAddress = async (address: string) => (
+	assertBlockfrostEnvelope(
+		blockfrostAddressWire,
+		await get(`addresses/${encodeURIComponent(address)}`),
+		'address'
+	)
 )
 
-export const getAddressTotal = (address: string) => (
-	get<BlockfrostAddressTotal>(`addresses/${encodeURIComponent(address)}/total`)
+export const getAddressTotal = async (address: string) => (
+	assertBlockfrostEnvelope(
+		blockfrostAddressTotalWire,
+		await get(`addresses/${encodeURIComponent(address)}/total`),
+		'address total'
+	)
 )
 
-export const getAsset = (asset: string) => (
-	get<BlockfrostAsset>(`assets/${encodeURIComponent(asset)}`)
+export const getAsset = async (asset: string) => (
+	assertBlockfrostEnvelope(
+		blockfrostAssetWire,
+		await get(`assets/${encodeURIComponent(asset)}`),
+		'asset'
+	)
 )
 
-export const listAddressTransactions = (
+export const listAddressTransactions = async (
 	address: string,
 	count: number,
 	page = 1
 ) => (
-	listPage<BlockfrostAddressTransactions[number]>(
-		`addresses/${encodeURIComponent(address)}/transactions`,
-		count,
-		'desc',
-		page
+	assertBlockfrostEnvelope(
+		blockfrostAddressTransactionWire.array(),
+		await listPage(
+			`addresses/${encodeURIComponent(address)}/transactions`,
+			count,
+			'desc',
+			page
+		),
+		'address transactions'
 	)
 )
 
-export const listAddressUtxos = (
+export const listAddressUtxos = async (
 	address: string,
 	count: number,
 	page = 1
 ) => (
-	listPage<BlockfrostAddressUtxos[number]>(
-		`addresses/${encodeURIComponent(address)}/utxos`,
-		count,
-		'desc',
-		page
+	assertBlockfrostEnvelope(
+		blockfrostAddressUtxoWire.array(),
+		await listPage(
+			`addresses/${encodeURIComponent(address)}/utxos`,
+			count,
+			'desc',
+			page
+		),
+		'address utxos'
 	)
 )
 
-export const getBlock = (blockId: string) => (
-	get<BlockfrostBlock>(`blocks/${encodeURIComponent(blockId)}`)
+export const getBlock = async (blockId: string) => (
+	assertBlockfrostEnvelope(
+		blockfrostBlockWire,
+		await get(`blocks/${encodeURIComponent(blockId)}`),
+		'block'
+	)
 )
 
-export const getTransaction = (hash: string) => (
-	get<BlockfrostTransaction>(`txs/${encodeURIComponent(hash)}`)
+export const getTransaction = async (hash: string) => (
+	assertBlockfrostEnvelope(
+		blockfrostTransactionWire,
+		await get(`txs/${encodeURIComponent(hash)}`),
+		'transaction'
+	)
 )
 
-export const getTransactionUtxos = (hash: string) => (
-	get<BlockfrostTransactionUtxos>(`txs/${encodeURIComponent(hash)}/utxos`)
+export const getTransactionUtxos = async (hash: string) => (
+	assertBlockfrostEnvelope(
+		blockfrostTransactionUtxosWire,
+		await get(`txs/${encodeURIComponent(hash)}/utxos`),
+		'transaction utxos'
+	)
 )
 
 export const listBlocks = async (count: number) => {
@@ -191,67 +237,79 @@ export const listBlocks = async (count: number) => {
 
 	return [
 		latestBlock,
-		...await get<BlockfrostBlocks>(
-			`blocks/${encodeURIComponent(latestBlock.hash)}/previous?count=${(count - 1).toString()}`
+		...assertBlockfrostEnvelope(
+			blockfrostBlockWire.array(),
+			await get(
+				`blocks/${encodeURIComponent(latestBlock.hash)}/previous?count=${(count - 1).toString()}`
+			),
+			'blocks'
 		),
 	]
 }
 
-export const getLatestEpoch = () => (
-	get<BlockfrostEpoch>('epochs/latest')
+export const getLatestEpoch = async () => (
+	assertBlockfrostEnvelope(
+		blockfrostEpochWire,
+		await get('epochs/latest'),
+		'epoch'
+	)
 )
 
-export const getNetwork = () => (
-	get<BlockfrostNetwork>('network')
+export const getNetwork = async () => (
+	assertBlockfrostEnvelope(
+		blockfrostNetworkWire,
+		await get('network'),
+		'network'
+	)
 )
 
-export const listLatestBlockTransactions = (
+export const listLatestBlockTransactions = async (
 	count: number
 ) => (
-	listPage<BlockfrostTransactions[number]>('blocks/latest/txs', count)
+	assertBlockfrostEnvelope(
+		type('string').array(),
+		await listPage('blocks/latest/txs', count),
+		'latest block transactions'
+	)
 )
 
-export const listStakePools = (count: number) => (
-	listPage<BlockfrostStakePools[number]>('pools', count)
+export const listStakePools = async (count: number) => (
+	assertBlockfrostEnvelope(
+		type('string').array(),
+		await listPage('pools', count),
+		'stake pools'
+	)
 )
 
-export const getStakePool = (poolId: string) => (
-	get<BlockfrostStakePool>(`pools/${encodeURIComponent(poolId)}`)
+export const getStakePool = async (poolId: string) => (
+	assertBlockfrostEnvelope(
+		blockfrostStakePoolWire,
+		await get(`pools/${encodeURIComponent(poolId)}`),
+		'stake pool'
+	)
 )
 
-export const getStakePoolMetadata = (poolId: string) => (
-	getOptional<BlockfrostStakePoolMetadata>(`pools/${encodeURIComponent(poolId)}/metadata`)
-)
+export const getStakePoolMetadata = async (poolId: string) => {
+	const metadata = await getOptional(`pools/${encodeURIComponent(poolId)}/metadata`)
+	return metadata == null
+		? undefined
+		: assertBlockfrostEnvelope(
+			blockfrostStakePoolMetadataWire,
+			metadata,
+			'stake pool metadata'
+		)
+}
 
-export const listDReps = (count: number) => (
-	listPage<BlockfrostDReps[number]>('governance/dreps', count).then((dReps) => (
-		dReps.map(({ metadata, ...dRep }) => {
-			const identityMetadata = blockfrostDRepIdentityMetadata(metadata?.json_metadata)
-
-			return {
-				...dRep,
-				...(identityMetadata instanceof type.errors ? {} : {
-					displayName: identityMetadata.body.givenName,
-				}),
-			}
-		})
-	))
-)
-
-export const getDRep = (drepId: string) => (
-	get<BlockfrostDRep>(`governance/dreps/${encodeURIComponent(drepId)}`)
-)
-
-export const getDRepMetadata = (drepId: string) => (
-	getOptional<BlockfrostDRepMetadata>(`governance/dreps/${encodeURIComponent(drepId)}/metadata`).then((metadata) => {
-		if (metadata == null)
-			return
-
-		const identityMetadata = blockfrostDRepIdentityMetadata(metadata.json_metadata)
+export const listDReps = async (count: number) => (
+	assertBlockfrostEnvelope(
+		blockfrostDRepListItemWire.array(),
+		await listPage('governance/dreps', count),
+		'dreps'
+	).map(({ metadata, ...dRep }) => {
+		const identityMetadata = blockfrostDRepIdentityMetadata(metadata?.json_metadata)
 
 		return {
-			url: metadata.url,
-			hash: metadata.hash,
+			...dRep,
 			...(identityMetadata instanceof type.errors ? {} : {
 				displayName: identityMetadata.body.givenName,
 			}),
@@ -259,72 +317,150 @@ export const getDRepMetadata = (drepId: string) => (
 	})
 )
 
-export const listDRepVotes = (drepId: string, count: number) => (
-	listPage<BlockfrostDRepVotes[number]>(`governance/dreps/${encodeURIComponent(drepId)}/votes`, count)
+export const getDRep = async (drepId: string) => (
+	assertBlockfrostEnvelope(
+		blockfrostDRepWire,
+		await get(`governance/dreps/${encodeURIComponent(drepId)}`),
+		'drep'
+	)
 )
 
-export const listGovernanceProposals = (
+export const getDRepMetadata = async (drepId: string) => {
+	const metadata = await getOptional(`governance/dreps/${encodeURIComponent(drepId)}/metadata`)
+	if (metadata == null)
+		return
+
+	const validated = assertBlockfrostEnvelope(
+		blockfrostDRepMetadataWire,
+		metadata,
+		'drep metadata'
+	)
+	const identityMetadata = blockfrostDRepIdentityMetadata(validated.json_metadata)
+
+	return {
+		url: validated.url,
+		hash: validated.hash,
+		...(identityMetadata instanceof type.errors ? {} : {
+			displayName: identityMetadata.body.givenName,
+		}),
+	}
+}
+
+export const listDRepVotes = async (drepId: string, count: number) => (
+	assertBlockfrostEnvelope(
+		blockfrostDRepVoteWire.array(),
+		await listPage(`governance/dreps/${encodeURIComponent(drepId)}/votes`, count),
+		'drep votes'
+	)
+)
+
+export const listGovernanceProposals = async (
 	count: number,
 	page?: number
 ) => (
-	listPage<BlockfrostGovernanceProposals[number]>('governance/proposals', count, undefined, page)
+	assertBlockfrostEnvelope(
+		blockfrostGovernanceProposalListItemWire.array(),
+		await listPage('governance/proposals', count, undefined, page),
+		'governance proposals'
+	)
 )
 
-export const getGovernanceProposal = (
+export const getGovernanceProposal = async (
 	transactionHash: string,
 	certificateIndex: number
-) => (
-	get<BlockfrostGovernanceProposalWire>(
-		`governance/proposals/${encodeURIComponent(transactionHash)}/${certificateIndex.toString()}`
-	).then((proposal) => {
-		const governanceDescription = (
-			proposal.governance_description == null ?
-				null
-			:
-				parseCardanoGovernanceAction(proposal.governance_description)
-		)
-		if (
-			governanceDescription != null
-			&& blockfrostGovernanceActionTagByGovernanceType[proposal.governance_type]
-				!== governanceDescription.tag
-		)
-			throw new Error('Blockfrost_Rest: governance type does not match description tag')
+) => {
+	const proposal = assertBlockfrostEnvelope(
+		blockfrostGovernanceProposalWire,
+		await get(
+			`governance/proposals/${encodeURIComponent(transactionHash)}/${certificateIndex.toString()}`
+		),
+		'governance proposal'
+	)
+	const governanceDescription = (
+		proposal.governance_description == null ?
+			null
+		:
+			parseCardanoGovernanceAction(proposal.governance_description)
+	)
+	const expectedTag = (
+		proposal.governance_type in blockfrostGovernanceActionTagByGovernanceType ?
+			blockfrostGovernanceActionTagByGovernanceType[
+				proposal.governance_type as keyof typeof blockfrostGovernanceActionTagByGovernanceType
+			]
+		:
+			undefined
+	)
+	if (governanceDescription != null && expectedTag !== governanceDescription.tag)
+		throw new Error('Blockfrost_Rest: governance type does not match description tag')
 
-		return {
-			...proposal,
-			governance_description: governanceDescription,
-		}
-	})
-)
+	return {
+		...proposal,
+		governance_description: governanceDescription,
+	}
+}
 
-export const getGovernanceProposalMetadata = (
+export const getGovernanceProposalMetadata = async (
 	transactionHash: string,
 	certificateIndex: number
-) => (
-	getOptional<BlockfrostGovernanceProposalMetadata>(`governance/proposals/${encodeURIComponent(transactionHash)}/${certificateIndex.toString()}/metadata`)
-)
+) => {
+	const metadata = await getOptional(
+		`governance/proposals/${encodeURIComponent(transactionHash)}/${certificateIndex.toString()}/metadata`
+	)
+	return metadata == null
+		? undefined
+		: assertBlockfrostEnvelope(
+			blockfrostGovernanceProposalMetadataWire,
+			metadata,
+			'governance proposal metadata'
+		)
+}
 
-export const listGovernanceProposalVotes = (
+export const listGovernanceProposalVotes = async (
 	transactionHash: string,
 	certificateIndex: number,
 	count: number,
 	page?: number
 ) => (
-	listPage<BlockfrostGovernanceProposalVotes[number]>(`governance/proposals/${encodeURIComponent(transactionHash)}/${certificateIndex.toString()}/votes`, count, undefined, page)
+	assertBlockfrostEnvelope(
+		blockfrostGovernanceProposalVoteWire.array(),
+		await listPage(
+			`governance/proposals/${encodeURIComponent(transactionHash)}/${certificateIndex.toString()}/votes`,
+			count,
+			undefined,
+			page
+		),
+		'governance proposal votes'
+	)
 )
 
-export const listAssets = (count: number) => (
-	listPage<BlockfrostAssets[number]>('assets', count)
+export const listAssets = async (count: number) => (
+	assertBlockfrostEnvelope(
+		blockfrostAssetListItemWire.array(),
+		await listPage('assets', count),
+		'assets'
+	)
 )
 
-export const getLatestProtocolParameters = () => (
-	get<BlockfrostProtocolParameters>('epochs/latest/parameters')
+export const getLatestProtocolParameters = async () => (
+	assertBlockfrostEnvelope(
+		blockfrostProtocolParametersWire,
+		await get('epochs/latest/parameters'),
+		'protocol parameters'
+	)
 )
 
-export const getCommittee = () => (
-	get<BlockfrostCommittee>('governance/committee')
+export const getCommittee = async () => (
+	assertBlockfrostEnvelope(
+		blockfrostCommitteeWire,
+		await get('governance/committee'),
+		'committee'
+	)
 )
 
-export const listCommitteeVotes = (count: number) => (
-	listPage<BlockfrostCommitteeVotes[number]>('governance/committee/votes', count)
+export const listCommitteeVotes = async (count: number) => (
+	assertBlockfrostEnvelope(
+		blockfrostCommitteeVoteWire.array(),
+		await listPage('governance/committee/votes', count),
+		'committee votes'
+	)
 )

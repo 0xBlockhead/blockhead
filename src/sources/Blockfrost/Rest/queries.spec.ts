@@ -50,9 +50,36 @@ describe('Blockfrost REST transport', () => {
 	})
 
 	it('encodes selector paths and sends the Blockfrost project header', async () => {
+		const transaction = {
+			hash: 'hash/with delimiter',
+			block: 'block-hash',
+			block_height: 10_000_000,
+			block_time: 1_720_000_000,
+			slot: 130_000_000,
+			index: 0,
+			output_amount: [{
+				unit: 'lovelace',
+				quantity: '1',
+			}],
+			fees: '0',
+			deposit: '0',
+			size: 200,
+			invalid_before: null,
+			invalid_hereafter: null,
+			utxo_count: 1,
+			withdrawal_count: 0,
+			mir_cert_count: 0,
+			delegation_count: 0,
+			stake_cert_count: 0,
+			pool_update_count: 0,
+			pool_retire_count: 0,
+			asset_mint_or_burn_count: 0,
+			redeemer_count: 0,
+			valid_contract: true,
+		}
 		sourceFetch
 			.mockResolvedValueOnce(Response.json(block))
-			.mockResolvedValueOnce(Response.json({ hash: 'hash/with delimiter' }))
+			.mockResolvedValueOnce(Response.json(transaction))
 			.mockResolvedValueOnce(Response.json({
 				hash: 'hash/with delimiter',
 				inputs: [],
@@ -239,12 +266,30 @@ describe('Blockfrost REST transport', () => {
 				members: [],
 			}))
 
-		await expect(getLatestProtocolParameters(binding)).resolves.toEqual({ epoch: 500 })
-		await expect(getCommittee(binding)).resolves.toMatchObject({ is_dissolved: false })
+		await expect(getLatestProtocolParameters()).resolves.toEqual({ epoch: 500 })
+		await expect(getCommittee()).resolves.toMatchObject({ is_dissolved: false })
 		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
 			'https://cardano-mainnet.blockfrost.io/api/v0/epochs/latest/parameters',
 			'https://cardano-mainnet.blockfrost.io/api/v0/governance/committee',
 		])
+	})
+
+	it('fail-closes on malformed block and address envelopes', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(Response.json({
+				hash: 'incomplete-block',
+			}))
+			.mockResolvedValueOnce(Response.json({
+				address: 'addr1',
+				amount: 'not-an-array',
+			}))
+
+		await expect(getBlock('incomplete-block')).rejects.toThrow(
+			'Blockfrost_Rest: invalid block envelope'
+		)
+		await expect(getAddress('addr1')).rejects.toThrow(
+			'Blockfrost_Rest: invalid address envelope'
+		)
 	})
 
 	it('omits DRep display identity when CIP-119 metadata is absent or malformed', async () => {
@@ -530,7 +575,7 @@ describe('Blockfrost REST transport', () => {
 
 	it('skips zero-count list transport and rejects malformed list limits', async () => {
 		await expect(listAssets(0)).resolves.toEqual([])
-		expect(() => listStakePools(101)).toThrow(
+		await expect(listStakePools(101)).rejects.toThrow(
 			'Blockfrost_Rest: list count must be an integer from 0 through 100'
 		)
 		expect(sourceFetch).not.toHaveBeenCalled()
