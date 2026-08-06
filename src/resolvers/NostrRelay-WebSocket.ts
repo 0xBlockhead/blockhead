@@ -669,7 +669,10 @@ export default {
 				}
 			},
 		})({
-				$$replies: (replies) => replies,
+				$$replies: {
+					select: (replies) => replies,
+					resolveCount: (replies) => replies.length,
+				},
 			}),
 
 		defineResolver({
@@ -698,7 +701,10 @@ export default {
 				}
 			},
 		})({
-				$$reactions: (reactions) => reactions,
+				$$reactions: {
+					select: (reactions) => reactions,
+					resolveCount: (reactions) => reactions.length,
+				},
 			}),
 
 	],
