@@ -25,10 +25,14 @@ import type {
 	GetCoingeckoSimplePriceArgs,
 } from '$/sources/Coingecko/Rest/types.ts'
 import {
+	coingeckoAssetPlatformsEnvelope,
 	coingeckoCoinEnvelope,
 	coingeckoCoinTickersEnvelope,
 	coingeckoCoinsMarketEnvelope,
 	coingeckoDerivativesExchangeEnvelope,
+	coingeckoOhlcEnvelope,
+	coingeckoSimplePriceEnvelope,
+	coingeckoSimplePriceRowEnvelope,
 } from '$/sources/Coingecko/Rest/types.ts'
 
 const assertNonemptyRequiredString = (
@@ -39,7 +43,24 @@ const assertNonemptyRequiredString = (
 		throw new Error(`Coingecko_Rest: invalid ${label}`)
 }
 
-const assertEnvelope = (
+const omitUndefinedJson = (
+	value: unknown
+): unknown => {
+	if (Array.isArray(value))
+		return value.map(omitUndefinedJson)
+	if (value != null && typeof value === 'object')
+		return Object.fromEntries(
+			Object.entries(value)
+				.filter(([, entry]) => entry !== undefined)
+				.map(([key, entry]) => [
+					key,
+					omitUndefinedJson(entry),
+				])
+		)
+	return value
+}
+
+const assertEnvelope = <_Value>(
 	envelope: {
 		assert: (value: unknown) => unknown
 	},
@@ -47,10 +68,11 @@ const assertEnvelope = (
 	label: string
 ) => {
 	try {
-		envelope.assert(value)
+		envelope.assert(omitUndefinedJson(value))
 	} catch {
 		throw new Error(`Coingecko_Rest: invalid ${label} response envelope`)
 	}
+	return value as _Value
 }
 
 /** `GET /coins/{id}` — coin metadata and current market data. */
@@ -132,10 +154,11 @@ export const getAssetPlatforms = async ({
 	if (!response.ok)
 		await throwHttpError('Coingecko_Rest', response)
 
-	const platforms = await response.json<CoingeckoAssetPlatform[]>()
-	if (!Array.isArray(platforms))
-		throw new Error('Coingecko_Rest: invalid asset platforms response envelope')
-	return platforms
+	return assertEnvelope<CoingeckoAssetPlatform[]>(
+		coingeckoAssetPlatformsEnvelope,
+		await response.json<CoingeckoAssetPlatform[]>(),
+		'asset platforms'
+	)
 }
 
 /** `GET /coins/markets` — paged coin market data. */
@@ -158,9 +181,11 @@ export const getCoinsMarkets = async ({
 	if (!response.ok)
 		await throwHttpError('Coingecko_Rest', response)
 
-	const markets = await response.json<CoingeckoCoinsMarket[]>()
-	assertEnvelope(coingeckoCoinsMarketEnvelope, markets, 'coins markets')
-	return markets
+	return assertEnvelope<CoingeckoCoinsMarket[]>(
+		coingeckoCoinsMarketEnvelope,
+		await response.json<CoingeckoCoinsMarket[]>(),
+		'coins markets'
+	)
 }
 
 /** `GET /coins/{id}/ohlc` — fixed-range OHLC candles. */
@@ -188,17 +213,11 @@ export const getCoinOhlc = async ({
 	if (!response.ok)
 		await throwHttpError(`Coingecko_Rest`, response)
 
-	const candles = await response.json<CoingeckoOhlc>()
-	if (
-		!Array.isArray(candles)
-		|| candles.some((candle) => (
-			!Array.isArray(candle)
-			|| candle.length !== 5
-			|| candle.some((value) => !Number.isFinite(value))
-		))
+	return assertEnvelope<CoingeckoOhlc>(
+		coingeckoOhlcEnvelope,
+		await response.json<CoingeckoOhlc>(),
+		'OHLC'
 	)
-		throw new Error('Coingecko_Rest: invalid OHLC response envelope')
-	return candles
 }
 
 /** `GET /coins/{id}/tickers` — spot books across exchanges. */
@@ -224,9 +243,11 @@ export const getCoinTickers = async ({
 	if (!response.ok)
 		await throwHttpError(`Coingecko_Rest`, response)
 
-	const tickers = await response.json<CoingeckoCoinTickers>()
-	assertEnvelope(coingeckoCoinTickersEnvelope, tickers, 'coin tickers')
-	return tickers
+	return assertEnvelope<CoingeckoCoinTickers>(
+		coingeckoCoinTickersEnvelope,
+		await response.json<CoingeckoCoinTickers>(),
+		'coin tickers'
+	)
 }
 
 /** `GET /derivatives/exchanges/{id}` — one derivatives exchange and its tickers. */
@@ -247,9 +268,11 @@ export const getDerivativesExchange = async ({
 	if (!response.ok)
 		await throwHttpError(`Coingecko_Rest`, response)
 
-	const exchange = await response.json<CoingeckoDerivativesExchange>()
-	assertEnvelope(coingeckoDerivativesExchangeEnvelope, exchange, 'derivatives exchange')
-	return exchange
+	return assertEnvelope<CoingeckoDerivativesExchange>(
+		coingeckoDerivativesExchangeEnvelope,
+		await response.json<CoingeckoDerivativesExchange>(),
+		'derivatives exchange'
+	)
 }
 
 /** `GET /simple/price` — batched spot prices by CoinGecko ids. */
@@ -274,18 +297,26 @@ export const getSimplePrice = async ({
 		await throwHttpError('Coingecko_Rest', response)
 
 	const prices = await response.json<CoingeckoSimplePrice>()
+	assertEnvelope(coingeckoSimplePriceEnvelope, prices, 'simple price')
 	if (
-		prices == null
-		|| Array.isArray(prices)
-		|| query.ids.split(',').some((id) => (
-			id === ''
-			|| !Object.hasOwn(prices, id)
-			|| !Number.isFinite(prices[id]?.usd)
-			|| (
-				query.include_last_updated_at === true
-				&& !Number.isFinite(prices[id]?.last_updated_at)
+		Array.isArray(prices)
+		|| query.ids.split(',').some((id) => {
+			if (id === '' || !Object.hasOwn(prices, id))
+				return true
+			try {
+				coingeckoSimplePriceRowEnvelope.assert(omitUndefinedJson(prices[id]))
+			} catch {
+				return true
+			}
+			const row = prices[id]
+			return (
+				!Number.isFinite(row?.usd)
+				|| (
+					query.include_last_updated_at === true
+					&& !Number.isFinite(row?.last_updated_at)
+				)
 			)
-		))
+		})
 	)
 		throw new Error('Coingecko_Rest: incomplete simple price response envelope')
 	return prices

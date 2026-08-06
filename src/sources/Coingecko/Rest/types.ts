@@ -35,22 +35,78 @@ type SimplePriceResponse = (
 	SimplePriceOperation['responses'][200]['content']['application/json']
 )
 
+const coingeckoUsdAmountWire = arktype({
+	'usd?': 'number | null',
+})
+
+const coingeckoMarketDataWire = arktype({
+	'last_updated?': 'string | null',
+	'market_cap_rank?': 'number | null',
+	'market_cap?': coingeckoUsdAmountWire,
+	'price_change_percentage_24h?': 'number | null',
+	'total_supply?': 'number | null',
+	'current_price?': coingeckoUsdAmountWire,
+	'total_volume?': coingeckoUsdAmountWire,
+})
+
+const coingeckoDetailPlatformWire = arktype({
+	'decimal_place?': 'number | null',
+	'contract_address?': 'string',
+})
+
+const coingeckoImageWire = arktype({
+	'thumb?': 'string',
+	'small?': 'string',
+	'large?': 'string',
+})
+
+/** Fail-closed coin / contract-coin envelope for fields resolvers already project. */
 export const coingeckoCoinEnvelope = arktype({
 	id: 'string',
+	'name?': 'string',
+	'symbol?': 'string',
+	'asset_platform_id?': 'string | null',
+	'image?': coingeckoImageWire,
+	'market_data?': coingeckoMarketDataWire,
+	'detail_platforms?': {
+		'[string]': coingeckoDetailPlatformWire,
+	},
 })
+
 export const coingeckoCoinsMarketEnvelope = arktype({
 	id: 'string',
+	'symbol?': 'string',
+	'name?': 'string',
+	'current_price?': 'number | null',
+	'market_cap?': 'number | null',
+	'market_cap_rank?': 'number | null',
+	'total_volume?': 'number | null',
+	'price_change_percentage_24h?': 'number | null',
 }).array()
+
+export const coingeckoAssetPlatformEnvelope = arktype({
+	id: 'string',
+	'name?': 'string',
+	'shortname?': 'string',
+	'chain_identifier?': 'number | null',
+	'native_coin_id?': 'string | null',
+	'image?': coingeckoImageWire,
+})
+
+export const coingeckoAssetPlatformsEnvelope = coingeckoAssetPlatformEnvelope.array()
+
 export const coingeckoCoinTickersEnvelope = arktype({
 	tickers: arktype({
 		coin_id: 'string',
 		base: 'string',
 		target: 'string',
+		'target_coin_id?': 'string',
 		market: {
 			identifier: 'string',
 		},
 	}).array(),
 })
+
 export const coingeckoDerivativesExchangeEnvelope = arktype({
 	tickers: arktype({
 		coin_id: 'string',
@@ -64,6 +120,26 @@ export const coingeckoDerivativesExchangeEnvelope = arktype({
 		'expired_at?': 'number | null',
 	}).array(),
 })
+
+export const coingeckoOhlcCandleEnvelope = arktype([
+	'number',
+	'number',
+	'number',
+	'number',
+	'number',
+])
+
+export const coingeckoOhlcEnvelope = coingeckoOhlcCandleEnvelope.array()
+
+export const coingeckoSimplePriceRowEnvelope = arktype({
+	'usd?': 'number',
+	'last_updated_at?': 'number',
+	'usd_market_cap?': 'number',
+	'usd_24h_vol?': 'number',
+	'usd_24h_change?': 'number',
+})
+
+export const coingeckoSimplePriceEnvelope = arktype('Record<string, unknown>')
 
 /** Live `/coins/{id}` payloads sometimes omit `image` despite the checked-in OpenAPI required shape. */
 export type CoingeckoCoin = Omit<CoinResponse, 'image'> & {
