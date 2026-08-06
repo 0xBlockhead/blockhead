@@ -152,6 +152,9 @@ export default {
 							...(info.height != null && {
 								etchingHeight: info.height,
 							}),
+							...(info.txidx != null && {
+								etchingTxIndex: info.txidx,
+							}),
 							...(info.timestamp != null && {
 								etchingTimestampMs: info.timestamp * 1000,
 							}),
@@ -172,11 +175,20 @@ export default {
 							...(info.premine != null && {
 								premine: info.premine,
 							}),
+							...(info.mints != null && {
+								mints: info.mints,
+							}),
+							...(info.burned != null && {
+								burned: info.burned,
+							}),
 							...(info.supply != null && {
 								supply: info.supply,
 							}),
 							...(info.holders != null && {
 								holders: info.holders,
+							}),
+							...(info.transactions != null && {
+								transactions: info.transactions,
 							}),
 							...(info.mintable != null && {
 								mintable: info.mintable,
@@ -196,6 +208,12 @@ export default {
 							...(info.terms?.heightEnd != null && {
 								termsHeightEnd: info.terms.heightEnd,
 							}),
+							...(info.terms?.offsetStart != null && {
+								termsOffsetStart: info.terms.offsetStart,
+							}),
+							...(info.terms?.offsetEnd != null && {
+								termsOffsetEnd: info.terms.offsetEnd,
+							}),
 						}
 					},
 				},
@@ -207,17 +225,23 @@ export default {
 			symbol: (snapshot) => snapshot.symbol,
 			divisibility: (snapshot) => snapshot.divisibility,
 			etchingHeight: (snapshot) => snapshot.etchingHeight,
+			etchingTxIndex: (snapshot) => snapshot.etchingTxIndex,
 			etchingTimestampMs: (snapshot) => snapshot.etchingTimestampMs,
 			$etchingTransaction: (snapshot) => snapshot.$etchingTransaction,
 			premine: (snapshot) => snapshot.premine,
 			supply: (snapshot) => snapshot.supply,
+			mints: (snapshot) => snapshot.mints,
+			burned: (snapshot) => snapshot.burned,
 			holders: (snapshot) => snapshot.holders,
+			transactions: (snapshot) => snapshot.transactions,
 			mintable: (snapshot) => snapshot.mintable,
 			remaining: (snapshot) => snapshot.remaining,
 			termsAmount: (snapshot) => snapshot.termsAmount,
 			termsCap: (snapshot) => snapshot.termsCap,
 			termsHeightStart: (snapshot) => snapshot.termsHeightStart,
 			termsHeightEnd: (snapshot) => snapshot.termsHeightEnd,
+			termsOffsetStart: (snapshot) => snapshot.termsOffsetStart,
+			termsOffsetEnd: (snapshot) => snapshot.termsOffsetEnd,
 		}),
 
 		defineResolver({

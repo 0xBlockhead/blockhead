@@ -189,6 +189,8 @@ describe('UniSat Rest resolver module', () => {
 				cap: '1000',
 				heightStart: 840000,
 				heightEnd: 850000,
+				offsetStart: 10,
+				offsetEnd: 20,
 			},
 		})
 
@@ -203,6 +205,7 @@ describe('UniSat Rest resolver module', () => {
 		expect(runeResolver.projections.symbol(rune)).toBe('⧉')
 		expect(runeResolver.projections.divisibility(rune)).toBe(0)
 		expect(runeResolver.projections.etchingHeight(rune)).toBe(840000)
+		expect(runeResolver.projections.etchingTxIndex(rune)).toBe(1)
 		expect(runeResolver.projections.etchingTimestampMs(rune)).toBe(1_710_000_000_000)
 		expect(runeResolver.projections.$etchingTransaction(rune)).toEqual({
 			[EntityMetaKey.Selector]: {
@@ -212,17 +215,18 @@ describe('UniSat Rest resolver module', () => {
 		})
 		expect(runeResolver.projections.premine(rune)).toBe('0')
 		expect(runeResolver.projections.supply(rune)).toBe('1')
+		expect(runeResolver.projections.mints(rune)).toBe('100')
+		expect(runeResolver.projections.burned(rune)).toBe('0')
 		expect(runeResolver.projections.holders(rune)).toBe(42)
+		expect(runeResolver.projections.transactions(rune)).toBe(99)
 		expect(runeResolver.projections.mintable(rune)).toBe(true)
 		expect(runeResolver.projections.remaining(rune)).toBe('500')
 		expect(runeResolver.projections.termsAmount(rune)).toBe('1')
 		expect(runeResolver.projections.termsCap(rune)).toBe('1000')
 		expect(runeResolver.projections.termsHeightStart(rune)).toBe(840000)
 		expect(runeResolver.projections.termsHeightEnd(rune)).toBe(850000)
-		expect(rune).not.toHaveProperty('etchingTxIndex')
-		expect(rune).not.toHaveProperty('mints')
-		expect(rune).not.toHaveProperty('burned')
-		expect(rune).not.toHaveProperty('transactions')
+		expect(runeResolver.projections.termsOffsetStart(rune)).toBe(10)
+		expect(runeResolver.projections.termsOffsetEnd(rune)).toBe(20)
 	})
 
 	it('fail-closes when a rune is absent from a utxo balance list', async () => {
