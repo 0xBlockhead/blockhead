@@ -31,6 +31,7 @@ const {
 	getLatestBlock,
 	getLiquidityPerTickRange,
 	getNodeInfo,
+	getNumPoolPositions,
 	getPool,
 	getPools,
 	getPositionById,
@@ -500,6 +501,91 @@ describe('Osmosis LCD named operations', () => {
 		})).resolves.toEqual({
 			positions: [],
 		})
+	})
+
+	it('filters owner positions by pool_id when poolId is set', async () => {
+		const address = 'osmo1pnw2u5yn26vhhr2t32r8x54zegxfe0q9zr247t'
+		sourceGetJson.mockResolvedValueOnce({
+			positions: [
+				{
+					position: {
+						position_id: '12',
+						address,
+						pool_id: '1066',
+						lower_tick: '1',
+						upper_tick: '2',
+						liquidity: '1',
+					},
+				},
+			],
+			pagination: {
+				next_key: null,
+				total: '1',
+			},
+		})
+		await expect(getPositionsByOwner({
+			address,
+			poolId: '1066',
+			limit: 10,
+			offset: 0,
+		})).resolves.toMatchObject({
+			positions: [
+				{
+					position: {
+						position_id: '12',
+						pool_id: '1066',
+					},
+				},
+			],
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, `/osmosis/concentratedliquidity/v1beta1/positions/${address}?pagination.limit=10&pagination.offset=0&pagination.count_total=true&pool_id=1066`)
+		)
+	})
+
+	it('rejects owner positions whose pool_id does not match the filter', async () => {
+		const address = 'osmo1pnw2u5yn26vhhr2t32r8x54zegxfe0q9zr247t'
+		sourceGetJson.mockResolvedValueOnce({
+			positions: [
+				{
+					position: {
+						position_id: '12',
+						address,
+						pool_id: '999',
+						lower_tick: '1',
+						upper_tick: '2',
+						liquidity: '1',
+					},
+				},
+			],
+		})
+		await expect(getPositionsByOwner({
+			address,
+			poolId: '1066',
+		})).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: user positions pool id mismatch 999 !== 1066`)
+	})
+
+	it('reads the concentrated liquidity position count for a pool', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			position_count: '42',
+		})
+		await expect(getNumPoolPositions({
+			poolId: '1066',
+		})).resolves.toEqual({
+			position_count: '42',
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, '/osmosis/concentratedliquidity/v1beta1/num_pool_positions/1066')
+		)
+	})
+
+	it('rejects invalid pool ids for num pool positions before transport', () => {
+		expect(() => getNumPoolPositions({
+			poolId: 'abc',
+		})).toThrow(`${Source.Osmosis_LCD_Rest}: invalid pool id abc`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
 	it('reads a spot price for a pool', async () => {

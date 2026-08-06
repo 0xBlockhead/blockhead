@@ -12,6 +12,7 @@ import type {
 	OsmosisDenomTraceResponse,
 	OsmosisLiquidityPerTickRangeResponse,
 	OsmosisNodeInfoResponse,
+	OsmosisNumPoolPositionsResponse,
 	OsmosisPositionByIdResponse,
 	OsmosisSpotPriceResponse,
 	OsmosisStakingPoolResponse,
@@ -107,6 +108,9 @@ const osmosisUserPositionsResponseWire = arktype({
 		'total?': 'string',
 	},
 })
+const osmosisNumPoolPositionsResponseWire = arktype({
+	position_count: '/^(0|[1-9][0-9]*)$/',
+})
 const assertPoolEnvelope = (response: unknown) => {
 	try {
 		return osmosisPoolResponseWire.assert(response)
@@ -140,6 +144,13 @@ const assertUserPositionsEnvelope = (response: unknown) => {
 		return osmosisUserPositionsResponseWire.assert(response)
 	} catch {
 		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid user-positions response envelope`)
+	}
+}
+const assertNumPoolPositionsEnvelope = (response: unknown) => {
+	try {
+		return osmosisNumPoolPositionsResponseWire.assert(response)
+	} catch {
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid num-pool-positions response envelope`)
 	}
 }
 
@@ -366,18 +377,23 @@ export const getPositionById = ({
 
 /**
  * All CL positions for an Osmosis bech32 owner (paginated).
+ * Optional `poolId` filters to one concentrated pool (`pool_id` query param).
  * @see https://github.com/osmosis-labs/osmosis/blob/main/proto/osmosis/concentratedliquidity/v1beta1/query.proto UserPositions
  */
 export const getPositionsByOwner = ({
 	address,
+	poolId,
 	limit = 24,
 	offset = 0,
 }: {
 	address: string
+	poolId?: string
 	limit?: number
 	offset?: number
 }) => {
 	assertOwnerAddress(address)
+	if (poolId != null)
+		assertPoolId(poolId)
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
 		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid user positions limit ${String(limit)}`)
 	if (!Number.isSafeInteger(offset) || offset < 0)
@@ -387,6 +403,9 @@ export const getPositionsByOwner = ({
 		'pagination.limit': String(limit),
 		'pagination.offset': String(offset),
 		'pagination.count_total': 'true',
+		...(poolId != null && {
+			pool_id: poolId,
+		}),
 	})
 	return lcdGetJson<unknown>(
 		`${osmosisPoolPaths.userPositions}/${address}?${parameters}`
@@ -395,9 +414,35 @@ export const getPositionsByOwner = ({
 			const envelope = assertUserPositionsEnvelope(response) as OsmosisUserPositionsResponse
 			if (new Set(envelope.positions.map((row) => row.position.position_id)).size !== envelope.positions.length)
 				throw new Error(`${Source.Osmosis_LCD_Rest}: user positions response contains duplicate position ids`)
+			if (poolId != null) {
+				for (const row of envelope.positions) {
+					if (row.position.pool_id !== poolId)
+						throw new Error(`${Source.Osmosis_LCD_Rest}: user positions pool id mismatch ${row.position.pool_id} !== ${poolId}`)
+				}
+			}
 
 			return envelope
 		})
+}
+
+/**
+ * Count of CL positions in a concentrated liquidity pool.
+ * LCD path exists in proto; some public LCD nodes currently return gRPC Unimplemented.
+ * There is no honest pool-wide position *list* endpoint — only this count.
+ * @see https://github.com/osmosis-labs/osmosis/blob/main/proto/osmosis/concentratedliquidity/v1beta1/query.proto NumPoolPositions
+ */
+export const getNumPoolPositions = ({
+	poolId,
+}: {
+	poolId: string
+}) => {
+	assertPoolId(poolId)
+	return lcdGetJson<unknown>(
+		`${osmosisPoolPaths.numPoolPositions}/${poolId}`
+	)
+		.then((response) => (
+			assertNumPoolPositionsEnvelope(response) as OsmosisNumPoolPositionsResponse
+		))
 }
 
 export const getSpotPrice = ({

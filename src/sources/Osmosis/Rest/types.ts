@@ -149,6 +149,10 @@ export type OsmosisUserPositionsResponse = {
 	pagination?: OsmosisPagination
 }
 
+export type OsmosisNumPoolPositionsResponse = {
+	position_count: string
+}
+
 export type OsmosisSpotPriceResponse = {
 	spot_price: string
 }
