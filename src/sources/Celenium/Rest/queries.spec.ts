@@ -256,6 +256,9 @@ describe('Celenium mainnet public indexer contracts', () => {
 			fee: '900719925474099312345',
 			time: '2026-07-23T04:49:13Z',
 			status: 'success',
+			timeout_height: 0,
+			memo: 'relayed by hermes',
+			codespace: 'sdk',
 			signers: [
 				{
 					hash: address,
@@ -282,11 +285,30 @@ describe('Celenium mainnet public indexer contracts', () => {
 			fee: '1',
 			time: '2026-07-23T04:49:13Z',
 			status: 'success',
+			timeout_height: 0,
 			signers: [],
 			message_types: [],
 		})
 
 		await expect(getTransaction(hash)).rejects.toThrow('mismatched identity')
+	})
+
+	it('fail-closes invalid transaction status leftovers', async () => {
+		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue({
+			height: 12_424_743,
+			position: 3,
+			gas_wanted: 289_167,
+			gas_used: 262_979,
+			hash,
+			fee: '1',
+			time: '2026-07-23T04:49:13Z',
+			status: 'pending',
+			timeout_height: 0,
+			signers: [],
+			message_types: [],
+		})
+
+		await expect(getTransaction(hash)).rejects.toThrow('invalid transaction status')
 	})
 
 	it('resolves block hash via search then height detail', async () => {
@@ -341,6 +363,7 @@ describe('Celenium mainnet public indexer contracts', () => {
 			last_height: 12_424_720,
 			name: 'PayForBlobs',
 			reserved: false,
+			pfb_count: 4,
 		})
 		expect(sourceGetJson).toHaveBeenLastCalledWith(
 			binding,

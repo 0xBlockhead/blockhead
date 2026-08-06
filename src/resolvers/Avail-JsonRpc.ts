@@ -4,6 +4,7 @@ import {
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -63,27 +64,86 @@ export default {
 							return []
 
 						const {
-							getHeader,
+							getBlock,
 							getBlockHash,
+							getHeader,
+							getHeaderByBlockNumber,
 						} = await import('$/sources/Avail/JsonRpc/queries.ts')
-						const tipHash = await getBlockHash(context.publicEnv)
-						const tip = await getHeader(context.publicEnv, tipHash)
+						const publicEnv = context.publicEnv
+						const tipHash = await getBlockHash(publicEnv)
+						const tip = await getHeader(publicEnv, tipHash)
 						const tipNumber = tip.blockNumber
-						return Array.from({
+						const blockNumbers = Array.from({
 							length: Math.min(Number(tipNumber + 1n), limit),
-						}, (_value, blockOffset) => ({
-							[EntityMetaKey.Selector]: {
-								$network: {
-									$network,
-								},
-								blockNumber: tipNumber - BigInt(blockOffset),
-							},
-						}))
+						}, (_value, blockOffset) => (
+							tipNumber - BigInt(blockOffset)
+						))
+						return await Promise.all(
+							blockNumbers.map(async (blockNumber) => {
+								const header = (
+									blockNumber === tipNumber && tip.hash != null ?
+										{
+											...tip,
+											hash: tip.hash,
+										}
+									:
+										await getHeaderByBlockNumber(publicEnv, blockNumber)
+								)
+								const block = await getBlock(publicEnv, header.hash)
+								return {
+									[EntityMetaKey.Selector]: {
+										$network: {
+											$network,
+										},
+										blockNumber,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.AvailBlock, [], 'blockHash')]: header.hash,
+										[entityFieldAddressKey(EntityType.AvailBlock, [], 'parentHash')]: header.parentHash,
+										[entityFieldAddressKey(EntityType.AvailBlock, [], 'stateRoot')]: header.stateRoot,
+										[entityFieldAddressKey(EntityType.AvailBlock, [], 'extrinsicsRoot')]: header.extrinsicsRoot,
+										[entityFieldAddressKey(EntityType.AvailBlock, [], 'extrinsicCount')]: block.extrinsicCount,
+										...(blockNumber > 0n && {
+											[entityFieldAddressKey(EntityType.AvailBlock, [], '$parent')]: {
+												[EntityMetaKey.Selector]: {
+													$network: {
+														$network,
+													},
+													blockNumber: blockNumber - 1n,
+												},
+											},
+										}),
+									},
+								}
+							})
+						)
 					},
 				},
 			},
 		})({
 			$$blocks: (blocks) => blocks,
+		}),
+
+		defineResolver({
+			entityType: EntityType.AvailNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }, context) => {
+						assertAvailMainnet($network)
+						const {
+							getBlockHash,
+							getHeader,
+						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						const tipHash = await getBlockHash(context.publicEnv)
+						const tip = await getHeader(context.publicEnv, tipHash)
+						return Number(tip.blockNumber + 1n)
+					},
+				},
+			},
+		})({
+			$$blocks: {
+				resolveCount: (count) => count,
+			},
 		}),
 
 		defineResolver({

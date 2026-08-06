@@ -48,7 +48,16 @@ const blockWire = arktype({
 		blobs_size: 'number.integer >= 0',
 		fee: 'string',
 		bytes_in_block: 'number.integer >= 0',
+		'events_count?': 'number.integer >= 0',
+		'gas_limit?': 'number.integer >= 0',
+		'gas_used?': 'number.integer >= 0',
+		'square_size?': 'number.integer >= 0',
+		'block_time?': 'number.integer >= 0',
+		'fill_rate?': 'string | number',
 	}).onUndeclaredKey('delete'),
+	'message_types?': 'string[]',
+	'version_block?': 'number.integer >= 0',
+	'version_app?': 'number.integer >= 0',
 }).onUndeclaredKey('delete')
 
 const namespaceWire = arktype({
@@ -60,6 +69,8 @@ const namespaceWire = arktype({
 	last_height: 'number.integer >= 0',
 	'name?': 'string',
 	reserved: 'boolean',
+	'pfb_count?': 'number.integer >= 0',
+	'last_message_time?': 'string',
 }).onUndeclaredKey('delete')
 
 const blobMetadataWire = arktype({
@@ -161,10 +172,16 @@ const transactionWire = arktype({
 	fee: 'string',
 	time: 'string',
 	status: 'string',
+	timeout_height: 'number.integer >= 0',
 	signers: arktype({
 		hash: 'string',
 	}).array(),
 	message_types: 'string[]',
+	'memo?': 'string',
+	'codespace?': 'string',
+	'error?': 'string',
+	'events_count?': 'number.integer >= 0',
+	'messages_count?': 'number.integer >= 0',
 }).onUndeclaredKey('delete')
 
 
@@ -283,6 +300,41 @@ const validatedBlockWire = (wire: typeof blockWire.infer) => {
 		[wire.stats.blobs_count, 'block blob count'],
 		[wire.stats.blobs_size, 'block blob bytes'],
 		[wire.stats.bytes_in_block, 'block bytes'],
+		...(wire.stats.events_count != null ?
+			[[wire.stats.events_count, 'block event count'] as const]
+		:
+			[]
+		),
+		...(wire.stats.gas_limit != null ?
+			[[wire.stats.gas_limit, 'block gas limit'] as const]
+		:
+			[]
+		),
+		...(wire.stats.gas_used != null ?
+			[[wire.stats.gas_used, 'block gas used'] as const]
+		:
+			[]
+		),
+		...(wire.stats.square_size != null ?
+			[[wire.stats.square_size, 'block square size'] as const]
+		:
+			[]
+		),
+		...(wire.stats.block_time != null ?
+			[[wire.stats.block_time, 'block time ms'] as const]
+		:
+			[]
+		),
+		...(wire.version_block != null ?
+			[[wire.version_block, 'block version'] as const]
+		:
+			[]
+		),
+		...(wire.version_app != null ?
+			[[wire.version_app, 'app version'] as const]
+		:
+			[]
+		),
 	])
 	for (const [value, label] of [
 		[wire.hash, 'block hash'],
@@ -361,6 +413,11 @@ const validatedNamespaceWire = (wire: typeof namespaceWire.infer) => {
 		[wire.size, 'namespace bytes'],
 		[wire.blobs_count, 'namespace blob count'],
 		[wire.last_height, 'namespace last height'],
+		...(wire.pfb_count != null ?
+			[[wire.pfb_count, 'namespace pay-for-blobs count'] as const]
+		:
+			[]
+		),
 	])
 	if (wire.version > 255)
 		throw new Error('Celenium_Rest: invalid namespace version')
@@ -368,6 +425,11 @@ const validatedNamespaceWire = (wire: typeof namespaceWire.infer) => {
 		throw new Error('Celenium_Rest: invalid namespace ID')
 	if (!namespaceHashPattern.test(wire.hash))
 		throw new Error('Celenium_Rest: invalid namespace hash')
+	if (
+		wire.last_message_time != null
+		&& !Number.isFinite(Date.parse(wire.last_message_time))
+	)
+		throw new Error('Celenium_Rest: invalid namespace last message time')
 	return wire
 }
 
@@ -663,8 +725,21 @@ export const getTransaction = async (
 		[wire.position, 'transaction position'],
 		[wire.gas_wanted, 'transaction gas wanted'],
 		[wire.gas_used, 'transaction gas used'],
+		[wire.timeout_height, 'transaction timeout height'],
+		...(wire.events_count != null ?
+			[[wire.events_count, 'transaction event count'] as const]
+		:
+			[]
+		),
+		...(wire.messages_count != null ?
+			[[wire.messages_count, 'transaction message count'] as const]
+		:
+			[]
+		),
 	])
 	assertDecimal(wire.fee, 'transaction fee')
+	if (wire.status !== 'success' && wire.status !== 'failed')
+		throw new Error('Celenium_Rest: invalid transaction status')
 	for (const signer of wire.signers)
 		assertAddress(signer.hash)
 	return wire

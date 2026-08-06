@@ -4,6 +4,7 @@ import {
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -104,24 +105,70 @@ export default {
 							return []
 
 						const {
+							getHeaderByHeight,
 							getHeaderLocalHead,
 						} = await import('$/sources/Celestia/JsonRpc/queries.ts')
-						const localHead = await getHeaderLocalHead(context.publicEnv)
-						return Array.from({
+						const publicEnv = context.publicEnv
+						const localHead = await getHeaderLocalHead(publicEnv)
+						const heights = Array.from({
 							length: Math.min(Number(localHead.height), limit),
-						}, (_value, blockOffset) => ({
-							[EntityMetaKey.Selector]: {
-								$network: {
-									$network,
+						}, (_value, blockOffset) => (
+							localHead.height - BigInt(blockOffset)
+						))
+						const headers = await Promise.all(
+							heights.map((height) => (
+								height === localHead.height ?
+									localHead
+								:
+									getHeaderByHeight(publicEnv, height)
+							))
+						)
+						return headers.map((header) => {
+							const fields = headerFields(header)
+							return {
+								[EntityMetaKey.Selector]: {
+									$network: {
+										$network,
+									},
+									height: header.height,
 								},
-								height: localHead.height - BigInt(blockOffset),
-							},
-						}))
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'hash')]: fields.hash,
+									...(fields.appHash != null && {
+										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'appHash')]: fields.appHash,
+									}),
+									...(fields.dataHash != null && {
+										[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'dataHash')]: fields.dataHash,
+									}),
+									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'proposerAddress')]: fields.proposerAddress,
+									[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'timestampMs')]: fields.timestampMs,
+								},
+							}
+						})
 					},
 				},
 			},
 		})({
 			$$blocks: (blocks) => blocks,
+		}),
+
+		defineResolver({
+			entityType: EntityType.CelestiaNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }, context) => {
+						assertCelestiaMainnet($network)
+						const {
+							getHeaderLocalHead,
+						} = await import('$/sources/Celestia/JsonRpc/queries.ts')
+						return Number((await getHeaderLocalHead(context.publicEnv)).height)
+					},
+				},
+			},
+		})({
+			$$blocks: {
+				resolveCount: (count) => count,
+			},
 		}),
 
 		defineResolver({

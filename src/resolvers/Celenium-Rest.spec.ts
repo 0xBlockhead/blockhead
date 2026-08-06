@@ -89,6 +89,14 @@ const blockResolver = celeniumRest.resolvers.find((resolver) => (
 const blockBlobsResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaBlock
 	&& '$$blobs' in resolver.projections
+	&& typeof resolver.projections.$$blobs === 'function'
+))
+const blockBlobsCountResolver = celeniumRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CelestiaBlock
+	&& '$$blobs' in resolver.projections
+	&& typeof resolver.projections.$$blobs === 'object'
+	&& resolver.projections.$$blobs != null
+	&& 'resolveCount' in resolver.projections.$$blobs
 ))
 const namespaceResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaNamespace
@@ -97,6 +105,14 @@ const namespaceResolver = celeniumRest.resolvers.find((resolver) => (
 const namespaceBlobsResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaNamespace
 	&& '$$blobs' in resolver.projections
+	&& typeof resolver.projections.$$blobs === 'function'
+))
+const namespaceBlobsCountResolver = celeniumRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CelestiaNamespace
+	&& '$$blobs' in resolver.projections
+	&& typeof resolver.projections.$$blobs === 'object'
+	&& resolver.projections.$$blobs != null
+	&& 'resolveCount' in resolver.projections.$$blobs
 ))
 const blobResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaBlob
@@ -107,10 +123,19 @@ const transactionResolver = celeniumRest.resolvers.find((resolver) => (
 const namespacesResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaNetwork
 	&& '$$namespaces' in resolver.projections
+	&& typeof resolver.projections.$$namespaces === 'function'
+))
+const namespacesCountResolver = celeniumRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CelestiaNetwork
+	&& '$$namespaces' in resolver.projections
+	&& typeof resolver.projections.$$namespaces === 'object'
+	&& resolver.projections.$$namespaces != null
+	&& 'resolveCount' in resolver.projections.$$namespaces
 ))
 const blobsResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaNetwork
 	&& '$$blobs' in resolver.projections
+	&& typeof resolver.projections.$$blobs === 'function'
 ))
 
 if (
@@ -120,11 +145,14 @@ if (
 	|| blocksCountResolver == null
 	|| blockResolver == null
 	|| blockBlobsResolver == null
+	|| blockBlobsCountResolver == null
 	|| namespaceResolver == null
 	|| namespaceBlobsResolver == null
+	|| namespaceBlobsCountResolver == null
 	|| blobResolver == null
 	|| transactionResolver == null
 	|| namespacesResolver == null
+	|| namespacesCountResolver == null
 	|| blobsResolver == null
 )
 	throw new Error('Celenium REST head resolvers are not registered')
@@ -442,6 +470,9 @@ describe('Celenium REST head projection', () => {
 			fee: '900719925474099312345',
 			time: '2026-07-23T04:49:13Z',
 			status: 'success',
+			timeout_height: 12_500_000,
+			memo: 'relayed by hermes',
+			codespace: 'sdk',
 			signers: [
 				{
 					hash: 'celestia1zwpvejau8kzhttlc39wmfggyf8n3eaxlpvd86u',
@@ -460,6 +491,8 @@ describe('Celenium REST head projection', () => {
 					height: 12_424_743n,
 				},
 			},
+			code: 0,
+			codespace: 'sdk',
 			gasWanted: 289_167n,
 			gasUsed: 262_979n,
 			feeAmount: [
@@ -468,11 +501,82 @@ describe('Celenium REST head projection', () => {
 					amount: 900_719_925_474_099_312_345n,
 				},
 			],
+			memo: 'relayed by hermes',
+			timeoutHeight: 12_500_000n,
 			signerAddresses: [
 				'celestia1zwpvejau8kzhttlc39wmfggyf8n3eaxlpvd86u',
 			],
 		})
 		expect(getTransaction).toHaveBeenCalledWith('a'.repeat(64))
+	})
+
+	it('projects namespace / block / namespace-blob resolveCount leftovers', async () => {
+		getHead.mockResolvedValue({
+			chain_id: 'celestia',
+			last_height: 12_424_720,
+			hash: 'a'.repeat(64),
+			last_time: '2026-07-23T04:48:08Z',
+			total_tx: 1,
+			total_accounts: 1,
+			total_fee: '1',
+			total_blobs_size: 1,
+			total_supply: '1',
+			synced: true,
+			total_namespaces: 1_095,
+		})
+		getBlock.mockResolvedValue({
+			height: 12_424_743,
+			hash: 'a'.repeat(64),
+			parent_hash: 'b'.repeat(64),
+			app_hash: 'c'.repeat(64),
+			data_hash: 'd'.repeat(64),
+			time: '2026-07-23T04:49:13Z',
+			proposer: {
+				cons_address: 'e'.repeat(40),
+			},
+			stats: {
+				tx_count: 5,
+				blobs_count: 4,
+				blobs_size: 100,
+				fee: '1',
+				bytes_in_block: 100,
+			},
+		})
+		getNamespace.mockResolvedValue({
+			size: 24_857,
+			blobs_count: 4,
+			version: 0,
+			namespace_id: 'A'.repeat(56),
+			hash: `${'B'.repeat(39)}=`,
+			last_height: 12_424_720,
+			reserved: false,
+		})
+
+		if (!('Network' in namespacesCountResolver.resolve))
+			throw new Error('Celenium namespace count resolver missing Network')
+		await expect(namespacesCountResolver.resolve.Network.resolve({
+			$network: network,
+		}, context)).resolves.toBe(1_095)
+		expect(
+			typeof namespacesCountResolver.projections.$$namespaces === 'object'
+			&& namespacesCountResolver.projections.$$namespaces != null
+			&& 'resolveCount' in namespacesCountResolver.projections.$$namespaces
+			&& namespacesCountResolver.projections.$$namespaces.resolveCount(1_095)
+		).toBe(1_095)
+
+		if (!('NetworkHeight' in blockBlobsCountResolver.resolve))
+			throw new Error('Celenium block blob count resolver missing NetworkHeight')
+		await expect(blockBlobsCountResolver.resolve.NetworkHeight.resolve({
+			$network: celestiaNetwork,
+			height: 12_424_743n,
+		}, context)).resolves.toBe(4)
+
+		if (!('NetworkNamespaceId' in namespaceBlobsCountResolver.resolve))
+			throw new Error('Celenium namespace blob count resolver missing NetworkNamespaceId')
+		await expect(namespaceBlobsCountResolver.resolve.NetworkNamespaceId.resolve({
+			$network: celestiaNetwork,
+			namespaceId: `00${'a'.repeat(56)}`,
+		}, context)).resolves.toBe(4)
 	})
 
 	it('projects native namespace rows into selectors and embedded observations', async () => {

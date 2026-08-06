@@ -6,7 +6,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -140,6 +143,12 @@ describe('CelestiaNode JsonRpc resolver', () => {
 		])
 
 		getHeaderLocalHead.mockResolvedValue(header)
+		getHeaderByHeight.mockImplementation(async (_publicEnv, height: bigint) => ({
+			...header,
+			height,
+			hash: height === 99n ? '1'.repeat(64) : '2'.repeat(64),
+			time: height === 99n ? '2026-08-06T11:59:59.000Z' : '2026-08-06T11:59:58.000Z',
+		}))
 		const blocks = await networkBlocksResolver.resolve.Network.resolve({
 			$network: network,
 		}, context)
@@ -149,11 +158,25 @@ describe('CelestiaNode JsonRpc resolver', () => {
 					$network: celestiaNetwork,
 					height: 100n,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'hash')]: header.hash,
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'appHash')]: header.appHash,
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'dataHash')]: header.dataHash,
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'proposerAddress')]: header.proposerAddress,
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'timestampMs')]: Date.parse(header.time),
+				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
 					$network: celestiaNetwork,
 					height: 99n,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'hash')]: '1'.repeat(64),
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'appHash')]: header.appHash,
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'dataHash')]: header.dataHash,
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'proposerAddress')]: header.proposerAddress,
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'timestampMs')]: Date.parse('2026-08-06T11:59:59.000Z'),
 				},
 			},
 			{
@@ -161,8 +184,34 @@ describe('CelestiaNode JsonRpc resolver', () => {
 					$network: celestiaNetwork,
 					height: 98n,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'hash')]: '2'.repeat(64),
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'appHash')]: header.appHash,
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'dataHash')]: header.dataHash,
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'proposerAddress')]: header.proposerAddress,
+					[entityFieldAddressKey(EntityType.CelestiaBlock, [], 'timestampMs')]: Date.parse('2026-08-06T11:59:58.000Z'),
+				},
 			},
 		])
+		expect(getHeaderByHeight).toHaveBeenCalledTimes(2)
+
+		const blocksCountResolver = celestiaNode.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.CelestiaNetwork
+			&& typeof resolver.projections.$$blocks === 'object'
+			&& resolver.projections.$$blocks != null
+			&& 'resolveCount' in resolver.projections.$$blocks
+		))
+		if (blocksCountResolver == null || !('Network' in blocksCountResolver.resolve))
+			throw new Error('CelestiaNode block count resolver missing')
+		await expect(blocksCountResolver.resolve.Network.resolve({
+			$network: network,
+		}, context)).resolves.toBe(100)
+		expect(
+			typeof blocksCountResolver.projections.$$blocks === 'object'
+			&& blocksCountResolver.projections.$$blocks != null
+			&& 'resolveCount' in blocksCountResolver.projections.$$blocks
+			&& blocksCountResolver.projections.$$blocks.resolveCount(100)
+		).toBe(100)
 	})
 
 	it('projects enrolled network observation fields from head + DAS + readiness', async () => {

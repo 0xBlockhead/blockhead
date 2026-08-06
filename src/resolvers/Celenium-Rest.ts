@@ -218,6 +218,26 @@ export default {
 			entityType: EntityType.CelestiaNetwork,
 			resolve: {
 				Network: {
+					resolve: async ({ $network }) => {
+						assertCelestiaMainnet($network)
+						const { getHead } = await import('$/sources/Celenium/Rest/queries.ts')
+						const head = await getHead()
+						if (head.total_namespaces == null)
+							throw new Error('Celenium_Rest: head missing total_namespaces')
+						return head.total_namespaces
+					},
+				},
+			},
+		})({
+				$$namespaces: {
+					resolveCount: (count) => count,
+				},
+			}),
+
+		defineResolver({
+			entityType: EntityType.CelestiaNetwork,
+			resolve: {
+				Network: {
 					resolve: async ({ $network }, context) => {
 						assertCelestiaMainnet($network)
 						const limit = Math.min(resolverContextRowLimit(context), 100)
@@ -359,6 +379,23 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType.CelestiaBlock,
+			resolve: {
+				NetworkHeight: {
+					resolve: async ({ $network, height }) => {
+						assertCelestiaMainnet($network.$network)
+						const { getBlock } = await import('$/sources/Celenium/Rest/queries.ts')
+						return (await getBlock(height)).stats.blobs_count
+					},
+				},
+			},
+		})({
+				$$blobs: {
+					resolveCount: (count) => count,
+				},
+			}),
+
+		defineResolver({
 			entityType: EntityType.CelestiaNamespace,
 			resolve: {
 				NetworkNamespaceId: {
@@ -423,6 +460,23 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType.CelestiaNamespace,
+			resolve: {
+				NetworkNamespaceId: {
+					resolve: async ({ $network, namespaceId }) => {
+						assertCelestiaMainnet($network.$network)
+						const { getNamespace } = await import('$/sources/Celenium/Rest/queries.ts')
+						return (await getNamespace(namespaceId)).blobs_count
+					},
+				},
+			},
+		})({
+				$$blobs: {
+					resolveCount: (count) => count,
+				},
+			}),
+
+		defineResolver({
 			entityType: EntityType.CelestiaBlob,
 			resolve: {
 				NamespaceHeightCommitment: {
@@ -463,6 +517,12 @@ export default {
 									height: BigInt(transaction.height),
 								},
 							},
+							...(transaction.status === 'success' && {
+								code: 0,
+							}),
+							...(transaction.codespace != null && transaction.codespace !== '' && {
+								codespace: transaction.codespace,
+							}),
 							gasWanted: BigInt(transaction.gas_wanted),
 							gasUsed: BigInt(transaction.gas_used),
 							feeAmount: [
@@ -471,17 +531,31 @@ export default {
 									amount: BigInt(transaction.fee),
 								},
 							],
+							...(transaction.memo != null && transaction.memo !== '' && {
+								memo: transaction.memo,
+							}),
+							...(transaction.timeout_height > 0 && {
+								timeoutHeight: BigInt(transaction.timeout_height),
+							}),
 							signerAddresses: transaction.signers.map((signer) => signer.hash),
+							...(transaction.error != null && transaction.error !== '' && {
+								rawLog: transaction.error,
+							}),
 						}
 					},
 				},
 			},
 		})({
 				$block: (transaction) => transaction.$block,
+				code: (transaction) => transaction.code,
+				codespace: (transaction) => transaction.codespace,
 				gasWanted: (transaction) => transaction.gasWanted,
 				gasUsed: (transaction) => transaction.gasUsed,
 				feeAmount: (transaction) => transaction.feeAmount,
+				memo: (transaction) => transaction.memo,
+				timeoutHeight: (transaction) => transaction.timeoutHeight,
 				signerAddresses: (transaction) => transaction.signerAddresses,
+				rawLog: (transaction) => transaction.rawLog,
 			}),
 
 		defineResolver({

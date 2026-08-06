@@ -6,7 +6,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -124,6 +127,24 @@ describe('Avail JsonRpc resolver', () => {
 
 		getBlockHash.mockResolvedValue(hash)
 		getHeader.mockResolvedValue(header)
+		getHeaderByBlockNumber.mockResolvedValue({
+			...header,
+			blockNumber: 99n,
+			hash: parentHash,
+		})
+		getBlock
+			.mockResolvedValueOnce({
+				...header,
+				extrinsicCount: 3,
+				extrinsics: ['0x00', '0x01', '0x02'],
+			})
+			.mockResolvedValueOnce({
+				...header,
+				blockNumber: 99n,
+				hash: parentHash,
+				extrinsicCount: 1,
+				extrinsics: ['0x00'],
+			})
 		const blocks = await networkBlocksResolver.resolve.Network.resolve({
 			$network: network,
 		}, context)
@@ -133,14 +154,58 @@ describe('Avail JsonRpc resolver', () => {
 					$network: availNetwork,
 					blockNumber: 100n,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AvailBlock, [], 'blockHash')]: hash,
+					[entityFieldAddressKey(EntityType.AvailBlock, [], 'parentHash')]: parentHash,
+					[entityFieldAddressKey(EntityType.AvailBlock, [], 'stateRoot')]: header.stateRoot,
+					[entityFieldAddressKey(EntityType.AvailBlock, [], 'extrinsicsRoot')]: header.extrinsicsRoot,
+					[entityFieldAddressKey(EntityType.AvailBlock, [], 'extrinsicCount')]: 3,
+					[entityFieldAddressKey(EntityType.AvailBlock, [], '$parent')]: {
+						[EntityMetaKey.Selector]: {
+							$network: availNetwork,
+							blockNumber: 99n,
+						},
+					},
+				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
 					$network: availNetwork,
 					blockNumber: 99n,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AvailBlock, [], 'blockHash')]: parentHash,
+					[entityFieldAddressKey(EntityType.AvailBlock, [], 'parentHash')]: parentHash,
+					[entityFieldAddressKey(EntityType.AvailBlock, [], 'stateRoot')]: header.stateRoot,
+					[entityFieldAddressKey(EntityType.AvailBlock, [], 'extrinsicsRoot')]: header.extrinsicsRoot,
+					[entityFieldAddressKey(EntityType.AvailBlock, [], 'extrinsicCount')]: 1,
+					[entityFieldAddressKey(EntityType.AvailBlock, [], '$parent')]: {
+						[EntityMetaKey.Selector]: {
+							$network: availNetwork,
+							blockNumber: 98n,
+						},
+					},
+				},
 			},
 		])
+
+		const blocksCountResolver = avail.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.AvailNetwork
+			&& typeof resolver.projections.$$blocks === 'object'
+			&& resolver.projections.$$blocks != null
+			&& 'resolveCount' in resolver.projections.$$blocks
+		))
+		if (blocksCountResolver == null || !('Network' in blocksCountResolver.resolve))
+			throw new Error('Avail block count resolver missing')
+		await expect(blocksCountResolver.resolve.Network.resolve({
+			$network: network,
+		}, context)).resolves.toBe(101)
+		expect(
+			typeof blocksCountResolver.projections.$$blocks === 'object'
+			&& blocksCountResolver.projections.$$blocks != null
+			&& 'resolveCount' in blocksCountResolver.projections.$$blocks
+			&& blocksCountResolver.projections.$$blocks.resolveCount(101)
+		).toBe(101)
 	})
 
 	it('projects enrolled network observation fields', async () => {
