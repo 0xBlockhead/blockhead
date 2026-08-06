@@ -831,7 +831,8 @@ export const sourceBindingCompatibility = [
 	{ wireProtocol: WireProtocol.InProcess, apiFamilies: [ApiFamily.BitTorrentDht, ApiFamily.CatalogRows, ApiFamily.WebTorrentApi, ApiFamily.XmtpClientApi], endpointKinds: [SourceEndpointKind.InProcess], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.InProcess, apiFamilies: [ApiFamily.CardanoLocalStateQuery, ApiFamily.LocalParser], endpointKinds: [SourceEndpointKind.LocalProcess], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.AcpProtocol, ApiFamily.McpProtocol], endpointKinds: [SourceEndpointKind.LocalProcess], operationGroups: true, artifactKinds: true },
-	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.BitcoinJsonRpc, ApiFamily.CelestiaNodeJsonRpc, ApiFamily.FilecoinLotusJsonRpc, ApiFamily.MetaplexDasJsonRpc, ApiFamily.MoneroDaemonJsonRpc, ApiFamily.StarknetJsonRpc, ApiFamily.SubstrateJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
+	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.BitcoinJsonRpc, ApiFamily.FilecoinLotusJsonRpc, ApiFamily.MoneroDaemonJsonRpc, ApiFamily.SubstrateJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: true, artifactKinds: true },
+	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.CelestiaNodeJsonRpc, ApiFamily.MetaplexDasJsonRpc, ApiFamily.StarknetJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl], operationGroups: [SourceOperationGroup.GenericRead], artifactKinds: [SourceArtifactKind.GenerationManifest, SourceArtifactKind.OpenRpcSpec, SourceArtifactKind.OpenRpcTypes, SourceArtifactKind.HandwrittenTypes] },
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.EvmExecutionJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl, SourceEndpointKind.WebSocketUrl], operationGroups: [SourceOperationGroup.EvmRpcCore, SourceOperationGroup.EvmRpcSubscribe, SourceOperationGroup.EvmRpcTrace, SourceOperationGroup.EvmRpcTxpool], artifactKinds: [SourceArtifactKind.GenerationManifest, SourceArtifactKind.OpenRpcSpec, SourceArtifactKind.OpenRpcTypes] },
 	{ wireProtocol: WireProtocol.JsonRpc2, apiFamilies: [ApiFamily.JsonRpcApi, ApiFamily.SolanaJsonRpc], endpointKinds: [SourceEndpointKind.HttpUrl, SourceEndpointKind.WebSocketUrl], operationGroups: true, artifactKinds: true },
 	{ wireProtocol: WireProtocol.LocalFile, apiFamilies: [ApiFamily.GitObject, ApiFamily.LocalParser, ApiFamily.LocalStateStore], endpointKinds: [SourceEndpointKind.LocalFilePath], operationGroups: true, artifactKinds: true },
@@ -88318,6 +88319,15 @@ export const app = {
 							generated: true,
 							officialUrl: "https://docs.celestia.org/specs/openrpc-v0.28.4.json",
 						},
+						{
+							kind: SourceArtifactKind.OpenRpcTypes,
+							path: "src/sources/Celestia/JsonRpc/openrpc.d.ts",
+							generated: true,
+						},
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Celestia/JsonRpc/types.ts",
+						},
 					],
 				},
 			},
@@ -91316,6 +91326,15 @@ export const app = {
 								kind: SourceArtifactKind.OpenRpcSpec,
 								path: "src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/metaplex-das-api.json",
 							},
+							{
+								kind: SourceArtifactKind.OpenRpcTypes,
+								path: "src/sources/_shared/interfaces/MetaplexDasJsonRpc/OpenRpc/openrpc.d.ts",
+								generated: true,
+							},
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/Helius/Das/types.ts",
+							},
 						],
 					},
 				],
@@ -93965,6 +93984,15 @@ export const app = {
 						{
 							kind: SourceArtifactKind.OpenRpcSpec,
 							path: "src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.json",
+						},
+						{
+							kind: SourceArtifactKind.OpenRpcTypes,
+							path: "src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/openrpc.d.ts",
+							generated: true,
+						},
+						{
+							kind: SourceArtifactKind.HandwrittenTypes,
+							path: "src/sources/Pathfinder/JsonRpc/types.ts",
 						},
 					],
 				},
