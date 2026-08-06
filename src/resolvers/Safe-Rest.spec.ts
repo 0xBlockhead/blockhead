@@ -57,6 +57,7 @@ describe('Safe Transaction Service resolver module', () => {
 		expect(safeRest.source).toBe(Source.SafeTransactionService_Rest)
 		expect(safeRest.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType.EvmContract,
+			EntityType.EvmContract,
 			EntityType.EvmNetworkAccount,
 			EntityType.EvmNetworkAccount,
 			EntityType.EvmNetworkAccount,
@@ -67,6 +68,7 @@ describe('Safe Transaction Service resolver module', () => {
 	it('rejects unsupported EIP-155 chains before HTTP', async () => {
 		const contractResolver = safeRest.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.EvmContract
+			&& 'threshold' in resolver.projections
 		))
 		if (contractResolver == null)
 			throw new Error('missing EvmContract resolver')
@@ -104,6 +106,7 @@ describe('Safe Transaction Service resolver module', () => {
 
 		const contractResolver = safeRest.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.EvmContract
+			&& 'threshold' in resolver.projections
 		))
 		if (contractResolver == null)
 			throw new Error('missing EvmContract resolver')
@@ -143,6 +146,34 @@ describe('Safe Transaction Service resolver module', () => {
 			},
 		})
 		expect(contractResolver.projections.$guard(snapshot)).toBeUndefined()
+	})
+
+	it('maps Safe creation onto EvmContract $creationTransaction', async () => {
+		const creationHash = `0x${'3'.repeat(64)}`
+		sourceGetJson.mockResolvedValue({
+			created: '2024-01-01T00:00:00Z',
+			creator: ownerAddress,
+			transactionHash: creationHash,
+			factoryAddress: masterCopy,
+			masterCopy,
+		})
+
+		const creationResolver = safeRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.EvmContract
+			&& '$creationTransaction' in resolver.projections
+		))
+		if (creationResolver == null)
+			throw new Error('missing EvmContract.$creationTransaction resolver')
+
+		await expect(creationResolver.resolve.EvmNetworkAddress.resolve({
+			$network: network,
+			address: safeAddress,
+		}, context)).resolves.toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				txHash: creationHash,
+			},
+		})
 	})
 
 	it('maps executed Safe multisig transactions onto EvmNetworkAccount $$transactions', async () => {
