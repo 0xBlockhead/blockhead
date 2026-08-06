@@ -6,6 +6,7 @@ import {
 import { NetworkExecutionModel, NetworkLedgerModel } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -576,18 +577,48 @@ export default {
 			resolve: osmosisNetworkResolverSelectors(
 				async (network, context) => {
 					assertOsmosisNetwork(network)
-					const { getPools } = await import('$/sources/Osmosis/Rest/queries.ts')
+					const limit = resolverContextRowLimit(context)
+					const offset = context.pagination.offset ?? 0
+					const { getConcentratedLiquidityPools } = await import('$/sources/Osmosis/Rest/queries.ts')
 					const {
 						pools,
-					} = await getPools()
+						pagination,
+					} = await getConcentratedLiquidityPools({
+						limit,
+						offset,
+					})
+					const reportedTotal = (
+						pagination?.total == null ?
+							undefined
+						:
+							Number(pagination.total)
+					)
+					const totalCount = (
+						reportedTotal != null
+						&& Number.isSafeInteger(reportedTotal)
+						&& reportedTotal > 0 ?
+							reportedTotal
+						:
+							offset + pools.length
+					)
 					return {
-						rows: pools.slice(0, resolverContextRowLimit(context)).map((pool) => ({
+						rows: pools.map((pool) => ({
 							[EntityMetaKey.Selector]: {
 								$network: network,
 								poolId: pool.id,
 							},
+							[EntityMetaKey.Fields]: Object.fromEntries(
+								Object.entries(
+									mapOsmosisPoolSnapshot(network, pool)
+								)
+									.filter(([field]) => field !== '$network' && field !== 'poolId' && field !== 'assets')
+									.map(([field, value]) => [
+										entityFieldAddressKey(EntityType.OsmosisPool, [], field),
+										value,
+									])
+							),
 						})),
-						totalCount: pools.length,
+						totalCount,
 					}
 				}
 			),

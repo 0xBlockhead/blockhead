@@ -6,7 +6,7 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/Osmosis/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -330,16 +330,28 @@ describe('Osmosis LCD resolver module', () => {
 		])
 	})
 
-	it('lists OsmosisPool refs from poolmanager getPools', async () => {
+	it('lists concentrated liquidity OsmosisPool refs with nested CL fields', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			pools: [
 				{
-					id: '1',
+					id: '1066',
+					'@type': '/osmosis.concentratedliquidity.v1beta1.Pool',
+					token0: 'uosmo',
+					token1: 'uion',
+					current_tick: '1',
+					current_tick_liquidity: '2',
+					spread_factor: '0.002',
 				},
 				{
-					id: '678',
+					id: '1067',
+					'@type': '/osmosis.concentratedliquidity.v1beta1.Pool',
+					token0: 'uosmo',
+					token1: 'uatom',
 				},
 			],
+			pagination: {
+				total: '2',
+			},
 		})
 
 		if (networkOsmosisPoolsResolver == null)
@@ -350,20 +362,33 @@ describe('Osmosis LCD resolver module', () => {
 			{
 				[EntityMetaKey.Selector]: {
 					$network: osmosisNetwork,
-					poolId: '1',
+					poolId: '1066',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'typeUrl')]: '/osmosis.concentratedliquidity.v1beta1.Pool',
+					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'token0Denom')]: 'uosmo',
+					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'token1Denom')]: 'uion',
+					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'currentTick')]: '1',
+					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'currentTickLiquidity')]: '2',
+					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'spreadFactor')]: '0.002',
 				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
 					$network: osmosisNetwork,
-					poolId: '678',
+					poolId: '1067',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'typeUrl')]: '/osmosis.concentratedliquidity.v1beta1.Pool',
+					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'token0Denom')]: 'uosmo',
+					[entityFieldAddressKey(EntityType.OsmosisPool, [], 'token1Denom')]: 'uatom',
 				},
 			},
 		])
 		expect(networkOsmosisPoolsResolver.projections.Cosmos.$$osmosisPools.resolveCount(snapshot)).toBe(2)
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			expect.anything(),
-			expect.stringContaining('/osmosis/poolmanager/v1beta1/all-pools')
+			expect.stringContaining('/osmosis/concentratedliquidity/v1beta1/pools?')
 		)
 	})
 
@@ -378,13 +403,18 @@ describe('Osmosis LCD resolver module', () => {
 		).rejects.toThrow()
 	})
 
-	it('reports the complete Osmosis pool count for a bounded hub window', async () => {
+	it('reports the complete concentrated liquidity pool count for a bounded hub window', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			pools: Array.from({
-				length: 17,
+				length: 16,
 			}, (_value, index) => ({
-				id: String(index + 1),
+				id: String(index + 1066),
+				'@type': '/osmosis.concentratedliquidity.v1beta1.Pool',
 			})),
+			pagination: {
+				next_key: 'more',
+				total: '17',
+			},
 		})
 
 		if (networkOsmosisPoolsResolver == null)
