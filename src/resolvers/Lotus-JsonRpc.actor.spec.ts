@@ -230,7 +230,7 @@ it('resolves a persisted network observation from its immutable tipset', async (
 		},
 	})
 
-	await expect(networkTimestampResolver.resolve['NetworkTimestampMsHeightTipsetKeySource'].resolve({
+	await expect(networkTimestampResolver.resolve['NetworkTimestampMsSource'].resolve({
 		$network: network,
 		timestampMs: 1_750_000_000_000,
 		height: 123n,

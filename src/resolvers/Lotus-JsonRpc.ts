@@ -235,7 +235,7 @@ export default {
 		defineResolver({
 			entityType: EntityType.FilecoinNetwork_Timestamp,
 			resolve: {
-				NetworkTimestampMsHeightTipsetKeySource: {
+				NetworkTimestampMsSource: {
 					resolve: async ({ $network, timestampMs, height, tipsetKey: selectorTipsetKey, source }) => {
 						assertFilecoinMainnet($network)
 						if (source !== Source.Lotus_JsonRpc)
