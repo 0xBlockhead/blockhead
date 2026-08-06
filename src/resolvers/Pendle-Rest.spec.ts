@@ -49,9 +49,10 @@ const pendleMarketResolver = pendleRest.resolvers.find((resolver) => (
 ))
 const evmNetworkAccountResolver = pendleRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EvmNetworkAccount
+	&& '$$pendlePositions' in resolver.projections
 ))
-const evmNetworkAccountTimestampResolver = pendleRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.EvmNetworkAccount_Timestamp
+const pendlePositionResolver = pendleRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.PendlePosition
 ))
 
 const baseMarketAddress = '0x00b321d89a8c36b3929f20b7955080baed706d1b'
@@ -99,9 +100,9 @@ describe('Pendle Rest resolver module', () => {
 		getAccountPositions.mockReset()
 	})
 
-	it('publishes and resolves Pendle account positions from on-chain PT, YT, SY, and LP balances', async () => {
-		if (evmNetworkAccountResolver == null || evmNetworkAccountTimestampResolver == null)
-			throw new Error('missing Pendle account resolvers')
+	it('publishes Pendle account positions onto $$pendlePositions', async () => {
+		if (evmNetworkAccountResolver == null)
+			throw new Error('missing Pendle account resolver')
 
 		const accountSelector = {
 			$network: baseNetwork,
@@ -109,12 +110,6 @@ describe('Pendle Rest resolver module', () => {
 				address: '0x0000000000000000000000000000000000000001',
 			},
 		}
-		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
-			accountSelector,
-			context
-		)
-		const [timestampReference] = evmNetworkAccountResolver.projections.$$timestamps(account)
-
 		getAccountPositions.mockResolvedValue({
 			blockNumber: 123n,
 			positions: [
@@ -139,24 +134,21 @@ describe('Pendle Rest resolver module', () => {
 			],
 		})
 
-		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve(
-			timestampReference[EntityMetaKey.Selector],
+		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
 			context
 		)
 
-		expect(evmNetworkAccountTimestampResolver.projections.blockNumber(snapshot)).toBe(123n)
-		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([
-			expect.objectContaining({
-				protocol: 'Pendle V2',
-				marketAddress: baseMarketAddress,
-				ptAddress: '0x270d664d2fc7d962012a787aec8661ca83df24eb',
-				balances: [
-					expect.objectContaining({
-						kind: 'YT',
-						balance: '1000000',
-					}),
-				],
-			}),
+		expect(evmNetworkAccountResolver.projections.$$pendlePositions(account)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$account: accountSelector,
+					$market: {
+						$network: baseNetwork,
+						marketAddress: baseMarketAddress,
+					},
+				},
+			},
 		])
 		expect(getAccountPositions).toHaveBeenCalledWith({
 			chainId: 1,
@@ -164,76 +156,120 @@ describe('Pendle Rest resolver module', () => {
 		})
 	})
 
+	it('resolves a Pendle position by account + market', async () => {
+		if (pendlePositionResolver == null)
+			throw new Error('missing PendlePosition resolver')
+
+		const accountSelector = {
+			$network: baseNetwork,
+			$actor: {
+				address: '0x0000000000000000000000000000000000000001',
+			},
+		}
+		getAccountPositions.mockResolvedValue({
+			blockNumber: 123n,
+			positions: [
+				{
+					protocol: 'Pendle V2',
+					chainId: 1,
+					marketAddress: baseMarketAddress,
+					marketName: 'USD0++',
+					expiryTimestampMs: Date.parse(baseMarketWire.expiry),
+					ptAddress: '0x270d664d2fc7d962012a787aec8661ca83df24eb',
+					ytAddress: '0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+					syAddress: '0x47bce1bb5d9a9072161ec25009bcd6e8d367b7d3',
+					underlyingAssetAddress: '0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+					balances: [
+						{
+							kind: 'YT',
+							address: '0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+							balance: '1000000',
+						},
+						{
+							kind: 'PT',
+							address: '0x270d664d2fc7d962012a787aec8661ca83df24eb',
+							balance: '2',
+						},
+					],
+				},
+			],
+		})
+
+		const snapshot = await pendlePositionResolver.resolve.AccountMarket.resolve({
+			$account: accountSelector,
+			$market: {
+				$network: baseNetwork,
+				marketAddress: baseMarketAddress,
+			},
+		}, context)
+
+		expect(pendlePositionResolver.projections.ytBalance(snapshot)).toBe('1000000')
+		expect(pendlePositionResolver.projections.ptBalance(snapshot)).toBe('2')
+		expect(pendlePositionResolver.projections.$market(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: baseNetwork,
+				marketAddress: baseMarketAddress,
+			},
+		})
+	})
+
 	it('rejects non-eip155 networks on account positions before transport', async () => {
-		if (evmNetworkAccountTimestampResolver == null)
-			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
+		if (evmNetworkAccountResolver == null)
+			throw new Error('missing Pendle account resolver')
 
 		await expect(
-			evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
-				$account: {
-					$network: {
-						caip2: {
-							namespace: 'cosmos',
-							reference: 'osmosis-1',
-						},
-					},
-					$actor: {
-						address: '0x0000000000000000000000000000000000000001',
+			evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve({
+				$network: {
+					caip2: {
+						namespace: 'cosmos',
+						reference: 'osmosis-1',
 					},
 				},
-				timestampMs: 1760000000000,
-				source: Source.Pendle_Rest,
+				$actor: {
+					address: '0x0000000000000000000000000000000000000001',
+				},
 			}, context)
 		).rejects.toThrow(`${Source.Pendle_Rest}: network must use the eip155 CAIP-2 namespace`)
 		expect(getAccountPositions).not.toHaveBeenCalled()
 	})
 
 	it('rejects unsupported Pendle chains on account positions before transport', async () => {
-		if (evmNetworkAccountTimestampResolver == null)
-			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
+		if (evmNetworkAccountResolver == null)
+			throw new Error('missing Pendle account resolver')
 
 		await expect(
-			evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
-				$account: {
-					$network: {
-						caip2: {
-							namespace: 'eip155',
-							reference: '999999',
-						},
-					},
-					$actor: {
-						address: '0x0000000000000000000000000000000000000001',
+			evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve({
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '999999',
 					},
 				},
-				timestampMs: 1760000000000,
-				source: Source.Pendle_Rest,
+				$actor: {
+					address: '0x0000000000000000000000000000000000000001',
+				},
 			}, context)
 		).rejects.toThrow(`${Source.Pendle_Rest}: unsupported chain id 999999`)
 		expect(getAccountPositions).not.toHaveBeenCalled()
 	})
 
-	it('preserves an empty Pendle positions list on contractPositions', async () => {
-		if (evmNetworkAccountTimestampResolver == null)
-			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
+	it('preserves an empty Pendle positions list on $$pendlePositions', async () => {
+		if (evmNetworkAccountResolver == null)
+			throw new Error('missing Pendle account resolver')
 
 		getAccountPositions.mockResolvedValue({
 			blockNumber: 123n,
 			positions: [],
 		})
 
-		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
-			$account: {
-				$network: baseNetwork,
-				$actor: {
-					address: '0x0000000000000000000000000000000000000001',
-				},
+		const account = await evmNetworkAccountResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$network: baseNetwork,
+			$actor: {
+				address: '0x0000000000000000000000000000000000000001',
 			},
-			timestampMs: 1760000000000,
-			source: Source.Pendle_Rest,
 		}, context)
 
-		expect(evmNetworkAccountTimestampResolver.projections.blockNumber(snapshot)).toBe(123n)
-		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([])
+		expect(evmNetworkAccountResolver.projections.$$pendlePositions(account)).toEqual([])
 	})
 
 	it('registers under Pendle_Rest for PendleMarket', () => {

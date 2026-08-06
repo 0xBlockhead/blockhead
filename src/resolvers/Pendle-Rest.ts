@@ -9,13 +9,14 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import type { PendleAccountPosition } from '$/sources/Pendle/Contracts/types.ts'
 import type { PendleMarket } from '$/sources/Pendle/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type PendleMarketId = EntitySelector<typeof schema, EntityType.PendleMarket>
+type PendlePositionId = EntitySelector<typeof schema, EntityType.PendlePosition>
 type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
-type EvmNetworkAccountTimestampId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount_Timestamp>
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -26,6 +27,46 @@ const eip155ChainId = (network: NetworkId) => {
 		throw new Error(`${Source.Pendle_Rest}: invalid eip155 chain id ${network.caip2.reference}`)
 
 	return chainId
+}
+
+const balanceForKind = (
+	position: PendleAccountPosition,
+	kind: PendleAccountPosition['balances'][number]['kind']
+) => (
+	position.balances.find((balance) => balance.kind === kind)?.balance
+)
+
+const mapPendlePositionSnapshot = (
+	$account: EvmNetworkAccountId,
+	position: PendleAccountPosition
+) => {
+	const ptBalance = balanceForKind(position, 'PT')
+	const ytBalance = balanceForKind(position, 'YT')
+	const syBalance = balanceForKind(position, 'SY')
+	const lpBalance = balanceForKind(position, 'LP')
+	return {
+		$account: {
+			[EntityMetaKey.Selector]: $account,
+		},
+		$market: {
+			[EntityMetaKey.Selector]: {
+				$network: $account.$network,
+				marketAddress: position.marketAddress,
+			},
+		},
+		...(ptBalance != null && {
+			ptBalance,
+		}),
+		...(ytBalance != null && {
+			ytBalance,
+		}),
+		...(syBalance != null && {
+			syBalance,
+		}),
+		...(lpBalance != null && {
+			lpBalance,
+		}),
+	}
 }
 
 const mapPendleMarketSnapshot = (
@@ -66,54 +107,78 @@ export default {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
-					resolve: async ({ $actor, $network }: EvmNetworkAccountId) => ({
-						$$timestamps: [
-							{
-								[EntityMetaKey.Selector]: {
-									$account: {
-										$actor,
-										$network,
-									},
-									timestampMs: Date.now(),
-									source: Source.Pendle_Rest,
-								},
-							},
-						],
-					}),
-				},
-			},
-		})({
-			$$timestamps: (account) => account.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.EvmNetworkAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					resolve: async ({ $account, timestampMs, source }: EvmNetworkAccountTimestampId) => {
-						const chainId = eip155ChainId($account.$network)
+					resolve: async ({ $actor, $network }: EvmNetworkAccountId, context) => {
+						const chainId = eip155ChainId($network)
 						const { pendleByChainId } = await import('$/sources/Pendle/Rest/constants.ts')
 						if (pendleByChainId[chainId] == null)
 							throw new Error(`${Source.Pendle_Rest}: unsupported chain id ${String(chainId)}`)
 
 						const { getAccountPositions } = await import('$/sources/Pendle/Contracts/queries.ts')
-						const { blockNumber, positions } = await getAccountPositions({
-							chainId,
-							account: $account.$actor.address,
-						})
-
-						return {
-							timestampMs,
-							source,
-							blockNumber,
-							contractPositions: positions,
+						const $account = {
+							$actor,
+							$network,
 						}
+						return (
+							(await getAccountPositions({
+								chainId,
+								account: $actor.address,
+							})).positions
+								.slice(0, resolverContextRowLimit(context))
+								.map((position) => ({
+									[EntityMetaKey.Selector]: {
+										$account,
+										$market: {
+											$network,
+											marketAddress: position.marketAddress,
+										},
+									},
+								}))
+						)
 					},
 				},
 			},
 		})({
-			blockNumber: (timestamp) => timestamp.blockNumber,
-			contractPositions: (timestamp) => timestamp.contractPositions,
+			$$pendlePositions: (positions) => positions,
+		}),
+
+		defineResolver({
+			entityType: EntityType.PendlePosition,
+			resolve: {
+				AccountMarket: {
+					resolve: async ({
+						$account,
+						$market,
+					}: PendlePositionId) => {
+						const chainId = eip155ChainId($account.$network)
+						const { pendleByChainId } = await import('$/sources/Pendle/Rest/constants.ts')
+						if (pendleByChainId[chainId] == null)
+							throw new Error(`${Source.Pendle_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const normalizedMarketAddress = hexLowerOfByteSize($market.marketAddress, 20)
+						if (normalizedMarketAddress == null)
+							throw new Error(`${Source.Pendle_Rest}: invalid market address ${$market.marketAddress}`)
+
+						const { getAccountPositions } = await import('$/sources/Pendle/Contracts/queries.ts')
+						const position = (
+							await getAccountPositions({
+								chainId,
+								account: $account.$actor.address,
+							})
+						).positions.find((candidate) => candidate.marketAddress === normalizedMarketAddress)
+						if (position == null)
+							throw new Error(`${Source.Pendle_Rest}: position not found for market ${normalizedMarketAddress}`)
+
+						return mapPendlePositionSnapshot($account, position)
+					},
+				},
+			},
+		})({
+			$account: (position) => position.$account,
+			$market: (position) => position.$market,
+			ptBalance: (position) => position.ptBalance,
+			ytBalance: (position) => position.ytBalance,
+			syBalance: (position) => position.syBalance,
+			lpBalance: (position) => position.lpBalance,
 		}),
 
 		defineResolver({
