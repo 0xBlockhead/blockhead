@@ -103,6 +103,7 @@ describe('Compound Rest resolver module', () => {
 		getAccountPositions.mockReset()
 	})
 
+	// Account positions intentionally resolve through the Comet EVM contract binding, not deployment REST.
 	it('publishes and resolves Compound account positions from the on-chain binding', async () => {
 		if (evmNetworkAccountResolver == null || evmNetworkAccountTimestampResolver == null)
 			throw new Error('missing Compound account resolvers')
