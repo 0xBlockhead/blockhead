@@ -26,12 +26,29 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 const { default: covalentResolvers } = await import('$/resolvers/Covalent-Rest.ts')
 const { goldRushChainName } = await import('$/sources/Covalent/GoldRush/Rest/queries.ts')
 
-const [
-	transactionResolver,
-	ownedCoinsResolver,
-	accountTransactionsResolver,
-	balanceResolver,
-] = covalentResolvers.resolvers
+const transactionResolver = covalentResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmTransaction
+	&& '$$logs' in resolver.projections
+))
+const ownedCoinsResolver = covalentResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount
+	&& '$$ownedCoins' in resolver.projections
+))
+const accountTransactionsResolver = covalentResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount
+	&& '$$transactions' in resolver.projections
+))
+const balanceResolver = covalentResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkActorCoinBalance
+))
+
+if (
+	transactionResolver == null
+	|| ownedCoinsResolver == null
+	|| accountTransactionsResolver == null
+	|| balanceResolver == null
+)
+	throw new Error('Covalent-Rest spec missing core GoldRush resolvers')
 
 const goldRushBinding = bindings[Source.GoldRushFoundational_Rest][0]
 const address = '0x1111111111111111111111111111111111111111'
@@ -113,6 +130,7 @@ describe('Covalent GoldRush product resolvers', () => {
 	it('maps approved chains and rejects unknown EIP-155 ids before transport', () => {
 		expect(goldRushChainName(1)).toBe('eth-mainnet')
 		expect(goldRushChainName(8453)).toBe('base-mainnet')
+		expect(goldRushChainName(43114)).toBe('avalanche-mainnet')
 		expect(() => goldRushChainName(999)).toThrow('unsupported chain 999')
 	})
 
@@ -149,7 +167,7 @@ describe('Covalent GoldRush product resolvers', () => {
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			goldRushBinding,
-			`https://api.covalenthq.com/v1/eth-mainnet/transaction_v2/${transactionFixture.data.items[0].tx_hash}/`
+			`https://api.covalenthq.com/v1/eth-mainnet/transaction_v2/${transactionFixture.data.items[0].tx_hash}/?with-internal=true&with-state=true`
 		)
 	})
 
@@ -467,10 +485,12 @@ describe('Covalent GoldRush product resolvers', () => {
 })
 
 describe('Covalent GoldRush product entity types', () => {
-	it('registers transaction, account, balance, and observation resolvers for GoldRush', () => {
+	it('registers transaction, log, internal transfer, account, balance, and observation resolvers for GoldRush', () => {
 		expect(covalentResolvers.source).toBe(Source.GoldRushFoundational_Rest)
 		expect(covalentResolvers.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType.EvmTransaction,
+			EntityType.EvmLog,
+			EntityType.EvmInternalTransfer,
 			EntityType.EvmNetworkAccount,
 			EntityType.EvmNetworkAccount,
 			EntityType.EvmNetworkActorCoinBalance,

@@ -1,5 +1,11 @@
-import { EvmTransactionExecutionStatus } from '$/constants/Evm.ts'
-import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import {
+	EvmInternalCallType,
+	EvmTransactionExecutionStatus,
+} from '$/constants/Evm.ts'
+import {
+	hexLowerOfByteSize,
+	with0xHex,
+} from '$/lib/hexLowerOfByteSize.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { evmChainIdFromNetworkSelector, evmNetworkSelectorFromChainId } from '$/resolvers/evm.ts'
 import {
@@ -15,8 +21,11 @@ import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import type {
+	GoldRushInternalTransfer,
+	GoldRushLogEvent,
 	GoldRushTokenBalanceItem,
 	GoldRushTokenBalancesData,
+	GoldRushTransactionItem,
 } from '$/sources/Covalent/GoldRush/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -97,6 +106,124 @@ const goldRushBalanceObservation = (
 	}
 }
 
+const goldRushLogEntity = (
+	log: GoldRushLogEvent,
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	txHash: `0x${string}`
+) => {
+	const topics = log.raw_log_topics.flatMap((topic) => {
+		const hex = hexLowerOfByteSize(topic, 32)
+		return hex == null ? [] : [hex]
+	})
+	if (topics.length !== log.raw_log_topics.length)
+		throw new Error('GoldRushFoundational_Rest: invalid log topic')
+
+	const emitterAddress = hexLowerOfByteSize(log.sender_address, 20)
+	if (emitterAddress == null)
+		throw new Error('GoldRushFoundational_Rest: invalid log emitter')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction: log.log_offset,
+		},
+		$transaction: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				txHash,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
+		$block: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				blockNumber: nonnegativeSafeBigInt(log.block_height),
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+		$$topics: topics.map((hex) => ({
+			[EntityMetaKey.Selector]: {
+				hex,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmTopic>)),
+		...(topics[0] != null && {
+			topic0: topics[0],
+		}),
+		...(log.raw_log_data != null && {
+			data: with0xHex(log.raw_log_data),
+		}),
+		$emitter: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				address: emitterAddress,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmContract>,
+	}
+}
+
+const goldRushInternalTransferEntity = (
+	transfer: GoldRushInternalTransfer,
+	indexInTransaction: number,
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	txHash: `0x${string}`
+) => {
+	const fromAddress = hexLowerOfByteSize(transfer.from_address, 20)
+	const toAddress = transfer.to_address == null ? undefined : hexLowerOfByteSize(transfer.to_address, 20)
+	if (fromAddress == null)
+		throw new Error('GoldRushFoundational_Rest: invalid internal transfer from address')
+	if (transfer.to_address != null && toAddress == null)
+		throw new Error('GoldRushFoundational_Rest: invalid internal transfer to address')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$transaction: {
+				$network,
+				txHash,
+			},
+			indexInTransaction,
+		},
+		$transaction: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				txHash,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
+		$from: {
+			[EntityMetaKey.Selector]: {
+				address: fromAddress,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmAccount>,
+		...(toAddress != null && {
+			$to: {
+				[EntityMetaKey.Selector]: {
+					address: toAddress,
+				},
+			} satisfies Entity<typeof schema, EntityType.EvmAccount>,
+		}),
+		value: nonnegativeBigInt(transfer.value),
+		// GoldRush internal_transfers omit CALL/CREATE opcode; Unknown is the honest bucket.
+		callType: EvmInternalCallType.Unknown,
+	}
+}
+
+const goldRushTransactionNonce = (
+	transaction: GoldRushTransactionItem,
+	fromAddress: `0x${string}`
+) => {
+	const stateChange = transaction.state_changes?.find((change) => (
+		change.address.toLowerCase() === fromAddress
+	))
+	return (
+		stateChange != null
+		&& Number.isSafeInteger(stateChange.nonce_before)
+		&& stateChange.nonce_before >= 0
+	) ?
+		stateChange.nonce_before
+	:
+		undefined
+}
+
 
 export default {
 	source: Source.GoldRushFoundational_Rest,
@@ -109,10 +236,18 @@ export default {
 					resolve: async ({ $network, txHash }) => {
 						const { getTransaction, goldRushChainName } = await import('$/sources/Covalent/GoldRush/Rest/queries.ts')
 						const { chainId, $network: network } = goldRushChainForNetwork($network)
+						const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
+						if (normalizedTxHash == null)
+							throw new Error('GoldRushFoundational_Rest: invalid transaction hash')
+
 						const transaction = (await getTransaction({
 							chainId,
 							chainName: goldRushChainName(chainId),
-							txHash,
+							txHash: normalizedTxHash,
+							expansions: {
+								withInternal: true,
+								withState: true,
+							},
 						})).items[0]
 						const fromAddress = hexLowerOfByteSize(transaction.from_address, 20)
 						const toAddress = transaction.to_address == null ? undefined : hexLowerOfByteSize(transaction.to_address, 20)
@@ -120,6 +255,9 @@ export default {
 							throw new Error('GoldRushFoundational_Rest: transaction has an invalid from address')
 						if (transaction.to_address != null && toAddress == null)
 							throw new Error('GoldRushFoundational_Rest: transaction has an invalid to address')
+
+						const nonce = goldRushTransactionNonce(transaction, fromAddress)
+						const internalTransfers = transaction.internal_transfers ?? []
 
 						return {
 							$block: {
@@ -142,6 +280,9 @@ export default {
 								} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 							}),
 							value: nonnegativeBigInt(transaction.value),
+							...(nonce != null && {
+								nonce,
+							}),
 							gas: nonnegativeSafeBigInt(transaction.gas_offered),
 							gasPrice: nonnegativeSafeBigInt(transaction.gas_price),
 							gasUsed: nonnegativeSafeBigInt(transaction.gas_spent),
@@ -149,15 +290,12 @@ export default {
 								EvmTransactionExecutionStatus.Success
 							:
 								EvmTransactionExecutionStatus.Failed,
-							$$logs: transaction.log_events.map((log) => ({
-								[EntityMetaKey.Selector]: {
-									$transaction: {
-										$network: network,
-										txHash,
-									},
-									indexInTransaction: log.log_offset,
-								},
-							} satisfies Entity<typeof schema, EntityType.EvmLog>)),
+							$$logs: transaction.log_events.map((log) => (
+								goldRushLogEntity(log, network, normalizedTxHash)
+							)),
+							$$internalTransfers: internalTransfers.map((transfer, indexInTransaction) => (
+								goldRushInternalTransferEntity(transfer, indexInTransaction, network, normalizedTxHash)
+							)),
 						}
 					},
 				},
@@ -168,11 +306,100 @@ export default {
 			$from: (transaction) => transaction.$from,
 			$to: (transaction) => transaction.$to,
 			value: (transaction) => transaction.value,
+			nonce: (transaction) => transaction.nonce,
 			gas: (transaction) => transaction.gas,
 			gasPrice: (transaction) => transaction.gasPrice,
 			gasUsed: (transaction) => transaction.gasUsed,
 			executionStatus: (transaction) => transaction.executionStatus,
-			$$logs: (transaction) => transaction.$$logs,
+			$$logs: (transaction) => transaction.$$logs.map((log) => ({
+				[EntityMetaKey.Selector]: log[EntityMetaKey.Selector],
+			})),
+			$$internalTransfers: (transaction) => transaction.$$internalTransfers.map((transfer) => ({
+				[EntityMetaKey.Selector]: transfer[EntityMetaKey.Selector],
+			})),
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmLog,
+			resolve: {
+				TransactionIndexInTransaction: {
+					resolve: async ({ $transaction, indexInTransaction }) => {
+						const { getTransaction, goldRushChainName } = await import('$/sources/Covalent/GoldRush/Rest/queries.ts')
+						const { chainId, $network: network } = goldRushChainForNetwork($transaction.$network)
+						const txHash = hexLowerOfByteSize($transaction.txHash, 32)
+						if (txHash == null)
+							throw new Error('GoldRushFoundational_Rest: invalid transaction hash')
+						if (!Number.isSafeInteger(indexInTransaction) || indexInTransaction < 0)
+							throw new Error('GoldRushFoundational_Rest: invalid log index')
+
+						const log = (await getTransaction({
+							chainId,
+							chainName: goldRushChainName(chainId),
+							txHash,
+						})).items[0].log_events.find((candidate) => (
+							candidate.log_offset === indexInTransaction
+						))
+						if (log == null)
+							throw new Error('GoldRushFoundational_Rest: receipt log not found for EvmLog')
+
+						return goldRushLogEntity(log, network, txHash)
+					},
+				},
+			},
+		})({
+			$transaction: (log) => log.$transaction,
+			indexInTransaction: (log) => log[EntityMetaKey.Selector].indexInTransaction,
+			$block: (log) => log.$block,
+			$$topics: (log) => log.$$topics,
+			topic0: (log) => log.topic0,
+			data: (log) => log.data,
+			$emitter: (log) => log.$emitter,
+			Event: {
+				signatureHash: (log) => {
+					if (log.topic0 == null)
+						throw new Error('GoldRushFoundational_Rest: event log is missing topic 0')
+
+					return log.topic0
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmInternalTransfer,
+			resolve: {
+				TransactionIndexInTransaction: {
+					resolve: async ({ $transaction, indexInTransaction }) => {
+						const { getTransaction, goldRushChainName } = await import('$/sources/Covalent/GoldRush/Rest/queries.ts')
+						const { chainId, $network: network } = goldRushChainForNetwork($transaction.$network)
+						const txHash = hexLowerOfByteSize($transaction.txHash, 32)
+						if (txHash == null)
+							throw new Error('GoldRushFoundational_Rest: invalid transaction hash')
+						if (!Number.isSafeInteger(indexInTransaction) || indexInTransaction < 0)
+							throw new Error('GoldRushFoundational_Rest: invalid internal transfer index')
+
+						const transfers = (await getTransaction({
+							chainId,
+							chainName: goldRushChainName(chainId),
+							txHash,
+							expansions: {
+								withInternal: true,
+							},
+						})).items[0].internal_transfers ?? []
+						const transfer = transfers[indexInTransaction]
+						if (transfer == null)
+							throw new Error('GoldRushFoundational_Rest: internal transfer not found')
+
+						return goldRushInternalTransferEntity(transfer, indexInTransaction, network, txHash)
+					},
+				},
+			},
+		})({
+			$transaction: (transfer) => transfer.$transaction,
+			indexInTransaction: (transfer) => transfer[EntityMetaKey.Selector].indexInTransaction,
+			$from: (transfer) => transfer.$from,
+			$to: (transfer) => transfer.$to,
+			value: (transfer) => transfer.value,
+			callType: (transfer) => transfer.callType,
 		}),
 
 		defineResolver({

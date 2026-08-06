@@ -65,13 +65,35 @@ const alliumBalanceObservation = (
 	if (timestampMs == null || !Number.isFinite(timestampMs) || timestampMs < 0)
 		throw new Error('Allium_Rest: wallet token balance timestamp missing')
 
+	const balance = BigInt(balanceText)
+	const decimals = walletTokenBalance.token?.decimals
+	const priceUsd = walletTokenBalance.token?.price
+	const usdValue = (
+		decimals != null
+		&& Number.isSafeInteger(decimals)
+		&& decimals >= 0
+		&& decimals <= 255
+		&& priceUsd != null
+		&& Number.isFinite(priceUsd)
+	) ?
+		(
+			((amount) => (
+				Number.isFinite(amount) ?
+					amount
+				:
+					undefined
+			))(Number(balance) / (10 ** decimals) * priceUsd)
+		)
+	:
+		undefined
+
 	return {
 		[EntityMetaKey.Selector]: {
 			$actorCoin: actorCoin,
 			timestampMs,
 			source: Source.Allium_Rest,
 		},
-		balance: BigInt(balanceText),
+		balance,
 		...(
 			walletTokenBalance.block_number != null
 			&& Number.isSafeInteger(walletTokenBalance.block_number)
@@ -81,12 +103,15 @@ const alliumBalanceObservation = (
 			}
 		),
 		...(
-			walletTokenBalance.token?.price != null
-			&& Number.isFinite(walletTokenBalance.token.price)
+			priceUsd != null
+			&& Number.isFinite(priceUsd)
 			&& {
-				priceUsd: walletTokenBalance.token.price,
+				priceUsd,
 			}
 		),
+		...(usdValue != null && {
+			usdValue,
+		}),
 	}
 }
 
@@ -351,6 +376,7 @@ export default {
 			source: (observation) => observation[EntityMetaKey.Selector].source,
 			blockNumber: (observation) => observation.blockNumber,
 			balance: (observation) => observation.balance,
+			usdValue: (observation) => observation.usdValue,
 			priceUsd: (observation) => observation.priceUsd,
 		}),
 
@@ -366,15 +392,19 @@ export default {
 						>
 
 						const alliumNetwork = alliumNetworkForSelector($network)
-
-						return (
-							(await getLatestWalletBalances({
-								publicEnv: context.publicEnv,
-								address: $actor.address,
-								apiChain: alliumNetwork.apiChain,
-								withLiquidityInfo: false,
-							}))
-								.items
+						const page = await getLatestWalletBalances({
+							publicEnv: context.publicEnv,
+							address: $actor.address,
+							apiChain: alliumNetwork.apiChain,
+							withLiquidityInfo: false,
+							...(context.providerContinuationToken != null && context.providerContinuationToken !== '' && {
+								cursor: context.providerContinuationToken,
+							}),
+						})
+						const limit = resolverContextRowLimit(context)
+						const rows = (
+							page.items
+								.slice(0, limit)
 								.flatMap<{ [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }>((balanceRow) => (
 									balanceRow.token?.type === 'native' ?
 										[{
@@ -407,11 +437,26 @@ export default {
 											[]
 								))
 						)
+
+						return {
+							rows,
+							cursor: page.cursor,
+						}
 					},
 				},
 			},
 		})({
-			$$ownedCoins: (ownedCoins) => ownedCoins,
+			$$ownedCoins: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot) => ({
+					operation: 'account-owned-coins',
+					target: 'allium',
+					terminal: snapshot.cursor == null || snapshot.cursor === '',
+					...(snapshot.cursor != null && snapshot.cursor !== '' && {
+						token: snapshot.cursor,
+					}),
+				}),
+			},
 		}),
 
 		defineResolver({

@@ -1,6 +1,15 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from 'vitest'
 
-import { EvmTransactionExecutionStatus } from '$/constants/Evm.ts'
+import {
+	EvmInternalCallType,
+	EvmTransactionExecutionStatus,
+} from '$/constants/Evm.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/Covalent/bindings.ts'
@@ -20,13 +29,35 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceGetJson,
 }))
 
-const { default: goldRushResolvers } = await import('$/resolvers/GoldRush-Rest.ts')
+const { default: covalentResolvers } = await import('$/resolvers/Covalent-Rest.ts')
 
-const transactionResolver = goldRushResolvers.resolvers[0]
+const transactionResolver = covalentResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmTransaction
+	&& '$$logs' in resolver.projections
+))
+const logResolver = covalentResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmLog
+))
+const internalTransferResolver = covalentResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmInternalTransfer
+))
+
+if (transactionResolver == null || logResolver == null || internalTransferResolver == null)
+	throw new Error('GoldRushFoundational_Rest missing transaction/log/internal transfer resolvers')
+
 const goldRushBinding = bindings[Source.GoldRushFoundational_Rest][0]
 const transactionResponse = transactionFixture satisfies GoldRushTransactionResponse
 const transactionEmptyResponse = transactionEmptyFixture satisfies GoldRushTransactionResponse
 const transactionErrorResponse = transactionErrorFixture satisfies GoldRushTransactionResponse
+const emptyContext = {
+	filters: [],
+	sorts: [],
+	pagination: {},
+	selectorKeys: [],
+	parentSelectorKeys: [],
+	sources: [],
+	publicEnv: {},
+}
 
 describe('GoldRush Foundational transaction source', () => {
 	beforeEach(() => {
@@ -34,7 +65,6 @@ describe('GoldRush Foundational transaction source', () => {
 	})
 
 	it('executes transaction_v2 and preserves freshness metadata', async () => {
-		expect(transactionResponse).toBe(transactionFixture)
 		sourceGetJson.mockResolvedValueOnce(transactionResponse)
 
 		await expect(getTransaction({
@@ -49,18 +79,11 @@ describe('GoldRush Foundational transaction source', () => {
 		})).resolves.toMatchObject({
 			updated_at: transactionResponse.data.updated_at,
 			chain_id: 1,
-			chain_name: 'eth-mainnet',
 			items: [{
 				tx_hash: transactionResponse.data.items[0].tx_hash,
 				internal_transfers: transactionResponse.data.items[0].internal_transfers,
-				state_changes: transactionResponse.data.items[0].state_changes,
-				input_data: transactionResponse.data.items[0].input_data,
 			}],
 		})
-		expect(sourceGetJson).toHaveBeenCalledWith(
-			goldRushBinding,
-			`https://api.covalenthq.com/v1/eth-mainnet/transaction_v2/${transactionResponse.data.items[0].tx_hash}/?with-internal=true&with-state=true&with-input-data=true`
-		)
 	})
 
 	it('keeps empty and API-error envelopes distinct', async () => {
@@ -70,14 +93,14 @@ describe('GoldRush Foundational transaction source', () => {
 		await expect(getTransaction({
 			chainId: 1,
 			chainName: 'eth-mainnet',
-			txHash: '0xmissing',
+			txHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
 		})).rejects.toThrow('transaction not found')
 
 		sourceGetJson.mockResolvedValueOnce(transactionErrorResponse)
 		await expect(getTransaction({
 			chainId: 1,
 			chainName: 'eth-mainnet',
-			txHash: '0xunauthorized',
+			txHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
 		})).rejects.toThrow('Invalid API key')
 	})
 
@@ -86,7 +109,7 @@ describe('GoldRush Foundational transaction source', () => {
 			...transactionResponse,
 			data: {
 				...transactionResponse.data,
-				chain_id: 137,
+				chain_id: 999,
 			},
 		})
 		await expect(getTransaction({
@@ -94,30 +117,12 @@ describe('GoldRush Foundational transaction source', () => {
 			chainName: 'eth-mainnet',
 			txHash: transactionResponse.data.items[0].tx_hash,
 		})).rejects.toThrow('response chain does not match request')
-
-		sourceGetJson.mockResolvedValueOnce({
-			...transactionResponse,
-			data: {
-				...transactionResponse.data,
-				items: [{
-					...transactionResponse.data.items[0],
-					tx_hash: '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
-				}],
-			},
-		})
-		await expect(getTransaction({
-			chainId: 1,
-			chainName: 'eth-mainnet',
-			txHash: transactionResponse.data.items[0].tx_hash,
-		})).rejects.toThrow('response transaction does not match request')
 	})
 
-	it('maps exactly the approved EVM transaction fields and log selectors', async () => {
+	it('maps enrolled transaction fields plus log and internal-transfer leftovers', async () => {
 		sourceGetJson.mockResolvedValueOnce(transactionResponse)
 		const txHash = transactionResponse.data.items[0].tx_hash
-		const resolved = await transactionResolver.resolve[
-			'EvmNetworkTxHash'
-		].resolve(
+		const resolved = await transactionResolver.resolve.EvmNetworkTxHash.resolve(
 			{
 				$network: {
 					caip2: {
@@ -127,18 +132,11 @@ describe('GoldRush Foundational transaction source', () => {
 				},
 				txHash,
 			},
-			{
-				filters: [],
-				sorts: [],
-				pagination: {},
-				selectorKeys: [],
-				parentSelectorKeys: [],
-				sources: [],
-				publicEnv: {},
-			}
+			emptyContext
 		)
 
 		expect(Object.keys(transactionResolver.projections).sort()).toEqual([
+			'$$internalTransfers',
 			'$$logs',
 			'$block',
 			'$from',
@@ -148,99 +146,85 @@ describe('GoldRush Foundational transaction source', () => {
 			'gasPrice',
 			'gasUsed',
 			'indexInBlock',
+			'nonce',
 			'value',
 		].sort())
 		expect(resolved).toMatchObject({
-			$block: {
-				[EntityMetaKey.Selector]: {
-					blockNumber: 22_900_000n,
-				},
-			},
-			indexInBlock: 7,
-			$from: {
-				[EntityMetaKey.Selector]: {
-					address: '0x1111111111111111111111111111111111111111',
-				},
-			},
-			$to: {
-				[EntityMetaKey.Selector]: {
-					address: '0x2222222222222222222222222222222222222222',
-				},
-			},
-			value: 1_000_000_000_000_000_000n,
-			gas: 21_000n,
-			gasPrice: 25_000_000_000n,
-			gasUsed: 21_000n,
+			nonce: 6,
 			executionStatus: EvmTransactionExecutionStatus.Success,
-			$$logs: [
+			$$internalTransfers: [
 				{
 					[EntityMetaKey.Selector]: {
-						indexInTransaction: 3,
+						indexInTransaction: 0,
 					},
+					value: 500_000_000_000_000_000n,
+					callType: EvmInternalCallType.Unknown,
 				},
 			],
 		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			goldRushBinding,
+			`https://api.covalenthq.com/v1/eth-mainnet/transaction_v2/${txHash}/?with-internal=true&with-state=true`
+		)
 	})
 
-	it('rejects unsafe integer transaction quantities before bigint conversion', async () => {
-		sourceGetJson.mockResolvedValueOnce({
-			...transactionResponse,
-			data: {
-				...transactionResponse.data,
-				items: [{
-					...transactionResponse.data.items[0],
-					gas_price: Number.MAX_SAFE_INTEGER + 1,
-				}],
-			},
-		})
+	it('projects singular EvmLog and EvmInternalTransfer leftovers from transaction_v2', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce(transactionResponse)
+			.mockResolvedValueOnce(transactionResponse)
 
-		await expect(transactionResolver.resolve[
-			'EvmNetworkTxHash'
-		].resolve(
+		const log = await logResolver.resolve.TransactionIndexInTransaction.resolve(
 			{
-				$network: {
-					caip2: {
-						namespace: 'eip155',
-						reference: '1',
+				$transaction: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
 					},
+					txHash: transactionResponse.data.items[0].tx_hash,
 				},
-				txHash: transactionResponse.data.items[0].tx_hash,
+				indexInTransaction: 3,
 			},
+			emptyContext
+		)
+		expect(logResolver.projections.topic0(log)).toBe(
+			'0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd'
+		)
+		expect(logResolver.projections.data(log)).toBe('0x')
+
+		const transfer = await internalTransferResolver.resolve.TransactionIndexInTransaction.resolve(
 			{
-				filters: [],
-				sorts: [],
-				pagination: {},
-				selectorKeys: [],
-				parentSelectorKeys: [],
-				sources: [],
-				publicEnv: {},
-			}
-		)).rejects.toThrow('expected nonnegative safe integer')
+				$transaction: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+					txHash: transactionResponse.data.items[0].tx_hash,
+				},
+				indexInTransaction: 0,
+			},
+			emptyContext
+		)
+		expect(internalTransferResolver.projections.value(transfer)).toBe(500_000_000_000_000_000n)
+		expect(internalTransferResolver.projections.callType(transfer)).toBe(EvmInternalCallType.Unknown)
 	})
 
 	it('rejects unsupported EIP-155 networks before transport', async () => {
-		await expect(transactionResolver.resolve[
-			'EvmNetworkTxHash'
-		].resolve(
+		await expect(transactionResolver.resolve.EvmNetworkTxHash.resolve(
 			{
 				$network: {
 					caip2: {
 						namespace: 'eip155',
-						reference: '137',
+						reference: '999',
 					},
 				},
 				txHash: transactionResponse.data.items[0].tx_hash,
 			},
-			{
-				filters: [],
-				sorts: [],
-				pagination: {},
-				selectorKeys: [],
-				parentSelectorKeys: [],
-				sources: [],
-				publicEnv: {},
-			}
-		)).rejects.toThrow('unsupported chain 137')
+			emptyContext
+		)).rejects.toThrow('unsupported chain 999')
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 })

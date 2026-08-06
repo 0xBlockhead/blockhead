@@ -67,6 +67,8 @@ describe('GoldRush chain catalog', () => {
 	it('keeps approved chain path segments in constants only', () => {
 		expect(goldRushChainNameByChainId[1]).toBe('eth-mainnet')
 		expect(goldRushChainName(8453)).toBe('base-mainnet')
+		expect(goldRushChainName(137)).toBe('matic-mainnet')
+		expect(goldRushChainName(534352)).toBe('scroll-mainnet')
 		expect(() => goldRushChainName(999)).toThrow('unsupported chain 999')
 	})
 })
