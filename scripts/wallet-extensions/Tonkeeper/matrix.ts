@@ -5,8 +5,9 @@ import {
 } from '../ecosystems.ts'
 
 
-// Account 3 recover stays blocked: no safe fixture material in CI.
-// Do not invent a recover pass — keep that cell explicitly blocked.
+// Account 3 recover stays blocked: this shard accepts no safe fixture material.
+// Do not invent a recover pass — keep that cell explicitly blocked until a
+// fixture-backed recovery contract is wired.
 // Second create-new may be unavailable depending on extension UI.
 export const tonkeeperWalletMatrixScenarios = (version: string) => ([
 	{

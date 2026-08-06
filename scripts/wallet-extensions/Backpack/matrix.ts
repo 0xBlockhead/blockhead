@@ -5,7 +5,9 @@ import {
 } from '../ecosystems.ts'
 
 
-// Recover needs mnemonic fixture material. This shard proves create-new + view-only.
+// Recover remains blocked because this shard accepts no mnemonic fixture material.
+// Keep the cell blocked until a safe fixture-backed recovery contract is wired.
+// This shard proves create-new + view-only.
 export const backpackWalletMatrixScenarios = (version: string) => ([
 	{
 		id: 'backpack-create-new-1',
