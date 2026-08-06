@@ -12,8 +12,10 @@ import {
 } from '$/sources/Blockscout/Rest/client.ts'
 import { blockscoutV2ItemsCountMax } from '$/sources/Blockscout/Rest/constants.ts'
 import {
+	blockscoutAddressTokensPageEnvelope,
 	blockscoutBlockDetailEnvelope,
 	blockscoutBlocksPageEnvelope,
+	blockscoutTokenBalancesEnvelope,
 	blockscoutTokenTransfersPageEnvelope,
 	blockscoutTransactionEnvelope,
 	blockscoutTransactionsPageEnvelope,
@@ -27,7 +29,9 @@ import type {
 	BlockscoutAddressCounters,
 	BlockscoutAddressDetails,
 	BlockscoutAddressInternalTransactionsPage,
+	BlockscoutAddressTokenBalances,
 	BlockscoutAddressTokenTransfersPage,
+	BlockscoutAddressTokensPage,
 	BlockscoutAddressTransactionsPage,
 	BlockscoutBlockDetails,
 	BlockscoutBlocksPage,
@@ -41,6 +45,7 @@ import type {
 	BlockscoutSmartContractForList,
 	BlockscoutSmartContractsPage,
 	BlockscoutStats,
+	BlockscoutTokenBalance,
 	BlockscoutTokenTransfersPage,
 	BlockscoutTransaction,
 	BlockscoutTransactionInternalTransactionsPage,
@@ -90,6 +95,17 @@ const validatedBlockscoutTransactionWire = (wire: BlockscoutTransaction) => {
 		if (quantity != null && quantity !== '')
 			BigInt(quantity)
 
+	return wire
+}
+const validatedBlockscoutTokenBalanceWire = (wire: BlockscoutTokenBalance) => {
+	BigInt(wire.value)
+	if (wire.token_id != null && wire.token_id !== '')
+		BigInt(wire.token_id)
+	if (wire.token != null) {
+		const address = hexLowerOfByteSize(wire.token.address_hash, 20)
+		if (address == null)
+			throw new Error('Blockscout_Rest: invalid token balance token address')
+	}
 	return wire
 }
 const blockscoutItemsCount = (limit: number) => Math.min(
@@ -291,6 +307,70 @@ export const getAddressTokenTransfers = async ({ chainId, address, limit }: {
 	const wire = await response.json<BlockscoutAddressTokenTransfersPage>()
 	assertBlockscoutEnvelope(blockscoutTokenTransfersPageEnvelope, wire, 'address token transfers')
 	return wire.items
+}
+
+/**
+ * All token balances for an address (ERC-20 / ERC-721 / ERC-1155 / ERC-404).
+ * @see https://docs.blockscout.com/devs/apis/rest/addresses#get-token-balances
+ */
+export const getAddressTokenBalances = async ({ chainId, address }: {
+	chainId: number
+	address: `0x${string}`
+}): Promise<BlockscoutAddressTokenBalances> => {
+	const normalized = hexLowerOfByteSize(address, 20)
+	if (normalized == null)
+		throw new Error('Blockscout address token balances: invalid address')
+
+	const response = await getBlockscoutResponse({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: `/addresses/${normalized}/token-balances`,
+	})
+	if (response.status === 404)
+		return []
+	await throwIfHttpNotOk(response, response.url)
+	const wire = await response.json<BlockscoutAddressTokenBalances>()
+	assertBlockscoutEnvelope(blockscoutTokenBalancesEnvelope, wire, 'address token balances')
+	return wire.map(validatedBlockscoutTokenBalanceWire)
+}
+
+/**
+ * Paginated token balances for an address with optional ERC type filter.
+ * @see https://docs.blockscout.com/devs/apis/rest/addresses#get-tokens
+ */
+export const getAddressTokens = async ({
+	chainId,
+	address,
+	limit,
+	type,
+}: {
+	chainId: number
+	address: `0x${string}`
+	limit: number
+	type?: string
+}): Promise<BlockscoutTokenBalance[]> => {
+	if (limit <= 0)
+		return []
+
+	const normalized = hexLowerOfByteSize(address, 20)
+	if (normalized == null)
+		return []
+
+	const response = await getBlockscoutResponse({
+		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
+		path: `/addresses/${normalized}/tokens`,
+		searchParams: {
+			items_count: blockscoutItemsCount(limit),
+			...(type != null && type.length > 0 && {
+				type,
+			}),
+		},
+	})
+	if (response.status === 404)
+		return []
+	await throwIfHttpNotOk(response, response.url)
+	const wire = await response.json<BlockscoutAddressTokensPage>()
+	assertBlockscoutEnvelope(blockscoutAddressTokensPageEnvelope, wire, 'address tokens')
+	return wire.items.slice(0, limit).map(validatedBlockscoutTokenBalanceWire)
 }
 
 export const getTokenTransfers = async ({ chainId, limit }: {

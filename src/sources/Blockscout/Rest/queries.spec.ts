@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import bindings from '$/sources/Blockscout/bindings.ts'
 import * as blockscoutQueries from '$/sources/Blockscout/Rest/queries.ts'
 import {
+	getAddressTokenBalances,
+	getAddressTokens,
 	getAddressTransactions,
 	getBlockByNumber,
 	getBlockTransactions,
@@ -389,6 +391,84 @@ describe('Blockscout account-abstraction queries', () => {
 			chainId: 1,
 			limit: 1,
 		})).rejects.toThrow()
+	})
+
+	it('returns all address token balances from /token-balances', async () => {
+		const tokenBalance = {
+			token: {
+				address_hash: hex('7', 40),
+				type: 'ERC-20',
+				symbol: 'USDC',
+				decimals: '6',
+			},
+			token_id: null,
+			token_instance: null,
+			value: '1000000',
+		}
+		const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse([
+			tokenBalance,
+		]))
+
+		await expect(getAddressTokenBalances({
+			chainId: 1,
+			address: hex('a', 40),
+		})).resolves.toEqual([
+			tokenBalance,
+		])
+		expect(decodeURIComponent(String(fetchMock.mock.calls[0][0]))).toContain(
+			`/api/v2/addresses/${hex('a', 40)}/token-balances`
+		)
+	})
+
+	it('returns paginated address tokens with optional type filter', async () => {
+		const tokenBalance = {
+			token: {
+				address_hash: hex('8', 40),
+				type: 'ERC-721',
+			},
+			token_id: '1',
+			token_instance: null,
+			value: '1',
+		}
+		const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			items: [
+				tokenBalance,
+			],
+		}))
+
+		await expect(getAddressTokens({
+			chainId: 1,
+			address: hex('b', 40),
+			limit: 5,
+			type: 'ERC-721',
+		})).resolves.toEqual([
+			tokenBalance,
+		])
+		expect(decodeURIComponent(String(fetchMock.mock.calls[0][0]))).toMatch(
+			new RegExp(`/api/v2/addresses/${hex('b', 40)}/tokens\\?.*type=ERC-721`)
+		)
+	})
+
+	it('fails closed for malformed address token balance envelopes', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse([
+			{
+				value: '1',
+			},
+		]))
+
+		await expect(getAddressTokenBalances({
+			chainId: 1,
+			address: hex('a', 40),
+		})).rejects.toThrow('Blockscout_Rest: invalid address token balances response envelope')
+	})
+
+	it('rejects invalid address identities before token-balance transport', async () => {
+		const fetchMock = vi.spyOn(globalThis, 'fetch')
+		await expect(getAddressTokenBalances({
+			chainId: 1,
+			address: 'not-an-address' as `0x${string}`,
+		})).rejects.toThrow('Blockscout address token balances: invalid address')
+		expect(fetchMock).not.toHaveBeenCalled()
 	})
 
 	it('returns account-abstraction rows from the documented success response', async () => {
