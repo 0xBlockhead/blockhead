@@ -1,6 +1,6 @@
 // Generated from APP.ts.
 
-import { entity } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
@@ -11,6 +11,7 @@ export default entity({
 		singular: 'UTXO output',
 		plural: 'UTXO outputs',
 	},
+	description: 'Shared UTXO output identity. Explicit sats stay on the base row; Elements/Liquid confidential commitments live only under the Confidential facet gated by isConfidential, not as optional noise on every Bitcoin UTXO.',
 })({
 	$transaction: {
 		entityType: EntityType.UtxoTransaction,
@@ -40,26 +41,6 @@ export default entity({
 		entityType: EntityType.UtxoAddress,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	assetCommitment: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	valueCommitment: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	nonceCommitment: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	surjectionProof: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	rangeProof: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	isConfidential: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -82,5 +63,35 @@ export default entity({
 			'$transaction',
 			'indexInTransaction',
 		],
+	},
+
+	facets: {
+		Confidential: facet({
+			path: [
+				'isConfidential',
+			],
+			is: true,
+		})({
+			assetCommitment: {
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			valueCommitment: {
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			nonceCommitment: {
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			surjectionProof: {
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+			rangeProof: {
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+		}),
 	},
 })

@@ -27,12 +27,14 @@
 	const utxoOutput = $derived(selection({
 		fields: {
 			isSpent: true,
+			isConfidential: true,
 		},
 	}))
 
 
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
+	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import UtxoAddressView from '$/views/UtxoAddressView.svelte'
 	import BitcoinCashCashTokenFungibleAmountView from '$/views/BitcoinCashCashTokenFungibleAmountView.svelte'
@@ -104,6 +106,12 @@
 				{#if isSpent != null}
 					<span data-text="muted">
 						{isSpent ? 'Yes' : 'No'}
+					</span>
+				{/if}
+				{@const isConfidential = entity.isConfidential}
+				{#if isConfidential != null}
+					<span data-text="muted">
+						{isConfidential ? 'Yes' : 'No'}
 					</span>
 				{/if}
 			{/snippet}
@@ -202,13 +210,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							isConfidential: true,
-						},
-					})
-				}
+				resource={utxoOutput}
 			>
 				{#snippet children(entity)}
 					{@const isConfidential = entity.isConfidential}
@@ -270,118 +272,6 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							assetCommitment: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const assetCommitment = entity.assetCommitment}
-					{#if assetCommitment != null}
-						<div>
-							<dt>Asset commitment</dt>
-							<dd>
-								{assetCommitment}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							valueCommitment: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const valueCommitment = entity.valueCommitment}
-					{#if valueCommitment != null}
-						<div>
-							<dt>Value commitment</dt>
-							<dd>
-								{valueCommitment}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							nonceCommitment: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const nonceCommitment = entity.nonceCommitment}
-					{#if nonceCommitment != null}
-						<div>
-							<dt>Nonce commitment</dt>
-							<dd>
-								{nonceCommitment}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							surjectionProof: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const surjectionProof = entity.surjectionProof}
-					{#if surjectionProof != null}
-						<div>
-							<dt>Surjection proof</dt>
-							<dd>
-								{surjectionProof}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							rangeProof: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const rangeProof = entity.rangeProof}
-					{#if rangeProof != null}
-						<div>
-							<dt>Range proof</dt>
-							<dd>
-								{rangeProof}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
 				resource={selection.$bitcoinCashCashTokenFungibleAmount}
 			>
 				{#snippet children(bitcoinCashCashTokenFungibleAmount)}
@@ -429,5 +319,88 @@
 				</dd>
 			</div>
 		</dl>
+
+		<ProjectionBoundary
+			resource={selection.Confidential}
+		>
+			{#snippet Applicable(projection)}
+				<dl data-column-item="center">
+					<ResourceBoundary
+						resource={projection.assetCommitment}
+					>
+						{#snippet children(assetCommitment)}
+							{#if assetCommitment != null}
+								<div>
+									<dt>Asset commitment</dt>
+									<dd>
+										{assetCommitment}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.valueCommitment}
+					>
+						{#snippet children(valueCommitment)}
+							{#if valueCommitment != null}
+								<div>
+									<dt>Value commitment</dt>
+									<dd>
+										{valueCommitment}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.nonceCommitment}
+					>
+						{#snippet children(nonceCommitment)}
+							{#if nonceCommitment != null}
+								<div>
+									<dt>Nonce commitment</dt>
+									<dd>
+										{nonceCommitment}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.surjectionProof}
+					>
+						{#snippet children(surjectionProof)}
+							{#if surjectionProof != null}
+								<div>
+									<dt>Surjection proof</dt>
+									<dd>
+										{surjectionProof}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.rangeProof}
+					>
+						{#snippet children(rangeProof)}
+							{#if rangeProof != null}
+								<div>
+									<dt>Range proof</dt>
+									<dd>
+										{rangeProof}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dl>
+			{/snippet}
+		</ProjectionBoundary>
 	{/snippet}
 </EntityView>

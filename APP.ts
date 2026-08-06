@@ -64442,6 +64442,7 @@ export const schema = {
 					singular: "UTXO output",
 					plural: "UTXO outputs",
 				},
+				description: "Shared UTXO output identity. Explicit sats stay on the base row; Elements/Liquid confidential commitments live only under the Confidential facet gated by isConfidential, not as optional noise on every Bitcoin UTXO.",
 			})({
 				"$transaction": { label: "Transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.UtxoTransaction },
 				"indexInTransaction": { label: "Index in transaction", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
@@ -64450,11 +64451,6 @@ export const schema = {
 				"scriptPubKeyHex": { label: "Script pub key hex", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"scriptPubKeyType": { label: "Script pub key type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$address": { label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoAddress },
-				"assetCommitment": { label: "Asset commitment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"valueCommitment": { label: "Value commitment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"nonceCommitment": { label: "Nonce commitment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"surjectionProof": { label: "Surjection proof", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"rangeProof": { label: "Range proof", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"isConfidential": { label: "Confidential", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"isSpent": { label: "Spent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"$bitcoinCashCashTokenFungibleAmount": { label: "Bitcoin Cash CashToken fungible amount", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinCashCashTokenFungibleAmount },
@@ -64463,6 +64459,27 @@ export const schema = {
 				selectors: {
 					"TransactionIndexInTransaction": ["$transaction", "indexInTransaction"],
 				},
+				facets: {
+					Confidential: facet({
+						path: ["isConfidential"],
+						is: true,
+					})({
+						"assetCommitment": { label: "Asset commitment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"valueCommitment": { label: "Value commitment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"nonceCommitment": { label: "Nonce commitment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"surjectionProof": { label: "Surjection proof", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"rangeProof": { label: "Range proof", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					})({
+						singularView: {
+							content: {
+								dl: [
+									["assetCommitment", "valueCommitment", "nonceCommitment"],
+									["surjectionProof", "rangeProof"],
+								],
+							},
+						},
+					}),
+				},
 				views: {
 					singular: {
 						summary: {
@@ -64470,13 +64487,12 @@ export const schema = {
 								field: "indexInTransaction",
 								label: "Output",
 							},
-							HeadingAfter: ["$address", "isSpent"],
+							HeadingAfter: ["$address", "isSpent", "isConfidential"],
 						},
 						content: {
 							dl: [
 								[{ field: "indexInTransaction", format: "number" }, { field: "valueSats", format: "numberValue" }, "$address", "scriptPubKeyType", "isSpent", "isConfidential"],
-								["scriptPubKeyAsm", "scriptPubKeyHex", "assetCommitment", "valueCommitment", "nonceCommitment"],
-								["surjectionProof", "rangeProof", "$bitcoinCashCashTokenFungibleAmount", "$bitcoinCashCashTokenNft", "$transaction"],
+								["scriptPubKeyAsm", "scriptPubKeyHex", "$bitcoinCashCashTokenFungibleAmount", "$bitcoinCashCashTokenNft", "$transaction"],
 							],
 						},
 					},

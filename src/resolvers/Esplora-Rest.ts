@@ -293,12 +293,14 @@ export default {
 				scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
 				scriptPubKeyType: (snapshot) => snapshot.scriptPubKeyType,
 				$address: (snapshot) => snapshot.$address,
-				valueCommitment: (snapshot) => snapshot.valueCommitment,
-				assetCommitment: (snapshot) => snapshot.assetCommitment,
-				nonceCommitment: (snapshot) => snapshot.nonceCommitment,
-				surjectionProof: (snapshot) => snapshot.surjectionProof,
-				rangeProof: (snapshot) => snapshot.rangeProof,
 				isConfidential: (snapshot) => snapshot.isConfidential,
+				Confidential: {
+					valueCommitment: (snapshot) => snapshot.valueCommitment,
+					assetCommitment: (snapshot) => snapshot.assetCommitment,
+					nonceCommitment: (snapshot) => snapshot.nonceCommitment,
+					surjectionProof: (snapshot) => snapshot.surjectionProof,
+					rangeProof: (snapshot) => snapshot.rangeProof,
+				},
 			}),
 
 		defineResolver({
