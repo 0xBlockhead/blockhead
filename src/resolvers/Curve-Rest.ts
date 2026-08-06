@@ -1,7 +1,6 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
-	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
@@ -80,6 +79,10 @@ export default {
 						poolAddress,
 					}: CurvePoolId) => {
 						const chainId = eip155ChainId($network)
+						const { curvePlatformByChainId } = await import('$/sources/Curve/Rest/constants.ts')
+						if (curvePlatformByChainId[chainId] == null)
+							throw new Error(`${Source.Curve_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const { getPool } = await import('$/sources/Curve/Rest/queries.ts')
 						return mapCurvePoolSnapshot(
 							$network,
@@ -115,6 +118,10 @@ export default {
 				Caip2: {
 					resolve: async (network, context) => {
 						const chainId = eip155ChainId(network)
+						const { curvePlatformByChainId } = await import('$/sources/Curve/Rest/constants.ts')
+						if (curvePlatformByChainId[chainId] == null)
+							throw new Error(`${Source.Curve_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const { listPools } = await import('$/sources/Curve/Rest/queries.ts')
 						return (await listPools({
 							chainId,
@@ -135,4 +142,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Curve_Rest>
+}

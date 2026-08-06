@@ -42,6 +42,12 @@ const curvePoolResolver = curveRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CurvePool
 ))
 
+const networkCurvePoolsResolver = curveRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Evm' in resolver.projections
+	&& '$$curvePools' in resolver.projections.Evm
+))
+
 const threePoolAddress = '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7'
 const threePoolWire = {
 	id: '0',
@@ -95,7 +101,40 @@ describe('Curve Rest resolver module', () => {
 				},
 				poolAddress: threePoolAddress,
 			}, context)
-		).rejects.toThrow('Curve_Rest: network must use the eip155 CAIP-2 namespace')
+		).rejects.toThrow(`${Source.Curve_Rest}: network must use the eip155 CAIP-2 namespace`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('rejects unsupported Curve chains on CurvePool before transport', async () => {
+		if (curvePoolResolver == null)
+			throw new Error('missing CurvePool resolver')
+
+		await expect(
+			curvePoolResolver.resolve.NetworkPoolAddress.resolve({
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '999999',
+					},
+				},
+				poolAddress: threePoolAddress,
+			}, context)
+		).rejects.toThrow(`${Source.Curve_Rest}: unsupported chain id 999999`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('rejects unsupported Curve chains on Network $$curvePools before transport', async () => {
+		if (networkCurvePoolsResolver == null)
+			throw new Error('missing Network $$curvePools resolver')
+
+		await expect(
+			networkCurvePoolsResolver.resolve.Caip2.resolve({
+				caip2: {
+					namespace: 'eip155',
+					reference: '999999',
+				},
+			}, context)
+		).rejects.toThrow(`${Source.Curve_Rest}: unsupported chain id 999999`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
