@@ -207,9 +207,21 @@ export default {
 		})({
 			rune: (snapshot) => snapshot.rune,
 			spacedRune: (snapshot) => snapshot.spacedRune,
+			number: (snapshot) => snapshot.number,
 			symbol: (snapshot) => snapshot.symbol,
 			divisibility: (snapshot) => snapshot.divisibility,
+			etchingHeight: (snapshot) => snapshot.etchingHeight,
+			etchingTimestampMs: (snapshot) => snapshot.etchingTimestampMs,
 			$etchingTransaction: (snapshot) => snapshot.$etchingTransaction,
+			premine: (snapshot) => snapshot.premine,
+			supply: (snapshot) => snapshot.supply,
+			holders: (snapshot) => snapshot.holders,
+			mintable: (snapshot) => snapshot.mintable,
+			remaining: (snapshot) => snapshot.remaining,
+			termsAmount: (snapshot) => snapshot.termsAmount,
+			termsCap: (snapshot) => snapshot.termsCap,
+			termsHeightStart: (snapshot) => snapshot.termsHeightStart,
+			termsHeightEnd: (snapshot) => snapshot.termsHeightEnd,
 		}),
 
 		defineResolver({
