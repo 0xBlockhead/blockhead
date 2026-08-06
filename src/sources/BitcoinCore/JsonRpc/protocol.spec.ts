@@ -252,7 +252,7 @@ describe('extractProtocolPayloads', () => {
 		])
 	})
 
-	it('indexes multiple reveal inscriptions and keeps only the first runestone output', () => {
+	it('indexes multiple reveal inscriptions and marks multi-runestone txs as cenotaphs', () => {
 		const transaction = coreTransaction({
 			vin: [
 				{
@@ -288,6 +288,7 @@ describe('extractProtocolPayloads', () => {
 
 		const payloads = extractProtocolPayloads(transaction)
 		expect(payloads.filter((payload) => payload.protocol === BitcoinProtocolId.Ordinals)).toHaveLength(2)
+		// Runes: keep the first OP_RETURN OP_13 only; extra runestone outputs → cenotaph
 		expect(payloads.filter((payload) => payload.protocol === BitcoinProtocolId.Runes)).toEqual([
 			{
 				protocol: BitcoinProtocolId.Runes,
@@ -296,7 +297,7 @@ describe('extractProtocolPayloads', () => {
 					outputIndex: 0,
 				},
 				payloadHex: '020100',
-				isCenotaph: false,
+				isCenotaph: true,
 			},
 		])
 	})

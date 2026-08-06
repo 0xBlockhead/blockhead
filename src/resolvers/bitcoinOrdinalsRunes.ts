@@ -32,6 +32,7 @@ export const parseBitcoinInscriptionId = (
 	const inscriptionIndex = Number(inscriptionId.slice(separator + 1))
 	if (
 		txId.length < 1
+		|| !/^[0-9a-fA-F]+$/.test(txId)
 		|| !Number.isSafeInteger(inscriptionIndex)
 		|| inscriptionIndex < 0
 	)

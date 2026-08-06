@@ -25,6 +25,7 @@ describe('bitcoinOrdinalsRunes helpers', () => {
 		expect(parseBitcoinInscriptionId('not-an-id')).toBeUndefined()
 		expect(parseBitcoinInscriptionId('i0')).toBeUndefined()
 		expect(parseBitcoinInscriptionId('abi')).toBeUndefined()
+		expect(parseBitcoinInscriptionId('not-hex-txidi0')).toBeUndefined()
 	})
 
 	it('builds inscription refs and finds the runestone payload', () => {

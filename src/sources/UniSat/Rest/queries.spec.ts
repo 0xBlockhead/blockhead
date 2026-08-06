@@ -17,6 +17,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const {
 	getAddressInscriptions,
+	getAddressRuneBalance,
 	getAddressRuneBalances,
 	getInscriptionInfo,
 	getRuneInfo,
@@ -196,9 +197,57 @@ describe('UniSat Rest queries', () => {
 
 		await expect(
 			getAddressInscriptions(publicEnv, {
+				address: 'bc1qexample',
+				size: 0,
+			})
+		).rejects.toThrow(`${Source.UniSat_Rest}: size must be 1..500`)
+
+		await expect(
+			getAddressInscriptions(publicEnv, {
 				address: '',
 			})
 		).rejects.toThrow(`${Source.UniSat_Rest}: missing address`)
+
+		await expect(
+			getInscriptionInfo(publicEnv, {
+				inscriptionId: 'not-an-inscription-id',
+			})
+		).rejects.toThrow(`${Source.UniSat_Rest}: invalid inscriptionId`)
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('getAddressRuneBalance hits the docs address+runeid path', async () => {
+		sourceFetch.mockResolvedValueOnce(okJson({
+			amount: '10000',
+			runeid: '840000:1',
+			symbol: '⧉',
+			divisibility: 0,
+		}))
+
+		await expect(
+			getAddressRuneBalance(publicEnv, {
+				address: 'bc1qexample',
+				runeId: '840000:1',
+			})
+		).resolves.toMatchObject({
+			amount: '10000',
+			runeid: '840000:1',
+		})
+
+		expect(sourceFetch.mock.calls[0]?.[1]).toBe(
+			'https://open-api.unisat.io/v1/indexer/address/bc1qexample/runes/840000%3A1/balance'
+		)
+
+		sourceFetch.mockResolvedValueOnce(okJson({
+			amount: '1',
+			runeid: '840000:2',
+		}))
+		await expect(
+			getAddressRuneBalance(publicEnv, {
+				address: 'bc1qexample',
+				runeId: '840000:1',
+			})
+		).rejects.toThrow(`${Source.UniSat_Rest}: runeid mismatch`)
 	})
 
 	it('getUtxoRuneBalances hits the runes utxo balance path', async () => {

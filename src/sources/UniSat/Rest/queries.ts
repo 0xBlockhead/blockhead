@@ -22,6 +22,7 @@ import {
 	unisatPagedRuneBalanceWire,
 	unisatResponseEnvelopeWire,
 	unisatRuneBalanceListWire,
+	unisatRuneBalanceWire,
 	unisatRuneInfoWire,
 	unisatUtxoInfoOrNullWire,
 } from '$/sources/UniSat/Rest/types.ts'
@@ -46,6 +47,40 @@ const assertNonNegativeInteger = (
 	if (!Number.isSafeInteger(value) || value < 0)
 		throw new Error(`${Source.UniSat_Rest}: invalid ${label} ${String(value)}`)
 	return value
+}
+
+const assertPaginationWindow = (
+	value: number,
+	label: string
+) => {
+	assertNonNegativeInteger(value, label)
+	if (value < 1 || value > 500)
+		throw new Error(`${Source.UniSat_Rest}: ${label} must be 1..500`)
+	return value
+}
+
+/** Ordinals identity `{txid}i{n}` — fail closed before transport. */
+const assertInscriptionId = (
+	inscriptionId: string
+) => {
+	assertNonEmpty(inscriptionId, 'inscriptionId')
+	const separator = inscriptionId.lastIndexOf('i')
+	const txId = (
+		separator > 0 ?
+			inscriptionId.slice(0, separator)
+		:
+			''
+	)
+	const inscriptionIndex = Number(inscriptionId.slice(separator + 1))
+	if (
+		separator <= 0
+		|| separator === inscriptionId.length - 1
+		|| txId.length < 1
+		|| !Number.isSafeInteger(inscriptionIndex)
+		|| inscriptionIndex < 0
+	)
+		throw new Error(`${Source.UniSat_Rest}: invalid inscriptionId ${inscriptionId}`)
+	return inscriptionId
 }
 
 const unisatGetJson = async <_Data>(
@@ -92,7 +127,7 @@ export const getInscriptionInfo = async (
 		inscriptionId: string
 	}
 ) => {
-	assertNonEmpty(inscriptionId, 'inscriptionId')
+	assertInscriptionId(inscriptionId)
 	const info = await unisatGetJson(
 		publicEnv,
 		`v1/indexer/inscription/info/${encodeURIComponent(inscriptionId)}`,
@@ -187,9 +222,7 @@ export const getAddressRuneBalances = async (
 ) => {
 	assertNonEmpty(address, 'address')
 	assertNonNegativeInteger(start, 'start')
-	assertNonNegativeInteger(limit, 'limit')
-	if (limit < 1 || limit > 500)
-		throw new Error(`${Source.UniSat_Rest}: limit must be 1..500`)
+	assertPaginationWindow(limit, 'limit')
 
 	return unisatGetJson(
 		publicEnv,
@@ -197,6 +230,33 @@ export const getAddressRuneBalances = async (
 		unisatPagedRuneBalanceWire,
 		'address rune balances'
 	)
+}
+
+/**
+ * Docs: GET `/v1/indexer/address/{address}/runes/{runeid}/balance`
+ * Prefer over paging `balance-list` for `BitcoinRuneBalance.UtxoAddressRune`.
+ */
+export const getAddressRuneBalance = async (
+	publicEnv: SourcePublicEnv,
+	{
+		address,
+		runeId,
+	}: {
+		address: string
+		runeId: string
+	}
+) => {
+	assertNonEmpty(address, 'address')
+	assertNonEmpty(runeId, 'runeId')
+	const balance = await unisatGetJson(
+		publicEnv,
+		`v1/indexer/address/${encodeURIComponent(address)}/runes/${encodeURIComponent(runeId)}/balance`,
+		unisatRuneBalanceWire,
+		'address rune balance'
+	)
+	if (balance.runeid !== runeId)
+		throw new Error(`${Source.UniSat_Rest}: runeid mismatch`)
+	return balance
 }
 
 export const getAddressInscriptions = async (
@@ -213,9 +273,7 @@ export const getAddressInscriptions = async (
 ) => {
 	assertNonEmpty(address, 'address')
 	assertNonNegativeInteger(cursor, 'cursor')
-	assertNonNegativeInteger(size, 'size')
-	if (size < 1)
-		throw new Error(`${Source.UniSat_Rest}: size must be >= 1`)
+	assertPaginationWindow(size, 'size')
 
 	return unisatGetJson(
 		publicEnv,

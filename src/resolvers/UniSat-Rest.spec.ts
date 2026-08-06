@@ -16,6 +16,7 @@ const getRuneInfo = vi.hoisted(() => vi.fn())
 const getUtxoInfo = vi.hoisted(() => vi.fn())
 const getUtxoRuneBalances = vi.hoisted(() => vi.fn())
 const getAddressRuneBalances = vi.hoisted(() => vi.fn())
+const getAddressRuneBalance = vi.hoisted(() => vi.fn())
 const getAddressInscriptions = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/UniSat/Rest/queries.ts', () => ({
@@ -24,6 +25,7 @@ vi.mock('$/sources/UniSat/Rest/queries.ts', () => ({
 	getUtxoInfo,
 	getUtxoRuneBalances,
 	getAddressRuneBalances,
+	getAddressRuneBalance,
 	getAddressInscriptions,
 }))
 
@@ -82,6 +84,7 @@ describe('UniSat Rest resolver module', () => {
 		getUtxoInfo.mockReset()
 		getUtxoRuneBalances.mockReset()
 		getAddressRuneBalances.mockReset()
+		getAddressRuneBalance.mockReset()
 		getAddressInscriptions.mockReset()
 	})
 
@@ -196,7 +199,7 @@ describe('UniSat Rest resolver module', () => {
 		})
 	})
 
-	it('exposes authoritative output inscription resolveCount from the complete UniSat list', async () => {
+	it('exposes authoritative output inscription resolveCount from UniSat inscriptionsCount', async () => {
 		if (outputInscriptionsResolver == null)
 			throw new Error('missing UtxoOutput UniSat inscription facets')
 
@@ -227,7 +230,7 @@ describe('UniSat Rest resolver module', () => {
 		).toHaveLength(2)
 		expect(
 			outputInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions.resolveCount(output)
-		).toBe(2)
+		).toBe(99)
 	})
 
 	it('maps rune detail onto every enrolled UniSat field', async () => {
@@ -534,17 +537,11 @@ describe('UniSat Rest resolver module', () => {
 				symbol: 'R',
 			},
 		])
-		getAddressRuneBalances.mockResolvedValueOnce({
-			total: 1,
-			start: 0,
-			detail: [
-				{
-					amount: '4',
-					runeid: '840000:1',
-					divisibility: 2,
-					symbol: 'R',
-				},
-			],
+		getAddressRuneBalance.mockResolvedValueOnce({
+			amount: '4',
+			runeid: '840000:1',
+			divisibility: 2,
+			symbol: 'R',
 		})
 
 		const $output = {
@@ -582,5 +579,10 @@ describe('UniSat Rest resolver module', () => {
 		expect(balanceResolver.projections.$address(addressBalance)).toEqual({
 			[EntityMetaKey.Selector]: $address,
 		})
+		expect(getAddressRuneBalance).toHaveBeenCalledWith(context.publicEnv, {
+			address: 'bc1qbalance',
+			runeId: '840000:1',
+		})
+		expect(getAddressRuneBalances).not.toHaveBeenCalled()
 	})
 })

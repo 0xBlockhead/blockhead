@@ -283,14 +283,11 @@ export default {
 				UtxoAddressRune: {
 					resolve: async ({ $address, $rune }, context) => {
 						assertBitcoinNetwork($address.$network)
-						const { getAddressRuneBalances } = await import('$/sources/UniSat/Rest/queries.ts')
-						const page = await getAddressRuneBalances(context.publicEnv, {
+						const { getAddressRuneBalance } = await import('$/sources/UniSat/Rest/queries.ts')
+						const balance = await getAddressRuneBalance(context.publicEnv, {
 							address: $address.address,
-							limit: context.pagination.limit,
+							runeId: $rune.runeId,
 						})
-						const balance = page.detail.find((row) => row.runeid === $rune.runeId)
-						if (balance == null)
-							throw new Error(`${source}: rune ${$rune.runeId} not on address`)
 
 						return {
 							amount: balance.amount,
@@ -409,7 +406,7 @@ export default {
 								$transaction.$network,
 								inscriptions
 							),
-							inscriptionCount: inscriptions.length,
+							inscriptionCount: utxo?.inscriptionsCount ?? inscriptions.length,
 							...(utxo?.satoshi != null && {
 								valueSats: BigInt(utxo.satoshi),
 							}),

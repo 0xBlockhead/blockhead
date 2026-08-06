@@ -425,7 +425,9 @@ const extractFromWitnessAndOutputs = ({
 		))
 	))
 
-	const runestoneOutput = vout.find(({ scriptHex }) => scriptHex.startsWith(runesScriptPrefixHex))
+	// Runes: at most one runestone per tx; extra OP_RETURN OP_13 outputs make a cenotaph.
+	const runestoneOutputs = vout.filter(({ scriptHex }) => scriptHex.startsWith(runesScriptPrefixHex))
+	const runestoneOutput = runestoneOutputs[0]
 	const runes = (
 		runestoneOutput == null ?
 			[]
@@ -442,9 +444,12 @@ const extractFromWitnessAndOutputs = ({
 							outputIndex: runestoneOutput.outputIndex,
 						},
 						payloadHex: deciphered.payloadHex,
-						isCenotaph: decodeRunestonePayload(deciphered.payloadHex, {
-							scriptIsCenotaph: deciphered.isCenotaph,
-						}).isCenotaph,
+						isCenotaph: (
+							runestoneOutputs.length > 1
+							|| decodeRunestonePayload(deciphered.payloadHex, {
+								scriptIsCenotaph: deciphered.isCenotaph,
+							}).isCenotaph
+						),
 					} satisfies BitcoinRunesProtocolPayload]
 			})()
 	)
