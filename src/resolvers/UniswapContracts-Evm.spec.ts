@@ -16,8 +16,16 @@ import {
 
 
 const getLogs = vi.hoisted(() => vi.fn())
+const getBlockNumber = vi.hoisted(() => vi.fn())
+const getCall = vi.hoisted(() => vi.fn())
 const getPosition = vi.hoisted(() => vi.fn())
 const getFactoryPool = vi.hoisted(() => vi.fn())
+const getPositionOwner = vi.hoisted(() => vi.fn())
+const getPoolSlot0 = vi.hoisted(() => vi.fn())
+const getPoolLiquidity = vi.hoisted(() => vi.fn())
+const getPoolFeeGrowthGlobal0X128 = vi.hoisted(() => vi.fn())
+const getPoolFeeGrowthGlobal1X128 = vi.hoisted(() => vi.fn())
+const getPoolProtocolFees = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 	voltaireJsonRpcTransports: {
@@ -25,7 +33,8 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 			1: [{
 				diagnosticLabel: 'mock-rpc',
 				getLogs,
-				getCall: vi.fn(),
+				getCall,
+				getBlockNumber,
 			}],
 		},
 	},
@@ -37,6 +46,12 @@ vi.mock('$/sources/Uniswap/Contracts/queries.ts', async () => {
 		...actual,
 		getPosition,
 		getFactoryPool,
+		getPositionOwner,
+		getPoolSlot0,
+		getPoolLiquidity,
+		getPoolFeeGrowthGlobal0X128,
+		getPoolFeeGrowthGlobal1X128,
+		getPoolProtocolFees,
 	}
 })
 
@@ -66,18 +81,31 @@ const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4
 describe('UniswapContracts_Evm resolver', () => {
 	beforeEach(() => {
 		getLogs.mockReset()
+		getBlockNumber.mockReset()
+		getCall.mockReset()
 		getPosition.mockReset()
 		getFactoryPool.mockReset()
+		getPositionOwner.mockReset()
+		getPoolSlot0.mockReset()
+		getPoolLiquidity.mockReset()
+		getPoolFeeGrowthGlobal0X128.mockReset()
+		getPoolFeeGrowthGlobal1X128.mockReset()
+		getPoolProtocolFees.mockReset()
 		getLogs.mockResolvedValue([])
+		getBlockNumber.mockResolvedValue(12_345_678n)
 	})
 
-	it('registers global hub + pool resolvers', () => {
+	it('registers global hub + pool + tip block resolvers', () => {
 		expect(uniswapContractsEvm.source).toBe(Source.UniswapContracts_Evm)
 		expect(uniswapContractsEvm.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType._Global,
 			EntityType.UniswapV3Pool,
 			EntityType.UniswapV3Pool,
 			EntityType.UniswapV3Pool,
+			EntityType.UniswapV3Pool,
+			EntityType.UniswapV3Pool_Block,
+			EntityType.UniswapV3Position,
+			EntityType.UniswapV3Position_Block,
 		])
 	})
 
@@ -312,15 +340,129 @@ describe('UniswapContracts_Evm resolver', () => {
 		).rejects.toThrow('UniswapContracts_Evm: all position log endpoints failed')
 	})
 
-	it('does not claim soft-empty $$blocks facet', () => {
+	it('projects tip UniswapV3Pool.$$blocks from eth_blockNumber', async () => {
 		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool
-			&& typeof resolver.projections.$$positions === 'object'
+			&& typeof resolver.projections.$$blocks === 'object'
 		))
 		if (poolResolver == null)
-			throw new Error('missing UniswapV3Pool resolver')
+			throw new Error('missing UniswapV3Pool $$blocks resolver')
 
-		expect(poolResolver.projections).not.toHaveProperty('$$blocks')
-		expect(poolResolver.projections).toHaveProperty('$$positions')
+		const snapshot = await poolResolver.resolve.NetworkPoolAddress.resolve({
+			$network: ethereumNetwork,
+			poolAddress: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640',
+		}, context)
+
+		expect(poolResolver.projections.$$blocks.select(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$pool: {
+					$network: ethereumNetwork,
+					poolAddress: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+				},
+				blockNumber: 12_345_678n,
+			},
+		}])
+		expect(poolResolver.projections.$$blocks.resolveCount(snapshot)).toBe(1)
+	})
+
+	it('projects UniswapV3Pool_Block slot0 and fee growth leftovers', async () => {
+		getPoolSlot0.mockResolvedValueOnce({
+			sqrtPriceX96: 100n,
+			tick: -1,
+			observationIndex: 1,
+			observationCardinality: 2,
+			observationCardinalityNext: 3,
+			feeProtocol: 0,
+			unlocked: true,
+		})
+		getPoolLiquidity.mockResolvedValueOnce(50n)
+		getPoolFeeGrowthGlobal0X128.mockResolvedValueOnce(0xabcn)
+		getPoolFeeGrowthGlobal1X128.mockResolvedValueOnce(0xdefn)
+		getPoolProtocolFees.mockResolvedValueOnce({
+			token0: 1n,
+			token1: 2n,
+		})
+
+		const blockResolver = uniswapContractsEvm.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Pool_Block
+		))
+		if (blockResolver == null)
+			throw new Error('missing UniswapV3Pool_Block resolver')
+
+		const snapshot = await blockResolver.resolve.PoolBlockNumber.resolve({
+			$pool: {
+				$network: ethereumNetwork,
+				poolAddress: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640',
+			},
+			blockNumber: 12_345_678n,
+		}, context)
+
+		expect(blockResolver.projections.sqrtPriceX96(snapshot)).toBe(100n)
+		expect(blockResolver.projections.liquidity(snapshot)).toBe(50n)
+		expect(blockResolver.projections.tick(snapshot)).toBe(-1)
+		expect(blockResolver.projections.feeGrowthGlobal0X128(snapshot)).toBe(0xabcn)
+		expect(blockResolver.projections.feeGrowthGlobal1X128(snapshot)).toBe(0xdefn)
+		expect(blockResolver.projections.protocolFeesToken0(snapshot)).toBe(1n)
+		expect(blockResolver.projections.protocolFeesToken1(snapshot)).toBe(2n)
+	})
+
+	it('projects tip UniswapV3Position.$$blocks and position block leftovers', async () => {
+		const positionBlocksResolver = uniswapContractsEvm.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Position
+			&& typeof resolver.projections.$$blocks === 'object'
+		))
+		if (positionBlocksResolver == null)
+			throw new Error('missing UniswapV3Position $$blocks resolver')
+
+		const tip = await positionBlocksResolver.resolve.PositionManagerTokenId.resolve({
+			positionManager: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
+			tokenId: 1n,
+		}, context)
+		expect(positionBlocksResolver.projections.$$blocks.select(tip)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$position: {
+					positionManager: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
+					tokenId: 1n,
+				},
+				blockNumber: 12_345_678n,
+			},
+		}])
+
+		getPositionOwner.mockResolvedValueOnce('0x1111111111111111111111111111111111111111')
+		getPosition.mockResolvedValueOnce({
+			token0: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+			token1: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+			fee: 500,
+			tickLower: -100,
+			tickUpper: 100,
+			liquidity: 9n,
+			tokensOwed0: 3n,
+			tokensOwed1: 4n,
+			feeGrowthInside0LastX128: 0xabcn,
+			feeGrowthInside1LastX128: 0xdefn,
+		})
+
+		const positionBlockResolver = uniswapContractsEvm.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UniswapV3Position_Block
+		))
+		if (positionBlockResolver == null)
+			throw new Error('missing UniswapV3Position_Block resolver')
+
+		const snapshot = await positionBlockResolver.resolve.PositionBlockNumber.resolve({
+			$position: {
+				positionManager: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
+				tokenId: 1n,
+			},
+			blockNumber: 12_345_678n,
+		}, context)
+
+		expect(positionBlockResolver.projections.$owner(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				address: '0x1111111111111111111111111111111111111111',
+			},
+		})
+		expect(positionBlockResolver.projections.liquidity(snapshot)).toBe(9n)
+		expect(positionBlockResolver.projections.feeGrowthInside0LastX128(snapshot)).toBe(0xabcn)
+		expect(positionBlockResolver.projections.feeGrowthInside1LastX128(snapshot)).toBe(0xdefn)
 	})
 })

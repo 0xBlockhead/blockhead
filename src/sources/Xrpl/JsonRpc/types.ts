@@ -33,13 +33,28 @@ export const xrplServerInfoWire = arktype({
 
 export type XrplServerInfoResult = typeof xrplServerInfoWire.infer
 
+export const xrplLedgerBodyWire = arktype({
+	'account_hash?': 'string > 0',
+	'close_time?': 'number.integer >= 0',
+	'close_time_human?': 'string > 0',
+	'parent_hash?': 'string > 0',
+	'total_coins?': 'string > 0',
+	'transaction_hash?': 'string > 0',
+})
+
+export type XrplLedgerBody = typeof xrplLedgerBodyWire.infer
+
 export const xrplLedgerWire = arktype({
 	ledger_hash: 'string > 0',
 	ledger_index: 'number.integer >= 0',
 	validated: 'boolean',
+	'ledger?': xrplLedgerBodyWire,
 })
 
 export type XrplLedgerResult = typeof xrplLedgerWire.infer
+
+/** Ripple Epoch (2000-01-01T00:00:00Z) offset from Unix epoch, in seconds. */
+export const XRPL_RIPPLE_EPOCH_OFFSET_SECONDS = 946_684_800
 
 export const xrplLedgerStateObjectWire = arktype({
 	index: 'string > 0',
@@ -235,6 +250,7 @@ export type XrplAmmInfoResult = typeof xrplAmmInfoWire.infer
 
 export const xrplIssuedAsset = xrplIssuedAssetWire satisfies Type<XrplIssuedAsset>
 export const xrplServerInfo = xrplServerInfoWire satisfies Type<XrplServerInfoResult>
+export const xrplLedgerBody = xrplLedgerBodyWire satisfies Type<XrplLedgerBody>
 export const xrplLedger = xrplLedgerWire satisfies Type<XrplLedgerResult>
 export const xrplLedgerStateObject = xrplLedgerStateObjectWire satisfies Type<XrplLedgerStateObject>
 export const xrplLedgerData = xrplLedgerDataWire

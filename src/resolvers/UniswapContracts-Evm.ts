@@ -294,6 +294,270 @@ export default {
 				select: (entity) => entity.$$positions,
 				resolveCount: (entity) => entity.$$positions.length,
 			},
-		})
+		}),
+
+		defineResolver({
+			entityType: EntityType.UniswapV3Pool,
+			resolve: {
+				NetworkPoolAddress: {
+					resolve: async ({ $network, poolAddress }) => {
+						const {
+							uniswapV3PoolByChainIdAndAddress,
+						} = await import('$/sources/Uniswap/Catalog/constants.ts')
+						const {
+							normalizeUniswapAddress,
+						} = await import('$/sources/Uniswap/Contracts/queries.ts')
+						const chainId = chainIdFromNetwork($network)
+						const address = normalizeUniswapAddress(poolAddress)
+						if (uniswapV3PoolByChainIdAndAddress[`${chainId}:${address}`] == null)
+							throw new Error(`UniswapContracts_Evm: pool ${address} not in Uniswap V3 catalog for chain ${String(chainId)}`)
+
+						const voltaireTransports = (await import('$/sources/Voltaire/JsonRpc/queries.ts')).voltaireJsonRpcTransports.httpTransportsByChainId[chainId] ?? []
+						if (voltaireTransports.length === 0)
+							throw new Error(`UniswapContracts_Evm: no JSON-RPC URL for UniswapV3Pool.$$blocks on chain ${String(chainId)}`)
+
+						const errors: string[] = []
+						for (const transport of voltaireTransports) {
+							try {
+								const blockNumber = await transport.getBlockNumber()
+								return {
+									$$blocks: [{
+										[EntityMetaKey.Selector]: {
+											$pool: {
+												$network,
+												poolAddress: address,
+											},
+											blockNumber,
+										},
+									}],
+								}
+							} catch (error) {
+								errors.push(`${transport.diagnosticLabel}: ${error instanceof Error ? error.message : String(error)}`)
+							}
+						}
+						throw new Error(`UniswapContracts_Evm: all tip block endpoints failed for pool ${address} on chain ${String(chainId)}${errors.length > 0 ? `: ${errors.join('; ')}` : ''}`)
+					},
+				},
+			},
+		})({
+			$$blocks: {
+				select: (entity) => entity.$$blocks,
+				resolveCount: (entity) => entity.$$blocks.length,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.UniswapV3Pool_Block,
+			resolve: {
+				PoolBlockNumber: {
+					resolve: async ({ $pool, blockNumber }) => {
+						if (!('poolAddress' in $pool))
+							throw new Error('UniswapContracts_Evm: UniswapV3Pool_Block requires NetworkPoolAddress')
+
+						const {
+							uniswapV3PoolByChainIdAndAddress,
+						} = await import('$/sources/Uniswap/Catalog/constants.ts')
+						const {
+							getPoolFeeGrowthGlobal0X128,
+							getPoolFeeGrowthGlobal1X128,
+							getPoolLiquidity,
+							getPoolProtocolFees,
+							getPoolSlot0,
+							normalizeUniswapAddress,
+						} = await import('$/sources/Uniswap/Contracts/queries.ts')
+
+						const chainId = chainIdFromNetwork($pool.$network)
+						const poolAddress = normalizeUniswapAddress($pool.poolAddress)
+						if (uniswapV3PoolByChainIdAndAddress[`${chainId}:${poolAddress}`] == null)
+							throw new Error(`UniswapContracts_Evm: pool ${poolAddress} not in Uniswap V3 catalog for chain ${String(chainId)}`)
+
+						const voltaireTransports = (await import('$/sources/Voltaire/JsonRpc/queries.ts')).voltaireJsonRpcTransports.httpTransportsByChainId[chainId] ?? []
+						if (voltaireTransports.length === 0)
+							throw new Error(`UniswapContracts_Evm: no JSON-RPC URL for UniswapV3Pool_Block on chain ${String(chainId)}`)
+
+						const errors: string[] = []
+						for (const transport of voltaireTransports) {
+							try {
+								const [
+									slot0,
+									liquidity,
+									feeGrowthGlobal0X128,
+									feeGrowthGlobal1X128,
+									protocolFees,
+								] = await Promise.all([
+									getPoolSlot0({ getCall: transport.getCall, poolAddress, blockNumber }),
+									getPoolLiquidity({ getCall: transport.getCall, poolAddress, blockNumber }),
+									getPoolFeeGrowthGlobal0X128({ getCall: transport.getCall, poolAddress, blockNumber }),
+									getPoolFeeGrowthGlobal1X128({ getCall: transport.getCall, poolAddress, blockNumber }),
+									getPoolProtocolFees({ getCall: transport.getCall, poolAddress, blockNumber }),
+								])
+
+								return {
+									sqrtPriceX96: slot0.sqrtPriceX96,
+									liquidity,
+									tick: slot0.tick,
+									observationIndex: slot0.observationIndex,
+									observationCardinality: slot0.observationCardinality,
+									observationCardinalityNext: slot0.observationCardinalityNext,
+									feeProtocol: slot0.feeProtocol,
+									unlocked: slot0.unlocked,
+									feeGrowthGlobal0X128,
+									feeGrowthGlobal1X128,
+									protocolFeesToken0: protocolFees.token0,
+									protocolFeesToken1: protocolFees.token1,
+								}
+							} catch (error) {
+								errors.push(`${transport.diagnosticLabel}: ${error instanceof Error ? error.message : String(error)}`)
+							}
+						}
+						throw new Error(`UniswapContracts_Evm: all UniswapV3Pool_Block endpoints failed for ${poolAddress}@${String(blockNumber)} on chain ${String(chainId)}${errors.length > 0 ? `: ${errors.join('; ')}` : ''}`)
+					},
+				},
+			},
+		})({
+			sqrtPriceX96: (entity) => entity.sqrtPriceX96,
+			liquidity: (entity) => entity.liquidity,
+			tick: (entity) => entity.tick,
+			observationIndex: (entity) => entity.observationIndex,
+			observationCardinality: (entity) => entity.observationCardinality,
+			observationCardinalityNext: (entity) => entity.observationCardinalityNext,
+			feeProtocol: (entity) => entity.feeProtocol,
+			unlocked: (entity) => entity.unlocked,
+			feeGrowthGlobal0X128: (entity) => entity.feeGrowthGlobal0X128,
+			feeGrowthGlobal1X128: (entity) => entity.feeGrowthGlobal1X128,
+			protocolFeesToken0: (entity) => entity.protocolFeesToken0,
+			protocolFeesToken1: (entity) => entity.protocolFeesToken1,
+		}),
+
+		defineResolver({
+			entityType: EntityType.UniswapV3Position,
+			resolve: {
+				PositionManagerTokenId: {
+					resolve: async ({ positionManager, tokenId }) => {
+						const {
+							uniswapV3DeploymentsByNonfungiblePositionManagerAddress,
+						} = await import('$/sources/Uniswap/Catalog/constants.ts')
+						const {
+							normalizeUniswapAddress,
+						} = await import('$/sources/Uniswap/Contracts/queries.ts')
+
+						const manager = normalizeUniswapAddress(positionManager)
+						const chainIds = (
+							uniswapV3DeploymentsByNonfungiblePositionManagerAddress[manager]
+								?.map((deployment) => deployment.chainId)
+							?? []
+						)
+						if (chainIds.length === 0)
+							throw new Error(`UniswapContracts_Evm: unknown Uniswap V3 position manager ${manager}`)
+
+						const errors: string[] = []
+						for (const chainId of chainIds) {
+							const voltaireTransports = (await import('$/sources/Voltaire/JsonRpc/queries.ts')).voltaireJsonRpcTransports.httpTransportsByChainId[chainId] ?? []
+							for (const transport of voltaireTransports) {
+								try {
+									const blockNumber = await transport.getBlockNumber()
+									return {
+										$$blocks: [{
+											[EntityMetaKey.Selector]: {
+												$position: {
+													positionManager: manager,
+													tokenId,
+												},
+												blockNumber,
+											},
+										}],
+									}
+								} catch (error) {
+									errors.push(`${transport.diagnosticLabel}: ${error instanceof Error ? error.message : String(error)}`)
+								}
+							}
+						}
+						throw new Error(`UniswapContracts_Evm: UniswapV3Position.$$blocks failed for ${manager}/${String(tokenId)}${errors.length > 0 ? `: ${errors.join('; ')}` : ''}`)
+					},
+				},
+			},
+		})({
+			$$blocks: {
+				select: (entity) => entity.$$blocks,
+				resolveCount: (entity) => entity.$$blocks.length,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.UniswapV3Position_Block,
+			resolve: {
+				PositionBlockNumber: {
+					resolve: async ({ $position, blockNumber }) => {
+						const {
+							uniswapV3DeploymentsByNonfungiblePositionManagerAddress,
+						} = await import('$/sources/Uniswap/Catalog/constants.ts')
+						const {
+							getPosition,
+							getPositionOwner,
+							normalizeUniswapAddress,
+						} = await import('$/sources/Uniswap/Contracts/queries.ts')
+
+						const manager = normalizeUniswapAddress($position.positionManager)
+						const tokenId = $position.tokenId
+						const chainIds = (
+							uniswapV3DeploymentsByNonfungiblePositionManagerAddress[manager]
+								?.map((deployment) => deployment.chainId)
+							?? []
+						)
+						if (chainIds.length === 0)
+							throw new Error(`UniswapContracts_Evm: unknown Uniswap V3 position manager ${manager}`)
+
+						const errors: string[] = []
+						for (const chainId of chainIds) {
+							const voltaireTransports = (await import('$/sources/Voltaire/JsonRpc/queries.ts')).voltaireJsonRpcTransports.httpTransportsByChainId[chainId] ?? []
+							for (const transport of voltaireTransports) {
+								try {
+									const [
+										owner,
+										position,
+									] = await Promise.all([
+										getPositionOwner({
+											getCall: transport.getCall,
+											positionManager: manager,
+											tokenId,
+											blockNumber,
+										}),
+										getPosition({
+											getCall: transport.getCall,
+											positionManager: manager,
+											tokenId,
+											blockNumber,
+										}),
+									])
+
+									return {
+										$owner: {
+											[EntityMetaKey.Selector]: {
+												address: owner,
+											},
+										},
+										liquidity: position.liquidity,
+										tokensOwed0: position.tokensOwed0,
+										tokensOwed1: position.tokensOwed1,
+										feeGrowthInside0LastX128: position.feeGrowthInside0LastX128,
+										feeGrowthInside1LastX128: position.feeGrowthInside1LastX128,
+									}
+								} catch (error) {
+									errors.push(`${transport.diagnosticLabel}: ${error instanceof Error ? error.message : String(error)}`)
+								}
+							}
+						}
+						throw new Error(`UniswapContracts_Evm: UniswapV3Position_Block failed for ${manager}/${String(tokenId)}@${String(blockNumber)}${errors.length > 0 ? `: ${errors.join('; ')}` : ''}`)
+					},
+				},
+			},
+		})({
+			$owner: (entity) => entity.$owner,
+			liquidity: (entity) => entity.liquidity,
+			tokensOwed0: (entity) => entity.tokensOwed0,
+			tokensOwed1: (entity) => entity.tokensOwed1,
+			feeGrowthInside0LastX128: (entity) => entity.feeGrowthInside0LastX128,
+			feeGrowthInside1LastX128: (entity) => entity.feeGrowthInside1LastX128,
+		}),
 	],
 }

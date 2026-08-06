@@ -38,14 +38,36 @@ vi.mock('$/sources/XrpScan/Rest/queries.ts', () => ({
 
 const { default: xrpScan } = await import('$/resolvers/XrpScan-Rest.ts')
 
-const accountResolver = xrpScan.resolvers[0]
-const accountTxResolver = xrpScan.resolvers[1]
-const ammResolver = xrpScan.resolvers[2]
-const ledgerResolver = xrpScan.resolvers[3]
-const ledgerTxResolver = xrpScan.resolvers[4]
-const transactionResolver = xrpScan.resolvers[5]
-const ledgerEntryResolver = xrpScan.resolvers[6]
-const networkLedgersResolver = xrpScan.resolvers[7]
+const resolverFor = (
+	entityType: EntityType,
+	projectionKey: string
+) => {
+	const resolver = xrpScan.resolvers.find((candidate) => (
+		candidate.entityType === entityType
+		&& projectionKey in candidate.projections
+	))
+	if (resolver == null)
+		throw new Error(`XrpScan_Rest spec missing ${entityType}.${projectionKey} resolver`)
+	return resolver
+}
+
+const accountResolver = resolverFor(EntityType.XrplAccount, '$$timestamps')
+const accountTimestampResolver = resolverFor(EntityType.XrplAccount_Timestamp, 'balanceDrops')
+const accountTxResolver = resolverFor(EntityType.XrplAccount, '$$transactions')
+const ammResolver = resolverFor(EntityType.XrplAmm, '$$timestamps')
+const ammTimestampResolver = resolverFor(EntityType.XrplAmm_Timestamp, 'assetAmount')
+const ledgerResolver = resolverFor(EntityType.XrplLedger, 'ledgerHash')
+const ledgerTxResolver = resolverFor(EntityType.XrplLedger, '$$transactions')
+const transactionResolver = resolverFor(EntityType.XrplTransaction, '$$timestamps')
+const transactionTimestampResolver = resolverFor(EntityType.XrplTransaction_Timestamp, 'fee')
+const ledgerEntryResolver = resolverFor(EntityType.XrplLedgerEntry, 'entryType')
+const networkLedgersResolver = xrpScan.resolvers.find((candidate) => (
+	candidate.entityType === EntityType.Network
+	&& 'Xrpl' in candidate.projections
+	&& '$$ledgers' in candidate.projections.Xrpl
+))
+if (networkLedgersResolver == null)
+	throw new Error('XrpScan_Rest spec missing Network.Xrpl.$$ledgers resolver')
 
 const account = {
 	$network: {
@@ -121,6 +143,34 @@ describe('XrpScan Rest XRPL projections', () => {
 		expect(getServerInfo).toHaveBeenCalledOnce()
 	})
 
+	it('projects singular XrplAccount_Timestamp at the validated tip only', async () => {
+		getAccount.mockResolvedValue({
+			Account: account.account,
+			Balance: '56770125556',
+			Flags: 1703936,
+			LedgerEntryType: 'AccountRoot',
+			OwnerCount: 1,
+			Sequence: 44196,
+		})
+
+		const observation = await accountTimestampResolver.resolve.AccountLedgerIndexSource.resolve({
+			$account: account,
+			ledgerIndex: 106119341n,
+			source: Source.XrpScan_Rest,
+		}, context)
+
+		expect(accountTimestampResolver.projections.balanceDrops(observation)).toBe(56770125556n)
+		expect(accountTimestampResolver.projections.ownerCount(observation)).toBe(1)
+		expect(accountTimestampResolver.projections.sequence(observation)).toBe(44196)
+		expect(accountTimestampResolver.projections.flags(observation)).toBe(1703936)
+
+		await expect(accountTimestampResolver.resolve.AccountLedgerIndexSource.resolve({
+			$account: account,
+			ledgerIndex: 1n,
+			source: Source.XrpScan_Rest,
+		}, context)).rejects.toThrow('account observation is not the validated tip')
+	})
+
 	it('projects AMM identity + tip observation clocked by server_info (no dishonest timestampMs)', async () => {
 		getAmm.mockResolvedValue({
 			account: amm.ammAccount,
@@ -169,6 +219,35 @@ describe('XrpScan Rest XRPL projections', () => {
 				}],
 			},
 		}])
+	})
+
+	it('projects singular XrplAmm_Timestamp at the validated tip only', async () => {
+		getAmm.mockResolvedValue({
+			account: amm.ammAccount,
+			amount: '10285371598',
+			amount2: {
+				currency: 'USD',
+				issuer: 'rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq',
+				value: '10680.70334334452',
+			},
+			lp_token: {
+				currency: '03930D02208264E2E40EC1B0C09E4DB96EE197B1',
+				issuer: amm.ammAccount,
+				value: '7973564.21175256',
+			},
+			trading_fee: 462,
+		})
+
+		const observation = await ammTimestampResolver.resolve.AmmLedgerIndexSource.resolve({
+			$amm: amm,
+			ledgerIndex: 106119341n,
+			source: Source.XrpScan_Rest,
+		}, context)
+
+		expect(ammTimestampResolver.projections.assetAmount(observation)).toBe('10285371598')
+		expect(ammTimestampResolver.projections.asset2Amount(observation)).toBe('10680.70334334452')
+		expect(ammTimestampResolver.projections.lpTokenBalance(observation)).toBe('7973564.21175256')
+		expect(ammTimestampResolver.projections.tradingFee(observation)).toBe(462)
 	})
 
 	it('projects historical ledger fields and ledger transactions', async () => {
@@ -253,6 +332,20 @@ describe('XrpScan Rest XRPL projections', () => {
 			ledgerIndex: 81516515n,
 			source: Source.XrpScan_Rest,
 		})
+
+		const txObservation = await transactionTimestampResolver.resolve.TransactionLedgerIndexSource.resolve({
+			$transaction: {
+				$network: account.$network,
+				hash: 'B01A7E11B84A2539A3DCCF65C95514F4C3A87E61BAF7DBDED9F1CDEE06D5A39C',
+			},
+			ledgerIndex: 81516515n,
+			source: Source.XrpScan_Rest,
+		}, context)
+		expect(transactionTimestampResolver.projections.fee(txObservation)).toBe(10000n)
+		expect(transactionTimestampResolver.projections.status(txObservation)).toBe('tesSUCCESS')
+		expect(transactionTimestampResolver.projections.resultCode(txObservation)).toBe('tesSUCCESS')
+		expect(transactionTimestampResolver.projections.validated(txObservation)).toBe(true)
+		expect(transactionTimestampResolver.projections.timestampMs(txObservation)).toBe(Date.parse('2023-07-31T07:18:30.000Z'))
 
 		const entry = await ledgerEntryResolver.resolve.LedgerEntryHash.resolve({
 			$ledger: {

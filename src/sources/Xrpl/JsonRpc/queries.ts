@@ -71,12 +71,41 @@ export const getServerInfo = async () => (
 	) as XrplServerInfoResult
 )
 
-export const getValidatedLedger = async () => (
-	assertEnvelope(
+export const getLedger = async (
+	specifier: XrplLedgerSpecifier | {
+		ledgerHash: string
+	} = 'validated'
+) => {
+	if (typeof specifier === 'object') {
+		if (specifier.ledgerHash.length === 0)
+			throw new Error('Xrpl_Rippled: ledger hash must not be empty')
+	} else if (specifier !== 'validated') {
+		if (!Number.isSafeInteger(specifier) || specifier < 0)
+			throw new Error('Xrpl_Rippled: ledger index must be a nonnegative safe integer')
+	}
+
+	return assertEnvelope(
 		'ledger',
 		xrplLedger,
-		await jsonRpc2<unknown>(binding, 'ledger', [{ ledger_index: 'validated' }])
+		await jsonRpc2<unknown>(binding, 'ledger', [{
+			...(
+				typeof specifier === 'object' ?
+					{
+						ledger_hash: specifier.ledgerHash,
+					}
+				:
+					{
+						ledger_index: specifier,
+					}
+			),
+			transactions: false,
+			expand: false,
+		}])
 	) as XrplLedgerResult
+}
+
+export const getValidatedLedger = async () => (
+	getLedger('validated')
 )
 
 export const getValidatedLedgerData = async (

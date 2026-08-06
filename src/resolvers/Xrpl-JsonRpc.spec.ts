@@ -648,6 +648,15 @@ describe('XRPL rippled network resolver', () => {
 					},
 					ledgerIndex: 93412781n,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.XrplLedger, [], 'ledgerHash')]: 'EC02890710AAA2B71221D74DE9B3B7A4E67E7A3A77B47D342E82D0B3B1E69456',
+					[entityFieldAddressKey(EntityType.XrplLedger, [], 'validated')]: true,
+					[entityFieldAddressKey(EntityType.XrplLedger, [], 'closeTimeMs')]: 1_726_684_800_000,
+					[entityFieldAddressKey(EntityType.XrplLedger, [], 'totalCoinsDrops')]: 99_999_999_999_999_999n,
+					[entityFieldAddressKey(EntityType.XrplLedger, [], 'parentHash')]: 'PARENT_HASH_EXAMPLE',
+					[entityFieldAddressKey(EntityType.XrplLedger, [], 'accountHash')]: 'ACCOUNT_HASH_EXAMPLE',
+					[entityFieldAddressKey(EntityType.XrplLedger, [], 'transactionHash')]: 'TRANSACTION_HASH_ROOT',
+				},
 			},
 		])
 		expect(Object.keys(resolver.projections)).toEqual([
@@ -656,6 +665,33 @@ describe('XRPL rippled network resolver', () => {
 		expect(Object.keys(resolver.projections.Xrpl)).toEqual([
 			'$$ledgers',
 		])
+	})
+
+	it('projects enrolled XrplLedger tip fields from nested ledger body', async () => {
+		sourceFetch.mockResolvedValueOnce(jsonRpcResponse(validatedLedger))
+		const resolver = xrpl.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.XrplLedger
+			&& 'NetworkLedgerIndex' in candidate.resolve
+			&& 'closeTimeMs' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('missing XrplLedger tip field resolver')
+
+		const snapshot = await resolver.resolve.NetworkLedgerIndex.resolve({
+			$network: {
+				caip2: networkBySlug.xrpl.caip2,
+			},
+			ledgerIndex: 93_412_781n,
+		}, context)
+
+		expect(resolver.projections.ledgerHash(snapshot)).toBe(validatedLedger.ledger_hash)
+		expect(resolver.projections.ledgerIndex(snapshot)).toBe(93_412_781n)
+		expect(resolver.projections.validated(snapshot)).toBe(true)
+		expect(resolver.projections.closeTimeMs(snapshot)).toBe(1_726_684_800_000)
+		expect(resolver.projections.totalCoinsDrops(snapshot)).toBe(99_999_999_999_999_999n)
+		expect(resolver.projections.parentHash(snapshot)).toBe('PARENT_HASH_EXAMPLE')
+		expect(resolver.projections.accountHash(snapshot)).toBe('ACCOUNT_HASH_EXAMPLE')
+		expect(resolver.projections.transactionHash(snapshot)).toBe('TRANSACTION_HASH_ROOT')
 	})
 
 	it('registers exactly the six network relationship leaves', () => {

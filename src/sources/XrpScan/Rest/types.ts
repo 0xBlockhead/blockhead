@@ -120,16 +120,32 @@ export const xrpScanAccountTrustlinesWire = arktype({
 
 export type XrpScanAccountTrustlines = typeof xrpScanAccountTrustlinesWire.infer
 
+export const xrpScanAmmAuctionSlotWire = arktype({
+	'account?': 'string > 0',
+	'expiration?': 'number.integer >= 0',
+	'discounted_fee?': 'number.integer >= 0',
+	'price?': xrpScanIssuedAssetWire,
+	'auth_accounts?': arktype({
+		'account?': 'string > 0',
+	}).array(),
+})
+
+export const xrpScanAmmVoteSlotWire = arktype({
+	'account?': 'string > 0',
+	'trading_fee?': 'number.integer >= 0',
+	'vote_weight?': 'number.integer >= 0',
+})
+
 export const xrpScanAmmWire = arktype({
 	account: 'string > 0',
 	amount: xrpScanAmountWire,
 	amount2: xrpScanAmountWire,
 	'asset_frozen?': 'boolean',
 	'asset2_frozen?': 'boolean',
-	'auction_slot?': 'unknown',
+	'auction_slot?': xrpScanAmmAuctionSlotWire,
 	'lp_token?': xrpScanIssuedAssetWire,
 	'trading_fee?': 'number.integer >= 0',
-	'vote_slots?': 'unknown',
+	'vote_slots?': xrpScanAmmVoteSlotWire.array(),
 })
 
 export type XrpScanAmm = typeof xrpScanAmmWire.infer

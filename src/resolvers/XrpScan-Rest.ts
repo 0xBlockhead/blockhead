@@ -289,6 +289,52 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.XrplAccount_Timestamp,
+			resolve: {
+				AccountLedgerIndexSource: {
+					resolve: async ({ $account, ledgerIndex, source }) => {
+						assertXrplMainnet($account.$network)
+						if (source !== Source.XrpScan_Rest)
+							throw new Error('XrpScan_Rest: account observation source does not match')
+
+						const tipLedgerIndex = await tipLedgerIndexFromServerInfo()
+						if (ledgerIndex !== tipLedgerIndex)
+							throw new Error('XrpScan_Rest: account observation is not the validated tip')
+
+						const { getAccount } = await import('$/sources/XrpScan/Rest/queries.ts')
+						const response = await getAccount($account.account)
+						const subject = response.Account ?? response.account
+						if (subject !== $account.account)
+							throw new Error('XrpScan_Rest: account response does not match the subject')
+						if (response.LedgerEntryType !== 'AccountRoot')
+							throw new Error('XrpScan_Rest: account response is not an AccountRoot')
+						if (
+							!Number.isSafeInteger(response.OwnerCount)
+							|| response.OwnerCount < 0
+							|| !Number.isSafeInteger(response.Sequence)
+							|| response.Sequence < 0
+							|| !Number.isSafeInteger(response.Flags)
+							|| response.Flags < 0
+						)
+							throw new Error('XrpScan_Rest: malformed account counters')
+
+						return {
+							balanceDrops: dropsBalance(response.Balance),
+							ownerCount: response.OwnerCount,
+							sequence: response.Sequence,
+							flags: response.Flags,
+						}
+					},
+				},
+			},
+		})({
+			balanceDrops: (observation) => observation.balanceDrops,
+			ownerCount: (observation) => observation.ownerCount,
+			sequence: (observation) => observation.sequence,
+			flags: (observation) => observation.flags,
+		}),
+
+		defineResolver({
 			entityType: EntityType.XrplAccount,
 			resolve: {
 				NetworkAccount: {
@@ -409,6 +455,59 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.XrplAmm_Timestamp,
+			resolve: {
+				AmmLedgerIndexSource: {
+					resolve: async ({ $amm, ledgerIndex, source }) => {
+						assertXrplMainnet($amm.$network)
+						if (source !== Source.XrpScan_Rest)
+							throw new Error('XrpScan_Rest: AMM observation source does not match')
+
+						const tipLedgerIndex = await tipLedgerIndexFromServerInfo()
+						if (ledgerIndex !== tipLedgerIndex)
+							throw new Error('XrpScan_Rest: AMM observation is not the validated tip')
+
+						const { getAmm } = await import('$/sources/XrpScan/Rest/queries.ts')
+						const response = await getAmm($amm.ammAccount)
+						if (response.account !== $amm.ammAccount)
+							throw new Error('XrpScan_Rest: amm response does not match the subject')
+
+						const asset = ammAmountParts(response.amount)
+						const asset2 = ammAmountParts(response.amount2)
+						if (asset.value == null || asset.value.length === 0)
+							throw new Error('XrpScan_Rest: malformed amm asset amount')
+						if (asset2.value == null || asset2.value.length === 0)
+							throw new Error('XrpScan_Rest: malformed amm asset2 amount')
+
+						return {
+							assetAmount: asset.value,
+							asset2Amount: asset2.value,
+							...(response.lp_token?.value != null && {
+								lpTokenBalance: response.lp_token.value,
+							}),
+							...(response.trading_fee != null && {
+								tradingFee: response.trading_fee,
+							}),
+							...(response.auction_slot != null && {
+								auctionSlot: response.auction_slot,
+							}),
+							...(response.vote_slots != null && {
+								voteSlots: response.vote_slots,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			assetAmount: (observation) => observation.assetAmount,
+			asset2Amount: (observation) => observation.asset2Amount,
+			lpTokenBalance: (observation) => observation.lpTokenBalance,
+			tradingFee: (observation) => observation.tradingFee,
+			auctionSlot: (observation) => observation.auctionSlot,
+			voteSlots: (observation) => observation.voteSlots,
+		}),
+
+		defineResolver({
 			entityType: EntityType.XrplLedger,
 			resolve: {
 				NetworkLedgerIndex: {
@@ -513,6 +612,56 @@ export default {
 			account: (snapshot) => snapshot.account,
 			sequence: (snapshot) => snapshot.sequence,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.XrplTransaction_Timestamp,
+			resolve: {
+				TransactionLedgerIndexSource: {
+					resolve: async ({ $transaction, ledgerIndex, source }) => {
+						assertXrplMainnet($transaction.$network)
+						if (source !== Source.XrpScan_Rest)
+							throw new Error('XrpScan_Rest: transaction observation source does not match')
+
+						const { getTransaction } = await import('$/sources/XrpScan/Rest/queries.ts')
+						const response = await getTransaction($transaction.hash)
+						if (response.hash !== $transaction.hash)
+							throw new Error('XrpScan_Rest: transaction response does not match the subject')
+						if (response.ledger_index == null)
+							throw new Error('XrpScan_Rest: transaction is missing its ledger index')
+						if (validatedLedgerIndex(response.ledger_index) !== ledgerIndex)
+							throw new Error('XrpScan_Rest: transaction observation ledger index does not match')
+
+						const timestampMs = transactionTimestampMs(response)
+						const fee = feeDrops(response.Fee)
+						return {
+							...(timestampMs != null && {
+								timestampMs,
+							}),
+							...(fee != null && {
+								fee,
+							}),
+							...(response.meta?.TransactionResult != null && {
+								status: response.meta.TransactionResult,
+								resultCode: response.meta.TransactionResult,
+							}),
+							...(response.validated != null && {
+								validated: response.validated,
+							}),
+							...(response.meta != null && {
+								meta: response.meta,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			timestampMs: (observation) => observation.timestampMs,
+			fee: (observation) => observation.fee,
+			status: (observation) => observation.status,
+			resultCode: (observation) => observation.resultCode,
+			validated: (observation) => observation.validated,
+			meta: (observation) => observation.meta,
 		}),
 
 		defineResolver({

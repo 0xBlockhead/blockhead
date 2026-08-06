@@ -12,9 +12,11 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import { Source } from '$/sources/Source.ts'
-import type {
-	XrplAccountInfoResult,
-	XrplMarker,
+import {
+	XRPL_RIPPLE_EPOCH_OFFSET_SECONDS,
+	type XrplAccountInfoResult,
+	type XrplLedgerResult,
+	type XrplMarker,
 } from '$/sources/Xrpl/JsonRpc/types.ts'
 import {
 	isJsonNumber,
@@ -184,9 +186,13 @@ const ledgerDataContinuation = (
 	}
 }
 
-const getXrplValidatedLedger = async () => {
-	const { getValidatedLedger } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
-	const ledger = await getValidatedLedger()
+const getXrplLedger = async (
+	specifier: 'validated' | number | {
+		ledgerHash: string
+	}
+) => {
+	const { getLedger } = await import('$/sources/Xrpl/JsonRpc/queries.ts')
+	const ledger = await getLedger(specifier)
 	if (!ledger.validated)
 		throw new Error('Xrpl_Rippled: ledger is not validated')
 	if (!Number.isSafeInteger(ledger.ledger_index) || ledger.ledger_index < 0)
@@ -197,13 +203,72 @@ const getXrplValidatedLedger = async () => {
 	return ledger
 }
 
+const getXrplValidatedLedger = async () => (
+	getXrplLedger('validated')
+)
+
+const ledgerCloseTimeMs = (
+	ledgerBody: NonNullable<XrplLedgerResult['ledger']> | undefined
+) => {
+	if (ledgerBody?.close_time == null)
+		return undefined
+	if (!Number.isSafeInteger(ledgerBody.close_time) || ledgerBody.close_time < 0)
+		throw new Error('Xrpl_Rippled: malformed ledger close time')
+
+	const timestampMs = (
+		ledgerBody.close_time
+		+ XRPL_RIPPLE_EPOCH_OFFSET_SECONDS
+	) * 1_000
+	if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+		throw new Error('Xrpl_Rippled: malformed ledger close time')
+
+	if (ledgerBody.close_time_human != null) {
+		const parsed = Date.parse(ledgerBody.close_time_human)
+		if (Number.isSafeInteger(parsed) && parsed !== timestampMs)
+			throw new Error('Xrpl_Rippled: ledger close time does not match close_time_human')
+	}
+
+	return timestampMs
+}
+
+const ledgerTotalCoinsDrops = (
+	totalCoins: NonNullable<XrplLedgerResult['ledger']>['total_coins'] | undefined
+) => {
+	if (totalCoins == null)
+		return undefined
+	if (!/^(?:0|[1-9]\d*)$/.test(totalCoins))
+		throw new Error('Xrpl_Rippled: malformed total coins')
+	return BigInt(totalCoins)
+}
+
 const xrplLedgerFields = (
-	ledger: Awaited<ReturnType<typeof getXrplValidatedLedger>>
-) => ({
-	ledgerHash: ledger.ledger_hash,
-	ledgerIndex: BigInt(ledger.ledger_index),
-	validated: ledger.validated,
-})
+	ledger: Awaited<ReturnType<typeof getXrplLedger>>
+) => {
+	const body = ledger.ledger
+	const closeTimeMs = ledgerCloseTimeMs(body)
+	const totalCoinsDrops = ledgerTotalCoinsDrops(body?.total_coins)
+
+	return {
+		ledgerHash: ledger.ledger_hash,
+		ledgerIndex: BigInt(ledger.ledger_index),
+		validated: ledger.validated,
+		...(closeTimeMs != null && {
+			closeTimeMs,
+		}),
+		...(totalCoinsDrops != null && {
+			totalCoinsDrops,
+		}),
+		...(body?.parent_hash != null && {
+			parentHash: body.parent_hash,
+		}),
+		...(body?.account_hash != null && {
+			accountHash: body.account_hash,
+		}),
+		...(body?.transaction_hash != null && {
+			transactionHash: body.transaction_hash,
+		}),
+	}
+}
 
 const getXrplValidatedLedgerHead = async (
 	network: EntitySelector<typeof schema, EntityType.Network>
@@ -216,10 +281,29 @@ const getXrplValidatedLedgerHead = async (
 			$network: network,
 			ledgerIndex: fields.ledgerIndex,
 		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.XrplLedger, [], 'ledgerHash')]: fields.ledgerHash,
+			[entityFieldAddressKey(EntityType.XrplLedger, [], 'validated')]: fields.validated,
+			...(fields.closeTimeMs != null && {
+				[entityFieldAddressKey(EntityType.XrplLedger, [], 'closeTimeMs')]: fields.closeTimeMs,
+			}),
+			...(fields.totalCoinsDrops != null && {
+				[entityFieldAddressKey(EntityType.XrplLedger, [], 'totalCoinsDrops')]: fields.totalCoinsDrops,
+			}),
+			...(fields.parentHash != null && {
+				[entityFieldAddressKey(EntityType.XrplLedger, [], 'parentHash')]: fields.parentHash,
+			}),
+			...(fields.accountHash != null && {
+				[entityFieldAddressKey(EntityType.XrplLedger, [], 'accountHash')]: fields.accountHash,
+			}),
+			...(fields.transactionHash != null && {
+				[entityFieldAddressKey(EntityType.XrplLedger, [], 'transactionHash')]: fields.transactionHash,
+			}),
+		},
 	}]
 }
 
-const resolveXrplLedgerByValidatedTip = async (
+const resolveXrplLedger = async (
 	network: EntitySelector<typeof schema, EntityType.Network>,
 	match: {
 		ledgerIndex?: bigint
@@ -227,7 +311,21 @@ const resolveXrplLedgerByValidatedTip = async (
 	}
 ) => {
 	assertXrplNetwork(network)
-	const fields = xrplLedgerFields(await getXrplValidatedLedger())
+	if (match.ledgerIndex != null && match.ledgerIndex > BigInt(Number.MAX_SAFE_INTEGER))
+		throw new Error('Xrpl_Rippled: ledger index is too large')
+
+	const fields = xrplLedgerFields(
+		await getXrplLedger(
+			match.ledgerHash != null ?
+				{
+					ledgerHash: match.ledgerHash,
+				}
+			: match.ledgerIndex != null ?
+				Number(match.ledgerIndex)
+			:
+				'validated'
+		)
+	)
 	if (match.ledgerIndex != null && fields.ledgerIndex !== match.ledgerIndex)
 		throw new Error('Xrpl_Rippled: validated ledger index does not match')
 	if (match.ledgerHash != null && fields.ledgerHash !== match.ledgerHash)
@@ -245,14 +343,14 @@ export default {
 			resolve: {
 				NetworkLedgerIndex: {
 					resolve: async ({ $network, ledgerIndex }) => (
-						resolveXrplLedgerByValidatedTip($network, {
+						resolveXrplLedger($network, {
 							ledgerIndex,
 						})
 					),
 				},
 				NetworkLedgerHash: {
 					resolve: async ({ $network, ledgerHash }) => (
-						resolveXrplLedgerByValidatedTip($network, {
+						resolveXrplLedger($network, {
 							ledgerHash,
 						})
 					),
@@ -262,6 +360,11 @@ export default {
 			ledgerHash: (ledger) => ledger.ledgerHash,
 			ledgerIndex: (ledger) => ledger.ledgerIndex,
 			validated: (ledger) => ledger.validated,
+			closeTimeMs: (ledger) => ledger.closeTimeMs,
+			totalCoinsDrops: (ledger) => ledger.totalCoinsDrops,
+			parentHash: (ledger) => ledger.parentHash,
+			accountHash: (ledger) => ledger.accountHash,
+			transactionHash: (ledger) => ledger.transactionHash,
 		}),
 
 		defineResolver({
