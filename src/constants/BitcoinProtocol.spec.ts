@@ -28,4 +28,15 @@ describe('BitcoinProtocol catalog', () => {
 			activationHeight: 840_000,
 		})
 	})
+
+	it('keeps Ordinals / Runes lookup keys exhaustive for protocol extractors', () => {
+		expect(Object.keys(bitcoinProtocolById).sort()).toEqual([
+			BitcoinProtocolId.Ordinals,
+			BitcoinProtocolId.Runes,
+		].sort())
+		expect(bitcoinProtocolById[BitcoinProtocolId.Ordinals].scriptPrefixHex.startsWith('00')).toBe(true)
+		expect(bitcoinProtocolById[BitcoinProtocolId.Runes].scriptPrefixHex).toBe(
+			`6a${bitcoinProtocolById[BitcoinProtocolId.Runes].markerHex}`
+		)
+	})
 })

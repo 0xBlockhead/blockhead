@@ -171,6 +171,65 @@ describe('UniSat Rest resolver module', () => {
 		})
 	})
 
+	it('derives inscriptionIndex from inscriptionId when UniSat omits the wire index', async () => {
+		if (inscriptionResolver == null)
+			throw new Error('missing BitcoinOrdinalInscription resolver')
+
+		const revealTxId = 'aa'.repeat(32)
+		const inscriptionId = `${revealTxId}i7`
+		getInscriptionInfo.mockResolvedValueOnce({
+			inscriptionId,
+			contentType: 'text/plain',
+		})
+
+		const inscription = await inscriptionResolver.resolve.NetworkInscriptionId.resolve({
+			$network: bitcoinNetwork,
+			inscriptionId,
+		}, context)
+
+		expect(inscriptionResolver.projections.inscriptionIndex(inscription)).toBe(7)
+		expect(inscriptionResolver.projections.$revealTransaction(inscription)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: bitcoinNetwork,
+				txId: revealTxId,
+			},
+		})
+	})
+
+	it('exposes authoritative output inscription resolveCount from the complete UniSat list', async () => {
+		if (outputInscriptionsResolver == null)
+			throw new Error('missing UtxoOutput UniSat inscription facets')
+
+		getUtxoInfo.mockResolvedValueOnce({
+			txid: 'ee'.repeat(32),
+			vout: 0,
+			inscriptionsCount: 99,
+			inscriptions: [
+				{
+					inscriptionId: `${'ff'.repeat(32)}i0`,
+				},
+				{
+					inscriptionId: `${'ff'.repeat(32)}i1`,
+				},
+			],
+		})
+
+		const output = await outputInscriptionsResolver.resolve.TransactionIndexInTransaction.resolve({
+			$transaction: {
+				$network: bitcoinNetwork,
+				txId: 'ee'.repeat(32),
+			},
+			indexInTransaction: 0,
+		}, context)
+
+		expect(
+			outputInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions.select(output)
+		).toHaveLength(2)
+		expect(
+			outputInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions.resolveCount(output)
+		).toBe(2)
+	})
+
 	it('maps rune detail onto every enrolled UniSat field', async () => {
 		if (runeResolver == null)
 			throw new Error('missing BitcoinRune resolver')
@@ -377,7 +436,7 @@ describe('UniSat Rest resolver module', () => {
 		}, context)
 
 		expect(
-			outputInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions(output)
+			outputInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions.select(output)
 		).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -386,6 +445,9 @@ describe('UniSat Rest resolver module', () => {
 				},
 			},
 		])
+		expect(
+			outputInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions.resolveCount(output)
+		).toBe(1)
 		expect(outputInscriptionsResolver.projections.valueSats(output)).toBe(546n)
 		expect(outputInscriptionsResolver.projections.scriptPubKeyType(output)).toBe('p2tr')
 		expect(outputInscriptionsResolver.projections.scriptPubKeyHex(output)).toBe('5120ab')
@@ -418,7 +480,7 @@ describe('UniSat Rest resolver module', () => {
 			indexInTransaction: 2,
 		}, context)
 		expect(
-			outputRuneBalancesResolver.projections.$$bitcoinRuneBalances(output)
+			outputRuneBalancesResolver.projections.$$bitcoinRuneBalances.select(output)
 		).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -433,6 +495,9 @@ describe('UniSat Rest resolver module', () => {
 				},
 			},
 		])
+		expect(
+			outputRuneBalancesResolver.projections.$$bitcoinRuneBalances.resolveCount(output)
+		).toBe(1)
 	})
 
 	it('returns an empty inscription list and marks spent when UniSat utxo info is null', async () => {
@@ -449,8 +514,11 @@ describe('UniSat Rest resolver module', () => {
 			indexInTransaction: 0,
 		}, context)
 		expect(
-			outputInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions(output)
+			outputInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions.select(output)
 		).toEqual([])
+		expect(
+			outputInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions.resolveCount(output)
+		).toBe(0)
 		expect(outputInscriptionsResolver.projections.isSpent(output)).toBe(true)
 	})
 

@@ -399,6 +399,7 @@ export default {
 							txId: $transaction.txId,
 							outputIndex: indexInTransaction,
 						})
+						const inscriptions = utxo?.inscriptions ?? []
 						return {
 							[EntityMetaKey.Selector]: {
 								$transaction,
@@ -406,8 +407,9 @@ export default {
 							},
 							$$bitcoinOrdinalInscriptions: bitcoinOrdinalInscriptionRefsFromUtxoInscriptions(
 								$transaction.$network,
-								utxo?.inscriptions ?? []
+								inscriptions
 							),
+							inscriptionCount: inscriptions.length,
 							...(utxo?.satoshi != null && {
 								valueSats: BigInt(utxo.satoshi),
 							}),
@@ -441,7 +443,10 @@ export default {
 			scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
 			$address: (snapshot) => snapshot.$address,
 			isSpent: (snapshot) => snapshot.isSpent,
-			$$bitcoinOrdinalInscriptions: (snapshot) => snapshot.$$bitcoinOrdinalInscriptions,
+			$$bitcoinOrdinalInscriptions: {
+				select: (snapshot) => snapshot.$$bitcoinOrdinalInscriptions,
+				resolveCount: (snapshot) => snapshot.inscriptionCount,
+			},
 		}),
 
 		defineResolver({
@@ -468,12 +473,16 @@ export default {
 									},
 								},
 							})),
+							runeBalanceCount: balances.length,
 						}
 					},
 				},
 			},
 		})({
-			$$bitcoinRuneBalances: (snapshot) => snapshot.$$bitcoinRuneBalances,
+			$$bitcoinRuneBalances: {
+				select: (snapshot) => snapshot.$$bitcoinRuneBalances,
+				resolveCount: (snapshot) => snapshot.runeBalanceCount,
+			},
 		}),
 	],
 }

@@ -194,4 +194,119 @@ describe('bitcoinOrdinalsRunes helpers', () => {
 			},
 		])
 	})
+
+	it('indexes multi-envelope reveal payloads in witness order', () => {
+		const network = {
+			slug: 'bitcoin' as const,
+		}
+		const payloads = [
+			{
+				protocol: BitcoinProtocolId.Ordinals,
+				transactionId: 'aa'.repeat(32),
+				location: {
+					inputIndex: 0,
+					witnessIndex: 0,
+				},
+				payloadHex: '01',
+				contentType: 'text/plain',
+				bodyHex: '48656c6c6f',
+			},
+			{
+				protocol: BitcoinProtocolId.Ordinals,
+				transactionId: 'aa'.repeat(32),
+				location: {
+					inputIndex: 0,
+					witnessIndex: 0,
+				},
+				payloadHex: '02',
+				contentType: 'text/plain',
+				bodyHex: '4869',
+			},
+		] as const
+
+		expect(
+			bitcoinOrdinalInscriptionRefsFromPayloads(network, [...payloads])
+		).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					inscriptionId: `${'aa'.repeat(32)}i0`,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					inscriptionId: `${'aa'.repeat(32)}i1`,
+				},
+			},
+		])
+		expect(
+			bitcoinOrdinalInscriptionSnapshotFromPayload(
+				network,
+				`${'aa'.repeat(32)}i1`,
+				1,
+				payloads[1]
+			)
+		).toMatchObject({
+			inscriptionIndex: 1,
+			bodyHex: '4869',
+			payloadHex: '02',
+		})
+	})
+
+	it('returns no runestone ref when protocol payloads lack OP_RETURN OP_13', () => {
+		expect(
+			bitcoinRunestoneRefFromPayloads({
+				$network: {
+					slug: 'bitcoin' as const,
+				},
+				txId: 'aa'.repeat(32),
+			}, [
+				{
+					protocol: BitcoinProtocolId.Ordinals,
+					transactionId: 'aa'.repeat(32),
+					location: {
+						inputIndex: 0,
+						witnessIndex: 0,
+					},
+					payloadHex: '01',
+				},
+			])
+		).toBeUndefined()
+	})
+
+	it('ORs LEB128 edict-field cenotaphs into the enrolled runestone snapshot flag', () => {
+		const $transaction = {
+			$network: {
+				slug: 'bitcoin' as const,
+			},
+			txId: 'aa'.repeat(32),
+		}
+		// Body + leftover edict limbs → LEB128 cenotaph even when script flag is clear
+		expect(
+			bitcoinRunestoneSnapshotFromPayload($transaction, {
+				protocol: BitcoinProtocolId.Runes,
+				transactionId: 'aa'.repeat(32),
+				location: {
+					outputIndex: 1,
+				},
+				payloadHex: '000102',
+				isCenotaph: false,
+			})
+		).toMatchObject({
+			outputIndex: 1,
+			isCenotaph: true,
+		})
+		expect(
+			bitcoinRunestoneSnapshotFromPayload($transaction, {
+				protocol: BitcoinProtocolId.Runes,
+				transactionId: 'aa'.repeat(32),
+				location: {
+					outputIndex: 1,
+				},
+				payloadHex: '020100',
+				isCenotaph: false,
+			}).isCenotaph
+		).toBe(false)
+	})
 })
