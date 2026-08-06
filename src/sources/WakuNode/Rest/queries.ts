@@ -9,7 +9,11 @@ export const getDebugInfo = async () => {
 		listenAddresses: string[]
 		enrUri?: string
 	}>(binding, '/debug/v1/info')
-	if (debugInfo == null || debugInfo.listenAddresses == null)
+	if (
+		debugInfo == null
+		|| debugInfo.listenAddresses == null
+		|| debugInfo.listenAddresses.length === 0
+	)
 		throw new Error('WakuNode_Rest: debug info missing listen addresses')
 
 	return debugInfo

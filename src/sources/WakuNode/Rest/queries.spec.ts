@@ -41,8 +41,14 @@ describe('WakuNode REST operations', () => {
 		expect(getJson).toHaveBeenCalledWith(binding, '/debug/v1/info')
 	})
 
-	it('fails closed when debug info has no listen addresses envelope', async () => {
-		getJson.mockResolvedValue({})
+	it.each([
+		null,
+		{},
+		{
+			listenAddresses: [],
+		},
+	])('fails closed when debug info has no listen addresses envelope: %j', async (debugInfo) => {
+		getJson.mockResolvedValue(debugInfo)
 
 		await expect(queries.getDebugInfo()).rejects.toThrow(
 			'WakuNode_Rest: debug info missing listen addresses'
