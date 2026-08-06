@@ -134,7 +134,7 @@ describe('Dune REST queries', () => {
 		)
 
 		await expect(executeQuery(publicEnv, 1)).rejects.toThrow('missing execution_id')
-		await expect(executeQuery(publicEnv, 1)).rejects.toThrow('unknown execution state')
+		await expect(executeQuery(publicEnv, 1)).rejects.toThrow('invalid execute query response envelope')
 	})
 
 	it('hard-fails query/result envelopes missing required identity fields', async () => {
@@ -158,9 +158,9 @@ describe('Dune REST queries', () => {
 			}))
 		)
 
-		await expect(getQuery(publicEnv, 1)).rejects.toThrow('missing query_id')
+		await expect(getQuery(publicEnv, 1)).rejects.toThrow('invalid query metadata response envelope')
 		await expect(getExecutionResults(publicEnv, 'exec-1')).rejects.toThrow('completed execution missing result')
-		await expect(getLatestQueryResults(publicEnv, 1)).rejects.toThrow('missing rows')
+		await expect(getLatestQueryResults(publicEnv, 1)).rejects.toThrow('invalid execution result response envelope')
 		await expect(getExecutionResults(publicEnv, 'exec-x')).rejects.toThrow('missing execution_id')
 	})
 
@@ -182,5 +182,21 @@ describe('Dune REST queries', () => {
 		expect(() => readUsageCredits({
 			billingPeriods: [{}],
 		})).toThrow('missing billing credits')
+	})
+
+	it('fail-closes arktype envelopes for query metadata and usage shapes', async () => {
+		vi.stubGlobal('window', {})
+		vi.stubGlobal('fetch', vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(jsonResponse({
+				query_id: '42',
+				name: 'demo',
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				billingPeriods: 'nope',
+			}))
+		)
+
+		await expect(getQuery(publicEnv, 1)).rejects.toThrow('invalid query metadata response envelope')
+		await expect(getUsage(publicEnv)).rejects.toThrow('invalid usage response envelope')
 	})
 })

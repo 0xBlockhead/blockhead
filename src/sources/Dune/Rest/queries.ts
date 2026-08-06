@@ -22,6 +22,44 @@ import type {
 	DuneUsageBillingPeriod,
 	DuneUsageResponse,
 } from '$/sources/Dune/Rest/types.ts'
+import {
+	duneExecuteQueryResponseEnvelope,
+	duneExecutionResultEnvelope,
+	duneQueryMetadataEnvelope,
+	duneUsageResponseEnvelope,
+} from '$/sources/Dune/Rest/types.ts'
+
+const omitUndefinedJson = (
+	value: unknown
+): unknown => {
+	if (Array.isArray(value))
+		return value.map(omitUndefinedJson)
+	if (value != null && typeof value === 'object')
+		return Object.fromEntries(
+			Object.entries(value)
+				.filter(([, entry]) => entry !== undefined)
+				.map(([key, entry]) => [
+					key,
+					omitUndefinedJson(entry),
+				])
+		)
+	return value
+}
+
+const assertEnvelope = <_Value>(
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(omitUndefinedJson(value))
+	} catch {
+		throw new Error(`Dune_Rest: invalid ${label} response envelope`)
+	}
+	return value as _Value
+}
 
 const duneExecutionResultsSearch = (params: DuneGetExecutionResultsParams | undefined) => {
 	const search = new URLSearchParams(Object.entries(params ?? {}).flatMap(([key, value]) => (
@@ -40,12 +78,14 @@ const assertExecutionStatus = (state: string | undefined) => {
 }
 
 const assertQueryMetadata = (query: DuneQueryMetadata) => {
+	assertEnvelope(duneQueryMetadataEnvelope, query, 'query metadata')
 	if (query.query_id == null || !Number.isSafeInteger(query.query_id) || query.query_id < 1)
 		throw new Error('Dune_Rest: query response missing query_id')
 	return query
 }
 
 const assertExecuteQueryResponse = (response: DuneExecuteQueryResponse) => {
+	assertEnvelope(duneExecuteQueryResponseEnvelope, response, 'execute query')
 	if (response.execution_id.trim() === '')
 		throw new Error('Dune_Rest: execute response missing execution_id')
 	assertExecutionStatus(response.state)
@@ -53,6 +93,7 @@ const assertExecuteQueryResponse = (response: DuneExecuteQueryResponse) => {
 }
 
 const assertExecutionResult = (execution: DuneExecutionResult) => {
+	assertEnvelope(duneExecutionResultEnvelope, execution, 'execution result')
 	if (execution.execution_id.trim() === '')
 		throw new Error('Dune_Rest: execution result missing execution_id')
 	const status = assertExecutionStatus(execution.state)
@@ -150,20 +191,25 @@ export const getLatestQueryResults = async (
  * `POST /api/v1/usage` — billing period credits (metadata; does not consume query credits).
  * @see https://docs.dune.com/api-reference/usage/endpoint/get-usage.md
  */
-export const getUsage = (
+export const getUsage = async (
 	publicEnv: SourcePublicEnv,
 	body?: { start_date?: string; end_date?: string }
 ) => (
-	duneFetch<DuneUsageResponse>(publicEnv, duneApiPaths.usage, {
-		method: 'POST',
-		body: JSON.stringify(body ?? {}),
-	})
+	assertEnvelope<DuneUsageResponse>(
+		duneUsageResponseEnvelope,
+		await duneFetch<DuneUsageResponse>(publicEnv, duneApiPaths.usage, {
+			method: 'POST',
+			body: JSON.stringify(body ?? {}),
+		}),
+		'usage'
+	)
 )
 
 /** First billing period that carries at least one credit field; hard-fails empty envelopes. */
 export const readUsageCredits = (
 	usage: DuneUsageResponse
 ): DuneUsageBillingPeriod => {
+	assertEnvelope(duneUsageResponseEnvelope, usage, 'usage')
 	const billingPeriod = usage.billingPeriods?.[0] ?? usage.billing_periods?.[0]
 	if (
 		billingPeriod == null
