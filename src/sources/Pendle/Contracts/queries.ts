@@ -4,7 +4,10 @@ import { toBytes } from '@tevm/voltaire/Hex'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import bindings from '$/sources/Pendle/bindings.ts'
 import type { PendleAccountPositions } from '$/sources/Pendle/Contracts/types.ts'
-import { pendleMarketsAllMaxLimit } from '$/sources/Pendle/Rest/constants.ts'
+import {
+	pendleByChainId,
+	pendleMarketsAllMaxLimit,
+} from '$/sources/Pendle/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily } from '$/sources/SourceBinding.ts'
 import { evmExecutionJsonRpc } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
@@ -57,6 +60,11 @@ export const getAccountPositions = async ({
 	const accountAddress = hexLowerOfByteSize(account, 20)
 	if (accountAddress == null)
 		throw new Error(`${Source.Pendle_Rest}: invalid account ${account}`)
+
+	if (!Number.isSafeInteger(chainId) || chainId < 1)
+		throw new Error(`${Source.Pendle_Rest}: invalid chain id ${String(chainId)}`)
+	if (pendleByChainId[chainId] == null)
+		throw new Error(`${Source.Pendle_Rest}: unsupported chain id ${String(chainId)}`)
 
 	const binding = bindings[Source.Pendle_Rest].find(({ apiFamily, target }) => (
 		apiFamily === ApiFamily.EvmExecutionJsonRpc
@@ -131,6 +139,10 @@ export const getAccountPositions = async ({
 				marketAddress: market.marketAddress,
 				marketName: market.name,
 				expiryTimestampMs: market.expiryTimestampMs,
+				ptAddress: market.ptAddress,
+				ytAddress: market.ytAddress,
+				syAddress: market.syAddress,
+				underlyingAssetAddress: market.underlyingAssetAddress,
 				balances,
 			}
 		}))).filter((position) => position != null),

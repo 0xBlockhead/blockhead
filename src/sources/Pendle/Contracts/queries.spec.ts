@@ -123,6 +123,10 @@ describe('Pendle contract account operations', () => {
 					marketAddress,
 					marketName: 'USD0++',
 					expiryTimestampMs: Date.parse('2026-10-31T00:00:00.000Z'),
+					ptAddress: '0x270d664d2fc7d962012a787aec8661ca83df24eb',
+					ytAddress: '0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+					syAddress: '0x47bce1bb5d9a9072161ec25009bcd6e8d367b7d3',
+					underlyingAssetAddress: '0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
 					balances: [
 						{
 							kind: 'PT',
@@ -150,7 +154,16 @@ describe('Pendle contract account operations', () => {
 		await expect(getAccountPositions({
 			chainId: 11155111,
 			account: '0x0000000000000000000000000000000000000001',
-		})).rejects.toThrow(`${Source.Pendle_Rest}: no EVM execution binding for chain 11155111`)
+		})).rejects.toThrow(`${Source.Pendle_Rest}: unsupported chain id 11155111`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+		expect(jsonRpc2).not.toHaveBeenCalled()
+	})
+
+	it('rejects invalid accounts before transport', async () => {
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: 'not-an-address',
+		})).rejects.toThrow(`${Source.Pendle_Rest}: invalid account not-an-address`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
 		expect(jsonRpc2).not.toHaveBeenCalled()
 	})
