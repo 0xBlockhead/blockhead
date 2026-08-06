@@ -14,11 +14,13 @@ import type {
 	PendleMarket,
 	PendleMarketDetails,
 	PendleMarketDetailsWire,
+	PendleMarketTokens,
+	PendleMarketTokensWire,
 	PendleMarketWire,
 	PendleMarketsAllResponseWire,
 	PendleMarketsPage,
 } from '$/sources/Pendle/Rest/types.ts'
-import { pendleMarketsAllEnvelope } from '$/sources/Pendle/Rest/types.ts'
+import { pendleMarketTokensEnvelope, pendleMarketsAllEnvelope } from '$/sources/Pendle/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
@@ -198,4 +200,37 @@ export const listMarkets = async ({
 			return snapshot
 		}),
 	} satisfies PendleMarketsPage
+}
+
+const assertTokenAddressList = (
+	values: string[],
+	label: string,
+) => values.map((value) => assertAddress(value, label))
+
+/**
+ * SY mint/redeem + swap token sets for one market (`GET /v1/sdk/{chainId}/markets/{market}/tokens`).
+ * @see https://api-v2.pendle.finance/core/docs#/SDK/SdkController_getMarketTokens
+ */
+export const getMarketTokens = async ({
+	chainId,
+	marketAddress,
+}: {
+	chainId: number
+	marketAddress: string
+}) => {
+	assertChainId(chainId)
+	const normalizedMarketAddress = assertAddress(marketAddress, 'market address')
+	const response = await sourceGetJson<PendleMarketTokensWire>(
+		binding,
+		httpUrl(binding, `/v1/sdk/${String(chainId)}/markets/${normalizedMarketAddress}/tokens`)
+	)
+	assertEnvelope(pendleMarketTokensEnvelope, response, 'market tokens')
+	return {
+		chainId,
+		marketAddress: normalizedMarketAddress,
+		tokensMintSy: assertTokenAddressList(response.tokensMintSy, 'tokensMintSy'),
+		tokensRedeemSy: assertTokenAddressList(response.tokensRedeemSy, 'tokensRedeemSy'),
+		tokensIn: assertTokenAddressList(response.tokensIn, 'tokensIn'),
+		tokensOut: assertTokenAddressList(response.tokensOut, 'tokensOut'),
+	} satisfies PendleMarketTokens
 }

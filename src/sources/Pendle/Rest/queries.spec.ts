@@ -29,7 +29,10 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceGetJson,
 }))
 
-const { listMarkets } = await import('$/sources/Pendle/Rest/queries.ts')
+const {
+	getMarketTokens,
+	listMarkets,
+} = await import('$/sources/Pendle/Rest/queries.ts')
 
 const binding = bindings[Source.Pendle_Rest][0]
 
@@ -277,5 +280,86 @@ describe('Pendle market operations', () => {
 			],
 			limit: 1,
 		})).rejects.toThrow(`${Source.Pendle_Rest}: market address filter violated`)
+	})
+
+	it('loads typed SY, PT, and YT market token legs', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			tokensMintSy: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+			],
+			tokensRedeemSy: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+			],
+			tokensIn: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+				'0x270d664d2fc7d962012a787aec8661ca83df24eb',
+			],
+			tokensOut: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+				'0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+			],
+		})
+		await expect(getMarketTokens({
+			chainId: 1,
+			marketAddress: baseMarketAddress,
+		})).resolves.toEqual({
+			chainId: 1,
+			marketAddress: baseMarketAddress,
+			tokensMintSy: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+			],
+			tokensRedeemSy: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+			],
+			tokensIn: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+				'0x270d664d2fc7d962012a787aec8661ca83df24eb',
+			],
+			tokensOut: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+				'0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+			],
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, `/v1/sdk/1/markets/${baseMarketAddress}/tokens`)
+		)
+	})
+
+	it('rejects unsupported chains and invalid market tokens envelopes before trusting addresses', async () => {
+		await expect(getMarketTokens({
+			chainId: 9999,
+			marketAddress: baseMarketAddress,
+		})).rejects.toThrow(`${Source.Pendle_Rest}: unsupported chain id 9999`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+
+		sourceGetJson.mockResolvedValueOnce({
+			tokensMintSy: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+			],
+		})
+		await expect(getMarketTokens({
+			chainId: 1,
+			marketAddress: baseMarketAddress,
+		})).rejects.toThrow(`${Source.Pendle_Rest}: invalid market tokens response envelope`)
+
+		sourceGetJson.mockResolvedValueOnce({
+			tokensMintSy: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+			],
+			tokensRedeemSy: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+			],
+			tokensIn: [
+				'not-an-address',
+			],
+			tokensOut: [
+				'0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+			],
+		})
+		await expect(getMarketTokens({
+			chainId: 1,
+			marketAddress: baseMarketAddress,
+		})).rejects.toThrow(`${Source.Pendle_Rest}: invalid tokensIn not-an-address`)
 	})
 })

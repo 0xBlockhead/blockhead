@@ -89,6 +89,23 @@ export type PendleMarketsPage = {
 	markets: PendleMarket[]
 }
 
+/** Wire for `GET /v1/sdk/{chainId}/markets/{market}/tokens`. */
+export type PendleMarketTokensWire = {
+	tokensMintSy: string[]
+	tokensRedeemSy: string[]
+	tokensIn: string[]
+	tokensOut: string[]
+}
+
+export type PendleMarketTokens = {
+	chainId: number
+	marketAddress: `0x${string}`
+	tokensMintSy: `0x${string}`[]
+	tokensRedeemSy: `0x${string}`[]
+	tokensIn: `0x${string}`[]
+	tokensOut: `0x${string}`[]
+}
+
 export const pendleMarketDetailsEnvelope = arktype({
 	liquidity: 'number',
 	totalTvl: 'number',
@@ -131,4 +148,11 @@ export const pendleMarketsAllEnvelope = arktype({
 	limit: 'number',
 	skip: 'number',
 	results: pendleMarketEnvelope.array(),
+})
+
+export const pendleMarketTokensEnvelope = arktype({
+	tokensMintSy: 'string[]',
+	tokensRedeemSy: 'string[]',
+	tokensIn: 'string[]',
+	tokensOut: 'string[]',
 })
