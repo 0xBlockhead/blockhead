@@ -112,6 +112,45 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.EvmContract,
+			resolve: {
+				EvmNetworkAddress: {
+					resolve: async ({
+						$network,
+						address: addressSelector,
+					}) => {
+						const chainId = evmChainIdFromNetworkSelector($network)
+						const address = hexLowerOfByteSize(addressSelector, 20)
+						if (address == null)
+							throw new Error('SafeTransactionService_Rest: Safe address not normalized')
+
+						const {
+							getSafeCreation,
+							requireSafeTransactionServiceBinding,
+						} = await import('$/sources/SafeTransactionService/Rest/queries.ts')
+						requireSafeTransactionServiceBinding(chainId)
+						const creation = await getSafeCreation({
+							chainId,
+							safeAddress: address,
+						})
+						const txHash = hexLowerOfByteSize(creation.transactionHash, 32)
+						if (txHash == null)
+							throw new Error('SafeTransactionService_Rest: creation transaction hash not normalized')
+
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: evmNetworkSelectorFromChainId(chainId),
+								txHash,
+							},
+						}
+					},
+				},
+			},
+		})({
+			$creationTransaction: (creationTransaction) => creationTransaction,
+		}),
+
+		defineResolver({
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {

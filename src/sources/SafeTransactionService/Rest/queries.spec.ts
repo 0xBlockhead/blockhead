@@ -23,6 +23,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 }))
 
 const {
+	getSafeCreation,
 	getSafeMultisigTransaction,
 	getSafeMultisigTransactions,
 	getSafeStatus,
@@ -182,7 +183,7 @@ describe('Safe Transaction Service public multisig queries', () => {
 		await expect(getSafeStatus({
 			chainId,
 			safeAddress,
-		})).rejects.toThrow('invalid Safe owners')
+		})).rejects.toThrow('invalid Safe status response envelope')
 
 		sourceGetJson.mockResolvedValue({
 			...safeStatus,
@@ -191,7 +192,46 @@ describe('Safe Transaction Service public multisig queries', () => {
 		await expect(getSafeStatus({
 			chainId,
 			safeAddress,
-		})).rejects.toThrow('invalid Safe modules')
+		})).rejects.toThrow('invalid Safe status response envelope')
+	})
+
+	it('binds Safe creation factory + creation transaction hash', async () => {
+		const creationHash = `0x${'3'.repeat(64)}`
+		const factoryAddress = `0x${'4'.repeat(40)}`
+		sourceGetJson.mockResolvedValue({
+			created: '2024-01-01T00:00:00Z',
+			creator: ownerAddress,
+			transactionHash: creationHash,
+			factoryAddress,
+			masterCopy,
+		})
+
+		await expect(getSafeCreation({
+			chainId,
+			safeAddress,
+		})).resolves.toMatchObject({
+			transactionHash: creationHash,
+			factoryAddress,
+			masterCopy,
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			requireSafeTransactionServiceBinding(chainId),
+			`https://api.safe.global/tx-service/base/api/v1/safes/${checksummedSafeAddress}/creation/`
+		)
+	})
+
+	it('fail-closes malformed Safe creation envelopes', async () => {
+		sourceGetJson.mockResolvedValue({
+			created: '2024-01-01T00:00:00Z',
+			creator: ownerAddress,
+			transactionHash: 'not-a-hash',
+			factoryAddress: masterCopy,
+			masterCopy,
+		})
+		await expect(getSafeCreation({
+			chainId,
+			safeAddress,
+		})).rejects.toThrow('invalid Safe creation response envelope')
 	})
 
 	it('checksums lowercase Safe addresses before HTTP (EIP-55 required by tx-service)', async () => {
@@ -263,7 +303,7 @@ describe('Safe Transaction Service public multisig queries', () => {
 			safeAddress,
 			limit: 20,
 			offset: 0,
-		})).rejects.toThrow('invalid transaction page results')
+		})).rejects.toThrow('invalid transaction page response envelope')
 	})
 
 	it('rejects continuations that escape the exact chain and Safe path', async () => {
