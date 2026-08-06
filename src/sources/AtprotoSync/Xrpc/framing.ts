@@ -4,6 +4,10 @@ import {
 	decodeFirst,
 } from 'cborg'
 
+import {
+	atprotoCidLinkTag,
+	atprotoCidLinkTagDecoder,
+} from '$/sources/AtprotoSync/Xrpc/cid.ts'
 import type { AtprotoSyncSubscribeReposMessage } from '$/sources/AtprotoSync/Xrpc/types.ts'
 
 
@@ -23,6 +27,10 @@ const knownMessageType = type.enumerated<AtprotoSyncSubscribeReposMessage['type'
 	'#info',
 	'#sync'
 )
+
+const atprotoSyncCborTags = {
+	[atprotoCidLinkTag]: atprotoCidLinkTagDecoder,
+}
 
 
 export const decodeAtprotoSyncFrame = (
@@ -44,7 +52,9 @@ export const decodeAtprotoSyncFrame = (
 
 	let decodedBody
 	try {
-		decodedBody = decode(bodyBytes)
+		decodedBody = decode(bodyBytes, {
+			tags: atprotoSyncCborTags,
+		})
 	} catch (error) {
 		throw new Error('AtprotoSync_Xrpc: malformed subscribeRepos frame body', {
 			cause: error,

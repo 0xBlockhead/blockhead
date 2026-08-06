@@ -1,4 +1,4 @@
-// Generated from APP.ts.
+// Generated from APP.ts — APP-free hand deepen: split RemoteQuery HTTP from RemoteLive WebSocket (see NEEDS_APP.md).
 
 import { Source } from '$/sources/Source.ts'
 import {
@@ -24,6 +24,22 @@ export default indexSourceBindings([
 				locator: 'https://{pds-host}',
 				corsEnabled: false,
 			},
+		],
+		wireProtocol: WireProtocol.Xrpc,
+		apiFamily: ApiFamily.AtprotoSync,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.RemoteQuery,
+		credentials: [],
+	},
+	{
+		source: Source.AtprotoSync_Xrpc,
+		target: {
+			kind: SourceTargetKind.Feed,
+			key: 'atproto-sync',
+		},
+		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.WebSocketUrl,
 				locator: 'wss://{pds-host}/xrpc/com.atproto.sync.subscribeRepos',
@@ -32,7 +48,6 @@ export default indexSourceBindings([
 		wireProtocol: WireProtocol.Xrpc,
 		apiFamily: ApiFamily.AtprotoSync,
 		operationGroups: [
-			SourceOperationGroup.GenericRead,
 			SourceOperationGroup.GenericSubscribe,
 		],
 		delivery: SourceDelivery.RemoteLive,

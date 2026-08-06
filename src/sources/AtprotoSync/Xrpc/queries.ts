@@ -7,6 +7,10 @@ import {
 } from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import { sourceLive } from '$/sources/_runtime/live.remote.ts'
+import {
+	parseGetLatestCommitResponse,
+	parseGetRepoStatusResponse,
+} from '$/sources/AtprotoSync/Xrpc/commit.ts'
 import { decodeAtprotoSyncFrame } from '$/sources/AtprotoSync/Xrpc/framing.ts'
 import type { AtprotoSyncSubscribeReposMessage } from '$/sources/AtprotoSync/Xrpc/types.ts'
 
@@ -51,24 +55,18 @@ const validatedServiceOrigin = (serviceOrigin: string) => {
 }
 
 
-export const getRepo = async ({
+const resolvedRemoteQueryBinding = ({
 	binding,
 	serviceOrigin,
-	did,
-	since,
-	signal,
 }: {
 	binding: SourceBinding
 	serviceOrigin: string
-	did: string
-	since?: string
-	signal?: AbortSignal
 }) => {
 	if (binding.delivery !== SourceDelivery.RemoteQuery)
-		throw new Error('AtprotoSync_Xrpc: getRepo requires the RemoteQuery HTTP binding')
+		throw new Error('AtprotoSync_Xrpc: HTTP sync reads require the RemoteQuery binding')
 
 	if (typeof window !== 'undefined')
-		throw new Error('AtprotoSync_Xrpc: getRepo RemoteQuery must run through a SvelteKit query')
+		throw new Error('AtprotoSync_Xrpc: RemoteQuery must run through a SvelteKit query')
 
 	const validatedOrigin = validatedServiceOrigin(serviceOrigin)
 	const resolvedBinding = {
@@ -86,7 +84,35 @@ export const getRepo = async ({
 	if (!resolvedBinding.endpoints.some((endpoint) => (
 		endpoint.endpointKind === SourceEndpointKind.HttpUrl
 	)))
-		throw new Error('AtprotoSync_Xrpc: getRepo requires an HttpUrl RemoteQuery endpoint')
+		throw new Error('AtprotoSync_Xrpc: RemoteQuery binding requires an HttpUrl endpoint')
+
+	return {
+		validatedOrigin,
+		resolvedBinding,
+	}
+}
+
+
+export const getRepo = async ({
+	binding,
+	serviceOrigin,
+	did,
+	since,
+	signal,
+}: {
+	binding: SourceBinding
+	serviceOrigin: string
+	did: string
+	since?: string
+	signal?: AbortSignal
+}) => {
+	const {
+		validatedOrigin,
+		resolvedBinding,
+	} = resolvedRemoteQueryBinding({
+		binding,
+		serviceOrigin,
+	})
 
 	const url = new URL('/xrpc/com.atproto.sync.getRepo', validatedOrigin)
 	url.searchParams.set('did', did)
@@ -98,6 +124,66 @@ export const getRepo = async ({
 		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
 
 	return new Uint8Array(await response.arrayBuffer())
+}
+
+
+export const getLatestCommit = async ({
+	binding,
+	serviceOrigin,
+	did,
+	signal,
+}: {
+	binding: SourceBinding
+	serviceOrigin: string
+	did: string
+	signal?: AbortSignal
+}) => {
+	const {
+		validatedOrigin,
+		resolvedBinding,
+	} = resolvedRemoteQueryBinding({
+		binding,
+		serviceOrigin,
+	})
+
+	const url = new URL('/xrpc/com.atproto.sync.getLatestCommit', validatedOrigin)
+	url.searchParams.set('did', did)
+
+	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
+	if (!response.ok)
+		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
+
+	return parseGetLatestCommitResponse(await response.json())
+}
+
+
+export const getRepoStatus = async ({
+	binding,
+	serviceOrigin,
+	did,
+	signal,
+}: {
+	binding: SourceBinding
+	serviceOrigin: string
+	did: string
+	signal?: AbortSignal
+}) => {
+	const {
+		validatedOrigin,
+		resolvedBinding,
+	} = resolvedRemoteQueryBinding({
+		binding,
+		serviceOrigin,
+	})
+
+	const url = new URL('/xrpc/com.atproto.sync.getRepoStatus', validatedOrigin)
+	url.searchParams.set('did', did)
+
+	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
+	if (!response.ok)
+		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
+
+	return parseGetRepoStatusResponse(await response.json())
 }
 
 
@@ -165,3 +251,6 @@ export const subscribeRepos = async function* ({
 		await frames.return?.()
 	}
 }
+
+
+export const defaultAtprotoSyncRelayOrigin = 'https://bsky.network' as const

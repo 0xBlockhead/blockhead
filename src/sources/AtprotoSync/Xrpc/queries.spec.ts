@@ -29,7 +29,9 @@ vi.mock('$/sources/_runtime/live.remote.ts', () => ({
 }))
 
 const {
+	getLatestCommit,
 	getRepo,
+	getRepoStatus,
 	subscribeRepos,
 } = await import('$/sources/AtprotoSync/Xrpc/queries.ts')
 
@@ -101,7 +103,7 @@ describe('AtprotoSync_Xrpc getRepo RemoteQuery transport', () => {
 			binding: remoteLiveBinding,
 			serviceOrigin,
 			did,
-		})).rejects.toThrow('AtprotoSync_Xrpc: getRepo requires the RemoteQuery HTTP binding')
+		})).rejects.toThrow('AtprotoSync_Xrpc: HTTP sync reads require the RemoteQuery binding')
 
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
@@ -113,7 +115,7 @@ describe('AtprotoSync_Xrpc getRepo RemoteQuery transport', () => {
 			binding: remoteQueryBinding,
 			serviceOrigin,
 			did,
-		})).rejects.toThrow('AtprotoSync_Xrpc: getRepo RemoteQuery must run through a SvelteKit query')
+		})).rejects.toThrow('AtprotoSync_Xrpc: RemoteQuery must run through a SvelteKit query')
 
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
@@ -154,6 +156,79 @@ describe('AtprotoSync_Xrpc getRepo RemoteQuery transport', () => {
 		})).rejects.toThrow('AtprotoSync_Xrpc: invalid public HTTPS service origin')
 
 		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+})
+
+
+describe('AtprotoSync_Xrpc getLatestCommit / getRepoStatus', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('parses getLatestCommit through the RemoteQuery binding', async () => {
+		sourceFetch.mockResolvedValue(new Response(JSON.stringify({
+			cid: 'bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya',
+			rev: '3jzfcijpj2z2a',
+		}), {
+			status: 200,
+			headers: {
+				'content-type': 'application/json',
+			},
+		}))
+
+		await expect(getLatestCommit({
+			binding: remoteQueryBinding,
+			serviceOrigin,
+			did,
+		})).resolves.toEqual({
+			commitCid: 'bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya',
+			rev: '3jzfcijpj2z2a',
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			resolvedRemoteQueryBinding,
+			'https://pds.example/xrpc/com.atproto.sync.getLatestCommit?did=did%3Aplc%3Aexample',
+			{ signal: undefined }
+		)
+	})
+
+	it('fails closed on malformed getLatestCommit JSON', async () => {
+		sourceFetch.mockResolvedValue(new Response(JSON.stringify({
+			rev: '3jzfcijpj2z2a',
+		}), {
+			status: 200,
+			headers: {
+				'content-type': 'application/json',
+			},
+		}))
+
+		await expect(getLatestCommit({
+			binding: remoteQueryBinding,
+			serviceOrigin,
+			did,
+		})).rejects.toThrow('malformed getLatestCommit response')
+	})
+
+	it('parses getRepoStatus through the RemoteQuery binding', async () => {
+		sourceFetch.mockResolvedValue(new Response(JSON.stringify({
+			did,
+			active: true,
+			rev: '3jzfcijpj2z2a',
+		}), {
+			status: 200,
+			headers: {
+				'content-type': 'application/json',
+			},
+		}))
+
+		await expect(getRepoStatus({
+			binding: remoteQueryBinding,
+			serviceOrigin,
+			did,
+		})).resolves.toEqual({
+			did,
+			active: true,
+			rev: '3jzfcijpj2z2a',
+		})
 	})
 })
 

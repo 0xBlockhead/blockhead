@@ -1,7 +1,9 @@
 import {
 	decode,
 	encode,
+	Tagged,
 } from 'cborg'
+import { CID } from 'multiformats/cid'
 import {
 	describe,
 	expect,
@@ -90,5 +92,23 @@ describe('AtprotoSync DRISL-CBOR framing', () => {
 		expect(decode(encode(message?.body))).toEqual({
 			blocks: new Uint8Array([1, 2, 3]),
 		})
+	})
+
+	it('decodes CID link tag 42 into multiformats CID values', () => {
+		const cid = CID.parse('bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya')
+		const linkBytes = new Uint8Array(1 + cid.bytes.length)
+		linkBytes[0] = 0
+		linkBytes.set(cid.bytes, 1)
+
+		const message = decodeAtprotoSyncFrame(frame({
+			op: 1,
+			t: '#commit',
+		}, {
+			commit: new Tagged(42, linkBytes),
+			blocks: new Uint8Array([9]),
+		}))
+
+		expect(message?.type).toBe('#commit')
+		expect(CID.asCID((message?.body as { commit: unknown }).commit)?.toString()).toBe(cid.toString())
 	})
 })
