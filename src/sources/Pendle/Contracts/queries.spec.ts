@@ -127,6 +127,14 @@ describe('Pendle contract account operations', () => {
 					ytAddress: '0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
 					syAddress: '0x47bce1bb5d9a9072161ec25009bcd6e8d367b7d3',
 					underlyingAssetAddress: '0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+					accountingAssetAddress: '0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+					impliedApy: 0.01,
+					underlyingApy: 0.01,
+					swapFeeApy: 0.01,
+					pendleApy: 0.01,
+					ytFloatingApy: 0.01,
+					aggregatedApy: 0.01,
+					maxBoostedApy: 0.01,
 					balances: [
 						{
 							kind: 'PT',

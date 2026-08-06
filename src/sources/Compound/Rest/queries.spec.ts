@@ -265,4 +265,49 @@ describe('Compound III deployment operations', () => {
 			marketSlug: 'usdc',
 		})).rejects.toThrow(`${Source.Compound_Rest}: configuration rates.supplyKink must be a finite non-negative number`)
 	})
+
+	it('normalizes governor, reward token, and storeFrontPriceFactor when present', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...baseConfiguration,
+			governor: '0x6d903f6004ceFAbA93FFA9B9D06345f9AbD3389A',
+			rewardTokenAddress: '0xc00e94Cb662C3520282E6f5717214004A7f26888',
+			storeFrontPriceFactor: 0.5,
+		})
+		await expect(getConfiguration({
+			networkSlug: 'base',
+			marketSlug: 'usdc',
+		})).resolves.toMatchObject({
+			governorAddress: '0x6d903f6004cefaba93ffa9b9d06345f9abd3389a',
+			rewardTokenAddress: '0xc00e94cb662c3520282e6f5717214004a7f26888',
+			storeFrontPriceFactor: 0.5,
+			pauseGuardianAddress: '0x3cb4653f3b45f448d9100b118b75a1503281d2ee',
+		})
+	})
+
+	it('rejects collateral factors outside [0, 1]', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...baseConfiguration,
+			assets: {
+				WETH: {
+					...baseConfiguration.assets.WETH,
+					borrowCF: 1.2,
+				},
+			},
+		})
+		await expect(getConfiguration({
+			networkSlug: 'base',
+			marketSlug: 'usdc',
+		})).rejects.toThrow(`${Source.Compound_Rest}: configuration asset WETH borrowCF must be a finite number in [0, 1]`)
+	})
+
+	it('rejects storeFrontPriceFactor outside [0, 1]', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...baseConfiguration,
+			storeFrontPriceFactor: 1.5,
+		})
+		await expect(getConfiguration({
+			networkSlug: 'base',
+			marketSlug: 'usdc',
+		})).rejects.toThrow(`${Source.Compound_Rest}: configuration storeFrontPriceFactor must be a finite number in [0, 1]`)
+	})
 })

@@ -116,12 +116,20 @@ describe('Compound III contract account operations', () => {
 		expect(jsonRpc2).not.toHaveBeenCalled()
 	})
 
-	it('reads live tip utilization and per-second rates for a cataloged comet', async () => {
+	it('reads live tip utilization, rates, base totals, and pause flags for a cataloged comet', async () => {
+		const boolWord = (value: boolean) => `0x${(value ? 1n : 0n).toString(16).padStart(64, '0')}`
 		jsonRpc2
 			.mockResolvedValueOnce('0x64')
 			.mockResolvedValueOnce(word(850_000_000_000_000_000n))
 			.mockResolvedValueOnce(word(1_234n))
 			.mockResolvedValueOnce(word(5_678n))
+			.mockResolvedValueOnce(word(9_000_000n))
+			.mockResolvedValueOnce(word(4_500_000n))
+			.mockResolvedValueOnce(boolWord(false))
+			.mockResolvedValueOnce(boolWord(false))
+			.mockResolvedValueOnce(boolWord(true))
+			.mockResolvedValueOnce(boolWord(false))
+			.mockResolvedValueOnce(boolWord(false))
 
 		await expect(getCometTipRates({
 			chainId: 8453,
@@ -133,8 +141,15 @@ describe('Compound III contract account operations', () => {
 			utilization: '850000000000000000',
 			supplyRatePerSecond: '1234',
 			borrowRatePerSecond: '5678',
+			totalSupplyBase: '9000000',
+			totalBorrowBase: '4500000',
+			isSupplyPaused: false,
+			isTransferPaused: false,
+			isWithdrawPaused: true,
+			isAbsorbPaused: false,
+			isBuyPaused: false,
 		})
-		expect(jsonRpc2).toHaveBeenCalledTimes(4)
+		expect(jsonRpc2).toHaveBeenCalledTimes(11)
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 

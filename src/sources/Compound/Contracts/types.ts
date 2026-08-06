@@ -22,9 +22,10 @@ export type CompoundAccountPositions = {
 }
 
 /**
- * Live Comet tip utilization + per-second supply/borrow rates (raw uint64/uint256 words).
- * Schema APY projection still requires APP enrollment on `CompoundComet`.
+ * Live Comet tip utilization, per-second supply/borrow rates, base totals, and pause flags.
+ * Schema projects utilization / APY only; totals + pause flags stay transport-side until APP enrollment.
  * @see https://docs.compound.finance/interest-rates/
+ * @see https://docs.compound.finance/helper-functions/
  */
 export type CompoundCometTipRates = {
 	chainId: number
@@ -33,4 +34,11 @@ export type CompoundCometTipRates = {
 	utilization: string
 	supplyRatePerSecond: string
 	borrowRatePerSecond: string
+	totalSupplyBase: string
+	totalBorrowBase: string
+	isSupplyPaused: boolean
+	isTransferPaused: boolean
+	isWithdrawPaused: boolean
+	isAbsorbPaused: boolean
+	isBuyPaused: boolean
 }

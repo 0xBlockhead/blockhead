@@ -116,6 +116,21 @@ const assertMarketDetailsWire = (
 	maxBoostedApy: assertFiniteNumber(wire.maxBoostedApy, 'details.maxBoostedApy'),
 })
 
+const assertCategoryIds = (
+	categoryIds: string[]
+) => {
+	const normalized = [
+		...new Set(
+			categoryIds.map((categoryId) => {
+				if (categoryId.length < 1)
+					throw new Error(`${Source.Pendle_Rest}: market category id must be non-empty`)
+				return categoryId
+			})
+		),
+	].sort((left, right) => left.localeCompare(right))
+	return normalized
+}
+
 const assertMarketWire = (wire: PendleMarketWire): PendleMarket => {
 	assertChainId(wire.chainId)
 	if (wire.name.length < 1)
@@ -137,7 +152,7 @@ const assertMarketWire = (wire: PendleMarketWire): PendleMarket => {
 		syAddress: assertAssetIdAddress(wire.sy, wire.chainId, 'sy'),
 		underlyingAssetAddress: assertAssetIdAddress(wire.underlyingAsset, wire.chainId, 'underlying asset'),
 		accountingAssetAddress: assertAssetIdAddress(wire.accountingAsset, wire.chainId, 'accounting asset'),
-		categoryIds: wire.categoryIds,
+		categoryIds: assertCategoryIds(wire.categoryIds),
 		isNew: wire.isNew === true,
 		isPrime: wire.isPrime === true,
 		observedAtTimestampMs: assertIsoTimestampMs(wire.timestamp, 'timestamp'),
@@ -205,7 +220,40 @@ export const listMarkets = async ({
 const assertTokenAddressList = (
 	values: string[],
 	label: string,
-) => values.map((value) => assertAddress(value, label))
+) => {
+	const normalized = values.map((value) => assertAddress(value, label))
+	const unique = [
+		...new Set(normalized),
+	]
+	if (unique.length !== normalized.length)
+		throw new Error(`${Source.Pendle_Rest}: ${label} contains duplicate addresses`)
+	return unique
+}
+
+/**
+ * Single Pendle market by chain + address (`GET /v2/markets/all` filtered by id).
+ * Keeps accounting-asset + extra APY surfaces on the transport market snapshot.
+ */
+export const getMarket = async ({
+	chainId,
+	marketAddress,
+}: {
+	chainId: number
+	marketAddress: string
+}) => {
+	const normalizedMarketAddress = assertAddress(marketAddress, 'market address')
+	const page = await listMarkets({
+		chainId,
+		marketAddresses: [
+			normalizedMarketAddress,
+		],
+		limit: 1,
+	})
+	const market = page.markets.at(0)
+	if (market == null)
+		throw new Error(`${Source.Pendle_Rest}: market not found ${normalizedMarketAddress}`)
+	return market
+}
 
 /**
  * SY mint/redeem + swap token sets for one market (`GET /v1/sdk/{chainId}/markets/{market}/tokens`).

@@ -205,21 +205,14 @@ export default {
 						if (normalizedMarketAddress == null)
 							throw new Error(`${Source.Pendle_Rest}: invalid market address ${marketAddress}`)
 
-						const { listMarkets } = await import('$/sources/Pendle/Rest/queries.ts')
-						const market = (await listMarkets({
-							chainId,
-							marketAddresses: [
-								normalizedMarketAddress,
-							],
-							limit: 1,
-						})).markets.at(0)
-						if (market != null)
-							return mapPendleMarketSnapshot(
-								$network,
-								market
-							)
-
-						throw new Error(`${Source.Pendle_Rest}: market not found ${normalizedMarketAddress}`)
+						const { getMarket } = await import('$/sources/Pendle/Rest/queries.ts')
+						return mapPendleMarketSnapshot(
+							$network,
+							await getMarket({
+								chainId,
+								marketAddress: normalizedMarketAddress,
+							})
+						)
 					},
 				},
 			},

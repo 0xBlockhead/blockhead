@@ -8,6 +8,14 @@ export type PendleAccountPosition = {
 	ytAddress: `0x${string}`
 	syAddress: `0x${string}`
 	underlyingAssetAddress: `0x${string}`
+	accountingAssetAddress: `0x${string}`
+	impliedApy: number
+	underlyingApy: number
+	swapFeeApy: number
+	pendleApy: number
+	ytFloatingApy: number
+	aggregatedApy: number
+	maxBoostedApy: number
 	balances: {
 		kind: 'PT' | 'YT' | 'SY' | 'LP'
 		address: `0x${string}`

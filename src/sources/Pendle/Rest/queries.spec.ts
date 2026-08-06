@@ -30,6 +30,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 }))
 
 const {
+	getMarket,
 	getMarketTokens,
 	listMarkets,
 } = await import('$/sources/Pendle/Rest/queries.ts')
@@ -138,9 +139,9 @@ describe('Pendle market operations', () => {
 					underlyingAssetAddress: '0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
 					accountingAssetAddress: '0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
 					categoryIds: [
-						'stables',
 						'points',
 						'rwa',
+						'stables',
 					],
 					isNew: false,
 					isPrime: false,
@@ -169,6 +170,86 @@ describe('Pendle market operations', () => {
 			binding,
 			httpUrl(binding, '/v2/markets/all?chainId=1&skip=0&limit=1')
 		)
+	})
+
+	it('loads a single market via getMarket and keeps accounting-asset plus extra APY wire', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			total: 1,
+			limit: 1,
+			skip: 0,
+			results: [
+				{
+					...baseMarketWire,
+					details: {
+						...baseMarketWire.details,
+						swapFeeApy: 0.02,
+						pendleApy: 0.03,
+						ytFloatingApy: -0.01,
+						aggregatedApy: 0.04,
+						maxBoostedApy: 0.05,
+					},
+					categoryIds: [
+						'rwa',
+						'stables',
+						'stables',
+						'points',
+					],
+				},
+			],
+		})
+		await expect(getMarket({
+			chainId: 1,
+			marketAddress: baseMarketAddress,
+		})).resolves.toMatchObject({
+			marketAddress: baseMarketAddress,
+			accountingAssetAddress: '0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+			categoryIds: [
+				'points',
+				'rwa',
+				'stables',
+			],
+			details: {
+				swapFeeApy: 0.02,
+				pendleApy: 0.03,
+				ytFloatingApy: -0.01,
+				aggregatedApy: 0.04,
+				maxBoostedApy: 0.05,
+			},
+		})
+	})
+
+	it('rejects empty category ids before accepting a market', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			total: 1,
+			limit: 1,
+			skip: 0,
+			results: [
+				{
+					...baseMarketWire,
+					categoryIds: [
+						'stables',
+						'',
+					],
+				},
+			],
+		})
+		await expect(listMarkets({
+			chainId: 1,
+			limit: 1,
+		})).rejects.toThrow(`${Source.Pendle_Rest}: market category id must be non-empty`)
+	})
+
+	it('rejects getMarket when markets/all returns no rows', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			total: 0,
+			limit: 1,
+			skip: 0,
+			results: [],
+		})
+		await expect(getMarket({
+			chainId: 1,
+			marketAddress: baseMarketAddress,
+		})).rejects.toThrow(`${Source.Pendle_Rest}: market not found ${baseMarketAddress}`)
 	})
 
 	it('rejects an invalid limit before transport', async () => {
@@ -361,5 +442,25 @@ describe('Pendle market operations', () => {
 			chainId: 1,
 			marketAddress: baseMarketAddress,
 		})).rejects.toThrow(`${Source.Pendle_Rest}: invalid tokensIn not-an-address`)
+
+		sourceGetJson.mockResolvedValueOnce({
+			tokensMintSy: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+			],
+			tokensRedeemSy: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+			],
+			tokensIn: [
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
+			],
+			tokensOut: [
+				'0x4f0b4e6512630480b868e62a8a1d3451b0e9192d',
+			],
+		})
+		await expect(getMarketTokens({
+			chainId: 1,
+			marketAddress: baseMarketAddress,
+		})).rejects.toThrow(`${Source.Pendle_Rest}: tokensMintSy contains duplicate addresses`)
 	})
 })

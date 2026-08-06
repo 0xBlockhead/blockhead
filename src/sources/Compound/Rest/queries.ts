@@ -88,14 +88,23 @@ const assertConfigurationAssetWire = (
 	if (!Number.isSafeInteger(decimals) || decimals < 0)
 		throw new Error(`${Source.Compound_Rest}: configuration asset ${symbol} missing decimals`)
 
+	const assertCollateralFactor = (
+		value: number,
+		label: string
+	) => {
+		if (!Number.isFinite(value) || value < 0 || value > 1)
+			throw new Error(`${Source.Compound_Rest}: configuration asset ${symbol} ${label} must be a finite number in [0, 1]`)
+		return value
+	}
+
 	return {
 		symbol,
 		tokenAddress: assertAddress(asset.address, `${symbol} address`),
 		priceFeedAddress: assertAddress(asset.priceFeed, `${symbol} price feed`),
 		decimals,
-		borrowCF: asset.borrowCF,
-		liquidateCF: asset.liquidateCF,
-		liquidationFactor: asset.liquidationFactor,
+		borrowCF: assertCollateralFactor(asset.borrowCF, 'borrowCF'),
+		liquidateCF: assertCollateralFactor(asset.liquidateCF, 'liquidateCF'),
+		liquidationFactor: assertCollateralFactor(asset.liquidationFactor, 'liquidationFactor'),
 		supplyCap: assertNonEmptyString(asset.supplyCap, `${symbol} supplyCap`),
 	}
 }
@@ -138,6 +147,9 @@ const assertConfigurationWire = (
 				left.symbol.localeCompare(right.symbol)
 			))
 	)
+
+	if (wire.storeFrontPriceFactor != null && (!Number.isFinite(wire.storeFrontPriceFactor) || wire.storeFrontPriceFactor < 0 || wire.storeFrontPriceFactor > 1))
+		throw new Error(`${Source.Compound_Rest}: configuration storeFrontPriceFactor must be a finite number in [0, 1]`)
 
 	return {
 		name: assertNonEmptyString(wire.name, 'name'),

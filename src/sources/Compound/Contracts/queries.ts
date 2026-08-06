@@ -78,6 +78,69 @@ const COMET_ABI = new Abi([
 			{ type: 'uint64', name: '' },
 		],
 	},
+	{
+		type: 'function',
+		name: 'totalSupply',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [
+			{ type: 'uint256', name: '' },
+		],
+	},
+	{
+		type: 'function',
+		name: 'totalBorrow',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [
+			{ type: 'uint256', name: '' },
+		],
+	},
+	{
+		type: 'function',
+		name: 'isSupplyPaused',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [
+			{ type: 'bool', name: '' },
+		],
+	},
+	{
+		type: 'function',
+		name: 'isTransferPaused',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [
+			{ type: 'bool', name: '' },
+		],
+	},
+	{
+		type: 'function',
+		name: 'isWithdrawPaused',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [
+			{ type: 'bool', name: '' },
+		],
+	},
+	{
+		type: 'function',
+		name: 'isAbsorbPaused',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [
+			{ type: 'bool', name: '' },
+		],
+	},
+	{
+		type: 'function',
+		name: 'isBuyPaused',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [
+			{ type: 'bool', name: '' },
+		],
+	},
 ])
 
 const UINT256_OUTPUT = [
@@ -88,6 +151,9 @@ const UINT128_OUTPUT = [
 ] as const
 const UINT64_OUTPUT = [
 	{ type: 'uint64' as const, name: '' },
+] as const
+const BOOL_OUTPUT = [
+	{ type: 'bool' as const, name: '' },
 ] as const
 
 const decodeBalance = (
@@ -100,6 +166,20 @@ const decodeBalance = (
 
 	try {
 		return decodeParameters(output, toBytes(response))[0]
+	} catch (cause) {
+		throw new Error(`${Source.Compound_Rest}: malformed ${method} result`, { cause })
+	}
+}
+
+const decodePausedFlag = (
+	response: `0x${string}`,
+	method: string
+) => {
+	if (response === '0x')
+		throw new Error(`${Source.Compound_Rest}: empty ${method} result`)
+
+	try {
+		return decodeParameters(BOOL_OUTPUT, toBytes(response))[0]
 	} catch (cause) {
 		throw new Error(`${Source.Compound_Rest}: malformed ${method} result`, { cause })
 	}
@@ -200,10 +280,12 @@ export const getAccountPositions = async ({
 }
 
 /**
- * Live tip utilization + supply/borrow APY for one cataloged Comet.
+ * Live tip utilization + supply/borrow rates, base totals, and pause flags for one cataloged Comet.
  * Per-second rates from `getSupplyRate` / `getBorrowRate` convert as
  * `(1 + rate/1e18)^31536000 - 1`; utilization is WAD (`/1e18`).
+ * Totals/pause flags stay transport-normalized until schema enrollment.
  * @see https://docs.compound.finance/interest-rates/
+ * @see https://docs.compound.finance/helper-functions/
  */
 export const getCometTipRates = async ({
 	chainId,
@@ -251,6 +333,13 @@ export const getCometTipRates = async ({
 	const [
 		supplyRatePerSecond,
 		borrowRatePerSecond,
+		totalSupplyBase,
+		totalBorrowBase,
+		isSupplyPaused,
+		isTransferPaused,
+		isWithdrawPaused,
+		isAbsorbPaused,
+		isBuyPaused,
 	] = await Promise.all([
 		getCall({
 			to: normalizedCometAddress,
@@ -262,6 +351,41 @@ export const getCometTipRates = async ({
 			input: encodeFunction(COMET_ABI, 'getBorrowRate', [utilization]),
 			blockTag,
 		}).then((response) => decodeBalance(response, UINT64_OUTPUT, 'getBorrowRate')),
+		getCall({
+			to: normalizedCometAddress,
+			input: encodeFunction(COMET_ABI, 'totalSupply', []),
+			blockTag,
+		}).then((response) => decodeBalance(response, UINT256_OUTPUT, 'totalSupply')),
+		getCall({
+			to: normalizedCometAddress,
+			input: encodeFunction(COMET_ABI, 'totalBorrow', []),
+			blockTag,
+		}).then((response) => decodeBalance(response, UINT256_OUTPUT, 'totalBorrow')),
+		getCall({
+			to: normalizedCometAddress,
+			input: encodeFunction(COMET_ABI, 'isSupplyPaused', []),
+			blockTag,
+		}).then((response) => decodePausedFlag(response, 'isSupplyPaused')),
+		getCall({
+			to: normalizedCometAddress,
+			input: encodeFunction(COMET_ABI, 'isTransferPaused', []),
+			blockTag,
+		}).then((response) => decodePausedFlag(response, 'isTransferPaused')),
+		getCall({
+			to: normalizedCometAddress,
+			input: encodeFunction(COMET_ABI, 'isWithdrawPaused', []),
+			blockTag,
+		}).then((response) => decodePausedFlag(response, 'isWithdrawPaused')),
+		getCall({
+			to: normalizedCometAddress,
+			input: encodeFunction(COMET_ABI, 'isAbsorbPaused', []),
+			blockTag,
+		}).then((response) => decodePausedFlag(response, 'isAbsorbPaused')),
+		getCall({
+			to: normalizedCometAddress,
+			input: encodeFunction(COMET_ABI, 'isBuyPaused', []),
+			blockTag,
+		}).then((response) => decodePausedFlag(response, 'isBuyPaused')),
 	])
 
 	return {
@@ -271,5 +395,12 @@ export const getCometTipRates = async ({
 		utilization: utilization.toString(),
 		supplyRatePerSecond: supplyRatePerSecond.toString(),
 		borrowRatePerSecond: borrowRatePerSecond.toString(),
+		totalSupplyBase: totalSupplyBase.toString(),
+		totalBorrowBase: totalBorrowBase.toString(),
+		isSupplyPaused,
+		isTransferPaused,
+		isWithdrawPaused,
+		isAbsorbPaused,
+		isBuyPaused,
 	}
 }

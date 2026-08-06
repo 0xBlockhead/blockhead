@@ -126,6 +126,13 @@ describe('Compound Rest resolver module', () => {
 			utilization: '500000000000000000',
 			supplyRatePerSecond: '1000000000',
 			borrowRatePerSecond: '2000000000',
+			totalSupplyBase: '1000000000',
+			totalBorrowBase: '500000000',
+			isSupplyPaused: false,
+			isTransferPaused: false,
+			isWithdrawPaused: false,
+			isAbsorbPaused: false,
+			isBuyPaused: false,
 		})
 	})
 
