@@ -46,7 +46,9 @@ const mapAaveMarketSnapshot = (
 		},
 		poolAddress,
 		name: market.name,
-		icon: market.icon,
+		...(market.icon.length > 0 && {
+			icon: market.icon,
+		}),
 		totalMarketSize: market.totalMarketSize,
 		totalAvailableLiquidity: market.totalAvailableLiquidity,
 		$$reserves: market.reserves.map((reserve) => ({
@@ -369,7 +371,9 @@ export default {
 							name: reserve.underlyingToken.name,
 							symbol: reserve.underlyingToken.symbol,
 							decimals: reserve.underlyingToken.decimals,
-							imageUrl: reserve.underlyingToken.imageUrl,
+							...(reserve.underlyingToken.imageUrl.length > 0 && {
+								imageUrl: reserve.underlyingToken.imageUrl,
+							}),
 							totalSupplied: reserve.size.amount.value,
 							...(reserve.borrowInfo != null && {
 								availableLiquidity: reserve.borrowInfo.availableLiquidity.amount.value,

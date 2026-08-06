@@ -19,28 +19,51 @@ export type AaveAmountWire = {
 	value: string
 }
 
+export type AaveTokenAmountWire = {
+	amount: AaveAmountWire
+	usd?: string
+}
+
+export type AaveCurrencyWire = {
+	address: string
+	name: string
+	symbol: string
+	decimals: number
+	imageUrl: string
+	chainId: number
+}
+
+/**
+ * Reserve wire from AaveKit `market { reserves { … } }`.
+ * Enrolled projections use underlying / size / supply+borrow APY / liquidity / freeze flags.
+ * Richer supply/borrow / aToken / oracle surfaces stay transport-only until APP enrolls them.
+ */
 export type AaveReserveWire = {
-	underlyingToken: {
-		address: string
-		name: string
-		symbol: string
-		decimals: number
-		imageUrl: string
-		chainId: number
-	}
+	underlyingToken: AaveCurrencyWire
+	aToken?: AaveCurrencyWire
+	vToken?: AaveCurrencyWire
 	isFrozen: boolean
 	isPaused: boolean
-	size: {
-		amount: AaveAmountWire
-	}
+	flashLoanEnabled?: boolean
+	usdExchangeRate?: string
+	usdOracleAddress?: string
+	size: AaveTokenAmountWire
 	supplyInfo: {
 		apy: AaveAmountWire
+		canBeCollateral?: boolean
+		maxLTV?: AaveAmountWire
+		liquidationThreshold?: AaveAmountWire
+		liquidationBonus?: AaveAmountWire
+		supplyCapReached?: boolean
+		supplyCap?: AaveTokenAmountWire
 	}
 	borrowInfo?: {
 		apy: AaveAmountWire
-		availableLiquidity: {
-			amount: AaveAmountWire
-		}
+		availableLiquidity: AaveTokenAmountWire
+		utilizationRate?: AaveAmountWire
+		borrowCapReached?: boolean
+		borrowCap?: AaveTokenAmountWire
+		total?: AaveTokenAmountWire
 	}
 }
 
@@ -122,10 +145,12 @@ export type AaveAccountSupplyPosition = {
 	underlyingTokenAddress: `0x${string}`
 	symbol: string
 	decimals: number
+	name?: string
 	balance: string
 	balanceUsd: string
 	apy: string
 	isCollateral: boolean
+	/** Transport-only — not enrolled on `AaveReservePosition` (do not freestyle). */
 	canBeCollateral: boolean
 }
 
@@ -138,6 +163,7 @@ export type AaveAccountBorrowPosition = {
 	underlyingTokenAddress: `0x${string}`
 	symbol: string
 	decimals: number
+	name?: string
 	debt: string
 	debtUsd: string
 	apy: string
@@ -146,6 +172,24 @@ export type AaveAccountBorrowPosition = {
 export type AaveAccountPosition =
 	| AaveAccountSupplyPosition
 	| AaveAccountBorrowPosition
+
+const aaveAmountEnvelope = arktype({
+	value: 'string',
+})
+
+const aaveTokenAmountEnvelope = arktype({
+	amount: aaveAmountEnvelope,
+	'usd?': 'string',
+})
+
+const aaveCurrencyEnvelope = arktype({
+	address: 'string',
+	name: 'string',
+	symbol: 'string',
+	decimals: 'number.integer >= 0',
+	imageUrl: 'string',
+	chainId: 'number',
+})
 
 const aaveMarketSummaryEnvelope = arktype({
 	name: 'string',
@@ -159,37 +203,34 @@ const aaveMarketSummaryEnvelope = arktype({
 		'icon?': 'string',
 	},
 })
+
 export const aaveMarketEnvelope = aaveMarketSummaryEnvelope.and({
 	reserves: arktype({
-		underlyingToken: {
-			address: 'string',
-			name: 'string',
-			symbol: 'string',
-			decimals: 'number.integer >= 0',
-			imageUrl: 'string',
-			chainId: 'number',
-		},
+		underlyingToken: aaveCurrencyEnvelope,
+		'aToken?': aaveCurrencyEnvelope,
+		'vToken?': aaveCurrencyEnvelope,
 		isFrozen: 'boolean',
 		isPaused: 'boolean',
-		size: {
-			amount: {
-				value: 'string',
-			},
-		},
+		'flashLoanEnabled?': 'boolean',
+		'usdExchangeRate?': 'string',
+		'usdOracleAddress?': 'string',
+		size: aaveTokenAmountEnvelope,
 		supplyInfo: {
-			apy: {
-				value: 'string',
-			},
+			apy: aaveAmountEnvelope,
+			'canBeCollateral?': 'boolean',
+			'maxLTV?': aaveAmountEnvelope,
+			'liquidationThreshold?': aaveAmountEnvelope,
+			'liquidationBonus?': aaveAmountEnvelope,
+			'supplyCapReached?': 'boolean',
+			'supplyCap?': aaveTokenAmountEnvelope,
 		},
 		'borrowInfo?': {
-			apy: {
-				value: 'string',
-			},
-			availableLiquidity: {
-				amount: {
-					value: 'string',
-				},
-			},
+			apy: aaveAmountEnvelope,
+			availableLiquidity: aaveTokenAmountEnvelope,
+			'utilizationRate?': aaveAmountEnvelope,
+			'borrowCapReached?': 'boolean',
+			'borrowCap?': aaveTokenAmountEnvelope,
+			'total?': aaveTokenAmountEnvelope,
 		},
 	}).array(),
 })

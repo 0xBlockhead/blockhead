@@ -41,26 +41,57 @@ const marketFields = `
 	}
 `
 
+const aaveCurrencyFields = `
+	address
+	name
+	symbol
+	decimals
+	imageUrl
+	chainId
+`
+
 const marketReserveFields = `
 	reserves {
 		underlyingToken {
-			address
-			name
-			symbol
-			decimals
-			imageUrl
-			chainId
+			${aaveCurrencyFields}
+		}
+		aToken {
+			${aaveCurrencyFields}
+		}
+		vToken {
+			${aaveCurrencyFields}
 		}
 		isFrozen
 		isPaused
+		flashLoanEnabled
+		usdExchangeRate
+		usdOracleAddress
 		size {
 			amount {
 				value
 			}
+			usd
 		}
 		supplyInfo {
 			apy {
 				value
+			}
+			canBeCollateral
+			maxLTV {
+				value
+			}
+			liquidationThreshold {
+				value
+			}
+			liquidationBonus {
+				value
+			}
+			supplyCapReached
+			supplyCap {
+				amount {
+					value
+				}
+				usd
 			}
 		}
 		borrowInfo {
@@ -71,6 +102,23 @@ const marketReserveFields = `
 				amount {
 					value
 				}
+				usd
+			}
+			utilizationRate {
+				value
+			}
+			borrowCapReached
+			borrowCap {
+				amount {
+					value
+				}
+				usd
+			}
+			total {
+				amount {
+					value
+				}
+				usd
 			}
 		}
 	}
@@ -278,6 +326,9 @@ const assertCurrency = (
 		underlyingTokenAddress: assertPoolAddress(currency.address),
 		symbol: currency.symbol,
 		decimals: currency.decimals,
+		...(currency.name != null && currency.name.length > 0 && {
+			name: currency.name,
+		}),
 	}
 }
 
@@ -410,6 +461,7 @@ export const getAccountPositions = async ({
 						address
 						symbol
 						decimals
+						name
 						chainId
 					}
 					balance {
@@ -435,6 +487,7 @@ export const getAccountPositions = async ({
 						address
 						symbol
 						decimals
+						name
 						chainId
 					}
 					debt {

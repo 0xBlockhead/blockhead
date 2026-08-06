@@ -182,6 +182,56 @@ describe('GMX markets/info operation', () => {
 		).resolves.toEqual([])
 	})
 
+	it('accepts expanded markets/info wire and keeps borrowing / pool-value transport-only', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				...ethMarketInfoWire,
+				isSameCollaterals: false,
+				longsPayShorts: true,
+				longInterestInTokens: '11412900167379942479683',
+				shortInterestInTokens: '20907313850254',
+				borrowingFactorPerSecondForLongs: '3167956141801949531773',
+				borrowingFactorPerSecondForShorts: '0',
+				poolValueMax: '888197856206554643200826204778664729',
+				poolValueMin: '888171650043940338630884878818664729',
+				totalBorrowingFees: '354324936748213529016856038382164',
+			},
+		])
+
+		await expect(
+			getMarketsInfo({
+				chainId: 42161,
+			})
+		)
+			.resolves
+			.toEqual([
+				{
+					chainId: 42161,
+					name: 'ETH/USD [WETH-USDC]',
+					marketTokenAddress: '0x70d95587d40a2caf56bd97485ab3eec10bee6336',
+					indexTokenAddress: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+					longTokenAddress: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+					shortTokenAddress: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+					isSpotOnly: false,
+					isDisabled: false,
+					longInterestUsd: '11844876917225365753752459368138129000',
+					shortInterestUsd: '15383126719457743771450388674116662232',
+					longPoolAmount: '11412900167379942479683',
+					shortPoolAmount: '20907313850254',
+					fundingFactorPerSecond: '5447368087265348055555',
+					isSameCollaterals: false,
+					longsPayShorts: true,
+					longInterestInTokens: '11412900167379942479683',
+					shortInterestInTokens: '20907313850254',
+					borrowingFactorPerSecondForLongs: '3167956141801949531773',
+					borrowingFactorPerSecondForShorts: '0',
+					poolValueMax: '888197856206554643200826204778664729',
+					poolValueMin: '888171650043940338630884878818664729',
+					totalBorrowingFees: '354324936748213529016856038382164',
+				},
+			])
+	})
+
 	it('rejects unsupported chains before transport', async () => {
 		await expect(
 			getMarketsInfo({

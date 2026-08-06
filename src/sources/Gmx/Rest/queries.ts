@@ -124,12 +124,29 @@ const assertBoolean = (
 	return value
 }
 
+const optionalNonEmptyDecimalString = (
+	value: string | undefined
+) => (
+	value != null && value.length > 0 && /^(?:0|[1-9]\d*)$/.test(value) ?
+		value
+	:
+		undefined
+)
+
 const assertMarketInfoWire = (
 	wire: GmxMarketInfoWire,
 	chainId: number
 ): GmxMarketInfo => {
 	if (wire.name == null || wire.name.length < 1)
 		throw new Error(`${Source.Gmx_Rest}: market missing name`)
+
+	const longInterestInTokens = optionalNonEmptyDecimalString(wire.longInterestInTokens)
+	const shortInterestInTokens = optionalNonEmptyDecimalString(wire.shortInterestInTokens)
+	const borrowingFactorPerSecondForLongs = optionalNonEmptyDecimalString(wire.borrowingFactorPerSecondForLongs)
+	const borrowingFactorPerSecondForShorts = optionalNonEmptyDecimalString(wire.borrowingFactorPerSecondForShorts)
+	const poolValueMax = optionalNonEmptyDecimalString(wire.poolValueMax)
+	const poolValueMin = optionalNonEmptyDecimalString(wire.poolValueMin)
+	const totalBorrowingFees = optionalNonEmptyDecimalString(wire.totalBorrowingFees)
 
 	return {
 		chainId,
@@ -145,6 +162,33 @@ const assertMarketInfoWire = (
 		longPoolAmount: assertNonEmptyDecimalString(wire.longPoolAmount, 'longPoolAmount', 'market'),
 		shortPoolAmount: assertNonEmptyDecimalString(wire.shortPoolAmount, 'shortPoolAmount', 'market'),
 		fundingFactorPerSecond: assertNonEmptyDecimalString(wire.fundingFactorPerSecond, 'fundingFactorPerSecond', 'market'),
+		...(wire.isSameCollaterals === true || wire.isSameCollaterals === false) && {
+			isSameCollaterals: wire.isSameCollaterals,
+		},
+		...(wire.longsPayShorts === true || wire.longsPayShorts === false) && {
+			longsPayShorts: wire.longsPayShorts,
+		},
+		...(longInterestInTokens != null && {
+			longInterestInTokens,
+		}),
+		...(shortInterestInTokens != null && {
+			shortInterestInTokens,
+		}),
+		...(borrowingFactorPerSecondForLongs != null && {
+			borrowingFactorPerSecondForLongs,
+		}),
+		...(borrowingFactorPerSecondForShorts != null && {
+			borrowingFactorPerSecondForShorts,
+		}),
+		...(poolValueMax != null && {
+			poolValueMax,
+		}),
+		...(poolValueMin != null && {
+			poolValueMin,
+		}),
+		...(totalBorrowingFees != null && {
+			totalBorrowingFees,
+		}),
 	}
 }
 

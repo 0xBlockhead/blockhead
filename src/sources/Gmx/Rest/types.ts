@@ -1,6 +1,11 @@
 import { type as arktype } from 'arktype'
 
-/** Wire row from GMX API `GET /markets/info` (fields consumed for a market snapshot). */
+/**
+ * Wire row from GMX API `GET /markets/info`.
+ * Enrolled `GmxMarket` projections consume identity + interest/pool/funding scalars.
+ * Broader borrowing / impact / pool-value / virtual-inventory surfaces stay transport-only.
+ * @see https://docs.gmx.io/docs/api/integration-guide/
+ */
 export type GmxMarketInfoWire = {
 	name?: string
 	marketTokenAddress?: string
@@ -9,11 +14,21 @@ export type GmxMarketInfoWire = {
 	shortTokenAddress?: string
 	isSpotOnly?: boolean
 	isDisabled?: boolean
+	isSameCollaterals?: boolean
+	longsPayShorts?: boolean
 	longInterestUsd?: string
 	shortInterestUsd?: string
+	longInterestInTokens?: string
+	shortInterestInTokens?: string
 	longPoolAmount?: string
 	shortPoolAmount?: string
 	fundingFactorPerSecond?: string
+	borrowingFactorPerSecondForLongs?: string
+	borrowingFactorPerSecondForShorts?: string
+	poolValueMax?: string
+	poolValueMin?: string
+	totalBorrowingFees?: string
+	data?: string
 }
 
 export type GmxMarketInfo = {
@@ -30,6 +45,24 @@ export type GmxMarketInfo = {
 	longPoolAmount: string
 	shortPoolAmount: string
 	fundingFactorPerSecond: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	isSameCollaterals?: boolean
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	longsPayShorts?: boolean
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	longInterestInTokens?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	shortInterestInTokens?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	borrowingFactorPerSecondForLongs?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	borrowingFactorPerSecondForShorts?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	poolValueMax?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	poolValueMin?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	totalBorrowingFees?: string
 }
 
 /**
@@ -150,11 +183,21 @@ export const gmxMarketInfoEnvelope = arktype({
 	shortTokenAddress: 'string',
 	isSpotOnly: 'boolean',
 	isDisabled: 'boolean',
+	'isSameCollaterals?': 'boolean',
+	'longsPayShorts?': 'boolean',
 	longInterestUsd: 'string',
 	shortInterestUsd: 'string',
+	'longInterestInTokens?': 'string',
+	'shortInterestInTokens?': 'string',
 	longPoolAmount: 'string',
 	shortPoolAmount: 'string',
 	fundingFactorPerSecond: 'string',
+	'borrowingFactorPerSecondForLongs?': 'string',
+	'borrowingFactorPerSecondForShorts?': 'string',
+	'poolValueMax?': 'string',
+	'poolValueMin?': 'string',
+	'totalBorrowingFees?': 'string',
+	'data?': 'string',
 })
 
 export const gmxMarketsInfoEnvelope = gmxMarketInfoEnvelope.array()
