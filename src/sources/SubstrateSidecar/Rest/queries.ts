@@ -3,14 +3,23 @@ import type {
 	SidecarAccountAssetBalances,
 	SidecarAccountBalanceInfo,
 	SidecarBlock,
+	SidecarNodeVersion,
 	SidecarRuntimeMetadata,
+	SidecarRuntimeSpec,
 	SidecarStakingValidators,
 } from '$/sources/SubstrateSidecar/Rest/types.ts'
 import bindings from '$/sources/SubstrateSidecar/bindings.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
 
-const binding = bindings[Source.SubstrateSidecar_Rest][0]
+const defaultBinding = bindings[Source.SubstrateSidecar_Rest][0]
+
+const bindingOrDefault = (
+	binding?: SourceBinding
+) => (
+	binding ?? defaultBinding
+)
 
 const unsignedDecimal = '/^(0|[1-9]\\d*)$/'
 
@@ -88,6 +97,26 @@ const sidecarRuntimeMetadataWire = arktype({
 	pallets: sidecarRuntimePalletWire.array(),
 })
 
+const sidecarRuntimeSpecWire = arktype({
+	at: {
+		hash: 'string > 0',
+		height: unsignedDecimal,
+	},
+	specName: 'string > 0',
+	'implName?': 'string > 0',
+	authoringVersion: arktype('number.integer >= 0').or(unsignedDecimal),
+	specVersion: arktype('number.integer >= 0').or(unsignedDecimal),
+	'implVersion?': arktype('number.integer >= 0').or(unsignedDecimal),
+	'transactionVersion?': arktype('number.integer >= 0').or(unsignedDecimal),
+	'stateVersion?': arktype('number.integer >= 0').or(unsignedDecimal),
+})
+
+const sidecarNodeVersionWire = arktype({
+	'clientVersion?': 'string > 0',
+	'clientImplName?': 'string > 0',
+	'chain?': 'string > 0',
+})
+
 const sidecarStakingValidatorsWire = arktype({
 	'at?': {
 		'hash?': 'string > 0',
@@ -141,16 +170,27 @@ const runtimeMetadataPallets = (
 		}
 )
 
+const runtimeSpecNumber = (
+	value: number | string
+) => (
+	typeof value === 'number' ?
+		value
+	:
+		Number(value)
+)
+
 export const getBlock = async ({
 	blockId,
+	binding,
 }: {
 	blockId: bigint | string
+	binding?: SourceBinding
 }) => (
 	assertEnvelope(
 		'block',
 		sidecarBlockWire,
 		await getJson<unknown>(
-			binding,
+			bindingOrDefault(binding),
 			`/blocks/${String(blockId)}`
 		)
 	) as SidecarBlock
@@ -158,14 +198,16 @@ export const getBlock = async ({
 
 export const getBlockHead = async ({
 	finalized = true,
+	binding,
 }: {
 	finalized?: boolean
+	binding?: SourceBinding
 } = {}) => (
 	assertEnvelope(
 		'block head',
 		sidecarBlockWire,
 		await getJson<unknown>(
-			binding,
+			bindingOrDefault(binding),
 			`/blocks/head?finalized=${finalized ? 'true' : 'false'}`
 		)
 	) as SidecarBlock
@@ -173,8 +215,10 @@ export const getBlockHead = async ({
 
 export const getAccountBalanceInfo = async ({
 	accountId,
+	binding,
 }: {
 	accountId: string
+	binding?: SourceBinding
 }) => {
 	if (accountId.length === 0)
 		throw new Error(`${Source.SubstrateSidecar_Rest}: account ID must not be empty`)
@@ -183,7 +227,7 @@ export const getAccountBalanceInfo = async ({
 		'account balance info',
 		sidecarAccountBalanceInfoWire,
 		await getJson<unknown>(
-			binding,
+			bindingOrDefault(binding),
 			`/accounts/${encodeURIComponent(accountId)}/balance-info`
 		)
 	) as SidecarAccountBalanceInfo
@@ -191,8 +235,10 @@ export const getAccountBalanceInfo = async ({
 
 export const getAccountAssetBalances = async ({
 	accountId,
+	binding,
 }: {
 	accountId: string
+	binding?: SourceBinding
 }) => {
 	if (accountId.length === 0)
 		throw new Error(`${Source.SubstrateSidecar_Rest}: account ID must not be empty`)
@@ -201,31 +247,87 @@ export const getAccountAssetBalances = async ({
 		'account asset balances',
 		sidecarAccountAssetBalancesWire,
 		await getJson<unknown>(
-			binding,
+			bindingOrDefault(binding),
 			`/accounts/${encodeURIComponent(accountId)}/asset-balances`
 		)
 	) as SidecarAccountAssetBalances
 }
 
-export const getRuntimeMetadata = async () => (
+export const getRuntimeMetadata = async ({
+	binding,
+}: {
+	binding?: SourceBinding
+} = {}) => (
 	runtimeMetadataPallets(
 		assertEnvelope(
 			'runtime metadata',
 			sidecarRuntimeMetadataWire,
 			await getJson<unknown>(
-				binding,
+				bindingOrDefault(binding),
 				'/runtime/metadata'
 			)
 		)
 	)
 )
 
-export const getStakingValidators = async () => (
+export const getRuntimeSpec = async ({
+	binding,
+}: {
+	binding?: SourceBinding
+} = {}) => {
+	const response = assertEnvelope(
+		'runtime spec',
+		sidecarRuntimeSpecWire,
+		await getJson<unknown>(
+			bindingOrDefault(binding),
+			'/runtime'
+		)
+	)
+	return {
+		at: response.at,
+		specName: response.specName,
+		...(response.implName != null && {
+			implName: response.implName,
+		}),
+		authoringVersion: runtimeSpecNumber(response.authoringVersion),
+		specVersion: runtimeSpecNumber(response.specVersion),
+		...(response.implVersion != null && {
+			implVersion: runtimeSpecNumber(response.implVersion),
+		}),
+		...(response.transactionVersion != null && {
+			transactionVersion: runtimeSpecNumber(response.transactionVersion),
+		}),
+		...(response.stateVersion != null && {
+			stateVersion: runtimeSpecNumber(response.stateVersion),
+		}),
+	} satisfies SidecarRuntimeSpec
+}
+
+export const getNodeVersion = async ({
+	binding,
+}: {
+	binding?: SourceBinding
+} = {}) => (
+	assertEnvelope(
+		'node version',
+		sidecarNodeVersionWire,
+		await getJson<unknown>(
+			bindingOrDefault(binding),
+			'/node/version'
+		)
+	) as SidecarNodeVersion
+)
+
+export const getStakingValidators = async ({
+	binding,
+}: {
+	binding?: SourceBinding
+} = {}) => (
 	assertEnvelope(
 		'staking validators',
 		sidecarStakingValidatorsWire,
 		await getJson<unknown>(
-			binding,
+			bindingOrDefault(binding),
 			'/pallets/staking/validators'
 		)
 	) as SidecarStakingValidators

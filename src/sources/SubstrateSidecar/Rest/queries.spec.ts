@@ -1,9 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { Source } from '$/sources/Source.ts'
+import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
+
 const sourceFetch = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
-	firstHttpUrlForBinding: () => 'http://127.0.0.1:8080',
+	firstHttpUrlForBinding: (binding: {
+		endpoints: {
+			locator: string
+		}[]
+	}) => binding.endpoints[0].locator,
 	sourceFetch,
 	sourceGetJson: async (_binding: unknown, url: string) => {
 		const response = await sourceFetch(_binding, url)
@@ -17,7 +24,9 @@ const {
 	getAccountBalanceInfo,
 	getBlock,
 	getBlockHead,
+	getNodeVersion,
 	getRuntimeMetadata,
+	getRuntimeSpec,
 	getStakingValidators,
 } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 
@@ -226,5 +235,97 @@ describe('Substrate Sidecar query envelopes', () => {
 			],
 		})))
 		await expect(getStakingValidators()).rejects.toThrow('invalid staking validators response envelope')
+	})
+
+	it('reads runtime spec + node version and fail-closes malformed specs', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xRUNTIME_HASH',
+				height: '32440766',
+			},
+			specName: 'polkadot',
+			implName: 'parity-polkadot',
+			authoringVersion: '0',
+			specVersion: '1007001',
+			implVersion: 0,
+			transactionVersion: 26,
+			stateVersion: '1',
+		})))
+		await expect(getRuntimeSpec()).resolves.toEqual({
+			at: {
+				hash: '0xRUNTIME_HASH',
+				height: '32440766',
+			},
+			specName: 'polkadot',
+			implName: 'parity-polkadot',
+			authoringVersion: 0,
+			specVersion: 1007001,
+			implVersion: 0,
+			transactionVersion: 26,
+			stateVersion: 1,
+		})
+		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/runtime')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			clientVersion: '0.17.0',
+			clientImplName: 'substrate-api-sidecar',
+			chain: 'Polkadot',
+		})))
+		await expect(getNodeVersion()).resolves.toMatchObject({
+			clientVersion: '0.17.0',
+			chain: 'Polkadot',
+		})
+		expect(sourceFetch.mock.calls[1][1]).toBe('http://127.0.0.1:8080/node/version')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xRUNTIME_HASH',
+				height: '32440766',
+			},
+			specName: '',
+			authoringVersion: 0,
+			specVersion: 1,
+		})))
+		await expect(getRuntimeSpec()).rejects.toThrow('invalid runtime spec response envelope')
+	})
+
+	it('routes asset-balance transport through an override binding for Asset Hub prep', async () => {
+		const relayBinding = (await import('$/sources/SubstrateSidecar/bindings.ts')).default[Source.SubstrateSidecar_Rest][0]
+		const assetHubBinding = {
+			...relayBinding,
+			endpoints: [
+				{
+					endpointKind: SourceEndpointKind.HttpUrl,
+					locator: 'http://127.0.0.1:8081',
+					corsEnabled: false,
+				},
+			],
+		}
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xAH_HASH',
+				height: '19148225',
+			},
+			assets: [
+				{
+					assetId: 1984,
+					balance: '7',
+				},
+			],
+		})))
+		await expect(getAccountAssetBalances({
+			accountId: '13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB',
+			binding: assetHubBinding,
+		})).resolves.toMatchObject({
+			assets: [
+				{
+					assetId: 1984,
+					balance: '7',
+				},
+			],
+		})
+		expect(sourceFetch.mock.calls[0][1]).toBe(
+			'http://127.0.0.1:8081/accounts/13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB/asset-balances'
+		)
 	})
 })

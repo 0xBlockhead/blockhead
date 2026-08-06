@@ -154,23 +154,29 @@ export default {
 		defineResolver({
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
-				NetworkBlockNumberHash: {
-					resolve: async ({ $network, blockNumber, hash: hashSelector }) => {
+				NetworkBlockNumber: {
+					resolve: async ({ $network, blockNumber }) => {
 						assertPolkadotMainnet($network)
 						const {
 							getBlock,
+							getBlockHash,
 						} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
-						const hash = hashSelector
+						const hash = await getBlockHash({
+							blockNumber,
+						})
 						const block = await getBlock({
 							blockHash: hash,
 						})
+						if (blockNumberFromHeader(block.block.header) !== blockNumber)
+							throw new Error(`Polkadot_JsonRpc: block number mismatch for ${blockNumber}`)
+
 						return {
 							hash,
 							...(blockNumber > 0n && {
 								$parent: {
 									[EntityMetaKey.Selector]: {
 										$network: $network,
-										blockNumber: blockNumberFromHeader(block.block.header) - 1n,
+										blockNumber: blockNumber - 1n,
 										hash: block.block.header.parentHash,
 									},
 								},
@@ -181,10 +187,44 @@ export default {
 								$network,
 								block,
 								hash
-						),
+							),
 						}
 					},
-				}
+				},
+				NetworkBlockNumberHash: {
+					resolve: async ({ $network, blockNumber, hash: hashSelector }) => {
+						assertPolkadotMainnet($network)
+						const {
+							getBlock,
+						} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
+						const hash = hashSelector
+						const block = await getBlock({
+							blockHash: hash,
+						})
+						if (blockNumberFromHeader(block.block.header) !== blockNumber)
+							throw new Error(`Polkadot_JsonRpc: block number mismatch for ${hash}`)
+
+						return {
+							hash,
+							...(blockNumber > 0n && {
+								$parent: {
+									[EntityMetaKey.Selector]: {
+										$network: $network,
+										blockNumber: blockNumber - 1n,
+										hash: block.block.header.parentHash,
+									},
+								},
+							}),
+							stateRoot: block.block.header.stateRoot,
+							extrinsicsRoot: block.block.header.extrinsicsRoot,
+							$$extrinsics: polkadotExtrinsicRows(
+								$network,
+								block,
+								hash
+							),
+						}
+					},
+				},
 			},
 		})({
 				hash: (block) => block.hash,
@@ -256,6 +296,30 @@ export default {
 		})({
 				Polkadot: {
 					$$blocks: (blocks) => blocks,
+				},
+			}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network) => {
+						assertPolkadotMainnet(network)
+						const {
+							getFinalizedHead,
+							getHeader,
+						} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
+						return blockNumberFromHeader(await getHeader({
+							blockHash: await getFinalizedHead(),
+						})) + 1n
+					},
+				},
+			},
+		})({
+				Polkadot: {
+					$$blocks: {
+						resolveCount: (count) => count,
+					},
 				},
 			}),
 

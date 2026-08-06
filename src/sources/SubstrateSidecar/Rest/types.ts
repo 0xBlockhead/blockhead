@@ -63,6 +63,26 @@ export type SidecarRuntimeMetadata = {
 	}[]
 }
 
+export type SidecarRuntimeSpec = {
+	at: {
+		hash: string
+		height: string
+	}
+	specName: string
+	implName?: string
+	authoringVersion: number
+	specVersion: number
+	implVersion?: number
+	transactionVersion?: number
+	stateVersion?: number
+}
+
+export type SidecarNodeVersion = {
+	clientVersion?: string
+	clientImplName?: string
+	chain?: string
+}
+
 export type SidecarStakingValidators = {
 	at?: {
 		hash?: string
