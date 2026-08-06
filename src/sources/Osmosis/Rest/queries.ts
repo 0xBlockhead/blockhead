@@ -10,6 +10,7 @@ import { osmosisPoolPaths } from '$/sources/Osmosis/Rest/constants.ts'
 import type {
 	OsmosisBlockResponse,
 	OsmosisDenomTraceResponse,
+	OsmosisLiquidityPerTickRangeResponse,
 	OsmosisNodeInfoResponse,
 	OsmosisSpotPriceResponse,
 	OsmosisStakingPoolResponse,
@@ -53,12 +54,26 @@ const osmosisPoolWire = arktype({
 	'tick_spacing?': 'string',
 	'exponent_at_price_one?': 'string',
 	'spread_factor?': 'string',
+	'last_liquidity_update?': 'string',
+	'incentives_address?': 'string',
+	'spread_rewards_address?': 'string',
 })
 const osmosisPoolResponseWire = arktype({
 	pool: osmosisPoolWire,
 })
 const osmosisPoolsResponseWire = arktype({
 	pools: osmosisPoolWire.array(),
+	'pagination?': {
+		'next_key?': 'string | null',
+		'total?': 'string',
+	},
+})
+const osmosisLiquidityPerTickRangeResponseWire = arktype({
+	liquidity: arktype({
+		liquidity_amount: 'string',
+		lower_tick: 'string',
+		upper_tick: 'string',
+	}).array(),
 })
 const assertPoolEnvelope = (response: unknown) => {
 	try {
@@ -72,6 +87,13 @@ const assertPoolsEnvelope = (response: unknown) => {
 		return osmosisPoolsResponseWire.assert(response)
 	} catch {
 		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid pools response envelope`)
+	}
+}
+const assertLiquidityPerTickRangeEnvelope = (response: unknown) => {
+	try {
+		return osmosisLiquidityPerTickRangeResponseWire.assert(response)
+	} catch {
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid liquidity-per-tick-range response envelope`)
 	}
 }
 
@@ -214,6 +236,56 @@ export const getPools = () => (
 			return envelope
 		})
 )
+
+export const getConcentratedLiquidityPools = ({
+	limit = 24,
+	offset = 0,
+}: {
+	limit?: number
+	offset?: number
+} = {}) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid concentrated liquidity pools limit ${String(limit)}`)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid concentrated liquidity pools offset ${String(offset)}`)
+
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.offset': String(offset),
+		'pagination.count_total': 'true',
+	})
+	return lcdGetJson<unknown>(
+		`${osmosisPoolPaths.concentratedLiquidityPools}?${parameters}`
+	)
+		.then((response) => {
+			const envelope = assertPoolsEnvelope(response)
+			if (new Set(envelope.pools.map((pool) => pool.id)).size !== envelope.pools.length)
+				throw new Error(`${Source.Osmosis_LCD_Rest}: concentrated liquidity pools response contains duplicate pool ids`)
+			for (const pool of envelope.pools) {
+				if (pool['@type'] != null && !pool['@type'].includes('concentratedliquidity'))
+					throw new Error(`${Source.Osmosis_LCD_Rest}: non-CL pool in concentrated liquidity list ${pool.id}`)
+			}
+
+			return envelope
+		})
+}
+
+export const getLiquidityPerTickRange = ({
+	poolId,
+}: {
+	poolId: string
+}) => {
+	assertPoolId(poolId)
+	const parameters = new URLSearchParams({
+		pool_id: poolId,
+	})
+	return lcdGetJson<unknown>(
+		`${osmosisPoolPaths.liquidityPerTickRange}?${parameters}`
+	)
+		.then((response) => (
+			assertLiquidityPerTickRangeEnvelope(response) as OsmosisLiquidityPerTickRangeResponse
+		))
+}
 
 export const getSpotPrice = ({
 	poolId,

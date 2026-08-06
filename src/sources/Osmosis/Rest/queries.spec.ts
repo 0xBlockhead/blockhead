@@ -26,8 +26,10 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const {
 	getBlock,
+	getConcentratedLiquidityPools,
 	getDenomTrace,
 	getLatestBlock,
+	getLiquidityPerTickRange,
 	getNodeInfo,
 	getPool,
 	getPools,
@@ -308,6 +310,81 @@ describe('Osmosis LCD named operations', () => {
 			],
 		})
 		await expect(getPools()).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: all-pools response contains duplicate pool ids`)
+	})
+
+	it('reads concentrated liquidity pools with pagination', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pools: [
+				{
+					id: '1066',
+					'@type': '/osmosis.concentratedliquidity.v1beta1.Pool',
+					token0: 'uosmo',
+					token1: 'uion',
+					current_tick: '91850677',
+				},
+			],
+			pagination: {
+				next_key: 'MTA3Ng==',
+				total: '42',
+			},
+		})
+		await expect(getConcentratedLiquidityPools({
+			limit: 1,
+			offset: 0,
+		})).resolves.toMatchObject({
+			pools: [
+				{
+					id: '1066',
+					token0: 'uosmo',
+				},
+			],
+			pagination: {
+				total: '42',
+			},
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, '/osmosis/concentratedliquidity/v1beta1/pools?pagination.limit=1&pagination.offset=0&pagination.count_total=true')
+		)
+	})
+
+	it('rejects non-CL pools in the concentrated liquidity list', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			pools: [
+				{
+					id: '1',
+					'@type': '/osmosis.gamm.v1beta1.Pool',
+				},
+			],
+		})
+		await expect(getConcentratedLiquidityPools()).rejects.toThrow(`${Source.Osmosis_LCD_Rest}: non-CL pool in concentrated liquidity list 1`)
+	})
+
+	it('reads liquidity per tick range for a CL pool', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			liquidity: [
+				{
+					liquidity_amount: '1.5',
+					lower_tick: '-100',
+					upper_tick: '100',
+				},
+			],
+		})
+		await expect(getLiquidityPerTickRange({
+			poolId: '1066',
+		})).resolves.toEqual({
+			liquidity: [
+				{
+					liquidity_amount: '1.5',
+					lower_tick: '-100',
+					upper_tick: '100',
+				},
+			],
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			httpUrl(binding, '/osmosis/concentratedliquidity/v1beta1/liquidity_per_tick_range?pool_id=1066')
+		)
 	})
 
 	it('reads a spot price for a pool', async () => {

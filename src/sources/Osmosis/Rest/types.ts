@@ -97,6 +97,9 @@ export type OsmosisPoolManagerPool = {
 	tick_spacing?: string
 	exponent_at_price_one?: string
 	spread_factor?: string
+	last_liquidity_update?: string
+	incentives_address?: string
+	spread_rewards_address?: string
 }
 
 export type OsmosisPoolResponse = {
@@ -105,6 +108,17 @@ export type OsmosisPoolResponse = {
 
 export type OsmosisPoolsResponse = {
 	pools: OsmosisPoolManagerPool[]
+	pagination?: OsmosisPagination
+}
+
+export type OsmosisLiquidityPerTickRange = {
+	liquidity_amount: string
+	lower_tick: string
+	upper_tick: string
+}
+
+export type OsmosisLiquidityPerTickRangeResponse = {
+	liquidity: OsmosisLiquidityPerTickRange[]
 }
 
 export type OsmosisSpotPriceResponse = {
