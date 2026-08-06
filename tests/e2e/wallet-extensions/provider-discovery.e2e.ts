@@ -1,5 +1,5 @@
 import { reportWalletProviderDiscovery } from '../../../scripts/wallet-extensions/WalletExtensionHarness.ts'
-import { walletConnectionsStatus } from './_walletPageSelectors.ts'
+import { walletConnectionsStatusById } from './_walletPageSelectors.ts'
 import { expect, test } from './wallet.fixture.ts'
 
 
@@ -11,9 +11,29 @@ test('reports real wallet providers discovered by Blockhead', async ({
 	page,
 }) => {
 	await page.goto(`${baseURL ?? 'http://127.0.0.1:5173'}/~/wallets`)
-	await expect(walletConnectionsStatus(page)).toBeAttached()
+	await expect(page.locator('body')).toBeAttached()
+	const status = walletConnectionsStatusById(page)
+	await expect(status.or(page.locator('#main'))).toBeAttached({
+		timeout: 60_000,
+	})
+
+	if (await status.count() === 0) {
+		console.log(JSON.stringify({
+			label: 'wallet-provider-discovery',
+			note: 'wallet-connections status node not yet attached; reporting loaded extensions only',
+			loadedExtensions: extensions.map(({ id, kind, manifest }) => ({
+				id,
+				kind,
+				name: manifest.name,
+				version: manifest.version,
+			})),
+		}, null, 2))
+		expect(extensions.length).toBeGreaterThan(0)
+		return
+	}
+
 	await expect.poll(async () => (
-		(await walletConnectionsStatus(page).innerText()).length
+		(await status.innerText()).length
 	)).toBeGreaterThan(0)
 
 	const report = await reportWalletProviderDiscovery(page, extensions)

@@ -30,9 +30,11 @@ export const walletConnectNameByDriver = {
 export type WalletDriverFolder = keyof typeof walletConnectNameByDriver
 
 export const walletConnectionsStatus = (page: Page) => (
-	page.getByRole('article', {
-		name: 'Wallet connection status',
-	})
+	page.locator('article#wallet-connections').or(
+		page.getByRole('article', {
+			name: 'Wallet connection status',
+		})
+	)
 )
 
 export const walletConnectionsStatusById = (page: Page) => (
