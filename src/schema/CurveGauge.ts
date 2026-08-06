@@ -9,124 +9,89 @@ import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
-	entityType: EntityType.CurvePool,
+	entityType: EntityType.CurveGauge,
 	labels: {
-		singular: 'Curve pool',
-		plural: 'Curve pools',
+		singular: 'Curve gauge',
+		plural: 'Curve gauges',
 	},
-	description: 'A Curve Finance liquidity pool on an EIP-155 network, identified by its pool contract address (protocol-native; not a generic LiquidityPool).',
+	description: 'A Curve liquidity gauge contract on an EIP-155 network, identified by gauge address (CRV emissions / LP staking surface for a pool).',
 })({
 	$network: {
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.One,
 	},
-	poolAddress: {
+	gaugeAddress: {
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
+	},
+	$pool: {
+		entityType: EntityType.CurvePool,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Curve_Rest,
+		],
 	},
 	name: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Curve_Rest,
-		],
-	},
-	symbol: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Curve_Rest,
-		],
-	},
-	registryId: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Curve_Rest,
-		],
-	},
-	lpTokenAddress: {
-		primitiveType: EvmAddress,
-		cardinality: EntityFieldCardinality.One,
-		defaultSources: [
-			Source.Curve_Rest,
-		],
-	},
-	virtualPrice: {
-		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Curve_Rest,
 		],
 	},
-	amplificationCoefficient: {
-		primitiveType: NonNegativeDecimalString,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Curve_Rest,
-		],
-	},
-	totalSupply: {
-		primitiveType: NonNegativeDecimalString,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Curve_Rest,
-		],
-	},
-	usdTotal: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Curve_Rest,
-		],
-	},
-	isMetaPool: {
+	isKilled: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Curve_Rest,
 		],
 	},
-	$gauge: {
-		entityType: EntityType.CurveGauge,
+	hasNoCrv: {
+		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Curve_Rest,
 		],
 	},
-	assetTypeName: {
-		primitiveType: type('string'),
+	relativeWeight: {
+		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Curve_Rest,
 		],
 	},
-	creationBlockNumber: {
+	workingSupply: {
+		primitiveType: NonNegativeDecimalString,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Curve_Rest,
+		],
+	},
+	inflationRate: {
+		primitiveType: NonNegativeDecimalString,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Curve_Rest,
+		],
+	},
+	gaugeCrvApyMin: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Curve_Rest,
 		],
 	},
-	creationTs: {
+	gaugeCrvApyMax: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Curve_Rest,
-		],
-	},
-	$$coins: {
-		entityType: EntityType.CurvePoolCoin,
-		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Curve_Rest,
 		],
 	},
 })({
 	selectors: {
-		NetworkPoolAddress: [
+		NetworkGaugeAddress: [
 			'$network',
-			'poolAddress',
+			'gaugeAddress',
 		],
 	},
 })

@@ -1577,7 +1577,9 @@ export enum EntityType {
 	CronosNetworkProfile = "CronosNetworkProfile",
 	Currency = "Currency",
 	Currency_Timestamp = "Currency_Timestamp",
+	CurveGauge = "CurveGauge",
 	CurvePool = "CurvePool",
+	CurvePoolCoin = "CurvePoolCoin",
 	DogecoinAuxPowMerkleBranch = "DogecoinAuxPowMerkleBranch",
 	DogecoinAuxPowParentBlockHeader = "DogecoinAuxPowParentBlockHeader",
 	DogecoinBlockAuxPow = "DogecoinBlockAuxPow",
@@ -1700,6 +1702,7 @@ export enum EntityType {
 	FilecoinDeal = "FilecoinDeal",
 	FilecoinDeal_Timestamp = "FilecoinDeal_Timestamp",
 	FilecoinMessage = "FilecoinMessage",
+	FilecoinMessage_Timestamp = "FilecoinMessage_Timestamp",
 	FilecoinMessageReceipt = "FilecoinMessageReceipt",
 	FilecoinMiner = "FilecoinMiner",
 	FilecoinMiner_Timestamp = "FilecoinMiner_Timestamp",
@@ -25436,6 +25439,50 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.CurveGauge,
+				labels: {
+					singular: "Curve gauge",
+					plural: "Curve gauges",
+				},
+				description: "A Curve liquidity gauge contract on an EIP-155 network, identified by gauge address (CRV emissions / LP staking surface for a pool).",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"gaugeAddress": { label: "Gauge address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.CurvePool, defaultSources: [Source.Curve_Rest] },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Curve_Rest] },
+				"isKilled": { label: "Killed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Curve_Rest] },
+				"hasNoCrv": { label: "No CRV", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Curve_Rest] },
+				"relativeWeight": { label: "Relative weight", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Curve_Rest] },
+				"workingSupply": { label: "Working supply", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Curve_Rest] },
+				"inflationRate": { label: "Inflation rate", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Curve_Rest] },
+				"gaugeCrvApyMin": { label: "CRV APY (min)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"gaugeCrvApyMax": { label: "CRV APY (max)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+			})({
+				selectors: {
+					"NetworkGaugeAddress": ["$network", "gaugeAddress"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Curve_Rest],
+						},
+						summary: {
+							title: ["name", { field: "gaugeAddress", format: "address" }],
+							value: ["relativeWeight", "gaugeCrvApyMin", "gaugeCrvApyMax"],
+							HeadingAfter: ["$network", "$pool"],
+						},
+						content: {
+							dl: [
+								["$network", { field: "gaugeAddress", format: "address" }, "$pool", "name"],
+								["isKilled", "hasNoCrv", "relativeWeight", "workingSupply", "inflationRate", { field: "gaugeCrvApyMin", format: "number" }, { field: "gaugeCrvApyMax", format: "number" }],
+							],
+						},
+					},
+					plural: { component: "CurveGaugesView", title: "Curve gauges" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.CurvePool,
 				labels: {
 					singular: "Curve pool",
@@ -25454,10 +25501,11 @@ export const schema = {
 				"totalSupply": { label: "Total supply", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Curve_Rest] },
 				"usdTotal": { label: "Total value (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
 				"isMetaPool": { label: "Is meta pool", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Curve_Rest] },
-				"gaugeAddress": { label: "Gauge address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Curve_Rest] },
+				"$gauge": { label: "Gauge", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.CurveGauge, defaultSources: [Source.Curve_Rest] },
 				"assetTypeName": { label: "Asset type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Curve_Rest] },
 				"creationBlockNumber": { label: "Creation block number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
 				"creationTs": { label: "Creation timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"$$coins": { label: "Coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CurvePoolCoin, defaultSources: [Source.Curve_Rest] },
 			})({
 				selectors: {
 					"NetworkPoolAddress": ["$network", "poolAddress"],
@@ -25477,11 +25525,55 @@ export const schema = {
 							dl: [
 								["$network", { field: "poolAddress", format: "address" }, "name", "symbol", "registryId"],
 								[{ field: "lpTokenAddress", format: "address" }, "virtualPrice", "amplificationCoefficient", "totalSupply", { field: "usdTotal", format: "number" }],
-								["isMetaPool", "assetTypeName", { field: "gaugeAddress", format: "address" }, { field: "creationBlockNumber", format: "number" }, { field: "creationTs", format: "timestamp" }],
+								["isMetaPool", "assetTypeName", "$gauge", { field: "creationBlockNumber", format: "number" }, { field: "creationTs", format: "timestamp" }],
+							],
+						},
+						lists: [
+							{ field: "$$coins", component: "CurvePoolCoinsView", label: "Coins", emptyText: "No Curve pool coins." },
+						],
+					},
+					plural: { component: "CurvePoolsView", title: "Curve pools" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.CurvePoolCoin,
+				labels: {
+					singular: "Curve pool coin",
+					plural: "Curve pool coins",
+				},
+				description: "A coin leg inside a Curve pool (token address, decimals, balances / USD price from Curve REST).",
+			})({
+				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CurvePool },
+				"coinAddress": { label: "Coin address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Curve_Rest] },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Curve_Rest] },
+				"decimals": { label: "Decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Curve_Rest] },
+				"poolBalance": { label: "Pool balance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Curve_Rest] },
+				"usdPrice": { label: "USD price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"isBasePoolLpToken": { label: "Base pool LP token", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Curve_Rest] },
+			})({
+				selectors: {
+					"PoolCoinAddress": ["$pool", "coinAddress"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Curve_Rest],
+						},
+						summary: {
+							title: ["symbol", "name"],
+							value: ["poolBalance", "usdPrice"],
+							HeadingAfter: ["$pool"],
+						},
+						content: {
+							dl: [
+								["$pool", { field: "coinAddress", format: "address" }, "symbol", "name", "decimals"],
+								["poolBalance", { field: "usdPrice", format: "number" }, "isBasePoolLpToken"],
 							],
 						},
 					},
-					plural: { component: "CurvePoolsView", title: "Curve pools" },
+					plural: { component: "CurvePoolCoinsView", title: "Curve pool coins" },
 				},
 			}),
 
@@ -34388,6 +34480,7 @@ export const schema = {
 				"nonce": { label: "Nonce", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
 				"valueAttoFil": { label: "Value attoFIL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
 				"gasLimit": { label: "Gas limit", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Filfox_Rest, Source.Lotus_JsonRpc] },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FilecoinMessage_Timestamp, defaultSources: [Source.Filfox_Rest] },
 			})({
 				selectors: {
 					"NetworkCid": ["$network", "cid"],
@@ -34397,6 +34490,20 @@ export const schema = {
 						query: {
 							sources: [Source.Filfox_Rest, Source.Lotus_JsonRpc],
 						},
+						latest: [
+							{
+								field: "$$timestamps",
+								label: "Latest observation",
+								query: {
+									sources: [Source.Filfox_Rest],
+									limit: 16,
+								},
+								fields: ["height", "timestampMs", "source"],
+								sort: "height",
+								direction: "desc",
+								view: "FilecoinMessage_TimestampView",
+							},
+						],
 						summary: {
 							title: [{ field: "cid", format: "truncated" }],
 							value: ["$from", "$to"],
@@ -34416,11 +34523,62 @@ export const schema = {
 								],
 							],
 						},
+						lists: [
+							{ field: "$$timestamps", component: "FilecoinMessage_TimestampsView", label: "Observations" },
+						],
 					},
 					plural: { component: "FilecoinMessagesView",
 						query: {
 							sources: [Source.Filfox_Rest, Source.Lotus_JsonRpc],
 						},
+					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.FilecoinMessage_Timestamp,
+				labels: {
+					singular: "filecoin message timestamp",
+					plural: "filecoin message observations",
+				},
+				description: "As-of observation for a Filecoin message (inclusion height / tipset clock). Filfox supplies height, timestamp, and block CIDs; Lotus ChainGetMessage alone does not.",
+			})({
+				"$message": { label: "Message", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FilecoinMessage },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"tipsetKey": { label: "Tipset key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$tipset": { label: "Tipset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FilecoinTipset, defaultSources: [Source.Filfox_Rest] },
+				"blockCids": { label: "Block CIDs", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.Filfox_Rest] },
+			})({
+				selectors: {
+					"MessageHeightTipsetKeySource": ["$message", "height", "tipsetKey", "source"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Filfox_Rest],
+						},
+						summary: {
+							title: [{ field: "timestampMs", format: "timestamp" }],
+							value: [{ field: "height", format: "number" }],
+							HeadingAfter: ["source"],
+						},
+						content: {
+							dl: [
+								[
+									"$message",
+									{ field: "timestampMs", format: "timestamp" },
+									"source",
+									{ field: "height", format: "number" },
+									"tipsetKey",
+									"$tipset",
+									"blockCids",
+								],
+							],
+						},
+					},
+					plural: { component: "FilecoinMessage_TimestampsView",
 					},
 				},
 			}),
@@ -50764,8 +50922,8 @@ export const schema = {
 				"exponentAtPriceOne": { label: "Exponent at price one", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"spreadFactor": { label: "Spread factor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
 				"lastLiquidityUpdate": { label: "Last liquidity update", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Osmosis_LCD_Rest] },
+				"positionCount": { label: "Position count", description: "Concentrated-liquidity position count for this pool (LCD NumPoolPositions). No honest pool-wide position list exists on LCD.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeBigInt", defaultSources: [Source.Osmosis_LCD_Rest] },
 				"$$assets": { label: "Assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPoolAsset, defaultSources: [Source.Osmosis_LCD_Rest] },
-				"$$positions": { label: "Positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPosition },
 				"$$timestamps": { label: "Spot prices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.OsmosisPool_Timestamp },
 			})({
 				selectors: {
@@ -50785,7 +50943,7 @@ export const schema = {
 						content: {
 							dl: [
 								["$network", "poolId", "typeUrl", "liquidityKind", { field: "address", format: "truncated" }],
-								["swapFee", "exitFee", "spreadFactor", "totalWeight", "totalSharesAmount", "totalSharesDenom", "lastLiquidityUpdate"],
+								["swapFee", "exitFee", "spreadFactor", "totalWeight", "totalSharesAmount", "totalSharesDenom", "lastLiquidityUpdate", { field: "positionCount", format: "number" }],
 								["token0Denom", "token1Denom", "currentSqrtPrice", "currentTick", "currentTickLiquidity", "tickSpacing", "exponentAtPriceOne"],
 							],
 						},
@@ -50796,7 +50954,6 @@ export const schema = {
 								className: "network-view-collapsible-balances",
 								sections: [
 									{ id: "osmosis-pool-assets", field: "$$assets", List: "OsmosisPoolAssetsView", label: "Assets", emptyText: "No pool assets.", selection: { sources: [Source.Osmosis_LCD_Rest] } },
-									{ id: "osmosis-pool-positions", field: "$$positions", List: "OsmosisPositionsView", label: "Positions", emptyText: "No concentrated liquidity positions.", selection: { sources: [Source.Osmosis_LCD_Rest] } },
 									{ id: "osmosis-pool-spot", field: "$$timestamps", List: "OsmosisPool_TimestampsView", label: "Spot prices", emptyText: "No spot price observations." },
 								],
 							},
@@ -70961,11 +71118,25 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#cronosnetworkprofile",
 			},
 		},
+		[EntityType.CurveGauge]: {
+			"NetworkGaugeAddress": {
+				kind: "Research",
+				decision: "Retain CurveGauge.NetworkGaugeAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#curvegauge",
+			},
+		},
 		[EntityType.CurvePool]: {
 			"NetworkPoolAddress": {
 				kind: "Research",
 				decision: "Retain CurvePool.NetworkPoolAddress as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#curvepool",
+			},
+		},
+		[EntityType.CurvePoolCoin]: {
+			"PoolCoinAddress": {
+				kind: "Research",
+				decision: "Retain CurvePoolCoin.PoolCoinAddress as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#curvepoolcoin",
 			},
 		},
 		[EntityType.DogecoinAuxPowMerkleBranch]: {
@@ -71473,6 +71644,13 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain FilecoinMessage.NetworkCid as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#filecoinmessage",
+			},
+		},
+		[EntityType.FilecoinMessage_Timestamp]: {
+			"MessageHeightTipsetKeySource": {
+				kind: "Research",
+				decision: "Retain FilecoinMessage_Timestamp.MessageHeightTipsetKeySource as non-public until a product-valid selector placement is declared.",
+				evidence: "maps/schema-entity-existence-ledger.md#filecoinmessage_timestamp",
 			},
 		},
 		[EntityType.FilecoinMessageReceipt]: {

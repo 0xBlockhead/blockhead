@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -42,7 +43,9 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import CurvePoolCoinsView from '$/views/CurvePoolCoinsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import CurveGaugeView from '$/views/CurveGaugeView.svelte'
 </script>
 
 
@@ -289,21 +292,18 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							gaugeAddress: true,
-						},
-					})
-				}
+				resource={selection.$gauge}
 			>
-				{#snippet children(entity)}
-					{@const gaugeAddress = entity.gaugeAddress}
-					{#if gaugeAddress != null}
+				{#snippet children(curveGauge)}
+					{#if curveGauge != null}
 						<div>
-							<dt>Gauge address</dt>
+							<dt>Gauge</dt>
 							<dd>
-								<TruncatedValue value={gaugeAddress} />
+								<CurveGaugeView
+									selection={select(EntityType.CurveGauge, curveGauge[EntityMetaKey.Selector])}
+									prefetched={curveGauge}
+									layout={EntityLayout.Value}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -356,5 +356,23 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const coinsResource = selection.$$coins}
+		<ResourceBoundary
+			resource={coinsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<CurvePoolCoinsView
+						selection={coinsResource}
+						countResource={coinsResource.count}
+						title='Coins'
+						id='coins'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

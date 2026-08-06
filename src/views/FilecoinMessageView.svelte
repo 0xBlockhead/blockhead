@@ -38,8 +38,10 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import FilecoinMessage_TimestampsView from '$/views/FilecoinMessage_TimestampsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import FilecoinActorView from '$/views/FilecoinActorView.svelte'
+	import FilecoinMessage_TimestampView from '$/views/FilecoinMessage_TimestampView.svelte'
 </script>
 
 
@@ -101,6 +103,51 @@
 	{/snippet}
 
 	{#snippet Content()}
+		<dl data-column-item="center">
+			<div>
+				<dt>Latest observation</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection
+							.$$timestamps({
+								sources: [
+									Source.Filfox_Rest,
+								],
+								fields: {
+									height: true,
+									timestampMs: true,
+									source: true,
+								},
+								orderBy: [
+									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
+								],
+							}).first()
+						}
+					>
+						{#snippet children(filecoinMessageTimestamp)}
+							{#if filecoinMessageTimestamp != null}
+								{@const filecoinMessageTimestampSelector = filecoinMessageTimestamp[EntityMetaKey.Selector]}
+								<FilecoinMessage_TimestampView
+									selection={
+										select(EntityType.FilecoinMessage_Timestamp, filecoinMessageTimestampSelector, {
+											sources: [
+												Source.Filfox_Rest,
+											],
+										})
+									}
+									prefetched={{ ...filecoinMessageTimestampSelector, ...filecoinMessageTimestamp }}
+									layout={EntityLayout.Value}
+								/>
+							{:else}
+								<p data-text="muted" data-section-state="resolved-empty">No latest observation available.</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
 		<dl data-column-item="center">
 			<div>
 				<dt>Network</dt>
@@ -245,5 +292,23 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const timestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={timestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<FilecoinMessage_TimestampsView
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

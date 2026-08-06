@@ -97,16 +97,19 @@ export default entity({
 			Source.Osmosis_LCD_Rest,
 		],
 	},
+	positionCount: {
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Osmosis_LCD_Rest,
+		],
+	},
 	$$assets: {
 		entityType: EntityType.OsmosisPoolAsset,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Osmosis_LCD_Rest,
 		],
-	},
-	$$positions: {
-		entityType: EntityType.OsmosisPosition,
-		cardinality: EntityFieldCardinality.Many,
 	},
 	$$timestamps: {
 		entityType: EntityType.OsmosisPool_Timestamp,

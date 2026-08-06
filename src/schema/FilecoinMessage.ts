@@ -69,6 +69,13 @@ export default entity({
 			Source.Lotus_JsonRpc,
 		],
 	},
+	$$timestamps: {
+		entityType: EntityType.FilecoinMessage_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Filfox_Rest,
+		],
+	},
 })({
 	selectors: {
 		NetworkCid: [

@@ -46,11 +46,11 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import OsmosisPoolAssetsView from '$/views/OsmosisPoolAssetsView.svelte'
-	import OsmosisPositionsView from '$/views/OsmosisPositionsView.svelte'
 	import OsmosisPool_TimestampsView from '$/views/OsmosisPool_TimestampsView.svelte'
 </script>
 
@@ -338,6 +338,30 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							positionCount: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const positionCount = entity.positionCount}
+					{#if positionCount != null}
+						<div>
+							<dt>Position count</dt>
+							<dd>
+								<NumberValue
+									value={positionCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">
@@ -508,10 +532,6 @@
 						label: 'Assets',
 					},
 					{
-						id: 'osmosis-pool-positions',
-						label: 'Positions',
-					},
-					{
 						id: 'osmosis-pool-spot',
 						label: 'Spot prices',
 					},
@@ -539,23 +559,6 @@
 					collapsible={false}
 					title={label}
 					emptyText='No pool assets.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-
-			{#snippet SectionOsmosisPoolPositions({ id, label })}
-				<OsmosisPositionsView
-					selection={
-						selection
-						.$$positions({
-							sources: [
-								Source.Osmosis_LCD_Rest,
-							],
-						})
-					}
-					collapsible={false}
-					title={label}
-					emptyText='No concentrated liquidity positions.'
 					id={`${id}-list`}
 				/>
 			{/snippet}
