@@ -83,6 +83,16 @@ const assertNonEmpty = (label: string, values: readonly unknown[]) => {
 		throw new Error(`Wallet matrix ${label} must not be empty`)
 }
 
+const assertUniqueScenarioIds = (scenarios: readonly WalletMatrixScenario[]) => {
+	const ids = new Set<string>()
+	for (const { id } of scenarios) {
+		if (ids.has(id))
+			throw new Error(`Wallet matrix scenario id must be unique: ${id}`)
+
+		ids.add(id)
+	}
+}
+
 export const runWalletCompatibilityMatrix = async ({
 	driver,
 	scenarios,
@@ -93,6 +103,7 @@ export const runWalletCompatibilityMatrix = async ({
 	step?: <_Result>(name: string, run: () => Promise<_Result>) => Promise<_Result>
 }) => {
 	assertNonEmpty('scenario set', scenarios)
+	assertUniqueScenarioIds(scenarios)
 	const results: WalletMatrixResult[] = []
 	for (const scenario of scenarios)
 		results.push(await step(scenario.id, async () => {

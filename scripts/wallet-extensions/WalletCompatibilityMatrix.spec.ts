@@ -89,7 +89,7 @@ const realWalletMatrixDefinitions = [
 	['taho', () => tahoWalletMatrixScenarios('0.66.0')],
 	['tonkeeper', () => tonkeeperWalletMatrixScenarios('26.6.1')],
 	['unisat', () => unisatWalletMatrixScenarios('1.7.17')],
-	['zerion', () => zerionWalletMatrixScenarios('1.21.0')],
+	['zerion', () => zerionWalletMatrixScenarios('1.41.2')],
 ] as const
 
 test('keeps every RealWalletKind in the compatibility denominator', async () => {
@@ -148,6 +148,22 @@ test('rejects empty matrix inputs instead of reporting a soft-empty result', asy
 	await assert.throws(() => {
 		formatWalletMatrixReport([result], { expectedOutcomes: [] })
 	}, /expected outcomes must not be empty/)
+})
+
+test('rejects duplicate scenario ids instead of overwriting matrix cells', async () => {
+	await assert.rejects(() => runWalletCompatibilityMatrix({
+		driver: {
+			kind: 'petra',
+			run: async () => ({
+				outcome: 'unsupported',
+				evidence: { code: 'not-run' },
+			}),
+		},
+		scenarios: [
+			scenario,
+			scenario,
+		],
+	}), /scenario id must be unique: petra-create-account-1/)
 })
 
 
@@ -365,7 +381,7 @@ test('records Taho account-2 blank Add Wallet and recover as blocked cells', asy
 })
 
 test('records Zerion Turnstile CAPTCHA onboarding as explicit blocked matrix cells', async () => {
-	const scenarios = zerionWalletMatrixScenarios('1.21.0')
+	const scenarios = zerionWalletMatrixScenarios('1.41.2')
 	assert.deepEqual(scenarios.map(({ id, lifecycleEdgeCase }) => ({
 		id,
 		lifecycleEdgeCase,
