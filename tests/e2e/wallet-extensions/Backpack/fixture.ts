@@ -8,9 +8,9 @@ import {
 
 import {
 	launchWalletExtensions,
-	parseExtensionDirectories,
+	resolveWalletExtensionDirectories,
 	type LoadedWalletExtension,
-} from '../../../scripts/wallet-extensions/WalletExtensionHarness.ts'
+} from '../../../../scripts/wallet-extensions/WalletExtensionHarness.ts'
 
 
 export const test = base.extend<{
@@ -20,16 +20,15 @@ export const test = base.extend<{
 	page: Page
 }>({
 	harness: async ({}, use) => {
-		const extensionDirectories = (
-			parseExtensionDirectories(process.env.WALLET_EXTENSION_DIRS).length > 0 ?
-				parseExtensionDirectories(process.env.WALLET_EXTENSION_DIRS)
-			:
-				[
-					resolve('tests/e2e/wallet-extensions/fixture-extension'),
-				]
-		)
 		const harness = await launchWalletExtensions({
-			extensionDirectories,
+			extensionDirectories: (
+				process.env.BACKPACK_EXTENSION_DIR ?
+					[
+						resolve(process.env.BACKPACK_EXTENSION_DIR),
+					]
+				:
+					resolveWalletExtensionDirectories()
+			),
 			headless: process.env.PLAYWRIGHT_WALLET_HEADLESS === '1',
 		})
 

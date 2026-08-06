@@ -39,6 +39,11 @@ export default defineConfig({
 		'**/src/sources_/**',
 		'**/src/resolvers_/**',
 		'**/.worktrees/**',
-		'**/tests/e2e/wallet-extensions/**',
+		// Real-wallet shards stay on playwright.wallet-extensions.config.ts (opt-in WALLET_EXTENSIONS_E2E=1).
+		// Keep wallet-page-selectors.e2e.ts discoverable here — synthetic DOM only, no extensions.
+		'**/tests/e2e/wallet-extensions/*/*.e2e.ts',
+		'**/tests/e2e/wallet-extensions/extension-loaded-smoke.e2e.ts',
+		'**/tests/e2e/wallet-extensions/provider-discovery.e2e.ts',
+		'**/tests/e2e/wallet-extensions/real-wallets-required.e2e.ts',
 	],
 })
