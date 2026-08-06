@@ -1,187 +1,232 @@
-export type TzktAddress = {
-	address: string
-	alias?: string
-}
+import {
+	type as arktype,
+	type Type,
+} from 'arktype'
 
-export type TzktAccount = {
-	address: string
-	type: string
-	balance: number
-	counter?: number
-	delegate?: TzktAddress
-	revealed?: boolean
-	publicKey?: string
-	firstLevel: number
-	lastLevel: number
-	firstActivity: string
-	lastActivity: string
-}
+export const tzktAddressWire = arktype({
+	address: 'string > 0',
+	'alias?': 'string',
+})
 
-export type TzktBigMap = {
-	ptr: number
-	contract: TzktAddress
-	path: string
-	tags?: string[]
-	active: boolean
-	firstLevel: number
-	lastLevel: number
-	totalKeys: number
-	activeKeys: number
-	updates: number
-	keyType?: unknown
-	valueType?: unknown
-}
+export type TzktAddress = typeof tzktAddressWire.infer
 
-export type TzktBigMapKey = {
-	id: number
-	active: boolean
-	hash: string
-	key: unknown
-	value: unknown
-	firstLevel: number
-	lastLevel: number
-	updates: number
-}
+export const tzktAccountWire = arktype({
+	address: 'string > 0',
+	type: 'string > 0',
+	balance: 'number.integer >= 0',
+	'counter?': 'number.integer >= 0',
+	'delegate?': tzktAddressWire,
+	'revealed?': 'boolean',
+	'publicKey?': 'string',
+	firstLevel: 'number.integer >= 0',
+	lastLevel: 'number.integer >= 0',
+	firstActivity: 'string',
+	lastActivity: 'string',
+})
 
-export type TzktBigMapUpdateContent = {
-	hash: string
-	key?: unknown
-	value?: unknown
-}
+export type TzktAccount = typeof tzktAccountWire.infer
 
-export type TzktBigMapUpdate = {
-	id: number
-	level: number
-	timestamp: string
-	bigmap: number
-	contract?: TzktAddress
-	path?: string
-	action: string
-	content?: TzktBigMapUpdateContent
-}
+export const tzktBigMapWire = arktype({
+	ptr: 'number.integer >= 0',
+	contract: tzktAddressWire,
+	path: 'string',
+	'tags?': 'string[]',
+	active: 'boolean',
+	firstLevel: 'number.integer >= 0',
+	lastLevel: 'number.integer >= 0',
+	totalKeys: 'number.integer >= 0',
+	activeKeys: 'number.integer >= 0',
+	updates: 'number.integer >= 0',
+	'keyType?': 'unknown',
+	'valueType?': 'unknown',
+})
 
-export type TzktBlock = {
-	level: number
-	timestamp: string
-	hash: string
-	cycle?: number
-	proto?: number
-	payloadRound?: number
-	blockRound?: number
-	protocol?: string
-	predecessor?: string
-	payloadHash?: string
-	operationsHash?: string
-	fitness?: unknown
-	baker?: TzktAddress
-	proposer?: TzktAddress
-}
+export type TzktBigMap = typeof tzktBigMapWire.infer
 
-export type TzktContract = {
-	address: string
-	alias?: string
-	kind?: string
-	type?: string
-	balance?: number
-	typeHash?: number
-	codeHash?: number
-	creator?: TzktAddress
-	delegate?: TzktAddress
-	firstActivity?: number
-	lastActivity?: number
-	firstActivityTime?: string
-	lastActivityTime?: string
-}
+export const tzktBigMapKeyWire = arktype({
+	id: 'number.integer >= 0',
+	active: 'boolean',
+	hash: 'string > 0',
+	key: 'unknown',
+	value: 'unknown',
+	firstLevel: 'number.integer >= 0',
+	lastLevel: 'number.integer >= 0',
+	updates: 'number.integer >= 0',
+})
 
-export type TzktHead = {
-	chain: string
-	chainId: string
-	cycle: number
-	level: number
-	hash: string
-	protocol: string
-	timestamp: string
-	synced: boolean
-	knownLevel?: number
-}
+export type TzktBigMapKey = typeof tzktBigMapKeyWire.infer
 
-export type TzktStatistics = {
-	level: number
-	timestamp: string
-	totalSupply: number
-	circulatingSupply?: number
-}
+export const tzktBigMapUpdateWire = arktype({
+	id: 'number.integer >= 0',
+	level: 'number.integer >= 0',
+	timestamp: 'string',
+	bigmap: 'number.integer >= 0',
+	'contract?': tzktAddressWire,
+	'path?': 'string',
+	action: 'string > 0',
+	'content?': {
+		hash: 'string > 0',
+		'key?': 'unknown',
+		'value?': 'unknown',
+	},
+})
 
-export type TzktOperation = {
-	type: string
-	id: number
-	level: number
-	timestamp: string
-	hash: string
-	block?: string
-	counter?: number
-	nonce?: number
-	initiator?: TzktAddress
-	sender?: TzktAddress
-	target?: TzktAddress
-	newDelegate?: TzktAddress
-	originatedContract?: TzktAddress
-	status?: string
-	amount?: number
-	bakerFee?: number
-	storageFee?: number
-	allocationFee?: number
-	gasLimit?: number
-	gasUsed?: number
-	storageLimit?: number
-	storageUsed?: number
-	parameter?: {
-		entrypoint?: string
-		value?: unknown
-	}
-	originatedContracts?: TzktAddress[]
-}
+export type TzktBigMapUpdate = typeof tzktBigMapUpdateWire.infer
 
-export type TzktTokenMetadata = {
-	name?: string
-	symbol?: string
-	decimals?: string | number
-	artifactUri?: string
-	displayUri?: string
-	thumbnailUri?: string
-}
+export const tzktBlockWire = arktype({
+	level: 'number.integer >= 0',
+	timestamp: 'string',
+	hash: 'string > 0',
+	'cycle?': 'number.integer',
+	'proto?': 'number.integer',
+	'payloadRound?': 'number.integer >= 0',
+	'blockRound?': 'number.integer >= 0',
+	'protocol?': 'string',
+	'predecessor?': 'string',
+	'payloadHash?': 'string',
+	'operationsHash?': 'string',
+	'fitness?': 'unknown',
+	'baker?': tzktAddressWire,
+	'proposer?': tzktAddressWire,
+})
 
-export type TzktToken = {
-	id: number
-	contract: TzktAddress
-	tokenId: string
-	standard?: string
-	metadata?: TzktTokenMetadata
-	totalSupply?: string
-	holdersCount?: number
-	transfersCount?: number
-	firstLevel?: number
-	lastLevel?: number
-	metadataUri?: string
-}
+export type TzktBlock = typeof tzktBlockWire.infer
 
-export type TzktTokenBalance = {
-	id: number
-	account: TzktAddress
-	token: TzktToken
-	balance: string
-	firstLevel: number
-	lastLevel: number
-	transfersCount: number
-}
+export const tzktContractWire = arktype({
+	address: 'string > 0',
+	'alias?': 'string',
+	'kind?': 'string',
+	'type?': 'string',
+	'balance?': 'number.integer >= 0',
+	'typeHash?': 'number.integer',
+	'codeHash?': 'number.integer',
+	'creator?': tzktAddressWire,
+	'delegate?': tzktAddressWire,
+	'firstActivity?': 'number.integer >= 0',
+	'lastActivity?': 'number.integer >= 0',
+	'firstActivityTime?': 'string',
+	'lastActivityTime?': 'string',
+})
 
-export type TzktTokenTransfer = {
-	id: number
-	level: number
-	timestamp: string
-	token: TzktToken
-	from?: TzktAddress
-	to?: TzktAddress
-	amount: string
-	transactionId?: number
-}
+export type TzktContract = typeof tzktContractWire.infer
+
+export const tzktHeadWire = arktype({
+	chain: 'string > 0',
+	chainId: 'string > 0',
+	cycle: 'number.integer >= 0',
+	level: 'number.integer >= 0',
+	hash: 'string > 0',
+	protocol: 'string > 0',
+	timestamp: 'string',
+	synced: 'boolean',
+	'knownLevel?': 'number.integer >= 0',
+})
+
+export type TzktHead = typeof tzktHeadWire.infer
+
+export const tzktStatisticsWire = arktype({
+	level: 'number.integer >= 0',
+	timestamp: 'string',
+	totalSupply: 'number.integer >= 0',
+	'circulatingSupply?': 'number.integer >= 0',
+})
+
+export type TzktStatistics = typeof tzktStatisticsWire.infer
+
+export const tzktOperationWire = arktype({
+	type: 'string > 0',
+	id: 'number.integer >= 0',
+	level: 'number.integer >= 0',
+	timestamp: 'string',
+	hash: 'string > 0',
+	'block?': 'string',
+	'counter?': 'number.integer >= 0',
+	'nonce?': 'number.integer >= 0',
+	'initiator?': tzktAddressWire,
+	'sender?': tzktAddressWire,
+	'target?': tzktAddressWire,
+	'newDelegate?': tzktAddressWire,
+	'originatedContract?': tzktAddressWire,
+	'status?': 'string',
+	'amount?': 'number.integer >= 0',
+	'bakerFee?': 'number.integer >= 0',
+	'storageFee?': 'number.integer >= 0',
+	'allocationFee?': 'number.integer >= 0',
+	'gasLimit?': 'number.integer >= 0',
+	'gasUsed?': 'number.integer >= 0',
+	'storageLimit?': 'number.integer >= 0',
+	'storageUsed?': 'number.integer >= 0',
+	'parameter?': {
+		'entrypoint?': 'string',
+		'value?': 'unknown',
+	},
+	'originatedContracts?': tzktAddressWire.array(),
+})
+
+export type TzktOperation = typeof tzktOperationWire.infer
+
+export const tzktTokenMetadataWire = arktype({
+	'name?': 'string',
+	'symbol?': 'string',
+	'decimals?': 'string | number.integer >= 0',
+	'artifactUri?': 'string',
+	'displayUri?': 'string',
+	'thumbnailUri?': 'string',
+})
+
+export type TzktTokenMetadata = typeof tzktTokenMetadataWire.infer
+
+export const tzktTokenWire = arktype({
+	id: 'number.integer >= 0',
+	contract: tzktAddressWire,
+	tokenId: 'string',
+	'standard?': 'string',
+	'metadata?': tzktTokenMetadataWire,
+	'totalSupply?': 'string',
+	'holdersCount?': 'number.integer >= 0',
+	'transfersCount?': 'number.integer >= 0',
+	'firstLevel?': 'number.integer >= 0',
+	'lastLevel?': 'number.integer >= 0',
+	'metadataUri?': 'string',
+})
+
+export type TzktToken = typeof tzktTokenWire.infer
+
+export const tzktTokenBalanceWire = arktype({
+	id: 'number.integer >= 0',
+	account: tzktAddressWire,
+	token: tzktTokenWire,
+	balance: 'string',
+	firstLevel: 'number.integer >= 0',
+	lastLevel: 'number.integer >= 0',
+	transfersCount: 'number.integer >= 0',
+})
+
+export type TzktTokenBalance = typeof tzktTokenBalanceWire.infer
+
+export const tzktTokenTransferWire = arktype({
+	id: 'number.integer >= 0',
+	level: 'number.integer >= 0',
+	timestamp: 'string',
+	token: tzktTokenWire,
+	'from?': tzktAddressWire,
+	'to?': tzktAddressWire,
+	amount: 'string',
+	'transactionId?': 'number.integer >= 0',
+})
+
+export type TzktTokenTransfer = typeof tzktTokenTransferWire.infer
+
+export const tzktAddress = tzktAddressWire satisfies Type<TzktAddress>
+export const tzktAccount = tzktAccountWire satisfies Type<TzktAccount>
+export const tzktBigMap = tzktBigMapWire satisfies Type<TzktBigMap>
+export const tzktBigMapKey = tzktBigMapKeyWire satisfies Type<TzktBigMapKey>
+export const tzktBigMapUpdate = tzktBigMapUpdateWire satisfies Type<TzktBigMapUpdate>
+export const tzktBlock = tzktBlockWire satisfies Type<TzktBlock>
+export const tzktContract = tzktContractWire satisfies Type<TzktContract>
+export const tzktHead = tzktHeadWire satisfies Type<TzktHead>
+export const tzktStatistics = tzktStatisticsWire satisfies Type<TzktStatistics>
+export const tzktOperation = tzktOperationWire satisfies Type<TzktOperation>
+export const tzktToken = tzktTokenWire satisfies Type<TzktToken>
+export const tzktTokenBalance = tzktTokenBalanceWire satisfies Type<TzktTokenBalance>
+export const tzktTokenTransfer = tzktTokenTransferWire satisfies Type<TzktTokenTransfer>

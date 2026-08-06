@@ -1,60 +1,77 @@
-import { type as arktype, type Type } from 'arktype'
 import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
-import type {
-	TzktBigMap,
-	TzktBigMapKey,
-	TzktBigMapUpdate,
-	TzktBlock,
-	TzktContract,
-	TzktAccount,
-	TzktHead,
-	TzktOperation,
-	TzktStatistics,
-	TzktToken,
-	TzktTokenBalance,
-	TzktTokenTransfer,
+import {
+	tzktAccount,
+	tzktBigMap,
+	tzktBigMapKey,
+	tzktBigMapUpdate,
+	tzktBlock,
+	tzktContract,
+	tzktHead,
+	tzktOperation,
+	tzktStatistics,
+	tzktToken,
+	tzktTokenBalance,
+	tzktTokenTransfer,
+	type TzktAccount,
+	type TzktBigMap,
+	type TzktBigMapKey,
+	type TzktBigMapUpdate,
+	type TzktBlock,
+	type TzktContract,
+	type TzktHead,
+	type TzktOperation,
+	type TzktStatistics,
+	type TzktToken,
+	type TzktTokenBalance,
+	type TzktTokenTransfer,
 } from '$/sources/Tzkt/Rest/types.ts'
 import bindings from '$/sources/Tzkt/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Tzkt_Rest][0]
 const baseUrl = firstHttpUrlForBinding(binding).replace(/\/$/, '')
-const tzktBlock = arktype({
-	level: 'number.integer >= 0',
-	timestamp: 'string',
-	hash: 'string',
-	'cycle?': 'number.integer',
-	'protocol?': 'string',
-	'predecessor?': 'string',
-	'payloadHash?': 'string',
-	'operationsHash?': 'string',
-	'blockRound?': 'number.integer >= 0',
-	'baker?': {
-		address: 'string',
-		'alias?': 'string',
-	},
-	'fitness?': 'unknown',
-}) satisfies Type<TzktBlock>
-const tzktHead = arktype({
-	chain: 'string',
-	chainId: 'string',
-	cycle: 'number.integer >= 0',
-	level: 'number.integer >= 0',
-	hash: 'string',
-	protocol: 'string',
-	timestamp: 'string',
-	synced: 'boolean',
-	'knownLevel?': 'number.integer >= 0',
-}) satisfies Type<TzktHead>
-const tzktStatistics = arktype({
-	level: 'number.integer >= 0',
-	timestamp: 'string',
-	totalSupply: 'number.integer >= 0',
-	'circulatingSupply?': 'number.integer >= 0',
-}) satisfies Type<TzktStatistics>
+
+const omitUndefinedJson = (
+	value: unknown
+): unknown => {
+	if (Array.isArray(value))
+		return value.map(omitUndefinedJson)
+	if (value != null && typeof value === 'object')
+		return Object.fromEntries(
+			Object.entries(value)
+				.filter(([, entry]) => entry !== undefined)
+				.map(([key, entry]) => [
+					key,
+					omitUndefinedJson(entry),
+				])
+		)
+	return value
+}
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(omitUndefinedJson(response))
+	} catch {
+		throw new Error(`Tzkt_Rest: invalid ${label} response envelope`)
+	}
+}
+
+const assertEnvelopeArray = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	if (!Array.isArray(response))
+		throw new Error(`Tzkt_Rest: invalid ${label} response envelope`)
+	return response.map((row) => assertEnvelope(label, wire, row))
+}
 
 const queryString = (parameters: Record<string, string | number | undefined>) => (
 	Object.entries(parameters)
@@ -92,41 +109,49 @@ const assertNonemptyAddress = (
 		throw new Error(`TzKT ${label} address must not be empty`)
 }
 
-export const getBigMap = ({
+export const getBigMap = async ({
 	bigMapId,
 	level,
 }: {
 	bigMapId: bigint | number | string
 	level?: bigint | number
 }) => (
-	sourceGetJson<TzktBigMap>(
-		binding,
-		`${baseUrl}/v1/bigmaps/${bigMapId}${(
-			level == null ?
-				''
-			:
-				`?${queryString({ level: String(level) })}`
-		)}`
-	)
+	assertEnvelope(
+		'bigmap',
+		tzktBigMap,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/bigmaps/${bigMapId}${(
+				level == null ?
+					''
+				:
+					`?${queryString({ level: String(level) })}`
+			)}`
+		)
+	) as TzktBigMap
 )
 
-export const listBigMaps = ({
+export const listBigMaps = async ({
 	contract,
 	limit,
 }: {
 	contract?: string
 	limit?: number
 }) => (
-	sourceGetJson<TzktBigMap[]>(
-		binding,
-		`${baseUrl}/v1/bigmaps?${queryString({
-			contract,
-			limit,
-		})}`
-	)
+	assertEnvelopeArray(
+		'bigmap',
+		tzktBigMap,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/bigmaps?${queryString({
+				contract,
+				limit,
+			})}`
+		)
+	) as TzktBigMap[]
 )
 
-export const getBigMapKey = ({
+export const getBigMapKey = async ({
 	bigMapId,
 	keyHash,
 	level,
@@ -135,33 +160,41 @@ export const getBigMapKey = ({
 	keyHash: string
 	level?: bigint | number
 }) => (
-	sourceGetJson<TzktBigMapKey>(
-		binding,
-		`${baseUrl}/v1/bigmaps/${bigMapId}/keys/${keyHash}${(
-			level == null ?
-				''
-			:
-				`?${queryString({ level: String(level) })}`
-		)}`
-	)
+	assertEnvelope(
+		'bigmap key',
+		tzktBigMapKey,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/bigmaps/${bigMapId}/keys/${keyHash}${(
+				level == null ?
+					''
+				:
+					`?${queryString({ level: String(level) })}`
+			)}`
+		)
+	) as TzktBigMapKey
 )
 
-export const listBigMapKeys = ({
+export const listBigMapKeys = async ({
 	bigMapId,
 	limit,
 }: {
 	bigMapId: bigint | number | string
 	limit?: number
 }) => (
-	sourceGetJson<TzktBigMapKey[]>(
-		binding,
-		`${baseUrl}/v1/bigmaps/${bigMapId}/keys?${queryString({
-			limit,
-		})}`
-	)
+	assertEnvelopeArray(
+		'bigmap key',
+		tzktBigMapKey,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/bigmaps/${bigMapId}/keys?${queryString({
+				limit,
+			})}`
+		)
+	) as TzktBigMapKey[]
 )
 
-export const listBigMapUpdates = ({
+export const listBigMapUpdates = async ({
 	bigMapId,
 	keyHash,
 	level,
@@ -172,34 +205,42 @@ export const listBigMapUpdates = ({
 	level?: bigint | number
 	limit?: number
 }) => (
-	sourceGetJson<TzktBigMapUpdate[]>(
-		binding,
-		keyHash == null ?
-			`${baseUrl}/v1/bigmaps/updates?${queryString({
-				bigmap: bigMapId == null ? undefined : String(bigMapId),
-				level: level == null ? undefined : String(level),
-				limit,
-			})}`
-		:
-			`${baseUrl}/v1/bigmaps/${bigMapId}/keys/${keyHash}/updates?${queryString({
-				limit,
-			})}`
-	)
+	assertEnvelopeArray(
+		'bigmap update',
+		tzktBigMapUpdate,
+		await sourceGetJson<unknown>(
+			binding,
+			keyHash == null ?
+				`${baseUrl}/v1/bigmaps/updates?${queryString({
+					bigmap: bigMapId == null ? undefined : String(bigMapId),
+					level: level == null ? undefined : String(level),
+					limit,
+				})}`
+			:
+				`${baseUrl}/v1/bigmaps/${bigMapId}/keys/${keyHash}/updates?${queryString({
+					limit,
+				})}`
+		)
+	) as TzktBigMapUpdate[]
 )
 
-export const getContract = ({
+export const getContract = async ({
 	address,
 }: {
 	address: string
 }) => {
 	assertNonemptyAddress(address, 'contract')
-	return sourceGetJson<TzktContract>(
-		binding,
-		`${baseUrl}/v1/contracts/${encodeURIComponent(address)}`
-	)
+	return assertEnvelope(
+		'contract',
+		tzktContract,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/contracts/${encodeURIComponent(address)}`
+		)
+	) as TzktContract
 }
 
-export const listContracts = ({
+export const listContracts = async ({
 	offset,
 	limit,
 }: {
@@ -207,16 +248,23 @@ export const listContracts = ({
 	limit: number
 }) => {
 	assertPage(offset, limit, 'contract')
-	return sourceGetJson<TzktContract[]>(
-		binding,
-		`${baseUrl}/v1/contracts?${queryString({
-			offset,
-			limit,
-		})}`
-	)
+	const contracts = assertEnvelopeArray(
+		'contract',
+		tzktContract,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/contracts?${queryString({
+				offset,
+				limit,
+			})}`
+		)
+	) as TzktContract[]
+	if (contracts.length > limit)
+		throw new Error('TzKT contracts exceeded the requested limit')
+	return contracts
 }
 
-export const getAccount = ({
+export const getAccount = async ({
 	address,
 	level,
 }: {
@@ -224,15 +272,19 @@ export const getAccount = ({
 	level?: bigint | number
 }) => {
 	assertNonemptyAddress(address, 'account')
-	return sourceGetJson<TzktAccount>(
-		binding,
-		`${baseUrl}/v1/accounts/${encodeURIComponent(address)}${(
-			level == null ?
-				''
-			:
-				`?${queryString({ level: String(level) })}`
-		)}`
-	)
+	return assertEnvelope(
+		'account',
+		tzktAccount,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/accounts/${encodeURIComponent(address)}${(
+				level == null ?
+					''
+				:
+					`?${queryString({ level: String(level) })}`
+			)}`
+		)
+	) as TzktAccount
 }
 
 const assertAccountPage = (
@@ -254,27 +306,23 @@ export const listAccountOperations = async ({
 	assertAccountPage(offset, limit)
 	assertNonemptyAddress(address, 'account')
 
-	const operations = await sourceGetJson<TzktOperation[]>(
-		binding,
-		`${baseUrl}/v1/accounts/${encodeURIComponent(address)}/operations?${queryString({
-			offset,
-			limit,
-		})}`
-	)
+	const operations = assertEnvelopeArray(
+		'operation',
+		tzktOperation,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/accounts/${encodeURIComponent(address)}/operations?${queryString({
+				offset,
+				limit,
+			})}`
+		)
+	) as TzktOperation[]
 	if (operations.length > limit)
 		throw new Error('TzKT account operations exceeded the requested limit')
 
 	const operationIds = new Set<number>()
 	for (const operation of operations) {
-		if (
-			!Number.isSafeInteger(operation.id)
-			|| operation.id < 0
-			|| !Number.isSafeInteger(operation.level)
-			|| operation.level < 0
-			|| operation.hash.length === 0
-			|| operation.type.length === 0
-			|| !Number.isSafeInteger(Date.parse(operation.timestamp))
-		)
+		if (!Number.isSafeInteger(Date.parse(operation.timestamp)))
 			throw new Error('TzKT account operations returned a malformed identity')
 		if (
 			operation.initiator?.address !== address
@@ -303,14 +351,18 @@ export const listAccountTokenBalances = async ({
 	assertAccountPage(offset, limit)
 	assertNonemptyAddress(address, 'account')
 
-	const balances = await sourceGetJson<TzktTokenBalance[]>(
-		binding,
-		`${baseUrl}/v1/tokens/balances?${queryString({
-			account: address,
-			offset,
-			limit,
-		})}`
-	)
+	const balances = assertEnvelopeArray(
+		'token balance',
+		tzktTokenBalance,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/tokens/balances?${queryString({
+				account: address,
+				offset,
+				limit,
+			})}`
+		)
+	) as TzktTokenBalance[]
 	if (balances.length > limit)
 		throw new Error('TzKT account token balances exceeded the requested limit')
 
@@ -329,29 +381,37 @@ export const listAccountTokenTransfers = async ({
 	assertAccountPage(offset, limit)
 	assertNonemptyAddress(address, 'account')
 
-	const transfers = await sourceGetJson<TzktTokenTransfer[]>(
-		binding,
-		`${baseUrl}/v1/tokens/transfers?${queryString({
-			'anyof.from.to': address,
-			offset,
-			limit,
-		})}`
-	)
+	const transfers = assertEnvelopeArray(
+		'token transfer',
+		tzktTokenTransfer,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/tokens/transfers?${queryString({
+				'anyof.from.to': address,
+				offset,
+				limit,
+			})}`
+		)
+	) as TzktTokenTransfer[]
 	if (transfers.length > limit)
 		throw new Error('TzKT account token transfers exceeded the requested limit')
 
 	return transfers
 }
 
-export const getBlock = ({
+export const getBlock = async ({
 	level,
 }: {
 	level: bigint | number
 }) => (
-	sourceGetJson<unknown>(
-		binding,
-		`${baseUrl}/v1/blocks/${String(level)}`
-	).then((wire) => tzktBlock.assert(wire))
+	assertEnvelope(
+		'block',
+		tzktBlock,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/blocks/${String(level)}`
+		)
+	) as TzktBlock
 )
 
 export const listBlocks = async ({
@@ -362,35 +422,47 @@ export const listBlocks = async ({
 	limit: number
 }) => {
 	assertPage(offset, limit, 'block')
-	const blocks = await sourceGetJson<unknown[]>(
-		binding,
-		`${baseUrl}/v1/blocks?${queryString({
-			offset,
-			limit,
-			'sort.desc': 'level',
-		})}`
-	)
+	const blocks = assertEnvelopeArray(
+		'block',
+		tzktBlock,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/blocks?${queryString({
+				offset,
+				limit,
+				'sort.desc': 'level',
+			})}`
+		)
+	) as TzktBlock[]
 	if (blocks.length > limit)
 		throw new Error('TzKT blocks exceeded the requested limit')
 
-	return blocks.map((wire) => tzktBlock.assert(wire))
+	return blocks
 }
 
-export const getHead = () => (
-	sourceGetJson<unknown>(
-		binding,
-		`${baseUrl}/v1/head`
-	).then((wire) => tzktHead.assert(wire))
+export const getHead = async () => (
+	assertEnvelope(
+		'head',
+		tzktHead,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/head`
+		)
+	) as TzktHead
 )
 
-export const getCurrentStatistics = () => (
-	sourceGetJson<unknown>(
-		binding,
-		`${baseUrl}/v1/statistics/current`
-	).then((wire) => tzktStatistics.assert(wire))
+export const getCurrentStatistics = async () => (
+	assertEnvelope(
+		'statistics',
+		tzktStatistics,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/statistics/current`
+		)
+	) as TzktStatistics
 )
 
-export const listOperationsByHash = ({
+export const listOperationsByHash = async ({
 	operationHash,
 }: {
 	operationHash: string
@@ -398,10 +470,14 @@ export const listOperationsByHash = ({
 	if (operationHash.length === 0)
 		throw new Error('TzKT operation hash must not be empty')
 
-	return sourceGetJson<TzktOperation[]>(
-		binding,
-		`${baseUrl}/v1/operations/${encodeURIComponent(operationHash)}`
-	)
+	return assertEnvelopeArray(
+		'operation',
+		tzktOperation,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/operations/${encodeURIComponent(operationHash)}`
+		)
+	) as TzktOperation[]
 }
 
 export const listTokenTransfers = async ({
@@ -412,13 +488,17 @@ export const listTokenTransfers = async ({
 	limit: number
 }) => {
 	assertPage(offset, limit, 'token transfer')
-	const transfers = await sourceGetJson<TzktTokenTransfer[]>(
-		binding,
-		`${baseUrl}/v1/tokens/transfers?${queryString({
-			offset,
-			limit,
-		})}`
-	)
+	const transfers = assertEnvelopeArray(
+		'token transfer',
+		tzktTokenTransfer,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/tokens/transfers?${queryString({
+				offset,
+				limit,
+			})}`
+		)
+	) as TzktTokenTransfer[]
 	if (transfers.length > limit)
 		throw new Error('TzKT token transfers exceeded the requested limit')
 
@@ -433,13 +513,17 @@ export const listTokens = async ({
 	limit: number
 }) => {
 	assertPage(offset, limit, 'token')
-	const tokens = await sourceGetJson<TzktToken[]>(
-		binding,
-		`${baseUrl}/v1/tokens?${queryString({
-			offset,
-			limit,
-		})}`
-	)
+	const tokens = assertEnvelopeArray(
+		'token',
+		tzktToken,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/tokens?${queryString({
+				offset,
+				limit,
+			})}`
+		)
+	) as TzktToken[]
 	if (tokens.length > limit)
 		throw new Error('TzKT tokens exceeded the requested limit')
 
@@ -454,14 +538,18 @@ export const getToken = async ({
 	tokenId: bigint | number | string
 }) => {
 	assertNonemptyAddress(contractAddress, 'token contract')
-	const tokens = await sourceGetJson<TzktToken[]>(
-		binding,
-		`${baseUrl}/v1/tokens?${queryString({
-			contract: contractAddress,
-			tokenId: String(tokenId),
-			limit: 1,
-		})}`
-	)
+	const tokens = assertEnvelopeArray(
+		'token',
+		tzktToken,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/tokens?${queryString({
+				contract: contractAddress,
+				tokenId: String(tokenId),
+				limit: 1,
+			})}`
+		)
+	) as TzktToken[]
 	const token = tokens[0]
 	if (token == null)
 		throw new Error(`TzKT token ${contractAddress}/${String(tokenId)} not found`)
