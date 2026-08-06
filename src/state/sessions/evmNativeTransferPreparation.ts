@@ -118,14 +118,26 @@ export type BlockheadSessionSimulationCallPayload = EntityFieldValues<
 	EntityType.BlockheadSessionSimulationCall
 >
 
-export type EvmNativeTransferPreparation = {
-	ready: boolean
+export type EvmNativeTransferPreparation = (
+	| {
+		ready: true
+		paramsHash: ZeroExHexValue
+		intent: BlockheadTransferIntentPayload & {
+			$network: NonNullable<BlockheadTransferIntentPayload['$network']>
+		}
+		transaction: Omit<ExecutionCall, 'blockTag'>
+		simulation: BlockheadSessionSimulationPayload
+	}
+	| {
+		ready: false
+		paramsHash?: ZeroExHexValue
+		intent?: BlockheadTransferIntentPayload
+		transaction?: Omit<ExecutionCall, 'blockTag'>
+		simulation?: BlockheadSessionSimulationPayload
+	}
+) & {
 	error?: string
-	paramsHash?: ZeroExHexValue
-	intent?: BlockheadTransferIntentPayload
 	readiness: EvmNativeTransferReadiness[]
-	transaction?: Omit<ExecutionCall, 'blockTag'>
-	simulation?: BlockheadSessionSimulationPayload
 	simulationCall?: BlockheadSessionSimulationCallPayload
 	walletRequest?: EntitySelector<typeof schema, EntityType.BlockheadWalletRequest>
 }
@@ -744,10 +756,6 @@ export const applyEvmNativeTransferPreparation = async ({
 
 	if (
 		!preparation.ready
-		|| preparation.intent == null
-		|| preparation.transaction == null
-		|| preparation.simulation == null
-		|| preparation.paramsHash == null
 		|| action == null
 	)
 		return preparation
@@ -826,7 +834,7 @@ export const applyEvmNativeTransferPreparation = async ({
 					),
 				}],
 			},
-		})
+		}, walletConnections)
 	}
 	catch (error) {
 		if (!(error instanceof Error) || !error.message.startsWith('Wallet request definition already exists:'))

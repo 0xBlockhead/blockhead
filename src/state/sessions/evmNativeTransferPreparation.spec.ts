@@ -734,7 +734,14 @@ describe('EVM native transfer preparation application', () => {
 						inputDataHash: expectedEmptyDataHash,
 					}],
 				},
-			})
+			}),
+			[
+				expect.objectContaining({
+					connectionKey: 'connection-1',
+					selected: true,
+					status: BlockheadConnectionStatus.Connected,
+				}),
+			]
 		)
 		expect(localMutationMocks.writeLocalBlockheadWalletRequest_Timestamp).toHaveBeenCalledExactlyOnceWith(
 			context,
@@ -814,7 +821,14 @@ describe('EVM native transfer preparation application', () => {
 						id: 'simulation-application-retry',
 					},
 				}),
-			})
+			}),
+			[
+				expect.objectContaining({
+					connectionKey: 'connection-1',
+					selected: true,
+					status: BlockheadConnectionStatus.Connected,
+				}),
+			]
 		)
 		expect(localMutationMocks.writeLocalBlockheadWalletRequest_Timestamp).toHaveBeenCalledExactlyOnceWith(
 			context,
