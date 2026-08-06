@@ -6,6 +6,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import { ambireWalletMatrixScenarios } from './Ambire/matrix.ts'
+import { argentXWalletMatrixScenarios } from './ArgentX/matrix.ts'
 import { backpackBlockedObservation } from './Backpack/driver.ts'
 import { backpackWalletMatrixScenarios } from './Backpack/matrix.ts'
 import { keplrBlockedObservation } from './Keplr/driver.ts'
@@ -13,6 +14,9 @@ import { keplrWalletMatrixScenarios } from './Keplr/matrix.ts'
 import { laceSidePanelBlockedObservation } from './Lace/driver.ts'
 import { laceWalletMatrixScenarios } from './Lace/matrix.ts'
 import { metamaskWalletMatrixScenarios } from './MetaMask/matrix.ts'
+import { petraWalletMatrixScenarios } from './Petra/matrix.ts'
+import { polkadotJsWalletMatrixScenarios } from './PolkadotJs/matrix.ts'
+import { rabbyWalletMatrixScenarios } from './Rabby/matrix.ts'
 import { tahoBlockedObservation } from './Taho/driver.ts'
 import { tahoWalletMatrixScenarios } from './Taho/matrix.ts'
 import { tonkeeperBlockedObservation } from './Tonkeeper/driver.ts'
@@ -23,8 +27,10 @@ import { zerionTurnstileBlockedObservation } from './Zerion/driver.ts'
 import { zerionWalletMatrixScenarios } from './Zerion/matrix.ts'
 import {
 	assertWalletMatrixOutcomes,
+	formatWalletMatrixReport,
 	hashWalletAccountAddress,
 	runWalletCompatibilityMatrix,
+	runWalletCompatibilityMatrixSuite,
 	type WalletMatrixOutcome,
 	type WalletMatrixScenario,
 } from './WalletCompatibilityMatrix.ts'
@@ -69,6 +75,80 @@ const blockedByLifecycle = async (
 		`${kind} declared blockers`
 	)
 )
+
+const realWalletMatrixDefinitions = [
+	['ambire', () => ambireWalletMatrixScenarios('6.14.4')],
+	['argent-x', () => argentXWalletMatrixScenarios('5.23.0')],
+	['backpack', () => backpackWalletMatrixScenarios('0.10.211')],
+	['keplr', () => keplrWalletMatrixScenarios('0.13.41')],
+	['lace', () => laceWalletMatrixScenarios('2.2.0')],
+	['metamask', () => metamaskWalletMatrixScenarios('13.41.0')],
+	['petra', () => petraWalletMatrixScenarios('2.5.0')],
+	['polkadot-js', () => polkadotJsWalletMatrixScenarios('0.63.1')],
+	['rabby', () => rabbyWalletMatrixScenarios('0.94.1')],
+	['taho', () => tahoWalletMatrixScenarios('0.66.0')],
+	['tonkeeper', () => tonkeeperWalletMatrixScenarios('26.6.1')],
+	['unisat', () => unisatWalletMatrixScenarios('1.7.17')],
+	['zerion', () => zerionWalletMatrixScenarios('1.21.0')],
+] as const
+
+test('keeps every RealWalletKind in the compatibility denominator', async () => {
+	const results = await runWalletCompatibilityMatrixSuite({
+		entries: realWalletMatrixDefinitions.map(([kind, createScenarios]) => ({
+			driver: {
+				kind,
+				run: async (matrixScenario) => ({
+					outcome: 'unsupported' as const,
+					evidence: {
+						code: 'shared-matrix-denominator-only',
+						detail: 'This initialization flow is not exercised by the shared denominator test',
+						source: 'matrix-coverage',
+					},
+				}),
+			},
+			scenarios: createScenarios(),
+		})),
+	})
+
+	assert.equal(new Set(results.map(({ walletKind }) => walletKind)).size, realWalletMatrixDefinitions.length)
+	assert.equal(results.length, realWalletMatrixDefinitions.reduce((total, [, createScenarios]) => total + createScenarios().length, 0))
+	assert.ok(results.every(({ outcome }) => outcome === 'unsupported'))
+})
+
+test('rejects empty matrix inputs instead of reporting a soft-empty result', async () => {
+	await assert.rejects(() => runWalletCompatibilityMatrix({
+		driver: {
+			kind: 'petra',
+			run: async () => ({
+				outcome: 'unsupported',
+				evidence: { code: 'not-run' },
+			}),
+		},
+		scenarios: [],
+	}), /scenario set must not be empty/)
+
+	await assert.rejects(() => runWalletCompatibilityMatrixSuite({
+		entries: [],
+	}), /suite entries must not be empty/)
+
+	await assert.throws(() => {
+		formatWalletMatrixReport([], { expectedOutcomes: ['unsupported'] })
+	}, /results must not be empty/)
+
+	const [result] = await runWalletCompatibilityMatrix({
+		driver: {
+			kind: 'petra',
+			run: async () => ({
+				outcome: 'unsupported',
+				evidence: { code: 'not-run' },
+			}),
+		},
+		scenarios: [scenario],
+	})
+	await assert.throws(() => {
+		formatWalletMatrixReport([result], { expectedOutcomes: [] })
+	}, /expected outcomes must not be empty/)
+})
 
 
 test('declares the proven Ambire lifecycle and blocked signer recovery', () => {

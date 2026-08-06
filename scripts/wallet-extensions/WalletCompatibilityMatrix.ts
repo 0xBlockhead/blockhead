@@ -60,6 +60,11 @@ export type WalletMatrixDriver = {
 	run: (scenario: WalletMatrixScenario) => Promise<WalletMatrixObservation>
 }
 
+export type WalletMatrixSuiteEntry = {
+	driver: WalletMatrixDriver
+	scenarios: readonly WalletMatrixScenario[]
+}
+
 
 // Functions
 
@@ -73,6 +78,11 @@ const assertEvidenceIsSecretFree = (evidence: WalletMatrixEvidence) => {
 		throw new Error('Wallet matrix evidence must use secret-free codes and metadata')
 }
 
+const assertNonEmpty = (label: string, values: readonly unknown[]) => {
+	if (values.length === 0)
+		throw new Error(`Wallet matrix ${label} must not be empty`)
+}
+
 export const runWalletCompatibilityMatrix = async ({
 	driver,
 	scenarios,
@@ -82,6 +92,7 @@ export const runWalletCompatibilityMatrix = async ({
 	scenarios: readonly WalletMatrixScenario[]
 	step?: <_Result>(name: string, run: () => Promise<_Result>) => Promise<_Result>
 }) => {
+	assertNonEmpty('scenario set', scenarios)
 	const results: WalletMatrixResult[] = []
 	for (const scenario of scenarios)
 		results.push(await step(scenario.id, async () => {
@@ -121,7 +132,27 @@ export const runWalletCompatibilityMatrix = async ({
 	return results
 }
 
+export const runWalletCompatibilityMatrixSuite = async ({
+	entries,
+	step,
+}: {
+	entries: readonly WalletMatrixSuiteEntry[]
+	step?: <_Result>(name: string, run: () => Promise<_Result>) => Promise<_Result>
+}) => {
+	assertNonEmpty('suite entries', entries)
+	const results: WalletMatrixResult[] = []
+	for (const { driver, scenarios } of entries)
+		results.push(...await runWalletCompatibilityMatrix({
+			driver,
+			scenarios,
+			step,
+		}))
+
+	return results
+}
+
 export const summarizeWalletMatrixResults = (results: readonly WalletMatrixResult[]) => {
+	assertNonEmpty('results', results)
 	const byOutcome = {
 		blocked: 0,
 		inaccessible: 0,
@@ -149,6 +180,8 @@ export const formatWalletMatrixReport = (
 		expectedOutcomes?: readonly WalletMatrixOutcome[]
 	} = {}
 ) => {
+	if (expectedOutcomes != null)
+		assertNonEmpty('expected outcomes', expectedOutcomes)
 	const summary = summarizeWalletMatrixResults(results)
 	const unexpected = (
 		expectedOutcomes == null ?
