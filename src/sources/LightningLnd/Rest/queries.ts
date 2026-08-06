@@ -56,6 +56,14 @@ const assertLosslessUnsigned = (
 		throw new Error(`LightningLnd_Rest: invalid ${label}`)
 }
 
+const assertNonNegativeInteger = (
+	value: number | null | undefined,
+	label: string
+) => {
+	if (value != null && (!Number.isSafeInteger(value) || value < 0))
+		throw new Error(`LightningLnd_Rest: invalid ${label}`)
+}
+
 const assertGraphEdge = (
 	edge: LndChannelEdge,
 	expectedChannelId?: string
@@ -66,6 +74,16 @@ const assertGraphEdge = (
 	assertPublicKey(edge.node1_pub)
 	assertPublicKey(edge.node2_pub)
 	assertLosslessUnsigned(edge.capacity, 'channel capacity')
+	assertNonNegativeInteger(edge.last_update, 'channel last update')
+	for (const policy of [edge.node1_policy, edge.node2_policy]) {
+		if (policy == null) continue
+		assertNonNegativeInteger(policy.time_lock_delta, 'channel time lock delta')
+		assertLosslessUnsigned(policy.min_htlc, 'channel minimum HTLC')
+		assertLosslessUnsigned(policy.fee_base_msat, 'channel base fee')
+		assertLosslessUnsigned(policy.fee_rate_milli_msat, 'channel fee rate')
+		assertLosslessUnsigned(policy.max_htlc_msat, 'channel maximum HTLC')
+		assertNonNegativeInteger(policy.last_update, 'channel policy last update')
+	}
 }
 
 export const getInfo = ({
@@ -132,6 +150,8 @@ export const getChannelInfo = async ({
 	publicEnv: SourcePublicEnv
 	channelId: string
 }) => {
+	// Official LND REST/OpenAPI proof:
+	// https://lightning.engineering/api-docs/api/lnd/lightning/get-chan-info/
 	assertChannelId(channelId)
 	const edge = await requestLightningLndRestJson<LndChannelEdge>({
 		publicEnv,

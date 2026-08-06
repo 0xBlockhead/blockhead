@@ -96,4 +96,18 @@ describe('LND authenticated public graph reads', () => {
 			capacity: '9007199254740993',
 		})
 	})
+
+	it('fails closed when the graph edge has an unsafe update height', async () => {
+		respond({
+			channel_id: '123',
+			node1_pub: publicKey,
+			node2_pub: peerPublicKey,
+			last_update: Number.MAX_SAFE_INTEGER + 1,
+		})
+
+		await expect(getChannelInfo({
+			publicEnv,
+			channelId: '123',
+		})).rejects.toThrow('invalid channel last update')
+	})
 })

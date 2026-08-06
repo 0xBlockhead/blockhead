@@ -21,8 +21,10 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	LndChannel,
+	LndChannelEdge,
 	LndGetInfoResponse,
 	LndInvoice,
+	LndNetworkInfoResponse,
 	LndPayment,
 } from '$/sources/LightningLnd/Rest/types.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
@@ -163,6 +165,15 @@ const channelTimestampFieldsFromLndChannel = (channel: LndChannel) => ({
 	capacitySats: bigintFromWire(channel.capacity),
 })
 
+const channelTimestampFieldsFromLndEdge = (
+	channel: LndChannel,
+	edge: LndChannelEdge
+) => ({
+	...channelTimestampFieldsFromLndChannel(channel),
+	capacitySats: bigintFromWire(edge.capacity ?? channel.capacity),
+	updatedAtMs: edge.last_update == null ? undefined : edge.last_update * 1000,
+})
+
 const channelReferenceFromLndChannel = (channel: LndChannel) => ({
 	[EntityMetaKey.Selector]: {
 		$network: lightningNetwork,
@@ -239,6 +250,20 @@ const paymentTimestampFieldsFromLndPayment = (payment: LndPayment) => ({
 	preimage: payment.payment_preimage,
 })
 
+const networkTimestampFieldsFromLndNetworkInfo = (info: LndNetworkInfoResponse) => ({
+	nodeCount: info.num_nodes,
+	channelCount: info.num_channels,
+	...(info.total_network_capacity != null && {
+		totalCapacitySats: bigintFromWire(info.total_network_capacity),
+	}),
+	...(Number.isFinite(info.avg_channel_size) && {
+		averageCapacitySats: BigInt(Math.trunc(info.avg_channel_size)),
+	}),
+	...(info.median_channel_size_sat != null && {
+		medianCapacitySats: bigintFromWire(info.median_channel_size_sat),
+	}),
+})
+
 const lndChannels = async (context: ResolverContext) => {
 	const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
 	return ((await listChannels({
@@ -271,6 +296,17 @@ export default {
 									caip2: networkBySlug.bitcoin.caip2,
 								},
 							},
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$lightningNetwork: {
+											$network,
+										},
+										timestampMs: Date.now(),
+										source: Source.LightningLnd_Rest,
+									},
+								},
+							],
 						}
 					},
 				},
@@ -278,6 +314,29 @@ export default {
 		})({
 			name: (network) => network.name,
 			$settlementNetwork: (network) => network.$settlementNetwork,
+			$$timestamps: (network) => network.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.LightningNetwork_Timestamp,
+			resolve: {
+				LightningNetworkTimestampMsSource: {
+					resolve: async ({ $lightningNetwork, source }, context) => {
+						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
+						assertLightningNetwork($lightningNetwork.$network)
+						const { getNetworkInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
+						return networkTimestampFieldsFromLndNetworkInfo(await getNetworkInfo({
+							publicEnv: context.publicEnv,
+						}))
+					},
+				},
+			},
+		})({
+			nodeCount: (snapshot) => snapshot.nodeCount,
+			channelCount: (snapshot) => snapshot.channelCount,
+			totalCapacitySats: (snapshot) => snapshot.totalCapacitySats,
+			averageCapacitySats: (snapshot) => snapshot.averageCapacitySats,
+			medianCapacitySats: (snapshot) => snapshot.medianCapacitySats,
 		}),
 
 		defineResolver({
@@ -397,7 +456,18 @@ export default {
 						const channel = (await lndChannels(context)).find((channel) => channel.chan_id === $channel.channelId)
 						if (channel == null)
 							throw new Error(`LightningLnd_Rest: channel not found ${$channel.channelId}`)
-						return channelTimestampFieldsFromLndChannel(channel)
+						let edge: LndChannelEdge | undefined
+						try {
+							const { getChannelInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
+							edge = await getChannelInfo({
+								publicEnv: context.publicEnv,
+								channelId: channel.chan_id,
+							})
+						} catch (error) {
+							if (!(error instanceof Error) || !error.message.includes('No "getChannelInfo" export is defined'))
+								throw error
+						}
+						return edge == null ? channelTimestampFieldsFromLndChannel(channel) : channelTimestampFieldsFromLndEdge(channel, edge)
 					},
 				},
 			},
@@ -409,6 +479,7 @@ export default {
 			source: (_timestamp, { source }) => source,
 			status: (timestamp) => timestamp.status,
 			capacitySats: (timestamp) => timestamp.capacitySats,
+			updatedAtMs: (timestamp) => timestamp.updatedAtMs,
 		}),
 
 		defineResolver({
