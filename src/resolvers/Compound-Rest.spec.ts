@@ -130,7 +130,25 @@ describe('Compound Rest resolver module', () => {
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
-	it('rejects Compound Comet lists for unsupported eip155 networks', async () => {
+	it('rejects unsupported Compound chains on CompoundComet before transport', async () => {
+		if (compoundCometResolver == null)
+			throw new Error('missing CompoundComet resolver')
+
+		await expect(
+			compoundCometResolver.resolve.NetworkCometAddress.resolve({
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '11155111',
+					},
+				},
+				cometAddress: baseCometAddress,
+			}, context)
+		).rejects.toThrow(`${Source.Compound_Rest}: unsupported chain id 11155111`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('rejects Compound Comet lists for unsupported eip155 networks before transport', async () => {
 		if (networkResolver == null)
 			throw new Error('missing Network resolver')
 
@@ -141,7 +159,7 @@ describe('Compound Rest resolver module', () => {
 					reference: '11155111',
 				},
 			}, context)
-		).rejects.toThrow(`${Source.Compound_Rest}: no Compound III deployments for chain 11155111`)
+		).rejects.toThrow(`${Source.Compound_Rest}: unsupported chain id 11155111`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 

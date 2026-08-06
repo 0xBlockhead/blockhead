@@ -34,7 +34,13 @@ const resolveCompoundCometDeployment = async (
 	cometAddress: CompoundCometId['cometAddress']
 ) => {
 	const chainId = eip155ChainId($network)
-	const { compoundCometByChainIdAndAddress } = await import('$/sources/Compound/Rest/constants.ts')
+	const {
+		compoundCometByChainIdAndAddress,
+		compoundNetworkByChainId,
+	} = await import('$/sources/Compound/Rest/constants.ts')
+	if (compoundNetworkByChainId[chainId] == null)
+		throw new Error(`${Source.Compound_Rest}: unsupported chain id ${String(chainId)}`)
+
 	const deployment = compoundCometByChainIdAndAddress[`${String(chainId)}:${cometAddress.toLowerCase()}`]
 	if (deployment == null)
 		throw new Error(`${Source.Compound_Rest}: unknown comet ${cometAddress} on chain ${String(chainId)}`)
@@ -228,10 +234,16 @@ export default {
 				Caip2: {
 					resolve: async (network) => {
 						const chainId = eip155ChainId(network)
-						const { compoundCometsByChainId } = await import('$/sources/Compound/Rest/constants.ts')
+						const {
+							compoundCometsByChainId,
+							compoundNetworkByChainId,
+						} = await import('$/sources/Compound/Rest/constants.ts')
+						if (compoundNetworkByChainId[chainId] == null)
+							throw new Error(`${Source.Compound_Rest}: unsupported chain id ${String(chainId)}`)
+
 						const deployments = compoundCometsByChainId[chainId]
 						if (deployments == null)
-							throw new Error(`${Source.Compound_Rest}: no Compound III deployments for chain ${String(chainId)}`)
+							throw new Error(`${Source.Compound_Rest}: unsupported chain id ${String(chainId)}`)
 
 						return deployments.map((deployment) => ({
 							[EntityMetaKey.Selector]: {
