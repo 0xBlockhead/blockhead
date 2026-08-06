@@ -123,22 +123,29 @@ export default {
 							throw new Error(`${Source.Curve_Rest}: unsupported chain id ${String(chainId)}`)
 
 						const { listPools } = await import('$/sources/Curve/Rest/queries.ts')
-						return (await listPools({
+						const pools = await listPools({
 							chainId,
-						}))
-							.slice(0, resolverContextRowLimit(context))
-							.map((pool) => ({
-								[EntityMetaKey.Selector]: {
-									$network: network,
-									poolAddress: pool.poolAddress,
-								},
-							}))
+						})
+						return {
+							pools: pools
+								.slice(0, resolverContextRowLimit(context))
+								.map((pool) => ({
+									[EntityMetaKey.Selector]: {
+										$network: network,
+										poolAddress: pool.poolAddress,
+									},
+								})),
+							totalCount: pools.length,
+						}
 					},
 				},
 			},
 		})({
 			Evm: {
-				$$curvePools: (pools) => pools,
+				$$curvePools: {
+					select: (snapshot) => snapshot.pools,
+					resolveCount: (snapshot) => snapshot.totalCount,
+				},
 			},
 		}),
 	],

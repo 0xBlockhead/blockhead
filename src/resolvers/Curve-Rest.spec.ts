@@ -230,4 +230,46 @@ describe('Curve Rest resolver module', () => {
 			poolAddress: threePoolAddress,
 		}, context)).rejects.toThrow(`${Source.Curve_Rest}: invalid pools response envelope`)
 	})
+
+	it('lists Network $$curvePools with authoritative resolveCount from the full pool list', async () => {
+		if (networkCurvePoolsResolver == null)
+			throw new Error('missing Network $$curvePools resolver')
+
+		const secondPoolAddress = '0xDC24316b9AE028F1497c275EB9192a3Ea0f67022'
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				poolList: [
+					{
+						type: 'main',
+						address: threePoolAddress,
+					},
+					{
+						type: 'main',
+						address: secondPoolAddress,
+					},
+				],
+			},
+		})
+
+		const snapshot = await networkCurvePoolsResolver.resolve.Caip2.resolve(
+			baseNetwork,
+			{
+				...context,
+				pagination: {
+					limit: 1,
+				},
+			}
+		)
+
+		expect(networkCurvePoolsResolver.projections.Evm.$$curvePools.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: baseNetwork,
+					poolAddress: '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7',
+				},
+			},
+		])
+		expect(networkCurvePoolsResolver.projections.Evm.$$curvePools.resolveCount(snapshot)).toBe(2)
+	})
 })
