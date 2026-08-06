@@ -4,13 +4,21 @@ import { getJson, getText } from '$/sources/_shared/wire/HttpRest/client.ts'
 
 const binding = bindings[Source.WakuNode][0]
 
-export const getDebugInfo = () => (
-	getJson<{
+export const getDebugInfo = async () => {
+	const debugInfo = await getJson<{
 		listenAddresses: string[]
 		enrUri?: string
 	}>(binding, '/debug/v1/info')
-)
+	if (debugInfo == null || debugInfo.listenAddresses == null)
+		throw new Error('WakuNode_Rest: debug info missing listen addresses')
 
-export const getHealth = () => (
-	getText(binding, '/health')
-)
+	return debugInfo
+}
+
+export const getHealth = async () => {
+	const health = await getText(binding, '/health')
+	if (health.trim() === '')
+		throw new Error('WakuNode_Rest: health response is empty')
+
+	return health
+}
