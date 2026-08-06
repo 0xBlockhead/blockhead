@@ -73,3 +73,34 @@ test('declares Ambire recover as an explicit blocked matrix cell', async () => {
 		'ambire recover honesty'
 	)
 })
+
+test('keeps proven Ambire watch-only bridges separate from blocked signer recovery', async () => {
+	const scenarios = ambireWalletMatrixScenarios('6.14.4')
+	await assertWalletMatrixOutcomes(
+		await runWalletCompatibilityMatrix({
+			driver: {
+				kind: 'ambire',
+				run: async (scenario) => (
+					scenario.initializationFlow === 'recover' ?
+						ambireBlockedObservation(scenario)
+					:
+						{
+							accountAddress: `0xambire${scenario.accountOrdinal}`,
+							outcome: 'pass',
+							evidence: {
+								code: scenario.lifecycleEdgeCase,
+								source: 'unit-bridge-contract',
+							},
+						}
+				),
+			},
+			scenarios,
+		}),
+		[
+			'pass',
+			'pass',
+			'blocked',
+		],
+		'ambire proven bridge / blocked recovery'
+	)
+})

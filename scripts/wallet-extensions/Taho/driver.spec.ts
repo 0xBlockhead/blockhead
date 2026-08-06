@@ -83,3 +83,34 @@ test('declares Taho blank Add Wallet and recover as explicit blocked matrix cell
 		'taho blank-add-wallet / recover honesty'
 	)
 })
+
+test('keeps the proven Taho first-account bridge separate from blocked account recovery cells', async () => {
+	const scenarios = tahoWalletMatrixScenarios('0.66.0')
+	await assertWalletMatrixOutcomes(
+		await runWalletCompatibilityMatrix({
+			driver: {
+				kind: 'taho',
+				run: async (scenario) => (
+					scenario.accountOrdinal === 2 || scenario.initializationFlow === 'recover' ?
+						tahoBlockedObservation(scenario)
+					:
+						{
+							accountAddress: '0xtaho1',
+							outcome: 'pass',
+							evidence: {
+								code: scenario.lifecycleEdgeCase,
+								source: 'unit-bridge-contract',
+							},
+						}
+				),
+			},
+			scenarios,
+		}),
+		[
+			'pass',
+			'blocked',
+			'blocked',
+		],
+		'taho proven bridge / blocked recovery'
+	)
+})
