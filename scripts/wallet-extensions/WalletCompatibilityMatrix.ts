@@ -120,6 +120,9 @@ export const runWalletCompatibilityMatrix = async ({
 			if (outcome === 'pass' && !accountAddress)
 				throw new Error(`Passing wallet matrix scenario ${scenario.id} did not produce an account address`)
 
+			if (outcome !== 'pass' && accountAddress)
+				throw new Error(`Non-passing wallet matrix scenario ${scenario.id} must not produce an account address`)
+
 			return {
 				id: scenario.id,
 				walletKind: scenario.wallet.kind,

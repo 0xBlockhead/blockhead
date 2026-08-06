@@ -731,4 +731,18 @@ test('rejects passing rows without addresses and secret-bearing evidence', async
 		},
 		scenarios: [scenario],
 	}), /secret-free/)
+
+	await assert.rejects(() => runWalletCompatibilityMatrix({
+		driver: {
+			kind: 'petra',
+			run: async () => ({
+				accountAddress: '0xblocked-account',
+				outcome: 'blocked',
+				evidence: {
+					code: 'recover-ui-blocked',
+				},
+			}),
+		},
+		scenarios: [scenario],
+	}), /Non-passing wallet matrix scenario petra-create-account-1 must not produce an account address/)
 })
