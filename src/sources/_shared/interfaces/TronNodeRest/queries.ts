@@ -5,7 +5,25 @@ import type {
 	TronNodeTransaction,
 	TronNodeTransactionInfo,
 } from '$/sources/_shared/interfaces/TronNodeRest/types.ts'
+import {
+	tronNodeAccountWire,
+	tronNodeBlockWire,
+	tronNodeTransactionInfoWire,
+	tronNodeTransactionWire,
+} from '$/sources/_shared/interfaces/TronNodeRest/types.ts'
 import { postJson } from '$/sources/_shared/wire/HttpRest/client.ts'
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`TronNodeRest: invalid ${label} response envelope`)
+	}
+}
 
 export const tronNodeRest = ({
 	binding,
@@ -14,73 +32,93 @@ export const tronNodeRest = ({
 	binding: SourceBinding
 	endpointNamespace: 'wallet' | 'walletsolidity'
 }) => ({
-	getAccount: ({
+	getAccount: async ({
 		address,
 	}: {
 		address: string
 	}) => (
-		postJson<TronNodeAccount>({
-			binding,
-			path: `${endpointNamespace}/getaccount`,
-			body: {
-				address,
-				visible: true,
-			},
-		})
+		assertEnvelope(
+			'account',
+			tronNodeAccountWire,
+			await postJson<TronNodeAccount>({
+				binding,
+				path: `${endpointNamespace}/getaccount`,
+				body: {
+					address,
+					visible: true,
+				},
+			})
+		) as TronNodeAccount
 	),
-	getBlockById: ({
+	getBlockById: async ({
 		hash,
 	}: {
 		hash: string
 	}) => (
-		postJson<TronNodeBlock>({
-			binding,
-			path: `${endpointNamespace}/getblockbyid`,
-			body: {
-				value: hash,
-				visible: true,
-			},
-		})
+		assertEnvelope(
+			'block',
+			tronNodeBlockWire,
+			await postJson<TronNodeBlock>({
+				binding,
+				path: `${endpointNamespace}/getblockbyid`,
+				body: {
+					value: hash,
+					visible: true,
+				},
+			})
+		) as TronNodeBlock
 	),
-	getBlockByNumber: ({
+	getBlockByNumber: async ({
 		height,
 	}: {
 		height: bigint
 	}) => (
-		postJson<TronNodeBlock>({
-			binding,
-			path: `${endpointNamespace}/getblockbynum`,
-			body: {
-				num: Number(height),
-				visible: true,
-			},
-		})
+		assertEnvelope(
+			'block',
+			tronNodeBlockWire,
+			await postJson<TronNodeBlock>({
+				binding,
+				path: `${endpointNamespace}/getblockbynum`,
+				body: {
+					num: Number(height),
+					visible: true,
+				},
+			})
+		) as TronNodeBlock
 	),
-	getTransactionById: ({
+	getTransactionById: async ({
 		transactionId,
 	}: {
 		transactionId: string
 	}) => (
-		postJson<TronNodeTransaction>({
-			binding,
-			path: `${endpointNamespace}/gettransactionbyid`,
-			body: {
-				value: transactionId,
-				visible: true,
-			},
-		})
+		assertEnvelope(
+			'transaction',
+			tronNodeTransactionWire,
+			await postJson<TronNodeTransaction>({
+				binding,
+				path: `${endpointNamespace}/gettransactionbyid`,
+				body: {
+					value: transactionId,
+					visible: true,
+				},
+			})
+		) as TronNodeTransaction
 	),
-	getTransactionInfoById: ({
+	getTransactionInfoById: async ({
 		transactionId,
 	}: {
 		transactionId: string
 	}) => (
-		postJson<TronNodeTransactionInfo>({
-			binding,
-			path: `${endpointNamespace}/gettransactioninfobyid`,
-			body: {
-				value: transactionId,
-			},
-		})
+		assertEnvelope(
+			'transaction info',
+			tronNodeTransactionInfoWire,
+			await postJson<TronNodeTransactionInfo>({
+				binding,
+				path: `${endpointNamespace}/gettransactioninfobyid`,
+				body: {
+					value: transactionId,
+				},
+			})
+		) as TronNodeTransactionInfo
 	),
 })

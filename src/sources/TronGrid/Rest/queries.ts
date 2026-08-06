@@ -9,14 +9,36 @@ import type {
 	TronNodeWitnesses,
 } from '$/sources/_shared/interfaces/TronNodeRest/types.ts'
 import {
+	tronNodeAccountResourceWire,
+	tronNodeBlockWire,
+	tronNodeChainParametersWire,
+	tronNodeInfoWire,
+	tronNodeWitnessesWire,
+} from '$/sources/_shared/interfaces/TronNodeRest/types.ts'
+import {
 	getJson,
 	postJson,
 } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/TronGrid/bindings.ts'
-import type { TronGridAccountTransactions } from '$/sources/TronGrid/Rest/types.ts'
+import {
+	tronGridAccountTransactionsWire,
+	type TronGridAccountTransactions,
+} from '$/sources/TronGrid/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.TronGrid_Rest][0]
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`TronGrid_Rest: invalid ${label} response envelope`)
+	}
+}
 
 export const restEndpoints = [{
 	url: firstHttpUrlForBinding(binding),
@@ -34,66 +56,90 @@ export const {
 	endpointNamespace: 'wallet',
 })
 
-export const getNowBlock = () => (
-	postJson<TronNodeBlock>({
-		binding,
-		path: 'wallet/getnowblock',
-		body: {
-			visible: true,
-		},
-	})
+export const getNowBlock = async () => (
+	assertEnvelope(
+		'now block',
+		tronNodeBlockWire,
+		await postJson<TronNodeBlock>({
+			binding,
+			path: 'wallet/getnowblock',
+			body: {
+				visible: true,
+			},
+		})
+	) as TronNodeBlock
 )
 
-export const getAccountResource = ({
+export const getAccountResource = async ({
 	address,
 }: {
 	address: string
 }) => (
-	postJson<TronNodeAccountResource>({
-		binding,
-		path: 'wallet/getaccountresource',
-		body: {
-			address,
-			visible: true,
-		},
-	})
+	assertEnvelope(
+		'account resource',
+		tronNodeAccountResourceWire,
+		await postJson<TronNodeAccountResource>({
+			binding,
+			path: 'wallet/getaccountresource',
+			body: {
+				address,
+				visible: true,
+			},
+		})
+	) as TronNodeAccountResource
 )
 
-export const getAccountTransactions = ({
+export const getAccountTransactions = async ({
 	address,
 	limit,
 }: {
 	address: string
 	limit: number
 }) => (
-	getJson<TronGridAccountTransactions>(
-		binding,
-		`v1/accounts/${address}/transactions?limit=${limit.toString()}`
-	)
+	assertEnvelope(
+		'account transactions',
+		tronGridAccountTransactionsWire,
+		await getJson<TronGridAccountTransactions>(
+			binding,
+			`v1/accounts/${address}/transactions?limit=${limit.toString()}`
+		)
+	) as TronGridAccountTransactions
 )
 
-export const listWitnesses = () => (
-	postJson<TronNodeWitnesses>({
-		binding,
-		path: 'wallet/listwitnesses',
-		body: {
-			visible: true,
-		},
-	})
+export const listWitnesses = async () => (
+	assertEnvelope(
+		'witnesses',
+		tronNodeWitnessesWire,
+		await postJson<TronNodeWitnesses>({
+			binding,
+			path: 'wallet/listwitnesses',
+			body: {
+				visible: true,
+			},
+		})
+	) as TronNodeWitnesses
 )
 
-export const getChainParameters = () => (
-	postJson<TronNodeChainParameters>({
-		binding,
-		path: 'wallet/getchainparameters',
-		body: {},
-	})
+export const getChainParameters = async () => (
+	assertEnvelope(
+		'chain parameters',
+		tronNodeChainParametersWire,
+		await postJson<TronNodeChainParameters>({
+			binding,
+			path: 'wallet/getchainparameters',
+			body: {},
+		})
+	) as TronNodeChainParameters
 )
 
-export const getNodeInfo = () => (
-	postJson<TronNodeInfo>({
-		binding,
-		path: 'wallet/getnodeinfo',
-		body: {},
-	})
+export const getNodeInfo = async () => (
+	assertEnvelope(
+		'node info',
+		tronNodeInfoWire,
+		await postJson<TronNodeInfo>({
+			binding,
+			path: 'wallet/getnodeinfo',
+			body: {},
+		})
+	) as TronNodeInfo
 )

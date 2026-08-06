@@ -3,10 +3,15 @@ import {
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
 import {
+	tronScanAccountTokensWire,
 	tronScanAccountWire,
 	tronScanBlocksWire,
+	tronScanContractDetailWire,
+	tronScanTokenOverviewWire,
 	tronScanTransactionDetailWire,
 	tronScanTransactionsWire,
+	tronScanTrc10TokensWire,
+	tronScanTrc20TransfersWire,
 	type TronScanAccount,
 	type TronScanAccountTokens,
 	type TronScanBlocks,
@@ -61,7 +66,7 @@ export const getAccount = async (
 	) as TronScanAccount
 }
 
-export const getAccountTokens = (
+export const getAccountTokens = async (
 	address: string,
 	limit: number
 ) => {
@@ -71,7 +76,11 @@ export const getAccountTokens = (
 	url.searchParams.set('limit', limit.toString())
 	url.searchParams.set('hidden', '1')
 	url.searchParams.set('show', '3')
-	return sourceGetJson<TronScanAccountTokens>(binding, url.toString())
+	return assertEnvelope(
+		'account tokens',
+		tronScanAccountTokensWire,
+		await sourceGetJson(binding, url.toString())
+	) as TronScanAccountTokens
 }
 
 export const getTransaction = async (
@@ -110,15 +119,19 @@ export const getAccountTransactions = async (
 	) as TronScanTransactions
 }
 
-export const getContract = (
+export const getContract = async (
 	address: string
 ) => {
 	const url = tronScanUrl('/api/contract')
 	url.searchParams.set('contract', address)
-	return sourceGetJson<TronScanContractDetail>(binding, url.toString())
+	return assertEnvelope(
+		'contract',
+		tronScanContractDetailWire,
+		await sourceGetJson(binding, url.toString())
+	) as TronScanContractDetail
 }
 
-export const getTokenOverview = (
+export const getTokenOverview = async (
 	tokenId: string
 ) => {
 	const url = tronScanUrl('/api/tokens/overview')
@@ -128,20 +141,28 @@ export const getTokenOverview = (
 	url.searchParams.set('showAll', '1')
 	url.searchParams.set('field', '')
 	url.searchParams.set('token', tokenId)
-	return sourceGetJson<TronScanTokenOverview>(binding, url.toString())
+	return assertEnvelope(
+		'token overview',
+		tronScanTokenOverviewWire,
+		await sourceGetJson(binding, url.toString())
+	) as TronScanTokenOverview
 }
 
-export const getTrc10Token = (
+export const getTrc10Token = async (
 	tokenId: string
 ) => {
 	const url = tronScanUrl('/api/token')
 	url.searchParams.set('id', tokenId)
 	url.searchParams.set('showAll', '1')
 	url.searchParams.set('limit', '1')
-	return sourceGetJson<TronScanTrc10Tokens>(binding, url.toString())
+	return assertEnvelope(
+		'trc10 token',
+		tronScanTrc10TokensWire,
+		await sourceGetJson(binding, url.toString())
+	) as TronScanTrc10Tokens
 }
 
-export const getTrc20Transfers = (
+export const getTrc20Transfers = async (
 	transactionId: string,
 	limit: number
 ) => {
@@ -149,5 +170,9 @@ export const getTrc20Transfers = (
 	url.searchParams.set('hash', transactionId)
 	url.searchParams.set('limit', limit.toString())
 	url.searchParams.set('start', '0')
-	return sourceGetJson<TronScanTrc20Transfers>(binding, url.toString())
+	return assertEnvelope(
+		'trc20 transfers',
+		tronScanTrc20TransfersWire,
+		await sourceGetJson(binding, url.toString())
+	) as TronScanTrc20Transfers
 }

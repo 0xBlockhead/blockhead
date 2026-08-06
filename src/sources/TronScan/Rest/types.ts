@@ -181,9 +181,56 @@ export type TronScanContract = {
 	trc10token?: TronScanToken
 }
 
+export const tronScanTokenWire = arktype({
+	'id?': 'string | number.integer',
+	'tokenId?': 'string | number.integer',
+	'contractAddress?': 'string',
+	'address?': 'string',
+	'name?': 'string',
+	'tokenName?': 'string',
+	'abbr?': 'string',
+	'tokenAbbr?': 'string',
+	'symbol?': 'string',
+	'precision?': 'number.integer >= 0',
+	'decimals?': 'number.integer >= 0',
+	'balance?': 'number | string',
+	'balanceStr?': 'string',
+	'totalSupply?': 'number | string',
+	'total_supply?': 'number | string',
+	'ownerAddress?': 'string',
+	'owner_address?': 'string',
+	'dateCreated?': 'number.integer >= 0',
+	'createTime?': 'number.integer >= 0',
+	'holderCount?': 'number.integer >= 0',
+	'tokenType?': 'string',
+	'type?': 'string',
+}).and(arktype('Record<string, unknown>'))
+
+export const tronScanContractWire = arktype({
+	'address?': 'string',
+	'name?': 'string',
+	'contractName?': 'string',
+	'compiler?': 'string',
+	'verify_status?': 'number | string',
+	'verifyStatus?': 'string',
+	'is_proxy?': 'boolean',
+	'proxy_implementation?': 'string',
+	'creator?': {
+		'address?': 'string',
+	},
+	'creator_address?': 'string',
+	'create_tx_hash?': 'string',
+	'trc20token?': tronScanTokenWire,
+	'trc10token?': tronScanTokenWire,
+}).and(arktype('Record<string, unknown>'))
+
 export type TronScanContractDetail = {
 	data: TronScanContract[]
 }
+
+export const tronScanContractDetailWire = arktype({
+	data: tronScanContractWire.array(),
+})
 
 export type TronScanToken = {
 	id?: string | number
@@ -214,13 +261,25 @@ export type TronScanTokenOverview = {
 	tokens: TronScanToken[]
 }
 
+export const tronScanTokenOverviewWire = arktype({
+	tokens: tronScanTokenWire.array(),
+})
+
 export type TronScanTrc10Tokens = {
 	data: TronScanToken[]
 }
 
+export const tronScanTrc10TokensWire = arktype({
+	data: tronScanTokenWire.array(),
+})
+
 export type TronScanAccountTokens = {
 	data: TronScanToken[]
 }
+
+export const tronScanAccountTokensWire = arktype({
+	data: tronScanTokenWire.array(),
+})
 
 export type TronScanTrc20Transfer = {
 	transaction_id?: string
@@ -238,7 +297,28 @@ export type TronScanTrc20Transfer = {
 	timestamp?: number
 }
 
+export const tronScanTrc20TransferWire = arktype({
+	'transaction_id?': 'string',
+	'transactionHash?': 'string',
+	'contract_address?': 'string',
+	'contractAddress?': 'string',
+	'tokenInfo?': tronScanTokenWire,
+	'from_address?': 'string',
+	'fromAddress?': 'string',
+	'to_address?': 'string',
+	'toAddress?': 'string',
+	'quant?': 'string',
+	'amount?': 'string',
+	'block_ts?': 'number.integer >= 0',
+	'timestamp?': 'number.integer >= 0',
+}).and(arktype('Record<string, unknown>'))
+
 export type TronScanTrc20Transfers = {
 	token_transfers?: TronScanTrc20Transfer[]
 	data?: TronScanTrc20Transfer[]
 }
+
+export const tronScanTrc20TransfersWire = arktype({
+	'token_transfers?': tronScanTrc20TransferWire.array(),
+	'data?': tronScanTrc20TransferWire.array(),
+}).and(arktype('Record<string, unknown>'))

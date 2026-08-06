@@ -13,7 +13,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceGetJson,
 }))
 
-const { getAccount, getAccountTransactions, getBlock, getTransaction } = await import('$/sources/TronScan/Rest/queries.ts')
+const { getAccount, getAccountTransactions, getBlock, getContract, getTokenOverview, getTransaction, getTrc10Token, getTrc20Transfers } = await import('$/sources/TronScan/Rest/queries.ts')
 
 const binding = bindings[Source.TronScan_Rest][0]
 
@@ -120,5 +120,85 @@ describe('TronScan REST arktype envelopes', () => {
 		await expect(getAccount('Taccount')).rejects.toThrow('invalid account response envelope')
 		await expect(getBlock(1n)).rejects.toThrow('invalid blocks response envelope')
 		await expect(getAccountTransactions('Taccount', 1)).rejects.toThrow('invalid account transactions response envelope')
+	})
+
+	it('accepts token / contract / trc20 transfer envelopes', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({
+				tokens: [{
+					contractAddress: 'Ttoken',
+					name: 'USDT',
+					decimals: 6,
+				}],
+			})
+			.mockResolvedValueOnce({
+				data: [{
+					id: '1002000',
+					name: 'BitTorrent',
+					precision: 6,
+				}],
+			})
+			.mockResolvedValueOnce({
+				data: [{
+					address: 'Tcontract',
+					name: 'USDT',
+					trc20token: {
+						symbol: 'USDT',
+						decimals: 6,
+					},
+				}],
+			})
+			.mockResolvedValueOnce({
+				token_transfers: [{
+					transaction_id: 'tx-hash',
+					contract_address: 'Ttoken',
+					from_address: 'Tfrom',
+					to_address: 'Tto',
+					quant: '1000',
+					block_ts: 1_720_000_000_000,
+				}],
+			})
+
+		await expect(getTokenOverview('Ttoken')).resolves.toMatchObject({
+			tokens: [{
+				contractAddress: 'Ttoken',
+			}],
+		})
+		await expect(getTrc10Token('1002000')).resolves.toMatchObject({
+			data: [{
+				id: '1002000',
+			}],
+		})
+		await expect(getContract('Tcontract')).resolves.toMatchObject({
+			data: [{
+				address: 'Tcontract',
+			}],
+		})
+		await expect(getTrc20Transfers('tx-hash', 20)).resolves.toMatchObject({
+			token_transfers: [{
+				transaction_id: 'tx-hash',
+			}],
+		})
+	})
+
+	it('fail-closes malformed token / contract / trc20 transfer envelopes', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({
+				tokens: [{
+					decimals: -1,
+				}],
+			})
+			.mockResolvedValueOnce({
+				data: 'not-an-array',
+			})
+			.mockResolvedValueOnce({
+				token_transfers: [{
+					block_ts: -1,
+				}],
+			})
+
+		await expect(getTokenOverview('Ttoken')).rejects.toThrow('invalid token overview response envelope')
+		await expect(getContract('Tcontract')).rejects.toThrow('invalid contract response envelope')
+		await expect(getTrc20Transfers('tx-hash', 1)).rejects.toThrow('invalid trc20 transfers response envelope')
 	})
 })
