@@ -26,37 +26,26 @@ export default {
 						)
 							throw new Error('BitcoinCashBcmr_Github: unsupported network')
 
-						const { getRegistry } = await import('$/sources/BitcoinCashBcmr/Github/queries.ts')
-						const registry = await getRegistry(
-							{ url: registryUrl }
-						)
-						const registryIdentity = registry.identities?.[categoryId]
-						if (registryIdentity == null)
-							throw new Error(`BitcoinCashBcmr_Github: category not found ${categoryId}`)
-
-						const latestRevision = (
-							registry.latestRevision != null ?
-								registryIdentity[registry.latestRevision]
-							:
-								Object.entries(registryIdentity).at(-1)?.[1]
-						)
-						if (latestRevision == null)
-							throw new Error(`BitcoinCashBcmr_Github: category has no revisions ${categoryId}`)
+						const { getCategoryMetadata } = await import('$/sources/BitcoinCashBcmr/Github/queries.ts')
+						const { snapshot } = await getCategoryMetadata({
+							url: registryUrl,
+							categoryId,
+						})
 
 						return {
-							...(latestRevision.name != null && { name: latestRevision.name }),
-							...(latestRevision.description != null && { description: latestRevision.description }),
-							...(latestRevision.token?.symbol != null && { symbol: latestRevision.token.symbol }),
-							...(latestRevision.token?.decimals != null && { decimals: latestRevision.token.decimals }),
+							...(snapshot.name != null && { name: snapshot.name }),
+							...(snapshot.description != null && { description: snapshot.description }),
+							...(snapshot.token?.symbol != null && { symbol: snapshot.token.symbol }),
+							...(snapshot.token?.decimals != null && { decimals: snapshot.token.decimals }),
 						}
 					},
 				},
 			},
 		})({
-				name: (snapshot) => snapshot.name,
-				description: (snapshot) => snapshot.description,
-				symbol: (snapshot) => snapshot.symbol,
-				decimals: (snapshot) => snapshot.decimals,
-			}),
+			name: (snapshot) => snapshot.name,
+			description: (snapshot) => snapshot.description,
+			symbol: (snapshot) => snapshot.symbol,
+			decimals: (snapshot) => snapshot.decimals,
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

@@ -1,6 +1,10 @@
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/BitcoinCashBcmr/bindings.ts'
-import type { BcmrRegistry } from '$/sources/BitcoinCashBcmr/Github/types.ts'
+import {
+	bcmrIdentitySnapshot,
+	bcmrRegistry,
+	type BcmrRegistry,
+} from '$/sources/BitcoinCashBcmr/Github/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const isIsoTimestamp = (value: string) => {
@@ -8,7 +12,19 @@ const isIsoTimestamp = (value: string) => {
 	return !Number.isNaN(timestampMs) && new Date(timestampMs).toISOString() === value
 }
 
-export const getRegistry = (
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`${Source.BitcoinCashBcmr_Github}: invalid ${label} response envelope`)
+	}
+}
+
+export const getRegistry = async (
 	{ url }: { url: string }
 ) => {
 	const registryUrl = new URL(url)
@@ -20,7 +36,31 @@ export const getRegistry = (
 		)
 	)
 		throw new Error('BitcoinCashBcmr_Github: registry URL must use the declared GitHub source')
-	return sourceGetJson<BcmrRegistry>(bindings[Source.BitcoinCashBcmr_Github][0], url)
+	const registry = assertEnvelope(
+		'registry',
+		bcmrRegistry,
+		await sourceGetJson<unknown>(bindings[Source.BitcoinCashBcmr_Github][0], url)
+	)
+	return {
+		...registry,
+		...(registry.identities != null && {
+			identities: Object.fromEntries(
+				Object.entries(registry.identities).map(([categoryId, identity]) => [
+					categoryId,
+					Object.fromEntries(
+						Object.entries(identity).map(([revision, snapshot]) => [
+							revision,
+							assertEnvelope(
+								`identity snapshot ${categoryId}@${revision}`,
+								bcmrIdentitySnapshot,
+								snapshot
+							),
+						])
+					),
+				])
+			),
+		}),
+	} as BcmrRegistry
 }
 
 export const getCategoryMetadata = async (

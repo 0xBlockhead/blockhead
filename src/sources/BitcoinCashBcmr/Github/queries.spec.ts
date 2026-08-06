@@ -103,4 +103,33 @@ describe('Bitcoin Cash BCMR metadata selection', () => {
 			atTimestamp: '2026-07-22T00:00:00.000Z',
 		})).rejects.toThrow('does not match')
 	})
+
+	it('fails closed on malformed registry envelopes', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			latestRevision: 12,
+			identities: [],
+		})
+		await expect(getCategoryMetadata({
+			url: 'https://raw.githubusercontent.com/example/registry/main/registry.json',
+			categoryId,
+			atTimestamp: '2026-07-22T00:00:00.000Z',
+		})).rejects.toThrow('invalid registry response envelope')
+
+		sourceGetJson.mockResolvedValueOnce({
+			identities: {
+				[categoryId]: {
+					'2026-01-01T00:00:00.000Z': {
+						token: {
+							decimals: -1,
+						},
+					},
+				},
+			},
+		})
+		await expect(getCategoryMetadata({
+			url: 'https://raw.githubusercontent.com/example/registry/main/registry.json',
+			categoryId,
+			atTimestamp: '2026-07-22T00:00:00.000Z',
+		})).rejects.toThrow('invalid identity snapshot')
+	})
 })
