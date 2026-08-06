@@ -344,4 +344,107 @@ describe('MempoolSpace UTXO', () => {
 			}, resolverContext)).rejects.toThrow('unsupported Bitcoin network')
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
+
+	it('projects Ordinals/Runes from fetched mempool.space transaction wires', async () => {
+		const txId = 'e'.repeat(64)
+		const helloWorldInscriptionHex = (
+			'0063'
+			+ '036f7264'
+			+ '0101'
+			+ '18746578742f706c61696e3b636861727365743d7574662d38'
+			+ '00'
+			+ '0d48656c6c6f2c20776f726c6421'
+			+ '68'
+		)
+		const wire = {
+			txid: txId,
+			version: 2,
+			locktime: 0,
+			size: 200,
+			weight: 400,
+			fee: 100,
+			status: {
+				confirmed: true,
+				block_height: 840000,
+				block_hash: 'f'.repeat(64),
+			},
+			vin: [{
+				txid: '1'.repeat(64),
+				vout: 0,
+				is_coinbase: false,
+				sequence: 0xffffffff,
+				witness: [
+					helloWorldInscriptionHex,
+				],
+			}],
+			vout: [
+				{
+					scriptpubkey: '6a5d03010203',
+					scriptpubkey_type: 'op_return',
+					value: 0,
+				},
+				{
+					scriptpubkey: '0014',
+					scriptpubkey_type: 'v0_p2wpkh',
+					scriptpubkey_address: 'bc1qexample',
+					value: 546,
+				},
+			],
+		}
+		sourceGetJson.mockResolvedValue(wire)
+
+		const entitySelector = {
+			$network: network,
+			txId,
+		}
+		const transaction = await transactionResolver.resolve.NetworkTxId.resolve(entitySelector, resolverContext)
+		expect(transactionResolver.projections.$$bitcoinOrdinalInscriptions(transaction)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					inscriptionId: `${txId}i0`,
+				},
+			},
+		])
+		expect(transactionResolver.projections.$bitcoinRunestone(transaction)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$transaction: entitySelector,
+				outputIndex: 0,
+			},
+		})
+
+		const runestoneOutput = await outputResolver.resolve.TransactionIndexInTransaction.resolve({
+			$transaction: entitySelector,
+			indexInTransaction: 0,
+		}, resolverContext)
+		expect(outputResolver.projections.$bitcoinRunestone(runestoneOutput)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$transaction: entitySelector,
+				outputIndex: 0,
+			},
+		})
+
+		const inscriptionResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.BitcoinOrdinalInscription
+		))
+		const runestoneResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.BitcoinRunestone
+		))
+		if (inscriptionResolver == null || runestoneResolver == null)
+			throw new Error('MempoolSpace-Rest missing Ordinals/Runes entity resolvers')
+
+		const inscription = await inscriptionResolver.resolve.NetworkInscriptionId.resolve({
+			$network: network,
+			inscriptionId: `${txId}i0`,
+		}, resolverContext)
+		expect(inscriptionResolver.projections.contentType(inscription)).toBe('text/plain;charset=utf-8')
+		expect(inscriptionResolver.projections.bodyHex(inscription)).toBe('48656c6c6f2c20776f726c6421')
+
+		const runestone = await runestoneResolver.resolve.TransactionOutputIndex.resolve({
+			$transaction: entitySelector,
+			outputIndex: 0,
+		}, resolverContext)
+		expect(runestoneResolver.projections.payloadHex(runestone)).toBe('010203')
+		expect(runestoneResolver.projections.isCenotaph(runestone)).toBe(false)
+	})
 })

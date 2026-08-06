@@ -1,13 +1,33 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
 const getTransaction = vi.fn()
 
-vi.mock('$/sources/Esplora/Rest/queries.ts', () => ({
-	getTransaction,
-}))
+vi.mock('$/sources/Esplora/Rest/queries.ts', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('$/sources/Esplora/Rest/queries.ts')>()
+	return {
+		...actual,
+		getTransaction,
+		getTransactionProtocolPayloads: async ({
+			target,
+			txId,
+		}: {
+			target: string
+			txId: string
+		}) => {
+			const { extractEsploraProtocolPayloads } = await import('$/sources/BitcoinCore/JsonRpc/protocol.ts')
+			return extractEsploraProtocolPayloads(
+				await getTransaction({
+					target,
+					txId,
+				})
+			)
+		},
+	}
+})
 
 const { default: esploraResolvers } = await import('$/resolvers/Esplora-Rest.ts')
 
@@ -20,12 +40,21 @@ const inputResolver = esploraResolvers.resolvers.find((resolver) => (
 const outputResolver = esploraResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoOutput
 ))
+const inscriptionResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BitcoinOrdinalInscription
+))
+const runestoneResolver = esploraResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BitcoinRunestone
+))
 
 if (transactionResolver == null)
 	throw new Error('Esplora-Rest spec missing UtxoTransaction resolver')
 
 if (inputResolver == null || outputResolver == null)
 	throw new Error('Esplora-Rest spec missing child input/output resolver')
+
+if (inscriptionResolver == null || runestoneResolver == null)
+	throw new Error('Esplora-Rest spec missing Bitcoin Ordinals/Runes resolvers')
 
 const resolverContext = {
 	filters: [],
@@ -40,6 +69,20 @@ const resolverContext = {
 const liquidNetwork = {
 	slug: 'liquid',
 }
+
+const bitcoinNetwork = {
+	caip2: networkBySlug.bitcoin.caip2,
+}
+
+const helloWorldInscriptionHex = (
+	'0063'
+	+ '036f7264'
+	+ '0101'
+	+ '18746578742f706c61696e3b636861727365743d7574662d38'
+	+ '00'
+	+ '0d48656c6c6f2c20776f726c6421'
+	+ '68'
+)
 
 describe('Esplora UTXO', () => {
 	beforeEach(() => {
@@ -127,11 +170,11 @@ describe('Esplora UTXO', () => {
 		})
 		expect(outputResolver.projections.valueSats(output)).toBeUndefined()
 		expect(outputResolver.projections.isConfidential(output)).toBe(true)
-		expect(outputResolver.projections.valueCommitment(output)).toBe('09valuecommitment')
-		expect(outputResolver.projections.assetCommitment(output)).toBe('0aassetcommitment')
-		expect(outputResolver.projections.nonceCommitment(output)).toBe('02noncecommitment')
-		expect(outputResolver.projections.surjectionProof(output)).toBe('surjection')
-		expect(outputResolver.projections.rangeProof(output)).toBe('range')
+		expect(outputResolver.projections.Confidential.valueCommitment(output)).toBe('09valuecommitment')
+		expect(outputResolver.projections.Confidential.assetCommitment(output)).toBe('0aassetcommitment')
+		expect(outputResolver.projections.Confidential.nonceCommitment(output)).toBe('02noncecommitment')
+		expect(outputResolver.projections.Confidential.surjectionProof(output)).toBe('surjection')
+		expect(outputResolver.projections.Confidential.rangeProof(output)).toBe('range')
 		expect(getTransaction).toHaveBeenCalledWith({
 			target: 'liquid',
 			txId,
@@ -169,6 +212,90 @@ describe('Esplora UTXO', () => {
 
 		expect(outputResolver.projections.valueSats(output)).toBe(50_000n)
 		expect(outputResolver.projections.isConfidential(output)).toBeUndefined()
-		expect(outputResolver.projections.valueCommitment(output)).toBeUndefined()
+		expect(outputResolver.projections.Confidential.valueCommitment(output)).toBeUndefined()
+	})
+
+	it('projects Bitcoin Ordinals/Runes from fetched Esplora transaction wires', async () => {
+		const txId = 'f'.repeat(64)
+		getTransaction.mockResolvedValue({
+			txid: txId,
+			version: 2,
+			locktime: 0,
+			size: 200,
+			weight: 400,
+			fee: 100,
+			status: {
+				confirmed: true,
+				block_height: 840000,
+				block_hash: '1'.repeat(64),
+			},
+			vin: [{
+				txid: '2'.repeat(64),
+				vout: 0,
+				is_coinbase: false,
+				sequence: 0xffffffff,
+				witness: [
+					helloWorldInscriptionHex,
+				],
+			}],
+			vout: [
+				{
+					scriptpubkey: '6a5d03010203',
+					scriptpubkey_type: 'op_return',
+					value: 0,
+				},
+				{
+					scriptpubkey: '0014',
+					scriptpubkey_type: 'v0_p2wpkh',
+					scriptpubkey_address: 'bc1qexample',
+					value: 546,
+				},
+			],
+		})
+
+		const entitySelector = {
+			$network: bitcoinNetwork,
+			txId,
+		}
+		const transaction = await transactionResolver.resolve.NetworkTxId.resolve(entitySelector, resolverContext)
+		expect(transactionResolver.projections.$$bitcoinOrdinalInscriptions(transaction)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: bitcoinNetwork,
+					inscriptionId: `${txId}i0`,
+				},
+			},
+		])
+		expect(transactionResolver.projections.$bitcoinRunestone(transaction)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$transaction: entitySelector,
+				outputIndex: 0,
+			},
+		})
+
+		const runestoneOutput = await outputResolver.resolve.TransactionIndexInTransaction.resolve({
+			$transaction: entitySelector,
+			indexInTransaction: 0,
+		}, resolverContext)
+		expect(outputResolver.projections.$bitcoinRunestone(runestoneOutput)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$transaction: entitySelector,
+				outputIndex: 0,
+			},
+		})
+
+		const inscription = await inscriptionResolver.resolve.NetworkInscriptionId.resolve({
+			$network: bitcoinNetwork,
+			inscriptionId: `${txId}i0`,
+		}, resolverContext)
+		expect(inscriptionResolver.projections.contentType(inscription)).toBe('text/plain;charset=utf-8')
+		expect(inscriptionResolver.projections.revealWitnessIndex(inscription)).toBe(0)
+
+		const runestone = await runestoneResolver.resolve.TransactionOutputIndex.resolve({
+			$transaction: entitySelector,
+			outputIndex: 0,
+		}, resolverContext)
+		expect(runestoneResolver.projections.payloadHex(runestone)).toBe('010203')
+		expect(runestoneResolver.projections.isCenotaph(runestone)).toBe(false)
 	})
 })
