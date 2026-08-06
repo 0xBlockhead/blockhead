@@ -158,6 +158,30 @@ describe('Compound Rest resolver module', () => {
 		})
 	})
 
+	it('preserves an empty Compound positions list on contractPositions', async () => {
+		if (evmNetworkAccountTimestampResolver == null)
+			throw new Error('missing EvmNetworkAccount_Timestamp resolver')
+
+		getAccountPositions.mockResolvedValue({
+			blockNumber: 456n,
+			positions: [],
+		})
+
+		const snapshot = await evmNetworkAccountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+			$account: {
+				$network: baseNetwork,
+				$actor: {
+					address: '0x0000000000000000000000000000000000000001',
+				},
+			},
+			timestampMs: 1760000000000,
+			source: Source.Compound_Rest,
+		}, context)
+
+		expect(evmNetworkAccountTimestampResolver.projections.blockNumber(snapshot)).toBe(456n)
+		expect(evmNetworkAccountTimestampResolver.projections.contractPositions(snapshot)).toEqual([])
+	})
+
 	it('registers under Compound_Rest for CompoundComet', () => {
 		expect(compoundRest.source).toBe(Source.Compound_Rest)
 		expect(compoundCometResolver).toBeDefined()
