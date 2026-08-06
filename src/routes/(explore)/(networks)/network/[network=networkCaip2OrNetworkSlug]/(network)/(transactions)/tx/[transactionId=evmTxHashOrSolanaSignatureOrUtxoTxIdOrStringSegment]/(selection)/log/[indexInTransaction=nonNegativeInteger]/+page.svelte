@@ -16,22 +16,11 @@
 		data,
 	}: PageProps = $props()
 
-	let pageSelection = $state.raw(
-		select(EntityType.EvmLog, data.selector, {
-			sources: [
-				Source.Blockscout_Rest,
-			],
-		})
-	)
-	$effect(() => {
-		pageSelection = (
-			select(EntityType.EvmLog, data.selector, {
-				sources: [
-					Source.Blockscout_Rest,
-				],
-			})
-		)
-	})
+	const pageSelection = $derived(select(EntityType.EvmLog, data.selector, {
+		sources: [
+			Source.Blockscout_Rest,
+		],
+	}))
 
 
 	// Components

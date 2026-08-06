@@ -16,30 +16,15 @@
 		data,
 	}: PageProps = $props()
 
-	let pageSelection = $state.raw(
-		select(EntityType.MorphoVault, data.selector, {
-			sources: [
-				Source.Morpho_Graphql,
-			],
-			fields: {
-				name: true,
-				symbol: true,
-			},
-		})
-	)
-	$effect(() => {
-		pageSelection = (
-			select(EntityType.MorphoVault, data.selector, {
-				sources: [
-					Source.Morpho_Graphql,
-				],
-				fields: {
-					name: true,
-					symbol: true,
-				},
-			})
-		)
-	})
+	const pageSelection = $derived(select(EntityType.MorphoVault, data.selector, {
+		sources: [
+			Source.Morpho_Graphql,
+		],
+		fields: {
+			name: true,
+			symbol: true,
+		},
+	}))
 
 
 	// Components

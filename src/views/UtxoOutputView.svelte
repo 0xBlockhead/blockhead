@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
+	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -33,8 +34,8 @@
 
 
 	// Components
+	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
-	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import UtxoAddressView from '$/views/UtxoAddressView.svelte'
 	import BitcoinCashCashTokenFungibleAmountView from '$/views/BitcoinCashCashTokenFungibleAmountView.svelte'
@@ -51,7 +52,7 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]',
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/output/[outputIndex=nonNegativeInteger]',
 				{
 					network: (
 						'caip2' in transaction.$network ?
@@ -70,6 +71,10 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Icon()}
+		<IconComponent />
+	{/snippet}
+
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Output </span>
@@ -369,7 +374,9 @@
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
+				</dl>
 
+				<dl data-column-item="center">
 					<ResourceBoundary
 						resource={projection.surjectionProof}
 					>

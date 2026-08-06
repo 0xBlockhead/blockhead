@@ -32,6 +32,7 @@
 				indexInTransaction: true,
 				$address: true,
 				isSpent: true,
+				isConfidential: true,
 			},
 		})
 	}
@@ -44,7 +45,7 @@
 			entitySelector={utxoOutputSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/output/[outputIndex=nonNegativeInteger]',
 					{
 						network: (
 							'caip2' in transaction.$network ?
@@ -63,7 +64,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[utxoOutput.$address == null ? '' : utxoOutput.$address.address || 'UTXO address', String(utxoOutput.isSpent ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[utxoOutput.$address == null ? '' : utxoOutput.$address.address || 'UTXO address', String(utxoOutput.isSpent ?? ''), String(utxoOutput.isConfidential ?? '')].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

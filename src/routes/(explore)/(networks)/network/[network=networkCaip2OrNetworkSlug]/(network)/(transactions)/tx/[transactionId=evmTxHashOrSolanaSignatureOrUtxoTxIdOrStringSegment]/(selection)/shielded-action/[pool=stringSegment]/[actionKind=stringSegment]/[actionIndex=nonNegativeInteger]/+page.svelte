@@ -15,14 +15,7 @@
 		data,
 	}: PageProps = $props()
 
-	let pageSelection = $state.raw(
-		select(EntityType.ZcashShieldedAction, data.selector)
-	)
-	$effect(() => {
-		pageSelection = (
-			select(EntityType.ZcashShieldedAction, data.selector)
-		)
-	})
+	const pageSelection = $derived(select(EntityType.ZcashShieldedAction, data.selector))
 
 
 	// Components

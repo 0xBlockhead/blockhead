@@ -17,36 +17,18 @@
 		params,
 	}: PageProps = $props()
 
-	let pageSelection = $state.raw(
-		select(EntityType.EvmTokenTransfer, {
-			$log: data.selector,
-			indexInLog: Number(params.transferIndex),
-		}, {
-			sources: [
-				Source.Blockscout_Rest,
-			],
-			fields: {
-				standard: true,
-				amount: true,
-			},
-		})
-	)
-	$effect(() => {
-		pageSelection = (
-			select(EntityType.EvmTokenTransfer, {
-				$log: data.selector,
-				indexInLog: Number(params.transferIndex),
-			}, {
-				sources: [
-					Source.Blockscout_Rest,
-				],
-				fields: {
-					standard: true,
-					amount: true,
-				},
-			})
-		)
-	})
+	const pageSelection = $derived(select(EntityType.EvmTokenTransfer, {
+		$log: data.selector,
+		indexInLog: Number(params.transferIndex),
+	}, {
+		sources: [
+			Source.Blockscout_Rest,
+		],
+		fields: {
+			standard: true,
+			amount: true,
+		},
+	}))
 
 
 	// Components
