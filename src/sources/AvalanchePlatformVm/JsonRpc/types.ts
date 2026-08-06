@@ -13,6 +13,16 @@ export type AvalanchePlatformVmBlockchains = {
 	blockchains: AvalanchePlatformVmBlockchain[]
 }
 
+export type AvalanchePlatformVmSubnet = {
+	id: string
+	controlKeys: string[]
+	threshold: string
+}
+
+export type AvalanchePlatformVmSubnets = {
+	subnets: AvalanchePlatformVmSubnet[]
+}
+
 export type AvalanchePlatformVmOutputOwner = {
 	locktime: string
 	threshold: string
@@ -43,6 +53,8 @@ export type AvalanchePlatformVmValidator = {
 	delegationFee?: string
 	uptime?: string
 	connected?: boolean
+	delegatorCount?: string
+	delegatorWeight?: string
 	delegators?: AvalanchePlatformVmDelegator[]
 }
 
@@ -88,3 +100,24 @@ export type AvalanchePlatformVmTxStatus = {
 	status: 'Committed' | 'Processing' | 'Dropped' | 'Unknown'
 	reason?: string
 }
+
+export type AvalanchePlatformVmJsonBlock = {
+	parentID: string
+	height: number | string
+	id: string
+	timestamp?: number | string
+	txs?: unknown[]
+	tx?: unknown
+}
+
+export type AvalanchePlatformVmBlock = {
+	block: string | AvalanchePlatformVmJsonBlock
+	encoding: string
+}
+
+export type AvalanchePlatformVmTx = {
+	tx: string | Record<string, unknown>
+	encoding: string
+}
+
+export const avalanchePrimaryNetworkSubnetId = '11111111111111111111111111111111LpoYY' as const
