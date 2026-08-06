@@ -379,7 +379,7 @@ describe('MempoolSpace UTXO', () => {
 			}],
 			vout: [
 				{
-					scriptpubkey: '6a5d03010203',
+					scriptpubkey: '6a5d03020100',
 					scriptpubkey_type: 'op_return',
 					value: 0,
 				},
@@ -444,7 +444,90 @@ describe('MempoolSpace UTXO', () => {
 			$transaction: entitySelector,
 			outputIndex: 0,
 		}, resolverContext)
-		expect(runestoneResolver.projections.payloadHex(runestone)).toBe('010203')
+		expect(runestoneResolver.projections.payloadHex(runestone)).toBe('020100')
 		expect(runestoneResolver.projections.isCenotaph(runestone)).toBe(false)
+	})
+
+	it('projects multi-envelope inscriptions and LEB128 cenotaph runestones', async () => {
+		const txId = 'a'.repeat(64)
+		const helloWorldInscriptionHex = (
+			'0063'
+			+ '036f7264'
+			+ '0101'
+			+ '18746578742f706c61696e3b636861727365743d7574662d38'
+			+ '00'
+			+ '0d48656c6c6f2c20776f726c6421'
+			+ '68'
+		)
+		const secondInscriptionHex = (
+			'0063'
+			+ '036f7264'
+			+ '0101'
+			+ '0a746578742f706c61696e'
+			+ '00'
+			+ '024869'
+			+ '68'
+		)
+		sourceGetJson.mockResolvedValue({
+			txid: txId,
+			version: 2,
+			locktime: 0,
+			size: 300,
+			weight: 600,
+			fee: 200,
+			status: {
+				confirmed: true,
+				block_height: 840002,
+				block_hash: 'b'.repeat(64),
+			},
+			vin: [{
+				txid: 'c'.repeat(64),
+				vout: 0,
+				is_coinbase: false,
+				sequence: 0xffffffff,
+				witness: [
+					helloWorldInscriptionHex + secondInscriptionHex,
+				],
+			}],
+			vout: [
+				{
+					scriptpubkey: '6a5d037e0000',
+					scriptpubkey_type: 'op_return',
+					value: 0,
+				},
+			],
+		})
+
+		const entitySelector = {
+			$network: network,
+			txId,
+		}
+		const transactionResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.UtxoTransaction
+		))
+		const inscriptionResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.BitcoinOrdinalInscription
+		))
+		const runestoneResolver = mempoolSpaceResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.BitcoinRunestone
+		))
+		if (transactionResolver == null || inscriptionResolver == null || runestoneResolver == null)
+			throw new Error('MempoolSpace-Rest missing Ordinals/Runes resolvers')
+
+		const transaction = await transactionResolver.resolve.NetworkTxId.resolve(entitySelector, resolverContext)
+		expect(transactionResolver.projections.$$bitcoinOrdinalInscriptions(transaction)).toHaveLength(2)
+
+		const second = await inscriptionResolver.resolve.NetworkInscriptionId.resolve({
+			$network: network,
+			inscriptionId: `${txId}i1`,
+		}, resolverContext)
+		expect(inscriptionResolver.projections.inscriptionIndex(second)).toBe(1)
+		expect(inscriptionResolver.projections.bodyHex(second)).toBe('4869')
+
+		const runestone = await runestoneResolver.resolve.TransactionOutputIndex.resolve({
+			$transaction: entitySelector,
+			outputIndex: 0,
+		}, resolverContext)
+		expect(runestoneResolver.projections.isCenotaph(runestone)).toBe(true)
 	})
 })

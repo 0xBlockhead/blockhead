@@ -326,55 +326,65 @@ export default {
 			entityType: EntityType.UtxoAddress,
 			resolve: {
 				NetworkAddress: {
-					resolve: async ({ $network, address }) => {
+					resolve: async ({ $network, address }, context) => {
 						assertBitcoinNetwork($network)
+						const { getAddressInscriptions } = await import('$/sources/UniSat/Rest/queries.ts')
+						const page = await getAddressInscriptions(context.publicEnv, {
+							address,
+							cursor: context.pagination.offset ?? 0,
+							size: context.pagination.limit,
+						})
 						return {
-							[EntityMetaKey.Selector]: {
+							inscriptions: bitcoinOrdinalInscriptionRefsFromUtxoInscriptions(
 								$network,
-								address,
-							},
+								page.detail
+							),
+							inscriptionCount: page.total,
 						}
 					},
 				},
 			},
 		})({
 			$$bitcoinOrdinalInscriptions: {
-				resolve: async ({ $network, address }, context) => {
-					assertBitcoinNetwork($network)
-					const { getAddressInscriptions } = await import('$/sources/UniSat/Rest/queries.ts')
-					const page = await getAddressInscriptions(context.publicEnv, {
-						address,
-						size: context.pagination.limit,
-					})
-					return page.detail.map((row) => ({
-						[EntityMetaKey.Selector]: {
-							$network,
-							inscriptionId: row.inscriptionId,
-						},
-					}))
+				select: (snapshot) => snapshot.inscriptions,
+				resolveCount: (snapshot) => snapshot.inscriptionCount,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.UtxoAddress,
+			resolve: {
+				NetworkAddress: {
+					resolve: async ({ $network, address }, context) => {
+						assertBitcoinNetwork($network)
+						const { getAddressRuneBalances } = await import('$/sources/UniSat/Rest/queries.ts')
+						const page = await getAddressRuneBalances(context.publicEnv, {
+							address,
+							start: context.pagination.offset ?? 0,
+							limit: context.pagination.limit,
+						})
+						return {
+							runeBalances: page.detail.map((row) => ({
+								[EntityMetaKey.Selector]: {
+									$address: {
+										$network,
+										address,
+									},
+									$rune: {
+										$network,
+										runeId: row.runeid,
+									},
+								},
+							})),
+							runeBalanceCount: page.total,
+						}
+					},
 				},
 			},
+		})({
 			$$bitcoinRuneBalances: {
-				resolve: async ({ $network, address }, context) => {
-					assertBitcoinNetwork($network)
-					const { getAddressRuneBalances } = await import('$/sources/UniSat/Rest/queries.ts')
-					const page = await getAddressRuneBalances(context.publicEnv, {
-						address,
-						limit: context.pagination.limit,
-					})
-					return page.detail.map((row) => ({
-						[EntityMetaKey.Selector]: {
-							$address: {
-								$network,
-								address,
-							},
-							$rune: {
-								$network,
-								runeId: row.runeid,
-							},
-						},
-					}))
-				},
+				select: (snapshot) => snapshot.runeBalances,
+				resolveCount: (snapshot) => snapshot.runeBalanceCount,
 			},
 		}),
 
@@ -382,54 +392,88 @@ export default {
 			entityType: EntityType.UtxoOutput,
 			resolve: {
 				TransactionIndexInTransaction: {
-					resolve: async ({ $transaction, indexInTransaction }) => {
+					resolve: async ({ $transaction, indexInTransaction }, context) => {
 						assertBitcoinNetwork($transaction.$network)
+						const { getUtxoInfo } = await import('$/sources/UniSat/Rest/queries.ts')
+						const utxo = await getUtxoInfo(context.publicEnv, {
+							txId: $transaction.txId,
+							outputIndex: indexInTransaction,
+						})
 						return {
 							[EntityMetaKey.Selector]: {
 								$transaction,
 								indexInTransaction,
 							},
+							$$bitcoinOrdinalInscriptions: bitcoinOrdinalInscriptionRefsFromUtxoInscriptions(
+								$transaction.$network,
+								utxo?.inscriptions ?? []
+							),
+							...(utxo?.satoshi != null && {
+								valueSats: BigInt(utxo.satoshi),
+							}),
+							...(utxo?.scriptType != null && {
+								scriptPubKeyType: utxo.scriptType,
+							}),
+							...(utxo?.scriptPk != null && {
+								scriptPubKeyHex: utxo.scriptPk,
+							}),
+							...(utxo?.address != null && {
+								$address: {
+									[EntityMetaKey.Selector]: {
+										$network: $transaction.$network,
+										address: utxo.address,
+									},
+								},
+							}),
+							...(utxo?.isSpent != null && {
+								isSpent: utxo.isSpent,
+							}),
+							...(utxo == null && {
+								isSpent: true,
+							}),
 						}
 					},
 				},
 			},
 		})({
-			$$bitcoinOrdinalInscriptions: {
-				resolve: async ({ $transaction, indexInTransaction }, context) => {
-					assertBitcoinNetwork($transaction.$network)
-					const { getUtxoInfo } = await import('$/sources/UniSat/Rest/queries.ts')
-					const utxo = await getUtxoInfo(context.publicEnv, {
-						txId: $transaction.txId,
-						outputIndex: indexInTransaction,
-					})
-					return bitcoinOrdinalInscriptionRefsFromUtxoInscriptions(
-						$transaction.$network,
-						utxo?.inscriptions ?? []
-					)
+			valueSats: (snapshot) => snapshot.valueSats,
+			scriptPubKeyType: (snapshot) => snapshot.scriptPubKeyType,
+			scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
+			$address: (snapshot) => snapshot.$address,
+			isSpent: (snapshot) => snapshot.isSpent,
+			$$bitcoinOrdinalInscriptions: (snapshot) => snapshot.$$bitcoinOrdinalInscriptions,
+		}),
+
+		defineResolver({
+			entityType: EntityType.UtxoOutput,
+			resolve: {
+				TransactionIndexInTransaction: {
+					resolve: async ({ $transaction, indexInTransaction }, context) => {
+						assertBitcoinNetwork($transaction.$network)
+						const { getUtxoRuneBalances } = await import('$/sources/UniSat/Rest/queries.ts')
+						const balances = await getUtxoRuneBalances(context.publicEnv, {
+							txId: $transaction.txId,
+							outputIndex: indexInTransaction,
+						})
+						return {
+							$$bitcoinRuneBalances: balances.map((row) => ({
+								[EntityMetaKey.Selector]: {
+									$output: {
+										$transaction,
+										indexInTransaction,
+									},
+									$rune: {
+										$network: $transaction.$network,
+										runeId: row.runeid,
+									},
+								},
+							})),
+						}
+					},
 				},
 			},
-			$$bitcoinRuneBalances: {
-				resolve: async ({ $transaction, indexInTransaction }, context) => {
-					assertBitcoinNetwork($transaction.$network)
-					const { getUtxoRuneBalances } = await import('$/sources/UniSat/Rest/queries.ts')
-					const balances = await getUtxoRuneBalances(context.publicEnv, {
-						txId: $transaction.txId,
-						outputIndex: indexInTransaction,
-					})
-					return balances.map((row) => ({
-						[EntityMetaKey.Selector]: {
-							$output: {
-								$transaction,
-								indexInTransaction,
-							},
-							$rune: {
-								$network: $transaction.$network,
-								runeId: row.runeid,
-							},
-						},
-					}))
-				},
-			},
+		})({
+			$$bitcoinRuneBalances: (snapshot) => snapshot.$$bitcoinRuneBalances,
 		}),
 	],
 }

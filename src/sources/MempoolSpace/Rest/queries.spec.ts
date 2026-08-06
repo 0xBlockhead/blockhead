@@ -115,4 +115,62 @@ describe('mempool.space Bitcoin REST binding', () => {
 			},
 		])
 	})
+
+	it('getTransactionProtocolPayloads extracts multi-envelope Ordinals and valid Runestone payloads', async () => {
+		const txId = 'dd'.repeat(32)
+		const helloWorldInscriptionHex = (
+			'0063'
+			+ '036f7264'
+			+ '0101'
+			+ '18746578742f706c61696e3b636861727365743d7574662d38'
+			+ '00'
+			+ '0d48656c6c6f2c20776f726c6421'
+			+ '68'
+		)
+		const secondInscriptionHex = (
+			'0063'
+			+ '036f7264'
+			+ '0101'
+			+ '0a746578742f706c61696e'
+			+ '00'
+			+ '024869'
+			+ '68'
+		)
+		sourceGetJson.mockResolvedValueOnce({
+			txid: txId,
+			version: 2,
+			locktime: 0,
+			size: 200,
+			weight: 800,
+			vin: [
+				{
+					txid: 'ee'.repeat(32),
+					vout: 0,
+					is_coinbase: false,
+					sequence: 0xffffffff,
+					witness: [
+						helloWorldInscriptionHex + secondInscriptionHex,
+					],
+				},
+			],
+			vout: [
+				{
+					scriptpubkey: '6a5d03020100',
+					scriptpubkey_asm: '',
+					scriptpubkey_type: 'op_return',
+					value: 0,
+				},
+			],
+			status: {
+				confirmed: true,
+			},
+		})
+
+		const payloads = await getTransactionProtocolPayloads(txId)
+		expect(payloads.filter((payload) => payload.protocol === 'Ordinals')).toHaveLength(2)
+		expect(payloads.find((payload) => payload.protocol === 'Runes')).toMatchObject({
+			payloadHex: '020100',
+			isCenotaph: false,
+		})
+	})
 })

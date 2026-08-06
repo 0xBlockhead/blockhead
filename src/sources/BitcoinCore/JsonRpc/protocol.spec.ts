@@ -211,8 +211,8 @@ describe('extractProtocolPayloads', () => {
 					value: 0,
 					n: 0,
 					scriptPubKey: {
-						asm: 'OP_RETURN OP_13 010203',
-						hex: '6a5d03010203',
+						asm: 'OP_RETURN OP_13 020100',
+						hex: '6a5d03020100',
 						type: 'nulldata',
 					},
 				},
@@ -246,7 +246,7 @@ describe('extractProtocolPayloads', () => {
 				location: {
 					outputIndex: 0,
 				},
-				payloadHex: '010203',
+				payloadHex: '020100',
 				isCenotaph: false,
 			},
 		])
@@ -270,7 +270,7 @@ describe('extractProtocolPayloads', () => {
 					n: 0,
 					scriptPubKey: {
 						asm: 'OP_RETURN OP_13',
-						hex: '6a5d03010203',
+						hex: '6a5d03020100',
 						type: 'nulldata',
 					},
 				},
@@ -295,7 +295,7 @@ describe('extractProtocolPayloads', () => {
 				location: {
 					outputIndex: 0,
 				},
-				payloadHex: '010203',
+				payloadHex: '020100',
 				isCenotaph: false,
 			},
 		])
@@ -355,7 +355,7 @@ describe('extractEsploraProtocolPayloads', () => {
 			],
 			vout: [
 				{
-					scriptpubkey: '6a5d4c020001',
+					scriptpubkey: '6a5d4c03020100',
 					scriptpubkey_type: 'op_return',
 					value: 0,
 				},
@@ -380,8 +380,42 @@ describe('extractEsploraProtocolPayloads', () => {
 				location: {
 					outputIndex: 0,
 				},
-				payloadHex: '0001',
+				payloadHex: '020100',
 				isCenotaph: false,
+			},
+		])
+	})
+
+	it('marks LEB128 Cenotaph-tag payloads as cenotaphs at extract time', () => {
+		const payloads = extractEsploraProtocolPayloads({
+			txid: 'ee'.repeat(32),
+			version: 2,
+			locktime: 0,
+			size: 50,
+			weight: 200,
+			status: {
+				confirmed: false,
+			},
+			vin: [],
+			vout: [
+				{
+					// OP_RETURN OP_13 + push(3) Cenotaph tag 126 with value 0
+					scriptpubkey: '6a5d037e0000',
+					scriptpubkey_type: 'op_return',
+					value: 0,
+				},
+			],
+		} satisfies EsploraTransaction)
+
+		expect(payloads).toEqual([
+			{
+				protocol: BitcoinProtocolId.Runes,
+				transactionId: 'ee'.repeat(32),
+				location: {
+					outputIndex: 0,
+				},
+				payloadHex: '7e0000',
+				isCenotaph: true,
 			},
 		])
 	})

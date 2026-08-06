@@ -442,7 +442,9 @@ const extractFromWitnessAndOutputs = ({
 							outputIndex: runestoneOutput.outputIndex,
 						},
 						payloadHex: deciphered.payloadHex,
-						isCenotaph: deciphered.isCenotaph,
+						isCenotaph: decodeRunestonePayload(deciphered.payloadHex, {
+							scriptIsCenotaph: deciphered.isCenotaph,
+						}).isCenotaph,
 					} satisfies BitcoinRunesProtocolPayload]
 			})()
 	)

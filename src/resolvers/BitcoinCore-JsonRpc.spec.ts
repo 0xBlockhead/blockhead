@@ -213,8 +213,8 @@ describe('BitcoinCore UTXO', () => {
 					value: 0.00000546,
 					n: 0,
 					scriptPubKey: {
-						asm: 'OP_RETURN OP_13 010203',
-						hex: '6a5d03010203',
+						asm: 'OP_RETURN OP_13 020100',
+						hex: '6a5d03020100',
 						type: 'nulldata',
 					},
 				},
@@ -290,7 +290,103 @@ describe('BitcoinCore UTXO', () => {
 			$transaction: entitySelector,
 			outputIndex: 0,
 		})
-		expect(runestoneResolver.projections.payloadHex(runestone)).toBe('010203')
+		expect(runestoneResolver.projections.payloadHex(runestone)).toBe('020100')
 		expect(runestoneResolver.projections.isCenotaph(runestone)).toBe(false)
+	})
+
+	it('indexes multi-envelope reveal inscriptions and LEB128 Cenotaph-tag runestones', async () => {
+		const txId = 'c'.repeat(64)
+		const helloWorldInscriptionHex = (
+			'0063'
+			+ '036f7264'
+			+ '0101'
+			+ '18746578742f706c61696e3b636861727365743d7574662d38'
+			+ '00'
+			+ '0d48656c6c6f2c20776f726c6421'
+			+ '68'
+		)
+		const secondInscriptionHex = (
+			'0063'
+			+ '036f7264'
+			+ '0101'
+			+ '0a746578742f706c61696e'
+			+ '00'
+			+ '024869'
+			+ '68'
+		)
+		getRawTransaction.mockResolvedValue({
+			txid: txId,
+			version: 2,
+			locktime: 0,
+			size: 300,
+			vsize: 150,
+			weight: 600,
+			vin: [{
+				txid: 'd'.repeat(64),
+				vout: 0,
+				scriptSig: {
+					asm: '',
+				},
+				sequence: 0xffffffff,
+				txinwitness: [
+					helloWorldInscriptionHex + secondInscriptionHex,
+				],
+			}],
+			vout: [
+				{
+					value: 0,
+					n: 0,
+					scriptPubKey: {
+						asm: 'OP_RETURN OP_13',
+						hex: '6a5d037e0000',
+						type: 'nulldata',
+					},
+				},
+			],
+		})
+
+		const entitySelector = {
+			$network: network,
+			txId,
+		}
+		const transaction = await transactionResolver.resolve.NetworkTxId.resolve(entitySelector)
+		expect(transactionResolver.projections.$$bitcoinOrdinalInscriptions(transaction)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					inscriptionId: `${txId}i0`,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					inscriptionId: `${txId}i1`,
+				},
+			},
+		])
+
+		const inscriptionResolver = bitcoinCoreResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.BitcoinOrdinalInscription
+		))
+		const runestoneResolver = bitcoinCoreResolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.BitcoinRunestone
+		))
+		if (inscriptionResolver == null || runestoneResolver == null)
+			throw new Error('BitcoinCore-JsonRpc missing Ordinals/Runes entity resolvers')
+
+		const second = await inscriptionResolver.resolve.NetworkInscriptionId.resolve({
+			$network: network,
+			inscriptionId: `${txId}i1`,
+		})
+		expect(inscriptionResolver.projections.inscriptionIndex(second)).toBe(1)
+		expect(inscriptionResolver.projections.contentType(second)).toBe('text/plain')
+		expect(inscriptionResolver.projections.bodyHex(second)).toBe('4869')
+
+		const runestone = await runestoneResolver.resolve.TransactionOutputIndex.resolve({
+			$transaction: entitySelector,
+			outputIndex: 0,
+		})
+		expect(runestoneResolver.projections.payloadHex(runestone)).toBe('7e0000')
+		expect(runestoneResolver.projections.isCenotaph(runestone)).toBe(true)
 	})
 })

@@ -38,11 +38,19 @@ const runeResolver = uniSatRest.resolvers.find((resolver) => (
 const balanceResolver = uniSatRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BitcoinRuneBalance
 ))
-const addressResolver = uniSatRest.resolvers.find((resolver) => (
+const addressInscriptionsResolver = uniSatRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoAddress
 	&& '$$bitcoinOrdinalInscriptions' in resolver.projections
 ))
-const outputResolver = uniSatRest.resolvers.find((resolver) => (
+const addressRuneBalancesResolver = uniSatRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress
+	&& '$$bitcoinRuneBalances' in resolver.projections
+))
+const outputInscriptionsResolver = uniSatRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoOutput
+	&& '$$bitcoinOrdinalInscriptions' in resolver.projections
+))
+const outputRuneBalancesResolver = uniSatRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoOutput
 	&& '$$bitcoinRuneBalances' in resolver.projections
 ))
@@ -52,6 +60,7 @@ const context = {
 	sorts: [],
 	pagination: {
 		limit: 16,
+		offset: 0,
 	},
 	selectorKeys: [],
 	parentSelectorKeys: [],
@@ -81,8 +90,10 @@ describe('UniSat Rest resolver module', () => {
 		expect(inscriptionResolver).toBeDefined()
 		expect(runeResolver).toBeDefined()
 		expect(balanceResolver).toBeDefined()
-		expect(addressResolver).toBeDefined()
-		expect(outputResolver).toBeDefined()
+		expect(addressInscriptionsResolver).toBeDefined()
+		expect(addressRuneBalancesResolver).toBeDefined()
+		expect(outputInscriptionsResolver).toBeDefined()
+		expect(outputRuneBalancesResolver).toBeDefined()
 	})
 
 	it('fail-closes non-Bitcoin networks before transport', async () => {
@@ -257,12 +268,12 @@ describe('UniSat Rest resolver module', () => {
 		).rejects.toThrow(`${Source.UniSat_Rest}: rune 840000:1 not on utxo`)
 	})
 
-	it('projects address inscription and rune-balance lists', async () => {
-		if (addressResolver == null)
+	it('projects address inscription and rune-balance lists with authoritative totals', async () => {
+		if (addressInscriptionsResolver == null || addressRuneBalancesResolver == null)
 			throw new Error('missing UtxoAddress UniSat list facets')
 
 		getAddressInscriptions.mockResolvedValueOnce({
-			total: 1,
+			total: 41,
 			start: 0,
 			detail: [
 				{
@@ -271,7 +282,7 @@ describe('UniSat Rest resolver module', () => {
 			],
 		})
 		getAddressRuneBalances.mockResolvedValueOnce({
-			total: 1,
+			total: 7,
 			start: 0,
 			detail: [
 				{
@@ -287,8 +298,12 @@ describe('UniSat Rest resolver module', () => {
 			$network: bitcoinNetwork,
 			address: 'bc1qlist',
 		}
+		const inscriptionPage = await addressInscriptionsResolver.resolve.NetworkAddress.resolve(
+			addressSelector,
+			context
+		)
 		expect(
-			await addressResolver.projections.$$bitcoinOrdinalInscriptions.resolve(addressSelector, context)
+			addressInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions.select(inscriptionPage)
 		).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -298,7 +313,20 @@ describe('UniSat Rest resolver module', () => {
 			},
 		])
 		expect(
-			await addressResolver.projections.$$bitcoinRuneBalances.resolve(addressSelector, context)
+			addressInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions.resolveCount(inscriptionPage)
+		).toBe(41)
+		expect(getAddressInscriptions).toHaveBeenCalledWith(context.publicEnv, {
+			address: 'bc1qlist',
+			cursor: 0,
+			size: 16,
+		})
+
+		const runePage = await addressRuneBalancesResolver.resolve.NetworkAddress.resolve(
+			addressSelector,
+			context
+		)
+		expect(
+			addressRuneBalancesResolver.projections.$$bitcoinRuneBalances.select(runePage)
 		).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -310,11 +338,19 @@ describe('UniSat Rest resolver module', () => {
 				},
 			},
 		])
+		expect(
+			addressRuneBalancesResolver.projections.$$bitcoinRuneBalances.resolveCount(runePage)
+		).toBe(7)
+		expect(getAddressRuneBalances).toHaveBeenCalledWith(context.publicEnv, {
+			address: 'bc1qlist',
+			start: 0,
+			limit: 16,
+		})
 	})
 
-	it('projects output inscription and rune-balance lists', async () => {
-		if (outputResolver == null)
-			throw new Error('missing UtxoOutput UniSat list facets')
+	it('projects output inscriptions plus enrolled utxo wire fields from UniSat indexer', async () => {
+		if (outputInscriptionsResolver == null)
+			throw new Error('missing UtxoOutput UniSat inscription facets')
 
 		const $transaction = {
 			$network: bitcoinNetwork,
@@ -323,24 +359,25 @@ describe('UniSat Rest resolver module', () => {
 		getUtxoInfo.mockResolvedValueOnce({
 			txid: $transaction.txId,
 			vout: 2,
+			satoshi: 546,
+			scriptType: 'p2tr',
+			scriptPk: '5120ab',
+			address: 'bc1poutput',
+			isSpent: false,
 			inscriptions: [
 				{
 					inscriptionId: `${'ff'.repeat(32)}i1`,
 				},
 			],
 		})
-		getUtxoRuneBalances.mockResolvedValueOnce([
-			{
-				amount: '7',
-				runeid: '840000:9',
-			},
-		])
+
+		const output = await outputInscriptionsResolver.resolve.TransactionIndexInTransaction.resolve({
+			$transaction,
+			indexInTransaction: 2,
+		}, context)
 
 		expect(
-			await outputResolver.projections.$$bitcoinOrdinalInscriptions.resolve({
-				$transaction,
-				indexInTransaction: 2,
-			}, context)
+			outputInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions(output)
 		).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -349,11 +386,39 @@ describe('UniSat Rest resolver module', () => {
 				},
 			},
 		])
+		expect(outputInscriptionsResolver.projections.valueSats(output)).toBe(546n)
+		expect(outputInscriptionsResolver.projections.scriptPubKeyType(output)).toBe('p2tr')
+		expect(outputInscriptionsResolver.projections.scriptPubKeyHex(output)).toBe('5120ab')
+		expect(outputInscriptionsResolver.projections.isSpent(output)).toBe(false)
+		expect(outputInscriptionsResolver.projections.$address(output)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: bitcoinNetwork,
+				address: 'bc1poutput',
+			},
+		})
+	})
+
+	it('projects output rune-balance lists', async () => {
+		if (outputRuneBalancesResolver == null)
+			throw new Error('missing UtxoOutput UniSat rune balance facets')
+
+		const $transaction = {
+			$network: bitcoinNetwork,
+			txId: 'ee'.repeat(32),
+		}
+		getUtxoRuneBalances.mockResolvedValueOnce([
+			{
+				amount: '7',
+				runeid: '840000:9',
+			},
+		])
+
+		const output = await outputRuneBalancesResolver.resolve.TransactionIndexInTransaction.resolve({
+			$transaction,
+			indexInTransaction: 2,
+		}, context)
 		expect(
-			await outputResolver.projections.$$bitcoinRuneBalances.resolve({
-				$transaction,
-				indexInTransaction: 2,
-			}, context)
+			outputRuneBalancesResolver.projections.$$bitcoinRuneBalances(output)
 		).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -370,21 +435,23 @@ describe('UniSat Rest resolver module', () => {
 		])
 	})
 
-	it('returns an empty inscription list when UniSat utxo info is null (spent+confirmed)', async () => {
-		if (outputResolver == null)
-			throw new Error('missing UtxoOutput UniSat list facets')
+	it('returns an empty inscription list and marks spent when UniSat utxo info is null', async () => {
+		if (outputInscriptionsResolver == null)
+			throw new Error('missing UtxoOutput UniSat inscription facets')
 
 		getUtxoInfo.mockResolvedValueOnce(null)
 
+		const output = await outputInscriptionsResolver.resolve.TransactionIndexInTransaction.resolve({
+			$transaction: {
+				$network: bitcoinNetwork,
+				txId: '11'.repeat(32),
+			},
+			indexInTransaction: 0,
+		}, context)
 		expect(
-			await outputResolver.projections.$$bitcoinOrdinalInscriptions.resolve({
-				$transaction: {
-					$network: bitcoinNetwork,
-					txId: '11'.repeat(32),
-				},
-				indexInTransaction: 0,
-			}, context)
+			outputInscriptionsResolver.projections.$$bitcoinOrdinalInscriptions(output)
 		).toEqual([])
+		expect(outputInscriptionsResolver.projections.isSpent(output)).toBe(true)
 	})
 
 	it('projects address and output rune balance detail rows', async () => {

@@ -146,6 +146,26 @@ describe('bitcoinOrdinalsRunes helpers', () => {
 		})
 	})
 
+	it('marks LEB128 Cenotaph-tag payloads as cenotaphs even when the script flag is clear', () => {
+		const $transaction = {
+			$network: {
+				slug: 'bitcoin' as const,
+			},
+			txId: 'aa'.repeat(32),
+		}
+		expect(
+			bitcoinRunestoneSnapshotFromPayload($transaction, {
+				protocol: BitcoinProtocolId.Runes,
+				transactionId: 'aa'.repeat(32),
+				location: {
+					outputIndex: 0,
+				},
+				payloadHex: '7e0000',
+				isCenotaph: false,
+			}).isCenotaph
+		).toBe(true)
+	})
+
 	it('builds inscription refs from UniSat utxo inscription rows', () => {
 		const network = {
 			slug: 'bitcoin' as const,

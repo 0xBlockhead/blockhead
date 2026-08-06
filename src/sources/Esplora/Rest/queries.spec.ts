@@ -82,7 +82,7 @@ describe('Esplora REST binding selection', () => {
 			],
 			vout: [
 				{
-					scriptpubkey: '6a5d03010203',
+					scriptpubkey: '6a5d03020100',
 					scriptpubkey_asm: '',
 					scriptpubkey_type: 'op_return',
 					value: 0,
@@ -107,8 +107,48 @@ describe('Esplora REST binding selection', () => {
 		expect(payloads[1]).toMatchObject({
 			protocol: 'Runes',
 			transactionId: txId,
-			payloadHex: '010203',
+			payloadHex: '020100',
 			isCenotaph: false,
 		})
+	})
+
+	it('getTransactionProtocolPayloads marks LEB128 Cenotaph-tag runestones', async () => {
+		const txId = 'ff'.repeat(32)
+		sourceGetJson.mockResolvedValueOnce({
+			txid: txId,
+			version: 2,
+			locktime: 0,
+			size: 50,
+			weight: 200,
+			vin: [],
+			vout: [
+				{
+					scriptpubkey: '6a5d037e0000',
+					scriptpubkey_asm: '',
+					scriptpubkey_type: 'op_return',
+					value: 0,
+				},
+			],
+			status: {
+				confirmed: false,
+			},
+		})
+
+		await expect(
+			getTransactionProtocolPayloads({
+				target: bitcoinBinding.target.key,
+				txId,
+			})
+		).resolves.toEqual([
+			{
+				protocol: 'Runes',
+				transactionId: txId,
+				location: {
+					outputIndex: 0,
+				},
+				payloadHex: '7e0000',
+				isCenotaph: true,
+			},
+		])
 	})
 })

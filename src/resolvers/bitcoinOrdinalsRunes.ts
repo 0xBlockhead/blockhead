@@ -5,10 +5,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import type {
-	BitcoinOrdinalsProtocolPayload,
-	BitcoinProtocolPayload,
-	BitcoinRunesProtocolPayload,
+import {
+	decodeRunestonePayload,
+	type BitcoinOrdinalsProtocolPayload,
+	type BitcoinProtocolPayload,
+	type BitcoinRunesProtocolPayload,
 } from '$/sources/BitcoinCore/JsonRpc/protocol.ts'
 
 
@@ -124,7 +125,9 @@ export const bitcoinRunestoneSnapshotFromPayload = (
 		},
 	},
 	payloadHex: payload.payloadHex,
-	isCenotaph: payload.isCenotaph,
+	isCenotaph: decodeRunestonePayload(payload.payloadHex, {
+		scriptIsCenotaph: payload.isCenotaph,
+	}).isCenotaph,
 })
 
 export const bitcoinOrdinalInscriptionRefsFromUtxoInscriptions = (
