@@ -345,13 +345,13 @@ export default {
 				BlockIndexInBlock: {
 					resolve: async ({ $block, indexInBlock }) => {
 						assertPolkadotMainnet($block.$network)
-						const { getBlock } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						const block = await getBlock({
+						const { getBlockExtrinsic } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+						const {
+							extrinsic,
+						} = await getBlockExtrinsic({
 							blockId: $block.hash ?? $block.blockNumber.toString(),
+							extrinsicIndex: indexInBlock,
 						})
-						const extrinsic = block.extrinsics.at(indexInBlock)
-						if (extrinsic == null)
-							throw new Error(`SubstrateSidecar_Rest: missing extrinsic ${indexInBlock}`)
 						return polkadotExtrinsicFields(
 							$block.$network,
 							extrinsic
@@ -597,34 +597,33 @@ export default {
 					resolve: async (network, context) => {
 						assertPolkadotMainnet(network)
 						const {
-							getBlock,
-							getBlockHead,
+							getBlockHeadHeader,
+							getBlocks,
 						} = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						const head = await getBlockHead()
+						const head = await getBlockHeadHeader()
 						const limit = resolverContextRowLimit(context)
 						const headNumber = BigInt(head.number)
-						const blocks = [
-							head,
-						]
-						for (
-							let blockOffset = 1n;
-							blocks.length < limit && headNumber >= blockOffset;
-							blockOffset += 1n
-						) {
-							blocks.push(
-								await getBlock({
-									blockId: headNumber - blockOffset,
-								})
-							)
-						}
+						const rowCount = Math.min(
+							limit,
+							Number(headNumber + 1n)
+						)
+						if (rowCount === 0)
+							return []
 
-						return blocks.map((block) => ({
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								blockNumber: BigInt(block.number),
-								hash: block.hash,
-							},
-						}))
+						const from = headNumber - BigInt(rowCount - 1)
+						const blocks = await getBlocks({
+							from,
+							to: headNumber,
+						})
+						return [...blocks]
+							.reverse()
+							.map((block) => ({
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									blockNumber: BigInt(block.number),
+									hash: block.hash,
+								},
+							}))
 					},
 				},
 			},
@@ -640,8 +639,8 @@ export default {
 				Slug: {
 					resolve: async (network) => {
 						assertPolkadotMainnet(network)
-						const { getBlockHead } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						return BigInt((await getBlockHead()).number) + 1n
+						const { getBlockHeadHeader } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+						return BigInt((await getBlockHeadHeader()).number) + 1n
 					},
 				},
 			},

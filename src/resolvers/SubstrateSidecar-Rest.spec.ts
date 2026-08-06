@@ -251,15 +251,23 @@ describe('Substrate Sidecar Polkadot block / pallet projections', () => {
 		expect(palletResolver.projections.index(snapshot)).toBe(10)
 	})
 
-	it('lists tip blocks from finalized head', async () => {
+	it('lists tip blocks from finalized head header + range', async () => {
 		sourceFetch
-			.mockResolvedValueOnce(new Response(JSON.stringify(block)))
 			.mockResolvedValueOnce(new Response(JSON.stringify({
-				...block,
-				number: '9',
-				hash: '0xPARENT_HASH',
-				parentHash: '0xGRANDPARENT_HASH',
+				number: block.number,
+				parentHash: block.parentHash,
+				stateRoot: block.stateRoot,
+				extrinsicsRoot: block.extrinsicsRoot,
 			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify([
+				{
+					...block,
+					number: '9',
+					hash: '0xPARENT_HASH',
+					parentHash: '0xGRANDPARENT_HASH',
+				},
+				block,
+			])))
 
 		const snapshot = await networkBlockListResolver.resolve.Slug.resolve(
 			account.$network,
@@ -281,8 +289,8 @@ describe('Substrate Sidecar Polkadot block / pallet projections', () => {
 				},
 			},
 		])
-		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/blocks/head?finalized=true')
-		expect(sourceFetch.mock.calls[1][1]).toBe('http://127.0.0.1:8080/blocks/9')
+		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/blocks/head/header?finalized=true')
+		expect(sourceFetch.mock.calls[1][1]).toBe('http://127.0.0.1:8080/blocks?range=9-10')
 	})
 })
 

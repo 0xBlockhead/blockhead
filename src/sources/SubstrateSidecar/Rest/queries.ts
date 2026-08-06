@@ -2,7 +2,13 @@ import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import type {
 	SidecarAccountAssetBalances,
 	SidecarAccountBalanceInfo,
+	SidecarAccountForeignAssetBalances,
+	SidecarAhmInfo,
+	SidecarAssetInfo,
 	SidecarBlock,
+	SidecarBlockExtrinsic,
+	SidecarBlockHeader,
+	SidecarExtrinsic,
 	SidecarNodeVersion,
 	SidecarRuntimeMetadata,
 	SidecarRuntimeSpec,
@@ -56,6 +62,7 @@ const sidecarBlockWire = arktype({
 	stateRoot: 'string > 0',
 	extrinsicsRoot: 'string > 0',
 	'authorId?': 'string > 0',
+	'logs?': 'unknown',
 	'onInitialize?': {
 		'events?': sidecarBlockEventWire.array(),
 	},
@@ -63,6 +70,22 @@ const sidecarBlockWire = arktype({
 	'onFinalize?': {
 		'events?': sidecarBlockEventWire.array(),
 	},
+})
+
+const sidecarBlockHeaderWire = arktype({
+	number: unsignedDecimal,
+	parentHash: 'string > 0',
+	stateRoot: 'string > 0',
+	extrinsicsRoot: 'string > 0',
+	'digest?': 'unknown',
+})
+
+const sidecarBlockExtrinsicWire = arktype({
+	at: {
+		hash: 'string > 0',
+		height: unsignedDecimal,
+	},
+	extrinsics: sidecarExtrinsicWire,
 })
 
 const sidecarAccountBalanceInfoWire = arktype({
@@ -132,6 +155,9 @@ const sidecarStakingValidatorsWire = arktype({
 	}).array(),
 })
 
+// Live Asset Hub may return isFrozen as a runtime-capability string instead of boolean.
+const sidecarAssetFrozenWire = arktype('boolean').or('string')
+
 const sidecarAccountAssetBalancesWire = arktype({
 	at: {
 		hash: 'string > 0',
@@ -140,9 +166,61 @@ const sidecarAccountAssetBalancesWire = arktype({
 	assets: arktype({
 		assetId: arktype('string > 0').or('number.integer >= 0'),
 		balance: unsignedDecimal,
-		'isFrozen?': 'boolean',
+		'isFrozen?': sidecarAssetFrozenWire,
 		'isSufficient?': 'boolean',
 	}).array(),
+})
+
+const sidecarAccountForeignAssetBalancesWire = arktype({
+	at: {
+		hash: 'string > 0',
+		height: unsignedDecimal,
+	},
+	foreignAssets: arktype({
+		multiLocation: 'unknown',
+		balance: unsignedDecimal,
+		'isFrozen?': sidecarAssetFrozenWire,
+		'isSufficient?': 'boolean',
+	}).array(),
+})
+
+const sidecarAssetInfoWire = arktype({
+	at: {
+		hash: 'string > 0',
+		height: unsignedDecimal,
+	},
+	assetInfo: {
+		owner: 'string > 0',
+		issuer: 'string > 0',
+		admin: 'string > 0',
+		freezer: 'string > 0',
+		supply: unsignedDecimal,
+		deposit: unsignedDecimal,
+		minBalance: unsignedDecimal,
+		isSufficient: 'boolean',
+		accounts: unsignedDecimal,
+		sufficients: unsignedDecimal,
+		approvals: unsignedDecimal,
+		status: 'string > 0',
+	},
+	assetMetaData: {
+		deposit: unsignedDecimal,
+		name: 'string > 0',
+		symbol: 'string > 0',
+		decimals: arktype('number.integer >= 0').or(unsignedDecimal),
+		isFrozen: 'boolean',
+	},
+})
+
+const sidecarAhmInfoWire = arktype({
+	relay: {
+		startBlock: unsignedDecimal,
+		endBlock: unsignedDecimal,
+	},
+	assetHub: {
+		startBlock: unsignedDecimal,
+		endBlock: unsignedDecimal,
+	},
 })
 
 const assertEnvelope = <_Value>(
@@ -179,6 +257,128 @@ const runtimeSpecNumber = (
 		Number(value)
 )
 
+const optionalBooleanFlag = (
+	value: boolean | string | undefined
+) => (
+	typeof value === 'boolean' ?
+		value
+	:
+		undefined
+)
+
+const normalizeAccountAssetBalances = (
+	response: ReturnType<typeof sidecarAccountAssetBalancesWire.assert>
+): SidecarAccountAssetBalances => ({
+	at: response.at,
+	assets: response.assets.map((asset) => {
+		const isFrozen = optionalBooleanFlag(asset.isFrozen)
+		return {
+			assetId: asset.assetId,
+			balance: asset.balance,
+			...(isFrozen != null && {
+				isFrozen,
+			}),
+			...(asset.isSufficient != null && {
+				isSufficient: asset.isSufficient,
+			}),
+		}
+	}),
+})
+
+const normalizeAccountForeignAssetBalances = (
+	response: ReturnType<typeof sidecarAccountForeignAssetBalancesWire.assert>
+): SidecarAccountForeignAssetBalances => ({
+	at: response.at,
+	foreignAssets: response.foreignAssets.map((asset) => {
+		const isFrozen = optionalBooleanFlag(asset.isFrozen)
+		return {
+			multiLocation: asset.multiLocation,
+			balance: asset.balance,
+			...(isFrozen != null && {
+				isFrozen,
+			}),
+			...(asset.isSufficient != null && {
+				isSufficient: asset.isSufficient,
+			}),
+		}
+	}),
+})
+
+const decodeHexUtf8 = (
+	value: string
+) => {
+	const hex = (
+		value.startsWith('0x') || value.startsWith('0X') ?
+			value.slice(2)
+		:
+			value
+	)
+	if (hex.length === 0 || hex.length % 2 !== 0 || !/^[0-9a-fA-F]+$/.test(hex))
+		throw new Error(`${Source.SubstrateSidecar_Rest}: malformed asset metadata hex`)
+
+	return new TextDecoder().decode(
+		Uint8Array.from(
+			Array.from(
+				{
+					length: hex.length / 2,
+				},
+				(_value, index) => (
+					Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16)
+				)
+			)
+		)
+	)
+}
+
+const normalizeAssetInfo = (
+	response: ReturnType<typeof sidecarAssetInfoWire.assert>
+): SidecarAssetInfo => ({
+	at: response.at,
+	owner: response.assetInfo.owner,
+	issuer: response.assetInfo.issuer,
+	admin: response.assetInfo.admin,
+	freezer: response.assetInfo.freezer,
+	supply: response.assetInfo.supply,
+	deposit: response.assetInfo.deposit,
+	minBalance: response.assetInfo.minBalance,
+	isSufficient: response.assetInfo.isSufficient,
+	accounts: response.assetInfo.accounts,
+	sufficients: response.assetInfo.sufficients,
+	approvals: response.assetInfo.approvals,
+	status: response.assetInfo.status,
+	name: decodeHexUtf8(response.assetMetaData.name),
+	symbol: decodeHexUtf8(response.assetMetaData.symbol),
+	decimals: runtimeSpecNumber(response.assetMetaData.decimals),
+	isFrozen: response.assetMetaData.isFrozen,
+})
+
+const accountQueryPath = (
+	accountId: string,
+	suffix: string,
+	{
+		at,
+		assets,
+	}: {
+		at?: bigint | string
+		assets?: (bigint | number | string)[]
+	} = {}
+) => {
+	const params = new URLSearchParams()
+	if (at != null)
+		params.set('at', String(at))
+	for (const assetId of assets ?? [])
+		params.append('assets[]', String(assetId))
+	const query = params.toString()
+	return (
+		`/accounts/${encodeURIComponent(accountId)}/${suffix}${
+			query.length > 0 ?
+				`?${query}`
+			:
+				''
+		}`
+	)
+}
+
 export const getBlock = async ({
 	blockId,
 	binding,
@@ -195,6 +395,28 @@ export const getBlock = async ({
 		)
 	) as SidecarBlock
 )
+
+export const getBlocks = async ({
+	from,
+	to,
+	binding,
+}: {
+	from: bigint
+	to: bigint
+	binding?: SourceBinding
+}) => {
+	if (from < 0n || to < from)
+		throw new Error(`${Source.SubstrateSidecar_Rest}: invalid block range`)
+
+	return assertEnvelope(
+		'blocks',
+		sidecarBlockWire.array(),
+		await getJson<unknown>(
+			bindingOrDefault(binding),
+			`/blocks?range=${from.toString()}-${to.toString()}`
+		)
+	) as SidecarBlock[]
+}
 
 export const getBlockHead = async ({
 	finalized = true,
@@ -213,11 +435,73 @@ export const getBlockHead = async ({
 	) as SidecarBlock
 )
 
+export const getBlockHeader = async ({
+	blockId,
+	binding,
+}: {
+	blockId: bigint | string
+	binding?: SourceBinding
+}) => (
+	assertEnvelope(
+		'block header',
+		sidecarBlockHeaderWire,
+		await getJson<unknown>(
+			bindingOrDefault(binding),
+			`/blocks/${String(blockId)}/header`
+		)
+	) as SidecarBlockHeader
+)
+
+export const getBlockHeadHeader = async ({
+	finalized = true,
+	binding,
+}: {
+	finalized?: boolean
+	binding?: SourceBinding
+} = {}) => (
+	assertEnvelope(
+		'block head header',
+		sidecarBlockHeaderWire,
+		await getJson<unknown>(
+			bindingOrDefault(binding),
+			`/blocks/head/header?finalized=${finalized ? 'true' : 'false'}`
+		)
+	) as SidecarBlockHeader
+)
+
+export const getBlockExtrinsic = async ({
+	blockId,
+	extrinsicIndex,
+	binding,
+}: {
+	blockId: bigint | string
+	extrinsicIndex: number
+	binding?: SourceBinding
+}) => {
+	if (!Number.isSafeInteger(extrinsicIndex) || extrinsicIndex < 0)
+		throw new Error(`${Source.SubstrateSidecar_Rest}: extrinsic index must be a non-negative integer`)
+
+	const response = assertEnvelope(
+		'block extrinsic',
+		sidecarBlockExtrinsicWire,
+		await getJson<unknown>(
+			bindingOrDefault(binding),
+			`/blocks/${String(blockId)}/extrinsics/${extrinsicIndex}`
+		)
+	)
+	return {
+		at: response.at,
+		extrinsic: response.extrinsics as SidecarExtrinsic,
+	} satisfies SidecarBlockExtrinsic
+}
+
 export const getAccountBalanceInfo = async ({
 	accountId,
+	at,
 	binding,
 }: {
 	accountId: string
+	at?: bigint | string
 	binding?: SourceBinding
 }) => {
 	if (accountId.length === 0)
@@ -228,30 +512,112 @@ export const getAccountBalanceInfo = async ({
 		sidecarAccountBalanceInfoWire,
 		await getJson<unknown>(
 			bindingOrDefault(binding),
-			`/accounts/${encodeURIComponent(accountId)}/balance-info`
+			accountQueryPath(accountId, 'balance-info', {
+				at,
+			})
 		)
 	) as SidecarAccountBalanceInfo
 }
 
 export const getAccountAssetBalances = async ({
 	accountId,
+	at,
+	assets,
 	binding,
 }: {
 	accountId: string
+	at?: bigint | string
+	assets?: (bigint | number | string)[]
 	binding?: SourceBinding
 }) => {
 	if (accountId.length === 0)
 		throw new Error(`${Source.SubstrateSidecar_Rest}: account ID must not be empty`)
 
-	return assertEnvelope(
-		'account asset balances',
-		sidecarAccountAssetBalancesWire,
+	return normalizeAccountAssetBalances(
+		assertEnvelope(
+			'account asset balances',
+			sidecarAccountAssetBalancesWire,
+			await getJson<unknown>(
+				bindingOrDefault(binding),
+				accountQueryPath(accountId, 'asset-balances', {
+					at,
+					assets,
+				})
+			)
+		)
+	)
+}
+
+export const getAccountForeignAssetBalances = async ({
+	accountId,
+	at,
+	binding,
+}: {
+	accountId: string
+	at?: bigint | string
+	binding?: SourceBinding
+}) => {
+	if (accountId.length === 0)
+		throw new Error(`${Source.SubstrateSidecar_Rest}: account ID must not be empty`)
+
+	return normalizeAccountForeignAssetBalances(
+		assertEnvelope(
+			'account foreign asset balances',
+			sidecarAccountForeignAssetBalancesWire,
+			await getJson<unknown>(
+				bindingOrDefault(binding),
+				accountQueryPath(accountId, 'foreign-asset-balances', {
+					at,
+				})
+			)
+		)
+	)
+}
+
+export const getAssetInfo = async ({
+	assetId,
+	at,
+	binding,
+}: {
+	assetId: bigint | number | string
+	at?: bigint | string
+	binding?: SourceBinding
+}) => {
+	const params = new URLSearchParams()
+	if (at != null)
+		params.set('at', String(at))
+	const query = params.toString()
+	return normalizeAssetInfo(
+		assertEnvelope(
+			'asset info',
+			sidecarAssetInfoWire,
+			await getJson<unknown>(
+				bindingOrDefault(binding),
+				`/pallets/assets/${encodeURIComponent(String(assetId))}/asset-info${
+					query.length > 0 ?
+						`?${query}`
+					:
+						''
+				}`
+			)
+		)
+	)
+}
+
+export const getAhmInfo = async ({
+	binding,
+}: {
+	binding?: SourceBinding
+} = {}) => (
+	assertEnvelope(
+		'asset hub migration info',
+		sidecarAhmInfoWire,
 		await getJson<unknown>(
 			bindingOrDefault(binding),
-			`/accounts/${encodeURIComponent(accountId)}/asset-balances`
+			'/ahm-info'
 		)
-	) as SidecarAccountAssetBalances
-}
+	) as SidecarAhmInfo
+)
 
 export const getRuntimeMetadata = async ({
 	binding,
@@ -329,6 +695,21 @@ export const getStakingValidators = async ({
 		await getJson<unknown>(
 			bindingOrDefault(binding),
 			'/pallets/staking/validators'
+		)
+	) as SidecarStakingValidators
+)
+
+export const getRcStakingValidators = async ({
+	binding,
+}: {
+	binding?: SourceBinding
+} = {}) => (
+	assertEnvelope(
+		'relay staking validators',
+		sidecarStakingValidatorsWire,
+		await getJson<unknown>(
+			bindingOrDefault(binding),
+			'/rc/pallets/staking/validators'
 		)
 	) as SidecarStakingValidators
 )

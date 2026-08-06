@@ -9,6 +9,24 @@ export type SidecarBlockEvent = {
 	extrinsicIndex?: number
 }
 
+export type SidecarExtrinsic = {
+	method: {
+		pallet: string
+		method: string
+	}
+	signature?: {
+		signer?:
+			| string
+			| {
+				id?: string
+				address?: string
+			}
+	} | null
+	hash?: string
+	events?: SidecarBlockEvent[]
+	success?: boolean
+}
+
 export type SidecarBlock = {
 	number: string
 	hash: string
@@ -16,29 +34,30 @@ export type SidecarBlock = {
 	stateRoot: string
 	extrinsicsRoot: string
 	authorId?: string
+	logs?: unknown
 	onInitialize?: {
 		events?: SidecarBlockEvent[]
 	}
-	extrinsics: {
-		method: {
-			pallet: string
-			method: string
-		}
-		signature?: {
-			signer?:
-				| string
-				| {
-					id?: string
-					address?: string
-				}
-		} | null
-		hash?: string
-		events?: SidecarBlockEvent[]
-		success?: boolean
-	}[]
+	extrinsics: SidecarExtrinsic[]
 	onFinalize?: {
 		events?: SidecarBlockEvent[]
 	}
+}
+
+export type SidecarBlockHeader = {
+	number: string
+	parentHash: string
+	stateRoot: string
+	extrinsicsRoot: string
+	digest?: unknown
+}
+
+export type SidecarBlockExtrinsic = {
+	at: {
+		hash: string
+		height: string
+	}
+	extrinsic: SidecarExtrinsic
 }
 
 export type SidecarAccountBalanceInfo = {
@@ -111,4 +130,53 @@ export type SidecarAccountAssetBalances = {
 		height: string
 	}
 	assets: SidecarAccountAssetBalance[]
+}
+
+export type SidecarAccountForeignAssetBalance = {
+	multiLocation: unknown
+	balance: string
+	isFrozen?: boolean
+	isSufficient?: boolean
+}
+
+export type SidecarAccountForeignAssetBalances = {
+	at: {
+		hash: string
+		height: string
+	}
+	foreignAssets: SidecarAccountForeignAssetBalance[]
+}
+
+export type SidecarAssetInfo = {
+	at: {
+		hash: string
+		height: string
+	}
+	owner: string
+	issuer: string
+	admin: string
+	freezer: string
+	supply: string
+	deposit: string
+	minBalance: string
+	isSufficient: boolean
+	accounts: string
+	sufficients: string
+	approvals: string
+	status: string
+	name: string
+	symbol: string
+	decimals: number
+	isFrozen: boolean
+}
+
+export type SidecarAhmInfo = {
+	relay: {
+		startBlock: string
+		endBlock: string
+	}
+	assetHub: {
+		startBlock: string
+		endBlock: string
+	}
 }
