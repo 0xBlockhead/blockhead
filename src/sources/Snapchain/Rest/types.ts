@@ -5,6 +5,8 @@
  * @see https://snapchain.farcaster.xyz/reference/httpapi/userdata
  * @see https://snapchain.farcaster.xyz/reference/httpapi/usernameproof
  * @see https://snapchain.farcaster.xyz/reference/httpapi/verification
+ * @see https://snapchain.farcaster.xyz/reference/httpapi/links
+ * @see https://snapchain.farcaster.xyz/reference/httpapi/onchain
  */
 
 import {
@@ -20,43 +22,82 @@ export type SnapchainCastEmbed = {
 	}
 }
 
-export type SnapchainCast = {
+export type SnapchainMessageEnvelope = {
+	hash?: `0x${string}`
+	hashScheme?: string
+	signature?: string
+	signatureScheme?: string
+	signer?: string
+}
+
+export type SnapchainCast = SnapchainMessageEnvelope & {
 	hash: `0x${string}`
 	data?: {
+		type?: string
 		fid?: number
 		timestamp?: number
+		network?: string
 		castAddBody?: {
 			text?: string
 			mentions?: number[]
+			mentionsPositions?: number[]
+			embedsDeprecated?: string[]
 			parentCastId?: {
 				fid?: number
 				hash?: `0x${string}`
 			}
 			parentUrl?: string
 			embeds?: SnapchainCastEmbed[]
+			type?: string
 		}
 	}
 }
 
-export type SnapchainReaction = {
+export type SnapchainReaction = SnapchainMessageEnvelope & {
 	data?: {
+		type?: string
 		fid?: number
+		timestamp?: number
+		network?: string
+		reactionBody?: {
+			type?: string | number
+			targetCastId?: {
+				fid?: number
+				hash?: `0x${string}`
+			}
+			targetUrl?: string
+		}
 	}
 }
 
-export type SnapchainVerification = {
+export type SnapchainVerification = SnapchainMessageEnvelope & {
 	data?: {
+		type?: string
 		fid?: number
+		timestamp?: number
+		network?: string
 		verificationAddAddressBody?: {
 			address?: string
 			protocol?: string
+			claimSignature?: string
+			blockHash?: string
+			verificationType?: number
+			chainId?: number
+		}
+		verificationAddEthAddressBody?: {
+			address?: string
+			ethSignature?: string
+			blockHash?: string
 		}
 	}
 }
 
-export type SnapchainUserData = {
+export type SnapchainUserData = SnapchainMessageEnvelope & {
 	data?: {
+		type?: string
 		fid?: number
+		timestamp?: number
+		network?: string
 		userDataBody?: {
 			type?: string | number
 			value?: string
@@ -74,31 +115,49 @@ export type SnapchainFidsPage = {
 	nextPageToken?: string
 }
 
+export type SnapchainUsernameProof = {
+	timestamp?: number
+	name?: string
+	owner?: string
+	signature?: string
+	fid?: number
+	type?: string
+}
+
 export type SnapchainUsernameProofsResponse = {
-	proofs?: {
-		fid?: number
-		name?: string
-	}[]
+	proofs?: SnapchainUsernameProof[]
 	nextPageToken?: string
 }
 
-export type SnapchainLink = {
+export type SnapchainLink = SnapchainMessageEnvelope & {
 	data?: {
+		type?: string
 		fid?: number
+		timestamp?: number
+		network?: string
 		linkBody?: {
 			type?: string
 			targetFid?: number
+			displayTimestamp?: number
 		}
 	}
 }
 
 export type SnapchainOnChainEvent = {
 	type?: string
+	chainId?: number
+	blockNumber?: number
+	blockHash?: string
 	blockTimestamp?: number
+	transactionHash?: string
+	logIndex?: number
+	txIndex?: number
 	fid?: number
 	idRegisterEventBody?: {
 		to?: string
 		eventType?: string
+		from?: string
+		recoveryAddress?: string
 	}
 }
 
@@ -108,35 +167,46 @@ export type SnapchainOnChainEventsPage = {
 }
 
 
+const snapchainCastIdWire = arktype({
+	'fid?': 'number.integer >= 0',
+	'hash?': 'string',
+})
+
 const snapchainCastEmbedWire = arktype({
 	'url?': 'string',
-	'castId?': {
-		'fid?': 'number.integer >= 0',
-		'hash?': 'string',
-	},
+	'castId?': snapchainCastIdWire,
 })
+
+const snapchainMessageMetaWire = {
+	'hashScheme?': 'string',
+	'signature?': 'string',
+	'signatureScheme?': 'string',
+	'signer?': 'string',
+} as const
+
+const snapchainMessageDataMetaWire = {
+	'type?': 'string',
+	'fid?': 'number.integer >= 0',
+	'timestamp?': 'number.integer >= 0',
+	'network?': 'string',
+} as const
 
 const snapchainCastWire = arktype({
 	hash: 'string',
+	...snapchainMessageMetaWire,
 	'data?': {
-		'fid?': 'number.integer >= 0',
-		'timestamp?': 'number.integer >= 0',
+		...snapchainMessageDataMetaWire,
 		'castAddBody?': {
 			'text?': 'string',
 			'mentions?': 'number.integer >= 0[]',
-			'parentCastId?': {
-				'fid?': 'number.integer >= 0',
-				'hash?': 'string',
-			},
+			'mentionsPositions?': 'number.integer >= 0[]',
+			'embedsDeprecated?': 'string[]',
+			'parentCastId?': snapchainCastIdWire,
 			'parentUrl?': 'string',
 			'embeds?': snapchainCastEmbedWire.array(),
+			'type?': 'string',
 		},
 	},
-})
-
-const snapchainPageTokenWire = arktype({
-	'messages?': 'unknown[]',
-	'nextPageToken?': 'string',
 })
 
 export const snapchainCastResponseWire = snapchainCastWire satisfies Type<SnapchainCast>
@@ -146,52 +216,96 @@ export const snapchainCastPageWire = arktype({
 	'nextPageToken?': 'string',
 }) satisfies Type<SnapchainPage<SnapchainCast>>
 
-export const snapchainReactionPageWire = snapchainPageTokenWire satisfies Type<SnapchainPage<SnapchainReaction>>
+const snapchainReactionWire = arktype({
+	'hash?': 'string',
+	...snapchainMessageMetaWire,
+	'data?': {
+		...snapchainMessageDataMetaWire,
+		'reactionBody?': {
+			'type?': 'string | number.integer',
+			'targetCastId?': snapchainCastIdWire,
+			'targetUrl?': 'string',
+		},
+	},
+})
+
+export const snapchainReactionPageWire = arktype({
+	'messages?': snapchainReactionWire.array(),
+	'nextPageToken?': 'string',
+}) satisfies Type<SnapchainPage<SnapchainReaction>>
+
+const snapchainUserDataWire = arktype({
+	'hash?': 'string',
+	...snapchainMessageMetaWire,
+	'data?': {
+		...snapchainMessageDataMetaWire,
+		'userDataBody?': {
+			'type?': 'string | number.integer',
+			'value?': 'string',
+		},
+	},
+})
 
 export const snapchainUserDataPageWire = arktype({
-	'messages?': arktype({
-		'data?': {
-			'fid?': 'number.integer >= 0',
-			'userDataBody?': {
-				'type?': 'string | number.integer',
-				'value?': 'string',
-			},
-		},
-	}).array(),
+	'messages?': snapchainUserDataWire.array(),
 	'nextPageToken?': 'string',
 }) satisfies Type<SnapchainPage<SnapchainUserData>>
 
+const snapchainUsernameProofWire = arktype({
+	'timestamp?': 'number.integer >= 0',
+	'name?': 'string',
+	'owner?': 'string',
+	'signature?': 'string',
+	'fid?': 'number.integer >= 0',
+	'type?': 'string',
+})
+
 export const snapchainUsernameProofsResponseWire = arktype({
-	'proofs?': arktype({
-		'fid?': 'number.integer >= 0',
-		'name?': 'string',
-	}).array(),
+	'proofs?': snapchainUsernameProofWire.array(),
 	'nextPageToken?': 'string',
 }) satisfies Type<SnapchainUsernameProofsResponse>
 
-export const snapchainVerificationPageWire = arktype({
-	'messages?': arktype({
-		'data?': {
-			'fid?': 'number.integer >= 0',
-			'verificationAddAddressBody?': {
-				'address?': 'string',
-				'protocol?': 'string',
-			},
+const snapchainVerificationWire = arktype({
+	'hash?': 'string',
+	...snapchainMessageMetaWire,
+	'data?': {
+		...snapchainMessageDataMetaWire,
+		'verificationAddAddressBody?': {
+			'address?': 'string',
+			'protocol?': 'string',
+			'claimSignature?': 'string',
+			'blockHash?': 'string',
+			'verificationType?': 'number.integer >= 0',
+			'chainId?': 'number.integer >= 0',
 		},
-	}).array(),
+		'verificationAddEthAddressBody?': {
+			'address?': 'string',
+			'ethSignature?': 'string',
+			'blockHash?': 'string',
+		},
+	},
+})
+
+export const snapchainVerificationPageWire = arktype({
+	'messages?': snapchainVerificationWire.array(),
 	'nextPageToken?': 'string',
 }) satisfies Type<SnapchainPage<SnapchainVerification>>
 
-export const snapchainLinkPageWire = arktype({
-	'messages?': arktype({
-		'data?': {
-			'fid?': 'number.integer >= 0',
-			'linkBody?': {
-				'type?': 'string',
-				'targetFid?': 'number.integer >= 0',
-			},
+const snapchainLinkWire = arktype({
+	'hash?': 'string',
+	...snapchainMessageMetaWire,
+	'data?': {
+		...snapchainMessageDataMetaWire,
+		'linkBody?': {
+			'type?': 'string',
+			'targetFid?': 'number.integer >= 0',
+			'displayTimestamp?': 'number.integer >= 0',
 		},
-	}).array(),
+	},
+})
+
+export const snapchainLinkPageWire = arktype({
+	'messages?': snapchainLinkWire.array(),
 	'nextPageToken?': 'string',
 }) satisfies Type<SnapchainPage<SnapchainLink>>
 
@@ -203,11 +317,19 @@ export const snapchainFidsPageWire = arktype({
 export const snapchainOnChainEventsPageWire = arktype({
 	'events?': arktype({
 		'type?': 'string',
+		'chainId?': 'number.integer >= 0',
+		'blockNumber?': 'number.integer >= 0',
+		'blockHash?': 'string',
 		'blockTimestamp?': 'number.integer >= 0',
+		'transactionHash?': 'string',
+		'logIndex?': 'number.integer >= 0',
+		'txIndex?': 'number.integer >= 0',
 		'fid?': 'number.integer >= 0',
 		'idRegisterEventBody?': {
 			'to?': 'string',
 			'eventType?': 'string',
+			'from?': 'string',
+			'recoveryAddress?': 'string',
 		},
 	}).array(),
 	'nextPageToken?': 'string',

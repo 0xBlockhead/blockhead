@@ -1,5 +1,9 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
-import { SnapchainReactionType } from '$/constants/Snapchain.ts'
+import {
+	SnapchainReactionType,
+	SnapchainUserDataType,
+	snapchainUserDataTypeByNumber,
+} from '$/constants/Snapchain.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { resolveMediaUrlTransport } from '$/lib/media.ts'
@@ -44,6 +48,10 @@ const snapchainCastTimestampMs = (farcasterTimestamp: number | undefined) => (
 	undefined
 )
 
+const snapchainCastMentions = (cast: SnapchainCast) => (
+	cast.data?.castAddBody?.mentions
+)
+
 const snapchainCastEntity = (cast: SnapchainCast) => {
 	if (cast.data?.fid == null)
 		return undefined
@@ -53,6 +61,7 @@ const snapchainCastEntity = (cast: SnapchainCast) => {
 	const timestamp = snapchainCastTimestampMs(cast.data.timestamp)
 	const parentCastId = cast.data.castAddBody?.parentCastId
 	const parentUrl = optionalNonemptyString(cast.data.castAddBody?.parentUrl)
+	const mentions = snapchainCastMentions(cast)
 	return {
 		[EntityMetaKey.Selector]: {
 			fid: cast.data.fid,
@@ -84,6 +93,12 @@ const snapchainCastEntity = (cast: SnapchainCast) => {
 				[entityFieldAddressKey(EntityType.FarcasterCast, [], '$channel')]: {
 					[EntityMetaKey.Selector]: { parentUrl },
 				},
+			}),
+			...(mentions != null && {
+				[entityFieldAddressKey(EntityType.FarcasterCast, [], 'mentions')]: mentions,
+				...(mentions.length > 0 && {
+					[entityFieldAddressKey(EntityType.FarcasterCast, [], 'mentionedProfileFids')]: mentions,
+				}),
 			}),
 		},
 	} satisfies Entity<typeof schema, EntityType.FarcasterCast>
@@ -231,13 +246,15 @@ const getSnapchainCastCounts = async ({
 
 const snapchainVerifiedAddress = (message: SnapchainVerification) => {
 	const fid = message.data?.fid
-	const body = message.data?.verificationAddAddressBody
-	const address = optionalNonemptyString(body?.address)
+	const addressBody = message.data?.verificationAddAddressBody
+	const legacyEthBody = message.data?.verificationAddEthAddressBody
+	const address = optionalNonemptyString(addressBody?.address ?? legacyEthBody?.address)
 	const protocol = (
-		body?.protocol === 'PROTOCOL_ETHEREUM' ?
+		addressBody?.protocol === 'PROTOCOL_ETHEREUM'
+		|| legacyEthBody != null ?
 			'ethereum' as const
 		:
-			body?.protocol === 'PROTOCOL_SOLANA' ?
+			addressBody?.protocol === 'PROTOCOL_SOLANA' ?
 				'solana' as const
 			:
 				undefined
@@ -271,6 +288,15 @@ const snapchainVerifiedAddress = (message: SnapchainVerification) => {
 				},
 			},
 		}),
+	}
+}
+
+const snapchainUserDataType = (type: string | number | undefined) => {
+	if (typeof type !== 'number')
+		return type
+	for (const [numericType, namedType] of Object.entries(snapchainUserDataTypeByNumber)) {
+		if (Number(numericType) === type)
+			return namedType
 	}
 }
 
@@ -330,27 +356,25 @@ export default {
 									verifiedAddress.address,
 							},
 						} satisfies Entity<typeof schema, EntityType.FarcasterVerifiedAddress>))
-						const primaryVerifiedEvmAddress = verifiedAddressValues.find((verifiedAddress) => (
-							verifiedAddress.protocol === 'ethereum'
-						))?.address
+						const subjectProofs = (usernameProofs.proofs ?? []).filter((proof) => proof.fid === fid)
+						const fnameProofName = optionalNonemptyString(
+							subjectProofs.find((proof) => proof.type === 'USERNAME_TYPE_FNAME')?.name
+						)
+						const ensProofName = optionalNonemptyString(
+							subjectProofs.find((proof) => proof.type === 'USERNAME_TYPE_ENS_L1')?.name
+						)
+						const anyProofName = optionalNonemptyString(subjectProofs[0]?.name)
 						const userFields: Partial<UserFields> = {
-							username: optionalNonemptyString(
-								usernameProofs.proofs?.find((proof) => proof.fid === fid)?.name
-							),
+							username: fnameProofName ?? ensProofName ?? anyProofName,
 							$$verifiedAddresses: verifiedAddresses,
 						}
-						if (primaryVerifiedEvmAddress != null)
-							userFields.$primaryEvmAccount = {
-								[EntityMetaKey.Selector]: {
-									address: EvmAddress.assert(primaryVerifiedEvmAddress),
-								},
-							}
+						let primaryAddressFromUserData: string | undefined
 						for (const message of (userData.messages ?? [])) {
 							if (message.data?.fid !== fid) continue
-							const userDataType = message.data.userDataBody?.type
+							const userDataType = snapchainUserDataType(message.data.userDataBody?.type)
 							const fieldValue = optionalNonemptyString(message.data.userDataBody?.value)
 							if (fieldValue == null) continue
-							if (userDataType === 'USER_DATA_TYPE_PFP') {
+							if (userDataType === SnapchainUserDataType.Pfp) {
 								const iconUrl = resolveMediaUrlTransport(fieldValue)?.url
 								if (iconUrl != null) {
 									userFields.iconUrl = iconUrl
@@ -358,10 +382,24 @@ export default {
 									if (iconMedia != null) userFields.$icon = iconMedia
 								}
 							}
-							else if (userDataType === 'USER_DATA_TYPE_DISPLAY') userFields.displayName = fieldValue
-							else if (userDataType === 'USER_DATA_TYPE_BIO') userFields.bio = fieldValue
-							else if (userDataType === 'USER_DATA_TYPE_URL') userFields.url = fieldValue
+							else if (userDataType === SnapchainUserDataType.Display) userFields.displayName = fieldValue
+							else if (userDataType === SnapchainUserDataType.Bio) userFields.bio = fieldValue
+							else if (userDataType === SnapchainUserDataType.Url) userFields.url = fieldValue
+							else if (userDataType === SnapchainUserDataType.Username)
+								userFields.username ??= fieldValue
+							else if (userDataType === SnapchainUserDataType.PrimaryAddressEthereum)
+								primaryAddressFromUserData = fieldValue
 						}
+						const primaryVerifiedEvmAddress = verifiedAddressValues.find((verifiedAddress) => (
+							verifiedAddress.protocol === 'ethereum'
+						))?.address
+						const primaryEvmAddress = primaryAddressFromUserData ?? primaryVerifiedEvmAddress
+						if (primaryEvmAddress != null)
+							userFields.$primaryEvmAccount = {
+								[EntityMetaKey.Selector]: {
+									address: EvmAddress.assert(primaryEvmAddress),
+								},
+							}
 						return userFields
 					},
 				}
@@ -429,6 +467,7 @@ export default {
 						const farcasterTimestamp = snapchainCast.data.timestamp
 						const parentUrl = optionalNonemptyString(castAddBody?.parentUrl)
 						const timestamp = snapchainCastTimestampMs(farcasterTimestamp)
+						const mentions = castAddBody?.mentions
 						if (timestamp == null)
 							throw new Error('Snapchain_Rest: cast missing timestamp')
 
@@ -455,7 +494,10 @@ export default {
 								undefined,
 							parentUrl,
 							timestamp,
-							mentions: castAddBody?.mentions,
+							mentions,
+							...(mentions != null && mentions.length > 0 && {
+								mentionedProfileFids: mentions,
+							}),
 							$channel: (
 								parentUrl == null ?
 									undefined
@@ -505,6 +547,7 @@ export default {
 				parentUrl: (cast) => cast.parentUrl,
 				timestamp: (cast) => cast.timestamp,
 				mentions: (cast) => cast.mentions,
+				mentionedProfileFids: (cast) => cast.mentionedProfileFids,
 				$channel: (cast) => cast.$channel,
 				$$embeds: (cast) => cast.$$embeds,
 			}),
@@ -545,28 +588,7 @@ export default {
 							)
 								throw new Error('Snapchain_Rest: malformed or mismatched direct reply')
 
-							return {
-								...directReplyEntity,
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.FarcasterCast, [], 'fid')]:
-										directReplyEntity[EntityMetaKey.Selector].fid,
-									[entityFieldAddressKey(EntityType.FarcasterCast, [], 'hash')]:
-										directReplyEntity[EntityMetaKey.Selector].hash,
-									[entityFieldAddressKey(EntityType.FarcasterCast, [], '$author')]: {
-										[EntityMetaKey.Selector]: {
-											fid: directReplyEntity[EntityMetaKey.Selector].fid,
-										},
-									},
-									[entityFieldAddressKey(EntityType.FarcasterCast, [], 'text')]: optionalNonemptyString(directReplyBody.text) ?? '',
-									[entityFieldAddressKey(EntityType.FarcasterCast, [], '$parentCast')]: {
-										[EntityMetaKey.Selector]: {
-											fid,
-											hash: parentHash,
-										},
-									},
-									[entityFieldAddressKey(EntityType.FarcasterCast, [], 'timestamp')]: timestamp,
-								},
-							} satisfies CastEntity
+							return directReplyEntity satisfies CastEntity
 						})
 					},
 				}
