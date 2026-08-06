@@ -254,7 +254,10 @@ export default {
 				},
 			},
 		})({
-			$$compoundPositions: (positions) => positions,
+			$$compoundPositions: {
+				select: (positions) => positions,
+				resolveCount: (positions) => positions.length,
+			},
 		}),
 
 		defineResolver({

@@ -139,7 +139,7 @@ describe('Pendle Rest resolver module', () => {
 			context
 		)
 
-		expect(evmNetworkAccountResolver.projections.$$pendlePositions(account)).toEqual([
+		expect(evmNetworkAccountResolver.projections.$$pendlePositions.select(account)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$account: accountSelector,
@@ -150,6 +150,7 @@ describe('Pendle Rest resolver module', () => {
 				},
 			},
 		])
+		expect(evmNetworkAccountResolver.projections.$$pendlePositions.resolveCount(account)).toBe(1)
 		expect(getAccountPositions).toHaveBeenCalledWith({
 			chainId: 1,
 			account: accountSelector.$actor.address,
@@ -269,7 +270,8 @@ describe('Pendle Rest resolver module', () => {
 			},
 		}, context)
 
-		expect(evmNetworkAccountResolver.projections.$$pendlePositions(account)).toEqual([])
+		expect(evmNetworkAccountResolver.projections.$$pendlePositions.select(account)).toEqual([])
+		expect(evmNetworkAccountResolver.projections.$$pendlePositions.resolveCount(account)).toBe(0)
 	})
 
 	it('registers under Pendle_Rest for PendleMarket', () => {
@@ -362,5 +364,34 @@ describe('Pendle Rest resolver module', () => {
 				marketAddress: baseMarketAddress,
 			}, context)
 		).rejects.toThrow(`${Source.Pendle_Rest}: market not found`)
+	})
+
+	it('lists Network.Evm.$$pendleMarkets with authoritative resolveCount from markets/all total', async () => {
+		const networkResolver = pendleRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& 'Evm' in resolver.projections
+			&& '$$pendleMarkets' in resolver.projections.Evm
+		))
+		if (networkResolver == null)
+			throw new Error('missing Network.$$pendleMarkets resolver')
+
+		sourceGetJson.mockResolvedValueOnce({
+			total: 42,
+			limit: 16,
+			skip: 0,
+			results: [baseMarketWire],
+		})
+
+		const snapshot = await networkResolver.resolve.Caip2.resolve(baseNetwork, context)
+
+		expect(networkResolver.projections.Evm.$$pendleMarkets.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: baseNetwork,
+					marketAddress: baseMarketAddress,
+				},
+			},
+		])
+		expect(networkResolver.projections.Evm.$$pendleMarkets.resolveCount(snapshot)).toBe(42)
 	})
 })

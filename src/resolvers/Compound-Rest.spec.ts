@@ -169,7 +169,7 @@ describe('Compound Rest resolver module', () => {
 			accountSelector,
 			context
 		)
-		expect(evmNetworkAccountResolver.projections.$$compoundPositions(positions)).toEqual([
+		expect(evmNetworkAccountResolver.projections.$$compoundPositions.select(positions)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$account: accountSelector,
@@ -180,6 +180,7 @@ describe('Compound Rest resolver module', () => {
 				},
 			},
 		])
+		expect(evmNetworkAccountResolver.projections.$$compoundPositions.resolveCount(positions)).toBe(1)
 		expect(getAccountPositions).toHaveBeenCalledWith({
 			chainId: 8453,
 			account: accountSelector.$actor.address,
@@ -233,7 +234,8 @@ describe('Compound Rest resolver module', () => {
 			},
 		}, context)
 
-		expect(evmNetworkAccountResolver.projections.$$compoundPositions(positions)).toEqual([])
+		expect(evmNetworkAccountResolver.projections.$$compoundPositions.select(positions)).toEqual([])
+		expect(evmNetworkAccountResolver.projections.$$compoundPositions.resolveCount(positions)).toBe(0)
 	})
 
 	it('resolves Compound position collateral balances by PositionAsset', async () => {

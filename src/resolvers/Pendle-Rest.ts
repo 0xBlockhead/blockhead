@@ -138,7 +138,10 @@ export default {
 				},
 			},
 		})({
-			$$pendlePositions: (positions) => positions,
+			$$pendlePositions: {
+				select: (positions) => positions,
+				resolveCount: (positions) => positions.length,
+			},
 		}),
 
 		defineResolver({
@@ -252,22 +255,28 @@ export default {
 							throw new Error(`${Source.Pendle_Rest}: unsupported chain id ${String(chainId)}`)
 
 						const { listMarkets } = await import('$/sources/Pendle/Rest/queries.ts')
-						const { markets } = await listMarkets({
+						const page = await listMarkets({
 							chainId,
 							limit: resolverContextRowLimit(context),
 						})
-						return markets.map((market) => ({
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								marketAddress: market.marketAddress,
-							},
-						}))
+						return {
+							markets: page.markets.map((market) => ({
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									marketAddress: market.marketAddress,
+								},
+							})),
+							marketCount: page.total,
+						}
 					},
 				},
 			},
 		})({
 			Evm: {
-				$$pendleMarkets: (markets) => markets,
+				$$pendleMarkets: {
+					select: (snapshot) => snapshot.markets,
+					resolveCount: (snapshot) => snapshot.marketCount,
+				},
 			},
 		}),
 	],
