@@ -9,14 +9,17 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import type { AaveMarketSnapshotWire } from '$/sources/Aave/Rest/types.ts'
+import type {
+	AaveAccountPosition,
+	AaveMarketSnapshotWire,
+} from '$/sources/Aave/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type AaveMarketId = EntitySelector<typeof schema, EntityType.AaveMarket>
 type AaveReserveId = EntitySelector<typeof schema, EntityType.AaveReserve>
+type AaveReservePositionId = EntitySelector<typeof schema, EntityType.AaveReservePosition>
 type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
-type EvmNetworkAccountTimestampId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount_Timestamp>
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -58,6 +61,115 @@ const mapAaveMarketSnapshot = (
 	}
 }
 
+const mergeAaveReservePositions = (
+	$account: EvmNetworkAccountId,
+	positions: readonly AaveAccountPosition[],
+	limit: number,
+) => {
+	const merged = new Map<string, {
+		poolAddress: `0x${string}`
+		underlyingTokenAddress: `0x${string}`
+		symbol: string
+		decimals: number
+		suppliedBalance?: string
+		suppliedBalanceUsd?: string
+		supplyApy?: string
+		isCollateral?: boolean
+		borrowedBalance?: string
+		borrowedBalanceUsd?: string
+		borrowApy?: string
+	}>()
+
+	for (const position of positions) {
+		const key = `${position.poolAddress}:${position.underlyingTokenAddress}`
+		const row = merged.get(key) ?? {
+			poolAddress: position.poolAddress,
+			underlyingTokenAddress: position.underlyingTokenAddress,
+			symbol: position.symbol,
+			decimals: position.decimals,
+		}
+		if (position.kind === 'supply') {
+			row.suppliedBalance = position.balance
+			row.suppliedBalanceUsd = position.balanceUsd
+			row.supplyApy = position.apy
+			row.isCollateral = position.isCollateral
+		} else {
+			row.borrowedBalance = position.debt
+			row.borrowedBalanceUsd = position.debtUsd
+			row.borrowApy = position.apy
+		}
+		merged.set(key, row)
+	}
+
+	return [...merged.values()]
+		.slice(0, limit)
+		.map((position) => ({
+			[EntityMetaKey.Selector]: {
+				$account,
+				$reserve: {
+					$market: {
+						$network: $account.$network,
+						poolAddress: position.poolAddress,
+					},
+					underlyingTokenAddress: position.underlyingTokenAddress,
+				},
+			},
+		}))
+}
+
+const mapAaveReservePositionSnapshot = (
+	$account: EvmNetworkAccountId,
+	position: {
+		poolAddress: `0x${string}`
+		underlyingTokenAddress: `0x${string}`
+		symbol: string
+		decimals: number
+		suppliedBalance?: string
+		suppliedBalanceUsd?: string
+		supplyApy?: string
+		isCollateral?: boolean
+		borrowedBalance?: string
+		borrowedBalanceUsd?: string
+		borrowApy?: string
+	},
+) => ({
+	$account: {
+		[EntityMetaKey.Selector]: $account,
+	},
+	$reserve: {
+		[EntityMetaKey.Selector]: {
+			$market: {
+				$network: $account.$network,
+				poolAddress: position.poolAddress,
+			},
+			underlyingTokenAddress: position.underlyingTokenAddress,
+		},
+	},
+	symbol: position.symbol,
+	decimals: position.decimals,
+	...(position.suppliedBalance != null && {
+		suppliedBalance: position.suppliedBalance,
+	}),
+	...(position.suppliedBalanceUsd != null && {
+		suppliedBalanceUsd: position.suppliedBalanceUsd,
+	}),
+	...(position.supplyApy != null && {
+		supplyApy: position.supplyApy,
+	}),
+	...(position.isCollateral != null && {
+		isCollateral: position.isCollateral,
+	}),
+	...(position.borrowedBalance != null && {
+		borrowedBalance: position.borrowedBalance,
+	}),
+	...(position.borrowedBalanceUsd != null && {
+		borrowedBalanceUsd: position.borrowedBalanceUsd,
+	}),
+	...(position.borrowApy != null && {
+		borrowApy: position.borrowApy,
+	}),
+})
+
 export default {
 	source: Source.Aave_Rest,
 
@@ -66,50 +178,107 @@ export default {
 			entityType: EntityType.EvmNetworkAccount,
 			resolve: {
 				EvmNetworkEvmAccount: {
-					resolve: async ({ $actor, $network }: EvmNetworkAccountId) => ({
-						$$timestamps: [
-							{
-								[EntityMetaKey.Selector]: {
-									$account: {
-										$actor,
-										$network,
-									},
-									timestampMs: Date.now(),
-									source: Source.Aave_Rest,
-								},
-							},
-						],
-					}),
-				},
-			},
-		})({
-			$$timestamps: (account) => account.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.EvmNetworkAccount_Timestamp,
-			resolve: {
-				AccountTimestampMsSource: {
-					resolve: async ({ $account, timestampMs, source }: EvmNetworkAccountTimestampId) => {
-						const chainId = eip155ChainId($account.$network)
+					resolve: async ({ $actor, $network }: EvmNetworkAccountId, context) => {
+						const chainId = eip155ChainId($network)
 						const { aaveChainByChainId } = await import('$/sources/Aave/Rest/constants.ts')
 						if (aaveChainByChainId[chainId] == null)
 							throw new Error(`${Source.Aave_Rest}: unsupported chain id ${String(chainId)}`)
 
 						const { getAccountPositions } = await import('$/sources/Aave/Rest/queries.ts')
-						return {
-							timestampMs,
-							source,
-							contractPositions: await getAccountPositions({
+						return mergeAaveReservePositions(
+							{
+								$actor,
+								$network,
+							},
+							await getAccountPositions({
 								chainId,
-								account: $account.$actor.address,
+								account: $actor.address,
 							}),
-						}
+							resolverContextRowLimit(context)
+						)
 					},
 				},
 			},
 		})({
-			contractPositions: (timestamp) => timestamp.contractPositions,
+			$$aaveReservePositions: (positions) => positions,
+		}),
+
+		defineResolver({
+			entityType: EntityType.AaveReservePosition,
+			resolve: {
+				AccountReserve: {
+					resolve: async ({
+						$account,
+						$reserve,
+					}: AaveReservePositionId) => {
+						const chainId = eip155ChainId($account.$network)
+						const { aaveChainByChainId } = await import('$/sources/Aave/Rest/constants.ts')
+						if (aaveChainByChainId[chainId] == null)
+							throw new Error(`${Source.Aave_Rest}: unsupported chain id ${String(chainId)}`)
+
+						const normalizedPoolAddress = hexLowerOfByteSize($reserve.$market.poolAddress, 20)
+						if (normalizedPoolAddress == null)
+							throw new Error(`${Source.Aave_Rest}: invalid pool address ${$reserve.$market.poolAddress}`)
+
+						const normalizedUnderlyingTokenAddress = hexLowerOfByteSize($reserve.underlyingTokenAddress, 20)
+						if (normalizedUnderlyingTokenAddress == null)
+							throw new Error(`${Source.Aave_Rest}: invalid underlying token address ${$reserve.underlyingTokenAddress}`)
+
+						const { getAccountPositions } = await import('$/sources/Aave/Rest/queries.ts')
+						const matched = (
+							await getAccountPositions({
+								chainId,
+								account: $account.$actor.address,
+							})
+						)
+							.filter((position) => (
+								position.poolAddress === normalizedPoolAddress
+								&& position.underlyingTokenAddress === normalizedUnderlyingTokenAddress
+							))
+						if (matched.length < 1)
+							throw new Error(`${Source.Aave_Rest}: reserve position not found ${normalizedUnderlyingTokenAddress}`)
+
+						const supply = matched.find((position) => position.kind === 'supply')
+						const borrow = matched.find((position) => position.kind === 'borrow')
+						const head = supply ?? borrow
+						if (head == null)
+							throw new Error(`${Source.Aave_Rest}: reserve position not found ${normalizedUnderlyingTokenAddress}`)
+
+						return mapAaveReservePositionSnapshot(
+							$account,
+							{
+								poolAddress: normalizedPoolAddress,
+								underlyingTokenAddress: normalizedUnderlyingTokenAddress,
+								symbol: head.symbol,
+								decimals: head.decimals,
+								...(supply != null && {
+									suppliedBalance: supply.balance,
+									suppliedBalanceUsd: supply.balanceUsd,
+									supplyApy: supply.apy,
+									isCollateral: supply.isCollateral,
+								}),
+								...(borrow != null && {
+									borrowedBalance: borrow.debt,
+									borrowedBalanceUsd: borrow.debtUsd,
+									borrowApy: borrow.apy,
+								}),
+							}
+						)
+					},
+				},
+			},
+		})({
+			$account: (position) => position.$account,
+			$reserve: (position) => position.$reserve,
+			symbol: (position) => position.symbol,
+			decimals: (position) => position.decimals,
+			suppliedBalance: (position) => position.suppliedBalance,
+			suppliedBalanceUsd: (position) => position.suppliedBalanceUsd,
+			supplyApy: (position) => position.supplyApy,
+			isCollateral: (position) => position.isCollateral,
+			borrowedBalance: (position) => position.borrowedBalance,
+			borrowedBalanceUsd: (position) => position.borrowedBalanceUsd,
+			borrowApy: (position) => position.borrowApy,
 		}),
 
 		defineResolver({
