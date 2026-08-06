@@ -14,3 +14,21 @@ export type Event = components['schemas']['EMITTED_EVENT']
 export type EventsFilter = components['schemas']['Events_request']
 
 export type EventsChunk = components['schemas']['EVENTS_CHUNK']
+
+export type ResourcePrice = components['schemas']['RESOURCE_PRICE']
+
+export type BlockWithTxHashes = components['schemas']['BLOCK_WITH_TX_HASHES']
+
+/**
+ * Wire transaction + hash from `starknet_getTransactionByHash`.
+ * OpenRPC collapses `TXN_WITH_HASH` to `unknown` via unsupported composition; reconstruct from `TXN` + hash.
+ */
+export type TransactionWithHash = components['schemas']['TXN'] & {
+	transaction_hash: components['schemas']['TXN_HASH']
+}
+
+export type FeePayment = components['schemas']['FEE_PAYMENT']
+
+export type MessageToL1 = components['schemas']['MSG_TO_L1']
+
+export type TransactionReceiptWithBlockInfo = components['schemas']['TXN_RECEIPT_WITH_BLOCK_INFO']
