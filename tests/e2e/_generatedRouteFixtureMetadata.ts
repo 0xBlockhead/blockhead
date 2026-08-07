@@ -4251,6 +4251,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/~/algorand/pending-transaction/[nodeId]/[txId]/[observedAtMs]': {
+		routeId: '/~/algorand/pending-transaction/[nodeId=stringSegment]/[txId=stringSegment]/[observedAtMs=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'BlockheadAlgorandPendingTransaction.NodeIdTxIdObservedAtMs',
+				probeAtomPrefixes: ['/~/algorand/pending-transaction/[nodeId]/[txId]/[observedAtMs]:BlockheadAlgorandPendingTransaction.NodeIdTxIdObservedAtMs'],
+				probeCases: [[[0, '1', ['nodeId', 'txId', 'observedAtMs']]]],
+			},
+		],
+	},
 	'/~/dashboard/[dashboardId]': {
 		routeId: '/~/dashboard/[dashboardId=stringSegment]',
 		mappings: [

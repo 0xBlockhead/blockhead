@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -41,6 +42,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadAlgorandPendingTransaction}
 			entitySelector={blockheadAlgorandPendingTransactionSelector}
+			href={
+				resolve(
+					'/~/algorand/pending-transaction/[nodeId=stringSegment]/[txId=stringSegment]/[observedAtMs=nonNegativeInteger]',
+					{
+						nodeId: blockheadAlgorandPendingTransactionSelector.nodeId,
+						txId: blockheadAlgorandPendingTransactionSelector.txId,
+						observedAtMs: String(blockheadAlgorandPendingTransactionSelector.observedAtMs),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadAlgorandPendingTransactionSelector.txId || 'blockhead algorand pending transaction'}

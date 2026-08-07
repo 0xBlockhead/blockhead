@@ -58,6 +58,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
 		],
 	},
 })({

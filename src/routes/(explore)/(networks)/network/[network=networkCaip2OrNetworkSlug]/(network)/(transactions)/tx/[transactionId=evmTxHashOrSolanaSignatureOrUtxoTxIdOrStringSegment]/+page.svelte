@@ -75,6 +75,7 @@
 				select(EntityType.CardanoTransaction, data.selector, {
 					sources: [
 						Source.Blockfrost_Rest,
+						Source.CardanoKoios_Rest,
 					],
 				})
 			:

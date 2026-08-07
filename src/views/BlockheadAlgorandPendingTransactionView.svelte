@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -23,7 +25,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Local_Internal,
+			Source.Nodely,
 		],
 	}))
 	const blockheadAlgorandPendingTransaction = $derived(viewSelection({
@@ -46,6 +48,19 @@
 	entityType={EntityType.BlockheadAlgorandPendingTransaction}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/algorand/pending-transaction/[nodeId=stringSegment]/[txId=stringSegment]/[observedAtMs=nonNegativeInteger]',
+				{
+					nodeId: selection.entitySelector.nodeId,
+					txId: selection.entitySelector.txId,
+					observedAtMs: String(selection.entitySelector.observedAtMs),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

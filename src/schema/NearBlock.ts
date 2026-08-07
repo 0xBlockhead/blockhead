@@ -29,8 +29,8 @@ export default entity({
 		entityType: EntityType.NearBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.NearRpc_JsonRpc,
 			Source.NearBlocks_Rest,
+			Source.NearRpc_JsonRpc,
 		],
 	},
 	epochId: {
@@ -44,9 +44,8 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.NearRpc_JsonRpc,
 			Source.NearBlocks_Rest,
-			Source.ThreeXpl_Rest,
+			Source.NearRpc_JsonRpc,
 		],
 	},
 	$$chunks: {

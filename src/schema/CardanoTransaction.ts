@@ -54,6 +54,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
 		],
 	},
 	$$outputs: {
@@ -61,6 +62,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
 		],
 	},
 	$$certificates: {
@@ -96,6 +98,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
 		],
 	},
 })({

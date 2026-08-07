@@ -28,6 +28,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
 		],
 	}))
 	const cardanoTxInput = $derived(viewSelection({

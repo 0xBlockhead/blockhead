@@ -28,9 +28,8 @@
 	resource={
 		selection({
 			sources: selection.sources ?? [
-				Source.NearRpc_JsonRpc,
 				Source.NearBlocks_Rest,
-				Source.ThreeXpl_Rest,
+				Source.NearRpc_JsonRpc,
 			],
 			fields: {
 				height: true,

@@ -49,6 +49,7 @@
 				select(EntityType.CardanoTxOutput, data.selector, {
 					sources: [
 						Source.Blockfrost_Rest,
+						Source.CardanoKoios_Rest,
 					],
 				})
 			:
