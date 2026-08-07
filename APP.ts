@@ -104802,6 +104802,14 @@ export const app = {
 				path: "src/resolvers/Primal-Rest.ts",
 			},
 			{
+				source: Source.PythBenchmarks_Rest,
+				path: "src/resolvers/PythBenchmarks-Rest.ts",
+			},
+			{
+				source: Source.PythHermes_Rest,
+				path: "src/resolvers/PythHermes-Rest.ts",
+			},
+			{
 				source: Source.QuilibriumDocs_Rest,
 				path: "src/resolvers/QuilibriumDocs-Rest.ts",
 			},
