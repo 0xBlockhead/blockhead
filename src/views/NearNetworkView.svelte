@@ -142,7 +142,16 @@
 
 			{#snippet SectionNearChainBlocks({ id, label })}
 				<NearBlocksView
-					selection={selection.$$blocks}
+					selection={
+						selection
+						.$$blocks({
+							sources: [
+								Source.NearBlocks_Rest,
+								Source.NearRpc_JsonRpc,
+							],
+							limit: 16,
+						})
+					}
 					collapsible={false}
 					title={label}
 					id={`${id}-list`}

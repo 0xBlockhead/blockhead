@@ -23,11 +23,13 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Across_Rest,
-			Source.Axelarscan_Rest,
-			Source.Lifi_Rest,
 			Source.Allium_Rest,
+			Source.Axelarscan_Rest,
 			Source.Dune_Rest,
+			Source.LayerZeroScan_Rest,
+			Source.Lifi_Rest,
 			Source.Voltaire_JsonRpc,
+			Source.Wormholescan,
 		],
 	}))
 	const bridgeTransferTimestamp = $derived(viewSelection({

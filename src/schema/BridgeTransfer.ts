@@ -93,7 +93,9 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.LayerZeroScan_Rest,
 			Source.Lifi_Rest,
+			Source.Wormholescan,
 		],
 	},
 	bridgeFeeUsd: {
@@ -102,6 +104,7 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Lifi_Rest,
+			Source.Wormholescan,
 		],
 	},
 	exclusiveRelayer: {
@@ -117,7 +120,9 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.LayerZeroScan_Rest,
 			Source.Lifi_Rest,
+			Source.Wormholescan,
 		],
 	},
 })({

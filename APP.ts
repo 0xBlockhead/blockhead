@@ -21098,10 +21098,10 @@ export const schema = {
 				"railId": { label: "rail ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"settlementModel": { label: "settlement model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"verificationModel": { label: "verification model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"assetOutcome": { label: "asset outcome", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.Lifi_Rest] },
-				"bridgeFeeUsd": { label: "bridge fee USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Across_Rest, Source.Lifi_Rest] },
+				"assetOutcome": { label: "asset outcome", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Wormholescan] },
+				"bridgeFeeUsd": { label: "bridge fee USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Across_Rest, Source.Lifi_Rest, Source.Wormholescan] },
 				"exclusiveRelayer": { label: "exclusive relayer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Across_Rest] },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BridgeTransfer_Timestamp, defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.Lifi_Rest] },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BridgeTransfer_Timestamp, defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Wormholescan] },
 			})({
 				selectors: {
 					"SourceTransferId": ["source", "transferId"],
@@ -21111,7 +21111,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.Across_Rest, Source.Allium_Rest, Source.Axelarscan_Rest, Source.Dune_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Voltaire_JsonRpc, Source.Wormholescan],
 							fields: ["transferId"],
 							openFields: ["logIndex", "originChainId", "depositId", "amountIn", "amountOut", "railId", "settlementModel", "verificationModel", "assetOutcome", "bridgeFeeUsd", "exclusiveRelayer"],
 						},
@@ -21147,18 +21147,18 @@ export const schema = {
 				"$transfer": { label: "transfer", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BridgeTransfer },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.Lifi_Rest] },
-				"substatus": { label: "substatus", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.Lifi_Rest] },
+				"status": { label: "status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Wormholescan] },
+				"substatus": { label: "substatus", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest] },
 				"sourceConfirmations": { label: "source confirmations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"requiredConfirmations": { label: "required confirmations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"destinationTxHash": { label: "destination tx hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.Lifi_Rest] },
-				"relayer": { label: "relayer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest] },
+				"destinationTxHash": { label: "destination tx hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Wormholescan] },
+				"relayer": { label: "relayer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest] },
 				"refundTxHash": { label: "refund tx hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
 				"estimatedCompletionMs": { label: "estimated completion ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"completedAt": { label: "completed AT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.Lifi_Rest] },
-				"fillGasFee": { label: "fill gas fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Across_Rest, Source.Lifi_Rest] },
-				"fillGasFeeUsd": { label: "fill gas fee USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Across_Rest, Source.Lifi_Rest] },
-				"error": { label: "error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.Lifi_Rest] },
+				"completedAt": { label: "completed AT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Wormholescan] },
+				"fillGasFee": { label: "fill gas fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Across_Rest, Source.Lifi_Rest, Source.Wormholescan] },
+				"fillGasFeeUsd": { label: "fill gas fee USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Across_Rest, Source.Lifi_Rest, Source.Wormholescan] },
+				"error": { label: "error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest] },
 			})({
 				selectors: {
 					"TransferTimestampMsSource": ["$transfer", "timestampMs", "source"],
@@ -21166,7 +21166,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Across_Rest, Source.Axelarscan_Rest, Source.Lifi_Rest, Source.Allium_Rest, Source.Dune_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.Across_Rest, Source.Allium_Rest, Source.Axelarscan_Rest, Source.Dune_Rest, Source.LayerZeroScan_Rest, Source.Lifi_Rest, Source.Voltaire_JsonRpc, Source.Wormholescan],
 							openFields: ["status", "substatus", "sourceConfirmations", "requiredConfirmations", "destinationTxHash", "relayer", "refundTxHash", "estimatedCompletionMs", "completedAt", "fillGasFee", "fillGasFeeUsd", "error"],
 						},
 						summary: {
@@ -48355,7 +48355,7 @@ export const schema = {
 				"environment": { label: "Environment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.Constants_Internal] },
 				"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.NearRpc_JsonRpc] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearNetwork_Timestamp, defaultSources: [Source.NearRpc_JsonRpc] },
-				"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearBlock, defaultSources: [Source.NearRpc_JsonRpc] },
+				"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearBlock, defaultSources: [Source.NearBlocks_Rest, Source.NearRpc_JsonRpc] },
 				"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearValidator, defaultSources: [Source.NearRpc_JsonRpc] },
 			})({
 				selectors: {
@@ -48385,7 +48385,7 @@ export const schema = {
 								className: "network-view-collapsible-chain-activity",
 								sections: [
 									{ id: "near-chain-observations", field: "$$timestamps", List: "NearNetwork_TimestampsView", label: "Observations" },
-									{ id: "near-chain-blocks", field: "$$blocks", List: "NearBlocksView", label: "Blocks" },
+									{ id: "near-chain-blocks", field: "$$blocks", List: "NearBlocksView", label: "Blocks", selection: { sources: [Source.NearBlocks_Rest, Source.NearRpc_JsonRpc], limit: 16 } },
 								],
 							},
 							{
@@ -49602,7 +49602,7 @@ export const schema = {
 					})({
 						"rpcEndpoints": { label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.NearRpc_JsonRpc] },
 						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearNetwork_Timestamp, defaultSources: [Source.NearRpc_JsonRpc] },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearBlock, defaultSources: [Source.NearRpc_JsonRpc] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearBlock, defaultSources: [Source.NearBlocks_Rest, Source.NearRpc_JsonRpc] },
 						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearValidator, defaultSources: [Source.NearRpc_JsonRpc] }
 					})({
 						singularView: {
@@ -49613,7 +49613,7 @@ export const schema = {
 									className: "network-view-collapsible-chain-activity",
 									sections: [
 										{ id: "near-chain-observations", field: ["Near", "$$timestamps"], List: "NearNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.NearRpc_JsonRpc], limit: 16 } },
-										{ id: "near-chain-blocks", field: ["Near", "$$blocks"], List: "NearBlocksView", label: "Blocks", selection: { sources: [Source.NearRpc_JsonRpc], limit: 16 } },
+										{ id: "near-chain-blocks", field: ["Near", "$$blocks"], List: "NearBlocksView", label: "Blocks", selection: { sources: [Source.NearBlocks_Rest, Source.NearRpc_JsonRpc], limit: 16 } },
 									],
 								},
 								{

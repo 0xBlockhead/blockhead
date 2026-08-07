@@ -5208,6 +5208,11 @@
 			resource={selection.Near}
 		>
 			{#snippet Applicable(projection)}
+				{@const nearChainActivityNearChainBlocksSources = networkApplicableSources([
+						Source.NearBlocks_Rest,
+						Source.NearRpc_JsonRpc,
+					], pendingEntity)}
+
 				{@const nearChainActivitySections = [
 						...(
 							nearRpcJsonRpcSources.length > 0 ?
@@ -5221,7 +5226,7 @@
 								[]
 						),
 						...(
-							nearRpcJsonRpcSources.length > 0 ?
+							nearChainActivityNearChainBlocksSources.length > 0 ?
 								[
 									{
 										id: 'near-chain-blocks',
@@ -5267,7 +5272,7 @@
 								selection={
 									projection
 									.$$blocks({
-										sources: nearRpcJsonRpcSources,
+										sources: nearChainActivityNearChainBlocksSources,
 										limit: 16,
 									})
 								}

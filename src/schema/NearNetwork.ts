@@ -61,6 +61,7 @@ export default entity({
 		entityType: EntityType.NearBlock,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
+			Source.NearBlocks_Rest,
 			Source.NearRpc_JsonRpc,
 		],
 	},

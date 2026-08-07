@@ -33,7 +33,9 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.LayerZeroScan_Rest,
 			Source.Lifi_Rest,
+			Source.Wormholescan,
 		],
 	},
 	substatus: {
@@ -42,6 +44,7 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.LayerZeroScan_Rest,
 			Source.Lifi_Rest,
 		],
 	},
@@ -59,7 +62,9 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.LayerZeroScan_Rest,
 			Source.Lifi_Rest,
+			Source.Wormholescan,
 		],
 	},
 	relayer: {
@@ -68,6 +73,7 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.LayerZeroScan_Rest,
 		],
 	},
 	refundTxHash: {
@@ -84,7 +90,9 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.LayerZeroScan_Rest,
 			Source.Lifi_Rest,
+			Source.Wormholescan,
 		],
 	},
 	fillGasFee: {
@@ -93,6 +101,7 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Lifi_Rest,
+			Source.Wormholescan,
 		],
 	},
 	fillGasFeeUsd: {
@@ -101,6 +110,7 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Lifi_Rest,
+			Source.Wormholescan,
 		],
 	},
 	error: {
@@ -109,6 +119,7 @@ export default entity({
 		defaultSources: [
 			Source.Across_Rest,
 			Source.Axelarscan_Rest,
+			Source.LayerZeroScan_Rest,
 			Source.Lifi_Rest,
 		],
 	},
