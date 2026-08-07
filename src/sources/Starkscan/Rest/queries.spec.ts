@@ -410,7 +410,7 @@ describe('Starkscan account portfolio transport', () => {
 		await expect(getAddressTransactions({
 			address: account,
 			limit: 25,
-		})).rejects.toThrow('invalid transaction timestamp')
+		})).rejects.toThrow('invalid address transactions envelope')
 
 		getJson.mockResolvedValueOnce({
 			items: [
@@ -429,7 +429,7 @@ describe('Starkscan account portfolio transport', () => {
 		})).rejects.toThrow('duplicate hash')
 	})
 
-	it('rejects incomplete holdings and malformed lossless amounts', async () => {
+	it('rejects incomplete holdings and arktype-fail-closes malformed amounts', async () => {
 		getJson.mockResolvedValueOnce({
 			...holdings,
 			exact: false,
@@ -452,7 +452,7 @@ describe('Starkscan account portfolio transport', () => {
 			}],
 		})
 		await expect(getExactTokenHoldings(account)).rejects.toThrow(
-			'invalid token balance'
+			'invalid token holdings envelope'
 		)
 	})
 
@@ -537,6 +537,55 @@ describe('Starkscan block transaction and class transport', () => {
 			eventDecodingDegraded: true,
 		})
 		await expect(getTransaction('0xabc')).rejects.toThrow('operationally degraded')
+	})
+
+	it('arktype fail-closes malformed event felt keys/data and transaction envelopes', async () => {
+		getJson.mockResolvedValueOnce({
+			items: [{
+				...event,
+				keys: ['not-a-felt'],
+			}],
+			nextCursor: null,
+			eventDecodingDegraded: false,
+		})
+		await expect(getContractEvents({
+			address: account,
+			limit: 25,
+		})).rejects.toThrow('invalid contract events envelope')
+
+		getJson.mockResolvedValueOnce({
+			items: [{
+				...event,
+				data: ['0xgg'],
+			}],
+			nextCursor: null,
+			eventDecodingDegraded: false,
+		})
+		await expect(getContractEvents({
+			address: account,
+			limit: 25,
+		})).rejects.toThrow('invalid contract events envelope')
+
+		getJson.mockResolvedValueOnce({
+			...transactionDetail,
+			logs: [{
+				...transactionDetail.logs[0],
+				keys: ['1'],
+			}],
+		})
+		await expect(getTransaction('0xabc')).rejects.toThrow('invalid transaction envelope')
+
+		getJson.mockResolvedValueOnce({
+			...transactionDetail,
+			calldata: ['not-felt'],
+		})
+		await expect(getTransaction('0xabc')).rejects.toThrow('invalid transaction envelope')
+
+		getJson.mockResolvedValueOnce({
+			...block,
+			blockHash: 'block-hash',
+		})
+		await expect(getBlock('10630025')).rejects.toThrow('invalid block envelope')
 	})
 
 	it('loads class detail with address-ordered instances and opaque continuation', async () => {
