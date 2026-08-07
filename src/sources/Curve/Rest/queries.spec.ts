@@ -33,6 +33,8 @@ const {
 	getLendingVault,
 	getPool,
 	getPoolVolume,
+	getChainPoolsVolume,
+	listCrvUsdAmmVolumes,
 	listGauges,
 	listLendingVaults,
 	listPools,
@@ -121,6 +123,12 @@ const threePoolWire = {
 		swap: [
 			'https://curve.finance/dex/#/ethereum/pools/3pool/swap',
 		],
+		deposit: [
+			'https://curve.finance/dex/#/ethereum/pools/3pool/deposit',
+		],
+		withdraw: [
+			'https://curve.finance/dex/#/ethereum/pools/3pool/withdraw',
+		],
 	},
 } as const
 
@@ -189,6 +197,12 @@ const threePoolSnapshot = {
 	],
 	swapUrls: [
 		'https://curve.finance/dex/#/ethereum/pools/3pool/swap',
+	],
+	depositUrls: [
+		'https://curve.finance/dex/#/ethereum/pools/3pool/deposit',
+	],
+	withdrawUrls: [
+		'https://curve.finance/dex/#/ethereum/pools/3pool/withdraw',
 	],
 } as const
 
@@ -276,6 +290,17 @@ const lendingVaultWire = {
 		usdTotal: 71.2,
 	},
 	usdTotal: 73.39,
+	lendingVaultUrls: {
+		deposit: 'https://www.curve.finance/lend/ethereum/markets/0x1E0165DbD2019441aB7927C018701f3138114D71/vault',
+		withdraw: 'https://www.curve.finance/lend/ethereum/markets/0x1E0165DbD2019441aB7927C018701f3138114D71/vault',
+		borrow: 'https://www.curve.finance/lend/ethereum/markets/0x1E0165DbD2019441aB7927C018701f3138114D71',
+	},
+	ammBalances: {
+		ammBalanceBorrowed: 11.29,
+		ammBalanceBorrowedUsd: 11.29,
+		ammBalanceCollateral: 0.09,
+		ammBalanceCollateralUsd: 208,
+	},
 	blockchainId: 'ethereum',
 	registryId: 'oneway',
 } as const
@@ -547,6 +572,41 @@ describe('Curve pool operations', () => {
 			chainId: 1,
 			registryId: 'main',
 		})).rejects.toThrow('Curve_Rest: pool 0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7 has mismatched coin metadata')
+	})
+
+	it('accepts live wire string assetType and numeric coin decimals', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				poolData: [
+					{
+						...threePoolWire,
+						assetType: '0',
+						coins: [
+							{
+								...threePoolCoins[0]!,
+								decimals: 18,
+							},
+							...threePoolCoins.slice(1),
+						],
+					},
+				],
+			},
+		})
+
+		const pools = await listPoolsByRegistry({
+			chainId: 1,
+			registryId: 'main',
+		})
+		expect(pools).toHaveLength(1)
+		expect(pools[0]?.assetType).toBe(0)
+		expect(pools[0]?.coins[0]?.decimals).toBe('18')
+		expect(pools[0]?.depositUrls).toEqual([
+			'https://curve.finance/dex/#/ethereum/pools/3pool/deposit',
+		])
+		expect(pools[0]?.withdrawUrls).toEqual([
+			'https://curve.finance/dex/#/ethereum/pools/3pool/withdraw',
+		])
 	})
 
 	it('rejects coin legs that omit a coinsAddresses entry', async () => {
@@ -875,6 +935,13 @@ describe('Curve lending vault operations', () => {
 				availableToBorrow: 71.21,
 				availableToBorrowUsd: 71.2,
 				usdTotal: 73.39,
+				depositUrl: 'https://www.curve.finance/lend/ethereum/markets/0x1E0165DbD2019441aB7927C018701f3138114D71/vault',
+				withdrawUrl: 'https://www.curve.finance/lend/ethereum/markets/0x1E0165DbD2019441aB7927C018701f3138114D71/vault',
+				borrowUrl: 'https://www.curve.finance/lend/ethereum/markets/0x1E0165DbD2019441aB7927C018701f3138114D71',
+				ammBalanceBorrowed: 11.29,
+				ammBalanceBorrowedUsd: 11.29,
+				ammBalanceCollateral: 0.09,
+				ammBalanceCollateralUsd: 208,
 			},
 		])
 		expect(sourceGetJson).toHaveBeenCalledWith(
@@ -919,5 +986,152 @@ describe('Curve lending vault operations', () => {
 		await expect(listLendingVaults({
 			chainId: 1,
 		})).rejects.toThrow('Curve_Rest: invalid lending vaults response envelope')
+	})
+})
+
+describe('Curve volume operations', () => {
+	beforeEach(() => {
+		sourceGetJson.mockReset()
+	})
+
+	it('lists pool volumes via getVolumes/{blockchainId}', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				pools: [
+					{
+						address: threePoolAddress,
+						type: 'main',
+						volumeUSD: 14_074_355.54,
+						latestDailyApyPcent: 0,
+						latestWeeklyApyPcent: 0.01,
+						includedApyPcentFromLsts: 0,
+						virtualPrice: '1.03982371734256137',
+					},
+				],
+				totalVolumes: 14_074_355.54,
+			},
+			generatedTimeMs: 1_700_000_000_000,
+		})
+
+		await expect(listPoolVolumes({
+			chainId: 1,
+		})).resolves.toEqual([
+			{
+				blockchainId: 'ethereum',
+				chainId: 1,
+				registryId: 'main',
+				poolAddress: '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7',
+				volumeUsd: 14_074_355.54,
+				latestDailyApyPcent: 0,
+				latestWeeklyApyPcent: 0.01,
+				includedApyPcentFromLsts: 0,
+				virtualPrice: '1.03982371734256137',
+			},
+		])
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://api.curve.finance/v1/getVolumes/ethereum'
+		)
+	})
+
+	it('resolves a pool volume by address', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				pools: [
+					{
+						address: threePoolAddress,
+						type: 'main',
+						volumeUSD: 100,
+					},
+				],
+			},
+		})
+
+		await expect(getPoolVolume({
+			chainId: 1,
+			poolAddress: threePoolAddress,
+		})).resolves.toMatchObject({
+			poolAddress: '0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7',
+			volumeUsd: 100,
+		})
+	})
+
+	it('rejects malformed pool volume envelopes', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				pools: [
+					{
+						address: threePoolAddress,
+						type: 'main',
+						volumeUSD: 'bad',
+					},
+				],
+			},
+		})
+
+		await expect(listPoolVolumes({
+			chainId: 1,
+		})).rejects.toThrow('Curve_Rest: invalid pool volumes response envelope')
+	})
+
+	it('reads chain-wide volume via getAllPoolsVolume/{blockchainId}', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				totalVolume: 102_288_353.57,
+				cryptoShare: 5.01,
+			},
+			generatedTimeMs: 1_700_000_000_000,
+		})
+
+		await expect(getChainPoolsVolume({
+			chainId: 1,
+		})).resolves.toEqual({
+			blockchainId: 'ethereum',
+			chainId: 1,
+			totalVolumeUsd: 102_288_353.57,
+			cryptoSharePcent: 5.01,
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://api.curve.finance/v1/getAllPoolsVolume/ethereum'
+		)
+	})
+
+	it('lists ethereum crvUSD AMM volumes and rejects other chains', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				amms: [
+					{
+						address: '0x9a2e6bb3114B1EEB5492D97188A3ECB09E39fac8',
+						volumeUSD: 12.5,
+					},
+				],
+				totalVolume: 12.5,
+			},
+		})
+
+		await expect(listCrvUsdAmmVolumes({
+			chainId: 1,
+		})).resolves.toEqual([
+			{
+				blockchainId: 'ethereum',
+				chainId: 1,
+				ammAddress: '0x9a2e6bb3114b1eeb5492d97188a3ecb09e39fac8',
+				volumeUsd: 12.5,
+			},
+		])
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://api.curve.finance/v1/getVolumes/ethereum/crvusd-amms'
+		)
+
+		await expect(listCrvUsdAmmVolumes({
+			chainId: 137,
+		})).rejects.toThrow('Curve_Rest: crvUSD AMM volumes only on ethereum')
 	})
 })

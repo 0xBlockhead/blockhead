@@ -23,7 +23,7 @@ export type CurvePoolListResponse = {
 
 export type CurvePoolCoinWire = {
 	address: string
-	decimals: string
+	decimals: string | number
 	symbol: string
 	name: string
 	poolBalance?: string
@@ -38,7 +38,7 @@ export type CurvePoolWire = {
 	symbol: string
 	lpTokenAddress: string
 	coinsAddresses: string[]
-	decimals: string[]
+	decimals: (string | number)[]
 	coins: CurvePoolCoinWire[]
 	registryId?: string
 	blockchainId?: string
@@ -51,7 +51,7 @@ export type CurvePoolWire = {
 	isBroken?: boolean
 	usesRateOracle?: boolean
 	gaugeAddress?: string | null
-	assetType?: number | null
+	assetType?: number | string | null
 	assetTypeName?: string | null
 	creationBlockNumber?: number | null
 	creationTs?: number | null
@@ -114,6 +114,11 @@ export type CurveGaugeWire = {
 	gauge_data?: CurveGaugeDataWire | null
 	gauge_controller?: CurveGaugeControllerWire | null
 	gaugeStatus?: CurveGaugeStatusFlagsWire | null
+	poolUrls?: {
+		swap?: string[] | null
+		deposit?: string[] | null
+		withdraw?: string[] | null
+	} | null
 }
 
 export type CurveAllGaugesResponse = {
@@ -169,6 +174,19 @@ export type CurveLendingVaultRatesWire = {
 	lendApyPcent?: number | null
 }
 
+export type CurveLendingVaultUrlsWire = {
+	deposit?: string | null
+	withdraw?: string | null
+	borrow?: string | null
+}
+
+export type CurveLendingVaultAmmBalancesWire = {
+	ammBalanceBorrowed?: number | null
+	ammBalanceBorrowedUsd?: number | null
+	ammBalanceCollateral?: number | null
+	ammBalanceCollateralUsd?: number | null
+}
+
 export type CurveLendingVaultWire = {
 	id: string
 	name: string
@@ -201,6 +219,8 @@ export type CurveLendingVaultWire = {
 		usdTotal?: number | null
 	} | null
 	usdTotal?: number | null
+	lendingVaultUrls?: CurveLendingVaultUrlsWire | null
+	ammBalances?: CurveLendingVaultAmmBalancesWire | null
 }
 
 export type CurveLendingVaultsResponse = {
@@ -213,12 +233,17 @@ export type CurveLendingVaultsResponse = {
 
 const curvePoolCoinEnvelope = arktype({
 	address: 'string',
-	decimals: 'string',
+	decimals: 'string | number',
 	symbol: 'string',
 	name: 'string',
 	'poolBalance?': 'string',
 	'usdPrice?': 'number | null',
 	'isBasePoolLpToken?': 'boolean',
+})
+const curvePoolUrlsEnvelope = arktype({
+	'swap?': 'string[] | null',
+	'deposit?': 'string[] | null',
+	'withdraw?': 'string[] | null',
 })
 const curvePoolEnvelope = arktype({
 	id: 'string',
@@ -227,7 +252,7 @@ const curvePoolEnvelope = arktype({
 	symbol: 'string',
 	lpTokenAddress: 'string',
 	coinsAddresses: 'string[]',
-	decimals: 'string[]',
+	decimals: '(string | number)[]',
 	coins: curvePoolCoinEnvelope.array(),
 	'registryId?': 'string',
 	'blockchainId?': 'string',
@@ -240,18 +265,14 @@ const curvePoolEnvelope = arktype({
 	'isBroken?': 'boolean',
 	'usesRateOracle?': 'boolean',
 	'gaugeAddress?': 'string | null',
-	'assetType?': 'number | null',
+	'assetType?': 'number | string | null',
 	'assetTypeName?': 'string | null',
 	'creationBlockNumber?': 'number | null',
 	'creationTs?': 'number | null',
 	'implementation?': 'string | null',
 	'gaugeCrvApy?': 'number[] | null',
 	'gaugeFutureCrvApy?': 'number[] | null',
-	'poolUrls?': arktype({
-		'swap?': 'string[] | null',
-		'deposit?': 'string[] | null',
-		'withdraw?': 'string[] | null',
-	}).or('null'),
+	'poolUrls?': curvePoolUrlsEnvelope.or('null'),
 })
 
 export const curvePoolListEnvelope = arktype({
@@ -309,6 +330,7 @@ export const curveGaugeEnvelope = arktype({
 	'gauge_data?': curveGaugeDataEnvelope.or('null'),
 	'gauge_controller?': curveGaugeControllerEnvelope.or('null'),
 	'gaugeStatus?': curveGaugeStatusFlagsEnvelope.or('null'),
+	'poolUrls?': curvePoolUrlsEnvelope.or('null'),
 })
 export const curveAllGaugesEnvelope = arktype({
 	success: 'true',
@@ -391,6 +413,17 @@ const curveLendingVaultEnvelope = arktype({
 		'usdTotal?': 'number | null',
 	}).or('null'),
 	'usdTotal?': 'number | null',
+	'lendingVaultUrls?': arktype({
+		'deposit?': 'string | null',
+		'withdraw?': 'string | null',
+		'borrow?': 'string | null',
+	}).or('null'),
+	'ammBalances?': arktype({
+		'ammBalanceBorrowed?': 'number | null',
+		'ammBalanceBorrowedUsd?': 'number | null',
+		'ammBalanceCollateral?': 'number | null',
+		'ammBalanceCollateralUsd?': 'number | null',
+	}).or('null'),
 })
 export const curveLendingVaultsEnvelope = arktype({
 	success: 'true',
@@ -431,11 +464,21 @@ export type CurvePoolSnapshot = {
 	amplificationCoefficient?: string
 	totalSupply?: string
 	usdTotal?: number
+	usdTotalExcludingBasePool?: number
 	isMetaPool?: boolean
+	isBroken?: boolean
+	usesRateOracle?: boolean
 	gaugeAddress?: `0x${string}`
+	assetType?: number
 	assetTypeName?: string
 	creationBlockNumber?: number
 	creationTs?: number
+	implementation?: string
+	gaugeCrvApy?: readonly [number, number]
+	gaugeFutureCrvApy?: readonly [number, number]
+	swapUrls?: string[]
+	depositUrls?: string[]
+	withdrawUrls?: string[]
 }
 
 export type CurveGaugeSnapshot = {
@@ -462,10 +505,14 @@ export type CurveGaugeSnapshot = {
 	gaugeFutureRelativeWeight?: string
 	gaugeWeight?: string
 	lpTokenPrice?: number
+	virtualPrice?: string
 	gaugeCrvApy?: readonly [number, number]
 	gaugeFutureCrvApy?: readonly [number, number]
 	areCrvRewardsStuckInBridge?: boolean
 	rewardsNeedNudging?: boolean
+	swapUrls?: string[]
+	depositUrls?: string[]
+	withdrawUrls?: string[]
 }
 
 export type CurveGaugeScopeStatus = {
@@ -521,6 +568,13 @@ export type CurveLendingVaultSnapshot = {
 	availableToBorrow?: number
 	availableToBorrowUsd?: number
 	usdTotal?: number
+	depositUrl?: string
+	withdrawUrl?: string
+	borrowUrl?: string
+	ammBalanceBorrowed?: number
+	ammBalanceBorrowedUsd?: number
+	ammBalanceCollateral?: number
+	ammBalanceCollateralUsd?: number
 }
 
 export type CurvePoolVolumeWire = {
@@ -569,4 +623,62 @@ export type CurvePoolVolumeSnapshot = {
 	latestWeeklyApyPcent?: number
 	includedApyPcentFromLsts?: number
 	virtualPrice?: string
+}
+
+export type CurveChainPoolsVolumeResponse = {
+	success: boolean
+	data: {
+		totalVolume: number
+		cryptoShare?: number
+	}
+	generatedTimeMs?: number
+}
+
+export const curveChainPoolsVolumeEnvelope = arktype({
+	success: 'true',
+	data: {
+		totalVolume: 'number',
+		'cryptoShare?': 'number',
+	},
+	'generatedTimeMs?': 'number',
+})
+
+export type CurveChainPoolsVolumeSnapshot = {
+	blockchainId: string
+	chainId: number
+	totalVolumeUsd: number
+	cryptoSharePcent?: number
+}
+
+export type CurveCrvUsdAmmVolumeWire = {
+	address: string
+	volumeUSD: number
+}
+
+export type CurveCrvUsdAmmVolumesResponse = {
+	success: boolean
+	data: {
+		amms: CurveCrvUsdAmmVolumeWire[]
+		totalVolume?: number
+	}
+	generatedTimeMs?: number
+}
+
+export const curveCrvUsdAmmVolumesEnvelope = arktype({
+	success: 'true',
+	data: {
+		amms: arktype({
+			address: 'string',
+			volumeUSD: 'number',
+		}).array(),
+		'totalVolume?': 'number',
+	},
+	'generatedTimeMs?': 'number',
+})
+
+export type CurveCrvUsdAmmVolumeSnapshot = {
+	blockchainId: string
+	chainId: number
+	ammAddress: `0x${string}`
+	volumeUsd: number
 }

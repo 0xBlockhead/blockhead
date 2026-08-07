@@ -8,6 +8,8 @@
  * @see https://api.curve.finance/v1/getAllGaugesStatus
  * @see https://api.curve.finance/v1/getLendingVaults/all/{blockchainId}
  * @see https://api.curve.finance/v1/getVolumes/{blockchainId}
+ * @see https://api.curve.finance/v1/getAllPoolsVolume/{blockchainId}
+ * @see https://api.curve.finance/v1/getVolumes/ethereum/crvusd-amms
  *
  * Official Curve API has no account LP / gauge staking position endpoints —
  * do not invent user-balance queries here.
@@ -21,6 +23,10 @@ import {
 import type {
 	CurveAllGaugesResponse,
 	CurveAllGaugesStatusResponse,
+	CurveChainPoolsVolumeResponse,
+	CurveChainPoolsVolumeSnapshot,
+	CurveCrvUsdAmmVolumesResponse,
+	CurveCrvUsdAmmVolumeSnapshot,
 	CurveGaugeScopeStatus,
 	CurveGaugeSnapshot,
 	CurveLendingVaultSnapshot,
@@ -39,6 +45,8 @@ import type {
 import {
 	curveAllGaugesEnvelope,
 	curveAllGaugesStatusEnvelope,
+	curveChainPoolsVolumeEnvelope,
+	curveCrvUsdAmmVolumesEnvelope,
 	curveGaugeEnvelope,
 	curveLendingVaultsEnvelope,
 	curvePoolListEnvelope,
@@ -207,6 +215,35 @@ const optionalApyPair = (
 	] as const
 }
 
+const optionalUrlList = (
+	urls: readonly string[] | null | undefined,
+	label: string
+) => (
+	urls != null && urls.length > 0 ?
+		urls.map((url) => assertLabeledNonEmptyString(url, label))
+	:
+		undefined
+)
+
+const optionalUrl = (
+	url: string | null | undefined,
+	label: string
+) => (
+	url != null && url.trim() !== '' ?
+		assertLabeledNonEmptyString(url, label)
+	:
+		undefined
+)
+
+const optionalAssetType = (
+	value: number | string | null | undefined
+) => {
+	if (value == null || value === '')
+		return undefined
+	const numeric = typeof value === 'number' ? value : Number(value)
+	return assertSafeInteger(numeric, 'asset type')
+}
+
 const mapPoolCoin = (
 	wire: CurvePoolCoinWire
 ): CurvePoolCoinSnapshot | undefined => {
@@ -217,7 +254,7 @@ const mapPoolCoin = (
 		address,
 		symbol: assertLabeledNonEmptyString(wire.symbol, 'coin symbol'),
 		name: assertLabeledNonEmptyString(wire.name, 'coin name'),
-		decimals: assertLabeledNonEmptyString(wire.decimals, 'coin decimals'),
+		decimals: assertLabeledNonEmptyString(String(wire.decimals), 'coin decimals'),
 		...(wire.poolBalance != null && {
 			poolBalance: assertNonNegativeDecimalString(wire.poolBalance, 'coin pool balance'),
 		}),
@@ -275,6 +312,10 @@ const mapPoolWire = (
 	)
 	const poolGaugeCrvApy = optionalApyPair(wire.gaugeCrvApy, 'gaugeCrvApy')
 	const poolGaugeFutureCrvApy = optionalApyPair(wire.gaugeFutureCrvApy, 'gaugeFutureCrvApy')
+	const assetType = optionalAssetType(wire.assetType)
+	const swapUrls = optionalUrlList(wire.poolUrls?.swap, 'swap url')
+	const depositUrls = optionalUrlList(wire.poolUrls?.deposit, 'deposit url')
+	const withdrawUrls = optionalUrlList(wire.poolUrls?.withdraw, 'withdraw url')
 
 	return {
 		blockchainId,
@@ -322,8 +363,8 @@ const mapPoolWire = (
 		...(wire.usesRateOracle != null && {
 			usesRateOracle: wire.usesRateOracle,
 		}),
-		...(wire.assetType != null && {
-			assetType: assertSafeInteger(wire.assetType, 'asset type'),
+		...(assetType != null && {
+			assetType,
 		}),
 		...(wire.implementation != null && wire.implementation !== '' && {
 			implementation: wire.implementation,
@@ -334,8 +375,14 @@ const mapPoolWire = (
 		...(poolGaugeFutureCrvApy != null && {
 			gaugeFutureCrvApy: poolGaugeFutureCrvApy,
 		}),
-		...(wire.poolUrls?.swap != null && wire.poolUrls.swap.length > 0 && {
-			swapUrls: wire.poolUrls.swap.map((url) => assertLabeledNonEmptyString(url, 'swap url')),
+		...(swapUrls != null && {
+			swapUrls,
+		}),
+		...(depositUrls != null && {
+			depositUrls,
+		}),
+		...(withdrawUrls != null && {
+			withdrawUrls,
 		}),
 	}
 }
@@ -385,6 +432,10 @@ const mapGaugeWire = (
 	const lpTokenPrice = optionalFiniteNumber(wire.lpTokenPrice, 'lp token price')
 	const gaugeCrvApy = optionalApyPair(wire.gaugeCrvApy, 'gaugeCrvApy')
 	const gaugeFutureCrvApy = optionalApyPair(wire.gaugeFutureCrvApy, 'gaugeFutureCrvApy')
+	const virtualPrice = optionalDecimalString(wire.virtualPrice, 'virtual price')
+	const swapUrls = optionalUrlList(wire.poolUrls?.swap, 'swap url')
+	const depositUrls = optionalUrlList(wire.poolUrls?.deposit, 'deposit url')
+	const withdrawUrls = optionalUrlList(wire.poolUrls?.withdraw, 'withdraw url')
 
 	if (wire.isPool && poolAddress == null)
 		throw new Error(`${Source.Curve_Rest}: gauge ${gaugeAddress} missing pool address`)
@@ -441,6 +492,9 @@ const mapGaugeWire = (
 		...(lpTokenPrice != null && {
 			lpTokenPrice,
 		}),
+		...(virtualPrice != null && {
+			virtualPrice,
+		}),
 		...(gaugeCrvApy != null && {
 			gaugeCrvApy,
 		}),
@@ -452,6 +506,15 @@ const mapGaugeWire = (
 		}),
 		...(wire.gaugeStatus?.rewardsNeedNudging != null && {
 			rewardsNeedNudging: wire.gaugeStatus.rewardsNeedNudging,
+		}),
+		...(swapUrls != null && {
+			swapUrls,
+		}),
+		...(depositUrls != null && {
+			depositUrls,
+		}),
+		...(withdrawUrls != null && {
+			withdrawUrls,
 		}),
 	}
 }
@@ -499,6 +562,13 @@ const mapLendingVaultWire = (
 	const availableToBorrow = optionalFiniteNumber(wire.availableToBorrow?.total, 'available to borrow')
 	const availableToBorrowUsd = optionalFiniteNumber(wire.availableToBorrow?.usdTotal, 'available to borrow usd')
 	const usdTotal = optionalFiniteNumber(wire.usdTotal, 'usd total')
+	const depositUrl = optionalUrl(wire.lendingVaultUrls?.deposit, 'lending vault deposit url')
+	const withdrawUrl = optionalUrl(wire.lendingVaultUrls?.withdraw, 'lending vault withdraw url')
+	const borrowUrl = optionalUrl(wire.lendingVaultUrls?.borrow, 'lending vault borrow url')
+	const ammBalanceBorrowed = optionalFiniteNumber(wire.ammBalances?.ammBalanceBorrowed, 'amm borrowed balance')
+	const ammBalanceBorrowedUsd = optionalFiniteNumber(wire.ammBalances?.ammBalanceBorrowedUsd, 'amm borrowed balance usd')
+	const ammBalanceCollateral = optionalFiniteNumber(wire.ammBalances?.ammBalanceCollateral, 'amm collateral balance')
+	const ammBalanceCollateralUsd = optionalFiniteNumber(wire.ammBalances?.ammBalanceCollateralUsd, 'amm collateral balance usd')
 
 	return {
 		id: assertLabeledNonEmptyString(wire.id, 'lending vault id'),
@@ -559,6 +629,27 @@ const mapLendingVaultWire = (
 		}),
 		...(usdTotal != null && {
 			usdTotal,
+		}),
+		...(depositUrl != null && {
+			depositUrl,
+		}),
+		...(withdrawUrl != null && {
+			withdrawUrl,
+		}),
+		...(borrowUrl != null && {
+			borrowUrl,
+		}),
+		...(ammBalanceBorrowed != null && {
+			ammBalanceBorrowed,
+		}),
+		...(ammBalanceBorrowedUsd != null && {
+			ammBalanceBorrowedUsd,
+		}),
+		...(ammBalanceCollateral != null && {
+			ammBalanceCollateral,
+		}),
+		...(ammBalanceCollateralUsd != null && {
+			ammBalanceCollateralUsd,
 		}),
 	}
 }
@@ -870,5 +961,53 @@ export const getPoolVolume = async ({
 	if (volume == null)
 		throw new Error(`${Source.Curve_Rest}: pool volume ${address} not found on chain ${String(chainId)}`)
 	return volume
+}
+
+/** `GET /getAllPoolsVolume/{blockchainId}` — chain-wide 24h pool volume total. */
+export const getChainPoolsVolume = async ({
+	chainId,
+}: {
+	chainId: number
+}): Promise<CurveChainPoolsVolumeSnapshot> => {
+	const platform = assertChainId(chainId)
+	const response = await curveGetJson<CurveChainPoolsVolumeResponse>(
+		`/v1/getAllPoolsVolume/${platform.blockchainId}`
+	)
+	assertEnvelope(curveChainPoolsVolumeEnvelope, response, 'chain pools volume')
+	return {
+		blockchainId: platform.blockchainId,
+		chainId: platform.chainId,
+		totalVolumeUsd: assertFiniteNumber(response.data.totalVolume, 'total volume'),
+		...(optionalFiniteNumber(response.data.cryptoShare, 'crypto share') != null && {
+			cryptoSharePcent: optionalFiniteNumber(response.data.cryptoShare, 'crypto share'),
+		}),
+	}
+}
+
+/** `GET /getVolumes/ethereum/crvusd-amms` — crvUSD AMM daily volumes (ethereum only). */
+export const listCrvUsdAmmVolumes = async ({
+	chainId,
+}: {
+	chainId: number
+}): Promise<CurveCrvUsdAmmVolumeSnapshot[]> => {
+	const platform = assertChainId(chainId)
+	if (platform.blockchainId !== 'ethereum')
+		throw new Error(`${Source.Curve_Rest}: crvUSD AMM volumes only on ethereum`)
+	const response = await curveGetJson<CurveCrvUsdAmmVolumesResponse>(
+		'/v1/getVolumes/ethereum/crvusd-amms'
+	)
+	assertEnvelope(curveCrvUsdAmmVolumesEnvelope, response, 'crvUSD AMM volumes')
+	if (response.data.amms.length > maximumPoolsPerChain)
+		throw new Error(`${Source.Curve_Rest}: excessive crvUSD AMM volumes response`)
+
+	const volumes = response.data.amms.map((wire) => ({
+		blockchainId: platform.blockchainId,
+		chainId: platform.chainId,
+		ammAddress: assertAddress(wire.address, 'amm address'),
+		volumeUsd: assertFiniteNumber(wire.volumeUSD, 'volume USD'),
+	}))
+	if (new Set(volumes.map((row) => row.ammAddress)).size !== volumes.length)
+		throw new Error(`${Source.Curve_Rest}: crvUSD AMM volumes response contains duplicate addresses`)
+	return volumes
 }
 
