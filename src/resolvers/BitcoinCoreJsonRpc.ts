@@ -1,4 +1,8 @@
-import { networkBySlug } from '$/constants/Network.ts'
+import {
+	networkBySlug,
+	NetworkExecutionModel,
+	NetworkLedgerModel,
+} from '$/constants/Network.ts'
 import {
 	bitcoinOrdinalInscriptionRefsFromPayloads,
 	bitcoinOrdinalInscriptionSnapshotFromPayload,
@@ -9,14 +13,18 @@ import {
 	runestonePayload,
 } from '$/resolvers/bitcoinOrdinalsRunes.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import type { bitcoinCoreJsonRpc } from '$/sources/_shared/interfaces/BitcoinCoreJsonRpc/queries.ts'
+
+type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+type BitcoinCoreQueries = typeof import('$/sources/BitcoinCore/JsonRpc/queries.ts')
 
 export const bitcoinCoreJsonRpcResolvers = <
 	_Source extends Source.BitcoinCore_JsonRpc
@@ -27,12 +35,12 @@ export const bitcoinCoreJsonRpcResolvers = <
 	source,
 }: {
 	acceptsSlugSelector: boolean
-	loadQueries: () => Promise<ReturnType<typeof bitcoinCoreJsonRpc>>
+	loadQueries: () => Promise<BitcoinCoreQueries>
 	network: (typeof networkBySlug)['bitcoin']
 	source: _Source
 }) => {
 	const assertNetwork = (
-		networkSelector: EntitySelector<typeof schema, EntityType.Network>
+		networkSelector: NetworkId
 	) => {
 		if (
 			'caip2' in networkSelector ?
@@ -47,7 +55,7 @@ export const bitcoinCoreJsonRpcResolvers = <
 	}
 
 	const getTransaction = async ({ $network, txId }: {
-		$network: EntitySelector<typeof schema, EntityType.Network>
+		$network: NetworkId
 		txId: string
 	}) => {
 		assertNetwork($network)
@@ -58,7 +66,7 @@ export const bitcoinCoreJsonRpcResolvers = <
 	}
 
 	const getBitcoinProtocolPayloads = async ({ $network, txId }: {
-		$network: EntitySelector<typeof schema, EntityType.Network>
+		$network: NetworkId
 		txId: string
 	}) => {
 		assertNetwork($network)
@@ -77,6 +85,177 @@ export const bitcoinCoreJsonRpcResolvers = <
 		return extractProtocolPayloads(transaction)
 	}
 
+	const utxoBlockSnapshot = async (
+		$network: NetworkId,
+		blockHash: string
+	) => {
+		const { getBlock } = await loadQueries()
+		const block = await getBlock({
+			blockHash,
+		})
+		return {
+			hash: block.hash,
+			...(block.previousblockhash != null && {
+				$parent: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						height: BigInt(block.height - 1),
+						hash: block.previousblockhash,
+					},
+				},
+			}),
+			timestampMs: block.time * 1000,
+			merkleRoot: block.merkleroot,
+			nonce: block.nonce,
+			difficulty: block.difficulty,
+			...(block.size != null && {
+				sizeBytes: block.size,
+			}),
+			...(block.weight != null && {
+				weightUnits: block.weight,
+			}),
+			transactionCount: block.nTx,
+			$$transactions: block.tx.map((transaction) => (
+				typeof transaction === 'string' ?
+					{
+						[EntityMetaKey.Selector]: {
+							$network,
+							txId: transaction,
+						},
+					}
+				:
+					{
+						[EntityMetaKey.Selector]: {
+							$network,
+							txId: transaction.txid,
+						},
+					}
+			)),
+		}
+	}
+
+	const resolveUtxoBlocks = async (
+		networkSelector: NetworkId,
+		context: Parameters<typeof resolverContextRowLimit>[0]
+	) => {
+		assertNetwork(networkSelector)
+		const {
+			getBlockCount,
+			getBlockHash,
+		} = await loadQueries()
+		const tipHeight = await getBlockCount()
+		const limit = resolverContextRowLimit(context)
+		const heights = Array.from(
+			{ length: Math.min(limit, tipHeight + 1) },
+			(_, index) => tipHeight - index
+		).filter((height) => height >= 0)
+		return {
+			tipHeight,
+			blocks: await Promise.all(
+				heights.map(async (height) => ({
+					[EntityMetaKey.Selector]: {
+						$network: networkSelector,
+						height: BigInt(height),
+						hash: await getBlockHash({
+							height: BigInt(height),
+						}),
+					},
+				}))
+			),
+		}
+	}
+
+	const resolveNetworkTipObservation = async (networkSelector: NetworkId) => {
+		assertNetwork(networkSelector)
+		const {
+			getBlock,
+			getBlockCount,
+			getBlockHash,
+			getMempoolInfo,
+		} = await loadQueries()
+		const tipHeight = await getBlockCount()
+		const [bestBlockHash, mempoolInfo] = await Promise.all([
+			getBlockHash({
+				height: BigInt(tipHeight),
+			}),
+			getMempoolInfo(),
+		])
+		const tipBlock = await getBlock({
+			blockHash: bestBlockHash,
+		})
+		return {
+			bestBlockHeight: BigInt(tipHeight),
+			bestBlockHash,
+			bestBlockTimeMs: tipBlock.time * 1000,
+			blockCount: BigInt(tipHeight + 1),
+			mempoolTransactionCount: mempoolInfo.size,
+			mempoolSizeBytes: BigInt(mempoolInfo.bytes),
+		}
+	}
+
+	const resolveNetworkTipTimestamps = async (networkSelector: NetworkId) => {
+		const tip = await resolveNetworkTipObservation(networkSelector)
+		return [
+			{
+				[EntityMetaKey.Selector]: {
+					$network: networkSelector,
+					timestampMs: Date.now(),
+					source,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: tip.bestBlockHeight,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: tip.bestBlockHash,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: tip.bestBlockTimeMs,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: tip.blockCount,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: tip.mempoolTransactionCount,
+					[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: tip.mempoolSizeBytes,
+				},
+			},
+		]
+	}
+
+	const networkResolve = {
+		Caip2: {
+			resolve: resolveUtxoBlocks,
+		},
+		...(acceptsSlugSelector && {
+			Slug: {
+				resolve: resolveUtxoBlocks,
+			},
+		}),
+	}
+
+	const networkTimestampListResolve = {
+		Caip2: {
+			resolve: resolveNetworkTipTimestamps,
+		},
+		...(acceptsSlugSelector && {
+			Slug: {
+				resolve: resolveNetworkTipTimestamps,
+			},
+		}),
+	}
+
+	const networkTimestampAppliesTo = [
+		{
+			$network: {
+				caip2: network.caip2,
+			},
+			source,
+		},
+		...(
+			acceptsSlugSelector ?
+				[{
+					$network: {
+						slug: network.slug,
+					},
+					source,
+				}]
+			:
+				[]
+		),
+	]
+
 	return {
 		source,
 
@@ -84,56 +263,24 @@ export const bitcoinCoreJsonRpcResolvers = <
 			defineResolver({
 				entityType: EntityType.UtxoBlock,
 				resolve: {
+					NetworkHeight: {
+						resolve: async ({ $network, height }) => {
+							assertNetwork($network)
+							const { getBlockHash } = await loadQueries()
+							return utxoBlockSnapshot(
+								$network,
+								await getBlockHash({
+									height,
+								})
+							)
+						},
+					},
 					NetworkHeightHash: {
 						resolve: async ({ $network, hash }) => {
 							assertNetwork($network)
-							const {
-								getBlock,
-							} = await loadQueries()
-							const block = await getBlock({
-								blockHash: hash,
-							})
-							return {
-								hash: block.hash,
-								...(block.previousblockhash != null && {
-									$parent: {
-										[EntityMetaKey.Selector]: {
-											$network: $network,
-											height: BigInt(block.height - 1),
-											hash: block.previousblockhash,
-										},
-									},
-								}),
-								timestampMs: block.time * 1000,
-								merkleRoot: block.merkleroot,
-								nonce: block.nonce,
-								difficulty: block.difficulty,
-								...(block.size != null && {
-									sizeBytes: block.size,
-								}),
-								...(block.weight != null && {
-									weightUnits: block.weight,
-								}),
-								transactionCount: block.nTx,
-								$$transactions: block.tx.map((transaction) => (
-									typeof transaction === 'string' ?
-										{
-											[EntityMetaKey.Selector]: {
-												$network,
-												txId: transaction,
-											},
-										}
-									:
-										{
-											[EntityMetaKey.Selector]: {
-												$network,
-												txId: transaction.txid,
-											},
-										}
-								)),
-							}
+							return utxoBlockSnapshot($network, hash)
 						},
-					}
+					},
 				},
 			})({
 				hash: (snapshot) => snapshot.hash,
@@ -355,6 +502,147 @@ export const bitcoinCoreJsonRpcResolvers = <
 				$output: (snapshot) => snapshot.$output,
 				payloadHex: (snapshot) => snapshot.payloadHex,
 				isCenotaph: (snapshot) => snapshot.isCenotaph,
+			}),
+
+			defineResolver({
+				entityType: EntityType.UtxoAddress,
+				resolve: {
+					NetworkAddress: {
+						resolve: async ({ $network, address }, context) => {
+							assertNetwork($network)
+							const { getTransparentAddressUtxos } = await loadQueries()
+							const { unspents } = await getTransparentAddressUtxos({
+								address,
+								maxResults: resolverContextRowLimit(context),
+							})
+							return unspents.map((utxo) => ({
+								[EntityMetaKey.Selector]: {
+									$transaction: {
+										$network,
+										txId: utxo.txid,
+									},
+									indexInTransaction: utxo.vout,
+								},
+							}))
+						},
+					},
+				},
+			})({
+				$$outputs: (outputs) => outputs,
+			}),
+
+			defineResolver({
+				entityType: EntityType.UtxoAddress,
+				resolve: {
+					NetworkAddress: {
+						resolve: async ({ $network, address: addressSelector }) => {
+							assertNetwork($network)
+							return {
+								address: addressSelector,
+								$$timestamps: [
+									{
+										[EntityMetaKey.Selector]: {
+											$address: {
+												$network,
+												address: addressSelector,
+											},
+											timestampMs: Date.now(),
+											source,
+										},
+									},
+								],
+							}
+						},
+					},
+				},
+			})({
+				address: (address) => address.address,
+				$$timestamps: (address) => address.$$timestamps,
+			}),
+
+			defineResolver({
+				entityType: EntityType.UtxoAddress_Timestamp,
+				resolve: {
+					AddressTimestampMsSource: {
+						resolve: async ({ $address }) => {
+							assertNetwork($address.$network)
+							const { getTransparentAddressUtxos } = await loadQueries()
+							const scan = await getTransparentAddressUtxos({
+								address: $address.address,
+								maxResults: 10_000,
+							})
+							return {
+								balanceSats: scan.totalAmountSatoshis,
+								unspentOutputCount: scan.unspents.length,
+							}
+						},
+					},
+				},
+			})({
+				balanceSats: (observation) => observation.balanceSats,
+				unspentOutputCount: (observation) => observation.unspentOutputCount,
+			}),
+
+			defineResolver({
+				entityType: EntityType.Network,
+				resolve: networkResolve,
+			})({
+				Utxo: {
+					$$blocks: {
+						select: (snapshot) => snapshot.blocks,
+						resolveCount: (snapshot) => BigInt(snapshot.tipHeight + 1),
+					},
+				},
+			}),
+
+			defineResolver({
+				entityType: EntityType.Network,
+				resolve: networkTimestampListResolve,
+			})({
+				$$timestamps: (timestamps) => timestamps,
+			}),
+
+			defineResolver({
+				entityType: EntityType.Network_Timestamp,
+				resolve: {
+					NetworkTimestampMsSource: {
+						appliesTo: networkTimestampAppliesTo,
+						resolve: async ({
+							$network,
+							timestampMs,
+							source: timestampSource,
+						}) => {
+							if (timestampSource !== source)
+								throw new Error(`${source}: unsupported network timestamp source ${timestampSource}`)
+
+							const tip = await resolveNetworkTipObservation($network)
+							return {
+								$network: {
+									[EntityMetaKey.Selector]: $network,
+								},
+								timestampMs,
+								source: timestampSource,
+								ledgerModels: [NetworkLedgerModel.Utxo],
+								executionModels: [] satisfies NetworkExecutionModel[],
+								...tip,
+							}
+						},
+					},
+				},
+			})({
+				$network: (timestamp) => timestamp.$network,
+				timestampMs: (timestamp) => timestamp.timestampMs,
+				source: (timestamp) => timestamp.source,
+				ledgerModels: (timestamp) => timestamp.ledgerModels,
+				executionModels: (timestamp) => timestamp.executionModels,
+				Utxo: {
+					bestBlockHeight: (timestamp) => timestamp.bestBlockHeight,
+					bestBlockHash: (timestamp) => timestamp.bestBlockHash,
+					bestBlockTimeMs: (timestamp) => timestamp.bestBlockTimeMs,
+					blockCount: (timestamp) => timestamp.blockCount,
+					mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
+					mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
+				},
 			}),
 		],
 	}
