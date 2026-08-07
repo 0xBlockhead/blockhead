@@ -21,6 +21,9 @@ const binding = bindings[Source.LogosBlockchainNode_Rest][0]
 
 const lib = '2'.repeat(64)
 const tip = '3'.repeat(64)
+const address = 'a'.repeat(64)
+const publicKey = `0x${address}`
+const peerId = '12D3KooWLogosPeer'
 
 describe('Logos Blockchain 0.2.0 node API', () => {
 	beforeEach(() => {
@@ -81,7 +84,7 @@ describe('Logos Blockchain 0.2.0 node API', () => {
 			field: 'slot',
 			value: Number.MAX_SAFE_INTEGER + 1,
 		},
-	])('rejects invalid $field wire values', async ({ field, value }) => {
+	])('rejects invalid cryptarchia $field wire values', async ({ field, value }) => {
 		getJson.mockResolvedValue({
 			cryptarchia_info: {
 				lib,
@@ -99,7 +102,87 @@ describe('Logos Blockchain 0.2.0 node API', () => {
 		await expect(queries.getCryptarchiaInfo()).rejects.toThrow()
 	})
 
-	it('exports only the endpoint-specific operation', () => {
-		expect(Object.keys(queries)).toEqual(['getCryptarchiaInfo'])
+	it('reads libp2p network info with optional connected peers default', async () => {
+		getJson.mockResolvedValue({
+			listen_addresses: [
+				'/ip4/127.0.0.1/tcp/3000',
+				'/ip4/0.0.0.0/udp/3001/quic-v1',
+			],
+			peer_id: peerId,
+			n_peers: 4,
+			n_connections: 2,
+			n_pending_connections: 1,
+		})
+
+		await expect(queries.getNetworkInfo()).resolves.toEqual({
+			listen_addresses: [
+				'/ip4/127.0.0.1/tcp/3000',
+				'/ip4/0.0.0.0/udp/3001/quic-v1',
+			],
+			peer_id: peerId,
+			n_peers: 4,
+			n_connections: 2,
+			n_pending_connections: 1,
+		})
+		expect(getJson).toHaveBeenCalledWith(binding, '/network/info')
+	})
+
+	it('rejects network info missing peer counts', async () => {
+		getJson.mockResolvedValue({
+			listen_addresses: ['/ip4/127.0.0.1/tcp/3000'],
+			peer_id: peerId,
+		})
+
+		await expect(queries.getNetworkInfo()).rejects.toThrow()
+	})
+
+	it('reads wallet balance and strips 0x from the path key', async () => {
+		getJson.mockResolvedValue({
+			tip,
+			balance: 1_000,
+			notes: {
+				[`${'b'.repeat(64)}`]: 250,
+			},
+			address,
+		})
+
+		await expect(queries.getWalletBalance(publicKey)).resolves.toEqual({
+			tip,
+			balance: 1_000,
+			notes: {
+				[`${'b'.repeat(64)}`]: 250,
+			},
+			address,
+		})
+		expect(getJson).toHaveBeenCalledWith(binding, `/wallet/${address}/balance`)
+	})
+
+	it('rejects wallet balance when tip is 0x-prefixed', async () => {
+		getJson.mockResolvedValue({
+			tip: `0x${tip}`,
+			balance: 1,
+			notes: {},
+			address,
+		})
+
+		await expect(queries.getWalletBalance(publicKey)).rejects.toThrow()
+	})
+
+	it('rejects invalid zk public keys before transport', async () => {
+		await expect(queries.getWalletBalance('0xabc')).rejects.toThrow('invalid zk public key')
+		expect(getJson).not.toHaveBeenCalled()
+	})
+
+	it('exposes the local node HTTP endpoint', () => {
+		expect(queries.nodeEndpoint()).toBe('http://127.0.0.1:8080')
+	})
+
+	it('exports only the endpoint-specific operations', () => {
+		expect(Object.keys(queries).sort()).toEqual([
+			'getCryptarchiaInfo',
+			'getNetworkInfo',
+			'getWalletBalance',
+			'nodeEndpoint',
+		].sort())
 	})
 })
