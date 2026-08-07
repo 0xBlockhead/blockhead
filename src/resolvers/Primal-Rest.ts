@@ -22,13 +22,15 @@ import {
 	nostrRepostFieldValuesWithTarget,
 	nostrTagValue,
 } from '$/resolvers/Nostr.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	entityFieldAddressKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	PrimalNostrEvent,
 } from '$/sources/Primal/Rest/types.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
 import {
 	isJsonObject,
 	isJsonString,
@@ -40,7 +42,7 @@ import {
 } from '$/sources/NostrRelay/Nip01/event.ts'
 
 const profileEventsFromResponse = (
-	response: JsonValue | undefined,
+	response: unknown,
 	pubkey: string
 ) => nostrEventsNewestFirst(
 	(
@@ -61,7 +63,7 @@ const profileEventsFromResponse = (
 	})
 )
 
-const profileEventFromWire = (wire: JsonValue | undefined): PrimalNostrEvent | undefined => {
+const profileEventFromWire = (wire: unknown): PrimalNostrEvent | undefined => {
 	if (wire == null || !isJsonObject(wire)) return undefined
 	if (
 		isJsonString(wire.id)
@@ -73,7 +75,7 @@ const profileEventFromWire = (wire: JsonValue | undefined): PrimalNostrEvent | u
 	return undefined
 }
 
-const noteEventFromWire = (wire: JsonValue | undefined): PrimalNostrEvent | undefined => {
+const noteEventFromWire = (wire: unknown): PrimalNostrEvent | undefined => {
 	if (wire == null || !isJsonObject(wire)) return undefined
 	if (!isJsonString(wire.id)) return undefined
 	if (wire.event != null) return noteEventFromWire(wire.event)
@@ -82,7 +84,7 @@ const noteEventFromWire = (wire: JsonValue | undefined): PrimalNostrEvent | unde
 }
 
 const eventFromWire = (
-	wire: JsonValue | undefined,
+	wire: unknown,
 	expectation: NostrEventExpectation = {}
 ) => (
 	((nostrEventWire) => (
@@ -96,7 +98,7 @@ const eventFromWire = (
 )
 
 const eventsFromTimelineResponse = (
-	response: JsonValue | undefined,
+	response: unknown,
 	expectation: NostrEventExpectation = {}
 ) => {
 	if (Array.isArray(response))
@@ -513,10 +515,13 @@ export default {
 								}))
 						)
 					},
-				}
+				},
 			},
 		})({
-				$$replies: (note) => note,
+				$$replies: {
+					select: (replies) => replies,
+					resolveCount: (replies) => replies.length,
+				},
 			}),
 
 		defineResolver({
@@ -539,11 +544,125 @@ export default {
 								}))
 						)
 					},
-				}
+				},
 			},
 		})({
-				$$reactions: (note) => note,
+				$$reactions: {
+					select: (reactions) => reactions,
+					resolveCount: (reactions) => reactions.length,
+				},
 			}),
+
+		defineResolver({
+			entityType: EntityType._GlobalNostrNetwork,
+			resolve: {
+				Scope: {
+					resolve: async ({ scope }, context) => {
+						const { search } = await import('$/sources/Primal/Rest/queries.ts')
+						const timestampMs = Date.now()
+						const limit = resolverContextRowLimit(context)
+						try {
+							const events = eventsFromTimelineResponse(
+								await search('events', {
+									kinds: [
+										0,
+										1,
+										6,
+										16,
+										30_023,
+									],
+									limit,
+								}),
+								{
+									kinds: [
+										0,
+										1,
+										6,
+										16,
+										30_023,
+									],
+								}
+							)
+							const profilePubkeys = new Set<string>()
+							let observedNoteCount = 0
+							let observedRepostCount = 0
+							let observedArticleCount = 0
+							for (const event of events) {
+								if (event.kind === 0)
+									profilePubkeys.add(event.pubkey)
+								else if (event.kind === 1) {
+									observedNoteCount += 1
+									profilePubkeys.add(event.pubkey)
+								} else if (isNostrRepostKind(event.kind)) {
+									observedRepostCount += 1
+									profilePubkeys.add(event.pubkey)
+								} else if (event.kind === 30_023) {
+									observedArticleCount += 1
+									profilePubkeys.add(event.pubkey)
+								}
+							}
+							return [{
+								[EntityMetaKey.Selector]: {
+									$hub: { scope },
+									timestampMs,
+									source: Source.Primal_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType._GlobalNostrNetwork_Timestamp, [], 'observedProfileCount')]:
+										profilePubkeys.size,
+									[entityFieldAddressKey(EntityType._GlobalNostrNetwork_Timestamp, [], 'observedNoteCount')]:
+										observedNoteCount,
+									[entityFieldAddressKey(EntityType._GlobalNostrNetwork_Timestamp, [], 'observedRepostCount')]:
+										observedRepostCount,
+									[entityFieldAddressKey(EntityType._GlobalNostrNetwork_Timestamp, [], 'observedArticleCount')]:
+										observedArticleCount,
+									[entityFieldAddressKey(EntityType._GlobalNostrNetwork_Timestamp, [], 'reachable')]:
+										true,
+								},
+							}]
+						} catch {
+							return [{
+								[EntityMetaKey.Selector]: {
+									$hub: { scope },
+									timestampMs,
+									source: Source.Primal_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType._GlobalNostrNetwork_Timestamp, [], 'reachable')]:
+										false,
+								},
+							}]
+						}
+					},
+				},
+			},
+		})({
+			$$timestamps: (observations) => observations,
+		}),
+
+		defineResolver({
+			entityType: EntityType._GlobalNostrNetwork_Timestamp,
+			resolve: {
+				HubTimestampMsSource: {
+					resolve: async ({ $hub, timestampMs, source }) => {
+						if (source !== Source.Primal_Rest)
+							throw new Error('Primal_Rest: global Nostr observation source mismatch')
+
+						return {
+							$hub: {
+								[EntityMetaKey.Selector]: $hub,
+							},
+							timestampMs,
+							source,
+						}
+					},
+				},
+			},
+		})({
+			$hub: (observation) => observation.$hub,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+		}),
 
 	],
 } satisfies RegisteredSourceResolverModule
