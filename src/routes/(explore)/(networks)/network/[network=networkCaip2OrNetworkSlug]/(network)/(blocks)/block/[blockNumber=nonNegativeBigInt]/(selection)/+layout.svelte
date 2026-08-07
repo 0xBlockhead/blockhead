@@ -36,6 +36,7 @@
 	import SolanaBlockView from '$/views/SolanaBlockView.svelte'
 	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
 	import PolkadotBlockView from '$/views/PolkadotBlockView.svelte'
+	import ArweaveBlockView from '$/views/ArweaveBlockView.svelte'
 </script>
 
 
@@ -44,7 +45,7 @@
 		href={detailHref}
 	>
 		{#snippet Summary()}
-			{@const DetailView = data.entityType === EntityType.EvmBlock ? EvmBlockView : data.entityType === EntityType.SolanaBlock ? SolanaBlockView : data.entityType === EntityType.UtxoBlock ? UtxoBlockView : PolkadotBlockView}
+			{@const DetailView = data.entityType === EntityType.EvmBlock ? EvmBlockView : data.entityType === EntityType.SolanaBlock ? SolanaBlockView : data.entityType === EntityType.UtxoBlock ? UtxoBlockView : data.entityType === EntityType.PolkadotBlock ? PolkadotBlockView : ArweaveBlockView}
 
 			<DetailView
 				selection={select(data.entityType, data.selector)}

@@ -4,6 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeBigInt } from '$/params/nonNegativeBigInt.ts'
 import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
+import ArweaveBlockSchema from '$/schema/ArweaveBlock.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import EvmBlockSchema from '$/schema/EvmBlock.ts'
 import { schema } from '$/schema/index.ts'
@@ -50,6 +51,15 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				typeof schema,
 				EntityType.PolkadotBlock,
 				'NetworkBlockNumber'
+			>
+		}
+		| {
+			readonly entityType: EntityType.ArweaveBlock
+			readonly selectorName: 'NetworkHeight'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.ArweaveBlock,
+				'NetworkHeight'
 			>
 		}
 	)[] = []
@@ -167,6 +177,26 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				entityType: EntityType.PolkadotBlock,
 				selectorName: 'NetworkBlockNumber',
 				selector: polkadotBlockNetworkBlockNumberSelector,
+			})
+	}
+
+	if (parentData.projectionNetwork.namespace === 'Arweave' && matchNonNegativeBigInt(params.blockNumber)) {
+		const arweaveBlockNetworkHeightSelector = parseEntitySelector(
+			schema,
+			ArweaveBlockSchema,
+			{
+				$network: {
+					$network: parentData.selector,
+				},
+				height: BigInt(params.blockNumber),
+			},
+			'NetworkHeight'
+		)
+		if (!(arweaveBlockNetworkHeightSelector instanceof arktype.errors))
+			routeCandidates.push({
+				entityType: EntityType.ArweaveBlock,
+				selectorName: 'NetworkHeight',
+				selector: arweaveBlockNetworkHeightSelector,
 			})
 	}
 

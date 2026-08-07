@@ -5340,12 +5340,22 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	const errors: string[] = []
 	const resolverModulePaths = new Set<string>()
 	for (const resolverModule of resolverModules) {
-		if (!sourceIds.has(resolverModule.source))
-			errors.push(`resolver module ${resolverModule.path} references missing source ${resolverModule.source}`)
-		if (resolverModulePaths.has(resolverModule.path))
-			errors.push(`duplicate resolver module path ${resolverModule.path}`)
+		const modulePaths = resolverModule.paths ?? (resolverModule.path == null ? [] : [resolverModule.path])
+		if (modulePaths.length === 0)
+			errors.push(`resolver module ${resolverModule.source} must declare path or paths`)
+		else if (resolverModule.path != null && resolverModule.paths != null)
+			errors.push(`resolver module ${resolverModule.source} must declare only path or paths`)
+		else if (new Set(modulePaths).size !== modulePaths.length)
+			errors.push(`resolver module ${resolverModule.source} declares duplicate paths`)
 
-		resolverModulePaths.add(resolverModule.path)
+		for (const modulePath of modulePaths) {
+			if (!sourceIds.has(resolverModule.source))
+				errors.push(`resolver module ${modulePath} references missing source ${resolverModule.source}`)
+			if (resolverModulePaths.has(modulePath))
+				errors.push(`duplicate resolver module path ${modulePath}`)
+
+			resolverModulePaths.add(modulePath)
+		}
 	}
 	for (const entity of activeEntities) {
 		const fieldByName = new Map(entity.fields.map((field) => [field.name, field]))
@@ -8014,6 +8024,52 @@ const generateNavigationItemsFile = (navigationItems: readonly App['navigation']
 	}
 )
 
+const resolverModuleImportPath = (modulePath: string) => (
+	modulePath.replace(/^src\/resolvers\//, './')
+)
+
+const resolverModuleBindingName = (modulePath: string) => (
+	modulePath
+		.replace(/^src\/resolvers\//, '')
+		.replace(/\.ts$/, '')
+		.split(/[^A-Za-z0-9]+/)
+		.filter(Boolean)
+		.map((segment, index) => (
+			index === 0 ?
+				segment.charAt(0).toLowerCase() + segment.slice(1)
+			:
+				segment.charAt(0).toUpperCase() + segment.slice(1)
+		))
+		.join('')
+)
+
+const generateResolverLoaderEntry = (module: App['resolvers']['modules'][number]) => {
+	const modulePaths = module.paths ?? [module.path ?? '']
+
+	return modulePaths.length === 1 ?
+		`\t[Source.${module.source}, () => import(${emitTypeScript(resolverModuleImportPath(modulePaths[0]))})],`
+	:
+		[
+			`\t[Source.${module.source}, async () => {`,
+			`\t\tconst [`,
+			...modulePaths.map((modulePath) => `\t\t\t${resolverModuleBindingName(modulePath)},`),
+			`\t\t] = await Promise.all([`,
+			...modulePaths.map((modulePath) => `\t\t\timport(${emitTypeScript(resolverModuleImportPath(modulePath))}),`),
+			`\t\t])`,
+			`\t\treturn {`,
+			`\t\t\tdefault: {`,
+			`\t\t\t\tsource: Source.${module.source},`,
+			`\t\t\t\tresolvers: [`,
+			...modulePaths.flatMap((modulePath) => [
+				`\t\t\t\t\t...${resolverModuleBindingName(modulePath)}.default.resolvers,`,
+			]),
+			`\t\t\t\t],`,
+			`\t\t\t},`,
+			`\t\t}`,
+			`\t}],`,
+		].join('\n')
+}
+
 const generateResolverIndexFile = (resolverModules: readonly App['resolvers']['modules'][number][]) => tsFile(
 	'src/resolvers/index.ts',
 	{
@@ -8038,9 +8094,7 @@ const generateResolverIndexFile = (resolverModules: readonly App['resolvers']['m
 			'}[Source]',
 			'',
 			'const resolverLoaderEntries = [',
-			...resolverModules.map((module) => (
-				`\t[Source.${module.source}, () => import(${emitTypeScript(module.path.replace(/^src\/resolvers\//, './'))})],`
-			)),
+			...resolverModules.map((module) => generateResolverLoaderEntry(module)),
 			'] as const satisfies readonly ResolverLoaderEntry[]',
 			'',
 			'export const loadResolvers = async (enabledSources: ReadonlySet<Source> = new Set(Object.values(Source))) => Promise.all(',

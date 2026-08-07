@@ -1321,7 +1321,6 @@ test('generates one APP-ordered lazy resolver loader registry', () => {
 	assert.match(source, /as const satisfies readonly ResolverLoaderEntry\[\]/)
 	assert.doesNotMatch(source, /SourceResolverModule<typeof schema, Source>/)
 	for (const loaderEntry of [
-		"[Source.Nodely, () => import('./AlgorandIndexer-Rest.ts')]",
 		"[Source.KaspaExplorer, () => import('./KaspaExplorer.ts')]",
 		"[Source.Starkscan, () => import('./Starkscan.ts')]",
 		"[Source.StellarHorizon_Rest, () => import('./StellarHorizon-Rest.ts')]",
@@ -1330,12 +1329,19 @@ test('generates one APP-ordered lazy resolver loader registry', () => {
 	])
 		assert.ok(source.includes(loaderEntry), `missing resolver loader ${loaderEntry}`)
 
+	assert.match(source, /\[Source\.Nodely, async \(\) => \{[\s\S]*?import\('\.\/Algod-Rest\.ts'\)[\s\S]*?import\('\.\/AlgorandIndexer-Rest\.ts'\)/)
+
 	assert.deepEqual(
 		[...source.matchAll(/\[Source\.([A-Za-z0-9_]+), \(\) => import\('([^']+)'\)\]/g)].map((match) => ({
 			source: match[1],
 			path: `src/resolvers/${match[2]?.replace(/^\.\//, '')}`,
 		})),
-		app.resolvers.modules
+		app.resolvers.modules.flatMap((resolverModule) => (
+			resolverModule.paths == null ?
+				[resolverModule]
+			:
+				[]
+		))
 	)
 	assert.throws(
 		() => compileApp({
@@ -1481,7 +1487,9 @@ test('keeps APP compiler registries internally aligned', () => {
 	const appValueTypeIds = app.schema.valueTypes.map((valueType) => valueType.id)
 	const appSourceProviders = app.sources.providers.map((provider) => provider.provider)
 	const appSources = app.sources.sources.map((source) => source.source)
-	const appResolverModulePaths = app.resolvers.modules.map((resolverModule) => resolverModule.path)
+	const appResolverModulePaths = app.resolvers.modules.flatMap((resolverModule) => (
+		resolverModule.paths ?? (resolverModule.path == null ? [] : [resolverModule.path])
+	))
 
 	assert.equal(appEntityTypes.length, new Set(appEntityTypes).size)
 	assert.deepEqual(
@@ -1547,9 +1555,13 @@ test('rejects unordered schema registries before generation', () => {
 
 test('rejects duplicate resolver module paths during compilation', () => {
 	const duplicatePathApp = structuredClone(app)
-	const [firstResolverModule, secondResolverModule] = duplicatePathApp.resolvers.modules
+	const firstResolverModule = duplicatePathApp.resolvers.modules.find((resolverModule) => resolverModule.path != null)
+	const secondResolverModule = duplicatePathApp.resolvers.modules.find((resolverModule) => (
+		resolverModule !== firstResolverModule
+		&& resolverModule.path != null
+	))
 
-	assert.ok(firstResolverModule && secondResolverModule)
+	assert.ok(firstResolverModule?.path && secondResolverModule)
 	Object.defineProperty(secondResolverModule, 'path', {
 		value: firstResolverModule.path,
 	})

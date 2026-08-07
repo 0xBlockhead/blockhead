@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -35,9 +37,27 @@
 	}
 >
 	{#snippet Item({ item: arweaveBlock })}
+		{@const arweaveBlockSelector = arweaveBlock[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.ArweaveBlock}
-			entitySelector={arweaveBlock[EntityMetaKey.Selector]}
+			entitySelector={arweaveBlockSelector}
+			href={
+				'height' in arweaveBlockSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in arweaveBlockSelector.$network.$network ?
+									caip2StringFromValue(arweaveBlockSelector.$network.$network.caip2)
+								:
+									arweaveBlockSelector.$network.$network.slug
+							),
+							blockNumber: String(arweaveBlockSelector.height),
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{arweaveBlock.height}

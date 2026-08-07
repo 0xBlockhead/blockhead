@@ -132,6 +132,19 @@
 		], pendingEntity)
 	)
 
+	const arweaveGraphqlAndArweaveRestSources = $derived(
+		networkApplicableSources([
+			Source.Arweave_Graphql,
+			Source.Arweave_Rest,
+		], pendingEntity)
+	)
+
+	const arweaveGraphqlSources = $derived(
+		networkApplicableSources([
+			Source.Arweave_Graphql,
+		], pendingEntity)
+	)
+
 	const avalanchePlatformVmJsonRpcSources = $derived(
 		networkApplicableSources([
 			Source.AvalanchePlatformVm_JsonRpc,
@@ -4894,128 +4907,149 @@
 			resource={selection.Arweave}
 		>
 			{#snippet Applicable(projection)}
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-arweave-chain-activity'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'arweave-chain-observations',
-								label: 'Observations',
-							},
-							{
-								id: 'arweave-chain-blocks',
-								label: 'Blocks',
-							},
-							{
-								id: 'arweave-chain-transactions',
-								label: 'Transactions',
-							},
-						]
-					}
-					data-card
-					class='network-view-collapsible-chain-activity'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Chain activity</HeadingComponent>
-						</header>
-					{/snippet}
+				{@const arweaveChainActivitySections = [
+						...(
+							arweaveGraphqlAndArweaveRestSources.length > 0 ?
+								[
+									{
+										id: 'arweave-chain-observations',
+										label: 'Observations',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							arweaveGraphqlAndArweaveRestSources.length > 0 ?
+								[
+									{
+										id: 'arweave-chain-blocks',
+										label: 'Blocks',
+									},
+								]
+							:
+								[]
+						),
+						...(
+							arweaveGraphqlSources.length > 0 ?
+								[
+									{
+										id: 'arweave-chain-transactions',
+										label: 'Transactions',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
-					{#snippet SectionArweaveChainObservations({ id, label })}
-						<ArweaveNetwork_TimestampsView
-							selection={
-								projection
-								.$$timestamps({
-									sources: [
-										Source.Arweave_Graphql,
-										Source.Arweave_Rest,
-									],
-									limit: 16,
-								})
-							}
-							collapsible={false}
-							title={label}
-							id={`${id}-list`}
-						/>
-					{/snippet}
+				{#if arweaveChainActivitySections.length > 0}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-arweave-chain-activity'}
+						sectionIdPrefix={viewDomId}
+						sections={arweaveChainActivitySections}
+						data-card
+						class='network-view-collapsible-chain-activity'
+					>
+						{#snippet Summary()}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Chain activity</HeadingComponent>
+							</header>
+						{/snippet}
 
-					{#snippet SectionArweaveChainBlocks({ id, label })}
-						<ArweaveBlocksView
-							selection={
-								projection
-								.$$blocks({
-									sources: [
-										Source.Arweave_Graphql,
-										Source.Arweave_Rest,
-									],
-									limit: 16,
-								})
-							}
-							collapsible={false}
-							title={label}
-							id={`${id}-list`}
-						/>
-					{/snippet}
+						{#snippet SectionArweaveChainObservations({ id, label })}
+							<ArweaveNetwork_TimestampsView
+								selection={
+									projection
+									.$$timestamps({
+										sources: arweaveGraphqlAndArweaveRestSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
 
-					{#snippet SectionArweaveChainTransactions({ id, label })}
-						<ArweaveTransactionsView
-							selection={
-								projection
-								.$$transactions({
-									sources: [
-										Source.Arweave_Graphql,
-									],
-									limit: 16,
-								})
-							}
-							collapsible={false}
-							title={label}
-							id={`${id}-list`}
-						/>
-					{/snippet}
+						{#snippet SectionArweaveChainBlocks({ id, label })}
+							<ArweaveBlocksView
+								selection={
+									projection
+									.$$blocks({
+										sources: arweaveGraphqlAndArweaveRestSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
 
-				</CollapsibleTabs>
+						{#snippet SectionArweaveChainTransactions({ id, label })}
+							<ArweaveTransactionsView
+								selection={
+									projection
+									.$$transactions({
+										sources: arweaveGraphqlSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
 
-				<CollapsibleTabs
-					id={viewDomId + '-carousel-arweave-resources'}
-					sectionIdPrefix={viewDomId}
-					sections={
-						[
-							{
-								id: 'arweave-resource-list',
-								label: 'Resources',
-							},
-						]
-					}
-					data-card
-					class='network-view-collapsible-resources'
-				>
-					{#snippet Summary()}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Resources</HeadingComponent>
-						</header>
-					{/snippet}
+					</CollapsibleTabs>
+				{/if}
+				{@const arweaveResourcesSections = [
+						...(
+							arweaveGraphqlSources.length > 0 ?
+								[
+									{
+										id: 'arweave-resource-list',
+										label: 'Resources',
+									},
+								]
+							:
+								[]
+						),
+					]}
 
-					{#snippet SectionArweaveResourceList({ id, label })}
-						<ArweaveResourcesView
-							selection={
-								projection
-								.$$resources({
-									sources: [
-										Source.Arweave_Graphql,
-									],
-									limit: 16,
-								})
-							}
-							collapsible={false}
-							title={label}
-							emptyText='No Arweave resources.'
-							id={`${id}-list`}
-						/>
-					{/snippet}
+				{#if arweaveResourcesSections.length > 0}
+					<CollapsibleTabs
+						id={viewDomId + '-carousel-arweave-resources'}
+						sectionIdPrefix={viewDomId}
+						sections={arweaveResourcesSections}
+						data-card
+						class='network-view-collapsible-resources'
+					>
+						{#snippet Summary()}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Resources</HeadingComponent>
+							</header>
+						{/snippet}
 
-				</CollapsibleTabs>
+						{#snippet SectionArweaveResourceList({ id, label })}
+							<ArweaveResourcesView
+								selection={
+									projection
+									.$$resources({
+										sources: arweaveGraphqlSources,
+										limit: 16,
+									})
+								}
+								collapsible={false}
+								title={label}
+								emptyText='No Arweave resources.'
+								id={`${id}-list`}
+							/>
+						{/snippet}
+
+					</CollapsibleTabs>
+				{/if}
 			{/snippet}
 		</ProjectionBoundary>
 

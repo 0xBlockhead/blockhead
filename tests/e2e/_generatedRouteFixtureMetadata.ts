@@ -623,6 +623,15 @@ export const e2eRouteFixtureMetadataByNodeId = {
 					'Polkadot',
 				],
 			},
+			{
+				id: 'ArweaveBlock.NetworkHeight',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/block/[blockNumber]:ArweaveBlock.NetworkHeight'],
+				probeCases: [[[0, '1', ['blockNumber', 'network']]]],
+				projectionPath: [
+					'Arweave',
+				],
+			},
 		],
 	},
 	'/(explore)/(networks)/network/[network]/(blocks)/block/[blockNumber]/[hash]': {
@@ -713,6 +722,15 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				probeCases: [[[0, '1', ['blockNumber', 'network']]]],
 				projectionPath: [
 					'Polkadot',
+				],
+			},
+			{
+				id: 'ArweaveBlock.NetworkHeight',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/block/[blockNumber]:ArweaveBlock.NetworkHeight'],
+				probeCases: [[[0, '1', ['blockNumber', 'network']]]],
+				projectionPath: [
+					'Arweave',
 				],
 			},
 		],

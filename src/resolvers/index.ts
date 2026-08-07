@@ -120,7 +120,24 @@ const resolverLoaderEntries = [
 	[Source.NearNeps_Github, () => import('./NearNeps-Github.ts')],
 	[Source.NearRpc_JsonRpc, () => import('./NearRpc-JsonRpc.ts')],
 	[Source.Neynar_Rest, () => import('./Neynar-Rest.ts')],
-	[Source.Nodely, () => import('./Nodely.ts')],
+	[Source.Nodely, async () => {
+		const [
+			algodRest,
+			algorandIndexerRest,
+		] = await Promise.all([
+			import('./Algod-Rest.ts'),
+			import('./AlgorandIndexer-Rest.ts'),
+		])
+		return {
+			default: {
+				source: Source.Nodely,
+				resolvers: [
+					...algodRest.default.resolvers,
+					...algorandIndexerRest.default.resolvers,
+				],
+			},
+		}
+	}],
 	[Source.NostrRelay_Nip11_Http, () => import('./NostrRelay-Nip11-Http.ts')],
 	[Source.NostrRelay_WebSocket, () => import('./NostrRelay-WebSocket.ts')],
 	[Source.OpenAI_Rest, () => import('./OpenAI-Rest.ts')],

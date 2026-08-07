@@ -41,9 +41,16 @@
 					},
 				})
 			:
+			data.entityType === EntityType.PolkadotBlock ?
 				select(EntityType.PolkadotBlock, data.selector, {
 					fields: {
 						hash: true,
+					},
+				})
+			:
+				select(EntityType.ArweaveBlock, data.selector, {
+					fields: {
+						indepHash: true,
 					},
 				})
 		)
@@ -53,6 +60,7 @@
 		[EntityType.SolanaBlock]: SolanaBlockView,
 		[EntityType.UtxoBlock]: UtxoBlockView,
 		[EntityType.PolkadotBlock]: PolkadotBlockView,
+		[EntityType.ArweaveBlock]: ArweaveBlockView,
 	}
 
 	// Components
@@ -61,6 +69,7 @@
 	import SolanaBlockView from '$/views/SolanaBlockView.svelte'
 	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
 	import PolkadotBlockView from '$/views/PolkadotBlockView.svelte'
+	import ArweaveBlockView from '$/views/ArweaveBlockView.svelte'
 </script>
 
 
@@ -76,7 +85,10 @@
 			data.entityType === EntityType.UtxoBlock ?
 				(pageSelection.entity == null ? `Block #${data.selector.height}` : (String(data.selector.height ?? '') ? 'Block #' + String(data.selector.height ?? '') : '') || (pageSelection.entity.hash ?? '') || 'UTXO block') + ' • UTXO block • Blockhead'
 			:
+			data.entityType === EntityType.PolkadotBlock ?
 				(pageSelection.entity == null ? `Block #${data.selector.blockNumber}` : (String(data.selector.blockNumber ?? '') ? 'Block #' + String(data.selector.blockNumber ?? '') : '') || (pageSelection.entity.hash ?? '') || 'Polkadot block') + ' • Polkadot block • Blockhead'
+			:
+				(pageSelection.entity == null ? String(data.selector.height ?? '') || 'arweave block' : String(data.selector.height) || pageSelection.entity.indepHash || 'arweave block') + ' • arweave block • Blockhead'
 		)
 	}</title>
 </svelte:head>

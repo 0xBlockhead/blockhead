@@ -571,8 +571,8 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["AptosAip62_WalletApi","LocalDevice","aptos-aip62-wallet","BrowserDirect","WalletApi"] | AptosAip62 | AptosAip62_WalletApi | LocalDevice | aptos-aip62-wallet | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | ["AptosFullnode_Rest","Caip2Network","aptos:1","HttpProxy","OpenApiHttp"] | AptosFullnode | AptosFullnode_Rest | Caip2Network | aptos:1 | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["AptosIndexer_Graphql","Caip2Network","aptos:1","HttpProxy","GraphqlHttp"] | AptosIndexer | AptosIndexer_Graphql | Caip2Network | aptos:1 | Graphql | GraphqlHttp | GenericRead | HttpProxy |
-| ["Arweave_Graphql","ContentAddressScheme","arweave","BrowserDirect","GraphqlHttp"] | Arweave | Arweave_Graphql | ContentAddressScheme | arweave | Graphql | GraphqlHttp | GenericRead | BrowserDirect |
-| ["Arweave_Rest","ContentAddressScheme","arweave","BrowserDirect","ArweaveGateway"] | Arweave | Arweave_Rest | ContentAddressScheme | arweave | HttpRest | ArweaveGateway | ContentGatewayRead | BrowserDirect |
+| ["Arweave_Graphql","NetworkSlug","arweave","BrowserDirect","GraphqlHttp"] | Arweave | Arweave_Graphql | NetworkSlug | arweave | Graphql | GraphqlHttp | GenericRead | BrowserDirect |
+| ["Arweave_Rest","NetworkSlug","arweave","BrowserDirect","ArweaveGateway"] | Arweave | Arweave_Rest | NetworkSlug | arweave | HttpRest | ArweaveGateway | ContentGatewayRead | BrowserDirect |
 | ["Atproto_BskySocial_Xrpc","Global","bsky-social-appview","HttpProxy","XrpcLexicon"] | AtprotoBskySocial | Atproto_BskySocial_Xrpc | Global | bsky-social-appview | Xrpc | XrpcLexicon | GenericRead | HttpProxy |
 | ["Atproto_Xrpc","Global","bsky-public-appview","HttpProxy","XrpcLexicon"] | AtprotoBsky | Atproto_Xrpc | Global | bsky-public-appview | Xrpc | XrpcLexicon | GenericRead | HttpProxy |
 | ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteQuery","AtprotoSync"] | AtprotoSync | AtprotoSync_Xrpc | Feed | atproto-sync | Xrpc | AtprotoSync | GenericRead | RemoteQuery |
@@ -1089,9 +1089,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["AptosAip62_WalletApi","LocalDevice","aptos-aip62-wallet","BrowserDirect","WalletApi"] | BrowserWalletProvider | aptos |  |  |
 | ["AptosFullnode_Rest","Caip2Network","aptos:1","HttpProxy","OpenApiHttp"] | HttpUrl | https://fullnode.mainnet.aptoslabs.com/v1/ | https://fullnode.mainnet.aptoslabs.com | false |
 | ["AptosIndexer_Graphql","Caip2Network","aptos:1","HttpProxy","GraphqlHttp"] | HttpUrl | https://api.mainnet.aptoslabs.com/v1/graphql | https://api.mainnet.aptoslabs.com | false |
-| ["Arweave_Graphql","ContentAddressScheme","arweave","BrowserDirect","GraphqlHttp"] | HttpUrl | https://arweave.net/graphql | https://arweave.net | true |
-| ["Arweave_Rest","ContentAddressScheme","arweave","BrowserDirect","ArweaveGateway"] | HttpUrl | https://arweave.net | https://arweave.net | true |
-| ["Arweave_Rest","ContentAddressScheme","arweave","BrowserDirect","ArweaveGateway"] | HttpUrl | https://ar-io.net | https://ar-io.net | true |
+| ["Arweave_Graphql","NetworkSlug","arweave","BrowserDirect","GraphqlHttp"] | HttpUrl | https://arweave.net/graphql | https://arweave.net | true |
+| ["Arweave_Rest","NetworkSlug","arweave","BrowserDirect","ArweaveGateway"] | HttpUrl | https://arweave.net | https://arweave.net | true |
+| ["Arweave_Rest","NetworkSlug","arweave","BrowserDirect","ArweaveGateway"] | HttpUrl | https://ar-io.net | https://ar-io.net | true |
 | ["Atproto_BskySocial_Xrpc","Global","bsky-social-appview","HttpProxy","XrpcLexicon"] | HttpUrl | https://bsky.social | https://bsky.social | false |
 | ["Atproto_Xrpc","Global","bsky-public-appview","HttpProxy","XrpcLexicon"] | HttpUrl | https://public.api.bsky.app | https://public.api.bsky.app | false |
 | ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteQuery","AtprotoSync"] | HttpUrl | https://{pds-host} | https://{pds-host} | false |
@@ -1834,10 +1834,10 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["AptosIndexer_Graphql","Caip2Network","aptos:1","HttpProxy","GraphqlHttp"] | GenerationManifest | src/sources/AptosIndexer/Graphql/schema-source.ts | no |  |  |
 | ["AptosIndexer_Graphql","Caip2Network","aptos:1","HttpProxy","GraphqlHttp"] | GraphqlSchema | src/sources/AptosIndexer/Graphql/schema.graphql | yes | https://api.mainnet.aptoslabs.com/v1/graphql |  |
 | ["AptosIndexer_Graphql","Caip2Network","aptos:1","HttpProxy","GraphqlHttp"] | GraphqlTypes | src/sources/AptosIndexer/Graphql/graphql-env.d.ts | yes |  |  |
-| ["Arweave_Graphql","ContentAddressScheme","arweave","BrowserDirect","GraphqlHttp"] | GenerationManifest | src/sources/Arweave/Graphql/schema-source.ts | no |  |  |
-| ["Arweave_Graphql","ContentAddressScheme","arweave","BrowserDirect","GraphqlHttp"] | GraphqlSchema | src/sources/Arweave/Graphql/schema.graphql | yes | https://arweave.net/graphql |  |
-| ["Arweave_Graphql","ContentAddressScheme","arweave","BrowserDirect","GraphqlHttp"] | GraphqlTypes | src/sources/Arweave/Graphql/graphql-env.d.ts | yes |  |  |
-| ["Arweave_Rest","ContentAddressScheme","arweave","BrowserDirect","ArweaveGateway"] | HandwrittenTypes | src/sources/Arweave/Rest/types.ts | no |  |  |
+| ["Arweave_Graphql","NetworkSlug","arweave","BrowserDirect","GraphqlHttp"] | GenerationManifest | src/sources/Arweave/Graphql/schema-source.ts | no |  |  |
+| ["Arweave_Graphql","NetworkSlug","arweave","BrowserDirect","GraphqlHttp"] | GraphqlSchema | src/sources/Arweave/Graphql/schema.graphql | yes | https://arweave.net/graphql |  |
+| ["Arweave_Graphql","NetworkSlug","arweave","BrowserDirect","GraphqlHttp"] | GraphqlTypes | src/sources/Arweave/Graphql/graphql-env.d.ts | yes |  |  |
+| ["Arweave_Rest","NetworkSlug","arweave","BrowserDirect","ArweaveGateway"] | HandwrittenTypes | src/sources/Arweave/Rest/types.ts | no |  |  |
 | ["Atproto_BskySocial_Xrpc","Global","bsky-social-appview","HttpProxy","XrpcLexicon"] | GenerationManifest | src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon/schema-source.ts | no |  |  |
 | ["Atproto_BskySocial_Xrpc","Global","bsky-social-appview","HttpProxy","XrpcLexicon"] | Lexicon | src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon | no |  |  |
 | ["Atproto_Xrpc","Global","bsky-public-appview","HttpProxy","XrpcLexicon"] | GenerationManifest | src/sources/_shared/interfaces/BskyAppViewXrpc/Lexicon/schema-source.ts | no |  |  |

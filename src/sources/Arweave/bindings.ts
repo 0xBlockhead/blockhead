@@ -17,7 +17,7 @@ export default indexSourceBindings([
 	{
 		source: Source.Arweave_Graphql,
 		target: {
-			kind: SourceTargetKind.ContentAddressScheme,
+			kind: SourceTargetKind.NetworkSlug,
 			key: 'arweave',
 		},
 		endpoints: [
@@ -53,7 +53,7 @@ export default indexSourceBindings([
 	{
 		source: Source.Arweave_Rest,
 		target: {
-			kind: SourceTargetKind.ContentAddressScheme,
+			kind: SourceTargetKind.NetworkSlug,
 			key: 'arweave',
 		},
 		endpoints: [

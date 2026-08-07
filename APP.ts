@@ -3820,7 +3820,8 @@ export type App = {
 	resolvers: {
 		modules: {
 			source: Source
-			path: string
+			path?: string
+			paths?: readonly string[]
 		}[]
 	}
 }
@@ -10203,7 +10204,7 @@ export const schema = {
 				},
 			})({
 				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.ArweaveNetwork },
-				"height": { label: "Height", description: "The block or ledger height in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"height": { label: "Height", description: "The block or ledger height in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
 				"indepHash": { label: "indep hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"previousBlock": { label: "previous block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -70353,11 +70354,6 @@ export const routes = defineRoutes(schema)({
 			},
 		},
 		[EntityType.ArweaveBlock]: {
-			"NetworkHeight": {
-				kind: "Research",
-				decision: "Retain ArweaveBlock.NetworkHeight as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#arweaveblock",
-			},
 			"NetworkIndepHash": {
 				kind: "Research",
 				decision: "Retain ArweaveBlock.NetworkIndepHash as non-public until a product-valid selector placement is declared.",
@@ -79672,6 +79668,39 @@ export const routes = defineRoutes(schema)({
 																		page: {}
 																	}
 																},
+																[EntityType.ArweaveBlock]: {
+																	"NetworkHeight": {
+
+																		when: {
+																			path: ["namespace"],
+																			is: "Arweave",
+																		},
+																		projection: {
+																			entityType: EntityType.Network,
+																			facetPath: ["Arweave"]
+																		},
+																		params: {
+																			"blockNumber": [
+																				"height"
+																			]
+																		},
+																		derivations: {
+																			"$network": {
+																				kind: "selector",
+																				entity: EntityType.ArweaveNetwork,
+																				selector: "Network",
+																				params: [
+																					{
+																						field: "$network",
+																						value: { kind: "pageSelector" },
+																					},
+																				],
+																			},
+																		},
+
+																		page: {}
+																	}
+																},
 															},
 															children: {
 																"transactions": {
@@ -88657,7 +88686,7 @@ export const app = {
 				label: "Arweave GraphQL",
 				binding: {
 					target: {
-						kind: SourceTargetKind.ContentAddressScheme,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "arweave",
 					},
 					endpoints: [
@@ -88699,7 +88728,7 @@ export const app = {
 				label: "Arweave Gateway",
 				binding: {
 					target: {
-						kind: SourceTargetKind.ContentAddressScheme,
+						kind: SourceTargetKind.NetworkSlug,
 						key: "arweave",
 					},
 					endpoints: [
@@ -104692,7 +104721,10 @@ export const app = {
 			},
 			{
 				source: Source.Nodely,
-				path: "src/resolvers/Nodely.ts",
+				paths: [
+					"src/resolvers/Algod-Rest.ts",
+					"src/resolvers/AlgorandIndexer-Rest.ts",
+				],
 			},
 			{
 				source: Source.NostrRelay_Nip11_Http,
