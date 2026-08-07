@@ -1,6 +1,17 @@
+export type GetBlockYellowstoneCommitment =
+	| 'processed'
+	| 'confirmed'
+	| 'finalized'
+
+export type GetBlockYellowstoneAccountDatasizeFilter = {
+	datasize: number
+}
+
 export type GetBlockYellowstoneAccountRequest = {
-	accounts: string[]
-	commitment: 'processed' | 'confirmed' | 'finalized'
+	accounts?: string[]
+	owners?: string[]
+	filters?: GetBlockYellowstoneAccountDatasizeFilter[]
+	commitment: GetBlockYellowstoneCommitment
 }
 
 export type GetBlockYellowstoneAccountUpdate = {
@@ -16,3 +27,16 @@ export type GetBlockYellowstoneAccountUpdate = {
 	data: string
 	isStartup: boolean
 }
+
+export type GetBlockYellowstoneSubscribeUpdate =
+	| {
+		kind: 'account'
+		update: GetBlockYellowstoneAccountUpdate
+	}
+	| {
+		kind: 'ping'
+	}
+	| {
+		kind: 'pong'
+		id: number
+	}

@@ -8,7 +8,7 @@ import type {
 	GetBlockYellowstoneAccountRequest,
 } from '$/sources/GetBlock/Yellowstone/types.ts'
 import {
-	decodeGetBlockYellowstoneAccountUpdate,
+	decodeGetBlockYellowstoneSubscribeUpdate,
 	encodeGetBlockYellowstoneAccountRequest,
 } from '$/sources/GetBlock/Yellowstone/protobuf.ts'
 
@@ -25,6 +25,9 @@ export const subscribeSolanaAccountUpdates = async function* (
 			message: encodeGetBlockYellowstoneAccountRequest(accountRequest),
 		},
 		signal,
-	}))
-		yield decodeGetBlockYellowstoneAccountUpdate(message)
+	})) {
+		const update = decodeGetBlockYellowstoneSubscribeUpdate(message)
+		if (update.kind === 'account')
+			yield update.update
+	}
 }

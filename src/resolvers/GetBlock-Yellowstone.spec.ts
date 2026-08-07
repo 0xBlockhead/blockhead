@@ -12,7 +12,8 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import accountUpdate from '$/sources/GetBlock/Yellowstone/fixtures/account-update.json'
 import { subscribeSolanaAccountUpdates } from '$/sources/GetBlock/Yellowstone/queries.ts'
 import type { SourceLiveRequest } from '$/sources/_runtime/live.server.ts'
@@ -93,6 +94,21 @@ vi.mock('$/sources/_runtime/live.remote.ts', async () => {
 })
 
 const { default: getBlockYellowstone } = await import('$/resolvers/GetBlock-Yellowstone.ts')
+
+const accountResolver = getBlockYellowstone.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof getBlockYellowstone.resolvers[number],
+	{ entityType: EntityType.SolanaAccount }
+> => resolver.entityType === EntityType.SolanaAccount)
+
+const timestampResolver = getBlockYellowstone.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof getBlockYellowstone.resolvers[number],
+	{ entityType: EntityType.SolanaAccount_Timestamp }
+> => resolver.entityType === EntityType.SolanaAccount_Timestamp)
+
 const servers: Http2Server[] = []
 const encodeVarint = (value: bigint) => {
 	const bytes: number[] = []
@@ -216,7 +232,9 @@ describe('GetBlock Yellowstone account source', () => {
 		expect(received).toEqual([accountUpdate])
 		expect(new TextDecoder().decode(concatBytes(server.requestBody))).toContain(accountUpdate.account)
 
-		const resolved = await getBlockYellowstone.resolvers[0].resolve['AccountSlotSource'].resolve({
+		expect(accountResolver).toBeDefined()
+		expect(timestampResolver).toBeDefined()
+		const resolved = await timestampResolver.resolve.AccountSlotSource.resolve({
 			$account: {
 				$network: network,
 				pubkey: accountUpdate.account,
@@ -225,6 +243,13 @@ describe('GetBlock Yellowstone account source', () => {
 			source: Source.GetBlockYellowstone_Grpc,
 		}, context)
 		expect(resolved).toMatchObject({
+			$account: {
+				[EntityMetaKey.Selector]: {
+					pubkey: accountUpdate.account,
+				},
+			},
+			slot: BigInt(accountUpdate.slot),
+			source: Source.GetBlockYellowstone_Grpc,
 			timestampMs: accountUpdate.timestampMs,
 			lamports: BigInt(accountUpdate.lamports),
 			$ownerProgram: {
@@ -287,15 +312,60 @@ describe('GetBlock Yellowstone account source', () => {
 		await vi.waitFor(() => expect(closed).toBe(true))
 	})
 
+	it('projects a SolanaAccount tip observation with spaceBytes from the live index', async () => {
+		process.env.GETBLOCK_API_KEY = 'test-token'
+		const server = await startServer((stream) => respond(stream, '0', accountUpdateMessage))
+		resolverBinding.endpoints[0].locator = server.locator
+
+		expect(accountResolver).toBeDefined()
+		const resolved = await accountResolver.resolve.NetworkPubkey.resolve({
+			$network: network,
+			pubkey: accountUpdate.account,
+		}, context)
+		expect(resolved.$$timestamps).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$account: {
+						$network: network,
+						pubkey: accountUpdate.account,
+					},
+					slot: BigInt(accountUpdate.slot),
+					source: Source.GetBlockYellowstone_Grpc,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.SolanaAccount_Timestamp, [], 'timestampMs')]: accountUpdate.timestampMs,
+					[entityFieldAddressKey(EntityType.SolanaAccount_Timestamp, [], 'lamports')]: BigInt(accountUpdate.lamports),
+					[entityFieldAddressKey(EntityType.SolanaAccount_Timestamp, [], '$ownerProgram')]: {
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							programId: accountUpdate.ownerProgramId,
+						},
+					},
+					[entityFieldAddressKey(EntityType.SolanaAccount_Timestamp, [], 'executable')]: false,
+					[entityFieldAddressKey(EntityType.SolanaAccount_Timestamp, [], 'rentEpoch')]: BigInt(accountUpdate.rentEpoch),
+					[entityFieldAddressKey(EntityType.SolanaAccount_Timestamp, [], 'spaceBytes')]: accountUpdate.spaceBytes,
+					[entityFieldAddressKey(EntityType.SolanaAccount_Timestamp, [], 'dataEncoding')]: 'base64',
+				},
+			},
+		])
+	})
+
 	it('owns the schema-supported account observation fields', () => {
-		expect(Object.keys(getBlockYellowstone.resolvers[0].projections).sort()).toEqual([
+		expect(timestampResolver).toBeDefined()
+		expect(Object.keys(timestampResolver.projections).sort()).toEqual([
+			'$account',
 			'$ownerProgram',
 			'dataEncoding',
 			'executable',
 			'lamports',
 			'rentEpoch',
+			'slot',
+			'source',
 			'spaceBytes',
 			'timestampMs',
 		].sort())
+		expect(Object.keys(accountResolver.projections).sort()).toEqual([
+			'$$timestamps',
+		])
 	})
 })

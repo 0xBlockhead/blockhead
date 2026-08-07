@@ -3,6 +3,7 @@ import { base58btc } from 'multiformats/bases/base58'
 import type {
 	GetBlockYellowstoneAccountRequest,
 	GetBlockYellowstoneAccountUpdate,
+	GetBlockYellowstoneSubscribeUpdate,
 } from '$/sources/GetBlock/Yellowstone/types.ts'
 
 type ProtobufField =
@@ -47,6 +48,14 @@ const encodeLengthDelimited = (
 	encodeVarint(BigInt(fieldNumber << 3 | 2)),
 	encodeVarint(BigInt(value.length)),
 	value,
+])
+
+const encodeVarintField = (
+	fieldNumber: number,
+	value: bigint
+): Uint8Array => concatBytes([
+	encodeVarint(BigInt(fieldNumber << 3)),
+	encodeVarint(value),
 ])
 
 const decodeVarint = (
@@ -147,23 +156,59 @@ const bytesToBase64 = (bytes: Uint8Array) => {
 	return globalThis.btoa(binary)
 }
 
+const assertSolanaPubkey = (
+	value: string,
+	label: string
+) => {
+	try {
+		if (base58btc.baseDecode(value).length !== 32)
+			throw new Error()
+	} catch {
+		throw new Error(`GetBlock Yellowstone: invalid ${label}`)
+	}
+}
+
+const encodeAccountFilter = (
+	request: GetBlockYellowstoneAccountRequest
+): Uint8Array => {
+	const accounts = request.accounts ?? []
+	const owners = request.owners ?? []
+	const filters = request.filters ?? []
+	if (accounts.length === 0 && owners.length === 0)
+		throw new Error('GetBlock Yellowstone account subscription requires accounts or owners')
+
+	for (const account of accounts)
+		assertSolanaPubkey(account, 'account pubkey')
+	for (const owner of owners)
+		assertSolanaPubkey(owner, 'owner program id')
+	for (const filter of filters) {
+		if (!Number.isSafeInteger(filter.datasize) || filter.datasize < 0)
+			throw new Error('GetBlock Yellowstone datasize filter must be a non-negative safe integer')
+	}
+
+	return concatBytes([
+		...accounts.map((account) => (
+			encodeLengthDelimited(2, new TextEncoder().encode(account))
+		)),
+		...owners.map((owner) => (
+			encodeLengthDelimited(3, new TextEncoder().encode(owner))
+		)),
+		...filters.map((filter) => (
+			encodeLengthDelimited(4, encodeVarintField(2, BigInt(filter.datasize)))
+		)),
+	])
+}
+
 export const encodeGetBlockYellowstoneAccountRequest = (
 	request: GetBlockYellowstoneAccountRequest
 ): Uint8Array => {
-	if (request.accounts.length === 0)
-		throw new Error('GetBlock Yellowstone account subscription requires at least one account')
-
-	const accountFilter = concatBytes(request.accounts.map((account) => (
-		encodeLengthDelimited(2, new TextEncoder().encode(account))
-	)))
 	const accountMapEntry = concatBytes([
 		encodeLengthDelimited(1, new TextEncoder().encode('account')),
-		encodeLengthDelimited(2, accountFilter),
+		encodeLengthDelimited(2, encodeAccountFilter(request)),
 	])
 	return concatBytes([
 		encodeLengthDelimited(1, accountMapEntry),
-		encodeVarint(6n << 3n),
-		encodeVarint(BigInt([
+		encodeVarintField(6, BigInt([
 			'processed',
 			'confirmed',
 			'finalized',
@@ -171,13 +216,47 @@ export const encodeGetBlockYellowstoneAccountRequest = (
 	])
 }
 
-export const decodeGetBlockYellowstoneAccountUpdate = (
-	message: Uint8Array
+const decodeAccountUpdate = (
+	updateFields: readonly ProtobufField[],
+	timestampMs: number
 ): GetBlockYellowstoneAccountUpdate => {
-	const updateFields = decodeFields(message)
 	const accountUpdateFields = decodeFields(requiredBytes(updateFields, 2, 'account update'))
 	const accountFields = decodeFields(requiredBytes(accountUpdateFields, 1, 'account'))
-	const timestampFields = decodeFields(requiredBytes(updateFields, 11, 'created_at'))
+	const pubkey = requiredBytes(accountFields, 1, 'account.pubkey')
+	const owner = requiredBytes(accountFields, 3, 'account.owner')
+	if (pubkey.length !== 32)
+		throw new Error('GetBlock Yellowstone returned an invalid account pubkey')
+	if (owner.length !== 32)
+		throw new Error('GetBlock Yellowstone returned an invalid account owner')
+
+	const slot = optionalVarint(accountUpdateFields, 2)
+	if (slot === 0n)
+		throw new Error('GetBlock Yellowstone returned an invalid account slot')
+
+	const data = optionalBytes(accountFields, 6)
+	if (!Number.isSafeInteger(data.length))
+		throw new Error('GetBlock Yellowstone returned an invalid account spaceBytes')
+
+	return {
+		account: base58btc.baseEncode(pubkey),
+		slot: slot.toString(),
+		timestampMs,
+		lamports: optionalVarint(accountFields, 2).toString(),
+		ownerProgramId: base58btc.baseEncode(owner),
+		executable: optionalVarint(accountFields, 4) !== 0n,
+		rentEpoch: optionalVarint(accountFields, 5).toString(),
+		spaceBytes: data.length,
+		dataEncoding: 'base64',
+		data: bytesToBase64(data),
+		isStartup: optionalVarint(accountUpdateFields, 3) !== 0n,
+	}
+}
+
+export const decodeGetBlockYellowstoneSubscribeUpdate = (
+	message: Uint8Array
+): GetBlockYellowstoneSubscribeUpdate => {
+	const updateFields = decodeFields(message)
+	const timestampFields = decodeFields(optionalBytes(updateFields, 11))
 	const seconds = optionalVarint(timestampFields, 1)
 	const nanos = timestampFields.find((candidate) => (
 		candidate.fieldNumber === 2
@@ -186,21 +265,38 @@ export const decodeGetBlockYellowstoneAccountUpdate = (
 	const timestampMs = Number(seconds * 1_000n) + Math.trunc(Number(
 		nanos == null || nanos.wireType !== 0 ? 0n : nanos.value
 	) / 1_000_000)
-	if (!Number.isSafeInteger(timestampMs))
+	if (timestampFields.length > 0 && !Number.isSafeInteger(timestampMs))
 		throw new Error('GetBlock Yellowstone returned an invalid created_at timestamp')
 
-	const data = optionalBytes(accountFields, 6)
-	return {
-		account: base58btc.baseEncode(requiredBytes(accountFields, 1, 'account.pubkey')),
-		slot: optionalVarint(accountUpdateFields, 2).toString(),
-		timestampMs,
-		lamports: optionalVarint(accountFields, 2).toString(),
-		ownerProgramId: base58btc.baseEncode(requiredBytes(accountFields, 3, 'account.owner')),
-		executable: optionalVarint(accountFields, 4) !== 0n,
-		rentEpoch: optionalVarint(accountFields, 5).toString(),
-		spaceBytes: data.length,
-		dataEncoding: 'base64',
-		data: bytesToBase64(data),
-		isStartup: optionalVarint(accountUpdateFields, 3) !== 0n,
+	if (updateFields.some((field) => field.fieldNumber === 2 && field.wireType === 2)) {
+		if (timestampFields.length === 0)
+			throw new Error('GetBlock Yellowstone account update lacks created_at')
+		return {
+			kind: 'account',
+			update: decodeAccountUpdate(updateFields, timestampMs),
+		}
 	}
+
+	if (updateFields.some((field) => field.fieldNumber === 6))
+		return { kind: 'ping' }
+
+	const pong = updateFields.find((field) => field.fieldNumber === 9 && field.wireType === 2)
+	if (pong != null && pong.wireType === 2) {
+		const pongFields = decodeFields(pong.value)
+		return {
+			kind: 'pong',
+			id: Number(optionalVarint(pongFields, 1)),
+		}
+	}
+
+	throw new Error('GetBlock Yellowstone returned an unsupported subscribe update')
+}
+
+export const decodeGetBlockYellowstoneAccountUpdate = (
+	message: Uint8Array
+): GetBlockYellowstoneAccountUpdate => {
+	const update = decodeGetBlockYellowstoneSubscribeUpdate(message)
+	if (update.kind !== 'account')
+		throw new Error(`GetBlock Yellowstone expected account update, got ${update.kind}`)
+	return update.update
 }
