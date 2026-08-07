@@ -191,10 +191,19 @@ export type TronNodeTransactionInfo = {
 	blockTimeStamp?: number
 	fee?: number
 	contractResult?: string[]
+	contract_address?: string
+	resMessage?: string
+	log?: Record<string, unknown>[]
+	internal_transactions?: Record<string, unknown>[]
 	receipt?: {
 		result?: string
+		energy_usage?: number
+		origin_energy_usage?: number
 		energy_usage_total?: number
+		energy_fee?: number
+		energy_penalty_total?: number
 		net_usage?: number
+		net_fee?: number
 	}
 }
 
@@ -204,9 +213,18 @@ export const tronNodeTransactionInfoWire = arktype({
 	'blockTimeStamp?': 'number.integer >= 0',
 	'fee?': 'number.integer >= 0',
 	'contractResult?': 'string[]',
+	'contract_address?': 'string',
+	'resMessage?': 'string',
+	'log?': arktype('Record<string, unknown>').array(),
+	'internal_transactions?': arktype('Record<string, unknown>').array(),
 	'receipt?': {
 		'result?': 'string',
+		'energy_usage?': 'number.integer >= 0',
+		'origin_energy_usage?': 'number.integer >= 0',
 		'energy_usage_total?': 'number.integer >= 0',
+		'energy_fee?': 'number.integer >= 0',
+		'energy_penalty_total?': 'number.integer >= 0',
 		'net_usage?': 'number.integer >= 0',
+		'net_fee?': 'number.integer >= 0',
 	},
 }).and(arktype('Record<string, unknown>'))

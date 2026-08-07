@@ -153,8 +153,21 @@ const transactionFields = (
 const receiptFields = (info: TronNodeTransactionInfo) => ({
 	feeSun: bigintFromNumberOrString(info.fee),
 	result: info.receipt?.result,
+	resMessageHex: info.resMessage,
+	contractAddress: info.contract_address,
+	energyUsage: bigintFromNumberOrString(info.receipt?.energy_usage),
+	originEnergyUsage: bigintFromNumberOrString(info.receipt?.origin_energy_usage),
 	energyUsageTotal: bigintFromNumberOrString(info.receipt?.energy_usage_total),
+	energyFeeSun: bigintFromNumberOrString(info.receipt?.energy_fee),
+	energyPenaltyTotal: bigintFromNumberOrString(info.receipt?.energy_penalty_total),
 	netUsage: bigintFromNumberOrString(info.receipt?.net_usage),
+	netFeeSun: bigintFromNumberOrString(info.receipt?.net_fee),
+	...(info.log != null && {
+		logCount: info.log.length,
+	}),
+	...(info.internal_transactions != null && {
+		internalTransactionCount: info.internal_transactions.length,
+	}),
 	contractResultHex: info.contractResult ?? [],
 })
 
@@ -395,8 +408,17 @@ export const tronNodeRestResolvers = <
 			})({
 				feeSun: (receipt) => receipt.feeSun,
 				result: (receipt) => receipt.result,
+				resMessageHex: (receipt) => receipt.resMessageHex,
+				contractAddress: (receipt) => receipt.contractAddress,
+				energyUsage: (receipt) => receipt.energyUsage,
+				originEnergyUsage: (receipt) => receipt.originEnergyUsage,
 				energyUsageTotal: (receipt) => receipt.energyUsageTotal,
+				energyFeeSun: (receipt) => receipt.energyFeeSun,
+				energyPenaltyTotal: (receipt) => receipt.energyPenaltyTotal,
 				netUsage: (receipt) => receipt.netUsage,
+				netFeeSun: (receipt) => receipt.netFeeSun,
+				logCount: (receipt) => receipt.logCount,
+				internalTransactionCount: (receipt) => receipt.internalTransactionCount,
 				contractResultHex: (receipt) => receipt.contractResultHex,
 			}),
 		],

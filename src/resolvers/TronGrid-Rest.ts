@@ -271,8 +271,21 @@ const transactionFields = (
 const receiptFields = (info: TronNodeTransactionInfo) => ({
 	feeSun: bigintFromNumberOrString(info.fee),
 	result: info.receipt?.result,
+	resMessageHex: info.resMessage,
+	contractAddress: info.contract_address,
+	energyUsage: bigintFromNumberOrString(info.receipt?.energy_usage),
+	originEnergyUsage: bigintFromNumberOrString(info.receipt?.origin_energy_usage),
 	energyUsageTotal: bigintFromNumberOrString(info.receipt?.energy_usage_total),
+	energyFeeSun: bigintFromNumberOrString(info.receipt?.energy_fee),
+	energyPenaltyTotal: bigintFromNumberOrString(info.receipt?.energy_penalty_total),
 	netUsage: bigintFromNumberOrString(info.receipt?.net_usage),
+	netFeeSun: bigintFromNumberOrString(info.receipt?.net_fee),
+	...(info.log != null && {
+		logCount: info.log.length,
+	}),
+	...(info.internal_transactions != null && {
+		internalTransactionCount: info.internal_transactions.length,
+	}),
 	contractResultHex: info.contractResult ?? [],
 })
 
@@ -298,24 +311,38 @@ const witnessRows = (
 	network: NetworkId,
 	witnesses: TronNodeWitness[]
 ) => (
-	witnesses.map((witness) => ({
-		[EntityMetaKey.Selector]: {
-			$network: network,
-			address: witness.address,
-		},
-		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.TronWitness, [], '$$timestamps')]: [{
-				[EntityMetaKey.Selector]: {
-					$witness: {
-						$network: network,
-						address: witness.address,
+	witnesses.map((witness) => {
+		const fields = witnessFields(witness)
+		return {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				address: witness.address,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.TronWitness, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$witness: {
+							$network: network,
+							address: witness.address,
+						},
+						timestampMs: Date.now(),
+						source: Source.TronGrid_Rest,
 					},
-					timestampMs: Date.now(),
-					source: Source.TronGrid_Rest,
-				},
-			}],
-		},
-	}))
+					[EntityMetaKey.Fields]: Object.fromEntries(
+						Object.entries(fields).flatMap(([fieldName, value]) => (
+							value == null ?
+								[]
+							:
+								[[
+									entityFieldAddressKey(EntityType.TronWitness_Timestamp, [], fieldName),
+									value,
+								]]
+						))
+					),
+				}],
+			},
+		}
+	})
 )
 
 const chainParameterValue = (
@@ -474,10 +501,35 @@ export default {
 					appliesTo: tronNetworkReferenceApplicability,
 					resolve: async ({ $network, address }) => {
 						assertTronMainnet($network)
-						const { getAccount } = await import('$/sources/TronGrid/Rest/queries.ts')
-						const account = await getAccount({
-							address: address,
-						})
+						const {
+							getAccount,
+							getAccountResource,
+						} = await import('$/sources/TronGrid/Rest/queries.ts')
+						const [
+							account,
+							accountResource,
+						] = await Promise.all([
+							getAccount({
+								address: address,
+							}),
+							getAccountResource({
+								address: address,
+							}),
+						])
+						const balanceSun = (
+							account.balance != null ?
+								BigInt(account.balance)
+							:
+								undefined
+						)
+						const createdTimestampMs = account.create_time
+						const latestOperationTimestampMs = account.latest_opration_time
+						const freeNetUsed = bigintFromNumberOrString(accountResource.freeNetUsed)
+						const freeNetLimit = bigintFromNumberOrString(accountResource.freeNetLimit)
+						const netUsed = bigintFromNumberOrString(accountResource.NetUsed)
+						const netLimit = bigintFromNumberOrString(accountResource.NetLimit)
+						const energyUsed = bigintFromNumberOrString(accountResource.EnergyUsed)
+						const energyLimit = bigintFromNumberOrString(accountResource.EnergyLimit)
 						return {
 							name: account.account_name,
 							$$timestamps: [
@@ -487,8 +539,37 @@ export default {
 											$network,
 											address,
 										},
-										timestampMs: account.latest_opration_time ?? account.create_time ?? Date.now(),
+										timestampMs: latestOperationTimestampMs ?? createdTimestampMs ?? Date.now(),
 										source: Source.TronGrid_Rest,
+									},
+									[EntityMetaKey.Fields]: {
+										...(balanceSun != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'balanceSun')]: balanceSun,
+										}),
+										...(createdTimestampMs != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'createdTimestampMs')]: createdTimestampMs,
+										}),
+										...(latestOperationTimestampMs != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'latestOperationTimestampMs')]: latestOperationTimestampMs,
+										}),
+										...(freeNetUsed != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'freeNetUsed')]: freeNetUsed,
+										}),
+										...(freeNetLimit != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'freeNetLimit')]: freeNetLimit,
+										}),
+										...(netUsed != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'netUsed')]: netUsed,
+										}),
+										...(netLimit != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'netLimit')]: netLimit,
+										}),
+										...(energyUsed != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyUsed')]: energyUsed,
+										}),
+										...(energyLimit != null && {
+											[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyLimit')]: energyLimit,
+										}),
 									},
 								},
 							],
@@ -568,8 +649,17 @@ export default {
 		})({
 				feeSun: (receipt) => receipt.feeSun,
 				result: (receipt) => receipt.result,
+				resMessageHex: (receipt) => receipt.resMessageHex,
+				contractAddress: (receipt) => receipt.contractAddress,
+				energyUsage: (receipt) => receipt.energyUsage,
+				originEnergyUsage: (receipt) => receipt.originEnergyUsage,
 				energyUsageTotal: (receipt) => receipt.energyUsageTotal,
+				energyFeeSun: (receipt) => receipt.energyFeeSun,
+				energyPenaltyTotal: (receipt) => receipt.energyPenaltyTotal,
 				netUsage: (receipt) => receipt.netUsage,
+				netFeeSun: (receipt) => receipt.netFeeSun,
+				logCount: (receipt) => receipt.logCount,
+				internalTransactionCount: (receipt) => receipt.internalTransactionCount,
 				contractResultHex: (receipt) => receipt.contractResultHex,
 			}),
 
@@ -722,6 +812,23 @@ export default {
 											$network,
 											transactionId: transaction.txID,
 										},
+										[EntityMetaKey.Fields]: Object.fromEntries(
+											Object.entries(transactionFields(
+												$network,
+												transaction,
+												{
+													...(transaction.blockNumber != null && {
+														blockNumber: transaction.blockNumber,
+													}),
+													...(transaction.block_timestamp != null && {
+														blockTimeStamp: transaction.block_timestamp,
+													}),
+												}
+											)).map(([fieldName, value]) => [
+												entityFieldAddressKey(EntityType.TronTransaction, [], fieldName),
+												value,
+											])
+										),
 									},
 								]
 						))
