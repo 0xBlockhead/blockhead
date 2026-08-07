@@ -72,12 +72,20 @@ describe('TronScan REST arktype envelopes', () => {
 				address: 'Taccount',
 				balance: 1,
 				date_created: 1_700_000_000_000,
+				extraAccountField: true,
 			})
 			.mockResolvedValueOnce({
+				total: 1,
+				rangeTotal: 1,
 				data: [{
 					number: 77,
 					hash: 'block-hash',
 					timestamp: 1_720_000_000_000,
+					// Live explorer versions return version as a string.
+					version: '29',
+					nrOfTrx: 866,
+					size: 202067,
+					confirmed: true,
 				}],
 			})
 			.mockResolvedValueOnce({
@@ -93,6 +101,8 @@ describe('TronScan REST arktype envelopes', () => {
 		await expect(getBlock(77n)).resolves.toMatchObject({
 			data: [{
 				number: 77,
+				version: '29',
+				nrOfTrx: 866,
 			}],
 		})
 		await expect(getTransaction('transaction-hash')).resolves.toMatchObject({
@@ -125,23 +135,36 @@ describe('TronScan REST arktype envelopes', () => {
 	it('accepts token / contract / trc20 transfer envelopes', async () => {
 		sourceGetJson
 			.mockResolvedValueOnce({
+				all: 193563,
+				total: 1,
 				tokens: [{
 					contractAddress: 'Ttoken',
 					name: 'USDT',
 					decimals: 6,
+					marketCapUSD: 1,
 				}],
 			})
 			.mockResolvedValueOnce({
+				total: 1,
+				contractMap: {},
 				data: [{
 					id: '1002000',
 					name: 'BitTorrent',
 					precision: 6,
+					reputation: 'Ok',
 				}],
 			})
 			.mockResolvedValueOnce({
+				type: 'null',
+				count: 0,
+				status: {
+					code: 0,
+					message: 'SUCCESS',
+				},
 				data: [{
 					address: 'Tcontract',
 					name: 'USDT',
+					balance: 1,
 					trc20token: {
 						symbol: 'USDT',
 						decimals: 6,
@@ -156,6 +179,7 @@ describe('TronScan REST arktype envelopes', () => {
 					to_address: 'Tto',
 					quant: '1000',
 					block_ts: 1_720_000_000_000,
+					riskTransaction: false,
 				}],
 			})
 
@@ -177,6 +201,36 @@ describe('TronScan REST arktype envelopes', () => {
 		await expect(getTrc20Transfers('tx-hash', 20)).resolves.toMatchObject({
 			token_transfers: [{
 				transaction_id: 'tx-hash',
+			}],
+		})
+	})
+
+	it('accepts account transaction list envelopes with explorer drift keys', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			normalAddressInfo: {
+				Taccount: {
+					risk: false,
+				},
+			},
+			total: 1,
+			rangeTotal: 1,
+			wholeChainTxCount: 2,
+			contractMap: {},
+			data: [{
+				hash: 'transaction-hash',
+				block: 77,
+				timestamp: 1_720_000_000_000,
+				ownerAddress: 'Taccount',
+				contractType: 1,
+				contractRet: 'SUCCESS',
+				riskTransaction: false,
+			}],
+		})
+
+		await expect(getAccountTransactions('Taccount', 1)).resolves.toMatchObject({
+			total: 1,
+			data: [{
+				hash: 'transaction-hash',
 			}],
 		})
 	})

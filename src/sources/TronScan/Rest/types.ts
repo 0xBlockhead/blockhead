@@ -1,6 +1,5 @@
 import {
 	type as arktype,
-	type Type,
 } from 'arktype'
 
 export type TronScanBlock = {
@@ -10,7 +9,7 @@ export type TronScanBlock = {
 	timestamp?: number
 	witnessAddress?: string
 	txTrieRoot?: string
-	version?: number
+	version?: number | string
 	nrOfTrx?: number
 	transactionCount?: number
 }
@@ -22,10 +21,11 @@ export const tronScanBlockWire = arktype({
 	'timestamp?': 'number.integer >= 0',
 	'witnessAddress?': 'string',
 	'txTrieRoot?': 'string',
-	'version?': 'number.integer',
+	// Live `/api/block` returns version as a decimal string (e.g. "29").
+	'version?': 'number.integer | string',
 	'nrOfTrx?': 'number.integer >= 0',
 	'transactionCount?': 'number.integer >= 0',
-}) satisfies Type<TronScanBlock>
+}).and(arktype('Record<string, unknown>'))
 
 export type TronScanBlocks = {
 	data: TronScanBlock[]
@@ -33,7 +33,7 @@ export type TronScanBlocks = {
 
 export const tronScanBlocksWire = arktype({
 	data: tronScanBlockWire.array(),
-}) satisfies Type<TronScanBlocks>
+}).and(arktype('Record<string, unknown>'))
 
 export type TronScanAccount = {
 	address?: string
@@ -153,7 +153,7 @@ export const tronScanTransactionsWire = arktype({
 	'rangeTotal?': 'number.integer >= 0',
 	'wholeChainTxCount?': 'number.integer >= 0',
 	data: tronScanListTransactionWire.array(),
-})
+}).and(arktype('Record<string, unknown>'))
 
 export type TronScanTransactionDetail = TronScanTransaction & {
 	data?: TronScanTransaction[]
@@ -230,7 +230,7 @@ export type TronScanContractDetail = {
 
 export const tronScanContractDetailWire = arktype({
 	data: tronScanContractWire.array(),
-})
+}).and(arktype('Record<string, unknown>'))
 
 export type TronScanToken = {
 	id?: string | number
@@ -263,7 +263,7 @@ export type TronScanTokenOverview = {
 
 export const tronScanTokenOverviewWire = arktype({
 	tokens: tronScanTokenWire.array(),
-})
+}).and(arktype('Record<string, unknown>'))
 
 export type TronScanTrc10Tokens = {
 	data: TronScanToken[]
@@ -271,7 +271,7 @@ export type TronScanTrc10Tokens = {
 
 export const tronScanTrc10TokensWire = arktype({
 	data: tronScanTokenWire.array(),
-})
+}).and(arktype('Record<string, unknown>'))
 
 export type TronScanAccountTokens = {
 	data: TronScanToken[]
@@ -279,7 +279,7 @@ export type TronScanAccountTokens = {
 
 export const tronScanAccountTokensWire = arktype({
 	data: tronScanTokenWire.array(),
-})
+}).and(arktype('Record<string, unknown>'))
 
 export type TronScanTrc20Transfer = {
 	transaction_id?: string
