@@ -27,6 +27,12 @@ const {
 } = queries
 const binding = bindings[Source.StellarExpert][0]
 
+const ledger = {
+	sequence: 42_431_435,
+	timestamp: 1_661_781_078,
+	date: '2022-08-29T13:51:18.000Z',
+}
+
 describe('StellarExpert OpenAPI operations', () => {
 	beforeEach(() => {
 		getJson.mockReset()
@@ -56,7 +62,11 @@ describe('StellarExpert OpenAPI operations', () => {
 	})
 
 	it('omits an empty asset query instead of emitting a meaningless suffix', async () => {
-		getJson.mockResolvedValue({})
+		getJson.mockResolvedValue({
+			_embedded: {
+				records: [],
+			},
+		})
 
 		await getAllAssets({ network: 'testnet' })
 
@@ -74,9 +84,14 @@ describe('StellarExpert OpenAPI operations', () => {
 			},
 		})
 
-		await getAssetRating({
+		await expect(getAssetRating({
 			network: 'public',
 			asset: 'USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+		})).resolves.toMatchObject({
+			asset: 'USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+			rating: {
+				average: 8.1,
+			},
 		})
 
 		expect(getJson).toHaveBeenCalledWith(
@@ -85,15 +100,15 @@ describe('StellarExpert OpenAPI operations', () => {
 		)
 	})
 
-	it('rejects an empty asset path before I/O', () => {
-		expect(() => getAssetRating({
+	it('rejects an empty asset path before I/O', async () => {
+		await expect(getAssetRating({
 			network: 'public',
 			asset: '',
-		})).toThrow('asset path is empty')
-		expect(() => getAssetSupply({
+		})).rejects.toThrow('asset path is empty')
+		await expect(getAssetSupply({
 			network: 'public',
 			asset: '',
-		})).toThrow('asset path is empty')
+		})).rejects.toThrow('asset path is empty')
 		expect(getJson).not.toHaveBeenCalled()
 		expect(getText).not.toHaveBeenCalled()
 	})
@@ -112,16 +127,12 @@ describe('StellarExpert OpenAPI operations', () => {
 	})
 
 	it('queries a ledger sequence by timestamp', async () => {
-		getJson.mockResolvedValue({
-			sequence: 42_431_435,
-			timestamp: 1_661_781_078,
-			date: '2022-08-29T13:51:18.000Z',
-		})
+		getJson.mockResolvedValue(ledger)
 
-		await getSequenceFromTimestamp({
+		await expect(getSequenceFromTimestamp({
 			network: 'public',
 			timestamp: 1_661_781_078,
-		})
+		})).resolves.toEqual(ledger)
 
 		expect(getJson).toHaveBeenCalledWith(
 			binding,
@@ -130,21 +141,98 @@ describe('StellarExpert OpenAPI operations', () => {
 	})
 
 	it('queries a ledger close timestamp by exact sequence', async () => {
-		getJson.mockResolvedValue({
-			sequence: 42_431_435,
-			timestamp: 1_661_781_078,
-			date: '2022-08-29T13:51:18.000Z',
-		})
+		getJson.mockResolvedValue(ledger)
 
-		await getTimestampFromSequence({
+		await expect(getTimestampFromSequence({
 			network: 'public',
 			sequence: 42_431_435,
-		})
+		})).resolves.toEqual(ledger)
 
 		expect(getJson).toHaveBeenCalledWith(
 			binding,
 			'/explorer/public/ledger/timestamp-from-sequence?sequence=42431435'
 		)
+	})
+
+	it('fail-closes malformed ledger / asset / rating / supply envelopes', async () => {
+		getJson.mockResolvedValueOnce({
+			sequence: 42_431_435,
+			timestamp: 1_661_781_078,
+		})
+		await expect(getTimestampFromSequence({
+			network: 'public',
+			sequence: 42_431_435,
+		})).rejects.toThrow('invalid ledger timestamp-from-sequence response envelope')
+
+		getJson.mockResolvedValueOnce({
+			sequence: 42_431_435,
+			timestamp: 1_661_781_078,
+			date: '2022-08-29T13:51:19.000Z',
+		})
+		await expect(getSequenceFromTimestamp({
+			network: 'public',
+			timestamp: 1_661_781_078,
+		})).rejects.toThrow('ledger date does not match timestamp')
+
+		getJson.mockResolvedValueOnce({
+			sequence: 42_431_436,
+			timestamp: 1_661_781_078,
+			date: '2022-08-29T13:51:18.000Z',
+		})
+		await expect(getTimestampFromSequence({
+			network: 'public',
+			sequence: 42_431_435,
+		})).rejects.toThrow('response ledger sequence does not match request')
+
+		getJson.mockResolvedValueOnce({
+			asset: 'XLM',
+		})
+		await expect(getAssetRating({
+			network: 'public',
+			asset: 'XLM',
+		})).rejects.toThrow('invalid asset rating response envelope')
+
+		getJson.mockResolvedValueOnce({
+			asset: 'OTHER',
+			rating: {
+				average: 1,
+			},
+		})
+		await expect(getAssetRating({
+			network: 'public',
+			asset: 'XLM',
+		})).rejects.toThrow('asset rating response does not match request')
+
+		getJson.mockResolvedValueOnce({})
+		await expect(getAllAssets({
+			network: 'public',
+			limit: 2,
+		})).rejects.toThrow('invalid asset page response envelope')
+
+		getJson.mockResolvedValueOnce({
+			_embedded: {
+				records: [
+					{
+						asset: 'XLM',
+						paging_token: 1,
+					},
+					{
+						asset: 'XLM',
+						paging_token: 2,
+					},
+				],
+			},
+		})
+		await expect(getAllAssets({
+			network: 'public',
+			limit: 2,
+		})).rejects.toThrow('duplicate asset record')
+
+		getText.mockResolvedValueOnce('not-a-supply')
+		await expect(getAssetSupply({
+			network: 'public',
+			asset: 'XLM',
+		})).rejects.toThrow('invalid asset supply response envelope')
 	})
 
 	it('propagates HTTP failures from getJson and getText without soft-empty fallbacks', async () => {

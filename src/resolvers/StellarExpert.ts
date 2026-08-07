@@ -7,6 +7,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import type { StellarExpertLedgerTimestampSequence } from '$/sources/StellarExpert/Rest/types.ts'
 
 const assertStellarPublicNetwork = ($network: {
 	$network: {
@@ -18,38 +19,18 @@ const assertStellarPublicNetwork = ($network: {
 }
 
 const ledgerCloseTimeMs = (
-	ledger: {
-		sequence?: number
-		timestamp?: number
-		date?: string
-	},
+	ledger: StellarExpertLedgerTimestampSequence,
 	expectedSequence?: bigint
 ) => {
 	if (
-		ledger.sequence == null
-		|| !Number.isSafeInteger(ledger.sequence)
-		|| (
-			expectedSequence != null
-			&& BigInt(ledger.sequence) !== expectedSequence
-		)
+		expectedSequence != null
+		&& BigInt(ledger.sequence) !== expectedSequence
 	)
 		throw new Error('StellarExpert: response ledger sequence does not match request')
 
-	if (
-		ledger.timestamp == null
-		|| !Number.isSafeInteger(ledger.timestamp)
-		|| ledger.timestamp < 0
-		|| !Number.isSafeInteger(ledger.timestamp * 1_000)
-	)
-		throw new Error('StellarExpert: invalid ledger timestamp')
-
-	const closeTimeMs = ledger.timestamp * 1_000
-	if (ledger.date == null || Date.parse(ledger.date) !== closeTimeMs)
-		throw new Error('StellarExpert: ledger date does not match timestamp')
-
 	return {
 		sequence: BigInt(ledger.sequence),
-		closeTimeMs,
+		closeTimeMs: ledger.timestamp * 1_000,
 	}
 }
 
@@ -167,15 +148,10 @@ export default {
 						assertStellarPublicNetwork($network)
 						const identity = stellarAssetIdentity(assetKey)
 						const { getAssetRating } = await import('$/sources/StellarExpert/Rest/queries.ts')
-						const rating = await getAssetRating({
+						await getAssetRating({
 							network: 'public',
 							asset: assetKey,
 						})
-						if (rating.asset != null && rating.asset !== assetKey)
-							throw new Error('StellarExpert: asset rating response does not match request')
-						if (rating.rating == null)
-							throw new Error('StellarExpert: asset rating response is missing rating')
-
 						return identity
 					},
 				},
@@ -236,29 +212,17 @@ export default {
 			},
 		})({
 			$$assets: {
-				select: ({ page }, $network) => {
-					const records = page._embedded?.records
-					if (records == null)
-						throw new Error('StellarExpert: asset list missing records')
-
-					return records.map((record) => {
-						if (record.asset == null || record.asset.length === 0)
-							throw new Error('StellarExpert: asset record missing asset id')
-
-						return {
-							[EntityMetaKey.Selector]: {
-								$network,
-								assetKey: record.asset,
-							},
-							[EntityMetaKey.Fields]: stellarAssetFields($network, record.asset),
-						}
-					})
-				},
+				select: ({ page }, $network) => (
+					page._embedded.records.map((record) => ({
+						[EntityMetaKey.Selector]: {
+							$network,
+							assetKey: record.asset,
+						},
+						[EntityMetaKey.Fields]: stellarAssetFields($network, record.asset),
+					}))
+				),
 				continuation: ({ limit, page }, $network) => {
-					const records = page._embedded?.records
-					if (records == null)
-						throw new Error('StellarExpert: asset list missing records')
-
+					const records = page._embedded.records
 					const nextCursor = records.at(-1)?.paging_token
 					return nextCursor == null || records.length < limit ?
 						{

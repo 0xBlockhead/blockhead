@@ -97,57 +97,16 @@ describe('StellarExpert ledger resolver', () => {
 		expect(getTimestampFromSequence).not.toHaveBeenCalled()
 	})
 
-	it.each([
-		[
-			'missing sequence',
-			{
-				timestamp: 1_661_781_078,
-				date: '2022-08-29T13:51:18.000Z',
-			},
-			'response ledger sequence does not match request',
-		],
-		[
-			'mismatched sequence',
-			{
-				sequence: 42_431_436,
-				timestamp: 1_661_781_078,
-				date: '2022-08-29T13:51:18.000Z',
-			},
-			'response ledger sequence does not match request',
-		],
-		[
-			'fractional timestamp',
-			{
-				sequence: 42_431_435,
-				timestamp: 1_661_781_078.5,
-				date: '2022-08-29T13:51:18.500Z',
-			},
-			'invalid ledger timestamp',
-		],
-		[
-			'unsafe timestamp',
-			{
-				sequence: 42_431_435,
-				timestamp: Number.MAX_SAFE_INTEGER,
-				date: '2022-08-29T13:51:18.000Z',
-			},
-			'invalid ledger timestamp',
-		],
-		[
-			'mismatched date',
-			{
-				sequence: 42_431_435,
-				timestamp: 1_661_781_078,
-				date: '2022-08-29T13:51:19.000Z',
-			},
-			'ledger date does not match timestamp',
-		],
-	] as const)('rejects a %s response', async (_name, response, message) => {
-		getTimestampFromSequence.mockResolvedValue(response)
+	it('rejects a mismatched ledger sequence after transport', async () => {
+		getTimestampFromSequence.mockResolvedValue({
+			sequence: 42_431_436,
+			timestamp: 1_661_781_078,
+			date: '2022-08-29T13:51:18.000Z',
+		})
 
 		await expect(
 			ledgerResolver.resolve.NetworkSequence.resolve(ledger, context)
-		).rejects.toThrow(message)
+		).rejects.toThrow('response ledger sequence does not match request')
 	})
 })
 
@@ -256,25 +215,22 @@ describe('StellarExpert asset resolvers', () => {
 		})).toBeUndefined()
 	})
 
-	it('rejects malformed keys and missing rating payloads without inventing empty assets', async () => {
+	it('rejects malformed keys without inventing empty assets', async () => {
 		await expect(assetResolver.resolve.NetworkAssetKey.resolve({
 			$network: stellarNetwork,
 			assetKey: 'not-an-asset',
 		}, context)).rejects.toThrow('malformed asset key')
 		expect(getAssetRating).not.toHaveBeenCalled()
+	})
 
-		getAssetRating.mockResolvedValue({
-			asset: 'XLM',
-		})
+	it('propagates asset rating envelope and HTTP failures', async () => {
+		getAssetRating.mockRejectedValueOnce(new Error('StellarExpert: invalid asset rating response envelope'))
 		await expect(assetResolver.resolve.NetworkAssetKey.resolve({
 			$network: stellarNetwork,
 			assetKey: 'XLM',
-		}, context)).rejects.toThrow('missing rating')
-	})
+		}, context)).rejects.toThrow('invalid asset rating response envelope')
 
-	it('propagates asset rating HTTP failures', async () => {
-		getAssetRating.mockRejectedValue(new Error('HTTP 404: Not Found'))
-
+		getAssetRating.mockRejectedValueOnce(new Error('HTTP 404: Not Found'))
 		await expect(assetResolver.resolve.NetworkAssetKey.resolve({
 			$network: stellarNetwork,
 			assetKey: 'XLM',
@@ -319,10 +275,11 @@ describe('StellarExpert asset resolvers', () => {
 		})
 	})
 
-	it('rejects asset pages that omit records instead of soft-emptying', async () => {
-		getAllAssets.mockResolvedValue({})
+	it('propagates asset page envelope failures instead of soft-emptying', async () => {
+		getAllAssets.mockRejectedValue(new Error('StellarExpert: invalid asset page response envelope'))
 
-		const snapshot = await networkAssetsResolver.resolve.Network.resolve(stellarNetwork, context)
-		expect(() => networkAssetsResolver.projections.$$assets.select(snapshot, stellarNetwork)).toThrow('missing records')
+		await expect(
+			networkAssetsResolver.resolve.Network.resolve(stellarNetwork, context)
+		).rejects.toThrow('invalid asset page response envelope')
 	})
 })
