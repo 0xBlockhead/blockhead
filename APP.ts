@@ -7080,7 +7080,7 @@ export const schema = {
 						},
 						content: {
 							dl: [
-								["$market", { field: "underlyingTokenAddress", format: "truncated" }, "symbol", "name", "decimals"],
+								["$market", { field: "underlyingTokenAddress", format: "address" }, "symbol", "name", "decimals"],
 								["totalSupplied", "availableLiquidity", "supplyApy", "borrowApy", "frozen", "paused"],
 							],
 						},
