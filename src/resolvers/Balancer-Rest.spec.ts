@@ -223,6 +223,18 @@ describe('Balancer Rest resolver module', () => {
 					$network: ethereumNetwork,
 					poolId: weightedV2PoolId,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BalancerPool, [], 'address')]: '0x3de27efa2f1aa663ae5d458857e731c129069f29',
+					[entityFieldAddressKey(EntityType.BalancerPool, [], 'name')]: '20wstETH-80AAVE',
+					[entityFieldAddressKey(EntityType.BalancerPool, [], 'poolType')]: 'WEIGHTED',
+					[entityFieldAddressKey(EntityType.BalancerPool, [], 'version')]: 4,
+					[entityFieldAddressKey(EntityType.BalancerPool, [], 'protocolVersion')]: 2,
+					[entityFieldAddressKey(EntityType.BalancerPool, [], 'vaultAddress')]: '0xba12222222228d8ba445958a75a0704d566bf2c8',
+					[entityFieldAddressKey(EntityType.BalancerPool, [], 'swapFee')]: '0.00292',
+					[entityFieldAddressKey(EntityType.BalancerPool, [], 'totalLiquidity')]: '11356688.22',
+					[entityFieldAddressKey(EntityType.BalancerPool, [], 'totalShares')]: '78351.308448723247365152',
+					[entityFieldAddressKey(EntityType.BalancerPool, [], '$$aprItems')]: [],
+				},
 			},
 		])
 		expect(networkBalancerPoolsResolver.projections.Evm.$$balancerPools.resolveCount(snapshot)).toBe(2355)
@@ -363,6 +375,65 @@ describe('Balancer Rest resolver module', () => {
 		expect(graphql.mock.calls[1][0].variables).toEqual({
 			chain: 'MAINNET',
 			userAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+		})
+	})
+
+	it('projects BalancerGauge.version from pool staking when resolving NetworkGaugeAddress', async () => {
+		const balancerGaugeResolver = balancerRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.BalancerGauge
+		))
+		if (balancerGaugeResolver == null)
+			throw new Error('missing BalancerGauge resolver')
+
+		const gaugeAddress = '0x1111111111111111111111111111111111111111'
+		graphql
+			.mockResolvedValueOnce({
+				veBalGetVotingList: [
+					{
+						id: weightedV2PoolId,
+						address: weightedV2Pool.address,
+						chain: 'MAINNET',
+						type: 'WEIGHTED',
+						symbol: '20wstETH-80AAVE',
+						protocolVersion: 2,
+						gauge: {
+							address: gaugeAddress,
+							isKilled: false,
+							relativeWeightCap: '0.1',
+						},
+						tokens: [
+							{
+								address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+								symbol: 'wstETH',
+							},
+						],
+					},
+				],
+			})
+			.mockResolvedValueOnce({
+				poolGetPool: {
+					...weightedV2Pool,
+					staking: {
+						type: 'GAUGE',
+						gauge: {
+							gaugeAddress,
+							version: 2,
+						},
+					},
+				},
+			})
+
+		await expect(
+			balancerGaugeResolver.resolve.NetworkGaugeAddress.resolve({
+				$network: ethereumNetwork,
+				gaugeAddress,
+			}, context)
+		).resolves.toMatchObject({
+			gaugeAddress,
+			version: 2,
+			isKilled: false,
+			poolSymbol: '20wstETH-80AAVE',
+			relativeWeightCap: '0.1',
 		})
 	})
 })
