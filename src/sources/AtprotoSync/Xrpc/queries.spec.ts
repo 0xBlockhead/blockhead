@@ -29,9 +29,12 @@ vi.mock('$/sources/_runtime/live.remote.ts', () => ({
 }))
 
 const {
+	getHostStatus,
 	getLatestCommit,
 	getRepo,
 	getRepoStatus,
+	listHosts,
+	listRepos,
 	subscribeRepos,
 } = await import('$/sources/AtprotoSync/Xrpc/queries.ts')
 
@@ -229,6 +232,120 @@ describe('AtprotoSync_Xrpc getLatestCommit / getRepoStatus', () => {
 			active: true,
 			rev: '3jzfcijpj2z2a',
 		})
+	})
+
+	it('parses listRepos / listHosts / getHostStatus through the RemoteQuery binding', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				repos: [
+					{
+						did,
+						head: 'bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya',
+						rev: '3jzfcijpj2z2a',
+						active: true,
+					},
+				],
+				cursor: 'c1',
+			}), {
+				status: 200,
+				headers: {
+					'content-type': 'application/json',
+				},
+			}))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				hosts: [
+					{
+						hostname: 'pds.example',
+						seq: 7,
+						status: 'active',
+					},
+				],
+			}), {
+				status: 200,
+				headers: {
+					'content-type': 'application/json',
+				},
+			}))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				hostname: 'pds.example',
+				seq: 8,
+				accountCount: 2,
+				status: 'active',
+			}), {
+				status: 200,
+				headers: {
+					'content-type': 'application/json',
+				},
+			}))
+
+		await expect(listRepos({
+			binding: remoteQueryBinding,
+			serviceOrigin,
+			limit: 10,
+			cursor: 'prev',
+		})).resolves.toEqual({
+			repos: [
+				{
+					did,
+					commitCid: 'bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya',
+					rev: '3jzfcijpj2z2a',
+					active: true,
+				},
+			],
+			cursor: 'c1',
+		})
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			1,
+			resolvedRemoteQueryBinding,
+			'https://pds.example/xrpc/com.atproto.sync.listRepos?limit=10&cursor=prev',
+			{ signal: undefined }
+		)
+
+		await expect(listHosts({
+			binding: remoteQueryBinding,
+			serviceOrigin,
+			limit: 5,
+		})).resolves.toEqual({
+			hosts: [
+				{
+					hostname: 'pds.example',
+					seq: 7,
+					status: 'active',
+				},
+			],
+		})
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			2,
+			resolvedRemoteQueryBinding,
+			'https://pds.example/xrpc/com.atproto.sync.listHosts?limit=5',
+			{ signal: undefined }
+		)
+
+		await expect(getHostStatus({
+			binding: remoteQueryBinding,
+			serviceOrigin,
+			hostname: 'pds.example',
+		})).resolves.toEqual({
+			hostname: 'pds.example',
+			seq: 8,
+			accountCount: 2,
+			status: 'active',
+		})
+		expect(sourceFetch).toHaveBeenNthCalledWith(
+			3,
+			resolvedRemoteQueryBinding,
+			'https://pds.example/xrpc/com.atproto.sync.getHostStatus?hostname=pds.example',
+			{ signal: undefined }
+		)
+	})
+
+	it('rejects unsafe listRepos limits before transport', async () => {
+		await expect(listRepos({
+			binding: remoteQueryBinding,
+			serviceOrigin,
+			limit: 0,
+		})).rejects.toThrow('listRepos limit must be an integer from 1 to 1000')
+		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })
 

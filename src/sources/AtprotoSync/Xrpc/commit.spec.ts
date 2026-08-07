@@ -5,7 +5,12 @@ import {
 	it,
 } from 'vitest'
 
-import { projectAtprotoRepoCommitFromSubscribeReposBody } from '$/sources/AtprotoSync/Xrpc/commit.ts'
+import {
+	parseGetHostStatusResponse,
+	parseListHostsResponse,
+	parseListReposResponse,
+	projectAtprotoRepoCommitFromSubscribeReposBody,
+} from '$/sources/AtprotoSync/Xrpc/commit.ts'
 import { Source } from '$/sources/Source.ts'
 
 
@@ -82,5 +87,86 @@ describe('AtprotoSync #commit → AtprotoRepoCommit projection', () => {
 				seq: 1,
 			},
 		})).toThrow('malformed #commit body')
+	})
+})
+
+
+describe('AtprotoSync listRepos / listHosts / getHostStatus envelopes', () => {
+	it('parses listRepos tip rows with fail-closed head CIDs', () => {
+		expect(parseListReposResponse({
+			repos: [
+				{
+					did: 'did:plc:example',
+					head: commitCid.toString(),
+					rev: '3jzfcijpj2z2a',
+					active: true,
+					extra: 'strip-me',
+				},
+			],
+			cursor: 'next',
+		})).toEqual({
+			repos: [
+				{
+					did: 'did:plc:example',
+					commitCid: commitCid.toString(),
+					rev: '3jzfcijpj2z2a',
+					active: true,
+				},
+			],
+			cursor: 'next',
+		})
+	})
+
+	it('fails closed on malformed listRepos head CIDs', () => {
+		expect(() => parseListReposResponse({
+			repos: [
+				{
+					did: 'did:plc:example',
+					head: 'not-a-cid',
+					rev: '3jzfcijpj2z2a',
+				},
+			],
+		})).toThrow('malformed head CID')
+	})
+
+	it('parses listHosts and getHostStatus relay rows', () => {
+		expect(parseListHostsResponse({
+			hosts: [
+				{
+					hostname: 'pds.example',
+					seq: 9,
+					accountCount: 3,
+					status: 'active',
+				},
+			],
+		})).toEqual({
+			hosts: [
+				{
+					hostname: 'pds.example',
+					seq: 9,
+					accountCount: 3,
+					status: 'active',
+				},
+			],
+		})
+		expect(parseGetHostStatusResponse({
+			hostname: 'pds.example',
+			seq: 11,
+			status: 'idle',
+		})).toEqual({
+			hostname: 'pds.example',
+			seq: 11,
+			status: 'idle',
+		})
+	})
+
+	it('fails closed on malformed listHosts JSON', () => {
+		expect(() => parseListHostsResponse({
+			hosts: [
+				{
+					seq: 1,
+				},
+			],
+		})).toThrow('malformed listHosts response')
 	})
 })

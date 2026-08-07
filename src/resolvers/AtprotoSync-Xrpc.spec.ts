@@ -11,10 +11,12 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getLatestCommit = vi.fn()
+const getRepoStatus = vi.fn()
 
 vi.mock('$/sources/AtprotoSync/Xrpc/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/AtprotoSync/Xrpc/queries.ts')>(),
 	getLatestCommit,
+	getRepoStatus,
 	defaultAtprotoSyncRelayOrigin: 'https://bsky.network',
 }))
 
@@ -33,8 +35,14 @@ if (resolveByRev == null || resolveByCommitCid == null)
 describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 	beforeEach(() => {
 		getLatestCommit.mockReset()
+		getRepoStatus.mockReset()
 		getLatestCommit.mockResolvedValue({
 			commitCid: 'bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya',
+			rev: '3jzfcijpj2z2a',
+		})
+		getRepoStatus.mockResolvedValue({
+			did: 'did:plc:example',
+			active: true,
 			rev: '3jzfcijpj2z2a',
 		})
 	})
@@ -55,6 +63,21 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 		})
 		expect(repoCommitResolvers[0].projections.$$posts(snapshot)).toEqual([])
 		expect(getLatestCommit).toHaveBeenCalledOnce()
+		expect(getRepoStatus).toHaveBeenCalledOnce()
+	})
+
+	it('rejects tip projection when getRepoStatus rev disagrees with getLatestCommit', async () => {
+		getRepoStatus.mockResolvedValue({
+			did: 'did:plc:example',
+			active: true,
+			rev: '3jzfcijpj2z29',
+		})
+
+		await expect(resolveByRev({
+			repoDid: 'did:plc:example',
+			rev: '3jzfcijpj2z2a',
+			source: Source.AtprotoSync_Xrpc,
+		})).rejects.toThrow('disagrees with getLatestCommit')
 	})
 
 	it('rejects non-tip historical revs instead of inventing CAR decode', async () => {

@@ -199,6 +199,7 @@ const LensPostCard = graphql(`
 	fragment LensPostCard on Post @_unmask {
 		slug
 		timestamp
+		isEdited
 		isDeleted
 		author {
 			address
@@ -214,6 +215,14 @@ const LensPostCard = graphql(`
 			...LensPostMetadataContent
 		}
 		contentUri
+		stats {
+			comments
+			reposts
+			quotes
+			bookmarks
+			collects
+			reactions
+		}
 		commentOn {
 			slug
 		}
