@@ -23301,14 +23301,14 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoTxInput,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Blockfrost_Rest],
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
 				},
 				"$$outputs": {
 					label: 'outputs',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoTxOutput,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Blockfrost_Rest],
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
 				},
 				"$$certificates": {
 					label: 'certificates',
@@ -23344,7 +23344,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoNativeAsset,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Blockfrost_Rest],
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
 				},
 			})({
 				selectors: {
@@ -23356,7 +23356,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Blockfrost_Rest],
+							sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
 							openFields: ['blockSlot', 'fee', 'deposit', 'sizeBytes', 'validityStartSlot', 'ttlSlot', 'metadata'],
 						},
 						summary: { title: ['hash'], value: ['blockSlot'], HeadingAfter: ['fee'] },
@@ -23449,7 +23449,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Blockfrost_Rest],
+							sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
 							openFields: ['inputKind', 'spentTxHash', 'spentOutputIndex', 'redeemerIndex'],
 						},
 						summary: {
@@ -23543,7 +23543,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.CardanoTxOutputAsset,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Blockfrost_Rest],
+					defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
 				},
 			})({
 				selectors: {
@@ -23555,7 +23555,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Blockfrost_Rest],
+							sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest],
 							openFields: ['address', 'lovelace', 'datumHash', 'inlineDatum', 'referenceScriptHash'],
 						},
 						summary: { title: ['outputIndex'], value: ['lovelace'], HeadingAfter: ['address'] },
@@ -48107,7 +48107,7 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"height": { label: "Height", description: "The block height.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
 				"hash": { label: "Hash", description: "The hash that identifies this object in its protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$parent": { label: "Parent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.NearBlock, defaultSources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest] },
+				"$parent": { label: "Parent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.NearBlock, defaultSources: [Source.NearBlocks_Rest, Source.NearRpc_JsonRpc] },
 				"epochId": { label: "Epoch ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.NearRpc_JsonRpc] },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.NearBlocks_Rest, Source.NearRpc_JsonRpc] },
 				"$$chunks": { label: "Chunks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearChunk, defaultSources: [Source.NearRpc_JsonRpc] },
