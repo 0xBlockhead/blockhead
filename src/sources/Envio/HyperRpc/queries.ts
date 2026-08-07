@@ -5,6 +5,7 @@ import { evmExecutionJsonRpc } from '$/sources/_shared/interfaces/EvmExecutionJs
 export const {
 	getBlockByHash,
 	getBlockByNumber,
+	getBlockNumber,
 	getTransactionByHash,
 	getTransactionReceipt,
 } = evmExecutionJsonRpc({

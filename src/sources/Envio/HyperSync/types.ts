@@ -1,42 +1,56 @@
 import { type } from 'arktype'
 
 // https://docs.envio.dev/docs/HyperSync-LLM/hypersync-complete
+// https://docs.envio.dev/docs/HyperSync/hypersync-curl-examples
+
+const zeroExHash32 = type('/^0x[0-9a-fA-F]{64}$/')
+const zeroExAddress20 = type('/^0x[0-9a-fA-F]{40}$/')
+const nonNegativeInteger = type('number.integer >= 0')
+const quantityHex = type('/^0x[0-9a-fA-F]+$/')
+
+/** `GET /height` — current HyperSync archive tip. */
+export const EnvioHyperSyncHeightResponse = type({
+	height: nonNegativeInteger,
+})
+
+export type EnvioHyperSyncHeightResponse = typeof EnvioHyperSyncHeightResponse.infer
+
 export const EnvioHyperSyncBlock = type({
-	number: 'number.integer >= 0',
-	hash: 'string',
-	parent_hash: 'string',
-	timestamp: 'number.integer >= 0',
-	miner: 'string',
-	gas_used: 'string',
-	gas_limit: 'string',
-	'base_fee_per_gas?': 'string',
-	'blob_gas_used?': 'string',
-	'excess_blob_gas?': 'string',
+	number: nonNegativeInteger,
+	hash: zeroExHash32,
+	parent_hash: zeroExHash32,
+	timestamp: nonNegativeInteger,
+	miner: zeroExAddress20,
+	gas_used: quantityHex,
+	gas_limit: quantityHex,
+	'base_fee_per_gas?': quantityHex,
+	'blob_gas_used?': quantityHex,
+	'excess_blob_gas?': quantityHex,
 })
 
 export type EnvioHyperSyncBlock = typeof EnvioHyperSyncBlock.infer
 
 export const EnvioHyperSyncTransaction = type({
-	block_number: 'number.integer >= 0',
-	hash: 'string',
+	block_number: nonNegativeInteger,
+	hash: zeroExHash32,
 })
 
 export type EnvioHyperSyncTransaction = typeof EnvioHyperSyncTransaction.infer
 
 export const EnvioHyperSyncRollbackGuard = type({
-	block_number: 'number.integer >= 0',
-	timestamp: 'number.integer',
-	hash: 'string',
-	first_block_number: 'number.integer >= 0',
-	first_parent_hash: 'string',
+	block_number: nonNegativeInteger,
+	timestamp: type('number.integer'),
+	hash: zeroExHash32,
+	first_block_number: nonNegativeInteger,
+	first_parent_hash: zeroExHash32,
 })
 
 export type EnvioHyperSyncRollbackGuard = typeof EnvioHyperSyncRollbackGuard.infer
 
 export const EnvioHyperSyncBlockRangeResponse = type({
-	'archive_height?': 'number.integer >= 0',
-	next_block: 'number.integer >= 0',
-	total_execution_time: 'number >= 0',
+	'archive_height?': nonNegativeInteger,
+	next_block: nonNegativeInteger,
+	total_execution_time: type('number >= 0'),
 	data: {
 		blocks: EnvioHyperSyncBlock.array(),
 		transactions: EnvioHyperSyncTransaction.array(),

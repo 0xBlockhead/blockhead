@@ -1,8 +1,10 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 	type Entity,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -45,6 +47,102 @@ const assertEthereumMainnet = (network: EntitySelector<typeof schema, EntityType
 
 	throw new Error('EnvioHyperSync_RawHttp: unsupported network')
 }
+
+const tipBlockReferences = async (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	limit: number
+) => {
+	assertEthereumMainnet($network)
+	const { getHeight } = await import('$/sources/Envio/HyperSync/queries.ts')
+	const { height } = await getHeight()
+	const tip = BigInt(height)
+	return Array.from({
+		length: Math.min(
+			Number(tip + 1n),
+			Math.max(1, limit)
+		),
+	}, (_value, blockOffset) => ({
+		[EntityMetaKey.Selector]: {
+			$network,
+			blockNumber: tip - BigInt(blockOffset),
+		},
+	} satisfies Entity<typeof schema, EntityType.EvmBlock>))
+}
+
+const networkTipResolvers = {
+	Caip2: {
+		resolve: async (
+			network: EntitySelector<typeof schema, EntityType.Network>,
+			context: Parameters<typeof resolverContextRowLimit>[0]
+		) => tipBlockReferences(
+			network,
+			resolverContextRowLimit(context)
+		),
+	},
+	Slug: {
+		resolve: async (
+			network: EntitySelector<typeof schema, EntityType.Network>,
+			context: Parameters<typeof resolverContextRowLimit>[0]
+		) => tipBlockReferences(
+			network,
+			resolverContextRowLimit(context)
+		),
+	},
+} as const
+
+const networkTipCountResolvers = {
+	Caip2: {
+		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
+			assertEthereumMainnet(network)
+			const { getHeight } = await import('$/sources/Envio/HyperSync/queries.ts')
+			return (await getHeight()).height + 1
+		},
+	},
+	Slug: {
+		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
+			assertEthereumMainnet(network)
+			const { getHeight } = await import('$/sources/Envio/HyperSync/queries.ts')
+			return (await getHeight()).height + 1
+		},
+	},
+} as const
+
+const networkTimestampListResolvers = {
+	Caip2: {
+		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
+			assertEthereumMainnet(network)
+			const { getHeight } = await import('$/sources/Envio/HyperSync/queries.ts')
+			const { height } = await getHeight()
+			return [{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					timestampMs: Date.now(),
+					source: Source.EnvioHyperSync_RawHttp,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: BigInt(height),
+				},
+			}]
+		},
+	},
+	Slug: {
+		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
+			assertEthereumMainnet(network)
+			const { getHeight } = await import('$/sources/Envio/HyperSync/queries.ts')
+			const { height } = await getHeight()
+			return [{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					timestampMs: Date.now(),
+					source: Source.EnvioHyperSync_RawHttp,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: BigInt(height),
+				},
+			}]
+		},
+	},
+} as const
 
 export default {
 	source: Source.EnvioHyperSync_RawHttp,
@@ -133,6 +231,62 @@ export default {
 			$miner: (block) => block.$miner,
 			$parent: (block) => block.$parent,
 			$$transactions: (block) => block.transactions,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: networkTipResolvers,
+		})({
+			Evm: {
+				$$blocks: (blocks) => blocks,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: networkTipCountResolvers,
+		})({
+			Evm: {
+				$$blocks: {
+					resolveCount: (count) => count,
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: networkTimestampListResolvers,
+		})({
+			Evm: {
+				$$timestamps: (timestamps) => timestamps,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetwork_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					resolve: async ({ $network, timestampMs, source }) => {
+						assertEthereumMainnet($network)
+						if (source !== Source.EnvioHyperSync_RawHttp)
+							throw new Error(`EnvioHyperSync_RawHttp: unsupported network timestamp source ${source}`)
+						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+							throw new Error('EnvioHyperSync_RawHttp: invalid network observation timestamp')
+
+						const { getHeight } = await import('$/sources/Envio/HyperSync/queries.ts')
+						return {
+							[EntityMetaKey.Selector]: {
+								$network,
+								timestampMs,
+								source,
+							},
+							blockHeight: BigInt((await getHeight()).height),
+						}
+					},
+				},
+			},
+		})({
+			blockHeight: (observation) => observation.blockHeight,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

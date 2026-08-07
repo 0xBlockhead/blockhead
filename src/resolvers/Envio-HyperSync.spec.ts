@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
-import { getEvmBlockRangePage } from '$/sources/Envio/HyperSync/queries.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { getEvmBlockRangePage, getHeight } from '$/sources/Envio/HyperSync/queries.ts'
 import evmBlockPage from '$/sources/Envio/HyperSync/fixtures/evm-block-page.json'
 import evmBlockRollback from '$/sources/Envio/HyperSync/fixtures/evm-block-rollback.json'
 import { EnvioHyperSyncResolution } from '$/sources/Envio/HyperSync/types.ts'
+import { Source } from '$/sources/Source.ts'
 
 const {
 	firstHttpUrlForBinding,
@@ -66,16 +68,55 @@ const network = {
 const context = {
 	filters: [],
 	sorts: [],
-	pagination: {},
+	pagination: {
+		limit: 3,
+	},
 	selectorKeys: [],
 	parentSelectorKeys: [],
 	sources: [],
 	publicEnv: {},
 }
 
+const resolverFor = (entityType: string) => (
+	envioHyperSync.resolvers.find((resolver) => resolver.entityType === entityType)
+)
+
 describe('Envio HyperSync query boundary', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+	})
+
+	it('reads fail-closed /height tip', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json({
+			height: 19_000_020,
+		}))
+		await expect(getHeight()).resolves.toEqual({
+			height: 19_000_020,
+		})
+		expect(sourceFetch.mock.calls[0][1]).toBe('https://eth.hypersync.xyz/height')
+	})
+
+	it('hard-fails malformed /height and /query envelopes', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json({
+			height: -1,
+		}))
+		await expect(getHeight()).rejects.toThrow()
+
+		sourceFetch.mockResolvedValueOnce(Response.json({
+			next_block: 19_000_001,
+			total_execution_time: 1,
+			data: {
+				blocks: [{
+					...evmBlockPage.data.blocks[0],
+					hash: 'not-a-hash',
+				}],
+				transactions: [],
+			},
+		}))
+		await expect(getEvmBlockRangePage({
+			fromBlock: 19_000_000n,
+			toBlock: 19_000_001n,
+		})).rejects.toThrow()
 	})
 
 	it('posts an exclusive range with explicit block and transaction fields', async () => {
@@ -207,7 +248,7 @@ describe('Envio HyperSync resolver', () => {
 
 	it('maps the approved EVM block fields and transaction selectors', async () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(evmBlockPage))
-		const resolver = envioHyperSync.resolvers[0]
+		const resolver = resolverFor(EntityType.EvmBlock)
 		const block = await resolver.resolve['EvmNetworkBlockNumber'].resolve({
 			$network: network,
 			blockNumber: 19_000_000n,
@@ -260,7 +301,7 @@ describe('Envio HyperSync resolver', () => {
 		const slugNetwork = {
 			slug: 'ethereum',
 		}
-		const resolved = await envioHyperSync.resolvers[0].resolve['EvmNetworkBlockNumber'].resolve({
+		const resolved = await resolverFor(EntityType.EvmBlock).resolve['EvmNetworkBlockNumber'].resolve({
 			$network: slugNetwork,
 			blockNumber: 19_000_000n,
 		}, context)
@@ -272,8 +313,75 @@ describe('Envio HyperSync resolver', () => {
 		}])
 	})
 
+	it('projects Network.Evm tip $$blocks / resolveCount / $$timestamps from /height', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json({
+			height: 19_000_020,
+		}))
+		const blocks = await resolverFor(EntityType.Network).resolve.Caip2.resolve(network, context)
+		expect(blocks).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 19_000_020n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 19_000_019n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 19_000_018n,
+				},
+			},
+		])
+
+		sourceFetch.mockResolvedValueOnce(Response.json({
+			height: 19_000_020,
+		}))
+		const countResolver = envioHyperSync.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& resolver.projections.Evm?.$$blocks != null
+			&& typeof resolver.projections.Evm.$$blocks === 'object'
+			&& 'resolveCount' in resolver.projections.Evm.$$blocks
+		))
+		await expect(countResolver.resolve.Caip2.resolve(network, context)).resolves.toBe(19_000_021)
+
+		sourceFetch.mockResolvedValueOnce(Response.json({
+			height: 19_000_020,
+		}))
+		const timestamps = await envioHyperSync.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& resolver.projections.Evm?.$$timestamps != null
+		)).resolve.Caip2.resolve(network, context)
+		expect(timestamps).toHaveLength(1)
+		expect(timestamps[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				source: Source.EnvioHyperSync_RawHttp,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: 19_000_020n,
+			},
+		})
+
+		sourceFetch.mockResolvedValueOnce(Response.json({
+			height: 19_000_020,
+		}))
+		await expect(resolverFor(EntityType.EvmNetwork_Timestamp).resolve.NetworkTimestampMsSource.resolve({
+			$network: network,
+			timestampMs: 1_700_000_000_000,
+			source: Source.EnvioHyperSync_RawHttp,
+		}, context)).resolves.toMatchObject({
+			blockHeight: 19_000_020n,
+		})
+	})
+
 	it('hard-fails unsupported networks and non-Complete HyperSync pages', async () => {
-		await expect(envioHyperSync.resolvers[0].resolve['EvmNetworkBlockNumber'].resolve({
+		await expect(resolverFor(EntityType.EvmBlock).resolve['EvmNetworkBlockNumber'].resolve({
 			$network: {
 				slug: 'polygon',
 			},
@@ -290,7 +398,7 @@ describe('Envio HyperSync resolver', () => {
 			},
 			rollback_guard: null,
 		}))
-		await expect(envioHyperSync.resolvers[0].resolve['EvmNetworkBlockNumber'].resolve({
+		await expect(resolverFor(EntityType.EvmBlock).resolve['EvmNetworkBlockNumber'].resolve({
 			$network: network,
 			blockNumber: 19_000_000n,
 		}, context)).rejects.toThrow('Empty block')

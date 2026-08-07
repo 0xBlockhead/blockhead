@@ -9,10 +9,22 @@ import {
 	EnvioHyperSyncBlockRangeResponse,
 	type EnvioHyperSyncBlockRangeRequest,
 	type EnvioHyperSyncRollbackGuard,
+	EnvioHyperSyncHeightResponse,
 	EnvioHyperSyncResolution,
 } from '$/sources/Envio/HyperSync/types.ts'
 
 const binding = bindings[Source.EnvioHyperSync_RawHttp][0]
+
+export const getHeight = async () => {
+	const response = await sourceFetch(
+		binding,
+		new URL('/height', firstHttpUrlForBinding(binding)).toString()
+	)
+	if (!response.ok)
+		throw new Error(await fetchFailedMessage('Envio HyperSync height', response))
+
+	return EnvioHyperSyncHeightResponse.assert(await response.json())
+}
 
 export const getEvmBlockRangePage = async ({
 	fromBlock,

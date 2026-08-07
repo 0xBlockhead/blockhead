@@ -5,16 +5,19 @@ import {
 	EvmTransactionExecutionStatus,
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import block from '$/sources/Envio/HyperRpc/fixtures/block.json'
 import transaction from '$/sources/Envio/HyperRpc/fixtures/transaction.json'
 import transactionReceipt from '$/sources/Envio/HyperRpc/fixtures/transaction-receipt.json'
 import {
 	getBlockByHash,
 	getBlockByNumber,
+	getBlockNumber,
 	getTransactionByHash,
 	getTransactionReceipt,
 } from '$/sources/Envio/HyperRpc/queries.ts'
+import { Source } from '$/sources/Source.ts'
 
 const {
 	jsonRpc2,
@@ -78,12 +81,18 @@ const network = {
 const context = {
 	filters: [],
 	sorts: [],
-	pagination: {},
+	pagination: {
+		limit: 3,
+	},
 	selectorKeys: [],
 	parentSelectorKeys: [],
 	sources: [],
 	publicEnv: {},
 }
+
+const resolverFor = (entityType: string) => (
+	envioHyperRpc.resolvers.find((resolver) => resolver.entityType === entityType)
+)
 
 describe('Envio HyperRPC query boundary', () => {
 	beforeEach(() => {
@@ -96,6 +105,7 @@ describe('Envio HyperRPC query boundary', () => {
 			.mockResolvedValueOnce(transactionReceipt)
 			.mockResolvedValueOnce(block)
 			.mockResolvedValueOnce(block)
+			.mockResolvedValueOnce('0x122a134')
 
 		await expect(getTransactionByHash({ txHash: transaction.hash })).resolves.toEqual(transaction)
 		await expect(getTransactionReceipt({ txHash: transaction.hash })).resolves.toEqual(transactionReceipt)
@@ -107,6 +117,7 @@ describe('Envio HyperRPC query boundary', () => {
 			blockHash: block.hash,
 			txObjects: false,
 		})).resolves.toEqual(block)
+		await expect(getBlockNumber()).resolves.toBe(19_046_708n)
 		expect(jsonRpc2).toHaveBeenNthCalledWith(
 			1,
 			expect.objectContaining({ source: resolverBinding.source }),
@@ -135,6 +146,13 @@ describe('Envio HyperRPC query boundary', () => {
 			[block.hash, false],
 			undefined
 		)
+		expect(jsonRpc2).toHaveBeenNthCalledWith(
+			5,
+			expect.objectContaining({ source: resolverBinding.source }),
+			'eth_blockNumber',
+			undefined,
+			undefined
+		)
 	})
 
 	it('preserves complete-empty and transport failure outcomes', async () => {
@@ -161,7 +179,7 @@ describe('Envio HyperRPC resolver', () => {
 		jsonRpc2
 			.mockResolvedValueOnce(transaction)
 			.mockResolvedValueOnce(transactionReceipt)
-		const resolver = envioHyperRpc.resolvers[0]
+		const resolver = resolverFor(EntityType.EvmTransaction)
 		const resolved = await resolver.resolve['EvmNetworkTxHash'].resolve({
 			$network: network,
 			txHash: transaction.hash,
@@ -247,7 +265,7 @@ describe('Envio HyperRPC resolver', () => {
 		const slugNetwork = {
 			slug: 'ethereum',
 		}
-		const resolved = await envioHyperRpc.resolvers[0].resolve['EvmNetworkTxHash'].resolve({
+		const resolved = await resolverFor(EntityType.EvmTransaction).resolve['EvmNetworkTxHash'].resolve({
 			$network: slugNetwork,
 			txHash: transaction.hash,
 		}, context)
@@ -272,7 +290,7 @@ describe('Envio HyperRPC resolver', () => {
 		jsonRpc2
 			.mockResolvedValueOnce(block)
 			.mockResolvedValueOnce(block)
-		const resolver = envioHyperRpc.resolvers[1]
+		const resolver = resolverFor(EntityType.EvmBlock)
 		const byNumber = await resolver.resolve['EvmNetworkBlockNumber'].resolve({
 			$network: network,
 			blockNumber: 19_046_688n,
@@ -331,7 +349,7 @@ describe('Envio HyperRPC resolver', () => {
 	})
 
 	it('hard-fails unsupported networks and missing blocks', async () => {
-		await expect(envioHyperRpc.resolvers[1].resolve['EvmNetworkBlockNumber'].resolve({
+		await expect(resolverFor(EntityType.EvmBlock).resolve['EvmNetworkBlockNumber'].resolve({
 			$network: {
 				slug: 'polygon',
 			},
@@ -339,9 +357,68 @@ describe('Envio HyperRPC resolver', () => {
 		}, context)).rejects.toThrow('unsupported network')
 
 		jsonRpc2.mockResolvedValueOnce(null)
-		await expect(envioHyperRpc.resolvers[1].resolve['EvmNetworkBlockNumber'].resolve({
+		await expect(resolverFor(EntityType.EvmBlock).resolve['EvmNetworkBlockNumber'].resolve({
 			$network: network,
 			blockNumber: 19_046_688n,
 		}, context)).rejects.toThrow('not found')
+	})
+
+	it('projects Network.Evm tip $$blocks / resolveCount / $$timestamps from eth_blockNumber', async () => {
+		jsonRpc2.mockResolvedValueOnce('0x122a134')
+		const blocks = await resolverFor(EntityType.Network).resolve.Caip2.resolve(network, context)
+		expect(blocks).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 19_046_708n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 19_046_707n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 19_046_706n,
+				},
+			},
+		])
+
+		jsonRpc2.mockResolvedValueOnce('0x122a134')
+		const countResolver = envioHyperRpc.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& resolver.projections.Evm?.$$blocks != null
+			&& typeof resolver.projections.Evm.$$blocks === 'object'
+			&& 'resolveCount' in resolver.projections.Evm.$$blocks
+		))
+		await expect(countResolver.resolve.Caip2.resolve(network, context)).resolves.toBe(19_046_709)
+
+		jsonRpc2.mockResolvedValueOnce('0x122a134')
+		const timestamps = await envioHyperRpc.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& resolver.projections.Evm?.$$timestamps != null
+		)).resolve.Caip2.resolve(network, context)
+		expect(timestamps).toHaveLength(1)
+		expect(timestamps[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				source: Source.EnvioHyperRpc_JsonRpc,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: 19_046_708n,
+			},
+		})
+
+		jsonRpc2.mockResolvedValueOnce('0x122a134')
+		await expect(resolverFor(EntityType.EvmNetwork_Timestamp).resolve.NetworkTimestampMsSource.resolve({
+			$network: network,
+			timestampMs: 1_700_000_000_000,
+			source: Source.EnvioHyperRpc_JsonRpc,
+		}, context)).resolves.toMatchObject({
+			blockHeight: 19_046_708n,
+		})
 	})
 })
