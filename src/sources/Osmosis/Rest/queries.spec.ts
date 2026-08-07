@@ -210,6 +210,58 @@ describe('Osmosis LCD named operations', () => {
 		)
 	})
 
+	it('accepts validator description / commission leftovers without projecting them', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			validators: [
+				{
+					operator_address: 'osmovaloper1validator',
+					jailed: false,
+					status: 'BOND_STATUS_BONDED',
+					tokens: '1',
+					delegator_shares: '1.000000000000000000',
+					description: {
+						moniker: 'Osmosis Val',
+						identity: 'KEYBASE',
+						website: 'https://osmosis.example',
+						security_contact: 'sec@osmosis.example',
+						details: 'CL tip leftover',
+					},
+					commission: {
+						commission_rates: {
+							rate: '0.050000000000000000',
+							max_rate: '0.200000000000000000',
+							max_change_rate: '0.010000000000000000',
+						},
+					},
+					min_self_delegation: '1',
+					unbonding_height: '0',
+				},
+			],
+			pagination: {
+				total: '1',
+			},
+		})
+		await expect(getValidators({
+			limit: 1,
+			status: 'BOND_STATUS_BONDED',
+		})).resolves.toMatchObject({
+			validators: [
+				{
+					description: {
+						identity: 'KEYBASE',
+						security_contact: 'sec@osmosis.example',
+					},
+					commission: {
+						commission_rates: {
+							rate: '0.050000000000000000',
+						},
+					},
+					unbonding_height: '0',
+				},
+			],
+		})
+	})
+
 	it('reads a pool by id through poolmanager', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			pool: {

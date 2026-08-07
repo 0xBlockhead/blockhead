@@ -287,10 +287,26 @@ export default {
 						} = await import('$/sources/CometBft/Rest/queries.ts')
 						const status = await getStatus()
 						const latestHeight = BigInt(status.result.sync_info.latest_block_height)
+						// Transport leftovers: earliest_* / latest_app_hash / node_info.id /
+						// validator_info — accepted fail-closed; unenrolled on Network_Timestamp.Cosmos.
+						const {
+							sync_info: syncInfo,
+							node_info: nodeInfo,
+							validator_info: validatorInfo,
+						} = status.result
+						if (syncInfo.earliest_block_height != null && BigInt(syncInfo.earliest_block_height) > latestHeight)
+							throw new Error('CometBft_Rest: earliest block height exceeds tip')
+						if (validatorInfo?.voting_power != null && validatorInfo.voting_power === '')
+							throw new Error('CometBft_Rest: malformed validator voting power')
+						if (nodeInfo.id != null && nodeInfo.id === '')
+							throw new Error('CometBft_Rest: malformed node id')
 						const tipBlock = await getBlock({
 							height: latestHeight,
 						})
 						const tip = cosmosBlockFields(tipBlock)
+						// Transport leftovers on block header (app_hash / validators_hash / …) stay unprojected.
+						if (tipBlock.result.block.header.app_hash != null && tipBlock.result.block.header.app_hash === '')
+							throw new Error('CometBft_Rest: malformed app hash leftover')
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
@@ -303,9 +319,9 @@ export default {
 							latestBlockHash: tip.hash,
 							latestBlockTimeMs: tip.timestampMs,
 							latestBlockTransactionCount: tip.transactionCount,
-							chainId: status.result.node_info.network,
-							nodeNetwork: status.result.node_info.network,
-							isSyncing: status.result.sync_info.catching_up,
+							chainId: nodeInfo.network,
+							nodeNetwork: nodeInfo.network,
+							isSyncing: syncInfo.catching_up,
 						}
 					},
 				},

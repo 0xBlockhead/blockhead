@@ -216,24 +216,47 @@ export type CosmosSdkAccountsResponse = {
 	}
 }
 
+export type CosmosSdkValidatorDescription = {
+	moniker?: string
+	identity?: string
+	website?: string
+	security_contact?: string
+	details?: string
+}
+
+export type CosmosSdkValidatorCommission = {
+	commission_rates?: {
+		rate?: string
+		max_rate?: string
+		max_change_rate?: string
+	}
+	update_time?: string
+}
+
+export type CosmosSdkValidator = {
+	operator_address: string
+	consensus_pubkey?: JsonValue
+	jailed: boolean
+	status: string
+	tokens: string
+	delegator_shares?: string
+	description?: CosmosSdkValidatorDescription
+	commission?: CosmosSdkValidatorCommission
+	min_self_delegation?: string
+	/** Transport leftovers — unenrolled beside CosmosValidator_Timestamp.tokens / commissionRate. */
+	unbonding_height?: string
+	unbonding_time?: string
+}
+
 export type CosmosSdkValidatorsResponse = {
-	validators: {
-		operator_address: string
-		consensus_pubkey?: JsonValue
-		jailed: boolean
-		status: string
-		tokens: string
-		description?: {
-			moniker?: string
-		}
-	}[]
+	validators: CosmosSdkValidator[]
 	pagination?: {
 		total?: string
 	}
 }
 
 export type CosmosSdkValidatorResponse = {
-	validator: CosmosSdkValidatorsResponse['validators'][number]
+	validator: CosmosSdkValidator
 }
 
 export type CosmosSdkStakingPoolResponse = {
@@ -344,6 +367,11 @@ export type CosmosSdkIbcTendermintClientState = {
 	max_clock_drift: string
 	frozen_height: CosmosSdkIbcHeight
 	latest_height: CosmosSdkIbcHeight
+	/** Transport leftovers — unenrolled beside IbcClient trust/height fields. */
+	proof_specs?: JsonValue[]
+	upgrade_path?: string[]
+	allow_update_after_expiry?: boolean
+	allow_update_after_misbehaviour?: boolean
 }
 
 export type CosmosSdkIbcClientStateResponse = {

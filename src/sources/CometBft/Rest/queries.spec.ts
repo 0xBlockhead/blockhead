@@ -124,6 +124,60 @@ describe('CometBFT REST queries', () => {
 		expect(getJson).toHaveBeenCalledWith(binding, '/status')
 	})
 
+	it('accepts /status transport leftovers and fail-closes malformed earliest height', async () => {
+		getJson.mockResolvedValue({
+			result: {
+				node_info: {
+					network: 'cosmoshub-4',
+					id: 'deadbeef',
+					listen_addr: 'tcp://0.0.0.0:26656',
+				},
+				sync_info: {
+					latest_block_hash: 'TIPHASH',
+					latest_app_hash: 'APPHASH',
+					latest_block_height: '42',
+					latest_block_time: '2026-01-01T00:00:00.000Z',
+					earliest_block_hash: 'EARLYHASH',
+					earliest_app_hash: 'EARLYAPP',
+					earliest_block_height: '1',
+					earliest_block_time: '2019-01-01T00:00:00.000Z',
+					catching_up: false,
+				},
+				validator_info: {
+					address: 'VALIDATOR',
+					voting_power: '0',
+				},
+			},
+		})
+		await expect(getStatus()).resolves.toMatchObject({
+			result: {
+				sync_info: {
+					earliest_block_height: '1',
+					latest_app_hash: 'APPHASH',
+				},
+				validator_info: {
+					voting_power: '0',
+				},
+			},
+		})
+
+		getJson.mockResolvedValue({
+			result: {
+				node_info: {
+					network: 'cosmoshub-4',
+				},
+				sync_info: {
+					latest_block_hash: 'TIPHASH',
+					latest_block_height: '42',
+					latest_block_time: '2026-01-01T00:00:00.000Z',
+					earliest_block_height: '-1',
+					catching_up: false,
+				},
+			},
+		})
+		await expect(getStatus()).rejects.toThrow()
+	})
+
 	it('reads /blockchain height windows and rejects oversized ranges', async () => {
 		getJson.mockResolvedValue({
 			result: {

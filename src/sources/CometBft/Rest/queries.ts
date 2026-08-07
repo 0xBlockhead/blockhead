@@ -18,6 +18,25 @@ const cometBftBlockWire = arktype({
 				time: 'string > 0',
 				proposer_address: 'string > 0',
 				'chain_id?': 'string',
+				'version?': {
+					'block?': 'string',
+					'app?': 'string',
+				},
+				'last_block_id?': {
+					'hash?': 'string',
+					'parts?': {
+						'total?': 'number.integer >= 0',
+						'hash?': 'string',
+					},
+				},
+				'last_commit_hash?': 'string',
+				'data_hash?': 'string',
+				'validators_hash?': 'string',
+				'next_validators_hash?': 'string',
+				'consensus_hash?': 'string',
+				'app_hash?': 'string',
+				'last_results_hash?': 'string',
+				'evidence_hash?': 'string',
 			},
 			data: {
 				'txs?': 'string[]',
@@ -39,8 +58,14 @@ const cometBftTxWire = arktype({
 			'log?': 'string',
 			'events?': arktype({
 				type: 'string > 0',
+				'attributes?': arktype({
+					key: 'string',
+					'value?': 'string',
+					'index?': 'boolean',
+				}).array(),
 			}).array(),
 		},
+		'tx?': 'string',
 	},
 })
 
@@ -50,12 +75,37 @@ const cometBftStatusWire = arktype({
 			network: 'string > 0',
 			'version?': 'string',
 			'moniker?': 'string',
+			'id?': 'string',
+			'listen_addr?': 'string',
+			'channels?': 'string',
+			'protocol_version?': {
+				'p2p?': 'string',
+				'block?': 'string',
+				'app?': 'string',
+			},
+			'other?': {
+				'tx_index?': 'string',
+				'rpc_address?': 'string',
+			},
 		},
 		sync_info: {
 			latest_block_hash: 'string > 0',
 			latest_block_height: unsignedIntegerString,
 			latest_block_time: 'string > 0',
 			catching_up: 'boolean',
+			'latest_app_hash?': 'string > 0',
+			'earliest_block_hash?': 'string > 0',
+			'earliest_app_hash?': 'string > 0',
+			'earliest_block_height?': unsignedIntegerString,
+			'earliest_block_time?': 'string > 0',
+		},
+		'validator_info?': {
+			'address?': 'string',
+			'pub_key?': {
+				'type?': 'string',
+				'value?': 'string',
+			},
+			'voting_power?': unsignedIntegerString,
 		},
 	},
 })

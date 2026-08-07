@@ -247,16 +247,58 @@ const cosmosValidatorFields = (validator: {
 	consensus_pubkey?: JsonValue
 	description?: {
 		moniker?: string
+		identity?: string
+		website?: string
+		security_contact?: string
+		details?: string
 	}
 	jailed: boolean
 	status: string
 	tokens: string
-}) => ({
-	...(validator.consensus_pubkey != null && {
-		consensusPubkey: JSON.stringify(validator.consensus_pubkey),
-	}),
-	moniker: validator.description?.moniker,
-})
+	delegator_shares?: string
+	commission?: {
+		commission_rates?: {
+			rate?: string
+			max_rate?: string
+			max_change_rate?: string
+		}
+		update_time?: string
+	}
+	min_self_delegation?: string
+	unbonding_height?: string
+	unbonding_time?: string
+}) => {
+	// Transport leftovers: unbonding_height / unbonding_time / commission max_* —
+	// unenrolled beside CosmosValidator identity + CosmosValidator_Timestamp commissionRate.
+	if (validator.unbonding_height != null && !/^(0|[1-9]\d*)$/.test(validator.unbonding_height))
+		throw new Error('CosmosSdk_Rest: malformed validator unbonding height')
+	if (validator.commission?.commission_rates?.max_rate != null && validator.commission.commission_rates.max_rate === '')
+		throw new Error('CosmosSdk_Rest: malformed validator max commission rate')
+	if (validator.commission?.commission_rates?.max_change_rate != null && validator.commission.commission_rates.max_change_rate === '')
+		throw new Error('CosmosSdk_Rest: malformed validator max change rate')
+
+	const description = validator.description
+	return {
+		...(validator.consensus_pubkey != null && {
+			consensusPubkey: JSON.stringify(validator.consensus_pubkey),
+		}),
+		...(description?.moniker != null && description.moniker !== '' && {
+			moniker: description.moniker,
+		}),
+		...(description?.identity != null && description.identity !== '' && {
+			identity: description.identity,
+		}),
+		...(description?.website != null && description.website !== '' && {
+			website: description.website,
+		}),
+		...(description?.security_contact != null && description.security_contact !== '' && {
+			securityContact: description.security_contact,
+		}),
+		...(description?.details != null && description.details !== '' && {
+			details: description.details,
+		}),
+	}
+}
 
 const cosmosAccountBaseFields = (account: CosmosSdkAccount) => (
 	account.base_account
@@ -295,16 +337,28 @@ const cosmosValidatorTimestampFields = (
 	},
 	validator: Parameters<typeof cosmosValidatorFields>[0],
 	timestampMs: number
-) => ({
-	$validator: {
-		[EntityMetaKey.Selector]: validatorId,
-	},
-	timestampMs,
-	source: Source.CosmosSdk_Rest,
-	jailed: validator.jailed,
-	status: validator.status,
-	tokens: BigInt(validator.tokens),
-})
+) => {
+	const commissionRate = validator.commission?.commission_rates?.rate
+	return {
+		$validator: {
+			[EntityMetaKey.Selector]: validatorId,
+		},
+		timestampMs,
+		source: Source.CosmosSdk_Rest,
+		jailed: validator.jailed,
+		status: validator.status,
+		tokens: BigInt(validator.tokens),
+		...(validator.delegator_shares != null && validator.delegator_shares !== '' && {
+			delegatorShares: validator.delegator_shares,
+		}),
+		...(commissionRate != null && commissionRate !== '' && {
+			commissionRate,
+		}),
+		...(validator.min_self_delegation != null && {
+			minSelfDelegation: BigInt(validator.min_self_delegation),
+		}),
+	}
+}
 
 const cosmosValidatorTimestampReference = (
 	validatorId: {
@@ -326,6 +380,15 @@ const cosmosValidatorTimestampReference = (
 			[entityFieldAddressKey(EntityType.CosmosValidator_Timestamp, [], 'jailed')]: timestamp.jailed,
 			[entityFieldAddressKey(EntityType.CosmosValidator_Timestamp, [], 'status')]: timestamp.status,
 			[entityFieldAddressKey(EntityType.CosmosValidator_Timestamp, [], 'tokens')]: timestamp.tokens,
+			...(timestamp.delegatorShares != null && {
+				[entityFieldAddressKey(EntityType.CosmosValidator_Timestamp, [], 'delegatorShares')]: timestamp.delegatorShares,
+			}),
+			...(timestamp.commissionRate != null && {
+				[entityFieldAddressKey(EntityType.CosmosValidator_Timestamp, [], 'commissionRate')]: timestamp.commissionRate,
+			}),
+			...(timestamp.minSelfDelegation != null && {
+				[entityFieldAddressKey(EntityType.CosmosValidator_Timestamp, [], 'minSelfDelegation')]: timestamp.minSelfDelegation,
+			}),
 		},
 	}
 }
@@ -841,6 +904,10 @@ export default {
 		})({
 				consensusPubkey: (validator) => validator.consensusPubkey,
 				moniker: (validator) => validator.moniker,
+				identity: (validator) => validator.identity,
+				website: (validator) => validator.website,
+				securityContact: (validator) => validator.securityContact,
+				details: (validator) => validator.details,
 				$$timestamps: (validator) => validator.$$timestamps,
 			}),
 
@@ -872,6 +939,9 @@ export default {
 				jailed: (validator) => validator.jailed,
 				status: (validator) => validator.status,
 				tokens: (validator) => validator.tokens,
+				delegatorShares: (validator) => validator.delegatorShares,
+				commissionRate: (validator) => validator.commissionRate,
+				minSelfDelegation: (validator) => validator.minSelfDelegation,
 			}),
 
 		defineResolver({

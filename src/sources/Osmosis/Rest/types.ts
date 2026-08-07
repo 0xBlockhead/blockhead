@@ -56,9 +56,26 @@ export type OsmosisValidatorsResponse = {
 		jailed: boolean
 		status: string
 		tokens: string
+		delegator_shares?: string
 		description?: {
 			moniker?: string
+			identity?: string
+			website?: string
+			security_contact?: string
+			details?: string
 		}
+		commission?: {
+			commission_rates?: {
+				rate?: string
+				max_rate?: string
+				max_change_rate?: string
+			}
+			update_time?: string
+		}
+		min_self_delegation?: string
+		/** Transport leftovers — unenrolled on Osmosis LCD tip / bonded-count path. */
+		unbonding_height?: string
+		unbonding_time?: string
 	}[]
 	pagination?: OsmosisPagination
 }

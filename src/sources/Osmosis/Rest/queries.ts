@@ -542,38 +542,32 @@ const osmosisIbcHeightWire = arktype({
 	revision_height: '/^(0|[1-9][0-9]*)$/',
 })
 
-const osmosisIbcClientStateResponseWire = arktype({
-	client_state: {
-		'@type': 'string > 0',
-		chain_id: 'string > 0',
-		trust_level: {
-			numerator: '/^(0|[1-9][0-9]*)$/',
-			denominator: '/^[1-9][0-9]*$/',
-		},
-		trusting_period: 'string > 0',
-		unbonding_period: 'string > 0',
-		max_clock_drift: 'string > 0',
-		frozen_height: osmosisIbcHeightWire,
-		latest_height: osmosisIbcHeightWire,
+const osmosisIbcClientStateBody = arktype({
+	'@type': 'string > 0',
+	chain_id: 'string > 0',
+	trust_level: {
+		numerator: '/^(0|[1-9][0-9]*)$/',
+		denominator: '/^[1-9][0-9]*$/',
 	},
+	trusting_period: 'string > 0',
+	unbonding_period: 'string > 0',
+	max_clock_drift: 'string > 0',
+	frozen_height: osmosisIbcHeightWire,
+	latest_height: osmosisIbcHeightWire,
+	'proof_specs?': 'unknown[]',
+	'upgrade_path?': 'string[]',
+	'allow_update_after_expiry?': 'boolean',
+	'allow_update_after_misbehaviour?': 'boolean',
+})
+
+const osmosisIbcClientStateResponseWire = arktype({
+	client_state: osmosisIbcClientStateBody,
 })
 
 const osmosisIbcClientStatesResponseWire = arktype({
 	client_states: arktype({
 		client_id: 'string > 0',
-		client_state: {
-			'@type': 'string > 0',
-			chain_id: 'string > 0',
-			trust_level: {
-				numerator: '/^(0|[1-9][0-9]*)$/',
-				denominator: '/^[1-9][0-9]*$/',
-			},
-			trusting_period: 'string > 0',
-			unbonding_period: 'string > 0',
-			max_clock_drift: 'string > 0',
-			frozen_height: osmosisIbcHeightWire,
-			latest_height: osmosisIbcHeightWire,
-		},
+		client_state: osmosisIbcClientStateBody,
 	}).array(),
 	'pagination?': osmosisIbcPagination,
 })

@@ -579,38 +579,32 @@ const cosmosSdkIbcHeightWire = arktype({
 	revision_height: '/^(0|[1-9][0-9]*)$/',
 })
 
-const cosmosSdkIbcClientStateResponseWire = arktype({
-	client_state: {
-		'@type': 'string > 0',
-		chain_id: 'string > 0',
-		trust_level: {
-			numerator: '/^(0|[1-9][0-9]*)$/',
-			denominator: '/^[1-9][0-9]*$/',
-		},
-		trusting_period: 'string > 0',
-		unbonding_period: 'string > 0',
-		max_clock_drift: 'string > 0',
-		frozen_height: cosmosSdkIbcHeightWire,
-		latest_height: cosmosSdkIbcHeightWire,
+const cosmosSdkIbcClientStateBody = arktype({
+	'@type': 'string > 0',
+	chain_id: 'string > 0',
+	trust_level: {
+		numerator: '/^(0|[1-9][0-9]*)$/',
+		denominator: '/^[1-9][0-9]*$/',
 	},
+	trusting_period: 'string > 0',
+	unbonding_period: 'string > 0',
+	max_clock_drift: 'string > 0',
+	frozen_height: cosmosSdkIbcHeightWire,
+	latest_height: cosmosSdkIbcHeightWire,
+	'proof_specs?': 'unknown[]',
+	'upgrade_path?': 'string[]',
+	'allow_update_after_expiry?': 'boolean',
+	'allow_update_after_misbehaviour?': 'boolean',
+})
+
+const cosmosSdkIbcClientStateResponseWire = arktype({
+	client_state: cosmosSdkIbcClientStateBody,
 })
 
 const cosmosSdkIbcClientStatesResponseWire = arktype({
 	client_states: arktype({
 		client_id: 'string > 0',
-		client_state: {
-			'@type': 'string > 0',
-			chain_id: 'string > 0',
-			trust_level: {
-				numerator: '/^(0|[1-9][0-9]*)$/',
-				denominator: '/^[1-9][0-9]*$/',
-			},
-			trusting_period: 'string > 0',
-			unbonding_period: 'string > 0',
-			max_clock_drift: 'string > 0',
-			frozen_height: cosmosSdkIbcHeightWire,
-			latest_height: cosmosSdkIbcHeightWire,
-		},
+		client_state: cosmosSdkIbcClientStateBody,
 	}).array(),
 	'pagination?': cosmosSdkIbcPagination,
 })
