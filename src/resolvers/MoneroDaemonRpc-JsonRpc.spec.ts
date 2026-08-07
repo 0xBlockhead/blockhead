@@ -3,12 +3,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import type { MoneroRpcBlock } from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
+import type {
+	MoneroRpcBlock,
+	MoneroRpcInfo,
+	MoneroRpcTransaction,
+} from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
+import { Source } from '$/sources/Source.ts'
+
 
 const getBlock = vi.hoisted(() => vi.fn())
+const getInfo = vi.hoisted(() => vi.fn())
+const getTransactions = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts', () => ({
 	getBlock,
+	getInfo,
+	getTransactions,
 	moneroMainnetRpcEndpoints: [{
 		url: 'https://monero.example',
 		transportType: 'Http',
@@ -21,9 +31,37 @@ const { default: moneroDaemonRpc } = await import('$/resolvers/MoneroDaemonRpc-J
 const blockResolver = moneroDaemonRpc.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.MoneroBlock
 ))
+const transactionResolver = moneroDaemonRpc.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.MoneroTransaction
+))
+const ringResolver = moneroDaemonRpc.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.MoneroRing
+))
+const ringMemberResolver = moneroDaemonRpc.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.MoneroRingMember
+))
+const stealthOutputResolver = moneroDaemonRpc.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.MoneroStealthOutput
+))
+const moneroNetworkBlocksResolver = moneroDaemonRpc.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.MoneroNetwork
+	&& '$$blocks' in resolver.projections
+))
+const moneroNetworkTimestampsResolver = moneroDaemonRpc.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.MoneroNetwork
+	&& '$$timestamps' in resolver.projections
+))
 
-if (blockResolver == null)
-	throw new Error('MoneroDaemonRpc-JsonRpc spec missing MoneroBlock resolver')
+if (
+	blockResolver == null
+	|| transactionResolver == null
+	|| ringResolver == null
+	|| ringMemberResolver == null
+	|| stealthOutputResolver == null
+	|| moneroNetworkBlocksResolver == null
+	|| moneroNetworkTimestampsResolver == null
+)
+	throw new Error('MoneroDaemonRpc-JsonRpc spec missing required resolvers')
 
 const block = {
 	blob: 'block-blob',
@@ -52,10 +90,99 @@ const block = {
 	tx_hashes: ['transaction-hash'],
 } satisfies MoneroRpcBlock
 
+const info = {
+	alt_blocks_count: 0,
+	cumulative_difficulty: 2_000,
+	difficulty: 2_500,
+	grey_peerlist_size: 1_000,
+	height: 3_400_001,
+	incoming_connections_count: 8,
+	mainnet: true,
+	nettype: 'mainnet',
+	offline: false,
+	outgoing_connections_count: 8,
+	stagenet: false,
+	status: 'OK',
+	synchronized: true,
+	target: 120,
+	target_height: 3_400_001,
+	testnet: false,
+	top_block_hash: 'top-block-hash',
+	tx_count: 90_000_000,
+	tx_pool_size: 12,
+	untrusted: false,
+	version: '0.18.3.4',
+	was_bootstrap_ever_used: false,
+	white_peerlist_size: 2_000,
+} satisfies MoneroRpcInfo
+
+const transaction = {
+	as_hex: 'deadbeef',
+	block_height: 3_400_000,
+	block_timestamp: 1_722_470_400,
+	double_spend_seen: false,
+	in_pool: false,
+	output_indices: [
+		10,
+		11,
+	],
+	tx_hash: 'transaction-hash',
+	decoded_json: {
+		version: 2,
+		unlock_time: 0,
+		vin: [
+			{
+				key: {
+					amount: 0,
+					key_offsets: [
+						10,
+						5,
+						20,
+					],
+					k_image: 'key-image',
+				},
+			},
+		],
+		vout: [
+			{
+				amount: 0,
+				target: {
+					key: 'output-public-key',
+				},
+			},
+			{
+				amount: 0,
+				target: {
+					tagged_key: {
+						key: 'tagged-output-public-key',
+						view_tag: 'view-tag',
+					},
+				},
+			},
+		],
+		rct_signatures: {
+			txnFee: '12345',
+			outPk: [
+				{
+					mask: 'commitment-0',
+				},
+				{
+					mask: 'commitment-1',
+				},
+			],
+		},
+	},
+} satisfies MoneroRpcTransaction
+
 const network = {
 	caip2: networkBySlug.monero.caip2,
 }
 const height = BigInt(block.block_header.height)
+const resolverContext = {
+	pagination: {
+		limit: 2,
+	},
+}
 
 describe('Monero daemon block selectors', () => {
 	beforeEach(() => {
@@ -93,7 +220,7 @@ describe('Monero daemon block selectors', () => {
 			'weightBytes',
 		])
 		expect(blockResolver.projections.hash(byHeight)).toBe(block.block_header.hash)
-		expect(blockResolver.projections.$$transactions(byHeight)).toEqual([
+		expect(blockResolver.projections.$$transactions.select(byHeight)).toEqual([
 			expect.objectContaining({
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -107,6 +234,7 @@ describe('Monero daemon block selectors', () => {
 				},
 			}),
 		])
+		expect(blockResolver.projections.$$transactions.resolveCount(byHeight)).toBe(2)
 	})
 
 	it('rejects a hash-selector response for a different block', async () => {
@@ -121,5 +249,136 @@ describe('Monero daemon block selectors', () => {
 		expect(getBlock).toHaveBeenCalledWith({
 			height,
 		})
+	})
+})
+
+describe('Monero daemon tip / ring / stealth leftovers', () => {
+	beforeEach(() => {
+		getInfo.mockReset()
+		getTransactions.mockReset()
+		getInfo.mockResolvedValue(info)
+		getTransactions.mockResolvedValue({
+			txs: [transaction],
+			txs_as_hex: [transaction.as_hex],
+		})
+	})
+
+	it('projects tip $$blocks with authoritative resolveCount from get_info height', async () => {
+		const snapshot = await moneroNetworkBlocksResolver.resolve.Network.resolve({
+			$network: network,
+		}, resolverContext)
+
+		expect(moneroNetworkBlocksResolver.projections.$$blocks.select(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: 3_400_000n,
+					hash: 'top-block-hash',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: 3_399_999n,
+				},
+			},
+		])
+		expect(moneroNetworkBlocksResolver.projections.$$blocks.resolveCount(snapshot)).toBe(3_400_001)
+	})
+
+	it('projects tip $$timestamps with resolveCount from the single get_info observation', async () => {
+		const timestamps = await moneroNetworkTimestampsResolver.resolve.Network.resolve({
+			$network: network,
+		})
+
+		expect(moneroNetworkTimestampsResolver.projections.$$timestamps.select(timestamps)).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					timestampMs: expect.any(Number),
+					source: Source.MoneroDaemonRpc_JsonRpc,
+				},
+			}),
+		])
+		expect(moneroNetworkTimestampsResolver.projections.$$timestamps.resolveCount(timestamps)).toBe(1)
+		expect(getInfo).toHaveBeenCalledOnce()
+	})
+
+	it('projects absolute ring member globalOutputIndex from relative key_offsets', async () => {
+		const keyImage = {
+			$transaction: {
+				$network: network,
+				txHash: transaction.tx_hash,
+			},
+			inputIndex: 0,
+			keyImage: 'key-image',
+		}
+		const ring = await ringResolver.resolve.MoneroKeyImage.resolve({
+			$keyImage: keyImage,
+		})
+
+		expect(ringResolver.projections.$$members.select(ring)).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$ring: {
+						$keyImage: keyImage,
+					},
+					memberIndex: 0,
+				},
+				globalOutputIndex: 10n,
+			}),
+			expect.objectContaining({
+				globalOutputIndex: 15n,
+			}),
+			expect.objectContaining({
+				globalOutputIndex: 35n,
+			}),
+		])
+		expect(ringResolver.projections.$$members.resolveCount(ring)).toBe(3)
+
+		const ringMember = await ringMemberResolver.resolve.MoneroRingMemberIndex.resolve({
+			$ring: {
+				$keyImage: keyImage,
+			},
+			memberIndex: 2,
+		})
+		expect(ringMemberResolver.projections.globalOutputIndex(ringMember)).toBe(35n)
+	})
+
+	it('projects stealth outputs and key-image lists with authoritative resolveCount', async () => {
+		const resolved = await transactionResolver.resolve.NetworkTxHash.resolve({
+			$network: network,
+			txHash: transaction.tx_hash,
+		})
+
+		expect(transactionResolver.projections.$$stealthOutputs.select(resolved)).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: network,
+						txHash: transaction.tx_hash,
+					},
+					outputIndex: 0,
+				},
+				publicKey: 'output-public-key',
+				commitment: 'commitment-0',
+			}),
+			expect.objectContaining({
+				publicKey: 'tagged-output-public-key',
+				commitment: 'commitment-1',
+			}),
+		])
+		expect(transactionResolver.projections.$$stealthOutputs.resolveCount(resolved)).toBe(2)
+		expect(transactionResolver.projections.$$keyImages.resolveCount(resolved)).toBe(1)
+
+		const stealthOutput = await stealthOutputResolver.resolve.MoneroTransactionOutputIndex.resolve({
+			$transaction: {
+				$network: network,
+				txHash: transaction.tx_hash,
+			},
+			outputIndex: 1,
+		})
+		expect(stealthOutputResolver.projections.publicKey(stealthOutput)).toBe('tagged-output-public-key')
+		expect(stealthOutputResolver.projections.commitment(stealthOutput)).toBe('commitment-1')
 	})
 })

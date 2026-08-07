@@ -4,16 +4,29 @@ import { networkBySlug } from '$/constants/Network.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { throwHttpError } from '$/lib/http.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
-import { jsonRpc2 as requestMoneroDaemonJsonRpc } from '$/sources/_shared/wire/JsonRpc2/client.ts'
+import {
+	jsonRpcHeaders,
+	jsonRpcVersion,
+} from '$/sources/_shared/wire/JsonRpc2/constants.ts'
+import type {
+	JsonRpc2Request,
+	JsonRpc2Response,
+} from '$/sources/_shared/wire/JsonRpc2/types.ts'
 import bindings from '$/sources/MoneroDaemonRpc/bindings.ts'
 import {
+	MoneroRpcBlock,
 	MoneroRpcDecodedTransaction,
+	MoneroRpcInfo,
+	MoneroRpcOuts,
 	MoneroRpcTransactionWire,
-	type MoneroRpcBlock,
-	type MoneroRpcInfo,
 } from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import {
+	SourceEndpointKind,
+	SourceTargetKind,
+	type SourceEndpoint,
+} from '$/sources/SourceBinding.ts'
+
 
 const moneroMainnetBinding = bindings[Source.MoneroDaemonRpc_JsonRpc].find(({ target }) => (
 	target.kind === SourceTargetKind.Caip2Network
@@ -23,7 +36,12 @@ const moneroMainnetBinding = bindings[Source.MoneroDaemonRpc_JsonRpc].find(({ ta
 if (moneroMainnetBinding == null)
 	throw new Error('MoneroDaemonRpc_JsonRpc: no mainnet binding')
 
-const moneroMainnetHttpEndpoints = moneroMainnetBinding.endpoints
+const moneroMainnetHttpEndpoints = moneroMainnetBinding.endpoints.filter((endpoint) => (
+	endpoint.endpointKind === SourceEndpointKind.HttpUrl
+))
+
+if (moneroMainnetHttpEndpoints.length === 0)
+	throw new Error('MoneroDaemonRpc_JsonRpc: no mainnet HTTP endpoints')
 
 const moneroTransactionsResponse = type({
 	txs: MoneroRpcTransactionWire.array(),
@@ -35,6 +53,33 @@ export const moneroMainnetRpcEndpoints = moneroMainnetHttpEndpoints.map(({ locat
 	transportType: TransportType.Http,
 	providerName: 'Monero daemon',
 }))
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: {
+		assert: (value: unknown) => _Value
+	},
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`MoneroDaemonRpc_JsonRpc: invalid ${label} response envelope`)
+	}
+}
+
+const moneroDaemonUrl = (
+	endpoint: SourceEndpoint,
+	path: string
+) => (
+	new URL(
+		path.replace(/^\//, ''),
+		endpoint.locator.endsWith('/') ?
+			endpoint.locator
+		:
+			`${endpoint.locator}/`
+	).toString()
+)
 
 const queryMoneroMainnet = async <_Result>(
 	query: (endpoint: (typeof moneroMainnetHttpEndpoints)[number]) => Promise<_Result>
@@ -48,6 +93,33 @@ const queryMoneroMainnet = async <_Result>(
 		}
 	}
 	throw new Error(`MoneroDaemonRpc_JsonRpc: all mainnet endpoints failed${errors.length === 0 ? '' : `: ${errors.join('; ')}`}`)
+}
+
+const requestMoneroDaemonJsonRpc = async <_Result>(
+	endpoint: (typeof moneroMainnetHttpEndpoints)[number],
+	method: string,
+	params?: Readonly<Record<string, unknown>>
+) => {
+	const response = await sourceFetch(moneroMainnetBinding, moneroDaemonUrl(endpoint, 'json_rpc'), {
+		method: 'POST',
+		headers: jsonRpcHeaders,
+		body: JSON.stringify({
+			jsonrpc: jsonRpcVersion,
+			id: 1,
+			method,
+			...(params != null && {
+				params,
+			}),
+		} satisfies JsonRpc2Request),
+	})
+	if (!response.ok)
+		await throwHttpError(`JSON-RPC ${method}`, response)
+
+	const json = await response.json<JsonRpc2Response<_Result>>()
+	if (json.error != null)
+		throw new Error(`JSON-RPC ${method}: ${json.error.message}`)
+
+	return json.result
 }
 
 const moneroTransactionWithDecodedJson = (transaction: MoneroRpcTransactionWire) => {
@@ -64,14 +136,17 @@ export const getBlock = ({
 	height,
 }: {
 	height: bigint
-}) => queryMoneroMainnet((endpoint) => (
-	requestMoneroDaemonJsonRpc<MoneroRpcBlock>(
-		moneroMainnetBinding,
-		'get_block',
-		{
-			height: Number(height),
-		},
-		endpoint
+}) => queryMoneroMainnet(async (endpoint) => (
+	assertEnvelope(
+		'block',
+		MoneroRpcBlock,
+		await requestMoneroDaemonJsonRpc(
+			endpoint,
+			'get_block',
+			{
+				height: Number(height),
+			}
+		)
 	)
 ))
 
@@ -80,8 +155,7 @@ export const getTransactions = ({
 }: {
 	txHashes: readonly string[]
 }) => queryMoneroMainnet(async (endpoint) => {
-	const url = new URL('/get_transactions', endpoint.locator).toString()
-	const response = await sourceFetch(moneroMainnetBinding, url, {
+	const response = await sourceFetch(moneroMainnetBinding, moneroDaemonUrl(endpoint, 'get_transactions'), {
 		method: 'POST',
 		headers: {
 			'content-type': 'application/json',
@@ -93,18 +167,57 @@ export const getTransactions = ({
 	})
 	if (!response.ok)
 		await throwHttpError('MoneroDaemonRpc_JsonRpc /get_transactions', response)
-	const transactions = moneroTransactionsResponse.assert(await response.json())
+	const transactions = assertEnvelope(
+		'transactions',
+		moneroTransactionsResponse,
+		await response.json()
+	)
 	return {
 		...transactions,
 		txs: transactions.txs.map(moneroTransactionWithDecodedJson),
 	}
 })
 
-export const getInfo = () => queryMoneroMainnet((endpoint) => (
-	requestMoneroDaemonJsonRpc<MoneroRpcInfo>(
-		moneroMainnetBinding,
-		'get_info',
-		{},
-		endpoint
+export const getInfo = () => queryMoneroMainnet(async (endpoint) => (
+	assertEnvelope(
+		'info',
+		MoneroRpcInfo,
+		await requestMoneroDaemonJsonRpc(
+			endpoint,
+			'get_info',
+			{}
+		)
 	)
 ))
+
+export const getOuts = ({
+	outputs,
+	getTxid = false,
+}: {
+	outputs: readonly {
+		amount: number
+		index: number | bigint
+	}[]
+	getTxid?: boolean
+}) => queryMoneroMainnet(async (endpoint) => {
+	const response = await sourceFetch(moneroMainnetBinding, moneroDaemonUrl(endpoint, 'get_outs'), {
+		method: 'POST',
+		headers: {
+			'content-type': 'application/json',
+		},
+		body: JSON.stringify({
+			outputs: outputs.map(({ amount, index }) => ({
+				amount,
+				index: Number(index),
+			})),
+			get_txid: getTxid,
+		}),
+	})
+	if (!response.ok)
+		await throwHttpError('MoneroDaemonRpc_JsonRpc /get_outs', response)
+	return assertEnvelope(
+		'outs',
+		MoneroRpcOuts,
+		await response.json()
+	)
+})

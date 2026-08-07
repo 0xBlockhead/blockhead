@@ -1,78 +1,89 @@
 import { type } from 'arktype'
 
-export type MoneroRpcBlockHeader = {
-	block_size: number
-	block_weight: number
-	cumulative_difficulty: number
-	cumulative_difficulty_top64: number
-	depth: number
-	difficulty: number
-	difficulty_top64: number
-	hash: string
-	height: number
-	long_term_weight: number
-	major_version: number
-	minor_version: number
-	nonce: number
-	num_txes: number
-	orphan_status: boolean
-	pow_hash: string
-	prev_hash: string
-	reward: number
-	timestamp: number
-}
 
-export type MoneroRpcBlock = {
-	blob: string
-	block_header: MoneroRpcBlockHeader
-	json?: string
-	miner_tx_hash: string
-	tx_hashes?: string[]
-}
+const nonNegativeInteger = type('number.integer >= 0')
+const nonEmptyString = type('string > 0')
 
-export type MoneroRpcInfo = {
-	adjusted_time?: number
-	alt_blocks_count: number
-	block_size_limit?: number
-	block_size_median?: number
-	block_weight_limit?: number
-	block_weight_median?: number
-	bootstrap_daemon_address?: string
-	busy_syncing?: boolean
-	credits?: number
-	cumulative_difficulty: number
-	cumulative_difficulty_top64?: number
-	database_size?: number
-	difficulty: number
-	difficulty_top64?: number
-	free_space?: number
-	grey_peerlist_size: number
-	height: number
-	height_without_bootstrap?: number
-	incoming_connections_count: number
-	mainnet: boolean
-	nettype: string
-	offline: boolean
-	outgoing_connections_count: number
-	rpc_connections_count?: number
-	stagenet: boolean
-	start_time?: number
-	status: string
-	synchronized: boolean
-	target: number
-	target_height: number
-	testnet: boolean
-	top_block_hash: string
-	tx_count: number
-	tx_pool_size: number
-	untrusted: boolean
-	update_available?: boolean
-	version: string
-	was_bootstrap_ever_used: boolean
-	white_peerlist_size: number
-	wide_cumulative_difficulty?: string
-	wide_difficulty?: string
-}
+
+export const MoneroRpcBlockHeader = type({
+	block_size: nonNegativeInteger,
+	block_weight: nonNegativeInteger,
+	cumulative_difficulty: nonNegativeInteger,
+	cumulative_difficulty_top64: nonNegativeInteger,
+	depth: nonNegativeInteger,
+	difficulty: nonNegativeInteger,
+	difficulty_top64: nonNegativeInteger,
+	hash: nonEmptyString,
+	height: nonNegativeInteger,
+	long_term_weight: nonNegativeInteger,
+	major_version: nonNegativeInteger,
+	minor_version: nonNegativeInteger,
+	nonce: nonNegativeInteger,
+	num_txes: nonNegativeInteger,
+	orphan_status: 'boolean',
+	pow_hash: 'string',
+	prev_hash: nonEmptyString,
+	reward: nonNegativeInteger,
+	timestamp: nonNegativeInteger,
+})
+
+export type MoneroRpcBlockHeader = typeof MoneroRpcBlockHeader.infer
+
+export const MoneroRpcBlock = type({
+	blob: nonEmptyString,
+	block_header: MoneroRpcBlockHeader,
+	'json?': 'string',
+	miner_tx_hash: nonEmptyString,
+	'tx_hashes?': 'string[]',
+})
+
+export type MoneroRpcBlock = typeof MoneroRpcBlock.infer
+
+export const MoneroRpcInfo = type({
+	'adjusted_time?': nonNegativeInteger,
+	alt_blocks_count: nonNegativeInteger,
+	'block_size_limit?': nonNegativeInteger,
+	'block_size_median?': nonNegativeInteger,
+	'block_weight_limit?': nonNegativeInteger,
+	'block_weight_median?': nonNegativeInteger,
+	'bootstrap_daemon_address?': 'string',
+	'busy_syncing?': 'boolean',
+	'credits?': nonNegativeInteger,
+	cumulative_difficulty: nonNegativeInteger,
+	'cumulative_difficulty_top64?': nonNegativeInteger,
+	'database_size?': nonNegativeInteger,
+	difficulty: nonNegativeInteger,
+	'difficulty_top64?': nonNegativeInteger,
+	'free_space?': nonNegativeInteger,
+	grey_peerlist_size: nonNegativeInteger,
+	height: nonNegativeInteger,
+	'height_without_bootstrap?': nonNegativeInteger,
+	incoming_connections_count: nonNegativeInteger,
+	mainnet: 'boolean',
+	nettype: nonEmptyString,
+	offline: 'boolean',
+	outgoing_connections_count: nonNegativeInteger,
+	'rpc_connections_count?': nonNegativeInteger,
+	stagenet: 'boolean',
+	'start_time?': nonNegativeInteger,
+	status: nonEmptyString,
+	synchronized: 'boolean',
+	target: nonNegativeInteger,
+	target_height: nonNegativeInteger,
+	testnet: 'boolean',
+	top_block_hash: nonEmptyString,
+	tx_count: nonNegativeInteger,
+	tx_pool_size: nonNegativeInteger,
+	untrusted: 'boolean',
+	'update_available?': 'boolean',
+	version: nonEmptyString,
+	was_bootstrap_ever_used: 'boolean',
+	white_peerlist_size: nonNegativeInteger,
+	'wide_cumulative_difficulty?': 'string',
+	'wide_difficulty?': 'string',
+})
+
+export type MoneroRpcInfo = typeof MoneroRpcInfo.infer
 
 export const MoneroRpcDecodedTransaction = type({
 	version: 'number',
@@ -127,3 +138,23 @@ export type MoneroRpcTransactionWire = typeof MoneroRpcTransactionWire.infer
 export type MoneroRpcTransaction = MoneroRpcTransactionWire & {
 	decoded_json?: MoneroRpcDecodedTransaction
 }
+
+export const MoneroRpcOut = type({
+	height: nonNegativeInteger,
+	key: nonEmptyString,
+	mask: nonEmptyString,
+	unlocked: 'boolean',
+	'txid?': 'string',
+})
+
+export type MoneroRpcOut = typeof MoneroRpcOut.infer
+
+export const MoneroRpcOuts = type({
+	outs: MoneroRpcOut.array(),
+	status: nonEmptyString,
+	'untrusted?': 'boolean',
+	'credits?': nonNegativeInteger,
+	'top_hash?': 'string',
+})
+
+export type MoneroRpcOuts = typeof MoneroRpcOuts.infer

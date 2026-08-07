@@ -81,17 +81,34 @@ const moneroKeyImageFields = (
 	}),
 })
 
+const absoluteGlobalOutputIndices = (keyOffsets: readonly number[]) => (
+	keyOffsets.reduce<bigint[]>((indices, offset) => (
+		[
+			...indices,
+			(indices.at(-1) ?? 0n) + BigInt(offset),
+		]
+	), [])
+)
+
 const moneroRingMemberFields = (
 	input: MoneroRpcTransactionInput,
 	memberIndex: number
-) => (
-	input.key?.key_offsets[memberIndex] == null ?
-		{}
-	:
-		{
-			globalOutputIndex: BigInt(input.key.key_offsets[memberIndex]),
-		}
-)
+) => {
+	const globalOutputIndex = (
+		input.key == null ?
+			undefined
+		:
+			absoluteGlobalOutputIndices(input.key.key_offsets)[memberIndex]
+	)
+	return (
+		globalOutputIndex == null ?
+			{}
+		:
+			{
+				globalOutputIndex,
+			}
+	)
+}
 
 const moneroTransactionFields = (
 	network: NetworkId,
@@ -354,7 +371,10 @@ export default {
 				timestampMs: (block) => block.timestampMs,
 				difficulty: (block) => block.difficulty,
 				weightBytes: (block) => block.weightBytes,
-				$$transactions: (block) => block.$$transactions,
+				$$transactions: {
+					select: (block) => block.$$transactions,
+					resolveCount: (block) => block.$$transactions.length,
+				},
 			}),
 
 		defineResolver({
@@ -374,8 +394,14 @@ export default {
 				version: (transaction) => transaction.version,
 				unlockTime: (transaction) => transaction.unlockTime,
 				feeAtomicUnits: (transaction) => transaction.feeAtomicUnits,
-				$$keyImages: (transaction) => transaction.$$keyImages ?? [],
-				$$stealthOutputs: (transaction) => transaction.$$stealthOutputs ?? [],
+				$$keyImages: {
+					select: (transaction) => transaction.$$keyImages ?? [],
+					resolveCount: (transaction) => (transaction.$$keyImages ?? []).length,
+				},
+				$$stealthOutputs: {
+					select: (transaction) => transaction.$$stealthOutputs ?? [],
+					resolveCount: (transaction) => (transaction.$$stealthOutputs ?? []).length,
+				},
 			}),
 
 		defineResolver({
@@ -426,7 +452,10 @@ export default {
 				}
 			},
 		})({
-				$$members: (ring) => ring.$$members,
+				$$members: {
+					select: (ring) => ring.$$members,
+					resolveCount: (ring) => ring.$$members.length,
+				},
 			}),
 
 		defineResolver({
@@ -498,7 +527,10 @@ export default {
 				}
 			},
 		})({
-				$$timestamps: (timestamps) => timestamps,
+				$$timestamps: {
+					select: (timestamps) => timestamps,
+					resolveCount: (timestamps) => timestamps.length,
+				},
 			}),
 
 		defineResolver({
@@ -529,7 +561,10 @@ export default {
 			},
 		})({
 				Monero: {
-					$$timestamps: (timestamps) => timestamps,
+					$$timestamps: {
+						select: (timestamps) => timestamps,
+						resolveCount: (timestamps) => timestamps.length,
+					},
 				},
 			}),
 
@@ -555,25 +590,31 @@ export default {
 						const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 						const info = await getInfo()
 						const headBlockHeight = BigInt(info.height - 1)
-						return Array.from({
-							length: Math.min(
-								Number(headBlockHeight + 1n),
-								resolverContextRowLimit(context)
-							),
-						}, (_value, blockOffset) => ({
-							[EntityMetaKey.Selector]: {
-								$network: $network,
-								height: headBlockHeight - BigInt(blockOffset),
-								...(blockOffset === 0 && {
-									hash: info.top_block_hash,
-								}),
-							},
-						}))
+						return {
+							blockCount: info.height,
+							blocks: Array.from({
+								length: Math.min(
+									info.height,
+									resolverContextRowLimit(context)
+								),
+							}, (_value, blockOffset) => ({
+								[EntityMetaKey.Selector]: {
+									$network: $network,
+									height: headBlockHeight - BigInt(blockOffset),
+									...(blockOffset === 0 && {
+										hash: info.top_block_hash,
+									}),
+								},
+							})),
+						}
 					},
 				}
 			},
 		})({
-				$$blocks: (blocks) => blocks,
+				$$blocks: {
+					select: (snapshot) => snapshot.blocks,
+					resolveCount: (snapshot) => snapshot.blockCount,
+				},
 			}),
 
 		defineResolver({
@@ -585,23 +626,32 @@ export default {
 						const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 						const info = await getInfo()
 						const headBlockHeight = BigInt(info.height - 1)
-						return Array.from({
-							length: Math.min(
-								Number(headBlockHeight + 1n),
-								resolverContextRowLimit(context)
-							),
-						}, (_value, blockOffset) => ({
-							[EntityMetaKey.Selector]: {
-								$network: network,
-								height: headBlockHeight - BigInt(blockOffset),
-							},
-						}))
+						return {
+							blockCount: info.height,
+							blocks: Array.from({
+								length: Math.min(
+									info.height,
+									resolverContextRowLimit(context)
+								),
+							}, (_value, blockOffset) => ({
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									height: headBlockHeight - BigInt(blockOffset),
+									...(blockOffset === 0 && {
+										hash: info.top_block_hash,
+									}),
+								},
+							})),
+						}
 					},
 				}
 			},
 		})({
 				Monero: {
-					$$blocks: (blocks) => blocks,
+					$$blocks: {
+						select: (snapshot) => snapshot.blocks,
+						resolveCount: (snapshot) => snapshot.blockCount,
+					},
 				},
 			}),
 

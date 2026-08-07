@@ -30,12 +30,12 @@ export default indexSourceBindings([
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://xmr-node.cakewallet.com:18081/json_rpc',
+				locator: 'https://xmr-node.cakewallet.com:18081/',
 				corsEnabled: false,
 			},
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'http://nodes.hashvault.pro:18081/json_rpc',
+				locator: 'http://nodes.hashvault.pro:18081/',
 				corsEnabled: false,
 			},
 		],
@@ -55,7 +55,7 @@ export default indexSourceBindings([
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'http://127.0.0.1:18081/json_rpc',
+				locator: 'http://127.0.0.1:18081/',
 				corsEnabled: false,
 			},
 		],
