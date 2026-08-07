@@ -1,8 +1,11 @@
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
-import type {
-	ZeroGStorageNodeFileInfo,
-	ZeroGStorageNodeFlowProof,
-	ZeroGStorageNodeStatus,
+import {
+	zeroGStorageNodeFileInfoOrNullWire,
+	zeroGStorageNodeFlowProofWire,
+	zeroGStorageNodeStatusWire,
+	type ZeroGStorageNodeFileInfo,
+	type ZeroGStorageNodeFlowProof,
+	type ZeroGStorageNodeStatus,
 } from '$/sources/ZeroG/StorageNode/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
 import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
@@ -12,54 +15,82 @@ const binding = bindings[Source.ZeroGStorageNode_JsonRpc][0]
 
 export const endpoint = firstHttpUrlForBinding(binding)
 
-export const getStatus = () => (
-	jsonRpc2<ZeroGStorageNodeStatus>(binding, 'zgs_getStatus', [])
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`ZeroGStorageNode_JsonRpc: invalid ${label} response envelope`)
+	}
+}
+
+export const getStatus = async (): Promise<ZeroGStorageNodeStatus> => (
+	assertEnvelope(
+		'zgs_getStatus',
+		zeroGStorageNodeStatusWire,
+		await jsonRpc2<unknown>(binding, 'zgs_getStatus', [])
+	)
 )
 
-export const getFileInfo = ({
+export const getFileInfo = async ({
 	root,
 	needAvailable,
 }: {
 	root: string
 	needAvailable: boolean
-}) => (
-	jsonRpc2<ZeroGStorageNodeFileInfo | null>(
-		binding,
+}): Promise<ZeroGStorageNodeFileInfo | null> => (
+	assertEnvelope(
 		'zgs_getFileInfo',
-		[
-			root,
-			needAvailable,
-		]
+		zeroGStorageNodeFileInfoOrNullWire,
+		await jsonRpc2<unknown>(
+			binding,
+			'zgs_getFileInfo',
+			[
+				root,
+				needAvailable,
+			]
+		)
 	)
 )
 
-export const getFileInfoByTxSeq = ({
+export const getFileInfoByTxSeq = async ({
 	txSeq,
 }: {
 	txSeq: number | bigint
-}) => (
-	jsonRpc2<ZeroGStorageNodeFileInfo | null>(
-		binding,
+}): Promise<ZeroGStorageNodeFileInfo | null> => (
+	assertEnvelope(
 		'zgs_getFileInfoByTxSeq',
-		[
-			Number(txSeq),
-		]
+		zeroGStorageNodeFileInfoOrNullWire,
+		await jsonRpc2<unknown>(
+			binding,
+			'zgs_getFileInfoByTxSeq',
+			[
+				Number(txSeq),
+			]
+		)
 	)
 )
 
-export const getSectorProof = ({
+export const getSectorProof = async ({
 	sectorIndex,
 	root,
 }: {
 	sectorIndex: number | bigint
 	root?: string
-}) => (
-	jsonRpc2<ZeroGStorageNodeFlowProof>(
-		binding,
+}): Promise<ZeroGStorageNodeFlowProof> => (
+	assertEnvelope(
 		'zgs_getSectorProof',
-		[
-			Number(sectorIndex),
-			root ?? null,
-		]
+		zeroGStorageNodeFlowProofWire,
+		await jsonRpc2<unknown>(
+			binding,
+			'zgs_getSectorProof',
+			[
+				Number(sectorIndex),
+				root ?? null,
+			]
+		)
 	)
 )

@@ -1,41 +1,60 @@
-export type ZeroGStorageNodeNetworkProtocolVersion = {
-	major: number
-	minor: number
-	build: number
-}
+import { type as arktype } from 'arktype'
 
-export type ZeroGStorageNodeNetworkIdentity = {
-	chainId: number
-	flowAddress: `0x${string}`
-	p2pProtocolVersion: ZeroGStorageNodeNetworkProtocolVersion
-}
 
-export type ZeroGStorageNodeStatus = {
-	connectedPeers: number
-	logSyncHeight: number
-	logSyncBlock: string
-	nextTxSeq: number
-	networkIdentity: ZeroGStorageNodeNetworkIdentity
-}
+export const zeroGStorageNodeEvmAddressWire = arktype('/^0x[0-9a-fA-F]{40}$/')
 
-export type ZeroGStorageNodeTransaction = {
-	streamIds: string[]
-	data: string
-	dataMerkleRoot: string
-	startEntryIndex: number
-	size: number
-	seq: number
-}
+export const zeroGStorageNodeNetworkProtocolVersionWire = arktype({
+	major: 'number.integer >= 0',
+	minor: 'number.integer >= 0',
+	build: 'number.integer >= 0',
+})
 
-export type ZeroGStorageNodeFileInfo = {
-	tx: ZeroGStorageNodeTransaction
-	finalized: boolean
-	isCached: boolean
-	uploadedSegNum: number
-	pruned: boolean
-}
+export type ZeroGStorageNodeNetworkProtocolVersion = typeof zeroGStorageNodeNetworkProtocolVersionWire.infer
 
-export type ZeroGStorageNodeFlowProof = {
-	lemma: string[]
-	path: boolean[]
-}
+export const zeroGStorageNodeNetworkIdentityWire = arktype({
+	chainId: 'number.integer > 0',
+	flowAddress: zeroGStorageNodeEvmAddressWire,
+	p2pProtocolVersion: zeroGStorageNodeNetworkProtocolVersionWire,
+})
+
+export type ZeroGStorageNodeNetworkIdentity = typeof zeroGStorageNodeNetworkIdentityWire.infer
+
+export const zeroGStorageNodeStatusWire = arktype({
+	connectedPeers: 'number.integer >= 0',
+	logSyncHeight: 'number.integer >= 0',
+	logSyncBlock: 'string > 0',
+	nextTxSeq: 'number.integer >= 0',
+	networkIdentity: zeroGStorageNodeNetworkIdentityWire,
+})
+
+export type ZeroGStorageNodeStatus = typeof zeroGStorageNodeStatusWire.infer
+
+export const zeroGStorageNodeTransactionWire = arktype({
+	streamIds: arktype('string > 0').array(),
+	data: 'string',
+	dataMerkleRoot: 'string > 0',
+	startEntryIndex: 'number.integer >= 0',
+	size: 'number.integer >= 0',
+	seq: 'number.integer >= 0',
+})
+
+export type ZeroGStorageNodeTransaction = typeof zeroGStorageNodeTransactionWire.infer
+
+export const zeroGStorageNodeFileInfoWire = arktype({
+	tx: zeroGStorageNodeTransactionWire,
+	finalized: 'boolean',
+	isCached: 'boolean',
+	uploadedSegNum: 'number.integer >= 0',
+	pruned: 'boolean',
+})
+
+export type ZeroGStorageNodeFileInfo = typeof zeroGStorageNodeFileInfoWire.infer
+
+export const zeroGStorageNodeFileInfoOrNullWire = zeroGStorageNodeFileInfoWire.or(arktype('null'))
+
+export const zeroGStorageNodeFlowProofWire = arktype({
+	lemma: arktype('string > 0').array(),
+	path: arktype('boolean').array(),
+})
+
+export type ZeroGStorageNodeFlowProof = typeof zeroGStorageNodeFlowProofWire.infer

@@ -20,7 +20,9 @@ import { Source } from '$/sources/Source.ts'
 const queries = vi.hoisted(() => ({
 	getBlockByNumber: vi.fn(),
 	getBlockWithTransactionsByNumber: vi.fn(),
+	getBlockNumber: vi.fn(),
 	getCode: vi.fn(),
+	getTransactionCount: vi.fn(),
 	getTransactionByHash: vi.fn(),
 	getTransactionReceipt: vi.fn(),
 }))
@@ -167,7 +169,7 @@ describe('ZeroGChain JSON-RPC resolver I/O', () => {
 		expect(queries.getBlockByNumber).toHaveBeenCalledWith(1n)
 	})
 
-	it('materializes account contract status from eth_getCode', async () => {
+	it('materializes account tip blockNumber + transactionCount + contract status', async () => {
 		const accountResolver = resolverFor(EntityType.EvmNetworkAccount, '$$timestamps')
 		const timestampResolver = resolverFor(EntityType.EvmNetworkAccount_Timestamp, 'isContract')
 
@@ -186,7 +188,9 @@ describe('ZeroGChain JSON-RPC resolver I/O', () => {
 			}],
 		})
 
+		queries.getBlockNumber.mockResolvedValueOnce(100n)
 		queries.getCode.mockResolvedValueOnce('0x60806040')
+		queries.getTransactionCount.mockResolvedValueOnce(3n)
 		await expect(timestampResolver.resolve.AccountTimestampMsSource.resolve({
 			$account: {
 				$network: network,
@@ -195,9 +199,14 @@ describe('ZeroGChain JSON-RPC resolver I/O', () => {
 			timestampMs: 0,
 			source: Source.ZeroGChain_JsonRpc,
 		}, context)).resolves.toEqual({
+			blockNumber: 100n,
+			transactionCount: 3n,
 			isContract: true,
 		})
 		expect(queries.getCode).toHaveBeenCalledWith({
+			address: actorAddress,
+		})
+		expect(queries.getTransactionCount).toHaveBeenCalledWith({
 			address: actorAddress,
 		})
 	})

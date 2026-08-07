@@ -194,18 +194,36 @@ export default {
 					appliesTo: zeroGAccountTimestampApplicability,
 					resolve: async ({ $account }) => {
 						assertZeroGMainnetChain($account.$network)
-						const { getCode } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+						const {
+							getBlockNumber,
+							getCode,
+							getTransactionCount,
+						} = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
 						const address = hexLowerOfByteSize($account.$actor.address, 20)
 						if (address == null)
 							throw new Error('ZeroGChain_JsonRpc: EvmNetworkAccount wallet address not normalized')
 
+						const [
+							blockNumber,
+							code,
+							transactionCount,
+						] = await Promise.all([
+							getBlockNumber(),
+							getCode({ address }),
+							getTransactionCount({ address }),
+						])
+
 						return {
-							isContract: await getCode({ address }) !== '0x',
+							blockNumber,
+							transactionCount,
+							isContract: code !== '0x',
 						}
 					},
 				},
 			},
 		})({
+			blockNumber: (account) => account.blockNumber,
+			transactionCount: (account) => account.transactionCount,
 			isContract: (account) => account.isContract,
 		}),
 

@@ -77,12 +77,96 @@ export default {
 						const fileInfo = await fileInfoForDataBlob(entitySelector)
 						return {
 							sizeBytes: BigInt(fileInfo.tx.size),
+							$$chunks: fileInfo.tx.streamIds.map((_chunkRoot, chunkIndex) => ({
+								[EntityMetaKey.Selector]: {
+									$dataBlob: entitySelector,
+									chunkIndex,
+								},
+							})),
+							$storageLogEntry: {
+								[EntityMetaKey.Selector]: {
+									$network: entitySelector.$network,
+									logEntryId: String(fileInfo.tx.seq),
+								},
+							},
 						}
 					},
 				}
 			},
 		})({
 				sizeBytes: (snapshot) => snapshot.sizeBytes,
+				$$chunks: (snapshot) => snapshot.$$chunks,
+				$storageLogEntry: (snapshot) => snapshot.$storageLogEntry,
+			}),
+
+		defineResolver({
+			entityType: EntityType.ZeroGStorageLogEntry,
+			resolve: {
+				NetworkLogEntryId: {
+					resolve: async ({
+						$network,
+						logEntryId,
+					}) => {
+						assertZeroGMainnet($network)
+						const { getFileInfoByTxSeq } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+						const sequenceNumber = BigInt(logEntryId)
+						const fileInfo = await getFileInfoByTxSeq({
+							txSeq: sequenceNumber,
+						})
+						if (fileInfo == null)
+							throw new Error(`ZeroGStorageNode_JsonRpc: storage log entry not found ${logEntryId}`)
+						if (BigInt(fileInfo.tx.seq) !== sequenceNumber)
+							throw new Error(`ZeroGStorageNode_JsonRpc: storage log entry seq mismatch ${logEntryId}`)
+
+						return {
+							$dataBlob: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									dataRoot: fileInfo.tx.dataMerkleRoot,
+								},
+							},
+							sequenceNumber,
+							commitment: fileInfo.tx.dataMerkleRoot,
+						}
+					},
+				},
+			},
+		})({
+				$dataBlob: (snapshot) => snapshot.$dataBlob,
+				sequenceNumber: (snapshot) => snapshot.sequenceNumber,
+				commitment: (snapshot) => snapshot.commitment,
+			}),
+
+		defineResolver({
+			entityType: EntityType.ZeroGStorageProof,
+			resolve: {
+				ZeroGStorageNodeProofId: {
+					resolve: async ({
+						$storageNode,
+						proofId,
+					}) => {
+						assertZeroGMainnet($storageNode.$network)
+						const sectorIndex = Number(proofId)
+						if (!Number.isSafeInteger(sectorIndex) || sectorIndex < 0)
+							throw new Error(`ZeroGStorageNode_JsonRpc: invalid sector proof id ${proofId}`)
+
+						const { getSectorProof } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+						await getSectorProof({
+							sectorIndex,
+						})
+
+						return {
+							$storageNode: {
+								[EntityMetaKey.Selector]: $storageNode,
+							},
+							proofKind: 'sector',
+						}
+					},
+				},
+			},
+		})({
+				$storageNode: (snapshot) => snapshot.$storageNode,
+				proofKind: (snapshot) => snapshot.proofKind,
 			}),
 
 		defineResolver({
