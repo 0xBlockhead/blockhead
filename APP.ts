@@ -3229,6 +3229,7 @@ type _RouteView = {
 type _RoutePage = {
 	view?: _RouteView
 	text?: _Text
+	placeholderText?: string
 }
 
 type _RouteLayout = {
