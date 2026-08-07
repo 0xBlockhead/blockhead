@@ -11,7 +11,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import type { NearBlocksBlock, NearBlocksTransaction } from '$/sources/NearBlocks/Rest/types.ts'
+import type { NearBlocksAccount, NearBlocksBlock, NearBlocksTransaction } from '$/sources/NearBlocks/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
@@ -25,6 +25,16 @@ const nearNanosToMs = (timestampNanos: string) => (
 	Number(BigInt(timestampNanos) / 1_000_000n)
 )
 
+const accountDeleted = (
+	deleted: NearBlocksAccount['deleted']
+) => (
+	deleted != null
+	&& (
+		deleted.transaction_hash != null
+		|| deleted.block_timestamp != null
+	)
+)
+
 const nearBlockFields = (
 	$network: NetworkId,
 	height: bigint,
@@ -33,6 +43,7 @@ const nearBlockFields = (
 	hash: block.block_hash,
 	...(
 		height > 0n
+		&& block.prev_block_hash != null
 		&& {
 			$parent: {
 				[EntityMetaKey.Selector]: {
@@ -43,7 +54,9 @@ const nearBlockFields = (
 			},
 		}
 	),
-	epochId: block.epoch_id,
+	...(block.epoch_id != null && {
+		epochId: block.epoch_id,
+	}),
 	timestampMs: nearNanosToMs(block.block_timestamp),
 })
 
@@ -110,11 +123,40 @@ const nearTransactionFields = (
 									'Failure'
 							),
 						}),
+						...(transaction.outcomes_agg?.gas_used != null && {
+							[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'gasBurnt')]: (
+								BigInt(transaction.outcomes_agg.gas_used)
+							),
+						}),
 					},
 				},
 			]
 	),
 })
+
+const nearBlockReferences = async (
+	$network: NetworkId,
+	limit: number
+) => {
+	assertNearMainnet($network)
+	const { listBlocks } = await import('$/sources/NearBlocks/Rest/queries.ts')
+	return (await listBlocks({
+		limit,
+	}))
+		.map((block) => ({
+			[EntityMetaKey.Selector]: {
+				$network,
+				height: BigInt(block.block_height),
+				hash: block.block_hash,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.NearBlock, [], 'timestampMs')]: nearNanosToMs(block.block_timestamp),
+				...(block.epoch_id != null && {
+					[entityFieldAddressKey(EntityType.NearBlock, [], 'epochId')]: block.epoch_id,
+				}),
+			},
+		}))
+}
 
 export default {
 	source: Source.NearBlocks_Rest,
@@ -138,6 +180,42 @@ export default {
 		})({
 			amountYoctoNear: (snapshot) => snapshot.amountYoctoNear,
 			storageUsageBytes: (snapshot) => snapshot.storageUsageBytes,
+		}),
+
+		defineResolver({
+			entityType: EntityType.NearAccount_Timestamp,
+			resolve: {
+				AccountTimestampMsSource: {
+					resolve: async ({ $account, source }) => {
+						assertNearMainnet($account.$network)
+						if (source !== Source.NearBlocks_Rest)
+							throw new Error(`NearBlocks_Rest: unsupported source ${source}`)
+						const { getAccount } = await import('$/sources/NearBlocks/Rest/queries.ts')
+						const account = await getAccount({
+							accountId: $account.accountId,
+						})
+						return {
+							amountYoctoNear: BigInt(account.amount),
+							...(account.locked != null && {
+								lockedYoctoNear: BigInt(account.locked),
+							}),
+							...(account.storage_usage != null && {
+								storageUsageBytes: BigInt(account.storage_usage),
+							}),
+							blockHeight: BigInt(account.block_height),
+							blockHash: account.block_hash,
+							deleted: accountDeleted(account.deleted),
+						}
+					},
+				},
+			},
+		})({
+			amountYoctoNear: (timestamp) => timestamp.amountYoctoNear,
+			lockedYoctoNear: (timestamp) => timestamp.lockedYoctoNear,
+			storageUsageBytes: (timestamp) => timestamp.storageUsageBytes,
+			blockHeight: (timestamp) => timestamp.blockHeight,
+			blockHash: (timestamp) => timestamp.blockHash,
+			deleted: (timestamp) => timestamp.deleted,
 		}),
 
 		defineResolver({
@@ -224,6 +302,42 @@ export default {
 			$parent: (snapshot) => snapshot.$parent,
 			epochId: (snapshot) => snapshot.epochId,
 			timestampMs: (snapshot) => snapshot.timestampMs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.NearNetwork,
+			resolve: {
+				Slug: {
+					resolve: async ({ slug }, context) => (
+						nearBlockReferences(
+							{
+								slug,
+							},
+							Math.min(resolverContextRowLimit(context), 100)
+						)
+					),
+				},
+			},
+		})({
+			$$blocks: (blocks) => blocks,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network, context) => (
+						nearBlockReferences(
+							network,
+							Math.min(resolverContextRowLimit(context), 100)
+						)
+					),
+				},
+			},
+		})({
+			Near: {
+				$$blocks: (blocks) => blocks,
+			},
 		}),
 
 		defineResolver({

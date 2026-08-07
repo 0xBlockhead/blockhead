@@ -6,23 +6,29 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
+	NearBlocksAccount,
 	NearBlocksBlock,
 	NearBlocksTransaction,
 	NearBlocksV3AccountBalance,
 	NearBlocksV3Transaction,
 } from '$/sources/NearBlocks/Rest/types.ts'
 
+const getAccount = vi.fn()
 const getAccountBalance = vi.fn()
 const getAccountTransactions = vi.fn()
 const getBlock = vi.fn()
 const getTransaction = vi.fn()
+const listBlocks = vi.fn()
 
 vi.mock('$/sources/NearBlocks/Rest/queries.ts', () => ({
+	getAccount,
 	getAccountBalance,
 	getAccountTransactions,
 	getBlock,
 	getTransaction,
+	listBlocks,
 }))
 
 const { default: nearBlocks } = await import('$/resolvers/NearBlocks-Rest.ts')
@@ -31,6 +37,9 @@ const accountResolver = nearBlocks.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.NearAccount
 	&& 'amountYoctoNear' in resolver.projections
 ))
+const accountTimestampResolver = nearBlocks.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.NearAccount_Timestamp
+))
 const accountTransactionsResolver = nearBlocks.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.NearAccount
 	&& '$$transactions' in resolver.projections
@@ -38,16 +47,24 @@ const accountTransactionsResolver = nearBlocks.resolvers.find((resolver) => (
 const blockResolver = nearBlocks.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.NearBlock
 ))
+const networkBlocksResolver = nearBlocks.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Near' in resolver.projections
+))
 const transactionResolver = nearBlocks.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.NearTransaction
 ))
 
 if (accountResolver == null)
 	throw new Error('NearBlocks-Rest spec missing NearAccount resolver')
+if (accountTimestampResolver == null)
+	throw new Error('NearBlocks-Rest spec missing NearAccount_Timestamp resolver')
 if (accountTransactionsResolver == null)
 	throw new Error('NearBlocks-Rest spec missing NearAccount.$$transactions resolver')
 if (blockResolver == null)
 	throw new Error('NearBlocks-Rest spec missing NearBlock resolver')
+if (networkBlocksResolver == null)
+	throw new Error('NearBlocks-Rest spec missing Network.Near.$$blocks resolver')
 if (transactionResolver == null)
 	throw new Error('NearBlocks-Rest spec missing NearTransaction resolver')
 
@@ -77,12 +94,24 @@ const balance = {
 	storage_usage: '30',
 } satisfies NearBlocksV3AccountBalance
 
+const accountWire = {
+	account_id: 'alice.near',
+	amount: '100',
+	block_hash: 'account-block-hash',
+	block_height: '208137439',
+	locked: '7',
+	storage_usage: 182,
+	deleted: {
+		transaction_hash: null,
+		block_timestamp: null,
+	},
+} satisfies NearBlocksAccount
+
 const block = {
 	block_hash: 'block-hash',
 	block_height: '208137439',
 	block_timestamp: '1784777079149554306',
 	prev_block_hash: 'prev-block-hash',
-	epoch_id: 'epoch-id',
 } satisfies NearBlocksBlock
 
 const transaction = {
@@ -95,6 +124,10 @@ const transaction = {
 	nonce: '7',
 	outcomes: {
 		status: true,
+	},
+	outcomes_agg: {
+		gas_used: '1900000000000',
+		transaction_fee: '1',
 	},
 	receiver_account_id: 'alice.near',
 	signer_account_id: 'bob.near',
@@ -145,6 +178,35 @@ describe('NearBlocks schema-shaped resolvers', () => {
 		expect(getAccountBalance).toHaveBeenCalledWith('alice.near')
 		expect(accountResolver.projections.amountYoctoNear(snapshot)).toBe(100n)
 		expect(accountResolver.projections.storageUsageBytes(snapshot)).toBe(30n)
+	})
+
+	it('projects NearAccount_Timestamp locked storage and block meta from v1 account', async () => {
+		getAccount.mockResolvedValueOnce(accountWire)
+
+		const snapshot = await accountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+			$account: account,
+			timestampMs: 1,
+			source: Source.NearBlocks_Rest,
+		}, context)
+
+		expect(getAccount).toHaveBeenCalledWith({
+			accountId: 'alice.near',
+		})
+		expect(accountTimestampResolver.projections.amountYoctoNear(snapshot)).toBe(100n)
+		expect(accountTimestampResolver.projections.lockedYoctoNear(snapshot)).toBe(7n)
+		expect(accountTimestampResolver.projections.storageUsageBytes(snapshot)).toBe(182n)
+		expect(accountTimestampResolver.projections.blockHeight(snapshot)).toBe(208137439n)
+		expect(accountTimestampResolver.projections.blockHash(snapshot)).toBe('account-block-hash')
+		expect(accountTimestampResolver.projections.deleted(snapshot)).toBe(false)
+	})
+
+	it('rejects NearAccount_Timestamp for foreign source selectors', async () => {
+		await expect(accountTimestampResolver.resolve.AccountTimestampMsSource.resolve({
+			$account: account,
+			timestampMs: 1,
+			source: Source.NearRpc_JsonRpc,
+		}, context)).rejects.toThrow('unsupported source')
+		expect(getAccount).not.toHaveBeenCalled()
 	})
 
 	it('projects NearTransaction refs from account transaction pages with opaque continuation', async () => {
@@ -234,7 +296,7 @@ describe('NearBlocks schema-shaped resolvers', () => {
 		expect(getAccountTransactions).toHaveBeenCalledTimes(1)
 	})
 
-	it('projects block parent and timestamp from hard-fail block transport', async () => {
+	it('projects block parent and timestamp from hard-fail block transport without inventing epoch', async () => {
 		getBlock.mockResolvedValueOnce(block)
 
 		const snapshot = await blockResolver.resolve.NetworkHeightHash.resolve({
@@ -247,7 +309,7 @@ describe('NearBlocks schema-shaped resolvers', () => {
 			block: 'block-hash',
 		})
 		expect(blockResolver.projections.hash(snapshot)).toBe('block-hash')
-		expect(blockResolver.projections.epochId(snapshot)).toBe('epoch-id')
+		expect(blockResolver.projections.epochId(snapshot)).toBeUndefined()
 		expect(blockResolver.projections.timestampMs(snapshot)).toBe(1784777079149)
 		expect(blockResolver.projections.$parent(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
@@ -256,6 +318,59 @@ describe('NearBlocks schema-shaped resolvers', () => {
 				hash: 'prev-block-hash',
 			},
 		})
+	})
+
+	it('projects Network.Near.$$blocks tip walk from listBlocks', async () => {
+		listBlocks.mockResolvedValueOnce([
+			{
+				block_hash: 'newer-hash',
+				block_height: '208137440',
+				block_timestamp: '1784777079149554307',
+			},
+			{
+				block_hash: 'older-hash',
+				block_height: '208137439',
+				block_timestamp: '1784777079149554306',
+				epoch_id: 'epoch-id',
+			},
+		])
+
+		const blocks = await networkBlocksResolver.resolve.Slug.resolve(
+			network,
+			{
+				...context,
+				pagination: {
+					limit: 2,
+				},
+			}
+		)
+
+		expect(listBlocks).toHaveBeenCalledWith({
+			limit: 2,
+		})
+		expect(networkBlocksResolver.projections.Near.$$blocks(blocks)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: 208137440n,
+					hash: 'newer-hash',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.NearBlock, [], 'timestampMs')]: 1784777079149,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: 208137439n,
+					hash: 'older-hash',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.NearBlock, [], 'timestampMs')]: 1784777079149,
+					[entityFieldAddressKey(EntityType.NearBlock, [], 'epochId')]: 'epoch-id',
+				},
+			},
+		])
 	})
 
 	it('rejects block height selector drift', async () => {
@@ -268,7 +383,7 @@ describe('NearBlocks schema-shaped resolvers', () => {
 		}, context)).rejects.toThrow('height does not match selector')
 	})
 
-	it('projects transaction signer, actions, and outcomes', async () => {
+	it('projects transaction signer, actions, outcomes, and gasBurnt', async () => {
 		getTransaction.mockResolvedValueOnce(transaction)
 
 		const snapshot = await transactionResolver.resolve.NetworkHashSignerAccountId.resolve({
@@ -320,6 +435,7 @@ describe('NearBlocks schema-shaped resolvers', () => {
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'status')]: 'SuccessValue',
+				[entityFieldAddressKey(EntityType.NearExecutionOutcome, [], 'gasBurnt')]: 1900000000000n,
 			},
 		}])
 	})

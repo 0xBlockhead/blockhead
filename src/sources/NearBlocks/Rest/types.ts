@@ -1,131 +1,177 @@
-export type NearBlocksAccount = {
-	account_id: string
-	amount: string
-	block_hash: string
-	block_height: string
-	created?: {
-		block_timestamp?: number | string | null
-		transaction_hash?: string | null
-	} | null
-	deleted?: {
-		block_timestamp?: number | string | null
-		transaction_hash?: string | null
-	} | null
-	locked?: string
-	storage_usage?: string | number
-}
+import { type as arktype } from 'arktype'
 
-export type NearBlocksAccountResponse = {
-	account: NearBlocksAccount[]
-}
+export const nearBlocksUnsignedDecimal = '/^(0|[1-9]\\d*)$/'
 
-export type NearBlocksBlock = {
-	author_account_id?: string
-	block_hash: string
-	block_height: string | number
-	block_timestamp: string
-	chunks_agg?: {
-		gas_limit?: number
-		gas_used?: number
-		shards?: number
-	}
-	epoch_id: string
-	gas_price?: string
-	prev_block_hash: string
-	receipts_agg?: {
-		count?: number
-	}
-	transactions_agg?: {
-		count?: number
-	}
-}
+export const nearBlocksNonnegativeIntegerWire = arktype(nearBlocksUnsignedDecimal)
+	.or('number.integer >= 0')
 
-export type NearBlocksBlockResponse = {
-	blocks: NearBlocksBlock[]
-}
+export const nearBlocksAccountLifecycleWire = arktype({
+	'block_timestamp?': arktype(nearBlocksUnsignedDecimal)
+		.or('number.integer >= 0')
+		.or('null'),
+	'transaction_hash?': arktype('string > 0').or('null'),
+})
 
-export type NearBlocksAction = {
-	action: string
-	args?: string | null
-	deposit?: string | number
-	fee?: string | number
-	method?: string | null
-}
+export const nearBlocksAccountWire = arktype({
+	account_id: 'string > 0',
+	amount: nearBlocksUnsignedDecimal,
+	block_hash: 'string > 0',
+	block_height: nearBlocksNonnegativeIntegerWire,
+	'created?': nearBlocksAccountLifecycleWire.or('null'),
+	'deleted?': nearBlocksAccountLifecycleWire.or('null'),
+	'locked?': nearBlocksUnsignedDecimal,
+	'storage_usage?': nearBlocksNonnegativeIntegerWire,
+})
 
-export type NearBlocksTransaction = {
-	actions: NearBlocksAction[]
-	actions_agg?: {
-		deposit?: string | number
-		gas_attached?: string | number
-	}
-	block?: {
-		block_height?: number | string
-	}
-	block_timestamp: string
-	included_in_block_hash: string
-	nonce?: number | string
-	outcomes?: {
-		status?: boolean
-	}
-	outcomes_agg?: {
-		gas_used?: string | number
-		transaction_fee?: string | number
-	}
-	receipt_conversion_gas_burnt?: string
-	receipt_conversion_tokens_burnt?: string
-	receiver_account_id: string
-	shard_id?: number | string
-	signer_account_id: string
-	transaction_hash: string
-}
+export type NearBlocksAccount = typeof nearBlocksAccountWire.infer
 
-export type NearBlocksTransactionResponse = {
-	txns: NearBlocksTransaction[]
-}
+export const nearBlocksAccountResponseWire = arktype({
+	account: nearBlocksAccountWire.array(),
+})
 
-export type NearBlocksV3Error = {
-	message: string
-	path?: string
-}
+export type NearBlocksAccountResponse = typeof nearBlocksAccountResponseWire.infer
 
-export type NearBlocksV3AccountBalance = {
-	account_id: string
-	amount: string
-	amount_staked: string
-	storage_usage: string
-}
+export const nearBlocksBlockWire = arktype({
+	'author_account_id?': 'string > 0',
+	block_hash: 'string > 0',
+	block_height: nearBlocksNonnegativeIntegerWire,
+	block_timestamp: nearBlocksUnsignedDecimal,
+	'chunks_agg?': {
+		'gas_limit?': 'number.integer >= 0',
+		'gas_used?': 'number.integer >= 0',
+		'shards?': 'number.integer >= 0',
+	},
+	'epoch_id?': 'string > 0',
+	'gas_price?': nearBlocksUnsignedDecimal,
+	'prev_block_hash?': 'string > 0',
+	'receipts_agg?': {
+		'count?': 'number.integer >= 0',
+	},
+	'transactions_agg?': {
+		'count?': 'number.integer >= 0',
+	},
+})
 
-export type NearBlocksV3Transaction = {
-	actions: {
-		action: string
-		method?: string
-	}[]
+export type NearBlocksBlock = typeof nearBlocksBlockWire.infer
+
+export const nearBlocksBlockResponseWire = arktype({
+	blocks: nearBlocksBlockWire.array(),
+})
+
+export type NearBlocksBlockResponse = typeof nearBlocksBlockResponseWire.infer
+
+export const nearBlocksActionWire = arktype({
+	action: 'string > 0',
+	'args?': arktype('string').or('null'),
+	'deposit?': nearBlocksNonnegativeIntegerWire,
+	'fee?': nearBlocksNonnegativeIntegerWire,
+	'method?': arktype('string > 0').or('null'),
+})
+
+export type NearBlocksAction = typeof nearBlocksActionWire.infer
+
+export const nearBlocksTransactionWire = arktype({
+	actions: nearBlocksActionWire.array(),
+	'actions_agg?': {
+		'deposit?': nearBlocksNonnegativeIntegerWire,
+		'gas_attached?': nearBlocksNonnegativeIntegerWire,
+	},
+	'block?': {
+		'block_height?': nearBlocksNonnegativeIntegerWire,
+	},
+	block_timestamp: nearBlocksUnsignedDecimal,
+	included_in_block_hash: 'string > 0',
+	'nonce?': nearBlocksNonnegativeIntegerWire,
+	'outcomes?': {
+		'status?': 'boolean | null',
+	},
+	'outcomes_agg?': {
+		'gas_used?': nearBlocksNonnegativeIntegerWire,
+		'transaction_fee?': nearBlocksNonnegativeIntegerWire,
+	},
+	'receipt_conversion_gas_burnt?': nearBlocksUnsignedDecimal,
+	'receipt_conversion_tokens_burnt?': nearBlocksUnsignedDecimal,
+	receiver_account_id: 'string > 0',
+	'shard_id?': nearBlocksNonnegativeIntegerWire,
+	signer_account_id: 'string > 0',
+	transaction_hash: 'string > 0',
+})
+
+export type NearBlocksTransaction = typeof nearBlocksTransactionWire.infer
+
+export const nearBlocksTransactionResponseWire = arktype({
+	txns: nearBlocksTransactionWire.array(),
+})
+
+export type NearBlocksTransactionResponse = typeof nearBlocksTransactionResponseWire.infer
+
+export const nearBlocksV3ErrorWire = arktype({
+	message: 'string > 0',
+	'path?': 'string',
+})
+
+export type NearBlocksV3Error = typeof nearBlocksV3ErrorWire.infer
+
+export const nearBlocksV3AccountBalanceWire = arktype({
+	account_id: 'string > 0',
+	amount: nearBlocksUnsignedDecimal,
+	amount_staked: nearBlocksUnsignedDecimal,
+	storage_usage: nearBlocksUnsignedDecimal,
+})
+
+export type NearBlocksV3AccountBalance = typeof nearBlocksV3AccountBalanceWire.infer
+
+export const nearBlocksV3TransactionWire = arktype({
+	actions: arktype({
+		action: 'string > 0',
+		'method?': arktype('string > 0').or('null'),
+	}).array(),
 	actions_agg: {
-		deposit: string
-		gas_attached?: string
-	}
+		deposit: nearBlocksUnsignedDecimal,
+		'gas_attached?': nearBlocksUnsignedDecimal,
+	},
 	block: {
-		block_hash: string
-		block_height: string
-		block_timestamp: string
-	}
-	block_timestamp?: string
-	index_in_chunk: number
+		block_hash: 'string > 0',
+		block_height: nearBlocksUnsignedDecimal,
+		block_timestamp: nearBlocksUnsignedDecimal,
+	},
+	'block_timestamp?': nearBlocksUnsignedDecimal,
+	index_in_chunk: 'number.integer >= 0',
 	outcomes: {
-		status: boolean
-		status_key?: string
-	}
+		status: 'boolean',
+		'status_key?': 'string > 0',
+	},
 	outcomes_agg: {
-		gas_used?: string
-		transaction_fee: string
-	}
-	receipt_conversion_gas_burnt?: string
-	receipt_conversion_tokens_burnt?: string
-	receiver_account_id: string
-	shard_id: number
-	signer_account_id: string
-	transaction_hash: string
-}
+		'gas_used?': nearBlocksUnsignedDecimal,
+		transaction_fee: nearBlocksUnsignedDecimal,
+	},
+	'receipt_conversion_gas_burnt?': nearBlocksUnsignedDecimal,
+	'receipt_conversion_tokens_burnt?': nearBlocksUnsignedDecimal,
+	receiver_account_id: 'string > 0',
+	shard_id: 'number.integer >= 0',
+	signer_account_id: 'string > 0',
+	transaction_hash: 'string > 0',
+})
+
+export type NearBlocksV3Transaction = typeof nearBlocksV3TransactionWire.infer
+
+export const nearBlocksV3AccountBalanceResponseWire = arktype({
+	data: nearBlocksV3AccountBalanceWire.or('null'),
+	'errors?': nearBlocksV3ErrorWire.array(),
+	'meta?': {
+		'next_page?': 'string > 0',
+		'prev_page?': 'string > 0',
+	},
+})
+
+export const nearBlocksV3TransactionPageResponseWire = arktype({
+	data: nearBlocksV3TransactionWire.array().or('null'),
+	'errors?': nearBlocksV3ErrorWire.array(),
+	'meta?': {
+		'next_page?': 'string > 0',
+		'prev_page?': 'string > 0',
+	},
+})
 
 export type NearBlocksV3Response<_Data> = {
 	data: _Data | null

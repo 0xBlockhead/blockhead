@@ -1,21 +1,35 @@
 import { getJson as getNearBlocksRestJson } from '$/sources/_shared/wire/HttpRest/client.ts'
-import type {
-	NearBlocksAccount,
-	NearBlocksAccountResponse,
-	NearBlocksBlock,
-	NearBlocksBlockResponse,
-	NearBlocksTransaction,
-	NearBlocksTransactionResponse,
-	NearBlocksV3AccountBalance,
-	NearBlocksV3Response,
-	NearBlocksV3Transaction,
+import {
+	nearBlocksAccountResponseWire,
+	nearBlocksBlockResponseWire,
+	nearBlocksTransactionResponseWire,
+	nearBlocksV3AccountBalanceResponseWire,
+	nearBlocksV3TransactionPageResponseWire,
+	type NearBlocksAccount,
+	type NearBlocksBlock,
+	type NearBlocksTransaction,
+	type NearBlocksV3Response,
 } from '$/sources/NearBlocks/Rest/types.ts'
 import bindings from '$/sources/NearBlocks/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const getNearBlocksJson = <_Response>(path: string) => (
-	getNearBlocksRestJson<_Response>(bindings[Source.NearBlocks_Rest][0], path)
+const getNearBlocksJson = (
+	path: string
+) => (
+	getNearBlocksRestJson<unknown>(bindings[Source.NearBlocks_Rest][0], path)
 )
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`NearBlocks_Rest: invalid ${label} response envelope`)
+	}
+}
 
 const assertNonnegativeIntegerString = (
 	value: string,
@@ -85,9 +99,11 @@ const assertBlock = (
 	{
 		hash,
 		height,
+		requirePrevBlockHash = false,
 	}: {
 		hash?: string
 		height?: bigint
+		requirePrevBlockHash?: boolean
 	} = {}
 ) => {
 	assertNonemptyString(block.block_hash, 'block hash')
@@ -97,8 +113,16 @@ const assertBlock = (
 		throw new Error('NearBlocks_Rest: block hash does not match request')
 	if (height != null && blockHeight !== height)
 		throw new Error('NearBlocks_Rest: block height does not match request')
-	assertNonemptyString(block.prev_block_hash, 'previous block hash')
-	assertNonemptyString(block.epoch_id, 'epoch id')
+	if (requirePrevBlockHash) {
+		if (block.prev_block_hash == null)
+			throw new Error('NearBlocks_Rest: previous block hash missing')
+		assertNonemptyString(block.prev_block_hash, 'previous block hash')
+	} else if (block.prev_block_hash != null)
+		assertNonemptyString(block.prev_block_hash, 'previous block hash')
+	if (block.epoch_id != null)
+		assertNonemptyString(block.epoch_id, 'epoch id')
+	if (block.gas_price != null)
+		assertNonnegativeIntegerString(block.gas_price, 'block gas price')
 	return block
 }
 
@@ -143,10 +167,12 @@ export const getAccount = async ({
 	accountId: string
 }) => {
 	assertNonemptyString(accountId, 'account ID')
-	const response = await getNearBlocksJson<NearBlocksAccountResponse>(
-		`/v1/account/${encodeURIComponent(accountId)}`
+	const response = assertEnvelope(
+		'account',
+		nearBlocksAccountResponseWire,
+		await getNearBlocksJson(`/v1/account/${encodeURIComponent(accountId)}`)
 	)
-	const account = response.account?.[0]
+	const account = response.account[0]
 	if (account == null)
 		throw new Error(`NearBlocks_Rest: account ${accountId} not found`)
 	return assertAccount(account, accountId)
@@ -157,26 +183,64 @@ export const getBlock = async ({
 }: {
 	block: bigint | string
 }) => {
-	const response = await getNearBlocksJson<NearBlocksBlockResponse>(
-		`/v1/blocks/${encodeURIComponent(String(block))}`
+	const response = assertEnvelope(
+		'block',
+		nearBlocksBlockResponseWire,
+		await getNearBlocksJson(`/v1/blocks/${encodeURIComponent(String(block))}`)
 	)
-	const wireBlock = response.blocks?.[0]
+	const wireBlock = response.blocks[0]
 	if (wireBlock == null)
 		throw new Error(`NearBlocks_Rest: block ${String(block)} not found`)
 	return (
 		typeof block === 'bigint' ?
 			assertBlock(wireBlock, {
 				height: block,
+				requirePrevBlockHash: true,
 			})
 		: /^\d+$/.test(block) ?
 			assertBlock(wireBlock, {
 				height: BigInt(block),
+				requirePrevBlockHash: true,
 			})
 		:
 			assertBlock(wireBlock, {
 				hash: block,
+				requirePrevBlockHash: true,
 			})
 	)
+}
+
+export const listBlocks = async ({
+	limit,
+}: {
+	limit: number
+}) => {
+	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 100)
+		throw new Error('NearBlocks_Rest: block limit must be an integer from 0 through 100')
+	if (limit === 0)
+		return []
+
+	const response = assertEnvelope(
+		'blocks',
+		nearBlocksBlockResponseWire,
+		await getNearBlocksJson(`/v1/blocks?limit=${limit}`)
+	)
+	if (response.blocks.length > limit)
+		throw new Error('NearBlocks_Rest: block page exceeds requested limit')
+
+	const blockHashes = new Set<string>()
+	let previousHeight: bigint | undefined
+	return response.blocks.map((block) => {
+		const asserted = assertBlock(block)
+		const height = assertNonnegativeIntegerWire(asserted.block_height, 'block height')
+		if (blockHashes.has(asserted.block_hash))
+			throw new Error('NearBlocks_Rest: block page contains a duplicate hash')
+		blockHashes.add(asserted.block_hash)
+		if (previousHeight != null && height >= previousHeight)
+			throw new Error('NearBlocks_Rest: block page is not newest-first')
+		previousHeight = height
+		return asserted
+	})
 }
 
 export const getTransaction = async ({
@@ -185,10 +249,12 @@ export const getTransaction = async ({
 	transactionHash: string
 }) => {
 	assertNonemptyString(transactionHash, 'transaction hash')
-	const response = await getNearBlocksJson<NearBlocksTransactionResponse>(
-		`/v1/txns/${encodeURIComponent(transactionHash)}`
+	const response = assertEnvelope(
+		'transaction',
+		nearBlocksTransactionResponseWire,
+		await getNearBlocksJson(`/v1/txns/${encodeURIComponent(transactionHash)}`)
 	)
-	const transaction = response.txns?.[0]
+	const transaction = response.txns[0]
 	if (transaction == null)
 		throw new Error(`NearBlocks_Rest: transaction ${transactionHash} not found`)
 	return assertTransaction(transaction, transactionHash)
@@ -199,10 +265,15 @@ export const getAccountBalance = async (
 ) => {
 	assertNonemptyString(accountId, 'account ID')
 
-	const response = await getNearBlocksJson<NearBlocksV3Response<NearBlocksV3AccountBalance>>(
-		`/v3/accounts/${encodeURIComponent(accountId)}/balance`
+	const response = assertEnvelope(
+		'account balance',
+		nearBlocksV3AccountBalanceResponseWire,
+		await getNearBlocksJson(`/v3/accounts/${encodeURIComponent(accountId)}/balance`)
 	)
-	const balance = assertV3Success(response, `account balance ${accountId}`)
+	const balance = assertV3Success(
+		response,
+		`account balance ${accountId}`
+	)
 	if (balance.account_id !== accountId)
 		throw new Error('NearBlocks_Rest: account balance identity does not match request')
 	assertNonnegativeIntegerString(balance.amount, 'account amount')
@@ -237,10 +308,15 @@ export const getAccountTransactions = async (
 	if (next != null)
 		parameters.set('next', next)
 
-	const response = await getNearBlocksJson<NearBlocksV3Response<NearBlocksV3Transaction[]>>(
-		`/v3/accounts/${encodeURIComponent(accountId)}/txns?${parameters}`
+	const response = assertEnvelope(
+		'account transactions',
+		nearBlocksV3TransactionPageResponseWire,
+		await getNearBlocksJson(`/v3/accounts/${encodeURIComponent(accountId)}/txns?${parameters}`)
 	)
-	const transactions = assertV3Success(response, `account transactions ${accountId}`)
+	const transactions = assertV3Success(
+		response,
+		`account transactions ${accountId}`
+	)
 	if (transactions.length > limit)
 		throw new Error('NearBlocks_Rest: transaction page exceeds requested limit')
 

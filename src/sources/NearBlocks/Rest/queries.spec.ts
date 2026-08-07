@@ -28,6 +28,7 @@ const {
 	getAccountTransactions,
 	getBlock,
 	getTransaction,
+	listBlocks,
 } = await import('$/sources/NearBlocks/Rest/queries.ts')
 
 const binding = bindings[Source.NearBlocks_Rest][0]
@@ -47,6 +48,13 @@ const block = {
 	block_timestamp: '1784777079149554306',
 	prev_block_hash: 'prev-block-hash',
 	epoch_id: 'epoch-id',
+} satisfies NearBlocksBlock
+
+const blockWithoutEpoch = {
+	block_hash: 'block-hash',
+	block_height: '208137439',
+	block_timestamp: '1784777079149554306',
+	prev_block_hash: 'prev-block-hash',
 } satisfies NearBlocksBlock
 
 const transaction = {
@@ -142,7 +150,7 @@ describe('NearBlocks v1 entity transport', () => {
 		})
 		await expect(getAccount({
 			accountId: 'alice.near',
-		})).rejects.toThrow('invalid account amount')
+		})).rejects.toThrow('invalid account response envelope')
 
 		getNearBlocksRestJson.mockResolvedValueOnce({
 			account: [],
@@ -154,12 +162,12 @@ describe('NearBlocks v1 entity transport', () => {
 
 	it('loads blocks by height or hash and rejects selector mismatches', async () => {
 		getNearBlocksRestJson.mockResolvedValueOnce({
-			blocks: [block],
+			blocks: [blockWithoutEpoch],
 		} satisfies NearBlocksBlockResponse)
 
 		await expect(getBlock({
 			block: 208137439n,
-		})).resolves.toEqual(block)
+		})).resolves.toEqual(blockWithoutEpoch)
 		expect(getNearBlocksRestJson).toHaveBeenCalledWith(
 			binding,
 			'/v1/blocks/208137439'
@@ -174,7 +182,7 @@ describe('NearBlocks v1 entity transport', () => {
 
 		getNearBlocksRestJson.mockResolvedValueOnce({
 			blocks: [{
-				...block,
+				...blockWithoutEpoch,
 				block_height: '1',
 			}],
 		})
@@ -184,7 +192,7 @@ describe('NearBlocks v1 entity transport', () => {
 
 		getNearBlocksRestJson.mockResolvedValueOnce({
 			blocks: [{
-				...block,
+				...blockWithoutEpoch,
 				block_hash: 'other-hash',
 			}],
 		})
@@ -194,23 +202,79 @@ describe('NearBlocks v1 entity transport', () => {
 
 		getNearBlocksRestJson.mockResolvedValueOnce({
 			blocks: [{
-				...block,
+				...blockWithoutEpoch,
 				prev_block_hash: '',
 			}],
 		})
 		await expect(getBlock({
 			block: 208137439n,
-		})).rejects.toThrow('previous block hash must not be empty')
+		})).rejects.toThrow('invalid block response envelope')
 
 		getNearBlocksRestJson.mockResolvedValueOnce({
 			blocks: [{
-				...block,
-				epoch_id: '',
+				block_hash: 'block-hash',
+				block_height: '208137439',
+				block_timestamp: '1784777079149554306',
 			}],
 		})
 		await expect(getBlock({
 			block: 208137439n,
-		})).rejects.toThrow('epoch id must not be empty')
+		})).rejects.toThrow('previous block hash missing')
+	})
+
+	it('lists newest-first tip blocks and fails closed on envelope drift', async () => {
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			blocks: [
+				{
+					block_hash: 'newer-hash',
+					block_height: '208137440',
+					block_timestamp: '1784777079149554307',
+				},
+				{
+					block_hash: 'older-hash',
+					block_height: '208137439',
+					block_timestamp: '1784777079149554306',
+				},
+			],
+		} satisfies NearBlocksBlockResponse)
+
+		await expect(listBlocks({
+			limit: 2,
+		})).resolves.toHaveLength(2)
+		expect(getNearBlocksRestJson).toHaveBeenCalledWith(
+			binding,
+			'/v1/blocks?limit=2'
+		)
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			blocks: [
+				{
+					block_hash: 'older-hash',
+					block_height: '208137439',
+					block_timestamp: '1784777079149554306',
+				},
+				{
+					block_hash: 'newer-hash',
+					block_height: '208137440',
+					block_timestamp: '1784777079149554307',
+				},
+			],
+		})
+		await expect(listBlocks({
+			limit: 2,
+		})).rejects.toThrow('not newest-first')
+
+		getNearBlocksRestJson.mockResolvedValueOnce({
+			blocks: 'nope',
+		})
+		await expect(listBlocks({
+			limit: 1,
+		})).rejects.toThrow('invalid blocks response envelope')
+
+		await expect(listBlocks({
+			limit: 0,
+		})).resolves.toEqual([])
+		expect(getNearBlocksRestJson).toHaveBeenCalledTimes(3)
 	})
 
 	it('loads transactions and rejects missing actions or hash drift', async () => {
@@ -246,7 +310,7 @@ describe('NearBlocks v1 entity transport', () => {
 		})
 		await expect(getTransaction({
 			transactionHash: 'transaction-hash',
-		})).rejects.toThrow('action kind must not be empty')
+		})).rejects.toThrow('invalid transaction response envelope')
 
 		getNearBlocksRestJson.mockResolvedValueOnce({
 			txns: [{
@@ -256,7 +320,7 @@ describe('NearBlocks v1 entity transport', () => {
 		})
 		await expect(getTransaction({
 			transactionHash: 'transaction-hash',
-		})).rejects.toThrow('included block hash must not be empty')
+		})).rejects.toThrow('invalid transaction response envelope')
 
 		getNearBlocksRestJson.mockResolvedValueOnce({
 			txns: [{
@@ -408,7 +472,7 @@ describe('NearBlocks v3 account portfolio transport', () => {
 			await expect(getAccountTransactions({
 				accountId: 'alice.near',
 				limit: 25,
-			})).rejects.toThrow(/malformed identity|does not match|invalid receipt conversion/)
+			})).rejects.toThrow(/invalid account transactions response envelope|does not match|invalid receipt conversion/)
 		}
 	})
 
@@ -452,7 +516,7 @@ describe('NearBlocks v3 account portfolio transport', () => {
 			},
 		})
 		await expect(getAccountBalance('alice.near')).rejects.toThrow(
-			'invalid account amount'
+			'invalid account balance response envelope'
 		)
 	})
 })
