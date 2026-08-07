@@ -208,6 +208,43 @@ const assertMarketInfoWire = (
 		:
 			undefined
 	)
+	const maxLongPoolUsdForDeposit = optionalNonEmptyDecimalString(wire.maxLongPoolUsdForDeposit)
+	const maxShortPoolUsdForDeposit = optionalNonEmptyDecimalString(wire.maxShortPoolUsdForDeposit)
+	const openInterestReserveFactorLong = optionalNonEmptyDecimalString(wire.openInterestReserveFactorLong)
+	const openInterestReserveFactorShort = optionalNonEmptyDecimalString(wire.openInterestReserveFactorShort)
+	const fundingFactor = optionalNonEmptyDecimalString(wire.fundingFactor)
+	const fundingExponentFactor = optionalNonEmptyDecimalString(wire.fundingExponentFactor)
+	const minFundingFactorPerSecond = optionalNonEmptyDecimalString(wire.minFundingFactorPerSecond)
+	const maxFundingFactorPerSecond = optionalNonEmptyDecimalString(wire.maxFundingFactorPerSecond)
+	const thresholdForDecreaseFunding = optionalNonEmptyDecimalString(wire.thresholdForDecreaseFunding)
+	const thresholdForStableFunding = optionalNonEmptyDecimalString(wire.thresholdForStableFunding)
+	const borrowingFactorLong = optionalNonEmptyDecimalString(wire.borrowingFactorLong)
+	const borrowingFactorShort = optionalNonEmptyDecimalString(wire.borrowingFactorShort)
+	const borrowingExponentFactorLong = optionalNonEmptyDecimalString(wire.borrowingExponentFactorLong)
+	const borrowingExponentFactorShort = optionalNonEmptyDecimalString(wire.borrowingExponentFactorShort)
+	const maxPnlFactorForTradersLong = optionalNonEmptyDecimalString(wire.maxPnlFactorForTradersLong)
+	const maxPnlFactorForTradersShort = optionalNonEmptyDecimalString(wire.maxPnlFactorForTradersShort)
+	const minCollateralFactorForOpenInterestLong = optionalNonEmptyDecimalString(wire.minCollateralFactorForOpenInterestLong)
+	const minCollateralFactorForOpenInterestShort = optionalNonEmptyDecimalString(wire.minCollateralFactorForOpenInterestShort)
+	const swapFeeFactorForBalanceWasImproved = optionalNonEmptyDecimalString(wire.swapFeeFactorForBalanceWasImproved)
+	const swapFeeFactorForBalanceWasNotImproved = optionalNonEmptyDecimalString(wire.swapFeeFactorForBalanceWasNotImproved)
+	const atomicSwapFeeFactor = optionalNonEmptyDecimalString(wire.atomicSwapFeeFactor)
+	const swapImpactFactorPositive = optionalNonEmptyDecimalString(wire.swapImpactFactorPositive)
+	const swapImpactFactorNegative = optionalNonEmptyDecimalString(wire.swapImpactFactorNegative)
+	const swapImpactExponentFactor = optionalNonEmptyDecimalString(wire.swapImpactExponentFactor)
+	const positionFeeFactorForBalanceWasImproved = optionalNonEmptyDecimalString(wire.positionFeeFactorForBalanceWasImproved)
+	const positionFeeFactorForBalanceWasNotImproved = optionalNonEmptyDecimalString(wire.positionFeeFactorForBalanceWasNotImproved)
+	const maxPositionImpactFactorPositive = optionalNonEmptyDecimalString(wire.maxPositionImpactFactorPositive)
+	const maxPositionImpactFactorNegative = optionalNonEmptyDecimalString(wire.maxPositionImpactFactorNegative)
+	const maxPositionImpactFactorForLiquidations = optionalNonEmptyDecimalString(wire.maxPositionImpactFactorForLiquidations)
+	const positionImpactExponentFactorPositive = optionalNonEmptyDecimalString(wire.positionImpactExponentFactorPositive)
+	const positionImpactExponentFactorNegative = optionalNonEmptyDecimalString(wire.positionImpactExponentFactorNegative)
+	const lentPositionImpactPoolAmount = optionalNonEmptyDecimalString(wire.lentPositionImpactPoolAmount)
+	const maxLendableImpactUsd = optionalNonEmptyDecimalString(wire.maxLendableImpactUsd)
+	const maxLendableImpactFactor = optionalNonEmptyDecimalString(wire.maxLendableImpactFactor)
+	const maxLendableImpactFactorForWithdrawals = optionalNonEmptyDecimalString(wire.maxLendableImpactFactorForWithdrawals)
+	const positionImpactPoolDistributionRate = optionalNonEmptyDecimalString(wire.positionImpactPoolDistributionRate)
+	const minPositionImpactPoolAmount = optionalNonEmptyDecimalString(wire.minPositionImpactPoolAmount)
 
 	return {
 		chainId,
@@ -346,6 +383,120 @@ const assertMarketInfoWire = (
 		...(virtualShortTokenId != null && {
 			virtualShortTokenId,
 		}),
+		...(maxLongPoolUsdForDeposit != null && {
+			maxLongPoolUsdForDeposit,
+		}),
+		...(maxShortPoolUsdForDeposit != null && {
+			maxShortPoolUsdForDeposit,
+		}),
+		...(openInterestReserveFactorLong != null && {
+			openInterestReserveFactorLong,
+		}),
+		...(openInterestReserveFactorShort != null && {
+			openInterestReserveFactorShort,
+		}),
+		...(fundingFactor != null && {
+			fundingFactor,
+		}),
+		...(fundingExponentFactor != null && {
+			fundingExponentFactor,
+		}),
+		...(minFundingFactorPerSecond != null && {
+			minFundingFactorPerSecond,
+		}),
+		...(maxFundingFactorPerSecond != null && {
+			maxFundingFactorPerSecond,
+		}),
+		...(thresholdForDecreaseFunding != null && {
+			thresholdForDecreaseFunding,
+		}),
+		...(thresholdForStableFunding != null && {
+			thresholdForStableFunding,
+		}),
+		...(borrowingFactorLong != null && {
+			borrowingFactorLong,
+		}),
+		...(borrowingFactorShort != null && {
+			borrowingFactorShort,
+		}),
+		...(borrowingExponentFactorLong != null && {
+			borrowingExponentFactorLong,
+		}),
+		...(borrowingExponentFactorShort != null && {
+			borrowingExponentFactorShort,
+		}),
+		...(maxPnlFactorForTradersLong != null && {
+			maxPnlFactorForTradersLong,
+		}),
+		...(maxPnlFactorForTradersShort != null && {
+			maxPnlFactorForTradersShort,
+		}),
+		...(minCollateralFactorForOpenInterestLong != null && {
+			minCollateralFactorForOpenInterestLong,
+		}),
+		...(minCollateralFactorForOpenInterestShort != null && {
+			minCollateralFactorForOpenInterestShort,
+		}),
+		...(swapFeeFactorForBalanceWasImproved != null && {
+			swapFeeFactorForBalanceWasImproved,
+		}),
+		...(swapFeeFactorForBalanceWasNotImproved != null && {
+			swapFeeFactorForBalanceWasNotImproved,
+		}),
+		...(atomicSwapFeeFactor != null && {
+			atomicSwapFeeFactor,
+		}),
+		...(swapImpactFactorPositive != null && {
+			swapImpactFactorPositive,
+		}),
+		...(swapImpactFactorNegative != null && {
+			swapImpactFactorNegative,
+		}),
+		...(swapImpactExponentFactor != null && {
+			swapImpactExponentFactor,
+		}),
+		...(positionFeeFactorForBalanceWasImproved != null && {
+			positionFeeFactorForBalanceWasImproved,
+		}),
+		...(positionFeeFactorForBalanceWasNotImproved != null && {
+			positionFeeFactorForBalanceWasNotImproved,
+		}),
+		...(maxPositionImpactFactorPositive != null && {
+			maxPositionImpactFactorPositive,
+		}),
+		...(maxPositionImpactFactorNegative != null && {
+			maxPositionImpactFactorNegative,
+		}),
+		...(maxPositionImpactFactorForLiquidations != null && {
+			maxPositionImpactFactorForLiquidations,
+		}),
+		...(positionImpactExponentFactorPositive != null && {
+			positionImpactExponentFactorPositive,
+		}),
+		...(positionImpactExponentFactorNegative != null && {
+			positionImpactExponentFactorNegative,
+		}),
+		...(lentPositionImpactPoolAmount != null && {
+			lentPositionImpactPoolAmount,
+		}),
+		...(maxLendableImpactUsd != null && {
+			maxLendableImpactUsd,
+		}),
+		...(maxLendableImpactFactor != null && {
+			maxLendableImpactFactor,
+		}),
+		...(maxLendableImpactFactorForWithdrawals != null && {
+			maxLendableImpactFactorForWithdrawals,
+		}),
+		...(positionImpactPoolDistributionRate != null && {
+			positionImpactPoolDistributionRate,
+		}),
+		...(minPositionImpactPoolAmount != null && {
+			minPositionImpactPoolAmount,
+		}),
+		...(wire.useOpenInterestInTokensForBalance === true || wire.useOpenInterestInTokensForBalance === false) && {
+			useOpenInterestInTokensForBalance: wire.useOpenInterestInTokensForBalance,
+		},
 	}
 }
 

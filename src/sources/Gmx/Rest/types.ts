@@ -60,6 +60,44 @@ export type GmxMarketInfoWire = {
 	virtualMarketId?: string
 	virtualLongTokenId?: string
 	virtualShortTokenId?: string
+	maxLongPoolUsdForDeposit?: string
+	maxShortPoolUsdForDeposit?: string
+	openInterestReserveFactorLong?: string
+	openInterestReserveFactorShort?: string
+	fundingFactor?: string
+	fundingExponentFactor?: string
+	minFundingFactorPerSecond?: string
+	maxFundingFactorPerSecond?: string
+	thresholdForDecreaseFunding?: string
+	thresholdForStableFunding?: string
+	borrowingFactorLong?: string
+	borrowingFactorShort?: string
+	borrowingExponentFactorLong?: string
+	borrowingExponentFactorShort?: string
+	maxPnlFactorForTradersLong?: string
+	maxPnlFactorForTradersShort?: string
+	minCollateralFactorForOpenInterestLong?: string
+	minCollateralFactorForOpenInterestShort?: string
+	swapFeeFactorForBalanceWasImproved?: string
+	swapFeeFactorForBalanceWasNotImproved?: string
+	atomicSwapFeeFactor?: string
+	swapImpactFactorPositive?: string
+	swapImpactFactorNegative?: string
+	swapImpactExponentFactor?: string
+	positionFeeFactorForBalanceWasImproved?: string
+	positionFeeFactorForBalanceWasNotImproved?: string
+	maxPositionImpactFactorPositive?: string
+	maxPositionImpactFactorNegative?: string
+	maxPositionImpactFactorForLiquidations?: string
+	positionImpactExponentFactorPositive?: string
+	positionImpactExponentFactorNegative?: string
+	lentPositionImpactPoolAmount?: string
+	maxLendableImpactUsd?: string
+	maxLendableImpactFactor?: string
+	maxLendableImpactFactorForWithdrawals?: string
+	positionImpactPoolDistributionRate?: string
+	minPositionImpactPoolAmount?: string
+	useOpenInterestInTokensForBalance?: boolean
 	data?: string
 }
 
@@ -159,6 +197,82 @@ export type GmxMarketInfo = {
 	virtualLongTokenId?: string
 	/** Transport-only — not enrolled on `GmxMarket`. */
 	virtualShortTokenId?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxLongPoolUsdForDeposit?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxShortPoolUsdForDeposit?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	openInterestReserveFactorLong?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	openInterestReserveFactorShort?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	fundingFactor?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	fundingExponentFactor?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	minFundingFactorPerSecond?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxFundingFactorPerSecond?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	thresholdForDecreaseFunding?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	thresholdForStableFunding?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	borrowingFactorLong?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	borrowingFactorShort?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	borrowingExponentFactorLong?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	borrowingExponentFactorShort?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxPnlFactorForTradersLong?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxPnlFactorForTradersShort?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	minCollateralFactorForOpenInterestLong?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	minCollateralFactorForOpenInterestShort?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	swapFeeFactorForBalanceWasImproved?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	swapFeeFactorForBalanceWasNotImproved?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	atomicSwapFeeFactor?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	swapImpactFactorPositive?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	swapImpactFactorNegative?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	swapImpactExponentFactor?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	positionFeeFactorForBalanceWasImproved?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	positionFeeFactorForBalanceWasNotImproved?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxPositionImpactFactorPositive?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxPositionImpactFactorNegative?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxPositionImpactFactorForLiquidations?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	positionImpactExponentFactorPositive?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	positionImpactExponentFactorNegative?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	lentPositionImpactPoolAmount?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxLendableImpactUsd?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxLendableImpactFactor?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxLendableImpactFactorForWithdrawals?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	positionImpactPoolDistributionRate?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	minPositionImpactPoolAmount?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	useOpenInterestInTokensForBalance?: boolean
 }
 
 /**
@@ -325,6 +439,44 @@ export const gmxMarketInfoEnvelope = arktype({
 	'virtualMarketId?': 'string',
 	'virtualLongTokenId?': 'string',
 	'virtualShortTokenId?': 'string',
+	'maxLongPoolUsdForDeposit?': 'string',
+	'maxShortPoolUsdForDeposit?': 'string',
+	'openInterestReserveFactorLong?': 'string',
+	'openInterestReserveFactorShort?': 'string',
+	'fundingFactor?': 'string',
+	'fundingExponentFactor?': 'string',
+	'minFundingFactorPerSecond?': 'string',
+	'maxFundingFactorPerSecond?': 'string',
+	'thresholdForDecreaseFunding?': 'string',
+	'thresholdForStableFunding?': 'string',
+	'borrowingFactorLong?': 'string',
+	'borrowingFactorShort?': 'string',
+	'borrowingExponentFactorLong?': 'string',
+	'borrowingExponentFactorShort?': 'string',
+	'maxPnlFactorForTradersLong?': 'string',
+	'maxPnlFactorForTradersShort?': 'string',
+	'minCollateralFactorForOpenInterestLong?': 'string',
+	'minCollateralFactorForOpenInterestShort?': 'string',
+	'swapFeeFactorForBalanceWasImproved?': 'string',
+	'swapFeeFactorForBalanceWasNotImproved?': 'string',
+	'atomicSwapFeeFactor?': 'string',
+	'swapImpactFactorPositive?': 'string',
+	'swapImpactFactorNegative?': 'string',
+	'swapImpactExponentFactor?': 'string',
+	'positionFeeFactorForBalanceWasImproved?': 'string',
+	'positionFeeFactorForBalanceWasNotImproved?': 'string',
+	'maxPositionImpactFactorPositive?': 'string',
+	'maxPositionImpactFactorNegative?': 'string',
+	'maxPositionImpactFactorForLiquidations?': 'string',
+	'positionImpactExponentFactorPositive?': 'string',
+	'positionImpactExponentFactorNegative?': 'string',
+	'lentPositionImpactPoolAmount?': 'string',
+	'maxLendableImpactUsd?': 'string',
+	'maxLendableImpactFactor?': 'string',
+	'maxLendableImpactFactorForWithdrawals?': 'string',
+	'positionImpactPoolDistributionRate?': 'string',
+	'minPositionImpactPoolAmount?': 'string',
+	'useOpenInterestInTokensForBalance?': 'boolean',
 	'data?': 'string',
 })
 
