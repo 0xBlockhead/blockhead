@@ -3,7 +3,6 @@ import { NonNegativeDecimalString } from '$/schema/NonNegativeDecimalString.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Dydx/bindings.ts'
-import type { components } from '$/sources/Dydx/OpenApi/openapi.d.ts'
 import {
 	dydxAddressPattern,
 	dydxIndexerRestPathPrefix,
@@ -13,10 +12,21 @@ import {
 	dydxPerpetualMarketsResponseMax,
 	dydxSubaccountNumberMax,
 } from '$/sources/Dydx/Rest/constants.ts'
+import {
+	dydxFillResponseWire,
+	dydxFillsResponseWire,
+	dydxHeightResponseWire,
+	dydxHistoricalFundingResponseWire,
+	dydxOrderResponseWire,
+	dydxOrdersResponseWire,
+	dydxPerpetualMarketsResponseWire,
+	dydxPerpetualPositionsResponseWire,
+	dydxSubaccountResponseWire,
+	type DydxPerpetualPosition,
+} from '$/sources/Dydx/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily } from '$/sources/SourceBinding.ts'
 
-type DydxPerpetualPosition = components['schemas']['PerpetualPositionResponseObject']
 
 const binding = bindings[Source.DydxIndexer].find(
 	({ apiFamily }) => apiFamily === ApiFamily.OpenApiHttp
@@ -24,6 +34,20 @@ const binding = bindings[Source.DydxIndexer].find(
 
 if (binding == null)
 	throw new Error('DydxIndexer_Rest: OpenAPI binding is missing')
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: {
+		assert: (value: unknown) => _Value
+	},
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`DydxIndexer_Rest: invalid ${label} envelope`)
+	}
+}
 
 const assertSubaccount = ({
 	address,
@@ -117,14 +141,48 @@ const assertPosition = (
 		assertNonNegativeDecimal(value, field)
 }
 
+const assertOrderDecimals = (
+	order: typeof dydxOrderResponseWire.infer
+) => {
+	for (const [field, value] of Object.entries({
+		price: order.price,
+		size: order.size,
+		totalFilled: order.totalFilled,
+	}))
+		assertNonNegativeDecimal(value, field)
+}
+
+const assertFillDecimals = (
+	fill: typeof dydxFillResponseWire.infer
+) => {
+	assertHeight(fill.createdAtHeight)
+	for (const [field, value] of Object.entries({
+		fee: fill.fee,
+	}))
+		assertDecimal(value, field)
+
+	for (const [field, value] of Object.entries({
+		price: fill.price,
+		size: fill.size,
+		affiliateRevShare: fill.affiliateRevShare,
+	}))
+		assertNonNegativeDecimal(value, field)
+}
+
 export const getHeight = async () => {
 	const observation = await observeResponse(
-		sourceGetJson<components['schemas']['HeightResponse']>(
+		sourceGetJson(
 			binding,
 			httpUrl(binding, `${dydxIndexerRestPathPrefix}/height`)
 		)
+			.then((response) => (
+				assertEnvelope(
+					'height',
+					dydxHeightResponseWire,
+					response
+				)
+			))
 	)
-	assertHeight(observation.value.height)
 	if (!Number.isFinite(Date.parse(observation.value.time)))
 		throw new Error('DydxIndexer_Rest: invalid height time')
 
@@ -135,18 +193,25 @@ export const getPerpetualMarkets = async ({
 	ticker,
 }: {
 	ticker?: string
-}) => {
+} = {}) => {
 	if (ticker != null && !dydxMarketTickerPattern.test(ticker))
 		throw new Error(`DydxIndexer_Rest: invalid market ticker ${ticker}`)
 
 	const observation = await observeResponse(
-		sourceGetJson<components['schemas']['PerpetualMarketResponse']>(
+		sourceGetJson(
 			binding,
 			httpUrl(
 				binding,
 				`${dydxIndexerRestPathPrefix}/perpetualMarkets${ticker == null ? '' : `?ticker=${encodeURIComponent(ticker)}`}`
 			)
 		)
+			.then((response) => (
+				assertEnvelope(
+					'perpetual markets',
+					dydxPerpetualMarketsResponseWire,
+					response
+				)
+			))
 	)
 	if (Object.keys(observation.value.markets).length > dydxPerpetualMarketsResponseMax)
 		throw new Error('DydxIndexer_Rest: perpetual market response exceeds bound')
@@ -178,6 +243,50 @@ export const getPerpetualMarkets = async ({
 	return observation
 }
 
+export const getHistoricalFunding = async ({
+	ticker,
+	limit = 100,
+}: {
+	ticker: string
+	limit?: number
+}) => {
+	if (!dydxMarketTickerPattern.test(ticker))
+		throw new Error(`DydxIndexer_Rest: invalid market ticker ${ticker}`)
+	assertLimit(limit)
+
+	const observation = await observeResponse(
+		sourceGetJson(
+			binding,
+			httpUrl(
+				binding,
+				`${dydxIndexerRestPathPrefix}/historicalFunding/${encodeURIComponent(ticker)}?limit=${limit}`
+			)
+		)
+			.then((response) => (
+				assertEnvelope(
+					'historical funding',
+					dydxHistoricalFundingResponseWire,
+					response
+				)
+			))
+			.then(({ historicalFunding }) => historicalFunding)
+	)
+	if (observation.value.length > limit)
+		throw new Error('DydxIndexer_Rest: historical funding response exceeds requested limit')
+
+	for (const funding of observation.value) {
+		if (funding.ticker !== ticker)
+			throw new Error('DydxIndexer_Rest: mismatched historical funding ticker')
+		assertHeight(funding.effectiveAtHeight)
+		if (!Number.isFinite(Date.parse(funding.effectiveAt)))
+			throw new Error('DydxIndexer_Rest: invalid historical funding effectiveAt')
+		assertDecimal(funding.rate, 'rate')
+		assertNonNegativeDecimal(funding.price, 'price')
+	}
+
+	return observation
+}
+
 export const getSubaccount = async ({
 	address,
 	subaccountNumber,
@@ -190,13 +299,20 @@ export const getSubaccount = async ({
 		subaccountNumber,
 	})
 	const observation = await observeResponse(
-		sourceGetJson<components['schemas']['SubaccountResponseObject']>(
+		sourceGetJson(
 			binding,
 			httpUrl(
 				binding,
 				`${dydxIndexerRestPathPrefix}/addresses/${encodeURIComponent(address)}/subaccountNumber/${subaccountNumber}`
 			)
 		)
+			.then((response) => (
+				assertEnvelope(
+					'subaccount',
+					dydxSubaccountResponseWire,
+					response
+				)
+			))
 	)
 	if (
 		observation.value.address !== address
@@ -229,10 +345,17 @@ export const getOrders = async ({
 		limit,
 	})
 	const observation = await observeResponse(
-		sourceGetJson<components['schemas']['OrderResponseObject'][]>(
+		sourceGetJson(
 			binding,
 			httpUrl(binding, `${dydxIndexerRestPathPrefix}/orders?${query}`)
 		)
+			.then((response) => (
+				assertEnvelope(
+					'orders',
+					dydxOrdersResponseWire,
+					response
+				)
+			))
 	)
 	if (observation.value.length > limit)
 		throw new Error('DydxIndexer_Rest: order response exceeds requested limit')
@@ -240,13 +363,36 @@ export const getOrders = async ({
 	for (const order of observation.value) {
 		if (order.subaccountNumber !== subaccountNumber)
 			throw new Error('DydxIndexer_Rest: foreign subaccount order')
-		for (const [field, value] of Object.entries({
-			price: order.price,
-			size: order.size,
-			totalFilled: order.totalFilled,
-		}))
-			assertNonNegativeDecimal(value, field)
+		assertOrderDecimals(order)
 	}
+
+	return observation
+}
+
+export const getOrder = async ({
+	orderId,
+}: {
+	orderId: string
+}) => {
+	if (orderId === '')
+		throw new Error('DydxIndexer_Rest: invalid order id')
+
+	const observation = await observeResponse(
+		sourceGetJson(
+			binding,
+			httpUrl(binding, `${dydxIndexerRestPathPrefix}/orders/${encodeURIComponent(orderId)}`)
+		)
+			.then((response) => (
+				assertEnvelope(
+					'order',
+					dydxOrderResponseWire,
+					response
+				)
+			))
+	)
+	if (observation.value.id !== orderId)
+		throw new Error('DydxIndexer_Rest: mismatched order identity')
+	assertOrderDecimals(observation.value)
 
 	return observation
 }
@@ -269,10 +415,17 @@ export const getFills = async ({
 		createdBeforeOrAtHeight,
 	})
 	const observation = await observeResponse(
-		sourceGetJson<components['schemas']['FillResponse']>(
+		sourceGetJson(
 			binding,
 			httpUrl(binding, `${dydxIndexerRestPathPrefix}/fills?${query}`)
 		)
+			.then((response) => (
+				assertEnvelope(
+					'fills',
+					dydxFillsResponseWire,
+					response
+				)
+			))
 			.then(({ fills }) => fills)
 	)
 	if (observation.value.length > limit)
@@ -281,18 +434,7 @@ export const getFills = async ({
 	for (const fill of observation.value) {
 		if (fill.subaccountNumber !== subaccountNumber)
 			throw new Error('DydxIndexer_Rest: foreign subaccount fill')
-		assertHeight(fill.createdAtHeight)
-		for (const [field, value] of Object.entries({
-			fee: fill.fee,
-		}))
-			assertDecimal(value, field)
-
-		for (const [field, value] of Object.entries({
-			price: fill.price,
-			size: fill.size,
-			affiliateRevShare: fill.affiliateRevShare,
-		}))
-			assertNonNegativeDecimal(value, field)
+		assertFillDecimals(fill)
 	}
 
 	return observation
@@ -316,10 +458,17 @@ export const getPerpetualPositions = async ({
 		createdBeforeOrAtHeight,
 	})
 	const observation = await observeResponse(
-		sourceGetJson<components['schemas']['PerpetualPositionResponse']>(
+		sourceGetJson(
 			binding,
 			httpUrl(binding, `${dydxIndexerRestPathPrefix}/perpetualPositions?${query}`)
 		)
+			.then((response) => (
+				assertEnvelope(
+					'perpetual positions',
+					dydxPerpetualPositionsResponseWire,
+					response
+				)
+			))
 			.then(({ positions }) => positions)
 	)
 	if (observation.value.length > limit)

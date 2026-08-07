@@ -11,6 +11,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import { dydxNextFundingAtMs } from '$/sources/Dydx/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
@@ -22,6 +23,7 @@ type DydxLiveMarket = {
 
 type DydxLiveMarketObservation = {
 	fundingRate?: string
+	nextFundingAtMs?: number
 	openInterest?: string
 	oraclePrice?: string
 	status?: string
@@ -55,6 +57,15 @@ const dydxSubaccountApplicability = [
 	},
 	{
 		$network: dydxNetworkApplicability[1],
+	},
+] as const
+
+const dydxOrderApplicability = [
+	{
+		$subaccount: dydxSubaccountApplicability[0],
+	},
+	{
+		$subaccount: dydxSubaccountApplicability[1],
 	},
 ] as const
 
@@ -101,6 +112,112 @@ const assetsFromTicker = (ticker: string) => {
 		quoteAsset: ticker.slice(separatorIndex + 1),
 	}
 }
+
+const marginUsageFromEquity = ({
+	equity,
+	freeCollateral,
+}: {
+	equity: string
+	freeCollateral: string
+}) => {
+	const equityNumber = Number(equity)
+	const freeCollateralNumber = Number(freeCollateral)
+	if (
+		!Number.isFinite(equityNumber)
+		|| !Number.isFinite(freeCollateralNumber)
+		|| equityNumber === 0
+	)
+		return
+
+	return (equityNumber - freeCollateralNumber) / equityNumber
+}
+
+type DydxOrderWire = {
+	clientId: string
+	createdAt?: string
+	createdAtHeight?: string
+	goodTilBlock?: string
+	goodTilBlockTime?: string
+	id: string
+	price: string
+	side: string
+	size: string
+	status: string
+	ticker: string
+	timeInForce: string
+	totalFilled: string
+	type: string
+	updatedAt?: string
+	updatedAtHeight?: string
+}
+
+const projectOrderTimestamps = (
+	order: DydxOrderWire,
+	subaccount: DydxSubaccountId,
+	observedAtMs: number
+) => [{
+	[EntityMetaKey.Selector]: {
+		$order: {
+			$subaccount: subaccount,
+			orderId: order.id,
+		},
+		timestampMs: (
+			order.updatedAt != null ?
+				parseTimestampMs(order.updatedAt, 'updatedAt')
+			: order.createdAt != null ?
+				parseTimestampMs(order.createdAt, 'createdAt')
+			:
+				observedAtMs
+		),
+		source: Source.DydxIndexer,
+	},
+	[EntityMetaKey.Fields]: {
+		...(order.updatedAtHeight != null && {
+			[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'blockHeight')]: BigInt(order.updatedAtHeight),
+		}),
+		...(order.updatedAtHeight == null && order.createdAtHeight != null && {
+			[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'blockHeight')]: BigInt(order.createdAtHeight),
+		}),
+		[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'status')]: order.status,
+		[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'price')]: order.price,
+		[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'size')]: order.size,
+		[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'totalFilled')]: order.totalFilled,
+	},
+}]
+
+const projectOrderFields = (
+	order: DydxOrderWire,
+	subaccount: DydxSubaccountId,
+	observedAtMs: number
+) => ({
+	[EntityMetaKey.Selector]: {
+		$subaccount: subaccount,
+		orderId: order.id,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.DydxChainOrder, [], '$market')]: {
+			[EntityMetaKey.Selector]: {
+				$network: subaccount.$network,
+				ticker: order.ticker,
+			},
+		},
+		[entityFieldAddressKey(EntityType.DydxChainOrder, [], 'side')]: order.side,
+		[entityFieldAddressKey(EntityType.DydxChainOrder, [], 'orderType')]: order.type,
+		[entityFieldAddressKey(EntityType.DydxChainOrder, [], 'timeInForce')]: order.timeInForce,
+		[entityFieldAddressKey(EntityType.DydxChainOrder, [], 'clientId')]: order.clientId,
+		...(order.goodTilBlock != null && {
+			[entityFieldAddressKey(EntityType.DydxChainOrder, [], 'goodTilBlock')]: BigInt(order.goodTilBlock),
+		}),
+		...(order.goodTilBlockTime != null && {
+			[entityFieldAddressKey(EntityType.DydxChainOrder, [], 'goodTilBlockTimeMs')]: parseTimestampMs(order.goodTilBlockTime, 'goodTilBlockTime'),
+		}),
+		[entityFieldAddressKey(EntityType.DydxChainOrder, [], '$$timestamps')]: projectOrderTimestamps(
+			order,
+			subaccount,
+			observedAtMs
+		),
+	},
+})
 
 export const dydxChainNetworkResolver = defineResolver({
 	entityType: EntityType.DydxChainNetwork,
@@ -218,6 +335,9 @@ export const dydxChainNetworkResolver = defineResolver({
 												...(observation.fundingRate !== undefined && {
 													[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'fundingRate')]: observation.fundingRate,
 												}),
+												...(observation.nextFundingAtMs !== undefined && {
+													[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'nextFundingAtMs')]: observation.nextFundingAtMs,
+												}),
 												...(observation.openInterest !== undefined && {
 													[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'openInterest')]: observation.openInterest,
 												}),
@@ -266,6 +386,7 @@ export const dydxChainNetworkResolver = defineResolver({
 										})
 										observationsByTicker.set(ticker, new Map([[timestampMs, {
 											fundingRate: market.nextFundingRate,
+											nextFundingAtMs: dydxNextFundingAtMs(timestampMs),
 											openInterest: market.openInterest,
 											oraclePrice: market.oraclePrice,
 											status: market.status,
@@ -313,6 +434,7 @@ export const dydxChainNetworkResolver = defineResolver({
 											...observationsByTimestamp.get(timestampMs),
 											...(update.nextFundingRate !== undefined && {
 												fundingRate: update.nextFundingRate,
+												nextFundingAtMs: dydxNextFundingAtMs(timestampMs),
 											}),
 											...(update.openInterest !== undefined && {
 												openInterest: update.openInterest,
@@ -451,6 +573,7 @@ export const dydxChainMarketResolver = defineResolver({
 		},
 		[EntityMetaKey.Fields]: {
 			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'fundingRate')]: snapshot.market.nextFundingRate,
+			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'nextFundingAtMs')]: dydxNextFundingAtMs(snapshot.observedAtMs),
 			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'openInterest')]: snapshot.market.openInterest,
 			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: snapshot.market.oraclePrice,
 			[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'status')]: snapshot.market.status,
@@ -531,22 +654,32 @@ export const dydxChainSubaccountResolver = defineResolver({
 		})),
 		resolveCount: (observation) => Object.keys(observation.value.openPerpetualPositions).length,
 	},
-	$$timestamps: (observation, subaccount) => [{
-		[EntityMetaKey.Selector]: {
-			$subaccount: subaccount,
-			timestampMs: observation.observedAtMs,
-			source: Source.DydxIndexer,
-		},
-		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'blockHeight')]: BigInt(observation.value.updatedAtHeight),
-			[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'equity')]: observation.value.equity,
-			[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'freeCollateral')]: observation.value.freeCollateral,
-			[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'openPositionCount')]: Object.keys(observation.value.openPerpetualPositions).length,
-			...('openOrderCount' in observation && observation.openOrderCount != null && {
-				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'openOrderCount')]: observation.openOrderCount,
-			}),
-		},
-	}],
+	$$timestamps: (observation, subaccount) => {
+		const marginUsage = marginUsageFromEquity({
+			equity: observation.value.equity,
+			freeCollateral: observation.value.freeCollateral,
+		})
+
+		return [{
+			[EntityMetaKey.Selector]: {
+				$subaccount: subaccount,
+				timestampMs: observation.observedAtMs,
+				source: Source.DydxIndexer,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'blockHeight')]: BigInt(observation.value.updatedAtHeight),
+				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'equity')]: observation.value.equity,
+				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'freeCollateral')]: observation.value.freeCollateral,
+				...(marginUsage !== undefined && {
+					[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'marginUsage')]: marginUsage,
+				}),
+				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'openPositionCount')]: Object.keys(observation.value.openPerpetualPositions).length,
+				...('openOrderCount' in observation && observation.openOrderCount != null && {
+					[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'openOrderCount')]: observation.openOrderCount,
+				}),
+			},
+		}]
+	},
 })
 
 export const dydxChainSubaccountOrdersResolver = defineResolver({
@@ -567,60 +700,63 @@ export const dydxChainSubaccountOrdersResolver = defineResolver({
 		},
 	},
 })({
-	$$orders: (observation, subaccount) => observation.value.map((order) => ({
-		[EntityMetaKey.Selector]: {
-			$subaccount: subaccount,
-			orderId: order.id,
-		},
-		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.DydxChainOrder, [], '$market')]: {
-				[EntityMetaKey.Selector]: {
-					$network: subaccount.$network,
-					ticker: order.ticker,
-				},
+	$$orders: (observation, subaccount) => observation.value.map((order) => (
+		projectOrderFields(
+			order,
+			subaccount,
+			observation.observedAtMs
+		)
+	)),
+})
+
+export const dydxChainOrderResolver = defineResolver({
+	entityType: EntityType.DydxChainOrder,
+	resolve: {
+		SubaccountOrderId: {
+			appliesTo: dydxOrderApplicability,
+			resolve: async (entitySelector) => {
+				assertDydxSubaccount(entitySelector.$subaccount)
+				const { getOrder } = await import('$/sources/Dydx/Rest/queries.ts')
+				const observation = await getOrder({
+					orderId: entitySelector.orderId,
+				})
+				if (observation.value.subaccountNumber !== entitySelector.$subaccount.subaccountNumber)
+					throw new Error('DydxIndexer_Rest: foreign subaccount order')
+
+				return observation
 			},
-			[entityFieldAddressKey(EntityType.DydxChainOrder, [], 'side')]: order.side,
-			[entityFieldAddressKey(EntityType.DydxChainOrder, [], 'orderType')]: order.type,
-			[entityFieldAddressKey(EntityType.DydxChainOrder, [], 'timeInForce')]: order.timeInForce,
-			[entityFieldAddressKey(EntityType.DydxChainOrder, [], 'clientId')]: order.clientId,
-			...(order.goodTilBlock != null && {
-				[entityFieldAddressKey(EntityType.DydxChainOrder, [], 'goodTilBlock')]: BigInt(order.goodTilBlock),
-			}),
-			...(order.goodTilBlockTime != null && {
-				[entityFieldAddressKey(EntityType.DydxChainOrder, [], 'goodTilBlockTimeMs')]: parseTimestampMs(order.goodTilBlockTime, 'goodTilBlockTime'),
-			}),
-			[entityFieldAddressKey(EntityType.DydxChainOrder, [], '$$timestamps')]: [{
-				[EntityMetaKey.Selector]: {
-					$order: {
-						$subaccount: subaccount,
-						orderId: order.id,
-					},
-					timestampMs: (
-						order.updatedAt != null ?
-							parseTimestampMs(order.updatedAt, 'updatedAt')
-						:
-						order.createdAt != null ?
-							parseTimestampMs(order.createdAt, 'createdAt')
-						:
-							observation.observedAtMs
-					),
-					source: Source.DydxIndexer,
-				},
-				[EntityMetaKey.Fields]: {
-					...(order.updatedAtHeight != null && {
-						[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'blockHeight')]: BigInt(order.updatedAtHeight),
-					}),
-					...(order.updatedAtHeight == null && order.createdAtHeight != null && {
-						[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'blockHeight')]: BigInt(order.createdAtHeight),
-					}),
-					[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'status')]: order.status,
-					[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'price')]: order.price,
-					[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'size')]: order.size,
-					[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'totalFilled')]: order.totalFilled,
-				},
-			}],
 		},
-	})),
+	},
+})({
+	$market: (observation, order) => ({
+		[EntityMetaKey.Selector]: {
+			$network: order.$subaccount.$network,
+			ticker: observation.value.ticker,
+		},
+	}),
+	side: (observation) => observation.value.side,
+	orderType: (observation) => observation.value.type,
+	timeInForce: (observation) => observation.value.timeInForce,
+	clientId: (observation) => observation.value.clientId,
+	goodTilBlock: (observation) => (
+		observation.value.goodTilBlock != null ?
+			BigInt(observation.value.goodTilBlock)
+		:
+			undefined
+	),
+	goodTilBlockTimeMs: (observation) => (
+		observation.value.goodTilBlockTime != null ?
+			parseTimestampMs(observation.value.goodTilBlockTime, 'goodTilBlockTime')
+		:
+			undefined
+	),
+	$$timestamps: (observation, order) => (
+		projectOrderTimestamps(
+			observation.value,
+			order.$subaccount,
+			observation.observedAtMs
+		)
+	),
 })
 
 export const dydxNetworkReferenceResolver = defineResolver({
@@ -651,6 +787,7 @@ export default {
 	resolvers: [
 		dydxChainMarketResolver,
 		dydxChainNetworkResolver,
+		dydxChainOrderResolver,
 		dydxChainSubaccountOrdersResolver,
 		dydxChainSubaccountResolver,
 		dydxNetworkReferenceResolver,

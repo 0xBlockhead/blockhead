@@ -35,10 +35,15 @@ const {
 	default: dydx,
 	dydxChainMarketResolver,
 	dydxChainNetworkResolver,
+	dydxChainOrderResolver,
 	dydxChainSubaccountOrdersResolver,
 	dydxChainSubaccountResolver,
 	dydxNetworkReferenceResolver,
 } = await import('$/resolvers/Dydx.ts')
+
+const {
+	dydxNextFundingAtMs,
+} = await import('$/sources/Dydx/Rest/types.ts')
 
 const context = {
 	filters: [],
@@ -256,6 +261,7 @@ describe('dYdX Indexer resolvers', () => {
 		expect(dydx.resolvers).toEqual([
 			dydxChainMarketResolver,
 			dydxChainNetworkResolver,
+			dydxChainOrderResolver,
 			dydxChainSubaccountOrdersResolver,
 			dydxChainSubaccountResolver,
 			dydxNetworkReferenceResolver,
@@ -380,6 +386,7 @@ describe('dYdX Indexer resolvers', () => {
 						},
 						[EntityMetaKey.Fields]: {
 							[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'fundingRate')]: '-0.0000000000001',
+							[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'nextFundingAtMs')]: dydxNextFundingAtMs(observedAtMs),
 							[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'openInterest')]: '308.7674',
 							[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: '65554.247690000000000001',
 							[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'status')]: 'ACTIVE',
@@ -519,6 +526,7 @@ describe('dYdX Indexer resolvers', () => {
 							},
 							[EntityMetaKey.Fields]: {
 								[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'fundingRate')]: '-0.000000000000000007',
+								[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'nextFundingAtMs')]: dydxNextFundingAtMs(observedAtMs),
 							},
 						},
 						{
@@ -687,6 +695,7 @@ describe('dYdX Indexer resolvers', () => {
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'fundingRate')]: '-0.0000000000001',
+				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'nextFundingAtMs')]: dydxNextFundingAtMs(observedAtMs),
 				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'openInterest')]: '308.7674',
 				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'oraclePrice')]: '65554.247690000000000001',
 				[entityFieldAddressKey(EntityType.DydxChainMarket_Timestamp, [], 'status')]: 'ACTIVE',
@@ -739,6 +748,7 @@ describe('dYdX Indexer resolvers', () => {
 				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'blockHeight')]: 12345678901234567890n,
 				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'equity')]: '1234.5',
 				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'freeCollateral')]: '987.25',
+				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'marginUsage')]: (1234.5 - 987.25) / 1234.5,
 				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'openPositionCount')]: 2,
 				[entityFieldAddressKey(EntityType.DydxChainSubaccount_Timestamp, [], 'openOrderCount')]: 1,
 			},
@@ -785,6 +795,47 @@ describe('dYdX Indexer resolvers', () => {
 					$subaccount: subaccount,
 					orderId: 'order-1',
 				},
+				timestampMs: Date.parse('2026-08-02T00:00:00.000Z'),
+				source: Source.DydxIndexer,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'blockHeight')]: 12345678901234567895n,
+				[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'status')]: 'OPEN',
+				[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'price')]: '65000.125',
+				[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'size')]: '0.25',
+				[entityFieldAddressKey(EntityType.DydxChainOrder_Timestamp, [], 'totalFilled')]: '0.1',
+			},
+		}])
+	})
+
+	it('resolves a singular order by SubaccountOrderId', async () => {
+		sourceGetJson.mockImplementation((_binding, url) => (
+			typeof url === 'string' && url.includes('/v4/orders/order-1') ?
+				Promise.resolve(orders[0])
+			:
+				Promise.reject(new Error(`Unexpected URL ${url}`))
+		))
+
+		const orderSelector = {
+			$subaccount: subaccount,
+			orderId: 'order-1',
+		}
+		const observation = await dydxChainOrderResolver.resolve.SubaccountOrderId.resolve(
+			orderSelector,
+			context
+		)
+
+		expect(dydxChainOrderResolver.projections.side(observation)).toBe('BUY')
+		expect(dydxChainOrderResolver.projections.orderType(observation)).toBe('LIMIT')
+		expect(dydxChainOrderResolver.projections.$market(observation, orderSelector)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				ticker: 'BTC-USD',
+			},
+		})
+		expect(dydxChainOrderResolver.projections.$$timestamps(observation, orderSelector)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$order: orderSelector,
 				timestampMs: Date.parse('2026-08-02T00:00:00.000Z'),
 				source: Source.DydxIndexer,
 			},

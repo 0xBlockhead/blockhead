@@ -20,11 +20,17 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 const {
 	getFills,
 	getHeight,
+	getHistoricalFunding,
+	getOrder,
 	getOrders,
 	getPerpetualMarkets,
 	getPerpetualPositions,
 	getSubaccount,
 } = await import('$/sources/Dydx/Rest/queries.ts')
+
+const {
+	dydxNextFundingAtMs,
+} = await import('$/sources/Dydx/Rest/types.ts')
 
 const binding = bindings[Source.DydxIndexer].find(
 	({ apiFamily }) => apiFamily === ApiFamily.OpenApiHttp
@@ -36,6 +42,84 @@ if (binding == null)
 const address = `dydx1${'q'.repeat(38)}`
 const observedAtMs = 1_784_678_400_000
 
+const btcMarket = {
+	clobPairId: '0',
+	ticker: 'BTC-USD',
+	status: 'ACTIVE',
+	oraclePrice: '65554.247690000000000001',
+	priceChange24H: '-746.07211',
+	volume24H: '42428295.3917',
+	trades24H: 6131,
+	nextFundingRate: '-0.0000000000001',
+	initialMarginFraction: '0.02',
+	maintenanceMarginFraction: '0.012',
+	openInterest: '308.7674',
+	atomicResolution: -10,
+	quantumConversionExponent: -9,
+	tickSize: '1',
+	stepSize: '0.0001',
+	stepBaseQuantums: 1_000_000,
+	subticksPerTick: 100_000,
+	marketType: 'CROSS',
+	openInterestLowerCap: '0',
+	openInterestUpperCap: '0',
+	baseOpenInterest: '782.0931',
+	defaultFundingRate1H: '0',
+} as const
+
+const orderRow = {
+	id: 'order-1',
+	subaccountId: `${address}/7`,
+	clientId: '42',
+	clobPairId: '0',
+	side: 'BUY',
+	size: '9007199254740993.1',
+	totalFilled: '0.1',
+	price: '0.000000000000000001',
+	type: 'LIMIT',
+	reduceOnly: false,
+	orderFlags: '0',
+	clientMetadata: '0',
+	timeInForce: 'GTT',
+	status: 'OPEN',
+	postOnly: false,
+	ticker: 'BTC-USD',
+	subaccountNumber: 7,
+} as const
+
+const fillRow = {
+	id: 'fill-1',
+	side: 'BUY',
+	liquidity: 'TAKER',
+	type: 'LIMIT',
+	market: 'BTC-USD',
+	marketType: 'PERPETUAL',
+	price: '1.000000000000000001',
+	size: '0.1',
+	fee: '-0.00001',
+	affiliateRevShare: '0',
+	createdAt: '2026-08-02T00:00:00.000Z',
+	createdAtHeight: '9007199254740993',
+	subaccountNumber: 7,
+} as const
+
+const positionRow = {
+	market: 'BTC-USD',
+	status: 'OPEN',
+	side: 'SHORT',
+	size: '-0.0001',
+	maxSize: '1.5',
+	entryPrice: '65554.24769',
+	realizedPnl: '-0.01',
+	createdAt: '2026-07-01T00:00:00.000Z',
+	createdAtHeight: '100',
+	sumOpen: '1',
+	sumClose: '0',
+	netFunding: '-0.000001',
+	unrealizedPnl: '0.02',
+	subaccountNumber: 7,
+} as const
+
 describe('dYdX v4 read-only public transport', () => {
 	beforeEach(() => {
 		vi.spyOn(Date, 'now').mockReturnValue(observedAtMs)
@@ -46,30 +130,7 @@ describe('dYdX v4 read-only public transport', () => {
 	it('preserves market decimals with truthful source receipt provenance', async () => {
 		sourceGetJson.mockResolvedValue({
 			markets: {
-				'BTC-USD': {
-					clobPairId: '0',
-					ticker: 'BTC-USD',
-					status: 'ACTIVE',
-					oraclePrice: '65554.247690000000000001',
-					priceChange24H: '-746.07211',
-					volume24H: '42428295.3917',
-					trades24H: 6131,
-					nextFundingRate: '-0.0000000000001',
-					initialMarginFraction: '0.02',
-					maintenanceMarginFraction: '0.012',
-					openInterest: '308.7674',
-					atomicResolution: -10,
-					quantumConversionExponent: -9,
-					tickSize: '1',
-					stepSize: '0.0001',
-					stepBaseQuantums: 1_000_000,
-					subticksPerTick: 100_000,
-					marketType: 'CROSS',
-					openInterestLowerCap: '0',
-					openInterestUpperCap: '0',
-					baseOpenInterest: '782.0931',
-					defaultFundingRate1H: '0',
-				},
+				'BTC-USD': btcMarket,
 			},
 		})
 
@@ -94,23 +155,15 @@ describe('dYdX v4 read-only public transport', () => {
 			'https://indexer.dydx.trade/v4/perpetualMarkets?ticker=BTC-USD'
 		)
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
+		expect(dydxNextFundingAtMs(observedAtMs)).toBe(observedAtMs + 3_600_000)
 	})
 
-	it('rejects a malformed oracle price', async () => {
+	it('rejects a malformed oracle price after envelope shape', async () => {
 		sourceGetJson.mockResolvedValue({
 			markets: {
 				'BTC-USD': {
-					ticker: 'BTC-USD',
+					...btcMarket,
 					oraclePrice: 'invalid',
-					priceChange24H: '0',
-					volume24H: '0',
-					nextFundingRate: '0',
-					initialMarginFraction: '0',
-					maintenanceMarginFraction: '0',
-					openInterest: '0',
-					tickSize: '0',
-					stepSize: '0',
-					baseOpenInterest: '0',
 				},
 			},
 		})
@@ -118,6 +171,21 @@ describe('dYdX v4 read-only public transport', () => {
 		await expect(getPerpetualMarkets({
 			ticker: 'BTC-USD',
 		})).rejects.toThrow('invalid non-negative decimal oraclePrice')
+	})
+
+	it('rejects incomplete market envelopes fail-closed', async () => {
+		sourceGetJson.mockResolvedValue({
+			markets: {
+				'BTC-USD': {
+					ticker: 'BTC-USD',
+					oraclePrice: '1',
+				},
+			},
+		})
+
+		await expect(getPerpetualMarkets({
+			ticker: 'BTC-USD',
+		})).rejects.toThrow('invalid perpetual markets envelope')
 	})
 
 	it('preserves indexer height with fail-closed decimal-free height identity', async () => {
@@ -144,7 +212,7 @@ describe('dYdX v4 read-only public transport', () => {
 			height: '12.5',
 			time: '2026-08-03T12:34:56.789Z',
 		})
-		await expect(getHeight()).rejects.toThrow('invalid block height')
+		await expect(getHeight()).rejects.toThrow('invalid height envelope')
 
 		sourceGetJson.mockResolvedValue({
 			height: '1',
@@ -182,45 +250,20 @@ describe('dYdX v4 read-only public transport', () => {
 		{
 			query: getOrders,
 			path: '/v4/orders',
-			response: [{
-				id: 'order-1',
-				subaccountNumber: 7,
-				price: '0.000000000000000001',
-				size: '9007199254740993.1',
-				totalFilled: '0.1',
-			}],
+			response: [orderRow],
 		},
 		{
 			query: getFills,
 			path: '/v4/fills',
 			response: {
-				fills: [{
-					id: 'fill-1',
-					subaccountNumber: 7,
-					price: '1.000000000000000001',
-					size: '0.1',
-					fee: '-0.00001',
-					affiliateRevShare: '0',
-					createdAtHeight: '9007199254740993',
-				}],
+				fills: [fillRow],
 			},
 		},
 		{
 			query: getPerpetualPositions,
 			path: '/v4/perpetualPositions',
 			response: {
-				positions: [{
-					market: 'BTC-USD',
-					subaccountNumber: 7,
-					size: '-0.0001',
-					maxSize: '1.5',
-					entryPrice: '65554.24769',
-					realizedPnl: '-0.01',
-					unrealizedPnl: '0.02',
-					sumOpen: '1',
-					sumClose: '0',
-					netFunding: '-0.000001',
-				}],
+				positions: [positionRow],
 			},
 		},
 	])('bounds and preserves $path rows', async ({ query, path, response }) => {
@@ -243,6 +286,71 @@ describe('dYdX v4 read-only public transport', () => {
 		)
 	})
 
+	it('loads a singular order by id with identity fail-closed', async () => {
+		sourceGetJson.mockResolvedValue(orderRow)
+
+		await expect(getOrder({
+			orderId: 'order-1',
+		})).resolves.toMatchObject({
+			value: {
+				id: 'order-1',
+				ticker: 'BTC-USD',
+			},
+			observedAtMs,
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://indexer.dydx.trade/v4/orders/order-1'
+		)
+
+		sourceGetJson.mockResolvedValue({
+			...orderRow,
+			id: 'other',
+		})
+		await expect(getOrder({
+			orderId: 'order-1',
+		})).rejects.toThrow('mismatched order identity')
+	})
+
+	it('loads historical funding with ticker identity fail-closed', async () => {
+		sourceGetJson.mockResolvedValue({
+			historicalFunding: [{
+				ticker: 'BTC-USD',
+				rate: '-0.000001125',
+				price: '64246.90921',
+				effectiveAtHeight: '100582681',
+				effectiveAt: '2026-08-07T01:00:00.357Z',
+			}],
+		})
+
+		await expect(getHistoricalFunding({
+			ticker: 'BTC-USD',
+			limit: 1,
+		})).resolves.toMatchObject({
+			value: [{
+				ticker: 'BTC-USD',
+				rate: '-0.000001125',
+			}],
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			binding,
+			'https://indexer.dydx.trade/v4/historicalFunding/BTC-USD?limit=1'
+		)
+
+		sourceGetJson.mockResolvedValue({
+			historicalFunding: [{
+				ticker: 'ETH-USD',
+				rate: '0',
+				price: '1',
+				effectiveAtHeight: '1',
+				effectiveAt: '2026-08-07T01:00:00.000Z',
+			}],
+		})
+		await expect(getHistoricalFunding({
+			ticker: 'BTC-USD',
+		})).rejects.toThrow('mismatched historical funding ticker')
+	})
+
 	it('rejects malformed inputs, foreign subjects, and write-shaped arbitrary paths', async () => {
 		await expect(getOrders({
 			address: 'cosmos1foreign',
@@ -259,15 +367,23 @@ describe('dYdX v4 read-only public transport', () => {
 		})).rejects.toThrow('invalid page limit')
 
 		sourceGetJson.mockResolvedValue([{
+			...orderRow,
 			subaccountNumber: 1,
-			price: '1',
-			size: '1',
-			totalFilled: '0',
 		}])
 		await expect(getOrders({
 			address,
 			subaccountNumber: 0,
 		})).rejects.toThrow('foreign subaccount order')
+
+		sourceGetJson.mockResolvedValue({
+			fills: [{
+				id: 'fill-1',
+			}],
+		})
+		await expect(getFills({
+			address,
+			subaccountNumber: 0,
+		})).rejects.toThrow('invalid fills envelope')
 
 		expect('query' in await import('$/sources/Dydx/Rest/queries.ts')).toBe(false)
 	})
