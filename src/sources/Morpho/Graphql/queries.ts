@@ -73,6 +73,20 @@ const marketFields = `
 		liquidityAssetsUsd
 		netSupplyApy
 		netBorrowApy
+		avgSupplyApy
+		avgBorrowApy
+		avgNetSupplyApy
+		avgNetBorrowApy
+		rewards {
+			asset {
+				address
+				chain {
+					id
+				}
+			}
+			supplyApr
+			borrowApr
+		}
 	}`
 
 const assertEnvelope = <_Value>(
@@ -166,6 +180,35 @@ const assertOptionalFiniteNumber = (
 	return value
 }
 
+
+const normalizeReward = (
+	wire: {
+		asset: {
+			address: string
+			chain: {
+				id: number
+			}
+		}
+		supplyApr?: number
+		borrowApr?: number
+	}
+) => {
+	if (!Number.isSafeInteger(wire.asset.chain.id) || wire.asset.chain.id < 1)
+		throw new Error(`${Source.Morpho_Graphql}: invalid reward asset chain id ${String(wire.asset.chain.id)}`)
+	const supplyApr = assertOptionalFiniteNumber(wire.supplyApr, 'supplyApr')
+	const borrowApr = assertOptionalFiniteNumber(wire.borrowApr, 'borrowApr')
+	return {
+		assetAddress: assertAddress(wire.asset.address, 'reward asset address'),
+		assetChainId: wire.asset.chain.id,
+		...(supplyApr != null && {
+			supplyApr,
+		}),
+		...(borrowApr != null && {
+			borrowApr,
+		}),
+	}
+}
+
 const normalizeMarketState = (
 	wire: MorphoGraphqlMarketStateWire
 ) => {
@@ -175,6 +218,10 @@ const normalizeMarketState = (
 	const liquidityAssetsUsd = assertOptionalFiniteNumber(wire.liquidityAssetsUsd, 'liquidityAssetsUsd')
 	const netSupplyApy = assertOptionalFiniteNumber(wire.netSupplyApy, 'netSupplyApy')
 	const netBorrowApy = assertOptionalFiniteNumber(wire.netBorrowApy, 'netBorrowApy')
+	const avgSupplyApy = assertOptionalFiniteNumber(wire.avgSupplyApy, 'avgSupplyApy')
+	const avgBorrowApy = assertOptionalFiniteNumber(wire.avgBorrowApy, 'avgBorrowApy')
+	const avgNetSupplyApy = assertOptionalFiniteNumber(wire.avgNetSupplyApy, 'avgNetSupplyApy')
+	const avgNetBorrowApy = assertOptionalFiniteNumber(wire.avgNetBorrowApy, 'avgNetBorrowApy')
 	const collateralAssets = (
 		wire.collateralAssets == null ?
 			undefined
@@ -189,6 +236,8 @@ const normalizeMarketState = (
 		throw new Error(`${Source.Morpho_Graphql}: invalid supplyApy ${String(wire.supplyApy)}`)
 	if (!Number.isFinite(wire.borrowApy))
 		throw new Error(`${Source.Morpho_Graphql}: invalid borrowApy ${String(wire.borrowApy)}`)
+
+	const rewards = wire.rewards?.map(normalizeReward)
 
 	return {
 		totalSupplyAssets: assertGraphqlAmount(wire.supplyAssets, 'supplyAssets'),
@@ -222,6 +271,21 @@ const normalizeMarketState = (
 		}),
 		...(netBorrowApy != null && {
 			netBorrowApy,
+		}),
+		...(avgSupplyApy != null && {
+			avgSupplyApy,
+		}),
+		...(avgBorrowApy != null && {
+			avgBorrowApy,
+		}),
+		...(avgNetSupplyApy != null && {
+			avgNetSupplyApy,
+		}),
+		...(avgNetBorrowApy != null && {
+			avgNetBorrowApy,
+		}),
+		...(rewards != null && rewards.length > 0 && {
+			rewards,
 		}),
 	}
 }
@@ -311,8 +375,21 @@ const vaultFields = `
 		totalAssetsUsd
 		apy
 		netApy
+		netApyExcludingRewards
+		avgNetApy
+		avgNetApyExcludingRewards
 		fee
 		sharePriceUsd
+		sharePriceNumber
+		allRewards {
+			asset {
+				address
+				chain {
+					id
+				}
+			}
+			supplyApr
+		}
 	}`
 
 const normalizeVaultState = (
@@ -321,8 +398,13 @@ const normalizeVaultState = (
 	const totalAssetsUsd = assertOptionalFiniteNumber(wire.totalAssetsUsd, 'totalAssetsUsd')
 	const apy = assertOptionalFiniteNumber(wire.apy, 'apy')
 	const netApy = assertOptionalFiniteNumber(wire.netApy, 'netApy')
+	const netApyExcludingRewards = assertOptionalFiniteNumber(wire.netApyExcludingRewards, 'netApyExcludingRewards')
+	const avgNetApy = assertOptionalFiniteNumber(wire.avgNetApy, 'avgNetApy')
+	const avgNetApyExcludingRewards = assertOptionalFiniteNumber(wire.avgNetApyExcludingRewards, 'avgNetApyExcludingRewards')
 	const fee = assertOptionalFiniteNumber(wire.fee, 'fee')
 	const sharePriceUsd = assertOptionalFiniteNumber(wire.sharePriceUsd, 'sharePriceUsd')
+	const sharePriceNumber = assertOptionalFiniteNumber(wire.sharePriceNumber, 'sharePriceNumber')
+	const allRewards = wire.allRewards?.map(normalizeReward)
 	return {
 		totalAssets: assertGraphqlAmount(wire.totalAssets, 'totalAssets'),
 		totalSupply: assertGraphqlAmount(wire.totalSupply, 'totalSupply'),
@@ -337,11 +419,26 @@ const normalizeVaultState = (
 		...(netApy != null && {
 			netApy,
 		}),
+		...(netApyExcludingRewards != null && {
+			netApyExcludingRewards,
+		}),
+		...(avgNetApy != null && {
+			avgNetApy,
+		}),
+		...(avgNetApyExcludingRewards != null && {
+			avgNetApyExcludingRewards,
+		}),
 		...(fee != null && {
 			fee,
 		}),
 		...(sharePriceUsd != null && {
 			sharePriceUsd,
+		}),
+		...(sharePriceNumber != null && {
+			sharePriceNumber,
+		}),
+		...(allRewards != null && allRewards.length > 0 && {
+			allRewards,
 		}),
 	}
 }

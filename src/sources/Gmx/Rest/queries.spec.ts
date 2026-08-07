@@ -182,7 +182,7 @@ describe('GMX markets/info operation', () => {
 		).resolves.toEqual([])
 	})
 
-	it('accepts expanded markets/info wire and keeps borrowing / pool-value / virtual-inventory / impact transport-only', async () => {
+	it('accepts expanded markets/info wire and keeps borrowing / pool-value / virtual-inventory / impact / collateral-sum / funding-config transport-only', async () => {
 		sourceGetJson.mockResolvedValueOnce([
 			{
 				...ethMarketInfoWire,
@@ -209,6 +209,17 @@ describe('GMX markets/info operation', () => {
 				minCollateralFactor: '10000000000000000000000000000',
 				swapImpactPoolAmountLong: '117174811031582048',
 				swapImpactPoolAmountShort: '10234635',
+				maxCollateralSumLongTokenLong: '5000000000000000000000000000000',
+				maxCollateralSumLongTokenShort: '5000000000000000000000000000000',
+				maxCollateralSumShortTokenLong: '5000000000000000000000000000000',
+				maxCollateralSumShortTokenShort: '5000000000000000000000000000000',
+				minFundingIncreaseRatePerSecond: '0',
+				minFundingFactorPerSecondLong: '317097919837645865043',
+				maxFundingFactorPerSecondLong: '5349466913766279166666',
+				fundingIncreaseFactorPerSecond: '742981515800872111',
+				reserveFactorLong: '1550000000000000000000000000000',
+				virtualIndexTokenId: '0x0000000000000000000000000000000000000000000000000000000000000000',
+				virtualMarketId: '0xf5134a0a1379cd7f246d7a04d2463c57aa177bf09a34e93dafc5e768c05cea63',
 			},
 		])
 
@@ -256,6 +267,17 @@ describe('GMX markets/info operation', () => {
 					minCollateralFactor: '10000000000000000000000000000',
 					swapImpactPoolAmountLong: '117174811031582048',
 					swapImpactPoolAmountShort: '10234635',
+					maxCollateralSumLongTokenLong: '5000000000000000000000000000000',
+					maxCollateralSumLongTokenShort: '5000000000000000000000000000000',
+					maxCollateralSumShortTokenLong: '5000000000000000000000000000000',
+					maxCollateralSumShortTokenShort: '5000000000000000000000000000000',
+					minFundingIncreaseRatePerSecond: '0',
+					minFundingFactorPerSecondLong: '317097919837645865043',
+					maxFundingFactorPerSecondLong: '5349466913766279166666',
+					fundingIncreaseFactorPerSecond: '742981515800872111',
+					reserveFactorLong: '1550000000000000000000000000000',
+					virtualIndexTokenId: '0x0000000000000000000000000000000000000000000000000000000000000000',
+					virtualMarketId: '0xf5134a0a1379cd7f246d7a04d2463c57aa177bf09a34e93dafc5e768c05cea63',
 				},
 			])
 	})

@@ -42,6 +42,24 @@ export type GmxMarketInfoWire = {
 	minCollateralFactor?: string
 	swapImpactPoolAmountLong?: string
 	swapImpactPoolAmountShort?: string
+	maxCollateralSumLongTokenLong?: string
+	maxCollateralSumLongTokenShort?: string
+	maxCollateralSumShortTokenLong?: string
+	maxCollateralSumShortTokenShort?: string
+	minFundingIncreaseRatePerSecond?: string
+	minFundingFactorPerSecondLong?: string
+	minFundingFactorPerSecondShort?: string
+	maxFundingFactorPerSecondLong?: string
+	maxFundingFactorPerSecondShort?: string
+	fundingIncreaseFactorPerSecond?: string
+	fundingDecreaseFactorPerSecond?: string
+	minCollateralFactorForLiquidation?: string
+	reserveFactorLong?: string
+	reserveFactorShort?: string
+	virtualIndexTokenId?: string
+	virtualMarketId?: string
+	virtualLongTokenId?: string
+	virtualShortTokenId?: string
 	data?: string
 }
 
@@ -105,6 +123,42 @@ export type GmxMarketInfo = {
 	swapImpactPoolAmountLong?: string
 	/** Transport-only — not enrolled on `GmxMarket`. */
 	swapImpactPoolAmountShort?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxCollateralSumLongTokenLong?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxCollateralSumLongTokenShort?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxCollateralSumShortTokenLong?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxCollateralSumShortTokenShort?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	minFundingIncreaseRatePerSecond?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	minFundingFactorPerSecondLong?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	minFundingFactorPerSecondShort?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxFundingFactorPerSecondLong?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	maxFundingFactorPerSecondShort?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	fundingIncreaseFactorPerSecond?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	fundingDecreaseFactorPerSecond?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	minCollateralFactorForLiquidation?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	reserveFactorLong?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	reserveFactorShort?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	virtualIndexTokenId?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	virtualMarketId?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	virtualLongTokenId?: string
+	/** Transport-only — not enrolled on `GmxMarket`. */
+	virtualShortTokenId?: string
 }
 
 /**
@@ -253,6 +307,24 @@ export const gmxMarketInfoEnvelope = arktype({
 	'minCollateralFactor?': 'string',
 	'swapImpactPoolAmountLong?': 'string',
 	'swapImpactPoolAmountShort?': 'string',
+	'maxCollateralSumLongTokenLong?': 'string',
+	'maxCollateralSumLongTokenShort?': 'string',
+	'maxCollateralSumShortTokenLong?': 'string',
+	'maxCollateralSumShortTokenShort?': 'string',
+	'minFundingIncreaseRatePerSecond?': 'string',
+	'minFundingFactorPerSecondLong?': 'string',
+	'minFundingFactorPerSecondShort?': 'string',
+	'maxFundingFactorPerSecondLong?': 'string',
+	'maxFundingFactorPerSecondShort?': 'string',
+	'fundingIncreaseFactorPerSecond?': 'string',
+	'fundingDecreaseFactorPerSecond?': 'string',
+	'minCollateralFactorForLiquidation?': 'string',
+	'reserveFactorLong?': 'string',
+	'reserveFactorShort?': 'string',
+	'virtualIndexTokenId?': 'string',
+	'virtualMarketId?': 'string',
+	'virtualLongTokenId?': 'string',
+	'virtualShortTokenId?': 'string',
 	'data?': 'string',
 })
 

@@ -717,6 +717,24 @@ describe('Aave account position operations', () => {
 							symbol: 'variableDebtEthUSDC',
 						},
 						flashLoanEnabled: true,
+						permitSupported: true,
+						isolationModeConfig: {
+							canBeCollateral: true,
+							canBeBorrowed: false,
+							debtCeiling: {
+								amount: {
+									value: '1000000',
+								},
+								usd: '1000000',
+							},
+							debtCeilingDecimals: 2,
+							totalBorrows: {
+								amount: {
+									value: '250000',
+								},
+								usd: '250000',
+							},
+						},
 						usdExchangeRate: '1',
 						usdOracleAddress: '0x736bF902650874390e2fB8C5fCbE5F4d3F2eC6b0',
 						size: {
@@ -773,6 +791,18 @@ describe('Aave account position operations', () => {
 								},
 								usd: '1096617081.092652',
 							},
+							reserveFactor: {
+								value: '0.1',
+							},
+							variableRateSlope1: {
+								value: '0.04',
+							},
+							variableRateSlope2: {
+								value: '0.6',
+							},
+							optimalUsageRate: {
+								value: '0.9',
+							},
 						},
 					},
 				],
@@ -807,6 +837,18 @@ describe('Aave account position operations', () => {
 						symbol: 'variableDebtEthUSDC',
 					},
 					flashLoanEnabled: true,
+					permitSupported: true,
+					isolationModeConfig: {
+						canBeCollateral: true,
+						canBeBorrowed: false,
+						debtCeiling: {
+							amount: {
+								value: '1000000',
+							},
+							usd: '1000000',
+						},
+						debtCeilingDecimals: 2,
+					},
 					usdExchangeRate: '1',
 					usdOracleAddress: '0x736bf902650874390e2fb8c5fcbe5f4d3f2ec6b0',
 					supplyInfo: {
@@ -818,6 +860,9 @@ describe('Aave account position operations', () => {
 					borrowInfo: {
 						utilizationRate: {
 							value: '0.48',
+						},
+						reserveFactor: {
+							value: '0.1',
 						},
 					},
 				},

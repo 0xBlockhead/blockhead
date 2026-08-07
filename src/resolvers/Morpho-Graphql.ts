@@ -56,8 +56,33 @@ const mapMorphoMarketSnapshot = (
 		totalSupplyShares: market.state.totalSupplyShares,
 		totalBorrowAssets: market.state.totalBorrowAssets,
 		totalBorrowShares: market.state.totalBorrowShares,
+		utilization: market.state.utilization,
+		supplyApy: market.state.supplyApy,
+		borrowApy: market.state.borrowApy,
+		liquidityAssets: market.state.liquidityAssets,
 		lastIndexedBlock: market.state.lastIndexedBlock,
 		lastAccrualTimestamp: market.state.lastAccrualTimestamp,
+		...(market.state.collateralAssets != null && {
+			collateralAssets: market.state.collateralAssets,
+		}),
+		...(market.state.supplyAssetsUsd != null && {
+			supplyAssetsUsd: market.state.supplyAssetsUsd,
+		}),
+		...(market.state.borrowAssetsUsd != null && {
+			borrowAssetsUsd: market.state.borrowAssetsUsd,
+		}),
+		...(market.state.collateralAssetsUsd != null && {
+			collateralAssetsUsd: market.state.collateralAssetsUsd,
+		}),
+		...(market.state.liquidityAssetsUsd != null && {
+			liquidityAssetsUsd: market.state.liquidityAssetsUsd,
+		}),
+		...(market.state.netSupplyApy != null && {
+			netSupplyApy: market.state.netSupplyApy,
+		}),
+		...(market.state.netBorrowApy != null && {
+			netBorrowApy: market.state.netBorrowApy,
+		}),
 	}),
 })
 
@@ -74,6 +99,27 @@ const mapMorphoVaultSnapshot = (
 	listed: vault.listed,
 	assetAddress: vault.assetAddress,
 	assetDecimals: vault.assetDecimals,
+	...(vault.state != null && {
+		totalAssets: vault.state.totalAssets,
+		totalSupply: vault.state.totalSupply,
+		lastIndexedBlock: vault.state.lastIndexedBlock,
+		lastAccrualTimestamp: vault.state.lastAccrualTimestamp,
+		...(vault.state.totalAssetsUsd != null && {
+			totalAssetsUsd: vault.state.totalAssetsUsd,
+		}),
+		...(vault.state.apy != null && {
+			apy: vault.state.apy,
+		}),
+		...(vault.state.netApy != null && {
+			netApy: vault.state.netApy,
+		}),
+		...(vault.state.fee != null && {
+			fee: vault.state.fee,
+		}),
+		...(vault.state.sharePriceUsd != null && {
+			sharePriceUsd: vault.state.sharePriceUsd,
+		}),
+	}),
 })
 
 const mapMorphoMarketPositionSnapshot = (
@@ -357,6 +403,17 @@ export default {
 			totalSupplyShares: (market) => market.totalSupplyShares,
 			totalBorrowAssets: (market) => market.totalBorrowAssets,
 			totalBorrowShares: (market) => market.totalBorrowShares,
+			utilization: (market) => market.utilization,
+			supplyApy: (market) => market.supplyApy,
+			borrowApy: (market) => market.borrowApy,
+			netSupplyApy: (market) => market.netSupplyApy,
+			netBorrowApy: (market) => market.netBorrowApy,
+			liquidityAssets: (market) => market.liquidityAssets,
+			collateralAssets: (market) => market.collateralAssets,
+			supplyAssetsUsd: (market) => market.supplyAssetsUsd,
+			borrowAssetsUsd: (market) => market.borrowAssetsUsd,
+			collateralAssetsUsd: (market) => market.collateralAssetsUsd,
+			liquidityAssetsUsd: (market) => market.liquidityAssetsUsd,
 			lastIndexedBlock: (market) => market.lastIndexedBlock,
 			lastAccrualTimestamp: (market) => market.lastAccrualTimestamp,
 		}),
@@ -393,6 +450,15 @@ export default {
 			listed: (vault) => vault.listed,
 			assetAddress: (vault) => vault.assetAddress,
 			assetDecimals: (vault) => vault.assetDecimals,
+			totalAssets: (vault) => vault.totalAssets,
+			totalSupply: (vault) => vault.totalSupply,
+			totalAssetsUsd: (vault) => vault.totalAssetsUsd,
+			apy: (vault) => vault.apy,
+			netApy: (vault) => vault.netApy,
+			fee: (vault) => vault.fee,
+			sharePriceUsd: (vault) => vault.sharePriceUsd,
+			lastIndexedBlock: (vault) => vault.lastIndexedBlock,
+			lastAccrualTimestamp: (vault) => vault.lastAccrualTimestamp,
 		}),
 
 		defineResolver({

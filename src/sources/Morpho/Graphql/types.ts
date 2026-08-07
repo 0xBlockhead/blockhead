@@ -20,6 +20,15 @@ const morphoGraphqlVaultAssetWire = arktype({
 /** GraphQL BigInt scalars arrive as number when safe, else decimal string. */
 const morphoGraphqlAmountWire = arktype('number | string')
 
+const morphoGraphqlRewardWire = arktype({
+	asset: {
+		address: 'string',
+		chain: morphoGraphqlChainWire,
+	},
+	'supplyApr?': 'number',
+	'borrowApr?': 'number',
+})
+
 export const morphoGraphqlMarketStateWire = arktype({
 	supplyAssets: morphoGraphqlAmountWire,
 	supplyShares: morphoGraphqlAmountWire,
@@ -40,6 +49,11 @@ export const morphoGraphqlMarketStateWire = arktype({
 	'liquidityAssetsUsd?': 'number',
 	'netSupplyApy?': 'number',
 	'netBorrowApy?': 'number',
+	'avgSupplyApy?': 'number',
+	'avgBorrowApy?': 'number',
+	'avgNetSupplyApy?': 'number',
+	'avgNetBorrowApy?': 'number',
+	'rewards?': morphoGraphqlRewardWire.array(),
 })
 
 export const morphoGraphqlMarketWire = arktype({
@@ -80,8 +94,13 @@ export const morphoGraphqlVaultStateWire = arktype({
 	'totalAssetsUsd?': 'number',
 	'apy?': 'number',
 	'netApy?': 'number',
+	'netApyExcludingRewards?': 'number',
+	'avgNetApy?': 'number',
+	'avgNetApyExcludingRewards?': 'number',
 	'fee?': 'number',
 	'sharePriceUsd?': 'number',
+	'sharePriceNumber?': 'number',
+	'allRewards?': morphoGraphqlRewardWire.array(),
 })
 
 export const morphoGraphqlVaultWire = arktype({
@@ -149,6 +168,13 @@ export type MorphoGraphqlVaultStateWire = typeof morphoGraphqlVaultStateWire.inf
 export type MorphoGraphqlAccountMarketPositionWire = typeof morphoGraphqlAccountMarketPositionWire.infer
 export type MorphoGraphqlAccountVaultPositionWire = typeof morphoGraphqlAccountVaultPositionWire.infer
 
+export type MorphoGraphqlReward = {
+	assetAddress: `0x${string}`
+	assetChainId: number
+	supplyApr?: number
+	borrowApr?: number
+}
+
 export type MorphoGraphqlMarketState = {
 	totalSupplyAssets: string
 	totalSupplyShares: string
@@ -169,6 +195,11 @@ export type MorphoGraphqlMarketState = {
 	liquidityAssetsUsd?: number
 	netSupplyApy?: number
 	netBorrowApy?: number
+	avgSupplyApy?: number
+	avgBorrowApy?: number
+	avgNetSupplyApy?: number
+	avgNetBorrowApy?: number
+	rewards?: MorphoGraphqlReward[]
 }
 
 export type MorphoGraphqlMarket = {
@@ -196,8 +227,13 @@ export type MorphoGraphqlVaultState = {
 	totalAssetsUsd?: number
 	apy?: number
 	netApy?: number
+	netApyExcludingRewards?: number
+	avgNetApy?: number
+	avgNetApyExcludingRewards?: number
 	fee?: number
 	sharePriceUsd?: number
+	sharePriceNumber?: number
+	allRewards?: MorphoGraphqlReward[]
 }
 
 export type MorphoGraphqlListPage<_Item> = {

@@ -170,6 +170,44 @@ const assertMarketInfoWire = (
 	const minCollateralFactor = optionalNonEmptyDecimalString(wire.minCollateralFactor)
 	const swapImpactPoolAmountLong = optionalNonEmptyDecimalString(wire.swapImpactPoolAmountLong)
 	const swapImpactPoolAmountShort = optionalNonEmptyDecimalString(wire.swapImpactPoolAmountShort)
+	const maxCollateralSumLongTokenLong = optionalNonEmptyDecimalString(wire.maxCollateralSumLongTokenLong)
+	const maxCollateralSumLongTokenShort = optionalNonEmptyDecimalString(wire.maxCollateralSumLongTokenShort)
+	const maxCollateralSumShortTokenLong = optionalNonEmptyDecimalString(wire.maxCollateralSumShortTokenLong)
+	const maxCollateralSumShortTokenShort = optionalNonEmptyDecimalString(wire.maxCollateralSumShortTokenShort)
+	const minFundingIncreaseRatePerSecond = optionalNonEmptyDecimalString(wire.minFundingIncreaseRatePerSecond)
+	const minFundingFactorPerSecondLong = optionalNonEmptyDecimalString(wire.minFundingFactorPerSecondLong)
+	const minFundingFactorPerSecondShort = optionalNonEmptyDecimalString(wire.minFundingFactorPerSecondShort)
+	const maxFundingFactorPerSecondLong = optionalNonEmptyDecimalString(wire.maxFundingFactorPerSecondLong)
+	const maxFundingFactorPerSecondShort = optionalNonEmptyDecimalString(wire.maxFundingFactorPerSecondShort)
+	const fundingIncreaseFactorPerSecond = optionalNonEmptyDecimalString(wire.fundingIncreaseFactorPerSecond)
+	const fundingDecreaseFactorPerSecond = optionalNonEmptyDecimalString(wire.fundingDecreaseFactorPerSecond)
+	const minCollateralFactorForLiquidation = optionalNonEmptyDecimalString(wire.minCollateralFactorForLiquidation)
+	const reserveFactorLong = optionalNonEmptyDecimalString(wire.reserveFactorLong)
+	const reserveFactorShort = optionalNonEmptyDecimalString(wire.reserveFactorShort)
+	const virtualIndexTokenId = (
+		wire.virtualIndexTokenId != null && wire.virtualIndexTokenId.length > 0 ?
+			wire.virtualIndexTokenId
+		:
+			undefined
+	)
+	const virtualMarketId = (
+		wire.virtualMarketId != null && wire.virtualMarketId.length > 0 ?
+			wire.virtualMarketId
+		:
+			undefined
+	)
+	const virtualLongTokenId = (
+		wire.virtualLongTokenId != null && wire.virtualLongTokenId.length > 0 ?
+			wire.virtualLongTokenId
+		:
+			undefined
+	)
+	const virtualShortTokenId = (
+		wire.virtualShortTokenId != null && wire.virtualShortTokenId.length > 0 ?
+			wire.virtualShortTokenId
+		:
+			undefined
+	)
 
 	return {
 		chainId,
@@ -253,6 +291,60 @@ const assertMarketInfoWire = (
 		}),
 		...(swapImpactPoolAmountShort != null && {
 			swapImpactPoolAmountShort,
+		}),
+		...(maxCollateralSumLongTokenLong != null && {
+			maxCollateralSumLongTokenLong,
+		}),
+		...(maxCollateralSumLongTokenShort != null && {
+			maxCollateralSumLongTokenShort,
+		}),
+		...(maxCollateralSumShortTokenLong != null && {
+			maxCollateralSumShortTokenLong,
+		}),
+		...(maxCollateralSumShortTokenShort != null && {
+			maxCollateralSumShortTokenShort,
+		}),
+		...(minFundingIncreaseRatePerSecond != null && {
+			minFundingIncreaseRatePerSecond,
+		}),
+		...(minFundingFactorPerSecondLong != null && {
+			minFundingFactorPerSecondLong,
+		}),
+		...(minFundingFactorPerSecondShort != null && {
+			minFundingFactorPerSecondShort,
+		}),
+		...(maxFundingFactorPerSecondLong != null && {
+			maxFundingFactorPerSecondLong,
+		}),
+		...(maxFundingFactorPerSecondShort != null && {
+			maxFundingFactorPerSecondShort,
+		}),
+		...(fundingIncreaseFactorPerSecond != null && {
+			fundingIncreaseFactorPerSecond,
+		}),
+		...(fundingDecreaseFactorPerSecond != null && {
+			fundingDecreaseFactorPerSecond,
+		}),
+		...(minCollateralFactorForLiquidation != null && {
+			minCollateralFactorForLiquidation,
+		}),
+		...(reserveFactorLong != null && {
+			reserveFactorLong,
+		}),
+		...(reserveFactorShort != null && {
+			reserveFactorShort,
+		}),
+		...(virtualIndexTokenId != null && {
+			virtualIndexTokenId,
+		}),
+		...(virtualMarketId != null && {
+			virtualMarketId,
+		}),
+		...(virtualLongTokenId != null && {
+			virtualLongTokenId,
+		}),
+		...(virtualShortTokenId != null && {
+			virtualShortTokenId,
 		}),
 	}
 }

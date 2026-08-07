@@ -342,6 +342,8 @@ describe('GMX Rest resolver module', () => {
 			{
 				...ethMarketInfoWire,
 				virtualInventoryForPositions: '-1',
+				maxCollateralSumLongTokenLong: '1',
+				virtualMarketId: '0xabc',
 				positionImpactFactorPositive: '2',
 				maxOpenInterestLong: '3',
 			},
@@ -365,6 +367,8 @@ describe('GMX Rest resolver module', () => {
 		expect(snapshot).not.toHaveProperty('virtualInventoryForPositions')
 		expect(snapshot).not.toHaveProperty('positionImpactFactorPositive')
 		expect(snapshot).not.toHaveProperty('maxOpenInterestLong')
+		expect(snapshot).not.toHaveProperty('maxCollateralSumLongTokenLong')
+		expect(snapshot).not.toHaveProperty('virtualMarketId')
 		expect(Object.keys(gmxMarketResolver.projections)).not.toContain('virtualInventoryForPositions')
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	})

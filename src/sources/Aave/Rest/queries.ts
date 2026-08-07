@@ -80,8 +80,26 @@ const marketReserveFields = `
 		isFrozen
 		isPaused
 		flashLoanEnabled
+		permitSupported
 		usdExchangeRate
 		usdOracleAddress
+		isolationModeConfig {
+			canBeCollateral
+			canBeBorrowed
+			debtCeiling {
+				amount {
+					value
+				}
+				usd
+			}
+			debtCeilingDecimals
+			totalBorrows {
+				amount {
+					value
+				}
+				usd
+			}
+		}
 		size {
 			amount {
 				value
@@ -135,6 +153,18 @@ const marketReserveFields = `
 					value
 				}
 				usd
+			}
+			reserveFactor {
+				value
+			}
+			variableRateSlope1 {
+				value
+			}
+			variableRateSlope2 {
+				value
+			}
+			optimalUsageRate {
+				value
 			}
 		}
 	}
@@ -259,6 +289,16 @@ const assertMarketSnapshotWire = (
 					&& !decimalPattern.test(reserve.usdExchangeRate)
 				)
 				|| (
+					reserve.isolationModeConfig != null
+					&& (
+						!decimalPattern.test(reserve.isolationModeConfig.debtCeiling.amount.value)
+						|| (
+							reserve.isolationModeConfig.totalBorrows != null
+							&& !decimalPattern.test(reserve.isolationModeConfig.totalBorrows.amount.value)
+						)
+					)
+				)
+				|| (
 					reserve.borrowInfo != null
 					&& (
 						!decimalPattern.test(reserve.borrowInfo.apy.value)
@@ -266,6 +306,22 @@ const assertMarketSnapshotWire = (
 						|| (
 							reserve.borrowInfo.utilizationRate != null
 							&& !decimalPattern.test(reserve.borrowInfo.utilizationRate.value)
+						)
+						|| (
+							reserve.borrowInfo.reserveFactor != null
+							&& !decimalPattern.test(reserve.borrowInfo.reserveFactor.value)
+						)
+						|| (
+							reserve.borrowInfo.variableRateSlope1 != null
+							&& !decimalPattern.test(reserve.borrowInfo.variableRateSlope1.value)
+						)
+						|| (
+							reserve.borrowInfo.variableRateSlope2 != null
+							&& !decimalPattern.test(reserve.borrowInfo.variableRateSlope2.value)
+						)
+						|| (
+							reserve.borrowInfo.optimalUsageRate != null
+							&& !decimalPattern.test(reserve.borrowInfo.optimalUsageRate.value)
 						)
 					)
 				)

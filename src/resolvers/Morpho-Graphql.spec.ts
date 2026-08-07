@@ -89,6 +89,13 @@ const market = {
 		supplyApy: 0.041,
 		borrowApy: 0.048,
 		liquidityAssets: 137685568024427,
+		collateralAssets: '25000000000',
+		supplyAssetsUsd: 1453.57,
+		borrowAssetsUsd: 1315.88,
+		collateralAssetsUsd: 2_500_000,
+		liquidityAssetsUsd: 137.68,
+		netSupplyApy: 0.043,
+		netBorrowApy: 0.046,
 	},
 }
 
@@ -103,6 +110,17 @@ const vault = {
 	},
 	chain: {
 		id: 8453,
+	},
+	state: {
+		totalAssets: 1_000_000_000000,
+		totalSupply: '999000000000000000000000',
+		timestamp: 1786052921,
+		blockNumber: 21000000,
+		totalAssetsUsd: 1_000_000,
+		apy: 0.052,
+		netApy: 0.049,
+		fee: 0.1,
+		sharePriceUsd: 1.001,
 	},
 }
 
@@ -356,14 +374,24 @@ describe('Morpho GraphQL resolver module', () => {
 			totalSupplyShares: '1320911716664756276808',
 			totalBorrowAssets: '1315886527548583',
 			totalBorrowShares: '1181447494108739688848',
+			utilization: 0.905,
+			supplyApy: 0.041,
+			borrowApy: 0.048,
+			netSupplyApy: 0.043,
+			netBorrowApy: 0.046,
+			liquidityAssets: '137685568024427',
+			collateralAssets: '25000000000',
+			supplyAssetsUsd: 1453.57,
+			borrowAssetsUsd: 1315.88,
+			collateralAssetsUsd: 2_500_000,
+			liquidityAssetsUsd: 137.68,
 			lastIndexedBlock: '49631787',
 			lastAccrualTimestamp: 1786052921,
 		})
 		expect(snapshot).not.toHaveProperty('fee')
-		expect(snapshot).not.toHaveProperty('utilization')
-		expect(snapshot).not.toHaveProperty('supplyApy')
 		expect(snapshot).not.toHaveProperty('listed')
 		expect(snapshot).not.toHaveProperty('loanAssetSymbol')
+		expect(Object.keys(marketResolver.projections)).not.toContain('fee')
 	})
 
 	it('omits MorphoMarket tip fields when GraphQL state is null', async () => {
@@ -426,6 +454,53 @@ describe('Morpho GraphQL resolver module', () => {
 		}, context)
 
 		expect(snapshot).toEqual({
+			$network: {
+				[EntityMetaKey.Selector]: network,
+			},
+			vaultAddress: '0xbeef000000000000000000000000000000000001',
+			name: vault.name,
+			symbol: vault.symbol,
+			listed: vault.listed,
+			assetAddress: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+			assetDecimals: vault.asset.decimals,
+			totalAssets: '1000000000000',
+			totalSupply: '999000000000000000000000',
+			totalAssetsUsd: 1_000_000,
+			apy: 0.052,
+			netApy: 0.049,
+			fee: 0.1,
+			sharePriceUsd: 1.001,
+			lastIndexedBlock: '21000000',
+			lastAccrualTimestamp: 1786052921,
+		})
+		expect(snapshot).not.toHaveProperty('netApyExcludingRewards')
+		expect(snapshot).not.toHaveProperty('allRewards')
+	})
+
+	it('omits MorphoVault tip fields when GraphQL state is null', async () => {
+		if (vaultResolver == null)
+			throw new Error('missing MorphoVault resolver')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				vaultByAddress: {
+					...vault,
+					state: null,
+				},
+			},
+		})))
+
+		const network = {
+			caip2: {
+				namespace: 'eip155',
+				reference: '8453',
+			},
+		}
+
+		await expect(vaultResolver.resolve.NetworkVaultAddress.resolve({
+			$network: network,
+			vaultAddress: vault.address,
+		}, context)).resolves.toEqual({
 			$network: {
 				[EntityMetaKey.Selector]: network,
 			},

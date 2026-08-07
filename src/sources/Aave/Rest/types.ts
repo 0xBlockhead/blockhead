@@ -48,6 +48,14 @@ export type AaveCurrencyWire = {
  * Enrolled projections use underlying / size / supply+borrow APY / liquidity / freeze flags.
  * Richer supply/borrow / aToken / oracle surfaces stay transport-only until APP enrolls them.
  */
+export type AaveIsolationModeConfigWire = {
+	canBeCollateral: boolean
+	canBeBorrowed: boolean
+	debtCeiling: AaveTokenAmountWire
+	debtCeilingDecimals: number
+	totalBorrows?: AaveTokenAmountWire
+}
+
 export type AaveReserveWire = {
 	underlyingToken: AaveCurrencyWire
 	aToken?: AaveCurrencyWire
@@ -55,6 +63,8 @@ export type AaveReserveWire = {
 	isFrozen: boolean
 	isPaused: boolean
 	flashLoanEnabled?: boolean
+	permitSupported?: boolean
+	isolationModeConfig?: AaveIsolationModeConfigWire
 	usdExchangeRate?: string
 	usdOracleAddress?: string
 	size: AaveTokenAmountWire
@@ -74,6 +84,10 @@ export type AaveReserveWire = {
 		borrowCapReached?: boolean
 		borrowCap?: AaveTokenAmountWire
 		total?: AaveTokenAmountWire
+		reserveFactor?: AaveAmountWire
+		variableRateSlope1?: AaveAmountWire
+		variableRateSlope2?: AaveAmountWire
+		optimalUsageRate?: AaveAmountWire
 	}
 }
 
@@ -231,6 +245,14 @@ export const aaveMarketEnvelope = aaveMarketSummaryEnvelope.and({
 		isFrozen: 'boolean',
 		isPaused: 'boolean',
 		'flashLoanEnabled?': 'boolean',
+		'permitSupported?': 'boolean',
+		'isolationModeConfig?': {
+			canBeCollateral: 'boolean',
+			canBeBorrowed: 'boolean',
+			debtCeiling: aaveTokenAmountEnvelope,
+			debtCeilingDecimals: 'number.integer >= 0',
+			'totalBorrows?': aaveTokenAmountEnvelope,
+		},
 		'usdExchangeRate?': 'string',
 		'usdOracleAddress?': 'string',
 		size: aaveTokenAmountEnvelope,
@@ -250,6 +272,10 @@ export const aaveMarketEnvelope = aaveMarketSummaryEnvelope.and({
 			'borrowCapReached?': 'boolean',
 			'borrowCap?': aaveTokenAmountEnvelope,
 			'total?': aaveTokenAmountEnvelope,
+			'reserveFactor?': aaveAmountEnvelope,
+			'variableRateSlope1?': aaveAmountEnvelope,
+			'variableRateSlope2?': aaveAmountEnvelope,
+			'optimalUsageRate?': aaveAmountEnvelope,
 		},
 	}).array(),
 })

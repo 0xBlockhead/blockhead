@@ -209,6 +209,8 @@ describe('Morpho GraphQL market enumeration', () => {
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('liquidityAssets')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('listed')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('netSupplyApy')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('avgSupplyApy')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('rewards')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('symbol')
 	})
 
@@ -588,6 +590,8 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('totalSupply')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('netApy')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('sharePriceUsd')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('netApyExcludingRewards')
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('allRewards')
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).query).toContain('countTotal')
 	})
 
