@@ -13,7 +13,15 @@ import {
 	SourceTargetKind,
 } from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
-import { getLatestRound } from '$/sources/ChainlinkDataFeeds/Contracts/queries.ts'
+import {
+	getLatestRound,
+	getRoundData,
+	readLatestRound,
+} from '$/sources/ChainlinkDataFeeds/Contracts/queries.ts'
+import {
+	chainlinkJsonRpcResponseWire,
+	chainlinkQuantityHexWire,
+} from '$/sources/ChainlinkDataFeeds/Contracts/types.ts'
 
 vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	...await importOriginal(),
@@ -242,5 +250,73 @@ describe('Chainlink latest feed round', () => {
 			baseAsset: 'ETH',
 			quoteAsset: 'USD',
 		})).rejects.toThrow('response identity mismatch')
+	})
+
+	it('fail-closes arktype JSON-RPC envelopes and quantity wires', () => {
+		expect(() => chainlinkJsonRpcResponseWire.assert({
+			jsonrpc: '1.0',
+			id: 'x',
+			result: '0x1',
+		})).toThrow()
+		expect(() => chainlinkQuantityHexWire.assert('0x')).toThrow()
+		expect(() => chainlinkQuantityHexWire.assert('1234')).toThrow()
+		expect(chainlinkJsonRpcResponseWire.assert({
+			jsonrpc: '2.0',
+			id: 'ok',
+			result: '0x1',
+		})).toMatchObject({
+			result: '0x1',
+		})
+	})
+
+	it('reads a historical round through getRoundData', async () => {
+		const roundId = (1n << 79n) + 10n
+		mockRpcResults([
+			'0x1234',
+			latestRoundResponse({
+				roundId,
+				answeredInRound: roundId,
+			}),
+		])
+
+		await expect(getRoundData({
+			binding,
+			network,
+			feedAddress,
+			roundId,
+		})).resolves.toMatchObject({
+			network,
+			feedAddress,
+			roundId: roundId.toString(),
+			blockNumber: '4660',
+		})
+
+		const requests = vi.mocked(sourceFetch).mock.calls.map((call) => JSON.parse(String(call[2]?.body)))
+		expect(requests[1].params[0]).toEqual({
+			to: feedAddress,
+			data: `0x9a6fc8f5${roundId.toString(16).padStart(64, '0')}`,
+		})
+	})
+
+	it('projects readLatestRound through injected eth_call', async () => {
+		const responses = [
+			`0x${word(8n)}`,
+			stringResponse('ETH / USD'),
+			`0x${addressWord(aggregatorAddress)}`,
+			latestRoundResponse(),
+		]
+		await expect(readLatestRound({
+			network,
+			feedAddress,
+			baseAsset: 'ETH',
+			quoteAsset: 'USD',
+			getBlockNumber: async () => 0x1234n,
+			getCall: async () => responses.shift() as `0x${string}`,
+		})).resolves.toMatchObject({
+			decimals: 8,
+			description: 'ETH / USD',
+			aggregatorAddress,
+			blockNumber: '4660',
+		})
 	})
 })

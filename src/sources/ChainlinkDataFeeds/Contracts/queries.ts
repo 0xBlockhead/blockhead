@@ -10,19 +10,28 @@ import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
-import type { ChainlinkJsonRpcResponse } from '$/sources/ChainlinkDataFeeds/Contracts/types.ts'
+import {
+	chainlinkAbiHexWire,
+	chainlinkJsonRpcResponseWire,
+	chainlinkQuantityHexWire,
+} from '$/sources/ChainlinkDataFeeds/Contracts/types.ts'
 
 const addressPattern = /^0x[0-9a-fA-F]{40}$/
-const quantityPattern = /^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$/
 const wordPattern = /^[0-9a-fA-F]{64}$/
-const unsignedIntegerPattern = /^(0|[1-9][0-9]*)$/
 
 const functionSelector = {
 	aggregator: '0x245a7bfc',
 	decimals: '0x313ce567',
 	description: '0x7284e416',
 	latestRoundData: '0xfeaf968c',
-}
+	getRoundData: '0x9a6fc8f5',
+} as const
+
+type EthCall = (call: {
+	to: `0x${string}`
+	input: `0x${string}`
+	blockTag?: `0x${string}` | 'latest'
+}) => Promise<`0x${string}`>
 
 const assertAddress: (
 	value: string,
@@ -36,9 +45,14 @@ const decodeWords = (
 	value: string,
 	minimumWords: number
 ) => {
+	try {
+		chainlinkAbiHexWire.assert(value)
+	} catch {
+		throw new Error('ChainlinkDataFeeds_Contracts: malformed ABI response')
+	}
+
 	if (
-		!value.startsWith('0x')
-		|| value.length < 2 + minimumWords * 64
+		value.length < 2 + minimumWords * 64
 		|| (value.length - 2) % 64 !== 0
 	)
 		throw new Error('ChainlinkDataFeeds_Contracts: malformed ABI response')
@@ -103,6 +117,62 @@ const decodeString = (value: string) => {
 	return decoded
 }
 
+const encodeRoundIdArg = (
+	roundId: bigint
+) => {
+	if (roundId < 0n)
+		throw new Error('ChainlinkDataFeeds_Contracts: invalid round id')
+
+	return `${functionSelector.getRoundData}${roundId.toString(16).padStart(64, '0')}` as `0x${string}`
+}
+
+const decodeRoundLifecycle = (
+	roundResponse: string
+) => {
+	const roundWords = decodeWords(roundResponse, 5)
+	if (roundWords.length !== 5)
+		throw new Error('ChainlinkDataFeeds_Contracts: malformed latest round response')
+
+	const roundId = decodeUnsigned(roundWords[0])
+	const answer = decodeSigned(roundWords[1])
+	const startedAtSeconds = decodeUnsigned(roundWords[2])
+	const updatedAtSeconds = decodeUnsigned(roundWords[3])
+	const answeredInRound = decodeUnsigned(roundWords[4])
+	if (
+		roundId === 0n
+		|| updatedAtSeconds === 0n
+		|| startedAtSeconds > updatedAtSeconds
+		|| answeredInRound < roundId
+	)
+		throw new Error('ChainlinkDataFeeds_Contracts: invalid latest round lifecycle')
+
+	return {
+		roundId: roundId.toString(),
+		answer: answer.toString(),
+		startedAtSeconds: startedAtSeconds.toString(),
+		updatedAtSeconds: updatedAtSeconds.toString(),
+		answeredInRound: answeredInRound.toString(),
+	}
+}
+
+const assertPairIdentity = ({
+	baseAsset,
+	quoteAsset,
+}: {
+	baseAsset: string
+	quoteAsset: string
+}) => {
+	if (
+		baseAsset.length === 0
+		|| quoteAsset.length === 0
+		|| baseAsset.trim() !== baseAsset
+		|| quoteAsset.trim() !== quoteAsset
+		|| baseAsset.includes('/')
+		|| quoteAsset.includes('/')
+	)
+		throw new Error('ChainlinkDataFeeds_Contracts: invalid base or quote identity')
+}
+
 const rpc = async ({
 	binding,
 	method,
@@ -139,31 +209,29 @@ const rpc = async ({
 	if (!response.ok)
 		await throwHttpError(`ChainlinkDataFeeds_Contracts ${method}`, response)
 
-	const envelope = await response.json<ChainlinkJsonRpcResponse>()
-	if (envelope.jsonrpc !== '2.0' || envelope.id !== requestId)
+	let envelope
+	try {
+		envelope = chainlinkJsonRpcResponseWire.assert(await response.json())
+	} catch {
 		throw new Error('ChainlinkDataFeeds_Contracts: JSON-RPC response identity mismatch')
-	if (envelope.error != null)
+	}
+
+	if (envelope.id !== requestId)
+		throw new Error('ChainlinkDataFeeds_Contracts: JSON-RPC response identity mismatch')
+	if ('error' in envelope && envelope.error != null)
 		throw new Error(`ChainlinkDataFeeds_Contracts: ${envelope.error.message}`)
-	if (envelope.result == null)
+	if (!('result' in envelope) || envelope.result == null)
 		throw new Error('ChainlinkDataFeeds_Contracts: JSON-RPC result is missing')
 
 	return envelope.result
 }
 
-export const getLatestRound = async ({
+const assertNetworkJsonRpcBinding = ({
 	binding,
 	network,
-	feedAddress,
-	baseAsset,
-	quoteAsset,
-	expectedAggregatorAddress,
 }: {
 	binding: SourceBinding
 	network: `eip155:${string}`
-	feedAddress: string
-	baseAsset: string
-	quoteAsset: string
-	expectedAggregatorAddress?: string
 }) => {
 	if (
 		binding.source !== Source.ChainlinkDataFeeds_Contracts
@@ -172,65 +240,65 @@ export const getLatestRound = async ({
 		|| !binding.endpoints.some((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
 	)
 		throw new Error('ChainlinkDataFeeds_Contracts: expected exact EVM network JSON-RPC binding')
+}
 
+export const readLatestRound = async ({
+	getCall,
+	getBlockNumber,
+	network,
+	feedAddress,
+	baseAsset,
+	quoteAsset,
+	expectedAggregatorAddress,
+}: {
+	getCall: EthCall
+	getBlockNumber: () => Promise<bigint>
+	network: `eip155:${string}`
+	feedAddress: string
+	baseAsset: string
+	quoteAsset: string
+	expectedAggregatorAddress?: string
+}) => {
 	assertAddress(feedAddress, 'feed address')
 	if (expectedAggregatorAddress != null)
 		assertAddress(expectedAggregatorAddress, 'expected aggregator address')
-	if (
-		baseAsset.length === 0
-		|| quoteAsset.length === 0
-		|| baseAsset.trim() !== baseAsset
-		|| quoteAsset.trim() !== quoteAsset
-		|| baseAsset.includes('/')
-		|| quoteAsset.includes('/')
-	)
-		throw new Error('ChainlinkDataFeeds_Contracts: invalid base or quote identity')
-	const blockQuantity = await rpc({
-		binding,
-		method: 'eth_blockNumber',
-		params: [],
-		requestId: `${network}:${feedAddress}:block`,
+	assertPairIdentity({
+		baseAsset,
+		quoteAsset,
 	})
-	if (!quantityPattern.test(blockQuantity))
-		throw new Error('ChainlinkDataFeeds_Contracts: invalid block number')
-	const blockNumber = BigInt(blockQuantity)
 
+	const blockNumber = await getBlockNumber()
+	if (blockNumber < 0n)
+		throw new Error('ChainlinkDataFeeds_Contracts: invalid block number')
+
+	const blockQuantity = `0x${blockNumber.toString(16)}`
+	try {
+		chainlinkQuantityHexWire.assert(blockQuantity)
+	} catch {
+		throw new Error('ChainlinkDataFeeds_Contracts: invalid block number')
+	}
+
+	const to = zeroExLowerCase(feedAddress)
 	const [decimalsResponse, descriptionResponse, aggregatorResponse, roundResponse] = await Promise.all([
-		rpc({
-			binding,
-			method: 'eth_call',
-			params: [{
-				to: feedAddress,
-				data: functionSelector.decimals,
-			}, blockQuantity],
-			requestId: `${network}:${feedAddress}:decimals:${blockQuantity}`,
+		getCall({
+			to,
+			input: functionSelector.decimals,
+			blockTag: blockQuantity,
 		}),
-		rpc({
-			binding,
-			method: 'eth_call',
-			params: [{
-				to: feedAddress,
-				data: functionSelector.description,
-			}, blockQuantity],
-			requestId: `${network}:${feedAddress}:description:${blockQuantity}`,
+		getCall({
+			to,
+			input: functionSelector.description,
+			blockTag: blockQuantity,
 		}),
-		rpc({
-			binding,
-			method: 'eth_call',
-			params: [{
-				to: feedAddress,
-				data: functionSelector.aggregator,
-			}, blockQuantity],
-			requestId: `${network}:${feedAddress}:aggregator:${blockQuantity}`,
+		getCall({
+			to,
+			input: functionSelector.aggregator,
+			blockTag: blockQuantity,
 		}),
-		rpc({
-			binding,
-			method: 'eth_call',
-			params: [{
-				to: feedAddress,
-				data: functionSelector.latestRoundData,
-			}, blockQuantity],
-			requestId: `${network}:${feedAddress}:latestRoundData:${blockQuantity}`,
+		getCall({
+			to,
+			input: functionSelector.latestRoundData,
+			blockTag: blockQuantity,
 		}),
 	])
 
@@ -252,35 +320,173 @@ export const getLatestRound = async ({
 	)
 		throw new Error('ChainlinkDataFeeds_Contracts: aggregator does not match catalog')
 
-	const roundWords = decodeWords(roundResponse, 5)
-	if (roundWords.length !== 5)
-		throw new Error('ChainlinkDataFeeds_Contracts: malformed latest round response')
-	const roundId = decodeUnsigned(roundWords[0])
-	const answer = decodeSigned(roundWords[1])
-	const startedAtSeconds = decodeUnsigned(roundWords[2])
-	const updatedAtSeconds = decodeUnsigned(roundWords[3])
-	const answeredInRound = decodeUnsigned(roundWords[4])
-	if (
-		roundId === 0n
-		|| updatedAtSeconds === 0n
-		|| startedAtSeconds > updatedAtSeconds
-		|| answeredInRound < roundId
-	)
-		throw new Error('ChainlinkDataFeeds_Contracts: invalid latest round lifecycle')
-
 	return {
 		network,
-		feedAddress: zeroExLowerCase(feedAddress),
+		feedAddress: to,
 		aggregatorAddress,
 		baseAsset,
 		quoteAsset,
 		description,
 		decimals: Number(decimalsValue),
-		roundId: roundId.toString(),
-		answer: answer.toString(),
-		startedAtSeconds: startedAtSeconds.toString(),
-		updatedAtSeconds: updatedAtSeconds.toString(),
-		answeredInRound: answeredInRound.toString(),
+		...decodeRoundLifecycle(roundResponse),
 		blockNumber: blockNumber.toString(),
 	}
+}
+
+export const readRound = async ({
+	getCall,
+	getBlockNumber,
+	network,
+	feedAddress,
+	roundId,
+}: {
+	getCall: EthCall
+	getBlockNumber: () => Promise<bigint>
+	network: `eip155:${string}`
+	feedAddress: string
+	roundId: bigint
+}) => {
+	assertAddress(feedAddress, 'feed address')
+
+	const blockNumber = await getBlockNumber()
+	if (blockNumber < 0n)
+		throw new Error('ChainlinkDataFeeds_Contracts: invalid block number')
+
+	const blockQuantity = `0x${blockNumber.toString(16)}`
+	const to = zeroExLowerCase(feedAddress)
+	const roundResponse = await getCall({
+		to,
+		input: encodeRoundIdArg(roundId),
+		blockTag: blockQuantity,
+	})
+	const round = decodeRoundLifecycle(roundResponse)
+	if (BigInt(round.roundId) !== roundId)
+		throw new Error('ChainlinkDataFeeds_Contracts: round id mismatch')
+
+	return {
+		network,
+		feedAddress: to,
+		...round,
+		blockNumber: blockNumber.toString(),
+	}
+}
+
+export const getLatestRound = async ({
+	binding,
+	network,
+	feedAddress,
+	baseAsset,
+	quoteAsset,
+	expectedAggregatorAddress,
+}: {
+	binding: SourceBinding
+	network: `eip155:${string}`
+	feedAddress: string
+	baseAsset: string
+	quoteAsset: string
+	expectedAggregatorAddress?: string
+}) => {
+	assertNetworkJsonRpcBinding({
+		binding,
+		network,
+	})
+
+	return readLatestRound({
+		network,
+		feedAddress,
+		baseAsset,
+		quoteAsset,
+		expectedAggregatorAddress,
+		getBlockNumber: async () => {
+			const blockQuantity = await rpc({
+				binding,
+				method: 'eth_blockNumber',
+				params: [],
+				requestId: `${network}:${feedAddress}:block`,
+			})
+			try {
+				chainlinkQuantityHexWire.assert(blockQuantity)
+			} catch {
+				throw new Error('ChainlinkDataFeeds_Contracts: invalid block number')
+			}
+			return BigInt(blockQuantity)
+		},
+		getCall: async ({
+			to,
+			input,
+			blockTag = 'latest',
+		}) => {
+			const result = await rpc({
+				binding,
+				method: 'eth_call',
+				params: [{
+					to,
+					data: input,
+				}, blockTag],
+				requestId: `${network}:${to}:${input}:${blockTag}`,
+			})
+			try {
+				return chainlinkAbiHexWire.assert(result) as `0x${string}`
+			} catch {
+				throw new Error('ChainlinkDataFeeds_Contracts: malformed ABI response')
+			}
+		},
+	})
+}
+
+export const getRoundData = async ({
+	binding,
+	network,
+	feedAddress,
+	roundId,
+}: {
+	binding: SourceBinding
+	network: `eip155:${string}`
+	feedAddress: string
+	roundId: bigint
+}) => {
+	assertNetworkJsonRpcBinding({
+		binding,
+		network,
+	})
+
+	return readRound({
+		network,
+		feedAddress,
+		roundId,
+		getBlockNumber: async () => {
+			const blockQuantity = await rpc({
+				binding,
+				method: 'eth_blockNumber',
+				params: [],
+				requestId: `${network}:${feedAddress}:block:${roundId}`,
+			})
+			try {
+				chainlinkQuantityHexWire.assert(blockQuantity)
+			} catch {
+				throw new Error('ChainlinkDataFeeds_Contracts: invalid block number')
+			}
+			return BigInt(blockQuantity)
+		},
+		getCall: async ({
+			to,
+			input,
+			blockTag = 'latest',
+		}) => {
+			const result = await rpc({
+				binding,
+				method: 'eth_call',
+				params: [{
+					to,
+					data: input,
+				}, blockTag],
+				requestId: `${network}:${to}:${input}:${blockTag}`,
+			})
+			try {
+				return chainlinkAbiHexWire.assert(result) as `0x${string}`
+			} catch {
+				throw new Error('ChainlinkDataFeeds_Contracts: malformed ABI response')
+			}
+		},
+	})
 }
