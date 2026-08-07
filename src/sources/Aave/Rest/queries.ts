@@ -281,12 +281,54 @@ const assertMarketSnapshotWire = (
 				:
 					undefined
 			)
+			const interestRateStrategyAddress = (
+				reserve.interestRateStrategyAddress != null && reserve.interestRateStrategyAddress.length > 0 ?
+					assertPoolAddress(reserve.interestRateStrategyAddress)
+				:
+					undefined
+			)
 			if (
 				!decimalPattern.test(reserve.size.amount.value)
+				|| (
+					reserve.size.usd != null
+					&& !decimalPattern.test(reserve.size.usd)
+				)
 				|| !decimalPattern.test(reserve.supplyInfo.apy.value)
+				|| (
+					reserve.supplyInfo.maxLTV != null
+					&& !decimalPattern.test(reserve.supplyInfo.maxLTV.value)
+				)
+				|| (
+					reserve.supplyInfo.liquidationThreshold != null
+					&& !decimalPattern.test(reserve.supplyInfo.liquidationThreshold.value)
+				)
+				|| (
+					reserve.supplyInfo.liquidationBonus != null
+					&& !decimalPattern.test(reserve.supplyInfo.liquidationBonus.value)
+				)
+				|| (
+					reserve.supplyInfo.supplyCap != null
+					&& (
+						!decimalPattern.test(reserve.supplyInfo.supplyCap.amount.value)
+						|| (
+							reserve.supplyInfo.supplyCap.usd != null
+							&& !decimalPattern.test(reserve.supplyInfo.supplyCap.usd)
+						)
+					)
+				)
 				|| (
 					reserve.usdExchangeRate != null
 					&& !decimalPattern.test(reserve.usdExchangeRate)
+				)
+				|| (
+					reserve.unbacked != null
+					&& (
+						!decimalPattern.test(reserve.unbacked.amount.value)
+						|| (
+							reserve.unbacked.usd != null
+							&& !decimalPattern.test(reserve.unbacked.usd)
+						)
+					)
 				)
 				|| (
 					reserve.isolationModeConfig != null
@@ -306,6 +348,26 @@ const assertMarketSnapshotWire = (
 						|| (
 							reserve.borrowInfo.utilizationRate != null
 							&& !decimalPattern.test(reserve.borrowInfo.utilizationRate.value)
+						)
+						|| (
+							reserve.borrowInfo.borrowCap != null
+							&& (
+								!decimalPattern.test(reserve.borrowInfo.borrowCap.amount.value)
+								|| (
+									reserve.borrowInfo.borrowCap.usd != null
+									&& !decimalPattern.test(reserve.borrowInfo.borrowCap.usd)
+								)
+							)
+						)
+						|| (
+							reserve.borrowInfo.total != null
+							&& (
+								!decimalPattern.test(reserve.borrowInfo.total.amount.value)
+								|| (
+									reserve.borrowInfo.total.usd != null
+									&& !decimalPattern.test(reserve.borrowInfo.total.usd)
+								)
+							)
 						)
 						|| (
 							reserve.borrowInfo.reserveFactor != null
@@ -332,6 +394,7 @@ const assertMarketSnapshotWire = (
 				aToken: _aToken,
 				vToken: _vToken,
 				usdOracleAddress: _usdOracleAddress,
+				interestRateStrategyAddress: _interestRateStrategyAddress,
 				...reserveRest
 			} = reserve
 
@@ -349,6 +412,9 @@ const assertMarketSnapshotWire = (
 				}),
 				...(usdOracleAddress != null && {
 					usdOracleAddress,
+				}),
+				...(interestRateStrategyAddress != null && {
+					interestRateStrategyAddress,
 				}),
 			}
 		}),

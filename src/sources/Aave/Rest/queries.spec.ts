@@ -313,6 +313,9 @@ describe('Aave market list/detail operations', () => {
 		expect(graphql.mock.calls[0][0].query).toContain('reserves {')
 		expect(graphql.mock.calls[0][0].query).toContain('underlyingToken {')
 		expect(graphql.mock.calls[0][0].query).toContain('availableLiquidity {')
+		expect(graphql.mock.calls[0][0].query).toContain('interestRateStrategyAddress')
+		expect(graphql.mock.calls[0][0].query).toContain('unbacked {')
+		expect(graphql.mock.calls[0][0].query).toContain('permitSupported')
 		expect(graphql).toHaveBeenCalledTimes(1)
 	})
 
@@ -718,6 +721,13 @@ describe('Aave account position operations', () => {
 						},
 						flashLoanEnabled: true,
 						permitSupported: true,
+						interestRateStrategyAddress: '0x4dadee72232632524835F87CF6996428006799E8',
+						unbacked: {
+							amount: {
+								value: '0',
+							},
+							usd: '0',
+						},
 						isolationModeConfig: {
 							canBeCollateral: true,
 							canBeBorrowed: false,
@@ -838,6 +848,13 @@ describe('Aave account position operations', () => {
 					},
 					flashLoanEnabled: true,
 					permitSupported: true,
+					interestRateStrategyAddress: '0x4dadee72232632524835f87cf6996428006799e8',
+					unbacked: {
+						amount: {
+							value: '0',
+						},
+						usd: '0',
+					},
 					isolationModeConfig: {
 						canBeCollateral: true,
 						canBeBorrowed: false,
@@ -896,6 +913,57 @@ describe('Aave account position operations', () => {
 			chainId: 1,
 			poolAddress: ethereumMarket.address,
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid eMode decimal value`)
+	})
+
+	it('fails closed when supplyCap amount is not a decimal string', async () => {
+		graphql.mockResolvedValueOnce({
+			market: {
+				...ethereumMarketSnapshot,
+				reserves: [
+					{
+						...ethereumMarketSnapshot.reserves[0],
+						supplyInfo: {
+							apy: {
+								value: '0.031245',
+							},
+							supplyCap: {
+								amount: {
+									value: 'not-a-decimal',
+								},
+							},
+						},
+					},
+				],
+			},
+		})
+
+		await expect(getMarket({
+			chainId: 1,
+			poolAddress: ethereumMarket.address,
+		})).rejects.toThrow(`${Source.Aave_Rest}: invalid reserve decimal value`)
+	})
+
+	it('fails closed when unbacked amount is not a decimal string', async () => {
+		graphql.mockResolvedValueOnce({
+			market: {
+				...ethereumMarketSnapshot,
+				reserves: [
+					{
+						...ethereumMarketSnapshot.reserves[0],
+						unbacked: {
+							amount: {
+								value: 'bad',
+							},
+						},
+					},
+				],
+			},
+		})
+
+		await expect(getMarket({
+			chainId: 1,
+			poolAddress: ethereumMarket.address,
+		})).rejects.toThrow(`${Source.Aave_Rest}: invalid reserve decimal value`)
 	})
 
 	it('preserves optional currency name on account supply positions', async () => {

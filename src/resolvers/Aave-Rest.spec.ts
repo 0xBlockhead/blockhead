@@ -343,6 +343,8 @@ describe('Aave Rest resolver module', () => {
 		expect(Object.keys(aaveMarketResolver.projections)).not.toContain('eModeCategories')
 		expect(JSON.stringify(snapshot)).not.toContain('isolationModeConfig')
 		expect(JSON.stringify(snapshot)).not.toContain('permitSupported')
+		expect(JSON.stringify(snapshot)).not.toContain('interestRateStrategyAddress')
+		expect(JSON.stringify(snapshot)).not.toContain('unbacked')
 	})
 
 	it('rejects unsupported chains on AaveMarket before transport', async () => {

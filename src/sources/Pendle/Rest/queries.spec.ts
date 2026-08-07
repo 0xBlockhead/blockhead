@@ -393,8 +393,8 @@ describe('Pendle market operations', () => {
 				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
 			],
 			tokensIn: [
-				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
 				'0x270d664d2fc7d962012a787aec8661ca83df24eb',
+				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
 			],
 			tokensOut: [
 				'0x35d8949372d46b7a3d5a56006ae77b215fc69bc0',
@@ -405,6 +405,61 @@ describe('Pendle market operations', () => {
 			binding,
 			httpUrl(binding, `/v1/sdk/1/markets/${baseMarketAddress}/tokens`)
 		)
+	})
+
+	it('rejects getMarket when markets/all reports an ambiguous total', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			total: 2,
+			limit: 1,
+			skip: 0,
+			results: [
+				baseMarketWire,
+			],
+		})
+		await expect(getMarket({
+			chainId: 1,
+			marketAddress: baseMarketAddress,
+		})).rejects.toThrow(`${Source.Pendle_Rest}: ambiguous market ${baseMarketAddress}`)
+	})
+
+	it('rejects feeRate outside [0, 1]', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			total: 1,
+			limit: 100,
+			skip: 0,
+			results: [
+				{
+					...baseMarketWire,
+					details: {
+						...baseMarketWire.details,
+						feeRate: 1.5,
+					},
+				},
+			],
+		})
+		await expect(listMarkets({
+			chainId: 1,
+		})).rejects.toThrow(`${Source.Pendle_Rest}: market details.feeRate must be a finite number in [0, 1]`)
+	})
+
+	it('rejects negative totalTvl before accepting a market', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			total: 1,
+			limit: 100,
+			skip: 0,
+			results: [
+				{
+					...baseMarketWire,
+					details: {
+						...baseMarketWire.details,
+						totalTvl: -1,
+					},
+				},
+			],
+		})
+		await expect(listMarkets({
+			chainId: 1,
+		})).rejects.toThrow(`${Source.Pendle_Rest}: market details.totalTvl must be a finite non-negative number`)
 	})
 
 	it('rejects unsupported chains and invalid market tokens envelopes before trusting addresses', async () => {

@@ -509,6 +509,11 @@ describe('Pendle Rest resolver module', () => {
 		expect(pendleMarketResolver.projections.observedAtTimestampMs(snapshot)).toBe(
 			Date.parse(baseMarketWire.timestamp)
 		)
+		expect(JSON.stringify(snapshot)).not.toContain('accountingAsset')
+		expect(JSON.stringify(snapshot)).not.toContain('swapFeeApy')
+		expect(JSON.stringify(snapshot)).not.toContain('aggregatedApy')
+		expect(JSON.stringify(snapshot)).not.toContain('totalActiveSupply')
+		expect(JSON.stringify(snapshot)).not.toContain('categoryIds')
 		expect(pendleMarketResolver.projections.$network(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: baseNetwork,
 		})
