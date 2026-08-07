@@ -166,6 +166,7 @@ it('projects enrolled gateway observation leftovers including balances and chann
 		source: Source.FedimintGatewayd_Rest,
 	}, {
 		publicEnv: {},
+		pagination: { limit: 25 },
 	})).toMatchObject({
 		reachable: true,
 		online: true,
@@ -186,6 +187,7 @@ it('projects enrolled federation leftovers from gateway info', async () => {
 		federationId: 'fed-1',
 	}, {
 		publicEnv: {},
+		pagination: { limit: 25 },
 	})).toMatchObject({
 		federationId: 'fed-1',
 		name: 'Test Fed',
@@ -197,6 +199,7 @@ it('projects enrolled federation leftovers from gateway info', async () => {
 		source: Source.FedimintGatewayd_Rest,
 	}, {
 		publicEnv: {},
+		pagination: { limit: 25 },
 	})).toMatchObject({
 		reachable: true,
 		health: 'running',
