@@ -174,7 +174,7 @@ describe('Covalent GoldRush product resolvers', () => {
 	it('lists owned coins from balances_v2 with native and ERC-20 selectors', async () => {
 		sourceGetJson.mockResolvedValueOnce(balanceEnvelope)
 
-		await expect(ownedCoinsResolver.resolve.EvmNetworkEvmAccount.resolve(
+		const snapshot = await ownedCoinsResolver.resolve.EvmNetworkEvmAccount.resolve(
 			{
 				$network: {
 					caip2: {
@@ -187,7 +187,8 @@ describe('Covalent GoldRush product resolvers', () => {
 				},
 			},
 			emptyContext
-		)).resolves.toEqual([
+		)
+		expect(ownedCoinsResolver.projections.$$ownedCoins.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$actor: {
@@ -218,6 +219,88 @@ describe('Covalent GoldRush product resolvers', () => {
 				},
 			},
 		])
+		expect(ownedCoinsResolver.projections.$$ownedCoins.continuation?.(snapshot)).toEqual({
+			operation: 'account-owned-coins',
+			target: 'goldrush',
+			terminal: true,
+		})
+	})
+
+	it('paginates owned coins through balances_v2 offset continuation without dropping rows', async () => {
+		if (typeof ownedCoinsResolver.projections.$$ownedCoins === 'function')
+			throw new Error('GoldRush owned-coins continuation missing')
+
+		sourceGetJson.mockResolvedValueOnce(balanceEnvelope)
+
+		const firstPage = await ownedCoinsResolver.resolve.EvmNetworkEvmAccount.resolve(
+			{
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+				$actor: {
+					address,
+				},
+			},
+			{
+				...emptyContext,
+				pagination: {
+					limit: 1,
+				},
+			}
+		)
+		expect(ownedCoinsResolver.projections.$$ownedCoins.select(firstPage)).toHaveLength(1)
+		expect(ownedCoinsResolver.projections.$$ownedCoins.continuation?.(firstPage)).toEqual({
+			operation: 'account-owned-coins',
+			target: 'goldrush',
+			terminal: false,
+			token: '1',
+		})
+
+		sourceGetJson.mockResolvedValueOnce(balanceEnvelope)
+		const secondPage = await ownedCoinsResolver.resolve.EvmNetworkEvmAccount.resolve(
+			{
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '1',
+					},
+				},
+				$actor: {
+					address,
+				},
+			},
+			{
+				...emptyContext,
+				pagination: {
+					limit: 1,
+				},
+				providerContinuationToken: '1',
+			}
+		)
+		expect(ownedCoinsResolver.projections.$$ownedCoins.select(secondPage)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$actor: {
+					address,
+				},
+				$contract: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+					address: tokenAddress,
+				},
+			},
+		}])
+		expect(ownedCoinsResolver.projections.$$ownedCoins.continuation?.(secondPage)).toEqual({
+			operation: 'account-owned-coins',
+			target: 'goldrush',
+			terminal: true,
+		})
 	})
 
 	it('resolves native and ERC-20 balance headers from balances_v2', async () => {

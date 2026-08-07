@@ -108,7 +108,7 @@ describe('Allium wallet balance envelopes', () => {
 			publicEnv,
 			address,
 			apiChain: 'ethereum',
-		})).rejects.toThrow('invalid raw_balance_str')
+		})).rejects.toThrow('invalid wallet balances response envelope')
 
 		alliumFetch.mockResolvedValueOnce({
 			items: Array.from({
@@ -123,7 +123,7 @@ describe('Allium wallet balance envelopes', () => {
 			publicEnv,
 			address,
 			apiChain: 'ethereum',
-		})).rejects.toThrow('wallet balances page too large')
+		})).rejects.toThrow('invalid wallet balances response envelope')
 	})
 
 	it('rejects invalid wallet addresses before transport', async () => {
@@ -176,6 +176,6 @@ describe('Allium tokens-by-address envelopes', () => {
 			publicEnv,
 			apiChain: 'ethereum',
 			tokenAddress,
-		})).rejects.toThrow('token lookup error missing message')
+		})).rejects.toThrow('invalid tokens-by-address response envelope')
 	})
 })

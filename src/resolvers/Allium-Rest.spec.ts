@@ -158,7 +158,95 @@ describe('Allium_Rest balance observations', () => {
 			operation: 'account-owned-coins',
 			target: 'allium',
 			terminal: false,
-			token: 'cursor-2',
+			token: 'skip=0&cursor=cursor-2',
+		})
+	})
+
+	it('walks owned-coin windows inside one Allium page before advancing the API cursor', async () => {
+		const ownedCoinsResolver = alliumRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.EvmNetworkAccount
+			&& '$$ownedCoins' in resolver.projections
+		))
+		if (ownedCoinsResolver == null || typeof ownedCoinsResolver.projections.$$ownedCoins === 'function')
+			throw new Error('Allium_Rest spec missing owned-coins continuation')
+
+		const erc20Row = {
+			chain: 'ethereum',
+			address,
+			raw_balance_str: '2500000',
+			block_timestamp: '2026-01-01T00:00:00.000Z',
+			block_number: 22_800_000,
+			token: {
+				chain: 'ethereum',
+				address: tokenAddress,
+				type: 'evm_erc20',
+				decimals: 6,
+				info: {
+					name: 'USD Coin',
+					symbol: 'USDC',
+				},
+			},
+		}
+
+		getLatestWalletBalances.mockResolvedValue({
+			items: [nativeBalanceRow, erc20Row],
+			cursor: 'cursor-2',
+		})
+
+		const firstPage = await ownedCoinsResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$actor: {
+				address,
+			},
+			$network: network,
+		}, {
+			...emptyContext,
+			pagination: {
+				limit: 1,
+			},
+		})
+
+		expect(ownedCoinsResolver.projections.$$ownedCoins.select(firstPage)).toHaveLength(1)
+		expect(ownedCoinsResolver.projections.$$ownedCoins.continuation?.(firstPage)).toEqual({
+			operation: 'account-owned-coins',
+			target: 'allium',
+			terminal: false,
+			token: 'skip=1',
+		})
+
+		getLatestWalletBalances.mockResolvedValue({
+			items: [nativeBalanceRow, erc20Row],
+			cursor: 'cursor-2',
+		})
+
+		const secondPage = await ownedCoinsResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$actor: {
+				address,
+			},
+			$network: network,
+		}, {
+			...emptyContext,
+			pagination: {
+				limit: 1,
+			},
+			providerContinuationToken: 'skip=1',
+		})
+
+		expect(ownedCoinsResolver.projections.$$ownedCoins.select(secondPage)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$actor: {
+					address,
+				},
+				$contract: {
+					$network: network,
+					address: tokenAddress,
+				},
+			},
+		}])
+		expect(ownedCoinsResolver.projections.$$ownedCoins.continuation?.(secondPage)).toEqual({
+			operation: 'account-owned-coins',
+			target: 'allium',
+			terminal: false,
+			token: 'skip=0&cursor=cursor-2',
 		})
 	})
 

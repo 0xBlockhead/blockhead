@@ -253,7 +253,7 @@ describe('GoldRush account token balances', () => {
 			chainId: 1,
 			chainName: 'eth-mainnet',
 			address,
-		})).rejects.toThrow('invalid token balance')
+		})).rejects.toThrow('invalid token balances response envelope')
 		await expect(getTokenBalances({
 			chainId: 1,
 			chainName: 'eth-mainnet',

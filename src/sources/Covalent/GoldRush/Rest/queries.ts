@@ -1,14 +1,11 @@
 import bindings from '$/sources/Covalent/bindings.ts'
 import { goldRushChainNameByChainId } from '$/sources/Covalent/GoldRush/Rest/constants.ts'
-import type {
-	GoldRushAddressTransactionsResponse,
-	GoldRushInternalTransfer,
-	GoldRushLogEvent,
-	GoldRushStateChange,
-	GoldRushTransactionExpansions,
-	GoldRushTransactionItem,
-	GoldRushTransactionResponse,
-	GoldRushTokenBalancesResponse,
+import {
+	goldRushAddressTransactionsResponseWire,
+	goldRushTokenBalancesResponseWire,
+	goldRushTransactionResponseWire,
+	type GoldRushTransactionExpansions,
+	type GoldRushTransactionItem,
 } from '$/sources/Covalent/GoldRush/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import {
@@ -20,7 +17,20 @@ const binding = bindings[Source.GoldRushFoundational_Rest][0]
 
 const evmAddressPattern = /^0x[0-9a-f]{40}$/i
 const evmTransactionHashPattern = /^0x[0-9a-f]{64}$/i
-const unsignedIntegerPattern = /^(0|[1-9][0-9]*)$/
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: {
+		assert: (value: unknown) => _Value
+	},
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`GoldRushFoundational_Rest: invalid ${label} response envelope`)
+	}
+}
 
 export const goldRushChainName = (
 	chainId: number
@@ -45,68 +55,15 @@ const goldRushBaseUrl = (
 	return firstHttpUrlForBinding(binding)
 }
 
-const assertGoldRushLogEvent = (
-	log: GoldRushLogEvent,
-	txHash: string
+const assertFiniteIso = (
+	value: string,
+	label: string
 ) => {
-	if (
-		!Number.isFinite(Date.parse(log.block_signed_at))
-		|| !Number.isSafeInteger(log.block_height)
-		|| log.block_height < 0
-		|| !Number.isSafeInteger(log.tx_offset)
-		|| log.tx_offset < 0
-		|| !Number.isSafeInteger(log.log_offset)
-		|| log.log_offset < 0
-		|| !evmTransactionHashPattern.test(log.tx_hash)
-		|| log.tx_hash.toLowerCase() !== txHash.toLowerCase()
-		|| !evmAddressPattern.test(log.sender_address)
-		|| log.raw_log_topics.length === 0
-		|| log.raw_log_topics.some((topic) => !/^0x[0-9a-f]{64}$/i.test(topic))
-		|| (
-			log.raw_log_data !== null
-			&& !/^0x([0-9a-f]{2})*$/i.test(log.raw_log_data)
-		)
-	)
-		throw new Error('GoldRushFoundational_Rest: invalid transaction log event')
+	if (!Number.isFinite(Date.parse(value)))
+		throw new Error(`GoldRushFoundational_Rest: invalid ${label}`)
 }
 
-const assertGoldRushInternalTransfer = (
-	transfer: GoldRushInternalTransfer
-) => {
-	if (
-		!evmAddressPattern.test(transfer.from_address)
-		|| (
-			transfer.to_address !== null
-			&& !evmAddressPattern.test(transfer.to_address)
-		)
-		|| !unsignedIntegerPattern.test(transfer.value)
-		|| !Number.isSafeInteger(transfer.gas_limit)
-		|| transfer.gas_limit < 0
-	)
-		throw new Error('GoldRushFoundational_Rest: invalid internal transfer')
-}
-
-const assertGoldRushStateChange = (
-	change: GoldRushStateChange
-) => {
-	if (
-		!evmAddressPattern.test(change.address)
-		|| !unsignedIntegerPattern.test(change.balance_before)
-		|| !unsignedIntegerPattern.test(change.balance_after)
-		|| !Number.isSafeInteger(change.nonce_before)
-		|| change.nonce_before < 0
-		|| !Number.isSafeInteger(change.nonce_after)
-		|| change.nonce_after < 0
-		|| change.storage_changes.some((storage) => (
-			storage.storage_address.trim() === ''
-			|| storage.value_before.trim() === ''
-			|| storage.value_after.trim() === ''
-		))
-	)
-		throw new Error('GoldRushFoundational_Rest: invalid state change')
-}
-
-const assertGoldRushTransactionItem = (
+const assertGoldRushTransactionBusinessRules = (
 	transaction: GoldRushTransactionItem,
 	{
 		requireLogs = false,
@@ -116,32 +73,13 @@ const assertGoldRushTransactionItem = (
 		expansions?: GoldRushTransactionExpansions
 	} = {}
 ) => {
-	if (
-		!evmTransactionHashPattern.test(transaction.tx_hash)
-		|| !evmAddressPattern.test(transaction.from_address)
-		|| (
-			transaction.to_address !== null
-			&& !evmAddressPattern.test(transaction.to_address)
-		)
-		|| !unsignedIntegerPattern.test(transaction.value)
-		|| !Number.isSafeInteger(transaction.block_height)
-		|| transaction.block_height < 0
-		|| !Number.isSafeInteger(transaction.tx_offset)
-		|| transaction.tx_offset < 0
-		|| !Number.isFinite(Date.parse(transaction.block_signed_at))
-		|| !/^0x[0-9a-f]{64}$/i.test(transaction.block_hash)
-		|| !Number.isSafeInteger(transaction.gas_offered)
-		|| transaction.gas_offered < 0
-		|| !Number.isSafeInteger(transaction.gas_spent)
-		|| transaction.gas_spent < 0
-		|| !Number.isSafeInteger(transaction.gas_price)
-		|| transaction.gas_price < 0
-		|| (
-			transaction.successful !== true
-			&& transaction.successful !== false
-		)
-	)
-		throw new Error('GoldRushFoundational_Rest: invalid account transaction')
+	assertFiniteIso(transaction.block_signed_at, 'transaction block_signed_at')
+
+	for (const log of transaction.log_events) {
+		assertFiniteIso(log.block_signed_at, 'transaction log block_signed_at')
+		if (log.tx_hash.toLowerCase() !== transaction.tx_hash.toLowerCase())
+			throw new Error('GoldRushFoundational_Rest: invalid transaction log event')
+	}
 
 	if (
 		requireLogs
@@ -150,8 +88,6 @@ const assertGoldRushTransactionItem = (
 		const logOffsets = new Set<number>()
 
 		for (const log of transaction.log_events) {
-			assertGoldRushLogEvent(log, transaction.tx_hash)
-
 			if (logOffsets.has(log.log_offset))
 				throw new Error('GoldRushFoundational_Rest: duplicate transaction log events')
 
@@ -159,39 +95,17 @@ const assertGoldRushTransactionItem = (
 		}
 	}
 
-	if (expansions?.withInternal === true) {
-		if (transaction.internal_transfers == null)
-			throw new Error('GoldRushFoundational_Rest: internal transfers missing')
+	if (expansions?.withInternal === true && transaction.internal_transfers == null)
+		throw new Error('GoldRushFoundational_Rest: internal transfers missing')
 
-		for (const transfer of transaction.internal_transfers)
-			assertGoldRushInternalTransfer(transfer)
-	} else if (transaction.internal_transfers != null) {
-		for (const transfer of transaction.internal_transfers)
-			assertGoldRushInternalTransfer(transfer)
-	}
+	if (expansions?.withState === true && transaction.state_changes == null)
+		throw new Error('GoldRushFoundational_Rest: state changes missing')
 
-	if (expansions?.withState === true) {
-		if (transaction.state_changes == null)
-			throw new Error('GoldRushFoundational_Rest: state changes missing')
-
-		for (const change of transaction.state_changes)
-			assertGoldRushStateChange(change)
-	} else if (transaction.state_changes != null) {
-		for (const change of transaction.state_changes)
-			assertGoldRushStateChange(change)
-	}
-
-	if (expansions?.withInputData === true) {
-		if (
-			transaction.input_data == null
-			|| !/^0x[0-9a-f]*$/i.test(transaction.input_data.method_id)
-		)
-			throw new Error('GoldRushFoundational_Rest: input data missing')
-	} else if (
-		transaction.input_data != null
-		&& !/^0x[0-9a-f]*$/i.test(transaction.input_data.method_id)
+	if (
+		expansions?.withInputData === true
+		&& transaction.input_data == null
 	)
-		throw new Error('GoldRushFoundational_Rest: invalid input data')
+		throw new Error('GoldRushFoundational_Rest: input data missing')
 }
 
 export const getTransaction = async ({
@@ -224,9 +138,13 @@ export const getTransaction = async ({
 	if (expansions?.withInputData != null)
 		url.searchParams.set('with-input-data', String(expansions.withInputData))
 
-	const envelope = await sourceGetJson<GoldRushTransactionResponse>(
-		binding,
-		url.toString()
+	const envelope = assertEnvelope(
+		'transaction',
+		goldRushTransactionResponseWire,
+		await sourceGetJson<unknown>(
+			binding,
+			url.toString()
+		)
 	)
 	if (envelope.error)
 		throw new Error(
@@ -234,8 +152,7 @@ export const getTransaction = async ({
 		)
 	if (envelope.data == null)
 		throw new Error('GoldRushFoundational_Rest: response data is missing')
-	if (!Number.isFinite(Date.parse(envelope.data.updated_at)))
-		throw new Error('GoldRushFoundational_Rest: invalid transaction provenance')
+	assertFiniteIso(envelope.data.updated_at, 'transaction provenance')
 	if (envelope.data.items.length === 0)
 		throw new Error('GoldRushFoundational_Rest: transaction not found')
 	if (envelope.data.items.length !== 1)
@@ -245,7 +162,7 @@ export const getTransaction = async ({
 	if (envelope.data.items[0].tx_hash.toLowerCase() !== txHash.toLowerCase())
 		throw new Error('GoldRushFoundational_Rest: response transaction does not match request')
 
-	assertGoldRushTransactionItem(envelope.data.items[0], {
+	assertGoldRushTransactionBusinessRules(envelope.data.items[0], {
 		requireLogs: true,
 		expansions,
 	})
@@ -279,9 +196,13 @@ export const getTokenBalances = async ({
 
 	url.searchParams.set('no-spam', String(noSpam))
 
-	const envelope = await sourceGetJson<GoldRushTokenBalancesResponse>(
-		binding,
-		url.toString()
+	const envelope = assertEnvelope(
+		'token balances',
+		goldRushTokenBalancesResponseWire,
+		await sourceGetJson<unknown>(
+			binding,
+			url.toString()
+		)
 	)
 
 	if (envelope.error)
@@ -299,44 +220,17 @@ export const getTokenBalances = async ({
 	)
 		throw new Error('GoldRushFoundational_Rest: response account identity does not match request')
 
-	if (
-		!Number.isSafeInteger(envelope.data.chain_tip_height)
-		|| envelope.data.chain_tip_height < 0
-		|| !Number.isFinite(Date.parse(envelope.data.chain_tip_signed_at))
-		|| !Number.isFinite(Date.parse(envelope.data.updated_at))
-		|| envelope.data.quote_currency.trim() === ''
-		|| envelope.data.items.length > 5_000
-	)
+	assertFiniteIso(envelope.data.chain_tip_signed_at, 'balance snapshot provenance')
+	assertFiniteIso(envelope.data.updated_at, 'balance snapshot provenance')
+	if (envelope.data.quote_currency.trim() === '')
 		throw new Error('GoldRushFoundational_Rest: invalid balance snapshot provenance')
 
 	const balanceIdentities = new Set<string>()
 
 	for (const balance of envelope.data.items) {
 		if (
-			!evmAddressPattern.test(balance.contract_address)
-			|| balance.contract_ticker_symbol.trim() === ''
-			|| !Number.isSafeInteger(balance.contract_decimals)
-			|| balance.contract_decimals < 0
-			|| balance.contract_decimals > 255
-			|| !Number.isSafeInteger(balance.block_height)
-			|| balance.block_height < 0
-			|| !unsignedIntegerPattern.test(balance.balance)
-			|| (
-				balance.balance_24h !== null
-				&& !unsignedIntegerPattern.test(balance.balance_24h)
-			)
-			|| (
-				balance.last_transferred_at !== null
-				&& !Number.isFinite(Date.parse(balance.last_transferred_at))
-			)
-			|| (
-				balance.is_native_token !== true
-				&& balance.is_native_token !== false
-			)
-			|| (
-				balance.is_spam !== true
-				&& balance.is_spam !== false
-			)
+			balance.last_transferred_at != null
+			&& !Number.isFinite(Date.parse(balance.last_transferred_at))
 		)
 			throw new Error('GoldRushFoundational_Rest: invalid token balance')
 
@@ -385,9 +279,13 @@ export const getAddressTransactions = async ({
 	url.searchParams.set('no-logs', String(noLogs))
 	url.searchParams.set('block-signed-at-asc', String(ascending))
 
-	const envelope = await sourceGetJson<GoldRushAddressTransactionsResponse>(
-		binding,
-		url.toString()
+	const envelope = assertEnvelope(
+		'address transactions',
+		goldRushAddressTransactionsResponseWire,
+		await sourceGetJson<unknown>(
+			binding,
+			url.toString()
+		)
 	)
 
 	if (envelope.error)
@@ -406,28 +304,15 @@ export const getAddressTransactions = async ({
 	)
 		throw new Error('GoldRushFoundational_Rest: response transaction page identity does not match request')
 
-	if (
-		!Number.isSafeInteger(envelope.data.chain_tip_height)
-		|| envelope.data.chain_tip_height < 0
-		|| !Number.isFinite(Date.parse(envelope.data.chain_tip_signed_at))
-		|| !Number.isFinite(Date.parse(envelope.data.updated_at))
-		|| envelope.data.quote_currency.trim() === ''
-		|| envelope.data.items.length > 100
-		|| (
-			envelope.data.links.prev !== null
-			&& !URL.canParse(envelope.data.links.prev)
-		)
-		|| (
-			envelope.data.links.next !== null
-			&& !URL.canParse(envelope.data.links.next)
-		)
-	)
+	assertFiniteIso(envelope.data.chain_tip_signed_at, 'transaction page provenance')
+	assertFiniteIso(envelope.data.updated_at, 'transaction page provenance')
+	if (envelope.data.quote_currency.trim() === '')
 		throw new Error('GoldRushFoundational_Rest: invalid transaction page provenance')
 
 	const transactionHashes = new Set<string>()
 
 	for (const transaction of envelope.data.items) {
-		assertGoldRushTransactionItem(transaction, {
+		assertGoldRushTransactionBusinessRules(transaction, {
 			requireLogs: !noLogs,
 		})
 

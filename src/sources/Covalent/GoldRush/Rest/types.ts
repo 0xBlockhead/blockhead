@@ -1,73 +1,108 @@
-// https://goldrush.dev/docs/api-reference/transactions/get-a-transaction/
-export type GoldRushTransactionResponse = {
-	data: GoldRushTransactionData | null
-	error: boolean
-	error_message: string | null
-	error_code: number | null
-}
+/**
+ * GoldRush Foundational API envelopes (fail-closed arktype).
+ * @see https://goldrush.dev/docs/api-reference/transactions/get-a-transaction/
+ * @see https://goldrush.dev/docs/api-reference/balances/get-token-balances-for-address/
+ * @see https://goldrush.dev/docs/api-reference/transactions/get-transactions-for-address-v3/
+ */
 
-export type GoldRushTransactionData = {
-	updated_at: string
-	chain_id: number
-	chain_name: string
-	items: GoldRushTransactionItem[]
-}
+import { type as arktype } from 'arktype'
 
-export type GoldRushTransactionItem = {
-	block_signed_at: string
-	block_height: number
-	block_hash: string
-	tx_hash: string
-	tx_offset: number
-	successful: boolean
-	from_address: string
-	to_address: string | null
-	value: string
-	gas_offered: number
-	gas_spent: number
-	gas_price: number
-	log_events: GoldRushLogEvent[]
-	internal_transfers?: GoldRushInternalTransfer[] | null
-	state_changes?: GoldRushStateChange[] | null
-	input_data?: GoldRushInputData | null
-}
 
-export type GoldRushLogEvent = {
-	block_signed_at: string
-	block_height: number
-	tx_offset: number
-	log_offset: number
-	tx_hash: string
-	raw_log_topics: string[]
-	sender_address: string
-	raw_log_data: string | null
-}
+const nonNegativeInteger = arktype('number.integer >= 0')
+const nonEmptyString = arktype('string > 0')
+const unsignedIntegerString = arktype(/^(0|[1-9][0-9]*)$/)
+const evmAddress = arktype(/^0x[0-9a-fA-F]{40}$/)
+const evmTransactionHash = arktype(/^0x[0-9a-fA-F]{64}$/)
+const topicHash = arktype(/^0x[0-9a-fA-F]{64}$/)
+const hexData = arktype(/^0x([0-9a-fA-F]{2})*$/)
+const methodId = arktype(/^0x[0-9a-fA-F]*$/)
+const nullableUrl = arktype('string.url').or(arktype.null)
 
-export type GoldRushInternalTransfer = {
-	from_address: string
-	to_address: string | null
-	value: string
-	gas_limit: number
-}
+export const goldRushLogEventWire = arktype({
+	block_signed_at: nonEmptyString,
+	block_height: nonNegativeInteger,
+	tx_offset: nonNegativeInteger,
+	log_offset: nonNegativeInteger,
+	tx_hash: evmTransactionHash,
+	raw_log_topics: topicHash.array().atLeastLength(1),
+	sender_address: evmAddress,
+	raw_log_data: hexData.or(arktype.null),
+}).onUndeclaredKey('delete')
 
-export type GoldRushStateChange = {
-	address: string
-	balance_before: string
-	balance_after: string
-	storage_changes: GoldRushStorageChange[]
-	nonce_before: number
-	nonce_after: number
-}
+export type GoldRushLogEvent = typeof goldRushLogEventWire.infer
 
-export type GoldRushStorageChange = {
-	storage_address: string
-	value_before: string
-	value_after: string
-}
+export const goldRushInternalTransferWire = arktype({
+	from_address: evmAddress,
+	to_address: evmAddress.or(arktype.null),
+	value: unsignedIntegerString,
+	gas_limit: nonNegativeInteger,
+}).onUndeclaredKey('delete')
 
-export type GoldRushInputData = {
-	method_id: string
-}
+export type GoldRushInternalTransfer = typeof goldRushInternalTransferWire.infer
+
+export const goldRushStorageChangeWire = arktype({
+	storage_address: nonEmptyString,
+	value_before: nonEmptyString,
+	value_after: nonEmptyString,
+}).onUndeclaredKey('delete')
+
+export type GoldRushStorageChange = typeof goldRushStorageChangeWire.infer
+
+export const goldRushStateChangeWire = arktype({
+	address: evmAddress,
+	balance_before: unsignedIntegerString,
+	balance_after: unsignedIntegerString,
+	storage_changes: goldRushStorageChangeWire.array(),
+	nonce_before: nonNegativeInteger,
+	nonce_after: nonNegativeInteger,
+}).onUndeclaredKey('delete')
+
+export type GoldRushStateChange = typeof goldRushStateChangeWire.infer
+
+export const goldRushInputDataWire = arktype({
+	method_id: methodId,
+}).onUndeclaredKey('delete')
+
+export type GoldRushInputData = typeof goldRushInputDataWire.infer
+
+export const goldRushTransactionItemWire = arktype({
+	block_signed_at: nonEmptyString,
+	block_height: nonNegativeInteger,
+	block_hash: topicHash,
+	tx_hash: evmTransactionHash,
+	tx_offset: nonNegativeInteger,
+	successful: 'boolean',
+	from_address: evmAddress,
+	to_address: evmAddress.or(arktype.null),
+	value: unsignedIntegerString,
+	gas_offered: nonNegativeInteger,
+	gas_spent: nonNegativeInteger,
+	gas_price: nonNegativeInteger,
+	log_events: goldRushLogEventWire.array(),
+	'internal_transfers?': goldRushInternalTransferWire.array().or(arktype.null),
+	'state_changes?': goldRushStateChangeWire.array().or(arktype.null),
+	'input_data?': goldRushInputDataWire.or(arktype.null),
+}).onUndeclaredKey('delete')
+
+export type GoldRushTransactionItem = typeof goldRushTransactionItemWire.infer
+
+export const goldRushTransactionDataWire = arktype({
+	updated_at: nonEmptyString,
+	chain_id: arktype('number.integer >= 1'),
+	chain_name: nonEmptyString,
+	items: goldRushTransactionItemWire.array(),
+}).onUndeclaredKey('delete')
+
+export type GoldRushTransactionData = typeof goldRushTransactionDataWire.infer
+
+export const goldRushTransactionResponseWire = arktype({
+	data: goldRushTransactionDataWire.or(arktype.null),
+	error: 'boolean',
+	error_message: nonEmptyString.or(arktype.null),
+	error_code: arktype('number').or(arktype.null),
+}).onUndeclaredKey('delete')
+
+export type GoldRushTransactionResponse = typeof goldRushTransactionResponseWire.infer
 
 export type GoldRushTransactionExpansions = {
 	withInternal?: boolean
@@ -75,65 +110,78 @@ export type GoldRushTransactionExpansions = {
 	withInputData?: boolean
 }
 
-export type GoldRushTokenBalancesResponse = {
-	data: GoldRushTokenBalancesData | null
-	error: boolean
-	error_message: string | null
-	error_code: number | null
-}
+export const goldRushTokenBalanceItemWire = arktype({
+	contract_decimals: arktype('number.integer >= 0 <= 255'),
+	contract_name: 'string',
+	contract_ticker_symbol: nonEmptyString,
+	contract_address: evmAddress,
+	contract_display_name: 'string',
+	supports_erc: arktype('string').array(),
+	last_transferred_at: nonEmptyString.or(arktype.null),
+	block_height: nonNegativeInteger,
+	is_native_token: 'boolean',
+	type: 'string',
+	is_spam: 'boolean',
+	balance: unsignedIntegerString,
+	balance_24h: unsignedIntegerString.or(arktype.null),
+	quote_rate: arktype('number').or(arktype.null),
+	quote_rate_24h: arktype('number').or(arktype.null),
+	quote: arktype('number').or(arktype.null),
+	quote_24h: arktype('number').or(arktype.null),
+	pretty_quote: 'string | null',
+	pretty_quote_24h: 'string | null',
+}).onUndeclaredKey('delete')
 
-export type GoldRushTokenBalancesData = {
-	address: string
-	chain_id: number
-	chain_name: string
-	chain_tip_height: number
-	chain_tip_signed_at: string
-	quote_currency: string
-	updated_at: string
-	items: GoldRushTokenBalanceItem[]
-}
+export type GoldRushTokenBalanceItem = typeof goldRushTokenBalanceItemWire.infer
 
-export type GoldRushTokenBalanceItem = {
-	contract_decimals: number
-	contract_name: string
-	contract_ticker_symbol: string
-	contract_address: string
-	contract_display_name: string
-	supports_erc: string[]
-	last_transferred_at: string | null
-	block_height: number
-	is_native_token: boolean
-	type: string
-	is_spam: boolean
-	balance: string
-	balance_24h: string | null
-	quote_rate: number | null
-	quote_rate_24h: number | null
-	quote: number | null
-	quote_24h: number | null
-	pretty_quote: string | null
-	pretty_quote_24h: string | null
-}
+export const goldRushTokenBalancesDataWire = arktype({
+	address: evmAddress,
+	chain_id: arktype('number.integer >= 1'),
+	chain_name: nonEmptyString,
+	chain_tip_height: nonNegativeInteger,
+	chain_tip_signed_at: nonEmptyString,
+	quote_currency: nonEmptyString,
+	updated_at: nonEmptyString,
+	items: goldRushTokenBalanceItemWire.array().atMostLength(5_000),
+}).onUndeclaredKey('delete')
 
-export type GoldRushAddressTransactionsResponse = {
-	data: GoldRushAddressTransactionsData | null
-	error: boolean
-	error_message: string | null
-	error_code: number | null
-}
+export type GoldRushTokenBalancesData = typeof goldRushTokenBalancesDataWire.infer
 
-export type GoldRushAddressTransactionsData = {
-	address: string
-	updated_at: string
-	quote_currency: string
-	chain_id: number
-	chain_name: string
-	chain_tip_height: number
-	chain_tip_signed_at: string
-	current_page: number
+export const goldRushTokenBalancesResponseWire = arktype({
+	data: goldRushTokenBalancesDataWire.or(arktype.null),
+	error: 'boolean',
+	error_message: nonEmptyString.or(arktype.null),
+	error_code: arktype('number').or(arktype.null),
+}).onUndeclaredKey('delete')
+
+export type GoldRushTokenBalancesResponse = typeof goldRushTokenBalancesResponseWire.infer
+
+export const goldRushAddressTransactionsDataWire = arktype({
+	address: evmAddress,
+	updated_at: nonEmptyString,
+	quote_currency: nonEmptyString,
+	chain_id: arktype('number.integer >= 1'),
+	chain_name: nonEmptyString,
+	chain_tip_height: nonNegativeInteger,
+	chain_tip_signed_at: nonEmptyString,
+	current_page: nonNegativeInteger,
 	links: {
-		prev: string | null
-		next: string | null
-	}
-	items: GoldRushTransactionItem[]
-}
+		prev: nullableUrl,
+		next: nullableUrl,
+	},
+	items: goldRushTransactionItemWire.array().atMostLength(100),
+}).onUndeclaredKey('delete')
+
+export type GoldRushAddressTransactionsData = typeof goldRushAddressTransactionsDataWire.infer
+
+export const goldRushAddressTransactionsResponseWire = arktype({
+	data: goldRushAddressTransactionsDataWire.or(arktype.null),
+	error: 'boolean',
+	error_message: nonEmptyString.or(arktype.null),
+	error_code: arktype('number').or(arktype.null),
+}).onUndeclaredKey('delete')
+
+export type GoldRushAddressTransactionsResponse = typeof goldRushAddressTransactionsResponseWire.infer
+
+/** Transport fail-closed max for balances_v2; snapshots at the cap may be truncated. */
+export const goldRushTokenBalancesItemsCap = 5_000

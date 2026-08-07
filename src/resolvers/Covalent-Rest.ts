@@ -407,7 +407,10 @@ export default {
 			resolve: {
 				EvmNetworkEvmAccount: {
 					resolve: async ({ $actor, $network }, context) => {
-						const { getTokenBalances, goldRushChainName } = await import('$/sources/Covalent/GoldRush/Rest/queries.ts')
+						const {
+							getTokenBalances,
+							goldRushChainName,
+						} = await import('$/sources/Covalent/GoldRush/Rest/queries.ts')
 						const { chainId, $network: network } = goldRushChainForNetwork($network)
 						const address = hexLowerOfByteSize($actor.address, 20)
 						if (address == null)
@@ -418,16 +421,24 @@ export default {
 							EntityType.EvmNetworkActorCoinBalance
 						>
 
+						const skip = (
+							context.providerContinuationToken == null ?
+								0
+							:
+								Number(context.providerContinuationToken)
+						)
+						if (!Number.isSafeInteger(skip) || skip < 0)
+							throw new Error('GoldRushFoundational_Rest: invalid owned-coins offset continuation')
+
 						const balances = await getTokenBalances({
 							chainId,
 							chainName: goldRushChainName(chainId),
 							address,
 						})
 						const limit = resolverContextRowLimit(context)
-
-						return (
+						const rows = (
 							balances.items
-								.slice(0, limit)
+								.slice(skip, skip + limit)
 								.flatMap<{ [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }>((balance) => {
 									if (balance.is_native_token) {
 										return [{
@@ -457,11 +468,32 @@ export default {
 									}]
 								})
 						)
+
+						return {
+							skip,
+							totalCount: balances.items.length,
+							rows,
+						}
 					},
 				},
 			},
 		})({
-			$$ownedCoins: (ownedCoins) => ownedCoins,
+			$$ownedCoins: {
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot) => {
+					const nextSkip = snapshot.skip + snapshot.rows.length
+					const terminal = nextSkip >= snapshot.totalCount
+
+					return {
+						operation: 'account-owned-coins',
+						target: 'goldrush',
+						terminal,
+						...(!terminal && {
+							token: String(nextSkip),
+						}),
+					}
+				},
+			},
 		}),
 
 		defineResolver({
@@ -483,14 +515,12 @@ export default {
 							page: pageIndex,
 							noLogs: true,
 						})
-						const limit = resolverContextRowLimit(context)
 
 						return {
 							pageIndex,
 							hasNextPage: page.links.next != null,
 							rows: (
 								page.items
-									.slice(0, limit)
 									.map((transaction) => {
 										const txHash = hexLowerOfByteSize(transaction.tx_hash, 32)
 										if (txHash == null)

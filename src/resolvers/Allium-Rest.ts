@@ -115,6 +115,52 @@ const alliumBalanceObservation = (
 	}
 }
 
+const alliumOwnedCoinsContinuation = (
+	token: string | undefined
+) => {
+	if (token == null || token === '') {
+		return {
+			skip: 0,
+			cursor: undefined as string | undefined,
+		}
+	}
+
+	// Legacy bare API cursor (pre-offset honesty).
+	if (!token.includes('=')) {
+		return {
+			skip: 0,
+			cursor: token,
+		}
+	}
+
+	const params = new URLSearchParams(token)
+	const skip = Number(params.get('skip') ?? '0')
+	if (!Number.isSafeInteger(skip) || skip < 0)
+		throw new Error('Allium_Rest: invalid owned-coins offset continuation')
+
+	const cursor = params.get('cursor')
+	return {
+		skip,
+		cursor: cursor == null || cursor === '' ? undefined : cursor,
+	}
+}
+
+const alliumOwnedCoinsContinuationToken = ({
+	skip,
+	cursor,
+}: {
+	skip: number
+	cursor?: string
+}) => {
+	const params = new URLSearchParams({
+		skip: String(skip),
+	})
+	if (cursor != null && cursor !== '')
+		params.set('cursor', cursor)
+
+	return params.toString()
+}
+
 
 export default {
 	source: Source.Allium_Rest,
@@ -392,19 +438,22 @@ export default {
 						>
 
 						const alliumNetwork = alliumNetworkForSelector($network)
+						const {
+							skip,
+							cursor: requestCursor,
+						} = alliumOwnedCoinsContinuation(context.providerContinuationToken)
 						const page = await getLatestWalletBalances({
 							publicEnv: context.publicEnv,
 							address: $actor.address,
 							apiChain: alliumNetwork.apiChain,
 							withLiquidityInfo: false,
-							...(context.providerContinuationToken != null && context.providerContinuationToken !== '' && {
-								cursor: context.providerContinuationToken,
+							...(requestCursor != null && {
+								cursor: requestCursor,
 							}),
 						})
 						const limit = resolverContextRowLimit(context)
-						const rows = (
+						const mapped = (
 							page.items
-								.slice(0, limit)
 								.flatMap<{ [EntityMetaKey.Selector]: EvmNetworkActorCoinBalanceEntitySelector }>((balanceRow) => (
 									balanceRow.token?.type === 'native' ?
 										[{
@@ -437,10 +486,14 @@ export default {
 											[]
 								))
 						)
+						const rows = mapped.slice(skip, skip + limit)
 
 						return {
+							skip,
+							requestCursor,
+							nextCursor: page.cursor,
+							pageRowCount: mapped.length,
 							rows,
-							cursor: page.cursor,
 						}
 					},
 				},
@@ -448,14 +501,47 @@ export default {
 		})({
 			$$ownedCoins: {
 				select: (snapshot) => snapshot.rows,
-				continuation: (snapshot) => ({
-					operation: 'account-owned-coins',
-					target: 'allium',
-					terminal: snapshot.cursor == null || snapshot.cursor === '',
-					...(snapshot.cursor != null && snapshot.cursor !== '' && {
-						token: snapshot.cursor,
-					}),
-				}),
+				continuation: (snapshot) => {
+					const nextSkip = snapshot.skip + snapshot.rows.length
+					const moreInPage = nextSkip < snapshot.pageRowCount
+					const nextApiCursor = (
+						snapshot.nextCursor != null
+						&& snapshot.nextCursor !== ''
+					) ?
+						snapshot.nextCursor
+					:
+						undefined
+
+					if (moreInPage) {
+						return {
+							operation: 'account-owned-coins',
+							target: 'allium',
+							terminal: false,
+							token: alliumOwnedCoinsContinuationToken({
+								skip: nextSkip,
+								cursor: snapshot.requestCursor,
+							}),
+						}
+					}
+
+					if (nextApiCursor != null) {
+						return {
+							operation: 'account-owned-coins',
+							target: 'allium',
+							terminal: false,
+							token: alliumOwnedCoinsContinuationToken({
+								skip: 0,
+								cursor: nextApiCursor,
+							}),
+						}
+					}
+
+					return {
+						operation: 'account-owned-coins',
+						target: 'allium',
+						terminal: true,
+					}
+				},
 			},
 		}),
 
