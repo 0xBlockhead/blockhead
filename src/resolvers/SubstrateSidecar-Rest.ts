@@ -519,14 +519,17 @@ export default {
 						assertPolkadotMainnet($network)
 						const {
 							getBlockHead,
+							getNodeNetwork,
 							getRuntimeSpec,
 						} = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 						const [
 							head,
 							runtime,
+							nodeNetwork,
 						] = await Promise.all([
 							getBlockHead(),
 							getRuntimeSpec(),
+							getNodeNetwork(),
 						])
 						return {
 							$network: {
@@ -547,6 +550,9 @@ export default {
 							...(runtime.stateVersion != null && {
 								stateVersion: runtime.stateVersion,
 							}),
+							peerCount: Number(nodeNetwork.numPeers),
+							isSyncing: nodeNetwork.isSyncing,
+							shouldHavePeers: nodeNetwork.shouldHavePeers,
 						}
 					},
 				},
@@ -565,7 +571,36 @@ export default {
 					runtimeSpecVersion: (timestamp) => timestamp.runtimeSpecVersion,
 					transactionVersion: (timestamp) => timestamp.transactionVersion,
 					stateVersion: (timestamp) => timestamp.stateVersion,
+					peerCount: (timestamp) => timestamp.peerCount,
+					isSyncing: (timestamp) => timestamp.isSyncing,
+					shouldHavePeers: (timestamp) => timestamp.shouldHavePeers,
 				},
+			}),
+
+		defineResolver({
+			entityType: EntityType.PolkadotReferendum,
+			resolve: {
+				NetworkReferendumId: {
+					resolve: async ({ $network, referendumId }) => {
+						assertPolkadotMainnet($network)
+						if (referendumId.length === 0)
+							throw new Error('SubstrateSidecar_Rest: referendum ID must not be empty')
+						const { getOngoingReferenda } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+						const referendum = (await getOngoingReferenda()).referenda
+							.find((candidate) => candidate.id === referendumId)
+						if (referendum == null)
+							throw new Error(`SubstrateSidecar_Rest: ongoing referendum not found for ${referendumId}`)
+
+						return {
+							...(referendum.submitted != null && {
+								submittedAtBlockNumber: BigInt(referendum.submitted),
+							}),
+						}
+					},
+				},
+			},
+		})({
+				submittedAtBlockNumber: (referendum) => referendum.submittedAtBlockNumber,
 			}),
 
 		defineResolver({

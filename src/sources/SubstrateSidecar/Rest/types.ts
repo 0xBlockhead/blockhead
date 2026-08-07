@@ -180,3 +180,63 @@ export type SidecarAhmInfo = {
 		endBlock: string
 	}
 }
+
+export type SidecarNodeNetwork = {
+	nodeRoles?: unknown
+	numPeers: string
+	isSyncing: boolean
+	shouldHavePeers: boolean
+	localPeerId?: string
+	localListenAddresses?: string[]
+	peersInfo?: unknown
+}
+
+export type SidecarAccountStakingInfo = {
+	at: {
+		hash: string
+		height: string
+	}
+	rewardDestination?: string
+	controller?: string
+	numSlashingSpans?: string | null
+	nominations?: unknown
+	staking?: unknown
+}
+
+export type SidecarOngoingReferendum = {
+	id: string
+	submitted?: string
+	enactment?: string | {
+		at?: string
+		after?: string
+	}
+	deciding?: {
+		since?: string
+		confirming?: string | null
+	}
+	decisionDeposit?: {
+		who?: string
+		amount?: string
+	}
+}
+
+export type SidecarOngoingReferenda = {
+	at: {
+		hash: string
+		height: string
+	}
+	referenda: SidecarOngoingReferendum[]
+}
+
+export type SidecarTransactionMaterial = {
+	at: {
+		hash: string
+		height: string
+	}
+	genesisHash: string
+	chainName: string
+	specName: string
+	specVersion: string
+	txVersion: string
+	metadata?: string
+}

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -103,7 +103,13 @@ describe('Polkadot JsonRpc block leftovers', () => {
 		}, context)
 
 		expect(blockResolver.projections.hash(snapshot)).toBe('0xddd4')
-		expect(blockResolver.projections.$$extrinsics(snapshot)).toHaveLength(2)
+		const extrinsics = blockResolver.projections.$$extrinsics(snapshot)
+		expect(extrinsics).toHaveLength(2)
+		expect(extrinsics[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'hash')]: expect.stringMatching(/^0x[0-9a-f]{64}$/),
+		})
+		expect(extrinsics[0][EntityMetaKey.Fields]?.[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'hash')])
+			.not.toBe(extrinsics[1][EntityMetaKey.Fields]?.[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'hash')])
 		expect(blockResolver.projections.$parent(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: {
 				$network: network,
@@ -111,6 +117,36 @@ describe('Polkadot JsonRpc block leftovers', () => {
 				hash: '0xaaa1',
 			},
 		})
+	})
+
+	it('resolves PolkadotExtrinsic.BlockIndexInBlock blake2-256 hash', async () => {
+		const extrinsicResolver = polkadot.resolvers.find((
+			resolver
+		): resolver is Extract<
+			typeof polkadot.resolvers[number],
+			{ entityType: EntityType.PolkadotExtrinsic }
+		> => resolver.entityType === EntityType.PolkadotExtrinsic)
+		if (extrinsicResolver == null)
+			throw new Error('Polkadot JsonRpc extrinsic resolver is missing')
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResult({
+			block: {
+				header,
+				extrinsics: [
+					'0x01',
+					'0x02',
+				],
+			},
+		}))
+		const snapshot = await extrinsicResolver.resolve.BlockIndexInBlock.resolve({
+			$block: {
+				$network: network,
+				blockNumber: 10n,
+				hash: '0xddd4',
+			},
+			indexInBlock: 1,
+		}, context)
+		expect(extrinsicResolver.projections.hash(snapshot)).toMatch(/^0x[0-9a-f]{64}$/)
 	})
 
 	it('counts blocks as finalized tip + 1', async () => {

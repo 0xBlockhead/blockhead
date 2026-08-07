@@ -3,16 +3,20 @@ import type {
 	SidecarAccountAssetBalances,
 	SidecarAccountBalanceInfo,
 	SidecarAccountForeignAssetBalances,
+	SidecarAccountStakingInfo,
 	SidecarAhmInfo,
 	SidecarAssetInfo,
 	SidecarBlock,
 	SidecarBlockExtrinsic,
 	SidecarBlockHeader,
 	SidecarExtrinsic,
+	SidecarNodeNetwork,
 	SidecarNodeVersion,
+	SidecarOngoingReferenda,
 	SidecarRuntimeMetadata,
 	SidecarRuntimeSpec,
 	SidecarStakingValidators,
+	SidecarTransactionMaterial,
 } from '$/sources/SubstrateSidecar/Rest/types.ts'
 import bindings from '$/sources/SubstrateSidecar/bindings.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
@@ -221,6 +225,67 @@ const sidecarAhmInfoWire = arktype({
 		startBlock: unsignedDecimal,
 		endBlock: unsignedDecimal,
 	},
+})
+
+// Live public Sidecar returns nodeRoles as [{ full: null }] and peersInfo as either PeerInfo[] or an error string.
+const sidecarNodeNetworkWire = arktype({
+	'nodeRoles?': 'unknown',
+	numPeers: unsignedDecimal,
+	isSyncing: 'boolean',
+	shouldHavePeers: 'boolean',
+	'localPeerId?': 'string > 0',
+	'localListenAddresses?': 'string[]',
+	'peersInfo?': 'unknown',
+})
+
+const sidecarAccountStakingInfoWire = arktype({
+	at: {
+		hash: 'string > 0',
+		height: unsignedDecimal,
+	},
+	'rewardDestination?': 'string > 0',
+	'controller?': 'string > 0',
+	'numSlashingSpans?': arktype(unsignedDecimal).or('null'),
+	'nominations?': 'unknown',
+	'staking?': 'unknown',
+})
+
+const sidecarOngoingReferendumWire = arktype({
+	id: arktype('string > 0').or('number.integer >= 0'),
+	'submitted?': unsignedDecimal,
+	'enactment?': arktype('string > 0').or({
+		'at?': unsignedDecimal,
+		'after?': unsignedDecimal,
+	}),
+	'deciding?': {
+		'since?': unsignedDecimal,
+		'confirming?': arktype(unsignedDecimal).or('null'),
+	},
+	'decisionDeposit?': {
+		'who?': 'string > 0',
+		'amount?': unsignedDecimal,
+	},
+})
+
+const sidecarOngoingReferendaWire = arktype({
+	at: {
+		hash: 'string > 0',
+		height: unsignedDecimal,
+	},
+	referenda: sidecarOngoingReferendumWire.array(),
+})
+
+const sidecarTransactionMaterialWire = arktype({
+	at: {
+		hash: 'string > 0',
+		height: unsignedDecimal,
+	},
+	genesisHash: 'string > 0',
+	chainName: 'string > 0',
+	specName: 'string > 0',
+	specVersion: arktype('string > 0').or('number.integer >= 0'),
+	txVersion: arktype('string > 0').or('number.integer >= 0'),
+	'metadata?': 'string > 0',
 })
 
 const assertEnvelope = <_Value>(
@@ -713,3 +778,145 @@ export const getRcStakingValidators = async ({
 		)
 	) as SidecarStakingValidators
 )
+
+export const getNodeNetwork = async ({
+	binding,
+}: {
+	binding?: SourceBinding
+} = {}) => (
+	assertEnvelope(
+		'node network',
+		sidecarNodeNetworkWire,
+		await getJson<unknown>(
+			bindingOrDefault(binding),
+			'/node/network'
+		)
+	) as SidecarNodeNetwork
+)
+
+export const getAccountStakingInfo = async ({
+	accountId,
+	at,
+	binding,
+}: {
+	accountId: string
+	at?: bigint | string
+	binding?: SourceBinding
+}) => {
+	if (accountId.length === 0)
+		throw new Error(`${Source.SubstrateSidecar_Rest}: account ID must not be empty`)
+
+	return assertEnvelope(
+		'account staking info',
+		sidecarAccountStakingInfoWire,
+		await getJson<unknown>(
+			bindingOrDefault(binding),
+			accountQueryPath(accountId, 'staking-info', {
+				at,
+			})
+		)
+	) as SidecarAccountStakingInfo
+}
+
+const normalizeOngoingReferenda = (
+	response: ReturnType<typeof sidecarOngoingReferendaWire.assert>
+): SidecarOngoingReferenda => ({
+	at: response.at,
+	referenda: response.referenda.map((referendum) => ({
+		id: String(referendum.id),
+		...(referendum.submitted != null && {
+			submitted: referendum.submitted,
+		}),
+		...(referendum.enactment != null && {
+			enactment: referendum.enactment,
+		}),
+		...(referendum.deciding != null && {
+			deciding: referendum.deciding,
+		}),
+		...(referendum.decisionDeposit != null && {
+			decisionDeposit: referendum.decisionDeposit,
+		}),
+	})),
+})
+
+export const getOngoingReferenda = async ({
+	at,
+	binding,
+}: {
+	at?: bigint | string
+	binding?: SourceBinding
+} = {}) => {
+	const params = new URLSearchParams()
+	if (at != null)
+		params.set('at', String(at))
+	const query = params.toString()
+	return normalizeOngoingReferenda(
+		assertEnvelope(
+			'ongoing referenda',
+			sidecarOngoingReferendaWire,
+			await getJson<unknown>(
+				bindingOrDefault(binding),
+				`/pallets/on-going-referenda${
+					query.length > 0 ?
+						`?${query}`
+					:
+						''
+				}`
+			)
+		)
+	)
+}
+
+export const getRcOngoingReferenda = async ({
+	at,
+	binding,
+}: {
+	at?: bigint | string
+	binding?: SourceBinding
+} = {}) => {
+	const params = new URLSearchParams()
+	if (at != null)
+		params.set('at', String(at))
+	const query = params.toString()
+	return normalizeOngoingReferenda(
+		assertEnvelope(
+			'relay ongoing referenda',
+			sidecarOngoingReferendaWire,
+			await getJson<unknown>(
+				bindingOrDefault(binding),
+				`/rc/pallets/on-going-referenda${
+					query.length > 0 ?
+						`?${query}`
+					:
+						''
+				}`
+			)
+		)
+	)
+}
+
+export const getTransactionMaterial = async ({
+	binding,
+}: {
+	binding?: SourceBinding
+} = {}) => {
+	const response = assertEnvelope(
+		'transaction material',
+		sidecarTransactionMaterialWire,
+		await getJson<unknown>(
+			bindingOrDefault(binding),
+			'/transaction/material'
+		)
+	)
+	return {
+		at: response.at,
+		genesisHash: response.genesisHash,
+		chainName: response.chainName,
+		specName: response.specName,
+		specVersion: String(response.specVersion),
+		txVersion: String(response.txVersion),
+		...(response.metadata != null && {
+			metadata: response.metadata,
+		}),
+	} satisfies SidecarTransactionMaterial
+}

@@ -23,6 +23,7 @@ const {
 	getAccountAssetBalances,
 	getAccountBalanceInfo,
 	getAccountForeignAssetBalances,
+	getAccountStakingInfo,
 	getAhmInfo,
 	getAssetInfo,
 	getBlock,
@@ -30,11 +31,15 @@ const {
 	getBlockHead,
 	getBlockHeadHeader,
 	getBlocks,
+	getNodeNetwork,
 	getNodeVersion,
+	getOngoingReferenda,
+	getRcOngoingReferenda,
 	getRcStakingValidators,
 	getRuntimeMetadata,
 	getRuntimeSpec,
 	getStakingValidators,
+	getTransactionMaterial,
 } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 
 const balanceInfo = {
@@ -538,5 +543,146 @@ describe('Substrate Sidecar query envelopes', () => {
 			],
 		})
 		expect(sourceFetch.mock.calls[1][1]).toBe('http://127.0.0.1:8080/rc/pallets/staking/validators')
+	})
+
+	it('accepts live node/network envelopes with object roles and string peersInfo errors', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			nodeRoles: [
+				{
+					full: null,
+				},
+			],
+			numPeers: '91',
+			isSyncing: false,
+			shouldHavePeers: true,
+			localPeerId: '12D3KooWKJGb7Z25jKUsMzWSEmDSXkUBhSxXsxWdDpnzDMPDLgZ1',
+			localListenAddresses: [
+				'/ip4/127.0.0.1/tcp/30333',
+			],
+			peersInfo: 'Cannot query system_peers from node.',
+		})))
+		await expect(getNodeNetwork()).resolves.toMatchObject({
+			numPeers: '91',
+			isSyncing: false,
+			shouldHavePeers: true,
+		})
+		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/node/network')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			numPeers: 'not-a-number',
+			isSyncing: false,
+			shouldHavePeers: true,
+		})))
+		await expect(getNodeNetwork()).rejects.toThrow('invalid node network response envelope')
+	})
+
+	it('fail-closes staking-info / referenda / transaction material leftovers', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xSTASH_AT',
+				height: '32440000',
+			},
+			rewardDestination: 'Staked',
+			controller: '13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB',
+			numSlashingSpans: null,
+			staking: {
+				stash: '13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB',
+			},
+		})))
+		await expect(getAccountStakingInfo({
+			accountId: '13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB',
+			at: 32_440_000n,
+		})).resolves.toMatchObject({
+			rewardDestination: 'Staked',
+			controller: '13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB',
+		})
+		expect(sourceFetch.mock.calls[0][1]).toBe(
+			'http://127.0.0.1:8080/accounts/13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB/staking-info?at=32440000'
+		)
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xREF_AT',
+				height: '32442435',
+			},
+			referenda: [
+				{
+					id: 1284,
+					submitted: '32440000',
+					deciding: {
+						since: '32441000',
+						confirming: null,
+					},
+				},
+			],
+		})))
+		await expect(getOngoingReferenda()).resolves.toEqual({
+			at: {
+				hash: '0xREF_AT',
+				height: '32442435',
+			},
+			referenda: [
+				{
+					id: '1284',
+					submitted: '32440000',
+					deciding: {
+						since: '32441000',
+						confirming: null,
+					},
+				},
+			],
+		})
+		expect(sourceFetch.mock.calls[1][1]).toBe('http://127.0.0.1:8080/pallets/on-going-referenda')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xREF_AT',
+				height: '32442435',
+			},
+			referenda: [],
+		})))
+		await expect(getRcOngoingReferenda({
+			at: '0xREF_AT',
+		})).resolves.toMatchObject({
+			referenda: [],
+		})
+		expect(sourceFetch.mock.calls[2][1]).toBe('http://127.0.0.1:8080/rc/pallets/on-going-referenda?at=0xREF_AT')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xMATERIAL',
+				height: '32442438',
+			},
+			genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3',
+			chainName: 'Polkadot',
+			specName: 'polkadot',
+			specVersion: 2003002,
+			txVersion: 26,
+		})))
+		await expect(getTransactionMaterial()).resolves.toEqual({
+			at: {
+				hash: '0xMATERIAL',
+				height: '32442438',
+			},
+			genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3',
+			chainName: 'Polkadot',
+			specName: 'polkadot',
+			specVersion: '2003002',
+			txVersion: '26',
+		})
+		expect(sourceFetch.mock.calls[3][1]).toBe('http://127.0.0.1:8080/transaction/material')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xMATERIAL',
+				height: '32442438',
+			},
+			genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3',
+			chainName: '',
+			specName: 'polkadot',
+			specVersion: '1',
+			txVersion: '1',
+		})))
+		await expect(getTransactionMaterial()).rejects.toThrow('invalid transaction material response envelope')
 	})
 })

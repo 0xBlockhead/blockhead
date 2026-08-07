@@ -316,7 +316,7 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 		sourceFetch.mockReset()
 	})
 
-	it('projects Network_Timestamp from head + /runtime', async () => {
+	it('projects Network_Timestamp from head + /runtime + /node/network', async () => {
 		sourceFetch
 			.mockResolvedValueOnce(new Response(JSON.stringify(block)))
 			.mockResolvedValueOnce(new Response(JSON.stringify({
@@ -331,6 +331,17 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 				transactionVersion: 26,
 				stateVersion: 1,
 			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				nodeRoles: [
+					{
+						full: null,
+					},
+				],
+				numPeers: '42',
+				isSyncing: false,
+				shouldHavePeers: true,
+				peersInfo: 'Cannot query system_peers from node.',
+			})))
 
 		const snapshot = await networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
 			$network: account.$network,
@@ -340,6 +351,7 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 
 		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/blocks/head?finalized=true')
 		expect(sourceFetch.mock.calls[1][1]).toBe('http://127.0.0.1:8080/runtime')
+		expect(sourceFetch.mock.calls[2][1]).toBe('http://127.0.0.1:8080/node/network')
 		expect(networkTimestampResolver.projections.Polkadot.finalizedBlockNumber(snapshot)).toBe(10n)
 		expect(networkTimestampResolver.projections.Polkadot.finalizedBlockHash(snapshot)).toBe(block.hash)
 		expect(networkTimestampResolver.projections.Polkadot.finalizedExtrinsicCount(snapshot)).toBe(1)
@@ -347,6 +359,39 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 		expect(networkTimestampResolver.projections.Polkadot.runtimeSpecVersion(snapshot)).toBe(1007001)
 		expect(networkTimestampResolver.projections.Polkadot.transactionVersion(snapshot)).toBe(26)
 		expect(networkTimestampResolver.projections.Polkadot.stateVersion(snapshot)).toBe(1)
+		expect(networkTimestampResolver.projections.Polkadot.peerCount(snapshot)).toBe(42)
+		expect(networkTimestampResolver.projections.Polkadot.isSyncing(snapshot)).toBe(false)
+		expect(networkTimestampResolver.projections.Polkadot.shouldHavePeers(snapshot)).toBe(true)
+	})
+
+	it('resolves ongoing referenda membership with submittedAtBlockNumber', async () => {
+		const referendumResolver = sidecar.resolvers.find((
+			resolver
+		): resolver is Extract<
+			typeof sidecar.resolvers[number],
+			{ entityType: EntityType.PolkadotReferendum }
+		> => resolver.entityType === EntityType.PolkadotReferendum)
+		if (referendumResolver == null)
+			throw new Error('Substrate Sidecar referendum resolver is missing')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xREF_AT',
+				height: '32442435',
+			},
+			referenda: [
+				{
+					id: '1284',
+					submitted: '32440000',
+				},
+			],
+		})))
+		const snapshot = await referendumResolver.resolve.NetworkReferendumId.resolve({
+			$network: account.$network,
+			referendumId: '1284',
+		}, context)
+		expect(referendumResolver.projections.submittedAtBlockNumber(snapshot)).toBe(32_440_000n)
+		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/pallets/on-going-referenda')
 	})
 
 	it('resolves a validator stash from the staking list when public Sidecar answers', async () => {

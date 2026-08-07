@@ -10,12 +10,14 @@ import {
 } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { PolkadotRpcBlock } from '$/sources/Polkadot/JsonRpc/types.ts'
+import { Blake2 } from '@tevm/voltaire/Blake2'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -37,12 +39,38 @@ const assertPolkadotMainnet = (network: NetworkId) => {
 
 const blockNumberFromHeader = (header: { number: string }) => BigInt(header.number)
 
+const extrinsicHashHex = (
+	extrinsicHex: string
+) => {
+	const body = (
+		extrinsicHex.startsWith('0x') || extrinsicHex.startsWith('0X') ?
+			extrinsicHex.slice(2)
+		:
+			extrinsicHex
+	)
+	if (body.length === 0 || body.length % 2 !== 0 || !/^[0-9a-fA-F]+$/.test(body))
+		throw new Error('Polkadot_JsonRpc: malformed extrinsic hex')
+
+	const digest = Blake2.hash(
+		Uint8Array.from(
+			{
+				length: body.length / 2,
+			},
+			(_value, index) => (
+				Number.parseInt(body.slice(index * 2, index * 2 + 2), 16)
+			)
+		),
+		32
+	)
+	return `0x${[...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('')}`
+}
+
 const polkadotExtrinsicRows = (
 	network: NetworkId,
 	block: PolkadotRpcBlock,
 	hash: string
 ) => (
-	block.block.extrinsics.map((_extrinsic, extrinsicIndex) => ({
+	block.block.extrinsics.map((extrinsic, extrinsicIndex) => ({
 		[EntityMetaKey.Selector]: {
 			$block: {
 				$network: network,
@@ -51,6 +79,7 @@ const polkadotExtrinsicRows = (
 			},
 			indexInBlock: extrinsicIndex,
 		},
+		hash: extrinsicHashHex(extrinsic),
 	}))
 )
 
@@ -231,7 +260,42 @@ export default {
 				$parent: (block) => block.$parent,
 				stateRoot: (block) => block.stateRoot,
 				extrinsicsRoot: (block) => block.extrinsicsRoot,
-				$$extrinsics: (block) => block.$$extrinsics,
+				$$extrinsics: (block) => block.$$extrinsics.map((extrinsic) => ({
+					[EntityMetaKey.Selector]: extrinsic[EntityMetaKey.Selector],
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.PolkadotExtrinsic, [], 'hash')]: extrinsic.hash,
+					},
+				})),
+			}),
+
+		defineResolver({
+			entityType: EntityType.PolkadotExtrinsic,
+			resolve: {
+				BlockIndexInBlock: {
+					resolve: async ({ $block, indexInBlock }) => {
+						assertPolkadotMainnet($block.$network)
+						const {
+							getBlock,
+							getBlockHash,
+						} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
+						const hash = $block.hash ?? await getBlockHash({
+							blockNumber: $block.blockNumber,
+						})
+						const block = await getBlock({
+							blockHash: hash,
+						})
+						const extrinsic = block.block.extrinsics.at(indexInBlock)
+						if (extrinsic == null)
+							throw new Error(`Polkadot_JsonRpc: missing extrinsic ${indexInBlock}`)
+
+						return {
+							hash: extrinsicHashHex(extrinsic),
+						}
+					},
+				},
+			},
+		})({
+				hash: (extrinsic) => extrinsic.hash,
 			}),
 
 		defineResolver({
