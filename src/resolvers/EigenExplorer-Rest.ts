@@ -935,21 +935,55 @@ export default {
 						if (source !== Source.EigenExplorer_Rest)
 							throw new Error('EigenExplorer_Rest: observation source mismatch')
 
-						const { listOperatorAllocations } = await import('$/sources/EigenExplorer/Rest/queries.ts')
-						const page = await listOperatorAllocations($operator.operatorAddress, {
-							take: 100,
-						})
-						const allocation = page.data.find((candidate) => (
-							candidate.avsAddress.toLowerCase() === $avs.avsAddress.toLowerCase()
-							&& candidate.strategyAddress.toLowerCase() === $strategy.strategyAddress.toLowerCase()
-							&& Date.parse(candidate.updatedAt) === timestampMs
-						))
+						const {
+							getOperator,
+							listOperatorAllocations,
+						} = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const take = 100
+						let skip = 0
+						let allocation
+
+						for (;;) {
+							const page = await listOperatorAllocations($operator.operatorAddress, {
+								skip,
+								take,
+								avsAddress: $avs.avsAddress,
+								strategyAddress: $strategy.strategyAddress,
+							})
+							allocation = page.data.find((candidate) => (
+								candidate.avsAddress.toLowerCase() === $avs.avsAddress.toLowerCase()
+								&& candidate.strategyAddress.toLowerCase() === $strategy.strategyAddress.toLowerCase()
+								&& Date.parse(candidate.updatedAt) === timestampMs
+							))
+							if (allocation != null)
+								break
+
+							skip += page.data.length
+							if (page.data.length === 0 || skip >= page.meta.total)
+								break
+						}
+
 						if (allocation == null)
 							throw new Error('EigenExplorer_Rest: allocation observation mismatch')
+
+						const operator = await getOperator($operator.operatorAddress, {
+							withAvsData: true,
+						})
+						const registration = operator.avsRegistrations?.find((candidate) => (
+							candidate.avsAddress.toLowerCase() === $avs.avsAddress.toLowerCase()
+						))
 
 						return {
 							allocationMagnitude: allocationMagnitude(allocation.magnitude),
 							operatorSetId: String(allocation.operatorSetId),
+							...(registration != null && {
+								registrationStatus: (
+									registration.isActive ?
+										'active'
+									:
+										'inactive'
+								),
+							}),
 						}
 					},
 				},
@@ -957,6 +991,7 @@ export default {
 		})({
 			allocationMagnitude: (allocation) => allocation.allocationMagnitude,
 			operatorSetId: (allocation) => allocation.operatorSetId,
+			registrationStatus: (allocation) => allocation.registrationStatus,
 		}),
 
 		defineResolver({

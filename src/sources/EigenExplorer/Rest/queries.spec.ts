@@ -12,6 +12,8 @@ import { sourceFetch } from '$/sources/_runtime/http.ts'
 import {
 	getAvs,
 	getOperator,
+	getOperatorAllocationDelay,
+	getOperatorMagnitudes,
 	getOperatorRewardInfo,
 	getStrategyTvl,
 	listAvss,
@@ -439,7 +441,11 @@ describe('EigenExplorer REST queries', () => {
 			},
 		})
 		await expect(listOperatorAllocations(
-			operatorAddress
+			operatorAddress,
+			{
+				avsAddress,
+				strategyAddress,
+			}
 		)).resolves.toMatchObject({
 			data: [allocation],
 			meta: {
@@ -448,7 +454,7 @@ describe('EigenExplorer REST queries', () => {
 		})
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
-			`https://api.eigenexplorer.test/operators/${operatorAddress}/allocations?skip=0&take=100`,
+			`https://api.eigenexplorer.test/operators/${operatorAddress}/allocations?skip=0&take=100&avsAddress=${avsAddress}&strategyAddress=${strategyAddress}`,
 			{
 				headers: {
 					accept: 'application/json',
@@ -472,6 +478,24 @@ describe('EigenExplorer REST queries', () => {
 		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: foreign allocation operator`)
 
 		respond({
+			data: [{
+				...allocation,
+				strategyAddress: tokenAddress,
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+		await expect(listOperatorAllocations(
+			operatorAddress,
+			{
+				strategyAddress,
+			}
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: foreign allocation strategy`)
+
+		respond({
 			data: [allocation],
 			meta: {
 				total: 1,
@@ -480,10 +504,134 @@ describe('EigenExplorer REST queries', () => {
 			},
 		})
 		await expect(listAvsAllocations(
-			avsAddress
+			avsAddress,
+			{
+				operatorAddress,
+				strategyAddress,
+			}
 		)).resolves.toMatchObject({
 			data: [allocation],
 		})
+		expect(vi.mocked(sourceFetch).mock.calls.at(-1)?.[1]).toBe(
+			`https://api.eigenexplorer.test/avs/${avsAddress}/allocations?skip=0&take=100&operatorAddress=${operatorAddress}&strategyAddress=${strategyAddress}`
+		)
+	})
+
+	it('validates operator magnitudes, allocation delay, and withAvsData registrations', async () => {
+		respond({
+			operatorAddress,
+			strategyAddress,
+			maxMagnitude: '1000000000000000000',
+			encumberedMagnitude: '300000',
+			createdAt: '2025-02-01T00:00:00.000Z',
+			createdAtBlock: 3325343,
+			updatedAt: '2025-02-01T00:00:00.000Z',
+			updatedAtBlock: 3325343,
+			extra: 'ignored',
+		})
+		await expect(getOperatorMagnitudes(
+			operatorAddress,
+			{
+				strategyAddress,
+			}
+		)).resolves.toMatchObject({
+			maxMagnitude: '1000000000000000000',
+			encumberedMagnitude: '300000',
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			`https://api.eigenexplorer.test/operators/${operatorAddress}/magnitudes?strategyAddress=${strategyAddress}`,
+			{
+				headers: {
+					accept: 'application/json',
+				},
+			}
+		)
+
+		respond({
+			operatorAddress,
+			delay: 100,
+			effectBlock: 3325366,
+			createdAt: '2025-02-01T00:00:00.000Z',
+			createdAtBlock: 3325343,
+			updatedAt: '2025-02-01T00:00:00.000Z',
+			updatedAtBlock: 3325343,
+		})
+		await expect(getOperatorAllocationDelay(
+			operatorAddress
+		)).resolves.toMatchObject({
+			delay: 100,
+			effectBlock: 3325366,
+		})
+
+		respond({
+			address: operatorAddress,
+			metadataName: 'Example Operator',
+			metadataDescription: null,
+			metadataWebsite: null,
+			metadataLogo: null,
+			createdAtBlock: '100',
+			updatedAtBlock: '101',
+			createdAt: '2026-01-01T00:00:00.000Z',
+			updatedAt: '2026-01-02T00:00:00.000Z',
+			shares: [{
+				strategyAddress,
+				shares: '42',
+			}],
+			totalStakers: 3,
+			avsRegistrations: [{
+				avsAddress,
+				isActive: true,
+				metadataName: 'ignored',
+			}],
+		})
+		await expect(getOperator(
+			operatorAddress,
+			{
+				withAvsData: true,
+			}
+		)).resolves.toMatchObject({
+			totalStakers: 3,
+			avsRegistrations: [{
+				avsAddress,
+				isActive: true,
+			}],
+		})
+		expect(vi.mocked(sourceFetch).mock.calls.at(-1)?.[1]).toBe(
+			`https://api.eigenexplorer.test/operators/${operatorAddress}?withAvsData=true`
+		)
+
+		respond({
+			address: operatorAddress,
+			metadataName: 'Example Operator',
+			metadataDescription: null,
+			metadataWebsite: null,
+			metadataLogo: null,
+			createdAtBlock: '100',
+			updatedAtBlock: '101',
+			createdAt: '2026-01-01T00:00:00.000Z',
+			updatedAt: '2026-01-02T00:00:00.000Z',
+			shares: [{
+				strategyAddress,
+				shares: '42',
+			}],
+			avsRegistrations: [
+				{
+					avsAddress,
+					isActive: true,
+				},
+				{
+					avsAddress: avsAddress.toUpperCase(),
+					isActive: false,
+				},
+			],
+		})
+		await expect(getOperator(
+			operatorAddress,
+			{
+				withAvsData: true,
+			}
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: duplicate operator AVS registrations`)
 	})
 
 	it('validates slash pages and strategy TVL envelopes', async () => {

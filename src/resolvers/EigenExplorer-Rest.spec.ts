@@ -632,7 +632,48 @@ describe('EigenExplorer allocation and slash resolvers', () => {
 		expect(avsAllocationsResolver.projections.$$allocations.select(avsAllocations)).toHaveLength(1)
 	})
 
-	it('projects allocation observation fields and rejects clock mismatch', async () => {
+	it('projects allocation observation fields, pages filtered lookup, and maps AVS registration status', async () => {
+		getOperator.mockResolvedValue({
+			address: operatorAddress,
+			metadataName: 'Example Operator',
+			metadataDescription: null,
+			metadataWebsite: null,
+			metadataLogo: null,
+			createdAtBlock: '100',
+			updatedAtBlock: '101',
+			createdAt: '2026-01-01T00:00:00.000Z',
+			updatedAt: allocationUpdatedAt,
+			shares: [{
+				strategyAddress,
+				shares: '42',
+			}],
+			avsRegistrations: [{
+				avsAddress,
+				isActive: true,
+			}],
+		})
+		listOperatorAllocations
+			.mockResolvedValueOnce({
+				data: [{
+					...allocation,
+					strategyAddress: tokenAddress,
+					updatedAt: '2024-01-01T00:00:00.000Z',
+				}],
+				meta: {
+					total: 2,
+					skip: 0,
+					take: 100,
+				},
+			})
+			.mockResolvedValueOnce({
+				data: [allocation],
+				meta: {
+					total: 2,
+					skip: 1,
+					take: 100,
+				},
+			})
+
 		const observation = await allocationTimestampResolver.resolve.OperatorAvsStrategyTimestampMsSource.resolve({
 			$operator: {
 				$network: network,
@@ -652,6 +693,22 @@ describe('EigenExplorer allocation and slash resolvers', () => {
 
 		expect(allocationTimestampResolver.projections.allocationMagnitude(observation)).toBe(100000)
 		expect(allocationTimestampResolver.projections.operatorSetId(observation)).toBe('0')
+		expect(allocationTimestampResolver.projections.registrationStatus(observation)).toBe('active')
+		expect(listOperatorAllocations).toHaveBeenNthCalledWith(1, operatorAddress, {
+			skip: 0,
+			take: 100,
+			avsAddress,
+			strategyAddress,
+		})
+		expect(listOperatorAllocations).toHaveBeenNthCalledWith(2, operatorAddress, {
+			skip: 1,
+			take: 100,
+			avsAddress,
+			strategyAddress,
+		})
+		expect(getOperator).toHaveBeenCalledWith(operatorAddress, {
+			withAvsData: true,
+		})
 
 		await expect(allocationTimestampResolver.resolve.OperatorAvsStrategyTimestampMsSource.resolve({
 			$operator: {

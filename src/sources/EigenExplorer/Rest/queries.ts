@@ -8,11 +8,14 @@ import type {
 	EigenExplorerAvs,
 	EigenExplorerDeposit,
 	EigenExplorerOperator,
+	EigenExplorerOperatorAllocationDelay,
+	EigenExplorerOperatorMagnitude,
 	EigenExplorerOperatorRewardInfo,
 	EigenExplorerPage,
 	EigenExplorerRewardStrategy,
 	EigenExplorerSlash,
 	EigenExplorerStaker,
+	EigenExplorerStrategyTvl,
 	EigenExplorerWithdrawal,
 } from '$/sources/EigenExplorer/Rest/types.ts'
 import {
@@ -20,7 +23,9 @@ import {
 	eigenExplorerAvsEnvelope,
 	eigenExplorerAvsPageEnvelope,
 	eigenExplorerDepositPageEnvelope,
+	eigenExplorerOperatorAllocationDelayEnvelope,
 	eigenExplorerOperatorEnvelope,
+	eigenExplorerOperatorMagnitudeEnvelope,
 	eigenExplorerOperatorPageEnvelope,
 	eigenExplorerOperatorRewardInfoEnvelope,
 	eigenExplorerRewardStrategiesEnvelope,
@@ -36,15 +41,15 @@ const evmAddressPattern = /^0x[0-9a-f]{40}$/i
 const bytes32Pattern = /^0x[0-9a-f]{64}$/i
 const unsignedIntegerPattern = /^(0|[1-9][0-9]*)$/
 
-const assertEnvelope = (
+const assertEnvelope = <_Value>(
 	envelope: {
-		assert: (value: unknown) => unknown
+		assert: (value: unknown) => _Value
 	},
 	value: unknown,
 	label: string
 ) => {
 	try {
-		envelope.assert(value)
+		return envelope.assert(value)
 	} catch {
 		throw new Error(`${Source.EigenExplorer_Rest}: invalid ${label} response envelope`)
 	}
@@ -128,10 +133,12 @@ const paginationPath = ({
 	path,
 	skip,
 	take,
+	filters = {},
 }: {
 	path: string
 	skip: number
 	take: number
+	filters?: Record<string, string>
 }) => {
 	if (!Number.isSafeInteger(skip) || skip < 0)
 		throw new Error(`${Source.EigenExplorer_Rest}: skip must be a nonnegative safe integer`)
@@ -142,7 +149,53 @@ const paginationPath = ({
 	return `${path}?${new URLSearchParams({
 		skip: String(skip),
 		take: String(take),
+		...filters,
 	})}`
+}
+
+const allocationListFilters = ({
+	avsAddress,
+	operatorAddress,
+	strategyAddress,
+	operatorSetId,
+}: {
+	avsAddress?: string
+	operatorAddress?: string
+	strategyAddress?: string
+	operatorSetId?: number
+}) => {
+	if (avsAddress != null)
+		assertAddress(avsAddress, 'allocation AVS address filter')
+
+	if (operatorAddress != null)
+		assertAddress(operatorAddress, 'allocation operator address filter')
+
+	if (strategyAddress != null)
+		assertAddress(strategyAddress, 'allocation strategy address filter')
+
+	if (
+		operatorSetId != null
+		&& (
+			!Number.isSafeInteger(operatorSetId)
+			|| operatorSetId < 0
+		)
+	)
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid operator set id filter`)
+
+	return {
+		...(avsAddress != null && {
+			avsAddress,
+		}),
+		...(operatorAddress != null && {
+			operatorAddress,
+		}),
+		...(strategyAddress != null && {
+			strategyAddress,
+		}),
+		...(operatorSetId != null && {
+			operatorSetId: String(operatorSetId),
+		}),
+	}
 }
 
 const assertPage = <_Row>(
@@ -165,10 +218,10 @@ const assertPage = <_Row>(
 export const getStaker = async (address: string) => {
 	assertAddress(address, 'staker address')
 
-	const staker = await fetchEigenExplorerJson<EigenExplorerStaker>(
+	const wire = await fetchEigenExplorerJson<EigenExplorerStaker>(
 		`/stakers/${encodeURIComponent(address)}`
 	)
-	assertEnvelope(eigenExplorerStakerEnvelope, staker, 'staker')
+	const staker = assertEnvelope(eigenExplorerStakerEnvelope, wire, 'staker')
 
 	if (staker.address.toLowerCase() !== address.toLowerCase())
 		throw new Error(`${Source.EigenExplorer_Rest}: foreign staker`)
@@ -208,8 +261,11 @@ export const getStakerDeposits = async (
 			take,
 		})
 	)
-	assertEnvelope(eigenExplorerDepositPageEnvelope, wire, 'staker deposits')
-	const page = assertPage(wire, skip, take)
+	const page = assertPage(
+		assertEnvelope(eigenExplorerDepositPageEnvelope, wire, 'staker deposits'),
+		skip,
+		take
+	)
 	const identities = new Set<string>()
 
 	for (const deposit of page.data) {
@@ -261,8 +317,11 @@ export const getStakerWithdrawals = async (
 			take,
 		})
 	)
-	assertEnvelope(eigenExplorerWithdrawalPageEnvelope, wire, 'staker withdrawals')
-	const page = assertPage(wire, skip, take)
+	const page = assertPage(
+		assertEnvelope(eigenExplorerWithdrawalPageEnvelope, wire, 'staker withdrawals'),
+		skip,
+		take
+	)
 	const withdrawalRoots = new Set<string>()
 
 	for (const withdrawal of page.data) {
@@ -349,10 +408,10 @@ const assertAvsRecord = (
 export const getAvs = async (address: string) => {
 	assertAddress(address, 'AVS address')
 
-	const avs = await fetchEigenExplorerJson<EigenExplorerAvs>(
+	const wire = await fetchEigenExplorerJson<EigenExplorerAvs>(
 		`/avs/${encodeURIComponent(address)}`
 	)
-	assertEnvelope(eigenExplorerAvsEnvelope, avs, 'AVS')
+	const avs = assertEnvelope(eigenExplorerAvsEnvelope, wire, 'AVS')
 	assertAvsRecord(avs)
 
 	if (avs.address.toLowerCase() !== address.toLowerCase())
@@ -377,8 +436,11 @@ export const listOperators = async (
 			take,
 		})
 	)
-	assertEnvelope(eigenExplorerOperatorPageEnvelope, wire, 'operators')
-	const page = assertPage(wire, skip, take)
+	const page = assertPage(
+		assertEnvelope(eigenExplorerOperatorPageEnvelope, wire, 'operators'),
+		skip,
+		take
+	)
 	const operatorAddresses = new Set<string>()
 
 	for (const operator of page.data) {
@@ -411,8 +473,11 @@ export const listAvss = async (
 			take,
 		})
 	)
-	assertEnvelope(eigenExplorerAvsPageEnvelope, wire, 'AVSs')
-	const page = assertPage(wire, skip, take)
+	const page = assertPage(
+		assertEnvelope(eigenExplorerAvsPageEnvelope, wire, 'AVSs'),
+		skip,
+		take
+	)
 	const avsAddresses = new Set<string>()
 
 	for (const avs of page.data) {
@@ -450,18 +515,18 @@ export const listStrategies = async (
 	}>(
 		'/rewards/strategies'
 	)
-	assertEnvelope(eigenExplorerRewardStrategiesEnvelope, wire, 'strategies')
+	const strategiesWire = assertEnvelope(eigenExplorerRewardStrategiesEnvelope, wire, 'strategies')
 
 	if (
-		!Number.isSafeInteger(wire.total)
-		|| wire.total < 0
-		|| wire.strategies.length !== wire.total
+		!Number.isSafeInteger(strategiesWire.total)
+		|| strategiesWire.total < 0
+		|| strategiesWire.strategies.length !== strategiesWire.total
 	)
 		throw new Error(`${Source.EigenExplorer_Rest}: invalid strategies total`)
 
 	const strategyAddresses = new Set<string>()
 
-	for (const strategy of wire.strategies) {
+	for (const strategy of strategiesWire.strategies) {
 		assertAddress(strategy.strategyAddress, 'strategy address')
 
 		for (const tokenAddress of strategy.tokens)
@@ -481,9 +546,9 @@ export const listStrategies = async (
 	}
 
 	return {
-		data: wire.strategies.slice(skip, skip + take),
+		data: strategiesWire.strategies.slice(skip, skip + take),
 		meta: {
-			total: wire.total,
+			total: strategiesWire.total,
 			skip,
 			take,
 		},
@@ -509,8 +574,11 @@ export const listAvsOperators = async (
 			take,
 		})
 	)
-	assertEnvelope(eigenExplorerOperatorPageEnvelope, wire, 'AVS operators')
-	const page = assertPage(wire, skip, take)
+	const page = assertPage(
+		assertEnvelope(eigenExplorerOperatorPageEnvelope, wire, 'AVS operators'),
+		skip,
+		take
+	)
 	const operatorAddresses = new Set<string>()
 
 	for (const operator of page.data) {
@@ -530,10 +598,10 @@ export const listAvsOperators = async (
 export const getOperatorRewardInfo = async (address: string) => {
 	assertAddress(address, 'operator address')
 
-	const rewardInfo = await fetchEigenExplorerJson<EigenExplorerOperatorRewardInfo>(
+	const wire = await fetchEigenExplorerJson<EigenExplorerOperatorRewardInfo>(
 		`/operators/${encodeURIComponent(address)}/rewards`
 	)
-	assertEnvelope(eigenExplorerOperatorRewardInfoEnvelope, rewardInfo, 'operator rewards')
+	const rewardInfo = assertEnvelope(eigenExplorerOperatorRewardInfoEnvelope, wire, 'operator rewards')
 
 	if (rewardInfo.address.toLowerCase() !== address.toLowerCase())
 		throw new Error(`${Source.EigenExplorer_Rest}: foreign operator reward information`)
@@ -553,17 +621,51 @@ export const getOperatorRewardInfo = async (address: string) => {
 	return rewardInfo
 }
 
-export const getOperator = async (address: string) => {
+export const getOperator = async (
+	address: string,
+	{
+		withAvsData = false,
+	}: {
+		withAvsData?: boolean
+	} = {}
+) => {
 	assertAddress(address, 'operator address')
 
-	const operator = await fetchEigenExplorerJson<EigenExplorerOperator>(
-		`/operators/${encodeURIComponent(address)}`
+	const path = (
+		withAvsData ?
+			`/operators/${encodeURIComponent(address)}?${new URLSearchParams({
+				withAvsData: 'true',
+			})}`
+		:
+			`/operators/${encodeURIComponent(address)}`
 	)
-	assertEnvelope(eigenExplorerOperatorEnvelope, operator, 'operator')
+	const wire = await fetchEigenExplorerJson<EigenExplorerOperator>(path)
+	const operator = assertEnvelope(eigenExplorerOperatorEnvelope, wire, 'operator')
 	assertOperatorRecord(operator)
 
 	if (operator.address.toLowerCase() !== address.toLowerCase())
 		throw new Error(`${Source.EigenExplorer_Rest}: foreign operator`)
+
+	if (operator.totalStakers != null)
+		assertNonNegativeSafeInteger(operator.totalStakers, 'operator staker count')
+
+	if (operator.totalAvs != null)
+		assertNonNegativeSafeInteger(operator.totalAvs, 'operator AVS count')
+
+	if (operator.avsRegistrations != null) {
+		const avsAddresses = new Set<string>()
+
+		for (const registration of operator.avsRegistrations) {
+			assertAddress(registration.avsAddress, 'operator AVS registration address')
+
+			const normalizedAddress = registration.avsAddress.toLowerCase()
+
+			if (avsAddresses.has(normalizedAddress))
+				throw new Error(`${Source.EigenExplorer_Rest}: duplicate operator AVS registrations`)
+
+			avsAddresses.add(normalizedAddress)
+		}
+	}
 
 	return operator
 }
@@ -575,11 +677,13 @@ const assertAllocationPage = (
 		take,
 		operatorAddress,
 		avsAddress,
+		strategyAddress,
 	}: {
 		skip: number
 		take: number
 		operatorAddress?: string
 		avsAddress?: string
+		strategyAddress?: string
 	}
 ) => {
 	assertPage(page, skip, take)
@@ -617,6 +721,12 @@ const assertAllocationPage = (
 			&& allocation.avsAddress.toLowerCase() !== avsAddress.toLowerCase()
 		)
 			throw new Error(`${Source.EigenExplorer_Rest}: foreign allocation AVS`)
+
+		if (
+			strategyAddress != null
+			&& allocation.strategyAddress.toLowerCase() !== strategyAddress.toLowerCase()
+		)
+			throw new Error(`${Source.EigenExplorer_Rest}: foreign allocation strategy`)
 
 		const identity = [
 			allocation.operatorAddress.toLowerCase(),
@@ -716,26 +826,42 @@ export const listOperatorAllocations = async (
 	{
 		skip = 0,
 		take = 100,
+		avsAddress,
+		strategyAddress,
+		operatorSetId,
 	}: {
 		skip?: number
 		take?: number
+		avsAddress?: string
+		strategyAddress?: string
+		operatorSetId?: number
 	} = {}
 ) => {
 	assertAddress(address, 'operator address')
+	const filters = allocationListFilters({
+		avsAddress,
+		strategyAddress,
+		operatorSetId,
+	})
 
 	const wire = await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerAllocation>>(
 		paginationPath({
 			path: `/operators/${encodeURIComponent(address)}/allocations`,
 			skip,
 			take,
+			filters,
 		})
 	)
-	assertEnvelope(eigenExplorerAllocationPageEnvelope, wire, 'operator allocations')
-	return assertAllocationPage(wire, {
-		skip,
-		take,
-		operatorAddress: address,
-	})
+	return assertAllocationPage(
+		assertEnvelope(eigenExplorerAllocationPageEnvelope, wire, 'operator allocations'),
+		{
+			skip,
+			take,
+			operatorAddress: address,
+			avsAddress,
+			strategyAddress,
+		}
+	)
 }
 
 export const listAvsAllocations = async (
@@ -743,26 +869,42 @@ export const listAvsAllocations = async (
 	{
 		skip = 0,
 		take = 100,
+		operatorAddress,
+		strategyAddress,
+		operatorSetId,
 	}: {
 		skip?: number
 		take?: number
+		operatorAddress?: string
+		strategyAddress?: string
+		operatorSetId?: number
 	} = {}
 ) => {
 	assertAddress(address, 'AVS address')
+	const filters = allocationListFilters({
+		operatorAddress,
+		strategyAddress,
+		operatorSetId,
+	})
 
 	const wire = await fetchEigenExplorerJson<EigenExplorerPage<EigenExplorerAllocation>>(
 		paginationPath({
 			path: `/avs/${encodeURIComponent(address)}/allocations`,
 			skip,
 			take,
+			filters,
 		})
 	)
-	assertEnvelope(eigenExplorerAllocationPageEnvelope, wire, 'AVS allocations')
-	return assertAllocationPage(wire, {
-		skip,
-		take,
-		avsAddress: address,
-	})
+	return assertAllocationPage(
+		assertEnvelope(eigenExplorerAllocationPageEnvelope, wire, 'AVS allocations'),
+		{
+			skip,
+			take,
+			avsAddress: address,
+			operatorAddress,
+			strategyAddress,
+		}
+	)
 }
 
 export const listOperatorSlashes = async (
@@ -784,12 +926,14 @@ export const listOperatorSlashes = async (
 			take,
 		})
 	)
-	assertEnvelope(eigenExplorerSlashPageEnvelope, wire, 'operator slashes')
-	return assertSlashPage(wire, {
-		skip,
-		take,
-		operatorAddress: address,
-	})
+	return assertSlashPage(
+		assertEnvelope(eigenExplorerSlashPageEnvelope, wire, 'operator slashes'),
+		{
+			skip,
+			take,
+			operatorAddress: address,
+		}
+	)
 }
 
 export const listAvsSlashes = async (
@@ -811,32 +955,23 @@ export const listAvsSlashes = async (
 			take,
 		})
 	)
-	assertEnvelope(eigenExplorerSlashPageEnvelope, wire, 'AVS slashes')
-	return assertSlashPage(wire, {
-		skip,
-		take,
-		avsAddress: address,
-	})
+	return assertSlashPage(
+		assertEnvelope(eigenExplorerSlashPageEnvelope, wire, 'AVS slashes'),
+		{
+			skip,
+			take,
+			avsAddress: address,
+		}
+	)
 }
 
 export const getStrategyTvl = async (strategyAddress: string) => {
 	assertAddress(strategyAddress, 'strategy address')
 
-	const tvl = await fetchEigenExplorerJson<{
-		tvl: number
-		tvlEth: number
-		change24h?: {
-			value: number
-			percent: number
-		}
-		change7d?: {
-			value: number
-			percent: number
-		}
-	}>(
+	const wire = await fetchEigenExplorerJson<EigenExplorerStrategyTvl>(
 		`/metrics/tvl/restaking/${encodeURIComponent(strategyAddress)}`
 	)
-	assertEnvelope(eigenExplorerStrategyTvlEnvelope, tvl, 'strategy TVL')
+	const tvl = assertEnvelope(eigenExplorerStrategyTvlEnvelope, wire, 'strategy TVL')
 
 	if (
 		!Number.isFinite(tvl.tvl)
@@ -847,4 +982,83 @@ export const getStrategyTvl = async (strategyAddress: string) => {
 		throw new Error(`${Source.EigenExplorer_Rest}: invalid strategy TVL`)
 
 	return tvl
+}
+
+export const getOperatorMagnitudes = async (
+	address: string,
+	{
+		strategyAddress,
+	}: {
+		strategyAddress?: string
+	} = {}
+) => {
+	assertAddress(address, 'operator address')
+	if (strategyAddress != null)
+		assertAddress(strategyAddress, 'strategy address')
+
+	const path = (
+		strategyAddress == null ?
+			`/operators/${encodeURIComponent(address)}/magnitudes`
+		:
+			`/operators/${encodeURIComponent(address)}/magnitudes?${new URLSearchParams({
+				strategyAddress,
+			})}`
+	)
+	const wire = await fetchEigenExplorerJson<EigenExplorerOperatorMagnitude>(path)
+	const magnitude = assertEnvelope(eigenExplorerOperatorMagnitudeEnvelope, wire, 'operator magnitudes')
+
+	if (magnitude.operatorAddress.toLowerCase() !== address.toLowerCase())
+		throw new Error(`${Source.EigenExplorer_Rest}: foreign operator magnitude`)
+
+	assertAddress(magnitude.strategyAddress, 'magnitude strategy address')
+
+	if (
+		strategyAddress != null
+		&& magnitude.strategyAddress.toLowerCase() !== strategyAddress.toLowerCase()
+	)
+		throw new Error(`${Source.EigenExplorer_Rest}: foreign magnitude strategy`)
+
+	if (
+		!unsignedIntegerPattern.test(magnitude.maxMagnitude)
+		|| !unsignedIntegerPattern.test(magnitude.encumberedMagnitude)
+		|| !Number.isSafeInteger(magnitude.createdAtBlock)
+		|| magnitude.createdAtBlock < 0
+		|| !Number.isSafeInteger(magnitude.updatedAtBlock)
+		|| magnitude.updatedAtBlock < 0
+	)
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid operator magnitude identity`)
+
+	assertTimestamp(magnitude.createdAt, 'operator magnitude creation timestamp')
+	assertTimestamp(magnitude.updatedAt, 'operator magnitude update timestamp')
+
+	return magnitude
+}
+
+export const getOperatorAllocationDelay = async (address: string) => {
+	assertAddress(address, 'operator address')
+
+	const wire = await fetchEigenExplorerJson<EigenExplorerOperatorAllocationDelay>(
+		`/operators/${encodeURIComponent(address)}/allocation-delay`
+	)
+	const delay = assertEnvelope(eigenExplorerOperatorAllocationDelayEnvelope, wire, 'operator allocation delay')
+
+	if (delay.operatorAddress.toLowerCase() !== address.toLowerCase())
+		throw new Error(`${Source.EigenExplorer_Rest}: foreign operator allocation delay`)
+
+	if (
+		!Number.isSafeInteger(delay.delay)
+		|| delay.delay < 0
+		|| !Number.isSafeInteger(delay.effectBlock)
+		|| delay.effectBlock < 0
+		|| !Number.isSafeInteger(delay.createdAtBlock)
+		|| delay.createdAtBlock < 0
+		|| !Number.isSafeInteger(delay.updatedAtBlock)
+		|| delay.updatedAtBlock < 0
+	)
+		throw new Error(`${Source.EigenExplorer_Rest}: invalid operator allocation delay identity`)
+
+	assertTimestamp(delay.createdAt, 'operator allocation delay creation timestamp')
+	assertTimestamp(delay.updatedAt, 'operator allocation delay update timestamp')
+
+	return delay
 }
