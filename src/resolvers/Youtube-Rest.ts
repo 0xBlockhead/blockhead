@@ -812,5 +812,88 @@ export default {
 		})({
 				$$observedPlaylists: (network) => network,
 			}),
+
+		defineResolver({
+			entityType: EntityType._GlobalYoutubeNetwork,
+			resolve: {
+				Scope: {
+					resolve: async ({ scope }, context) => {
+						const { listPopularVideos } = await import('$/sources/Youtube/Rest/queries.ts')
+						const timestampMs = Date.now()
+						try {
+							const videos = (await listPopularVideos(
+								context.publicEnv,
+								resolverContextRowLimit(context)
+							)).items ?? []
+							const channelIds = new Set(
+								videos.flatMap((video) => {
+									const channelId = optionalNonemptyString(video.snippet?.channelId)
+									return channelId == null ? [] : [channelId]
+								})
+							)
+							const videoIds = new Set(
+								videos.flatMap((video) => {
+									const videoId = optionalNonemptyString(video.id)
+									return videoId == null ? [] : [videoId]
+								})
+							)
+							return [{
+								[EntityMetaKey.Selector]: {
+									$hub: { scope },
+									timestampMs,
+									source: Source.Youtube_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'observedChannelCount')]:
+										channelIds.size,
+									[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'observedVideoCount')]:
+										videoIds.size,
+									[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'reachable')]:
+										true,
+								},
+							}]
+						} catch {
+							return [{
+								[EntityMetaKey.Selector]: {
+									$hub: { scope },
+									timestampMs,
+									source: Source.Youtube_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'reachable')]:
+										false,
+								},
+							}]
+						}
+					},
+				},
+			},
+		})({
+			$$timestamps: (observations) => observations,
+		}),
+
+		defineResolver({
+			entityType: EntityType._GlobalYoutubeNetwork_Timestamp,
+			resolve: {
+				HubTimestampMsSource: {
+					resolve: async ({ $hub, timestampMs, source }) => {
+						if (source !== Source.Youtube_Rest)
+							throw new Error('Youtube_Rest: global YouTube observation source mismatch')
+
+						return {
+							$hub: {
+								[EntityMetaKey.Selector]: $hub,
+							},
+							timestampMs,
+							source,
+						}
+					},
+				},
+			},
+		})({
+			$hub: (observation) => observation.$hub,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

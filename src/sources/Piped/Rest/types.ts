@@ -1,105 +1,143 @@
-export type PipedStreamItem = {
-	url?: string
-	title?: string
-	thumbnail?: string
-	uploaderName?: string
-	uploaderUrl?: string
-	uploaderAvatar?: string
-	uploaderVerified?: boolean
-	uploadedDate?: string
-	duration?: number
-	views?: number
-}
+/**
+ * Piped API REST envelopes (fail-closed arktype).
+ * @see https://docs.piped.video/docs/api-documentation/
+ */
 
-export type PipedStream = {
-	title?: string
-	description?: string
-	uploadDate?: string
-	uploader?: string
-	uploaderUrl?: string
-	uploaderVerified?: boolean
-	thumbnailUrl?: string
-	duration?: number
-	views?: number
-	likes?: number
-	dislikes?: number
-	livestream?: boolean
-	relatedStreams?: PipedStreamItem[]
-}
+import {
+	type as arktype,
+	type Type,
+} from 'arktype'
 
-export type PipedTabInfo = {
-	name?: string
-	data?: string
-}
 
-export type PipedChannel = {
-	id?: string
-	name?: string
-	avatarUrl?: string
-	bannerUrl?: string
-	description?: string
-	subscriberCount?: number
-	verified?: boolean
-	nextpage?: string | null
-	tabs?: PipedTabInfo[]
-	relatedStreams?: PipedStreamItem[]
-}
+const nonNegativeNumber = arktype('number >= 0')
+const nullableString = arktype('string').or(arktype('null'))
 
-export type PipedChannelNextpage = {
-	nextpage?: string | null
-	relatedStreams?: PipedStreamItem[]
-}
+export const pipedStreamItemWire = arktype({
+	'url?': 'string',
+	'title?': 'string',
+	'thumbnail?': 'string',
+	'uploaderName?': 'string',
+	'uploaderUrl?': 'string',
+	'uploaderAvatar?': 'string',
+	'uploaderVerified?': 'boolean',
+	'uploadedDate?': 'string',
+	'duration?': nonNegativeNumber,
+	'views?': nonNegativeNumber,
+})
 
-export type PipedComment = {
-	author?: string
-	commentId?: string
-	commentText?: string
-	commentedTime?: string
-	commentorUrl?: string
-	hearted?: boolean
-	likeCount?: number
-	pinned?: boolean
-	thumbnail?: string
-	verified?: boolean
-	creatorReplied?: boolean
-}
+export type PipedStreamItem = typeof pipedStreamItemWire.infer
 
-export type PipedComments = {
-	comments?: PipedComment[]
-	disabled?: boolean
-	nextpage?: string | null
-}
+export const pipedStreamItemListWire = pipedStreamItemWire.array() satisfies Type<PipedStreamItem[]>
 
-export type PipedPlaylist = {
-	bannerUrl?: string
-	name?: string
-	nextpage?: string | null
-	relatedStreams?: PipedStreamItem[]
-	thumbnailUrl?: string
-	uploader?: string
-	uploaderAvatar?: string
-	uploaderUrl?: string
-	videos?: number
-}
+export const pipedStreamWire = arktype({
+	'title?': 'string',
+	'description?': 'string',
+	'uploadDate?': 'string',
+	'uploader?': 'string',
+	'uploaderUrl?': 'string',
+	'uploaderVerified?': 'boolean',
+	'thumbnailUrl?': 'string',
+	'duration?': nonNegativeNumber,
+	'views?': nonNegativeNumber,
+	'likes?': nonNegativeNumber,
+	'dislikes?': nonNegativeNumber,
+	'livestream?': 'boolean',
+	'relatedStreams?': pipedStreamItemWire.array(),
+})
 
-export type PipedPlaylistNextpage = {
-	nextpage?: string | null
-	relatedStreams?: PipedStreamItem[]
-}
+export type PipedStream = typeof pipedStreamWire.infer
 
-export type PipedPlaylistSummary = {
-	type?: string
-	url?: string
-	name?: string
-	thumbnail?: string
-	description?: string
-	uploaderName?: string
-	uploaderUrl?: string
-	uploaderVerified?: boolean
-	videos?: number
-}
+export const pipedTabInfoWire = arktype({
+	'name?': 'string',
+	'data?': 'string',
+})
 
-export type PipedChannelTab = {
-	nextpage?: string | null
-	content?: PipedPlaylistSummary[]
-}
+export type PipedTabInfo = typeof pipedTabInfoWire.infer
+
+export const pipedChannelWire = arktype({
+	'id?': 'string',
+	'name?': 'string',
+	'avatarUrl?': 'string',
+	'bannerUrl?': 'string',
+	'description?': 'string',
+	'subscriberCount?': nonNegativeNumber,
+	'verified?': 'boolean',
+	'nextpage?': nullableString,
+	'tabs?': pipedTabInfoWire.array(),
+	'relatedStreams?': pipedStreamItemWire.array(),
+})
+
+export type PipedChannel = typeof pipedChannelWire.infer
+
+export const pipedChannelNextpageWire = arktype({
+	'nextpage?': nullableString,
+	'relatedStreams?': pipedStreamItemWire.array(),
+})
+
+export type PipedChannelNextpage = typeof pipedChannelNextpageWire.infer
+
+export const pipedCommentWire = arktype({
+	'author?': 'string',
+	'commentId?': 'string',
+	'commentText?': 'string',
+	'commentedTime?': 'string',
+	'commentorUrl?': 'string',
+	'hearted?': 'boolean',
+	'likeCount?': nonNegativeNumber,
+	'pinned?': 'boolean',
+	'thumbnail?': 'string',
+	'verified?': 'boolean',
+	'creatorReplied?': 'boolean',
+})
+
+export type PipedComment = typeof pipedCommentWire.infer
+
+export const pipedCommentsWire = arktype({
+	'comments?': pipedCommentWire.array(),
+	'disabled?': 'boolean',
+	'nextpage?': nullableString,
+})
+
+export type PipedComments = typeof pipedCommentsWire.infer
+
+export const pipedPlaylistWire = arktype({
+	'bannerUrl?': 'string',
+	'name?': 'string',
+	'nextpage?': nullableString,
+	'relatedStreams?': pipedStreamItemWire.array(),
+	'thumbnailUrl?': 'string',
+	'uploader?': 'string',
+	'uploaderAvatar?': 'string',
+	'uploaderUrl?': 'string',
+	'videos?': nonNegativeNumber,
+})
+
+export type PipedPlaylist = typeof pipedPlaylistWire.infer
+
+export const pipedPlaylistNextpageWire = arktype({
+	'nextpage?': nullableString,
+	'relatedStreams?': pipedStreamItemWire.array(),
+})
+
+export type PipedPlaylistNextpage = typeof pipedPlaylistNextpageWire.infer
+
+export const pipedPlaylistSummaryWire = arktype({
+	'type?': 'string',
+	'url?': 'string',
+	'name?': 'string',
+	'thumbnail?': 'string',
+	'description?': 'string',
+	'uploaderName?': 'string',
+	'uploaderUrl?': 'string',
+	'uploaderVerified?': 'boolean',
+	'videos?': nonNegativeNumber,
+})
+
+export type PipedPlaylistSummary = typeof pipedPlaylistSummaryWire.infer
+
+export const pipedChannelTabWire = arktype({
+	'nextpage?': nullableString,
+	'content?': pipedPlaylistSummaryWire.array(),
+})
+
+export type PipedChannelTab = typeof pipedChannelTabWire.infer

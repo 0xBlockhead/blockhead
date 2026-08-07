@@ -1,20 +1,36 @@
 import { pipedApiGet } from '$/sources/Piped/Rest/client.ts'
-import type {
-	PipedChannelNextpage,
-	PipedChannelTab,
-	PipedChannel,
-	PipedComment,
-	PipedComments,
-	PipedPlaylistNextpage,
-	PipedPlaylistSummary,
-	PipedPlaylist,
-	PipedStreamItem,
-	PipedStream,
+import {
+	pipedChannelNextpageWire,
+	pipedChannelTabWire,
+	pipedChannelWire,
+	pipedCommentsWire,
+	pipedPlaylistNextpageWire,
+	pipedPlaylistWire,
+	pipedStreamItemListWire,
+	pipedStreamWire,
+	type PipedChannel,
+	type PipedComment,
+	type PipedPlaylist,
+	type PipedPlaylistSummary,
+	type PipedStream,
+	type PipedStreamItem,
 } from '$/sources/Piped/Rest/types.ts'
 
 const clampPipedLimit = (limit: number) => (
 	Math.min(100, Math.max(1, limit))
 )
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`Piped_Rest: invalid ${label} response envelope`)
+	}
+}
 
 export const getChannelIdFromUploaderUrl = (uploaderUrl: string | undefined) => (
 	uploaderUrl?.match(/\/channel\/([^/?]+)/)?.[1]
@@ -66,19 +82,27 @@ const pipedPlaylistSummariesFromTabContent = (
 		))
 )
 
-export const getStream = (
+export const getStream = async (
 	videoId: string
 ) => (
-	pipedApiGet<PipedStream>(
-		`/streams/${encodeURIComponent(videoId)}`
+	assertEnvelope(
+		'stream',
+		pipedStreamWire,
+		await pipedApiGet<unknown>(
+			`/streams/${encodeURIComponent(videoId)}`
+		)
 	)
 )
 
-export const getChannel = (
+export const getChannel = async (
 	channelId: string
 ) => (
-	pipedApiGet<PipedChannel>(
-		`/channel/${encodeURIComponent(channelId)}`
+	assertEnvelope(
+		'channel',
+		pipedChannelWire,
+		await pipedApiGet<unknown>(
+			`/channel/${encodeURIComponent(channelId)}`
+		)
 	)
 )
 
@@ -87,19 +111,27 @@ export const listTrending = async (
 	region = 'US'
 ) => (
 	sliceStreamItems(
-		await pipedApiGet<PipedStreamItem[]>(
-			'/trending',
-			{ region }
+		assertEnvelope(
+			'trending',
+			pipedStreamItemListWire,
+			await pipedApiGet<unknown>(
+				'/trending',
+				{ region }
+			)
 		),
 		limit
 	)
 )
 
-export const getPlaylist = (
+export const getPlaylist = async (
 	playlistId: string
 ) => (
-	pipedApiGet<PipedPlaylist>(
-		`/playlists/${encodeURIComponent(playlistId)}`
+	assertEnvelope(
+		'playlist',
+		pipedPlaylistWire,
+		await pipedApiGet<unknown>(
+			`/playlists/${encodeURIComponent(playlistId)}`
+		)
 	)
 )
 
@@ -122,9 +154,13 @@ export const listPlaylistVideos = async (
 				items: sliceStreamItems(page.relatedStreams ?? [], limit),
 				nextpage: page.nextpage,
 			})
-		)(await pipedApiGet<PipedPlaylistNextpage>(
-			`/nextpage/playlists/${encodeURIComponent(playlistId)}`,
-			{ nextpage: options.nextpage }
+		)(assertEnvelope(
+			'playlist-nextpage',
+			pipedPlaylistNextpageWire,
+			await pipedApiGet<unknown>(
+				`/nextpage/playlists/${encodeURIComponent(playlistId)}`,
+				{ nextpage: options.nextpage }
+			)
 		))
 	:
 		(
@@ -135,24 +171,32 @@ export const listPlaylistVideos = async (
 	)(await getPlaylist(playlistId))
 )
 
-export const getChannelTab = (
+export const getChannelTab = async (
 	data: string,
 	nextpage?: string
 ) => (
-	pipedApiGet<PipedChannelTab>(
-		'/channels/tabs',
-		{
-			data,
-			nextpage,
-		}
+	assertEnvelope(
+		'channel-tab',
+		pipedChannelTabWire,
+		await pipedApiGet<unknown>(
+			'/channels/tabs',
+			{
+				data,
+				nextpage,
+			}
+		)
 	)
 )
 
-export const getComments = (
+export const getComments = async (
 	videoId: string
 ) => (
-	pipedApiGet<PipedComments>(
-		`/comments/${encodeURIComponent(videoId)}`
+	assertEnvelope(
+		'comments',
+		pipedCommentsWire,
+		await pipedApiGet<unknown>(
+			`/comments/${encodeURIComponent(videoId)}`
+		)
 	)
 )
 
@@ -170,9 +214,13 @@ export const listComments = async (
 				disabled: page.disabled,
 				nextpage: page.nextpage,
 			})
-		)(await pipedApiGet<PipedComments>(
-			`/nextpage/comments/${encodeURIComponent(videoId)}`,
-			{ nextpage: options.nextpage }
+		)(assertEnvelope(
+			'comments-nextpage',
+			pipedCommentsWire,
+			await pipedApiGet<unknown>(
+				`/nextpage/comments/${encodeURIComponent(videoId)}`,
+				{ nextpage: options.nextpage }
+			)
 		))
 	:
 		(
@@ -201,7 +249,7 @@ export const listChannelPlaylists = async (
 		)
 	)
 	if (tabData == null) {
-		return { items: [] }
+		return { items: [] as PipedPlaylistSummary[] }
 	}
 	const page = await getChannelTab(tabData, options?.nextpage)
 	return {
@@ -238,9 +286,13 @@ export const listChannelVideos = async (
 				items: sliceStreamItems(page.relatedStreams ?? [], limit),
 				nextpage: page.nextpage,
 			})
-		)(await pipedApiGet<PipedChannelNextpage>(
-			`/nextpage/channel/${encodeURIComponent(channelId)}`,
-			{ nextpage: options.nextpage }
+		)(assertEnvelope(
+			'channel-nextpage',
+			pipedChannelNextpageWire,
+			await pipedApiGet<unknown>(
+				`/nextpage/channel/${encodeURIComponent(channelId)}`,
+				{ nextpage: options.nextpage }
+			)
 		))
 	:
 		(

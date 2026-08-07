@@ -12,6 +12,7 @@ import {
 import { optionalTimestampMs } from '$/lib/time.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { YoutubeLiveBroadcastContent } from '$/schema/YoutubeLiveBroadcastContent.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
 import { Source } from '$/sources/Source.ts'
@@ -244,12 +245,21 @@ export default {
 						const publishedAtMs = optionalTimestampMs(d.uploadDate)
 						const thumbnailUrl = optionalNonemptyString(d.thumbnailUrl)
 						const thumbnailMedia = mediaFromUrl(thumbnailUrl, MediaType.Image)
+						const liveBroadcastContent = (
+							d.livestream === true ?
+								YoutubeLiveBroadcastContent.Live
+							: d.livestream === false ?
+								YoutubeLiveBroadcastContent.None
+							:
+								undefined
+						)
 						return {
 							title,
 							description: pipedPlainText(d.description),
 							...(publishedAt != null && { publishedAt }),
 							...(publishedAtMs != null && { publishedAtMs }),
 							...(d.duration != null && { durationSeconds: d.duration }),
+							...(liveBroadcastContent != null && { liveBroadcastContent }),
 							...(thumbnailUrl != null && {
 								thumbnailUrl,
 							}),
@@ -262,6 +272,23 @@ export default {
 										[EntityMetaKey.Selector]: { channelId },
 									}
 							),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$video: { videoId },
+									timestampMs: Date.now(),
+									source: Source.Piped_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									...(d.views != null && {
+										[entityFieldAddressKey(EntityType.YoutubeVideo_Timestamp, [], 'viewCount')]:
+											d.views,
+									}),
+									...(d.likes != null && {
+										[entityFieldAddressKey(EntityType.YoutubeVideo_Timestamp, [], 'likeCount')]:
+											d.likes,
+									}),
+								},
+							}],
 						}
 					},
 				}
@@ -272,9 +299,11 @@ export default {
 				publishedAt: (video) => video.publishedAt,
 				publishedAtMs: (video) => video.publishedAtMs,
 				durationSeconds: (video) => video.durationSeconds,
+				liveBroadcastContent: (video) => video.liveBroadcastContent,
 				thumbnailUrl: (video) => video.thumbnailUrl,
 				$thumbnail: (video) => video.$thumbnail,
 				$author: (video) => video.$author,
+				$$timestamps: (video) => video.$$timestamps,
 			}),
 
 		defineResolver({
@@ -292,6 +321,7 @@ export default {
 						))
 						if (comment == null) throw new Error('Piped_Rest: comment not found')
 						const publishedAt = optionalNonemptyString(comment.commentedTime)
+						const publishedAtMs = optionalTimestampMs(comment.commentedTime)
 						const authorChannelId = getChannelIdFromUploaderUrl(comment.commentorUrl)
 						return {
 							text: pipedPlainText(comment.commentText),
@@ -302,6 +332,7 @@ export default {
 								},
 							}),
 							...(publishedAt != null && { publishedAt }),
+							...(publishedAtMs != null && { publishedAtMs }),
 							$video: {
 								[EntityMetaKey.Selector]: { videoId },
 							},
@@ -330,6 +361,7 @@ export default {
 				authorDisplayName: (comment) => comment.authorDisplayName,
 				$author: (comment) => comment.$author,
 				publishedAt: (comment) => comment.publishedAt,
+				publishedAtMs: (comment) => comment.publishedAtMs,
 				$video: (comment) => comment.$video,
 				$$timestamps: (comment) => comment.$$timestamps,
 			}),
@@ -554,6 +586,88 @@ export default {
 					))(getVideoIdFromUrl(video.url))
 				))
 			),
+		}),
+
+		defineResolver({
+			entityType: EntityType._GlobalYoutubeNetwork,
+			resolve: {
+				Scope: {
+					resolve: async ({ scope }, context) => {
+						const { listTrending } = await import('$/sources/Piped/Rest/queries.ts')
+						const timestampMs = Date.now()
+						try {
+							const videos = await listTrending(
+								resolverContextRowLimit(context)
+							)
+							const channelIds = new Set(
+								videos.flatMap((video) => {
+									const channelId = getChannelIdFromUploaderUrl(video.uploaderUrl)
+									return channelId == null ? [] : [channelId]
+								})
+							)
+							const videoIds = new Set(
+								videos.flatMap((video) => {
+									const videoId = getVideoIdFromUrl(video.url)
+									return videoId == null ? [] : [videoId]
+								})
+							)
+							return [{
+								[EntityMetaKey.Selector]: {
+									$hub: { scope },
+									timestampMs,
+									source: Source.Piped_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'observedChannelCount')]:
+										channelIds.size,
+									[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'observedVideoCount')]:
+										videoIds.size,
+									[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'reachable')]:
+										true,
+								},
+							}]
+						} catch {
+							return [{
+								[EntityMetaKey.Selector]: {
+									$hub: { scope },
+									timestampMs,
+									source: Source.Piped_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'reachable')]:
+										false,
+								},
+							}]
+						}
+					},
+				},
+			},
+		})({
+			$$timestamps: (observations) => observations,
+		}),
+
+		defineResolver({
+			entityType: EntityType._GlobalYoutubeNetwork_Timestamp,
+			resolve: {
+				HubTimestampMsSource: {
+					resolve: async ({ $hub, timestampMs, source }) => {
+						if (source !== Source.Piped_Rest)
+							throw new Error('Piped_Rest: global YouTube observation source mismatch')
+
+						return {
+							$hub: {
+								[EntityMetaKey.Selector]: $hub,
+							},
+							timestampMs,
+							source,
+						}
+					},
+				},
+			},
+		})({
+			$hub: (observation) => observation.$hub,
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
 		}),
 
 	],

@@ -1,12 +1,13 @@
 import { youtubeApiV3Get } from '$/sources/Youtube/Rest/client.ts'
-import type {
-	YoutubeApiChannelsListResponse,
-	YoutubeApiCommentThreadsListResponse,
-	YoutubeApiCommentsListResponse,
-	YoutubeApiPlaylistItemsListResponse,
-	YoutubeApiPlaylistsListResponse,
-	YoutubeApiSearchListResponse,
-	YoutubeApiVideosListResponse,
+import {
+	youtubeApiChannelsListResponseWire,
+	youtubeApiCommentThreadsListResponseWire,
+	youtubeApiCommentsListResponseWire,
+	youtubeApiPlaylistItemsListResponseWire,
+	youtubeApiPlaylistsListResponseWire,
+	youtubeApiSearchListResponseWire,
+	youtubeApiVideosListResponseWire,
+	type YoutubeApiCommentsListResponse,
 } from '$/sources/Youtube/Rest/types.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
@@ -23,145 +24,193 @@ const clampYoutubeMaxResults = (limit: number) => (
 	Math.min(50, Math.max(1, limit))
 )
 
-export const getChannel = (
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`Youtube_Rest: invalid ${label} response envelope`)
+	}
+}
+
+export const getChannel = async (
 	publicEnv: SourcePublicEnv,
 	channelId: string
 ) => (
-	youtubeApiV3Get<YoutubeApiChannelsListResponse>(
-		publicEnv,
-		'/channels',
-		{
-			part: channelParts,
-			id: channelId,
-		}
+	assertEnvelope(
+		'channels',
+		youtubeApiChannelsListResponseWire,
+		await youtubeApiV3Get(
+			publicEnv,
+			'/channels',
+			{
+				part: channelParts,
+				id: channelId,
+			}
+		)
 	)
 )
 
-export const getVideo = (
+export const getVideo = async (
 	publicEnv: SourcePublicEnv,
 	videoId: string
 ) => (
-	youtubeApiV3Get<YoutubeApiVideosListResponse>(
-		publicEnv,
-		'/videos',
-		{
-			part: videoParts,
-			id: videoId,
-		}
+	assertEnvelope(
+		'videos',
+		youtubeApiVideosListResponseWire,
+		await youtubeApiV3Get(
+			publicEnv,
+			'/videos',
+			{
+				part: videoParts,
+				id: videoId,
+			}
+		)
 	)
 )
 
-export const getComment = (
+export const getComment = async (
 	publicEnv: SourcePublicEnv,
 	commentId: string
 ) => (
-	youtubeApiV3Get<YoutubeApiCommentsListResponse>(
-		publicEnv,
-		'/comments',
-		{
-			part: commentParts,
-			id: commentId,
-		}
+	assertEnvelope(
+		'comments',
+		youtubeApiCommentsListResponseWire,
+		await youtubeApiV3Get(
+			publicEnv,
+			'/comments',
+			{
+				part: commentParts,
+				id: commentId,
+			}
+		)
 	)
 )
 
-export const getCommentThread = (
+export const getCommentThread = async (
 	publicEnv: SourcePublicEnv,
 	commentThreadId: string
 ) => (
-	youtubeApiV3Get<YoutubeApiCommentThreadsListResponse>(
-		publicEnv,
-		'/commentThreads',
-		{
-			part: commentThreadParts,
-			id: commentThreadId,
-		}
+	assertEnvelope(
+		'commentThreads',
+		youtubeApiCommentThreadsListResponseWire,
+		await youtubeApiV3Get(
+			publicEnv,
+			'/commentThreads',
+			{
+				part: commentThreadParts,
+				id: commentThreadId,
+			}
+		)
 	)
 )
 
-export const getPlaylist = (
+export const getPlaylist = async (
 	publicEnv: SourcePublicEnv,
 	playlistId: string
 ) => (
-	youtubeApiV3Get<YoutubeApiPlaylistsListResponse>(
-		publicEnv,
-		'/playlists',
-		{
-			part: playlistParts,
-			id: playlistId,
-		}
+	assertEnvelope(
+		'playlists',
+		youtubeApiPlaylistsListResponseWire,
+		await youtubeApiV3Get(
+			publicEnv,
+			'/playlists',
+			{
+				part: playlistParts,
+				id: playlistId,
+			}
+		)
 	)
 )
 
-export const listChannelPlaylists = (
+export const listChannelPlaylists = async (
 	publicEnv: SourcePublicEnv,
 	channelId: string,
 	limit: number,
 	pageToken?: string
 ) => (
-	youtubeApiV3Get<YoutubeApiPlaylistsListResponse>(
-		publicEnv,
-		'/playlists',
-		{
-			part: playlistParts,
-			channelId,
-			maxResults: String(clampYoutubeMaxResults(limit)),
-			...(pageToken != null && { pageToken }),
-		}
+	assertEnvelope(
+		'playlists',
+		youtubeApiPlaylistsListResponseWire,
+		await youtubeApiV3Get(
+			publicEnv,
+			'/playlists',
+			{
+				part: playlistParts,
+				channelId,
+				maxResults: String(clampYoutubeMaxResults(limit)),
+				...(pageToken != null && { pageToken }),
+			}
+		)
 	)
 )
 
-export const listPlaylistItems = (
+export const listPlaylistItems = async (
 	publicEnv: SourcePublicEnv,
 	playlistId: string,
 	limit: number,
 	pageToken?: string
 ) => (
-	youtubeApiV3Get<YoutubeApiPlaylistItemsListResponse>(
-		publicEnv,
-		'/playlistItems',
-		{
-			part: playlistItemParts,
-			playlistId,
-			maxResults: String(clampYoutubeMaxResults(limit)),
-			...(pageToken != null && { pageToken }),
-		}
+	assertEnvelope(
+		'playlistItems',
+		youtubeApiPlaylistItemsListResponseWire,
+		await youtubeApiV3Get(
+			publicEnv,
+			'/playlistItems',
+			{
+				part: playlistItemParts,
+				playlistId,
+				maxResults: String(clampYoutubeMaxResults(limit)),
+				...(pageToken != null && { pageToken }),
+			}
+		)
 	)
 )
 
-export const listCommentThreads = (
+export const listCommentThreads = async (
 	publicEnv: SourcePublicEnv,
 	videoId: string,
 	limit: number,
 	pageToken?: string
 ) => (
-	youtubeApiV3Get<YoutubeApiCommentThreadsListResponse>(
-		publicEnv,
-		'/commentThreads',
-		{
-			part: commentThreadParts,
-			videoId,
-			maxResults: String(clampYoutubeMaxResults(limit)),
-			...(pageToken != null && { pageToken }),
-		}
+	assertEnvelope(
+		'commentThreads',
+		youtubeApiCommentThreadsListResponseWire,
+		await youtubeApiV3Get(
+			publicEnv,
+			'/commentThreads',
+			{
+				part: commentThreadParts,
+				videoId,
+				maxResults: String(clampYoutubeMaxResults(limit)),
+				...(pageToken != null && { pageToken }),
+			}
+		)
 	)
 )
 
-export const listCommentReplies = (
+export const listCommentReplies = async (
 	publicEnv: SourcePublicEnv,
 	parentId: string,
 	limit: number,
 	pageToken?: string
 ) => (
-	youtubeApiV3Get<YoutubeApiCommentsListResponse>(
-		publicEnv,
-		'/comments',
-		{
-			part: commentParts,
-			parentId,
-			maxResults: String(clampYoutubeMaxResults(limit)),
-			...(pageToken != null && { pageToken }),
-		}
+	assertEnvelope(
+		'comments',
+		youtubeApiCommentsListResponseWire,
+		await youtubeApiV3Get(
+			publicEnv,
+			'/comments',
+			{
+				part: commentParts,
+				parentId,
+				maxResults: String(clampYoutubeMaxResults(limit)),
+				...(pageToken != null && { pageToken }),
+			}
+		)
 	)
 )
 
@@ -234,54 +283,66 @@ export const listCompleteCommentReplies = async (
 	throw new Error('Youtube_Rest: comment reply page limit exceeded')
 }
 
-export const listPopularVideos = (
+export const listPopularVideos = async (
 	publicEnv: SourcePublicEnv,
 	limit: number
 ) => (
-	youtubeApiV3Get<YoutubeApiVideosListResponse>(
-		publicEnv,
-		'/videos',
-		{
-			part: videoParts,
-			chart: 'mostPopular',
-			maxResults: String(clampYoutubeMaxResults(limit)),
-		}
+	assertEnvelope(
+		'videos',
+		youtubeApiVideosListResponseWire,
+		await youtubeApiV3Get(
+			publicEnv,
+			'/videos',
+			{
+				part: videoParts,
+				chart: 'mostPopular',
+				maxResults: String(clampYoutubeMaxResults(limit)),
+			}
+		)
 	)
 )
 
-export const searchChannels = (
+export const searchChannels = async (
 	publicEnv: SourcePublicEnv,
 	query: string,
 	limit: number
 ) => (
-	youtubeApiV3Get<YoutubeApiSearchListResponse>(
-		publicEnv,
-		'/search',
-		{
-			part: 'snippet',
-			type: 'channel',
-			q: query,
-			maxResults: String(clampYoutubeMaxResults(limit)),
-		}
+	assertEnvelope(
+		'search',
+		youtubeApiSearchListResponseWire,
+		await youtubeApiV3Get(
+			publicEnv,
+			'/search',
+			{
+				part: 'snippet',
+				type: 'channel',
+				q: query,
+				maxResults: String(clampYoutubeMaxResults(limit)),
+			}
+		)
 	)
 )
 
-export const searchChannelVideos = (
+export const searchChannelVideos = async (
 	publicEnv: SourcePublicEnv,
 	channelId: string,
 	limit: number,
 	pageToken?: string
 ) => (
-	youtubeApiV3Get<YoutubeApiSearchListResponse>(
-		publicEnv,
-		'/search',
-		{
-			part: 'snippet',
-			type: 'video',
-			channelId,
-			order: 'date',
-			maxResults: String(clampYoutubeMaxResults(limit)),
-			...(pageToken != null && { pageToken }),
-		}
+	assertEnvelope(
+		'search',
+		youtubeApiSearchListResponseWire,
+		await youtubeApiV3Get(
+			publicEnv,
+			'/search',
+			{
+				part: 'snippet',
+				type: 'video',
+				channelId,
+				order: 'date',
+				maxResults: String(clampYoutubeMaxResults(limit)),
+				...(pageToken != null && { pageToken }),
+			}
+		)
 	)
 )
