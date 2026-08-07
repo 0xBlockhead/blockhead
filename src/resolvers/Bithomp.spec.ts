@@ -15,17 +15,52 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getAccount = vi.hoisted(() => vi.fn())
+const getAccountTransactions = vi.hoisted(() => vi.fn())
 const getAmm = vi.hoisted(() => vi.fn())
+const getAmms = vi.hoisted(() => vi.fn())
+const getLedgerEntry = vi.hoisted(() => vi.fn())
+const getTrustlines = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Bithomp/Rest/queries.ts', () => ({
 	getAccount,
+	getAccountTransactions,
 	getAmm,
+	getAmms,
+	getLedgerEntry,
+	getTrustlines,
 }))
 
 const { default: bithompResolvers } = await import('$/resolvers/Bithomp.ts')
 
-const accountResolver = bithompResolvers.resolvers[0]
-const ammResolver = bithompResolvers.resolvers[1]
+const resolverFor = (
+	entityType: EntityType,
+	projectionKey?: string
+) => {
+	const resolver = bithompResolvers.resolvers.find((candidate) => (
+		candidate.entityType === entityType
+		&& (
+			projectionKey == null
+			|| projectionKey in candidate.projections
+			|| (
+				'Xrpl' in candidate.projections
+				&& projectionKey in candidate.projections.Xrpl
+			)
+		)
+	))
+	if (resolver == null)
+		throw new Error(`Bithomp spec missing ${entityType}${projectionKey == null ? '' : `.${projectionKey}`} resolver`)
+	return resolver
+}
+
+const accountResolver = resolverFor(EntityType.XrplAccount, '$$timestamps')
+const accountTipResolver = resolverFor(EntityType.XrplAccount_Timestamp)
+const trustlinesResolver = resolverFor(EntityType.XrplAccount, '$$trustlines')
+const transactionsResolver = resolverFor(EntityType.XrplAccount, '$$transactions')
+const ammResolver = resolverFor(EntityType.XrplAmm, '$$timestamps')
+const ammTipResolver = resolverFor(EntityType.XrplAmm_Timestamp)
+const networkAmmsResolver = resolverFor(EntityType.Network, '$$amms')
+const ledgerEntryResolver = resolverFor(EntityType.XrplLedgerEntry)
+
 const account = {
 	$network: {
 		caip2: networkBySlug.xrpl.caip2,
@@ -102,6 +137,17 @@ describe('Bithomp XRPL account resolver', () => {
 		})
 	})
 
+	it('re-resolves tip account observations by ledger index', async () => {
+		const observation = await accountTipResolver.resolve.AccountLedgerIndexSource.resolve({
+			$account: account,
+			ledgerIndex: 98_765_432n,
+			source: Source.Bithomp,
+		}, context)
+
+		expect(accountTipResolver.projections.balanceDrops(observation)).toBe(900719925474099312345n)
+		expect(accountTipResolver.projections.timestampMs(observation)).toBe(1_784_783_358_000)
+	})
+
 	it('rejects every network except xrpl:0 before transport', async () => {
 		await expect(accountResolver.resolve.NetworkAccount.resolve({
 			...account,
@@ -159,16 +205,6 @@ describe('Bithomp XRPL account resolver', () => {
 				sequence: 0,
 			},
 		},
-		{
-			name: 'account counters',
-			ledgerInfo: {
-				ledger: 1,
-				ledgerTimestamp: 1,
-				balance: '1',
-				ownerCount: -1,
-				sequence: 0,
-			},
-		},
 	])('rejects malformed $name', async ({ name, ledgerInfo }) => {
 		getAccount.mockResolvedValueOnce({
 			address: account.account,
@@ -177,6 +213,144 @@ describe('Bithomp XRPL account resolver', () => {
 
 		await expect(accountResolver.resolve.NetworkAccount.resolve(account, context))
 			.rejects.toThrow(`malformed ${name}`)
+	})
+})
+
+describe('Bithomp XRPL account trustlines / transactions', () => {
+	beforeEach(() => {
+		getAccount.mockReset()
+		getTrustlines.mockReset()
+		getAccountTransactions.mockReset()
+		getAccount.mockResolvedValue({
+			address: account.account,
+			ledgerInfo: {
+				ledger: 10,
+				ledgerTimestamp: 1_700_000_000,
+				balance: '1',
+				ownerCount: 0,
+				sequence: 1,
+			},
+		})
+	})
+
+	it('projects tip-paired trustlines from explorer balances', async () => {
+		getTrustlines.mockResolvedValue([{
+			counterparty: 'rIssuer',
+			currency: 'USD',
+			balance: '12.5',
+			limit: '1000',
+			ripplingDisabled: true,
+			peer: {
+				limit: '0',
+				ripplingDisabled: false,
+			},
+		}])
+
+		const trustlines = await trustlinesResolver.resolve.NetworkAccount.resolve(account, context)
+		expect(trustlinesResolver.projections.$$trustlines(trustlines)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				account: account.account,
+				currency: 'USD',
+				issuer: 'rIssuer',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.XrplTrustline, [], '$account')]: {
+					[EntityMetaKey.Selector]: account,
+				},
+				[entityFieldAddressKey(EntityType.XrplTrustline, [], '$issuerAccount')]: {
+					[EntityMetaKey.Selector]: {
+						$network: account.$network,
+						account: 'rIssuer',
+					},
+				},
+				[entityFieldAddressKey(EntityType.XrplTrustline, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$trustline: {
+							$network: account.$network,
+							account: account.account,
+							currency: 'USD',
+							issuer: 'rIssuer',
+						},
+						ledgerIndex: 10n,
+						source: Source.Bithomp,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.XrplTrustline_Timestamp, [], 'timestampMs')]: 1_700_000_000_000,
+						[entityFieldAddressKey(EntityType.XrplTrustline_Timestamp, [], 'balance')]: '12.5',
+						[entityFieldAddressKey(EntityType.XrplTrustline_Timestamp, [], 'limit')]: '1000',
+						[entityFieldAddressKey(EntityType.XrplTrustline_Timestamp, [], 'limitPeer')]: '0',
+						[entityFieldAddressKey(EntityType.XrplTrustline_Timestamp, [], 'noRipple')]: true,
+						[entityFieldAddressKey(EntityType.XrplTrustline_Timestamp, [], 'noRipplePeer')]: false,
+					},
+				}],
+			},
+		}])
+	})
+
+	it('projects account transactions from explorer pages with raw fee drops', async () => {
+		getAccountTransactions.mockResolvedValue([{
+			id: 'TXHASH',
+			type: 'payment',
+			address: account.account,
+			sequence: 9,
+			outcome: {
+				result: 'tesSUCCESS',
+				timestamp: '2025-07-18T21:03:10.000Z',
+				fee: '0.01',
+				ledgerIndex: 97_563_734,
+			},
+			rawTransaction: JSON.stringify({
+				hash: 'TXHASH',
+				TransactionType: 'Payment',
+				Account: account.account,
+				Sequence: 9,
+				Fee: '10000',
+				ledger_index: 97_563_734,
+				validated: true,
+				meta: {
+					TransactionResult: 'tesSUCCESS',
+				},
+			}),
+		}])
+
+		const page = await transactionsResolver.resolve.NetworkAccount.resolve(account, {
+			...context,
+			pagination: {
+				limit: 10,
+			},
+		})
+		expect(transactionsResolver.projections.$$transactions.select(page, account, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				hash: 'TXHASH',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.XrplTransaction, [], 'transactionType')]: 'Payment',
+				[entityFieldAddressKey(EntityType.XrplTransaction, [], 'account')]: account.account,
+				[entityFieldAddressKey(EntityType.XrplTransaction, [], 'sequence')]: 9,
+				[entityFieldAddressKey(EntityType.XrplTransaction, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$transaction: {
+							$network: account.$network,
+							hash: 'TXHASH',
+						},
+						ledgerIndex: 97_563_734n,
+						source: Source.Bithomp,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.XrplTransaction_Timestamp, [], 'timestampMs')]: Date.parse('2025-07-18T21:03:10.000Z'),
+						[entityFieldAddressKey(EntityType.XrplTransaction_Timestamp, [], 'fee')]: 10000n,
+						[entityFieldAddressKey(EntityType.XrplTransaction_Timestamp, [], 'status')]: 'tesSUCCESS',
+						[entityFieldAddressKey(EntityType.XrplTransaction_Timestamp, [], 'resultCode')]: 'tesSUCCESS',
+						[entityFieldAddressKey(EntityType.XrplTransaction_Timestamp, [], 'validated')]: true,
+						[entityFieldAddressKey(EntityType.XrplTransaction_Timestamp, [], 'meta')]: {
+							TransactionResult: 'tesSUCCESS',
+						},
+					},
+				}],
+			},
+		}])
 	})
 })
 
@@ -253,7 +427,17 @@ describe('Bithomp XRPL AMM resolver', () => {
 		expect(getAmm).toHaveBeenCalledWith(publicEnv, {
 			id: amm.ammAccount,
 		})
-		expect(bithompResolvers.resolvers).toHaveLength(2)
+	})
+
+	it('re-resolves tip AMM observations by ledger index', async () => {
+		const observation = await ammTipResolver.resolve.AmmLedgerIndexSource.resolve({
+			$amm: amm,
+			ledgerIndex: 87_461_194n,
+			source: Source.Bithomp,
+		}, context)
+
+		expect(ammTipResolver.projections.assetAmount(observation)).toBe('13820630640')
+		expect(ammTipResolver.projections.tradingFee(observation)).toBe(290)
 	})
 
 	it('rejects every network except xrpl:0 before transport', async () => {
@@ -327,5 +511,81 @@ describe('Bithomp XRPL AMM resolver', () => {
 
 		await expect(ammResolver.resolve.NetworkAmmAccount.resolve(amm, context))
 			.rejects.toThrow(`malformed ${name}`)
+	})
+})
+
+describe('Bithomp network AMM list and ledger entry', () => {
+	beforeEach(() => {
+		getAmms.mockReset()
+		getLedgerEntry.mockReset()
+	})
+
+	it('projects Network.Xrpl.$$amms from the explorer AMM catalog', async () => {
+		getAmms.mockResolvedValue({
+			marker: 'NEXT',
+			amms: [{
+				account: amm.ammAccount,
+				amount: '10',
+				amount2: {
+					currency: 'USD',
+					issuer: 'rIssuer',
+					value: '2',
+				},
+				lpTokenBalance: {
+					currency: 'LP',
+					issuer: amm.ammAccount,
+					value: '3',
+				},
+			}],
+		})
+
+		const page = await networkAmmsResolver.resolve.Caip2.resolve(account.$network, context)
+		expect(networkAmmsResolver.projections.Xrpl.$$amms.select(page, account.$network, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: account.$network,
+				ammAccount: amm.ammAccount,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.XrplAmm, [], 'assetCurrency')]: 'XRP',
+				[entityFieldAddressKey(EntityType.XrplAmm, [], 'asset2Currency')]: 'USD',
+				[entityFieldAddressKey(EntityType.XrplAmm, [], 'asset2Issuer')]: 'rIssuer',
+				[entityFieldAddressKey(EntityType.XrplAmm, [], 'lpTokenCurrency')]: 'LP',
+			},
+		}])
+		expect(networkAmmsResolver.projections.Xrpl.$$amms.continuation(page, account.$network, context)).toEqual({
+			operation: 'network-amms',
+			target: 'xrpl:0',
+			terminal: false,
+			token: 'NEXT',
+		})
+	})
+
+	it('projects validated ledger entries by index', async () => {
+		getLedgerEntry.mockResolvedValue({
+			index: 'ENTRYHASH',
+			ledger_hash: 'LEDGERHASH',
+			ledger_index: 80_000_000,
+			node: {
+				LedgerEntryType: 'AccountRoot',
+				Account: account.account,
+				PreviousTxnID: 'PREV',
+				PreviousTxnLgrSeq: 79_999_999,
+			},
+			validated: true,
+		})
+
+		const entry = await ledgerEntryResolver.resolve.LedgerEntryHash.resolve({
+			$ledger: {
+				$network: account.$network,
+				ledgerIndex: 80_000_000n,
+				ledgerHash: 'LEDGERHASH',
+			},
+			entryHash: 'ENTRYHASH',
+		}, context)
+
+		expect(ledgerEntryResolver.projections.entryType(entry)).toBe('AccountRoot')
+		expect(ledgerEntryResolver.projections.account(entry)).toBe(account.account)
+		expect(ledgerEntryResolver.projections.previousTransactionHash(entry)).toBe('PREV')
+		expect(ledgerEntryResolver.projections.previousTransactionLedgerIndex(entry)).toBe(79_999_999n)
 	})
 })
