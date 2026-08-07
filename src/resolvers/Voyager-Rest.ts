@@ -532,6 +532,161 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.StarknetContract,
+			resolve: {
+				NetworkAddress: {
+					appliesTo: starknetNestedNetworkApplicability,
+					resolve: async (contract, context) => {
+						assertStarknetMainnet(contract.$network.$network)
+						const address = canonicalFelt(contract.address, 'contract address')
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const page = continuationPage(context.providerContinuationToken)
+						const { listEvents } = await import('$/sources/Voyager/Rest/queries.ts')
+						return {
+							limit,
+							page,
+							response: await listEvents({
+								limit,
+								page,
+								contract: address,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$events: {
+				select: ({ response }, contract) => response.items.flatMap((event, index) => {
+					if (event.transactionHash == null && event.selector == null && event.fromAddress == null)
+						return []
+					if (event.transactionHash == null)
+						throw new Error('Voyager_Rest: contract event missing transaction hash')
+
+					const eventIndex = event.number ?? index
+					const keys = (
+						event.selector == null ?
+							[]
+						:
+							[canonicalFelt(event.selector, 'event selector')]
+					)
+					const data = (
+						event.dataDecoded ?? []
+					).flatMap((decoded) => (
+						decoded.value == null || decoded.value.length === 0 ?
+							[]
+						:
+							[decoded.value]
+					))
+					const fromAddress = (
+						event.fromAddress == null ?
+							canonicalFelt(contract.address, 'contract address')
+						:
+							canonicalFelt(event.fromAddress, 'event from address')
+					)
+					if (BigInt(fromAddress) !== BigInt(canonicalFelt(contract.address, 'contract address')))
+						throw new Error('Voyager_Rest: event response does not match the contract')
+
+					return [{
+						[EntityMetaKey.Selector]: {
+							$transaction: {
+								$network: contract.$network,
+								transactionHash: canonicalFelt(event.transactionHash, 'event transaction hash'),
+							},
+							eventIndex,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.StarknetEvent, [], '$fromContract')]: {
+								[EntityMetaKey.Selector]: {
+									$network: contract.$network,
+									address: fromAddress,
+								},
+							},
+							[entityFieldAddressKey(EntityType.StarknetEvent, [], 'keys')]: keys,
+							[entityFieldAddressKey(EntityType.StarknetEvent, [], 'data')]: data,
+						},
+					}]
+				}),
+				continuation: ({ limit, page, response }, contract) => (
+					limit === 0 || page >= response.lastPage || response.items.length === 0 ?
+						{
+							operation: 'contract-events',
+							target: contract.address,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'contract-events',
+							target: contract.address,
+							terminal: false,
+							token: String(page + 1),
+						}
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetContract,
+			resolve: {
+				NetworkAddress: {
+					appliesTo: starknetNestedNetworkApplicability,
+					resolve: async (contract, context) => {
+						assertStarknetMainnet(contract.$network.$network)
+						const address = canonicalFelt(contract.address, 'contract address')
+						const limit = Math.min(resolverContextRowLimit(context), 100)
+						const page = continuationPage(context.providerContinuationToken)
+						const { listTransactions } = await import('$/sources/Voyager/Rest/queries.ts')
+						return {
+							limit,
+							page,
+							response: await listTransactions({
+								limit,
+								page,
+								to: address,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$transactions: {
+				select: ({ response }, contract) => response.items.map((item) => ({
+					[EntityMetaKey.Selector]: {
+						$network: contract.$network,
+						transactionHash: canonicalFelt(item.hash, 'transaction hash'),
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StarknetTransaction, [], 'transactionKind')]: item.type,
+						...(
+							item.blockNumber != null && {
+								[entityFieldAddressKey(EntityType.StarknetTransaction, [], '$block')]: {
+									[EntityMetaKey.Selector]: {
+										$network: contract.$network,
+										blockNumber: BigInt(item.blockNumber),
+									},
+								},
+							}
+						),
+					},
+				})),
+				continuation: ({ limit, page, response }, contract) => (
+					limit === 0 || page >= response.lastPage || response.items.length === 0 ?
+						{
+							operation: 'contract-transactions',
+							target: contract.address,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'contract-transactions',
+							target: contract.address,
+							terminal: false,
+							token: String(page + 1),
+						}
+				),
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.StarknetClass,
 			resolve: {
 				NetworkClassHash: {

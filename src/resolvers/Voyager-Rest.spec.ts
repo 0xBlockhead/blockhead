@@ -77,6 +77,15 @@ const blockTransactionsResolver = voyagerRest.resolvers.find((resolver) => (
 ))
 const contractResolver = voyagerRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.StarknetContract
+	&& '$$accountStates' in resolver.projections
+))
+const contractEventsResolver = voyagerRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetContract
+	&& '$$events' in resolver.projections
+))
+const contractTransactionsResolver = voyagerRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetContract
+	&& '$$transactions' in resolver.projections
 ))
 const classResolver = voyagerRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.StarknetClass
@@ -113,6 +122,8 @@ if (
 	|| blockResolver == null
 	|| blockTransactionsResolver == null
 	|| contractResolver == null
+	|| contractEventsResolver == null
+	|| contractTransactionsResolver == null
 	|| classResolver == null
 	|| classContractsResolver == null
 	|| networkResolver == null
@@ -122,7 +133,6 @@ if (
 	|| networkClassesResolver == null
 )
 	throw new Error('Voyager spec missing deepened resolvers')
-
 const starknetNetwork = {
 	$network: {
 		caip2: networkBySlug.starknet.caip2,
@@ -509,6 +519,88 @@ describe('Voyager Rest resolvers', () => {
 				[entityFieldAddressKey(EntityType.StarknetAccount_Timestamp, [], 'found')]: true,
 			},
 		}])
+	})
+
+	it('projects contract events and transactions from Voyager list filters', async () => {
+		const contract = {
+			$network: starknetNetwork,
+			address: '0xabc',
+		}
+		listEvents.mockResolvedValueOnce({
+			items: [{
+				number: 2,
+				fromAddress: '0x0abc',
+				transactionHash: '0x04',
+				selector: '0x099',
+				dataDecoded: [{
+					value: '0x2',
+				}],
+			}],
+			lastPage: 3,
+		})
+		const eventsPage = await contractEventsResolver.resolve.NetworkAddress.resolve(contract, context)
+		const eventsProjection = contractEventsResolver.projections.$$events
+		if (typeof eventsProjection === 'function' || eventsProjection.select == null)
+			throw new Error('missing contract events projection')
+		expect(eventsProjection.select(eventsPage, contract, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: starknetNetwork,
+					transactionHash: '0x4',
+				},
+				eventIndex: 2,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetEvent, [], '$fromContract')]: {
+					[EntityMetaKey.Selector]: {
+						$network: starknetNetwork,
+						address: '0xabc',
+					},
+				},
+				[entityFieldAddressKey(EntityType.StarknetEvent, [], 'keys')]: ['0x99'],
+				[entityFieldAddressKey(EntityType.StarknetEvent, [], 'data')]: ['0x2'],
+			},
+		}])
+		expect(listEvents).toHaveBeenCalledWith({
+			limit: 16,
+			page: 1,
+			contract: '0xabc',
+		})
+
+		listTransactions.mockResolvedValueOnce({
+			items: [{
+				hash: '0x0aa',
+				type: 'INVOKE',
+				timestamp: 1,
+				status: 'Accepted on L2',
+				blockNumber: 12,
+			}],
+			lastPage: 1,
+		})
+		const transactionsPage = await contractTransactionsResolver.resolve.NetworkAddress.resolve(contract, context)
+		const transactionsProjection = contractTransactionsResolver.projections.$$transactions
+		if (typeof transactionsProjection === 'function' || transactionsProjection.select == null)
+			throw new Error('missing contract transactions projection')
+		expect(transactionsProjection.select(transactionsPage, contract, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: starknetNetwork,
+				transactionHash: '0xaa',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetTransaction, [], 'transactionKind')]: 'INVOKE',
+				[entityFieldAddressKey(EntityType.StarknetTransaction, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network: starknetNetwork,
+						blockNumber: 12n,
+					},
+				},
+			},
+		}])
+		expect(listTransactions).toHaveBeenCalledWith({
+			limit: 16,
+			page: 1,
+			to: '0xabc',
+		})
 	})
 
 	it('projects class fields from Voyager class details', async () => {

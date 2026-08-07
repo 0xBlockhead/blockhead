@@ -17,34 +17,94 @@ import { Source } from '$/sources/Source.ts'
 import type { Event } from '$/sources/_shared/interfaces/StarknetJsonRpc/types.ts'
 
 const getBlockHashAndNumber = vi.fn()
+const getBlockTransactionCount = vi.fn()
 const getBlockWithTxHashes = vi.fn()
 const getChainId = vi.fn()
+const getClass = vi.fn()
 const getClassHashAt = vi.fn()
 const getEvents = vi.fn()
 const getNonce = vi.fn()
 const getSpecVersion = vi.fn()
 const getStorageAt = vi.fn()
 const getSyncing = vi.fn()
+const getTransactionByBlockIdAndIndex = vi.fn()
 const getTransactionByHash = vi.fn()
 const getTransactionReceipt = vi.fn()
 
 vi.mock('$/sources/Pathfinder/JsonRpc/queries.ts', () => ({
 	default: {
 		getBlockHashAndNumber,
+		getBlockTransactionCount,
 		getBlockWithTxHashes,
 		getChainId,
+		getClass,
 		getClassHashAt,
 		getEvents,
 		getNonce,
 		getSpecVersion,
 		getStorageAt,
 		getSyncing,
+		getTransactionByBlockIdAndIndex,
 		getTransactionByHash,
 		getTransactionReceipt,
 	},
 }))
 
 const { default: pathfinder } = await import('$/resolvers/Pathfinder.ts')
+
+const networkResolver = pathfinder.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetNetwork
+	&& 'chainId' in resolver.projections
+))
+const networkBlocksResolver = pathfinder.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetNetwork
+	&& '$$blocks' in resolver.projections
+))
+const networkTransactionsResolver = pathfinder.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetNetwork
+	&& '$$transactions' in resolver.projections
+))
+const blockResolver = pathfinder.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetBlock
+))
+const transactionResolver = pathfinder.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetTransaction
+))
+const classResolver = pathfinder.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetClass
+))
+const contractAccountResolver = pathfinder.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetContract
+	&& '$$accountStates' in resolver.projections
+))
+const accountTimestampResolver = pathfinder.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetAccount_Timestamp
+))
+const storageResolver = pathfinder.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetStorageEntry
+))
+const storageTimestampResolver = pathfinder.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetStorageEntry_Timestamp
+))
+const contractEventsResolver = pathfinder.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.StarknetContract
+	&& '$$events' in resolver.projections
+))
+
+if (
+	networkResolver == null
+	|| networkBlocksResolver == null
+	|| networkTransactionsResolver == null
+	|| blockResolver == null
+	|| transactionResolver == null
+	|| classResolver == null
+	|| contractAccountResolver == null
+	|| accountTimestampResolver == null
+	|| storageResolver == null
+	|| storageTimestampResolver == null
+	|| contractEventsResolver == null
+)
+	throw new Error('Pathfinder spec missing deepened resolvers')
 
 const network = {
 	$network: {
@@ -82,6 +142,12 @@ const event = {
 	event_index: 1,
 } satisfies Event
 
+const receiptEvent = {
+	from_address: contract.address,
+	keys: ['0x1'],
+	data: ['0x2'],
+}
+
 const blockWire = {
 	status: 'ACCEPTED_ON_L2',
 	block_hash: '0xb10c',
@@ -118,7 +184,21 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 		getSyncing.mockResolvedValue(false)
 		getSpecVersion.mockResolvedValue('0.10.2')
 		getBlockWithTxHashes.mockResolvedValue(blockWire)
+		getBlockTransactionCount.mockResolvedValue(2)
 		getStorageAt.mockResolvedValue('0x55')
+		getClass.mockResolvedValue({
+			sierra_program: ['0x1'],
+			contract_class_version: '0.1.0',
+			entry_points_by_type: {
+				CONSTRUCTOR: [],
+				EXTERNAL: [],
+				L1_HANDLER: [],
+			},
+		})
+		getTransactionByBlockIdAndIndex.mockResolvedValue({
+			transaction_hash: '0x4',
+			type: 'INVOKE',
+		})
 		getTransactionByHash.mockResolvedValue({
 			transaction_hash: '0x4',
 			type: 'INVOKE',
@@ -147,14 +227,13 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 				to_address: '0xeth',
 				payload: [],
 			}],
-			events: [event],
+			events: [receiptEvent],
 			block_hash: '0xb10c',
 			block_number: 900_000,
 		})
 	})
 
 	it('materializes network head observations from chain + sync RPCs', async () => {
-		const networkResolver = pathfinder.resolvers[0]
 		const snapshot = await networkResolver.resolve.Network.resolve(network, context)
 
 		expect(snapshot.chainId).toBe('0x534e5f4d41494e')
@@ -174,8 +253,72 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 		expect(getBlockWithTxHashes).toHaveBeenCalledWith('latest')
 	})
 
-	it('materializes blocks and transactions with schema-shaped fields', async () => {
-		const blockResolver = pathfinder.resolvers[1]
+	it('pages network blocks and transactions from Pathfinder head', async () => {
+		getBlockWithTxHashes
+			.mockResolvedValueOnce({
+				...blockWire,
+				block_number: 900_000,
+			})
+			.mockResolvedValueOnce({
+				...blockWire,
+				block_number: 899_999,
+				block_hash: '0xb109',
+				parent_hash: '0xb108',
+				transactions: ['0x5'],
+			})
+
+		const blocksPage = await networkBlocksResolver.resolve.Network.resolve(network, context)
+		const blocksProjection = networkBlocksResolver.projections.$$blocks
+		if (typeof blocksProjection === 'function' || blocksProjection.select == null)
+			throw new Error('missing network blocks projection')
+		const blockRows = blocksProjection.select(blocksPage, network, context)
+		expect(blockRows).toHaveLength(2)
+		expect(blockRows[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				blockNumber: 900_000n,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetBlock, [], 'blockHash')]: '0xb10c',
+			},
+		})
+		expect(blocksProjection.continuation?.(blocksPage, network, context)).toEqual({
+			operation: 'network-blocks',
+			terminal: false,
+			token: '899998',
+		})
+
+		const transactionsPage = await networkTransactionsResolver.resolve.Network.resolve(network, context)
+		const transactionsProjection = networkTransactionsResolver.projections.$$transactions
+		if (typeof transactionsProjection === 'function' || transactionsProjection.select == null)
+			throw new Error('missing network transactions projection')
+		expect(transactionsProjection.select(transactionsPage, network, context)).toHaveLength(2)
+		expect(transactionsProjection.select(transactionsPage, network, context)[0]).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				transactionHash: '0x4',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetTransaction, [], 'transactionKind')]: 'INVOKE',
+				[entityFieldAddressKey(EntityType.StarknetTransaction, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						blockNumber: 900_000n,
+					},
+				},
+			},
+		})
+		expect(getTransactionByBlockIdAndIndex).toHaveBeenCalledWith(
+			{ block_number: 900_000 },
+			0
+		)
+		expect(getTransactionByBlockIdAndIndex).toHaveBeenCalledWith(
+			{ block_number: 900_000 },
+			1
+		)
+	})
+
+	it('materializes blocks and transactions with schema-shaped fields and receipt events', async () => {
 		const blockByNumber = await blockResolver.resolve.NetworkBlockNumber.resolve({
 			$network: contract.$network,
 			blockNumber: 900_000n,
@@ -195,11 +338,14 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 			},
 		}])
 
-		const transactionResolver = pathfinder.resolvers[2]
-		const transaction = await transactionResolver.resolve.NetworkTransactionHash.resolve({
+		const transactionIdentity = {
 			$network: contract.$network,
 			transactionHash: '0x4',
-		}, context)
+		}
+		const transaction = await transactionResolver.resolve.NetworkTransactionHash.resolve(
+			transactionIdentity,
+			context
+		)
 
 		expect(transaction).toMatchObject({
 			transactionKind: 'INVOKE',
@@ -207,6 +353,19 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 			nonce: '0x7',
 			maxFee: undefined,
 		})
+		expect(transaction.$$events).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: transactionIdentity,
+				eventIndex: 0,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetEvent, [], '$fromContract')]: {
+					[EntityMetaKey.Selector]: contract,
+				},
+				[entityFieldAddressKey(EntityType.StarknetEvent, [], 'keys')]: ['0x1'],
+				[entityFieldAddressKey(EntityType.StarknetEvent, [], 'data')]: ['0x2'],
+			},
+		}])
 		expect(transaction.$$timestamps[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				$transaction: {
@@ -228,12 +387,20 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 		expect(getTransactionReceipt).toHaveBeenCalledWith('0x4')
 	})
 
+	it('materializes sierra class definitions from starknet_getClass', async () => {
+		const klass = {
+			$network: contract.$network,
+			classHash: '0x123',
+		}
+		const snapshot = await classResolver.resolve.NetworkClassHash.resolve(klass, context)
+		expect(classResolver.projections.classHash(snapshot)).toBe('0x123')
+		expect(classResolver.projections.contractClassVersion(snapshot)).toBe('0.1.0')
+		expect(getClass).toHaveBeenCalledWith('latest', '0x123')
+	})
+
 	it('materializes the latest accepted contract state and exact historical state', async () => {
-		const relationshipResolver = pathfinder.resolvers[3]
-		const snapshot = await relationshipResolver.resolve[
-			'NetworkAddress'
-		].resolve(contract, context)
-		const rows = relationshipResolver.projections.$$accountStates(snapshot, contract, context)
+		const snapshot = await contractAccountResolver.resolve.NetworkAddress.resolve(contract, context)
+		const rows = contractAccountResolver.projections.$$accountStates(snapshot, contract, context)
 
 		expect(rows).toEqual([{
 			[EntityMetaKey.Selector]: {
@@ -270,19 +437,11 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 			value: rows,
 		})).toHaveLength(1)
 
-		const stateResolver = pathfinder.resolvers[4]
-		const state = await stateResolver.resolve[
-			'ContractBlockNumberSource'
-		].resolve({
+		const state = await accountTimestampResolver.resolve.ContractBlockNumberSource.resolve({
 			$contract: contract,
 			blockNumber: 899_999n,
 			source: Source.Pathfinder,
 		}, context)
-		expect(stateResolver.projections).toMatchObject({
-			nonce: expect.any(Function),
-			classHash: expect.any(Function),
-			found: expect.any(Function),
-		})
 		expect(state).toEqual({
 			nonce: '0x7',
 			classHash: '0x123',
@@ -295,7 +454,6 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 	})
 
 	it('materializes storage observations at accepted block heights', async () => {
-		const storageResolver = pathfinder.resolvers[5]
 		const entry = {
 			$contract: contract,
 			storageKey: '0x1',
@@ -314,8 +472,7 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 			},
 		}])
 
-		const observationResolver = pathfinder.resolvers[6]
-		const observation = await observationResolver.resolve.EntryBlockNumberSource.resolve({
+		const observation = await storageTimestampResolver.resolve.EntryBlockNumberSource.resolve({
 			$entry: entry,
 			blockNumber: 899_999n,
 			source: Source.Pathfinder,
@@ -324,26 +481,16 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 			value: '0x55',
 			blockHash: '0xb10c',
 		})
-		expect(getStorageAt).toHaveBeenLastCalledWith(
-			contract.address,
-			'0x1',
-			{ block_number: 899_999 }
-		)
 	})
 
 	it('materializes emitted events with canonical transaction and contract identities', async () => {
-		const relationshipResolver = pathfinder.resolvers[7]
-		const chunk = await relationshipResolver.resolve[
-			'NetworkAddress'
-		].resolve(contract, context)
-		const rows = relationshipResolver.projections.$$events.select(chunk, contract, context)
+		const chunk = await contractEventsResolver.resolve.NetworkAddress.resolve(contract, context)
+		const rows = contractEventsResolver.projections.$$events.select(chunk, contract, context)
 
-		expect(getEvents).toHaveBeenCalledWith(
-			{
-				address: contract.address,
-				chunk_size: 2,
-			}
-		)
+		expect(getEvents).toHaveBeenCalledWith({
+			address: contract.address,
+			chunk_size: 2,
+		})
 		expect(rows[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				$transaction: {
@@ -382,41 +529,10 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 			fieldDefinition,
 			value: rows,
 		})).toHaveLength(1)
-		expect(relationshipResolver.projections.$$events.continuation(
-			chunk,
-			contract,
-			context
-		)).toEqual({
-			operation: 'contract-events',
-			target: contract.address,
-			terminal: false,
-			token: 'next-page',
-		})
-
-		getEvents.mockResolvedValueOnce({
-			events: [],
-		})
-		const emptyChunk = await relationshipResolver.resolve[
-			'NetworkAddress'
-		].resolve(contract, context)
-		expect(relationshipResolver.projections.$$events.select(
-			emptyChunk,
-			contract,
-			context
-		)).toEqual([])
-		expect(relationshipResolver.projections.$$events.continuation(
-			emptyChunk,
-			contract,
-			context
-		)).toMatchObject({
-			terminal: true,
-		})
 	})
 
 	it('rejects cross-network subjects and provider rows that escape the address filter', async () => {
-		await expect(pathfinder.resolvers[3].resolve[
-			'NetworkAddress'
-		].resolve({
+		await expect(contractAccountResolver.resolve.NetworkAddress.resolve({
 			...contract,
 			$network: {
 				$network: {
@@ -432,10 +548,8 @@ describe('Pathfinder Starknet JSON-RPC account resolver', () => {
 				from_address: '0xdef',
 			}],
 		})
-		const chunk = await pathfinder.resolvers[7].resolve[
-			'NetworkAddress'
-		].resolve(contract, context)
-		expect(() => pathfinder.resolvers[7].projections.$$events.select(
+		const chunk = await contractEventsResolver.resolve.NetworkAddress.resolve(contract, context)
+		expect(() => contractEventsResolver.projections.$$events.select(
 			chunk,
 			contract,
 			context

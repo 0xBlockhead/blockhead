@@ -11,11 +11,15 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 
 const { default: {
 	getBlockHashAndNumber,
+	getBlockTransactionCount,
 	getBlockWithTxHashes,
+	getClass,
+	getClassAt,
 	getClassHashAt,
 	getEvents,
 	getNonce,
 	getStorageAt,
+	getTransactionByBlockIdAndIndex,
 	getTransactionByHash,
 	getTransactionReceipt,
 } } = await import('$/sources/Pathfinder/JsonRpc/queries.ts')
@@ -87,7 +91,7 @@ describe('Pathfinder Starknet JSON-RPC transport', () => {
 		)
 	})
 
-	it('exposes block, storage, and transaction methods with hard-fail JSON-RPC transport', async () => {
+	it('exposes block, class, storage, and transaction methods with hard-fail JSON-RPC transport', async () => {
 		jsonRpc2
 			.mockResolvedValueOnce({
 				status: 'ACCEPTED_ON_L2',
@@ -99,7 +103,31 @@ describe('Pathfinder Starknet JSON-RPC transport', () => {
 				sequencer_address: '0x2',
 				transactions: ['0xaa'],
 			})
+			.mockResolvedValueOnce(3)
 			.mockResolvedValueOnce('0x55')
+			.mockResolvedValueOnce({
+				sierra_program: ['0x1'],
+				contract_class_version: '0.1.0',
+				entry_points_by_type: {
+					CONSTRUCTOR: [],
+					EXTERNAL: [],
+					L1_HANDLER: [],
+				},
+			})
+			.mockResolvedValueOnce({
+				sierra_program: ['0x1'],
+				contract_class_version: '0.1.0',
+				entry_points_by_type: {
+					CONSTRUCTOR: [],
+					EXTERNAL: [],
+					L1_HANDLER: [],
+				},
+			})
+			.mockResolvedValueOnce({
+				transaction_hash: '0xaa',
+				type: 'INVOKE',
+				sender_address: '0xabc',
+			})
 			.mockResolvedValueOnce({
 				transaction_hash: '0xaa',
 				type: 'INVOKE',
@@ -123,8 +151,18 @@ describe('Pathfinder Starknet JSON-RPC transport', () => {
 			block_hash: '0xb10c',
 			block_number: 12,
 		})
+		await expect(getBlockTransactionCount({ block_number: 12 })).resolves.toBe(3)
 		await expect(getStorageAt('0xabc', '0x1', { block_number: 12 })).resolves.toBe('0x55')
+		await expect(getClass('latest', '0x123')).resolves.toMatchObject({
+			contract_class_version: '0.1.0',
+		})
+		await expect(getClassAt('latest', '0xabc')).resolves.toMatchObject({
+			contract_class_version: '0.1.0',
+		})
 		await expect(getTransactionByHash('0xaa')).resolves.toMatchObject({
+			type: 'INVOKE',
+		})
+		await expect(getTransactionByBlockIdAndIndex({ block_number: 12 }, 0)).resolves.toMatchObject({
 			type: 'INVOKE',
 		})
 		await expect(getTransactionReceipt('0xaa')).resolves.toMatchObject({
@@ -140,6 +178,11 @@ describe('Pathfinder Starknet JSON-RPC transport', () => {
 			],
 			[
 				binding,
+				'starknet_getBlockTransactionCount',
+				[{ block_number: 12 }],
+			],
+			[
+				binding,
 				'starknet_getStorageAt',
 				[
 					'0xabc',
@@ -149,8 +192,32 @@ describe('Pathfinder Starknet JSON-RPC transport', () => {
 			],
 			[
 				binding,
+				'starknet_getClass',
+				[
+					'latest',
+					'0x123',
+				],
+			],
+			[
+				binding,
+				'starknet_getClassAt',
+				[
+					'latest',
+					'0xabc',
+				],
+			],
+			[
+				binding,
 				'starknet_getTransactionByHash',
 				{ transaction_hash: '0xaa' },
+			],
+			[
+				binding,
+				'starknet_getTransactionByBlockIdAndIndex',
+				[
+					{ block_number: 12 },
+					0,
+				],
 			],
 			[
 				binding,

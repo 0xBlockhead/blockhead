@@ -7,6 +7,7 @@ import type {
 	EventsChunk,
 	EventsFilter,
 	Felt,
+	StarknetClassDefinition,
 	SyncStatus,
 	TransactionReceiptWithBlockInfo,
 	TransactionWithHash,
@@ -27,6 +28,11 @@ export const starknetJsonRpc = (binding: SourceBinding) => ({
 	) => (
 		jsonRpc2<BlockWithTxHashes>(binding, 'starknet_getBlockWithTxHashes', [blockId])
 	),
+	getBlockTransactionCount: (
+		blockId: BlockId
+	) => (
+		jsonRpc2<number>(binding, 'starknet_getBlockTransactionCount', [blockId])
+	),
 	getNonce: (
 		blockId: BlockId,
 		contractAddress: Felt
@@ -41,6 +47,24 @@ export const starknetJsonRpc = (binding: SourceBinding) => ({
 		blockId,
 		contractAddress,
 	]),
+	getClass: (
+		blockId: BlockId,
+		classHash: Felt
+	) => (
+		jsonRpc2<StarknetClassDefinition>(binding, 'starknet_getClass', [
+			blockId,
+			classHash,
+		])
+	),
+	getClassAt: (
+		blockId: BlockId,
+		contractAddress: Felt
+	) => (
+		jsonRpc2<StarknetClassDefinition>(binding, 'starknet_getClassAt', [
+			blockId,
+			contractAddress,
+		])
+	),
 	getStorageAt: (
 		contractAddress: Felt,
 		storageKey: Felt,
@@ -58,6 +82,15 @@ export const starknetJsonRpc = (binding: SourceBinding) => ({
 		jsonRpc2<TransactionWithHash>(binding, 'starknet_getTransactionByHash', {
 			transaction_hash: transactionHash,
 		})
+	),
+	getTransactionByBlockIdAndIndex: (
+		blockId: BlockId,
+		index: number
+	) => (
+		jsonRpc2<TransactionWithHash>(binding, 'starknet_getTransactionByBlockIdAndIndex', [
+			blockId,
+			index,
+		])
 	),
 	getTransactionReceipt: (
 		transactionHash: Felt

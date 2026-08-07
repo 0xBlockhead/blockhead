@@ -16,6 +16,8 @@ import type {
 	BlockId,
 	BlockWithTxHashes,
 	Event,
+	ReceiptEvent,
+	StarknetClassDefinition,
 	TransactionReceiptWithBlockInfo,
 	TransactionWithHash,
 } from '$/sources/_shared/interfaces/StarknetJsonRpc/types.ts'
@@ -24,6 +26,8 @@ type NetworkIdentity = EntitySelector<typeof schema, EntityType.Network>
 type StarknetNetworkIdentity = EntitySelector<typeof schema, EntityType.StarknetNetwork>
 type StarknetContractIdentity = EntitySelector<typeof schema, EntityType.StarknetContract>
 type StarknetBlockIdentity = EntitySelector<typeof schema, EntityType.StarknetBlock>
+type StarknetTransactionIdentity = EntitySelector<typeof schema, EntityType.StarknetTransaction>
+type StarknetClassIdentity = EntitySelector<typeof schema, EntityType.StarknetClass>
 type StarknetStorageEntryIdentity = EntitySelector<typeof schema, EntityType.StarknetStorageEntry>
 
 const starknetNetworkApplicability = [
@@ -157,6 +161,115 @@ const eventFields = (
 	}
 }
 
+const receiptEventFields = (
+	event: ReceiptEvent,
+	eventIndex: number,
+	transaction: StarknetTransactionIdentity
+) => {
+	validatedBlockNumber(eventIndex, 'event index')
+	const fromAddress = validatedFelt(event.from_address, 'event contract address')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$transaction: {
+				$network: transaction.$network,
+				transactionHash: validatedFelt(transaction.transactionHash, 'transaction hash'),
+			},
+			eventIndex,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.StarknetEvent, [], '$fromContract')]: {
+				[EntityMetaKey.Selector]: {
+					$network: transaction.$network,
+					address: fromAddress,
+				},
+			},
+			[entityFieldAddressKey(EntityType.StarknetEvent, [], 'keys')]: event.keys.map((key) => (
+				validatedFelt(key, 'event key')
+			)),
+			[entityFieldAddressKey(EntityType.StarknetEvent, [], 'data')]: event.data.map((value) => (
+				validatedFelt(value, 'event data')
+			)),
+		},
+	}
+}
+
+const classFields = (
+	definition: StarknetClassDefinition,
+	klass: StarknetClassIdentity
+) => {
+	const classHash = validatedFelt(klass.classHash, 'class hash')
+	if ('sierra_program' in definition) {
+		if (definition.sierra_program.length === 0)
+			throw new Error('Pathfinder: sierra class missing program')
+		for (const limb of definition.sierra_program)
+			validatedFelt(limb, 'sierra program limb')
+		if (definition.contract_class_version.length === 0)
+			throw new Error('Pathfinder: sierra class missing version')
+
+		return {
+			classHash,
+			contractClassVersion: definition.contract_class_version,
+		}
+	}
+	if (definition.program.length === 0)
+		throw new Error('Pathfinder: deprecated class missing program')
+
+	return {
+		classHash,
+		contractClassVersion: undefined,
+	}
+}
+
+const networkBlockPageContinuation = (
+	oldestBlockNumber: number,
+	requestedLimit: number,
+	fetchedCount: number
+): ProviderContinuation => {
+	if (fetchedCount === 0 || oldestBlockNumber <= 0 || fetchedCount < requestedLimit)
+		return {
+			operation: 'network-blocks',
+			terminal: true,
+		}
+
+	return {
+		operation: 'network-blocks',
+		terminal: false,
+		token: String(oldestBlockNumber - 1),
+	}
+}
+
+const networkTransactionPageContinuation = (
+	blockNumber: number,
+	nextIndex: number,
+	requestedLimit: number,
+	fetchedCount: number,
+	blockTransactionCount: number
+): ProviderContinuation => {
+	if (fetchedCount === 0 || fetchedCount < requestedLimit)
+		return {
+			operation: 'network-transactions',
+			terminal: true,
+		}
+	if (nextIndex < blockTransactionCount)
+		return {
+			operation: 'network-transactions',
+			terminal: false,
+			token: `${blockNumber}:${nextIndex}`,
+		}
+	if (blockNumber <= 0)
+		return {
+			operation: 'network-transactions',
+			terminal: true,
+		}
+
+	return {
+		operation: 'network-transactions',
+		terminal: false,
+		token: `${blockNumber - 1}:0`,
+	}
+}
+
 const eventContinuation = (
 	continuationToken: string | undefined,
 	contract: StarknetContractIdentity
@@ -255,11 +368,14 @@ const resolveStorageAt = async (
 const transactionFields = (
 	transaction: TransactionWithHash,
 	receipt: TransactionReceiptWithBlockInfo,
-	network: StarknetNetworkIdentity,
+	transactionIdentity: StarknetTransactionIdentity,
 	timestampMs: number
 ) => {
+	const network = transactionIdentity.$network
 	const transactionHash = validatedFelt(transaction.transaction_hash, 'transaction hash')
 	if (BigInt(transactionHash) !== BigInt(validatedFelt(receipt.transaction_hash, 'receipt transaction hash')))
+		throw new Error('Pathfinder: transaction hash mismatch')
+	if (BigInt(transactionHash) !== BigInt(validatedFelt(transactionIdentity.transactionHash, 'transaction hash')))
 		throw new Error('Pathfinder: transaction hash mismatch')
 
 	const senderAddress = (
@@ -321,6 +437,9 @@ const transactionFields = (
 				?.map((value) => validatedFelt(value, 'signature limb'))
 			?? []
 		),
+		$$events: receipt.events.map((event, eventIndex) => (
+			receiptEventFields(event, eventIndex, transactionIdentity)
+		)),
 		$$timestamps: [{
 			[EntityMetaKey.Selector]: {
 				$transaction: {
@@ -410,6 +529,191 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.StarknetNetwork,
+			resolve: {
+				Network: {
+					appliesTo: starknetNetworkApplicability,
+					resolve: async (starknetNetwork, context) => {
+						assertStarknetMainnet(starknetNetwork.$network)
+						const limit = resolverContextRowLimit(context)
+						const { default: {
+							getBlockHashAndNumber,
+							getBlockWithTxHashes,
+						} } = await import('$/sources/Pathfinder/JsonRpc/queries.ts')
+						const tip = (
+							context.providerContinuationToken == null ?
+								await getBlockHashAndNumber()
+							:
+								{
+									block_number: validatedBlockNumber(
+										Number(context.providerContinuationToken),
+										'block page start'
+									),
+								}
+						)
+						const start = tip.block_number
+						const blockNumbers = Array.from(
+							{ length: Math.min(limit, start + 1) },
+							(_, index) => start - index
+						)
+						const blocks = await Promise.all(
+							blockNumbers.map(async (blockNumber) => {
+								const details = await getBlockWithTxHashes({
+									block_number: blockNumber,
+								})
+								return blockFields(details, starknetNetwork)
+							})
+						)
+
+						return {
+							limit,
+							blocks,
+						}
+					},
+				},
+			},
+		})({
+			$$blocks: {
+				select: ({ blocks }, starknetNetwork) => blocks.map((block) => ({
+					[EntityMetaKey.Selector]: {
+						$network: starknetNetwork,
+						blockNumber: block.blockNumber,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StarknetBlock, [], 'blockHash')]: block.blockHash,
+						[entityFieldAddressKey(EntityType.StarknetBlock, [], 'parentHash')]: block.parentHash,
+						[entityFieldAddressKey(EntityType.StarknetBlock, [], 'newRoot')]: block.newRoot,
+						[entityFieldAddressKey(EntityType.StarknetBlock, [], 'timestampMs')]: block.timestampMs,
+						[entityFieldAddressKey(EntityType.StarknetBlock, [], 'sequencerAddress')]: block.sequencerAddress,
+						...(
+							block.l1GasPrice != null && {
+								[entityFieldAddressKey(EntityType.StarknetBlock, [], 'l1GasPrice')]: block.l1GasPrice,
+							}
+						),
+						...(
+							block.l1DataGasPrice != null && {
+								[entityFieldAddressKey(EntityType.StarknetBlock, [], 'l1DataGasPrice')]: block.l1DataGasPrice,
+							}
+						),
+						...(
+							block.status != null && {
+								[entityFieldAddressKey(EntityType.StarknetBlock, [], 'status')]: block.status,
+							}
+						),
+					},
+				})),
+				continuation: ({ limit, blocks }) => (
+					networkBlockPageContinuation(
+						Number(blocks.at(-1)?.blockNumber ?? 0n),
+						limit,
+						blocks.length
+					)
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetNetwork,
+			resolve: {
+				Network: {
+					appliesTo: starknetNetworkApplicability,
+					resolve: async (starknetNetwork, context) => {
+						assertStarknetMainnet(starknetNetwork.$network)
+						const limit = resolverContextRowLimit(context)
+						const { default: {
+							getBlockHashAndNumber,
+							getBlockTransactionCount,
+							getTransactionByBlockIdAndIndex,
+						} } = await import('$/sources/Pathfinder/JsonRpc/queries.ts')
+						const cursorMatch = context.providerContinuationToken?.match(/^(\d+):(\d+)$/)
+						const cursor = (
+							context.providerContinuationToken == null ?
+								null
+							: cursorMatch == null ?
+								(() => {
+									throw new Error('Pathfinder: malformed network transaction continuation')
+								})()
+							:
+								{
+									blockNumber: Number(cursorMatch[1]),
+									index: Number(cursorMatch[2]),
+								}
+						)
+						const tip = (
+							cursor == null ?
+								await getBlockHashAndNumber()
+							:
+								{
+									block_number: validatedBlockNumber(cursor.blockNumber, 'transaction page block'),
+								}
+						)
+						const blockNumber = tip.block_number
+						const startIndex = cursor?.index ?? 0
+						validatedBlockNumber(startIndex, 'transaction page index')
+						const blockTransactionCount = validatedBlockNumber(
+							await getBlockTransactionCount({
+								block_number: blockNumber,
+							}),
+							'block transaction count'
+						)
+						const take = Math.min(limit, Math.max(0, blockTransactionCount - startIndex))
+						const transactions = await Promise.all(
+							Array.from({ length: take }, async (_, offset) => {
+								const index = startIndex + offset
+								const details = await getTransactionByBlockIdAndIndex(
+									{ block_number: blockNumber },
+									index
+								)
+								return {
+									[EntityMetaKey.Selector]: {
+										$network: starknetNetwork,
+										transactionHash: validatedFelt(details.transaction_hash, 'transaction hash'),
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.StarknetTransaction, [], 'transactionKind')]: details.type,
+										[entityFieldAddressKey(EntityType.StarknetTransaction, [], '$block')]: {
+											[EntityMetaKey.Selector]: {
+												$network: starknetNetwork,
+												blockNumber: BigInt(blockNumber),
+											},
+										},
+									},
+								}
+							})
+						)
+
+						return {
+							limit,
+							blockNumber,
+							blockTransactionCount,
+							nextIndex: startIndex + take,
+							transactions,
+						}
+					},
+				},
+			},
+		})({
+			$$transactions: {
+				select: ({ transactions }) => transactions,
+				continuation: ({
+					limit,
+					blockNumber,
+					blockTransactionCount,
+					nextIndex,
+					transactions,
+				}) => (
+					networkTransactionPageContinuation(
+						blockNumber,
+						nextIndex,
+						limit,
+						transactions.length,
+						blockTransactionCount
+					)
+				),
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.StarknetBlock,
 			resolve: {
 				NetworkBlockNumber: {
@@ -472,7 +776,7 @@ export default {
 						return transactionFields(
 							details,
 							receipt,
-							transaction.$network,
+							transaction,
 							unixSecondsToMs(block.timestamp, 'block timestamp')
 						)
 					},
@@ -489,7 +793,29 @@ export default {
 			resourceBounds: (snapshot) => snapshot.resourceBounds,
 			calldata: (snapshot) => snapshot.calldata,
 			signature: (snapshot) => snapshot.signature,
+			$$events: (snapshot) => snapshot.$$events,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetClass,
+			resolve: {
+				NetworkClassHash: {
+					appliesTo: starknetNestedNetworkApplicability,
+					resolve: async (klass) => {
+						assertStarknetMainnet(klass.$network.$network)
+						const classHash = validatedFelt(klass.classHash, 'class hash')
+						const { default: { getClass } } = await import('$/sources/Pathfinder/JsonRpc/queries.ts')
+						return classFields(
+							await getClass('latest', classHash),
+							klass
+						)
+					},
+				},
+			},
+		})({
+			classHash: (snapshot) => snapshot.classHash,
+			contractClassVersion: (snapshot) => snapshot.contractClassVersion,
 		}),
 
 		defineResolver({

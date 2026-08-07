@@ -11,6 +11,8 @@ export type SyncStatus = components['schemas']['SyncingStatus']
 
 export type Event = components['schemas']['EMITTED_EVENT']
 
+export type ReceiptEvent = components['schemas']['EVENT']
+
 export type EventsFilter = components['schemas']['Events_request']
 
 export type EventsChunk = components['schemas']['EVENTS_CHUNK']
@@ -18,6 +20,12 @@ export type EventsChunk = components['schemas']['EVENTS_CHUNK']
 export type ResourcePrice = components['schemas']['RESOURCE_PRICE']
 
 export type BlockWithTxHashes = components['schemas']['BLOCK_WITH_TX_HASHES']
+
+export type ContractClass = components['schemas']['CONTRACT_CLASS']
+
+export type DeprecatedContractClass = components['schemas']['DEPRECATED_CONTRACT_CLASS']
+
+export type StarknetClassDefinition = components['schemas']['Starknet_get_class_result']
 
 /**
  * Wire transaction + hash from `starknet_getTransactionByHash`.
