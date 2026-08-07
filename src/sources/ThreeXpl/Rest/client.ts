@@ -57,7 +57,7 @@ export const threeXplUrl = ({
 	return url.toString()
 }
 
-export const threeXplGetJson = async <T>({
+export const threeXplGetJson = async ({
 	pathSegments,
 	searchParams,
 	repeatedSearchParams,
@@ -90,5 +90,5 @@ export const threeXplGetJson = async <T>({
 	if (!response.ok)
 		await throwHttpError('3xpl API', response)
 
-	return response.json<T>()
+	return response.json()
 }

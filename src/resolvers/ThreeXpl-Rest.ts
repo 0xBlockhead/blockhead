@@ -2,6 +2,7 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -11,13 +12,20 @@ import { networkBySlug } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import type { ThreeXplBlockEvent } from '$/sources/ThreeXpl/Rest/types.ts'
+import type {
+	ThreeXplBlockData,
+	ThreeXplBlockEvent,
+	ThreeXplBlockInfo,
+} from '$/sources/ThreeXpl/Rest/types.ts'
+
+
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const threeXplBlockchain = (network: NetworkId) => {
 	if ('slug' in network) {
-		if (network.slug === 'near') return 'near'
 		if (network.slug === 'tron') return 'tron'
+		if (network.slug === 'near')
+			throw new Error('ThreeXpl_Rest: Near is not indexed by 3xpl')
 	}
 	if (!('caip2' in network)) throw new Error('ThreeXpl_Rest: unsupported network')
 	if (network.caip2.namespace === networkBySlug.bitcoin.caip2.namespace && network.caip2.reference === networkBySlug.bitcoin.caip2.reference) return 'bitcoin'
@@ -28,6 +36,7 @@ const threeXplBlockchain = (network: NetworkId) => {
 	if (network.caip2.namespace === networkBySlug.monero.caip2.namespace && network.caip2.reference === networkBySlug.monero.caip2.reference) return 'monero'
 	if (network.caip2.namespace === networkBySlug.polkadot.caip2.namespace && network.caip2.reference === networkBySlug.polkadot.caip2.reference) return 'polkadot'
 	if (network.caip2.namespace === networkBySlug.solana.caip2.namespace && network.caip2.reference === networkBySlug.solana.caip2.reference) return 'solana'
+	if (network.caip2.namespace === networkBySlug.tron.caip2.namespace && network.caip2.reference === networkBySlug.tron.caip2.reference) return 'tron'
 	throw new Error(`ThreeXpl_Rest: unsupported network ${network.caip2.namespace}:${network.caip2.reference}`)
 }
 
@@ -37,7 +46,7 @@ const eventTransactions = (events: Record<string, ThreeXplBlockEvent[]> | undefi
 			Object.values(events ?? {})
 				.flat()
 				.flatMap((event) => (
-					event.transaction == null ?
+					event.transaction == null || event.transaction === '' ?
 						[]
 					:
 						[
@@ -48,6 +57,156 @@ const eventTransactions = (events: Record<string, ThreeXplBlockEvent[]> | undefi
 	]
 )
 
+const moduleEventCount = (
+	events: Record<string, number | null> | undefined
+) => (
+	events == null ?
+		undefined
+	:
+		Object.values(events)
+			.reduce((sum, count) => (
+				sum + (count ?? 0)
+			), 0)
+)
+
+const parseBlockTimeMs = (
+	time: string | null | undefined
+) => {
+	if (time == null) return undefined
+	const timestampMs = Date.parse(time)
+	if (!Number.isFinite(timestampMs))
+		throw new Error(`ThreeXpl_Rest: invalid block time ${time}`)
+	return timestampMs
+}
+
+const assertBlockIdentity = ({
+	wireBlock,
+	height,
+	hash,
+}: {
+	wireBlock: ThreeXplBlockInfo | undefined
+	height?: bigint
+	hash?: string
+}) => {
+	if (wireBlock?.block != null && height != null && BigInt(wireBlock.block) !== height)
+		throw new Error(`ThreeXpl_Rest: block height ${wireBlock.block} does not match selector ${height}`)
+	if (wireBlock?.hash != null && hash != null && wireBlock.hash !== hash)
+		throw new Error(`ThreeXpl_Rest: block hash ${wireBlock.hash} does not match selector ${hash}`)
+}
+
+const moneroBlockSnapshot = ({
+	$network,
+	height,
+	hash,
+	wire,
+}: {
+	$network: NetworkId
+	height: bigint
+	hash: string
+	wire: ThreeXplBlockData
+}) => {
+	assertBlockIdentity({
+		wireBlock: wire.block,
+		height,
+		hash,
+	})
+	const timestampMs = parseBlockTimeMs(wire.block?.time)
+	return {
+		hash,
+		...(timestampMs != null && {
+			timestampMs,
+		}),
+		$$transactions: eventTransactions(wire.events).map((txHash) => ({
+			[EntityMetaKey.Selector]: {
+				$network,
+				txHash,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.MoneroTransaction, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						height,
+						hash,
+					},
+				},
+			},
+		})),
+	}
+}
+
+const tipBlockReferences = async ({
+	$network,
+	blockchain,
+	limit,
+	entityType,
+	timestampField = true,
+}: {
+	$network: NetworkId
+	blockchain: string
+	limit: number
+	entityType: EntityType.MoneroBlock | EntityType.TronBlock | EntityType.UtxoBlock
+	timestampField?: boolean
+}) => {
+	const {
+		fetchBlocks,
+		fetchChainStats,
+		threeXplListLimit,
+	} = await import('$/sources/ThreeXpl/Rest/queries.ts')
+	const pageLimit = threeXplListLimit(limit)
+	const [
+		stats,
+		blocksResponse,
+	] = await Promise.all([
+		fetchChainStats({
+			from: blockchain,
+		}),
+		fetchBlocks({
+			blockchain,
+			limit: pageLimit,
+		}),
+	])
+	const bestBlock = stats.data.blockchains?.[blockchain]?.best_block
+	if (bestBlock == null)
+		throw new Error(`ThreeXpl_Rest: missing best_block for ${blockchain}`)
+
+	return {
+		blockCount: bestBlock + 1,
+		blocks: Object.entries(blocksResponse.data.blocks ?? {})
+			.map(([heightKey, block]) => ({
+				height: BigInt(heightKey),
+				block,
+			}))
+			.sort((left, right) => (
+				left.height === right.height ?
+					0
+				: left.height > right.height ?
+					-1
+				:
+					1
+			))
+			.slice(0, limit)
+			.map(({ height, block }) => {
+				const timestampMs = parseBlockTimeMs(block.time)
+				const transactionCount = moduleEventCount(block.events)
+				return {
+					[EntityMetaKey.Selector]: {
+						$network,
+						height,
+						hash: block.hash,
+					},
+					[EntityMetaKey.Fields]: {
+						...(timestampField && timestampMs != null && {
+							[entityFieldAddressKey(entityType, [], 'timestampMs')]: timestampMs,
+						}),
+						...(transactionCount != null && entityType !== EntityType.MoneroBlock && {
+							[entityFieldAddressKey(entityType, [], 'transactionCount')]: transactionCount,
+						}),
+					},
+				}
+			}),
+	}
+}
+
 export default {
 	source: Source.ThreeXpl_Rest,
 
@@ -55,6 +214,24 @@ export default {
 		defineResolver({
 			entityType: EntityType.MoneroBlock,
 			resolve: {
+				NetworkHeight: {
+					resolve: async ({ $network, height }) => {
+						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+						const wireBlock = await fetchBlock({
+							blockchain: threeXplBlockchain($network),
+							block: height.toString(),
+						})
+						const hash = wireBlock.data.block?.hash
+						if (hash == null)
+							throw new Error(`ThreeXpl_Rest: Monero block ${height} missing hash`)
+						return moneroBlockSnapshot({
+							$network,
+							height,
+							hash,
+							wire: wireBlock.data,
+						})
+					},
+				},
 				NetworkHeightHash: {
 					resolve: async ({ $network, hash, height }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
@@ -62,29 +239,14 @@ export default {
 							blockchain: threeXplBlockchain($network),
 							block: height.toString(),
 						})
-						return {
+						return moneroBlockSnapshot({
+							$network,
+							height,
 							hash,
-							...(wireBlock.data.block?.time != null && {
-								timestampMs: Date.parse(wireBlock.data.block.time),
-							}),
-							$$transactions: eventTransactions(wireBlock.data.events).map((txHash) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									txHash,
-								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.MoneroTransaction, [], '$block')]: {
-										[EntityMetaKey.Selector]: {
-											$network,
-											height,
-											hash,
-										},
-									},
-								},
-							})),
-						}
+							wire: wireBlock.data,
+						})
 					},
-				}
+				},
 			},
 		})({
 			hash: (block) => block.hash,
@@ -93,28 +255,63 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.MoneroNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }, context) => (
+						tipBlockReferences({
+							$network,
+							blockchain: threeXplBlockchain($network),
+							limit: Math.min(resolverContextRowLimit(context), 100),
+							entityType: EntityType.MoneroBlock,
+						})
+					),
+				},
+			},
+		})({
+			$$blocks: {
+				select: (snapshot) => snapshot.blocks,
+				resolveCount: (snapshot) => snapshot.blockCount,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network, context) => (
+						tipBlockReferences({
+							$network: network,
+							blockchain: threeXplBlockchain(network),
+							limit: Math.min(resolverContextRowLimit(context), 100),
+							entityType: EntityType.MoneroBlock,
+						})
+					),
+				},
+			},
+		})({
+			Monero: {
+				$$blocks: {
+					select: (snapshot) => snapshot.blocks,
+					resolveCount: (snapshot) => snapshot.blockCount,
+				},
+			},
+		}),
+
+		defineResolver({
 			entityType: EntityType.NearBlock,
 			resolve: {
 				NetworkHeightHash: {
-					resolve: async ({ $network, hash, height }) => {
-						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-						const wireBlock = await fetchBlock({
-							blockchain: threeXplBlockchain($network),
-							block: hash,
-						})
-						return {
-							hash,
-							...(wireBlock.data.block?.time != null && {
-								timestampMs: Date.parse(wireBlock.data.block.time),
-							}),
-						}
+					resolve: async ({ $network }) => {
+						threeXplBlockchain($network)
+						throw new Error('ThreeXpl_Rest: Near is not indexed by 3xpl')
 					},
-				}
+				},
 			},
 		})({
-				hash: (block) => block.hash,
-				timestampMs: (block) => block.timestampMs,
-			}),
+			hash: (block) => block.hash,
+			timestampMs: (block) => block.timestampMs,
+		}),
 
 		defineResolver({
 			entityType: EntityType.PolkadotBlock,
@@ -126,15 +323,20 @@ export default {
 							blockchain: threeXplBlockchain($network),
 							block: hash,
 						})
+						assertBlockIdentity({
+							wireBlock: wireBlock.data.block,
+							height: blockNumber,
+							hash,
+						})
 						return {
 							hash,
 						}
 					},
-				}
+				},
 			},
 		})({
-				hash: (block) => block.hash,
-			}),
+			hash: (block) => block.hash,
+		}),
 
 		defineResolver({
 			entityType: EntityType.SolanaBlock,
@@ -146,14 +348,18 @@ export default {
 							blockchain: threeXplBlockchain($network),
 							block: slot.toString(),
 						})
+						assertBlockIdentity({
+							wireBlock: wireBlock.data.block,
+							height: slot,
+						})
 						return {
 							...(wireBlock.data.block?.hash != null && {
 								blockHash: wireBlock.data.block.hash,
 							}),
-							...(wireBlock.data.block?.time != null && {
-								timestampMs: Date.parse(wireBlock.data.block.time),
+							...(parseBlockTimeMs(wireBlock.data.block?.time) != null && {
+								timestampMs: parseBlockTimeMs(wireBlock.data.block?.time),
 							}),
-							transactionCount: wireBlock.data.block?.events?.transactions,
+							transactionCount: moduleEventCount(wireBlock.data.block?.events),
 							$$transactions: eventTransactions(wireBlock.data.events).map((signature) => ({
 								[EntityMetaKey.Selector]: {
 									$network,
@@ -193,39 +399,49 @@ export default {
 							blockchain: threeXplBlockchain($network),
 							transaction: signature,
 						})
-							return {
-								...(wireTransaction.data.transaction?.block != null && {
-									$block: {
+						if (wireTransaction.data.transaction?.transaction != null && wireTransaction.data.transaction.transaction !== signature)
+							throw new Error(`ThreeXpl_Rest: transaction ${wireTransaction.data.transaction.transaction} does not match selector ${signature}`)
+						return {
+							...(wireTransaction.data.transaction?.block != null && {
+								$block: {
 									[EntityMetaKey.Selector]: {
-										$network: $network,
+										$network,
 										slot: BigInt(wireTransaction.data.transaction.block),
 									},
 								},
 							}),
 						}
 					},
-				}
+				},
 			},
 		})({
-				$block: (transaction) => transaction.$block,
-			}),
+			$block: (transaction) => transaction.$block,
+		}),
 
 		defineResolver({
 			entityType: EntityType.TronBlock,
 			resolve: {
-				NetworkHeightHash: {
-					resolve: async ({ $network, hash, height }) => {
+				NetworkHeight: {
+					resolve: async ({ $network, height }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
 							blockchain: threeXplBlockchain($network),
-							block: hash,
+							block: height.toString(),
+						})
+						const hash = wireBlock.data.block?.hash
+						if (hash == null)
+							throw new Error(`ThreeXpl_Rest: Tron block ${height} missing hash`)
+						assertBlockIdentity({
+							wireBlock: wireBlock.data.block,
+							height,
+							hash,
 						})
 						return {
 							hash,
-							...(wireBlock.data.block?.time != null && {
-								timestampMs: Date.parse(wireBlock.data.block.time),
+							...(parseBlockTimeMs(wireBlock.data.block?.time) != null && {
+								timestampMs: parseBlockTimeMs(wireBlock.data.block?.time),
 							}),
-							transactionCount: wireBlock.data.block?.events?.transactions,
+							transactionCount: moduleEventCount(wireBlock.data.block?.events),
 							$$transactions: eventTransactions(wireBlock.data.events).map((transactionId) => ({
 								[EntityMetaKey.Selector]: {
 									$network,
@@ -244,7 +460,44 @@ export default {
 							})),
 						}
 					},
-				}
+				},
+				NetworkHeightHash: {
+					resolve: async ({ $network, hash, height }) => {
+						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+						const wireBlock = await fetchBlock({
+							blockchain: threeXplBlockchain($network),
+							block: hash,
+						})
+						assertBlockIdentity({
+							wireBlock: wireBlock.data.block,
+							height,
+							hash,
+						})
+						return {
+							hash,
+							...(parseBlockTimeMs(wireBlock.data.block?.time) != null && {
+								timestampMs: parseBlockTimeMs(wireBlock.data.block?.time),
+							}),
+							transactionCount: moduleEventCount(wireBlock.data.block?.events),
+							$$transactions: eventTransactions(wireBlock.data.events).map((transactionId) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									transactionId,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.TronTransaction, [], '$block')]: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											height,
+											hash,
+										},
+									},
+									[entityFieldAddressKey(EntityType.TronTransaction, [], 'blockHeight')]: height,
+								},
+							})),
+						}
+					},
+				},
 			},
 		})({
 			hash: (block) => block.hash,
@@ -263,47 +516,85 @@ export default {
 							blockchain: threeXplBlockchain($network),
 							transaction: transactionId,
 						})
-							return {
-								...(wireTransaction.data.transaction?.block != null && {
-									$block: {
-										[EntityMetaKey.Selector]: {
-											$network: $network,
-											height: BigInt(wireTransaction.data.transaction.block),
-										},
+						if (wireTransaction.data.transaction?.transaction != null && wireTransaction.data.transaction.transaction !== transactionId)
+							throw new Error(`ThreeXpl_Rest: transaction ${wireTransaction.data.transaction.transaction} does not match selector ${transactionId}`)
+						const blockHeight = (
+							wireTransaction.data.transaction?.block != null ?
+								BigInt(wireTransaction.data.transaction.block)
+							:
+								undefined
+						)
+						return {
+							...(blockHeight != null && {
+								$block: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										height: blockHeight,
 									},
-									[EntityMetaKey.Fields]: {
-										[entityFieldAddressKey(EntityType.TronTransaction, [], 'blockHeight')]: BigInt(wireTransaction.data.transaction.block),
-									},
-								}),
-							...(wireTransaction.data.transaction?.time != null && {
-								timestampMs: Date.parse(wireTransaction.data.transaction.time),
+								},
+								blockHeight,
+							}),
+							...(parseBlockTimeMs(wireTransaction.data.transaction?.time) != null && {
+								timestampMs: parseBlockTimeMs(wireTransaction.data.transaction?.time),
 							}),
 						}
 					},
-				}
+				},
 			},
 		})({
-				$block: (transaction) => transaction.$block,
-				blockHeight: (transaction) => transaction.blockHeight,
-				timestampMs: (transaction) => transaction.timestampMs,
-			}),
+			$block: (transaction) => transaction.$block,
+			blockHeight: (transaction) => transaction.blockHeight,
+			timestampMs: (transaction) => transaction.timestampMs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network, context) => (
+						tipBlockReferences({
+							$network: network,
+							blockchain: threeXplBlockchain(network),
+							limit: Math.min(resolverContextRowLimit(context), 100),
+							entityType: EntityType.TronBlock,
+							timestampField: true,
+						})
+					),
+				},
+			},
+		})({
+			Tron: {
+				$$blocks: {
+					select: (snapshot) => snapshot.blocks,
+					resolveCount: (snapshot) => snapshot.blockCount,
+				},
+			},
+		}),
 
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
-				NetworkHeightHash: {
-					resolve: async ({ $network, height, hash }) => {
+				NetworkHeight: {
+					resolve: async ({ $network, height }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
 							blockchain: threeXplBlockchain($network),
-							block: hash,
+							block: height.toString(),
+						})
+						const hash = wireBlock.data.block?.hash
+						if (hash == null)
+							throw new Error(`ThreeXpl_Rest: UTXO block ${height} missing hash`)
+						assertBlockIdentity({
+							wireBlock: wireBlock.data.block,
+							height,
+							hash,
 						})
 						return {
 							hash,
-							...(wireBlock.data.block?.time != null && {
-								timestampMs: Date.parse(wireBlock.data.block.time),
+							...(parseBlockTimeMs(wireBlock.data.block?.time) != null && {
+								timestampMs: parseBlockTimeMs(wireBlock.data.block?.time),
 							}),
-							transactionCount: wireBlock.data.block?.events?.transactions,
+							transactionCount: moduleEventCount(wireBlock.data.block?.events),
 							$$transactions: eventTransactions(wireBlock.data.events).map((txId) => ({
 								[EntityMetaKey.Selector]: {
 									$network,
@@ -312,13 +603,64 @@ export default {
 							})),
 						}
 					},
-				}
+				},
+				NetworkHeightHash: {
+					resolve: async ({ $network, height, hash }) => {
+						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+						const wireBlock = await fetchBlock({
+							blockchain: threeXplBlockchain($network),
+							block: hash,
+						})
+						assertBlockIdentity({
+							wireBlock: wireBlock.data.block,
+							height,
+							hash,
+						})
+						return {
+							hash,
+							...(parseBlockTimeMs(wireBlock.data.block?.time) != null && {
+								timestampMs: parseBlockTimeMs(wireBlock.data.block?.time),
+							}),
+							transactionCount: moduleEventCount(wireBlock.data.block?.events),
+							$$transactions: eventTransactions(wireBlock.data.events).map((txId) => ({
+								[EntityMetaKey.Selector]: {
+									$network,
+									txId,
+								},
+							})),
+						}
+					},
+				},
 			},
 		})({
 			hash: (block) => block.hash,
 			timestampMs: (block) => block.timestampMs,
 			transactionCount: (block) => block.transactionCount,
 			$$transactions: (block) => block.$$transactions,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network, context) => (
+						tipBlockReferences({
+							$network: network,
+							blockchain: threeXplBlockchain(network),
+							limit: Math.min(resolverContextRowLimit(context), 100),
+							entityType: EntityType.UtxoBlock,
+							timestampField: true,
+						})
+					),
+				},
+			},
+		})({
+			Utxo: {
+				$$blocks: {
+					select: (snapshot) => snapshot.blocks,
+					resolveCount: (snapshot) => snapshot.blockCount,
+				},
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule
