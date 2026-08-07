@@ -17,7 +17,10 @@ import {
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { acrossChainByChainId } from '$/sources/Across/Rest/constants.ts'
+import {
+	acrossChainByChainId,
+	acrossDepositStatusByStatus,
+} from '$/sources/Across/Rest/constants.ts'
 import type { AcrossDeposit } from '$/sources/Across/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -240,6 +243,36 @@ const acrossPaginationSkip = (
 	return skip
 }
 
+const acrossAccountBridgeTransfers = async (
+	address: string,
+	context: ResolverContext
+) => {
+	const skip = acrossPaginationSkip(context)
+	const limit = Math.min(resolverContextRowLimit(context), 100)
+	const { getDeposits } = await import('$/sources/Across/Rest/queries.ts')
+	const deposits = await getDeposits({
+		depositor: address,
+		limit,
+		skip,
+	})
+
+	return {
+		skip,
+		limit,
+		rows: deposits.map((deposit) => {
+			if (deposit.depositId == null)
+				throw new Error('Across_Rest: deposit missing deposit id')
+
+			return {
+				[EntityMetaKey.Selector]: {
+					source: Source.Across_Rest,
+					transferId: `${deposit.originChainId}/${deposit.depositId}`,
+				},
+			}
+		}),
+	}
+}
+
 
 export default {
 	source: Source.Across_Rest,
@@ -300,7 +333,10 @@ export default {
 			assetOutcome: (transfer) => transfer.assetOutcome,
 			bridgeFeeUsd: (transfer) => transfer.bridgeFeeUsd,
 			exclusiveRelayer: (transfer) => transfer.exclusiveRelayer,
-			$$timestamps: (transfer) => transfer.$$timestamps,
+			$$timestamps: {
+				select: (transfer) => transfer.$$timestamps,
+				resolveCount: (transfer) => transfer.$$timestamps.length,
+			},
 		}),
 
 		defineResolver({
@@ -394,6 +430,15 @@ export default {
 							...(deposit.fillGasFeeUsd != null && {
 								fillGasFeeUsd: deposit.fillGasFeeUsd,
 							}),
+							...(
+								(
+									deposit.status === 'expired'
+									|| deposit.status === 'refunded'
+								)
+								&& {
+									error: acrossDepositStatusByStatus[deposit.status].label,
+								}
+							),
 						}
 					},
 				},
@@ -410,38 +455,21 @@ export default {
 			estimatedCompletionMs: (observation) => observation.estimatedCompletionMs,
 			fillGasFee: (observation) => observation.fillGasFee,
 			fillGasFeeUsd: (observation) => observation.fillGasFeeUsd,
+			error: (observation) => observation.error,
 		}),
 
 		defineResolver({
 			entityType: EntityType.EvmAccount,
 			resolve: {
+				Address: {
+					resolve: async ({ address }, context) => (
+						acrossAccountBridgeTransfers(address, context)
+					),
+				},
 				AddressInteropAddress: {
-					resolve: async ({ address }, context) => {
-						const skip = acrossPaginationSkip(context)
-						const limit = Math.min(resolverContextRowLimit(context), 100)
-						const { getDeposits } = await import('$/sources/Across/Rest/queries.ts')
-						const deposits = await getDeposits({
-							depositor: address,
-							limit,
-							skip,
-						})
-
-						return {
-							skip,
-							limit,
-							rows: deposits.map((deposit) => {
-								if (deposit.depositId == null)
-									throw new Error('Across_Rest: deposit missing deposit id')
-
-								return {
-									[EntityMetaKey.Selector]: {
-										source: Source.Across_Rest,
-										transferId: `${deposit.originChainId}/${deposit.depositId}`,
-									},
-								}
-							}),
-						}
-					},
+					resolve: async ({ address }, context) => (
+						acrossAccountBridgeTransfers(address, context)
+					),
 				},
 			},
 		})({

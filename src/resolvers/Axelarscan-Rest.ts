@@ -85,6 +85,31 @@ const axelarscanFillGasFee = (message: AxelarscanGmpMessage) => {
 	return BigInt(gasUsed) * BigInt(effectiveGasPrice)
 }
 
+const axelarscanFillGasFeeUsd = (message: AxelarscanGmpMessage) => {
+	const fillGasFee = axelarscanFillGasFee(message)
+	const destinationNativeToken = message.fees?.destination_native_token
+	const decimals = destinationNativeToken?.decimals
+	const usd = destinationNativeToken?.token_price?.usd
+	if (fillGasFee == null || decimals == null || usd == null)
+		return undefined
+	if (!Number.isSafeInteger(decimals) || decimals > 36)
+		throw new Error('Axelarscan_Rest: invalid destination native token decimals')
+	if (!Number.isFinite(usd) || usd < 0)
+		throw new Error('Axelarscan_Rest: invalid destination native token price')
+
+	const scale = 10n ** BigInt(decimals)
+	const whole = fillGasFee / scale
+	const fraction = fillGasFee % scale
+	if (whole > BigInt(Number.MAX_SAFE_INTEGER))
+		throw new Error('Axelarscan_Rest: fill gas fee exceeds safe decimal projection')
+
+	const nativeAmount = Number(whole) + Number(fraction) / Number(scale)
+	const fillGasFeeUsd = nativeAmount * usd
+	if (!Number.isFinite(fillGasFeeUsd) || fillGasFeeUsd < 0)
+		throw new Error('Axelarscan_Rest: invalid fill gas fee usd')
+	return String(fillGasFeeUsd)
+}
+
 const axelarscanBridgeFeeUsd = (message: AxelarscanGmpMessage) => {
 	const feeUsd = message.fees?.base_fee_usd ?? message.fees?.source_base_fee_usd
 	if (feeUsd == null)
@@ -97,6 +122,14 @@ const axelarscanBridgeFeeUsd = (message: AxelarscanGmpMessage) => {
 const axelarscanSourceConfirmations = (message: AxelarscanGmpMessage) => (
 	message.call.receipt?.confirmations
 )
+
+const axelarscanObservationError = (message: AxelarscanGmpMessage) => {
+	const detail = message.error?.error.message ?? message.error?.error.reason
+	if (detail != null && detail.length > 0)
+		return detail
+	if (message.simplified_status === 'failed')
+		return message.status
+}
 
 const axelarscanRelayer = (message: AxelarscanGmpMessage) => {
 	for (const candidate of [
@@ -275,7 +308,10 @@ export default {
 			$toNetwork: (transfer) => transfer.$toNetwork,
 			assetOutcome: (transfer) => transfer.assetOutcome,
 			bridgeFeeUsd: (transfer) => transfer.bridgeFeeUsd,
-			$$timestamps: (transfer) => transfer.$$timestamps,
+			$$timestamps: {
+				select: (transfer) => transfer.$$timestamps,
+				resolveCount: (transfer) => transfer.$$timestamps.length,
+			},
 		}),
 
 		defineResolver({
@@ -308,7 +344,9 @@ export default {
 						)
 						const relayer = axelarscanRelayer(message)
 						const fillGasFee = axelarscanFillGasFee(message)
+						const fillGasFeeUsd = axelarscanFillGasFeeUsd(message)
 						const sourceConfirmations = axelarscanSourceConfirmations(message)
+						const error = axelarscanObservationError(message)
 
 						return {
 							$transfer: {
@@ -336,8 +374,11 @@ export default {
 							...(fillGasFee != null && {
 								fillGasFee,
 							}),
-							...(message.simplified_status === 'failed' && {
-								error: message.status,
+							...(fillGasFeeUsd != null && {
+								fillGasFeeUsd,
+							}),
+							...(error != null && {
+								error,
 							}),
 						}
 					},
@@ -354,6 +395,7 @@ export default {
 			sourceConfirmations: (observation) => observation.sourceConfirmations,
 			completedAt: (observation) => observation.completedAt,
 			fillGasFee: (observation) => observation.fillGasFee,
+			fillGasFeeUsd: (observation) => observation.fillGasFeeUsd,
 			error: (observation) => observation.error,
 		}),
 

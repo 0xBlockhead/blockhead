@@ -92,10 +92,47 @@ export const axelarscanConfirmationEnvelope = arktype({
 })
 
 export const axelarscanGmpFeesEnvelope = arktype({
+	'base_fee?': 'number',
 	'base_fee_usd?': 'number',
+	'source_base_fee?': 'number',
 	'source_base_fee_usd?': 'number',
+	'destination_base_fee?': 'number',
 	'destination_base_fee_usd?': 'number',
+	'express_fee?': 'number',
 	'express_fee_usd?': 'number',
+	'destination_native_token?': {
+		'token_price?': {
+			usd: 'number',
+		},
+		'gas_price?': 'string',
+		'symbol?': 'string',
+		'gas_price_gwei?': 'string',
+		'decimals?': 'number.integer >= 0',
+		'name?': 'string',
+		'contract_address?': 'string',
+	},
+	'source_token?': {
+		'token_price?': {
+			usd: 'number',
+		},
+		'gas_price?': 'string',
+		'symbol?': 'string',
+		'decimals?': 'number.integer >= 0',
+		'name?': 'string',
+		'contract_address?': 'string',
+	},
+})
+
+export const axelarscanGmpDataErrorEnvelope = arktype({
+	'chain?': 'string',
+	'sourceChain?': 'string',
+	'chain_type?': 'string',
+	'messageId?': 'string',
+	error: {
+		'reason?': 'string',
+		'message?': 'string',
+		'transactionHash?': 'string',
+	},
 })
 
 export const axelarscanGmpMessageEnvelope = arktype({
@@ -106,14 +143,18 @@ export const axelarscanGmpMessageEnvelope = arktype({
 	'confirm?': axelarscanConfirmationEnvelope,
 	'approved?': axelarscanApprovedEnvelope,
 	'executed?': axelarscanExecutedEnvelope,
+	'error?': axelarscanGmpDataErrorEnvelope,
 	status: 'string',
 	simplified_status: 'string',
+	'gas_status?': 'string',
 	'amount?': 'string | number',
 	'symbol?': 'string',
 	'fees?': axelarscanGmpFeesEnvelope,
 	'time_spent?': {
 		'call_confirm?': 'number.integer >= 0',
 		'call_approved?': 'number.integer >= 0',
+		'call_approve?': 'number.integer >= 0',
+		'approved_executed?': 'number.integer >= 0',
 		'total?': 'number.integer >= 0',
 	},
 })
@@ -216,10 +257,47 @@ export type AxelarscanConfirmation = {
 }
 
 export type AxelarscanGmpFees = {
+	base_fee?: number
 	base_fee_usd?: number
+	source_base_fee?: number
 	source_base_fee_usd?: number
+	destination_base_fee?: number
 	destination_base_fee_usd?: number
+	express_fee?: number
 	express_fee_usd?: number
+	destination_native_token?: {
+		token_price?: {
+			usd: number
+		}
+		gas_price?: string
+		symbol?: string
+		gas_price_gwei?: string
+		decimals?: number
+		name?: string
+		contract_address?: string
+	}
+	source_token?: {
+		token_price?: {
+			usd: number
+		}
+		gas_price?: string
+		symbol?: string
+		decimals?: number
+		name?: string
+		contract_address?: string
+	}
+}
+
+export type AxelarscanGmpDataError = {
+	chain?: string
+	sourceChain?: string
+	chain_type?: string
+	messageId?: string
+	error: {
+		reason?: string
+		message?: string
+		transactionHash?: string
+	}
 }
 
 export type AxelarscanGmpMessage = {
@@ -230,14 +308,18 @@ export type AxelarscanGmpMessage = {
 	confirm?: AxelarscanConfirmation
 	approved?: AxelarscanApproved
 	executed?: AxelarscanExecuted
+	error?: AxelarscanGmpDataError
 	status: string
 	simplified_status: string
+	gas_status?: string
 	amount?: string | number
 	symbol?: string
 	fees?: AxelarscanGmpFees
 	time_spent?: {
 		call_confirm?: number
 		call_approved?: number
+		call_approve?: number
+		approved_executed?: number
 		total?: number
 	}
 }

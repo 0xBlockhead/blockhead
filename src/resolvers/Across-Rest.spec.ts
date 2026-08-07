@@ -136,13 +136,14 @@ describe('Across BridgeTransfer resolvers', () => {
 				},
 			},
 		})
-		expect(resolver.projections.$$timestamps(snapshot)).toEqual([{
+		expect(resolver.projections.$$timestamps.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transfer: transfer,
 				timestampMs: Date.parse(deposit.fillBlockTimestamp),
 				source: Source.Across_Rest,
 			},
 		}])
+		expect(resolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
 	})
 
 	it('projects fill status, relayer, and destination hash from deposit lifecycle', async () => {
@@ -210,13 +211,66 @@ describe('Across BridgeTransfer resolvers', () => {
 		})).rejects.toThrow('observation clock mismatch')
 	})
 
-	it('lists depositor-scoped deposits as BridgeTransfer selector refs on EvmAccount', async () => {
+	it('projects expired deposit status labels onto observation errors', async () => {
+		getDeposit.mockResolvedValue({
+			deposit: {
+				...deposit,
+				status: 'expired',
+				fillTxnRef: null,
+				fillBlockTimestamp: null,
+				fillBlockNumber: null,
+				relayer: null,
+				fillGasFee: null,
+				fillGasFeeUsd: null,
+			},
+			pagination: {
+				currentIndex: 0,
+				maxIndex: 0,
+			},
+		})
+		const resolver = across.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer_Timestamp
+		))
+		if (resolver == null)
+			throw new Error('Across_Rest: BridgeTransfer_Timestamp resolver missing')
+
+		const snapshot = await resolver.resolve.TransferTimestampMsSource.resolve({
+			$transfer: transfer,
+			timestampMs: Date.parse(deposit.depositBlockTimestamp),
+			source: Source.Across_Rest,
+		})
+
+		expect(snapshot).toMatchObject({
+			status: 'expired',
+			error: 'Fill deadline passed; refund pending on origin',
+			estimatedCompletionMs: Date.parse(deposit.fillDeadline!),
+		})
+	})
+
+	it('lists depositor-scoped deposits for Address and AddressInteropAddress', async () => {
 		getDeposits.mockResolvedValue([deposit])
 		const resolver = across.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.EvmAccount
 		))
 		if (resolver == null)
 			throw new Error('Across_Rest: EvmAccount resolver missing')
+
+		const byAddress = await resolver.resolve.Address.resolve(
+			{
+				address: depositor,
+			},
+			{
+				pagination: {
+					limit: 50,
+				},
+			}
+		)
+		expect(resolver.projections.$$bridgeTransfers.select(byAddress)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				source: Source.Across_Rest,
+				transferId,
+			},
+		}])
 
 		const bridgeTransfers = await resolver.resolve.AddressInteropAddress.resolve(
 			{

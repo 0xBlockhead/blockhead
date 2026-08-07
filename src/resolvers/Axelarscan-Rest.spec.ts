@@ -91,6 +91,12 @@ const message = {
 	},
 	fees: {
 		base_fee_usd: 0.014628501,
+		destination_native_token: {
+			decimals: 18,
+			token_price: {
+				usd: 2500,
+			},
+		},
 	},
 	status: 'executed',
 	simplified_status: 'received',
@@ -177,13 +183,14 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 				address: sourceAddress,
 			},
 		})
-		expect(bridgeTransferResolver.projections.$$timestamps(snapshot)).toEqual([{
+		expect(bridgeTransferResolver.projections.$$timestamps.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transfer: transfer,
 				timestampMs: 1_784_780_004_000,
 				source: Source.Axelarscan_Rest,
 			},
 		}])
+		expect(bridgeTransferResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
 	})
 
 	it('resolves SourceTxSourceLogIndex and BridgeTransfer_Timestamp observations', async () => {
@@ -218,6 +225,43 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 		expect(bridgeTransferTimestampResolver.projections.completedAt(observation)).toBe(1_784_780_004_000)
 		expect(bridgeTransferTimestampResolver.projections.sourceConfirmations(observation)).toBe(12)
 		expect(bridgeTransferTimestampResolver.projections.fillGasFee(observation)).toBe(397688n * 6000000n)
+		expect(bridgeTransferTimestampResolver.projections.fillGasFeeUsd(observation)).toBe(
+			String(Number(397688n * 6000000n) / 1e18 * 2500)
+		)
+	})
+
+	it('projects destination execution error detail when simplified status is failed', async () => {
+		getGmpMessages.mockResolvedValueOnce({
+			data: [{
+				...message,
+				executed: undefined,
+				simplified_status: 'failed',
+				status: 'error',
+				error: {
+					chain: 'base',
+					sourceChain: 'moonbeam',
+					error: {
+						reason: 'execution reverted',
+						message: 'GMP execution reverted: insufficient gas',
+					},
+				},
+			}],
+			total: 1,
+			time_spent: 1,
+		})
+
+		const observation = await bridgeTransferTimestampResolver.resolve.TransferTimestampMsSource.resolve({
+			$transfer: {
+				source: Source.Axelarscan_Rest,
+				transferId: message.message_id,
+			},
+			timestampMs: 1_784_780_000_000,
+			source: Source.Axelarscan_Rest,
+		}, resolverContext)
+		expect(bridgeTransferTimestampResolver.projections.error(observation)).toBe(
+			'GMP execution reverted: insufficient gas'
+		)
+		expect(bridgeTransferTimestampResolver.projections.fillGasFeeUsd(observation)).toBeUndefined()
 	})
 
 	it('lists EvmAccount.$$bridgeTransfers by senderAddress with offset continuation', async () => {

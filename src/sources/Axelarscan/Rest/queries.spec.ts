@@ -166,6 +166,46 @@ describe('Axelarscan GMP queries', () => {
 		})).rejects.toThrow('foreign sender message')
 	})
 
+	it('filters by messageId and destinationContractAddress', async () => {
+		await getGmpMessages({
+			size: 1,
+			from: 0,
+			messageId: `${sourceTransactionHash}-1`,
+			destinationContractAddress: destinationAddress,
+		})
+		expect(getJson).toHaveBeenCalledWith(
+			binding,
+			`/gmp/searchGMP?size=1&from=0&destinationContractAddress=${encodeURIComponent(destinationAddress)}&messageId=${encodeURIComponent(`${sourceTransactionHash}-1`)}`
+		)
+
+		getJson.mockResolvedValueOnce(response())
+		await expect(getGmpMessages({
+			destinationContractAddress: '0xForeign',
+		})).rejects.toThrow('foreign destination contract message')
+
+		getJson.mockResolvedValueOnce(response())
+		await expect(getGmpMessages({
+			messageId: `${sourceTransactionHash}-99`,
+		})).rejects.toThrow('foreign message identity')
+	})
+
+	it('fail-closes invalid destination native token fee prices', async () => {
+		const value = structuredClone(message)
+		value.fees = {
+			base_fee_usd: 0.01,
+			destination_native_token: {
+				decimals: 18,
+				token_price: {
+					usd: -1,
+				},
+			},
+		}
+		getJson.mockResolvedValue(response([value]))
+		await expect(getGmpMessages({
+			size: 1,
+		})).rejects.toThrow('invalid destination native token price')
+	})
+
 	it('accepts message ids keyed by _logIndex when logIndex differs', async () => {
 		const liveStyle = structuredClone(message)
 		liveStyle.call.logIndex = 519

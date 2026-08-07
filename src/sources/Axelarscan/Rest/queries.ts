@@ -228,6 +228,27 @@ const assertMessage = (message: AxelarscanGmpMessage) => {
 	for (const [name, value] of Object.entries(message.time_spent ?? {}))
 		if (value != null)
 			assertSafeNonnegativeInteger(value, `time spent ${name}`)
+	if (message.fees?.destination_native_token != null) {
+		const {
+			decimals,
+			token_price: tokenPrice,
+		} = message.fees.destination_native_token
+		if (decimals != null)
+			assertSafeNonnegativeInteger(decimals, 'destination native token decimals')
+		if (
+			tokenPrice != null
+			&& (
+				!Number.isFinite(tokenPrice.usd)
+				|| tokenPrice.usd < 0
+			)
+		)
+			throw new Error('Axelarscan_Rest: invalid destination native token price')
+	}
+	if (message.error != null) {
+		const detail = message.error.error.message ?? message.error.error.reason
+		if (detail != null)
+			assertOpaqueIdentity(detail, 'execution error')
+	}
 }
 
 const assertPage = (size: number, from: number) => {
@@ -269,7 +290,9 @@ const assertGmpResponse = (
 export type AxelarscanGmpSearchQuery =
 	| {
 		destinationChain?: never
+		destinationContractAddress?: never
 		from?: never
+		messageId?: never
 		senderAddress?: never
 		size?: never
 		sourceChain?: never
@@ -277,7 +300,9 @@ export type AxelarscanGmpSearchQuery =
 	}
 	| {
 		destinationChain?: string
+		destinationContractAddress?: string
 		from?: number
+		messageId?: string
 		senderAddress?: string
 		size?: number
 		sourceChain?: string
@@ -305,6 +330,10 @@ export const getGmpMessages = (query: AxelarscanGmpSearchQuery) => {
 			assertOpaqueIdentity(query.destinationChain, 'destination chain')
 		if (query.senderAddress != null)
 			assertOpaqueIdentity(query.senderAddress, 'sender address')
+		if (query.destinationContractAddress != null)
+			assertOpaqueIdentity(query.destinationContractAddress, 'destination contract address')
+		if (query.messageId != null)
+			assertOpaqueIdentity(query.messageId, 'message id')
 	} else
 		assertOpaqueIdentity(query.transactionHash, 'transaction hash')
 
@@ -318,6 +347,10 @@ export const getGmpMessages = (query: AxelarscanGmpSearchQuery) => {
 					...(query.sourceChain != null && { sourceChain: query.sourceChain }),
 					...(query.destinationChain != null && { destinationChain: query.destinationChain }),
 					...(query.senderAddress != null && { senderAddress: query.senderAddress }),
+					...(query.destinationContractAddress != null && {
+						destinationContractAddress: query.destinationContractAddress,
+					}),
+					...(query.messageId != null && { messageId: query.messageId }),
 				}
 				:
 				{
@@ -352,6 +385,19 @@ export const getGmpMessages = (query: AxelarscanGmpSearchQuery) => {
 					&& !sameIdentity(message.call.returnValues.sender, query.senderAddress)
 				)
 					throw new Error('Axelarscan_Rest: foreign sender message')
+				if (
+					query.destinationContractAddress != null
+					&& !sameIdentity(
+						message.call.returnValues.destinationContractAddress,
+						query.destinationContractAddress
+					)
+				)
+					throw new Error('Axelarscan_Rest: foreign destination contract message')
+				if (
+					query.messageId != null
+					&& !sameIdentity(message.message_id, query.messageId)
+				)
+					throw new Error('Axelarscan_Rest: foreign message identity')
 			}
 		}
 		return page
