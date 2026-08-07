@@ -3,7 +3,10 @@
  * @see https://github.com/flashbots/relay-specs
  */
 
-import type { BidTrace } from '$/sources/MevRelay/Rest/types.ts'
+import {
+	bidTraceListWire,
+	type BidTrace,
+} from '$/sources/MevRelay/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/MevRelay/bindings.ts'
 import {
@@ -43,6 +46,17 @@ const bidTraceSearchParams = (
 	return search
 }
 
+const assertBidTraceList = (
+	path: string,
+	response: unknown
+): readonly BidTrace[] => {
+	try {
+		return bidTraceListWire.assert(response)
+	} catch {
+		throw new Error(`MevRelay_Rest: invalid ${path} BidTrace response envelope`)
+	}
+}
+
 const getBidTracesForRelayHost = async (
 	path: 'proposer_payload_delivered' | 'builder_blocks_received',
 	relayHost: string,
@@ -53,17 +67,16 @@ const getBidTracesForRelayHost = async (
 		throw new Error(`MevRelay_Rest: no canonical relay binding for ${relayHost}`)
 
 	const search = bidTraceSearchParams(options)
-	const bidTraces = await sourceGetJson<readonly BidTrace[]>(
-		binding,
-		new URL(
-			`/relay/v1/data/bidtraces/${path}?${search.toString()}`,
-			firstHttpUrlForBinding(binding)
-		).toString()
+	return assertBidTraceList(
+		path,
+		await sourceGetJson(
+			binding,
+			new URL(
+				`/relay/v1/data/bidtraces/${path}?${search.toString()}`,
+				firstHttpUrlForBinding(binding)
+			).toString()
+		)
 	)
-	if (!Array.isArray(bidTraces))
-		throw new Error(`MevRelay_Rest: ${path} response is not an array`)
-
-	return bidTraces
 }
 
 export const getProposerPayloadDeliveredForRelayHost = (

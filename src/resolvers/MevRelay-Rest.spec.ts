@@ -61,8 +61,15 @@ const context = {
 const payloadResolver = mevRelayRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.MevRelay_ProposerPayloadDelivered
 ))
+const relayUrlResolver = mevRelayRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.MevRelay
+	&& 'url' in resolver.projections
+))
 const relayTimestampResolver = mevRelayRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.MevRelay_Timestamp
+))
+const builderTimestampResolver = mevRelayRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.MevBuilder_Timestamp
 ))
 const networkPayloadsResolver = mevRelayRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
@@ -77,7 +84,9 @@ const networkBuildersResolver = mevRelayRest.resolvers.find((resolver) => (
 
 if (
 	payloadResolver == null
+	|| relayUrlResolver == null
 	|| relayTimestampResolver == null
+	|| builderTimestampResolver == null
 	|| networkPayloadsResolver == null
 	|| networkBuildersResolver == null
 )
@@ -115,6 +124,87 @@ describe('MevRelay REST resolvers', () => {
 				blockNumber: 25680883n,
 			},
 		})
+		expect(payloadResolver.projections.$builder(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				builderPubkey: bidTrace.builder_pubkey,
+			},
+		})
+	})
+
+	it('projects enrolled MevRelay url tip leftover from host', async () => {
+		const snapshot = await relayUrlResolver.resolve.EvmNetworkHost.resolve({
+			$network: network,
+			host: 'boost-relay.flashbots.net',
+		}, context)
+
+		expect(snapshot).toEqual({
+			url: 'https://boost-relay.flashbots.net',
+		})
+		expect(relayUrlResolver.projections.url(snapshot)).toBe('https://boost-relay.flashbots.net')
+	})
+
+	it('projects enrolled MevRelay_Timestamp tip leftovers from BidTrace samples', async () => {
+		getProposerPayloadDeliveredForRelayHost.mockResolvedValueOnce([
+			bidTrace,
+			{
+				...bidTrace,
+				slot: '14917880',
+				builder_pubkey: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+			},
+		])
+
+		const snapshot = await relayTimestampResolver.resolve.RelayTimestampMsSource.resolve({
+			$relay: {
+				$network: network,
+				host: 'boost-relay.flashbots.net',
+			},
+			timestampMs: 1_750_000_000_000,
+			source: Source.MevRelay_Rest,
+		}, context)
+
+		expect(snapshot).toMatchObject({
+			deliveredPayloadSampleCount: 2,
+			builderSampleCount: 2,
+			windowStartSlot: 14917871,
+			windowEndSlot: 14917880,
+			sampleLimit: 16,
+		})
+		expect(relayTimestampResolver.projections.windowStartSlot(snapshot)).toBe(14917871)
+		expect(relayTimestampResolver.projections.builderSampleCount(snapshot)).toBe(2)
+	})
+
+	it('projects enrolled MevBuilder_Timestamp tip leftovers across mapped relays', async () => {
+		getProposerPayloadDeliveredForRelayHost
+			.mockResolvedValueOnce([bidTrace])
+			.mockResolvedValueOnce([
+				{
+					...bidTrace,
+					slot: '14917900',
+					value: '100',
+				},
+			])
+
+		const snapshot = await builderTimestampResolver.resolve.BuilderTimestampMsSource.resolve({
+			$builder: {
+				$network: network,
+				builderPubkey: bidTrace.builder_pubkey,
+			},
+			timestampMs: 1_750_000_000_000,
+			source: Source.MevRelay_Rest,
+		}, context)
+
+		expect(getProposerPayloadDeliveredForRelayHost).toHaveBeenCalledTimes(2)
+		expect(snapshot).toMatchObject({
+			deliveredPayloadCount: 2,
+			deliveredValueWei: 5316647666874703n,
+			relayCount: 2,
+			windowStartSlot: 14917871,
+			windowEndSlot: 14917900,
+			sampleLimit: 200,
+		})
+		expect(builderTimestampResolver.projections.deliveredValueWei(snapshot)).toBe(5316647666874703n)
+		expect(builderTimestampResolver.projections.relayCount(snapshot)).toBe(2)
 	})
 
 	it('hard-fails relay timestamp HTTP errors instead of soft-empty', async () => {

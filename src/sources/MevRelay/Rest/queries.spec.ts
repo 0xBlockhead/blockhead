@@ -38,6 +38,13 @@ const bidTrace = {
 	block_number: '25680883',
 } as const
 
+const builderTipBidTrace = {
+	...bidTrace,
+	timestamp: '1786068803',
+	timestamp_ms: '1786068803855',
+	optimistic_submission: true,
+} as const
+
 const jsonResponse = (body: unknown, status = 200) => (
 	new Response(JSON.stringify(body), {
 		status,
@@ -91,25 +98,68 @@ describe('MevRelay REST bidtrace queries', () => {
 		})).rejects.toThrow('500')
 	})
 
+	it('fail-closes malformed proposer_payload_delivered BidTrace envelopes', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([
+			{
+				...bidTrace,
+				value: 'not-a-decimal',
+			},
+		]))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getProposerPayloadDeliveredForRelayHost('boost-relay.flashbots.net', {
+			limit: 1,
+		})).rejects.toThrow('invalid proposer_payload_delivered BidTrace response envelope')
+	})
+
+	it('fail-closes non-array BidTrace envelopes', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
+			slot: bidTrace.slot,
+		}))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getProposerPayloadDeliveredForRelayHost('boost-relay.flashbots.net', {
+			limit: 1,
+		})).rejects.toThrow('invalid proposer_payload_delivered BidTrace response envelope')
+	})
+
 	it('requires a scoped filter for builder_blocks_received', async () => {
 		expect(() => getBuilderBlocksReceivedForRelayHost('boost-relay.flashbots.net', {
 			limit: 1,
 		})).toThrow('builder_blocks_received requires')
 	})
 
-	it('routes filtered builder_blocks_received through the proxy binding', async () => {
-		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([bidTrace]))
+	it('routes filtered builder_blocks_received tip leftovers through the proxy binding', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([builderTipBidTrace]))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
 
 		await expect(getBuilderBlocksReceivedForRelayHost('boost-relay.flashbots.net', {
 			limit: 1,
 			builder_pubkey: bidTrace.builder_pubkey,
-		})).resolves.toEqual([bidTrace])
+		})).resolves.toEqual([builderTipBidTrace])
 
 		const proxiedUrl = String(fetchMock.mock.calls[0]?.[0])
 		expect(proxiedUrl).toContain('builder_blocks_received')
 		expect(proxiedUrl).toContain(`builder_pubkey%3D${encodeURIComponent(bidTrace.builder_pubkey)}`)
+	})
+
+	it('fail-closes malformed builder_blocks_received tip envelopes', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([
+			{
+				...builderTipBidTrace,
+				optimistic_submission: 'yes',
+			},
+		]))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getBuilderBlocksReceivedForRelayHost('boost-relay.flashbots.net', {
+			limit: 1,
+			builder_pubkey: bidTrace.builder_pubkey,
+		})).rejects.toThrow('invalid builder_blocks_received BidTrace response envelope')
 	})
 
 	it('rejects unknown relay hosts before transport', async () => {

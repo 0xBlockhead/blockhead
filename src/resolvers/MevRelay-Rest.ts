@@ -13,24 +13,18 @@ import { Source } from '$/sources/Source.ts'
 
 const parsePayloadSlot = (payload: BidTrace) => {
 	const slot = Number(payload.slot)
-	return Number.isFinite(slot) ? slot : undefined
+	if (!Number.isSafeInteger(slot) || slot < 0)
+		throw new Error(`MevRelay_Rest: invalid BidTrace slot ${payload.slot}`)
+	return slot
 }
 
-const parsePayloadValueWei = (payload: BidTrace) => {
-	try {
-		return BigInt(payload.value)
-	} catch {
-		return undefined
-	}
-}
+const parsePayloadValueWei = (payload: BidTrace) => (
+	BigInt(payload.value)
+)
 
-const parsePayloadBlockNumber = (payload: BidTrace) => {
-	try {
-		return BigInt(payload.block_number)
-	} catch {
-		return undefined
-	}
-}
+const parsePayloadBlockNumber = (payload: BidTrace) => (
+	BigInt(payload.block_number)
+)
 
 const relayHostsForChainId = async (chainId: number) => {
 	const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
@@ -47,15 +41,14 @@ const deliveredPayloadReference = <_Network>(
 	relayHost: string,
 	payload: BidTrace
 ) => {
-	const slot = parsePayloadSlot(payload)
 	const blockHash = hexLowerOfByteSize(payload.block_hash, 32)
-	if (slot == null || blockHash == null) return undefined
+	if (blockHash == null) return undefined
 
 	return {
 		[EntityMetaKey.Selector]: {
 			$network,
 			relayHost,
-			slot,
+			slot: parsePayloadSlot(payload),
 			blockHash,
 		},
 	}
@@ -85,25 +78,21 @@ export default {
 						const valueWei = parsePayloadValueWei(payload)
 						return {
 							[EntityMetaKey.Selector]: entitySelector,
-							...(payload.builder_pubkey !== '' && {
-								builderPubkey: payload.builder_pubkey,
-								$builder: {
-									[EntityMetaKey.Selector]: {
-										$network: entitySelector.$network,
-										builderPubkey: payload.builder_pubkey,
-									},
+							builderPubkey: payload.builder_pubkey,
+							$builder: {
+								[EntityMetaKey.Selector]: {
+									$network: entitySelector.$network,
+									builderPubkey: payload.builder_pubkey,
 								},
-							}),
-							...(valueWei != null && { value: valueWei }),
-							...(blockNumber != null && {
-								blockNumber,
-								$executionBlock: {
-									[EntityMetaKey.Selector]: {
-										$network: entitySelector.$network,
-										blockNumber,
-									},
+							},
+							value: valueWei,
+							blockNumber,
+							$executionBlock: {
+								[EntityMetaKey.Selector]: {
+									$network: entitySelector.$network,
+									blockNumber,
 								},
-							}),
+							},
 						}
 					},
 				},
@@ -114,6 +103,19 @@ export default {
 				value: (snapshot) => snapshot.value,
 				blockNumber: (snapshot) => snapshot.blockNumber,
 				$executionBlock: (snapshot) => snapshot.$executionBlock,
+			}),
+
+		defineResolver({
+			entityType: EntityType.MevRelay,
+			resolve: {
+				EvmNetworkHost: {
+					resolve: async ({ host }) => ({
+						url: `https://${host}`,
+					}),
+				},
+			},
+		})({
+				url: (relay) => relay.url,
 			}),
 
 		defineResolver({
@@ -153,12 +155,10 @@ export default {
 						let windowStartSlot: number | undefined
 						let windowEndSlot: number | undefined
 						for (const payload of deliveredPayloads) {
-							if (payload.builder_pubkey !== '') builderPubkeys.add(payload.builder_pubkey)
+							builderPubkeys.add(payload.builder_pubkey)
 							const slot = parsePayloadSlot(payload)
-							if (slot != null) {
-								windowStartSlot = windowStartSlot == null ? slot : Math.min(windowStartSlot, slot)
-								windowEndSlot = windowEndSlot == null ? slot : Math.max(windowEndSlot, slot)
-							}
+							windowStartSlot = windowStartSlot == null ? slot : Math.min(windowStartSlot, slot)
+							windowEndSlot = windowEndSlot == null ? slot : Math.max(windowEndSlot, slot)
 						}
 
 						return {
@@ -227,13 +227,10 @@ export default {
 						for (const deliveredPayloads of deliveredPayloadPages) {
 							for (const payload of deliveredPayloads) {
 								const slot = parsePayloadSlot(payload)
-								const valueWei = parsePayloadValueWei(payload)
 								deliveredPayloadCount += 1
-								if (valueWei != null) deliveredValueWei += valueWei
-								if (slot != null) {
-									windowStartSlot = windowStartSlot == null ? slot : Math.min(windowStartSlot, slot)
-									windowEndSlot = windowEndSlot == null ? slot : Math.max(windowEndSlot, slot)
-								}
+								deliveredValueWei += parsePayloadValueWei(payload)
+								windowStartSlot = windowStartSlot == null ? slot : Math.min(windowStartSlot, slot)
+								windowEndSlot = windowEndSlot == null ? slot : Math.max(windowEndSlot, slot)
 							}
 						}
 
@@ -357,7 +354,6 @@ export default {
 						)
 						for (const deliveredPayloads of deliveredPayloadPages) {
 							for (const payload of deliveredPayloads) {
-								if (payload.builder_pubkey === '') continue
 								builderPubkeys.add(payload.builder_pubkey)
 								if (builderPubkeys.size >= entityLimit) break
 							}
