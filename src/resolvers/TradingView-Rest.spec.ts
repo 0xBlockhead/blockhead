@@ -101,3 +101,30 @@ it('rejects a selector that does not match the provider clock', async () => {
 		feedKey: 'BINANCE:BTCUSDT',
 	}, resolverContext)).rejects.toThrow('provider clock')
 })
+
+it('projects enrolled Market_Timestamp leftovers from the scanner clock', async () => {
+	getCryptoQuotes.mockResolvedValue([quote])
+	const quoteResolver = tradingViewResolvers.resolvers.find((resolver) => (
+		resolver.entityType === EntityType.Market_Timestamp
+		&& 'price' in resolver.projections
+		&& 'transport' in resolver.projections
+		&& 'providerAssetId' in resolver.projections
+	))
+	if (quoteResolver == null)
+		throw new Error('TradingView quote resolver is not registered')
+
+	const resolved = await quoteResolver.resolve.MarketTimestampMsFeedKey.resolve({
+		$market: market,
+		timestampMs: 1785404458000,
+		feedKey: 'BINANCE:BTCUSDT',
+	}, resolverContext)
+
+	expect(resolved).toEqual({
+		price: 6457001000000n,
+		transport: 'streaming',
+		providerAssetId: 'BINANCE:BTCUSDT',
+	})
+	expect(quoteResolver.projections.price(resolved)).toBe(6457001000000n)
+	expect(quoteResolver.projections.transport(resolved)).toBe('streaming')
+	expect(quoteResolver.projections.providerAssetId(resolved)).toBe('BINANCE:BTCUSDT')
+})

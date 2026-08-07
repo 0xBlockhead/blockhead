@@ -7,7 +7,6 @@ import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/TradingView/bindings.ts'
 import type {
 	TradingViewScannerColumn,
-	TradingViewScannerResponse,
 } from '$/sources/TradingView/Rest/types.ts'
 
 const tradingViewBinding = bindings[Source.TradingView_Rest][0]
@@ -39,5 +38,5 @@ export const tradingViewScannerFetch = async ({
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage(url, response))
 
-	return response.json<TradingViewScannerResponse>()
+	return response.json()
 }

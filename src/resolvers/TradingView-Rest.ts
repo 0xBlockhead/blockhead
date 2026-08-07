@@ -122,6 +122,9 @@ export default {
 						if (Math.trunc(quote.updateTimeSec * 1000) !== timestampMs)
 							throw new Error('TradingView_Rest: quote selector does not match the provider clock')
 
+						if (!Number.isFinite(quote.price))
+							throw new Error(`TradingView_Rest: non-finite price for ${market.ticker}`)
+
 						return {
 							price: BigInt(Math.round(quote.price * 1e8)),
 							transport: quote.updateMode,
