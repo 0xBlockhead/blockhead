@@ -93,6 +93,7 @@ const resolverLoaderEntries = [
 	[Source.HuggingFaceHub_Rest, () => import('./HuggingFaceHub-Rest.ts')],
 	[Source.Hyperliquid, () => import('./Hyperliquid.ts')],
 	[Source.HyperliquidDocs_Rest, () => import('./HyperliquidDocs-Rest.ts')],
+	[Source.InternetComputer_RosettaApi, () => import('./InternetComputer-RosettaApi.ts')],
 	[Source.Ipfs_Rest, () => import('./Ipfs-Rest.ts')],
 	[Source.KaspaExplorer, () => import('./KaspaExplorer.ts')],
 	[Source.L2Beat_Rest, () => import('./L2Beat-Rest.ts')],
