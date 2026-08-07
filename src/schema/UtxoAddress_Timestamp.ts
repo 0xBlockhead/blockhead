@@ -29,68 +29,76 @@ export default entity({
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.MempoolSpace_Rest,
+			Source.BitcoinCashNode_JsonRpc,
 			Source.Blockchair_Rest,
 			Source.DogecoinCore_JsonRpc,
-			Source.BitcoinCashNode_JsonRpc,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
 		],
 	},
 	fundedOutputCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.MempoolSpace_Rest,
 			Source.Blockchair_Rest,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
 		],
 	},
 	fundedValueSats: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.MempoolSpace_Rest,
 			Source.Blockchair_Rest,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
 		],
 	},
 	spentOutputCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.MempoolSpace_Rest,
 			Source.Blockchair_Rest,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
 		],
 	},
 	spentValueSats: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.MempoolSpace_Rest,
 			Source.Blockchair_Rest,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
 		],
 	},
 	transactionCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.MempoolSpace_Rest,
 			Source.Blockchair_Rest,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
 		],
 	},
 	unspentOutputCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.MempoolSpace_Rest,
+			Source.BitcoinCashNode_JsonRpc,
 			Source.Blockchair_Rest,
 			Source.DogecoinCore_JsonRpc,
-			Source.BitcoinCashNode_JsonRpc,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
 		],
 	},
 	mempoolTransactionCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.MempoolSpace_Rest,
 			Source.Blockchair_Rest,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
 		],
 	},
 })({

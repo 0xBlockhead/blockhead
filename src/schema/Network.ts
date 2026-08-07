@@ -703,18 +703,20 @@ export default entity({
 				entityType: EntityType.UtxoBlock,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.MempoolSpace_Rest,
+					Source.BitcoinCashNode_JsonRpc,
 					Source.Blockchair_Rest,
 					Source.DogecoinCore_JsonRpc,
-					Source.BitcoinCashNode_JsonRpc,
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
 				],
 			},
 			$$transactions: {
 				entityType: EntityType.UtxoTransaction,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.MempoolSpace_Rest,
 					Source.Blockchair_Rest,
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
 				],
 			},
 		}),

@@ -25,26 +25,29 @@ export default entity({
 		entityType: EntityType.UtxoAddress_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.MempoolSpace_Rest,
+			Source.BitcoinCashNode_JsonRpc,
 			Source.Blockchair_Rest,
 			Source.DogecoinCore_JsonRpc,
-			Source.BitcoinCashNode_JsonRpc,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
 		],
 	},
 	$$outputs: {
 		entityType: EntityType.UtxoOutput,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
-			Source.MempoolSpace_Rest,
+			Source.BitcoinCashNode_JsonRpc,
 			Source.Blockchair_Rest,
 			Source.DogecoinCore_JsonRpc,
-			Source.BitcoinCashNode_JsonRpc,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
 		],
 	},
 	$$transactions: {
 		entityType: EntityType.UtxoTransaction,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
+			Source.Esplora_Rest,
 			Source.MempoolSpace_Rest,
 		],
 	},

@@ -105,10 +105,11 @@
 		], pendingEntity)
 	)
 
-	const mempoolSpaceRestAndBlockchairRestSources = $derived(
+	const blockchairRestAndEsploraRestAndMempoolSpaceRestSources = $derived(
 		networkApplicableSources([
-			Source.MempoolSpace_Rest,
 			Source.Blockchair_Rest,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
 		], pendingEntity)
 	)
 
@@ -4037,15 +4038,16 @@
 		>
 			{#snippet Applicable(projection)}
 				{@const utxoChainActivityUtxoConsensusBlocksSources = networkApplicableSources([
-						Source.MempoolSpace_Rest,
+						Source.BitcoinCashNode_JsonRpc,
 						Source.Blockchair_Rest,
 						Source.DogecoinCore_JsonRpc,
-						Source.BitcoinCashNode_JsonRpc,
+						Source.Esplora_Rest,
+						Source.MempoolSpace_Rest,
 					], pendingEntity)}
 
 				{@const utxoChainActivitySections = [
 						...(
-							mempoolSpaceRestAndBlockchairRestSources.length > 0 ?
+							blockchairRestAndEsploraRestAndMempoolSpaceRestSources.length > 0 ?
 								[
 									{
 										id: 'utxo-consensus-observations',
@@ -4087,7 +4089,7 @@
 								selection={
 									selection
 									.$$timestamps({
-										sources: mempoolSpaceRestAndBlockchairRestSources,
+										sources: blockchairRestAndEsploraRestAndMempoolSpaceRestSources,
 										limit: 16,
 									})
 								}
@@ -4115,12 +4117,13 @@
 					</CollapsibleTabs>
 				{/if}
 				{@const utxoTransactionGraphUtxoExecutionMempoolSources = networkApplicableSources([
+						Source.Esplora_Rest,
 						Source.MempoolSpace_Rest,
 					], pendingEntity)}
 
 				{@const utxoTransactionGraphSections = [
 						...(
-							mempoolSpaceRestAndBlockchairRestSources.length > 0 ?
+							blockchairRestAndEsploraRestAndMempoolSpaceRestSources.length > 0 ?
 								[
 									{
 										id: 'utxo-execution-transactions',
@@ -4162,7 +4165,7 @@
 								selection={
 									projection
 									.$$transactions({
-										sources: mempoolSpaceRestAndBlockchairRestSources,
+										sources: blockchairRestAndEsploraRestAndMempoolSpaceRestSources,
 										limit: 16,
 									})
 								}

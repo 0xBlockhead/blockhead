@@ -134,10 +134,11 @@
 						selection
 						.$$outputs({
 							sources: [
-								Source.MempoolSpace_Rest,
+								Source.BitcoinCashNode_JsonRpc,
 								Source.Blockchair_Rest,
 								Source.DogecoinCore_JsonRpc,
-								Source.BitcoinCashNode_JsonRpc,
+								Source.Esplora_Rest,
+								Source.MempoolSpace_Rest,
 							],
 							limit: 16,
 						})
@@ -151,7 +152,16 @@
 
 			{#snippet SectionUtxoAddressTransactions({ id, label })}
 				<UtxoTransactionsView
-					selection={selection.$$transactions}
+					selection={
+						selection
+						.$$transactions({
+							sources: [
+								Source.Esplora_Rest,
+								Source.MempoolSpace_Rest,
+							],
+							limit: 16,
+						})
+					}
 					collapsible={false}
 					title={label}
 					emptyText='No transactions.'
@@ -187,10 +197,11 @@
 						selection
 						.$$timestamps({
 							sources: [
-								Source.MempoolSpace_Rest,
+								Source.BitcoinCashNode_JsonRpc,
 								Source.Blockchair_Rest,
 								Source.DogecoinCore_JsonRpc,
-								Source.BitcoinCashNode_JsonRpc,
+								Source.Esplora_Rest,
+								Source.MempoolSpace_Rest,
 							],
 							limit: 16,
 						})

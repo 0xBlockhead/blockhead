@@ -261,14 +261,26 @@ export default entity({
 			bestBlockHeight: {
 				primitiveType: type('bigint'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
+				],
 			},
 			bestBlockHash: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
+				],
 			},
 			bestBlockTimeMs: {
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
+				],
 			},
 			blockCount: {
 				primitiveType: type('bigint'),
@@ -289,10 +301,18 @@ export default entity({
 			mempoolTransactionCount: {
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
+				],
 			},
 			mempoolSizeBytes: {
 				primitiveType: type('bigint'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
+				],
 			},
 			mempoolTps: {
 				primitiveType: type('number'),
@@ -309,6 +329,10 @@ export default entity({
 			suggestedTransactionFeePerByteSats: {
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Esplora_Rest,
+					Source.MempoolSpace_Rest,
+				],
 			},
 			blockchainSizeBytes: {
 				primitiveType: type('bigint'),
