@@ -67,6 +67,7 @@ export default entity({
 		entityType: EntityType.YoutubeVideo_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
+			Source.Piped_Rest,
 			Source.Youtube_Rest,
 		],
 	},

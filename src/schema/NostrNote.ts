@@ -120,6 +120,7 @@ export default entity({
 		defaultSources: [
 			Source.Constants_Internal,
 			Source.NostrRelay_WebSocket,
+			Source.Primal_Rest,
 		],
 	},
 	$$reactions: {
@@ -128,6 +129,7 @@ export default entity({
 		defaultSources: [
 			Source.Constants_Internal,
 			Source.NostrRelay_WebSocket,
+			Source.Primal_Rest,
 		],
 	},
 })({

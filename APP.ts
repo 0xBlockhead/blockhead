@@ -5984,7 +5984,7 @@ export const schema = {
 					entityType: EntityType.NostrArticle,
 					defaultSources: [Source.Constants_Internal],
 				},
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalNostrNetwork_Timestamp },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalNostrNetwork_Timestamp, defaultSources: [Source.Primal_Rest] },
 			})({
 				selectors: {
 					"Scope": ["scope"],
@@ -6351,6 +6351,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType._GlobalYoutubeNetwork_Timestamp,
+					defaultSources: [Source.Piped_Rest, Source.Youtube_Rest],
 				},
 			})({
 				selectors: {
@@ -50893,14 +50894,14 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrNote,
-					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket, Source.Primal_Rest],
 				},
 				"$$reactions": {
 					label: "Reactions",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrReaction,
-					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket, Source.Primal_Rest],
 				},
 			})({
 				selectors: {
@@ -51025,21 +51026,21 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrNote,
-					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket],
+					defaultSources: [Source.Constants_Internal, Source.NostrRelay_WebSocket, Source.Primal_Rest],
 				},
 				"$$articles": {
 					label: "Articles",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrArticle,
-					defaultSources: [Source.NostrRelay_WebSocket],
+					defaultSources: [Source.NostrRelay_WebSocket, Source.Primal_Rest],
 				},
 				"$$reposts": {
 					label: "Reposts",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.NostrRepost,
-					defaultSources: [Source.NostrRelay_WebSocket],
+					defaultSources: [Source.NostrRelay_WebSocket, Source.Primal_Rest],
 				},
 			})({
 				selectors: {
@@ -68853,7 +68854,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.YoutubeVideo_Timestamp,
-					defaultSources: [Source.Youtube_Rest],
+					defaultSources: [Source.Piped_Rest, Source.Youtube_Rest],
 				},
 				"$$comments": {
 					label: "Comments",
@@ -105125,6 +105126,10 @@ export const app = {
 			{
 				source: Source.KaspaExplorer,
 				path: "src/resolvers/KaspaExplorer.ts",
+			},
+			{
+				source: Source.KingnodesDydxNode,
+				path: "src/resolvers/Kingnodes-Rest.ts",
 			},
 			{
 				source: Source.L2Beat_Rest,

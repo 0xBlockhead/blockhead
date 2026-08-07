@@ -39,6 +39,7 @@ export default entity({
 		defaultSources: [
 			Source.Constants_Internal,
 			Source.NostrRelay_WebSocket,
+			Source.Primal_Rest,
 		],
 	},
 	$$articles: {
@@ -46,6 +47,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.NostrRelay_WebSocket,
+			Source.Primal_Rest,
 		],
 	},
 	$$reposts: {
@@ -53,6 +55,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.NostrRelay_WebSocket,
+			Source.Primal_Rest,
 		],
 	},
 })({

@@ -98,6 +98,7 @@ const resolverLoaderEntries = [
 	[Source.InternetComputer_RosettaApi, () => import('./InternetComputer-RosettaApi.ts')],
 	[Source.Ipfs_Rest, () => import('./Ipfs-Rest.ts')],
 	[Source.KaspaExplorer, () => import('./KaspaExplorer.ts')],
+	[Source.KingnodesDydxNode, () => import('./Kingnodes-Rest.ts')],
 	[Source.L2Beat_Rest, () => import('./L2Beat-Rest.ts')],
 	[Source.LayerZeroScan_Rest, () => import('./LayerZeroScan-Rest.ts')],
 	[Source.Lens_Graphql, () => import('./Lens-Graphql.ts')],

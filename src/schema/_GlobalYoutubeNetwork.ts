@@ -46,6 +46,10 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType._GlobalYoutubeNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Piped_Rest,
+			Source.Youtube_Rest,
+		],
 	},
 })({
 	selectors: {

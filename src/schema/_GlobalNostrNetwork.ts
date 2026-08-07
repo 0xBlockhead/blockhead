@@ -99,6 +99,9 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType._GlobalNostrNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Primal_Rest,
+		],
 	},
 })({
 	selectors: {
