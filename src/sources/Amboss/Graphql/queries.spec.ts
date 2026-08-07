@@ -62,7 +62,7 @@ describe('Amboss public Lightning graph queries', () => {
 		})).rejects.toThrow('missing graph identity')
 	})
 
-	it('rejects lossy node capacity and empty addresses', async () => {
+	it('arktype fail-closes empty addresses and lossy node capacity', async () => {
 		queryAmboss.mockResolvedValue({
 			getNode: {
 				graph_info: {
@@ -88,7 +88,7 @@ describe('Amboss public Lightning graph queries', () => {
 
 		await expect(getNode({
 			publicKey,
-		})).rejects.toThrow('node address must not be empty')
+		})).rejects.toThrow('invalid node response envelope')
 
 		queryAmboss.mockResolvedValue({
 			getNode: {
@@ -115,7 +115,7 @@ describe('Amboss public Lightning graph queries', () => {
 
 		await expect(getNode({
 			publicKey,
-		})).rejects.toThrow('invalid or lossy node capacity')
+		})).rejects.toThrow('invalid node response envelope')
 	})
 
 	it('accepts either the exact long or short channel identity', async () => {
@@ -217,7 +217,7 @@ describe('Amboss public Lightning graph queries', () => {
 		})).rejects.toThrow('invalid channel closed_date')
 	})
 
-	it('rejects channel envelopes missing graph identity or capacity', async () => {
+	it('arktype fail-closes channel envelopes missing graph identity or capacity', async () => {
 		queryAmboss.mockResolvedValue({
 			getEdge: {
 				long_channel_id: '123',
@@ -244,6 +244,10 @@ describe('Amboss public Lightning graph queries', () => {
 						node2_pub: peerPublicKey,
 						node1_policy: null,
 						node2_policy: null,
+						closed_info: null,
+						transactions: {
+							close_transaction: null,
+						},
 					},
 				},
 			},
@@ -251,7 +255,7 @@ describe('Amboss public Lightning graph queries', () => {
 
 		await expect(getEdge({
 			channelId: '123',
-		})).rejects.toThrow('invalid or lossy channel capacity')
+		})).rejects.toThrow('invalid channel response envelope')
 	})
 
 	it('rejects mismatched channel identity', async () => {
@@ -269,6 +273,10 @@ describe('Amboss public Lightning graph queries', () => {
 						node2_pub: peerPublicKey,
 						node1_policy: null,
 						node2_policy: null,
+						closed_info: null,
+						transactions: {
+							close_transaction: null,
+						},
 					},
 				},
 			},
@@ -295,6 +303,11 @@ describe('Amboss public Lightning graph queries', () => {
 									last_update: 1_700_000_000,
 									node1_pub: publicKey,
 									node2_pub: peerPublicKey,
+									node1_policy: {
+										fee_rate_milli_msat: '100',
+										disabled: false,
+									},
+									node2_policy: null,
 								},
 							],
 							pagination: {
@@ -315,6 +328,9 @@ describe('Amboss public Lightning graph queries', () => {
 			channel_list: {
 				list: [{
 					long_channel_id: '123',
+					node1_policy: {
+						fee_rate_milli_msat: '100',
+					},
 				}],
 			},
 		})
@@ -334,6 +350,8 @@ describe('Amboss public Lightning graph queries', () => {
 									last_update: 1_700_000_000,
 									node1_pub: publicKey,
 									node2_pub: peerPublicKey,
+									node1_policy: null,
+									node2_policy: null,
 								},
 							],
 							pagination: {
@@ -349,7 +367,7 @@ describe('Amboss public Lightning graph queries', () => {
 		await expect(getNodeChannels({
 			publicKey,
 			limit: 10,
-		})).rejects.toThrow('invalid channel funding point')
+		})).rejects.toThrow('invalid node channels response envelope')
 	})
 
 	it('rejects malformed or duplicate popular node identities', async () => {
@@ -361,6 +379,14 @@ describe('Amboss public Lightning graph queries', () => {
 		})
 
 		await expect(getPopularNodePubkeys()).rejects.toThrow('duplicate public key')
+
+		queryAmboss.mockResolvedValue({
+			getPopularNodes: [
+				'not-a-pubkey',
+			],
+		})
+
+		await expect(getPopularNodePubkeys()).rejects.toThrow('invalid popular nodes response envelope')
 	})
 
 	it('keeps the Amboss GraphQL binding on the public API locator', () => {

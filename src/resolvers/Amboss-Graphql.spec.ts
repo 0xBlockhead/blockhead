@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannelStatus.ts'
@@ -150,7 +151,7 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 		])
 	})
 
-	it('lists node channels with authoritative resolveCount and continuation', async () => {
+	it('lists node channels with enrolled leftovers, resolveCount, and continuation', async () => {
 		getNodeChannels.mockResolvedValue({
 			num_channels: 2,
 			channel_list: {
@@ -163,6 +164,11 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 						last_update: 1_700_000_000,
 						node1_pub: publicKey,
 						node2_pub: peerPublicKey,
+						node1_policy: {
+							fee_rate_milli_msat: '250',
+							disabled: false,
+						},
+						node2_policy: null,
 					},
 				],
 				pagination: {
@@ -187,6 +193,34 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 				[EntityMetaKey.Selector]: {
 					$network: lightningNetwork,
 					channelId: '123',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.LightningChannel, [], 'shortChannelId')]: '1x2x3',
+					[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingTransactionId')]: 'fundingtxid',
+					[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingOutputIndex')]: 0,
+					[entityFieldAddressKey(EntityType.LightningChannel, [], '$node1')]: {
+						[EntityMetaKey.Selector]: {
+							$network: lightningNetwork,
+							publicKey: peerPublicKey,
+						},
+					},
+					[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: [
+						{
+							[EntityMetaKey.Selector]: {
+								$channel: {
+									$network: lightningNetwork,
+									channelId: '123',
+								},
+								timestampMs: 1_700_000_000_000,
+								source: Source.Amboss_Graphql,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]: 1000000n,
+								[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]: 1_700_000_000_000,
+								[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]: 250,
+							},
+						},
+					],
 				},
 			},
 		])
@@ -265,6 +299,43 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 		expect(channelTimestampResolver.projections.feeRatePpm(timestampSnapshot)).toBe(250)
 		expect(channelTimestampResolver.projections.closingTransactionId(timestampSnapshot)).toBeUndefined()
 		expect(channelTimestampResolver.projections.closedAtMs(timestampSnapshot)).toBeUndefined()
+	})
+
+	it('falls back to node2 policy fee rate when node1 policy is absent', async () => {
+		getEdge.mockResolvedValue({
+			long_channel_id: '123',
+			short_channel_id: '1x2x3',
+			graph: {
+				info: {
+					capacity: '1000000',
+					is_closed: false,
+					last_update: '1700000000',
+					chan_point: 'abcdef0123456789:1',
+					node1_pub: publicKey,
+					node2_pub: peerPublicKey,
+					node1_policy: null,
+					node2_policy: {
+						fee_rate_milli_msat: '400',
+						disabled: false,
+					},
+					closed_info: null,
+					transactions: {
+						close_transaction: null,
+					},
+				},
+			},
+		})
+
+		const timestampSnapshot = await channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
+			$channel: {
+				$network: lightningNetwork,
+				channelId: '123',
+			},
+			timestampMs: 1_700_000_000_000,
+			source: Source.Amboss_Graphql,
+		}, resolverContext)
+
+		expect(channelTimestampResolver.projections.feeRatePpm(timestampSnapshot)).toBe(400)
 	})
 
 	it('projects enrolled closing clocks from Amboss closed_info', async () => {

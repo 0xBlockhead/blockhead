@@ -5,12 +5,14 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannelStatus.ts'
 import { Source } from '$/sources/Source.ts'
+import { parseAmbossChannelFundingPoint } from '$/sources/Amboss/Graphql/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -28,7 +30,9 @@ const timestampMsFromNodeSeconds = (seconds: number) => (
 	Math.round(seconds) * 1000
 )
 
-const timestampMsFromChannelWire = (value: string) => {
+const timestampMsFromChannelWire = (value: string | number) => {
+	if (typeof value === 'number')
+		return Math.round(value) * 1000
 	if (/^(0|[1-9][0-9]*)$/.test(value))
 		return Number(value) * 1000
 
@@ -43,6 +47,18 @@ const statusFromAmboss = (isClosed: boolean) => (
 		LightningChannelStatus.Closed
 	:
 		LightningChannelStatus.Open
+)
+
+const feeRatePpmFromAmbossPolicy = (
+	policy: {
+		fee_rate_milli_msat: number | string
+		disabled: boolean
+	} | null | undefined
+) => (
+	policy == null || policy.disabled ?
+		undefined
+	:
+		Number(policy.fee_rate_milli_msat)
 )
 
 const nodeSnapshotFromAmbossNode = (
@@ -62,10 +78,10 @@ const nodeSnapshotFromAmbossNode = (
 			channelCount: channels.num_channels,
 		}),
 		updatedAtMs: timestampMsFromNodeSeconds(graphNode.last_update),
-		...(countryCode != null && {
+		...(countryCode != null && countryCode !== '' && {
 			countryCode,
 		}),
-		...(city != null && {
+		...(city != null && city !== '' && {
 			city,
 		}),
 		networkAddresses: graphNode.addresses.map((address) => address.addr),
@@ -89,13 +105,17 @@ const channelTimestampSnapshotFromAmbossEdge = (
 		closedInfo?.close_transaction_id
 		?? closeTransaction?.id
 	)
+	const feeRatePpm = (
+		feeRatePpmFromAmbossPolicy(edgeInfo.node1_policy)
+		?? feeRatePpmFromAmbossPolicy(edgeInfo.node2_policy)
+	)
 
 	return {
 		status: statusFromAmboss(edgeInfo.is_closed),
 		capacitySats: BigInt(edgeInfo.capacity),
 		updatedAtMs: timestampMsFromChannelWire(edgeInfo.last_update),
-		...(edgeInfo.node1_policy != null && {
-			feeRatePpm: Number(edgeInfo.node1_policy.fee_rate_milli_msat),
+		...(feeRatePpm != null && {
+			feeRatePpm,
 		}),
 		...(closingTransactionId != null && closingTransactionId !== '' && {
 			closingTransactionId,
@@ -112,24 +132,6 @@ const channelTimestampSnapshotFromAmbossEdge = (
 	}
 }
 
-const channelFundingFromChanPoint = (
-	chanPoint: string
-) => {
-	const [fundingTransactionId, outputIndex] = chanPoint.split(':')
-	if (
-		fundingTransactionId == null
-		|| fundingTransactionId === ''
-		|| outputIndex == null
-		|| !/^(0|[1-9][0-9]*)$/.test(outputIndex)
-	)
-		throw new Error('Amboss_Graphql: invalid channel funding point')
-
-	return {
-		fundingTransactionId,
-		fundingOutputIndex: Number(outputIndex),
-	}
-}
-
 const ambossChannelListOffset = (
 	context: import('$/resolvers/$resolvers.ts').ResolverContext
 ) => {
@@ -142,6 +144,40 @@ const ambossChannelListOffset = (
 
 	return offset
 }
+
+const peerPublicKeyFromAmbossChannel = (
+	publicKey: string,
+	channel: {
+		node1_pub: string
+		node2_pub: string
+	}
+) => (
+	channel.node1_pub === publicKey ?
+		channel.node2_pub
+	:
+		channel.node1_pub
+)
+
+const localPolicyFromAmbossChannel = (
+	publicKey: string,
+	channel: {
+		node1_pub: string
+		node2_pub: string
+		node1_policy?: {
+			fee_rate_milli_msat: number | string
+			disabled: boolean
+		} | null
+		node2_policy?: {
+			fee_rate_milli_msat: number | string
+			disabled: boolean
+		} | null
+	}
+) => (
+	channel.node1_pub === publicKey ?
+		channel.node1_policy
+	:
+		channel.node2_policy
+)
 
 export default {
 	source: Source.Amboss_Graphql,
@@ -223,12 +259,57 @@ export default {
 							offset,
 							limit,
 							channelCount: channels.num_channels,
-							rows: channels.channel_list.list.map((channel) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									channelId: channel.long_channel_id,
-								},
-							})),
+							rows: channels.channel_list.list.map((channel) => {
+								const funding = parseAmbossChannelFundingPoint(channel.chan_point)
+								const peerPublicKey = peerPublicKeyFromAmbossChannel(publicKey, channel)
+								const feeRatePpm = feeRatePpmFromAmbossPolicy(
+									localPolicyFromAmbossChannel(publicKey, channel)
+								)
+								const timestampMs = timestampMsFromChannelWire(channel.last_update)
+
+								return {
+									[EntityMetaKey.Selector]: {
+										$network,
+										channelId: channel.long_channel_id,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.LightningChannel, [], 'shortChannelId')]:
+											channel.short_channel_id,
+										[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingTransactionId')]:
+											funding.fundingTransactionId,
+										[entityFieldAddressKey(EntityType.LightningChannel, [], 'fundingOutputIndex')]:
+											funding.fundingOutputIndex,
+										[entityFieldAddressKey(EntityType.LightningChannel, [], '$node1')]: {
+											[EntityMetaKey.Selector]: {
+												$network,
+												publicKey: peerPublicKey,
+											},
+										},
+										[entityFieldAddressKey(EntityType.LightningChannel, [], '$$timestamps')]: [
+											{
+												[EntityMetaKey.Selector]: {
+													$channel: {
+														$network,
+														channelId: channel.long_channel_id,
+													},
+													timestampMs,
+													source: Source.Amboss_Graphql,
+												},
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'capacitySats')]:
+														BigInt(channel.capacity),
+													[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'updatedAtMs')]:
+														timestampMs,
+													...(feeRatePpm != null && {
+														[entityFieldAddressKey(EntityType.LightningChannel_Timestamp, [], 'feeRatePpm')]:
+															feeRatePpm,
+													}),
+												},
+											},
+										],
+									},
+								}
+							}),
 						}
 					},
 				}
@@ -267,7 +348,7 @@ export default {
 							channelId,
 						})
 						const edgeInfo = edge.graph.info
-						const funding = channelFundingFromChanPoint(edgeInfo.chan_point)
+						const funding = parseAmbossChannelFundingPoint(edgeInfo.chan_point)
 
 						return {
 							[EntityMetaKey.Selector]: {
