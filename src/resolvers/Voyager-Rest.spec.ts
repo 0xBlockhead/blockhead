@@ -430,6 +430,22 @@ describe('Voyager Rest resolvers', () => {
 				$network: starknetNetwork,
 				address: '0x7b7',
 			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetContract, [], '$$accountStates')]: [{
+					[EntityMetaKey.Selector]: {
+						$contract: {
+							$network: starknetNetwork,
+							address: '0x7b7',
+						},
+						blockNumber: 10n,
+						source: Source.Voyager,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StarknetAccount_Timestamp, [], 'classHash')]: '0x360',
+						[entityFieldAddressKey(EntityType.StarknetAccount_Timestamp, [], 'found')]: true,
+					},
+				}],
+			},
 		}])
 		expect(contractsProjection.continuation?.(contractsPage)).toEqual({
 			operation: 'network-contracts',
@@ -440,6 +456,53 @@ describe('Voyager Rest resolvers', () => {
 			limit: 16,
 			page: 1,
 		})
+
+		listContracts.mockResolvedValueOnce({
+			items: [],
+			lastPage: 0,
+		})
+		await networkContractsResolver.resolve.Network.resolve(starknetNetwork, {
+			...context,
+			filters: [{
+				fieldPath: ['type'],
+				operator: 'eq',
+				value: 'erc20',
+			}],
+		})
+		expect(listContracts).toHaveBeenLastCalledWith({
+			limit: 16,
+			page: 1,
+			type: 'erc20',
+		})
+
+		await expect(
+			networkContractsResolver.resolve.Network.resolve(starknetNetwork, {
+				...context,
+				filters: [{
+					fieldPath: ['type'],
+					operator: 'eq',
+					value: 'not-a-voyager-type',
+				}],
+			})
+		).rejects.toThrow('Voyager_Rest: unsupported contract type filter')
+
+		await expect(
+			networkContractsResolver.resolve.Network.resolve(starknetNetwork, {
+				...context,
+				filters: [
+					{
+						fieldPath: ['type'],
+						operator: 'eq',
+						value: 'account',
+					},
+					{
+						fieldPath: ['type'],
+						operator: 'eq',
+						value: 'proxy',
+					},
+				],
+			})
+		).rejects.toThrow('Voyager_Rest: conflicting type filters')
 
 		listClasses.mockResolvedValueOnce({
 			items: [{

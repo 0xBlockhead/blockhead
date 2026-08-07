@@ -1,5 +1,8 @@
 import { networkBySlug } from '$/constants/Network.ts'
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ResolverContext,
+} from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
@@ -103,6 +106,45 @@ const continuationPage = (
 	if (!Number.isSafeInteger(page) || page < 1)
 		throw new Error('Voyager_Rest: malformed page continuation')
 	return page
+}
+
+const voyagerContractTypes = [
+	'account',
+	'erc20',
+	'erc721',
+	'erc1155',
+	'unknown',
+	'proxy',
+] as const
+
+type VoyagerContractType = typeof voyagerContractTypes[number]
+
+const isVoyagerContractType = (
+	value: string
+): value is VoyagerContractType => (
+	voyagerContractTypes.some((contractType) => contractType === value)
+)
+
+const contractTypeEqualityFilter = (
+	context: ResolverContext
+) => {
+	const types = context.filters.flatMap((filter) => (
+		filter.fieldPath.length === 1
+		&& filter.fieldPath[0] === 'type'
+		&& filter.operator === 'eq'
+		&& typeof filter.value === 'string' ?
+			[filter.value]
+		:
+			[]
+	))
+	if (types.length > 1)
+		throw new Error('Voyager_Rest: conflicting type filters')
+	const type = types[0]
+	if (type == null)
+		return undefined
+	if (!isVoyagerContractType(type))
+		throw new Error(`Voyager_Rest: unsupported contract type filter ${type}`)
+	return type
 }
 
 const projectBlockSnapshot = (
@@ -944,6 +986,7 @@ export default {
 						assertStarknetMainnet(starknetNetwork.$network)
 						const limit = Math.min(resolverContextRowLimit(context), 100)
 						const page = continuationPage(context.providerContinuationToken)
+						const type = contractTypeEqualityFilter(context)
 						const { listContracts } = await import('$/sources/Voyager/Rest/queries.ts')
 						return {
 							limit,
@@ -951,6 +994,7 @@ export default {
 							response: await listContracts({
 								limit,
 								page,
+								...(type != null && { type }),
 							}),
 						}
 					},
@@ -958,12 +1002,33 @@ export default {
 			},
 		})({
 			$$contracts: {
-				select: ({ response }, starknetNetwork) => response.items.map((item) => ({
-					[EntityMetaKey.Selector]: {
-						$network: starknetNetwork,
-						address: canonicalFelt(item.address, 'contract address'),
-					},
-				})),
+				select: ({ response }, starknetNetwork) => response.items.map((item) => {
+					const address = canonicalFelt(item.address, 'contract address')
+					return {
+						[EntityMetaKey.Selector]: {
+							$network: starknetNetwork,
+							address,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.StarknetContract, [], '$$accountStates')]: [{
+								[EntityMetaKey.Selector]: {
+									$contract: {
+										$network: starknetNetwork,
+										address,
+									},
+									blockNumber: BigInt(item.blockNumber),
+									source: Source.Voyager,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.StarknetAccount_Timestamp, [], 'classHash')]: (
+										canonicalFelt(item.classHash, 'class hash')
+									),
+									[entityFieldAddressKey(EntityType.StarknetAccount_Timestamp, [], 'found')]: true,
+								},
+							}],
+						},
+					}
+				}),
 				continuation: ({ limit, page, response }) => (
 					limit === 0 || page >= response.lastPage || response.items.length === 0 ?
 						{
