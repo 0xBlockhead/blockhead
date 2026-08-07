@@ -13,6 +13,7 @@ import {
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
@@ -22,6 +23,7 @@ import type {
 	WormholescanVaa,
 	WormholescanWormholeChainId,
 } from '$/sources/Wormholescan/Rest/types.ts'
+import { wormholescanNonNegativeDecimalString } from '$/sources/Wormholescan/Rest/types.ts'
 
 const wormholescanTransferIdParts = (
 	transferId: string
@@ -136,14 +138,44 @@ const bigintAmountFromWire = (
 	return BigInt(value)
 }
 
+const nonNegativeUsdFee = (
+	value: string | undefined
+) => {
+	if (value == null || value === '')
+		return undefined
+	try {
+		return wormholescanNonNegativeDecimalString.assert(value)
+	} catch {
+		throw new Error(`Wormholescan_Rest: invalid USD fee ${value}`)
+	}
+}
+
+const wormholeCoinInstanceRef = (
+	wormholeChainId: WormholescanWormholeChainId | undefined,
+	tokenAddress: string | undefined
+) => {
+	const network = eip155NetworkRef(wormholeChainId)
+	const address = evmAddressFromWormholeWire(tokenAddress)
+	if (network == null || address == null)
+		return undefined
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$network: network[EntityMetaKey.Selector],
+			type: CoinInstanceType.Erc20Token,
+			$contract: {
+				$network: network[EntityMetaKey.Selector],
+				address,
+			},
+		},
+	}
+}
+
 const bridgeTransferSnapshotFromOperation = (
 	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>,
 	operation: WormholescanOperation
 ) => {
 	const transferId = operation.id
-	if (transferId == null || transferId === '')
-		throw new Error('Wormholescan_Rest: operation missing id')
-
 	const properties = operation.content?.standarizedProperties
 	const fromWormholeChainId = (
 		presentWormholeChainId(properties?.fromChain)
@@ -167,6 +199,11 @@ const bridgeTransferSnapshotFromOperation = (
 		?? evmAddressFromWormholeWire(operation.targetChain?.to)
 	)
 	const amountIn = bigintAmountFromWire(properties?.amount)
+	const fromToken = wormholeCoinInstanceRef(
+		properties?.tokenChain ?? fromWormholeChainId,
+		properties?.tokenAddress
+	)
+	const bridgeFeeUsd = nonNegativeUsdFee(operation.sourceChain?.feeUSD)
 	const observedAtMs = (
 		timestampMsFromIso(operation.targetChain?.timestamp)
 		?? timestampMsFromIso(operation.sourceChain?.timestamp)
@@ -209,6 +246,9 @@ const bridgeTransferSnapshotFromOperation = (
 		...(toNetwork != null && {
 			$toNetwork: toNetwork,
 		}),
+		...(fromToken != null && {
+			$fromToken: fromToken,
+		}),
 		...(amountIn != null && {
 			amountIn,
 		}),
@@ -221,6 +261,9 @@ const bridgeTransferSnapshotFromOperation = (
 			:
 				BridgeAssetOutcome.MessageOnly
 		),
+		...(bridgeFeeUsd != null && {
+			bridgeFeeUsd,
+		}),
 		$$timestamps: [{
 			[EntityMetaKey.Selector]: {
 				$transfer: transfer,
@@ -270,11 +313,9 @@ const wormholeVaaSnapshotFromWire = (
 		throw new Error('Wormholescan_Rest: VAA missing digest')
 	if (vaa.guardianSetIndex == null || !Number.isSafeInteger(vaa.guardianSetIndex))
 		throw new Error('Wormholescan_Rest: VAA missing guardian set index')
-	if (vaa.timestamp == null || vaa.timestamp === '')
-		throw new Error('Wormholescan_Rest: VAA missing timestamp')
 	if (
 		vaa.emitterChain !== emitterChain
-		|| vaa.emitterAddr?.toLowerCase() !== emitter.toLowerCase()
+		|| vaa.emitterAddr.toLowerCase() !== emitter.toLowerCase()
 		|| String(vaa.sequence) !== sequence
 		|| vaa.id !== `${emitterChain}/${vaa.emitterAddr}/${vaa.sequence}`
 	)
@@ -331,12 +372,17 @@ export default {
 			$recipient: (transfer) => transfer.$recipient,
 			$fromNetwork: (transfer) => transfer.$fromNetwork,
 			$toNetwork: (transfer) => transfer.$toNetwork,
+			$fromToken: (transfer) => transfer.$fromToken,
 			amountIn: (transfer) => transfer.amountIn,
 			railId: (transfer) => transfer.railId,
 			settlementModel: (transfer) => transfer.settlementModel,
 			verificationModel: (transfer) => transfer.verificationModel,
 			assetOutcome: (transfer) => transfer.assetOutcome,
-			$$timestamps: (transfer) => transfer.$$timestamps,
+			bridgeFeeUsd: (transfer) => transfer.bridgeFeeUsd,
+			$$timestamps: {
+				select: (transfer) => transfer.$$timestamps,
+				resolveCount: (transfer) => transfer.$$timestamps.length,
+			},
 		}),
 
 		defineResolver({
@@ -352,6 +398,15 @@ export default {
 							throw new Error(`Wormholescan_Rest: unsupported bridge transfer timestamp source ${source}`)
 
 						const operation = await loadOperationForTransfer($transfer)
+						const observedAtMs = (
+							timestampMsFromIso(operation.targetChain?.timestamp)
+							?? timestampMsFromIso(operation.sourceChain?.timestamp)
+						)
+						if (observedAtMs == null)
+							throw new Error('Wormholescan_Rest: operation missing timestamp')
+						if (observedAtMs !== timestampMs)
+							throw new Error('Wormholescan_Rest: observation clock mismatch')
+
 						const destinationTxHash = evmTxHashFromWormholeWire(
 							operation.targetChain?.transaction?.txHash
 						)
@@ -360,6 +415,8 @@ export default {
 							operation.targetChain?.status
 							?? operation.sourceChain?.status
 						)
+						const fillGasFee = bigintAmountFromWire(operation.targetChain?.fee)
+						const fillGasFeeUsd = nonNegativeUsdFee(operation.targetChain?.feeUSD)
 
 						return {
 							$transfer: {
@@ -370,6 +427,8 @@ export default {
 							...(status != null && { status }),
 							...(destinationTxHash != null && { destinationTxHash }),
 							...(completedAt != null && { completedAt }),
+							...(fillGasFee != null && { fillGasFee }),
+							...(fillGasFeeUsd != null && { fillGasFeeUsd }),
 						}
 					},
 				},
@@ -381,6 +440,8 @@ export default {
 			status: (observation) => observation.status,
 			destinationTxHash: (observation) => observation.destinationTxHash,
 			completedAt: (observation) => observation.completedAt,
+			fillGasFee: (observation) => observation.fillGasFee,
+			fillGasFeeUsd: (observation) => observation.fillGasFeeUsd,
 		}),
 
 		defineResolver({

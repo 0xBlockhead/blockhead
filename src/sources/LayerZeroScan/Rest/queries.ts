@@ -8,27 +8,56 @@ import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/LayerZeroScan/bindings.ts'
 import {
 	layerZeroMessageStatusByName,
-	layerZeroMessageStatuses,
 } from '$/sources/LayerZeroScan/Rest/constants.ts'
-import type { paths } from '$/sources/LayerZeroScan/OpenApi/openapi.d.ts'
+import type {
+	LayerZeroDestinationTransaction,
+	LayerZeroMessage,
+	LayerZeroMessagesResponse,
+	LayerZeroSourceTransaction,
+} from '$/sources/LayerZeroScan/Rest/types.ts'
+import {
+	layerZeroMessagesResponseEnvelope,
+} from '$/sources/LayerZeroScan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-type LatestMessagesResponse = paths['/messages/latest']['get']['responses'][200]['content']['application/json']
-type PathwayMessagesResponse = paths['/messages/pathway/{pathwayId}']['get']['responses'][200]['content']['application/json']
-type TransactionMessagesResponse = paths['/messages/tx/{tx}']['get']['responses'][200]['content']['application/json']
-type OAppMessagesResponse = paths['/messages/oapp/{eid}/{address}']['get']['responses'][200]['content']['application/json']
-type GuidMessagesResponse = paths['/messages/guid/{guid}']['get']['responses'][200]['content']['application/json']
-type StatusMessagesResponse = paths['/messages/status/{status}']['get']['responses'][200]['content']['application/json']
-type WalletMessagesResponse = paths['/messages/wallet/{srcAddress}']['get']['responses'][200]['content']['application/json']
-type LayerZeroMessage = LatestMessagesResponse['data'][number]
-type LayerZeroSourceTransaction = NonNullable<NonNullable<LayerZeroMessage['source']>['tx']>
-type LayerZeroDestinationTransaction = NonNullable<NonNullable<LayerZeroMessage['destination']>['tx']>
-type LayerZeroMessageStatus = (typeof layerZeroMessageStatuses)[number]['name']
+type LayerZeroMessageStatus = keyof typeof layerZeroMessageStatusByName
 
 const guidPattern = /^0x[0-9a-fA-F]{64}$/
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const isoDatePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/
 const binding = bindings[Source.LayerZeroScan_Rest][0]
+
+const omitUndefinedJson = (
+	value: unknown
+): unknown => {
+	if (Array.isArray(value))
+		return value.map(omitUndefinedJson)
+	if (value != null && typeof value === 'object')
+		return Object.fromEntries(
+			Object.entries(value)
+				.filter(([, entry]) => entry !== undefined)
+				.map(([key, entry]) => [
+					key,
+					omitUndefinedJson(entry),
+				])
+		)
+	return value
+}
+
+const assertEnvelope = <_Value>(
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(omitUndefinedJson(value))
+	} catch {
+		throw new Error(`LayerZeroScan_Rest: invalid ${label} response envelope`)
+	}
+	return value as _Value
+}
 
 const assertMessageStatus = (status: string | undefined) => {
 	if (status == null || !(status in layerZeroMessageStatusByName))
@@ -61,15 +90,9 @@ const assertIsoBound = (value: string, name: string) => {
 }
 
 const assertSourceTransaction = (transaction: LayerZeroSourceTransaction) => {
-	if (transaction.txHash == null)
-		throw new Error('LayerZeroScan_Rest: missing source transaction hash')
-
 	assertOpaquePathAtom(transaction.txHash, 'transaction hash')
-	if (transaction.blockNumber == null || !integerStringPattern.test(transaction.blockNumber))
+	if (!integerStringPattern.test(transaction.blockNumber))
 		throw new Error('LayerZeroScan_Rest: invalid block number')
-	if (transaction.blockTimestamp == null)
-		throw new Error('LayerZeroScan_Rest: missing block timestamp')
-
 	assertTimestampSeconds(transaction.blockTimestamp, 'block timestamp')
 	if (transaction.readinessTimestamp != null)
 		assertTimestampSeconds(transaction.readinessTimestamp, 'readiness timestamp')
@@ -85,29 +108,13 @@ const assertSourceTransaction = (transaction: LayerZeroSourceTransaction) => {
 }
 
 const assertDestinationTransaction = (transaction: LayerZeroDestinationTransaction) => {
-	if (transaction.txHash == null)
-		throw new Error('LayerZeroScan_Rest: missing destination transaction hash')
-
 	assertOpaquePathAtom(transaction.txHash, 'transaction hash')
-	if (transaction.blockNumber == null || !Number.isSafeInteger(transaction.blockNumber) || transaction.blockNumber < 0)
+	if (!Number.isSafeInteger(transaction.blockNumber) || transaction.blockNumber < 0)
 		throw new Error('LayerZeroScan_Rest: invalid destination block number')
-	if (transaction.blockTimestamp == null)
-		throw new Error('LayerZeroScan_Rest: missing destination block timestamp')
-
 	assertTimestampSeconds(transaction.blockTimestamp, 'block timestamp')
 }
 
 const assertMessage = (message: LayerZeroMessage) => {
-	if (
-		message.pathway?.srcEid == null
-		|| message.pathway.dstEid == null
-		|| message.pathway.sender?.address == null
-		|| message.pathway.receiver?.address == null
-		|| message.pathway.id == null
-		|| message.pathway.nonce == null
-	)
-		throw new Error('LayerZeroScan_Rest: incomplete pathway identity')
-
 	assertEndpointId(message.pathway.srcEid)
 	assertEndpointId(message.pathway.dstEid)
 	if (!Number.isSafeInteger(message.pathway.nonce) || message.pathway.nonce < 0)
@@ -121,7 +128,7 @@ const assertMessage = (message: LayerZeroMessage) => {
 		].join('-')
 	)
 		throw new Error('LayerZeroScan_Rest: mismatched pathway identity')
-	if (message.guid == null || !guidPattern.test(message.guid))
+	if (!guidPattern.test(message.guid))
 		throw new Error('LayerZeroScan_Rest: invalid message GUID')
 	if (
 		!Number.isFinite(Date.parse(message.created))
@@ -130,23 +137,27 @@ const assertMessage = (message: LayerZeroMessage) => {
 		throw new Error('LayerZeroScan_Rest: invalid lifecycle timestamp')
 	if (Date.parse(message.updated) < Date.parse(message.created))
 		throw new Error('LayerZeroScan_Rest: lifecycle timestamps are reversed')
-	if (message.source?.tx == null)
-		throw new Error('LayerZeroScan_Rest: missing source transaction')
 
 	assertSourceTransaction(message.source.tx)
 	if (message.destination?.tx != null)
 		assertDestinationTransaction(message.destination.tx)
-	assertMessageStatus(message.status?.name)
+	assertMessageStatus(message.status.name)
 }
 
-const assertMessages = (
-	messages: LayerZeroMessage[],
+const assertMessagesResponse = (
+	response: unknown,
 	limit?: number
 ) => {
-	if (limit != null && messages.length > limit)
+	const page = assertEnvelope<LayerZeroMessagesResponse>(
+		layerZeroMessagesResponseEnvelope,
+		response,
+		'messages'
+	)
+	if (limit != null && page.data.length > limit)
 		throw new Error('LayerZeroScan_Rest: response exceeds requested limit')
-	for (const message of messages)
+	for (const message of page.data)
 		assertMessage(message)
+	return page
 }
 
 const messagesPath = (
@@ -232,20 +243,22 @@ export const getLatestMessages = async ({
 	destinationEndpointIds?: number[]
 	srcAddress?: string
 } = {}) => {
-	const response = await getJson<LatestMessagesResponse>(
-		binding,
-		messagesPath('/v1/messages/latest', {
-			limit,
-			nextToken,
-			start,
-			end,
-			ulnVersion,
-			sourceEndpointIds,
-			destinationEndpointIds,
-			srcAddress,
-		})
+	const response = assertMessagesResponse(
+		await getJson(
+			binding,
+			messagesPath('/v1/messages/latest', {
+				limit,
+				nextToken,
+				start,
+				end,
+				ulnVersion,
+				sourceEndpointIds,
+				destinationEndpointIds,
+				srcAddress,
+			})
+		),
+		limit
 	)
-	assertMessages(response.data, limit)
 	for (const message of response.data) {
 		if (sourceEndpointIds?.length && !sourceEndpointIds.includes(message.pathway.srcEid))
 			throw new Error('LayerZeroScan_Rest: foreign source endpoint')
@@ -266,11 +279,12 @@ export const getMessagesByTransaction = async ({
 	transactionHash: string
 }) => {
 	assertOpaquePathAtom(transactionHash, 'transaction hash')
-	const response = await getJson<TransactionMessagesResponse>(
-		binding,
-		`/v1/messages/tx/${encodeURIComponent(transactionHash)}`
+	const response = assertMessagesResponse(
+		await getJson(
+			binding,
+			`/v1/messages/tx/${encodeURIComponent(transactionHash)}`
+		)
 	)
-	assertMessages(response.data)
 	if (
 		response.data.some((message) => (
 			message.source.tx.txHash !== transactionHash
@@ -288,8 +302,9 @@ export const getMessageByGuid = async ({
 }) => {
 	if (!guidPattern.test(guid))
 		throw new Error('LayerZeroScan_Rest: invalid message GUID')
-	const response = await getJson<GuidMessagesResponse>(binding, `/v1/messages/guid/${guid}`)
-	assertMessages(response.data)
+	const response = assertMessagesResponse(
+		await getJson(binding, `/v1/messages/guid/${guid}`)
+	)
 	if (response.data.some((message) => message.guid.toLowerCase() !== guid.toLowerCase()))
 		throw new Error('LayerZeroScan_Rest: foreign message GUID')
 	return response
@@ -313,18 +328,20 @@ export const getMessagesByPathway = async ({
 	status?: LayerZeroMessageStatus
 }) => {
 	assertOpaquePathAtom(pathwayId, 'pathway id')
-	const response = await getJson<PathwayMessagesResponse>(
-		binding,
-		messagesPath(`/v1/messages/pathway/${encodeURIComponent(pathwayId)}`, {
-			limit,
-			nextToken,
-			start,
-			end,
-			nonce,
-			status,
-		})
+	const response = assertMessagesResponse(
+		await getJson(
+			binding,
+			messagesPath(`/v1/messages/pathway/${encodeURIComponent(pathwayId)}`, {
+				limit,
+				nextToken,
+				start,
+				end,
+				nonce,
+				status,
+			})
+		),
+		limit
 	)
-	assertMessages(response.data, limit)
 	if (response.data.some((message) => message.pathway.id !== pathwayId))
 		throw new Error('LayerZeroScan_Rest: foreign pathway message')
 	if (nonce != null && response.data.some((message) => message.pathway.nonce !== nonce))
@@ -351,19 +368,21 @@ export const getMessagesByOApp = async ({
 }) => {
 	assertEndpointId(endpointId)
 	assertOpaquePathAtom(address, 'OApp address')
-	const response = await getJson<OAppMessagesResponse>(
-		binding,
-		messagesPath(
-			`/v1/messages/oapp/${endpointId}/${encodeURIComponent(address)}`,
-			{
-				limit,
-				nextToken,
-				start,
-				end,
-			}
-		)
+	const response = assertMessagesResponse(
+		await getJson(
+			binding,
+			messagesPath(
+				`/v1/messages/oapp/${endpointId}/${encodeURIComponent(address)}`,
+				{
+					limit,
+					nextToken,
+					start,
+					end,
+				}
+			)
+		),
+		limit
 	)
-	assertMessages(response.data, limit)
 	if (
 		response.data.some(({ pathway }) => !(
 			(pathway.srcEid === endpointId && pathway.sender.address === address)
@@ -388,16 +407,18 @@ export const getMessagesByStatus = async ({
 	end?: string
 }) => {
 	assertMessageStatus(status)
-	const response = await getJson<StatusMessagesResponse>(
-		binding,
-		messagesPath(`/v1/messages/status/${encodeURIComponent(status)}`, {
-			limit,
-			nextToken,
-			start,
-			end,
-		})
+	const response = assertMessagesResponse(
+		await getJson(
+			binding,
+			messagesPath(`/v1/messages/status/${encodeURIComponent(status)}`, {
+				limit,
+				nextToken,
+				start,
+				end,
+			})
+		),
+		limit
 	)
-	assertMessages(response.data, limit)
 	if (response.data.some((message) => message.status.name !== status))
 		throw new Error('LayerZeroScan_Rest: foreign status message')
 	return response
@@ -417,16 +438,18 @@ export const getMessagesByWallet = async ({
 	end?: string
 }) => {
 	assertOpaquePathAtom(srcAddress, 'wallet address')
-	const response = await getJson<WalletMessagesResponse>(
-		binding,
-		messagesPath(`/v1/messages/wallet/${encodeURIComponent(srcAddress)}`, {
-			limit,
-			nextToken,
-			start,
-			end,
-		})
+	const response = assertMessagesResponse(
+		await getJson(
+			binding,
+			messagesPath(`/v1/messages/wallet/${encodeURIComponent(srcAddress)}`, {
+				limit,
+				nextToken,
+				start,
+				end,
+			})
+		),
+		limit
 	)
-	assertMessages(response.data, limit)
 	if (
 		response.data.some((message) => (
 			message.source.tx.from !== srcAddress

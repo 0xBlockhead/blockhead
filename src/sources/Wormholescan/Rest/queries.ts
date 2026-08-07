@@ -7,12 +7,49 @@ import type {
 	WormholescanVaa,
 	WormholescanVaaByIdResponse,
 } from '$/sources/Wormholescan/Rest/types.ts'
+import {
+	wormholescanOperationEnvelope,
+	wormholescanOperationsPageEnvelope,
+	wormholescanVaaByIdResponseEnvelope,
+} from '$/sources/Wormholescan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Wormholescan][0]
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const emitterAddressPattern = /^[0-9a-fA-F]{1,128}$/
 const operationSequencePattern = /^[0-9a-fA-F]+(?:-\d+)?$/
+
+const omitUndefinedJson = (
+	value: unknown
+): unknown => {
+	if (Array.isArray(value))
+		return value.map(omitUndefinedJson)
+	if (value != null && typeof value === 'object')
+		return Object.fromEntries(
+			Object.entries(value)
+				.filter(([, entry]) => entry !== undefined)
+				.map(([key, entry]) => [
+					key,
+					omitUndefinedJson(entry),
+				])
+		)
+	return value
+}
+
+const assertEnvelope = <_Value>(
+	envelope: {
+		assert: (value: unknown) => unknown
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		envelope.assert(omitUndefinedJson(value))
+	} catch {
+		throw new Error(`Wormholescan_Rest: invalid ${label} response envelope`)
+	}
+	return value as _Value
+}
 
 const queryString = (
 	parameters: Record<string, string | number | boolean | undefined>
@@ -24,18 +61,6 @@ const queryString = (
 	)
 
 	return searchParameters.size === 0 ? '' : `?${searchParameters}`
-}
-
-const operationsFromPage = (
-	page: WormholescanOperationsPage,
-	path: string
-) => {
-	if (page == null || !Array.isArray(page.operations))
-		throw new Error(`Wormholescan_Rest: ${path} missing operations`)
-
-	return page.operations.map((operation) => (
-		assertOperation(operation)
-	))
 }
 
 const assertWormholeChainId = (chainId: number) => {
@@ -69,16 +94,9 @@ const assertOperation = (
 		sequence: number | string
 	}
 ) => {
-	if (operation == null || operation.id == null || operation.id === '')
-		throw new Error('Wormholescan_Rest: operation missing id')
-	if (operation.emitterChain == null)
-		throw new Error('Wormholescan_Rest: operation missing emitter chain')
+	assertEnvelope(wormholescanOperationEnvelope, operation, 'operation')
 	assertWormholeChainId(operation.emitterChain)
-	if (operation.emitterAddress?.hex == null || operation.emitterAddress.hex === '')
-		throw new Error('Wormholescan_Rest: operation missing emitter address')
 	assertEmitterAddress(operation.emitterAddress.hex)
-	if (operation.sequence == null || operation.sequence === '')
-		throw new Error('Wormholescan_Rest: operation missing sequence')
 	assertOperationSequence(operation.sequence)
 	if (operation.id !== `${operation.emitterChain}/${operation.emitterAddress.hex}/${operation.sequence}`)
 		throw new Error(`Wormholescan_Rest: mismatched operation id ${operation.id}`)
@@ -95,6 +113,21 @@ const assertOperation = (
 	return operation
 }
 
+const operationsFromPage = (
+	page: unknown,
+	path: string
+) => {
+	const operationsPage = assertEnvelope<WormholescanOperationsPage>(
+		wormholescanOperationsPageEnvelope,
+		page,
+		path
+	)
+
+	return operationsPage.operations.map((operation) => (
+		assertOperation(operation)
+	))
+}
+
 const assertVaa = (
 	vaa: WormholescanVaa,
 	{
@@ -107,20 +140,21 @@ const assertVaa = (
 		sequence: number | string
 	}
 ) => {
-	if (vaa.id == null || vaa.id === '')
-		throw new Error('Wormholescan_Rest: VAA missing id')
-	if (vaa.emitterChain == null)
-		throw new Error('Wormholescan_Rest: VAA missing emitter chain')
 	assertWormholeChainId(vaa.emitterChain)
-	if (vaa.emitterAddr == null || vaa.emitterAddr === '')
-		throw new Error('Wormholescan_Rest: VAA missing emitter address')
 	assertEmitterAddress(vaa.emitterAddr)
-	if (vaa.sequence == null || vaa.sequence === '')
-		throw new Error('Wormholescan_Rest: VAA missing sequence')
 	assertSequence(vaa.sequence)
-	if (vaa.timestamp == null || vaa.timestamp === '' || !Number.isFinite(Date.parse(vaa.timestamp)))
+	if (vaa.timestamp === '' || !Number.isFinite(Date.parse(vaa.timestamp)))
 		throw new Error(`Wormholescan_Rest: invalid VAA timestamp ${vaa.timestamp}`)
-	if (vaa.vaa == null || vaa.vaa.length < 1)
+	if (
+		(
+			typeof vaa.vaa === 'string'
+			&& vaa.vaa.length < 1
+		)
+		|| (
+			Array.isArray(vaa.vaa)
+			&& vaa.vaa.length < 1
+		)
+	)
 		throw new Error('Wormholescan_Rest: VAA missing bytes')
 	if (
 		vaa.emitterChain !== chainId
@@ -150,7 +184,7 @@ export const getOperations = async (
 	parameters: NonNullable<operations['get-operations']['parameters']['query']> = {}
 ) => (
 	operationsFromPage(
-		await getJson<WormholescanOperationsPage>(
+		await getJson(
 			binding,
 			`operations${queryString(parameters)}`
 		),
@@ -174,7 +208,7 @@ export const getOperationById = async (
 	assertOperationSequence(sequence)
 
 	return assertOperation(
-		await getJson<WormholescanOperation>(
+		await getJson(
 			binding,
 			`operations/${chainId}/${encodeURIComponent(emitter)}/${sequence}`
 		),
@@ -220,14 +254,14 @@ export const getVaaById = async (
 	assertEmitterAddress(emitter)
 	assertSequence(sequence)
 
-	const page = await getJson<WormholescanVaaByIdResponse>(
-		binding,
-		`vaas/${chainId}/${encodeURIComponent(emitter)}/${sequence}${queryString({ parsedPayload })}`
+	const page = assertEnvelope<WormholescanVaaByIdResponse>(
+		wormholescanVaaByIdResponseEnvelope,
+		await getJson(
+			binding,
+			`vaas/${chainId}/${encodeURIComponent(emitter)}/${sequence}${queryString({ parsedPayload })}`
+		),
+		'VAA'
 	)
-	if (page == null || page.data == null)
-		throw new Error('Wormholescan_Rest: VAA missing data')
-	if (page.pagination == null || typeof page.pagination.next !== 'string')
-		throw new Error('Wormholescan_Rest: VAA missing pagination')
 
 	assertVaa(page.data, {
 		chainId,

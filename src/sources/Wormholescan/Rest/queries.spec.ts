@@ -81,7 +81,7 @@ describe('Wormholescan OpenAPI operations', () => {
 		getJson.mockResolvedValue({})
 
 		await expect(queries.getOperations()).rejects.toThrow(
-			'Wormholescan_Rest: operations missing operations'
+			'Wormholescan_Rest: invalid operations response envelope'
 		)
 	})
 
@@ -126,7 +126,7 @@ describe('Wormholescan OpenAPI operations', () => {
 			chainId: 2,
 			emitter: 'abcdef',
 			sequence: 7,
-		})).rejects.toThrow('Wormholescan_Rest: operation missing id')
+		})).rejects.toThrow('Wormholescan_Rest: invalid operation response envelope')
 	})
 
 	it('rejects invalid operation path atoms before transport', async () => {
@@ -212,7 +212,7 @@ describe('Wormholescan OpenAPI operations', () => {
 			chainId: 2,
 			emitter: 'aa',
 			sequence: 1,
-		})).rejects.toThrow('Wormholescan_Rest: VAA missing data')
+		})).rejects.toThrow('Wormholescan_Rest: invalid VAA response envelope')
 	})
 
 	it('hard-fails when the VAA endpoint returns no envelope', async () => {
@@ -222,7 +222,7 @@ describe('Wormholescan OpenAPI operations', () => {
 			chainId: 2,
 			emitter: 'aa',
 			sequence: 1,
-		})).rejects.toThrow('Wormholescan_Rest: VAA missing data')
+		})).rejects.toThrow('Wormholescan_Rest: invalid VAA response envelope')
 	})
 
 	it('hard-fails when the VAA page omits pagination', async () => {
@@ -241,7 +241,7 @@ describe('Wormholescan OpenAPI operations', () => {
 			chainId: 2,
 			emitter: 'aa',
 			sequence: 1,
-		})).rejects.toThrow('Wormholescan_Rest: VAA missing pagination')
+		})).rejects.toThrow('Wormholescan_Rest: invalid VAA response envelope')
 	})
 
 	it('hard-fails when the VAA identity does not match the request', async () => {
@@ -281,7 +281,7 @@ describe('Wormholescan OpenAPI operations', () => {
 			chainId: 2,
 			emitter: 'aa',
 			sequence: 1,
-		})).rejects.toThrow('Wormholescan_Rest: VAA missing bytes')
+		})).rejects.toThrow('Wormholescan_Rest: invalid VAA response envelope')
 	})
 
 	it('rejects unsafe VAA path atoms before transport', async () => {

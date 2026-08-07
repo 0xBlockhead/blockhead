@@ -39,6 +39,10 @@ const destinationTxHash = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 const operation = {
 	id: transfer.transferId,
 	emitterChain: 2,
+	emitterAddress: {
+		hex: '0000000000000000000000001111111111111111111111111111111111111111',
+	},
+	sequence: '42',
 	content: {
 		standarizedProperties: {
 			amount: '1000000000000000000',
@@ -46,6 +50,8 @@ const operation = {
 			toChain: 23,
 			fromAddress: '0000000000000000000000001111111111111111111111111111111111111111',
 			toAddress: '0000000000000000000000002222222222222222222222222222222222222222',
+			tokenAddress: '000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+			tokenChain: 2,
 		},
 	},
 	sourceChain: {
@@ -53,6 +59,7 @@ const operation = {
 		status: 'confirmed',
 		timestamp: '2026-01-02T03:04:05.000Z',
 		from: '0000000000000000000000001111111111111111111111111111111111111111',
+		feeUSD: '1.25',
 		transaction: {
 			txHash: sourceTxHash,
 		},
@@ -62,6 +69,8 @@ const operation = {
 		status: 'completed',
 		timestamp: '2026-01-02T03:05:06.000Z',
 		to: '0000000000000000000000002222222222222222222222222222222222222222',
+		fee: '21000',
+		feeUSD: '0.42',
 		transaction: {
 			txHash: destinationTxHash,
 		},
@@ -95,10 +104,31 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 			source: Source.Wormholescan,
 			transferId: transfer.transferId,
 			amountIn: 1_000_000_000_000_000_000n,
+			bridgeFeeUsd: '1.25',
 			railId: BridgeRailId.Wormhole,
 			settlementModel: BridgeSettlementModel.LockMint,
 			verificationModel: BridgeVerificationModel.External,
 			assetOutcome: BridgeAssetOutcome.WrappedMint,
+			$fromToken: {
+				[EntityMetaKey.Selector]: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+					type: 'Erc20Token',
+					$contract: {
+						$network: {
+							caip2: {
+								namespace: 'eip155',
+								reference: '1',
+							},
+						},
+						address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+					},
+				},
+			},
 			$sourceTx: {
 				[EntityMetaKey.Selector]: {
 					$network: {
@@ -132,13 +162,14 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 				},
 			},
 		})
-		expect(resolver.projections.$$timestamps(snapshot)).toEqual([{
+		expect(resolver.projections.$$timestamps.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$transfer: transfer,
 				timestampMs: Date.parse('2026-01-02T03:05:06.000Z'),
 				source: Source.Wormholescan,
 			},
 		}])
+		expect(resolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
 	})
 
 	it('looks up an operation by source transaction hash selector', async () => {
@@ -211,7 +242,24 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 			status: 'completed',
 			destinationTxHash,
 			completedAt: Date.parse('2026-01-02T03:05:06.000Z'),
+			fillGasFee: 21000n,
+			fillGasFeeUsd: '0.42',
 		})
+	})
+
+	it('fails closed on observation clock mismatch', async () => {
+		getOperationById.mockResolvedValue(operation)
+		const resolver = wormholescanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer_Timestamp
+		))
+		if (resolver == null)
+			throw new Error('Wormholescan BridgeTransfer_Timestamp resolver is not registered')
+
+		await expect(resolver.resolve.TransferTimestampMsSource.resolve({
+			$transfer: transfer,
+			timestampMs: Date.parse('2026-01-02T03:05:06.000Z') + 1,
+			source: Source.Wormholescan,
+		})).rejects.toThrow('Wormholescan_Rest: observation clock mismatch')
 	})
 
 	it('rejects foreign bridge transfer sources before transport', async () => {

@@ -11,6 +11,7 @@ import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { layerZeroEvmChainIdByEndpointId } from '$/sources/LayerZeroScan/Rest/constants.ts'
+import type { LayerZeroMessage } from '$/sources/LayerZeroScan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 
@@ -52,20 +53,32 @@ const layerZeroMessageObservationMs = (updated: string) => {
 	return timestampMs
 }
 
-const layerZeroBridgeTransferSnapshot = async (
-	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>
+const layerZeroExecutorRelayer = (
+	message: LayerZeroMessage
 ) => {
-	if (transfer.source !== Source.LayerZeroScan_Rest)
-		throw new Error(`LayerZeroScan_Rest: unsupported bridge transfer source ${transfer.source}`)
+	const candidates: string[] = []
+	for (const row of [
+		message.config?.inboundConfig,
+		message.config?.outboundConfig,
+	]) {
+		if (row == null)
+			continue
+		if ('executor' in row && row.executor != null && row.executor !== '')
+			candidates.push(row.executor)
+		if ('relayerAddress' in row && row.relayerAddress != null && row.relayerAddress !== '')
+			candidates.push(row.relayerAddress)
+	}
+	for (const candidate of candidates) {
+		const normalized = hexLowerOfByteSize(candidate, 20)
+		if (normalized != null)
+			return normalized
+	}
+}
 
-	const { getMessageByGuid } = await import('$/sources/LayerZeroScan/Rest/queries.ts')
-	const { data } = await getMessageByGuid({
-		guid: transfer.transferId,
-	})
-	if (data.length !== 1)
-		throw new Error(`LayerZeroScan_Rest: expected one message for GUID ${transfer.transferId}`)
-
-	const message = data[0]
+const layerZeroBridgeTransferSnapshot = (
+	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>,
+	message: LayerZeroMessage
+) => {
 	const fromNetwork = layerZeroEvmNetworkRef(message.pathway.srcEid)
 	const toNetwork = layerZeroEvmNetworkRef(message.pathway.dstEid)
 	const sourceTxHash = hexLowerOfByteSize(message.source.tx.txHash, 32)
@@ -116,6 +129,50 @@ const layerZeroBridgeTransferSnapshot = async (
 	}
 }
 
+const loadLayerZeroMessageByGuid = async (
+	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>
+) => {
+	if (transfer.source !== Source.LayerZeroScan_Rest)
+		throw new Error(`LayerZeroScan_Rest: unsupported bridge transfer source ${transfer.source}`)
+	if (!('transferId' in transfer))
+		throw new Error('LayerZeroScan_Rest: bridge transfer requires SourceTransferId')
+
+	const { getMessageByGuid } = await import('$/sources/LayerZeroScan/Rest/queries.ts')
+	const { data } = await getMessageByGuid({
+		guid: transfer.transferId,
+	})
+	if (data.length !== 1)
+		throw new Error(`LayerZeroScan_Rest: expected one message for GUID ${transfer.transferId}`)
+
+	return data[0]
+}
+
+const loadLayerZeroMessageForTransfer = async (
+	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>
+) => {
+	if (transfer.source !== Source.LayerZeroScan_Rest)
+		throw new Error(`LayerZeroScan_Rest: unsupported bridge transfer source ${transfer.source}`)
+
+	if ('transferId' in transfer)
+		return loadLayerZeroMessageByGuid(transfer)
+
+	if (!('txHash' in transfer.$sourceTx))
+		throw new Error('LayerZeroScan_Rest: source transaction requires NetworkTxHash')
+
+	const { getMessagesByTransaction } = await import('$/sources/LayerZeroScan/Rest/queries.ts')
+	const { data } = await getMessagesByTransaction({
+		transactionHash: transfer.$sourceTx.txHash,
+	})
+	const message = data.find((candidate) => (
+		candidate.source.tx.txHash.toLowerCase() === transfer.$sourceTx.txHash.toLowerCase()
+		|| candidate.destination?.tx?.txHash?.toLowerCase() === transfer.$sourceTx.txHash.toLowerCase()
+	))
+	if (message == null)
+		throw new Error(`LayerZeroScan_Rest: no message for source tx ${transfer.$sourceTx.txHash}`)
+
+	return message
+}
+
 const layerZeroBridgeTransferObservation = async ({
 	$transfer,
 	timestampMs,
@@ -126,14 +183,7 @@ const layerZeroBridgeTransferObservation = async ({
 	if ($transfer.source !== Source.LayerZeroScan_Rest)
 		throw new Error(`LayerZeroScan_Rest: unsupported bridge transfer source ${$transfer.source}`)
 
-	const { getMessageByGuid } = await import('$/sources/LayerZeroScan/Rest/queries.ts')
-	const { data } = await getMessageByGuid({
-		guid: $transfer.transferId,
-	})
-	if (data.length !== 1)
-		throw new Error(`LayerZeroScan_Rest: expected one message for GUID ${$transfer.transferId}`)
-
-	const message = data[0]
+	const message = await loadLayerZeroMessageForTransfer($transfer)
 	const observedAtMs = layerZeroMessageObservationMs(message.updated)
 	if (observedAtMs !== timestampMs)
 		throw new Error('LayerZeroScan_Rest: observation clock mismatch')
@@ -147,7 +197,18 @@ const layerZeroBridgeTransferObservation = async ({
 	if (message.destination?.tx?.txHash != null && destinationTxHash == null)
 		throw new Error('LayerZeroScan_Rest: invalid destination transaction hash')
 
-	const requiredConfirmations = message.config?.outboundConfig?.confirmations
+	const outboundConfig = message.config?.outboundConfig
+	const requiredConfirmations = (
+		outboundConfig == null ?
+			undefined
+		: 'confirmations' in outboundConfig ?
+			outboundConfig.confirmations
+		: 'blockConfirmation' in outboundConfig ?
+			outboundConfig.blockConfirmation
+		:
+			undefined
+	)
+	const relayer = layerZeroExecutorRelayer(message)
 
 	return {
 		$transfer: {
@@ -167,6 +228,9 @@ const layerZeroBridgeTransferObservation = async ({
 		}),
 		...(destinationTxHash != null && {
 			destinationTxHash,
+		}),
+		...(relayer != null && {
+			relayer,
 		}),
 		...(
 			message.destination?.status === 'SUCCEEDED'
@@ -190,7 +254,24 @@ export default {
 			entityType: EntityType.BridgeTransfer,
 			resolve: {
 				SourceTransferId: {
-					resolve: layerZeroBridgeTransferSnapshot,
+					resolve: async (transfer) => (
+						layerZeroBridgeTransferSnapshot(
+							transfer,
+							await loadLayerZeroMessageByGuid(transfer)
+						)
+					),
+				},
+				SourceTxSourceLogIndex: {
+					resolve: async (transfer) => {
+						const message = await loadLayerZeroMessageForTransfer(transfer)
+						return layerZeroBridgeTransferSnapshot(
+							{
+								source: Source.LayerZeroScan_Rest,
+								transferId: message.guid.toLowerCase(),
+							},
+							message
+						)
+					},
 				},
 			},
 		})({
@@ -203,7 +284,10 @@ export default {
 			$fromNetwork: (transfer) => transfer.$fromNetwork,
 			$toNetwork: (transfer) => transfer.$toNetwork,
 			assetOutcome: (transfer) => transfer.assetOutcome,
-			$$timestamps: (transfer) => transfer.$$timestamps,
+			$$timestamps: {
+				select: (transfer) => transfer.$$timestamps,
+				resolveCount: (transfer) => transfer.$$timestamps.length,
+			},
 		}),
 
 		defineResolver({
@@ -222,6 +306,7 @@ export default {
 			sourceConfirmations: (observation) => observation.sourceConfirmations,
 			requiredConfirmations: (observation) => observation.requiredConfirmations,
 			destinationTxHash: (observation) => observation.destinationTxHash,
+			relayer: (observation) => observation.relayer,
 			completedAt: (observation) => observation.completedAt,
 			error: (observation) => observation.error,
 		}),

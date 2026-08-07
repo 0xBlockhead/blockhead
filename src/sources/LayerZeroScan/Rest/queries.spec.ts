@@ -265,6 +265,13 @@ describe('LayerZero Scan public message queries', () => {
 			.rejects.toThrow('unsafe message nonce')
 	})
 
+	it('hard-fails when the messages page omits data', async () => {
+		getJson.mockResolvedValue({})
+		await expect(getLatestMessages()).rejects.toThrow(
+			'LayerZeroScan_Rest: invalid messages response envelope'
+		)
+	})
+
 	it.each([
 		{
 			mutate: {
@@ -285,7 +292,7 @@ describe('LayerZero Scan public message queries', () => {
 					},
 				},
 			},
-			error: 'invalid lossless transaction unit',
+			error: 'invalid messages response envelope',
 		},
 		{
 			mutate: {
@@ -306,7 +313,7 @@ describe('LayerZero Scan public message queries', () => {
 			mutate: {
 				status: undefined,
 			},
-			error: 'invalid message status',
+			error: 'invalid messages response envelope',
 		},
 	])('rejects malformed observed messages', async ({ mutate, error }) => {
 		getJson.mockResolvedValue({
