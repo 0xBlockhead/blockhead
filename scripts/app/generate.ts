@@ -12829,7 +12829,8 @@ const renderCarouselSection = (
 						'\t\t\t\t\t\topen={true}',
 						'\t\t\t\t\t\tid={`${id}-list`}',
 					],
-					5
+					5,
+					section.list?.placeholderText
 				)
 			:
 				[
@@ -12995,7 +12996,8 @@ const renderDefaultEntitiesList = (
 	entityType: EntityType,
 	selectionExpression: string,
 	attributes: readonly string[],
-	level: number
+	level: number,
+	placeholderText?: string
 ) => {
 	const entityValueName = camel(entityType)
 
@@ -13004,6 +13006,7 @@ const renderDefaultEntitiesList = (
 		`${'\t'.repeat(level + 1)}entityType={EntityType.${entityType}}`,
 		...attributes,
 		renderSvelteAttribute(level + 1, 'resource', `${selectionExpression}()`),
+		...(placeholderText == null ? [] : [`${'\t'.repeat(level + 1)}placeholderText=${emitTypeScript(placeholderText)}`]),
 		`${'\t'.repeat(level)}>`,
 		`${'\t'.repeat(level + 1)}{#snippet Item({ item: ${entityValueName} })}`,
 		`${'\t'.repeat(level + 2)}<EntityView`,
@@ -13086,7 +13089,8 @@ const renderEntitiesReferenceSection = (
 				targetEntity,
 				resourceName,
 				defaultListAttributes,
-				level
+				level,
+				section.list?.placeholderText
 			)
 		:
 			[
@@ -15135,7 +15139,8 @@ const renderCollectionPageMarkup = (
 				collection.entity,
 				selectionExpression,
 				componentAttributes,
-				componentIndent
+				componentIndent,
+				collection.page?.placeholderText
 			)
 		:
 			[
