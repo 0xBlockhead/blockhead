@@ -5,14 +5,12 @@ import {
 } from '$/sources/_runtime/http.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/SpaceAndTime/bindings.ts'
-import { makeInfiniteTable } from '$/sources/SpaceAndTime/MakeInfinite/types.ts'
 import {
-	isJsonArray,
-	isJsonNumber,
-	isJsonObject,
-	isJsonString,
-	type JsonValue,
-} from '$/typescript/JsonValue.ts'
+	makeInfiniteSqlResponseWire,
+	makeInfiniteTable,
+	type MakeInfiniteActivityDayAggregate,
+	type MakeInfiniteSqlRequest,
+} from '$/sources/SpaceAndTime/MakeInfinite/types.ts'
 
 const millisecondsPerUtcDay = 86_400_000
 const binding = bindings[Source.SpaceAndTime_MakeInfinite][0]
@@ -21,20 +19,38 @@ const utcSqlTimestamp = (timestampMs: number) => (
 	new Date(timestampMs).toISOString().slice(0, 19).replace('T', ' ')
 )
 
+const assertSqlResponse = (
+	response: unknown
+) => {
+	try {
+		return makeInfiniteSqlResponseWire.assert(response)
+	} catch {
+		throw new Error('SpaceAndTime_MakeInfinite: invalid SQL response envelope')
+	}
+}
+
 const nonNegativeSafeInteger = (
-	value: JsonValue | undefined,
+	value: number | string,
 	fieldName: string
 ) => {
-	const parsed = (
-		isJsonNumber(value) ?
-			value
-		: isJsonString(value) ?
-			Number(value)
-		:
-			Number.NaN
-	)
+	const parsed = Number(value)
 	if (!Number.isSafeInteger(parsed) || parsed < 0)
 		throw new Error(`SpaceAndTime_MakeInfinite: malformed ${fieldName}`)
+
+	return parsed
+}
+
+const indexedThroughTimestampMs = (
+	indexedThroughTimestamp: string
+) => {
+	const parsed = Date.parse(
+		indexedThroughTimestamp.includes('T') ?
+			indexedThroughTimestamp
+		:
+			`${indexedThroughTimestamp.replace(' ', 'T')}Z`
+	)
+	if (!Number.isFinite(parsed) || parsed < 0)
+		throw new Error('SpaceAndTime_MakeInfinite: malformed indexed cursor')
 
 	return parsed
 }
@@ -53,7 +69,7 @@ export const getActivityDay = async ({
 }: {
 	dayStartTimestampMs: number
 	table?: string
-}) => {
+}): Promise<MakeInfiniteActivityDayAggregate | undefined> => {
 	if (table !== makeInfiniteTable)
 		throw new Error(`SpaceAndTime_MakeInfinite: unsupported table ${table}`)
 	if (
@@ -66,7 +82,7 @@ export const getActivityDay = async ({
 
 	const request = {
 		sqlText: sqlForCompletedUtcDay(dayStartTimestampMs),
-	}
+	} satisfies MakeInfiniteSqlRequest
 	const response = await sourceFetch(
 		binding,
 		new URL('/v1/sql', firstHttpUrlForBinding(binding)).toString(),
@@ -81,30 +97,14 @@ export const getActivityDay = async ({
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage('SpaceAndTime_MakeInfinite SQL', response))
 
-	const payload = await response.json() as JsonValue
-	if (!isJsonArray(payload))
-		throw new Error('SpaceAndTime_MakeInfinite: SQL response is not an array')
-	const row = payload[0]
+	const [row] = assertSqlResponse(await response.json())
 	if (row == null)
 		return undefined
-	if (!isJsonObject(row))
-		throw new Error('SpaceAndTime_MakeInfinite: malformed SQL row')
-	if (!isJsonString(row.INDEXED_THROUGH_TIMESTAMP))
-		throw new Error('SpaceAndTime_MakeInfinite: malformed indexed cursor')
-
-	const indexedThroughTimestampMs = Date.parse(
-		row.INDEXED_THROUGH_TIMESTAMP.includes('T') ?
-			row.INDEXED_THROUGH_TIMESTAMP
-		:
-			`${row.INDEXED_THROUGH_TIMESTAMP.replace(' ', 'T')}Z`
-	)
-	if (!Number.isFinite(indexedThroughTimestampMs) || indexedThroughTimestampMs < 0)
-		throw new Error('SpaceAndTime_MakeInfinite: malformed indexed cursor')
 
 	return {
 		blockCount: nonNegativeSafeInteger(row.BLOCK_COUNT, 'block count'),
 		transactionCount: nonNegativeSafeInteger(row.TRANSACTION_COUNT, 'transaction count'),
 		endBlockNumber: nonNegativeSafeInteger(row.END_BLOCK_NUMBER, 'end block number'),
-		indexedThroughTimestampMs,
+		indexedThroughTimestampMs: indexedThroughTimestampMs(row.INDEXED_THROUGH_TIMESTAMP),
 	}
 }

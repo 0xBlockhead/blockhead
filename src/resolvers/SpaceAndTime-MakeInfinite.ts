@@ -1,3 +1,5 @@
+import { networkBySlug } from '$/constants/Network.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	entityFieldAddressKey,
@@ -11,6 +13,30 @@ import { Source } from '$/sources/Source.ts'
 
 const millisecondsPerUtcDay = 86_400_000
 
+const assertEthereumMainnet = (
+	network: EntitySelector<typeof schema, EntityType.Network>
+) => {
+	if (
+		(
+			'caip2' in network
+			&& network.caip2.namespace === networkBySlug.ethereum.caip2.namespace
+			&& network.caip2.reference === networkBySlug.ethereum.caip2.reference
+		)
+		|| (
+			'slug' in network
+			&& network.slug === networkBySlug.ethereum.slug
+		)
+	)
+		return
+
+	throw new Error(
+		'caip2' in network ?
+			`SpaceAndTime_MakeInfinite: unsupported network ${network.caip2.namespace}:${network.caip2.reference}`
+		:
+			`SpaceAndTime_MakeInfinite: unsupported network ${network.slug}`
+	)
+}
+
 export const resolveNetworkActivityDay = async ({
 	network,
 	dayStartTimestampMs,
@@ -20,10 +46,7 @@ export const resolveNetworkActivityDay = async ({
 	dayStartTimestampMs: number
 	nowMs?: number
 }) => {
-	if (!('caip2' in network))
-		throw new Error('SpaceAndTime_MakeInfinite: network must use a CAIP-2 selector')
-	if (network.caip2.namespace !== 'eip155' || network.caip2.reference !== '1')
-		throw new Error(`SpaceAndTime_MakeInfinite: unsupported network ${network.caip2.namespace}:${network.caip2.reference}`)
+	assertEthereumMainnet(network)
 	if (!Number.isSafeInteger(dayStartTimestampMs) || dayStartTimestampMs < 0 || dayStartTimestampMs % millisecondsPerUtcDay !== 0)
 		throw new Error(`SpaceAndTime_MakeInfinite: invalid UTC day ${dayStartTimestampMs}`)
 
@@ -50,40 +73,68 @@ export const resolveNetworkActivityDay = async ({
 	}
 }
 
+const activityDayEntityFields = (
+	activityDay: NonNullable<Awaited<ReturnType<typeof resolveNetworkActivityDay>>>
+) => ({
+	[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'blockCount')]: activityDay.blockCount,
+	[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'transactionCount')]: activityDay.transactionCount,
+	[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'endBlockNumber')]: activityDay.endBlockNumber,
+	[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'indexedThroughTimestampMs')]: activityDay.indexedThroughTimestampMs,
+	[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'resolvedAtMs')]: activityDay.resolvedAtMs,
+	[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'trustModel')]: activityDay.trustModel,
+})
+
+const recentCompletedActivityDays = async (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	context: Parameters<typeof resolverContextRowLimit>[0]
+) => {
+	assertEthereumMainnet(network)
+	const limit = Math.max(1, resolverContextRowLimit(context))
+	const nowMs = Date.now()
+	const latestCompletedDayStartTimestampMs = (
+		Math.floor(nowMs / millisecondsPerUtcDay) * millisecondsPerUtcDay
+		- millisecondsPerUtcDay
+	)
+
+	const activityDays = []
+	for (let dayOffset = 0; dayOffset < limit; dayOffset++) {
+		const activityDay = await resolveNetworkActivityDay({
+			network,
+			dayStartTimestampMs: latestCompletedDayStartTimestampMs - dayOffset * millisecondsPerUtcDay,
+			nowMs,
+		})
+		if (activityDay == null)
+			continue
+
+		activityDays.push({
+			[EntityMetaKey.Selector]: {
+				$network: activityDay.$network,
+				dayStartTimestampMs: activityDay.dayStartTimestampMs,
+				source: activityDay.source,
+			},
+			[EntityMetaKey.Fields]: activityDayEntityFields(activityDay),
+		})
+	}
+
+	return activityDays
+}
+
+const networkActivityDaysResolvers = {
+	Caip2: {
+		resolve: recentCompletedActivityDays,
+	},
+	Slug: {
+		resolve: recentCompletedActivityDays,
+	},
+} as const
+
 export default {
 	source: Source.SpaceAndTime_MakeInfinite,
 
 	resolvers: [
 		defineResolver({
 			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					resolve: async (network) => {
-						const activityDay = await resolveNetworkActivityDay({
-							network,
-							dayStartTimestampMs: Math.floor(Date.now() / millisecondsPerUtcDay) * millisecondsPerUtcDay - millisecondsPerUtcDay,
-						})
-						if (activityDay == null)
-							return []
-
-						return [{
-							[EntityMetaKey.Selector]: {
-								$network: activityDay.$network,
-								dayStartTimestampMs: activityDay.dayStartTimestampMs,
-								source: activityDay.source,
-							},
-							[EntityMetaKey.Fields]: {
-								[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'blockCount')]: activityDay.blockCount,
-								[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'transactionCount')]: activityDay.transactionCount,
-								[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'endBlockNumber')]: activityDay.endBlockNumber,
-								[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'indexedThroughTimestampMs')]: activityDay.indexedThroughTimestampMs,
-								[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'resolvedAtMs')]: activityDay.resolvedAtMs,
-								[entityFieldAddressKey(EntityType.Network_Activity_Day, [], 'trustModel')]: activityDay.trustModel,
-							},
-						}]
-					},
-				},
-			},
+			resolve: networkActivityDaysResolvers,
 		})({
 			Evm: {
 				$$activityDays: (activityDays) => activityDays,
