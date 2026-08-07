@@ -8,8 +8,11 @@ import {
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import { sourceLive } from '$/sources/_runtime/live.remote.ts'
 import {
+	parseGetHostStatusResponse,
 	parseGetLatestCommitResponse,
 	parseGetRepoStatusResponse,
+	parseListHostsResponse,
+	parseListReposResponse,
 } from '$/sources/AtprotoSync/Xrpc/commit.ts'
 import { decodeAtprotoSyncFrame } from '$/sources/AtprotoSync/Xrpc/framing.ts'
 import type { AtprotoSyncSubscribeReposMessage } from '$/sources/AtprotoSync/Xrpc/types.ts'
@@ -184,6 +187,125 @@ export const getRepoStatus = async ({
 		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
 
 	return parseGetRepoStatusResponse(await response.json())
+}
+
+
+export const listRepos = async ({
+	binding,
+	serviceOrigin,
+	limit,
+	cursor,
+	signal,
+}: {
+	binding: SourceBinding
+	serviceOrigin: string
+	limit?: number
+	cursor?: string
+	signal?: AbortSignal
+}) => {
+	const {
+		validatedOrigin,
+		resolvedBinding,
+	} = resolvedRemoteQueryBinding({
+		binding,
+		serviceOrigin,
+	})
+
+	if (
+		limit != null
+		&& (!Number.isSafeInteger(limit) || limit < 1 || limit > 1000)
+	)
+		throw new Error('AtprotoSync_Xrpc: listRepos limit must be an integer from 1 to 1000')
+
+	const url = new URL('/xrpc/com.atproto.sync.listRepos', validatedOrigin)
+	if (limit != null)
+		url.searchParams.set('limit', String(limit))
+	if (cursor != null && cursor !== '')
+		url.searchParams.set('cursor', cursor)
+
+	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
+	if (!response.ok)
+		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
+
+	return parseListReposResponse(await response.json())
+}
+
+
+export const listHosts = async ({
+	binding,
+	serviceOrigin,
+	limit,
+	cursor,
+	signal,
+}: {
+	binding: SourceBinding
+	serviceOrigin: string
+	limit?: number
+	cursor?: string
+	signal?: AbortSignal
+}) => {
+	const {
+		validatedOrigin,
+		resolvedBinding,
+	} = resolvedRemoteQueryBinding({
+		binding,
+		serviceOrigin,
+	})
+
+	if (
+		limit != null
+		&& (!Number.isSafeInteger(limit) || limit < 1 || limit > 1000)
+	)
+		throw new Error('AtprotoSync_Xrpc: listHosts limit must be an integer from 1 to 1000')
+
+	const url = new URL('/xrpc/com.atproto.sync.listHosts', validatedOrigin)
+	if (limit != null)
+		url.searchParams.set('limit', String(limit))
+	if (cursor != null && cursor !== '')
+		url.searchParams.set('cursor', cursor)
+
+	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
+	if (!response.ok)
+		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
+
+	return parseListHostsResponse(await response.json())
+}
+
+
+export const getHostStatus = async ({
+	binding,
+	serviceOrigin,
+	hostname,
+	signal,
+}: {
+	binding: SourceBinding
+	serviceOrigin: string
+	hostname: string
+	signal?: AbortSignal
+}) => {
+	const {
+		validatedOrigin,
+		resolvedBinding,
+	} = resolvedRemoteQueryBinding({
+		binding,
+		serviceOrigin,
+	})
+
+	if (hostname.trim() === '')
+		throw new Error('AtprotoSync_Xrpc: getHostStatus hostname must not be empty')
+
+	const url = new URL('/xrpc/com.atproto.sync.getHostStatus', validatedOrigin)
+	url.searchParams.set('hostname', hostname)
+
+	const response = await sourceFetch(resolvedBinding, url.toString(), { signal })
+	if (!response.ok)
+		throw new Error(`AtprotoSync_Xrpc: ${await fetchFailedMessage(url.toString(), response)}`)
+
+	const status = parseGetHostStatusResponse(await response.json())
+	if (status.hostname !== hostname)
+		throw new Error('AtprotoSync_Xrpc: getHostStatus response does not match request')
+
+	return status
 }
 
 

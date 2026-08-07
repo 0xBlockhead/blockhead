@@ -222,3 +222,118 @@ export const parseGetRepoStatusResponse = (
 		}),
 	}
 }
+
+
+const listReposRepoWire = type({
+	did: 'string',
+	head: 'string',
+	rev: 'string',
+	'active?': 'boolean',
+	'status?': 'string',
+}).onUndeclaredKey('delete')
+
+const listReposWire = type({
+	repos: listReposRepoWire.array(),
+	'cursor?': 'string',
+}).onUndeclaredKey('delete')
+
+const listHostsHostWire = type({
+	hostname: 'string',
+	'seq?': 'number.integer',
+	'accountCount?': 'number.integer',
+	'status?': 'string',
+}).onUndeclaredKey('delete')
+
+const listHostsWire = type({
+	hosts: listHostsHostWire.array(),
+	'cursor?': 'string',
+}).onUndeclaredKey('delete')
+
+const getHostStatusWire = type({
+	hostname: 'string',
+	'seq?': 'number.integer',
+	'accountCount?': 'number.integer',
+	'status?': 'string',
+}).onUndeclaredKey('delete')
+
+
+export const parseListReposResponse = (
+	body: unknown
+) => {
+	const wire = listReposWire(body)
+	if (wire instanceof type.errors)
+		throw new Error(`AtprotoSync_Xrpc: malformed listRepos response: ${wire.summary}`)
+
+	return {
+		repos: wire.repos.map((repo) => {
+			const commitCid = atprotoCidString(repo.head)
+			if (commitCid == null)
+				throw new Error('AtprotoSync_Xrpc: listRepos returned a malformed head CID')
+
+			return {
+				did: repo.did,
+				commitCid,
+				rev: repo.rev,
+				...(repo.active != null && {
+					active: repo.active,
+				}),
+				...(repo.status != null && repo.status !== '' && {
+					status: repo.status,
+				}),
+			}
+		}),
+		...(wire.cursor != null && wire.cursor !== '' && {
+			cursor: wire.cursor,
+		}),
+	}
+}
+
+
+export const parseListHostsResponse = (
+	body: unknown
+) => {
+	const wire = listHostsWire(body)
+	if (wire instanceof type.errors)
+		throw new Error(`AtprotoSync_Xrpc: malformed listHosts response: ${wire.summary}`)
+
+	return {
+		hosts: wire.hosts.map((host) => ({
+			hostname: host.hostname,
+			...(host.seq != null && {
+				seq: host.seq,
+			}),
+			...(host.accountCount != null && {
+				accountCount: host.accountCount,
+			}),
+			...(host.status != null && host.status !== '' && {
+				status: host.status,
+			}),
+		})),
+		...(wire.cursor != null && wire.cursor !== '' && {
+			cursor: wire.cursor,
+		}),
+	}
+}
+
+
+export const parseGetHostStatusResponse = (
+	body: unknown
+) => {
+	const wire = getHostStatusWire(body)
+	if (wire instanceof type.errors)
+		throw new Error(`AtprotoSync_Xrpc: malformed getHostStatus response: ${wire.summary}`)
+
+	return {
+		hostname: wire.hostname,
+		...(wire.seq != null && {
+			seq: wire.seq,
+		}),
+		...(wire.accountCount != null && {
+			accountCount: wire.accountCount,
+		}),
+		...(wire.status != null && wire.status !== '' && {
+			status: wire.status,
+		}),
+	}
+}
+

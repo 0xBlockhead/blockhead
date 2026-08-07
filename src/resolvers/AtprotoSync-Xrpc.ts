@@ -10,6 +10,7 @@ import bindings from '$/sources/AtprotoSync/bindings.ts'
 import {
 	defaultAtprotoSyncRelayOrigin,
 	getLatestCommit,
+	getRepoStatus,
 } from '$/sources/AtprotoSync/Xrpc/queries.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceDelivery } from '$/sources/SourceBinding.ts'
@@ -30,11 +31,26 @@ const projectLatestCommit = async ({
 	rev?: string
 	commitCid?: string
 }) => {
-	const latest = await getLatestCommit({
-		binding: remoteQueryBinding,
-		serviceOrigin: defaultAtprotoSyncRelayOrigin,
-		did: repoDid,
-	})
+	const [latest, status] = await Promise.all([
+		getLatestCommit({
+			binding: remoteQueryBinding,
+			serviceOrigin: defaultAtprotoSyncRelayOrigin,
+			did: repoDid,
+		}),
+		getRepoStatus({
+			binding: remoteQueryBinding,
+			serviceOrigin: defaultAtprotoSyncRelayOrigin,
+			did: repoDid,
+		}),
+	])
+
+	if (status.did !== repoDid)
+		throw new Error(`AtprotoSync_Xrpc: getRepoStatus did ${status.did} does not match ${repoDid}`)
+
+	if (status.rev != null && status.rev !== latest.rev)
+		throw new Error(
+			`AtprotoSync_Xrpc: getRepoStatus rev ${status.rev} disagrees with getLatestCommit rev ${latest.rev} for ${repoDid}`
+		)
 
 	if (rev != null && rev !== latest.rev)
 		throw new Error(
