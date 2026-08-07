@@ -9,9 +9,13 @@ import {
 
 import {
 	getLatestPairs,
+	getLatestTokenBoosts,
+	getLatestTokenProfiles,
 	getPairSearch,
+	getTokenOrders,
 	getTokenPairs,
 	getTokens,
+	getTopTokenBoosts,
 } from '$/sources/Dexscreener/OpenApi/queries.ts'
 import bindings from '$/sources/Dexscreener/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -92,6 +96,55 @@ describe('Dexscreener public pair observations', () => {
 			binding,
 			`/latest/dex/pairs/${pair.chainId}/${pair.pairAddress}`
 		)
+	})
+
+	it('retains live LiquidityPool tip leftovers (schemaVersion, singular pair, info.openGraph, boosts)', async () => {
+		getJson.mockResolvedValue({
+			schemaVersion: '1.0.0',
+			pair: {
+				...pair,
+				info: {
+					imageUrl: 'https://cdn.dexscreener.com/cms/images/weth.png',
+					openGraph: 'https://cdn.dexscreener.com/token-images/og/ethereum/weth',
+					websites: [],
+					socials: [],
+				},
+				boosts: {
+					active: 3,
+				},
+			},
+			pairs: [{
+				...pair,
+				info: {
+					imageUrl: 'https://cdn.dexscreener.com/cms/images/weth.png',
+					openGraph: 'https://cdn.dexscreener.com/token-images/og/ethereum/weth',
+					websites: [],
+					socials: [],
+				},
+				boosts: {
+					active: 3,
+				},
+			}],
+		})
+
+		await expect(getLatestPairs({
+			chainId: pair.chainId,
+			pairId: pair.pairAddress,
+		})).resolves.toEqual({
+			pairs: [{
+				...pair,
+				info: {
+					imageUrl: 'https://cdn.dexscreener.com/cms/images/weth.png',
+					openGraph: 'https://cdn.dexscreener.com/token-images/og/ethereum/weth',
+					websites: [],
+					socials: [],
+				},
+				boosts: {
+					active: 3,
+				},
+				resolvedAtMs: 1_725_000_000_000,
+			}],
+		})
 	})
 
 	it('rejects empty latest-pair payloads instead of soft-empty success', async () => {
@@ -248,6 +301,16 @@ describe('Dexscreener public pair observations', () => {
 			{ pairs: [{ ...pair, quoteToken: { ...pair.quoteToken, address: '' } }] },
 			'incomplete pair identity',
 		],
+		[
+			'non-object transaction counts',
+			{
+				pairs: [{
+					...pair,
+					txns: { h24: 12 },
+				}],
+			},
+			'incomplete h24 transaction counts',
+		],
 	])('rejects %s', async (_label, response, message) => {
 		getJson.mockResolvedValue(response)
 		await expect(getLatestPairs({
@@ -281,5 +344,84 @@ describe('Dexscreener public pair observations', () => {
 			],
 		})).rejects.toThrow('malformed token address list')
 		expect(getJson).not.toHaveBeenCalled()
+	})
+
+	it('loads token marketing tip leftovers and live orders+boosts envelopes', async () => {
+		const marketing = {
+			url: 'https://dexscreener.com/ethereum/0x2222222222222222222222222222222222222222',
+			chainId: 'ethereum',
+			tokenAddress: pair.baseToken.address,
+			amount: 500,
+			totalAmount: 600,
+			icon: 'https://cdn.dexscreener.com/cms/images/icon.png',
+			header: 'https://cdn.dexscreener.com/cms/images/header.png',
+			openGraph: 'https://cdn.dexscreener.com/token-images/og/ethereum/weth',
+			description: 'Wrapped Ether',
+			links: [{ type: 'twitter', url: 'https://x.com/ethereum' }],
+		}
+		getJson
+			.mockResolvedValueOnce([marketing])
+			.mockResolvedValueOnce([marketing])
+			.mockResolvedValueOnce([marketing])
+			.mockResolvedValueOnce({
+				orders: [{
+					chainId: 'ethereum',
+					tokenAddress: pair.baseToken.address,
+					type: 'tokenProfile',
+					status: 'approved',
+					paymentTimestamp: 1_700_000_000_000,
+				}],
+				boosts: [marketing],
+			})
+
+		await expect(getLatestTokenProfiles()).resolves.toEqual([marketing])
+		await expect(getLatestTokenBoosts()).resolves.toEqual([marketing])
+		await expect(getTopTokenBoosts()).resolves.toEqual([marketing])
+		await expect(getTokenOrders({
+			chainId: pair.chainId,
+			tokenAddress: pair.baseToken.address,
+		})).resolves.toEqual({
+			orders: [{
+				chainId: 'ethereum',
+				tokenAddress: pair.baseToken.address,
+				type: 'tokenProfile',
+				status: 'approved',
+				paymentTimestamp: 1_700_000_000_000,
+			}],
+			boosts: [marketing],
+		})
+		expect(getJson).toHaveBeenNthCalledWith(1, binding, '/token-profiles/latest/v1')
+		expect(getJson).toHaveBeenNthCalledWith(2, binding, '/token-boosts/latest/v1')
+		expect(getJson).toHaveBeenNthCalledWith(3, binding, '/token-boosts/top/v1')
+		expect(getJson).toHaveBeenNthCalledWith(
+			4,
+			binding,
+			`/orders/v1/${pair.chainId}/${pair.baseToken.address}`
+		)
+	})
+
+	it('fail-closes malformed token marketing and orders envelopes', async () => {
+		getJson
+			.mockResolvedValueOnce({ url: 'not-an-array' })
+			.mockResolvedValueOnce({ orders: [{ type: 'unknown-order' }] })
+			.mockResolvedValueOnce({
+				orders: [{
+					chainId: 'base',
+					tokenAddress: pair.baseToken.address,
+					type: 'tokenProfile',
+					status: 'approved',
+					paymentTimestamp: 1,
+				}],
+			})
+
+		await expect(getLatestTokenProfiles()).rejects.toThrow('token-profiles response envelope')
+		await expect(getTokenOrders({
+			chainId: pair.chainId,
+			tokenAddress: pair.baseToken.address,
+		})).rejects.toThrow('token-orders response envelope')
+		await expect(getTokenOrders({
+			chainId: pair.chainId,
+			tokenAddress: pair.baseToken.address,
+		})).rejects.toThrow('does not match requested identity')
 	})
 })

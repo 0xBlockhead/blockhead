@@ -77,7 +77,10 @@ export default {
 		})({
 				$baseToken: (snapshot) => snapshot.$baseToken,
 				$quoteToken: (snapshot) => snapshot.$quoteToken,
-				$$timestamps: (snapshot) => snapshot.$$timestamps,
+				$$timestamps: {
+					select: (snapshot) => snapshot.$$timestamps,
+					resolveCount: (snapshot) => snapshot.$$timestamps.length,
+				},
 			}),
 
 		defineResolver({
@@ -186,12 +189,18 @@ export default {
 						if (liquidityPools.length === 0)
 							throw new Error('Dexscreener_Rest: pair search "WETH USDC uniswap" returned no liquidity pools')
 
-						return liquidityPools.slice(0, resolverContextRowLimit(context))
+						return {
+							liquidityPools: liquidityPools.slice(0, resolverContextRowLimit(context)),
+							liquidityPoolCount: liquidityPools.length,
+						}
 					},
 				}
 			},
 		})({
-				$$liquidityPools: (snapshot) => snapshot,
+				$$liquidityPools: {
+					select: (snapshot) => snapshot.liquidityPools,
+					resolveCount: (snapshot) => snapshot.liquidityPoolCount,
+				},
 			}),
 
 		defineResolver({

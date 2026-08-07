@@ -75,13 +75,14 @@ describe('Dexscreener liquidity pool observation clock', () => {
 			poolSelector,
 			emptyContext,
 		)
-		expect(resolver.projections.$$timestamps(snapshot)).toEqual([{
+		expect(resolver.projections.$$timestamps.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$liquidityPool: poolSelector,
 				timestampMs: 1_725_000_000_000,
 				feedKey: 'dexscreener',
 			},
 		}])
+		expect(resolver.projections.$$timestamps.resolveCount?.(snapshot)).toBe(1)
 		expect(getLatestPairs).toHaveBeenCalledWith({
 			chainId: 'ethereum',
 			pairId: '0x1111111111111111111111111111111111111111',
@@ -187,9 +188,10 @@ describe('Dexscreener liquidity pool observation clock', () => {
 			{},
 			emptyContext,
 		)
-		expect(resolver.projections.$$liquidityPools(snapshot)).toEqual([{
+		expect(resolver.projections.$$liquidityPools.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: poolSelector,
 		}])
+		expect(resolver.projections.$$liquidityPools.resolveCount?.(snapshot)).toBe(1)
 	})
 
 	it('hard-fails invalid pair token addresses instead of soft-omitting legs', async () => {
