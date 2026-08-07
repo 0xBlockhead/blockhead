@@ -2398,29 +2398,32 @@ export const MOCK_L2BEAT_SCALING_SUMMARY_BODY = JSON.stringify({
 			name: 'Arbitrum One',
 			slug: 'arbitrum',
 			type: 'layer2',
-			hostChain: 'ethereum',
+			hostChain: 'Ethereum',
 		},
 		base: {
 			id: 'base',
 			name: 'Base',
 			slug: 'base',
 			type: 'layer2',
-			hostChain: 'ethereum',
+			hostChain: 'Ethereum',
 		},
 		'polygon-pos': {
 			id: 'polygon-pos',
 			name: 'Polygon PoS',
 			slug: 'polygon-pos',
 			type: 'layer2',
-			hostChain: 'ethereum',
+			hostChain: 'Ethereum',
 		},
 		optimism: {
 			id: 'optimism',
 			name: 'Optimism',
 			slug: 'optimism',
 			type: 'layer2',
-			hostChain: 'ethereum',
+			hostChain: 'Ethereum',
 		},
+	},
+	chart: {
+		syncedUntil: 1_785_830_400,
 	},
 })
 

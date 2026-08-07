@@ -52,4 +52,67 @@ describe('L2Beat scaling summary query', () => {
 
 		await expect(fetchScalingSummary()).rejects.toThrow(/404/)
 		await expect(fetchScalingSummary()).rejects.toThrow(/500/)
-	})})
+	})
+
+	it('fail-closes invalid scaling summary envelopes', async () => {
+		vi.stubGlobal('window', {})
+		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+			projects: {
+				broken: {
+					id: 'broken',
+					name: 'Broken',
+					slug: 'broken',
+					type: 'layer2',
+				},
+			},
+			chart: {
+				syncedUntil: 1_785_830_400,
+			},
+		}))))
+
+		await expect(fetchScalingSummary()).rejects.toThrow('L2Beat_Rest: invalid scaling summary response envelope')
+	})
+
+	it('strips undeclared project keys after assert', async () => {
+		vi.stubGlobal('window', {})
+		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+			projects: {
+				arbitrum: {
+					id: 'arbitrum',
+					name: 'Arbitrum One',
+					slug: 'arbitrum',
+					type: 'layer2',
+					hostChain: 'Ethereum',
+					category: 'Optimistic Rollup',
+					providers: ['Arbitrum'],
+					tvs: {
+						breakdown: {
+							total: 1,
+						},
+					},
+				},
+			},
+			chart: {
+				syncedUntil: 1_785_830_400,
+				types: ['timestamp'],
+				data: [[1]],
+			},
+		}))))
+
+		await expect(fetchScalingSummary()).resolves.toEqual({
+			projects: {
+				arbitrum: {
+					id: 'arbitrum',
+					name: 'Arbitrum One',
+					slug: 'arbitrum',
+					type: 'layer2',
+					hostChain: 'Ethereum',
+					category: 'Optimistic Rollup',
+				},
+			},
+			chart: {
+				syncedUntil: 1_785_830_400,
+			},
+		})
+	})
+})

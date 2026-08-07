@@ -17,6 +17,7 @@ import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import {
 	ethereumChainId,
+	l2BeatChainIdByProjectId,
 	l2BeatHostChainByLabel,
 	l2BeatHostChains,
 	l2BeatProjectChainIds,
@@ -253,9 +254,9 @@ export default {
 							:
 								{
 									[EntityMetaKey.Selector]: {
-									caip2: {
-										namespace: 'eip155' as const,
-										reference: String(parentChainId),
+										caip2: {
+											namespace: 'eip155' as const,
+											reference: String(parentChainId),
 										},
 									},
 								},
@@ -268,14 +269,12 @@ export default {
 										projectId,
 									},
 								},
-							settledRollups: l2BeatProjectChainIds.flatMap(({
-								projectId: childProjectId,
-								chainId: childChainId,
-							}) => {
-								const childProject = summary.projects[childProjectId]
-								return (
-									childProject == null
-									|| childProject.isArchived === true
+							settledRollups: Object.entries(summary.projects).flatMap(([
+								childProjectId,
+								childProject,
+							]) => (
+								(
+									childProject.isArchived === true
 									|| !hostLabels.includes(childProject.hostChain)
 								) ?
 									[]
@@ -284,14 +283,17 @@ export default {
 										[EntityMetaKey.Selector]: {
 											$network: {
 												caip2: {
-													namespace: 'eip155',
-													reference: String(childChainId),
+													namespace: 'eip155' as const,
+													reference: String(
+														l2BeatChainIdByProjectId.get(childProjectId)
+														?? chainId
+													),
 												},
 											},
 											projectId: childProjectId,
 										},
 									}]
-							}),
+							)),
 							childLayers: l2BeatProjectChainIds.flatMap(({
 								projectId: childProjectId,
 								chainId: childChainId,

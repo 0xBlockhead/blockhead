@@ -222,4 +222,96 @@ describe('L2Beat resolver', () => {
 		expect(rollup.$settlementNetwork[EntityMetaKey.Selector].caip2.reference).toBe('4663')
 		expect(rollup.hostChain).toBe('Robinhood Chain')
 	})
+
+	it('lists unmapped host-settled projects on $$settledRollups leftovers', async () => {
+		fetchScalingSummary.mockResolvedValue({
+			projects: {
+				arbitrum: arbitrumProject,
+				'lighter-robinhood': {
+					id: 'lighter-robinhood',
+					name: 'Lighter on Robinhood',
+					slug: 'lighter-robinhood',
+					type: 'layer3',
+					hostChain: 'Robinhood Chain',
+					isArchived: false,
+				},
+				aevo: {
+					id: 'aevo',
+					name: 'Aevo',
+					slug: 'aevo',
+					type: 'layer2',
+					hostChain: 'Ethereum',
+					isArchived: false,
+				},
+			},
+			chart: {
+				syncedUntil: 1_785_830_400,
+			},
+		})
+
+		const relationshipResolver = l2Beat.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'Evm' in candidate.projections
+			&& '$$settledRollups' in candidate.projections.Evm
+		))
+		if (relationshipResolver == null)
+			throw new Error('L2Beat_Rest: missing Network Evm relationship resolver')
+
+		const ethereum = await relationshipResolver.resolve.Caip2.resolve({
+			caip2: {
+				namespace: 'eip155',
+				reference: '1',
+			},
+		}, emptyContext)
+		expect(ethereum.settledRollups).toEqual(expect.arrayContaining([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '42161',
+						},
+					},
+					projectId: 'arbitrum',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+					projectId: 'aevo',
+				},
+			},
+		]))
+		expect(
+			ethereum.settledRollups.some((rollup) => (
+				rollup[EntityMetaKey.Selector].projectId === 'lighter-robinhood'
+			))
+		).toBe(false)
+
+		const robinhood = await relationshipResolver.resolve.Caip2.resolve({
+			caip2: {
+				namespace: 'eip155',
+				reference: '4663',
+			},
+		}, emptyContext)
+		expect(robinhood.settledRollups).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '4663',
+						},
+					},
+					projectId: 'lighter-robinhood',
+				},
+			},
+		])
+		expect(robinhood.childLayers).toEqual([])
+	})
 })
