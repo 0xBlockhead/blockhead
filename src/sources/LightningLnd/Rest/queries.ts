@@ -53,6 +53,30 @@ const getInfoWire = arktype({
 	'uris?': 'string[]',
 })
 
+const amountWire = arktype({
+	'sat?': losslessUnsignedString,
+	'msat?': losslessUnsignedString,
+})
+
+const walletBalanceWire = arktype({
+	'total_balance?': losslessUnsignedString,
+	'confirmed_balance?': losslessUnsignedString,
+	'unconfirmed_balance?': losslessUnsignedString,
+	'locked_balance?': losslessUnsignedString,
+	'reserved_balance_anchor_chan?': losslessUnsignedString,
+})
+
+const channelBalanceWire = arktype({
+	'balance?': losslessUnsignedString,
+	'pending_open_balance?': losslessUnsignedString,
+	'local_balance?': amountWire,
+	'remote_balance?': amountWire,
+	'unsettled_local_balance?': amountWire,
+	'unsettled_remote_balance?': amountWire,
+	'pending_open_local_balance?': amountWire,
+	'pending_open_remote_balance?': amountWire,
+})
+
 const networkInfoWire = arktype({
 	'graph_diameter?': unsignedSafe,
 	'avg_out_degree?': 'number',
@@ -234,6 +258,40 @@ export const getInfo = async ({
 			path: '/v1/getinfo',
 		}),
 		'getinfo'
+	)
+)
+
+export const getWalletBalance = async ({
+	publicEnv,
+}: {
+	publicEnv: SourcePublicEnv
+}) => (
+	// Official LND REST/OpenAPI proof:
+	// https://lightning.engineering/api-docs/api/lnd/lightning/wallet-balance/
+	assertEnvelope(
+		walletBalanceWire,
+		await requestLightningLndRestJson({
+			publicEnv,
+			path: '/v1/balance/blockchain',
+		}),
+		'wallet balance'
+	)
+)
+
+export const getChannelBalance = async ({
+	publicEnv,
+}: {
+	publicEnv: SourcePublicEnv
+}) => (
+	// Official LND REST/OpenAPI proof:
+	// https://lightning.engineering/api-docs/api/lnd/lightning/channel-balance/
+	assertEnvelope(
+		channelBalanceWire,
+		await requestLightningLndRestJson({
+			publicEnv,
+			path: '/v1/balance/channels',
+		}),
+		'channel balance'
 	)
 )
 

@@ -17,9 +17,11 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceFetch,
 }))
 import {
+	getChannelBalance,
 	getChannelInfo,
 	getNetworkInfo,
 	getNodeInfo,
+	getWalletBalance,
 } from '$/sources/LightningLnd/Rest/queries.ts'
 
 const binding = bindings[Source.LightningLnd_Rest][0]
@@ -132,5 +134,73 @@ describe('LND authenticated public graph reads', () => {
 			}],
 		})
 		await expect(listChannels({ publicEnv })).rejects.toThrow('invalid channel funding point')
+	})
+
+	it('preserves wallet and channel balance sats as lossless decimal strings', async () => {
+		respond({
+			total_balance: '9007199254740993',
+			confirmed_balance: '9007199254740993',
+		})
+		await expect(getWalletBalance({
+			publicEnv,
+		})).resolves.toMatchObject({
+			total_balance: '9007199254740993',
+		})
+		expect(sourceFetch).toHaveBeenLastCalledWith(
+			binding,
+			'https://127.0.0.1:8080/v1/balance/blockchain',
+			expect.objectContaining({
+				headers: {
+					'Grpc-Metadata-macaroon': 'macaroon',
+				},
+			})
+		)
+
+		respond({
+			local_balance: {
+				sat: '12345678901234567890',
+				msat: '12345678901234567890000',
+			},
+			pending_open_local_balance: {
+				sat: '42',
+			},
+		})
+		await expect(getChannelBalance({
+			publicEnv,
+		})).resolves.toMatchObject({
+			local_balance: {
+				sat: '12345678901234567890',
+			},
+			pending_open_local_balance: {
+				sat: '42',
+			},
+		})
+		expect(sourceFetch).toHaveBeenLastCalledWith(
+			binding,
+			'https://127.0.0.1:8080/v1/balance/channels',
+			expect.objectContaining({
+				headers: {
+					'Grpc-Metadata-macaroon': 'macaroon',
+				},
+			})
+		)
+	})
+
+	it('fail-closes wallet and channel balance envelopes with lossy sats', async () => {
+		respond({
+			total_balance: '1.5',
+		})
+		await expect(getWalletBalance({
+			publicEnv,
+		})).rejects.toThrow('invalid wallet balance envelope')
+
+		respond({
+			local_balance: {
+				sat: 'not-a-number',
+			},
+		})
+		await expect(getChannelBalance({
+			publicEnv,
+		})).rejects.toThrow('invalid channel balance envelope')
 	})
 })

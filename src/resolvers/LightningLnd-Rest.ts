@@ -21,12 +21,14 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	LndChannel,
+	LndChannelBalanceResponse,
 	LndChannelEdge,
 	LndGetInfoResponse,
 	LndInvoice,
 	LndNetworkInfoResponse,
 	LndNodeInfoResponse,
 	LndPayment,
+	LndWalletBalanceResponse,
 } from '$/sources/LightningLnd/Rest/types.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -417,7 +419,11 @@ const htlcFieldsFromLndHtlc = (
 	}
 }
 
-const nodeStateTimestampFieldsFromLndInfo = (info: LndGetInfoResponse) => ({
+const nodeStateTimestampFieldsFromLndInfo = (
+	info: LndGetInfoResponse,
+	walletBalance: LndWalletBalanceResponse,
+	channelBalance: LndChannelBalanceResponse
+) => ({
 	syncedToChain: info.synced_to_chain,
 	syncedToGraph: info.synced_to_graph,
 	...(info.block_height != null && {
@@ -426,6 +432,9 @@ const nodeStateTimestampFieldsFromLndInfo = (info: LndGetInfoResponse) => ({
 	...(info.best_header_timestamp != null && info.best_header_timestamp !== '' && {
 		bestHeaderTimestampMs: Number(info.best_header_timestamp) * 1000,
 	}),
+	walletBalanceSats: bigintFromWire(walletBalance.total_balance),
+	channelBalanceSats: bigintFromWire(channelBalance.local_balance?.sat ?? channelBalance.balance),
+	pendingChannelBalanceSats: bigintFromWire(channelBalance.pending_open_local_balance?.sat ?? channelBalance.pending_open_balance),
 	peerCount: info.num_peers,
 	activeChannelCount: info.num_active_channels,
 	inactiveChannelCount: info.num_inactive_channels,
@@ -545,7 +554,23 @@ export default {
 					resolve: async ({ $localNodeState, source }, context) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($localNodeState.$network.$network)
-						return nodeStateTimestampFieldsFromLndInfo(await lndInfo(context))
+						const {
+							getChannelBalance,
+							getInfo,
+							getWalletBalance,
+						} = await import('$/sources/LightningLnd/Rest/queries.ts')
+						const [info, walletBalance, channelBalance] = await Promise.all([
+							getInfo({
+								publicEnv: context.publicEnv,
+							}),
+							getWalletBalance({
+								publicEnv: context.publicEnv,
+							}),
+							getChannelBalance({
+								publicEnv: context.publicEnv,
+							}),
+						])
+						return nodeStateTimestampFieldsFromLndInfo(info, walletBalance, channelBalance)
 					},
 				},
 			},
@@ -554,6 +579,9 @@ export default {
 			syncedToGraph: (snapshot) => snapshot.syncedToGraph,
 			blockHeight: (snapshot) => snapshot.blockHeight,
 			bestHeaderTimestampMs: (snapshot) => snapshot.bestHeaderTimestampMs,
+			walletBalanceSats: (snapshot) => snapshot.walletBalanceSats,
+			channelBalanceSats: (snapshot) => snapshot.channelBalanceSats,
+			pendingChannelBalanceSats: (snapshot) => snapshot.pendingChannelBalanceSats,
 			peerCount: (snapshot) => snapshot.peerCount,
 			activeChannelCount: (snapshot) => snapshot.activeChannelCount,
 			inactiveChannelCount: (snapshot) => snapshot.inactiveChannelCount,

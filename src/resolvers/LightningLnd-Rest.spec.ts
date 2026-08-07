@@ -5,28 +5,34 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
+	getChannelBalance,
 	getChannelInfo,
 	getInfo,
 	getNetworkInfo,
 	getNodeInfo,
+	getWalletBalance,
 	listChannels,
 	listInvoices,
 	listPayments,
 } = vi.hoisted(() => ({
+	getChannelBalance: vi.fn(),
 	getChannelInfo: vi.fn(),
 	getInfo: vi.fn(),
 	getNetworkInfo: vi.fn(),
 	getNodeInfo: vi.fn(),
+	getWalletBalance: vi.fn(),
 	listChannels: vi.fn(),
 	listInvoices: vi.fn(),
 	listPayments: vi.fn(),
 }))
 
 vi.mock('$/sources/LightningLnd/Rest/queries.ts', () => ({
+	getChannelBalance,
 	getChannelInfo,
 	getInfo,
 	getNetworkInfo,
 	getNodeInfo,
+	getWalletBalance,
 	listChannels,
 	listInvoices,
 	listPayments,
@@ -431,6 +437,18 @@ describe('Lightning LND resolver ownership', () => {
 			num_inactive_channels: 0,
 			num_pending_channels: 2,
 		})
+		getWalletBalance.mockResolvedValue({
+			total_balance: '500000',
+			confirmed_balance: '499000',
+		})
+		getChannelBalance.mockResolvedValue({
+			local_balance: {
+				sat: '250000',
+			},
+			pending_open_local_balance: {
+				sat: '10000',
+			},
+		})
 		listChannels.mockResolvedValue({
 			channels: [
 				channel,
@@ -463,10 +481,19 @@ describe('Lightning LND resolver ownership', () => {
 			syncedToGraph: false,
 			blockHeight: 800000n,
 			bestHeaderTimestampMs: 1_700_000_111_000,
+			walletBalanceSats: 500000n,
+			channelBalanceSats: 250000n,
+			pendingChannelBalanceSats: 10000n,
 			peerCount: 4,
 			activeChannelCount: 1,
 			inactiveChannelCount: 0,
 			pendingChannelCount: 2,
+		})
+		expect(getWalletBalance).toHaveBeenCalledWith({
+			publicEnv: context.publicEnv,
+		})
+		expect(getChannelBalance).toHaveBeenCalledWith({
+			publicEnv: context.publicEnv,
 		})
 
 		await expect(nodeChannelStatesResolver.resolve.ConnectionIdNetwork.resolve(localNodeState, context)).resolves.toEqual([

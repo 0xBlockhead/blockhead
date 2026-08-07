@@ -14,6 +14,30 @@ export type LndGetInfoResponse = {
 	uris?: string[]
 }
 
+export type LndAmount = {
+	sat?: string
+	msat?: string
+}
+
+export type LndWalletBalanceResponse = {
+	total_balance?: string
+	confirmed_balance?: string
+	unconfirmed_balance?: string
+	locked_balance?: string
+	reserved_balance_anchor_chan?: string
+}
+
+export type LndChannelBalanceResponse = {
+	balance?: string
+	pending_open_balance?: string
+	local_balance?: LndAmount
+	remote_balance?: LndAmount
+	unsettled_local_balance?: LndAmount
+	unsettled_remote_balance?: LndAmount
+	pending_open_local_balance?: LndAmount
+	pending_open_remote_balance?: LndAmount
+}
+
 export type LndChannelPoint = {
 	funding_txid_bytes?: string
 	funding_txid_str?: string
