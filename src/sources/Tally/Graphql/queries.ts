@@ -1,8 +1,12 @@
-import type {
-	TallyGovernor,
-	TallyPageInfo,
-	TallyProposal,
-	TallyProposalStatus,
+import {
+	tallyGovernorDataWire,
+	tallyGovernorsPageDataWire,
+	tallyProposalDataWire,
+	tallyProposalStatuses,
+	tallyProposalsPageDataWire,
+	type TallyGovernor,
+	type TallyProposal,
+	type TallyProposalStatus,
 } from '$/sources/Tally/Graphql/types.ts'
 
 import { queryTally } from './client.ts'
@@ -156,26 +160,19 @@ const proposalsQuery = `
 	}
 `
 
-const proposalStatuses = new Set<TallyProposalStatus>([
-	'active',
-	'archived',
-	'canceled',
-	'callexecuted',
-	'defeated',
-	'draft',
-	'executed',
-	'expired',
-	'extended',
-	'pending',
-	'queued',
-	'pendingexecution',
-	'submitted',
-	'succeeded',
-	'crosschainexecuted',
-	'vetovoteopen',
-	'vetoquorummet',
-	'vetoed',
-])
+const proposalStatuses = new Set<TallyProposalStatus>(tallyProposalStatuses)
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`Tally: invalid ${label} envelope`)
+	}
+}
 
 const assertCaip2 = (
 	value: string,
@@ -233,9 +230,13 @@ const normalizeIntId = (
 	value: string | number,
 	label: string
 ) => {
-	const normalized = typeof value === 'number' ? String(value) : value
-	assertIntId(normalized, label)
-	return normalized
+	if (typeof value === 'number') {
+		if (!Number.isSafeInteger(value) || value < 0)
+			throw new Error(`Tally: invalid ${label}`)
+		return String(value)
+	}
+	assertIntId(value, label)
+	return value
 }
 
 const assertGovernor = (
@@ -281,10 +282,26 @@ const assertGovernor = (
 		assertSafeNonnegativeInteger(governor.proposalStats.failed, 'proposal failed count')
 		assertSafeNonnegativeInteger(governor.proposalStats.passed, 'proposal passed count')
 	}
+	if (governor.parameters != null) {
+		for (const [label, value] of [
+			['quorum votes', governor.parameters.quorumVotes],
+			['proposal threshold', governor.parameters.proposalThreshold],
+			['voting delay', governor.parameters.votingDelay],
+			['voting period', governor.parameters.votingPeriod],
+			['grace period', governor.parameters.gracePeriod],
+			['clock mode', governor.parameters.clockMode],
+			['counting mode', governor.parameters.countingMode],
+		] as const) {
+			if (value != null)
+				assertOpaqueIdentity(value, label, 128)
+		}
+	}
 	if (governor.contracts?.governor?.address != null) {
 		if (!/^0x[0-9a-fA-F]{40}$/.test(governor.contracts.governor.address))
 			throw new Error('Tally: invalid governor contract address')
 	}
+	if (governor.metadata?.description != null)
+		assertOpaqueIdentity(governor.metadata.description, 'governor description', 100_000)
 }
 
 const assertProposal = (
@@ -309,21 +326,41 @@ const assertProposal = (
 			if (!/^0x[0-9a-fA-F]{64}$/.test(proposal.metadata.txHash))
 				throw new Error('Tally: invalid proposal tx hash')
 		}
+		if (proposal.metadata.discourseURL != null)
+			assertOpaqueIdentity(proposal.metadata.discourseURL, 'proposal discourse URL', 2048)
+		if (proposal.metadata.snapshotURL != null)
+			assertOpaqueIdentity(proposal.metadata.snapshotURL, 'proposal snapshot URL', 2048)
 	}
 	assertAccountId(proposal.governor.id, 'proposal governor ID')
 	assertCaip2(proposal.governor.chainId, 'proposal governor chain ID')
 	if (proposal.governor.chainId !== proposal.chainId)
 		throw new Error('Tally: proposal chain disagrees with governor')
+	if (proposal.governor.name != null)
+		assertOpaqueIdentity(proposal.governor.name, 'proposal governor name')
+	if (proposal.governor.slug != null)
+		assertOpaqueIdentity(proposal.governor.slug, 'proposal governor slug')
 	if (proposal.organization != null) {
 		proposal.organization = {
 			...proposal.organization,
 			id: normalizeIntId(proposal.organization.id, 'organization ID'),
 		}
+		if (proposal.organization.slug != null)
+			assertOpaqueIdentity(proposal.organization.slug, 'organization slug')
+		if (proposal.organization.name != null)
+			assertOpaqueIdentity(proposal.organization.name, 'organization name')
 	}
 	if (proposal.proposer != null) {
 		if (!/^0x[0-9a-fA-F]{40}$/.test(proposal.proposer.address))
 			throw new Error('Tally: invalid proposer address')
+		if (proposal.proposer.ens != null)
+			assertOpaqueIdentity(proposal.proposer.ens, 'proposer ens')
+		if (proposal.proposer.name != null)
+			assertOpaqueIdentity(proposal.proposer.name, 'proposer name')
 	}
+	if (proposal.start?.timestamp != null)
+		assertOpaqueIdentity(proposal.start.timestamp, 'proposal start timestamp', 32)
+	if (proposal.end?.timestamp != null)
+		assertOpaqueIdentity(proposal.end.timestamp, 'proposal end timestamp', 32)
 	if (proposal.voteStats != null) {
 		for (const voteStat of proposal.voteStats) {
 			assertOpaqueIdentity(voteStat.type, 'vote stat type')
@@ -343,13 +380,15 @@ export const getGovernor = async ({
 	governorId: string
 }) => {
 	assertAccountId(governorId, 'requested governor ID')
-	const { governor } = await queryTally<{
-		governor: TallyGovernor | null
-	}>(governorQuery, {
-		input: {
-			id: governorId,
-		},
-	})
+	const { governor } = assertEnvelope(
+		'governor',
+		tallyGovernorDataWire,
+		await queryTally(governorQuery, {
+			input: {
+				id: governorId,
+			},
+		})
+	)
 	if (governor == null)
 		throw new Error('Tally: governor not found')
 	assertGovernor(governor)
@@ -374,25 +413,24 @@ export const getGovernorsPage = async ({
 	if (afterCursor != null)
 		assertOpaqueIdentity(afterCursor, 'after cursor')
 
-	const { governors } = await queryTally<{
-		governors: {
-			nodes: (TallyGovernor | null)[] | null
-			pageInfo: TallyPageInfo
-		} | null
-	}>(governorsQuery, {
-		input: {
-			filters: {
-				organizationId,
-				includeInactive,
+	const { governors } = assertEnvelope(
+		'governors page',
+		tallyGovernorsPageDataWire,
+		await queryTally(governorsQuery, {
+			input: {
+				filters: {
+					organizationId,
+					includeInactive,
+				},
+				page: {
+					limit,
+					...(afterCursor != null && {
+						afterCursor,
+					}),
+				},
 			},
-			page: {
-				limit,
-				...(afterCursor != null && {
-					afterCursor,
-				}),
-			},
-		},
-	})
+		})
+	)
 	if (governors == null)
 		throw new Error('Tally: governors page is missing')
 	if (governors.nodes == null)
@@ -426,13 +464,15 @@ export const getProposal = async ({
 	proposalId: string
 }) => {
 	assertIntId(proposalId, 'requested proposal ID')
-	const { proposal } = await queryTally<{
-		proposal: TallyProposal | null
-	}>(proposalQuery, {
-		input: {
-			id: proposalId,
-		},
-	})
+	const { proposal } = assertEnvelope(
+		'proposal',
+		tallyProposalDataWire,
+		await queryTally(proposalQuery, {
+			input: {
+				id: proposalId,
+			},
+		})
+	)
 	if (proposal == null)
 		throw new Error('Tally: proposal not found')
 	assertProposal(proposal)
@@ -455,24 +495,23 @@ export const getProposalsPage = async ({
 	if (afterCursor != null)
 		assertOpaqueIdentity(afterCursor, 'after cursor')
 
-	const { proposals } = await queryTally<{
-		proposals: {
-			nodes: (TallyProposal | null)[] | null
-			pageInfo: TallyPageInfo
-		} | null
-	}>(proposalsQuery, {
-		input: {
-			filters: {
-				governorId,
+	const { proposals } = assertEnvelope(
+		'proposals page',
+		tallyProposalsPageDataWire,
+		await queryTally(proposalsQuery, {
+			input: {
+				filters: {
+					governorId,
+				},
+				page: {
+					limit,
+					...(afterCursor != null && {
+						afterCursor,
+					}),
+				},
 			},
-			page: {
-				limit,
-				...(afterCursor != null && {
-					afterCursor,
-				}),
-			},
-		},
-	})
+		})
+	)
 	if (proposals == null)
 		throw new Error('Tally: proposals page is missing')
 	if (proposals.nodes == null)

@@ -368,4 +368,88 @@ describe('Tally onchain governance reads', () => {
 			limit: 21,
 		})).rejects.toThrow('page limit')
 	})
+
+	it('fails closed on malformed governor/proposal arktype envelopes', async () => {
+		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
+		sourceFetch
+			.mockResolvedValueOnce(jsonResponse({
+				governor: {
+					...governor,
+					delegatesCount: -1,
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				governor: {
+					...governor,
+					proposalStats: {
+						total: 1,
+						active: 1,
+						failed: 0,
+						passed: 'seven',
+					},
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				proposal: {
+					...proposal,
+					status: 'not-a-status',
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				proposal: {
+					...proposal,
+					voteStats: [{
+						type: 'for',
+						votesCount: '1',
+						votersCount: 1,
+						percent: 'eighty',
+					}],
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				governors: {
+					nodes: [
+						governor,
+					],
+					pageInfo: {
+						firstCursor: null,
+						lastCursor: null,
+						count: -3,
+					},
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				proposals: {
+					nodes: [
+						proposal,
+					],
+					pageInfo: {
+						firstCursor: 12,
+						lastCursor: null,
+						count: 1,
+					},
+				},
+			}))
+
+		await expect(getGovernor({
+			governorId,
+		})).rejects.toThrow('invalid governor envelope')
+		await expect(getGovernor({
+			governorId,
+		})).rejects.toThrow('invalid governor envelope')
+		await expect(getProposal({
+			proposalId,
+		})).rejects.toThrow('invalid proposal envelope')
+		await expect(getProposal({
+			proposalId,
+		})).rejects.toThrow('invalid proposal envelope')
+		await expect(getGovernorsPage({
+			organizationId,
+			limit: 1,
+		})).rejects.toThrow('invalid governors page envelope')
+		await expect(getProposalsPage({
+			governorId,
+			limit: 1,
+		})).rejects.toThrow('invalid proposals page envelope')
+	})
 })

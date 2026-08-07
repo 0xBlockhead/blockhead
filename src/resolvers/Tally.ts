@@ -111,8 +111,11 @@ export const tallyGovernorFields = (
 		...(governor.timelockId != null && {
 			$timelock: evmContractFromAccountId(governor.timelockId),
 		}),
+		...(governor.tokenId != null && {
+			tokenId: governor.tokenId,
+		}),
 		...(governor.organization != null && {
-			organizationId: governor.organization.id,
+			organizationId: String(governor.organization.id),
 			...(governor.organization.name != null && {
 				organizationName: governor.organization.name,
 			}),
@@ -159,7 +162,7 @@ export const tallyProposalFields = (
 
 	return {
 		[EntityMetaKey.Selector]: proposalSelector(proposal.id),
-		proposalId: proposal.id,
+		proposalId: String(proposal.id),
 		...(proposal.onchainId != null && {
 			onchainId: proposal.onchainId,
 		}),
@@ -172,9 +175,12 @@ export const tallyProposalFields = (
 		},
 		$governorContract: evmContractFromAccountId(proposal.governor.id),
 		...(proposal.organization != null && {
-			organizationId: proposal.organization.id,
+			organizationId: String(proposal.organization.id),
 			...(proposal.organization.name != null && {
 				organizationName: proposal.organization.name,
+			}),
+			...(proposal.organization.slug != null && {
+				organizationSlug: proposal.organization.slug,
 			}),
 		}),
 		...(proposal.metadata != null && {

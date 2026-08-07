@@ -182,6 +182,28 @@ describe('Tally resolver field shaping', () => {
 		})
 	})
 
+	it('projects governor/proposal leftovers without inventing tip observations', () => {
+		expect(tallyGovernorFields({
+			...governor,
+			tokenId: 'eip155:1/erc20:0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
+		})).toMatchObject({
+			tokenId: 'eip155:1/erc20:0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
+			organizationSlug: 'uniswap',
+			parameters: governor.parameters,
+			isPrimary: true,
+		})
+		expect(tallyProposalFields(proposal)).toMatchObject({
+			organizationSlug: 'uniswap',
+			organizationName: 'Uniswap',
+			proposerEns: 'alice.eth',
+			proposerName: 'Alice',
+			voteStats: proposal.voteStats,
+			quorum: proposal.quorum,
+		})
+		expect(tallyGovernorFields(governor)).not.toHaveProperty('$$timestamps')
+		expect(tallyProposalFields(proposal)).not.toHaveProperty('$$timestamps')
+	})
+
 	it('maps proposal wire rows onto governor contract and lifecycle fields', () => {
 		expect(tallyProposalFields(proposal)).toMatchObject({
 			[EntityMetaKey.Selector]: {
