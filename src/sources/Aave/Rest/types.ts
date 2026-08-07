@@ -67,6 +67,10 @@ export type AaveReserveWire = {
 	isolationModeConfig?: AaveIsolationModeConfigWire
 	usdExchangeRate?: string
 	usdOracleAddress?: string
+	/** Transport-only — not enrolled on `AaveReserve`. */
+	interestRateStrategyAddress?: string
+	/** Transport-only — not enrolled on `AaveReserve`. */
+	unbacked?: AaveTokenAmountWire
 	size: AaveTokenAmountWire
 	supplyInfo: {
 		apy: AaveAmountWire
@@ -255,6 +259,8 @@ export const aaveMarketEnvelope = aaveMarketSummaryEnvelope.and({
 		},
 		'usdExchangeRate?': 'string',
 		'usdOracleAddress?': 'string',
+		'interestRateStrategyAddress?': 'string',
+		'unbacked?': aaveTokenAmountEnvelope,
 		size: aaveTokenAmountEnvelope,
 		supplyInfo: {
 			apy: aaveAmountEnvelope,

@@ -82,6 +82,24 @@ const assertFiniteNumber = (
 	return value
 }
 
+const assertNonNegativeNumber = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isFinite(value) || value < 0)
+		throw new Error(`${Source.Pendle_Rest}: market ${label} must be a finite non-negative number`)
+	return value
+}
+
+const assertUnitIntervalNumber = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isFinite(value) || value < 0 || value > 1)
+		throw new Error(`${Source.Pendle_Rest}: market ${label} must be a finite number in [0, 1]`)
+	return value
+}
+
 const assertEnvelope = (
 	envelope: {
 		assert: (value: unknown) => unknown
@@ -99,19 +117,19 @@ const assertEnvelope = (
 const assertMarketDetailsWire = (
 	wire: PendleMarketDetailsWire
 ): PendleMarketDetails => ({
-	liquidityUsd: assertFiniteNumber(wire.liquidity, 'details.liquidity'),
-	totalTvlUsd: assertFiniteNumber(wire.totalTvl, 'details.totalTvl'),
-	tradingVolumeUsd: assertFiniteNumber(wire.tradingVolume, 'details.tradingVolume'),
+	liquidityUsd: assertNonNegativeNumber(wire.liquidity, 'details.liquidity'),
+	totalTvlUsd: assertNonNegativeNumber(wire.totalTvl, 'details.totalTvl'),
+	tradingVolumeUsd: assertNonNegativeNumber(wire.tradingVolume, 'details.tradingVolume'),
 	underlyingApy: assertFiniteNumber(wire.underlyingApy, 'details.underlyingApy'),
 	swapFeeApy: assertFiniteNumber(wire.swapFeeApy, 'details.swapFeeApy'),
 	pendleApy: assertFiniteNumber(wire.pendleApy, 'details.pendleApy'),
 	ytFloatingApy: assertFiniteNumber(wire.ytFloatingApy, 'details.ytFloatingApy'),
 	impliedApy: assertFiniteNumber(wire.impliedApy, 'details.impliedApy'),
-	feeRate: assertFiniteNumber(wire.feeRate, 'details.feeRate'),
-	totalPt: assertFiniteNumber(wire.totalPt, 'details.totalPt'),
-	totalSy: assertFiniteNumber(wire.totalSy, 'details.totalSy'),
-	totalSupply: assertFiniteNumber(wire.totalSupply, 'details.totalSupply'),
-	totalActiveSupply: assertFiniteNumber(wire.totalActiveSupply, 'details.totalActiveSupply'),
+	feeRate: assertUnitIntervalNumber(wire.feeRate, 'details.feeRate'),
+	totalPt: assertNonNegativeNumber(wire.totalPt, 'details.totalPt'),
+	totalSy: assertNonNegativeNumber(wire.totalSy, 'details.totalSy'),
+	totalSupply: assertNonNegativeNumber(wire.totalSupply, 'details.totalSupply'),
+	totalActiveSupply: assertNonNegativeNumber(wire.totalActiveSupply, 'details.totalActiveSupply'),
 	aggregatedApy: assertFiniteNumber(wire.aggregatedApy, 'details.aggregatedApy'),
 	maxBoostedApy: assertFiniteNumber(wire.maxBoostedApy, 'details.maxBoostedApy'),
 })
@@ -249,6 +267,8 @@ export const getMarket = async ({
 		],
 		limit: 1,
 	})
+	if (page.total > 1 || page.markets.length > 1)
+		throw new Error(`${Source.Pendle_Rest}: ambiguous market ${normalizedMarketAddress}`)
 	const market = page.markets.at(0)
 	if (market == null)
 		throw new Error(`${Source.Pendle_Rest}: market not found ${normalizedMarketAddress}`)
@@ -276,9 +296,9 @@ export const getMarketTokens = async ({
 	return {
 		chainId,
 		marketAddress: normalizedMarketAddress,
-		tokensMintSy: assertTokenAddressList(response.tokensMintSy, 'tokensMintSy'),
-		tokensRedeemSy: assertTokenAddressList(response.tokensRedeemSy, 'tokensRedeemSy'),
-		tokensIn: assertTokenAddressList(response.tokensIn, 'tokensIn'),
-		tokensOut: assertTokenAddressList(response.tokensOut, 'tokensOut'),
+		tokensMintSy: assertTokenAddressList(response.tokensMintSy, 'tokensMintSy').toSorted(),
+		tokensRedeemSy: assertTokenAddressList(response.tokensRedeemSy, 'tokensRedeemSy').toSorted(),
+		tokensIn: assertTokenAddressList(response.tokensIn, 'tokensIn').toSorted(),
+		tokensOut: assertTokenAddressList(response.tokensOut, 'tokensOut').toSorted(),
 	} satisfies PendleMarketTokens
 }

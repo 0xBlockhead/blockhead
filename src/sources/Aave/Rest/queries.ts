@@ -83,6 +83,13 @@ const marketReserveFields = `
 		permitSupported
 		usdExchangeRate
 		usdOracleAddress
+		interestRateStrategyAddress
+		unbacked {
+			amount {
+				value
+			}
+			usd
+		}
 		isolationModeConfig {
 			canBeCollateral
 			canBeBorrowed
