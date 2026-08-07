@@ -15087,16 +15087,16 @@ export const schema = {
 			})({
 				"nodeId": { label: "node ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"txId": { label: "transaction ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"observedAtMs": { label: "observed AT ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AlgorandNetwork },
-				"sender": { label: "sender", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"transactionType": { label: "transaction type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"fee": { label: "fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"firstValidRound": { label: "first valid round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"lastValidRound": { label: "last valid round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"group": { label: "group", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"poolPriority": { label: "pool priority", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"payload": { label: "payload", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
+				"observedAtMs": { label: "observed AT ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AlgorandNetwork, defaultSources: [Source.Nodely] },
+				"sender": { label: "sender", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Nodely] },
+				"transactionType": { label: "transaction type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Nodely] },
+				"fee": { label: "fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Nodely] },
+				"firstValidRound": { label: "first valid round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Nodely] },
+				"lastValidRound": { label: "last valid round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Nodely] },
+				"group": { label: "group", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Nodely] },
+				"poolPriority": { label: "pool priority", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Nodely] },
+				"payload": { label: "payload", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown", defaultSources: [Source.Nodely] },
 			})({
 				selectors: {
 					"NodeIdTxIdObservedAtMs": ["nodeId", "txId", "observedAtMs"],
@@ -15104,7 +15104,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.Nodely],
 							openFields: ["sender", "transactionType", "fee", "firstValidRound", "lastValidRound", "group", "poolPriority"],
 						},
 						summary: { title: ["txId"], value: ["transactionType"], HeadingAfter: [{ field: "observedAtMs", format: "timestamp" }] },
@@ -48109,7 +48109,7 @@ export const schema = {
 				"hash": { label: "Hash", description: "The hash that identifies this object in its protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$parent": { label: "Parent", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.NearBlock, defaultSources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest] },
 				"epochId": { label: "Epoch ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.NearRpc_JsonRpc] },
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest, Source.ThreeXpl_Rest] },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.NearBlocks_Rest, Source.NearRpc_JsonRpc] },
 				"$$chunks": { label: "Chunks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NearChunk, defaultSources: [Source.NearRpc_JsonRpc] },
 			})({
 				selectors: {
@@ -48119,7 +48119,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest, Source.ThreeXpl_Rest],
+							sources: [Source.NearBlocks_Rest, Source.NearRpc_JsonRpc],
 						},
 						summary: {
 							title: [{ field: "height", format: "number" }],
@@ -48144,7 +48144,7 @@ export const schema = {
 					},
 					plural: { component: "NearBlocksView",
 						query: {
-							sources: [Source.NearRpc_JsonRpc, Source.NearBlocks_Rest, Source.ThreeXpl_Rest],
+							sources: [Source.NearBlocks_Rest, Source.NearRpc_JsonRpc],
 						},
 					},
 				},
@@ -70867,13 +70867,6 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#blockheadalgorandparticipationkey",
 			},
 		},
-		[EntityType.BlockheadAlgorandPendingTransaction]: {
-			"NodeIdTxIdObservedAtMs": {
-				kind: "Research",
-				decision: "Retain BlockheadAlgorandPendingTransaction.NodeIdTxIdObservedAtMs as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#blockheadalgorandpendingtransaction",
-			},
-		},
 		[EntityType.BlockheadAvalancheNodeState]: {
 			"NodeId": {
 				kind: "Research",
@@ -76043,6 +76036,36 @@ export const routes = defineRoutes(schema)({
 							}
 						},
 					],
+				},
+				"algorand": {
+					children: {
+						"pending-transaction": {
+							children: {
+								"[nodeId]": {
+									children: {
+										"[txId]": {
+											children: {
+												"[observedAtMs]": {
+													selectors: {
+														[EntityType.BlockheadAlgorandPendingTransaction]: {
+															"NodeIdTxIdObservedAtMs": {
+																params: {
+																	"nodeId": ["nodeId"],
+																	"txId": ["txId"],
+																	"observedAtMs": ["observedAtMs"],
+																},
+																page: {},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 				"dashboard": {
 					children: {
