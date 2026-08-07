@@ -145,12 +145,23 @@ export default {
 						if (source !== Source.CashuMint_Rest)
 							throw new Error(`CashuMint_Rest: unsupported source ${source}`)
 
-						const { getMintKeysets } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
+						const {
+							getMintKeysets,
+							getMintKeysForKeyset,
+						} = await import('$/sources/Cashu/Mint/Rest/queries.ts')
 						const keyset = (
 							await getMintKeysets($keyset.$mint.mintUrl)
 						).keysets.find((row) => row.id === $keyset.keysetId)
 						if (keyset == null)
 							throw new Error(`CashuMint_Rest: keyset not found for ${$keyset.keysetId}`)
+
+						const keys = await getMintKeysForKeyset(
+							$keyset.$mint.mintUrl,
+							{
+								keysetId: $keyset.keysetId,
+							}
+						)
+						const listedByKeysEndpoint = keys.keysets.some((row) => row.id === $keyset.keysetId)
 
 						return {
 							$keyset: { [EntityMetaKey.Selector]: $keyset },
@@ -160,6 +171,7 @@ export default {
 							inputFeePpk: keyset.input_fee_ppk ?? 0,
 							...(keyset.final_expiry != null && { finalExpiryMs: keyset.final_expiry * 1000 }),
 							listedByKeysetsEndpoint: true,
+							listedByKeysEndpoint,
 						}
 					},
 				},
@@ -172,6 +184,7 @@ export default {
 			inputFeePpk: (snapshot) => snapshot.inputFeePpk,
 			finalExpiryMs: (snapshot) => snapshot.finalExpiryMs,
 			listedByKeysetsEndpoint: (snapshot) => snapshot.listedByKeysetsEndpoint,
+			listedByKeysEndpoint: (snapshot) => snapshot.listedByKeysEndpoint,
 		}),
 
 		defineResolver({

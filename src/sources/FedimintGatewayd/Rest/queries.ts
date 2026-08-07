@@ -1,8 +1,212 @@
-import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
-import bindings from '$/sources/FedimintGatewayd/bindings.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
-import { Source } from '$/sources/Source.ts'
+/**
+ * Fedimint gatewayd REST read queries (fail-closed arktype envelopes).
+ * @see https://docs.fedimint.org/src/fedimint_gateway_server/rpc_server.rs.html
+ * @see https://docs.fedimint.org/fedimint_ln_common/gateway_endpoint_constants/constant.GET_GATEWAY_ID_ENDPOINT.html
+ */
 
-export const query = (path: string) => (
-	getJson<JsonValue>(bindings[Source.FedimintGatewayd_Rest][0], path)
+import { throwHttpError } from '$/lib/http.ts'
+import {
+	resolveEnvLocator,
+	type SourcePublicEnv,
+} from '$/sources/$sources.ts'
+import { sourceFetch } from '$/sources/_runtime/http.ts'
+import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
+import bindings from '$/sources/FedimintGatewayd/bindings.ts'
+import {
+	fedimintGatewayBalancesWire,
+	fedimintGatewayInfoWire,
+	fedimintListChannelsWire,
+	fedimintPaymentSummaryWire,
+	type FedimintGatewayBalancesWire,
+	type FedimintGatewayInfoWire,
+	type FedimintListChannelsWire,
+	type FedimintPaymentSummaryWire,
+} from '$/sources/FedimintGatewayd/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
+import { type as arktype } from 'arktype'
+
+const binding = bindings[Source.FedimintGatewayd_Rest][0]
+
+export const localGatewayBindingKey = binding.target.key
+
+const gatewayIdWire = arktype('string > 0')
+
+const configuredBinding = (publicEnv: SourcePublicEnv) => ({
+	...binding,
+	endpoints: binding.endpoints.map((endpoint) => ({
+		...endpoint,
+		locator: resolveEnvLocator(endpoint.locator, publicEnv),
+	})),
+})
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: {
+		assert: (value: unknown) => _Value
+	},
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`FedimintGatewayd_Rest: invalid ${label} response envelope`)
+	}
+}
+
+const adminPassword = (
+	publicEnv: SourcePublicEnv
+) => {
+	const value = (publicEnv.FEDIMINT_GATEWAYD_PASSWORD ?? '').trim()
+	if (value === '')
+		throw new Error('FedimintGatewayd_Rest: missing FEDIMINT_GATEWAYD_PASSWORD')
+
+	return value
+}
+
+const requestGatewayJson = async ({
+	publicEnv,
+	path,
+	method = 'GET',
+	body,
+	authenticated,
+}: {
+	publicEnv: SourcePublicEnv
+	path: string
+	method?: 'GET' | 'POST'
+	body?: unknown
+	authenticated: boolean
+}) => {
+	const resolved = configuredBinding(publicEnv)
+	const response = await sourceFetch(
+		resolved,
+		httpUrl(resolved, path),
+		{
+			method,
+			headers: {
+				...(authenticated && {
+					authorization: `Bearer ${adminPassword(publicEnv)}`,
+				}),
+				...(body !== undefined && {
+					'content-type': 'application/json',
+				}),
+			},
+			...(body !== undefined && {
+				body: JSON.stringify(body),
+			}),
+		}
+	)
+	if (!response.ok)
+		await throwHttpError(`${resolved.source} ${path}`, response)
+
+	return response.json()
+}
+
+export const resolvedGatewayApiUrl = (
+	publicEnv: SourcePublicEnv
+) => (
+	resolveEnvLocator(binding.endpoints[0].locator, publicEnv).replace(/\/$/, '')
+)
+
+/**
+ * GET /v1/id — public LNv1 gateway identity (no admin Bearer).
+ */
+export const getGatewayId = async ({
+	publicEnv,
+}: {
+	publicEnv: SourcePublicEnv
+}) => (
+	assertEnvelope(
+		'gateway id',
+		gatewayIdWire,
+		await requestGatewayJson({
+			publicEnv,
+			path: '/v1/id',
+			authenticated: false,
+		})
+	)
+)
+
+/**
+ * GET /v1/info — admin Bearer required.
+ */
+export const getGatewayInfo = async ({
+	publicEnv,
+}: {
+	publicEnv: SourcePublicEnv
+}): Promise<FedimintGatewayInfoWire> => (
+	assertEnvelope(
+		'gateway info',
+		fedimintGatewayInfoWire,
+		await requestGatewayJson({
+			publicEnv,
+			path: '/v1/info',
+			authenticated: true,
+		})
+	)
+)
+
+/**
+ * GET /v1/balances — admin Bearer required.
+ */
+export const getGatewayBalances = async ({
+	publicEnv,
+}: {
+	publicEnv: SourcePublicEnv
+}): Promise<FedimintGatewayBalancesWire> => (
+	assertEnvelope(
+		'gateway balances',
+		fedimintGatewayBalancesWire,
+		await requestGatewayJson({
+			publicEnv,
+			path: '/v1/balances',
+			authenticated: true,
+		})
+	)
+)
+
+/**
+ * GET /v1/list_channels — admin Bearer required.
+ */
+export const listChannels = async ({
+	publicEnv,
+}: {
+	publicEnv: SourcePublicEnv
+}): Promise<FedimintListChannelsWire> => (
+	assertEnvelope(
+		'list channels',
+		fedimintListChannelsWire,
+		await requestGatewayJson({
+			publicEnv,
+			path: '/v1/list_channels',
+			authenticated: true,
+		})
+	)
+)
+
+/**
+ * POST /v1/payment_summary — admin Bearer required.
+ */
+export const getPaymentSummary = async ({
+	publicEnv,
+	startMs,
+	endMs,
+}: {
+	publicEnv: SourcePublicEnv
+	startMs: number
+	endMs: number
+}): Promise<FedimintPaymentSummaryWire> => (
+	assertEnvelope(
+		'payment summary',
+		fedimintPaymentSummaryWire,
+		await requestGatewayJson({
+			publicEnv,
+			path: '/v1/payment_summary',
+			method: 'POST',
+			body: {
+				start_millis: startMs,
+				end_millis: endMs,
+			},
+			authenticated: true,
+		})
+	)
 )

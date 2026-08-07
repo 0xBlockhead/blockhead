@@ -2,13 +2,15 @@ import { expect, it, vi } from 'vitest'
 
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-const { getMintInfo, getMintKeysets } = vi.hoisted(() => ({
+const { getMintInfo, getMintKeysets, getMintKeysForKeyset } = vi.hoisted(() => ({
 	getMintInfo: vi.fn(),
 	getMintKeysets: vi.fn(),
+	getMintKeysForKeyset: vi.fn(),
 }))
 vi.mock('$/sources/Cashu/Mint/Rest/queries.ts', () => ({
 	getMintInfo,
 	getMintKeysets,
+	getMintKeysForKeyset,
 }))
 const { default: cashuMintResolvers } = await import('$/resolvers/CashuMint-Rest.ts')
 const mintTimestampResolver = cashuMintResolvers.resolvers.find((resolver) => (
@@ -55,6 +57,16 @@ it('projects the current NUT-06 and NUT-02 contracts', async () => {
 			final_expiry: 1_896_187_313,
 		}],
 	})
+	getMintKeysForKeyset.mockResolvedValue({
+		keysets: [{
+			id: 'keyset',
+			unit: 'sat',
+			active: true,
+			keys: {
+				1: '02abc',
+			},
+		}],
+	})
 	const mintSelector = { mintUrl: 'https://mint.example' }
 	expect(await mintTimestampResolver.resolve.MintTimestampMsSource.resolve({
 		$mint: mintSelector,
@@ -83,6 +95,8 @@ it('projects the current NUT-06 and NUT-02 contracts', async () => {
 	}, {})).toMatchObject({
 		inputFeePpk: 0,
 		finalExpiryMs: 1_896_187_313_000,
+		listedByKeysetsEndpoint: true,
+		listedByKeysEndpoint: true,
 	})
 	expect(mintTimestampResolver.projections.urls({})).toEqual([])
 	expect(mintTimestampResolver.projections.supportedNutNumbers({})).toEqual([])

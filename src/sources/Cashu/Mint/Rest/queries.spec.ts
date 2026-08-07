@@ -105,7 +105,7 @@ it('fails closed on malformed mint keysets responses', async () => {
 	})
 
 	await expect(getMintKeysets('https://first.mint')).rejects.toThrow(
-		'CashuMint_Rest: malformed mint keysets response: id must be a string for mint https://first.mint'
+		'CashuMint_Rest: invalid mint keysets response envelope for mint https://first.mint'
 	)
 })
 
@@ -124,8 +124,19 @@ it('fails closed on malformed mint keys responses', async () => {
 	})
 
 	await expect(getMintKeys('https://first.mint')).rejects.toThrow(
-		'CashuMint_Rest: malformed mint keys response: keys.1 must be a string for mint https://first.mint'
+		'CashuMint_Rest: invalid mint keys response envelope for mint https://first.mint'
 	)
+})
+
+it('strips undeclared mint info keys at the read boundary', async () => {
+	sourceGetJson.mockResolvedValueOnce({
+		name: 'Mint',
+		extra_freestyle: true,
+	})
+
+	await expect(getMintInfo('https://first.mint')).resolves.toEqual({
+		name: 'Mint',
+	})
 })
 
 it('preserves source query rejections', async () => {
