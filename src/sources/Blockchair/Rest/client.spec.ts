@@ -46,11 +46,11 @@ describe('Blockchair REST client delivery', () => {
 		)
 	})
 
-	it('stays enabled without a key and still proxies unauthenticated reads', async () => {
+	it('requires a public API key to enable and still proxies authenticated reads', async () => {
 		const eligibleBindingIds = new Set([
 			sourceBindingId(binding),
 		])
-		expect(indexSourceProviders([blockchair], {}, eligibleBindingIds).enabledSources.has(Source.Blockchair_Rest)).toBe(true)
+		expect(indexSourceProviders([blockchair], {}, eligibleBindingIds).enabledSources.has(Source.Blockchair_Rest)).toBe(false)
 		expect(indexSourceProviders([blockchair], {
 			PUBLIC_BLOCKCHAIR_API_KEY: 'configured',
 		}, eligibleBindingIds).enabledSources.has(Source.Blockchair_Rest)).toBe(true)
@@ -65,10 +65,12 @@ describe('Blockchair REST client delivery', () => {
 
 		await expect(getBlockchairJson({
 			path: '/bitcoin/stats',
-			publicEnv: {},
+			publicEnv: {
+				PUBLIC_BLOCKCHAIR_API_KEY: 'configured',
+			},
 		})).resolves.toEqual({ data: [] })
 		expect(fetchMock).toHaveBeenCalledWith(
-			`/api-proxy/${encodeURIComponent(sourceBindingId(binding))}/0/${encodeURIComponent('https://api.blockchair.com/bitcoin/stats')}`,
+			`/api-proxy/${encodeURIComponent(sourceBindingId(binding))}/0/${encodeURIComponent('https://api.blockchair.com/bitcoin/stats?key=configured')}`,
 			expect.objectContaining({
 				signal: expect.any(AbortSignal),
 			})

@@ -15,6 +15,7 @@ import {
 import type {
 	BlockchairBitcoinLikeBlockDashboard,
 	BlockchairBitcoinLikeChain,
+	BlockchairEthereumLikeChain,
 } from '$/sources/Blockchair/Rest/types.ts'
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -24,6 +25,10 @@ const blockchairNetworkSlugs = [
 	'litecoin',
 	'dogecoin',
 	'bitcoin-cash',
+] as const
+
+const blockchairEvmNetworkSlugs = [
+	'ethereum',
 ] as const
 
 const blockchairNetworkReferenceApplicability = blockchairNetworkSlugs.flatMap((slug) => ([
@@ -51,6 +56,22 @@ const blockchairTransactionReferenceApplicability = blockchairNetworkReferenceAp
 	$transaction: $network,
 }))
 
+const blockchairEvmNetworkReferenceApplicability = blockchairEvmNetworkSlugs.flatMap((slug) => ([
+	{
+		$network: {
+			caip2: networkBySlug[slug].caip2,
+		},
+	},
+	{
+		$network: { slug },
+	},
+]))
+
+const blockchairEvmNetworkTimestampApplicability = blockchairEvmNetworkReferenceApplicability.map(($network) => ({
+	...$network,
+	source: Source.Blockchair_Rest,
+}))
+
 const blockchairNetworkSelectors = <_Snapshot extends object>(
 	resolve: (
 		network: NetworkId,
@@ -65,6 +86,24 @@ const blockchairNetworkSelectors = <_Snapshot extends object>(
 	},
 	Slug: {
 		appliesTo: blockchairNetworkSlugs.map((slug) => ({ slug })),
+		resolve,
+	},
+})
+
+const blockchairEvmNetworkSelectors = <_Snapshot extends object>(
+	resolve: (
+		network: NetworkId,
+		context: ResolverContext
+	) => Promise<_Snapshot>
+) => ({
+	Caip2: {
+		appliesTo: blockchairEvmNetworkSlugs.map((slug) => ({
+			caip2: networkBySlug[slug].caip2,
+		})),
+		resolve,
+	},
+	Slug: {
+		appliesTo: blockchairEvmNetworkSlugs.map((slug) => ({ slug })),
 		resolve,
 	},
 })
@@ -89,6 +128,24 @@ const blockchairChain = (
 	if (caip2.namespace === networkBySlug.dogecoin.caip2.namespace && caip2.reference === networkBySlug.dogecoin.caip2.reference) return 'dogecoin'
 	if (caip2.namespace === networkBySlug['bitcoin-cash'].caip2.namespace && caip2.reference === networkBySlug['bitcoin-cash'].caip2.reference) return 'bitcoin-cash'
 	throw new Error(`Blockchair_Rest: unsupported UTXO network ${caip2.namespace}:${caip2.reference}`)
+}
+
+const blockchairEthereumChain = (
+	network: NetworkId
+): BlockchairEthereumLikeChain => {
+	const caip2 = (
+		'caip2' in network ?
+			network.caip2
+		:
+			networkBySlug[network.slug]?.caip2
+	)
+	if (caip2 == null)
+		throw new Error('Blockchair_Rest: unsupported EVM network')
+	if (
+		caip2.namespace === networkBySlug.ethereum.caip2.namespace
+		&& caip2.reference === networkBySlug.ethereum.caip2.reference
+	) return 'ethereum'
+	throw new Error(`Blockchair_Rest: unsupported EVM network ${caip2.namespace}:${caip2.reference}`)
 }
 
 const firstDashboardEntry = <_Row>(dashboardRows: Record<string, _Row>, subject: string) => {
@@ -442,6 +499,13 @@ export default {
 			balanceSats: (address) => bigintFromNumber(address.balance),
 			transactionCount: (address) => address.transaction_count,
 			unspentOutputCount: (address) => address.unspent_output_count,
+			fundedOutputCount: (address) => address.output_count,
+			spentOutputCount: (address) => (
+				address.output_count == null || address.unspent_output_count == null ?
+					undefined
+				:
+					address.output_count - address.unspent_output_count
+			),
 			fundedValueSats: (address) => bigintFromNumber(address.received),
 			spentValueSats: (address) => bigintFromNumber(address.spent),
 		}),
@@ -721,6 +785,80 @@ export default {
 			Utxo: {
 				$$transactions: (transactions) => transactions,
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: blockchairEvmNetworkSelectors(async (network, context) => {
+				const { getEthereumLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
+				const stats = (await getEthereumLikeStats({
+					chain: blockchairEthereumChain(network),
+					options: requestOptions(context),
+				})).data
+				const bestBlockTimeMs = timestampMsFromBlockchairTime(stats.best_block_time)
+
+				return {
+					$$timestamps: [
+						{
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								timestampMs: bestBlockTimeMs ?? Date.now(),
+								source: Source.Blockchair_Rest,
+							},
+						},
+					],
+					blocks: stats.blocks,
+				}
+			}),
+		})({
+			Evm: {
+				$$timestamps: (network) => network.$$timestamps,
+				$$blocks: {
+					resolveCount: (network) => blockchairCount(network.blocks, 'block'),
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetwork_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					appliesTo: blockchairEvmNetworkTimestampApplicability,
+					resolve: async ({
+						$network,
+						timestampMs,
+						source,
+					}, context) => {
+						if (source !== Source.Blockchair_Rest)
+							throw new Error(`Blockchair_Rest: unsupported EVM network timestamp source ${source}`)
+
+						const { getEthereumLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
+						const stats = (await getEthereumLikeStats({
+							chain: blockchairEthereumChain($network),
+							options: requestOptions(context),
+						})).data
+						const bestBlockHeight = bigintFromNumber(stats.best_block_height)
+						if (bestBlockHeight == null)
+							throw new Error('Blockchair_Rest: ethereum stats missing best_block_height')
+						const bestBlockTimeMs = timestampMsFromBlockchairTime(stats.best_block_time)
+						if (bestBlockTimeMs != null && bestBlockTimeMs !== timestampMs)
+							throw new Error(
+								`Blockchair_Rest: EVM network timestamp mismatch ${bestBlockTimeMs} !== ${timestampMs}`
+							)
+
+						return {
+							[EntityMetaKey.Selector]: {
+								$network,
+								timestampMs,
+								source,
+							},
+							blockHeight: bestBlockHeight,
+						}
+					},
+				},
+			},
+		})({
+			blockHeight: (timestamp) => timestamp.blockHeight,
 		}),
 
 	],

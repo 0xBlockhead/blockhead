@@ -10,6 +10,7 @@ const getBitcoinLikeAddressDashboard = vi.fn()
 const getBitcoinLikeBlockDashboard = vi.fn()
 const getBitcoinLikeStats = vi.fn()
 const getBitcoinLikeTransactionDashboard = vi.fn()
+const getEthereumLikeStats = vi.fn()
 
 vi.mock('$/sources/Blockchair/Rest/queries.ts', () => ({
 	getBlocks,
@@ -17,6 +18,7 @@ vi.mock('$/sources/Blockchair/Rest/queries.ts', () => ({
 	getBitcoinLikeBlockDashboard,
 	getBitcoinLikeStats,
 	getBitcoinLikeTransactionDashboard,
+	getEthereumLikeStats,
 }))
 
 const { default: blockchairResolvers } = await import('$/resolvers/Blockchair-Rest.ts')
@@ -32,8 +34,15 @@ const blocksResolver = networkResolvers.find((resolver) => (
 const timestampsResolver = networkResolvers.find((resolver) => (
 	'$$timestamps' in resolver.projections
 ))
+const evmTipResolver = networkResolvers.find((resolver) => (
+	'Evm' in resolver.projections
+	&& '$$timestamps' in resolver.projections.Evm
+))
 const timestampResolver = blockchairResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network_Timestamp
+))
+const evmTimestampResolver = blockchairResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetwork_Timestamp
 ))
 const blockResolver = blockchairResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.UtxoBlock
@@ -47,19 +56,28 @@ const addressResolvers = blockchairResolvers.resolvers.filter((resolver) => (
 const addressRelationsResolver = addressResolvers.find((resolver) => (
 	'$$transactions' in resolver.projections
 ))
+const addressTimestampResolver = blockchairResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.UtxoAddress_Timestamp
+))
 
 if (blocksResolver == null)
 	throw new Error('Blockchair-Rest spec missing Network.Utxo.$$blocks resolver')
 if (timestampsResolver == null)
 	throw new Error('Blockchair-Rest spec missing Network.$$timestamps resolver')
+if (evmTipResolver == null)
+	throw new Error('Blockchair-Rest spec missing Network.Evm.$$timestamps resolver')
 if (timestampResolver == null)
 	throw new Error('Blockchair-Rest spec missing Network_Timestamp resolver')
+if (evmTimestampResolver == null)
+	throw new Error('Blockchair-Rest spec missing EvmNetwork_Timestamp resolver')
 if (blockResolver == null)
 	throw new Error('Blockchair-Rest spec missing UtxoBlock resolver')
 if (transactionResolver == null)
 	throw new Error('Blockchair-Rest spec missing UtxoTransaction resolver')
 if (addressRelationsResolver == null)
 	throw new Error('Blockchair-Rest spec missing UtxoAddress $$transactions resolver')
+if (addressTimestampResolver == null)
+	throw new Error('Blockchair-Rest spec missing UtxoAddress_Timestamp resolver')
 
 const resolverContext = {
 	filters: [],
@@ -82,15 +100,30 @@ describe('Blockchair Network selector applicability', () => {
 
 	it('covers both canonical CAIP-2 and preserved slug selectors for every Network projection', () => {
 		for (const resolver of networkResolvers) {
-			expect(resolver.resolve['Caip2'].appliesTo).toContainEqual({
-				caip2: networkBySlug.bitcoin.caip2,
-			})
-			expect(resolver.resolve['Slug'].appliesTo).toContainEqual({
-				slug: 'bitcoin',
-			})
-			expect(resolver.resolve['Caip2'].appliesTo).not.toContainEqual({
-				caip2: networkBySlug.ethereum.caip2,
-			})
+			if ('Caip2' in resolver.resolve && 'appliesTo' in resolver.resolve.Caip2) {
+				const appliesTo = resolver.resolve.Caip2.appliesTo
+				if (appliesTo.some((row) => (
+					'caip2' in row
+					&& row.caip2.reference === networkBySlug.ethereum.caip2.reference
+				))) {
+					expect(appliesTo).toContainEqual({
+						caip2: networkBySlug.ethereum.caip2,
+					})
+					expect(appliesTo).not.toContainEqual({
+						caip2: networkBySlug.bitcoin.caip2,
+					})
+					continue
+				}
+				expect(appliesTo).toContainEqual({
+					caip2: networkBySlug.bitcoin.caip2,
+				})
+				expect(resolver.resolve.Slug.appliesTo).toContainEqual({
+					slug: 'bitcoin',
+				})
+				expect(appliesTo).not.toContainEqual({
+					caip2: networkBySlug.ethereum.caip2,
+				})
+			}
 		}
 	})
 
@@ -191,6 +224,52 @@ describe('Blockchair Network selector applicability', () => {
 			timestampMs: timestampMs - 1,
 			source: Source.Blockchair_Rest,
 		}, resolverContext)).rejects.toThrow('network timestamp mismatch')
+	})
+
+	it('projects ethereum tip leftovers onto EvmNetwork_Timestamp.blockHeight', async () => {
+		const bestBlockTime = '2026-01-15T00:00:00.000Z'
+		const timestampMs = Date.parse(bestBlockTime)
+		getEthereumLikeStats.mockResolvedValue({
+			data: {
+				best_block_time: bestBlockTime,
+				best_block_height: 24_999_999,
+				blocks: 25_000_000,
+			},
+		})
+
+		const network = await evmTipResolver.resolve.Slug.resolve(
+			{ slug: 'ethereum' },
+			resolverContext
+		)
+		expect(getEthereumLikeStats).toHaveBeenCalledOnce()
+		expect(getEthereumLikeStats).toHaveBeenCalledWith({
+			chain: 'ethereum',
+			options: {
+				publicEnv: resolverContext.publicEnv,
+			},
+		})
+		expect(evmTipResolver.projections.Evm.$$timestamps(network)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: { slug: 'ethereum' },
+				timestampMs,
+				source: Source.Blockchair_Rest,
+			},
+		}])
+		expect(evmTipResolver.projections.Evm.$$blocks.resolveCount(network)).toBe(25_000_000)
+
+		const timestamp = await evmTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: { slug: 'ethereum' },
+			timestampMs,
+			source: Source.Blockchair_Rest,
+		}, resolverContext)
+		expect(getEthereumLikeStats).toHaveBeenCalledTimes(2)
+		expect(evmTimestampResolver.projections.blockHeight(timestamp)).toBe(24_999_999n)
+
+		await expect(evmTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: { slug: 'ethereum' },
+			timestampMs: timestampMs - 1,
+			source: Source.Blockchair_Rest,
+		}, resolverContext)).rejects.toThrow('EVM network timestamp mismatch')
 	})
 
 	it('projects both block selectors and transaction references from one dashboard response', async () => {
@@ -347,6 +426,7 @@ describe('Blockchair Network selector applicability', () => {
 						balance: 10,
 						transaction_count: 2,
 						unspent_output_count: 1,
+						output_count: 4,
 						received: 20,
 						spent: 10,
 					},
@@ -408,5 +488,14 @@ describe('Blockchair Network selector applicability', () => {
 				indexInTransaction: 0,
 			},
 		}])
+
+		const addressObservation = await addressTimestampResolver.resolve.AddressTimestampMsSource.resolve({
+			$address: entitySelector,
+			timestampMs: Date.now(),
+			source: Source.Blockchair_Rest,
+		}, resolverContext)
+		expect(addressTimestampResolver.projections.fundedOutputCount(addressObservation)).toBe(4)
+		expect(addressTimestampResolver.projections.spentOutputCount(addressObservation)).toBe(3)
+		expect(addressTimestampResolver.projections.unspentOutputCount(addressObservation)).toBe(1)
 	})
 })

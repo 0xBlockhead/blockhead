@@ -11,18 +11,22 @@ import {
 	blockchairDefaultLimit,
 	blockchairMaxLimit,
 } from '$/sources/Blockchair/Rest/constants.ts'
+import {
+	assertBlockchairEnvelope,
+	blockchairBitcoinLikeAddressDashboardResponseWire,
+	blockchairBitcoinLikeBlockDashboardResponseWire,
+	blockchairBitcoinLikeBlocksResponseWire,
+	blockchairBitcoinLikeStatsResponseWire,
+	blockchairBitcoinLikeTransactionDashboardResponseWire,
+	blockchairBitcoinLikeTransactionsResponseWire,
+	blockchairEthereumLikeStatsResponseWire,
+} from '$/sources/Blockchair/Rest/envelopes.ts'
 import type {
 	BlockchairAddressDashboardParams,
-	BlockchairBitcoinLikeAddressDashboard,
-	BlockchairBitcoinLikeBlock,
-	BlockchairBitcoinLikeBlockDashboard,
 	BlockchairBitcoinLikeChain,
-	BlockchairBitcoinLikeStats,
-	BlockchairBitcoinLikeTransaction,
-	BlockchairBitcoinLikeTransactionDashboard,
+	BlockchairEthereumLikeChain,
 	BlockchairInfinitableParams,
 	BlockchairRequestOptions,
-	BlockchairResponse,
 } from '$/sources/Blockchair/Rest/types.ts'
 
 const pathIdentifier = (identifier: bigint | number | string) => encodeURIComponent(String(identifier))
@@ -49,23 +53,47 @@ const bitcoinLikeAddressSearchParams = (params?: BlockchairAddressDashboardParam
 	transaction_details: params?.transactionDetails,
 })
 
-export const getBitcoinLikeStats = ({
+export const getBitcoinLikeStats = async ({
 	chain,
 	options,
 }: {
 	chain: BlockchairBitcoinLikeChain
 	options: BlockchairRequestOptions
 }) => (
-	getBlockchairJson<BlockchairResponse<BlockchairBitcoinLikeStats>>({
-		path: `/${chain}/stats`,
-		publicEnv: options.publicEnv,
-	})
+	assertBlockchairEnvelope(
+		blockchairBitcoinLikeStatsResponseWire,
+		await getBlockchairJson({
+			path: `/${chain}/stats`,
+			publicEnv: options.publicEnv,
+		}),
+		`${chain} stats`
+	)
+)
+
+/**
+ * `GET /{eth_chain}/stats` — Ethereum-like tip / chain totals.
+ */
+export const getEthereumLikeStats = async ({
+	chain,
+	options,
+}: {
+	chain: BlockchairEthereumLikeChain
+	options: BlockchairRequestOptions
+}) => (
+	assertBlockchairEnvelope(
+		blockchairEthereumLikeStatsResponseWire,
+		await getBlockchairJson({
+			path: `/${chain}/stats`,
+			publicEnv: options.publicEnv,
+		}),
+		`${chain} stats`
+	)
 )
 
 /**
  * `GET /{btc_chain}/dashboards/block/{height|hash}`.
  */
-export const getBitcoinLikeBlockDashboard = ({
+export const getBitcoinLikeBlockDashboard = async ({
 	chain,
 	block,
 	options,
@@ -74,16 +102,20 @@ export const getBitcoinLikeBlockDashboard = ({
 	block: bigint | number | string
 	options: BlockchairRequestOptions
 }) => (
-	getBlockchairJson<BlockchairResponse<Record<string, BlockchairBitcoinLikeBlockDashboard>>>({
-		path: `/${chain}/dashboards/block/${pathIdentifier(block)}`,
-		publicEnv: options.publicEnv,
-	})
+	assertBlockchairEnvelope(
+		blockchairBitcoinLikeBlockDashboardResponseWire,
+		await getBlockchairJson({
+			path: `/${chain}/dashboards/block/${pathIdentifier(block)}`,
+			publicEnv: options.publicEnv,
+		}),
+		`${chain} block dashboard`
+	)
 )
 
 /**
  * `GET /{btc_chain}/dashboards/transaction/{hash}`.
  */
-export const getBitcoinLikeTransactionDashboard = ({
+export const getBitcoinLikeTransactionDashboard = async ({
 	chain,
 	transactionHash,
 	options,
@@ -92,16 +124,20 @@ export const getBitcoinLikeTransactionDashboard = ({
 	transactionHash: string
 	options: BlockchairRequestOptions
 }) => (
-	getBlockchairJson<BlockchairResponse<Record<string, BlockchairBitcoinLikeTransactionDashboard>>>({
-		path: `/${chain}/dashboards/transaction/${pathIdentifier(transactionHash)}`,
-		publicEnv: options.publicEnv,
-	})
+	assertBlockchairEnvelope(
+		blockchairBitcoinLikeTransactionDashboardResponseWire,
+		await getBlockchairJson({
+			path: `/${chain}/dashboards/transaction/${pathIdentifier(transactionHash)}`,
+			publicEnv: options.publicEnv,
+		}),
+		`${chain} transaction dashboard`
+	)
 )
 
 /**
  * `GET /{btc_chain}/dashboards/address/{address}`.
  */
-export const getBitcoinLikeAddressDashboard = ({
+export const getBitcoinLikeAddressDashboard = async ({
 	chain,
 	address,
 	params,
@@ -112,18 +148,22 @@ export const getBitcoinLikeAddressDashboard = ({
 	params?: BlockchairAddressDashboardParams
 	options: BlockchairRequestOptions
 }) => (
-	getBlockchairJson<BlockchairResponse<Record<string, BlockchairBitcoinLikeAddressDashboard>>>({
-		path: `/${chain}/dashboards/address/${pathIdentifier(address)}`,
-		searchParams: bitcoinLikeAddressSearchParams(params),
-		publicEnv: options.publicEnv,
-	})
+	assertBlockchairEnvelope(
+		blockchairBitcoinLikeAddressDashboardResponseWire,
+		await getBlockchairJson({
+			path: `/${chain}/dashboards/address/${pathIdentifier(address)}`,
+			searchParams: bitcoinLikeAddressSearchParams(params),
+			publicEnv: options.publicEnv,
+		}),
+		`${chain} address dashboard`
+	)
 )
 
 /**
  * `GET /{chain}/blocks` — Blockchair infinitable table; supports `q`, `s`, `a`,
  * `limit`, and `offset` through `params`.
  */
-export const getBlocks = ({
+export const getBlocks = async ({
 	chain,
 	params,
 	options,
@@ -132,18 +172,22 @@ export const getBlocks = ({
 	params?: BlockchairInfinitableParams
 	options: BlockchairRequestOptions
 }) => (
-	getBlockchairJson<BlockchairResponse<BlockchairBitcoinLikeBlock[]>>({
-		path: `/${chain}/blocks`,
-		searchParams: infinitableSearchParams(params),
-		publicEnv: options.publicEnv,
-	})
+	assertBlockchairEnvelope(
+		blockchairBitcoinLikeBlocksResponseWire,
+		await getBlockchairJson({
+			path: `/${chain}/blocks`,
+			searchParams: infinitableSearchParams(params),
+			publicEnv: options.publicEnv,
+		}),
+		`${chain} blocks`
+	)
 )
 
 /**
  * `GET /{chain}/transactions` — Blockchair infinitable table; supports `q`, `s`,
  * `a`, `limit`, and `offset` through `params`.
  */
-export const getTransactions = ({
+export const getTransactions = async ({
 	chain,
 	params,
 	options,
@@ -152,9 +196,13 @@ export const getTransactions = ({
 	params?: BlockchairInfinitableParams
 	options: BlockchairRequestOptions
 }) => (
-	getBlockchairJson<BlockchairResponse<BlockchairBitcoinLikeTransaction[]>>({
-		path: `/${chain}/transactions`,
-		searchParams: infinitableSearchParams(params),
-		publicEnv: options.publicEnv,
-	})
+	assertBlockchairEnvelope(
+		blockchairBitcoinLikeTransactionsResponseWire,
+		await getBlockchairJson({
+			path: `/${chain}/transactions`,
+			searchParams: infinitableSearchParams(params),
+			publicEnv: options.publicEnv,
+		}),
+		`${chain} transactions`
+	)
 )
