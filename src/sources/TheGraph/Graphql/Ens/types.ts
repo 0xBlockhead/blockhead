@@ -49,23 +49,6 @@ export const EnsDomainFragment = graphql(`
 			contentHash
 			texts
 			coinTypes
-			events {
-				__typename
-				blockNumber
-				... on TextChanged {
-					key
-					value
-				}
-				... on MulticoinAddrChanged {
-					coinType
-					addr
-				}
-				... on AddrChanged {
-					addr {
-						id
-					}
-				}
-			}
 		}
 		ttl
 		isMigrated
@@ -75,4 +58,20 @@ export const EnsDomainFragment = graphql(`
 	}
 `)
 
-export type EnsSubgraphDomain = FragmentOf<typeof EnsDomainFragment>
+export type EnsSubgraphDomain = FragmentOf<typeof EnsDomainFragment> & {
+	resolver?: (
+		| NonNullable<FragmentOf<typeof EnsDomainFragment>['resolver']>
+		| null
+	) & {
+		events?: readonly {
+			__typename: string
+			blockNumber: number
+			key?: string
+			value?: string | null
+			coinType?: unknown
+			addr?: string | {
+				id: string
+			} | null
+		}[] | null
+	}
+}

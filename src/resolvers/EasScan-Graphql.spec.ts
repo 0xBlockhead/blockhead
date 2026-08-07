@@ -71,7 +71,9 @@ const attestation = {
 	time: 1_700_000_000,
 	timeCreated: 1_700_000_000,
 	data: '0x1234',
+	decodedDataJson: '[]',
 	txid: transactionHash,
+	ipfsHash: '',
 	isOffchain: false,
 }
 

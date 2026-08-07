@@ -46,7 +46,9 @@ const attestation = {
 	time: 1_700_000_000,
 	timeCreated: 1_700_000_000,
 	data: '0x1234',
+	decodedDataJson: '[{"name":"subject","value":"0x4444444444444444444444444444444444444444"}]',
 	txid: transactionHash,
+	ipfsHash: '',
 	isOffchain: false,
 }
 
@@ -248,6 +250,12 @@ describe('EasScan GraphQL public reads', () => {
 					id: '0xdead',
 				},
 			})
+			.mockResolvedValueOnce({
+				attestation: {
+					...attestation,
+					decodedDataJson: 12,
+				},
+			})
 
 		await expect(getAttestation({
 			network: 'eip155:1',
@@ -265,6 +273,10 @@ describe('EasScan GraphQL public reads', () => {
 			network: 'eip155:1',
 			schemaUid,
 		})).rejects.toThrow('invalid schema registration')
+		await expect(getAttestation({
+			network: 'eip155:1',
+			uid,
+		})).rejects.toThrow('invalid attestation envelope')
 		await expect(getAttestation({
 			network: 'eip155:1',
 			uid,

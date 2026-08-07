@@ -1,6 +1,12 @@
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { graphql, queryEns } from '$/sources/TheGraph/Graphql/Ens/client.ts'
-import { EnsDomainFragment } from '$/sources/TheGraph/Graphql/Ens/types.ts'
+import {
+	EnsDomainFragment,
+	type EnsSubgraphDomain,
+} from '$/sources/TheGraph/Graphql/Ens/types.ts'
+
+/** Graph Node default page is 100; tip text/coin values need a larger ordered window. */
+const resolverTipEventPageSize = 1000
 
 export const getEnsSubgraphReachability = async ({
 	publicEnv,
@@ -23,6 +29,85 @@ export const getEnsSubgraphReachability = async ({
 	return true
 }
 
+const hydrateResolverTipEvents = async ({
+	publicEnv,
+	domain,
+}: {
+	publicEnv: SourcePublicEnv
+	domain: EnsSubgraphDomain
+}): Promise<EnsSubgraphDomain> => {
+	const resolver = domain.resolver
+	if (resolver?.id == null)
+		return domain
+
+	const tipEvents = await queryEns(
+		publicEnv,
+		graphql(`
+			query EnsResolverTipEvents(
+				$resolver: String!
+				$first: Int!
+			) {
+				textChangeds(
+					where: {
+						resolver: $resolver
+					}
+					orderBy: blockNumber
+					orderDirection: desc
+					first: $first
+				) {
+					__typename
+					blockNumber
+					key
+					value
+				}
+				multicoinAddrChangeds(
+					where: {
+						resolver: $resolver
+					}
+					orderBy: blockNumber
+					orderDirection: desc
+					first: $first
+				) {
+					__typename
+					blockNumber
+					coinType
+					addr
+				}
+				addrChangeds(
+					where: {
+						resolver: $resolver
+					}
+					orderBy: blockNumber
+					orderDirection: desc
+					first: $first
+				) {
+					__typename
+					blockNumber
+					addr {
+						id
+					}
+				}
+			}
+		`),
+		{
+			resolver: resolver.id,
+			first: resolverTipEventPageSize,
+		}
+	)
+
+	return {
+		...domain,
+		resolver: {
+			...resolver,
+			events: [
+				...tipEvents.textChangeds,
+				...tipEvents.multicoinAddrChangeds,
+				...tipEvents.addrChangeds,
+			],
+		},
+	}
+}
+
 export const getName = async ({
 	publicEnv,
 	name,
@@ -30,29 +115,36 @@ export const getName = async ({
 	publicEnv: SourcePublicEnv
 	name: string
 }) => (
-	(
-		await queryEns(
-			publicEnv,
-			graphql(`
-				query EnsName(
-					$name: String!
-				) {
-					domains(
-						where: {
-							name: $name
-						}
+	await Promise.all(
+		(
+			await queryEns(
+				publicEnv,
+				graphql(`
+					query EnsName(
+						$name: String!
 					) {
-						...EnsDomain
+						domains(
+							where: {
+								name: $name
+							}
+						) {
+							...EnsDomain
+						}
 					}
+				`, [
+					EnsDomainFragment,
+				]),
+				{
+					name,
 				}
-			`, [
-				EnsDomainFragment,
-			]),
-			{
-				name,
-			}
-		)
-	).domains
+			)
+		).domains.map((domain) => (
+			hydrateResolverTipEvents({
+				publicEnv,
+				domain,
+			})
+		))
+	)
 )
 
 export const getDomainsContaining = async ({

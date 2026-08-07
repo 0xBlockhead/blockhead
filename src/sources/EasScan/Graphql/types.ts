@@ -17,7 +17,9 @@ export const EasScanAttestationFragment = graphql(`
 		time
 		timeCreated
 		data
+		decodedDataJson
 		txid
+		ipfsHash
 		isOffchain
 	}
 `)
@@ -61,7 +63,9 @@ export const easScanAttestationEnvelope = arktype({
 	time: easScanNonNegativeSafeInteger,
 	timeCreated: easScanNonNegativeSafeInteger,
 	data: easScanBytes,
+	decodedDataJson: 'string',
 	txid: easScanBytes32,
+	ipfsHash: 'string',
 	isOffchain: 'boolean',
 })
 

@@ -349,6 +349,10 @@ export default {
 							?? matchingEnsDomain.resolver?.addr
 						)
 						const ownerActor = evmAccountFromSubgraphAccount(matchingEnsDomain.owner)
+						const resolverTextKeys = matchingEnsDomain.resolver?.texts?.map(String) ?? []
+						const resolverCoinTypes = matchingEnsDomain.resolver?.coinTypes
+							?.filter((coinType) => coinType != null)
+							.map(String) ?? []
 
 						return {
 							$name: {
@@ -378,10 +382,12 @@ export default {
 								$ownerActor: ownerActor,
 							}),
 							subdomainCount: matchingEnsDomain.subdomainCount,
-							resolverTextKeys: matchingEnsDomain.resolver?.texts?.map(String),
-							resolverCoinTypes: matchingEnsDomain.resolver?.coinTypes
-								?.filter((coinType) => coinType != null)
-								.map(String),
+							...(resolverTextKeys.length > 0 && {
+								resolverTextKeys,
+							}),
+							...(resolverCoinTypes.length > 0 && {
+								resolverCoinTypes,
+							}),
 							ttl: bigintFromSubgraphScalar(matchingEnsDomain.ttl),
 							isMigrated: matchingEnsDomain.isMigrated,
 						}

@@ -15,11 +15,32 @@ enum Domain_orderBy {
 	name
 }
 
+enum ResolverEvent_orderBy {
+	blockNumber
+	id
+	transactionID
+}
+
 input Domain_filter {
 	name: String
 	name_contains: String
 	name_not: String
 	owner: String
+	resolvedAddress: String
+}
+
+input TextChanged_filter {
+	key: String
+	resolver: String
+}
+
+input MulticoinAddrChanged_filter {
+	coinType: BigInt
+	resolver: String
+}
+
+input AddrChanged_filter {
+	resolver: String
 }
 
 type Query {
@@ -29,4 +50,25 @@ type Query {
 		orderDirection: OrderDirection
 		where: Domain_filter
 	): [Domain!]!
+	textChangeds(
+		first: Int
+		skip: Int
+		orderBy: ResolverEvent_orderBy
+		orderDirection: OrderDirection
+		where: TextChanged_filter
+	): [TextChanged!]!
+	multicoinAddrChangeds(
+		first: Int
+		skip: Int
+		orderBy: ResolverEvent_orderBy
+		orderDirection: OrderDirection
+		where: MulticoinAddrChanged_filter
+	): [MulticoinAddrChanged!]!
+	addrChangeds(
+		first: Int
+		skip: Int
+		orderBy: ResolverEvent_orderBy
+		orderDirection: OrderDirection
+		where: AddrChanged_filter
+	): [AddrChanged!]!
 }
