@@ -16,7 +16,10 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 	httpUrl: (_binding: unknown, path: string) => path,
 }))
 
-const { getBlockchainAccountTransactions } = await import('$/sources/TonApi/Rest/queries.ts')
+const {
+	getBlockchainAccountTransactions,
+	getBlockchainRawAccount,
+} = await import('$/sources/TonApi/Rest/queries.ts')
 
 const binding = bindings[Source.TonApi_Rest][0]
 
@@ -195,5 +198,47 @@ describe('TonAPI raw account transaction transport', () => {
 			beforeLt: -1n,
 		})).rejects.toThrow('non-negative')
 		expect(getJson).not.toHaveBeenCalled()
+	})
+})
+
+describe('TonAPI blockchain raw account transport leftovers', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('accepts enrolled leftover clocks/hashes and fail-closes unsafe integers', async () => {
+		getJson.mockResolvedValueOnce({
+			address: accountId,
+			balance: 1,
+			status: 'active',
+			last_transaction_lt: 2,
+			last_transaction_hash: 'ab'.repeat(32),
+			storage: {
+				used_cells: 0,
+				used_bits: 0,
+				used_public_cells: 0,
+				last_paid: 0,
+				due_payment: 0,
+			},
+		})
+		await expect(getBlockchainRawAccount(accountId)).resolves.toMatchObject({
+			last_transaction_lt: 2,
+			last_transaction_hash: 'ab'.repeat(32),
+		})
+
+		getJson.mockResolvedValueOnce({
+			address: accountId,
+			balance: Number.MAX_SAFE_INTEGER + 1,
+			status: 'active',
+			last_transaction_lt: 2,
+			storage: {
+				used_cells: 0,
+				used_bits: 0,
+				used_public_cells: 0,
+				last_paid: 0,
+				due_payment: 0,
+			},
+		})
+		await expect(getBlockchainRawAccount(accountId)).rejects.toThrow()
 	})
 })

@@ -19,6 +19,7 @@ import {
 import accountFixtureJson from '$/sources/TonApi/Rest/fixtures/account.json'
 import type {
 	TonApiAccount,
+	TonApiBlockchainRawAccount,
 	TonApiMasterchainHead,
 } from '$/sources/TonApi/Rest/types.ts'
 
@@ -34,6 +35,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 const {
 	getAccount,
 	getBlockchainMasterchainHead,
+	getBlockchainRawAccount,
 } = await import('$/sources/TonApi/Rest/queries.ts')
 const { default: tonApiResolvers } = await import('$/resolvers/TonApi-Rest.ts')
 
@@ -46,6 +48,23 @@ const masterchainHeadFixture = {
 	seqno: 45_678_901,
 	gen_utime: 1_750_000_000,
 } satisfies TonApiMasterchainHead
+
+const rawAccountFixture = {
+	address: accountFixture.address,
+	balance: 1_234_567_890,
+	status: 'active',
+	last_transaction_lt: 34_758_440_000_003,
+	last_transaction_hash: 'd43981844b5fb58ffab8a78ef19b5b4c3b1d2b4201b57a7a5fdfdb425ba81c9e',
+	frozen_hash: '088b436a846d92281734236967970612f87fbd64a2cd3573107948379e8e4161',
+	storage: {
+		used_cells: 1,
+		used_bits: 2,
+		used_public_cells: 0,
+		last_paid: 1_720_000_000,
+		due_payment: 0,
+	},
+} satisfies TonApiBlockchainRawAccount
+
 
 const tonApiBinding = bindings[Source.TonApi_Rest][0]
 
@@ -209,8 +228,13 @@ describe('TonAPI account resolver', () => {
 		vi.clearAllMocks()
 	})
 
-	it('maps canonical raw address coordinates for NetworkAddress', async () => {
-		sourceGetJson.mockResolvedValueOnce(accountFixture)
+	it('maps canonical raw address coordinates and enrolled raw-account leftovers for NetworkAddress', async () => {
+		sourceGetJson.mockImplementation(async (_binding, url: string) => (
+			url.includes('/blockchain/accounts/') ?
+				rawAccountFixture
+			:
+				accountFixture
+		))
 		vi.spyOn(Date, 'now').mockReturnValueOnce(1_750_000_000_000)
 
 		await expect(accountResolver.resolve['NetworkAddress'].resolve(
@@ -239,18 +263,26 @@ describe('TonAPI account resolver', () => {
 						[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'balanceNano')]: BigInt(accountFixture.balance),
 						[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'status')]: accountFixture.status,
 						[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'lastActivityTimestampMs')]: accountFixture.last_activity * 1_000,
+						[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'lastTransactionLt')]: BigInt(rawAccountFixture.last_transaction_lt),
+						[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'lastTransactionHash')]: rawAccountFixture.last_transaction_hash,
+						[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'frozenHash')]: rawAccountFixture.frozen_hash,
 					},
 				},
 			],
 		})
-		expect(sourceGetJson).toHaveBeenCalledTimes(1)
+		expect(sourceGetJson).toHaveBeenCalledTimes(2)
 	})
 
 	it('fails closed when TonAPI does not return a canonical raw address', async () => {
-		sourceGetJson.mockResolvedValueOnce({
-			...accountFixture,
-			address: 'EQ_not_a_raw_address',
-		})
+		sourceGetJson.mockImplementation(async (_binding, url: string) => (
+			url.includes('/blockchain/accounts/') ?
+				rawAccountFixture
+			:
+				{
+					...accountFixture,
+					address: 'EQ_not_a_raw_address',
+				}
+		))
 
 		await expect(accountResolver.resolve['NetworkAddress'].resolve(
 			{
@@ -263,10 +295,15 @@ describe('TonAPI account resolver', () => {
 	})
 
 	it('fails closed on an unsafe workchain coordinate', async () => {
-		sourceGetJson.mockResolvedValueOnce({
-			...accountFixture,
-			address: '9007199254740992:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-		})
+		sourceGetJson.mockImplementation(async (_binding, url: string) => (
+			url.includes('/blockchain/accounts/') ?
+				rawAccountFixture
+			:
+				{
+					...accountFixture,
+					address: '9007199254740992:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+				}
+		))
 
 		await expect(accountResolver.resolve['NetworkAddress'].resolve(
 			{
@@ -355,5 +392,33 @@ describe('TonAPI jetton resolver', () => {
 				masterAddress: 'EQ/a+b',
 				}
 			)).rejects.toThrow('malformed raw address')
+	})
+})
+
+describe('TonAPI raw account transport', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('uses the blockchain raw-account endpoint and canonicalizes identity leftovers', async () => {
+		sourceGetJson.mockResolvedValueOnce(rawAccountFixture)
+
+		await expect(getBlockchainRawAccount('EQ/a+b')).resolves.toMatchObject({
+			address: accountFixture.address,
+			last_transaction_hash: rawAccountFixture.last_transaction_hash,
+			frozen_hash: rawAccountFixture.frozen_hash,
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			tonApiBinding,
+			'https://tonapi.io/v2/blockchain/accounts/EQ%2Fa%2Bb'
+		)
+	})
+
+	it('rejects malformed last-transaction hashes', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...rawAccountFixture,
+			last_transaction_hash: 'not-a-hash',
+		})
+		await expect(getBlockchainRawAccount(accountFixture.address)).rejects.toThrow('malformed last transaction hash')
 	})
 })

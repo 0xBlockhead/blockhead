@@ -19,6 +19,26 @@ export const TonApiMasterchainHead = type({
 
 export type TonApiMasterchainHead = typeof TonApiMasterchainHead.infer
 
+export const TonApiBlockchainRawAccount = type({
+	address: 'string',
+	balance: 'number.integer >= 0',
+	status: "'uninit' | 'active' | 'frozen' | 'nonexist'",
+	last_transaction_lt: 'number.integer >= 0',
+	'last_transaction_hash?': 'string',
+	'frozen_hash?': 'string',
+	'code?': 'string',
+	'data?': 'string',
+	storage: {
+		used_cells: 'number.integer >= 0',
+		used_bits: 'number.integer >= 0',
+		used_public_cells: 'number.integer >= 0',
+		last_paid: 'number.integer >= 0',
+		due_payment: 'number.integer >= 0',
+	},
+})
+
+export type TonApiBlockchainRawAccount = typeof TonApiBlockchainRawAccount.infer
+
 export const TonApiAccountTransactionWire = type({
 	hash: 'string',
 	lt: 'number.integer >= 0',

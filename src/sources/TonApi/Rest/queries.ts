@@ -3,6 +3,7 @@ import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import {
 	TonApiAccount,
 	TonApiAccountTransactionsWire,
+	TonApiBlockchainRawAccount,
 	TonApiMasterchainHead,
 } from '$/sources/TonApi/Rest/types.ts'
 import bindings from '$/sources/TonApi/bindings.ts'
@@ -48,6 +49,43 @@ export const getBlockchainMasterchainHead = () => (
 			throw new Error('TonApi_Rest: masterchain head exceeds safe numeric bounds')
 
 		return masterchainHead
+	})
+)
+
+export const getBlockchainRawAccount = (
+	accountId: string
+) => (
+	getTonApiRestJson<unknown>(
+		`/v2/blockchain/accounts/${encodeURIComponent(accountId)}`
+	).then((wire) => {
+		const account = TonApiBlockchainRawAccount.assert(wire)
+		if (
+			!Number.isSafeInteger(account.balance)
+			|| !Number.isSafeInteger(account.last_transaction_lt)
+		)
+			throw new Error('TonApi_Rest: raw account numeric field exceeds lossless JSON bounds')
+		if (
+			account.last_transaction_hash != null
+			&& !/^[0-9a-fA-F]{64}$/.test(account.last_transaction_hash)
+		)
+			throw new Error('TonApi_Rest: malformed last transaction hash')
+		if (
+			account.frozen_hash != null
+			&& account.frozen_hash.length > 0
+			&& !/^[0-9a-fA-F]{64}$/.test(account.frozen_hash)
+		)
+			throw new Error('TonApi_Rest: malformed frozen hash')
+
+		return {
+			...account,
+			address: rawTonAddressCoordinates(account.address),
+			...(account.last_transaction_hash != null && {
+				last_transaction_hash: account.last_transaction_hash.toLowerCase(),
+			}),
+			...(account.frozen_hash != null && account.frozen_hash.length > 0 && {
+				frozen_hash: account.frozen_hash.toLowerCase(),
+			}),
+		}
 	})
 )
 

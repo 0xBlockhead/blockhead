@@ -64,6 +64,65 @@ const assertUnsignedDecimal = (
 		throw new Error(`Kaspa Explorer: invalid ${label}`)
 }
 
+
+const assertBlockHash = (
+	blockHash: string,
+	label = 'block hash'
+) => {
+	if (!/^[0-9a-f]{64}$/.test(blockHash))
+		throw new Error(`Kaspa Explorer: invalid ${label}`)
+}
+
+const assertTransactionId = (
+	transactionId: string
+) => {
+	if (!/^[0-9a-f]{64}$/.test(transactionId))
+		throw new Error('Kaspa Explorer: invalid transaction ID')
+}
+
+const assertSafeUnsignedDecimalString = (
+	value: string,
+	label: string
+) => {
+	assertUnsignedDecimal(value, label)
+	if (!Number.isSafeInteger(Number(value)))
+		throw new Error(`Kaspa Explorer: ${label} exceeds lossless JSON integer range`)
+}
+
+const validateTxModelLeftovers = (
+	transaction: paths['/transactions/{transaction_id}']['get']['responses'][200]['content']['application/json']
+) => {
+	if (transaction.transaction_id == null)
+		throw new Error('Kaspa Explorer: invalid transaction ID')
+	assertTransactionId(transaction.transaction_id)
+	if (transaction.version != null)
+		assertSafeUnsigned(transaction.version, 'transaction version')
+	if (transaction.mass != null)
+		assertUnsignedDecimal(transaction.mass, 'transaction mass')
+	if (transaction.payload != null) {
+		if (!/^(?:[0-9a-fA-F]{2})*$/.test(transaction.payload))
+			throw new Error('Kaspa Explorer: transaction payload is not even hex')
+	}
+	if (transaction.block_hash != null) {
+		const blockHashes = new Set<string>()
+		for (const blockHash of transaction.block_hash) {
+			assertBlockHash(blockHash)
+			if (blockHashes.has(blockHash))
+				throw new Error('Kaspa Explorer: duplicate transaction block hash')
+			blockHashes.add(blockHash)
+		}
+	}
+	if (transaction.block_time != null)
+		assertSafeUnsigned(transaction.block_time, 'transaction block time')
+	for (const input of transaction.inputs ?? []) {
+		if (input.previous_outpoint_amount != null)
+			assertSafeUnsigned(input.previous_outpoint_amount, 'transaction input amount')
+	}
+	for (const output of transaction.outputs ?? [])
+		assertSafeUnsigned(output.amount, 'transaction output amount')
+	return transaction
+}
+
 export const getAddressBalance = async (
 	{ kaspaAddress }: paths['/addresses/{kaspaAddress}/balance']['get']['parameters']['path']
 ) => {
@@ -179,29 +238,24 @@ export const getAddressTransactionsPage = async (
 	let previousBlockTime: number | undefined
 	const validatedTransactions = []
 	for (const transaction of transactions) {
-		if (transaction.transaction_id == null || !/^[0-9a-f]{64}$/.test(transaction.transaction_id))
+		validateTxModelLeftovers(transaction)
+		const transactionId = transaction.transaction_id
+		const blockTime = transaction.block_time
+		if (transactionId == null)
 			throw new Error('Kaspa Explorer: invalid transaction ID')
-		if (transactionIds.has(transaction.transaction_id))
-			throw new Error('Kaspa Explorer: duplicate transaction ID')
-		transactionIds.add(transaction.transaction_id)
-		if (transaction.mass != null)
-			assertUnsignedDecimal(transaction.mass, 'transaction mass')
-		if (transaction.block_time == null)
+		if (blockTime == null)
 			throw new Error('Kaspa Explorer: transaction is missing its pagination clock')
-		assertSafeUnsigned(transaction.block_time, 'transaction block time')
+		if (transactionIds.has(transactionId))
+			throw new Error('Kaspa Explorer: duplicate transaction ID')
+		transactionIds.add(transactionId)
 		if (
 			previousBlockTime != null
-			&& transaction.block_time > previousBlockTime
+			&& blockTime > previousBlockTime
 		)
 			throw new Error('Kaspa Explorer: transaction page is not newest-first')
-		if (before != null && transaction.block_time >= before)
+		if (before != null && blockTime >= before)
 			throw new Error('Kaspa Explorer: transaction page did not respect its before cursor')
-		previousBlockTime = transaction.block_time
-		for (const input of transaction.inputs ?? [])
-			if (input.previous_outpoint_amount != null)
-				assertSafeUnsigned(input.previous_outpoint_amount, 'transaction input amount')
-		for (const output of transaction.outputs ?? [])
-			assertSafeUnsigned(output.amount, 'transaction output amount')
+		previousBlockTime = blockTime
 		if (
 			transaction.inputs?.some((input) => input.previous_outpoint_address === kaspaAddress) !== true
 			&& transaction.outputs?.some((output) => output.script_public_key_address === kaspaAddress) !== true
@@ -209,8 +263,8 @@ export const getAddressTransactionsPage = async (
 			throw new Error('Kaspa Explorer: transaction page contains a foreign address row')
 		validatedTransactions.push({
 			...transaction,
-			block_time: transaction.block_time,
-			transaction_id: transaction.transaction_id,
+			block_time: blockTime,
+			transaction_id: transactionId,
 		})
 	}
 	const nextBeforeHeader = response.headers.get('x-next-page-before')
@@ -233,3 +287,125 @@ export const getAddressTransactionsPage = async (
 		nextBefore,
 	}
 }
+
+export const getTransaction = async (
+	{
+		transaction_id,
+		blockHash,
+		inputs = true,
+		outputs = true,
+		resolve_previous_outpoints = 'light',
+	}: (
+		paths['/transactions/{transaction_id}']['get']['parameters']['path']
+		& NonNullable<paths['/transactions/{transaction_id}']['get']['parameters']['query']>
+	)
+) => {
+	assertTransactionId(transaction_id)
+	if (blockHash != null)
+		assertBlockHash(blockHash)
+	const parameters = new URLSearchParams({
+		inputs: String(inputs),
+		outputs: String(outputs),
+		resolve_previous_outpoints,
+	})
+	if (blockHash != null)
+		parameters.set('blockHash', blockHash)
+	const transaction = await getJson<paths['/transactions/{transaction_id}']['get']['responses'][200]['content']['application/json']>(
+		binding,
+		`/transactions/${transaction_id}?${parameters.toString()}`
+	)
+	validateTxModelLeftovers(transaction)
+	if (transaction.transaction_id !== transaction_id)
+		throw new Error('Kaspa Explorer: transaction response belongs to a different ID')
+	return transaction
+}
+
+export const getBlock = async (
+	{
+		blockId,
+		includeTransactions = false,
+		includeColor = false,
+	}: (
+		paths['/blocks/{blockId}']['get']['parameters']['path']
+		& NonNullable<paths['/blocks/{blockId}']['get']['parameters']['query']>
+	)
+) => {
+	assertBlockHash(blockId)
+	const parameters = new URLSearchParams({
+		includeTransactions: String(includeTransactions),
+		includeColor: String(includeColor),
+	})
+	const block = await getJson<paths['/blocks/{blockId}']['get']['responses'][200]['content']['application/json']>(
+		binding,
+		`/blocks/${blockId}?${parameters.toString()}`
+	)
+	if (block.verboseData.hash != null) {
+		assertBlockHash(block.verboseData.hash)
+		if (block.verboseData.hash !== blockId)
+			throw new Error('Kaspa Explorer: block response belongs to a different hash')
+	}
+	if (block.header.version != null)
+		assertSafeUnsigned(block.header.version, 'block version')
+	if (block.header.timestamp != null)
+		assertSafeUnsignedDecimalString(block.header.timestamp, 'block timestamp')
+	if (block.header.bits != null)
+		assertSafeUnsigned(block.header.bits, 'block bits')
+	if (block.header.nonce != null)
+		assertUnsignedDecimal(block.header.nonce, 'block nonce')
+	if (block.header.daaScore != null)
+		assertUnsignedDecimal(block.header.daaScore, 'block DAA score')
+	if (block.header.blueScore != null)
+		assertUnsignedDecimal(block.header.blueScore, 'block blue score')
+	if (block.verboseData.blueScore != null)
+		assertUnsignedDecimal(block.verboseData.blueScore, 'verbose blue score')
+	if (block.verboseData.selectedParentHash != null)
+		assertBlockHash(block.verboseData.selectedParentHash, 'selected parent hash')
+	for (const parent of block.header.parents ?? [])
+		for (const parentHash of parent.parentHashes ?? [])
+			assertBlockHash(parentHash, 'parent hash')
+	for (const mergeSetHash of block.verboseData.mergeSetBluesHashes ?? [])
+		assertBlockHash(mergeSetHash, 'merge-set blue hash')
+	for (const mergeSetHash of block.verboseData.mergeSetRedsHashes ?? [])
+		assertBlockHash(mergeSetHash, 'merge-set red hash')
+	return block
+}
+
+export const getBlockdag = async () => {
+	const blockdag = await getJson<paths['/info/blockdag']['get']['responses'][200]['content']['application/json']>(
+		binding,
+		'/info/blockdag'
+	)
+	assertSafeUnsignedDecimalString(blockdag.blockCount, 'block count')
+	assertSafeUnsignedDecimalString(blockdag.headerCount, 'header count')
+	assertSafeUnsignedDecimalString(blockdag.virtualDaaScore, 'virtual DAA score')
+	assertSafeUnsignedDecimalString(blockdag.pastMedianTime, 'past median time')
+	assertBlockHash(blockdag.pruningPointHash, 'pruning point hash')
+	assertBlockHash(blockdag.sink, 'sink hash')
+	if (!Number.isFinite(blockdag.difficulty) || blockdag.difficulty < 0)
+		throw new Error('Kaspa Explorer: invalid difficulty')
+	for (const tipHash of blockdag.tipHashes)
+		assertBlockHash(tipHash, 'tip hash')
+	for (const virtualParentHash of blockdag.virtualParentHashes)
+		assertBlockHash(virtualParentHash, 'virtual parent hash')
+	return blockdag
+}
+
+export const getVirtualChainBlueScore = async () => {
+	const blueScore = await getJson<paths['/info/virtual-chain-blue-score']['get']['responses'][200]['content']['application/json']>(
+		binding,
+		'/info/virtual-chain-blue-score'
+	)
+	assertSafeUnsigned(blueScore.blueScore, 'virtual blue score')
+	return blueScore
+}
+
+export const getKaspadInfo = async () => {
+	const info = await getJson<paths['/info/kaspad']['get']['responses'][200]['content']['application/json']>(
+		binding,
+		'/info/kaspad'
+	)
+	if (info.mempoolSize != null)
+		assertSafeUnsignedDecimalString(info.mempoolSize, 'mempool size')
+	return info
+}
+

@@ -111,11 +111,26 @@ export default {
 					resolve: async ({ $network, address }) => {
 						assertTonNetwork($network)
 
-						const { getAccount } = await import('$/sources/TonApi/Rest/queries.ts')
-						const account = await getAccount(address)
+						const {
+							getAccount,
+							getBlockchainRawAccount,
+						} = await import('$/sources/TonApi/Rest/queries.ts')
+						const [
+							account,
+							rawAccount,
+						] = await Promise.all([
+							getAccount(address),
+							getBlockchainRawAccount(address),
+						])
+						const coordinates = tonRawAddressCoordinates(account.address)
+						if (
+							coordinates.workchain !== tonRawAddressCoordinates(rawAccount.address).workchain
+							|| coordinates.addressHash !== tonRawAddressCoordinates(rawAccount.address).addressHash
+						)
+							throw new Error('TonApi_Rest: account and raw account identities diverge')
 
 						return {
-							...tonRawAddressCoordinates(account.address),
+							...coordinates,
 							$$timestamps: [
 								{
 									[EntityMetaKey.Selector]: {
@@ -130,6 +145,13 @@ export default {
 										[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'balanceNano')]: BigInt(account.balance),
 										[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'status')]: account.status,
 										[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'lastActivityTimestampMs')]: account.last_activity * 1_000,
+										[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'lastTransactionLt')]: BigInt(rawAccount.last_transaction_lt),
+										...(rawAccount.last_transaction_hash != null && {
+											[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'lastTransactionHash')]: rawAccount.last_transaction_hash,
+										}),
+										...(rawAccount.frozen_hash != null && {
+											[entityFieldAddressKey(EntityType.TonAccount_Timestamp, [], 'frozenHash')]: rawAccount.frozen_hash,
+										}),
 									},
 								},
 							],

@@ -23,13 +23,23 @@ const {
 	getAddressTransactionCount,
 	getAddressTransactionsPage,
 	getAddressUtxoCount,
+	getBlock,
+	getBlockdag,
 	getCompleteAddressUtxos,
+	getKaspadInfo,
+	getTransaction,
+	getVirtualChainBlueScore,
 } = vi.hoisted(() => ({
 	getAddressBalance: vi.fn(),
 	getAddressTransactionCount: vi.fn(),
 	getAddressTransactionsPage: vi.fn(),
 	getAddressUtxoCount: vi.fn(),
+	getBlock: vi.fn(),
+	getBlockdag: vi.fn(),
 	getCompleteAddressUtxos: vi.fn(),
+	getKaspadInfo: vi.fn(),
+	getTransaction: vi.fn(),
+	getVirtualChainBlueScore: vi.fn(),
 }))
 
 vi.mock('$/sources/KaspaExplorer/Rest/queries.ts', () => ({
@@ -37,27 +47,47 @@ vi.mock('$/sources/KaspaExplorer/Rest/queries.ts', () => ({
 	getAddressTransactionCount,
 	getAddressTransactionsPage,
 	getAddressUtxoCount,
+	getBlock,
+	getBlockdag,
 	getCompleteAddressUtxos,
+	getKaspadInfo,
+	getTransaction,
+	getVirtualChainBlueScore,
 }))
 
 const { default: kaspaExplorerResolvers } = await import('$/resolvers/KaspaExplorer.ts')
 
+const networkTimestampsResolver = kaspaExplorerResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.KaspaNetwork
+	&& '$$timestamps' in resolver.projections
+))
 const observationsResolver = kaspaExplorerResolvers.resolvers.find((resolver) => (
-	'$$timestamps' in resolver.projections
+	resolver.entityType === EntityType.KaspaAddress
+	&& '$$timestamps' in resolver.projections
 ))
 const utxosResolver = kaspaExplorerResolvers.resolvers.find((resolver) => (
 	'$$utxos' in resolver.projections
 ))
 const transactionsResolver = kaspaExplorerResolvers.resolvers.find((resolver) => (
-	'$$transactions' in resolver.projections
+	resolver.entityType === EntityType.KaspaAddress
+	&& '$$transactions' in resolver.projections
+))
+const singularTransactionResolver = kaspaExplorerResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.KaspaTransaction
+))
+const singularBlockResolver = kaspaExplorerResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.KaspaBlock
 ))
 
 if (
-	observationsResolver == null
+	networkTimestampsResolver == null
+	|| observationsResolver == null
 	|| utxosResolver == null
 	|| transactionsResolver == null
+	|| singularTransactionResolver == null
+	|| singularBlockResolver == null
 )
-	throw new Error('Kaspa Explorer spec missing address resolvers')
+	throw new Error('Kaspa Explorer spec missing deepened resolvers')
 
 const binding = bindings[Source.KaspaExplorer][0]
 
@@ -105,7 +135,7 @@ describe('Kaspa Explorer address resolver', () => {
 			operationGroups: [SourceOperationGroup.GenericRead],
 			delivery: SourceDelivery.BrowserDirect,
 			credentials: [],
-			artifacts: [
+			artifacts: expect.arrayContaining([
 				{
 					kind: SourceArtifactKind.OpenApiSpec,
 					path: 'src/sources/KaspaExplorer/OpenApi/openapi.json',
@@ -121,7 +151,7 @@ describe('Kaspa Explorer address resolver', () => {
 					path: 'src/sources/KaspaExplorer/OpenApi/openapi.d.ts',
 					generated: true,
 				},
-			],
+			]),
 		}))
 		expect(observationsResolver.resolve[
 			'NetworkAddress'
@@ -233,6 +263,10 @@ describe('Kaspa Explorer address resolver', () => {
 				transaction_id: 'a'.repeat(64),
 				block_time: 1_720_000_000_000,
 				mass: '12345678901234567',
+				version: 0,
+				subnetwork_id: '0000000000000000000000000000000000000000',
+				payload: 'abcd',
+				block_hash: ['c'.repeat(64)],
 				inputs: [],
 				outputs: [],
 			}, {
@@ -276,7 +310,11 @@ describe('Kaspa Explorer address resolver', () => {
 			},
 		])
 		expect(transactions[0][EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.KaspaTransaction, [], 'version')]: 0,
+			[entityFieldAddressKey(EntityType.KaspaTransaction, [], 'subnetworkId')]: '0000000000000000000000000000000000000000',
 			[entityFieldAddressKey(EntityType.KaspaTransaction, [], 'mass')]: 12_345_678_901_234_567n,
+			[entityFieldAddressKey(EntityType.KaspaTransaction, [], 'payloadLength')]: 2,
+			[entityFieldAddressKey(EntityType.KaspaTransaction, [], 'blockHashes')]: ['c'.repeat(64)],
 		})
 		expect(projection.continuation(page, address, resolverContext)).toEqual({
 			operation: 'address-transactions',
@@ -307,5 +345,101 @@ describe('Kaspa Explorer address resolver', () => {
 		await expect(utxosResolver.resolve[
 			'NetworkAddress'
 		].resolve(address, resolverContext)).rejects.toThrow('exceeds the requested row limit')
+	})
+
+	it('projects enrolled network tip leftovers from blockdag/kaspad/blue-score', async () => {
+		getBlockdag.mockResolvedValueOnce({
+			networkName: 'kaspa-mainnet',
+			blockCount: '260890',
+			headerCount: '2131312',
+			tipHashes: ['a'.repeat(64)],
+			difficulty: 12.5,
+			pastMedianTime: '1720000000000',
+			virtualParentHashes: ['b'.repeat(64)],
+			pruningPointHash: 'c'.repeat(64),
+			virtualDaaScore: '19989141',
+			sink: 'd'.repeat(64),
+		})
+		getVirtualChainBlueScore.mockResolvedValueOnce({
+			blueScore: 260_890,
+		})
+		getKaspadInfo.mockResolvedValueOnce({
+			isUtxoIndexed: true,
+			serverVersion: '0.12.2',
+		})
+
+		const network = {
+			slug: networkBySlug.kaspa.slug,
+		}
+		const observations = await networkTimestampsResolver.resolve[
+			'Network'
+		].resolve({ $network: network })
+		const projection = networkTimestampsResolver.projections.$$timestamps
+		if (typeof projection !== 'function')
+			throw new Error('Kaspa Explorer spec missing network timestamp projection')
+		const [observation] = projection(observations, { $network: network }, resolverContext)
+
+		expect(observation[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'virtualDaaScore')]: 19_989_141n,
+			[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'virtualBlueScore')]: 260_890n,
+			[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'virtualSelectedParentHash')]: 'd'.repeat(64),
+			[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'pruningPointHash')]: 'c'.repeat(64),
+			[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'sinkCount')]: 1,
+			[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'blockCount')]: 260_890,
+			[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'difficulty')]: 12.5,
+			[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'hasUtxoIndex')]: true,
+			[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'serverVersion')]: '0.12.2',
+		})
+	})
+
+	it('projects singular transaction and block enrolled leftovers', async () => {
+		getTransaction.mockResolvedValueOnce({
+			transaction_id: 'a'.repeat(64),
+			version: 1,
+			subnetwork_id: '00'.repeat(20),
+			mass: '9',
+			payload: 'abcd',
+			block_hash: ['b'.repeat(64)],
+		})
+		const transaction = await singularTransactionResolver.resolve[
+			'NetworkTransactionId'
+		].resolve({
+			$network: network,
+			transactionId: 'a'.repeat(64),
+		})
+		expect(singularTransactionResolver.projections.payloadLength(transaction)).toBe(2)
+		expect(singularTransactionResolver.projections.blockHashes(transaction)).toEqual(['b'.repeat(64)])
+
+		getBlock.mockResolvedValueOnce({
+			header: {
+				version: 1,
+				timestamp: '1720000000000',
+				bits: 1,
+				nonce: '2',
+				daaScore: '3',
+				blueScore: '4',
+				hashMerkleRoot: 'aa'.repeat(32),
+				acceptedIdMerkleRoot: 'bb'.repeat(32),
+				utxoCommitment: 'cc'.repeat(32),
+				parents: [{
+					parentHashes: ['dd'.repeat(32)],
+				}],
+			},
+			verboseData: {
+				hash: 'ee'.repeat(32),
+				selectedParentHash: 'ff'.repeat(32),
+				mergeSetBluesHashes: ['11'.repeat(32)],
+				mergeSetRedsHashes: ['22'.repeat(32)],
+			},
+		})
+		const block = await singularBlockResolver.resolve[
+			'NetworkBlockHash'
+		].resolve({
+			$network: network,
+			blockHash: 'ee'.repeat(32),
+		})
+		expect(singularBlockResolver.projections.blueScore(block)).toBe(4n)
+		expect(singularBlockResolver.projections.parentHashes(block)).toEqual(['dd'.repeat(32)])
+		expect(singularBlockResolver.projections.mergeSetBlues(block)).toEqual(['11'.repeat(32)])
 	})
 })
