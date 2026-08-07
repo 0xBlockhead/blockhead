@@ -128,6 +128,8 @@ describe('Compound Rest resolver module', () => {
 			borrowRatePerSecond: '2000000000',
 			totalSupplyBase: '1000000000',
 			totalBorrowBase: '500000000',
+			baseScale: '1000000',
+			baseIndexScale: '1000000000000000000',
 			isSupplyPaused: false,
 			isTransferPaused: false,
 			isWithdrawPaused: false,
@@ -546,6 +548,11 @@ describe('Compound Rest resolver module', () => {
 		expect(compoundCometResolver.projections.utilization(snapshot)).toBe(0.5)
 		expect(compoundCometResolver.projections.supplyApy(snapshot)).toBeCloseTo(0.03203853099053755)
 		expect(compoundCometResolver.projections.borrowApy(snapshot)).toBeCloseTo(0.06510352195723823)
+		expect(JSON.stringify(snapshot)).not.toContain('storeFrontPriceFactor')
+		expect(JSON.stringify(snapshot)).not.toContain('rewardTokenAddress')
+		expect(JSON.stringify(snapshot)).not.toContain('totalSupplyBase')
+		expect(JSON.stringify(snapshot)).not.toContain('baseScale')
+		expect(JSON.stringify(snapshot)).not.toContain('isSupplyPaused')
 		expect(getCometTipRates).toHaveBeenCalledWith({
 			chainId: 8453,
 			cometAddress: baseCometAddress,

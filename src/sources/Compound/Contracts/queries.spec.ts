@@ -116,7 +116,7 @@ describe('Compound III contract account operations', () => {
 		expect(jsonRpc2).not.toHaveBeenCalled()
 	})
 
-	it('reads live tip utilization, rates, base totals, and pause flags for a cataloged comet', async () => {
+	it('reads live tip utilization, rates, base totals/scales, and pause flags for a cataloged comet', async () => {
 		const boolWord = (value: boolean) => `0x${(value ? 1n : 0n).toString(16).padStart(64, '0')}`
 		jsonRpc2
 			.mockResolvedValueOnce('0x64')
@@ -125,6 +125,8 @@ describe('Compound III contract account operations', () => {
 			.mockResolvedValueOnce(word(5_678n))
 			.mockResolvedValueOnce(word(9_000_000n))
 			.mockResolvedValueOnce(word(4_500_000n))
+			.mockResolvedValueOnce(word(1_000_000n))
+			.mockResolvedValueOnce(word(1_000_000_000_000_000_000n))
 			.mockResolvedValueOnce(boolWord(false))
 			.mockResolvedValueOnce(boolWord(false))
 			.mockResolvedValueOnce(boolWord(true))
@@ -143,14 +145,39 @@ describe('Compound III contract account operations', () => {
 			borrowRatePerSecond: '5678',
 			totalSupplyBase: '9000000',
 			totalBorrowBase: '4500000',
+			baseScale: '1000000',
+			baseIndexScale: '1000000000000000000',
 			isSupplyPaused: false,
 			isTransferPaused: false,
 			isWithdrawPaused: true,
 			isAbsorbPaused: false,
 			isBuyPaused: false,
 		})
-		expect(jsonRpc2).toHaveBeenCalledTimes(11)
+		expect(jsonRpc2).toHaveBeenCalledTimes(13)
 		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
+	it('fails closed when baseScale is zero', async () => {
+		const boolWord = (value: boolean) => `0x${(value ? 1n : 0n).toString(16).padStart(64, '0')}`
+		jsonRpc2
+			.mockResolvedValueOnce('0x64')
+			.mockResolvedValueOnce(word(850_000_000_000_000_000n))
+			.mockResolvedValueOnce(word(1_234n))
+			.mockResolvedValueOnce(word(5_678n))
+			.mockResolvedValueOnce(word(9_000_000n))
+			.mockResolvedValueOnce(word(4_500_000n))
+			.mockResolvedValueOnce(word(0n))
+			.mockResolvedValueOnce(word(1_000_000_000_000_000_000n))
+			.mockResolvedValueOnce(boolWord(false))
+			.mockResolvedValueOnce(boolWord(false))
+			.mockResolvedValueOnce(boolWord(false))
+			.mockResolvedValueOnce(boolWord(false))
+			.mockResolvedValueOnce(boolWord(false))
+
+		await expect(getCometTipRates({
+			chainId: 8453,
+			cometAddress: '0xb125E6687d4313864e53df431d5425969c15Eb2F',
+		})).rejects.toThrow(`${Source.Compound_Rest}: baseScale must be non-zero`)
 	})
 
 	it('rejects tip-rate reads for unknown comets before transport', async () => {

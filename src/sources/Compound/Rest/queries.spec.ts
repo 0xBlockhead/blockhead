@@ -263,7 +263,37 @@ describe('Compound III deployment operations', () => {
 		await expect(getConfiguration({
 			networkSlug: 'base',
 			marketSlug: 'usdc',
-		})).rejects.toThrow(`${Source.Compound_Rest}: configuration rates.supplyKink must be a finite non-negative number`)
+		})).rejects.toThrow(`${Source.Compound_Rest}: configuration rates.supplyKink must be a finite number in [0, 1]`)
+	})
+
+	it('rejects supplyKink above 1', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...baseConfiguration,
+			rates: {
+				...baseConfiguration.rates,
+				supplyKink: 1.2,
+			},
+		})
+		await expect(getConfiguration({
+			networkSlug: 'base',
+			marketSlug: 'usdc',
+		})).rejects.toThrow(`${Source.Compound_Rest}: configuration rates.supplyKink must be a finite number in [0, 1]`)
+	})
+
+	it('rejects malformed supplyCap amounts', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...baseConfiguration,
+			assets: {
+				WETH: {
+					...baseConfiguration.assets.WETH,
+					supplyCap: 'not-an-amount',
+				},
+			},
+		})
+		await expect(getConfiguration({
+			networkSlug: 'base',
+			marketSlug: 'usdc',
+		})).rejects.toThrow(`${Source.Compound_Rest}: configuration WETH supplyCap must be a non-negative decimal or scientific amount`)
 	})
 
 	it('normalizes governor, reward token, and storeFrontPriceFactor when present', async () => {

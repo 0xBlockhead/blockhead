@@ -22,8 +22,8 @@ export type CompoundAccountPositions = {
 }
 
 /**
- * Live Comet tip utilization, per-second supply/borrow rates, base totals, and pause flags.
- * Schema projects utilization / APY only; totals + pause flags stay transport-side until APP enrollment.
+ * Live Comet tip utilization, per-second supply/borrow rates, base totals, scales, and pause flags.
+ * Schema projects utilization / APY only; totals / scales / pause flags stay transport-side until APP enrollment.
  * @see https://docs.compound.finance/interest-rates/
  * @see https://docs.compound.finance/helper-functions/
  */
@@ -36,6 +36,10 @@ export type CompoundCometTipRates = {
 	borrowRatePerSecond: string
 	totalSupplyBase: string
 	totalBorrowBase: string
+	/** Transport-only — `10 ** baseToken.decimals` scale for base totals. */
+	baseScale: string
+	/** Transport-only — index scale for base tracking / interest accrual. */
+	baseIndexScale: string
 	isSupplyPaused: boolean
 	isTransferPaused: boolean
 	isWithdrawPaused: boolean

@@ -55,6 +55,19 @@ const assertNonEmptyString = (
 	return value
 }
 
+/** Official Comet config amounts use decimal or scientific forms (`1e0`, `5000000e6`). */
+const compoundAmountPattern = /^(?:0|[1-9]\d*)(?:\.\d+)?(?:e\d+)?$/i
+
+const assertCompoundAmountString = (
+	value: string,
+	label: string
+) => {
+	const normalized = assertNonEmptyString(value, label)
+	if (!compoundAmountPattern.test(normalized))
+		throw new Error(`${Source.Compound_Rest}: configuration ${label} must be a non-negative decimal or scientific amount`)
+	return normalized
+}
+
 const assertEnvelope = (
 	envelope: {
 		assert: (value: unknown) => unknown
@@ -105,7 +118,7 @@ const assertConfigurationAssetWire = (
 		borrowCF: assertCollateralFactor(asset.borrowCF, 'borrowCF'),
 		liquidateCF: assertCollateralFactor(asset.liquidateCF, 'liquidateCF'),
 		liquidationFactor: assertCollateralFactor(asset.liquidationFactor, 'liquidationFactor'),
-		supplyCap: assertNonEmptyString(asset.supplyCap, `${symbol} supplyCap`),
+		supplyCap: assertCompoundAmountString(asset.supplyCap, `${symbol} supplyCap`),
 	}
 }
 
@@ -118,15 +131,24 @@ const assertFiniteRate = (
 	return value
 }
 
+const assertKinkRate = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isFinite(value) || value < 0 || value > 1)
+		throw new Error(`${Source.Compound_Rest}: configuration rates.${label} must be a finite number in [0, 1]`)
+	return value
+}
+
 /** Assert official `rates` curve params (required on cataloged Comet configs). */
 const assertRatesWire = (
 	rates: CompoundCometRatesWire
 ): CompoundCometRates => ({
-	supplyKink: assertFiniteRate(rates.supplyKink, 'supplyKink'),
+	supplyKink: assertKinkRate(rates.supplyKink, 'supplyKink'),
 	supplySlopeLow: assertFiniteRate(rates.supplySlopeLow, 'supplySlopeLow'),
 	supplySlopeHigh: assertFiniteRate(rates.supplySlopeHigh, 'supplySlopeHigh'),
 	supplyBase: assertFiniteRate(rates.supplyBase, 'supplyBase'),
-	borrowKink: assertFiniteRate(rates.borrowKink, 'borrowKink'),
+	borrowKink: assertKinkRate(rates.borrowKink, 'borrowKink'),
 	borrowSlopeLow: assertFiniteRate(rates.borrowSlopeLow, 'borrowSlopeLow'),
 	borrowSlopeHigh: assertFiniteRate(rates.borrowSlopeHigh, 'borrowSlopeHigh'),
 	borrowBase: assertFiniteRate(rates.borrowBase, 'borrowBase'),
@@ -158,7 +180,7 @@ const assertConfigurationWire = (
 		baseTokenAddress: assertAddress(wire.baseTokenAddress, 'baseTokenAddress'),
 		baseTokenPriceFeedAddress: assertAddress(wire.baseTokenPriceFeed, 'baseTokenPriceFeed'),
 		...(wire.borrowMin != null && {
-			borrowMin: assertNonEmptyString(wire.borrowMin, 'borrowMin'),
+			borrowMin: assertCompoundAmountString(wire.borrowMin, 'borrowMin'),
 		}),
 		...(wire.governor != null && {
 			governorAddress: assertAddress(wire.governor, 'governor'),
@@ -170,7 +192,7 @@ const assertConfigurationWire = (
 			storeFrontPriceFactor: wire.storeFrontPriceFactor,
 		}),
 		...(wire.targetReserves != null && {
-			targetReserves: assertNonEmptyString(wire.targetReserves, 'targetReserves'),
+			targetReserves: assertCompoundAmountString(wire.targetReserves, 'targetReserves'),
 		}),
 		...(wire.rewardTokenAddress != null && {
 			rewardTokenAddress: assertAddress(wire.rewardTokenAddress, 'rewardTokenAddress'),
