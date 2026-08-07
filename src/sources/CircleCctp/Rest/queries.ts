@@ -1,6 +1,20 @@
 import { throwHttpError } from '$/lib/http.ts'
-import type { operations } from '$/sources/CircleCctp/OpenApi/openapi.d.ts'
 import bindings from '$/sources/CircleCctp/bindings.ts'
+import {
+	circleCctpAttestationV1ResponseWire,
+	circleCctpBurnFeesResponseWire,
+	circleCctpFastBurnAllowanceResponseWire,
+	circleCctpMessagesV2ResponseWire,
+	circleCctpPublicKeysV2ResponseWire,
+	circleCctpReattestationResponseWire,
+	type CircleCctpAttestationV1Response,
+	type CircleCctpBurnFeesResponse,
+	type CircleCctpFastBurnAllowanceResponse,
+	type CircleCctpIrisResult,
+	type CircleCctpMessagesV2Response,
+	type CircleCctpPublicKeysV2Response,
+	type CircleCctpReattestationResponse,
+} from '$/sources/CircleCctp/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	firstHttpUrlForBinding,
@@ -9,20 +23,14 @@ import {
 
 const binding = bindings[Source.CircleCctpIris][0]
 
-type GetMessagesV2 = operations['getMessagesV2']
-type GetMessagesV2Query = NonNullable<GetMessagesV2['parameters']['query']>
-type GetMessagesV2Response = GetMessagesV2['responses'][200]['content']['application/json']
-type GetBurnUsdcFees = operations['getBurnUsdcFees']
-type GetBurnUsdcFeesResponse = GetBurnUsdcFees['responses'][200]['content']['application/json']
-type GetFastBurnUsdcAllowanceResponse = operations['getFastBurnUsdcAllowance']['responses'][200]['content']['application/json']
 type CircleCctpMessageSubject =
 	| {
-		transactionHash: NonNullable<GetMessagesV2Query['transactionHash']>
+		transactionHash: string
 		nonce?: never
 	}
 	| {
 		transactionHash?: never
-		nonce: NonNullable<GetMessagesV2Query['nonce']>
+		nonce: string
 	}
 
 const assertDomain = (
@@ -33,17 +41,50 @@ const assertDomain = (
 		throw new Error(`CircleCctpIris_Rest: invalid ${label}`)
 }
 
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`CircleCctpIris_Rest: invalid ${label} response envelope`)
+	}
+}
+
+const optionalRequestId = (
+	response: Response
+) => (
+	response.headers.get('X-Request-Id')
+	?? response.headers.get('x-request-id')
+	?? undefined
+)
+
+const irisResult = <_Body>(
+	body: _Body,
+	response: Response
+): CircleCctpIrisResult<_Body> => {
+	const requestId = optionalRequestId(response)
+	return {
+		body,
+		...(requestId != null && {
+			requestId,
+		}),
+	}
+}
+
 export const getMessages = async ({
 	sourceDomain,
 	subject,
 	expectedDestinationDomain,
 	maximumMessages = 1_000,
 }: {
-	sourceDomain: GetMessagesV2['parameters']['path']['sourceDomainId']
+	sourceDomain: number
 	subject: CircleCctpMessageSubject
-	expectedDestinationDomain?: GetMessagesV2['parameters']['path']['sourceDomainId']
+	expectedDestinationDomain?: number
 	maximumMessages?: number
-}) => {
+}): Promise<CircleCctpIrisResult<CircleCctpMessagesV2Response> | undefined> => {
 	assertDomain(sourceDomain, 'source domain')
 	if (expectedDestinationDomain != null)
 		assertDomain(expectedDestinationDomain, 'destination domain')
@@ -70,7 +111,11 @@ export const getMessages = async ({
 	if (!response.ok)
 		await throwHttpError('CircleCctpIris_Rest get messages', response)
 
-	const result = await response.json<GetMessagesV2Response>()
+	const result = assertEnvelope(
+		'messages',
+		circleCctpMessagesV2ResponseWire,
+		await response.json()
+	)
 	if (
 		'transactionHash' in subject
 		&& result.sourceTxHash !== subject.transactionHash
@@ -115,7 +160,52 @@ export const getMessages = async ({
 		messageIdentities.add(identity)
 	}
 
-	return result
+	return irisResult(result, response)
+}
+
+export const getAttestation = async ({
+	messageHash,
+}: {
+	messageHash: string
+}): Promise<CircleCctpIrisResult<CircleCctpAttestationV1Response>> => {
+	if (!/^0x[0-9a-fA-F]{64}$/.test(messageHash))
+		throw new Error(`CircleCctpIris_Rest: invalid message hash ${messageHash}`)
+
+	const url = new URL(
+		`/v1/attestations/${messageHash}`,
+		firstHttpUrlForBinding(binding)
+	)
+	const response = await sourceFetch(binding, url.toString())
+	if (!response.ok)
+		await throwHttpError('CircleCctpIris_Rest get attestation', response)
+
+	return irisResult(
+		assertEnvelope(
+			'attestation',
+			circleCctpAttestationV1ResponseWire,
+			await response.json()
+		),
+		response
+	)
+}
+
+export const getPublicKeys = async (): Promise<CircleCctpIrisResult<CircleCctpPublicKeysV2Response>> => {
+	const url = new URL(
+		'/v2/publicKeys',
+		firstHttpUrlForBinding(binding)
+	)
+	const response = await sourceFetch(binding, url.toString())
+	if (!response.ok)
+		await throwHttpError('CircleCctpIris_Rest get public keys', response)
+
+	return irisResult(
+		assertEnvelope(
+			'public keys',
+			circleCctpPublicKeysV2ResponseWire,
+			await response.json()
+		),
+		response
+	)
 }
 
 export const getBurnUsdcFees = async ({
@@ -124,11 +214,11 @@ export const getBurnUsdcFees = async ({
 	forward,
 	hyperCoreDeposit,
 }: {
-	sourceDomain: GetBurnUsdcFees['parameters']['path']['sourceDomainId']
-	destinationDomain: GetBurnUsdcFees['parameters']['path']['destDomainId']
+	sourceDomain: number
+	destinationDomain: number
 	forward?: boolean
 	hyperCoreDeposit?: boolean
-}) => {
+}): Promise<CircleCctpIrisResult<CircleCctpBurnFeesResponse>> => {
 	assertDomain(sourceDomain, 'source domain')
 	assertDomain(destinationDomain, 'destination domain')
 	if (hyperCoreDeposit === true && forward !== true)
@@ -147,10 +237,17 @@ export const getBurnUsdcFees = async ({
 	if (!response.ok)
 		await throwHttpError('CircleCctpIris_Rest get burn USDC fees', response)
 
-	return await response.json<GetBurnUsdcFeesResponse>()
+	return irisResult(
+		assertEnvelope(
+			'burn USDC fees',
+			circleCctpBurnFeesResponseWire,
+			await response.json()
+		),
+		response
+	)
 }
 
-export const getFastBurnUsdcAllowance = async () => {
+export const getFastBurnUsdcAllowance = async (): Promise<CircleCctpIrisResult<CircleCctpFastBurnAllowanceResponse>> => {
 	const url = new URL(
 		'/v2/fastBurn/USDC/allowance',
 		firstHttpUrlForBinding(binding)
@@ -159,5 +256,40 @@ export const getFastBurnUsdcAllowance = async () => {
 	if (!response.ok)
 		await throwHttpError('CircleCctpIris_Rest get fast burn USDC allowance', response)
 
-	return await response.json<GetFastBurnUsdcAllowanceResponse>()
+	return irisResult(
+		assertEnvelope(
+			'fast burn USDC allowance',
+			circleCctpFastBurnAllowanceResponseWire,
+			await response.json()
+		),
+		response
+	)
+}
+
+export const reattestMessage = async ({
+	nonce,
+}: {
+	nonce: string
+}): Promise<CircleCctpIrisResult<CircleCctpReattestationResponse>> => {
+	if (nonce === '')
+		throw new Error('CircleCctpIris_Rest: invalid nonce')
+
+	const url = new URL(
+		`/v2/reattest/${nonce}`,
+		firstHttpUrlForBinding(binding)
+	)
+	const response = await sourceFetch(binding, url.toString(), {
+		method: 'POST',
+	})
+	if (!response.ok)
+		await throwHttpError('CircleCctpIris_Rest reattest message', response)
+
+	return irisResult(
+		assertEnvelope(
+			'reattest',
+			circleCctpReattestationResponseWire,
+			await response.json()
+		),
+		response
+	)
 }

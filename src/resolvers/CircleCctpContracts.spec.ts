@@ -60,6 +60,9 @@ describe('Circle CCTP contract catalogs', () => {
 			cctpVersion: 2,
 			domainId: 0,
 			name: 'Ethereum',
+			standardTransferSource: true,
+			fastTransferSource: true,
+			forwardingDestination: true,
 			$network: {
 				[EntityMetaKey.Selector]: {
 					caip2: {
@@ -72,11 +75,23 @@ describe('Circle CCTP contract catalogs', () => {
 			tokenMinterAddress: '0xfd78ee919681417d192449715b2594ab58f5d002',
 		})
 
+		await expect(evmResolver.resolve.CctpVersionDomainId.resolve({
+			cctpVersion: 2,
+			domainId: 1,
+		})).resolves.toMatchObject({
+			name: 'Avalanche',
+			fastTransferSource: false,
+			forwardingDestination: true,
+		})
+
 		await expect(solanaResolver.resolve.CctpVersionDomainId.resolve({
 			cctpVersion: 2,
 			domainId: 5,
 		})).resolves.toMatchObject({
 			name: 'Solana',
+			standardTransferSource: true,
+			fastTransferSource: true,
+			forwardingDestination: true,
 			tokenMessengerAddress: solanaDomainSupport.tokenMessengerAddress,
 			messageTransmitterAddress: solanaDomainSupport.messageTransmitterAddress,
 			$network: {
@@ -91,6 +106,8 @@ describe('Circle CCTP contract catalogs', () => {
 			domainId: 27,
 		})).resolves.toMatchObject({
 			name: 'Stellar',
+			standardTransferSource: true,
+			fastTransferSource: false,
 			forwardingDestination: true,
 			$network: {
 				[EntityMetaKey.Selector]: {

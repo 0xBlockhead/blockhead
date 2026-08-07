@@ -1,3 +1,6 @@
+import { keccak256, toHex } from '@tevm/voltaire/Hash'
+import { toBytes } from '@tevm/voltaire/Hex'
+
 import { hexLowerOfByteSize, with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineResolver,
@@ -9,14 +12,15 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import type { components } from '$/sources/CircleCctp/OpenApi/openapi.d.ts'
+import type {
+	CircleCctpBurnFeeRow,
+	CircleCctpMessageV2,
+	CircleCctpMessagesV2Response,
+} from '$/sources/CircleCctp/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type CctpMessageId = EntitySelector<typeof schema, EntityType.CctpMessage>
 type CctpDomainSupportId = EntitySelector<typeof schema, EntityType.CctpDomainSupport>
-type MessageV2 = components['schemas']['MessageV2']
-type MessagesV2Response = components['schemas']['MessagesV2Response']
-type BurnFeeRow = components['schemas']['USDCBurnFeesResponseV2'][number]
 
 const assertIrisSource = (
 	source: string,
@@ -89,7 +93,7 @@ const domainRef = (
 })
 
 const messageMatchingNonce = (
-	result: MessagesV2Response,
+	result: CircleCctpMessagesV2Response,
 	nonce: string
 ) => {
 	const message = result.messages.find((candidate) => (
@@ -102,18 +106,29 @@ const messageMatchingNonce = (
 	return message
 }
 
+const messageHashFromBytes = (
+	messageBytes: string | undefined
+) => {
+	if (messageBytes == null || messageBytes === '' || messageBytes === '0x')
+		return undefined
+
+	return toHex(keccak256(toBytes(messageBytes)))
+}
+
 const cctpMessageSnapshot = (
 	messageId: CctpMessageId,
-	result: MessagesV2Response,
-	message: MessageV2,
+	result: CircleCctpMessagesV2Response,
+	message: CircleCctpMessageV2,
 	observedAtMs: number,
-	irisCctpVersion: number
+	irisCctpVersion: number,
+	requestId?: string
 ) => {
 	const decoded = message.decodedMessage
 	const body = decoded?.decodedMessageBody
 	const destinationDomain = optionalNumberFromWire(decoded?.destinationDomain)
 	const sourceDomainFromWire = optionalNumberFromWire(decoded?.sourceDomain)
 	const messageBytes = optionalZeroExHex(message.message)
+	const messageHash = messageHashFromBytes(messageBytes)
 	const attestation = optionalZeroExHex(message.attestation)
 	const hookData = optionalZeroExHex(body?.hookData)
 	const amount = optionalBigIntFromWire(body?.amount)
@@ -136,6 +151,9 @@ const cctpMessageSnapshot = (
 		nonce: messageId.nonce,
 		...(message.cctpVersion != null && {
 			cctpVersion: message.cctpVersion,
+		}),
+		...(messageHash != null && {
+			messageHash,
 		}),
 		...(messageBytes != null && {
 			messageBytes,
@@ -215,6 +233,9 @@ const cctpMessageSnapshot = (
 			...(forwardTxHash != null && {
 				forwardTxHash,
 			}),
+			...(requestId != null && {
+				requestId,
+			}),
 		},
 	}
 }
@@ -223,23 +244,24 @@ const loadMessageForSelector = async (
 	messageId: CctpMessageId
 ) => {
 	const { getMessages } = await import('$/sources/CircleCctp/Rest/queries.ts')
-	const result = await getMessages({
+	const loaded = await getMessages({
 		sourceDomain: messageId.sourceDomain,
 		subject: {
 			nonce: messageId.nonce,
 		},
 	})
-	if (result == null)
+	if (loaded == null)
 		throw new Error(`CircleCctpIris_Rest: message not found for ${messageId.sourceDomain}:${messageId.nonce}`)
 
 	return {
-		result,
-		message: messageMatchingNonce(result, messageId.nonce),
+		result: loaded.body,
+		requestId: loaded.requestId,
+		message: messageMatchingNonce(loaded.body, messageId.nonce),
 	}
 }
 
 const burnFeeRowsFromWire = (
-	rows: BurnFeeRow[]
+	rows: CircleCctpBurnFeeRow[]
 ) => (
 	rows.map((row) => {
 		const forwardFeeLow = optionalBigIntFromWire(row.forwardFee?.low)
@@ -278,6 +300,7 @@ export default {
 						const {
 							result,
 							message,
+							requestId,
 						} = await loadMessageForSelector(messageId)
 						const { irisCctpVersion } = await import('$/sources/CircleCctp/Catalog/constants.ts')
 						return cctpMessageSnapshot(
@@ -285,7 +308,8 @@ export default {
 							result,
 							message,
 							Date.now(),
-							irisCctpVersion
+							irisCctpVersion,
+							requestId
 						)
 					},
 				},
@@ -294,6 +318,7 @@ export default {
 			sourceDomain: (message) => message.sourceDomain,
 			nonce: (message) => message.nonce,
 			cctpVersion: (message) => message.cctpVersion,
+			messageHash: (message) => message.messageHash,
 			messageBytes: (message) => message.messageBytes,
 			sourceTransactionHash: (message) => message.sourceTransactionHash,
 			$sourceDomain: (message) => message.$sourceDomain,
@@ -331,6 +356,7 @@ export default {
 						const {
 							result,
 							message,
+							requestId,
 						} = await loadMessageForSelector($message)
 						const { irisCctpVersion } = await import('$/sources/CircleCctp/Catalog/constants.ts')
 						const snapshot = cctpMessageSnapshot(
@@ -338,7 +364,8 @@ export default {
 							result,
 							message,
 							timestampMs,
-							irisCctpVersion
+							irisCctpVersion,
+							requestId
 						)
 						return snapshot.attestationObservation
 					},
@@ -353,6 +380,7 @@ export default {
 			delayReason: (observation) => observation.delayReason,
 			forwardState: (observation) => observation.forwardState,
 			forwardTxHash: (observation) => observation.forwardTxHash,
+			requestId: (observation) => observation.requestId,
 		}),
 
 		defineResolver({
@@ -373,10 +401,11 @@ export default {
 							throw new Error('CircleCctpIris_Rest: invalid burn fee timestamp')
 
 						const { getBurnUsdcFees } = await import('$/sources/CircleCctp/Rest/queries.ts')
-						const feeRows = await getBurnUsdcFees({
+						const fees = await getBurnUsdcFees({
 							sourceDomain: $sourceDomain.domainId,
 							destinationDomain: $destinationDomain.domainId,
 							forward: true,
+							hyperCoreDeposit: false,
 						})
 
 						return {
@@ -389,7 +418,8 @@ export default {
 							timestampMs,
 							source,
 							forward: true,
-							feeRows: burnFeeRowsFromWire(feeRows),
+							hyperCoreDeposit: false,
+							feeRows: burnFeeRowsFromWire(fees.body),
 						}
 					},
 				},
@@ -400,6 +430,7 @@ export default {
 			timestampMs: (observation) => observation.timestampMs,
 			source: (observation) => observation.source,
 			forward: (observation) => observation.forward,
+			hyperCoreDeposit: (observation) => observation.hyperCoreDeposit,
 			feeRows: (observation) => observation.feeRows,
 		}),
 
@@ -418,22 +449,25 @@ export default {
 						const { getFastBurnUsdcAllowance } = await import('$/sources/CircleCctp/Rest/queries.ts')
 						const allowance = await getFastBurnUsdcAllowance()
 						const lastUpdatedMs = (
-							allowance.lastUpdated == null || allowance.lastUpdated === '' ?
+							allowance.body.lastUpdated == null || allowance.body.lastUpdated === '' ?
 								undefined
 							:
-								Date.parse(allowance.lastUpdated)
+								Date.parse(allowance.body.lastUpdated)
 						)
-						if (allowance.lastUpdated != null && allowance.lastUpdated !== '' && !Number.isFinite(lastUpdatedMs))
-							throw new Error(`CircleCctpIris_Rest: invalid lastUpdated ${allowance.lastUpdated}`)
+						if (allowance.body.lastUpdated != null && allowance.body.lastUpdated !== '' && !Number.isFinite(lastUpdatedMs))
+							throw new Error(`CircleCctpIris_Rest: invalid lastUpdated ${allowance.body.lastUpdated}`)
 
 						return {
 							timestampMs,
 							source,
-							...(allowance.allowance != null && {
-								allowanceUsdc: allowance.allowance,
+							...(allowance.body.allowance != null && {
+								allowanceUsdc: allowance.body.allowance,
 							}),
 							...(lastUpdatedMs != null && {
 								lastUpdatedMs,
+							}),
+							...(allowance.requestId != null && {
+								requestId: allowance.requestId,
 							}),
 						}
 					},
@@ -444,6 +478,7 @@ export default {
 			source: (observation) => observation.source,
 			allowanceUsdc: (observation) => observation.allowanceUsdc,
 			lastUpdatedMs: (observation) => observation.lastUpdatedMs,
+			requestId: (observation) => observation.requestId,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

@@ -1,3 +1,5 @@
+import { keccak256, toHex } from '@tevm/voltaire/Hash'
+import { toBytes } from '@tevm/voltaire/Hex'
 import {
 	afterEach,
 	describe,
@@ -8,7 +10,6 @@ import {
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import type { components } from '$/sources/CircleCctp/OpenApi/openapi.d.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getMessages = vi.hoisted(() => vi.fn())
@@ -31,8 +32,9 @@ const messageId = {
 	sourceDomain: 0,
 	nonce: '569',
 }
+const messageBytes = `0x${'ab'.repeat(240)}`
 const message = {
-	message: `0x${'ab'.repeat(240)}`,
+	message: messageBytes,
 	eventNonce: '9682',
 	attestation: `0x${'cd'.repeat(65)}`,
 	decodedMessage: {
@@ -60,12 +62,12 @@ const message = {
 	status: 'complete',
 	forwardState: 'PENDING',
 	forwardTxHash: forwardTransactionHash,
-} as const satisfies components['schemas']['MessageV2']
+} as const
 
 const messagesResponse = {
 	messages: [message],
 	sourceTxHash: transactionHash,
-} satisfies components['schemas']['MessagesV2Response']
+} as const
 
 describe('CircleCctpIris_Rest resolvers', () => {
 	afterEach(() => {
@@ -85,8 +87,11 @@ describe('CircleCctpIris_Rest resolvers', () => {
 		])
 	})
 
-	it('materializes schema-shaped CctpMessage fields from Iris V2 messages', async () => {
-		getMessages.mockResolvedValue(messagesResponse)
+	it('materializes schema-shaped CctpMessage fields including keccak messageHash', async () => {
+		getMessages.mockResolvedValue({
+			body: messagesResponse,
+			requestId: 'message-request',
+		})
 		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
 		const resolver = circleCctpRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.CctpMessage
@@ -106,7 +111,8 @@ describe('CircleCctpIris_Rest resolvers', () => {
 			sourceDomain: 0,
 			nonce: '569',
 			cctpVersion: 2,
-			messageBytes: message.message,
+			messageHash: toHex(keccak256(toBytes(messageBytes))),
+			messageBytes,
 			sourceTransactionHash: transactionHash,
 			destinationDomain: 5,
 			sender: address('11'),
@@ -140,24 +146,33 @@ describe('CircleCctpIris_Rest resolvers', () => {
 				source: Source.CircleCctpIris,
 			},
 		}])
+		expect(snapshot.attestationObservation.requestId).toBe('message-request')
 	})
 
 	it('resolves attestation observations and burn-fee / allowance timestamps', async () => {
-		getMessages.mockResolvedValue(messagesResponse)
-		getBurnUsdcFees.mockResolvedValue([
-			{
-				finalityThreshold: 1000,
-				minimumFee: 1,
-				forwardFee: {
-					low: 90,
-					medium: 110,
-					high: 160,
+		getMessages.mockResolvedValue({
+			body: messagesResponse,
+			requestId: 'attestation-request',
+		})
+		getBurnUsdcFees.mockResolvedValue({
+			body: [
+				{
+					finalityThreshold: 1000,
+					minimumFee: 1,
+					forwardFee: {
+						low: 90,
+						medium: 110,
+						high: 160,
+					},
 				},
-			},
-		])
+			],
+		})
 		getFastBurnUsdcAllowance.mockResolvedValue({
-			allowance: 123999.999999,
-			lastUpdated: '2025-01-23T10:00:00Z',
+			body: {
+				allowance: 123999.999999,
+				lastUpdated: '2025-01-23T10:00:00Z',
+			},
+			requestId: 'allowance-request',
 		})
 
 		const attestationResolver = circleCctpRest.resolvers.find((candidate) => (
@@ -186,6 +201,7 @@ describe('CircleCctpIris_Rest resolvers', () => {
 			attestation: message.attestation,
 			forwardState: 'PENDING',
 			forwardTxHash: forwardTransactionHash,
+			requestId: 'attestation-request',
 		})
 
 		const sourceDomain = {
@@ -206,6 +222,7 @@ describe('CircleCctpIris_Rest resolvers', () => {
 			sourceDomain: 0,
 			destinationDomain: 5,
 			forward: true,
+			hyperCoreDeposit: false,
 		})
 		expect(burnFee).toEqual({
 			$sourceDomain: {
@@ -217,6 +234,7 @@ describe('CircleCctpIris_Rest resolvers', () => {
 			timestampMs: 1_700_000_000_456,
 			source: Source.CircleCctpIris,
 			forward: true,
+			hyperCoreDeposit: false,
 			feeRows: [{
 				finalityThreshold: 1000,
 				minimumFeeBps: 1,
@@ -234,6 +252,7 @@ describe('CircleCctpIris_Rest resolvers', () => {
 			source: Source.CircleCctpIris,
 			allowanceUsdc: 123999.999999,
 			lastUpdatedMs: Date.parse('2025-01-23T10:00:00Z'),
+			requestId: 'allowance-request',
 		})
 	})
 

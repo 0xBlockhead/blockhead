@@ -6,13 +6,14 @@ import {
 	vi,
 } from 'vitest'
 
-import type { components } from '$/sources/CircleCctp/OpenApi/openapi.d.ts'
-import bindings from '$/sources/CircleCctp/bindings.ts'
 import {
+	getAttestation,
 	getBurnUsdcFees,
 	getFastBurnUsdcAllowance,
 	getMessages,
+	getPublicKeys,
 } from '$/sources/CircleCctp/Rest/queries.ts'
+import bindings from '$/sources/CircleCctp/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 
@@ -24,6 +25,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 const binding = bindings[Source.CircleCctpIris][0]
 const transactionHash = `0x${'11'.repeat(32)}`
 const forwardTransactionHash = `0x${'22'.repeat(32)}`
+const messageHash = `0x${'33'.repeat(32)}`
 const address = (value: string) => `0x${value.repeat(20)}`
 const message = {
 	message: `0x${'ab'.repeat(240)}`,
@@ -54,17 +56,34 @@ const message = {
 	status: 'complete',
 	forwardState: 'PENDING',
 	forwardTxHash: forwardTransactionHash,
-} as const satisfies components['schemas']['MessageV2']
+} as const
 
 const result = {
 	messages: [message],
 	sourceTxHash: transactionHash,
-} satisfies components['schemas']['MessagesV2Response']
+} as const
 
 const respond = (
-	responseResult: components['schemas']['MessagesV2Response'] = result
+	responseResult: unknown = result,
+	{
+		status = 200,
+		requestId,
+	}: {
+		status?: number
+		requestId?: string
+	} = {}
 ) => {
-	vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify(responseResult)))
+	vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(
+		responseResult == null ? null : JSON.stringify(responseResult),
+		{
+			status,
+			headers: {
+				...(requestId != null && {
+					'X-Request-Id': requestId,
+				}),
+			},
+		}
+	))
 }
 
 beforeEach(() => {
@@ -73,7 +92,9 @@ beforeEach(() => {
 
 describe('CircleCctpIris_Rest V2 messages', () => {
 	it('uses the canonical binding and preserves the official message response', async () => {
-		respond()
+		respond(result, {
+			requestId: '2adba88e-9d63-44bc-b975-9b6ae3440dde',
+		})
 
 		await expect(getMessages({
 			sourceDomain: 0,
@@ -81,7 +102,10 @@ describe('CircleCctpIris_Rest V2 messages', () => {
 			subject: {
 				transactionHash,
 			},
-		})).resolves.toEqual(result)
+		})).resolves.toEqual({
+			body: result,
+			requestId: '2adba88e-9d63-44bc-b975-9b6ae3440dde',
+		})
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
 			`https://iris-api.circle.com/v2/messages/0?transactionHash=${transactionHash}`
@@ -107,11 +131,13 @@ describe('CircleCctpIris_Rest V2 messages', () => {
 				nonce: '569',
 			},
 		})).resolves.toMatchObject({
-			messages: [{
-				attestation: null,
-				decodedMessage: null,
-				status: 'pending_confirmations',
-			}],
+			body: {
+				messages: [{
+					attestation: null,
+					decodedMessage: null,
+					status: 'pending_confirmations',
+				}],
+			},
 		})
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
@@ -120,9 +146,9 @@ describe('CircleCctpIris_Rest V2 messages', () => {
 	})
 
 	it('represents a 404 as no response and enforces the local result bound', async () => {
-		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(null, {
+		respond(null, {
 			status: 404,
-		}))
+		})
 		await expect(getMessages({
 			sourceDomain: 0,
 			subject: {
@@ -167,19 +193,34 @@ describe('CircleCctpIris_Rest V2 messages', () => {
 		})).rejects.toThrow('duplicate source-domain nonce')
 	})
 
+	it('fail-closes malformed Iris message envelopes', async () => {
+		respond({
+			messages: 'nope',
+			sourceTxHash: transactionHash,
+		})
+		await expect(getMessages({
+			sourceDomain: 0,
+			subject: {
+				transactionHash,
+			},
+		})).rejects.toThrow('invalid messages response envelope')
+	})
+})
+
+describe('CircleCctpIris_Rest burn fees, allowance, attestation, public keys', () => {
 	it('hard-fails non-OK burn fee and allowance HTTP responses', async () => {
-		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(null, {
+		respond(null, {
 			status: 500,
-		}))
+		})
 		await expect(getBurnUsdcFees({
 			sourceDomain: 0,
 			destinationDomain: 5,
 			forward: true,
 		})).rejects.toThrow('CircleCctpIris_Rest get burn USDC fees')
 
-		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(null, {
+		respond(null, {
 			status: 502,
-		}))
+		})
 		await expect(getFastBurnUsdcAllowance()).rejects.toThrow('CircleCctpIris_Rest get fast burn USDC allowance')
 	})
 
@@ -198,14 +239,16 @@ describe('CircleCctpIris_Rest V2 messages', () => {
 				finalityThreshold: 2000,
 				minimumFee: 0,
 			},
-		] as const satisfies components['schemas']['USDCBurnFeesResponseV2']
-		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify(feeRows)))
+		]
+		respond(feeRows)
 		await expect(getBurnUsdcFees({
 			sourceDomain: 0,
 			destinationDomain: 5,
 			forward: true,
 			hyperCoreDeposit: true,
-		})).resolves.toEqual(feeRows)
+		})).resolves.toEqual({
+			body: feeRows,
+		})
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
 			'https://iris-api.circle.com/v2/burn/USDC/fees/0/5?forward=true&hyperCoreDeposit=true'
@@ -214,9 +257,14 @@ describe('CircleCctpIris_Rest V2 messages', () => {
 		const allowance = {
 			allowance: 123999.999999,
 			lastUpdated: '2025-01-23T10:00:00Z',
-		} as const satisfies components['schemas']['USDCFastBurnAllowanceResponseV2']
-		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify(allowance)))
-		await expect(getFastBurnUsdcAllowance()).resolves.toEqual(allowance)
+		}
+		respond(allowance, {
+			requestId: 'allowance-request',
+		})
+		await expect(getFastBurnUsdcAllowance()).resolves.toEqual({
+			body: allowance,
+			requestId: 'allowance-request',
+		})
 		expect(sourceFetch).toHaveBeenLastCalledWith(
 			binding,
 			'https://iris-api.circle.com/v2/fastBurn/USDC/allowance'
@@ -229,6 +277,71 @@ describe('CircleCctpIris_Rest V2 messages', () => {
 			destinationDomain: 5,
 			hyperCoreDeposit: true,
 		})).rejects.toThrow('hyperCoreDeposit requires forward')
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('fail-closes malformed burn-fee and allowance envelopes', async () => {
+		respond([
+			{
+				finalityThreshold: 'nope',
+				minimumFee: 1,
+			},
+		])
+		await expect(getBurnUsdcFees({
+			sourceDomain: 0,
+			destinationDomain: 5,
+		})).rejects.toThrow('invalid burn USDC fees response envelope')
+
+		respond({
+			allowance: 'nope',
+		})
+		await expect(getFastBurnUsdcAllowance()).rejects.toThrow('invalid fast burn USDC allowance response envelope')
+	})
+
+	it('loads V1 attestation and V2 public keys through fail-closed envelopes', async () => {
+		respond({
+			attestation: `0x${'aa'.repeat(65)}`,
+			status: 'complete',
+		}, {
+			requestId: 'attestation-request',
+		})
+		await expect(getAttestation({
+			messageHash,
+		})).resolves.toEqual({
+			body: {
+				attestation: `0x${'aa'.repeat(65)}`,
+				status: 'complete',
+			},
+			requestId: 'attestation-request',
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			binding,
+			`https://iris-api.circle.com/v1/attestations/${messageHash}`
+		)
+
+		respond({
+			publicKeys: [{
+				publicKey: `0x${'04'}${'bb'.repeat(64)}`,
+				cctpVersion: 2,
+			}],
+		})
+		await expect(getPublicKeys()).resolves.toMatchObject({
+			body: {
+				publicKeys: [{
+					cctpVersion: 2,
+				}],
+			},
+		})
+		expect(sourceFetch).toHaveBeenLastCalledWith(
+			binding,
+			'https://iris-api.circle.com/v2/publicKeys'
+		)
+	})
+
+	it('rejects invalid attestation message hashes before fetch', async () => {
+		await expect(getAttestation({
+			messageHash: '0xabc',
+		})).rejects.toThrow('invalid message hash')
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })
