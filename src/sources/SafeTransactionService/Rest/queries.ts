@@ -312,11 +312,16 @@ export const getSafeMultisigTransaction = async ({
 	safeTxHash,
 }: {
 	chainId: number
-	safeAddress: string
+	safeAddress?: string
 	safeTxHash: string
 }) => {
 	const binding = requireSafeTransactionServiceBinding(chainId)
-	const checksummedSafeAddress = checksumAddress(safeAddress, 'Safe address')
+	const checksummedSafeAddress = (
+		safeAddress == null ?
+			undefined
+		:
+			checksumAddress(safeAddress, 'Safe address')
+	)
 	assertHash(safeTxHash, 'Safe transaction hash')
 	const transaction = assertEnvelope(
 		'Safe multisig transaction',
@@ -326,7 +331,10 @@ export const getSafeMultisigTransaction = async ({
 			path: `/api/v2/multisig-transactions/${encodeURIComponent(safeTxHash)}/`,
 		})
 	)
-	assertTransactionSubject(transaction, checksummedSafeAddress)
+	assertTransactionSubject(
+		transaction,
+		checksummedSafeAddress ?? transaction.safe
+	)
 	if (transaction.safeTxHash.toLowerCase() !== safeTxHash.toLowerCase())
 		throw new Error('SafeTransactionService_Rest: Safe transaction hash was substituted')
 	return transaction

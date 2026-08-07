@@ -1,3 +1,9 @@
+import {
+	EvmTransactionEnvelopeType,
+	EvmTransactionExecutionStatus,
+	EvmTransactionKind,
+} from '$/constants/Evm.ts'
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
@@ -7,12 +13,12 @@ import {
 	evmChainIdFromNetworkSelector,
 	evmNetworkSelectorFromChainId,
 } from '$/resolvers/evm.ts'
-import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import type { SafeMultisigTransaction } from '$/sources/SafeTransactionService/Rest/types.ts'
 
 const zeroAddress = `0x${'0'.repeat(40)}`
 
@@ -43,6 +49,84 @@ const accountRef = (
 		[EntityMetaKey.Selector]: {
 			address: normalized,
 		},
+	}
+}
+
+const evmTransactionKindFromSafeMultisig = (
+	transaction: SafeMultisigTransaction
+) => {
+	const value = BigInt(transaction.value)
+	const hasCalldata = transaction.data != null && transaction.data !== '0x'
+	return (
+		hasCalldata ?
+			value > 0n ?
+				EvmTransactionKind.NativeTransferAndCall
+			:
+				EvmTransactionKind.ContractCall
+		:
+			value > 0n ?
+				EvmTransactionKind.NativeTransfer
+			:
+				EvmTransactionKind.ContractCall
+	)
+}
+
+const evmTransactionSnapshotFromSafeMultisig = ({
+	chainId,
+	txHash,
+	transaction,
+}: {
+	chainId: number
+	txHash: string
+	transaction: SafeMultisigTransaction
+}) => {
+	const $network = evmNetworkSelectorFromChainId(chainId)
+	const safe = hexLowerOfByteSize(transaction.safe, 20)
+	const to = hexLowerOfByteSize(transaction.to, 20)
+	if (safe == null)
+		throw new Error('SafeTransactionService_Rest: Safe address not normalized')
+	if (to == null)
+		throw new Error('SafeTransactionService_Rest: destination address not normalized')
+
+	const executionStatus = (
+		!transaction.isExecuted ?
+			EvmTransactionExecutionStatus.Pending
+		: transaction.isSuccessful === true ?
+			EvmTransactionExecutionStatus.Success
+		: transaction.isSuccessful === false ?
+			EvmTransactionExecutionStatus.Failed
+		:
+			undefined
+	)
+	const blockNumber = (
+		transaction.blockNumber == null ?
+			undefined
+		:
+			BigInt(transaction.blockNumber)
+	)
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$network,
+			txHash,
+		},
+		envelopeType: EvmTransactionEnvelopeType.Unknown,
+		kind: evmTransactionKindFromSafeMultisig(transaction),
+		$from: accountRef(safe),
+		$to: accountRef(to),
+		value: BigInt(transaction.value),
+		...(transaction.data != null && transaction.data !== '0x' && {
+			input: transaction.data.toLowerCase(),
+		}),
+		...(executionStatus != null && { executionStatus }),
+		...(blockNumber != null && {
+			$block: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					blockNumber,
+				},
+			},
+		}),
 	}
 }
 
@@ -321,6 +405,47 @@ export default {
 			},
 		})({
 			$$queuedTransactions: (transactions) => transactions,
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmTransaction,
+			resolve: {
+				EvmNetworkTxHash: {
+					resolve: async ({
+						$network,
+						txHash: txHashSelector,
+					}) => {
+						const chainId = evmChainIdFromNetworkSelector($network)
+						const txHash = hexLowerOfByteSize(txHashSelector, 32)
+						if (txHash == null)
+							throw new Error('SafeTransactionService_Rest: transaction hash not normalized')
+
+						const {
+							getSafeMultisigTransaction,
+							requireSafeTransactionServiceBinding,
+						} = await import('$/sources/SafeTransactionService/Rest/queries.ts')
+						requireSafeTransactionServiceBinding(chainId)
+						const transaction = await getSafeMultisigTransaction({
+							chainId,
+							safeTxHash: txHash,
+						})
+						return evmTransactionSnapshotFromSafeMultisig({
+							chainId,
+							txHash,
+							transaction,
+						})
+					},
+				},
+			},
+		})({
+			envelopeType: (transaction) => transaction.envelopeType,
+			kind: (transaction) => transaction.kind,
+			$from: (transaction) => transaction.$from,
+			$to: (transaction) => transaction.$to,
+			value: (transaction) => transaction.value,
+			input: (transaction) => transaction.input,
+			executionStatus: (transaction) => transaction.executionStatus,
+			$block: (transaction) => transaction.$block,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule<Source.SafeTransactionService_Rest>

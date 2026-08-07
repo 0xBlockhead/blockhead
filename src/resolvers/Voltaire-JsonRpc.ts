@@ -35,6 +35,7 @@ import type {
 	RpcTransactionWire,
 } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 import type { VoltaireCallTraceRpc } from '$/sources/Voltaire/JsonRpc/CallTrace.ts'
+import { voltaireCallTraceError } from '$/sources/Voltaire/JsonRpc/CallTrace.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -119,7 +120,9 @@ const evmTraceEntitiesFromVoltaireCallTrace = ({
 			...(call.gasUsed != null && { gasUsed: BigInt(call.gasUsed) }),
 			...(call.input != null && { input: with0xHex(call.input) }),
 			...(call.output != null && { output: with0xHex(call.output) }),
-			...(call.error != null && { error: call.error }),
+			...((error) => (
+				error != null && { error }
+			))(voltaireCallTraceError(call)),
 			$$children: (call.calls ?? []).map((_child, childIndex) => ({
 				[EntityMetaKey.Selector]: {
 					$transaction,

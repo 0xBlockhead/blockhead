@@ -10,10 +10,20 @@ export type VoltaireCallTraceRpc = {
 	input?: string
 	output?: string
 	error?: string
-	/** callTracer leftover — accepted fail-closed at transport; unenrolled beside `error`. */
+	/**
+	 * callTracer leftover — accepted fail-closed at transport.
+	 * Projected onto enrolled `EvmTrace.error` when more specific than `error`.
+	 */
 	revertReason?: string
 	calls?: VoltaireCallTraceRpc[]
 }
+
+/** Prefer callTracer `revertReason` when present; fall back to `error`. */
+export const voltaireCallTraceError = (
+	call: Pick<VoltaireCallTraceRpc, 'error' | 'revertReason'>
+) => (
+	call.revertReason ?? call.error
+)
 
 export const parseVoltaireCallTraceRpc = (
 	raw: JsonValue

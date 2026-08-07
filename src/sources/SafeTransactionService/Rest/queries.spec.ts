@@ -573,6 +573,24 @@ describe('Safe Transaction Service public multisig queries', () => {
 		})
 	})
 
+	it('looks up a multisig transaction by SafeTxHash without a prior Safe address', async () => {
+		sourceGetJson.mockResolvedValue({
+			...transaction,
+			isExecuted: false,
+			isSuccessful: null,
+			transactionHash: null,
+		})
+
+		await expect(getSafeMultisigTransaction({
+			chainId,
+			safeTxHash,
+		})).resolves.toMatchObject({
+			safe: safeAddress,
+			safeTxHash,
+			isExecuted: false,
+		})
+	})
+
 	it('binds confirmations to the exact transaction and current Safe owners', async () => {
 		sourceGetJson
 			.mockResolvedValueOnce(safeStatus)

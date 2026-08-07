@@ -62,6 +62,7 @@ describe('Safe Transaction Service resolver module', () => {
 			EntityType.EvmNetworkAccount,
 			EntityType.EvmNetworkAccount,
 			EntityType.EvmNetworkAccount,
+			EntityType.EvmTransaction,
 		])
 	})
 
@@ -379,5 +380,131 @@ describe('Safe Transaction Service resolver module', () => {
 			},
 		}, context)
 		expect(countResolver.projections.$$queuedTransactions.resolveCount(countSnapshot)).toBe(1)
+	})
+
+	it('projects queued SafeTxHash onto singular EvmTransaction enrolled fields', async () => {
+		sourceGetJson.mockResolvedValue({
+			safe: safeAddress,
+			to: recipientAddress,
+			value: '1000',
+			data: '0xa9059cbb',
+			operation: 0,
+			safeTxGas: '0',
+			baseGas: '0',
+			gasPrice: '0',
+			gasToken: zeroAddress,
+			refundReceiver: zeroAddress,
+			nonce: '2',
+			executionDate: null,
+			submissionDate: '2026-07-22T00:00:00Z',
+			modified: '2026-07-22T00:00:00Z',
+			blockNumber: null,
+			transactionHash: null,
+			safeTxHash,
+			proposer: ownerAddress,
+			executor: null,
+			isExecuted: false,
+			isSuccessful: null,
+			confirmationsRequired: 1,
+			confirmations: [],
+			trusted: true,
+			signatures: null,
+			origin: 'https://app.safe.global',
+			ethGasPrice: null,
+			proposedByDelegate: null,
+		})
+
+		const transactionResolver = safeRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.EvmTransaction
+			&& 'value' in resolver.projections
+		))
+		if (transactionResolver == null)
+			throw new Error('missing EvmTransaction SafeTxHash resolver')
+
+		const {
+			EvmTransactionEnvelopeType,
+			EvmTransactionExecutionStatus,
+			EvmTransactionKind,
+		} = await import('$/constants/Evm.ts')
+		const snapshot = await transactionResolver.resolve.EvmNetworkTxHash.resolve({
+			$network: network,
+			txHash: safeTxHash,
+		}, context)
+		expect(transactionResolver.projections.envelopeType(snapshot)).toBe(EvmTransactionEnvelopeType.Unknown)
+		expect(transactionResolver.projections.kind(snapshot)).toBe(EvmTransactionKind.NativeTransferAndCall)
+		expect(transactionResolver.projections.$from(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				address: safeAddress,
+			},
+		})
+		expect(transactionResolver.projections.$to(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				address: recipientAddress,
+			},
+		})
+		expect(transactionResolver.projections.value(snapshot)).toBe(1000n)
+		expect(transactionResolver.projections.input(snapshot)).toBe('0xa9059cbb')
+		expect(transactionResolver.projections.executionStatus(snapshot)).toBe(EvmTransactionExecutionStatus.Pending)
+		expect(transactionResolver.projections.$block(snapshot)).toBeUndefined()
+		expect(snapshot).not.toHaveProperty('origin')
+		expect(snapshot).not.toHaveProperty('ethGasPrice')
+		expect(snapshot).not.toHaveProperty('proposedByDelegate')
+		expect(snapshot).not.toHaveProperty('confirmations')
+		expect(sourceGetJson.mock.calls[0]?.[1]).toContain(`/api/v2/multisig-transactions/${safeTxHash}/`)
+	})
+
+	it('projects executed SafeTxHash with block + success status', async () => {
+		sourceGetJson.mockResolvedValue({
+			safe: safeAddress,
+			to: recipientAddress,
+			value: '0',
+			data: null,
+			operation: 0,
+			safeTxGas: '0',
+			baseGas: '0',
+			gasPrice: '0',
+			gasToken: zeroAddress,
+			refundReceiver: zeroAddress,
+			nonce: '3',
+			executionDate: '2026-07-22T01:00:00Z',
+			submissionDate: '2026-07-22T00:00:00Z',
+			modified: '2026-07-22T01:00:00Z',
+			blockNumber: 12,
+			transactionHash: executionHash,
+			safeTxHash,
+			proposer: ownerAddress,
+			executor: ownerAddress,
+			isExecuted: true,
+			isSuccessful: true,
+			confirmationsRequired: 1,
+			confirmations: [],
+			trusted: true,
+			signatures: null,
+		})
+
+		const transactionResolver = safeRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.EvmTransaction
+			&& 'executionStatus' in resolver.projections
+		))
+		if (transactionResolver == null)
+			throw new Error('missing EvmTransaction SafeTxHash resolver')
+
+		const {
+			EvmTransactionExecutionStatus,
+			EvmTransactionKind,
+		} = await import('$/constants/Evm.ts')
+		const snapshot = await transactionResolver.resolve.EvmNetworkTxHash.resolve({
+			$network: network,
+			txHash: safeTxHash,
+		}, context)
+		expect(transactionResolver.projections.kind(snapshot)).toBe(EvmTransactionKind.ContractCall)
+		expect(transactionResolver.projections.executionStatus(snapshot)).toBe(EvmTransactionExecutionStatus.Success)
+		expect(transactionResolver.projections.$block(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				blockNumber: 12n,
+			},
+		})
+		expect(transactionResolver.projections.input(snapshot)).toBeUndefined()
 	})
 })

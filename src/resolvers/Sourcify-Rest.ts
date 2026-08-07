@@ -202,9 +202,14 @@ export default {
 								&& contractLookup.compilation.name !== ''
 								&& { name: contractLookup.compilation.name }),
 							...(fullyQualifiedName != null && fullyQualifiedName !== '' && { fullyQualifiedName }),
-							...(contractLookup.compilation?.compilerSettings != null && {
-								compilerSettingsJson: JSON.stringify(contractLookup.compilation.compilerSettings),
-							}),
+							...((compilerSettings) => (
+								compilerSettings != null && {
+									compilerSettingsJson: JSON.stringify(compilerSettings),
+								}
+							))(
+								contractLookup.compilation?.compilerSettings
+								?? contractLookup.metadata?.settings
+							),
 							...((storageLayoutJson) => (
 								storageLayoutJson != null ?
 									{ storageLayoutJson }

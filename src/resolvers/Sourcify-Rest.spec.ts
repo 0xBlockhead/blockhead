@@ -294,6 +294,17 @@ describe('Sourcify REST resolvers', () => {
 	it('keeps deployment clock and proxyType leftovers unprojected', async () => {
 		getContractLookup.mockResolvedValue({
 			...verifiedLookup,
+			compilation: {
+				language: 'Solidity',
+				compiler: 'solc',
+				compilerVersion: '0.6.11+commit.5ef660b1',
+				name: 'DepositContract',
+				fullyQualifiedName: 'deposit_contract.sol:DepositContract',
+				storageLayout: {
+					storage: [],
+					types: {},
+				},
+			},
 			deployment: {
 				...verifiedLookup.deployment,
 				blockNumber: '11052984',
@@ -350,10 +361,51 @@ describe('Sourcify REST resolvers', () => {
 		).resolve.EvmContract.resolve({
 			$contract: contract,
 		})
+		expect(compilation.compilerSettingsJson).toBe(JSON.stringify({
+			optimizer: {
+				enabled: true,
+			},
+		}))
 		expect(compilation).not.toHaveProperty('output')
 		expect(compilation).not.toHaveProperty('settings')
 		expect(compilation).not.toHaveProperty('version')
 		expect(compilation).not.toHaveProperty('proxyType')
+	})
+
+	it('prefers compilation.compilerSettings over metadata.settings for compilerSettingsJson', async () => {
+		getContractLookup.mockResolvedValue({
+			...verifiedLookup,
+			compilation: {
+				...verifiedLookup.compilation,
+				compilerSettings: {
+					optimizer: {
+						enabled: false,
+						runs: 200,
+					},
+				},
+			},
+			metadata: {
+				...verifiedLookup.metadata,
+				settings: {
+					optimizer: {
+						enabled: true,
+					},
+				},
+			},
+		})
+
+		const compilation = await findResolver(
+			EntityType.EvmContractCompilation,
+			'EvmContract'
+		).resolve.EvmContract.resolve({
+			$contract: contract,
+		})
+		expect(compilation.compilerSettingsJson).toBe(JSON.stringify({
+			optimizer: {
+				enabled: false,
+				runs: 200,
+			},
+		}))
 	})
 
 	it('throws for missing verification snapshots and omits optional contract facets', async () => {

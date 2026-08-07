@@ -77,4 +77,19 @@ describe('Voltaire CallTrace wire parse', () => {
 			],
 		})
 	})
+
+	it('projects revertReason onto enrolled EvmTrace.error ahead of error', async () => {
+		const { voltaireCallTraceError } = await import('$/sources/Voltaire/JsonRpc/CallTrace.ts')
+		expect(voltaireCallTraceError({
+			error: 'execution reverted',
+			revertReason: 'Insufficient balance',
+		})).toBe('Insufficient balance')
+		expect(voltaireCallTraceError({
+			error: 'execution reverted',
+		})).toBe('execution reverted')
+		expect(voltaireCallTraceError({
+			revertReason: 'custom',
+		})).toBe('custom')
+		expect(voltaireCallTraceError({})).toBeUndefined()
+	})
 })
