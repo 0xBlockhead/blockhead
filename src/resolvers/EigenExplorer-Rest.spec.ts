@@ -50,6 +50,7 @@ const [
 	delegationResolver,
 	operatorResolver,
 	operatorRewardsResolver,
+	rewardTimestampResolver,
 	avsResolver,
 	avsTimestampsResolver,
 	avsOperatorsResolver,
@@ -333,6 +334,60 @@ describe('EigenExplorer operator resolvers', () => {
 		}])
 		expect(getOperator).toHaveBeenCalledWith(operatorAddress)
 		expect(getOperatorRewardInfo).toHaveBeenCalledWith(operatorAddress)
+	})
+
+	it('re-resolves a singular reward observation from operator reward info', async () => {
+		const reward = await rewardTimestampResolver.resolve.EarnerRewardContextKeyTimestampMsSource.resolve({
+			$earner: {
+				$network: network,
+				$actor: {
+					address: operatorAddress,
+				},
+			},
+			rewardContextKey: `${strategyAddress}:${tokenAddress}`,
+			timestampMs,
+			source: Source.EigenExplorer_Rest,
+		}, context)
+
+		expect(rewardTimestampResolver.projections.$strategy(reward)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				strategyAddress,
+			},
+		})
+		expect(rewardTimestampResolver.projections.$operator(reward)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				operatorAddress,
+			},
+		})
+		expect(rewardTimestampResolver.projections.rewardToken(reward)).toBe(tokenAddress)
+	})
+
+	it('fail-closes singular reward observations on timestamp or context mismatch', async () => {
+		await expect(rewardTimestampResolver.resolve.EarnerRewardContextKeyTimestampMsSource.resolve({
+			$earner: {
+				$network: network,
+				$actor: {
+					address: operatorAddress,
+				},
+			},
+			rewardContextKey: `${strategyAddress}:${tokenAddress}`,
+			timestampMs: timestampMs + 1,
+			source: Source.EigenExplorer_Rest,
+		}, context)).rejects.toThrow('reward timestamp mismatch')
+
+		await expect(rewardTimestampResolver.resolve.EarnerRewardContextKeyTimestampMsSource.resolve({
+			$earner: {
+				$network: network,
+				$actor: {
+					address: operatorAddress,
+				},
+			},
+			rewardContextKey: `${strategyAddress}:0x9999999999999999999999999999999999999999`,
+			timestampMs,
+			source: Source.EigenExplorer_Rest,
+		}, context)).rejects.toThrow('reward context mismatch')
 	})
 })
 
@@ -659,6 +714,55 @@ describe('EigenExplorer allocation and slash resolvers', () => {
 		expect(slashEventResolver.projections.slashedShares(slashEvent)).toBe(900719925474099312345n)
 		expect(slashEventResolver.projections.reason(slashEvent)).toBe('temp')
 		expect(slashEventResolver.projections.blockNumber(slashEvent)).toBe(3325343n)
+	})
+
+	it('pages singular slash lookup beyond the first operator slash page', async () => {
+		const slashId = `0:3325343:${strategyAddress}`
+		listOperatorSlashes
+			.mockResolvedValueOnce({
+				data: [{
+					...slash,
+					createdAtBlock: 1,
+					strategies: ['0x5555555555555555555555555555555555555555'],
+					wadSlashed: ['1'],
+				}],
+				meta: {
+					total: 2,
+					skip: 0,
+					take: 100,
+				},
+			})
+			.mockResolvedValueOnce({
+				data: [slash],
+				meta: {
+					total: 2,
+					skip: 1,
+					take: 100,
+				},
+			})
+
+		const slashEvent = await slashEventResolver.resolve.OperatorAvsSourceSlashId.resolve({
+			$operator: {
+				$network: network,
+				operatorAddress,
+			},
+			$avs: {
+				$network: network,
+				avsAddress,
+			},
+			source: Source.EigenExplorer_Rest,
+			slashId,
+		}, context)
+
+		expect(slashEventResolver.projections.slashId(slashEvent)).toBe(slashId)
+		expect(listOperatorSlashes).toHaveBeenNthCalledWith(1, operatorAddress, {
+			skip: 0,
+			take: 100,
+		})
+		expect(listOperatorSlashes).toHaveBeenNthCalledWith(2, operatorAddress, {
+			skip: 1,
+			take: 100,
+		})
 	})
 })
 

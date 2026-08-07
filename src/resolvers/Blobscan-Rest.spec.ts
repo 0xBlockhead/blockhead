@@ -341,8 +341,43 @@ describe('Blobscan EVM blob resolvers', () => {
 			},
 		})
 		expect(transactionInclusionResolver.projections.indexInBlock(transaction, context)).toBe(71)
+		expect(transactionInclusionResolver.projections.envelopeType(transaction, context)).toBe('Blob')
+		expect(transactionInclusionResolver.projections.kind(transaction, context)).toBe('ContractCall')
 		expect(transactionInclusionResolver.projections.Blob.blobGasUsed(transaction, context)).toBe(393216n)
 		expect(transactionInclusionResolver.projections.Blob.maxFeePerBlobGas(transaction, context)).toBe(73140170n)
+	})
+
+	it('fail-closes Blobscan transactions that omit from or blobs', async () => {
+		const transactionInclusionResolver = blobscanRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.EvmTransaction
+			&& 'envelopeType' in resolver.projections
+		))
+		if (transactionInclusionResolver == null)
+			throw new Error('Blobscan-Rest missing EvmTransaction inclusion resolver')
+
+		getTransaction.mockResolvedValueOnce({
+			hash: txHash,
+			blockNumber: 12,
+			to: '0x1c479675ad559dc151f6ec7ed3fbf8cee79582b6',
+			blobs: [{
+				versionedHash,
+			}],
+		})
+		await expect(transactionInclusionResolver.resolve.EvmNetworkTxHash.resolve({
+			$network: network,
+			txHash,
+		}, context)).rejects.toThrow('missing from address')
+
+		getTransaction.mockResolvedValueOnce({
+			hash: txHash,
+			blockNumber: 12,
+			from: '0xc1b634853cb333d3ad8663715b08f41a3aec47cc',
+			blobs: [],
+		})
+		await expect(transactionInclusionResolver.resolve.EvmNetworkTxHash.resolve({
+			$network: network,
+			txHash,
+		}, context)).rejects.toThrow('missing blobs')
 	})
 
 	it('lists Network.Evm.$$blocks from Blobscan recent blocks', async () => {

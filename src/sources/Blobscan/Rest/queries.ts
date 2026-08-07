@@ -124,6 +124,8 @@ const assertTransaction = (
 		assertAddressHex(transaction.to, 'transaction to')
 	if (transaction.index != null)
 		assertSafeNonnegativeInteger(transaction.index, 'transaction index')
+	if (transaction.blobs.length === 0)
+		throw new Error('Blobscan_Rest: transaction missing blobs')
 	for (const blob of transaction.blobs)
 		assertBlobVersionedHash(blob.versionedHash, 'transaction blob versioned hash')
 }

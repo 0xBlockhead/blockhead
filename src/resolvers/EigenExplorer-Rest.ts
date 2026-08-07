@@ -474,6 +474,106 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.EigenLayerReward_Timestamp,
+			resolve: {
+				EarnerRewardContextKeyTimestampMsSource: {
+					appliesTo: [
+						{
+							$earner: {
+								$network: {
+									caip2: networkBySlug.ethereum.caip2,
+								},
+							},
+							source: Source.EigenExplorer_Rest,
+						},
+						{
+							$earner: {
+								$network: {
+									slug: networkBySlug.ethereum.slug,
+								},
+							},
+							source: Source.EigenExplorer_Rest,
+						},
+					],
+					resolve: async ({
+						$earner,
+						rewardContextKey,
+						timestampMs,
+						source,
+					}) => {
+						assertEthereumMainnet($earner.$network)
+						if (source !== Source.EigenExplorer_Rest)
+							throw new Error('EigenExplorer_Rest: observation source mismatch')
+
+						const [
+							strategyAddressWire,
+							rewardTokenWire,
+						] = rewardContextKey.split(':')
+						const strategyAddress = hexLowerOfByteSize(strategyAddressWire ?? '', 20)
+						const rewardToken = hexLowerOfByteSize(rewardTokenWire ?? '', 20)
+						if (
+							strategyAddress == null
+							|| rewardToken == null
+							|| rewardContextKey !== `${strategyAddress}:${rewardToken}`
+						)
+							throw new Error('EigenExplorer_Rest: invalid reward context key')
+
+						const {
+							getOperator,
+							getOperatorRewardInfo,
+						} = await import('$/sources/EigenExplorer/Rest/queries.ts')
+						const [
+							operator,
+							rewardInfo,
+						] = await Promise.all([
+							getOperator($earner.$actor.address),
+							getOperatorRewardInfo($earner.$actor.address),
+						])
+						if (Date.parse(operator.updatedAt) !== timestampMs)
+							throw new Error('EigenExplorer_Rest: reward timestamp mismatch')
+
+						const earnerAddress = hexLowerOfByteSize(rewardInfo.address, 20)
+						if (
+							earnerAddress == null
+							|| earnerAddress !== $earner.$actor.address.toLowerCase()
+						)
+							throw new Error('EigenExplorer_Rest: foreign reward earner')
+
+						if (
+							!rewardInfo.rewardStrategies.some((value) => (
+								value.toLowerCase() === strategyAddress
+							))
+							|| !rewardInfo.rewardTokens.some((value) => (
+								value.toLowerCase() === rewardToken
+							))
+						)
+							throw new Error('EigenExplorer_Rest: reward context mismatch')
+
+						return {
+							$strategy: {
+								[EntityMetaKey.Selector]: {
+									$network: ethereumNetwork,
+									strategyAddress,
+								},
+							},
+							$operator: {
+								[EntityMetaKey.Selector]: {
+									$network: ethereumNetwork,
+									operatorAddress: earnerAddress,
+								},
+							},
+							rewardToken,
+						}
+					},
+				},
+			},
+		})({
+			$strategy: (reward) => reward.$strategy,
+			$operator: (reward) => reward.$operator,
+			rewardToken: (reward) => reward.rewardToken,
+		}),
+
+		defineResolver({
 			entityType: EntityType.EigenLayerAvs,
 			resolve: {
 				NetworkAvsAddress: {
@@ -997,23 +1097,32 @@ export default {
 							throw new Error('EigenExplorer_Rest: slash source mismatch')
 
 						const { listOperatorSlashes } = await import('$/sources/EigenExplorer/Rest/queries.ts')
-						const page = await listOperatorSlashes($operator.operatorAddress, {
-							take: 100,
-						})
 						const avsAddress = hexLowerOfByteSize($avs.avsAddress, 20)
 						if (avsAddress == null)
 							throw new Error('EigenExplorer_Rest: AVS address not normalized')
 
-						const observation = page.data
-							.flatMap((slash) => slashObservations(slash))
-							.find((candidate) => (
-								candidate[EntityMetaKey.Selector].slashId === slashId
-								&& candidate[EntityMetaKey.Selector].$avs.avsAddress === avsAddress
-							))
-						if (observation == null)
-							throw new Error('EigenExplorer_Rest: slash observation mismatch')
+						const take = 100
+						let skip = 0
+						for (;;) {
+							const page = await listOperatorSlashes($operator.operatorAddress, {
+								skip,
+								take,
+							})
+							const observation = page.data
+								.flatMap((slash) => slashObservations(slash))
+								.find((candidate) => (
+									candidate[EntityMetaKey.Selector].slashId === slashId
+									&& candidate[EntityMetaKey.Selector].$avs.avsAddress === avsAddress
+								))
+							if (observation != null)
+								return observation[EntityMetaKey.Fields]
 
-						return observation[EntityMetaKey.Fields]
+							skip += page.data.length
+							if (page.data.length === 0 || skip >= page.meta.total)
+								break
+						}
+
+						throw new Error('EigenExplorer_Rest: slash observation mismatch')
 					},
 				},
 			},

@@ -176,6 +176,20 @@ describe('Blobscan REST queries', () => {
 		})
 	})
 
+	it('fail-closes transactions with an empty blob sidecar', async () => {
+		vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(jsonResponse({
+				hash: txHash,
+				blockNumber: 12,
+				from: '0xc1b634853cb333d3ad8663715b08f41a3aec47cc',
+				blobs: [],
+			}))
+
+		await expect(getTransaction('1', {
+			txHash,
+		})).rejects.toThrow('transaction missing blobs')
+	})
+
 	it('fail-closes malformed blob and block list envelopes', async () => {
 		vi.spyOn(globalThis, 'fetch')
 			.mockResolvedValueOnce(jsonResponse({}))

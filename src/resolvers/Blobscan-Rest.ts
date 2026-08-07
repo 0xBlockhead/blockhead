@@ -1,4 +1,8 @@
 import {
+	EvmTransactionEnvelopeType,
+	EvmTransactionKind,
+} from '$/constants/Evm.ts'
+import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
@@ -286,6 +290,8 @@ export default {
 						)
 						if (transaction == null)
 							throw new Error('Blobscan_Rest: transaction not found')
+						if (transaction.blobs.length === 0)
+							throw new Error('Blobscan_Rest: transaction missing blobs')
 
 						const from = (
 							transaction.from == null ?
@@ -293,6 +299,9 @@ export default {
 							:
 								hexLowerOfByteSize(transaction.from, 20)
 						)
+						if (from == null)
+							throw new Error('Blobscan_Rest: transaction missing from address')
+
 						const to = (
 							transaction.to == null ?
 								undefined
@@ -313,19 +322,24 @@ export default {
 						)
 
 						return {
+							envelopeType: EvmTransactionEnvelopeType.Blob,
+							kind: (
+								to == null ?
+									EvmTransactionKind.ContractCreation
+								:
+									EvmTransactionKind.ContractCall
+							),
 							$block: {
 								[EntityMetaKey.Selector]: {
 									$network,
 									blockNumber: BigInt(transaction.blockNumber),
 								},
 							},
-							...(from != null && {
-								$from: {
-									[EntityMetaKey.Selector]: {
-										address: from,
-									},
+							$from: {
+								[EntityMetaKey.Selector]: {
+									address: from,
 								},
-							}),
+							},
 							...(to != null && {
 								$to: {
 									[EntityMetaKey.Selector]: {
@@ -347,6 +361,8 @@ export default {
 				},
 			},
 		})({
+			envelopeType: (transaction) => transaction.envelopeType,
+			kind: (transaction) => transaction.kind,
 			$block: (transaction) => transaction.$block,
 			$from: (transaction) => transaction.$from,
 			$to: (transaction) => transaction.$to,
