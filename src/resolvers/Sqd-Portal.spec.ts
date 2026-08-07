@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
@@ -12,7 +13,11 @@ import {
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
-import { getEvmBlock } from '$/sources/Sqd/Portal/queries.ts'
+import {
+	getEvmBlock,
+	getFinalizedHead,
+	getHead,
+} from '$/sources/Sqd/Portal/queries.ts'
 import { SqdPortalResolution } from '$/sources/Sqd/Portal/types.ts'
 import sqdPortal from '$/resolvers/Sqd-Portal.ts'
 
@@ -53,6 +58,14 @@ const evmBlockReorg = readFileSync(
 	new URL('../sources/Sqd/Portal/fixtures/evm-block-reorg.json', import.meta.url),
 	'utf8'
 )
+const finalizedHead = JSON.parse(readFileSync(
+	new URL('../sources/Sqd/Portal/fixtures/finalized-head.json', import.meta.url),
+	'utf8'
+))
+const head = JSON.parse(readFileSync(
+	new URL('../sources/Sqd/Portal/fixtures/head.json', import.meta.url),
+	'utf8'
+))
 
 const network = {
 	caip2: {
@@ -63,14 +76,27 @@ const network = {
 const context = {
 	filters: [],
 	sorts: [],
-	pagination: {},
+	pagination: {
+		limit: 3,
+	},
 	selectorKeys: [],
 	parentSelectorKeys: [],
 	sources: [],
 	publicEnv: {},
 }
 
+const resolverFor = (entityType: string) => {
+	const resolver = sqdPortal.resolvers.find((candidate) => candidate.entityType === entityType)
+	if (resolver == null)
+		throw new Error(`missing ${entityType} resolver`)
+	return resolver
+}
+
 describe('SQD Portal query boundary', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
 	it('posts an inclusive explicit EVM block request and consumes NDJSON', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(evmBlockNdjson, {
 			status: 200,
@@ -87,6 +113,7 @@ describe('SQD Portal query boundary', () => {
 			},
 			finalizedHead: {
 				number: 17_999_990,
+				hash: '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
 			},
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
@@ -127,6 +154,42 @@ describe('SQD Portal query boundary', () => {
 				},
 			},
 		})
+	})
+
+	it('reads arktype-fail-closed /finalized-head and /head', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json(finalizedHead))
+		await expect(getFinalizedHead()).resolves.toEqual(finalizedHead)
+		expect(sourceFetch.mock.calls[0][1]).toBe('https://portal.sqd.dev/datasets/ethereum-mainnet/finalized-head')
+
+		sourceFetch.mockResolvedValueOnce(Response.json(head))
+		await expect(getHead()).resolves.toEqual(head)
+		expect(sourceFetch.mock.calls[1][1]).toBe('https://portal.sqd.dev/datasets/ethereum-mainnet/head')
+
+		sourceFetch.mockResolvedValueOnce(Response.json(null))
+		await expect(getFinalizedHead()).rejects.toThrow('empty dataset')
+
+		sourceFetch.mockResolvedValueOnce(Response.json({
+			number: 1,
+			hash: 'not-a-hash',
+		}))
+		await expect(getHead()).rejects.toThrow()
+
+		sourceFetch.mockResolvedValueOnce(new Response('upstream unavailable', {
+			status: 503,
+			statusText: 'Service Unavailable',
+		}))
+		await expect(getFinalizedHead()).rejects.toThrow(/Fetch failed \(503/)
+	})
+
+	it('fail-closes malformed NDJSON block identity wires', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(
+			evmBlockNdjson.replace(
+				'"hash":"0x1111111111111111111111111111111111111111111111111111111111111111"',
+				'"hash":"0x1111"'
+			),
+			{ status: 200 }
+		))
+		await expect(getEvmBlock(18_000_000n)).rejects.toThrow()
 	})
 
 	it('distinguishes complete empty, partial, and reorg responses', async () => {
@@ -233,6 +296,67 @@ describe('SQD Portal resolver', () => {
 				$network: slugNetwork,
 				blockNumber: 17_999_999n,
 			},
+		})
+	})
+
+	it('projects Network.Evm tip $$blocks / resolveCount / $$timestamps from /finalized-head', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json(finalizedHead))
+		const blocks = await resolverFor(EntityType.Network).resolve.Caip2.resolve(network, context)
+		expect(blocks).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 17_999_990n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 17_999_989n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 17_999_988n,
+				},
+			},
+		])
+
+		sourceFetch.mockResolvedValueOnce(Response.json(finalizedHead))
+		const countResolver = sqdPortal.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& resolver.projections.Evm?.$$blocks != null
+			&& typeof resolver.projections.Evm.$$blocks === 'object'
+			&& 'resolveCount' in resolver.projections.Evm.$$blocks
+		))
+		await expect(countResolver!.resolve.Caip2.resolve(network, context)).resolves.toBe(17_999_991)
+
+		sourceFetch.mockResolvedValueOnce(Response.json(finalizedHead))
+		const timestamps = await sqdPortal.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& resolver.projections.Evm?.$$timestamps != null
+		))!.resolve.Caip2.resolve(network, context)
+		expect(timestamps).toHaveLength(1)
+		expect(timestamps[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				source: Source.SqdPortal_RawHttp,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: 17_999_990n,
+			},
+		})
+
+		sourceFetch.mockResolvedValueOnce(Response.json(finalizedHead))
+		await expect(sqdPortal.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.EvmNetwork_Timestamp
+		))!.resolve.NetworkTimestampMsSource.resolve({
+			$network: network,
+			timestampMs: 1_700_000_000_000,
+			source: Source.SqdPortal_RawHttp,
+		}, context)).resolves.toMatchObject({
+			blockHeight: 17_999_990n,
 		})
 	})
 

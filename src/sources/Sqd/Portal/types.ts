@@ -1,21 +1,37 @@
 import { type } from 'arktype'
 
 // https://docs.sqd.dev/en/api/evm/introduction
+// https://docs.sqd.dev/en/api/evm/head
+// https://docs.sqd.dev/en/api/evm/finalized-head
+
+const zeroExHash32 = type('/^0x[0-9a-fA-F]{64}$/')
+const zeroExAddress20 = type('/^0x[0-9a-fA-F]{40}$/')
+const nonNegativeInteger = type('number.integer >= 0')
+const quantityHex = type('/^0x[0-9a-fA-F]+$/')
+
+/** `GET /head` and `GET /finalized-head` — highest (finalized) block in the dataset. */
+export const SqdPortalBlockHead = type({
+	number: nonNegativeInteger,
+	hash: zeroExHash32,
+})
+
+export type SqdPortalBlockHead = typeof SqdPortalBlockHead.infer
+
 export const SqdPortalEvmBlock = type({
 	header: {
-		number: 'number.integer >= 0',
-		hash: 'string',
-		parentHash: 'string',
-		timestamp: 'number.integer >= 0',
-		miner: 'string',
-		gasUsed: 'string',
-		gasLimit: 'string',
-		'baseFeePerGas?': 'string',
-		'blobGasUsed?': 'string | null',
-		'excessBlobGas?': 'string | null',
+		number: nonNegativeInteger,
+		hash: zeroExHash32,
+		parentHash: zeroExHash32,
+		timestamp: nonNegativeInteger,
+		miner: zeroExAddress20,
+		gasUsed: quantityHex,
+		gasLimit: quantityHex,
+		'baseFeePerGas?': quantityHex,
+		'blobGasUsed?': quantityHex.or('null'),
+		'excessBlobGas?': quantityHex.or('null'),
 	},
 	transactions: type({
-		hash: 'string',
+		hash: zeroExHash32,
 	}).array(),
 })
 
@@ -47,15 +63,12 @@ export type SqdPortalEvmBlockRequest = {
 	transactions: readonly Record<never, never>[]
 }
 
-export type SqdPortalFinalizedHead = {
-	number: number
-	hash: string
-}
+export type SqdPortalFinalizedHead = SqdPortalBlockHead
 
 export const SqdPortalReorg = type({
 	previousBlocks: type({
-		number: 'number.integer >= 0',
-		hash: 'string',
+		number: nonNegativeInteger,
+		hash: zeroExHash32,
 	}).array(),
 })
 

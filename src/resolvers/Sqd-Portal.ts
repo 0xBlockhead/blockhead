@@ -1,8 +1,10 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 	type Entity,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -45,6 +47,102 @@ const assertEthereumMainnet = (network: EntitySelector<typeof schema, EntityType
 
 	throw new Error('SqdPortal_RawHttp: unsupported network')
 }
+
+const tipBlockReferences = async (
+	$network: EntitySelector<typeof schema, EntityType.Network>,
+	limit: number
+) => {
+	assertEthereumMainnet($network)
+	const { getFinalizedHead } = await import('$/sources/Sqd/Portal/queries.ts')
+	const { number } = await getFinalizedHead()
+	const tip = BigInt(number)
+	return Array.from({
+		length: Math.min(
+			Number(tip + 1n),
+			Math.max(1, limit)
+		),
+	}, (_value, blockOffset) => ({
+		[EntityMetaKey.Selector]: {
+			$network,
+			blockNumber: tip - BigInt(blockOffset),
+		},
+	} satisfies Entity<typeof schema, EntityType.EvmBlock>))
+}
+
+const networkTipResolvers = {
+	Caip2: {
+		resolve: async (
+			network: EntitySelector<typeof schema, EntityType.Network>,
+			context: Parameters<typeof resolverContextRowLimit>[0]
+		) => tipBlockReferences(
+			network,
+			resolverContextRowLimit(context)
+		),
+	},
+	Slug: {
+		resolve: async (
+			network: EntitySelector<typeof schema, EntityType.Network>,
+			context: Parameters<typeof resolverContextRowLimit>[0]
+		) => tipBlockReferences(
+			network,
+			resolverContextRowLimit(context)
+		),
+	},
+} as const
+
+const networkTipCountResolvers = {
+	Caip2: {
+		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
+			assertEthereumMainnet(network)
+			const { getFinalizedHead } = await import('$/sources/Sqd/Portal/queries.ts')
+			return (await getFinalizedHead()).number + 1
+		},
+	},
+	Slug: {
+		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
+			assertEthereumMainnet(network)
+			const { getFinalizedHead } = await import('$/sources/Sqd/Portal/queries.ts')
+			return (await getFinalizedHead()).number + 1
+		},
+	},
+} as const
+
+const networkTimestampListResolvers = {
+	Caip2: {
+		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
+			assertEthereumMainnet(network)
+			const { getFinalizedHead } = await import('$/sources/Sqd/Portal/queries.ts')
+			const { number } = await getFinalizedHead()
+			return [{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					timestampMs: Date.now(),
+					source: Source.SqdPortal_RawHttp,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: BigInt(number),
+				},
+			}]
+		},
+	},
+	Slug: {
+		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
+			assertEthereumMainnet(network)
+			const { getFinalizedHead } = await import('$/sources/Sqd/Portal/queries.ts')
+			const { number } = await getFinalizedHead()
+			return [{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					timestampMs: Date.now(),
+					source: Source.SqdPortal_RawHttp,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.EvmNetwork_Timestamp, [], 'blockHeight')]: BigInt(number),
+				},
+			}]
+		},
+	},
+} as const
 
 export default {
 	source: Source.SqdPortal_RawHttp,
@@ -123,6 +221,62 @@ export default {
 			$miner: (block) => block.$miner,
 			$parent: (block) => block.$parent,
 			$$transactions: (block) => block.transactions,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: networkTipResolvers,
+		})({
+			Evm: {
+				$$blocks: (blocks) => blocks,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: networkTipCountResolvers,
+		})({
+			Evm: {
+				$$blocks: {
+					resolveCount: (count) => count,
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: networkTimestampListResolvers,
+		})({
+			Evm: {
+				$$timestamps: (timestamps) => timestamps,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.EvmNetwork_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					resolve: async ({ $network, timestampMs, source }) => {
+						assertEthereumMainnet($network)
+						if (source !== Source.SqdPortal_RawHttp)
+							throw new Error(`SqdPortal_RawHttp: unsupported network timestamp source ${source}`)
+						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+							throw new Error('SqdPortal_RawHttp: invalid network observation timestamp')
+
+						const { getFinalizedHead } = await import('$/sources/Sqd/Portal/queries.ts')
+						return {
+							[EntityMetaKey.Selector]: {
+								$network,
+								timestampMs,
+								source,
+							},
+							blockHeight: BigInt((await getFinalizedHead()).number),
+						}
+					},
+				},
+			},
+		})({
+			blockHeight: (observation) => observation.blockHeight,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

@@ -2,6 +2,7 @@ import { fetchFailedMessage } from '$/lib/http.ts'
 import { firstHttpUrlForBinding, sourceFetch } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Sqd/bindings.ts'
 import {
+	SqdPortalBlockHead,
 	SqdPortalEvmBlock,
 	type SqdPortalEvmBlockRequest,
 	SqdPortalReorg,
@@ -11,20 +12,20 @@ import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.SqdPortal_RawHttp][0]
 
-const finalizedHead = (response: Response) => {
+const datasetUrl = () => (
+	firstHttpUrlForBinding(binding).replace(/\/$/, '')
+)
+
+const finalizedHeadFromHeaders = (response: Response) => {
 	const number = response.headers.get('x-sqd-finalized-head-number')
 	const hash = response.headers.get('x-sqd-finalized-head-hash')
 	if (number == null || hash == null)
 		return undefined
 
-	const parsedNumber = Number(number)
-	if (!Number.isSafeInteger(parsedNumber) || parsedNumber < 0)
-		throw new Error('SQD Portal returned a malformed finalized head number')
-
-	return {
-		number: parsedNumber,
+	return SqdPortalBlockHead.assert({
+		number: Number(number),
 		hash,
-	}
+	})
 }
 
 const ndjsonBlocks = async (response: Response) => (
@@ -33,6 +34,34 @@ const ndjsonBlocks = async (response: Response) => (
 		.map((line) => line.trim())
 		.filter((line) => line !== '')
 		.map((line) => SqdPortalEvmBlock.assert(JSON.parse(line)))
+)
+
+const getBlockHead = async (
+	path: '/head' | '/finalized-head',
+	label: string
+) => {
+	const response = await sourceFetch(
+		binding,
+		`${datasetUrl()}${path}`
+	)
+	if (!response.ok)
+		throw new Error(await fetchFailedMessage(label, response))
+
+	const payload = await response.json()
+	if (payload == null)
+		throw new Error(`${label}: empty dataset`)
+
+	return SqdPortalBlockHead.assert(payload)
+}
+
+/** Highest available block including unfinalized hotblocks. */
+export const getHead = () => (
+	getBlockHead('/head', 'SQD Portal head')
+)
+
+/** Highest finalized block guaranteed not to reorganize. */
+export const getFinalizedHead = () => (
+	getBlockHead('/finalized-head', 'SQD Portal finalized head')
 )
 
 export const getEvmBlock = async (
@@ -70,7 +99,7 @@ export const getEvmBlock = async (
 	}
 	const response = await sourceFetch(
 		binding,
-		`${firstHttpUrlForBinding(binding).replace(/\/$/, '')}/stream`,
+		`${datasetUrl()}/stream`,
 		{
 			method: 'POST',
 			headers: {
@@ -79,7 +108,7 @@ export const getEvmBlock = async (
 			body: JSON.stringify(request),
 		}
 	)
-	const responseFinalizedHead = finalizedHead(response)
+	const responseFinalizedHead = finalizedHeadFromHeaders(response)
 	if (response.status === 204)
 		return {
 			resolution: SqdPortalResolution.Empty,
