@@ -7,6 +7,7 @@ import {
 
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	NeynarCast,
 	NeynarChannel,
@@ -220,6 +221,21 @@ describe('Neynar Farcaster feed resolver', () => {
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], 'text')]: 'A live cast from the feed',
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], 'timestamp')]: Date.parse('2026-07-15T12:34:56.000Z'),
 					[entityFieldAddressKey(EntityType.FarcasterCast, [], 'username')]: 'alice',
+					[entityFieldAddressKey(EntityType.FarcasterCast, [], '$$timestamps')]: [{
+						[EntityMetaKey.Selector]: {
+							$cast: {
+								fid: 42,
+								hash: '0xabcdef',
+							},
+							timestampMs: expect.any(Number),
+							source: Source.Neynar_Rest,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'likeCount')]: 0,
+							[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'recastCount')]: 0,
+							[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'replyCount')]: 0,
+						},
+					}],
 				},
 			},
 		])

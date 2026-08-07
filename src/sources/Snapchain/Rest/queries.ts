@@ -156,6 +156,32 @@ export const getCastsByParent = async ({
 )
 
 /**
+ * `GET /v1/castsByMention`
+ */
+export const getCastsByMention = async ({
+	fid,
+	pageSize = snapchainDefaultCastTimelinePageSize,
+	pageToken,
+	reverse = true,
+}: {
+	fid: number
+	pageSize?: number
+	pageToken?: string
+	reverse?: boolean
+}) => (
+	assertEnvelope(
+		'casts-by-mention',
+		snapchainCastPageWire,
+		await snapchainGet<SnapchainPage<SnapchainCast>>('/v1/castsByMention', {
+			fid,
+			pageSize,
+			pageToken,
+			reverse,
+		})
+	)
+)
+
+/**
  * `GET /v1/reactionsByCast`
  */
 export const getReactionsByCast = async ({

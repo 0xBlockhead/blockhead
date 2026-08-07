@@ -15,6 +15,7 @@ vi.mock('$/sources/Snapchain/Rest/client.ts', () => ({
 const {
 	getCastById,
 	getCastsByFid,
+	getCastsByMention,
 	getFids,
 	getLinksByFid,
 	getLinksByTargetFid,
@@ -333,6 +334,46 @@ describe('Snapchain Rest arktype envelopes', () => {
 		})
 		await expect(getLinksByFid({ fid: 1 })).rejects.toThrow(
 			'Snapchain_Rest: invalid links-by-fid response envelope'
+		)
+	})
+
+	it('accepts and fails closed on castsByMention envelopes', async () => {
+		snapchainGet.mockResolvedValueOnce({
+			messages: [{
+				hash: '0xc6d4607835197a8ee225e9218d41e38aafb12076',
+				data: {
+					type: 'MESSAGE_TYPE_CAST_ADD',
+					fid: 2,
+					timestamp: 62298143,
+					castAddBody: {
+						text: 'cc  and ',
+						mentions: [15, 6833],
+						mentionsPositions: [3, 8],
+					},
+				},
+			}],
+			nextPageToken: '',
+		})
+		await expect(getCastsByMention({ fid: 6833 })).resolves.toMatchObject({
+			messages: [{
+				data: {
+					fid: 2,
+					castAddBody: {
+						mentions: [15, 6833],
+					},
+				},
+			}],
+		})
+		expect(snapchainGet).toHaveBeenCalledWith('/v1/castsByMention', {
+			fid: 6833,
+			pageSize: expect.any(Number),
+			pageToken: undefined,
+			reverse: true,
+		})
+
+		snapchainGet.mockResolvedValueOnce({ messages: 'nope' })
+		await expect(getCastsByMention({ fid: 1 })).rejects.toThrow(
+			'Snapchain_Rest: invalid casts-by-mention response envelope'
 		)
 	})
 })

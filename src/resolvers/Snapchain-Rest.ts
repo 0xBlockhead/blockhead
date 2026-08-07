@@ -544,6 +544,31 @@ export default {
 						if (timestamp == null)
 							throw new Error('Snapchain_Rest: cast missing timestamp')
 
+						const { getUsernameProofsByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const usernameProofs = await getUsernameProofsByFid({ fid })
+						const subjectProofs = (usernameProofs.proofs ?? []).filter((proof) => proof.fid === fid)
+						const username = (
+							optionalNonemptyString(
+								subjectProofs.find((proof) => proof.type === 'USERNAME_TYPE_FNAME')?.name
+							)
+							?? optionalNonemptyString(
+								subjectProofs.find((proof) => proof.type === 'USERNAME_TYPE_ENS_L1')?.name
+							)
+							?? optionalNonemptyString(subjectProofs[0]?.name)
+						)
+						const hashPrefix = (
+							castHash.length >= 12 ?
+								`0x${castHash.slice(2, 12)}` as `0x${string}`
+							:
+								castHash
+						)
+						const clientUrl = (
+							username == null ?
+								undefined
+							:
+								`https://warpcast.com/${username}/${hashPrefix}`
+						)
+
 						const castSelector = {
 							fid,
 							hash: castHash,
@@ -551,6 +576,9 @@ export default {
 						return {
 							fid,
 							hash: castHash,
+							...(username != null && { username }),
+							hashPrefix,
+							...(clientUrl != null && { clientUrl }),
 							$author: {
 								[EntityMetaKey.Selector]: {
 									fid,
@@ -593,6 +621,9 @@ export default {
 		})({
 				fid: (cast) => cast.fid,
 				hash: (cast) => cast.hash,
+				username: (cast) => cast.username,
+				hashPrefix: (cast) => cast.hashPrefix,
+				clientUrl: (cast) => cast.clientUrl,
 				$author: (cast) => cast.$author,
 				text: (cast) => cast.text,
 				$parentCast: (cast) => cast.$parentCast,

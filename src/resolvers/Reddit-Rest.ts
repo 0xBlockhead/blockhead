@@ -46,21 +46,120 @@ const redditRepliesListingFromThing = (
 		undefined
 )
 
+const canonicalRedditPermalink = (permalink: string | undefined) => {
+	const value = optionalNonemptyString(permalink)
+	if (value == null) return undefined
+
+	const url = URL.parse(value, 'https://www.reddit.com')
+	if (
+		url == null
+		|| url.origin !== 'https://www.reddit.com'
+		|| (!url.pathname.startsWith('/r/') && !url.pathname.startsWith('/comments/'))
+	) return undefined
+
+	return `${url.origin}${url.pathname}`
+}
+
+const redditCommentCardReference = (
+	thing: RedditApiThing
+) => {
+	if (
+		thing.kind !== 't1'
+		|| thing.data.name?.startsWith('t1_') !== true
+		|| thing.data.name.length === 3
+	)
+		return undefined
+	const linkId = optionalNonemptyString(thing.data.link_id)
+	const parentId = optionalNonemptyString(thing.data.parent_id)
+	return {
+		[EntityMetaKey.Selector]: { fullname: thing.data.name },
+		[EntityMetaKey.Fields]: {
+			...(optionalNonemptyString(thing.data.body) != null && {
+				[entityFieldAddressKey(EntityType.RedditComment, [], 'body')]: optionalNonemptyString(thing.data.body),
+			}),
+			...(optionalNonemptyString(thing.data.author) != null && {
+				[entityFieldAddressKey(EntityType.RedditComment, [], 'author')]: optionalNonemptyString(thing.data.author),
+			}),
+			...(timestampMsFromUnixSeconds(thing.data.created_utc) != null && {
+				[entityFieldAddressKey(EntityType.RedditComment, [], 'createdAt')]: timestampMsFromUnixSeconds(thing.data.created_utc),
+			}),
+			...(thing.data.depth != null && {
+				[entityFieldAddressKey(EntityType.RedditComment, [], 'depth')]: thing.data.depth,
+			}),
+			...(linkId?.startsWith('t3_') === true && linkId.length > 3 && { [entityFieldAddressKey(EntityType.RedditComment, [], '$link')]: {
+				[EntityMetaKey.Selector]: { fullname: linkId },
+			} }),
+			...(parentId?.startsWith('t1_') === true && parentId.length > 3 && { [entityFieldAddressKey(EntityType.RedditComment, [], '$parentComment')]: {
+				[EntityMetaKey.Selector]: { fullname: parentId },
+			} }),
+		},
+	}
+}
+
+const redditLinkCardReference = (
+	thing: RedditApiThing
+) => {
+	if (
+		thing.kind !== 't3'
+		|| thing.data.name?.startsWith('t3_') !== true
+		|| thing.data.name.length === 3
+	)
+		return undefined
+	const subreddit = optionalNonemptyString(thing.data.subreddit?.trim())?.toLowerCase()
+	return {
+		[EntityMetaKey.Selector]: { fullname: thing.data.name },
+		[EntityMetaKey.Fields]: {
+			...Object.fromEntries([
+				['title', optionalNonemptyString(thing.data.title)],
+				['selftext', optionalNonemptyString(thing.data.selftext)],
+				['url', optionalNonemptyString(thing.data.url)],
+				['permalink', canonicalRedditPermalink(thing.data.permalink)],
+				['author', optionalNonemptyString(thing.data.author)],
+				['createdAt', timestampMsFromUnixSeconds(thing.data.created_utc)],
+			].flatMap(([fieldName, value]) => value == null ? [] : [[
+				entityFieldAddressKey(EntityType.RedditLink, [], fieldName),
+				value,
+			]])),
+			...(subreddit != null && { [entityFieldAddressKey(EntityType.RedditLink, [], '$subreddit')]: {
+				[EntityMetaKey.Selector]: { name: subreddit },
+			} }),
+		},
+	}
+}
+
+const redditLinkCardReferences = (
+	children: readonly RedditApiThing[] | undefined,
+	limit: number
+) => {
+	if (limit === 0)
+		return []
+
+	const referenceByFullname = new Map<string, NonNullable<ReturnType<typeof redditLinkCardReference>>>()
+	for (const child of children ?? []) {
+		const reference = redditLinkCardReference(child)
+		if (reference != null && !referenceByFullname.has(reference[EntityMetaKey.Selector].fullname))
+			referenceByFullname.set(reference[EntityMetaKey.Selector].fullname, reference)
+		if (referenceByFullname.size === limit)
+			break
+	}
+
+	return [...referenceByFullname.values()]
+}
+
 const redditDirectReplyRefsByParentFromCommentForest = (
 	children: readonly RedditApiThing[] | undefined
-): Map<string, { [EntityMetaKey.Selector]: { fullname: string } }[]> => {
-	const byParent = new Map<string, { [EntityMetaKey.Selector]: { fullname: string } }[]>()
+): Map<string, NonNullable<ReturnType<typeof redditCommentCardReference>>[]> => {
+	const byParent = new Map<string, NonNullable<ReturnType<typeof redditCommentCardReference>>[]>()
 
 	const visit = (thing: RedditApiThing) => {
 		if (thing.kind !== 't1' || thing.data.name == null) return
-		const ref = { [EntityMetaKey.Selector]: { fullname: thing.data.name } }
+		const ref = redditCommentCardReference(thing)
+		if (ref == null) return
 		const redditReplyListing = redditRepliesListingFromThing(thing.data.replies)
-		const directReplies = (redditReplyListing?.data.children ?? []).flatMap((child) => (
-			child.kind === 't1' && child.data.name != null ?
-				[{ [EntityMetaKey.Selector]: { fullname: child.data.name } }]
-			:
-				[]
-		))
+		const directReplies = (redditReplyListing?.data.children ?? []).flatMap((child) => {
+			const reference = redditCommentCardReference(child)
+			return reference == null ? [] : [reference]
+		})
 		if (directReplies.length > 0)
 			byParent.set(ref[EntityMetaKey.Selector].fullname, directReplies)
 		for (const child of redditReplyListing?.data.children ?? []) {
@@ -319,35 +418,28 @@ export default {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
 						const { listSubredditLinks } = await import('$/sources/Reddit/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
 						const children = (
 							(await listSubredditLinks(
 								context.publicEnv,
 								'popular',
-								resolverContextRowLimit(context),
+								limit,
 								undefined,
 								'hot'
 							)).data.children
 							?? []
 						)
 						return {
-							subreddits: children.flatMap((child) => {
-								if (child.kind !== 't3') return []
-								const name = optionalNonemptyString(child.data.subreddit)
-								return name == null ?
-									[]
-								:
-									[{
-										[EntityMetaKey.Selector]: { name: name.toLowerCase() },
-									}]
-							}),
-							links: children.flatMap((child) => (
-								child.kind !== 't3' || child.data.name == null ?
-									[]
-								:
-									[{
-										[EntityMetaKey.Selector]: { fullname: child.data.name },
-									}]
-							)),
+							subreddits: [...new Map(
+								children.flatMap((child) => {
+									if (redditLinkCardReference(child) == null) return []
+									const name = optionalNonemptyString(child.data.subreddit?.trim())?.toLowerCase()
+									return name == null ? [] : [[name, {
+										[EntityMetaKey.Selector]: { name },
+									}] as const]
+								})
+							).values()],
+							links: redditLinkCardReferences(children, limit),
 						}
 					},
 				}
@@ -355,6 +447,112 @@ export default {
 		})({
 				$$observedSubreddits: (network) => network.subreddits,
 				$$observedLinks: (network) => network.links,
+			}),
+
+		defineResolver({
+			entityType: EntityType._GlobalRedditNetwork,
+			resolve: {
+				Scope: {
+					resolve: async ({ scope }, context) => {
+						const { listSubredditLinks } = await import('$/sources/Reddit/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const children = (
+							(await listSubredditLinks(
+								context.publicEnv,
+								'popular',
+								limit,
+								undefined,
+								'hot'
+							)).data.children
+							?? []
+						)
+						const subreddits = new Set(
+							children.flatMap((child) => {
+								if (redditLinkCardReference(child) == null) return []
+								const name = optionalNonemptyString(child.data.subreddit?.trim())?.toLowerCase()
+								return name == null ? [] : [name]
+							})
+						)
+						const links = redditLinkCardReferences(children, limit)
+						const timestampMs = Date.now()
+						return {
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$hub: { scope },
+									timestampMs,
+									source: Source.Reddit_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'source')]: Source.Reddit_Rest,
+									[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'observedSubredditCount')]: subreddits.size,
+									[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'observedLinkCount')]: links.length,
+									[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'reachable')]: true,
+									[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'listingWindowKind')]: 'popular:hot',
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+				$$timestamps: {
+					select: (hub) => hub.$$timestamps,
+					resolveCount: (hub) => hub.$$timestamps.length,
+				},
+			}),
+
+		defineResolver({
+			entityType: EntityType._GlobalRedditNetwork_Timestamp,
+			resolve: {
+				HubTimestampMsSource: {
+					resolve: async ({
+						$hub,
+						timestampMs,
+						source: observationSource,
+					}, context) => {
+						if (observationSource !== Source.Reddit_Rest)
+							throw new Error(`Reddit_Rest: unsupported source ${observationSource}`)
+
+						const { listSubredditLinks } = await import('$/sources/Reddit/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const children = (
+							(await listSubredditLinks(
+								context.publicEnv,
+								'popular',
+								limit,
+								undefined,
+								'hot'
+							)).data.children
+							?? []
+						)
+						const subreddits = new Set(
+							children.flatMap((child) => {
+								if (redditLinkCardReference(child) == null) return []
+								const name = optionalNonemptyString(child.data.subreddit?.trim())?.toLowerCase()
+								return name == null ? [] : [name]
+							})
+						)
+						const links = redditLinkCardReferences(children, limit)
+						return {
+							$hub,
+							timestampMs,
+							source: Source.Reddit_Rest,
+							observedSubredditCount: subreddits.size,
+							observedLinkCount: links.length,
+							reachable: true as const,
+							listingWindowKind: 'popular:hot',
+						}
+					},
+				},
+			},
+		})({
+				$hub: (observation) => observation.$hub,
+				timestampMs: (observation) => observation.timestampMs,
+				source: (observation) => observation.source,
+				observedSubredditCount: (observation) => observation.observedSubredditCount,
+				observedLinkCount: (observation) => observation.observedLinkCount,
+				reachable: (observation) => observation.reachable,
+				listingWindowKind: (observation) => observation.listingWindowKind,
 			}),
 
 		defineResolver({
@@ -375,18 +573,11 @@ export default {
 			},
 		})({
 				$$links: {
-					select: (page) => (
-						(page.data.children ?? [])
-							.flatMap((child) => (
-								child.kind !== 't3' || child.data.name == null ?
-									[]
-								:
-									[
-										{
-											[EntityMetaKey.Selector]: { fullname: child.data.name },
-										},
-									]
-							))
+					select: (page, _selector, context) => (
+						redditLinkCardReferences(
+							page.data.children,
+							resolverContextRowLimit(context)
+						)
 					),
 					continuation: (page) => (
 						page.data.after == null || page.data.after === '' ?
@@ -417,12 +608,16 @@ export default {
 						const articleId = redditLinkArticleIdFromFullname(fullname)
 						return (
 							((await getLinkCommentsByArticleId(publicEnv, articleId, limit))[1]?.data.children ?? [])
-								.flatMap((child) => (
-									child.kind === 't1' && child.data.name != null ?
-										[{ [EntityMetaKey.Selector]: { fullname: child.data.name } }]
+								.flatMap((child) => {
+									const reference = (
+										child.data.parent_id === fullname
+										&& child.data.link_id === fullname
+									) ?
+										redditCommentCardReference(child)
 									:
-										[]
-								))
+										undefined
+									return reference == null ? [] : [reference]
+								})
 						)
 					},
 				}

@@ -155,6 +155,10 @@ const neynarCastSummaryReference = (cast: NeynarCast) => {
 	const timestamp = optionalTimestampMs(cast.timestamp)
 	const username = optionalNonemptyString(cast.author.username)
 	const channelId = optionalNonemptyString(cast.channel?.id)
+	const castId = {
+		fid: cast.author.fid,
+		hash,
+	}
 	return [{
 		[EntityMetaKey.Selector]: {
 			fid: cast.author.fid,
@@ -180,6 +184,7 @@ const neynarCastSummaryReference = (cast: NeynarCast) => {
 					[EntityMetaKey.Selector]: { id: channelId },
 				},
 			}),
+			[entityFieldAddressKey(EntityType.FarcasterCast, [], '$$timestamps')]: neynarCastTimestamps(cast, castId),
 		},
 	}]
 }

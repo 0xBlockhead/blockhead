@@ -5,8 +5,9 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	listSubredditLinks,
 } from '$/sources/Reddit/Rest/queries.ts'
@@ -104,6 +105,7 @@ describe('Reddit_Rest listing continuation', () => {
 			[EntityMetaKey.Selector]: {
 				fullname: 't3_post',
 			},
+			[EntityMetaKey.Fields]: {},
 		}])
 		expect(resolver.projections.$$links.continuation(
 			page,
@@ -143,6 +145,81 @@ describe('Reddit_Rest listing continuation', () => {
 			operation: 'subreddit-links:hot',
 			target: 'oauth-api',
 			terminal: true,
+		})
+	})
+})
+
+describe('Reddit_Rest hub tip observations', () => {
+	it('projects popular:hot window counts onto _GlobalRedditNetwork.$$timestamps', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_750_000_000_000)
+		vi.mocked(listSubredditLinks).mockResolvedValue({
+			kind: 'Listing',
+			data: {
+				children: [
+					{
+						kind: 't3',
+						data: {
+							name: 't3_a',
+							subreddit: 'ethereum',
+							title: 'A',
+						},
+					},
+					{
+						kind: 't3',
+						data: {
+							name: 't3_b',
+							subreddit: 'Ethereum',
+							title: 'B',
+						},
+					},
+				],
+			},
+		})
+		const hubTimestamps = redditRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType._GlobalRedditNetwork
+			&& '$$timestamps' in candidate.projections
+		))
+		const hubTimestampSingular = redditRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType._GlobalRedditNetwork_Timestamp
+		))
+		if (
+			hubTimestamps == null
+			|| hubTimestampSingular == null
+			|| !('Scope' in hubTimestamps.resolve)
+			|| !('HubTimestampMsSource' in hubTimestampSingular.resolve)
+		)
+			throw new Error('Reddit_Rest spec missing hub timestamp resolvers')
+
+		const hub = await hubTimestamps.resolve.Scope.resolve({
+			scope: '_GlobalRedditNetwork',
+		}, resolverContext)
+		expect(hub.$$timestamps).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$hub: { scope: '_GlobalRedditNetwork' },
+				timestampMs: 1_750_000_000_000,
+				source: Source.Reddit_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'source')]: Source.Reddit_Rest,
+				[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'observedSubredditCount')]: 1,
+				[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'observedLinkCount')]: 2,
+				[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'reachable')]: true,
+				[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'listingWindowKind')]: 'popular:hot',
+			},
+		}])
+
+		await expect(hubTimestampSingular.resolve.HubTimestampMsSource.resolve({
+			$hub: { scope: '_GlobalRedditNetwork' },
+			timestampMs: 1_750_000_000_000,
+			source: Source.Reddit_Rest,
+		}, resolverContext)).resolves.toEqual({
+			$hub: { scope: '_GlobalRedditNetwork' },
+			timestampMs: 1_750_000_000_000,
+			source: Source.Reddit_Rest,
+			observedSubredditCount: 1,
+			observedLinkCount: 2,
+			reachable: true,
+			listingWindowKind: 'popular:hot',
 		})
 	})
 })

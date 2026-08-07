@@ -209,6 +209,12 @@ describe('Snapchain Farcaster direct replies', () => {
 })
 
 describe('Snapchain Farcaster cast identity', () => {
+	beforeEach(() => {
+		getCastById.mockReset()
+		getUsernameProofsByFid.mockReset()
+		getUsernameProofsByFid.mockResolvedValue({ proofs: [] })
+	})
+
 	it('retains an arbitrary FIP-2 parent as the channel selector', async () => {
 		const parentUrl = 'https://example.com/topics/design'
 		getCastById.mockResolvedValueOnce({
@@ -258,6 +264,38 @@ describe('Snapchain Farcaster cast identity', () => {
 			mentions: [7, 9],
 			mentionedProfileFids: [7, 9],
 		})
+	})
+
+	it('projects username, hashPrefix, and Warpcast clientUrl from fname proofs', async () => {
+		getCastById.mockResolvedValueOnce({
+			hash: parentHash,
+			data: {
+				fid: 42,
+				timestamp: 1_752_840_001,
+				castAddBody: {
+					text: 'hello',
+				},
+			},
+		})
+		getUsernameProofsByFid.mockResolvedValueOnce({
+			proofs: [{
+				fid: 42,
+				name: 'alice',
+				type: 'USERNAME_TYPE_FNAME',
+			}],
+		})
+
+		await expect(castResolver.resolve.FidHash.resolve({
+			fid: 42,
+			hash: parentHash,
+		})).resolves.toMatchObject({
+			username: 'alice',
+			hashPrefix: '0x1111111111',
+			clientUrl: 'https://warpcast.com/alice/0x1111111111',
+		})
+		expect(castResolver.projections.username).toBeTypeOf('function')
+		expect(castResolver.projections.hashPrefix).toBeTypeOf('function')
+		expect(castResolver.projections.clientUrl).toBeTypeOf('function')
 	})
 
 	it('rejects a provider row for a different fid/hash subject', async () => {
@@ -376,6 +414,8 @@ describe('Snapchain Farcaster observations', () => {
 describe('Snapchain Farcaster embeds and singular timestamps', () => {
 	beforeEach(() => {
 		getCastById.mockReset()
+		getUsernameProofsByFid.mockReset()
+		getUsernameProofsByFid.mockResolvedValue({ proofs: [] })
 		getCastEngagementCountsForCast.mockReset()
 		countLinksByFid.mockReset()
 		countLinksByTargetFid.mockReset()

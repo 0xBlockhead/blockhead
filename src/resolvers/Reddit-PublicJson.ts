@@ -473,6 +473,100 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType._GlobalRedditNetwork,
+			resolve: {
+				Scope: {
+					resolve: async ({ scope }, context) => {
+						const { listSubredditLinks } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const children = (await listSubredditLinks('popular', {
+							limit,
+							sort: 'hot',
+						})).data.children ?? []
+						const subreddits = new Set(
+							children.flatMap((child) => {
+								if (redditLinkCardReference(child) == null) return []
+								const name = optionalNonemptyString(child.data.subreddit?.trim())?.toLowerCase()
+								return name == null ? [] : [name]
+							})
+						)
+						const links = redditLinkCardReferences(children, limit)
+						const timestampMs = Date.now()
+						return {
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$hub: { scope },
+									timestampMs,
+									source: Source.Reddit_PublicJson,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'source')]: Source.Reddit_PublicJson,
+									[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'observedSubredditCount')]: subreddits.size,
+									[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'observedLinkCount')]: links.length,
+									[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'reachable')]: true,
+									[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'listingWindowKind')]: 'popular:hot',
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+				$$timestamps: {
+					select: (hub) => hub.$$timestamps,
+					resolveCount: (hub) => hub.$$timestamps.length,
+				},
+			}),
+
+		defineResolver({
+			entityType: EntityType._GlobalRedditNetwork_Timestamp,
+			resolve: {
+				HubTimestampMsSource: {
+					resolve: async ({
+						$hub,
+						timestampMs,
+						source: observationSource,
+					}, context) => {
+						if (observationSource !== Source.Reddit_PublicJson)
+							throw new Error(`Reddit_PublicJson: unsupported source ${observationSource}`)
+
+						const { listSubredditLinks } = await import('$/sources/RedditPublic/Rest/queries.ts')
+						const limit = resolverContextRowLimit(context)
+						const children = (await listSubredditLinks('popular', {
+							limit,
+							sort: 'hot',
+						})).data.children ?? []
+						const subreddits = new Set(
+							children.flatMap((child) => {
+								if (redditLinkCardReference(child) == null) return []
+								const name = optionalNonemptyString(child.data.subreddit?.trim())?.toLowerCase()
+								return name == null ? [] : [name]
+							})
+						)
+						const links = redditLinkCardReferences(children, limit)
+						return {
+							$hub,
+							timestampMs,
+							source: Source.Reddit_PublicJson,
+							observedSubredditCount: subreddits.size,
+							observedLinkCount: links.length,
+							reachable: true as const,
+							listingWindowKind: 'popular:hot',
+						}
+					},
+				},
+			},
+		})({
+				$hub: (observation) => observation.$hub,
+				timestampMs: (observation) => observation.timestampMs,
+				source: (observation) => observation.source,
+				observedSubredditCount: (observation) => observation.observedSubredditCount,
+				observedLinkCount: (observation) => observation.observedLinkCount,
+				reachable: (observation) => observation.reachable,
+				listingWindowKind: (observation) => observation.listingWindowKind,
+			}),
+
+		defineResolver({
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
 				Name: {
