@@ -184,6 +184,9 @@ export default entity({
 				entityType: EntityType.EvmNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
 				defaultSources: [
+					Source.EnvioHyperRpc_JsonRpc,
+					Source.EnvioHyperSync_RawHttp,
+					Source.SqdPortal_RawHttp,
 					Source.Voltaire_JsonRpc,
 				],
 			},
@@ -191,9 +194,12 @@ export default entity({
 				entityType: EntityType.EvmBlock,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Voltaire_JsonRpc,
-					Source.Blockscout_Rest,
 					Source.Blobscan_Rest,
+					Source.Blockscout_Rest,
+					Source.EnvioHyperRpc_JsonRpc,
+					Source.EnvioHyperSync_RawHttp,
+					Source.SqdPortal_RawHttp,
+					Source.Voltaire_JsonRpc,
 				],
 			},
 			$$transactions: {
@@ -1111,6 +1117,7 @@ export default entity({
 				defaultSources: [
 					Source.Blockfrost_Rest,
 					Source.CardanoKoios_Rest,
+					Source.Ogmios_JsonRpc,
 				],
 			},
 			$$blocks: {
@@ -1119,6 +1126,7 @@ export default entity({
 				defaultSources: [
 					Source.Blockfrost_Rest,
 					Source.CardanoKoios_Rest,
+					Source.Ogmios_JsonRpc,
 				],
 			},
 			$$transactions: {
@@ -1167,6 +1175,7 @@ export default entity({
 				defaultSources: [
 					Source.Blockfrost_Rest,
 					Source.CardanoKoios_Rest,
+					Source.Ogmios_JsonRpc,
 				],
 			},
 			$$committeeEpochs: {

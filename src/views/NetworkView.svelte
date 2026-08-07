@@ -164,6 +164,14 @@
 		], pendingEntity)
 	)
 
+	const blockfrostRestAndCardanoKoiosRestAndOgmiosJsonRpcSources = $derived(
+		networkApplicableSources([
+			Source.Blockfrost_Rest,
+			Source.CardanoKoios_Rest,
+			Source.Ogmios_JsonRpc,
+		], pendingEntity)
+	)
+
 	const blockfrostRestAndCardanoKoiosRestSources = $derived(
 		networkApplicableSources([
 			Source.Blockfrost_Rest,
@@ -1626,9 +1634,12 @@
 
 				</CollapsibleTabs>
 				{@const evmExecutionBlocksSources = networkApplicableSources([
-						Source.Voltaire_JsonRpc,
-						Source.Blockscout_Rest,
 						Source.Blobscan_Rest,
+						Source.Blockscout_Rest,
+						Source.EnvioHyperRpc_JsonRpc,
+						Source.EnvioHyperSync_RawHttp,
+						Source.SqdPortal_RawHttp,
+						Source.Voltaire_JsonRpc,
 					], pendingEntity)}
 
 				{@const evmExecutionGasEstimatesSources = networkApplicableSources([
@@ -5748,7 +5759,7 @@
 			{#snippet Applicable(projection)}
 				{@const cardanoChainActivitySections = [
 						...(
-							blockfrostRestAndCardanoKoiosRestSources.length > 0 ?
+							blockfrostRestAndCardanoKoiosRestAndOgmiosJsonRpcSources.length > 0 ?
 								[
 									{
 										id: 'cardano-chain-observations',
@@ -5759,7 +5770,7 @@
 								[]
 						),
 						...(
-							blockfrostRestAndCardanoKoiosRestSources.length > 0 ?
+							blockfrostRestAndCardanoKoiosRestAndOgmiosJsonRpcSources.length > 0 ?
 								[
 									{
 										id: 'cardano-chain-blocks',
@@ -5801,7 +5812,7 @@
 								selection={
 									projection
 									.$$timestamps({
-										sources: blockfrostRestAndCardanoKoiosRestSources,
+										sources: blockfrostRestAndCardanoKoiosRestAndOgmiosJsonRpcSources,
 										limit: 16,
 									})
 								}
@@ -5816,7 +5827,7 @@
 								selection={
 									projection
 									.$$blocks({
-										sources: blockfrostRestAndCardanoKoiosRestSources,
+										sources: blockfrostRestAndCardanoKoiosRestAndOgmiosJsonRpcSources,
 										limit: 16,
 									})
 								}
@@ -5998,7 +6009,7 @@
 								[]
 						),
 						...(
-							blockfrostRestAndCardanoKoiosRestSources.length > 0 ?
+							blockfrostRestAndCardanoKoiosRestAndOgmiosJsonRpcSources.length > 0 ?
 								[
 									{
 										id: 'cardano-protocol-parameters',
@@ -6044,7 +6055,7 @@
 								selection={
 									projection
 									.$$protocolParameterEpochs({
-										sources: blockfrostRestAndCardanoKoiosRestSources,
+										sources: blockfrostRestAndCardanoKoiosRestAndOgmiosJsonRpcSources,
 										limit: 16,
 									})
 								}

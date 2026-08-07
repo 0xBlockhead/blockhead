@@ -4419,6 +4419,84 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/snapshot/proposal/[proposalId]': {
+		routeId: '/snapshot/proposal/[proposalId=stringSegment]',
+		parameterEncodingByName: {
+			proposalId: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'SnapshotProposal.ProposalId',
+				probeAtomPrefixes: ['/snapshot/proposal/[proposalId]:SnapshotProposal.ProposalId'],
+				probeCases: [[[0, '1', ['proposalId']]]],
+			},
+		],
+	},
+	'/snapshot/space/[spaceId]': {
+		routeId: '/snapshot/space/[spaceId=stringSegment]',
+		parameterEncodingByName: {
+			spaceId: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'SnapshotSpace.SpaceId',
+				probeAtomPrefixes: ['/snapshot/space/[spaceId]:SnapshotSpace.SpaceId'],
+				probeCases: [[[0, '1', ['spaceId']]]],
+			},
+		],
+	},
+	'/snapshot/space/[spaceId]/proposals': {
+		routeId: '/snapshot/space/[spaceId=stringSegment]/(snapshotSpace)/proposals',
+		parameterEncodingByName: {
+			spaceId: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'SnapshotSpace.SpaceId',
+				probeAtomPrefixes: ['/snapshot/space/[spaceId]:SnapshotSpace.SpaceId'],
+				probeCases: [[[0, '1', ['spaceId']]]],
+			},
+		],
+	},
+	'/tally/governor/[governorId]': {
+		routeId: '/tally/governor/[governorId=stringSegment]',
+		parameterEncodingByName: {
+			governorId: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'TallyGovernor.GovernorId',
+				probeAtomPrefixes: ['/tally/governor/[governorId]:TallyGovernor.GovernorId'],
+				probeCases: [[[0, '1', ['governorId']]]],
+			},
+		],
+	},
+	'/tally/governor/[governorId]/proposals': {
+		routeId: '/tally/governor/[governorId=stringSegment]/(tallyGovernor)/proposals',
+		parameterEncodingByName: {
+			governorId: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'TallyGovernor.GovernorId',
+				probeAtomPrefixes: ['/tally/governor/[governorId]:TallyGovernor.GovernorId'],
+				probeCases: [[[0, '1', ['governorId']]]],
+			},
+		],
+	},
+	'/tally/proposal/[proposalId]': {
+		routeId: '/tally/proposal/[proposalId=stringSegment]',
+		parameterEncodingByName: {
+			proposalId: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'TallyProposal.ProposalId',
+				probeAtomPrefixes: ['/tally/proposal/[proposalId]:TallyProposal.ProposalId'],
+				probeCases: [[[0, '1', ['proposalId']]]],
+			},
+		],
+	},
 } as const satisfies Record<string, E2eRouteFixtureMetadata>
 
 type E2eRouteProbeAtomForReference<

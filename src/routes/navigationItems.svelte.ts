@@ -449,6 +449,18 @@ export default [
 						],
 					},
 					{
+						id: 'governance-snapshot',
+						title: 'Snapshot',
+						href: '/snapshot/spaces',
+						icon: '🗳️',
+					},
+					{
+						id: 'governance-tally',
+						title: 'Tally',
+						href: '/tally',
+						icon: '⚖️',
+					},
+					{
 						id: 'social-rss',
 						title: 'RSS',
 						href: '/rss',

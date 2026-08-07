@@ -837,6 +837,8 @@ import RssItemSchema from '$/schema/RssItem.ts'
 import RssNetworkSchema from '$/schema/RssNetwork.ts'
 import ScalingDeploymentClaim_TimestampSchema from '$/schema/ScalingDeploymentClaim_Timestamp.ts'
 import ScalingDeploymentClaimSchema from '$/schema/ScalingDeploymentClaim.ts'
+import SnapshotProposalSchema from '$/schema/SnapshotProposal.ts'
+import SnapshotSpaceSchema from '$/schema/SnapshotSpace.ts'
 import SolanaAccount_TimestampSchema from '$/schema/SolanaAccount_Timestamp.ts'
 import SolanaAccountSchema from '$/schema/SolanaAccount.ts'
 import SolanaBlockSchema from '$/schema/SolanaBlock.ts'
@@ -914,6 +916,8 @@ import SwapQuote_TimestampSchema from '$/schema/SwapQuote_Timestamp.ts'
 import SwapQuoteStepSchema from '$/schema/SwapQuoteStep.ts'
 import SwarmProtocolSchema from '$/schema/SwarmProtocol.ts'
 import SwarmResourceSchema from '$/schema/SwarmResource.ts'
+import TallyGovernorSchema from '$/schema/TallyGovernor.ts'
+import TallyProposalSchema from '$/schema/TallyProposal.ts'
 import TezosAccount_TimestampSchema from '$/schema/TezosAccount_Timestamp.ts'
 import TezosAccountSchema from '$/schema/TezosAccount.ts'
 import TezosBaker_Cycle_TimestampSchema from '$/schema/TezosBaker_Cycle_Timestamp.ts'
@@ -1934,6 +1938,8 @@ const schemaChunk16 = [
 	RssNetworkSchema,
 	ScalingDeploymentClaimSchema,
 	ScalingDeploymentClaim_TimestampSchema,
+	SnapshotProposalSchema,
+	SnapshotSpaceSchema,
 	SolanaAccountSchema,
 	SolanaAccount_TimestampSchema,
 	SolanaBlockSchema,
@@ -1946,11 +1952,11 @@ const schemaChunk16 = [
 	SolanaTransactionSchema,
 	SolanaTransaction_TimestampSchema,
 	SolanaValidatorSchema,
-	SolanaValidator_TimestampSchema,
-	SorobanContractSchema,
 ] as const
 
 const schemaChunk17 = [
+	SolanaValidator_TimestampSchema,
+	SorobanContractSchema,
 	SorobanContract_TimestampSchema,
 	SorobanContractStorageEntrySchema,
 	SorobanContractStorageEntry_TimestampSchema,
@@ -1999,11 +2005,11 @@ const schemaChunk17 = [
 	SuiDynamicFieldEdge_TimestampSchema,
 	SuiEventSchema,
 	SuiNetworkSchema,
-	SuiNetwork_TimestampSchema,
-	SuiObjectSchema,
 ] as const
 
 const schemaChunk18 = [
+	SuiNetwork_TimestampSchema,
+	SuiObjectSchema,
 	SuiObjectChangeSchema,
 	SuiObjectVersionSchema,
 	SuiPackageSchema,
@@ -2017,6 +2023,8 @@ const schemaChunk18 = [
 	SwapQuoteStepSchema,
 	SwarmProtocolSchema,
 	SwarmResourceSchema,
+	TallyGovernorSchema,
+	TallyProposalSchema,
 	TezosAccountSchema,
 	TezosAccount_TimestampSchema,
 	TezosBakerSchema,
@@ -2050,13 +2058,13 @@ const schemaChunk18 = [
 	TonAccount_TimestampSchema,
 	TonBlockSchema,
 	TonContractSchema,
+] as const
+
+const schemaChunk19 = [
 	TonContract_TimestampSchema,
 	TonContractGetMethodSchema,
 	TonContractGetMethod_TimestampSchema,
 	TonJettonSchema,
-] as const
-
-const schemaChunk19 = [
 	TonJetton_TimestampSchema,
 	TonJettonBalance_TimestampSchema,
 	TonJettonTransferSchema,
@@ -2103,13 +2111,13 @@ const schemaChunk19 = [
 	UtxoInputSchema,
 	UtxoOutputSchema,
 	UtxoTransactionSchema,
+] as const
+
+const schemaChunk20 = [
 	WalletConnectionMethodSchema,
 	WormholeVaaSchema,
 	XmtpConversationSchema,
 	XmtpMessageSchema,
-] as const
-
-const schemaChunk20 = [
 	XmtpNetworkSchema,
 	XmtpParticipantSchema,
 	XNetworkSchema,
@@ -2156,6 +2164,9 @@ const schemaChunk20 = [
 	ZeroGStorageLogEntrySchema,
 	ZeroGStorageNodeSchema,
 	ZeroGStorageNode_TimestampSchema,
+] as const
+
+const schemaChunk21 = [
 	ZeroGStorageProofSchema,
 ] as const
 
@@ -2181,6 +2192,7 @@ export const schema = [
 	...schemaChunk18,
 	...schemaChunk19,
 	...schemaChunk20,
+	...schemaChunk21,
 ] as const satisfies Schema
 export const schemaMeta = indexSchema(schema)
 export const entityDefinitionByType = schemaMeta.entityDefinitionByType

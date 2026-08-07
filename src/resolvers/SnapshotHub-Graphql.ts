@@ -1,7 +1,9 @@
 import type { ResolverContext } from '$/resolvers/$resolvers.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { defineResolver } from '$/resolvers/defineResolver.ts'
 import type { RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import type {
 	SnapshotHubProposal,
 	SnapshotHubProposalState,
@@ -419,5 +421,97 @@ export const resolveSnapshotVotes = async ({
 
 export default {
 	source: Source.SnapshotHub_Graphql,
-	resolvers: [],
+	resolvers: [
+		defineResolver({
+			entityType: EntityType._Global,
+			resolve: {
+				Scope: {
+					resolve: async (_entitySelector, context) => ({
+						$$snapshotSpaces: await resolveSnapshotSpaces(context),
+					}),
+				},
+			},
+		})({
+			$$snapshotSpaces: {
+				select: (snapshot) => snapshot.$$snapshotSpaces,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.SnapshotSpace,
+			resolve: {
+				SpaceId: {
+					resolve: async ({ spaceId }) => (
+						resolveSnapshotSpace({
+							spaceId,
+						})
+					),
+				},
+			},
+		})({
+			spaceId: (space) => space.spaceId,
+			name: (space) => space.name,
+			about: (space) => space.about,
+			avatar: (space) => space.avatar,
+			symbol: (space) => space.symbol,
+			$network: (space) => space.$network,
+			proposalsCount: (space) => space.proposalsCount,
+			votesCount: (space) => space.votesCount,
+			followersCount: (space) => space.followersCount,
+			createdAtMs: (space) => space.createdAtMs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.SnapshotSpace,
+			resolve: {
+				SpaceId: {
+					resolve: async ({ spaceId }, context) => ({
+						$$proposals: await resolveSnapshotProposals({
+							spaceId,
+						}, context),
+					}),
+				},
+			},
+		})({
+			$$proposals: {
+				select: (snapshot) => snapshot.$$proposals,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.SnapshotProposal,
+			resolve: {
+				ProposalId: {
+					resolve: async ({ proposalId }) => (
+						resolveSnapshotProposal({
+							proposalId,
+						})
+					),
+				},
+			},
+		})({
+			proposalId: (proposal) => proposal.proposalId,
+			$space: (proposal) => proposal.$space,
+			$network: (proposal) => proposal.$network,
+			$authorAccount: (proposal) => proposal.$authorAccount,
+			author: (proposal) => proposal.author,
+			title: (proposal) => proposal.title,
+			body: (proposal) => proposal.body,
+			discussion: (proposal) => proposal.discussion,
+			type: (proposal) => proposal.type,
+			state: (proposal) => proposal.state,
+			choices: (proposal) => proposal.choices,
+			labels: (proposal) => proposal.labels,
+			startAtMs: (proposal) => proposal.startAtMs,
+			endAtMs: (proposal) => proposal.endAtMs,
+			createdAtMs: (proposal) => proposal.createdAtMs,
+			updatedAtMs: (proposal) => proposal.updatedAtMs,
+			quorum: (proposal) => proposal.quorum,
+			votesCount: (proposal) => proposal.votesCount,
+			scores: (proposal) => proposal.scores,
+			scoresTotal: (proposal) => proposal.scoresTotal,
+			link: (proposal) => proposal.link,
+			app: (proposal) => proposal.app,
+		}),
+	],
 } satisfies RegisteredSourceResolverModule

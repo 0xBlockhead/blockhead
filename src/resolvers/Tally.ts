@@ -1,7 +1,9 @@
 import type { ResolverContext } from '$/resolvers/$resolvers.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { defineResolver } from '$/resolvers/defineResolver.ts'
 import type { RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import type {
 	TallyGovernor,
 	TallyProposal,
@@ -291,5 +293,78 @@ export const resolveTallyProposals = async ({
 
 export default {
 	source: Source.Tally,
-	resolvers: [],
+	resolvers: [
+		defineResolver({
+			entityType: EntityType.TallyGovernor,
+			resolve: {
+				GovernorId: {
+					resolve: async ({ governorId }) => (
+						resolveTallyGovernor({
+							governorId,
+						})
+					),
+				},
+			},
+		})({
+			governorId: (governor) => governor.governorId,
+			name: (governor) => governor.name,
+			slug: (governor) => governor.slug,
+			governorType: (governor) => governor.governorType,
+			kind: (governor) => governor.kind,
+			$network: (governor) => governor.$network,
+			$contract: (governor) => governor.$contract,
+			organizationId: (governor) => governor.organizationId,
+			organizationName: (governor) => governor.organizationName,
+			organizationSlug: (governor) => governor.organizationSlug,
+			quorum: (governor) => governor.quorum,
+			delegatesCount: (governor) => governor.delegatesCount,
+			description: (governor) => governor.description,
+			isPrimary: (governor) => governor.isPrimary,
+		}),
+
+		defineResolver({
+			entityType: EntityType.TallyGovernor,
+			resolve: {
+				GovernorId: {
+					resolve: async ({ governorId }, context) => ({
+						$$proposals: await resolveTallyProposals({
+							governorId,
+						}, context),
+					}),
+				},
+			},
+		})({
+			$$proposals: {
+				select: (snapshot) => snapshot.$$proposals,
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.TallyProposal,
+			resolve: {
+				ProposalId: {
+					resolve: async ({ proposalId }) => (
+						resolveTallyProposal({
+							proposalId,
+						})
+					),
+				},
+			},
+		})({
+			proposalId: (proposal) => proposal.proposalId,
+			onchainId: (proposal) => proposal.onchainId,
+			status: (proposal) => proposal.status,
+			$governor: (proposal) => proposal.$governor,
+			$network: (proposal) => proposal.$network,
+			$proposer: (proposal) => proposal.$proposer,
+			title: (proposal) => proposal.title,
+			description: (proposal) => proposal.description,
+			organizationName: (proposal) => proposal.organizationName,
+			quorum: (proposal) => proposal.quorum,
+			startAtMs: (proposal) => proposal.startAtMs,
+			endAtMs: (proposal) => proposal.endAtMs,
+			discourseUrl: (proposal) => proposal.discourseUrl,
+			snapshotUrl: (proposal) => proposal.snapshotUrl,
+		}),
+	],
 } satisfies RegisteredSourceResolverModule

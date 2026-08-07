@@ -7,6 +7,7 @@ import {
 } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
@@ -217,9 +218,31 @@ describe('SnapshotHub GraphQL resolvers', () => {
 		getVotesPage.mockReset()
 	})
 
-	it('registers under SnapshotHub_Graphql pending APP entity wiring', () => {
+	it('registers Snapshot space/proposal resolver facets that project enrolled fields', () => {
 		expect(snapshotHubGraphql.source).toBe(Source.SnapshotHub_Graphql)
-		expect(snapshotHubGraphql.resolvers).toEqual([])
+		expect(snapshotHubGraphql.resolvers.map((resolver) => resolver.entityType)).toEqual([
+			EntityType._Global,
+			EntityType.SnapshotSpace,
+			EntityType.SnapshotSpace,
+			EntityType.SnapshotProposal,
+		])
+		const spaceResolver = snapshotHubGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.SnapshotSpace
+			&& 'spaceId' in resolver.projections
+		))
+		const globalResolver = snapshotHubGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType._Global
+		))
+		const proposalResolver = snapshotHubGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.SnapshotProposal
+			&& 'title' in resolver.projections
+		))
+		expect(spaceResolver?.projections.spaceId({ spaceId, name: 'ENS' })).toBe(spaceId)
+		expect(spaceResolver?.projections.name({ spaceId, name: 'ENS' })).toBe('ENS')
+		expect(globalResolver?.projections.$$snapshotSpaces.select({
+			$$snapshotSpaces: [{ [EntityMetaKey.Selector]: { spaceId } }],
+		})).toEqual([{ [EntityMetaKey.Selector]: { spaceId } }])
+		expect(proposalResolver?.projections.title({ proposalId, title: 'Upgrade' })).toBe('Upgrade')
 	})
 
 	it('projects space identity, EVM network, strategies, and admin accounts', () => {

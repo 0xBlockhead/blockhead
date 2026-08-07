@@ -6,6 +6,7 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -34,6 +35,7 @@
 	import EvmNetworkActorCoinBalancesView from '$/views/EvmNetworkActorCoinBalancesView.svelte'
 	import MarketPricesView from '$/views/MarketPricesView.svelte'
 	import Market_TimeInterval_TimestampsView from '$/views/Market_TimeInterval_TimestampsView.svelte'
+	import SnapshotSpacesView from '$/views/SnapshotSpacesView.svelte'
 	import SpecificationProposalsView from '$/views/SpecificationProposalsView.svelte'
 	import SpecificationRealmsView from '$/views/SpecificationRealmsView.svelte'
 	import SpecificationProposalKindsView from '$/views/SpecificationProposalKindsView.svelte'
@@ -392,6 +394,58 @@
 					collapsible={false}
 					title={label}
 					emptyText='No OHLC observations.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-global-governance'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'global-snapshot-spaces',
+						label: 'Snapshot spaces',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-governance'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Governance</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionGlobalSnapshotSpaces({ id, label })}
+				<SnapshotSpacesView
+					selection={
+						selection
+						.$$snapshotSpaces({
+							sources: [
+								Source.SnapshotHub_Graphql,
+							],
+							limit: 24,
+						})
+					}
+					href={
+						selection.entitySelector.scope === '$$snapshotSpaces' ?
+							true ?
+								resolve('/snapshot')
+							:
+								true ?
+									resolve('/snapshot/spaces')
+								:
+									undefined
+						:
+							undefined
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Snapshot spaces.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

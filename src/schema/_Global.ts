@@ -37,6 +37,13 @@ export default entity({
 			Source.Constants_Internal,
 		],
 	},
+	$$snapshotSpaces: {
+		entityType: EntityType.SnapshotSpace,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
 	$$proposals: {
 		entityType: EntityType.SpecificationProposal,
 		cardinality: EntityFieldCardinality.Many,

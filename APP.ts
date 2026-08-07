@@ -2008,6 +2008,8 @@ export enum EntityType {
 	RssNetwork = "RssNetwork",
 	ScalingDeploymentClaim = "ScalingDeploymentClaim",
 	ScalingDeploymentClaim_Timestamp = "ScalingDeploymentClaim_Timestamp",
+	SnapshotProposal = "SnapshotProposal",
+	SnapshotSpace = "SnapshotSpace",
 	SolanaAccount = "SolanaAccount",
 	SolanaAccount_Timestamp = "SolanaAccount_Timestamp",
 	SolanaBlock = "SolanaBlock",
@@ -2085,6 +2087,8 @@ export enum EntityType {
 	SwapQuoteStep = "SwapQuoteStep",
 	SwarmProtocol = "SwarmProtocol",
 	SwarmResource = "SwarmResource",
+	TallyGovernor = "TallyGovernor",
+	TallyProposal = "TallyProposal",
 	TezosAccount = "TezosAccount",
 	TezosAccount_Timestamp = "TezosAccount_Timestamp",
 	TezosBaker = "TezosBaker",
@@ -4702,6 +4706,7 @@ export const schema = {
 				"$$networkStacks": { label: "network stacks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NetworkStack },
 				"$$evmNetworks": { label: "EVM networks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network },
 				"$$networkUpgrades": { label: "network upgrades", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumNetworkUpgrade, defaultSources: [Source.Constants_Internal] },
+				"$$snapshotSpaces": { label: "Snapshot spaces", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SnapshotSpace, defaultSources: [Source.SnapshotHub_Graphql] },
 				"$$proposals": { label: "proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationProposal, defaultSources: [Source.Constants_Internal] },
 				"$$specificationRealms": { label: "specification realms", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationRealm, defaultSources: [Source.Constants_Internal] },
 				"$$proposalKinds": { label: "proposal kinds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationProposalKind, defaultSources: [Source.Constants_Internal] },
@@ -4793,6 +4798,14 @@ export const schema = {
 								sections: [
 									{ id: "global-market-prices", field: "$$marketPrices", List: "MarketPricesView", label: "Market prices", emptyText: "No market prices." },
 									{ id: "global-market-ohlc", field: "$$marketTimeIntervalTimestamps", List: "Market_TimeInterval_TimestampsView", label: "OHLC", emptyText: "No OHLC observations." },
+								],
+							},
+							{
+								id: "global-governance",
+								label: "Governance",
+								className: "network-view-collapsible-governance",
+								sections: [
+									{ id: "global-snapshot-spaces", field: "$$snapshotSpaces", List: "SnapshotSpacesView", label: "Snapshot spaces", href: "/snapshot/spaces", emptyText: "No Snapshot spaces.", selection: { sources: [Source.SnapshotHub_Graphql], limit: 24 } },
 								],
 							},
 							{
@@ -48882,8 +48895,8 @@ export const schema = {
 						"$$upgrades": { label: "Upgrades", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumNetworkUpgrade, defaultSources: [Source.Constants_Internal] },
 						"$$executionUpgrades": { label: "Execution upgrades", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumExecutionUpgrade, defaultSources: [Source.Constants_Internal] },
 						"$$consensusUpgrades": { label: "Consensus upgrades", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumConsensusUpgrade, defaultSources: [Source.Constants_Internal] },
-						"$$timestamps": { label: "EVM observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_Timestamp, defaultSources: [Source.Voltaire_JsonRpc] },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmBlock, defaultSources: [Source.Voltaire_JsonRpc, Source.Blockscout_Rest, Source.Blobscan_Rest] },
+						"$$timestamps": { label: "EVM observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_Timestamp, defaultSources: [Source.EnvioHyperRpc_JsonRpc, Source.EnvioHyperSync_RawHttp, Source.SqdPortal_RawHttp, Source.Voltaire_JsonRpc] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmBlock, defaultSources: [Source.Blobscan_Rest, Source.Blockscout_Rest, Source.EnvioHyperRpc_JsonRpc, Source.EnvioHyperSync_RawHttp, Source.SqdPortal_RawHttp, Source.Voltaire_JsonRpc] },
 						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.Blockscout_Rest] },
 						"$$txpoolTimestamps": { label: "Txpool timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_Txpool_Timestamp, defaultSources: [Source.Voltaire_JsonRpc] },
 						"$$gasFeeBlocks": { label: "Gas fee blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_GasFee_Block, defaultSources: [Source.Voltaire_JsonRpc] },
@@ -49111,7 +49124,7 @@ export const schema = {
 									className: "network-view-collapsible-execution",
 									sections: [
 										{ id: "evm-execution-upgrades", field: ["Evm", "$$executionUpgrades"], List: "EthereumExecutionUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
-										{ id: "evm-execution-blocks", field: ["Evm", "$$blocks"], List: "EvmBlocksView", label: "Blocks", selection: { sources: [Source.Voltaire_JsonRpc, Source.Blockscout_Rest, Source.Blobscan_Rest], limit: 4 } },
+										{ id: "evm-execution-blocks", field: ["Evm", "$$blocks"], List: "EvmBlocksView", label: "Blocks", selection: { sources: [Source.Blobscan_Rest, Source.Blockscout_Rest, Source.EnvioHyperRpc_JsonRpc, Source.EnvioHyperSync_RawHttp, Source.SqdPortal_RawHttp, Source.Voltaire_JsonRpc], limit: 4 } },
 										{ id: "evm-execution-transactions", field: ["Evm", "$$transactions"], List: "EvmTransactionsView", label: "Transactions", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 										{ id: "evm-execution-mempool", field: ["Evm", "$$txpoolTimestamps"], List: "EvmNetwork_Txpool_TimestampsView", label: "Mempool", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
 										{ id: "evm-execution-gas-blocks", field: ["Evm", "$$gasFeeBlocks"], List: "EvmNetwork_GasFee_BlocksView", label: "Fee market", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
@@ -49761,14 +49774,14 @@ export const schema = {
 						is: "Cardano",
 					})({
 						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
-						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNetwork_Timestamp, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoBlock, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
+						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNetwork_Timestamp, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest, Source.Ogmios_JsonRpc] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoBlock, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest, Source.Ogmios_JsonRpc] },
 						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoTransaction, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
 						"$$stakePools": { label: "Stake pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoStakePool, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
 						"$$dReps": { label: "DReps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoDRep, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
 						"$$governanceProposals": { label: "Governance proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoGovernanceProposal, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
 						"$$assets": { label: "Native assets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoNativeAsset, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
-						"$$protocolParameterEpochs": { label: "Protocol parameter epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoProtocolParameters_Epoch, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] },
+						"$$protocolParameterEpochs": { label: "Protocol parameter epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoProtocolParameters_Epoch, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest, Source.Ogmios_JsonRpc] },
 						"$$committeeEpochs": { label: "Committee epochs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CardanoCommittee_Epoch, defaultSources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest] }
 					})({
 						singularView: {
@@ -49778,8 +49791,8 @@ export const schema = {
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "cardano-chain-observations", field: ["Cardano", "$$timestamps"], List: "CardanoNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
-										{ id: "cardano-chain-blocks", field: ["Cardano", "$$blocks"], List: "CardanoBlocksView", label: "Blocks", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
+										{ id: "cardano-chain-observations", field: ["Cardano", "$$timestamps"], List: "CardanoNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest, Source.Ogmios_JsonRpc], limit: 16 } },
+										{ id: "cardano-chain-blocks", field: ["Cardano", "$$blocks"], List: "CardanoBlocksView", label: "Blocks", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest, Source.Ogmios_JsonRpc], limit: 16 } },
 										{ id: "cardano-chain-transactions", field: ["Cardano", "$$transactions"], List: "CardanoTransactionsView", label: "Transactions", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
 									],
 								},
@@ -49807,7 +49820,7 @@ export const schema = {
 									className: "network-view-collapsible-assets",
 									sections: [
 										{ id: "cardano-assets-native", field: ["Cardano", "$$assets"], List: "CardanoNativeAssetsView", label: "Native assets", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
-										{ id: "cardano-protocol-parameters", field: ["Cardano", "$$protocolParameterEpochs"], List: "CardanoProtocolParameters_EpochsView", label: "Protocol parameters", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest], limit: 16 } },
+										{ id: "cardano-protocol-parameters", field: ["Cardano", "$$protocolParameterEpochs"], List: "CardanoProtocolParameters_EpochsView", label: "Protocol parameters", selection: { sources: [Source.Blockfrost_Rest, Source.CardanoKoios_Rest, Source.Ogmios_JsonRpc], limit: 16 } },
 									],
 								},
 								{
@@ -55183,6 +55196,113 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.SnapshotProposal,
+				labels: {
+					singular: "Snapshot proposal",
+					plural: "Snapshot proposals",
+				},
+				description: "An off-chain Snapshot Hub proposal identified by its Hub proposal id.",
+			})({
+				"proposalId": { label: "Proposal ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"$space": { label: "Space", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.SnapshotSpace, defaultSources: [Source.SnapshotHub_Graphql] },
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network, defaultSources: [Source.SnapshotHub_Graphql] },
+				"$authorAccount": { label: "Author account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetworkAccount, defaultSources: [Source.SnapshotHub_Graphql] },
+				"author": { label: "Author", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"body": { label: "Body", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"discussion": { label: "Discussion", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"type": { label: "Type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"state": { label: "State", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"choices": { label: "Choices", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "stringArray", defaultSources: [Source.SnapshotHub_Graphql] },
+				"labels": { label: "Labels", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "stringArray", defaultSources: [Source.SnapshotHub_Graphql] },
+				"startAtMs": { label: "Starts", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"endAtMs": { label: "Ends", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"createdAtMs": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"quorum": { label: "Quorum", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"votesCount": { label: "Votes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"scores": { label: "Scores", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "numberArray", defaultSources: [Source.SnapshotHub_Graphql] },
+				"scoresTotal": { label: "Scores total", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"link": { label: "Link", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"app": { label: "App", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+			})({
+				selectors: {
+					"ProposalId": ["proposalId"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.SnapshotHub_Graphql] },
+						summary: {
+							title: ["title"],
+							titleFallback: [{ field: "proposalId", format: "truncated" }],
+							value: ["state", "votesCount"],
+							HeadingAfter: ["$space"],
+						},
+						closed: ["title", "state"],
+						content: {
+							dl: [
+								["$space", "$network", "state", "type", "author", "$authorAccount"],
+								["startAtMs", "endAtMs", "createdAtMs", "updatedAtMs", "quorum", "votesCount", "scoresTotal"],
+								["choices", "labels", "link", "app", { field: "proposalId", format: "truncated" }],
+							],
+							body: {
+								field: "body",
+								emptyText: "No proposal body.",
+							},
+						},
+					},
+					plural: { component: "SnapshotProposalsView", title: "Snapshot proposals" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.SnapshotSpace,
+				labels: {
+					singular: "Snapshot space",
+					plural: "Snapshot spaces",
+				},
+				description: "A Snapshot Hub space (DAO) identified by its Hub space id (often an ENS name).",
+			})({
+				"spaceId": { label: "Space ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"about": { label: "About", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"avatar": { label: "Avatar", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network, defaultSources: [Source.SnapshotHub_Graphql] },
+				"proposalsCount": { label: "Proposals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"votesCount": { label: "Votes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"followersCount": { label: "Followers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"createdAtMs": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"$$proposals": { label: "Proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SnapshotProposal, defaultSources: [Source.SnapshotHub_Graphql] },
+			})({
+				selectors: {
+					"SpaceId": ["spaceId"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.SnapshotHub_Graphql] },
+						summary: {
+							title: ["name"],
+							titleFallback: ["spaceId"],
+							value: ["symbol", "proposalsCount"],
+							HeadingAfter: ["$network"],
+						},
+						closed: ["spaceId", "name"],
+						content: {
+							dl: [
+								["spaceId", "name", "symbol", "$network", "proposalsCount", "votesCount", "followersCount", "createdAtMs"],
+								[{ field: "about", when: "open", format: "longText" }],
+							],
+						},
+						lists: [
+							{ field: "$$proposals", component: "SnapshotProposalsView", label: "Proposals", emptyText: "No proposals in this space." },
+						],
+					},
+					plural: { component: "SnapshotSpacesView", title: "Snapshot spaces" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.SolanaAccount,
 				labels: {
 					singular: "solana account",
@@ -60352,6 +60472,109 @@ export const schema = {
 					},
 					plural: { component: "SwarmResourcesView",
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.TallyGovernor,
+				labels: {
+					singular: "Tally governor",
+					plural: "Tally governors",
+				},
+				description: "An onchain governor indexed by Tally, identified by its CAIP-10 governor id.",
+			})({
+				"governorId": { label: "Governor ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"slug": { label: "Slug", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"governorType": { label: "Governor type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"kind": { label: "Kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network, defaultSources: [Source.Tally] },
+				"$contract": { label: "Governor contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmContract, defaultSources: [Source.Tally] },
+				"organizationId": { label: "Organization ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"organizationName": { label: "Organization", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"organizationSlug": { label: "Organization slug", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"quorum": { label: "Quorum", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"delegatesCount": { label: "Delegates", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Tally] },
+				"description": { label: "Description", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"isPrimary": { label: "Primary", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Tally] },
+				"$$proposals": { label: "Proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.TallyProposal, defaultSources: [Source.Tally] },
+			})({
+				selectors: {
+					"GovernorId": ["governorId"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Tally] },
+						summary: {
+							title: ["name", "organizationName"],
+							titleFallback: [{ field: "governorId", format: "truncated" }],
+							value: ["governorType", "slug"],
+							HeadingAfter: ["$network"],
+						},
+						closed: ["name", "governorType"],
+						content: {
+							dl: [
+								["$network", "$contract", "governorType", "kind", "slug", "organizationName", "organizationSlug", "organizationId"],
+								["quorum", "delegatesCount", "isPrimary", { field: "governorId", format: "truncated" }],
+								[{ field: "description", when: "open", format: "longText" }],
+							],
+						},
+						lists: [
+							{ field: "$$proposals", component: "TallyProposalsView", label: "Proposals", emptyText: "No Tally proposals." },
+						],
+					},
+					plural: { component: "TallyGovernorsView", title: "Tally governors" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.TallyProposal,
+				labels: {
+					singular: "Tally proposal",
+					plural: "Tally proposals",
+				},
+				description: "An onchain governance proposal indexed by Tally.",
+			})({
+				"proposalId": { label: "Proposal ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"onchainId": { label: "Onchain ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"$governor": { label: "Governor", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.TallyGovernor, defaultSources: [Source.Tally] },
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network, defaultSources: [Source.Tally] },
+				"$proposer": { label: "Proposer", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetworkAccount, defaultSources: [Source.Tally] },
+				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"description": { label: "Description", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"organizationName": { label: "Organization", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"quorum": { label: "Quorum", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"startAtMs": { label: "Starts", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Tally] },
+				"endAtMs": { label: "Ends", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Tally] },
+				"discourseUrl": { label: "Discourse", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"snapshotUrl": { label: "Snapshot URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+			})({
+				selectors: {
+					"ProposalId": ["proposalId"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Tally] },
+						summary: {
+							title: ["title"],
+							titleFallback: [{ field: "onchainId", prefix: "Proposal " }, { field: "proposalId", format: "truncated" }],
+							value: ["status", "onchainId"],
+							HeadingAfter: ["$governor"],
+						},
+						closed: ["title", "status"],
+						content: {
+							dl: [
+								["$governor", "$network", "$proposer", "status", "onchainId", "organizationName"],
+								["startAtMs", "endAtMs", "quorum", "discourseUrl", "snapshotUrl", { field: "proposalId", format: "truncated" }],
+							],
+							body: {
+								field: "description",
+								emptyText: "No proposal description.",
+							},
+						},
+					},
+					plural: { component: "TallyProposalsView", title: "Tally proposals" },
 				},
 			}),
 
@@ -77097,6 +77320,192 @@ export const routes = defineRoutes(schema)({
 				}
 			}
 		},
+		"snapshot": {
+			collections: [
+				{
+					field: [
+						EntityType._Global,
+						"$$snapshotSpaces"
+					],
+					query: {
+						sources: [Source.SnapshotHub_Graphql],
+					},
+					derivations: {
+						"scope": {
+							kind: "literal",
+							value: "$$snapshotSpaces",
+						}
+					},
+					page: {
+						view: {
+							component: "SnapshotSpacesView",
+						},
+						text: {
+							title: "Snapshot spaces",
+						}
+					}
+				},
+			],
+			children: {
+				"spaces": {
+					collections: [
+						{
+							field: [
+								EntityType._Global,
+								"$$snapshotSpaces"
+							],
+							query: {
+								sources: [Source.SnapshotHub_Graphql],
+							},
+							derivations: {
+								"scope": {
+									kind: "literal",
+									value: "$$snapshotSpaces",
+								}
+							},
+							page: {
+								view: {
+									component: "SnapshotSpacesView",
+								},
+								text: {
+									title: "Snapshot spaces",
+								}
+							}
+						},
+					],
+				},
+				"space": {
+					children: {
+						"[spaceId]": {
+							selectors: {
+								[EntityType.SnapshotSpace]: {
+									"SpaceId": {
+										params: {
+											"spaceId": ["spaceId"],
+										},
+										page: {},
+									},
+								},
+							},
+							children: {
+								"proposals": {
+									collections: [
+										{
+											field: [
+												EntityType.SnapshotSpace,
+												"$$proposals"
+											],
+											query: {
+												sources: [Source.SnapshotHub_Graphql],
+											},
+											derivations: {
+												"spaceId": {
+													kind: "param",
+													name: "spaceId",
+													decode: _ExpressionDecode.DecodeURIComponent,
+												}
+											},
+											page: {
+												view: {
+													component: "SnapshotProposalsView",
+												},
+												text: {
+													title: "Space proposals",
+												}
+											}
+										},
+									],
+								},
+							},
+						},
+					},
+				},
+				"proposal": {
+					children: {
+						"[proposalId]": {
+							selectors: {
+								[EntityType.SnapshotProposal]: {
+									"ProposalId": {
+										params: {
+											"proposalId": ["proposalId"],
+										},
+										page: {},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"tally": {
+			children: {
+				"governor": {
+					children: {
+						"[governorId]": {
+							selectors: {
+								[EntityType.TallyGovernor]: {
+									"GovernorId": {
+										params: {
+											"governorId": ["governorId"],
+										},
+										page: {},
+									},
+								},
+							},
+							children: {
+								"proposals": {
+									collections: [
+										{
+											field: [
+												EntityType.TallyGovernor,
+												"$$proposals"
+											],
+											query: {
+												sources: [Source.Tally],
+											},
+											derivations: {
+												"governorId": {
+													kind: "param",
+													name: "governorId",
+													decode: _ExpressionDecode.DecodeURIComponent,
+												}
+											},
+											page: {
+												view: {
+													component: "TallyProposalsView",
+												},
+												text: {
+													title: "Governor proposals",
+												}
+											}
+										},
+									],
+								},
+							},
+						},
+					},
+				},
+				"proposal": {
+					children: {
+						"[proposalId]": {
+							selectors: {
+								[EntityType.TallyProposal]: {
+									"ProposalId": {
+										params: {
+											"proposalId": ["proposalId"],
+										},
+										page: {},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
 		"social": {
 			page: {
 				view: {
@@ -87224,6 +87633,18 @@ export const app = {
 								icon: "📝",
 							},
 						],
+					},
+					{
+						id: "governance-snapshot",
+						title: "Snapshot",
+						href: "/snapshot/spaces",
+						icon: "🗳️",
+					},
+					{
+						id: "governance-tally",
+						title: "Tally",
+						href: "/tally",
+						icon: "⚖️",
 					},
 					{
 						id: "social-rss",
@@ -104506,6 +104927,14 @@ export const app = {
 				path: "src/resolvers/CelestiaNode-JsonRpc.ts",
 			},
 			{
+				source: Source.ChainlinkDataFeeds_AddressCatalog,
+				path: "src/resolvers/ChainlinkDataFeeds-AddressCatalog.ts",
+			},
+			{
+				source: Source.ChainlinkDataFeeds_Contracts,
+				path: "src/resolvers/ChainlinkDataFeeds-Contracts.ts",
+			},
+			{
 				source: Source.Chainlist_Rest,
 				path: "src/resolvers/Chainlist-Rest.ts",
 			},
@@ -104809,6 +105238,10 @@ export const app = {
 				path: "src/resolvers/NostrRelay-WebSocket.ts",
 			},
 			{
+				source: Source.Ogmios_JsonRpc,
+				path: "src/resolvers/Ogmios-JsonRpc.ts",
+			},
+			{
 				source: Source.OpenAI_Rest,
 				path: "src/resolvers/OpenAI-Rest.ts",
 			},
@@ -104863,6 +105296,10 @@ export const app = {
 			{
 				source: Source.QuilibriumDocs_Rest,
 				path: "src/resolvers/QuilibriumDocs-Rest.ts",
+			},
+			{
+				source: Source.QuilibriumNodeMetrics_Prometheus,
+				path: "src/resolvers/QuilibriumNodeMetrics-Prometheus.ts",
 			},
 			{
 				source: Source.QuilibriumNodeRpc_Grpc,

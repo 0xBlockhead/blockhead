@@ -7,6 +7,7 @@ import {
 } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
@@ -286,10 +287,22 @@ describe('Tally resolver field shaping', () => {
 		}])
 	})
 
-	it('exports an empty registered resolver module for Source.Tally', () => {
-		expect(tally).toEqual({
-			source: Source.Tally,
-			resolvers: [],
-		})
+	it('registers Tally governor and proposal resolver facets that project enrolled fields', () => {
+		expect(tally.source).toBe(Source.Tally)
+		expect(tally.resolvers.map((resolver) => resolver.entityType)).toEqual([
+			EntityType.TallyGovernor,
+			EntityType.TallyGovernor,
+			EntityType.TallyProposal,
+		])
+		const governorResolver = tally.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.TallyGovernor
+			&& 'governorId' in resolver.projections
+		))
+		const proposalResolver = tally.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.TallyProposal
+			&& 'title' in resolver.projections
+		))
+		expect(governorResolver?.projections.name({ governorId, name: 'Uniswap' })).toBe('Uniswap')
+		expect(proposalResolver?.projections.title({ proposalId, title: 'Fund public goods' })).toBe('Fund public goods')
 	})
 })
