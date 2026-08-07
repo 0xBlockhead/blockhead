@@ -190,13 +190,15 @@ const activityPubNoteCardReferenceFromMastodonStatus = (
 		return undefined
 
 	return {
-		[EntityMetaKey.Selector]: status.id != null ?
-			{
-				instanceOrigin,
-				localStatusId: String(status.id),
-			}
-		:
-			{ activityStreamsUri },
+		[EntityMetaKey.Selector]: (
+			activityStreamsUri != null ?
+				{ activityStreamsUri }
+			:
+				{
+					instanceOrigin,
+					localStatusId: String(status.id),
+				}
+		),
 		[EntityMetaKey.Fields]: (
 			activityStreamsUri == null || status.id == null ?
 				{}
@@ -470,14 +472,17 @@ export default {
 						return {
 							actors: [...actorByActivityStreamsUri.values()].slice(0, limit),
 							notes: [...new Map(timelineEntries.flatMap(({ note }) => (
-								note == null || !('localStatusId' in note[EntityMetaKey.Selector]) ?
+								note == null ?
 									[]
 								:
 									[[
-										`${note[EntityMetaKey.Selector].instanceOrigin}\n${note[EntityMetaKey.Selector].localStatusId}`,
+										'activityStreamsUri' in note[EntityMetaKey.Selector] ?
+											note[EntityMetaKey.Selector].activityStreamsUri
+										:
+											`${note[EntityMetaKey.Selector].instanceOrigin}\n${note[EntityMetaKey.Selector].localStatusId}`,
 										note,
 									] as const]
-							))).values()].slice(0, limit),
+							)).toReversed()).values()].toReversed().slice(0, limit),
 						}
 					},
 				},
@@ -511,10 +516,77 @@ export default {
 					resolve: async ({ scope }) => {
 						const timestampMs = Date.now()
 						const [instanceOrigin] = mastodonInstanceOrigins
-						const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
+						const {
+							getInstance,
+							getInstanceV2,
+							listInstanceModeratedDomains,
+							listInstancePeerDomains,
+							listPublicTimelinePage,
+						} = await import('$/sources/Mastodon/Rest/queries.ts')
 
 						try {
 							const instance = await getInstance(instanceOrigin)
+							const [
+								instanceV2Result,
+								peerDomainsResult,
+								moderatedDomainsResult,
+								timelineResult,
+							] = await Promise.allSettled([
+								getInstanceV2(instanceOrigin),
+								listInstancePeerDomains(instanceOrigin),
+								listInstanceModeratedDomains(instanceOrigin),
+								Promise.all(
+									mastodonPublicTimelineOrigins.map(async (publicTimelineOrigin) => (
+										(await listPublicTimelinePage(publicTimelineOrigin, 40)).statuses
+									))
+								),
+							])
+							const activeUserCount = (
+								instanceV2Result.status === 'fulfilled' ?
+									instanceV2Result.value.usage?.users?.active_month
+								:
+									undefined
+							)
+							const peerDomains = (
+								peerDomainsResult.status === 'fulfilled' ?
+									peerDomainsResult.value
+								:
+									undefined
+							)
+							const moderatedDomains = (
+								moderatedDomainsResult.status === 'fulfilled' ?
+									moderatedDomainsResult.value
+								:
+									undefined
+							)
+							const timelineStatuses = (
+								timelineResult.status === 'fulfilled' ?
+									timelineResult.value.flat()
+								:
+									undefined
+							)
+							const observedActorCount = (
+								timelineStatuses == null ?
+									undefined
+								:
+									new Set(
+										timelineStatuses.flatMap((status) => {
+											const activityStreamsUri = optionalNonemptyString(status.account?.uri)
+											return activityStreamsUri == null ? [] : [activityStreamsUri]
+										})
+									).size
+							)
+							const observedNoteCount = (
+								timelineStatuses == null ?
+									undefined
+								:
+									new Set(
+										timelineStatuses.flatMap((status) => {
+											const activityStreamsUri = optionalNonemptyString(status.uri)
+											return activityStreamsUri == null ? [] : [activityStreamsUri]
+										})
+									).size
+							)
 							return [{
 								[EntityMetaKey.Selector]: {
 									$hub: { scope },
@@ -532,7 +604,22 @@ export default {
 									...(instance.version != null && {
 										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceVersion')]: instance.version,
 									}),
+									...(activeUserCount != null && {
+										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'activeUserCount')]: activeUserCount,
+									}),
+									...(observedActorCount != null && {
+										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'observedActorCount')]: observedActorCount,
+									}),
+									...(observedNoteCount != null && {
+										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'observedNoteCount')]: observedNoteCount,
+									}),
 									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: mastodonInstanceOrigins.length,
+									...(peerDomains != null && {
+										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'knownPeerDomainCount')]: peerDomains.length,
+									}),
+									...(moderatedDomains != null && {
+										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'moderatedDomainCount')]: moderatedDomains.filter((domainBlock) => domainBlock.domain != null).length,
+									}),
 									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'reachable')]: true,
 								},
 							}]

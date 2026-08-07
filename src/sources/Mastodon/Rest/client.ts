@@ -31,7 +31,7 @@ const mastodonPublicTimelineBindingByOrigin = new Map(
 export const mastodonInstanceOrigins = [...mastodonInstanceBindingByOrigin.keys()]
 export const mastodonPublicTimelineOrigins = [...mastodonPublicTimelineBindingByOrigin.keys()]
 
-export const mastodonGet = async <T>(
+export const mastodonGet = async (
 	instanceOrigin: string,
 	path: string,
 	search?: Record<string, string | undefined>,
@@ -46,7 +46,7 @@ export const mastodonGet = async <T>(
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage(url, response))
 
-	return response.json<T>()
+	return response.json()
 }
 
 export const mastodonFetch = async (

@@ -6,6 +6,7 @@ import { Source } from '$/sources/Source.ts'
 
 const {
 	getInstance,
+	getInstanceV2,
 	getAccountByAcct,
 	getAccountByActivityStreamsUri,
 	getAccountByLocalAccountId,
@@ -19,6 +20,7 @@ const {
 	mastodonPublicTimelineOrigins,
 } = vi.hoisted(() => ({
 	getInstance: vi.fn(),
+	getInstanceV2: vi.fn(),
 	getAccountByAcct: vi.fn(),
 	getAccountByActivityStreamsUri: vi.fn(),
 	getAccountByLocalAccountId: vi.fn(),
@@ -43,6 +45,7 @@ vi.mock('$/sources/Mastodon/Rest/queries.ts', () => ({
 	getAccountByActivityStreamsUri,
 	getAccountByLocalAccountId,
 	getInstance,
+	getInstanceV2,
 	getStatus,
 	getStatusByActivityStreamsUri,
 	listAccountStatusesPageByLocalAccountId,
@@ -85,6 +88,7 @@ describe('Mastodon ActivityPub observations', () => {
 		getAccountByActivityStreamsUri.mockReset()
 		getAccountByLocalAccountId.mockReset()
 		getInstance.mockReset()
+		getInstanceV2.mockReset()
 		getStatus.mockReset()
 		getStatusByActivityStreamsUri.mockReset()
 		listAccountStatusesPageByLocalAccountId.mockReset()
@@ -186,12 +190,10 @@ describe('Mastodon ActivityPub observations', () => {
 		const projectedNotes = notes(timeline)
 		expect(projectedNotes.map((note) => note[EntityMetaKey.Selector])).toEqual([
 			{
-				instanceOrigin: 'https://fosstodon.org',
-				localStatusId: '114000000000000003',
+				activityStreamsUri: 'https://remote.example/users/alice/statuses/3',
 			},
 			{
-				instanceOrigin: 'https://fosstodon.org',
-				localStatusId: '114000000000000004',
+				activityStreamsUri: 'https://fosstodon.org/users/bob/statuses/4',
 			},
 		])
 		expect(projectedNotes[0][EntityMetaKey.Fields]).toMatchObject({
@@ -330,6 +332,53 @@ describe('Mastodon ActivityPub observations', () => {
 			description: 'Federated social network',
 			version: '4.3.0',
 		})
+		getInstanceV2.mockResolvedValueOnce({
+			usage: {
+				users: {
+					active_month: 12_345,
+				},
+			},
+		})
+		listInstancePeerDomains.mockResolvedValueOnce([
+			'peer-one.example',
+			'peer-two.example',
+		])
+		listInstanceModeratedDomains.mockResolvedValueOnce([
+			{ domain: 'blocked.example', severity: 'suspend' },
+			{ severity: 'silence' },
+		])
+		listPublicTimelinePage.mockResolvedValueOnce({
+			statuses: [
+				{
+					id: '1',
+					uri: 'https://fosstodon.org/users/alice/statuses/1',
+					account: {
+						id: 'alice',
+						uri: 'https://fosstodon.org/users/alice',
+						acct: 'alice',
+					},
+				},
+				{
+					id: '2',
+					uri: 'https://fosstodon.org/users/bob/statuses/2',
+					account: {
+						id: 'bob',
+						uri: 'https://fosstodon.org/users/bob',
+						acct: 'bob',
+					},
+				},
+				{
+					id: '3',
+					uri: 'https://fosstodon.org/users/alice/statuses/1',
+					account: {
+						id: 'alice',
+						uri: 'https://fosstodon.org/users/alice',
+						acct: 'alice',
+					},
+				},
+			],
+			continuationToken: undefined,
+		})
 
 		const observations = await resolver(
 			EntityType._GlobalActivityPubNetwork,
@@ -339,6 +388,10 @@ describe('Mastodon ActivityPub observations', () => {
 		}, context)
 
 		expect(getInstance).toHaveBeenCalledTimes(1)
+		expect(getInstanceV2).toHaveBeenCalledWith('https://mastodon.social')
+		expect(listInstancePeerDomains).toHaveBeenCalledWith('https://mastodon.social')
+		expect(listInstanceModeratedDomains).toHaveBeenCalledWith('https://mastodon.social')
+		expect(listPublicTimelinePage).toHaveBeenCalledWith('https://fosstodon.org', 40)
 		expect(observations).toHaveLength(1)
 		expect(observations[0][EntityMetaKey.Selector]).toEqual({
 			$hub: {
@@ -347,14 +400,19 @@ describe('Mastodon ActivityPub observations', () => {
 			timestampMs: 1_700_000_000_100,
 			source: Source.Mastodon_Rest,
 		})
-		expect(Object.values(observations[0][EntityMetaKey.Fields])).toEqual(expect.arrayContaining([
-			'https://mastodon.social',
-			'Mastodon',
-			'Federated social network',
-			'4.3.0',
-			2,
-			true,
-		]))
+		expect(observations[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceOrigin')]: 'https://mastodon.social',
+			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceTitle')]: 'Mastodon',
+			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceDescription')]: 'Federated social network',
+			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceVersion')]: '4.3.0',
+			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'activeUserCount')]: 12_345,
+			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'observedActorCount')]: 2,
+			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'observedNoteCount')]: 2,
+			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: 2,
+			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'knownPeerDomainCount')]: 2,
+			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'moderatedDomainCount')]: 1,
+			[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'reachable')]: true,
+		})
 	})
 
 	it('records an unreachable global observation without inventing instance metadata', async () => {

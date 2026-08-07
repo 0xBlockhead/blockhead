@@ -6,13 +6,20 @@ import {
 	mastodonInstanceOrigins,
 	mastodonPublicTimelineOrigins,
 } from '$/sources/Mastodon/Rest/client.ts'
-import type {
-	MastodonApiV1Account,
-	MastodonApiV1Context,
-	MastodonApiV1DomainBlock,
-	MastodonApiV1Instance,
-	MastodonApiV1Status,
-	MastodonApiV2Search,
+import {
+	mastodonApiV1AccountWire,
+	mastodonApiV1ContextWire,
+	mastodonApiV1DomainBlockListWire,
+	mastodonApiV1InstanceWire,
+	mastodonApiV1PeerDomainListWire,
+	mastodonApiV1StatusListWire,
+	mastodonApiV1StatusWire,
+	mastodonApiV2InstanceWire,
+	mastodonApiV2SearchWire,
+	type MastodonApiV1DomainBlock,
+	type MastodonApiV1Instance,
+	type MastodonApiV2Instance,
+	type MastodonApiV2Search,
 } from '$/sources/Mastodon/Rest/types.ts'
 
 const mastodonContinuationFromLink = (
@@ -71,11 +78,27 @@ const mastodonContinuationFromLink = (
 	return nextUrls[0]
 }
 
-export const getAccountByLocalAccountId = (
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`Mastodon_Rest: invalid ${label} response envelope`)
+	}
+}
+
+export const getAccountByLocalAccountId = async (
 	instanceOrigin: string,
 	localAccountId: string
 ) => (
-	mastodonGet<MastodonApiV1Account>(instanceOrigin, `/accounts/${encodeURIComponent(localAccountId)}`)
+	assertEnvelope(
+		'account',
+		mastodonApiV1AccountWire,
+		await mastodonGet(instanceOrigin, `/accounts/${encodeURIComponent(localAccountId)}`)
+	)
 )
 
 const assertPublicTimelineMatches = (instanceOrigin: string) => {
@@ -83,11 +106,15 @@ const assertPublicTimelineMatches = (instanceOrigin: string) => {
 		throw new Error(`Mastodon_Rest: public timeline binding is missing for ${instanceOrigin}`)
 }
 
-export const getAccountByAcct = (
+export const getAccountByAcct = async (
 	instanceOrigin: string,
 	acct: string
 ) => (
-	mastodonGet<MastodonApiV1Account>(instanceOrigin, '/accounts/lookup', { acct })
+	assertEnvelope(
+		'account-lookup',
+		mastodonApiV1AccountWire,
+		await mastodonGet(instanceOrigin, '/accounts/lookup', { acct })
+	)
 )
 
 const searchByActivityStreamsUri = async <_Result extends { uri?: string }>(
@@ -96,15 +123,19 @@ const searchByActivityStreamsUri = async <_Result extends { uri?: string }>(
 	resultsFromSearch: (search: MastodonApiV2Search) => _Result[] | undefined,
 	resultLabel: 'actor' | 'note'
 ) => {
-	const result = resultsFromSearch(await mastodonGet<MastodonApiV2Search>(
-		new URL(activityStreamsUri).origin,
-		'/search',
-		{
-			q: activityStreamsUri,
-			resolve: 'true',
-			type: queryType,
-		},
-		'v2'
+	const result = resultsFromSearch(assertEnvelope(
+		'search',
+		mastodonApiV2SearchWire,
+		await mastodonGet(
+			new URL(activityStreamsUri).origin,
+			'/search',
+			{
+				q: activityStreamsUri,
+				resolve: 'true',
+				type: queryType,
+			},
+			'v2'
+		)
 	))?.find((result) => result.uri === activityStreamsUri)
 	if (result == null)
 		throw new Error(`Mastodon_Rest: ActivityPub ${resultLabel} URI not found`)
@@ -115,22 +146,30 @@ export const getAccountByActivityStreamsUri = (activityStreamsUri: string) => (
 	searchByActivityStreamsUri(activityStreamsUri, 'accounts', ({ accounts }) => accounts, 'actor')
 )
 
-export const getStatus = (
+export const getStatus = async (
 	instanceOrigin: string,
 	localStatusId: string
 ) => (
-	mastodonGet<MastodonApiV1Status>(instanceOrigin, `/statuses/${encodeURIComponent(localStatusId)}`)
+	assertEnvelope(
+		'status',
+		mastodonApiV1StatusWire,
+		await mastodonGet(instanceOrigin, `/statuses/${encodeURIComponent(localStatusId)}`)
+	)
 )
 
 export const getStatusByActivityStreamsUri = (activityStreamsUri: string) => (
 	searchByActivityStreamsUri(activityStreamsUri, 'statuses', ({ statuses }) => statuses, 'note')
 )
 
-export const getStatusContext = (
+export const getStatusContext = async (
 	instanceOrigin: string,
 	localStatusId: string
 ) => (
-	mastodonGet<MastodonApiV1Context>(instanceOrigin, `/statuses/${encodeURIComponent(localStatusId)}/context`)
+	assertEnvelope(
+		'status-context',
+		mastodonApiV1ContextWire,
+		await mastodonGet(instanceOrigin, `/statuses/${encodeURIComponent(localStatusId)}/context`)
+	)
 )
 
 export const listAccountStatusesPageByLocalAccountId = async (
@@ -176,15 +215,33 @@ export const listAccountStatusesPageByLocalAccountId = async (
 	}
 
 	return {
-		statuses: await response.json<MastodonApiV1Status[]>(),
+		statuses: assertEnvelope(
+			'authored-notes',
+			mastodonApiV1StatusListWire,
+			await response.json()
+		),
 		continuationToken: nextUrl === continuationToken ? undefined : nextUrl,
 	}
 }
 
-export const getInstance = (
+export const getInstance = async (
 	instanceOrigin: string
-) => (
-	mastodonGet<MastodonApiV1Instance>(instanceOrigin, '/instance')
+): Promise<MastodonApiV1Instance> => (
+	assertEnvelope(
+		'instance',
+		mastodonApiV1InstanceWire,
+		await mastodonGet(instanceOrigin, '/instance')
+	)
+)
+
+export const getInstanceV2 = async (
+	instanceOrigin: string
+): Promise<MastodonApiV2Instance> => (
+	assertEnvelope(
+		'instance-v2',
+		mastodonApiV2InstanceWire,
+		await mastodonGet(instanceOrigin, '/instance', undefined, 'v2')
+	)
 )
 
 export const listPublicTimelinePage = async (
@@ -228,27 +285,39 @@ export const listPublicTimelinePage = async (
 	}
 
 	return {
-		statuses: await response.json<MastodonApiV1Status[]>(),
+		statuses: assertEnvelope(
+			'public-timeline',
+			mastodonApiV1StatusListWire,
+			await response.json()
+		),
 		continuationToken: nextUrl === continuationToken ? undefined : nextUrl,
 	}
 }
 
 export const listInstancePeerDomains = async (
 	instanceOrigin: string
-) => {
+): Promise<string[]> => {
 	const response = await mastodonFetch(instanceOrigin, '/instance/peers')
 	if (!response.ok)
 		throw new Error(`Mastodon_Rest: instance peers failed for ${instanceOrigin}: ${response.status} ${response.statusText}`)
-	return response.json<string[]>()
+	return assertEnvelope(
+		'instance-peers',
+		mastodonApiV1PeerDomainListWire,
+		await response.json()
+	)
 }
 
 export const listInstanceModeratedDomains = async (
 	instanceOrigin: string
-) => {
+): Promise<MastodonApiV1DomainBlock[]> => {
 	const response = await mastodonFetch(instanceOrigin, '/instance/domain_blocks')
 	if (!response.ok)
 		throw new Error(`Mastodon_Rest: instance domain blocks failed for ${instanceOrigin}: ${response.status} ${response.statusText}`)
-	return response.json<MastodonApiV1DomainBlock[]>()
+	return assertEnvelope(
+		'instance-domain-blocks',
+		mastodonApiV1DomainBlockListWire,
+		await response.json()
+	)
 }
 
 export const assertInstanceMatches = (instanceOrigin: string) => {

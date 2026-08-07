@@ -1,17 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const {
+	mastodonFetch,
 	mastodonFetchPublicTimelineUrl,
 	mastodonFetchUrl,
 	mastodonGet,
 } = vi.hoisted(() => ({
+	mastodonFetch: vi.fn(),
 	mastodonFetchPublicTimelineUrl: vi.fn(),
 	mastodonFetchUrl: vi.fn(),
 	mastodonGet: vi.fn(),
 }))
 
 vi.mock('$/sources/Mastodon/Rest/client.ts', () => ({
-	mastodonFetch: vi.fn(),
+	mastodonFetch,
 	mastodonFetchPublicTimelineUrl,
 	mastodonFetchUrl,
 	mastodonGet,
@@ -24,10 +26,20 @@ vi.mock('$/sources/Mastodon/Rest/client.ts', () => ({
 	],
 }))
 
-const { listAccountStatusesPageByLocalAccountId, listPublicTimelinePage } = await import('$/sources/Mastodon/Rest/queries.ts')
+const {
+	getAccountByLocalAccountId,
+	getInstance,
+	getInstanceV2,
+	getStatus,
+	listAccountStatusesPageByLocalAccountId,
+	listInstanceModeratedDomains,
+	listInstancePeerDomains,
+	listPublicTimelinePage,
+} = await import('$/sources/Mastodon/Rest/queries.ts')
 
 describe('Mastodon public timeline', () => {
 	beforeEach(() => {
+		mastodonFetch.mockReset()
 		mastodonFetchPublicTimelineUrl.mockReset()
 		mastodonFetchUrl.mockReset()
 		mastodonGet.mockReset()
@@ -206,5 +218,135 @@ describe('Mastodon public timeline', () => {
 			continuationToken
 		)).rejects.toThrow('invalid authored notes continuation')
 		expect(mastodonFetchUrl).not.toHaveBeenCalled()
+	})
+})
+
+describe('Mastodon Rest arktype envelopes', () => {
+	beforeEach(() => {
+		mastodonFetch.mockReset()
+		mastodonFetchPublicTimelineUrl.mockReset()
+		mastodonFetchUrl.mockReset()
+		mastodonGet.mockReset()
+	})
+
+	it('accepts account / status / instance / peers / domain-block / timeline envelopes', async () => {
+		mastodonGet
+			.mockResolvedValueOnce({
+				id: '1',
+				acct: 'alice',
+				uri: 'https://mastodon.social/users/alice',
+				followers_count: 0,
+			})
+			.mockResolvedValueOnce({
+				id: '9',
+				uri: 'https://mastodon.social/users/alice/statuses/9',
+				favourites_count: 0,
+				reblog: {
+					id: '8',
+					uri: 'https://mastodon.social/users/bob/statuses/8',
+				},
+			})
+			.mockResolvedValueOnce({
+				title: 'Mastodon',
+				version: '4.3.0',
+				urls: {
+					streaming_api: 'wss://mastodon.social',
+				},
+			})
+			.mockResolvedValueOnce({
+				usage: {
+					users: {
+						active_month: 12,
+					},
+				},
+			})
+		mastodonFetch
+			.mockResolvedValueOnce(new Response('["peer.example"]'))
+			.mockResolvedValueOnce(new Response('[{"domain":"blocked.example","severity":"suspend"}]'))
+		mastodonFetchPublicTimelineUrl.mockResolvedValueOnce(new Response('[{"id":"1","uri":"https://fosstodon.org/users/a/statuses/1"}]'))
+
+		await expect(getAccountByLocalAccountId('https://mastodon.social', '1')).resolves.toMatchObject({
+			id: '1',
+			acct: 'alice',
+		})
+		await expect(getStatus('https://mastodon.social', '9')).resolves.toMatchObject({
+			id: '9',
+			reblog: {
+				id: '8',
+			},
+		})
+		await expect(getInstance('https://mastodon.social')).resolves.toMatchObject({
+			title: 'Mastodon',
+		})
+		await expect(getInstanceV2('https://mastodon.social')).resolves.toMatchObject({
+			usage: {
+				users: {
+					active_month: 12,
+				},
+			},
+		})
+		await expect(listInstancePeerDomains('https://mastodon.social')).resolves.toEqual([
+			'peer.example',
+		])
+		await expect(listInstanceModeratedDomains('https://mastodon.social')).resolves.toEqual([
+			{ domain: 'blocked.example', severity: 'suspend' },
+		])
+		await expect(listPublicTimelinePage('https://fosstodon.org', 10)).resolves.toMatchObject({
+			statuses: [{ id: '1' }],
+		})
+		expect(mastodonGet).toHaveBeenNthCalledWith(
+			4,
+			'https://mastodon.social',
+			'/instance',
+			undefined,
+			'v2'
+		)
+	})
+
+	it('fails closed on malformed envelopes', async () => {
+		mastodonGet
+			.mockResolvedValueOnce({
+				id: 1,
+			})
+			.mockResolvedValueOnce({
+				id: 9,
+			})
+			.mockResolvedValueOnce({
+				title: 1,
+			})
+			.mockResolvedValueOnce({
+				usage: {
+					users: {
+						active_month: 'nope',
+					},
+				},
+			})
+		await expect(getAccountByLocalAccountId('https://mastodon.social', '1')).rejects.toThrow(
+			'Mastodon_Rest: invalid account response envelope'
+		)
+		await expect(getStatus('https://mastodon.social', '9')).rejects.toThrow(
+			'Mastodon_Rest: invalid status response envelope'
+		)
+		await expect(getInstance('https://mastodon.social')).rejects.toThrow(
+			'Mastodon_Rest: invalid instance response envelope'
+		)
+		await expect(getInstanceV2('https://mastodon.social')).rejects.toThrow(
+			'Mastodon_Rest: invalid instance-v2 response envelope'
+		)
+
+		mastodonFetchPublicTimelineUrl.mockResolvedValueOnce(new Response('{"not":"an-array"}'))
+		await expect(listPublicTimelinePage('https://fosstodon.org', 2)).rejects.toThrow(
+			'Mastodon_Rest: invalid public-timeline response envelope'
+		)
+
+		mastodonFetch
+			.mockResolvedValueOnce(new Response('{"not":"peers"}'))
+			.mockResolvedValueOnce(new Response('[{"domain":1}]'))
+		await expect(listInstancePeerDomains('https://mastodon.social')).rejects.toThrow(
+			'Mastodon_Rest: invalid instance-peers response envelope'
+		)
+		await expect(listInstanceModeratedDomains('https://mastodon.social')).rejects.toThrow(
+			'Mastodon_Rest: invalid instance-domain-blocks response envelope'
+		)
 	})
 })
