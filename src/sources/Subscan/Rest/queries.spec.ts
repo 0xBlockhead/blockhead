@@ -17,7 +17,9 @@ vi.mock('$/lib/http.ts', () => ({
 const {
 	getReferendum,
 	listAccountExtrinsics,
+	listBlocks,
 	listReferenda,
+	referendumLifecycleBlockNumbers,
 } = await import('$/sources/Subscan/Rest/queries.ts')
 
 const binding = bindings[Source.Subscan_Rest][0]
@@ -26,6 +28,23 @@ const publicEnv = {
 	PUBLIC_SUBSCAN_API_KEY: 'subscan-key',
 }
 const referendum = {
+	referendum_index: 23,
+	origins: 'Root',
+	created_block: 20_000_000,
+	latest_block_num: 20_000_100,
+	latest_block_timestamp: 1_753_000_100,
+	status: 'Deciding',
+	ayes_amount: '123000000000',
+	nays_amount: '45000000000',
+	timeline: [
+		{
+			block: 20_000_000,
+			status: 'Submitted',
+			time: 1_753_000_000,
+		},
+	],
+}
+const referendumListItem = {
 	referendum_index: 23,
 	origins: 'Root',
 	created_block: 20_000_000,
@@ -49,7 +68,7 @@ const accountExtrinsic = {
 }
 
 const response = (
-	list = [referendum],
+	list = [referendumListItem],
 	count = 35
 ) => new Response(JSON.stringify({
 	code: 0,
@@ -69,7 +88,6 @@ describe('Subscan referendum list', () => {
 
 	it('uses the registered proxied origin, credential, filters, and zero-based provider pagination', async () => {
 		await expect(listReferenda({
-			binding,
 			page: 2,
 			row: 10,
 			status: 'active',
@@ -81,7 +99,7 @@ describe('Subscan referendum list', () => {
 			generated_at: 1_753_000_100,
 			data: {
 				count: 35,
-				list: [referendum],
+				list: [referendumListItem],
 			},
 		})
 		expect(corsFetch).toHaveBeenCalledWith(
@@ -116,13 +134,12 @@ describe('Subscan referendum list', () => {
 	it('deduplicates exact statuses and omits nextPage on the final provider page', async () => {
 		corsFetch.mockResolvedValueOnce(response([
 			{
-				...referendum,
+				...referendumListItem,
 				status: 'Approved',
 			},
 		], 31))
 
 		await expect(listReferenda({
-			binding,
 			page: 3,
 			row: 10,
 			statuses: [
@@ -149,7 +166,6 @@ describe('Subscan referendum list', () => {
 		corsFetch.mockResolvedValueOnce(response([], 35))
 
 		await expect(listReferenda({
-			binding,
 			page: 4,
 			row: 10,
 			publicEnv,
@@ -167,31 +183,31 @@ describe('Subscan referendum list', () => {
 	it('rejects malformed identities, counts, oversized pages, and filter mismatches', async () => {
 		const cases = [
 			{
-				value: response([{ ...referendum, referendum_index: -1 }]),
-				message: 'invalid referendum identity',
+				value: response([{ ...referendumListItem, referendum_index: -1 }]),
+				message: 'invalid referenda response envelope',
 			},
 			{
-				value: response([referendum, referendum]),
+				value: response([referendumListItem, referendumListItem]),
 				message: 'duplicate referendum identity',
 			},
 			{
-				value: response([referendum], -1),
-				message: 'invalid count',
+				value: response([referendumListItem], -1),
+				message: 'invalid referenda response envelope',
 			},
 			{
-				value: response([referendum, { ...referendum, referendum_index: 24 }]),
+				value: response([referendumListItem, { ...referendumListItem, referendum_index: 24 }]),
 				message: 'exceeded the requested row limit',
 			},
 			{
-				value: response([{ ...referendum, origins: 'Signed' }]),
+				value: response([{ ...referendumListItem, origins: 'Signed' }]),
 				message: 'mismatched origin',
 			},
 			{
-				value: response([{ ...referendum, status: 'Rejected' }]),
+				value: response([{ ...referendumListItem, status: 'Rejected' }]),
 				message: 'mismatched status',
 			},
 			{
-				value: response([referendum], 20),
+				value: response([referendumListItem], 20),
 				message: 'exceeded its reported count',
 			},
 		]
@@ -199,7 +215,6 @@ describe('Subscan referendum list', () => {
 		for (const { value, message } of cases) {
 			corsFetch.mockResolvedValueOnce(value)
 			await expect(listReferenda({
-				binding,
 				page: message === 'exceeded its reported count' ? 2 : 0,
 				row: message === 'exceeded the requested row limit' ? 1 : 10,
 				statuses: message === 'mismatched status' ? ['Approved'] : undefined,
@@ -224,7 +239,6 @@ describe('Subscan referendum list', () => {
 		]
 		for (const request of invalidRequests)
 			await expect(listReferenda({
-				binding,
 				...request,
 				publicEnv,
 			})).rejects.toThrow()
@@ -238,11 +252,10 @@ describe('Subscan referendum list', () => {
 			0.5,
 			Number.MAX_SAFE_INTEGER + 1,
 		])
-				expect(() => getReferendum({
-					binding,
-					referendumIndex,
-					publicEnv,
-				})).toThrow('nonnegative safe integer')
+			await expect(getReferendum({
+				referendumIndex,
+				publicEnv,
+			})).rejects.toThrow('nonnegative safe integer')
 
 		expect(corsFetch).not.toHaveBeenCalled()
 		corsFetch.mockResolvedValueOnce(new Response(JSON.stringify({
@@ -252,10 +265,27 @@ describe('Subscan referendum list', () => {
 			data: null,
 		})))
 		await expect(getReferendum({
-			binding,
 			referendumIndex: 23,
 			publicEnv,
 		})).rejects.toThrow('Record Not Found')
+	})
+
+	it('fails closed on malformed referendum detail envelopes', async () => {
+		corsFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			code: 0,
+			message: 'Success',
+			generated_at: 1_753_000_100,
+			data: {
+				...referendum,
+				ayes_amount: '12.5',
+				nays_amount: '1',
+				timeline: [],
+			},
+		})))
+		await expect(getReferendum({
+			referendumIndex: 23,
+			publicEnv,
+		})).rejects.toThrow('invalid referendum response envelope')
 	})
 })
 
@@ -275,7 +305,6 @@ describe('Subscan account extrinsic list', () => {
 
 	it('preserves the SS58 subject and lossless indexed extrinsic facts', async () => {
 		await expect(listAccountExtrinsics({
-			binding,
 			accountId,
 			page: 1,
 			row: 10,
@@ -302,8 +331,8 @@ describe('Subscan account extrinsic list', () => {
 			[[{ ...accountExtrinsic, account_id: 'foreign' }], 'foreign account'],
 			[[accountExtrinsic, accountExtrinsic], 'duplicate identity'],
 			[[{ ...accountExtrinsic, extrinsic_index: '20000001-3' }], 'malformed identity'],
-			[[{ ...accountExtrinsic, fee: '1.5' }], 'malformed fee'],
-			[[{ ...accountExtrinsic, nonce: -1 }], 'malformed nonce'],
+			[[{ ...accountExtrinsic, fee: '1.5' }], 'invalid account extrinsics response envelope'],
+			[[{ ...accountExtrinsic, nonce: -1 }], 'invalid account extrinsics response envelope'],
 		] as const) {
 			corsFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 				code: 0,
@@ -315,7 +344,6 @@ describe('Subscan account extrinsic list', () => {
 				},
 			})))
 			await expect(listAccountExtrinsics({
-				binding,
 				accountId,
 				page: 0,
 				row: 10,
@@ -333,7 +361,6 @@ describe('Subscan account extrinsic list', () => {
 			{ accountId, page: Number.MAX_SAFE_INTEGER, row: 2 },
 		])
 			await expect(listAccountExtrinsics({
-				binding,
 				...request,
 				publicEnv,
 			})).rejects.toThrow()
@@ -389,7 +416,7 @@ describe('Subscan block extrinsic list', () => {
 			page: 0,
 			row: 10,
 			publicEnv,
-		})).rejects.toThrow('returned empty data')
+		})).rejects.toThrow('invalid block extrinsics response envelope')
 	})
 
 	it('fails closed on foreign block rows', async () => {
@@ -415,5 +442,123 @@ describe('Subscan block extrinsic list', () => {
 			row: 10,
 			publicEnv,
 		})).rejects.toThrow('foreign block')
+	})
+})
+
+describe('Subscan block list', () => {
+	const tipBlock = {
+		block_num: 20_000_100,
+		hash: '0xTIP',
+		block_timestamp: 1_753_000_100,
+		event_count: 12,
+		extrinsics_count: 4,
+		finalized: true,
+	}
+	const olderBlock = {
+		block_num: 20_000_099,
+		hash: '0xOLDER',
+		block_timestamp: 1_753_000_094,
+		finalized: true,
+	}
+
+	beforeEach(() => {
+		corsFetch.mockReset()
+		corsFetch.mockResolvedValue(new Response(JSON.stringify({
+			code: 0,
+			message: 'Success',
+			generated_at: 1_753_000_100,
+			data: {
+				count: 20_000_101,
+				blocks: [tipBlock, olderBlock],
+			},
+		})))
+	})
+
+	it('lists newest-first tip blocks from the v2 scan surface', async () => {
+		await expect(listBlocks({
+			page: 0,
+			row: 2,
+			publicEnv,
+		})).resolves.toMatchObject({
+			data: {
+				count: 20_000_101,
+				blocks: [tipBlock, olderBlock],
+			},
+		})
+		expect(corsFetch).toHaveBeenCalledWith(
+			'https://polkadot.api.subscan.io/api/v2/scan/blocks',
+			expect.objectContaining({
+				init: expect.objectContaining({
+					body: JSON.stringify({
+						page: 0,
+						row: 2,
+					}),
+				}),
+			})
+		)
+	})
+
+	it('fails closed on ascending pages and malformed envelopes', async () => {
+		corsFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			code: 0,
+			message: 'Success',
+			generated_at: 1_753_000_100,
+			data: {
+				count: 2,
+				blocks: [olderBlock, tipBlock],
+			},
+		})))
+		await expect(listBlocks({
+			page: 0,
+			row: 2,
+			publicEnv,
+		})).rejects.toThrow('newest-first')
+
+		corsFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			code: 0,
+			message: 'Success',
+			generated_at: 1_753_000_100,
+			data: {
+				count: 1,
+				blocks: [{
+					block_num: 1,
+					hash: '',
+				}],
+			},
+		})))
+		await expect(listBlocks({
+			page: 0,
+			row: 1,
+			publicEnv,
+		})).rejects.toThrow('invalid blocks response envelope')
+	})
+})
+
+describe('Subscan referendum lifecycle leftovers', () => {
+	it('maps confirming / decided / executed timeline statuses onto enrolled block clocks', () => {
+		expect(referendumLifecycleBlockNumbers({
+			...referendum,
+			timeline: [
+				{
+					block: 20_000_010,
+					status: 'Confirming',
+					time: 1_753_000_010,
+				},
+				{
+					block: 20_000_020,
+					status: 'Approved',
+					time: 1_753_000_020,
+				},
+				{
+					block: 20_000_030,
+					status: 'Executed',
+					time: 1_753_000_030,
+				},
+			],
+		})).toEqual({
+			confirmationStartedAtBlockNumber: 20_000_010n,
+			decidedAtBlockNumber: 20_000_020n,
+			enactmentAtBlockNumber: 20_000_030n,
+		})
 	})
 })

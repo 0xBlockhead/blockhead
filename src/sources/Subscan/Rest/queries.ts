@@ -4,13 +4,18 @@ import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
-import type {
-	SubscanBlock,
-	SubscanExtrinsic,
-	SubscanExtrinsicList,
-	SubscanReferendum,
-	SubscanReferendumList,
-	SubscanResponse,
+import {
+	subscanBlockListResponseWire,
+	subscanBlockResponseWire,
+	subscanExtrinsicListResponseWire,
+	subscanExtrinsicResponseWire,
+	subscanReferendumListResponseWire,
+	subscanReferendumResponseWire,
+	subscanStatusWire,
+	type SubscanBlock,
+	type SubscanBlockListItem,
+	type SubscanExtrinsic,
+	type SubscanReferendum,
 } from '$/sources/Subscan/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import bindings from '$/sources/Subscan/bindings.ts'
@@ -18,7 +23,19 @@ import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Subscan_Rest][0]
 
-const post = async <_Result>({
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`Subscan_Rest: invalid ${label} response envelope`)
+	}
+}
+
+const post = async ({
 	path,
 	body,
 	publicEnv,
@@ -40,11 +57,15 @@ const post = async <_Result>({
 		}
 	)
 	if (!response.ok) await throwHttpError(`Subscan ${path}`, response)
-	const result = await response.json<SubscanResponse<_Result>>()
-	if (result.code !== 0)
-		throw new Error(`Subscan ${path} failed: ${result.message}`)
-	if (result.data == null)
-		throw new Error(`Subscan ${path} returned empty data`)
+	const result = await response.json<unknown>()
+	try {
+		const status = subscanStatusWire.assert(result)
+		if (status.code !== 0)
+			throw new Error(`Subscan ${path} failed: ${status.message}`)
+	} catch (error) {
+		if (error instanceof Error && error.message.startsWith(`Subscan ${path} failed:`))
+			throw error
+	}
 	return result
 }
 
@@ -79,8 +100,6 @@ const assertExtrinsicIdentity = ({
 		unexpected.length > 0
 		|| !/^(?:0|[1-9]\d*)$/.test(blockNumber)
 		|| !/^(?:0|[1-9]\d*)$/.test(indexInBlock)
-		|| !Number.isSafeInteger(extrinsic.block_num)
-		|| extrinsic.block_num < 0
 		|| BigInt(blockNumber) !== BigInt(extrinsic.block_num)
 		|| BigInt(indexInBlock) > BigInt(Number.MAX_SAFE_INTEGER)
 	)
@@ -89,13 +108,25 @@ const assertExtrinsicIdentity = ({
 		throw new Error('Subscan extrinsics returned a foreign block row')
 	if (expectedAccountId != null && extrinsic.account_id !== expectedAccountId)
 		throw new Error('Subscan account extrinsics returned a foreign account row')
-	if (extrinsic.fee != null && !/^\d+$/.test(extrinsic.fee))
-		throw new Error('Subscan extrinsics returned a malformed fee')
-	if (
-		extrinsic.nonce != null
-		&& (!Number.isSafeInteger(extrinsic.nonce) || extrinsic.nonce < 0)
-	)
-		throw new Error('Subscan extrinsics returned a malformed nonce')
+}
+
+const assertBlockDetail = (
+	block: SubscanBlock,
+	height?: bigint
+) => {
+	if (height != null && BigInt(block.block_num) !== height)
+		throw new Error('Subscan block response does not match the subject')
+	return block
+}
+
+const assertBlockListItem = (
+	block: SubscanBlockListItem
+) => {
+	if (!Number.isSafeInteger(block.block_num) || block.block_num < 0)
+		throw new Error('Subscan block list returned an invalid block identity')
+	if (block.hash.length === 0)
+		throw new Error('Subscan block list returned a malformed hash')
+	return block
 }
 
 export const getBlock = async ({
@@ -108,24 +139,68 @@ export const getBlock = async ({
 	if (height < 0n || height > BigInt(Number.MAX_SAFE_INTEGER))
 		throw new Error('Subscan block height must be a nonnegative safe integer')
 
-	const response = await post<SubscanBlock>({
-		path: '/api/scan/block',
-		body: {
-			block_num: Number(height),
-		},
-		publicEnv,
+	const response = assertEnvelope(
+		'block',
+		subscanBlockResponseWire,
+		await post({
+			path: '/api/scan/block',
+			body: {
+				block_num: Number(height),
+			},
+			publicEnv,
+		})
+	)
+	assertBlockDetail(response.data, height)
+	return response
+}
+
+export const listBlocks = async ({
+	page,
+	row,
+	publicEnv,
+}: {
+	page: number
+	row: number
+	publicEnv: SourcePublicEnv
+}) => {
+	assertSafePagination({
+		page,
+		row,
+		label: 'block',
 	})
-	if (
-		!Number.isSafeInteger(response.data.block_num)
-		|| response.data.block_num < 0
-		|| BigInt(response.data.block_num) !== height
+
+	const response = assertEnvelope(
+		'blocks',
+		subscanBlockListResponseWire,
+		await post({
+			path: '/api/v2/scan/blocks',
+			body: {
+				page,
+				row,
+			},
+			publicEnv,
+		})
 	)
-		throw new Error('Subscan block response does not match the subject')
+	if (response.data.blocks.length > row)
+		throw new Error('Subscan block list exceeded the requested row limit')
+
+	const blockNumbers = new Set<number>()
+	let previousBlockNumber: number | undefined
+	for (const block of response.data.blocks) {
+		assertBlockListItem(block)
+		if (blockNumbers.has(block.block_num))
+			throw new Error('Subscan block list returned a duplicate block identity')
+		if (previousBlockNumber != null && block.block_num >= previousBlockNumber)
+			throw new Error('Subscan block list is not newest-first')
+		blockNumbers.add(block.block_num)
+		previousBlockNumber = block.block_num
+	}
+
 	if (
-		response.data.block_hash.length === 0
-		|| response.data.parent_hash.length === 0
+		response.data.blocks.length > 0
+		&& page * row + response.data.blocks.length > response.data.count
 	)
-		throw new Error('Subscan block response is malformed')
+		throw new Error('Subscan block list exceeded its reported count')
 
 	return response
 }
@@ -140,23 +215,22 @@ export const getExtrinsic = async ({
 	if (extrinsicIndex.length === 0)
 		throw new Error('Subscan extrinsic index must not be empty')
 
-	const response = await post<SubscanExtrinsic>({
-		path: '/api/scan/extrinsic',
-		body: {
-			extrinsic_index: extrinsicIndex,
-		},
-		publicEnv,
-	})
+	const response = assertEnvelope(
+		'extrinsic',
+		subscanExtrinsicResponseWire,
+		await post({
+			path: '/api/scan/extrinsic',
+			body: {
+				extrinsic_index: extrinsicIndex,
+			},
+			publicEnv,
+		})
+	)
 	assertExtrinsicIdentity({
 		extrinsic: response.data,
 	})
 	if (response.data.extrinsic_index !== extrinsicIndex)
 		throw new Error('Subscan extrinsic response does not match the subject')
-	if (
-		response.data.call_module.length === 0
-		|| response.data.call_module_function.length === 0
-	)
-		throw new Error('Subscan extrinsic response is malformed')
 
 	return response
 }
@@ -180,18 +254,20 @@ export const listAccountExtrinsics = async ({
 		label: 'extrinsic',
 	})
 
-	const response = await post<SubscanExtrinsicList>({
-		path: '/api/scan/extrinsics',
-		body: {
-			address: accountId,
-			page,
-			row,
-			signed: 'signed',
-		},
-		publicEnv,
-	})
-	if (!Number.isSafeInteger(response.data.count) || response.data.count < 0)
-		throw new Error('Subscan account extrinsics returned an invalid count')
+	const response = assertEnvelope(
+		'account extrinsics',
+		subscanExtrinsicListResponseWire,
+		await post({
+			path: '/api/scan/extrinsics',
+			body: {
+				address: accountId,
+				page,
+				row,
+				signed: 'signed',
+			},
+			publicEnv,
+		})
+	)
 	if (response.data.extrinsics.length > row)
 		throw new Error('Subscan account extrinsics exceeded the requested row limit')
 
@@ -234,17 +310,19 @@ export const listBlockExtrinsics = async ({
 		label: 'block extrinsic',
 	})
 
-	const response = await post<SubscanExtrinsicList>({
-		path: '/api/scan/extrinsics',
-		body: {
-			block_num: Number(blockNumber),
-			page,
-			row,
-		},
-		publicEnv,
-	})
-	if (!Number.isSafeInteger(response.data.count) || response.data.count < 0)
-		throw new Error('Subscan block extrinsics returned an invalid count')
+	const response = assertEnvelope(
+		'block extrinsics',
+		subscanExtrinsicListResponseWire,
+		await post({
+			path: '/api/scan/extrinsics',
+			body: {
+				block_num: Number(blockNumber),
+				page,
+				row,
+			},
+			publicEnv,
+		})
+	)
 	if (response.data.extrinsics.length > row)
 		throw new Error('Subscan block extrinsics exceeded the requested row limit')
 
@@ -268,7 +346,7 @@ export const listBlockExtrinsics = async ({
 	return response
 }
 
-export const getReferendum = ({
+export const getReferendum = async ({
 	referendumIndex,
 	publicEnv,
 }: {
@@ -278,13 +356,21 @@ export const getReferendum = ({
 	if (!Number.isSafeInteger(referendumIndex) || referendumIndex < 0)
 		throw new Error('Subscan referendum index must be a nonnegative safe integer')
 
-	return post<SubscanReferendum>({
-		path: '/api/scan/referenda/referendum',
-		body: {
-			referendum_index: referendumIndex,
-		},
-		publicEnv,
-	})
+	const response = assertEnvelope(
+		'referendum',
+		subscanReferendumResponseWire,
+		await post({
+			path: '/api/scan/referenda/referendum',
+			body: {
+				referendum_index: referendumIndex,
+			},
+			publicEnv,
+		})
+	)
+	if (response.data.referendum_index !== referendumIndex)
+		throw new Error('Subscan referendum response does not match the subject')
+
+	return response
 }
 
 export const listReferenda = async ({
@@ -317,26 +403,26 @@ export const listReferenda = async ({
 		throw new Error('Subscan referendum status filters are ambiguous')
 
 	const distinctStatuses = statuses == null ? undefined : [...new Set(statuses)]
-	const response = await post<SubscanReferendumList>({
-		path: '/api/scan/referenda/referendums',
-		body: {
-			page,
-			row,
-			...(status != null && { status }),
-			...(distinctStatuses != null && { multi_status: distinctStatuses }),
-			...(origin != null && { origin }),
-		},
-		publicEnv,
-	})
-	if (!Number.isSafeInteger(response.data.count) || response.data.count < 0)
-		throw new Error('Subscan referendum list returned an invalid count')
+	const response = assertEnvelope(
+		'referenda',
+		subscanReferendumListResponseWire,
+		await post({
+			path: '/api/scan/referenda/referendums',
+			body: {
+				page,
+				row,
+				...(status != null && { status }),
+				...(distinctStatuses != null && { multi_status: distinctStatuses }),
+				...(origin != null && { origin }),
+			},
+			publicEnv,
+		})
+	)
 	if (response.data.list.length > row)
 		throw new Error('Subscan referendum list exceeded the requested row limit')
 
 	const referendumIndexes = new Set<number>()
 	for (const referendum of response.data.list) {
-		if (!Number.isSafeInteger(referendum.referendum_index) || referendum.referendum_index < 0)
-			throw new Error('Subscan referendum list returned an invalid referendum identity')
 		if (referendumIndexes.has(referendum.referendum_index))
 			throw new Error('Subscan referendum list returned a duplicate referendum identity')
 		if (origin != null && referendum.origins !== origin)
@@ -354,4 +440,60 @@ export const listReferenda = async ({
 		throw new Error('Subscan referendum list exceeded its reported count')
 
 	return response
+}
+
+export const referendumLifecycleBlockNumbers = (
+	referendum: SubscanReferendum
+) => {
+	let confirmationStartedAtBlockNumber: bigint | undefined
+	let decidedAtBlockNumber: bigint | undefined
+	let enactmentAtBlockNumber: bigint | undefined
+
+	for (const observation of referendum.timeline) {
+		const status = observation.status.toLowerCase()
+		if (
+			confirmationStartedAtBlockNumber == null
+			&& (
+				status === 'confirming'
+				|| status === 'confirmationstarted'
+				|| status === 'confirmation_started'
+			)
+		)
+			confirmationStartedAtBlockNumber = BigInt(observation.block)
+		if (
+			decidedAtBlockNumber == null
+			&& (
+				status === 'approved'
+				|| status === 'rejected'
+				|| status === 'cancelled'
+				|| status === 'canceled'
+				|| status === 'timedout'
+				|| status === 'timed_out'
+				|| status === 'killed'
+				|| status === 'decided'
+			)
+		)
+			decidedAtBlockNumber = BigInt(observation.block)
+		if (
+			enactmentAtBlockNumber == null
+			&& (
+				status === 'executed'
+				|| status === 'enactment'
+				|| status === 'enacted'
+			)
+		)
+			enactmentAtBlockNumber = BigInt(observation.block)
+	}
+
+	return {
+		...(confirmationStartedAtBlockNumber != null && {
+			confirmationStartedAtBlockNumber,
+		}),
+		...(decidedAtBlockNumber != null && {
+			decidedAtBlockNumber,
+		}),
+		...(enactmentAtBlockNumber != null && {
+			enactmentAtBlockNumber,
+		}),
+	}
 }

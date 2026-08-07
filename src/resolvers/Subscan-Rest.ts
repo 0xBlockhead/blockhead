@@ -11,7 +11,9 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
+import type { SubscanExtrinsic } from '$/sources/Subscan/Rest/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -48,6 +50,158 @@ const continuationPage = (token: string | undefined) => {
 	return page
 }
 
+const extrinsicFields = (
+	$network: NetworkId,
+	extrinsic: SubscanExtrinsic
+) => ({
+	...(extrinsic.extrinsic_hash != null && extrinsic.extrinsic_hash !== '' && {
+		hash: extrinsic.extrinsic_hash,
+	}),
+	...(extrinsic.account_id != null && extrinsic.account_id !== '' && {
+		$signer: {
+			[EntityMetaKey.Selector]: {
+				$network,
+				accountId: extrinsic.account_id,
+			},
+		},
+	}),
+	$pallet: {
+		[EntityMetaKey.Selector]: {
+			$network,
+			palletName: extrinsic.call_module,
+		},
+	},
+	callName: extrinsic.call_module_function,
+	success: extrinsic.success,
+})
+
+const polkadotBlockSnapshot = async (
+	$network: NetworkId,
+	blockNumber: bigint,
+	hash: string | undefined,
+	context: Parameters<typeof resolverContextRowLimit>[0]
+) => {
+	const row = Math.min(resolverContextRowLimit(context), 100)
+	const page = continuationPage(context.providerContinuationToken)
+	const {
+		getBlock,
+		listBlockExtrinsics,
+	} = await import('$/sources/Subscan/Rest/queries.ts')
+	const [
+		block,
+		extrinsics,
+	] = await Promise.all([
+		getBlock({
+			height: blockNumber,
+			publicEnv: context.publicEnv,
+		}).then((response) => response.data),
+		listBlockExtrinsics({
+			blockNumber,
+			page,
+			row,
+			publicEnv: context.publicEnv,
+		}),
+	])
+	if (hash != null && block.block_hash !== hash)
+		throw new Error('Subscan_Rest: block hash does not match the subject')
+
+	return {
+		hash: block.block_hash,
+		...(blockNumber > 0n && {
+			$parent: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					blockNumber: blockNumber - 1n,
+					hash: block.parent_hash,
+				},
+			},
+		}),
+		stateRoot: block.state_root,
+		extrinsicsRoot: block.extrinsics_root,
+		page,
+		row,
+		extrinsicCount: extrinsics.data.count,
+		$$extrinsics: extrinsics.data.extrinsics.map((extrinsic) => ({
+			[EntityMetaKey.Selector]: {
+				$block: {
+					$network,
+					blockNumber,
+					hash: block.block_hash,
+				},
+				indexInBlock: extrinsicIndexInBlock(extrinsic.extrinsic_index),
+			},
+			...extrinsicFields($network, extrinsic),
+		})),
+	}
+}
+
+const referendumObservationSnapshot = async (
+	entitySelector: {
+		$network: NetworkId
+		referendumId: string
+	},
+	context: {
+		publicEnv: SourcePublicEnv
+	}
+) => {
+	assertPolkadotMainnet(entitySelector.$network)
+	const {
+		getReferendum,
+		referendumLifecycleBlockNumbers,
+	} = await import('$/sources/Subscan/Rest/queries.ts')
+	const referendum = (await getReferendum({
+		referendumIndex: referendumIndexFromId(entitySelector.referendumId),
+		publicEnv: context.publicEnv,
+	})).data
+	if (referendum.referendum_index !== Number(entitySelector.referendumId))
+		throw new Error('Subscan_Rest: referendum response does not match the subject')
+
+	const lifecycle = referendumLifecycleBlockNumbers(referendum)
+	const observations = [
+		...referendum.timeline,
+		{
+			block: referendum.latest_block_num,
+			status: referendum.status,
+			time: referendum.latest_block_timestamp,
+		},
+	]
+	const timestampMsByObservation = new Set<number>()
+	const $$timestamps = []
+	for (const observation of observations) {
+		const timestampMs = observation.time * 1_000
+		if (timestampMsByObservation.has(timestampMs))
+			continue
+		timestampMsByObservation.add(timestampMs)
+		const isTip = observation.time === referendum.latest_block_timestamp
+		$$timestamps.push({
+			[EntityMetaKey.Selector]: {
+				$referendum: entitySelector,
+				timestampMs,
+				source: Source.Subscan_Rest,
+			},
+			blockNumber: BigInt(observation.block),
+			status: observation.status,
+			...(isTip && {
+				ayeVotes: BigInt(referendum.ayes_amount),
+				nayVotes: BigInt(referendum.nays_amount),
+				...lifecycle,
+				...(referendum.support != null && {
+					support: referendum.support,
+				}),
+				...(referendum.approval != null && {
+					approval: referendum.approval,
+				}),
+			}),
+		})
+	}
+
+	return {
+		track: referendum.origins,
+		submittedAtBlockNumber: BigInt(referendum.created_block),
+		$$timestamps,
+	}
+}
+
 export default {
 	source: Source.Subscan_Rest,
 
@@ -55,85 +209,18 @@ export default {
 		defineResolver({
 			entityType: EntityType.PolkadotBlock,
 			resolve: {
+				NetworkBlockNumber: {
+					resolve: async ({ $network, blockNumber }, context) => {
+						assertPolkadotMainnet($network)
+						return polkadotBlockSnapshot($network, blockNumber, undefined, context)
+					},
+				},
 				NetworkBlockNumberHash: {
 					resolve: async ({ $network, blockNumber, hash }, context) => {
 						assertPolkadotMainnet($network)
-						const row = Math.min(resolverContextRowLimit(context), 100)
-						const page = continuationPage(context.providerContinuationToken)
-						const {
-							getBlock,
-							listBlockExtrinsics,
-						} = await import('$/sources/Subscan/Rest/queries.ts')
-						const [
-							block,
-							extrinsics,
-						] = await Promise.all([
-							getBlock({
-								height: blockNumber,
-								publicEnv: context.publicEnv,
-							}).then((response) => response.data),
-							listBlockExtrinsics({
-								blockNumber,
-								page,
-								row,
-								publicEnv: context.publicEnv,
-							}),
-						])
-						if (block.block_hash !== hash)
-							throw new Error('Subscan_Rest: block hash does not match the subject')
-
-						return {
-							hash: block.block_hash,
-							...(blockNumber > 0n && {
-								$parent: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										blockNumber: blockNumber - 1n,
-										hash: block.parent_hash,
-									},
-								},
-							}),
-							stateRoot: block.state_root,
-							extrinsicsRoot: block.extrinsics_root,
-							page,
-							row,
-							extrinsicCount: extrinsics.data.count,
-							$$extrinsics: extrinsics.data.extrinsics.map((extrinsic) => ({
-								[EntityMetaKey.Selector]: {
-									$block: {
-										$network,
-										blockNumber,
-										hash: block.block_hash,
-									},
-									indexInBlock: extrinsicIndexInBlock(extrinsic.extrinsic_index),
-								},
-								...(extrinsic.extrinsic_hash != null && extrinsic.extrinsic_hash !== '' && {
-									hash: extrinsic.extrinsic_hash,
-								}),
-								...(extrinsic.account_id != null && extrinsic.account_id !== '' && {
-									$signer: {
-										[EntityMetaKey.Selector]: {
-											$network,
-											accountId: extrinsic.account_id,
-										},
-									},
-								}),
-								...(extrinsic.call_module.length > 0 && {
-									$pallet: {
-										[EntityMetaKey.Selector]: {
-											$network,
-											palletName: extrinsic.call_module,
-										},
-									},
-								}),
-								...(extrinsic.call_module_function.length > 0 && {
-									callName: extrinsic.call_module_function,
-								}),
-								success: extrinsic.success,
-							})),
-						}
+						return polkadotBlockSnapshot($network, blockNumber, hash, context)
 					},
-				}
+				},
 			},
 		})({
 				hash: (snapshot) => snapshot.hash,
@@ -165,13 +252,13 @@ export default {
 						|| snapshot.$$extrinsics.length === 0 ?
 							{
 								operation: 'block-extrinsics',
-								target: `${entitySelector.blockNumber.toString()}:${entitySelector.hash}`,
+								target: `${entitySelector.blockNumber.toString()}:${'hash' in entitySelector ? entitySelector.hash : snapshot.hash}`,
 								terminal: true,
 							}
 						:
 							{
 								operation: 'block-extrinsics',
-								target: `${entitySelector.blockNumber.toString()}:${entitySelector.hash}`,
+								target: `${entitySelector.blockNumber.toString()}:${'hash' in entitySelector ? entitySelector.hash : snapshot.hash}`,
 								terminal: false,
 								token: String(snapshot.page + 1),
 							}
@@ -199,32 +286,10 @@ export default {
 						if (
 							extrinsic.account_id === ''
 							|| extrinsic.extrinsic_hash === ''
-							|| extrinsic.call_module.length === 0
-							|| extrinsic.call_module_function.length === 0
 						)
 							throw new Error('Subscan_Rest: extrinsic response is malformed')
 
-						return {
-							...(extrinsic.extrinsic_hash != null && {
-								hash: extrinsic.extrinsic_hash,
-							}),
-							...(extrinsic.account_id != null && {
-								$signer: {
-									[EntityMetaKey.Selector]: {
-										$network: $block.$network,
-										accountId: extrinsic.account_id,
-									},
-								},
-							}),
-							$pallet: {
-								[EntityMetaKey.Selector]: {
-									$network: $block.$network,
-									palletName: extrinsic.call_module,
-								},
-							},
-							callName: extrinsic.call_module_function,
-							success: extrinsic.success,
-						}
+						return extrinsicFields($block.$network, extrinsic)
 					},
 				}
 			},
@@ -240,52 +305,9 @@ export default {
 			entityType: EntityType.PolkadotReferendum,
 			resolve: {
 				NetworkReferendumId: {
-					resolve: async (entitySelector, context) => {
-						assertPolkadotMainnet(entitySelector.$network)
-						const { getReferendum } = await import('$/sources/Subscan/Rest/queries.ts')
-						const referendum = (await getReferendum({
-							referendumIndex: referendumIndexFromId(entitySelector.referendumId),
-							publicEnv: context.publicEnv,
-						})).data
-						if (referendum.referendum_index !== Number(entitySelector.referendumId))
-							throw new Error('Subscan_Rest: referendum response does not match the subject')
-
-						const observations = [
-							...referendum.timeline,
-							{
-								block: referendum.latest_block_num,
-								status: referendum.status,
-								time: referendum.latest_block_timestamp,
-							},
-						]
-						const timestampMsByObservation = new Set<number>()
-						const $$timestamps = []
-						for (const observation of observations) {
-							const timestampMs = observation.time * 1_000
-							if (timestampMsByObservation.has(timestampMs))
-								continue
-							timestampMsByObservation.add(timestampMs)
-							$$timestamps.push({
-								[EntityMetaKey.Selector]: {
-									$referendum: entitySelector,
-									timestampMs,
-									source: Source.Subscan_Rest,
-								},
-								blockNumber: BigInt(observation.block),
-								status: observation.status,
-								...(observation.time === referendum.latest_block_timestamp && {
-									ayeVotes: BigInt(referendum.ayes_amount),
-									nayVotes: BigInt(referendum.nays_amount),
-								}),
-							})
-						}
-
-						return {
-							track: referendum.origins,
-							submittedAtBlockNumber: BigInt(referendum.created_block),
-							$$timestamps,
-						}
-					},
+					resolve: async (entitySelector, context) => (
+						referendumObservationSnapshot(entitySelector, context)
+					),
 				}
 			},
 		})({
@@ -302,6 +324,21 @@ export default {
 						...(observation.nayVotes != null && {
 							[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'nayVotes')]: observation.nayVotes,
 						}),
+						...(observation.confirmationStartedAtBlockNumber != null && {
+							[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'confirmationStartedAtBlockNumber')]: observation.confirmationStartedAtBlockNumber,
+						}),
+						...(observation.decidedAtBlockNumber != null && {
+							[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'decidedAtBlockNumber')]: observation.decidedAtBlockNumber,
+						}),
+						...(observation.enactmentAtBlockNumber != null && {
+							[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'enactmentAtBlockNumber')]: observation.enactmentAtBlockNumber,
+						}),
+						...(observation.support != null && {
+							[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'support')]: observation.support,
+						}),
+						...(observation.approval != null && {
+							[entityFieldAddressKey(EntityType.PolkadotReferendum_Timestamp, [], 'approval')]: observation.approval,
+						}),
 					},
 				})),
 			}),
@@ -317,19 +354,10 @@ export default {
 					}, context) => {
 						if (source !== Source.Subscan_Rest)
 							throw new Error(`Subscan_Rest: unsupported source ${source}`)
-						assertPolkadotMainnet($referendum.$network)
-						const { getReferendum } = await import('$/sources/Subscan/Rest/queries.ts')
-						const referendum = (await getReferendum({
-							referendumIndex: referendumIndexFromId($referendum.referendumId),
-							publicEnv: context.publicEnv,
-						})).data
-						if (referendum.referendum_index !== Number($referendum.referendumId))
-							throw new Error('Subscan_Rest: referendum response does not match the observation subject')
-						const observation = [...referendum.timeline, {
-							block: referendum.latest_block_num,
-							status: referendum.status,
-							time: referendum.latest_block_timestamp,
-						}].findLast((candidate) => candidate.time * 1_000 === timestampMs)
+						const snapshot = await referendumObservationSnapshot($referendum, context)
+						const observation = snapshot.$$timestamps.find((candidate) => (
+							candidate[EntityMetaKey.Selector].timestampMs === timestampMs
+						))
 						if (observation == null)
 							throw new Error('Subscan_Rest: referendum observation not found')
 
@@ -339,12 +367,15 @@ export default {
 							},
 							timestampMs,
 							source,
-							blockNumber: BigInt(observation.block),
+							blockNumber: observation.blockNumber,
 							status: observation.status,
-							...(observation.time === referendum.latest_block_timestamp && {
-								ayeVotes: BigInt(referendum.ayes_amount),
-								nayVotes: BigInt(referendum.nays_amount),
-							}),
+							ayeVotes: observation.ayeVotes,
+							nayVotes: observation.nayVotes,
+							confirmationStartedAtBlockNumber: observation.confirmationStartedAtBlockNumber,
+							decidedAtBlockNumber: observation.decidedAtBlockNumber,
+							enactmentAtBlockNumber: observation.enactmentAtBlockNumber,
+							support: observation.support,
+							approval: observation.approval,
 						}
 					},
 				}
@@ -357,6 +388,65 @@ export default {
 				status: (observation) => observation.status,
 				ayeVotes: (observation) => observation.ayeVotes,
 				nayVotes: (observation) => observation.nayVotes,
+				confirmationStartedAtBlockNumber: (observation) => observation.confirmationStartedAtBlockNumber,
+				decidedAtBlockNumber: (observation) => observation.decidedAtBlockNumber,
+				enactmentAtBlockNumber: (observation) => observation.enactmentAtBlockNumber,
+				support: (observation) => observation.support,
+				approval: (observation) => observation.approval,
+			}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network, context) => {
+						assertPolkadotMainnet(network)
+						const { listBlocks } = await import('$/sources/Subscan/Rest/queries.ts')
+						const row = Math.min(resolverContextRowLimit(context), 100)
+						const page = continuationPage(context.providerContinuationToken)
+						const blocks = await listBlocks({
+							page,
+							row,
+							publicEnv: context.publicEnv,
+						})
+						return {
+							page,
+							row,
+							count: blocks.data.count,
+							$$blocks: blocks.data.blocks.map((block) => ({
+								[EntityMetaKey.Selector]: {
+									$network: network,
+									blockNumber: BigInt(block.block_num),
+									hash: block.hash,
+								},
+							})),
+						}
+					},
+				},
+			},
+		})({
+				Polkadot: {
+					$$blocks: {
+						select: (snapshot) => snapshot.$$blocks,
+						resolveCount: (snapshot) => BigInt(snapshot.count),
+						continuation: (snapshot, network) => (
+							(snapshot.page + 1) * snapshot.row >= snapshot.count
+							|| snapshot.$$blocks.length === 0 ?
+								{
+									operation: 'network-blocks',
+									target: 'slug' in network ? network.slug : 'polkadot',
+									terminal: true,
+								}
+							:
+								{
+									operation: 'network-blocks',
+									target: 'slug' in network ? network.slug : 'polkadot',
+									terminal: false,
+									token: String(snapshot.page + 1),
+								}
+						),
+					},
+				},
 			}),
 	],
 } satisfies RegisteredSourceResolverModule
