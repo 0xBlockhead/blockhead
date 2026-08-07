@@ -90,22 +90,20 @@ export const bskyAppViewXrpc = (binding: SourceBinding) => {
 				depth?: number
 				parentHeight?: number
 			} = {}
-		) => {
-			const response = await get<BskyAppViewGetPostThreadResponse>(
-				'/app.bsky.feed.getPostThread',
-				[
-					['uri', uri],
-					['depth', depth],
-					['parentHeight', parentHeight],
-				]
-			)
+		) => (
 			assertEnvelope(
 				'post-thread',
 				bskyAppViewGetPostThreadResponseWire,
-				response
+				await get<BskyAppViewGetPostThreadResponse>(
+					'/app.bsky.feed.getPostThread',
+					[
+						['uri', uri],
+						['depth', depth],
+						['parentHeight', parentHeight],
+					]
+				)
 			)
-			return response
-		},
+		),
 		getAuthorFeed: async ({
 			actor,
 			limit = 30,

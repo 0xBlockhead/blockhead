@@ -196,6 +196,12 @@ const lensUsernameReferenceFromWire = (
 	}
 }
 
+const lensRulesPassthroughFromWire = (
+	rules: { required: unknown[], anyOf: unknown[] } | null | undefined
+) => (
+	rules == null ? undefined : { required: rules.required, anyOf: rules.anyOf }
+)
+
 const lensUsernameNamespaceFromWire = (
 	namespace: NonNullable<Awaited<ReturnType<
 		typeof import('$/sources/Lens/Graphql/queries.ts')['queryNamespace']
@@ -218,6 +224,7 @@ const lensUsernameNamespaceFromWire = (
 		...((createdAt) => createdAt != null && { createdAt })(optionalTimestampMs(namespace.createdAt)),
 		...((description) => description != null && { description })(optionalNonemptyString(namespace.metadata?.description)),
 		...(namespace.stats?.totalUsernames != null && { totalUsernames: namespace.stats.totalUsernames }),
+		...((rules) => rules != null && { rules })(lensRulesPassthroughFromWire(namespace.rules)),
 	}
 }
 
@@ -692,6 +699,7 @@ const lensGraphqlResolvers = {
 							const name = optionalNonemptyString(feed.metadata?.name)
 							const description = optionalNonemptyString(feed.metadata?.description)
 							const createdAt = optionalTimestampMs(feed.createdAt)
+							const rules = lensRulesPassthroughFromWire(feed.rules)
 							return [{
 								[EntityMetaKey.Selector]: { address },
 								[EntityMetaKey.Fields]: {
@@ -708,6 +716,9 @@ const lensGraphqlResolvers = {
 									}),
 									...(createdAt != null && {
 										[entityFieldAddressKey(EntityType.LensFeed, [], 'createdAt')]: createdAt,
+									}),
+									...(rules != null && {
+										[entityFieldAddressKey(EntityType.LensFeed, [], 'rules')]: rules,
 									}),
 								},
 							}]
@@ -752,6 +763,9 @@ const lensGraphqlResolvers = {
 									...(resolved.totalUsernames != null && {
 										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'totalUsernames')]: resolved.totalUsernames,
 									}),
+									...(resolved.rules != null && {
+										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'rules')]: resolved.rules,
+									}),
 								},
 							}]
 						}).slice(0, limit)
@@ -784,6 +798,7 @@ const lensGraphqlResolvers = {
 							...((name) => name != null && { name })(optionalNonemptyString(feed.metadata?.name)),
 							...((description) => description != null && { description })(optionalNonemptyString(feed.metadata?.description)),
 							...((createdAt) => createdAt != null && { createdAt })(optionalTimestampMs(feed.createdAt)),
+							...((rules) => rules != null && { rules })(lensRulesPassthroughFromWire(feed.rules)),
 						}
 					},
 				},
@@ -795,6 +810,7 @@ const lensGraphqlResolvers = {
 				name: (feed) => feed.name,
 				description: (feed) => feed.description,
 				createdAt: (feed) => feed.createdAt,
+				rules: (feed) => feed.rules,
 			}),
 
 		defineResolver({
@@ -898,6 +914,7 @@ const lensGraphqlResolvers = {
 				createdAt: (namespace) => namespace.createdAt,
 				description: (namespace) => namespace.description,
 				totalUsernames: (namespace) => namespace.totalUsernames,
+				rules: (namespace) => namespace.rules,
 			}),
 
 		defineResolver({

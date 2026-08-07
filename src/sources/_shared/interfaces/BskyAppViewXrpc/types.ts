@@ -3,7 +3,10 @@
  * @see https://docs.bsky.app/docs/api/app-bsky-actor-get-profile
  * @see https://docs.bsky.app/docs/api/app-bsky-feed-get-posts
  */
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import {
+	isJsonObject,
+	type JsonValue,
+} from '$/typescript/JsonValue.ts'
 
 export type BskyAppViewProfile = {
 	did: string
@@ -220,11 +223,29 @@ export type BskyAppViewThreadViewPost = {
 	replies?: BskyAppViewThreadNode[]
 }
 
-export type BskyAppViewThreadNode = BskyAppViewThreadViewPost & {
-	uri?: string
-	notFound?: boolean
-	blocked?: boolean
+export type BskyAppViewThreadNotFound = {
+	uri: string
+	notFound: true
 }
+
+export type BskyAppViewThreadBlocked = {
+	uri: string
+	blocked: true
+	author?: {
+		did: string
+	}
+}
+
+export type BskyAppViewThreadNode =
+	| BskyAppViewThreadViewPost
+	| BskyAppViewThreadNotFound
+	| BskyAppViewThreadBlocked
+
+export const isBskyAppViewThreadViewPost = (
+	node: BskyAppViewThreadNode
+): node is BskyAppViewThreadViewPost => (
+	'post' in node
+)
 
 export type BskyAppViewGetPostThreadResponse = {
 	thread?: BskyAppViewThreadNode
@@ -332,9 +353,64 @@ export const bskyAppViewGetAuthorFeedResponseWire = arktype({
 	'cursor?': 'string',
 }) satisfies Type<BskyAppViewGetAuthorFeedResponse>
 
-export const bskyAppViewGetPostThreadResponseWire = arktype({
+const bskyAppViewThreadNotFoundWire = arktype({
+	uri: 'string',
+	notFound: 'true',
+}) satisfies Type<BskyAppViewThreadNotFound>
+
+const bskyAppViewThreadBlockedWire = arktype({
+	uri: 'string',
+	blocked: 'true',
+	'author?': {
+		did: 'string',
+	},
+}) satisfies Type<BskyAppViewThreadBlocked>
+
+const bskyAppViewThreadViewPostEnvelopeWire = arktype({
+	post: bskyAppViewPostViewWire,
+	'parent?': 'unknown',
+	'replies?': 'unknown[]',
+})
+
+const assertBskyAppViewThreadNode = (
+	value: unknown
+): BskyAppViewThreadNode => {
+	const node = value as JsonValue
+	if (!isJsonObject(node))
+		throw new TypeError('BskyAppView_Xrpc: invalid thread node')
+
+	if (node.notFound === true)
+		return bskyAppViewThreadNotFoundWire.assert(node)
+
+	if (node.blocked === true)
+		return bskyAppViewThreadBlockedWire.assert(node)
+
+	const envelope = bskyAppViewThreadViewPostEnvelopeWire.assert(node)
+	return {
+		post: envelope.post,
+		...(envelope.parent !== undefined && {
+			parent: assertBskyAppViewThreadNode(envelope.parent),
+		}),
+		...(envelope.replies !== undefined && {
+			replies: envelope.replies.map(assertBskyAppViewThreadNode),
+		}),
+	}
+}
+
+const bskyAppViewGetPostThreadResponseEnvelopeWire = arktype({
 	'thread?': 'unknown',
-}) satisfies Type<{ thread?: unknown }>
+})
+
+export const bskyAppViewGetPostThreadResponseWire = {
+	assert: (value: unknown): BskyAppViewGetPostThreadResponse => {
+		const envelope = bskyAppViewGetPostThreadResponseEnvelopeWire.assert(value)
+		return {
+			...(envelope.thread !== undefined && {
+				thread: assertBskyAppViewThreadNode(envelope.thread),
+			}),
+		}
+	},
+}
 
 export const bskyAppViewSearchActorsTypeaheadResponseWire = arktype({
 	'actors?': arktype({

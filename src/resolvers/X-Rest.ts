@@ -268,7 +268,17 @@ export default {
 									:
 										MediaType.Image
 								)
-								return media == null ? [] : [media]
+								if (media == null) return []
+								const hash = optionalNonemptyString(wireMedia?.media_key ?? mediaKey)
+								return [{
+									...media,
+									[EntityMetaKey.Fields]: {
+										...media[EntityMetaKey.Fields],
+										...(hash != null && {
+											[entityFieldAddressKey(EntityType.Media, [], 'hash')]: hash,
+										}),
+									},
+								}]
 							}),
 							...(tweet.author_id != null && {
 								$author: xUserReference(

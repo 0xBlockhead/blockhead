@@ -86,6 +86,7 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 		searchActors.mockReset()
 		searchActorsTypeahead.mockReset()
 		searchPosts.mockReset()
+		vi.restoreAllMocks()
 	})
 
 	it('projects $$observedActors via searchActors with handle + tip observation fields', async () => {
@@ -153,6 +154,7 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 		)
 			throw new Error('missing observed posts / timestamp resolvers')
 
+		vi.spyOn(Date, 'now').mockReturnValue(1_738_555_506_000)
 		await expect(observedPosts.resolve.Scope.resolve({
 			scope: '_GlobalAtprotoNetwork',
 		}, context)).resolves.toEqual([{
@@ -166,6 +168,19 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 				[entityFieldAddressKey(EntityType.AtprotoPost, [], 'createdAt')]: 1_738_555_506_000,
 				[entityFieldAddressKey(EntityType.AtprotoPost, [], 'indexedAt')]: 1_738_555_506_000,
 				[entityFieldAddressKey(EntityType.AtprotoPost, [], 'langs')]: ['en'],
+				[entityFieldAddressKey(EntityType.AtprotoPost, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$post: { uri: postView.uri },
+						timestampMs: 1_738_555_506_000,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.AtprotoPost_Timestamp, [], 'likeCount')]: 0,
+						[entityFieldAddressKey(EntityType.AtprotoPost_Timestamp, [], 'repostCount')]: 2,
+						[entityFieldAddressKey(EntityType.AtprotoPost_Timestamp, [], 'replyCount')]: 1,
+						[entityFieldAddressKey(EntityType.AtprotoPost_Timestamp, [], 'quoteCount')]: 0,
+						[entityFieldAddressKey(EntityType.AtprotoPost_Timestamp, [], 'bookmarkCount')]: 0,
+					},
+				}],
 			},
 		}])
 
@@ -179,5 +194,124 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 			quoteCount: 0,
 			bookmarkCount: 0,
 		})
+	})
+
+	it('projects Did handle from getProfile and hub tip $$timestamps from AppView search windows', async () => {
+		getProfile.mockResolvedValue({
+			did: 'did:plc:alice',
+			handle: 'alice.test',
+			displayName: 'Alice',
+		})
+		searchActors.mockResolvedValue({
+			actors: [{
+				did: 'did:plc:alice',
+				handle: 'alice.test',
+			}],
+		})
+		searchPosts.mockResolvedValue({
+			posts: [postView],
+		})
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
+
+		const actorDid = atproto.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.AtprotoActor
+			&& 'Did' in resolver.resolve
+			&& 'handle' in resolver.projections
+			&& !('$$timestamps' in resolver.projections)
+			&& !('$$posts' in resolver.projections)
+		))
+		const hubTimestamps = atproto.resolvers.find((resolver) => (
+			resolver.entityType === EntityType._GlobalAtprotoNetwork
+			&& '$$timestamps' in resolver.projections
+		))
+		const hubTimestampSingular = atproto.resolvers.find((resolver) => (
+			resolver.entityType === EntityType._GlobalAtprotoNetwork_Timestamp
+		))
+		if (
+			actorDid == null
+			|| hubTimestamps == null
+			|| hubTimestampSingular == null
+			|| !('Did' in actorDid.resolve)
+			|| !('Scope' in hubTimestamps.resolve)
+			|| !('HubTimestampMsSource' in hubTimestampSingular.resolve)
+		)
+			throw new Error('missing Did / hub timestamp resolvers')
+
+		await expect(actorDid.resolve.Did.resolve({
+			did: 'did:plc:alice',
+		}, context)).resolves.toEqual({
+			did: 'did:plc:alice',
+			handle: 'alice.test',
+		})
+
+		const hub = await hubTimestamps.resolve.Scope.resolve({
+			scope: '_GlobalAtprotoNetwork',
+		}, context)
+		expect(hub.$$timestamps).toHaveLength(1)
+		expect(hub.$$timestamps[0][EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType._GlobalAtprotoNetwork_Timestamp, [], 'source')]: Source.Atproto_Xrpc,
+			[entityFieldAddressKey(EntityType._GlobalAtprotoNetwork_Timestamp, [], 'observedActorCount')]: 1,
+			[entityFieldAddressKey(EntityType._GlobalAtprotoNetwork_Timestamp, [], 'observedPostCount')]: 1,
+			[entityFieldAddressKey(EntityType._GlobalAtprotoNetwork_Timestamp, [], 'relayHost')]: 'public.api.bsky.app',
+			[entityFieldAddressKey(EntityType._GlobalAtprotoNetwork_Timestamp, [], 'reachable')]: true,
+		})
+
+		await expect(hubTimestampSingular.resolve.HubTimestampMsSource.resolve({
+			$hub: { scope: '_GlobalAtprotoNetwork' },
+			timestampMs: 1_700_000_000_000,
+			source: Source.Atproto_Xrpc,
+		}, context)).resolves.toEqual({
+			$hub: { scope: '_GlobalAtprotoNetwork' },
+			timestampMs: 1_700_000_000_000,
+			source: Source.Atproto_Xrpc,
+			observedActorCount: 1,
+			observedPostCount: 1,
+			relayHost: 'public.api.bsky.app',
+			reachable: true,
+		})
+	})
+
+	it('walks getPostThread ancestors/descendants and skips notFound/blocked nodes', async () => {
+		getPostThread.mockResolvedValue({
+			thread: {
+				post: postView,
+				parent: {
+					uri: 'at://did:plc:missing/app.bsky.feed.post/3gone',
+					notFound: true,
+				},
+				replies: [
+					{
+						post: {
+							...postView,
+							uri: 'at://did:plc:alice/app.bsky.feed.post/3reply',
+							record: {
+								...postView.record,
+								text: 'reply',
+							},
+						},
+						replies: [{
+							uri: 'at://did:plc:blocked/app.bsky.feed.post/3blocked',
+							blocked: true,
+							author: { did: 'did:plc:blocked' },
+						}],
+					},
+				],
+			},
+		})
+		const threadResolver = atproto.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.AtprotoPost
+			&& '$$thread' in resolver.projections
+		))
+		if (threadResolver == null || !('Uri' in threadResolver.resolve))
+			throw new Error('missing $$thread resolver')
+
+		const rows = await threadResolver.resolve.Uri.resolve({
+			uri: postView.uri,
+		}, context)
+		expect(rows).toHaveLength(1)
+		expect(rows[0][EntityMetaKey.Selector]).toEqual({
+			uri: 'at://did:plc:alice/app.bsky.feed.post/3reply',
+		})
+		expect(rows[0][EntityMetaKey.Fields][entityFieldAddressKey(EntityType.AtprotoPost, [], 'text')]).toBe('reply')
 	})
 })

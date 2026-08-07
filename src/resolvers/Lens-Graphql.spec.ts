@@ -784,6 +784,15 @@ describe('Lens_Graphql reading relationships', () => {
 							name: 'Research',
 							description: 'Bounded research feed',
 						},
+						rules: {
+							required: [{
+								id: 'feed-rule-1',
+								type: 'SIMPLE_PAYMENT',
+								address: '0x3333333333333333333333333333333333333333',
+								executesOn: ['CREATE_POST'],
+							}],
+							anyOf: [],
+						},
 					},
 				],
 			},
@@ -803,6 +812,15 @@ describe('Lens_Graphql reading relationships', () => {
 						},
 						stats: {
 							totalUsernames: 0,
+						},
+						rules: {
+							required: [],
+							anyOf: [{
+								id: 'namespace-rule-1',
+								type: 'TOKEN_GATED',
+								address: '0x4444444444444444444444444444444444444444',
+								executesOn: ['CREATE_USERNAME'],
+							}],
 						},
 					},
 				],
@@ -840,6 +858,15 @@ describe('Lens_Graphql reading relationships', () => {
 				[entityFieldAddressKey(EntityType.LensFeed, [], 'name')]: 'Research',
 				[entityFieldAddressKey(EntityType.LensFeed, [], 'description')]: 'Bounded research feed',
 				[entityFieldAddressKey(EntityType.LensFeed, [], 'createdAt')]: 1_741_064_767_000,
+				[entityFieldAddressKey(EntityType.LensFeed, [], 'rules')]: {
+					required: [{
+						id: 'feed-rule-1',
+						type: 'SIMPLE_PAYMENT',
+						address: '0x3333333333333333333333333333333333333333',
+						executesOn: ['CREATE_POST'],
+					}],
+					anyOf: [],
+				},
 			},
 		}])
 		expect(queryFeeds).toHaveBeenCalledWith(3)
@@ -867,6 +894,15 @@ describe('Lens_Graphql reading relationships', () => {
 				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'createdAt')]: 1_741_064_767_000,
 				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'description')]: 'Default Lens namespace',
 				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'totalUsernames')]: 0,
+				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'rules')]: {
+					required: [],
+					anyOf: [{
+						id: 'namespace-rule-1',
+						type: 'TOKEN_GATED',
+						address: '0x4444444444444444444444444444444444444444',
+						executesOn: ['CREATE_USERNAME'],
+					}],
+				},
 			},
 		}])
 		expect(queryNamespaces).toHaveBeenCalledWith(2)

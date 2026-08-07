@@ -191,6 +191,85 @@ it('fail-closes malformed profile / posts / search envelopes', async () => {
 	await expect(getAuthorFeed({ actor: 'did:plc:x' })).rejects.toThrow(
 		'BskyAppView_Xrpc: invalid author-feed response envelope'
 	)
+
+	sourceGetJson.mockResolvedValueOnce({
+		thread: {
+			uri: 'at://did:plc:missing/app.bsky.feed.post/3gone',
+			notFound: true,
+		},
+	})
+	await expect(getPostThread('at://did:plc:missing/app.bsky.feed.post/3gone')).resolves.toEqual({
+		thread: {
+			uri: 'at://did:plc:missing/app.bsky.feed.post/3gone',
+			notFound: true,
+		},
+	})
+
+	sourceGetJson.mockResolvedValueOnce({
+		thread: {
+			post: { uri: 'at://incomplete' },
+		},
+	})
+	await expect(getPostThread('at://incomplete')).rejects.toThrow(
+		'BskyAppView_Xrpc: invalid post-thread response envelope'
+	)
+})
+
+it('accepts recursive getPostThread viewPost / notFound / blocked nodes', async () => {
+	sourceGetJson.mockResolvedValueOnce({
+		thread: {
+			post: {
+				uri: 'at://did:plc:root/app.bsky.feed.post/3root',
+				cid: 'bafyroot',
+				indexedAt: '2025-01-01T00:00:00.000Z',
+				author: { did: 'did:plc:root', handle: 'root.test' },
+				record: { text: 'root', createdAt: '2025-01-01T00:00:00.000Z' },
+			},
+			parent: {
+				uri: 'at://did:plc:missing/app.bsky.feed.post/3gone',
+				notFound: true,
+			},
+			replies: [
+				{
+					post: {
+						uri: 'at://did:plc:reply/app.bsky.feed.post/3reply',
+						cid: 'bafyreply',
+						indexedAt: '2025-01-01T00:00:00.000Z',
+						author: { did: 'did:plc:reply', handle: 'reply.test' },
+						record: { text: 'reply', createdAt: '2025-01-01T00:00:00.000Z' },
+					},
+					replies: [{
+						uri: 'at://did:plc:blocked/app.bsky.feed.post/3blocked',
+						blocked: true,
+						author: { did: 'did:plc:blocked' },
+					}],
+				},
+			],
+		},
+	})
+	await expect(getPostThread('at://did:plc:root/app.bsky.feed.post/3root')).resolves.toMatchObject({
+		thread: {
+			post: {
+				uri: 'at://did:plc:root/app.bsky.feed.post/3root',
+			},
+			parent: {
+				uri: 'at://did:plc:missing/app.bsky.feed.post/3gone',
+				notFound: true,
+			},
+			replies: [
+				{
+					post: {
+						uri: 'at://did:plc:reply/app.bsky.feed.post/3reply',
+					},
+					replies: [{
+						uri: 'at://did:plc:blocked/app.bsky.feed.post/3blocked',
+						blocked: true,
+						author: { did: 'did:plc:blocked' },
+					}],
+				},
+			],
+		},
+	})
 })
 
 it('accepts zero engagement counts on posts and searchActors handles', async () => {

@@ -96,6 +96,20 @@ const LensFeed = graphql(`
 			name
 			description
 		}
+		rules {
+			required {
+				id
+				type
+				address
+				executesOn
+			}
+			anyOf {
+				id
+				type
+				address
+				executesOn
+			}
+		}
 	}
 `)
 
@@ -112,6 +126,20 @@ const LensUsernameNamespace = graphql(`
 		}
 		stats {
 			totalUsernames
+		}
+		rules {
+			required {
+				id
+				type
+				address
+				executesOn
+			}
+			anyOf {
+				id
+				type
+				address
+				executesOn
+			}
 		}
 	}
 `)
