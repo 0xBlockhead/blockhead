@@ -11,7 +11,9 @@ import bindings from '$/sources/Helius/bindings.ts'
 import {
 	getAsset,
 	getAssetProof,
+	getAssets,
 	getAssetsByOwner,
+	getTokenAccounts,
 } from '$/sources/Helius/Das/queries.ts'
 import type {
 	DasAsset,
@@ -37,10 +39,12 @@ if (binding == null)
 const address = (value: number) => base58.encode(new Uint8Array(32).fill(value))
 const ownerAddress = address(1)
 const assetId = address(2)
+const tokenAccountAddress = address(10)
 
 const asset = {
 	interface: 'V1_NFT',
 	id: assetId,
+	last_indexed_slot: 365_750_752,
 	content: {
 		$schema: 'https://schema.metaplex.com/nft1.0.json',
 		json_uri: 'ipfs://metadata-cid/asset.json',
@@ -74,7 +78,39 @@ const asset = {
 	},
 	mutable: true,
 	burnt: false,
-} as const satisfies DasAsset
+} as const satisfies DasAsset & {
+	last_indexed_slot: number
+}
+
+const fungibleAsset = {
+	interface: 'FungibleToken',
+	id: address(11),
+	last_indexed_slot: 365_750_800,
+	ownership: {
+		frozen: false,
+		delegated: false,
+		owner: ownerAddress,
+		ownership_model: 'token',
+	},
+	token_info: {
+		decimals: 6,
+		supply: 1_000_000_000,
+		token_program: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+		mint_authority: address(12),
+		freeze_authority: null,
+	},
+	mutable: true,
+	burnt: false,
+} as const satisfies DasAsset & {
+	last_indexed_slot: number
+	token_info: {
+		decimals: number
+		supply: number
+		token_program: string
+		mint_authority: string
+		freeze_authority: null
+	}
+}
 
 const result = {
 	last_indexed_slot: 365_750_752,
@@ -82,7 +118,9 @@ const result = {
 	limit: 1,
 	page: 1,
 	items: [asset],
-} satisfies GetAssetsByOwnerResult
+} satisfies GetAssetsByOwnerResult & {
+	last_indexed_slot: number
+}
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -115,7 +153,10 @@ describe('Helius Metaplex DAS transport', () => {
 			publicEnv: {
 				PUBLIC_HELIUS_API_KEY: 'helius key',
 			},
-		})).resolves.toEqual(asset)
+		})).resolves.toMatchObject({
+			id: assetId,
+			last_indexed_slot: 365_750_752,
+		})
 		await expect(getAssetProof({
 			id: assetId,
 			publicEnv: {
@@ -166,6 +207,32 @@ describe('Helius Metaplex DAS transport', () => {
 		)
 	})
 
+	it('executes getAssets batch through the Helius DAS binding', async () => {
+		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify({
+			jsonrpc: '2.0',
+			id: `getAssets:${assetId},${fungibleAsset.id}`,
+			result: [asset, fungibleAsset],
+		})))
+
+		await expect(getAssets({
+			ids: [assetId, fungibleAsset.id],
+			publicEnv: {
+				PUBLIC_HELIUS_API_KEY: 'helius key',
+			},
+		})).resolves.toMatchObject([
+			{
+				id: assetId,
+			},
+			{
+				id: fungibleAsset.id,
+				token_info: {
+					decimals: 6,
+					supply: 1_000_000_000,
+				},
+			},
+		])
+	})
+
 	it('executes the named owner-assets operation through the Helius DAS binding', async () => {
 		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify({
 			jsonrpc: '2.0',
@@ -179,7 +246,15 @@ describe('Helius Metaplex DAS transport', () => {
 			publicEnv: {
 				PUBLIC_HELIUS_API_KEY: 'helius key',
 			},
-		})).resolves.toEqual(result)
+		})).resolves.toMatchObject({
+			last_indexed_slot: 365_750_752,
+			total: 1,
+			items: [
+				{
+					id: assetId,
+				},
+			],
+		})
 
 		expect(sourceFetch).toHaveBeenCalledWith(
 			binding,
@@ -204,6 +279,48 @@ describe('Helius Metaplex DAS transport', () => {
 				}),
 			}
 		)
+	})
+
+	it('executes DAS getTokenAccounts by owner through the Helius DAS binding', async () => {
+		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify({
+			jsonrpc: '2.0',
+			id: `owner:${ownerAddress}:page:1`,
+			result: {
+				total: 1,
+				limit: 1,
+				page: 1,
+				token_accounts: [
+					{
+						address: tokenAccountAddress,
+						mint: fungibleAsset.id,
+						owner: ownerAddress,
+						amount: 42,
+						delegated_amount: 0,
+						frozen: false,
+						delegate: null,
+						close_authority: null,
+					},
+				],
+			},
+		})))
+
+		await expect(getTokenAccounts({
+			ownerAddress,
+			limit: 1,
+			publicEnv: {
+				PUBLIC_HELIUS_API_KEY: 'helius key',
+			},
+		})).resolves.toMatchObject({
+			total: 1,
+			token_accounts: [
+				{
+					address: tokenAccountAddress,
+					mint: fungibleAsset.id,
+					owner: ownerAddress,
+					amount: 42,
+				},
+			],
+		})
 	})
 
 	it('keeps cursor pagination mutually exclusive and validates bounded inputs', async () => {
@@ -234,9 +351,15 @@ describe('Helius Metaplex DAS transport', () => {
 			limit: 1_001,
 			publicEnv: {},
 		})).rejects.toThrow('limit must be an integer')
+
+		await expect(getTokenAccounts({
+			publicEnv: {
+				PUBLIC_HELIUS_API_KEY: 'key',
+			},
+		})).rejects.toThrow('requires ownerAddress or mintAddress')
 	})
 
-	it('fails closed on invalid owners and mismatched JSON-RPC responses', async () => {
+	it('fails closed on invalid owners, envelopes, and mismatched JSON-RPC responses', async () => {
 		await expect(getAssetsByOwner({
 			ownerAddress: 'invalid',
 			publicEnv: {},
@@ -253,5 +376,21 @@ describe('Helius Metaplex DAS transport', () => {
 				PUBLIC_HELIUS_API_KEY: 'key',
 			},
 		})).rejects.toThrow('response identity does not match request')
+
+		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify({
+			jsonrpc: '2.0',
+			id: `getAsset:${assetId}`,
+			result: {
+				id: assetId,
+				burnt: false,
+				mutable: true,
+			},
+		})))
+		await expect(getAsset({
+			id: assetId,
+			publicEnv: {
+				PUBLIC_HELIUS_API_KEY: 'key',
+			},
+		})).rejects.toThrow('invalid getAsset response envelope')
 	})
 })

@@ -7,11 +7,15 @@ import {
 } from '$/sources/$sources.ts'
 import bindings from '$/sources/Helius/bindings.ts'
 import type {
-	DasAsset,
-	DasAssetProof,
 	GetAssetsByOwnerPage,
-	GetAssetsByOwnerResult,
+	GetTokenAccountsPage,
 	JsonRpcResponse,
+} from '$/sources/Helius/Das/types.ts'
+import {
+	dasAssetListWire,
+	dasAssetProofWire,
+	dasAssetWire,
+	dasTokenAccountListWire,
 } from '$/sources/Helius/Das/types.ts'
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily } from '$/sources/SourceBinding.ts'
@@ -38,6 +42,48 @@ const assertSolanaAddress = (
 		throw new Error(`Helius DAS: invalid ${label}`)
 	}
 }
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown,
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`Helius DAS: invalid ${label} response envelope`)
+	}
+}
+
+const assertPagination = (
+	pagination: GetAssetsByOwnerPage | GetTokenAccountsPage,
+) => {
+	if (pagination.page != null && (!Number.isSafeInteger(pagination.page) || pagination.page < 1))
+		throw new Error('Helius DAS: page must be a positive safe integer')
+	if (pagination.before != null && pagination.before.length === 0)
+		throw new Error('Helius DAS: before cursor must not be empty')
+	if (pagination.after != null && pagination.after.length === 0)
+		throw new Error('Helius DAS: after cursor must not be empty')
+}
+
+const assertLimit = (
+	limit: number,
+) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1_000)
+		throw new Error('Helius DAS: limit must be an integer from 1 through 1000')
+}
+
+const paginationRequestId = (
+	prefix: string,
+	pagination: GetAssetsByOwnerPage | GetTokenAccountsPage,
+) => (
+	pagination.page != null ?
+		`${prefix}:page:${String(pagination.page)}`
+	: pagination.before != null ?
+		`${prefix}:before:${pagination.before}`
+	:
+		`${prefix}:after:${pagination.after}`
+)
 
 const dasRpc = async <_Result>({
 	method,
@@ -90,17 +136,58 @@ export const getAsset = async ({
 }) => {
 	assertSolanaAddress(id, 'asset id')
 
-	return await dasRpc<DasAsset>({
-		method: 'getAsset',
-		requestId: `getAsset:${id}`,
-		params: {
-			id,
-			displayOptions: {
-				showFungible: true,
+	return assertEnvelope(
+		'getAsset',
+		dasAssetWire,
+		await dasRpc({
+			method: 'getAsset',
+			requestId: `getAsset:${id}`,
+			params: {
+				id,
+				displayOptions: {
+					showFungible: true,
+				},
 			},
-		},
-		publicEnv,
-	})
+			publicEnv,
+		}),
+	)
+}
+
+/** Helius implementation of the canonical Metaplex DAS `getAssets` method. */
+export const getAssets = async ({
+	ids,
+	publicEnv,
+}: {
+	ids: readonly string[]
+	publicEnv: SourcePublicEnv
+}) => {
+	if (ids.length === 0)
+		throw new Error('Helius DAS: asset ids must not be empty')
+	if (ids.length > 1_000)
+		throw new Error('Helius DAS: asset ids must not exceed 1000')
+	for (const id of ids)
+		assertSolanaAddress(id, 'asset id')
+
+	const assets = assertEnvelope(
+		'getAssets',
+		dasAssetWire.or('null').array(),
+		await dasRpc({
+			method: 'getAssets',
+			requestId: `getAssets:${ids.join(',')}`,
+			params: {
+				ids: [...ids],
+				displayOptions: {
+					showFungible: true,
+				},
+			},
+			publicEnv,
+		}),
+	)
+
+	if (assets.length !== ids.length)
+		throw new Error('Helius DAS: invalid getAssets response envelope')
+
+	return assets
 }
 
 /** Helius implementation of the canonical Metaplex DAS `getAssetProof` method. */
@@ -113,14 +200,18 @@ export const getAssetProof = async ({
 }) => {
 	assertSolanaAddress(id, 'asset id')
 
-	return await dasRpc<DasAssetProof>({
-		method: 'getAssetProof',
-		requestId: `getAssetProof:${id}`,
-		params: {
-			id,
-		},
-		publicEnv,
-	})
+	return assertEnvelope(
+		'getAssetProof',
+		dasAssetProofWire,
+		await dasRpc({
+			method: 'getAssetProof',
+			requestId: `getAssetProof:${id}`,
+			params: {
+				id,
+			},
+			publicEnv,
+		}),
+	)
 }
 
 /** Helius implementation of the canonical Metaplex DAS `getAssetsByOwner` method. */
@@ -138,28 +229,84 @@ export const getAssetsByOwner = async ({
 	pagination?: GetAssetsByOwnerPage
 }) => {
 	assertSolanaAddress(ownerAddress, 'owner address')
+	assertLimit(limit)
+	assertPagination(pagination)
 
-	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1_000)
-		throw new Error('Helius DAS: limit must be an integer from 1 through 1000')
-	if (pagination.page != null && (!Number.isSafeInteger(pagination.page) || pagination.page < 1))
-		throw new Error('Helius DAS: page must be a positive safe integer')
-	if (pagination.before != null && pagination.before.length === 0)
-		throw new Error('Helius DAS: before cursor must not be empty')
-	if (pagination.after != null && pagination.after.length === 0)
-		throw new Error('Helius DAS: after cursor must not be empty')
-
-	return await dasRpc<GetAssetsByOwnerResult>({
-		method: 'getAssetsByOwner',
-		requestId: `${ownerAddress}:${pagination.page != null ? `page:${String(pagination.page)}` : (pagination.before != null ? `before:${pagination.before}` : `after:${pagination.after}`)}`,
-		params: {
-			ownerAddress,
-			limit,
-			...pagination,
-			// Helius's direct DAS wire names its provider extension `displayOptions`.
-			displayOptions: {
-				showFungible: true,
+	return assertEnvelope(
+		'getAssetsByOwner',
+		dasAssetListWire,
+		await dasRpc({
+			method: 'getAssetsByOwner',
+			requestId: paginationRequestId(ownerAddress, pagination),
+			params: {
+				ownerAddress,
+				limit,
+				...pagination,
+				// Helius's direct DAS wire names its provider extension `displayOptions`.
+				displayOptions: {
+					showFungible: true,
+				},
 			},
-		},
-		publicEnv,
-	})
+			publicEnv,
+		}),
+	)
+}
+
+/**
+ * Helius implementation of Metaplex DAS `getTokenAccounts`.
+ * Orthogonal to Solana JsonRpc `getTokenAccountsByOwner` — same SPL surface, DAS inventory wire.
+ */
+export const getTokenAccounts = async ({
+	publicEnv,
+	ownerAddress,
+	mintAddress,
+	limit = 1_000,
+	pagination = {
+		page: 1,
+	},
+}: {
+	publicEnv: SourcePublicEnv
+	ownerAddress?: string
+	mintAddress?: string
+	limit?: number
+	pagination?: GetTokenAccountsPage
+}) => {
+	if (ownerAddress == null && mintAddress == null)
+		throw new Error('Helius DAS: getTokenAccounts requires ownerAddress or mintAddress')
+	if (ownerAddress != null)
+		assertSolanaAddress(ownerAddress, 'owner address')
+	if (mintAddress != null)
+		assertSolanaAddress(mintAddress, 'mint address')
+	assertLimit(limit)
+	assertPagination(pagination)
+
+	const subject = (
+		ownerAddress != null ?
+			`owner:${ownerAddress}`
+		:
+			`mint:${mintAddress}`
+	)
+
+	return assertEnvelope(
+		'getTokenAccounts',
+		dasTokenAccountListWire,
+		await dasRpc({
+			method: 'getTokenAccounts',
+			requestId: paginationRequestId(subject, pagination),
+			params: {
+				...(ownerAddress != null && {
+					ownerAddress,
+				}),
+				...(mintAddress != null && {
+					mintAddress,
+				}),
+				limit,
+				...pagination,
+				displayOptions: {
+					showFungible: true,
+				},
+			},
+			publicEnv,
+		}),
+	)
 }

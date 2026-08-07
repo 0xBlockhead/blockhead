@@ -1,5 +1,8 @@
 import type { ResolverContext } from '$/resolvers/$resolvers.ts'
 import {
+	resolverContextRowLimit,
+} from '$/resolvers/$resolvers.ts'
+import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
@@ -11,6 +14,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import type { DasAssetWire } from '$/sources/Helius/Das/types.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
 import { SolanaInstructionKind } from '$/schema/SolanaInstructionKind.ts'
 
@@ -124,6 +128,46 @@ const getTransaction = async (
 	if (transaction == null) throw new Error(`Helius: transaction not found for signature ${signature}`)
 	return transaction
 }
+
+const requireIndexedSlot = (
+	lastIndexedSlot: number | undefined,
+	label: string,
+) => {
+	if (lastIndexedSlot == null)
+		throw new Error(`Helius: ${label} missing last_indexed_slot`)
+	return BigInt(lastIndexedSlot)
+}
+
+const heliusTokenMintTimestampFields = (
+	mint: {
+		$network: NetworkId
+		mintAddress: string
+	},
+	asset: DasAssetWire,
+	slot: bigint,
+) => ({
+	[EntityMetaKey.Selector]: {
+		$mint: mint,
+		slot,
+		source: Source.Helius,
+	},
+	$mint: {
+		[EntityMetaKey.Selector]: mint,
+	},
+	slot,
+	source: Source.Helius,
+	...(asset.token_info != null && {
+		supply: BigInt(asset.token_info.supply),
+		decimals: asset.token_info.decimals,
+		...(asset.token_info.mint_authority != null && {
+			mintAuthorityPubkey: asset.token_info.mint_authority,
+		}),
+		...(asset.token_info.freeze_authority != null && {
+			freezeAuthorityPubkey: asset.token_info.freeze_authority,
+		}),
+	}),
+	isInitialized: !asset.burnt,
+})
 
 export default {
 	source: Source.Helius,
@@ -239,6 +283,163 @@ export default {
 				data: (instruction) => instruction.data,
 				$$accounts: (instruction) => instruction.$$accounts,
 			}),
+
+		defineResolver({
+			entityType: EntityType.SolanaTokenMint,
+			resolve: {
+				NetworkMintAddress: {
+					resolve: async ({ $network, mintAddress }, context) => {
+						assertSolanaMainnet($network)
+						const { getAsset } = await import('$/sources/Helius/Das/queries.ts')
+						const asset = await getAsset({
+							id: mintAddress,
+							publicEnv: context.publicEnv,
+						})
+						if (asset.id !== mintAddress)
+							throw new Error(`Helius: asset id ${asset.id} does not match mint ${mintAddress}`)
+						const slot = requireIndexedSlot(
+							asset.last_indexed_slot,
+							'getAsset'
+						)
+						return {
+							$$timestamps: [
+								heliusTokenMintTimestampFields(
+									{
+										$network,
+										mintAddress,
+									},
+									asset,
+									slot
+								),
+							],
+						}
+					},
+				},
+			},
+		})({
+			$$timestamps: (mint) => mint.$$timestamps.map((timestamp) => ({
+				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+				[EntityMetaKey.Fields]: Object.fromEntries(
+					Object.entries(timestamp).flatMap(([fieldName, value]) => (
+						fieldName === EntityMetaKey.Selector || value == null ?
+							[]
+						:
+							[[entityFieldAddressKey(EntityType.SolanaTokenMint_Timestamp, [], fieldName), value]]
+					))
+				),
+			})),
+		}),
+
+		defineResolver({
+			entityType: EntityType.SolanaTokenMint_Timestamp,
+			resolve: {
+				MintSlotSource: {
+					resolve: async ({ $mint, slot, source }, context) => {
+						if (source !== Source.Helius) throw new Error(`Helius: unsupported source ${source}`)
+						assertSolanaMainnet($mint.$network)
+						const { getAsset } = await import('$/sources/Helius/Das/queries.ts')
+						const asset = await getAsset({
+							id: $mint.mintAddress,
+							publicEnv: context.publicEnv,
+						})
+						if (asset.id !== $mint.mintAddress)
+							throw new Error(`Helius: asset id ${asset.id} does not match mint ${$mint.mintAddress}`)
+						if (requireIndexedSlot(asset.last_indexed_slot, 'getAsset') !== slot)
+							throw new Error('Helius: SolanaTokenMint_Timestamp id does not match last_indexed_slot')
+						return heliusTokenMintTimestampFields(
+							$mint,
+							asset,
+							slot
+						)
+					},
+				},
+			},
+		})({
+			$mint: (timestamp) => timestamp.$mint,
+			slot: (timestamp) => timestamp.slot,
+			source: (timestamp) => timestamp.source,
+			supply: (timestamp) => timestamp.supply,
+			decimals: (timestamp) => timestamp.decimals,
+			isInitialized: (timestamp) => timestamp.isInitialized,
+			mintAuthorityPubkey: (timestamp) => timestamp.mintAuthorityPubkey,
+			freezeAuthorityPubkey: (timestamp) => timestamp.freezeAuthorityPubkey,
+		}),
+
+		defineResolver({
+			entityType: EntityType.SolanaAccount,
+			resolve: {
+				NetworkPubkey: {
+					resolve: async ({ $network, pubkey }, context) => {
+						assertSolanaMainnet($network)
+						const { getAssetsByOwner } = await import('$/sources/Helius/Das/queries.ts')
+						const page = await getAssetsByOwner({
+							ownerAddress: pubkey,
+							limit: Math.min(resolverContextRowLimit(context), 1_000),
+							publicEnv: context.publicEnv,
+						})
+						const slot = requireIndexedSlot(
+							page.last_indexed_slot,
+							'getAssetsByOwner'
+						)
+						// Owner DAS asset/NFT inventory page is loaded here. Enrolled SolanaAccount has no $$nfts /
+						// $$tokenMints host field (orthogonal to Solana_JsonRpc $$tokenAccounts), so project the DAS
+						// index clock onto $$timestamps and leave per-asset mint tips on SolanaTokenMint.getAsset.
+						return {
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$account: {
+											$network,
+											pubkey,
+										},
+										slot,
+										source: Source.Helius,
+									},
+								},
+							],
+						}
+					},
+				},
+			},
+		})({
+			$$timestamps: (account) => account.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.SolanaAccount_Timestamp,
+			resolve: {
+				AccountSlotSource: {
+					resolve: async ({ $account, slot, source }, context) => {
+						if (source !== Source.Helius) throw new Error(`Helius: unsupported source ${source}`)
+						assertSolanaMainnet($account.$network)
+						const { getAssetsByOwner } = await import('$/sources/Helius/Das/queries.ts')
+						const page = await getAssetsByOwner({
+							ownerAddress: $account.pubkey,
+							limit: 1,
+							publicEnv: context.publicEnv,
+						})
+						if (requireIndexedSlot(page.last_indexed_slot, 'getAssetsByOwner') !== slot)
+							throw new Error('Helius: SolanaAccount_Timestamp id does not match last_indexed_slot')
+						return {
+							$account: {
+								[EntityMetaKey.Selector]: $account,
+							},
+							slot,
+							source,
+						}
+					},
+				},
+			},
+		})({
+			$account: (timestamp) => timestamp.$account,
+			slot: (timestamp) => timestamp.slot,
+			source: (timestamp) => timestamp.source,
+			lamports: () => undefined,
+			$ownerProgram: () => undefined,
+			rentEpoch: () => undefined,
+			executable: () => undefined,
+			dataEncoding: () => undefined,
+		}),
 
 	],
 } satisfies RegisteredSourceResolverModule
