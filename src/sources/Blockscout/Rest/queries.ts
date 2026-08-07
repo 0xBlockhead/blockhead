@@ -94,6 +94,8 @@ const validatedBlockscoutTransactionWire = (wire: BlockscoutTransaction) => {
 		wire.gas_price,
 		wire.max_fee_per_gas,
 		wire.max_priority_fee_per_gas,
+		wire.max_fee_per_blob_gas,
+		wire.blob_gas_used,
 		wire.gas_used,
 	])
 		if (quantity != null && quantity !== '')
@@ -108,6 +110,19 @@ const validatedBlockscoutTransactionWire = (wire: BlockscoutTransaction) => {
 		if (!Number.isSafeInteger(authorization.v) || authorization.v < 0)
 			throw new Error('Blockscout_Rest: invalid authorization y_parity')
 	}
+
+	return wire
+}
+const validatedBlockscoutBlockWire = (wire: BlockscoutBlockDetails) => {
+	for (const quantity of [
+		wire.gas_used,
+		wire.gas_limit,
+		wire.base_fee_per_gas,
+		wire.blob_gas_used,
+		wire.excess_blob_gas,
+	])
+		if (quantity != null && quantity !== '')
+			BigInt(quantity)
 
 	return wire
 }
@@ -167,7 +182,7 @@ export const getBlockByNumber = async ({ chainId, blockNumber }: {
 		path: `/blocks/${blockNumber}`,
 	})
 	assertBlockscoutEnvelope(blockscoutBlockDetailEnvelope, block, 'block detail')
-	return block
+	return validatedBlockscoutBlockWire(block)
 }
 
 export const getBlocks = async ({ chainId, limit }: {

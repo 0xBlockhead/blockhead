@@ -36,6 +36,14 @@ export type RpcTransaction = {
 	value?: string
 	maxFeePerBlobGas?: string
 	blobVersionedHashes?: readonly string[]
+	authorizationList?: readonly {
+		chainId?: string
+		address?: string
+		nonce?: string
+		yParity?: string
+		r?: string
+		s?: string
+	}[]
 }
 
 export type RpcLog = {
@@ -101,6 +109,14 @@ export type RpcTransactionWire = {
 	type?: string
 	maxFeePerBlobGas?: string
 	blobVersionedHashes?: readonly string[]
+	authorizationList?: readonly {
+		chainId?: string
+		address?: string
+		nonce?: string
+		yParity?: string
+		r?: string
+		s?: string
+	}[]
 }
 
 export type RpcReceiptWire = {

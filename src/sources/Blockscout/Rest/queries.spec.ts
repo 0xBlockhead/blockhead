@@ -266,6 +266,41 @@ describe('Blockscout account-abstraction queries', () => {
 		})).rejects.toThrow()
 	})
 
+	it('fails closed for malformed EIP-4844 blob quantities on transaction detail', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			...transaction,
+			type: 3,
+			max_fee_per_blob_gas: 'not-a-number',
+			blob_gas_used: '131072',
+			blob_versioned_hashes: [`0x01${'ab'.repeat(31)}`],
+		}))
+
+		await expect(getTransactionByHash({
+			chainId: 1,
+			txHash: transaction.hash,
+		})).rejects.toThrow()
+	})
+
+	it('fails closed for malformed EIP-4844 blob quantities on block detail', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			hash: hex('1', 64),
+			height: 12,
+			miner: {
+				hash: hex('2', 40),
+			},
+			parent_hash: hex('3', 64),
+			timestamp: '2024-01-02T03:04:05.000Z',
+			transactions_count: 1,
+			blob_gas_used: 'not-a-number',
+			excess_blob_gas: '0',
+		}))
+
+		await expect(getBlockByNumber({
+			chainId: 1,
+			blockNumber: 12n,
+		})).rejects.toThrow()
+	})
+
 	it('fails closed for malformed block, transaction, and token list envelopes', async () => {
 		vi.spyOn(globalThis, 'fetch')
 			.mockResolvedValueOnce(jsonResponse({

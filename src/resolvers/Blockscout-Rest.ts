@@ -355,6 +355,49 @@ const eip7702AuthorizationEntitiesFromBlockscoutWire = ({
 	})
 )
 
+const evmBlobEntityRefsFromBlockscoutTx = ({
+	$network,
+	txHash,
+	blobVersionedHashes,
+	blockNumber,
+}: {
+	$network: EvmNetworkId
+	txHash: `0x${string}`
+	blobVersionedHashes: readonly string[] | null | undefined
+	blockNumber?: bigint
+}) => (
+	(blobVersionedHashes ?? []).flatMap((blobVersionedHash, blobIndex) => {
+		const versionedHash = hexLowerOfByteSize(blobVersionedHash, 32)
+		if (versionedHash == null || !versionedHash.startsWith('0x01'))
+			return []
+
+		return [{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network,
+					txHash,
+				},
+				indexInTransaction: blobIndex,
+			},
+			versionedHash,
+			$transaction: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					txHash,
+				},
+			} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
+			...(blockNumber != null && {
+				$block: {
+					[EntityMetaKey.Selector]: {
+						$network,
+						blockNumber,
+					},
+				} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+			}),
+		}]
+	})
+)
+
 const evmInternalCallTypeFromWire = (
 	raw: string | undefined
 ): EvmInternalCallType | undefined => (
@@ -1237,6 +1280,8 @@ export default {
 							gasUsed: blockscoutQuantityToBigInt(wire.gas_used),
 							gasLimit: blockscoutQuantityToBigInt(wire.gas_limit),
 							baseFeePerGas: blockscoutQuantityToBigInt(wire.base_fee_per_gas),
+							blobGasUsed: blockscoutQuantityToBigInt(wire.blob_gas_used),
+							excessBlobGas: blockscoutQuantityToBigInt(wire.excess_blob_gas),
 							transactionCount: wire.transactions_count,
 							...(parentBlockNumber != null && parentBlockHash != null && {
 								$parent: {
@@ -1271,6 +1316,8 @@ export default {
 			gasUsed: (block) => block.gasUsed,
 			gasLimit: (block) => block.gasLimit,
 			baseFeePerGas: (block) => block.baseFeePerGas,
+			blobGasUsed: (block) => block.blobGasUsed,
+			excessBlobGas: (block) => block.excessBlobGas,
 			transactionCount: (block) => block.transactionCount,
 		}),
 
@@ -1341,6 +1388,12 @@ export default {
 									maxPriorityFeePerGas: blockscoutQuantityToBigIntStrict(transaction.max_priority_fee_per_gas),
 								}
 							),
+							...(
+								envelopeType === EvmTransactionEnvelopeType.Blob && {
+									maxFeePerBlobGas: blockscoutQuantityToBigIntStrict(transaction.max_fee_per_blob_gas),
+									blobGasUsed: blockscoutQuantityToBigIntStrict(transaction.blob_gas_used),
+								}
+							),
 						}
 							const receiptLogs = await getTransactionLogs({
 								chainId: evmChainIdFromNetworkSelector($network),
@@ -1388,6 +1441,17 @@ export default {
 										txHash,
 										authorizationList: transaction.authorization_list,
 									})
+							),
+							$$blobs: (
+								envelopeType === EvmTransactionEnvelopeType.Blob ?
+									evmBlobEntityRefsFromBlockscoutTx({
+										$network,
+										txHash,
+										blobVersionedHashes: transaction.blob_versioned_hashes,
+										blockNumber: containingBlockNumber ?? undefined,
+									})
+								:
+									[]
 							),
 							$$logs: (
 								receiptLogs.flatMap((log, indexInTransaction) => {
@@ -1437,6 +1501,14 @@ export default {
 			FeeMarket: {
 				maxFeePerGas: (transaction) => transaction.maxFeePerGas,
 				maxPriorityFeePerGas: (transaction) => transaction.maxPriorityFeePerGas,
+			},
+			Blob: {
+				blobGasUsed: (transaction) => transaction.blobGasUsed,
+				maxFeePerBlobGas: (transaction) => transaction.maxFeePerBlobGas,
+				$$blobs: {
+					select: (transaction) => transaction.$$blobs,
+					resolveCount: (transaction) => transaction.$$blobs.length,
+				},
 			},
 			SetCode: {
 				$$authorizations: {

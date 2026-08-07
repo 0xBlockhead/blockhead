@@ -838,3 +838,106 @@ describe('Blockscout EvmTransaction enrolled leftovers', () => {
 		expect(resolver.projections.SetCode.$$authorizations.resolveCount(entity)).toBe(1)
 	})
 })
+
+describe('Blockscout EvmBlock / Blob enrolled leftovers', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		getTransactionLogs.mockResolvedValue([])
+	})
+
+	it('projects enrolled blobGasUsed / excessBlobGas on EvmBlock', async () => {
+		getBlockByNumber.mockResolvedValue({
+			hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+			height: 12,
+			miner: {
+				hash: '0x1111111111111111111111111111111111111111',
+			},
+			parent_hash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+			timestamp: '2024-01-02T03:04:05.000Z',
+			transactions_count: 3,
+			gas_used: '21000',
+			gas_limit: '30000000',
+			base_fee_per_gas: '7',
+			blob_gas_used: '131072',
+			excess_blob_gas: '0',
+		})
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmBlock
+			&& 'EvmNetworkBlockNumber' in candidate.resolve
+			&& 'blobGasUsed' in candidate.projections
+			&& 'excessBlobGas' in candidate.projections
+		))
+		if (
+			resolver == null
+			|| !('EvmNetworkBlockNumber' in resolver.resolve)
+		)
+			throw new Error('Blockscout_Rest: missing EvmBlock blob gas projections')
+
+		const entity = await resolver.resolve.EvmNetworkBlockNumber.resolve({
+			$network: network,
+			blockNumber: 12n,
+		}, context)
+		expect(resolver.projections.blobGasUsed(entity)).toBe(131072n)
+		expect(resolver.projections.excessBlobGas(entity)).toBe(0n)
+	})
+
+	it('projects enrolled Blob.$$blobs from transaction detail', async () => {
+		const versionedHash = '0x01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+		getTransactionByHash.mockResolvedValue({
+			from: {
+				hash: '0x1111111111111111111111111111111111111111',
+			},
+			to: {
+				hash: '0x2222222222222222222222222222222222222222',
+			},
+			gas_limit: '21000',
+			gas_price: '1',
+			gas_used: '21000',
+			hash: txHash,
+			nonce: 4,
+			raw_input: '0x',
+			value: '0',
+			type: 3,
+			status: 'ok',
+			block_number: 12,
+			position: 3,
+			max_fee_per_gas: '2',
+			max_priority_fee_per_gas: '1',
+			max_fee_per_blob_gas: '5',
+			blob_gas_used: '131072',
+			blob_versioned_hashes: [versionedHash, `0x00${'cd'.repeat(31)}`],
+			created_contract: null,
+			authorization_list: null,
+		})
+		const resolver = blockscoutRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+			&& 'EvmNetworkTxHash' in candidate.resolve
+			&& 'Blob' in candidate.projections
+			&& '$$blobs' in candidate.projections.Blob
+		))
+		if (
+			resolver == null
+			|| !('EvmNetworkTxHash' in resolver.resolve)
+		)
+			throw new Error('Blockscout_Rest: missing EvmTransaction Blob.$$blobs projection')
+
+		const entity = await resolver.resolve.EvmNetworkTxHash.resolve({
+			$network: network,
+			txHash,
+		}, context)
+		const blobs = resolver.projections.Blob.$$blobs.select(entity)
+		expect(blobs).toHaveLength(1)
+		expect(blobs[0]?.[EntityMetaKey.Selector]).toEqual({
+			$transaction: {
+				$network: network,
+				txHash,
+			},
+			indexInTransaction: 0,
+		})
+		expect(blobs[0]?.versionedHash).toBe(versionedHash)
+		expect(resolver.projections.Blob.$$blobs.resolveCount(entity)).toBe(1)
+		expect(resolver.projections.Blob.blobGasUsed(entity)).toBe(131072n)
+		expect(resolver.projections.Blob.maxFeePerBlobGas(entity)).toBe(5n)
+	})
+})
+

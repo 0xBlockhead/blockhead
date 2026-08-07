@@ -16,6 +16,8 @@ export const blockscoutBlockDetailEnvelope = arktype({
 	'gas_used?': 'string',
 	'gas_limit?': 'string',
 	'base_fee_per_gas?': 'string | null',
+	'blob_gas_used?': 'string | null',
+	'excess_blob_gas?': 'string | null',
 })
 export const blockscoutBlocksPageEnvelope = arktype({
 	items: arktype({
@@ -46,6 +48,9 @@ export const blockscoutTransactionEnvelope = arktype({
 	'gas_price?': 'string | null',
 	'max_fee_per_gas?': 'string | null',
 	'max_priority_fee_per_gas?': 'string | null',
+	'max_fee_per_blob_gas?': 'string | null',
+	'blob_gas_used?': 'string | null',
+	'blob_versioned_hashes?': arktype('string').array().or(arktype.null),
 	'block_number?': 'number | null',
 	'position?': 'number | null',
 	'authorization_list?': blockscoutSignedAuthorizationEnvelope.array().or(arktype.null),
@@ -137,8 +142,16 @@ export type BlockscoutTokenTransfer = Omit<
 )
 export type BlockscoutInternalTransaction = components['schemas']['InternalTransaction']
 export type BlockscoutBlock = components['schemas']['Block']
-export type BlockscoutBlockDetails = components['schemas']['BlockResponse']
-export type BlockscoutTransaction = components['schemas']['TransactionResponse']
+// Live Blockscout block/tx wires include EIP-4844 blob fields OpenAPI still omits.
+export type BlockscoutBlockDetails = components['schemas']['BlockResponse'] & {
+	blob_gas_used?: string | null
+	excess_blob_gas?: string | null
+}
+export type BlockscoutTransaction = components['schemas']['TransactionResponse'] & {
+	max_fee_per_blob_gas?: string | null
+	blob_gas_used?: string | null
+	blob_versioned_hashes?: string[] | null
+}
 export type BlockscoutSmartContractForList = components['schemas']['SmartContractListItem']
 export type BlockscoutSmartContract = components['schemas']['SmartContract']
 export type BlockscoutTransactionLog = components['schemas']['Log']

@@ -449,3 +449,77 @@ describe('Etherscan Network selectors', () => {
 		expect(resolver.projections.Blob.maxFeePerBlobGas(entity)).toBe(5n)
 	})
 })
+
+describe('Etherscan EvmTransaction SetCode leftovers', () => {
+	it('projects enrolled SetCode.$$authorizations from proxy authorizationList', async () => {
+		const delegation = '0x5555555555555555555555555555555555555555'
+		getTransactionByHash.mockResolvedValue({
+			hash: txHash,
+			from: '0x1111111111111111111111111111111111111111',
+			to: '0x2222222222222222222222222222222222222222',
+			gas: '0x5208',
+			gasPrice: '0x1',
+			nonce: '0x4',
+			input: '0x',
+			value: '0x0',
+			type: '0x4',
+			blockNumber: '0xc',
+			transactionIndex: '0x3',
+			maxFeePerGas: '0x2',
+			maxPriorityFeePerGas: '0x1',
+			r: '0x1',
+			s: '0x2',
+			v: '0x1',
+			authorizationList: [{
+				chainId: '0x1',
+				address: delegation,
+				nonce: '0x7',
+				yParity: '0x1',
+				r: '0x1',
+				s: '0x2',
+			}],
+		})
+		getTransactionReceipt.mockResolvedValue({
+			status: '0x1',
+			gasUsed: '0x5208',
+			cumulativeGasUsed: '0x5208',
+			effectiveGasPrice: '0x1',
+			logs: [],
+			contractAddress: null,
+		})
+		const resolver = etherscanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmTransaction
+			&& 'EvmNetworkTxHash' in candidate.resolve
+			&& 'SetCode' in candidate.projections
+			&& '$$authorizations' in candidate.projections.SetCode
+		))
+		if (
+			resolver == null
+			|| !('EvmNetworkTxHash' in resolver.resolve)
+		)
+			throw new Error('Etherscan_Rest: missing EvmTransaction SetCode.$$authorizations projection')
+
+		const $network = {
+			slug: 'ethereum',
+		} as const
+		const entity = await resolver.resolve.EvmNetworkTxHash.resolve({
+			$network,
+			txHash,
+		}, context)
+		const authorizations = resolver.projections.SetCode.$$authorizations.select(entity)
+		expect(authorizations).toHaveLength(1)
+		expect(authorizations[0]?.[EntityMetaKey.Selector]).toEqual({
+			$transaction: {
+				$network,
+				txHash,
+			},
+			authorizationIndex: 0,
+		})
+		expect(authorizations[0]?.delegationAddress).toBe(delegation)
+		expect(authorizations[0]?.chainId).toBe(1n)
+		expect(authorizations[0]?.nonce).toBe(7n)
+		expect(authorizations[0]?.yParity).toBe(1)
+		expect(resolver.projections.SetCode.$$authorizations.resolveCount(entity)).toBe(1)
+	})
+})
+

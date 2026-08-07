@@ -32,7 +32,7 @@ import type {
 	EtherscanInternalTransaction,
 	EtherscanTokenTransferTagged,
 } from '$/sources/Etherscan/Rest/types.ts'
-import type { RpcLog } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
+import type { RpcLog, RpcTransaction } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 
 type EvmNetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -646,6 +646,57 @@ const evmBlobEntityRefsFromEtherscanTx = ({
 					},
 				} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 			}),
+		}]
+	})
+)
+
+const eip7702AuthorizationEntitiesFromEtherscanTx = ({
+	$network,
+	txHash,
+	authorizationList,
+}: {
+	$network: EvmNetworkId
+	txHash: `0x${string}`
+	authorizationList: NonNullable<RpcTransaction['authorizationList']>
+}) => (
+	authorizationList.flatMap((authorization, authorizationIndex) => {
+		const delegationAddress = hexLowerOfByteSize(authorization.address ?? '', 20)
+		const r = authorization.r == null ? undefined : with0xHex(authorization.r)
+		const s = authorization.s == null ? undefined : with0xHex(authorization.s)
+		const nonce = etherscanQuantityToBigInt(authorization.nonce)
+		const chainId = etherscanQuantityToBigInt(authorization.chainId)
+		const yParity = rpcQuantityToNumber(authorization.yParity)
+		if (
+			delegationAddress == null
+			|| r == null
+			|| s == null
+			|| nonce == null
+			|| chainId == null
+			|| yParity == null
+			|| yParity < 0
+		)
+			return []
+
+		return [{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network,
+					txHash,
+				},
+				authorizationIndex,
+			},
+			chainId,
+			delegationAddress,
+			nonce,
+			yParity,
+			r,
+			s,
+			$delegationContract: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					address: delegationAddress,
+				},
+			} satisfies Entity<typeof schema, EntityType.EvmContract>,
 		}]
 	})
 )
@@ -1360,6 +1411,16 @@ export default {
 								blobVersionedHashes: jsonRpcTransaction.blobVersionedHashes,
 								blockNumber: containingBlockNumber ?? undefined,
 							}),
+							$$authorizations: (
+								jsonRpcTransaction.authorizationList == null ?
+									[]
+								:
+									eip7702AuthorizationEntitiesFromEtherscanTx({
+										$network,
+										txHash,
+										authorizationList: jsonRpcTransaction.authorizationList,
+									})
+							),
 							$$logs: (
 								(receipt?.logs ?? [])
 									.flatMap((log) => {
@@ -1423,6 +1484,12 @@ export default {
 				$$blobs: {
 					select: (transaction) => transaction.$$blobs,
 					resolveCount: (transaction) => transaction.$$blobs.length,
+				},
+			},
+			SetCode: {
+				$$authorizations: {
+					select: (transaction) => transaction.$$authorizations,
+					resolveCount: (transaction) => transaction.$$authorizations.length,
 				},
 			},
 			$$logs: {
