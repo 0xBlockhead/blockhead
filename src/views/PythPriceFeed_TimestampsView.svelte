@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -36,9 +37,21 @@
 >
 	{#snippet Item({ item: pythPriceFeedTimestamp })}
 		{@const pythPriceFeedTimestampSelector = pythPriceFeedTimestamp[EntityMetaKey.Selector]}
+		{@const feed = pythPriceFeedTimestampSelector.$feed}
 		<EntityView
 			entityType={EntityType.PythPriceFeed_Timestamp}
 			entitySelector={pythPriceFeedTimestampSelector}
+			href={
+				resolve(
+					'/pyth/feed/[priceFeedId=zeroExHex]/[channel=stringSegment]/(pythPriceFeed)/observations/[publishTimeMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						priceFeedId: feed.priceFeedId,
+						channel: feed.channel,
+						publishTimeMs: String(pythPriceFeedTimestampSelector.publishTimeMs),
+						source: pythPriceFeedTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{pythPriceFeedTimestampSelector.publishTimeMs}

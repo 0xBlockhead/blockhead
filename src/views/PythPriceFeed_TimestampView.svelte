@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.PythPriceFeed_Timestamp>, 'prefetched'> = $props()
 
+	const feed = $derived(selection.entitySelector.$feed)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.PythBenchmarks_Rest,
@@ -48,6 +51,20 @@
 	entityType={EntityType.PythPriceFeed_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.publishTimeMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/pyth/feed/[priceFeedId=zeroExHex]/[channel=stringSegment]/(pythPriceFeed)/observations/[publishTimeMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					priceFeedId: feed.priceFeedId,
+					channel: feed.channel,
+					publishTimeMs: String(selection.entitySelector.publishTimeMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

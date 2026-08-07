@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -40,6 +41,15 @@
 		<EntityView
 			entityType={EntityType.PythPriceFeed}
 			entitySelector={pythPriceFeedSelector}
+			href={
+				resolve(
+					'/pyth/feed/[priceFeedId=zeroExHex]/[channel=stringSegment]',
+					{
+						priceFeedId: pythPriceFeedSelector.priceFeedId,
+						channel: pythPriceFeedSelector.channel,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(pythPriceFeed.symbol ?? '') || pythPriceFeedSelector.priceFeedId || 'Pyth price feed'}

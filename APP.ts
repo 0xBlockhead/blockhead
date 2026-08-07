@@ -52770,7 +52770,7 @@ export const schema = {
 				},
 			})({
 				"$feed": { label: "Feed", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.PythPriceFeed },
-				"publishTimeMs": { label: "Publish time ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"publishTimeMs": { label: "Publish time ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"observedAtMs": { label: "Observed at ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"price": { label: "Price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -74183,20 +74183,6 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#polkadotvalidator_era",
 			},
 		},
-		[EntityType.PythPriceFeed]: {
-			"PriceFeedIdChannel": {
-				kind: "Research",
-				decision: "Retain PythPriceFeed.PriceFeedIdChannel as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#pythpricefeed",
-			},
-		},
-		[EntityType.PythPriceFeed_Timestamp]: {
-			"FeedPublishTimeMsSource": {
-				kind: "Research",
-				decision: "Retain PythPriceFeed_Timestamp.FeedPublishTimeMsSource as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#pythpricefeed_timestamp",
-			},
-		},
 		[EntityType.QuilibriumAccount]: {
 			"NetworkAccountAddress": {
 				kind: "Research",
@@ -76881,6 +76867,71 @@ export const routes = defineRoutes(schema)({
 				},
 				text: { title: "Explore" }
 			}
+		},
+		"pyth": {
+			children: {
+				"feed": {
+					children: {
+						"[priceFeedId]": {
+							children: {
+								"[channel]": {
+									selectors: {
+										[EntityType.PythPriceFeed]: {
+											"PriceFeedIdChannel": {
+												params: {
+													"priceFeedId": ["priceFeedId"],
+													"channel": ["channel"],
+												},
+												page: {},
+											},
+										},
+									},
+									children: {
+										"observations": {
+											children: {
+												"[publishTimeMs]": {
+													children: {
+														"[source]": {
+															selectors: {
+																[EntityType.PythPriceFeed_Timestamp]: {
+																	"FeedPublishTimeMsSource": {
+																		params: {
+																			"publishTimeMs": ["publishTimeMs"],
+																			"source": ["source"],
+																		},
+																		derivations: {
+																			$feed: {
+																				kind: "selector",
+																				entity: EntityType.PythPriceFeed,
+																				selector: "PriceFeedIdChannel",
+																				params: [
+																					{
+																						field: "priceFeedId",
+																						param: "priceFeedId",
+																					},
+																					{
+																						field: "channel",
+																						param: "channel",
+																					},
+																				],
+																			},
+																		},
+																		page: {},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 		"services": {
 			page: {

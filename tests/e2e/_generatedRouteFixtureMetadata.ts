@@ -4389,6 +4389,26 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/pyth/feed/[priceFeedId]/[channel]': {
+		routeId: '/pyth/feed/[priceFeedId=zeroExHex]/[channel=stringSegment]',
+		mappings: [
+			{
+				id: 'PythPriceFeed.PriceFeedIdChannel',
+				probeAtomPrefixes: ['/pyth/feed/[priceFeedId]/[channel]:PythPriceFeed.PriceFeedIdChannel'],
+				probeCases: [[[0, '1', ['priceFeedId', 'channel']]]],
+			},
+		],
+	},
+	'/pyth/feed/[priceFeedId]/[channel]/observations/[publishTimeMs]/[source]': {
+		routeId: '/pyth/feed/[priceFeedId=zeroExHex]/[channel=stringSegment]/(pythPriceFeed)/observations/[publishTimeMs=nonNegativeInteger]/[source=stringSegment]',
+		mappings: [
+			{
+				id: 'PythPriceFeed_Timestamp.FeedPublishTimeMsSource',
+				probeAtomPrefixes: ['/pyth/feed/[priceFeedId]/[channel]/observations/[publishTimeMs]/[source]:PythPriceFeed_Timestamp.FeedPublishTimeMsSource'],
+				probeCases: [[[0, '1', ['publishTimeMs', 'source', 'priceFeedId', 'channel']]]],
+			},
+		],
+	},
 	'/services/agent/[chainId]/[contractAddress]/[tokenId]': {
 		routeId: '/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]',
 		mappings: [
