@@ -1,7 +1,13 @@
 import { substrateJsonRpc } from '$/sources/_shared/interfaces/SubstrateJsonRpc/client.ts'
-import bindings from '$/sources/Bittensor/bindings.ts'
-import { type as arktype } from 'arktype'
 import { substrateJsonRpcQueries } from '$/sources/_shared/interfaces/SubstrateJsonRpc/queries.ts'
+import bindings from '$/sources/Bittensor/bindings.ts'
+import {
+	bittensorBlockHashWire,
+	bittensorNetuidWire,
+	bittensorScaleBytesWire,
+	bittensorUidWire,
+	type BittensorScaleBytes,
+} from '$/sources/Bittensor/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Bittensor_JsonRpc][0]
@@ -15,16 +21,42 @@ export const {
 	getSystemHealth,
 } = substrateJsonRpcQueries(binding)
 
-const scaleBytes = arktype('(number.integer >= 0 <= 255)[]')
-
-const assertNetuid = (netuid: number) => {
-	if (!Number.isSafeInteger(netuid) || netuid < 0 || netuid > 65_535)
-		throw new Error('Bittensor_JsonRpc: netuid must be an unsigned 16-bit integer')
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	value: unknown
+) => {
+	try {
+		return wire.assert(value)
+	} catch {
+		throw new Error(`Bittensor_JsonRpc: invalid ${label}`)
+	}
 }
 
+const assertNetuid = (netuid: number) => (
+	assertEnvelope(
+		'netuid (unsigned 16-bit integer)',
+		bittensorNetuidWire,
+		netuid
+	)
+)
+
+const assertUid = (uid: number) => (
+	assertEnvelope(
+		'uid (unsigned 16-bit integer)',
+		bittensorUidWire,
+		uid
+	)
+)
+
 const assertBlockHash = (blockHash: string | undefined) => {
-	if (blockHash != null && !/^0x[0-9a-fA-F]{64}$/.test(blockHash))
-		throw new Error('Bittensor_JsonRpc: invalid observation block hash')
+	if (blockHash == null)
+		return
+	assertEnvelope(
+		'observation block hash',
+		bittensorBlockHashWire,
+		blockHash
+	)
 }
 
 const getScaleBytes = async ({
@@ -35,18 +67,22 @@ const getScaleBytes = async ({
 	method: string
 	params: readonly unknown[]
 	maxBytes: number
-}) => {
-	const bytes = scaleBytes.assert(await substrateJsonRpc<unknown>({
-		binding,
-		method,
-		params,
-	}))
+}): Promise<BittensorScaleBytes> => {
+	const bytes = assertEnvelope(
+		`${method} SCALE byte array`,
+		bittensorScaleBytesWire,
+		await substrateJsonRpc<unknown>({
+			binding,
+			method,
+			params,
+		})
+	)
 	if (bytes.length > maxBytes)
 		throw new Error(`Bittensor_JsonRpc: ${method} exceeds ${maxBytes} byte response limit`)
 	return bytes
 }
 
-const getNetworkScaleBytes = ({
+const getNetworkScaleBytes = async ({
 	method,
 	blockHash,
 }: {
@@ -83,7 +119,7 @@ export const getSubnetsInfo = ({
 	blockHash,
 }: {
 	blockHash?: string
-}) => getNetworkScaleBytes({
+} = {}) => getNetworkScaleBytes({
 	method: 'subnetInfo_getSubnetsInfo',
 	blockHash,
 })
@@ -101,7 +137,7 @@ export const getAllMetagraphs = ({
 	blockHash,
 }: {
 	blockHash?: string
-}) => getNetworkScaleBytes({
+} = {}) => getNetworkScaleBytes({
 	method: 'subnetInfo_getAllMetagraphs',
 	blockHash,
 })
@@ -176,9 +212,8 @@ export const getNeuronLite = async ({
 	blockHash?: string
 }) => {
 	assertNetuid(netuid)
+	assertUid(uid)
 	assertBlockHash(blockHash)
-	if (!Number.isSafeInteger(uid) || uid < 0 || uid > 65_535)
-		throw new Error('Bittensor_JsonRpc: uid must be an unsigned 16-bit integer')
 	return getScaleBytes({
 		method: 'neuronInfo_getNeuronLite',
 		params: blockHash == null ? [netuid, uid] : [netuid, uid, blockHash],

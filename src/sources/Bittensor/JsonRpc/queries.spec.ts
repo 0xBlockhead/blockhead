@@ -4,9 +4,11 @@ import { substrateJsonRpc } from '$/sources/_shared/interfaces/SubstrateJsonRpc/
 import bindings from '$/sources/Bittensor/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
+	getAllDynamicInfo,
 	getAllMetagraphs,
 	getNeuronLite,
 	getNeuronsLite,
+	getSubnetHyperparams,
 	getSubnetInfo,
 } from '$/sources/Bittensor/JsonRpc/queries.ts'
 
@@ -26,7 +28,6 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 
 	it('pins network and subnet observations to the requested block hash', async () => {
 		await expect(getAllMetagraphs({
-			binding: bittensorBinding,
 			blockHash,
 		})).resolves.toEqual([0, 1, 254, 255])
 		expect(substrateJsonRpcMock).toHaveBeenLastCalledWith(expect.objectContaining({
@@ -35,7 +36,6 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 		}))
 
 		await getSubnetInfo({
-			binding: bittensorBinding,
 			netuid: 65_535,
 			blockHash,
 		})
@@ -46,11 +46,22 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 				blockHash,
 			],
 		}))
+
+		await getSubnetHyperparams({
+			netuid: 1,
+			blockHash,
+		})
+		expect(substrateJsonRpcMock).toHaveBeenLastCalledWith(expect.objectContaining({
+			method: 'subnetInfo_getSubnetHyperparams',
+			params: [
+				1,
+				blockHash,
+			],
+		}))
 	})
 
 	it('uses the official neuron RPC identities without signing state', async () => {
 		await getNeuronsLite({
-			binding: bittensorBinding,
 			netuid: 1,
 			blockHash,
 		})
@@ -63,7 +74,6 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 		}))
 
 		await getNeuronLite({
-			binding: bittensorBinding,
 			netuid: 1,
 			uid: 2,
 			blockHash,
@@ -84,15 +94,25 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 		1.5,
 	])('rejects foreign or malformed subnet identity %s before transport', async (netuid) => {
 		await expect(getSubnetInfo({
-			binding: bittensorBinding,
 			netuid,
-		})).rejects.toThrow('unsigned 16-bit integer')
+		})).rejects.toThrow('invalid netuid')
+		expect(substrateJsonRpcMock).not.toHaveBeenCalled()
+	})
+
+	it.each([
+		-1,
+		65_536,
+		1.5,
+	])('rejects foreign or malformed neuron uid %s before transport', async (uid) => {
+		await expect(getNeuronLite({
+			netuid: 1,
+			uid,
+		})).rejects.toThrow('invalid uid')
 		expect(substrateJsonRpcMock).not.toHaveBeenCalled()
 	})
 
 	it('derives transport authority from the canonical source binding', async () => {
 		await getSubnetInfo({
-			binding: bittensorBinding,
 			netuid: 1,
 		})
 		expect(substrateJsonRpcMock).toHaveBeenCalledWith(expect.objectContaining({
@@ -102,9 +122,13 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 
 	it('rejects malformed observation block identity before transport', async () => {
 		await expect(getSubnetInfo({
-			binding: bittensorBinding,
 			netuid: 1,
 			blockHash: '0x1234',
+		})).rejects.toThrow('invalid observation block hash')
+		expect(substrateJsonRpcMock).not.toHaveBeenCalled()
+
+		await expect(getAllDynamicInfo({
+			blockHash: '0xgg',
 		})).rejects.toThrow('invalid observation block hash')
 		expect(substrateJsonRpcMock).not.toHaveBeenCalled()
 	})
@@ -117,15 +141,19 @@ describe('Bittensor custom JSON-RPC SCALE transport', () => {
 	])('rejects malformed SCALE byte arrays', async (wire) => {
 		substrateJsonRpcMock.mockResolvedValue(wire)
 		await expect(getSubnetInfo({
-			binding: bittensorBinding,
 			netuid: 1,
-		})).rejects.toThrow()
+		})).rejects.toThrow('SCALE byte array')
 	})
 
 	it('rejects unbounded aggregate SCALE responses', async () => {
 		substrateJsonRpcMock.mockResolvedValue(new Array(16_777_217).fill(0))
-		await expect(getAllMetagraphs({
-			binding: bittensorBinding,
-		})).rejects.toThrow('16777216 byte response limit')
+		await expect(getAllMetagraphs()).rejects.toThrow('16777216 byte response limit')
+	})
+
+	it('rejects unbounded subnet neuron SCALE responses', async () => {
+		substrateJsonRpcMock.mockResolvedValue(new Array(4_194_305).fill(0))
+		await expect(getNeuronsLite({
+			netuid: 1,
+		})).rejects.toThrow('4194304 byte response limit')
 	})
 })
