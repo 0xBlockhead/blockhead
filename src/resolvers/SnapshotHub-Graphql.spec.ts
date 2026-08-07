@@ -74,6 +74,17 @@ const space = {
 	name: 'ENS',
 	about: 'ENS governance',
 	avatar: 'ipfs://avatar',
+	cover: 'ipfs://cover',
+	website: 'https://ens.domains',
+	twitter: 'ensdomains',
+	github: 'ensdomains',
+	farcaster: 'ensdomains',
+	coingecko: 'ethereum-name-service',
+	discussions: 'https://discuss.ens.domains',
+	terms: 'https://ens.domains/terms',
+	location: 'Ethereum',
+	domain: 'vote.ens.domains',
+	private: false,
 	network: '1',
 	symbol: 'ENS',
 	strategies,
@@ -81,11 +92,15 @@ const space = {
 		author,
 	],
 	members: [],
+	moderators: [
+		author,
+	],
 	categories: [
 		'protocol',
 	],
 	proposalsCount: 1,
 	votesCount: 1,
+	followersCount: 42,
 	created: 1_700_000_000,
 }
 
@@ -104,17 +119,24 @@ const proposal = {
 	strategies,
 	title: 'Fund public goods',
 	body: 'Proposal body',
+	discussion: 'https://discuss.ens.domains/t/fund-public-goods',
 	choices: [
 		'For',
 		'Against',
 		'Abstain',
 	],
+	labels: [
+		'treasury',
+	],
 	start: 1_700_000_100,
 	end: 1_700_100_000,
 	quorum: 100_000.25,
 	quorumType: 'default',
+	privacy: null,
 	snapshot: 19_000_000,
 	state: 'closed' as const,
+	link: 'https://snapshot.org/#/ens.eth/proposal/0x1',
+	app: 'snapshot',
 	scores: [
 		100_000.25,
 		5,
@@ -133,6 +155,7 @@ const proposal = {
 	],
 	scores_state: 'final',
 	scores_total: 100_015.25,
+	scores_total_value: 100_015.25,
 	scores_updated: 1_700_100_001,
 	votes: 3,
 }
@@ -159,11 +182,16 @@ const vote = {
 		'2': 24.5,
 	},
 	reason: 'Weighted preference',
+	app: 'snapshot',
 	vp: 123.456,
 	vp_by_strategy: [
 		123.456,
 	],
 	vp_state: 'final',
+	vp_value: 123.456,
+	metadata: {
+		votingSystem: 'weighted',
+	},
 }
 
 const context = {
@@ -201,11 +229,25 @@ describe('SnapshotHub GraphQL resolvers', () => {
 			},
 			spaceId,
 			name: 'ENS',
+			cover: 'ipfs://cover',
+			website: 'https://ens.domains',
+			twitter: 'ensdomains',
+			followersCount: 42,
 			$network: {
 				[EntityMetaKey.Selector]: network,
 			},
 			strategies,
 			$$admins: [
+				{
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						$actor: {
+							address: author.toLowerCase(),
+						},
+					},
+				},
+			],
+			$$moderators: [
 				{
 					[EntityMetaKey.Selector]: {
 						$network: network,
@@ -240,10 +282,17 @@ describe('SnapshotHub GraphQL resolvers', () => {
 					},
 				},
 			},
+			discussion: proposal.discussion,
+			labels: [
+				'treasury',
+			],
+			link: proposal.link,
+			app: 'snapshot',
 			state: 'closed',
 			snapshotBlock: 19_000_000,
 			quorum: 100_000.25,
 			scoresTotal: 100_015.25,
+			scoresTotalValue: 100_015.25,
 			startAtMs: 1_700_000_100_000,
 			endAtMs: 1_700_100_000_000,
 		})
@@ -265,10 +314,15 @@ describe('SnapshotHub GraphQL resolvers', () => {
 				},
 			},
 			choice: vote.choice,
+			app: 'snapshot',
 			votingPower: 123.456,
 			votingPowerByStrategy: [
 				123.456,
 			],
+			votingPowerValue: 123.456,
+			metadata: {
+				votingSystem: 'weighted',
+			},
 			createdAtMs: 1_700_050_000_000,
 		})
 	})

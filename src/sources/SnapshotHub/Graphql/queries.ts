@@ -2,6 +2,16 @@ import {
 	SnapshotHubProposalFragment,
 	SnapshotHubSpaceFragment,
 	SnapshotHubVoteFragment,
+	snapshotHubProposalDataEnvelope,
+	snapshotHubProposalEnvelope,
+	snapshotHubProposalsPageEnvelope,
+	snapshotHubSpaceDataEnvelope,
+	snapshotHubSpaceEnvelope,
+	snapshotHubSpacesPageEnvelope,
+	snapshotHubStrategyEnvelope,
+	snapshotHubVoteDataEnvelope,
+	snapshotHubVoteEnvelope,
+	snapshotHubVotesPageEnvelope,
 	type SnapshotHubProposal,
 	type SnapshotHubProposalState,
 	type SnapshotHubSpace,
@@ -106,6 +116,18 @@ const SnapshotHubVotes = graphql(`
 	SnapshotHubVoteFragment,
 ])
 
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`SnapshotHub_Graphql: invalid ${label}`)
+	}
+}
+
 const assertOpaqueIdentity = (
 	value: string,
 	label: string,
@@ -131,22 +153,6 @@ const assertMessageIdentity = (
 		throw new Error(`SnapshotHub_Graphql: invalid ${label}`)
 }
 
-const assertSafeNonnegativeInteger = (
-	value: number,
-	label: string
-) => {
-	if (!Number.isSafeInteger(value) || value < 0)
-		throw new Error(`SnapshotHub_Graphql: invalid ${label}`)
-}
-
-const assertFiniteNonnegativeNumber = (
-	value: number,
-	label: string
-) => {
-	if (!Number.isFinite(value) || value < 0)
-		throw new Error(`SnapshotHub_Graphql: invalid ${label}`)
-}
-
 const assertPage = ({
 	limit,
 	offset,
@@ -163,6 +169,11 @@ const assertPage = ({
 const assertStrategy = (
 	strategy: SnapshotHubStrategy
 ) => {
+	assertEnvelope(
+		'strategy envelope',
+		snapshotHubStrategyEnvelope,
+		strategy
+	)
 	assertOpaqueIdentity(strategy.name, 'strategy name')
 	if (strategy.network != null)
 		assertOpaqueIdentity(strategy.network, 'strategy network')
@@ -171,8 +182,12 @@ const assertStrategy = (
 const assertSpace = (
 	space: SnapshotHubSpace
 ) => {
+	assertEnvelope(
+		'space envelope',
+		snapshotHubSpaceEnvelope,
+		space
+	)
 	assertOpaqueIdentity(space.id, 'space ID')
-	assertSafeNonnegativeInteger(space.created, 'space creation timestamp')
 	for (const strategy of space.strategies ?? []) {
 		if (strategy == null)
 			throw new Error('SnapshotHub_Graphql: space contains an empty strategy')
@@ -184,49 +199,38 @@ const assertSpace = (
 	for (const identity of [
 		...space.admins ?? [],
 		...space.members ?? [],
+		...space.moderators ?? [],
 	]) {
 		if (identity == null)
 			throw new Error('SnapshotHub_Graphql: space contains an empty account identity')
 
 		assertOpaqueIdentity(identity, 'space account identity')
 	}
-	for (const count of [
-		space.proposalsCount,
-		space.votesCount,
-	])
-		if (count != null)
-			assertSafeNonnegativeInteger(count, 'space aggregate count')
 }
 
 const assertProposal = (
 	proposal: SnapshotHubProposal
 ) => {
+	assertEnvelope(
+		'proposal envelope',
+		snapshotHubProposalEnvelope,
+		proposal
+	)
 	assertMessageIdentity(proposal.id, 'proposal ID')
 	assertOpaqueIdentity(proposal.author, 'proposal author')
 	if (proposal.space == null)
 		throw new Error('SnapshotHub_Graphql: proposal space is missing')
 	assertOpaqueIdentity(proposal.space.id, 'proposal space ID')
-	assertOpaqueIdentity(proposal.network, 'proposal network')
-	assertSafeNonnegativeInteger(proposal.created, 'proposal creation timestamp')
-	assertSafeNonnegativeInteger(proposal.start, 'proposal start timestamp')
-	assertSafeNonnegativeInteger(proposal.end, 'proposal end timestamp')
 	if (proposal.created > proposal.end || proposal.start > proposal.end)
 		throw new Error('SnapshotHub_Graphql: invalid proposal lifecycle')
-	if (proposal.updated != null) {
-		assertSafeNonnegativeInteger(proposal.updated, 'proposal update timestamp')
-		if (proposal.updated < proposal.created)
-			throw new Error('SnapshotHub_Graphql: invalid proposal lifecycle')
-	}
+	if (proposal.updated != null && proposal.updated < proposal.created)
+		throw new Error('SnapshotHub_Graphql: invalid proposal lifecycle')
 	if (
 		proposal.state !== 'pending'
 		&& proposal.state !== 'active'
 		&& proposal.state !== 'closed'
 	)
 		throw new Error('SnapshotHub_Graphql: invalid proposal lifecycle state')
-	if (proposal.snapshot != null)
-		assertSafeNonnegativeInteger(proposal.snapshot, 'proposal snapshot block')
-	assertFiniteNonnegativeNumber(proposal.quorum, 'proposal quorum')
-	assertOpaqueIdentity(proposal.quorumType, 'proposal quorum type')
 	if (proposal.choices.length < 1 || proposal.choices.length > 1_000)
 		throw new Error('SnapshotHub_Graphql: invalid proposal choice count')
 	if (proposal.strategies.length > 32)
@@ -241,8 +245,6 @@ const assertProposal = (
 		for (const score of proposal.scores) {
 			if (score == null)
 				throw new Error('SnapshotHub_Graphql: proposal contains an empty score')
-
-			assertFiniteNonnegativeNumber(score, 'proposal choice score')
 		}
 		if (
 			proposal.scores.length !== 0
@@ -265,26 +267,23 @@ const assertProposal = (
 			)
 				throw new Error('SnapshotHub_Graphql: strategy scores do not align with strategies')
 			for (const score of choiceScores) {
-				if (!isJsonNumber(score))
+				if (!isJsonNumber(score) || !Number.isFinite(score) || score < 0)
 					throw new Error('SnapshotHub_Graphql: invalid proposal strategy score')
-				assertFiniteNonnegativeNumber(score, 'proposal strategy score')
 			}
 		}
 	}
-	if (proposal.scores_total != null)
-		assertFiniteNonnegativeNumber(proposal.scores_total, 'proposal total score')
-	if (proposal.scores_updated != null)
-		assertSafeNonnegativeInteger(proposal.scores_updated, 'proposal score timestamp')
-	if (proposal.votes != null)
-		assertSafeNonnegativeInteger(proposal.votes, 'proposal vote count')
 }
 
 const assertVote = (
 	vote: SnapshotHubVote
 ) => {
+	assertEnvelope(
+		'vote envelope',
+		snapshotHubVoteEnvelope,
+		vote
+	)
 	assertMessageIdentity(vote.id, 'vote ID')
 	assertOpaqueIdentity(vote.voter, 'voter identity')
-	assertSafeNonnegativeInteger(vote.created, 'vote timestamp')
 	assertOpaqueIdentity(vote.space.id, 'vote space ID')
 	if (vote.proposal == null)
 		throw new Error('SnapshotHub_Graphql: vote proposal is missing')
@@ -294,14 +293,10 @@ const assertVote = (
 		|| vote.proposal.space.id !== vote.space.id
 	)
 		throw new Error('SnapshotHub_Graphql: vote space and proposal space disagree')
-	if (vote.vp != null)
-		assertFiniteNonnegativeNumber(vote.vp, 'vote voting power')
 	if (vote.vp_by_strategy != null) {
 		for (const votingPower of vote.vp_by_strategy) {
 			if (votingPower == null)
 				throw new Error('SnapshotHub_Graphql: vote contains empty strategy voting power')
-
-			assertFiniteNonnegativeNumber(votingPower, 'strategy voting power')
 		}
 		if (
 			vote.vp_by_strategy.length !== 0
@@ -317,9 +312,13 @@ export const getSpace = async ({
 	spaceId: string
 }) => {
 	assertOpaqueIdentity(spaceId, 'requested space ID')
-	const { space } = await querySnapshotHub(SnapshotHubSpace, {
-		id: spaceId,
-	})
+	const { space } = assertEnvelope(
+		'space data envelope',
+		snapshotHubSpaceDataEnvelope,
+		await querySnapshotHub(SnapshotHubSpace, {
+			id: spaceId,
+		})
+	)
 	if (space == null)
 		return null
 	assertSpace(space)
@@ -339,19 +338,18 @@ export const getSpacesPage = async ({
 		limit,
 		offset,
 	})
-	const { spaces } = await querySnapshotHub(SnapshotHubSpaces, {
-		first: limit,
-		skip: offset,
-	})
-	if (spaces == null)
-		throw new Error('SnapshotHub_Graphql: space page is missing')
+	const { spaces } = assertEnvelope(
+		'spaces page envelope',
+		snapshotHubSpacesPageEnvelope,
+		await querySnapshotHub(SnapshotHubSpaces, {
+			first: limit,
+			skip: offset,
+		})
+	)
 	if (spaces.length > limit)
 		throw new Error('SnapshotHub_Graphql: space page exceeds requested limit')
 	const spaceIds = new Set<string>()
 	for (const space of spaces) {
-		if (space == null)
-			throw new Error('SnapshotHub_Graphql: space page contains an empty row')
-
 		assertSpace(space)
 		if (spaceIds.has(space.id))
 			throw new Error('SnapshotHub_Graphql: duplicate space in page')
@@ -366,9 +364,13 @@ export const getProposal = async ({
 	proposalId: string
 }) => {
 	assertMessageIdentity(proposalId, 'requested proposal ID')
-	const { proposal } = await querySnapshotHub(SnapshotHubProposal, {
-		id: proposalId,
-	})
+	const { proposal } = assertEnvelope(
+		'proposal data envelope',
+		snapshotHubProposalDataEnvelope,
+		await querySnapshotHub(SnapshotHubProposal, {
+			id: proposalId,
+		})
+	)
 	if (proposal == null)
 		return null
 	assertProposal(proposal)
@@ -393,25 +395,24 @@ export const getProposalsPage = async ({
 		limit,
 		offset,
 	})
-	const { proposals } = await querySnapshotHub(SnapshotHubProposals, {
-		first: limit,
-		skip: offset,
-		where: {
-			space: spaceId,
-			...(state != null && {
-				state,
-			}),
-		},
-	})
-	if (proposals == null)
-		throw new Error('SnapshotHub_Graphql: proposal page is missing')
+	const { proposals } = assertEnvelope(
+		'proposals page envelope',
+		snapshotHubProposalsPageEnvelope,
+		await querySnapshotHub(SnapshotHubProposals, {
+			first: limit,
+			skip: offset,
+			where: {
+				space: spaceId,
+				...(state != null && {
+					state,
+				}),
+			},
+		})
+	)
 	if (proposals.length > limit)
 		throw new Error('SnapshotHub_Graphql: proposal page exceeds requested limit')
 	const proposalIds = new Set<string>()
 	for (const proposal of proposals) {
-		if (proposal == null)
-			throw new Error('SnapshotHub_Graphql: proposal page contains an empty row')
-
 		assertProposal(proposal)
 		if (proposal.space?.id !== spaceId)
 			throw new Error('SnapshotHub_Graphql: returned a proposal from a foreign space')
@@ -430,9 +431,13 @@ export const getVote = async ({
 	voteId: string
 }) => {
 	assertMessageIdentity(voteId, 'requested vote ID')
-	const { vote } = await querySnapshotHub(SnapshotHubVote, {
-		id: voteId,
-	})
+	const { vote } = assertEnvelope(
+		'vote data envelope',
+		snapshotHubVoteDataEnvelope,
+		await querySnapshotHub(SnapshotHubVote, {
+			id: voteId,
+		})
+	)
 	if (vote == null)
 		return null
 	assertVote(vote)
@@ -455,22 +460,21 @@ export const getVotesPage = async ({
 		limit,
 		offset,
 	})
-	const { votes } = await querySnapshotHub(SnapshotHubVotes, {
-		first: limit,
-		skip: offset,
-		where: {
-			proposal: proposalId,
-		},
-	})
-	if (votes == null)
-		throw new Error('SnapshotHub_Graphql: vote page is missing')
+	const { votes } = assertEnvelope(
+		'votes page envelope',
+		snapshotHubVotesPageEnvelope,
+		await querySnapshotHub(SnapshotHubVotes, {
+			first: limit,
+			skip: offset,
+			where: {
+				proposal: proposalId,
+			},
+		})
+	)
 	if (votes.length > limit)
 		throw new Error('SnapshotHub_Graphql: vote page exceeds requested limit')
 	const voteIds = new Set<string>()
 	for (const vote of votes) {
-		if (vote == null)
-			throw new Error('SnapshotHub_Graphql: vote page contains an empty row')
-
 		assertVote(vote)
 		if (vote.proposal?.id !== proposalId)
 			throw new Error('SnapshotHub_Graphql: returned a vote for a foreign proposal')

@@ -102,6 +102,39 @@ export const snapshotSpaceFields = (
 		...(space.avatar != null && {
 			avatar: space.avatar,
 		}),
+		...(space.cover != null && {
+			cover: space.cover,
+		}),
+		...(space.website != null && {
+			website: space.website,
+		}),
+		...(space.twitter != null && {
+			twitter: space.twitter,
+		}),
+		...(space.github != null && {
+			github: space.github,
+		}),
+		...(space.farcaster != null && {
+			farcaster: space.farcaster,
+		}),
+		...(space.coingecko != null && {
+			coingecko: space.coingecko,
+		}),
+		...(space.discussions != null && {
+			discussions: space.discussions,
+		}),
+		...(space.terms != null && {
+			terms: space.terms,
+		}),
+		...(space.location != null && {
+			location: space.location,
+		}),
+		...(space.domain != null && {
+			domain: space.domain,
+		}),
+		...(space.private != null && {
+			private: space.private,
+		}),
 		...(space.symbol != null && {
 			symbol: space.symbol,
 		}),
@@ -131,6 +164,12 @@ export const snapshotSpaceFields = (
 						.map((member) => evmNetworkAccount($network, member))
 					?? []
 				),
+				$$moderators: (
+					space.moderators
+						?.filter((moderator) => moderator != null && isEvmAddress(moderator))
+						.map((moderator) => evmNetworkAccount($network, moderator))
+					?? []
+				),
 			}
 		),
 		...(space.categories != null && {
@@ -141,6 +180,9 @@ export const snapshotSpaceFields = (
 		}),
 		...(space.votesCount != null && {
 			votesCount: space.votesCount,
+		}),
+		...(space.followersCount != null && {
+			followersCount: space.followersCount,
 		}),
 		createdAtMs: space.created * 1000,
 	}
@@ -185,7 +227,9 @@ export const snapshotProposalFields = (
 		...(proposal.body != null && {
 			body: proposal.body,
 		}),
-		choices: proposal.choices,
+		discussion: proposal.discussion,
+		choices: proposal.choices.filter((choice) => choice != null),
+		labels: proposal.labels.filter((label) => label != null),
 		startAtMs: proposal.start * 1000,
 		endAtMs: proposal.end * 1000,
 		createdAtMs: proposal.created * 1000,
@@ -194,10 +238,19 @@ export const snapshotProposalFields = (
 		}),
 		quorum: proposal.quorum,
 		quorumType: proposal.quorumType,
+		...(proposal.privacy != null && {
+			privacy: proposal.privacy,
+		}),
 		...(proposal.snapshot != null && {
 			snapshotBlock: proposal.snapshot,
 		}),
 		state: proposal.state,
+		...(proposal.link != null && {
+			link: proposal.link,
+		}),
+		...(proposal.app != null && {
+			app: proposal.app,
+		}),
 		...(proposal.scores != null && {
 			scores: proposal.scores.filter((score) => score != null),
 		}),
@@ -209,6 +262,9 @@ export const snapshotProposalFields = (
 		}),
 		...(proposal.scores_total != null && {
 			scoresTotal: proposal.scores_total,
+		}),
+		...(proposal.scores_total_value != null && {
+			scoresTotalValue: proposal.scores_total_value,
 		}),
 		...(proposal.scores_updated != null && {
 			scoresUpdatedAtMs: proposal.scores_updated * 1000,
@@ -242,6 +298,9 @@ export const snapshotVoteFields = (
 		...(vote.reason != null && {
 			reason: vote.reason,
 		}),
+		...(vote.app != null && {
+			app: vote.app,
+		}),
 		...(vote.vp != null && {
 			votingPower: vote.vp,
 		}),
@@ -250,6 +309,12 @@ export const snapshotVoteFields = (
 		}),
 		...(vote.vp_state != null && {
 			votingPowerState: vote.vp_state,
+		}),
+		...(vote.vp_value != null && {
+			votingPowerValue: vote.vp_value,
+		}),
+		...(vote.metadata != null && {
+			metadata: vote.metadata,
 		}),
 		createdAtMs: vote.created * 1000,
 	}

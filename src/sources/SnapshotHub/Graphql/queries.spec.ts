@@ -50,6 +50,17 @@ const space = {
 	name: 'ENS',
 	about: 'ENS governance',
 	avatar: 'ipfs://avatar',
+	cover: 'ipfs://cover',
+	website: 'https://ens.domains',
+	twitter: 'ensdomains',
+	github: 'ensdomains',
+	farcaster: 'ensdomains',
+	coingecko: 'ethereum-name-service',
+	discussions: 'https://discuss.ens.domains',
+	terms: 'https://ens.domains/terms',
+	location: 'Ethereum',
+	domain: 'vote.ens.domains',
+	private: false,
 	network: '1',
 	symbol: 'ENS',
 	strategies,
@@ -57,11 +68,15 @@ const space = {
 		author,
 	],
 	members: [],
+	moderators: [
+		author,
+	],
 	categories: [
 		'protocol',
 	],
 	proposalsCount: 1,
 	votesCount: 1,
+	followersCount: 42,
 	created: 1_700_000_000,
 }
 
@@ -80,17 +95,24 @@ const proposal = {
 	strategies,
 	title: 'Fund public goods',
 	body: 'Proposal body',
+	discussion: 'https://discuss.ens.domains/t/fund-public-goods',
 	choices: [
 		'For',
 		'Against',
 		'Abstain',
 	],
+	labels: [
+		'treasury',
+	],
 	start: 1_700_000_100,
 	end: 1_700_100_000,
 	quorum: 100_000.25,
 	quorumType: 'default',
+	privacy: null,
 	snapshot: 19_000_000,
 	state: 'closed' as const,
+	link: 'https://snapshot.org/#/ens.eth/proposal/0x1',
+	app: 'snapshot',
 	scores: [
 		100_000.25,
 		5,
@@ -112,6 +134,7 @@ const proposal = {
 	],
 	scores_state: 'final',
 	scores_total: 100_015.25,
+	scores_total_value: 100_015.25,
 	scores_updated: 1_700_100_001,
 	votes: 3,
 }
@@ -138,12 +161,17 @@ const vote = {
 		'2': 24.5,
 	},
 	reason: 'Weighted preference',
+	app: 'snapshot',
 	vp: 123.456,
 	vp_by_strategy: [
 		100.123,
 		23.333,
 	],
 	vp_state: 'final',
+	vp_value: 123.456,
+	metadata: {
+		votingSystem: 'weighted',
+	},
 }
 
 const jsonResponse = (data: object) => (
@@ -447,5 +475,50 @@ describe('Snapshot Hub public governance reads', () => {
 		await expect(getVote({
 			voteId,
 		})).rejects.toThrow('response is missing data')
+	})
+
+	it('fails closed on arktype envelopes for malformed space, proposal, and vote wires', async () => {
+		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
+		sourceFetch
+			.mockResolvedValueOnce(jsonResponse({
+				space: {
+					...space,
+					created: -1,
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				proposal: {
+					...proposal,
+					quorum: Number.NaN,
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				vote: {
+					...vote,
+					vp: -1,
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				spaces: [
+					{
+						...space,
+						id: '',
+					},
+				],
+			}))
+
+		await expect(getSpace({
+			spaceId,
+		})).rejects.toThrow('invalid space data envelope')
+		await expect(getProposal({
+			proposalId,
+		})).rejects.toThrow('invalid proposal data envelope')
+		await expect(getVote({
+			voteId,
+		})).rejects.toThrow('invalid vote data envelope')
+		await expect(getSpacesPage({
+			limit: 1,
+			offset: 0,
+		})).rejects.toThrow('invalid spaces page envelope')
 	})
 })
