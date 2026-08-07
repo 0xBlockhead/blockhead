@@ -315,3 +315,66 @@ export type HederaMirrorNodeNetworkFees = {
 	fees: HederaMirrorNodeNetworkFee[]
 	timestamp: string
 }
+
+// https://docs.hedera.com/api-reference/schedules/get-schedule-by-id
+export type HederaMirrorNodeSchedule = {
+	admin_key: {
+		_type: string
+		key: string
+	} | null
+	consensus_timestamp: string
+	creator_account_id: string | null
+	deleted: boolean
+	executed_timestamp: string | null
+	expiration_time: string | null
+	memo: string
+	payer_account_id: string | null
+	schedule_id: string
+	signatures: {
+		consensus_timestamp: string
+		public_key_prefix: string
+		signature: string
+		type: string
+	}[]
+	transaction_body: string
+	wait_for_expiry: boolean
+}
+
+// https://docs.hedera.com/api-reference/contracts/get-the-contract-result-from-a-contract-on-the-network-for-a-given-transactionid-or-ethereum-transaction-hash
+export type HederaMirrorNodeContractResult = {
+	access_list: unknown
+	address: string | null
+	amount: string | null
+	authorization_list?: unknown
+	block_gas_used: number | null
+	block_hash: string | null
+	block_number: number | null
+	bloom: string | null
+	call_result: string | null
+	chain_id: string | null
+	contract_id: string | null
+	created_contract_ids: string[] | null
+	error_message: string | null
+	failed_initcode: string | null
+	from: string | null
+	function_parameters: string | null
+	gas_consumed: number | null
+	gas_limit: number
+	gas_price: string | null
+	gas_used: number | null
+	hash: string
+	logs: unknown
+	max_fee_per_gas: string | null
+	max_priority_fee_per_gas: string | null
+	nonce: number | null
+	r: string | null
+	result: string
+	s: string | null
+	state_changes: unknown
+	status: string
+	timestamp: string
+	to: string | null
+	transaction_index: number | null
+	type: number | null
+	v: number | null
+}

@@ -11,6 +11,7 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	HederaMirrorNodeBlock,
+	HederaMirrorNodeContractResult,
 	HederaMirrorNodeNetworkExchangeRate,
 	HederaMirrorNodeNetworkFees,
 	HederaMirrorNodeNetworkStake,
@@ -371,9 +372,256 @@ const nodeSnapshot = (
 	}
 }
 
-const transactionSnapshot = (
+const hederaTimestampOrderKey = (
+	value: string,
+	fieldName: string
+) => {
+	const match = /^(\d{1,10})(?:\.(\d{1,9}))?$/.exec(value)
+	if (match == null)
+		throw new Error(`HederaMirrorNode_Rest: malformed ${fieldName}`)
+
+	return (
+		BigInt(match[1]) * 1_000_000_000n
+		+ BigInt((match[2] ?? '').padEnd(9, '0'))
+	)
+}
+
+const blockContainsConsensusTimestamp = (
+	block: HederaMirrorNodeBlock,
+	consensusTimestamp: string
+) => {
+	const consensusKey = hederaTimestampOrderKey(consensusTimestamp, 'transaction consensus timestamp')
+	const fromKey = hederaTimestampOrderKey(block.timestamp.from, 'block consensus start')
+	if (consensusKey < fromKey)
+		return false
+	if (block.timestamp.to == null)
+		return true
+
+	return consensusKey < hederaTimestampOrderKey(block.timestamp.to, 'block consensus end')
+}
+
+const normalizeEvmAddress = (
+	value: string,
+	fieldName: string
+) => {
+	const evmAddress = value.startsWith('0x') ?
+		value.toLowerCase()
+	:
+		`0x${value.toLowerCase()}`
+	if (!/^0x[0-9a-f]{40}$/.test(evmAddress))
+		throw new Error(`HederaMirrorNode_Rest: malformed ${fieldName}`)
+
+	return evmAddress
+}
+
+const contractResultRow = (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	transactionSelector: {
+		$network: EntitySelector<typeof schema, EntityType.Network>
+		consensusTimestamp: string
+	},
+	result: HederaMirrorNodeContractResult
+) => {
+	timestampMs(result.timestamp, 'contract result timestamp')
+	if (result.timestamp !== transactionSelector.consensusTimestamp)
+		throw new Error('HederaMirrorNode_Rest: response contract result does not match request')
+	if (result.status.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed contract result status')
+	if (result.result.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed contract result')
+	if (result.hash.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed contract result hash')
+	nonnegativeSafeInteger(result.gas_limit, 'contract gas limit')
+	if (result.gas_used != null)
+		nonnegativeSafeInteger(result.gas_used, 'contract gas used')
+	if (result.gas_consumed != null)
+		nonnegativeSafeInteger(result.gas_consumed, 'contract gas consumed')
+	if (result.block_number != null)
+		nonnegativeSafeInteger(result.block_number, 'contract result block number')
+	if (result.block_gas_used != null)
+		nonnegativeSafeInteger(result.block_gas_used, 'contract result block gas used')
+	if (result.transaction_index != null)
+		nonnegativeSafeInteger(result.transaction_index, 'contract result transaction index')
+	if (result.nonce != null)
+		nonnegativeSafeInteger(result.nonce, 'contract result nonce')
+	if (result.type != null)
+		nonnegativeSafeInteger(result.type, 'contract result type')
+	if (result.v != null)
+		nonnegativeSafeInteger(result.v, 'contract result v')
+	if (result.bloom != null && result.bloom.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed contract result bloom')
+	if (result.function_parameters != null && result.function_parameters.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed contract function parameters')
+	if (result.error_message != null && result.error_message.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed contract error message')
+	if (result.block_hash != null && result.block_hash.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed contract result block hash')
+	if (result.call_result != null && result.call_result.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed contract call result')
+	if (result.failed_initcode != null && result.failed_initcode.length === 0)
+		throw new Error('HederaMirrorNode_Rest: malformed failed initcode')
+	if (result.created_contract_ids != null) {
+		for (const createdContractId of result.created_contract_ids)
+			hederaEntityId(createdContractId, 'created contract ID')
+	}
+	if (result.from != null)
+		normalizeEvmAddress(result.from, 'contract result from address')
+	if (result.to != null)
+		normalizeEvmAddress(result.to, 'contract result to address')
+	const contractId = result.contract_id == null ?
+		undefined
+	:
+		hederaEntityId(result.contract_id, 'contract ID')
+	const evmAddress = result.address == null ?
+		undefined
+	:
+		normalizeEvmAddress(result.address, 'contract EVM address')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$transaction: transactionSelector,
+		},
+		[EntityMetaKey.Fields]: {
+			...(contractId != null && {
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], '$contract')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						contractId,
+					},
+				},
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'contractId')]: contractId,
+			}),
+			...(evmAddress != null && {
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'evmAddress')]: evmAddress,
+			}),
+			...(
+				/^0x[0-9a-fA-F]{64}$/.test(result.hash)
+				&& {
+					[entityFieldAddressKey(EntityType.HederaContractResult, [], 'ethereumHash')]: result.hash.toLowerCase(),
+				}
+			),
+			...(result.function_parameters != null && {
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'functionParameters')]: result.function_parameters,
+			}),
+			[entityFieldAddressKey(EntityType.HederaContractResult, [], 'gasLimit')]: BigInt(result.gas_limit),
+			...(result.gas_used != null && {
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'gasUsed')]: BigInt(result.gas_used),
+			}),
+			...(result.amount != null && {
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'amountTinybar')]: nonnegativeBigInt(result.amount, 'contract result amount'),
+			}),
+			[entityFieldAddressKey(EntityType.HederaContractResult, [], 'status')]: result.status,
+			...(result.error_message != null && {
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'errorMessage')]: result.error_message,
+			}),
+			...(result.bloom != null && {
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'bloom')]: result.bloom,
+			}),
+		},
+	}
+}
+
+const transactionJoins = async (
 	network: EntitySelector<typeof schema, EntityType.Network>,
 	transaction: HederaMirrorNodeTransaction
+) => {
+	const {
+		getBlockByConsensusTimestamp,
+		getContractResultByTransactionIdNonce,
+		getSchedule,
+		getTransactionByIdNonce,
+	} = await import('$/sources/HederaMirrorNode/Rest/queries.ts')
+
+	const scheduleId = (
+		transaction.name === 'SCHEDULECREATE'
+		&& transaction.entity_id != null
+	) ?
+		hederaEntityId(transaction.entity_id, 'schedule ID')
+	: transaction.scheduled ?
+		await (async () => {
+			const siblings = await getTransactionByIdNonce(
+				transaction.transaction_id,
+				transaction.nonce,
+				false
+			)
+			const scheduleCreate = siblings.transactions.find((sibling) => (
+				sibling.name === 'SCHEDULECREATE'
+				&& sibling.entity_id != null
+			))
+			if (scheduleCreate?.entity_id == null)
+				throw new Error('HederaMirrorNode_Rest: scheduled transaction missing schedule create sibling')
+
+			return hederaEntityId(scheduleCreate.entity_id, 'schedule ID')
+		})()
+	:
+		undefined
+
+	const [
+		block,
+		schedule,
+		contractResult,
+	] = await Promise.all([
+		getBlockByConsensusTimestamp(transaction.consensus_timestamp),
+		scheduleId == null ?
+			Promise.resolve(undefined)
+		:
+			getSchedule(scheduleId).then((row) => {
+				if (row.schedule_id !== scheduleId)
+					throw new Error('HederaMirrorNode_Rest: response schedule does not match request')
+				if (
+					transaction.scheduled
+					&& row.executed_timestamp !== transaction.consensus_timestamp
+				)
+					throw new Error('HederaMirrorNode_Rest: schedule execution timestamp does not match request')
+				timestampMs(row.consensus_timestamp, 'schedule consensus timestamp')
+				if (row.executed_timestamp != null)
+					timestampMs(row.executed_timestamp, 'schedule executed timestamp')
+				if (row.expiration_time != null)
+					timestampMs(row.expiration_time, 'schedule expiration time')
+				if (row.creator_account_id != null)
+					hederaEntityId(row.creator_account_id, 'schedule creator')
+				if (row.payer_account_id != null)
+					hederaEntityId(row.payer_account_id, 'schedule payer')
+				for (const signature of row.signatures)
+					timestampMs(signature.consensus_timestamp, 'schedule signature timestamp')
+
+				return row
+			}),
+		getContractResultByTransactionIdNonce(
+			transaction.transaction_id,
+			transaction.nonce
+		),
+	])
+
+	if (block != null && !blockContainsConsensusTimestamp(block, transaction.consensus_timestamp))
+		throw new Error('HederaMirrorNode_Rest: response block does not contain transaction')
+
+	if (
+		contractResult != null
+		&& contractResult.timestamp !== transaction.consensus_timestamp
+	)
+		throw new Error('HederaMirrorNode_Rest: response contract result does not match request')
+
+	return {
+		block,
+		schedule,
+		contractResult,
+	}
+}
+
+const transactionSnapshot = (
+	network: EntitySelector<typeof schema, EntityType.Network>,
+	transaction: HederaMirrorNodeTransaction,
+	joins?: {
+		block?: HederaMirrorNodeBlock
+		schedule?: {
+			schedule_id: string
+			creator_account_id: string | null
+			payer_account_id: string | null
+			transaction_body: string
+		}
+		contractResult?: HederaMirrorNodeContractResult
+	}
 ) => {
 	timestampMs(transaction.consensus_timestamp, 'transaction consensus timestamp')
 	const payerAccount = /^(\d{1,10}\.\d{1,10}\.\d{1,10})-\d{1,10}-\d{1,9}$/.exec(
@@ -523,11 +771,58 @@ const transactionSnapshot = (
 		validStartTimestamp: transaction.valid_start_timestamp ?? undefined,
 		nodeAccountId: transaction.node ?? undefined,
 		scheduled: transaction.scheduled,
+		$block: joins?.block == null ?
+			undefined
+		:
+			((block) => ({
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: block.blockNumber,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.HederaBlock, [], 'blockHash')]: block.blockHash,
+					[entityFieldAddressKey(EntityType.HederaBlock, [], 'consensusStartTimestamp')]: block.consensusStartTimestamp,
+					[entityFieldAddressKey(EntityType.HederaBlock, [], 'consensusEndTimestamp')]: block.consensusEndTimestamp,
+					...(block.gasUsed != null && {
+						[entityFieldAddressKey(EntityType.HederaBlock, [], 'gasUsed')]: block.gasUsed,
+					}),
+					[entityFieldAddressKey(EntityType.HederaBlock, [], 'recordFileName')]: block.recordFileName,
+					[entityFieldAddressKey(EntityType.HederaBlock, [], 'transactionCount')]: block.transactionCount,
+				},
+			}))(blockFields(joins.block)),
+		$schedule: joins?.schedule == null ?
+			undefined
+		:
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					scheduleId: joins.schedule.schedule_id,
+				},
+				[EntityMetaKey.Fields]: {
+					...(joins.schedule.creator_account_id != null && {
+						[entityFieldAddressKey(EntityType.HederaSchedule, [], 'creatorAccountId')]: joins.schedule.creator_account_id,
+					}),
+					...(joins.schedule.payer_account_id != null && {
+						[entityFieldAddressKey(EntityType.HederaSchedule, [], 'payerAccountId')]: joins.schedule.payer_account_id,
+					}),
+					[entityFieldAddressKey(EntityType.HederaSchedule, [], 'transactionBody')]: joins.schedule.transaction_body,
+				},
+			},
 		$$hbarTransfers: hbarTransfers,
 		$$tokenTransfers: [
 			...fungibleTokenTransfers,
 			...nftTokenTransfers,
 		],
+		$$contractResults: joins?.contractResult == null ?
+			[]
+		:
+			[
+				contractResultRow(
+					network,
+					transactionSelector,
+					joins.contractResult
+				),
+			],
 	}
 }
 
@@ -1068,7 +1363,12 @@ export default {
 						)
 							throw new Error('HederaMirrorNode_Rest: transaction response does not match consensus timestamp')
 
-						return transactionSnapshot($network, response.transactions[0])
+						const transaction = response.transactions[0]
+						return transactionSnapshot(
+							$network,
+							transaction,
+							await transactionJoins($network, transaction)
+						)
 					},
 				},
 				NetworkTransactionIdNonce: {
@@ -1090,7 +1390,12 @@ export default {
 						)
 							throw new Error('HederaMirrorNode_Rest: transaction response does not match transaction ID and nonce')
 
-						return transactionSnapshot($network, response.transactions[0])
+						const transaction = response.transactions[0]
+						return transactionSnapshot(
+							$network,
+							transaction,
+							await transactionJoins($network, transaction)
+						)
 					},
 				},
 			},
@@ -1105,8 +1410,11 @@ export default {
 			validStartTimestamp: (transaction) => transaction.validStartTimestamp,
 			nodeAccountId: (transaction) => transaction.nodeAccountId,
 			scheduled: (transaction) => transaction.scheduled,
+			$block: (transaction) => transaction.$block,
+			$schedule: (transaction) => transaction.$schedule,
 			$$hbarTransfers: (transaction) => transaction.$$hbarTransfers,
 			$$tokenTransfers: (transaction) => transaction.$$tokenTransfers,
+			$$contractResults: (transaction) => transaction.$$contractResults,
 		}),
 
 		defineResolver({

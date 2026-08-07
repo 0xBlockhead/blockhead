@@ -31,7 +31,10 @@ import {
 	getAccountNfts,
 	getAccountTokens,
 	getBlock,
+	getBlockByConsensusTimestamp,
 	getBlocks,
+	getContractResultByTransactionIdNonce,
+	getSchedule,
 	getTransactionByIdNonce,
 	getTransactions,
 } from '$/sources/HederaMirrorNode/Rest/queries.ts'
@@ -41,9 +44,11 @@ import type {
 	HederaMirrorNodeAccountTokens,
 	HederaMirrorNodeBlock,
 	HederaMirrorNodeBlocks,
+	HederaMirrorNodeContractResult,
 	HederaMirrorNodeCryptoAllowances,
 	HederaMirrorNodeNftAllowances,
 	HederaMirrorNodeNfts,
+	HederaMirrorNodeSchedule,
 	HederaMirrorNodeTokenAllowances,
 	HederaMirrorNodeTransaction,
 	HederaMirrorNodeTransactions,
@@ -1172,6 +1177,116 @@ describe('Hedera Mirror Node transaction detail', () => {
 		}],
 	} satisfies HederaMirrorNodeTransaction
 
+	const containingBlock = {
+		...fixture,
+		number: 88,
+		timestamp: {
+			from: '1710000001.000000000',
+			to: '1710000001.000000100',
+		},
+	} satisfies HederaMirrorNodeBlock
+
+	const contractResultFixture = {
+		access_list: null,
+		address: '0x0000000000000000000000000000000000000167',
+		amount: '9007199254740993',
+		block_gas_used: 300000,
+		block_hash: containingBlock.hash,
+		block_number: 88,
+		bloom: '0x00',
+		call_result: '0x01',
+		chain_id: '0x127',
+		contract_id: '0.0.359',
+		created_contract_ids: ['0.0.360'],
+		error_message: null,
+		failed_initcode: null,
+		from: '0x0000000000000000000000000000000000000062',
+		function_parameters: '0xbb9f02dc',
+		gas_consumed: 35000,
+		gas_limit: 100000,
+		gas_price: '0x4a817c800',
+		gas_used: 80000,
+		hash: '0xfebbaa29c513d124a6377246ea3506ad917d740c21a88f61a1c55ba338fc2bb1',
+		logs: [],
+		max_fee_per_gas: '0x5',
+		max_priority_fee_per_gas: '0x100',
+		nonce: 0,
+		r: '0xd693b532a80fed6392b428604171fb32fdbf953728a3a7ecc7d4062b1652c043',
+		result: 'SUCCESS',
+		s: '0x24e9c602ac800b983b035700a14b23f78a253ab762deab5dc27e3555a750b355',
+		state_changes: [],
+		status: '0x1',
+		timestamp: detailedTransaction.consensus_timestamp,
+		to: '0x0000000000000000000000000000000000000167',
+		transaction_index: 1,
+		type: 2,
+		v: 1,
+	} satisfies HederaMirrorNodeContractResult
+
+	const scheduleFixture = {
+		admin_key: null,
+		consensus_timestamp: '1710000000.500000000',
+		creator_account_id: '0.0.98',
+		deleted: false,
+		executed_timestamp: detailedTransaction.consensus_timestamp,
+		expiration_time: null,
+		memo: 'schedule',
+		payer_account_id: '0.0.99',
+		schedule_id: '0.0.7000',
+		signatures: [{
+			consensus_timestamp: '1710000000.600000000',
+			public_key_prefix: 'AA==',
+			signature: 'Aw==',
+			type: 'ED25519',
+		}],
+		transaction_body: 'Kd6tvu8=',
+		wait_for_expiry: false,
+	} satisfies HederaMirrorNodeSchedule
+
+	const mockTransactionJoins = ({
+		block = containingBlock,
+		contractResult,
+		schedule,
+	}: {
+		block?: HederaMirrorNodeBlock | null
+		contractResult?: HederaMirrorNodeContractResult | null
+		schedule?: HederaMirrorNodeSchedule
+	} = {}) => {
+		if (schedule != null) {
+			sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+				transactions: [{
+					...detailedTransaction,
+					name: 'SCHEDULECREATE',
+					scheduled: false,
+					entity_id: schedule.schedule_id,
+					consensus_timestamp: schedule.consensus_timestamp,
+				}],
+			})))
+		}
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			blocks: block == null ? [] : [block],
+			links: {
+				next: null,
+			},
+		} satisfies HederaMirrorNodeBlocks)))
+		if (schedule != null)
+			sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(schedule)))
+		sourceFetch.mockResolvedValueOnce(
+			contractResult == null ?
+				new Response(JSON.stringify({
+					_status: {
+						messages: [{
+							message: 'Not found',
+						}],
+					},
+				}), {
+					status: 404,
+				})
+			:
+				new Response(JSON.stringify(contractResult))
+		)
+	}
+
 	const transactionResolver = hederaMirrorNode.resolvers.find((resolver) => (
 		resolver.entityType === EntityType.HederaTransaction
 	))
@@ -1211,12 +1326,14 @@ describe('Hedera Mirror Node transaction detail', () => {
 			'https://mainnet-public.mirrornode.hedera.com/api/v1/transactions/0.0.98-1710000000-000000006?nonce=0',
 		])
 
+		sourceFetch.mockReset()
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 			transactions: [detailedTransaction],
 			links: {
 				next: null,
 			},
 		} satisfies HederaMirrorNodeTransactions)))
+		mockTransactionJoins()
 		const snapshot = await transactionResolver.resolve[
 			'NetworkConsensusTimestamp'
 		].resolve({
@@ -1239,6 +1356,14 @@ describe('Hedera Mirror Node transaction detail', () => {
 					[entityFieldAddressKey(EntityType.HederaHbarTransfer, [], 'amountTinybar')]: -9_007_199_254_740_993n,
 				}),
 			}],
+			$block: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 88n,
+				},
+			},
+			$schedule: undefined,
+			$$contractResults: [],
 		})
 		expect(snapshot.$$tokenTransfers).toHaveLength(3)
 		expect(snapshot.$$tokenTransfers.map((transfer) => transfer[EntityMetaKey.Selector])).toEqual([
@@ -1258,6 +1383,159 @@ describe('Hedera Mirror Node transaction detail', () => {
 				transferIndex: 2,
 			}),
 		])
+		expect(Object.keys(transactionResolver.projections).sort()).toEqual([
+			'$$contractResults',
+			'$$hbarTransfers',
+			'$$tokenTransfers',
+			'$block',
+			'$schedule',
+			'chargedTxFeeTinybar',
+			'consensusTimestamp',
+			'nodeAccountId',
+			'nonce',
+			'payerAccount',
+			'result',
+			'scheduled',
+			'transactionId',
+			'transactionType',
+			'validStartTimestamp',
+		])
+	})
+
+	it('projects enrolled $block / $schedule / $$contractResults via Mirror joins', async () => {
+		const scheduledTransaction = {
+			...detailedTransaction,
+			scheduled: true,
+			node: null,
+			name: 'CRYPTOTRANSFER',
+			entity_id: null,
+		} satisfies HederaMirrorNodeTransaction
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			transactions: [scheduledTransaction],
+			links: {
+				next: null,
+			},
+		} satisfies HederaMirrorNodeTransactions)))
+		mockTransactionJoins({
+			contractResult: contractResultFixture,
+			schedule: scheduleFixture,
+		})
+
+		const snapshot = await transactionResolver.resolve[
+			'NetworkConsensusTimestamp'
+		].resolve({
+			$network: network,
+			consensusTimestamp: scheduledTransaction.consensus_timestamp,
+		}, context)
+
+		expect(transactionResolver.projections.$block(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				blockNumber: 88n,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HederaBlock, [], 'blockHash')]: containingBlock.hash,
+				[entityFieldAddressKey(EntityType.HederaBlock, [], 'consensusStartTimestamp')]: containingBlock.timestamp.from,
+				[entityFieldAddressKey(EntityType.HederaBlock, [], 'consensusEndTimestamp')]: containingBlock.timestamp.to,
+				[entityFieldAddressKey(EntityType.HederaBlock, [], 'gasUsed')]: 300000n,
+				[entityFieldAddressKey(EntityType.HederaBlock, [], 'recordFileName')]: containingBlock.name,
+				[entityFieldAddressKey(EntityType.HederaBlock, [], 'transactionCount')]: 3,
+			},
+		})
+		expect(transactionResolver.projections.$schedule(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				scheduleId: '0.0.7000',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HederaSchedule, [], 'creatorAccountId')]: '0.0.98',
+				[entityFieldAddressKey(EntityType.HederaSchedule, [], 'payerAccountId')]: '0.0.99',
+				[entityFieldAddressKey(EntityType.HederaSchedule, [], 'transactionBody')]: 'Kd6tvu8=',
+			},
+		})
+		expect(transactionResolver.projections.$$contractResults(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: network,
+					consensusTimestamp: scheduledTransaction.consensus_timestamp,
+				},
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], '$contract')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						contractId: '0.0.359',
+					},
+				},
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'contractId')]: '0.0.359',
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'evmAddress')]: '0x0000000000000000000000000000000000000167',
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'ethereumHash')]: '0xfebbaa29c513d124a6377246ea3506ad917d740c21a88f61a1c55ba338fc2bb1',
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'functionParameters')]: '0xbb9f02dc',
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'gasLimit')]: 100000n,
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'gasUsed')]: 80000n,
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'amountTinybar')]: 9_007_199_254_740_993n,
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'status')]: '0x1',
+				[entityFieldAddressKey(EntityType.HederaContractResult, [], 'bloom')]: '0x00',
+			},
+		}])
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/transactions?limit=2&order=desc&timestamp=eq%3A1710000001.000000007',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/transactions/0.0.98-1710000000-000000006?nonce=0&scheduled=false',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/blocks?limit=1&order=asc&timestamp=gte%3A1710000001.000000007',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/schedules/0.0.7000',
+			'https://mainnet-public.mirrornode.hedera.com/api/v1/contracts/results/0.0.98-1710000000-000000006?nonce=0',
+		])
+	})
+
+	it('fail-closes unenrolled contract-result leftovers and mismatched Mirror joins', async () => {
+		expect(() => getBlockByConsensusTimestamp('not-a-timestamp')).toThrow(
+			'invalid block consensus timestamp'
+		)
+		expect(() => getSchedule('0.0.7000/path')).toThrow('invalid schedule selector')
+		await expect(getContractResultByTransactionIdNonce('bad', 0)).rejects.toThrow('invalid transaction ID')
+		expect(sourceFetch).not.toHaveBeenCalled()
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			transactions: [detailedTransaction],
+			links: {
+				next: null,
+			},
+		} satisfies HederaMirrorNodeTransactions)))
+		mockTransactionJoins({
+			block: {
+				...containingBlock,
+				timestamp: {
+					from: '1710000002.000000000',
+					to: '1710000002.000000100',
+				},
+			},
+		})
+		await expect(transactionResolver.resolve[
+			'NetworkConsensusTimestamp'
+		].resolve({
+			$network: network,
+			consensusTimestamp: detailedTransaction.consensus_timestamp,
+		}, context)).rejects.toThrow('response block does not contain transaction')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			transactions: [detailedTransaction],
+			links: {
+				next: null,
+			},
+		} satisfies HederaMirrorNodeTransactions)))
+		mockTransactionJoins({
+			contractResult: {
+				...contractResultFixture,
+				call_result: '',
+			},
+		})
+		await expect(transactionResolver.resolve[
+			'NetworkConsensusTimestamp'
+		].resolve({
+			$network: network,
+			consensusTimestamp: detailedTransaction.consensus_timestamp,
+		}, context)).rejects.toThrow('malformed contract call result')
 	})
 
 	it('rejects ambiguous identities, malformed selectors, and unrepresentable children', async () => {
@@ -1295,6 +1573,7 @@ describe('Hedera Mirror Node transaction detail', () => {
 				}],
 			}],
 		})))
+		mockTransactionJoins()
 		await expect(transactionResolver.resolve[
 			'NetworkTransactionIdNonce'
 		].resolve({

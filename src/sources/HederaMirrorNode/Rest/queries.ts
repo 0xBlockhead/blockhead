@@ -1,6 +1,7 @@
 import bindings from '$/sources/HederaMirrorNode/bindings.ts'
 import {
 	firstHttpUrlForBinding,
+	sourceFetch,
 	sourceGetText,
 } from '$/sources/_runtime/http.ts'
 import type {
@@ -9,6 +10,7 @@ import type {
 	HederaMirrorNodeAccountTokens,
 	HederaMirrorNodeBlock,
 	HederaMirrorNodeBlocks,
+	HederaMirrorNodeContractResult,
 	HederaMirrorNodeCryptoAllowances,
 	HederaMirrorNodeNetworkExchangeRate,
 	HederaMirrorNodeNetworkFees,
@@ -17,6 +19,7 @@ import type {
 	HederaMirrorNodeNftAllowances,
 	HederaMirrorNodeNfts,
 	HederaMirrorNodeNodes,
+	HederaMirrorNodeSchedule,
 	HederaMirrorNodeTokenAllowances,
 	HederaMirrorNodeTransactionResponse,
 	HederaMirrorNodeTransactions,
@@ -215,7 +218,8 @@ export const getAccounts = (
 
 export const getTransactionByIdNonce = (
 	transactionId: string,
-	nonce: number
+	nonce: number,
+	scheduled?: boolean
 ) => {
 	if (!/^\d{1,10}\.\d{1,10}\.\d{1,10}-\d{1,10}-\d{1,9}$/.test(transactionId))
 		throw new Error('HederaMirrorNode_Rest: invalid transaction ID')
@@ -227,6 +231,8 @@ export const getTransactionByIdNonce = (
 		firstHttpUrlForBinding(binding)
 	)
 	url.searchParams.set('nonce', nonce.toString())
+	if (scheduled != null)
+		url.searchParams.set('scheduled', scheduled ? 'true' : 'false')
 
 	return sourceGetHederaJson<HederaMirrorNodeTransactionResponse>(url.toString())
 }
@@ -533,4 +539,74 @@ export const getBlock = (
 			firstHttpUrlForBinding(binding)
 		).toString()
 	)
+}
+
+export const getBlockByConsensusTimestamp = (
+	consensusTimestamp: string
+) => {
+	if (!/^\d{1,10}(?:\.\d{1,9})?$/.test(consensusTimestamp))
+		throw new Error('HederaMirrorNode_Rest: invalid block consensus timestamp')
+
+	const url = new URL('/api/v1/blocks', firstHttpUrlForBinding(binding))
+	url.searchParams.set('limit', '1')
+	url.searchParams.set('order', 'asc')
+	url.searchParams.set('timestamp', `gte:${consensusTimestamp}`)
+
+	return sourceGetHederaJson<HederaMirrorNodeBlocks>(url.toString()).then((page) => {
+		if (page.blocks.length === 0)
+			return undefined
+
+		return page.blocks[0]
+	})
+}
+
+export const getSchedule = (
+	scheduleId: string
+) => {
+	if (!accountIdPattern.test(scheduleId))
+		throw new Error('HederaMirrorNode_Rest: invalid schedule selector')
+
+	return sourceGetHederaJson<HederaMirrorNodeSchedule>(
+		new URL(
+			`/api/v1/schedules/${encodeURIComponent(scheduleId)}`,
+			firstHttpUrlForBinding(binding)
+		).toString()
+	)
+}
+
+export const getContractResultByTransactionIdNonce = async (
+	transactionId: string,
+	nonce: number
+) => {
+	if (!/^\d{1,10}\.\d{1,10}\.\d{1,10}-\d{1,10}-\d{1,9}$/.test(transactionId))
+		throw new Error('HederaMirrorNode_Rest: invalid transaction ID')
+	if (!Number.isSafeInteger(nonce) || nonce < 0)
+		throw new Error('HederaMirrorNode_Rest: invalid transaction nonce')
+
+	const url = new URL(
+		`/api/v1/contracts/results/${encodeURIComponent(transactionId)}`,
+		firstHttpUrlForBinding(binding)
+	)
+	url.searchParams.set('nonce', nonce.toString())
+
+	const response = await sourceFetch(binding, url.toString())
+	if (response.status === 404)
+		return undefined
+	if (!response.ok)
+		throw new Error(`HederaMirrorNode_Rest: HTTP ${String(response.status)}`)
+
+	const text = await response.text()
+	return JSON.parse(
+		text,
+		(key, value, context) => ((integer) => (
+			key === 'associated_registered_nodes' ?
+				value.map(String)
+			: bigintWireKeys.has(key) && integer != null ?
+				integer
+			: integer != null && !Number.isSafeInteger(value) ?
+				integer
+			:
+				value
+		))(decimalIntegerFromJsonNumberSource(context.source))
+	) as HederaMirrorNodeContractResult
 }
