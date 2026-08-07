@@ -329,8 +329,10 @@ describe('TzKT account state and activity', () => {
 			publicKey: 'edpkPublicKey',
 			firstLevel: 1,
 			lastLevel: 5_000_000,
-			firstActivity: '2018-06-30T17:39:57Z',
-			lastActivity: '2026-07-16T12:34:56Z',
+			firstActivity: 1,
+			lastActivity: 5_000_000,
+			firstActivityTime: '2018-06-30T17:39:57Z',
+			lastActivityTime: '2026-07-16T12:34:56Z',
 		})
 		const resolver = accountResolverFor('accountKind')
 		const snapshot = await resolver.resolve['NetworkAddress'].resolve(account, context)
@@ -935,5 +937,85 @@ describe('TzKT network lists, tokens, and operation fields', () => {
 				},
 			},
 		}))
+	})
+})
+
+describe('TzKT network accounts / operations leftovers', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	const networkResolverFor = (fieldName: string) => {
+		const resolver = tzktResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TezosNetwork
+			&& fieldName in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error(`TzKT REST spec missing TezosNetwork.${fieldName} resolver`)
+		return resolver
+	}
+
+	it('projects Network.$$accounts selectors', async () => {
+		getJson.mockResolvedValueOnce([{
+			address: account.address,
+			type: 'user',
+			balance: 1,
+			firstActivity: 1,
+			lastActivity: 5_000_000,
+			lastActivityTime: '2026-07-16T12:34:56Z',
+		}])
+		const resolver = networkResolverFor('$$accounts')
+		const page = await resolver.resolve['Network'].resolve({
+			$network: { slug: 'tezos' },
+		}, context)
+		expect(resolver.projections.$$accounts.select(page, {
+			$network: { slug: 'tezos' },
+		}, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: { $network: { slug: 'tezos' } },
+				address: account.address,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.TezosAccount, [], 'accountKind')]: 'user',
+			},
+		}])
+		expect(getJson.mock.calls[0][0]).toContain('/v1/accounts?')
+	})
+
+	it('projects Network.$$operationGroups from recent transactions', async () => {
+		getJson.mockResolvedValueOnce([{
+			...accountOperation,
+			id: 91,
+		}])
+		const resolver = networkResolverFor('$$operationGroups')
+		const page = await resolver.resolve['Network'].resolve({
+			$network: { slug: 'tezos' },
+		}, context)
+		expect(resolver.projections.$$operationGroups.select(page, {
+			$network: { slug: 'tezos' },
+		}, context)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: { $network: { slug: 'tezos' } },
+				operationHash: 'opHash',
+			},
+		}])
+	})
+
+	it('resolves TezosBlock by NetworkHash', async () => {
+		getJson.mockResolvedValueOnce({
+			level: 5_000_000,
+			timestamp: '2026-07-16T12:34:56Z',
+			hash: 'BLzyx',
+		})
+		await expect(blockResolver.resolve['NetworkHash'].resolve({
+			$network: {
+				$network: { slug: 'tezos' },
+			},
+			hash: 'BLzyx',
+		})).resolves.toMatchObject({
+			hash: 'BLzyx',
+			level: 5_000_000n,
+		})
+		expect(getJson.mock.calls[0][0]).toContain('/v1/blocks/BLzyx')
 	})
 })

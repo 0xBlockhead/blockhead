@@ -18,10 +18,12 @@ export const tzktAccountWire = arktype({
 	'delegate?': tzktAddressWire,
 	'revealed?': 'boolean',
 	'publicKey?': 'string',
-	firstLevel: 'number.integer >= 0',
-	lastLevel: 'number.integer >= 0',
-	firstActivity: 'string',
-	lastActivity: 'string',
+	'firstLevel?': 'number.integer >= 0',
+	'lastLevel?': 'number.integer >= 0',
+	firstActivity: 'number.integer >= 0',
+	lastActivity: 'number.integer >= 0',
+	'firstActivityTime?': 'string',
+	lastActivityTime: 'string',
 })
 
 export type TzktAccount = typeof tzktAccountWire.infer
@@ -129,6 +131,7 @@ export const tzktStatisticsWire = arktype({
 	timestamp: 'string',
 	totalSupply: 'number.integer >= 0',
 	'circulatingSupply?': 'number.integer >= 0',
+	'totalBakers?': 'number.integer >= 0',
 })
 
 export type TzktStatistics = typeof tzktStatisticsWire.infer

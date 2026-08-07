@@ -29,8 +29,10 @@ const account = {
 	balance: 1_000_000,
 	firstLevel: 1,
 	lastLevel: 10,
-	firstActivity: '2024-01-01T00:00:00Z',
-	lastActivity: '2024-01-02T00:00:00Z',
+	firstActivity: 1,
+	lastActivity: 10,
+	firstActivityTime: '2024-01-01T00:00:00Z',
+	lastActivityTime: '2024-01-02T00:00:00Z',
 }
 
 const block = {
@@ -192,8 +194,10 @@ describe('TzKT REST fail-closed envelopes', () => {
 			balance: -1,
 			firstLevel: 1,
 			lastLevel: 1,
-			firstActivity: '2024-01-01T00:00:00Z',
-			lastActivity: '2024-01-01T00:00:00Z',
+			firstActivity: 1,
+			lastActivity: 1,
+			firstActivityTime: '2024-01-01T00:00:00Z',
+			lastActivityTime: '2024-01-01T00:00:00Z',
 		})
 		await expect(getAccount({ address: account.address })).rejects.toThrow('invalid account response envelope')
 
@@ -229,3 +233,28 @@ describe('TzKT REST fail-closed envelopes', () => {
 		expect(sourceGetJsonMock).not.toHaveBeenCalled()
 	})
 })
+
+	it('asserts listAccounts / listOperations / getBlockByHash envelopes', async () => {
+		const {
+			getBlockByHash,
+			listAccounts,
+			listOperations,
+		} = await import('$/sources/Tzkt/Rest/queries.ts')
+
+		sourceGetJsonMock
+			.mockResolvedValueOnce([account])
+			.mockResolvedValueOnce([operation])
+			.mockResolvedValueOnce(block)
+
+		await expect(listAccounts({
+			offset: 0,
+			limit: 1,
+		})).resolves.toEqual([account])
+		await expect(listOperations({
+			offset: 0,
+			limit: 1,
+		})).resolves.toEqual([operation])
+		await expect(getBlockByHash({
+			hash: block.hash,
+		})).resolves.toEqual(block)
+	})

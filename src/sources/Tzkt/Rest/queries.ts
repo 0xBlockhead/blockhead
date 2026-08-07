@@ -42,7 +42,7 @@ const omitUndefinedJson = (
 	if (value != null && typeof value === 'object')
 		return Object.fromEntries(
 			Object.entries(value)
-				.filter(([, entry]) => entry !== undefined)
+				.filter(([, entry]) => entry != null)
 				.map(([key, entry]) => [
 					key,
 					omitUndefinedJson(entry),
@@ -413,6 +413,77 @@ export const getBlock = async ({
 		)
 	) as TzktBlock
 )
+
+export const getBlockByHash = async ({
+	hash,
+}: {
+	hash: string
+}) => {
+	if (hash.length === 0)
+		throw new Error('TzKT block hash must not be empty')
+
+	const block = assertEnvelope(
+		'block',
+		tzktBlock,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/blocks/${encodeURIComponent(hash)}`
+		)
+	) as TzktBlock
+	if (block.hash !== hash)
+		throw new Error('TzKT block response hash does not match the subject')
+	return block
+}
+
+export const listAccounts = async ({
+	offset,
+	limit,
+}: {
+	offset: number
+	limit: number
+}) => {
+	assertPage(offset, limit, 'account')
+	const accounts = assertEnvelopeArray(
+		'account',
+		tzktAccount,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/accounts?${queryString({
+				offset,
+				limit,
+				'sort.desc': 'id',
+			})}`
+		)
+	) as TzktAccount[]
+	if (accounts.length > limit)
+		throw new Error('TzKT accounts exceeded the requested limit')
+	return accounts
+}
+
+export const listOperations = async ({
+	offset,
+	limit,
+}: {
+	offset: number
+	limit: number
+}) => {
+	assertPage(offset, limit, 'operation')
+	const operations = assertEnvelopeArray(
+		'operation',
+		tzktOperation,
+		await sourceGetJson<unknown>(
+			binding,
+			`${baseUrl}/v1/operations/transactions?${queryString({
+				offset,
+				limit,
+				'sort.desc': 'id',
+			})}`
+		)
+	) as TzktOperation[]
+	if (operations.length > limit)
+		throw new Error('TzKT operations exceeded the requested limit')
+	return operations
+}
 
 export const listBlocks = async ({
 	offset,

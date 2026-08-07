@@ -214,6 +214,10 @@ export default {
 				Network: {
 					resolve: async ({ $network }) => {
 						assertTezosMainnet($network)
+						const { getSettings } = await import('$/sources/TezosDappetizer/Postgres/queries.ts')
+						const settings = await getSettings()
+						if (settings.chainId !== networkBySlug.tezos.caip2.reference)
+							throw new Error(`TezosDappetizer_Postgres: settings chainId ${settings.chainId} is not Tezos mainnet`)
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
@@ -530,6 +534,119 @@ export default {
 			contractAddress: (token) => token.contractAddress,
 			tokenId: (token) => token.tokenId,
 			$contract: (token) => token.$contract,
+		}),
+
+		defineResolver({
+			entityType: EntityType.TezosToken,
+			resolve: {
+				NetworkContractAddressTokenId: {
+					resolve: async ({
+						$network,
+						contractAddress,
+						tokenId,
+					}) => {
+						assertTezosMainnet($network.$network)
+						const {
+							getBlockByHash,
+							getToken,
+						} = await import('$/sources/TezosDappetizer/Postgres/queries.ts')
+						const token = await getToken({
+							contractAddress,
+							tokenId,
+						})
+						const firstBlock = await getBlockByHash({
+							hash: token.firstBlockHash,
+						})
+						const level = BigInt(firstBlock.level)
+						const timestampMs = timestampMsFromWire(firstBlock.timestamp)
+						return [{
+							[EntityMetaKey.Selector]: {
+								$token: {
+									$network,
+									contractAddress,
+									tokenId,
+								},
+								level,
+								source: Source.TezosDappetizer_Postgres,
+							},
+							[EntityMetaKey.Fields]: {
+								...(timestampMs != null && {
+									[entityFieldAddressKey(EntityType.TezosToken_Timestamp, [], 'timestampMs')]: timestampMs,
+								}),
+								...(token.name != null && token.name.length > 0 && {
+									[entityFieldAddressKey(EntityType.TezosToken_Timestamp, [], 'name')]: token.name,
+								}),
+								...(token.symbol != null && token.symbol.length > 0 && {
+									[entityFieldAddressKey(EntityType.TezosToken_Timestamp, [], 'symbol')]: token.symbol,
+								}),
+								...(token.decimals != null && {
+									[entityFieldAddressKey(EntityType.TezosToken_Timestamp, [], 'decimals')]: token.decimals,
+								}),
+							},
+						}]
+					},
+				},
+			},
+		})({
+			$$timestamps: (timestamps) => timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.TezosToken_Timestamp,
+			resolve: {
+				TokenLevelSource: {
+					resolve: async ({
+						$token,
+						level,
+						source,
+					}) => {
+						assertTezosMainnet($token.$network.$network)
+						if (source !== Source.TezosDappetizer_Postgres)
+							throw new Error(`TezosDappetizer_Postgres: unsupported observation source ${source}`)
+						const {
+							getBlockByHash,
+							getToken,
+						} = await import('$/sources/TezosDappetizer/Postgres/queries.ts')
+						const token = await getToken({
+							contractAddress: $token.contractAddress,
+							tokenId: $token.tokenId,
+						})
+						const firstBlock = await getBlockByHash({
+							hash: token.firstBlockHash,
+						})
+						if (BigInt(firstBlock.level) !== level)
+							throw new Error(`TezosDappetizer_Postgres: token observation level ${firstBlock.level} does not match ${level.toString()}`)
+						const timestampMs = timestampMsFromWire(firstBlock.timestamp)
+						return {
+							$token: {
+								[EntityMetaKey.Selector]: $token,
+							},
+							level,
+							source,
+							...(timestampMs != null && {
+								timestampMs,
+							}),
+							...(token.name != null && token.name.length > 0 && {
+								name: token.name,
+							}),
+							...(token.symbol != null && token.symbol.length > 0 && {
+								symbol: token.symbol,
+							}),
+							...(token.decimals != null && {
+								decimals: token.decimals,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$token: (timestamp) => timestamp.$token,
+			level: (timestamp) => timestamp.level,
+			source: (timestamp) => timestamp.source,
+			timestampMs: (timestamp) => timestamp.timestampMs,
+			name: (timestamp) => timestamp.name,
+			symbol: (timestamp) => timestamp.symbol,
+			decimals: (timestamp) => timestamp.decimals,
 		}),
 
 		defineResolver({

@@ -185,6 +185,92 @@ describe('TezosDappetizer Postgres entity projections', () => {
 		}, context)).rejects.toThrow('TezosDappetizer_Postgres: unsupported network')
 	})
 
+
+	it('rejects settings chainId that is not Tezos mainnet', async () => {
+		sqlExecutor.mockResolvedValueOnce([
+			{
+				chainId: 'NetXnHfVqm9iesp',
+			},
+		])
+
+		const networkIdentity = dappetizerResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TezosNetwork
+			&& '$network' in candidate.projections
+		))
+		if (networkIdentity == null)
+			throw new Error('missing TezosNetwork identity resolver')
+
+		const resolve = networkIdentity.resolve.Network?.resolve
+		if (resolve == null)
+			throw new Error('missing Network resolve')
+
+		await expect(resolve({
+			$network: {
+				slug: 'tezos',
+			},
+		}, context)).rejects.toThrow('settings chainId')
+	})
+
+	it('projects TezosToken.$$timestamps from first block metadata', async () => {
+		const tokenTimestamps = dappetizerResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TezosToken
+			&& '$$timestamps' in candidate.projections
+		))
+		if (tokenTimestamps == null)
+			throw new Error('missing TezosToken.$$timestamps resolver')
+
+		sqlExecutor
+			.mockResolvedValueOnce([
+				{
+					id: '0',
+					contractAddress: 'KT1token',
+					name: 'Example',
+					symbol: 'EX',
+					decimals: 0,
+					firstOperationGroupHash: 'opGroup',
+					firstBlockHash: 'BLockHash',
+				},
+			])
+			.mockResolvedValueOnce([
+				{
+					hash: 'BLockHash',
+					predecessor: 'BPred',
+					level: 7,
+					timestamp: '2024-01-01T00:00:00Z',
+				},
+			])
+
+		const resolve = tokenTimestamps.resolve.NetworkContractAddressTokenId?.resolve
+		if (resolve == null)
+			throw new Error('missing token timestamp resolve')
+
+		const timestamps = await resolve({
+			$network: tezosNetwork,
+			contractAddress: 'KT1token',
+			tokenId: 0n,
+		}, context)
+
+		expect(tokenTimestamps.projections.$$timestamps?.(timestamps)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$token: {
+						$network: tezosNetwork,
+						contractAddress: 'KT1token',
+						tokenId: 0n,
+					},
+					level: 7n,
+					source: Source.TezosDappetizer_Postgres,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.TezosToken_Timestamp, [], 'timestampMs')]: Date.parse('2024-01-01T00:00:00Z'),
+					[entityFieldAddressKey(EntityType.TezosToken_Timestamp, [], 'name')]: 'Example',
+					[entityFieldAddressKey(EntityType.TezosToken_Timestamp, [], 'symbol')]: 'EX',
+					[entityFieldAddressKey(EntityType.TezosToken_Timestamp, [], 'decimals')]: 0,
+				},
+			},
+		])
+	})
+
 	it('registers TezosDappetizer_Postgres source', () => {
 		expect(dappetizerResolvers.source).toBe(Source.TezosDappetizer_Postgres)
 	})

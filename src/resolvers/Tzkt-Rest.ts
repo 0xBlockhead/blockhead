@@ -85,8 +85,8 @@ const assertAccount = (
 		throw new Error('Tzkt_Rest: account response does not match the subject')
 	if (
 		account.type.length === 0
-		|| !Number.isSafeInteger(account.lastLevel)
-		|| account.lastLevel < 0
+		|| !Number.isSafeInteger(account.lastActivity)
+		|| account.lastActivity < 0
 		|| !Number.isSafeInteger(account.balance)
 		|| account.balance < 0
 		|| (
@@ -95,7 +95,7 @@ const assertAccount = (
 		)
 	)
 		throw new Error('Tzkt_Rest: account response is malformed')
-	if (!Number.isSafeInteger(timestampMsFromIso(account.lastActivity)))
+	if (!Number.isSafeInteger(timestampMsFromIso(account.lastActivityTime)))
 		throw new Error('Tzkt_Rest: account response has an invalid activity timestamp')
 }
 
@@ -207,6 +207,9 @@ const operationFieldsFromWire = (operation: TzktOperation) => ({
 	...(optionalBigInt(operation.storageUsed) != null && {
 		storageSize: optionalBigInt(operation.storageUsed),
 	}),
+	...(optionalBigInt(operation.storageFee) != null && {
+		paidStorageSizeDiff: optionalBigInt(operation.storageFee),
+	}),
 	...((() => {
 		const originatedContractAddresses = (
 			operation.originatedContracts?.map((contract) => contract.address)
@@ -254,6 +257,9 @@ const blockFieldsFromWire = (
 		}),
 		...(block.baker?.address != null && {
 			bakerAddress: block.baker.address,
+		}),
+		...(block.baker?.address == null && block.proposer?.address != null && {
+			bakerAddress: block.proposer.address,
 		}),
 		...(block.blockRound != null && {
 			round: block.blockRound,
@@ -463,11 +469,11 @@ export default {
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$account: account,
-									level: BigInt(snapshot.lastLevel),
+									level: BigInt(snapshot.lastActivity),
 									source: Source.Tzkt_Rest,
 								},
 								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.TezosAccount_Timestamp, [], 'timestampMs')]: timestampMsFromIso(snapshot.lastActivity),
+									[entityFieldAddressKey(EntityType.TezosAccount_Timestamp, [], 'timestampMs')]: timestampMsFromIso(snapshot.lastActivityTime),
 									[entityFieldAddressKey(EntityType.TezosAccount_Timestamp, [], 'balanceMutez')]: BigInt(snapshot.balance),
 									...(snapshot.counter != null && {
 										[entityFieldAddressKey(EntityType.TezosAccount_Timestamp, [], 'counter')]: BigInt(snapshot.counter),
@@ -794,6 +800,23 @@ export default {
 						)
 					},
 				},
+				NetworkHash: {
+					resolve: async ({ $network, hash }) => {
+						assertTezosMainnet($network.$network)
+						if (hash.length === 0)
+							throw new Error('Tzkt_Rest: empty block hash')
+
+						const { getBlockByHash } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const block = await getBlockByHash({
+							hash,
+						})
+						return blockFieldsFromWire(
+							$network,
+							block,
+							BigInt(block.level)
+						)
+					},
+				},
 			},
 		})({
 			$network: (block) => block.$network,
@@ -1013,6 +1036,212 @@ export default {
 			entityType: EntityType.TezosNetwork,
 			resolve: {
 				Network: {
+					resolve: async ({ $network }, context) => {
+						assertTezosMainnet($network)
+						const offset = accountOffset(context.providerContinuationToken)
+						const limit = Math.min(resolverContextRowLimit(context), 1_000)
+						const { listAccounts } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const accounts = await listAccounts({
+							offset,
+							limit,
+						})
+						const identities = new Set<string>()
+						for (const account of accounts) {
+							if (
+								account.address.length === 0
+								|| account.type.length === 0
+								|| !Number.isSafeInteger(account.lastActivity)
+								|| account.lastActivity < 0
+								|| !Number.isSafeInteger(timestampMsFromIso(account.lastActivityTime))
+							)
+								throw new Error('Tzkt_Rest: account list returned a malformed identity')
+							if (identities.has(account.address))
+								throw new Error('Tzkt_Rest: account list returned a duplicate identity')
+							identities.add(account.address)
+						}
+						return {
+							accounts,
+							limit,
+							offset,
+						}
+					},
+				},
+			},
+		})({
+			$$accounts: {
+				select: (page, { $network }) => page.accounts.map((account: TzktAccount) => ({
+					[EntityMetaKey.Selector]: {
+						$network: { $network },
+						address: account.address,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.TezosAccount, [], 'accountKind')]: account.type,
+					},
+				})),
+				continuation: (page) => networkContinuation(
+					'network-accounts',
+					page.offset,
+					page.limit,
+					page.accounts.length
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.TezosNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }, context) => {
+						assertTezosMainnet($network)
+						const offset = accountOffset(context.providerContinuationToken)
+						const limit = Math.min(resolverContextRowLimit(context), 1_000)
+						const {
+							listOperations,
+							listOperationsByHash,
+						} = await import('$/sources/Tzkt/Rest/queries.ts')
+						const operations = await listOperations({
+							offset,
+							limit,
+						})
+						const operationGroupsByHash = new Map<string, TzktOperation[]>()
+						await Promise.all(
+							[...new Set(operations.map((operation) => operation.hash))]
+								.map(async (operationHash) => {
+									const operationGroup = await listOperationsByHash({
+										operationHash,
+									})
+									const operationIds = new Set<number>()
+									for (const operation of operationGroup) {
+										if (
+											operation.hash !== operationHash
+											|| !Number.isSafeInteger(operation.id)
+											|| operation.id < 0
+											|| operationIds.has(operation.id)
+											|| !Number.isSafeInteger(operation.level)
+											|| operation.level < 0
+											|| operation.type.length === 0
+											|| !Number.isSafeInteger(timestampMsFromIso(operation.timestamp))
+										)
+											throw new Error(`Tzkt_Rest: operation group ${operationHash} is malformed or inconsistent`)
+
+										operationIds.add(operation.id)
+									}
+
+									operationGroupsByHash.set(operationHash, operationGroup)
+								})
+						)
+
+						return {
+							limit,
+							offset,
+							operations: operations.map((operation) => {
+								const operationGroup = operationGroupsByHash.get(operation.hash)
+								if (operationGroup == null)
+									throw new Error(`Tzkt_Rest: operation group ${operation.hash} is missing`)
+
+								const contentIndex = operationGroup.findIndex((candidate) => candidate.id === operation.id)
+								const canonicalOperation = operationGroup.at(contentIndex)
+								if (
+									contentIndex < 0
+									|| canonicalOperation == null
+									|| canonicalOperation.type !== operation.type
+									|| canonicalOperation.level !== operation.level
+									|| canonicalOperation.timestamp !== operation.timestamp
+								)
+									throw new Error(`Tzkt_Rest: network operation ${operation.id} does not match operation group ${operation.hash}`)
+
+								return {
+									contentIndex,
+									operation: canonicalOperation,
+								}
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$operations: {
+				select: (page, { $network }) => page.operations.map(({
+					contentIndex,
+					operation,
+				}: {
+					contentIndex: number
+					operation: TzktOperation
+				}) => ({
+					[EntityMetaKey.Selector]: {
+						$operationGroup: {
+							$network: { $network },
+							operationHash: operation.hash,
+						},
+						contentIndex,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.TezosOperation, [], 'operationKind')]: operationKindFromWire(operation),
+					},
+				})),
+				continuation: (page) => networkContinuation(
+					'network-operations',
+					page.offset,
+					page.limit,
+					page.operations.length
+				),
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.TezosNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }, context) => {
+						assertTezosMainnet($network)
+						const offset = accountOffset(context.providerContinuationToken)
+						const limit = Math.min(resolverContextRowLimit(context), 1_000)
+						const { listOperations } = await import('$/sources/Tzkt/Rest/queries.ts')
+						const operations = await listOperations({
+							offset,
+							limit,
+						})
+						const operationHashes: string[] = []
+						const seen = new Set<string>()
+						for (const operation of operations) {
+							if (operation.hash.length === 0)
+								throw new Error('Tzkt_Rest: operation list returned an empty hash')
+							if (seen.has(operation.hash))
+								continue
+							seen.add(operation.hash)
+							operationHashes.push(operation.hash)
+						}
+						return {
+							limit,
+							offset,
+							operationHashes,
+							rowCount: operations.length,
+						}
+					},
+				},
+			},
+		})({
+			$$operationGroups: {
+				select: (page, { $network }) => page.operationHashes.map((operationHash: string) => ({
+					[EntityMetaKey.Selector]: {
+						$network: { $network },
+						operationHash,
+					},
+				})),
+				continuation: (page) => networkContinuation(
+					'network-operation-groups',
+					page.offset,
+					page.limit,
+					page.rowCount
+				),
+			},
+		}),
+
+
+		defineResolver({
+			entityType: EntityType.TezosNetwork,
+			resolve: {
+				Network: {
 					resolve: async ({ $network }) => {
 						assertTezosMainnet($network)
 						const {
@@ -1045,6 +1274,9 @@ export default {
 								[entityFieldAddressKey(EntityType.TezosNetwork_Timestamp, [], 'protocolHash')]: head.protocol,
 								[entityFieldAddressKey(EntityType.TezosNetwork_Timestamp, [], 'cycle')]: BigInt(head.cycle),
 								[entityFieldAddressKey(EntityType.TezosNetwork_Timestamp, [], 'totalSupplyMutez')]: BigInt(statistics.totalSupply),
+								...(statistics.totalBakers != null && {
+									[entityFieldAddressKey(EntityType.TezosNetwork_Timestamp, [], 'activeBakerCount')]: statistics.totalBakers,
+								}),
 								[entityFieldAddressKey(EntityType.TezosNetwork_Timestamp, [], 'indexerLagBlocks')]: (
 									head.knownLevel == null ?
 										0
@@ -1282,11 +1514,21 @@ export default {
 						})
 						if (operations.length === 0)
 							throw new Error(`Tzkt_Rest: operation group ${operationHash} not found`)
+						const level = operations[0]?.level
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
 							},
 							operationHash,
+							operationCount: operations.length,
+							...(level != null && {
+								$block: {
+									[EntityMetaKey.Selector]: {
+										$network,
+										level: BigInt(level),
+									},
+								},
+							}),
 						}
 					},
 				},
@@ -1294,6 +1536,8 @@ export default {
 		})({
 				$network: (operationGroup) => operationGroup.$network,
 				operationHash: (operationGroup) => operationGroup.operationHash,
+				operationCount: (operationGroup) => operationGroup.operationCount,
+				$block: (operationGroup) => operationGroup.$block,
 			}),
 
 		defineResolver({
@@ -1374,6 +1618,7 @@ export default {
 				status: (operation) => operation.status,
 				consumedGas: (operation) => operation.consumedGas,
 				storageSize: (operation) => operation.storageSize,
+				paidStorageSizeDiff: (operation) => operation.paidStorageSizeDiff,
 				originatedContractAddresses: (operation) => operation.originatedContractAddresses,
 				$block: (operation) => operation.$block,
 			}),
@@ -1838,8 +2083,8 @@ export default {
 							level,
 						})
 						assertAccount($account.address, snapshot)
-						if (BigInt(snapshot.lastLevel) !== level)
-							throw new Error(`Tzkt_Rest: account observation level ${snapshot.lastLevel} does not match ${level.toString()}`)
+						if (BigInt(snapshot.lastActivity) !== level)
+							throw new Error(`Tzkt_Rest: account observation level ${snapshot.lastActivity} does not match ${level.toString()}`)
 
 						return {
 							$account: {
@@ -1847,7 +2092,7 @@ export default {
 							},
 							level,
 							source,
-							timestampMs: timestampMsFromIso(snapshot.lastActivity),
+							timestampMs: timestampMsFromIso(snapshot.lastActivityTime),
 							balanceMutez: BigInt(snapshot.balance),
 							...(snapshot.counter != null && {
 								counter: BigInt(snapshot.counter),
@@ -1916,6 +2161,9 @@ export default {
 							protocolHash: head.protocol,
 							cycle: BigInt(head.cycle),
 							totalSupplyMutez: BigInt(statistics.totalSupply),
+							...(statistics.totalBakers != null && {
+								activeBakerCount: statistics.totalBakers,
+							}),
 							indexerLagBlocks: (
 								head.knownLevel == null ?
 									0
@@ -1934,6 +2182,7 @@ export default {
 			protocolHash: (timestamp) => timestamp.protocolHash,
 			cycle: (timestamp) => timestamp.cycle,
 			totalSupplyMutez: (timestamp) => timestamp.totalSupplyMutez,
+			activeBakerCount: (timestamp) => timestamp.activeBakerCount,
 			indexerLagBlocks: (timestamp) => timestamp.indexerLagBlocks,
 		}),
 
