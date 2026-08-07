@@ -6,6 +6,9 @@ import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 // Constants
 export const slotsPerEpoch = 32
 
+/** Altair+ sync committee length in epochs (`EPOCHS_PER_SYNC_COMMITTEE_PERIOD`). */
+export const epochsPerSyncCommitteePeriod = 256
+
 const ethereumBeaconConsensus = {
 	consensusProtocol: ConsensusProtocol.EthereumBeacon,
 	slotsPerEpoch,

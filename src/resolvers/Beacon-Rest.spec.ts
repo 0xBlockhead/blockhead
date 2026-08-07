@@ -1,5 +1,6 @@
 import {
 	beaconConsensusNetworks,
+	epochsPerSyncCommitteePeriod,
 	slotsPerEpoch,
 } from '$/constants/BeaconConsensus.ts'
 import {
@@ -14,6 +15,7 @@ import { networkConsensusUpgrades } from '$/constants/EthereumNetworkUpgrades.ts
 import { indexResolvers } from '$/resolvers/$resolvers.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 	entityFieldDefinitions,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -24,7 +26,7 @@ const getFinalityCheckpoints = vi.hoisted(() => vi.fn())
 const getForkSchedule = vi.hoisted(() => vi.fn())
 const getCommittees = vi.hoisted(() => vi.fn())
 const getSyncCommittee = vi.hoisted(() => vi.fn())
-const getValidatorAtHead = vi.hoisted(() => vi.fn())
+const getValidator = vi.hoisted(() => vi.fn())
 const getBlockDutySummary = vi.hoisted(() => vi.fn())
 const getHeader = vi.hoisted(() => vi.fn())
 const getHeadSlot = vi.hoisted(() => vi.fn())
@@ -35,7 +37,7 @@ vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	getForkSchedule,
 	getCommittees,
 	getSyncCommittee,
-	getValidatorAtHead,
+	getValidator,
 	getBlockDutySummary,
 	getHeader,
 	getHeadSlot,
@@ -74,6 +76,10 @@ const syncCommitteeResolver = beaconRest.resolvers.find((resolver) => (
 ))
 const validatorResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconValidator
+	&& '$$timestamps' in resolver.projections
+))
+const validatorTimestampResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.BeaconValidator_Timestamp
 ))
 const slashingResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BeaconSlashing
@@ -86,6 +92,11 @@ const headSlotResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
 	&& '$$beaconSlots' in resolver.projections.Evm
+))
+const syncCommitteesListResolver = beaconRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Evm' in resolver.projections
+	&& '$$beaconSyncCommittees' in resolver.projections.Evm
 ))
 const consensusEndpointsResolver = beaconRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
@@ -102,9 +113,11 @@ if (
 	|| committeeResolver == null
 	|| syncCommitteeResolver == null
 	|| validatorResolver == null
+	|| validatorTimestampResolver == null
 	|| slashingResolver == null
 	|| headerResolver == null
 	|| headSlotResolver == null
+	|| syncCommitteesListResolver == null
 	|| consensusEndpointsResolver == null
 ) throw new Error('Beacon REST checkpoint and fork resolvers are not registered')
 const indexedConsensusEndpointsResolver = indexResolvers(
@@ -141,12 +154,40 @@ const resolveHeadSlots = (
 	:
 		undefined
 )
+const resolveSyncCommitteesList = (
+	'Caip2' in syncCommitteesListResolver.resolve ?
+		syncCommitteesListResolver.resolve.Caip2.resolve
+	:
+		undefined
+)
 if (resolveForkVersionsByUpgradeId == null)
 	throw new Error('Beacon REST fork resolver does not accept upgrade IDs')
 if (resolveHeaderBySlot == null)
 	throw new Error('Beacon REST header resolver does not accept slots')
 if (resolveHeadSlots == null)
 	throw new Error('Beacon REST head-slot resolver does not accept CAIP-2 networks')
+if (resolveSyncCommitteesList == null)
+	throw new Error('Beacon REST sync-committee list resolver does not accept CAIP-2 networks')
+
+const tipValidatorEnvelope = {
+	validator: {
+		index: '12',
+		balance: '32000000001',
+		status: 'active_ongoing',
+		validator: {
+			pubkey: `0x${'A'.repeat(96)}`,
+			withdrawal_credentials: `0x${'B'.repeat(64)}`,
+			effective_balance: '32000000000',
+			slashed: false,
+			activation_eligibility_epoch: '10',
+			activation_epoch: '11',
+			exit_epoch: '18446744073709551615',
+			withdrawable_epoch: '18446744073709551615',
+		},
+	},
+	executionOptimistic: true,
+	finalized: false,
+} as const
 
 describe('Beacon REST checkpoint and fork projections', () => {
 	beforeEach(() => {
@@ -170,10 +211,12 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			slotsPerEpoch,
 			slotsPerEpoch,
 			slotsPerEpoch,
+			slotsPerEpoch,
 		])
 		expect(beaconConsensusNetworks.every((network) => (
 			!Object.hasOwn(network, 'restBaseUrl')
 		))).toBe(true)
+		expect(epochsPerSyncCommitteePeriod).toBe(256)
 	})
 
 	it('limits endpoint ownership to exact checked-in Beacon EIP-155 targets', () => {
@@ -287,37 +330,105 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		)
 	})
 
-	it('projects the native validator row without an effective-balance fallback', async () => {
-		getValidatorAtHead.mockResolvedValue({
-			index: '12',
-			balance: '32000000001',
-			status: 'active_ongoing',
-			validator: {
-				pubkey: `0x${'A'.repeat(96)}`,
-				withdrawal_credentials: `0x${'B'.repeat(64)}`,
-				effective_balance: '32000000000',
-				slashed: false,
-				activation_eligibility_epoch: '10',
-				activation_epoch: '11',
-				exit_epoch: '18446744073709551615',
-				withdrawable_epoch: '18446744073709551615',
-			},
-		})
+	it('projects tip BeaconValidator fields and $$timestamps from head-slot state', async () => {
+		getHeadSlot.mockResolvedValue('9500000')
+		getValidator.mockResolvedValue(tipValidatorEnvelope)
 
-		await expect(validatorResolver.resolve.NetworkIndexInNetwork.resolve({
+		const validator = await validatorResolver.resolve.NetworkIndexInNetwork.resolve({
 			$network: network,
 			indexInNetwork: 12,
-		})).resolves.toEqual({
+		})
+		expect(validator).toMatchObject({
+			indexInNetwork: 12,
 			balanceGwei: 32_000_000_001n,
 			effectiveBalanceGwei: 32_000_000_000n,
 			pubkey: `0x${'a'.repeat(96)}`,
 			slashed: false,
 			status: 'active_ongoing',
+			activationEpoch: 11,
+			finalized: false,
+			executionOptimistic: true,
 		})
-		expect(getValidatorAtHead).toHaveBeenCalledWith(
+		expect(validatorResolver.projections.$$timestamps(validator)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$validator: {
+						$network: network,
+						indexInNetwork: 12,
+					},
+					slot: 9_500_000,
+					source: Source.Beacon_Rest,
+				},
+				[EntityMetaKey.Fields]: expect.objectContaining({
+					[entityFieldAddressKey(EntityType.BeaconValidator_Timestamp, [], 'status')]: 'active_ongoing',
+					[entityFieldAddressKey(EntityType.BeaconValidator_Timestamp, [], 'slashed')]: false,
+					[entityFieldAddressKey(EntityType.BeaconValidator_Timestamp, [], 'activationEpoch')]: 11,
+					[entityFieldAddressKey(EntityType.BeaconValidator_Timestamp, [], 'withdrawalCredentials')]: `0x${'b'.repeat(64)}`,
+					[entityFieldAddressKey(EntityType.BeaconValidator_Timestamp, [], 'finalized')]: false,
+					[entityFieldAddressKey(EntityType.BeaconValidator_Timestamp, [], 'executionOptimistic')]: true,
+				}),
+			},
+		])
+		expect(getValidator).toHaveBeenCalledWith(
 			1,
-			12
+			12,
+			9_500_000
 		)
+		expect(getValidator).toHaveBeenCalledOnce()
+	})
+
+	it('resolves validators by NetworkPubkey against the tip observation slot', async () => {
+		getHeadSlot.mockResolvedValue('9500000')
+		getValidator.mockResolvedValue(tipValidatorEnvelope)
+
+		await expect(validatorResolver.resolve.NetworkPubkey.resolve({
+			$network: network,
+			pubkey: `0x${'a'.repeat(96)}`,
+		})).resolves.toMatchObject({
+			indexInNetwork: 12,
+			pubkey: `0x${'a'.repeat(96)}`,
+			status: 'active_ongoing',
+		})
+		expect(getValidator).toHaveBeenCalledWith(
+			1,
+			`0x${'a'.repeat(96)}`,
+			9_500_000
+		)
+	})
+
+	it('projects tip BeaconValidator_Timestamp and rejects foreign observation slots', async () => {
+		getHeadSlot
+			.mockResolvedValueOnce('9500000')
+			.mockResolvedValueOnce('9500000')
+		getValidator
+			.mockResolvedValueOnce(tipValidatorEnvelope)
+			.mockResolvedValueOnce(tipValidatorEnvelope)
+
+		await expect(validatorTimestampResolver.resolve.ValidatorSlotSource.resolve({
+			$validator: {
+				$network: network,
+				indexInNetwork: 12,
+			},
+			slot: 9_500_000,
+			source: Source.Beacon_Rest,
+		})).resolves.toMatchObject({
+			slot: 9_500_000,
+			source: Source.Beacon_Rest,
+			balanceGwei: 32_000_000_001n,
+			activationEpoch: 11,
+			status: 'active_ongoing',
+			finalized: false,
+			executionOptimistic: true,
+		})
+
+		await expect(validatorTimestampResolver.resolve.ValidatorSlotSource.resolve({
+			$validator: {
+				$network: network,
+				indexInNetwork: 12,
+			},
+			slot: 1,
+			source: Source.Beacon_Rest,
+		})).rejects.toThrow('no validator observation at slot 1')
 	})
 
 	it('projects native header keys, decimal strings, and case only at the schema boundary', async () => {
@@ -408,6 +519,10 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			$network: network,
 			indexInNetwork: 12,
 		})).toBe(true)
+		expect(indexedValidatorResolver.appliesTo('NetworkPubkey', {
+			$network: network,
+			pubkey: `0x${'a'.repeat(96)}`,
+		})).toBe(true)
 		expect(indexedValidatorResolver.appliesTo('NetworkIndexInNetwork', {
 			$network: {
 				slug: 'ethereum',
@@ -441,7 +556,8 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			},
 			indexInNetwork: 12,
 		})).rejects.toThrow('network must have a positive safe eip155 chain ID')
-		expect(getValidatorAtHead).not.toHaveBeenCalled()
+		expect(getValidator).not.toHaveBeenCalled()
+		expect(getHeadSlot).not.toHaveBeenCalled()
 	})
 
 	it('projects a slashing network as an entity reference', async () => {
@@ -470,7 +586,7 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		)
 	})
 
-	it('projects native sync committee membership without re-encoding aggregates', async () => {
+	it('projects historical sync committee membership from the period start slot', async () => {
 		getSyncCommittee.mockResolvedValue({
 			validators: [
 				'4',
@@ -493,8 +609,42 @@ describe('Beacon REST checkpoint and fork projections', () => {
 		})
 		expect(getSyncCommittee).toHaveBeenCalledWith(
 			1,
-			'head'
+			2 * epochsPerSyncCommitteePeriod * slotsPerEpoch
 		)
+	})
+
+	it('lists recent sync committee periods back from tip', async () => {
+		getHeadSlot.mockResolvedValue(String(2 * epochsPerSyncCommitteePeriod * slotsPerEpoch + 1))
+
+		await expect(resolveSyncCommitteesList(network, {
+			filters: [],
+			sorts: [],
+			pagination: {
+				limit: 3,
+			},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			publicEnv: {},
+		})).resolves.toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					period: 2,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					period: 1,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					period: 0,
+				},
+			},
+		])
 	})
 
 	it('preserves missing finality and unmatched fork behavior', async () => {

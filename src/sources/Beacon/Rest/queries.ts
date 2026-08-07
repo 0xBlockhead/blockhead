@@ -196,28 +196,77 @@ export const getValidatorFromWire = (
 	return validator
 }
 
-export const getValidatorAtHead = async (
-	chainId: number,
-	validatorIndex: number
+export const getValidatorEnvelopeFromWire = (
+	wire: JsonValue
 ) => {
-	if (!Number.isSafeInteger(validatorIndex) || validatorIndex < 0)
-		throw new Error('Beacon: validator index must be a non-negative safe integer')
+	if (!isJsonObject(wire)) return undefined
+	if (
+		typeof wire.execution_optimistic !== 'boolean'
+		|| typeof wire.finalized !== 'boolean'
+	) return undefined
+	const validator = getValidatorFromWire(wire)
+	if (validator == null) return undefined
+	return {
+		validator,
+		executionOptimistic: wire.execution_optimistic,
+		finalized: wire.finalized,
+	}
+}
+
+const normalizeBeaconValidatorId = (
+	validatorId: number | string
+) => {
+	if (typeof validatorId === 'number') {
+		if (!Number.isSafeInteger(validatorId) || validatorId < 0)
+			throw new Error('Beacon: validator index must be a non-negative safe integer')
+		return String(validatorId)
+	}
+	if (!/^0x[0-9a-fA-F]{96}$/.test(validatorId))
+		throw new Error('Beacon: validator pubkey must be a 48-byte 0x-hex string')
+	return validatorId.toLowerCase()
+}
+
+/**
+ * `GET /eth/v1/beacon/states/{state_id}/validators/{validator_id}` —
+ * `validator_id` is a validator index or 48-byte pubkey; `state_id` may be head or a historical slot/root.
+ */
+export const getValidator = async (
+	chainId: number,
+	validatorId: number | string,
+	stateId: string | number = 'head'
+) => {
+	const normalizedId = normalizeBeaconValidatorId(validatorId)
 	const res = await beaconFetch(
 		chainId,
-		`/eth/v1/beacon/states/head/validators/${String(validatorIndex)}`,
+		`/eth/v1/beacon/states/${String(stateId)}/validators/${normalizedId}`,
 		{
 			headers: { accept: 'application/json' },
 		}
 	)
 	if (res.status === 404) return null
 	if (!res.ok) await throwHttpError('Beacon GET validator', res)
-	const validator = getValidatorFromWire(await res.json<JsonValue>())
-	if (validator == null)
+	const envelope = getValidatorEnvelopeFromWire(await res.json<JsonValue>())
+	if (envelope == null)
 		throw new Error('Beacon: invalid validator response')
-	if (BigInt(validator.index) !== BigInt(validatorIndex))
+	if (typeof validatorId === 'number') {
+		if (BigInt(envelope.validator.index) !== BigInt(validatorId))
+			throw new Error('Beacon: validator response does not match the subject')
+	} else if (envelope.validator.validator.pubkey.toLowerCase() !== normalizedId) {
 		throw new Error('Beacon: validator response does not match the subject')
-	return validator
+	}
+	return envelope
 }
+
+export const getValidatorAtHead = (
+	chainId: number,
+	validatorIndex: number
+) => (
+	getValidator(
+		chainId,
+		validatorIndex,
+		'head'
+	)
+)
 
 type BeaconFinalityCheckpointsWire = (
 	operations['getStateFinalityCheckpoints']['responses'][200]['content']['application/json']['data']
@@ -380,11 +429,21 @@ export const getSyncCommitteeFromWire = (
 
 export const getSyncCommittee = async (
 	chainId: number,
-	stateId = 'head'
+	stateId: string | number = 'head',
+	epoch?: number
 ) => {
-	const res = await beaconFetch(chainId, `/eth/v1/beacon/states/${stateId}/sync_committees`, {
-		headers: { accept: 'application/json' },
-	})
+	const res = await beaconFetch(
+		chainId,
+		(
+			epoch == null ?
+				`/eth/v1/beacon/states/${String(stateId)}/sync_committees`
+			:
+				`/eth/v1/beacon/states/${String(stateId)}/sync_committees?epoch=${String(epoch)}`
+		),
+		{
+			headers: { accept: 'application/json' },
+		}
+	)
 	if (!res.ok) await throwHttpError('Beacon GET sync_committees', res)
 	return getSyncCommitteeFromWire(await res.json<JsonValue>())
 }

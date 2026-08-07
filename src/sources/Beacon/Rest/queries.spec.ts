@@ -15,7 +15,9 @@ import {
 	getHeadSlot,
 	getHeaderFromWire,
 	getSyncCommitteeFromWire,
+	getValidator,
 	getValidatorAtHead,
+	getValidatorEnvelopeFromWire,
 	getValidatorFromWire,
 } from '$/sources/Beacon/Rest/queries.ts'
 import bindings from '$/sources/Beacon/bindings.ts'
@@ -305,6 +307,30 @@ describe('Beacon REST native committee wires', () => {
 		})
 	})
 
+	it('requests historical sync committees by state id and optional epoch', async () => {
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
+			data: {
+				validators: ['4'],
+				validator_aggregates: [['4']],
+			},
+			execution_optimistic: false,
+			finalized: true,
+		})))
+		const { getSyncCommittee } = await import('$/sources/Beacon/Rest/queries.ts')
+
+		await expect(getSyncCommittee(
+			1,
+			16384,
+			512
+		)).resolves.toEqual({
+			validators: ['4'],
+			validator_aggregates: [['4']],
+		})
+		expect(String(sourceFetch.mock.calls[0]?.[1])).toContain(
+			'/eth/v1/beacon/states/16384/sync_committees?epoch=512'
+		)
+	})
+
 	it('rejects non-decimal, partial, and unsafe committee indices', () => {
 		expect(getCommitteesFromWire({
 			data: [
@@ -354,6 +380,15 @@ describe('Beacon REST native validator wire', () => {
 			execution_optimistic: false,
 			finalized: true,
 		})).toEqual(validator)
+		expect(getValidatorEnvelopeFromWire({
+			data: validator,
+			execution_optimistic: false,
+			finalized: true,
+		})).toEqual({
+			validator,
+			executionOptimistic: false,
+			finalized: true,
+		})
 	})
 
 	it('rejects missing effective balance, malformed pubkeys, and uint64 overflow', () => {
@@ -386,6 +421,11 @@ describe('Beacon REST native validator wire', () => {
 				balance: '18446744073709551616',
 			},
 		})).toBeUndefined()
+		expect(getValidatorEnvelopeFromWire({
+			data: validator,
+			execution_optimistic: 'false',
+			finalized: true,
+		})).toBeUndefined()
 	})
 
 	it('rejects a native validator row for a different requested index', async () => {
@@ -394,11 +434,48 @@ describe('Beacon REST native validator wire', () => {
 				...validator,
 				index: '13',
 			},
+			execution_optimistic: false,
+			finalized: true,
 		})))
 
 		await expect(getValidatorAtHead(
 			1,
 			12
+		)).rejects.toThrow('does not match the subject')
+	})
+
+	it('looks up validators by pubkey against a historical state id', async () => {
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
+			data: validator,
+			execution_optimistic: true,
+			finalized: false,
+		})))
+
+		await expect(getValidator(
+			1,
+			`0x${'a'.repeat(96)}`,
+			8192
+		)).resolves.toEqual({
+			validator,
+			executionOptimistic: true,
+			finalized: false,
+		})
+		expect(String(sourceFetch.mock.calls[0]?.[1])).toContain(
+			`/eth/v1/beacon/states/8192/validators/0x${'a'.repeat(96)}`
+		)
+	})
+
+	it('rejects a native validator row for a different requested pubkey', async () => {
+		vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
+			data: validator,
+			execution_optimistic: false,
+			finalized: true,
+		})))
+
+		await expect(getValidator(
+			1,
+			`0x${'b'.repeat(96)}`,
+			'head'
 		)).rejects.toThrow('does not match the subject')
 	})
 })
