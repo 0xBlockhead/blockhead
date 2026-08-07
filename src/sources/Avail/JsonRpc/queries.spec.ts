@@ -208,7 +208,9 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 			isSyncing: false,
 			shouldHavePeers: true,
 		})
-		await expect(getSystemHealth(publicEnv)).rejects.toThrow()
+		await expect(getSystemHealth(publicEnv)).rejects.toThrow(
+			'Avail: invalid system_health response envelope'
+		)
 
 		jsonRpc2Mock.mockResolvedValueOnce({
 			block: {
@@ -220,5 +222,15 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 			publicEnv,
 			hash
 		)).rejects.toThrow('invalid extrinsic encoding')
+
+		jsonRpc2Mock.mockResolvedValueOnce({
+			parentHash,
+			number: '0x1',
+			stateRoot: hash,
+			// missing extrinsicsRoot + digest
+		})
+		await expect(getHeader(publicEnv)).rejects.toThrow(
+			'Avail: invalid chain_getHeader response envelope'
+		)
 	})
 })

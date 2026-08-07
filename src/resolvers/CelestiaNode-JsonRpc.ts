@@ -56,16 +56,27 @@ export default {
 					resolve: async ({ $network }, context) => {
 						assertCelestiaMainnet($network)
 						const {
+							assertSharesAvailable,
+							getDasSamplingStats,
 							getHeaderLocalHead,
 							getHeaderNetworkHead,
+							getHeaderSyncState,
+							getNodeInfo,
+							getNodeReady,
 						} = await import('$/sources/Celestia/JsonRpc/queries.ts')
 						const publicEnv = context.publicEnv
 						const [
 							localHead,
 							networkHead,
+							syncState,
+							ready,
+							samplingStats,
 						] = await Promise.all([
 							getHeaderLocalHead(publicEnv),
 							getHeaderNetworkHead(publicEnv),
+							getHeaderSyncState(publicEnv),
+							getNodeReady(publicEnv),
+							getDasSamplingStats(publicEnv),
 						])
 						const tip = (
 							networkHead.height >= localHead.height ?
@@ -76,6 +87,31 @@ export default {
 						const timestampMs = Date.parse(tip.time)
 						if (!Number.isFinite(timestampMs))
 							throw new Error('CelestiaNode: invalid head block time')
+
+						let nodeType: string | undefined
+						try {
+							nodeType = (await getNodeInfo(publicEnv)).nodeType
+						} catch {
+							nodeType = undefined
+						}
+
+						let sharesAvailable = false
+						try {
+							await assertSharesAvailable(publicEnv, tip.height)
+							sharesAvailable = true
+						} catch {
+							sharesAvailable = false
+						}
+
+						const syncing = syncState.height < tip.height || !ready
+						const health = (
+							syncState.error !== '' ?
+								syncState.error
+							: sharesAvailable && ready ?
+								'ok'
+							:
+								'degraded'
+						)
 						return [
 							{
 								[EntityMetaKey.Selector]: {
@@ -84,6 +120,17 @@ export default {
 									},
 									timestampMs,
 									source: Source.CelestiaNode,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'latestHeight')]: tip.height,
+									[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'latestHash')]: tip.hash,
+									[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'latestBlockTimeMs')]: timestampMs,
+									[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'syncing')]: syncing,
+									[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'health')]: health,
+									[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'sampledHeaderHeight')]: samplingStats.sampledHeaderHeight,
+									...(nodeType != null && {
+										[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'nodeType')]: nodeType,
+									}),
 								},
 							},
 						]

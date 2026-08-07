@@ -30,19 +30,56 @@ export default {
 					resolve: async ({ $network }, context) => {
 						assertAvailMainnet($network)
 						const {
+							getBlockHash,
 							getFinalizedHead,
+							getHeader,
 							getNetworkIdentity,
+							getSystemHealth,
+							getSystemSyncState,
 						} = await import('$/sources/Avail/JsonRpc/queries.ts')
-						await getNetworkIdentity(context.publicEnv)
-						await getFinalizedHead(context.publicEnv)
+						const publicEnv = context.publicEnv
+						const [
+							identity,
+							latestHash,
+							finalized,
+							health,
+							syncState,
+						] = await Promise.all([
+							getNetworkIdentity(publicEnv),
+							getBlockHash(publicEnv),
+							getFinalizedHead(publicEnv),
+							getSystemHealth(publicEnv),
+							getSystemSyncState(publicEnv),
+						])
+						if (identity.chainName !== 'Avail DA Mainnet')
+							throw new Error('Avail: foreign chain name')
+						const latest = await getHeader(publicEnv, latestHash)
+						const syncing = health.isSyncing || syncState.currentBlock < syncState.highestBlock
+						const tipHealth = (
+							health.isSyncing ?
+								'syncing'
+							: health.peers === 0 && health.shouldHavePeers ?
+								'no-peers'
+							:
+								'ok'
+						)
+						const timestampMs = Date.now()
 						return [
 							{
 								[EntityMetaKey.Selector]: {
 									$network: {
 										$network,
 									},
-									timestampMs: Date.now(),
+									timestampMs,
 									source: Source.Avail,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.AvailNetwork_Timestamp, [], 'latestBlockNumber')]: latest.blockNumber,
+									[entityFieldAddressKey(EntityType.AvailNetwork_Timestamp, [], 'latestBlockHash')]: latestHash,
+									[entityFieldAddressKey(EntityType.AvailNetwork_Timestamp, [], 'finalizedBlockNumber')]: finalized.blockNumber,
+									[entityFieldAddressKey(EntityType.AvailNetwork_Timestamp, [], 'finalizedBlockHash')]: finalized.hash,
+									[entityFieldAddressKey(EntityType.AvailNetwork_Timestamp, [], 'syncing')]: syncing,
+									[entityFieldAddressKey(EntityType.AvailNetwork_Timestamp, [], 'health')]: tipHealth,
 								},
 							},
 						]

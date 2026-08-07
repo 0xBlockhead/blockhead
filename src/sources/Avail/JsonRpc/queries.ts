@@ -1,47 +1,23 @@
-import { type as arktype } from 'arktype'
-
 import {
 	resolveEnvLocator,
 	type SourcePublicEnv,
 } from '$/sources/$sources.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import bindings from '$/sources/Avail/bindings.ts'
+import {
+	availBlockWire,
+	availHeaderWire,
+	availSystemHealthWire,
+	availSystemSyncStateWire,
+} from '$/sources/Avail/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+
 
 const mainnetChainName = 'Avail DA Mainnet'
 const mainnetGenesisHash = '0xb91746b45e0346cc2f815a520b9c6cb4d5c0902af848db0a80f85932d2e8276a'
 const hashPattern = /^0x[0-9a-fA-F]{64}$/
 const quantityPattern = /^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$/
-
-const headerWire = arktype({
-	parentHash: 'string',
-	number: 'string',
-	stateRoot: 'string',
-	extrinsicsRoot: 'string',
-	digest: {
-		logs: 'string[]',
-	},
-})
-
-const blockWire = arktype({
-	block: {
-		header: headerWire,
-		extrinsics: 'string[]',
-	},
-})
-
-const systemHealthWire = arktype({
-	peers: 'number.integer >= 0',
-	isSyncing: 'boolean',
-	shouldHavePeers: 'boolean',
-})
-
-const systemSyncStateWire = arktype({
-	startingBlock: 'number.integer >= 0',
-	currentBlock: 'number.integer >= 0',
-	highestBlock: 'number.integer >= 0',
-})
 
 const binding = bindings[Source.Avail][0]
 
@@ -56,6 +32,18 @@ const request = <_Result extends JsonValue>(
 		locator: resolveEnvLocator(endpoint.locator, publicEnv),
 	})),
 }, method, params)
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`Avail: invalid ${label} response envelope`)
+	}
+}
 
 const assertHash = (
 	hash: string,
@@ -75,7 +63,7 @@ const headerFromWire = ({
 	hash,
 	finalized,
 }: {
-	wire: typeof headerWire.infer
+	wire: typeof availHeaderWire.infer
 	hash?: string
 	finalized: boolean
 }) => {
@@ -126,10 +114,11 @@ export const getNetworkIdentity = async (
 export const getSystemHealth = async (
 	publicEnv: SourcePublicEnv
 ) => {
-	const wire = systemHealthWire.assert(await request<JsonValue>(
-		publicEnv,
-		'system_health'
-	))
+	const wire = assertEnvelope(
+		'system_health',
+		availSystemHealthWire,
+		await request(publicEnv, 'system_health')
+	)
 	return {
 		peers: wire.peers,
 		isSyncing: wire.isSyncing,
@@ -140,10 +129,11 @@ export const getSystemHealth = async (
 export const getSystemSyncState = async (
 	publicEnv: SourcePublicEnv
 ) => {
-	const wire = systemSyncStateWire.assert(await request<JsonValue>(
-		publicEnv,
-		'system_syncState'
-	))
+	const wire = assertEnvelope(
+		'system_syncState',
+		availSystemSyncStateWire,
+		await request(publicEnv, 'system_syncState')
+	)
 	return {
 		startingBlock: BigInt(wire.startingBlock),
 		currentBlock: BigInt(wire.currentBlock),
@@ -157,11 +147,11 @@ export const getFinalizedHead = async (
 	const hash = await request<string>(publicEnv, 'chain_getFinalizedHead')
 	assertHash(hash, 'finalized block hash')
 	return headerFromWire({
-		wire: headerWire.assert(await request<JsonValue>(
-			publicEnv,
+		wire: assertEnvelope(
 			'chain_getHeader',
-			[hash]
-		)),
+			availHeaderWire,
+			await request(publicEnv, 'chain_getHeader', [hash])
+		),
 		hash,
 		finalized: true,
 	})
@@ -189,11 +179,15 @@ export const getHeader = async (
 	if (blockHash != null)
 		assertHash(blockHash, 'block hash')
 	return headerFromWire({
-		wire: headerWire.assert(await request<JsonValue>(
-			publicEnv,
+		wire: assertEnvelope(
 			'chain_getHeader',
-			blockHash == null ? [] : [blockHash]
-		)),
+			availHeaderWire,
+			await request(
+				publicEnv,
+				'chain_getHeader',
+				blockHash == null ? [] : [blockHash]
+			)
+		),
 		hash: blockHash,
 		finalized: false,
 	})
@@ -204,11 +198,11 @@ export const getBlock = async (
 	blockHash: string
 ) => {
 	assertHash(blockHash, 'block hash')
-	const wire = blockWire.assert(await request<JsonValue>(
-		publicEnv,
+	const wire = assertEnvelope(
 		'chain_getBlock',
-		[blockHash]
-	))
+		availBlockWire,
+		await request(publicEnv, 'chain_getBlock', [blockHash])
+	)
 	const header = headerFromWire({
 		wire: wire.block.header,
 		hash: blockHash,

@@ -128,6 +128,28 @@ describe('CelestiaNode JsonRpc resolver', () => {
 			hash: 'f'.repeat(64),
 			time: '2026-08-06T12:00:02.000Z',
 		})
+		getHeaderSyncState.mockResolvedValue({
+			id: 1,
+			height: 102n,
+			fromHeight: 1n,
+			toHeight: 102n,
+			start: '2026-08-06T00:00:00Z',
+			end: '2026-08-06T12:00:02Z',
+			error: '',
+		})
+		getNodeReady.mockResolvedValue(true)
+		getDasSamplingStats.mockResolvedValue({
+			sampledHeaderHeight: 100n,
+			catchupHeight: 102n,
+			networkHeadHeight: 102n,
+			catchUpDone: true,
+			isRunning: true,
+		})
+		getNodeInfo.mockResolvedValue({
+			nodeType: 'light',
+			apiVersion: 'v0.28.4',
+		})
+		assertSharesAvailable.mockResolvedValue(undefined)
 
 		const timestamps = await networkTimestampsResolver.resolve.Network.resolve({
 			$network: network,
@@ -138,6 +160,15 @@ describe('CelestiaNode JsonRpc resolver', () => {
 					$network: celestiaNetwork,
 					timestampMs: Date.parse('2026-08-06T12:00:02.000Z'),
 					source: Source.CelestiaNode,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'latestHeight')]: 102n,
+					[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'latestHash')]: 'f'.repeat(64),
+					[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'latestBlockTimeMs')]: Date.parse('2026-08-06T12:00:02.000Z'),
+					[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'syncing')]: false,
+					[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'health')]: 'ok',
+					[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'sampledHeaderHeight')]: 100n,
+					[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'nodeType')]: 'light',
 				},
 			},
 		])

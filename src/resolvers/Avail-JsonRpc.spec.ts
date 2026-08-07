@@ -107,9 +107,23 @@ describe('Avail JsonRpc resolver', () => {
 			chainName: 'Avail DA Mainnet',
 			genesisHash: '0xb91746b45e0346cc2f815a520b9c6cb4d5c0902af848db0a80f85932d2e8276a',
 		})
+		getBlockHash.mockResolvedValue(hash)
+		getHeader.mockResolvedValue(header)
 		getFinalizedHead.mockResolvedValue({
 			...header,
+			blockNumber: 90n,
+			hash: parentHash,
 			finalized: true,
+		})
+		getSystemHealth.mockResolvedValue({
+			peers: 8,
+			isSyncing: false,
+			shouldHavePeers: true,
+		})
+		getSystemSyncState.mockResolvedValue({
+			startingBlock: 0n,
+			currentBlock: 100n,
+			highestBlock: 100n,
 		})
 
 		const timestamps = await networkTimestampsResolver.resolve.Network.resolve({
@@ -121,6 +135,14 @@ describe('Avail JsonRpc resolver', () => {
 					$network: availNetwork,
 					timestampMs: expect.any(Number),
 					source: Source.Avail,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AvailNetwork_Timestamp, [], 'latestBlockNumber')]: 100n,
+					[entityFieldAddressKey(EntityType.AvailNetwork_Timestamp, [], 'latestBlockHash')]: hash,
+					[entityFieldAddressKey(EntityType.AvailNetwork_Timestamp, [], 'finalizedBlockNumber')]: 90n,
+					[entityFieldAddressKey(EntityType.AvailNetwork_Timestamp, [], 'finalizedBlockHash')]: parentHash,
+					[entityFieldAddressKey(EntityType.AvailNetwork_Timestamp, [], 'syncing')]: false,
+					[entityFieldAddressKey(EntityType.AvailNetwork_Timestamp, [], 'health')]: 'ok',
 				},
 			},
 		])

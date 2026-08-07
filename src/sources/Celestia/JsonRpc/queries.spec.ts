@@ -295,6 +295,38 @@ describe('Celestia Node v0.28.4 read-only JSON-RPC contracts', () => {
 		})).rejects.toThrow('invalid blob proof node')
 	})
 
+	it('fail-closes malformed tip and DAS envelopes', async () => {
+		jsonRpc2Mock.mockResolvedValueOnce({
+			header: {
+				chain_id: 'celestia',
+				height: '1',
+				time: '2026-07-23T04:49:10Z',
+			},
+		})
+		await expect(getHeaderLocalHead(publicEnv)).rejects.toThrow(
+			'Celestia Node: invalid header.LocalHead response envelope'
+		)
+
+		jsonRpc2Mock.mockResolvedValueOnce({
+			head_of_sampled_chain: -1,
+			head_of_catchup: 0,
+			network_head_height: 0,
+			catch_up_done: false,
+			is_running: true,
+		})
+		await expect(getDasSamplingStats(publicEnv)).rejects.toThrow(
+			'Celestia Node: invalid das.SamplingStats response envelope'
+		)
+
+		jsonRpc2Mock.mockResolvedValueOnce({
+			type: 'light',
+			api_version: 'v0.28.4',
+		})
+		await expect(getNodeInfo(publicEnv)).rejects.toThrow(
+			'Celestia Node: invalid node.Info response envelope'
+		)
+	})
+
 	it('lists blobs by namespace and reports size from base64 payload', async () => {
 		jsonRpc2Mock.mockResolvedValueOnce([
 			{

@@ -12,85 +12,24 @@ import {
 } from '$/sources/$sources.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import bindings from '$/sources/Celestia/bindings.ts'
-import type {
-	BlobProofWire,
-	BlobsWire,
-	BlobWire,
-	DasSamplingStatsWire,
-	ExtendedHeaderWire,
-	NodeInfoWire,
-	SyncStateWire,
+import {
+	celestiaBlobProofWire,
+	celestiaBlobWire,
+	celestiaBlobsWire,
+	celestiaDasSamplingStatsWire,
+	celestiaExtendedHeaderWire,
+	celestiaNodeInfoWire,
+	celestiaSyncStateWire,
+	type CelestiaBlobProof,
 } from '$/sources/Celestia/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
+
 
 const hashPattern = /^[0-9a-fA-F]{64}$/
 const namespacePattern = /^[A-Za-z0-9+/]{39}=$/
 const commitmentPattern = /^[A-Za-z0-9+/]{43}=$/
 const base64Pattern = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/
 const unsignedDecimal = /^(0|[1-9][0-9]*)$/
-const safeUnsignedInteger = 'number.integer >= 0 <= 9007199254740991'
-
-const extendedHeaderWire = arktype({
-	header: {
-		chain_id: 'string',
-		height: 'string',
-		time: 'string',
-		last_block_id: {
-			hash: 'string',
-		},
-		data_hash: 'string',
-		app_hash: 'string',
-		proposer_address: 'string',
-	},
-	commit: {
-		block_id: {
-			hash: 'string',
-		},
-	},
-})
-
-const syncStateWire = arktype({
-	id: safeUnsignedInteger,
-	height: safeUnsignedInteger,
-	from_height: safeUnsignedInteger,
-	to_height: safeUnsignedInteger,
-	from_hash: 'string',
-	to_hash: 'string',
-	start: 'string',
-	end: 'string',
-	error: 'string',
-})
-
-const blobProofWire = arktype({
-	'start?': safeUnsignedInteger,
-	end: safeUnsignedInteger,
-	nodes: 'string[]',
-	is_max_namespace_ignored: 'boolean',
-}).array()
-
-const blobWire = arktype({
-	namespace: 'string',
-	data: 'string',
-	share_version: safeUnsignedInteger,
-	commitment: 'string',
-	index: 'number.integer',
-})
-
-const blobsWire = blobWire.array()
-
-const dasSamplingStatsWire = arktype({
-	head_of_sampled_chain: safeUnsignedInteger,
-	head_of_catchup: safeUnsignedInteger,
-	network_head_height: safeUnsignedInteger,
-	'concurrency?': safeUnsignedInteger,
-	catch_up_done: 'boolean',
-	is_running: 'boolean',
-})
-
-const nodeInfoWire = arktype({
-	type: 'number.integer >= 0',
-	api_version: 'string',
-})
 
 const nodeTypeLabelByType = {
 	1: 'bridge',
@@ -108,6 +47,18 @@ const configuredBinding = (publicEnv: SourcePublicEnv) => ({
 	})),
 })
 
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`Celestia Node: invalid ${label} response envelope`)
+	}
+}
+
 const assertHeight = (height: bigint) => {
 	if (height < 1n || height > BigInt(Number.MAX_SAFE_INTEGER))
 		throw new Error('Celestia Node: height must be a positive JSON-safe integer')
@@ -123,7 +74,7 @@ const assertHash = (
 }
 
 const extendedHeaderFromWire = (
-	wire: typeof extendedHeaderWire.infer
+	wire: typeof celestiaExtendedHeaderWire.infer
 ) => {
 	if (wire.header.chain_id !== 'celestia')
 		throw new Error('Celestia Node: foreign chain header')
@@ -159,11 +110,15 @@ const extendedHeaderFromWire = (
 export const getHeaderSyncState = async (
 	publicEnv: SourcePublicEnv
 ) => {
-	const wire = syncStateWire.assert(await jsonRpc2<SyncStateWire>(
-		configuredBinding(publicEnv),
+	const wire = assertEnvelope(
 		'header.SyncState',
-		[]
-	))
+		celestiaSyncStateWire,
+		await jsonRpc2(
+			configuredBinding(publicEnv),
+			'header.SyncState',
+			[]
+		)
+	)
 	assertHash(wire.from_hash, 'sync start hash', true)
 	assertHash(wire.to_hash, 'sync end hash', true)
 
@@ -187,8 +142,10 @@ export const getHeaderSyncState = async (
 export const getHeaderLocalHead = async (
 	publicEnv: SourcePublicEnv
 ) => (
-	extendedHeaderFromWire(extendedHeaderWire.assert(
-		await jsonRpc2<ExtendedHeaderWire>(
+	extendedHeaderFromWire(assertEnvelope(
+		'header.LocalHead',
+		celestiaExtendedHeaderWire,
+		await jsonRpc2(
 			configuredBinding(publicEnv),
 			'header.LocalHead',
 			[]
@@ -199,8 +156,10 @@ export const getHeaderLocalHead = async (
 export const getHeaderNetworkHead = async (
 	publicEnv: SourcePublicEnv
 ) => (
-	extendedHeaderFromWire(extendedHeaderWire.assert(
-		await jsonRpc2<ExtendedHeaderWire>(
+	extendedHeaderFromWire(assertEnvelope(
+		'header.NetworkHead',
+		celestiaExtendedHeaderWire,
+		await jsonRpc2(
 			configuredBinding(publicEnv),
 			'header.NetworkHead',
 			[]
@@ -213,8 +172,10 @@ export const getHeaderByHeight = async (
 	height: bigint
 ) => {
 	assertHeight(height)
-	const header = extendedHeaderFromWire(extendedHeaderWire.assert(
-		await jsonRpc2<ExtendedHeaderWire>(
+	const header = extendedHeaderFromWire(assertEnvelope(
+		'header.GetByHeight',
+		celestiaExtendedHeaderWire,
+		await jsonRpc2(
 			configuredBinding(publicEnv),
 			'header.GetByHeight',
 			[Number(height)]
@@ -231,8 +192,10 @@ export const getHeaderByHash = async (
 	hash: string
 ) => {
 	assertHash(hash, 'header hash')
-	const header = extendedHeaderFromWire(extendedHeaderWire.assert(
-		await jsonRpc2<ExtendedHeaderWire>(
+	const header = extendedHeaderFromWire(assertEnvelope(
+		'header.GetByHash',
+		celestiaExtendedHeaderWire,
+		await jsonRpc2(
 			configuredBinding(publicEnv),
 			'header.GetByHash',
 			[hash]
@@ -256,7 +219,7 @@ const sizeBytesFromBase64 = (data: string) => {
 	return BigInt(((data.length * 3) / 4) - padding)
 }
 
-const blobFromWire = (wire: typeof blobWire.infer) => {
+const blobFromWire = (wire: typeof celestiaBlobWire.infer) => {
 	if (!namespacePattern.test(wire.namespace))
 		throw new Error('Celestia Node: invalid blob namespace in response')
 	if (!commitmentPattern.test(wire.commitment))
@@ -307,15 +270,19 @@ export const getBlob = async ({
 	if (!commitmentPattern.test(commitment))
 		throw new Error('Celestia Node: invalid blob commitment')
 
-	const blob = blobFromWire(blobWire.assert(await jsonRpc2<BlobWire>(
-		configuredBinding(publicEnv),
+	const blob = blobFromWire(assertEnvelope(
 		'blob.Get',
-		[
-			Number(height),
-			rpcNamespace,
-			commitment,
-		]
-	)))
+		celestiaBlobWire,
+		await jsonRpc2(
+			configuredBinding(publicEnv),
+			'blob.Get',
+			[
+				Number(height),
+				rpcNamespace,
+				commitment,
+			]
+		)
+	))
 	if (blob.namespace !== rpcNamespace)
 		throw new Error('Celestia Node: blob response has mismatched namespace')
 	if (blob.commitment !== commitment)
@@ -341,14 +308,18 @@ export const getBlobsByNamespace = async ({
 		if (!namespacePattern.test(namespace))
 			throw new Error('Celestia Node: invalid blob namespace')
 
-	const wires = blobsWire.assert(await jsonRpc2<BlobsWire>(
-		configuredBinding(publicEnv),
+	const wires = assertEnvelope(
 		'blob.GetAll',
-		[
-			Number(height),
-			rpcNamespaces,
-		]
-	))
+		celestiaBlobsWire,
+		await jsonRpc2(
+			configuredBinding(publicEnv),
+			'blob.GetAll',
+			[
+				Number(height),
+				rpcNamespaces,
+			]
+		)
+	)
 	return wires.map((wire) => blobFromWire(wire))
 }
 
@@ -368,15 +339,19 @@ export const getBlobProof = async ({
 	if (!commitmentPattern.test(commitment))
 		throw new Error('Celestia Node: invalid blob commitment')
 
-	const proof = blobProofWire.assert(await jsonRpc2<BlobProofWire>(
-		configuredBinding(publicEnv),
+	const proof = assertEnvelope(
 		'blob.GetProof',
-		[
-			Number(height),
-			rpcNamespace,
-			commitment,
-		]
-	))
+		celestiaBlobProofWire,
+		await jsonRpc2(
+			configuredBinding(publicEnv),
+			'blob.GetProof',
+			[
+				Number(height),
+				rpcNamespace,
+				commitment,
+			]
+		)
+	)
 	for (const rangeProof of proof)
 		for (const node of rangeProof.nodes)
 			if (!base64Pattern.test(node))
@@ -396,34 +371,42 @@ export const isBlobIncluded = async ({
 	height: bigint
 	namespace: string
 	commitment: string
-	proof: typeof blobProofWire.infer
+	proof: CelestiaBlobProof
 }) => {
 	assertHeight(height)
 	const rpcNamespace = namespaceForNodeRpc(namespace)
 	if (!commitmentPattern.test(commitment))
 		throw new Error('Celestia Node: invalid blob commitment')
 
-	const included = arktype('boolean').assert(await jsonRpc2<boolean>(
-		configuredBinding(publicEnv),
+	const included = assertEnvelope(
 		'blob.Included',
-		[
-			Number(height),
-			rpcNamespace,
-			proof,
-			commitment,
-		]
-	))
+		arktype('boolean'),
+		await jsonRpc2(
+			configuredBinding(publicEnv),
+			'blob.Included',
+			[
+				Number(height),
+				rpcNamespace,
+				proof,
+				commitment,
+			]
+		)
+	)
 	return included
 }
 
 export const getDasSamplingStats = async (
 	publicEnv: SourcePublicEnv
 ) => {
-	const wire = dasSamplingStatsWire.assert(await jsonRpc2<DasSamplingStatsWire>(
-		configuredBinding(publicEnv),
+	const wire = assertEnvelope(
 		'das.SamplingStats',
-		[]
-	))
+		celestiaDasSamplingStatsWire,
+		await jsonRpc2(
+			configuredBinding(publicEnv),
+			'das.SamplingStats',
+			[]
+		)
+	)
 	return {
 		sampledHeaderHeight: BigInt(wire.head_of_sampled_chain),
 		catchupHeight: BigInt(wire.head_of_catchup),
@@ -439,21 +422,29 @@ export const getDasSamplingStats = async (
 export const getNodeReady = async (
 	publicEnv: SourcePublicEnv
 ) => (
-	arktype('boolean').assert(await jsonRpc2<boolean>(
-		configuredBinding(publicEnv),
+	assertEnvelope(
 		'node.Ready',
-		[]
-	))
+		arktype('boolean'),
+		await jsonRpc2(
+			configuredBinding(publicEnv),
+			'node.Ready',
+			[]
+		)
+	)
 )
 
 export const getNodeInfo = async (
 	publicEnv: SourcePublicEnv
 ) => {
-	const wire = nodeInfoWire.assert(await jsonRpc2<NodeInfoWire>(
-		configuredBinding(publicEnv),
+	const wire = assertEnvelope(
 		'node.Info',
-		[]
-	))
+		celestiaNodeInfoWire,
+		await jsonRpc2(
+			configuredBinding(publicEnv),
+			'node.Info',
+			[]
+		)
+	)
 	return {
 		nodeType: (
 			wire.type === 1 || wire.type === 2 || wire.type === 3 ?
@@ -474,7 +465,7 @@ export const assertSharesAvailable = async (
 	height: bigint
 ) => {
 	assertHeight(height)
-	const result = await jsonRpc2<null>(
+	const result = await jsonRpc2(
 		configuredBinding(publicEnv),
 		'share.SharesAvailable',
 		[Number(height)]
