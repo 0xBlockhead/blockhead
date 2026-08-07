@@ -7,18 +7,48 @@ import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
-import type {
-	CosmosSdkAccountResponse,
-	CosmosSdkBlockResponse,
-	CosmosSdkNodeInfoResponse,
-	CosmosSdkTxResponse,
-} from '$/sources/CosmosSdk/Rest/types.ts'
 import bindings from '$/sources/Mintscan/bindings.ts'
+import {
+	mintscanAccountResponseWire,
+	mintscanBlockResponseWire,
+	mintscanNodeInfoResponseWire,
+	mintscanSyncingResponseWire,
+	mintscanTxResponseWire,
+} from '$/sources/Mintscan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.Mintscan][0]
 
-const mintscanGet = async <_Response>(
+const omitUndefinedJson = (
+	value: unknown
+): unknown => {
+	if (Array.isArray(value))
+		return value.map(omitUndefinedJson)
+	if (value != null && typeof value === 'object')
+		return Object.fromEntries(
+			Object.entries(value)
+				.filter(([, entry]) => entry !== undefined)
+				.map(([key, entry]) => [
+					key,
+					omitUndefinedJson(entry),
+				])
+		)
+	return value
+}
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(omitUndefinedJson(response))
+	} catch {
+		throw new Error(`Mintscan: invalid ${label} response envelope`)
+	}
+}
+
+const mintscanGetJson = async (
 	publicEnv: SourcePublicEnv,
 	path: string
 ) => {
@@ -31,7 +61,7 @@ const mintscanGet = async <_Response>(
 	if (!response.ok)
 		await throwHttpError(`Mintscan GET ${url}`, response)
 
-	return response.json<_Response>()
+	return response.json()
 }
 
 const assertNetwork = (network: string) => {
@@ -54,7 +84,7 @@ const assertTxHash = (txHash: string) => {
 		throw new Error('Mintscan: transaction hash is empty')
 }
 
-export const getAccount = (
+export const getAccount = async (
 	publicEnv: SourcePublicEnv,
 	{
 		network,
@@ -66,13 +96,17 @@ export const getAccount = (
 ) => {
 	assertNetwork(network)
 	assertAddress(address)
-	return mintscanGet<CosmosSdkAccountResponse>(
-		publicEnv,
-		`/${encodeURIComponent(network)}/lcd/cosmos/auth/v1beta1/accounts/${encodeURIComponent(address)}`
+	return assertEnvelope(
+		'account',
+		mintscanAccountResponseWire,
+		await mintscanGetJson(
+			publicEnv,
+			`/${encodeURIComponent(network)}/lcd/cosmos/auth/v1beta1/accounts/${encodeURIComponent(address)}`
+		)
 	)
 }
 
-export const getLatestBlock = (
+export const getLatestBlock = async (
 	publicEnv: SourcePublicEnv,
 	{
 		network,
@@ -81,13 +115,17 @@ export const getLatestBlock = (
 	}
 ) => {
 	assertNetwork(network)
-	return mintscanGet<CosmosSdkBlockResponse>(
-		publicEnv,
-		`/${encodeURIComponent(network)}/lcd/cosmos/base/tendermint/v1beta1/blocks/latest`
+	return assertEnvelope(
+		'latest block',
+		mintscanBlockResponseWire,
+		await mintscanGetJson(
+			publicEnv,
+			`/${encodeURIComponent(network)}/lcd/cosmos/base/tendermint/v1beta1/blocks/latest`
+		)
 	)
 }
 
-export const getBlock = (
+export const getBlock = async (
 	publicEnv: SourcePublicEnv,
 	{
 		network,
@@ -99,13 +137,17 @@ export const getBlock = (
 ) => {
 	assertNetwork(network)
 	assertHeight(height)
-	return mintscanGet<CosmosSdkBlockResponse>(
-		publicEnv,
-		`/${encodeURIComponent(network)}/lcd/cosmos/base/tendermint/v1beta1/blocks/${height.toString()}`
+	return assertEnvelope(
+		'block',
+		mintscanBlockResponseWire,
+		await mintscanGetJson(
+			publicEnv,
+			`/${encodeURIComponent(network)}/lcd/cosmos/base/tendermint/v1beta1/blocks/${height.toString()}`
+		)
 	)
 }
 
-export const getNodeInfo = (
+export const getNodeInfo = async (
 	publicEnv: SourcePublicEnv,
 	{
 		network,
@@ -114,13 +156,36 @@ export const getNodeInfo = (
 	}
 ) => {
 	assertNetwork(network)
-	return mintscanGet<CosmosSdkNodeInfoResponse>(
-		publicEnv,
-		`/${encodeURIComponent(network)}/lcd/cosmos/base/tendermint/v1beta1/node_info`
+	return assertEnvelope(
+		'node info',
+		mintscanNodeInfoResponseWire,
+		await mintscanGetJson(
+			publicEnv,
+			`/${encodeURIComponent(network)}/lcd/cosmos/base/tendermint/v1beta1/node_info`
+		)
 	)
 }
 
-export const getTx = (
+export const getSyncing = async (
+	publicEnv: SourcePublicEnv,
+	{
+		network,
+	}: {
+		network: string
+	}
+) => {
+	assertNetwork(network)
+	return assertEnvelope(
+		'syncing',
+		mintscanSyncingResponseWire,
+		await mintscanGetJson(
+			publicEnv,
+			`/${encodeURIComponent(network)}/lcd/cosmos/base/tendermint/v1beta1/syncing`
+		)
+	)
+}
+
+export const getTx = async (
 	publicEnv: SourcePublicEnv,
 	{
 		network,
@@ -132,8 +197,12 @@ export const getTx = (
 ) => {
 	assertNetwork(network)
 	assertTxHash(txHash)
-	return mintscanGet<CosmosSdkTxResponse>(
-		publicEnv,
-		`/${encodeURIComponent(network)}/lcd/cosmos/tx/v1beta1/txs/${encodeURIComponent(txHash)}`
+	return assertEnvelope(
+		'tx',
+		mintscanTxResponseWire,
+		await mintscanGetJson(
+			publicEnv,
+			`/${encodeURIComponent(network)}/lcd/cosmos/tx/v1beta1/txs/${encodeURIComponent(txHash)}`
+		)
 	)
 }
