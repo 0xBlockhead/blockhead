@@ -72,9 +72,24 @@ const dealResolver = filfoxRest.resolvers.find((resolver) => (
 ))
 const filecoinNetworkDealsResolver = filfoxRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FilecoinNetwork
+	&& '$$deals' in resolver.projections
+))
+const filecoinNetworkTimestampsResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinNetwork
+	&& '$$timestamps' in resolver.projections
+))
+const filecoinNetworkTimestampResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinNetwork_Timestamp
 ))
 const networkDealsResolver = filfoxRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
+	&& 'Filecoin' in resolver.projections
+	&& '$$deals' in resolver.projections.Filecoin
+))
+const networkTimestampsResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Filecoin' in resolver.projections
+	&& '$$timestamps' in resolver.projections.Filecoin
 ))
 const minerResolver = filfoxRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FilecoinMiner
@@ -98,7 +113,10 @@ if (
 	|| messageReceiptResolver == null
 	|| dealResolver == null
 	|| filecoinNetworkDealsResolver == null
+	|| filecoinNetworkTimestampsResolver == null
+	|| filecoinNetworkTimestampResolver == null
 	|| networkDealsResolver == null
+	|| networkTimestampsResolver == null
 	|| minerResolver == null
 	|| minerTimestampResolver == null
 	|| actorResolver == null
@@ -138,6 +156,9 @@ describe('Filfox REST resolvers', () => {
 			EntityType.FilecoinActor_Timestamp,
 			EntityType.FilecoinDeal,
 			EntityType.FilecoinNetwork,
+			EntityType.FilecoinNetwork,
+			EntityType.FilecoinNetwork_Timestamp,
+			EntityType.Network,
 			EntityType.Network,
 		])
 	})
@@ -797,6 +818,47 @@ describe('Filfox REST resolvers', () => {
 			page: 0,
 			pageSize: 8,
 		})
+	})
+
+	it('projects FilecoinNetwork tip timestamps from overview power clocks', async () => {
+		getOverview.mockResolvedValue({
+			height: 6_258_509,
+			timestamp: 1_786_061_670,
+			totalRawBytePower: '1651885653727641600',
+			totalQualityAdjPower: '14630426665522823168',
+			activeMiners: 538,
+			baseFee: '1532283',
+		})
+
+		const tip = await filecoinNetworkTimestampsResolver.resolve.Network.resolve({
+			$network: network,
+		})
+		expect(filecoinNetworkTimestampsResolver.projections.$$timestamps(tip)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				timestampMs: 1_786_061_670_000,
+				source: Source.Filfox_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.FilecoinNetwork_Timestamp, [], 'headHeight')]: 6_258_509n,
+				[entityFieldAddressKey(EntityType.FilecoinNetwork_Timestamp, [], 'headTimestampMs')]: 1_786_061_670_000,
+				[entityFieldAddressKey(EntityType.FilecoinNetwork_Timestamp, [], 'totalRawBytePower')]: 1651885653727641600n,
+				[entityFieldAddressKey(EntityType.FilecoinNetwork_Timestamp, [], 'totalQualityAdjustedPower')]: 14630426665522823168n,
+			},
+		}])
+		expect(networkTimestampsResolver.projections.Filecoin.$$timestamps(
+			await networkTimestampsResolver.resolve.Slug.resolve(network)
+		)).toEqual(filecoinNetworkTimestampsResolver.projections.$$timestamps(tip))
+
+		const observation = await filecoinNetworkTimestampResolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: network,
+			timestampMs: 1_786_061_670_000,
+			source: Source.Filfox_Rest,
+		})
+		expect(filecoinNetworkTimestampResolver.projections.headHeight(observation)).toBe(6_258_509n)
+		expect(filecoinNetworkTimestampResolver.projections.totalRawBytePower(observation)).toBe(1651885653727641600n)
+		expect(filecoinNetworkTimestampResolver.projections.lotusVersion(observation)).toBeUndefined()
+		expect(filecoinNetworkTimestampResolver.projections.headTipsetKey(observation)).toBeUndefined()
 	})
 
 	it('maps Filfox address power into miner observations keyed by tipset', async () => {

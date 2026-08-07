@@ -131,8 +131,14 @@ const blockWire = arktype({
 	encoding: 'string',
 })
 
+const jsonTxWire = arktype({
+	unsignedTx: 'Record<string, unknown>',
+	'id?': 'string',
+	'credentials?': 'unknown[]',
+})
+
 const txWire = arktype({
-	tx: arktype('string').or(arktype('Record<string, unknown>')),
+	tx: arktype('string').or(jsonTxWire),
 	encoding: 'string',
 })
 

@@ -15,8 +15,11 @@ import { Source } from '$/sources/Source.ts'
 import type {
 	AvalanchePlatformVmDelegator,
 	AvalanchePlatformVmJsonBlock,
+	AvalanchePlatformVmJsonTx,
+	AvalanchePlatformVmJsonTxUnsigned,
 	AvalanchePlatformVmValidator,
 } from '$/sources/AvalanchePlatformVm/JsonRpc/types.ts'
+import { avalanchePrimaryNetworkSubnetId } from '$/sources/AvalanchePlatformVm/JsonRpc/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -53,6 +56,97 @@ const jsonBlock = (block: string | AvalanchePlatformVmJsonBlock): AvalanchePlatf
 	if (typeof block === 'string')
 		throw new Error('AvalanchePlatformVm_JsonRpc: expected json-encoded block')
 	return block
+}
+
+const jsonTx = (tx: string | AvalanchePlatformVmJsonTx): AvalanchePlatformVmJsonTx => {
+	if (typeof tx === 'string')
+		throw new Error('AvalanchePlatformVm_JsonRpc: expected json-encoded transaction')
+	return tx
+}
+
+const pChainTxType = (unsignedTx: AvalanchePlatformVmJsonTxUnsigned) => {
+	if (unsignedTx.destinationChain != null)
+		return 'ExportTx'
+	if (unsignedTx.sourceChain != null)
+		return 'ImportTx'
+	if (unsignedTx.subnetOwners != null)
+		return 'CreateSubnetTx'
+	if (unsignedTx.chainName != null || unsignedTx.vmID != null || unsignedTx.genesisData != null)
+		return 'CreateChainTx'
+	if (unsignedTx.validator != null && unsignedTx.subnetID != null && unsignedTx.stake == null)
+		return 'AddSubnetValidatorTx'
+	if (unsignedTx.validator != null && unsignedTx.stake != null && unsignedTx.shares != null)
+		return 'AddValidatorTx'
+	if (unsignedTx.validator != null && unsignedTx.stake != null)
+		return 'AddDelegatorTx'
+	if (unsignedTx.validator != null)
+		return 'AddSubnetValidatorTx'
+	if (unsignedTx.time != null)
+		return 'AdvanceTimeTx'
+}
+
+const memoFromWire = (memo: string | undefined) => {
+	if (memo == null || memo === '' || memo === '0x' || memo === '0x00')
+		return
+	return memo
+}
+
+const pChainTransactionFields = (
+	$network: NetworkId,
+	txId: string,
+	tx: AvalanchePlatformVmJsonTx
+) => {
+	const unsignedTx = tx.unsignedTx
+	const txType = pChainTxType(unsignedTx)
+	const stakeWeight = unsignedTx.validator?.weight
+	const memo = memoFromWire(unsignedTx.memo)
+	return {
+		$network: {
+			[EntityMetaKey.Selector]: $network,
+		},
+		txId,
+		...(txType != null && { txType }),
+		...(unsignedTx.blockchainID != null && {
+			blockchainId: unsignedTx.blockchainID,
+		}),
+		...(unsignedTx.subnetID != null ?
+			{
+				subnetId: unsignedTx.subnetID,
+			}
+		: unsignedTx.validator != null ?
+			{
+				subnetId: avalanchePrimaryNetworkSubnetId,
+			}
+		:
+			{}
+		),
+		...(unsignedTx.validator != null && {
+			nodeId: unsignedTx.validator.nodeID,
+			startTimeMs: millisFromUnixSeconds(unsignedTx.validator.start, 'validator start'),
+			endTimeMs: millisFromUnixSeconds(unsignedTx.validator.end, 'validator end'),
+		}),
+		...(stakeWeight != null && {
+			stakeAmountNavax: bigintFromWire(String(stakeWeight), 'validator weight'),
+		}),
+		...(memo != null && { memo }),
+		...(unsignedTx.sourceChain != null && {
+			sourceChain: unsignedTx.sourceChain,
+		}),
+		...(unsignedTx.destinationChain != null && {
+			destinationChain: unsignedTx.destinationChain,
+		}),
+		payload: unsignedTx,
+		$$timestamps: [{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network,
+					txId,
+				},
+				timestampMs: Date.now(),
+				source: Source.AvalanchePlatformVm_JsonRpc,
+			},
+		}],
+	}
 }
 
 const blockTxCount = (block: AvalanchePlatformVmJsonBlock) => (
@@ -519,28 +613,26 @@ export default {
 				NetworkTxId: {
 					resolve: async ({ $network, txId }) => {
 						assertAvalanchePChain($network)
-						const { getTxStatus } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						await getTxStatus(txId)
-						return {
-							$network: {
-								[EntityMetaKey.Selector]: $network,
-							},
-							txId,
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
-									$transaction: {
-										$network,
-										txId,
-									},
-									timestampMs: Date.now(),
-									source: Source.AvalanchePlatformVm_JsonRpc,
-								},
-							}],
-						}
+						const { getTx } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
+						const response = await getTx(txId, 'json')
+						return pChainTransactionFields($network, txId, jsonTx(response.tx))
 					},
 				},
 			},
 		})({
+			txType: (transaction) => transaction.txType,
+			$block: () => undefined,
+			subnetId: (transaction) => transaction.subnetId,
+			blockchainId: (transaction) => transaction.blockchainId,
+			nodeId: (transaction) => transaction.nodeId,
+			startTimeMs: (transaction) => transaction.startTimeMs,
+			endTimeMs: (transaction) => transaction.endTimeMs,
+			stakeAmountNavax: (transaction) => transaction.stakeAmountNavax,
+			feeNavax: () => undefined,
+			memo: (transaction) => transaction.memo,
+			sourceChain: (transaction) => transaction.sourceChain,
+			destinationChain: (transaction) => transaction.destinationChain,
+			payload: (transaction) => transaction.payload,
 			$$timestamps: (transaction) => transaction.$$timestamps,
 		}),
 

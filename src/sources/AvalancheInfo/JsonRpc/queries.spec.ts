@@ -41,6 +41,9 @@ it('reads Info network, version, and peer envelopes through the P-Chain Info bin
 				ip: '1.2.3.4:9651',
 				nodeID: 'NodeID-a',
 				version: 'avalanchego/1.14.2',
+				observedUptime: '0',
+				lastSent: '2026-08-07T00:15:11Z',
+				supportedACPs: [23],
 			}],
 		})
 
@@ -58,6 +61,14 @@ it('reads Info network, version, and peer envelopes through the P-Chain Info bin
 	})
 	await expect(getPeers()).resolves.toMatchObject({
 		numPeers: '2',
+		peers: [{
+			ip: '1.2.3.4:9651',
+			nodeID: 'NodeID-a',
+			version: 'avalanchego/1.14.2',
+			observedUptime: '0',
+			lastSent: '2026-08-07T00:15:11Z',
+			supportedACPs: [23],
+		}],
 	})
 	expect(jsonRpc2.mock.calls.map(([, method]) => method)).toEqual([
 		'info.getNetworkName',
@@ -72,4 +83,36 @@ it('fail-closes malformed Info envelopes', async () => {
 	})
 
 	await expect(getNodeVersion()).rejects.toThrow('invalid node version response envelope')
+})
+
+it('accepts live Info peer optional clocks and fail-closes missing peer identity', async () => {
+	jsonRpc2.mockResolvedValueOnce({
+		numPeers: '1',
+		peers: [{
+			ip: '34.250.50.224:9651',
+			publicIP: '34.250.50.224:9651',
+			nodeID: 'NodeID-Dw7tuwxpAmcpvVGp9JzaHAR3REPoJ8f2R',
+			version: 'avalanchego/1.14.2',
+			observedUptime: 0,
+			trackedSubnets: [],
+			benched: [],
+			lastReceived: '2026-08-07T00:15:08Z',
+			lastSent: '2026-08-07T00:15:11Z',
+			upgradeTime: 1763568000,
+			objectedACPs: [],
+			supportedACPs: [],
+		}],
+	})
+	await expect(getPeers()).resolves.toMatchObject({
+		numPeers: '1',
+	})
+
+	jsonRpc2.mockResolvedValueOnce({
+		numPeers: '1',
+		peers: [{
+			ip: '1.2.3.4:9651',
+			version: 'avalanchego/1.14.2',
+		}],
+	})
+	await expect(getPeers()).rejects.toThrow('invalid peers response envelope')
 })

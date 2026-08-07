@@ -78,6 +78,29 @@ const listDeals = async (
 	}
 }
 
+const latestNetworkTimestampReference = async (network: NetworkId) => {
+	assertFilecoinMainnet(network)
+	const overview = await (await import('$/sources/Filfox/Rest/queries.ts')).getOverview()
+	const timestampMs = overview.timestamp * 1000
+	return [{
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			timestampMs,
+			source: Source.Filfox_Rest,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.FilecoinNetwork_Timestamp, [], 'headHeight')]: BigInt(overview.height),
+			[entityFieldAddressKey(EntityType.FilecoinNetwork_Timestamp, [], 'headTimestampMs')]: timestampMs,
+			...(overview.totalRawBytePower != null && {
+				[entityFieldAddressKey(EntityType.FilecoinNetwork_Timestamp, [], 'totalRawBytePower')]: BigInt(overview.totalRawBytePower),
+			}),
+			...(overview.totalQualityAdjPower != null && {
+				[entityFieldAddressKey(EntityType.FilecoinNetwork_Timestamp, [], 'totalQualityAdjustedPower')]: BigInt(overview.totalQualityAdjPower),
+			}),
+		},
+	}]
+}
+
 export default {
 	source: Source.Filfox_Rest,
 
@@ -1029,6 +1052,60 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.FilecoinNetwork,
+			resolve: {
+				Network: {
+					resolve: async ({ $network }) => latestNetworkTimestampReference($network),
+				},
+			},
+		})({
+			$$timestamps: (timestamps) => timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.FilecoinNetwork_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					resolve: async ({ $network, timestampMs, source }) => {
+						assertFilecoinMainnet($network)
+						if (source !== Source.Filfox_Rest)
+							throw new Error(`Filfox_Rest: unsupported network observation source ${source}`)
+						const overview = await (await import('$/sources/Filfox/Rest/queries.ts')).getOverview()
+						if (overview.timestamp * 1000 !== timestampMs)
+							throw new Error(`Filfox_Rest: network observation does not match ${timestampMs.toString()}`)
+						return {
+							timestampMs,
+							source: Source.Filfox_Rest,
+							headHeight: BigInt(overview.height),
+							headTimestampMs: overview.timestamp * 1000,
+							...(overview.totalRawBytePower != null && {
+								totalRawBytePower: BigInt(overview.totalRawBytePower),
+							}),
+							...(overview.totalQualityAdjPower != null && {
+								totalQualityAdjustedPower: BigInt(overview.totalQualityAdjPower),
+							}),
+						}
+					},
+				},
+			},
+		})({
+			timestampMs: (observation) => observation.timestampMs,
+			source: (observation) => observation.source,
+			headHeight: (observation) => observation.headHeight,
+			headTipsetKey: () => undefined,
+			headBlockCount: () => undefined,
+			headTimestampMs: (observation) => observation.headTimestampMs,
+			$headTipset: () => undefined,
+			$$headMiners: () => [],
+			networkVersion: () => undefined,
+			lotusVersion: () => undefined,
+			lotusAgent: () => undefined,
+			blockDelaySeconds: () => undefined,
+			totalRawBytePower: (observation) => observation.totalRawBytePower,
+			totalQualityAdjustedPower: (observation) => observation.totalQualityAdjustedPower,
+		}),
+
+		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
@@ -1041,6 +1118,19 @@ export default {
 					select: (page) => page.deals,
 					resolveCount: (page) => page.dealCount,
 				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: latestNetworkTimestampReference,
+				},
+			},
+		})({
+			Filecoin: {
+				$$timestamps: (timestamps) => timestamps,
 			},
 		}),
 	],

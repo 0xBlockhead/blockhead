@@ -44,8 +44,14 @@ const peersWire = arktype({
 		'publicIP?': 'string',
 		nodeID: 'string',
 		version: 'string',
-		'observedUptime?': 'string',
+		'observedUptime?': 'string | number',
 		'trackedSubnets?': 'string[]',
+		'benched?': 'string[]',
+		'lastReceived?': 'string',
+		'lastSent?': 'string',
+		'upgradeTime?': 'number.integer | string',
+		'objectedACPs?': 'unknown[]',
+		'supportedACPs?': 'unknown[]',
 	}).array(),
 })
 

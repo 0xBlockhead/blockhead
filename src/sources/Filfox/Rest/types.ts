@@ -70,11 +70,22 @@ export const filfoxOverviewWire = arktype({
 	timestamp: nonNegativeInteger,
 	'totalRawBytePower?': attoFil,
 	'totalQualityAdjPower?': attoFil,
+	'totalRawBytePowerDelta?': 'string',
+	'totalQualityAdjPowerDelta?': 'string',
 	'activeMiners?': nonNegativeInteger,
+	'activeMinersGrowth?': integer,
 	'baseFee?': attoFil,
 	'averageTipsetInterval?': 'number',
 	'averageTipsetBlocks?': 'number',
+	'averageTipsetWeightedBlocks?': 'number',
 	'dailyMessages?': nonNegativeInteger,
+	'blockReward?': attoFil,
+	'burntSupply?': attoFil,
+	'circulatingSupply?': attoFil,
+	'totalSupply?': attoFil,
+	'totalMaxSupply?': attoFil,
+	'totalPledgeCollateral?': attoFil,
+	'totalMarketPledge?': attoFil,
 })
 
 const filfoxDealTagWire = arktype({

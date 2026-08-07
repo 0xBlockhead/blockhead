@@ -115,8 +115,37 @@ export type AvalanchePlatformVmBlock = {
 	encoding: string
 }
 
+export type AvalanchePlatformVmJsonTxUnsigned = {
+	networkID?: number | string
+	blockchainID?: string
+	memo?: string
+	validator?: {
+		nodeID: string
+		start: number | string
+		end: number | string
+		weight: number | string
+	}
+	stake?: unknown[]
+	shares?: number | string
+	rewardsOwner?: unknown
+	subnetID?: string
+	sourceChain?: string
+	destinationChain?: string
+	subnetOwners?: unknown
+	chainName?: string
+	vmID?: string
+	genesisData?: unknown
+	time?: number | string
+}
+
+export type AvalanchePlatformVmJsonTx = {
+	unsignedTx: AvalanchePlatformVmJsonTxUnsigned
+	id?: string
+	credentials?: unknown[]
+}
+
 export type AvalanchePlatformVmTx = {
-	tx: string | Record<string, unknown>
+	tx: string | AvalanchePlatformVmJsonTx
 	encoding: string
 }
 

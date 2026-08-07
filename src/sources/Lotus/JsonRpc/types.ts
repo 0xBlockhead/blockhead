@@ -92,6 +92,22 @@ export const lotusMinerInfo = arktype({
 	Owner: nonEmptyString,
 	Worker: nonEmptyString,
 	'PeerId?': 'string',
+	'NewWorker?': 'string',
+	'ControlAddresses?': nonEmptyString.array(),
+	'WorkerChangeEpoch?': integer,
+	'Multiaddrs?': 'string[]',
+	'WindowPoStProofType?': integer,
+	'SectorSize?': nonNegativeInteger,
+	'WindowPoStPartitionSectors?': nonNegativeInteger,
+	'ConsensusFaultElapsed?': integer,
+	'PendingOwnerAddress?': 'string | null',
+	'Beneficiary?': nonEmptyString,
+	'BeneficiaryTerm?': {
+		Quota: attoFil,
+		UsedQuota: attoFil,
+		Expiration: integer,
+	},
+	'PendingBeneficiaryTerm?': 'unknown',
 })
 
 export const lotusMarketDeal = arktype({

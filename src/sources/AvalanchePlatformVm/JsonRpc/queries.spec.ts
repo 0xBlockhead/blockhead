@@ -17,6 +17,7 @@ const {
 	getCurrentValidators,
 	getStake,
 	getSubnets,
+	getTx,
 	getTxStatus,
 	getUtxos,
 } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
@@ -222,4 +223,47 @@ it('projects json-encoded P-Chain blocks with transaction ids', async () => {
 		},
 		encoding: 'json',
 	})
+})
+
+it('accepts json-encoded platform.getTx envelopes and fail-closes hex-shaped strings when json is expected downstream', async () => {
+	jsonRpc2.mockResolvedValueOnce({
+		tx: {
+			unsignedTx: {
+				networkID: 1,
+				blockchainID: '11111111111111111111111111111111LpoYY',
+				memo: '0x',
+				validator: {
+					nodeID: 'NodeID-a',
+					start: 1,
+					end: 2,
+					weight: 3,
+				},
+				stake: [],
+				shares: 200000,
+			},
+			id: 'tx-id',
+		},
+		encoding: 'json',
+	})
+
+	await expect(getTx('tx-id', 'json')).resolves.toMatchObject({
+		encoding: 'json',
+		tx: {
+			id: 'tx-id',
+			unsignedTx: {
+				shares: 200000,
+			},
+		},
+	})
+
+	jsonRpc2.mockResolvedValueOnce({
+		tx: {
+			credentials: [],
+		},
+		encoding: 'json',
+	})
+	await expect(getTx('tx-id', 'json')).rejects.toThrow('invalid tx response envelope')
+
+	await expect(getTx('', 'json')).rejects.toThrow('empty transaction id')
+	expect(jsonRpc2).toHaveBeenCalledTimes(2)
 })

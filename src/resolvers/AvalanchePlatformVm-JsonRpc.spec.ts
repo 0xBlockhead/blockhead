@@ -47,6 +47,9 @@ const validatorResolver = avalanchePlatformVm.resolvers.find((resolver) => (
 const blockResolver = avalanchePlatformVm.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AvalanchePChainBlock
 ))
+const txResolver = avalanchePlatformVm.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AvalanchePChainTransaction
+))
 const txTimestampResolver = avalanchePlatformVm.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AvalanchePChainTransaction_Timestamp
 ))
@@ -56,6 +59,7 @@ if (
 	|| subnetResolver == null
 	|| validatorResolver == null
 	|| blockResolver == null
+	|| txResolver == null
 	|| txTimestampResolver == null
 )
 	throw new Error('AvalanchePlatformVm_JsonRpc spec missing required resolvers')
@@ -197,6 +201,66 @@ it('projects committed P-Chain transaction status observations', async () => {
 	expect(observation.status).toBe('Committed')
 	expect(observation.blockHeight).toBe(99n)
 	expect(observation.source).toBe(Source.AvalanchePlatformVm_JsonRpc)
+})
+
+it('projects enrolled AvalanchePChainTransaction fields from platform.getTx json', async () => {
+	jsonRpc2.mockResolvedValueOnce({
+		tx: {
+			unsignedTx: {
+				networkID: 1,
+				blockchainID: avalanchePrimaryNetworkSubnetId,
+				memo: '0x68656c6c6f',
+				validator: {
+					nodeID: 'NodeID-VT3YhgFaWEzy4Ap937qMeNEDscCammzG',
+					start: 1682945406,
+					end: 1684155006,
+					weight: 48944170378,
+				},
+				stake: [{
+					assetID: 'FvwEAhmxKfeiG8SnEvq42hc6whRyY3EFYAvebMqDNDGCgxN5Z',
+				}],
+				shares: 200000,
+				rewardsOwner: {
+					addresses: ['P-avax19zfygxaf59stehzedhxjesads0p5jdvfeedal0'],
+				},
+			},
+			id: '28KVjSw5h3XKGuNpJXWY74EdnGq4TUWvCgEtJPymgQTvudiugb',
+		},
+		encoding: 'json',
+	})
+
+	const transaction = await txResolver.resolve.NetworkTxId.resolve({
+		$network: {
+			slug: networkBySlug['avalanche-p-chain'].slug,
+		},
+		txId: '28KVjSw5h3XKGuNpJXWY74EdnGq4TUWvCgEtJPymgQTvudiugb',
+	}, context)
+
+	expect(txResolver.projections.txType(transaction)).toBe('AddValidatorTx')
+	expect(txResolver.projections.blockchainId(transaction)).toBe(avalanchePrimaryNetworkSubnetId)
+	expect(txResolver.projections.subnetId(transaction)).toBe(avalanchePrimaryNetworkSubnetId)
+	expect(txResolver.projections.nodeId(transaction)).toBe('NodeID-VT3YhgFaWEzy4Ap937qMeNEDscCammzG')
+	expect(txResolver.projections.startTimeMs(transaction)).toBe(1_682_945_406_000)
+	expect(txResolver.projections.endTimeMs(transaction)).toBe(1_684_155_006_000)
+	expect(txResolver.projections.stakeAmountNavax(transaction)).toBe(48944170378n)
+	expect(txResolver.projections.memo(transaction)).toBe('0x68656c6c6f')
+	expect(txResolver.projections.feeNavax(transaction)).toBeUndefined()
+	expect(txResolver.projections.$block(transaction)).toBeUndefined()
+	expect(txResolver.projections.payload(transaction)).toMatchObject({
+		shares: 200000,
+		validator: {
+			nodeID: 'NodeID-VT3YhgFaWEzy4Ap937qMeNEDscCammzG',
+		},
+	})
+	expect(jsonRpc2.mock.calls.map(([, method, params]) => [method, params])).toEqual([
+		[
+			'platform.getTx',
+			{
+				txID: '28KVjSw5h3XKGuNpJXWY74EdnGq4TUWvCgEtJPymgQTvudiugb',
+				encoding: 'json',
+			},
+		],
+	])
 })
 
 const networkBlocksResolver = avalanchePlatformVm.resolvers.find((resolver) => (

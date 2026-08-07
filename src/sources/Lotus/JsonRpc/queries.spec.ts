@@ -47,6 +47,14 @@ const minerInfoEnvelope = {
 	Owner: 'f3owner',
 	Worker: 'f3worker',
 	PeerId: '12D3KooW',
+	ControlAddresses: ['f01057931'],
+	Beneficiary: 'f3owner',
+	SectorSize: 34359738368,
+	BeneficiaryTerm: {
+		Quota: '0',
+		UsedQuota: '0',
+		Expiration: 0,
+	},
 }
 
 const minerPowerEnvelope = {
@@ -123,9 +131,21 @@ describe('Lotus JSON-RPC state queries', () => {
 			address: 'f1robust',
 			tipsetKey,
 		})
-		await getMinerInfo({
+		await expect(getMinerInfo({
 			minerAddress: 'f01234',
 			tipsetKey,
+		})).resolves.toMatchObject({
+			Owner: 'f3owner',
+			Worker: 'f3worker',
+			PeerId: '12D3KooW',
+			ControlAddresses: ['f01057931'],
+			Beneficiary: 'f3owner',
+			SectorSize: 34359738368,
+			BeneficiaryTerm: {
+				Quota: '0',
+				UsedQuota: '0',
+				Expiration: 0,
+			},
 		})
 		await getMinerPower({
 			minerAddress: 'f01234',
