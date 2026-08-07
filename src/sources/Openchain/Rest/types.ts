@@ -1,20 +1,30 @@
-export type OpenchainSignatureEntry = {
-	name: string
-	filtered?: boolean
-	hasVerifiedContract?: boolean
-}
+import { type as arktype } from 'arktype'
 
-export type OpenchainLookupResult = {
-	function?: Record<string, OpenchainSignatureEntry[] | null>
-	event?: Record<string, OpenchainSignatureEntry[]>
-}
+export const openchainSignatureEntryWire = arktype({
+	name: 'string',
+	'filtered?': 'boolean',
+	'hasVerifiedContract?': 'boolean',
+})
 
-export type OpenchainLookupResponse = {
-	ok?: boolean
-	result?: OpenchainLookupResult
-}
+export type OpenchainSignatureEntry = typeof openchainSignatureEntryWire.infer
+
+export const openchainSignatureEntriesWire = openchainSignatureEntryWire.array()
+
+export const openchainLookupResponseWire = arktype({
+	ok: 'boolean',
+	'result?': {
+		'function?': 'Record<string, unknown>',
+		'event?': 'Record<string, unknown>',
+	},
+})
+
+export type OpenchainLookupResponse = typeof openchainLookupResponseWire.infer
 
 /** Ethereum Signature Database `GET /signatures/` or `/event-signatures/` */
-export type FourbyteSignaturesList = {
-	results?: { text_signature: string }[]
-}
+export const fourbyteSignaturesListWire = arktype({
+	results: arktype({
+		text_signature: 'string',
+	}).array(),
+})
+
+export type FourbyteSignaturesList = typeof fourbyteSignaturesListWire.infer

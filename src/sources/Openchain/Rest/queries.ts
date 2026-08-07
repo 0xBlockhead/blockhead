@@ -4,8 +4,9 @@ import {
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
 import {
-	type FourbyteSignaturesList,
-	type OpenchainLookupResponse,
+	fourbyteSignaturesListWire,
+	openchainLookupResponseWire,
+	openchainSignatureEntriesWire,
 	type OpenchainSignatureEntry,
 } from '$/sources/Openchain/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
@@ -18,6 +19,35 @@ const bindingByTargetKey = Object.fromEntries(
 )
 const openchainBinding = bindingByTargetKey['openchain-signatures']
 const fourbyteBinding = bindingByTargetKey['fourbyte-directory']
+
+const omitUndefinedJson = (
+	value: unknown
+): unknown => {
+	if (Array.isArray(value))
+		return value.map(omitUndefinedJson)
+	if (value != null && typeof value === 'object')
+		return Object.fromEntries(
+			Object.entries(value)
+				.filter(([, entry]) => entry !== undefined)
+				.map(([key, entry]) => [
+					key,
+					omitUndefinedJson(entry),
+				])
+		)
+	return value
+}
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(omitUndefinedJson(response))
+	} catch {
+		throw new Error(`Openchain_Rest: invalid ${label} response envelope`)
+	}
+}
 
 const normalizeHex4 = (hex: `0x${string}`): `0x${string}` => {
 	const digits = (
@@ -47,12 +77,13 @@ const fourbyteHex32Query = (hex: `0x${string}`) => (
 	normalizeHex32(hex).slice(2).toLowerCase()
 )
 
-const fourbyteResults = (json: FourbyteSignaturesList) => {
-	if (json.results == null)
-		throw new Error('Openchain_Rest: 4byte signatures list missing results')
-
-	return json.results
-}
+const fourbyteResults = (json: unknown) => (
+	assertEnvelope(
+		'4byte signatures list',
+		fourbyteSignaturesListWire,
+		json
+	).results
+)
 
 export const getFourbyteFunctionEntries = async ({
 	hex,
@@ -61,7 +92,7 @@ export const getFourbyteFunctionEntries = async ({
 }) => {
 	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex4Query(hex) })
 	return fourbyteResults(
-		await sourceGetJson<FourbyteSignaturesList>(
+		await sourceGetJson(
 			fourbyteBinding,
 			`${firstHttpUrlForBinding(fourbyteBinding)}/signatures/?${searchParams}`
 		)
@@ -75,7 +106,7 @@ export const getFourbyteEventEntries = async ({
 }) => {
 	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex32Query(hex) })
 	return fourbyteResults(
-		await sourceGetJson<FourbyteSignaturesList>(
+		await sourceGetJson(
 			fourbyteBinding,
 			`${firstHttpUrlForBinding(fourbyteBinding)}/event-signatures/?${searchParams}`
 		)
@@ -94,16 +125,18 @@ export const lookupPath = (params: {
 	return `/lookup?${searchParams}`
 }
 
-const assertOpenchainOk = (json: OpenchainLookupResponse) => {
-	if (json.ok !== true)
-		throw new Error('Openchain_Rest: lookup rejected')
-}
-
 const openchainEntriesForKey = (
-	entries: OpenchainSignatureEntry[] | null | undefined
-) => (
-	entries ?? []
-)
+	entries: unknown
+): OpenchainSignatureEntry[] => {
+	if (entries == null)
+		return []
+
+	return assertEnvelope(
+		'signature entries',
+		openchainSignatureEntriesWire,
+		entries
+	)
+}
 
 export const summarizeOpenchainEntries = (
 	entries: OpenchainSignatureEntry[]
@@ -133,11 +166,17 @@ export const getFunctionEntries = async ({
 	filter?: boolean
 }) => {
 	const key = normalizeHex4(hex)
-	const json = await sourceGetJson<OpenchainLookupResponse>(
-		openchainBinding,
-		`${firstHttpUrlForBinding(openchainBinding)}${lookupPath({ function: key, filter })}`
+	const json = assertEnvelope(
+		'lookup',
+		openchainLookupResponseWire,
+		await sourceGetJson(
+			openchainBinding,
+			`${firstHttpUrlForBinding(openchainBinding)}${lookupPath({ function: key, filter })}`
+		)
 	)
-	assertOpenchainOk(json)
+	if (json.ok !== true)
+		throw new Error('Openchain_Rest: lookup rejected')
+
 	return openchainEntriesForKey(json.result?.function?.[key])
 }
 
@@ -152,10 +191,16 @@ export const getEventEntries = async ({
 	filter?: boolean
 }) => {
 	const key = normalizeHex32(hex)
-	const json = await sourceGetJson<OpenchainLookupResponse>(
-		openchainBinding,
-		`${firstHttpUrlForBinding(openchainBinding)}${lookupPath({ event: key, filter })}`
+	const json = assertEnvelope(
+		'lookup',
+		openchainLookupResponseWire,
+		await sourceGetJson(
+			openchainBinding,
+			`${firstHttpUrlForBinding(openchainBinding)}${lookupPath({ event: key, filter })}`
+		)
 	)
-	assertOpenchainOk(json)
+	if (json.ok !== true)
+		throw new Error('Openchain_Rest: lookup rejected')
+
 	return openchainEntriesForKey(json.result?.event?.[key])
 }

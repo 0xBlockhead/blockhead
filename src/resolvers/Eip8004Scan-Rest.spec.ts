@@ -49,23 +49,27 @@ describe('EIP-8004 Scan registration ownership', () => {
 		fetchAgentDetail.mockReset()
 	})
 
-	it('materializes the exact canonical registration, NFT reference, and file', async () => {
+	it('materializes the exact canonical registration, NFT reference, file, and observation', async () => {
 		fetchAgentDetail.mockResolvedValueOnce({
-			data: {
-				chain_id: 1,
-				token_id: '42',
-				contract_address: identityRegistry,
-				raw_metadata: {
-					offchain_uri: 'ipfs://agent',
-					offchain_content: {
-						type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
-						supportedTrust: ['reputation'],
-						active: true,
-					},
+			chain_id: 1,
+			token_id: '42',
+			contract_address: identityRegistry,
+			owner_address: '0xb5715e7a3130cb09692aefc64b9ae6cd9a20a7ba',
+			agent_wallet: '0xe10d5158186870ab0274835191032b1b1013bf69',
+			created_block_number: 113957614,
+			created_tx_hash: '0xd2281d6e485b3e4265d7aacc1c4286af86188e757b7723979793786ba89ec84b',
+			updated_at: '2026-08-04T10:58:50.553Z',
+			is_active: true,
+			raw_metadata: {
+				offchain_uri: 'ipfs://agent',
+				offchain_content: {
+					type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
+					supportedTrust: ['reputation'],
+					active: true,
 				},
-				supported_trust_models: [],
-				services: null,
 			},
+			supported_trust_models: [],
+			services: null,
 		})
 
 		await expect(eip8004Scan.resolvers[0].resolve[
@@ -105,6 +109,18 @@ describe('EIP-8004 Scan registration ownership', () => {
 					fileUrl: 'ipfs://agent',
 				},
 			}],
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$registration: {
+						namespace: 'eip155',
+						chainId: 1,
+						identityRegistry,
+						agentId: '42',
+					},
+					timestampMs: Date.parse('2026-08-04T10:58:50.553Z'),
+					source: Source.Eip8004Scan_Rest,
+				},
+			}],
 		})
 		expect(fetchAgentDetail).toHaveBeenCalledWith(
 			{
@@ -114,6 +130,7 @@ describe('EIP-8004 Scan registration ownership', () => {
 		)
 		expect(Object.keys(eip8004Scan.resolvers[0].projections).sort()).toEqual([
 			'$$files',
+			'$$timestamps',
 			'$evmNft',
 			'agentId',
 			'chainId',
@@ -143,7 +160,12 @@ describe('EIP-8004 Scan registration ownership', () => {
 	})
 
 	it('rejects absent and mismatched provider registrations', async () => {
-		fetchAgentDetail.mockResolvedValueOnce({})
+		fetchAgentDetail.mockResolvedValueOnce({
+			chain_id: 1,
+			token_id: '42',
+			contract_address: identityRegistry,
+			services: null,
+		})
 		await expect(eip8004Scan.resolvers[0].resolve[
 			'NamespaceChainIdIdentityRegistryAgentId'
 		].resolve({
@@ -171,11 +193,9 @@ describe('EIP-8004 Scan registration ownership', () => {
 			},
 		]) {
 			fetchAgentDetail.mockResolvedValueOnce({
-				data: {
-					...mismatchedDetail,
-					raw_metadata: {
-						offchain_uri: 'ipfs://agent',
-					},
+				...mismatchedDetail,
+				raw_metadata: {
+					offchain_uri: 'ipfs://agent',
 				},
 			})
 			await expect(eip8004Scan.resolvers[0].resolve[
@@ -190,6 +210,50 @@ describe('EIP-8004 Scan registration ownership', () => {
 	})
 })
 
+describe('EIP-8004 Scan registration observation tip fields', () => {
+	beforeEach(() => {
+		fetchAgentDetail.mockReset()
+	})
+
+	it('projects enrolled owner/wallet/active/creation tip fields', async () => {
+		fetchAgentDetail.mockResolvedValueOnce({
+			chain_id: 1,
+			token_id: '42',
+			contract_address: identityRegistry,
+			owner_address: '0xb5715e7a3130cb09692aefc64b9ae6cd9a20a7ba',
+			agent_wallet: '0xe10d5158186870ab0274835191032b1b1013bf69',
+			created_block_number: 113957614,
+			created_tx_hash: '0xd2281d6e485b3e4265d7aacc1c4286af86188e757b7723979793786ba89ec84b',
+			is_active: true,
+			raw_metadata: {
+				offchain_uri: registrationFile.fileUrl,
+			},
+		})
+		const timestampResolver = resolver(EntityType.Eip8004AgentRegistration_Timestamp)
+
+		await expect(timestampResolver.resolve.RegistrationTimestampMsSource.resolve({
+			$registration: registrationFile.$registration,
+			timestampMs: 1,
+			source: Source.Eip8004Scan_Rest,
+		}, context)).resolves.toEqual({
+			agentUri: registrationFile.fileUrl,
+			ownerAddress: '0xb5715e7a3130cb09692aefc64b9ae6cd9a20a7ba',
+			agentWalletAddress: '0xe10d5158186870ab0274835191032b1b1013bf69',
+			active: true,
+			blockNumber: 113957614,
+			transactionHash: '0xd2281d6e485b3e4265d7aacc1c4286af86188e757b7723979793786ba89ec84b',
+		})
+		expect(Object.keys(timestampResolver.projections).sort()).toEqual([
+			'active',
+			'agentUri',
+			'agentWalletAddress',
+			'blockNumber',
+			'ownerAddress',
+			'transactionHash',
+		])
+	})
+})
+
 describe('EIP-8004 Scan registration file ownership', () => {
 	beforeEach(() => {
 		fetchAgentDetail.mockReset()
@@ -197,13 +261,11 @@ describe('EIP-8004 Scan registration file ownership', () => {
 
 	it('materializes the exact registration file for the offchain URI', async () => {
 		fetchAgentDetail.mockResolvedValueOnce({
-			data: {
-				chain_id: 1,
-				token_id: '42',
-				contract_address: identityRegistry,
-				raw_metadata: {
-					offchain_uri: registrationFile.fileUrl,
-				},
+			chain_id: 1,
+			token_id: '42',
+			contract_address: identityRegistry,
+			raw_metadata: {
+				offchain_uri: registrationFile.fileUrl,
 			},
 		})
 		const fileResolver = resolver(EntityType.Eip8004AgentRegistrationFile)
@@ -234,13 +296,11 @@ describe('EIP-8004 Scan registration file ownership', () => {
 		expect(fetchAgentDetail).not.toHaveBeenCalled()
 
 		fetchAgentDetail.mockResolvedValueOnce({
-			data: {
-				chain_id: 1,
-				token_id: '42',
-				contract_address: identityRegistry,
-				raw_metadata: {
-					offchain_uri: 'https://agents.example/other.json',
-				},
+			chain_id: 1,
+			token_id: '42',
+			contract_address: identityRegistry,
+			raw_metadata: {
+				offchain_uri: 'https://agents.example/other.json',
 			},
 		})
 		await expect(resolve({
@@ -257,21 +317,19 @@ describe('EIP-8004 Scan service endpoint ownership', () => {
 
 	it('materializes only the exact typed service from its registration file', async () => {
 		fetchAgentDetail.mockResolvedValueOnce({
-			data: {
-				chain_id: 1,
-				token_id: '42',
-				contract_address: identityRegistry,
-				raw_metadata: {
-					offchain_uri: registrationFile.fileUrl,
-				},
-				services: {
-					a2a: {
-						endpoint: 'https://agents.example/a2a',
-						name: 'Trading agent',
-						version: '1.2.0',
-						protocol: 'https',
-						active: true,
-					},
+			chain_id: 1,
+			token_id: '42',
+			contract_address: identityRegistry,
+			raw_metadata: {
+				offchain_uri: registrationFile.fileUrl,
+			},
+			services: {
+				a2a: {
+					endpoint: 'https://agents.example/a2a',
+					name: 'Trading agent',
+					version: '1.2.0',
+					protocol: 'https',
+					active: true,
 				},
 			},
 		})
@@ -349,36 +407,37 @@ describe('EIP-8004 Scan service endpoint ownership', () => {
 			endpointUrl: 'https://agents.example/a2a',
 		} as const
 
-		fetchAgentDetail.mockResolvedValueOnce({})
+		fetchAgentDetail.mockResolvedValueOnce({
+			chain_id: 1,
+			token_id: '42',
+			contract_address: identityRegistry,
+			services: null,
+		})
 		await expect(resolve(selector, context)).rejects.toThrow('service endpoint registration not found')
 
 		fetchAgentDetail.mockResolvedValueOnce({
-			data: {
-				chain_id: 1,
-				token_id: '42',
-				contract_address: identityRegistry,
-				raw_metadata: {
-					offchain_uri: 'https://agents.example/other.json',
-				},
-				services: {},
+			chain_id: 1,
+			token_id: '42',
+			contract_address: identityRegistry,
+			raw_metadata: {
+				offchain_uri: 'https://agents.example/other.json',
 			},
+			services: {},
 		})
 		await expect(resolve(selector, context)).rejects.toThrow(
 			'service endpoint registration does not match request'
 		)
 
 		fetchAgentDetail.mockResolvedValueOnce({
-			data: {
-				chain_id: 1,
-				token_id: '42',
-				contract_address: identityRegistry,
-				raw_metadata: {
-					offchain_uri: registrationFile.fileUrl,
-				},
-				services: {
-					mcp: {
-						endpoint: 'https://agents.example/mcp',
-					},
+			chain_id: 1,
+			token_id: '42',
+			contract_address: identityRegistry,
+			raw_metadata: {
+				offchain_uri: registrationFile.fileUrl,
+			},
+			services: {
+				mcp: {
+					endpoint: 'https://agents.example/mcp',
 				},
 			},
 		})
@@ -437,30 +496,5 @@ describe('EIP-8004 Scan global agent NFT list', () => {
 		})
 		expect(globalResolver.projections.$$eip8004Services.select(snapshot)).toEqual(snapshot.$$eip8004Services)
 		expect(globalResolver.projections.$$eip8004Services.resolveCount(snapshot)).toBe(699983)
-	})
-
-	it('hard-fails malformed list envelopes instead of soft-emptying', async () => {
-		const resolve = resolver(EntityType._Global).resolve.Scope.resolve
-
-		fetchAgentList.mockResolvedValueOnce({
-			success: true,
-		})
-		await expect(resolve({
-			scope: Source.Eip8004Scan_Rest,
-		}, context)).rejects.toThrow('agent list missing data')
-
-		fetchAgentList.mockResolvedValueOnce({
-			success: true,
-			data: [],
-			meta: {
-				pagination: {
-					page: 1,
-					limit: 100,
-				},
-			},
-		})
-		await expect(resolve({
-			scope: Source.Eip8004Scan_Rest,
-		}, context)).rejects.toThrow('agent list missing pagination total')
 	})
 })

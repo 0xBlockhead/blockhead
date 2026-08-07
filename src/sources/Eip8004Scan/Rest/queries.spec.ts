@@ -22,12 +22,17 @@ describe('EIP-8004 Scan endpoints', () => {
 		sourceGetJson.mockReset()
 	})
 
-	it('returns the detail response envelope without projecting it', async () => {
+	it('asserts and unwraps the detail response envelope', async () => {
 		const response = {
+			success: true,
 			data: {
 				chain_id: 1,
 				token_id: '42',
 				contract_address: '0x1234567890abcdef1234567890abcdef12345678',
+				owner_address: '0xb5715e7a3130cb09692aefc64b9ae6cd9a20a7ba',
+				created_block_number: 113957614,
+				created_tx_hash: '0xd2281d6e485b3e4265d7aacc1c4286af86188e757b7723979793786ba89ec84b',
+				updated_at: '2026-08-04T10:58:50.553751Z',
 				raw_metadata: {
 					offchain_uri: 'https://agents.example/42.json',
 				},
@@ -55,20 +60,20 @@ describe('EIP-8004 Scan endpoints', () => {
 				chainId: 1,
 				tokenId: '42',
 			}
-		)).resolves.toBe(response)
+		)).resolves.toEqual(response.data)
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
 			'https://8004scan.test/api/v1/public/agents/1/42'
 		)
 	})
 
-	it('returns the list response envelope without projecting it', async () => {
+	it('asserts the list response envelope including pagination total', async () => {
 		const response = {
 			success: true,
 			data: [{
 				chain_id: 1,
 				token_id: '42',
-				contract_address: 'invalid',
+				contract_address: '0x1234567890abcdef1234567890abcdef12345678',
 				name: 'Agent 42',
 			}],
 			meta: {
@@ -87,11 +92,35 @@ describe('EIP-8004 Scan endpoints', () => {
 				limit: 20,
 				page: 3,
 			}
-		)).resolves.toBe(response)
+		)).resolves.toEqual(response)
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
 			'https://8004scan.test/api/v1/public/agents?limit=20&page=3'
 		)
+	})
+
+	it('hard-fails malformed detail and list envelopes', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+		})
+		await expect(fetchAgentDetail(
+			{
+				chainId: 1,
+				tokenId: '42',
+			}
+		)).rejects.toThrow('invalid agent detail response envelope')
+
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: [],
+			meta: {
+				pagination: {
+					page: 1,
+					limit: 100,
+				},
+			},
+		})
+		await expect(fetchAgentList()).rejects.toThrow('invalid agent list response envelope')
 	})
 
 	it('propagates HTTP failures from sourceGetJson', async () => {

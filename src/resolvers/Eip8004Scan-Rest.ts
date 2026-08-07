@@ -12,11 +12,12 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
-import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import type {
-	Eip8004ScanAgentDetail,
-	Eip8004ScanAgentListItem,
+import {
+	eip8004ScanServiceWire,
+	type Eip8004ScanAgentDetail,
+	type Eip8004ScanAgentListItem,
 } from '$/sources/Eip8004Scan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -35,15 +36,69 @@ const agentFromWire = (row: Eip8004ScanAgentListItem) => {
 	}
 }
 
+const observationTimestampMsFromWire = (row: Eip8004ScanAgentDetail) => {
+	const updatedAtMs = (
+		row.updated_at != null ?
+			Date.parse(row.updated_at)
+		:
+			Number.NaN
+	)
+	if (Number.isFinite(updatedAtMs))
+		return updatedAtMs
+
+	const createdAtMs = (
+		row.created_at != null ?
+			Date.parse(row.created_at)
+		:
+			Number.NaN
+	)
+	if (Number.isFinite(createdAtMs))
+		return createdAtMs
+
+	return Date.now()
+}
+
+const assertAgentService = (value: unknown) => {
+	try {
+		return eip8004ScanServiceWire.assert(value)
+	} catch {
+		throw new Error('Eip8004Scan_Rest: invalid agent service response envelope')
+	}
+}
+
 const agentDetailFromWire = (row: Eip8004ScanAgentDetail | undefined) => {
 	if (row == null)
 		return
 
 	const agent = agentFromWire(row)
+	const services = Object.entries(row.services ?? {}).flatMap(([wireKind, serviceWire]) => {
+		const service = assertAgentService(serviceWire)
+		const endpointKind = wireKind.trim()
+		const endpointUrl = service.endpoint?.trim()
+		if (endpointKind === '' || endpointUrl == null || endpointUrl === '')
+			return []
+
+		return [{
+			endpointKind,
+			endpointUrl,
+			...(service.name != null && service.name.trim() !== '' && {
+				name: service.name.trim(),
+			}),
+			...(service.version != null && service.version.trim() !== '' && {
+				version: service.version.trim(),
+			}),
+			...(service.protocol != null && service.protocol.trim() !== '' && {
+				protocolKind: service.protocol.trim(),
+			}),
+			...(service.active != null && { active: service.active }),
+		}]
+	})
 	const contactEndpoint = (
-		Object.values(row.services ?? {})
-			.map((service) => service.endpoint?.trim())
-			.find((endpoint) => endpoint != null && endpoint !== '')
+		services
+			.map((service) => service.endpointUrl)
+			.find((endpoint) => endpoint !== '')
+		?? row.a2a_endpoint?.trim()
+		?? row.agent_url?.trim()
 	)
 	const offchainUri = row.raw_metadata?.offchain_uri?.trim()
 	const agentUri = (
@@ -64,32 +119,14 @@ const agentDetailFromWire = (row: Eip8004ScanAgentDetail | undefined) => {
 		:
 			undefined
 	)
+	const ownerAddress = hexLowerOfByteSize(row.owner_address ?? '', 20)
+	const transactionHash = hexLowerOfByteSize(row.created_tx_hash ?? '', 32)
 
 	return {
 		...agent,
 		agentUri,
-		fetchedAt: Date.now(),
-		services: Object.entries(row.services ?? {}).flatMap(([wireKind, service]) => {
-			const endpointKind = wireKind.trim()
-			const endpointUrl = service.endpoint?.trim()
-			if (endpointKind === '' || endpointUrl == null || endpointUrl === '')
-				return []
-
-			return [{
-				endpointKind,
-				endpointUrl,
-				...(service.name != null && service.name.trim() !== '' && {
-					name: service.name.trim(),
-				}),
-				...(service.version != null && service.version.trim() !== '' && {
-					version: service.version.trim(),
-				}),
-				...(service.protocol != null && service.protocol.trim() !== '' && {
-					protocolKind: service.protocol.trim(),
-				}),
-				...(service.active != null && { active: service.active }),
-			}]
-		}),
+		fetchedAt: observationTimestampMsFromWire(row),
+		services,
 		...(row.name != null && row.name !== '' && { name: row.name }),
 		...(row.description != null && row.description !== '' && { description: row.description }),
 		...(row.image_url != null && row.image_url !== '' && { image: row.image_url }),
@@ -106,7 +143,13 @@ const agentDetailFromWire = (row: Eip8004ScanAgentDetail | undefined) => {
 				{}
 		),
 		...(supportedTrust != null && { supportedTrust }),
-		...(contactEndpoint != null && { contactEndpoint }),
+		...(contactEndpoint != null && contactEndpoint !== '' && { contactEndpoint }),
+		...(ownerAddress != null && { ownerAddress }),
+		...(
+			row.created_block_number != null
+			&& { blockNumber: row.created_block_number }
+		),
+		...(transactionHash != null && { transactionHash }),
 	}
 }
 
@@ -148,12 +191,12 @@ export default {
 
 						const { fetchAgentDetail } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
 						const detail = agentDetailFromWire(
-							(await fetchAgentDetail(
+							await fetchAgentDetail(
 								{
 									chainId,
 									tokenId: agentId,
 								}
-							)).data
+							)
 						)
 						if (detail == null)
 							throw new Error('Eip8004Scan_Rest: agent registration not found')
@@ -193,6 +236,13 @@ export default {
 									fileUrl: detail.agentUri,
 								},
 							}],
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$registration,
+									timestampMs: detail.fetchedAt,
+									source: Source.Eip8004Scan_Rest,
+								},
+							}],
 						}
 					},
 				},
@@ -204,6 +254,69 @@ export default {
 			agentId: (registration) => registration.agentId,
 			$evmNft: (registration) => registration.$evmNft,
 			$$files: (registration) => registration.$$files,
+			$$timestamps: (registration) => registration.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Eip8004AgentRegistration_Timestamp,
+			resolve: {
+				RegistrationTimestampMsSource: {
+					resolve: async ({
+						$registration,
+					}) => {
+						const {
+							namespace,
+							chainId,
+							identityRegistry,
+							agentId,
+						} = $registration
+						if (namespace !== 'eip155')
+							throw new Error('Eip8004Scan_Rest: unsupported registration observation namespace')
+						if (!Number.isSafeInteger(chainId) || chainId <= 0)
+							throw new Error('Eip8004Scan_Rest: invalid registration observation chain ID')
+
+						const { fetchAgentDetail } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
+						const detail = agentDetailFromWire(
+							await fetchAgentDetail(
+								{
+									chainId,
+									tokenId: agentId,
+								}
+							)
+						)
+						if (detail == null)
+							throw new Error('Eip8004Scan_Rest: registration observation agent not found')
+						if (
+							detail.chainId !== chainId
+							|| detail.contractAddress !== identityRegistry.toLowerCase()
+							|| detail.tokenId !== agentId
+						)
+							throw new Error('Eip8004Scan_Rest: registration observation does not match request')
+
+						return {
+							agentUri: detail.agentUri,
+							...(detail.ownerAddress != null && {
+								ownerAddress: EvmAddress.assert(detail.ownerAddress),
+							}),
+							...(detail.agentWallet != null && {
+								agentWalletAddress: EvmAddress.assert(detail.agentWallet),
+							}),
+							...(detail.active != null && { active: detail.active }),
+							...(detail.blockNumber != null && { blockNumber: detail.blockNumber }),
+							...(detail.transactionHash != null && {
+								transactionHash: ZeroExHex.assert(detail.transactionHash),
+							}),
+						}
+					},
+				},
+			},
+		})({
+			agentUri: (observation) => observation.agentUri,
+			ownerAddress: (observation) => observation.ownerAddress,
+			agentWalletAddress: (observation) => observation.agentWalletAddress,
+			active: (observation) => observation.active,
+			blockNumber: (observation) => observation.blockNumber,
+			transactionHash: (observation) => observation.transactionHash,
 		}),
 
 		defineResolver({
@@ -227,12 +340,12 @@ export default {
 
 						const { fetchAgentDetail } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
 						const detail = agentDetailFromWire(
-							(await fetchAgentDetail(
+							await fetchAgentDetail(
 								{
 									chainId,
 									tokenId: agentId,
 								}
-							)).data
+							)
 						)
 						if (detail == null)
 							throw new Error('Eip8004Scan_Rest: registration file agent not found')
@@ -280,12 +393,12 @@ export default {
 
 						const { fetchAgentDetail } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
 						const detail = agentDetailFromWire(
-							(await fetchAgentDetail(
+							await fetchAgentDetail(
 								{
 									chainId,
 									tokenId: agentId,
 								}
-							)).data
+							)
 						)
 						if (detail == null)
 							throw new Error('Eip8004Scan_Rest: service endpoint registration not found')
@@ -331,12 +444,12 @@ export default {
 						const chainId = evmChainIdFromNetworkSelector($contract.$network)
 						const { fetchAgentDetail } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
 						const detail = agentDetailFromWire(
-							(await fetchAgentDetail(
+							await fetchAgentDetail(
 								{
 									chainId,
 									tokenId,
 								}
-							)).data
+							)
 						)
 						if (detail == null) {
 							throw new Error(
@@ -408,15 +521,9 @@ export default {
 						const response = await fetchAgentList(
 							{ limit }
 						)
-						if (response.data == null)
-							throw new Error('Eip8004Scan_Rest: agent list missing data')
-
-						const totalCount = response.meta?.pagination?.total
-						if (totalCount == null || !Number.isSafeInteger(totalCount) || totalCount < 0)
-							throw new Error('Eip8004Scan_Rest: agent list missing pagination total')
 
 						return {
-							totalCount,
+							totalCount: response.meta.pagination.total,
 							$$eip8004Services: response.data.flatMap((row) => {
 								const agent = agentFromWire(row)
 								return (

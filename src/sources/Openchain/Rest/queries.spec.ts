@@ -157,6 +157,20 @@ describe('Openchain REST product queries', () => {
 
 		await expect(getFourbyteFunctionEntries({
 			hex: '0xa9059cbb',
-		})).rejects.toThrow('4byte signatures list missing results')
+		})).rejects.toThrow('invalid 4byte signatures list response envelope')
+	})
+
+	it('hard-fails Openchain payloads that omit ok', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			result: {
+				function: {
+					'0xa9059cbb': [],
+				},
+			},
+		}))
+
+		await expect(getFunctionEntries({
+			hex: '0xa9059cbb',
+		})).rejects.toThrow('invalid lookup response envelope')
 	})
 })
