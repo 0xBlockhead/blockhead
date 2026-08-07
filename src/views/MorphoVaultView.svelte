@@ -35,6 +35,9 @@
 			name: true,
 			symbol: true,
 			listed: true,
+			apy: true,
+			netApy: true,
+			totalAssets: true,
 			assetAddress: true,
 		},
 	}))
@@ -43,6 +46,7 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
@@ -84,7 +88,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={morphoVault}>
 			{#snippet children(entity)}
-				{[String(entity.listed), entity.assetAddress].filter(Boolean).join(' ') || [entity.name, entity.symbol].filter(Boolean).join(' ') || titleFallback}
+				{[String(entity.listed), String(entity.apy ?? ''), String(entity.netApy ?? ''), (entity.totalAssets ?? ''), entity.assetAddress].filter(Boolean).join(' ') || [entity.name, entity.symbol].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -189,6 +193,186 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={morphoVault}
+			>
+				{#snippet children(entity)}
+					{@const totalAssets = entity.totalAssets}
+					{#if totalAssets != null}
+						<div>
+							<dt>Total assets</dt>
+							<dd>
+								{totalAssets}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							totalSupply: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const totalSupply = entity.totalSupply}
+					{#if totalSupply != null}
+						<div>
+							<dt>Total supply</dt>
+							<dd>
+								{totalSupply}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							totalAssetsUsd: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const totalAssetsUsd = entity.totalAssetsUsd}
+					{#if totalAssetsUsd != null}
+						<div>
+							<dt>Total assets (USD)</dt>
+							<dd>
+								{totalAssetsUsd}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={morphoVault}
+			>
+				{#snippet children(entity)}
+					{@const apy = entity.apy}
+					{#if apy != null}
+						<div>
+							<dt>APY</dt>
+							<dd>
+								{apy}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={morphoVault}
+			>
+				{#snippet children(entity)}
+					{@const netApy = entity.netApy}
+					{#if netApy != null}
+						<div>
+							<dt>Net APY</dt>
+							<dd>
+								{netApy}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							fee: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const fee = entity.fee}
+					{#if fee != null}
+						<div>
+							<dt>Fee</dt>
+							<dd>
+								{fee}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							sharePriceUsd: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const sharePriceUsd = entity.sharePriceUsd}
+					{#if sharePriceUsd != null}
+						<div>
+							<dt>Share price (USD)</dt>
+							<dd>
+								{sharePriceUsd}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							lastIndexedBlock: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const lastIndexedBlock = entity.lastIndexedBlock}
+					{#if lastIndexedBlock != null}
+						<div>
+							<dt>Last indexed block</dt>
+							<dd>
+								{lastIndexedBlock}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							lastAccrualTimestamp: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const lastAccrualTimestamp = entity.lastAccrualTimestamp}
+					{#if lastAccrualTimestamp != null}
+						<div>
+							<dt>Last accrual</dt>
+							<dd>
+								<Timestamp timestamp={lastAccrualTimestamp} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 </EntityView>

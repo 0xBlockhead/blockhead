@@ -28,80 +28,80 @@ export default entity({
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	},
 	collateralAssetAddress: {
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	},
 	oracleAddress: {
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	},
 	irmAddress: {
 		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	},
 	lltvWad: {
 		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	},
 	creationBlockNumber: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	},
 	totalSupplyAssets: {
 		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	},
 	totalSupplyShares: {
 		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	},
 	totalBorrowAssets: {
 		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	},
 	totalBorrowShares: {
 		primitiveType: NonNegativeDecimalString,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	},
 	feeWad: {
@@ -111,20 +111,97 @@ export default entity({
 			Source.Morpho_Rest,
 		],
 	},
+	utilization: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Morpho_Graphql,
+		],
+	},
+	supplyApy: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Morpho_Graphql,
+		],
+	},
+	borrowApy: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Morpho_Graphql,
+		],
+	},
+	netSupplyApy: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Morpho_Graphql,
+		],
+	},
+	netBorrowApy: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Morpho_Graphql,
+		],
+	},
+	liquidityAssets: {
+		primitiveType: NonNegativeDecimalString,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Morpho_Graphql,
+		],
+	},
+	collateralAssets: {
+		primitiveType: NonNegativeDecimalString,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Morpho_Graphql,
+		],
+	},
+	supplyAssetsUsd: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Morpho_Graphql,
+		],
+	},
+	borrowAssetsUsd: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Morpho_Graphql,
+		],
+	},
+	collateralAssetsUsd: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Morpho_Graphql,
+		],
+	},
+	liquidityAssetsUsd: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Morpho_Graphql,
+		],
+	},
 	lastIndexedBlock: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	},
 	lastAccrualTimestamp: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	},
 })({

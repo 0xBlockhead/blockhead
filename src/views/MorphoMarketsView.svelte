@@ -31,6 +31,9 @@
 			fields: {
 				marketId: true,
 				lltvWad: true,
+				utilization: true,
+				supplyApy: true,
+				borrowApy: true,
 				totalSupplyAssets: true,
 				totalBorrowAssets: true,
 				$network: true,
@@ -64,7 +67,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[morphoMarket.lltvWad, (morphoMarket.totalSupplyAssets ?? ''), (morphoMarket.totalBorrowAssets ?? '')].filter(Boolean).join(' ')}
+				{[morphoMarket.lltvWad, String(morphoMarket.utilization ?? ''), String(morphoMarket.supplyApy ?? ''), String(morphoMarket.borrowApy ?? ''), (morphoMarket.totalSupplyAssets ?? ''), (morphoMarket.totalBorrowAssets ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

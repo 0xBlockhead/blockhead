@@ -32,6 +32,9 @@
 				name: true,
 				symbol: true,
 				listed: true,
+				apy: true,
+				netApy: true,
+				totalAssets: true,
 				assetAddress: true,
 				$network: true,
 			},
@@ -64,7 +67,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[String(morphoVault.listed), morphoVault.assetAddress].filter(Boolean).join(' ')}
+				{[String(morphoVault.listed), String(morphoVault.apy ?? ''), String(morphoVault.netApy ?? ''), (morphoVault.totalAssets ?? ''), morphoVault.assetAddress].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

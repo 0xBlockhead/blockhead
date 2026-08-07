@@ -18,8 +18,8 @@
 
 	const pageSelection = $derived(select(EntityType.MorphoMarket, data.selector, {
 		sources: [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	}))
 

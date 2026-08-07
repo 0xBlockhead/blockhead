@@ -26,13 +26,16 @@
 	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Morpho_Rest,
 			Source.Morpho_Graphql,
+			Source.Morpho_Rest,
 		],
 	}))
 	const morphoMarket = $derived(viewSelection({
 		fields: {
 			lltvWad: true,
+			utilization: true,
+			supplyApy: true,
+			borrowApy: true,
 			totalSupplyAssets: true,
 			totalBorrowAssets: true,
 		},
@@ -80,7 +83,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={morphoMarket}>
 			{#snippet children(entity)}
-				{[entity.lltvWad, (entity.totalSupplyAssets ?? ''), (entity.totalBorrowAssets ?? '')].filter(Boolean).join(' ') || selection.entitySelector.marketId || titleFallback}
+				{[entity.lltvWad, String(entity.utilization ?? ''), String(entity.supplyApy ?? ''), String(entity.borrowApy ?? ''), (entity.totalSupplyAssets ?? ''), (entity.totalBorrowAssets ?? '')].filter(Boolean).join(' ') || selection.entitySelector.marketId || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -318,6 +321,230 @@
 							<dt>Fee (WAD)</dt>
 							<dd>
 								{feeWad}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={morphoMarket}
+			>
+				{#snippet children(entity)}
+					{@const utilization = entity.utilization}
+					{#if utilization != null}
+						<div>
+							<dt>Utilization</dt>
+							<dd>
+								{utilization}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={morphoMarket}
+			>
+				{#snippet children(entity)}
+					{@const supplyApy = entity.supplyApy}
+					{#if supplyApy != null}
+						<div>
+							<dt>Supply APY</dt>
+							<dd>
+								{supplyApy}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={morphoMarket}
+			>
+				{#snippet children(entity)}
+					{@const borrowApy = entity.borrowApy}
+					{#if borrowApy != null}
+						<div>
+							<dt>Borrow APY</dt>
+							<dd>
+								{borrowApy}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							netSupplyApy: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const netSupplyApy = entity.netSupplyApy}
+					{#if netSupplyApy != null}
+						<div>
+							<dt>Net supply APY</dt>
+							<dd>
+								{netSupplyApy}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							netBorrowApy: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const netBorrowApy = entity.netBorrowApy}
+					{#if netBorrowApy != null}
+						<div>
+							<dt>Net borrow APY</dt>
+							<dd>
+								{netBorrowApy}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							liquidityAssets: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const liquidityAssets = entity.liquidityAssets}
+					{#if liquidityAssets != null}
+						<div>
+							<dt>Liquidity assets</dt>
+							<dd>
+								{liquidityAssets}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							collateralAssets: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const collateralAssets = entity.collateralAssets}
+					{#if collateralAssets != null}
+						<div>
+							<dt>Collateral assets</dt>
+							<dd>
+								{collateralAssets}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							supplyAssetsUsd: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const supplyAssetsUsd = entity.supplyAssetsUsd}
+					{#if supplyAssetsUsd != null}
+						<div>
+							<dt>Supply assets (USD)</dt>
+							<dd>
+								{supplyAssetsUsd}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							borrowAssetsUsd: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const borrowAssetsUsd = entity.borrowAssetsUsd}
+					{#if borrowAssetsUsd != null}
+						<div>
+							<dt>Borrow assets (USD)</dt>
+							<dd>
+								{borrowAssetsUsd}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							collateralAssetsUsd: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const collateralAssetsUsd = entity.collateralAssetsUsd}
+					{#if collateralAssetsUsd != null}
+						<div>
+							<dt>Collateral assets (USD)</dt>
+							<dd>
+								{collateralAssetsUsd}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							liquidityAssetsUsd: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const liquidityAssetsUsd = entity.liquidityAssetsUsd}
+					{#if liquidityAssetsUsd != null}
+						<div>
+							<dt>Liquidity assets (USD)</dt>
+							<dd>
+								{liquidityAssetsUsd}
 							</dd>
 						</div>
 					{/if}
