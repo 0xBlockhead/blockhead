@@ -234,35 +234,57 @@ export type HyperliquidVaultFollower = {
 	lockupUntil: number
 }
 
+export type HyperliquidPortfolioWindow = {
+	accountValueHistory: [
+		timestampMs: number,
+		accountValue: string,
+	][]
+	pnlHistory: [
+		timestampMs: number,
+		pnl: string,
+	][]
+	vlm: string
+}
+
+export type HyperliquidPortfolio = [
+	window: string,
+	state: HyperliquidPortfolioWindow,
+][]
+
+export type HyperliquidVaultRelationship = (
+	| {
+		type: 'parent'
+		data: {
+			childAddresses: string[]
+		}
+	}
+	| {
+		type: 'child'
+		data: {
+			parentAddress?: string
+		}
+	}
+	| {
+		type: 'normal'
+	}
+	| null
+)
+
 export type HyperliquidVaultDetails = {
 	name: string
 	vaultAddress: string
 	leader: string
 	description: string
-	portfolio: JsonValue
+	portfolio: HyperliquidPortfolio
 	apr: number
-	followerState: JsonValue
+	followerState: HyperliquidVaultFollower | null
 	leaderFraction: number
 	leaderCommission: number
 	followers: HyperliquidVaultFollower[]
 	maxDistributable: number
 	maxWithdrawable: number
 	isClosed: boolean
-	relationship: (
-		| {
-			type: 'parent'
-			data: {
-				childAddresses: string[]
-			}
-		}
-		| {
-			type: 'child'
-			data: {
-				parentAddress: string
-			}
-		}
-		| null
-	)
+	relationship: HyperliquidVaultRelationship
 	allowDeposits: boolean
 	alwaysCloseOnWithdraw: boolean
 }
@@ -340,24 +362,7 @@ export type HyperliquidVaultSummary = {
 	tvl: string
 	isClosed: boolean
 	createTimeMillis: number
-	relationship: (
-		| {
-			type: 'parent'
-			data: {
-				childAddresses: string[]
-			}
-		}
-		| {
-			type: 'child'
-			data: {
-				parentAddress?: string
-			}
-		}
-		| {
-			type: 'normal'
-		}
-		| null
-	)
+	relationship: HyperliquidVaultRelationship
 }
 
 export type HyperliquidOrderStatus = (
@@ -380,23 +385,6 @@ export type HyperliquidOpenOrder = {
 }
 
 export type HyperliquidAllMids = Record<string, string>
-
-export type HyperliquidPortfolioWindow = {
-	accountValueHistory: [
-		timestampMs: number,
-		accountValue: string,
-	][]
-	pnlHistory: [
-		timestampMs: number,
-		pnl: string,
-	][]
-	vlm: string
-}
-
-export type HyperliquidPortfolio = [
-	window: string,
-	state: HyperliquidPortfolioWindow,
-][]
 
 export type HyperliquidPredictedFundingVenue = {
 	fundingRate: string

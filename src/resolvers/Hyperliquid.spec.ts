@@ -1042,6 +1042,148 @@ describe('Hyperliquid market catalog resolvers', () => {
 		expect(vaultResolver.projections.$$equities(snapshot)).toEqual([])
 	})
 
+	it('projects vaultDetails portfolio, relationship, and follower equities onto enrolled fields', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_777)
+		const vaultResolver = hyperliquid.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HyperliquidVault
+		))
+		expect(vaultResolver).toBeTruthy()
+
+		const portfolio = [[
+			'day',
+			{
+				accountValueHistory: [[
+					1_700_000_000_000,
+					'329265410.90790099',
+				]],
+				pnlHistory: [[
+					1_700_000_000_000,
+					'0.0',
+				]],
+				vlm: '0.0',
+			},
+		]]
+		const relationship = {
+			type: 'parent' as const,
+			data: {
+				childAddresses: [
+					'0x010461c14e146ac35fe42271bdc1134ee31c703a',
+				],
+			},
+		}
+
+		corsFetch.mockImplementation(async (_url, options) => {
+			const body = JSON.parse(options.init.body)
+			return {
+				ok: true,
+				json: async () => (
+					body.type === 'vaultDetails' ?
+						{
+							name: 'Hyperliquidity Provider (HLP)',
+							vaultAddress: '0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
+							leader: '0x677d831aef5328190852e24f13c46cac05f984e7',
+							description: 'market making vault',
+							portfolio,
+							apr: 0.36,
+							followerState: null,
+							leaderFraction: 0.001,
+							leaderCommission: 0,
+							followers: [{
+								user: '0x005844b2ffb2e122cf4244be7dbcb4f84924907c',
+								vaultEquity: '714491.71026243',
+								pnl: '3203.43026143',
+								allTimePnl: '79843.74476743',
+								daysFollowing: 388,
+								vaultEntryTime: 1700926145201,
+								lockupUntil: 1734824439201,
+							}],
+							maxDistributable: 1,
+							maxWithdrawable: 2,
+							isClosed: false,
+							relationship,
+							allowDeposits: true,
+							alwaysCloseOnWithdraw: false,
+						}
+					: body.type === 'vaultSummaries' ?
+						[{
+							name: 'Hyperliquidity Provider (HLP)',
+							vaultAddress: '0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
+							leader: '0x677d831aef5328190852e24f13c46cac05f984e7',
+							tvl: '1000',
+							isClosed: false,
+							createTimeMillis: 1_700_000_000_000,
+							relationship,
+						}]
+					:
+						null
+				),
+			}
+		})
+
+		const snapshot = await vaultResolver.resolve.NetworkVaultAddress.resolve({
+			$network: account.$network,
+			vaultAddress: '0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
+		}, context)
+		expect(vaultResolver.projections.$$timestamps(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$vault: {
+					$network: account.$network,
+					vaultAddress: '0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
+				},
+				timestampMs: 1_700_000_000_777,
+				source: Source.Hyperliquid,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'name')]: 'Hyperliquidity Provider (HLP)',
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'tvl')]: '1000',
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'createTimeMillis')]: 1_700_000_000_000,
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'description')]: 'market making vault',
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'apr')]: '0.36',
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'leaderFraction')]: '0.001',
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'leaderCommission')]: '0',
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'maxDistributable')]: '1',
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'maxWithdrawable')]: '2',
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'allowDeposits')]: true,
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'alwaysCloseOnWithdraw')]: false,
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'portfolio')]: portfolio,
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'followerCount')]: 1,
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'followers')]: [{
+					user: '0x005844b2ffb2e122cf4244be7dbcb4f84924907c',
+					vaultEquity: '714491.71026243',
+					pnl: '3203.43026143',
+					allTimePnl: '79843.74476743',
+					daysFollowing: 388,
+					vaultEntryTime: 1700926145201,
+					lockupUntil: 1734824439201,
+				}],
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'isClosed')]: false,
+				[entityFieldAddressKey(EntityType.HyperliquidVault_Timestamp, [], 'relationship')]: relationship,
+			},
+		}])
+		expect(vaultResolver.projections.$$equities(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: {
+					$network: account.$network,
+					address: '0x005844b2ffb2e122cf4244be7dbcb4f84924907c',
+				},
+				$vault: {
+					$network: account.$network,
+					vaultAddress: '0xdfc24b077bc1425ad1dea75bcb6f8158e10df303',
+				},
+				timestampMs: 1_700_000_000_777,
+				source: Source.Hyperliquid,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'equity')]: '714491.71026243',
+				[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'pnl')]: '3203.43026143',
+				[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'allTimePnl')]: '79843.74476743',
+				[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'daysFollowing')]: 388,
+				[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'vaultEntryTimeMs')]: 1700926145201,
+				[entityFieldAddressKey(EntityType.HyperliquidVaultEquity_Timestamp, [], 'lockupUntilMs')]: 1734824439201,
+			},
+		}])
+	})
+
 	it('projects a borrow/lend reserve by token index from allBorrowLendReserveStates', async () => {
 		const reserveResolver = hyperliquid.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.HyperliquidBorrowLendReserve

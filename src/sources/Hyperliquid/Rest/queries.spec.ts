@@ -456,6 +456,37 @@ describe('Hyperliquid public account Info transport', () => {
 		corsFetch.mockResolvedValueOnce({
 			ok: true,
 			json: async () => ({
+				...vaultDetails,
+				portfolio: [[
+					'day',
+					{
+						accountValueHistory: 'not-history',
+						pnlHistory: [],
+						vlm: '0',
+					},
+				]],
+			}),
+		})
+		await expect(getVaultDetails({
+			vaultAddress: vaultDetails.vaultAddress,
+		})).rejects.toThrow('Hyperliquid_Rest: invalid vaultDetails response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				...vaultDetails,
+				relationship: {
+					type: 'parent',
+				},
+			}),
+		})
+		await expect(getVaultDetails({
+			vaultAddress: vaultDetails.vaultAddress,
+		})).rejects.toThrow('Hyperliquid_Rest: invalid vaultDetails response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
 				tokenToState: 'not-rows',
 				health: 'healthy',
 				healthFactor: null,
@@ -464,6 +495,108 @@ describe('Hyperliquid public account Info transport', () => {
 		await expect(getBorrowLendUserState({
 			user: '0x1111111111111111111111111111111111111111',
 		})).rejects.toThrow('Hyperliquid_Rest: invalid borrowLendUserState response envelope')
+	})
+
+	it('accepts vaultDetails portfolio windows and parent/child/normal relationships', async () => {
+		const portfolio = [[
+			'day',
+			{
+				accountValueHistory: [[
+					1_700_000_000_000,
+					'100',
+				]],
+				pnlHistory: [[
+					1_700_000_000_000,
+					'1',
+				]],
+				vlm: '10',
+			},
+		]] as const
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				...vaultDetails,
+				portfolio,
+				relationship: {
+					type: 'parent',
+					data: {
+						childAddresses: [
+							'0x010461c14e146ac35fe42271bdc1134ee31c703a',
+						],
+					},
+				},
+			}),
+		})
+		await expect(getVaultDetails({
+			vaultAddress: vaultDetails.vaultAddress,
+		})).resolves.toMatchObject({
+			portfolio,
+			relationship: {
+				type: 'parent',
+			},
+		})
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				...vaultDetails,
+				relationship: {
+					type: 'child',
+					data: {},
+				},
+			}),
+		})
+		await expect(getVaultDetails({
+			vaultAddress: vaultDetails.vaultAddress,
+		})).resolves.toMatchObject({
+			relationship: {
+				type: 'child',
+			},
+		})
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				...vaultDetails,
+				relationship: {
+					type: 'normal',
+				},
+			}),
+		})
+		await expect(getVaultDetails({
+			vaultAddress: vaultDetails.vaultAddress,
+		})).resolves.toMatchObject({
+			relationship: {
+				type: 'normal',
+			},
+		})
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => [{
+				name: vaultDetails.name,
+				vaultAddress: vaultDetails.vaultAddress,
+				leader: vaultDetails.leader,
+				tvl: '12',
+				isClosed: false,
+				createTimeMillis: 1_700_000_000_000,
+				relationship: {
+					type: 'normal',
+				},
+			}],
+		})
+		await expect(getVaultSummaries()).resolves.toEqual([{
+			name: vaultDetails.name,
+			vaultAddress: vaultDetails.vaultAddress,
+			leader: vaultDetails.leader,
+			tvl: '12',
+			isClosed: false,
+			createTimeMillis: 1_700_000_000_000,
+			relationship: {
+				type: 'normal',
+			},
+		}])
 	})
 
 	it('accepts documented metaAndAssetCtxs marginTables and marginTableId fields', async () => {

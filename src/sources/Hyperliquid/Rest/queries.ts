@@ -121,29 +121,61 @@ const hyperliquidValidatorSummaryEnvelope = arktype({
 	isActive: 'boolean',
 	commission: 'string',
 })
+const hyperliquidVaultRelationshipEnvelope = arktype({
+	type: "'parent'",
+	data: {
+		childAddresses: 'string[]',
+	},
+})
+	.or({
+		type: "'child'",
+		data: {
+			'parentAddress?': 'string',
+		},
+	})
+	.or({
+		type: "'normal'",
+	})
+	.or(arktype.null)
+const hyperliquidVaultFollowerEnvelope = arktype({
+	user: 'string',
+	vaultEquity: 'string',
+	pnl: 'string',
+	allTimePnl: 'string',
+	daysFollowing: 'number',
+	vaultEntryTime: 'number',
+	lockupUntil: 'number',
+})
+const hyperliquidPortfolioWindowEnvelope = arktype({
+	accountValueHistory: arktype([
+		'number',
+		'string',
+	]).array(),
+	pnlHistory: arktype([
+		'number',
+		'string',
+	]).array(),
+	vlm: 'string',
+})
+const hyperliquidPortfolioEnvelope = arktype([
+	'string',
+	hyperliquidPortfolioWindowEnvelope,
+]).array()
 const hyperliquidVaultDetailsEnvelope = arktype({
 	name: 'string',
 	vaultAddress: 'string',
 	leader: 'string',
 	description: 'string',
-	portfolio: 'unknown',
+	portfolio: hyperliquidPortfolioEnvelope,
 	apr: 'number',
-	followerState: 'unknown',
+	followerState: hyperliquidVaultFollowerEnvelope.or(arktype.null),
 	leaderFraction: 'number',
 	leaderCommission: 'number',
-	followers: arktype({
-		user: 'string',
-		vaultEquity: 'string',
-		pnl: 'string',
-		allTimePnl: 'string',
-		daysFollowing: 'number',
-		vaultEntryTime: 'number',
-		lockupUntil: 'number',
-	}).array(),
+	followers: hyperliquidVaultFollowerEnvelope.array(),
 	maxDistributable: 'number',
 	maxWithdrawable: 'number',
 	isClosed: 'boolean',
-	relationship: 'object | null',
+	relationship: hyperliquidVaultRelationshipEnvelope,
 	allowDeposits: 'boolean',
 	alwaysCloseOnWithdraw: 'boolean',
 })
@@ -154,7 +186,7 @@ const hyperliquidVaultSummaryEnvelope = arktype({
 	tvl: 'string',
 	isClosed: 'boolean',
 	createTimeMillis: 'number',
-	relationship: 'object | null',
+	relationship: hyperliquidVaultRelationshipEnvelope,
 })
 const hyperliquidBorrowLendReserveStateEnvelope = arktype({
 	borrowYearlyRate: 'string',
@@ -338,21 +370,6 @@ const hyperliquidOpenOrderEnvelope = arktype({
 	sz: 'string',
 	timestamp: 'number',
 })
-const hyperliquidPortfolioWindowEnvelope = arktype({
-	accountValueHistory: arktype([
-		'number',
-		'string',
-	]).array(),
-	pnlHistory: arktype([
-		'number',
-		'string',
-	]).array(),
-	vlm: 'string',
-})
-const hyperliquidPortfolioEnvelope = arktype([
-	'string',
-	hyperliquidPortfolioWindowEnvelope,
-]).array()
 const hyperliquidPredictedFundingVenueEnvelope = arktype({
 	fundingRate: 'string',
 	nextFundingTime: 'number',
