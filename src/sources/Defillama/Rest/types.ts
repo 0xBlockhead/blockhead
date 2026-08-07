@@ -196,10 +196,15 @@ export type DefillamaProPercentageResponse = DynamicCoinResponse<
 >
 
 export type DefillamaProtocolsResponse = paths['/protocols']['get']['responses'][200]['content']['application/json']
+export type DefillamaProtocolResponse = paths['/protocol/{protocol}']['get']['responses'][200]['content']['application/json']
 export type DefillamaChainsTvlResponse = paths['/v2/chains']['get']['responses'][200]['content']['application/json']
 export type DefillamaProtocolTvlResponse = paths['/tvl/{protocol}']['get']['responses'][200]['content']['application/json']
 
 export type GetDefillamaProtocolTvlArgs = {
+	protocol: string
+}
+
+export type GetDefillamaProtocolArgs = {
 	protocol: string
 }
 
@@ -267,6 +272,37 @@ export const defillamaProtocolListRowEnvelope = arktype({
 	'change_7d?': 'number',
 })
 export const defillamaProtocolsEnvelope = defillamaProtocolListRowEnvelope.array()
+
+const defillamaProtocolHistoricalTvlPointWire = arktype({
+	'date?': 'number',
+	'totalLiquidityUSD?': 'number',
+})
+
+const defillamaProtocolHistoricalTokensPointWire = arktype({
+	'date?': 'number',
+	'tokens?': {
+		'[string]': 'number',
+	},
+})
+
+const defillamaProtocolChainTvlHistoryWire = arktype({
+	'tvl?': defillamaProtocolHistoricalTvlPointWire.array(),
+	'tokens?': defillamaProtocolHistoricalTokensPointWire.array(),
+})
+
+export const defillamaProtocolEnvelope = arktype({
+	'id?': 'string',
+	'name?': 'string',
+	'symbol?': 'string',
+	'category?': 'string',
+	'chains?': 'string[]',
+	'currentChainTvls?': {
+		'[string]': 'number',
+	},
+	'chainTvls?': {
+		'[string]': defillamaProtocolChainTvlHistoryWire,
+	},
+})
 
 export const defillamaChainTvlRowEnvelope = arktype({
 	'gecko_id?': 'string | null',

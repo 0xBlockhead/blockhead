@@ -21,6 +21,7 @@ import {
 	getProHistoricalPrices,
 	getProPercentageChange,
 	getProtocols,
+	getProtocol,
 	getProtocolTvl,
 } from '$/sources/Defillama/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
@@ -374,6 +375,39 @@ describe('DeFiLlama REST endpoint selection', () => {
 			bindingByTargetKey['api-public'],
 			'https://api.llama.fi/tvl/aave'
 		)
+
+		sourceGetJson.mockResolvedValueOnce({
+			id: 'parent#aave',
+			name: 'Aave',
+			symbol: 'AAVE',
+			category: 'Lending',
+			chains: [
+				'Ethereum',
+			],
+			currentChainTvls: {
+				Ethereum: 3_200_000_000,
+			},
+			chainTvls: {
+				Ethereum: {
+					tvl: [{
+						date: 1609459200,
+						totalLiquidityUSD: 1_000_000,
+					}],
+				},
+			},
+		})
+		await expect(getProtocol({
+			protocol: 'aave',
+		})).resolves.toMatchObject({
+			id: 'parent#aave',
+			currentChainTvls: {
+				Ethereum: 3_200_000_000,
+			},
+		})
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			bindingByTargetKey['api-public'],
+			'https://api.llama.fi/protocol/aave'
+		)
 	})
 
 	it('accepts protocol and chain TVL envelopes', async () => {
@@ -410,6 +444,52 @@ describe('DeFiLlama REST endpoint selection', () => {
 		])
 	})
 
+	it('retains protocol historical chain TVL leftovers on transport', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			id: '2269',
+			name: 'Aave',
+			symbol: 'AAVE',
+			category: 'Lending',
+			chains: [
+				'Ethereum',
+				'Polygon',
+			],
+			currentChainTvls: {
+				Ethereum: 3_200_000_000,
+				Polygon: 1_500_000_000,
+			},
+			chainTvls: {
+				Ethereum: {
+					tvl: [{
+						date: 1609459200,
+						totalLiquidityUSD: 1_000_000,
+					}],
+					tokens: [{
+						date: 1609459200,
+						tokens: {
+							USDC: 800_000,
+							USDT: 200_000,
+						},
+					}],
+				},
+			},
+		})
+
+		await expect(getProtocol({
+			protocol: 'aave',
+		})).resolves.toMatchObject({
+			chainTvls: {
+				Ethereum: {
+					tokens: [{
+						tokens: {
+							USDC: 800_000,
+						},
+					}],
+				},
+			},
+		})
+	})
+
 	it.each([
 		{
 			label: 'protocols',
@@ -438,6 +518,17 @@ describe('DeFiLlama REST endpoint selection', () => {
 				tvl: 1_234,
 			},
 		},
+		{
+			label: 'protocol',
+			query: () => getProtocol({
+				protocol: 'aave',
+			}),
+			response: {
+				currentChainTvls: {
+					Ethereum: '3200000000',
+				},
+			},
+		},
 	])('fails closed for malformed $label envelopes', async ({
 		query,
 		response,
@@ -450,6 +541,9 @@ describe('DeFiLlama REST endpoint selection', () => {
 
 	it('rejects empty protocol slug before transport', async () => {
 		await expect(getProtocolTvl({
+			protocol: '',
+		})).rejects.toThrow('malformed protocol slug')
+		await expect(getProtocol({
 			protocol: '',
 		})).rejects.toThrow('malformed protocol slug')
 		expect(sourceGetJson).not.toHaveBeenCalled()

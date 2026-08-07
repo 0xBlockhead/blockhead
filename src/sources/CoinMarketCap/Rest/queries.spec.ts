@@ -66,11 +66,17 @@ describe('CoinMarketCap REST market transport', () => {
 				'1027': {
 					id: 1027,
 					symbol: 'ETH',
+					cmc_rank: 2,
+					circulating_supply: 120_000_000,
+					total_supply: 120_000_000,
+					max_supply: null,
 					quote: {
 						USD: {
 							price: 3500,
 							market_cap: 400_000_000_000,
 							volume_24h: 10_000_000_000,
+							percent_change_24h: 1.25,
+							percent_change_7d: -0.5,
 							last_updated: '2026-08-06T12:00:00.000Z',
 						},
 					},
@@ -98,9 +104,15 @@ describe('CoinMarketCap REST market transport', () => {
 		})).resolves.toMatchObject({
 			data: {
 				'1027': {
+					id: 1027,
+					cmc_rank: 2,
+					circulating_supply: 120_000_000,
+					total_supply: 120_000_000,
 					quote: {
 						USD: {
 							price: 3500,
+							market_cap: 400_000_000_000,
+							percent_change_24h: 1.25,
 						},
 					},
 				},
@@ -113,6 +125,60 @@ describe('CoinMarketCap REST market transport', () => {
 			data: {
 				'1027': {
 					name: 'Ethereum',
+				},
+			},
+		})
+	})
+
+	it('retains quote supply / percent leftovers on transport without requiring enrolled projection', async () => {
+		coinMarketCapFetch.mockResolvedValueOnce({
+			status: {
+				error_code: 0,
+			},
+			data: {
+				'1': {
+					id: 1,
+					cmc_rank: 1,
+					circulating_supply: 19_800_000,
+					total_supply: 19_800_000,
+					max_supply: 21_000_000,
+					num_market_pairs: 1000,
+					quote: {
+						USD: {
+							price: 99_000,
+							market_cap: 1_960_000_000_000,
+							fully_diluted_market_cap: 2_079_000_000_000,
+							volume_24h: 30_000_000_000,
+							volume_change_24h: 2.5,
+							percent_change_1h: 0.1,
+							percent_change_24h: 2.3,
+							percent_change_7d: -1.0,
+							percent_change_30d: 5.0,
+							percent_change_60d: 8.0,
+							percent_change_90d: 12.0,
+							last_updated: '2026-08-06T12:00:00.000Z',
+						},
+					},
+				},
+			},
+		})
+
+		await expect(getQuotesLatest({
+			publicEnv: {},
+			id: 1,
+		})).resolves.toMatchObject({
+			data: {
+				'1': {
+					max_supply: 21_000_000,
+					num_market_pairs: 1000,
+					quote: {
+						USD: {
+							fully_diluted_market_cap: 2_079_000_000_000,
+							volume_change_24h: 2.5,
+							percent_change_7d: -1.0,
+							percent_change_90d: 12.0,
+						},
+					},
 				},
 			},
 		})

@@ -120,6 +120,114 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType.Coin,
+			resolve: {
+				CoinId: {
+					resolve: async ({ coinId }, context) => {
+						const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
+						const { getQuotesLatest } = await import('$/sources/CoinMarketCap/Rest/queries.ts')
+						const coinMarketCapId = idByCoinId[coinId]
+						if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: coin not mapped')
+
+						const quoteResponse = await getQuotesLatest({
+							publicEnv: context.publicEnv,
+							id: coinMarketCapId,
+						})
+						const quote = (
+							quoteResponse.data == null ?
+								undefined
+							:
+								Object.values(quoteResponse.data)[0]
+						)
+						const timestampMs = Date.parse(quote?.quote?.USD?.last_updated ?? '')
+						if (!Number.isFinite(timestampMs))
+							throw new Error('CoinMarketCap_Rest: coin quote clock missing')
+
+						return [{
+							[EntityMetaKey.Selector]: {
+								$coin: {
+									coinId,
+								},
+								timestampMs: Math.floor(timestampMs),
+								source: Source.CoinMarketCap_Rest,
+							},
+						}]
+					},
+				},
+			},
+		})({
+			$$timestamps: (coin) => coin,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Coin_Timestamp,
+			resolve: {
+				CoinTimestampMsSource: {
+					resolve: async ({ $coin, timestampMs: timestampMsSelector, source }, context) => {
+						if (source !== Source.CoinMarketCap_Rest)
+							throw new Error('CoinMarketCap_Rest: Coin_Timestamp source mismatch')
+
+						const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
+						const { getQuotesLatest } = await import('$/sources/CoinMarketCap/Rest/queries.ts')
+						const coinMarketCapId = idByCoinId[$coin.coinId]
+						if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: coin not mapped')
+
+						const quoteResponse = await getQuotesLatest({
+							publicEnv: context.publicEnv,
+							id: coinMarketCapId,
+						})
+						const quote = (
+							quoteResponse.data == null ?
+								undefined
+							:
+								Object.values(quoteResponse.data)[0]
+						)
+						const usdQuote = quote?.quote?.USD
+						const timestampMs = Date.parse(usdQuote?.last_updated ?? '')
+						if (!Number.isFinite(timestampMs))
+							throw new Error('CoinMarketCap_Rest: coin quote clock missing')
+						if (Math.floor(timestampMs) !== timestampMsSelector)
+							throw new Error('CoinMarketCap_Rest: Coin_Timestamp id does not match quote clock')
+
+						const marketCapUsd = usdQuote?.market_cap
+						const change24hPercent = usdQuote?.percent_change_24h
+						const totalSupply = quote?.total_supply
+						return {
+							...(quote?.cmc_rank != null
+							&& Number.isFinite(quote.cmc_rank) && {
+								marketCapRank: quote.cmc_rank,
+							}),
+							...(marketCapUsd != null
+							&& Number.isFinite(marketCapUsd) && {
+								marketCap: BigInt(Math.round(marketCapUsd)),
+								marketCapUsd,
+							}),
+							...(change24hPercent != null
+							&& Number.isFinite(change24hPercent) && {
+								change24hPercent,
+							}),
+							...(totalSupply != null
+							&& Number.isFinite(totalSupply)
+							&& totalSupply >= 0 && {
+								totalSupply: BigInt(Math.round(totalSupply)),
+							}),
+							transport: 'coinmarketcap-v3-quotes-latest',
+							providerAssetId: String(coinMarketCapId),
+						}
+					},
+				},
+			},
+		})({
+			marketCapRank: (coinTimestamp) => coinTimestamp.marketCapRank,
+			marketCapUsd: (coinTimestamp) => coinTimestamp.marketCapUsd,
+			marketCap: (coinTimestamp) => coinTimestamp.marketCap,
+			change24hPercent: (coinTimestamp) => coinTimestamp.change24hPercent,
+			totalSupply: (coinTimestamp) => coinTimestamp.totalSupply,
+			transport: (coinTimestamp) => coinTimestamp.transport,
+			providerAssetId: (coinTimestamp) => coinTimestamp.providerAssetId,
+		}),
+
+		defineResolver({
 			entityType: EntityType.Market_Timestamp,
 			resolve: {
 				MarketTimestampMsFeedKey: {

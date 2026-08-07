@@ -10,7 +10,15 @@ export type CoinMarketCapStatus = {
 export type CoinMarketCapUsdQuote = {
 	price?: number
 	market_cap?: number
+	fully_diluted_market_cap?: number
 	volume_24h?: number
+	volume_change_24h?: number
+	percent_change_1h?: number
+	percent_change_24h?: number
+	percent_change_7d?: number
+	percent_change_30d?: number
+	percent_change_60d?: number
+	percent_change_90d?: number
 	last_updated?: string
 }
 
@@ -19,6 +27,11 @@ export type CoinMarketCapQuote = {
 	name?: string
 	symbol?: string
 	slug?: string
+	cmc_rank?: number
+	num_market_pairs?: number
+	circulating_supply?: number
+	total_supply?: number
+	max_supply?: number | null
 	quote?: {
 		USD?: CoinMarketCapUsdQuote
 	}
@@ -94,7 +107,15 @@ const coinMarketCapStatusWire = arktype({
 const coinMarketCapUsdQuoteWire = arktype({
 	'price?': 'number',
 	'market_cap?': 'number',
+	'fully_diluted_market_cap?': 'number',
 	'volume_24h?': 'number',
+	'volume_change_24h?': 'number',
+	'percent_change_1h?': 'number',
+	'percent_change_24h?': 'number',
+	'percent_change_7d?': 'number',
+	'percent_change_30d?': 'number',
+	'percent_change_60d?': 'number',
+	'percent_change_90d?': 'number',
 	'last_updated?': 'string',
 })
 
@@ -103,6 +124,11 @@ const coinMarketCapQuoteWire = arktype({
 	'name?': 'string',
 	'symbol?': 'string',
 	'slug?': 'string',
+	'cmc_rank?': 'number',
+	'num_market_pairs?': 'number',
+	'circulating_supply?': 'number',
+	'total_supply?': 'number',
+	'max_supply?': 'number | null',
 	'quote?': {
 		'USD?': coinMarketCapUsdQuoteWire,
 	},

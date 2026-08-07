@@ -19,12 +19,14 @@ import type {
 	DefillamaProHistoricalPricesResponse,
 	DefillamaProPercentageResponse,
 	DefillamaProtocolsResponse,
+	DefillamaProtocolResponse,
 	DefillamaProtocolTvlResponse,
 	GetDefillamaChartArgs,
 	GetDefillamaCurrentPricesArgs,
 	GetDefillamaFirstPricesArgs,
 	GetDefillamaHistoricalPricesArgs,
 	GetDefillamaPercentageArgs,
+	GetDefillamaProtocolArgs,
 	GetDefillamaProtocolTvlArgs,
 	GetProDefillamaChartArgs,
 	GetProDefillamaCurrentPricesArgs,
@@ -40,6 +42,7 @@ import {
 	defillamaHistoricalPricesEnvelope,
 	defillamaPercentageEnvelope,
 	defillamaProtocolsEnvelope,
+	defillamaProtocolEnvelope,
 	defillamaProtocolTvlEnvelope,
 } from '$/sources/Defillama/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
@@ -426,6 +429,24 @@ export const getProtocolTvl = async ({
 		),
 		defillamaProtocolTvlEnvelope,
 		'protocol tvl'
+	)
+}
+
+/** `GET /protocol/{protocol}` on the public TVL API — protocol detail + historical chain TVLs. */
+export const getProtocol = async ({
+	protocol,
+}: GetDefillamaProtocolArgs) => {
+	if (protocol === '')
+		throw new Error('Defillama_Rest: malformed protocol slug')
+
+	return getDefillamaJson<DefillamaProtocolResponse>(
+		publicApiBinding,
+		new URL(
+			`/protocol/${encodeURIComponent(protocol)}`,
+			firstHttpUrlForBinding(publicApiBinding)
+		),
+		defillamaProtocolEnvelope,
+		'protocol'
 	)
 }
 
