@@ -44,7 +44,7 @@ export default entity({
 	},
 	selected: {
 		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	connectedAt: {
 		primitiveType: type('number'),
