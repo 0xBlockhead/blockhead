@@ -11,7 +11,16 @@ import { Source } from '$/sources/Source.ts'
 const sourceFetch = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
-	firstHttpUrlForBinding: () => 'http://127.0.0.1:8080',
+	firstHttpUrlForBinding: (binding: {
+		endpoints: readonly {
+			locator: string
+		}[]
+	}) => (
+		binding.endpoints[0].locator.includes('asset-hub') ?
+			'http://127.0.0.1:8081'
+		:
+			'http://127.0.0.1:8080'
+	),
 	sourceFetch,
 	sourceGetJson: async (_binding: unknown, url: string) => {
 		const response = await sourceFetch(_binding, url)
@@ -313,10 +322,10 @@ describe('Substrate Sidecar Asset Hub asset projections', () => {
 		const foreignAssetId = JSON.stringify(foreignMultiLocation)
 
 		expect(sourceFetch.mock.calls[0][1]).toBe(
-			`http://127.0.0.1:8080/accounts/${account.accountId}/asset-balances`
+			`http://127.0.0.1:8081/accounts/${account.accountId}/asset-balances`
 		)
 		expect(sourceFetch.mock.calls[1][1]).toBe(
-			`http://127.0.0.1:8080/accounts/${account.accountId}/foreign-asset-balances`
+			`http://127.0.0.1:8081/accounts/${account.accountId}/foreign-asset-balances`
 		)
 		expect(timestamps).toHaveLength(2)
 		expect(timestamps[0]).toEqual({
@@ -372,7 +381,7 @@ describe('Substrate Sidecar Asset Hub asset projections', () => {
 		const snapshot = await assetResolver.resolve.NetworkAssetKindAssetId.resolve(assetSelector, context)
 		const timestamps = assetResolver.projections.$$timestamps(snapshot)
 
-		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/pallets/assets/1984/asset-info')
+		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8081/pallets/assets/1984/asset-info')
 		expect(timestamps).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$asset: assetSelector,
@@ -439,16 +448,48 @@ describe('Substrate Sidecar Asset Hub asset projections', () => {
 		expect(assetBalanceTimestampResolver.projections.freeBalancePlancks(balanceTimestamp)).toBe(42n)
 		expect(assetBalanceTimestampResolver.projections.status(balanceTimestamp)).toBe('Live')
 		expect(sourceFetch.mock.calls[1][1]).toBe(
-			`http://127.0.0.1:8080/accounts/${account.accountId}/asset-balances?assets%5B%5D=1984`
+			`http://127.0.0.1:8081/accounts/${account.accountId}/asset-balances?assets%5B%5D=1984`
 		)
 	})
 
-	it('rejects foreignAssets PolkadotAsset metadata without a foreign asset-info transport', async () => {
-		await expect(assetResolver.resolve.NetworkAssetKindAssetId.resolve({
+	it('projects foreignAssets PolkadotAsset tip metadata from getForeignAssetInfo', async () => {
+		const foreignAssetId = JSON.stringify(foreignMultiLocation)
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xAH_FOREIGN_HASH',
+				height: '19148226',
+			},
+			items: [
+				{
+					multiLocation: foreignMultiLocation,
+					foreignAssetInfo: assetInfo.assetInfo,
+					foreignAssetMetadata: assetInfo.assetMetaData,
+				},
+			],
+		})))
+		const assetSelector = {
 			$network: account.$network,
 			assetKind: 'foreignAssets',
-			assetId: JSON.stringify(foreignMultiLocation),
-		}, context)).rejects.toThrow('unsupported assetKind foreignAssets')
+			assetId: foreignAssetId,
+		}
+		const snapshot = await assetResolver.resolve.NetworkAssetKindAssetId.resolve(assetSelector, context)
+		const timestamps = assetResolver.projections.$$timestamps(snapshot)
+
+		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8081/pallets/foreign-assets')
+		expect(timestamps[0][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'symbol')]: 'USDt',
+			[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'name')]: 'Tether USD',
+			[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'blockHash')]: '0xAH_FOREIGN_HASH',
+			[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'supply')]: 77_998_622_058_218n,
+		})
+	})
+
+	it('rejects unknown PolkadotAsset assetKind without transport', async () => {
+		await expect(assetResolver.resolve.NetworkAssetKindAssetId.resolve({
+			$network: account.$network,
+			assetKind: 'poolAssets',
+			assetId: '1',
+		}, context)).rejects.toThrow('unsupported assetKind poolAssets')
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })

@@ -662,6 +662,7 @@ export default {
 						const {
 							getAccountAssetBalances,
 							getAccountForeignAssetBalances,
+							polkadotAssetHubSidecarBinding,
 						} = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 						const accountSelector = {
 							$network,
@@ -674,9 +675,11 @@ export default {
 						] = await Promise.all([
 							getAccountAssetBalances({
 								accountId,
+								binding: polkadotAssetHubSidecarBinding,
 							}),
 							getAccountForeignAssetBalances({
 								accountId,
+								binding: polkadotAssetHubSidecarBinding,
 							}),
 						])
 						return {
@@ -725,15 +728,31 @@ export default {
 				NetworkAssetKindAssetId: {
 					resolve: async ({ $network, assetKind, assetId }) => {
 						assertPolkadotMainnet($network)
-						if (assetKind !== polkadotAssetKind.assets)
+						if (
+							assetKind !== polkadotAssetKind.assets
+							&& assetKind !== polkadotAssetKind.foreignAssets
+						)
 							throw new Error(`SubstrateSidecar_Rest: unsupported assetKind ${assetKind}`)
 						if (assetId.length === 0)
 							throw new Error('SubstrateSidecar_Rest: asset ID must not be empty')
 
-						const { getAssetInfo } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						const asset = await getAssetInfo({
-							assetId,
-						})
+						const {
+							getAssetInfo,
+							getForeignAssetInfo,
+							polkadotAssetHubSidecarBinding,
+						} = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+						const asset = (
+							assetKind === polkadotAssetKind.assets ?
+								await getAssetInfo({
+									assetId,
+									binding: polkadotAssetHubSidecarBinding,
+								})
+							:
+								await getForeignAssetInfo({
+									assetId,
+									binding: polkadotAssetHubSidecarBinding,
+								})
+						)
 						const assetSelector = {
 							$network,
 							assetKind,
@@ -766,15 +785,31 @@ export default {
 						if (source !== Source.SubstrateSidecar_Rest)
 							throw new Error(`SubstrateSidecar_Rest: unsupported source ${source}`)
 						assertPolkadotMainnet($asset.$network)
-						if ($asset.assetKind !== polkadotAssetKind.assets)
+						if (
+							$asset.assetKind !== polkadotAssetKind.assets
+							&& $asset.assetKind !== polkadotAssetKind.foreignAssets
+						)
 							throw new Error(`SubstrateSidecar_Rest: unsupported assetKind ${$asset.assetKind}`)
 						if ($asset.assetId.length === 0)
 							throw new Error('SubstrateSidecar_Rest: asset ID must not be empty')
 
-						const { getAssetInfo } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-						const asset = await getAssetInfo({
-							assetId: $asset.assetId,
-						})
+						const {
+							getAssetInfo,
+							getForeignAssetInfo,
+							polkadotAssetHubSidecarBinding,
+						} = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+						const asset = (
+							$asset.assetKind === polkadotAssetKind.assets ?
+								await getAssetInfo({
+									assetId: $asset.assetId,
+									binding: polkadotAssetHubSidecarBinding,
+								})
+							:
+								await getForeignAssetInfo({
+									assetId: $asset.assetId,
+									binding: polkadotAssetHubSidecarBinding,
+								})
+						)
 						return polkadotAssetTimestampFields(
 							$asset,
 							asset,
@@ -813,12 +848,16 @@ export default {
 						assertPolkadotMainnet($asset.$network)
 
 						if ($asset.assetKind === polkadotAssetKind.assets) {
-							const { getAccountAssetBalances } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+							const {
+								getAccountAssetBalances,
+								polkadotAssetHubSidecarBinding,
+							} = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 							const balances = await getAccountAssetBalances({
 								accountId: $account.accountId,
 								assets: [
 									$asset.assetId,
 								],
+								binding: polkadotAssetHubSidecarBinding,
 							})
 							const balance = balances.assets.find((asset) => (
 								String(asset.assetId) === $asset.assetId
@@ -836,9 +875,13 @@ export default {
 						}
 
 						if ($asset.assetKind === polkadotAssetKind.foreignAssets) {
-							const { getAccountForeignAssetBalances } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+							const {
+								getAccountForeignAssetBalances,
+								polkadotAssetHubSidecarBinding,
+							} = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 							const balances = await getAccountForeignAssetBalances({
 								accountId: $account.accountId,
+								binding: polkadotAssetHubSidecarBinding,
 							})
 							const balance = balances.foreignAssets.find((asset) => (
 								foreignAssetId(asset.multiLocation) === $asset.assetId

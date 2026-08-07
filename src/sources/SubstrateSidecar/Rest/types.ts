@@ -170,6 +170,18 @@ export type SidecarAssetInfo = {
 	isFrozen: boolean
 }
 
+export type SidecarForeignAssetInfo = SidecarAssetInfo & {
+	multiLocation: unknown
+}
+
+export type SidecarForeignAssets = {
+	at: {
+		hash: string
+		height: string
+	}
+	items: SidecarForeignAssetInfo[]
+}
+
 export type SidecarAhmInfo = {
 	relay: {
 		startBlock: string

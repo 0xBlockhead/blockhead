@@ -10,6 +10,7 @@ import type {
 	SidecarBlockExtrinsic,
 	SidecarBlockHeader,
 	SidecarExtrinsic,
+	SidecarForeignAssets,
 	SidecarNodeNetwork,
 	SidecarNodeVersion,
 	SidecarOngoingReferenda,
@@ -24,6 +25,14 @@ import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
 
 const defaultBinding = bindings[Source.SubstrateSidecar_Rest][0]
+
+const polkadotAssetHubSidecarBindingCandidate = bindings[Source.SubstrateSidecar_Rest].find((binding) => (
+	binding.target.key === 'polkadot-asset-hub-public-sidecar'
+))
+if (polkadotAssetHubSidecarBindingCandidate == null)
+	throw new Error(`${Source.SubstrateSidecar_Rest}: missing polkadot-asset-hub-public-sidecar binding`)
+
+export const polkadotAssetHubSidecarBinding = polkadotAssetHubSidecarBindingCandidate
 
 const bindingOrDefault = (
 	binding?: SourceBinding
@@ -188,32 +197,48 @@ const sidecarAccountForeignAssetBalancesWire = arktype({
 	}).array(),
 })
 
+const sidecarAssetDetailsWire = {
+	owner: 'string > 0',
+	issuer: 'string > 0',
+	admin: 'string > 0',
+	freezer: 'string > 0',
+	supply: unsignedDecimal,
+	deposit: unsignedDecimal,
+	minBalance: unsignedDecimal,
+	isSufficient: 'boolean',
+	accounts: unsignedDecimal,
+	sufficients: unsignedDecimal,
+	approvals: unsignedDecimal,
+	status: 'string > 0',
+} as const
+
+const sidecarAssetMetadataWire = {
+	deposit: unsignedDecimal,
+	name: 'string > 0',
+	symbol: 'string > 0',
+	decimals: arktype('number.integer >= 0').or(unsignedDecimal),
+	isFrozen: 'boolean',
+} as const
+
 const sidecarAssetInfoWire = arktype({
 	at: {
 		hash: 'string > 0',
 		height: unsignedDecimal,
 	},
-	assetInfo: {
-		owner: 'string > 0',
-		issuer: 'string > 0',
-		admin: 'string > 0',
-		freezer: 'string > 0',
-		supply: unsignedDecimal,
-		deposit: unsignedDecimal,
-		minBalance: unsignedDecimal,
-		isSufficient: 'boolean',
-		accounts: unsignedDecimal,
-		sufficients: unsignedDecimal,
-		approvals: unsignedDecimal,
-		status: 'string > 0',
+	assetInfo: sidecarAssetDetailsWire,
+	assetMetaData: sidecarAssetMetadataWire,
+})
+
+const sidecarForeignAssetsWire = arktype({
+	at: {
+		hash: 'string > 0',
+		height: unsignedDecimal,
 	},
-	assetMetaData: {
-		deposit: unsignedDecimal,
-		name: 'string > 0',
-		symbol: 'string > 0',
-		decimals: arktype('number.integer >= 0').or(unsignedDecimal),
-		isFrozen: 'boolean',
-	},
+	items: arktype({
+		multiLocation: 'unknown',
+		foreignAssetInfo: sidecarAssetDetailsWire,
+		foreignAssetMetadata: sidecarAssetMetadataWire,
+	}).array(),
 })
 
 const sidecarAhmInfoWire = arktype({
@@ -395,26 +420,74 @@ const decodeHexUtf8 = (
 	)
 }
 
+const normalizeAssetDetails = (
+	at: {
+		hash: string
+		height: string
+	},
+	assetInfo: {
+		owner: string
+		issuer: string
+		admin: string
+		freezer: string
+		supply: string
+		deposit: string
+		minBalance: string
+		isSufficient: boolean
+		accounts: string
+		sufficients: string
+		approvals: string
+		status: string
+	},
+	assetMetaData: {
+		deposit: string
+		name: string
+		symbol: string
+		decimals: number | string
+		isFrozen: boolean
+	}
+): SidecarAssetInfo => ({
+	at,
+	owner: assetInfo.owner,
+	issuer: assetInfo.issuer,
+	admin: assetInfo.admin,
+	freezer: assetInfo.freezer,
+	supply: assetInfo.supply,
+	deposit: assetInfo.deposit,
+	minBalance: assetInfo.minBalance,
+	isSufficient: assetInfo.isSufficient,
+	accounts: assetInfo.accounts,
+	sufficients: assetInfo.sufficients,
+	approvals: assetInfo.approvals,
+	status: assetInfo.status,
+	name: decodeHexUtf8(assetMetaData.name),
+	symbol: decodeHexUtf8(assetMetaData.symbol),
+	decimals: runtimeSpecNumber(assetMetaData.decimals),
+	isFrozen: assetMetaData.isFrozen,
+})
+
 const normalizeAssetInfo = (
 	response: ReturnType<typeof sidecarAssetInfoWire.assert>
-): SidecarAssetInfo => ({
+): SidecarAssetInfo => (
+	normalizeAssetDetails(
+		response.at,
+		response.assetInfo,
+		response.assetMetaData
+	)
+)
+
+const normalizeForeignAssets = (
+	response: ReturnType<typeof sidecarForeignAssetsWire.assert>
+): SidecarForeignAssets => ({
 	at: response.at,
-	owner: response.assetInfo.owner,
-	issuer: response.assetInfo.issuer,
-	admin: response.assetInfo.admin,
-	freezer: response.assetInfo.freezer,
-	supply: response.assetInfo.supply,
-	deposit: response.assetInfo.deposit,
-	minBalance: response.assetInfo.minBalance,
-	isSufficient: response.assetInfo.isSufficient,
-	accounts: response.assetInfo.accounts,
-	sufficients: response.assetInfo.sufficients,
-	approvals: response.assetInfo.approvals,
-	status: response.assetInfo.status,
-	name: decodeHexUtf8(response.assetMetaData.name),
-	symbol: decodeHexUtf8(response.assetMetaData.symbol),
-	decimals: runtimeSpecNumber(response.assetMetaData.decimals),
-	isFrozen: response.assetMetaData.isFrozen,
+	items: response.items.map((item) => ({
+		multiLocation: item.multiLocation,
+		...normalizeAssetDetails(
+			response.at,
+			item.foreignAssetInfo,
+			item.foreignAssetMetadata
+		),
+	})),
 })
 
 const accountQueryPath = (
@@ -667,6 +740,77 @@ export const getAssetInfo = async ({
 			)
 		)
 	)
+}
+
+export const getForeignAssets = async ({
+	at,
+	binding,
+}: {
+	at?: bigint | string
+	binding?: SourceBinding
+} = {}) => {
+	const params = new URLSearchParams()
+	if (at != null)
+		params.set('at', String(at))
+	const query = params.toString()
+	return normalizeForeignAssets(
+		assertEnvelope(
+			'foreign assets',
+			sidecarForeignAssetsWire,
+			await getJson<unknown>(
+				bindingOrDefault(binding),
+				`/pallets/foreign-assets${
+					query.length > 0 ?
+						`?${query}`
+					:
+						''
+				}`
+			)
+		)
+	)
+}
+
+export const getForeignAssetInfo = async ({
+	assetId,
+	at,
+	binding,
+}: {
+	assetId: string
+	at?: bigint | string
+	binding?: SourceBinding
+}) => {
+	if (assetId.length === 0)
+		throw new Error(`${Source.SubstrateSidecar_Rest}: foreign asset ID must not be empty`)
+
+	const foreignAssets = await getForeignAssets({
+		at,
+		binding,
+	})
+	const asset = foreignAssets.items.find((item) => (
+		JSON.stringify(item.multiLocation) === assetId
+	))
+	if (asset == null)
+		throw new Error(`${Source.SubstrateSidecar_Rest}: foreign asset not found for ${assetId}`)
+
+	return {
+		at: foreignAssets.at,
+		owner: asset.owner,
+		issuer: asset.issuer,
+		admin: asset.admin,
+		freezer: asset.freezer,
+		supply: asset.supply,
+		deposit: asset.deposit,
+		minBalance: asset.minBalance,
+		isSufficient: asset.isSufficient,
+		accounts: asset.accounts,
+		sufficients: asset.sufficients,
+		approvals: asset.approvals,
+		status: asset.status,
+		name: asset.name,
+		symbol: asset.symbol,
+		decimals: asset.decimals,
+		isFrozen: asset.isFrozen,
+	} satisfies SidecarAssetInfo
 }
 
 export const getAhmInfo = async ({

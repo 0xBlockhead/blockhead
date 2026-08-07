@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { Source } from '$/sources/Source.ts'
-import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
-
 const sourceFetch = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
@@ -10,7 +7,12 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 		endpoints: {
 			locator: string
 		}[]
-	}) => binding.endpoints[0].locator,
+	}) => (
+		binding.endpoints[0].locator.includes('asset-hub') ?
+			'http://127.0.0.1:8081'
+		:
+			'http://127.0.0.1:8080'
+	),
 	sourceFetch,
 	sourceGetJson: async (_binding: unknown, url: string) => {
 		const response = await sourceFetch(_binding, url)
@@ -31,6 +33,8 @@ const {
 	getBlockHead,
 	getBlockHeadHeader,
 	getBlocks,
+	getForeignAssetInfo,
+	getForeignAssets,
 	getNodeNetwork,
 	getNodeVersion,
 	getOngoingReferenda,
@@ -40,6 +44,7 @@ const {
 	getRuntimeSpec,
 	getStakingValidators,
 	getTransactionMaterial,
+	polkadotAssetHubSidecarBinding,
 } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 
 const balanceInfo = {
@@ -302,17 +307,6 @@ describe('Substrate Sidecar query envelopes', () => {
 	})
 
 	it('routes asset-balance transport through an override binding for Asset Hub prep', async () => {
-		const relayBinding = (await import('$/sources/SubstrateSidecar/bindings.ts')).default[Source.SubstrateSidecar_Rest][0]
-		const assetHubBinding = {
-			...relayBinding,
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.HttpUrl,
-					locator: 'http://127.0.0.1:8081',
-					corsEnabled: false,
-				},
-			],
-		}
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 			at: {
 				hash: '0xAH_HASH',
@@ -327,7 +321,7 @@ describe('Substrate Sidecar query envelopes', () => {
 		})))
 		await expect(getAccountAssetBalances({
 			accountId: '13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB',
-			binding: assetHubBinding,
+			binding: polkadotAssetHubSidecarBinding,
 		})).resolves.toMatchObject({
 			assets: [
 				{
@@ -505,6 +499,61 @@ describe('Substrate Sidecar query envelopes', () => {
 				},
 			],
 		})
+
+		const foreignMultiLocation = {
+			parents: '1',
+			interior: {
+				x1: [
+					{
+						parachain: '3369',
+					},
+				],
+			},
+		}
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xAH_FOREIGN_HASH',
+				height: '19148226',
+			},
+			items: [
+				{
+					multiLocation: foreignMultiLocation,
+					foreignAssetInfo: {
+						owner: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+						issuer: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+						admin: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+						freezer: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+						supply: '77998622058218',
+						deposit: '1000000000000',
+						minBalance: '10000',
+						isSufficient: true,
+						accounts: '13853',
+						sufficients: '13749',
+						approvals: '22',
+						status: 'Live',
+					},
+					foreignAssetMetadata: {
+						deposit: '2008200000',
+						name: '0x54657468657220555344',
+						symbol: '0x55534474',
+						decimals: '6',
+						isFrozen: false,
+					},
+				},
+			],
+		})))
+		await expect(getForeignAssetInfo({
+			assetId: JSON.stringify(foreignMultiLocation),
+			binding: polkadotAssetHubSidecarBinding,
+		})).resolves.toMatchObject({
+			name: 'Tether USD',
+			symbol: 'USDt',
+			decimals: 6,
+			supply: '77998622058218',
+		})
+		expect(sourceFetch.mock.calls[2][1]).toBe(
+			'http://127.0.0.1:8081/pallets/foreign-assets'
+		)
 	})
 
 	it('fail-closes Asset Hub asset-balance / asset-info / foreign-balance envelopes', async () => {
@@ -565,6 +614,42 @@ describe('Substrate Sidecar query envelopes', () => {
 		await expect(getAccountForeignAssetBalances({
 			accountId: '13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB',
 		})).rejects.toThrow('invalid account foreign asset balances response envelope')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xAH_HASH',
+				height: '19148225',
+			},
+			items: [
+				{
+					multiLocation: {
+						parents: '1',
+					},
+					foreignAssetInfo: {
+						owner: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+						issuer: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+						admin: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+						freezer: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+						supply: '1',
+						deposit: '1',
+						minBalance: '1',
+						isSufficient: true,
+						accounts: '1',
+						sufficients: '1',
+						approvals: '0',
+						status: 'Live',
+					},
+					foreignAssetMetadata: {
+						deposit: '1',
+						name: 'not-hex',
+						symbol: '0x55534474',
+						decimals: 6,
+						isFrozen: false,
+					},
+				},
+			],
+		})))
+		await expect(getForeignAssets()).rejects.toThrow('malformed asset metadata hex')
 	})
 
 	it('reads AHM info and RC staking validator path for Asset Hub prep', async () => {
