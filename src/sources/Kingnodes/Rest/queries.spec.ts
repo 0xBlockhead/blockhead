@@ -17,17 +17,19 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const { getDydxLatestBlock } = await import('$/sources/Kingnodes/Rest/queries.ts')
 
+const validLatestBlock = {
+	block: {
+		header: {
+			chain_id: 'dydx-mainnet-1',
+			height: '99785572',
+			time: '2026-07-31T19:32:02.172381662Z',
+		},
+	},
+}
+
 describe('Kingnodes dYdX node read transport', () => {
 	it('owns the canonical dYdX mainnet binding', async () => {
-		sourceGetJson.mockResolvedValue({
-			block: {
-				header: {
-					chain_id: 'dydx-mainnet-1',
-					height: '99785572',
-					time: '2026-07-31T19:32:02.172381662Z',
-				},
-			},
-		})
+		sourceGetJson.mockResolvedValue(validLatestBlock)
 
 		await expect(getDydxLatestBlock()).resolves.toMatchObject({
 			block: {
@@ -54,5 +56,32 @@ describe('Kingnodes dYdX node read transport', () => {
 		})
 
 		await expect(getDydxLatestBlock()).rejects.toThrow('foreign chain')
+	})
+
+	it('fail-closes malformed latest-block envelopes', async () => {
+		sourceGetJson.mockResolvedValue({
+			block: {
+				header: {
+					chain_id: 'dydx-mainnet-1',
+					height: '01',
+					time: '2026-07-31T19:32:02.172381662Z',
+				},
+			},
+		})
+
+		await expect(getDydxLatestBlock()).rejects.toThrow('invalid latest block response envelope')
+	})
+
+	it('fail-closes missing header fields', async () => {
+		sourceGetJson.mockResolvedValue({
+			block: {
+				header: {
+					chain_id: 'dydx-mainnet-1',
+					height: '99785572',
+				},
+			},
+		})
+
+		await expect(getDydxLatestBlock()).rejects.toThrow('invalid latest block response envelope')
 	})
 })
