@@ -94,10 +94,13 @@ describe('Lens_Graphql reading relationships', () => {
 	})
 
 	it('materializes bounded latest, author, and direct-comment rows as useful cards', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_750_000_000_000)
 		const post = {
 			__typename: 'Post',
 			slug: 'post-one',
 			timestamp: '2025-02-03T04:05:06.000Z',
+			isEdited: false,
+			isDeleted: false,
 			author: {
 				address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
 				createdAt: '2025-01-02T03:04:05.000Z',
@@ -113,6 +116,14 @@ describe('Lens_Graphql reading relationships', () => {
 				__typename: 'TextOnlyMetadata',
 				content: 'Readable Lens card',
 			},
+			stats: {
+				comments: 0,
+				reposts: 1,
+				quotes: 0,
+				bookmarks: 2,
+				collects: 0,
+				reactions: 3,
+			},
 			commentOn: {
 				slug: 'parent-post',
 			},
@@ -122,6 +133,13 @@ describe('Lens_Graphql reading relationships', () => {
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.LensPost, [], 'text')]: 'Readable Lens card',
 				[entityFieldAddressKey(EntityType.LensPost, [], 'timestamp')]: 1_738_555_506_000,
+				[entityFieldAddressKey(EntityType.LensPost, [], 'isEdited')]: false,
+				[entityFieldAddressKey(EntityType.LensPost, [], 'isDeleted')]: false,
+				[entityFieldAddressKey(EntityType.LensPost, [], '$commentOn')]: {
+					[EntityMetaKey.Selector]: {
+						id: 'parent-post',
+					},
+				},
 				[entityFieldAddressKey(EntityType.LensPost, [], '$author')]: {
 					[EntityMetaKey.Selector]: {
 						address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
@@ -132,6 +150,22 @@ describe('Lens_Graphql reading relationships', () => {
 						[entityFieldAddressKey(EntityType.LensAccount, [], 'createdAt')]: 1_735_787_045_000,
 					},
 				},
+				[entityFieldAddressKey(EntityType.LensPost, [], '$$timestamps')]: [
+					{
+						[EntityMetaKey.Selector]: {
+							$post: { id: 'post-one' },
+							timestampMs: 1_750_000_000_000,
+						},
+						[EntityMetaKey.Fields]: {
+							[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'commentCount')]: 0,
+							[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'repostCount')]: 1,
+							[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'quoteCount')]: 0,
+							[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'bookmarkCount')]: 2,
+							[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'collectCount')]: 0,
+							[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'reactionCount')]: 3,
+						},
+					},
+				],
 			},
 		}
 		queryLatestPosts.mockResolvedValue({
@@ -255,6 +289,10 @@ describe('Lens_Graphql reading relationships', () => {
 						},
 						timestampMs: 1_750_000_000_000,
 					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.LensAccount_Timestamp, [], 'followerCount')]: 42,
+						[entityFieldAddressKey(EntityType.LensAccount_Timestamp, [], 'followingCount')]: 7,
+					},
 				},
 			],
 		})
@@ -274,6 +312,14 @@ describe('Lens_Graphql reading relationships', () => {
 	})
 
 	it('maps entity selectors to one account operation and rejects foreign identities', async () => {
+		queryAccountStats.mockResolvedValue({
+			accountStats: {
+				graphFollowStats: {
+					followers: 0,
+					following: 0,
+				},
+			},
+		})
 		queryAccount
 			.mockResolvedValueOnce({
 				account: {
@@ -376,6 +422,14 @@ describe('Lens_Graphql reading relationships', () => {
 							id: 'post-one',
 						},
 						timestampMs: 1_750_000_000_001,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'commentCount')]: 3,
+						[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'repostCount')]: 2,
+						[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'quoteCount')]: 1,
+						[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'bookmarkCount')]: 4,
+						[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'collectCount')]: 5,
+						[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'reactionCount')]: 6,
 					},
 				},
 			],

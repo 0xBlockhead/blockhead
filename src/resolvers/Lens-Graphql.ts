@@ -50,12 +50,99 @@ const lensAnyPostSlugFromWire = (
 		undefined
 )
 
+const lensPostTimestampFieldsFromWire = (
+	post: {
+		stats: {
+			comments?: number | null
+			reposts?: number | null
+			quotes?: number | null
+			bookmarks?: number | null
+			collects?: number | null
+			reactions?: number | null
+		}
+	}
+) => ({
+	...(post.stats.comments != null && { commentCount: post.stats.comments }),
+	...(post.stats.reposts != null && { repostCount: post.stats.reposts }),
+	...(post.stats.quotes != null && { quoteCount: post.stats.quotes }),
+	...(post.stats.bookmarks != null && { bookmarkCount: post.stats.bookmarks }),
+	...(post.stats.collects != null && { collectCount: post.stats.collects }),
+	...(post.stats.reactions != null && { reactionCount: post.stats.reactions }),
+})
+
+const lensPostTipTimestampReferenceFromWire = (
+	id: string,
+	post: {
+		stats?: {
+			comments?: number | null
+			reposts?: number | null
+			quotes?: number | null
+			bookmarks?: number | null
+			collects?: number | null
+			reactions?: number | null
+		} | null
+	}
+) => {
+	const engagement = (
+		post.stats == null ?
+			{}
+		:
+			lensPostTimestampFieldsFromWire({
+				stats: post.stats,
+			})
+	)
+	return {
+		[EntityMetaKey.Selector]: {
+			$post: { id },
+			timestampMs: Date.now(),
+		},
+		[EntityMetaKey.Fields]: {
+			...(engagement.commentCount != null && {
+				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'commentCount')]: engagement.commentCount,
+			}),
+			...(engagement.repostCount != null && {
+				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'repostCount')]: engagement.repostCount,
+			}),
+			...(engagement.quoteCount != null && {
+				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'quoteCount')]: engagement.quoteCount,
+			}),
+			...(engagement.bookmarkCount != null && {
+				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'bookmarkCount')]: engagement.bookmarkCount,
+			}),
+			...(engagement.collectCount != null && {
+				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'collectCount')]: engagement.collectCount,
+			}),
+			...(engagement.reactionCount != null && {
+				[entityFieldAddressKey(EntityType.LensPost_Timestamp, [], 'reactionCount')]: engagement.reactionCount,
+			}),
+		},
+	}
+}
+
+const lensAccountTipTimestampReferenceFromWire = (
+	address: `0x${string}`,
+	stats: {
+		followerCount: number
+		followingCount: number
+	}
+) => ({
+	[EntityMetaKey.Selector]: {
+		$account: { address },
+		timestampMs: Date.now(),
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.LensAccount_Timestamp, [], 'followerCount')]: stats.followerCount,
+		[entityFieldAddressKey(EntityType.LensAccount_Timestamp, [], 'followingCount')]: stats.followingCount,
+	},
+})
+
 const lensPostCardReferenceFromWire = (
 	lensPost:
 		| {
 			__typename: string
 			slug?: string | null
 			timestamp?: string | null
+			isEdited?: boolean | null
 			isDeleted?: boolean | null
 			author?: {
 				address: string
@@ -72,6 +159,14 @@ const lensPostCardReferenceFromWire = (
 				content?: string | null
 			} | null
 			contentUri?: string | null
+			stats?: {
+				comments?: number | null
+				reposts?: number | null
+				quotes?: number | null
+				bookmarks?: number | null
+				collects?: number | null
+				reactions?: number | null
+			} | null
 			commentOn?: {
 				slug?: string | null
 			} | null
@@ -96,13 +191,27 @@ const lensPostCardReferenceFromWire = (
 	const createdAt = optionalTimestampMs(lensPost.author.createdAt)
 	const contentUri = lensPost.__typename === 'Post' ? optionalNonemptyString(lensPost.contentUri) : undefined
 	const repostOfSlug = lensPost.__typename === 'Repost' ? optionalNonemptyString(lensPost.repostOf?.slug) : undefined
+	const commentOnSlug = lensPost.__typename === 'Post' ? optionalNonemptyString(lensPost.commentOn?.slug) : undefined
 	return {
 		[EntityMetaKey.Selector]: { id },
 		[EntityMetaKey.Fields]: {
 			[entityFieldAddressKey(EntityType.LensPost, [], 'text')]: text,
 			[entityFieldAddressKey(EntityType.LensPost, [], 'timestamp')]: timestamp,
+			...(lensPost.__typename === 'Post' && lensPost.isEdited != null && {
+				[entityFieldAddressKey(EntityType.LensPost, [], 'isEdited')]: lensPost.isEdited,
+			}),
+			...(lensPost.isDeleted != null && {
+				[entityFieldAddressKey(EntityType.LensPost, [], 'isDeleted')]: lensPost.isDeleted,
+			}),
 			...(contentUri != null && {
 				[entityFieldAddressKey(EntityType.LensPost, [], 'contentUri')]: contentUri,
+			}),
+			...(commentOnSlug != null && {
+				[entityFieldAddressKey(EntityType.LensPost, [], '$commentOn')]: {
+					[EntityMetaKey.Selector]: {
+						id: commentOnSlug,
+					},
+				},
 			}),
 			...(repostOfSlug != null && {
 				[entityFieldAddressKey(EntityType.LensPost, [], '$repostOf')]: {
@@ -127,6 +236,11 @@ const lensPostCardReferenceFromWire = (
 					}),
 				},
 			},
+			...(lensPost.__typename === 'Post' && {
+				[entityFieldAddressKey(EntityType.LensPost, [], '$$timestamps')]: [
+					lensPostTipTimestampReferenceFromWire(id, lensPost),
+				],
+			}),
 		},
 	}
 }
@@ -237,32 +351,16 @@ const lensAccountTimestampFieldsFromWire = (
 	followingCount: wire.accountStats.graphFollowStats.following,
 })
 
-const lensPostTimestampFieldsFromWire = (
-	post: {
-		stats: {
-			comments?: number | null
-			reposts?: number | null
-			quotes?: number | null
-			bookmarks?: number | null
-			collects?: number | null
-			reactions?: number | null
-		}
-	}
-) => ({
-	...(post.stats.comments != null && { commentCount: post.stats.comments }),
-	...(post.stats.reposts != null && { repostCount: post.stats.reposts }),
-	...(post.stats.quotes != null && { quoteCount: post.stats.quotes }),
-	...(post.stats.bookmarks != null && { bookmarkCount: post.stats.bookmarks }),
-	...(post.stats.collects != null && { collectCount: post.stats.collects }),
-	...(post.stats.reactions != null && { reactionCount: post.stats.reactions }),
-})
-
 const lensAccountFromWire = (
 	account: Awaited<ReturnType<
 		typeof import('$/sources/Lens/Graphql/queries.ts')['queryAccount']
 	>>['account'],
 	selectedLocalName?: string,
-	legacyProfileId?: string
+	legacyProfileId?: string,
+	tipStats?: {
+		followerCount: number
+		followingCount: number
+	}
 ) => {
 	if (account == null) throw new Error('Lens_Graphql: account not found')
 
@@ -294,12 +392,15 @@ const lensAccountFromWire = (
 			mediaFromUrl(pictureUrl, MediaType.Image)
 		),
 		$$timestamps: [
-			{
-				[EntityMetaKey.Selector]: {
-					$account: { address },
-					timestampMs: Date.now(),
+			tipStats != null ?
+				lensAccountTipTimestampReferenceFromWire(address, tipStats)
+			:
+				{
+					[EntityMetaKey.Selector]: {
+						$account: { address },
+						timestampMs: Date.now(),
+					},
 				},
-			},
 		],
 	}
 }
@@ -331,7 +432,10 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Address: {
 					resolve: async ({ address }) => {
-						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
+						const {
+							queryAccount,
+							queryAccountStats,
+						} = await import('$/sources/Lens/Graphql/queries.ts')
 						const requestedAddress = zeroExLowerCase(address)
 						const account = (await queryAccount({ address: requestedAddress })).account
 						if (
@@ -341,7 +445,12 @@ const lensGraphqlResolvers = {
 							throw new Error('Lens_Graphql: account response does not match request')
 
 						return lensAccountFromWire(
-							account
+							account,
+							undefined,
+							undefined,
+							lensAccountTimestampFieldsFromWire(
+								await queryAccountStats(requestedAddress)
+							)
 						)
 					},
 				},
@@ -350,16 +459,29 @@ const lensGraphqlResolvers = {
 						if (localName.trim() === '')
 							throw new Error('Lens_Graphql: account identity must not be empty')
 
-						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
+						const {
+							queryAccount,
+							queryAccountStats,
+						} = await import('$/sources/Lens/Graphql/queries.ts')
 						const account = (await queryAccount({
 							username: { localName },
 						})).account
 						if (account != null && account.username?.localName !== localName)
 							throw new Error('Lens_Graphql: account response does not match request')
 
+						const tipStats = (
+							account == null ?
+								undefined
+							:
+								lensAccountTimestampFieldsFromWire(
+									await queryAccountStats(lensEvmAddressFromWire(account.address))
+								)
+						)
 						return lensAccountFromWire(
 							account,
-							localName
+							localName,
+							undefined,
+							tipStats
 						)
 					},
 				},
@@ -368,11 +490,24 @@ const lensGraphqlResolvers = {
 						if (legacyProfileId.trim() === '')
 							throw new Error('Lens_Graphql: account identity must not be empty')
 
-						const { queryAccount } = await import('$/sources/Lens/Graphql/queries.ts')
+						const {
+							queryAccount,
+							queryAccountStats,
+						} = await import('$/sources/Lens/Graphql/queries.ts')
+						const account = (await queryAccount({ legacyProfileId })).account
+						const tipStats = (
+							account == null ?
+								undefined
+							:
+								lensAccountTimestampFieldsFromWire(
+									await queryAccountStats(lensEvmAddressFromWire(account.address))
+								)
+						)
 						return lensAccountFromWire(
-							(await queryAccount({ legacyProfileId })).account,
+							account,
 							undefined,
-							legacyProfileId
+							legacyProfileId,
+							tipStats
 						)
 					},
 				},
@@ -400,14 +535,6 @@ const lensGraphqlResolvers = {
 						const p = (await queryPost(id)).post
 						if (p == null) throw new Error('Lens_Graphql: post not found')
 
-						const timestamps = [
-							{
-								[EntityMetaKey.Selector]: {
-									$post: { id },
-									timestampMs: Date.now(),
-								},
-							},
-						]
 						if (p.__typename === 'Repost') {
 							const timestamp = optionalTimestampMs(String(p.timestamp))
 							return {
@@ -424,7 +551,14 @@ const lensGraphqlResolvers = {
 										address: lensEvmAddressFromWire(p.author.address),
 									},
 								},
-								$$timestamps: timestamps,
+								$$timestamps: [
+									{
+										[EntityMetaKey.Selector]: {
+											$post: { id },
+											timestampMs: Date.now(),
+										},
+									},
+								],
 								...((postSlug) => (
 									postSlug != null && {
 										$repostOf: { [EntityMetaKey.Selector]: { id: postSlug } },
@@ -475,7 +609,9 @@ const lensGraphqlResolvers = {
 									address: lensEvmAddressFromWire(p.author.address),
 								},
 							},
-							$$timestamps: timestamps,
+							$$timestamps: [
+								lensPostTipTimestampReferenceFromWire(id, p),
+							],
 						}
 					},
 				}
