@@ -48904,7 +48904,7 @@ export const schema = {
 						"$$mevBuilders": { label: "MEV builders", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MevBuilder, defaultSources: [Source.MevRelay_Rest] },
 						"$$mevProposerPayloadDelivered": { label: "MEV proposer payloads delivered", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.MevRelay_ProposerPayloadDelivered, defaultSources: [Source.MevRelay_Rest] },
 						"$$blobs": { label: "Blobs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmBlob, defaultSources: [Source.Voltaire_JsonRpc, Source.Blobscan_Rest] },
-						"$$contracts": { label: "Contracts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmContract, defaultSources: [Source.Blockscout_Rest] },
+						"$$contracts": { label: "Contracts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmContract, defaultSources: [Source.Blockscout_Rest, Source.Sourcify_Rest] },
 						"$$precompiles": { label: "Precompiles", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmContract, defaultSources: [Source.Constants_Internal] },
 						"$nativeCoin": { label: "Native coin", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Coin, defaultSources: [Source.Constants_Internal] },
 						"$nativeCoinInstance": { label: "Native coin instance", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance, defaultSources: [Source.Constants_Internal] },
@@ -49125,7 +49125,7 @@ export const schema = {
 									className: "network-view-collapsible-contracts-accounts",
 									sections: [
 										{ id: "evm-contracts-precompiles", field: ["Evm", "$$precompiles"], label: "Precompiles", description: "Catalog precompiles active at the chain head according to the execution upgrade schedule.", List: "EvmContractsView", selection: { sources: [Source.Constants_Internal], fields: ["precompileName"], limit: 64 } },
-										{ id: "evm-contracts-verified", field: ["Evm", "$$contracts"], List: "EvmContractsView", label: "Verified contracts", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
+										{ id: "evm-contracts-verified", field: ["Evm", "$$contracts"], List: "EvmContractsView", label: "Verified contracts", selection: { sources: [Source.Blockscout_Rest, Source.Sourcify_Rest], limit: 16 } },
 										{ id: "evm-contracts-smart-accounts", field: ["Evm", "$$erc4337SmartAccounts"], List: "Erc4337SmartAccountsView", label: "Smart accounts", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 										{ id: "evm-contracts-user-operations", field: ["Evm", "$$userOperations"], List: "EvmUserOperationsView", label: "User operations", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 									],
@@ -49168,7 +49168,7 @@ export const schema = {
 						includes: "CosmosSdk",
 					})({
 						"restEndpoints": { label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.CosmosSdk_Rest] },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosBlock, defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosBlock, defaultSources: [Source.CometBft_Rest, Source.CosmosSdk_Rest, Source.Mintscan] },
 						"$$accounts": { label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosAccount, defaultSources: [Source.CosmosSdk_Rest] },
 						"$$validators": { label: "Validators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosValidator, defaultSources: [Source.CosmosSdk_Rest] },
 						"$$governanceProposals": { label: "Governance proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosGovernanceProposal, defaultSources: [Source.CosmosSdk_Rest] },
@@ -49185,8 +49185,8 @@ export const schema = {
 									description: "CometBFT block production and validator state exposed by this Cosmos SDK network.",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "cosmos-consensus-observations", field: "$$timestamps", List: "Network_TimestampsView", label: "Observations", selection: { sources: [Source.CosmosSdk_Rest, Source.CometBft_Rest], limit: 16 } },
-										{ id: "cosmos-consensus-blocks", field: ["Cosmos", "$$blocks"], List: "CosmosBlocksView", label: "Blocks", selection: { sources: [Source.CosmosSdk_Rest, Source.CometBft_Rest], limit: 16 } },
+										{ id: "cosmos-consensus-observations", field: "$$timestamps", List: "Network_TimestampsView", label: "Observations", selection: { sources: [Source.CometBft_Rest, Source.CosmosSdk_Rest, Source.Mintscan], limit: 16 } },
+										{ id: "cosmos-consensus-blocks", field: ["Cosmos", "$$blocks"], List: "CosmosBlocksView", label: "Blocks", selection: { sources: [Source.CometBft_Rest, Source.CosmosSdk_Rest, Source.Mintscan], limit: 16 } },
 										{ id: "cosmos-consensus-validators", field: ["Cosmos", "$$validators"], List: "CosmosValidatorsView", label: "Validators", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
 									],
 								},
@@ -50303,16 +50303,16 @@ export const schema = {
 				},
 				facets: {
 					Cosmos: facet({ path: ["executionModels"], includes: "CosmosSdk" })({
-						"latestBlockHeight": { label: "Latest block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
-						"latestBlockHash": { label: "Latest block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
-						"latestBlockTimeMs": { label: "Latest block time", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
-						"latestBlockTransactionCount": { label: "Latest block transactions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
-						"chainId": { label: "Chain ID", description: "The chain identifier used by the network family.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
-						"nodeNetwork": { label: "Node network", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
-						"applicationName": { label: "Application name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest] },
-						"applicationVersion": { label: "Application version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest] },
-						"cosmosSdkVersion": { label: "Cosmos SDK version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest] },
-						"isSyncing": { label: "Syncing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.CosmosSdk_Rest, Source.CometBft_Rest] },
+						"latestBlockHeight": { label: "Latest block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.CometBft_Rest, Source.CosmosSdk_Rest, Source.Mintscan] },
+						"latestBlockHash": { label: "Latest block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CometBft_Rest, Source.CosmosSdk_Rest, Source.Mintscan] },
+						"latestBlockTimeMs": { label: "Latest block time", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.CometBft_Rest, Source.CosmosSdk_Rest, Source.Mintscan] },
+						"latestBlockTransactionCount": { label: "Latest block transactions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.CometBft_Rest, Source.CosmosSdk_Rest, Source.Mintscan] },
+						"chainId": { label: "Chain ID", description: "The chain identifier used by the network family.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CometBft_Rest, Source.CosmosSdk_Rest, Source.Mintscan] },
+						"nodeNetwork": { label: "Node network", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CometBft_Rest, Source.CosmosSdk_Rest, Source.Mintscan] },
+						"applicationName": { label: "Application name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest, Source.Mintscan] },
+						"applicationVersion": { label: "Application version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest, Source.Mintscan] },
+						"cosmosSdkVersion": { label: "Cosmos SDK version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CosmosSdk_Rest, Source.Mintscan] },
+						"isSyncing": { label: "Syncing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.CometBft_Rest, Source.CosmosSdk_Rest, Source.Mintscan] },
 						"bondedValidatorCount": { label: "Bonded validators", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.CosmosSdk_Rest] },
 						"bondedTokens": { label: "Bonded tokens", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.CosmosSdk_Rest] },
 						"notBondedTokens": { label: "Not bonded tokens", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.CosmosSdk_Rest] },
@@ -104834,6 +104834,10 @@ export const app = {
 				path: "src/resolvers/Snapchain-Rest.ts",
 			},
 			{
+				source: Source.SnapshotHub_Graphql,
+				path: "src/resolvers/SnapshotHub-Graphql.ts",
+			},
+			{
 				source: Source.Solana_JsonRpc,
 				path: "src/resolvers/Solana-JsonRpc.ts",
 			},
@@ -104884,6 +104888,10 @@ export const app = {
 			{
 				source: Source.Swarm_Rest,
 				path: "src/resolvers/Swarm-Rest.ts",
+			},
+			{
+				source: Source.Tally,
+				path: "src/resolvers/Tally.ts",
 			},
 			{
 				source: Source.TezosDappetizer_Postgres,

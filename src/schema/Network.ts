@@ -343,6 +343,7 @@ export default entity({
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Blockscout_Rest,
+					Source.Sourcify_Rest,
 				],
 			},
 			$$precompiles: {
@@ -539,8 +540,9 @@ export default entity({
 				entityType: EntityType.CosmosBlock,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.CosmosSdk_Rest,
 					Source.CometBft_Rest,
+					Source.CosmosSdk_Rest,
+					Source.Mintscan,
 				],
 			},
 			$$accounts: {

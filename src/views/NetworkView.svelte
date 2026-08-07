@@ -86,10 +86,11 @@
 		], pendingEntity)
 	)
 
-	const cosmosSdkRestAndCometBftRestSources = $derived(
+	const cometBftRestAndCosmosSdkRestAndMintscanSources = $derived(
 		networkApplicableSources([
-			Source.CosmosSdk_Rest,
 			Source.CometBft_Rest,
+			Source.CosmosSdk_Rest,
+			Source.Mintscan,
 		], pendingEntity)
 	)
 
@@ -2273,6 +2274,11 @@
 						{/if}
 					{/snippet}
 				</ProjectionBoundary>
+				{@const evmContractsAccountsEvmContractsVerifiedSources = networkApplicableSources([
+						Source.Blockscout_Rest,
+						Source.Sourcify_Rest,
+					], pendingEntity)}
+
 				{@const evmContractsAccountsSections = [
 						{
 							id: 'evm-contracts-precompiles',
@@ -2280,7 +2286,7 @@
 							description: 'Catalog precompiles active at the chain head according to the execution upgrade schedule.',
 						},
 						...(
-							blockscoutRestSources.length > 0 ?
+							evmContractsAccountsEvmContractsVerifiedSources.length > 0 ?
 								[
 									{
 										id: 'evm-contracts-verified',
@@ -2350,7 +2356,7 @@
 								selection={
 									projection
 									.$$contracts({
-										sources: blockscoutRestSources,
+										sources: evmContractsAccountsEvmContractsVerifiedSources,
 										limit: 16,
 									})
 								}
@@ -2932,7 +2938,7 @@
 			{#snippet Applicable(projection)}
 				{@const cosmosConsensusBlockProductionSections = [
 						...(
-							cosmosSdkRestAndCometBftRestSources.length > 0 ?
+							cometBftRestAndCosmosSdkRestAndMintscanSources.length > 0 ?
 								[
 									{
 										id: 'cosmos-consensus-observations',
@@ -2943,7 +2949,7 @@
 								[]
 						),
 						...(
-							cosmosSdkRestAndCometBftRestSources.length > 0 ?
+							cometBftRestAndCosmosSdkRestAndMintscanSources.length > 0 ?
 								[
 									{
 										id: 'cosmos-consensus-blocks',
@@ -2997,7 +3003,7 @@
 								selection={
 									selection
 									.$$timestamps({
-										sources: cosmosSdkRestAndCometBftRestSources,
+										sources: cometBftRestAndCosmosSdkRestAndMintscanSources,
 										limit: 16,
 									})
 								}
@@ -3012,7 +3018,7 @@
 								selection={
 									projection
 									.$$blocks({
-										sources: cosmosSdkRestAndCometBftRestSources,
+										sources: cometBftRestAndCosmosSdkRestAndMintscanSources,
 										limit: 16,
 									})
 								}

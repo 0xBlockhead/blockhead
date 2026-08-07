@@ -55,48 +55,54 @@ export default entity({
 				primitiveType: type('bigint'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
-					Source.CosmosSdk_Rest,
 					Source.CometBft_Rest,
+					Source.CosmosSdk_Rest,
+					Source.Mintscan,
 				],
 			},
 			latestBlockHash: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
-					Source.CosmosSdk_Rest,
 					Source.CometBft_Rest,
+					Source.CosmosSdk_Rest,
+					Source.Mintscan,
 				],
 			},
 			latestBlockTimeMs: {
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
-					Source.CosmosSdk_Rest,
 					Source.CometBft_Rest,
+					Source.CosmosSdk_Rest,
+					Source.Mintscan,
 				],
 			},
 			latestBlockTransactionCount: {
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
-					Source.CosmosSdk_Rest,
 					Source.CometBft_Rest,
+					Source.CosmosSdk_Rest,
+					Source.Mintscan,
 				],
 			},
 			chainId: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
-					Source.CosmosSdk_Rest,
 					Source.CometBft_Rest,
+					Source.CosmosSdk_Rest,
+					Source.Mintscan,
 				],
 			},
 			nodeNetwork: {
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
-					Source.CosmosSdk_Rest,
 					Source.CometBft_Rest,
+					Source.CosmosSdk_Rest,
+					Source.Mintscan,
 				],
 			},
 			applicationName: {
@@ -104,6 +110,7 @@ export default entity({
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
 					Source.CosmosSdk_Rest,
+					Source.Mintscan,
 				],
 			},
 			applicationVersion: {
@@ -111,6 +118,7 @@ export default entity({
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
 					Source.CosmosSdk_Rest,
+					Source.Mintscan,
 				],
 			},
 			cosmosSdkVersion: {
@@ -118,14 +126,16 @@ export default entity({
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
 					Source.CosmosSdk_Rest,
+					Source.Mintscan,
 				],
 			},
 			isSyncing: {
 				primitiveType: type('boolean'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 				defaultSources: [
-					Source.CosmosSdk_Rest,
 					Source.CometBft_Rest,
+					Source.CosmosSdk_Rest,
+					Source.Mintscan,
 				],
 			},
 			bondedValidatorCount: {
