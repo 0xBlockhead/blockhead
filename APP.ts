@@ -52249,7 +52249,7 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"accountId": { label: "Account ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "PolkadotAccountId" },
 				"$$timestamps": { label: "Account snapshots", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotAccount_Timestamp, defaultSources: [Source.SubstrateSidecar_Rest] },
-				"$$assetBalanceTimestamps": { label: "Asset balance observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotAssetBalance_Timestamp },
+				"$$assetBalanceTimestamps": { label: "Asset balance observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotAssetBalance_Timestamp, defaultSources: [Source.SubstrateSidecar_Rest] },
 			})({
 				selectors: {
 					"NetworkAccountId": ["$network", "accountId"],
@@ -52261,8 +52261,8 @@ export const schema = {
 						closed: [{ field: "accountId", format: "truncated" }],
 						content: { dl: [[{ field: "accountId", format: "truncated" }, "$network"]] },
 						lists: [
-							{ field: "$$timestamps", component: "PolkadotAccount_TimestampsView", label: "Account snapshots", emptyText: "No Polkadot account snapshots." },
-							{ field: "$$assetBalanceTimestamps", component: "PolkadotAssetBalance_TimestampsView", label: "Asset balances", emptyText: "No Polkadot asset balance observations." },
+							{ field: "$$timestamps", component: "PolkadotAccount_TimestampsView", label: "Account snapshots", emptyText: "No Polkadot account snapshots.", selection: { sources: [Source.SubstrateSidecar_Rest] } },
+							{ field: "$$assetBalanceTimestamps", component: "PolkadotAssetBalance_TimestampsView", label: "Asset balances", emptyText: "No Polkadot asset balance observations.", selection: { sources: [Source.SubstrateSidecar_Rest] } },
 						],
 					},
 					plural: { component: "PolkadotAccountsView", title: "Accounts", },
@@ -52306,18 +52306,19 @@ export const schema = {
 				"assetKind": { label: "Asset kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"assetId": { label: "Asset ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$$balanceTimestamps": { label: "Balance observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotAssetBalance_Timestamp },
-				"$$timestamps": { label: "Asset observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotAsset_Timestamp },
+				"$$timestamps": { label: "Asset observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotAsset_Timestamp, defaultSources: [Source.SubstrateSidecar_Rest] },
 			})({
 				selectors: {
 					"NetworkAssetKindAssetId": ["$network", "assetKind", "assetId"],
 				},
 				views: {
 					singular: {
+						query: { sources: [Source.SubstrateSidecar_Rest] },
 						summary: { title: ["assetId"], value: ["assetKind"], HeadingAfter: ["$network"] },
 						closed: ["$network", "assetKind", "assetId"],
 						content: { dl: [["$network", "assetKind", "assetId"]] },
 						lists: [
-							{ field: "$$timestamps", component: "PolkadotAsset_TimestampsView", label: "Asset observations", emptyText: "No Polkadot asset observations." },
+							{ field: "$$timestamps", component: "PolkadotAsset_TimestampsView", label: "Asset observations", emptyText: "No Polkadot asset observations.", selection: { sources: [Source.SubstrateSidecar_Rest] } },
 							{ field: "$$balanceTimestamps", component: "PolkadotAssetBalance_TimestampsView", label: "Balances", emptyText: "No Polkadot asset balance observations." },
 						],
 					},
@@ -52335,25 +52336,26 @@ export const schema = {
 				"$asset": { label: "Asset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.PolkadotAsset },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"blockNumber": { label: "Block number", description: "The block height or number in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"blockHash": { label: "Block hash", description: "The hash that identifies the block in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"supply": { label: "Supply", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"holderCount": { label: "Holders", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"symbol": { label: "Symbol", description: "The short ticker or symbol used for display.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"decimals": { label: "Decimals", description: "The number of decimal places used to display the amount.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"existentialDepositPlancks": { label: "Existential deposit plancks", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"owner": { label: "Owner", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"issuer": { label: "Issuer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"admin": { label: "Admin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"freezer": { label: "Freezer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"blockNumber": { label: "Block number", description: "The block height or number in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"blockHash": { label: "Block hash", description: "The hash that identifies the block in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"supply": { label: "Supply", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"holderCount": { label: "Holders", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"symbol": { label: "Symbol", description: "The short ticker or symbol used for display.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"decimals": { label: "Decimals", description: "The number of decimal places used to display the amount.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"existentialDepositPlancks": { label: "Existential deposit plancks", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"owner": { label: "Owner", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"issuer": { label: "Issuer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"admin": { label: "Admin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"freezer": { label: "Freezer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SubstrateSidecar_Rest] },
 			})({
 				selectors: {
 					"AssetTimestampMsSource": ["$asset", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
+						query: { sources: [Source.SubstrateSidecar_Rest] },
 						summary: { title: ["symbol", "name"], value: ["status"], HeadingAfter: [{ field: "timestampMs", format: "timestamp" }] },
 						closed: ["$asset", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: {
@@ -52380,14 +52382,14 @@ export const schema = {
 				"$asset": { label: "Asset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.PolkadotAsset },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"blockNumber": { label: "Block number", description: "The block height or number in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"blockHash": { label: "Block hash", description: "The hash that identifies the block in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"freeBalancePlancks": { label: "Free balance plancks", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"blockNumber": { label: "Block number", description: "The block height or number in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"blockHash": { label: "Block hash", description: "The hash that identifies the block in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SubstrateSidecar_Rest] },
+				"freeBalancePlancks": { label: "Free balance plancks", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.SubstrateSidecar_Rest] },
 				"reservedBalancePlancks": { label: "Reserved balance plancks", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"frozenBalancePlancks": { label: "Frozen balance plancks", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"transferableBalancePlancks": { label: "Transferable balance plancks", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"lockedBalancePlancks": { label: "Locked balance plancks", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"status": { label: "Status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SubstrateSidecar_Rest] },
 				"reason": { label: "Reason", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
@@ -52395,6 +52397,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						query: { sources: [Source.SubstrateSidecar_Rest] },
 						summary: { title: ["$asset"], value: [{ field: "freeBalancePlancks", format: "number" }], HeadingAfter: ["status"] },
 						closed: ["$account", "$asset", { field: "timestampMs", format: "timestamp" }],
 						content: {
@@ -75671,6 +75674,12 @@ export const routes = defineRoutes(schema)({
 									page: { text: { title: "Polkadot balances" } },
 								},
 								{
+									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Polkadot", "$account", "$$assetBalanceTimestamps"],
+									query: { sources: [Source.SubstrateSidecar_Rest] },
+									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
+									page: { text: { title: "Polkadot asset balances" } },
+								},
+								{
 									field: [EntityType._Global, "$$blockheadAccounts", "$account", "Solana", "$account", "$$timestamps"],
 									query: { sources: [Source.Solana_JsonRpc] },
 									derivations: { "scope": { kind: "literal", value: "$$blockheadAccounts" } },
@@ -91407,12 +91416,12 @@ export const app = {
 					{
 						target: {
 							kind: SourceTargetKind.Global,
-							key: "coins-public",
+							key: "api-public",
 						},
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://coins.llama.fi",
+								locator: "https://api.llama.fi",
 								corsEnabled: false,
 							},
 						],
@@ -91502,6 +91511,41 @@ export const app = {
 							{
 								kind: SourceArtifactKind.OpenApiTypes,
 								path: "src/sources/Defillama/OpenApi/Pro/openapi.d.ts",
+								generated: true,
+							},
+						],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "coins-public",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://coins.llama.fi",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.OpenApiHttp,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.GenerationManifest,
+								path: "src/sources/Defillama/OpenApi/schema-source.ts",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiSpec,
+								path: "src/sources/Defillama/OpenApi/openapi.json",
+							},
+							{
+								kind: SourceArtifactKind.OpenApiTypes,
+								path: "src/sources/Defillama/OpenApi/openapi.d.ts",
 								generated: true,
 							},
 						],
@@ -95251,12 +95295,12 @@ export const app = {
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://xmr-node.cakewallet.com:18081/json_rpc",
+								locator: "https://xmr-node.cakewallet.com:18081/",
 								corsEnabled: false,
 							},
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "http://nodes.hashvault.pro:18081/json_rpc",
+								locator: "http://nodes.hashvault.pro:18081/",
 								corsEnabled: false,
 							},
 						],
@@ -95282,7 +95326,7 @@ export const app = {
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "http://127.0.0.1:18081/json_rpc",
+								locator: "http://127.0.0.1:18081/",
 								corsEnabled: false,
 							},
 						],
@@ -99806,32 +99850,60 @@ export const app = {
 				source: Source.SubstrateSidecar_Rest,
 				provider: "SubstrateSidecar",
 				label: "Substrate API Sidecar REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.LocalDevice,
-						key: "substrate-sidecar",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.NetworkSlug,
+							key: "polkadot",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://polkadot-public-sidecar.parity-chains.parity.io",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/SubstrateSidecar/Rest/types.ts",
+							},
+						],
 					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "http://127.0.0.1:8080",
-							corsEnabled: false,
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "polkadot-asset-hub-public-sidecar",
 						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/SubstrateSidecar/Rest/types.ts",
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://polkadot-asset-hub-public-sidecar.parity-chains.parity.io",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.HttpProxy,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/SubstrateSidecar/Rest/types.ts",
+							},
+						],
+					},
+				],
 			},
 			{
 				source: Source.Sui,
@@ -104466,6 +104538,10 @@ export const app = {
 			{
 				source: Source.HyperliquidDocs_Rest,
 				path: "src/resolvers/HyperliquidDocs-Rest.ts",
+			},
+			{
+				source: Source.InternetComputer_RosettaApi,
+				path: "src/resolvers/InternetComputer-RosettaApi.ts",
 			},
 			{
 				source: Source.Ipfs_Rest,

@@ -14,43 +14,33 @@ import {
 } from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
+const defillamaRestBindingAxes = {
+	source: Source.Defillama_Rest,
+	wireProtocol: WireProtocol.HttpRest,
+	apiFamily: ApiFamily.OpenApiHttp,
+	operationGroups: genericReadOperationGroups,
+	delivery: SourceDelivery.HttpProxy,
+	credentials: [],
+	artifacts: [
+		{
+			kind: SourceArtifactKind.GenerationManifest,
+			path: 'src/sources/Defillama/OpenApi/schema-source.ts',
+		},
+		{
+			kind: SourceArtifactKind.OpenApiSpec,
+			path: 'src/sources/Defillama/OpenApi/openapi.json',
+		},
+		{
+			kind: SourceArtifactKind.OpenApiTypes,
+			path: 'src/sources/Defillama/OpenApi/openapi.d.ts',
+			generated: true,
+		},
+	],
+} as const
+
 export default indexSourceBindings([
 	{
-		source: Source.Defillama_Rest,
-		target: {
-			kind: SourceTargetKind.Global,
-			key: 'coins-public',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://coins.llama.fi',
-				corsEnabled: false,
-			},
-		],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.OpenApiHttp,
-		operationGroups: genericReadOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [],
-		artifacts: [
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/Defillama/OpenApi/schema-source.ts',
-			},
-			{
-				kind: SourceArtifactKind.OpenApiSpec,
-				path: 'src/sources/Defillama/OpenApi/openapi.json',
-			},
-			{
-				kind: SourceArtifactKind.OpenApiTypes,
-				path: 'src/sources/Defillama/OpenApi/openapi.d.ts',
-				generated: true,
-			},
-		],
-	},
-	{
-		source: Source.Defillama_Rest,
+		...defillamaRestBindingAxes,
 		target: {
 			kind: SourceTargetKind.Global,
 			key: 'api-public',
@@ -60,26 +50,6 @@ export default indexSourceBindings([
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://api.llama.fi',
 				corsEnabled: false,
-			},
-		],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.OpenApiHttp,
-		operationGroups: genericReadOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [],
-		artifacts: [
-			{
-				kind: SourceArtifactKind.GenerationManifest,
-				path: 'src/sources/Defillama/OpenApi/schema-source.ts',
-			},
-			{
-				kind: SourceArtifactKind.OpenApiSpec,
-				path: 'src/sources/Defillama/OpenApi/openapi.json',
-			},
-			{
-				kind: SourceArtifactKind.OpenApiTypes,
-				path: 'src/sources/Defillama/OpenApi/openapi.d.ts',
-				generated: true,
 			},
 		],
 	},
@@ -140,6 +110,20 @@ export default indexSourceBindings([
 				kind: SourceArtifactKind.OpenApiTypes,
 				path: 'src/sources/Defillama/OpenApi/Pro/openapi.d.ts',
 				generated: true,
+			},
+		],
+	},
+	{
+		...defillamaRestBindingAxes,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'coins-public',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://coins.llama.fi',
+				corsEnabled: false,
 			},
 		],
 	},

@@ -31,6 +31,9 @@ export default entity({
 	$$assetBalanceTimestamps: {
 		entityType: EntityType.PolkadotAssetBalance_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.SubstrateSidecar_Rest,
+		],
 	},
 })({
 	selectors: {

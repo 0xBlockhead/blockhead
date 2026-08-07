@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-254 providers register 286 sources and 511 bindings.
+254 providers register 286 sources and 513 bindings.
 
 ## Providers
 
@@ -668,9 +668,10 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["CronosExplorer","Global","cronos-explorer-api","HttpProxy","EtherscanModuleAction"] | CronosExplorer | CronosExplorer | Global | cronos-explorer-api | HttpRest | EtherscanModuleAction | GenericRead | HttpProxy |
 | ["Curve_Rest","Global","curve-api","BrowserDirect","RestJson"] | Curve | Curve_Rest | Global | curve-api | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["CycloneDxDocument_Local","LocalDevice","cyclonedx-document","LocalOnly","LocalParser"] | CycloneDx | CycloneDxDocument_Local | LocalDevice | cyclonedx-document | LocalFile | LocalParser | AiArtifactCatalog, DocumentClaimExtraction | LocalOnly |
-| ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | Defillama | Defillama_Rest | Global | coins-public | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
+| ["Defillama_Rest","Global","api-public","HttpProxy","OpenApiHttp"] | Defillama | Defillama_Rest | Global | api-public | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["Defillama_Rest","Global","chain-icons","HttpProxy","StaticWebsite"] | Defillama | Defillama_Rest | Global | chain-icons | RawHttp | StaticWebsite | GenericRead | HttpProxy |
 | ["Defillama_Rest","Global","coins-pro","HttpProxy","OpenApiHttp"] | Defillama | Defillama_Rest | Global | coins-pro | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
+| ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | Defillama | Defillama_Rest | Global | coins-public | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["Dexscreener_Rest","Global","dexscreener-openapi","HttpProxy","OpenApiHttp"] | Dexscreener | Dexscreener_Rest | Global | dexscreener-openapi | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["DogecoinCore_JsonRpc","Caip2Network","bip122:1a91e3dace36e2be3bf030a65679fe82","LocalOnly","BitcoinJsonRpc"] | DogecoinCore | DogecoinCore_JsonRpc | Caip2Network | bip122:1a91e3dace36e2be3bf030a65679fe82 | JsonRpc2 | BitcoinJsonRpc | GenericRead | LocalOnly |
 | ["DogecoinDips_Github","GitRepository","dogecoin/dips@master:","BrowserDirect","GithubContentsApi"] | DogecoinDips | DogecoinDips_Github | GitRepository | dogecoin/dips@master: | HttpRest | GithubContentsApi | GithubRepositoryContents | BrowserDirect |
@@ -933,7 +934,8 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["StellarToml_Rest","Global","stellar-toml","RemoteQuery","RestJson"] | StellarToml | StellarToml_Rest | Global | stellar-toml | HttpRest | RestJson | GenericRead | RemoteQuery |
 | ["StoicWallet_WalletApi","LocalDevice","stoic-wallet","BrowserDirect","WalletApi"] | StoicWallet | StoicWallet_WalletApi | LocalDevice | stoic-wallet | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | ["Subscan_Rest","Caip2Network","polkadot:91b171bb158e2d3848fa23a9f1c25182","HttpProxy","RestJson"] | Subscan | Subscan_Rest | Caip2Network | polkadot:91b171bb158e2d3848fa23a9f1c25182 | HttpRest | RestJson | GenericRead | HttpProxy |
-| ["SubstrateSidecar_Rest","LocalDevice","substrate-sidecar","HttpProxy","RestJson"] | SubstrateSidecar | SubstrateSidecar_Rest | LocalDevice | substrate-sidecar | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SubstrateSidecar_Rest","NetworkSlug","polkadot","HttpProxy","RestJson"] | SubstrateSidecar | SubstrateSidecar_Rest | NetworkSlug | polkadot | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["SubstrateSidecar_Rest","Global","polkadot-asset-hub-public-sidecar","HttpProxy","RestJson"] | SubstrateSidecar | SubstrateSidecar_Rest | Global | polkadot-asset-hub-public-sidecar | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["Sui","NetworkSlug","sui","RemoteQuery","GraphqlHttp"] | Sui | Sui | NetworkSlug | sui | Graphql | GraphqlHttp | GenericRead | RemoteQuery |
 | ["Sui","NetworkSlug","sui","ServerOnly","GrpcService"] | Sui | Sui | NetworkSlug | sui | Grpc | GrpcService | GenericRead | ServerOnly |
 | ["Superchain_Github","GitRepository","ethereum-optimism/superchain-registry@main:chainList.json","BrowserDirect","GithubContentsApi"] | Superchain | Superchain_Github | GitRepository | ethereum-optimism/superchain-registry@main:chainList.json | HttpRest | GithubContentsApi | GithubRepositoryContents | BrowserDirect |
@@ -1193,9 +1195,10 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["CronosExplorer","Global","cronos-explorer-api","HttpProxy","EtherscanModuleAction"] | HttpUrl | https://cronos.org/explorer/api | https://cronos.org | false |
 | ["Curve_Rest","Global","curve-api","BrowserDirect","RestJson"] | HttpUrl | https://api.curve.finance | https://api.curve.finance | true |
 | ["CycloneDxDocument_Local","LocalDevice","cyclonedx-document","LocalOnly","LocalParser"] | LocalFilePath | selected-file-or-artifact |  |  |
-| ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | HttpUrl | https://coins.llama.fi | https://coins.llama.fi | false |
+| ["Defillama_Rest","Global","api-public","HttpProxy","OpenApiHttp"] | HttpUrl | https://api.llama.fi | https://api.llama.fi | false |
 | ["Defillama_Rest","Global","chain-icons","HttpProxy","StaticWebsite"] | HttpUrl | https://icons.llama.fi | https://icons.llama.fi | false |
 | ["Defillama_Rest","Global","coins-pro","HttpProxy","OpenApiHttp"] | HttpUrl | https://pro-api.llama.fi | https://pro-api.llama.fi | false |
+| ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | HttpUrl | https://coins.llama.fi | https://coins.llama.fi | false |
 | ["Dexscreener_Rest","Global","dexscreener-openapi","HttpProxy","OpenApiHttp"] | HttpUrl | https://api.dexscreener.com | https://api.dexscreener.com | false |
 | ["DogecoinCore_JsonRpc","Caip2Network","bip122:1a91e3dace36e2be3bf030a65679fe82","LocalOnly","BitcoinJsonRpc"] | HttpUrl | http://127.0.0.1:22555 | http://127.0.0.1:22555 | false |
 | ["DogecoinDips_Github","GitRepository","dogecoin/dips@master:","BrowserDirect","GithubContentsApi"] | HttpUrl | https://api.github.com | https://api.github.com | true |
@@ -1328,9 +1331,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Mintscan","Global","mintscan-api","BrowserDirect","RestJson"] | HttpUrl | https://apis.mintscan.io | https://apis.mintscan.io | true |
 | ["MistralAi_Rest","Global","mistral-api","RemoteQuery","RestJson"] | HttpUrl | https://api.mistral.ai | https://api.mistral.ai | false |
 | ["Mlflow_Rest","Global","mlflow-tracking-server","RemoteQuery","RestJson"] | HttpUrl | env:MLFLOW_TRACKING_URL |  |  |
-| ["MoneroDaemonRpc_JsonRpc","Caip2Network","monero:418015bb9ae982a1975da7d79277c270","HttpProxy","MoneroDaemonJsonRpc"] | HttpUrl | https://xmr-node.cakewallet.com:18081/json_rpc | https://xmr-node.cakewallet.com:18081 | false |
-| ["MoneroDaemonRpc_JsonRpc","Caip2Network","monero:418015bb9ae982a1975da7d79277c270","HttpProxy","MoneroDaemonJsonRpc"] | HttpUrl | http://nodes.hashvault.pro:18081/json_rpc | http://nodes.hashvault.pro:18081 | false |
-| ["MoneroDaemonRpc_JsonRpc","LocalDevice","local-monerod","LocalOnly","MoneroDaemonJsonRpc"] | HttpUrl | http://127.0.0.1:18081/json_rpc | http://127.0.0.1:18081 | false |
+| ["MoneroDaemonRpc_JsonRpc","Caip2Network","monero:418015bb9ae982a1975da7d79277c270","HttpProxy","MoneroDaemonJsonRpc"] | HttpUrl | https://xmr-node.cakewallet.com:18081/ | https://xmr-node.cakewallet.com:18081 | false |
+| ["MoneroDaemonRpc_JsonRpc","Caip2Network","monero:418015bb9ae982a1975da7d79277c270","HttpProxy","MoneroDaemonJsonRpc"] | HttpUrl | http://nodes.hashvault.pro:18081/ | http://nodes.hashvault.pro:18081 | false |
+| ["MoneroDaemonRpc_JsonRpc","LocalDevice","local-monerod","LocalOnly","MoneroDaemonJsonRpc"] | HttpUrl | http://127.0.0.1:18081/ | http://127.0.0.1:18081 | false |
 | ["MoneroWalletRpc_JsonRpc","LocalDevice","wallet-rpc","LocalOnly","JsonRpcApi"] | HttpUrl | http://127.0.0.1:18083/json_rpc | http://127.0.0.1:18083 | false |
 | ["Morpho_Graphql","Global","morpho-api","BrowserDirect","GraphqlHttp"] | HttpUrl | https://api.morpho.org/graphql | https://api.morpho.org | true |
 | ["Morpho_Rest","Global","morpho-api","BrowserDirect","RestJson"] | HttpUrl | https://api.morpho.org | https://api.morpho.org | true |
@@ -1483,7 +1486,8 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["StellarToml_Rest","Global","stellar-toml","RemoteQuery","RestJson"] | HttpUrl | https://{domain}/.well-known/stellar.toml | https://{domain} | false |
 | ["StoicWallet_WalletApi","LocalDevice","stoic-wallet","BrowserDirect","WalletApi"] | BrowserWalletProvider | stoic |  |  |
 | ["Subscan_Rest","Caip2Network","polkadot:91b171bb158e2d3848fa23a9f1c25182","HttpProxy","RestJson"] | HttpUrl | https://polkadot.api.subscan.io | https://polkadot.api.subscan.io | false |
-| ["SubstrateSidecar_Rest","LocalDevice","substrate-sidecar","HttpProxy","RestJson"] | HttpUrl | http://127.0.0.1:8080 | http://127.0.0.1:8080 | false |
+| ["SubstrateSidecar_Rest","NetworkSlug","polkadot","HttpProxy","RestJson"] | HttpUrl | https://polkadot-public-sidecar.parity-chains.parity.io | https://polkadot-public-sidecar.parity-chains.parity.io | false |
+| ["SubstrateSidecar_Rest","Global","polkadot-asset-hub-public-sidecar","HttpProxy","RestJson"] | HttpUrl | https://polkadot-asset-hub-public-sidecar.parity-chains.parity.io | https://polkadot-asset-hub-public-sidecar.parity-chains.parity.io | false |
 | ["Sui","NetworkSlug","sui","RemoteQuery","GraphqlHttp"] | HttpUrl | https://graphql.mainnet.sui.io/graphql | https://graphql.mainnet.sui.io | false |
 | ["Sui","NetworkSlug","sui","ServerOnly","GrpcService"] | HttpUrl | https://fullnode.mainnet.sui.io:443 | https://fullnode.mainnet.sui.io | false |
 | ["Superchain_Github","GitRepository","ethereum-optimism/superchain-registry@main:chainList.json","BrowserDirect","GithubContentsApi"] | HttpUrl | https://api.github.com | https://api.github.com | true |
@@ -1940,12 +1944,15 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Compound_Rest","Eip155Chain","534352","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["CosmosSdk_Rest","Caip2Network","cosmos:cosmoshub-4","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/CosmosSdk/Rest/types.ts | no |  |  |
 | ["Curve_Rest","Global","curve-api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Curve/Rest/types.ts | no |  | https://api.curve.finance/v1/documentation/ |
-| ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/Defillama/OpenApi/schema-source.ts | no |  |  |
-| ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/Defillama/OpenApi/openapi.json | no |  |  |
-| ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/Defillama/OpenApi/openapi.d.ts | yes |  |  |
+| ["Defillama_Rest","Global","api-public","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/Defillama/OpenApi/schema-source.ts | no |  |  |
+| ["Defillama_Rest","Global","api-public","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/Defillama/OpenApi/openapi.json | no |  |  |
+| ["Defillama_Rest","Global","api-public","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/Defillama/OpenApi/openapi.d.ts | yes |  |  |
 | ["Defillama_Rest","Global","coins-pro","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/Defillama/OpenApi/Pro/schema-source.ts | no |  |  |
 | ["Defillama_Rest","Global","coins-pro","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/Defillama/OpenApi/Pro/openapi.json | no |  |  |
 | ["Defillama_Rest","Global","coins-pro","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/Defillama/OpenApi/Pro/openapi.d.ts | yes |  |  |
+| ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/Defillama/OpenApi/schema-source.ts | no |  |  |
+| ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/Defillama/OpenApi/openapi.json | no |  |  |
+| ["Defillama_Rest","Global","coins-public","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/Defillama/OpenApi/openapi.d.ts | yes |  |  |
 | ["Dexscreener_Rest","Global","dexscreener-openapi","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/Dexscreener/OpenApi/schema-source.ts | no |  |  |
 | ["Dexscreener_Rest","Global","dexscreener-openapi","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/Dexscreener/OpenApi/openapi.yml | no |  |  |
 | ["Dexscreener_Rest","Global","dexscreener-openapi","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/Dexscreener/OpenApi/openapi.d.ts | yes |  |  |
@@ -2189,7 +2196,8 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["StellarExpert","Global","stellar-expert-api","BrowserDirect","OpenApiHttp"] | OpenApiSpec | src/sources/StellarExpert/OpenApi/openapi.yml | yes | https://raw.githubusercontent.com/stellar-expert/stellar-expert-explorer/master/ui/open-api/openapi.yml |  |
 | ["StellarExpert","Global","stellar-expert-api","BrowserDirect","OpenApiHttp"] | OpenApiTypes | src/sources/StellarExpert/OpenApi/openapi.d.ts | yes |  |  |
 | ["Subscan_Rest","Caip2Network","polkadot:91b171bb158e2d3848fa23a9f1c25182","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Subscan/Rest/types.ts | no |  |  |
-| ["SubstrateSidecar_Rest","LocalDevice","substrate-sidecar","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SubstrateSidecar/Rest/types.ts | no |  |  |
+| ["SubstrateSidecar_Rest","NetworkSlug","polkadot","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SubstrateSidecar/Rest/types.ts | no |  |  |
+| ["SubstrateSidecar_Rest","Global","polkadot-asset-hub-public-sidecar","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/SubstrateSidecar/Rest/types.ts | no |  |  |
 | ["Sui","NetworkSlug","sui","RemoteQuery","GraphqlHttp"] | GenerationManifest | src/sources/Sui/Graphql/schema-source.ts | no |  |  |
 | ["Sui","NetworkSlug","sui","RemoteQuery","GraphqlHttp"] | GraphqlSchema | src/sources/Sui/Graphql/schema.graphql | yes | https://graphql.mainnet.sui.io/graphql |  |
 | ["Sui","NetworkSlug","sui","RemoteQuery","GraphqlHttp"] | GraphqlTypes | src/sources/Sui/Graphql/graphql-env.d.ts | yes |  |  |

@@ -46,37 +46,43 @@
 				Source.SubstrateSidecar_Rest,
 			],
 		}))
-	const collection5Selection = $derived(collectionRoot0Selection.Solana.$account
+	const collection5Selection = $derived(collectionRoot0Selection.Polkadot.$account
+		.$$assetBalanceTimestamps({
+			sources: [
+				Source.SubstrateSidecar_Rest,
+			],
+		}))
+	const collection6Selection = $derived(collectionRoot0Selection.Solana.$account
 		.$$timestamps({
 			sources: [
 				Source.Solana_JsonRpc,
 			],
 		}))
-	const collection6Selection = $derived(collectionRoot0Selection.Tron.$account
+	const collection7Selection = $derived(collectionRoot0Selection.Tron.$account
 		.$$timestamps({
 			sources: [
 				Source.TronGrid_Rest,
 			],
 		}))
-	const collection7Selection = $derived(collectionRoot0Selection.Tron.$account
+	const collection8Selection = $derived(collectionRoot0Selection.Tron.$account
 		.$$tokenBalanceTimestamps({
 			sources: [
 				Source.TronScan_Rest,
 			],
 		}))
-	const collection8Selection = $derived(collectionRoot0Selection.Ton.$account
+	const collection9Selection = $derived(collectionRoot0Selection.Ton.$account
 		.$$timestamps({
 			sources: [
 				Source.TonApi_Rest,
 			],
 		}))
-	const collection9Selection = $derived(collectionRoot0Selection.Utxo.$account
+	const collection10Selection = $derived(collectionRoot0Selection.Utxo.$account
 		.$$timestamps({
 			sources: [
 				Source.MempoolSpace_Rest,
 			],
 		}))
-	const collection10Selection = $derived(collectionRoot0Selection.Xrpl.$account
+	const collection11Selection = $derived(collectionRoot0Selection.Xrpl.$account
 		.$$timestamps({
 			sources: [
 				Source.Xrpl_Rippled,
@@ -93,6 +99,7 @@
 	import CardanoAddress_TimestampsView from '$/views/CardanoAddress_TimestampsView.svelte'
 	import HederaAccount_TimestampsView from '$/views/HederaAccount_TimestampsView.svelte'
 	import PolkadotAccount_TimestampsView from '$/views/PolkadotAccount_TimestampsView.svelte'
+	import PolkadotAssetBalance_TimestampsView from '$/views/PolkadotAssetBalance_TimestampsView.svelte'
 	import SolanaAccount_TimestampsView from '$/views/SolanaAccount_TimestampsView.svelte'
 	import TronAccount_TimestampsView from '$/views/TronAccount_TimestampsView.svelte'
 	import TronAccountTokenBalance_TimestampsView from '$/views/TronAccountTokenBalance_TimestampsView.svelte'
@@ -176,11 +183,11 @@
 	<ResourceBoundary resource={collection5Selection}>
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
-				<SolanaAccount_TimestampsView
+				<PolkadotAssetBalance_TimestampsView
 					href={collectionHref}
-					title='Solana balances'
+					title='Polkadot asset balances'
 					selection={collection5Selection}
-					id='account-solana-account-timestamp'
+					id='account-polkadot-asset-balance-timestamp'
 				/>
 			{/if}
 		{/snippet}
@@ -189,11 +196,11 @@
 	<ResourceBoundary resource={collection6Selection}>
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
-				<TronAccount_TimestampsView
+				<SolanaAccount_TimestampsView
 					href={collectionHref}
-					title='Tron balances'
+					title='Solana balances'
 					selection={collection6Selection}
-					id='account-tron-account-timestamp'
+					id='account-solana-account-timestamp'
 				/>
 			{/if}
 		{/snippet}
@@ -202,11 +209,11 @@
 	<ResourceBoundary resource={collection7Selection}>
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
-				<TronAccountTokenBalance_TimestampsView
+				<TronAccount_TimestampsView
 					href={collectionHref}
-					title='Tron token balances'
+					title='Tron balances'
 					selection={collection7Selection}
-					id='account-tron-account-token-balance-timestamp'
+					id='account-tron-account-timestamp'
 				/>
 			{/if}
 		{/snippet}
@@ -215,11 +222,11 @@
 	<ResourceBoundary resource={collection8Selection}>
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
-				<TonAccount_TimestampsView
+				<TronAccountTokenBalance_TimestampsView
 					href={collectionHref}
-					title='TON balances'
+					title='Tron token balances'
 					selection={collection8Selection}
-					id='account-ton-account-timestamp'
+					id='account-tron-account-token-balance-timestamp'
 				/>
 			{/if}
 		{/snippet}
@@ -228,11 +235,11 @@
 	<ResourceBoundary resource={collection9Selection}>
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
-				<UtxoAddress_TimestampsView
+				<TonAccount_TimestampsView
 					href={collectionHref}
-					title='UTXO balances'
+					title='TON balances'
 					selection={collection9Selection}
-					id='account-utxo-address-timestamp'
+					id='account-ton-account-timestamp'
 				/>
 			{/if}
 		{/snippet}
@@ -241,10 +248,23 @@
 	<ResourceBoundary resource={collection10Selection}>
 		{#snippet children(entities)}
 			{#if entities.values.length > 0}
+				<UtxoAddress_TimestampsView
+					href={collectionHref}
+					title='UTXO balances'
+					selection={collection10Selection}
+					id='account-utxo-address-timestamp'
+				/>
+			{/if}
+		{/snippet}
+	</ResourceBoundary>
+
+	<ResourceBoundary resource={collection11Selection}>
+		{#snippet children(entities)}
+			{#if entities.values.length > 0}
 				<XrplAccount_TimestampsView
 					href={collectionHref}
 					title='XRPL balances'
-					selection={collection10Selection}
+					selection={collection11Selection}
 					id='account-xrpl-account-timestamp'
 				/>
 			{/if}

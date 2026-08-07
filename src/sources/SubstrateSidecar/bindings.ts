@@ -12,29 +12,47 @@ import {
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
+const substrateSidecarRestBindingAxes = {
+	source: Source.SubstrateSidecar_Rest,
+	wireProtocol: WireProtocol.HttpRest,
+	apiFamily: ApiFamily.RestJson,
+	operationGroups: genericReadOperationGroups,
+	delivery: SourceDelivery.HttpProxy,
+	credentials: [],
+	artifacts: [
+		{
+			kind: SourceArtifactKind.HandwrittenTypes,
+			path: 'src/sources/SubstrateSidecar/Rest/types.ts',
+		},
+	],
+} as const
+
 export default indexSourceBindings([
 	{
-		source: Source.SubstrateSidecar_Rest,
+		...substrateSidecarRestBindingAxes,
 		target: {
-			kind: SourceTargetKind.LocalDevice,
-			key: 'substrate-sidecar',
+			kind: SourceTargetKind.NetworkSlug,
+			key: 'polkadot',
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'http://127.0.0.1:8080',
+				locator: 'https://polkadot-public-sidecar.parity-chains.parity.io',
 				corsEnabled: false,
 			},
 		],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: genericReadOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [],
-		artifacts: [
+	},
+	{
+		...substrateSidecarRestBindingAxes,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'polkadot-asset-hub-public-sidecar',
+		},
+		endpoints: [
 			{
-				kind: SourceArtifactKind.HandwrittenTypes,
-				path: 'src/sources/SubstrateSidecar/Rest/types.ts',
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://polkadot-asset-hub-public-sidecar.parity-chains.parity.io',
+				corsEnabled: false,
 			},
 		],
 	},
