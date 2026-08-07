@@ -338,7 +338,7 @@ describe('BeaconchaIn REST queries', () => {
 		)
 	})
 
-	it('loads validators and fail-closes malformed balances', async () => {
+	it('loads validators and fail-closes malformed balances / missing pubkey', async () => {
 		const fetchMock = vi.fn<typeof fetch>()
 			.mockResolvedValueOnce(jsonResponse({
 				status: 'OK',
@@ -349,6 +349,20 @@ describe('BeaconchaIn REST queries', () => {
 				data: {
 					...validatorWire,
 					balance: -1,
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: {
+					...validatorWire,
+					pubkey: '',
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: {
+					...validatorWire,
+					extra_wire_only: 'strip-me',
 				},
 			}))
 		vi.stubGlobal('fetch', fetchMock)
@@ -362,6 +376,35 @@ describe('BeaconchaIn REST queries', () => {
 		await expect(getValidator(publicEnv, {
 			chainId: 1,
 			indexOrPubkey: 1,
-		})).rejects.toThrow('invalid validator balances')
+		})).rejects.toThrow('invalid validator response envelope')
+
+		await expect(getValidator(publicEnv, {
+			chainId: 1,
+			indexOrPubkey: 1,
+		})).rejects.toThrow('invalid validator response envelope')
+
+		await expect(getValidator(publicEnv, {
+			chainId: 1,
+			indexOrPubkey: 1,
+		})).resolves.toEqual(validatorWire)
+	})
+
+	it('fail-closes malformed validator attestation duty rows', async () => {
+		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
+			status: 'OK',
+			data: [{
+				attesterslot: -1,
+				epoch: 399360,
+				inclusionslot: 0,
+				status: 0,
+				validatorindex: 20,
+			}],
+		})))
+		vi.stubGlobal('window', {})
+
+		await expect(getValidatorAttestations(publicEnv, {
+			chainId: 1,
+			indexOrPubkey: 20,
+		})).rejects.toThrow('invalid BeaconchaIn GET validator attestations[0] response envelope')
 	})
 })

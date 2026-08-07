@@ -8,17 +8,32 @@ import {
 	type SourcePublicEnv,
 } from '$/sources/$sources.ts'
 import { bindingByChainId } from '$/sources/BeaconchaIn/Rest/constants.ts'
-import type {
-	BeaconchaInAttestation,
-	BeaconchaInAttesterSlashing,
-	BeaconchaInEpoch,
-	BeaconchaInProposerSlashing,
-	BeaconchaInResponse,
-	BeaconchaInSlot,
-	BeaconchaInValidator,
-	BeaconchaInValidatorAttestation,
-	BeaconchaInWithdrawal,
+import {
+	beaconchaInAttestationEnvelope,
+	beaconchaInAttesterSlashingEnvelope,
+	beaconchaInEpochEnvelope,
+	beaconchaInProposerSlashingEnvelope,
+	beaconchaInSlotEnvelope,
+	beaconchaInValidatorAttestationEnvelope,
+	beaconchaInValidatorEnvelope,
+	beaconchaInWithdrawalEnvelope,
+	type BeaconchaInResponse,
 } from '$/sources/BeaconchaIn/Rest/types.ts'
+import { Source } from '$/sources/Source.ts'
+
+const assertEnvelope = <_Value>(
+	envelope: {
+		assert: (value: unknown) => _Value
+	},
+	value: unknown,
+	label: string
+) => {
+	try {
+		return envelope.assert(value)
+	} catch {
+		throw new Error(`${Source.BeaconchaIn_Rest}: invalid ${label} response envelope`)
+	}
+}
 
 const beaconchaInGetJson = async <_Data>(
 	publicEnv: SourcePublicEnv,
@@ -34,7 +49,7 @@ const beaconchaInGetJson = async <_Data>(
 ) => {
 	const binding = bindingByChainId[String(chainId)]
 	if (binding == null)
-		throw new Error(`BeaconchaIn_Rest: no binding for chain ${String(chainId)}`)
+		throw new Error(`${Source.BeaconchaIn_Rest}: no binding for chain ${String(chainId)}`)
 
 	const response = await sourceFetch(
 		binding,
@@ -49,9 +64,9 @@ const beaconchaInGetJson = async <_Data>(
 
 	const wire = await response.json<BeaconchaInResponse<_Data>>()
 	if (wire.status !== 'OK')
-		throw new Error(`BeaconchaIn_Rest: ${label} failed (status ${wire.status})`)
+		throw new Error(`${Source.BeaconchaIn_Rest}: ${label} failed (status ${wire.status})`)
 	if (wire.data == null)
-		throw new Error(`BeaconchaIn_Rest: ${label} returned no data (status ${wire.status})`)
+		throw new Error(`${Source.BeaconchaIn_Rest}: ${label} returned no data (status ${wire.status})`)
 
 	return wire.data
 }
@@ -62,13 +77,17 @@ const beaconchaInGetList = async <_Item>(
 		chainId,
 		path,
 		label,
+		itemEnvelope,
 	}: {
 		chainId: number
 		path: `/${string}`
 		label: string
+		itemEnvelope: {
+			assert: (value: unknown) => _Item
+		}
 	}
 ) => {
-	const data = await beaconchaInGetJson<_Item[]>(
+	const data = await beaconchaInGetJson<unknown[]>(
 		publicEnv,
 		{
 			chainId,
@@ -77,11 +96,13 @@ const beaconchaInGetList = async <_Item>(
 		}
 	)
 	if (!Array.isArray(data))
-		throw new Error(`BeaconchaIn_Rest: ${label} returned a non-list payload`)
-	return data
+		throw new Error(`${Source.BeaconchaIn_Rest}: ${label} returned a non-list payload`)
+	return data.map((item, index) => (
+		assertEnvelope(itemEnvelope, item, `${label}[${String(index)}]`)
+	))
 }
 
-export const getEpoch = (
+export const getEpoch = async (
 	publicEnv: SourcePublicEnv,
 	{
 		chainId,
@@ -91,13 +112,17 @@ export const getEpoch = (
 		epoch: number | 'latest' | 'finalized'
 	}
 ) => (
-	beaconchaInGetJson<BeaconchaInEpoch>(
-		publicEnv,
-		{
-			chainId,
-			path: `/epoch/${String(epoch)}`,
-			label: 'BeaconchaIn GET epoch',
-		}
+	assertEnvelope(
+		beaconchaInEpochEnvelope,
+		await beaconchaInGetJson(
+			publicEnv,
+			{
+				chainId,
+				path: `/epoch/${String(epoch)}`,
+				label: 'BeaconchaIn GET epoch',
+			}
+		),
+		'epoch'
 	)
 )
 
@@ -111,17 +136,18 @@ export const getEpochSlots = (
 		epoch: number | 'latest' | 'finalized'
 	}
 ) => (
-	beaconchaInGetList<BeaconchaInSlot>(
+	beaconchaInGetList(
 		publicEnv,
 		{
 			chainId,
 			path: `/epoch/${String(epoch)}/slots`,
 			label: 'BeaconchaIn GET epoch slots',
+			itemEnvelope: beaconchaInSlotEnvelope,
 		}
 	)
 )
 
-export const getSlot = (
+export const getSlot = async (
 	publicEnv: SourcePublicEnv,
 	{
 		chainId,
@@ -131,13 +157,17 @@ export const getSlot = (
 		slot: number | 'latest' | 'head'
 	}
 ) => (
-	beaconchaInGetJson<BeaconchaInSlot>(
-		publicEnv,
-		{
-			chainId,
-			path: `/slot/${String(slot)}`,
-			label: 'BeaconchaIn GET slot',
-		}
+	assertEnvelope(
+		beaconchaInSlotEnvelope,
+		await beaconchaInGetJson(
+			publicEnv,
+			{
+				chainId,
+				path: `/slot/${String(slot)}`,
+				label: 'BeaconchaIn GET slot',
+			}
+		),
+		'slot'
 	)
 )
 
@@ -150,61 +180,20 @@ export const getValidator = async (
 		chainId: number
 		indexOrPubkey: number | string
 	}
-) => {
-	const validator = await beaconchaInGetJson<BeaconchaInValidator>(
-		publicEnv,
-		{
-			chainId,
-			path: `/validator/${encodeURIComponent(String(indexOrPubkey))}`,
-			label: 'BeaconchaIn GET validator',
-		}
+) => (
+	assertEnvelope(
+		beaconchaInValidatorEnvelope,
+		await beaconchaInGetJson(
+			publicEnv,
+			{
+				chainId,
+				path: `/validator/${encodeURIComponent(String(indexOrPubkey))}`,
+				label: 'BeaconchaIn GET validator',
+			}
+		),
+		'validator'
 	)
-	if (
-		!Number.isSafeInteger(validator.validator_index)
-		|| validator.validator_index < 0
-	)
-		throw new Error('BeaconchaIn_Rest: invalid validator_index')
-	if (
-		typeof validator.pubkey !== 'string'
-		|| validator.pubkey.trim() === ''
-	)
-		throw new Error('BeaconchaIn_Rest: missing validator pubkey')
-	if (
-		!Number.isSafeInteger(validator.balance)
-		|| validator.balance < 0
-		|| !Number.isSafeInteger(validator.effective_balance)
-		|| validator.effective_balance < 0
-	)
-		throw new Error('BeaconchaIn_Rest: invalid validator balances')
-	if (typeof validator.status !== 'string' || validator.status === '')
-		throw new Error('BeaconchaIn_Rest: missing validator status')
-	if (typeof validator.slashed !== 'boolean')
-		throw new Error('BeaconchaIn_Rest: missing validator slashed flag')
-	if (
-		validator.last_attestation_slot != null
-		&& (
-			!Number.isSafeInteger(validator.last_attestation_slot)
-			|| validator.last_attestation_slot < 0
-		)
-	)
-		throw new Error('BeaconchaIn_Rest: invalid last_attestation_slot')
-	for (const [label, value] of [
-		['activation_eligibility_epoch', validator.activation_eligibility_epoch],
-		['activation_epoch', validator.activation_epoch],
-		['exit_epoch', validator.exit_epoch],
-		['withdrawable_epoch', validator.withdrawable_epoch],
-	] as const) {
-		if (
-			value != null
-			&& (
-				!Number.isInteger(value)
-				|| value < 0
-			)
-		)
-			throw new Error(`BeaconchaIn_Rest: invalid ${label}`)
-	}
-	return validator
-}
+)
 
 /** @see https://docs.beaconcha.in/api-reference/validators/validator-attestations-history */
 export const getValidatorAttestations = (
@@ -230,12 +219,13 @@ export const getValidatorAttestations = (
 			...(slim != null && { slim: String(slim) }),
 		})
 	)
-	return beaconchaInGetList<BeaconchaInValidatorAttestation>(
+	return beaconchaInGetList(
 		publicEnv,
 		{
 			chainId,
 			path: `/validator/${encodeURIComponent(String(indexOrPubkey))}/attestations${search.size === 0 ? '' : `?${search}`}`,
 			label: 'BeaconchaIn GET validator attestations',
+			itemEnvelope: beaconchaInValidatorAttestationEnvelope,
 		}
 	)
 }
@@ -250,12 +240,13 @@ export const getSlotAttestations = (
 		slot: number | 'latest'
 	}
 ) => (
-	beaconchaInGetList<BeaconchaInAttestation>(
+	beaconchaInGetList(
 		publicEnv,
 		{
 			chainId,
 			path: `/slot/${String(slot)}/attestations`,
 			label: 'BeaconchaIn GET slot attestations',
+			itemEnvelope: beaconchaInAttestationEnvelope,
 		}
 	)
 )
@@ -270,12 +261,13 @@ export const getSlotWithdrawals = (
 		slot: number | 'latest'
 	}
 ) => (
-	beaconchaInGetList<BeaconchaInWithdrawal>(
+	beaconchaInGetList(
 		publicEnv,
 		{
 			chainId,
 			path: `/slot/${String(slot)}/withdrawals`,
 			label: 'BeaconchaIn GET slot withdrawals',
+			itemEnvelope: beaconchaInWithdrawalEnvelope,
 		}
 	)
 )
@@ -290,12 +282,13 @@ export const getSlotAttesterSlashings = (
 		slot: number | 'latest'
 	}
 ) => (
-	beaconchaInGetList<BeaconchaInAttesterSlashing>(
+	beaconchaInGetList(
 		publicEnv,
 		{
 			chainId,
 			path: `/slot/${String(slot)}/attesterslashings`,
 			label: 'BeaconchaIn GET slot attester slashings',
+			itemEnvelope: beaconchaInAttesterSlashingEnvelope,
 		}
 	)
 )
@@ -310,12 +303,13 @@ export const getSlotProposerSlashings = (
 		slot: number | 'latest'
 	}
 ) => (
-	beaconchaInGetList<BeaconchaInProposerSlashing>(
+	beaconchaInGetList(
 		publicEnv,
 		{
 			chainId,
 			path: `/slot/${String(slot)}/proposerslashings`,
 			label: 'BeaconchaIn GET slot proposer slashings',
+			itemEnvelope: beaconchaInProposerSlashingEnvelope,
 		}
 	)
 )

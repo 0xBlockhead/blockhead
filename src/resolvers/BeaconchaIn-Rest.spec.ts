@@ -7,6 +7,7 @@ import {
 } from 'vitest'
 
 import { slotsPerEpoch } from '$/constants/BeaconConsensus.ts'
+import { with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -687,12 +688,37 @@ describe('BeaconchaIn-Rest resolvers', () => {
 			},
 		}
 		await expect(networkEpochsResolver.resolve.Caip2.resolve(network, tipContext)).resolves.toEqual([
-			{ [EntityMetaKey.Selector]: { $network: network, epoch: 12 } },
+			{
+				[EntityMetaKey.Selector]: { $network: network, epoch: 12 },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'startSlot')]: 12 * slotsPerEpoch,
+					[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'endSlot')]: (12 * slotsPerEpoch) + slotsPerEpoch - 1,
+					[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'slotCount')]: slotsPerEpoch,
+					[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'finalized')]: true,
+					[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'globalParticipationRate')]: 0.9,
+					[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'validatorsCount')]: 1,
+					[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'attestationsCount')]: 1,
+					[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'attesterSlashingsCount')]: 0,
+					[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'proposerSlashingsCount')]: 0,
+					[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'withdrawalsCount')]: 0,
+				},
+			},
 			{ [EntityMetaKey.Selector]: { $network: network, epoch: 11 } },
 			{ [EntityMetaKey.Selector]: { $network: network, epoch: 10 } },
 		])
 		await expect(networkSlotsResolver.resolve.Caip2.resolve(network, tipContext)).resolves.toEqual([
-			{ [EntityMetaKey.Selector]: { $network: network, slot: 400 } },
+			{
+				[EntityMetaKey.Selector]: { $network: network, slot: 400 },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: 12,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: 1,
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: with0xHex('11'.repeat(32)),
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'parentRoot')]: with0xHex('22'.repeat(32)),
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'stateRoot')]: with0xHex('33'.repeat(32)),
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'signature')]: with0xHex('44'.repeat(96)),
+					[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: true,
+				},
+			},
 			{ [EntityMetaKey.Selector]: { $network: network, slot: 399 } },
 			{ [EntityMetaKey.Selector]: { $network: network, slot: 398 } },
 		])

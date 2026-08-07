@@ -714,11 +714,23 @@ export default {
 							}
 						)
 						const limit = resolverContextRowLimit(context)
+						const tipFields = {
+							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'startSlot')]: head.epoch * slotsPerEpoch,
+							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'endSlot')]: (head.epoch * slotsPerEpoch) + slotsPerEpoch - 1,
+							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'slotCount')]: slotsPerEpoch,
+							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'finalized')]: head.finalized,
+							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'globalParticipationRate')]: head.globalparticipationrate,
+							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'validatorsCount')]: head.validatorscount,
+							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'attestationsCount')]: head.attestationscount,
+							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'attesterSlashingsCount')]: head.attesterslashingscount,
+							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'proposerSlashingsCount')]: head.proposerslashingscount,
+							[entityFieldAddressKey(EntityType.BeaconEpoch, [], 'withdrawalsCount')]: head.withdrawalcount,
+						}
 						return Array.from(
 							{ length: limit },
 							(_, i) => head.epoch - i
 						)
-							.flatMap((epoch) => (
+							.flatMap((epoch, index) => (
 								epoch < 0 ?
 									[]
 								:
@@ -727,6 +739,9 @@ export default {
 											$network: { caip2 },
 											epoch,
 										},
+										...(index === 0 && {
+											[EntityMetaKey.Fields]: tipFields,
+										}),
 									}]
 							))
 					},
@@ -756,11 +771,20 @@ export default {
 							}
 						)
 						const limit = resolverContextRowLimit(context)
+						const tipFields = {
+							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'epoch')]: head.epoch,
+							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'proposerIndex')]: head.proposer,
+							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'root')]: with0xHex(head.blockroot),
+							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'parentRoot')]: with0xHex(head.parentroot),
+							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'stateRoot')]: with0xHex(head.stateroot),
+							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'signature')]: with0xHex(head.signature),
+							[entityFieldAddressKey(EntityType.BeaconSlot, [], 'canonical')]: head.status === '1',
+						}
 						return Array.from(
 							{ length: limit },
 							(_, i) => head.slot - i
 						)
-							.flatMap((slot) => (
+							.flatMap((slot, index) => (
 								slot < 0 ?
 									[]
 								:
@@ -769,6 +793,9 @@ export default {
 											$network: { caip2 },
 											slot,
 										},
+										...(index === 0 && {
+											[EntityMetaKey.Fields]: tipFields,
+										}),
 									}]
 							))
 					},
