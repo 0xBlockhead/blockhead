@@ -334,6 +334,163 @@ describe('Safe Transaction Service public multisig queries', () => {
 		})).rejects.toThrow('invalid transaction page response envelope')
 	})
 
+	it('accepts multisig page/tx fee and decoder leftovers without projecting them', async () => {
+		sourceGetJson.mockResolvedValue({
+			count: 1,
+			countUniqueNonce: 1,
+			next: null,
+			previous: null,
+			results: [
+				{
+					...transaction,
+					isExecuted: true,
+					isSuccessful: true,
+					executionDate: '2026-07-22T00:00:00Z',
+					blockNumber: 12,
+					transactionHash: executionHash,
+					proposedByDelegate: null,
+					ethGasPrice: '1000000000',
+					maxFeePerGas: '2000000000',
+					maxPriorityFeePerGas: '100000000',
+					gasUsed: 21000,
+					fee: '21000000000000',
+					payment: '0',
+					origin: 'https://app.safe.global',
+					dataDecoded: {
+						method: 'transfer',
+						parameters: [],
+					},
+				},
+			],
+		})
+
+		await expect(getSafeMultisigTransactions({
+			chainId,
+			safeAddress,
+			limit: 1,
+			offset: 0,
+			executed: true,
+		})).resolves.toMatchObject({
+			count: 1,
+			countUniqueNonce: 1,
+			results: [
+				{
+					ethGasPrice: '1000000000',
+					origin: 'https://app.safe.global',
+					dataDecoded: {
+						method: 'transfer',
+					},
+				},
+			],
+		})
+	})
+
+	it('fail-closes malformed fee leftovers and countUniqueNonce inversion', async () => {
+		sourceGetJson.mockResolvedValue({
+			count: 1,
+			next: null,
+			previous: null,
+			results: [
+				{
+					...transaction,
+					isExecuted: true,
+					isSuccessful: true,
+					transactionHash: executionHash,
+					ethGasPrice: '-1',
+				},
+			],
+		})
+		await expect(getSafeMultisigTransactions({
+			chainId,
+			safeAddress,
+			limit: 1,
+			offset: 0,
+			executed: true,
+		})).rejects.toThrow('invalid transaction page response envelope')
+
+		sourceGetJson.mockResolvedValue({
+			count: 1,
+			countUniqueNonce: 2,
+			next: null,
+			previous: null,
+			results: [
+				{
+					...transaction,
+					isExecuted: true,
+					isSuccessful: true,
+					transactionHash: executionHash,
+				},
+			],
+		})
+		await expect(getSafeMultisigTransactions({
+			chainId,
+			safeAddress,
+			limit: 1,
+			offset: 0,
+			executed: true,
+		})).rejects.toThrow('countUniqueNonce exceeds page count')
+	})
+
+	it('rejects queued transactions that carry execution fee leftovers', async () => {
+		sourceGetJson.mockResolvedValue({
+			count: 1,
+			next: null,
+			previous: null,
+			results: [
+				{
+					...transaction,
+					ethGasPrice: '1',
+				},
+			],
+		})
+		await expect(getSafeMultisigTransactions({
+			chainId,
+			safeAddress,
+			limit: 1,
+			offset: 0,
+			executed: false,
+		})).rejects.toThrow('queued transaction includes execution data')
+	})
+
+	it('accepts creation setupData leftovers fail-closed on malformed hex', async () => {
+		const creationHash = `0x${'3'.repeat(64)}`
+		const factoryAddress = `0x${'4'.repeat(40)}`
+		sourceGetJson.mockResolvedValue({
+			created: '2024-01-01T00:00:00Z',
+			creator: ownerAddress,
+			transactionHash: creationHash,
+			factoryAddress,
+			masterCopy,
+			setupData: '0x1234',
+			dataDecoded: {
+				method: 'setup',
+				parameters: [],
+			},
+		})
+		await expect(getSafeCreation({
+			chainId,
+			safeAddress,
+		})).resolves.toMatchObject({
+			setupData: '0x1234',
+			dataDecoded: {
+				method: 'setup',
+			},
+		})
+
+		sourceGetJson.mockResolvedValue({
+			created: '2024-01-01T00:00:00Z',
+			creator: ownerAddress,
+			transactionHash: creationHash,
+			factoryAddress,
+			masterCopy,
+			setupData: 'not-hex',
+		})
+		await expect(getSafeCreation({
+			chainId,
+			safeAddress,
+		})).rejects.toThrow('invalid Safe creation response envelope')
+	})
+
 	it('rejects continuations that escape the exact chain and Safe path', async () => {
 		sourceGetJson.mockResolvedValue({
 			count: 1,

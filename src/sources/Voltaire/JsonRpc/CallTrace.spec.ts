@@ -54,4 +54,27 @@ describe('Voltaire CallTrace wire parse', () => {
 		expect(parseVoltaireCallTraceRpc([])).toBeNull()
 		expect(parseVoltaireCallTraceRpc('CALL')).toBeNull()
 	})
+
+	it('accepts callTracer revertReason leftovers and drops non-string values', () => {
+		expect(parseVoltaireCallTraceRpc({
+			type: 'CALL',
+			error: 'execution reverted',
+			revertReason: 'Insufficient balance',
+			calls: [
+				{
+					type: 'CALL',
+					revertReason: 12,
+				},
+			],
+		})).toEqual({
+			type: 'CALL',
+			error: 'execution reverted',
+			revertReason: 'Insufficient balance',
+			calls: [
+				{
+					type: 'CALL',
+				},
+			],
+		})
+	})
 })

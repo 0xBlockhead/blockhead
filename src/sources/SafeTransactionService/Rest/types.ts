@@ -28,6 +28,7 @@ export const safeStatusEnvelope = arktype({
 	modules: safeAddress.array(),
 	fallbackHandler: safeAddress,
 	guard: safeAddress,
+	/** Transport leftover — Safe 1.4+ module guard; no enrolled `$moduleGuard` field. */
 	'moduleGuard?': safeAddress,
 	version: safeNullableString,
 })
@@ -43,6 +44,12 @@ export const safeMultisigConfirmationEnvelope = arktype({
 })
 
 export type SafeMultisigConfirmation = typeof safeMultisigConfirmationEnvelope.infer
+
+/** Deprecated decoder bag — transport-only; product uses Safe Decoder Service when needed. */
+const safeDataDecodedEnvelope = arktype({
+	'method?': 'string',
+	'parameters?': arktype('unknown').array(),
+})
 
 export const safeMultisigTransactionEnvelope = arktype({
 	safe: safeAddress,
@@ -63,9 +70,24 @@ export const safeMultisigTransactionEnvelope = arktype({
 	transactionHash: safeNullableHash,
 	safeTxHash: safeHash,
 	proposer: safeNullableAddress,
+	/** Transport leftover — delegate that proposed; unenrolled beside proposer. */
+	'proposedByDelegate?': safeNullableAddress,
 	executor: safeNullableAddress,
 	isExecuted: 'boolean',
 	isSuccessful: safeNullableBoolean,
+	/** Execution fee leftovers — unenrolled on EvmTransaction from this source. */
+	'ethGasPrice?': safeUnsignedDecimal.or(arktype('null')),
+	'maxFeePerGas?': safeUnsignedDecimal.or(arktype('null')),
+	'maxPriorityFeePerGas?': safeUnsignedDecimal.or(arktype('null')),
+	'gasUsed?': safeNullableBlockNumber,
+	'fee?': safeUnsignedDecimal.or(arktype('null')),
+	'payment?': safeUnsignedDecimal.or(arktype('null')),
+	/**
+	 * Client origin label (often a URL/JSON string, historically an address).
+	 * Transport-only — do not freestyle an enrolled origin field from this surface.
+	 */
+	'origin?': arktype('string').or(arktype('null')),
+	'dataDecoded?': safeDataDecodedEnvelope.or(arktype('null')),
 	confirmationsRequired: safeThreshold,
 	confirmations: safeMultisigConfirmationEnvelope.array(),
 	trusted: 'boolean',
@@ -80,12 +102,17 @@ export const safeCreationEnvelope = arktype({
 	transactionHash: safeHash,
 	factoryAddress: safeAddress,
 	masterCopy: safeAddress,
+	/** Transport leftovers — setup calldata / decoder bag; factory stays unenrolled. */
+	'setupData?': safeHexData.or(arktype('null')),
+	'dataDecoded?': safeDataDecodedEnvelope.or(arktype('null')),
 })
 
 export type SafeCreation = typeof safeCreationEnvelope.infer
 
 export const safeMultisigTransactionPageEnvelope = arktype({
 	count: arktype(`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`),
+	/** Distinct Safe nonce count on the filtered page window — transport leftover (not `count`). */
+	'countUniqueNonce?': arktype(`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`),
 	next: arktype('string').or(arktype('null')),
 	previous: arktype('string').or(arktype('null')),
 	results: safeMultisigTransactionEnvelope.array(),

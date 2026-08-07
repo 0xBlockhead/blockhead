@@ -250,4 +250,80 @@ describe('Sourcify REST product queries', () => {
 			address: depositContract,
 		})).resolves.toHaveLength(2)
 	})
+
+	it('accepts live proxy/metadata/deployment leftovers without freestyling schema', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			match: 'exact_match',
+			creationMatch: 'exact_match',
+			runtimeMatch: 'exact_match',
+			matchId: '2115',
+			chainId: '1',
+			address: depositContract.toLowerCase(),
+			abi: [],
+			deployment: {
+				deployer: '0xb20a608c624Ca5003905aA834De7156C68b2E1d0',
+				transactionHash: `0x${'e'.repeat(64)}`,
+				blockNumber: '11052984',
+				transactionIndex: '2',
+			},
+			metadata: {
+				compiler: {
+					version: '0.6.11+commit.5ef660b1',
+				},
+				language: 'Solidity',
+				output: {
+					abi: [],
+				},
+				settings: {
+					optimizer: {
+						enabled: true,
+					},
+				},
+				version: 1,
+			},
+			proxyResolution: {
+				isProxy: false,
+				proxyType: null,
+				implementations: [],
+			},
+		}))
+
+		await expect(getContractLookup({
+			chainId: 1,
+			address: depositContract,
+		})).resolves.toMatchObject({
+			match: 'exact_match',
+			deployment: {
+				blockNumber: '11052984',
+				transactionIndex: '2',
+			},
+			metadata: {
+				output: {
+					abi: [],
+				},
+				version: 1,
+			},
+			proxyResolution: {
+				isProxy: false,
+				proxyType: null,
+			},
+		})
+	})
+
+	it('fail-closes malformed proxyType leftovers', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			match: 'exact_match',
+			chainId: '1',
+			address: depositContract.toLowerCase(),
+			proxyResolution: {
+				isProxy: false,
+				proxyType: 12,
+			},
+		}))
+
+		await expect(getContractLookup({
+			chainId: 1,
+			address: depositContract,
+		})).rejects.toThrow('invalid contract lookup response envelope')
+	})
 })

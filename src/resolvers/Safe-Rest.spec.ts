@@ -183,6 +183,53 @@ describe('Safe Transaction Service resolver module', () => {
 		})
 	})
 
+	it('keeps creation factory/setupData leftovers unprojected', async () => {
+		const creationHash = `0x${'3'.repeat(64)}`
+		const factoryAddress = `0x${'4'.repeat(40)}`
+		sourceGetJson.mockResolvedValue({
+			created: '2024-01-01T00:00:00Z',
+			creator: ownerAddress,
+			transactionHash: creationHash,
+			factoryAddress,
+			masterCopy,
+			setupData: '0xabcd',
+			dataDecoded: {
+				method: 'setup',
+				parameters: [],
+			},
+		})
+
+		const creationResolver = safeRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.EvmContract
+			&& '$creationTransaction' in resolver.projections
+			&& '$deployer' in resolver.projections
+		))
+		if (creationResolver == null)
+			throw new Error('missing EvmContract creation resolver')
+
+		const snapshot = await creationResolver.resolve.EvmNetworkAddress.resolve({
+			$network: network,
+			address: safeAddress,
+		}, context)
+		expect(snapshot).toEqual({
+			$creationTransaction: {
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					txHash: creationHash,
+				},
+			},
+			$deployer: {
+				[EntityMetaKey.Selector]: {
+					address: ownerAddress,
+				},
+			},
+		})
+		expect(snapshot).not.toHaveProperty('factoryAddress')
+		expect(snapshot).not.toHaveProperty('setupData')
+		expect(snapshot).not.toHaveProperty('dataDecoded')
+		expect(snapshot).not.toHaveProperty('$factory')
+	})
+
 	it('maps executed Safe multisig transactions onto EvmNetworkAccount $$transactions', async () => {
 		sourceGetJson.mockResolvedValue({
 			count: 1,

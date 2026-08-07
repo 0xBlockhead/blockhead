@@ -288,10 +288,21 @@ export const getSafeMultisigTransactions = async ({
 				|| transaction.executionDate != null
 				|| transaction.blockNumber != null
 				|| transaction.isSuccessful != null
+				|| transaction.ethGasPrice != null
+				|| transaction.maxFeePerGas != null
+				|| transaction.maxPriorityFeePerGas != null
+				|| transaction.gasUsed != null
+				|| transaction.fee != null
+				|| transaction.payment != null
 			)
 		)
 			throw new Error('SafeTransactionService_Rest: queued transaction includes execution data')
 	}
+	if (
+		page.countUniqueNonce != null
+		&& page.countUniqueNonce > page.count
+	)
+		throw new Error('SafeTransactionService_Rest: countUniqueNonce exceeds page count')
 	return page
 }
 

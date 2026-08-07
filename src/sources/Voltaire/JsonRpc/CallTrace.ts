@@ -10,6 +10,8 @@ export type VoltaireCallTraceRpc = {
 	input?: string
 	output?: string
 	error?: string
+	/** callTracer leftover — accepted fail-closed at transport; unenrolled beside `error`. */
+	revertReason?: string
 	calls?: VoltaireCallTraceRpc[]
 }
 
@@ -39,6 +41,7 @@ export const parseVoltaireCallTraceRpc = (
 				...(typeof raw['input'] === 'string' && { input: raw['input'] }),
 				...(typeof raw['output'] === 'string' && { output: raw['output'] }),
 				...(typeof raw['error'] === 'string' && { error: raw['error'] }),
+				...(typeof raw['revertReason'] === 'string' && { revertReason: raw['revertReason'] }),
 				...(calls != null && calls.length > 0 && { calls }),
 			}
 		})()

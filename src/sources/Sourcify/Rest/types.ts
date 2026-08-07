@@ -27,6 +27,10 @@ export const sourcifyContractMetadataEnvelope = arktype({
 	}),
 	'fullyQualifiedName?': 'string',
 	'storageLayout?': jsonUnknown,
+	/** Standard-json metadata leftovers — unenrolled beyond language/compiler/sources/layout. */
+	'output?': jsonUnknown,
+	'settings?': jsonUnknown,
+	'version?': jsonUnknown,
 })
 
 export type SourcifyContractMetadata = typeof sourcifyContractMetadataEnvelope.infer
@@ -46,6 +50,7 @@ export type SourcifyContractCompilation = typeof sourcifyContractCompilationEnve
 export const sourcifyContractDeploymentEnvelope = arktype({
 	'deployer?': 'string',
 	'transactionHash?': 'string',
+	/** Transport leftovers — unenrolled beside `$deployer` / `$creationTransaction`. */
 	'blockNumber?': 'string',
 	'transactionIndex?': 'string',
 })
@@ -54,7 +59,8 @@ export type SourcifyContractDeployment = typeof sourcifyContractDeploymentEnvelo
 
 export const sourcifyProxyResolutionEnvelope = arktype({
 	'isProxy?': 'boolean',
-	'proxyType?': 'string',
+	/** Live Sourcify wires `null` when not a proxy — must accept null without freestyling schema. */
+	'proxyType?': arktype('string').or(arktype('null')),
 	'implementations?': arktype({
 		'address?': 'string',
 	}).array(),

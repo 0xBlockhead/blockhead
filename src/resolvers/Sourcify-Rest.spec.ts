@@ -291,6 +291,71 @@ describe('Sourcify REST resolvers', () => {
 		})
 	})
 
+	it('keeps deployment clock and proxyType leftovers unprojected', async () => {
+		getContractLookup.mockResolvedValue({
+			...verifiedLookup,
+			deployment: {
+				...verifiedLookup.deployment,
+				blockNumber: '11052984',
+				transactionIndex: '2',
+			},
+			metadata: {
+				compiler: {
+					version: '0.6.11+commit.5ef660b1',
+				},
+				language: 'Solidity',
+				output: {
+					abi: [],
+				},
+				settings: {
+					optimizer: {
+						enabled: true,
+					},
+				},
+				version: 1,
+			},
+			proxyResolution: {
+				isProxy: false,
+				proxyType: null,
+				implementations: [],
+			},
+		})
+
+		const deployerResolver = sourcifyRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmContract
+			&& '$deployer' in candidate.projections
+		))
+		if (deployerResolver == null)
+			throw new Error('Sourcify REST spec missing EvmContract.$deployer')
+		const deployer = await deployerResolver.resolve.EvmNetworkAddress.resolve(contract)
+		expect(deployer).toEqual({
+			[EntityMetaKey.Selector]: {
+				address: '0xb20a608c624ca5003905aa834de7156c68b2e1d0',
+			},
+		})
+		expect(deployer).not.toHaveProperty('blockNumber')
+		expect(deployer).not.toHaveProperty('transactionIndex')
+
+		const implementationResolver = sourcifyRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmContract
+			&& '$implementation' in candidate.projections
+		))
+		if (implementationResolver == null)
+			throw new Error('Sourcify REST spec missing EvmContract.$implementation')
+		await expect(implementationResolver.resolve.EvmNetworkAddress.resolve(contract)).resolves.toBeUndefined()
+
+		const compilation = await findResolver(
+			EntityType.EvmContractCompilation,
+			'EvmContract'
+		).resolve.EvmContract.resolve({
+			$contract: contract,
+		})
+		expect(compilation).not.toHaveProperty('output')
+		expect(compilation).not.toHaveProperty('settings')
+		expect(compilation).not.toHaveProperty('version')
+		expect(compilation).not.toHaveProperty('proxyType')
+	})
+
 	it('throws for missing verification snapshots and omits optional contract facets', async () => {
 		getContractLookup.mockResolvedValue(null)
 
