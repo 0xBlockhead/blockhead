@@ -52,6 +52,11 @@ describe('Stellar Horizon account transport', () => {
 			subentry_count: 2,
 			last_modified_ledger: 100,
 			last_modified_time: '2026-07-22T00:00:00Z',
+			thresholds: {
+				low_threshold: 0,
+				med_threshold: 1,
+				high_threshold: 2,
+			},
 			balances: [
 				{
 					asset_type: 'native',
@@ -72,6 +77,11 @@ describe('Stellar Horizon account transport', () => {
 
 		await expect(getAccount(accountId)).resolves.toMatchObject({
 			sequence: '9223372036854775807',
+			thresholds: {
+				low_threshold: 0,
+				med_threshold: 1,
+				high_threshold: 2,
+			},
 			balances: [
 				{
 					balance: '12345678901234567890.1234567',
@@ -82,6 +92,37 @@ describe('Stellar Horizon account transport', () => {
 			],
 		})
 		expect(getJson).toHaveBeenCalledWith(binding, `/accounts/${accountId}`)
+	})
+
+	it('fail-closes malformed account and transaction envelopes', async () => {
+		getJson.mockResolvedValueOnce({
+			id: accountId,
+			account_id: accountId,
+			sequence: '1',
+			subentry_count: 0,
+			last_modified_ledger: 1,
+			last_modified_time: '2026-07-22T00:00:00Z',
+			balances: [],
+			signers: [],
+		})
+		await expect(getAccount(accountId)).rejects.toThrow('invalid account response envelope')
+
+		getJson.mockResolvedValueOnce({
+			id: 'tx',
+			paging_token: '1',
+			successful: true,
+			hash: 'c'.repeat(64),
+			ledger: -1,
+			created_at: '2026-07-22T00:00:00Z',
+			source_account: accountId,
+			source_account_sequence: '1',
+			fee_account: accountId,
+			fee_charged: '100',
+			max_fee: '100',
+			operation_count: 1,
+			memo_type: 'none',
+		})
+		await expect(getTransaction('c'.repeat(64))).rejects.toThrow('invalid transaction response envelope')
 	})
 
 	it('loads bounded payment and operation pages with account ownership proof', async () => {
@@ -171,10 +212,20 @@ describe('Stellar Horizon account transport', () => {
 			{
 				id: 'duplicate',
 				paging_token: '1',
+				transaction_hash: 'a'.repeat(64),
+				type: 'payment',
+				type_i: 1,
+				created_at: '2026-07-22T00:00:00Z',
+				source_account: accountId,
 			},
 			{
 				id: 'duplicate',
 				paging_token: '2',
+				transaction_hash: 'b'.repeat(64),
+				type: 'payment',
+				type_i: 1,
+				created_at: '2026-07-22T00:00:01Z',
+				source_account: accountId,
 			},
 		]))
 		await expect(getAccountOperations(accountId, 2)).rejects.toThrow('duplicate record ID')
@@ -182,11 +233,27 @@ describe('Stellar Horizon account transport', () => {
 		getJson.mockResolvedValueOnce(page([{
 			id: 'stalled',
 			paging_token: 'same',
+			transaction_hash: 'a'.repeat(64),
+			type: 'manage_data',
+			type_i: 10,
+			created_at: '2026-07-22T00:00:00Z',
+			source_account: accountId,
 		}]))
 		await expect(getAccountOperations(accountId, 1, 'same')).rejects.toThrow('cursor did not advance')
 
+		getJson.mockResolvedValueOnce(page([{
+			id: 'malformed',
+			paging_token: '3',
+			transaction_hash: 'a'.repeat(64),
+			type: 'payment',
+			type_i: -1,
+			created_at: '2026-07-22T00:00:00Z',
+			source_account: accountId,
+		}]))
+		await expect(getAccountOperations(accountId, 1)).rejects.toThrow('invalid operation page response envelope')
+
 		await expect(getAccountPayments(accountId, 201)).rejects.toThrow('0 through 200')
-		expect(getJson).toHaveBeenCalledTimes(3)
+		expect(getJson).toHaveBeenCalledTimes(4)
 	})
 
 	it('does not transport zero-cardinality pages', async () => {
@@ -277,10 +344,16 @@ describe('Stellar Horizon account transport', () => {
 			max_fee: '100',
 			operation_count: 1,
 			memo_type: 'none',
+			envelope_xdr: 'AAAAAg==',
+			result_xdr: 'AAAAAAAAAGQ=',
+			fee_meta_xdr: 'AAAAAg==',
+			signatures: ['sig'],
 		})
 		await expect(getTransaction(hash)).resolves.toMatchObject({
 			hash,
 			source_account: accountId,
+			envelope_xdr: 'AAAAAg==',
+			signatures: ['sig'],
 		})
 		expect(getJson).toHaveBeenLastCalledWith(
 			binding,

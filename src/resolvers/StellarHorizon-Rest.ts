@@ -10,6 +10,7 @@ import type {
 	StellarHorizonAssetIdentity,
 	StellarHorizonBalance,
 	StellarHorizonOffer,
+	StellarHorizonOperation,
 	StellarHorizonTrade,
 	StellarHorizonTransaction,
 } from '$/sources/StellarHorizon/Rest/types.ts'
@@ -161,8 +162,54 @@ const transactionTimestampFields = (
 					}),
 				},
 			}),
+			...(transaction.envelope_xdr != null && {
+				[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'envelopeXdr')]: transaction.envelope_xdr,
+			}),
+			...(transaction.result_xdr != null && {
+				[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'resultXdr')]: transaction.result_xdr,
+			}),
+			...(transaction.result_meta_xdr != null && {
+				[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'metaXdr')]: transaction.result_meta_xdr,
+			}),
+			...(transaction.fee_meta_xdr != null && {
+				[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'feeMetaXdr')]: transaction.fee_meta_xdr,
+			}),
+			...(transaction.signatures != null && transaction.signatures.length > 0 && {
+				[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'signatures')]: [
+					...transaction.signatures,
+				],
+			}),
 		},
 	}
+}
+
+const operationIdentityKeys = new Set([
+	'_links',
+	'id',
+	'paging_token',
+	'transaction_hash',
+	'type',
+	'type_i',
+	'created_at',
+	'transaction_successful',
+	'source_account',
+])
+
+const operationBodyFromWire = (
+	operation: StellarHorizonOperation
+) => {
+	const body = Object.fromEntries(
+		Object.entries(operation)
+			.filter(([key, value]) => (
+				!operationIdentityKeys.has(key)
+				&& value !== undefined
+			))
+	)
+
+	return Object.keys(body).length > 0 ?
+		body
+	:
+		undefined
 }
 
 const offerFromWire = (
@@ -339,6 +386,7 @@ export default {
 								[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'sequence')]: snapshot.sequence,
 								[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'nativeBalance')]: nativeBalances[0].balance,
 								[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'subentryCount')]: snapshot.subentry_count,
+								[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'thresholds')]: snapshot.thresholds,
 								[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'signerCount')]: snapshot.signers.length,
 							},
 						}]
@@ -645,29 +693,36 @@ export default {
 		})({
 			$$operations: {
 				select: ({ page, operationIndexFromHorizonId }, { $network, hash }) => (
-					page._embedded.records.map((operation) => ({
-						[EntityMetaKey.Selector]: {
-							$transaction: {
-								$network,
-								hash,
+					page._embedded.records.map((operation) => {
+						const body = operationBodyFromWire(operation)
+
+						return {
+							[EntityMetaKey.Selector]: {
+								$transaction: {
+									$network,
+									hash,
+								},
+								operationIndex: operationIndexFromHorizonId(operation.id),
 							},
-							operationIndex: operationIndexFromHorizonId(operation.id),
-						},
-						[EntityMetaKey.Fields]: {
-							[entityFieldAddressKey(EntityType.StellarOperation, [], 'operationType')]: operation.type,
-							...(operation.source_account != null && {
-								[entityFieldAddressKey(EntityType.StellarOperation, [], 'sourceAccount')]: operation.source_account,
-							}),
-							...(operation.transaction_successful != null && {
-								[entityFieldAddressKey(EntityType.StellarOperation, [], 'resultCode')]: (
-									operation.transaction_successful ?
-										'successful'
-									:
-										'failed'
-								),
-							}),
-						},
-					}))
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.StellarOperation, [], 'operationType')]: operation.type,
+								...(operation.source_account != null && {
+									[entityFieldAddressKey(EntityType.StellarOperation, [], 'sourceAccount')]: operation.source_account,
+								}),
+								...(body != null && {
+									[entityFieldAddressKey(EntityType.StellarOperation, [], 'body')]: body,
+								}),
+								...(operation.transaction_successful != null && {
+									[entityFieldAddressKey(EntityType.StellarOperation, [], 'resultCode')]: (
+										operation.transaction_successful ?
+											'successful'
+										:
+											'failed'
+									),
+								}),
+							},
+						}
+					})
 				),
 				continuation: ({ limit, page }, { hash }) => {
 					const records = page._embedded.records

@@ -82,6 +82,11 @@ describe('Stellar Horizon public-account resolver', () => {
 			subentry_count: 3,
 			last_modified_ledger: 5_000_000,
 			last_modified_time: '2026-07-22T00:00:00Z',
+			thresholds: {
+				low_threshold: 1,
+				med_threshold: 2,
+				high_threshold: 3,
+			},
 			balances: [
 				{
 					asset_type: 'native',
@@ -122,6 +127,11 @@ describe('Stellar Horizon public-account resolver', () => {
 					[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'sequence')]: '9223372036854775807',
 					[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'nativeBalance')]: '12345678901234567890.1234567',
 					[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'subentryCount')]: 3,
+					[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'thresholds')]: {
+						low_threshold: 1,
+						med_threshold: 2,
+						high_threshold: 3,
+					},
 					[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'signerCount')]: 1,
 				},
 			},
@@ -267,6 +277,11 @@ describe('Stellar Horizon public-account resolver', () => {
 			subentry_count: 0,
 			last_modified_ledger: 1,
 			last_modified_time: 'not-a-time',
+			thresholds: {
+				low_threshold: 0,
+				med_threshold: 0,
+				high_threshold: 0,
+			},
 			balances: [{
 				asset_type: 'native',
 				balance: '1.0000000',
@@ -311,6 +326,11 @@ describe('Stellar Horizon public-account resolver', () => {
 			subentry_count: 2,
 			last_modified_ledger: 50,
 			last_modified_time: '2026-07-22T00:00:00Z',
+			thresholds: {
+				low_threshold: 0,
+				med_threshold: 0,
+				high_threshold: 0,
+			},
 			balances: [
 				{
 					asset_type: 'native',
@@ -401,6 +421,11 @@ describe('Stellar Horizon public-account resolver', () => {
 			subentry_count: 2,
 			last_modified_ledger: 50,
 			last_modified_time: '2026-07-22T00:00:00Z',
+			thresholds: {
+				low_threshold: 0,
+				med_threshold: 0,
+				high_threshold: 0,
+			},
 			balances: [{
 				asset_type: 'native',
 				balance: '1.0000000',
@@ -534,6 +559,10 @@ describe('Stellar Horizon public-account resolver', () => {
 			max_fee: '100',
 			operation_count: 1,
 			memo_type: 'none',
+			envelope_xdr: 'AAAAAg==',
+			result_xdr: 'AAAAAAAAAGQ=',
+			fee_meta_xdr: 'AAAAAg==',
+			signatures: ['sig-a', 'sig-b'],
 		})
 		const headerResolver = resolverFor('sourceAccount')
 		const header = await headerResolver.resolve['NetworkHash'].resolve(
@@ -542,7 +571,23 @@ describe('Stellar Horizon public-account resolver', () => {
 		)
 
 		expect(headerResolver.projections.sourceAccount(header)).toBe(accountId)
-		expect(headerResolver.projections.$$timestamps(header)).toHaveLength(1)
+		expect(headerResolver.projections.$$timestamps(header)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: transaction,
+				timestampMs: Date.parse('2026-07-22T00:00:00Z'),
+				source: 'StellarHorizon_Rest',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'ledgerSequence')]: 100n,
+				[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'successful')]: true,
+				[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'feeCharged')]: 100n,
+				[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'maxFee')]: 100n,
+				[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'envelopeXdr')]: 'AAAAAg==',
+				[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'resultXdr')]: 'AAAAAAAAAGQ=',
+				[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'feeMetaXdr')]: 'AAAAAg==',
+				[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'signatures')]: ['sig-a', 'sig-b'],
+			},
+		}])
 
 		getJson.mockResolvedValueOnce(page([{
 			id: '273998503801384961',
@@ -553,6 +598,10 @@ describe('Stellar Horizon public-account resolver', () => {
 			type_i: 1,
 			created_at: '2026-07-22T00:00:00Z',
 			transaction_hash: hash,
+			from: accountId,
+			to: otherAccountId,
+			amount: '1.0000000',
+			asset_type: 'native',
 		}]))
 		const operationResolver = resolverFor('$$operations')
 		const operationSnapshot = await operationResolver.resolve['NetworkHash'].resolve(
@@ -572,6 +621,12 @@ describe('Stellar Horizon public-account resolver', () => {
 		expect(operations[0][EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.StellarOperation, [], 'operationType')]: 'payment',
 			[entityFieldAddressKey(EntityType.StellarOperation, [], 'sourceAccount')]: accountId,
+			[entityFieldAddressKey(EntityType.StellarOperation, [], 'body')]: {
+				from: accountId,
+				to: otherAccountId,
+				amount: '1.0000000',
+				asset_type: 'native',
+			},
 			[entityFieldAddressKey(EntityType.StellarOperation, [], 'resultCode')]: 'successful',
 		})
 	})

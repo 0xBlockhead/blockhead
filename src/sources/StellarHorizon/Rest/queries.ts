@@ -1,15 +1,21 @@
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/StellarHorizon/bindings.ts'
-import type {
-	StellarHorizonAccount,
-	StellarHorizonAssetIdentity,
-	StellarHorizonBalance,
-	StellarHorizonOffer,
-	StellarHorizonOperation,
-	StellarHorizonPage,
-	StellarHorizonPayment,
-	StellarHorizonTrade,
-	StellarHorizonTransaction,
+import {
+	stellarHorizonAccountWire,
+	stellarHorizonOfferPageWire,
+	stellarHorizonOperationPageWire,
+	stellarHorizonPaymentPageWire,
+	stellarHorizonTradePageWire,
+	stellarHorizonTransactionPageWire,
+	stellarHorizonTransactionWire,
+	type StellarHorizonAssetIdentity,
+	type StellarHorizonBalance,
+	type StellarHorizonOffer,
+	type StellarHorizonOperation,
+	type StellarHorizonPage,
+	type StellarHorizonPayment,
+	type StellarHorizonTrade,
+	type StellarHorizonTransaction,
 } from '$/sources/StellarHorizon/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -47,6 +53,35 @@ const assertAmount = (
 ) => {
 	if (!/^(0|[1-9][0-9]*)\.[0-9]{7}$/.test(value))
 		throw new Error(`StellarHorizon_Rest: invalid ${label}`)
+}
+
+const omitUndefinedJson = (
+	value: unknown
+): unknown => {
+	if (Array.isArray(value))
+		return value.map(omitUndefinedJson)
+	if (value != null && typeof value === 'object')
+		return Object.fromEntries(
+			Object.entries(value)
+				.filter(([, entry]) => entry !== undefined)
+				.map(([key, entry]) => [
+					key,
+					omitUndefinedJson(entry),
+				])
+		)
+	return value
+}
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(omitUndefinedJson(response))
+	} catch {
+		throw new Error(`StellarHorizon_Rest: invalid ${label} response envelope`)
+	}
 }
 
 const assertBalance = (balance: StellarHorizonBalance) => {
@@ -114,6 +149,17 @@ const pageParameters = (
 	return parameters
 }
 
+const emptyPage = <_Record>(): StellarHorizonPage<_Record> => ({
+	_links: {
+		next: {
+			href: '',
+		},
+	},
+	_embedded: {
+		records: [],
+	},
+})
+
 const assertPage = <_Record extends {
 	id: string
 	paging_token: string
@@ -153,17 +199,35 @@ const touchesAccount = (
 	|| operation.funder === accountId
 )
 
-const query = <_Json>(
+const query = (
 	path: string
 ) => (
-	getJson<_Json>(bindings[Source.StellarHorizon_Rest][0], path)
+	getJson(bindings[Source.StellarHorizon_Rest][0], path)
 )
+
+const assertTransactionDomain = (
+	transaction: StellarHorizonTransaction
+) => {
+	if (!/^[0-9a-f]{64}$/.test(transaction.hash))
+		throw new Error('StellarHorizon_Rest: invalid transaction hash')
+	assertAccountId(transaction.source_account, 'transaction source account')
+	assertAccountId(transaction.fee_account, 'transaction fee account')
+	assertUnsignedIntegerString(transaction.source_account_sequence, 'transaction source sequence')
+	assertUnsignedIntegerString(transaction.fee_charged, 'charged fee')
+	assertUnsignedIntegerString(transaction.max_fee, 'maximum fee')
+	assertUnsignedInteger(transaction.ledger, 'transaction ledger')
+	assertUnsignedInteger(transaction.operation_count, 'transaction operation count')
+}
 
 export const getAccount = async (
 	accountId: string
 ) => {
 	assertAccountId(accountId)
-	const account = await query<StellarHorizonAccount>(accountPath(accountId))
+	const account = assertEnvelope(
+		'account',
+		stellarHorizonAccountWire,
+		await query(accountPath(accountId))
+	)
 	if (account.id !== accountId || account.account_id !== accountId)
 		throw new Error('StellarHorizon_Rest: account response identity mismatch')
 	assertUnsignedIntegerString(account.sequence, 'account sequence')
@@ -193,24 +257,19 @@ const getAccountPage = async <_Record extends {
 }>(
 	accountId: string,
 	resource: 'operations' | 'payments' | 'transactions' | 'offers' | 'trades',
+	label: string,
+	pageWire: { assert: (value: unknown) => StellarHorizonPage<_Record> },
 	limit: number,
 	cursor?: string
 ) => {
 	assertAccountId(accountId)
 	const parameters = pageParameters(limit, cursor)
 	if (limit === 0)
-		return {
-			_links: {
-				next: {
-					href: '',
-				},
-			},
-			_embedded: {
-				records: [],
-			},
-		}
-	const page = await query<StellarHorizonPage<_Record>>(
-		`${accountPath(accountId)}/${resource}?${parameters.toString()}`
+		return emptyPage<_Record>()
+	const page = assertEnvelope(
+		label,
+		pageWire,
+		await query(`${accountPath(accountId)}/${resource}?${parameters.toString()}`)
 	)
 	assertPage(page, limit, cursor)
 	return page
@@ -224,6 +283,8 @@ export const getAccountPayments = async (
 	const page = await getAccountPage<StellarHorizonPayment>(
 		accountId,
 		'payments',
+		'payment page',
+		stellarHorizonPaymentPageWire,
 		limit,
 		cursor
 	)
@@ -246,6 +307,8 @@ export const getAccountOperations = async (
 	const page = await getAccountPage<StellarHorizonOperation>(
 		accountId,
 		'operations',
+		'operation page',
+		stellarHorizonOperationPageWire,
 		limit,
 		cursor
 	)
@@ -267,20 +330,13 @@ export const getAccountTransactions = async (
 	const page = await getAccountPage<StellarHorizonTransaction>(
 		accountId,
 		'transactions',
+		'transaction page',
+		stellarHorizonTransactionPageWire,
 		limit,
 		cursor
 	)
-	for (const transaction of page._embedded.records) {
-		if (!/^[0-9a-f]{64}$/.test(transaction.hash))
-			throw new Error('StellarHorizon_Rest: invalid transaction hash')
-		assertAccountId(transaction.source_account, 'transaction source account')
-		assertAccountId(transaction.fee_account, 'transaction fee account')
-		assertUnsignedIntegerString(transaction.source_account_sequence, 'transaction source sequence')
-		assertUnsignedIntegerString(transaction.fee_charged, 'charged fee')
-		assertUnsignedIntegerString(transaction.max_fee, 'maximum fee')
-		assertUnsignedInteger(transaction.ledger, 'transaction ledger')
-		assertUnsignedInteger(transaction.operation_count, 'transaction operation count')
-	}
+	for (const transaction of page._embedded.records)
+		assertTransactionDomain(transaction)
 	return page
 }
 
@@ -292,6 +348,8 @@ export const getAccountOffers = async (
 	const page = await getAccountPage<StellarHorizonOffer>(
 		accountId,
 		'offers',
+		'offer page',
+		stellarHorizonOfferPageWire,
 		limit,
 		cursor
 	)
@@ -323,6 +381,8 @@ export const getAccountTrades = async (
 	const page = await getAccountPage<StellarHorizonTrade>(
 		accountId,
 		'trades',
+		'trade page',
+		stellarHorizonTradePageWire,
 		limit,
 		cursor
 	)
@@ -361,18 +421,14 @@ export const getTransaction = async (
 ) => {
 	if (!/^[0-9a-f]{64}$/.test(hash))
 		throw new Error('StellarHorizon_Rest: invalid transaction hash')
-	const transaction = await query<StellarHorizonTransaction>(
-		`/transactions/${encodeURIComponent(hash)}`
+	const transaction = assertEnvelope(
+		'transaction',
+		stellarHorizonTransactionWire,
+		await query(`/transactions/${encodeURIComponent(hash)}`)
 	)
 	if (transaction.hash !== hash)
 		throw new Error('StellarHorizon_Rest: transaction response identity mismatch')
-	assertAccountId(transaction.source_account, 'transaction source account')
-	assertAccountId(transaction.fee_account, 'transaction fee account')
-	assertUnsignedIntegerString(transaction.source_account_sequence, 'transaction source sequence')
-	assertUnsignedIntegerString(transaction.fee_charged, 'charged fee')
-	assertUnsignedIntegerString(transaction.max_fee, 'maximum fee')
-	assertUnsignedInteger(transaction.ledger, 'transaction ledger')
-	assertUnsignedInteger(transaction.operation_count, 'transaction operation count')
+	assertTransactionDomain(transaction)
 	return transaction
 }
 
@@ -386,18 +442,11 @@ export const getTransactionOperations = async (
 	const parameters = pageParameters(limit, cursor)
 	parameters.set('order', 'asc')
 	if (limit === 0)
-		return {
-			_links: {
-				next: {
-					href: '',
-				},
-			},
-			_embedded: {
-				records: [],
-			},
-		}
-	const page = await query<StellarHorizonPage<StellarHorizonOperation>>(
-		`/transactions/${encodeURIComponent(hash)}/operations?${parameters.toString()}`
+		return emptyPage<StellarHorizonOperation>()
+	const page = assertEnvelope(
+		'transaction operation page',
+		stellarHorizonOperationPageWire,
+		await query(`/transactions/${encodeURIComponent(hash)}/operations?${parameters.toString()}`)
 	)
 	assertPage(page, limit, cursor)
 	for (const operation of page._embedded.records) {
