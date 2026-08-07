@@ -222,28 +222,28 @@ const balancerPoolTokenEnvelope = arktype({
 	balance: 'string',
 	decimals: 'number',
 	'weight?': 'string | null',
-})
+}).onUndeclaredKey('delete')
 
 const balancerPoolAprItemEnvelope = arktype({
 	title: 'string',
 	type: 'string',
 	apr: 'number',
-})
+}).onUndeclaredKey('delete')
 
 const balancerPoolStakingEnvelope = arktype({
 	type: 'string',
 	gauge: arktype({
 		gaugeAddress: 'string',
 		version: 'number',
-	}).or(arktype.null),
-})
+	}).onUndeclaredKey('delete').or(arktype.null),
+}).onUndeclaredKey('delete')
 
 const balancerUserStakedBalanceEnvelope = arktype({
 	balance: 'string',
 	balanceUsd: 'number',
 	stakingId: 'string',
 	stakingType: 'string',
-})
+}).onUndeclaredKey('delete')
 
 export const balancerUserBalanceEnvelope = arktype({
 	stakedBalances: balancerUserStakedBalanceEnvelope.array(),
@@ -251,7 +251,7 @@ export const balancerUserBalanceEnvelope = arktype({
 	walletBalanceUsd: 'number',
 	totalBalance: 'string',
 	totalBalanceUsd: 'number',
-})
+}).onUndeclaredKey('delete')
 
 const balancerPoolEnvelope = arktype({
 	id: 'string',
@@ -262,21 +262,21 @@ const balancerPoolEnvelope = arktype({
 	protocolVersion: 'number',
 	chain: 'string',
 	poolTokens: balancerPoolTokenEnvelope.array(),
-	dynamicData: {
+	dynamicData: arktype({
 		totalLiquidity: 'string',
 		totalShares: 'string',
 		swapFee: 'string',
 		'aprItems?': balancerPoolAprItemEnvelope.array(),
-	},
+	}).onUndeclaredKey('delete'),
 	'staking?': balancerPoolStakingEnvelope.or(arktype.null),
 	'userBalance?': balancerUserBalanceEnvelope.or(arktype.null),
-})
+}).onUndeclaredKey('delete')
 
 export const balancerPoolListEnvelope = balancerPoolEnvelope.array()
 
 export const balancerPoolDetailEnvelope = balancerPoolEnvelope
 
-export const balancerPoolsCountEnvelope = arktype('number')
+export const balancerPoolsCountEnvelope = arktype('number.integer >= 0')
 
 export const balancerVotingPoolEnvelope = arktype({
 	id: 'string',
@@ -285,28 +285,28 @@ export const balancerVotingPoolEnvelope = arktype({
 	type: 'string',
 	symbol: 'string',
 	protocolVersion: 'number',
-	gauge: {
+	gauge: arktype({
 		address: 'string',
 		'relativeWeightCap?': 'string | null',
 		isKilled: 'boolean',
-	},
+	}).onUndeclaredKey('delete'),
 	tokens: arktype({
 		address: 'string',
 		symbol: 'string',
 		'logoURI?': 'string | null',
-	}).array(),
-})
+	}).onUndeclaredKey('delete').array(),
+}).onUndeclaredKey('delete')
 
 export const balancerVotingListEnvelope = balancerVotingPoolEnvelope.array()
 
-export const balancerVeBalUserBalanceEnvelope = arktype('string')
+export const balancerVeBalUserBalanceEnvelope = arktype('string > 0')
 
 export const balancerVeBalUserEnvelope = arktype({
 	balance: 'string',
 	locked: 'string',
 	lockedUsd: 'string',
 	rank: 'number | null',
-})
+}).onUndeclaredKey('delete')
 
 export const balancerPoolEventEnvelope = arktype({
 	id: 'string',
@@ -318,6 +318,6 @@ export const balancerPoolEventEnvelope = arktype({
 	blockTimestamp: 'number',
 	tx: 'string',
 	userAddress: 'string',
-})
+}).onUndeclaredKey('delete')
 
 export const balancerPoolEventsEnvelope = balancerPoolEventEnvelope.array()

@@ -93,7 +93,8 @@ const mapBalancerPoolSnapshot = (
 }
 
 const mapVotingGaugeSnapshot = (
-	gauge: BalancerVotingGauge
+	gauge: BalancerVotingGauge,
+	gaugeVersion?: number
 ) => {
 	const network = {
 		caip2: {
@@ -118,6 +119,9 @@ const mapVotingGaugeSnapshot = (
 		protocolVersion: gauge.protocolVersion,
 		...(gauge.relativeWeightCap != null && {
 			relativeWeightCap: gauge.relativeWeightCap,
+		}),
+		...(gaugeVersion != null && {
+			version: gaugeVersion,
 		}),
 	}
 }
@@ -258,7 +262,10 @@ export default {
 						if (balancerChainByChainId[chainId] == null)
 							throw new Error(`${Source.Balancer_Rest}: unsupported chain id ${String(chainId)}`)
 
-						const { listVotingGauges } = await import('$/sources/Balancer/Rest/queries.ts')
+						const {
+							getPool,
+							listVotingGauges,
+						} = await import('$/sources/Balancer/Rest/queries.ts')
 						const gauge = (await listVotingGauges({
 							includeKilled: true,
 						})).find((candidate) => (
@@ -268,7 +275,19 @@ export default {
 						if (gauge == null)
 							throw new Error(`${Source.Balancer_Rest}: voting gauge not found ${gaugeAddress} on chain ${String(chainId)}`)
 
-						return mapVotingGaugeSnapshot(gauge)
+						const pool = await getPool({
+							chainId,
+							poolId: gauge.poolId,
+						}).catch(() => undefined)
+						return mapVotingGaugeSnapshot(
+							gauge,
+							(
+								pool?.gaugeAddress === gauge.gaugeAddress ?
+									pool.gaugeVersion
+								:
+									undefined
+							)
+						)
 					},
 				},
 			},
@@ -276,6 +295,7 @@ export default {
 			$network: (gauge) => gauge.$network,
 			gaugeAddress: (gauge) => gauge.gaugeAddress,
 			$pool: (gauge) => gauge.$pool,
+			version: (gauge) => gauge.version,
 			isKilled: (gauge) => gauge.isKilled,
 			relativeWeightCap: (gauge) => gauge.relativeWeightCap,
 			poolSymbol: (gauge) => gauge.poolSymbol,
@@ -484,6 +504,43 @@ export default {
 								[EntityMetaKey.Selector]: {
 									$network: network,
 									poolId: pool.id,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.BalancerPool, [], 'address')]: pool.address,
+									[entityFieldAddressKey(EntityType.BalancerPool, [], 'name')]: pool.name,
+									[entityFieldAddressKey(EntityType.BalancerPool, [], 'poolType')]: pool.type,
+									[entityFieldAddressKey(EntityType.BalancerPool, [], 'version')]: pool.version,
+									[entityFieldAddressKey(EntityType.BalancerPool, [], 'protocolVersion')]: pool.protocolVersion,
+									[entityFieldAddressKey(EntityType.BalancerPool, [], 'vaultAddress')]: pool.vaultAddress,
+									[entityFieldAddressKey(EntityType.BalancerPool, [], 'swapFee')]: pool.swapFee,
+									[entityFieldAddressKey(EntityType.BalancerPool, [], 'totalLiquidity')]: pool.totalLiquidity,
+									[entityFieldAddressKey(EntityType.BalancerPool, [], 'totalShares')]: pool.totalShares,
+									...(pool.gaugeAddress != null && {
+										[entityFieldAddressKey(EntityType.BalancerPool, [], '$gauge')]: {
+											[EntityMetaKey.Selector]: {
+												$network: network,
+												gaugeAddress: pool.gaugeAddress,
+											},
+											...(pool.gaugeVersion != null && {
+												[EntityMetaKey.Fields]: {
+													[entityFieldAddressKey(EntityType.BalancerGauge, [], 'version')]: pool.gaugeVersion,
+												},
+											}),
+										},
+									}),
+									[entityFieldAddressKey(EntityType.BalancerPool, [], '$$aprItems')]: pool.aprItems.map((item) => ({
+										[EntityMetaKey.Selector]: {
+											$pool: {
+												$network: network,
+												poolId: pool.id,
+											},
+											title: item.title,
+											aprType: item.type,
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.BalancerPoolAprItem, [], 'apr')]: item.apr,
+										},
+									})),
 								},
 							})),
 							poolCount,

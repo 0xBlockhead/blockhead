@@ -138,15 +138,15 @@ const assertNonEmptyString = (
 	return value
 }
 
-const assertEnvelope = (
+const assertEnvelope = <_Value>(
 	envelope: {
-		assert: (value: unknown) => unknown
+		assert: (value: unknown) => _Value
 	},
 	value: unknown,
 	label: string
 ) => {
 	try {
-		envelope.assert(value)
+		return envelope.assert(value)
 	} catch {
 		throw new Error(`${Source.Balancer_Rest}: invalid ${label} response envelope`)
 	}

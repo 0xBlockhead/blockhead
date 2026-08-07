@@ -251,6 +251,28 @@ describe('Balancer poolGetPool operation', () => {
 			poolId: weightedV2PoolId,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool response envelope`)
 	})
+
+	it('strips undeclared pool wire keys while keeping enrolled fields', async () => {
+		graphql.mockResolvedValueOnce({
+			poolGetPool: {
+				...weightedV2Pool,
+				wireOnlyNoise: true,
+				dynamicData: {
+					...weightedV2Pool.dynamicData,
+					volume24h: '999',
+				},
+			},
+		})
+
+		await expect(getPool({
+			chainId: 1,
+			poolId: weightedV2PoolId,
+		})).resolves.toMatchObject({
+			id: weightedV2PoolId,
+			name: '20wstETH-80AAVE',
+			totalLiquidity: '11356688.22',
+		})
+	})
 })
 
 describe('Balancer poolGetPools operation', () => {
