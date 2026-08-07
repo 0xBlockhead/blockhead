@@ -120,6 +120,9 @@ const blockFields = (
 		slot: BigInt(block.slot),
 		blockNo: BigInt(block.height),
 		epoch: block.epoch ?? undefined,
+		...(block.block_vrf != null && {
+			issuerVkey: block.block_vrf,
+		}),
 	}
 }
 
@@ -855,6 +858,9 @@ export default {
 								[entityFieldAddressKey(EntityType.CardanoBlock, [], 'blockNo')]: fields.blockNo,
 								...(fields.epoch != null && {
 									[entityFieldAddressKey(EntityType.CardanoBlock, [], 'epoch')]: fields.epoch,
+								}),
+								...(fields.issuerVkey != null && {
+									[entityFieldAddressKey(EntityType.CardanoBlock, [], 'issuerVkey')]: fields.issuerVkey,
 								}),
 							},
 						}
@@ -1996,6 +2002,7 @@ export default {
 			slot: (block) => block.slot,
 			blockNo: (block) => block.blockNo,
 			epoch: (block) => block.epoch,
+			issuerVkey: (block) => block.issuerVkey,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

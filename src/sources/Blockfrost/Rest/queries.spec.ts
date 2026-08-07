@@ -292,6 +292,62 @@ describe('Blockfrost REST transport', () => {
 		)
 	})
 
+	it('accepts transaction UTXO leftovers and fail-closes malformed consumed_by_tx', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(Response.json({
+				hash: 'utxo-hash',
+				inputs: [{
+					address: 'addr1input',
+					amount: [{
+						unit: 'lovelace',
+						quantity: '1',
+					}],
+					tx_hash: 'spent-hash',
+					output_index: 0,
+					collateral: false,
+					reference: true,
+				}],
+				outputs: [{
+					address: 'addr1output',
+					amount: [{
+						unit: 'lovelace',
+						quantity: '1',
+					}],
+					tx_hash: 'utxo-hash',
+					output_index: 0,
+					collateral: false,
+					consumed_by_tx: 'consuming-hash',
+				}],
+			}))
+			.mockResolvedValueOnce(Response.json({
+				hash: 'bad-utxo-hash',
+				inputs: [],
+				outputs: [{
+					address: 'addr1output',
+					amount: [{
+						unit: 'lovelace',
+						quantity: '1',
+					}],
+					tx_hash: 'bad-utxo-hash',
+					output_index: 0,
+					consumed_by_tx: 42,
+				}],
+			}))
+
+		await expect(getTransactionUtxos('utxo-hash')).resolves.toMatchObject({
+			hash: 'utxo-hash',
+			inputs: [{
+				reference: true,
+			}],
+			outputs: [{
+				consumed_by_tx: 'consuming-hash',
+			}],
+		})
+		await expect(getTransactionUtxos('bad-utxo-hash')).rejects.toThrow(
+			'Blockfrost_Rest: invalid transaction utxos envelope'
+		)
+	})
+
 	it('omits DRep display identity when CIP-119 metadata is absent or malformed', async () => {
 		sourceFetch.mockResolvedValueOnce(Response.json([
 			{

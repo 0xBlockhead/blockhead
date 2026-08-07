@@ -29,10 +29,12 @@ export const cardanoKoiosTip = arktype({
 
 export interface CardanoKoiosBlock extends CardanoKoiosTip {
 	tx_count: number
+	vrf_key?: string | null
 }
 
 export const cardanoKoiosBlock = cardanoKoiosTip.and({
 	tx_count: 'number.integer >= 0',
+	'vrf_key?': 'string | null',
 }) satisfies Type<CardanoKoiosBlock>
 
 export interface CardanoKoiosBlockInfo extends CardanoKoiosBlock {
@@ -260,6 +262,16 @@ export interface CardanoKoiosProtocolParameters {
 	protocol_minor: number
 	min_pool_cost: string
 	coins_per_utxo_size: string
+	cost_models?: unknown
+	price_mem?: number | null
+	price_step?: number | null
+	max_tx_ex_mem?: number | null
+	max_tx_ex_steps?: number | null
+	max_block_ex_mem?: number | null
+	max_block_ex_steps?: number | null
+	max_val_size?: number | null
+	collateral_percent?: number | null
+	max_collateral_inputs?: number | null
 }
 
 export const cardanoKoiosProtocolParameters = arktype({
@@ -280,6 +292,16 @@ export const cardanoKoiosProtocolParameters = arktype({
 	protocol_minor: 'number.integer >= 0',
 	min_pool_cost: '/^(0|[1-9][0-9]*)$/',
 	coins_per_utxo_size: '/^(0|[1-9][0-9]*)$/',
+	'cost_models?': 'unknown',
+	'price_mem?': 'number | null',
+	'price_step?': 'number | null',
+	'max_tx_ex_mem?': 'number.integer >= 0 | null',
+	'max_tx_ex_steps?': 'number.integer >= 0 | null',
+	'max_block_ex_mem?': 'number.integer >= 0 | null',
+	'max_block_ex_steps?': 'number.integer >= 0 | null',
+	'max_val_size?': 'number.integer >= 0 | null',
+	'collateral_percent?': 'number.integer >= 0 | null',
+	'max_collateral_inputs?': 'number.integer >= 0 | null',
 }) satisfies Type<CardanoKoiosProtocolParameters>
 
 export interface CardanoKoiosCommittee {

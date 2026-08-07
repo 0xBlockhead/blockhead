@@ -82,21 +82,24 @@ export default {
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
 				assertCardanoMainnet(network)
-				const { getTip } = await import('$/sources/CardanoKoios/Rest/queries.ts')
-				const [tip] = await getTip()
+				const { listBlocks } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+				const [block] = await listBlocks(1)
+				if (block == null)
+					throw new Error('CardanoKoios_Rest: tip block is missing')
 
 				return [{
 					[EntityMetaKey.Selector]: {
 						$network: network,
-						timestampMs: tip.block_time * 1_000,
+						timestampMs: block.block_time * 1_000,
 						source: Source.CardanoKoios_Rest,
 					},
 					[EntityMetaKey.Fields]: {
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestSlot')]: BigInt(tip.abs_slot),
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockNo')]: BigInt(tip.block_height),
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockHash')]: tip.hash,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockTimeMs')]: tip.block_time * 1_000,
-						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'epoch')]: tip.epoch_no,
+						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestSlot')]: BigInt(block.abs_slot),
+						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockNo')]: BigInt(block.block_height),
+						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockHash')]: block.hash,
+						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockTimeMs')]: block.block_time * 1_000,
+						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockTransactionCount')]: block.tx_count,
+						[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'epoch')]: block.epoch_no,
 					},
 				}]
 			}
@@ -124,6 +127,9 @@ export default {
 						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'blockNo')]: BigInt(block.block_height),
 						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'epoch')]: block.epoch_no,
 						[entityFieldAddressKey(EntityType.CardanoBlock, [], 'era')]: block.era,
+						...(block.vrf_key != null && {
+							[entityFieldAddressKey(EntityType.CardanoBlock, [], 'issuerVkey')]: block.vrf_key,
+						}),
 					},
 				}))
 			}
@@ -362,6 +368,36 @@ export default {
 						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'protocolMinor')]: parameters.protocol_minor,
 						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'minPoolCost')]: BigInt(parameters.min_pool_cost),
 						[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'coinsPerUtxoByte')]: BigInt(parameters.coins_per_utxo_size),
+						...(parameters.cost_models != null && {
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'costModels')]: parameters.cost_models,
+						}),
+						...((parameters.price_mem != null || parameters.price_step != null) && {
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'executionPrices')]: {
+								memory: parameters.price_mem,
+								steps: parameters.price_step,
+							},
+						}),
+						...((parameters.max_tx_ex_mem != null || parameters.max_tx_ex_steps != null) && {
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxTxExUnits')]: {
+								memory: parameters.max_tx_ex_mem,
+								steps: parameters.max_tx_ex_steps,
+							},
+						}),
+						...((parameters.max_block_ex_mem != null || parameters.max_block_ex_steps != null) && {
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxBlockExUnits')]: {
+								memory: parameters.max_block_ex_mem,
+								steps: parameters.max_block_ex_steps,
+							},
+						}),
+						...(parameters.max_val_size != null && {
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxValueSize')]: parameters.max_val_size,
+						}),
+						...(parameters.collateral_percent != null && {
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'collateralPercentage')]: parameters.collateral_percent,
+						}),
+						...(parameters.max_collateral_inputs != null && {
+							[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxCollateralInputs')]: parameters.max_collateral_inputs,
+						}),
 					},
 				}],
 			},

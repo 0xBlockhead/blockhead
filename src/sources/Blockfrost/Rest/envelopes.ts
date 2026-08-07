@@ -98,7 +98,9 @@ export const blockfrostTransactionUtxoPortWire = arktype({
 	'data_hash?': 'string | null',
 	'inline_datum?': 'string | null',
 	'collateral?': 'boolean',
+	'reference?': 'boolean',
 	'reference_script_hash?': 'string | null',
+	'consumed_by_tx?': nonEmptyString.or(arktype('null')),
 })
 
 export const blockfrostTransactionUtxosWire = arktype({
@@ -209,6 +211,7 @@ export const blockfrostProtocolParametersWire = arktype({
 	'min_pool_cost?': lovelaceQuantity,
 	'nonce?': 'string',
 	'cost_models?': 'unknown',
+	'cost_models_raw?': 'unknown',
 	'price_mem?': 'number | null',
 	'price_step?': 'number | null',
 	'max_tx_ex_mem?': 'string | null',

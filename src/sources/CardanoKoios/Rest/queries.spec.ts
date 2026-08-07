@@ -924,6 +924,27 @@ describe('Cardano Koios REST protocol parameter wire validation', () => {
 		await expect(getLatestProtocolParameters(binding)).resolves.toEqual([parameters])
 	})
 
+	it('keeps optional Plutus leftover fields when present', async () => {
+		const parametersWithLeftovers = {
+			...parameters,
+			cost_models: {
+				PlutusV3: [1, 2, 3],
+			},
+			price_mem: 0.0577,
+			price_step: 7.21e-5,
+			max_tx_ex_mem: 14_000_000,
+			max_tx_ex_steps: 10_000_000_000,
+			max_block_ex_mem: 62_000_000,
+			max_block_ex_steps: 20_000_000_000,
+			max_val_size: 5_000,
+			collateral_percent: 150,
+			max_collateral_inputs: 3,
+		}
+		sourceGetJson.mockResolvedValueOnce([parametersWithLeftovers])
+
+		await expect(getLatestProtocolParameters(binding)).resolves.toEqual([parametersWithLeftovers])
+	})
+
 	it.each([
 		{
 			label: 'missing singleton',

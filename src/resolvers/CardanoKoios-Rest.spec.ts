@@ -23,6 +23,7 @@ const getCommittee = vi.fn()
 const getLatestProtocolParameters = vi.fn()
 const getTip = vi.fn()
 const listAssets = vi.fn()
+const listBlocks = vi.fn()
 const listDReps = vi.fn()
 const listGovernanceProposals = vi.fn()
 const listStakePools = vi.fn()
@@ -33,6 +34,7 @@ vi.mock('$/sources/CardanoKoios/Rest/queries.ts', () => ({
 	getTip,
 	getTransactionInfo,
 	listAssets,
+	listBlocks,
 	listDReps,
 	listGovernanceProposals,
 	listStakePools,
@@ -715,5 +717,121 @@ describe('Cardano Koios network relationships', () => {
 			},
 		])
 		expect(resolver.projections.Cardano.$$stakePools(snapshot)).toBe(snapshot)
+	})
+
+	it('projects tip leftovers from the newest block page and protocol-parameter leftovers', async () => {
+		const timestampsResolver = cardanoKoiosResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'Cardano' in candidate.projections
+			&& '$$timestamps' in candidate.projections.Cardano
+		))
+		const blocksResolver = cardanoKoiosResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'Cardano' in candidate.projections
+			&& '$$blocks' in candidate.projections.Cardano
+		))
+		const protocolParametersResolver = cardanoKoiosResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'Cardano' in candidate.projections
+			&& '$$protocolParameterEpochs' in candidate.projections.Cardano
+		))
+		if (
+			timestampsResolver == null
+			|| blocksResolver == null
+			|| protocolParametersResolver == null
+		)
+			throw new Error('CardanoKoios-Rest spec missing tip/block/protocol leftover resolvers')
+
+		listBlocks
+			.mockResolvedValueOnce([{
+				hash: 'tip-block-hash',
+				epoch_no: 500,
+				era: 'Conway',
+				abs_slot: 130_000_102,
+				block_height: 102,
+				block_time: 1_700_000_102,
+				tx_count: 7,
+				vrf_key: 'vrf_vk1example',
+			}])
+			.mockResolvedValueOnce([{
+				hash: 'tip-block-hash',
+				epoch_no: 500,
+				era: 'Conway',
+				abs_slot: 130_000_102,
+				block_height: 102,
+				block_time: 1_700_000_102,
+				tx_count: 7,
+				vrf_key: 'vrf_vk1example',
+			}])
+		getLatestProtocolParameters.mockResolvedValueOnce([{
+			epoch_no: 500,
+			min_fee_a: 44,
+			min_fee_b: 155_381,
+			max_block_size: 90_112,
+			max_tx_size: 16_384,
+			max_bh_size: 1_100,
+			key_deposit: '2000000',
+			pool_deposit: '500000000',
+			max_epoch: 18,
+			optimal_pool_count: 500,
+			monetary_expand_rate: 0.003,
+			treasury_growth_rate: 0.2,
+			decentralisation: 0,
+			protocol_major: 9,
+			protocol_minor: 0,
+			min_pool_cost: '170000000',
+			coins_per_utxo_size: '4310',
+			cost_models: {
+				PlutusV3: [1, 2, 3],
+			},
+			price_mem: 0.0577,
+			price_step: 7.21e-5,
+			max_tx_ex_mem: 14_000_000,
+			max_tx_ex_steps: 10_000_000_000,
+			max_block_ex_mem: 62_000_000,
+			max_block_ex_steps: 20_000_000_000,
+			max_val_size: 5_000,
+			collateral_percent: 150,
+			max_collateral_inputs: 3,
+		}])
+
+		await expect(timestampsResolver.resolve['Caip2'].resolve(
+			cardanoNetwork,
+			resolverContext
+		)).resolves.toMatchObject([{
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockTransactionCount')]: 7,
+				[entityFieldAddressKey(EntityType.CardanoNetwork_Timestamp, [], 'latestBlockHash')]: 'tip-block-hash',
+			},
+		}])
+		await expect(blocksResolver.resolve['Caip2'].resolve(
+			cardanoNetwork,
+			resolverContext
+		)).resolves.toMatchObject([{
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.CardanoBlock, [], 'issuerVkey')]: 'vrf_vk1example',
+				[entityFieldAddressKey(EntityType.CardanoBlock, [], 'era')]: 'Conway',
+			},
+		}])
+		const protocolSnapshot = await protocolParametersResolver.resolve['Caip2'].resolve(
+			cardanoNetwork,
+			resolverContext
+		)
+		expect(
+			protocolParametersResolver.projections.Cardano.$$protocolParameterEpochs(protocolSnapshot)
+		).toMatchObject([{
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'costModels')]: {
+					PlutusV3: [1, 2, 3],
+				},
+				[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'executionPrices')]: {
+					memory: 0.0577,
+					steps: 7.21e-5,
+				},
+				[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxValueSize')]: 5_000,
+				[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'collateralPercentage')]: 150,
+				[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxCollateralInputs')]: 3,
+			},
+		}])
 	})
 })

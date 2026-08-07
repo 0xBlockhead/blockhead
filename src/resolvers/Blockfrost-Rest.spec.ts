@@ -1054,6 +1054,9 @@ describe('Blockfrost Cardano network facet', () => {
 					[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'keyDeposit')]: 2_000_000n,
 					[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'coinsPerUtxoByte')]: 4_310n,
 					[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'maxValueSize')]: 5_000,
+					[entityFieldAddressKey(EntityType.CardanoProtocolParameters_Epoch, [], 'costModels')]: {
+						PlutusV3: [1],
+					},
 				},
 			},
 		])
@@ -1363,6 +1366,27 @@ describe('Blockfrost Cardano network facet', () => {
 		expect(getBlock).toHaveBeenLastCalledWith(
 			'block-hash'
 		)
+	})
+
+	it('projects enrolled issuerVkey from a nonempty block_vrf leftover', async () => {
+		getBlock.mockResolvedValueOnce({
+			...latestBlock,
+			block_vrf: 'vrf_vk1blockfrost',
+		})
+
+		await expect(cardanoBlockResolver.resolve['NetworkHash'].resolve(
+			{
+				$network: { slug: 'cardano' },
+				hash: 'block-hash',
+			},
+			resolverContext
+		)).resolves.toEqual({
+			hash: 'block-hash',
+			slot: 130_000_000n,
+			blockNo: 10_000_000n,
+			epoch: 500,
+			issuerVkey: 'vrf_vk1blockfrost',
+		})
 	})
 
 	it('passes slot and block-number selectors through without precision loss', async () => {
