@@ -67,6 +67,21 @@ const messageTimestampResolver = filfoxRest.resolvers.find((resolver) => (
 const messageReceiptResolver = filfoxRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FilecoinMessageReceipt
 ))
+const messageFeeResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinMessageFee
+))
+const messageTransferResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinMessageTransfer
+))
+const messageTokenTransferResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinMessageTokenTransfer
+))
+const messageEventResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinMessageEvent
+))
+const messageSubcallResolver = filfoxRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.FilecoinMessageSubcall
+))
 const dealResolver = filfoxRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FilecoinDeal
 ))
@@ -111,6 +126,11 @@ if (
 	|| messageResolver == null
 	|| messageTimestampResolver == null
 	|| messageReceiptResolver == null
+	|| messageFeeResolver == null
+	|| messageTransferResolver == null
+	|| messageTokenTransferResolver == null
+	|| messageEventResolver == null
+	|| messageSubcallResolver == null
 	|| dealResolver == null
 	|| filecoinNetworkDealsResolver == null
 	|| filecoinNetworkTimestampsResolver == null
@@ -149,6 +169,10 @@ describe('Filfox REST resolvers', () => {
 			EntityType.FilecoinMessage_Timestamp,
 			EntityType.FilecoinMessageReceipt,
 			EntityType.FilecoinMessageFee,
+			EntityType.FilecoinMessageTransfer,
+			EntityType.FilecoinMessageTokenTransfer,
+			EntityType.FilecoinMessageEvent,
+			EntityType.FilecoinMessageSubcall,
 			EntityType.FilecoinBlock,
 			EntityType.FilecoinMiner,
 			EntityType.FilecoinMiner_Timestamp,
@@ -323,6 +347,8 @@ describe('Filfox REST resolvers', () => {
 				value: '5',
 				tokenSymbol: 'USDFC',
 			}],
+			eventLogCount: 2,
+			subcallCount: 3,
 		})
 		getMessageEvents.mockResolvedValueOnce([{
 			address: '0xabc',
@@ -415,10 +441,14 @@ describe('Filfox REST resolvers', () => {
 				[entityFieldAddressKey(EntityType.FilecoinMessageFee, [], 'refund')]: 40n,
 			},
 		})
-		expect(messageResolver.projections.$$transfers(snapshot)).toHaveLength(1)
-		expect(messageResolver.projections.$$tokenTransfers(snapshot)).toHaveLength(1)
-		expect(messageResolver.projections.$$events(snapshot)).toHaveLength(1)
-		expect(messageResolver.projections.$$subcalls(snapshot)).toHaveLength(1)
+		expect(messageResolver.projections.$$transfers.select(snapshot)).toHaveLength(1)
+		expect(messageResolver.projections.$$transfers.resolveCount?.(snapshot)).toBe(1)
+		expect(messageResolver.projections.$$tokenTransfers.select(snapshot)).toHaveLength(1)
+		expect(messageResolver.projections.$$tokenTransfers.resolveCount?.(snapshot)).toBe(1)
+		expect(messageResolver.projections.$$events.select(snapshot)).toHaveLength(1)
+		expect(messageResolver.projections.$$events.resolveCount?.(snapshot)).toBe(2)
+		expect(messageResolver.projections.$$subcalls.select(snapshot)).toHaveLength(1)
+		expect(messageResolver.projections.$$subcalls.resolveCount?.(snapshot)).toBe(3)
 	})
 
 	it('omits $$timestamps when Filfox message lacks inclusion clocks', async () => {
@@ -569,6 +599,173 @@ describe('Filfox REST resolvers', () => {
 				tipsetKey: 'bafy-a,bafy-b',
 			},
 		})
+	})
+
+	it('projects FilecoinMessageFee fields from getMessage.fee', async () => {
+		getMessage.mockResolvedValueOnce({
+			cid: 'bafy-msg',
+			from: 'f1from',
+			to: 'f1to',
+			nonce: 1,
+			value: '0',
+			method: 'Send',
+			fee: {
+				baseFeeBurn: '10',
+				overEstimationBurn: '20',
+				minerPenalty: '0',
+				minerTip: '30',
+				refund: '40',
+			},
+		})
+
+		const snapshot = await messageFeeResolver.resolve.MessageSource.resolve({
+			$message: {
+				$network: network,
+				cid: 'bafy-msg',
+			},
+			source: Source.Filfox_Rest,
+		}, context)
+
+		expect(messageFeeResolver.projections.baseFeeBurn(snapshot)).toBe(10n)
+		expect(messageFeeResolver.projections.minerTip(snapshot)).toBe(30n)
+		expect(messageFeeResolver.projections.source(snapshot)).toBe(Source.Filfox_Rest)
+	})
+
+	it('projects MessageIndex leftovers from getMessage / getMessageEvents / getMessageSubcalls', async () => {
+		getMessage
+			.mockResolvedValueOnce({
+				cid: 'bafy-msg',
+				from: 'f1from',
+				to: 'f1to',
+				nonce: 1,
+				value: '0',
+				method: 'Send',
+				transfers: [{
+					from: 'f1from',
+					to: 'f1to',
+					value: '1000',
+					type: 'transfer',
+				}],
+				tokenTransfers: [{
+					from: 'f1from',
+					to: 'f1to',
+					value: '5',
+					type: 'erc20',
+					token: '0xtoken',
+					tokenSymbol: 'USDFC',
+				}],
+			})
+			.mockResolvedValueOnce({
+				cid: 'bafy-msg',
+				from: 'f1from',
+				to: 'f1to',
+				nonce: 1,
+				value: '0',
+				method: 'Send',
+				transfers: [{
+					from: 'f1from',
+					to: 'f1to',
+					value: '1000',
+					type: 'transfer',
+				}],
+				tokenTransfers: [{
+					from: 'f1from',
+					to: 'f1to',
+					value: '5',
+					type: 'erc20',
+					token: '0xtoken',
+					tokenSymbol: 'USDFC',
+				}],
+			})
+		getMessageEvents.mockResolvedValueOnce([{
+			address: '0xabc',
+			name: 'Transfer',
+			data: '0x',
+			topics: [
+				'0x1',
+			],
+			removed: false,
+			logIndex: 7,
+		}])
+		getMessageSubcalls.mockResolvedValueOnce([{
+			from: 'f1from',
+			to: 'f1to',
+			value: '0',
+			method: 'InvokeEVM',
+			methodNumber: 3844450837,
+			params: '0xdead',
+			receipt: {
+				exitCode: 0,
+				return: '0x40',
+				gasUsed: 99,
+			},
+		}])
+
+		const messageSelector = {
+			$network: network,
+			cid: 'bafy-msg',
+		}
+		const transfer = await messageTransferResolver.resolve.MessageIndex.resolve({
+			$message: messageSelector,
+			index: 0,
+		}, context)
+		const tokenTransfer = await messageTokenTransferResolver.resolve.MessageIndex.resolve({
+			$message: messageSelector,
+			index: 0,
+		}, context)
+		const event = await messageEventResolver.resolve.MessageIndex.resolve({
+			$message: messageSelector,
+			index: 0,
+		}, context)
+		const subcall = await messageSubcallResolver.resolve.MessageIndex.resolve({
+			$message: messageSelector,
+			index: 0,
+		}, context)
+
+		expect(messageTransferResolver.projections.valueAttoFil(transfer)).toBe(1000n)
+		expect(messageTransferResolver.projections.transferType(transfer)).toBe('transfer')
+		expect(messageTokenTransferResolver.projections.value(tokenTransfer)).toBe('5')
+		expect(messageTokenTransferResolver.projections.tokenSymbol(tokenTransfer)).toBe('USDFC')
+		expect(messageEventResolver.projections.address(event)).toBe('0xabc')
+		expect(messageEventResolver.projections.name(event)).toBe('Transfer')
+		expect(messageEventResolver.projections.logIndex(event)).toBe(7)
+		expect(messageSubcallResolver.projections.method(subcall)).toBe('InvokeEVM')
+		expect(messageSubcallResolver.projections.methodNumber(subcall)).toBe(3844450837)
+		expect(messageSubcallResolver.projections.params(subcall)).toBe('0xdead')
+		expect(messageSubcallResolver.projections.exitCode(subcall)).toBe(0)
+		expect(messageSubcallResolver.projections.returnData(subcall)).toBe('0x40')
+		expect(messageSubcallResolver.projections.gasUsed(subcall)).toBe(99n)
+	})
+
+	it('throws when MessageIndex rows are missing', async () => {
+		getMessage.mockResolvedValueOnce({
+			cid: 'bafy-msg',
+			from: 'f1from',
+			to: 'f1to',
+			nonce: 1,
+			value: '0',
+			method: 'Send',
+			transfers: [],
+		})
+		getMessageEvents.mockResolvedValueOnce([])
+		getMessageSubcalls.mockResolvedValueOnce([])
+
+		const messageSelector = {
+			$network: network,
+			cid: 'bafy-msg',
+		}
+		await expect(messageTransferResolver.resolve.MessageIndex.resolve({
+			$message: messageSelector,
+			index: 0,
+		}, context)).rejects.toThrow('Filfox_Rest: message transfer not found for bafy-msg:0')
+		await expect(messageEventResolver.resolve.MessageIndex.resolve({
+			$message: messageSelector,
+			index: 0,
+		}, context)).rejects.toThrow('Filfox_Rest: message event not found for bafy-msg:0')
+		await expect(messageSubcallResolver.resolve.MessageIndex.resolve({
+			$message: messageSelector,
+			index: 0,
+		}, context)).rejects.toThrow('Filfox_Rest: message subcall not found for bafy-msg:0')
 	})
 
 	it('propagates hard-fail HTTP from message lookup', async () => {
