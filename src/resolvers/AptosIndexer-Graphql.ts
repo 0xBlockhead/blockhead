@@ -113,9 +113,7 @@ export const aptosAccountTransactionsResolver = aptosIndexerResolver(
 						...(transaction.user_transaction != null && {
 							[EntityMetaKey.Fields]: {
 								[entityFieldAddressKey(EntityType.AptosTransaction, [], 'transactionKind')]: 'user_transaction',
-								...(transaction.user_transaction.sender != null && {
-									[entityFieldAddressKey(EntityType.AptosTransaction, [], 'sender')]: transaction.user_transaction.sender,
-								}),
+								[entityFieldAddressKey(EntityType.AptosTransaction, [], 'sender')]: transaction.user_transaction.sender,
 							},
 						}),
 					}))
@@ -222,6 +220,23 @@ export const aptosCoinBalanceResolver = aptosIndexerResolver(
 	})
 )
 
+const aptosTransactionObservationFields = (
+	transaction: {
+		block_height: string
+		gas_unit_price: string
+		timestamp: string
+	}
+) => {
+	const timestampMs = timestampMsFromWire(transaction.timestamp, 'transaction timestamp')
+	return {
+		...(timestampMs != null && {
+			[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'timestampMs')]: timestampMs,
+		}),
+		[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'blockHeight')]: bigintFromWire(transaction.block_height, 'transaction block height'),
+		[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'gasUnitPrice')]: bigintFromWire(transaction.gas_unit_price, 'transaction gas unit price'),
+	}
+}
+
 export const aptosTransactionResolver = aptosIndexerResolver(
 	defineResolver({
 		entityType: EntityType.AptosTransaction,
@@ -248,13 +263,7 @@ export const aptosTransactionResolver = aptosIndexerResolver(
 								ledgerVersion: version,
 								source: Source.AptosIndexer_Graphql,
 							},
-							[EntityMetaKey.Fields]: {
-								...((timestampMs) => (
-									timestampMs != null && {
-										[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'timestampMs')]: timestampMs,
-									}
-								))(timestampMsFromWire(transaction.timestamp, 'transaction timestamp')),
-							},
+							[EntityMetaKey.Fields]: aptosTransactionObservationFields(transaction),
 						}],
 					}
 				},
@@ -265,6 +274,51 @@ export const aptosTransactionResolver = aptosIndexerResolver(
 		transactionKind: (transaction) => transaction.transactionKind,
 		sender: (transaction) => transaction.sender,
 		$$timestamps: (transaction) => transaction.$$timestamps,
+	})
+)
+
+export const aptosTransactionTimestampResolver = aptosIndexerResolver(
+	defineResolver({
+		entityType: EntityType.AptosTransaction_Timestamp,
+		resolve: {
+			TransactionLedgerVersionSource: {
+				appliesTo: [
+					{
+						$transaction: aptosNetworkReferenceApplicability[0],
+						source: Source.AptosIndexer_Graphql,
+					},
+					{
+						$transaction: aptosNetworkReferenceApplicability[1],
+						source: Source.AptosIndexer_Graphql,
+					},
+				],
+				resolve: async ({
+					$transaction,
+					ledgerVersion,
+					source,
+				}) => {
+					assertAptosMainnet($transaction.$network.$network)
+					assertSource(source)
+					if (!('version' in $transaction) || $transaction.version !== ledgerVersion)
+						throw new Error('AptosIndexer_Graphql: transaction observation version mismatch')
+
+					const { getTransaction } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
+					const transaction = await getTransaction(ledgerVersion)
+					if (transaction == null || bigintFromWire(transaction.version, 'transaction version') !== ledgerVersion)
+						throw new Error('AptosIndexer_Graphql: transaction version mismatch')
+
+					return {
+						timestampMs: timestampMsFromWire(transaction.timestamp, 'transaction timestamp'),
+						blockHeight: bigintFromWire(transaction.block_height, 'transaction block height'),
+						gasUnitPrice: bigintFromWire(transaction.gas_unit_price, 'transaction gas unit price'),
+					}
+				},
+			},
+		},
+	})({
+		timestampMs: (transaction) => transaction.timestampMs,
+		blockHeight: (transaction) => transaction.blockHeight,
+		gasUnitPrice: (transaction) => transaction.gasUnitPrice,
 	})
 )
 
@@ -288,14 +342,29 @@ export const aptosTableItemResolver = aptosIndexerResolver(
 					)
 						throw new Error('AptosIndexer_Graphql: current table item mismatch')
 
+					const ledgerVersion = bigintFromWire(current.last_transaction_version, 'table item last transaction version')
 					return {
 						key: current.decoded_key,
+						$$timestamps: [{
+							[EntityMetaKey.Selector]: {
+								$tableItem: entitySelector,
+								ledgerVersion,
+								source: Source.AptosIndexer_Graphql,
+							},
+							[EntityMetaKey.Fields]: {
+								...(current.decoded_value != null && {
+									[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'value')]: current.decoded_value,
+								}),
+								[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'pruned')]: current.is_deleted,
+							},
+						}],
 					}
 				},
 			},
 		},
 	})({
 		key: (tableItem) => tableItem.key,
+		$$timestamps: (tableItem) => tableItem.$$timestamps,
 	})
 )
 
@@ -322,7 +391,7 @@ export const aptosTableItemTimestampResolver = aptosIndexerResolver(
 					assertAptosMainnet($tableItem.$network.$network)
 					assertSource(source)
 					const { getTableItem } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
-					const { versioned } = await getTableItem(
+					const { current, versioned } = await getTableItem(
 						$tableItem.tableHandle,
 						$tableItem.keyHash,
 						ledgerVersion
@@ -336,12 +405,20 @@ export const aptosTableItemTimestampResolver = aptosIndexerResolver(
 
 					return {
 						value: versioned.decoded_value,
+						...(
+							current != null
+							&& bigintFromWire(current.last_transaction_version, 'table item last transaction version') === ledgerVersion
+							&& {
+								pruned: current.is_deleted,
+							}
+						),
 					}
 				},
 			},
 		},
 	})({
 		value: (tableItem) => tableItem.value,
+		pruned: (tableItem) => tableItem.pruned,
 	})
 )
 
@@ -353,6 +430,7 @@ export default {
 		aptosAccountBalancesResolver,
 		aptosCoinBalanceResolver,
 		aptosTransactionResolver,
+		aptosTransactionTimestampResolver,
 		aptosTableItemResolver,
 		aptosTableItemTimestampResolver,
 	],

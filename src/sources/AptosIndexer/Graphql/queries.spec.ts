@@ -14,13 +14,18 @@ vi.mock('$/sources/AptosIndexer/Graphql/client.ts', () => ({
 
 const {
 	getAccountTransactions,
+	getCurrentFungibleAssetBalance,
 	getCurrentFungibleAssetBalances,
+	getTableItem,
+	getTransaction,
 } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
 
 const transaction = {
 	account_address: '0xa11ce',
 	transaction_version: '18446744073709551615',
 	user_transaction: {
+		block_height: '9001',
+		gas_unit_price: '100',
 		sender: '0xbob',
 		timestamp: '2026-07-22T12:00:00Z',
 		version: '18446744073709551615',
@@ -37,6 +42,20 @@ const balance = {
 	owner_address: '0xa11ce',
 	storage_id: '0xstore',
 	token_standard: 'v1',
+}
+
+const currentTableItem = {
+	decoded_key: {
+		account: '0xa11ce',
+	},
+	decoded_value: {
+		amount: '25',
+	},
+	is_deleted: false,
+	key: '0xrawkey',
+	key_hash: '0xkeyhash',
+	last_transaction_version: '42',
+	table_handle: '0xhandle',
 }
 
 describe('Aptos Indexer account portfolio queries', () => {
@@ -104,7 +123,42 @@ describe('Aptos Indexer account portfolio queries', () => {
 				amount: '-1',
 			}],
 		})
-		await expect(getCurrentFungibleAssetBalances('0xa11ce')).rejects.toThrow('invalid balance amount')
+		await expect(getCurrentFungibleAssetBalances('0xa11ce')).rejects.toThrow('response envelope')
+	})
+
+	it('fails closed on malformed GraphQL envelopes', async () => {
+		executeAptosIndexer.mockResolvedValueOnce({
+			account_transactions: [{
+				account_address: '0xa11ce',
+				transaction_version: 'not-a-u64',
+			}],
+		})
+		await expect(getAccountTransactions('0xa11ce')).rejects.toThrow('response envelope')
+
+		executeAptosIndexer.mockResolvedValueOnce({
+			user_transactions: [{
+				sender: '0xa11ce',
+				timestamp: '2026-07-22T12:00:00Z',
+				version: '42',
+			}],
+		})
+		await expect(getTransaction(42n)).rejects.toThrow('response envelope')
+
+		executeAptosIndexer.mockResolvedValueOnce({
+			current_fungible_asset_balances_by_pk: {
+				...balance,
+				is_primary: 'yes',
+			},
+		})
+		await expect(getCurrentFungibleAssetBalance('0xstore')).rejects.toThrow('response envelope')
+
+		executeAptosIndexer.mockResolvedValueOnce({
+			current_table_items: [{
+				...currentTableItem,
+				is_deleted: 'no',
+			}],
+		})
+		await expect(getTableItem('0xhandle', '0xkeyhash')).rejects.toThrow('response envelope')
 	})
 
 	it('bounds offset pages and avoids transport for zero cardinality', async () => {
@@ -113,5 +167,10 @@ describe('Aptos Indexer account portfolio queries', () => {
 		expect(() => getAccountTransactions('0xa11ce', 101)).toThrow('0 through 100')
 		expect(() => getCurrentFungibleAssetBalances('0xa11ce', 25, -1)).toThrow('nonnegative')
 		expect(executeAptosIndexer).not.toHaveBeenCalled()
+	})
+
+	it('binds Aptos Indexer GraphQL over HttpProxy', () => {
+		expect(Object.keys(bindings)).toEqual([Source.AptosIndexer_Graphql])
+		expect(aptosIndexerBinding.source).toBe(Source.AptosIndexer_Graphql)
 	})
 })

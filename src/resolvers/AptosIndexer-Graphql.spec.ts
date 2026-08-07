@@ -28,6 +28,7 @@ const {
 	aptosTableItemResolver,
 	aptosTableItemTimestampResolver,
 	aptosTransactionResolver,
+	aptosTransactionTimestampResolver,
 } = await import('$/resolvers/AptosIndexer-Graphql.ts')
 
 const aptosIndexerBinding = bindings[Source.AptosIndexer_Graphql][0]
@@ -62,6 +63,14 @@ const balance = {
 	owner_address: '0xa11ce',
 	storage_id: '0xprimary-store',
 	token_standard: 'v1',
+}
+
+const userTransaction = {
+	block_height: '9001',
+	gas_unit_price: '100',
+	sender: '0xa11ce',
+	timestamp: '2026-07-14T08:00:00Z',
+	version: '42',
 }
 
 const currentTableItem = {
@@ -125,7 +134,7 @@ describe('Aptos Indexer typed operations', () => {
 			})))
 			.mockResolvedValueOnce(new Response(JSON.stringify({
 				data: {
-					user_transactions: [],
+					user_transactions: [userTransaction],
 				},
 			})))
 			.mockResolvedValueOnce(new Response(JSON.stringify({
@@ -205,17 +214,9 @@ describe('Aptos Indexer resolver materialization', () => {
 		vi.spyOn(queries, 'getAccountTransactions').mockResolvedValue([{
 			account_address: aptosAccount.address,
 			transaction_version: '42',
-			user_transaction: {
-				sender: aptosAccount.address,
-				timestamp: '2026-07-14T08:00:00Z',
-				version: '42',
-			},
+			user_transaction: userTransaction,
 		}])
-		vi.spyOn(queries, 'getTransaction').mockResolvedValue({
-			sender: aptosAccount.address,
-			timestamp: '2026-07-14T08:00:00Z',
-			version: '42',
-		})
+		vi.spyOn(queries, 'getTransaction').mockResolvedValue(userTransaction)
 
 		await expect(aptosAccountTransactionsResolver.resolve['NetworkAddress'].resolve(
 			aptosAccount,
@@ -255,8 +256,24 @@ describe('Aptos Indexer resolver materialization', () => {
 				},
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'timestampMs')]: 1_784_016_000_000,
+					[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'blockHeight')]: 9001n,
+					[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'gasUnitPrice')]: 100n,
 				},
 			}],
+		})
+		await expect(aptosTransactionTimestampResolver.resolve['TransactionLedgerVersionSource'].resolve(
+			{
+				$transaction: {
+					$network: aptosNetwork,
+					version: 42n,
+				},
+				ledgerVersion: 42n,
+				source: Source.AptosIndexer_Graphql,
+			}
+		)).resolves.toEqual({
+			timestampMs: 1_784_016_000_000,
+			blockHeight: 9001n,
+			gasUnitPrice: 100n,
 		})
 		expect(aptosTransactionResolver.projections.$$timestamps({
 			version: 42n,
@@ -273,6 +290,8 @@ describe('Aptos Indexer resolver materialization', () => {
 				},
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'timestampMs')]: 1_784_016_000_000,
+					[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'blockHeight')]: 9001n,
+					[entityFieldAddressKey(EntityType.AptosTransaction_Timestamp, [], 'gasUnitPrice')]: 100n,
 				},
 			}],
 		})).toHaveLength(1)
@@ -287,6 +306,7 @@ describe('Aptos Indexer resolver materialization', () => {
 			aptosAccountBalancesResolver,
 			aptosCoinBalanceResolver,
 			aptosTransactionResolver,
+			aptosTransactionTimestampResolver,
 			aptosTableItemResolver,
 			aptosTableItemTimestampResolver,
 		].flatMap((resolver) => Object.values(resolver.resolve))
@@ -424,8 +444,32 @@ describe('Aptos Indexer resolver materialization', () => {
 			tableItem
 		)).resolves.toEqual({
 			key: currentTableItem.decoded_key,
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$tableItem: tableItem,
+					ledgerVersion: 42n,
+					source: Source.AptosIndexer_Graphql,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'value')]: currentTableItem.decoded_value,
+					[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'pruned')]: false,
+				},
+			}],
 		})
-		expect(aptosTableItemResolver.projections).not.toHaveProperty('$$timestamps')
+		expect(aptosTableItemResolver.projections.$$timestamps({
+			key: currentTableItem.decoded_key,
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$tableItem: tableItem,
+					ledgerVersion: 42n,
+					source: Source.AptosIndexer_Graphql,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'value')]: currentTableItem.decoded_value,
+					[entityFieldAddressKey(EntityType.AptosTableItem_Timestamp, [], 'pruned')]: false,
+				},
+			}],
+		})).toHaveLength(1)
 
 		await expect(aptosTableItemTimestampResolver.resolve['TableItemLedgerVersionSource'].resolve(
 			{
@@ -435,6 +479,7 @@ describe('Aptos Indexer resolver materialization', () => {
 			}
 		)).resolves.toEqual({
 			value: versionedTableItem.decoded_value,
+			pruned: false,
 		})
 		await expect(aptosTableItemTimestampResolver.resolve['TableItemLedgerVersionSource'].resolve(
 			{

@@ -1,15 +1,34 @@
 import { initGraphQLTada } from 'gql.tada'
 
+import { Source } from '$/sources/Source.ts'
 import { executeAptosIndexer } from './client.ts'
-import type {
-	AptosIndexerGraphqlScalars,
-	AptosIndexerGraphqlSchema,
+import {
+	aptosIndexerAccountTransactionsDataWire,
+	aptosIndexerCurrentTableItemsDataWire,
+	aptosIndexerFungibleAssetBalanceByPkDataWire,
+	aptosIndexerFungibleAssetBalancesDataWire,
+	aptosIndexerTransactionDataWire,
+	aptosIndexerVersionedTableItemsDataWire,
+	type AptosIndexerGraphqlScalars,
+	type AptosIndexerGraphqlSchema,
 } from './types.ts'
 
 const graphql = initGraphQLTada<{
 	introspection: AptosIndexerGraphqlSchema
 	scalars: AptosIndexerGraphqlScalars
 }>()
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`${Source.AptosIndexer_Graphql}: invalid ${label} response envelope`)
+	}
+}
 
 const accountTransactionsDocument = graphql(`
 	query AptosIndexerAccountTransactions(
@@ -26,6 +45,8 @@ const accountTransactionsDocument = graphql(`
 			account_address
 			transaction_version
 			user_transaction {
+				block_height
+				gas_unit_price
 				sender
 				timestamp
 				version
@@ -37,6 +58,8 @@ const accountTransactionsDocument = graphql(`
 const transactionDocument = graphql(`
 	query AptosIndexerTransaction($version: bigint!) {
 		user_transactions(where: { version: { _eq: $version } }, limit: 1) {
+			block_height
+			gas_unit_price
 			sender
 			timestamp
 			version
@@ -148,30 +171,28 @@ export const getAccountTransactions = (
 		limit,
 		offset,
 	}).then((data) => {
-		if (data.account_transactions.length > limit)
+		const response = assertEnvelope(
+			'account transactions',
+			aptosIndexerAccountTransactionsDataWire,
+			data
+		)
+		if (response.account_transactions.length > limit)
 			throw new Error('AptosIndexer_Graphql: transaction page exceeds requested limit')
 
 		const versions = new Set<string>()
-		for (const transaction of data.account_transactions) {
+		for (const transaction of response.account_transactions) {
 			if (transaction.account_address !== accountAddress)
 				throw new Error('AptosIndexer_Graphql: transaction page contains a foreign account row')
-			try {
-				if (
-					BigInt(transaction.transaction_version) < 0n
-					|| (
-						transaction.user_transaction != null
-						&& transaction.user_transaction.version !== transaction.transaction_version
-					)
-				)
-					throw new Error()
-			} catch {
+			if (
+				transaction.user_transaction != null
+				&& transaction.user_transaction.version !== transaction.transaction_version
+			)
 				throw new Error('AptosIndexer_Graphql: invalid transaction version')
-			}
 			if (versions.has(transaction.transaction_version))
 				throw new Error('AptosIndexer_Graphql: duplicate transaction version')
 			versions.add(transaction.transaction_version)
 		}
-		return data.account_transactions
+		return response.account_transactions
 	})
 }
 
@@ -180,7 +201,15 @@ export const getTransaction = (
 ) => (
 	executeAptosIndexer(transactionDocument, {
 		version: version.toString(),
-	}).then((data) => data.user_transactions.at(0))
+	}).then((data) => (
+		assertEnvelope(
+			'user transaction',
+			aptosIndexerTransactionDataWire,
+			data
+		)
+			.user_transactions
+			.at(0)
+	))
 )
 
 export const getCurrentFungibleAssetBalances = (
@@ -202,30 +231,23 @@ export const getCurrentFungibleAssetBalances = (
 		limit,
 		offset,
 	}).then((data) => {
-		if (data.current_fungible_asset_balances.length > limit)
+		const response = assertEnvelope(
+			'fungible asset balances',
+			aptosIndexerFungibleAssetBalancesDataWire,
+			data
+		)
+		if (response.current_fungible_asset_balances.length > limit)
 			throw new Error('AptosIndexer_Graphql: balance page exceeds requested limit')
 
 		const storageIds = new Set<string>()
-		for (const balance of data.current_fungible_asset_balances) {
+		for (const balance of response.current_fungible_asset_balances) {
 			if (balance.owner_address !== ownerAddress)
 				throw new Error('AptosIndexer_Graphql: balance page contains a foreign owner row')
-			try {
-				if (
-					BigInt(balance.amount) < 0n
-					|| (
-						balance.last_transaction_version != null
-						&& BigInt(balance.last_transaction_version) < 0n
-					)
-				)
-					throw new Error()
-			} catch {
-				throw new Error('AptosIndexer_Graphql: invalid balance amount or version')
-			}
 			if (balance.storage_id.length === 0 || storageIds.has(balance.storage_id))
 				throw new Error('AptosIndexer_Graphql: invalid or duplicate balance storage ID')
 			storageIds.add(balance.storage_id)
 		}
-		return data.current_fungible_asset_balances
+		return response.current_fungible_asset_balances
 	})
 }
 
@@ -234,7 +256,14 @@ export const getCurrentFungibleAssetBalance = (
 ) => (
 	executeAptosIndexer(currentFungibleAssetBalanceDocument, {
 		storageId,
-	}).then((data) => data.current_fungible_asset_balances_by_pk)
+	}).then((data) => (
+		assertEnvelope(
+			'fungible asset balance',
+			aptosIndexerFungibleAssetBalanceByPkDataWire,
+			data
+		)
+			.current_fungible_asset_balances_by_pk
+	))
 )
 
 export const getTableItem = async (
@@ -242,12 +271,16 @@ export const getTableItem = async (
 	keyHash: string,
 	ledgerVersion?: bigint
 ) => {
-	const current = (
+	const current = assertEnvelope(
+		'current table item',
+		aptosIndexerCurrentTableItemsDataWire,
 		await executeAptosIndexer(currentTableItemDocument, {
 			keyHash,
 			tableHandle,
 		})
-	).current_table_items.at(0)
+	)
+		.current_table_items
+		.at(0)
 	if (current == null || ledgerVersion == null)
 		return {
 			current,
@@ -256,12 +289,16 @@ export const getTableItem = async (
 
 	return {
 		current,
-		versioned: (
+		versioned: assertEnvelope(
+			'versioned table item',
+			aptosIndexerVersionedTableItemsDataWire,
 			await executeAptosIndexer(versionedTableItemDocument, {
 				key: current.key,
 				tableHandle,
 				transactionVersion: ledgerVersion.toString(),
 			})
-		).table_items.at(0),
+		)
+			.table_items
+			.at(0),
 	}
 }
