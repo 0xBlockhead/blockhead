@@ -136,6 +136,15 @@ export default {
 						const timestampMs = Date.parse(head.last_time)
 						if (!Number.isFinite(timestampMs))
 							throw new Error('Celenium_Rest: invalid head block time')
+						const tipFields = {
+							latestHeight: BigInt(head.last_height),
+							latestHash: head.hash.toLowerCase(),
+							latestBlockTimeMs: timestampMs,
+							syncing: !head.synced,
+							...(head.total_namespaces != null && {
+								namespaceCount: head.total_namespaces,
+							}),
+						}
 						return [
 							{
 								[EntityMetaKey.Selector]: {
@@ -144,6 +153,15 @@ export default {
 									},
 									timestampMs,
 									source: Source.Celenium_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'latestHeight')]: tipFields.latestHeight,
+									[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'latestHash')]: tipFields.latestHash,
+									[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'latestBlockTimeMs')]: tipFields.latestBlockTimeMs,
+									[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'syncing')]: tipFields.syncing,
+									...(tipFields.namespaceCount != null && {
+										[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'namespaceCount')]: tipFields.namespaceCount,
+									}),
 								},
 							},
 						]

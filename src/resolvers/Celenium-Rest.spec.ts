@@ -219,6 +219,7 @@ describe('Celenium REST head projection', () => {
 			total_blobs_size: 4_403_903_879_869,
 			total_supply: '1173477103807920',
 			synced: true,
+			total_namespaces: 1_095,
 		})
 
 		await expect(resolveTimestamps({
@@ -229,6 +230,13 @@ describe('Celenium REST head projection', () => {
 					$network: celestiaNetwork,
 					timestampMs: 1_784_782_088_000,
 					source: Source.Celenium_Rest,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'latestHeight')]: 12_424_720n,
+					[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'latestHash')]: 'a'.repeat(64),
+					[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'latestBlockTimeMs')]: 1_784_782_088_000,
+					[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'syncing')]: false,
+					[entityFieldAddressKey(EntityType.CelestiaNetwork_Timestamp, [], 'namespaceCount')]: 1_095,
 				},
 			},
 		])

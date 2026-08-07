@@ -30,6 +30,13 @@ const headWire = arktype({
 	total_supply: 'string',
 	synced: 'boolean',
 	'total_namespaces?': 'number.integer >= 0',
+	'id?': 'number.integer >= 0',
+	'version?': 'number.integer >= 0',
+	'name?': 'string',
+	'total_proposals?': 'number.integer >= 0',
+	'total_validators?': 'number.integer >= 0',
+	'total_voting_power?': 'string',
+	'total_ibc_clients?': 'number.integer >= 0',
 }).onUndeclaredKey('delete')
 
 const blockWire = arktype({
@@ -54,10 +61,14 @@ const blockWire = arktype({
 		'square_size?': 'number.integer >= 0',
 		'block_time?': 'number.integer >= 0',
 		'fill_rate?': 'string | number',
+		'supply_change?': 'string',
+		'inflation_rate?': 'string',
+		'rewards?': 'string',
+		'commissions?': 'string',
 	}).onUndeclaredKey('delete'),
 	'message_types?': 'string[]',
-	'version_block?': 'number.integer >= 0',
-	'version_app?': 'number.integer >= 0',
+	'version_block?': 'string | number.integer >= 0',
+	'version_app?': 'string | number.integer >= 0',
 }).onUndeclaredKey('delete')
 
 const namespaceWire = arktype({
@@ -200,6 +211,23 @@ const assertSafeIntegers = (
 		assertSafeInteger(value, label)
 }
 
+const optionalUint = (
+	value: string | number | undefined,
+	label: string
+) => {
+	if (value == null)
+		return undefined
+	const parsed = (
+		typeof value === 'number' ?
+			value
+		:
+			Number(value)
+	)
+	if (!Number.isSafeInteger(parsed) || parsed < 0)
+		throw new Error(`Celenium_Rest: invalid ${label}`)
+	return parsed
+}
+
 const assertDecimal = (
 	value: string,
 	label: string
@@ -284,16 +312,45 @@ export const getHead = async () => {
 		:
 			[]
 		),
+		...(wire.id != null ?
+			[[wire.id, 'head id'] as const]
+		:
+			[]
+		),
+		...(wire.version != null ?
+			[[wire.version, 'indexer version'] as const]
+		:
+			[]
+		),
+		...(wire.total_proposals != null ?
+			[[wire.total_proposals, 'proposal count'] as const]
+		:
+			[]
+		),
+		...(wire.total_validators != null ?
+			[[wire.total_validators, 'validator count'] as const]
+		:
+			[]
+		),
+		...(wire.total_ibc_clients != null ?
+			[[wire.total_ibc_clients, 'IBC client count'] as const]
+		:
+			[]
+		),
 	])
 	assertHash(wire.hash, 'head hash')
 	assertDecimal(wire.total_fee, 'total fee')
 	assertDecimal(wire.total_supply, 'total supply')
+	if (wire.total_voting_power != null)
+		assertDecimal(wire.total_voting_power, 'voting power')
 	if (wire.chain_id !== 'celestia')
 		throw new Error('Celenium_Rest: foreign chain head')
 	return wire
 }
 
 const validatedBlockWire = (wire: typeof blockWire.infer) => {
+	const versionBlock = optionalUint(wire.version_block, 'block version')
+	const versionApp = optionalUint(wire.version_app, 'app version')
 	assertSafeIntegers([
 		[wire.height, 'block height'],
 		[wire.stats.tx_count, 'block transaction count'],
@@ -325,16 +382,6 @@ const validatedBlockWire = (wire: typeof blockWire.infer) => {
 		:
 			[]
 		),
-		...(wire.version_block != null ?
-			[[wire.version_block, 'block version'] as const]
-		:
-			[]
-		),
-		...(wire.version_app != null ?
-			[[wire.version_app, 'app version'] as const]
-		:
-			[]
-		),
 	])
 	for (const [value, label] of [
 		[wire.hash, 'block hash'],
@@ -346,7 +393,17 @@ const validatedBlockWire = (wire: typeof blockWire.infer) => {
 	if (!/^[0-9a-fA-F]{40}$/.test(wire.proposer.cons_address))
 		throw new Error('Celenium_Rest: invalid block proposer address')
 	assertDecimal(wire.stats.fee, 'block fee')
-	return wire
+	if (wire.stats.supply_change != null)
+		assertDecimal(wire.stats.supply_change, 'block supply change')
+	return {
+		...wire,
+		...(versionBlock != null && {
+			version_block: versionBlock,
+		}),
+		...(versionApp != null && {
+			version_app: versionApp,
+		}),
+	}
 }
 
 export const getBlock = async (

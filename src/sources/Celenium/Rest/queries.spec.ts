@@ -69,7 +69,11 @@ describe('Celenium mainnet public indexer contracts', () => {
 			id: 1,
 			version: 9,
 			name: 'celestia_indexer',
+			total_proposals: 9,
 			total_validators: 313,
+			total_voting_power: '513006783',
+			total_ibc_clients: 174,
+			undeclared_tip: 'drop-me',
 		}
 		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue(head)
 
@@ -85,6 +89,13 @@ describe('Celenium mainnet public indexer contracts', () => {
 			total_supply: '11734771038079209007199254740993',
 			synced: true,
 			total_namespaces: 1_095,
+			id: 1,
+			version: 9,
+			name: 'celestia_indexer',
+			total_proposals: 9,
+			total_validators: 313,
+			total_voting_power: '513006783',
+			total_ibc_clients: 174,
 		})
 	})
 
@@ -112,6 +123,48 @@ describe('Celenium mainnet public indexer contracts', () => {
 		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue(blockWire)
 
 		await expect(getBlock(BigInt(blockWire.height))).resolves.toEqual(blockWire)
+	})
+
+	it('accepts live string block versions and explorer tip stats leftovers', async () => {
+		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue({
+			...blockWire,
+			version_block: '0',
+			version_app: '9',
+			stats: {
+				...blockWire.stats,
+				events_count: 212,
+				gas_limit: 635_576,
+				gas_used: 562_078,
+				square_size: 16,
+				block_time: 2_834,
+				fill_rate: '0.0158',
+				supply_change: '2413398',
+				inflation_rate: '0.0232420563',
+				rewards: '2368128.839999999869752868',
+				commissions: '557891.035507093391079914',
+				undeclared_stat: true,
+			},
+			undeclared_block: true,
+		})
+
+		await expect(getBlock(BigInt(blockWire.height))).resolves.toEqual({
+			...blockWire,
+			version_block: 0,
+			version_app: 9,
+			stats: {
+				...blockWire.stats,
+				events_count: 212,
+				gas_limit: 635_576,
+				gas_used: 562_078,
+				square_size: 16,
+				block_time: 2_834,
+				fill_rate: '0.0158',
+				supply_change: '2413398',
+				inflation_rate: '0.0232420563',
+				rewards: '2368128.839999999869752868',
+				commissions: '557891.035507093391079914',
+			},
+		})
 	})
 
 	it('enforces bounded block and namespace pages', async () => {
