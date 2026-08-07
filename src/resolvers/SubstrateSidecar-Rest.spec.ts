@@ -27,7 +27,41 @@ const accountResolver = sidecar.resolvers.find((
 ): resolver is Extract<
 	typeof sidecar.resolvers[number],
 	{ entityType: EntityType.PolkadotAccount }
-> => resolver.entityType === EntityType.PolkadotAccount)
+> => (
+	resolver.entityType === EntityType.PolkadotAccount
+	&& '$$timestamps' in resolver.projections
+))
+
+const accountAssetBalanceResolver = sidecar.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof sidecar.resolvers[number],
+	{ entityType: EntityType.PolkadotAccount }
+> => (
+	resolver.entityType === EntityType.PolkadotAccount
+	&& '$$assetBalanceTimestamps' in resolver.projections
+))
+
+const assetResolver = sidecar.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof sidecar.resolvers[number],
+	{ entityType: EntityType.PolkadotAsset }
+> => resolver.entityType === EntityType.PolkadotAsset)
+
+const assetTimestampResolver = sidecar.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof sidecar.resolvers[number],
+	{ entityType: EntityType.PolkadotAsset_Timestamp }
+> => resolver.entityType === EntityType.PolkadotAsset_Timestamp)
+
+const assetBalanceTimestampResolver = sidecar.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof sidecar.resolvers[number],
+	{ entityType: EntityType.PolkadotAssetBalance_Timestamp }
+> => resolver.entityType === EntityType.PolkadotAssetBalance_Timestamp)
 
 const blockResolver = sidecar.resolvers.find((
 	resolver
@@ -52,6 +86,10 @@ const networkBlockListResolver = sidecar.resolvers.find((resolver) => (
 
 if (
 	accountResolver == null
+	|| accountAssetBalanceResolver == null
+	|| assetResolver == null
+	|| assetTimestampResolver == null
+	|| assetBalanceTimestampResolver == null
 	|| blockResolver == null
 	|| palletResolver == null
 	|| networkBlockListResolver == null
@@ -194,6 +232,224 @@ describe('Substrate Sidecar Polkadot account resolver', () => {
 				'NetworkAccountId'
 			].resolve(account, context)).rejects.toThrow(/invalid account balance info response envelope|malformed account/)
 		}
+	})
+})
+
+describe('Substrate Sidecar Asset Hub asset projections', () => {
+	const foreignMultiLocation = {
+		parents: '1',
+		interior: {
+			x1: [
+				{
+					parachain: '3369',
+				},
+			],
+		},
+	}
+	const assetInfo = {
+		at: {
+			hash: '0xAH_HASH',
+			height: '19148225',
+		},
+		assetInfo: {
+			owner: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+			issuer: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+			admin: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+			freezer: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+			supply: '77998622058218',
+			deposit: '1000000000000',
+			minBalance: '10000',
+			isSufficient: true,
+			accounts: '13853',
+			sufficients: '13749',
+			approvals: '22',
+			status: 'Live',
+		},
+		assetMetaData: {
+			deposit: '2008200000',
+			name: '0x54657468657220555344',
+			symbol: '0x55534474',
+			decimals: '6',
+			isFrozen: false,
+		},
+	}
+
+	beforeEach(() => {
+		sourceFetch.mockReset()
+		vi.spyOn(Date, 'now').mockReturnValue(1_753_000_100_000)
+	})
+
+	it('projects PolkadotAccount.$$assetBalanceTimestamps from assets + foreign assets', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				at: {
+					hash: '0xAH_HASH',
+					height: '19148225',
+				},
+				assets: [
+					{
+						assetId: 1984,
+						balance: '3790709913555',
+						isFrozen: false,
+					},
+				],
+			})))
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				at: {
+					hash: '0xAH_FOREIGN_HASH',
+					height: '19148226',
+				},
+				foreignAssets: [
+					{
+						multiLocation: foreignMultiLocation,
+						balance: '2999978886176645548557674',
+						isFrozen: true,
+					},
+				],
+			})))
+
+		const snapshot = await accountAssetBalanceResolver.resolve.NetworkAccountId.resolve(account, context)
+		const timestamps = accountAssetBalanceResolver.projections.$$assetBalanceTimestamps(snapshot)
+		const foreignAssetId = JSON.stringify(foreignMultiLocation)
+
+		expect(sourceFetch.mock.calls[0][1]).toBe(
+			`http://127.0.0.1:8080/accounts/${account.accountId}/asset-balances`
+		)
+		expect(sourceFetch.mock.calls[1][1]).toBe(
+			`http://127.0.0.1:8080/accounts/${account.accountId}/foreign-asset-balances`
+		)
+		expect(timestamps).toHaveLength(2)
+		expect(timestamps[0]).toEqual({
+			[EntityMetaKey.Selector]: {
+				$account: account,
+				$asset: {
+					$network: account.$network,
+					assetKind: 'assets',
+					assetId: '1984',
+				},
+				timestampMs: 1_753_000_100_000,
+				source: Source.SubstrateSidecar_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.PolkadotAssetBalance_Timestamp, [], '$account')]: {
+					[EntityMetaKey.Selector]: account,
+				},
+				[entityFieldAddressKey(EntityType.PolkadotAssetBalance_Timestamp, [], '$asset')]: {
+					[EntityMetaKey.Selector]: {
+						$network: account.$network,
+						assetKind: 'assets',
+						assetId: '1984',
+					},
+				},
+				[entityFieldAddressKey(EntityType.PolkadotAssetBalance_Timestamp, [], 'timestampMs')]: 1_753_000_100_000,
+				[entityFieldAddressKey(EntityType.PolkadotAssetBalance_Timestamp, [], 'source')]: Source.SubstrateSidecar_Rest,
+				[entityFieldAddressKey(EntityType.PolkadotAssetBalance_Timestamp, [], 'blockNumber')]: 19_148_225n,
+				[entityFieldAddressKey(EntityType.PolkadotAssetBalance_Timestamp, [], 'blockHash')]: '0xAH_HASH',
+				[entityFieldAddressKey(EntityType.PolkadotAssetBalance_Timestamp, [], 'freeBalancePlancks')]: 3_790_709_913_555n,
+				[entityFieldAddressKey(EntityType.PolkadotAssetBalance_Timestamp, [], 'status')]: 'Live',
+			},
+		})
+		expect(timestamps[1][EntityMetaKey.Selector]).toMatchObject({
+			$asset: {
+				assetKind: 'foreignAssets',
+				assetId: foreignAssetId,
+			},
+		})
+		expect(timestamps[1][EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.PolkadotAssetBalance_Timestamp, [], 'blockHash')]: '0xAH_FOREIGN_HASH',
+			[entityFieldAddressKey(EntityType.PolkadotAssetBalance_Timestamp, [], 'freeBalancePlancks')]: 2_999_978_886_176_645_548_557_674n,
+			[entityFieldAddressKey(EntityType.PolkadotAssetBalance_Timestamp, [], 'status')]: 'Frozen',
+		})
+	})
+
+	it('projects PolkadotAsset tip metadata from getAssetInfo', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(assetInfo)))
+		const assetSelector = {
+			$network: account.$network,
+			assetKind: 'assets',
+			assetId: '1984',
+		}
+		const snapshot = await assetResolver.resolve.NetworkAssetKindAssetId.resolve(assetSelector, context)
+		const timestamps = assetResolver.projections.$$timestamps(snapshot)
+
+		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/pallets/assets/1984/asset-info')
+		expect(timestamps).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$asset: assetSelector,
+				timestampMs: 1_753_000_100_000,
+				source: Source.SubstrateSidecar_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], '$asset')]: {
+					[EntityMetaKey.Selector]: assetSelector,
+				},
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'timestampMs')]: 1_753_000_100_000,
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'source')]: Source.SubstrateSidecar_Rest,
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'blockNumber')]: 19_148_225n,
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'blockHash')]: '0xAH_HASH',
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'supply')]: 77_998_622_058_218n,
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'holderCount')]: 13_853,
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'status')]: 'Live',
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'symbol')]: 'USDt',
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'name')]: 'Tether USD',
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'decimals')]: 6,
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'existentialDepositPlancks')]: 10_000n,
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'owner')]: assetInfo.assetInfo.owner,
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'issuer')]: assetInfo.assetInfo.issuer,
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'admin')]: assetInfo.assetInfo.admin,
+				[entityFieldAddressKey(EntityType.PolkadotAsset_Timestamp, [], 'freezer')]: assetInfo.assetInfo.freezer,
+			},
+		}])
+	})
+
+	it('resolves singular PolkadotAsset_Timestamp and PolkadotAssetBalance_Timestamp tips', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(assetInfo)))
+		const assetSelector = {
+			$network: account.$network,
+			assetKind: 'assets',
+			assetId: '1984',
+		}
+		const assetTimestamp = await assetTimestampResolver.resolve.AssetTimestampMsSource.resolve({
+			$asset: assetSelector,
+			timestampMs: 1_753_000_100_000,
+			source: Source.SubstrateSidecar_Rest,
+		}, context)
+		expect(assetTimestampResolver.projections.symbol(assetTimestamp)).toBe('USDt')
+		expect(assetTimestampResolver.projections.holderCount(assetTimestamp)).toBe(13_853)
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xAH_HASH',
+				height: '19148225',
+			},
+			assets: [
+				{
+					assetId: '1984',
+					balance: '42',
+					isFrozen: false,
+				},
+			],
+		})))
+		const balanceTimestamp = await assetBalanceTimestampResolver.resolve.AccountAssetTimestampMsSource.resolve({
+			$account: account,
+			$asset: assetSelector,
+			timestampMs: 1_753_000_100_000,
+			source: Source.SubstrateSidecar_Rest,
+		}, context)
+		expect(assetBalanceTimestampResolver.projections.freeBalancePlancks(balanceTimestamp)).toBe(42n)
+		expect(assetBalanceTimestampResolver.projections.status(balanceTimestamp)).toBe('Live')
+		expect(sourceFetch.mock.calls[1][1]).toBe(
+			`http://127.0.0.1:8080/accounts/${account.accountId}/asset-balances?assets%5B%5D=1984`
+		)
+	})
+
+	it('rejects foreignAssets PolkadotAsset metadata without a foreign asset-info transport', async () => {
+		await expect(assetResolver.resolve.NetworkAssetKindAssetId.resolve({
+			$network: account.$network,
+			assetKind: 'foreignAssets',
+			assetId: JSON.stringify(foreignMultiLocation),
+		}, context)).rejects.toThrow('unsupported assetKind foreignAssets')
+		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })
 

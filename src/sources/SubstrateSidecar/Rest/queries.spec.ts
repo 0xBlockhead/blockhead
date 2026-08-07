@@ -507,6 +507,66 @@ describe('Substrate Sidecar query envelopes', () => {
 		})
 	})
 
+	it('fail-closes Asset Hub asset-balance / asset-info / foreign-balance envelopes', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xAH_HASH',
+				height: '19148225',
+			},
+			assets: [
+				{
+					assetId: '1984',
+					balance: '-1',
+				},
+			],
+		})))
+		await expect(getAccountAssetBalances({
+			accountId: '13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB',
+		})).rejects.toThrow('invalid account asset balances response envelope')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '0xAH_HASH',
+				height: '19148225',
+			},
+			assetInfo: {
+				owner: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+				issuer: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+				admin: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+				freezer: '15uPcYeUE2XaMiMJuR6W7QGW2LsLdKXX7F3PxKG8gcizPh3X',
+				supply: '1',
+				deposit: '1',
+				minBalance: '1',
+				isSufficient: true,
+				accounts: '1',
+				sufficients: '1',
+				approvals: '0',
+				status: 'Live',
+			},
+			assetMetaData: {
+				deposit: '1',
+				name: 'not-hex',
+				symbol: '0x55534474',
+				decimals: 6,
+				isFrozen: false,
+			},
+		})))
+		await expect(getAssetInfo({
+			assetId: 1984,
+		})).rejects.toThrow('malformed asset metadata hex')
+
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			at: {
+				hash: '',
+				height: '19148225',
+			},
+			foreignAssets: [],
+		})))
+		await expect(getAccountForeignAssetBalances({
+			accountId: '13UVJyLnbVp9RBZYFwFGyDvVd1y27Tt8tkntv6Q7JVPhFsTB',
+		})).rejects.toThrow('invalid account foreign asset balances response envelope')
+	})
+
 	it('reads AHM info and RC staking validator path for Asset Hub prep', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 			relay: {
