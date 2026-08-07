@@ -2,8 +2,14 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import { networkBySlug } from '$/constants/Network.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
+	networkBySlug,
+	NetworkExecutionModel,
+	NetworkLedgerModel,
+} from '$/constants/Network.ts'
+import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
@@ -22,9 +28,8 @@ const assertZcashMainnet = (network: NetworkId) => {
 			)
 		:
 			network.slug !== networkBySlug.zcash.slug
-	) {
+	)
 		throw new Error('Zebra_JsonRpc: unsupported Zcash network')
-	}
 }
 
 const getTransaction = async ({ $network, txId }: {
@@ -34,8 +39,137 @@ const getTransaction = async ({ $network, txId }: {
 	assertZcashMainnet($network)
 	const { getRawTransaction } = await import('$/sources/Zebra/JsonRpc/queries.ts')
 	return getRawTransaction({
-		txId: txId,
+		txId,
 	})
+}
+
+const utxoBlockSnapshot = async (
+	$network: NetworkId,
+	blockHash: string
+) => {
+	const { getBlock } = await import('$/sources/Zebra/JsonRpc/queries.ts')
+	const block = await getBlock({
+		blockHash,
+	})
+	return {
+		hash: block.hash,
+		...(block.previousblockhash != null && {
+			$parent: {
+				[EntityMetaKey.Selector]: {
+					$network,
+					height: BigInt(block.height - 1),
+					hash: block.previousblockhash,
+				},
+			},
+		}),
+		timestampMs: block.time * 1000,
+		merkleRoot: block.merkleroot,
+		nonce: block.nonce,
+		difficulty: block.difficulty,
+		...(block.size != null && {
+			sizeBytes: block.size,
+		}),
+		...(block.weight != null && {
+			weightUnits: block.weight,
+		}),
+		transactionCount: block.nTx,
+		$$transactions: block.tx.map((transaction) => (
+			typeof transaction === 'string' ?
+				{
+					[EntityMetaKey.Selector]: {
+						$network,
+						txId: transaction,
+					},
+				}
+			:
+				{
+					[EntityMetaKey.Selector]: {
+						$network,
+						txId: transaction.txid,
+					},
+				}
+		)),
+	}
+}
+
+const resolveUtxoBlocks = async (
+	network: NetworkId,
+	context: Parameters<typeof resolverContextRowLimit>[0]
+) => {
+	assertZcashMainnet(network)
+	const {
+		getBlockCount,
+		getBlockHash,
+	} = await import('$/sources/Zebra/JsonRpc/queries.ts')
+	const tipHeight = await getBlockCount()
+	const limit = resolverContextRowLimit(context)
+	const heights = Array.from(
+		{ length: Math.min(limit, tipHeight + 1) },
+		(_, index) => tipHeight - index
+	).filter((height) => height >= 0)
+	return {
+		tipHeight,
+		blocks: await Promise.all(
+			heights.map(async (height) => ({
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: BigInt(height),
+					hash: await getBlockHash({
+						height: BigInt(height),
+					}),
+				},
+			}))
+		),
+	}
+}
+
+const resolveNetworkTipObservation = async (network: NetworkId) => {
+	assertZcashMainnet(network)
+	const {
+		getBlock,
+		getBlockCount,
+		getBlockHash,
+		getMempoolInfo,
+	} = await import('$/sources/Zebra/JsonRpc/queries.ts')
+	const tipHeight = await getBlockCount()
+	const [bestBlockHash, mempoolInfo] = await Promise.all([
+		getBlockHash({
+			height: BigInt(tipHeight),
+		}),
+		getMempoolInfo(),
+	])
+	const tipBlock = await getBlock({
+		blockHash: bestBlockHash,
+	})
+	return {
+		bestBlockHeight: BigInt(tipHeight),
+		bestBlockHash,
+		bestBlockTimeMs: tipBlock.time * 1000,
+		blockCount: BigInt(tipHeight + 1),
+		mempoolTransactionCount: mempoolInfo.size,
+		mempoolSizeBytes: BigInt(mempoolInfo.bytes),
+	}
+}
+
+const resolveNetworkTipTimestamps = async (network: NetworkId) => {
+	const tip = await resolveNetworkTipObservation(network)
+	return [
+		{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				timestampMs: Date.now(),
+				source: Source.Zebra_JsonRpc,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHeight')]: tip.bestBlockHeight,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockHash')]: tip.bestBlockHash,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'bestBlockTimeMs')]: tip.bestBlockTimeMs,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'blockCount')]: tip.blockCount,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolTransactionCount')]: tip.mempoolTransactionCount,
+				[entityFieldAddressKey(EntityType.Network_Timestamp, ['Utxo'], 'mempoolSizeBytes')]: tip.mempoolSizeBytes,
+			},
+		},
+	]
 }
 
 export default {
@@ -45,69 +179,37 @@ export default {
 		defineResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: {
+				NetworkHeight: {
+					resolve: async ({ $network, height }) => {
+						assertZcashMainnet($network)
+						const { getBlockHash } = await import('$/sources/Zebra/JsonRpc/queries.ts')
+						return utxoBlockSnapshot(
+							$network,
+							await getBlockHash({
+								height,
+							})
+						)
+					},
+				},
 				NetworkHeightHash: {
 					resolve: async ({ $network, hash }) => {
 						assertZcashMainnet($network)
-						const {
-							getBlock,
-						} = await import('$/sources/Zebra/JsonRpc/queries.ts')
-						const block = await getBlock({
-							blockHash: hash,
-						})
-						return {
-							hash: block.hash,
-							...(block.previousblockhash != null && {
-								$parent: {
-									[EntityMetaKey.Selector]: {
-										$network: $network,
-										height: BigInt(block.height - 1),
-										hash: block.previousblockhash,
-									},
-								},
-							}),
-							timestampMs: block.time * 1000,
-							merkleRoot: block.merkleroot,
-							nonce: block.nonce,
-							difficulty: block.difficulty,
-							...(block.size != null && {
-								sizeBytes: block.size,
-							}),
-							...(block.weight != null && {
-								weightUnits: block.weight,
-							}),
-							transactionCount: block.nTx,
-							$$transactions: block.tx.map((transaction) => (
-								typeof transaction === 'string' ?
-									{
-										[EntityMetaKey.Selector]: {
-											$network,
-											txId: transaction,
-										},
-									}
-								:
-									{
-										[EntityMetaKey.Selector]: {
-											$network,
-											txId: transaction.txid,
-										},
-									}
-							)),
-						}
+						return utxoBlockSnapshot($network, hash)
 					},
-				}
+				},
 			},
 		})({
-				hash: (snapshot) => snapshot.hash,
-				$parent: (snapshot) => snapshot.$parent,
-				timestampMs: (snapshot) => snapshot.timestampMs,
-				merkleRoot: (snapshot) => snapshot.merkleRoot,
-				nonce: (snapshot) => snapshot.nonce,
-				difficulty: (snapshot) => snapshot.difficulty,
-				sizeBytes: (snapshot) => snapshot.sizeBytes,
-				weightUnits: (snapshot) => snapshot.weightUnits,
-				transactionCount: (snapshot) => snapshot.transactionCount,
-				$$transactions: (snapshot) => snapshot.$$transactions,
-			}),
+			hash: (snapshot) => snapshot.hash,
+			$parent: (snapshot) => snapshot.$parent,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			merkleRoot: (snapshot) => snapshot.merkleRoot,
+			nonce: (snapshot) => snapshot.nonce,
+			difficulty: (snapshot) => snapshot.difficulty,
+			sizeBytes: (snapshot) => snapshot.sizeBytes,
+			weightUnits: (snapshot) => snapshot.weightUnits,
+			transactionCount: (snapshot) => snapshot.transactionCount,
+			$$transactions: (snapshot) => snapshot.$$transactions,
+		}),
 
 		defineResolver({
 			entityType: EntityType.UtxoTransaction,
@@ -119,39 +221,39 @@ export default {
 							version: transaction.version,
 							lockTime: transaction.locktime,
 							sizeBytes: transaction.size,
-							virtualSizeBytes: transaction.vsize,
-							weightUnits: transaction.weight,
+							...(transaction.vsize != null && {
+								virtualSizeBytes: transaction.vsize,
+							}),
+							...(transaction.weight != null && {
+								weightUnits: transaction.weight,
+							}),
 							isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-							$$inputs: transaction.vin.map((input, indexInTransaction) => (
-								{
-									[EntityMetaKey.Selector]: {
-										$transaction: entitySelector,
-										indexInTransaction,
-									},
-								}
-							)),
-							$$outputs: transaction.vout.map((output, indexInTransaction) => (
-								{
-									[EntityMetaKey.Selector]: {
-										$transaction: entitySelector,
-										indexInTransaction,
-									},
-								}
-							)),
+							$$inputs: transaction.vin.map((_input, indexInTransaction) => ({
+								[EntityMetaKey.Selector]: {
+									$transaction: entitySelector,
+									indexInTransaction,
+								},
+							})),
+							$$outputs: transaction.vout.map((_output, indexInTransaction) => ({
+								[EntityMetaKey.Selector]: {
+									$transaction: entitySelector,
+									indexInTransaction,
+								},
+							})),
 						}
 					},
 				}
 			},
 		})({
-				version: (snapshot) => snapshot.version,
-				lockTime: (snapshot) => snapshot.lockTime,
-				sizeBytes: (snapshot) => snapshot.sizeBytes,
-				virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
-				weightUnits: (snapshot) => snapshot.weightUnits,
-				isCoinbase: (snapshot) => snapshot.isCoinbase,
-				$$inputs: (snapshot) => snapshot.$$inputs,
-				$$outputs: (snapshot) => snapshot.$$outputs,
-			}),
+			version: (snapshot) => snapshot.version,
+			lockTime: (snapshot) => snapshot.lockTime,
+			sizeBytes: (snapshot) => snapshot.sizeBytes,
+			virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
+			weightUnits: (snapshot) => snapshot.weightUnits,
+			isCoinbase: (snapshot) => snapshot.isCoinbase,
+			$$inputs: (snapshot) => snapshot.$$inputs,
+			$$outputs: (snapshot) => snapshot.$$outputs,
+		}),
 
 		defineResolver({
 			entityType: EntityType.UtxoInput,
@@ -190,12 +292,12 @@ export default {
 				}
 			},
 		})({
-				$spentOutput: (snapshot) => snapshot.$spentOutput,
-				coinbaseScript: (snapshot) => snapshot.coinbaseScript,
-				scriptSigAsm: (snapshot) => snapshot.scriptSigAsm,
-				sequence: (snapshot) => snapshot.sequence,
-				witness: (snapshot) => snapshot.witness ?? [],
-			}),
+			$spentOutput: (snapshot) => snapshot.$spentOutput,
+			coinbaseScript: (snapshot) => snapshot.coinbaseScript,
+			scriptSigAsm: (snapshot) => snapshot.scriptSigAsm,
+			sequence: (snapshot) => snapshot.sequence,
+			witness: (snapshot) => snapshot.witness ?? [],
+		}),
 
 		defineResolver({
 			entityType: EntityType.UtxoOutput,
@@ -225,11 +327,199 @@ export default {
 				}
 			},
 		})({
-				valueSats: (snapshot) => snapshot.valueSats,
-				scriptPubKeyAsm: (snapshot) => snapshot.scriptPubKeyAsm,
-				scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
-				scriptPubKeyType: (snapshot) => snapshot.scriptPubKeyType,
-				$address: (snapshot) => snapshot.$address,
-			}),
+			valueSats: (snapshot) => snapshot.valueSats,
+			scriptPubKeyAsm: (snapshot) => snapshot.scriptPubKeyAsm,
+			scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
+			scriptPubKeyType: (snapshot) => snapshot.scriptPubKeyType,
+			$address: (snapshot) => snapshot.$address,
+		}),
+
+		defineResolver({
+			entityType: EntityType.UtxoAddress,
+			resolve: {
+				NetworkAddress: {
+					resolve: async ({ $network, address }, context) => {
+						assertZcashMainnet($network)
+						const { getTransparentAddressUtxos } = await import('$/sources/Zebra/JsonRpc/queries.ts')
+						const { utxos } = await getTransparentAddressUtxos({
+							address,
+							maxResults: resolverContextRowLimit(context),
+						})
+						return utxos.map((utxo) => ({
+							[EntityMetaKey.Selector]: {
+								$transaction: {
+									$network,
+									txId: utxo.txid,
+								},
+								indexInTransaction: utxo.outputIndex,
+							},
+						}))
+					},
+				},
+			},
+		})({
+			$$outputs: (outputs) => outputs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.UtxoAddress,
+			resolve: {
+				NetworkAddress: {
+					resolve: async ({ $network, address: addressSelector }) => {
+						assertZcashMainnet($network)
+						return {
+							address: addressSelector,
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$address: {
+											$network,
+											address: addressSelector,
+										},
+										timestampMs: Date.now(),
+										source: Source.Zebra_JsonRpc,
+									},
+								},
+							],
+						}
+					},
+				},
+			},
+		})({
+			address: (address) => address.address,
+			$$timestamps: (address) => address.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.UtxoAddress_Timestamp,
+			resolve: {
+				AddressTimestampMsSource: {
+					appliesTo: [
+						{
+							$address: {
+								$network: {
+									caip2: networkBySlug.zcash.caip2,
+								},
+							},
+							source: Source.Zebra_JsonRpc,
+						},
+						{
+							$address: {
+								$network: {
+									slug: networkBySlug.zcash.slug,
+								},
+							},
+							source: Source.Zebra_JsonRpc,
+						},
+					],
+					resolve: async ({ $address }) => {
+						assertZcashMainnet($address.$network)
+						const { getTransparentAddressUtxos } = await import('$/sources/Zebra/JsonRpc/queries.ts')
+						const scan = await getTransparentAddressUtxos({
+							address: $address.address,
+							maxResults: 10_000,
+						})
+						return {
+							balanceSats: BigInt(
+								scan.utxos.reduce((total, utxo) => total + utxo.satoshis, 0)
+							),
+							unspentOutputCount: scan.utxos.length,
+						}
+					},
+				},
+			},
+		})({
+			balanceSats: (observation) => observation.balanceSats,
+			unspentOutputCount: (observation) => observation.unspentOutputCount,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: resolveUtxoBlocks,
+				},
+				Slug: {
+					resolve: resolveUtxoBlocks,
+				},
+			},
+		})({
+			Utxo: {
+				$$blocks: {
+					select: (snapshot) => snapshot.blocks,
+					resolveCount: (snapshot) => BigInt(snapshot.tipHeight + 1),
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: resolveNetworkTipTimestamps,
+				},
+				Slug: {
+					resolve: resolveNetworkTipTimestamps,
+				},
+			},
+		})({
+			$$timestamps: (timestamps) => timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network_Timestamp,
+			resolve: {
+				NetworkTimestampMsSource: {
+					appliesTo: [
+						{
+							$network: {
+								caip2: networkBySlug.zcash.caip2,
+							},
+							source: Source.Zebra_JsonRpc,
+						},
+						{
+							$network: {
+								slug: networkBySlug.zcash.slug,
+							},
+							source: Source.Zebra_JsonRpc,
+						},
+					],
+					resolve: async ({
+						$network,
+						timestampMs,
+						source,
+					}) => {
+						if (source !== Source.Zebra_JsonRpc)
+							throw new Error(`Zebra_JsonRpc: unsupported network timestamp source ${source}`)
+
+						const tip = await resolveNetworkTipObservation($network)
+						return {
+							$network: {
+								[EntityMetaKey.Selector]: $network,
+							},
+							timestampMs,
+							source,
+							ledgerModels: [NetworkLedgerModel.Utxo],
+							executionModels: [] satisfies NetworkExecutionModel[],
+							...tip,
+						}
+					},
+				},
+			},
+		})({
+			$network: (timestamp) => timestamp.$network,
+			timestampMs: (timestamp) => timestamp.timestampMs,
+			source: (timestamp) => timestamp.source,
+			ledgerModels: (timestamp) => timestamp.ledgerModels,
+			executionModels: (timestamp) => timestamp.executionModels,
+			Utxo: {
+				bestBlockHeight: (timestamp) => timestamp.bestBlockHeight,
+				bestBlockHash: (timestamp) => timestamp.bestBlockHash,
+				bestBlockTimeMs: (timestamp) => timestamp.bestBlockTimeMs,
+				blockCount: (timestamp) => timestamp.blockCount,
+				mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
+				mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
+			},
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

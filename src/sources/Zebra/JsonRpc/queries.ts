@@ -1,27 +1,37 @@
-import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import { bitcoinCoreJsonRpc } from '$/sources/_shared/interfaces/BitcoinCoreJsonRpc/queries.ts'
-import type { ZebraTransparentAddressUtxos } from '$/sources/Zebra/JsonRpc/types.ts'
+import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import bindings from '$/sources/Zebra/bindings.ts'
+import {
+	zebraBlock,
+	zebraBlockCount,
+	zebraBlockHash,
+	zebraMempoolInfo,
+	zebraTransaction,
+	zebraTransparentAddressUtxos,
+	type ZebraBlock,
+	type ZebraTransparentAddressUtxos,
+} from '$/sources/Zebra/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
-import type {
-	ZcashBlock,
-	ZcashTransaction,
-} from '$/sources/Zcashd/JsonRpc/types.ts'
 
 const binding = bindings[Source.Zebra_JsonRpc][0]
 
-export const {
-	getBlock,
-	getBlockHash,
-	getRawTransaction,
-} = bitcoinCoreJsonRpc<
-	ZcashBlock,
-	ZcashTransaction
->(binding, true)
+const core = bitcoinCoreJsonRpc<ZebraBlock>(binding, true)
+
+const assertEnvelope = <_Value>(
+	label: string,
+	wire: { assert: (value: unknown) => _Value },
+	response: unknown
+) => {
+	try {
+		return wire.assert(response)
+	} catch {
+		throw new Error(`${Source.Zebra_JsonRpc}: invalid ${label} response envelope`)
+	}
+}
 
 const assertTransparentAddress = (address: string) => {
 	if (!/^t[13][1-9A-HJ-NP-Za-km-z]{33}$/.test(address))
-		throw new Error('Zebra_JsonRpc: invalid Zcash mainnet transparent address')
+		throw new Error(`${Source.Zebra_JsonRpc}: invalid Zcash mainnet transparent address`)
 }
 
 const assertSafeUnsignedInteger = (
@@ -29,15 +39,87 @@ const assertSafeUnsignedInteger = (
 	label: string
 ) => {
 	if (!Number.isSafeInteger(value) || value < 0)
-		throw new Error(`Zebra_JsonRpc: ${label} exceeds lossless JSON integer range`)
+		throw new Error(`${Source.Zebra_JsonRpc}: ${label} exceeds lossless JSON integer range`)
 }
 
 const assertHash = (
 	hash: string,
 	label: string
 ) => {
-	if (!/^[0-9a-f]{64}$/.test(hash))
-		throw new Error(`Zebra_JsonRpc: invalid ${label}`)
+	if (!/^[0-9a-f]{64}$/i.test(hash))
+		throw new Error(`${Source.Zebra_JsonRpc}: invalid ${label}`)
+}
+
+export const getBlock = async ({
+	blockHash,
+}: {
+	blockHash: string
+}) => {
+	assertHash(blockHash, 'block hash')
+	const block = assertEnvelope(
+		'block',
+		zebraBlock,
+		await core.getBlock({
+			blockHash,
+		})
+	)
+	if (block.hash.toLowerCase() !== blockHash.toLowerCase())
+		throw new Error(`${Source.Zebra_JsonRpc}: block hash does not match request`)
+	assertSafeUnsignedInteger(block.height, 'block height')
+	assertSafeUnsignedInteger(block.nTx, 'block transaction count')
+	return block
+}
+
+export const getBlockHash = async ({
+	height,
+}: {
+	height: bigint
+}) => {
+	if (height < 0n || height > BigInt(Number.MAX_SAFE_INTEGER))
+		throw new Error(`${Source.Zebra_JsonRpc}: block height exceeds lossless JSON integer range`)
+	const hash = assertEnvelope(
+		'block hash',
+		zebraBlockHash,
+		await core.getBlockHash({
+			height,
+		})
+	)
+	assertHash(hash, 'block hash')
+	return hash
+}
+
+export const getBlockCount = async () => (
+	assertEnvelope(
+		'block count',
+		zebraBlockCount,
+		await jsonRpc2<unknown>(binding, 'getblockcount', [])
+	)
+)
+
+export const getMempoolInfo = async () => (
+	assertEnvelope(
+		'mempool info',
+		zebraMempoolInfo,
+		await core.getMempoolInfo()
+	)
+)
+
+export const getRawTransaction = async ({
+	txId,
+}: {
+	txId: string
+}) => {
+	assertHash(txId, 'transaction id')
+	const transaction = assertEnvelope(
+		'transaction',
+		zebraTransaction,
+		await core.getRawTransaction({
+			txId,
+		})
+	)
+	if (transaction.txid.toLowerCase() !== txId.toLowerCase())
+		throw new Error(`${Source.Zebra_JsonRpc}: transaction id does not match request`)
+	return transaction
 }
 
 export const getTransparentAddressUtxos = async (
@@ -51,39 +133,43 @@ export const getTransparentAddressUtxos = async (
 ) => {
 	assertTransparentAddress(address)
 	if (!Number.isSafeInteger(maxResults) || maxResults < 0 || maxResults > 10_000)
-		throw new Error('Zebra_JsonRpc: UTXO result limit must be an integer from 0 through 10000')
+		throw new Error(`${Source.Zebra_JsonRpc}: UTXO result limit must be an integer from 0 through 10000`)
 	if (maxResults === 0)
 		return {
-			utxos: [],
+			utxos: [] as ZebraTransparentAddressUtxos['utxos'],
 			hash: '0'.repeat(64),
 			height: 0,
 		}
 
-	const result = await jsonRpc2<ZebraTransparentAddressUtxos>(
-		binding,
-		'getaddressutxos',
-		[{
-			addresses: [address],
-			chainInfo: true,
-		}]
+	const result = assertEnvelope(
+		'address UTXOs',
+		zebraTransparentAddressUtxos,
+		await jsonRpc2<unknown>(
+			binding,
+			'getaddressutxos',
+			[{
+				addresses: [address],
+				chainInfo: true,
+			}]
+		)
 	)
 	assertHash(result.hash, 'chain-tip hash')
 	assertSafeUnsignedInteger(result.height, 'chain-tip height')
 	if (result.utxos.length > maxResults)
-		throw new Error('Zebra_JsonRpc: UTXO response exceeds requested result limit')
+		throw new Error(`${Source.Zebra_JsonRpc}: UTXO response exceeds requested result limit`)
 	const outpoints = new Set<string>()
 	for (const utxo of result.utxos) {
 		if (utxo.address !== address)
-			throw new Error('Zebra_JsonRpc: UTXO response contains a foreign address row')
+			throw new Error(`${Source.Zebra_JsonRpc}: UTXO response contains a foreign address row`)
 		assertHash(utxo.txid, 'UTXO transaction ID')
 		assertSafeUnsignedInteger(utxo.height, 'UTXO block height')
 		assertSafeUnsignedInteger(utxo.outputIndex, 'UTXO output index')
 		assertSafeUnsignedInteger(utxo.satoshis, 'UTXO zatoshi amount')
-		if (!/^(?:[0-9a-f]{2})*$/.test(utxo.script))
-			throw new Error('Zebra_JsonRpc: invalid UTXO script')
+		if (!/^(?:[0-9a-f]{2})*$/i.test(utxo.script))
+			throw new Error(`${Source.Zebra_JsonRpc}: invalid UTXO script`)
 		const outpoint = `${utxo.txid}:${utxo.outputIndex}`
 		if (outpoints.has(outpoint))
-			throw new Error('Zebra_JsonRpc: duplicate UTXO outpoint')
+			throw new Error(`${Source.Zebra_JsonRpc}: duplicate UTXO outpoint`)
 		outpoints.add(outpoint)
 	}
 	return result
@@ -106,9 +192,9 @@ export const getTransparentAddressTransactionIds = async (
 	assertSafeUnsignedInteger(startHeight, 'start height')
 	assertSafeUnsignedInteger(endHeight, 'end height')
 	if (endHeight < startHeight || endHeight - startHeight > 9_999)
-		throw new Error('Zebra_JsonRpc: transaction history must cover 1 through 10000 blocks')
+		throw new Error(`${Source.Zebra_JsonRpc}: transaction history must cover 1 through 10000 blocks`)
 	if (!Number.isSafeInteger(maxResults) || maxResults < 0 || maxResults > 10_000)
-		throw new Error('Zebra_JsonRpc: transaction result limit must be an integer from 0 through 10000')
+		throw new Error(`${Source.Zebra_JsonRpc}: transaction result limit must be an integer from 0 through 10000`)
 	if (maxResults === 0)
 		return []
 
@@ -122,12 +208,12 @@ export const getTransparentAddressTransactionIds = async (
 		}]
 	)
 	if (transactionIds.length > maxResults)
-		throw new Error('Zebra_JsonRpc: transaction response exceeds requested result limit')
+		throw new Error(`${Source.Zebra_JsonRpc}: transaction response exceeds requested result limit`)
 	const uniqueTransactionIds = new Set<string>()
 	for (const transactionId of transactionIds) {
 		assertHash(transactionId, 'transparent transaction ID')
 		if (uniqueTransactionIds.has(transactionId))
-			throw new Error('Zebra_JsonRpc: duplicate transparent transaction ID')
+			throw new Error(`${Source.Zebra_JsonRpc}: duplicate transparent transaction ID`)
 		uniqueTransactionIds.add(transactionId)
 	}
 	return transactionIds

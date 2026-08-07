@@ -1,100 +1,81 @@
-import {
-	afterEach,
-	beforeEach,
-	describe,
-	expect,
-	it,
-	vi,
-} from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import {
-	getRawTransaction,
-	getTreeState,
-} from '$/sources/Zcashd/JsonRpc/queries.ts'
-import { networkBySlug } from '$/constants/Network.ts'
-import { EntityType } from '$/schema/EntityType.ts'
-import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedActionKind.ts'
-import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPoolKind.ts'
 import bindings from '$/sources/Zcashd/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const { default: zcashdResolvers } = await import('$/resolvers/Zcashd-JsonRpc.ts')
+const jsonRpc2 = vi.fn()
+
+vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
+	jsonRpc2,
+}))
+
+const {
+	getBlock,
+	getBlockCount,
+	getBlockHash,
+	getMempoolInfo,
+	getRawTransaction,
+	getTransparentAddressUtxos,
+	getTreeState,
+} = await import('$/sources/Zcashd/JsonRpc/queries.ts')
 
 const zcashdMainnetBinding = bindings[Source.Zcashd_JsonRpc][0]
 
-const fetchMock = vi.fn<typeof fetch>()
+const blockHash = 'a'.repeat(64)
+const parentHash = 'b'.repeat(64)
+const txId = 'c'.repeat(64)
 
-const rpcResponse = (result: unknown) => new Response(JSON.stringify({
-	jsonrpc: '2.0',
-	id: 1,
-	result,
-}), {
-	headers: {
-		'content-type': 'application/json',
-	},
-})
+const block = {
+	hash: blockHash,
+	height: 2_800_000,
+	version: 4,
+	versionHex: '00000004',
+	merkleroot: 'd'.repeat(64),
+	time: 1_750_000_000,
+	mediantime: 1_750_000_000,
+	nonce: 1,
+	bits: '1a00ffff',
+	difficulty: 1,
+	chainwork: '01',
+	nTx: 1,
+	previousblockhash: parentHash,
+	finalsaplingroot: 'e'.repeat(64),
+	tx: [txId],
+}
 
 describe('Zcashd JSON-RPC queries', () => {
 	beforeEach(() => {
-		vi.stubGlobal('fetch', fetchMock)
-		fetchMock.mockReset()
+		jsonRpc2.mockReset()
 	})
 
-	afterEach(() => {
-		vi.unstubAllGlobals()
+	it('asserts verbose getblock envelopes and preserves Sapling tip root', async () => {
+		jsonRpc2.mockResolvedValueOnce(block)
+		await expect(getBlock({
+			blockHash,
+		})).resolves.toEqual(block)
+		expect(jsonRpc2).toHaveBeenCalledWith(
+			zcashdMainnetBinding,
+			'getblock',
+			[
+				blockHash,
+				2,
+			]
+		)
 	})
 
-	it('requests and preserves exact-block Sapling and Orchard commitment trees', async () => {
-		fetchMock.mockResolvedValueOnce(rpcResponse({
-			hash: '0000000000000000000000000000000000000000000000000000000000000123',
-			height: 2_800_000,
-			time: 1_750_000_000,
-			sapling: {
-				skipHash: 'sapling-skip',
-				commitments: {
-					finalRoot: 'sapling-root',
-					finalState: 'sapling-state',
-				},
-			},
-			orchard: {
-				skipHash: 'orchard-skip',
-				commitments: {
-					finalRoot: 'orchard-root',
-					finalState: 'orchard-state',
-				},
-			},
-		}))
-
-		await expect(getTreeState({
-			binding: zcashdMainnetBinding,
-			block: 2_800_000,
-		})).resolves.toMatchObject({
-			height: 2_800_000,
-			sapling: {
-				commitments: {
-					finalRoot: 'sapling-root',
-					finalState: 'sapling-state',
-				},
-			},
-			orchard: {
-				commitments: {
-					finalRoot: 'orchard-root',
-					finalState: 'orchard-state',
-				},
-			},
+	it('fails closed on malformed block envelopes', async () => {
+		jsonRpc2.mockResolvedValueOnce({
+			hash: blockHash,
 		})
-		expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
-			jsonrpc: '2.0',
-			id: 1,
-			method: 'z_gettreestate',
-			params: [2_800_000],
-		})
+		await expect(getBlock({
+			blockHash,
+		})).rejects.toThrow('invalid block response envelope')
 	})
 
 	it('accepts the Zcash transaction wire without Bitcoin weight', async () => {
-		fetchMock.mockResolvedValueOnce(rpcResponse({
-			txid: 'transaction-id',
-			hash: 'transaction-hash',
+		const transaction = {
+			txid: txId,
+			hash: txId,
 			version: 5,
 			overwintered: true,
 			versiongroupid: '26a7270a',
@@ -112,77 +93,139 @@ describe('Zcashd JSON-RPC queries', () => {
 				spendAuthSig: 'spend-auth-signature',
 			}],
 			vShieldedOutput: [],
-		}))
-
+		}
+		jsonRpc2.mockResolvedValueOnce(transaction)
 		await expect(getRawTransaction({
-			binding: zcashdMainnetBinding,
-			txId: 'transaction-id',
+			txId,
 		})).resolves.toMatchObject({
 			expiryheight: 2_800_040,
 			vShieldedSpend: [{
 				proof: 'spend-proof',
 			}],
 		})
-		expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
-			jsonrpc: '2.0',
-			id: 1,
-			method: 'getrawtransaction',
-			params: [
-				'transaction-id',
+		expect(jsonRpc2).toHaveBeenCalledWith(
+			zcashdMainnetBinding,
+			'getrawtransaction',
+			[
+				txId,
 				1,
-			],
+			]
+		)
+	})
+
+	it('loads tip height, height→hash, and mempool envelopes', async () => {
+		jsonRpc2.mockResolvedValueOnce(2_800_000)
+		await expect(getBlockCount()).resolves.toBe(2_800_000)
+
+		jsonRpc2.mockResolvedValueOnce(-1)
+		await expect(getBlockCount()).rejects.toThrow('invalid block count response envelope')
+
+		jsonRpc2.mockResolvedValueOnce(blockHash)
+		await expect(getBlockHash({
+			height: 2_800_000n,
+		})).resolves.toBe(blockHash)
+
+		jsonRpc2.mockResolvedValueOnce({
+			loaded: true,
+			size: 7,
+			bytes: 9_001,
+			usage: 10_000,
+			total_fee: 0.01,
+			maxmempool: 300_000_000,
+			mempoolminfee: 0.00001,
+			minrelaytxfee: 0.00001,
+		})
+		await expect(getMempoolInfo()).resolves.toMatchObject({
+			size: 7,
+			bytes: 9_001,
 		})
 	})
 
-	it('rejects invalid pool/action identities before provider lookup', async () => {
-			const resolver = zcashdResolvers.resolvers.find((candidate) => (
-				candidate.entityType === EntityType.ZcashShieldedAction
-			))
-			const actionResolver = resolver.resolve[
-				'TransactionPoolActionKindIndexInTransaction'
-			]
-
-			await expect(actionResolver.resolve({
-				$transaction: {
-					$network: {
-					slug: networkBySlug.zcash.slug,
-				},
-				txId: 'transaction-id',
-			},
-				pool: ZcashShieldedPoolKind.Sprout,
-				actionKind: ZcashShieldedActionKind.Action,
-				indexInTransaction: 0,
-			})).rejects.toThrow('invalid sprout/action shielded action')
-			expect(fetchMock).not.toHaveBeenCalled()
-		})
-
-	it('rejects tree state returned for a different selected block', async () => {
-		fetchMock.mockResolvedValueOnce(rpcResponse({
-			hash: 'different-block-hash',
-			height: 2_800_001,
+	it('requests and preserves exact-block Sapling and Orchard commitment trees', async () => {
+		jsonRpc2.mockResolvedValueOnce({
+			hash: blockHash,
+			height: 2_800_000,
 			time: 1_750_000_000,
-		}))
-			const resolver = zcashdResolvers.resolvers.find((candidate) => (
-				candidate.entityType === EntityType.ZcashShieldedPoolBlockState
-			))
-			const treeStateResolver = resolver.resolve[
-				'BlockPool'
-			]
-
-			await expect(treeStateResolver.resolve({
-				$block: {
-				$network: {
-					slug: networkBySlug.zcash.slug,
+			sapling: {
+				skipHash: 'sapling-skip',
+				commitments: {
+					finalRoot: 'sapling-root',
+					finalState: 'sapling-state',
 				},
-				height: 2_800_000n,
-				hash: 'selected-block-hash',
 			},
-			$pool: {
-				$network: {
-					slug: networkBySlug.zcash.slug,
+			orchard: {
+				skipHash: 'orchard-skip',
+				commitments: {
+					finalRoot: 'orchard-root',
+					finalState: 'orchard-state',
 				},
-					pool: ZcashShieldedPoolKind.Sapling,
-				},
-			})).rejects.toThrow('returned a different block')
+			},
 		})
+
+		await expect(getTreeState({
+			block: 2_800_000,
+		})).resolves.toMatchObject({
+			height: 2_800_000,
+			sapling: {
+				commitments: {
+					finalRoot: 'sapling-root',
+					finalState: 'sapling-state',
+				},
+			},
+			orchard: {
+				commitments: {
+					finalRoot: 'orchard-root',
+					finalState: 'orchard-state',
+				},
+			},
+		})
+		expect(jsonRpc2).toHaveBeenCalledWith(
+			zcashdMainnetBinding,
+			'z_gettreestate',
+			[2_800_000]
+		)
+	})
+
+	it('scans transparent address UTXOs via validateaddress + scantxoutset', async () => {
+		const address = `t1${'A'.repeat(33)}`
+		jsonRpc2
+			.mockResolvedValueOnce({
+				isvalid: true,
+				address,
+			})
+			.mockResolvedValueOnce({
+				success: true,
+				unspents: [{
+					txid: txId,
+					vout: 1,
+					scriptPubKey: '76a91400',
+					amount: 1.5,
+					height: 2_800_000,
+				}],
+				total_amount: 1.5,
+			})
+
+		await expect(getTransparentAddressUtxos({
+			address,
+			maxResults: 25,
+		})).resolves.toMatchObject({
+			totalAmountSatoshis: 150_000_000n,
+			unspents: [{
+				valueSatoshis: 150_000_000n,
+			}],
+		})
+	})
+
+	it('fails closed on foreign or oversized transparent UTXO scans', async () => {
+		const address = `t1${'A'.repeat(33)}`
+		jsonRpc2
+			.mockResolvedValueOnce({
+				isvalid: true,
+				address: `t1${'B'.repeat(33)}`,
+			})
+		await expect(getTransparentAddressUtxos({
+			address,
+			maxResults: 1,
+		})).rejects.toThrow('node rejected or canonicalized the address identity')
+	})
 })
