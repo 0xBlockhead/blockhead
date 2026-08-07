@@ -148,9 +148,9 @@ export const getTransactionInfo = async (
 			path: '/api/v1/tx_info',
 			body: {
 				_tx_hashes: [transactionHash],
-				_inputs: false,
+				_inputs: true,
 				_metadata: false,
-				_assets: false,
+				_assets: true,
 				_withdrawals: false,
 				_certs: true,
 				_scripts: true,
@@ -167,12 +167,21 @@ export const getTransactionInfo = async (
 				'CardanoKoios_Rest: tx_info must return exactly one transaction'
 		)
 	const transaction = transactions[0]
+	const collateralInputs = transaction.collateral_inputs ?? []
+	const referenceInputs = transaction.reference_inputs ?? []
+	const utxos = [
+		...transaction.inputs,
+		...transaction.outputs,
+		...collateralInputs,
+		...referenceInputs,
+	]
 	if (
 		[
 			transaction.epoch_no,
 			transaction.absolute_slot,
 			transaction.tx_timestamp,
 			transaction.tx_size,
+			...utxos.map((utxo) => utxo.tx_index),
 		].some((value) => !Number.isSafeInteger(value))
 		|| transaction.certificates.some((certificate) => !Number.isSafeInteger(certificate.index))
 		|| transaction.voting_procedures.some((votingProcedure) => !Number.isSafeInteger(votingProcedure.proposal_index))
@@ -186,9 +195,28 @@ export const getTransactionInfo = async (
 		))).size !== transaction.voting_procedures.length
 	)
 		throw new Error('CardanoKoios_Rest: voting_procedures contains duplicate identities')
+	if (
+		new Set(transaction.outputs.map((output) => output.tx_index)).size
+			!== transaction.outputs.length
+	)
+		throw new Error('CardanoKoios_Rest: outputs contains duplicate identities')
+	for (const [label, rows] of [
+		['inputs', transaction.inputs],
+		['collateral_inputs', collateralInputs],
+		['reference_inputs', referenceInputs],
+	] as const) {
+		if (
+			new Set(rows.map((utxo) => (
+				`${utxo.tx_hash}:${utxo.tx_index.toString()}`
+			))).size !== rows.length
+		)
+			throw new Error(`CardanoKoios_Rest: ${label} contains duplicate identities`)
+	}
 
 	return {
 		...transaction,
+		collateral_inputs: collateralInputs,
+		reference_inputs: referenceInputs,
 		proposal_procedures: transaction.proposal_procedures.map((proposal) => {
 			const validated = cardanoKoiosTransactionProposalProcedure.assert(proposal)
 			const description = parseCardanoGovernanceAction(validated.description)

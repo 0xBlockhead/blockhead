@@ -53,6 +53,10 @@ const transactionInfo = {
 	deposit: '0',
 	invalid_before: null,
 	invalid_after: null,
+	inputs: [],
+	outputs: [],
+	collateral_inputs: [],
+	reference_inputs: [],
 	certificates: [],
 	native_scripts: [],
 	plutus_contracts: [],
@@ -87,7 +91,7 @@ describe('Cardano Koios REST transaction transport', () => {
 		vi.clearAllMocks()
 	})
 
-	it('requests one decoded transaction snapshot with only relationship payloads enabled', async () => {
+	it('requests one decoded transaction snapshot with inputs, assets, and relationship payloads enabled', async () => {
 		sourceFetch.mockResolvedValueOnce(Response.json([transactionInfo]))
 
 		await expect(getTransactionInfo(transactionInfo.tx_hash)).resolves.toEqual(transactionInfo)
@@ -101,9 +105,9 @@ describe('Cardano Koios REST transaction transport', () => {
 				},
 				body: JSON.stringify({
 					_tx_hashes: [transactionInfo.tx_hash],
-					_inputs: false,
+					_inputs: true,
 					_metadata: false,
-					_assets: false,
+					_assets: true,
 					_withdrawals: false,
 					_certs: true,
 					_scripts: true,
@@ -111,6 +115,72 @@ describe('Cardano Koios REST transaction transport', () => {
 					_governance: true,
 				}),
 			}
+		)
+	})
+
+	it('normalizes null collateral and reference input arrays and rejects duplicate I/O identities', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(Response.json([{
+				...transactionInfo,
+				collateral_inputs: null,
+				reference_inputs: null,
+			}]))
+			.mockResolvedValueOnce(Response.json([{
+				...transactionInfo,
+				outputs: [
+					{
+						payment_addr: {
+							bech32: 'addr1output',
+						},
+						tx_hash: transactionInfo.tx_hash,
+						tx_index: 0,
+						value: '1000000',
+						asset_list: [],
+					},
+					{
+						payment_addr: {
+							bech32: 'addr1output-b',
+						},
+						tx_hash: transactionInfo.tx_hash,
+						tx_index: 0,
+						value: '2000000',
+						asset_list: [],
+					},
+				],
+			}]))
+			.mockResolvedValueOnce(Response.json([{
+				...transactionInfo,
+				inputs: [
+					{
+						payment_addr: {
+							bech32: 'addr1input',
+						},
+						tx_hash: 'spent-a',
+						tx_index: 1,
+						value: '1000000',
+						asset_list: [],
+					},
+					{
+						payment_addr: {
+							bech32: 'addr1input-b',
+						},
+						tx_hash: 'spent-a',
+						tx_index: 1,
+						value: '2000000',
+						asset_list: [],
+					},
+				],
+			}]))
+
+		await expect(getTransactionInfo(transactionInfo.tx_hash)).resolves.toMatchObject({
+			collateral_inputs: [],
+			reference_inputs: [],
+		})
+		await expect(getTransactionInfo(transactionInfo.tx_hash)).rejects.toThrow(
+			'CardanoKoios_Rest: outputs contains duplicate identities'
+		)
+		await expect(getTransactionInfo(transactionInfo.tx_hash)).rejects.toThrow(
+			'CardanoKoios_Rest: inputs contains duplicate identities'
 		)
 	})
 

@@ -9,7 +9,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import type { CardanoKoiosTransactionProposalProcedure } from '$/sources/CardanoKoios/Rest/types.ts'
+import type {
+	CardanoKoiosTransactionInfo,
+	CardanoKoiosTransactionProposalProcedure,
+	CardanoKoiosTransactionUtxo,
+} from '$/sources/CardanoKoios/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 const assertCardanoMainnet = (
 	network: EntitySelector<typeof schema, EntityType.Network>
@@ -57,6 +61,88 @@ const cardanoGovernanceProposalSnapshot = (
 	returnAddress: proposal.return_address,
 	anchorUrl: proposal.meta_url ?? undefined,
 	anchorHash: proposal.meta_hash ?? undefined,
+})
+
+const cardanoKoiosTransactionInputRows = (
+	transaction: Pick<
+		CardanoKoiosTransactionInfo,
+		'inputs' | 'collateral_inputs' | 'reference_inputs'
+	>
+) => (
+	[
+		...transaction.inputs.map((input) => ({
+			input,
+			inputKind: 'spend' as const,
+		})),
+		...transaction.collateral_inputs.map((input) => ({
+			input,
+			inputKind: 'collateral' as const,
+		})),
+		...transaction.reference_inputs.map((input) => ({
+			input,
+			inputKind: 'reference' as const,
+		})),
+	]
+)
+
+const cardanoKoiosTransactionInfoSnapshot = async (
+	cardanoTransaction: EntitySelector<typeof schema, EntityType.CardanoTransaction>
+) => {
+	assertCardanoMainnet(cardanoTransaction.$network)
+	const { getTransactionInfo } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+	const transaction = await getTransactionInfo(
+		cardanoTransaction.hash
+	)
+
+	if (transaction.tx_hash !== cardanoTransaction.hash)
+		throw new Error('CardanoKoios_Rest: transaction response does not match the subject')
+
+	return {
+		cardanoTransaction,
+		transaction,
+	}
+}
+
+const cardanoTxInputFields = (
+	input: CardanoKoiosTransactionUtxo,
+	inputKind: 'spend' | 'collateral' | 'reference',
+	cardanoTransaction: EntitySelector<typeof schema, EntityType.CardanoTransaction>
+) => ({
+	[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'inputKind')]: inputKind,
+	[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'spentTxHash')]: input.tx_hash,
+	[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'spentOutputIndex')]: input.tx_index,
+	[entityFieldAddressKey(EntityType.CardanoTxInput, [], '$spentOutput')]: {
+		[EntityMetaKey.Selector]: {
+			$transaction: {
+				$network: cardanoTransaction.$network,
+				hash: input.tx_hash,
+			},
+			outputIndex: input.tx_index,
+		},
+	},
+})
+
+const cardanoTxOutputFields = (
+	output: CardanoKoiosTransactionUtxo,
+	cardanoTransaction: EntitySelector<typeof schema, EntityType.CardanoTransaction>
+) => ({
+	[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'address')]: output.payment_addr.bech32,
+	[entityFieldAddressKey(EntityType.CardanoTxOutput, [], '$address')]: {
+		[EntityMetaKey.Selector]: {
+			$network: cardanoTransaction.$network,
+			address: output.payment_addr.bech32,
+		},
+	},
+	[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'lovelace')]: BigInt(output.value),
+	...(output.datum_hash != null && {
+		[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'datumHash')]: output.datum_hash,
+	}),
+	...(output.inline_datum != null && {
+		[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'inlineDatum')]: output.inline_datum,
+	}),
+	...(output.reference_script != null && {
+		[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'referenceScriptHash')]: output.reference_script.hash,
+	}),
 })
 
 export default {
@@ -507,21 +593,7 @@ export default {
 			entityType: EntityType.CardanoTransaction,
 			resolve: {
 				NetworkHash: {
-					resolve: async (cardanoTransaction) => {
-						assertCardanoMainnet(cardanoTransaction.$network)
-						const { getTransactionInfo } = await import('$/sources/CardanoKoios/Rest/queries.ts')
-						const transaction = await getTransactionInfo(
-							cardanoTransaction.hash
-						)
-
-						if (transaction.tx_hash !== cardanoTransaction.hash)
-							throw new Error('CardanoKoios_Rest: transaction response does not match the subject')
-
-						return {
-							cardanoTransaction,
-							transaction,
-						}
-					},
+					resolve: cardanoKoiosTransactionInfoSnapshot,
 				}
 			},
 		})({
@@ -541,6 +613,30 @@ export default {
 				:
 					BigInt(transaction.invalid_after)
 			),
+			$$inputs: ({ cardanoTransaction, transaction }) => cardanoKoiosTransactionInputRows(transaction).map(({
+				input,
+				inputKind,
+			}, inputIndex) => ({
+				[EntityMetaKey.Selector]: {
+					$transaction: cardanoTransaction,
+					inputIndex,
+				},
+				[EntityMetaKey.Fields]: cardanoTxInputFields(
+					input,
+					inputKind,
+					cardanoTransaction
+				),
+			})),
+			$$outputs: ({ cardanoTransaction, transaction }) => transaction.outputs.map((output) => ({
+				[EntityMetaKey.Selector]: {
+					$transaction: cardanoTransaction,
+					outputIndex: output.tx_index,
+				},
+				[EntityMetaKey.Fields]: cardanoTxOutputFields(
+					output,
+					cardanoTransaction
+				),
+			})),
 			$$certificates: ({ cardanoTransaction, transaction }) => transaction.certificates.map((certificate) => ({
 				[EntityMetaKey.Selector]: {
 					$transaction: cardanoTransaction,
@@ -657,6 +753,80 @@ export default {
 					[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'epoch')]: transaction.epoch_no,
 					[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'slot')]: BigInt(transaction.absolute_slot),
 					[entityFieldAddressKey(EntityType.CardanoGovernanceVote, [], 'timestampMs')]: transaction.tx_timestamp * 1_000,
+				},
+			})),
+		}),
+
+		defineResolver({
+			entityType: EntityType.CardanoTxInput,
+			resolve: {
+				TransactionInputIndex: {
+					resolve: async (cardanoTxInput) => {
+						const row = cardanoKoiosTransactionInputRows(
+							(
+								await cardanoKoiosTransactionInfoSnapshot(cardanoTxInput.$transaction)
+							).transaction
+						).at(cardanoTxInput.inputIndex)
+						if (row == null)
+							throw new Error(`CardanoKoios_Rest: transaction input ${cardanoTxInput.inputIndex.toString()} not found`)
+
+						return row
+					},
+				},
+			},
+		})({
+			inputKind: ({ inputKind }) => inputKind,
+			spentTxHash: ({ input }) => input.tx_hash,
+			spentOutputIndex: ({ input }) => input.tx_index,
+			$spentOutput: ({ input }, cardanoTxInput) => ({
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: cardanoTxInput.$transaction.$network,
+						hash: input.tx_hash,
+					},
+					outputIndex: input.tx_index,
+				},
+			}),
+		}),
+
+		defineResolver({
+			entityType: EntityType.CardanoTxOutput,
+			resolve: {
+				TransactionOutputIndex: {
+					resolve: async (cardanoTxOutput) => {
+						const output = (
+							await cardanoKoiosTransactionInfoSnapshot(cardanoTxOutput.$transaction)
+						).transaction.outputs.find(({ tx_index }) => tx_index === cardanoTxOutput.outputIndex)
+						if (output == null)
+							throw new Error(`CardanoKoios_Rest: transaction output ${cardanoTxOutput.outputIndex.toString()} not found`)
+
+						return output
+					},
+				},
+			},
+		})({
+			address: (output) => output.payment_addr.bech32,
+			$address: (output, cardanoTxOutput) => ({
+				[EntityMetaKey.Selector]: {
+					$network: cardanoTxOutput.$transaction.$network,
+					address: output.payment_addr.bech32,
+				},
+			}),
+			lovelace: (output) => BigInt(output.value),
+			datumHash: (output) => output.datum_hash ?? undefined,
+			inlineDatum: (output) => output.inline_datum ?? undefined,
+			referenceScriptHash: (output) => output.reference_script?.hash,
+			$$assets: (output, cardanoTxOutput) => (output.asset_list ?? []).map((asset) => ({
+				[EntityMetaKey.Selector]: {
+					$output: cardanoTxOutput,
+					$asset: {
+						$network: cardanoTxOutput.$transaction.$network,
+						policyId: asset.policy_id,
+						assetName: asset.asset_name,
+					},
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoTxOutputAsset, [], 'quantity')]: BigInt(asset.quantity),
 				},
 			})),
 		}),

@@ -117,6 +117,35 @@ export const cardanoKoiosTransactionProposalProcedure = arktype({
 	return_address: 'string',
 }) satisfies Type<CardanoKoiosTransactionProposalProcedureWire>
 
+export interface CardanoKoiosTransactionAsset {
+	policy_id: string
+	asset_name: string
+	quantity: string
+	fingerprint?: string | null
+	decimals?: number | null
+}
+
+export interface CardanoKoiosTransactionUtxo {
+	payment_addr: {
+		bech32: string
+		cred?: string
+	}
+	stake_addr?: string | null
+	tx_hash: string
+	tx_index: number
+	value: string
+	datum_hash?: string | null
+	inline_datum?: JsonValue | null
+	reference_script?: {
+		hash: string
+		size?: number
+		type?: string
+		bytes?: string
+		value?: JsonValue | null
+	} | null
+	asset_list?: CardanoKoiosTransactionAsset[] | null
+}
+
 export interface CardanoKoiosTransactionInfo {
 	tx_hash: string
 	epoch_no: number
@@ -127,6 +156,10 @@ export interface CardanoKoiosTransactionInfo {
 	deposit: string
 	invalid_before: string | null
 	invalid_after: string | null
+	inputs: CardanoKoiosTransactionUtxo[]
+	outputs: CardanoKoiosTransactionUtxo[]
+	collateral_inputs: CardanoKoiosTransactionUtxo[]
+	reference_inputs: CardanoKoiosTransactionUtxo[]
 	certificates: CardanoKoiosTransactionCertificate[]
 	native_scripts: CardanoKoiosTransactionNativeScript[]
 	plutus_contracts: CardanoKoiosTransactionPlutusContract[]
@@ -194,7 +227,40 @@ export const cardanoKoiosTransactionVotingProcedure = arktype({
 	proposal_tx_hash: 'string',
 }) satisfies Type<CardanoKoiosTransactionVotingProcedure>
 
+export const cardanoKoiosTransactionAsset = arktype({
+	policy_id: 'string',
+	asset_name: 'string',
+	quantity: '/^(0|[1-9][0-9]*)$/',
+	'fingerprint?': 'string | null',
+	'decimals?': 'number.integer >= 0 | null',
+}) satisfies Type<CardanoKoiosTransactionAsset>
+
+export const cardanoKoiosTransactionUtxo = arktype({
+	payment_addr: {
+		bech32: 'string',
+		'cred?': 'string',
+	},
+	'stake_addr?': 'string | null',
+	tx_hash: 'string',
+	tx_index: 'number.integer >= 0',
+	value: '/^(0|[1-9][0-9]*)$/',
+	'datum_hash?': 'string | null',
+	'inline_datum?': 'unknown | null',
+	'reference_script?': arktype({
+		hash: 'string',
+		'size?': 'number.integer >= 0',
+		'type?': 'string',
+		'bytes?': 'string',
+		'value?': 'unknown | null',
+	}).or('null'),
+	'asset_list?': cardanoKoiosTransactionAsset.array().or('null'),
+}) satisfies Type<CardanoKoiosTransactionUtxo>
+
 export const cardanoKoiosTransactionInfo = cardanoKoiosTransactionInfoScalars.and({
+	inputs: cardanoKoiosTransactionUtxo.array(),
+	outputs: cardanoKoiosTransactionUtxo.array(),
+	collateral_inputs: cardanoKoiosTransactionUtxo.array().or('null'),
+	reference_inputs: cardanoKoiosTransactionUtxo.array().or('null'),
 	certificates: cardanoKoiosTransactionCertificate.array(),
 	native_scripts: cardanoKoiosTransactionNativeScript.array(),
 	plutus_contracts: cardanoKoiosTransactionPlutusContract.array(),

@@ -42,26 +42,6 @@ vi.mock('$/sources/CardanoKoios/Rest/queries.ts', () => ({
 
 const { default: cardanoKoiosResolvers } = await import('$/resolvers/CardanoKoios-Rest.ts')
 
-const cardanoTransactionRelationshipResolver = cardanoKoiosResolvers.resolvers.find((
-	resolver
-): resolver is Extract<
-	typeof cardanoKoiosResolvers.resolvers[number],
-	{ entityType: EntityType.CardanoTransaction }
-> => resolver.entityType === EntityType.CardanoTransaction)
-
-if (cardanoTransactionRelationshipResolver == null)
-	throw new Error('CardanoKoios-Rest spec missing CardanoTransaction relationship resolver')
-
-const cardanoGovernanceProposalResolver = cardanoKoiosResolvers.resolvers.find((
-	resolver
-): resolver is Extract<
-	typeof cardanoKoiosResolvers.resolvers[number],
-	{ entityType: EntityType.CardanoGovernanceProposal }
-> => resolver.entityType === EntityType.CardanoGovernanceProposal)
-
-if (cardanoGovernanceProposalResolver == null)
-	throw new Error('CardanoKoios-Rest spec missing CardanoGovernanceProposal resolver')
-
 const resolverContext = {
 	filters: [],
 	sorts: [],
@@ -80,6 +60,8 @@ const cardanoTransaction = {
 const cardanoNetwork = {
 	caip2: networkBySlug.cardano.caip2,
 }
+const cardanoNativeAssetPolicyId = 'a'.repeat(56)
+const cardanoNativeAssetName = '746f6b656e'
 const transactionInfo = {
 	tx_hash: cardanoTransaction.hash,
 	epoch_no: 500,
@@ -90,6 +72,69 @@ const transactionInfo = {
 	deposit: '2000000',
 	invalid_before: '100',
 	invalid_after: '200',
+	inputs: [
+		{
+			payment_addr: {
+				bech32: 'addr1spend',
+			},
+			tx_hash: 'spent-transaction-hash',
+			tx_index: 3,
+			value: '5000000',
+			asset_list: [{
+				policy_id: cardanoNativeAssetPolicyId,
+				asset_name: cardanoNativeAssetName,
+				quantity: '2',
+			}],
+		},
+	],
+	outputs: [
+		{
+			payment_addr: {
+				bech32: 'addr1output',
+			},
+			tx_hash: cardanoTransaction.hash,
+			tx_index: 1,
+			value: '3000000',
+			datum_hash: 'datum-hash',
+			inline_datum: {
+				bytes: '19a6aa',
+				value: {
+					int: 666,
+				},
+			},
+			reference_script: {
+				hash: 'reference-script-hash',
+				type: 'plutusV2',
+			},
+			asset_list: [{
+				policy_id: cardanoNativeAssetPolicyId,
+				asset_name: cardanoNativeAssetName,
+				quantity: '2',
+			}],
+		},
+	],
+	collateral_inputs: [
+		{
+			payment_addr: {
+				bech32: 'addr1collateral',
+			},
+			tx_hash: 'collateral-spent-hash',
+			tx_index: 0,
+			value: '4000000',
+			asset_list: [],
+		},
+	],
+	reference_inputs: [
+		{
+			payment_addr: {
+				bech32: 'addr1reference',
+			},
+			tx_hash: 'reference-spent-hash',
+			tx_index: 7,
+			value: '1000000',
+			asset_list: [],
+		},
+	],
 	certificates: [
 		{
 			info: {
@@ -182,6 +227,46 @@ const transactionInfo = {
 		},
 	],
 } satisfies CardanoKoiosTransactionInfo
+
+const cardanoTransactionRelationshipResolver = cardanoKoiosResolvers.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof cardanoKoiosResolvers.resolvers[number],
+	{ entityType: EntityType.CardanoTransaction }
+> => resolver.entityType === EntityType.CardanoTransaction)
+
+if (cardanoTransactionRelationshipResolver == null)
+	throw new Error('CardanoKoios-Rest spec missing CardanoTransaction relationship resolver')
+
+const cardanoTxInputResolver = cardanoKoiosResolvers.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof cardanoKoiosResolvers.resolvers[number],
+	{ entityType: EntityType.CardanoTxInput }
+> => resolver.entityType === EntityType.CardanoTxInput)
+
+if (cardanoTxInputResolver == null)
+	throw new Error('CardanoKoios-Rest spec missing CardanoTxInput resolver')
+
+const cardanoTxOutputResolver = cardanoKoiosResolvers.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof cardanoKoiosResolvers.resolvers[number],
+	{ entityType: EntityType.CardanoTxOutput }
+> => resolver.entityType === EntityType.CardanoTxOutput)
+
+if (cardanoTxOutputResolver == null)
+	throw new Error('CardanoKoios-Rest spec missing CardanoTxOutput resolver')
+
+const cardanoGovernanceProposalResolver = cardanoKoiosResolvers.resolvers.find((
+	resolver
+): resolver is Extract<
+	typeof cardanoKoiosResolvers.resolvers[number],
+	{ entityType: EntityType.CardanoGovernanceProposal }
+> => resolver.entityType === EntityType.CardanoGovernanceProposal)
+
+if (cardanoGovernanceProposalResolver == null)
+	throw new Error('CardanoKoios-Rest spec missing CardanoGovernanceProposal resolver')
 
 describe('Cardano Koios transaction relationships', () => {
 	beforeEach(() => {
@@ -296,9 +381,173 @@ describe('Cardano Koios transaction relationships', () => {
 		])
 	})
 
+	it('materializes transaction inputs and outputs from the exact tx_info snapshot', async () => {
+		getTransactionInfo.mockResolvedValueOnce(transactionInfo)
+
+		const snapshot = await cardanoTransactionRelationshipResolver.resolve[
+			'NetworkHash'
+		].resolve(
+			cardanoTransaction,
+			resolverContext
+		)
+
+		expect(cardanoTransactionRelationshipResolver.projections.$$inputs(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: cardanoTransaction,
+					inputIndex: 0,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'inputKind')]: 'spend',
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'spentTxHash')]: 'spent-transaction-hash',
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'spentOutputIndex')]: 3,
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], '$spentOutput')]: {
+						[EntityMetaKey.Selector]: {
+							$transaction: {
+								$network: cardanoTransaction.$network,
+								hash: 'spent-transaction-hash',
+							},
+							outputIndex: 3,
+						},
+					},
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: cardanoTransaction,
+					inputIndex: 1,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'inputKind')]: 'collateral',
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'spentTxHash')]: 'collateral-spent-hash',
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'spentOutputIndex')]: 0,
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], '$spentOutput')]: {
+						[EntityMetaKey.Selector]: {
+							$transaction: {
+								$network: cardanoTransaction.$network,
+								hash: 'collateral-spent-hash',
+							},
+							outputIndex: 0,
+						},
+					},
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: cardanoTransaction,
+					inputIndex: 2,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'inputKind')]: 'reference',
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'spentTxHash')]: 'reference-spent-hash',
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], 'spentOutputIndex')]: 7,
+					[entityFieldAddressKey(EntityType.CardanoTxInput, [], '$spentOutput')]: {
+						[EntityMetaKey.Selector]: {
+							$transaction: {
+								$network: cardanoTransaction.$network,
+								hash: 'reference-spent-hash',
+							},
+							outputIndex: 7,
+						},
+					},
+				},
+			},
+		])
+		expect(cardanoTransactionRelationshipResolver.projections.$$outputs(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$transaction: cardanoTransaction,
+					outputIndex: 1,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'address')]: 'addr1output',
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], '$address')]: {
+						[EntityMetaKey.Selector]: {
+							$network: cardanoTransaction.$network,
+							address: 'addr1output',
+						},
+					},
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'lovelace')]: 3_000_000n,
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'datumHash')]: 'datum-hash',
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'inlineDatum')]: {
+						bytes: '19a6aa',
+						value: {
+							int: 666,
+						},
+					},
+					[entityFieldAddressKey(EntityType.CardanoTxOutput, [], 'referenceScriptHash')]: 'reference-script-hash',
+				},
+			},
+		])
+	})
+
+	it('resolves cold transaction input and output selectors from the same tx_info snapshot', async () => {
+		getTransactionInfo
+			.mockResolvedValueOnce(transactionInfo)
+			.mockResolvedValueOnce(transactionInfo)
+
+		const cardanoTxInput = {
+			$transaction: cardanoTransaction,
+			inputIndex: 2,
+		}
+		const input = await cardanoTxInputResolver.resolve[
+			'TransactionInputIndex'
+		].resolve(
+			cardanoTxInput,
+			resolverContext
+		)
+		expect(cardanoTxInputResolver.projections.inputKind(input)).toBe('reference')
+		expect(cardanoTxInputResolver.projections.$spentOutput(
+			input,
+			cardanoTxInput
+		)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: cardanoTransaction.$network,
+					hash: 'reference-spent-hash',
+				},
+				outputIndex: 7,
+			},
+		})
+
+		const cardanoTxOutput = {
+			$transaction: cardanoTransaction,
+			outputIndex: 1,
+		}
+		const output = await cardanoTxOutputResolver.resolve[
+			'TransactionOutputIndex'
+		].resolve(
+			cardanoTxOutput,
+			resolverContext
+		)
+		expect(cardanoTxOutputResolver.projections.lovelace(output)).toBe(3_000_000n)
+		expect(cardanoTxOutputResolver.projections.$$assets(
+			output,
+			cardanoTxOutput
+		)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$output: cardanoTxOutput,
+					$asset: {
+						$network: cardanoTransaction.$network,
+						policyId: cardanoNativeAssetPolicyId,
+						assetName: cardanoNativeAssetName,
+					},
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.CardanoTxOutputAsset, [], 'quantity')]: 2n,
+				},
+			},
+		])
+	})
+
 	it('resolves all four collections as empty from an authoritative empty snapshot', async () => {
 		getTransactionInfo.mockResolvedValueOnce({
 			...transactionInfo,
+			inputs: [],
+			outputs: [],
+			collateral_inputs: [],
+			reference_inputs: [],
 			certificates: [],
 			native_scripts: [],
 			plutus_contracts: [],
@@ -313,6 +562,8 @@ describe('Cardano Koios transaction relationships', () => {
 			resolverContext
 		)
 
+		expect(cardanoTransactionRelationshipResolver.projections.$$inputs(snapshot)).toEqual([])
+		expect(cardanoTransactionRelationshipResolver.projections.$$outputs(snapshot)).toEqual([])
 		expect(cardanoTransactionRelationshipResolver.projections.$$certificates(snapshot)).toEqual([])
 		expect(cardanoTransactionRelationshipResolver.projections.$$scripts(snapshot)).toEqual([])
 		expect(cardanoTransactionRelationshipResolver.projections.$$governanceProposals(snapshot)).toEqual([])
