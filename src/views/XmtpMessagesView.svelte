@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -27,6 +28,7 @@
 	resource={
 		selection({
 			fields: {
+				$conversation: true,
 				contentText: true,
 				id: true,
 				senderInboxId: true,
@@ -40,6 +42,15 @@
 		<EntityView
 			entityType={EntityType.XmtpMessage}
 			entitySelector={xmtpMessageSelector}
+			href={
+				resolve(
+					'/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversation/[conversationId=stringSegment]/(xmtpConversation)/message/[messageId=stringSegment]',
+					{
+						conversationId: xmtpMessage.$conversation.id,
+						messageId: xmtpMessage.id,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[(xmtpMessage.contentText ?? ''), xmtpMessageSelector.id].filter(Boolean).join(' ') || 'XMTP message'}

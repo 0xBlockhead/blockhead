@@ -75536,19 +75536,7 @@ export const routes = defineRoutes(schema)({
 		[EntityType.XmtpMessage]: {
 			"Id": {
 				kind: "Research",
-				decision: "Retain XmtpMessage.Id as non-public until a product-valid message route under /xmtp/conversation is declared; Local_Internal Phase 1 seeds list via XmtpConversation.$$messages.",
-				evidence: "NEEDS_APP.md#xmtp-conversation-depth",
-			},
-			"ConversationMessageId": {
-				kind: "Research",
-				decision: "Retain XmtpMessage.ConversationMessageId as non-public until a product-valid nested message route under conversation is declared.",
-				evidence: "NEEDS_APP.md#xmtp-conversation-depth",
-			},
-		},
-		[EntityType.XmtpParticipant]: {
-			"ConversationInboxId": {
-				kind: "Research",
-				decision: "Retain XmtpParticipant.ConversationInboxId as non-public until a product-valid participant route under /xmtp/conversation is declared; Local_Internal Phase 1 derives peers via XmtpConversation.$$participants.",
+				decision: "Retain standalone XmtpMessage.Id as non-public; the conversation-scoped ConversationMessageId selector owns the product route.",
 				evidence: "NEEDS_APP.md#xmtp-conversation-depth",
 			},
 		},
@@ -85372,7 +85360,7 @@ export const routes = defineRoutes(schema)({
 										},
 									],
 								},
-									"conversations": {
+								"conversations": {
 									collections: [
 										{
 											field: [
@@ -85405,6 +85393,60 @@ export const routes = defineRoutes(schema)({
 														page: {}
 													}
 												}
+											},
+											children: {
+												"messages": {
+													collections: [
+														{
+															field: [EntityType.XmtpConversation, "$$messages"],
+															page: {
+																view: { component: "XmtpMessagesView" },
+																text: { title: "XMTP messages" },
+															},
+														},
+													],
+												},
+												"message": {
+													children: {
+														"[messageId]": {
+															selectors: {
+																[EntityType.XmtpMessage]: {
+																	"ConversationMessageId": {
+																		params: { "messageId": ["id"] },
+																		derivations: { "$conversation": { kind: "pageSelector" } },
+																		page: {},
+																	},
+																},
+															},
+														},
+													},
+												},
+												"participants": {
+													collections: [
+														{
+															field: [EntityType.XmtpConversation, "$$participants"],
+															page: {
+																view: { component: "XmtpParticipantsView" },
+																text: { title: "XMTP participants" },
+															},
+														},
+													],
+												},
+												"participant": {
+													children: {
+														"[inboxId]": {
+															selectors: {
+																[EntityType.XmtpParticipant]: {
+																	"ConversationInboxId": {
+																		params: { "inboxId": ["inboxId"] },
+																		derivations: { "$conversation": { kind: "pageSelector" } },
+																		page: {},
+																	},
+																},
+															},
+														},
+													},
+												},
 											},
 										}
 									}

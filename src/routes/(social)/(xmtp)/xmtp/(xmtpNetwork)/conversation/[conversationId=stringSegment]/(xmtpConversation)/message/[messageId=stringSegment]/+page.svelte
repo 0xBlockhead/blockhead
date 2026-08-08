@@ -14,32 +14,35 @@
 	// State
 	let {
 		data,
+		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.XmtpConversation, data.selector, {
+	const pageSelection = $derived(select(EntityType.XmtpMessage, {
+		$conversation: data.selector,
+		id: params.messageId,
+	}, {
 		sources: [
 			Source.Local_Internal,
 		],
 		fields: {
-			topic: true,
-			peerInboxId: true,
+			contentText: true,
 		},
 	}))
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import XmtpConversationView from '$/views/XmtpConversationView.svelte'
+	import XmtpMessageView from '$/views/XmtpMessageView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'XMTP conversation' : [(pageSelection.entity.topic ?? ''), (pageSelection.entity.peerInboxId ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP conversation')} • XMTP conversation • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'XMTP message' : [(pageSelection.entity.contentText ?? ''), pageSelection.entitySelector.id].filter(Boolean).join(' ') || 'XMTP message')} • XMTP message • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	<XmtpConversationView
+	<XmtpMessageView
 		selection={pageSelection}
 	/>
 </Page>

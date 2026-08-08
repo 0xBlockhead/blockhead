@@ -4017,6 +4017,46 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(social)/(xmtp)/xmtp/conversation/[conversationId]/message/[messageId]': {
+		routeId: '/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversation/[conversationId=stringSegment]/(xmtpConversation)/message/[messageId=stringSegment]',
+		mappings: [
+			{
+				id: 'XmtpMessage.ConversationMessageId',
+				probeAtomPrefixes: ['/xmtp/conversation/[conversationId]/message/[messageId]:XmtpMessage.ConversationMessageId'],
+				probeCases: [[[0, '1', ['messageId', 'conversationId']]]],
+			},
+		],
+	},
+	'/(social)/(xmtp)/xmtp/conversation/[conversationId]/messages': {
+		routeId: '/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversation/[conversationId=stringSegment]/(xmtpConversation)/messages',
+		mappings: [
+			{
+				id: 'XmtpConversation.Id',
+				probeAtomPrefixes: ['/xmtp/conversation/[conversationId]:XmtpConversation.Id'],
+				probeCases: [[[0, '1', ['conversationId']]]],
+			},
+		],
+	},
+	'/(social)/(xmtp)/xmtp/conversation/[conversationId]/participant/[inboxId]': {
+		routeId: '/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversation/[conversationId=stringSegment]/(xmtpConversation)/participant/[inboxId=stringSegment]',
+		mappings: [
+			{
+				id: 'XmtpParticipant.ConversationInboxId',
+				probeAtomPrefixes: ['/xmtp/conversation/[conversationId]/participant/[inboxId]:XmtpParticipant.ConversationInboxId'],
+				probeCases: [[[0, '1', ['inboxId', 'conversationId']]]],
+			},
+		],
+	},
+	'/(social)/(xmtp)/xmtp/conversation/[conversationId]/participants': {
+		routeId: '/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversation/[conversationId=stringSegment]/(xmtpConversation)/participants',
+		mappings: [
+			{
+				id: 'XmtpConversation.Id',
+				probeAtomPrefixes: ['/xmtp/conversation/[conversationId]:XmtpConversation.Id'],
+				probeCases: [[[0, '1', ['conversationId']]]],
+			},
+		],
+	},
 	'/(social)/(youtube)/youtube/channel/[channelId]': {
 		routeId: '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]',
 		parameterEncodingByName: {
