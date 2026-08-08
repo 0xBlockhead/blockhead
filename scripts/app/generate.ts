@@ -4505,6 +4505,8 @@ const routeMappingFixtureMetadataEntries = (
 	parameterCount: number
 ) => {
 	const id = `${mapping.entityType}.${mapping.selectorName}`
+	if (parameterCount === 0)
+		throw new Error(`${id} cannot emit route fixture probe cases without route parameters`)
 	if (mapping.probeAtoms.length % parameterCount !== 0)
 		throw new Error(`${id} has incomplete route fixture probe cases`)
 
@@ -4539,6 +4541,8 @@ const routeMappingFixtureMetadataEntries = (
 			].join(', ')}]`
 		})
 	)
+	if (probeCases.length === 0)
+		throw new Error(`${id} has no route fixture probe cases`)
 
 	return [
 		['id', emitTypeScript(id)],

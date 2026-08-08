@@ -5850,6 +5850,52 @@ test('rejects route mappings that omit a selector field in the authoritative com
 	)
 })
 
+test('rejects semantic route proof drift before emitting route fixtures', () => {
+	const divergentHrefApp = structuredClone(app)
+	const divergentHrefMapping = divergentHrefApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.selectors?.[EntityType.Network]?.Caip2
+	assert.ok(divergentHrefMapping)
+	divergentHrefMapping.href = {
+		params: {
+			network: {
+				kind: 'field',
+				name: 'slug',
+			},
+		},
+	}
+	assert.throws(
+		() => compileApp(divergentHrefApp),
+		/Network\.Caip2 parameter network parse and href expressions diverge/
+	)
+
+	const invalidHierarchyApp = structuredClone(app)
+	const contractRoute = invalidHierarchyApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.children?.['(contracts)']?.children?.contract
+	assert.ok(contractRoute)
+	Object.defineProperty(invalidHierarchyApp.routes.children, 'invalid-contract-hierarchy', {
+		enumerable: true,
+		value: contractRoute,
+	})
+	assert.throws(
+		() => compileApp(invalidHierarchyApp),
+		/EvmContract\.EvmNetworkAddress does not bind selector field \$network/
+	)
+
+	const aliasDriftApp = structuredClone(app)
+	Object.defineProperty(aliasDriftApp.routes.outcomes[EntityType._Global], 'Scope', {
+		enumerable: true,
+		value: {
+			kind: 'Alias',
+			target: {
+				entityType: EntityType._GlobalAgentNetwork,
+				selectorName: 'NetworkId',
+			},
+		},
+	})
+	assert.throws(
+		() => compileApp(aliasDriftApp),
+		/_Global\.Scope Alias outcome must resolve to one visible route/
+	)
+})
+
 test('retains only physical route file facts consumed by route emitters', () => {
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 	const physicalRouteTypeSource = generatorSource.slice(
