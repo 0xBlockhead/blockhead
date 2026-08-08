@@ -4601,6 +4601,17 @@ export const schema = {
 				type: { primitive: "string" },
 			},
 			{
+				id: "tokenAmount",
+				displayExpression: "`${value.amount} ${value.unit}`",
+				type: {
+					object: [
+						{ name: "amount", type: { primitive: "bigint" } },
+						{ name: "decimals", type: { primitive: "number" } },
+						{ name: "unit", type: { primitive: "string" } },
+					],
+				},
+			},
+			{
 				id: "unknown",
 				type: { primitive: "unknown" },
 			},

@@ -8470,6 +8470,12 @@ const viewItemFormat = (
 			&& valueTypeTypeOverride.primitive === 'boolean'
 	)
 		return 'boolean'
+	if (
+		fieldDefinition?.valueType === 'tokenAmount'
+		|| valueTypeTypeOverride != null
+			&& valueTypeTypeOverride.id === 'tokenAmount'
+	)
+		return 'tokenAmount'
 	const fieldName = fieldDefinition?.name ?? fieldNameForReference(fieldReference)
 	if (/timestampMs$|TimestampMs$/.test(fieldName))
 		return 'timestamp'
@@ -8629,6 +8635,14 @@ const renderValueMarkup = (
 				`value={Number(${valueExpression})}`,
 				`options={{ style: 'percent' }}`,
 			])
+		: format === 'tokenAmount' ?
+			[
+				`${'\t'.repeat(level)}<NumberValue`,
+				`${'\t'.repeat(level + 1)}value={${valueExpression}.amount}`,
+				`${'\t'.repeat(level + 1)}decimalPlaces={${valueExpression}.decimals}`,
+				`${'\t'.repeat(level)}/>`,
+				`${'\t'.repeat(level)}<span>{${valueExpression}.unit == null ? '' : \` \${${valueExpression}.unit}\`}</span>`,
+			]
 		: format === 'boolean' ?
 			[
 				`${'\t'.repeat(level)}{${valueExpression} ? 'Yes' : 'No'}`,
