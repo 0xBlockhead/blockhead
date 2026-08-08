@@ -112,11 +112,14 @@ describe('prep-without-send + session grant removal compose', () => {
 		expect(isPreparedWalletRequestWithoutSend(observation)).toBe(true)
 		expect(observation).not.toHaveProperty('submittedAt')
 
-		const afterRemoval = removeSessionCapabilityGrantsForConnection(grants, connectionKey)
+		const afterRemoval = removeSessionCapabilityGrantsForConnection(grants, connectionKey, 50)
 		expect(afterRemoval.map((grant) => grant.grantId)).toEqual([
+			'grant-compose-a',
 			'grant-compose-b',
 		])
+		expect(afterRemoval[0].revokedAt).toBe(50)
 		expect(retainCurrentSessionCapabilityGrants(afterRemoval, 50).map((grant) => grant.grantId)).toEqual([
+			'grant-compose-a',
 			'grant-compose-b',
 		])
 
@@ -155,6 +158,7 @@ describe('prep-without-send + session grant removal compose', () => {
 			revoked,
 			grantOtherConnection,
 		], 50).map((grant) => grant.grantId)).toEqual([
+			'grant-compose-a',
 			'grant-compose-b',
 		])
 
@@ -206,11 +210,14 @@ describe('prep-without-send + session grant removal compose', () => {
 		const grantsAfterDisconnect = removeSessionCapabilityGrantsForConnection([
 			grantForConnection,
 			grantOtherConnection,
-		], connectionKey)
+		], connectionKey, 50)
 		expect(grantsAfterDisconnect.map((grant) => grant.grantId)).toEqual([
+			'grant-compose-a',
 			'grant-compose-b',
 		])
+		expect(grantsAfterDisconnect[0].revokedAt).toBe(50)
 		expect(retainCurrentSessionCapabilityGrants(grantsAfterDisconnect, 50).map((grant) => grant.grantId)).toEqual([
+			'grant-compose-a',
 			'grant-compose-b',
 		])
 

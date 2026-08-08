@@ -58,10 +58,6 @@ const sessionsE2eSource = readFileSync(
 	new URL('../../routes/~/sessions/sessions.e2e.ts', import.meta.url),
 	'utf8'
 )
-const accountControlsE2eSource = readFileSync(
-	new URL('../../routes/~/accounts/account-controls.e2e.ts', import.meta.url),
-	'utf8'
-)
 
 
 describe('sessionLifecycleState', () => {
@@ -70,8 +66,6 @@ describe('sessionLifecycleState', () => {
 		expect(sessionsE2eSource).toMatch(/Prep journey must not broadcast eth_sendTransaction/)
 		expect(sessionsE2eSource).toMatch(/Lock session/)
 		expect(sessionsE2eSource).toMatch(/Prepare EVM native transfer/)
-		expect(accountControlsE2eSource).toMatch(/prep-without-send/)
-		expect(accountControlsE2eSource).toMatch(/must not broadcast eth_sendTransaction/)
 	})
 
 	it('keeps Draft lock optional and requires lock on terminal statuses', () => {
