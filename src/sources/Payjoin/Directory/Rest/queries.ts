@@ -16,7 +16,7 @@ export const getOhttpKeyConfigBase64 = async (
 ) => {
 	const url = ohttpGatewayUrlForDirectory(directoryUrl)
 	const response = await sourceFetch(
-		bindings[Source.PayjoinDirectory_Rest].at(0)!,
+		Object.fromEntries(bindings[Source.PayjoinDirectory_Rest].map((binding) => [binding.target.key, binding]))['directory'],
 		url,
 		{
 			headers: {

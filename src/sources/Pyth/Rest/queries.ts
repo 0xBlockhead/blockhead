@@ -13,8 +13,8 @@ import {
 } from '$/sources/Pyth/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const hermesBinding = bindings[Source.PythHermes_Rest].at(0)!
-const benchmarksBinding = bindings[Source.PythBenchmarks_Rest].at(0)!
+const hermesBinding = Object.fromEntries(bindings[Source.PythHermes_Rest].map((binding) => [binding.target.key, binding]))['pyth-hermes']
+const benchmarksBinding = Object.fromEntries(bindings[Source.PythBenchmarks_Rest].map((binding) => [binding.target.key, binding]))['pyth-benchmarks']
 
 const omitUndefinedJson = (
 	value: unknown
@@ -24,7 +24,6 @@ const omitUndefinedJson = (
 	if (value != null && typeof value === 'object')
 		return Object.fromEntries(
 			Object.entries(value)
-				.filter(([, entry]) => entry !== undefined)
 				.map(([key, entry]) => [
 					key,
 					omitUndefinedJson(entry),

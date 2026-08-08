@@ -28,7 +28,7 @@ type OsmosisPoolId = EntitySelector<typeof schema, EntityType.OsmosisPool>
 type OsmosisPositionId = EntitySelector<typeof schema, EntityType.OsmosisPosition>
 type CosmosAccountId = EntitySelector<typeof schema, EntityType.CosmosAccount>
 
-const osmosisBinding = bindings[Source.Osmosis_LCD_Rest].at(0)!
+const osmosisBinding = Object.fromEntries(bindings[Source.Osmosis_LCD_Rest].map((binding) => [binding.target.key, binding]))['cosmos:osmosis-1']
 const osmosisLcdCaip2NetworkKey = osmosisBinding.target.key
 
 const osmosisCaip2 = {
@@ -160,7 +160,7 @@ const osmosisCounterpartyNetworkReference = (
 	counterpartyChainId: string
 ) => {
 	const catalog = networkByCaip2[`cosmos:${counterpartyChainId}`]
-	if (catalog == null || !('caip2' in catalog))
+	if (!Object.hasOwn(networkByCaip2, `cosmos:${counterpartyChainId}`))
 		return
 
 	return {
@@ -211,8 +211,8 @@ const osmosisDurationToNs = (
 	if (match == null)
 		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid ${label} duration ${value}`)
 
-	const wholeSeconds = BigInt(match[1]!)
-	const fraction = match[2] ?? ''
+	const wholeSeconds = BigInt(match[1])
+	const fraction = match[2]
 	const nanos = BigInt(fraction.padEnd(9, '0'))
 	return wholeSeconds * 1_000_000_000n + nanos
 }
@@ -673,9 +673,15 @@ export default {
 						$network,
 						poolId,
 					})
+					if (
+						(pool.token0Denom == null && pool.assets.length < 1)
+						|| (pool.token1Denom == null && pool.assets.length < 2)
+					)
+						return undefined
+
 					const baseAssetDenom = pool.token0Denom ?? pool.assets[0]?.denom
 					const quoteAssetDenom = pool.token1Denom ?? pool.assets[1]?.denom
-					if (baseAssetDenom == null || quoteAssetDenom == null || baseAssetDenom === quoteAssetDenom)
+					if (baseAssetDenom === quoteAssetDenom)
 						return undefined
 
 					const { getSpotPrice } = await import('$/sources/Osmosis/Rest/queries.ts')
@@ -1135,7 +1141,7 @@ export default {
 							channelId,
 						})
 						const connectionId = channel.connection_hops[0]
-						if (connectionId == null || connectionId === '')
+						if (connectionId === '')
 							throw new Error(`${Source.Osmosis_LCD_Rest}: IBC channel missing connection hop`)
 
 						const [

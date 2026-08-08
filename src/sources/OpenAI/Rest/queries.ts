@@ -7,7 +7,7 @@ import type {
 } from '$/sources/OpenAI/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.OpenAI_Rest].at(0)!
+const binding = Object.fromEntries(bindings[Source.OpenAI_Rest].map((binding) => [binding.target.key, binding]))['openai-api']
 
 const requestOpenAiJson = async <_Response>({
 	path,

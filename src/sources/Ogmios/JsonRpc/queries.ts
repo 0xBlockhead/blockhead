@@ -12,7 +12,7 @@ import {
 } from '$/sources/Ogmios/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Ogmios_JsonRpc].at(0)!
+const binding = Object.fromEntries(bindings[Source.Ogmios_JsonRpc].map((binding) => [binding.target.key, binding]))['cip34:1-764824073']
 
 const assertEnvelope = <_Value>(
 	label: string,

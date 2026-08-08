@@ -6,7 +6,7 @@ import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/Piped/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Piped_Rest].at(0)!
+const binding = Object.fromEntries(bindings[Source.Piped_Rest].map((binding) => [binding.target.key, binding]))['piped-api']
 
 export const pipedApiGet = <T>(
 	path: `/${string}`,

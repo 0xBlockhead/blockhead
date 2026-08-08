@@ -14,7 +14,7 @@ import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import bindings from '$/sources/Neynar/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Neynar_Rest].at(0)!
+const binding = Object.fromEntries(bindings[Source.Neynar_Rest].map((binding) => [binding.target.key, binding]))['api']
 
 export const neynarRequestHeaders = (
 	publicEnv: SourcePublicEnv

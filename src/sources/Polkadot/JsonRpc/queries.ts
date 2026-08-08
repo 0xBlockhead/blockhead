@@ -3,7 +3,7 @@ import bindings from '$/sources/Polkadot/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { substrateJsonRpcQueries } from '$/sources/_shared/interfaces/SubstrateJsonRpc/queries.ts'
 
-const binding = bindings[Source.Polkadot_JsonRpc].at(0)!
+const binding = Object.fromEntries(bindings[Source.Polkadot_JsonRpc].map((binding) => [binding.target.key, binding]))['polkadot:91b171bb158e2d3848fa23a9f1c25182']
 
 export const {
 	getBlock,

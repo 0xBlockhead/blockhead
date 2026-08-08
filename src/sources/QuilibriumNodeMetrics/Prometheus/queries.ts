@@ -3,7 +3,7 @@ import bindings from '$/sources/QuilibriumNodeMetrics/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 export const getMetrics = () => (
-	getPrometheusText(bindings[Source.QuilibriumNodeMetrics_Prometheus].at(0)!)
+	getPrometheusText(Object.fromEntries(bindings[Source.QuilibriumNodeMetrics_Prometheus].map((binding) => [binding.target.key, binding]))['quilibrium-node'])
 )
 
 const prometheusSampleLine = /^(?<name>[a-zA-Z_:][a-zA-Z0-9_:]*)(?:\{[^}]*\})?\s+(?<value>[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)(?:\s+\d+)?\s*$/
@@ -32,11 +32,11 @@ export const parsePrometheusGaugeSamples = (
 					value,
 				] as const]
 			})
-	) as Record<string, number>
+	) as Partial<Record<string, number>>
 )
 
 const gaugeEndingWith = (
-	gauges: Record<string, number>,
+	gauges: Partial<Record<string, number>>,
 	suffix: string
 ) => {
 	const exact = gauges[suffix]
@@ -52,7 +52,7 @@ const gaugeEndingWith = (
 }
 
 const preferSubsystemGauge = (
-	gauges: Record<string, number>,
+	gauges: Partial<Record<string, number>>,
 	suffix: string,
 	preferred: string
 ) => {

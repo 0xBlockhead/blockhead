@@ -8,7 +8,7 @@ import {
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
 
-const binding = bindings[Source.Primal_Rest].at(0)!
+const binding = Object.fromEntries(bindings[Source.Primal_Rest].map((binding) => [binding.target.key, binding]))['primal-api']
 
 export const primalGet = <T>(path: string) => (
 	sourceGetJson<T>(

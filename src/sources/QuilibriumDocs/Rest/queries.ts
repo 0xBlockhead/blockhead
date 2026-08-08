@@ -22,7 +22,7 @@ import { Source } from '$/sources/Source.ts'
 import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
 
 const docsBinding = () => (
-	bindings[Source.QuilibriumDocs_Rest].at(0)!
+	Object.fromEntries(bindings[Source.QuilibriumDocs_Rest].map((binding) => [binding.target.key, binding]))['docs']
 )
 
 const assertQuilibriumNetwork = (networkSlug: string) => {
@@ -31,8 +31,7 @@ const assertQuilibriumNetwork = (networkSlug: string) => {
 }
 
 export const getDocsEndpoints = () => {
-	const endpoints = bindings[Source.QuilibriumDocs_Rest]
-		.flatMap((sourceBinding) => sourceBinding.endpoints)
+	const endpoints = docsBinding().endpoints
 		.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
 		.map((endpoint) => ({
 			url: endpoint.locator,
@@ -90,11 +89,7 @@ export const getProtocolDocument = ({
 }
 
 export const getPrimaryProtocolDocument = (): QuilibriumDocsProtocolDocument => {
-	const document = quilibriumProtocolDocuments[0]
-	if (document == null)
-		throw new Error('QuilibriumDocs_Rest: no protocol documents')
-
-	return document
+	return quilibriumProtocolDocuments[0]
 }
 
 export const getPages = quilibriumDocsPages

@@ -10,11 +10,9 @@ import { osmosisPoolPaths } from '$/sources/Osmosis/Rest/constants.ts'
 import type {
 	OsmosisBlockResponse,
 	OsmosisDenomTraceResponse,
-	OsmosisLiquidityPerTickRangeResponse,
 	OsmosisNodeInfoResponse,
 	OsmosisNumPoolPositionsResponse,
 	OsmosisPositionByIdResponse,
-	OsmosisSpotPriceResponse,
 	OsmosisStakingPoolResponse,
 	OsmosisSyncingResponse,
 	OsmosisUserPositionsResponse,
@@ -23,7 +21,7 @@ import type {
 import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
 
-const binding = bindings[Source.Osmosis_LCD_Rest].at(0)!
+const binding = Object.fromEntries(bindings[Source.Osmosis_LCD_Rest].map((binding) => [binding.target.key, binding]))['cosmos:osmosis-1']
 
 const osmosisPoolWire = arktype({
 	'@type?': 'string',
@@ -350,7 +348,7 @@ export const getLiquidityPerTickRange = ({
 		`${osmosisPoolPaths.liquidityPerTickRange}?${parameters}`
 	)
 		.then((response) => (
-			assertLiquidityPerTickRangeEnvelope(response) as OsmosisLiquidityPerTickRangeResponse
+			assertLiquidityPerTickRangeEnvelope(response)
 		))
 }
 
@@ -475,7 +473,7 @@ export const getSpotPrice = ({
 	)
 		.then((response) => {
 			try {
-				return osmosisSpotPriceResponseWire.assert(response) as OsmosisSpotPriceResponse
+				return osmosisSpotPriceResponseWire.assert(response)
 			} catch {
 				throw new Error(`${Source.Osmosis_LCD_Rest}: invalid spot price response envelope`)
 			}
