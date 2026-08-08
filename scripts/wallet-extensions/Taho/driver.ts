@@ -14,7 +14,6 @@ import type { LoadedWalletExtension } from '../WalletExtensionHarness.ts'
 export type TahoAccounts = {
 	first: string
 	page: Page
-	second: string
 }
 
 
@@ -179,7 +178,6 @@ export const createTahoWallet = async (page: Page): Promise<TahoAccounts> => {
 	return {
 		first: 'Taho 1',
 		page,
-		second: '(blocked: blank-add-wallet-tab)',
 	}
 }
 
