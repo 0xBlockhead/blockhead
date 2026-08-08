@@ -256,3 +256,41 @@ test('rejects selector outcome alias cycles', () => {
 		/Alias outcome contains a cycle/
 	)
 })
+
+test('rejects canonical alias drift while retaining alias ingress as a visible route', () => {
+	const aliasDriftApp = structuredClone(app)
+	const didMapping = aliasDriftApp.routes.children['(social)']?.children?.['(atproto)']?.children?.atproto?.children?.actor?.children?.['[did]']?.selectors?.[EntityType.AtprotoActor]?.Did
+	const handleMapping = aliasDriftApp.routes.children['(social)']?.children?.['(atproto)']?.children?.atproto?.children?.actor?.children?.handle?.children?.['[handle]']?.selectors?.[EntityType.AtprotoActor]?.Handle
+
+	assert.ok(didMapping)
+	assert.ok(handleMapping)
+	didMapping.href = {
+		entityHref: false,
+	}
+	assert.throws(
+		() => compileApp(aliasDriftApp),
+		/AtprotoActor\.Did suppresses its entity href without a canonical entity route/
+	)
+
+	const wrongCanonicalSelectorApp = structuredClone(app)
+	const wrongDidMapping = wrongCanonicalSelectorApp.routes.children['(social)']?.children?.['(atproto)']?.children?.atproto?.children?.actor?.children?.['[did]']?.selectors?.[EntityType.AtprotoActor]?.Did
+	const wrongHandleMapping = wrongCanonicalSelectorApp.routes.children['(social)']?.children?.['(atproto)']?.children?.atproto?.children?.actor?.children?.handle?.children?.['[handle]']?.selectors?.[EntityType.AtprotoActor]?.Handle
+
+	assert.ok(wrongDidMapping)
+	assert.ok(wrongHandleMapping)
+	wrongDidMapping.href = {
+		entityHref: false,
+		canonicalize: true,
+	}
+	Reflect.deleteProperty(wrongHandleMapping, 'href')
+	assert.throws(
+		() => compileApp(wrongCanonicalSelectorApp),
+		/AtprotoActor\.Did canonical alias targets non-canonical selector AtprotoActor\.Handle/
+	)
+
+	const generatedAliasPage = baselineCompiledApp.generatedFiles.find(({ path }) => (
+		path.endsWith('/atproto/(globalAtprotoNetwork)/actor/handle/[handle=stringSegment]/+page.svelte')
+	))
+	assert.ok(generatedAliasPage)
+	assert.match(renderGeneratedFile(generatedAliasPage), /globalThis\.location\.replace\(canonicalEntityHref\)/)
+})

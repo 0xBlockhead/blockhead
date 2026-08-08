@@ -3012,6 +3012,15 @@ const compileRouteTree = (
 	)
 	return Object.entries(nodes).map(([segment, node]) => {
 		const routePath = [parentPath, segment].filter(Boolean).join('/')
+		if (
+			segment === ''
+			|| segment.includes('/')
+			|| segment === '.'
+			|| segment === '..'
+			|| segment.includes('\\')
+			|| !/^(?:[^\[\]]|\[(?:\.\.\.)?[^=\[\]]+(?:=[^=\[\]]+)?\])+$/.test(segment)
+		)
+			throw new Error(`${routeId(routePath)} has invalid route hierarchy segment ${JSON.stringify(segment)}`)
 		const localRouteParamNames = routeParamNames(segment)
 		for (const param of Object.keys(node.params ?? {}))
 			if (!localRouteParamNames.includes(param))
@@ -3175,6 +3184,11 @@ const compileRouteTree = (
 			const selector = entity?.selectors.find((candidate) => candidate.name === selectorName)
 			if (entity == null || selector == null)
 				throw new Error(`${routeId(routePath)} references missing selector ${entityType}.${selectorName}`)
+			if (
+				sourceMapping.probeCount != null
+				&& (!Number.isSafeInteger(sourceMapping.probeCount) || sourceMapping.probeCount < 1)
+			)
+				throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} probeCount must be a positive integer`)
 
 			const mapping = {
 				...sourceMapping,
@@ -3200,12 +3214,35 @@ const compileRouteTree = (
 					},
 				}),
 			}
-
 			const paramBindings = Object.entries(mapping.params ?? {}).map(([param, fieldPath]) => ({
 				param,
 				fieldPath,
 				terminalField: resolveRouteParamField(entityByType, entity, fieldPath),
 			}))
+			for (const [param, hrefValue] of Object.entries(mapping.href?.params ?? {})) {
+				const parsedFieldPaths = [
+					...paramBindings.flatMap(({ param: boundParam, fieldPath }) => (
+						boundParam === param ? [{ exact: true, fieldPath }] : []
+					)),
+					...Object.entries(mapping.derivations ?? {}).flatMap(([fieldName, value]) => (
+						routeParamNamesFromExpression(value).includes(param) ? [{
+							exact: false,
+							fieldPath: [fieldName],
+						}] : []
+					)),
+				]
+				if (
+					parsedFieldPaths.length > 0
+					&& expressionFieldPaths(hrefValue).some((hrefFieldPath) => (
+						parsedFieldPaths.every(({ exact, fieldPath }) => !(
+							(!exact || fieldPath.length === hrefFieldPath.length)
+							&& fieldPath.every((part, index) => part === hrefFieldPath[index])
+						))
+					))
+				)
+					throw new Error(`${routeId(routePath)} ${entityType}.${selectorName} parameter ${param} parse and href expressions diverge`)
+			}
+
 			const {
 				derivationRouteParams,
 				routeParamValues: ownRouteParams,
@@ -5580,6 +5617,24 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			&& mapping.href.entityHref !== false
 		)
 			throw new Error(`${node.internalPath} ${mapping.entityType}.${mapping.selectorName} canonicalizes without suppressing its alias entity href`)
+	for (const { node, mapping } of selectorMappingEntries) {
+		if (mapping.href?.canonicalize !== true)
+			continue
+
+		const canonicalSelectorNames = unique(selectorMappingEntries.flatMap(({ node: candidateNode, mapping: candidate }) => (
+			candidate.entityType === mapping.entityType
+			&& candidate.selectorName !== mapping.selectorName
+			&& candidate.href?.entityHref !== false
+			&& selectorMappingOwnsDetailPage(candidateNode, candidate) ?
+				[candidate.selectorName]
+			:
+				[]
+		)))
+		if (canonicalSelectorNames.length !== 1)
+			throw new Error(`${node.internalPath} ${mapping.entityType}.${mapping.selectorName} canonical alias resolves ${canonicalSelectorNames.length} canonical selectors`)
+		if (canonicalSelectorNames[0] !== entityByType[mapping.entityType]?.selectors[0]?.name)
+			throw new Error(`${node.internalPath} ${mapping.entityType}.${mapping.selectorName} canonical alias targets non-canonical selector ${mapping.entityType}.${canonicalSelectorNames[0]}`)
+	}
 
 	const selectorOutcomeByEntityTypeAndSelector = new Map<string, SelectorOutcome>([...routeMappingsByEntityTypeAndSelector].flatMap(([key, [entry]]) => (
 		entry == null ? [] : [[key, {

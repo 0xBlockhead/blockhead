@@ -127,9 +127,9 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 	const pluralHrefFieldBindingCount = generatedSvelteSources.reduce((count, source) => (
 		count + (source.match(/\{@const [A-Za-z_$][A-Za-z0-9_$]* = [A-Za-z0-9_$]+Selector\.\$[A-Za-z0-9_$]+\}/g) ?? []).length
 	), 0)
-	assert.equal(singularHrefFieldBindingCount, 118)
-	assert.equal(pluralHrefFieldBindingCount, 116)
-	assert.equal(singularHrefFieldBindingCount + pluralHrefFieldBindingCount, 234)
+	assert.equal(singularHrefFieldBindingCount, 134)
+	assert.equal(pluralHrefFieldBindingCount, 132)
+	assert.equal(singularHrefFieldBindingCount + pluralHrefFieldBindingCount, 266)
 	const hrefPlanSource = generatorSource.slice(
 		generatorSource.indexOf('const entityRouteFieldBindings'),
 		generatorSource.indexOf('const renderCollectionRouteValueExpression')
@@ -194,7 +194,7 @@ test('entity hrefs compile directly from routes without a parallel artifact fami
 	assert(evmTransactionView)
 	const evmTransactionSource = renderGeneratedFile(evmTransactionView)
 	assert.equal(
-		(evmTransactionSource.match(/\/\(transactions\)\/tx\/\[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId\]/g) ?? []).length,
+		(evmTransactionSource.match(/\/\(transactions\)\/tx\/\[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment\]/g) ?? []).length,
 		1
 	)
 	assert.match(
@@ -785,10 +785,10 @@ test('preserves explicit view source selections independently of field defaults'
 		filecoinActorView.indexOf('.$$timestamps({'),
 		filecoinActorView.indexOf('<FilecoinActor_TimestampView')
 	)
-	assert.match(filecoinParentQuery, /sources: \[\s+Source\.Lotus_JsonRpc,\s+\]/)
+	assert.match(filecoinParentQuery, /sources: \[\s+Source\.Lotus_JsonRpc,\s+Source\.Filfox_Rest,\s+\]/)
 	assert.match(
 		filecoinActorView.slice(filecoinActorView.indexOf('<FilecoinActor_TimestampView')),
-		/sources: \[\s+Source\.Lotus_JsonRpc,\s+\]/
+		/sources: \[\s+Source\.Lotus_JsonRpc,\s+Source\.Filfox_Rest,\s+\]/
 	)
 	assert.match(
 		generatedSource('src/views/EvmCoinInstanceView.svelte'),
@@ -819,7 +819,7 @@ test('preserves explicit view source selections independently of field defaults'
 	))
 	assert.ok(mutatedFilecoinActorView)
 	assert.equal(
-		(renderGeneratedFile(mutatedFilecoinActorView).match(/sources: \[\s+Source\.Lotus_JsonRpc,\s+\]/g) ?? []).length,
+		(renderGeneratedFile(mutatedFilecoinActorView).match(/sources: \[\s+Source\.Lotus_JsonRpc,\s+Source\.Filfox_Rest,\s+\]/g) ?? []).length,
 		2
 	)
 	const mutatedFilecoinActorSchema = mutatedCompiledApp.generatedFiles.find(({ path }) => (
@@ -856,7 +856,7 @@ test('preserves explicit view source selections independently of field defaults'
 	assert.ok(fallbackFilecoinActorSchema)
 	assert.match(
 		renderGeneratedFile(fallbackFilecoinActorSchema),
-		/defaultSources: \[\s+Source\.Lotus_JsonRpc,\s+\]/
+		/defaultSources: \[\s+Source\.Lotus_JsonRpc,\s+Source\.Filfox_Rest,\s+\]/
 	)
 })
 
@@ -987,10 +987,10 @@ test('accepts and passes prefetched rows only where pending display consumes the
 		prefetchedAcceptors.map(([filePath]) => filePath),
 		prefetchedConsumers.map(([filePath]) => filePath)
 	)
-	assert.equal(prefetchedConsumers.length, 230)
+	assert.equal(prefetchedConsumers.length, 261)
 	assert.equal(generatedViewSources.reduce((count, [_filePath, source]) => (
 		count + (source.match(/prefetched=\{/g)?.length ?? 0)
-	), 0), 353)
+	), 0), 384)
 	assert.match(generatedSource('src/views/A2aMessageView.svelte'), /Omit<EntitySelectionViewProps<EntityType\.A2aMessage>, 'prefetched'>/)
 	assert.doesNotMatch(generatedSource('src/views/A2aMessagePartView.svelte'), /<A2aMessageView[^>]*prefetched=/)
 	assert.match(generatedSource('src/views/MediaView.svelte'), /prefetched = \{\}/)
@@ -998,8 +998,8 @@ test('accepts and passes prefetched rows only where pending display consumes the
 })
 
 test('compiles exact default plural wrappers into their generated consumers', () => {
-	assert.equal(omittedPluralEntities.length, 149)
-	assert.equal(retainedPluralEntities.length, 852)
+	assert.equal(omittedPluralEntities.length, 146)
+	assert.equal(retainedPluralEntities.length, 905)
 	assert.ok(omittedPluralEntities.some(({ entityType }) => entityType === EntityType.AlgorandNetwork))
 	assert.ok(omittedPluralEntities.some(({ entityType }) => entityType === EntityType.HyperliquidBlock))
 	assert.ok(retainedPluralEntities.some(({ entityType }) => entityType === EntityType.EvmError))
@@ -1027,7 +1027,7 @@ test('compiles exact default plural wrappers into their generated consumers', ()
 					[]
 			))
 	))
-	assert.equal(inlinedDefaultLists.length, 129)
+	assert.equal(inlinedDefaultLists.length, 127)
 
 	const algorandBoxView = generatedSource('src/views/AlgorandBoxView.svelte')
 	assert.doesNotMatch(algorandBoxView, /AlgorandBox_RoundsView/)
@@ -1112,7 +1112,7 @@ test('passes route source selector fields directly to page selections', () => {
 		}))
 		.filter(({ source }) => source.includes('source: params.source,'))
 
-	assert.equal(sourceSelectedRoutePages.length, 41)
+	assert.equal(sourceSelectedRoutePages.length, 43)
 	for (const page of sourceSelectedRoutePages) {
 		assert.match(page.path, /\[source=/)
 		assert.equal((page.source.match(/source: params\.source,/g) ?? []).length, 1, page.path)
@@ -1928,7 +1928,7 @@ test('leaves generated display defaults to their component contracts', () => {
 	const generatedSvelteSource = generatedSvelteFiles
 		.map(renderGeneratedFile)
 		.join('\n')
-	assert.equal((generatedSvelteSource.match(/\n\s+open=\{true\}/g) ?? []).length, 140)
+	assert.equal((generatedSvelteSource.match(/\n\s+open=\{true\}/g) ?? []).length, 138)
 	assert.doesNotMatch(generatedSvelteSource, /TruncatedValueFormat\.Visual/)
 	assert.doesNotMatch(generatedSvelteSource, /<Tooltip contentProps=\{\{ side: 'top' \}\}>/)
 
@@ -2411,7 +2411,7 @@ test('folds AaveMarket Directory into Network.Evm with $$aaveMarkets carousel', 
 	)
 })
 
-test('folds MorphoMarket Directory without Network.$$morphoMarkets list facet', () => {
+test('folds MorphoMarket Directory through the Network.$$morphoMarkets list facet', () => {
 	const morphoMarket = app.schema.entities.find((entity) => entity.entityType === EntityType.MorphoMarket)
 	assert.ok(morphoMarket)
 	assert.match(
@@ -2421,9 +2421,9 @@ test('folds MorphoMarket Directory without Network.$$morphoMarkets list facet', 
 
 	const network = app.schema.entities.find((entity) => entity.entityType === EntityType.Network)
 	const evm = network?.facets.find((facet) => facet.name === 'Evm')
-	assert.equal(
-		evm?.fields.find((field) => field.name === '$$morphoMarkets'),
-		undefined,
+	assert.deepEqual(
+		evm?.fields.find((field) => field.name === '$$morphoMarkets')?.defaultSources,
+		[Source.Morpho_Graphql]
 	)
 
 	const morphoMarketView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/MorphoMarketView.svelte')
@@ -2745,7 +2745,7 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 	)
 	assert.match(
 		executionBlocksCarousel,
-		/SectionEvmExecutionBlocks[\s\S]*?<EvmBlocksView[\s\S]*?selection=\{[\s\S]*?projection[\s\S]*?\.\$\$blocks\(\{[\s\S]*?sources: voltaireJsonRpcSources/
+		/SectionEvmExecutionBlocks[\s\S]*?<EvmBlocksView[\s\S]*?selection=\{[\s\S]*?projection[\s\S]*?\.\$\$blocks\(\{[\s\S]*?sources: evmExecutionBlocksSources/
 	)
 	assert.match(
 		renderedNetworkView,
@@ -3028,15 +3028,15 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 			.filter((field) => field.name.startsWith('$$'))
 			.map((field) => [field.name, field.defaultSources]),
 		[
-			['$$timestamps', [Source.CardanoKoios_Rest]],
-			['$$blocks', [Source.CardanoKoios_Rest]],
-			['$$transactions', [Source.CardanoKoios_Rest]],
-			['$$stakePools', [Source.CardanoKoios_Rest]],
-			['$$dReps', [Source.CardanoKoios_Rest]],
-			['$$governanceProposals', [Source.CardanoKoios_Rest]],
-			['$$assets', [Source.CardanoKoios_Rest]],
-			['$$protocolParameterEpochs', [Source.CardanoKoios_Rest]],
-			['$$committeeEpochs', [Source.CardanoKoios_Rest]],
+			['$$timestamps', [Source.Blockfrost_Rest, Source.CardanoKoios_Rest, Source.Ogmios_JsonRpc]],
+			['$$blocks', [Source.Blockfrost_Rest, Source.CardanoKoios_Rest, Source.Ogmios_JsonRpc]],
+			['$$transactions', [Source.Blockfrost_Rest, Source.CardanoKoios_Rest]],
+			['$$stakePools', [Source.Blockfrost_Rest, Source.CardanoKoios_Rest]],
+			['$$dReps', [Source.Blockfrost_Rest, Source.CardanoKoios_Rest]],
+			['$$governanceProposals', [Source.Blockfrost_Rest, Source.CardanoKoios_Rest]],
+			['$$assets', [Source.Blockfrost_Rest, Source.CardanoKoios_Rest]],
+			['$$protocolParameterEpochs', [Source.Blockfrost_Rest, Source.CardanoKoios_Rest, Source.Ogmios_JsonRpc]],
+			['$$committeeEpochs', [Source.Blockfrost_Rest, Source.CardanoKoios_Rest]],
 		]
 	)
 	assert.deepEqual(hederaFacet.fields.map((field) => field.name), [
@@ -3457,7 +3457,7 @@ test('keeps detail-page selections limited to page-owned title fields and source
 		file.path.endsWith('/currency/[iso4217=iso4217]/+page.svelte')
 	))
 	const transactionPage = baselineCompiledApp.generatedFiles.find((file) => (
-		file.path.endsWith('/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/+page.svelte')
+		file.path.endsWith('/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/+page.svelte')
 	))
 	assert(currencyPage)
 	assert(transactionPage)
@@ -3916,7 +3916,6 @@ test('keeps scope-prefix reduction collision-safe for shared binding values', ()
 		value: 'ArweaveArweave',
 	})
 	const secondRestBinding = structuredClone(collisionRest.binding)
-	secondRestBinding.target.key = 'arweave-alternate'
 	secondRestBinding.endpoints[0].locator = 'https://arweave-alternate.example'
 	Object.defineProperty(secondRestBinding, 'operationGroups', {
 		value: [SourceOperationGroup.GenericRead],
@@ -3933,7 +3932,6 @@ test('keeps scope-prefix reduction collision-safe for shared binding values', ()
 		value: 'Arweave',
 	})
 	const secondGraphqlBinding = structuredClone(collisionGraphql.binding)
-	secondGraphqlBinding.target.key = 'arweave-graphql-alternate'
 	secondGraphqlBinding.endpoints[0].locator = 'https://arweave-graphql-alternate.example/graphql'
 	Object.defineProperty(secondGraphqlBinding, 'delivery', {
 		value: SourceDelivery.RemoteQuery,
@@ -4423,8 +4421,8 @@ test('rejects incompatible and empty authored bindings before compilation', () =
 	const incompatibleBinding = incompatibleApp.sources.sources.find((source) => source.binding != null)?.binding
 
 	assert.ok(incompatibleBinding)
-	Object.defineProperty(incompatibleBinding, 'apiFamily', {
-		value: ApiFamily.GraphqlHttp,
+	Object.defineProperty(incompatibleBinding, 'wireProtocol', {
+		value: WireProtocol.JsonRpc2,
 	})
 	assert.throws(() => compileApp(incompatibleApp), /GraphqlHttp is incompatible/)
 
@@ -4588,18 +4586,22 @@ test('enforces canonical delivery endpoint and credential layouts during compila
 
 	const reversedLiveEndpointsApp = structuredClone(app)
 	const reversedLiveEndpointsSource = reversedLiveEndpointsApp.sources.sources.find((source) => source.source === Source.AtprotoSync_Xrpc)
-	const reversedLiveEndpointsBinding = reversedLiveEndpointsSource?.binding ?? reversedLiveEndpointsSource?.bindings?.[0]
+	const reversedLiveEndpointsBinding = reversedLiveEndpointsSource?.bindings?.find(({ delivery }) => delivery === SourceDelivery.RemoteLive)
 
 	assert.ok(reversedLiveEndpointsBinding)
-	reversedLiveEndpointsBinding.endpoints.reverse()
+	reversedLiveEndpointsBinding.endpoints.push({
+		endpointKind: SourceEndpointKind.HttpUrl,
+		locator: 'https://example.com',
+		corsEnabled: false,
+	})
 	assert.throws(() => compileApp(reversedLiveEndpointsApp), /at most one leading HTTP endpoint/)
 
 	const missingLiveWebSocketApp = structuredClone(app)
 	const missingLiveWebSocketSource = missingLiveWebSocketApp.sources.sources.find((source) => source.source === Source.AtprotoSync_Xrpc)
-	const missingLiveWebSocketBinding = missingLiveWebSocketSource?.binding ?? missingLiveWebSocketSource?.bindings?.[0]
+	const missingLiveWebSocketBinding = missingLiveWebSocketSource?.bindings?.find(({ delivery }) => delivery === SourceDelivery.RemoteLive)
 
-	assert.ok(missingLiveWebSocketBinding?.endpoints[1])
-	Object.defineProperties(missingLiveWebSocketBinding.endpoints[1], {
+	assert.ok(missingLiveWebSocketBinding?.endpoints[0])
+	Object.defineProperties(missingLiveWebSocketBinding.endpoints[0], {
 		endpointKind: { value: SourceEndpointKind.HttpUrl },
 		locator: { value: 'https://example.com' },
 	})
@@ -4874,6 +4876,73 @@ test('rejects duplicate selector route mappings before indexing', () => {
 	)
 })
 
+test('rejects missing selector probes and malformed route hierarchy', () => {
+	const missingProbeApp = structuredClone(app)
+	const networkMapping = missingProbeApp.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.selectors?.[EntityType.Network]?.Caip2
+
+	assert.ok(networkMapping)
+	Object.defineProperty(networkMapping, 'probeCount', {
+		enumerable: true,
+		value: 0,
+	})
+	assert.throws(
+		() => compileApp(missingProbeApp),
+		/Network\.Caip2 probeCount must be a positive integer/
+	)
+
+	assert.throws(
+		() => compileApp({
+			...app,
+			routes: {
+				children: {
+					...authoredListTargetRouteFixtures,
+					'invalid/child': {},
+				},
+			},
+		}),
+		/invalid route hierarchy segment "invalid\/child"/
+	)
+})
+
+test('rejects selector parse and href divergence', () => {
+	const divergentApp = structuredClone(app)
+	const realmMapping = divergentApp.routes.children['(proposals)']?.children?.proposals?.children?.['[specificationRealmSlug]']?.selectors?.[EntityType.SpecificationRealm]?.Realm
+
+	assert.ok(realmMapping?.href?.params?.specificationRealmSlug)
+	realmMapping.href.params.specificationRealmSlug = {
+		kind: 'field',
+		name: 'scope',
+	}
+	assert.throws(
+		() => compileApp(divergentApp),
+		/SpecificationRealm\.Realm parameter specificationRealmSlug parse and href expressions diverge/
+	)
+
+	const mixedDependencyApp = structuredClone(app)
+	const mixedRealmMapping = mixedDependencyApp.routes.children['(proposals)']?.children?.proposals?.children?.['[specificationRealmSlug]']?.selectors?.[EntityType.SpecificationRealm]?.Realm
+
+	assert.ok(mixedRealmMapping?.href?.params?.specificationRealmSlug)
+	mixedRealmMapping.href.params.specificationRealmSlug = {
+		kind: 'call',
+		from: '',
+		name: 'String',
+		args: [
+			{
+				kind: 'field',
+				name: 'realm',
+			},
+			{
+				kind: 'field',
+				name: 'scope',
+			},
+		],
+	}
+	assert.throws(
+		() => compileApp(mixedDependencyApp),
+		/SpecificationRealm\.Realm parameter specificationRealmSlug parse and href expressions diverge/
+	)
+})
+
 test('derives EVM account list hrefs from the canonical account route', () => {
 	const accountRoute = app.routes.children['(explore)']?.children?.account
 
@@ -5084,7 +5153,7 @@ test('imports ArkType only when generated schema construction references it', ()
 	assert.deepEqual(schemaImportContracts.flatMap(({ filePath, imported, referenced }) => (
 		imported === referenced ? [] : [`${filePath}: imported=${imported} referenced=${referenced}`]
 	)), [])
-	assert.equal(schemaImportContracts.filter(({ imported }) => !imported).length, 37)
+	assert.equal(schemaImportContracts.filter(({ imported }) => !imported).length, 39)
 	assert.match(generatedSource('src/schema/A2aAgentCard.ts'), /import \{ UrlString \} from '\$\/schema\/UrlString\.ts'/)
 	assert.doesNotMatch(generatedSource('src/schema/A2aAgentCard.ts'), /from 'arktype'/)
 	assert.match(generatedSource('src/schema/FarcasterVerifiedAddress.ts'), /import \{ type \} from 'arktype'[\s\S]*?primitiveType: type\(/)
@@ -5239,15 +5308,15 @@ test('keeps arbitrary ATProto entities on appview authority without catalog fall
 	assert.ok(globalNetwork?.views.singular?.query)
 	assert.ok(post?.views.singular?.query)
 	assert.ok(postPage)
-	assert.deepEqual(actor.views.singular.query.sources, [Source.Atproto_Xrpc])
-	assert.deepEqual(post.views.singular.query.sources, [Source.Atproto_Xrpc])
+	assert.deepEqual(actor.views.singular.query.sources, [Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc])
+	assert.deepEqual(post.views.singular.query.sources, [Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc])
 	assert.deepEqual(globalNetwork.views.singular.query.sources, [Source.Constants_Internal])
 	for (const fieldName of ['$$thread', '$$timestamps'])
 		assert.deepEqual(
 			post.fields.find(({ name }) => name === fieldName)?.defaultSources,
-			[Source.Atproto_Xrpc]
+			[Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc]
 		)
-	assert.match(renderGeneratedFile(postPage), /sources: \[\s*Source\.Atproto_Xrpc,?\s*\]/)
+	assert.match(renderGeneratedFile(postPage), /sources: \[\s*Source\.Atproto_Xrpc,\s*Source\.Atproto_BskySocial_Xrpc,?\s*\]/)
 	assert.doesNotMatch(renderGeneratedFile(postPage), /Source\.Constants_Internal/)
 })
 
@@ -5624,7 +5693,7 @@ test('proves facet disjointness only on one canonical scalar path', () => {
 })
 
 test('returns discriminated route identity for detail dispatch', () => {
-	const routePath = 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]'
+	const routePath = 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]'
 	const routeModule = baselineCompiledApp.generatedFiles.find(({ path }) => path === `${routePath}/+layout.ts`)
 	const detailPage = baselineCompiledApp.generatedFiles.find(({ path }) => path === `${routePath}/+page.svelte`)
 	const detailLayout = baselineCompiledApp.generatedFiles.find(({ path }) => path === `${routePath}/(selection)/+layout.svelte`)
@@ -5766,7 +5835,7 @@ test('retains only physical route file facts consumed by route emitters', () => 
 		&& /\/(?:\+page\.svelte|\+page\.ts|\+layout\.svelte|\+layout\.ts)$/.test(filePath)
 	))
 
-	assert.equal(physicalRouteFiles.length, 581)
+	assert.equal(physicalRouteFiles.length, 649)
 	assert.match(physicalRouteTypeSource, /kind: 'page'[\s\S]*?generatedPageModule: boolean/)
 	assert.match(physicalRouteTypeSource, /kind: 'layoutModule' \| 'pageModule'[\s\S]*?mappings: readonly \[SelectorRouteMapping, \.\.\.SelectorRouteMapping\[\]\]/)
 	assert.match(physicalRouteTypeSource, /kind: 'layout'[\s\S]*?kind: 'detailLayout'/)
@@ -5784,7 +5853,7 @@ test('compiles each collection reference path once into its canonical route mapp
 		collectionCount += routeNode.collections?.length ?? 0
 		routeNodes.push(...Object.values(routeNode.children ?? {}))
 	}
-	assert.equal(collectionCount, 164)
+	assert.equal(collectionCount, 174)
 
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 	const collectionMappingTypeSource = generatorSource.slice(
@@ -6347,7 +6416,7 @@ test('keeps complex route selectors, inverse href metadata, and projected-route 
 		assert.match(networkEpochPage, /epoch: Number\(params\.epoch\),/)
 
 		const networkTransactionLayout = readFileSync(
-			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/+layout.ts'),
+			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/+layout.ts'),
 			'utf8'
 		)
 		assert.match(networkTransactionLayout, /matchEvmTxHash\(params\.transactionId\)/)
@@ -6358,7 +6427,7 @@ test('keeps complex route selectors, inverse href metadata, and projected-route 
 		assert.match(networkTransactionLayout, /parentData\.projectionNetwork\.namespace === 'Cardano'[\s\S]*?EntityType\.CardanoTransaction/)
 
 		const transactionInputsPage = readFileSync(
-			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/inputs/+page.svelte'),
+			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/inputs/+page.svelte'),
 			'utf8'
 		)
 		assert.match(transactionInputsPage, /\{#if data\.entityType === EntityType\.CardanoTransaction\}[\s\S]*?select\(EntityType\.CardanoTransaction, data\.selector\)[\s\S]*?\.\$\$inputs/)
@@ -6375,14 +6444,14 @@ test('keeps complex route selectors, inverse href metadata, and projected-route 
 		assert.doesNotMatch(networkValidatorsPage, /\{@const collection\d+Selection =/)
 
 		const evmTokenTransferPage = readFileSync(
-			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/log/[indexInTransaction=nonNegativeInteger]/(evmLog)/token-transfer/[transferIndex=nonNegativeInteger]/+page.svelte'),
+			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/log/[indexInTransaction=nonNegativeInteger]/(evmLog)/token-transfer/[transferIndex=nonNegativeInteger]/+page.svelte'),
 			'utf8'
 		)
 		assert.match(evmTokenTransferPage, /let \{[\s\S]*?data,[\s\S]*?params,[\s\S]*?\}: PageProps = \$props\(\)/)
 		assert.match(evmTokenTransferPage, /\$log: data\.selector/)
 
 		const transactionOutputPage = readFileSync(
-			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId]/(selection)/output/[outputIndex=nonNegativeInteger]/+page.svelte'),
+			path.join(generatedOutputRoot, 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/output/[outputIndex=nonNegativeInteger]/+page.svelte'),
 			'utf8'
 		)
 		assert.match(
@@ -6923,7 +6992,6 @@ test('correlates generated source, binding, and resolver selector keys at defini
 import { sourceBindingsBySource } from '${root}/src/sources/$sourceProviders.ts'
 import sourceServerCredentials from '${root}/src/sources/$sourceServerCredentials.server.ts'
 import acrossBindings from '${root}/src/sources/Across/bindings.ts'
-import atprotoSyncBindings from '${root}/src/sources/AtprotoSync/bindings.ts'
 import arweaveBindings from '${root}/src/sources/Arweave/bindings.ts'
 import blockscoutBindings from '${root}/src/sources/Blockscout/bindings.ts'
 import getBlockBindings from '${root}/src/sources/GetBlock/bindings.ts'
@@ -7024,7 +7092,6 @@ const {
 const invalidCompleteSourceBindings: CompleteSourceBindingIndex = incompleteSourceBindings
 const typedSourceServerCredentials: Map<string, SourceServerCredentialDefinition> = sourceServerCredentials
 const acrossBinding = acrossBindings[Source.Across_Rest][0]
-const atprotoSyncBinding = atprotoSyncBindings[Source.AtprotoSync_Xrpc][0]
 const getBlockRpcBinding = getBlockBindings[Source.GetBlockRpc_JsonRpc][0]
 const voyagerBinding = voyagerBindings[Source.Voyager][0]
 const mismatchedVoyagerProvider = {
@@ -7159,10 +7226,6 @@ const invalidOperationGroup = { ...voyagerBinding, operationGroups: [SourceOpera
 const invalidArtifact = { ...voyagerBinding, artifacts: [{ kind: SourceArtifactKind.Candid, path: 'invalid.did' }] } as const satisfies SourceBinding
 // @ts-expect-error BrowserDirect HTTP endpoints must explicitly enable CORS.
 const invalidBrowserCors = { ...acrossBinding, delivery: SourceDelivery.BrowserDirect, endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: 'https://example.com', corsEnabled: false }] } as const satisfies SourceBinding
-// @ts-expect-error Non-gRPC RemoteLive requires at least one WebSocket endpoint.
-const liveWithoutWebSocket = { ...atprotoSyncBinding, endpoints: [atprotoSyncBinding.endpoints[0]] } as const satisfies SourceBinding
-// @ts-expect-error Non-gRPC RemoteLive permits at most one leading HTTP endpoint.
-const liveWithTwoHttpEndpoints = { ...atprotoSyncBinding, endpoints: [atprotoSyncBinding.endpoints[0], atprotoSyncBinding.endpoints[0], atprotoSyncBinding.endpoints[1]] } as const satisfies SourceBinding
 // @ts-expect-error HttpProxy cannot require a LocalSecret.
 const localProxyCredential = { ...getBlockRpcBinding, credentials: [{ scope: SourceCredentialScope.LocalSecret }] } as const satisfies SourceBinding
 // @ts-expect-error HttpProxy permits at most one trailing RuntimeSecret.
@@ -7797,8 +7860,8 @@ test('defaults Network base sources without widening protocol facet sources', ()
 		assert.match(namespaceQuery, /const network = \$derived\(selection\(\{/)
 		assert.doesNotMatch(namespaceQuery, /Source\.(?:Chainlist_Rest|CosmosChainRegistry_Github|EthereumLists_Rest|Superchain_Github)/)
 	}
-	assert.match(generatedView, /const mempoolSpaceRestAndBlockchairRestSources = \$derived\([\s\S]*?Source\.Blockchair_Rest/)
-	assert.match(generatedView, /SectionUtxoExecutionTransactions[\s\S]*?<UtxoTransactionsView[\s\S]*?selection=\{[\s\S]*?projection[\s\S]*?\.\$\$transactions\(\{[\s\S]*?sources: mempoolSpaceRestAndBlockchairRestSources/)
+	assert.match(generatedView, /const blockchairRestAndEsploraRestAndMempoolSpaceRestSources = \$derived\([\s\S]*?Source\.Blockchair_Rest/)
+	assert.match(generatedView, /SectionUtxoExecutionTransactions[\s\S]*?<UtxoTransactionsView[\s\S]*?selection=\{[\s\S]*?projection[\s\S]*?\.\$\$transactions\(\{[\s\S]*?sources: blockchairRestAndEsploraRestAndMempoolSpaceRestSources/)
 	assert.match(evmProjection, /Source\.Chainlist_Rest/)
 	assert.doesNotMatch(evmProjection, /Source\.CosmosChainRegistry_Github/)
 	assert.match(evmProjection, /id: 'evm-execution-transactions'/)
@@ -7860,7 +7923,7 @@ test('keeps audited source truth mutation-complete', () => {
 			)
 		if (family === 'Polkadot')
 			return (
-				JSON.stringify(field(EntityType.Network, '$$blocks', ['Polkadot'])?.defaultSources) === JSON.stringify([Source.Polkadot_JsonRpc])
+				JSON.stringify(field(EntityType.Network, '$$blocks', ['Polkadot'])?.defaultSources) === JSON.stringify([Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest])
 				&& JSON.stringify(field(EntityType.PolkadotBlock, '$$extrinsics')?.defaultSources) === JSON.stringify([Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest])
 				&& JSON.stringify(field(EntityType.PolkadotBlock, '$$events')?.defaultSources) === JSON.stringify([Source.SubstrateSidecar_Rest])
 			) ? [] : ['Polkadot source truth']
@@ -7967,7 +8030,7 @@ test('keeps audited source truth mutation-complete', () => {
 			assert.ok(network)
 			const blocks = network.facets.find((facet) => facet.name === 'Polkadot')?.fields.find((field) => field.name === '$$blocks')
 			assert.ok(blocks)
-			blocks.defaultSources = [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest]
+			blocks.defaultSources = [Source.Polkadot_JsonRpc]
 		}],
 		['Ton', (candidateApp: typeof app) => {
 			const account = candidateApp.schema.entities.find((entity) => entity.entityType === EntityType.TonAccount)
@@ -8026,8 +8089,8 @@ test('keeps audited source truth mutation-complete', () => {
 
 test('keeps Cardano list identity source authority mutation-complete', () => {
 	for (const [entityType, facetName, fieldName, expectedSources] of [
-		[EntityType.Network, 'Cardano', '$$stakePools', [Source.CardanoKoios_Rest]],
-		[EntityType.Network, 'Cardano', '$$dReps', [Source.CardanoKoios_Rest]],
+		[EntityType.Network, 'Cardano', '$$stakePools', [Source.Blockfrost_Rest, Source.CardanoKoios_Rest]],
+		[EntityType.Network, 'Cardano', '$$dReps', [Source.Blockfrost_Rest, Source.CardanoKoios_Rest]],
 		[EntityType.CardanoStakePool, undefined, 'ticker', [Source.Blockfrost_Rest]],
 		[EntityType.CardanoDRep, undefined, 'displayName', [Source.Blockfrost_Rest]],
 	] as const) {
