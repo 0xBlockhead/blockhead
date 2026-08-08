@@ -100,11 +100,11 @@ export type AaveMarketSnapshotWire = AaveMarketWire & {
 }
 
 export type AaveMarketsData = {
-	markets: AaveMarketWire[]
+	markets?: AaveMarketWire[] | null
 }
 
 export type AaveMarketData = {
-	market: AaveMarketSnapshotWire | null
+	market?: AaveMarketSnapshotWire | null
 }
 
 export type AaveUserSupplyPositionWire = {

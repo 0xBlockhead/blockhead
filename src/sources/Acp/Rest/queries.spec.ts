@@ -14,6 +14,13 @@ import {
 	SourceDelivery,
 } from '$/sources/SourceBinding.ts'
 
+const sourceGetJson = vi.hoisted(() => vi.fn())
+
+vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
+	...await importOriginal<typeof import('$/sources/_runtime/http.ts')>(),
+	sourceGetJson,
+}))
+
 const registryBinding = bindings[Source.AcpRegistry_Rest][0]
 
 const registry = {
@@ -59,31 +66,49 @@ describe('AcpRegistry REST queries', () => {
 	it('binds the public registry over RemoteQuery HTTP', () => {
 		expect(registryBinding.apiFamily).toBe(ApiFamily.RestJson)
 		expect(registryBinding.delivery).toBe(SourceDelivery.RemoteQuery)
-		expect(registryBinding.endpoints[0]?.locator).toBe('https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json')
-		expect(registryBinding.endpoints[0]?.corsEnabled).toBe(false)
+		expect(registryBinding.endpoints[0].locator).toBe('https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json')
+		expect(registryBinding.endpoints[0].corsEnabled).toBe(false)
+	})
+
+	it('uses only the caller-provided noncanonical binding', async () => {
+		const modifiedBinding = {
+			...registryBinding,
+			endpoints: registryBinding.endpoints.map((endpoint) => ({
+				...endpoint,
+				locator: 'https://noncanonical.example/registry.json',
+			})),
+		}
+		sourceGetJson.mockResolvedValueOnce(registry)
+
+		await fetchRegistry(modifiedBinding)
+
+		expect(sourceGetJson).toHaveBeenCalledOnce()
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			modifiedBinding,
+			'https://noncanonical.example/registry.json'
+		)
 	})
 
 	it('assert-closes a valid registry envelope', async () => {
-		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(registry))
-		vi.stubGlobal('fetch', fetchMock)
+		sourceGetJson.mockResolvedValueOnce(registry)
 
-		await expect(fetchRegistry()).resolves.toEqual(registry)
-		expect(fetchMock).toHaveBeenCalledWith(
+		await expect(fetchRegistry(registryBinding)).resolves.toEqual(registry)
+		expect(sourceGetJson).toHaveBeenCalledWith(
+			registryBinding,
 			'https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json',
-			expect.anything()
 		)
 	})
 
 	it('rejects envelopes missing agents', async () => {
-		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
+		sourceGetJson.mockResolvedValueOnce({
 			version: '1.0.0',
-		})))
+		})
 
-		await expect(fetchRegistry()).rejects.toThrow('invalid registry response envelope')
+		await expect(fetchRegistry(registryBinding)).rejects.toThrow('invalid registry response envelope')
 	})
 
 	it('rejects agents with empty distribution targets', async () => {
-		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
+		sourceGetJson.mockResolvedValueOnce({
 			version: '1.0.0',
 			agents: [{
 				id: 'broken',
@@ -99,8 +124,8 @@ describe('AcpRegistry REST queries', () => {
 					},
 				},
 			}],
-		})))
+		})
 
-		await expect(fetchRegistry()).rejects.toThrow('invalid registry response envelope')
+		await expect(fetchRegistry(registryBinding)).rejects.toThrow('invalid registry response envelope')
 	})
 })

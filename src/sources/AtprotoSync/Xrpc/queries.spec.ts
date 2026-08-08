@@ -56,15 +56,10 @@ const carBytes = new Uint8Array([0x01, 0x02, 0x03, 0x04])
 
 const resolvedRemoteQueryBinding = {
 	...remoteQueryBinding,
-	endpoints: remoteQueryBinding.endpoints.map((endpoint) => (
-		endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
-			{
-				...endpoint,
-				locator: 'https://pds.example',
-			}
-		:
-			endpoint
-	)),
+	endpoints: remoteQueryBinding.endpoints.map((endpoint) => ({
+		...endpoint,
+		locator: 'https://pds.example',
+	})),
 }
 
 
@@ -77,6 +72,18 @@ describe('AtprotoSync_Xrpc getRepo RemoteQuery transport', () => {
 				'content-type': 'application/vnd.ipld.car',
 			},
 		}))
+	})
+
+	it('passes the exact modified noncanonical binding without fallback', async () => {
+		await getRepo({
+			binding: resolvedRemoteQueryBinding,
+			serviceOrigin,
+			did,
+		})
+
+		expect(sourceFetch).toHaveBeenCalledOnce()
+		expect(sourceFetch.mock.calls[0][0]).toBe(resolvedRemoteQueryBinding)
+		expect(sourceFetch.mock.calls[0][1]).toContain('https://pds.example/')
 	})
 
 	afterEach(() => {
@@ -98,7 +105,7 @@ describe('AtprotoSync_Xrpc getRepo RemoteQuery transport', () => {
 			{ signal: undefined }
 		)
 		expect(resolvedRemoteQueryBinding.delivery).toBe(SourceDelivery.RemoteQuery)
-		expect(remoteQueryBinding.endpoints[0]?.locator).toBe('https://{pds-host}')
+		expect(remoteQueryBinding.endpoints[0].locator).toBe('https://{pds-host}')
 	})
 
 	it('rejects RemoteLive bindings before transport', async () => {
@@ -484,7 +491,7 @@ describe('AtprotoSync_Xrpc subscribeRepos RemoteLive transport', () => {
 			serviceOrigin,
 		})[Symbol.asyncIterator]()
 		await iterator.next()
-		await iterator.return?.()
+		await iterator.return()
 
 		expect(returned).toBe(1)
 

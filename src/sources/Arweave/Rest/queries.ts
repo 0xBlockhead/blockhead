@@ -9,7 +9,6 @@ import {
 	getText,
 	httpUrl,
 } from '$/sources/_shared/wire/HttpRest/client.ts'
-import bindings from '$/sources/Arweave/bindings.ts'
 import {
 	arweaveBlockWire,
 	arweaveNetworkInfoWire,
@@ -19,13 +18,14 @@ import {
 	type ArweaveBlockWire,
 	type ArweaveTransactionStatus,
 } from '$/sources/Arweave/Rest/types.ts'
-import { sourceEndpointOrigin } from '$/sources/SourceBinding.ts'
-import { Source } from '$/sources/Source.ts'
+import {
+	SourceEndpointKind,
+	sourceEndpointOrigin,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 import { type as arktype } from 'arktype'
 
 const gatewayUrlLastSegment = /([^/]+)$/
-const binding = bindings[Source.Arweave_Rest][0]
-
 const trimSlashes = (value: string) => value.replace(/^\/+|\/+$/g, '')
 
 const assertEnvelope = <_Value>(
@@ -42,10 +42,17 @@ const assertEnvelope = <_Value>(
 	}
 }
 
-const arweaveGatewayEndpoints = () => {
-	const endpoints = binding.endpoints.filter((endpoint) => (
-		sourceEndpointOrigin(endpoint) != null
-	))
+const arweaveGatewayEndpoints = (binding: SourceBinding) => {
+	const endpoints = binding.endpoints.flatMap((endpoint) => {
+		if (endpoint.endpointKind !== SourceEndpointKind.HttpUrl)
+			return []
+
+		const gatewayOrigin = sourceEndpointOrigin(endpoint)
+		return gatewayOrigin == null ? [] : [{
+			endpoint,
+			gatewayOrigin,
+		}]
+	})
 	if (endpoints.length === 0)
 		throw new Error('Arweave_Rest: canonical gateway binding has no HTTP endpoints')
 
@@ -193,7 +200,7 @@ const assertBlockWire = (
 }
 
 const fetchBlockJson = async (
-	path: string
+	binding: SourceBinding, path: string
 ) => {
 	const response = await sourceFetch(
 		binding,
@@ -216,7 +223,7 @@ const fetchBlockJson = async (
 }
 
 /** @see https://docs.arweave.org/developers/arweave-node-server/http-api#network-info */
-export const getNetworkInfo = async () => {
+export const getNetworkInfo = async (binding: SourceBinding) => {
 	const info = assertEnvelope(
 		'network-info',
 		arweaveNetworkInfoWire,
@@ -234,7 +241,7 @@ export const getNetworkInfo = async () => {
  * Active peer host:port list from the contacted gateway.
  * @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-nodes-peer-list
  */
-export const getPeers = async () => {
+export const getPeers = async (binding: SourceBinding) => {
 	const peers = assertEnvelope(
 		'peers',
 		arktype('string > 0').array(),
@@ -254,7 +261,7 @@ export const getPeers = async () => {
  * Current transaction anchor (recent block indep hash).
  * @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-transaction-anchor
  */
-export const getTxAnchor = async () => {
+export const getTxAnchor = async (binding: SourceBinding) => {
 	const anchor = (await getText(
 		binding,
 		'/tx_anchor'
@@ -268,9 +275,11 @@ export const getTxAnchor = async () => {
  * @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-estimated-transaction-price
  */
 export const getPrice = async ({
+	binding,
 	byteSize,
 	target,
 }: {
+	binding: SourceBinding
 	byteSize: number
 	target?: string
 }) => {
@@ -290,11 +299,12 @@ export const getPrice = async ({
 
 /** @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-block-by-hash-id */
 export const getBlockByHash = async (
+	binding: SourceBinding,
 	indepHash: string
 ) => {
 	assertBlockHash(indepHash, 'block indep_hash')
 	return assertBlockWire(
-		await fetchBlockJson(`/block/hash/${encodeURIComponent(indepHash)}`),
+		await fetchBlockJson(binding, `/block/hash/${encodeURIComponent(indepHash)}`),
 		{
 			expectedIndepHash: indepHash,
 		}
@@ -303,11 +313,12 @@ export const getBlockByHash = async (
 
 /** @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-block-by-height */
 export const getBlockByHeight = async (
+	binding: SourceBinding,
 	height: number
 ) => {
 	assertNonNegativeSafeInteger(height, 'block height')
 	return assertBlockWire(
-		await fetchBlockJson(`/block/height/${height.toString()}`),
+		await fetchBlockJson(binding, `/block/height/${height.toString()}`),
 		{
 			expectedHeight: height,
 		}
@@ -315,6 +326,7 @@ export const getBlockByHeight = async (
 }
 
 export const getWalletBalance = async (
+	binding: SourceBinding,
 	address: string
 ) => {
 	assertBase64UrlId(address, 'wallet address')
@@ -327,6 +339,7 @@ export const getWalletBalance = async (
 }
 
 export const getTransaction = async (
+	binding: SourceBinding,
 	transactionId: string
 ) => {
 	assertBase64UrlId(transactionId, 'transaction ID')
@@ -354,6 +367,7 @@ export const getTransaction = async (
 }
 
 export const getTransactionStatus = async (
+	binding: SourceBinding,
 	transactionId: string
 ) => {
 	assertBase64UrlId(transactionId, 'transaction ID')
@@ -375,6 +389,7 @@ export const getTransactionStatus = async (
  * @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-transaction-offset
  */
 export const getTransactionOffset = async (
+	binding: SourceBinding,
 	transactionId: string
 ) => {
 	assertBase64UrlId(transactionId, 'transaction ID')
@@ -403,11 +418,13 @@ export const getGatewayUrl = ({
 }
 
 export const fetchBrowseResult = async ({
+	binding,
 	transactionId,
 	contentPath,
 	maxContentBytes = 1_048_576,
 	signal,
 }: {
+	binding: SourceBinding
 	transactionId: string
 	contentPath?: string
 	maxContentBytes?: number
@@ -420,11 +437,11 @@ export const fetchBrowseResult = async ({
 		throw new Error('Arweave_Rest: content inspection limit must be from 0 through 5242880 bytes')
 	const failures: string[] = []
 
-	for (const endpoint of arweaveGatewayEndpoints()) {
+	for (const { endpoint, gatewayOrigin } of arweaveGatewayEndpoints(binding)) {
 		const gatewayUrl = getGatewayUrl({
 			transactionId: trimmedTransactionId,
 			contentPath: trimmedPath,
-			gatewayOrigin: endpoint.locator,
+			gatewayOrigin,
 		})
 
 		let contentLength: bigint | undefined
@@ -522,7 +539,7 @@ export const fetchBrowseResult = async ({
 		return {
 			transactionId: trimmedTransactionId,
 			contentPath: trimmedPath,
-			gatewayOrigin: sourceEndpointOrigin(endpoint),
+			gatewayOrigin,
 			gatewayUrl,
 			fileName: parsedContent.fileName,
 			extension: parsedContent.extension,

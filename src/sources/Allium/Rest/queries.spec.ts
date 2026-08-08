@@ -36,6 +36,27 @@ beforeEach(() => {
 })
 
 describe('Allium wallet balance envelopes', () => {
+	it('passes only the caller-provided noncanonical binding to transport', async () => {
+		const modifiedBinding = {
+			...binding,
+			endpoints: binding.endpoints.map((endpoint) => ({
+				...endpoint,
+				locator: 'https://noncanonical.example/allium',
+			})),
+		}
+		alliumFetch.mockResolvedValueOnce({ items: [] })
+
+		await getLatestWalletBalances({
+			binding: modifiedBinding,
+			publicEnv,
+			address,
+			apiChain: 'ethereum',
+		})
+
+		expect(alliumFetch).toHaveBeenCalledOnce()
+		expect(alliumFetch.mock.calls[0][0]).toBe(modifiedBinding)
+	})
+
 	it('accepts tip balance rows and forwards optional cursor', async () => {
 		alliumFetch.mockResolvedValueOnce({
 			items: [{
@@ -60,6 +81,7 @@ describe('Allium wallet balance envelopes', () => {
 		})
 
 		await expect(getLatestWalletBalances({
+			binding,
 			publicEnv,
 			address,
 			apiChain: 'ethereum',
@@ -71,6 +93,7 @@ describe('Allium wallet balance envelopes', () => {
 			}],
 		})
 		expect(alliumFetch).toHaveBeenCalledWith(
+			binding,
 			publicEnv,
 			'/api/v1/developer/wallet/balances?with_liquidity_info=false&cursor=page-1',
 			{
@@ -105,6 +128,7 @@ describe('Allium wallet balance envelopes', () => {
 			}],
 		})
 		await expect(getLatestWalletBalances({
+			binding,
 			publicEnv,
 			address,
 			apiChain: 'ethereum',
@@ -120,6 +144,7 @@ describe('Allium wallet balance envelopes', () => {
 			})),
 		})
 		await expect(getLatestWalletBalances({
+			binding,
 			publicEnv,
 			address,
 			apiChain: 'ethereum',
@@ -128,6 +153,7 @@ describe('Allium wallet balance envelopes', () => {
 
 	it('rejects invalid wallet addresses before transport', async () => {
 		await expect(getLatestWalletBalances({
+			binding,
 			publicEnv,
 			address: 'not-an-address',
 			apiChain: 'ethereum',
@@ -150,6 +176,7 @@ describe('Allium tokens-by-address envelopes', () => {
 			},
 		])
 		await expect(getTokensByChainAddress({
+			binding,
 			publicEnv,
 			apiChain: 'ethereum',
 			tokenAddress,
@@ -173,6 +200,7 @@ describe('Allium tokens-by-address envelopes', () => {
 			},
 		])
 		await expect(getTokensByChainAddress({
+			binding,
 			publicEnv,
 			apiChain: 'ethereum',
 			tokenAddress,

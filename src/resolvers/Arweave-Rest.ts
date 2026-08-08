@@ -18,7 +18,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { sourceEndpointOrigin } from '$/sources/SourceBinding.ts'
+import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import bindings from '$/sources/Arweave/bindings.ts'
 import type { ArweaveBlockWire } from '$/sources/Arweave/Rest/types.ts'
 
@@ -40,14 +40,9 @@ const assertArweaveNetworkHub = (network: ArweaveNetworkId) => {
 	assertArweaveNetwork(network.$network)
 }
 
-const gatewayOrigin = () => {
-	for (const endpoint of binding.endpoints) {
-		const origin = sourceEndpointOrigin(endpoint)
-		if (origin != null)
-			return origin
-	}
-	throw new Error('Arweave_Rest: canonical gateway binding has no HTTP endpoints')
-}
+const gatewayOrigin = () => (
+	new URL(firstHttpUrlForBinding(binding)).origin
+)
 
 const arweaveCanonicalUri = (
 	transactionId: string,
@@ -146,7 +141,7 @@ const networkTipSnapshot = async (
 		getBlockByHeight,
 		getNetworkInfo,
 	} = await import('$/sources/Arweave/Rest/queries.ts')
-	const info = await getNetworkInfo()
+	const info = await getNetworkInfo(binding)
 	const pageSize = resolverContextRowLimit(context)
 	const offset = context.pagination.offset ?? 0
 	const tipHeight = info.height
@@ -163,7 +158,7 @@ const networkTipSnapshot = async (
 			)
 	)
 	const blocks = await Promise.all(
-		heights.map((height) => getBlockByHeight(height))
+		heights.map((height) => getBlockByHeight(binding, height))
 	)
 	return {
 		$network: {
@@ -260,7 +255,7 @@ export default {
 							throw new Error(`Arweave_Rest: unsupported source ${source}`)
 
 						const { getNetworkInfo } = await import('$/sources/Arweave/Rest/queries.ts')
-						const info = await getNetworkInfo()
+						const info = await getNetworkInfo(binding)
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
@@ -308,7 +303,7 @@ export default {
 						const { getBlockByHeight } = await import('$/sources/Arweave/Rest/queries.ts')
 						return mapBlockWire(
 							$network.$network,
-							await getBlockByHeight(Number(height))
+							await getBlockByHeight(binding, Number(height))
 						)
 					},
 				},
@@ -321,7 +316,7 @@ export default {
 						const { getBlockByHash } = await import('$/sources/Arweave/Rest/queries.ts')
 						return mapBlockWire(
 							$network.$network,
-							await getBlockByHash(indepHash)
+							await getBlockByHash(binding, indepHash)
 						)
 					},
 				},
@@ -359,10 +354,10 @@ export default {
 							getTransactionStatus,
 							ownerAddressFromOwnerKey,
 						} = await import('$/sources/Arweave/Rest/queries.ts')
-						const transaction = await getTransaction(transactionId)
+						const transaction = await getTransaction(binding, transactionId)
 						const ownerAddress = await ownerAddressFromOwnerKey(transaction.owner)
 						const dataSizeBytes = BigInt(transaction.data_size)
-						const status = await getTransactionStatus(transactionId)
+						const status = await getTransactionStatus(binding, transactionId)
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
@@ -493,6 +488,7 @@ export default {
 						let browseResult
 						try {
 							browseResult = await fetchBrowseResult({
+								binding,
 								transactionId: $resource.transactionId,
 								contentPath: $resource.contentPath,
 							})
@@ -504,9 +500,6 @@ export default {
 								}
 							)
 						}
-
-						if (browseResult.gatewayOrigin == null || browseResult.gatewayOrigin === '')
-							throw new Error('Arweave_Rest: browse result missing gateway origin')
 
 						const mediaEntity = ((
 							type
@@ -521,11 +514,11 @@ export default {
 										{
 											...media,
 											$original: {
-												[EntityMetaKey.Selector]: {
-													url: browseResult.gatewayUrl,
-												},
-												...(browseResult.contentType != null && { mimeType: browseResult.contentType }),
-												...(browseResult.contentLength != null && { size: browseResult.contentLength }),
+											[EntityMetaKey.Selector]: {
+												url: browseResult.gatewayUrl,
+											},
+											...(browseResult.contentType != null && { mimeType: browseResult.contentType }),
+											size: browseResult.contentLength,
 											},
 										}
 								))(mediaFromUrl(browseResult.gatewayUrl, type))
@@ -552,9 +545,9 @@ export default {
 							...(browseResult.fileName != null && { fileName: browseResult.fileName }),
 							...(browseResult.extension != null && { extension: browseResult.extension }),
 							...(browseResult.contentType != null && { contentType: browseResult.contentType }),
-							...(browseResult.contentLength != null && { contentLength: browseResult.contentLength }),
-							...(browseResult.displayType != null && { displayType: browseResult.displayType }),
-							...(browseResult.isContentTypeInferred != null && { isContentTypeInferred: browseResult.isContentTypeInferred }),
+							contentLength: browseResult.contentLength,
+							displayType: browseResult.displayType,
+							isContentTypeInferred: browseResult.isContentTypeInferred,
 							...(browseResult.text != null && { text: browseResult.text }),
 							...(mediaEntity != null && { $media: mediaEntity }),
 						}

@@ -1,5 +1,5 @@
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
-import bindings from '$/sources/AvalanchePlatformVm/bindings.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type {
 	AvalanchePlatformVmBalance,
 	AvalanchePlatformVmBlock,
@@ -15,8 +15,6 @@ import type {
 } from '$/sources/AvalanchePlatformVm/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
-
-const binding = bindings[Source.AvalanchePlatformVm_JsonRpc][0]
 
 const outputOwnerWire = arktype({
 	locktime: 'string',
@@ -155,29 +153,31 @@ const assertEnvelope = <_Value>(
 }
 
 const request = async <_Result>(
+	binding: SourceBinding,
 	method: string,
 	params?: Readonly<Record<string, unknown>>
 ) => (
 	jsonRpc2<_Result>(binding, method, params)
 )
 
-export const getHeight = async () => (
+export const getHeight = async (binding: SourceBinding) => (
 	assertEnvelope(
 		'height',
 		heightWire,
-		await request<unknown>('platform.getHeight')
-	) as AvalanchePlatformVmHeight
+		await request<unknown>(binding, 'platform.getHeight')
+	)
 )
 
-export const getBlockchains = async () => (
+export const getBlockchains = async (binding: SourceBinding) => (
 	assertEnvelope(
 		'blockchains',
 		blockchainsWire,
-		await request<unknown>('platform.getBlockchains')
-	) as AvalanchePlatformVmBlockchains
+		await request<unknown>(binding, 'platform.getBlockchains')
+	)
 )
 
 export const getSubnets = async (
+	binding: SourceBinding,
 	params: {
 		ids?: string[]
 	} = {}
@@ -185,11 +185,12 @@ export const getSubnets = async (
 	assertEnvelope(
 		'subnets',
 		subnetsWire,
-		await request<unknown>('platform.getSubnets', params)
-	) as AvalanchePlatformVmSubnets
+		await request<unknown>(binding, 'platform.getSubnets', params)
+	)
 )
 
 export const getCurrentValidators = async (
+	binding: SourceBinding,
 	params: {
 		subnetID?: string
 		nodeIDs?: string[]
@@ -198,11 +199,12 @@ export const getCurrentValidators = async (
 	assertEnvelope(
 		'validators',
 		validatorsWire,
-		await request<unknown>('platform.getCurrentValidators', params)
-	) as AvalanchePlatformVmValidators
+		await request<unknown>(binding, 'platform.getCurrentValidators', params)
+	)
 )
 
 export const getPendingValidators = async (
+	binding: SourceBinding,
 	params: {
 		subnetID?: string
 		nodeIDs?: string[]
@@ -211,35 +213,38 @@ export const getPendingValidators = async (
 	assertEnvelope(
 		'pending validators',
 		validatorsWire,
-		await request<unknown>('platform.getPendingValidators', params)
-	) as AvalanchePlatformVmValidators
+		await request<unknown>(binding, 'platform.getPendingValidators', params)
+	)
 )
 
 export const getBalance = async (
+	binding: SourceBinding,
 	addresses: string[]
 ) => (
 	assertEnvelope(
 		'balance',
 		balanceWire,
-		await request<unknown>('platform.getBalance', { addresses })
-	) as AvalanchePlatformVmBalance
+		await request<unknown>(binding, 'platform.getBalance', { addresses })
+	)
 )
 
 export const getStake = async (
+	binding: SourceBinding,
 	addresses: string[],
 	validatorsOnly = false
 ) => (
 	assertEnvelope(
 		'stake',
 		stakeWire,
-		await request<unknown>('platform.getStake', {
+		await request<unknown>(binding, 'platform.getStake', {
 			addresses,
 			validatorsOnly,
 		})
-	) as AvalanchePlatformVmStake
+	)
 )
 
 export const getTxStatus = async (
+	binding: SourceBinding,
 	txID: string
 ) => {
 	if (txID === '')
@@ -248,11 +253,12 @@ export const getTxStatus = async (
 	return assertEnvelope(
 		'tx status',
 		txStatusWire,
-		await request<unknown>('platform.getTxStatus', { txID })
-	) as AvalanchePlatformVmTxStatus
+		await request<unknown>(binding, 'platform.getTxStatus', { txID })
+	)
 }
 
 export const getTx = async (
+	binding: SourceBinding,
 	txID: string,
 	encoding: 'hex' | 'json' = 'json'
 ) => {
@@ -262,14 +268,15 @@ export const getTx = async (
 	return assertEnvelope(
 		'tx',
 		txWire,
-		await request<unknown>('platform.getTx', {
+		await request<unknown>(binding, 'platform.getTx', {
 			txID,
 			encoding,
 		})
-	) as AvalanchePlatformVmTx
+	)
 }
 
 export const getBlockByHeight = async (
+	binding: SourceBinding,
 	height: bigint,
 	encoding: 'hex' | 'json' = 'json'
 ) => {
@@ -282,14 +289,15 @@ export const getBlockByHeight = async (
 	return assertEnvelope(
 		'block by height',
 		blockWire,
-		await request<unknown>('platform.getBlockByHeight', {
+		await request<unknown>(binding, 'platform.getBlockByHeight', {
 			height: numericHeight,
 			encoding,
 		})
-	) as AvalanchePlatformVmBlock
+	)
 }
 
 export const getBlock = async (
+	binding: SourceBinding,
 	blockID: string,
 	encoding: 'hex' | 'json' = 'json'
 ) => {
@@ -299,14 +307,15 @@ export const getBlock = async (
 	return assertEnvelope(
 		'block',
 		blockWire,
-		await request<unknown>('platform.getBlock', {
+		await request<unknown>(binding, 'platform.getBlock', {
 			blockID,
 			encoding,
 		})
-	) as AvalanchePlatformVmBlock
+	)
 }
 
 export const getUtxos = async (
+	binding: SourceBinding,
 	addresses: string[],
 	limit: number
 ) => {
@@ -322,13 +331,13 @@ export const getUtxos = async (
 		const page = assertEnvelope(
 			'utxos',
 			utxosWire,
-			await request<unknown>('platform.getUTXOs', {
+			await request<unknown>(binding, 'platform.getUTXOs', {
 				addresses,
 				limit: pageLimit,
 				...(startIndex != null && { startIndex }),
 				encoding: 'hex',
 			})
-		) as AvalanchePlatformVmUtxos
+		)
 		encoding = page.encoding
 		const previousSize = utxos.size
 		for (const utxo of page.utxos)

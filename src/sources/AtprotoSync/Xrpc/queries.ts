@@ -72,18 +72,24 @@ const resolvedRemoteQueryBinding = ({
 		throw new Error('AtprotoSync_Xrpc: RemoteQuery must run through a SvelteKit query')
 
 	const validatedOrigin = validatedServiceOrigin(serviceOrigin)
-	const resolvedBinding = {
-		...binding,
-		endpoints: binding.endpoints.map((endpoint) => (
-			endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
-				{
-					...endpoint,
-					locator: validatedOrigin,
-				}
-			:
-				endpoint
-		)),
-	}
+	const resolvedBinding = binding.endpoints.some((endpoint) => (
+		endpoint.endpointKind === SourceEndpointKind.HttpUrl
+		&& endpoint.locator !== validatedOrigin
+	)) ?
+		{
+			...binding,
+			endpoints: binding.endpoints.map((endpoint) => (
+				endpoint.endpointKind === SourceEndpointKind.HttpUrl ?
+					{
+						...endpoint,
+						locator: validatedOrigin,
+					}
+				:
+					endpoint
+			)),
+		}
+	:
+		binding
 	if (!resolvedBinding.endpoints.some((endpoint) => (
 		endpoint.endpointKind === SourceEndpointKind.HttpUrl
 	)))
@@ -373,6 +379,3 @@ export const subscribeRepos = async function* ({
 		await frames.return?.()
 	}
 }
-
-
-export const defaultAtprotoSyncRelayOrigin = 'https://bsky.network' as const

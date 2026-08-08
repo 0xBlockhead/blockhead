@@ -13,8 +13,8 @@ import {
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
-import type { bskyAppViewXrpc } from '$/sources/_shared/interfaces/BskyAppViewXrpc/queries.ts'
 import {
 	isBskyAppViewThreadViewPost,
 	type BskyAppViewPostView,
@@ -118,7 +118,7 @@ const atprotoPostReferenceFromPostView = (postView: BskyAppViewPostView) => {
 
 export const bskyAppViewResolvers = (
 	source: Source.Atproto_Xrpc | Source.Atproto_BskySocial_Xrpc,
-	loadQueries: () => Promise<ReturnType<typeof bskyAppViewXrpc>>
+	loadQueries: () => Promise<typeof import('$/sources/AtprotoBsky/Rest/queries.ts')>
 ) => {
 	const loadAppViewBinding = async () => {
 		const bindings = (
@@ -132,24 +132,28 @@ export const bskyAppViewResolvers = (
 			throw new Error(`${source}: missing AppView binding`)
 		return binding
 	}
+	const loadBindingAndQueries = async (): Promise<[
+		SourceBinding,
+		Awaited<ReturnType<typeof loadQueries>>,
+	]> => Promise.all([
+		loadAppViewBinding(),
+		loadQueries(),
+	])
 
 	const atprotoNetworkHubObservation = async () => {
 		const [
-			{ searchActors, searchPosts },
 			binding,
-		] = await Promise.all([
-			loadQueries(),
-			loadAppViewBinding(),
-		])
+			{ searchActors, searchPosts },
+		] = await loadBindingAndQueries()
 		const [
 			actorsResponse,
 			postsResponse,
 		] = await Promise.all([
-			searchActors({
+			searchActors(binding, {
 				limit: 25,
 				q: 'bsky',
 			}),
-			searchPosts({
+			searchPosts(binding, {
 				limit: 25,
 				q: 'bsky',
 			}),
@@ -171,8 +175,8 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Did: {
 					resolve: async ({ did }) => {
-						const { getProfile } = await loadQueries()
-						const profile = await getProfile(did)
+						const [binding, { getProfile }] = await loadBindingAndQueries()
+						const profile = await getProfile(binding, did)
 						if (profile.did !== did)
 							throw new Error(`${source}: profile did mismatch for ${did}`)
 						return {
@@ -192,9 +196,9 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Handle: {
 					resolve: async ({ handle }) => {
-						const { resolveHandle } = await loadQueries()
+						const [binding, { resolveHandle }] = await loadBindingAndQueries()
 						return {
-							did: (await resolveHandle(handle)).did,
+							did: (await resolveHandle(binding, handle)).did,
 							handle,
 						}
 					},
@@ -210,8 +214,8 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Uri: {
 					resolve: async ({ uri }) => {
-						const { getPosts } = await loadQueries()
-						const postView = (await getPosts([uri])).posts.at(0)
+						const [binding, { getPosts }] = await loadBindingAndQueries()
+						const postView = (await getPosts(binding, [uri])).posts.at(0)
 						if (postView == null) throw new Error(`${source}: post not found`)
 						return atprotoPostFieldsFromPostView(postView)
 					},
@@ -235,8 +239,8 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				AtprotoPostTimestampMs: {
 					resolve: async ({ $post }) => {
-						const { getPosts } = await loadQueries()
-						const postView = (await getPosts([$post.uri])).posts.at(0)
+						const [binding, { getPosts }] = await loadBindingAndQueries()
+						const postView = (await getPosts(binding, [$post.uri])).posts.at(0)
 						if (postView == null) throw new Error(`${source}: post not found`)
 						return atprotoPostEngagementFromPostView(postView)
 					},
@@ -255,10 +259,10 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { searchActors } = await loadQueries()
+						const [binding, { searchActors }] = await loadBindingAndQueries()
 						const limit = resolverContextRowLimit(context)
 						return (
-							((await searchActors({
+							((await searchActors(binding, {
 								limit,
 								q: 'bsky',
 							})).actors ?? [])
@@ -316,10 +320,10 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { searchPosts } = await loadQueries()
+						const [binding, { searchPosts }] = await loadBindingAndQueries()
 						const limit = resolverContextRowLimit(context)
 						return (
-							((await searchPosts({
+							((await searchPosts(binding, {
 								limit,
 								q: 'bsky',
 							})).posts ?? [])
@@ -408,8 +412,8 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Did: {
 					resolve: async ({ did }) => {
-						const { getProfile } = await loadQueries()
-						const profile = await getProfile(did)
+						const [binding, { getProfile }] = await loadBindingAndQueries()
+						const profile = await getProfile(binding, did)
 						const displayName = optionalNonemptyString(profile.displayName)
 						const description = optionalNonemptyString(profile.description)
 						const indexedAt = optionalTimestampMs(profile.indexedAt)
@@ -450,9 +454,9 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Did: {
 					resolve: async ({ did }, context) => {
-						const { getAuthorFeed } = await loadQueries()
+						const [binding, { getAuthorFeed }] = await loadBindingAndQueries()
 						const limit = resolverContextRowLimit(context)
-						const { feed } = await getAuthorFeed({
+						const { feed } = await getAuthorFeed(binding, {
 							actor: did,
 							limit,
 							includePins: true,
@@ -476,9 +480,9 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Uri: {
 					resolve: async ({ uri }, context) => {
-						const { getPostThread } = await loadQueries()
+						const [binding, { getPostThread }] = await loadBindingAndQueries()
 						const limit = resolverContextRowLimit(context)
-						const { thread } = await getPostThread(uri)
+						const { thread } = await getPostThread(binding, uri)
 						if (thread == null || !isBskyAppViewThreadViewPost(thread))
 							throw new Error(`${source}: post thread not found for ${uri}`)
 

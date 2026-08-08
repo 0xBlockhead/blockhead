@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import bindings from '$/sources/Arweave/bindings.ts'
 import {
 	getAccountTransactionsPage,
 	getBlockByHeight,
@@ -8,12 +9,14 @@ import {
 	getTaggedTransactionsPage,
 	getTransactionById,
 } from '$/sources/Arweave/Graphql/queries.ts'
+import { Source } from '$/sources/Source.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
 
 vi.mock('$/sources/_shared/wire/Graphql/client.ts', () => ({
 	graphql: vi.fn(),
 }))
 
+const binding = bindings[Source.Arweave_Graphql][0]
 const transactionId = 'A'.repeat(43)
 const ownerAddress = 'B'.repeat(43)
 const recipientAddress = 'C'.repeat(43)
@@ -60,12 +63,28 @@ const block = {
 }
 
 describe('Arweave GraphQL public transaction and block discovery', () => {
+	it('passes only the caller-provided noncanonical binding to GraphQL', async () => {
+		const modifiedBinding = {
+			...binding,
+			endpoints: binding.endpoints.map((endpoint) => ({
+				...endpoint,
+				locator: 'https://noncanonical.example/arweave/graphql',
+			})),
+		}
+		vi.mocked(graphql).mockResolvedValueOnce({ transaction })
+
+		await getTransactionById(modifiedBinding, transactionId)
+
+		expect(graphql).toHaveBeenCalledOnce()
+		expect(vi.mocked(graphql).mock.calls[0][0].binding).toBe(modifiedBinding)
+	})
+
 	it('preserves exact IDs, winston units, tags, and confirmed block identity', async () => {
 		vi.mocked(graphql).mockResolvedValue({
 			transaction,
 		})
 
-		await expect(getTransactionById(
+		await expect(getTransactionById(binding,
 			transactionId
 		)).resolves.toMatchObject({
 			id: transactionId,
@@ -82,7 +101,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 		vi.mocked(graphql).mockResolvedValueOnce({
 			block,
 		})
-		await expect(getBlockById(blockId)).resolves.toEqual(block)
+		await expect(getBlockById(binding, blockId)).resolves.toEqual(block)
 
 		vi.mocked(graphql).mockResolvedValueOnce({
 			blocks: {
@@ -97,7 +116,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				],
 			},
 		})
-		await expect(getBlockByHeight(1_500_000)).resolves.toEqual(block)
+		await expect(getBlockByHeight(binding, 1_500_000)).resolves.toEqual(block)
 
 		vi.mocked(graphql).mockResolvedValueOnce({
 			blocks: {
@@ -112,7 +131,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				],
 			},
 		})
-		await expect(getBlocksPage({
+		await expect(getBlocksPage(binding, {
 			first: 1,
 		})).resolves.toMatchObject({
 			pageInfo: {
@@ -134,7 +153,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				id: null,
 			},
 		})
-		await expect(getBlockById(blockId)).rejects.toThrow('incomplete confirmed block coordinates')
+		await expect(getBlockById(binding, blockId)).rejects.toThrow('incomplete confirmed block coordinates')
 	})
 
 	it('keeps pending transactions blockless and advances opaque cursors', async () => {
@@ -155,7 +174,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 			},
 		})
 
-		await expect(getAccountTransactionsPage({
+		await expect(getAccountTransactionsPage(binding, {
 			address: ownerAddress,
 			role: 'owner',
 			first: 10,
@@ -186,7 +205,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 			},
 		})
 
-		await expect(getTransactionById(
+		await expect(getTransactionById(binding,
 			transactionId
 		)).rejects.toThrow('incomplete confirmed block coordinates')
 	})
@@ -205,7 +224,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				],
 			},
 		})
-		await expect(getTaggedTransactionsPage({
+		await expect(getTaggedTransactionsPage(binding, {
 			tags: [{
 				name: 'Content-Type',
 				values: [
@@ -234,7 +253,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				],
 			},
 		})
-		await expect(getTaggedTransactionsPage({
+		await expect(getTaggedTransactionsPage(binding, {
 			tags: [{
 				name: 'App-Name',
 				values: [
@@ -244,7 +263,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 			first: 1,
 		})).rejects.toThrow('tag filter was violated')
 
-		expect(() => getTaggedTransactionsPage({
+		expect(() => getTaggedTransactionsPage(binding, {
 			tags: [],
 			first: 1,
 		})).toThrow('tag filter required')
@@ -264,7 +283,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				],
 			},
 		})
-		await expect(getAccountTransactionsPage({
+		await expect(getAccountTransactionsPage(binding, {
 			address: recipientAddress,
 			role: 'owner',
 			first: 10,
@@ -283,7 +302,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				],
 			},
 		})
-		await expect(getAccountTransactionsPage({
+		await expect(getAccountTransactionsPage(binding, {
 			address: ownerAddress,
 			role: 'owner',
 			first: 10,

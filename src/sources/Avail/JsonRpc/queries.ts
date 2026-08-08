@@ -3,14 +3,13 @@ import {
 	type SourcePublicEnv,
 } from '$/sources/$sources.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
-import bindings from '$/sources/Avail/bindings.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	availBlockWire,
 	availHeaderWire,
 	availSystemHealthWire,
 	availSystemSyncStateWire,
 } from '$/sources/Avail/JsonRpc/types.ts'
-import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 
@@ -19,19 +18,27 @@ const mainnetGenesisHash = '0xb91746b45e0346cc2f815a520b9c6cb4d5c0902af848db0a80
 const hashPattern = /^0x[0-9a-fA-F]{64}$/
 const quantityPattern = /^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$/
 
-const binding = bindings[Source.Avail][0]
-
 const request = <_Result extends JsonValue>(
+	binding: SourceBinding,
 	publicEnv: SourcePublicEnv,
 	method: string,
 	params: readonly JsonValue[] = []
-) => jsonRpc2<_Result>({
-	...binding,
-	endpoints: binding.endpoints.map((endpoint) => ({
-		...endpoint,
-		locator: resolveEnvLocator(endpoint.locator, publicEnv),
-	})),
-}, method, params)
+) => jsonRpc2<_Result>(
+	binding.endpoints.some((endpoint) => (
+		resolveEnvLocator(endpoint.locator, publicEnv) !== endpoint.locator
+	)) ?
+		{
+			...binding,
+			endpoints: binding.endpoints.map((endpoint) => ({
+				...endpoint,
+				locator: resolveEnvLocator(endpoint.locator, publicEnv),
+			})),
+		}
+	:
+		binding,
+	method,
+	params
+)
 
 const assertEnvelope = <_Value>(
 	label: string,
@@ -92,14 +99,15 @@ const headerFromWire = ({
 }
 
 export const getNetworkIdentity = async (
+	binding: SourceBinding,
 	publicEnv: SourcePublicEnv
 ) => {
 	const [
 		chainName,
 		genesisHash,
 	] = await Promise.all([
-		request<string>(publicEnv, 'system_chain'),
-		getBlockHash(publicEnv, 0n),
+		request<string>(binding, publicEnv, 'system_chain'),
+		getBlockHash(binding, publicEnv, 0n),
 	])
 	if (chainName !== mainnetChainName)
 		throw new Error('Avail: foreign chain name')
@@ -112,12 +120,13 @@ export const getNetworkIdentity = async (
 }
 
 export const getSystemHealth = async (
+	binding: SourceBinding,
 	publicEnv: SourcePublicEnv
 ) => {
 	const wire = assertEnvelope(
 		'system_health',
 		availSystemHealthWire,
-		await request(publicEnv, 'system_health')
+		await request(binding, publicEnv, 'system_health')
 	)
 	return {
 		peers: wire.peers,
@@ -127,12 +136,13 @@ export const getSystemHealth = async (
 }
 
 export const getSystemSyncState = async (
+	binding: SourceBinding,
 	publicEnv: SourcePublicEnv
 ) => {
 	const wire = assertEnvelope(
 		'system_syncState',
 		availSystemSyncStateWire,
-		await request(publicEnv, 'system_syncState')
+		await request(binding, publicEnv, 'system_syncState')
 	)
 	return {
 		startingBlock: BigInt(wire.startingBlock),
@@ -142,15 +152,16 @@ export const getSystemSyncState = async (
 }
 
 export const getFinalizedHead = async (
+	binding: SourceBinding,
 	publicEnv: SourcePublicEnv
 ) => {
-	const hash = await request<string>(publicEnv, 'chain_getFinalizedHead')
+	const hash = await request<string>(binding, publicEnv, 'chain_getFinalizedHead')
 	assertHash(hash, 'finalized block hash')
 	return headerFromWire({
 		wire: assertEnvelope(
 			'chain_getHeader',
 			availHeaderWire,
-			await request(publicEnv, 'chain_getHeader', [hash])
+			await request(binding, publicEnv, 'chain_getHeader', [hash])
 		),
 		hash,
 		finalized: true,
@@ -158,12 +169,14 @@ export const getFinalizedHead = async (
 }
 
 export const getBlockHash = async (
+	binding: SourceBinding,
 	publicEnv: SourcePublicEnv,
 	blockNumber?: bigint
 ) => {
 	if (blockNumber != null)
 		assertBlockNumber(blockNumber)
 	const hash = await request<string>(
+		binding,
 		publicEnv,
 		'chain_getBlockHash',
 		blockNumber == null ? [] : [Number(blockNumber)]
@@ -173,6 +186,7 @@ export const getBlockHash = async (
 }
 
 export const getHeader = async (
+	binding: SourceBinding,
 	publicEnv: SourcePublicEnv,
 	blockHash?: string
 ) => {
@@ -183,6 +197,7 @@ export const getHeader = async (
 			'chain_getHeader',
 			availHeaderWire,
 			await request(
+				binding,
 				publicEnv,
 				'chain_getHeader',
 				blockHash == null ? [] : [blockHash]
@@ -194,6 +209,7 @@ export const getHeader = async (
 }
 
 export const getBlock = async (
+	binding: SourceBinding,
 	publicEnv: SourcePublicEnv,
 	blockHash: string
 ) => {
@@ -201,7 +217,7 @@ export const getBlock = async (
 	const wire = assertEnvelope(
 		'chain_getBlock',
 		availBlockWire,
-		await request(publicEnv, 'chain_getBlock', [blockHash])
+		await request(binding, publicEnv, 'chain_getBlock', [blockHash])
 	)
 	const header = headerFromWire({
 		wire: wire.block.header,
@@ -219,11 +235,12 @@ export const getBlock = async (
 }
 
 export const getHeaderByBlockNumber = async (
+	binding: SourceBinding,
 	publicEnv: SourcePublicEnv,
 	blockNumber: bigint
 ) => {
-	const hash = await getBlockHash(publicEnv, blockNumber)
-	const header = await getHeader(publicEnv, hash)
+	const hash = await getBlockHash(binding, publicEnv, blockNumber)
+	const header = await getHeader(binding, publicEnv, hash)
 	if (header.blockNumber !== blockNumber)
 		throw new Error(`Avail: header block number mismatch ${header.blockNumber} !== ${blockNumber}`)
 	if (header.hash == null)

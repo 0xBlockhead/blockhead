@@ -106,6 +106,22 @@ const stableV3Pool = {
 } as const
 
 describe('Balancer API binding', () => {
+	it('passes only the caller-provided noncanonical binding to GraphQL', async () => {
+		const modifiedBinding = {
+			...binding,
+			endpoints: binding.endpoints.map((endpoint) => ({
+				...endpoint,
+				locator: 'https://noncanonical.example/balancer',
+			})),
+		}
+		graphql.mockResolvedValueOnce({ poolGetPools: [] })
+
+		await listPools({ binding: modifiedBinding, chainId: 1 })
+
+		expect(graphql).toHaveBeenCalledOnce()
+		expect(graphql.mock.calls[0][0].binding).toBe(modifiedBinding)
+	})
+
 	it('targets the official Balancer GraphQL API', () => {
 		expect(binding.target).toEqual({
 			kind: SourceTargetKind.Global,
@@ -146,6 +162,7 @@ describe('Balancer poolGetPool operation', () => {
 			poolGetPool: weightedV2Pool,
 		})
 		await expect(getPool({
+			binding,
 			chainId: 1,
 			poolId: weightedV2PoolId,
 		})).resolves.toEqual({
@@ -194,6 +211,7 @@ describe('Balancer poolGetPool operation', () => {
 			poolGetPool: stableV3Pool,
 		})
 		await expect(getPool({
+			binding,
 			chainId: 1,
 			poolId: stableV3PoolId,
 		})).resolves.toMatchObject({
@@ -206,6 +224,7 @@ describe('Balancer poolGetPool operation', () => {
 
 	it('rejects an unsupported chain id before transport', async () => {
 		await expect(getPool({
+			binding,
 			chainId: 999999,
 			poolId: weightedV2PoolId,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: unsupported chain id 999999`)
@@ -214,6 +233,7 @@ describe('Balancer poolGetPool operation', () => {
 
 	it('rejects an invalid pool id before transport', async () => {
 		await expect(getPool({
+			binding,
 			chainId: 1,
 			poolId: 'not-a-pool',
 		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool id not-a-pool`)
@@ -225,6 +245,7 @@ describe('Balancer poolGetPool operation', () => {
 			poolGetPool: null,
 		})
 		await expect(getPool({
+			binding,
 			chainId: 1,
 			poolId: weightedV2PoolId,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool not found ${weightedV2PoolId} on chain 1`)
@@ -234,6 +255,7 @@ describe('Balancer poolGetPool operation', () => {
 		graphql.mockResolvedValueOnce({})
 
 		await expect(getPool({
+			binding,
 			chainId: 1,
 			poolId: weightedV2PoolId,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool response missing poolGetPool`)
@@ -247,6 +269,7 @@ describe('Balancer poolGetPool operation', () => {
 		})
 
 		await expect(getPool({
+			binding,
 			chainId: 1,
 			poolId: weightedV2PoolId,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool response envelope`)
@@ -265,6 +288,7 @@ describe('Balancer poolGetPool operation', () => {
 		})
 
 		await expect(getPool({
+			binding,
 			chainId: 1,
 			poolId: weightedV2PoolId,
 		})).resolves.toMatchObject({
@@ -289,6 +313,7 @@ describe('Balancer poolGetPools operation', () => {
 		})
 
 		await expect(listPools({
+			binding,
 			chainId: 1,
 			limit: 2,
 		})).resolves.toMatchObject([
@@ -319,12 +344,14 @@ describe('Balancer poolGetPools operation', () => {
 		})
 
 		await expect(listPools({
+			binding,
 			chainId: 1,
 		})).resolves.toEqual([])
 	})
 
 	it('rejects invalid limits before transport', async () => {
 		await expect(listPools({
+			binding,
 			chainId: 1,
 			limit: 0,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: limit must be 1..100`)
@@ -335,6 +362,7 @@ describe('Balancer poolGetPools operation', () => {
 		graphql.mockResolvedValueOnce(undefined)
 
 		await expect(listPools({
+			binding,
 			chainId: 1,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response missing data`)
 	})
@@ -343,6 +371,7 @@ describe('Balancer poolGetPools operation', () => {
 		graphql.mockResolvedValueOnce({})
 
 		await expect(listPools({
+			binding,
 			chainId: 1,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response poolGetPools is missing`)
 	})
@@ -357,6 +386,7 @@ describe('Balancer poolGetPools operation', () => {
 		})
 
 		await expect(listPools({
+			binding,
 			chainId: 1,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool list response envelope`)
 
@@ -365,6 +395,7 @@ describe('Balancer poolGetPools operation', () => {
 		})
 
 		await expect(listPools({
+			binding,
 			chainId: 1,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool list response envelope`)
 	})
@@ -378,6 +409,7 @@ describe('Balancer poolGetPools operation', () => {
 		})
 
 		await expect(listPools({
+			binding,
 			chainId: 1,
 			limit: 1,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response exceeds requested limit 1`)
@@ -395,6 +427,7 @@ describe('Balancer poolGetPools operation', () => {
 		})
 
 		await expect(listPools({
+			binding,
 			chainId: 1,
 			limit: 2,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool list response contains duplicate pool ids`)
@@ -412,6 +445,7 @@ describe('Balancer poolGetPoolsCount operation', () => {
 		})
 
 		await expect(getPoolsCount({
+			binding,
 			chainId: 1,
 		})).resolves.toBe(2355)
 		expect(graphql).toHaveBeenCalledWith(expect.objectContaining({
@@ -430,6 +464,7 @@ describe('Balancer poolGetPoolsCount operation', () => {
 		})
 
 		await expect(getPoolsCount({
+			binding,
 			chainId: 1,
 			userAddress: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
 		})).resolves.toBe(3)
@@ -446,6 +481,7 @@ describe('Balancer poolGetPoolsCount operation', () => {
 		graphql.mockResolvedValueOnce({})
 
 		await expect(getPoolsCount({
+			binding,
 			chainId: 1,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool count response poolGetPoolsCount is missing`)
 	})
@@ -456,6 +492,7 @@ describe('Balancer poolGetPoolsCount operation', () => {
 		})
 
 		await expect(getPoolsCount({
+			binding,
 			chainId: 1,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool count`)
 	})
@@ -519,6 +556,7 @@ describe('Balancer account pool balances operation', () => {
 		})
 
 		await expect(getAccountPoolBalances({
+			binding,
 			chainId: 1,
 			account,
 			limit: 2,
@@ -555,6 +593,7 @@ describe('Balancer account pool balances operation', () => {
 
 	it('rejects an invalid account before transport', async () => {
 		await expect(getAccountPoolBalances({
+			binding,
 			chainId: 1,
 			account: 'not-an-address',
 		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid account not-an-address`)
@@ -569,6 +608,7 @@ describe('Balancer account pool balances operation', () => {
 		})
 
 		await expect(getAccountPoolBalances({
+			binding,
 			chainId: 1,
 			account,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: account pool balance missing userBalance`)
@@ -606,7 +646,7 @@ describe('Balancer veBAL and voting gauge operations', () => {
 			],
 		})
 
-		await expect(listVotingGauges()).resolves.toEqual([
+		await expect(listVotingGauges({ binding })).resolves.toEqual([
 			{
 				poolId: weightedV2PoolId,
 				poolAddress: '0x3de27efa2f1aa663ae5d458857e731c129069f29',
@@ -644,10 +684,12 @@ describe('Balancer veBAL and voting gauge operations', () => {
 
 		const account = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
 		await expect(getVeBalUserBalance({
+			binding,
 			chainId: 1,
 			account,
 		})).resolves.toBe('12.5')
 		await expect(getVeBalUser({
+			binding,
 			chainId: 1,
 			account,
 		})).resolves.toEqual({
@@ -669,7 +711,7 @@ describe('Balancer veBAL and voting gauge operations', () => {
 			],
 		})
 
-		await expect(listVotingGauges()).rejects.toThrow(`${Source.Balancer_Rest}: invalid voting list response envelope`)
+		await expect(listVotingGauges({ binding })).rejects.toThrow(`${Source.Balancer_Rest}: invalid voting list response envelope`)
 	})
 })
 
@@ -696,6 +738,7 @@ describe('Balancer poolEvents operation', () => {
 		})
 
 		await expect(listPoolEvents({
+			binding,
 			chainId: 1,
 			poolId: weightedV2PoolId,
 			limit: 1,
@@ -743,6 +786,7 @@ describe('Balancer poolEvents operation', () => {
 		})
 
 		await expect(listPoolEvents({
+			binding,
 			chainId: 1,
 			limit: 1,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool events response exceeds requested limit 1`)

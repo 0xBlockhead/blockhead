@@ -1,5 +1,6 @@
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
-import bindings from '$/sources/AvalancheInfo/bindings.ts'
 import type {
 	AvalancheInfoNetworkId,
 	AvalancheInfoNetworkName,
@@ -8,10 +9,8 @@ import type {
 	AvalancheInfoPeers,
 	AvalancheInfoUptime,
 } from '$/sources/AvalancheInfo/JsonRpc/types.ts'
-import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
 
-const binding = bindings[Source.AvalancheInfo_JsonRpc][0]
 
 const networkIdWire = arktype({
 	networkID: 'string | number.integer',
@@ -73,56 +72,56 @@ const assertEnvelope = <_Value>(
 }
 
 const request = async <_Result>(
-	method: string,
+	binding: SourceBinding, method: string,
 	params?: Readonly<Record<string, unknown>> | readonly unknown[]
 ) => (
 	jsonRpc2<_Result>(binding, method, params)
 )
 
-export const getNetworkId = async () => (
+export const getNetworkId = async (binding: SourceBinding) => (
 	assertEnvelope(
 		'network id',
 		networkIdWire,
-		await request<unknown>('info.getNetworkID')
-	) as AvalancheInfoNetworkId
+		await request<unknown>(binding, 'info.getNetworkID')
+	)
 )
 
-export const getNetworkName = async () => (
+export const getNetworkName = async (binding: SourceBinding) => (
 	assertEnvelope(
 		'network name',
 		networkNameWire,
-		await request<unknown>('info.getNetworkName')
-	) as AvalancheInfoNetworkName
+		await request<unknown>(binding, 'info.getNetworkName')
+	)
 )
 
-export const getNodeId = async () => (
+export const getNodeId = async (binding: SourceBinding) => (
 	assertEnvelope(
 		'node id',
 		nodeIdWire,
-		await request<unknown>('info.getNodeID')
-	) as AvalancheInfoNodeId
+		await request<unknown>(binding, 'info.getNodeID')
+	)
 )
 
-export const getNodeVersion = async () => (
+export const getNodeVersion = async (binding: SourceBinding) => (
 	assertEnvelope(
 		'node version',
 		nodeVersionWire,
-		await request<unknown>('info.getNodeVersion')
-	) as AvalancheInfoNodeVersion
+		await request<unknown>(binding, 'info.getNodeVersion')
+	)
 )
 
-export const getPeers = async () => (
+export const getPeers = async (binding: SourceBinding) => (
 	assertEnvelope(
 		'peers',
 		peersWire,
-		await request<unknown>('info.peers')
-	) as AvalancheInfoPeers
+		await request<unknown>(binding, 'info.peers')
+	)
 )
 
-export const getUptime = async () => (
+export const getUptime = async (binding: SourceBinding) => (
 	assertEnvelope(
 		'uptime',
 		uptimeWire,
-		await request<unknown>('info.uptime')
-	) as AvalancheInfoUptime
+		await request<unknown>(binding, 'info.uptime')
+	)
 )

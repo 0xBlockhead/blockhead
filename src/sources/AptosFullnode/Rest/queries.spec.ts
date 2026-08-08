@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import bindings from '$/sources/AptosFullnode/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
+const firstHttpUrlForBinding = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
-	firstHttpUrlForBinding: () => 'https://fullnode.test/v1/',
+	firstHttpUrlForBinding,
 	sourceFetch,
 }))
 
@@ -27,6 +30,8 @@ const metadataHeaders = {
 	'x-aptos-oldest-block-height': '1',
 }
 
+const binding = bindings[Source.AptosFullnode_Rest][0]
+
 const jsonResponse = (
 	body: unknown,
 	headers: Record<string, string> = metadataHeaders
@@ -39,9 +44,42 @@ const jsonResponse = (
 
 beforeEach(() => {
 	sourceFetch.mockReset()
+	firstHttpUrlForBinding.mockReset().mockReturnValue('https://fullnode.test/v1/')
 })
 
 describe('AptosFullnode Rest arktype envelopes', () => {
+	it('passes a modified noncanonical binding through endpoint selection and transport', async () => {
+		const modifiedBinding = {
+			...binding,
+			endpoints: binding.endpoints.map((endpoint) => ({
+				...endpoint,
+				locator: 'https://modified-fullnode.test/v1/',
+			})),
+		}
+		firstHttpUrlForBinding.mockReturnValue('https://modified-fullnode.test/v1/')
+		sourceFetch.mockResolvedValue(jsonResponse({
+			chain_id: 1,
+			epoch: '7',
+			ledger_version: '42',
+			oldest_ledger_version: '1',
+			ledger_timestamp: '1720000000123456',
+			node_role: 'full_node',
+			oldest_block_height: '1',
+			block_height: '9',
+		}))
+
+		await getLedgerInfo(modifiedBinding)
+
+		expect(firstHttpUrlForBinding).toHaveBeenCalledOnce()
+		expect(firstHttpUrlForBinding).toHaveBeenCalledWith(modifiedBinding)
+		expect(sourceFetch).toHaveBeenCalledOnce()
+		expect(sourceFetch).toHaveBeenCalledWith(
+			modifiedBinding,
+			'https://modified-fullnode.test/v1/',
+			undefined
+		)
+	})
+
 	it('accepts ledger / account / block / transaction envelopes', async () => {
 		sourceFetch
 			.mockResolvedValueOnce(jsonResponse({
@@ -79,23 +117,23 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 				vm_status: 'Executed successfully',
 			}))
 
-		await expect(getLedgerInfo()).resolves.toMatchObject({
+		await expect(getLedgerInfo(binding)).resolves.toMatchObject({
 			body: {
 				chain_id: 1,
 				ledger_version: '42',
 			},
 		})
-		await expect(getAccount('0xa11ce')).resolves.toMatchObject({
+		await expect(getAccount(binding, '0xa11ce')).resolves.toMatchObject({
 			body: {
 				sequence_number: '8',
 			},
 		})
-		await expect(getBlockByHeight(9n)).resolves.toMatchObject({
+		await expect(getBlockByHeight(binding, 9n)).resolves.toMatchObject({
 			body: {
 				block_hash: '0xblock',
 			},
 		})
-		await expect(getTransactionByVersion(42n)).resolves.toMatchObject({
+		await expect(getTransactionByVersion(binding, 42n)).resolves.toMatchObject({
 			body: {
 				hash: '0x42',
 				version: '42',
@@ -120,10 +158,10 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 				type: 'user_transaction',
 			}))
 
-		await expect(getLedgerInfo()).rejects.toThrow('invalid ledger info response envelope')
-		await expect(getAccount('0xa11ce')).rejects.toThrow('invalid account response envelope')
-		await expect(getBlockByHeight(9n)).rejects.toThrow('invalid block response envelope')
-		await expect(getTransactionByVersion(42n)).rejects.toThrow('invalid transaction response envelope')
+		await expect(getLedgerInfo(binding)).rejects.toThrow('invalid ledger info response envelope')
+		await expect(getAccount(binding, '0xa11ce')).rejects.toThrow('invalid account response envelope')
+		await expect(getBlockByHeight(binding, 9n)).rejects.toThrow('invalid block response envelope')
+		await expect(getTransactionByVersion(binding, 42n)).rejects.toThrow('invalid transaction response envelope')
 	})
 
 	it('accepts Move-module bytecode and table-item value envelopes', async () => {
@@ -147,20 +185,20 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 				},
 			}))
 
-		await expect(getAccountModules('0xa11ce')).resolves.toMatchObject({
+		await expect(getAccountModules(binding, '0xa11ce')).resolves.toMatchObject({
 			body: [moduleBody],
 		})
-		await expect(getAccountModule('0xa11ce', 'payments')).resolves.toMatchObject({
+		await expect(getAccountModule(binding, '0xa11ce', 'payments')).resolves.toMatchObject({
 			body: moduleBody,
 		})
-		await expect(getTableItem('0xhandle', {
+		await expect(getTableItem(binding, '0xhandle', {
 			key_type: 'address',
 			value_type: 'u64',
 			key: '0xa11ce',
 		})).resolves.toMatchObject({
 			body: '7',
 		})
-		await expect(getTableItem('0xhandle', {
+		await expect(getTableItem(binding, '0xhandle', {
 			key_type: '0x1::string::String',
 			value_type: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
 			key: 'alice',
@@ -186,9 +224,10 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 				},
 			}))
 
-		await expect(getAccountModules('0xa11ce')).rejects.toThrow('invalid account module response envelope')
-		await expect(getAccountModule('0xa11ce', 'payments')).rejects.toThrow('invalid account module response envelope')
+		await expect(getAccountModules(binding, '0xa11ce')).rejects.toThrow('invalid account module response envelope')
+		await expect(getAccountModule(binding, '0xa11ce', 'payments')).rejects.toThrow('invalid account module response envelope')
 		await expect(getTableItem(
+			binding,
 			'0xhandle',
 			JSON.parse('{"key_type":"address","value_type":"u64"}')
 		)).rejects.toThrow('invalid table item request response envelope')

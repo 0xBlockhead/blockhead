@@ -10,9 +10,12 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import bindings from '$/sources/AvalancheInfo/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const binding = bindings[Source.AvalancheInfo_JsonRpc][0]
 
 const assertAvalanchePChain = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug['avalanche-p-chain'].slug)
@@ -43,15 +46,15 @@ export default {
 							getNodeId,
 							getNodeVersion,
 						} = await import('$/sources/AvalancheInfo/JsonRpc/queries.ts')
-						const node = await getNodeId()
+						const node = await getNodeId(binding)
 						if (node.nodeID !== nodeId)
 							throw new Error(`AvalancheInfo_JsonRpc: connected node ${node.nodeID} does not match ${nodeId}`)
 						const [
 							network,
 							version,
 						] = await Promise.all([
-							getNetworkName(),
-							getNodeVersion(),
+							getNetworkName(binding),
+							getNodeVersion(binding),
 						])
 						if (network.networkName !== 'mainnet')
 							throw new Error(`AvalancheInfo_JsonRpc: unexpected network ${network.networkName}`)
@@ -109,7 +112,7 @@ export default {
 							getPeers,
 							getUptime,
 						} = await import('$/sources/AvalancheInfo/JsonRpc/queries.ts')
-						const node = await getNodeId()
+						const node = await getNodeId(binding)
 						if (node.nodeID !== $nodeState.nodeId)
 							throw new Error(`AvalancheInfo_JsonRpc: connected node ${node.nodeID} does not match ${$nodeState.nodeId}`)
 						const [
@@ -117,9 +120,9 @@ export default {
 							version,
 							peers,
 						] = await Promise.all([
-							getNetworkName(),
-							getNodeVersion(),
-							getPeers(),
+							getNetworkName(binding),
+							getNodeVersion(binding),
+							getPeers(binding),
 						])
 						assertAvalanchePChain({
 							slug: networkBySlug['avalanche-p-chain'].slug,
@@ -127,7 +130,7 @@ export default {
 						let uptimePercent: number | undefined
 						try {
 							uptimePercent = percentFromWire(
-								(await getUptime()).weightedAveragePercentage,
+								(await getUptime(binding)).weightedAveragePercentage,
 								'uptime'
 							)
 						} catch {

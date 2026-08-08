@@ -22,10 +22,7 @@ import {
 	type AptosTableItemRequest,
 	type AptosTransaction,
 } from '$/sources/AptosFullnode/Rest/types.ts'
-import bindings from '$/sources/AptosFullnode/bindings.ts'
-import { Source } from '$/sources/Source.ts'
-
-const binding = bindings[Source.AptosFullnode_Rest][0]
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 const requiredHeader = (
 	response: Response,
@@ -63,6 +60,7 @@ const assertEnvelope = <_Value>(
 }
 
 const request = async (
+	binding: SourceBinding,
 	path = '',
 	init?: RequestInit
 ) => {
@@ -110,8 +108,8 @@ const ledgerVersionQuery = (ledgerVersion?: bigint) => (
 	ledgerVersion == null ? '' : `?ledger_version=${ledgerVersion.toString()}`
 )
 
-export const getLedgerInfo = async () => {
-	const response = await request()
+export const getLedgerInfo = async (binding: SourceBinding) => {
+	const response = await request(binding)
 	return {
 		body: assertEnvelope('ledger info', aptosLedgerInfoWire, response.body) as AptosLedgerInfo,
 		metadata: response.metadata,
@@ -119,6 +117,7 @@ export const getLedgerInfo = async () => {
 }
 
 export const getAccount = async (
+	binding: SourceBinding,
 	address: string,
 	ledgerVersion?: bigint
 ) => {
@@ -126,15 +125,17 @@ export const getAccount = async (
 		throw new Error('AptosFullnode_Rest: account address must not be empty')
 
 	const response = await request(
+		binding,
 		`accounts/${encodeURIComponent(address)}${ledgerVersionQuery(ledgerVersion)}`
 	)
 	return {
-		body: assertEnvelope('account', aptosAccountWire, response.body) as AptosAccount,
+		body: assertEnvelope('account', aptosAccountWire, response.body),
 		metadata: response.metadata,
 	}
 }
 
 export const getAccountResources = async (
+	binding: SourceBinding,
 	address: string,
 	ledgerVersion?: bigint,
 	start?: string,
@@ -156,6 +157,7 @@ export const getAccountResources = async (
 		parameters.set('limit', limit.toString())
 
 	const response = await request(
+		binding,
 		`accounts/${encodeURIComponent(address)}/resources${parameters.size === 0 ? '' : `?${parameters.toString()}`}`
 	)
 	if (!Array.isArray(response.body))
@@ -172,6 +174,7 @@ export const getAccountResources = async (
 }
 
 export const getAccountModules = async (
+	binding: SourceBinding,
 	address: string,
 	ledgerVersion?: bigint
 ) => {
@@ -179,6 +182,7 @@ export const getAccountModules = async (
 		throw new Error('AptosFullnode_Rest: account address must not be empty')
 
 	const response = await request(
+		binding,
 		`accounts/${encodeURIComponent(address)}/modules${ledgerVersionQuery(ledgerVersion)}`
 	)
 	if (!Array.isArray(response.body))
@@ -193,6 +197,7 @@ export const getAccountModules = async (
 }
 
 export const getAccountModule = async (
+	binding: SourceBinding,
 	address: string,
 	moduleName: string,
 	ledgerVersion?: bigint
@@ -203,6 +208,7 @@ export const getAccountModule = async (
 		throw new Error('AptosFullnode_Rest: module name must not be empty')
 
 	const response = await request(
+		binding,
 		`accounts/${encodeURIComponent(address)}/module/${encodeURIComponent(moduleName)}${ledgerVersionQuery(ledgerVersion)}`
 	)
 	return {
@@ -212,10 +218,11 @@ export const getAccountModule = async (
 }
 
 export const getBlockByHeight = async (
+	binding: SourceBinding,
 	height: bigint,
 	withTransactions = true
 ) => {
-	const response = await request(`blocks/by_height/${height.toString()}?with_transactions=${String(withTransactions)}`)
+	const response = await request(binding, `blocks/by_height/${height.toString()}?with_transactions=${String(withTransactions)}`)
 	return {
 		body: assertEnvelope('block', aptosBlockWire, response.body) as AptosBlock,
 		metadata: response.metadata,
@@ -223,10 +230,11 @@ export const getBlockByHeight = async (
 }
 
 export const getBlockByVersion = async (
+	binding: SourceBinding,
 	version: bigint,
 	withTransactions = true
 ) => {
-	const response = await request(`blocks/by_version/${version.toString()}?with_transactions=${String(withTransactions)}`)
+	const response = await request(binding, `blocks/by_version/${version.toString()}?with_transactions=${String(withTransactions)}`)
 	return {
 		body: assertEnvelope('block', aptosBlockWire, response.body) as AptosBlock,
 		metadata: response.metadata,
@@ -234,6 +242,7 @@ export const getBlockByVersion = async (
 }
 
 export const getEventsByEventHandle = async (
+	binding: SourceBinding,
 	address: string,
 	eventHandle: string,
 	fieldName: string,
@@ -247,6 +256,7 @@ export const getEventsByEventHandle = async (
 		parameters.set('limit', String(limit))
 
 	const response = await request(
+		binding,
 		`accounts/${encodeURIComponent(address)}/events/${encodeURIComponent(eventHandle)}/${encodeURIComponent(fieldName)}${parameters.size === 0 ? '' : `?${parameters.toString()}`}`
 	)
 	if (!Array.isArray(response.body))
@@ -261,6 +271,7 @@ export const getEventsByEventHandle = async (
 }
 
 export const getTableItem = async <_Value>(
+	binding: SourceBinding,
 	tableHandle: string,
 	requestBody: AptosTableItemRequest,
 	ledgerVersion?: bigint
@@ -270,6 +281,7 @@ export const getTableItem = async <_Value>(
 
 	const body = assertEnvelope('table item request', aptosTableItemRequestWire, requestBody)
 	const response = await request(
+		binding,
 		`tables/${encodeURIComponent(tableHandle)}/item${ledgerVersionQuery(ledgerVersion)}`,
 		{
 			method: 'POST',
@@ -286,9 +298,10 @@ export const getTableItem = async <_Value>(
 }
 
 export const getTransactionByHash = async (
+	binding: SourceBinding,
 	hash: string
 ) => {
-	const response = await request(`transactions/by_hash/${encodeURIComponent(hash)}`)
+	const response = await request(binding, `transactions/by_hash/${encodeURIComponent(hash)}`)
 	return {
 		body: assertEnvelope('transaction', aptosTransactionWire, response.body) as AptosTransaction,
 		metadata: response.metadata,
@@ -296,9 +309,10 @@ export const getTransactionByHash = async (
 }
 
 export const getTransactionByVersion = async (
+	binding: SourceBinding,
 	version: bigint
 ) => {
-	const response = await request(`transactions/by_version/${version.toString()}`)
+	const response = await request(binding, `transactions/by_version/${version.toString()}`)
 	return {
 		body: assertEnvelope('transaction', aptosTransactionWire, response.body) as AptosTransaction,
 		metadata: response.metadata,

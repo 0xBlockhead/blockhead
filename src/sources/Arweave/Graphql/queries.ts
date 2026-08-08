@@ -3,21 +3,19 @@
  * @see https://arweave.net/graphql
  * @see schema.graphql `block` / `blocks` / `transactions`
  */
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	ArweaveGraphqlBlockFragment,
 	ArweaveGraphqlTransactionFragment,
 	type ArweaveGraphqlBlock,
 	type ArweaveGraphqlTransaction,
 } from '$/sources/Arweave/Graphql/types.ts'
-import bindings from '$/sources/Arweave/bindings.ts'
-import { Source } from '$/sources/Source.ts'
 
 import {
 	graphql,
 	queryArweave,
 } from './client.ts'
 
-const binding = bindings[Source.Arweave_Graphql][0]
 
 const ArweaveTransaction = graphql(`
 	query ArweaveTransaction($id: ID!) {
@@ -170,7 +168,7 @@ const assertTransaction = (
 		assertConfirmedBlock(transaction.block)
 }
 
-const getTransactionPage = async ({
+const getTransactionPage = async (binding: SourceBinding, {
 	first,
 	after,
 	ids,
@@ -270,7 +268,7 @@ const getTransactionPage = async ({
 	return transactions
 }
 
-const getBlockPage = async ({
+const getBlockPage = async (binding: SourceBinding, {
 	first,
 	after,
 	ids,
@@ -360,6 +358,7 @@ const getBlockPage = async ({
 }
 
 export const getTransactionById = async (
+	binding: SourceBinding,
 	transactionId: string
 ) => {
 	assertAddress(transactionId, 'transaction ID')
@@ -377,6 +376,7 @@ export const getTransactionById = async (
 }
 
 export const getTransactionsPage = (
+	binding: SourceBinding,
 	{
 		first,
 		after,
@@ -385,13 +385,14 @@ export const getTransactionsPage = (
 		after?: string
 	}
 ) => (
-	getTransactionPage({
+	getTransactionPage(binding, {
 		first,
 		after,
 	})
 )
 
 export const getBlockTransactionsPage = (
+	binding: SourceBinding,
 	{
 		height,
 		first,
@@ -402,7 +403,7 @@ export const getBlockTransactionsPage = (
 		after?: string
 	}
 ) => (
-	getTransactionPage({
+	getTransactionPage(binding, {
 		first,
 		after,
 		blockHeight: height,
@@ -410,6 +411,7 @@ export const getBlockTransactionsPage = (
 )
 
 export const getAccountTransactionsPage = (
+	binding: SourceBinding,
 	{
 		address,
 		role,
@@ -422,7 +424,7 @@ export const getAccountTransactionsPage = (
 		after?: string
 	}
 ) => (
-	getTransactionPage({
+	getTransactionPage(binding, {
 		first,
 		after,
 		...(role === 'owner' ?
@@ -442,6 +444,7 @@ export const getAccountTransactionsPage = (
 
 /** Tag-filtered transaction discovery (`TagFilter` leftovers on GraphQL `transactions`). */
 export const getTaggedTransactionsPage = (
+	binding: SourceBinding,
 	{
 		tags,
 		first,
@@ -458,7 +461,7 @@ export const getTaggedTransactionsPage = (
 	if (tags.length === 0)
 		throw new Error('Arweave_Graphql: tag filter required')
 
-	return getTransactionPage({
+	return getTransactionPage(binding, {
 		first,
 		after,
 		tags,
@@ -466,6 +469,7 @@ export const getTaggedTransactionsPage = (
 }
 
 export const getBlockById = async (
+	binding: SourceBinding,
 	blockId: string
 ) => {
 	assertBlockHash(blockId, 'block ID')
@@ -483,23 +487,23 @@ export const getBlockById = async (
 }
 
 export const getBlockByHeight = async (
+	binding: SourceBinding,
 	height: number
 ) => {
 	if (!Number.isSafeInteger(height) || height < 0)
 		throw new Error('Arweave_Graphql: invalid block height')
 
-	const blocks = await getBlockPage({
+	const blocks = await getBlockPage(binding, {
 		first: 1,
 		height: {
 			min: height,
 			max: height,
 		},
 	})
-	const block = blocks.edges[0]?.node
-	if (block == null)
+	if (blocks.edges.length === 0)
 		throw new Error('Arweave_Graphql: block was not found')
 
-	const confirmed = assertConfirmedBlock(block)
+	const confirmed = assertConfirmedBlock(blocks.edges[0].node)
 	if (confirmed.height !== height)
 		throw new Error('Arweave_Graphql: returned a foreign block height')
 
@@ -507,6 +511,7 @@ export const getBlockByHeight = async (
 }
 
 export const getBlocksPage = (
+	binding: SourceBinding,
 	{
 		first,
 		after,
@@ -515,7 +520,7 @@ export const getBlocksPage = (
 		after?: string
 	}
 ) => (
-	getBlockPage({
+	getBlockPage(binding, {
 		first,
 		after,
 	})

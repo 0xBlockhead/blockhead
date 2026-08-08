@@ -6,6 +6,7 @@
 
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import { alliumFetch } from '$/sources/Allium/Rest/client.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	alliumLatestWalletBalancesEnvelopeWire,
 	alliumTokenLookupErrorWire,
@@ -55,12 +56,14 @@ const assertAlliumLatestWalletBalancesBusinessRules = (
 }
 
 export const getLatestWalletBalances = async ({
+	binding,
 	publicEnv,
 	address,
 	apiChain,
 	withLiquidityInfo = false,
 	cursor,
 }: {
+	binding: SourceBinding
 	publicEnv: SourcePublicEnv
 	address: string
 	apiChain: string
@@ -84,6 +87,7 @@ export const getLatestWalletBalances = async ({
 			'wallet balances',
 			alliumLatestWalletBalancesEnvelopeWire,
 			await alliumFetch<unknown>(
+				binding,
 				publicEnv,
 				`/api/v1/developer/wallet/balances?${search.toString()}`,
 				{
@@ -101,10 +105,12 @@ export const getLatestWalletBalances = async ({
 }
 
 export const getTokensByChainAddress = async ({
+	binding,
 	publicEnv,
 	apiChain,
 	tokenAddress,
 }: {
+	binding: SourceBinding
 	publicEnv: SourcePublicEnv
 	apiChain: string
 	tokenAddress: string
@@ -119,6 +125,7 @@ export const getTokensByChainAddress = async ({
 		'tokens-by-address',
 		unknownArrayWire,
 		await alliumFetch<unknown>(
+			binding,
 			publicEnv,
 			'/api/v1/developer/tokens/chain-address',
 			{

@@ -8,6 +8,7 @@ import {
 
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import bindings from '$/sources/Arweave/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getNetworkInfo = vi.hoisted(() => vi.fn())
@@ -295,13 +296,21 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 				},
 			},
 		])
-		expect(networkResolver.projections.$$blocks.resolveCount?.(
+		expect(networkResolver.projections.$$blocks.resolveCount(
 			snapshot,
 			arweaveNetwork,
 			context
 		)).toBe(551_512)
-		expect(getBlockByHeight).toHaveBeenNthCalledWith(1, 551_511)
-		expect(getBlockByHeight).toHaveBeenNthCalledWith(2, 551_510)
+		expect(getBlockByHeight).toHaveBeenNthCalledWith(
+			1,
+			bindings[Source.Arweave_Rest][0],
+			551_511
+		)
+		expect(getBlockByHeight).toHaveBeenNthCalledWith(
+			2,
+			bindings[Source.Arweave_Rest][0],
+			551_510
+		)
 		expect(networkResolver.projections).not.toHaveProperty('$$resources')
 		expect(networkResolver.projections).not.toHaveProperty('$$transactions')
 	})
@@ -336,7 +345,7 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 			context
 		)).toHaveLength(1)
 		expect(directoryNetworkResolver.projections.Arweave.$$timestamps(snapshot)).toHaveLength(1)
-		expect(directoryNetworkResolver.projections.Arweave.$$blocks.resolveCount?.(
+		expect(directoryNetworkResolver.projections.Arweave.$$blocks.resolveCount(
 			snapshot,
 			network,
 			context
@@ -415,10 +424,13 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 				},
 			},
 		])
-		expect(getBlockByHeight).toHaveBeenCalledWith(422_250)
+		expect(getBlockByHeight).toHaveBeenCalledWith(
+			bindings[Source.Arweave_Rest][0],
+			422_250
+		)
 	})
 
-	it('fail-closes foreign networks and missing browse origins', async () => {
+	it('fail-closes foreign networks', async () => {
 		await expect(blockResolver.resolve.NetworkHeight.resolve(
 			{
 				$network: {
@@ -430,26 +442,6 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 			},
 			context
 		)).rejects.toThrow('unsupported network')
-
-		fetchBrowseResult.mockResolvedValueOnce({
-			transactionId,
-			contentPath: '',
-			gatewayOrigin: undefined,
-			gatewayUrl: 'https://arweave.net/' + transactionId,
-			displayType: 'text',
-			contentLength: 4,
-		})
-		await expect(resourceTimestampResolver.resolve.ResourceTimestampMsSource.resolve(
-			{
-				$resource: {
-					transactionId,
-					contentPath: '',
-				},
-				timestampMs: Date.now(),
-				source: Source.Arweave_Rest,
-			},
-			context
-		)).rejects.toThrow('missing gateway origin')
 	})
 
 	it('projects resource identity and loads gateway observations', async () => {

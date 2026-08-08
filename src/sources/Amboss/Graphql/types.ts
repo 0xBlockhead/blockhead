@@ -139,17 +139,16 @@ export type AmbossGetPopularNodesData = typeof ambossGetPopularNodesDataWire.inf
 export const parseAmbossChannelFundingPoint = (
 	chanPoint: string
 ) => {
-	const [fundingTransactionId, outputIndex] = chanPoint.split(':')
+	const separatorIndex = chanPoint.indexOf(':')
+	const outputIndex = chanPoint.slice(separatorIndex + 1)
 	if (
-		fundingTransactionId == null
-		|| fundingTransactionId === ''
-		|| outputIndex == null
+		separatorIndex <= 0
 		|| !/^(0|[1-9][0-9]*)$/.test(outputIndex)
 	)
 		throw new Error('Amboss_Graphql: invalid channel funding point')
 
 	return {
-		fundingTransactionId,
+		fundingTransactionId: chanPoint.slice(0, separatorIndex),
 		fundingOutputIndex: Number(outputIndex),
 	}
 }

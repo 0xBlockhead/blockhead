@@ -1,16 +1,14 @@
 import { throwHttpError } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import bindings from '$/sources/Allium/bindings.ts'
-import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 
-const binding = bindings[Source.Allium_Rest][0]
-
 export const alliumFetch = async <_Response>(
+	binding: SourceBinding,
 	publicEnv: SourcePublicEnv,
 	pathAndQuery: string,
 	init?: RequestInit

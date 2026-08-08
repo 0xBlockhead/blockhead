@@ -106,6 +106,22 @@ const ethereumMarketSnapshot = {
 } as const
 
 describe('Aave V3 GraphQL binding', () => {
+	it('passes only the caller-provided noncanonical binding to GraphQL', async () => {
+		const modifiedBinding = {
+			...binding,
+			endpoints: binding.endpoints.map((endpoint) => ({
+				...endpoint,
+				locator: 'https://noncanonical.example/aave',
+			})),
+		}
+		graphql.mockResolvedValueOnce({ markets: [] })
+
+		await listMarkets({ binding: modifiedBinding, chainIds: [1] })
+
+		expect(graphql).toHaveBeenCalledOnce()
+		expect(graphql.mock.calls[0][0].binding).toBe(modifiedBinding)
+	})
+
 	it('targets the official AaveKit GraphQL endpoint', () => {
 		expect(binding.target).toEqual({
 			kind: SourceTargetKind.Global,
@@ -145,6 +161,7 @@ describe('Aave market list/detail operations', () => {
 			],
 		})
 		await expect(listMarkets({
+			binding,
 			chainIds: [
 				1,
 			],
@@ -174,6 +191,7 @@ describe('Aave market list/detail operations', () => {
 		})
 
 		await expect(listMarkets({
+			binding,
 			chainIds: [
 				1,
 			],
@@ -184,6 +202,7 @@ describe('Aave market list/detail operations', () => {
 		graphql.mockResolvedValueOnce(undefined)
 
 		await expect(listMarkets({
+			binding,
 			chainIds: [
 				1,
 			],
@@ -194,6 +213,7 @@ describe('Aave market list/detail operations', () => {
 		graphql.mockResolvedValueOnce({})
 
 		await expect(listMarkets({
+			binding,
 			chainIds: [
 				1,
 			],
@@ -214,6 +234,7 @@ describe('Aave market list/detail operations', () => {
 		})
 
 		await expect(listMarkets({
+			binding,
 			chainIds: [
 				1,
 			],
@@ -234,6 +255,7 @@ describe('Aave market list/detail operations', () => {
 		})
 
 		await expect(listMarkets({
+			binding,
 			chainIds: [
 				1,
 			],
@@ -242,6 +264,7 @@ describe('Aave market list/detail operations', () => {
 
 	it('rejects an empty chainIds list before transport', async () => {
 		await expect(listMarkets({
+			binding,
 			chainIds: [],
 		})).rejects.toThrow(`${Source.Aave_Rest}: chainIds required`)
 		expect(graphql).not.toHaveBeenCalled()
@@ -249,6 +272,7 @@ describe('Aave market list/detail operations', () => {
 
 	it('rejects an unsupported chain id before transport', async () => {
 		await expect(listMarkets({
+			binding,
 			chainIds: [
 				999999,
 			],
@@ -261,6 +285,7 @@ describe('Aave market list/detail operations', () => {
 			market: ethereumMarketSnapshot,
 		})
 		await expect(getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
 		})).resolves.toMatchObject({
@@ -306,6 +331,7 @@ describe('Aave market list/detail operations', () => {
 		})
 
 		await getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: ethereumMarket.address,
 		})
@@ -330,6 +356,7 @@ describe('Aave market list/detail operations', () => {
 		})
 
 		await expect(getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: ethereumMarket.address,
 		})).resolves.toMatchObject({
@@ -356,6 +383,7 @@ describe('Aave market list/detail operations', () => {
 		})
 
 		await expect(getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: ethereumMarket.address,
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid market response envelope`)
@@ -378,6 +406,7 @@ describe('Aave market list/detail operations', () => {
 		})
 
 		await expect(getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: ethereumMarket.address,
 		})).rejects.toThrow(`${Source.Aave_Rest}: reserve chain mismatch`)
@@ -387,6 +416,7 @@ describe('Aave market list/detail operations', () => {
 		graphql.mockResolvedValueOnce(undefined)
 
 		await expect(getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
 		})).rejects.toThrow(`${Source.Aave_Rest}: market response missing data`)
@@ -396,6 +426,7 @@ describe('Aave market list/detail operations', () => {
 		graphql.mockResolvedValueOnce({})
 
 		await expect(getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
 		})).rejects.toThrow(`${Source.Aave_Rest}: market response missing market`)
@@ -410,6 +441,7 @@ describe('Aave market list/detail operations', () => {
 		})
 
 		await expect(getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid market response envelope`)
@@ -420,6 +452,7 @@ describe('Aave market list/detail operations', () => {
 			market: null,
 		})
 		await expect(getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
 		})).rejects.toThrow(`${Source.Aave_Rest}: market not found`)
@@ -427,6 +460,7 @@ describe('Aave market list/detail operations', () => {
 
 	it('rejects an invalid pool address before transport', async () => {
 		await expect(getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: 'not-an-address',
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid pool address`)
@@ -502,6 +536,7 @@ describe('Aave account position operations', () => {
 			})
 
 		await expect(getAccountPositions({
+			binding,
 			chainId: 1,
 			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
 		})).resolves.toEqual([
@@ -543,6 +578,7 @@ describe('Aave account position operations', () => {
 		})
 
 		await expect(getAccountPositions({
+			binding,
 			chainId: 1,
 			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
 		})).resolves.toEqual([])
@@ -562,6 +598,7 @@ describe('Aave account position operations', () => {
 			})
 
 		await expect(getAccountPositions({
+			binding,
 			chainId: 1,
 			account: '0x0000000000000000000000000000000000000001',
 		})).resolves.toEqual([])
@@ -569,6 +606,7 @@ describe('Aave account position operations', () => {
 
 	it('rejects unsupported chains before transport', async () => {
 		await expect(getAccountPositions({
+			binding,
 			chainId: 11155111,
 			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
 		})).rejects.toThrow(`${Source.Aave_Rest}: unsupported chain id 11155111`)
@@ -577,6 +615,7 @@ describe('Aave account position operations', () => {
 
 	it('rejects an invalid account before transport', async () => {
 		await expect(getAccountPositions({
+			binding,
 			chainId: 1,
 			account: 'not-an-address',
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid account not-an-address`)
@@ -595,6 +634,7 @@ describe('Aave account position operations', () => {
 			})
 
 		await expect(getAccountPositions({
+			binding,
 			chainId: 1,
 			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid account positions response envelope`)
@@ -638,6 +678,7 @@ describe('Aave account position operations', () => {
 			})
 
 		await expect(getAccountPositions({
+			binding,
 			chainId: 1,
 			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid account positions response envelope`)
@@ -680,6 +721,7 @@ describe('Aave account position operations', () => {
 			})
 
 		await expect(getAccountPositions({
+			binding,
 			chainId: 1,
 			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid account positions response envelope`)
@@ -820,6 +862,7 @@ describe('Aave account position operations', () => {
 		})
 
 		await expect(getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: ethereumMarket.address,
 		})).resolves.toMatchObject({
@@ -910,6 +953,7 @@ describe('Aave account position operations', () => {
 		})
 
 		await expect(getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: ethereumMarket.address,
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid eMode decimal value`)
@@ -938,6 +982,7 @@ describe('Aave account position operations', () => {
 		})
 
 		await expect(getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: ethereumMarket.address,
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid reserve decimal value`)
@@ -961,6 +1006,7 @@ describe('Aave account position operations', () => {
 		})
 
 		await expect(getMarket({
+			binding,
 			chainId: 1,
 			poolAddress: ethereumMarket.address,
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid reserve decimal value`)
@@ -1006,6 +1052,7 @@ describe('Aave account position operations', () => {
 			})
 
 		await expect(getAccountPositions({
+			binding,
 			chainId: 1,
 			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
 		})).resolves.toEqual([

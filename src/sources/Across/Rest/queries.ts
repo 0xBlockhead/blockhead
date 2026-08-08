@@ -1,6 +1,6 @@
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
-import bindings from '$/sources/Across/bindings.ts'
 import {
 	acrossChainByChainId,
 	acrossDepositStatusByStatus,
@@ -18,13 +18,10 @@ import {
 	acrossDepositsEnvelope,
 	acrossSuggestedFeesEnvelope,
 } from '$/sources/Across/Rest/types.ts'
-import { Source } from '$/sources/Source.ts'
-
-const binding = bindings[Source.Across_Rest][0]
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const decimalStringPattern = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/
 
-const fetchAcrossJson = <_Json>(path: string) => (
+const fetchAcrossJson = <_Json>(binding: SourceBinding, path: string) => (
 	sourceGetJson<_Json>(binding, httpUrl(binding, path))
 )
 
@@ -146,7 +143,7 @@ const assertDepositResponse = (
 	return response
 }
 
-export const getDeposit = async (query: (
+export const getDeposit = async (binding: SourceBinding, query: (
 	| {
 		depositId: string
 		depositTxnRef?: never
@@ -171,7 +168,7 @@ export const getDeposit = async (query: (
 
 	const response = assertDepositResponse(
 		await fetchAcrossJson<AcrossDepositResponse>(
-			`/api/deposit?${new URLSearchParams({
+			binding, `/api/deposit?${new URLSearchParams({
 				...(query.depositTxnRef == null ? {
 					originChainId: String(query.originChainId),
 					depositId: query.depositId,
@@ -199,16 +196,18 @@ export const getDeposit = async (query: (
 }
 
 export const getDepositStatus = async ({
+	binding,
 	originChainId,
 	depositId,
 }: {
+	binding: SourceBinding
 	originChainId: number
 	depositId: string
 }) => {
 	assertChainId(originChainId)
 	assertIntegerString(depositId, 'deposit id')
 	const status = await fetchAcrossJson<AcrossDepositStatusResponse>(
-		`/api/deposit/status?${new URLSearchParams({
+		binding, `/api/deposit/status?${new URLSearchParams({
 			originChainId: String(originChainId),
 			depositId,
 		})}`
@@ -232,10 +231,12 @@ export const getDepositStatus = async ({
 }
 
 export const getDeposits = async ({
+	binding,
 	depositor,
 	limit = 50,
 	skip = 0,
 }: {
+	binding: SourceBinding
 	depositor: string
 	limit?: number
 	skip?: number
@@ -246,7 +247,7 @@ export const getDeposits = async ({
 	if (!Number.isSafeInteger(skip) || skip < 0 || skip > 100_000)
 		throw new Error(`Across_Rest: invalid page offset ${skip}`)
 	const deposits = await fetchAcrossJson<AcrossDeposit[]>(
-		`/api/deposits?${new URLSearchParams({
+		binding, `/api/deposits?${new URLSearchParams({
 			depositor,
 			limit: String(limit),
 			skip: String(skip),
@@ -264,12 +265,14 @@ export const getDeposits = async ({
 }
 
 export const getSuggestedFees = async ({
+	binding,
 	inputToken,
 	outputToken,
 	originChainId,
 	destinationChainId,
 	amount,
 }: {
+	binding: SourceBinding
 	inputToken: string
 	outputToken: string
 	originChainId: number
@@ -282,7 +285,7 @@ export const getSuggestedFees = async ({
 	assertChainId(destinationChainId)
 	assertIntegerString(amount, 'quote amount')
 	const fees = await fetchAcrossJson<AcrossSuggestedFees>(
-		`/api/suggested-fees?${new URLSearchParams({
+		binding, `/api/suggested-fees?${new URLSearchParams({
 			inputToken,
 			outputToken,
 			originChainId: String(originChainId),

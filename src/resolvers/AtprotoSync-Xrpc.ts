@@ -8,12 +8,13 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/AtprotoSync/bindings.ts'
 import {
-	defaultAtprotoSyncRelayOrigin,
 	getLatestCommit,
 	getRepoStatus,
 } from '$/sources/AtprotoSync/Xrpc/queries.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceDelivery } from '$/sources/SourceBinding.ts'
+
+const defaultAtprotoSyncRelayOrigin = 'https://bsky.network'
 
 const remoteQueryBinding = bindings[Source.AtprotoSync_Xrpc].find((binding) => (
 	binding.delivery === SourceDelivery.RemoteQuery

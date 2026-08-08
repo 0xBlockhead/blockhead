@@ -49,12 +49,29 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 		jsonRpc2Mock.mockReset()
 	})
 
+	it('passes only the caller-provided noncanonical binding to JSON-RPC', async () => {
+		const modifiedBinding = {
+			...binding,
+			endpoints: binding.endpoints.map((endpoint) => ({
+				...endpoint,
+				locator: 'https://noncanonical.example/avail',
+			})),
+		}
+		jsonRpc2Mock.mockResolvedValueOnce(hash)
+
+		await getBlockHash(modifiedBinding, {})
+
+		expect(jsonRpc2Mock).toHaveBeenCalledOnce()
+		expect(jsonRpc2Mock.mock.calls[0][0]).toBe(modifiedBinding)
+		expect(jsonRpc2Mock.mock.calls[0][0].endpoints[0].locator).toBe('https://noncanonical.example/avail')
+	})
+
 	it('pins mainnet identity to chain name and genesis hash', async () => {
 		jsonRpc2Mock
 			.mockResolvedValueOnce('Avail DA Mainnet')
 			.mockResolvedValueOnce(genesisHash)
 
-		await expect(getNetworkIdentity(publicEnv)).resolves.toEqual({
+		await expect(getNetworkIdentity(binding, publicEnv)).resolves.toEqual({
 			chainName: 'Avail DA Mainnet',
 			genesisHash,
 		})
@@ -76,14 +93,14 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 		jsonRpc2Mock
 			.mockResolvedValueOnce(hash)
 			.mockResolvedValueOnce(headerWire)
-		await expect(getFinalizedHead(publicEnv)).resolves.toMatchObject({
+		await expect(getFinalizedHead(binding, publicEnv)).resolves.toMatchObject({
 			hash,
 			blockNumber: 4_294_967_295n,
 			finalized: true,
 		})
 
 		jsonRpc2Mock.mockResolvedValueOnce(headerWire)
-		await expect(getHeader(
+		await expect(getHeader(binding,
 			publicEnv,
 			hash
 		)).resolves.toMatchObject({
@@ -94,7 +111,7 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 
 	it('keeps block numbers bounded and lossless at the JSON-RPC boundary', async () => {
 		jsonRpc2Mock.mockResolvedValue(hash)
-		await expect(getBlockHash(
+		await expect(getBlockHash(binding,
 			publicEnv,
 			4_294_967_295n
 		)).resolves.toBe(hash)
@@ -105,7 +122,7 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 		)
 
 		jsonRpc2Mock.mockClear()
-		await expect(getBlockHash(
+		await expect(getBlockHash(binding,
 			publicEnv,
 			4_294_967_296n
 		)).rejects.toThrow('unsigned 32-bit integer')
@@ -114,7 +131,7 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 
 	it('uses the official empty-parameter form for the latest block hash', async () => {
 		jsonRpc2Mock.mockResolvedValue(hash)
-		await expect(getBlockHash(publicEnv)).resolves.toBe(hash)
+		await expect(getBlockHash(binding, publicEnv)).resolves.toBe(hash)
 		expect(jsonRpc2Mock).toHaveBeenCalledWith(
 			resolvedBinding,
 			'chain_getBlockHash',
@@ -126,20 +143,20 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 		jsonRpc2Mock
 			.mockResolvedValueOnce('Avail Turing Testnet')
 			.mockResolvedValueOnce(genesisHash)
-		await expect(getNetworkIdentity(publicEnv)).rejects.toThrow('foreign chain name')
+		await expect(getNetworkIdentity(binding, publicEnv)).rejects.toThrow('foreign chain name')
 
 		jsonRpc2Mock.mockResolvedValueOnce({
 			...headerWire,
 			parentHash: 'short',
 		})
-		await expect(getHeader(publicEnv)).rejects.toThrow('invalid parent block hash')
+		await expect(getHeader(binding, publicEnv)).rejects.toThrow('invalid parent block hash')
 	})
 
 	it.each([
 		'short',
 		`0x${'g'.repeat(64)}`,
 	])('rejects malformed block hash %s before transport', async (blockHash) => {
-		await expect(getHeader(
+		await expect(getHeader(binding,
 			publicEnv,
 			blockHash
 		)).rejects.toThrow('invalid block hash')
@@ -157,7 +174,7 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 					],
 				},
 			})
-		await expect(getBlock(
+		await expect(getBlock(binding,
 			publicEnv,
 			hash
 		)).resolves.toMatchObject({
@@ -171,7 +188,7 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 			isSyncing: false,
 			shouldHavePeers: true,
 		})
-		await expect(getSystemHealth(publicEnv)).resolves.toEqual({
+		await expect(getSystemHealth(binding, publicEnv)).resolves.toEqual({
 			peers: 12,
 			isSyncing: false,
 			shouldHavePeers: true,
@@ -182,7 +199,7 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 			currentBlock: 10,
 			highestBlock: 12,
 		})
-		await expect(getSystemSyncState(publicEnv)).resolves.toEqual({
+		await expect(getSystemSyncState(binding, publicEnv)).resolves.toEqual({
 			startingBlock: 0n,
 			currentBlock: 10n,
 			highestBlock: 12n,
@@ -193,7 +210,7 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 		jsonRpc2Mock
 			.mockResolvedValueOnce(hash)
 			.mockResolvedValueOnce(headerWire)
-		await expect(getHeaderByBlockNumber(
+		await expect(getHeaderByBlockNumber(binding,
 			publicEnv,
 			4_294_967_295n
 		)).resolves.toMatchObject({
@@ -208,7 +225,7 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 			isSyncing: false,
 			shouldHavePeers: true,
 		})
-		await expect(getSystemHealth(publicEnv)).rejects.toThrow(
+		await expect(getSystemHealth(binding, publicEnv)).rejects.toThrow(
 			'Avail: invalid system_health response envelope'
 		)
 
@@ -218,7 +235,7 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 				extrinsics: ['not-hex'],
 			},
 		})
-		await expect(getBlock(
+		await expect(getBlock(binding,
 			publicEnv,
 			hash
 		)).rejects.toThrow('invalid extrinsic encoding')
@@ -229,7 +246,7 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 			stateRoot: hash,
 			// missing extrinsicsRoot + digest
 		})
-		await expect(getHeader(publicEnv)).rejects.toThrow(
+		await expect(getHeader(binding, publicEnv)).rejects.toThrow(
 			'Avail: invalid chain_getHeader response envelope'
 		)
 	})

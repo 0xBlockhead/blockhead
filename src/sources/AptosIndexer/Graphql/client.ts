@@ -1,20 +1,20 @@
 import { print } from 'graphql'
 import type { TadaDocumentNode } from 'gql.tada'
 
-import bindings from '$/sources/AptosIndexer/bindings.ts'
-import { Source } from '$/sources/Source.ts'
 import { graphql as queryGraphql } from '$/sources/_shared/wire/Graphql/client.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export const executeAptosIndexer = async <
 	_Result extends object,
 	_Variables extends JsonValue & object,
 >(
+	binding: SourceBinding,
 	document: TadaDocumentNode<_Result, _Variables>,
 	variables: _Variables
 ) => {
 	const data = await queryGraphql<_Result>({
-		binding: bindings[Source.AptosIndexer_Graphql][0],
+		binding,
 		query: print(document),
 		variables,
 	})

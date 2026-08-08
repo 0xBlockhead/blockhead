@@ -1,5 +1,6 @@
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
-import bindings from '$/sources/Axelarscan/bindings.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	axelarscanGmpPageLimits,
 	axelarscanGmpSimplifiedStatusBySimplifiedStatus,
@@ -15,11 +16,9 @@ import {
 	axelarscanErrorEnvelope,
 	axelarscanGmpResponseEnvelope,
 } from '$/sources/Axelarscan/Rest/types.ts'
-import { Source } from '$/sources/Source.ts'
 
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const bytes32Pattern = /^0x[0-9a-fA-F]{64}$/
-
 const omitUndefinedJson = (
 	value: unknown
 ): unknown => {
@@ -28,7 +27,7 @@ const omitUndefinedJson = (
 	if (value != null && typeof value === 'object')
 		return Object.fromEntries(
 			Object.entries(value)
-				.filter(([, entry]) => entry !== undefined)
+				.filter(([, entry]: [string, unknown]) => entry !== undefined)
 				.map(([key, entry]) => [
 					key,
 					omitUndefinedJson(entry),
@@ -264,7 +263,7 @@ const assertGmpResponse = (
 ) => {
 	if (response == null)
 		throw new Error('Axelarscan_Rest: searchGMP missing response')
-	if ('error' in response && response.error) {
+	if ('error' in response) {
 		assertEnvelope(axelarscanErrorEnvelope, response, 'searchGMP error')
 		throw new Error(
 			`Axelarscan_Rest: ${
@@ -314,7 +313,7 @@ export type AxelarscanGmpSearchQuery =
  * Successful empty `data: []` is valid; missing/malformed envelopes throw.
  * Account lists use `senderAddress` (alias of Axelarscan `sourceAddress` / `sender`).
  */
-export const getGmpMessages = (query: AxelarscanGmpSearchQuery) => {
+export const getGmpMessages = (binding: SourceBinding, query: AxelarscanGmpSearchQuery) => {
 	const from = query.from ?? 0
 	const size = (
 		query.transactionHash == null ?
@@ -338,7 +337,7 @@ export const getGmpMessages = (query: AxelarscanGmpSearchQuery) => {
 		assertOpaqueIdentity(query.transactionHash, 'transaction hash')
 
 	return getJson<AxelarscanGmpResponse | AxelarscanErrorEnvelope>(
-		bindings[Source.Axelarscan_Rest][0],
+		binding,
 		`/gmp/searchGMP?${new URLSearchParams(
 			query.transactionHash == null ?
 				{
