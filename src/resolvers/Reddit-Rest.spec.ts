@@ -9,6 +9,7 @@ import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import {
+	getInfo,
 	listSubredditLinks,
 } from '$/sources/Reddit/Rest/queries.ts'
 import redditRest from '$/resolvers/Reddit-Rest.ts'
@@ -221,5 +222,99 @@ describe('Reddit_Rest hub tip observations', () => {
 			reachable: true,
 			listingWindowKind: 'popular:hot',
 		})
+	})
+})
+
+describe('Reddit_Rest detail subject identity', () => {
+	it('materializes a link from an exact info response and canonicalizes the permalink', async () => {
+		vi.mocked(getInfo).mockResolvedValueOnce({
+			kind: 'Listing',
+			data: {
+				children: [{
+					kind: 't3',
+					data: {
+						name: 't3_abc',
+						title: 'A title',
+						selftext: '',
+						url: 'https://example.com',
+						subreddit: 'ethereum',
+						permalink: '/r/ethereum/comments/abc/title/',
+						score: 5,
+						num_comments: 2,
+						created_utc: 1_700_000,
+					},
+				}],
+			},
+		})
+
+		const resolver = redditRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.RedditLink
+			&& 'Fullname' in candidate.resolve
+		))
+		if (resolver == null)
+			throw new Error('Reddit_Rest spec missing link detail resolver')
+
+		const link = await resolver.resolve.Fullname.resolve({
+			fullname: 't3_abc',
+		}, resolverContext)
+
+		expect(resolver.projections.title(link)).toBe('A title')
+		expect(resolver.projections.permalink(link)).toBe('https://www.reddit.com/r/ethereum/comments/abc/title/')
+		expect(resolver.projections.$$comments.resolveCount(link)).toBe(2)
+	})
+
+	it('rejects empty or mismatched info children for link and comment fullnames', async () => {
+		const linkResolver = redditRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.RedditLink
+			&& 'Fullname' in candidate.resolve
+		))
+		const commentResolver = redditRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.RedditComment
+			&& !('$$replies' in candidate.projections)
+		))
+		if (linkResolver == null || commentResolver == null)
+			throw new Error('Reddit_Rest spec missing link or comment detail resolvers')
+
+		vi.mocked(getInfo).mockResolvedValueOnce({
+			kind: 'Listing',
+			data: { children: [] },
+		})
+		await expect(linkResolver.resolve.Fullname.resolve({
+			fullname: 't3_abc',
+		}, resolverContext)).rejects.toThrow('Reddit_Rest: link not found')
+
+		vi.mocked(getInfo).mockResolvedValueOnce({
+			kind: 'Listing',
+			data: {
+				children: [{
+					kind: 't3',
+					data: { name: 't3_other' },
+				}],
+			},
+		})
+		await expect(linkResolver.resolve.Fullname.resolve({
+			fullname: 't3_abc',
+		}, resolverContext)).rejects.toThrow('Reddit_Rest: link not found')
+
+		vi.mocked(getInfo).mockResolvedValueOnce({
+			kind: 'Listing',
+			data: { children: [] },
+		})
+		await expect(commentResolver.resolve.Fullname.resolve({
+			fullname: 't1_abc',
+		}, resolverContext)).rejects.toThrow('Reddit_Rest: comment not found')
+
+		vi.mocked(getInfo).mockResolvedValueOnce({
+			kind: 'Listing',
+			data: {
+				children: [{
+					kind: 't1',
+					data: { name: 't1_other' },
+				}],
+			},
+		})
+		await expect(commentResolver.resolve.Fullname.resolve({
+			fullname: 't1_abc',
+		}, resolverContext)).rejects.toThrow('Reddit_Rest: comment not found')
 	})
 })

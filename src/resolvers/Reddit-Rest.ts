@@ -234,8 +234,9 @@ export default {
 						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
 						const redditThing = (await getInfo(context.publicEnv, fullname))
 							.data
-							.children[0]
-						if (redditThing.kind !== 't3') throw new Error('Reddit_Rest: link not found')
+							.children.find((child) => child.data.name === fullname)
+						if (redditThing == null || redditThing.kind !== 't3')
+							throw new Error('Reddit_Rest: link not found')
 						const sub = optionalNonemptyString(redditThing.data.subreddit)
 						return {
 							title: optionalNonemptyString(redditThing.data.title),
@@ -253,7 +254,7 @@ export default {
 										[EntityMetaKey.Selector]: { name: sub.toLowerCase() },
 									}
 							),
-							permalink: optionalNonemptyString(redditThing.data.permalink),
+							permalink: canonicalRedditPermalink(redditThing.data.permalink),
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
 									$link: { fullname },
@@ -300,8 +301,9 @@ export default {
 						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
 						const redditThing = (await getInfo(context.publicEnv, fullname))
 							.data
-							.children[0]
-						if (redditThing.kind !== 't1') throw new Error('Reddit_Rest: comment not found')
+							.children.find((child) => child.data.name === fullname)
+						if (redditThing == null || redditThing.kind !== 't1')
+							throw new Error('Reddit_Rest: comment not found')
 						const linkId = optionalNonemptyString(redditThing.data.link_id)
 						const parentId = optionalNonemptyString(redditThing.data.parent_id)
 						return {
@@ -377,8 +379,9 @@ export default {
 						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
 						const redditThing = (await getInfo(context.publicEnv, $link.fullname))
 							.data
-							.children[0]
-						if (redditThing.kind !== 't3') throw new Error('Reddit_Rest: link not found')
+							.children.find((child) => child.data.name === $link.fullname)
+						if (redditThing == null || redditThing.kind !== 't3')
+							throw new Error('Reddit_Rest: link not found')
 						return {
 							...(redditThing.data.score != null && { score: redditThing.data.score }),
 							...(redditThing.data.num_comments != null && {
@@ -401,8 +404,9 @@ export default {
 						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
 						const redditThing = (await getInfo(context.publicEnv, $comment.fullname))
 							.data
-							.children[0]
-						if (redditThing.kind !== 't1') throw new Error('Reddit_Rest: comment not found')
+							.children.find((child) => child.data.name === $comment.fullname)
+						if (redditThing == null || redditThing.kind !== 't1')
+							throw new Error('Reddit_Rest: comment not found')
 						return {
 							...(redditThing.data.score != null && { score: redditThing.data.score }),
 						}
@@ -636,8 +640,8 @@ export default {
 						const limit = resolverContextRowLimit(context)
 						const redditThing = (await getInfo(publicEnv, fullname))
 							.data
-							.children[0]
-						if (redditThing.kind !== 't1')
+							.children.find((child) => child.data.name === fullname)
+						if (redditThing == null || redditThing.kind !== 't1')
 							throw new Error('Reddit_Rest: comment not found for replies')
 						const linkId = optionalNonemptyString(redditThing.data.link_id)
 						if (linkId == null)
