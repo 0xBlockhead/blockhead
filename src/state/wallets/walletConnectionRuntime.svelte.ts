@@ -915,15 +915,18 @@ export const mountWalletConnectionRuntime = (
 
 	walletRuntime = createWalletRuntimeState(context)
 	const mountedWalletRuntime = walletRuntime
+	const walletConnectProjectId = env.PUBLIC_WALLETCONNECT2_PROJECT_ID?.trim()
+	const walletConnectRelayUrl = env.PUBLIC_WALLETCONNECT2_RELAY_URL?.trim()
+
 	if (
 		browser
-		&& env.PUBLIC_WALLETCONNECT2_PROJECT_ID.trim()
+		&& walletConnectProjectId
 	)
 		void import('@walletconnect/sign-client')
 			.then(({ default: SignClient }) => SignClient.init({
-				projectId: env.PUBLIC_WALLETCONNECT2_PROJECT_ID.trim(),
-				...(env.PUBLIC_WALLETCONNECT2_RELAY_URL.trim() && {
-					relayUrl: env.PUBLIC_WALLETCONNECT2_RELAY_URL.trim(),
+				projectId: walletConnectProjectId,
+				...(walletConnectRelayUrl && {
+					relayUrl: walletConnectRelayUrl,
 				}),
 				metadata: {
 					name: 'Blockhead',
