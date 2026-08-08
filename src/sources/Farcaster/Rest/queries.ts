@@ -3,6 +3,9 @@
  * @see https://docs.neynar.com/farcaster/reference/farcaster/api
  */
 
+import {
+	type as arktype,
+} from 'arktype'
 import { farcasterGet } from '$/sources/Farcaster/Rest/client.ts'
 import { farcasterRestUserThreadCastsLimit } from '$/sources/Farcaster/Rest/constants.ts'
 import type {
@@ -17,6 +20,69 @@ import type {
 	FarcasterUserThreadCastsResponse,
 } from '$/sources/Farcaster/Rest/types.ts'
 
+const assertEnvelope = (
+	label: string,
+	wire: { assert: (value: unknown) => unknown },
+	response: unknown
+) => {
+	try {
+		wire.assert(response)
+	} catch {
+		throw new Error(`Farcaster_Rest: invalid ${label} response envelope`)
+	}
+}
+
+const farcasterChannelsResponseWire = arktype({
+	'result?': {
+		'channels?': 'object[]',
+	},
+})
+
+const farcasterChannelResponseWire = arktype({
+	'result?': {
+		'channel?': 'object',
+	},
+	'next?': {
+		'cursor?': 'string',
+	},
+})
+
+const farcasterPrimaryAddressResponseWire = arktype({
+	'result?': {
+		'address?': 'object',
+	},
+})
+
+const farcasterUserThreadCastsResponseWire = arktype({
+	'result?': {
+		'casts?': 'object[]',
+	},
+})
+
+const farcasterChannelMembersResponseWire = arktype({
+	'result?': {
+		'members?': 'object[]',
+	},
+	'next?': {
+		'cursor?': 'string',
+	},
+})
+
+const farcasterUserFollowingChannelsResponseWire = arktype({
+	'result?': {
+		'channels?': 'object[]',
+	},
+	'next?': {
+		'cursor?': 'string',
+	},
+})
+
+const farcasterChannelFollowStatusResponseWire = arktype({
+	'result?': {
+		'following?': 'boolean',
+	},
+})
+
 const normalizeFarcasterChannel = ({
 	url,
 	...channel
@@ -29,9 +95,9 @@ const normalizeFarcasterChannel = ({
  * `GET /v2/all-channels`
  */
 export const getAllChannels = async () => {
-	const channels = ((
-		await farcasterGet<FarcasterChannelsResponse>('client-api', '/v2/all-channels')
-	).result?.channels ?? []).map(normalizeFarcasterChannel)
+	const response = await farcasterGet<FarcasterChannelsResponse>('client-api', '/v2/all-channels')
+	assertEnvelope('channels', farcasterChannelsResponseWire, response)
+	const channels = (response.result?.channels ?? []).map(normalizeFarcasterChannel)
 	if (new Set(channels.map(({ id }) => id)).size !== channels.length)
 		throw new Error('Farcaster_Rest: duplicate channel id')
 
@@ -42,9 +108,9 @@ export const getAllChannels = async () => {
  * `GET /v1/channel`
  */
 export const getChannel = async (channelId: string) => {
-	const channel = (
-		await farcasterGet<FarcasterChannelResponse>('client-api', '/v1/channel', { channelId })
-	).result?.channel
+	const response = await farcasterGet<FarcasterChannelResponse>('client-api', '/v1/channel', { channelId })
+	assertEnvelope('channel', farcasterChannelResponseWire, response)
+	const channel = response.result?.channel
 	return channel == null ? undefined : normalizeFarcasterChannel(channel)
 }
 
@@ -58,16 +124,16 @@ export const getPrimaryAddress = async ({
 	fid: number
 	protocol?: 'ethereum' | 'solana'
 }) => {
-	const address = (
-		await farcasterGet<FarcasterPrimaryAddressResponse>(
-			'client-api',
-			'/fc/primary-address',
-			{
-				fid,
-				protocol,
-			}
-		)
-	).result?.address
+	const response = await farcasterGet<FarcasterPrimaryAddressResponse>(
+		'client-api',
+		'/fc/primary-address',
+		{
+			fid,
+			protocol,
+		}
+	)
+	assertEnvelope('primary-address', farcasterPrimaryAddressResponseWire, response)
+	const address = response.result?.address
 	if (
 		address != null
 		&& (
@@ -100,7 +166,10 @@ export const getUserThreadCasts = ({
 			castHashPrefix,
 			limit,
 		}
-	)
+	).then((response) => {
+		assertEnvelope('user-thread-casts', farcasterUserThreadCastsResponseWire, response)
+		return response
+	})
 )
 
 /**
@@ -127,7 +196,7 @@ export const getChannelFollowersPage = ({
  * `GET /v1/user-following-channels`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-channels-a-user-is-following
  */
-export const getUserFollowingChannelsPage = ({
+export const getUserFollowingChannelsPage = async ({
 	fid,
 	cursor,
 	limit,
@@ -135,12 +204,14 @@ export const getUserFollowingChannelsPage = ({
 	fid: number
 	cursor?: string
 	limit?: number
-}) => (
-	farcasterGet<FarcasterPage<{ channels: FarcasterFollowedChannelWire[] }>>(
+}) => {
+	const page = await farcasterGet<FarcasterPage<{ channels: FarcasterFollowedChannelWire[] }>>(
 		'client-api',
 		'/v1/user-following-channels',
 		{ fid, cursor, limit }
-	).then((page) => ({
+	)
+	assertEnvelope('user-following-channels', farcasterUserFollowingChannelsResponseWire, page)
+	return {
 		...(page.result != null && {
 			result: {
 				channels: page.result.channels.map(({ followedAt, ...channel }) => ({
@@ -150,8 +221,8 @@ export const getUserFollowingChannelsPage = ({
 			},
 		}),
 		...(page.next != null && { next: page.next }),
-	}))
-)
+	}
+}
 
 const countRowsAcrossFarcasterPages = async <_Result, _Row>({
 	loadPage,
@@ -204,7 +275,10 @@ export const getUserChannelFollowStatus = ({
 		'client-api',
 		'/v1/user-channel',
 		{ fid, channelId }
-	).then((response) => response.result)
+	).then((response) => {
+		assertEnvelope('channel-follow-status', farcasterChannelFollowStatusResponseWire, response)
+		return response.result
+	})
 )
 
 /**
@@ -226,7 +300,10 @@ export const getChannelMembersPage = ({
 		'client-api',
 		'/fc/channel-members',
 		{ channelId, fid, cursor, limit }
-	)
+	).then((response) => {
+		assertEnvelope('channel-members', farcasterChannelMembersResponseWire, response)
+		return response
+	})
 )
 
 /** Point membership lookup using the endpoint's optional `fid` filter. */
