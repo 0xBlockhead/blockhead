@@ -28,7 +28,7 @@ type OsmosisPoolId = EntitySelector<typeof schema, EntityType.OsmosisPool>
 type OsmosisPositionId = EntitySelector<typeof schema, EntityType.OsmosisPosition>
 type CosmosAccountId = EntitySelector<typeof schema, EntityType.CosmosAccount>
 
-const osmosisBinding = bindings[Source.Osmosis_LCD_Rest][0]
+const osmosisBinding = bindings[Source.Osmosis_LCD_Rest].at(0)!
 const osmosisLcdCaip2NetworkKey = osmosisBinding.target.key
 
 const osmosisCaip2 = {

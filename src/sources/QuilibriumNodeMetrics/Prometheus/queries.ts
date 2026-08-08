@@ -3,7 +3,7 @@ import bindings from '$/sources/QuilibriumNodeMetrics/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 export const getMetrics = () => (
-	getPrometheusText(bindings[Source.QuilibriumNodeMetrics_Prometheus][0])
+	getPrometheusText(bindings[Source.QuilibriumNodeMetrics_Prometheus].at(0)!)
 )
 
 const prometheusSampleLine = /^(?<name>[a-zA-Z_:][a-zA-Z0-9_:]*)(?:\{[^}]*\})?\s+(?<value>[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)(?:\s+\d+)?\s*$/

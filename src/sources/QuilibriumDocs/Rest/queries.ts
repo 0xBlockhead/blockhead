@@ -21,13 +21,9 @@ import bindings from '$/sources/QuilibriumDocs/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
 
-const docsBinding = () => {
-	const binding = bindings[Source.QuilibriumDocs_Rest][0]
-	if (binding == null)
-		throw new Error('QuilibriumDocs_Rest: missing docs binding')
-
-	return binding
-}
+const docsBinding = () => (
+	bindings[Source.QuilibriumDocs_Rest].at(0)!
+)
 
 const assertQuilibriumNetwork = (networkSlug: string) => {
 	if (networkSlug !== 'quilibrium')

@@ -12,7 +12,7 @@ import {
 } from '$/sources/Ogmios/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.Ogmios_JsonRpc][0]
+const binding = bindings[Source.Ogmios_JsonRpc].at(0)!
 
 const assertEnvelope = <_Value>(
 	label: string,

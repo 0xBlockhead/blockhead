@@ -23,7 +23,7 @@ import type {
 import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
 
-const binding = bindings[Source.Osmosis_LCD_Rest][0]
+const binding = bindings[Source.Osmosis_LCD_Rest].at(0)!
 
 const osmosisPoolWire = arktype({
 	'@type?': 'string',

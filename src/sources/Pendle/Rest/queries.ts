@@ -25,7 +25,7 @@ import { Source } from '$/sources/Source.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
-const binding = bindings[Source.Pendle_Rest][0]
+const binding = bindings[Source.Pendle_Rest].at(0)!
 
 const assertChainId = (chainId: number) => {
 	if (!Number.isSafeInteger(chainId) || chainId < 1)

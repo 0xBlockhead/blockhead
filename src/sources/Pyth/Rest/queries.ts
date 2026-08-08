@@ -13,8 +13,8 @@ import {
 } from '$/sources/Pyth/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const hermesBinding = bindings[Source.PythHermes_Rest][0]
-const benchmarksBinding = bindings[Source.PythBenchmarks_Rest][0]
+const hermesBinding = bindings[Source.PythHermes_Rest].at(0)!
+const benchmarksBinding = bindings[Source.PythBenchmarks_Rest].at(0)!
 
 const omitUndefinedJson = (
 	value: unknown

@@ -34,7 +34,7 @@ import {
 } from '$/sources/_runtime/http.ts'
 import { type as arktype } from 'arktype'
 
-const binding = bindings[Source.OpenSea_Rest][0]
+const binding = bindings[Source.OpenSea_Rest].at(0)!
 
 /** OpenAPI Trait — transport-typed; no enrolled EvmNft trait bag. */
 const openSeaTraitWire = arktype({
