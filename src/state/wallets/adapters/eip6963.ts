@@ -171,7 +171,10 @@ export const createEip6963Adapter = (): WalletAdapter => {
 	const providerByWalletId = new SvelteMap<string, Eip1193Provider>()
 	const eipStateByWalletId = new SvelteMap<string, EipConnectionState>()
 	const providerByUuid = new Map<string, Eip6963ProviderDetail>()
+	const LEGACY_INJECTED_FALLBACK_POLL_MS = 100
+	const LEGACY_INJECTED_FALLBACK_MAX_MS = 10_000
 	let legacyInjectedFallbackTimeout: number | null = null
+	let legacyInjectedFallbackElapsedMs = 0
 
 	const updateProvider = (
 		detail: Eip6963ProviderDetail,
@@ -208,24 +211,45 @@ export const createEip6963Adapter = (): WalletAdapter => {
 			)
 			window.dispatchEvent(new Event(EIP6963_REQUEST_PROVIDER_EVENT))
 
-			legacyInjectedFallbackTimeout = window.setTimeout(() => {
+			const pollLegacyInjectedFallback = () => {
 				legacyInjectedFallbackTimeout = null
 
-				if (providerByUuid.size > 0 || window.ethereum == null) return
-
-				updateProvider(
-					{
-						info: {
-							uuid: LEGACY_INJECTED_PROVIDER_RDNS,
-							name: 'Injected provider',
-							icon: '',
-							rdns: LEGACY_INJECTED_PROVIDER_RDNS,
-						},
-						provider: window.ethereum,
-					},
-					updateCandidates
+				if (
+					providerByUuid.size > 0
+					&& !providerByUuid.has(LEGACY_INJECTED_PROVIDER_RDNS)
 				)
-			}, 0)
+					return
+
+				if (window.ethereum != null) {
+					updateProvider(
+						{
+							info: {
+								uuid: LEGACY_INJECTED_PROVIDER_RDNS,
+								name: 'Injected provider',
+								icon: '',
+								rdns: LEGACY_INJECTED_PROVIDER_RDNS,
+							},
+							provider: window.ethereum,
+						},
+						updateCandidates
+					)
+					return
+				}
+
+				legacyInjectedFallbackElapsedMs += LEGACY_INJECTED_FALLBACK_POLL_MS
+				if (legacyInjectedFallbackElapsedMs >= LEGACY_INJECTED_FALLBACK_MAX_MS)
+					return
+
+				legacyInjectedFallbackTimeout = window.setTimeout(
+					pollLegacyInjectedFallback,
+					LEGACY_INJECTED_FALLBACK_POLL_MS
+				)
+			}
+
+			legacyInjectedFallbackTimeout = window.setTimeout(
+				pollLegacyInjectedFallback,
+				LEGACY_INJECTED_FALLBACK_POLL_MS
+			)
 
 			updateCandidates([...providerByUuid.values()].map(eipCandidateFromDetail))
 
@@ -239,6 +263,7 @@ export const createEip6963Adapter = (): WalletAdapter => {
 					window.clearTimeout(legacyInjectedFallbackTimeout)
 
 				legacyInjectedFallbackTimeout = null
+				legacyInjectedFallbackElapsedMs = 0
 				providerByUuid.clear()
 				providerByWalletId.clear()
 			}

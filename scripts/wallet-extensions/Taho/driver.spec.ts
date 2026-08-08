@@ -21,6 +21,16 @@ test('maps headed Connect chrome to Taho popup.html URLs', () => {
 	assert.equal(isTahoPopupPageUrl(`chrome-extension://other/popup.html`, extensionId), false)
 })
 
+test('exposes the Taho WalletDriver contract', () => {
+	assert.equal(tahoDriver.kind, 'taho')
+	assert.equal(typeof tahoDriver.open, 'function')
+	assert.equal(typeof tahoDriver.onboard, 'function')
+	assert.equal(typeof tahoDriver.waitForRequest, 'function')
+	assert.equal(typeof tahoDriver.approveConnection, 'function')
+	assert.equal(typeof tahoDriver.rejectConnection, 'function')
+	assert.equal(typeof tahoDriver.selectAccount, 'function')
+})
+
 test('keeps the Taho account lifecycle shard free of invented blank-add-wallet / recover passes', () => {
 	assert.equal(tahoDriver.kind, 'taho')
 	assert.deepEqual(tahoWalletMatrixScenarios('0.66.0').map(({

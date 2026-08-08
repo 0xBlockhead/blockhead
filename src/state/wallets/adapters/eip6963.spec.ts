@@ -137,6 +137,29 @@ describe('EIP-6963 discovery identity', () => {
 		])
 		stop()
 	})
+
+	it('discovers a legacy injected provider that appears after the initial poll', async () => {
+		const { candidates, stop } = startDiscovery()
+		const provider = {
+			request: vi.fn(async () => []),
+		} as unknown as Eip1193Provider
+
+		await new Promise((resolve) => setTimeout(resolve, 250))
+		window.ethereum = provider
+		await expect.poll(
+			() => candidates.mock.lastCall?.[0],
+			{ timeout: 1000 },
+		).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					id: 'eip6963:legacy.injected.provider',
+					name: 'Injected provider',
+				}),
+			])
+		)
+
+		stop()
+	})
 })
 
 describe('EIP-6963 connection events', () => {

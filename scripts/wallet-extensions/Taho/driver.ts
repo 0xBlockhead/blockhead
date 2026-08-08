@@ -6,7 +6,10 @@ import type {
 	WalletMatrixObservation,
 	WalletMatrixScenario,
 } from '../WalletCompatibilityMatrix.ts'
-import type { LoadedWalletExtension } from '../WalletExtensionHarness.ts'
+import {
+	type LoadedWalletExtension,
+	type WalletDriver,
+} from '../WalletExtensionHarness.ts'
 
 
 // Types
@@ -43,7 +46,57 @@ export const tahoBlockedObservation = (
 
 export const tahoDriver = {
 	kind: 'taho',
-} as const
+	open: (context: BrowserContext, extension: LoadedWalletExtension) => (
+		openTaho(context, extension)
+	),
+	onboard: async (
+		context: BrowserContext,
+		extension: LoadedWalletExtension,
+		secret: string
+	) => {
+		const page = await openTaho(context, extension)
+		const accounts = await createTahoWallet(page, secret)
+
+		return accounts.page
+	},
+	waitForRequest: async (
+		context: BrowserContext,
+		extension: LoadedWalletExtension,
+		previousPages = new Set(context.pages())
+	) => {
+		const existing = context.pages().find((page) => (
+			!previousPages.has(page)
+			&& isTahoPopupPageUrl(page.url(), extension.id)
+		))
+		if (existing)
+			return existing
+
+		return context.waitForEvent('page', {
+			predicate: (page) => (
+				!previousPages.has(page)
+				&& isTahoPopupPageUrl(page.url(), extension.id)
+			),
+			timeout: 30_000,
+		})
+	},
+	approveConnection: async (page: Page) => {
+		await clickFirstVisible(page, [
+			/Connect/i,
+			/Approve/i,
+		])
+	},
+	rejectConnection: async (page: Page) => {
+		await clickFirstVisible(page, [
+			/Reject/i,
+			/Deny/i,
+			/Cancel/i,
+			/Close/i,
+		])
+	},
+	selectAccount: (page: Page, account: string) => (
+		selectTahoAccount(page, account)
+	),
+} satisfies WalletDriver<'taho'>
 
 /** Taho Connect / sign chrome surfaces as popup.html (distinct from tab.html onboarding). */
 export const isTahoPopupPageUrl = (
@@ -149,8 +202,10 @@ export const openTaho = async (
 	})
 )
 
-export const createTahoWallet = async (page: Page): Promise<TahoAccounts> => {
-	const password = randomBytes(24).toString('base64url')
+export const createTahoWallet = async (
+	page: Page,
+	password = randomBytes(24).toString('base64url')
+): Promise<TahoAccounts> => {
 
 	await clickFirstVisible(page, [
 		/Create (?:a )?new wallet/i,
