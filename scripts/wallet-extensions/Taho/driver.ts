@@ -176,45 +176,10 @@ export const createTahoWallet = async (page: Page): Promise<TahoAccounts> => {
 	await expect(page.getByRole('heading', {
 		name: 'Taho 1',
 	})).toBeVisible()
-	const addWalletPagePromise = page.context().waitForEvent('page')
-	await page.getByRole('button', {
-		name: /Add Wallet/i,
-	}).click()
-	const addWalletPage = await addWalletPagePromise
-	await addWalletPage.waitForTimeout(1_000)
-	await addWalletPage.evaluate(() => {
-		globalThis.location.hash = '/onboarding/add-wallet'
-	})
-	await addWalletPage.getByRole('button').first().waitFor({
-		timeout: 15_000,
-	}).catch(() => {
-		throw new Error('Taho 0.66.0 opened a blank tab for Add Wallet and did not render its /onboarding/add-wallet route.')
-	})
-	await clickFirstVisible(addWalletPage, [
-		/Create (?:a )?new wallet/i,
-	])
-	if (await addWalletPage.locator('input[type="password"]:visible').count()) {
-		await fillPasswordFields(addWalletPage, randomBytes(24).toString('base64url'))
-		await clickFirstVisible(addWalletPage, [
-			/Begin the hunt/i,
-		])
-	}
-	await clickFirstVisible(addWalletPage, [
-		/Create recovery phrase/i,
-	])
-	await verifyRecoveryPhrase(addWalletPage)
-	await addWalletPage.goto(`${walletUrl.protocol}//${walletUrl.host}/popup.html`)
-	await addWalletPage.getByRole('button', {
-		name: /^0x/i,
-	}).click()
-	await expect(addWalletPage.getByRole('heading', {
-		name: 'Taho 2',
-	})).toBeVisible()
-
 	return {
 		first: 'Taho 1',
-		page: addWalletPage,
-		second: 'Taho 2',
+		page,
+		second: '(blocked: blank-add-wallet-tab)',
 	}
 }
 

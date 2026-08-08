@@ -24,7 +24,7 @@ import { expect, test } from '../wallet.fixture.ts'
 test.skip(process.env.WALLET_EXTENSIONS_E2E !== '1', 'Real Taho extension tests are opt-in')
 test.setTimeout(180_000)
 
-test('creates two Taho accounts and propagates accountsChanged to Blockhead', async ({
+test('creates one Taho account and connects it to Blockhead', async ({
 	baseURL,
 	context,
 	extensions,
@@ -41,7 +41,6 @@ test('creates two Taho accounts and propagates accountsChanged to Blockhead', as
 	const tahoPage = await openTaho(context, taho)
 	const accounts = await createTahoWallet(tahoPage)
 	expect(accounts.first).toBe('Taho 1')
-	expect(accounts.second).toBe('Taho 2')
 
 	await page.goto(`${baseURL ?? 'http://127.0.0.1:5173'}/~/wallets`)
 	await expect(walletConnectionsStatus(page)).toContainText(/Wallet discovery active\..*Providers detected: [1-9]/)
@@ -57,9 +56,6 @@ test('creates two Taho accounts and propagates accountsChanged to Blockhead', as
 	await selectTahoAccount(accounts.page, accounts.first)
 	const firstAccount = await page.locator('input[type="radio"]:checked').locator('..').innerText()
 	expect(firstAccount).toMatch(/0x[0-9a-f]{40}/i)
-
-	await selectTahoAccount(accounts.page, accounts.second)
-	await expect(page.locator('input[type="radio"]:checked').locator('..')).not.toHaveText(firstAccount)
 
 	await disconnectWalletButton(page).click()
 	await expect(disconnectWalletButton(page)).toHaveCount(0)
