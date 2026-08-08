@@ -40,20 +40,18 @@
 </script>
 
 
-{#key [params.network, params.transactionId].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			{@const DetailView = data.entityType === EntityType.EvmTransaction ? EvmTransactionView : data.entityType === EntityType.SolanaTransaction ? SolanaTransactionView : data.entityType === EntityType.CardanoTransaction ? CardanoTransactionView : data.entityType === EntityType.UtxoTransaction ? UtxoTransactionView : ArweaveTransactionView}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		{@const DetailView = data.entityType === EntityType.EvmTransaction ? EvmTransactionView : data.entityType === EntityType.SolanaTransaction ? SolanaTransactionView : data.entityType === EntityType.CardanoTransaction ? CardanoTransactionView : data.entityType === EntityType.UtxoTransaction ? UtxoTransactionView : ArweaveTransactionView}
 
-			<DetailView
-				selection={select(data.entityType, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+		<DetailView
+			selection={select(data.entityType, data.selector)}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

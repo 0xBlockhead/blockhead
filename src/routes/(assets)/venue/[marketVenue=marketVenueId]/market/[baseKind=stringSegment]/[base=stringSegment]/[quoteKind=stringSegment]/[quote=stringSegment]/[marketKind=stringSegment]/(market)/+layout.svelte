@@ -40,18 +40,16 @@
 </script>
 
 
-{#key [params.marketVenue, params.baseKind, params.base, params.quoteKind, params.quote, params.marketKind].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<MarketView
-				selection={select(EntityType.Market, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<MarketView
+			selection={select(EntityType.Market, data.selector)}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

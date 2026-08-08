@@ -35,18 +35,16 @@
 </script>
 
 
-{#key params.url}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<UrlView
-				selection={select(EntityType.Url, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<UrlView
+			selection={select(EntityType.Url, data.selector)}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

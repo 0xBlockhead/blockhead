@@ -38,24 +38,22 @@
 </script>
 
 
-{#key [params.network, params.transactionId, params.indexInTransaction].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<EvmLogView
-				selection={
-					select(EntityType.EvmLog, data.selector, {
-						sources: [
-							Source.Blockscout_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<EvmLogView
+			selection={
+				select(EntityType.EvmLog, data.selector, {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

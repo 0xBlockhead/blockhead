@@ -37,25 +37,23 @@
 </script>
 
 
-{#key [params.network, params.minerAddress].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<FilecoinMinerView
-				selection={
-					select(EntityType.FilecoinMiner, data.selector, {
-						sources: [
-							Source.Lotus_JsonRpc,
-							Source.Filfox_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<FilecoinMinerView
+			selection={
+				select(EntityType.FilecoinMiner, data.selector, {
+					sources: [
+						Source.Lotus_JsonRpc,
+						Source.Filfox_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

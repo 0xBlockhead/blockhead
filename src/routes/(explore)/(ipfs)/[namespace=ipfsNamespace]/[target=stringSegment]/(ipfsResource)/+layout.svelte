@@ -37,24 +37,22 @@
 </script>
 
 
-{#key [params.namespace, params.target].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<IpfsResourceView
-				selection={
-					select(EntityType.IpfsResource, data.selector, {
-						sources: [
-							Source.Ipfs_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<IpfsResourceView
+			selection={
+				select(EntityType.IpfsResource, data.selector, {
+					sources: [
+						Source.Ipfs_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

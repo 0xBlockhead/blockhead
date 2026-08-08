@@ -36,25 +36,23 @@
 </script>
 
 
-{#key params.name}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<RedditSubredditView
-				selection={
-					select(EntityType.RedditSubreddit, data.selector, {
-						sources: [
-							Source.Reddit_PublicJson,
-							Source.Reddit_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<RedditSubredditView
+			selection={
+				select(EntityType.RedditSubreddit, data.selector, {
+					sources: [
+						Source.Reddit_PublicJson,
+						Source.Reddit_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

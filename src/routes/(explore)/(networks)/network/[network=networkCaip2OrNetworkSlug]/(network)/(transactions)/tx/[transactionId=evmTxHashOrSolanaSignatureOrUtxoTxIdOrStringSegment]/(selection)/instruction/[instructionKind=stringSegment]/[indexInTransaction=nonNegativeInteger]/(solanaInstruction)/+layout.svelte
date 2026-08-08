@@ -38,18 +38,16 @@
 </script>
 
 
-{#key [params.network, params.transactionId, params.instructionKind, params.indexInTransaction].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<SolanaInstructionView
-				selection={select(EntityType.SolanaInstruction, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<SolanaInstructionView
+			selection={select(EntityType.SolanaInstruction, data.selector)}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

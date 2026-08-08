@@ -36,25 +36,23 @@
 </script>
 
 
-{#key params.fullname}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<RedditCommentView
-				selection={
-					select(EntityType.RedditComment, data.selector, {
-						sources: [
-							Source.Reddit_PublicJson,
-							Source.Reddit_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<RedditCommentView
+			selection={
+				select(EntityType.RedditComment, data.selector, {
+					sources: [
+						Source.Reddit_PublicJson,
+						Source.Reddit_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

@@ -36,18 +36,16 @@
 </script>
 
 
-{#key [params.network, params.projectId].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<EvmRollupView
-				selection={select(EntityType.EvmRollup, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<EvmRollupView
+			selection={select(EntityType.EvmRollup, data.selector)}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

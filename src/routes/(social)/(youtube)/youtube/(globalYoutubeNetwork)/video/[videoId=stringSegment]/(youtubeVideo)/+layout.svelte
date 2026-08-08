@@ -36,26 +36,24 @@
 </script>
 
 
-{#key params.videoId}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<YoutubeVideoView
-				selection={
-					select(EntityType.YoutubeVideo, data.selector, {
-						sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-							Source.Constants_Internal,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<YoutubeVideoView
+			selection={
+				select(EntityType.YoutubeVideo, data.selector, {
+					sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+						Source.Constants_Internal,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

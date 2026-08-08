@@ -36,24 +36,22 @@
 </script>
 
 
-{#key params.instanceOrigin}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<ActivityPubInstanceView
-				selection={
-					select(EntityType.ActivityPubInstance, data.selector, {
-						sources: [
-							Source.Mastodon_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<ActivityPubInstanceView
+			selection={
+				select(EntityType.ActivityPubInstance, data.selector, {
+					sources: [
+						Source.Mastodon_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

@@ -37,27 +37,25 @@
 </script>
 
 
-{#key [params.priceFeedId, params.channel].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<PythPriceFeedView
-				selection={
-					select(EntityType.PythPriceFeed, data.selector, {
-						sources: [
-							Source.PythBenchmarks_Rest,
-							Source.PythHermes_Rest,
-							Source.Pyth_EvmContract,
-							Source.Pyth_SolanaProgram,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<PythPriceFeedView
+			selection={
+				select(EntityType.PythPriceFeed, data.selector, {
+					sources: [
+						Source.PythBenchmarks_Rest,
+						Source.PythHermes_Rest,
+						Source.Pyth_EvmContract,
+						Source.Pyth_SolanaProgram,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

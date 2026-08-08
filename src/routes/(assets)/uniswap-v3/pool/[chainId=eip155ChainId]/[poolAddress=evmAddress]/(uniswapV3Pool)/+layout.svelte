@@ -37,25 +37,23 @@
 </script>
 
 
-{#key [params.chainId, params.poolAddress].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<UniswapV3PoolView
-				selection={
-					select(EntityType.UniswapV3Pool, data.selector, {
-						sources: [
-							Source.Voltaire_JsonRpc,
-							Source.UniswapContracts_Evm,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<UniswapV3PoolView
+			selection={
+				select(EntityType.UniswapV3Pool, data.selector, {
+					sources: [
+						Source.Voltaire_JsonRpc,
+						Source.UniswapContracts_Evm,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

@@ -36,25 +36,23 @@
 </script>
 
 
-{#key params.feedUrl}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<RssFeedView
-				selection={
-					select(EntityType.RssFeed, data.selector, {
-						sources: [
-							Source.Rss_Rest,
-							Source.Rss2Json_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<RssFeedView
+			selection={
+				select(EntityType.RssFeed, data.selector, {
+					sources: [
+						Source.Rss_Rest,
+						Source.Rss2Json_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

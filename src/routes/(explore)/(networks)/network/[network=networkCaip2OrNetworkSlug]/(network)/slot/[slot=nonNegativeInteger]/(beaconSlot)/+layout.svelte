@@ -37,25 +37,23 @@
 </script>
 
 
-{#key [params.network, params.slot].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<BeaconSlotView
-				selection={
-					select(EntityType.BeaconSlot, data.selector, {
-						sources: [
-							Source.Beacon_Rest,
-							Source.BeaconchaIn_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<BeaconSlotView
+			selection={
+				select(EntityType.BeaconSlot, data.selector, {
+					sources: [
+						Source.Beacon_Rest,
+						Source.BeaconchaIn_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

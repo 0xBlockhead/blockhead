@@ -36,24 +36,22 @@
 </script>
 
 
-{#key params.spaceId}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<SnapshotSpaceView
-				selection={
-					select(EntityType.SnapshotSpace, data.selector, {
-						sources: [
-							Source.SnapshotHub_Graphql,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<SnapshotSpaceView
+			selection={
+				select(EntityType.SnapshotSpace, data.selector, {
+					sources: [
+						Source.SnapshotHub_Graphql,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

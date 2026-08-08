@@ -36,24 +36,22 @@
 </script>
 
 
-{#key params.governorId}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<TallyGovernorView
-				selection={
-					select(EntityType.TallyGovernor, data.selector, {
-						sources: [
-							Source.Tally,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<TallyGovernorView
+			selection={
+				select(EntityType.TallyGovernor, data.selector, {
+					sources: [
+						Source.Tally,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

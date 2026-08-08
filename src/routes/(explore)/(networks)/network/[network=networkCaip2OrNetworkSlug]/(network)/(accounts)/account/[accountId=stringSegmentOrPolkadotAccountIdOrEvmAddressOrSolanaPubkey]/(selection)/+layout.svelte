@@ -46,20 +46,18 @@
 </script>
 
 
-{#key [params.network, params.accountId].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			{@const DetailView = data.entityType === EntityType.AptosAccount ? AptosAccountView : data.entityType === EntityType.PolkadotAccount ? PolkadotAccountView : data.entityType === EntityType.CosmosAccount ? CosmosAccountView : data.entityType === EntityType.HederaAccount ? HederaAccountView : data.entityType === EntityType.CardanoAddress ? CardanoAddressView : data.entityType === EntityType.EvmNetworkAccount ? EvmNetworkAccountView : data.entityType === EntityType.SolanaAccount ? SolanaAccountView : data.entityType === EntityType.StarknetContract ? StarknetContractView : data.entityType === EntityType.TronAccount ? TronAccountView : data.entityType === EntityType.TonAccount ? TonAccountView : XrplAccountView}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		{@const DetailView = data.entityType === EntityType.AptosAccount ? AptosAccountView : data.entityType === EntityType.PolkadotAccount ? PolkadotAccountView : data.entityType === EntityType.CosmosAccount ? CosmosAccountView : data.entityType === EntityType.HederaAccount ? HederaAccountView : data.entityType === EntityType.CardanoAddress ? CardanoAddressView : data.entityType === EntityType.EvmNetworkAccount ? EvmNetworkAccountView : data.entityType === EntityType.SolanaAccount ? SolanaAccountView : data.entityType === EntityType.StarknetContract ? StarknetContractView : data.entityType === EntityType.TronAccount ? TronAccountView : data.entityType === EntityType.TonAccount ? TonAccountView : XrplAccountView}
 
-			<DetailView
-				selection={select(data.entityType, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+		<DetailView
+			selection={select(data.entityType, data.selector)}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

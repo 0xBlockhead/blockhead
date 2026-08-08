@@ -37,24 +37,22 @@
 </script>
 
 
-{#key [params.specificationRealmSlug, params.proposalKindSlug].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<SpecificationProposalKindView
-				selection={
-					select(EntityType.SpecificationProposalKind, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<SpecificationProposalKindView
+			selection={
+				select(EntityType.SpecificationProposalKind, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

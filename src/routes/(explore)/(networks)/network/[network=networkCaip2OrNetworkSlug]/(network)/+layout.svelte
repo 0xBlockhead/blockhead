@@ -36,24 +36,22 @@
 </script>
 
 
-{#key params.network}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<NetworkView
-				selection={
-					select(EntityType.Network, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<NetworkView
+			selection={
+				select(EntityType.Network, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

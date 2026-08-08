@@ -36,24 +36,22 @@
 </script>
 
 
-{#key params.hex}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<EvmErrorView
-				selection={
-					select(EntityType.EvmError, data.selector, {
-						sources: [
-							Source.Openchain_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<EvmErrorView
+			selection={
+				select(EntityType.EvmError, data.selector, {
+					sources: [
+						Source.Openchain_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

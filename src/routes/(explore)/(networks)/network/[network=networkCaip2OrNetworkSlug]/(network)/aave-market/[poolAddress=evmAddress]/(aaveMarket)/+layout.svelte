@@ -37,24 +37,22 @@
 </script>
 
 
-{#key [params.network, params.poolAddress].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<AaveMarketView
-				selection={
-					select(EntityType.AaveMarket, data.selector, {
-						sources: [
-							Source.Aave_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<AaveMarketView
+			selection={
+				select(EntityType.AaveMarket, data.selector, {
+					sources: [
+						Source.Aave_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

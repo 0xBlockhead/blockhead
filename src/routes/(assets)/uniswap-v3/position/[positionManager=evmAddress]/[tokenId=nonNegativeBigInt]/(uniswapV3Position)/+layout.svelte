@@ -37,25 +37,23 @@
 </script>
 
 
-{#key [params.positionManager, params.tokenId].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<UniswapV3PositionView
-				selection={
-					select(EntityType.UniswapV3Position, data.selector, {
-						sources: [
-							Source.Voltaire_JsonRpc,
-							Source.UniswapContracts_Evm,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<UniswapV3PositionView
+			selection={
+				select(EntityType.UniswapV3Position, data.selector, {
+					sources: [
+						Source.Voltaire_JsonRpc,
+						Source.UniswapContracts_Evm,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

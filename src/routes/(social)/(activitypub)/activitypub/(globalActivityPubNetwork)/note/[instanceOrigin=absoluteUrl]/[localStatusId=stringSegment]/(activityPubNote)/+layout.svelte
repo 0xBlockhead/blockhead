@@ -37,24 +37,22 @@
 </script>
 
 
-{#key [params.instanceOrigin, params.localStatusId].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<ActivityPubNoteView
-				selection={
-					select(EntityType.ActivityPubNote, data.selector, {
-						sources: [
-							Source.Mastodon_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<ActivityPubNoteView
+			selection={
+				select(EntityType.ActivityPubNote, data.selector, {
+					sources: [
+						Source.Mastodon_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

@@ -36,24 +36,22 @@
 </script>
 
 
-{#key params.specificationRealmSlug}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<SpecificationRealmView
-				selection={
-					select(EntityType.SpecificationRealm, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<SpecificationRealmView
+			selection={
+				select(EntityType.SpecificationRealm, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

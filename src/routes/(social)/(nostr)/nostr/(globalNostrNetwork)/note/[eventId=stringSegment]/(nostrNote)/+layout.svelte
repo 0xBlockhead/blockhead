@@ -36,26 +36,24 @@
 </script>
 
 
-{#key params.eventId}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<NostrNoteView
-				selection={
-					select(EntityType.NostrNote, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-							Source.NostrRelay_WebSocket,
-							Source.Primal_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<NostrNoteView
+			selection={
+				select(EntityType.NostrNote, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrRelay_WebSocket,
+						Source.Primal_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

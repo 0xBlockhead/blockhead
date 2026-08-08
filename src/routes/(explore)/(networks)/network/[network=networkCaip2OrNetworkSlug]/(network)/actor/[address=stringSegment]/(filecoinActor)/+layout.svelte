@@ -37,25 +37,23 @@
 </script>
 
 
-{#key [params.network, params.address].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<FilecoinActorView
-				selection={
-					select(EntityType.FilecoinActor, data.selector, {
-						sources: [
-							Source.Lotus_JsonRpc,
-							Source.Filfox_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<FilecoinActorView
+			selection={
+				select(EntityType.FilecoinActor, data.selector, {
+					sources: [
+						Source.Lotus_JsonRpc,
+						Source.Filfox_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

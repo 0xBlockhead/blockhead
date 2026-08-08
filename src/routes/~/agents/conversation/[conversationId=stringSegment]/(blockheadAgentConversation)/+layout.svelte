@@ -36,24 +36,22 @@
 </script>
 
 
-{#key params.conversationId}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<BlockheadAgentConversationView
-				selection={
-					select(EntityType.BlockheadAgentConversation, data.selector, {
-						sources: [
-							Source.Local_Internal,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<BlockheadAgentConversationView
+			selection={
+				select(EntityType.BlockheadAgentConversation, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

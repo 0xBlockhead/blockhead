@@ -37,24 +37,22 @@
 </script>
 
 
-{#key [params.chainId, params.poolId].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<LiquidityPoolView
-				selection={
-					select(EntityType.LiquidityPool, data.selector, {
-						sources: [
-							Source.Dexscreener_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<LiquidityPoolView
+			selection={
+				select(EntityType.LiquidityPool, data.selector, {
+					sources: [
+						Source.Dexscreener_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

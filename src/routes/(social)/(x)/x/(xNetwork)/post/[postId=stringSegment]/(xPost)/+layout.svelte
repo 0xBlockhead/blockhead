@@ -36,25 +36,23 @@
 </script>
 
 
-{#key params.postId}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<XPostView
-				selection={
-					select(EntityType.XPost, data.selector, {
-						sources: [
-							Source.X_Rest,
-							Source.X_FxEmbed_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<XPostView
+			selection={
+				select(EntityType.XPost, data.selector, {
+					sources: [
+						Source.X_Rest,
+						Source.X_FxEmbed_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

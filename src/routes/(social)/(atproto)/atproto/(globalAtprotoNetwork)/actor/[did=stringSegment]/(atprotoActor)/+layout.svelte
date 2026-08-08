@@ -36,25 +36,23 @@
 </script>
 
 
-{#key params.did}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<AtprotoActorView
-				selection={
-					select(EntityType.AtprotoActor, data.selector, {
-						sources: [
-							Source.Atproto_Xrpc,
-							Source.Atproto_BskySocial_Xrpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<AtprotoActorView
+			selection={
+				select(EntityType.AtprotoActor, data.selector, {
+					sources: [
+						Source.Atproto_Xrpc,
+						Source.Atproto_BskySocial_Xrpc,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

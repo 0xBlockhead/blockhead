@@ -43,24 +43,22 @@
 </script>
 
 
-{#key [params.fromChainId, params.toChainId, params.fromToken, params.toToken, params.fromAmount, params.fromAddress, params.slippage, params.toAddress].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<BridgeRouteView
-				selection={
-					select(EntityType.BridgeRoute, data.selector, {
-						sources: [
-							Source.Lifi_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<BridgeRouteView
+			selection={
+				select(EntityType.BridgeRoute, data.selector, {
+					sources: [
+						Source.Lifi_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

@@ -37,26 +37,24 @@
 </script>
 
 
-{#key [params.network, params.address].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<EvmContractView
-				selection={
-					select(EntityType.EvmContract, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-							Source.Blockscout_Rest,
-							Source.SafeTransactionService_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<EvmContractView
+			selection={
+				select(EntityType.EvmContract, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+						Source.Blockscout_Rest,
+						Source.SafeTransactionService_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

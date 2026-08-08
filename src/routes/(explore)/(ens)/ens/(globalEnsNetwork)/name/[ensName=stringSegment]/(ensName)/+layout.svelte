@@ -36,25 +36,23 @@
 </script>
 
 
-{#key params.ensName}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<EnsNameView
-				selection={
-					select(EntityType.EnsName, data.selector, {
-						sources: [
-							Source.TheGraph_Graphql,
-							Source.Voltaire_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<EnsNameView
+			selection={
+				select(EntityType.EnsName, data.selector, {
+					sources: [
+						Source.TheGraph_Graphql,
+						Source.Voltaire_JsonRpc,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

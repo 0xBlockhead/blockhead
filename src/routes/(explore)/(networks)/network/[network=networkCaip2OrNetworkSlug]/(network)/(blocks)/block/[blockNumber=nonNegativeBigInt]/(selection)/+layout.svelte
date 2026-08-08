@@ -40,20 +40,18 @@
 </script>
 
 
-{#key [params.network, params.blockNumber].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			{@const DetailView = data.entityType === EntityType.EvmBlock ? EvmBlockView : data.entityType === EntityType.SolanaBlock ? SolanaBlockView : data.entityType === EntityType.UtxoBlock ? UtxoBlockView : data.entityType === EntityType.PolkadotBlock ? PolkadotBlockView : ArweaveBlockView}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		{@const DetailView = data.entityType === EntityType.EvmBlock ? EvmBlockView : data.entityType === EntityType.SolanaBlock ? SolanaBlockView : data.entityType === EntityType.UtxoBlock ? UtxoBlockView : data.entityType === EntityType.PolkadotBlock ? PolkadotBlockView : ArweaveBlockView}
 
-			<DetailView
-				selection={select(data.entityType, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+		<DetailView
+			selection={select(data.entityType, data.selector)}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

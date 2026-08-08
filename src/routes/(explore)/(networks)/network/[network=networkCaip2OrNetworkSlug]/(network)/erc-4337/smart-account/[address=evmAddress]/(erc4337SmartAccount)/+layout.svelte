@@ -37,24 +37,22 @@
 </script>
 
 
-{#key [params.network, params.address].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<Erc4337SmartAccountView
-				selection={
-					select(EntityType.Erc4337SmartAccount, data.selector, {
-						sources: [
-							Source.Blockscout_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<Erc4337SmartAccountView
+			selection={
+				select(EntityType.Erc4337SmartAccount, data.selector, {
+					sources: [
+						Source.Blockscout_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

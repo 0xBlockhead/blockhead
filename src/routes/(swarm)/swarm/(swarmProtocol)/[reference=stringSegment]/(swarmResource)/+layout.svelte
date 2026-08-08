@@ -36,24 +36,22 @@
 </script>
 
 
-{#key params.reference}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<SwarmResourceView
-				selection={
-					select(EntityType.SwarmResource, data.selector, {
-						sources: [
-							Source.Swarm_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<SwarmResourceView
+			selection={
+				select(EntityType.SwarmResource, data.selector, {
+					sources: [
+						Source.Swarm_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

@@ -36,24 +36,22 @@
 </script>
 
 
-{#key params.address}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<LensAccountView
-				selection={
-					select(EntityType.LensAccount, data.selector, {
-						sources: [
-							Source.Lens_Graphql,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<LensAccountView
+			selection={
+				select(EntityType.LensAccount, data.selector, {
+					sources: [
+						Source.Lens_Graphql,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

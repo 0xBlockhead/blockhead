@@ -36,25 +36,23 @@
 </script>
 
 
-{#key params.channelId}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<FarcasterChannelView
-				selection={
-					select(EntityType.FarcasterChannel, data.selector, {
-						sources: [
-							Source.Farcaster_Rest,
-							Source.Neynar_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<FarcasterChannelView
+			selection={
+				select(EntityType.FarcasterChannel, data.selector, {
+					sources: [
+						Source.Farcaster_Rest,
+						Source.Neynar_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

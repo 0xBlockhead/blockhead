@@ -37,25 +37,23 @@
 </script>
 
 
-{#key [params.videoId, params.commentId].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<YoutubeCommentView
-				selection={
-					select(EntityType.YoutubeComment, data.selector, {
-						sources: [
-							Source.Youtube_Rest,
-							Source.Piped_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<YoutubeCommentView
+			selection={
+				select(EntityType.YoutubeComment, data.selector, {
+					sources: [
+						Source.Youtube_Rest,
+						Source.Piped_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

@@ -36,25 +36,23 @@
 </script>
 
 
-{#key params.userId}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<FarcasterUserView
-				selection={
-					select(EntityType.FarcasterUser, data.selector, {
-						sources: [
-							Source.Neynar_Rest,
-							Source.Snapchain_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<FarcasterUserView
+			selection={
+				select(EntityType.FarcasterUser, data.selector, {
+					sources: [
+						Source.Neynar_Rest,
+						Source.Snapchain_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

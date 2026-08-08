@@ -36,24 +36,22 @@
 </script>
 
 
-{#key params.coinId}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<CoinView
-				selection={
-					select(EntityType.Coin, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<CoinView
+			selection={
+				select(EntityType.Coin, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

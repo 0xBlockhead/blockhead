@@ -37,25 +37,23 @@
 </script>
 
 
-{#key [params.ensName, params.recordId].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<EnsRecordView
-				selection={
-					select(EntityType.EnsRecord, data.selector, {
-						sources: [
-							Source.TheGraph_Graphql,
-							Source.Voltaire_JsonRpc,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<EnsRecordView
+			selection={
+				select(EntityType.EnsRecord, data.selector, {
+					sources: [
+						Source.TheGraph_Graphql,
+						Source.Voltaire_JsonRpc,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

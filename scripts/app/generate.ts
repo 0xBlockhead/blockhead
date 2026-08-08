@@ -15196,14 +15196,6 @@ const generateLayoutFile = (routeFile: CompiledLayoutRouteFileFacts) => {
 			routeFile.detailLayout.href,
 			Object.fromEntries(hrefParamNames.map((param) => [param, `params.${param}`]))
 		)
-		const keyExpression = (
-			hrefParamNames.length === 0 ?
-				undefined
-			: hrefParamNames.length === 1 ?
-				`params.${hrefParamNames[0]}`
-			:
-				`[${hrefParamNames.map((param) => `params.${param}`).join(', ')}].join(':')`
-		)
 		const component = routeFile.detailLayout.components.length > 1 ?
 			'DetailView'
 		:
@@ -15254,7 +15246,7 @@ const generateLayoutFile = (routeFile: CompiledLayoutRouteFileFacts) => {
 					'\tparams,',
 					'}: LayoutProps = $props()',
 					'',
-					...(keyExpression == null ?
+					...(hrefParamNames.length === 0 ?
 						[`const detailHref = ${entityHrefExpression}`]
 					:
 						[
@@ -15270,16 +15262,7 @@ const generateLayoutFile = (routeFile: CompiledLayoutRouteFileFacts) => {
 					'import ParentPageCollapsible from \'$/components/ParentPageCollapsible.svelte\'',
 					...routeFile.detailLayout.components.map((component) => `import ${componentIdentifier(component)} from '${viewModulePath(component)}'`),
 				],
-				markup: (
-					keyExpression == null ?
-						parentPageCollapsibleLines
-					:
-						[
-							`{#key ${keyExpression}}`,
-							...reindentLines(parentPageCollapsibleLines, 1),
-							'{/key}',
-						]
-				),
+				markup: parentPageCollapsibleLines,
 			}
 		)
 	}

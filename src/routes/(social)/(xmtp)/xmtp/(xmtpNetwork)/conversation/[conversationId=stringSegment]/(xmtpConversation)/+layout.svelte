@@ -36,24 +36,22 @@
 </script>
 
 
-{#key params.conversationId}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<XmtpConversationView
-				selection={
-					select(EntityType.XmtpConversation, data.selector, {
-						sources: [
-							Source.Local_Internal,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<XmtpConversationView
+			selection={
+				select(EntityType.XmtpConversation, data.selector, {
+					sources: [
+						Source.Local_Internal,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

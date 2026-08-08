@@ -37,26 +37,24 @@
 </script>
 
 
-{#key [params.fid, params.hash].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<FarcasterCastView
-				selection={
-					select(EntityType.FarcasterCast, data.selector, {
-						sources: [
-							Source.Snapchain_Rest,
-							Source.Neynar_Rest,
-							Source.Farcaster_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<FarcasterCastView
+			selection={
+				select(EntityType.FarcasterCast, data.selector, {
+					sources: [
+						Source.Snapchain_Rest,
+						Source.Neynar_Rest,
+						Source.Farcaster_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

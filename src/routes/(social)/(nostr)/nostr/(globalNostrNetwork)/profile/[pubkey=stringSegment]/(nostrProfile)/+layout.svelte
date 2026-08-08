@@ -36,26 +36,24 @@
 </script>
 
 
-{#key params.pubkey}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			<NostrProfileView
-				selection={
-					select(EntityType.NostrProfile, data.selector, {
-						sources: [
-							Source.Constants_Internal,
-							Source.NostrRelay_WebSocket,
-							Source.Primal_Rest,
-						],
-					})
-				}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<NostrProfileView
+			selection={
+				select(EntityType.NostrProfile, data.selector, {
+					sources: [
+						Source.Constants_Internal,
+						Source.NostrRelay_WebSocket,
+						Source.Primal_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>

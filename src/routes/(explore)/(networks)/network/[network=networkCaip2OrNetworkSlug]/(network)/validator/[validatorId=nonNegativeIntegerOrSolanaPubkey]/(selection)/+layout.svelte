@@ -37,20 +37,18 @@
 </script>
 
 
-{#key [params.network, params.validatorId].join(':')}
-	<ParentPageCollapsible
-		href={detailHref}
-	>
-		{#snippet Summary()}
-			{@const DetailView = data.entityType === EntityType.BeaconValidator ? BeaconValidatorView : SolanaValidatorView}
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		{@const DetailView = data.entityType === EntityType.BeaconValidator ? BeaconValidatorView : SolanaValidatorView}
 
-			<DetailView
-				selection={select(data.entityType, data.selector)}
-				href={detailHref}
-				layout={EntityLayout.SummaryInline}
-			/>
-		{/snippet}
+		<DetailView
+			selection={select(data.entityType, data.selector)}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
 
-		{@render children()}
-	</ParentPageCollapsible>
-{/key}
+	{@render children()}
+</ParentPageCollapsible>
