@@ -2132,10 +2132,6 @@ const hrefConditionGroupsExpression = (groups: readonly HrefConditionGroup[]) =>
 	groups.map(hrefConditionGroupExpression).join(' && ')
 )
 
-const uniqueHrefConditionGroups = (groups: readonly HrefConditionGroup[]) => [...new Map(
-	groups.map((group) => [hrefConditionGroupExpression(group), group])
-).values()]
-
 const hrefConditionPlan = (groups: readonly HrefConditionGroup[]) => {
 	const terms = [...new Map(
 		groups.flatMap((group) => group.terms).map((term) => [term.expression, term])
@@ -11374,18 +11370,12 @@ const renderContentItem = (
 	]))
 }
 
-const latestTargetEntityType = (
-	entity: Entity,
-	indexes: GenerationIndexes,
-	latest: EntityLatest
-) => fieldDefinitionByReference(entity, latest.field, indexes)?.entityType
-
 const latestComponentName = (
 	entity: Entity,
 	indexes: GenerationIndexes,
 	latest: EntityLatest
 ) => {
-	const entityType = latestTargetEntityType(entity, indexes, latest)
+	const entityType = fieldDefinitionByReference(entity, latest.field, indexes)?.entityType
 	return latest.view ?? (entityType == null ? undefined : singularComponentName(entityType))
 }
 
@@ -11400,8 +11390,8 @@ const renderLatestContentItem = (
 	}
 ) => {
 	const latestFieldDefinition = fieldDefinitionByReference(entity, latest.field, indexes)
-	const entityType = latestTargetEntityType(entity, indexes, latest)
-	const component = latestComponentName(entity, indexes, latest)
+	const entityType = latestFieldDefinition?.entityType
+	const component = latest.view ?? (entityType == null ? undefined : singularComponentName(entityType))
 	if (
 		latestFieldDefinition?.type !== EntityFieldType.EntitiesReference
 		|| entityType == null
@@ -12062,10 +12052,10 @@ const renderEntityRouteLinkExpression = (
 			terms: entityConditionTerms,
 		}
 		const paramConditionGroups = compiledParams.flatMap(({ conditionGroups }) => conditionGroups)
-		const conditionGroups = uniqueHrefConditionGroups([
+		const conditionGroups = [...new Map([
 			...(entityConditionGroup == null ? [] : [entityConditionGroup]),
 			...paramConditionGroups,
-		])
+		].map((group) => [hrefConditionGroupExpression(group), group])).values()]
 
 		return {
 			conditionGroups,
