@@ -677,16 +677,8 @@ export default {
 				]
 			}),
 		})({
-				$$timestamps: (timestamps) => timestamps,
-				Utxo: {
-					$$blocks: {
-						select: () => [],
-					},
-					$$transactions: {
-						select: () => [],
-					},
-				},
-			}),
+			$$timestamps: (timestamps) => timestamps,
+		}),
 
 		defineResolver({
 			entityType: EntityType.Network,

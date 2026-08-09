@@ -3,7 +3,6 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -36,16 +35,10 @@ export default entity({
 	tvl: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Hyperliquid,
-		],
 	},
 	createTimeMillis: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Hyperliquid,
-		],
 	},
 	apr: {
 		primitiveType: type('string'),

@@ -956,13 +956,15 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
-					resolve: async (network) => {
+					resolve: async (network, context) => {
 						assertNearMainnet(network)
 						const timestamp = await getNearNetworkTimestampFields()
-						const headBlock = await getBlock({ blockId: timestamp.headHash })
 						return {
 							timestamps: [nearNetworkTimestampReference(network, timestamp)],
-							blocks: [nearBlockReference(network, headBlock)],
+							blocks: await getNearBlockReferences(
+								network,
+								resolverContextRowLimit(context)
+							),
 						}
 					},
 				}
@@ -1044,23 +1046,6 @@ export default {
 			},
 		})({
 			$$blocks: (blocks) => blocks,
-		}),
-		defineResolver({
-			entityType: EntityType.Network,
-			resolve: {
-				Slug: {
-					resolve: async (network, context) => {
-						return getNearBlockReferences(
-							network,
-							resolverContextRowLimit(context)
-						)
-					},
-				}
-			},
-		})({
-			Near: {
-				$$blocks: (blocks) => blocks,
-			},
 		}),
 		defineResolver({
 			entityType: EntityType.NearNetwork,

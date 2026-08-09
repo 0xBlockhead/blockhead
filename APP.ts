@@ -39493,14 +39493,12 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "string" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
 				},
 				"borrowLendHealthFactor": {
 					label: "borrow lend health factor",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "string" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
 				},
 			})({
 				selectors: {
@@ -40182,63 +40180,54 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
 				},
 				"spotAssetCount": {
 					label: "spot asset count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
 				},
 				"spotPairCount": {
 					label: "spot pair count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
 				},
 				"validatorCount": {
 					label: "validator count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
 				},
 				"activeValidatorCount": {
 					label: "active validator count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
 				},
 				"jailedValidatorCount": {
 					label: "jailed validator count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
 				},
 				"totalStake": {
 					label: "total stake",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "bigint" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
 				},
 				"borrowLendReserveCount": {
 					label: "borrow lend reserve count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
 				},
 				"vaultCount": {
 					label: "vault count",
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
 				},
 			})({
 				selectors: {
@@ -41246,7 +41235,6 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "string" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
 				},
 				"createTimeMillis": {
 					label: "Create time",
@@ -41254,7 +41242,6 @@ export const schema = {
 					type: EntityFieldType.Primitive,
 					primitiveType: { primitive: "number" },
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					defaultSources: [Source.Hyperliquid],
 				},
 				"apr": {
 					label: "apr",
@@ -44600,7 +44587,6 @@ export const schema = {
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.LiquidityPool,
-					defaultSources: [Source.Voltaire_JsonRpc],
 				},
 				"sqrtPriceX96": { label: "Sqrt price X96", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"liquidity": { label: "Liquidity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -49504,10 +49490,10 @@ export const schema = {
 						path: ["namespace"],
 						is: "Celestia",
 					})({
-						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaNetwork_Timestamp, defaultSources: [Source.Celenium_Rest, Source.CelestiaNode] },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlock, defaultSources: [Source.Celenium_Rest, Source.CelestiaNode] },
-						"$$namespaces": { label: "Namespaces", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaNamespace, defaultSources: [Source.Celenium_Rest] },
-						"$$blobs": { label: "Blobs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlob, defaultSources: [Source.Celenium_Rest] },
+						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaNetwork_Timestamp },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlock },
+						"$$namespaces": { label: "Namespaces", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaNamespace },
+						"$$blobs": { label: "Blobs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlob },
 					})({
 						singularView: {
 							carousels: [
@@ -49536,8 +49522,8 @@ export const schema = {
 						path: ["namespace"],
 						is: "Avail",
 					})({
-						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvailNetwork_Timestamp, defaultSources: [Source.Avail] },
-						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvailBlock, defaultSources: [Source.Avail] },
+						"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvailNetwork_Timestamp },
+						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AvailBlock },
 					})({
 						singularView: {
 							carousels: [
@@ -62091,21 +62077,18 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.TezosBaker,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Tzkt_Rest],
 				},
 				"$$cycles": {
 					label: 'cycles',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.TezosCycle,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Tzkt_Rest],
 				},
 				"$$bakingRights": {
 					label: 'baking rights',
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.TezosBakingRight,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Tzkt_Rest],
 				},
 				"$$tokens": {
 					label: 'tokens',
@@ -67515,7 +67498,6 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.XrplLedgerEntry,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Xrpl_Rippled],
 				},
 			})({
 				selectors: {

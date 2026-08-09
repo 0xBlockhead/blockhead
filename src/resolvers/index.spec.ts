@@ -32,7 +32,11 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import { SourceDelivery, SourceTargetKind } from '$/sources/SourceBinding.ts'
+import {
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceTargetKind,
+} from '$/sources/SourceBinding.ts'
 import sourceProviders, { sourceBindings } from '$/sources/$sourceProviders.ts'
 import { loadResolvers } from '$/resolvers/index.ts'
 import { CoinId } from '$/constants/Coin.ts'
@@ -543,17 +547,10 @@ describe('resolver registry live resolver architecture', () => {
 			iterateBlockStreamEvents,
 		}
 		vi.doMock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
-			voltaireJsonRpcTransports: {
-				transportsByChainId: {
-					1: [jsonRpcTransport],
-				},
-				httpTransportsByChainId: {
-					1: [jsonRpcTransport],
-				},
-				providerTransportsByChainId: {
-					1: [jsonRpcTransport],
-				},
-			},
+			voltaireJsonRpcTransportsForBinding: () => [{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				transport: jsonRpcTransport,
+			}],
 		}))
 		const blockStream = voltaireJsonRpc.resolvers.find((resolver) => (
 			'resolveLive' in resolver
@@ -1121,14 +1118,10 @@ describe('resolver registry live resolver architecture', () => {
 			getTransactionReceipt,
 		}
 		vi.doMock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
-			voltaireJsonRpcTransports: {
-				transportsByChainId: {
-					1: [jsonRpcTransport],
-				},
-				httpTransportsByChainId: {
-					1: [jsonRpcTransport],
-				},
-			},
+			voltaireJsonRpcTransportsForBinding: () => [{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				transport: jsonRpcTransport,
+			}],
 		}))
 
 		const blockResolver = allSourceResolverDefinitions.find((candidate) => (
@@ -1656,8 +1649,14 @@ describe('resolver registry live resolver architecture', () => {
 				linkItem,
 			],
 		}))
+		const rssBinding = sourceBindings.find(({ source }) => source === Source.Rss_Rest)
+		if (rssBinding == null)
+			throw new Error('RSS source binding missing')
 		vi.doMock('$/sources/Rss/Rest/queries.ts', () => ({
 			getFeed: getNativeFeed,
+			rssBindingByOrigin: new Map([
+				[new URL(feedUrl).origin, rssBinding],
+			]),
 		}))
 		vi.doMock('$/sources/Rss2Json/Rest/queries.ts', () => ({
 			getFeed: getRss2JsonFeed,
@@ -1769,7 +1768,8 @@ describe('resolver registry live resolver architecture', () => {
 				source: source === Source.Rss_Rest ? Source.Rss2Json_Rest : Source.Rss_Rest,
 			}, resolverContext)).rejects.toThrow('unsupported source')
 		}
-		expect(getRss2JsonFeed.mock.calls.every((call) => call.length === 1)).toBe(true)
+		expect(getNativeFeed.mock.calls.every((call) => call[0] === rssBinding && call[1] === feedUrl)).toBe(true)
+		expect(getRss2JsonFeed.mock.calls.every((call) => call.length === 2 && call[1] === feedUrl)).toBe(true)
 
 		getNativeFeed.mockRejectedValueOnce(new Error('native feed unavailable'))
 		const nativeFeedObservationResolver = allSourceResolverDefinitions.find((resolver) => (
@@ -1966,6 +1966,13 @@ describe('resolver registry live resolver architecture', () => {
 				height: 840_000,
 			}]),
 			getMempoolTxids: vi.fn(async () => ['mempoolspace-network-transaction']),
+			getMempoolStats: vi.fn(async () => ({
+				count: 1,
+				vsize: 100,
+			})),
+			getRecommendedFees: vi.fn(async () => ({
+				hourFee: 1,
+			})),
 			getBlockHashByHeight: vi.fn(async () => '0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5'),
 			getBlockTransactionIds: vi.fn(async () => ['mempoolspace-block-transaction']),
 			getTransaction: vi.fn(async () => ({
@@ -2418,13 +2425,27 @@ describe('resolver registry live resolver architecture', () => {
 				activityStreamsUri: 'https://mastodon.social/users/Gargron/statuses/116539053870420123',
 			})
 			expect(getAccountByLocalAccountId).toHaveBeenCalledTimes(1)
-			expect(getAccountByLocalAccountId).toHaveBeenCalledWith('https://mastodon.social', '13179')
+			expect(getAccountByLocalAccountId).toHaveBeenCalledWith(
+				expect.objectContaining({ source: Source.Mastodon_Rest }),
+				'https://mastodon.social',
+				'13179'
+			)
 			expect(getAccountByAcct).toHaveBeenCalledTimes(1)
-			expect(getAccountByAcct).toHaveBeenCalledWith('https://mastodon.social', 'Gargron')
+			expect(getAccountByAcct).toHaveBeenCalledWith(
+				expect.objectContaining({ source: Source.Mastodon_Rest }),
+				'https://mastodon.social',
+				'Gargron'
+			)
 			expect(getAccountByActivityStreamsUri).toHaveBeenCalledTimes(1)
-			expect(getAccountByActivityStreamsUri).toHaveBeenCalledWith('https://mastodon.social/users/Gargron')
+			expect(getAccountByActivityStreamsUri).toHaveBeenCalledWith(
+				expect.objectContaining({ source: Source.Mastodon_Rest }),
+				'https://mastodon.social/users/Gargron'
+			)
 			expect(getStatusByActivityStreamsUri).toHaveBeenCalledTimes(1)
-			expect(getStatusByActivityStreamsUri).toHaveBeenCalledWith('https://mastodon.social/users/Gargron/statuses/116539053870420123')
+			expect(getStatusByActivityStreamsUri).toHaveBeenCalledWith(
+				expect.objectContaining({ source: Source.Mastodon_Rest }),
+				'https://mastodon.social/users/Gargron/statuses/116539053870420123'
+			)
 		}
 	})
 

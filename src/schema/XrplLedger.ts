@@ -86,9 +86,6 @@ export default entity({
 	$$ledgerEntries: {
 		entityType: EntityType.XrplLedgerEntry,
 		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Xrpl_Rippled,
-		],
 	},
 })({
 	selectors: {

@@ -824,32 +824,18 @@ export default entity({
 			$$timestamps: {
 				entityType: EntityType.CelestiaNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: [
-					Source.Celenium_Rest,
-					Source.CelestiaNode,
-				],
 			},
 			$$blocks: {
 				entityType: EntityType.CelestiaBlock,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: [
-					Source.Celenium_Rest,
-					Source.CelestiaNode,
-				],
 			},
 			$$namespaces: {
 				entityType: EntityType.CelestiaNamespace,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: [
-					Source.Celenium_Rest,
-				],
 			},
 			$$blobs: {
 				entityType: EntityType.CelestiaBlob,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: [
-					Source.Celenium_Rest,
-				],
 			},
 		}),
 		Avail: facet({
@@ -861,16 +847,10 @@ export default entity({
 			$$timestamps: {
 				entityType: EntityType.AvailNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: [
-					Source.Avail,
-				],
 			},
 			$$blocks: {
 				entityType: EntityType.AvailBlock,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: [
-					Source.Avail,
-				],
 			},
 		}),
 		Filecoin: facet({
