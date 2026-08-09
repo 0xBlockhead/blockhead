@@ -18,8 +18,6 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
-import bindings from '$/sources/Arweave/bindings.ts'
 import type { ArweaveBlockWire } from '$/sources/Arweave/Rest/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
@@ -29,7 +27,6 @@ type ResolverContext = Parameters<typeof resolverContextRowLimit>[0]
 const arweaveSlugNetwork = {
 	slug: 'arweave' as const,
 }
-const binding = bindings[Source.Arweave_Rest][0]
 
 const assertArweaveNetwork = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== 'arweave')
@@ -39,10 +36,6 @@ const assertArweaveNetwork = (network: NetworkId) => {
 const assertArweaveNetworkHub = (network: ArweaveNetworkId) => {
 	assertArweaveNetwork(network.$network)
 }
-
-const gatewayOrigin = () => (
-	new URL(firstHttpUrlForBinding(binding)).origin
-)
 
 const arweaveCanonicalUri = (
 	transactionId: string,
@@ -139,9 +132,10 @@ const networkTipSnapshot = async (
 ) => {
 	const {
 		getBlockByHeight,
+		getGatewayOrigin,
 		getNetworkInfo,
 	} = await import('$/sources/Arweave/Rest/queries.ts')
-	const info = await getNetworkInfo(binding)
+	const info = await getNetworkInfo()
 	const pageSize = resolverContextRowLimit(context)
 	const offset = context.pagination.offset ?? 0
 	const tipHeight = info.height
@@ -158,7 +152,7 @@ const networkTipSnapshot = async (
 			)
 	)
 	const blocks = await Promise.all(
-		heights.map((height) => getBlockByHeight(binding, height))
+		heights.map((height) => getBlockByHeight(height))
 	)
 	return {
 		$network: {
@@ -183,7 +177,7 @@ const networkTipSnapshot = async (
 				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'networkId')]: info.network,
 				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'peerCount')]: info.peers,
 				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'queuedTransactionCount')]: info.queue_length,
-				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'gatewayOrigin')]: gatewayOrigin(),
+				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'gatewayOrigin')]: getGatewayOrigin(),
 				[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'reachable')]: true,
 			},
 		}],
@@ -254,8 +248,11 @@ export default {
 						if (source !== Source.Arweave_Rest)
 							throw new Error(`Arweave_Rest: unsupported source ${source}`)
 
-						const { getNetworkInfo } = await import('$/sources/Arweave/Rest/queries.ts')
-						const info = await getNetworkInfo(binding)
+						const {
+							getGatewayOrigin,
+							getNetworkInfo,
+						} = await import('$/sources/Arweave/Rest/queries.ts')
+						const info = await getNetworkInfo()
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
@@ -268,7 +265,7 @@ export default {
 							networkId: info.network,
 							peerCount: info.peers,
 							queuedTransactionCount: info.queue_length,
-							gatewayOrigin: gatewayOrigin(),
+							gatewayOrigin: getGatewayOrigin(),
 							reachable: true,
 						}
 					},
@@ -303,7 +300,7 @@ export default {
 						const { getBlockByHeight } = await import('$/sources/Arweave/Rest/queries.ts')
 						return mapBlockWire(
 							$network.$network,
-							await getBlockByHeight(binding, Number(height))
+							await getBlockByHeight(Number(height))
 						)
 					},
 				},
@@ -316,7 +313,7 @@ export default {
 						const { getBlockByHash } = await import('$/sources/Arweave/Rest/queries.ts')
 						return mapBlockWire(
 							$network.$network,
-							await getBlockByHash(binding, indepHash)
+							await getBlockByHash(indepHash)
 						)
 					},
 				},
@@ -354,10 +351,10 @@ export default {
 							getTransactionStatus,
 							ownerAddressFromOwnerKey,
 						} = await import('$/sources/Arweave/Rest/queries.ts')
-						const transaction = await getTransaction(binding, transactionId)
+						const transaction = await getTransaction(transactionId)
 						const ownerAddress = await ownerAddressFromOwnerKey(transaction.owner)
 						const dataSizeBytes = BigInt(transaction.data_size)
-						const status = await getTransactionStatus(binding, transactionId)
+						const status = await getTransactionStatus(transactionId)
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
@@ -488,7 +485,6 @@ export default {
 						let browseResult
 						try {
 							browseResult = await fetchBrowseResult({
-								binding,
 								transactionId: $resource.transactionId,
 								contentPath: $resource.contentPath,
 							})

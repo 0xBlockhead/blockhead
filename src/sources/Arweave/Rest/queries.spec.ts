@@ -41,31 +41,6 @@ describe('Arweave public gateway metadata', () => {
 		vi.mocked(sourceFetch).mockReset()
 	})
 
-	it('passes only the caller-provided noncanonical gateway binding to transport', async () => {
-		const modifiedBinding = {
-			...binding,
-			endpoints: binding.endpoints.map((endpoint) => ({
-				...endpoint,
-				locator: 'https://noncanonical.example/arweave',
-			})),
-		}
-		vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(JSON.stringify({
-			indep_hash: blockId,
-			previous_block: previousBlockId,
-			timestamp: 1_586_440_919,
-			height: 422_250,
-			txs: [],
-			tx_root: 'root',
-			reward_pool: 1,
-		})))
-
-		await getBlockByHeight(modifiedBinding, 422_250)
-
-		expect(sourceFetch).toHaveBeenCalledOnce()
-		expect(vi.mocked(sourceFetch).mock.calls[0][0]).toBe(modifiedBinding)
-		expect(vi.mocked(sourceFetch).mock.calls[0][1]).toBe('https://noncanonical.example/block/height/422250')
-	})
-
 	it('maps GET /info and GET /block/height with X-Block-Format 2', async () => {
 		vi.spyOn(httpRestClient, 'getJson').mockResolvedValueOnce({
 			network: 'arweave.N.1',
@@ -102,7 +77,7 @@ describe('Arweave public gateway metadata', () => {
 				'content-type': 'application/json',
 			},
 		}))
-		await expect(getBlockByHeight(binding, 422_250)).resolves.toMatchObject({
+		await expect(getBlockByHeight(422_250)).resolves.toMatchObject({
 			indep_hash: blockId,
 			height: 422_250,
 			txs: [
@@ -131,7 +106,7 @@ describe('Arweave public gateway metadata', () => {
 				'content-type': 'application/json',
 			},
 		}))
-		await expect(getBlockByHash(binding, blockId)).resolves.toMatchObject({
+		await expect(getBlockByHash(blockId)).resolves.toMatchObject({
 			indep_hash: blockId,
 		})
 	})
@@ -161,7 +136,7 @@ describe('Arweave public gateway metadata', () => {
 				'content-type': 'application/json',
 			},
 		}))
-		await expect(getBlockByHeight(binding, 422_250)).rejects.toThrow('block height mismatch')
+		await expect(getBlockByHeight(422_250)).rejects.toThrow('block height mismatch')
 	})
 
 	it('accepts peers / tx_anchor / price / tx offset leftovers and fail-closes malformed envelopes', async () => {
@@ -190,13 +165,11 @@ describe('Arweave public gateway metadata', () => {
 
 		getText.mockResolvedValueOnce('321004937')
 		await expect(getPrice({
-			binding,
 			byteSize: 0,
 		})).resolves.toBe('321004937')
 
 		getText.mockResolvedValueOnce('321004937')
 		await expect(getPrice({
-			binding,
 			byteSize: 256,
 			target: recipientAddress,
 		})).resolves.toBe('321004937')
@@ -207,7 +180,6 @@ describe('Arweave public gateway metadata', () => {
 
 		getText.mockResolvedValueOnce('-1')
 		await expect(getPrice({
-			binding,
 			byteSize: 0,
 		})).rejects.toThrow('invalid price')
 
@@ -215,7 +187,7 @@ describe('Arweave public gateway metadata', () => {
 			offset: '100',
 			size: '42',
 		})
-		await expect(getTransactionOffset(binding, transactionId)).resolves.toEqual({
+		await expect(getTransactionOffset(transactionId)).resolves.toEqual({
 			offset: '100',
 			size: '42',
 		})
@@ -227,14 +199,14 @@ describe('Arweave public gateway metadata', () => {
 		getJson.mockResolvedValueOnce({
 			offset: '100',
 		})
-		await expect(getTransactionOffset(binding, transactionId)).rejects.toThrow(
+		await expect(getTransactionOffset(transactionId)).rejects.toThrow(
 			'invalid transaction-offset response envelope'
 		)
 	})
 
 	it('preserves wallet balances and transaction amounts as winston strings', async () => {
 		vi.spyOn(httpRestClient, 'getText').mockResolvedValue('9007199254740993')
-		await expect(getWalletBalance(binding,
+		await expect(getWalletBalance(
 			recipientAddress
 		)).resolves.toBe('9007199254740993')
 
@@ -258,7 +230,7 @@ describe('Arweave public gateway metadata', () => {
 			reward: '12345678901234567',
 			signature: 'signature',
 		})
-		await expect(getTransaction(binding,
+		await expect(getTransaction(
 			transactionId
 		)).resolves.toMatchObject({
 			quantity: '1000000000000',
@@ -280,7 +252,7 @@ describe('Arweave public gateway metadata', () => {
 	it('treats Pending status as absent confirmation and rejects malformed confirmed status', async () => {
 		const getJson = vi.spyOn(httpRestClient, 'getJson')
 		getJson.mockResolvedValueOnce('Pending')
-		await expect(getTransactionStatus(binding,
+		await expect(getTransactionStatus(
 			transactionId
 		)).resolves.toBeUndefined()
 
@@ -289,7 +261,7 @@ describe('Arweave public gateway metadata', () => {
 			block_indep_hash: 'short',
 			number_of_confirmations: 1,
 		})
-		await expect(getTransactionStatus(binding,
+		await expect(getTransactionStatus(
 			transactionId
 		)).rejects.toThrow('invalid transaction-status response envelope')
 	})
@@ -299,7 +271,7 @@ describe('Arweave public gateway metadata', () => {
 		getJson.mockResolvedValueOnce({
 			id: 'Z'.repeat(43),
 		})
-		await expect(getTransaction(binding,
+		await expect(getTransaction(
 			transactionId
 		)).rejects.toThrow('invalid transaction response envelope')
 
@@ -317,7 +289,7 @@ describe('Arweave public gateway metadata', () => {
 			reward: '0',
 			signature: 'signature',
 		})
-		await expect(getTransaction(binding,
+		await expect(getTransaction(
 			transactionId
 		)).rejects.toThrow('invalid transaction response envelope')
 
@@ -335,7 +307,7 @@ describe('Arweave public gateway metadata', () => {
 			reward: '0',
 			signature: 'signature',
 		})
-		await expect(getTransaction(binding,
+		await expect(getTransaction(
 			transactionId
 		)).rejects.toThrow('mismatched identity')
 	})
@@ -365,30 +337,12 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
-			binding,
 			transactionId,
 		})).rejects.toThrow('invalid transaction offset size')
 		expect(fetchMock).toHaveBeenCalledTimes(2)
 		expect(fetchMock.mock.calls.every(([url]) => (
 			String(url).endsWith(`/tx/${transactionId}/offset`)
 		))).toBe(true)
-	})
-
-	it('rejects bindings without an HTTP gateway before transport', async () => {
-		const fetchMock = vi.fn<typeof fetch>()
-		vi.stubGlobal('fetch', fetchMock)
-
-		await expect(fetchBrowseResult({
-			binding: {
-				...binding,
-				endpoints: [{
-					endpointKind: SourceEndpointKind.WebSocketUrl,
-					locator: 'wss://arweave.net',
-				}],
-			},
-			transactionId,
-		})).rejects.toThrow('canonical gateway binding has no HTTP endpoints')
-		expect(fetchMock).not.toHaveBeenCalled()
 	})
 
 	it('rejects declared oversize content before downloading it', async () => {
@@ -404,7 +358,6 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
-			binding,
 			transactionId,
 		})).rejects.toThrow('content exceeds 1048576 byte inspection limit')
 		expect(fetchMock).toHaveBeenCalledTimes(2)
@@ -431,7 +384,6 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
-			binding,
 			transactionId,
 		})).resolves.toMatchObject({
 			contentLength: 5,
@@ -449,7 +401,6 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
-			binding,
 			transactionId,
 			contentPath: 'assets/selected.txt',
 			maxContentBytes: 14,
@@ -484,7 +435,6 @@ describe('Arweave public gateway metadata', () => {
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({
-			binding,
 			transactionId,
 		})).rejects.toThrow('content body exceeds declared or configured size')
 	})

@@ -8,10 +8,10 @@ import {
 
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import bindings from '$/sources/Arweave/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getNetworkInfo = vi.hoisted(() => vi.fn())
+const getGatewayOrigin = vi.hoisted(() => vi.fn(() => 'https://arweave.net'))
 const getBlockByHeight = vi.hoisted(() => vi.fn())
 const getBlockByHash = vi.hoisted(() => vi.fn())
 const getTransaction = vi.hoisted(() => vi.fn())
@@ -29,6 +29,7 @@ const fetchBrowseResult = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Arweave/Rest/queries.ts', () => ({
 	getNetworkInfo,
+	getGatewayOrigin,
 	getBlockByHeight,
 	getBlockByHash,
 	getTransaction,
@@ -303,12 +304,10 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 		)).toBe(551_512)
 		expect(getBlockByHeight).toHaveBeenNthCalledWith(
 			1,
-			bindings[Source.Arweave_Rest][0],
 			551_511
 		)
 		expect(getBlockByHeight).toHaveBeenNthCalledWith(
 			2,
-			bindings[Source.Arweave_Rest][0],
 			551_510
 		)
 		expect(networkResolver.projections).not.toHaveProperty('$$resources')
@@ -424,10 +423,7 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 				},
 			},
 		])
-		expect(getBlockByHeight).toHaveBeenCalledWith(
-			bindings[Source.Arweave_Rest][0],
-			422_250
-		)
+		expect(getBlockByHeight).toHaveBeenCalledWith(422_250)
 	})
 
 	it('fail-closes foreign networks', async () => {

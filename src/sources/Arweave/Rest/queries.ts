@@ -23,7 +23,11 @@ import {
 	sourceEndpointOrigin,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Arweave/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
+
+const binding = bindings[Source.Arweave_Rest][0]
 
 const gatewayUrlLastSegment = /([^/]+)$/
 const trimSlashes = (value: string) => value.replace(/^\/+|\/+$/g, '')
@@ -58,6 +62,8 @@ const arweaveGatewayEndpoints = (binding: SourceBinding) => {
 
 	return endpoints
 }
+
+export const getGatewayOrigin = () => arweaveGatewayEndpoints(binding)[0].gatewayOrigin
 
 const assertBase64UrlId = (
 	value: string,
@@ -223,7 +229,7 @@ const fetchBlockJson = async (
 }
 
 /** @see https://docs.arweave.org/developers/arweave-node-server/http-api#network-info */
-export const getNetworkInfo = async (binding: SourceBinding) => {
+export const getNetworkInfo = async () => {
 	const info = assertEnvelope(
 		'network-info',
 		arweaveNetworkInfoWire,
@@ -241,7 +247,7 @@ export const getNetworkInfo = async (binding: SourceBinding) => {
  * Active peer host:port list from the contacted gateway.
  * @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-nodes-peer-list
  */
-export const getPeers = async (binding: SourceBinding) => {
+export const getPeers = async () => {
 	const peers = assertEnvelope(
 		'peers',
 		arktype('string > 0').array(),
@@ -261,7 +267,7 @@ export const getPeers = async (binding: SourceBinding) => {
  * Current transaction anchor (recent block indep hash).
  * @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-transaction-anchor
  */
-export const getTxAnchor = async (binding: SourceBinding) => {
+export const getTxAnchor = async () => {
 	const anchor = (await getText(
 		binding,
 		'/tx_anchor'
@@ -275,11 +281,9 @@ export const getTxAnchor = async (binding: SourceBinding) => {
  * @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-estimated-transaction-price
  */
 export const getPrice = async ({
-	binding,
 	byteSize,
 	target,
 }: {
-	binding: SourceBinding
 	byteSize: number
 	target?: string
 }) => {
@@ -299,7 +303,6 @@ export const getPrice = async ({
 
 /** @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-block-by-hash-id */
 export const getBlockByHash = async (
-	binding: SourceBinding,
 	indepHash: string
 ) => {
 	assertBlockHash(indepHash, 'block indep_hash')
@@ -313,7 +316,6 @@ export const getBlockByHash = async (
 
 /** @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-block-by-height */
 export const getBlockByHeight = async (
-	binding: SourceBinding,
 	height: number
 ) => {
 	assertNonNegativeSafeInteger(height, 'block height')
@@ -326,7 +328,6 @@ export const getBlockByHeight = async (
 }
 
 export const getWalletBalance = async (
-	binding: SourceBinding,
 	address: string
 ) => {
 	assertBase64UrlId(address, 'wallet address')
@@ -339,7 +340,6 @@ export const getWalletBalance = async (
 }
 
 export const getTransaction = async (
-	binding: SourceBinding,
 	transactionId: string
 ) => {
 	assertBase64UrlId(transactionId, 'transaction ID')
@@ -367,7 +367,6 @@ export const getTransaction = async (
 }
 
 export const getTransactionStatus = async (
-	binding: SourceBinding,
 	transactionId: string
 ) => {
 	assertBase64UrlId(transactionId, 'transaction ID')
@@ -389,7 +388,6 @@ export const getTransactionStatus = async (
  * @see https://docs.arweave.org/developers/arweave-node-server/http-api#get-transaction-offset
  */
 export const getTransactionOffset = async (
-	binding: SourceBinding,
 	transactionId: string
 ) => {
 	assertBase64UrlId(transactionId, 'transaction ID')
@@ -418,13 +416,11 @@ export const getGatewayUrl = ({
 }
 
 export const fetchBrowseResult = async ({
-	binding,
 	transactionId,
 	contentPath,
 	maxContentBytes = 1_048_576,
 	signal,
 }: {
-	binding: SourceBinding
 	transactionId: string
 	contentPath?: string
 	maxContentBytes?: number
