@@ -72,9 +72,9 @@
 					'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]',
 					{
 						marketVenue: marketSelector.$marketVenue.marketVenueId,
-						baseKind: marketAssetByKind[base.kind].label,
+						baseKind: String(marketAssetByKind[base.kind].label),
 						base: base.assetKey,
-						quoteKind: marketAssetByKind[quote.kind].label,
+						quoteKind: String(marketAssetByKind[quote.kind].label),
 						quote: quote.assetKey,
 						marketKind: marketSelector.marketKind,
 					}

@@ -49,9 +49,9 @@
 				'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]',
 				{
 					marketVenue: market.$marketVenue.marketVenueId,
-					baseKind: marketAssetByKind[market.$base.kind].label,
+					baseKind: String(marketAssetByKind[market.$base.kind].label),
 					base: market.$base.assetKey,
-					quoteKind: marketAssetByKind[market.$quote.kind].label,
+					quoteKind: String(marketAssetByKind[market.$quote.kind].label),
 					quote: market.$quote.assetKey,
 					marketKind: market.marketKind,
 					timeIntervalUnit: selection.entitySelector.timeInterval.unit,

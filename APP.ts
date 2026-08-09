@@ -2444,12 +2444,12 @@ const routeMarketField = (field: string, marketField: string) => (
 		routeProperty(routeField(field), marketField)
 )
 
-const routeMarketAssetRouteLabel = (asset: _Expression): _Expression => ({
+const routeMarketAssetRouteLabel = (asset: _Expression): _Expression => routeProperty({
 	kind: "catalogIndex",
 	from: "$/constants/Market.ts",
-	map: "marketAssetRouteLabelByKind",
+	map: "marketAssetByKind",
 	key: routeProperty(asset, "kind"),
-})
+}, "label")
 
 const routeMarketAssetLabel = (asset: _Expression): _Expression => (
 	routeProperty(asset, "assetKey")
@@ -48912,9 +48912,9 @@ export const schema = {
 						"$$timestamps": { label: "EVM observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_Timestamp, defaultSources: [Source.EnvioHyperRpc_JsonRpc, Source.EnvioHyperSync_RawHttp, Source.SqdPortal_RawHttp, Source.Voltaire_JsonRpc] },
 						"$$blocks": { label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmBlock, defaultSources: [Source.Blobscan_Rest, Source.Blockscout_Rest, Source.EnvioHyperRpc_JsonRpc, Source.EnvioHyperSync_RawHttp, Source.SqdPortal_RawHttp, Source.Voltaire_JsonRpc] },
 						"$$transactions": { label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.Blockscout_Rest] },
-						"$$txpoolTimestamps": { label: "Txpool timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_Txpool_Timestamp, defaultSources: [Source.Voltaire_JsonRpc] },
+						"$$txpoolTimestamps": { label: "Txpool timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetwork_Txpool_Timestamp, defaultSources: [Source.Voltaire_JsonRpc] },
 						"$$gasFeeBlocks": { label: "Gas fee blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_GasFee_Block, defaultSources: [Source.Voltaire_JsonRpc] },
-						"$$gasEstimateTimestamps": { label: "Gas estimate timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_GasEstimate_Timestamp, defaultSources: [Source.Blockscout_Rest, Source.Etherscan_Rest] },
+						"$$gasEstimateTimestamps": { label: "Gas estimate timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetwork_GasEstimate_Timestamp, defaultSources: [Source.Blockscout_Rest, Source.Etherscan_Rest] },
 						"$$activityDays": { label: "Activity days", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network_Activity_Day, defaultSources: [Source.SpaceAndTime_MakeInfinite] },
 						"$$rpcUrls": { label: "RPC URLs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Url },
 						"consensusEndpoints": { label: "Consensus endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "BeaconConsensusEndpoint", defaultSources: [Source.Beacon_Rest] },
