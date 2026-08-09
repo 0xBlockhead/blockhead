@@ -88,6 +88,32 @@ describe('Coinpaprika coin queries', () => {
 		)
 	})
 
+	it('sends the configured Pro API key as the exact Authorization header value', async () => {
+		const apiKey = 'coinpaprika-pro-test-key'
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+			id: 'eth-ethereum',
+		})))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getTickerById({
+			publicEnv: {
+				PUBLIC_COINPAPRIKA_API_KEY: apiKey,
+			},
+			coinpaprikaId: 'eth-ethereum',
+		})).resolves.toEqual({
+			id: 'eth-ethereum',
+		})
+		expect(fetchMock.mock.calls[0]?.[0]).toContain('api-pro.coinpaprika.com')
+		expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({
+			headers: {
+				Accept: 'application/json',
+				Authorization: apiKey,
+			},
+		})
+		expect(fetchMock.mock.calls[0]?.[1]?.headers?.Authorization).not.toBe(`Bearer ${apiKey}`)
+	})
+
 	it('keeps the supported coin catalog in source constants', () => {
 		expect(coinpaprikaCoins).toContainEqual({
 			coinId: CoinId.ETH,
