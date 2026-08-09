@@ -11,13 +11,10 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannelStatus.ts'
-import bindings from '$/sources/Amboss/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { parseAmbossChannelFundingPoint } from '$/sources/Amboss/Graphql/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
-
-const ambossBinding = bindings[Source.Amboss_Graphql][0]
 
 const assertLightningNetwork = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== 'lightning')
@@ -70,23 +67,17 @@ const nodeSnapshotFromAmbossNode = (
 	const graphNode = node.graph_info.node
 	const channels = node.graph_info.channels
 	const primaryAddress = graphNode.addresses[0]
-	const countryCode = primaryAddress?.ip_info?.country_code
-	const city = primaryAddress?.ip_info?.city
+	const countryCode = primaryAddress.ip_info.country_code
+	const city = primaryAddress.ip_info.city
 
 	return {
 		alias: graphNode.alias,
 		color: graphNode.color,
-		...(channels != null && {
-			capacitySats: BigInt(channels.total_capacity),
-			channelCount: channels.num_channels,
-		}),
+		capacitySats: BigInt(channels.total_capacity),
+		channelCount: channels.num_channels,
 		updatedAtMs: timestampMsFromNodeSeconds(graphNode.last_update),
-		...(countryCode != null && countryCode !== '' && {
-			countryCode,
-		}),
-		...(city != null && city !== '' && {
-			city,
-		}),
+		countryCode,
+		city,
 		networkAddresses: graphNode.addresses.map((address) => address.addr),
 	}
 }
@@ -194,7 +185,6 @@ export default {
 						assertLightningNetwork($network)
 						const { getNode } = await import('$/sources/Amboss/Graphql/queries.ts')
 						const node = await getNode({
-							binding: ambossBinding,
 							publicKey,
 						})
 						return {
@@ -228,7 +218,6 @@ export default {
 						const { getNode } = await import('$/sources/Amboss/Graphql/queries.ts')
 						return nodeSnapshotFromAmbossNode(
 							await getNode({
-								binding: ambossBinding,
 								publicKey: $node.publicKey,
 							})
 						)
@@ -256,7 +245,6 @@ export default {
 						const limit = resolverContextRowLimit(context)
 						const { getNodeChannels } = await import('$/sources/Amboss/Graphql/queries.ts')
 						const channels = await getNodeChannels({
-							binding: ambossBinding,
 							publicKey,
 							limit,
 							offset,
@@ -351,7 +339,6 @@ export default {
 						assertLightningNetwork($network)
 						const { getEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
 						const edge = await getEdge({
-							binding: ambossBinding,
 							channelId,
 						})
 						const edgeInfo = edge.graph.info
@@ -405,7 +392,6 @@ export default {
 						const { getEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
 						return channelTimestampSnapshotFromAmbossEdge(
 							await getEdge({
-								binding: ambossBinding,
 								channelId: $channel.channelId,
 							})
 						)
@@ -430,7 +416,7 @@ export default {
 					resolve: async ({ $network }, context) => {
 						assertLightningNetwork($network)
 						const { getPopularNodePubkeys } = await import('$/sources/Amboss/Graphql/queries.ts')
-						const pubkeys = await getPopularNodePubkeys(ambossBinding)
+						const pubkeys = await getPopularNodePubkeys()
 						return pubkeys
 							.slice(0, resolverContextRowLimit(context))
 							.map((publicKey) => ({

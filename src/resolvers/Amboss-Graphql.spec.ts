@@ -132,6 +132,9 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 				},
 			},
 		])
+		expect(getNode).toHaveBeenCalledWith({
+			publicKey,
+		})
 
 		const timestampSnapshot = await nodeTimestampResolver.resolve.NodeTimestampMsSource.resolve({
 			$node: {
@@ -225,6 +228,11 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 			},
 		])
 		expect(nodeChannelsResolver.projections.$$channels.resolveCount?.(snapshot)).toBe(2)
+		expect(getNodeChannels).toHaveBeenCalledWith({
+			publicKey,
+			limit: 1,
+			offset: 0,
+		})
 		expect(nodeChannelsResolver.projections.$$channels.continuation?.(snapshot)).toEqual({
 			operation: 'node-channels',
 			target: 'amboss',
@@ -284,6 +292,9 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 				},
 			},
 		])
+		expect(getEdge).toHaveBeenCalledWith({
+			channelId: '1x2x3',
+		})
 
 		const timestampSnapshot = await channelTimestampResolver.resolve.ChannelTimestampMsSource.resolve({
 			$channel: {

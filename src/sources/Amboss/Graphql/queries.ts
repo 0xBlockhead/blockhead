@@ -1,5 +1,6 @@
 import { graphql, queryAmboss } from '$/sources/Amboss/Graphql/client.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Amboss/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	ambossGetEdgeDataWire,
 	ambossGetNodeChannelsDataWire,
@@ -7,6 +8,8 @@ import {
 	ambossGetPopularNodesDataWire,
 	parseAmbossChannelFundingPoint,
 } from '$/sources/Amboss/Graphql/types.ts'
+
+const binding = bindings[Source.Amboss_Graphql][0]
 
 const assertEnvelope = <_Value>(
 	label: string,
@@ -53,10 +56,8 @@ const assertClosedEdgeSemantics = (
 }
 
 export const getNode = async ({
-	binding,
 	publicKey,
 }: {
-	binding: SourceBinding
 	publicKey: string
 }) => {
 	assertPublicKey(publicKey)
@@ -110,10 +111,8 @@ export const getNode = async ({
 }
 
 export const getEdge = async ({
-	binding,
 	channelId,
 }: {
-	binding: SourceBinding
 	channelId: string
 }) => {
 	assertChannelId(channelId)
@@ -183,12 +182,10 @@ export const getEdge = async ({
 }
 
 export const getNodeChannels = async ({
-	binding,
 	publicKey,
 	limit,
 	offset = 0,
 }: {
-	binding: SourceBinding
 	publicKey: string
 	limit: number
 	offset?: number
@@ -273,7 +270,7 @@ export const getNodeChannels = async ({
 	}
 }
 
-export const getPopularNodePubkeys = async (binding: SourceBinding) => {
+export const getPopularNodePubkeys = async () => {
 	const data = assertEnvelope(
 		'popular nodes',
 		ambossGetPopularNodesDataWire,
