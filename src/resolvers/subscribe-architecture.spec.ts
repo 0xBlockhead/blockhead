@@ -732,11 +732,9 @@ describe('client resolver architecture', () => {
 		}
 	})
 
-	it('keeps source clients and provider indexes behind resolver-facing queries', () => {
+	it('keeps source bindings, clients, and provider indexes behind resolver-facing queries', () => {
 		for (const filePath of scannedSourceFiles.filter((path) => (
 			path.startsWith(join(srcPath, 'resolvers'))
-			&& basename(path) !== '$resolvers.ts'
-			&& basename(path) !== 'index.ts'
 		))) {
 			const relativePath = filePath.slice(srcPath.length + 1)
 			const sourceFile = ts.createSourceFile(
@@ -770,7 +768,7 @@ describe('client resolver architecture', () => {
 			for (const sourceImport of valueSourceImports.filter((sourceImport) => (
 				sourceImport.startsWith('$/sources/')
 			))) {
-				expect(sourceImport, relativePath).not.toMatch(/\/(?:client|index)\.ts$/)
+				expect(sourceImport, relativePath).not.toMatch(/\/(?:bindings|client|index)\.ts$/)
 			}
 		}
 	})
