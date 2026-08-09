@@ -3,24 +3,12 @@ import { sourceFetch } from '$/sources/_runtime/http.ts'
 import { normalizeRssFeedUrl } from '$/sources/_shared/interfaces/Rss/constants.ts'
 import { parseRssFeedXml } from '$/sources/Rss/Rest/parseFeed.ts'
 import type { ParsedRssFeed } from '$/sources/Rss/Rest/types.ts'
-import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/Rss/bindings.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
-const rssBindingByOrigin = new Map<
-	string,
-	(typeof bindings)[Source.Rss_Rest][number]
->(
-	bindings[Source.Rss_Rest].map((binding) => [
-		binding.target.key,
-		binding,
-	] as const)
-)
-
-export const rssFetchFeed = async (feedUrl: string) => {
+export const rssFetchFeed = async (binding: SourceBinding, feedUrl: string) => {
 	const normalizedFeedUrl = normalizeRssFeedUrl(feedUrl)
-	const binding = rssBindingByOrigin.get(new URL(normalizedFeedUrl).origin)
-	if (binding == null)
-		throw new Error(`Rss_Rest: source binding is missing for ${feedUrl}`)
+	if (new URL(normalizedFeedUrl).origin !== binding.target.key)
+		throw new Error('Rss_Rest: feed URL does not match binding')
 
 	const response = await sourceFetch(binding, normalizedFeedUrl)
 	if (!response.ok)

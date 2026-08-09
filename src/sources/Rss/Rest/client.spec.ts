@@ -40,7 +40,7 @@ test('uses the feed-target HttpProxy binding and parses its response', async () 
 		</rss>
 	`))
 
-	await expect(rssFetchFeed('https://hnrss.org/frontpage')).resolves.toMatchObject({
+	await expect(rssFetchFeed(hnrssBinding, 'https://hnrss.org/frontpage')).resolves.toMatchObject({
 		title: 'Fixture feed',
 		items: [
 			{
@@ -79,6 +79,7 @@ test('preserves a registered feed URL path, query, and reserved values', async (
 	sourceFetch.mockResolvedValueOnce(new Response('<rss><channel /></rss>'))
 
 	await rssFetchFeed(
+		hnrssBinding,
 		' https://hnrss.org/frontpage?target=https%3A%2F%2Fexample.com%2Fa%3Fx%3D1%26y%3D2&label=a%2Bb%23c '
 	)
 
@@ -94,7 +95,7 @@ test('rejects failed refresh responses before parsing their bodies', async () =>
 		statusText: 'Service Unavailable',
 	}))
 
-	await expect(rssFetchFeed('https://hnrss.org/frontpage')).rejects.toThrow(
+	await expect(rssFetchFeed(hnrssBinding, 'https://hnrss.org/frontpage')).rejects.toThrow(
 		'503 Service Unavailable'
 	)
 })

@@ -4,43 +4,14 @@ import {
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceTargetKind,
-} from '$/sources/SourceBinding.ts'
-import bindings from '$/sources/Mastodon/bindings.ts'
-
-const mastodonInstanceBindingByOrigin = new Map(
-	bindings[Source.Mastodon_Rest]
-		.filter(({ target }) => target.kind === SourceTargetKind.Global)
-		.map((binding) => [
-			new URL(firstHttpUrlForBinding(binding)).origin,
-			binding,
-		] as const)
-)
-
-const mastodonPublicTimelineBindingByOrigin = new Map(
-	bindings[Source.Mastodon_Rest]
-		.filter(({ target }) => target.kind === SourceTargetKind.Feed)
-		.map((binding) => [
-			new URL(firstHttpUrlForBinding(binding)).origin,
-			binding,
-		] as const)
-)
-
-export const mastodonInstanceOrigins = [...mastodonInstanceBindingByOrigin.keys()]
-export const mastodonPublicTimelineOrigins = [...mastodonPublicTimelineBindingByOrigin.keys()]
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 export const mastodonGet = async (
-	instanceOrigin: string,
+	binding: SourceBinding,
 	path: string,
 	search?: Record<string, string | undefined>,
 	apiVersion = 'v1'
 ) => {
-	const binding = mastodonInstanceBindingByOrigin.get(new URL(instanceOrigin).origin)
-	if (binding == null)
-		throw new Error(`Mastodon_Rest: instance binding is missing for ${instanceOrigin}`)
-
 	const url = httpUrl(binding, `/api/${apiVersion}${path}`, search)
 	const response = await sourceFetch(binding, url)
 	if (!response.ok)
@@ -50,19 +21,16 @@ export const mastodonGet = async (
 }
 
 export const mastodonFetch = async (
-	instanceOrigin: string,
+	binding: SourceBinding,
 	path: string,
 	search?: Record<string, string | undefined>,
 	apiVersion = 'v1'
 ) => {
-	const binding = mastodonInstanceBindingByOrigin.get(new URL(instanceOrigin).origin)
-	if (binding == null)
-		throw new Error(`Mastodon_Rest: instance binding is missing for ${instanceOrigin}`)
-
 	return sourceFetch(binding, httpUrl(binding, `/api/${apiVersion}${path}`, search))
 }
 
 export const mastodonFetchUrl = async (
+	binding: SourceBinding,
 	url: string
 ) => {
 	const parsedUrl = new URL(url)
@@ -73,14 +41,14 @@ export const mastodonFetchUrl = async (
 	)
 		throw new Error('Mastodon_Rest: invalid instance URL')
 
-	const binding = mastodonInstanceBindingByOrigin.get(parsedUrl.origin)
-	if (binding == null)
-		throw new Error(`Mastodon_Rest: instance binding is missing for ${parsedUrl.origin}`)
+	if (parsedUrl.origin !== new URL(firstHttpUrlForBinding(binding)).origin)
+		throw new Error('Mastodon_Rest: instance URL does not match binding')
 
 	return sourceFetch(binding, url)
 }
 
 export const mastodonFetchPublicTimelineUrl = async (
+	binding: SourceBinding,
 	url: string
 ) => {
 	const parsedUrl = new URL(url)
@@ -92,9 +60,8 @@ export const mastodonFetchPublicTimelineUrl = async (
 	)
 		throw new Error('Mastodon_Rest: invalid public timeline URL')
 
-	const binding = mastodonPublicTimelineBindingByOrigin.get(parsedUrl.origin)
-	if (binding == null)
-		throw new Error(`Mastodon_Rest: public timeline binding is missing for ${parsedUrl.origin}`)
+	if (parsedUrl.origin !== new URL(firstHttpUrlForBinding(binding)).origin)
+		throw new Error('Mastodon_Rest: public timeline URL does not match binding')
 
 	return sourceFetch(binding, url)
 }

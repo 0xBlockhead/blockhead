@@ -14,9 +14,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 import {
-	mastodonInstanceOrigins,
-	mastodonPublicTimelineOrigins,
-} from '$/sources/Mastodon/Rest/client.ts'
+	mastodonInstanceBindingByOrigin,
+	mastodonInstances,
+	mastodonPublicTimelines,
+} from '$/sources/Mastodon/Rest/queries.ts'
 import type {
 	MastodonApiV1Account,
 	MastodonApiV1MediaAttachment,
@@ -431,8 +432,8 @@ export default {
 
 						const timelineStatuses = (
 							await Promise.all(
-								mastodonPublicTimelineOrigins.map(async (instanceOrigin) => (
-									(await listPublicTimelinePage(instanceOrigin, limit)).statuses
+								mastodonPublicTimelines.map(async ({ binding, instanceOrigin }) => (
+									(await listPublicTimelinePage(binding, instanceOrigin, limit)).statuses
 										.map((status) => ({
 											instanceOrigin,
 											status,
@@ -497,7 +498,7 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: () => (
-						mastodonInstanceOrigins.map((instanceOrigin) => ({
+						mastodonInstances.map(({ instanceOrigin }) => ({
 							[EntityMetaKey.Selector]: {
 								instanceOrigin,
 							},
@@ -515,7 +516,7 @@ export default {
 				Scope: {
 					resolve: async ({ scope }) => {
 						const timestampMs = Date.now()
-						const [instanceOrigin] = mastodonInstanceOrigins
+						const [{ binding, instanceOrigin }] = mastodonInstances
 						const {
 							getInstance,
 							getInstanceV2,
@@ -525,19 +526,19 @@ export default {
 						} = await import('$/sources/Mastodon/Rest/queries.ts')
 
 						try {
-							const instance = await getInstance(instanceOrigin)
+							const instance = await getInstance(binding, instanceOrigin)
 							const [
 								instanceV2Result,
 								peerDomainsResult,
 								moderatedDomainsResult,
 								timelineResult,
 							] = await Promise.allSettled([
-								getInstanceV2(instanceOrigin),
-								listInstancePeerDomains(instanceOrigin),
-								listInstanceModeratedDomains(instanceOrigin),
+								getInstanceV2(binding, instanceOrigin),
+								listInstancePeerDomains(binding, instanceOrigin),
+								listInstanceModeratedDomains(binding, instanceOrigin),
 								Promise.all(
-									mastodonPublicTimelineOrigins.map(async (publicTimelineOrigin) => (
-										(await listPublicTimelinePage(publicTimelineOrigin, 40)).statuses
+									mastodonPublicTimelines.map(async ({ binding, instanceOrigin }) => (
+										(await listPublicTimelinePage(binding, instanceOrigin, 40)).statuses
 									))
 								),
 							])
@@ -613,7 +614,7 @@ export default {
 									...(observedNoteCount != null && {
 										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'observedNoteCount')]: observedNoteCount,
 									}),
-									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: mastodonInstanceOrigins.length,
+									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: mastodonInstances.length,
 									...(peerDomains != null && {
 										[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'knownPeerDomainCount')]: peerDomains.length,
 									}),
@@ -632,7 +633,7 @@ export default {
 								},
 								[EntityMetaKey.Fields]: {
 									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'instanceOrigin')]: instanceOrigin,
-									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: mastodonInstanceOrigins.length,
+									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'seededInstanceCount')]: mastodonInstances.length,
 									[entityFieldAddressKey(EntityType._GlobalActivityPubNetwork_Timestamp, [], 'reachable')]: false,
 								},
 							}]
@@ -690,7 +691,10 @@ export default {
 							listInstanceModeratedDomains,
 							listInstancePeerDomains,
 						} = await import('$/sources/Mastodon/Rest/queries.ts')
-						assertInstanceMatches(instanceOrigin)
+						const binding = mastodonInstanceBindingByOrigin.get(new URL(instanceOrigin).origin)
+						if (binding == null)
+							throw new Error(`Mastodon_Rest: entity instance binding is missing for ${instanceOrigin}`)
+						assertInstanceMatches(binding, instanceOrigin)
 						const timestampMs = Date.now()
 						const $instance = { instanceOrigin }
 						const $observation = {
@@ -699,9 +703,9 @@ export default {
 							source: Source.Mastodon_Rest,
 						}
 						const [instance, peerDomains, moderatedDomains] = await Promise.all([
-							getInstance(instanceOrigin),
-							listInstancePeerDomains(instanceOrigin),
-							listInstanceModeratedDomains(instanceOrigin),
+							getInstance(binding, instanceOrigin),
+							listInstancePeerDomains(binding, instanceOrigin),
+							listInstanceModeratedDomains(binding, instanceOrigin),
 						])
 						return [{
 							[EntityMetaKey.Selector]: $observation,
@@ -804,8 +808,8 @@ export default {
 						const limit = resolverContextRowLimit(context)
 						return (
 							await Promise.all(
-								mastodonPublicTimelineOrigins.map(async (instanceOrigin) => (
-									(await listPublicTimelinePage(instanceOrigin, limit)).statuses
+								mastodonPublicTimelines.map(async ({ binding, instanceOrigin }) => (
+									(await listPublicTimelinePage(binding, instanceOrigin, limit)).statuses
 										.flatMap((status) => (
 										status.id == null ?
 											[]
@@ -833,8 +837,11 @@ export default {
 				LocalAccountId: {
 					resolve: async ({ instanceOrigin, localAccountId }) => {
 						const { assertInstanceMatches, getAccountByLocalAccountId } = await import('$/sources/Mastodon/Rest/queries.ts')
-						assertInstanceMatches(instanceOrigin)
-						const a = await getAccountByLocalAccountId(instanceOrigin, localAccountId)
+						const binding = mastodonInstanceBindingByOrigin.get(new URL(instanceOrigin).origin)
+						if (binding == null)
+							throw new Error(`Mastodon_Rest: entity instance binding is missing for ${instanceOrigin}`)
+						assertInstanceMatches(binding, instanceOrigin)
+						const a = await getAccountByLocalAccountId(binding, instanceOrigin, localAccountId)
 						if (String(a.id) !== localAccountId)
 							throw new Error('Mastodon_Rest: ActivityPub actor response does not match the local account subject')
 
@@ -856,8 +863,11 @@ export default {
 				Acct: {
 					resolve: async ({ instanceOrigin, acct }) => {
 						const { assertInstanceMatches, getAccountByAcct } = await import('$/sources/Mastodon/Rest/queries.ts')
-						assertInstanceMatches(instanceOrigin)
-						const a = await getAccountByAcct(instanceOrigin, acct)
+						const binding = mastodonInstanceBindingByOrigin.get(new URL(instanceOrigin).origin)
+						if (binding == null)
+							throw new Error(`Mastodon_Rest: entity instance binding is missing for ${instanceOrigin}`)
+						assertInstanceMatches(binding, instanceOrigin)
+						const a = await getAccountByAcct(binding, instanceOrigin, acct)
 						if (a.acct !== acct)
 							throw new Error('Mastodon_Rest: ActivityPub actor response does not match the acct subject')
 
@@ -879,7 +889,10 @@ export default {
 				ActivityStreamsUri: {
 					resolve: async ({ activityStreamsUri }) => {
 						const { getAccountByActivityStreamsUri } = await import('$/sources/Mastodon/Rest/queries.ts')
-						const a = await getAccountByActivityStreamsUri(activityStreamsUri)
+						const binding = mastodonInstanceBindingByOrigin.get(new URL(activityStreamsUri).origin)
+						if (binding == null)
+							throw new Error(`Mastodon_Rest: entity instance binding is missing for ${activityStreamsUri}`)
+						const a = await getAccountByActivityStreamsUri(binding, activityStreamsUri)
 						if (a.uri !== activityStreamsUri)
 							throw new Error('Mastodon_Rest: ActivityPub actor response does not match the ActivityStreams subject')
 
@@ -926,8 +939,11 @@ export default {
 							assertInstanceMatches,
 							getStatus,
 						} = await import('$/sources/Mastodon/Rest/queries.ts')
-						assertInstanceMatches(instanceOrigin)
-						const s = await getStatus(instanceOrigin, localStatusId)
+						const binding = mastodonInstanceBindingByOrigin.get(new URL(instanceOrigin).origin)
+						if (binding == null)
+							throw new Error(`Mastodon_Rest: entity instance binding is missing for ${instanceOrigin}`)
+						assertInstanceMatches(binding, instanceOrigin)
+						const s = await getStatus(binding, instanceOrigin, localStatusId)
 						if (String(s.id) !== localStatusId)
 							throw new Error('Mastodon_Rest: ActivityPub note response does not match the local status subject')
 
@@ -947,7 +963,10 @@ export default {
 						const {
 							getStatusByActivityStreamsUri,
 						} = await import('$/sources/Mastodon/Rest/queries.ts')
-						const s = await getStatusByActivityStreamsUri(activityStreamsUri)
+						const binding = mastodonInstanceBindingByOrigin.get(new URL(activityStreamsUri).origin)
+						if (binding == null)
+							throw new Error(`Mastodon_Rest: entity instance binding is missing for ${activityStreamsUri}`)
+						const s = await getStatusByActivityStreamsUri(binding, activityStreamsUri)
 						if (s.uri !== activityStreamsUri)
 							throw new Error('Mastodon_Rest: ActivityPub note response does not match the ActivityStreams subject')
 
@@ -1021,9 +1040,13 @@ export default {
 				LocalAccountId: {
 					resolve: async ({ instanceOrigin, localAccountId }, context) => {
 						const { assertInstanceMatches, listAccountStatusesPageByLocalAccountId } = await import('$/sources/Mastodon/Rest/queries.ts')
-						assertInstanceMatches(instanceOrigin)
+						const binding = mastodonInstanceBindingByOrigin.get(new URL(instanceOrigin).origin)
+						if (binding == null)
+							throw new Error(`Mastodon_Rest: entity instance binding is missing for ${instanceOrigin}`)
+						assertInstanceMatches(binding, instanceOrigin)
 						return {
 							...await listAccountStatusesPageByLocalAccountId(
+								binding,
 								instanceOrigin,
 								localAccountId,
 								resolverContextRowLimit(context),
@@ -1038,7 +1061,10 @@ export default {
 				ActivityStreamsUri: {
 					resolve: async ({ activityStreamsUri }, context) => {
 						const { getAccountByActivityStreamsUri, listAccountStatusesPageByLocalAccountId } = await import('$/sources/Mastodon/Rest/queries.ts')
-						const account = await getAccountByActivityStreamsUri(activityStreamsUri)
+						const binding = mastodonInstanceBindingByOrigin.get(new URL(activityStreamsUri).origin)
+						if (binding == null)
+							throw new Error(`Mastodon_Rest: entity instance binding is missing for ${activityStreamsUri}`)
+						const account = await getAccountByActivityStreamsUri(binding, activityStreamsUri)
 						if (account.uri !== activityStreamsUri || account.id == null)
 							throw new Error('Mastodon_Rest: ActivityPub actor notes response does not match the ActivityStreams subject')
 
@@ -1046,6 +1072,7 @@ export default {
 						const localAccountId = String(account.id)
 						return {
 							...await listAccountStatusesPageByLocalAccountId(
+								binding,
 								instanceOrigin,
 								localAccountId,
 								resolverContextRowLimit(context),
@@ -1101,8 +1128,11 @@ export default {
 							assertInstanceMatches,
 							getStatusContext,
 						} = await import('$/sources/Mastodon/Rest/queries.ts')
-						assertInstanceMatches(instanceOrigin)
-						const { ancestors = [], descendants = [] } = await getStatusContext(instanceOrigin, localStatusId)
+						const binding = mastodonInstanceBindingByOrigin.get(new URL(instanceOrigin).origin)
+						if (binding == null)
+							throw new Error(`Mastodon_Rest: entity instance binding is missing for ${instanceOrigin}`)
+						assertInstanceMatches(binding, instanceOrigin)
+						const { ancestors = [], descendants = [] } = await getStatusContext(binding, instanceOrigin, localStatusId)
 						return (
 							[
 								...ancestors,
@@ -1130,10 +1160,13 @@ export default {
 							getStatusByActivityStreamsUri,
 							getStatusContext,
 						} = await import('$/sources/Mastodon/Rest/queries.ts')
-						const status = await getStatusByActivityStreamsUri(activityStreamsUri)
+						const binding = mastodonInstanceBindingByOrigin.get(new URL(activityStreamsUri).origin)
+						if (binding == null)
+							throw new Error(`Mastodon_Rest: entity instance binding is missing for ${activityStreamsUri}`)
+						const status = await getStatusByActivityStreamsUri(binding, activityStreamsUri)
 						if (status.id == null)
 							return []
-						const { ancestors = [], descendants = [] } = await getStatusContext(new URL(activityStreamsUri).origin, String(status.id))
+						const { ancestors = [], descendants = [] } = await getStatusContext(binding, new URL(activityStreamsUri).origin, String(status.id))
 						return (
 							[
 								...ancestors,

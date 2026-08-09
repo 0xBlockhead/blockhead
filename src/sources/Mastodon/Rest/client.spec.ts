@@ -46,7 +46,7 @@ describe('Mastodon REST client', () => {
 
 	it('uses the resolver-selected instance binding without inventing authorization', async () => {
 		await mastodonGet(
-			'https://mastodon.social',
+			mastodonSocialBinding,
 			'/timelines/public',
 			{
 				limit: '20',
@@ -61,6 +61,7 @@ describe('Mastodon REST client', () => {
 
 	it('passes public timeline continuations through the selected feed binding', async () => {
 		await mastodonFetchPublicTimelineUrl(
+			fosstodonTimelineBinding,
 			'https://fosstodon.org/api/v1/timelines/public?max_id=opaque%2B%2F%3D'
 		)
 
@@ -72,6 +73,7 @@ describe('Mastodon REST client', () => {
 
 	it('keeps instance continuations on the selected instance binding', async () => {
 		await mastodonFetchUrl(
+			fosstodonInstanceBinding,
 			'https://fosstodon.org/api/v1/accounts/123/statuses?max_id=opaque%2B%2F%3D'
 		)
 
@@ -83,6 +85,7 @@ describe('Mastodon REST client', () => {
 
 	it('rejects malformed public timeline continuation URLs before delivery', async () => {
 		await expect(mastodonFetchPublicTimelineUrl(
+			fosstodonTimelineBinding,
 			'https://fosstodon.org/api/v1/accounts/123/statuses'
 		)).rejects.toThrow('invalid public timeline URL')
 		expect(sourceFetch).not.toHaveBeenCalled()

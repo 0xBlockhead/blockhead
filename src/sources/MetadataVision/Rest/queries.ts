@@ -7,7 +7,7 @@ import {
 import bindings from '$/sources/MetadataVision/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.MetadataVision_Rest][0]
+export const metadataVisionBinding = bindings[Source.MetadataVision_Rest][0]
 
 const metadataVisionOpenGraphData = type({
 	url: 'string',
@@ -43,6 +43,7 @@ const metadataVisionResponse = type.or(
  * @see https://docs.metadata.vision
  */
 export const getOpenGraphWireForPublicHttpUrl = async (
+	binding: (typeof bindings)[Source.MetadataVision_Rest][number],
 	publicHttpUrl: string
 ) => {
 	const requestUrl = `${firstHttpUrlForBinding(binding)}/${publicHttpUrl}`

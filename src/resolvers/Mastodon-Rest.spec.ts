@@ -16,8 +16,9 @@ const {
 	listInstanceModeratedDomains,
 	listInstancePeerDomains,
 	listPublicTimelinePage,
-	mastodonInstanceOrigins,
-	mastodonPublicTimelineOrigins,
+	mastodonInstanceBindingByOrigin,
+	mastodonInstances,
+	mastodonPublicTimelines,
 } = vi.hoisted(() => ({
 	getInstance: vi.fn(),
 	getInstanceV2: vi.fn(),
@@ -30,12 +31,25 @@ const {
 	listInstanceModeratedDomains: vi.fn(),
 	listInstancePeerDomains: vi.fn(),
 	listPublicTimelinePage: vi.fn(),
-	mastodonInstanceOrigins: [
-		'https://mastodon.social',
-		'https://fosstodon.org',
+	mastodonInstanceBindingByOrigin: new Map([
+		['https://mastodon.social', { requestOwner: 'mastodon-social-instance' }],
+		['https://fosstodon.org', { requestOwner: 'fosstodon-instance' }],
+	]),
+	mastodonInstances: [
+		{
+			instanceOrigin: 'https://mastodon.social',
+			binding: { requestOwner: 'mastodon-social-instance' },
+		},
+		{
+			instanceOrigin: 'https://fosstodon.org',
+			binding: { requestOwner: 'fosstodon-instance' },
+		},
 	],
-	mastodonPublicTimelineOrigins: [
-		'https://fosstodon.org',
+	mastodonPublicTimelines: [
+		{
+			instanceOrigin: 'https://fosstodon.org',
+			binding: { requestOwner: 'fosstodon-public-timeline' },
+		},
 	],
 }))
 
@@ -52,11 +66,9 @@ vi.mock('$/sources/Mastodon/Rest/queries.ts', () => ({
 	listInstanceModeratedDomains,
 	listInstancePeerDomains,
 	listPublicTimelinePage,
-}))
-
-vi.mock('$/sources/Mastodon/Rest/client.ts', () => ({
-	mastodonInstanceOrigins,
-	mastodonPublicTimelineOrigins,
+	mastodonInstanceBindingByOrigin,
+	mastodonInstances,
+	mastodonPublicTimelines,
 }))
 
 const { default: mastodon } = await import('$/resolvers/Mastodon-Rest.ts')
@@ -114,8 +126,9 @@ describe('Mastodon ActivityPub observations', () => {
 			pagination: { limit: 25 },
 		})
 
-		expect(listPublicTimelinePage).toHaveBeenCalledWith(
-			'https://fosstodon.org',
+	expect(listPublicTimelinePage).toHaveBeenCalledWith(
+		expect.objectContaining({ requestOwner: 'fosstodon-public-timeline' }),
+		'https://fosstodon.org',
 			25
 		)
 		expect(listPublicTimelinePage).toHaveBeenCalledTimes(1)
@@ -182,8 +195,9 @@ describe('Mastodon ActivityPub observations', () => {
 		if (typeof notes !== 'function' || typeof actors !== 'function')
 			throw new Error('Mastodon-Rest spec missing shared global timeline projections')
 
-		expect(listPublicTimelinePage).toHaveBeenCalledWith(
-			'https://fosstodon.org',
+	expect(listPublicTimelinePage).toHaveBeenCalledWith(
+		expect.objectContaining({ requestOwner: 'fosstodon-public-timeline' }),
+		'https://fosstodon.org',
 			17
 		)
 		expect(listPublicTimelinePage).toHaveBeenCalledTimes(1)
@@ -388,10 +402,23 @@ describe('Mastodon ActivityPub observations', () => {
 		}, context)
 
 		expect(getInstance).toHaveBeenCalledTimes(1)
-		expect(getInstanceV2).toHaveBeenCalledWith('https://mastodon.social')
-		expect(listInstancePeerDomains).toHaveBeenCalledWith('https://mastodon.social')
-		expect(listInstanceModeratedDomains).toHaveBeenCalledWith('https://mastodon.social')
-		expect(listPublicTimelinePage).toHaveBeenCalledWith('https://fosstodon.org', 40)
+		expect(getInstanceV2).toHaveBeenCalledWith(
+			expect.objectContaining({ requestOwner: 'mastodon-social-instance' }),
+			'https://mastodon.social'
+		)
+		expect(listInstancePeerDomains).toHaveBeenCalledWith(
+			expect.objectContaining({ requestOwner: 'mastodon-social-instance' }),
+			'https://mastodon.social'
+		)
+		expect(listInstanceModeratedDomains).toHaveBeenCalledWith(
+			expect.objectContaining({ requestOwner: 'mastodon-social-instance' }),
+			'https://mastodon.social'
+		)
+		expect(listPublicTimelinePage).toHaveBeenCalledWith(
+			expect.objectContaining({ requestOwner: 'fosstodon-public-timeline' }),
+			'https://fosstodon.org',
+			40
+		)
 		expect(observations).toHaveLength(1)
 		expect(observations[0][EntityMetaKey.Selector]).toEqual({
 			$hub: {
@@ -559,17 +586,17 @@ describe('Mastodon ActivityPub observations', () => {
 			acct: 'alice@federation.example',
 			display_name: 'Alice',
 		}
-		getAccountByLocalAccountId.mockImplementation(async (instanceOrigin, localAccountId) => {
+		getAccountByLocalAccountId.mockImplementation(async (_binding, instanceOrigin, localAccountId) => {
 			if (instanceOrigin !== 'https://mastodon.social' || localAccountId !== 'actor-17')
 				throw new Error('unknown local actor request')
 			return account
 		})
-		getAccountByAcct.mockImplementation(async (instanceOrigin, acct) => {
+		getAccountByAcct.mockImplementation(async (_binding, instanceOrigin, acct) => {
 			if (instanceOrigin !== 'https://mastodon.social' || acct !== 'alice@federation.example')
 				throw new Error('unknown acct actor request')
 			return account
 		})
-		getAccountByActivityStreamsUri.mockImplementation(async (activityStreamsUri) => {
+		getAccountByActivityStreamsUri.mockImplementation(async (_binding, activityStreamsUri) => {
 			if (activityStreamsUri !== account.uri)
 				throw new Error('unknown ActivityStreams actor request')
 			return account
@@ -632,12 +659,12 @@ describe('Mastodon ActivityPub observations', () => {
 				url: 'https://media-origin.example/files/image.png',
 			}],
 		}
-		getStatus.mockImplementation(async (instanceOrigin, localStatusId) => {
+		getStatus.mockImplementation(async (_binding, instanceOrigin, localStatusId) => {
 			if (instanceOrigin !== 'https://fosstodon.org' || localStatusId !== 'note-9')
 				throw new Error('unknown local note request')
 			return status
 		})
-		getStatusByActivityStreamsUri.mockImplementation(async (activityStreamsUri) => {
+		getStatusByActivityStreamsUri.mockImplementation(async (_binding, activityStreamsUri) => {
 			if (activityStreamsUri !== status.uri)
 				throw new Error('unknown ActivityStreams note request')
 			return status
@@ -772,6 +799,7 @@ describe('Mastodon ActivityPub observations', () => {
 		})
 
 		expect(listAccountStatusesPageByLocalAccountId).toHaveBeenCalledWith(
+			expect.objectContaining({ requestOwner: 'mastodon-social-instance' }),
 			'https://mastodon.social',
 			'13179',
 			3,

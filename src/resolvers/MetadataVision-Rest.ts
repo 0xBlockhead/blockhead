@@ -64,9 +64,10 @@ export default {
 						if (source !== Source.MetadataVision_Rest)
 							throw new Error(`MetadataVision_Rest: unsupported source ${source}`)
 
-						const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
+						const { getOpenGraphWireForPublicHttpUrl, metadataVisionBinding } = await import('$/sources/MetadataVision/Rest/queries.ts')
 						return urlPreviewFieldsFromWire(
 							await getOpenGraphWireForPublicHttpUrl(
+								metadataVisionBinding,
 								$url.url
 							)
 						)
