@@ -7,29 +7,11 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
-import bindings from '$/sources/EasScan/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 type NetworkSelector = EntitySelector<typeof schema, EntityType.Network>
 
 const zeroAddress = `0x${'0'.repeat(40)}`
 const zeroUid = `0x${'0'.repeat(64)}`
-
-const easScanBindingByNetwork = new Map(
-	Object.values(bindings)
-		.flat()
-		.map((binding) => [
-			`eip155:${binding.target.key}`,
-			binding,
-		])
-)
-
-const easScanBinding = (network: string) => {
-	const binding = easScanBindingByNetwork.get(network)
-	if (binding == null)
-		throw new Error('EasScan_Graphql: network has no GraphQL binding')
-
-	return binding
-}
 
 const zeroExHex = (value: string): `0x${string}` => (
 	`0x${value.slice(2).toLowerCase()}`
@@ -81,7 +63,6 @@ const easAttestationResolver = defineResolver({
 				const network = easScanNetwork(entitySelector.$network)
 				const { getAttestation } = await import('$/sources/EasScan/Graphql/queries.ts')
 				const attestation = await getAttestation({
-					binding: easScanBinding(network),
 					network,
 					uid: entitySelector.uid,
 				})
@@ -162,7 +143,6 @@ const easAttestationTimestampResolver = defineResolver({
 				const network = easScanNetwork($attestation.$network)
 				const { getAttestation } = await import('$/sources/EasScan/Graphql/queries.ts')
 				const attestation = await getAttestation({
-					binding: easScanBinding(network),
 					network,
 					uid: $attestation.uid,
 				})
@@ -202,7 +182,6 @@ const easSchemaResolver = defineResolver({
 				const network = easScanNetwork(entitySelector.$network)
 				const { getSchema } = await import('$/sources/EasScan/Graphql/queries.ts')
 				const schema = await getSchema({
-					binding: easScanBinding(network),
 					network,
 					schemaUid: entitySelector.schemaUid,
 				})
@@ -263,7 +242,6 @@ const easSchemaAttestationsResolver = defineResolver({
 				return {
 					$$attestations: (
 					await getAttestationsBySchema({
-						binding: easScanBinding(network),
 							network,
 							schemaUid: entitySelector.schemaUid,
 							skip: context.pagination.offset ?? 0,

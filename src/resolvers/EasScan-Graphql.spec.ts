@@ -202,7 +202,7 @@ describe('EasScan GraphQL resolvers', () => {
 			registeredLogIndex: 42,
 			attestationCount: 7,
 		})
-		expect(easSchemaResolver.projections.$$attestations.resolveCount?.(snapshot, context)).toBe(7)
+		expect(easSchemaResolver.projections.$$attestations.resolveCount(snapshot, context)).toBe(7)
 		expect(getAttestationsBySchema).not.toHaveBeenCalled()
 	})
 

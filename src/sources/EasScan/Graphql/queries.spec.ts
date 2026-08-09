@@ -77,12 +77,10 @@ describe('EasScan GraphQL public reads', () => {
 		})
 
 		await expect(getAttestation({
-		binding,
 			network: 'eip155:1',
 			uid,
 		})).resolves.toEqual(attestation)
 		expect(graphql).toHaveBeenCalledWith(expect.objectContaining({
-			binding,
 			variables: {
 				where: {
 					id: uid,
@@ -104,19 +102,16 @@ describe('EasScan GraphQL public reads', () => {
 			})
 
 		await expect(getAttestationsByAttester({
-		binding,
 			network: 'eip155:1',
 			attester,
 			skip: 25,
 			take: 10,
 		})).resolves.toEqual([attestation])
 		await expect(getAttestationsByRecipient({
-		binding,
 			network: 'eip155:1',
 			recipient,
 		})).resolves.toEqual([attestation])
 		await expect(getAttestationsBySchema({
-		binding,
 			network: 'eip155:1',
 			schemaUid,
 		})).resolves.toEqual([attestation])
@@ -137,12 +132,10 @@ describe('EasScan GraphQL public reads', () => {
 		})
 
 		await expect(getSchema({
-		binding,
 			network: 'eip155:1',
 			schemaUid,
 		})).resolves.toEqual(easSchema)
 		expect(graphql).toHaveBeenCalledWith(expect.objectContaining({
-			binding,
 			variables: {
 				where: {
 					id: schemaUid,
@@ -176,17 +169,14 @@ describe('EasScan GraphQL public reads', () => {
 			})
 
 		await expect(countAttestationsByAttester({
-		binding,
 			network: 'eip155:1',
 			attester,
 		})).resolves.toBe(3)
 		await expect(countAttestationsByRecipient({
-		binding,
 			network: 'eip155:1',
 			recipient,
 		})).resolves.toBe(0)
 		await expect(countAttestationsBySchema({
-		binding,
 			network: 'eip155:1',
 			schemaUid,
 		})).resolves.toBe(11)
@@ -201,7 +191,6 @@ describe('EasScan GraphQL public reads', () => {
 
 	it('rejects unsupported networks, foreign subjects, and over-broad pages', async () => {
 		await expect(getAttestation({
-		binding,
 			network: 'eip155:999999',
 			uid,
 		})).rejects.toThrow('no exact network binding')
@@ -213,12 +202,10 @@ describe('EasScan GraphQL public reads', () => {
 			}],
 		})
 		await expect(getAttestationsByRecipient({
-		binding,
 			network: 'eip155:1',
 			recipient,
 		})).rejects.toThrow('foreign recipient')
 		await expect(getAttestationsBySchema({
-		binding,
 			network: 'eip155:1',
 			schemaUid,
 			take: 101,
@@ -269,32 +256,26 @@ describe('EasScan GraphQL public reads', () => {
 			})
 
 		await expect(getAttestation({
-		binding,
 			network: 'eip155:1',
 			uid,
 		})).rejects.toThrow('invalid attestation lifecycle')
 		await expect(getAttestationsByAttester({
-		binding,
 			network: 'eip155:1',
 			attester,
 		})).rejects.toThrow('duplicate attestations')
 		await expect(countAttestationsBySchema({
-		binding,
 			network: 'eip155:1',
 			schemaUid,
 		})).rejects.toThrow('invalid attestation count')
 		await expect(getSchema({
-		binding,
 			network: 'eip155:1',
 			schemaUid,
 		})).rejects.toThrow('invalid schema registration')
 		await expect(getAttestation({
-		binding,
 			network: 'eip155:1',
 			uid,
 		})).rejects.toThrow('invalid attestation envelope')
 		await expect(getAttestation({
-		binding,
 			network: 'eip155:1',
 			uid,
 		})).rejects.toThrow('invalid attestation envelope')

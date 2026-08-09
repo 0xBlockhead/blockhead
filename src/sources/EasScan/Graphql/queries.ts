@@ -11,7 +11,8 @@ import {
 	type EasScanAttestation,
 	type EasScanSchema,
 } from '$/sources/EasScan/Graphql/types.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/EasScan/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 import {
 	graphql,
@@ -33,11 +34,16 @@ const assertEnvelope = <_Value>(
 	}
 }
 
-const easScanBindingForNetwork = (
-	binding: SourceBinding,
-	network: string
-) => {
-	if (`eip155:${binding.target.key}` !== network)
+const bindingByNetwork = new Map(
+	bindings[Source.EasScan_Graphql].map((binding) => [
+		`eip155:${binding.target.key}`,
+		binding,
+	])
+)
+
+const easScanBindingForNetwork = (network: string) => {
+	const binding = bindingByNetwork.get(network)
+	if (binding == null)
 		throw new Error('EasScan GraphQL has no exact network binding')
 
 	return binding
@@ -153,23 +159,20 @@ const assertSchema = (
 }
 
 const countAttestations = async ({
-	binding,
 	network,
 	where,
-}: {
-	binding: SourceBinding
-	network: string
+}: {	network: string
 	where: VariablesOf<typeof EasScanAttestationCount>['where']
 }) => {
 	const response = assertEnvelope(
 		'attestation count',
 		easScanAttestationCountEnvelope,
-		await queryEasScan(easScanBindingForNetwork(binding, network), EasScanAttestationCount, {
+		await queryEasScan(easScanBindingForNetwork(network), EasScanAttestationCount, {
 			where,
 		})
 	)
 
-	const count = response.aggregateAttestation._count?._all
+	const count = response.aggregateAttestation._count._all
 	if (count == null)
 		throw new Error('EasScan returned invalid attestation count')
 
@@ -177,14 +180,11 @@ const countAttestations = async ({
 }
 
 const listAttestations = async ({
-	binding,
 	network,
 	where,
 	skip,
 	take,
-}: {
-	binding: SourceBinding
-	network: string
+}: {	network: string
 	where: VariablesOf<typeof EasScanAttestations>['where']
 	skip: number
 	take: number
@@ -198,7 +198,7 @@ const listAttestations = async ({
 	const response = assertEnvelope(
 		'attestations page',
 		easScanAttestationsPageEnvelope,
-		await queryEasScan(easScanBindingForNetwork(binding, network), EasScanAttestations, {
+		await queryEasScan(easScanBindingForNetwork(network), EasScanAttestations, {
 			where,
 			skip,
 			take,
@@ -225,17 +225,14 @@ const listAttestations = async ({
 }
 
 export const getAttestation = async ({
-	binding,
 	network,
 	uid,
-}: {
-	binding: SourceBinding
-	network: string
+}: {	network: string
 	uid: string
 }) => {
 	assertUid(uid, 'requested attestation UID')
 
-	const response = await queryEasScan(easScanBindingForNetwork(binding, network), EasScanAttestation, {
+	const response = await queryEasScan(easScanBindingForNetwork(network), EasScanAttestation, {
 		where: {
 			id: uid,
 		},
@@ -256,17 +253,14 @@ export const getAttestation = async ({
 }
 
 export const getSchema = async ({
-	binding,
 	network,
 	schemaUid,
-}: {
-	binding: SourceBinding
-	network: string
+}: {	network: string
 	schemaUid: string
 }) => {
 	assertUid(schemaUid, 'requested schema UID')
 
-	const response = await queryEasScan(easScanBindingForNetwork(binding, network), EasScanSchema, {
+	const response = await queryEasScan(easScanBindingForNetwork(network), EasScanSchema, {
 		where: {
 			id: schemaUid,
 		},
@@ -288,13 +282,10 @@ export const getSchema = async ({
 
 /** Network-scoped schema catalog page (APP still needed for Network.$$easSchemas enrollment). */
 export const listSchemas = async ({
-	binding,
 	network,
 	skip = 0,
 	take = 100,
-}: {
-	binding: SourceBinding
-	network: string
+}: {	network: string
 	skip?: number
 	take?: number
 }) => {
@@ -307,7 +298,7 @@ export const listSchemas = async ({
 	const response = assertEnvelope(
 		'schemas page',
 		easScanSchemasPageEnvelope,
-		await queryEasScan(easScanBindingForNetwork(binding, network), EasScanSchemas, {
+		await queryEasScan(easScanBindingForNetwork(network), EasScanSchemas, {
 			skip,
 			take,
 		})
@@ -332,14 +323,11 @@ export const listSchemas = async ({
 }
 
 export const getAttestationsByAttester = ({
-	binding,
 	network,
 	attester,
 	skip = 0,
 	take = 100,
-}: {
-	binding: SourceBinding
-	network: string
+}: {	network: string
 	attester: string
 	skip?: number
 	take?: number
@@ -347,7 +335,6 @@ export const getAttestationsByAttester = ({
 	assertAddress(attester, 'requested attester')
 
 	return listAttestations({
-		binding,
 		network,
 		where: {
 			attester: {
@@ -365,14 +352,11 @@ export const getAttestationsByAttester = ({
 }
 
 export const getAttestationsByRecipient = ({
-	binding,
 	network,
 	recipient,
 	skip = 0,
 	take = 100,
-}: {
-	binding: SourceBinding
-	network: string
+}: {	network: string
 	recipient: string
 	skip?: number
 	take?: number
@@ -380,7 +364,6 @@ export const getAttestationsByRecipient = ({
 	assertAddress(recipient, 'requested recipient')
 
 	return listAttestations({
-		binding,
 		network,
 		where: {
 			recipient: {
@@ -398,14 +381,11 @@ export const getAttestationsByRecipient = ({
 }
 
 export const getAttestationsBySchema = ({
-	binding,
 	network,
 	schemaUid,
 	skip = 0,
 	take = 100,
-}: {
-	binding: SourceBinding
-	network: string
+}: {	network: string
 	schemaUid: string
 	skip?: number
 	take?: number
@@ -413,7 +393,6 @@ export const getAttestationsBySchema = ({
 	assertUid(schemaUid, 'requested schema UID')
 
 	return listAttestations({
-		binding,
 		network,
 		where: {
 			schemaId: {
@@ -431,18 +410,14 @@ export const getAttestationsBySchema = ({
 }
 
 export const countAttestationsByAttester = ({
-	binding,
 	network,
 	attester,
-}: {
-	binding: SourceBinding
-	network: string
+}: {	network: string
 	attester: string
 }) => {
 	assertAddress(attester, 'requested attester')
 
 	return countAttestations({
-		binding,
 		network,
 		where: {
 			attester: {
@@ -453,18 +428,14 @@ export const countAttestationsByAttester = ({
 }
 
 export const countAttestationsByRecipient = ({
-	binding,
 	network,
 	recipient,
-}: {
-	binding: SourceBinding
-	network: string
+}: {	network: string
 	recipient: string
 }) => {
 	assertAddress(recipient, 'requested recipient')
 
 	return countAttestations({
-		binding,
 		network,
 		where: {
 			recipient: {
@@ -475,18 +446,14 @@ export const countAttestationsByRecipient = ({
 }
 
 export const countAttestationsBySchema = ({
-	binding,
 	network,
 	schemaUid,
-}: {
-	binding: SourceBinding
-	network: string
+}: {	network: string
 	schemaUid: string
 }) => {
 	assertUid(schemaUid, 'requested schema UID')
 
 	return countAttestations({
-		binding,
 		network,
 		where: {
 			schemaId: {
