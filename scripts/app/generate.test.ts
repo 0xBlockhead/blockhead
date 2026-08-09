@@ -54,7 +54,6 @@ import {
 	renderGeneratedFile as renderGeneratedFileUncached,
 } from './render.ts'
 import sourceProviders, { sourceBindings } from '../../src/sources/$sourceProviders.ts'
-import sourceServerCredentialsById from '../../src/sources/$sourceServerCredentials.server.ts'
 import specificationProposalSources from '../../src/sources/specificationProposalSources.ts'
 
 
@@ -7564,50 +7563,25 @@ test('emits environment schemas only on binding credentials', () => {
 	assert.match(sourceBindingDefinitions, /'PUBLIC_ALLIUM_API_KEY': 'string > 0'/)
 })
 
-test('keeps runtime secret configuration in one server projection', () => {
+test('emits runtime secret configuration from authored binding identities', () => {
 	const publicBindings = globSync('src/sources/**/bindings.ts').map((bindingPath) => readFileSync(
 		path.join(root, bindingPath),
 		'utf8'
 	)).join('\n')
-	const serverCredentials = readFileSync(
-		path.join(root, 'src/sources/$sourceServerCredentials.server.ts'),
-		'utf8'
+	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
+	const serverCredentialsEmitter = generatorSource.slice(
+		generatorSource.indexOf('const generateSourceServerCredentialsFile ='),
+		generatorSource.indexOf('const generateSourceSelectionFiles =')
 	)
 	assert.doesNotMatch(publicBindings, /(?:proxyId|serverCredentialId):/)
 	assert.doesNotMatch(publicBindings, /envKey:|injection:/)
-	assert.match(serverCredentials, /export default new Map<\n\tstring,\n\tSourceServerCredentialDefinition\n>/)
-	assert.match(serverCredentials, /import \{ sourceBindings \} from '\$\/sources\/\$sourceProviders\.ts'/)
-	assert.match(serverCredentials, /const runtimeSecretBindingCandidates = sourceBindings\.filter[\s\S]*?scope === SourceCredentialScope\.RuntimeSecret[\s\S]*?&& keys == null/)
-	assert.match(serverCredentials, /const runtimeSecretCredentials = \[/)
-	assert.equal((serverCredentials.match(/^\t\tSource\./gm) ?? []).length, 70)
-	assert.match(serverCredentials, /sourceBindingId\(runtimeSecretBinding\(source, targetKey\)\)/)
-	assert.equal((serverCredentials.match(/sourceBindingId\(/g) ?? []).length, 1)
-	assert.doesNotMatch(serverCredentials, /'\["/)
-	assert.doesNotMatch(serverCredentials, /from '\$\/sources\/[^']+\/bindings\.ts'/)
-	assert.match(serverCredentials, /Source\.SafeTransactionService_Rest,\n\t\t'1'/)
-	assert.match(serverCredentials, /Source\.TonCenter,\n\t\t'ton:-239'/)
-	assert.match(serverCredentials, /COVALENT_API_KEY/)
-	assert.match(serverCredentials, /header: \{[\s\S]*?name: 'authorization'[\s\S]*?prefix: 'Bearer '/)
-	assert.match(serverCredentials, /\{\n\t\tenvKey,\n\t\tinjection,\n\t\},\n\] satisfies readonly \[string, SourceServerCredentialDefinition\]/)
-	assert.doesNotMatch(serverCredentials, /endpoints:|header-secret|literal-secret/)
-	assert.deepEqual([...sourceServerCredentialsById.keys()].sort(), app.sources.sources.flatMap((source) => [
-		...(source.binding == null ? [] : [source.binding]),
-		...(source.bindings ?? []),
-	].flatMap((binding) => binding.credentials.some((credential) => (
-		credential.scope === SourceCredentialScope.RuntimeSecret
-		&& 'envKey' in credential
-	)) ? [sourceBindingId({
-		source: String(source.source),
-		...binding,
-	})] : [])).sort())
-	assert.deepEqual(globSync('src/**/*.ts').filter((sourcePath) => (
-		readFileSync(path.join(root, sourcePath), 'utf8')
-			.includes("from '$/sources/$sourceServerCredentials.server.ts'")
-	)).filter((sourcePath) => !sourcePath.endsWith('.spec.ts')).toSorted(), [
-		'src/sources/_runtime/live.server.ts',
-		'src/sources/_runtime/proxy.server.ts',
-		'src/sources/index.server.ts',
-	].toSorted())
+	assert.doesNotMatch(serverCredentialsEmitter, /import \{ sourceBindings \}|runtimeSecretBindingCandidates|sourceBindings\.filter/)
+	assert.doesNotMatch(serverCredentialsEmitter, /from: '\$\/sources\/Source\.ts'/)
+	assert.match(serverCredentialsEmitter, /sourceBindings\.flatMap\(\(\{ source, binding \}\) => binding\.credentials\.flatMap/)
+	assert.match(serverCredentialsEmitter, /emitTypeScript\(sourceBindingId\(\{[\s\S]*?source,[\s\S]*?target: binding\.target,[\s\S]*?delivery: binding\.delivery,[\s\S]*?apiFamily: binding\.apiFamily/)
+	assert.match(serverCredentialsEmitter, /credential\.scope === SourceCredentialScope\.RuntimeSecret && 'envKey' in credential/)
+	assert.match(serverCredentialsEmitter, /credential\.envKey[\s\S]*?credential\.injection/)
+	assert.match(serverCredentialsEmitter, /export default new Map<string, SourceServerCredentialDefinition>/)
 })
 
 test('roots sibling route groups without leaking internal segments', () => {

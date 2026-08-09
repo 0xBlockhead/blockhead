@@ -194,15 +194,16 @@ test('retains one record index for each entity and value type', async () => {
 	assert.match(routeValueTypeIndexer, /entityByType: Readonly<Record<string, Entity>>/)
 })
 
-test('derives provider partitions once for their emitter inputs', async () => {
+test('keeps provider-owned definitions outside compiler emitter inputs', async () => {
 	const generatorSource = await readFile('scripts/app/generate.ts', 'utf8')
 
 	assert.doesNotMatch(generatorSource, /CompiledSourceProviderFacts|sourceProviderPlans/)
 	assert.match(generatorSource, /type CompiledAppFacts = Readonly<\{[\s\S]*?sourceProviders: readonly SourceProviderDefinition\[\][\s\S]*?sources: readonly SourceDefinition\[\][\s\S]*?sourceDefinitionById: Readonly<Record<string, SourceDefinition>>[\s\S]*?sourceBindings: readonly SourceBindingEntry\[\]/)
 	assert.doesNotMatch(generatorSource, /GenerationInput|generationInput/)
-	assert.match(generatorSource, /const sourceBindingsByProvider = Object\.groupBy\(indexes\.sourceBindings, \(sourceBinding\) => \([\s\S]*?indexes\.sourceDefinitionById\[sourceBinding\.source\]\.provider[\s\S]*?const sourcesByProvider = Object\.groupBy\(compiledApp\.sources, \(\{ provider \}\) => provider\)/)
-	assert.match(generatorSource, /sourceProviders\.flatMap\(\(provider\) => \[[\s\S]*?sourceBindingsByProvider\[provider\.provider\] \?\? \[\][\s\S]*?sourcesByProvider\[provider\.provider\] \?\? \[\]/)
-	assert.doesNotMatch(generatorSource, /generationInput\.sources\.filter\(\(source\) => source\.provider === provider\.provider\)/)
+	assert.doesNotMatch(generatorSource, /sourceBindingsByProvider|sourcesByProvider/)
+	assert.doesNotMatch(generatorSource, /generateSourceProvider(?:Bindings|Definition)File/)
+	assert.match(generatorSource, /generateSourceProvidersFile\(sourceProviderNames\)/)
+	assert.match(generatorSource, /generateSourceServerCredentialsFile\(indexes\.sourceBindings\)/)
 })
 
 test('uses authored binding identity instead of synthetic row indexes', async () => {

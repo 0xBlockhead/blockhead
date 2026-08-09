@@ -1,5 +1,3 @@
-// Generated from APP.ts.
-
 import bindings from '$/sources/QuilibriumNodeMetrics/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'

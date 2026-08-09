@@ -1,5 +1,3 @@
-// Generated from APP.ts.
-
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
