@@ -68,7 +68,7 @@ describe('generated route href contracts', () => {
 
 	it('guards branch-specific route coordinates and falls back to no href', () => {
 		expect(solanaInstructionView).toMatch(
-			/selection\.entitySelector\.instructionKind === 'Instruction'[\s\S]*?resolve\([\s\S]*?'\/\(explore\)\/\(networks\)\/network\/\[network=networkCaip2OrNetworkSlug\]\/\(network\)\/\(transactions\)\/tx\/\[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxId\]\/\(selection\)\/instruction\/\[instructionKind=stringSegment\]\/\[indexInTransaction=nonNegativeInteger\]'/
+			/selection\.entitySelector\.instructionKind === 'Instruction'[\s\S]*?resolve\([\s\S]*?'\/\(explore\)\/\(networks\)\/network\/\[network=networkCaip2OrNetworkSlug\]\/\(network\)\/\(transactions\)\/tx\/\[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment\]\/\(selection\)\/instruction\/\[instructionKind=stringSegment\]\/\[indexInTransaction=nonNegativeInteger\]'/
 		)
 		expect(solanaInstructionView).toMatch(
 			/selection\.entitySelector\.instructionKind === 'InnerInstruction'[\s\S]*?'indexInInstruction' in selection\.entitySelector[\s\S]*?\/inner\/\[indexInInstruction=nonNegativeInteger\]'[\s\S]*?indexInInstruction: String\(selection\.entitySelector\.indexInInstruction\)/
