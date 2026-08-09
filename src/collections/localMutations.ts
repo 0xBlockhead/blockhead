@@ -2619,7 +2619,7 @@ export const writeLocalBlockheadWalletConnection = async (
 ) => {
 	const persisted = walletConnectionPersistRoundTrip(connection)
 	const activeAccount = persisted.activeAccount ?? persisted.accounts.at(0)
-	const connectionKey = persisted.connectionKey ?? persisted.sessionTopic ?? persisted.sessionId ?? persisted.walletId
+	const connectionKey = persisted.connectionKey
 	const entitySelector = {
 		connectionKey,
 	}
