@@ -142,7 +142,6 @@ describe('Morpho GraphQL market enumeration', () => {
 		})))
 
 		await expect(listMarkets({
-		binding,
 			chainIds: [
 				8453,
 			],
@@ -187,9 +186,9 @@ describe('Morpho GraphQL market enumeration', () => {
 			],
 			countTotal: 1,
 		})
-		expect(sourceFetch).toHaveBeenCalledWith(
-			binding,
-			'https://api.morpho.org/graphql',
+	expect(sourceFetch).toHaveBeenCalledWith(
+		binding,
+		'https://api.morpho.org/graphql',
 			expect.objectContaining({
 				method: 'POST',
 			})
@@ -228,7 +227,6 @@ describe('Morpho GraphQL market enumeration', () => {
 		})))
 
 		await expect(listMarkets({
-		binding,
 			chainIds: [
 				1,
 			],
@@ -240,7 +238,6 @@ describe('Morpho GraphQL market enumeration', () => {
 
 	it('rejects unsupported chains before transport', async () => {
 		await expect(listMarkets({
-		binding,
 			chainIds: [
 				999_999,
 			],
@@ -269,7 +266,6 @@ describe('Morpho GraphQL market enumeration', () => {
 		})))
 
 		await expect(listMarkets({
-		binding,
 			chainIds: [
 				5042,
 			],
@@ -282,7 +278,6 @@ describe('Morpho GraphQL market enumeration', () => {
 
 	it('rejects invalid limits before transport', async () => {
 		await expect(listMarkets({
-		binding,
 			chainIds: [
 				8453,
 			],
@@ -299,7 +294,6 @@ describe('Morpho GraphQL market enumeration', () => {
 		})))
 
 		await expect(getMarket({
-		binding,
 			chainId: 8453,
 			marketId: market.marketId,
 		})).resolves.toEqual({
@@ -356,7 +350,6 @@ describe('Morpho GraphQL market enumeration', () => {
 		})))
 
 		await expect(getMarket({
-		binding,
 			chainId: 8453,
 			marketId: market.marketId,
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: market response missing marketById`)
@@ -378,7 +371,6 @@ describe('Morpho GraphQL market enumeration', () => {
 		})))
 
 		await expect(getMarket({
-		binding,
 			chainId: 8453,
 			marketId: market.marketId,
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: invalid market response envelope`)
@@ -398,7 +390,6 @@ describe('Morpho GraphQL market enumeration', () => {
 		})))
 
 		await expect(getMarket({
-		binding,
 			chainId: 8453,
 			marketId: market.marketId,
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: invalid supplyAssets`)
@@ -418,7 +409,6 @@ describe('Morpho GraphQL market enumeration', () => {
 		})))
 
 		await expect(getMarket({
-		binding,
 			chainId: 8453,
 			marketId: market.marketId,
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: invalid market response envelope`)
@@ -432,7 +422,6 @@ describe('Morpho GraphQL market enumeration', () => {
 		})))
 
 		await expect(getMarket({
-		binding,
 			chainId: 8453,
 			marketId: market.marketId,
 		})).resolves.toMatchObject({
@@ -457,7 +446,6 @@ describe('Morpho GraphQL market enumeration', () => {
 		})))
 
 		await expect(getMarket({
-		binding,
 			chainId: 8453,
 			marketId: market.marketId,
 		})).resolves.toEqual({
@@ -493,7 +481,6 @@ describe('Morpho GraphQL market enumeration', () => {
 		})))
 
 		await expect(getMarket({
-		binding,
 			chainId: 8453,
 			marketId: market.marketId,
 		})).resolves.toMatchObject({
@@ -525,7 +512,6 @@ describe('Morpho GraphQL market enumeration', () => {
 		})))
 
 		await expect(listMarkets({
-		binding,
 			chainIds: [
 				8453,
 			],
@@ -553,7 +539,6 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 		})))
 
 		await expect(listVaults({
-		binding,
 			chainIds: [
 				1,
 			],
@@ -583,9 +568,9 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 			],
 			countTotal: 1,
 		})
-		expect(sourceFetch).toHaveBeenCalledWith(
-			binding,
-			'https://api.morpho.org/graphql',
+	expect(sourceFetch).toHaveBeenCalledWith(
+		binding,
+		'https://api.morpho.org/graphql',
 			expect.objectContaining({
 				method: 'POST',
 			})
@@ -623,7 +608,6 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 		})))
 
 		await expect(listVaults({
-		binding,
 			chainIds: [
 				8453,
 			],
@@ -635,7 +619,6 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 
 	it('rejects unsupported chains before transport', async () => {
 		await expect(listVaults({
-		binding,
 			chainIds: [
 				999_999,
 			],
@@ -645,7 +628,6 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 
 	it('rejects invalid limits before transport', async () => {
 		await expect(listVaults({
-		binding,
 			chainIds: [
 				1,
 			],
@@ -662,7 +644,6 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 		})))
 
 		await expect(getVault({
-		binding,
 			chainId: 1,
 			address: vault.address,
 		})).resolves.toMatchObject({
@@ -696,7 +677,6 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 		})))
 
 		await expect(getVault({
-		binding,
 			chainId: 1,
 			address: vault.address,
 		})).resolves.toEqual({
@@ -724,7 +704,6 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 		})))
 
 		await expect(getVault({
-		binding,
 			chainId: 1,
 			address: vault.address,
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: invalid totalAssets`)
@@ -747,7 +726,6 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 		})))
 
 		await expect(getVault({
-		binding,
 			chainId: 1,
 			address: vault.address,
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: invalid vault response envelope`)
@@ -759,7 +737,6 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 		})))
 
 		await expect(getVault({
-		binding,
 			chainId: 1,
 			address: vault.address,
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: vault response missing vaultByAddress`)
@@ -785,7 +762,6 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 		})))
 
 		await expect(listVaults({
-		binding,
 			chainIds: [
 				1,
 			],
@@ -849,7 +825,6 @@ describe('Morpho GraphQL account positions', () => {
 		})))
 
 		await expect(getAccountPositions({
-		binding,
 			chainId: 1,
 			account: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
 		})).resolves.toEqual([
@@ -889,7 +864,6 @@ describe('Morpho GraphQL account positions', () => {
 		})))
 
 		await expect(getAccountPositions({
-		binding,
 			chainId: 1,
 			account: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
 		})).resolves.toEqual([])
@@ -897,7 +871,6 @@ describe('Morpho GraphQL account positions', () => {
 
 	it('rejects unsupported chains before transport', async () => {
 		await expect(getAccountPositions({
-		binding,
 			chainId: 999999,
 			account: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: unsupported chain id 999999`)
@@ -915,7 +888,6 @@ describe('Morpho GraphQL account positions', () => {
 		})))
 
 		await expect(getAccountPositions({
-		binding,
 			chainId: 1,
 			account: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: invalid account positions response envelope`)
@@ -969,7 +941,6 @@ describe('Morpho GraphQL account positions', () => {
 			})))
 
 		await expect(getAccountPositions({
-		binding,
 			chainId: 1,
 			account: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
 		})).resolves.toEqual([
@@ -987,7 +958,6 @@ describe('Morpho GraphQL account positions', () => {
 			},
 		])
 		await expect(getAccountPositions({
-		binding,
 			chainId: 1,
 			account: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
 		})).rejects.toThrow(`${Source.Morpho_Graphql}: invalid supplyAssets`)

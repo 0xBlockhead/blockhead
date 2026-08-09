@@ -4,7 +4,7 @@
  * @see https://docs.morpho.org/developers/api/morpho-vaults/
  */
 import { Source } from '$/sources/Source.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Morpho/bindings.ts'
 
 import {
 	morphoGraphqlNetworkByChainId,
@@ -32,6 +32,8 @@ import {
 	type MorphoGraphqlVaultWire,
 } from './types.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+
+const binding = bindings[Source.Morpho_Graphql][0]
 
 const marketFields = `
 	marketId
@@ -468,12 +470,9 @@ const normalizeVault = (
 
 /** List Morpho Blue markets filtered to supported EIP-155 chains, with authoritative `pageInfo.countTotal`. */
 export const listMarkets = async ({
-	binding,
 	chainIds,
 	limit = morphoMarketPageLimit,
-}: {
-	binding: SourceBinding
-	chainIds: readonly number[]
+}: {	chainIds: readonly number[]
 	limit?: number
 }) => {
 	if (chainIds.length < 1)
@@ -529,12 +528,9 @@ export const listMarkets = async ({
 
 /** Read one Morpho Blue market by its EIP-155 chain and bytes32 market id. */
 export const getMarket = async ({
-	binding,
 	chainId,
 	marketId,
-}: {
-	binding: SourceBinding
-	chainId: number
+}: {	chainId: number
 	marketId: string
 }) => {
 	assertChainId(chainId)
@@ -573,12 +569,9 @@ export const getMarket = async ({
 
 /** List MetaMorpho vaults filtered to supported EIP-155 chains, with authoritative `pageInfo.countTotal`. */
 export const listVaults = async ({
-	binding,
 	chainIds,
 	limit = morphoVaultPageLimit,
-}: {
-	binding: SourceBinding
-	chainIds: readonly number[]
+}: {	chainIds: readonly number[]
 	limit?: number
 }) => {
 	if (chainIds.length < 1)
@@ -634,12 +627,9 @@ export const listVaults = async ({
 
 /** Read one MetaMorpho vault by its EIP-155 chain and vault contract address. */
 export const getVault = async ({
-	binding,
 	chainId,
 	address,
-}: {
-	binding: SourceBinding
-	chainId: number
+}: {	chainId: number
 	address: string
 }) => {
 	assertChainId(chainId)
@@ -752,12 +742,9 @@ const normalizeVaultPosition = (
  * @see https://docs.morpho.org/tools/offchain/api/morpho-vaults/
  */
 export const getAccountPositions = async ({
-	binding,
 	chainId,
 	account,
-}: {
-	binding: SourceBinding
-	chainId: number
+}: {	chainId: number
 	account: string
 }): Promise<MorphoGraphqlAccountPosition[]> => {
 	assertChainId(chainId)
