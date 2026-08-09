@@ -131,7 +131,7 @@ describe('Sui GraphQL public-account resolver', () => {
 			terminal: false,
 			token: 'balance-cursor',
 		})
-		expect(executeSui.mock.calls[0][1]).toEqual({
+		expect(executeSui.mock.calls[0][2]).toEqual({
 			address: canonicalAddress,
 			first: 2,
 		})
@@ -212,7 +212,7 @@ describe('Sui GraphQL public-account resolver', () => {
 			},
 		})
 
-		expect(executeSui.mock.calls[0][1]).toEqual({
+		expect(executeSui.mock.calls[0][2]).toEqual({
 			address: canonicalAddress,
 			first: 50,
 		})

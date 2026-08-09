@@ -5,13 +5,14 @@ import type {
 	NostrRelaySocket,
 	NostrRelaySubscriptionEvent,
 } from '$/sources/NostrRelay/WebSocket/types.ts'
-import bindings from '$/sources/NostrRelay/bindings.ts'
 import {
 	validateNostrEvent,
 	validatedNostrEventFromContent,
 } from '$/sources/NostrRelay/Nip01/event.ts'
-import { Source } from '$/sources/Source.ts'
-import { SourceOperationGroup } from '$/sources/SourceBinding.ts'
+import {
+	SourceEndpointKind,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 import {
 	isJsonArray,
 	isJsonNumber,
@@ -456,7 +457,15 @@ export const nostrCommentFromEvent = (
 	}
 }
 
-export const openRelaySocket = (relayUrl: string) => new WebSocket(relayWebSocketUrl(relayUrl))
+const relayUrlForBinding = (binding: SourceBinding) => {
+	for (const endpoint of binding.endpoints)
+		if (endpoint.endpointKind === SourceEndpointKind.WebSocketUrl)
+			return relayWebSocketUrl(endpoint.locator)
+
+	throw new Error(`${binding.source}: binding has no WebSocket endpoint`)
+}
+
+export const openRelaySocket = (binding: SourceBinding) => new WebSocket(relayUrlForBinding(binding))
 
 export const sendRelayMessage = (
 	socket: NostrRelaySocket,
@@ -466,17 +475,17 @@ export const sendRelayMessage = (
 }
 
 export const listRelayEvents = ({
-	relayUrl,
+	binding,
 	filters,
 	signal,
 	timeoutMs = 10_000,
 	socketFactory = openRelaySocket,
 }: {
-	relayUrl: string
+	binding: SourceBinding
 	filters: readonly NostrRelayFilter[]
 	signal?: AbortSignal
 	timeoutMs?: number
-	socketFactory?: (relayUrl: string) => NostrRelaySocket
+	socketFactory?: (binding: SourceBinding) => NostrRelaySocket
 }) => {
 	if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1)
 		throw new Error('Nostr relay snapshot timeout must be a positive integer')
@@ -514,7 +523,7 @@ export const listRelayEvents = ({
 			once: true,
 		})
 		subscription = openRelaySubscription({
-			relayUrl,
+			binding,
 			subscriptionId: 'blockhead-snapshot',
 			filters,
 			signal: querySignal,
@@ -539,44 +548,25 @@ export const listRelayEvents = ({
 	})
 }
 
-type NostrRelaySnapshotOperationGroup =
-	| SourceOperationGroup.NostrRelayRead
-	| SourceOperationGroup.NostrSearch
-
-export const nostrRelaySnapshotBindings = (
-	operationGroup: NostrRelaySnapshotOperationGroup = SourceOperationGroup.NostrRelayRead
-) => {
-	const selectedBindings = bindings[Source.NostrRelay_WebSocket].filter((binding) => (
-		binding.operationGroups.some((candidate) => candidate === operationGroup)
-	))
-	if (selectedBindings.length === 0)
-		throw new Error('Nostr relay snapshot has no selected WebSocket bindings')
-
-	return selectedBindings
-}
-
 export const listNostrRelayEvents = async ({
+	bindings,
 	filters,
-	operationGroup = SourceOperationGroup.NostrRelayRead,
 	signal,
 	timeoutMs = 10_000,
 	readRelayEvents = listRelayEvents,
 }: {
+	bindings: readonly SourceBinding[]
 	filters: readonly NostrRelayFilter[]
-	operationGroup?: NostrRelaySnapshotOperationGroup
 	signal?: AbortSignal
 	timeoutMs?: number
 	readRelayEvents?: typeof listRelayEvents
 }) => {
-	const relayUrls = [...new Set(
-		nostrRelaySnapshotBindings(operationGroup).flatMap((binding) => (
-			binding.endpoints.map((endpoint) => endpoint.locator)
-		))
-	)]
+	if (bindings.length === 0)
+		throw new Error('Nostr relay snapshot has no selected WebSocket bindings')
 
-	const results = await Promise.allSettled(relayUrls.map((relayUrl) => (
+	const results = await Promise.allSettled(bindings.map((binding) => (
 		readRelayEvents({
-			relayUrl,
+			binding,
 			filters,
 			signal,
 			timeoutMs,
@@ -615,7 +605,7 @@ export const listNostrRelayEvents = async ({
 }
 
 export const openRelaySubscription = ({
-	relayUrl,
+	binding,
 	subscriptionId,
 	filters,
 	signal,
@@ -625,12 +615,12 @@ export const openRelaySubscription = ({
 	maxReconnectDelayMs = 10_000,
 	maxSeenEventIds = 100_000,
 }: {
-	relayUrl: string
+	binding: SourceBinding
 	subscriptionId: string
 	filters: readonly NostrRelayFilter[]
 	signal?: AbortSignal
 	onEvent: (event: NostrRelaySubscriptionEvent) => void
-	socketFactory?: (relayUrl: string) => NostrRelaySocket
+	socketFactory?: (binding: SourceBinding) => NostrRelaySocket
 	initialReconnectDelayMs?: number
 	maxReconnectDelayMs?: number
 	maxSeenEventIds?: number
@@ -645,7 +635,7 @@ export const openRelaySubscription = ({
 		|| maxSeenEventIds < 1
 	) throw new Error('Nostr relay subscription limits are invalid')
 
-	const normalizedRelayUrl = relayWebSocketUrl(relayUrl)
+	const normalizedRelayUrl = relayUrlForBinding(binding)
 	let activeSocket: NostrRelaySocket | undefined
 	let reconnectTimeout: ReturnType<typeof setTimeout> | undefined
 	let reconnectDelayMs = initialReconnectDelayMs
@@ -690,7 +680,7 @@ export const openRelaySubscription = ({
 
 	const connect = () => {
 		if (stopped) return
-		const socket = socketFactory(normalizedRelayUrl)
+		const socket = socketFactory(binding)
 		activeSocket = socket
 		let requestSent = false
 

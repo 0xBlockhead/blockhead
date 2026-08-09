@@ -1,6 +1,7 @@
 import { initGraphQLTada } from 'gql.tada'
 
 import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { executeAptosIndexer } from './client.ts'
 import {
 	aptosIndexerAccountTransactionsDataWire,
@@ -153,6 +154,7 @@ const versionedTableItemDocument = graphql(`
 `)
 
 export const getAccountTransactions = (
+	binding: SourceBinding,
 	accountAddress: string,
 	limit = 100,
 	offset = 0
@@ -166,7 +168,7 @@ export const getAccountTransactions = (
 	if (limit === 0)
 		return Promise.resolve([])
 
-	return executeAptosIndexer(accountTransactionsDocument, {
+	return executeAptosIndexer(binding, accountTransactionsDocument, {
 		accountAddress,
 		limit,
 		offset,
@@ -197,9 +199,10 @@ export const getAccountTransactions = (
 }
 
 export const getTransaction = (
+	binding: SourceBinding,
 	version: bigint
 ) => (
-	executeAptosIndexer(transactionDocument, {
+	executeAptosIndexer(binding, transactionDocument, {
 		version: version.toString(),
 	}).then((data) => (
 		assertEnvelope(
@@ -213,6 +216,7 @@ export const getTransaction = (
 )
 
 export const getCurrentFungibleAssetBalances = (
+	binding: SourceBinding,
 	ownerAddress: string,
 	limit = 100,
 	offset = 0
@@ -226,7 +230,7 @@ export const getCurrentFungibleAssetBalances = (
 	if (limit === 0)
 		return Promise.resolve([])
 
-	return executeAptosIndexer(currentFungibleAssetBalancesDocument, {
+	return executeAptosIndexer(binding, currentFungibleAssetBalancesDocument, {
 		ownerAddress,
 		limit,
 		offset,
@@ -252,9 +256,10 @@ export const getCurrentFungibleAssetBalances = (
 }
 
 export const getCurrentFungibleAssetBalance = (
+	binding: SourceBinding,
 	storageId: string
 ) => (
-	executeAptosIndexer(currentFungibleAssetBalanceDocument, {
+	executeAptosIndexer(binding, currentFungibleAssetBalanceDocument, {
 		storageId,
 	}).then((data) => (
 		assertEnvelope(
@@ -267,6 +272,7 @@ export const getCurrentFungibleAssetBalance = (
 )
 
 export const getTableItem = async (
+	binding: SourceBinding,
 	tableHandle: string,
 	keyHash: string,
 	ledgerVersion?: bigint
@@ -274,7 +280,7 @@ export const getTableItem = async (
 	const current = assertEnvelope(
 		'current table item',
 		aptosIndexerCurrentTableItemsDataWire,
-		await executeAptosIndexer(currentTableItemDocument, {
+		await executeAptosIndexer(binding, currentTableItemDocument, {
 			keyHash,
 			tableHandle,
 		})
@@ -292,7 +298,7 @@ export const getTableItem = async (
 		versioned: assertEnvelope(
 			'versioned table item',
 			aptosIndexerVersionedTableItemsDataWire,
-			await executeAptosIndexer(versionedTableItemDocument, {
+			await executeAptosIndexer(binding, versionedTableItemDocument, {
 				key: current.key,
 				tableHandle,
 				transactionVersion: ledgerVersion.toString(),

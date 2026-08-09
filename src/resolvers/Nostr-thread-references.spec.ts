@@ -356,6 +356,7 @@ describe('Nostr thread references', () => {
 			} else {
 				expect(listNostrRelayEvents.mock.calls.slice(-2)).toEqual([
 					[{
+						bindings: expect.any(Array),
 						filters: [{
 							'#e': [replyEventId],
 							kinds: [1],
@@ -363,6 +364,7 @@ describe('Nostr thread references', () => {
 						}],
 					}],
 					[{
+						bindings: expect.any(Array),
 						filters: [{
 							'#e': [replyEventId],
 							kinds: [7],
@@ -395,6 +397,7 @@ describe('Nostr thread references', () => {
 			}))
 			if (source === 'NostrRelay')
 				expect(listNostrRelayEvents).toHaveBeenLastCalledWith({
+					bindings: expect.any(Array),
 					filters: [{
 						'#d': ['target'],
 						authors: [pubkey],
@@ -460,6 +463,7 @@ describe('Nostr thread references', () => {
 		expect(article).not.toHaveProperty('content')
 		expect(article.$latestEvent[EntityMetaKey.Selector]).toEqual({ eventId: articleVersions[0].id })
 		expect(listNostrRelayEvents).toHaveBeenLastCalledWith({
+			bindings: expect.any(Array),
 			filters: [{
 				'#d': ['target'],
 				authors: [pubkey],
@@ -485,6 +489,7 @@ describe('Nostr thread references', () => {
 		expect(profile).not.toHaveProperty('displayName')
 		expect(profile.$latestMetadataEvent[EntityMetaKey.Selector]).toEqual({ eventId: profileVersions[0].id })
 		expect(listNostrRelayEvents).toHaveBeenLastCalledWith({
+			bindings: expect.any(Array),
 			filters: [{
 				authors: [pubkey],
 				kinds: [0],

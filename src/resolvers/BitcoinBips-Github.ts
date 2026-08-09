@@ -5,7 +5,10 @@ import {
 import type { RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import defineSpecificationProposalResolvers from '$/resolvers/SpecificationProposal.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
+import bindings from '$/sources/BitcoinBips/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+
+const bitcoinBipsBinding = bindings[Source.BitcoinBips_Github][0]
 
 const bipMetadataValue = (text: string, key: string) => (
 	new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, 'im').exec(text)?.[1]?.trim()
@@ -38,7 +41,7 @@ export default {
 		},
 		resolveProposalIndex: async () => {
 			const { getProposalFiles } = await import('$/sources/BitcoinBips/Github/queries.ts')
-			return (await getProposalFiles()).map(({ number }) => ({
+			return (await getProposalFiles(bitcoinBipsBinding)).map(({ number }) => ({
 				[EntityMetaKey.Selector]: {
 					realm: SpecificationRealm.Bitcoin,
 					category: ProposalCategory.Bip,

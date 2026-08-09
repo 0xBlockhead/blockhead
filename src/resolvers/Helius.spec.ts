@@ -20,8 +20,10 @@ vi.mock('$/sources/Helius/Rest/queries.ts', () => ({
 }))
 
 vi.mock('$/sources/Helius/Das/queries.ts', () => ({
-	getAsset,
-	getAssetsByOwner,
+	heliusDasQueries: vi.fn(() => ({
+		getAsset,
+		getAssetsByOwner,
+	})),
 }))
 
 const { default: helius } = await import('$/resolvers/Helius.ts')
@@ -108,6 +110,9 @@ describe('Helius resolver source binding', () => {
 		}, context)
 
 		expect(getEnhancedTransactions).toHaveBeenCalledWith({
+			binding: expect.objectContaining({
+				source: Source.Helius,
+			}),
 			signatures: ['transaction-signature'],
 			publicEnv: context.publicEnv,
 		})

@@ -67,6 +67,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 		})
 
 		await expect(getAddressBalances({
+			binding,
 			address,
 			limit: 10,
 			after: 'current-cursor',
@@ -92,12 +93,13 @@ describe('Sui GraphQL account portfolio queries', () => {
 			},
 			delivery: SourceDelivery.RemoteQuery,
 		})
-		expect(executeSui.mock.calls[0][1]).toEqual({
+		expect(executeSui.mock.calls[0][0]).toBe(binding)
+		expect(executeSui.mock.calls[0][2]).toEqual({
 			address,
 			first: 10,
 			after: 'current-cursor',
 		})
-		expect(print(executeSui.mock.calls[0][0])).toContain('balances(first: $first, after: $after)')
+		expect(print(executeSui.mock.calls[0][1])).toContain('balances(first: $first, after: $after)')
 	})
 
 	it('queries affected-address activity with lossless digest and cursor identities', async () => {
@@ -117,6 +119,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 		})
 
 		await expect(getAddressTransactions({
+			binding,
 			address,
 			limit: 1,
 		})).resolves.toEqual({
@@ -131,11 +134,11 @@ describe('Sui GraphQL account portfolio queries', () => {
 				nextAfter: 'next-cursor',
 			},
 		})
-		expect(executeSui.mock.calls[0][1]).toEqual({
+		expect(executeSui.mock.calls[0][2]).toEqual({
 			address,
 			first: 1,
 		})
-		expect(print(executeSui.mock.calls[0][0])).toContain('filter: {affectedAddress: $address}')
+		expect(print(executeSui.mock.calls[0][1])).toContain('filter: {affectedAddress: $address}')
 	})
 
 	it('normalizes shorthand addresses to the canonical GraphQL identity', async () => {
@@ -154,12 +157,13 @@ describe('Sui GraphQL account portfolio queries', () => {
 		})
 
 		await expect(getAddressBalances({
+			binding,
 			address: '0x2',
 			limit: 1,
 		})).resolves.toMatchObject({
 			balances: [],
 		})
-		expect(executeSui.mock.calls[0][1]).toEqual({
+		expect(executeSui.mock.calls[0][2]).toEqual({
 			address: canonicalAddress,
 			first: 1,
 		})
@@ -212,6 +216,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 		for (const payload of balanceFailures) {
 			executeSui.mockResolvedValueOnce(payload)
 			await expect(getAddressBalances({
+				binding,
 				address,
 				limit: 2,
 			})).rejects.toThrow()
@@ -251,6 +256,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 		]) {
 			executeSui.mockResolvedValueOnce(payload)
 			await expect(getAddressTransactions({
+				binding,
 				address,
 				limit: 2,
 			})).rejects.toThrow()
@@ -269,6 +275,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 			},
 		})
 		await expect(getAddressTransactions({
+			binding,
 			address,
 			limit: 2,
 			after: 'current-cursor',
@@ -288,6 +295,7 @@ describe('Sui GraphQL account portfolio queries', () => {
 			await expect(getAddressBalances(request)).rejects.toThrow()
 
 		await expect(getAddressTransactions({
+			binding,
 			address,
 			limit: 0,
 			after: 'cursor',
@@ -333,7 +341,7 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 				checkpoint: tipCheckpoint,
 			})
 
-		await expect(getLatestCheckpoint()).resolves.toEqual({
+		await expect(getLatestCheckpoint(binding)).resolves.toEqual({
 			sequence: 100n,
 			digest: 'CheckpointDigest',
 			previousDigest: 'PreviousDigest',
@@ -342,18 +350,18 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 			epoch: 42n,
 			protocolVersion: 88n,
 		})
-		await expect(getCheckpointBySequence(100n)).resolves.toMatchObject({
+		await expect(getCheckpointBySequence(binding, 100n)).resolves.toMatchObject({
 			sequence: 100n,
 			digest: 'CheckpointDigest',
 		})
-		await expect(getCheckpointByDigest('CheckpointDigest')).resolves.toMatchObject({
+		await expect(getCheckpointByDigest(binding, 'CheckpointDigest')).resolves.toMatchObject({
 			sequence: 100n,
 		})
-		expect(executeSui.mock.calls[1][1]).toEqual({
+		expect(executeSui.mock.calls[1][2]).toEqual({
 			sequenceNumber: '100',
 		})
-		expect(print(executeSui.mock.calls[0][0])).toContain('checkpoint {')
-		expect(print(executeSui.mock.calls[2][0])).toContain('checkpoint(digest: $digest)')
+		expect(print(executeSui.mock.calls[0][1])).toContain('checkpoint {')
+		expect(print(executeSui.mock.calls[2][1])).toContain('checkpoint(digest: $digest)')
 	})
 
 	it('lists recent network transactions with pagination', async () => {
@@ -370,6 +378,7 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 		})
 
 		await expect(getRecentTransactions({
+			binding,
 			limit: 1,
 			after: 'cursor',
 		})).resolves.toEqual({
@@ -385,7 +394,7 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 				nextAfter: 'next-cursor',
 			},
 		})
-		expect(print(executeSui.mock.calls[0][0])).toContain('SuiRecentTransactions')
+		expect(print(executeSui.mock.calls[0][1])).toContain('SuiRecentTransactions')
 	})
 
 	it('projects transaction identity, kind, gas, checkpoint effects, and nested facets', async () => {
@@ -518,7 +527,7 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 			},
 		})
 
-		await expect(getTransaction('TransactionDigest')).resolves.toEqual({
+		await expect(getTransaction(binding, 'TransactionDigest')).resolves.toEqual({
 			digest: 'TransactionDigest',
 			sender: `0x${'0'.repeat(63)}2`,
 			transactionKind: 'ProgrammableTransaction',
@@ -603,10 +612,10 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 				},
 			}],
 		})
-		expect(print(executeSui.mock.calls[0][0])).toContain('balanceChanges')
-		expect(print(executeSui.mock.calls[0][0])).toContain('objectChanges')
-		expect(print(executeSui.mock.calls[0][0])).toContain('MoveCallCommand')
-		expect(print(executeSui.mock.calls[0][0])).toContain('TransferObjectsCommand')
+		expect(print(executeSui.mock.calls[0][1])).toContain('balanceChanges')
+		expect(print(executeSui.mock.calls[0][1])).toContain('objectChanges')
+		expect(print(executeSui.mock.calls[0][1])).toContain('MoveCallCommand')
+		expect(print(executeSui.mock.calls[0][1])).toContain('TransferObjectsCommand')
 	})
 
 	it('projects owned objects, object tip, coin metadata, and package modules', async () => {
@@ -683,6 +692,7 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 			})
 
 		await expect(getAddressObjects({
+			binding,
 			address: '0x2',
 			limit: 1,
 		})).resolves.toEqual({
@@ -697,7 +707,7 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 				nextAfter: 'next-cursor',
 			},
 		})
-		await expect(getObject('0xabc')).resolves.toEqual({
+		await expect(getObject(binding, '0xabc')).resolves.toEqual({
 			objectId: `0x${'0'.repeat(61)}abc`,
 			version: 3n,
 			digest: 'ObjectDigest',
@@ -712,7 +722,7 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 				balance: '1',
 			},
 		})
-		await expect(getCoinMetadata('0x2::sui::SUI')).resolves.toEqual({
+		await expect(getCoinMetadata(binding, '0x2::sui::SUI')).resolves.toEqual({
 			coinType: '0x2::sui::SUI',
 			metadataObjectId: `0x${'0'.repeat(61)}abc`,
 			decimals: 9,
@@ -721,7 +731,7 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 			description: 'Sui Coin',
 			iconUrl: 'https://example.com/sui.png',
 		})
-		await expect(getPackage('0x2')).resolves.toEqual({
+		await expect(getPackage(binding, '0x2')).resolves.toEqual({
 			packageId: `0x${'0'.repeat(63)}2`,
 			version: 1n,
 			digest: 'PackageDigest',
@@ -764,9 +774,9 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 				transaction: null,
 			})
 
-		await expect(getLatestCheckpoint()).rejects.toThrow('missing digest')
-		await expect(getCheckpointBySequence(100n)).rejects.toThrow('sequence mismatch')
-		await expect(getTransaction('TransactionDigest')).rejects.toThrow('missing checkpoint effects')
-		await expect(getTransaction('TransactionDigest')).rejects.toThrow('was not found')
+		await expect(getLatestCheckpoint(binding)).rejects.toThrow('missing digest')
+		await expect(getCheckpointBySequence(binding, 100n)).rejects.toThrow('sequence mismatch')
+		await expect(getTransaction(binding, 'TransactionDigest')).rejects.toThrow('missing checkpoint effects')
+		await expect(getTransaction(binding, 'TransactionDigest')).rejects.toThrow('was not found')
 	})
 })

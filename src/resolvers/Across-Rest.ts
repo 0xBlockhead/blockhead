@@ -21,9 +21,11 @@ import {
 	acrossChainByChainId,
 	acrossDepositStatusByStatus,
 } from '$/sources/Across/Rest/constants.ts'
+import bindings from '$/sources/Across/bindings.ts'
 import type { AcrossDeposit } from '$/sources/Across/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
+const acrossBinding = bindings[Source.Across_Rest][0]
 
 const acrossTransferIdParts = (
 	transferId: string
@@ -217,7 +219,7 @@ const loadAcrossDeposit = async (
 
 	const { originChainId, depositId } = acrossTransferIdParts(transfer.transferId)
 	const { getDeposit } = await import('$/sources/Across/Rest/queries.ts')
-	const { deposit } = await getDeposit({
+	const { deposit } = await getDeposit(acrossBinding, {
 		originChainId,
 		depositId,
 	})
@@ -292,7 +294,7 @@ export default {
 				OriginChainIdDepositId: {
 					resolve: async ({ originChainId, depositId }) => {
 						const { getDeposit } = await import('$/sources/Across/Rest/queries.ts')
-						const { deposit } = await getDeposit({
+						const { deposit } = await getDeposit(acrossBinding, {
 							originChainId,
 							depositId: String(depositId),
 						})

@@ -17,7 +17,10 @@ import {
 	relayWebSocketUrl,
 } from '$/sources/NostrRelay/WebSocket/queries.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceOperationGroup } from '$/sources/SourceBinding.ts'
+import {
+	SourceEndpointKind,
+	SourceOperationGroup,
+} from '$/sources/SourceBinding.ts'
 import {
 	nostrEventId,
 	type NostrEventEnvelope,
@@ -29,6 +32,19 @@ import {
 	it,
 	vi,
 } from 'vitest'
+
+const webSocketBindings = bindings[Source.NostrRelay_WebSocket]
+const bindingForRelayUrl = (relayUrl: string) => ({
+	...webSocketBindings[0],
+	target: {
+		...webSocketBindings[0].target,
+		key: relayUrl,
+	},
+	endpoints: [{
+		endpointKind: SourceEndpointKind.WebSocketUrl,
+		locator: relayUrl,
+	}],
+})
 
 const secretKey = Hex.toBytes(`0x${'01'.repeat(32)}`)
 const pubkey = Hex.fromBytes(schnorr.getPublicKey(secretKey)).slice(2)
@@ -408,7 +424,7 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		const socket = new RelaySocketFixture()
 		const events: { type: string }[] = []
 		const subscription = openRelaySubscription({
-			relayUrl: 'wss://relay.example',
+			binding: bindingForRelayUrl('wss://relay.example'),
 			subscriptionId: 'notes',
 			filters: [{
 				kinds: [1],
@@ -471,7 +487,7 @@ describe('Nostr relay WebSocket subscriptions', () => {
 			id: 'invalid-event-id',
 		}
 		const result = listRelayEvents({
-			relayUrl: 'https://relay.example/path',
+			binding: bindingForRelayUrl('https://relay.example/path'),
 			filters: [{
 				kinds: [
 					6,
@@ -528,7 +544,7 @@ describe('Nostr relay WebSocket subscriptions', () => {
 	it('rejects relay closure without sending a redundant CLOSE', async () => {
 		const socket = new RelaySocketFixture()
 		const result = listRelayEvents({
-			relayUrl: 'wss://relay.example',
+			binding: bindingForRelayUrl('wss://relay.example'),
 			filters: [{
 				kinds: [1],
 			}],
@@ -561,7 +577,7 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		const cancelledSocket = new RelaySocketFixture()
 		const abortController = new AbortController()
 		const cancelledResult = listRelayEvents({
-			relayUrl: 'wss://relay.example',
+			binding: bindingForRelayUrl('wss://relay.example'),
 			filters: [{
 				kinds: [1],
 			}],
@@ -581,7 +597,7 @@ describe('Nostr relay WebSocket subscriptions', () => {
 
 		const timedOutSocket = new RelaySocketFixture()
 		const timedOutResult = listRelayEvents({
-			relayUrl: 'wss://relay.example',
+			binding: bindingForRelayUrl('wss://relay.example'),
 			filters: [{
 				kinds: [1],
 			}],
@@ -609,8 +625,8 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		)]
 		expect(relayUrls.length).toBeGreaterThanOrEqual(3)
 		const pendingReads = relayUrls.map(() => Promise.withResolvers<NostrRelayEvent[]>())
-		const readRelayEvents = vi.fn<typeof listRelayEvents>(({ relayUrl }) => (
-			pendingReads[relayUrls.indexOf(relayUrl)].promise
+		const readRelayEvents = vi.fn<typeof listRelayEvents>(({ binding }) => (
+			pendingReads[relayUrls.indexOf(binding.endpoints[0].locator)].promise
 		))
 		const filters = [{
 			kinds: [
@@ -621,13 +637,14 @@ describe('Nostr relay WebSocket subscriptions', () => {
 			limit: 8,
 		}]
 		const result = listNostrRelayEvents({
+			bindings: webSocketBindings.filter((binding) => binding.operationGroups.includes(SourceOperationGroup.NostrRelayRead)),
 			filters,
 			timeoutMs: 250,
 			readRelayEvents,
 		})
 
 		expect(readRelayEvents).toHaveBeenCalledTimes(relayUrls.length)
-		expect(readRelayEvents.mock.calls.map(([options]) => options.relayUrl)).toEqual(relayUrls)
+		expect(readRelayEvents.mock.calls.map(([options]) => options.binding.endpoints[0].locator)).toEqual(relayUrls)
 		pendingReads[0].resolve([
 			{
 				id: 'event-z',
@@ -680,12 +697,13 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		const readRelayEvents = vi.fn<typeof listRelayEvents>().mockResolvedValue([])
 
 		await expect(listNostrRelayEvents({
+			bindings: webSocketBindings.filter((binding) => binding.operationGroups.includes(SourceOperationGroup.NostrRelayRead)),
 			filters: [{
 				kinds: [0],
 			}],
 			readRelayEvents,
 		})).resolves.toEqual([])
-		expect(readRelayEvents.mock.calls.map(([options]) => options.relayUrl)).toEqual(selectedRelayUrls)
+		expect(readRelayEvents.mock.calls.map(([options]) => options.binding.endpoints[0].locator)).toEqual(selectedRelayUrls)
 	})
 
 	it('caps merged relay results to the requested filter limits', async () => {
@@ -705,6 +723,7 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		])
 
 		await expect(listNostrRelayEvents({
+			bindings: webSocketBindings.filter((binding) => binding.operationGroups.includes(SourceOperationGroup.NostrRelayRead)),
 			filters: [{
 				kinds: [1],
 				limit: 2,
@@ -729,6 +748,7 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		)
 
 		await expect(listNostrRelayEvents({
+			bindings: webSocketBindings.filter((binding) => binding.operationGroups.includes(SourceOperationGroup.NostrRelayRead)),
 			filters: [{
 				kinds: [1],
 			}],
@@ -747,7 +767,7 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		const abortController = new AbortController()
 		const events: { relayUrl: string }[] = []
 		const subscription = openRelaySubscription({
-			relayUrl: 'wss://relay.example',
+			binding: bindingForRelayUrl('wss://relay.example'),
 			subscriptionId: 'resume',
 			filters: [{
 				kinds: [1],
@@ -820,15 +840,15 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		vi.useFakeTimers()
 		const createdSockets: RelaySocketFixture[] = []
 		const subscription = openRelaySubscription({
-			relayUrl: 'https://relay.example',
+			binding: bindingForRelayUrl('https://relay.example'),
 			subscriptionId: 'backoff',
 			filters: [{
 				kinds: [1],
 			}],
 			initialReconnectDelayMs: 10,
 			maxReconnectDelayMs: 20,
-			socketFactory: (relayUrl) => {
-				expect(relayUrl).toBe('wss://relay.example/')
+			socketFactory: (binding) => {
+				expect(binding.endpoints[0].locator).toBe('https://relay.example')
 				const socket = new RelaySocketFixture()
 				createdSockets.push(socket)
 				return socket as NostrRelaySocket
@@ -863,7 +883,7 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		const socket = new RelaySocketFixture()
 		const onEvent = vi.fn()
 		openRelaySubscription({
-			relayUrl: 'wss://relay.example',
+			binding: bindingForRelayUrl('wss://relay.example'),
 			subscriptionId: 'notes',
 			filters: [{
 				kinds: [1],
@@ -889,7 +909,7 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		const socketFactory = vi.fn(() => socket as NostrRelaySocket)
 		abortController.abort()
 		openRelaySubscription({
-			relayUrl: 'wss://relay.example',
+			binding: bindingForRelayUrl('wss://relay.example'),
 			subscriptionId: 'aborted',
 			filters: [{
 				kinds: [1],
@@ -904,7 +924,7 @@ describe('Nostr relay WebSocket subscriptions', () => {
 	it('sends CLOSE and cleans up at the event ceiling even when the callback throws', () => {
 		const socket = new RelaySocketFixture()
 		openRelaySubscription({
-			relayUrl: 'http://relay.example',
+			binding: bindingForRelayUrl('http://relay.example'),
 			subscriptionId: 'bounded',
 			filters: [{
 				kinds: [1],
@@ -943,7 +963,7 @@ describe('Nostr relay WebSocket subscriptions', () => {
 	it('cleans up relay CLOSED even when the callback throws', () => {
 		const socket = new RelaySocketFixture()
 		openRelaySubscription({
-			relayUrl: 'wss://relay.example',
+			binding: bindingForRelayUrl('wss://relay.example'),
 			subscriptionId: 'closed',
 			filters: [{
 				kinds: [1],

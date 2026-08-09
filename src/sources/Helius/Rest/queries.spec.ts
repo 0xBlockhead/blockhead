@@ -35,6 +35,7 @@ describe('Helius enhanced transaction transport', () => {
 
 	it('uses the binding-owned endpoint and browser delivery', async () => {
 		await expect(getEnhancedTransactions({
+			binding,
 			signatures: ['transaction-signature'],
 			publicEnv: {
 				PUBLIC_HELIUS_API_KEY: 'helius key',

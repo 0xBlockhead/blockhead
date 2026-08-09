@@ -1,9 +1,8 @@
 import { getPrometheusText } from '$/sources/_shared/wire/Prometheus/client.ts'
-import bindings from '$/sources/QuilibriumNodeMetrics/bindings.ts'
-import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
-export const getMetrics = () => (
-	getPrometheusText(Object.fromEntries(bindings[Source.QuilibriumNodeMetrics_Prometheus].map((binding) => [binding.target.key, binding]))['quilibrium-node'])
+export const getMetrics = (binding: SourceBinding) => (
+	getPrometheusText(binding)
 )
 
 const prometheusSampleLine = /^(?<name>[a-zA-Z_:][a-zA-Z0-9_:]*)(?:\{[^}]*\})?\s+(?<value>[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)(?:\s+\d+)?\s*$/

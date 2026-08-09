@@ -13,12 +13,26 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import { heliusBindingByApiFamily } from '$/sources/Helius/constants.ts'
+import { heliusDasQueries } from '$/sources/Helius/Das/queries.ts'
 import { Source } from '$/sources/Source.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
 import type { DasAssetWire } from '$/sources/Helius/Das/types.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
 import { SolanaInstructionKind } from '$/schema/SolanaInstructionKind.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const heliusRestBinding = heliusBindingByApiFamily[ApiFamily.RestJson]
+const heliusDasBinding = heliusBindingByApiFamily[ApiFamily.MetaplexDasJsonRpc]
+
+if (heliusRestBinding == null || heliusDasBinding == null)
+	throw new Error('Helius: required source binding is missing')
+
+const {
+	getAsset,
+	getAssetsByOwner,
+} = heliusDasQueries(heliusDasBinding)
 
 const assertSolanaMainnet = (network: NetworkId) => {
 	if (
@@ -122,6 +136,7 @@ const getTransaction = async (
 	assertSolanaMainnet($network)
 	const { getEnhancedTransactions } = await import('$/sources/Helius/Rest/queries.ts')
 	const transaction = (await getEnhancedTransactions({
+		binding: heliusRestBinding,
 		signatures: [signature],
 		publicEnv: context.publicEnv,
 	})).find((enhancedTransaction) => enhancedTransaction.signature === signature)
@@ -290,7 +305,6 @@ export default {
 				NetworkMintAddress: {
 					resolve: async ({ $network, mintAddress }, context) => {
 						assertSolanaMainnet($network)
-						const { getAsset } = await import('$/sources/Helius/Das/queries.ts')
 						const asset = await getAsset({
 							id: mintAddress,
 							publicEnv: context.publicEnv,
@@ -337,7 +351,6 @@ export default {
 					resolve: async ({ $mint, slot, source }, context) => {
 						if (source !== Source.Helius) throw new Error(`Helius: unsupported source ${source}`)
 						assertSolanaMainnet($mint.$network)
-						const { getAsset } = await import('$/sources/Helius/Das/queries.ts')
 						const asset = await getAsset({
 							id: $mint.mintAddress,
 							publicEnv: context.publicEnv,
@@ -371,7 +384,6 @@ export default {
 				NetworkPubkey: {
 					resolve: async ({ $network, pubkey }, context) => {
 						assertSolanaMainnet($network)
-						const { getAssetsByOwner } = await import('$/sources/Helius/Das/queries.ts')
 						const page = await getAssetsByOwner({
 							ownerAddress: pubkey,
 							limit: Math.min(resolverContextRowLimit(context), 1_000),
@@ -412,7 +424,6 @@ export default {
 					resolve: async ({ $account, slot, source }, context) => {
 						if (source !== Source.Helius) throw new Error(`Helius: unsupported source ${source}`)
 						assertSolanaMainnet($account.$network)
-						const { getAssetsByOwner } = await import('$/sources/Helius/Das/queries.ts')
 						const page = await getAssetsByOwner({
 							ownerAddress: $account.pubkey,
 							limit: 1,

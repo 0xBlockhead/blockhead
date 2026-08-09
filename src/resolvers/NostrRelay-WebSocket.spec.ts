@@ -74,7 +74,12 @@ describe('Nostr relay live note resolver', () => {
 		})
 
 		expect(openRelaySubscription).toHaveBeenCalledWith(expect.objectContaining({
-			relayUrl: 'wss://relay.example/path',
+			binding: expect.objectContaining({
+				target: {
+					kind: 'Feed',
+					key: 'wss://relay.example/path',
+				},
+			}),
 			subscriptionId: 'blockhead-live-notes',
 			filters: [{
 				kinds: [1],

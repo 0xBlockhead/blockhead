@@ -23,14 +23,18 @@ export const jsonRpc2 = async <_Result>(
 	params?: readonly unknown[] | Readonly<Record<string, unknown>>,
 	endpoint?: SourceEndpoint
 ) => {
-	if (
-		endpoint != null
-		&& (
-			endpoint.endpointKind !== SourceEndpointKind.HttpUrl
-			|| !binding.endpoints.some((candidate) => candidate === endpoint)
-		)
-	)
-		throw new Error(`${binding.source}: JSON-RPC endpoint is not declared by the binding`)
+	if (endpoint != null) {
+		if (endpoint.endpointKind !== SourceEndpointKind.HttpUrl)
+			throw new Error(`${binding.source}: JSON-RPC endpoint is not declared by the binding`)
+
+		let endpointIsDeclared = false
+		for (const candidate of binding.endpoints)
+			if (candidate === endpoint)
+				endpointIsDeclared = true
+
+		if (!endpointIsDeclared)
+			throw new Error(`${binding.source}: JSON-RPC endpoint is not declared by the binding`)
+	}
 
 	const body = {
 		jsonrpc: jsonRpcVersion,

@@ -328,7 +328,7 @@ describe('dYdX Indexer resolvers', () => {
 		const marketsProcessed = new Promise<void>((resolve) => {
 			markMarketsProcessed = resolve
 		})
-		subscribeDydxIndexer.mockImplementation(async function* (subscription) {
+		subscribeDydxIndexer.mockImplementation(async function* (_binding, subscription) {
 			if (subscription.channel === 'v4_markets') {
 				yield {
 					channel: 'v4_markets',
@@ -354,7 +354,7 @@ describe('dYdX Indexer resolvers', () => {
 
 		await startDydxNetworkLive(fields)
 
-		expect(subscribeDydxIndexer.mock.calls.map(([subscription]) => subscription)).toEqual([
+		expect(subscribeDydxIndexer.mock.calls.map(([, subscription]) => subscription)).toEqual([
 			{
 				channel: 'v4_markets',
 				type: 'subscribe',
@@ -433,7 +433,7 @@ describe('dYdX Indexer resolvers', () => {
 		const fields = liveFields()
 		const oracleTime = '2026-08-03T12:35:00.123Z'
 		const batchOracleTime = '2026-08-03T12:36:00.456Z'
-		subscribeDydxIndexer.mockImplementation(async function* (subscription) {
+		subscribeDydxIndexer.mockImplementation(async function* (_binding, subscription) {
 			if (subscription.channel !== 'v4_markets')
 				return
 
@@ -622,7 +622,7 @@ describe('dYdX Indexer resolvers', () => {
 		],
 	] as const)('rejects a %s from a market subscription', async (_, message, expectedError) => {
 		const fields = liveFields()
-		subscribeDydxIndexer.mockImplementation(async function* (subscription, signal) {
+		subscribeDydxIndexer.mockImplementation(async function* (_binding, subscription, signal) {
 			if (subscription.channel === 'v4_markets') {
 				yield message
 				return
@@ -638,7 +638,7 @@ describe('dYdX Indexer resolvers', () => {
 
 	it('propagates malformed provider payload failures from the typed subscription boundary', async () => {
 		const fields = liveFields()
-		subscribeDydxIndexer.mockImplementation(async function* (subscription, signal) {
+		subscribeDydxIndexer.mockImplementation(async function* (_binding, subscription, signal) {
 			if (subscription.channel === 'v4_markets')
 				throw new Error('undeclared must be removed')
 
@@ -654,7 +654,7 @@ describe('dYdX Indexer resolvers', () => {
 		const fields = liveFields()
 		const abortController = new AbortController()
 		let closedStreamCount = 0
-		subscribeDydxIndexer.mockImplementation(async function* (_, signal) {
+		subscribeDydxIndexer.mockImplementation(async function* (_binding, _subscription, signal) {
 			try {
 				await new Promise<void>((resolve) => {
 					signal.addEventListener('abort', () => resolve(), { once: true })

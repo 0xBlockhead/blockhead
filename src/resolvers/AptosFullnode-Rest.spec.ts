@@ -6,6 +6,7 @@ import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/AptosFullnode/bindings.ts'
 import {
 	ApiFamily,
+	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -32,6 +33,19 @@ const resolverFor = (entityType: EntityType) => {
 }
 
 const aptosFullnodeBinding = bindings[Source.AptosFullnode_Rest][0]
+const selectedAptosFullnodeBinding = {
+	...aptosFullnodeBinding,
+	endpoints: [{
+		...aptosFullnodeBinding.endpoints[0],
+		locator: 'https://selected-fullnode.example/v1/',
+	}],
+	credentials: [{
+		scope: SourceCredentialScope.RuntimeSecret,
+		keys: [
+		'APTOS_SELECTED_API_KEY',
+		],
+	}],
+} as const
 
 const canonicalNetwork = {
 	caip2: {
@@ -187,6 +201,7 @@ const resolverContext = {
 	parentSelectorKeys: [],
 	sources: [],
 	publicEnv: {},
+	sourceBinding: selectedAptosFullnodeBinding,
 }
 
 const aptosResponseHeaders = {
@@ -259,21 +274,21 @@ describe('Aptos Fullnode typed operations', () => {
 			.mockResolvedValueOnce(jsonAptosResponse(transaction))
 			.mockResolvedValueOnce(jsonAptosResponse(transaction))
 
-		const ledgerResponse = await queries.getLedgerInfo()
-		await queries.getAccount('0xa/b', 42n)
-		await queries.getAccountResources('0xa/b', 42n)
-		await queries.getAccountModules('0xa/b', 42n)
-		await queries.getAccountModule('0xa/b', 'coin', 42n)
-		await queries.getBlockByHeight(9n)
-		await queries.getBlockByVersion(42n, false)
-		await queries.getEventsByEventHandle('0xa/b', '0x1::event::Handle', 'events', 2n, 10)
-		await queries.getTableItem('0xtable/handle', {
+		const ledgerResponse = await queries.getLedgerInfo(aptosFullnodeBinding)
+		await queries.getAccount(aptosFullnodeBinding, '0xa/b', 42n)
+		await queries.getAccountResources(aptosFullnodeBinding, '0xa/b', 42n)
+		await queries.getAccountModules(aptosFullnodeBinding, '0xa/b', 42n)
+		await queries.getAccountModule(aptosFullnodeBinding, '0xa/b', 'coin', 42n)
+		await queries.getBlockByHeight(aptosFullnodeBinding, 9n)
+		await queries.getBlockByVersion(aptosFullnodeBinding, 42n, false)
+		await queries.getEventsByEventHandle(aptosFullnodeBinding, '0xa/b', '0x1::event::Handle', 'events', 2n, 10)
+		await queries.getTableItem(aptosFullnodeBinding, '0xtable/handle', {
 			key_type: 'address',
 			value_type: 'u64',
 			key: '0xa11ce',
 		}, 42n)
-		await queries.getTransactionByHash('0xhash/value')
-		await queries.getTransactionByVersion(42n)
+		await queries.getTransactionByHash(aptosFullnodeBinding, '0xhash/value')
+		await queries.getTransactionByVersion(aptosFullnodeBinding, 42n)
 
 		expect(Object.keys(bindings)).toEqual([Source.AptosFullnode_Rest])
 		expect(aptosFullnodeBinding).toMatchObject({
@@ -327,7 +342,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 		const getLedgerInfo = vi.spyOn(queries, 'getLedgerInfo').mockResolvedValue(response(ledgerInfo))
 		const networkResolver = resolverFor(EntityType.AptosNetwork)
 		const observations = await networkResolver.resolve['Network'].resolve(aptosNetwork, resolverContext)
-		expect(getLedgerInfo).toHaveBeenCalledOnce()
+		expect(getLedgerInfo).toHaveBeenCalledWith(selectedAptosFullnodeBinding)
 		expect(observations).toEqual([{
 			[EntityMetaKey.Selector]: {
 				$network: aptosNetwork,
@@ -351,7 +366,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 
 	it('materializes account observations and resources with exact parents', async () => {
 		vi.spyOn(queries, 'getLedgerInfo').mockResolvedValue(response(ledgerInfo))
-		vi.spyOn(queries, 'getAccount').mockImplementation(async (_address, ledgerVersion) => ({
+		vi.spyOn(queries, 'getAccount').mockImplementation(async (_binding, _address, ledgerVersion) => ({
 			body: {
 				sequence_number: '8',
 				authentication_key: '0xauth',
@@ -411,7 +426,7 @@ describe('Aptos Fullnode resolver materialization', () => {
 			blockHeight: 9n,
 			epoch: 8n,
 		})
-		expect(getBlockByVersion).toHaveBeenCalledWith(42n, false)
+		expect(getBlockByVersion).toHaveBeenCalledWith(selectedAptosFullnodeBinding, 42n, false)
 	})
 
 	it('accepts canonical Aptos identities and rejects unsupported networks before transport', async () => {
@@ -502,8 +517,8 @@ describe('Aptos Fullnode resolver materialization', () => {
 			hash: '0x42',
 		}, resolverContext)
 		expect(byVersion).toEqual(byHash)
-		expect(getTransactionByVersion).toHaveBeenCalledWith(42n)
-		expect(getTransactionByHash).toHaveBeenCalledWith('0x42')
+		expect(getTransactionByVersion).toHaveBeenCalledWith(selectedAptosFullnodeBinding, 42n)
+		expect(getTransactionByHash).toHaveBeenCalledWith(selectedAptosFullnodeBinding, '0x42')
 		expect(byVersion.stateChanges[0][EntityMetaKey.Selector]).toEqual({
 			$transaction: aptosTransaction,
 			changeIndex: 0,

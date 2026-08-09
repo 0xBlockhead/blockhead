@@ -15,11 +15,14 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import bindings from '$/sources/Arweave/bindings.ts'
 import type {
 	ArweaveGraphqlBlock,
 	ArweaveGraphqlTransaction,
 } from '$/sources/Arweave/Graphql/types.ts'
 import { Source } from '$/sources/Source.ts'
+
+const arweaveGraphqlBinding = bindings[Source.Arweave_Graphql][0]
 
 type ArweaveGraphqlTransactionPage = {
 	edges: {
@@ -283,7 +286,7 @@ const resolveBlockWithTransactions = async (
 				},
 			}
 		:
-			await queries.getBlockTransactionsPage({
+			await queries.getBlockTransactionsPage(arweaveGraphqlBinding, {
 				height: block.height,
 				first: Math.min(resolverContextRowLimit(context), 100),
 				after: context.providerContinuationToken,
@@ -316,7 +319,7 @@ export default {
 									},
 								}
 							:
-								await queries.getTransactionsPage({
+								await queries.getTransactionsPage(arweaveGraphqlBinding, {
 									first,
 									after: context.providerContinuationToken,
 								})
@@ -359,7 +362,7 @@ export default {
 									},
 								}
 							:
-								await queries.getBlocksPage({
+								await queries.getBlocksPage(arweaveGraphqlBinding, {
 									first,
 									after: context.providerContinuationToken,
 								})
@@ -421,7 +424,7 @@ export default {
 									},
 								}
 							:
-								await queries.getTransactionsPage({
+								await queries.getTransactionsPage(arweaveGraphqlBinding, {
 									first,
 									after: context.providerContinuationToken,
 								})
@@ -465,7 +468,7 @@ export default {
 									},
 								}
 							:
-								await queries.getBlocksPage({
+								await queries.getBlocksPage(arweaveGraphqlBinding, {
 									first,
 									after: context.providerContinuationToken,
 								})
@@ -528,7 +531,7 @@ export default {
 							throw new Error(`Arweave_Graphql: unsupported source ${source}`)
 
 						const { getBlocksPage } = await import('$/sources/Arweave/Graphql/queries.ts')
-						const blocks = await getBlocksPage({
+						const blocks = await getBlocksPage(arweaveGraphqlBinding, {
 							first: 1,
 						})
 						const latest = blocks.edges[0]?.node
@@ -573,7 +576,7 @@ export default {
 						const queries = await import('$/sources/Arweave/Graphql/queries.ts')
 						return resolveBlockWithTransactions(
 							$network.$network,
-							await queries.getBlockByHeight(safeHeightNumber(height)),
+							await queries.getBlockByHeight(arweaveGraphqlBinding, safeHeightNumber(height)),
 							context,
 							queries
 						)
@@ -588,7 +591,7 @@ export default {
 						const queries = await import('$/sources/Arweave/Graphql/queries.ts')
 						return resolveBlockWithTransactions(
 							$network.$network,
-							await queries.getBlockById(indepHash),
+							await queries.getBlockById(arweaveGraphqlBinding, indepHash),
 							context,
 							queries
 						)
@@ -617,7 +620,7 @@ export default {
 					resolve: async ({ $network, transactionId }) => {
 						assertArweaveNetworkHub($network)
 						const { getTransactionById } = await import('$/sources/Arweave/Graphql/queries.ts')
-						const transaction = await getTransactionById(transactionId)
+						const transaction = await getTransactionById(arweaveGraphqlBinding, transactionId)
 						if (transaction.id !== transactionId)
 							throw new Error('Arweave_Graphql: returned a foreign transaction')
 
@@ -655,7 +658,7 @@ export default {
 							throw new Error('Arweave_Graphql: invalid content path')
 
 						const { getTransactionById } = await import('$/sources/Arweave/Graphql/queries.ts')
-						const transaction = await getTransactionById(transactionId)
+						const transaction = await getTransactionById(arweaveGraphqlBinding, transactionId)
 						if (BigInt(transaction.data.size) === 0n && contentPath === '')
 							throw new Error('Arweave_Graphql: transaction has no data payload')
 

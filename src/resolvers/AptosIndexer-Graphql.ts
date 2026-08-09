@@ -4,7 +4,10 @@ import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers
 import { EntityMetaKey, entityFieldAddressKey, type EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
+import bindings from '$/sources/AptosIndexer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+
+const aptosIndexerBinding = bindings[Source.AptosIndexer_Graphql][0]
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -102,6 +105,7 @@ export const aptosAccountTransactionsResolver = aptosIndexerResolver(
 					const { getAccountTransactions } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
 
 					return (await getAccountTransactions(
+						aptosIndexerBinding,
 						entitySelector.address,
 						resolverContextRowLimit(context),
 						context.pagination.offset ?? 0
@@ -136,6 +140,7 @@ export const aptosAccountBalancesResolver = aptosIndexerResolver(
 					const { getCurrentFungibleAssetBalances } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
 
 					return (await getCurrentFungibleAssetBalances(
+						aptosIndexerBinding,
 						entitySelector.address,
 						resolverContextRowLimit(context),
 						context.pagination.offset ?? 0
@@ -189,7 +194,7 @@ export const aptosCoinBalanceResolver = aptosIndexerResolver(
 					assertAptosMainnet($account.$network.$network)
 					assertSource(source)
 					const { getCurrentFungibleAssetBalance } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
-					const balance = await getCurrentFungibleAssetBalance(storageId)
+					const balance = await getCurrentFungibleAssetBalance(aptosIndexerBinding, storageId)
 					if (
 						balance == null
 						|| balance.storage_id !== storageId
@@ -246,7 +251,7 @@ export const aptosTransactionResolver = aptosIndexerResolver(
 				resolve: async ({ $network, version }) => {
 					assertAptosMainnet($network.$network)
 					const { getTransaction } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
-					const transaction = await getTransaction(version)
+					const transaction = await getTransaction(aptosIndexerBinding, version)
 					if (transaction == null || bigintFromWire(transaction.version, 'transaction version') !== version)
 						throw new Error('AptosIndexer_Graphql: transaction version mismatch')
 
@@ -303,7 +308,7 @@ export const aptosTransactionTimestampResolver = aptosIndexerResolver(
 						throw new Error('AptosIndexer_Graphql: transaction observation version mismatch')
 
 					const { getTransaction } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
-					const transaction = await getTransaction(ledgerVersion)
+					const transaction = await getTransaction(aptosIndexerBinding, ledgerVersion)
 					if (transaction == null || bigintFromWire(transaction.version, 'transaction version') !== ledgerVersion)
 						throw new Error('AptosIndexer_Graphql: transaction version mismatch')
 
@@ -332,6 +337,7 @@ export const aptosTableItemResolver = aptosIndexerResolver(
 					assertAptosMainnet(entitySelector.$network.$network)
 					const { getTableItem } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
 					const { current } = await getTableItem(
+						aptosIndexerBinding,
 						entitySelector.tableHandle,
 						entitySelector.keyHash
 					)
@@ -392,6 +398,7 @@ export const aptosTableItemTimestampResolver = aptosIndexerResolver(
 					assertSource(source)
 					const { getTableItem } = await import('$/sources/AptosIndexer/Graphql/queries.ts')
 					const { current, versioned } = await getTableItem(
+						aptosIndexerBinding,
 						$tableItem.tableHandle,
 						$tableItem.keyHash,
 						ledgerVersion

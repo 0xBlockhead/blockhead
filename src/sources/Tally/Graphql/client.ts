@@ -1,5 +1,4 @@
-import bindings from '$/sources/Tally/bindings.ts'
-import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { graphql as queryGraphql } from '$/sources/_shared/wire/Graphql/client.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
@@ -8,11 +7,12 @@ export const maximumTallyGraphqlResponseBytes = 2_000_000
 export const queryTally = async <
 	_Result extends object,
 >(
+	binding: SourceBinding,
 	query: string,
 	variables?: JsonValue & object
 ) => {
 	const data = await queryGraphql<_Result>({
-		binding: bindings[Source.Tally][0],
+		binding,
 		maximumResponseBytes: maximumTallyGraphqlResponseBytes,
 		query,
 		variables,

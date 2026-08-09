@@ -11,6 +11,7 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import bindings from '$/sources/AtprotoBsky/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
@@ -54,6 +55,7 @@ const context = {
 	parentSelectorKeys: [],
 	sources: [],
 	publicEnv: {},
+	sourceBinding: bindings[Source.Atproto_Xrpc][0],
 }
 
 const postView = {
@@ -110,7 +112,7 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 		const rows = await observedActors.resolve.Scope.resolve({
 			scope: '_GlobalAtprotoNetwork',
 		}, context)
-		expect(searchActors).toHaveBeenCalledWith({
+		expect(searchActors).toHaveBeenCalledWith(context.sourceBinding, {
 			limit: 4,
 			q: 'bsky',
 		})

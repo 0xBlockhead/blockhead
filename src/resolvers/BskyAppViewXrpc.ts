@@ -1,4 +1,4 @@
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import { resolverContextRowLimit, resolverSourceBinding } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -13,7 +13,6 @@ import {
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import {
 	isBskyAppViewThreadViewPost,
@@ -120,31 +119,16 @@ export const bskyAppViewResolvers = (
 	source: Source.Atproto_Xrpc | Source.Atproto_BskySocial_Xrpc,
 	loadQueries: () => Promise<typeof import('$/sources/AtprotoBsky/Rest/queries.ts')>
 ) => {
-	const loadAppViewBinding = async () => {
-		const bindings = (
-			source === Source.Atproto_Xrpc ?
-				(await import('$/sources/AtprotoBsky/bindings.ts')).default
-			:
-				(await import('$/sources/AtprotoBskySocial/bindings.ts')).default
-		)
-		const binding = bindings[source]?.[0]
-		if (binding == null)
-			throw new Error(`${source}: missing AppView binding`)
-		return binding
-	}
-	const loadBindingAndQueries = async (): Promise<[
-		SourceBinding,
-		Awaited<ReturnType<typeof loadQueries>>,
-	]> => Promise.all([
-		loadAppViewBinding(),
+	const loadBindingAndQueries = async (context: Parameters<typeof resolverSourceBinding>[0]) => Promise.all([
+		resolverSourceBinding(context),
 		loadQueries(),
 	])
 
-	const atprotoNetworkHubObservation = async () => {
+	const atprotoNetworkHubObservation = async (context: Parameters<typeof resolverSourceBinding>[0]) => {
 		const [
 			binding,
 			{ searchActors, searchPosts },
-		] = await loadBindingAndQueries()
+		] = await loadBindingAndQueries(context)
 		const [
 			actorsResponse,
 			postsResponse,
@@ -174,8 +158,8 @@ export const bskyAppViewResolvers = (
 			entityType: EntityType.AtprotoActor,
 			resolve: {
 				Did: {
-					resolve: async ({ did }) => {
-						const [binding, { getProfile }] = await loadBindingAndQueries()
+					resolve: async ({ did }, context) => {
+						const [binding, { getProfile }] = await loadBindingAndQueries(context)
 						const profile = await getProfile(binding, did)
 						if (profile.did !== did)
 							throw new Error(`${source}: profile did mismatch for ${did}`)
@@ -195,8 +179,8 @@ export const bskyAppViewResolvers = (
 			entityType: EntityType.AtprotoActor,
 			resolve: {
 				Handle: {
-					resolve: async ({ handle }) => {
-						const [binding, { resolveHandle }] = await loadBindingAndQueries()
+					resolve: async ({ handle }, context) => {
+						const [binding, { resolveHandle }] = await loadBindingAndQueries(context)
 						return {
 							did: (await resolveHandle(binding, handle)).did,
 							handle,
@@ -213,8 +197,8 @@ export const bskyAppViewResolvers = (
 			entityType: EntityType.AtprotoPost,
 			resolve: {
 				Uri: {
-					resolve: async ({ uri }) => {
-						const [binding, { getPosts }] = await loadBindingAndQueries()
+					resolve: async ({ uri }, context) => {
+						const [binding, { getPosts }] = await loadBindingAndQueries(context)
 						const postView = (await getPosts(binding, [uri])).posts.at(0)
 						if (postView == null) throw new Error(`${source}: post not found`)
 						return atprotoPostFieldsFromPostView(postView)
@@ -238,8 +222,8 @@ export const bskyAppViewResolvers = (
 			entityType: EntityType.AtprotoPost_Timestamp,
 			resolve: {
 				AtprotoPostTimestampMs: {
-					resolve: async ({ $post }) => {
-						const [binding, { getPosts }] = await loadBindingAndQueries()
+					resolve: async ({ $post }, context) => {
+						const [binding, { getPosts }] = await loadBindingAndQueries(context)
 						const postView = (await getPosts(binding, [$post.uri])).posts.at(0)
 						if (postView == null) throw new Error(`${source}: post not found`)
 						return atprotoPostEngagementFromPostView(postView)
@@ -259,7 +243,7 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const [binding, { searchActors }] = await loadBindingAndQueries()
+						const [binding, { searchActors }] = await loadBindingAndQueries(context)
 						const limit = resolverContextRowLimit(context)
 						return (
 							((await searchActors(binding, {
@@ -320,7 +304,7 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const [binding, { searchPosts }] = await loadBindingAndQueries()
+						const [binding, { searchPosts }] = await loadBindingAndQueries(context)
 						const limit = resolverContextRowLimit(context)
 						return (
 							((await searchPosts(binding, {
@@ -347,9 +331,9 @@ export const bskyAppViewResolvers = (
 			entityType: EntityType._GlobalAtprotoNetwork,
 			resolve: {
 				Scope: {
-					resolve: async ({ scope }) => {
+					resolve: async ({ scope }, context) => {
 						const timestampMs = Date.now()
-						const observation = await atprotoNetworkHubObservation()
+						const observation = await atprotoNetworkHubObservation(context)
 						return {
 							$$timestamps: [{
 								[EntityMetaKey.Selector]: {
@@ -384,7 +368,7 @@ export const bskyAppViewResolvers = (
 						$hub,
 						timestampMs,
 						source: observationSource,
-					}) => {
+					}, context) => {
 						if (observationSource !== source)
 							throw new Error(`${source}: unsupported source ${observationSource}`)
 
@@ -392,7 +376,7 @@ export const bskyAppViewResolvers = (
 							$hub,
 							timestampMs,
 							source,
-							...(await atprotoNetworkHubObservation()),
+							...(await atprotoNetworkHubObservation(context)),
 						}
 					},
 				},
@@ -411,8 +395,8 @@ export const bskyAppViewResolvers = (
 			entityType: EntityType.AtprotoActor,
 			resolve: {
 				Did: {
-					resolve: async ({ did }) => {
-						const [binding, { getProfile }] = await loadBindingAndQueries()
+					resolve: async ({ did }, context) => {
+						const [binding, { getProfile }] = await loadBindingAndQueries(context)
 						const profile = await getProfile(binding, did)
 						const displayName = optionalNonemptyString(profile.displayName)
 						const description = optionalNonemptyString(profile.description)
@@ -454,7 +438,7 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Did: {
 					resolve: async ({ did }, context) => {
-						const [binding, { getAuthorFeed }] = await loadBindingAndQueries()
+						const [binding, { getAuthorFeed }] = await loadBindingAndQueries(context)
 						const limit = resolverContextRowLimit(context)
 						const { feed } = await getAuthorFeed(binding, {
 							actor: did,
@@ -480,7 +464,7 @@ export const bskyAppViewResolvers = (
 			resolve: {
 				Uri: {
 					resolve: async ({ uri }, context) => {
-						const [binding, { getPostThread }] = await loadBindingAndQueries()
+						const [binding, { getPostThread }] = await loadBindingAndQueries(context)
 						const limit = resolverContextRowLimit(context)
 						const { thread } = await getPostThread(binding, uri)
 						if (thread == null || !isBskyAppViewThreadViewPost(thread))

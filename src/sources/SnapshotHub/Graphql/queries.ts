@@ -18,6 +18,7 @@ import {
 	type SnapshotHubStrategy,
 	type SnapshotHubVote,
 } from '$/sources/SnapshotHub/Graphql/types.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	isJsonArray,
 	isJsonNumber,
@@ -307,15 +308,17 @@ const assertVote = (
 }
 
 export const getSpace = async ({
+	binding,
 	spaceId,
 }: {
+	binding: SourceBinding
 	spaceId: string
 }) => {
 	assertOpaqueIdentity(spaceId, 'requested space ID')
 	const { space } = assertEnvelope(
 		'space data envelope',
 		snapshotHubSpaceDataEnvelope,
-		await querySnapshotHub(SnapshotHubSpace, {
+		await querySnapshotHub(binding, SnapshotHubSpace, {
 			id: spaceId,
 		})
 	)
@@ -328,9 +331,11 @@ export const getSpace = async ({
 }
 
 export const getSpacesPage = async ({
+	binding,
 	limit,
 	offset,
 }: {
+	binding: SourceBinding
 	limit: number
 	offset: number
 }) => {
@@ -341,7 +346,7 @@ export const getSpacesPage = async ({
 	const { spaces } = assertEnvelope(
 		'spaces page envelope',
 		snapshotHubSpacesPageEnvelope,
-		await querySnapshotHub(SnapshotHubSpaces, {
+		await querySnapshotHub(binding, SnapshotHubSpaces, {
 			first: limit,
 			skip: offset,
 		})
@@ -359,15 +364,17 @@ export const getSpacesPage = async ({
 }
 
 export const getProposal = async ({
+	binding,
 	proposalId,
 }: {
+	binding: SourceBinding
 	proposalId: string
 }) => {
 	assertMessageIdentity(proposalId, 'requested proposal ID')
 	const { proposal } = assertEnvelope(
 		'proposal data envelope',
 		snapshotHubProposalDataEnvelope,
-		await querySnapshotHub(SnapshotHubProposal, {
+		await querySnapshotHub(binding, SnapshotHubProposal, {
 			id: proposalId,
 		})
 	)
@@ -380,11 +387,13 @@ export const getProposal = async ({
 }
 
 export const getProposalsPage = async ({
+	binding,
 	spaceId,
 	state,
 	limit,
 	offset,
 }: {
+	binding: SourceBinding
 	spaceId: string
 	state?: SnapshotHubProposalState
 	limit: number
@@ -398,7 +407,7 @@ export const getProposalsPage = async ({
 	const { proposals } = assertEnvelope(
 		'proposals page envelope',
 		snapshotHubProposalsPageEnvelope,
-		await querySnapshotHub(SnapshotHubProposals, {
+		await querySnapshotHub(binding, SnapshotHubProposals, {
 			first: limit,
 			skip: offset,
 			where: {
@@ -426,15 +435,17 @@ export const getProposalsPage = async ({
 }
 
 export const getVote = async ({
+	binding,
 	voteId,
 }: {
+	binding: SourceBinding
 	voteId: string
 }) => {
 	assertMessageIdentity(voteId, 'requested vote ID')
 	const { vote } = assertEnvelope(
 		'vote data envelope',
 		snapshotHubVoteDataEnvelope,
-		await querySnapshotHub(SnapshotHubVote, {
+		await querySnapshotHub(binding, SnapshotHubVote, {
 			id: voteId,
 		})
 	)
@@ -447,10 +458,12 @@ export const getVote = async ({
 }
 
 export const getVotesPage = async ({
+	binding,
 	proposalId,
 	limit,
 	offset,
 }: {
+	binding: SourceBinding
 	proposalId: string
 	limit: number
 	offset: number
@@ -463,7 +476,7 @@ export const getVotesPage = async ({
 	const { votes } = assertEnvelope(
 		'votes page envelope',
 		snapshotHubVotesPageEnvelope,
-		await querySnapshotHub(SnapshotHubVotes, {
+		await querySnapshotHub(binding, SnapshotHubVotes, {
 			first: limit,
 			skip: offset,
 			where: {

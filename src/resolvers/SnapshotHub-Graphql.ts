@@ -11,7 +11,10 @@ import type {
 	SnapshotHubStrategy,
 	SnapshotHubVote,
 } from '$/sources/SnapshotHub/Graphql/types.ts'
+import bindings from '$/sources/SnapshotHub/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+
+const snapshotHubGraphqlBinding = bindings[Source.SnapshotHub_Graphql][0]
 
 
 const zeroExAddress = (
@@ -329,6 +332,7 @@ export const resolveSnapshotSpace = async ({
 }) => {
 	const { getSpace } = await import('$/sources/SnapshotHub/Graphql/queries.ts')
 	const space = await getSpace({
+		binding: snapshotHubGraphqlBinding,
 		spaceId,
 	})
 	if (space == null)
@@ -342,6 +346,7 @@ export const resolveSnapshotSpaces = async (
 ) => {
 	const { getSpacesPage } = await import('$/sources/SnapshotHub/Graphql/queries.ts')
 	const spaces = await getSpacesPage({
+		binding: snapshotHubGraphqlBinding,
 		limit: resolverContextRowLimit(context),
 		offset: context.pagination.offset ?? 0,
 	})
@@ -357,6 +362,7 @@ export const resolveSnapshotProposal = async ({
 }) => {
 	const { getProposal } = await import('$/sources/SnapshotHub/Graphql/queries.ts')
 	const proposal = await getProposal({
+		binding: snapshotHubGraphqlBinding,
 		proposalId,
 	})
 	if (proposal == null)
@@ -376,6 +382,7 @@ export const resolveSnapshotProposals = async ({
 ) => {
 	const { getProposalsPage } = await import('$/sources/SnapshotHub/Graphql/queries.ts')
 	const proposals = await getProposalsPage({
+		binding: snapshotHubGraphqlBinding,
 		spaceId,
 		state,
 		limit: resolverContextRowLimit(context),
@@ -393,6 +400,7 @@ export const resolveSnapshotVote = async ({
 }) => {
 	const { getVote } = await import('$/sources/SnapshotHub/Graphql/queries.ts')
 	const vote = await getVote({
+		binding: snapshotHubGraphqlBinding,
 		voteId,
 	})
 	if (vote == null)
@@ -410,6 +418,7 @@ export const resolveSnapshotVotes = async ({
 ) => {
 	const { getVotesPage } = await import('$/sources/SnapshotHub/Graphql/queries.ts')
 	const votes = await getVotesPage({
+		binding: snapshotHubGraphqlBinding,
 		proposalId,
 		limit: resolverContextRowLimit(context),
 		offset: context.pagination.offset ?? 0,

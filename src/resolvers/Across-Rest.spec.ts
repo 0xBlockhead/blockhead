@@ -88,7 +88,9 @@ describe('Across BridgeTransfer resolvers', () => {
 
 		const snapshot = await resolver.resolve.SourceTransferId.resolve(transfer)
 
-		expect(getDeposit).toHaveBeenCalledWith({
+		expect(getDeposit).toHaveBeenCalledWith(expect.objectContaining({
+			source: Source.Across_Rest,
+		}), {
 			originChainId: 8453,
 			depositId,
 		})

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/Amboss/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -26,6 +26,11 @@ describe('Amboss public Lightning graph queries', () => {
 		queryAmboss.mockReset()
 	})
 
+	afterEach(() => {
+		for (const [receivedBinding] of queryAmboss.mock.calls)
+			expect(receivedBinding).toBe(binding)
+	})
+
 	it('rejects node identity substitution', async () => {
 		queryAmboss.mockResolvedValue({
 			getNode: {
@@ -43,6 +48,7 @@ describe('Amboss public Lightning graph queries', () => {
 		})
 
 		await expect(getNode({
+			binding,
 			publicKey,
 		})).rejects.toThrow('mismatched identity')
 	})
@@ -58,6 +64,7 @@ describe('Amboss public Lightning graph queries', () => {
 		})
 
 		await expect(getNode({
+			binding,
 			publicKey,
 		})).rejects.toThrow('missing graph identity')
 	})
@@ -87,6 +94,7 @@ describe('Amboss public Lightning graph queries', () => {
 		})
 
 		await expect(getNode({
+			binding,
 			publicKey,
 		})).rejects.toThrow('invalid node response envelope')
 
@@ -114,6 +122,7 @@ describe('Amboss public Lightning graph queries', () => {
 		})
 
 		await expect(getNode({
+			binding,
 			publicKey,
 		})).rejects.toThrow('invalid node response envelope')
 	})
@@ -143,6 +152,7 @@ describe('Amboss public Lightning graph queries', () => {
 		})
 
 		await expect(getEdge({
+			binding,
 			channelId: '1x2x3',
 		})).resolves.toMatchObject({
 			long_channel_id: '123',
@@ -179,6 +189,7 @@ describe('Amboss public Lightning graph queries', () => {
 			},
 		})
 		await expect(getEdge({
+			binding,
 			channelId: '123',
 		})).rejects.toThrow('missing closed_info')
 
@@ -213,6 +224,7 @@ describe('Amboss public Lightning graph queries', () => {
 			},
 		})
 		await expect(getEdge({
+			binding,
 			channelId: '123',
 		})).rejects.toThrow('invalid channel closed_date')
 	})
@@ -227,6 +239,7 @@ describe('Amboss public Lightning graph queries', () => {
 		})
 
 		await expect(getEdge({
+			binding,
 			channelId: '123',
 		})).rejects.toThrow('missing graph identity')
 
@@ -254,6 +267,7 @@ describe('Amboss public Lightning graph queries', () => {
 		})
 
 		await expect(getEdge({
+			binding,
 			channelId: '123',
 		})).rejects.toThrow('invalid channel response envelope')
 	})
@@ -283,6 +297,7 @@ describe('Amboss public Lightning graph queries', () => {
 		})
 
 		await expect(getEdge({
+			binding,
 			channelId: '123',
 		})).rejects.toThrow('mismatched identity')
 	})
@@ -321,6 +336,7 @@ describe('Amboss public Lightning graph queries', () => {
 		})
 
 		await expect(getNodeChannels({
+			binding,
 			publicKey,
 			limit: 10,
 		})).resolves.toMatchObject({
@@ -365,6 +381,7 @@ describe('Amboss public Lightning graph queries', () => {
 		})
 
 		await expect(getNodeChannels({
+			binding,
 			publicKey,
 			limit: 10,
 		})).rejects.toThrow('invalid node channels response envelope')
@@ -378,7 +395,7 @@ describe('Amboss public Lightning graph queries', () => {
 			],
 		})
 
-		await expect(getPopularNodePubkeys()).rejects.toThrow('duplicate public key')
+		await expect(getPopularNodePubkeys(binding)).rejects.toThrow('duplicate public key')
 
 		queryAmboss.mockResolvedValue({
 			getPopularNodes: [
@@ -386,7 +403,7 @@ describe('Amboss public Lightning graph queries', () => {
 			],
 		})
 
-		await expect(getPopularNodePubkeys()).rejects.toThrow('invalid popular nodes response envelope')
+		await expect(getPopularNodePubkeys(binding)).rejects.toThrow('invalid popular nodes response envelope')
 	})
 
 	it('keeps the Amboss GraphQL binding on the public API locator', () => {

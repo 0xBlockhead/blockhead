@@ -4,11 +4,14 @@ import { defineResolver } from '$/resolvers/defineResolver.ts'
 import type { RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import bindings from '$/sources/Tally/bindings.ts'
 import type {
 	TallyGovernor,
 	TallyProposal,
 } from '$/sources/Tally/Graphql/types.ts'
 import { Source } from '$/sources/Source.ts'
+
+const tallyBinding = bindings[Source.Tally][0]
 
 
 const zeroExAddress = (
@@ -242,6 +245,7 @@ export const resolveTallyGovernor = async ({
 }) => {
 	const { getGovernor } = await import('$/sources/Tally/Graphql/queries.ts')
 	return tallyGovernorFields(await getGovernor({
+		binding: tallyBinding,
 		governorId,
 	}))
 }
@@ -255,6 +259,7 @@ export const resolveTallyGovernors = async ({
 ) => {
 	const { getGovernorsPage } = await import('$/sources/Tally/Graphql/queries.ts')
 	const page = await getGovernorsPage({
+		binding: tallyBinding,
 		organizationId,
 		limit: Math.min(resolverContextRowLimit(context), 20),
 	})
@@ -270,6 +275,7 @@ export const resolveTallyProposal = async ({
 }) => {
 	const { getProposal } = await import('$/sources/Tally/Graphql/queries.ts')
 	return tallyProposalFields(await getProposal({
+		binding: tallyBinding,
 		proposalId,
 	}))
 }
@@ -283,6 +289,7 @@ export const resolveTallyProposals = async ({
 ) => {
 	const { getProposalsPage } = await import('$/sources/Tally/Graphql/queries.ts')
 	const page = await getProposalsPage({
+		binding: tallyBinding,
 		governorId,
 		limit: Math.min(resolverContextRowLimit(context), 20),
 	})

@@ -134,7 +134,11 @@ const assertPublicTimelineMatches = (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],
 	instanceOrigin: string
 ) => {
-	if (new URL(binding.endpoints[0].locator).origin !== new URL(instanceOrigin).origin)
+	if (
+		binding.target.kind !== SourceTargetKind.Feed
+		|| binding.target.key !== `mastodon-public-timeline:${instanceOrigin}`
+		|| new URL(binding.endpoints[0].locator).origin !== new URL(instanceOrigin).origin
+	)
 		throw new Error(`Mastodon_Rest: public timeline binding is missing for ${instanceOrigin}`)
 }
 

@@ -1,11 +1,10 @@
-import bindings from '$/sources/Morpho/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const binding = bindings[Source.Morpho_Graphql][0]
-
 export const queryMorpho = async <_Data extends object>(
+	binding: SourceBinding,
 	query: string,
 	variables: JsonValue
 ) => {

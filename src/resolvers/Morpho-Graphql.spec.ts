@@ -8,7 +8,10 @@ import {
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import bindings from '$/sources/Morpho/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+
+const morphoGraphqlBinding = bindings[Source.Morpho_Graphql][0]
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 const getAccountPositions = vi.hoisted(() => vi.fn())
@@ -207,6 +210,7 @@ describe('Morpho GraphQL resolver module', () => {
 		])
 		expect(morphoVaultPositionsResolver.projections.$$morphoVaultPositions.resolveCount(vaultPositions)).toBe(1)
 		expect(getAccountPositions).toHaveBeenCalledWith({
+			binding: morphoGraphqlBinding,
 			chainId: 1,
 			account: accountSelector.$actor.address,
 		})

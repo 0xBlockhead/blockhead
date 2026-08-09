@@ -217,6 +217,13 @@ export type ResolverContext = ResolverSubset & {
 	readonly sourceBinding?: SourceBinding
 }
 
+export const resolverSourceBinding = (context: ResolverContext) => {
+	if (context.sourceBinding == null)
+		throw new Error('Resolver execution did not select a source binding')
+
+	return context.sourceBinding
+}
+
 const plainResolverFilterValue = (
 	value: unknown
 ): ResolverFilterValue => {

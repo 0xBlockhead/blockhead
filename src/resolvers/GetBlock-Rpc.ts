@@ -7,7 +7,10 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import bindings from '$/sources/GetBlock/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.GetBlockRpc_JsonRpc][0]
 
 const quantity = (
 	value: string,
@@ -59,8 +62,8 @@ export default {
 							getTransactionReceipt,
 						} = await import('$/sources/GetBlock/Rpc/queries.ts')
 						const [transaction, receipt] = await Promise.all([
-							getTransactionByHash({ txHash }),
-							getTransactionReceipt({ txHash }),
+							getTransactionByHash(binding, { txHash }),
+							getTransactionReceipt(binding, { txHash }),
 						])
 						if (transaction == null)
 							throw new Error(`GetBlockRpc_JsonRpc: transaction not found ${txHash}`)

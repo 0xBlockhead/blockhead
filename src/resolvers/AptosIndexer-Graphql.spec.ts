@@ -148,11 +148,11 @@ describe('Aptos Indexer typed operations', () => {
 				},
 			})))
 
-		await queries.getAccountTransactions('0xa11ce', 25, 5)
-		await queries.getCurrentFungibleAssetBalances('0xa11ce', 25, 5)
-		await queries.getCurrentFungibleAssetBalance(balance.storage_id)
-		await queries.getTransaction(42n)
-		await queries.getTableItem('0xhandle', '0xkeyhash', 42n)
+		await queries.getAccountTransactions(aptosIndexerBinding, '0xa11ce', 25, 5)
+		await queries.getCurrentFungibleAssetBalances(aptosIndexerBinding, '0xa11ce', 25, 5)
+		await queries.getCurrentFungibleAssetBalance(aptosIndexerBinding, balance.storage_id)
+		await queries.getTransaction(aptosIndexerBinding, 42n)
+		await queries.getTableItem(aptosIndexerBinding, '0xhandle', '0xkeyhash', 42n)
 
 		expect(sourceFetch).toHaveBeenCalledTimes(6)
 		expect(Object.keys(bindings)).toEqual([Source.AptosIndexer_Graphql])
@@ -232,6 +232,7 @@ describe('Aptos Indexer resolver materialization', () => {
 			},
 		}])
 		expect(queries.getAccountTransactions).toHaveBeenCalledWith(
+			aptosIndexerBinding,
 			aptosAccount.address,
 			25,
 			5
@@ -403,12 +404,13 @@ describe('Aptos Indexer resolver materialization', () => {
 			},
 		])
 		expect(queries.getCurrentFungibleAssetBalances).toHaveBeenCalledWith(
+			aptosIndexerBinding,
 			aptosAccount.address,
 			25,
 			5
 		)
 
-		vi.spyOn(queries, 'getCurrentFungibleAssetBalance').mockImplementation(async (storageId) => (
+		vi.spyOn(queries, 'getCurrentFungibleAssetBalance').mockImplementation(async (_binding, storageId) => (
 			storageId === secondaryBalance.storage_id ? secondaryBalance : balance
 		))
 		await expect(aptosCoinBalanceResolver.resolve['AccountStorageIdLedgerVersionSource'].resolve(
@@ -436,7 +438,7 @@ describe('Aptos Indexer resolver materialization', () => {
 	})
 
 	it('keeps current table point reads separate from explicit versioned rows', async () => {
-		vi.spyOn(queries, 'getTableItem').mockImplementation(async (_tableHandle, _keyHash, ledgerVersion) => ({
+		vi.spyOn(queries, 'getTableItem').mockImplementation(async (_binding, _tableHandle, _keyHash, ledgerVersion) => ({
 			current: currentTableItem,
 			versioned: ledgerVersion === 42n ? versionedTableItem : undefined,
 		}))

@@ -11,7 +11,10 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import bindings from '$/sources/Arweave/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+
+const arweaveGraphqlBinding = bindings[Source.Arweave_Graphql][0]
 
 const getTransactionById = vi.hoisted(() => vi.fn())
 const getTransactionsPage = vi.hoisted(() => vi.fn())
@@ -250,11 +253,11 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 			}
 		)
 
-		expect(getTransactionsPage).toHaveBeenCalledWith({
+		expect(getTransactionsPage).toHaveBeenCalledWith(arweaveGraphqlBinding, {
 			first: 64,
 			after: 'tx-only-cursor',
 		})
-		expect(getBlocksPage).toHaveBeenCalledWith({
+		expect(getBlocksPage).toHaveBeenCalledWith(arweaveGraphqlBinding, {
 			first: 64,
 			after: 'block-only-cursor',
 		})
@@ -400,7 +403,7 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 			},
 			context
 		)).toHaveLength(1)
-		expect(getBlockByHeight).toHaveBeenCalledWith(1_500_000)
+		expect(getBlockByHeight).toHaveBeenCalledWith(arweaveGraphqlBinding, 1_500_000)
 	})
 
 	it('resolves ArweaveResource identity from a data-bearing transaction', async () => {
@@ -488,7 +491,7 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 				},
 			},
 		})
-		expect(getTransactionById).toHaveBeenCalledWith(transactionId)
+		expect(getTransactionById).toHaveBeenCalledWith(arweaveGraphqlBinding, transactionId)
 	})
 
 	it('maps the latest GraphQL block into ArweaveNetwork_Timestamp', async () => {

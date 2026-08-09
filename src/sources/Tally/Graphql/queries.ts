@@ -8,6 +8,7 @@ import {
 	type TallyProposal,
 	type TallyProposalStatus,
 } from '$/sources/Tally/Graphql/types.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 import { queryTally } from './client.ts'
 
@@ -375,15 +376,17 @@ const assertProposal = (
 }
 
 export const getGovernor = async ({
+	binding,
 	governorId,
 }: {
+	binding: SourceBinding
 	governorId: string
 }) => {
 	assertAccountId(governorId, 'requested governor ID')
 	const { governor } = assertEnvelope(
 		'governor',
 		tallyGovernorDataWire,
-		await queryTally(governorQuery, {
+		await queryTally(binding, governorQuery, {
 			input: {
 				id: governorId,
 			},
@@ -398,11 +401,13 @@ export const getGovernor = async ({
 }
 
 export const getGovernorsPage = async ({
+	binding,
 	organizationId,
 	limit,
 	afterCursor,
 	includeInactive = false,
 }: {
+	binding: SourceBinding
 	organizationId: string
 	limit: number
 	afterCursor?: string
@@ -416,7 +421,7 @@ export const getGovernorsPage = async ({
 	const { governors } = assertEnvelope(
 		'governors page',
 		tallyGovernorsPageDataWire,
-		await queryTally(governorsQuery, {
+		await queryTally(binding, governorsQuery, {
 			input: {
 				filters: {
 					organizationId,
@@ -459,15 +464,17 @@ export const getGovernorsPage = async ({
 }
 
 export const getProposal = async ({
+	binding,
 	proposalId,
 }: {
+	binding: SourceBinding
 	proposalId: string
 }) => {
 	assertIntId(proposalId, 'requested proposal ID')
 	const { proposal } = assertEnvelope(
 		'proposal',
 		tallyProposalDataWire,
-		await queryTally(proposalQuery, {
+		await queryTally(binding, proposalQuery, {
 			input: {
 				id: proposalId,
 			},
@@ -482,10 +489,12 @@ export const getProposal = async ({
 }
 
 export const getProposalsPage = async ({
+	binding,
 	governorId,
 	limit,
 	afterCursor,
 }: {
+	binding: SourceBinding
 	governorId: string
 	limit: number
 	afterCursor?: string
@@ -498,7 +507,7 @@ export const getProposalsPage = async ({
 	const { proposals } = assertEnvelope(
 		'proposals page',
 		tallyProposalsPageDataWire,
-		await queryTally(proposalsQuery, {
+		await queryTally(binding, proposalsQuery, {
 			input: {
 				filters: {
 					governorId,

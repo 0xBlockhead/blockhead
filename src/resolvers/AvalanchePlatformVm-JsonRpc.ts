@@ -11,6 +11,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import bindings from '$/sources/AvalanchePlatformVm/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	AvalanchePlatformVmDelegator,
@@ -22,6 +23,8 @@ import type {
 import { avalanchePrimaryNetworkSubnetId } from '$/sources/AvalanchePlatformVm/JsonRpc/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const binding = bindings[Source.AvalanchePlatformVm_JsonRpc][0]
 
 const assertAvalanchePChain = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug['avalanche-p-chain'].slug)
@@ -294,7 +297,7 @@ export default {
 				BlockchainId: {
 					resolve: async ({ blockchainId }) => {
 						const { getBlockchains } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const blockchain = (await getBlockchains()).blockchains.find((row) => row.id === blockchainId)
+						const blockchain = (await getBlockchains(binding)).blockchains.find((row) => row.id === blockchainId)
 						if (blockchain == null)
 							throw new Error(`AvalanchePlatformVm_JsonRpc: blockchain ${blockchainId} not found`)
 						return {
@@ -332,7 +335,7 @@ export default {
 							getCurrentValidators,
 							getSubnets,
 						} = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const subnet = (await getSubnets({
+						const subnet = (await getSubnets(binding, {
 							ids: [subnetId],
 						})).subnets.find((row) => row.id === subnetId)
 						if (subnet == null)
@@ -341,8 +344,8 @@ export default {
 							blockchains,
 							validators,
 						] = await Promise.all([
-							getBlockchains(),
-							getCurrentValidators({
+							getBlockchains(binding),
+							getCurrentValidators(binding, {
 								subnetID: subnetId,
 							}),
 						])
@@ -420,13 +423,13 @@ export default {
 							pending,
 							blockchains,
 						] = await Promise.all([
-							getCurrentValidators({
+							getCurrentValidators(binding, {
 								subnetID: $subnet.subnetId,
 							}),
-							getPendingValidators({
+							getPendingValidators(binding, {
 								subnetID: $subnet.subnetId,
 							}),
-							getBlockchains(),
+							getBlockchains(binding),
 						])
 						const totalStakeNavax = validators.validators.reduce(
 							(sum, validator) => sum + bigintFromWire(validator.weight, 'validator weight'),
@@ -475,7 +478,7 @@ export default {
 				NodeIdSubnetIdStartTimeMs: {
 					resolve: async ({ nodeId, subnetId, startTimeMs }) => {
 						const { getCurrentValidators } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const validator = (await getCurrentValidators({
+						const validator = (await getCurrentValidators(binding, {
 							subnetID: subnetId,
 							nodeIDs: [nodeId],
 						})).validators.find((row) => (
@@ -507,7 +510,7 @@ export default {
 						if (source !== Source.AvalanchePlatformVm_JsonRpc)
 							throw new Error('AvalanchePlatformVm_JsonRpc: observation source mismatch')
 						const { getCurrentValidators } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const validator = (await getCurrentValidators({
+						const validator = (await getCurrentValidators(binding, {
 							subnetID: $validator.subnetId,
 							nodeIDs: [$validator.nodeId],
 						})).validators.find((row) => (
@@ -554,7 +557,7 @@ export default {
 				ValidatorTxId: {
 					resolve: async ({ $validator, txId }) => {
 						const { getCurrentValidators } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const validator = (await getCurrentValidators({
+						const validator = (await getCurrentValidators(binding, {
 							subnetID: $validator.subnetId,
 							nodeIDs: [$validator.nodeId],
 						})).validators.find((row) => (
@@ -586,7 +589,7 @@ export default {
 					resolve: async ({ $network, height }) => {
 						assertAvalanchePChain($network)
 						const { getBlockByHeight } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const response = await getBlockByHeight(height, 'json')
+						const response = await getBlockByHeight(binding, height, 'json')
 						return pChainBlockFields($network, jsonBlock(response.block), response.encoding)
 					},
 				},
@@ -594,7 +597,7 @@ export default {
 					resolve: async ({ $network, blockId }) => {
 						assertAvalanchePChain($network)
 						const { getBlock } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const response = await getBlock(blockId, 'json')
+						const response = await getBlock(binding, blockId, 'json')
 						return pChainBlockFields($network, jsonBlock(response.block), response.encoding)
 					},
 				},
@@ -614,7 +617,7 @@ export default {
 					resolve: async ({ $network, txId }) => {
 						assertAvalanchePChain($network)
 						const { getTx } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const response = await getTx(txId, 'json')
+						const response = await getTx(binding, txId, 'json')
 						return pChainTransactionFields($network, txId, jsonTx(response.tx))
 					},
 				},
@@ -652,8 +655,8 @@ export default {
 							status,
 							height,
 						] = await Promise.all([
-							getTxStatus($transaction.txId),
-							getHeight(),
+							getTxStatus(binding, $transaction.txId),
+							getHeight(binding),
 						])
 						return {
 							timestampMs: Date.now(),
@@ -688,7 +691,7 @@ export default {
 							}
 
 						const { getHeight } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const tipHeight = bigintFromWire((await getHeight()).height, 'height')
+						const tipHeight = bigintFromWire((await getHeight(binding)).height, 'height')
 						const blockCount = tipHeight + 1n
 						return {
 							blockCount,
@@ -720,7 +723,7 @@ export default {
 					resolve: async (network, context) => {
 						assertAvalanchePChain(network)
 						const { getSubnets } = await import('$/sources/AvalanchePlatformVm/JsonRpc/queries.ts')
-						const wireSubnets = (await getSubnets()).subnets
+						const wireSubnets = (await getSubnets(binding)).subnets
 						return {
 							subnetCount: BigInt(wireSubnets.length),
 							subnets: wireSubnets

@@ -2,6 +2,7 @@ import {
 	executeSui,
 	graphql,
 } from '$/sources/Sui/Graphql/client.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 const addressBalancesDocument = graphql(`
 	query SuiAddressBalances($address: SuiAddress!, $first: Int!, $after: String) {
@@ -597,10 +598,12 @@ const normalizeCheckpoint = (checkpoint: SuiCheckpointWire) => {
 
 export const getAddressBalances = async (
 	{
+		binding,
 		address,
 		limit,
 		after,
 	}: {
+		binding: SourceBinding
 		address: string
 		limit: number
 		after?: string
@@ -622,6 +625,7 @@ export const getAddressBalances = async (
 
 	const canonicalAddress = normalizeSuiAddress(address)
 	const result = await executeSui(
+		binding,
 		addressBalancesDocument,
 		{
 			address: canonicalAddress,
@@ -682,10 +686,12 @@ export const getAddressBalances = async (
 
 export const getAddressTransactions = async (
 	{
+		binding,
 		address,
 		limit,
 		after,
 	}: {
+		binding: SourceBinding
 		address: string
 		limit: number
 		after?: string
@@ -707,6 +713,7 @@ export const getAddressTransactions = async (
 
 	const canonicalAddress = normalizeSuiAddress(address)
 	const result = await executeSui(
+		binding,
 		addressTransactionsDocument,
 		{
 			address: canonicalAddress,
@@ -745,9 +752,11 @@ export const getAddressTransactions = async (
 
 export const getRecentTransactions = async (
 	{
+		binding,
 		limit,
 		after,
 	}: {
+		binding: SourceBinding
 		limit: number
 		after?: string
 	}
@@ -766,6 +775,7 @@ export const getRecentTransactions = async (
 		}
 
 	const result = await executeSui(
+		binding,
 		recentTransactionsDocument,
 		{
 			first: limit,
@@ -806,17 +816,18 @@ export const getRecentTransactions = async (
 	}
 }
 
-export const getLatestCheckpoint = async () => {
-	const result = await executeSui(latestCheckpointDocument, {})
+export const getLatestCheckpoint = async (binding: SourceBinding) => {
+	const result = await executeSui(binding, latestCheckpointDocument, {})
 	if (result.checkpoint == null)
 		throw new Error('Sui GraphQL latest checkpoint is missing')
 	return normalizeCheckpoint(result.checkpoint)
 }
 
-export const getCheckpointBySequence = async (sequence: bigint) => {
+export const getCheckpointBySequence = async (binding: SourceBinding, sequence: bigint) => {
 	if (sequence < 0n)
 		throw new Error('Sui GraphQL checkpoint sequence must be nonnegative')
 	const result = await executeSui(
+		binding,
 		checkpointBySequenceDocument,
 		{
 			sequenceNumber: sequence.toString(),
@@ -830,10 +841,11 @@ export const getCheckpointBySequence = async (sequence: bigint) => {
 	return checkpoint
 }
 
-export const getCheckpointByDigest = async (digest: string) => {
+export const getCheckpointByDigest = async (binding: SourceBinding, digest: string) => {
 	if (digest.length === 0)
 		throw new Error('Sui GraphQL checkpoint digest must not be empty')
 	const result = await executeSui(
+		binding,
 		checkpointByDigestDocument,
 		{
 			digest,
@@ -932,10 +944,11 @@ const transactionArgumentFromWire = (
 	}
 }
 
-export const getTransaction = async (digest: string) => {
+export const getTransaction = async (binding: SourceBinding, digest: string) => {
 	if (digest.length === 0)
 		throw new Error('Sui GraphQL transaction digest must not be empty')
 	const result = await executeSui(
+		binding,
 		transactionDocument,
 		{
 			digest,
@@ -1191,10 +1204,12 @@ export const getTransaction = async (digest: string) => {
 
 
 export const getAddressObjects = async ({
+	binding,
 	address,
 	limit,
 	after,
 }: {
+	binding: SourceBinding
 	address: string
 	limit: number
 	after?: string
@@ -1215,6 +1230,7 @@ export const getAddressObjects = async ({
 
 	const canonicalAddress = normalizeSuiAddress(address)
 	const result = await executeSui(
+		binding,
 		addressObjectsDocument,
 		{
 			address: canonicalAddress,
@@ -1258,9 +1274,10 @@ export const getAddressObjects = async ({
 	}
 }
 
-export const getObject = async (objectId: string) => {
+export const getObject = async (binding: SourceBinding, objectId: string) => {
 	const address = normalizeSuiAddress(objectId)
 	const result = await executeSui(
+		binding,
 		objectDocument,
 		{
 			address,
@@ -1306,10 +1323,11 @@ export const getObject = async (objectId: string) => {
 	}
 }
 
-export const getCoinMetadata = async (coinType: string) => {
+export const getCoinMetadata = async (binding: SourceBinding, coinType: string) => {
 	if (coinType.length === 0)
 		throw new Error('Sui GraphQL coin type must not be empty')
 	const result = await executeSui(
+		binding,
 		coinMetadataDocument,
 		{
 			coinType,
@@ -1338,9 +1356,10 @@ export const getCoinMetadata = async (coinType: string) => {
 	}
 }
 
-export const getPackage = async (packageId: string) => {
+export const getPackage = async (binding: SourceBinding, packageId: string) => {
 	const address = normalizeSuiAddress(packageId)
 	const result = await executeSui(
+		binding,
 		packageDocument,
 		{
 			address,

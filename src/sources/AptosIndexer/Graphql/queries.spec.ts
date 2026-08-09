@@ -68,8 +68,9 @@ describe('Aptos Indexer account portfolio queries', () => {
 			account_transactions: [transaction],
 		})
 
-		await expect(getAccountTransactions('0xa11ce', 25, 5)).resolves.toEqual([transaction])
-		expect(executeAptosIndexer.mock.calls[0][1]).toEqual({
+		await expect(getAccountTransactions(aptosIndexerBinding, '0xa11ce', 25, 5)).resolves.toEqual([transaction])
+		expect(executeAptosIndexer.mock.calls[0][0]).toBe(aptosIndexerBinding)
+		expect(executeAptosIndexer.mock.calls[0][2]).toEqual({
 			accountAddress: '0xa11ce',
 			limit: 25,
 			offset: 5,
@@ -81,8 +82,9 @@ describe('Aptos Indexer account portfolio queries', () => {
 			current_fungible_asset_balances: [balance],
 		})
 
-		await expect(getCurrentFungibleAssetBalances('0xa11ce', 25, 5)).resolves.toEqual([balance])
-		expect(executeAptosIndexer.mock.calls[0][1]).toEqual({
+		await expect(getCurrentFungibleAssetBalances(aptosIndexerBinding, '0xa11ce', 25, 5)).resolves.toEqual([balance])
+		expect(executeAptosIndexer.mock.calls[0][0]).toBe(aptosIndexerBinding)
+		expect(executeAptosIndexer.mock.calls[0][2]).toEqual({
 			ownerAddress: '0xa11ce',
 			limit: 25,
 			offset: 5,
@@ -96,7 +98,7 @@ describe('Aptos Indexer account portfolio queries', () => {
 				account_address: '0xforeign',
 			}],
 		})
-		await expect(getAccountTransactions('0xa11ce')).rejects.toThrow('foreign account row')
+		await expect(getAccountTransactions(aptosIndexerBinding, '0xa11ce')).rejects.toThrow('foreign account row')
 
 		executeAptosIndexer.mockResolvedValueOnce({
 			account_transactions: [{
@@ -107,7 +109,7 @@ describe('Aptos Indexer account portfolio queries', () => {
 				},
 			}],
 		})
-		await expect(getAccountTransactions('0xa11ce')).rejects.toThrow('invalid transaction version')
+		await expect(getAccountTransactions(aptosIndexerBinding, '0xa11ce')).rejects.toThrow('invalid transaction version')
 
 		executeAptosIndexer.mockResolvedValueOnce({
 			current_fungible_asset_balances: [{
@@ -115,7 +117,7 @@ describe('Aptos Indexer account portfolio queries', () => {
 				owner_address: '0xforeign',
 			}],
 		})
-		await expect(getCurrentFungibleAssetBalances('0xa11ce')).rejects.toThrow('foreign owner row')
+		await expect(getCurrentFungibleAssetBalances(aptosIndexerBinding, '0xa11ce')).rejects.toThrow('foreign owner row')
 
 		executeAptosIndexer.mockResolvedValueOnce({
 			current_fungible_asset_balances: [{
@@ -123,7 +125,7 @@ describe('Aptos Indexer account portfolio queries', () => {
 				amount: '-1',
 			}],
 		})
-		await expect(getCurrentFungibleAssetBalances('0xa11ce')).rejects.toThrow('response envelope')
+		await expect(getCurrentFungibleAssetBalances(aptosIndexerBinding, '0xa11ce')).rejects.toThrow('response envelope')
 	})
 
 	it('fails closed on malformed GraphQL envelopes', async () => {
@@ -133,7 +135,7 @@ describe('Aptos Indexer account portfolio queries', () => {
 				transaction_version: 'not-a-u64',
 			}],
 		})
-		await expect(getAccountTransactions('0xa11ce')).rejects.toThrow('response envelope')
+		await expect(getAccountTransactions(aptosIndexerBinding, '0xa11ce')).rejects.toThrow('response envelope')
 
 		executeAptosIndexer.mockResolvedValueOnce({
 			user_transactions: [{
@@ -142,7 +144,7 @@ describe('Aptos Indexer account portfolio queries', () => {
 				version: '42',
 			}],
 		})
-		await expect(getTransaction(42n)).rejects.toThrow('response envelope')
+		await expect(getTransaction(aptosIndexerBinding, 42n)).rejects.toThrow('response envelope')
 
 		executeAptosIndexer.mockResolvedValueOnce({
 			current_fungible_asset_balances_by_pk: {
@@ -150,7 +152,7 @@ describe('Aptos Indexer account portfolio queries', () => {
 				is_primary: 'yes',
 			},
 		})
-		await expect(getCurrentFungibleAssetBalance('0xstore')).rejects.toThrow('response envelope')
+		await expect(getCurrentFungibleAssetBalance(aptosIndexerBinding, '0xstore')).rejects.toThrow('response envelope')
 
 		executeAptosIndexer.mockResolvedValueOnce({
 			current_table_items: [{
@@ -158,14 +160,14 @@ describe('Aptos Indexer account portfolio queries', () => {
 				is_deleted: 'no',
 			}],
 		})
-		await expect(getTableItem('0xhandle', '0xkeyhash')).rejects.toThrow('response envelope')
+		await expect(getTableItem(aptosIndexerBinding, '0xhandle', '0xkeyhash')).rejects.toThrow('response envelope')
 	})
 
 	it('bounds offset pages and avoids transport for zero cardinality', async () => {
-		await expect(getAccountTransactions('0xa11ce', 0)).resolves.toEqual([])
-		await expect(getCurrentFungibleAssetBalances('0xa11ce', 0)).resolves.toEqual([])
-		expect(() => getAccountTransactions('0xa11ce', 101)).toThrow('0 through 100')
-		expect(() => getCurrentFungibleAssetBalances('0xa11ce', 25, -1)).toThrow('nonnegative')
+		await expect(getAccountTransactions(aptosIndexerBinding, '0xa11ce', 0)).resolves.toEqual([])
+		await expect(getCurrentFungibleAssetBalances(aptosIndexerBinding, '0xa11ce', 0)).resolves.toEqual([])
+		expect(() => getAccountTransactions(aptosIndexerBinding, '0xa11ce', 101)).toThrow('0 through 100')
+		expect(() => getCurrentFungibleAssetBalances(aptosIndexerBinding, '0xa11ce', 25, -1)).toThrow('nonnegative')
 		expect(executeAptosIndexer).not.toHaveBeenCalled()
 	})
 

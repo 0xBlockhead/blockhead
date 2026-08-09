@@ -9,6 +9,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import bindings from '$/sources/Morpho/bindings.ts'
 import type {
 	MorphoGraphqlAccountMarketPosition,
 	MorphoGraphqlAccountVaultPosition,
@@ -16,6 +17,8 @@ import type {
 	MorphoGraphqlVault,
 } from '$/sources/Morpho/Graphql/types.ts'
 import { Source } from '$/sources/Source.ts'
+
+const morphoGraphqlBinding = bindings[Source.Morpho_Graphql][0]
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type MorphoMarketId = EntitySelector<typeof schema, EntityType.MorphoMarket>
@@ -37,7 +40,7 @@ const eip155ChainId = (network: NetworkId) => {
 
 const mapMorphoMarketSnapshot = (
 	network: NetworkId,
-	market: MorphoGraphqlMarket,
+	market: MorphoGraphqlMarket
 ) => ({
 	$network: {
 		[EntityMetaKey.Selector]: network,
@@ -88,7 +91,7 @@ const mapMorphoMarketSnapshot = (
 
 const mapMorphoVaultSnapshot = (
 	network: NetworkId,
-	vault: MorphoGraphqlVault,
+	vault: MorphoGraphqlVault
 ) => ({
 	$network: {
 		[EntityMetaKey.Selector]: network,
@@ -124,7 +127,7 @@ const mapMorphoVaultSnapshot = (
 
 const mapMorphoMarketPositionSnapshot = (
 	$account: EvmNetworkAccountId,
-	position: MorphoGraphqlAccountMarketPosition,
+	position: MorphoGraphqlAccountMarketPosition
 ) => ({
 	$account: {
 		[EntityMetaKey.Selector]: $account,
@@ -153,7 +156,7 @@ const mapMorphoMarketPositionSnapshot = (
 
 const mapMorphoVaultPositionSnapshot = (
 	$account: EvmNetworkAccountId,
-	position: MorphoGraphqlAccountVaultPosition,
+	position: MorphoGraphqlAccountVaultPosition
 ) => ({
 	$account: {
 		[EntityMetaKey.Selector]: $account,
@@ -193,6 +196,7 @@ export default {
 						const limit = resolverContextRowLimit(context)
 						const marketPositions = (
 							await getAccountPositions({
+								binding: morphoGraphqlBinding,
 								chainId,
 								account: $actor.address,
 							})
@@ -240,6 +244,7 @@ export default {
 						const limit = resolverContextRowLimit(context)
 						const vaultPositions = (
 							await getAccountPositions({
+								binding: morphoGraphqlBinding,
 								chainId,
 								account: $actor.address,
 							})
@@ -289,6 +294,7 @@ export default {
 						const { getAccountPositions } = await import('$/sources/Morpho/Graphql/queries.ts')
 						const position = (
 							await getAccountPositions({
+								binding: morphoGraphqlBinding,
 								chainId,
 								account: $account.$actor.address,
 							})
@@ -340,6 +346,7 @@ export default {
 						const { getAccountPositions } = await import('$/sources/Morpho/Graphql/queries.ts')
 						const position = (
 							await getAccountPositions({
+								binding: morphoGraphqlBinding,
 								chainId,
 								account: $account.$actor.address,
 							})
@@ -383,9 +390,10 @@ export default {
 						return mapMorphoMarketSnapshot(
 							$network,
 							await getMarket({
+								binding: morphoGraphqlBinding,
 								chainId,
 								marketId: normalizedMarketId,
-							}),
+							})
 						)
 					},
 				},
@@ -435,9 +443,10 @@ export default {
 						return mapMorphoVaultSnapshot(
 							$network,
 							await getVault({
+								binding: morphoGraphqlBinding,
 								chainId,
 								address: normalizedVaultAddress,
-							}),
+							})
 						)
 					},
 				},
@@ -469,6 +478,7 @@ export default {
 						const chainId = eip155ChainId(network)
 						const { listMarkets } = await import('$/sources/Morpho/Graphql/queries.ts')
 						const page = await listMarkets({
+							binding: morphoGraphqlBinding,
 							chainIds: [
 								chainId,
 							],
@@ -503,6 +513,7 @@ export default {
 						const chainId = eip155ChainId(network)
 						const { listVaults } = await import('$/sources/Morpho/Graphql/queries.ts')
 						const page = await listVaults({
+							binding: morphoGraphqlBinding,
 							chainIds: [
 								chainId,
 							],

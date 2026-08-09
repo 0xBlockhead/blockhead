@@ -5,7 +5,6 @@ import {
 	requiredPublicEnvString,
 	type SourcePublicEnv,
 } from '$/sources/$sources.ts'
-import bindings from '$/sources/Helius/bindings.ts'
 import type {
 	GetAssetsByOwnerPage,
 	GetTokenAccountsPage,
@@ -17,19 +16,11 @@ import {
 	dasAssetWire,
 	dasTokenAccountListWire,
 } from '$/sources/Helius/Das/types.ts'
-import { Source } from '$/sources/Source.ts'
-import { ApiFamily } from '$/sources/SourceBinding.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
-
-const binding = bindings[Source.Helius].find(
-	({ apiFamily }) => apiFamily === ApiFamily.MetaplexDasJsonRpc
-)
-
-if (binding == null)
-	throw new Error('Helius DAS binding is missing')
 
 const assertSolanaAddress = (
 	value: string,
@@ -85,7 +76,8 @@ const paginationRequestId = (
 		`${prefix}:after:${pagination.after}`
 )
 
-const dasRpc = async <_Result>({
+export const heliusDasQueries = (binding: SourceBinding) => {
+	const dasRpc = async <_Result>({
 	method,
 	requestId,
 	params,
@@ -127,7 +119,7 @@ const dasRpc = async <_Result>({
 }
 
 /** Helius implementation of the canonical Metaplex DAS `getAsset` method. */
-export const getAsset = async ({
+	const getAsset = async ({
 	id,
 	publicEnv,
 }: {
@@ -154,7 +146,7 @@ export const getAsset = async ({
 }
 
 /** Helius implementation of the canonical Metaplex DAS `getAssets` method. */
-export const getAssets = async ({
+	const getAssets = async ({
 	ids,
 	publicEnv,
 }: {
@@ -191,7 +183,7 @@ export const getAssets = async ({
 }
 
 /** Helius implementation of the canonical Metaplex DAS `getAssetProof` method. */
-export const getAssetProof = async ({
+	const getAssetProof = async ({
 	id,
 	publicEnv,
 }: {
@@ -215,7 +207,7 @@ export const getAssetProof = async ({
 }
 
 /** Helius implementation of the canonical Metaplex DAS `getAssetsByOwner` method. */
-export const getAssetsByOwner = async ({
+	const getAssetsByOwner = async ({
 	ownerAddress,
 	publicEnv,
 	limit = 1_000,
@@ -256,7 +248,7 @@ export const getAssetsByOwner = async ({
  * Helius implementation of Metaplex DAS `getTokenAccounts`.
  * Orthogonal to Solana JsonRpc `getTokenAccountsByOwner` — same SPL surface, DAS inventory wire.
  */
-export const getTokenAccounts = async ({
+	const getTokenAccounts = async ({
 	publicEnv,
 	ownerAddress,
 	mintAddress,
@@ -309,4 +301,13 @@ export const getTokenAccounts = async ({
 			publicEnv,
 		}),
 	)
+}
+
+	return {
+		getAsset,
+		getAssetProof,
+		getAssets,
+		getAssetsByOwner,
+		getTokenAccounts,
+	}
 }

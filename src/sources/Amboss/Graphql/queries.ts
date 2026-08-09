@@ -1,4 +1,5 @@
 import { graphql, queryAmboss } from '$/sources/Amboss/Graphql/client.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	ambossGetEdgeDataWire,
 	ambossGetNodeChannelsDataWire,
@@ -52,8 +53,10 @@ const assertClosedEdgeSemantics = (
 }
 
 export const getNode = async ({
+	binding,
 	publicKey,
 }: {
+	binding: SourceBinding
 	publicKey: string
 }) => {
 	assertPublicKey(publicKey)
@@ -61,6 +64,7 @@ export const getNode = async ({
 		'node',
 		ambossGetNodeDataWire,
 		await queryAmboss(
+			binding,
 			graphql(`
 				query GetAmbossNode($pubkey: String!) {
 					getNode(pubkey: $pubkey) {
@@ -106,8 +110,10 @@ export const getNode = async ({
 }
 
 export const getEdge = async ({
+	binding,
 	channelId,
 }: {
+	binding: SourceBinding
 	channelId: string
 }) => {
 	assertChannelId(channelId)
@@ -115,6 +121,7 @@ export const getEdge = async ({
 		'channel',
 		ambossGetEdgeDataWire,
 		await queryAmboss(
+			binding,
 			graphql(`
 				query GetAmbossEdge($id: String!) {
 					getEdge(id: $id) {
@@ -176,10 +183,12 @@ export const getEdge = async ({
 }
 
 export const getNodeChannels = async ({
+	binding,
 	publicKey,
 	limit,
 	offset = 0,
 }: {
+	binding: SourceBinding
 	publicKey: string
 	limit: number
 	offset?: number
@@ -194,6 +203,7 @@ export const getNodeChannels = async ({
 		'node channels',
 		ambossGetNodeChannelsDataWire,
 		await queryAmboss(
+			binding,
 			graphql(`
 				query GetAmbossNodeChannels($pubkey: String!, $limit: Float!, $offset: Float!) {
 					getNode(pubkey: $pubkey) {
@@ -263,11 +273,12 @@ export const getNodeChannels = async ({
 	}
 }
 
-export const getPopularNodePubkeys = async () => {
+export const getPopularNodePubkeys = async (binding: SourceBinding) => {
 	const data = assertEnvelope(
 		'popular nodes',
 		ambossGetPopularNodesDataWire,
 		await queryAmboss(
+			binding,
 			graphql(`
 				query GetAmbossPopularNodes {
 					getPopularNodes

@@ -11,10 +11,12 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
+import bindings from '$/sources/Axelarscan/bindings.ts'
 import { axelarscanEvmChainIdByChainKey } from '$/sources/Axelarscan/Rest/constants.ts'
 import type { AxelarscanGmpMessage } from '$/sources/Axelarscan/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
+const axelarscanBinding = bindings[Source.Axelarscan_Rest][0]
 
 const axelarscanMessageLogIndex = (
 	event: {
@@ -226,7 +228,7 @@ const loadAxelarscanMessage = async (
 
 	const logIndex = Number(logIndexText)
 	const { getGmpMessages } = await import('$/sources/Axelarscan/Rest/queries.ts')
-	const page = await getGmpMessages({
+	const page = await getGmpMessages(axelarscanBinding, {
 		transactionHash,
 	})
 	const message = page.data.find((candidate) => (
@@ -407,7 +409,7 @@ export default {
 						const skip = axelarscanPaginationSkip(context)
 						const limit = Math.min(resolverContextRowLimit(context), 25)
 						const { getGmpMessages } = await import('$/sources/Axelarscan/Rest/queries.ts')
-						const page = await getGmpMessages({
+						const page = await getGmpMessages(axelarscanBinding, {
 							senderAddress: address,
 							from: skip,
 							size: limit,
@@ -437,7 +439,7 @@ export default {
 						const skip = axelarscanPaginationSkip(context)
 						const limit = Math.min(resolverContextRowLimit(context), 25)
 						const { getGmpMessages } = await import('$/sources/Axelarscan/Rest/queries.ts')
-						const page = await getGmpMessages({
+						const page = await getGmpMessages(axelarscanBinding, {
 							senderAddress: address,
 							from: skip,
 							size: limit,

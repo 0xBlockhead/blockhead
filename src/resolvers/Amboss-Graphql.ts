@@ -11,10 +11,13 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannelStatus.ts'
+import bindings from '$/sources/Amboss/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { parseAmbossChannelFundingPoint } from '$/sources/Amboss/Graphql/types.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const ambossBinding = bindings[Source.Amboss_Graphql][0]
 
 const assertLightningNetwork = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== 'lightning')
@@ -191,6 +194,7 @@ export default {
 						assertLightningNetwork($network)
 						const { getNode } = await import('$/sources/Amboss/Graphql/queries.ts')
 						const node = await getNode({
+							binding: ambossBinding,
 							publicKey,
 						})
 						return {
@@ -224,6 +228,7 @@ export default {
 						const { getNode } = await import('$/sources/Amboss/Graphql/queries.ts')
 						return nodeSnapshotFromAmbossNode(
 							await getNode({
+								binding: ambossBinding,
 								publicKey: $node.publicKey,
 							})
 						)
@@ -251,6 +256,7 @@ export default {
 						const limit = resolverContextRowLimit(context)
 						const { getNodeChannels } = await import('$/sources/Amboss/Graphql/queries.ts')
 						const channels = await getNodeChannels({
+							binding: ambossBinding,
 							publicKey,
 							limit,
 							offset,
@@ -345,6 +351,7 @@ export default {
 						assertLightningNetwork($network)
 						const { getEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
 						const edge = await getEdge({
+							binding: ambossBinding,
 							channelId,
 						})
 						const edgeInfo = edge.graph.info
@@ -398,6 +405,7 @@ export default {
 						const { getEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
 						return channelTimestampSnapshotFromAmbossEdge(
 							await getEdge({
+								binding: ambossBinding,
 								channelId: $channel.channelId,
 							})
 						)
@@ -422,7 +430,7 @@ export default {
 					resolve: async ({ $network }, context) => {
 						assertLightningNetwork($network)
 						const { getPopularNodePubkeys } = await import('$/sources/Amboss/Graphql/queries.ts')
-						const pubkeys = await getPopularNodePubkeys()
+						const pubkeys = await getPopularNodePubkeys(ambossBinding)
 						return pubkeys
 							.slice(0, resolverContextRowLimit(context))
 							.map((publicKey) => ({

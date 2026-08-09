@@ -1,27 +1,20 @@
 import { throwHttpError } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import bindings from '$/sources/Helius/bindings.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
-import { Source } from '$/sources/Source.ts'
-import { ApiFamily } from '$/sources/SourceBinding.ts'
-
-const binding = bindings[Source.Helius].find(
-	({ apiFamily }) => apiFamily === ApiFamily.RestJson
-)
-
-if (binding == null)
-	throw new Error('Helius REST binding is missing')
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 /** Deprecated by Helius for new parser work, but still the documented parsed transaction endpoint. */
 export const getEnhancedTransactions = async ({
+	binding,
 	signatures,
 	publicEnv,
 }: {
+	binding: SourceBinding
 	signatures: readonly string[]
 	publicEnv: SourcePublicEnv
 }) => {

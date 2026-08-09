@@ -8,7 +8,10 @@ import {
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import bindings from '$/sources/SnapshotHub/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+
+const snapshotHubGraphqlBinding = bindings[Source.SnapshotHub_Graphql][0]
 
 const {
 	getProposal,
@@ -374,6 +377,7 @@ describe('SnapshotHub GraphQL resolvers', () => {
 			},
 		])
 		expect(getSpacesPage).toHaveBeenCalledWith({
+			binding: snapshotHubGraphqlBinding,
 			limit: 2,
 			offset: 4,
 		})
@@ -394,6 +398,7 @@ describe('SnapshotHub GraphQL resolvers', () => {
 			},
 		])
 		expect(getProposalsPage).toHaveBeenCalledWith({
+			binding: snapshotHubGraphqlBinding,
 			spaceId,
 			state: 'closed',
 			limit: 2,

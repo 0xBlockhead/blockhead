@@ -8,13 +8,7 @@ import {
 } from 'vitest'
 
 import bindings from '$/sources/Helius/bindings.ts'
-import {
-	getAsset,
-	getAssetProof,
-	getAssets,
-	getAssetsByOwner,
-	getTokenAccounts,
-} from '$/sources/Helius/Das/queries.ts'
+import { heliusDasQueries } from '$/sources/Helius/Das/queries.ts'
 import type {
 	DasAsset,
 	DasAssetProof,
@@ -35,6 +29,14 @@ const binding = bindings[Source.Helius].find(
 
 if (binding == null)
 	throw new Error('Helius DAS test binding is missing')
+
+const {
+	getAsset,
+	getAssetProof,
+	getAssets,
+	getAssetsByOwner,
+	getTokenAccounts,
+} = heliusDasQueries(binding)
 
 const address = (value: number) => base58.encode(new Uint8Array(32).fill(value))
 const ownerAddress = address(1)

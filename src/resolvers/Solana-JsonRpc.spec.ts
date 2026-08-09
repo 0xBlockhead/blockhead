@@ -12,6 +12,7 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import bindings from '$/sources/PublicNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
@@ -139,6 +140,7 @@ const context = {
 	parentSelectorKeys: [],
 	sources: [],
 	publicEnv: {},
+	sourceBinding: bindings[Source.Solana_JsonRpc][0],
 }
 const networkSelector = {
 	caip2: {
@@ -488,7 +490,10 @@ describe('Solana JSON-RPC Network slotSubscribe resolveLive canary', () => {
 		await startSlotStreamLive(fields)
 
 		expect(subscribeSlot).toHaveBeenCalledTimes(1)
-		expect(subscribeSlot.mock.calls[0][0]).toBeInstanceOf(AbortSignal)
+		expect(subscribeSlot.mock.calls[0][0]).toMatchObject({
+			source: Source.Solana_JsonRpc,
+		})
+		expect(subscribeSlot.mock.calls[0][1]).toBeInstanceOf(AbortSignal)
 		expect(getSlot).not.toHaveBeenCalled()
 		expect(fields.$$timestamps.replaceRows).toHaveBeenCalledTimes(2)
 		expect(fields.$$timestamps.replaceRows).toHaveBeenNthCalledWith(1, [{
@@ -523,7 +528,7 @@ describe('Solana JSON-RPC Network slotSubscribe resolveLive canary', () => {
 	it('threads AbortSignal into subscribeSlot and stops publishing after abort', async () => {
 		const fields = liveFields()
 		const abortController = new AbortController()
-		subscribeSlot.mockImplementation(async function* (signal) {
+		subscribeSlot.mockImplementation(async function* (_binding, signal) {
 			yield {
 				slot: 400,
 				parent: 399,
@@ -548,7 +553,12 @@ describe('Solana JSON-RPC Network slotSubscribe resolveLive canary', () => {
 		abortController.abort()
 		await liveResolution
 
-		expect(subscribeSlot).toHaveBeenCalledWith(abortController.signal)
+		expect(subscribeSlot).toHaveBeenCalledWith(
+			expect.objectContaining({
+				source: Source.Solana_JsonRpc,
+			}),
+			abortController.signal
+		)
 		expect(fields.$$timestamps.replaceRows).toHaveBeenCalledTimes(1)
 		expect(getSlot).not.toHaveBeenCalled()
 	})

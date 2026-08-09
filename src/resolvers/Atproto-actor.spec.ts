@@ -15,7 +15,10 @@ import {
 	schema,
 } from '$/schema/index.ts'
 import sourceProviders from '$/sources/$sourceProviders.ts'
+import atprotoBskyBindings from '$/sources/AtprotoBsky/bindings.ts'
+import atprotoBskySocialBindings from '$/sources/AtprotoBskySocial/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
 const {
 	bskyGetProfile,
@@ -47,7 +50,7 @@ const [
 	import('$/resolvers/Atproto-BskySocial-Xrpc.ts'),
 ])
 
-const context = {
+const resolverContext = {
 	filters: [],
 	sorts: [],
 	pagination: {},
@@ -78,6 +81,17 @@ describe.each([
 	getProfile,
 	resolveHandle,
 }) => {
+	const sourceBinding = (
+		source === Source.Atproto_Xrpc ?
+			atprotoBskyBindings[source][0]
+		:
+			atprotoBskySocialBindings[source][0]
+	)
+	const context = {
+		...resolverContext,
+		sourceBinding,
+	}
+
 	const resolver = (
 		entityType: EntityType,
 		fieldName: string,
@@ -116,7 +130,7 @@ describe.each([
 			did: 'did:plc:alice',
 			handle: 'alice.test',
 		})
-		expect(resolveHandle).toHaveBeenCalledWith('alice.test')
+		expect(resolveHandle).toHaveBeenCalledWith(sourceBinding, 'alice.test')
 		expect(getProfile).not.toHaveBeenCalled()
 		expect(entitySelectorsFromFields(
 			schema,
@@ -138,7 +152,12 @@ describe.each([
 		])
 	})
 
-	it('keeps canonical DID identity provider-free and profile-free', async () => {
+	it('resolves canonical DID identity through the exact source binding', async () => {
+		getProfile.mockResolvedValueOnce({
+			did: 'did:plc:alice',
+			handle: 'alice.test',
+		})
+
 		await expect(resolver(
 			EntityType.AtprotoActor,
 			'did',
@@ -147,9 +166,10 @@ describe.each([
 			did: 'did:plc:alice',
 		}, context)).resolves.toEqual({
 			did: 'did:plc:alice',
+			handle: 'alice.test',
 		})
 		expect(resolveHandle).not.toHaveBeenCalled()
-		expect(getProfile).not.toHaveBeenCalled()
+		expect(getProfile).toHaveBeenCalledWith(sourceBinding, 'did:plc:alice')
 	})
 
 	it('materializes zero counters and mutable profile state on a source-keyed observation', async () => {
@@ -344,7 +364,10 @@ it('persists source-scoped handle and DID equivalence across restart', async () 
 			atprotoBskySocial,
 		],
 		sourceIndex: {
-			enabledBindingIds: new Set<string>(),
+			enabledBindingIds: new Set([
+				sourceBindingId(atprotoBskyBindings[Source.Atproto_Xrpc][0]),
+				sourceBindingId(atprotoBskySocialBindings[Source.Atproto_BskySocial_Xrpc][0]),
+			]),
 			enabledSources: new Set([
 				Source.Atproto_BskySocial_Xrpc,
 				Source.Atproto_Xrpc,

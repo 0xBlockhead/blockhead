@@ -4,6 +4,7 @@
  * @see https://docs.morpho.org/developers/api/morpho-vaults/
  */
 import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 import {
 	morphoGraphqlNetworkByChainId,
@@ -467,9 +468,11 @@ const normalizeVault = (
 
 /** List Morpho Blue markets filtered to supported EIP-155 chains, with authoritative `pageInfo.countTotal`. */
 export const listMarkets = async ({
+	binding,
 	chainIds,
 	limit = morphoMarketPageLimit,
 }: {
+	binding: SourceBinding
 	chainIds: readonly number[]
 	limit?: number
 }) => {
@@ -483,7 +486,7 @@ export const listMarkets = async ({
 	const data = assertEnvelope(
 		'markets',
 		morphoGraphqlMarketsDataWire,
-		await queryMorpho(`
+		await queryMorpho(binding, `
 		query MorphoMarkets(
 			$chainIds: [Int!],
 			$limit: Int!
@@ -526,9 +529,11 @@ export const listMarkets = async ({
 
 /** Read one Morpho Blue market by its EIP-155 chain and bytes32 market id. */
 export const getMarket = async ({
+	binding,
 	chainId,
 	marketId,
 }: {
+	binding: SourceBinding
 	chainId: number
 	marketId: string
 }) => {
@@ -537,7 +542,7 @@ export const getMarket = async ({
 	const data = assertEnvelope(
 		'market',
 		morphoGraphqlMarketDataWire,
-		await queryMorpho(`
+		await queryMorpho(binding, `
 		query MorphoMarket(
 			$chainId: Int!,
 			$marketId: String!
@@ -568,9 +573,11 @@ export const getMarket = async ({
 
 /** List MetaMorpho vaults filtered to supported EIP-155 chains, with authoritative `pageInfo.countTotal`. */
 export const listVaults = async ({
+	binding,
 	chainIds,
 	limit = morphoVaultPageLimit,
 }: {
+	binding: SourceBinding
 	chainIds: readonly number[]
 	limit?: number
 }) => {
@@ -584,7 +591,7 @@ export const listVaults = async ({
 	const data = assertEnvelope(
 		'vaults',
 		morphoGraphqlVaultsDataWire,
-		await queryMorpho(`
+		await queryMorpho(binding, `
 		query MorphoVaults(
 			$chainIds: [Int!],
 			$limit: Int!
@@ -627,9 +634,11 @@ export const listVaults = async ({
 
 /** Read one MetaMorpho vault by its EIP-155 chain and vault contract address. */
 export const getVault = async ({
+	binding,
 	chainId,
 	address,
 }: {
+	binding: SourceBinding
 	chainId: number
 	address: string
 }) => {
@@ -638,7 +647,7 @@ export const getVault = async ({
 	const data = assertEnvelope(
 		'vault',
 		morphoGraphqlVaultDataWire,
-		await queryMorpho(`
+		await queryMorpho(binding, `
 		query MorphoVault(
 			$chainId: Int!,
 			$address: String!
@@ -743,9 +752,11 @@ const normalizeVaultPosition = (
  * @see https://docs.morpho.org/tools/offchain/api/morpho-vaults/
  */
 export const getAccountPositions = async ({
+	binding,
 	chainId,
 	account,
 }: {
+	binding: SourceBinding
 	chainId: number
 	account: string
 }): Promise<MorphoGraphqlAccountPosition[]> => {
@@ -754,7 +765,7 @@ export const getAccountPositions = async ({
 	const data = assertEnvelope(
 		'account positions',
 		morphoGraphqlAccountPositionsDataWire,
-		await queryMorpho(`
+		await queryMorpho(binding, `
 		query MorphoAccountPositions(
 			$chainId: Int!,
 			$address: String!
