@@ -42,14 +42,17 @@ const suiNetworkTimestampApplicability = [
 	},
 ] as const
 
-const suiCheckpointSequenceApplicability = suiNetworkApplicability
-const suiCheckpointDigestApplicability = suiNetworkApplicability
+const suiCheckpointSequenceApplicability = [{
+	$network: suiNetworkApplicability[0],
+}] as const
+const suiCheckpointDigestApplicability = suiCheckpointSequenceApplicability
+const suiChildApplicability = suiCheckpointSequenceApplicability
 
-const suiTransactionApplicability = suiNetworkApplicability
+const suiTransactionApplicability = suiCheckpointSequenceApplicability
 
 const suiTransactionTimestampApplicability = [
 	{
-		$transaction: suiNetworkApplicability[0],
+		$transaction: suiTransactionApplicability[0],
 		source: Source.Sui,
 	},
 ] as const
@@ -263,7 +266,7 @@ export default {
 			entityType: EntityType.SuiNetwork,
 			resolve: {
 				Network: {
-					appliesTo: suiNetworkApplicability,
+					appliesTo: suiChildApplicability,
 					resolve: async ($network) => {
 						assertSuiNetworkEntity($network)
 						const { getLatestCheckpoint } = await import('$/sources/Sui/Graphql/queries.ts')
@@ -746,7 +749,7 @@ export default {
 			entityType: EntityType.SuiObject,
 			resolve: {
 				NetworkObjectId: {
-					appliesTo: suiNetworkApplicability,
+					appliesTo: suiChildApplicability,
 					resolve: async ({
 						$network,
 						objectId,
@@ -797,7 +800,7 @@ export default {
 			entityType: EntityType.SuiObjectVersion,
 			resolve: {
 				NetworkObjectIdVersionDigest: {
-					appliesTo: suiNetworkApplicability,
+					appliesTo: suiChildApplicability,
 					resolve: async ({
 						$network,
 						objectId,
@@ -827,7 +830,7 @@ export default {
 			entityType: EntityType.SuiCoinType,
 			resolve: {
 				NetworkCoinType: {
-					appliesTo: suiNetworkApplicability,
+					appliesTo: suiChildApplicability,
 					resolve: async ({
 						$network,
 						coinType,
