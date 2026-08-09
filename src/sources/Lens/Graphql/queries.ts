@@ -5,6 +5,10 @@ import {
 	queryLens as executeLensQuery,
 } from '$/sources/Lens/Graphql/client.ts'
 import bindings from '$/sources/Lens/bindings.ts'
+import {
+	lensFeedRulesWire,
+	lensUsernameNamespaceRulesWire,
+} from '$/sources/Lens/Graphql/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type LensPageSize = 'TEN' | 'FIFTY'
@@ -60,6 +64,26 @@ const queryLensPages = async <_Item>(
 	}
 }
 
+const lensFeedRulesFromWire = (
+	rules: unknown
+) => {
+	try {
+		return lensFeedRulesWire.assert(rules)
+	} catch {
+		throw new Error('Lens_Graphql: invalid feed rules response')
+	}
+}
+
+const lensUsernameNamespaceRulesFromWire = (
+	rules: unknown
+) => {
+	try {
+		return lensUsernameNamespaceRulesWire.assert(rules)
+	} catch {
+		throw new Error('Lens_Graphql: invalid username namespace rules response')
+	}
+}
+
 const LensUsername = graphql(`
 	fragment LensUsername on Username @_unmask {
 		id
@@ -104,12 +128,18 @@ const LensFeed = graphql(`
 				type
 				address
 				executesOn
+				config {
+					__typename
+				}
 			}
 			anyOf {
 				id
 				type
 				address
 				executesOn
+				config {
+					__typename
+				}
 			}
 		}
 	}
@@ -760,10 +790,17 @@ export const lensQueries = (() => {
 	const queryFeed = async (
 	address: `0x${string}`
 ) => {
-	return queryLens(
+	const response = await queryLens(
 		LensFeedDocument,
 		{ address }
 	)
+	return response.feed == null ? response : {
+		...response,
+		feed: {
+			...response.feed,
+			rules: lensFeedRulesFromWire(response.feed.rules),
+		},
+	}
 }
 
 	const queryFeedPosts = async (
@@ -790,8 +827,8 @@ export const lensQueries = (() => {
 
 	const queryFeeds = async (
 	limit = 10
-) => ({
-	feeds: await queryLensPages(
+) => {
+	const feeds = await queryLensPages(
 		limit,
 		async (pageSize, cursor) => (
 			(await queryLens(
@@ -803,8 +840,17 @@ export const lensQueries = (() => {
 			)).feeds
 		),
 		(feed) => feed.address
-	),
-})
+	)
+	return {
+		feeds: {
+			...feeds,
+			items: feeds.items.map((feed) => ({
+				...feed,
+				rules: lensFeedRulesFromWire(feed.rules),
+			})),
+		},
+	}
+}
 
 	const queryUsername = async (
 	request: VariablesOf<typeof LensUsernameDocument>['request']
@@ -841,16 +887,23 @@ export const lensQueries = (() => {
 	const queryNamespace = async (
 	address: `0x${string}`
 ) => {
-	return queryLens(
+	const response = await queryLens(
 		LensNamespaceDocument,
 		{ address }
 	)
+	return response.namespace == null ? response : {
+		...response,
+		namespace: {
+			...response.namespace,
+			rules: lensUsernameNamespaceRulesFromWire(response.namespace.rules),
+		},
+	}
 }
 
 	const queryNamespaces = async (
 	limit = 10
-) => ({
-	namespaces: await queryLensPages(
+) => {
+	const namespaces = await queryLensPages(
 		limit,
 		async (pageSize, cursor) => (
 			(await queryLens(
@@ -862,8 +915,17 @@ export const lensQueries = (() => {
 			)).namespaces
 		),
 		(namespace) => namespace.address
-	),
-})
+	)
+	return {
+		namespaces: {
+			...namespaces,
+			items: namespaces.items.map((namespace) => ({
+				...namespace,
+				rules: lensUsernameNamespaceRulesFromWire(namespace.rules),
+			})),
+		},
+	}
+}
 
 	return {
 		queryAccount,

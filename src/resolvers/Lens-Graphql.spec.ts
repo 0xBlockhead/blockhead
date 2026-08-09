@@ -963,4 +963,19 @@ describe('Lens_Graphql reading relationships', () => {
 		}])
 		expect(queryNamespaces).toHaveBeenCalledWith(2)
 	})
+
+	it('propagates typed-rule producer failures before feed projection', async () => {
+		queryFeeds.mockRejectedValueOnce(new Error('Lens_Graphql: invalid feed rules response'))
+
+		const feedsResolver = lensGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.LensNetwork
+			&& '$$feeds' in resolver.projections
+		))
+		if (feedsResolver == null || !('Scope' in feedsResolver.resolve))
+			throw new Error('Lens spec missing LensNetwork feed list resolver')
+
+		await expect(feedsResolver.resolve.Scope.resolve({
+			scope: 'LensNetwork',
+		}, context)).rejects.toThrow('invalid feed rules response')
+	})
 })

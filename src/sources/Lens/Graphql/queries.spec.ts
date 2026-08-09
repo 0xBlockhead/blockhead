@@ -182,13 +182,25 @@ it('continues public directories by cursor, dedupes identities, and stops at exh
 	fetchMock
 		.mockResolvedValueOnce(response({
 			feeds: {
-				items: [{ address: '0x4444444444444444444444444444444444444444' }],
+				items: [{
+					address: '0x4444444444444444444444444444444444444444',
+					rules: {
+						required: [],
+						anyOf: [],
+					},
+				}],
 				pageInfo: { prev: null, next: 'stuck' },
 			},
 		}))
 		.mockResolvedValueOnce(response({
 			feeds: {
-				items: [{ address: '0x5555555555555555555555555555555555555555' }],
+				items: [{
+					address: '0x5555555555555555555555555555555555555555',
+					rules: {
+						required: [],
+						anyOf: [],
+					},
+				}],
 				pageInfo: { prev: null, next: 'stuck' },
 			},
 		}))
@@ -202,6 +214,90 @@ it('continues public directories by cursor, dedupes identities, and stops at exh
 		},
 	})
 	expect(fetchMock).toHaveBeenCalledTimes(2)
+})
+
+it('parses documented feed and username namespace rules while retaining open configuration', async () => {
+	const feedAddress = '0x1111111111111111111111111111111111111111'
+	const namespaceAddress = '0x2222222222222222222222222222222222222222'
+	fetchMock
+		.mockResolvedValueOnce(response({
+			feed: {
+				address: feedAddress,
+				rules: {
+					required: [{
+						id: 'feed-rule',
+						type: 'SIMPLE_PAYMENT',
+						address: '0x3333333333333333333333333333333333333333',
+						executesOn: ['CREATING_POST'],
+						config: [{
+							__typename: 'RawKeyValue',
+							provider_extension: 'open',
+						}],
+						provider_extension: 'dropped',
+					}],
+					anyOf: [],
+				},
+			},
+		}))
+		.mockResolvedValueOnce(response({
+			namespace: {
+				address: namespaceAddress,
+				rules: {
+					required: [],
+					anyOf: [{
+						id: 'namespace-rule',
+						type: 'USERNAME_LENGTH',
+						address: '0x4444444444444444444444444444444444444444',
+						executesOn: ['CREATING'],
+						config: [{
+							__typename: 'IntKeyValue',
+							int: 3,
+						}],
+					}],
+					provider_extension: 'dropped',
+				},
+			},
+		}))
+		.mockResolvedValueOnce(response({
+			feed: {
+				address: feedAddress,
+				rules: {
+					required: [{
+						id: 'feed-rule',
+						type: 'USERNAME_LENGTH',
+						address: '0x3333333333333333333333333333333333333333',
+						executesOn: ['CREATING_POST'],
+						config: [],
+					}],
+					anyOf: [],
+				},
+			},
+		}))
+
+	await expect(queryFeed(feedAddress)).resolves.toMatchObject({
+		feed: {
+			rules: {
+				required: [{
+					id: 'feed-rule',
+					type: 'SIMPLE_PAYMENT',
+					config: [{
+						provider_extension: 'open',
+					}],
+				}],
+			},
+		},
+	})
+	await expect(queryNamespace(namespaceAddress)).resolves.toMatchObject({
+		namespace: {
+			rules: {
+				anyOf: [{
+					type: 'USERNAME_LENGTH',
+				}],
+			},
+		},
+	})
+	await expect(queryFeed(feedAddress)).rejects.toThrow('invalid feed rules response')
+	expect(requestBody(0).query).toMatch(/config[\s\S]*__typename/)
 })
 
 it('issues typed unsigned feed, username, and namespace detail and directory operations', async () => {

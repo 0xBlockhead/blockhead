@@ -12,6 +12,10 @@ import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { lensQueries } from '$/sources/Lens/Graphql/queries.ts'
+import type {
+	LensFeedRules,
+	LensUsernameNamespaceRules,
+} from '$/sources/Lens/Graphql/types.ts'
 
 const {
 	queryAccount,
@@ -329,7 +333,7 @@ const lensUsernameReferenceFromWire = (
 }
 
 const lensRulesPassthroughFromWire = (
-	rules: { required: unknown[], anyOf: unknown[] } | null | undefined
+	rules: LensFeedRules | LensUsernameNamespaceRules | null | undefined
 ) => (
 	rules == null ? undefined : { required: rules.required, anyOf: rules.anyOf }
 )
@@ -339,23 +343,21 @@ const lensUsernameNamespaceFromWire = (
 		typeof queryNamespace
 	>>['namespace']>
 ) => {
-	const owner = namespace.owner != null ? lensEvmAddressFromWire(namespace.owner) : undefined
+	const owner = lensEvmAddressFromWire(namespace.owner)
 	return {
 		address: lensEvmAddressFromWire(namespace.address),
 		namespace: namespace.namespace,
-		...(owner != null && {
-			owner,
-			$owner: {
-				[EntityMetaKey.Selector]: {
-					address: owner,
-				},
+		owner,
+		$owner: {
+			[EntityMetaKey.Selector]: {
+				address: owner,
 			},
-		}),
+		},
 		...((tokenName) => tokenName != null && { tokenName })(optionalNonemptyString(namespace.tokenName)),
 		...((tokenSymbol) => tokenSymbol != null && { tokenSymbol })(optionalNonemptyString(namespace.tokenSymbol)),
 		...((createdAt) => createdAt != null && { createdAt })(optionalTimestampMs(namespace.createdAt)),
 		...((description) => description != null && { description })(optionalNonemptyString(namespace.metadata?.description)),
-		...(namespace.stats?.totalUsernames != null && { totalUsernames: namespace.stats.totalUsernames }),
+		totalUsernames: namespace.stats.totalUsernames,
 		...((rules) => rules != null && { rules })(lensRulesPassthroughFromWire(namespace.rules)),
 	}
 }
@@ -863,13 +865,11 @@ const lensGraphqlResolvers = {
 							const resolved = lensUsernameNamespaceFromWire(namespace)
 							return [{
 								[EntityMetaKey.Selector]: { address: resolved.address },
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'address')]: resolved.address,
-									[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'namespace')]: resolved.namespace,
-									...(resolved.owner != null && {
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'address')]: resolved.address,
+										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'namespace')]: resolved.namespace,
 										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'owner')]: resolved.owner,
 										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], '$owner')]: resolved.$owner,
-									}),
 									...(resolved.tokenName != null && {
 										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'tokenName')]: resolved.tokenName,
 									}),
@@ -882,9 +882,7 @@ const lensGraphqlResolvers = {
 									...(resolved.description != null && {
 										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'description')]: resolved.description,
 									}),
-									...(resolved.totalUsernames != null && {
 										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'totalUsernames')]: resolved.totalUsernames,
-									}),
 									...(resolved.rules != null && {
 										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'rules')]: resolved.rules,
 									}),
