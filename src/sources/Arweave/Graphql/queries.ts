@@ -3,7 +3,8 @@
  * @see https://arweave.net/graphql
  * @see schema.graphql `block` / `blocks` / `transactions`
  */
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Arweave/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	ArweaveGraphqlBlockFragment,
 	ArweaveGraphqlTransactionFragment,
@@ -16,6 +17,7 @@ import {
 	queryArweave,
 } from './client.ts'
 
+const binding = bindings[Source.Arweave_Graphql][0]
 
 const ArweaveTransaction = graphql(`
 	query ArweaveTransaction($id: ID!) {
@@ -168,7 +170,7 @@ const assertTransaction = (
 		assertConfirmedBlock(transaction.block)
 }
 
-const getTransactionPage = async (binding: SourceBinding, {
+const getTransactionPage = async ({
 	first,
 	after,
 	ids,
@@ -268,7 +270,7 @@ const getTransactionPage = async (binding: SourceBinding, {
 	return transactions
 }
 
-const getBlockPage = async (binding: SourceBinding, {
+const getBlockPage = async ({
 	first,
 	after,
 	ids,
@@ -357,9 +359,7 @@ const getBlockPage = async (binding: SourceBinding, {
 	}
 }
 
-export const getTransactionById = async (
-	binding: SourceBinding,
-	transactionId: string
+export const getTransactionById = async (	transactionId: string
 ) => {
 	assertAddress(transactionId, 'transaction ID')
 	const { transaction } = await queryArweave(binding, ArweaveTransaction, {
@@ -375,9 +375,7 @@ export const getTransactionById = async (
 	return transaction
 }
 
-export const getTransactionsPage = (
-	binding: SourceBinding,
-	{
+export const getTransactionsPage = (	{
 		first,
 		after,
 	}: {
@@ -385,15 +383,13 @@ export const getTransactionsPage = (
 		after?: string
 	}
 ) => (
-	getTransactionPage(binding, {
+	getTransactionPage({
 		first,
 		after,
 	})
 )
 
-export const getBlockTransactionsPage = (
-	binding: SourceBinding,
-	{
+export const getBlockTransactionsPage = (	{
 		height,
 		first,
 		after,
@@ -403,16 +399,14 @@ export const getBlockTransactionsPage = (
 		after?: string
 	}
 ) => (
-	getTransactionPage(binding, {
+	getTransactionPage({
 		first,
 		after,
 		blockHeight: height,
 	})
 )
 
-export const getAccountTransactionsPage = (
-	binding: SourceBinding,
-	{
+export const getAccountTransactionsPage = (	{
 		address,
 		role,
 		first,
@@ -424,7 +418,7 @@ export const getAccountTransactionsPage = (
 		after?: string
 	}
 ) => (
-	getTransactionPage(binding, {
+	getTransactionPage({
 		first,
 		after,
 		...(role === 'owner' ?
@@ -443,9 +437,7 @@ export const getAccountTransactionsPage = (
 )
 
 /** Tag-filtered transaction discovery (`TagFilter` leftovers on GraphQL `transactions`). */
-export const getTaggedTransactionsPage = (
-	binding: SourceBinding,
-	{
+export const getTaggedTransactionsPage = (	{
 		tags,
 		first,
 		after,
@@ -461,16 +453,14 @@ export const getTaggedTransactionsPage = (
 	if (tags.length === 0)
 		throw new Error('Arweave_Graphql: tag filter required')
 
-	return getTransactionPage(binding, {
+	return getTransactionPage({
 		first,
 		after,
 		tags,
 	})
 }
 
-export const getBlockById = async (
-	binding: SourceBinding,
-	blockId: string
+export const getBlockById = async (	blockId: string
 ) => {
 	assertBlockHash(blockId, 'block ID')
 	const { block } = await queryArweave(binding, ArweaveBlock, {
@@ -486,14 +476,12 @@ export const getBlockById = async (
 	return confirmed
 }
 
-export const getBlockByHeight = async (
-	binding: SourceBinding,
-	height: number
+export const getBlockByHeight = async (	height: number
 ) => {
 	if (!Number.isSafeInteger(height) || height < 0)
 		throw new Error('Arweave_Graphql: invalid block height')
 
-	const blocks = await getBlockPage(binding, {
+	const blocks = await getBlockPage({
 		first: 1,
 		height: {
 			min: height,
@@ -510,9 +498,7 @@ export const getBlockByHeight = async (
 	return confirmed
 }
 
-export const getBlocksPage = (
-	binding: SourceBinding,
-	{
+export const getBlocksPage = (	{
 		first,
 		after,
 	}: {
@@ -520,7 +506,7 @@ export const getBlocksPage = (
 		after?: string
 	}
 ) => (
-	getBlockPage(binding, {
+	getBlockPage({
 		first,
 		after,
 	})

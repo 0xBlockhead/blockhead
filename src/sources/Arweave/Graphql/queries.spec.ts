@@ -63,29 +63,12 @@ const block = {
 }
 
 describe('Arweave GraphQL public transaction and block discovery', () => {
-	it('passes only the caller-provided noncanonical binding to GraphQL', async () => {
-		const modifiedBinding = {
-			...binding,
-			endpoints: binding.endpoints.map((endpoint) => ({
-				...endpoint,
-				locator: 'https://noncanonical.example/arweave/graphql',
-			})),
-		}
-		vi.mocked(graphql).mockResolvedValueOnce({ transaction })
-
-		await getTransactionById(modifiedBinding, transactionId)
-
-		expect(graphql).toHaveBeenCalledOnce()
-		expect(vi.mocked(graphql).mock.calls[0][0].binding).toBe(modifiedBinding)
-	})
-
 	it('preserves exact IDs, winston units, tags, and confirmed block identity', async () => {
 		vi.mocked(graphql).mockResolvedValue({
 			transaction,
 		})
 
-		await expect(getTransactionById(binding,
-			transactionId
+		await expect(getTransactionById(transactionId
 		)).resolves.toMatchObject({
 			id: transactionId,
 			fee: {
@@ -101,7 +84,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 		vi.mocked(graphql).mockResolvedValueOnce({
 			block,
 		})
-		await expect(getBlockById(binding, blockId)).resolves.toEqual(block)
+		await expect(getBlockById(blockId)).resolves.toEqual(block)
 
 		vi.mocked(graphql).mockResolvedValueOnce({
 			blocks: {
@@ -116,7 +99,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				],
 			},
 		})
-		await expect(getBlockByHeight(binding, 1_500_000)).resolves.toEqual(block)
+		await expect(getBlockByHeight(1_500_000)).resolves.toEqual(block)
 
 		vi.mocked(graphql).mockResolvedValueOnce({
 			blocks: {
@@ -131,7 +114,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				],
 			},
 		})
-		await expect(getBlocksPage(binding, {
+		await expect(getBlocksPage({
 			first: 1,
 		})).resolves.toMatchObject({
 			pageInfo: {
@@ -153,7 +136,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				id: null,
 			},
 		})
-		await expect(getBlockById(binding, blockId)).rejects.toThrow('incomplete confirmed block coordinates')
+		await expect(getBlockById(blockId)).rejects.toThrow('incomplete confirmed block coordinates')
 	})
 
 	it('keeps pending transactions blockless and advances opaque cursors', async () => {
@@ -174,7 +157,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 			},
 		})
 
-		await expect(getAccountTransactionsPage(binding, {
+		await expect(getAccountTransactionsPage({
 			address: ownerAddress,
 			role: 'owner',
 			first: 10,
@@ -205,8 +188,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 			},
 		})
 
-		await expect(getTransactionById(binding,
-			transactionId
+		await expect(getTransactionById(transactionId
 		)).rejects.toThrow('incomplete confirmed block coordinates')
 	})
 
@@ -224,7 +206,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				],
 			},
 		})
-		await expect(getTaggedTransactionsPage(binding, {
+		await expect(getTaggedTransactionsPage({
 			tags: [{
 				name: 'Content-Type',
 				values: [
@@ -253,7 +235,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				],
 			},
 		})
-		await expect(getTaggedTransactionsPage(binding, {
+		await expect(getTaggedTransactionsPage({
 			tags: [{
 				name: 'App-Name',
 				values: [
@@ -263,7 +245,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 			first: 1,
 		})).rejects.toThrow('tag filter was violated')
 
-		expect(() => getTaggedTransactionsPage(binding, {
+		expect(() => getTaggedTransactionsPage({
 			tags: [],
 			first: 1,
 		})).toThrow('tag filter required')
@@ -283,7 +265,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				],
 			},
 		})
-		await expect(getAccountTransactionsPage(binding, {
+		await expect(getAccountTransactionsPage({
 			address: recipientAddress,
 			role: 'owner',
 			first: 10,
@@ -302,7 +284,7 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 				],
 			},
 		})
-		await expect(getAccountTransactionsPage(binding, {
+		await expect(getAccountTransactionsPage({
 			address: ownerAddress,
 			role: 'owner',
 			first: 10,
