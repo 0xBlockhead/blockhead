@@ -130,7 +130,7 @@ describe('Internet Computer Rosetta ledger transport', () => {
 			},
 		}))
 
-		await expect(getBlock(binding, {
+		await expect(getBlock({
 			index: 100,
 		})).resolves.toMatchObject({
 			block: {
@@ -161,7 +161,7 @@ describe('Internet Computer Rosetta ledger transport', () => {
 				transactions: [],
 			},
 		}))
-		await expect(getBlock(binding, {
+		await expect(getBlock({
 			index: 100,
 		})).rejects.toThrow('exactly one transaction')
 	})
@@ -175,7 +175,7 @@ describe('Internet Computer Rosetta ledger transport', () => {
 			balances: [icpAmount('18446744073709551615')],
 		}))
 
-		await expect(getAccountBalance(binding, accountIdentifier, {
+		await expect(getAccountBalance(accountIdentifier, {
 			index: 9_890_652,
 		})).resolves.toMatchObject({
 			balances: [{
@@ -209,7 +209,7 @@ describe('Internet Computer Rosetta ledger transport', () => {
 			},
 			balances: [],
 		}))
-		await expect(getAccountBalance(binding, accountIdentifier)).rejects.toThrow('exactly ICP')
+		await expect(getAccountBalance(accountIdentifier)).rejects.toThrow('exactly ICP')
 	})
 
 	it('loads a bounded account-owned transaction page with lossless amounts', async () => {
@@ -251,7 +251,7 @@ describe('Internet Computer Rosetta ledger transport', () => {
 			next_offset: 2,
 		}))
 
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountIdentifier,
 			limit: 1,
 			offset: 1,
@@ -286,7 +286,7 @@ describe('Internet Computer Rosetta ledger transport', () => {
 			total_count: 1,
 		}))
 
-		await expect(searchTransactions(binding, {
+		await expect(searchTransactions({
 			limit: 1,
 		})).resolves.toMatchObject({
 			total_count: 1,
@@ -330,7 +330,7 @@ describe('Internet Computer Rosetta ledger transport', () => {
 			}],
 			total_count: 1,
 		}))
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountIdentifier,
 			limit: 1,
 		})).rejects.toThrow('foreign account row')
@@ -340,13 +340,13 @@ describe('Internet Computer Rosetta ledger transport', () => {
 			total_count: 1,
 			next_offset: 1,
 		}))
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountIdentifier,
 			limit: 1,
 			offset: 1,
 		})).rejects.toThrow('did not advance')
 
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountIdentifier,
 			limit: 1_001,
 		})).rejects.toThrow('0 through 1000')
@@ -354,14 +354,14 @@ describe('Internet Computer Rosetta ledger transport', () => {
 	})
 
 	it('does not transport zero-cardinality transaction pages', async () => {
-		await expect(getAccountTransactions(binding, {
+		await expect(getAccountTransactions({
 			accountIdentifier,
 			limit: 0,
 		})).resolves.toEqual({
 			transactions: [],
 			total_count: 0,
 		})
-		await expect(searchTransactions(binding, {
+		await expect(searchTransactions({
 			limit: 0,
 		})).resolves.toEqual({
 			transactions: [],

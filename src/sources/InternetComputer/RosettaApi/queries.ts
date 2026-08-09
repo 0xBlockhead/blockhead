@@ -16,18 +16,12 @@ import bindings from '$/sources/InternetComputer/bindings.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 
-const defaultBinding = bindings[Source.InternetComputer_RosettaApi][0]
+const binding = bindings[Source.InternetComputer_RosettaApi][0]
 
 const networkIdentifier = {
 	blockchain: 'Internet Computer',
 	network: '00000000000000020101',
 } as const
-
-const bindingOrDefault = (
-	binding?: SourceBinding
-) => (
-	binding ?? defaultBinding
-)
 
 const assertAccountIdentifier = (accountIdentifier: string) => {
 	if (!/^[0-9a-f]{64}$/.test(accountIdentifier))
@@ -107,12 +101,10 @@ const request = async (
 }
 
 export const getNetworkStatus = async (
-	binding?: SourceBinding
 ) => {
-	const resolvedBinding = bindingOrDefault(binding)
 	const result = InternetComputerRosettaNetworkStatusResponse.assert(
 		await request(
-			resolvedBinding,
+			binding,
 			'/network/status',
 			{
 				network_identifier: networkIdentifier,
@@ -126,12 +118,10 @@ export const getNetworkStatus = async (
 }
 
 export const getNetworkOptions = async (
-	binding?: SourceBinding
 ) => {
-	const resolvedBinding = bindingOrDefault(binding)
 	return InternetComputerRosettaNetworkOptionsResponse.assert(
 		await request(
-			resolvedBinding,
+			binding,
 			'/network/options',
 			{
 				network_identifier: networkIdentifier,
@@ -141,13 +131,11 @@ export const getNetworkOptions = async (
 }
 
 export const getBlock = async (
-	binding: SourceBinding | undefined,
 	blockIdentifier: {
 		index?: number
 		hash?: string
 	}
 ) => {
-	const resolvedBinding = bindingOrDefault(binding)
 	if (blockIdentifier.index != null)
 		assertSafeUnsignedInteger(blockIdentifier.index, 'requested block index')
 	if (blockIdentifier.hash != null && !/^[0-9a-f]{64}$/.test(blockIdentifier.hash))
@@ -157,7 +145,7 @@ export const getBlock = async (
 
 	const result = InternetComputerRosettaBlockResponse.assert(
 		await request(
-			resolvedBinding,
+			binding,
 			'/block',
 			{
 				network_identifier: networkIdentifier,
@@ -181,14 +169,12 @@ export const getBlock = async (
 }
 
 export const getAccountBalance = async (
-	binding: SourceBinding | undefined,
 	accountIdentifier: string,
 	blockIdentifier?: {
 		index?: number
 		hash?: string
 	}
 ) => {
-	const resolvedBinding = bindingOrDefault(binding)
 	assertAccountIdentifier(accountIdentifier)
 	if (blockIdentifier?.index != null)
 		assertSafeUnsignedInteger(blockIdentifier.index, 'requested block index')
@@ -197,7 +183,7 @@ export const getAccountBalance = async (
 
 	const result = InternetComputerRosettaAccountBalanceResponse.assert(
 		await request(
-			resolvedBinding,
+			binding,
 			'/account/balance',
 			{
 				network_identifier: networkIdentifier,
@@ -220,7 +206,6 @@ export const getAccountBalance = async (
 }
 
 export const getAccountTransactions = async (
-	binding: SourceBinding | undefined,
 	{
 		accountIdentifier,
 		limit,
@@ -233,7 +218,6 @@ export const getAccountTransactions = async (
 		maxBlock?: number
 	}
 ) => {
-	const resolvedBinding = bindingOrDefault(binding)
 	assertAccountIdentifier(accountIdentifier)
 	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 1_000)
 		throw new Error('InternetComputer_RosettaApi: transaction limit must be an integer from 0 through 1000')
@@ -249,7 +233,7 @@ export const getAccountTransactions = async (
 
 	const result = InternetComputerRosettaSearchTransactionsResponse.assert(
 		await request(
-			resolvedBinding,
+			binding,
 			'/search/transactions',
 			{
 				network_identifier: networkIdentifier,
@@ -290,7 +274,6 @@ export const getAccountTransactions = async (
 }
 
 export const searchTransactions = async (
-	binding: SourceBinding | undefined,
 	{
 		limit,
 		offset,
@@ -301,7 +284,6 @@ export const searchTransactions = async (
 		maxBlock?: number
 	}
 ) => {
-	const resolvedBinding = bindingOrDefault(binding)
 	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 1_000)
 		throw new Error('InternetComputer_RosettaApi: transaction limit must be an integer from 0 through 1000')
 	if (offset != null)
@@ -316,7 +298,7 @@ export const searchTransactions = async (
 
 	const result = InternetComputerRosettaSearchTransactionsResponse.assert(
 		await request(
-			resolvedBinding,
+			binding,
 			'/search/transactions',
 			{
 				network_identifier: networkIdentifier,

@@ -316,7 +316,7 @@ describe('Internet Computer Rosetta ledger resolvers', () => {
 			throw new Error('missing account timestamps projection')
 		const [observation] = projection(timestamps, ledger, resolverContext)
 
-		expect(getAccountBalance).toHaveBeenCalledWith(binding, accountIdentifier)
+		expect(getAccountBalance).toHaveBeenCalledWith(accountIdentifier)
 		expect(observation[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.IcpLedgerAccount_Timestamp, [], 'balance')]: 18446744073709551615n,
 		})
@@ -426,7 +426,7 @@ describe('Internet Computer Rosetta ledger resolvers', () => {
 				value: accountIdentifier,
 			}],
 		})
-		expect(getAccountTransactions).toHaveBeenCalledWith(binding, expect.objectContaining({
+		expect(getAccountTransactions).toHaveBeenCalledWith(expect.objectContaining({
 			accountIdentifier,
 		}))
 

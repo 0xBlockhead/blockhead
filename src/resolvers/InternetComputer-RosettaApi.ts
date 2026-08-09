@@ -12,13 +12,10 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import type { InternetComputerRosettaTransaction } from '$/sources/InternetComputer/RosettaApi/types.ts'
-import bindings from '$/sources/InternetComputer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 
 export const icpLedgerCanisterId = 'ryjl3-tyaaa-aaaaa-aaaba-cai'
-
-const icpRosettaBinding = bindings[Source.InternetComputer_RosettaApi][0]
 
 type IcpNetworkId = EntitySelector<typeof schema, EntityType.IcpNetwork>
 type IcpLedgerCanisterId = EntitySelector<typeof schema, EntityType.IcpLedgerCanister>
@@ -312,8 +309,8 @@ export default {
 							status,
 							options,
 						] = await Promise.all([
-							getNetworkStatus(icpRosettaBinding),
-							getNetworkOptions(icpRosettaBinding),
+							getNetworkStatus(),
+							getNetworkOptions(),
 						])
 						const timestampMs = Date.now()
 						return [{
@@ -354,7 +351,7 @@ export default {
 							return []
 
 						const { getAccountBalance } = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
-						const balance = await getAccountBalance(icpRosettaBinding, owner)
+						const balance = await getAccountBalance(owner)
 						const timestampMs = Date.now()
 						return [{
 							[EntityMetaKey.Selector]: {
@@ -410,14 +407,14 @@ export default {
 							getNetworkStatus,
 						} = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
 						const tipIndex = maxBlock ?? (
-							await getNetworkStatus(icpRosettaBinding)
+							await getNetworkStatus()
 						).current_block_identifier.index
 						const blocks = await Promise.all(
 							Array.from(
 								{
 									length: Math.min(limit, tipIndex + 1),
 								},
-								(_, offset) => getBlock(icpRosettaBinding, {
+								(_, offset) => getBlock({
 									index: tipIndex - offset,
 								})
 							)
@@ -495,12 +492,12 @@ export default {
 							searchTransactions,
 						} = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
 						const page = owner == null ?
-							await searchTransactions(icpRosettaBinding, {
+							await searchTransactions({
 								limit,
 								offset,
 							})
 						:
-							await getAccountTransactions(icpRosettaBinding, {
+							await getAccountTransactions({
 								accountIdentifier: owner,
 								limit,
 								offset,
@@ -554,7 +551,7 @@ export default {
 						if (blockIndex > BigInt(Number.MAX_SAFE_INTEGER))
 							throw new Error('InternetComputer_RosettaApi: block index exceeds lossless JSON integer range')
 						const { getBlock } = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
-						const response = await getBlock(icpRosettaBinding, {
+						const response = await getBlock({
 							index: Number(blockIndex),
 						})
 						return ledgerBlockFields(response.block)
@@ -582,7 +579,7 @@ export default {
 						if (blockIndex > BigInt(Number.MAX_SAFE_INTEGER))
 							throw new Error('InternetComputer_RosettaApi: block index exceeds lossless JSON integer range')
 						const { getBlock } = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
-						const response = await getBlock(icpRosettaBinding, {
+						const response = await getBlock({
 							index: Number(blockIndex),
 						})
 						return response.block.transactions.map((transaction, transactionIndex) => (
@@ -614,7 +611,7 @@ export default {
 						if ($block.blockIndex > BigInt(Number.MAX_SAFE_INTEGER))
 							throw new Error('InternetComputer_RosettaApi: block index exceeds lossless JSON integer range')
 						const { getBlock } = await import('$/sources/InternetComputer/RosettaApi/queries.ts')
-						const response = await getBlock(icpRosettaBinding, {
+						const response = await getBlock({
 							index: Number($block.blockIndex),
 						})
 						const transaction = response.block.transactions[transactionIndex]
