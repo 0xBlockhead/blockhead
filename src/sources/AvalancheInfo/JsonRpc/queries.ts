@@ -1,4 +1,5 @@
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/AvalancheInfo/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import type {
@@ -59,6 +60,8 @@ const uptimeWire = arktype({
 	weightedAveragePercentage: 'string',
 })
 
+const binding = bindings[Source.AvalancheInfo_JsonRpc][0]
+
 const assertEnvelope = <_Value>(
 	label: string,
 	wire: { assert: (value: unknown) => _Value },
@@ -78,7 +81,7 @@ const request = async <_Result>(
 	jsonRpc2<_Result>(binding, method, params)
 )
 
-export const getNetworkId = async (binding: SourceBinding) => (
+export const getNetworkId = async () => (
 	assertEnvelope(
 		'network id',
 		networkIdWire,
@@ -86,7 +89,7 @@ export const getNetworkId = async (binding: SourceBinding) => (
 	)
 )
 
-export const getNetworkName = async (binding: SourceBinding) => (
+export const getNetworkName = async () => (
 	assertEnvelope(
 		'network name',
 		networkNameWire,
@@ -94,7 +97,7 @@ export const getNetworkName = async (binding: SourceBinding) => (
 	)
 )
 
-export const getNodeId = async (binding: SourceBinding) => (
+export const getNodeId = async () => (
 	assertEnvelope(
 		'node id',
 		nodeIdWire,
@@ -102,7 +105,7 @@ export const getNodeId = async (binding: SourceBinding) => (
 	)
 )
 
-export const getNodeVersion = async (binding: SourceBinding) => (
+export const getNodeVersion = async () => (
 	assertEnvelope(
 		'node version',
 		nodeVersionWire,
@@ -110,7 +113,7 @@ export const getNodeVersion = async (binding: SourceBinding) => (
 	)
 )
 
-export const getPeers = async (binding: SourceBinding) => (
+export const getPeers = async () => (
 	assertEnvelope(
 		'peers',
 		peersWire,
@@ -118,7 +121,7 @@ export const getPeers = async (binding: SourceBinding) => (
 	)
 )
 
-export const getUptime = async (binding: SourceBinding) => (
+export const getUptime = async () => (
 	assertEnvelope(
 		'uptime',
 		uptimeWire,

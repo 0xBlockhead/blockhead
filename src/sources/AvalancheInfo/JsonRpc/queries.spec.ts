@@ -25,22 +25,6 @@ beforeEach(() => {
 	jsonRpc2.mockReset()
 })
 
-it('passes only the caller-provided noncanonical binding to JSON-RPC', async () => {
-	const modifiedBinding = {
-		...binding,
-		endpoints: binding.endpoints.map((endpoint) => ({
-			...endpoint,
-			locator: 'https://noncanonical.example/info',
-		})),
-	}
-	jsonRpc2.mockResolvedValueOnce({ networkName: 'mainnet' })
-
-	await getNetworkName(modifiedBinding)
-
-	expect(jsonRpc2).toHaveBeenCalledOnce()
-	expect(jsonRpc2.mock.calls[0][0]).toBe(modifiedBinding)
-})
-
 it('reads Info network, version, and peer envelopes through the P-Chain Info binding', async () => {
 	jsonRpc2
 		.mockResolvedValueOnce({

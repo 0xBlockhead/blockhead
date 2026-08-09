@@ -17,27 +17,6 @@ const {
 const binding = bindings[Source.BitcoinBips_Github][0]
 
 describe('Bitcoin BIPs GitHub queries', () => {
-	it('passes only the caller-provided noncanonical binding to both transports', async () => {
-		const modifiedBinding = {
-			...binding,
-			endpoints: binding.endpoints.map((endpoint) => ({
-				...endpoint,
-				locator: 'https://noncanonical.example/bitcoin-bips',
-			})),
-		}
-		httpRuntime.sourceGetJson.mockResolvedValueOnce([{
-			name: 'bip-0003.md',
-			path: 'bip-0003.md',
-			type: 'file',
-		}])
-		httpRuntime.sourceGetText.mockResolvedValueOnce('BIP')
-
-		await getProposalText({ binding: modifiedBinding, number: 3 })
-
-		expect(httpRuntime.sourceGetJson.mock.calls[0][0]).toBe(modifiedBinding)
-		expect(httpRuntime.sourceGetText.mock.calls[0][0]).toBe(modifiedBinding)
-	})
-
 	it.each([
 		['Markdown', 'bip-0003.md'],
 		['MediaWiki', 'bip-0002.mediawiki'],
@@ -52,7 +31,6 @@ describe('Bitcoin BIPs GitHub queries', () => {
 		httpRuntime.sourceGetText.mockResolvedValueOnce('BIP')
 
 		await getProposalText({
-			binding,
 			number: parseInt(name.slice(4, 8), 10),
 		})
 
@@ -72,7 +50,6 @@ describe('Bitcoin BIPs GitHub queries', () => {
 		])
 
 		await expect(getProposalText({
-			binding,
 			number: 3,
 		})).rejects.toThrow('BitcoinBips_Github: proposal path is not a file for BIP 3: bip-0003.md')
 	})
@@ -92,7 +69,6 @@ describe('Bitcoin BIPs GitHub queries', () => {
 		])
 
 		await expect(getProposalText({
-			binding,
 			number: 3,
 		})).rejects.toThrow('BitcoinBips_Github: duplicate proposal files for BIP 3: bip-0003.md, bip-0003.mediawiki')
 	})

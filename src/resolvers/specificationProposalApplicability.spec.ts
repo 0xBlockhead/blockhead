@@ -34,12 +34,17 @@ const bitcoinCashChipsQueries = vi.hoisted(() => ({
 	getChipMarkdownText: vi.fn(),
 	getTree: vi.fn(),
 }))
+const bitcoinBipsQueries = vi.hoisted(() => ({
+	getProposalFiles: vi.fn(),
+	getProposalText: vi.fn(),
+}))
 const dogecoinDipsQueries = vi.hoisted(() => ({
 	getContents: vi.fn(),
 	getMediaWikiText: vi.fn(),
 }))
 
 vi.mock('$/sources/BitcoinCashChips/Gitlab/queries.ts', () => bitcoinCashChipsQueries)
+vi.mock('$/sources/BitcoinBips/Github/queries.ts', () => bitcoinBipsQueries)
 vi.mock('$/sources/DogecoinDips/Github/queries.ts', () => dogecoinDipsQueries)
 
 const proposalResolvers = [
@@ -138,6 +143,26 @@ describe('specification proposal source applicability', () => {
 				realm: SpecificationRealm.Dogecoin,
 				category: ProposalCategory.Dip,
 				number: 100,
+			},
+		])
+	})
+
+	it('discovers Bitcoin BIPs through the source-owned repository query', async () => {
+		bitcoinBipsQueries.getProposalFiles.mockResolvedValueOnce([
+			{
+				number: 9,
+				path: 'bip-0009.mediawiki',
+			},
+		])
+
+		const rows = await bitcoinBips.resolvers[1].resolve.Scope.resolve()
+
+		expect(bitcoinBipsQueries.getProposalFiles).toHaveBeenCalledWith()
+		expect(rows.map((row) => row[EntityMetaKey.Selector])).toEqual([
+			{
+				realm: SpecificationRealm.Bitcoin,
+				category: ProposalCategory.Bip,
+				number: 9,
 			},
 		])
 	})

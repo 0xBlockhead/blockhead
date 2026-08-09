@@ -3,18 +3,21 @@ import {
 	getGithubRawText,
 	githubRepositoryTargetFromKey,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/BitcoinBips/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-export const getContents = (binding: SourceBinding) => (
+const binding = bindings[Source.BitcoinBips_Github][0]
+
+export const getContents = () => (
 	getGithubContents({
 		binding,
 		target: githubRepositoryTargetFromKey(binding.target.key),
 	})
 )
 
-export const getProposalFiles = async (binding: SourceBinding) => (
+export const getProposalFiles = async () => (
 	[...Map.groupBy(
-		(await getContents(binding)).flatMap((content) => {
+		(await getContents()).flatMap((content) => {
 			const proposalNumberRaw = /^bip-(?<proposalNumber>\d{4})\.(?:md|mediawiki)$/.exec(content.name)?.groups?.proposalNumber
 			return proposalNumberRaw == null ?
 				[]
@@ -43,13 +46,11 @@ export const getProposalFiles = async (binding: SourceBinding) => (
 )
 
 export const getProposalText = async ({
-	binding,
 	number,
 }: {
-	binding: SourceBinding
 	number: number
 }) => {
-	const proposal = (await getProposalFiles(binding)).find((candidate) => candidate.number === number)
+	const proposal = (await getProposalFiles()).find((candidate) => candidate.number === number)
 	if (proposal == null)
 		throw new Error(`BitcoinBips_Github: proposal not found ${number.toString()}`)
 
