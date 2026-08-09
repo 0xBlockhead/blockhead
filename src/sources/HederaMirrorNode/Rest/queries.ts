@@ -108,8 +108,16 @@ const paginatedUrl = (
 	:
 		new URL(continuationToken, baseUrl)
 	if (
-		url.origin !== baseUrl.origin
-		|| url.pathname !== pathname
+		!binding.endpoints.some(({ locator }) => {
+			if (locator.startsWith('env:'))
+				return false
+
+			const endpointUrl = new URL(locator)
+			return (
+				url.origin === endpointUrl.origin
+				&& url.pathname === `${endpointUrl.pathname.replace(/\/$/, '')}${pathname}`
+			)
+		})
 		|| url.username !== ''
 		|| url.password !== ''
 		|| url.hash !== ''
