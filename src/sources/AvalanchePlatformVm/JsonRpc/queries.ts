@@ -1,5 +1,6 @@
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/AvalanchePlatformVm/bindings.ts'
 import type {
 	AvalanchePlatformVmBalance,
 	AvalanchePlatformVmBlock,
@@ -15,6 +16,8 @@ import type {
 } from '$/sources/AvalanchePlatformVm/JsonRpc/types.ts'
 import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
+
+const binding = bindings[Source.AvalanchePlatformVm_JsonRpc][0]
 
 const outputOwnerWire = arktype({
 	locktime: 'string',
@@ -160,7 +163,7 @@ const request = async <_Result>(
 	jsonRpc2<_Result>(binding, method, params)
 )
 
-export const getHeight = async (binding: SourceBinding) => (
+export const getHeight = async () => (
 	assertEnvelope(
 		'height',
 		heightWire,
@@ -168,7 +171,7 @@ export const getHeight = async (binding: SourceBinding) => (
 	)
 )
 
-export const getBlockchains = async (binding: SourceBinding) => (
+export const getBlockchains = async () => (
 	assertEnvelope(
 		'blockchains',
 		blockchainsWire,
@@ -177,7 +180,6 @@ export const getBlockchains = async (binding: SourceBinding) => (
 )
 
 export const getSubnets = async (
-	binding: SourceBinding,
 	params: {
 		ids?: string[]
 	} = {}
@@ -190,7 +192,6 @@ export const getSubnets = async (
 )
 
 export const getCurrentValidators = async (
-	binding: SourceBinding,
 	params: {
 		subnetID?: string
 		nodeIDs?: string[]
@@ -204,7 +205,6 @@ export const getCurrentValidators = async (
 )
 
 export const getPendingValidators = async (
-	binding: SourceBinding,
 	params: {
 		subnetID?: string
 		nodeIDs?: string[]
@@ -218,7 +218,6 @@ export const getPendingValidators = async (
 )
 
 export const getBalance = async (
-	binding: SourceBinding,
 	addresses: string[]
 ) => (
 	assertEnvelope(
@@ -229,7 +228,6 @@ export const getBalance = async (
 )
 
 export const getStake = async (
-	binding: SourceBinding,
 	addresses: string[],
 	validatorsOnly = false
 ) => (
@@ -244,7 +242,6 @@ export const getStake = async (
 )
 
 export const getTxStatus = async (
-	binding: SourceBinding,
 	txID: string
 ) => {
 	if (txID === '')
@@ -258,7 +255,6 @@ export const getTxStatus = async (
 }
 
 export const getTx = async (
-	binding: SourceBinding,
 	txID: string,
 	encoding: 'hex' | 'json' = 'json'
 ) => {
@@ -276,7 +272,6 @@ export const getTx = async (
 }
 
 export const getBlockByHeight = async (
-	binding: SourceBinding,
 	height: bigint,
 	encoding: 'hex' | 'json' = 'json'
 ) => {
@@ -297,7 +292,6 @@ export const getBlockByHeight = async (
 }
 
 export const getBlock = async (
-	binding: SourceBinding,
 	blockID: string,
 	encoding: 'hex' | 'json' = 'json'
 ) => {
@@ -315,7 +309,6 @@ export const getBlock = async (
 }
 
 export const getUtxos = async (
-	binding: SourceBinding,
 	addresses: string[],
 	limit: number
 ) => {

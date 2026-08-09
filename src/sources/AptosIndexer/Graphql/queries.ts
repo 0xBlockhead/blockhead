@@ -1,7 +1,7 @@
 import { initGraphQLTada } from 'gql.tada'
 
 import { Source } from '$/sources/Source.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/AptosIndexer/bindings.ts'
 import { executeAptosIndexer } from './client.ts'
 import {
 	aptosIndexerAccountTransactionsDataWire,
@@ -13,6 +13,8 @@ import {
 	type AptosIndexerGraphqlScalars,
 	type AptosIndexerGraphqlSchema,
 } from './types.ts'
+
+const binding = bindings[Source.AptosIndexer_Graphql][0]
 
 const graphql = initGraphQLTada<{
 	introspection: AptosIndexerGraphqlSchema
@@ -154,7 +156,6 @@ const versionedTableItemDocument = graphql(`
 `)
 
 export const getAccountTransactions = (
-	binding: SourceBinding,
 	accountAddress: string,
 	limit = 100,
 	offset = 0
@@ -199,7 +200,6 @@ export const getAccountTransactions = (
 }
 
 export const getTransaction = (
-	binding: SourceBinding,
 	version: bigint
 ) => (
 	executeAptosIndexer(binding, transactionDocument, {
@@ -216,7 +216,6 @@ export const getTransaction = (
 )
 
 export const getCurrentFungibleAssetBalances = (
-	binding: SourceBinding,
 	ownerAddress: string,
 	limit = 100,
 	offset = 0
@@ -256,7 +255,6 @@ export const getCurrentFungibleAssetBalances = (
 }
 
 export const getCurrentFungibleAssetBalance = (
-	binding: SourceBinding,
 	storageId: string
 ) => (
 	executeAptosIndexer(binding, currentFungibleAssetBalanceDocument, {
@@ -272,7 +270,6 @@ export const getCurrentFungibleAssetBalance = (
 )
 
 export const getTableItem = async (
-	binding: SourceBinding,
 	tableHandle: string,
 	keyHash: string,
 	ledgerVersion?: bigint

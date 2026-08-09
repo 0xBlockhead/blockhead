@@ -31,22 +31,6 @@ beforeEach(() => {
 	jsonRpc2.mockReset()
 })
 
-it('passes only the caller-provided noncanonical binding to JSON-RPC', async () => {
-	const modifiedBinding = {
-		...binding,
-		endpoints: binding.endpoints.map((endpoint) => ({
-			...endpoint,
-			locator: 'https://noncanonical.example/platform',
-		})),
-	}
-	jsonRpc2.mockResolvedValueOnce({ status: 'Unknown' })
-
-	await getTxStatus(modifiedBinding, 'transaction-id')
-
-	expect(jsonRpc2).toHaveBeenCalledOnce()
-	expect(jsonRpc2.mock.calls[0][0]).toBe(modifiedBinding)
-})
-
 it('uses official named parameters for exact account, stake, validator, subnet, and transaction reads', async () => {
 	jsonRpc2
 		.mockResolvedValueOnce({
@@ -80,14 +64,14 @@ it('uses official named parameters for exact account, stake, validator, subnet, 
 			}],
 		})
 
-	await getBalance(binding, ['P-avax1account'])
-	await getStake(binding, ['P-avax1account'], true)
-	await getCurrentValidators(binding, {
+	await getBalance(['P-avax1account'])
+	await getStake(['P-avax1account'], true)
+	await getCurrentValidators({
 		subnetID: 'primary',
 		nodeIDs: ['NodeID-validator'],
 	})
-	await getTxStatus(binding, 'transaction-id')
-	await getSubnets(binding, {
+	await getTxStatus('transaction-id')
+	await getSubnets({
 		ids: ['primary'],
 	})
 
@@ -154,8 +138,7 @@ it('bounds, deduplicates, and advances UTXOs by the opaque end index', async () 
 			encoding: 'hex',
 		})
 
-	await expect(getUtxos(binding,
-		['P-avax1account'],
+	await expect(getUtxos(['P-avax1account'],
 		3
 	)).resolves.toEqual({
 		utxos: [
@@ -188,8 +171,7 @@ it('bounds, deduplicates, and advances UTXOs by the opaque end index', async () 
 })
 
 it('rejects invalid UTXO bounds before transport', async () => {
-	await expect(getUtxos(binding,
-		['P-avax1account'],
+	await expect(getUtxos(['P-avax1account'],
 		-1
 	)).rejects.toThrow('UTXO limit must be a nonnegative safe integer')
 	expect(jsonRpc2).not.toHaveBeenCalled()
@@ -211,7 +193,7 @@ it('fail-closes malformed validator and block envelopes', async () => {
 		})
 
 	await expect(getCurrentValidators(binding)).rejects.toThrow('invalid validators response envelope')
-	await expect(getBlockByHeight(binding, 1n, 'json')).rejects.toThrow('invalid block by height response envelope')
+	await expect(getBlockByHeight(1n, 'json')).rejects.toThrow('invalid block by height response envelope')
 })
 
 it('projects json-encoded P-Chain blocks with transaction ids', async () => {
@@ -230,7 +212,7 @@ it('projects json-encoded P-Chain blocks with transaction ids', async () => {
 		encoding: 'json',
 	})
 
-	await expect(getBlockByHeight(binding, 1n, 'json')).resolves.toEqual({
+	await expect(getBlockByHeight(1n, 'json')).resolves.toEqual({
 		block: {
 			parentID: 'parent-block',
 			height: 1,
@@ -267,7 +249,7 @@ it('accepts json-encoded platform.getTx envelopes and fail-closes hex-shaped str
 		encoding: 'json',
 	})
 
-	await expect(getTx(binding, 'tx-id', 'json')).resolves.toMatchObject({
+	await expect(getTx('tx-id', 'json')).resolves.toMatchObject({
 		encoding: 'json',
 		tx: {
 			id: 'tx-id',
@@ -283,8 +265,8 @@ it('accepts json-encoded platform.getTx envelopes and fail-closes hex-shaped str
 		},
 		encoding: 'json',
 	})
-	await expect(getTx(binding, 'tx-id', 'json')).rejects.toThrow('invalid tx response envelope')
+	await expect(getTx('tx-id', 'json')).rejects.toThrow('invalid tx response envelope')
 
-	await expect(getTx(binding, '', 'json')).rejects.toThrow('empty transaction id')
+	await expect(getTx('', 'json')).rejects.toThrow('empty transaction id')
 	expect(jsonRpc2).toHaveBeenCalledTimes(2)
 })
