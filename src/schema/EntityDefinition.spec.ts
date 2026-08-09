@@ -8,6 +8,7 @@ import {
 	facet,
 	entityFieldAddressKey,
 	entityFieldDefinitions,
+	entitySelectorKey,
 	entitySelectorsFromFields,
 	indexSchema,
 	validateEntitySelector,
@@ -379,6 +380,30 @@ describe('entity selectors', () => {
 				slot: 1n,
 			}
 			)).toThrow(/invalid selector/)
+	})
+
+	it('keys equivalent native and projected reference selectors identically', () => {
+		expect(entitySelectorKey(
+			fixtureSchema,
+			Child,
+			{
+				$parent: {
+					[EntityMetaKey.Selector]: {
+						slug: 'ethereum',
+					},
+				},
+				slot: 1n,
+			}
+		)).toBe(entitySelectorKey(
+			fixtureSchema,
+			Child,
+			{
+				$parent: {
+					slug: 'ethereum',
+				},
+				slot: 1n,
+			}
+		))
 	})
 
 	it('derives aliases from resolved fields without durability tiers', () => {

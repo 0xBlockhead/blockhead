@@ -787,6 +787,7 @@ type EntitySelectorFromSelectorDefinition<
 	_Schema extends Schema,
 	_EntityDefinition extends EntityDefinition,
 	_SelectorDefinition,
+	_AllSelectorFields extends string = _EntityDefinition['selectors'][number]['fields'][number],
 > = (
 	_SelectorDefinition extends {
 		readonly fields: infer _Fields extends readonly string[]
@@ -795,6 +796,11 @@ type EntitySelectorFromSelectorDefinition<
 			readonly [
 				_FieldName in _Fields[number]
 			]: EntitySelectorFieldValue<_Schema, _EntityDefinition, _FieldName>
+		}
+		& {
+			readonly [
+				_FieldName in Exclude<_AllSelectorFields, _Fields[number]>
+			]?: never
 		}
 	:
 		never
@@ -999,19 +1005,28 @@ export const validateEntitySelector = (
 	}
 }
 
+export const canonicalEntitySelector = (
+	schema: Schema,
+	entityDefinition: EntityDefinition,
+	entitySelector: object
+) => {
+	const parsed = parseNamedEntitySelector(
+		schema,
+		entityDefinition,
+		validateEntitySelector(schema, entityDefinition, entitySelector),
+		entitySelector
+	)
+	if (parsed instanceof arktype.errors)
+		throw new Error(`${entityDefinition.entityType}: invalid selector ${stringify(entitySelector)}`)
+
+	return parsed
+}
+
 export const entitySelectorKey = (
 	schema: Schema,
 	entityDefinition: EntityDefinition,
 	entitySelector: object
-) => stringify(validateEntitySelector(schema, entityDefinition, entitySelector).fields.reduce<{
-	readonly [_FieldName in string]: unknown
-}>(
-	(selectorValue, fieldName) => ({
-		...selectorValue,
-		[fieldName]: entitySelectorObjectRecord(entitySelector)[fieldName],
-	}),
-	{}
-))
+) => stringify(canonicalEntitySelector(schema, entityDefinition, entitySelector))
 
 export const entitySelectorsFromFields = <
 	const _Schema extends Schema,

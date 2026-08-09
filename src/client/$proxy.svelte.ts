@@ -41,6 +41,7 @@ import {
 	type Schema,
 	entityFieldCardinalityIsMultiple,
 	entityFieldAddressKey,
+	canonicalEntitySelector,
 	entitySelectorKey,
 } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
@@ -1813,6 +1814,11 @@ export function createEntityProxy(
 ): object {
 	if (entitySelector == null)
 		throw new Error(`Cannot create ${entityType} proxy without an entity selector`)
+	entitySelector = canonicalEntitySelector(
+		context.schema,
+		context.entityDefinitionByType[entityType],
+		entitySelector
+	)
 
 	let resource: SvelteKitResource<EntityProxyData<Schema, EntityType<Schema>>> | undefined
 	const getResource = (): SvelteKitResource<EntityProxyData<Schema, EntityType<Schema>>> => {
