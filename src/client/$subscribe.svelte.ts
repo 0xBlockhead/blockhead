@@ -135,28 +135,31 @@ const serializableEntityFieldResourceKey = <
 	}
 }
 
-const serializableEntityResourceKey = <
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
+const serializableEquivalentEntityResourceKeys = <
+	const _Schema extends Schema,
+	const _EntityType extends EntityType<_Schema>,
 >(
 	context: ClientContext<_Schema>,
 	entityType: _EntityType,
 	entitySelector: EntitySelector<_Schema, _EntityType>,
 	selection: object
 ) => {
-	try {
-		return stringify([
+	const selectorKey = entitySelectorKey(
+		context.schema,
+		context.entityDefinitionByType[entityType],
+		entitySelector
+	)
+	return [...(
+		context.equivalentSelectorKeysByEntityTypeAndSelectorKey.get(stringify([
 			entityType,
-			entitySelectorKey(
-				context.schema,
-				context.entityDefinitionByType[entityType],
-				entitySelector
-			),
-			selection,
-		])
-	} catch {
-		return undefined
-	}
+			selectorKey,
+		]))
+		?? [selectorKey]
+	)].map((equivalentSelectorKey) => stringify([
+		entityType,
+		equivalentSelectorKey,
+		selection,
+	]))
 }
 
 const asQuerySnapshot = <Data>(
@@ -1252,18 +1255,21 @@ const subscribeEntitySelection = <
 		entityType,
 		selection
 	)
-	const sharedResourceKey = serializableEntityResourceKey(
-		context,
-		entityType,
-		entitySelector,
-		selection
-	)
-	const sharedResource = (
-		sharedResourceKey === undefined ?
-			undefined
-		:
-			sharedEntityResourceByContext.get(context)?.get(sharedResourceKey)
-	)
+	const sharedResourceKeys = (() => {
+		try {
+			return serializableEquivalentEntityResourceKeys(
+				context,
+				entityType,
+				entitySelector,
+				selection
+			)
+		} catch {
+			return []
+		}
+	})()
+	const sharedResource = sharedResourceKeys
+		.map((sharedResourceKey) => sharedEntityResourceByContext.get(context)?.get(sharedResourceKey))
+		.find((candidate) => candidate !== undefined)
 	if (sharedResource !== undefined)
 		return sharedResource
 
@@ -1796,12 +1802,13 @@ const subscribeEntitySelection = <
 				unsubscribe()
 		}
 	}, () => waitForLiveQueryCollections(observedQueries))
-	if (sharedResourceKey !== undefined) {
+	if (sharedResourceKeys.length > 0) {
 		const resources = (
 			sharedEntityResourceByContext.get(context)
 			?? new Map<string, SharedEntityResource>()
 		)
-		resources.set(sharedResourceKey, resource)
+		for (const sharedResourceKey of sharedResourceKeys)
+			resources.set(sharedResourceKey, resource)
 		sharedEntityResourceByContext.set(context, resources)
 	}
 	return resource

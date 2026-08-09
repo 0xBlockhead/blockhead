@@ -53,13 +53,17 @@ describe('generated route href contracts', () => {
 		const sharedBlockRoute = generatedRouteFixtureMetadata.match(
 			/'\/\(explore\)\/\(networks\)\/network\/\[network\]\/\(blocks\)\/block\/\[blockNumber\]': \{[\s\S]*?(?=\n\t'\/)/
 		)?.[0]
+		const sharedTransactionRoute = generatedRouteFixtureMetadata.match(
+			/'\/\(explore\)\/\(networks\)\/network\/\[network\]\/\(transactions\)\/tx\/\[transactionId\]': \{[\s\S]*?(?=\n\t'\/)/
+		)?.[0]
 		expect(sharedBlockRoute).toBeDefined()
 		expect(sharedBlockRoute).toMatch(/id: 'SolanaBlock\.Slot'/)
 		expect(sharedBlockRoute).toMatch(/id: 'UtxoBlock\.NetworkHeight'/)
 		expect(sharedBlockRoute).toMatch(/id: 'PolkadotBlock\.NetworkBlockNumber'/)
 		expect(generatedRouteFixtureMetadata).not.toMatch(/(?:evmBlockNumber|cosmosBlockHeight|utxoBlockHeight|polkadotBlockNumber)/)
-		expect(generatedRouteFixtureMetadata).toMatch(/id: 'EvmTransaction\.EvmNetworkTxHash'[\s\S]*?id: 'SolanaTransaction\.NetworkSignature'[\s\S]*?id: 'UtxoTransaction\.NetworkTxId'/)
-		expect(generatedRouteFixtureMetadata).not.toMatch(/\/(?:\[signature\]|\[txId\])/)
+		expect(sharedTransactionRoute).toBeDefined()
+		expect(sharedTransactionRoute).toMatch(/id: 'EvmTransaction\.EvmNetworkTxHash'[\s\S]*?id: 'SolanaTransaction\.NetworkSignature'[\s\S]*?id: 'UtxoTransaction\.NetworkTxId'/)
+		expect(sharedTransactionRoute).not.toMatch(/\/(?:\[signature\]|\[txId\])/)
 	})
 
 	it('guards branch-specific route coordinates and falls back to no href', () => {

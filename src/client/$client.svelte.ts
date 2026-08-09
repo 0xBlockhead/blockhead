@@ -544,6 +544,7 @@ export type ClientContext<
 	entityFieldCountCollections: EntityFieldCountCollections<_Schema>
 	materializedReferenceEntityKeys: Set<string>
 	referenceFieldValueByAddress: Map<string, unknown>
+	equivalentSelectorKeysByEntityTypeAndSelectorKey: Map<string, ReadonlySet<string>>
 	liveSubscriptions: Map<string, ClientLiveSubscription>
 	resolverIndexes: ResolverIndexes<_Schema, _Source, ResolverContext>
 	resolverPublicEnvBySource: ReadonlyMap<string, SourcePublicEnv>
@@ -2846,6 +2847,25 @@ const loadEntityRows = async <
 						entitySelector,
 						snapshotObject
 					)
+					const equivalentSelectorKeys = new Set(resolvedSelectors.map((resolvedSelector) => (
+						entitySelectorKey(context.schema, entityDefinition, resolvedSelector)
+					)))
+					for (const equivalentSelectorKey of [...equivalentSelectorKeys])
+						for (const knownEquivalentSelectorKey of (
+							context.equivalentSelectorKeysByEntityTypeAndSelectorKey.get(stringify([
+								entityType,
+								equivalentSelectorKey,
+							])) ?? []
+						))
+							equivalentSelectorKeys.add(knownEquivalentSelectorKey)
+					for (const equivalentSelectorKey of equivalentSelectorKeys)
+						context.equivalentSelectorKeysByEntityTypeAndSelectorKey.set(
+							stringify([
+								entityType,
+								equivalentSelectorKey,
+							]),
+							equivalentSelectorKeys
+						)
 
 				return {
 					rows: resolvedSelectors.flatMap((resolvedSelector) => materializeResolverOutput({
@@ -3696,6 +3716,7 @@ export const client = <
 	const entityFieldCountCollections: EntityFieldCountCollections<_Schema> = {}
 	const materializedReferenceEntityKeys = new Set<string>()
 	const referenceFieldValueByAddress = new Map<string, unknown>()
+	const equivalentSelectorKeysByEntityTypeAndSelectorKey = new Map<string, ReadonlySet<string>>()
 	const liveSubscriptions = new Map<string, ClientLiveSubscription>()
 	const events: ClientEvent[] = []
 	const collectionLoadFailureListeners = new Set<() => void>()
@@ -4570,6 +4591,7 @@ export const client = <
 		entityFieldCountCollections,
 		materializedReferenceEntityKeys,
 		referenceFieldValueByAddress,
+		equivalentSelectorKeysByEntityTypeAndSelectorKey,
 		liveSubscriptions,
 		select: (
 			entityType,

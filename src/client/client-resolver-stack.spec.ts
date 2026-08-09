@@ -2982,16 +2982,24 @@ describe('client resolver stack architecture', () => {
 		})
 		const context = createContext()
 
-		await subscribeEntity(
+		const handleResource = subscribeEntity(
 			context,
 			'IdentityFixture',
 			{ handle: 'alice.example' },
 			{ sources: ['identity-source'] }
 		)
+		await handleResource
 		expect(context.entityCollections.IdentityFixture.toArray.map((row) => row[EntityMetaKey.Selector])).toEqual(expect.arrayContaining([
 			{ did: 'did:plc:alice' },
 			{ handle: 'alice.example' },
 		]))
+		expect(subscribeEntity(
+			context,
+			'IdentityFixture',
+			{ did: 'did:plc:alice' },
+			{ sources: ['identity-source'] }
+		)).toBe(handleResource)
+		expect(providerCalls).toBe(1)
 		await expect.poll(() => (
 			collectionRowsByCollectionId.get('client.entities.IdentityFixture')?.size
 		)).toBe(2)
