@@ -31,6 +31,10 @@ type Provider = {
 	}) => Promise<unknown>
 }
 
+type VoltaireJsonRpcBinding = SourceBinding<Source.Voltaire_JsonRpc> & {
+	readonly endpoints: readonly SourceEndpoint[]
+}
+
 type BlockStreamOptions = {
 	include?: BlockInclude
 	signal?: AbortSignal
@@ -51,9 +55,12 @@ const jsonValueFromProviderRequest = async (
 }
 
 const providerForExecutionEndpoint = async (
-	binding: SourceBinding<Source.Voltaire_JsonRpc>,
+	binding: VoltaireJsonRpcBinding,
 	endpoint: SourceEndpoint
 ): Promise<Provider> => {
+	if (!binding.endpoints.some((candidate) => candidate === endpoint))
+		throw new Error('Voltaire_JsonRpc: execution endpoint is not owned by the selected binding')
+
 	if (
 		endpoint.endpointKind !== SourceEndpointKind.HttpUrl
 		&& endpoint.endpointKind !== SourceEndpointKind.WebSocketUrl
@@ -79,7 +86,7 @@ const providerForExecutionEndpoint = async (
 }
 
 const executionTransport = (
-	binding: SourceBinding<Source.Voltaire_JsonRpc>,
+	binding: VoltaireJsonRpcBinding,
 	endpoint: SourceEndpoint
 ) => {
 	const provider = () => providerForExecutionEndpoint(binding, endpoint)
@@ -190,12 +197,19 @@ const executionTransport = (
 
 type ExecutionTransport = ReturnType<typeof executionTransport>
 
+export const voltaireJsonRpcTransportsForBinding = (
+	binding: VoltaireJsonRpcBinding
+) => binding.endpoints.map((endpoint) => ({
+	endpointKind: endpoint.endpointKind,
+	transport: executionTransport(binding, endpoint),
+}))
+
 const transportRows = bindings[Source.Voltaire_JsonRpc].flatMap((binding) => (
-	binding.endpoints.map((endpoint) => ({
+	voltaireJsonRpcTransportsForBinding(binding).map(({ endpointKind, transport }) => ({
 		chainId: Number(binding.target.key),
-		endpointKind: endpoint.endpointKind,
+		endpointKind,
 		operationGroups: binding.operationGroups,
-		transport: executionTransport(binding, endpoint),
+		transport,
 	}))
 ))
 

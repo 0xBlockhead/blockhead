@@ -171,12 +171,13 @@ describe('Monero daemon JSON-RPC queries', () => {
 				},
 			}))
 
-		await expect(getInfo()).resolves.toMatchObject({
+		await expect(getInfo(moneroMainnetBinding)).resolves.toMatchObject({
 			height: 3_400_001,
 			top_block_hash: 'top-block-hash',
 			status: 'OK',
 		})
 		await expect(getBlock({
+			binding: moneroMainnetBinding,
 			height: 3_400_000n,
 		})).resolves.toMatchObject({
 			block_header: {
@@ -185,6 +186,7 @@ describe('Monero daemon JSON-RPC queries', () => {
 			},
 		})
 		await expect(getOuts({
+			binding: moneroMainnetBinding,
 			outputs: [
 				{
 					amount: 0,
@@ -202,6 +204,7 @@ describe('Monero daemon JSON-RPC queries', () => {
 			status: 'OK',
 		})
 		await expect(getTransactions({
+			binding: moneroMainnetBinding,
 			txHashes: ['transaction-hash'],
 		})).resolves.toMatchObject({
 			txs: [
@@ -241,15 +244,16 @@ describe('Monero daemon JSON-RPC queries', () => {
 		fetchMock.mockResolvedValueOnce(rpcResponse({
 			height: 1,
 		}))
-		await expect(getInfo()).rejects.toThrow('MoneroDaemonRpc_JsonRpc: all mainnet endpoints failed')
+		await expect(getInfo(moneroMainnetBinding)).rejects.toThrow('MoneroDaemonRpc_JsonRpc: all selected binding endpoints failed')
 
 		fetchMock.mockReset()
 		fetchMock.mockResolvedValue(rpcResponse({
 			blob: 'block-blob',
 		}))
 		await expect(getBlock({
+			binding: moneroMainnetBinding,
 			height: 1n,
-		})).rejects.toThrow('MoneroDaemonRpc_JsonRpc: all mainnet endpoints failed')
+		})).rejects.toThrow('MoneroDaemonRpc_JsonRpc: all selected binding endpoints failed')
 
 		fetchMock.mockReset()
 		fetchMock.mockResolvedValue(new Response(JSON.stringify({
@@ -260,12 +264,28 @@ describe('Monero daemon JSON-RPC queries', () => {
 			},
 		}))
 		await expect(getOuts({
+			binding: moneroMainnetBinding,
 			outputs: [
 				{
 					amount: 0,
 					index: 1,
 				},
 			],
-		})).rejects.toThrow('MoneroDaemonRpc_JsonRpc: all mainnet endpoints failed')
+		})).rejects.toThrow('MoneroDaemonRpc_JsonRpc: all selected binding endpoints failed')
+	})
+
+	it('derives endpoints only from the selected binding', async () => {
+		fetchMock.mockResolvedValueOnce(rpcResponse(infoEnvelope))
+
+		await expect(getInfo({
+			...moneroMainnetBinding,
+			endpoints: [bindings[Source.MoneroDaemonRpc_JsonRpc][1].endpoints[0]],
+		})).resolves.toMatchObject({
+			height: infoEnvelope.height,
+		})
+		expect(fetchMock).toHaveBeenCalledOnce()
+		expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
+			proxyPath('http://127.0.0.1:18081/json_rpc')
+		)
 	})
 })

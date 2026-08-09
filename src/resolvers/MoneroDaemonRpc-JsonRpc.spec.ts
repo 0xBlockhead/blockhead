@@ -8,12 +8,14 @@ import type {
 	MoneroRpcInfo,
 	MoneroRpcTransaction,
 } from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
+import moneroBindings from '$/sources/MoneroDaemonRpc/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 
 const getBlock = vi.hoisted(() => vi.fn())
 const getInfo = vi.hoisted(() => vi.fn())
 const getTransactions = vi.hoisted(() => vi.fn())
+const moneroMainnetBinding = moneroBindings[Source.MoneroDaemonRpc_JsonRpc][0]
 
 vi.mock('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts', () => ({
 	getBlock,
@@ -196,16 +198,18 @@ describe('Monero daemon block selectors', () => {
 			height,
 		})
 
-		expect(getBlock).toHaveBeenNthCalledWith(1, {
-			height,
+	expect(getBlock).toHaveBeenNthCalledWith(1, {
+		binding: moneroMainnetBinding,
+		height,
 		})
 		expect(await blockResolver.resolve.NetworkHeightHash.resolve({
 			$network: network,
 			height,
 			hash: block.block_header.hash,
 		})).toEqual(byHeight)
-		expect(getBlock).toHaveBeenNthCalledWith(2, {
-			height,
+	expect(getBlock).toHaveBeenNthCalledWith(2, {
+		binding: moneroMainnetBinding,
+		height,
 		})
 		expect(Object.keys(blockResolver.resolve).sort()).toEqual([
 			'NetworkHeight',
@@ -246,8 +250,9 @@ describe('Monero daemon block selectors', () => {
 			'MoneroDaemonRpc_JsonRpc: block hash does not match the requested selector'
 		)
 		expect(getBlock).toHaveBeenCalledOnce()
-		expect(getBlock).toHaveBeenCalledWith({
-			height,
+	expect(getBlock).toHaveBeenCalledWith({
+		binding: moneroMainnetBinding,
+		height,
 		})
 	})
 })

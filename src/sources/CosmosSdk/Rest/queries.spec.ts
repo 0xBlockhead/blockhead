@@ -92,6 +92,7 @@ describe('Cosmos SDK GetTxsEvent transport', () => {
 		})
 
 		await expect(getTransactionsByEvent({
+			binding,
 			event: "message.sender='cosmos1sender'",
 			page: 2,
 			limit: 16,
@@ -113,6 +114,7 @@ describe('Cosmos SDK GetTxsEvent transport', () => {
 		{ page: 1, limit: 101 },
 	])('rejects an invalid bounded page before transport', async ({ page, limit }) => {
 		expect(() => getTransactionsByEvent({
+			binding,
 			event: "message.sender='cosmos1sender'",
 			page,
 			limit,
@@ -131,6 +133,7 @@ describe('Cosmos SDK GetTxsEvent transport', () => {
 			},
 		})
 		const firstPage = await getBalances({
+			binding,
 			network: 'cosmos:cosmoshub-4',
 			address: 'cosmos1account',
 			blockHeight: 1n,
@@ -147,6 +150,7 @@ describe('Cosmos SDK GetTxsEvent transport', () => {
 			unknownField.toString(),
 		])
 			await expect(getBalances({
+				binding,
 				network: 'cosmos:cosmoshub-4',
 				address: 'cosmos1account',
 				blockHeight: 1n,
@@ -182,6 +186,7 @@ describe('Cosmos SDK public account module transport', () => {
 		})
 
 		await expect(getBalances({
+			binding,
 			network: 'cosmos:cosmoshub-4',
 			address: 'cosmos1account/unsafe',
 			blockHeight: 24_680_000n,
@@ -213,7 +218,7 @@ describe('Cosmos SDK public account module transport', () => {
 		)
 	})
 
-	it('roundtrips an opaque continuation with exact endpoint, network, account, and height authority', async () => {
+	it('roundtrips an opaque continuation with exact binding, network, account, and height authority', async () => {
 		getJson
 			.mockResolvedValueOnce({
 				balances: [{
@@ -237,12 +242,14 @@ describe('Cosmos SDK public account module transport', () => {
 			})
 
 		const firstPage = await getBalances({
+			binding,
 			network: 'cosmos:cosmoshub-4',
 			address: 'cosmos1account',
 			blockHeight: 24_680_000n,
 			limit: 1,
 		})
 		await expect(getBalances({
+			binding,
 			network: 'cosmos:cosmoshub-4',
 			address: 'cosmos1account',
 			blockHeight: 24_680_000n,
@@ -271,13 +278,48 @@ describe('Cosmos SDK public account module transport', () => {
 		])
 	})
 
+	it('rejects a continuation resumed through a foreign binding before transport', async () => {
+		getJson.mockResolvedValueOnce({
+			balances: [],
+			pagination: {
+				next_key: 'next',
+			},
+		})
+		const firstPage = await getBalances({
+			binding,
+			network: 'cosmos:cosmoshub-4',
+			address: 'cosmos1account',
+			blockHeight: 1n,
+			limit: 1,
+		})
+		getJson.mockClear()
+
+		await expect(getBalances({
+			binding: {
+				...binding,
+				target: {
+					...binding.target,
+					key: 'cosmos:foreign-1',
+				},
+			},
+			network: 'cosmos:cosmoshub-4',
+			address: 'cosmos1account',
+			blockHeight: 1n,
+			limit: 1,
+			continuationToken: firstPage.continuationToken,
+		})).rejects.toThrow('invalid or foreign balance continuation')
+		expect(getJson).not.toHaveBeenCalled()
+	})
+
 	it('uses opaque bounded pagination for delegations and preserves exact reward scope', async () => {
 		await getDelegations({
+			binding,
 			delegatorAddress: 'cosmos1account/unsafe',
 			limit: 37,
 			paginationKey: 'next+/=',
 		})
 		await getDelegationRewards({
+			binding,
 			delegatorAddress: 'cosmos1account/unsafe',
 		})
 
@@ -288,8 +330,8 @@ describe('Cosmos SDK public account module transport', () => {
 	})
 
 	it.each([
-		() => getDelegations({ delegatorAddress: 'cosmos1account', limit: 0 }),
-		() => getDelegations({ delegatorAddress: 'cosmos1account', limit: 101 }),
+		() => getDelegations({ binding, delegatorAddress: 'cosmos1account', limit: 0 }),
+		() => getDelegations({ binding, delegatorAddress: 'cosmos1account', limit: 101 }),
 	])('rejects unbounded account module pages before transport', async (query) => {
 		expect(query).toThrow('CosmosSdk_Rest: invalid')
 		expect(getJson).not.toHaveBeenCalled()
@@ -300,6 +342,7 @@ describe('Cosmos SDK public account module transport', () => {
 		101,
 	])('rejects balance page limit %s before transport', async (limit) => {
 		await expect(getBalances({
+			binding,
 			network: 'cosmos:cosmoshub-4',
 			address: 'cosmos1account',
 			blockHeight: 1n,
@@ -377,6 +420,7 @@ describe('Cosmos SDK public account module transport', () => {
 		getJson.mockResolvedValueOnce(response)
 
 		await expect(getBalances({
+			binding,
 			network: 'cosmos:cosmoshub-4',
 			address: 'cosmos1account',
 			blockHeight: 1n,
@@ -418,18 +462,21 @@ describe('Cosmos SDK public account module transport', () => {
 			})
 
 		await expect(getBalances({
+			binding,
 			network: 'cosmos:cosmoshub-4',
 			address: 'cosmos1account',
 			blockHeight: 1n,
 			limit: 1,
 		})).rejects.toThrow('exceeds its requested limit')
 		const firstPage = await getBalances({
+			binding,
 			network: 'cosmos:cosmoshub-4',
 			address: 'cosmos1account',
 			blockHeight: 1n,
 			limit: 1,
 		})
 		await expect(getBalances({
+			binding,
 			network: 'cosmos:cosmoshub-4',
 			address: 'cosmos1account',
 			blockHeight: 1n,
@@ -470,6 +517,7 @@ describe('Cosmos SDK public account module transport', () => {
 			},
 		})
 		const firstPage = await getBalances({
+			binding,
 			network: 'cosmos:cosmoshub-4',
 			address: 'cosmos1account',
 			blockHeight: 1n,
@@ -478,6 +526,7 @@ describe('Cosmos SDK public account module transport', () => {
 		getJson.mockClear()
 
 		await expect(getBalances({
+			binding,
 			network: 'cosmos:cosmoshub-4',
 			address: 'cosmos1account',
 			blockHeight: 1n,
@@ -520,6 +569,7 @@ describe('Cosmos SDK denom metadata transport', () => {
 		getJson.mockResolvedValueOnce(metadata)
 
 		await expect(getDenomMetadata({
+			binding,
 			denom: 'factory/cosmos1creator/subdenom',
 			blockHeight: 24_680_000n,
 		})).resolves.toEqual(metadata)
@@ -618,6 +668,7 @@ describe('Cosmos SDK denom metadata transport', () => {
 		getJson.mockResolvedValueOnce(response)
 
 		await expect(getDenomMetadata({
+			binding,
 			denom: 'uatom',
 		})).rejects.toThrow(message)
 	})
@@ -630,11 +681,12 @@ describe('Cosmos SDK x/gov v1 transport', () => {
 
 	it.each([
 		{
-			query: () => getProposal({ proposalId: '123/../../params' }),
+			query: () => getProposal({ binding, proposalId: '123/../../params' }),
 			url: 'https://rest.cosmos.directory/cosmoshub/cosmos/gov/v1/proposals/123%2F..%2F..%2Fparams',
 		},
 		{
 			query: () => getProposalVote({
+				binding,
 				proposalId: '123',
 				voter: 'cosmos1voter/unsafe',
 			}),
@@ -642,13 +694,14 @@ describe('Cosmos SDK x/gov v1 transport', () => {
 		},
 		{
 			query: () => getProposalDeposit({
+				binding,
 				proposalId: '123',
 				depositor: 'cosmos1depositor/unsafe',
 			}),
 			url: 'https://rest.cosmos.directory/cosmoshub/cosmos/gov/v1/proposals/123/deposits/cosmos1depositor%2Funsafe',
 		},
 		{
-			query: () => getProposalTally({ proposalId: '123' }),
+			query: () => getProposalTally({ binding, proposalId: '123' }),
 			url: 'https://rest.cosmos.directory/cosmoshub/cosmos/gov/v1/proposals/123/tally',
 		},
 	])('requests $url through the registered Cosmos origins', async ({ query, url }) => {
@@ -668,6 +721,7 @@ describe('Cosmos SDK x/gov v1 transport', () => {
 	it.each([
 		{
 			query: () => getProposals({
+				binding,
 				limit: 7,
 				paginationKey: 'next+/=',
 			}),
@@ -675,6 +729,7 @@ describe('Cosmos SDK x/gov v1 transport', () => {
 		},
 		{
 			query: () => getProposalVotes({
+				binding,
 				proposalId: '123',
 				limit: 7,
 				paginationKey: 'next+/=',
@@ -683,6 +738,7 @@ describe('Cosmos SDK x/gov v1 transport', () => {
 		},
 		{
 			query: () => getProposalDeposits({
+				binding,
 				proposalId: '123',
 				limit: 7,
 				paginationKey: 'next+/=',
@@ -742,8 +798,8 @@ describe('Cosmos SDK x/gov v1 transport', () => {
 			.mockResolvedValueOnce(proposalResponse)
 			.mockResolvedValueOnce(votesResponse)
 
-		await expect(getProposal({ proposalId: '9007199254740993' })).resolves.toBe(proposalResponse)
-		await expect(getProposalVotes({ proposalId: '9007199254740993' })).resolves.toBe(votesResponse)
+		await expect(getProposal({ binding, proposalId: '9007199254740993' })).resolves.toBe(proposalResponse)
+		await expect(getProposalVotes({ binding, proposalId: '9007199254740993' })).resolves.toBe(votesResponse)
 	})
 
 	it.each([
@@ -753,7 +809,7 @@ describe('Cosmos SDK x/gov v1 transport', () => {
 	])('does not forge public entities from empty or malformed wire payloads', async (response) => {
 		getJson.mockResolvedValueOnce(response)
 
-		await expect(getProposal({ proposalId: '1' })).resolves.toBe(response)
+		await expect(getProposal({ binding, proposalId: '1' })).resolves.toBe(response)
 	})
 })
 
@@ -829,6 +885,7 @@ describe('Cosmos SDK IBC queries', () => {
 			})
 
 		await expect(getIbcChannel({
+			binding,
 			portId: 'transfer',
 			channelId: 'channel-141',
 		})).resolves.toMatchObject({
@@ -837,6 +894,7 @@ describe('Cosmos SDK IBC queries', () => {
 			},
 		})
 		await expect(getIbcConnection({
+			binding,
 			connectionId: 'connection-257',
 		})).resolves.toMatchObject({
 			connection: {
@@ -844,6 +902,7 @@ describe('Cosmos SDK IBC queries', () => {
 			},
 		})
 		await expect(getIbcClientState({
+			binding,
 			clientId: '07-tendermint-1',
 		})).resolves.toMatchObject({
 			client_state: {
@@ -851,6 +910,7 @@ describe('Cosmos SDK IBC queries', () => {
 			},
 		})
 		await expect(getIbcDenomTrace({
+			binding,
 			hash: 'a'.repeat(64),
 		})).resolves.toMatchObject({
 			denom_trace: {
@@ -858,6 +918,7 @@ describe('Cosmos SDK IBC queries', () => {
 			},
 		})
 		await expect(getIbcNextSequenceSend({
+			binding,
 			portId: 'transfer',
 			channelId: 'channel-141',
 		})).resolves.toEqual({
@@ -883,6 +944,7 @@ describe('Cosmos SDK IBC queries', () => {
 			},
 		})
 		await expect(getIbcChannel({
+			binding,
 			portId: 'transfer',
 			channelId: 'channel-141',
 		})).rejects.toThrow()
@@ -965,6 +1027,7 @@ describe('Cosmos SDK IBC queries', () => {
 			})
 
 		await expect(getIbcChannels({
+			binding,
 			limit: 16,
 		})).resolves.toMatchObject({
 			channels: [
@@ -977,6 +1040,7 @@ describe('Cosmos SDK IBC queries', () => {
 			},
 		})
 		await expect(getIbcClientStates({
+			binding,
 			limit: 16,
 		})).resolves.toMatchObject({
 			client_states: [
@@ -986,6 +1050,7 @@ describe('Cosmos SDK IBC queries', () => {
 			],
 		})
 		await expect(getIbcConnections({
+			binding,
 			limit: 16,
 		})).resolves.toMatchObject({
 			connections: [
@@ -1037,6 +1102,7 @@ describe('Cosmos SDK IBC queries', () => {
 			})
 
 		await expect(getIbcConnectionChannels({
+			binding,
 			connectionId: 'connection-0',
 			limit: 16,
 		})).resolves.toMatchObject({
@@ -1050,6 +1116,7 @@ describe('Cosmos SDK IBC queries', () => {
 			},
 		})
 		await expect(getIbcClientConnections({
+			binding,
 			clientId: '07-tendermint-1',
 		})).resolves.toEqual({
 			connection_paths: [

@@ -29,6 +29,11 @@ import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
+import voltaireBindings from '$/sources/Voltaire/bindings.ts'
+import {
+	SourceEndpointKind,
+	SourceOperationGroup,
+} from '$/sources/SourceBinding.ts'
 import type {
 	RpcBlockWire,
 	RpcLog,
@@ -39,9 +44,35 @@ import { voltaireCallTraceError } from '$/sources/Voltaire/JsonRpc/CallTrace.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
-const voltaireJsonRpcTransports = async () => (
-	(await import('$/sources/Voltaire/JsonRpc/queries.ts')).voltaireJsonRpcTransports
-)
+const voltaireJsonRpcTransports = async () => {
+	const { voltaireJsonRpcTransportsForBinding } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
+	const rows = voltaireBindings[Source.Voltaire_JsonRpc].flatMap((binding) => (
+		voltaireJsonRpcTransportsForBinding(binding).map((row) => ({
+			...row,
+			binding,
+			chainId: Number(binding.target.key),
+		}))
+	))
+	const byChainId = (selectedRows: typeof rows) => Object.fromEntries(
+		Object.entries(Object.groupBy(selectedRows, (row) => row.chainId)).map(([chainId, chainRows]) => [
+			chainId,
+			chainRows.map((row) => row.transport),
+		])
+	)
+
+	return {
+		transportsByChainId: byChainId(rows),
+		httpTransportsByChainId: byChainId(rows.filter(({ endpointKind }) => endpointKind === SourceEndpointKind.HttpUrl)),
+		providerTransportsByChainId: byChainId(rows.filter(({ endpointKind }) => (
+			typeof window === 'undefined'
+			|| endpointKind !== SourceEndpointKind.WebSocketUrl
+		))),
+		txpoolTransportsByChainId: byChainId(rows.filter(({ binding, endpointKind }) => (
+			endpointKind === SourceEndpointKind.HttpUrl
+			&& binding.operationGroups.some((operationGroup) => operationGroup === SourceOperationGroup.EvmRpcTxpool)
+		))),
+	}
+}
 
 const voltaireJsonRpcTransportsByChainId = async () => (
 	(await voltaireJsonRpcTransports()).transportsByChainId

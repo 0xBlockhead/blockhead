@@ -54,9 +54,13 @@ export type ContentGatewayBrowseResult = {
 	text?: string
 }
 
+type ContentGatewayBinding = SourceBinding & {
+	endpoints: readonly SourceEndpoint[]
+}
+
 
 export const listDeclaredGatewayOrigins = (
-	binding: SourceBinding
+	binding: ContentGatewayBinding
 ) => (
 	binding.endpoints.flatMap((endpoint) => {
 		const origin = sourceEndpointOrigin(endpoint)
@@ -70,10 +74,13 @@ export const isGatewayEndpointReachable = async ({
 	endpoint,
 	signal,
 }: {
-	binding: SourceBinding
+	binding: ContentGatewayBinding
 	endpoint: SourceEndpoint
 	signal?: AbortSignal
 }) => {
+	if (!binding.endpoints.includes(endpoint))
+		throw new Error(`${binding.source}: gateway endpoint is not owned by the selected binding`)
+
 	try {
 		const headResponse = await sourceFetch(binding, endpoint.locator, {
 			method: 'HEAD',
@@ -119,7 +126,7 @@ export const fetchOrderedGatewayContent = async ({
 	fileNameFromGatewayUrl,
 	signal,
 }: {
-	binding: SourceBinding
+	binding: ContentGatewayBinding
 	family: ContentGatewayFamily
 	buildGatewayUrl: (gatewayOrigin: string) => string
 	fileNameFromGatewayUrl?: (gatewayUrl: string) => string | undefined
@@ -187,7 +194,7 @@ export const getGatewayReachability = async ({
 	binding,
 	signal,
 }: {
-	binding: SourceBinding
+	binding: ContentGatewayBinding
 	signal?: AbortSignal
 }) => {
 	const endpoints = [...binding.endpoints]

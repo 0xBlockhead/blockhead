@@ -55,6 +55,17 @@ describe('ContentGateway shared helpers', () => {
 		])
 	})
 
+	it('rejects an endpoint not owned by the selected binding before transport', async () => {
+		await expect(isGatewayEndpointReachable({
+			binding,
+			endpoint: {
+				...binding.endpoints[0],
+				locator: 'https://foreign.example',
+			},
+		})).rejects.toThrow('endpoint is not owned by the selected binding')
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
 	it('falls back to GET after HEAD transport failure', async () => {
 		sourceFetch
 			.mockRejectedValueOnce(new Error('offline head'))
