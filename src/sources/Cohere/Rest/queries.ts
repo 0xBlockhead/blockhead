@@ -1,12 +1,9 @@
 import { sourceFetch, firstHttpUrlForBinding } from '$/sources/_runtime/http.ts'
 import { throwHttpError } from '$/lib/http.ts'
-import bindings from '$/sources/Cohere/bindings.ts'
-import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const binding = bindings[Source.Cohere_Rest][0]
-
-export const listModels = async ({
+export const listModels = async (binding: SourceBinding, {
 	credential,
 }: {
 	credential: string

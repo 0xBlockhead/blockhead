@@ -4,6 +4,8 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import bindings from '$/sources/NearRpc/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 const jsonRpc2 = vi.hoisted(() => vi.fn())
 
@@ -12,6 +14,9 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 }))
 
 const {
+	nearRpc,
+} = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+const {
 	getGasPrice,
 	getReceipt,
 	getTxStatus,
@@ -19,7 +24,7 @@ const {
 	viewAccessKey,
 	viewAccessKeyList,
 	viewAccount,
-} = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+} = nearRpc(bindings[Source.NearRpc_JsonRpc][0])
 
 const actionReceiptBody = {
 	Action: {

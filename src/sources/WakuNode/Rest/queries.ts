@@ -1,10 +1,7 @@
-import bindings from '$/sources/WakuNode/bindings.ts'
-import { Source } from '$/sources/Source.ts'
 import { getJson, getText } from '$/sources/_shared/wire/HttpRest/client.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
-const binding = bindings[Source.WakuNode][0]
-
-export const getDebugInfo = async () => {
+export const getDebugInfo = async (binding: SourceBinding) => {
 	const debugInfo = await getJson<{
 		listenAddresses: string[]
 		enrUri?: string
@@ -19,7 +16,7 @@ export const getDebugInfo = async () => {
 	return debugInfo
 }
 
-export const getHealth = async () => {
+export const getHealth = async (binding: SourceBinding) => {
 	const health = await getText(binding, '/health')
 	if (health.trim() === '')
 		throw new Error('WakuNode_Rest: health response is empty')

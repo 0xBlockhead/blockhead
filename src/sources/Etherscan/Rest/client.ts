@@ -19,14 +19,11 @@ import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
-import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/Etherscan/bindings.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	accountEmptyMessages,
 	supportedChainIds,
 } from '$/sources/Etherscan/Rest/constants.ts'
-
-const binding = bindings[Source.Etherscan_Rest][0]
 
 const accountEmptyMessageSet = new Set<string>(accountEmptyMessages)
 
@@ -83,10 +80,12 @@ export const etherscanV2UnwrapAccountResultArray = <T>(
 	* Rejects chain ids outside the binding-owned support catalog.
 	*/
 export const etherscanV2GetJson = async <T>({
+	binding,
 	chainId,
 	query,
 	publicEnv,
 }: {
+	binding: SourceBinding
 	chainId: number
 	query: Record<string, string | undefined>
 	publicEnv: SourcePublicEnv

@@ -1,13 +1,4 @@
-import bindings from '$/sources/Envio/bindings.ts'
-import { Source } from '$/sources/Source.ts'
 import { evmExecutionJsonRpc } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
-export const {
-	getBlockByHash,
-	getBlockByNumber,
-	getBlockNumber,
-	getTransactionByHash,
-	getTransactionReceipt,
-} = evmExecutionJsonRpc({
-	binding: bindings[Source.EnvioHyperRpc_JsonRpc][0],
-})
+export const envioHyperRpc = (binding: SourceBinding) => evmExecutionJsonRpc({ binding })

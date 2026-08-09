@@ -11,21 +11,20 @@ import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
-import { Source } from '$/sources/Source.ts'
 import type { GraphqlResponse } from '$/sources/_shared/wire/Graphql/client.ts'
-import bindings from '$/sources/TheGraph/bindings.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
-
-const binding = bindings[Source.TheGraph_Graphql][0]
 
 export const queryTheGraph = async <
 	_Result extends object,
 	_Variables extends JsonValue & object,
 	>({
+	binding,
 	document,
 	publicEnv,
 	variables,
 }: {
+	binding: SourceBinding
 	document: TadaDocumentNode<_Result, _Variables>
 	publicEnv: SourcePublicEnv
 	variables?: _Variables

@@ -3,12 +3,9 @@ import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
-import bindings from '$/sources/Rss2Json/bindings.ts'
-import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
-const binding = bindings[Source.Rss2Json_Rest][0]
-
-export const rss2JsonGet = (path: string) => (
+export const rss2JsonGet = (binding: SourceBinding, path: string) => (
 	sourceGetJson<Rss2JsonResponse>(
 		binding,
 		`${firstHttpUrlForBinding(binding)}${path.startsWith('/') ? path : `/${path}`}`

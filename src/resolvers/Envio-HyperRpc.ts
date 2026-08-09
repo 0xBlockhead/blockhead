@@ -16,7 +16,17 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/Envio/bindings.ts'
+import { envioHyperRpc } from '$/sources/Envio/HyperRpc/queries.ts'
 import type { RpcBlockWire } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
+
+const {
+	getBlockByHash,
+	getBlockByNumber,
+	getBlockNumber,
+	getTransactionByHash,
+	getTransactionReceipt,
+} = envioHyperRpc(bindings[Source.EnvioHyperRpc_JsonRpc][0])
 
 const quantity = (
 	value: string,
@@ -143,7 +153,6 @@ const tipBlockReferences = async (
 	limit: number
 ) => {
 	assertEthereumMainnet($network)
-	const { getBlockNumber } = await import('$/sources/Envio/HyperRpc/queries.ts')
 	const tip = await getBlockNumber()
 	return Array.from({
 		length: Math.min(
@@ -183,14 +192,12 @@ const networkTipCountResolvers = {
 	Caip2: {
 		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
 			assertEthereumMainnet(network)
-			const { getBlockNumber } = await import('$/sources/Envio/HyperRpc/queries.ts')
 			return Number(await getBlockNumber()) + 1
 		},
 	},
 	Slug: {
 		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
 			assertEthereumMainnet(network)
-			const { getBlockNumber } = await import('$/sources/Envio/HyperRpc/queries.ts')
 			return Number(await getBlockNumber()) + 1
 		},
 	},
@@ -200,7 +207,6 @@ const networkTimestampListResolvers = {
 	Caip2: {
 		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
 			assertEthereumMainnet(network)
-			const { getBlockNumber } = await import('$/sources/Envio/HyperRpc/queries.ts')
 			const blockHeight = await getBlockNumber()
 			return [{
 				[EntityMetaKey.Selector]: {
@@ -217,7 +223,6 @@ const networkTimestampListResolvers = {
 	Slug: {
 		resolve: async (network: EntitySelector<typeof schema, EntityType.Network>) => {
 			assertEthereumMainnet(network)
-			const { getBlockNumber } = await import('$/sources/Envio/HyperRpc/queries.ts')
 			const blockHeight = await getBlockNumber()
 			return [{
 				[EntityMetaKey.Selector]: {
@@ -243,10 +248,6 @@ export default {
 				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }) => {
 						assertEthereumMainnet($network)
-						const {
-							getTransactionByHash,
-							getTransactionReceipt,
-						} = await import('$/sources/Envio/HyperRpc/queries.ts')
 						const [transaction, receipt] = await Promise.all([
 							getTransactionByHash({ txHash }),
 							getTransactionReceipt({ txHash }),
@@ -392,7 +393,6 @@ export default {
 				EvmNetworkBlockNumber: {
 					resolve: async ({ $network, blockNumber }) => {
 						assertEthereumMainnet($network)
-						const { getBlockByNumber } = await import('$/sources/Envio/HyperRpc/queries.ts')
 						const wire = await getBlockByNumber({
 							blockNumber,
 							txObjects: false,
@@ -406,7 +406,6 @@ export default {
 				EvmNetworkBlockHash: {
 					resolve: async ({ $network, hash }) => {
 						assertEthereumMainnet($network)
-						const { getBlockByHash } = await import('$/sources/Envio/HyperRpc/queries.ts')
 						const wire = await getBlockByHash({
 							blockHash: hash,
 							txObjects: false,
@@ -460,7 +459,6 @@ export default {
 						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
 							throw new Error('EnvioHyperRpc_JsonRpc: invalid network observation timestamp')
 
-						const { getBlockNumber } = await import('$/sources/Envio/HyperRpc/queries.ts')
 						return {
 							[EntityMetaKey.Selector]: {
 								$network,

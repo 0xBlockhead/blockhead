@@ -1,5 +1,6 @@
 import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type {
 	NearRpcAccount,
 	NearRpcAccessKey,
@@ -13,17 +14,8 @@ import type {
 	NearRpcValidators,
 	NearRpcViewState,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
-import bindings from '$/sources/NearRpc/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
-
-const binding = bindings[Source.NearRpc_JsonRpc][0]
-
-export const nearRpcEndpoints = binding.endpoints.map((endpoint) => ({
-	url: endpoint.locator,
-	transportType: TransportType.Http,
-	providerName: 'NEAR',
-}))
 
 const nearAccessKeyPermissionWire = arktype("'FullAccess'").or(arktype({
 	FunctionCall: {
@@ -284,7 +276,8 @@ const assertEnvelope = <_Value>(
 	}
 }
 
-export const getBlock = async ({
+export const nearRpc = (binding: SourceBinding) => {
+	const getBlock = async ({
 	blockId,
 }: {
 	blockId: bigint | string | 'final'
@@ -309,7 +302,7 @@ export const getBlock = async ({
 	) as NearRpcBlock
 )
 
-export const getTx = async ({
+	const getTx = async ({
 	txHash,
 	senderAccountId,
 }: {
@@ -330,7 +323,7 @@ export const getTx = async ({
 	) as NearRpcTransactionStatus
 }
 
-export const getTxStatus = async ({
+	const getTxStatus = async ({
 	txHash,
 	senderAccountId,
 }: {
@@ -351,7 +344,7 @@ export const getTxStatus = async ({
 	) as NearRpcTransactionStatus
 }
 
-export const getReceipt = async ({
+	const getReceipt = async ({
 	receiptId,
 }: {
 	receiptId: string
@@ -368,7 +361,7 @@ export const getReceipt = async ({
 	) as NearRpcReceipt
 }
 
-export const getChunk = async ({
+	const getChunk = async ({
 	chunkHash,
 }: {
 	chunkHash: string
@@ -385,7 +378,7 @@ export const getChunk = async ({
 	) as NearRpcChunk
 }
 
-export const viewAccount = async ({
+	const viewAccount = async ({
 	accountId,
 }: {
 	accountId: string
@@ -404,7 +397,7 @@ export const viewAccount = async ({
 	) as NearRpcAccount
 }
 
-export const viewAccessKeyList = async ({
+	const viewAccessKeyList = async ({
 	accountId,
 }: {
 	accountId: string
@@ -423,7 +416,7 @@ export const viewAccessKeyList = async ({
 	) as NearRpcAccessKeyList
 }
 
-export const viewAccessKey = async ({
+	const viewAccessKey = async ({
 	accountId,
 	publicKey,
 }: {
@@ -445,7 +438,7 @@ export const viewAccessKey = async ({
 	) as NearRpcAccessKey
 }
 
-export const viewState = async ({
+	const viewState = async ({
 	accountId,
 	prefixBase64,
 	blockHeight,
@@ -471,7 +464,7 @@ export const viewState = async ({
 	) as NearRpcViewState
 }
 
-export const getValidators = async () => (
+	const getValidators = async () => (
 	assertEnvelope(
 		'validators',
 		nearValidatorsWire,
@@ -479,7 +472,7 @@ export const getValidators = async () => (
 	) as NearRpcValidators
 )
 
-export const getGasPrice = async () => (
+	const getGasPrice = async () => (
 	assertEnvelope(
 		'gas price',
 		nearGasPriceWire,
@@ -487,10 +480,31 @@ export const getGasPrice = async () => (
 	) as NearRpcGasPrice
 )
 
-export const getStatus = async () => (
+	const getStatus = async () => (
 	assertEnvelope(
 		'status',
 		nearStatusWire,
 		await jsonRpc2<unknown>(binding, 'status', [])
 	) as NearRpcStatus
 )
+
+	return {
+		endpoints: binding.endpoints.map((endpoint) => ({
+			url: endpoint.locator,
+			transportType: TransportType.Http,
+			providerName: 'NEAR',
+		})),
+		getBlock,
+		getChunk,
+		getGasPrice,
+		getReceipt,
+		getStatus,
+		getTx,
+		getTxStatus,
+		getValidators,
+		viewAccessKey,
+		viewAccessKeyList,
+		viewAccount,
+		viewState,
+	}
+}

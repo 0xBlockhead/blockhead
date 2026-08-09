@@ -13,17 +13,23 @@ const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getCode = vi.hoisted(() => vi.fn())
 const getTransactionsByAddress = vi.hoisted(() => vi.fn())
 
-vi.mock('$/sources/Etherscan/Rest/queries.ts', async (importOriginal) => ({
-	...await importOriginal<typeof import('$/sources/Etherscan/Rest/queries.ts')>(),
-	getTokenTransfersByAddress,
-	getTokenTransfersByTransaction,
-	getTransactionByHash,
-	getTransactionReceipt,
-	getBlockNumber,
-	getBlockByNumber,
-	getCode,
-	getTransactionsByAddress,
-}))
+vi.mock('$/sources/Etherscan/Rest/queries.ts', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('$/sources/Etherscan/Rest/queries.ts')>()
+	return {
+		...actual,
+		etherscanQueries: (...parameters: Parameters<typeof actual.etherscanQueries>) => ({
+			...actual.etherscanQueries(...parameters),
+			getTokenTransfersByAddress,
+			getTokenTransfersByTransaction,
+			getTransactionByHash,
+			getTransactionReceipt,
+			getBlockNumber,
+			getBlockByNumber,
+			getCode,
+			getTransactionsByAddress,
+		}),
+	}
+})
 
 const { default: etherscanRest } = await import('$/resolvers/Etherscan-Rest.ts')
 
@@ -522,4 +528,3 @@ describe('Etherscan EvmTransaction SetCode leftovers', () => {
 		expect(resolver.projections.SetCode.$$authorizations.resolveCount(entity)).toBe(1)
 	})
 })
-

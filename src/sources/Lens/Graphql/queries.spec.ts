@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import {
+import { lensQueries } from '$/sources/Lens/Graphql/queries.ts'
+import bindings from '$/sources/Lens/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.Lens_Graphql][0]
+const {
 	queryAccount,
 	queryAccountStats,
 	queryAccounts,
@@ -12,11 +17,7 @@ import {
 	queryPost,
 	queryUsername,
 	queryUsernames,
-} from '$/sources/Lens/Graphql/queries.ts'
-import bindings from '$/sources/Lens/bindings.ts'
-import { Source } from '$/sources/Source.ts'
-
-const binding = bindings[Source.Lens_Graphql][0]
+} = lensQueries(binding)
 
 
 const fetchMock = vi.fn<typeof fetch>()

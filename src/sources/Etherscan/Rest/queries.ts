@@ -29,8 +29,8 @@ import type {
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
-	etherscanV2GetJson,
-	etherscanV2GetProxyResult,
+	etherscanV2GetJson as executeEtherscanV2GetJson,
+	etherscanV2GetProxyResult as executeEtherscanV2GetProxyResult,
 	etherscanV2UnwrapAccountResultArray,
 } from '$/sources/Etherscan/Rest/client.ts'
 import {
@@ -39,6 +39,7 @@ import {
 	contractUnverifiedMessages,
 	supportedChainIds,
 } from '$/sources/Etherscan/Rest/constants.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 const contractUnverifiedMessageSet = new Set<string>(contractUnverifiedMessages)
 const contractCreationAbsentMessageSet = new Set<string>(contractCreationAbsentMessages)
@@ -73,7 +74,15 @@ const etherscanAccountListQuery = ({
 	sort: 'desc',
 })
 
-const etherscanAccountListRows = async <T>({
+export const etherscanQueries = (binding: SourceBinding) => {
+	const etherscanV2GetJson = <_Result>(request: Omit<Parameters<typeof executeEtherscanV2GetJson<_Result>>[0], 'binding'>) => (
+		executeEtherscanV2GetJson<_Result>({ binding, ...request })
+	)
+	const etherscanV2GetProxyResult = <_Result>(request: Omit<Parameters<typeof executeEtherscanV2GetProxyResult<_Result>>[0], 'binding'>) => (
+		executeEtherscanV2GetProxyResult<_Result>({ binding, ...request })
+	)
+
+	const etherscanAccountListRows = async <T>({
 	publicEnv,
 	chainId,
 	query,
@@ -99,7 +108,7 @@ const etherscanAccountListRows = async <T>({
  * ```
  * @see https://docs.etherscan.io/api-reference/endpoint/ethgettransactionbyhash
  */
-export const getTransactionByHash = async ({
+	const getTransactionByHash = async ({
 	publicEnv,
 	chainId,
 	txHash,
@@ -118,12 +127,11 @@ export const getTransactionByHash = async ({
 		},
 	})
 )
-
 /**
  * **`module=proxy`**, **`action=eth_getTransactionReceipt`**, **`txhash`**.
  * @see https://docs.etherscan.io/api-reference/endpoint/ethgettransactionreceipt
  */
-export const getTransactionReceipt = async ({
+	const getTransactionReceipt = async ({
 	publicEnv,
 	chainId,
 	txHash,
@@ -147,7 +155,7 @@ export const getTransactionReceipt = async ({
  * **`module=proxy`**, **`action=eth_blockNumber`**.
  * @see https://docs.etherscan.io/api-reference/endpoint/ethblocknumber
  */
-export const getBlockNumber = async ({
+	const getBlockNumber = async ({
 	publicEnv,
 	chainId,
 }: {
@@ -168,7 +176,7 @@ export const getBlockNumber = async ({
  * **`module=proxy`**, **`action=eth_getBlockByNumber`**, **`tag`** (hex block number or **`latest`**), **`boolean`**.
  * @see https://docs.etherscan.io/api-reference/endpoint/ethgetblockbynumber
  */
-export const getBlockByNumber = async ({
+	const getBlockByNumber = async ({
 	publicEnv,
 	chainId,
 	blockNumber,
@@ -203,7 +211,7 @@ export const getBlockByNumber = async ({
  * Returns parsed ABI JSON string from **`result`**, or **`null`** if unverified / error.
  * @see https://docs.etherscan.io/api-reference/endpoint/getabi
  */
-export const getContractAbiJsonString = async ({
+	const getContractAbiJsonString = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -254,7 +262,7 @@ export const getContractAbiJsonString = async ({
  * **`module=contract`**, **`action=getsourcecode`**, **`address`**.
  * @see https://docs.etherscan.io/api-reference/endpoint/getsourcecode
  */
-export const getContractSourceCode = async ({
+	const getContractSourceCode = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -301,7 +309,7 @@ export const getContractSourceCode = async ({
  * **`module=contract`**, **`action=getcontractcreation`**, **`contractaddresses`**.
  * @see https://docs.etherscan.io/api-reference/endpoint/getcontractcreation
  */
-export const getContractCreation = async ({
+	const getContractCreation = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -351,7 +359,7 @@ export const getContractCreation = async ({
 }
 
 /** **`module=proxy`**, **`action=eth_getCode`**. */
-export const getCode = async ({
+	const getCode = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -373,7 +381,7 @@ export const getCode = async ({
 )
 
 /** **`module=proxy`**, **`action=eth_getStorageAt`**. */
-export const getStorageAt = async ({
+	const getStorageAt = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -401,7 +409,7 @@ export const getStorageAt = async ({
  * **`module=gastracker`**, **`action=gasoracle`** — slow / average / fast tiers in gwei.
  * @see https://docs.etherscan.io/api-reference/endpoint/gasoracle
  */
-export const getGasOracle = async ({
+	const getGasOracle = async ({
 	publicEnv,
 	chainId,
 }: {
@@ -469,7 +477,7 @@ const getTokenTransfersByAddressAction = <_Action extends keyof EtherscanTokenTr
 /**
  * ERC-20 / ERC-721 / ERC-1155 token transfers for an address (merged, deduped).
  */
-export const getTokenTransfersByAddress = async ({
+	const getTokenTransfersByAddress = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -573,7 +581,7 @@ const uintStringFromDataWord = (
  * Token transfers within one transaction — derived from **`eth_getTransactionReceipt`** logs
  * (Etherscan has no `tokentx`/`tokennfttx`/`token1155tx` by tx hash).
  */
-export const getTokenTransfersByTransaction = async ({
+	const getTokenTransfersByTransaction = async ({
 	publicEnv,
 	chainId,
 	txHash,
@@ -662,7 +670,7 @@ export const getTokenTransfersByTransaction = async ({
  * **`module=account`**, **`action=txlist`** — normal transactions by address.
  * @see https://docs.etherscan.io/api-reference/endpoint/txlist
  */
-export const getTransactionsByAddress = ({
+	const getTransactionsByAddress = ({
 	publicEnv,
 	chainId,
 	address,
@@ -690,7 +698,7 @@ export const getTransactionsByAddress = ({
  * **`module=account`**, **`action=txlistinternal`** — internal transactions by address.
  * @see https://docs.etherscan.io/api-reference/endpoint/txlistinternal
  */
-export const getInternalTransactionsByAddress = ({
+	const getInternalTransactionsByAddress = ({
 	publicEnv,
 	chainId,
 	address,
@@ -718,7 +726,7 @@ export const getInternalTransactionsByAddress = ({
  * **`module=account`**, **`action=txlistinternal`**, **`txhash`** — internal transactions in one tx.
  * @see https://docs.etherscan.io/api-reference/endpoint/txlistinternal-txhash
  */
-export const getInternalTransactionsByTxHash = async ({
+	const getInternalTransactionsByTxHash = async ({
 	publicEnv,
 	chainId,
 	txHash,
@@ -737,3 +745,22 @@ export const getInternalTransactionsByTxHash = async ({
 		},
 	})
 )
+
+	return {
+		getBlockByNumber,
+		getBlockNumber,
+		getCode,
+		getContractAbiJsonString,
+		getContractCreation,
+		getContractSourceCode,
+		getGasOracle,
+		getInternalTransactionsByAddress,
+		getInternalTransactionsByTxHash,
+		getStorageAt,
+		getTokenTransfersByAddress,
+		getTokenTransfersByTransaction,
+		getTransactionByHash,
+		getTransactionReceipt,
+		getTransactionsByAddress,
+	}
+}

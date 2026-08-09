@@ -21,11 +21,13 @@ vi.mock('@tevm/voltaire/Ens', () => ({
 }))
 
 vi.mock('$/sources/TheGraph/Graphql/Ens/queries.ts', () => ({
-	getName,
-	getDomainsByOwner,
-	getDomainsByResolvedAddress,
-	getDomainsContaining,
-	getEnsSubgraphReachability,
+	ensQueries: () => ({
+		getName,
+		getDomainsByOwner,
+		getDomainsByResolvedAddress,
+		getDomainsContaining,
+		getEnsSubgraphReachability,
+	}),
 }))
 
 const { default: ensTheGraphResolvers } = await import('$/resolvers/Ens-TheGraph.ts')

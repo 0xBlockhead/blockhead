@@ -11,6 +11,16 @@ import type { Entity } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/TheGraph/bindings.ts'
+import { ensQueries } from '$/sources/TheGraph/Graphql/Ens/queries.ts'
+
+const {
+	getDomainsByOwner,
+	getDomainsByResolvedAddress,
+	getDomainsContaining,
+	getEnsSubgraphReachability,
+	getName,
+} = ensQueries(bindings[Source.TheGraph_Graphql][0])
 import { hexLowerOfByteSize, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 const normalizedEnsSearchQuery = (query: string) => {
 	const trimmedQuery = query.trim()
@@ -128,9 +138,7 @@ export default {
 
 						let reachable = true
 						try {
-							await (
-								await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
-							).getEnsSubgraphReachability({
+							await getEnsSubgraphReachability({
 								publicEnv: context.publicEnv,
 							})
 						} catch {
@@ -162,7 +170,6 @@ export default {
 			resolve: {
 				NormalizedName: {
 					resolve: async ({ name }, context) => {
-						const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 						const normalizedName = ensToString(ensNormalizeNode(name))
 						const matchingEnsDomain = (
 							await getName({
@@ -329,7 +336,6 @@ export default {
 						if (source !== Source.TheGraph_Graphql)
 							throw new Error('TheGraph_Graphql: EnsName_Timestamp selector source mismatch')
 
-						const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 						const normalizedName = ensToString(ensNormalizeNode($name.name))
 						const matchingEnsDomain = (
 							await getName({
@@ -413,10 +419,6 @@ export default {
 			resolve: {
 				AddressInteropAddress: {
 					resolve: async ({ address }, context) => {
-						const {
-							getDomainsByOwner,
-							getDomainsByResolvedAddress,
-						} = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 						const accountAddress = zeroExLowerCase(address)
 						const [
 							ownedDomains,
@@ -481,7 +483,6 @@ export default {
 			resolve: {
 				NameRecordKey: {
 					resolve: async ({ $name, recordKey }, context) => {
-						const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 						const normalizedName = ensToString(ensNormalizeNode($name.name))
 						const domains = await getName({
 							publicEnv: context.publicEnv,
@@ -543,7 +544,6 @@ export default {
 						if (source !== Source.TheGraph_Graphql)
 							throw new Error('TheGraph_Graphql: EnsRecord_Timestamp selector source mismatch')
 
-						const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 						const normalizedName = ensToString(ensNormalizeNode($record.$name.name))
 						const domains = await getName({
 							publicEnv: context.publicEnv,
@@ -584,7 +584,6 @@ export default {
 			resolve: {
 				Query: {
 					resolve: async ({ query: querySelector }, context) => {
-					const { getDomainsContaining } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					const query = normalizedEnsSearchQuery(querySelector)
 					return (

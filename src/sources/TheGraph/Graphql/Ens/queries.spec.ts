@@ -5,6 +5,8 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import bindings from '$/sources/TheGraph/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 const queryTheGraph = vi.fn()
 
@@ -12,7 +14,8 @@ vi.mock('$/sources/TheGraph/Graphql/client.ts', () => ({
 	queryTheGraph,
 }))
 
-const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+const { ensQueries } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+const { getName } = ensQueries(bindings[Source.TheGraph_Graphql][0])
 
 const publicEnv = {
 	PUBLIC_THEGRAPH_API_KEY: 'test',

@@ -3,6 +3,7 @@ import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { NearRpcBlock } from '$/sources/NearRpc/JsonRpc/types.ts'
+import bindings from '$/sources/NearRpc/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const corsFetch = vi.hoisted(() => vi.fn())
@@ -13,7 +14,8 @@ vi.mock('$/lib/http.ts', () => ({
 }))
 
 const { default: nearRpc } = await import('$/resolvers/NearRpc-JsonRpc.ts')
-const { getBlock, viewState } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+const { nearRpc: createNearRpc } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+const { getBlock, viewState } = createNearRpc(bindings[Source.NearRpc_JsonRpc][0])
 
 const context = {
 	filters: [],

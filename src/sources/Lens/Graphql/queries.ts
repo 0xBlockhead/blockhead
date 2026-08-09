@@ -2,8 +2,9 @@ import type { VariablesOf } from 'gql.tada'
 
 import {
 	graphql,
-	queryLens,
+	queryLens as executeLensQuery,
 } from '$/sources/Lens/Graphql/client.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 type LensPageSize = 'TEN' | 'FIFTY'
 type LensPageInfo = {
@@ -638,14 +639,20 @@ const LensNamespacesDocument = graphql(`
 	}
 `, [LensUsernameNamespace])
 
-export const queryAccount = async (
+export const lensQueries = (binding: SourceBinding) => {
+	const queryLens = <_Result extends object, _Variables extends object>(
+		document: Parameters<typeof executeLensQuery<_Result, _Variables>>[1],
+		variables?: _Variables
+	) => executeLensQuery(binding, document, variables)
+
+	const queryAccount = async (
 	request: VariablesOf<typeof LensAccountDocument>['request']
 ) => queryLens(
 	LensAccountDocument,
 	{ request }
 )
 
-export const queryAccountStats = async (
+	const queryAccountStats = async (
 	address: `0x${string}`
 ) => {
 	return queryLens(
@@ -654,7 +661,7 @@ export const queryAccountStats = async (
 	)
 }
 
-export const queryPost = async (
+	const queryPost = async (
 	postId: string
 ) => {
 	if (postId.trim() === '')
@@ -672,7 +679,7 @@ export const queryPost = async (
 	return response
 }
 
-export const queryPostsByAuthor = async (
+	const queryPostsByAuthor = async (
 	address: `0x${string}`,
 	limit: number | LensPageSize = 10
 ) => ({
@@ -692,7 +699,7 @@ export const queryPostsByAuthor = async (
 	),
 })
 
-export const queryLatestPosts = async (
+	const queryLatestPosts = async (
 	limit: number | LensPageSize = 10
 ) => ({
 	posts: await queryLensPages(
@@ -710,7 +717,7 @@ export const queryLatestPosts = async (
 	),
 })
 
-export const queryPostComments = async (
+	const queryPostComments = async (
 	postId: string,
 	limit: number | LensPageSize = 10
 ) => ({
@@ -730,7 +737,7 @@ export const queryPostComments = async (
 	),
 })
 
-export const queryAccounts = async (
+	const queryAccounts = async (
 	limit = 10
 ) => ({
 	accounts: await queryLensPages(
@@ -748,7 +755,7 @@ export const queryAccounts = async (
 	),
 })
 
-export const queryFeed = async (
+	const queryFeed = async (
 	address: `0x${string}`
 ) => {
 	return queryLens(
@@ -757,7 +764,7 @@ export const queryFeed = async (
 	)
 }
 
-export const queryFeedPosts = async (
+	const queryFeedPosts = async (
 	address: `0x${string}`,
 	limit = 10
 ) => {
@@ -779,7 +786,7 @@ export const queryFeedPosts = async (
 	}
 }
 
-export const queryFeeds = async (
+	const queryFeeds = async (
 	limit = 10
 ) => ({
 	feeds: await queryLensPages(
@@ -797,14 +804,14 @@ export const queryFeeds = async (
 	),
 })
 
-export const queryUsername = async (
+	const queryUsername = async (
 	request: VariablesOf<typeof LensUsernameDocument>['request']
 ) => queryLens(
 	LensUsernameDocument,
 	{ request }
 )
 
-export const queryUsernames = async (
+	const queryUsernames = async (
 	limit = 10,
 	filter: {
 		owner?: `0x${string}`
@@ -829,7 +836,7 @@ export const queryUsernames = async (
 	),
 })
 
-export const queryNamespace = async (
+	const queryNamespace = async (
 	address: `0x${string}`
 ) => {
 	return queryLens(
@@ -838,7 +845,7 @@ export const queryNamespace = async (
 	)
 }
 
-export const queryNamespaces = async (
+	const queryNamespaces = async (
 	limit = 10
 ) => ({
 	namespaces: await queryLensPages(
@@ -855,3 +862,21 @@ export const queryNamespaces = async (
 		(namespace) => namespace.address
 	),
 })
+
+	return {
+		queryAccount,
+		queryAccounts,
+		queryAccountStats,
+		queryFeed,
+		queryFeedPosts,
+		queryFeeds,
+		queryLatestPosts,
+		queryNamespace,
+		queryNamespaces,
+		queryPost,
+		queryPostComments,
+		queryPostsByAuthor,
+		queryUsername,
+		queryUsernames,
+	}
+}

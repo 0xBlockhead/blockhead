@@ -46,20 +46,22 @@ const {
 }))
 
 vi.mock('$/sources/Lens/Graphql/queries.ts', () => ({
-	queryAccount,
-	queryAccountStats,
-	queryAccounts,
-	queryFeed,
-	queryFeedPosts,
-	queryFeeds,
-	queryLatestPosts,
-	queryNamespace,
-	queryNamespaces,
-	queryPost,
-	queryPostComments,
-	queryPostsByAuthor,
-	queryUsername,
-	queryUsernames,
+	lensQueries: () => ({
+		queryAccount,
+		queryAccountStats,
+		queryAccounts,
+		queryFeed,
+		queryFeedPosts,
+		queryFeeds,
+		queryLatestPosts,
+		queryNamespace,
+		queryNamespaces,
+		queryPost,
+		queryPostComments,
+		queryPostsByAuthor,
+		queryUsername,
+		queryUsernames,
+	}),
 }))
 
 const { default: lensGraphql } = await import('$/resolvers/Lens-Graphql.ts')

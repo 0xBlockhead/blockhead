@@ -11,6 +11,25 @@ import {
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/Lens/bindings.ts'
+import { lensQueries } from '$/sources/Lens/Graphql/queries.ts'
+
+const {
+	queryAccount,
+	queryAccounts,
+	queryAccountStats,
+	queryFeed,
+	queryFeedPosts,
+	queryFeeds,
+	queryLatestPosts,
+	queryNamespace,
+	queryNamespaces,
+	queryPost,
+	queryPostComments,
+	queryPostsByAuthor,
+	queryUsername,
+	queryUsernames,
+} = lensQueries(bindings[Source.Lens_Graphql][0])
 
 /** Lens / subgraph wire — may omit `0x` or use mixed case. */
 const lensEvmAddressFromWire = (address: string): `0x${string}` => {
@@ -247,7 +266,7 @@ const lensPostCardReferenceFromWire = (
 
 const lensUsernameFromWire = (
 	username: NonNullable<Awaited<ReturnType<
-		typeof import('$/sources/Lens/Graphql/queries.ts')['queryUsername']
+		typeof queryUsername
 	>>['username']>
 ) => {
 	const namespace = lensEvmAddressFromWire(username.namespace)
@@ -288,7 +307,7 @@ const lensUsernameFromWire = (
 
 const lensUsernameReferenceFromWire = (
 	username: NonNullable<Awaited<ReturnType<
-		typeof import('$/sources/Lens/Graphql/queries.ts')['queryUsername']
+		typeof queryUsername
 	>>['username']>
 ) => {
 	const resolved = lensUsernameFromWire(username)
@@ -318,7 +337,7 @@ const lensRulesPassthroughFromWire = (
 
 const lensUsernameNamespaceFromWire = (
 	namespace: NonNullable<Awaited<ReturnType<
-		typeof import('$/sources/Lens/Graphql/queries.ts')['queryNamespace']
+		typeof queryNamespace
 	>>['namespace']>
 ) => {
 	const owner = namespace.owner != null ? lensEvmAddressFromWire(namespace.owner) : undefined
@@ -344,7 +363,7 @@ const lensUsernameNamespaceFromWire = (
 
 const lensAccountTimestampFieldsFromWire = (
 	wire: Awaited<ReturnType<
-		typeof import('$/sources/Lens/Graphql/queries.ts')['queryAccountStats']
+		typeof queryAccountStats
 	>>
 ) => ({
 	followerCount: wire.accountStats.graphFollowStats.followers,
@@ -353,7 +372,7 @@ const lensAccountTimestampFieldsFromWire = (
 
 const lensAccountFromWire = (
 	account: Awaited<ReturnType<
-		typeof import('$/sources/Lens/Graphql/queries.ts')['queryAccount']
+		typeof queryAccount
 	>>['account'],
 	selectedLocalName?: string,
 	legacyProfileId?: string,
@@ -414,7 +433,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { queryLatestPosts } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (await queryLatestPosts(limit)).posts.items.flatMap((lensPost) => {
 							const reference = lensPostCardReferenceFromWire(lensPost)
@@ -432,10 +450,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Address: {
 					resolve: async ({ address }) => {
-						const {
-							queryAccount,
-							queryAccountStats,
-						} = await import('$/sources/Lens/Graphql/queries.ts')
 						const requestedAddress = zeroExLowerCase(address)
 						const account = (await queryAccount({ address: requestedAddress })).account
 						if (
@@ -459,10 +473,6 @@ const lensGraphqlResolvers = {
 						if (localName.trim() === '')
 							throw new Error('Lens_Graphql: account identity must not be empty')
 
-						const {
-							queryAccount,
-							queryAccountStats,
-						} = await import('$/sources/Lens/Graphql/queries.ts')
 						const account = (await queryAccount({
 							username: { localName },
 						})).account
@@ -490,10 +500,6 @@ const lensGraphqlResolvers = {
 						if (legacyProfileId.trim() === '')
 							throw new Error('Lens_Graphql: account identity must not be empty')
 
-						const {
-							queryAccount,
-							queryAccountStats,
-						} = await import('$/sources/Lens/Graphql/queries.ts')
 						const account = (await queryAccount({ legacyProfileId })).account
 						const tipStats = (
 							account == null ?
@@ -531,7 +537,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Id: {
 					resolve: async ({ id }) => {
-						const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
 						const p = (await queryPost(id)).post
 						if (p == null) throw new Error('Lens_Graphql: post not found')
 
@@ -635,10 +640,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				LensAccountTimestampMs: {
 					resolve: async ({ $account }) => {
-						const {
-							queryAccount,
-							queryAccountStats,
-						} = await import('$/sources/Lens/Graphql/queries.ts')
 						if ('address' in $account)
 							return lensAccountTimestampFieldsFromWire(
 								await queryAccountStats(zeroExLowerCase($account.address))
@@ -671,7 +672,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				LensPostTimestampMs: {
 					resolve: async ({ $post }) => {
-						const { queryPost } = await import('$/sources/Lens/Graphql/queries.ts')
 						const p = (await queryPost($post.id)).post
 						if (p == null) throw new Error('Lens_Graphql: post not found')
 						if (p.__typename !== 'Post') return {}
@@ -693,7 +693,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Id: {
 					resolve: async ({ id }, context) => {
-						const { queryPostComments } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (await queryPostComments(id, limit)).postReferences.items.flatMap((lensPost) => {
 							if (
@@ -716,7 +715,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Address: {
 					resolve: async ({ address }, context) => {
-						const { queryPostsByAuthor } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						const requestedAddress = zeroExLowerCase(address)
 						return (await queryPostsByAuthor(requestedAddress, limit)).posts.items.flatMap((lensPost) => {
@@ -736,10 +734,6 @@ const lensGraphqlResolvers = {
 						if (localName.trim() === '')
 							throw new Error('Lens_Graphql: account identity must not be empty')
 
-						const {
-							queryAccount,
-							queryPostsByAuthor,
-						} = await import('$/sources/Lens/Graphql/queries.ts')
 						const account = (await queryAccount({
 							username: { localName },
 						})).account
@@ -766,10 +760,6 @@ const lensGraphqlResolvers = {
 						if (legacyProfileId.trim() === '')
 							throw new Error('Lens_Graphql: account identity must not be empty')
 
-						const {
-							queryAccount,
-							queryPostsByAuthor,
-						} = await import('$/sources/Lens/Graphql/queries.ts')
 						const account = (await queryAccount({ legacyProfileId })).account
 						if (account == null) throw new Error('Lens_Graphql: account not found')
 
@@ -797,7 +787,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { queryAccounts } = await import('$/sources/Lens/Graphql/queries.ts')
 						return (await queryAccounts(resolverContextRowLimit(context))).accounts.items.map((account) => {
 							const lensAccount = lensAccountFromWire(account)
 
@@ -827,7 +816,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { queryFeeds } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (await queryFeeds(limit)).feeds.items.flatMap((feed) => {
 							const address = lensEvmAddressFromWire(feed.address)
@@ -871,7 +859,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Scope: {
 					resolve: async (_entitySelector, context) => {
-						const { queryNamespaces } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						return (await queryNamespaces(limit)).namespaces.items.flatMap((namespace) => {
 							const resolved = lensUsernameNamespaceFromWire(namespace)
@@ -917,7 +904,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Address: {
 					resolve: async ({ address }) => {
-						const { queryFeed } = await import('$/sources/Lens/Graphql/queries.ts')
 						const feed = (await queryFeed(zeroExLowerCase(address))).feed
 						if (feed == null) throw new Error('Lens_Graphql: feed not found')
 						if (lensEvmAddressFromWire(feed.address) !== zeroExLowerCase(address))
@@ -954,7 +940,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Address: {
 					resolve: async ({ address }, context) => {
-						const { queryFeedPosts } = await import('$/sources/Lens/Graphql/queries.ts')
 						return (await queryFeedPosts(
 							zeroExLowerCase(address),
 							resolverContextRowLimit(context)
@@ -982,7 +967,6 @@ const lensGraphqlResolvers = {
 						if (id.trim() === '')
 							throw new Error('Lens_Graphql: username identity must not be empty')
 
-						const { queryUsername } = await import('$/sources/Lens/Graphql/queries.ts')
 						const username = (await queryUsername({ id })).username
 						if (username == null) throw new Error('Lens_Graphql: username not found')
 						if (username.id !== id)
@@ -995,7 +979,6 @@ const lensGraphqlResolvers = {
 						if (localName.trim() === '')
 							throw new Error('Lens_Graphql: username identity must not be empty')
 
-						const { queryUsername } = await import('$/sources/Lens/Graphql/queries.ts')
 						const requestedNamespace = zeroExLowerCase(namespace)
 						const username = (await queryUsername({
 							username: {
@@ -1031,7 +1014,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Address: {
 					resolve: async ({ address }) => {
-						const { queryNamespace } = await import('$/sources/Lens/Graphql/queries.ts')
 						const namespace = (await queryNamespace(zeroExLowerCase(address))).namespace
 						if (namespace == null) throw new Error('Lens_Graphql: namespace not found')
 						if (lensEvmAddressFromWire(namespace.address) !== zeroExLowerCase(address))
@@ -1058,7 +1040,6 @@ const lensGraphqlResolvers = {
 			resolve: {
 				Address: {
 					resolve: async ({ address }, context) => {
-						const { queryUsernames } = await import('$/sources/Lens/Graphql/queries.ts')
 						const limit = resolverContextRowLimit(context)
 						const requestedNamespace = zeroExLowerCase(address)
 						return (await queryUsernames(limit, {

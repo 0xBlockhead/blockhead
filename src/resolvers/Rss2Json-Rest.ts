@@ -1,11 +1,15 @@
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { rssResolvers } from '$/resolvers/Rss.ts'
 import { Source } from '$/sources/Source.ts'
+import bindings from '$/sources/Rss2Json/bindings.ts'
 import { rssTimestampMs } from '$/sources/_shared/interfaces/Rss/constants.ts'
 
 export default rssResolvers({
 	loadFeed: async (feedUrl) => {
-		const response = await (await import('$/sources/Rss2Json/Rest/queries.ts')).getFeed(feedUrl)
+		const response = await (await import('$/sources/Rss2Json/Rest/queries.ts')).getFeed(
+			bindings[Source.Rss2Json_Rest][0],
+			feedUrl
+		)
 		const feed = response.feed
 		if (feed == null)
 			throw new Error('Rss2Json_Rest: feed not found')

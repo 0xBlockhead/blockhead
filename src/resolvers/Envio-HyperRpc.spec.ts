@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { envioHyperRpc as createEnvioHyperRpc } from '$/sources/Envio/HyperRpc/queries.ts'
+import bindings from '$/sources/Envio/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+
 import {
 	EvmTransactionEnvelopeType,
 	EvmTransactionExecutionStatus,
@@ -10,14 +14,13 @@ import { EntityType } from '$/schema/EntityType.ts'
 import block from '$/sources/Envio/HyperRpc/fixtures/block.json'
 import transaction from '$/sources/Envio/HyperRpc/fixtures/transaction.json'
 import transactionReceipt from '$/sources/Envio/HyperRpc/fixtures/transaction-receipt.json'
-import {
+const {
 	getBlockByHash,
 	getBlockByNumber,
 	getBlockNumber,
 	getTransactionByHash,
 	getTransactionReceipt,
-} from '$/sources/Envio/HyperRpc/queries.ts'
-import { Source } from '$/sources/Source.ts'
+} = createEnvioHyperRpc(bindings[Source.EnvioHyperRpc_JsonRpc][0])
 
 const {
 	jsonRpc2,

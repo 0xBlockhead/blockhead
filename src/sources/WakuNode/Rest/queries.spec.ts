@@ -37,7 +37,7 @@ describe('WakuNode REST operations', () => {
 		}
 		getJson.mockResolvedValue(debugInfo)
 
-		await expect(queries.getDebugInfo()).resolves.toEqual(debugInfo)
+		await expect(queries.getDebugInfo(binding)).resolves.toEqual(debugInfo)
 		expect(getJson).toHaveBeenCalledWith(binding, '/debug/v1/info')
 	})
 
@@ -50,7 +50,7 @@ describe('WakuNode REST operations', () => {
 	])('fails closed when debug info has no listen addresses envelope: %j', async (debugInfo) => {
 		getJson.mockResolvedValue(debugInfo)
 
-		await expect(queries.getDebugInfo()).rejects.toThrow(
+		await expect(queries.getDebugInfo(binding)).rejects.toThrow(
 			'WakuNode_Rest: debug info missing listen addresses'
 		)
 	})
@@ -58,14 +58,14 @@ describe('WakuNode REST operations', () => {
 	it('loads health through the binding-scoped path', async () => {
 		getText.mockResolvedValue('OK')
 
-		await expect(queries.getHealth()).resolves.toBe('OK')
+		await expect(queries.getHealth(binding)).resolves.toBe('OK')
 		expect(getText).toHaveBeenCalledWith(binding, '/health')
 	})
 
 	it('fails closed when the health envelope is empty', async () => {
 		getText.mockResolvedValue('  ')
 
-		await expect(queries.getHealth()).rejects.toThrow(
+		await expect(queries.getHealth(binding)).rejects.toThrow(
 			'WakuNode_Rest: health response is empty'
 		)
 	})

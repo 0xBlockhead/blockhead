@@ -1,5 +1,6 @@
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { graphql, queryEns } from '$/sources/TheGraph/Graphql/Ens/client.ts'
+import { graphql, queryEns as executeEnsQuery } from '$/sources/TheGraph/Graphql/Ens/client.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	EnsDomainFragment,
 	type EnsSubgraphDomain,
@@ -8,7 +9,14 @@ import {
 /** Graph Node default page is 100; tip text/coin values need a larger ordered window. */
 const resolverTipEventPageSize = 1000
 
-export const getEnsSubgraphReachability = async ({
+export const ensQueries = (binding: SourceBinding) => {
+	const queryEns = <_Result extends object, _Variables extends object>(
+		publicEnv: SourcePublicEnv,
+		document: Parameters<typeof executeEnsQuery<_Result, _Variables>>[2],
+		variables?: _Variables
+	) => executeEnsQuery(binding, publicEnv, document, variables)
+
+	const getEnsSubgraphReachability = async ({
 	publicEnv,
 }: {
 	publicEnv: SourcePublicEnv
@@ -108,7 +116,7 @@ const hydrateResolverTipEvents = async ({
 	}
 }
 
-export const getName = async ({
+	const getName = async ({
 	publicEnv,
 	name,
 }: {
@@ -147,7 +155,7 @@ export const getName = async ({
 	)
 )
 
-export const getDomainsContaining = async ({
+	const getDomainsContaining = async ({
 	publicEnv,
 	query,
 	limit,
@@ -186,7 +194,7 @@ export const getDomainsContaining = async ({
 	).domains
 )
 
-export const getDomainsByOwner = async ({
+	const getDomainsByOwner = async ({
 	publicEnv,
 	owner,
 }: {
@@ -221,7 +229,7 @@ export const getDomainsByOwner = async ({
 )
 
 /** Domains whose resolver `addr` / resolvedAddress points at this account (forward reverse-lookup). */
-export const getDomainsByResolvedAddress = async ({
+	const getDomainsByResolvedAddress = async ({
 	publicEnv,
 	resolvedAddress,
 }: {
@@ -254,3 +262,12 @@ export const getDomainsByResolvedAddress = async ({
 		)
 	).domains
 )
+
+	return {
+		getDomainsByOwner,
+		getDomainsByResolvedAddress,
+		getDomainsContaining,
+		getEnsSubgraphReachability,
+		getName,
+	}
+}

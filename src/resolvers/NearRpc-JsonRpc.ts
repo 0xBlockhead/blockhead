@@ -13,7 +13,8 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { nearRpcEndpoints } from '$/sources/NearRpc/JsonRpc/queries.ts'
+import bindings from '$/sources/NearRpc/bindings.ts'
+import { nearRpc } from '$/sources/NearRpc/JsonRpc/queries.ts'
 import type {
 	NearRpcAccessKey,
 	NearRpcAccessKeyBody,
@@ -29,6 +30,21 @@ import type {
 	NearRpcTransactionStatus,
 	NearRpcValidators,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
+
+const {
+	endpoints: nearRpcEndpoints,
+	getBlock,
+	getChunk,
+	getGasPrice,
+	getReceipt,
+	getStatus,
+	getTxStatus,
+	getValidators,
+	viewAccessKey,
+	viewAccessKeyList,
+	viewAccount,
+	viewState,
+} = nearRpc(bindings[Source.NearRpc_JsonRpc][0])
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type NearBlockSelector = EntitySelectorForSelectorName<
 	typeof schema,
@@ -244,7 +260,6 @@ const getNearTransactionStatus = async ({ $network, hash, signerAccountId }: {
 	assertNearMainnet($network)
 	if (signerAccountId == null)
 		throw new Error(`NearRpc_JsonRpc: transaction ${hash} requires signerAccountId`)
-	const { getTxStatus } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 	return getTxStatus({
 		txHash: hash,
 		senderAccountId: signerAccountId,
@@ -255,7 +270,6 @@ const getNearAccount = async (
 	accountId: string
 ) => {
 	assertNearMainnet(network)
-	const { viewAccount } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 	return viewAccount({
 		accountId,
 	})
@@ -266,7 +280,6 @@ const getNearAccessKey = async (
 	publicKey: string
 ) => {
 	assertNearMainnet(network)
-	const { viewAccessKey } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 	return viewAccessKey({
 		accountId,
 		publicKey,
@@ -360,12 +373,6 @@ const nearBlockReference = (
 	),
 })
 const getNearNetworkTimestampFields = async () => {
-	const {
-		getBlock,
-		getGasPrice,
-		getStatus,
-		getValidators,
-	} = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 	const [
 		headBlock,
 		currentGasPrice,
@@ -427,7 +434,6 @@ const resolveNearBlock = async (entitySelector: NearBlockSelector) => {
 	assertNearMainnet(entitySelector.$network)
 	if (!('hash' in entitySelector))
 		assertSafeNearBlockHeight(entitySelector.height)
-	const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 	const wireBlock = await getBlock({
 		blockId: (
 			'hash' in entitySelector ?
@@ -450,7 +456,6 @@ const getNearBlockReferences = async (
 	limit: number
 ) => {
 	assertNearMainnet(network)
-	const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 	const headBlock = await getBlock({
 		blockId: 'final',
 	})
@@ -472,7 +477,6 @@ const getNearValidatorReferences = async (
 	limit: number
 ) => {
 	assertNearMainnet(network)
-	const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 	return (await getValidators()).current_validators
 		.slice(0, limit)
 		.map((validator) => {
@@ -507,7 +511,6 @@ const getNearCurrentValidator = async (
 	accountId: string
 ) => {
 	assertNearMainnet(network)
-	const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 	const validatorSet = await getValidators()
 	const validator = validatorSet.current_validators.find((candidate) => (
 		candidate.account_id === accountId
@@ -573,7 +576,6 @@ export default {
 				NetworkChunkHash: {
 					resolve: async ({ $network, chunkHash }) => {
 						assertNearMainnet($network)
-						const { getChunk } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 						const wireChunk = await getChunk({
 							chunkHash: chunkHash,
 						})
@@ -699,7 +701,6 @@ export default {
 				NetworkReceiptId: {
 					resolve: async ({ $network, receiptId }) => {
 						assertNearMainnet($network)
-						const { getReceipt } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 						try {
 							return nearReceiptFields(
 								$network,
@@ -774,7 +775,6 @@ export default {
 						const numericBlockHeight = Number(blockHeight)
 						if (!Number.isSafeInteger(numericBlockHeight))
 							throw new Error(`NearRpc_JsonRpc: unsafe block height ${blockHeight}`)
-						const { viewState } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 						const state = await viewState({
 							accountId: $contract.accountId,
 							prefixBase64: keyBase64,
@@ -983,7 +983,6 @@ export default {
 							const timestamp = await getNearNetworkTimestampFields()
 							if (signal.aborted)
 								return
-							const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 							const headBlock = await getBlock({ blockId: timestamp.headHash })
 							if (signal.aborted)
 								return
@@ -1096,7 +1095,6 @@ export default {
 				NetworkAccountId: {
 					resolve: async ({ $network, accountId }) => {
 						assertNearMainnet($network)
-						const { viewAccessKeyList } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 						return (await viewAccessKeyList({
 							accountId: accountId,
 						})).keys.map((key) => ({

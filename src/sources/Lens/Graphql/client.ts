@@ -5,8 +5,7 @@ import {
 } from 'gql.tada'
 
 import { fetchFailedMessage } from '$/lib/http.ts'
-import bindings from '$/sources/Lens/bindings.ts'
-import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import {
 	firstHttpUrlForBinding,
 	sourceFetch,
@@ -14,8 +13,6 @@ import {
 import type { GraphqlResponse } from '$/sources/_shared/wire/Graphql/client.ts'
 
 import type { introspection } from './graphql-env.d.ts'
-
-const binding = bindings[Source.Lens_Graphql][0]
 
 export type { introspection }
 
@@ -38,6 +35,7 @@ export const queryLens = async <
 	_Result extends object,
 	_Variables extends object,
 >(
+	binding: SourceBinding,
 	document: TadaDocumentNode<_Result, _Variables>,
 	variables?: _Variables
 ) => {

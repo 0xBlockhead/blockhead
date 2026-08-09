@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import bindings from '$/sources/Etherscan/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 const etherscanV2GetJson = vi.hoisted(() => vi.fn())
 
@@ -15,14 +17,17 @@ vi.mock('$/sources/Etherscan/Rest/client.ts', async (importOriginal) => {
 })
 
 const {
+	etherscanQueries,
+	supportsChainId,
+} = await import('$/sources/Etherscan/Rest/queries.ts')
+const {
 	getGasOracle,
 	getInternalTransactionsByTxHash,
 	getTokenTransfersByAddress,
 	getTokenTransfersByTransaction,
 	getTransactionByHash,
 	getTransactionReceipt,
-	supportsChainId,
-} = await import('$/sources/Etherscan/Rest/queries.ts')
+} = etherscanQueries(bindings[Source.Etherscan_Rest][0])
 
 const {
 	etherscanV2UnwrapAccountResultArray,
