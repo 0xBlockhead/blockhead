@@ -1,4 +1,4 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { sourceBindingId, type SourceBinding } from '$/sources/SourceBinding.ts'
 import type { SourceOperationGroup } from '$/sources/SourceBinding.ts'
 import { sourceLive } from '$/sources/_runtime/live.remote.ts'
 import type { GrpcRequest } from '$/sources/_shared/wire/Grpc/types.ts'
@@ -18,6 +18,7 @@ export const iterateGrpcLive = async function* ({
 		return
 
 	const events = sourceLive({
+		bindingId: sourceBindingId(binding),
 		source: binding.source,
 		targetKey: binding.target.key,
 		operationGroup,

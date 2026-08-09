@@ -12,6 +12,7 @@ import { readFileSync } from 'node:fs'
 import bindings from '$/sources/AtprotoSync/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
+	sourceBindingId,
 	SourceDelivery,
 	SourceEndpointKind,
 } from '$/sources/SourceBinding.ts'
@@ -395,6 +396,7 @@ describe('AtprotoSync_Xrpc subscribeRepos RemoteLive transport', () => {
 			frames.push(message)
 
 		expect(sourceLive).toHaveBeenCalledWith({
+			bindingId: sourceBindingId(remoteLiveBinding),
 			source: Source.AtprotoSync_Xrpc,
 			targetKey: remoteLiveBinding.target.key,
 			operationGroup: 'GenericSubscribe',

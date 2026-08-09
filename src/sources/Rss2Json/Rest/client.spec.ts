@@ -30,7 +30,10 @@ test('uses the registered HttpProxy binding', async () => {
 		status: 'ok',
 	})
 
-	await expect(rss2JsonGet('/v1/api.json?rss_url=fixture')).resolves.toEqual({
+	await expect(rss2JsonGet(
+		bindings[Source.Rss2Json_Rest][0],
+		'/v1/api.json?rss_url=fixture'
+	)).resolves.toEqual({
 		status: 'ok',
 	})
 	expect(sourceGetJson).toHaveBeenCalledWith(

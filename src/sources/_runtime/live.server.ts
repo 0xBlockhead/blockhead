@@ -12,6 +12,7 @@ import type { GrpcLiveEvent } from '$/sources/_shared/wire/Grpc/live.server.ts'
 import type { WebSocketLiveEvent } from '$/sources/_shared/wire/WebSocketMessages/live.server.ts'
 
 export type SourceLiveRequest = {
+	bindingId?: string
 	source: Source
 	targetKey: string
 	operationGroup: SourceOperationGroup
@@ -33,17 +34,32 @@ const remoteLiveBindingBySourceTargetKeyAndOperationGroup = new Map(
 	))
 )
 
+const remoteLiveBindingById = new Map(
+	remoteLiveBindings.map((binding) => [sourceBindingId(binding), binding])
+)
+
 export const iterateSourceLive = async function* (
 	request: SourceLiveRequest,
 	signal?: AbortSignal,
 	webSocketInitialMessage?: string
 ): AsyncGenerator<GrpcLiveEvent | WebSocketLiveEvent> {
-	const binding = remoteLiveBindingBySourceTargetKeyAndOperationGroup.get(
-		`${request.source}:${request.targetKey}:${request.operationGroup}`
+	const binding = (
+		request.bindingId == null ?
+			remoteLiveBindingBySourceTargetKeyAndOperationGroup.get(
+				`${request.source}:${request.targetKey}:${request.operationGroup}`
+			)
+		:
+			remoteLiveBindingById.get(request.bindingId)
 	)
 
 	if (binding == null)
 		throw new Error(`${request.source}: no enabled RemoteLive binding for ${request.operationGroup}`)
+	if (
+		binding.source !== request.source
+		|| binding.target.key !== request.targetKey
+		|| !binding.operationGroups.includes(request.operationGroup)
+	)
+		throw new Error(`${request.source}: live request does not match binding ${request.bindingId ?? sourceBindingId(binding)}`)
 	if (
 		(request.serviceOrigin != null || request.cursor != null)
 		&& !binding.endpoints.some((endpoint) => (

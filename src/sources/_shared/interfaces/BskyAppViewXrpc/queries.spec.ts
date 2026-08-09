@@ -12,6 +12,9 @@ import {
 	SourceTargetKind,
 	sourceBindingId,
 } from '$/sources/SourceBinding.ts'
+import publicBindings from '$/sources/AtprotoBsky/bindings.ts'
+import socialBindings from '$/sources/AtprotoBskySocial/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -20,8 +23,23 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 	sourceGetJson,
 }))
 
-const publicAppViewQueries = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-const socialAppViewQueries = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
+const publicAppViewTransport = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+const socialAppViewTransport = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
+const bindQueries = (
+	transport: typeof publicAppViewTransport,
+	binding: typeof publicBindings[Source.Atproto_Xrpc][number]
+) => Object.fromEntries(Object.entries(transport).map(([name, operation]) => [
+	name,
+	(...parameters: never[]) => operation(binding, ...parameters),
+])) as typeof publicAppViewTransport
+const publicAppViewQueries = bindQueries(
+	publicAppViewTransport,
+	publicBindings[Source.Atproto_Xrpc][0]
+)
+const socialAppViewQueries = bindQueries(
+	socialAppViewTransport,
+	socialBindings[Source.Atproto_BskySocial_Xrpc][0]
+)
 const {
 	getAuthorFeed,
 	getPostThread,

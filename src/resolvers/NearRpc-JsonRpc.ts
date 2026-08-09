@@ -959,7 +959,11 @@ export default {
 					resolve: async (network) => {
 						assertNearMainnet(network)
 						const timestamp = await getNearNetworkTimestampFields()
-						return [nearNetworkTimestampReference(network, timestamp)]
+						const headBlock = await getBlock({ blockId: timestamp.headHash })
+						return {
+							timestamps: [nearNetworkTimestampReference(network, timestamp)],
+							blocks: [nearBlockReference(network, headBlock)],
+						}
 					},
 				}
 			},
@@ -1011,7 +1015,8 @@ export default {
 			},
 		})({
 			Near: {
-				$$timestamps: (timestamps) => timestamps,
+				$$timestamps: (result) => result.timestamps,
+				$$blocks: (result) => result.blocks,
 			},
 		}),
 		defineResolver({

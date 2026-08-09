@@ -1,5 +1,6 @@
 import { fetchFailedMessage } from '$/lib/http.ts'
 import {
+	sourceBindingId,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -344,6 +345,7 @@ export const subscribeRepos = async function* ({
 		throw new Error('AtprotoSync_Xrpc: subscribeRepos cursor must be a non-negative safe integer')
 
 	const frames = sourceLive({
+		bindingId: sourceBindingId(binding),
 		source: binding.source,
 		targetKey: binding.target.key,
 		operationGroup: SourceOperationGroup.GenericSubscribe,
