@@ -148,6 +148,28 @@ describe('Stellar Horizon public-account resolver', () => {
 		])
 	})
 
+	it('rejects malformed account thresholds before projecting schema fields', async () => {
+		getJson.mockResolvedValueOnce({
+			id: accountId,
+			account_id: accountId,
+			sequence: '1',
+			subentry_count: 0,
+			last_modified_ledger: 1,
+			last_modified_time: '2026-07-22T00:00:00Z',
+			thresholds: {
+				low_threshold: 0,
+				med_threshold: 128,
+				high_threshold: 256,
+			},
+			balances: [],
+			signers: [],
+		})
+
+		await expect(resolverFor('$$timestamps').resolve[
+			'NetworkAccountId'
+		].resolve(account, context)).rejects.toThrow('invalid account response envelope')
+	})
+
 	it('preserves descending transaction order, ledger identity, amounts, and cursor', async () => {
 		getJson.mockResolvedValueOnce(page([
 			{

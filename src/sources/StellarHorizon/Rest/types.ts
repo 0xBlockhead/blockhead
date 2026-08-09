@@ -38,20 +38,22 @@ export const stellarHorizonBalanceWire = arktype({
 
 export type StellarHorizonBalance = typeof stellarHorizonBalanceWire.infer
 
+const stellarHorizonSignerWeightWire = arktype('number.integer >= 0 <= 255')
+
 export const stellarHorizonSignerWire = arktype({
 	key: 'string > 0',
-	weight: 'number.integer >= 0',
+	weight: stellarHorizonSignerWeightWire,
 	type: "'ed25519_public_key' | 'sha256_hash' | 'preauth_tx'",
 	'sponsor?': 'string',
-})
+}).onUndeclaredKey('delete')
 
 export type StellarHorizonSigner = typeof stellarHorizonSignerWire.infer
 
 export const stellarHorizonThresholdsWire = arktype({
-	low_threshold: 'number.integer >= 0',
-	med_threshold: 'number.integer >= 0',
-	high_threshold: 'number.integer >= 0',
-})
+	low_threshold: stellarHorizonSignerWeightWire,
+	med_threshold: stellarHorizonSignerWeightWire,
+	high_threshold: stellarHorizonSignerWeightWire,
+}).onUndeclaredKey('delete')
 
 export type StellarHorizonThresholds = typeof stellarHorizonThresholdsWire.infer
 

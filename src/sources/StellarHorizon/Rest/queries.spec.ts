@@ -94,6 +94,85 @@ describe('Stellar Horizon account transport', () => {
 		expect(getJson).toHaveBeenCalledWith(binding, `/accounts/${accountId}`)
 	})
 
+	it('parses exact account thresholds and signer weights', async () => {
+		getJson
+			.mockResolvedValueOnce({
+				id: accountId,
+				account_id: accountId,
+				sequence: '1',
+				subentry_count: 0,
+				last_modified_ledger: 1,
+				last_modified_time: '2026-07-22T00:00:00Z',
+				thresholds: {
+					low_threshold: 0,
+					med_threshold: 128,
+					high_threshold: 255,
+					provider_extension: 'dropped',
+				},
+				balances: [],
+				signers: [{
+					key: accountId,
+					weight: 255,
+					type: 'ed25519_public_key',
+					sponsor: otherAccountId,
+					provider_extension: 'dropped',
+				}],
+				provider_extension: 'preserved',
+			})
+			.mockResolvedValueOnce({
+				id: accountId,
+				account_id: accountId,
+				sequence: '1',
+				subentry_count: 0,
+				last_modified_ledger: 1,
+				last_modified_time: '2026-07-22T00:00:00Z',
+				thresholds: {
+					low_threshold: 0,
+					med_threshold: 128,
+					high_threshold: 256,
+				},
+				balances: [],
+				signers: [],
+			})
+			.mockResolvedValueOnce({
+				id: accountId,
+				account_id: accountId,
+				sequence: '1',
+				subentry_count: 0,
+				last_modified_ledger: 1,
+				last_modified_time: '2026-07-22T00:00:00Z',
+				thresholds: {
+					low_threshold: 0,
+					med_threshold: 128,
+					high_threshold: 255,
+				},
+				balances: [],
+				signers: [{
+					key: accountId,
+					weight: 256,
+					type: 'ed25519_public_key',
+				}],
+			})
+
+		const account = await getAccount(accountId)
+		expect(account).toMatchObject({
+			provider_extension: 'preserved',
+		})
+		expect(account.thresholds).toEqual({
+			low_threshold: 0,
+			med_threshold: 128,
+			high_threshold: 255,
+		})
+		expect(account.signers).toEqual([{
+			key: accountId,
+			weight: 255,
+			type: 'ed25519_public_key',
+			sponsor: otherAccountId,
+		}])
+		await expect(getAccount(accountId)).rejects.toThrow('invalid account response envelope')
+		await expect(getAccount(accountId)).rejects.toThrow('invalid account response envelope')
+	})
+
 	it('fail-closes malformed account and transaction envelopes', async () => {
 		getJson.mockResolvedValueOnce({
 			id: accountId,
