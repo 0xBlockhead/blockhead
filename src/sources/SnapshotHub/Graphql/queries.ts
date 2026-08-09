@@ -18,7 +18,8 @@ import {
 	type SnapshotHubStrategy,
 	type SnapshotHubVote,
 } from '$/sources/SnapshotHub/Graphql/types.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/SnapshotHub/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	isJsonArray,
 	isJsonNumber,
@@ -28,6 +29,8 @@ import {
 	graphql,
 	querySnapshotHub,
 } from './client.ts'
+
+const binding = bindings[Source.SnapshotHub_Graphql][0]
 
 const SnapshotHubSpace = graphql(`
 	query SnapshotHubSpace($id: String!) {
@@ -308,10 +311,8 @@ const assertVote = (
 }
 
 export const getSpace = async ({
-	binding,
 	spaceId,
 }: {
-	binding: SourceBinding
 	spaceId: string
 }) => {
 	assertOpaqueIdentity(spaceId, 'requested space ID')
@@ -331,11 +332,9 @@ export const getSpace = async ({
 }
 
 export const getSpacesPage = async ({
-	binding,
 	limit,
 	offset,
 }: {
-	binding: SourceBinding
 	limit: number
 	offset: number
 }) => {
@@ -364,10 +363,8 @@ export const getSpacesPage = async ({
 }
 
 export const getProposal = async ({
-	binding,
 	proposalId,
 }: {
-	binding: SourceBinding
 	proposalId: string
 }) => {
 	assertMessageIdentity(proposalId, 'requested proposal ID')
@@ -387,13 +384,11 @@ export const getProposal = async ({
 }
 
 export const getProposalsPage = async ({
-	binding,
 	spaceId,
 	state,
 	limit,
 	offset,
 }: {
-	binding: SourceBinding
 	spaceId: string
 	state?: SnapshotHubProposalState
 	limit: number
@@ -423,7 +418,7 @@ export const getProposalsPage = async ({
 	const proposalIds = new Set<string>()
 	for (const proposal of proposals) {
 		assertProposal(proposal)
-		if (proposal.space?.id !== spaceId)
+		if (proposal.space.id !== spaceId)
 			throw new Error('SnapshotHub_Graphql: returned a proposal from a foreign space')
 		if (state != null && proposal.state !== state)
 			throw new Error('SnapshotHub_Graphql: proposal state filter was violated')
@@ -435,10 +430,8 @@ export const getProposalsPage = async ({
 }
 
 export const getVote = async ({
-	binding,
 	voteId,
 }: {
-	binding: SourceBinding
 	voteId: string
 }) => {
 	assertMessageIdentity(voteId, 'requested vote ID')
@@ -458,12 +451,10 @@ export const getVote = async ({
 }
 
 export const getVotesPage = async ({
-	binding,
 	proposalId,
 	limit,
 	offset,
 }: {
-	binding: SourceBinding
 	proposalId: string
 	limit: number
 	offset: number
@@ -489,7 +480,7 @@ export const getVotesPage = async ({
 	const voteIds = new Set<string>()
 	for (const vote of votes) {
 		assertVote(vote)
-		if (vote.proposal?.id !== proposalId)
+		if (vote.proposal.id !== proposalId)
 			throw new Error('SnapshotHub_Graphql: returned a vote for a foreign proposal')
 		if (voteIds.has(vote.id))
 			throw new Error('SnapshotHub_Graphql: duplicate vote in page')

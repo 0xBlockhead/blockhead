@@ -202,14 +202,12 @@ describe('Snapshot Hub public governance reads', () => {
 			}))
 
 		await expect(getSpace({
-		binding,
 			spaceId,
 		})).resolves.toMatchObject({
 			id: spaceId,
 			strategies,
 		})
 		await expect(getSpacesPage({
-		binding,
 			limit: 1,
 			offset: 40,
 		})).resolves.toEqual([
@@ -254,7 +252,6 @@ describe('Snapshot Hub public governance reads', () => {
 		}))
 
 		await expect(getProposal({
-		binding,
 			proposalId,
 		})).resolves.toMatchObject({
 			id: proposalId,
@@ -275,7 +272,6 @@ describe('Snapshot Hub public governance reads', () => {
 		}))
 
 		await expect(getProposalsPage({
-		binding,
 			spaceId,
 			state: 'closed',
 			limit: 1,
@@ -309,7 +305,6 @@ describe('Snapshot Hub public governance reads', () => {
 			}))
 
 		await expect(getVote({
-		binding,
 			voteId,
 		})).resolves.toMatchObject({
 			id: voteId,
@@ -322,7 +317,6 @@ describe('Snapshot Hub public governance reads', () => {
 			],
 		})
 		await expect(getVotesPage({
-		binding,
 			proposalId,
 			limit: 1,
 			offset: 0,
@@ -359,24 +353,20 @@ describe('Snapshot Hub public governance reads', () => {
 			}))
 
 		await expect(getSpace({
-		binding,
 			spaceId,
 		})).rejects.toThrow('foreign space')
 		await expect(getProposalsPage({
-		binding,
 			spaceId,
 			state: 'closed',
 			limit: 10,
 			offset: 0,
 		})).rejects.toThrow('foreign space')
 		await expect(getVotesPage({
-		binding,
 			proposalId,
 			limit: 10,
 			offset: 0,
 		})).rejects.toThrow('foreign proposal')
 		await expect(getProposal({
-		binding,
 			proposalId: 'not-a-proposal',
 		})).rejects.toThrow('invalid requested proposal ID')
 		expect(sourceFetch).toHaveBeenCalledTimes(3)
@@ -417,15 +407,12 @@ describe('Snapshot Hub public governance reads', () => {
 			}))
 
 		await expect(getProposal({
-		binding,
 			proposalId,
 		})).rejects.toThrow('invalid proposal lifecycle')
 		await expect(getProposal({
-		binding,
 			proposalId,
 		})).rejects.toThrow('do not align with strategies')
 		await expect(getVote({
-		binding,
 			voteId,
 		})).rejects.toThrow('does not align with strategies')
 	})
@@ -434,7 +421,6 @@ describe('Snapshot Hub public governance reads', () => {
 		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
 
 		await expect(getSpacesPage({
-		binding,
 			limit: 101,
 			offset: 0,
 		})).rejects.toThrow('limit must be from 1 through 100')
@@ -449,7 +435,6 @@ describe('Snapshot Hub public governance reads', () => {
 			}
 		))
 		await expect(getSpace({
-		binding,
 			spaceId,
 		})).rejects.toThrow('response exceeds byte limit')
 	})
@@ -482,15 +467,12 @@ describe('Snapshot Hub public governance reads', () => {
 			}))
 
 		await expect(getSpace({
-		binding,
 			spaceId,
 		})).rejects.toThrow('502')
 		await expect(getProposal({
-		binding,
 			proposalId,
 		})).rejects.toThrow('rate limited')
 		await expect(getVote({
-		binding,
 			voteId,
 		})).rejects.toThrow('response is missing data')
 	})
@@ -526,19 +508,15 @@ describe('Snapshot Hub public governance reads', () => {
 			}))
 
 		await expect(getSpace({
-		binding,
 			spaceId,
 		})).rejects.toThrow('invalid space data envelope')
 		await expect(getProposal({
-		binding,
 			proposalId,
 		})).rejects.toThrow('invalid proposal data envelope')
 		await expect(getVote({
-		binding,
 			voteId,
 		})).rejects.toThrow('invalid vote data envelope')
 		await expect(getSpacesPage({
-		binding,
 			limit: 1,
 			offset: 0,
 		})).rejects.toThrow('invalid spaces page envelope')
