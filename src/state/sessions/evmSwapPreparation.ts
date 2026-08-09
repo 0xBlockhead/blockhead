@@ -83,9 +83,28 @@ export type EvmSwapSimulationTransport = {
 
 export type EvmSwapPreparation = {
 	ready: true
-	intent: EntityFieldValues<typeof schema, EntityType.BlockheadSwapIntent>
-	quote: EntityFieldValues<typeof schema, EntityType.BlockheadIntentQuote>
-	quoteObservation: EntityFieldValues<typeof schema, EntityType.BlockheadIntentQuote_Timestamp>
+	intent: Omit<
+		EntityFieldValues<typeof schema, EntityType.BlockheadSwapIntent>,
+		'$$quotes'
+	> & {
+		$network: NonNullable<EntityFieldValues<
+			typeof schema,
+			EntityType.BlockheadSwapIntent
+		>['$network']>
+	}
+	quote: Omit<
+		EntityFieldValues<typeof schema, EntityType.BlockheadIntentQuote>,
+		'$$timestamps' | 'requestSummary'
+	> & {
+		requestSummary?: object
+	}
+	quoteObservation: Omit<
+		EntityFieldValues<typeof schema, EntityType.BlockheadIntentQuote_Timestamp>,
+		'inputPreview' | 'outputPreview'
+	> & {
+		inputPreview?: object
+		outputPreview?: object
+	}
 	preparedCall: PreparedCall
 	simulation: Omit<
 		EntityFieldValues<typeof schema, EntityType.BlockheadSessionSimulation>,
@@ -191,7 +210,7 @@ export const prepareEvmSwap = async ({
 		$tokenOut: { [EntityMetaKey.Selector]: tokenSelector(params.tokenOut) },
 		amount: params.amount,
 		slippage: params.slippage,
-	} satisfies EntityFieldValues<typeof schema, EntityType.BlockheadSwapIntent>
+	} satisfies EvmSwapPreparation['intent']
 	const quoteRequestHash = sha256Text(JSON.stringify([
 		params.chainId,
 		params.tokenIn,
@@ -249,7 +268,7 @@ export const prepareEvmSwap = async ({
 			amount: params.amount.toString(),
 			slippage: params.slippage,
 		},
-	} satisfies EntityFieldValues<typeof schema, EntityType.BlockheadIntentQuote>
+	} satisfies EvmSwapPreparation['quote']
 	const quoteObservation = {
 		$quote: { [EntityMetaKey.Selector]: { id: quote.id } },
 		timestampMs,
@@ -408,9 +427,7 @@ export const applyEvmSwapPreparation = async ({
 		])),
 		requestedAt: timestampMs ?? preparation.simulation.createdAt,
 		evm: {
-			network: preparation.intent.$network?.[EntityMetaKey.Selector] ?? {
-				caip2: preparation.intent.networkCaip2,
-			},
+			network: preparation.intent.$network[EntityMetaKey.Selector],
 			simulation: {
 				id: preparation.simulation.id,
 			},

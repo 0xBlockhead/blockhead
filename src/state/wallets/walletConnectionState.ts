@@ -124,13 +124,11 @@ export const connectedWalletConnection = (
 		coerced.activeAccount
 	:
 		coerced.accounts.at(0)
-	const selected = (
+	if (
 		base.selected
 		&& isWalletAccountsNonEmpty(coerced.accounts)
 		&& activeAccount != null
 	)
-
-	if (selected)
 		return {
 			...connectionIdentity(coerced),
 			...settledSession(coerced),
@@ -249,7 +247,7 @@ export const persistWalletConnection = (
 })
 
 export const walletConnectionFromPersisted = (
-	connection: WalletConnectionWire | PersistedWalletConnection
+	connection: WalletConnectionWire | WalletConnection
 ): WalletConnection => (
 	buildWalletConnection({
 		connectionKey: connection.connectionKey ?? walletConnectionKey(connection),

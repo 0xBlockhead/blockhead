@@ -6,7 +6,10 @@ export type PolkadotInjectedAccount = {
 
 export type PolkadotInjectedExtension = {
 	accounts: {
-		get(): Promise<PolkadotInjectedAccount[]>
+		get(
+			anyType?: boolean,
+			genesisHash?: string
+		): Promise<PolkadotInjectedAccount[]>
 		subscribe(callback: (accounts: PolkadotInjectedAccount[]) => void): () => void
 	}
 }

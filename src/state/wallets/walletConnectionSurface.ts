@@ -323,7 +323,7 @@ export const catalogCapabilityAccountabilities = (
 )
 
 export const implementedWalletConnectionMethods = () => (
-	walletConnectionMethods.filter((method) => (
+	walletConnectionMethods.filter((method: WalletConnectionMethod) => (
 		method.implementationStatus === WalletImplementationStatus.Implemented
 		|| method.implementationStatus === WalletImplementationStatus.DiscoveryImplemented
 	))

@@ -241,17 +241,24 @@ type LocalBlockheadSwapIntent = Omit<
 >
 type LocalBlockheadIntentQuote = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadIntentQuote>,
-	'$$timestamps' | '$sessionAction'
->
+	'$$timestamps' | '$sessionAction' | 'requestSummary'
+> & {
+	requestSummary?: object
+}
 type LocalBlockheadIntentQuote_Timestamp = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadIntentQuote_Timestamp>,
-	'$quote'
->
+	'$quote' | 'inputPreview' | 'outputPreview'
+> & {
+	inputPreview?: object
+	outputPreview?: object
+}
 type LocalBlockheadIntentInvocation = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadIntentInvocation>,
-	'$createdAction' | '$session'
+	'$createdAction' | '$session' | 'sourceSelector' | 'targetSelector'
 > & {
 	createdAction?: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>
+	sourceSelector?: object
+	targetSelector?: object
 }
 type LocalBlockheadActionOutcome = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadActionOutcome>,

@@ -133,12 +133,14 @@ const cardanoSignMessagePayload = (message: string) => (
 )
 
 const cardanoSignDataAddress = (accountAddress: string) => {
-	const prefix = accountAddress.startsWith('addr_test') ?
-		'addr_test'
-	:
-		'addr'
+	const decodedAddress = bech32.decode(accountAddress, false)
+	if (
+		decodedAddress.prefix !== 'addr'
+		&& decodedAddress.prefix !== 'addr_test'
+	)
+		throw new Error('Cardano wallet returned a non-address signing credential')
 
-	return hex.encode(bech32.fromWords(bech32.decode(accountAddress, prefix).words))
+	return hex.encode(bech32.fromWords(decodedAddress.words))
 }
 
 export const createCardanoCip30Adapter = (): WalletAdapter => {

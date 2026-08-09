@@ -72,8 +72,8 @@ export const coerceWalletAccount = (
 export type WalletScope = {
 	namespace: string
 	reference: string
-	methods: string[]
-	events: string[]
+	methods: readonly string[]
+	events: readonly string[]
 }
 
 /** Non-empty account list — required when Connected + selected. */
@@ -135,7 +135,7 @@ export type WalletConnection =
 		& WalletConnectingSession
 		& {
 			status: BlockheadConnectionStatus.Connecting
-			accounts: WalletAccount[]
+			accounts: readonly WalletAccount[]
 			activeAccount?: WalletAccount
 		}
 	)
@@ -156,7 +156,7 @@ export type WalletConnection =
 		& {
 			status: BlockheadConnectionStatus.Connected
 			selected: false
-			accounts: WalletAccount[]
+			accounts: readonly WalletAccount[]
 			activeAccount?: WalletAccount
 			connectedAt?: number
 		}
@@ -166,7 +166,7 @@ export type WalletConnection =
 		& WalletSettledSession
 		& {
 			status: BlockheadConnectionStatus.Disconnected
-			accounts: WalletAccount[]
+			accounts: readonly WalletAccount[]
 			activeAccount?: undefined
 			connectedAt?: number
 			disconnectedAt?: number
@@ -178,7 +178,7 @@ export type WalletConnection =
 		& {
 			status: BlockheadConnectionStatus.Error
 			error: string
-			accounts: WalletAccount[]
+			accounts: readonly WalletAccount[]
 			activeAccount?: undefined
 			disconnectedAt?: number
 		}
@@ -191,7 +191,7 @@ export type WalletConnectionBase = {
 	protocol: WalletProtocol
 	transportKind: WalletTransportKind
 	scopes: WalletScope[]
-	accounts: WalletAccount[]
+	accounts: readonly WalletAccount[]
 	activeAccount?: WalletAccount
 	sessionId?: string
 	sessionTopic?: string

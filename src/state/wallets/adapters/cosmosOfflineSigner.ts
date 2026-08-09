@@ -266,8 +266,8 @@ export const createCosmosOfflineSignerAdapter = (
 						updateConnection(connection)
 				}).catch((error) => {
 					if (subscribed && readVersion === currentReadVersion)
-						updateConnection({
-						...cosmosConnectionFromAccounts(
+						updateConnection(buildWalletConnection({
+							...cosmosConnectionFromAccounts(
 							walletId,
 							chains.map((chain) => ({
 								chain,
@@ -275,9 +275,9 @@ export const createCosmosOfflineSignerAdapter = (
 							})),
 							connectedAt
 						),
-						status: BlockheadConnectionStatus.Error,
-						error: String(error),
-					})
+							status: BlockheadConnectionStatus.Error,
+							error: String(error),
+						}))
 				})
 			}
 
@@ -300,7 +300,7 @@ export const createCosmosOfflineSignerAdapter = (
 						))
 				}).catch((error) => {
 					if (subscribed && readVersion === restoreVersion)
-						updateConnection({
+						updateConnection(buildWalletConnection({
 						...cosmosConnectionFromAccounts(
 							walletId,
 							chains.map((chain) => ({
@@ -309,9 +309,9 @@ export const createCosmosOfflineSignerAdapter = (
 							})),
 							connectedAt
 						),
-						status: BlockheadConnectionStatus.Error,
-						error: String(error),
-					})
+							status: BlockheadConnectionStatus.Error,
+							error: String(error),
+						}))
 				})
 			}
 			else if (restoring)
