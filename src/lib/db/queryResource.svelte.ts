@@ -119,6 +119,7 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 			snapshot.isLoading
 			|| snapshot.isReady === false
 		) {
+			const hadError = this.#error !== undefined
 			this.#loading = true
 			this.#error = undefined
 			if (snapshot.data === undefined) {
@@ -126,7 +127,10 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 				this.#raw = undefined
 			}
 			if (
-				!this.#ready
+				(
+					!this.#ready
+					|| hadError
+				)
 				&& !this.#pending
 			)
 				this.#resetPending()

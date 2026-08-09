@@ -247,6 +247,27 @@ describe('TanStackLiveQueryResource', () => {
 		await expect(fixture.resource).rejects.toBe('failure')
 	})
 
+	it('starts one new pending promise after an error while retaining the last ready value', async () => {
+		const fixture = createFixture(readySnapshot('first'))
+		await expect(fixture.resource).resolves.toBe('first')
+
+		fixture.setSnapshot(errorSnapshot('failure'))
+		await expect(fixture.resource).rejects.toBe('failure')
+
+		fixture.setSnapshot({
+			...loadingSnapshot,
+			data: 'first',
+		})
+		expect(fixture.resource.current).toBe('first')
+		expect(fixture.resource.loading).toBe(true)
+		expect(fixture.resource.ready).toBe(true)
+		expect(fixture.resource.error).toBeUndefined()
+
+		const recovered = fixture.resource.then((value) => value)
+		fixture.setSnapshot(readySnapshot('recovered'))
+		await expect(recovered).resolves.toBe('recovered')
+	})
+
 	it('resets a first-error promise before recovery', async () => {
 		const fixture = createFixture()
 		const failed = fixture.resource.catch((error) => String(error))
