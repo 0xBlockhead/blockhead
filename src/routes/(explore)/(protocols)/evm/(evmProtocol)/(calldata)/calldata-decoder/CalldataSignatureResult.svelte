@@ -1,0 +1,143 @@
+<script module lang="ts">
+	export const CalldataSignatureKind = {
+		Event: 'Event',
+		Function: 'Function',
+	} as const
+
+	export type CalldataSignatureKind = typeof CalldataSignatureKind[keyof typeof CalldataSignatureKind]
+</script>
+
+
+<script lang="ts">
+	// Types/constants
+	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+
+	const truncateParamLength = 28
+
+
+	// State
+	import type { SvelteKitResource } from '$/lib/db/queryResource.svelte.ts'
+	import type { Snippet } from 'svelte'
+
+	let {
+		Address,
+		hex,
+		kind,
+		resource,
+		selectedSignatureIndex = $bindable(0),
+	}: {
+		Address?: Snippet<[address: string]>
+		hex: `0x${string}`
+		kind: CalldataSignatureKind
+		resource: SvelteKitResource<{ values: readonly string[] }>
+		selectedSignatureIndex?: number
+	} = $props()
+
+
+	// Functions
+	import {
+		decodeCalldataWithSignature,
+		decodeEventDataWithSignature,
+		formatDecodedParamValue,
+	} from '$/lib/calldata-decode.ts'
+	import { errorDisplayMessage } from '$/lib/errors.ts'
+
+
+	// Components
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
+</script>
+
+
+<ResourceBoundary
+	{resource}
+	placeholderText={`Loading ${kind === CalldataSignatureKind.Function ? 'function' : 'event'} signature...`}
+>
+	{#snippet children(signatures)}
+		{@const selectedSignature = signatures.values[Math.min(selectedSignatureIndex, signatures.values.length - 1)]}
+		{@const decoded = selectedSignature == null ? null : kind === CalldataSignatureKind.Function ? decodeCalldataWithSignature(selectedSignature, ZeroExHex.assert(hex)) : decodeEventDataWithSignature(selectedSignature, ZeroExHex.assert(hex))}
+
+		{#if selectedSignature == null}
+			<p data-text="muted">No catalog signatures matched this {kind === CalldataSignatureKind.Function ? 'function selector' : 'event topic'}.</p>
+		{:else}
+			<dl data-definition-list="vertical">
+				<div>
+					<dt>Signature</dt>
+					<dd>
+						{#if signatures.values.length > 1}
+							<select
+								bind:value={selectedSignatureIndex}
+								aria-label={`Choose ${kind === CalldataSignatureKind.Function ? 'function' : 'event'} signature`}
+							>
+								{#each signatures.values as signature, index (signature)}
+									<option value={index}>{signature}</option>
+								{/each}
+							</select>
+						{:else}
+							<code>{selectedSignature}</code>
+						{/if}
+					</dd>
+				</div>
+
+				{#if decoded}
+					<div>
+						<dt>Arguments</dt>
+						<dd>
+							<ol>
+								{#each decoded.params as param, index (`${index}:${param.type}`)}
+									<li>
+										<span>{index}</span>
+										{#if param.type === 'address' && typeof param.value === 'string' && Address}
+											{@render Address(param.value)}
+										{:else}
+											{@const decodedValue = formatDecodedParamValue(param.type, param.value)}
+
+											{#if decodedValue.length > truncateParamLength}
+												<TruncatedValue
+													value={decodedValue}
+													startLength={10}
+													endLength={8}
+												/>
+											{:else}
+												<span class="calldata-result-arg-value">{decodedValue}</span>
+											{/if}
+										{/if}
+									</li>
+								{/each}
+							</ol>
+						</dd>
+					</div>
+				{/if}
+			</dl>
+		{/if}
+	{/snippet}
+
+	{#snippet Failed(error, retry)}
+		<p data-resource-state="failed">
+			Unable to load {kind === CalldataSignatureKind.Function ? 'function' : 'event'} signatures: {errorDisplayMessage(error)}
+			<button type="button" onclick={retry}>Retry</button>
+		</p>
+	{/snippet}
+</ResourceBoundary>
+
+
+<style>
+	select {
+		font-family: var(--fontFamily-monospace);
+		max-width: 100%;
+	}
+
+	ol {
+		margin: 0;
+	}
+
+	li span:first-child {
+		font-family: var(--fontFamily-monospace);
+		min-inline-size: 1.5em;
+	}
+
+	.calldata-result-arg-value {
+		font-family: var(--fontFamily-monospace);
+		word-break: break-all;
+	}
+</style>

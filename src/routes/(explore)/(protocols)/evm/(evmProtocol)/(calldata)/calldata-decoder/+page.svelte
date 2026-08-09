@@ -6,11 +6,6 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { select } from '$/routes/+layout.svelte'
 	import { calldataExamples, type CalldataExample } from '$/constants/calldata-examples.ts'
-	import {
-		decodeCalldataWithSignature,
-		decodeEventDataWithSignature,
-		formatDecodedParamValue,
-	} from '$/lib/calldata-decode.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
 	import { normalizeEvmSelectorHex, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
@@ -21,10 +16,9 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
 	import Icon from '$/components/Icon.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Select from '$/components/Select.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import CalldataSignatureResult, { CalldataSignatureKind } from './CalldataSignatureResult.svelte'
 
 
 	const hexFromParam = (value: string | null) => {
@@ -37,13 +31,9 @@
 		return evenDigits ? `0x${evenDigits}` : ''
 	}
 
-	const EMPTY_SIGNATURES: readonly string[] = []
-
 	const IDLE_SELECTOR_HEX: `0x${string}` = '0xffffffff'
 
 	const IDLE_TOPIC_HEX = ZeroExHex.assert(`0x${'f'.repeat(64)}`)
-
-	const TRUNCATE_PARAM_LENGTH = 28
 
 	let inputRaw = $state(
 		hexFromParam(page.url.searchParams.get('data')),
@@ -146,55 +136,6 @@
 		},
 	))
 
-	const functionSignatures = $derived(
-		selector ?
-			selectorEntity.signatures.current?.values.map(String) ?? EMPTY_SIGNATURES
-		:
-			EMPTY_SIGNATURES,
-	)
-
-	const eventSignatures = $derived(
-		topic ?
-			topicEntity.signatures.current?.values.map(String) ?? EMPTY_SIGNATURES
-		:
-			EMPTY_SIGNATURES,
-	)
-
-	const signatureForDecode = $derived(
-		functionSignatures.length > 0 ?
-			functionSignatures[Math.min(selectedSignatureIndex, functionSignatures.length - 1)]
-		:
-			null,
-	)
-
-	const decodedCall = $derived(
-		hexWithPrefix && selector && signatureForDecode ?
-			decodeCalldataWithSignature(
-				signatureForDecode,
-				ZeroExHex.assert(hexWithPrefix),
-			)
-		:
-			null,
-	)
-
-	const eventSignatureForDecode = $derived(
-		eventSignatures.length > 0 ?
-			eventSignatures[Math.min(selectedEventSignatureIndex, eventSignatures.length - 1)]
-		:
-			null,
-	)
-
-	const decodedEvent = $derived(
-		hexWithPrefix && hexNormalized.length >= 64 && eventSignatureForDecode ?
-			decodeEventDataWithSignature(
-				eventSignatureForDecode,
-				ZeroExHex.assert(hexWithPrefix),
-			)
-		:
-			null,
-	)
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 </script>
@@ -287,27 +228,20 @@
 									{/snippet}
 
 									{#snippet Title()}
-										<ResourceBoundary
-											resource={selectorEntity}
-											placeholderText="Loading function signature..."
-										>
-											{#snippet children()}
-												<Heading>
-													<a
-														href={
-															resolve(
-																'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
-																{
-																	hex: normalizedSelector,
-																}
-															)
+										<Heading>
+											<a
+												href={
+													resolve(
+														'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
+														{
+															hex: normalizedSelector,
 														}
-													>
-														{functionSignatures[selectedSignatureIndex] ?? normalizedSelector}
-													</a>
-												</Heading>
-											{/snippet}
-										</ResourceBoundary>
+													)
+												}
+											>
+												{normalizedSelector}
+											</a>
+										</Heading>
 									{/snippet}
 
 									{#snippet Value()}
@@ -315,63 +249,19 @@
 									{/snippet}
 
 									{#snippet Content()}
-										{#if functionSignatures.length > 0}
-											<dl data-definition-list="vertical">
-												<div>
-													<dt>Signature</dt>
-													<dd>
-														{#if functionSignatures.length > 1}
-															<select
-																bind:value={selectedSignatureIndex}
-																aria-label="Choose function signature"
-																class="calldata-result-select"
-															>
-																{#each functionSignatures as signature, index (signature)}
-																	<option value={index}>{signature}</option>
-																{/each}
-															</select>
-														{:else}
-															<code>{functionSignatures[0]}</code>
-														{/if}
-													</dd>
-												</div>
-
-												{#if decodedCall}
-													<div>
-														<dt>Arguments</dt>
-														<dd>
-															<ol class="calldata-result-args">
-																{#each decodedCall.params as param, index (`${index}:${param.type}`)}
-																	<div class="calldata-result-arg">
-																		<li>
-																			<span>{index}</span>
-																			{#if param.type === 'address' && typeof param.value === 'string'}
-																				<EvmAccountView
-																					selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(param.value) })}
-																					layout={EntityLayout.Value}
-																				/>
-																			{:else}
-																				{@const decodedValue = formatDecodedParamValue(param.type, param.value)}
-
-																				{#if decodedValue.length > TRUNCATE_PARAM_LENGTH}
-																					<TruncatedValue
-																						value={decodedValue}
-																						startLength={10}
-																						endLength={8}
-																					/>
-																				{:else}
-																					<span class="calldata-result-arg-value">{decodedValue}</span>
-																				{/if}
-																			{/if}
-																		</li>
-																	</div>
-																{/each}
-															</ol>
-														</dd>
-													</div>
-												{/if}
-											</dl>
-										{/if}
+										<CalldataSignatureResult
+											hex={ZeroExHex.assert(hexWithPrefix)}
+											kind={CalldataSignatureKind.Function}
+											resource={selectorEntity.signatures}
+											bind:selectedSignatureIndex
+										>
+											{#snippet Address(address)}
+												<EvmAccountView
+													selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(address) })}
+													layout={EntityLayout.Value}
+												/>
+											{/snippet}
+										</CalldataSignatureResult>
 									{/snippet}
 								</EntityView>
 							</li>
@@ -400,27 +290,20 @@
 									{/snippet}
 
 									{#snippet Title()}
-										<ResourceBoundary
-											resource={topicEntity}
-											placeholderText="Loading event signature..."
-										>
-											{#snippet children()}
-												<Heading>
-													<a
-														href={
-															resolve(
-																'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
-																{
-																	hex: normalizedTopic,
-																}
-															)
+										<Heading>
+											<a
+												href={
+													resolve(
+														'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
+														{
+															hex: normalizedTopic,
 														}
-													>
-														{eventSignatures[selectedEventSignatureIndex] ?? normalizedTopic}
-													</a>
-												</Heading>
-											{/snippet}
-										</ResourceBoundary>
+													)
+												}
+											>
+												{normalizedTopic}
+											</a>
+										</Heading>
 									{/snippet}
 
 									{#snippet Value()}
@@ -428,63 +311,19 @@
 									{/snippet}
 
 									{#snippet Content()}
-										{#if eventSignatures.length > 0}
-											<dl data-definition-list="vertical">
-												<div>
-													<dt>Signature</dt>
-													<dd>
-														{#if eventSignatures.length > 1}
-															<select
-																bind:value={selectedEventSignatureIndex}
-																aria-label="Choose event signature"
-																class="calldata-result-select"
-															>
-																{#each eventSignatures as signature, index (signature)}
-																	<option value={index}>{signature}</option>
-																{/each}
-															</select>
-														{:else}
-															<code>{eventSignatures[0]}</code>
-														{/if}
-													</dd>
-												</div>
-
-												{#if decodedEvent}
-													<div>
-														<dt>Arguments</dt>
-														<dd>
-															<ol class="calldata-result-args">
-																{#each decodedEvent.params as param, index (`${index}:${param.type}`)}
-																	<div class="calldata-result-arg">
-																		<li>
-																			<span>{index}</span>
-																			{#if param.type === 'address' && typeof param.value === 'string'}
-																				<EvmAccountView
-																					selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(param.value) })}
-																					layout={EntityLayout.Value}
-																				/>
-																			{:else}
-																				{@const decodedValue = formatDecodedParamValue(param.type, param.value)}
-
-																				{#if decodedValue.length > TRUNCATE_PARAM_LENGTH}
-																					<TruncatedValue
-																						value={decodedValue}
-																						startLength={10}
-																						endLength={8}
-																					/>
-																				{:else}
-																					<span class="calldata-result-arg-value">{decodedValue}</span>
-																				{/if}
-																			{/if}
-																		</li>
-																	</div>
-																{/each}
-															</ol>
-														</dd>
-													</div>
-												{/if}
-											</dl>
-										{/if}
+										<CalldataSignatureResult
+											hex={ZeroExHex.assert(hexWithPrefix)}
+											kind={CalldataSignatureKind.Event}
+											resource={topicEntity.signatures}
+											bind:selectedSignatureIndex={selectedEventSignatureIndex}
+										>
+											{#snippet Address(address)}
+												<EvmAccountView
+													selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(address) })}
+													layout={EntityLayout.Value}
+												/>
+											{/snippet}
+										</CalldataSignatureResult>
 									{/snippet}
 								</EntityView>
 							</li>
@@ -534,22 +373,4 @@
 		padding-inline-start: 0;
 	}
 
-	.calldata-result-select {
-		font-family: var(--fontFamily-monospace);
-		max-width: 100%;
-	}
-
-	.calldata-result-args {
-		margin: 0;
-	}
-
-	.calldata-result-arg dt {
-		font-family: var(--fontFamily-monospace);
-		min-inline-size: 1.5em;
-	}
-
-	.calldata-result-arg-value {
-		font-family: var(--fontFamily-monospace);
-		word-break: break-all;
-	}
 </style>
