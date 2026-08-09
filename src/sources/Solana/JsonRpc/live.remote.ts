@@ -8,9 +8,11 @@ import { iterateSolanaSlotLive } from '$/sources/Solana/JsonRpc/live.server.ts'
 
 export const solanaSlotLive = query.live(
 	type({
+		bindingId: 'string',
 		targetKey: 'string',
 	}),
-	({ targetKey }) => iterateSolanaSlotLive(
+	({ bindingId, targetKey }) => iterateSolanaSlotLive(
+		bindingId,
 		targetKey,
 		getRequestEvent().request.signal
 	)

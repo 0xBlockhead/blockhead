@@ -4,6 +4,7 @@ import {
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
+	sourceBindingId,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'

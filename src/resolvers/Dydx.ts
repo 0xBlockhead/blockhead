@@ -359,7 +359,7 @@ export const dydxChainNetworkResolver = defineResolver({
 				try {
 					await Promise.all([
 						(async () => {
-							for await (const message of subscribeDydxIndexer({
+							for await (const message of subscribeDydxIndexer(trigger.sourceBinding, {
 								channel: 'v4_markets',
 								type: 'subscribe',
 							}, streamSignal)) {
@@ -466,7 +466,7 @@ export const dydxChainNetworkResolver = defineResolver({
 							}
 						})(),
 						(async () => {
-							for await (const message of subscribeDydxIndexer({
+							for await (const message of subscribeDydxIndexer(trigger.sourceBinding, {
 								channel: 'v4_block_height',
 								type: 'subscribe',
 							}, streamSignal)) {

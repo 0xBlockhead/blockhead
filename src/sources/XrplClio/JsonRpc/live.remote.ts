@@ -8,9 +8,11 @@ import { iterateXrplLedgerLive } from '$/sources/XrplClio/JsonRpc/live.server.ts
 
 export const xrplLedgerLive = query.live(
 	type({
+		bindingId: 'string',
 		targetKey: 'string',
 	}),
-	({ targetKey }) => iterateXrplLedgerLive(
+	({ bindingId, targetKey }) => iterateXrplLedgerLive(
+		bindingId,
 		targetKey,
 		getRequestEvent().request.signal
 	)

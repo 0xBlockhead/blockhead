@@ -17,6 +17,8 @@ import type {
 import {
 	SourceDelivery,
 	SourceEndpointKind,
+	sourceBindingId,
+	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import { Source } from '$/sources/Source.ts'
 import bindings from '$/sources/PublicNode/bindings.ts'
@@ -682,6 +684,7 @@ export const getVoteAccounts = async ({
 // slotSubscribe — https://solana.com/docs/rpc/websocket/slotsubscribe
 // PublicNode RemoteLive wss://solana-rpc.publicnode.com
 export const subscribeSlot = async function* (
+	binding: SourceBinding,
 	signal?: AbortSignal
 ): AsyncGenerator<{
 	slot: number
@@ -691,14 +694,9 @@ export const subscribeSlot = async function* (
 	if (signal?.aborted)
 		return
 
-	const liveBinding = bindings[Source.Solana_JsonRpc].find(({ delivery }) => (
-		delivery === SourceDelivery.RemoteLive
-	))
-	if (liveBinding == null)
-		throw new Error('Solana_JsonRpc: subscribeSlot requires the RemoteLive WebSocket binding')
-
 	const slots = solanaSlotLive({
-		targetKey: liveBinding.target.key,
+		bindingId: sourceBindingId(binding),
+		targetKey: binding.target.key,
 	})[Symbol.asyncIterator]()
 	const abort = () => {
 		void slots.return?.()

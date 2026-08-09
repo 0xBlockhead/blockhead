@@ -677,6 +677,7 @@ export const DydxWebSocketSubscription = type.or(
 export type DydxWebSocketSubscription = typeof DydxWebSocketSubscription.infer
 
 export const DydxIndexerLiveRequest = type({
+	bindingId: 'string',
 	targetKey: "'cosmos:dydx-mainnet-1'",
 	subscription: DydxWebSocketSubscription,
 }).onUndeclaredKey('reject')

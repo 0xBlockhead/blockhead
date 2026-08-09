@@ -12,6 +12,7 @@ import bindings from '$/sources/XrplClio/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	SourceDelivery,
+	sourceBindingId,
 } from '$/sources/SourceBinding.ts'
 
 
@@ -117,6 +118,7 @@ describe('XrplClio subscribeLedger RemoteLive transport', () => {
 
 		expect(xrplLedgerLive).toHaveBeenCalledTimes(1)
 		expect(xrplLedgerLive).toHaveBeenCalledWith({
+			bindingId: sourceBindingId(remoteLiveBinding),
 			targetKey: remoteLiveBinding.target.key,
 		})
 		expect(messages).toEqual([ledgerClosed])
@@ -158,6 +160,7 @@ describe('XrplClio subscribeLedger RemoteLive transport', () => {
 
 		expect(midStreamMessages).toEqual([ledgerClosed])
 		expect(xrplLedgerLive).toHaveBeenCalledWith({
+			bindingId: sourceBindingId(remoteLiveBinding),
 			targetKey: remoteLiveBinding.target.key,
 		})
 	})

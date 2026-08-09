@@ -18,6 +18,7 @@ import accountUpdate from '$/sources/GetBlock/Yellowstone/fixtures/account-updat
 import { subscribeSolanaAccountUpdates } from '$/sources/GetBlock/Yellowstone/queries.ts'
 import type { SourceLiveRequest } from '$/sources/_runtime/live.server.ts'
 import { Source } from '$/sources/Source.ts'
+import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
 const resolverBinding = vi.hoisted(() => ({
 	source: 'GetBlockYellowstone_Grpc',
@@ -43,9 +44,19 @@ const resolverBinding = vi.hoisted(() => ({
 		referenceUrl: 'https://getblock.io/docs/yellowstone-grpc/',
 	}],
 }))
+const alternateBinding = vi.hoisted(() => ({
+	...resolverBinding,
+	target: {
+		...resolverBinding.target,
+		key: 'solana:alternate',
+	},
+}))
 
 vi.mock('$/sources/index.server.ts', () => ({
-	remoteLiveBindings: [resolverBinding],
+	remoteLiveBindings: [
+		resolverBinding,
+		alternateBinding,
+	],
 }))
 vi.mock('$/sources/GetBlock/bindings.ts', () => ({
 	default: {
@@ -210,6 +221,7 @@ const context = {
 	parentSelectorKeys: [],
 	sources: [],
 	publicEnv: {},
+	sourceBinding: resolverBinding,
 }
 
 afterEach(async () => {
@@ -218,11 +230,22 @@ afterEach(async () => {
 })
 
 describe('GetBlock Yellowstone account source', () => {
+	it('rejects an exact binding id whose target does not match the subscription', async () => {
+		const { iterateSourceLive } = await import('$/sources/_runtime/live.server.ts')
+
+		await expect(iterateSourceLive({
+			bindingId: sourceBindingId(alternateBinding),
+			source: Source.GetBlockYellowstone_Grpc,
+			targetKey: resolverBinding.target.key,
+			operationGroup: 'GenericSubscribe',
+		}).next()).rejects.toThrow('RemoteLive request does not match binding')
+	})
+
 	it('executes the default managed gRPC path and maps the selector', async () => {
 		process.env.GETBLOCK_API_KEY = 'test-token'
 		const server = await startServer((stream) => respond(stream, '0', accountUpdateMessage))
 		resolverBinding.endpoints[0].locator = server.locator
-		const updates = subscribeSolanaAccountUpdates({
+		const updates = subscribeSolanaAccountUpdates(resolverBinding, {
 			accounts: [accountUpdate.account],
 			commitment: 'confirmed',
 		})
@@ -268,7 +291,7 @@ describe('GetBlock Yellowstone account source', () => {
 		const server = await startServer((stream) => respond(stream, '7'))
 		resolverBinding.endpoints[0].locator = server.locator
 		await expect(async () => {
-			for await (const _update of subscribeSolanaAccountUpdates({
+			for await (const _update of subscribeSolanaAccountUpdates(resolverBinding, {
 				accounts: [accountUpdate.account],
 				commitment: 'confirmed',
 			})) {
@@ -277,7 +300,7 @@ describe('GetBlock Yellowstone account source', () => {
 
 		process.env.GETBLOCK_API_KEY = 'test-token'
 		await expect(async () => {
-			for await (const _update of subscribeSolanaAccountUpdates({
+			for await (const _update of subscribeSolanaAccountUpdates(resolverBinding, {
 				accounts: [accountUpdate.account],
 				commitment: 'confirmed',
 			})) {
@@ -301,7 +324,7 @@ describe('GetBlock Yellowstone account source', () => {
 		})
 		resolverBinding.endpoints[0].locator = server.locator
 		const abortController = new AbortController()
-		const updates = subscribeSolanaAccountUpdates({
+		const updates = subscribeSolanaAccountUpdates(resolverBinding, {
 			accounts: [accountUpdate.account],
 			commitment: 'confirmed',
 		}, abortController.signal)[Symbol.asyncIterator]()

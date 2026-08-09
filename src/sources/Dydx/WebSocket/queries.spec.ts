@@ -7,6 +7,9 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import bindings from '$/sources/Dydx/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceDelivery, sourceBindingId } from '$/sources/SourceBinding.ts'
 
 
 const dydxIndexerLive = vi.hoisted(() => vi.fn())
@@ -16,6 +19,9 @@ vi.mock('$/sources/Dydx/WebSocket/live.remote.ts', () => ({
 }))
 
 const { subscribeDydxIndexer } = await import('$/sources/Dydx/WebSocket/queries.ts')
+const binding = bindings[Source.DydxIndexer].find(({ delivery }) => delivery === SourceDelivery.RemoteLive)
+if (binding == null)
+	throw new Error('dYdX RemoteLive binding missing')
 
 describe('dYdX Indexer live client', () => {
 	beforeEach(() => {
@@ -52,7 +58,7 @@ describe('dYdX Indexer live client', () => {
 			id: 'BTC-USD',
 			type: 'subscribe',
 		} as const
-		const iterator = subscribeDydxIndexer(subscription)
+		const iterator = subscribeDydxIndexer(binding, subscription)
 
 		expect(await iterator.next()).toEqual({
 			done: false,
@@ -68,6 +74,7 @@ describe('dYdX Indexer live client', () => {
 		})
 		expect(dydxIndexerLive).toHaveBeenCalledTimes(1)
 		expect(dydxIndexerLive).toHaveBeenCalledWith({
+			bindingId: sourceBindingId(binding),
 			targetKey: 'cosmos:dydx-mainnet-1',
 			subscription,
 		})
@@ -99,7 +106,7 @@ describe('dYdX Indexer live client', () => {
 			[Symbol.asyncIterator]: () => remoteIterator,
 		})
 		const controller = new AbortController()
-		const iterator = subscribeDydxIndexer({
+		const iterator = subscribeDydxIndexer(binding, {
 			channel: 'v4_block_height',
 			type: 'subscribe',
 		}, controller.signal)

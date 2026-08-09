@@ -9,6 +9,7 @@ import {
 } from '$/typescript/JsonValue.ts'
 
 export const iterateSolanaSlotLive = async function* (
+	bindingId: string,
 	targetKey: string,
 	signal?: AbortSignal
 ): AsyncGenerator<{
@@ -17,6 +18,7 @@ export const iterateSolanaSlotLive = async function* (
 	root: number
 }> {
 	for await (const event of iterateSourceLive({
+		bindingId,
 		source: Source.Solana_JsonRpc,
 		targetKey,
 		operationGroup: SourceOperationGroup.GenericSubscribe,

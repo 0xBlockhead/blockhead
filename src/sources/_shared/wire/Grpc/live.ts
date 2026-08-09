@@ -1,5 +1,8 @@
-import { sourceBindingId, type SourceBinding } from '$/sources/SourceBinding.ts'
-import type { SourceOperationGroup } from '$/sources/SourceBinding.ts'
+import {
+	sourceBindingId,
+	type SourceBinding,
+	type SourceOperationGroup,
+} from '$/sources/SourceBinding.ts'
 import { sourceLive } from '$/sources/_runtime/live.remote.ts'
 import type { GrpcRequest } from '$/sources/_shared/wire/Grpc/types.ts'
 

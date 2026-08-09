@@ -60,7 +60,7 @@ export const sourceFetch = async (
 	if (binding.delivery === SourceDelivery.HttpProxy && endpointIndex === -1)
 		throw new Error(`${binding.source}: missing HTTP proxy endpoint for ${url}`)
 
-	const queueKey = `${binding.source}:${new URL(url).origin}`
+	const queueKey = `${sourceBindingId(binding)}:${new URL(url).origin}`
 	const queue = sourceFetchQueueByEndpoint.get(queueKey) ?? {
 		activeCount: 0,
 		waiters: [],

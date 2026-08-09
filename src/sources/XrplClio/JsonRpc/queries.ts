@@ -2,6 +2,7 @@ import {
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
+	sourceBindingId,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
@@ -264,6 +265,7 @@ export const subscribeLedger = async function* (
 		throw new Error('XrplClio_JsonRpc: subscribeLedger requires the RemoteLive WebSocket binding')
 
 	const ledgers = xrplLedgerLive({
+		bindingId: sourceBindingId(binding),
 		targetKey: binding.target.key,
 	})[Symbol.asyncIterator]()
 	const abort = () => {

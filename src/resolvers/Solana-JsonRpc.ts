@@ -1157,10 +1157,11 @@ export default {
 						fields,
 						parentEntitySelector,
 						signal,
+						trigger,
 					}) => {
 						assertSolanaMainnet(parentEntitySelector)
 						const { subscribeSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
-						for await (const notification of subscribeSlot(signal)) {
+						for await (const notification of subscribeSlot(trigger.sourceBinding, signal)) {
 							if (signal.aborted)
 								return
 

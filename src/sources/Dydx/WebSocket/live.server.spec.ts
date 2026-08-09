@@ -53,6 +53,7 @@ describe('dYdX Indexer managed live transport', () => {
 		const messages = []
 
 		for await (const message of iterateDydxIndexerLive({
+			bindingId: 'binding-a',
 			targetKey: 'cosmos:dydx-mainnet-1',
 			subscription,
 		}, controller.signal))
@@ -60,6 +61,7 @@ describe('dYdX Indexer managed live transport', () => {
 
 		expect(iterateSourceLive).toHaveBeenCalledTimes(1)
 		expect(iterateSourceLive).toHaveBeenCalledWith({
+			bindingId: 'binding-a',
 			operationGroup: SourceOperationGroup.GenericSubscribe,
 			source: Source.DydxIndexer,
 			targetKey: 'cosmos:dydx-mainnet-1',
@@ -103,6 +105,7 @@ describe('dYdX Indexer managed live transport', () => {
 		})
 
 		const iterator = iterateDydxIndexerLive({
+			bindingId: 'binding-a',
 			targetKey: 'cosmos:dydx-mainnet-1',
 			subscription: {
 				channel: 'v4_block_height',
@@ -124,6 +127,7 @@ describe('dYdX Indexer managed live transport', () => {
 		})
 
 		const iterator = iterateDydxIndexerLive({
+			bindingId: 'binding-a',
 			targetKey: 'cosmos:dydx-mainnet-1',
 			subscription: {
 				channel: 'v4_block_height',

@@ -12,6 +12,7 @@ export const iterateDydxIndexerLive = async function* (
 	signal?: AbortSignal
 ): AsyncGenerator<DydxWebSocketMessage> {
 	for await (const event of iterateSourceLive({
+		bindingId: request.bindingId,
 		source: Source.DydxIndexer,
 		targetKey: request.targetKey,
 		operationGroup: SourceOperationGroup.GenericSubscribe,

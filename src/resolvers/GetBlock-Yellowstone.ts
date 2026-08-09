@@ -57,11 +57,12 @@ const yellowstoneAccountTimestampFields = (
 })
 
 const firstAccountUpdate = async (
+	binding: NonNullable<import('$/resolvers/$resolvers.ts').ResolverContext['sourceBinding']>,
 	pubkey: string,
 	signal?: AbortSignal,
 ) => {
 	const { subscribeSolanaAccountUpdates } = await import('$/sources/GetBlock/Yellowstone/queries.ts')
-	for await (const update of subscribeSolanaAccountUpdates({
+	for await (const update of subscribeSolanaAccountUpdates(binding, {
 		accounts: [pubkey],
 		commitment: 'confirmed',
 	}, signal)) {
@@ -79,9 +80,12 @@ export default {
 			entityType: EntityType.SolanaAccount,
 			resolve: {
 				NetworkPubkey: {
-					resolve: async ({ $network, pubkey }) => {
+					resolve: async ({ $network, pubkey }, context) => {
 						assertSolanaMainnet($network)
-						const update = await firstAccountUpdate(pubkey)
+						if (context.sourceBinding == null)
+							throw new Error('GetBlockYellowstone_Grpc: invocation binding is missing')
+
+						const update = await firstAccountUpdate(context.sourceBinding, pubkey)
 						const slot = BigInt(update.slot)
 						const timestamp = yellowstoneAccountTimestampFields(
 							{
@@ -125,14 +129,16 @@ export default {
 			entityType: EntityType.SolanaAccount_Timestamp,
 			resolve: {
 				AccountSlotSource: {
-					resolve: async ({ $account, slot, source }) => {
+					resolve: async ({ $account, slot, source }, context) => {
 						if (source !== Source.GetBlockYellowstone_Grpc)
 							throw new Error(`GetBlockYellowstone_Grpc: unsupported source ${source}`)
 
 						assertSolanaMainnet($account.$network)
+						if (context.sourceBinding == null)
+							throw new Error('GetBlockYellowstone_Grpc: invocation binding is missing')
 
 						const { subscribeSolanaAccountUpdates } = await import('$/sources/GetBlock/Yellowstone/queries.ts')
-						for await (const update of subscribeSolanaAccountUpdates({
+						for await (const update of subscribeSolanaAccountUpdates(context.sourceBinding, {
 							accounts: [$account.pubkey],
 							commitment: 'confirmed',
 						})) {
@@ -162,11 +168,12 @@ export default {
 						fields,
 						parentEntitySelector,
 						signal,
+						trigger,
 					}) => {
 						assertSolanaMainnet(parentEntitySelector.$account.$network)
 
 						const { subscribeSolanaAccountUpdates } = await import('$/sources/GetBlock/Yellowstone/queries.ts')
-						for await (const update of subscribeSolanaAccountUpdates({
+						for await (const update of subscribeSolanaAccountUpdates(trigger.sourceBinding, {
 							accounts: [parentEntitySelector.$account.pubkey],
 							commitment: 'confirmed',
 						}, signal)) {

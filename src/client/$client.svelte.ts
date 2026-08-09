@@ -547,6 +547,7 @@ export type ClientContext<
 	liveSubscriptions: Map<string, ClientLiveSubscription>
 	resolverIndexes: ResolverIndexes<_Schema, _Source, ResolverContext>
 	resolverPublicEnvBySource: ReadonlyMap<string, SourcePublicEnv>
+	sourceBindingsBySource: Partial<Record<string, SourceBinding[]>>
 	enabledSources: ReadonlySet<_Source>
 	collectionLoadFailures: PersistedCollectionLoadFailures
 	queryClient: QueryClient
@@ -2420,6 +2421,9 @@ const resolverContext = <
 ): ResolverContext => ({
 	...subset,
 	publicEnv: context.resolverPublicEnvBySource.get(source) ?? {},
+	...(context.sourceBindingsBySource[source]?.length === 1 && {
+		sourceBinding: context.sourceBindingsBySource[source][0],
+	}),
 	...(providerContinuationToken !== undefined && {
 		providerContinuationToken,
 	}),
@@ -3544,9 +3548,14 @@ const mountFieldLive = <
 				continue
 
 			const source = String(part.source)
-			releases.push(acquire(stringify([
+			for (const sourceBinding of (
+				context.sourceBindingsBySource[source]?.filter(({ delivery }) => delivery === SourceDelivery.RemoteLive)
+				?? [undefined]
+			)) {
+				releases.push(acquire(stringify([
 				'root',
 				source,
+				sourceBinding == null ? undefined : sourceBindingId(sourceBinding),
 				part.resolver.definitionIndex,
 				part.publisherName,
 				entityType,
@@ -3558,11 +3567,13 @@ const mountFieldLive = <
 				signal: abortController.signal,
 				trigger: {
 					...resolverContext(context, source, subset),
+					...(sourceBinding != null && { sourceBinding }),
 					fieldName: definition.name,
 					sources: [...sources],
 				},
 				fields: fieldsForSource(source, part.facetPath),
 			})))
+			}
 		}
 		for (const part of fieldLiveParts) {
 			if (
@@ -3576,9 +3587,14 @@ const mountFieldLive = <
 			const source = String(part.source)
 			const fields = fieldsForSource(source, part.facetPath)
 			const resolveLive = part.resolveLive
-			releases.push(acquire(stringify([
+			for (const sourceBinding of (
+				context.sourceBindingsBySource[source]?.filter(({ delivery }) => delivery === SourceDelivery.RemoteLive)
+				?? [undefined]
+			)) {
+				releases.push(acquire(stringify([
 				'field',
 				source,
+				sourceBinding == null ? undefined : sourceBindingId(sourceBinding),
 				part.resolver.definitionIndex,
 				part.partIndex,
 				entityType,
@@ -3591,12 +3607,14 @@ const mountFieldLive = <
 				signal: abortController.signal,
 				trigger: {
 					...resolverContext(context, source, subset),
+					...(sourceBinding != null && { sourceBinding }),
 					fieldName: definition.name,
 					sources: [...sources],
 				},
 				fields,
 				field: fields[definition.name],
 			})))
+			}
 		}
 	}
 
@@ -4556,6 +4574,7 @@ export const client = <
 		entitySelectorDefinitionByEntityTypeAndName,
 		resolverIndexes,
 		resolverPublicEnvBySource,
+		sourceBindingsBySource,
 		enabledSources,
 		collectionLoadFailures,
 		queryClient,

@@ -8,6 +8,7 @@ import type { EntityDefinition, EntityDefinitionForEntityType, EntityFacetDefini
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityFieldType } from '$/schema/EntityFieldType.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 export type ResolverValue =
 	| string
@@ -213,6 +214,7 @@ export type ResolverSubset = {
 export type ResolverContext = ResolverSubset & {
 	readonly publicEnv: SourcePublicEnv
 	readonly providerContinuationToken?: string
+	readonly sourceBinding?: SourceBinding
 }
 
 const plainResolverFilterValue = (

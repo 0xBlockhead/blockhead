@@ -9,10 +9,12 @@ import {
 } from '$/typescript/JsonValue.ts'
 
 export const iterateXrplLedgerLive = async function* (
+	bindingId: string,
 	targetKey: string,
 	signal?: AbortSignal
 ): AsyncGenerator<JsonObject> {
 	for await (const event of iterateSourceLive({
+		bindingId,
 		source: Source.XrplClio_JsonRpc,
 		targetKey,
 		operationGroup: SourceOperationGroup.GenericSubscribe,

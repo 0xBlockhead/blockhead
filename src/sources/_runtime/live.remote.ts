@@ -9,7 +9,7 @@ import { Source } from '$/sources/Source.ts'
 import { SourceOperationGroup } from '$/sources/SourceBinding.ts'
 
 const sourceLiveRequest = type({
-	'bindingId?': 'string',
+	bindingId: 'string',
 	source: type.enumerated(...Object.values(Source)),
 	targetKey: 'string',
 	operationGroup: type.enumerated(...Object.values(SourceOperationGroup)),
