@@ -9,12 +9,9 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import bindings from '$/sources/QuilibriumNodeMetrics/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
-
-const binding = bindings[Source.QuilibriumNodeMetrics_Prometheus][0]
 
 const assertQuilibriumMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.quilibrium.slug)
@@ -71,7 +68,7 @@ export default {
 							getMetrics,
 							nodeStateObservationFromPrometheusText,
 						} = await import('$/sources/QuilibriumNodeMetrics/Prometheus/queries.ts')
-						return nodeStateObservationFromPrometheusText(await getMetrics(binding))
+						return nodeStateObservationFromPrometheusText(await getMetrics())
 					},
 				},
 			},

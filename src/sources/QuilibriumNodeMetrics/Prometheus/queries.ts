@@ -1,7 +1,10 @@
 import { getPrometheusText } from '$/sources/_shared/wire/Prometheus/client.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/QuilibriumNodeMetrics/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
-export const getMetrics = (binding: SourceBinding) => (
+const binding = bindings[Source.QuilibriumNodeMetrics_Prometheus][0]
+
+export const getMetrics = () => (
 	getPrometheusText(binding)
 )
 
