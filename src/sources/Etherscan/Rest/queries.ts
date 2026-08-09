@@ -39,7 +39,8 @@ import {
 	contractUnverifiedMessages,
 	supportedChainIds,
 } from '$/sources/Etherscan/Rest/constants.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Etherscan/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 const contractUnverifiedMessageSet = new Set<string>(contractUnverifiedMessages)
 const contractCreationAbsentMessageSet = new Set<string>(contractCreationAbsentMessages)
@@ -74,7 +75,8 @@ const etherscanAccountListQuery = ({
 	sort: 'desc',
 })
 
-export const etherscanQueries = (binding: SourceBinding) => {
+export const etherscanQueries = (() => {
+	const binding = bindings[Source.Etherscan_Rest][0]
 	const etherscanV2GetJson = <_Result>(request: Omit<Parameters<typeof executeEtherscanV2GetJson<_Result>>[0], 'binding'>) => (
 		executeEtherscanV2GetJson<_Result>({ binding, ...request })
 	)
@@ -280,7 +282,7 @@ export const etherscanQueries = (binding: SourceBinding) => {
 			address,
 		},
 	})
-	if (wire.status === '1' && Array.isArray(wire.result))
+	if (wire.status === '1')
 		return wire.result[0] ?? null
 	if (
 		wire.status === '0'
@@ -327,23 +329,16 @@ export const etherscanQueries = (binding: SourceBinding) => {
 			contractaddresses: address,
 		},
 	})
-	if (wire.status === '1' && Array.isArray(wire.result))
+	if (wire.status === '1')
 		return (
 			wire.result.find((row) => (
-				row.contractAddress?.toLowerCase() === address.toLowerCase()
+				row.contractAddress.toLowerCase() === address.toLowerCase()
 			))
-			?? wire.result[0]
 			?? null
 		)
 	if (
-		wire.status === '0'
-		&& (
-			contractCreationAbsentMessageSet.has(wire.message)
-			|| (
-				typeof wire.result === 'string'
-				&& contractCreationAbsentMessageSet.has(wire.result)
-			)
-		)
+		contractCreationAbsentMessageSet.has(wire.message)
+		|| contractCreationAbsentMessageSet.has(wire.result)
 	)
 		return null
 	throw new Error(
@@ -763,4 +758,4 @@ const uintStringFromDataWord = (
 		getTransactionReceipt,
 		getTransactionsByAddress,
 	}
-}
+})()

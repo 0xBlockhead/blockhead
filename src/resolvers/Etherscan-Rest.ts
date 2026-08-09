@@ -27,7 +27,6 @@ import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/Etherscan/bindings.ts'
 import {
 	etherscanQueries,
 	getAccountListMaxOffset,
@@ -56,7 +55,7 @@ const {
 	getTransactionByHash,
 	getTransactionReceipt,
 	getTransactionsByAddress,
-} = etherscanQueries(bindings[Source.Etherscan_Rest][0])
+} = etherscanQueries
 
 type EvmNetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -799,8 +798,6 @@ export default {
 							publicEnv: context.publicEnv,
 							chainId,
 						})
-						if (oracle == null)
-							throw new Error('Etherscan_Rest: gasoracle returned no result')
 						const slowGwei = gweiFromDecimalString(oracle.SafeGasPrice)
 						const averageGwei = gweiFromDecimalString(oracle.ProposeGasPrice)
 						const fastGwei = gweiFromDecimalString(oracle.FastGasPrice)
@@ -834,8 +831,6 @@ export default {
 							txHash: entitySelector.$log.$transaction.txHash,
 							offset: getAccountListMaxOffset,
 						})
-						if (wires == null)
-							throw new Error('Etherscan_Rest: token transfers by transaction returned no result')
 						const wire = findEtherscanTokenTransferWireForEntitySelector(wires, entitySelector)
 						if (wire == null)
 							throw new Error('Etherscan_Rest: token transfer not found for EvmTokenTransfer')
@@ -898,8 +893,6 @@ export default {
 							chainId,
 							txHash: entitySelector.$transaction.txHash,
 						})
-						if (wires == null)
-							throw new Error('Etherscan_Rest: internal transactions by tx hash returned no result')
 						const wire = findEtherscanInternalTransferWireForEntitySelector(wires, entitySelector)
 						if (wire == null)
 							throw new Error('Etherscan_Rest: internal transfer not found for EvmInternalTransfer')
@@ -1141,8 +1134,6 @@ export default {
 							address,
 							offset: limit,
 						})
-						if (wires == null)
-							throw new Error('Etherscan_Rest: address token transfers returned no result')
 						return evmTokenTransferEntitySelectorsFromEtherscanAddressWires({
 							$network,
 							wires,
@@ -1173,8 +1164,6 @@ export default {
 							address,
 							offset: limit,
 						})
-						if (wires == null)
-							throw new Error('Etherscan_Rest: address internal transactions returned no result')
 						return evmInternalTransferEntitySelectorsFromEtherscanAddressWires({
 							$network,
 							wires,
@@ -1202,8 +1191,6 @@ export default {
 							txHash: $transaction.txHash,
 							offset: limit,
 						})
-						if (wires == null)
-							throw new Error('Etherscan_Rest: token transfers by transaction returned no result')
 						return evmTokenTransferEntitySelectorsFromEtherscanWires({
 							$network: $transaction.$network,
 							txHash: $transaction.txHash,
@@ -1239,8 +1226,6 @@ export default {
 							txHash: txHash,
 							offset: limit,
 						})
-						if (wires == null)
-							throw new Error('Etherscan_Rest: transaction token transfers returned no result')
 						return evmTokenTransferEntitySelectorsFromEtherscanWires({
 							$network,
 							txHash,
@@ -1264,8 +1249,6 @@ export default {
 							chainId,
 							txHash: txHash,
 						})
-						if (wires == null)
-							throw new Error('Etherscan_Rest: transaction internal transfers returned no result')
 						return (
 							evmInternalTransferEntitySelectorsFromEtherscanWires({
 								$network: $network,
@@ -1790,8 +1773,6 @@ export default {
 							address,
 							offset: limit,
 						})
-						if (wires == null)
-							throw new Error('Etherscan_Rest: address transactions returned no result')
 						return wires.flatMap((wire) => {
 							const txHash = hexLowerOfByteSize(wire.hash ?? '', 32)
 							return txHash == null ?

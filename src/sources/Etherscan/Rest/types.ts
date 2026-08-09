@@ -58,11 +58,18 @@ export type EtherscanContractCreationResult = {
 	txHash?: string
 }
 
-export type EtherscanContractCreation = {
-	status: string
-	message: string
-	result: EtherscanContractCreationResult[] | string
-}
+export type EtherscanContractCreation = (
+	| {
+		status: '1'
+		message: string
+		result: EtherscanContractCreationResult[]
+	}
+	| {
+		status: '0'
+		message: string
+		result: string
+	}
+)
 
 export type EtherscanContractSourceResult = {
 	SourceCode?: string
@@ -83,11 +90,18 @@ export type EtherscanContractSourceCode = {
  * @see https://docs.etherscan.io/api-reference/endpoint/tokentx
  * @see https://docs.etherscan.io/api-reference/endpoint/txlistinternal
  */
-export type EtherscanAccountArray<T> = {
-	status: string
-	message: string
-	result: T[] | string
-}
+export type EtherscanAccountArray<T> = (
+	| {
+		status: '1'
+		message: string
+		result: T[]
+	}
+	| {
+		status: '0'
+		message: string
+		result: string
+	}
+)
 
 /** Shared fields on Etherscan account token-transfer rows (`tokentx`, `tokennfttx`, `token1155tx`). */
 export type EtherscanTokenTransfer = {

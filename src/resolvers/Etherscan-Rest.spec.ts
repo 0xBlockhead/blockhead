@@ -18,8 +18,8 @@ vi.mock('$/sources/Etherscan/Rest/queries.ts', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('$/sources/Etherscan/Rest/queries.ts')>()
 	return {
 		...actual,
-		etherscanQueries: (...parameters: Parameters<typeof actual.etherscanQueries>) => ({
-			...actual.etherscanQueries(...parameters),
+		etherscanQueries: {
+			...actual.etherscanQueries,
 			getTokenTransfersByAddress,
 			getTokenTransfersByTransaction,
 			getTransactionByHash,
@@ -29,7 +29,7 @@ vi.mock('$/sources/Etherscan/Rest/queries.ts', async (importOriginal) => {
 			getCode,
 			getTransactionsByAddress,
 			getGasOracle,
-		}),
+		},
 	}
 })
 
@@ -243,7 +243,9 @@ describe('Etherscan Network selectors', () => {
 	})
 
 	it('throws when EvmLog token-transfer facet cannot load transfers', async () => {
-		getTokenTransfersByTransaction.mockResolvedValue(null)
+		getTokenTransfersByTransaction.mockRejectedValue(
+			new Error('Etherscan_Rest: token transfers by transaction failed')
+		)
 		const resolver = etherscanRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.EvmLog
 			&& 'TransactionIndexInTransaction' in candidate.resolve
@@ -264,7 +266,7 @@ describe('Etherscan Network selectors', () => {
 				txHash,
 			},
 			indexInTransaction: 0,
-		}, context)).rejects.toThrow('token transfers by transaction returned no result')
+		}, context)).rejects.toThrow('token transfers by transaction failed')
 	})
 
 	it('lists recent Network.$$blocks from eth_blockNumber', async () => {

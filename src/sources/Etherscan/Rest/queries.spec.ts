@@ -27,7 +27,7 @@ const {
 	getTokenTransfersByTransaction,
 	getTransactionByHash,
 	getTransactionReceipt,
-} = etherscanQueries(bindings[Source.Etherscan_Rest][0])
+} = etherscanQueries
 
 const {
 	etherscanV2UnwrapAccountResultArray,
