@@ -4,8 +4,6 @@ import {
 	it,
 	vi,
 } from 'vitest'
-import bindings from '$/sources/NearRpc/bindings.ts'
-import { Source } from '$/sources/Source.ts'
 
 const jsonRpc2 = vi.hoisted(() => vi.fn())
 
@@ -24,7 +22,7 @@ const {
 	viewAccessKey,
 	viewAccessKeyList,
 	viewAccount,
-} = nearRpc(bindings[Source.NearRpc_JsonRpc][0])
+} = nearRpc
 
 const actionReceiptBody = {
 	Action: {

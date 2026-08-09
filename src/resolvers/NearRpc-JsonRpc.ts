@@ -13,7 +13,6 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/NearRpc/bindings.ts'
 import { nearRpc } from '$/sources/NearRpc/JsonRpc/queries.ts'
 import type {
 	NearRpcAccessKey,
@@ -44,7 +43,7 @@ const {
 	viewAccessKeyList,
 	viewAccount,
 	viewState,
-} = nearRpc(bindings[Source.NearRpc_JsonRpc][0])
+} = nearRpc
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type NearBlockSelector = EntitySelectorForSelectorName<
 	typeof schema,
@@ -486,16 +485,12 @@ const getNearValidatorReferences = async (
 					$network: network,
 					accountId: validator.account_id,
 				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.NearValidator, [], 'publicKey')]: fields.publicKey,
-					[entityFieldAddressKey(EntityType.NearValidator, [], 'stakeYoctoNear')]: fields.stakeYoctoNear,
-					[entityFieldAddressKey(EntityType.NearValidator, [], 'isSlashed')]: fields.isSlashed,
-					...(fields.expectedBlocks != null && {
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.NearValidator, [], 'publicKey')]: fields.publicKey,
+						[entityFieldAddressKey(EntityType.NearValidator, [], 'stakeYoctoNear')]: fields.stakeYoctoNear,
+						[entityFieldAddressKey(EntityType.NearValidator, [], 'isSlashed')]: fields.isSlashed,
 						[entityFieldAddressKey(EntityType.NearValidator, [], 'expectedBlocks')]: fields.expectedBlocks,
-					}),
-					...(fields.producedBlocks != null && {
 						[entityFieldAddressKey(EntityType.NearValidator, [], 'producedBlocks')]: fields.producedBlocks,
-					}),
 					...(fields.expectedChunks != null && {
 						[entityFieldAddressKey(EntityType.NearValidator, [], 'expectedChunks')]: fields.expectedChunks,
 					}),

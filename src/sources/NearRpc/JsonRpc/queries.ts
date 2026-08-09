@@ -1,6 +1,7 @@
 import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/NearRpc/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import type {
 	NearRpcAccount,
 	NearRpcAccessKey,
@@ -14,7 +15,6 @@ import type {
 	NearRpcValidators,
 	NearRpcViewState,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
-import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
 
 const nearAccessKeyPermissionWire = arktype("'FullAccess'").or(arktype({
@@ -276,7 +276,8 @@ const assertEnvelope = <_Value>(
 	}
 }
 
-export const nearRpc = (binding: SourceBinding) => {
+export const nearRpc = (() => {
+	const binding = bindings[Source.NearRpc_JsonRpc][0]
 	const getBlock = async ({
 	blockId,
 }: {
@@ -299,7 +300,7 @@ export const nearRpc = (binding: SourceBinding) => {
 					}
 			)
 		)
-	) as NearRpcBlock
+	)
 )
 
 	const getTx = async ({
@@ -394,7 +395,7 @@ export const nearRpc = (binding: SourceBinding) => {
 			finality: 'final',
 			account_id: accountId,
 		})
-	) as NearRpcAccount
+	)
 }
 
 	const viewAccessKeyList = async ({
@@ -413,7 +414,7 @@ export const nearRpc = (binding: SourceBinding) => {
 			finality: 'final',
 			account_id: accountId,
 		})
-	) as NearRpcAccessKeyList
+	)
 }
 
 	const viewAccessKey = async ({
@@ -477,7 +478,7 @@ export const nearRpc = (binding: SourceBinding) => {
 		'gas price',
 		nearGasPriceWire,
 		await jsonRpc2<unknown>(binding, 'gas_price', [null])
-	) as NearRpcGasPrice
+	)
 )
 
 	const getStatus = async () => (
@@ -485,7 +486,7 @@ export const nearRpc = (binding: SourceBinding) => {
 		'status',
 		nearStatusWire,
 		await jsonRpc2<unknown>(binding, 'status', [])
-	) as NearRpcStatus
+	)
 )
 
 	return {
@@ -507,4 +508,4 @@ export const nearRpc = (binding: SourceBinding) => {
 		viewAccount,
 		viewState,
 	}
-}
+})()
