@@ -3916,6 +3916,9 @@ test('keeps scope-prefix reduction collision-safe for shared binding values', ()
 	Object.defineProperty(collisionRest, 'source', {
 		value: 'ArweaveArweave',
 	})
+	Object.defineProperty(collisionRest, 'provenance', {
+		value: 'alternate-rest-gateway',
+	})
 	const secondRestBinding = structuredClone(collisionRest.binding)
 	secondRestBinding.endpoints[0].locator = 'https://arweave-alternate.example'
 	Object.defineProperty(secondRestBinding, 'operationGroups', {
@@ -3931,6 +3934,9 @@ test('keeps scope-prefix reduction collision-safe for shared binding values', ()
 	const collisionGraphql = structuredClone(arweaveGraphql)
 	Object.defineProperty(collisionGraphql, 'source', {
 		value: 'Arweave',
+	})
+	Object.defineProperty(collisionGraphql, 'provenance', {
+		value: 'alternate-graphql-gateway',
 	})
 	const secondGraphqlBinding = structuredClone(collisionGraphql.binding)
 	secondGraphqlBinding.endpoints[0].locator = 'https://arweave-graphql-alternate.example/graphql'
