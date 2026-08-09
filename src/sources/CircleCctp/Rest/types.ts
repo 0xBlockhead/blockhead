@@ -89,8 +89,8 @@ export const circleCctpBurnFeeRowWire = arktype({
 export const circleCctpBurnFeesResponseWire = circleCctpBurnFeeRowWire.array()
 
 export const circleCctpFastBurnAllowanceResponseWire = arktype({
-	'allowance?': 'number >= 0',
-	'lastUpdated?': utcTimestampWire,
+	allowance: 'number >= 0',
+	lastUpdated: utcTimestampWire,
 })
 
 export const circleCctpReattestationResponseWire = arktype({

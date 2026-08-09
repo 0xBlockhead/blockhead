@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -10,89 +11,64 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.CctpAllowance>, 'prefetched'> = $props()
 
-	const cctpAllowance = $derived(selection({
-		fields: {
-			allowance: true,
-			fetchedAt: true,
-		},
-	}))
-	const titleFallback = $derived(selection.entitySelector.apiHost || 'CCTP allowance')
-
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
+	import CctpFastBurnAllowance_TimestampsView from '$/views/CctpFastBurnAllowance_TimestampsView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.CctpAllowance}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.token || 'CCTP allowance')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(assets)/cctp/allowance/[token=stringSegment]',
+				{
+					token: selection.entitySelector.token,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Value()}
-		<ResourceBoundary resource={cctpAllowance}>
-			{#snippet children(entity)}
-				{String(entity.allowance ?? '') || selection.entitySelector.apiHost || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={cctpAllowance}>
-			{#snippet children(entity)}
-				<span data-text="muted">
-					<Timestamp timestamp={entity.fetchedAt} />
-				</span>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
-				<dt>API host</dt>
+				<dt>Token</dt>
 				<dd>
-					{selection.entitySelector.apiHost}
-				</dd>
-			</div>
-
-			<ResourceBoundary
-				resource={cctpAllowance}
-			>
-				{#snippet children(entity)}
-					{@const allowance = entity.allowance}
-					{#if allowance != null}
-						<div>
-							<dt>Allowance</dt>
-							<dd>
-								{allowance}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<div>
-				<dt>Fetched at</dt>
-				<dd>
-					<ResourceBoundary
-						resource={cctpAllowance}
-					>
-						{#snippet children(entity)}
-							<Timestamp timestamp={entity.fetchedAt} />
-						{/snippet}
-					</ResourceBoundary>
+					{selection.entitySelector.token}
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const timestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={timestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<CctpFastBurnAllowance_TimestampsView
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

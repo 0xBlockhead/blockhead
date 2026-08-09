@@ -21,6 +21,9 @@ import { Source } from '$/sources/Source.ts'
 
 type CctpMessageId = EntitySelector<typeof schema, EntityType.CctpMessage>
 type CctpDomainSupportId = EntitySelector<typeof schema, EntityType.CctpDomainSupport>
+type CctpAllowanceId = EntitySelector<typeof schema, EntityType.CctpAllowance>
+
+const cctpFastBurnAllowanceToken = 'USDC'
 
 const assertIrisSource = (
 	source: string,
@@ -28,6 +31,26 @@ const assertIrisSource = (
 ) => {
 	if (source !== Source.CircleCctpIris)
 		throw new Error(`CircleCctpIris_Rest: unsupported ${label} source ${source}`)
+}
+
+const assertFastBurnAllowance = (
+	allowance: CctpAllowanceId
+) => {
+	if (allowance.token !== cctpFastBurnAllowanceToken)
+		throw new Error(`CircleCctpIris_Rest: unsupported fast burn allowance token ${allowance.token}`)
+}
+
+const fastBurnAllowanceTimestampMs = (
+	lastUpdated: string
+) => {
+	if (lastUpdated === '')
+		throw new Error('CircleCctpIris_Rest: fast burn allowance missing lastUpdated')
+
+	const timestampMs = Date.parse(lastUpdated)
+	if (!Number.isFinite(timestampMs))
+		throw new Error(`CircleCctpIris_Rest: invalid lastUpdated ${lastUpdated}`)
+
+	return timestampMs
 }
 
 const assertDomainSelector = (
@@ -288,6 +311,37 @@ export default {
 
 	resolvers: [
 		defineResolver({
+			entityType: EntityType.CctpAllowance,
+			resolve: {
+				Token: {
+					resolve: async (allowanceId) => {
+						assertFastBurnAllowance(allowanceId)
+						const { getFastBurnUsdcAllowance } = await import('$/sources/CircleCctp/Rest/queries.ts')
+						const allowance = await getFastBurnUsdcAllowance()
+
+						return {
+							token: cctpFastBurnAllowanceToken,
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$allowance: allowanceId,
+									timestampMs: fastBurnAllowanceTimestampMs(allowance.body.lastUpdated),
+									source: Source.CircleCctpIris,
+								},
+								allowanceUsdc: allowance.body.allowance,
+								...(allowance.requestId != null && {
+									requestId: allowance.requestId,
+								}),
+							}],
+						}
+					},
+				},
+			},
+		})({
+			token: (allowance) => allowance.token,
+			$$timestamps: (allowance) => allowance.$$timestamps,
+		}),
+
+		defineResolver({
 			entityType: EntityType.CctpMessage,
 			resolve: {
 				SourceDomainNonce: {
@@ -437,35 +491,29 @@ export default {
 		defineResolver({
 			entityType: EntityType.CctpFastBurnAllowance_Timestamp,
 			resolve: {
-				TimestampMsSource: {
+				AllowanceTimestampMsSource: {
 					resolve: async ({
+						$allowance,
 						timestampMs,
 						source,
 					}) => {
 						assertIrisSource(source, 'fast burn allowance')
+						assertFastBurnAllowance($allowance)
 						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
 							throw new Error('CircleCctpIris_Rest: invalid fast burn allowance timestamp')
 
 						const { getFastBurnUsdcAllowance } = await import('$/sources/CircleCctp/Rest/queries.ts')
 						const allowance = await getFastBurnUsdcAllowance()
-						const lastUpdatedMs = (
-							allowance.body.lastUpdated == null || allowance.body.lastUpdated === '' ?
-								undefined
-							:
-								Date.parse(allowance.body.lastUpdated)
-						)
-						if (allowance.body.lastUpdated != null && allowance.body.lastUpdated !== '' && !Number.isFinite(lastUpdatedMs))
-							throw new Error(`CircleCctpIris_Rest: invalid lastUpdated ${allowance.body.lastUpdated}`)
+						if (fastBurnAllowanceTimestampMs(allowance.body.lastUpdated) !== timestampMs)
+							throw new Error('CircleCctpIris_Rest: observation timestampMs does not match Iris allowance clock')
 
 						return {
+							$allowance: {
+								[EntityMetaKey.Selector]: $allowance,
+							},
 							timestampMs,
-							source,
-							...(allowance.body.allowance != null && {
-								allowanceUsdc: allowance.body.allowance,
-							}),
-							...(lastUpdatedMs != null && {
-								lastUpdatedMs,
-							}),
+							source: Source.CircleCctpIris,
+							allowanceUsdc: allowance.body.allowance,
 							...(allowance.requestId != null && {
 								requestId: allowance.requestId,
 							}),
@@ -474,10 +522,10 @@ export default {
 				},
 			},
 		})({
+			$allowance: (observation) => observation.$allowance,
 			timestampMs: (observation) => observation.timestampMs,
 			source: (observation) => observation.source,
 			allowanceUsdc: (observation) => observation.allowanceUsdc,
-			lastUpdatedMs: (observation) => observation.lastUpdatedMs,
 			requestId: (observation) => observation.requestId,
 		}),
 	],

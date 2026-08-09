@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -27,9 +28,7 @@
 	resource={
 		selection({
 			fields: {
-				apiHost: true,
-				allowance: true,
-				fetchedAt: true,
+				token: true,
 			},
 		})
 	}
@@ -39,17 +38,17 @@
 		<EntityView
 			entityType={EntityType.CctpAllowance}
 			entitySelector={cctpAllowanceSelector}
+			href={
+				resolve(
+					'/(assets)/cctp/allowance/[token=stringSegment]',
+					{
+						token: cctpAllowanceSelector.token,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
-				{cctpAllowanceSelector.apiHost || 'CCTP allowance'}
-			{/snippet}
-
-			{#snippet Value()}
-				{cctpAllowance.allowance ?? ''}
-			{/snippet}
-
-			{#snippet HeadingAfter()}
-				<span data-text="annotation">{cctpAllowance.fetchedAt}</span>
+				{cctpAllowanceSelector.token || 'CCTP allowance'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

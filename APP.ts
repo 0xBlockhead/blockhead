@@ -23849,22 +23849,27 @@ export const schema = {
 					plural: "CCTP allowances",
 				},
 			})({
-				"apiHost": { label: "API host", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"allowance": { label: "Allowance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"fetchedAt": { label: "Fetched at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"token": { label: "Token", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CctpFastBurnAllowance_Timestamp, defaultSources: [Source.CircleCctpIris] },
 			})({
 				selectors: {
-					"ApiHost": ["apiHost"],
+					"Token": ["token"],
 				},
 				views: {
 					singular: {
-						summary: { title: ["apiHost"], value: ["allowance"], HeadingAfter: [{ field: "fetchedAt", format: "timestamp" }] },
-						closed: ["apiHost", "allowance"],
+						query: {
+							sources: [Source.CircleCctpIris],
+						},
+						summary: { title: ["token"] },
+						closed: ["token"],
 						content: {
 							dl: [
-								["apiHost", "allowance", { field: "fetchedAt", format: "timestamp" }],
+								["token"],
 							],
 						},
+						lists: [
+							{ field: "$$timestamps", component: "CctpFastBurnAllowance_TimestampsView", emptyText: "No CCTP fast burn allowance observations." },
+						],
 					},
 					plural: { component: "CctpAllowancesView", title: "CCTP allowances", },
 				},
@@ -24015,22 +24020,27 @@ export const schema = {
 					plural: "CCTP fast burn allowance observations",
 				},
 			})({
-				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"$allowance": { label: "Allowance", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CctpAllowance },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"allowanceUsdc": { label: "Allowance USDC", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"lastUpdatedMs": { label: "Last updated ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"allowanceUsdc": { label: "Allowance USDC", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"requestId": { label: "Request ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
-					"TimestampMsSource": ["timestampMs", "source"],
+					"AllowanceTimestampMsSource": ["$allowance", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
+						query: {
+							sources: [Source.CircleCctpIris],
+							fields: ["allowanceUsdc"],
+							openFields: ["requestId"],
+						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["allowanceUsdc"], HeadingAfter: ["source"] },
-						closed: [{ field: "timestampMs", format: "timestamp" }, "source"],
+						closed: ["$allowance", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: {
 							dl: [
-								[{ field: "timestampMs", format: "timestamp" }, "source", "allowanceUsdc", { field: "lastUpdatedMs", format: "timestamp" }, "requestId"],
+								["$allowance", { field: "timestampMs", format: "timestamp" }, "source", "allowanceUsdc", "requestId"],
 							],
 						},
 					},
@@ -72088,13 +72098,6 @@ export const routes = defineRoutes(schema)({
 				evidence: "maps/schema-entity-existence-ledger.md#cashumint_timestamp",
 			},
 		},
-		[EntityType.CctpAllowance]: {
-			"ApiHost": {
-				kind: "Research",
-				decision: "Retain CctpAllowance.ApiHost as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#cctpallowance",
-			},
-		},
 		[EntityType.CctpAttestation_Timestamp]: {
 			"MessageTimestampMsSource": {
 				kind: "Research",
@@ -72114,13 +72117,6 @@ export const routes = defineRoutes(schema)({
 				kind: "Research",
 				decision: "Retain CctpDomainSupport.CctpVersionDomainId as non-public until a product-valid selector placement is declared.",
 				evidence: "maps/schema-entity-existence-ledger.md#cctpdomainsupport",
-			},
-		},
-		[EntityType.CctpFastBurnAllowance_Timestamp]: {
-			"TimestampMsSource": {
-				kind: "Research",
-				decision: "Retain CctpFastBurnAllowance_Timestamp.TimestampMsSource as non-public until a product-valid selector placement is declared.",
-				evidence: "maps/schema-entity-existence-ledger.md#cctpfastburnallowance_timestamp",
 			},
 		},
 		[EntityType.CctpFee]: {
@@ -83789,6 +83785,59 @@ export const routes = defineRoutes(schema)({
 							}
 						}
 					}
+				},
+				"cctp": {
+					children: {
+						"allowance": {
+							children: {
+								"[token]": {
+									selectors: {
+										[EntityType.CctpAllowance]: {
+											"Token": {
+												params: {
+													"token": ["token"],
+												},
+												page: {},
+											},
+										},
+									},
+									children: {
+										"observations": {
+											children: {
+												"[timestampMs]": {
+													children: {
+														"[source]": {
+															selectors: {
+																[EntityType.CctpFastBurnAllowance_Timestamp]: {
+																	"AllowanceTimestampMsSource": {
+																		params: {
+																			"timestampMs": ["timestampMs"],
+																			"source": ["source"],
+																		},
+																		derivations: {
+																			$allowance: {
+																				kind: "selector",
+																				entity: EntityType.CctpAllowance,
+																				selector: "Token",
+																				params: [
+																					{ field: "token", param: "token" },
+																				],
+																			},
+																		},
+																		page: {},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 				"coin-instance": {
 					children: {

@@ -131,6 +131,26 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(assets)/cctp/allowance/[token]': {
+		routeId: '/(assets)/cctp/allowance/[token=stringSegment]',
+		mappings: [
+			{
+				id: 'CctpAllowance.Token',
+				probeAtomPrefixes: ['/cctp/allowance/[token]:CctpAllowance.Token'],
+				probeCases: [[[0, '1', ['token']]]],
+			},
+		],
+	},
+	'/(assets)/cctp/allowance/[token]/observations/[timestampMs]/[source]': {
+		routeId: '/(assets)/cctp/allowance/[token=stringSegment]/(cctpAllowance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		mappings: [
+			{
+				id: 'CctpFastBurnAllowance_Timestamp.AllowanceTimestampMsSource',
+				probeAtomPrefixes: ['/cctp/allowance/[token]/observations/[timestampMs]/[source]:CctpFastBurnAllowance_Timestamp.AllowanceTimestampMsSource'],
+				probeCases: [[[0, '1', ['timestampMs', 'source', 'token']]]],
+			},
+		],
+	},
 	'/(assets)/coin-instance/[chainId]/[coinInstanceSlug]': {
 		routeId: '/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug=nativeCurrencySlugOrEvmAddress]',
 		mappings: [

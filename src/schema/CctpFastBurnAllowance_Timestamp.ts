@@ -12,8 +12,12 @@ export default entity({
 		plural: 'CCTP fast burn allowance observations',
 	},
 })({
+	$allowance: {
+		entityType: EntityType.CctpAllowance,
+		cardinality: EntityFieldCardinality.One,
+	},
 	timestampMs: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
@@ -22,11 +26,7 @@ export default entity({
 	},
 	allowanceUsdc: {
 		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	lastUpdatedMs: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	requestId: {
 		primitiveType: type('string'),
@@ -34,7 +34,8 @@ export default entity({
 	},
 })({
 	selectors: {
-		TimestampMsSource: [
+		AllowanceTimestampMsSource: [
+			'$allowance',
 			'timestampMs',
 			'source',
 		],

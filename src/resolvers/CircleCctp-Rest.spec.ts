@@ -80,6 +80,7 @@ describe('CircleCctpIris_Rest resolvers', () => {
 	it('registers Iris message, attestation, burn-fee, and allowance resolvers', () => {
 		expect(circleCctpRest.source).toBe(Source.CircleCctpIris)
 		expect(circleCctpRest.resolvers.map((resolver) => resolver.entityType)).toEqual([
+			EntityType.CctpAllowance,
 			EntityType.CctpMessage,
 			EntityType.CctpAttestation_Timestamp,
 			EntityType.CctpBurnFee_Timestamp,
@@ -184,7 +185,10 @@ describe('CircleCctpIris_Rest resolvers', () => {
 		const allowanceResolver = circleCctpRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.CctpFastBurnAllowance_Timestamp
 		))
-		if (attestationResolver == null || burnFeeResolver == null || allowanceResolver == null)
+		const allowanceParentResolver = circleCctpRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.CctpAllowance
+		))
+		if (attestationResolver == null || burnFeeResolver == null || allowanceResolver == null || allowanceParentResolver == null)
 			throw new Error('missing Circle CCTP timestamp resolvers')
 
 		await expect(attestationResolver.resolve.MessageTimestampMsSource.resolve({
@@ -244,14 +248,38 @@ describe('CircleCctpIris_Rest resolvers', () => {
 			}],
 		})
 
-		await expect(allowanceResolver.resolve.TimestampMsSource.resolve({
-			timestampMs: 1_700_000_000_789,
+		await expect(allowanceParentResolver.resolve.Token.resolve({
+			token: 'USDC',
+		})).resolves.toEqual({
+			token: 'USDC',
+			$$timestamps: [{
+				[EntityMetaKey.Selector]: {
+					$allowance: {
+						token: 'USDC',
+					},
+					timestampMs: Date.parse('2025-01-23T10:00:00Z'),
+					source: Source.CircleCctpIris,
+				},
+				allowanceUsdc: 123999.999999,
+				requestId: 'allowance-request',
+			}],
+		})
+
+		await expect(allowanceResolver.resolve.AllowanceTimestampMsSource.resolve({
+			$allowance: {
+				token: 'USDC',
+			},
+			timestampMs: Date.parse('2025-01-23T10:00:00Z'),
 			source: Source.CircleCctpIris,
 		})).resolves.toEqual({
-			timestampMs: 1_700_000_000_789,
+			$allowance: {
+				[EntityMetaKey.Selector]: {
+					token: 'USDC',
+				},
+			},
+			timestampMs: Date.parse('2025-01-23T10:00:00Z'),
 			source: Source.CircleCctpIris,
 			allowanceUsdc: 123999.999999,
-			lastUpdatedMs: Date.parse('2025-01-23T10:00:00Z'),
 			requestId: 'allowance-request',
 		})
 	})
@@ -269,7 +297,10 @@ describe('CircleCctpIris_Rest resolvers', () => {
 
 		await expect(messageResolver.resolve.SourceDomainNonce.resolve(messageId))
 			.rejects.toThrow('message not found')
-		await expect(allowanceResolver.resolve.TimestampMsSource.resolve({
+		await expect(allowanceResolver.resolve.AllowanceTimestampMsSource.resolve({
+			$allowance: {
+				token: 'USDC',
+			},
 			timestampMs: 1,
 			source: 'Other',
 		})).rejects.toThrow('unsupported fast burn allowance source')
