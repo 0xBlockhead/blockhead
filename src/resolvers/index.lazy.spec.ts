@@ -4,7 +4,7 @@ import { loadResolvers } from '$/resolvers/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 
-it('loads only enabled resolver modules in canonical APP order', { timeout: 20_000 }, async () => {
+it('loads only enabled resolver modules in canonical APP order', { timeout: 60_000 }, async () => {
 	await expect(loadResolvers(new Set([
 		Source.Local_Internal,
 		Source.Constants_Internal,

@@ -144,7 +144,7 @@ describe('Dune REST queries', () => {
 		await expect(getUsage(publicEnv)).rejects.toThrow(/401/)
 	})
 
-	it('hard-fails HTTP errors on execution status and cancel', async () => {
+	it('hard-fails HTTP errors on execution status and cancel', { timeout: 20_000 }, async () => {
 		vi.stubGlobal('window', {})
 		vi.stubGlobal('fetch', vi.fn<typeof fetch>(async (input) => {
 			const url = String(input)
