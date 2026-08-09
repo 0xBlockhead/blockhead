@@ -266,7 +266,7 @@ export default {
 			entityType: EntityType.SuiNetwork,
 			resolve: {
 				Network: {
-					appliesTo: suiChildApplicability,
+					appliesTo: suiNetworkApplicability,
 					resolve: async ($network) => {
 						assertSuiNetworkEntity($network)
 						const { getLatestCheckpoint } = await import('$/sources/Sui/Graphql/queries.ts')
@@ -854,7 +854,7 @@ export default {
 			entityType: EntityType.SuiPackage,
 			resolve: {
 				NetworkOriginalPackageId: {
-					appliesTo: suiNetworkApplicability,
+					appliesTo: suiChildApplicability,
 					resolve: async ({
 						$network,
 						originalPackageId,
