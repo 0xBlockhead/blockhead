@@ -16,10 +16,12 @@
 
 
 <Collapsible
-	open={openItemKey === itemKey}
-	ontoggle={(event) => {
-		openItemKey = event.currentTarget.open ? itemKey : undefined
-	}}
+	bind:open={
+		() => openItemKey === itemKey,
+		(_open) => {
+			openItemKey = _open ? itemKey : undefined
+		}
+	}
 >
 	{#snippet Summary()}
 		<span>{summary}</span>
