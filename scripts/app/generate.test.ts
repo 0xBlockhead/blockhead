@@ -4427,7 +4427,7 @@ test('lowers latest EntityReference content without collection-first semantics',
 	assert.match(renderedFarcasterChannelView, /<FarcasterUserView[\s\S]*?<span>\{farcasterUser\.username\}<\/span>/)
 })
 
-test('requires every selector field to have cardinality One before route compilation', () => {
+test('requires every selector field to have singular cardinality before route compilation', () => {
 	const network = app.schema.entities.find((entity) => entity.entityType === EntityType.Network)
 
 	assert.ok(network)
@@ -4445,7 +4445,7 @@ test('requires every selector field to have cardinality One before route compila
 				}),
 			},
 		}),
-		/Network\.Caip2 selector field caip2 must have cardinality One, received Many/
+		/Network\.Caip2 selector field caip2 must have singular cardinality, received Many/
 	)
 	assert.throws(
 		() => compileApp({
@@ -4461,24 +4461,21 @@ test('requires every selector field to have cardinality One before route compila
 				}),
 			},
 		}),
-		/Network\.Caip2 selector field caip2 must have cardinality One, received Zero/
+		/Network\.Caip2 selector field caip2 must have singular cardinality, received Zero/
 	)
-	assert.throws(
-		() => compileApp({
-			...app,
-			schema: {
-				...app.schema,
-				entities: app.schema.entities.map((entity) => entity !== network ? entity : {
-					...entity,
-					fields: entity.fields.map((field) => field.name !== 'caip2' ? field : {
-						...field,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-					}),
+	assert.doesNotThrow(() => compileApp({
+		...app,
+		schema: {
+			...app.schema,
+			entities: app.schema.entities.map((entity) => entity !== network ? entity : {
+				...entity,
+				fields: entity.fields.map((field) => field.name !== 'caip2' ? field : {
+					...field,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
 				}),
-			},
-		}),
-		/Network\.Caip2 selector field caip2 must have cardinality One, received ZeroOrOne/
-	)
+			}),
+		},
+	}))
 	assert.throws(
 		() => compileApp({
 			...app,

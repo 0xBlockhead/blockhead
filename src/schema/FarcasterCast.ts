@@ -24,15 +24,15 @@ export default entity({
 	},
 	username: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	hashPrefix: {
 		primitiveType: ZeroExHex,
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	clientUrl: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$author: {
 		entityType: EntityType.FarcasterUser,

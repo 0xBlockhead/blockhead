@@ -22,7 +22,7 @@ export default entity({
 	},
 	version: {
 		primitiveType: type('bigint').narrow((value) => value >= 0n),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	firstVersion: {
 		primitiveType: type('bigint'),

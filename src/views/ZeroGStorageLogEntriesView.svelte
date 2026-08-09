@@ -66,7 +66,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{zeroGStorageLogEntry.$network.name || `${zeroGStorageLogEntry.$network.caip2.namespace}:${zeroGStorageLogEntry.$network.caip2.reference}` || 'Network'}
+				{zeroGStorageLogEntry.$network.name || (zeroGStorageLogEntry.$network.caip2 == null ? '' : `${zeroGStorageLogEntry.$network.caip2.namespace}:${zeroGStorageLogEntry.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

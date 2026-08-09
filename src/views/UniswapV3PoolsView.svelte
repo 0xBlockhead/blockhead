@@ -87,11 +87,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{uniswapV3Pool.fee}
+				{uniswapV3Pool.fee ?? ''}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{uniswapV3Pool.$network.name || `${uniswapV3Pool.$network.caip2.namespace}:${uniswapV3Pool.$network.caip2.reference}` || 'Network'}</span>
+				<span data-text="annotation">{uniswapV3Pool.$network.name || (uniswapV3Pool.$network.caip2 == null ? '' : `${uniswapV3Pool.$network.caip2.namespace}:${uniswapV3Pool.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

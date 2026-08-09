@@ -41,7 +41,7 @@
 			entitySelector={bnbBeaconNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{bnbBeaconNetwork.$network.name || `${bnbBeaconNetwork.$network.caip2.namespace}:${bnbBeaconNetwork.$network.caip2.reference}` || 'Network'}
+				{bnbBeaconNetwork.$network.name || (bnbBeaconNetwork.$network.caip2 == null ? '' : `${bnbBeaconNetwork.$network.caip2.namespace}:${bnbBeaconNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

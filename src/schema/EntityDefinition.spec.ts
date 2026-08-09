@@ -159,11 +159,51 @@ const OptionalSelectorCardinality = entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		primitiveType: arktype('string'),
 	},
+	$optionalParent: {
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		entityType: Parent.entityType,
+	},
 })({
 	selectors: {
 		Optional: ['optionalId'],
+		OptionalParent: ['$optionalParent'],
 	},
 })
+
+// @ts-expect-error A chosen selector field cannot be explicitly undefined.
+const undefinedOptionalSelector: EntitySelectorForSelectorName<
+	[
+		typeof OptionalSelectorCardinality,
+	],
+	typeof OptionalSelectorCardinality.entityType,
+	'Optional'
+> = {
+	optionalId: undefined,
+}
+
+// @ts-expect-error Every field in the chosen optional selector tuple is required.
+const missingOptionalSelector: EntitySelectorForSelectorName<
+	[
+		typeof OptionalSelectorCardinality,
+	],
+	typeof OptionalSelectorCardinality.entityType,
+	'Optional'
+> = {}
+
+// @ts-expect-error A chosen entity-reference selector field cannot be explicitly undefined.
+const undefinedOptionalParentSelector: EntitySelectorForSelectorName<
+	[
+		typeof OptionalSelectorCardinality,
+	],
+	typeof OptionalSelectorCardinality.entityType,
+	'OptionalParent'
+> = {
+	$optionalParent: undefined,
+}
+
+void undefinedOptionalSelector
+void missingOptionalSelector
+void undefinedOptionalParentSelector
 
 entity({
 	entityType: 'InvalidSelectorCardinality',
@@ -312,8 +352,8 @@ describe('entity selectors', () => {
 			)).toThrow(/invalid selector/)
 	})
 
-	it('accepts an explicit unresolved ZeroOrOne selector field while retaining the complete identity tuple', () => {
-		expect(validateEntitySelector(
+	it('rejects missing and undefined values in chosen ZeroOrOne selector tuples', () => {
+		expect(() => validateEntitySelector(
 			[
 				OptionalSelectorCardinality,
 			],
@@ -321,12 +361,27 @@ describe('entity selectors', () => {
 			{
 				optionalId: undefined,
 			}
-		)).toEqual({
-			name: 'Optional',
-			fields: ['optionalId'],
-		})
+		)).toThrow(/invalid selector/)
 		expect(() => validateEntitySelector(
 			[
+				OptionalSelectorCardinality,
+			],
+			OptionalSelectorCardinality,
+			{}
+		)).toThrow(/invalid selector/)
+		expect(() => validateEntitySelector(
+			[
+				Parent,
+				OptionalSelectorCardinality,
+			],
+			OptionalSelectorCardinality,
+			{
+				$optionalParent: undefined,
+			}
+		)).toThrow(/invalid selector/)
+		expect(() => validateEntitySelector(
+			[
+				Parent,
 				OptionalSelectorCardinality,
 			],
 			OptionalSelectorCardinality,
@@ -625,14 +680,12 @@ describe('entity selectors', () => {
 			Source.Coingecko_Rest,
 			Source.Coinpaprika_Rest,
 			Source.CoinMarketCap_Rest,
-			Source.Defillama_Rest,
 		])
 		expect(entityFieldDefinitions(marketTimeIntervalTimestamp).find((fieldDefinition) => fieldDefinition.name === '$parentMarket')?.defaultSources).toEqual([
 			Source.Constants_Internal,
 			Source.Coingecko_Rest,
 			Source.Coinpaprika_Rest,
 			Source.CoinMarketCap_Rest,
-			Source.Defillama_Rest,
 		])
 		expect(entityFieldDefinitions(marketTimeIntervalTimestamp).find((fieldDefinition) => fieldDefinition.name === 'open')?.defaultSources).not.toContain(Source.Defillama_Rest)
 	})

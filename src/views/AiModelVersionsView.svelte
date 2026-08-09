@@ -30,34 +30,9 @@
 			...{
 				fields: {
 					versionId: true,
-					$model: {
-						fields: {
-							label: true,
-							$provider: {
-								fields: {
-									label: true,
-									organizationKind: true,
-									providerId: true,
-									domain: true,
-								},
-							},
-							modelFamily: true,
-						},
-					},
+					$model: true,
 					revision: true,
-					$artifact: {
-						fields: {
-							artifactType: true,
-							mediaType: true,
-							providerArtifactId: true,
-							ociDigest: true,
-							ipfsCid: true,
-							arweaveId: true,
-							gitObject: true,
-							digest: true,
-							size: true,
-						},
-					},
+					$artifact: true,
 					quantization: true,
 				},
 			},
@@ -109,11 +84,11 @@
 			}
 		>
 			{#snippet Title()}
-				{aiModelVersion.versionId || [aiModelVersion.revision, (aiModelVersion.$artifact.artifactType ?? '') || [aiModelVersion.$artifact.providerArtifactId, aiModelVersion.$artifact.ociDigest, aiModelVersion.$artifact.ipfsCid, aiModelVersion.$artifact.arweaveId, aiModelVersion.$artifact.gitObject, aiModelVersion.$artifact.digest].filter(Boolean).join(' ') || 'AI artifact'].filter(Boolean).join(' ') || 'AI model version'}
+				{(aiModelVersion.versionId ?? '') || [(aiModelVersion.revision ?? ''), aiModelVersion.$artifact == null ? '' : (aiModelVersion.$artifact.artifactType ?? '') || [(aiModelVersion.$artifact.providerArtifactId ?? ''), (aiModelVersion.$artifact.ociDigest ?? ''), (aiModelVersion.$artifact.ipfsCid ?? ''), (aiModelVersion.$artifact.arweaveId ?? ''), (aiModelVersion.$artifact.gitObject ?? ''), (aiModelVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'].filter(Boolean).join(' ') || 'AI model version'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(aiModelVersion.$model.label ?? '') || aiModelVersion.$model.providerModelId || 'AI model'}
+				{aiModelVersion.$model == null ? '' : (aiModelVersion.$model.label ?? '') || aiModelVersion.$model.providerModelId || 'AI model'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

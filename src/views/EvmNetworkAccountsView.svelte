@@ -63,7 +63,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{evmNetworkAccount.$network.name || `${evmNetworkAccount.$network.caip2.namespace}:${evmNetworkAccount.$network.caip2.reference}` || 'Network'}
+				{evmNetworkAccount.$network.name || (evmNetworkAccount.$network.caip2 == null ? '' : `${evmNetworkAccount.$network.caip2.namespace}:${evmNetworkAccount.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

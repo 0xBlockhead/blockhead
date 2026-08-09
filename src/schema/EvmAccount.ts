@@ -22,7 +22,7 @@ export default entity({
 	},
 	interopAddress: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$primaryName: {
 		entityType: EntityType.EnsName,

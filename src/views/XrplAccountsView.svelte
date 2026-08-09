@@ -63,7 +63,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{xrplAccount.$network.name || `${xrplAccount.$network.caip2.namespace}:${xrplAccount.$network.caip2.reference}` || 'Network'}
+				{xrplAccount.$network.name || (xrplAccount.$network.caip2 == null ? '' : `${xrplAccount.$network.caip2.namespace}:${xrplAccount.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

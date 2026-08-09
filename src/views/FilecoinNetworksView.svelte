@@ -44,7 +44,7 @@
 			entitySelector={filecoinNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{filecoinNetwork.$network.name || `${filecoinNetwork.$network.caip2.namespace}:${filecoinNetwork.$network.caip2.reference}` || 'Network'}
+				{filecoinNetwork.$network.name || (filecoinNetwork.$network.caip2 == null ? '' : `${filecoinNetwork.$network.caip2.namespace}:${filecoinNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

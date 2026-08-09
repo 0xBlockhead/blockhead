@@ -93,31 +93,37 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<div>
-				<dt>provider ID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={aiModelProvider}
-					>
-						{#snippet children(entity)}
-							{entity.providerId}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={aiModelProvider}
+			>
+				{#snippet children(entity)}
+					{@const providerId = entity.providerId}
+					{#if providerId != null}
+						<div>
+							<dt>provider ID</dt>
+							<dd>
+								{providerId}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>domain</dt>
-				<dd>
-					<ResourceBoundary
-						resource={aiModelProvider}
-					>
-						{#snippet children(entity)}
-							{entity.domain}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={aiModelProvider}
+			>
+				{#snippet children(entity)}
+					{@const domain = entity.domain}
+					{#if domain != null}
+						<div>
+							<dt>domain</dt>
+							<dd>
+								{domain}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={aiModelProvider}

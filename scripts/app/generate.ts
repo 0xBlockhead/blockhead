@@ -5373,8 +5373,11 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 					errors.push(`${entity.entityType}.${selector.name} selector references missing field ${fieldName}`)
 				else if (field.type === EntityFieldType.EntitiesReference)
 					errors.push(`${entity.entityType}.${selector.name} selector field ${fieldName} must be a primitive or entity reference`)
-				else if (field.cardinality !== EntityFieldCardinality.One)
-					errors.push(`${entity.entityType}.${selector.name} selector field ${fieldName} must have cardinality One, received ${field.cardinality}`)
+				else if (
+					field.cardinality !== EntityFieldCardinality.One
+					&& field.cardinality !== EntityFieldCardinality.ZeroOrOne
+				)
+					errors.push(`${entity.entityType}.${selector.name} selector field ${fieldName} must have singular cardinality, received ${field.cardinality}`)
 			}
 		}
 	}

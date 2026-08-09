@@ -64,7 +64,7 @@
 			}
 		>
 			{#snippet Title()}
-				{(aiModelProvider.label ?? '') || [aiModelProvider.providerId, aiModelProvider.domain].filter(Boolean).join(' ') || 'AI model provider'}
+				{(aiModelProvider.label ?? '') || [(aiModelProvider.providerId ?? ''), (aiModelProvider.domain ?? '')].filter(Boolean).join(' ') || 'AI model provider'}
 			{/snippet}
 
 			{#snippet Value()}

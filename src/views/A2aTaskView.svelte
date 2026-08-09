@@ -135,34 +135,39 @@
 				</dd>
 			</div>
 
-			<div>
-				<dt>service</dt>
-				<dd>
-					<ResourceBoundary
-						resource={selection.$service}
-					>
-						{#snippet children(a2aAgentService)}
-							<A2aAgentServiceView
-								selection={select(EntityType.A2aAgentService, a2aAgentService[EntityMetaKey.Selector])}
-								layout={EntityLayout.Value}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={selection.$service}
+			>
+				{#snippet children(a2aAgentService)}
+					{#if a2aAgentService != null}
+						<div>
+							<dt>service</dt>
+							<dd>
+								<A2aAgentServiceView
+									selection={select(EntityType.A2aAgentService, a2aAgentService[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>provider task ID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={a2aTask}
-					>
-						{#snippet children(entity)}
-							{entity.providerTaskId}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={a2aTask}
+			>
+				{#snippet children(entity)}
+					{@const providerTaskId = entity.providerTaskId}
+					{#if providerTaskId != null}
+						<div>
+							<dt>provider task ID</dt>
+							<dd>
+								{providerTaskId}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={a2aTask}

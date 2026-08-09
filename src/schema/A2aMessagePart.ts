@@ -15,11 +15,11 @@ export default entity({
 })({
 	$message: {
 		entityType: EntityType.A2aMessage,
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$artifact: {
 		entityType: EntityType.A2aArtifact,
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	partIndex: {
 		primitiveType: type('number.integer >= 0'),

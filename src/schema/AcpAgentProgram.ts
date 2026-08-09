@@ -16,21 +16,21 @@ export default entity({
 })({
 	registryAgentId: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.AcpRegistry_Rest,
 		],
 	},
 	packageName: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.AcpRegistry_Rest,
 		],
 	},
 	repositoryUrl: {
 		primitiveType: UrlString,
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.AcpRegistry_Rest,
 		],

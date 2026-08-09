@@ -51,7 +51,7 @@
 			}
 		>
 			{#snippet Title()}
-				{blockheadEvmWalletRequest.$network.name || `${blockheadEvmWalletRequest.$network.caip2.namespace}:${blockheadEvmWalletRequest.$network.caip2.reference}` || 'Network'}
+				{blockheadEvmWalletRequest.$network.name || (blockheadEvmWalletRequest.$network.caip2 == null ? '' : `${blockheadEvmWalletRequest.$network.caip2.namespace}:${blockheadEvmWalletRequest.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

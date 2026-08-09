@@ -40,7 +40,7 @@
 			entitySelector={arweaveNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{arweaveNetwork.$network.name || `${arweaveNetwork.$network.caip2.namespace}:${arweaveNetwork.$network.caip2.reference}` || 'Network'}
+				{arweaveNetwork.$network.name || (arweaveNetwork.$network.caip2 == null ? '' : `${arweaveNetwork.$network.caip2.namespace}:${arweaveNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

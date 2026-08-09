@@ -62,7 +62,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{starknetContract.$network.$network.name || `${starknetContract.$network.$network.caip2.namespace}:${starknetContract.$network.$network.caip2.reference}` || 'Network'}
+				{starknetContract.$network.$network.name || (starknetContract.$network.$network.caip2 == null ? '' : `${starknetContract.$network.$network.caip2.namespace}:${starknetContract.$network.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

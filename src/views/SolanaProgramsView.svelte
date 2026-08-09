@@ -70,7 +70,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{solanaProgram.$network.name || `${solanaProgram.$network.caip2.namespace}:${solanaProgram.$network.caip2.reference}` || 'Network'}</span>
+				<span data-text="annotation">{solanaProgram.$network.name || (solanaProgram.$network.caip2 == null ? '' : `${solanaProgram.$network.caip2.namespace}:${solanaProgram.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

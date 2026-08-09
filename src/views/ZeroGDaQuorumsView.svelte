@@ -64,7 +64,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{zeroGDaQuorum.$network.name || `${zeroGDaQuorum.$network.caip2.namespace}:${zeroGDaQuorum.$network.caip2.reference}` || 'Network'}
+				{zeroGDaQuorum.$network.name || (zeroGDaQuorum.$network.caip2 == null ? '' : `${zeroGDaQuorum.$network.caip2.namespace}:${zeroGDaQuorum.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -19,15 +19,15 @@ export default entity({
 	},
 	fid: {
 		primitiveType: type('number.integer >= 0'),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	channelId: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	viewerFid: {
 		primitiveType: type('number.integer >= 0'),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	label: {
 		primitiveType: type('string'),

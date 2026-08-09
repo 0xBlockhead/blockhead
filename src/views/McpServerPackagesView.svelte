@@ -63,7 +63,7 @@
 			}
 		>
 			{#snippet Title()}
-				{(mcpServerPackage.label ?? '') || [mcpServerPackage.registryServerName, mcpServerPackage.repositoryUrl].filter(Boolean).join(' ') || 'MCP server package'}
+				{(mcpServerPackage.label ?? '') || [(mcpServerPackage.registryServerName ?? ''), (mcpServerPackage.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'MCP server package'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

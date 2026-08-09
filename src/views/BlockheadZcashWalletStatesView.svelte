@@ -58,7 +58,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{blockheadZcashWalletState.$network.name || `${blockheadZcashWalletState.$network.caip2.namespace}:${blockheadZcashWalletState.$network.caip2.reference}` || 'Network'}
+				{blockheadZcashWalletState.$network.name || (blockheadZcashWalletState.$network.caip2 == null ? '' : `${blockheadZcashWalletState.$network.caip2.namespace}:${blockheadZcashWalletState.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

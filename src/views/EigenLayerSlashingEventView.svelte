@@ -111,11 +111,13 @@
 			resource={selection.$operator}
 		>
 			{#snippet children(eigenLayerOperator)}
-				<EigenLayerOperatorView
-					selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
-					href={null}
-					layout={EntityLayout.Title}
-				/>
+				{#if eigenLayerOperator != null}
+					<EigenLayerOperatorView
+						selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
+						href={null}
+						layout={EntityLayout.Title}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -125,11 +127,13 @@
 			resource={selection.$avs}
 		>
 			{#snippet children(eigenLayerAvs)}
-				<EigenLayerAvsView
-					selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
-					href={null}
-					layout={EntityLayout.Value}
-				/>
+				{#if eigenLayerAvs != null}
+					<EigenLayerAvsView
+						selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
+						href={null}
+						layout={EntityLayout.Value}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -151,37 +155,41 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<div>
-				<dt>operator</dt>
-				<dd>
-					<ResourceBoundary
-						resource={selection.$operator}
-					>
-						{#snippet children(eigenLayerOperator)}
-							<EigenLayerOperatorView
-								selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
-								layout={EntityLayout.Value}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={selection.$operator}
+			>
+				{#snippet children(eigenLayerOperator)}
+					{#if eigenLayerOperator != null}
+						<div>
+							<dt>operator</dt>
+							<dd>
+								<EigenLayerOperatorView
+									selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>AVS</dt>
-				<dd>
-					<ResourceBoundary
-						resource={selection.$avs}
-					>
-						{#snippet children(eigenLayerAvs)}
-							<EigenLayerAvsView
-								selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
-								layout={EntityLayout.Value}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={selection.$avs}
+			>
+				{#snippet children(eigenLayerAvs)}
+					{#if eigenLayerAvs != null}
+						<div>
+							<dt>AVS</dt>
+							<dd>
+								<EigenLayerAvsView
+									selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={selection.$strategy}
@@ -201,24 +209,27 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<div>
-				<dt>slash ID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									slashId: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{entity.slashId}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							slashId: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const slashId = entity.slashId}
+					{#if slashId != null}
+						<div>
+							<dt>slash ID</dt>
+							<dd>
+								{slashId}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">
@@ -305,45 +316,51 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<div>
-				<dt>transaction hash</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									transactionHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							<TruncatedValue value={entity.transactionHash} />
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							transactionHash: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const transactionHash = entity.transactionHash}
+					{#if transactionHash != null}
+						<div>
+							<dt>transaction hash</dt>
+							<dd>
+								<TruncatedValue value={transactionHash} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>log index</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									logIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							<NumberValue
-								value={entity.logIndex}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							logIndex: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const logIndex = entity.logIndex}
+					{#if logIndex != null}
+						<div>
+							<dt>log index</dt>
+							<dd>
+								<NumberValue
+									value={logIndex}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={
@@ -391,24 +408,27 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<div>
-				<dt>Source</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									source: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{entity.source}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							source: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const source = entity.source}
+					{#if source != null}
+						<div>
+							<dt>Source</dt>
+							<dd>
+								{source}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 </EntityView>

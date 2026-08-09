@@ -32,26 +32,8 @@
 			...{
 				fields: {
 					version: true,
-					$package: {
-						fields: {
-							label: true,
-							registryServerName: true,
-							repositoryUrl: true,
-						},
-					},
-					$artifact: {
-						fields: {
-							artifactType: true,
-							mediaType: true,
-							providerArtifactId: true,
-							ociDigest: true,
-							ipfsCid: true,
-							arweaveId: true,
-							gitObject: true,
-							digest: true,
-							size: true,
-						},
-					},
+					$package: true,
+					$artifact: true,
 					registryStatus: true,
 				},
 			},
@@ -92,11 +74,11 @@
 			}
 		>
 			{#snippet Title()}
-				{mcpServerPackageVersion.version || (mcpServerPackageVersion.$artifact.artifactType ?? '') || [mcpServerPackageVersion.$artifact.providerArtifactId, mcpServerPackageVersion.$artifact.ociDigest, mcpServerPackageVersion.$artifact.ipfsCid, mcpServerPackageVersion.$artifact.arweaveId, mcpServerPackageVersion.$artifact.gitObject, mcpServerPackageVersion.$artifact.digest].filter(Boolean).join(' ') || 'AI artifact'}
+				{(mcpServerPackageVersion.version ?? '') || (mcpServerPackageVersion.$artifact == null ? '' : (mcpServerPackageVersion.$artifact.artifactType ?? '') || [(mcpServerPackageVersion.$artifact.providerArtifactId ?? ''), (mcpServerPackageVersion.$artifact.ociDigest ?? ''), (mcpServerPackageVersion.$artifact.ipfsCid ?? ''), (mcpServerPackageVersion.$artifact.arweaveId ?? ''), (mcpServerPackageVersion.$artifact.gitObject ?? ''), (mcpServerPackageVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact') || 'mcp server package version'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(mcpServerPackageVersion.$package.label ?? '') || [mcpServerPackageVersion.$package.registryServerName, mcpServerPackageVersion.$package.repositoryUrl].filter(Boolean).join(' ') || 'MCP server package'}
+				{mcpServerPackageVersion.$package == null ? '' : (mcpServerPackageVersion.$package.label ?? '') || [(mcpServerPackageVersion.$package.registryServerName ?? ''), (mcpServerPackageVersion.$package.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'MCP server package'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

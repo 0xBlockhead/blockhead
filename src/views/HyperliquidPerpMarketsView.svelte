@@ -65,7 +65,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{hyperliquidPerpMarket.$network.name || `${hyperliquidPerpMarket.$network.caip2.namespace}:${hyperliquidPerpMarket.$network.caip2.reference}` || 'Network'}</span>
+				<span data-text="annotation">{hyperliquidPerpMarket.$network.name || (hyperliquidPerpMarket.$network.caip2 == null ? '' : `${hyperliquidPerpMarket.$network.caip2.namespace}:${hyperliquidPerpMarket.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -54,7 +54,7 @@
 			}
 		>
 			{#snippet Title()}
-				{(lightningNetwork.name ?? '') || lightningNetwork.$network.name || `${lightningNetwork.$network.caip2.namespace}:${lightningNetwork.$network.caip2.reference}` || 'Network'}
+				{(lightningNetwork.name ?? '') || lightningNetwork.$network.name || (lightningNetwork.$network.caip2 == null ? '' : `${lightningNetwork.$network.caip2.namespace}:${lightningNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

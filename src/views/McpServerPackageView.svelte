@@ -76,37 +76,43 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<div>
-				<dt>registry server name</dt>
-				<dd>
-					<ResourceBoundary
-						resource={mcpServerPackage}
-					>
-						{#snippet children(entity)}
-							{entity.registryServerName}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={mcpServerPackage}
+			>
+				{#snippet children(entity)}
+					{@const registryServerName = entity.registryServerName}
+					{#if registryServerName != null}
+						<div>
+							<dt>registry server name</dt>
+							<dd>
+								{registryServerName}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>repository URL</dt>
-				<dd>
-					<ResourceBoundary
-						resource={mcpServerPackage}
-					>
-						{#snippet children(entity)}
-							<a
-								href={entity.repositoryUrl}
-								target="_blank"
-								rel="noreferrer noopener"
-							>
-								<TruncatedValue value={entity.repositoryUrl} />
-							</a>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={mcpServerPackage}
+			>
+				{#snippet children(entity)}
+					{@const repositoryUrl = entity.repositoryUrl}
+					{#if repositoryUrl != null}
+						<div>
+							<dt>repository URL</dt>
+							<dd>
+								<a
+									href={repositoryUrl}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={repositoryUrl} />
+								</a>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={mcpServerPackage}

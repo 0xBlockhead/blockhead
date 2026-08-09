@@ -62,7 +62,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[blockheadBridgeIntent.$fromNetwork == null ? '' : blockheadBridgeIntent.$fromNetwork.name || `${blockheadBridgeIntent.$fromNetwork.caip2.namespace}:${blockheadBridgeIntent.$fromNetwork.caip2.reference}` || 'Network', blockheadBridgeIntent.$toNetwork == null ? '' : blockheadBridgeIntent.$toNetwork.name || `${blockheadBridgeIntent.$toNetwork.caip2.namespace}:${blockheadBridgeIntent.$toNetwork.caip2.reference}` || 'Network'].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[blockheadBridgeIntent.$fromNetwork == null ? '' : blockheadBridgeIntent.$fromNetwork.name || (blockheadBridgeIntent.$fromNetwork.caip2 == null ? '' : `${blockheadBridgeIntent.$fromNetwork.caip2.namespace}:${blockheadBridgeIntent.$fromNetwork.caip2.reference}`) || 'Network', blockheadBridgeIntent.$toNetwork == null ? '' : blockheadBridgeIntent.$toNetwork.name || (blockheadBridgeIntent.$toNetwork.caip2 == null ? '' : `${blockheadBridgeIntent.$toNetwork.caip2.namespace}:${blockheadBridgeIntent.$toNetwork.caip2.reference}`) || 'Network'].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

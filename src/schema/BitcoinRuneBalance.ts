@@ -16,11 +16,11 @@ export default entity({
 })({
 	$output: {
 		entityType: EntityType.UtxoOutput,
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$address: {
 		entityType: EntityType.UtxoAddress,
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$rune: {
 		entityType: EntityType.BitcoinRune,

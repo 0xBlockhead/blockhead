@@ -69,7 +69,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{bitcoinCashCashTokenCategory.$network.name || `${bitcoinCashCashTokenCategory.$network.caip2.namespace}:${bitcoinCashCashTokenCategory.$network.caip2.reference}` || 'Network'}</span>
+				<span data-text="annotation">{bitcoinCashCashTokenCategory.$network.name || (bitcoinCashCashTokenCategory.$network.caip2 == null ? '' : `${bitcoinCashCashTokenCategory.$network.caip2.namespace}:${bitcoinCashCashTokenCategory.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

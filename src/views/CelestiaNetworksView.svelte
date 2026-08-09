@@ -40,7 +40,7 @@
 			entitySelector={celestiaNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{celestiaNetwork.$network.name || `${celestiaNetwork.$network.caip2.namespace}:${celestiaNetwork.$network.caip2.reference}` || 'Network'}
+				{celestiaNetwork.$network.name || (celestiaNetwork.$network.caip2 == null ? '' : `${celestiaNetwork.$network.caip2.namespace}:${celestiaNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

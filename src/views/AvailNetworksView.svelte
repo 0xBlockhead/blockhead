@@ -40,7 +40,7 @@
 			entitySelector={availNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{availNetwork.$network.name || `${availNetwork.$network.caip2.namespace}:${availNetwork.$network.caip2.reference}` || 'Network'}
+				{availNetwork.$network.name || (availNetwork.$network.caip2 == null ? '' : `${availNetwork.$network.caip2.namespace}:${availNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

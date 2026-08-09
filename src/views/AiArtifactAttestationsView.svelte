@@ -92,11 +92,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(aiArtifactAttestation.$artifact.artifactType ?? '') || [aiArtifactAttestation.$artifact.providerArtifactId, aiArtifactAttestation.$artifact.ociDigest, aiArtifactAttestation.$artifact.ipfsCid, aiArtifactAttestation.$artifact.arweaveId, aiArtifactAttestation.$artifact.gitObject, aiArtifactAttestation.$artifact.digest].filter(Boolean).join(' ') || 'AI artifact'}
+				{(aiArtifactAttestation.$artifact.artifactType ?? '') || [(aiArtifactAttestation.$artifact.providerArtifactId ?? ''), (aiArtifactAttestation.$artifact.ociDigest ?? ''), (aiArtifactAttestation.$artifact.ipfsCid ?? ''), (aiArtifactAttestation.$artifact.arweaveId ?? ''), (aiArtifactAttestation.$artifact.gitObject ?? ''), (aiArtifactAttestation.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{aiArtifactAttestation.logEntryId}</span>
+				<span data-text="annotation">{aiArtifactAttestation.logEntryId ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

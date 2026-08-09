@@ -65,7 +65,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{blockheadKaspaNodeState.$network.$network.name || `${blockheadKaspaNodeState.$network.$network.caip2.namespace}:${blockheadKaspaNodeState.$network.$network.caip2.reference}` || 'Network'}
+				{blockheadKaspaNodeState.$network.$network.name || (blockheadKaspaNodeState.$network.$network.caip2 == null ? '' : `${blockheadKaspaNodeState.$network.$network.caip2.namespace}:${blockheadKaspaNodeState.$network.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

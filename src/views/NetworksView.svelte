@@ -58,11 +58,11 @@
 			}
 		>
 			{#snippet Title()}
-				{network.name || `${network.caip2.namespace}:${network.caip2.reference}` || 'Network'}
+				{network.name || (network.caip2 == null ? '' : `${network.caip2.namespace}:${network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}
-				{`${network.caip2.namespace}:${network.caip2.reference}`}
+				{network.caip2 == null ? '' : `${network.caip2.namespace}:${network.caip2.reference}`}
 			{/snippet}
 		</EntityView>
 	{/snippet}

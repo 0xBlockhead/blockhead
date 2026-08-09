@@ -111,52 +111,61 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<div>
-				<dt>FID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={farcasterFeed}
-					>
-						{#snippet children(entity)}
-							<NumberValue
-								value={entity.fid}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={farcasterFeed}
+			>
+				{#snippet children(entity)}
+					{@const fid = entity.fid}
+					{#if fid != null}
+						<div>
+							<dt>FID</dt>
+							<dd>
+								<NumberValue
+									value={fid}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">
-			<div>
-				<dt>Channel ID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={farcasterFeed}
-					>
-						{#snippet children(entity)}
-							{entity.channelId}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={farcasterFeed}
+			>
+				{#snippet children(entity)}
+					{@const channelId = entity.channelId}
+					{#if channelId != null}
+						<div>
+							<dt>Channel ID</dt>
+							<dd>
+								{channelId}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">
-			<div>
-				<dt>Viewer FID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={farcasterFeed}
-					>
-						{#snippet children(entity)}
-							<NumberValue
-								value={entity.viewerFid}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={farcasterFeed}
+			>
+				{#snippet children(entity)}
+					{@const viewerFid = entity.viewerFid}
+					{#if viewerFid != null}
+						<div>
+							<dt>Viewer FID</dt>
+							<dd>
+								<NumberValue
+									value={viewerFid}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 

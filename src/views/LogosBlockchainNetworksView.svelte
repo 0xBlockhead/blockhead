@@ -40,11 +40,11 @@
 			entitySelector={logosBlockchainNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{logosBlockchainNetwork.$network.name || `${logosBlockchainNetwork.$network.caip2.namespace}:${logosBlockchainNetwork.$network.caip2.reference}` || 'Network'}
+				{logosBlockchainNetwork.$network.name || (logosBlockchainNetwork.$network.caip2 == null ? '' : `${logosBlockchainNetwork.$network.caip2.namespace}:${logosBlockchainNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}
-				{logosBlockchainNetwork.$network.name || `${logosBlockchainNetwork.$network.caip2.namespace}:${logosBlockchainNetwork.$network.caip2.reference}` || 'Network'}
+				{logosBlockchainNetwork.$network.name || (logosBlockchainNetwork.$network.caip2 == null ? '' : `${logosBlockchainNetwork.$network.caip2.namespace}:${logosBlockchainNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

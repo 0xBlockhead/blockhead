@@ -111,9 +111,12 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={uniswapV3Pool}>
 			{#snippet children(entity)}
-				<NumberValue
-					value={entity.fee}
-				/>
+				{@const fee = entity.fee}
+				{#if fee != null}
+					<NumberValue
+						value={fee}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -206,56 +209,63 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<div>
-				<dt>Token 0</dt>
-				<dd>
-					<ResourceBoundary
-						resource={selection.$token0}
-					>
-						{#snippet children(evmContract)}
-							<EvmContractView
-								selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-								prefetched={evmContract}
-								layout={EntityLayout.Value}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={selection.$token0}
+			>
+				{#snippet children(evmContract)}
+					{#if evmContract != null}
+						<div>
+							<dt>Token 0</dt>
+							<dd>
+								<EvmContractView
+									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
+									prefetched={evmContract}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>Token 1</dt>
-				<dd>
-					<ResourceBoundary
-						resource={selection.$token1}
-					>
-						{#snippet children(evmContract)}
-							<EvmContractView
-								selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-								prefetched={evmContract}
-								layout={EntityLayout.Value}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={selection.$token1}
+			>
+				{#snippet children(evmContract)}
+					{#if evmContract != null}
+						<div>
+							<dt>Token 1</dt>
+							<dd>
+								<EvmContractView
+									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
+									prefetched={evmContract}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">
-			<div>
-				<dt>Fee</dt>
-				<dd>
-					<ResourceBoundary
-						resource={uniswapV3Pool}
-					>
-						{#snippet children(entity)}
-							<NumberValue
-								value={entity.fee}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={uniswapV3Pool}
+			>
+				{#snippet children(entity)}
+					{@const fee = entity.fee}
+					{#if fee != null}
+						<div>
+							<dt>Fee</dt>
+							<dd>
+								<NumberValue
+									value={fee}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={

@@ -63,7 +63,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{hederaAccount.$network.name || `${hederaAccount.$network.caip2.namespace}:${hederaAccount.$network.caip2.reference}` || 'Network'}
+				{hederaAccount.$network.name || (hederaAccount.$network.caip2 == null ? '' : `${hederaAccount.$network.caip2.namespace}:${hederaAccount.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

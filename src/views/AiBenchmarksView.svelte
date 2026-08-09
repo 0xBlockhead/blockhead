@@ -75,7 +75,7 @@
 			}
 		>
 			{#snippet Title()}
-				{(aiBenchmark.label ?? '') || [aiBenchmark.benchmarkId, aiBenchmark.benchmarkUri].filter(Boolean).join(' ') || 'AI benchmark'}
+				{(aiBenchmark.label ?? '') || [(aiBenchmark.benchmarkId ?? ''), (aiBenchmark.benchmarkUri ?? '')].filter(Boolean).join(' ') || 'AI benchmark'}
 			{/snippet}
 
 			{#snippet Value()}

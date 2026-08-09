@@ -291,24 +291,27 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<div>
-				<dt>Client URL</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									clientUrl: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							<TruncatedValue value={entity.clientUrl} />
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							clientUrl: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const clientUrl = entity.clientUrl}
+					{#if clientUrl != null}
+						<div>
+							<dt>Client URL</dt>
+							<dd>
+								<TruncatedValue value={clientUrl} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<ResourceBoundary

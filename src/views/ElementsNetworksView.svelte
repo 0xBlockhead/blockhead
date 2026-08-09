@@ -41,7 +41,7 @@
 			entitySelector={elementsNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{elementsNetwork.$network.name || `${elementsNetwork.$network.caip2.namespace}:${elementsNetwork.$network.caip2.reference}` || 'Network'}
+				{elementsNetwork.$network.name || (elementsNetwork.$network.caip2 == null ? '' : `${elementsNetwork.$network.caip2.namespace}:${elementsNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

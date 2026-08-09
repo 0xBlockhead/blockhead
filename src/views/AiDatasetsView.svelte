@@ -92,7 +92,7 @@
 			}
 		>
 			{#snippet Title()}
-				{(aiDataset.label ?? '') || [aiDataset.datasetUri, aiDataset.datasetName, aiDataset.huggingFaceDatasetId].filter(Boolean).join(' ') || 'AI dataset'}
+				{(aiDataset.label ?? '') || [(aiDataset.datasetUri ?? ''), (aiDataset.datasetName ?? ''), (aiDataset.huggingFaceDatasetId ?? '')].filter(Boolean).join(' ') || 'AI dataset'}
 			{/snippet}
 
 			{#snippet Value()}

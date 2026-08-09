@@ -40,7 +40,7 @@
 			entitySelector={bittensorNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{bittensorNetwork.$network.name || `${bittensorNetwork.$network.caip2.namespace}:${bittensorNetwork.$network.caip2.reference}` || 'Network'}
+				{bittensorNetwork.$network.name || (bittensorNetwork.$network.caip2 == null ? '' : `${bittensorNetwork.$network.caip2.namespace}:${bittensorNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

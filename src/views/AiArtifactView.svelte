@@ -159,119 +159,142 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<div>
-				<dt>provider</dt>
-				<dd>
-					<ResourceBoundary
-						resource={selection.$provider}
-					>
-						{#snippet children(aiModelProvider)}
-							<AiModelProviderView
-								selection={select(EntityType.AiModelProvider, aiModelProvider[EntityMetaKey.Selector])}
-								prefetched={aiModelProvider}
-								layout={EntityLayout.Value}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={selection.$provider}
+			>
+				{#snippet children(aiModelProvider)}
+					{#if aiModelProvider != null}
+						<div>
+							<dt>provider</dt>
+							<dd>
+								<AiModelProviderView
+									selection={select(EntityType.AiModelProvider, aiModelProvider[EntityMetaKey.Selector])}
+									prefetched={aiModelProvider}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>provider artifact ID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={aiArtifact}
-					>
-						{#snippet children(entity)}
-							{entity.providerArtifactId}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={aiArtifact}
+			>
+				{#snippet children(entity)}
+					{@const providerArtifactId = entity.providerArtifactId}
+					{#if providerArtifactId != null}
+						<div>
+							<dt>provider artifact ID</dt>
+							<dd>
+								{providerArtifactId}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>digest algorithm</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									digestAlgorithm: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{entity.digestAlgorithm}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							digestAlgorithm: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const digestAlgorithm = entity.digestAlgorithm}
+					{#if digestAlgorithm != null}
+						<div>
+							<dt>digest algorithm</dt>
+							<dd>
+								{digestAlgorithm}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>digest</dt>
-				<dd>
-					<ResourceBoundary
-						resource={aiArtifact}
-					>
-						{#snippet children(entity)}
-							<TruncatedValue value={entity.digest} />
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={aiArtifact}
+			>
+				{#snippet children(entity)}
+					{@const digest = entity.digest}
+					{#if digest != null}
+						<div>
+							<dt>digest</dt>
+							<dd>
+								<TruncatedValue value={digest} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>OCI digest</dt>
-				<dd>
-					<ResourceBoundary
-						resource={aiArtifact}
-					>
-						{#snippet children(entity)}
-							<TruncatedValue value={entity.ociDigest} />
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={aiArtifact}
+			>
+				{#snippet children(entity)}
+					{@const ociDigest = entity.ociDigest}
+					{#if ociDigest != null}
+						<div>
+							<dt>OCI digest</dt>
+							<dd>
+								<TruncatedValue value={ociDigest} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>IPFS CID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={aiArtifact}
-					>
-						{#snippet children(entity)}
-							{entity.ipfsCid}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={aiArtifact}
+			>
+				{#snippet children(entity)}
+					{@const ipfsCid = entity.ipfsCid}
+					{#if ipfsCid != null}
+						<div>
+							<dt>IPFS CID</dt>
+							<dd>
+								{ipfsCid}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>Arweave ID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={aiArtifact}
-					>
-						{#snippet children(entity)}
-							{entity.arweaveId}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={aiArtifact}
+			>
+				{#snippet children(entity)}
+					{@const arweaveId = entity.arweaveId}
+					{#if arweaveId != null}
+						<div>
+							<dt>Arweave ID</dt>
+							<dd>
+								{arweaveId}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>Git object</dt>
-				<dd>
-					<ResourceBoundary
-						resource={aiArtifact}
-					>
-						{#snippet children(entity)}
-							{entity.gitObject}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={aiArtifact}
+			>
+				{#snippet children(entity)}
+					{@const gitObject = entity.gitObject}
+					{#if gitObject != null}
+						<div>
+							<dt>Git object</dt>
+							<dd>
+								{gitObject}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">

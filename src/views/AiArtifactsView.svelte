@@ -106,7 +106,7 @@
 			}
 		>
 			{#snippet Title()}
-				{(aiArtifact.artifactType ?? '') || [aiArtifact.providerArtifactId, aiArtifact.ociDigest, aiArtifact.ipfsCid, aiArtifact.arweaveId, aiArtifact.gitObject, aiArtifact.digest].filter(Boolean).join(' ') || 'AI artifact'}
+				{(aiArtifact.artifactType ?? '') || [(aiArtifact.providerArtifactId ?? ''), (aiArtifact.ociDigest ?? ''), (aiArtifact.ipfsCid ?? ''), (aiArtifact.arweaveId ?? ''), (aiArtifact.gitObject ?? ''), (aiArtifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
 			{/snippet}
 
 			{#snippet Value()}

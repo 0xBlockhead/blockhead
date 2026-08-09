@@ -64,7 +64,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{(blockheadLightningNodeState.$network.name ?? '') || blockheadLightningNodeState.$network.$network.name || `${blockheadLightningNodeState.$network.$network.caip2.namespace}:${blockheadLightningNodeState.$network.$network.caip2.reference}` || 'Network'}
+				{(blockheadLightningNodeState.$network.name ?? '') || blockheadLightningNodeState.$network.$network.name || (blockheadLightningNodeState.$network.$network.caip2 == null ? '' : `${blockheadLightningNodeState.$network.$network.caip2.namespace}:${blockheadLightningNodeState.$network.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

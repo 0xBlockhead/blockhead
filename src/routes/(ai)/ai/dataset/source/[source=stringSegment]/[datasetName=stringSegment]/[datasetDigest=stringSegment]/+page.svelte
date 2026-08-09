@@ -36,7 +36,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.datasetName ?? '') || 'AI dataset' : (pageSelection.entity.label ?? '') || [pageSelection.entity.datasetUri, pageSelection.entitySelector.datasetName, pageSelection.entity.huggingFaceDatasetId].filter(Boolean).join(' ') || 'AI dataset'} • AI dataset • Blockhead</title>
+	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.datasetName ?? '') || 'AI dataset' : (pageSelection.entity.label ?? '') || [(pageSelection.entity.datasetUri ?? ''), (pageSelection.entitySelector.datasetName ?? ''), (pageSelection.entity.huggingFaceDatasetId ?? '')].filter(Boolean).join(' ') || 'AI dataset'} • AI dataset • Blockhead</title>
 </svelte:head>
 
 

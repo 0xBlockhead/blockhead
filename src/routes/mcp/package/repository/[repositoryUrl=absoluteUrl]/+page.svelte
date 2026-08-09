@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.repositoryUrl ?? '') || 'MCP server package' : (pageSelection.entity.label ?? '') || [pageSelection.entity.registryServerName, pageSelection.entitySelector.repositoryUrl].filter(Boolean).join(' ') || 'MCP server package'} • MCP server package • Blockhead</title>
+	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.repositoryUrl ?? '') || 'MCP server package' : (pageSelection.entity.label ?? '') || [(pageSelection.entity.registryServerName ?? ''), (pageSelection.entitySelector.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'MCP server package'} • MCP server package • Blockhead</title>
 </svelte:head>
 
 

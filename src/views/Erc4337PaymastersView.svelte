@@ -67,7 +67,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{erc4337Paymaster.$network.name || `${erc4337Paymaster.$network.caip2.namespace}:${erc4337Paymaster.$network.caip2.reference}` || 'Network'}</span>
+				<span data-text="annotation">{erc4337Paymaster.$network.name || (erc4337Paymaster.$network.caip2 == null ? '' : `${erc4337Paymaster.$network.caip2.namespace}:${erc4337Paymaster.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

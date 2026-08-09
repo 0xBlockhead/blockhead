@@ -19,7 +19,7 @@ export default entity({
 	},
 	canonicalRemoteUrl: {
 		primitiveType: UrlString,
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	defaultRefName: {
 		primitiveType: type('string'),

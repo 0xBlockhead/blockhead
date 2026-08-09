@@ -92,57 +92,66 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={acpAgentProgram}>
 			{#snippet children(entity)}
-				{entity.packageName || (entity.label ?? '') || titleFallback}
+				{(entity.packageName ?? '') || (entity.label ?? '') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<div>
-				<dt>registry agent ID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={acpAgentProgram}
-					>
-						{#snippet children(entity)}
-							{entity.registryAgentId}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={acpAgentProgram}
+			>
+				{#snippet children(entity)}
+					{@const registryAgentId = entity.registryAgentId}
+					{#if registryAgentId != null}
+						<div>
+							<dt>registry agent ID</dt>
+							<dd>
+								{registryAgentId}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>package name</dt>
-				<dd>
-					<ResourceBoundary
-						resource={acpAgentProgram}
-					>
-						{#snippet children(entity)}
-							{entity.packageName}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={acpAgentProgram}
+			>
+				{#snippet children(entity)}
+					{@const packageName = entity.packageName}
+					{#if packageName != null}
+						<div>
+							<dt>package name</dt>
+							<dd>
+								{packageName}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>repository URL</dt>
-				<dd>
-					<ResourceBoundary
-						resource={acpAgentProgram}
-					>
-						{#snippet children(entity)}
-							<a
-								href={entity.repositoryUrl}
-								target="_blank"
-								rel="noreferrer noopener"
-							>
-								<TruncatedValue value={entity.repositoryUrl} />
-							</a>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={acpAgentProgram}
+			>
+				{#snippet children(entity)}
+					{@const repositoryUrl = entity.repositoryUrl}
+					{#if repositoryUrl != null}
+						<div>
+							<dt>repository URL</dt>
+							<dd>
+								<a
+									href={repositoryUrl}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={repositoryUrl} />
+								</a>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={acpAgentProgram}

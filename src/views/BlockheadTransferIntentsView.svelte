@@ -61,7 +61,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{blockheadTransferIntent.$network == null ? '' : blockheadTransferIntent.$network.name || `${blockheadTransferIntent.$network.caip2.namespace}:${blockheadTransferIntent.$network.caip2.reference}` || 'Network'}</span>
+				<span data-text="annotation">{blockheadTransferIntent.$network == null ? '' : blockheadTransferIntent.$network.name || (blockheadTransferIntent.$network.caip2 == null ? '' : `${blockheadTransferIntent.$network.caip2.namespace}:${blockheadTransferIntent.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

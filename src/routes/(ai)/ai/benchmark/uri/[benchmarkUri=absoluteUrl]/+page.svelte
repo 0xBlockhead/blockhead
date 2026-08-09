@@ -32,7 +32,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.benchmarkUri ?? '') || 'AI benchmark' : (pageSelection.entity.label ?? '') || [pageSelection.entity.benchmarkId, pageSelection.entitySelector.benchmarkUri].filter(Boolean).join(' ') || 'AI benchmark'} • AI benchmark • Blockhead</title>
+	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.benchmarkUri ?? '') || 'AI benchmark' : (pageSelection.entity.label ?? '') || [(pageSelection.entity.benchmarkId ?? ''), (pageSelection.entitySelector.benchmarkUri ?? '')].filter(Boolean).join(' ') || 'AI benchmark'} • AI benchmark • Blockhead</title>
 </svelte:head>
 
 

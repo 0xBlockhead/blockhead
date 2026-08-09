@@ -72,11 +72,11 @@
 			}
 		>
 			{#snippet Title()}
-				{(acpAgentProgram.label ?? '') || [acpAgentProgram.registryAgentId, acpAgentProgram.packageName, acpAgentProgram.repositoryUrl].filter(Boolean).join(' ') || 'ACP agent program'}
+				{(acpAgentProgram.label ?? '') || [(acpAgentProgram.registryAgentId ?? ''), (acpAgentProgram.packageName ?? ''), (acpAgentProgram.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
 			{/snippet}
 
 			{#snippet Value()}
-				{acpAgentProgram.packageName}
+				{acpAgentProgram.packageName ?? ''}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -70,7 +70,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{eulerEvkVault.$network.name || `${eulerEvkVault.$network.caip2.namespace}:${eulerEvkVault.$network.caip2.reference}` || 'Network'}</span>
+				<span data-text="annotation">{eulerEvkVault.$network.name || (eulerEvkVault.$network.caip2 == null ? '' : `${eulerEvkVault.$network.caip2.namespace}:${eulerEvkVault.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

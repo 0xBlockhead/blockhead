@@ -100,9 +100,12 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiArtifactAttestation}>
 			{#snippet children(entity)}
-				<span data-text="muted">
-					{entity.logEntryId}
-				</span>
+				{@const logEntryId = entity.logEntryId}
+				{#if logEntryId != null}
+					<span data-text="muted">
+						{logEntryId}
+					</span>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -126,56 +129,65 @@
 				</dd>
 			</div>
 
-			<div>
-				<dt>log entry ID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={aiArtifactAttestation}
-					>
-						{#snippet children(entity)}
-							{entity.logEntryId}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={aiArtifactAttestation}
+			>
+				{#snippet children(entity)}
+					{@const logEntryId = entity.logEntryId}
+					{#if logEntryId != null}
+						<div>
+							<dt>log entry ID</dt>
+							<dd>
+								{logEntryId}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>signature hash algorithm</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									signatureHashAlgorithm: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{entity.signatureHashAlgorithm}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							signatureHashAlgorithm: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const signatureHashAlgorithm = entity.signatureHashAlgorithm}
+					{#if signatureHashAlgorithm != null}
+						<div>
+							<dt>signature hash algorithm</dt>
+							<dd>
+								{signatureHashAlgorithm}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>signature hash</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									signatureHash: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							<TruncatedValue value={entity.signatureHash} />
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							signatureHash: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const signatureHash = entity.signatureHash}
+					{#if signatureHash != null}
+						<div>
+							<dt>signature hash</dt>
+							<dd>
+								<TruncatedValue value={signatureHash} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">

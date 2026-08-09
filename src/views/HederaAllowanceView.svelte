@@ -131,12 +131,14 @@
 						{/if}
 					{/snippet}
 				</ResourceBoundary>
-
-				<span data-text="muted">
-					<NumberValue
-						value={entity.serialNumber}
-					/>
-				</span>
+				{@const serialNumber = entity.serialNumber}
+				{#if serialNumber != null}
+					<span data-text="muted">
+						<NumberValue
+							value={serialNumber}
+						/>
+					</span>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -190,20 +192,23 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<div>
-				<dt>serial number</dt>
-				<dd>
-					<ResourceBoundary
-						resource={hederaAllowance}
-					>
-						{#snippet children(entity)}
-							<NumberValue
-								value={entity.serialNumber}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={hederaAllowance}
+			>
+				{#snippet children(entity)}
+					{@const serialNumber = entity.serialNumber}
+					{#if serialNumber != null}
+						<div>
+							<dt>serial number</dt>
+							<dd>
+								<NumberValue
+									value={serialNumber}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={selection.$nft}

@@ -74,11 +74,11 @@
 			}
 		>
 			{#snippet Title()}
-				{[(lensAccount.displayName ?? ''), lensAccount.localName, lensAccount.address, lensAccount.legacyProfileId].filter(Boolean).join(' ') || 'Lens account'}
+				{[(lensAccount.displayName ?? ''), (lensAccount.localName ?? ''), lensAccount.address, (lensAccount.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account'}
 			{/snippet}
 
 			{#snippet Value()}
-				{[lensAccount.localName, lensAccount.address, lensAccount.legacyProfileId].filter(Boolean).join(' ')}
+				{[(lensAccount.localName ?? ''), lensAccount.address, (lensAccount.legacyProfileId ?? '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

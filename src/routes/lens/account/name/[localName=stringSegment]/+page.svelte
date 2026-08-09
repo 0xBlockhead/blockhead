@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.localName ?? '') || 'Lens account' : [(pageSelection.entity.displayName ?? ''), pageSelection.entitySelector.localName, pageSelection.entity.address, pageSelection.entity.legacyProfileId].filter(Boolean).join(' ') || 'Lens account'} • Lens account • Blockhead</title>
+	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.localName ?? '') || 'Lens account' : [(pageSelection.entity.displayName ?? ''), (pageSelection.entitySelector.localName ?? ''), pageSelection.entity.address, (pageSelection.entity.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account'} • Lens account • Blockhead</title>
 </svelte:head>
 
 

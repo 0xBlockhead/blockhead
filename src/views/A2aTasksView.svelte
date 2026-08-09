@@ -69,7 +69,7 @@
 			}
 		>
 			{#snippet Title()}
-				{a2aTask.taskId || a2aTask.providerTaskId || 'A2A task'}
+				{a2aTask.taskId || (a2aTask.providerTaskId ?? '') || 'A2A task'}
 			{/snippet}
 
 			{#snippet Value()}

@@ -66,7 +66,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{blockheadLitecoinMwebWalletState.$network.name || `${blockheadLitecoinMwebWalletState.$network.caip2.namespace}:${blockheadLitecoinMwebWalletState.$network.caip2.reference}` || 'Network'}
+				{blockheadLitecoinMwebWalletState.$network.name || (blockheadLitecoinMwebWalletState.$network.caip2 == null ? '' : `${blockheadLitecoinMwebWalletState.$network.caip2.namespace}:${blockheadLitecoinMwebWalletState.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

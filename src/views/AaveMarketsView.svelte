@@ -69,7 +69,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{aaveMarket.$network.name || `${aaveMarket.$network.caip2.namespace}:${aaveMarket.$network.caip2.reference}` || 'Network'}</span>
+				<span data-text="annotation">{aaveMarket.$network.name || (aaveMarket.$network.caip2 == null ? '' : `${aaveMarket.$network.caip2.namespace}:${aaveMarket.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

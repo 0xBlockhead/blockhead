@@ -116,7 +116,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={lensAccount}>
 			{#snippet children(entity)}
-				{[(entity.displayName ?? ''), entity.localName, entity.address, entity.legacyProfileId].filter(Boolean).join(' ') || title || titleFallback}
+				{[(entity.displayName ?? ''), (entity.localName ?? ''), entity.address, (entity.legacyProfileId ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -124,7 +124,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={lensAccount}>
 			{#snippet children(entity)}
-				{[entity.localName, entity.address, entity.legacyProfileId].filter(Boolean).join(' ') || [(entity.displayName ?? ''), entity.localName, entity.address, entity.legacyProfileId].filter(Boolean).join(' ') || titleFallback}
+				{[(entity.localName ?? ''), entity.address, (entity.legacyProfileId ?? '')].filter(Boolean).join(' ') || [(entity.displayName ?? ''), (entity.localName ?? ''), entity.address, (entity.legacyProfileId ?? '')].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -159,33 +159,39 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<div>
-				<dt>Local name</dt>
-				<dd>
-					<ResourceBoundary
-						resource={lensAccount}
-					>
-						{#snippet children(entity)}
-							{entity.localName}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={lensAccount}
+			>
+				{#snippet children(entity)}
+					{@const localName = entity.localName}
+					{#if localName != null}
+						<div>
+							<dt>Local name</dt>
+							<dd>
+								{localName}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">
-			<div>
-				<dt>Legacy profile ID</dt>
-				<dd>
-					<ResourceBoundary
-						resource={lensAccount}
-					>
-						{#snippet children(entity)}
-							{entity.legacyProfileId}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={lensAccount}
+			>
+				{#snippet children(entity)}
+					{@const legacyProfileId = entity.legacyProfileId}
+					{#if legacyProfileId != null}
+						<div>
+							<dt>Legacy profile ID</dt>
+							<dd>
+								{legacyProfileId}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">

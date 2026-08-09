@@ -69,7 +69,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{polkadotAccount.$network.name || `${polkadotAccount.$network.caip2.namespace}:${polkadotAccount.$network.caip2.reference}` || 'Network'}</span>
+				<span data-text="annotation">{polkadotAccount.$network.name || (polkadotAccount.$network.caip2 == null ? '' : `${polkadotAccount.$network.caip2.namespace}:${polkadotAccount.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

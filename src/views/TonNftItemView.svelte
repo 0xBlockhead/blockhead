@@ -121,40 +121,45 @@
 				</dd>
 			</div>
 
-			<div>
-				<dt>collection</dt>
-				<dd>
-					<ResourceBoundary
-						resource={selection.$collection}
-					>
-						{#snippet children(tonNftCollection)}
-							<TonNftCollectionView
-								selection={select(EntityType.TonNftCollection, tonNftCollection[EntityMetaKey.Selector])}
-								layout={EntityLayout.Value}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={selection.$collection}
+			>
+				{#snippet children(tonNftCollection)}
+					{#if tonNftCollection != null}
+						<div>
+							<dt>collection</dt>
+							<dd>
+								<TonNftCollectionView
+									selection={select(EntityType.TonNftCollection, tonNftCollection[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			<div>
-				<dt>item index</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									itemIndex: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{entity.itemIndex}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							itemIndex: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const itemIndex = entity.itemIndex}
+					{#if itemIndex != null}
+						<div>
+							<dt>item index</dt>
+							<dd>
+								{itemIndex}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={selection.$account}

@@ -71,7 +71,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[osmosisPool.$network.name || `${osmosisPool.$network.caip2.namespace}:${osmosisPool.$network.caip2.reference}` || 'Network', (osmosisPool.liquidityKind ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[osmosisPool.$network.name || (osmosisPool.$network.caip2 == null ? '' : `${osmosisPool.$network.caip2.namespace}:${osmosisPool.$network.caip2.reference}`) || 'Network', (osmosisPool.liquidityKind ?? '')].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

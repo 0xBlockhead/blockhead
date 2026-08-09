@@ -30,27 +30,8 @@
 			...{
 				fields: {
 					version: true,
-					$program: {
-						fields: {
-							label: true,
-							packageName: true,
-							registryAgentId: true,
-							repositoryUrl: true,
-						},
-					},
-					$artifact: {
-						fields: {
-							artifactType: true,
-							mediaType: true,
-							providerArtifactId: true,
-							ociDigest: true,
-							ipfsCid: true,
-							arweaveId: true,
-							gitObject: true,
-							digest: true,
-							size: true,
-						},
-					},
+					$program: true,
+					$artifact: true,
 					distributionKind: true,
 				},
 			},
@@ -90,11 +71,11 @@
 			}
 		>
 			{#snippet Title()}
-				{acpAgentProgramVersion.version || (acpAgentProgramVersion.$artifact.artifactType ?? '') || [acpAgentProgramVersion.$artifact.providerArtifactId, acpAgentProgramVersion.$artifact.ociDigest, acpAgentProgramVersion.$artifact.ipfsCid, acpAgentProgramVersion.$artifact.arweaveId, acpAgentProgramVersion.$artifact.gitObject, acpAgentProgramVersion.$artifact.digest].filter(Boolean).join(' ') || 'AI artifact'}
+				{(acpAgentProgramVersion.version ?? '') || (acpAgentProgramVersion.$artifact == null ? '' : (acpAgentProgramVersion.$artifact.artifactType ?? '') || [(acpAgentProgramVersion.$artifact.providerArtifactId ?? ''), (acpAgentProgramVersion.$artifact.ociDigest ?? ''), (acpAgentProgramVersion.$artifact.ipfsCid ?? ''), (acpAgentProgramVersion.$artifact.arweaveId ?? ''), (acpAgentProgramVersion.$artifact.gitObject ?? ''), (acpAgentProgramVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact') || 'ACP agent program version'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(acpAgentProgramVersion.$program.label ?? '') || [acpAgentProgramVersion.$program.registryAgentId, acpAgentProgramVersion.$program.packageName, acpAgentProgramVersion.$program.repositoryUrl].filter(Boolean).join(' ') || 'ACP agent program'}
+				{acpAgentProgramVersion.$program == null ? '' : (acpAgentProgramVersion.$program.label ?? '') || [(acpAgentProgramVersion.$program.registryAgentId ?? ''), (acpAgentProgramVersion.$program.packageName ?? ''), (acpAgentProgramVersion.$program.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

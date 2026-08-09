@@ -69,7 +69,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{evmNetworkGasEstimateTimestamp.$network.name || `${evmNetworkGasEstimateTimestamp.$network.caip2.namespace}:${evmNetworkGasEstimateTimestamp.$network.caip2.reference}` || 'Network'}</span>
+				<span data-text="annotation">{evmNetworkGasEstimateTimestamp.$network.name || (evmNetworkGasEstimateTimestamp.$network.caip2 == null ? '' : `${evmNetworkGasEstimateTimestamp.$network.caip2.namespace}:${evmNetworkGasEstimateTimestamp.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

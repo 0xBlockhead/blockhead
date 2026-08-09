@@ -42,7 +42,7 @@
 			entitySelector={dydxChainNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{dydxChainNetwork.$network.name || `${dydxChainNetwork.$network.caip2.namespace}:${dydxChainNetwork.$network.caip2.reference}` || 'Network'}
+				{dydxChainNetwork.$network.name || (dydxChainNetwork.$network.caip2 == null ? '' : `${dydxChainNetwork.$network.caip2.namespace}:${dydxChainNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -68,7 +68,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{eigenLayerOperator.$network.name || `${eigenLayerOperator.$network.caip2.namespace}:${eigenLayerOperator.$network.caip2.reference}` || 'Network'}</span>
+				<span data-text="annotation">{eigenLayerOperator.$network.name || (eigenLayerOperator.$network.caip2 == null ? '' : `${eigenLayerOperator.$network.caip2.namespace}:${eigenLayerOperator.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

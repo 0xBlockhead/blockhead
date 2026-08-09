@@ -40,7 +40,7 @@
 			entitySelector={kaspaNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{kaspaNetwork.$network.name || `${kaspaNetwork.$network.caip2.namespace}:${kaspaNetwork.$network.caip2.reference}` || 'Network'}
+				{kaspaNetwork.$network.name || (kaspaNetwork.$network.caip2 == null ? '' : `${kaspaNetwork.$network.caip2.namespace}:${kaspaNetwork.$network.caip2.reference}`) || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

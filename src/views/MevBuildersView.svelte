@@ -67,7 +67,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{mevBuilder.$network.name || `${mevBuilder.$network.caip2.namespace}:${mevBuilder.$network.caip2.reference}` || 'Network'}</span>
+				<span data-text="annotation">{mevBuilder.$network.name || (mevBuilder.$network.caip2 == null ? '' : `${mevBuilder.$network.caip2.namespace}:${mevBuilder.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

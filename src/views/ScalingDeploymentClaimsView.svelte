@@ -70,7 +70,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[scalingDeploymentClaimSelector.source, scalingDeploymentClaim.$network.name || `${scalingDeploymentClaim.$network.caip2.namespace}:${scalingDeploymentClaim.$network.caip2.reference}` || 'Network'].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[scalingDeploymentClaimSelector.source, scalingDeploymentClaim.$network.name || (scalingDeploymentClaim.$network.caip2 == null ? '' : `${scalingDeploymentClaim.$network.caip2.namespace}:${scalingDeploymentClaim.$network.caip2.reference}`) || 'Network'].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}
