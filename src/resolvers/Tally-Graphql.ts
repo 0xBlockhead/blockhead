@@ -361,6 +361,7 @@ export default {
 			description: (proposal) => proposal.description,
 			organizationName: (proposal) => proposal.organizationName,
 			quorum: (proposal) => proposal.quorum,
+			voteStats: (proposal) => proposal.voteStats,
 			startAtMs: (proposal) => proposal.startAtMs,
 			endAtMs: (proposal) => proposal.endAtMs,
 			discourseUrl: (proposal) => proposal.discourseUrl,

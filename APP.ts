@@ -4602,6 +4602,18 @@ export const schema = {
 				type: { primitive: "string" },
 			},
 			{
+				id: "TallyVoteStat",
+				displayExpression: "`${value.type}: ${value.votesCount} (${value.votersCount} voters, ${value.percent}%)`",
+				type: {
+					object: [
+						{ name: "type", type: { primitive: "string" } },
+						{ name: "votesCount", type: { primitive: "string" } },
+						{ name: "votersCount", type: { primitive: "number" } },
+						{ name: "percent", type: { primitive: "number" } },
+					],
+				},
+			},
+			{
 				id: "tokenAmount",
 				displayExpression: "`${value.amount} ${value.unit}`",
 				type: {
@@ -60557,6 +60569,13 @@ export const schema = {
 				"description": { label: "Description", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
 				"organizationName": { label: "Organization", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
 				"quorum": { label: "Quorum", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
+				"voteStats": {
+					label: "Votes",
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.Many,
+					valueType: "TallyVoteStat",
+					defaultSources: [Source.Tally],
+				},
 				"startAtMs": { label: "Starts", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Tally] },
 				"endAtMs": { label: "Ends", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Tally] },
 				"discourseUrl": { label: "Discourse", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Tally] },
@@ -60578,7 +60597,7 @@ export const schema = {
 						content: {
 							dl: [
 								["$governor", "$network", "$proposer", "status", "onchainId", "organizationName"],
-								["startAtMs", "endAtMs", "quorum", "discourseUrl", "snapshotUrl", { field: "proposalId", format: "truncated" }],
+								["startAtMs", "endAtMs", "quorum", "voteStats", "discourseUrl", "snapshotUrl", { field: "proposalId", format: "truncated" }],
 							],
 							body: {
 								field: "description",
@@ -105497,7 +105516,7 @@ export const app = {
 			},
 			{
 				source: Source.Tally,
-				path: "src/resolvers/Tally.ts",
+				path: "src/resolvers/Tally-Graphql.ts",
 			},
 			{
 				source: Source.TezosDappetizer_Postgres,

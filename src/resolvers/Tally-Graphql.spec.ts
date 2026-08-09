@@ -37,7 +37,7 @@ const {
 	resolveTallyProposals,
 	tallyGovernorFields,
 	tallyProposalFields,
-} = await import('$/resolvers/Tally.ts')
+} = await import('$/resolvers/Tally-Graphql.ts')
 
 const governorId = 'eip155:1:0x7e90e03654732abedf89Faf87f05BcD03ACEeFdc'
 const organizationId = '2207450143689540900'
@@ -304,5 +304,17 @@ describe('Tally resolver field shaping', () => {
 		))
 		expect(governorResolver?.projections.name({ governorId, name: 'Uniswap' })).toBe('Uniswap')
 		expect(proposalResolver?.projections.title({ proposalId, title: 'Fund public goods' })).toBe('Fund public goods')
+		expect(proposalResolver?.projections.voteStats({
+			proposalId,
+			voteStats: proposal.voteStats,
+		})).toEqual(proposal.voteStats)
+	})
+
+	it('preserves an upstream proposal failure instead of materializing an empty proposal', async () => {
+		getProposal.mockRejectedValueOnce(new Error('Tally GraphQL: 503 Service Unavailable'))
+
+		await expect(resolveTallyProposal({
+			proposalId,
+		})).rejects.toThrow('503')
 	})
 })

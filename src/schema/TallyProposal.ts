@@ -81,6 +81,18 @@ export default entity({
 			Source.Tally,
 		],
 	},
+	voteStats: {
+		primitiveType: type({
+			type: type('string'),
+			votesCount: type('string'),
+			votersCount: type('number'),
+			percent: type('number'),
+		}),
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Tally,
+		],
+	},
 	startAtMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,

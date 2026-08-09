@@ -275,6 +275,25 @@
 				{/snippet}
 			</ResourceBoundary>
 
+			<div>
+				<dt>Votes</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									voteStats: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.voteStats.values.map((value) => `${value.type}: ${value.votesCount} (${value.votersCount} voters, ${value.percent}%)`).join(', ')}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
 			<ResourceBoundary
 				resource={
 					viewSelection({
