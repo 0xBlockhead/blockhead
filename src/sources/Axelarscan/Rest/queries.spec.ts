@@ -20,22 +20,6 @@ const { getGmpMessages } = await import('$/sources/Axelarscan/Rest/queries.ts')
 
 const binding = bindings[Source.Axelarscan_Rest][0]
 
-it('passes only the caller-provided noncanonical binding to transport', async () => {
-	const modifiedBinding = {
-		...binding,
-		endpoints: binding.endpoints.map((endpoint) => ({
-			...endpoint,
-			locator: 'https://noncanonical.example/axelarscan',
-		})),
-	}
-	getJson.mockResolvedValueOnce({ data: [], total: 0, time_spent: 0 })
-
-	await getGmpMessages(modifiedBinding, {})
-
-	expect(getJson).toHaveBeenCalledOnce()
-	expect(getJson.mock.calls[0][0]).toBe(modifiedBinding)
-})
-
 const sourceTransactionHash = `0x${'1'.repeat(64)}`
 const gasTransactionHash = `0x${'2'.repeat(64)}`
 const approvalTransactionHash = `0x${'3'.repeat(64)}`
@@ -141,7 +125,7 @@ describe('Axelarscan GMP queries', () => {
 	})
 
 	it('returns bounded, filtered public messages with lossless units', async () => {
-		const result = await getGmpMessages(binding, {
+		const result = await getGmpMessages({
 			size: 1,
 			from: 7,
 			sourceChain: 'moonbeam',
@@ -166,7 +150,7 @@ describe('Axelarscan GMP queries', () => {
 	})
 
 	it('filters account lists by senderAddress and rejects foreign senders', async () => {
-		await getGmpMessages(binding, {
+		await getGmpMessages({
 			size: 1,
 			from: 0,
 			senderAddress: sourceAddress,
@@ -177,13 +161,13 @@ describe('Axelarscan GMP queries', () => {
 		)
 
 		getJson.mockResolvedValueOnce(response())
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 			senderAddress: '0xForeign',
 		})).rejects.toThrow('foreign sender message')
 	})
 
 	it('filters by messageId and destinationContractAddress', async () => {
-		await getGmpMessages(binding, {
+		await getGmpMessages({
 			size: 1,
 			from: 0,
 			messageId: `${sourceTransactionHash}-1`,
@@ -195,12 +179,12 @@ describe('Axelarscan GMP queries', () => {
 		)
 
 		getJson.mockResolvedValueOnce(response())
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 			destinationContractAddress: '0xForeign',
 		})).rejects.toThrow('foreign destination contract message')
 
 		getJson.mockResolvedValueOnce(response())
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 			messageId: `${sourceTransactionHash}-99`,
 		})).rejects.toThrow('foreign message identity')
 	})
@@ -217,7 +201,7 @@ describe('Axelarscan GMP queries', () => {
 			},
 		}
 		getJson.mockResolvedValue(response([value]))
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 			size: 1,
 		})).rejects.toThrow('invalid destination native token price')
 	})
@@ -232,7 +216,7 @@ describe('Axelarscan GMP queries', () => {
 		liveStyle.executed.sourceTransactionLogIndex = 519
 		getJson.mockResolvedValue(response([liveStyle]))
 
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 			size: 1,
 		})).resolves.toMatchObject({
 			data: [{
@@ -247,7 +231,7 @@ describe('Axelarscan GMP queries', () => {
 			total: 0,
 			time_spent: 1,
 		})
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 			size: 1,
 		})).rejects.toThrow('invalid searchGMP response envelope')
 	})
@@ -267,7 +251,7 @@ describe('Axelarscan GMP queries', () => {
 			}],
 		})
 
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 			size: 1,
 		})).resolves.toMatchObject({
 			data: [{
@@ -279,7 +263,7 @@ describe('Axelarscan GMP queries', () => {
 	it('returns an empty list when searchGMP has zero messages', async () => {
 		getJson.mockResolvedValue(response([]))
 
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 			size: 1,
 		})).resolves.toEqual({
 			data: [],
@@ -288,7 +272,7 @@ describe('Axelarscan GMP queries', () => {
 		})
 
 		getJson.mockResolvedValue(response([]))
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 			transactionHash: `0x${'9'.repeat(64)}`,
 		})).resolves.toEqual({
 			data: [],
@@ -313,7 +297,7 @@ describe('Axelarscan GMP queries', () => {
 		],
 	])('hard-fails when the searchGMP envelope is %s', async (_name, body, message) => {
 		getJson.mockResolvedValue(body)
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 			size: 1,
 		})).rejects.toThrow(message)
 	})
@@ -322,7 +306,7 @@ describe('Axelarscan GMP queries', () => {
 		['size', { size: 26 }],
 		['offset', { from: -1 }],
 	])('rejects an invalid page %s', (_name, options) => {
-		expect(() => getGmpMessages(binding, {
+		expect(() => getGmpMessages({
 			...options,
 		})).toThrow('invalid page')
 		expect(getJson).not.toHaveBeenCalled()
@@ -330,12 +314,12 @@ describe('Axelarscan GMP queries', () => {
 
 	it('rejects oversized and foreign filtered responses', async () => {
 		getJson.mockResolvedValueOnce(response([message, message]))
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 			size: 1,
 		})).rejects.toThrow('response exceeds requested size')
 
 		getJson.mockResolvedValueOnce(response())
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 			sourceChain: 'ethereum',
 		})).rejects.toThrow('foreign chain message')
 	})
@@ -375,12 +359,12 @@ describe('Axelarscan GMP queries', () => {
 		const value = structuredClone(message)
 		mutate(value)
 		getJson.mockResolvedValue(response([value]))
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 		})).rejects.toThrow()
 	})
 
 	it('looks up only messages belonging to the requested transaction', async () => {
-		await getGmpMessages(binding, {
+		await getGmpMessages({
 			transactionHash: executionTransactionHash,
 		})
 		expect(getJson).toHaveBeenCalledWith(
@@ -389,7 +373,7 @@ describe('Axelarscan GMP queries', () => {
 		)
 
 		getJson.mockResolvedValue(response())
-		await expect(getGmpMessages(binding, {
+		await expect(getGmpMessages({
 			transactionHash: `0x${'9'.repeat(64)}`,
 		})).rejects.toThrow('foreign transaction message')
 	})

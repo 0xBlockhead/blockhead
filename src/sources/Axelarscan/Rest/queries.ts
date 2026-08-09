@@ -1,5 +1,5 @@
 import { getJson } from '$/sources/_shared/wire/HttpRest/client.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Axelarscan/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	axelarscanGmpPageLimits,
@@ -16,6 +16,8 @@ import {
 	axelarscanErrorEnvelope,
 	axelarscanGmpResponseEnvelope,
 } from '$/sources/Axelarscan/Rest/types.ts'
+
+const binding = bindings[Source.Axelarscan_Rest][0]
 
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const bytes32Pattern = /^0x[0-9a-fA-F]{64}$/
@@ -313,7 +315,7 @@ export type AxelarscanGmpSearchQuery =
  * Successful empty `data: []` is valid; missing/malformed envelopes throw.
  * Account lists use `senderAddress` (alias of Axelarscan `sourceAddress` / `sender`).
  */
-export const getGmpMessages = (binding: SourceBinding, query: AxelarscanGmpSearchQuery) => {
+export const getGmpMessages = (query: AxelarscanGmpSearchQuery) => {
 	const from = query.from ?? 0
 	const size = (
 		query.transactionHash == null ?

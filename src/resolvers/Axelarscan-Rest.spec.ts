@@ -132,9 +132,7 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 			resolverContext
 		)
 
-		expect(getGmpMessages).toHaveBeenCalledWith(expect.objectContaining({
-			source: Source.Axelarscan_Rest,
-		}), {
+		expect(getGmpMessages).toHaveBeenCalledWith({
 			transactionHash: sourceTransactionHash,
 		})
 		expect(bridgeTransferResolver.projections.source(snapshot)).toBe(Source.Axelarscan_Rest)
@@ -294,9 +292,7 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 			},
 		})
 
-		expect(getGmpMessages).toHaveBeenCalledWith(expect.objectContaining({
-			source: Source.Axelarscan_Rest,
-		}), {
+		expect(getGmpMessages).toHaveBeenCalledWith({
 			senderAddress: sourceAddress,
 			from: 0,
 			size: 25,
@@ -353,11 +349,11 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 			data: [{
 				...message,
 				executed: {
-					...message.executed!,
+					...message.executed,
 					relayerAddress: 'axelar1j4ypvp2m8n0jxj5thtfampd42vjl3chlnuv9e4',
 					from: undefined,
 					receipt: {
-						...message.executed!.receipt!,
+						...message.executed.receipt,
 						from: undefined,
 					},
 				},
