@@ -25,11 +25,9 @@ import type {
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { schema } from '$/schema/index.ts'
 import { cosmosSdkRestEndpoints } from '$/sources/CosmosSdk/Rest/queries.ts'
-import cosmosSdkBindings from '$/sources/CosmosSdk/bindings.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
-const cosmosSdkRestBinding = cosmosSdkBindings[Source.CosmosSdk_Rest][0]
 
 const assertCosmosHub = (network: NetworkId) => {
 	if (
@@ -167,9 +165,14 @@ const cosmosDurationToNs = (
 	if (match == null)
 		throw new Error(`CosmosSdk_Rest: invalid ${label} duration ${value}`)
 
-	const wholeSeconds = BigInt(match[1]!)
-	const fraction = match[2] ?? ''
-	const nanos = BigInt(fraction.padEnd(9, '0'))
+	const wholeSeconds = BigInt(match[1])
+	const decimalPointIndex = value.indexOf('.')
+	const nanos = BigInt(
+		decimalPointIndex === -1 ?
+			'0'
+		:
+			value.slice(decimalPointIndex + 1, -1).padEnd(9, '0')
+	)
 	return wholeSeconds * 1_000_000_000n + nanos
 }
 
@@ -182,7 +185,7 @@ const channelPartsFromPath = (
 
 	const sourcePort = hops[hops.length - 2]
 	const sourceChannel = hops[hops.length - 1]
-	if (sourcePort == null || sourceChannel == null || sourcePort === '' || sourceChannel === '')
+	if (sourcePort === '' || sourceChannel === '')
 		return
 
 	return {
@@ -211,8 +214,12 @@ const cosmosIbcConnectionIdFromPath = (
 const cosmosCounterpartyNetworkReference = (
 	counterpartyChainId: string
 ) => {
-	const catalog = networkByCaip2[`cosmos:${counterpartyChainId}`]
-	if (catalog == null || !('caip2' in catalog))
+	const key = `cosmos:${counterpartyChainId}`
+	if (!Object.hasOwn(networkByCaip2, key))
+		return
+
+	const catalog = networkByCaip2[key]
+	if (!('caip2' in catalog))
 		return
 
 	return {
@@ -547,7 +554,6 @@ const getCosmosAccountSnapshot = async (
 	assertCosmosHub(network)
 	const { getAccounts } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 	const response = await getAccounts({
-		binding: cosmosSdkRestBinding,
 		limit,
 	})
 	return {
@@ -574,7 +580,6 @@ const getCosmosValidatorSnapshot = async (
 	assertCosmosHub(network)
 	const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 	const response = await getValidators({
-		binding: cosmosSdkRestBinding,
 		limit,
 	})
 	return {
@@ -595,7 +600,6 @@ const getCosmosProposalSnapshot = async (
 	assertCosmosHub(network)
 	const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 	const response = await getProposals({
-		binding: cosmosSdkRestBinding,
 		limit,
 	})
 	return {
@@ -615,7 +619,7 @@ const getCosmosBlockReferences = async (
 ) => {
 	assertCosmosHub(network)
 	const { getLatestBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-	const latestBlock = await getLatestBlock(cosmosSdkRestBinding)
+	const latestBlock = await getLatestBlock()
 	const latestBlockHeight = BigInt(latestBlock.block.header.height)
 	return Array.from({
 		length: Math.min(
@@ -637,7 +641,7 @@ export default {
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: cosmosNetworkResolverSelectors(
-				async () => cosmosSdkRestEndpoints(cosmosSdkRestBinding)
+				async () => cosmosSdkRestEndpoints()
 			),
 		})({
 				Cosmos: {
@@ -669,15 +673,14 @@ export default {
 							bondedValidators,
 							stakingPool,
 						] = await Promise.all([
-							getLatestBlock(cosmosSdkRestBinding),
-							getNodeInfo(cosmosSdkRestBinding),
-							getSyncing(cosmosSdkRestBinding),
+							getLatestBlock(),
+							getNodeInfo(),
+							getSyncing(),
 							getValidators({
-								binding: cosmosSdkRestBinding,
 								limit: 1,
 								status: 'BOND_STATUS_BONDED',
 							}),
-							getStakingPool(cosmosSdkRestBinding),
+							getStakingPool(),
 						])
 						return {
 							$network: {
@@ -736,7 +739,6 @@ export default {
 
 						const { getBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const wireBlock = await getBlock({
-							binding: cosmosSdkRestBinding,
 							height,
 						})
 						return {
@@ -765,7 +767,6 @@ export default {
 
 						const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const wireTransaction = await getTx({
-							binding: cosmosSdkRestBinding,
 							txHash: entitySelector.txHash,
 						})
 						if (wireTransaction.tx_response.txhash !== entitySelector.txHash)
@@ -810,10 +811,9 @@ export default {
 							latestBlock,
 						] = await Promise.all([
 							getAccount({
-								binding: cosmosSdkRestBinding,
 								address: address,
 							}),
-							getLatestBlock(cosmosSdkRestBinding),
+							getLatestBlock(),
 						])
 						if (account == null)
 							throw new Error('CosmosSdk_Rest: account response is missing')
@@ -867,7 +867,6 @@ export default {
 
 						const { getAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const account = (await getAccount({
-							binding: cosmosSdkRestBinding,
 							address: $account.address,
 						})).account
 						if (account == null)
@@ -901,7 +900,6 @@ export default {
 						const { $network, operatorAddress } = entitySelector
 						const { getValidator } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const validator = (await getValidator({
-							binding: cosmosSdkRestBinding,
 							operatorAddress: operatorAddress,
 						})).validator
 						return {
@@ -937,7 +935,6 @@ export default {
 						return cosmosValidatorTimestampFields(
 							$validator,
 							(await getValidator({
-								binding: cosmosSdkRestBinding,
 								operatorAddress: $validator.operatorAddress,
 							})).validator,
 							timestampMs
@@ -966,7 +963,6 @@ export default {
 						const { getTx } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const message = (
 							await getTx({
-								binding: cosmosSdkRestBinding,
 								txHash: $transaction.txHash,
 							})
 						).tx?.body?.messages?.at(indexInTransaction)
@@ -990,7 +986,6 @@ export default {
 						const { $network, proposalId } = entitySelector
 						const { getProposal } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const proposal = (await getProposal({
-							binding: cosmosSdkRestBinding,
 							proposalId: proposalId,
 						})).proposal
 						if (proposal.id !== proposalId)
@@ -1030,7 +1025,6 @@ export default {
 							timestampMs,
 							source,
 							status: (await getProposal({
-								binding: cosmosSdkRestBinding,
 								proposalId: $proposal.proposalId,
 							})).proposal.status,
 						}
@@ -1052,7 +1046,6 @@ export default {
 					resolve: async ({ $network, denom }) => {
 						const { getDenomMetadata } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const metadata = (await getDenomMetadata({
-							binding: cosmosSdkRestBinding,
 							denom: denom,
 						})).metadata
 						return {
@@ -1077,7 +1070,6 @@ export default {
 					resolve: async ({ $network, moduleName }) => {
 						const { getModuleAccount } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const moduleAccount = await getModuleAccount({
-							binding: cosmosSdkRestBinding,
 							moduleName: moduleName,
 						})
 						return {
@@ -1105,7 +1097,6 @@ export default {
 					resolve: async ({ $network, address }) => {
 						const { getContractInfo } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const contractInfo = (await getContractInfo({
-							binding: cosmosSdkRestBinding,
 							address: address,
 						})).contract_info
 						return {
@@ -1233,7 +1224,6 @@ export default {
 						getIbcChannels,
 					} = await import('$/sources/CosmosSdk/Rest/queries.ts')
 					const response = await getIbcChannels({
-						binding: cosmosSdkRestBinding,
 						limit: resolverContextRowLimit(context),
 					})
 					return {
@@ -1273,7 +1263,6 @@ export default {
 						getIbcClientStates,
 					} = await import('$/sources/CosmosSdk/Rest/queries.ts')
 					const response = await getIbcClientStates({
-						binding: cosmosSdkRestBinding,
 						limit: resolverContextRowLimit(context),
 					})
 					return {
@@ -1305,7 +1294,6 @@ export default {
 						getIbcConnections,
 					} = await import('$/sources/CosmosSdk/Rest/queries.ts')
 					const response = await getIbcConnections({
-						binding: cosmosSdkRestBinding,
 						limit: resolverContextRowLimit(context),
 					})
 					return {
@@ -1351,12 +1339,10 @@ export default {
 						const { getTransactionsByEvent } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const [senderPage, recipientPage] = await Promise.all([
 							getTransactionsByEvent({
-								binding: cosmosSdkRestBinding,
 								event: `message.sender='${cosmosAccount.address}'`,
 								limit: prefixLimit,
 							}),
 							getTransactionsByEvent({
-								binding: cosmosSdkRestBinding,
 								event: `transfer.recipient='${cosmosAccount.address}'`,
 								limit: prefixLimit,
 							}),
@@ -1471,12 +1457,11 @@ export default {
 						const {
 							channel,
 						} = await getIbcChannel({
-							binding: cosmosSdkRestBinding,
 							portId,
 							channelId,
 						})
 						const connectionId = channel.connection_hops[0]
-						if (connectionId == null || connectionId === '')
+						if (connectionId === '')
 							throw new Error('CosmosSdk_Rest: IBC channel missing connection hop')
 
 						const [
@@ -1487,16 +1472,13 @@ export default {
 							nextSequenceReceive,
 						] = await Promise.all([
 							getIbcConnection({
-								binding: cosmosSdkRestBinding,
 								connectionId,
 							}),
 							getIbcNextSequenceSend({
-								binding: cosmosSdkRestBinding,
 								portId,
 								channelId,
 							}),
 							getIbcNextSequenceReceive({
-								binding: cosmosSdkRestBinding,
 								portId,
 								channelId,
 							}),
@@ -1504,7 +1486,6 @@ export default {
 						const {
 							client_state: clientState,
 						} = await getIbcClientState({
-							binding: cosmosSdkRestBinding,
 							clientId: connection.client_id,
 						})
 						const $counterpartyNetwork = cosmosCounterpartyNetworkReference(clientState.chain_id)
@@ -1571,7 +1552,6 @@ export default {
 							getIbcConnectionChannels,
 						} = await import('$/sources/CosmosSdk/Rest/queries.ts')
 						const response = await getIbcConnectionChannels({
-							binding: cosmosSdkRestBinding,
 							connectionId,
 							limit: resolverContextRowLimit(context),
 						})
@@ -1605,7 +1585,6 @@ export default {
 						const {
 							connection,
 						} = await getIbcConnection({
-							binding: cosmosSdkRestBinding,
 							connectionId,
 						})
 						return {
@@ -1654,7 +1633,6 @@ export default {
 						const {
 							connection_paths: connectionPaths,
 						} = await getIbcClientConnections({
-							binding: cosmosSdkRestBinding,
 							clientId,
 						})
 						return {
@@ -1693,7 +1671,6 @@ export default {
 						const {
 							connection_paths: connectionPaths,
 						} = await getIbcClientConnections({
-							binding: cosmosSdkRestBinding,
 							clientId,
 						})
 						const limit = resolverContextRowLimit(context)
@@ -1701,7 +1678,6 @@ export default {
 						const channelPages = await Promise.all(
 							connectionIds.map((connectionId) => (
 								getIbcConnectionChannels({
-									binding: cosmosSdkRestBinding,
 									connectionId,
 									limit,
 								})
@@ -1753,7 +1729,6 @@ export default {
 						const {
 							client_state: clientState,
 						} = await getIbcClientState({
-							binding: cosmosSdkRestBinding,
 							clientId,
 						})
 						const clientType = (
@@ -1849,7 +1824,6 @@ export default {
 						const {
 							denom_trace: denomTrace,
 						} = await getIbcDenomTrace({
-							binding: cosmosSdkRestBinding,
 							hash: traceKey,
 						})
 						const denomHash = (

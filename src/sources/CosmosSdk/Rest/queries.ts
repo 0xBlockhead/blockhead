@@ -1,5 +1,6 @@
 import { fetchFailedMessage } from '$/lib/http.ts'
 import { TransportType } from '$/constants/TransportType.ts'
+import bindings from '$/sources/CosmosSdk/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import {
 	firstHttpUrlForBinding,
@@ -67,11 +68,13 @@ type CosmosSdkRestBinding = SourceBinding<Source.CosmosSdk_Rest> & {
 	readonly endpoints: readonly SourceEndpoint[]
 }
 
+const binding = bindings[Source.CosmosSdk_Rest][0]
+
 const base = (binding: CosmosSdkRestBinding) => (
 	firstHttpUrlForBinding(binding).replace(/\/$/, '')
 )
 
-export const cosmosSdkRestEndpoints = (binding: CosmosSdkRestBinding) => binding.endpoints.map(({ locator: url }) => ({
+export const cosmosSdkRestEndpoints = () => binding.endpoints.map(({ locator: url }) => ({
 	url,
 	transportType: TransportType.Http,
 	providerName: 'Cosmos Directory',
@@ -94,10 +97,8 @@ const getJsonAtBlockHeight = <_Json>(
 	})
 
 export const getBlock = ({
-	binding,
 	height,
 }: {
-	binding: CosmosSdkRestBinding
 	height: bigint
 }) => (
 	sourceGetJson<CosmosSdkBlockResponse>(
@@ -106,21 +107,21 @@ export const getBlock = ({
 	)
 )
 
-export const getLatestBlock = (binding: CosmosSdkRestBinding) => (
+export const getLatestBlock = () => (
 	sourceGetJson<CosmosSdkBlockResponse>(
 		binding,
 		`${base(binding)}/cosmos/base/tendermint/v1beta1/blocks/latest`
 	)
 )
 
-export const getNodeInfo = (binding: CosmosSdkRestBinding) => (
+export const getNodeInfo = () => (
 	sourceGetJson<CosmosSdkNodeInfoResponse>(
 		binding,
 		`${base(binding)}/cosmos/base/tendermint/v1beta1/node_info`
 	)
 )
 
-export const getSyncing = (binding: CosmosSdkRestBinding) => (
+export const getSyncing = () => (
 	sourceGetJson<CosmosSdkSyncingResponse>(
 		binding,
 		`${base(binding)}/cosmos/base/tendermint/v1beta1/syncing`
@@ -128,10 +129,8 @@ export const getSyncing = (binding: CosmosSdkRestBinding) => (
 )
 
 export const getTx = ({
-	binding,
 	txHash,
 }: {
-	binding: CosmosSdkRestBinding
 	txHash: string
 }) => (
 	sourceGetJson<CosmosSdkTxResponse>(
@@ -141,12 +140,10 @@ export const getTx = ({
 )
 
 export const getTransactionsByEvent = ({
-	binding,
 	event,
 	page = 1,
 	limit = 24,
 }: {
-	binding: CosmosSdkRestBinding
 	event: string
 	page?: number
 	limit?: number
@@ -174,11 +171,9 @@ export const getTransactionsByEvent = ({
 }
 
 export const getValidators = ({
-	binding,
 	limit = 24,
 	status,
 }: {
-	binding: CosmosSdkRestBinding
 	limit?: number
 	status?: string
 }) => {
@@ -194,7 +189,7 @@ export const getValidators = ({
 	)
 }
 
-export const getStakingPool = (binding: CosmosSdkRestBinding) => (
+export const getStakingPool = () => (
 	sourceGetJson<CosmosSdkStakingPoolResponse>(
 		binding,
 		`${base(binding)}/cosmos/staking/v1beta1/pool`
@@ -202,10 +197,8 @@ export const getStakingPool = (binding: CosmosSdkRestBinding) => (
 )
 
 export const getValidator = ({
-	binding,
 	operatorAddress,
 }: {
-	binding: CosmosSdkRestBinding
 	operatorAddress: string
 }) => (
 	sourceGetJson<CosmosSdkValidatorResponse>(
@@ -215,10 +208,8 @@ export const getValidator = ({
 )
 
 export const getAccount = ({
-	binding,
 	address,
 }: {
-	binding: CosmosSdkRestBinding
 	address: string
 }) => (
 	sourceGetJson<CosmosSdkAccountResponse>(
@@ -228,10 +219,8 @@ export const getAccount = ({
 )
 
 export const getAccounts = ({
-	binding,
 	limit = 24,
 }: {
-	binding: CosmosSdkRestBinding
 	limit?: number
 }) => {
 	const parameters = new URLSearchParams({
@@ -246,10 +235,8 @@ export const getAccounts = ({
 }
 
 export const getProposal = ({
-	binding,
 	proposalId,
 }: {
-	binding: CosmosSdkRestBinding
 	proposalId: string
 }) => (
 	sourceGetJson<CosmosSdkProposalResponse>(
@@ -259,11 +246,9 @@ export const getProposal = ({
 )
 
 export const getProposals = ({
-	binding,
 	limit = 12,
 	paginationKey,
 }: {
-	binding: CosmosSdkRestBinding
 	limit?: number
 	paginationKey?: string
 }) => {
@@ -280,12 +265,10 @@ export const getProposals = ({
 }
 
 export const getProposalVotes = ({
-	binding,
 	proposalId,
 	limit = 24,
 	paginationKey,
 }: {
-	binding: CosmosSdkRestBinding
 	proposalId: string
 	limit?: number
 	paginationKey?: string
@@ -303,11 +286,9 @@ export const getProposalVotes = ({
 }
 
 export const getProposalVote = ({
-	binding,
 	proposalId,
 	voter,
 }: {
-	binding: CosmosSdkRestBinding
 	proposalId: string
 	voter: string
 }) => (
@@ -318,12 +299,10 @@ export const getProposalVote = ({
 )
 
 export const getProposalDeposits = ({
-	binding,
 	proposalId,
 	limit = 24,
 	paginationKey,
 }: {
-	binding: CosmosSdkRestBinding
 	proposalId: string
 	limit?: number
 	paginationKey?: string
@@ -341,11 +320,9 @@ export const getProposalDeposits = ({
 }
 
 export const getProposalDeposit = ({
-	binding,
 	proposalId,
 	depositor,
 }: {
-	binding: CosmosSdkRestBinding
 	proposalId: string
 	depositor: string
 }) => (
@@ -356,10 +333,8 @@ export const getProposalDeposit = ({
 )
 
 export const getProposalTally = ({
-	binding,
 	proposalId,
 }: {
-	binding: CosmosSdkRestBinding
 	proposalId: string
 }) => (
 	sourceGetJson<CosmosSdkTallyResponse>(
@@ -369,11 +344,9 @@ export const getProposalTally = ({
 )
 
 export const getDenomMetadata = async ({
-	binding,
 	denom,
 	blockHeight,
 }: {
-	binding: CosmosSdkRestBinding
 	denom: string
 	blockHeight?: bigint
 }) => {
@@ -408,10 +381,8 @@ export const getDenomMetadata = async ({
 }
 
 export const getModuleAccount = ({
-	binding,
 	moduleName,
 }: {
-	binding: CosmosSdkRestBinding
 	moduleName: string
 }) => (
 	sourceGetJson<CosmosSdkModuleAccountResponse>(
@@ -421,14 +392,12 @@ export const getModuleAccount = ({
 )
 
 export const getBalances = async ({
-	binding,
 	network,
 	address,
 	blockHeight,
 	limit = 100,
 	continuationToken,
 }: {
-	binding: CosmosSdkRestBinding
 	network: string
 	address: string
 	blockHeight: bigint
@@ -520,12 +489,10 @@ export const getBalances = async ({
 }
 
 export const getDelegations = ({
-	binding,
 	delegatorAddress,
 	limit = 100,
 	paginationKey,
 }: {
-	binding: CosmosSdkRestBinding
 	delegatorAddress: string
 	limit?: number
 	paginationKey?: string
@@ -546,10 +513,8 @@ export const getDelegations = ({
 }
 
 export const getDelegationRewards = ({
-	binding,
 	delegatorAddress,
 }: {
-	binding: CosmosSdkRestBinding
 	delegatorAddress: string
 }) => (
 	sourceGetJson<CosmosSdkDelegationRewardsResponse>(
@@ -559,10 +524,8 @@ export const getDelegationRewards = ({
 )
 
 export const getContractInfo = ({
-	binding,
 	address,
 }: {
-	binding: CosmosSdkRestBinding
 	address: string
 }) => (
 	sourceGetJson<CosmosSdkContractInfoResponse>(
@@ -685,11 +648,9 @@ const assertIbcIdentity = (
 }
 
 export const getIbcChannel = ({
-	binding,
 	portId,
 	channelId,
 }: {
-	binding: CosmosSdkRestBinding
 	portId: string
 	channelId: string
 }) => {
@@ -704,11 +665,9 @@ export const getIbcChannel = ({
 }
 
 export const getIbcChannels = ({
-	binding,
 	limit = 24,
 	paginationKey,
 }: {
-	binding: CosmosSdkRestBinding
 	limit?: number
 	paginationKey?: string
 }) => {
@@ -730,12 +689,10 @@ export const getIbcChannels = ({
 }
 
 export const getIbcConnectionChannels = ({
-	binding,
 	connectionId,
 	limit = 24,
 	paginationKey,
 }: {
-	binding: CosmosSdkRestBinding
 	connectionId: string
 	limit?: number
 	paginationKey?: string
@@ -759,10 +716,8 @@ export const getIbcConnectionChannels = ({
 }
 
 export const getIbcConnection = ({
-	binding,
 	connectionId,
 }: {
-	binding: CosmosSdkRestBinding
 	connectionId: string
 }) => {
 	assertIbcIdentity(connectionId, 'connection id')
@@ -775,11 +730,9 @@ export const getIbcConnection = ({
 }
 
 export const getIbcConnections = ({
-	binding,
 	limit = 24,
 	paginationKey,
 }: {
-	binding: CosmosSdkRestBinding
 	limit?: number
 	paginationKey?: string
 }) => {
@@ -801,10 +754,8 @@ export const getIbcConnections = ({
 }
 
 export const getIbcClientState = ({
-	binding,
 	clientId,
 }: {
-	binding: CosmosSdkRestBinding
 	clientId: string
 }) => {
 	assertIbcIdentity(clientId, 'client id')
@@ -821,10 +772,8 @@ const cosmosSdkIbcClientConnectionsResponseWire = arktype({
 })
 
 export const getIbcClientConnections = ({
-	binding,
 	clientId,
 }: {
-	binding: CosmosSdkRestBinding
 	clientId: string
 }) => {
 	assertIbcIdentity(clientId, 'client id')
@@ -837,11 +786,9 @@ export const getIbcClientConnections = ({
 }
 
 export const getIbcClientStates = ({
-	binding,
 	limit = 24,
 	paginationKey,
 }: {
-	binding: CosmosSdkRestBinding
 	limit?: number
 	paginationKey?: string
 }) => {
@@ -863,10 +810,8 @@ export const getIbcClientStates = ({
 }
 
 export const getIbcDenomTrace = ({
-	binding,
 	hash,
 }: {
-	binding: CosmosSdkRestBinding
 	hash: string
 }) => {
 	const normalized = (
@@ -889,11 +834,9 @@ export const getIbcDenomTrace = ({
 }
 
 export const getIbcNextSequenceSend = ({
-	binding,
 	portId,
 	channelId,
 }: {
-	binding: CosmosSdkRestBinding
 	portId: string
 	channelId: string
 }) => {
@@ -908,11 +851,9 @@ export const getIbcNextSequenceSend = ({
 }
 
 export const getIbcNextSequenceReceive = ({
-	binding,
 	portId,
 	channelId,
 }: {
-	binding: CosmosSdkRestBinding
 	portId: string
 	channelId: string
 }) => {

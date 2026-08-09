@@ -9,8 +9,6 @@ import {
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import bindings from '$/sources/CosmosSdk/bindings.ts'
-import { Source } from '$/sources/Source.ts'
 
 const getIbcChannel = vi.hoisted(() => vi.fn())
 const getIbcChannels = vi.hoisted(() => vi.fn())
@@ -98,21 +96,18 @@ const ibcConnectionChannelsResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.IbcConnection
 	&& '$$channels' in resolver.projections
 	&& typeof resolver.projections.$$channels === 'object'
-	&& resolver.projections.$$channels != null
 	&& 'select' in resolver.projections.$$channels
 ))
 const ibcClientConnectionsResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.IbcClient
 	&& '$$connections' in resolver.projections
 	&& typeof resolver.projections.$$connections === 'object'
-	&& resolver.projections.$$connections != null
 	&& 'select' in resolver.projections.$$connections
 ))
 const ibcClientChannelsResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.IbcClient
 	&& '$$channels' in resolver.projections
 	&& typeof resolver.projections.$$channels === 'object'
-	&& resolver.projections.$$channels != null
 	&& 'select' in resolver.projections.$$channels
 ))
 
@@ -559,7 +554,6 @@ describe('CosmosSdk IBC resolvers', () => {
 		])
 		expect(ibcClientChannelsResolver.projections.$$channels.resolveCount(clientChannels)).toBe(5)
 		expect(getIbcConnectionChannels).toHaveBeenCalledWith({
-			binding: bindings[Source.CosmosSdk_Rest][0],
 			connectionId: 'connection-257',
 			limit: 16,
 		})
