@@ -1,3 +1,5 @@
+import bindings from '$/sources/AtprotoSync/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import { fetchFailedMessage } from '$/lib/http.ts'
 import {
 	sourceBindingId,
@@ -17,6 +19,21 @@ import {
 } from '$/sources/AtprotoSync/Xrpc/commit.ts'
 import { decodeAtprotoSyncFrame } from '$/sources/AtprotoSync/Xrpc/framing.ts'
 import type { AtprotoSyncSubscribeReposMessage } from '$/sources/AtprotoSync/Xrpc/types.ts'
+
+
+const remoteQueryBinding = bindings[Source.AtprotoSync_Xrpc].find((binding) => (
+	binding.delivery === SourceDelivery.RemoteQuery
+))
+
+if (remoteQueryBinding == null)
+	throw new Error('AtprotoSync_Xrpc: RemoteQuery binding is missing')
+
+const remoteLiveBinding = bindings[Source.AtprotoSync_Xrpc].find((binding) => (
+	binding.delivery === SourceDelivery.RemoteLive
+))
+
+if (remoteLiveBinding == null)
+	throw new Error('AtprotoSync_Xrpc: RemoteLive binding is missing')
 
 
 const validatedServiceOrigin = (serviceOrigin: string) => {
@@ -104,13 +121,11 @@ const resolvedRemoteQueryBinding = ({
 
 
 export const getRepo = async ({
-	binding,
 	serviceOrigin,
 	did,
 	since,
 	signal,
 }: {
-	binding: SourceBinding
 	serviceOrigin: string
 	did: string
 	since?: string
@@ -120,7 +135,7 @@ export const getRepo = async ({
 		validatedOrigin,
 		resolvedBinding,
 	} = resolvedRemoteQueryBinding({
-		binding,
+		binding: remoteQueryBinding,
 		serviceOrigin,
 	})
 
@@ -138,12 +153,10 @@ export const getRepo = async ({
 
 
 export const getLatestCommit = async ({
-	binding,
 	serviceOrigin,
 	did,
 	signal,
 }: {
-	binding: SourceBinding
 	serviceOrigin: string
 	did: string
 	signal?: AbortSignal
@@ -152,7 +165,7 @@ export const getLatestCommit = async ({
 		validatedOrigin,
 		resolvedBinding,
 	} = resolvedRemoteQueryBinding({
-		binding,
+		binding: remoteQueryBinding,
 		serviceOrigin,
 	})
 
@@ -168,12 +181,10 @@ export const getLatestCommit = async ({
 
 
 export const getRepoStatus = async ({
-	binding,
 	serviceOrigin,
 	did,
 	signal,
 }: {
-	binding: SourceBinding
 	serviceOrigin: string
 	did: string
 	signal?: AbortSignal
@@ -182,7 +193,7 @@ export const getRepoStatus = async ({
 		validatedOrigin,
 		resolvedBinding,
 	} = resolvedRemoteQueryBinding({
-		binding,
+		binding: remoteQueryBinding,
 		serviceOrigin,
 	})
 
@@ -198,13 +209,11 @@ export const getRepoStatus = async ({
 
 
 export const listRepos = async ({
-	binding,
 	serviceOrigin,
 	limit,
 	cursor,
 	signal,
 }: {
-	binding: SourceBinding
 	serviceOrigin: string
 	limit?: number
 	cursor?: string
@@ -214,7 +223,7 @@ export const listRepos = async ({
 		validatedOrigin,
 		resolvedBinding,
 	} = resolvedRemoteQueryBinding({
-		binding,
+		binding: remoteQueryBinding,
 		serviceOrigin,
 	})
 
@@ -239,13 +248,11 @@ export const listRepos = async ({
 
 
 export const listHosts = async ({
-	binding,
 	serviceOrigin,
 	limit,
 	cursor,
 	signal,
 }: {
-	binding: SourceBinding
 	serviceOrigin: string
 	limit?: number
 	cursor?: string
@@ -255,7 +262,7 @@ export const listHosts = async ({
 		validatedOrigin,
 		resolvedBinding,
 	} = resolvedRemoteQueryBinding({
-		binding,
+		binding: remoteQueryBinding,
 		serviceOrigin,
 	})
 
@@ -280,12 +287,10 @@ export const listHosts = async ({
 
 
 export const getHostStatus = async ({
-	binding,
 	serviceOrigin,
 	hostname,
 	signal,
 }: {
-	binding: SourceBinding
 	serviceOrigin: string
 	hostname: string
 	signal?: AbortSignal
@@ -294,7 +299,7 @@ export const getHostStatus = async ({
 		validatedOrigin,
 		resolvedBinding,
 	} = resolvedRemoteQueryBinding({
-		binding,
+		binding: remoteQueryBinding,
 		serviceOrigin,
 	})
 
@@ -317,12 +322,10 @@ export const getHostStatus = async ({
 
 
 export const subscribeRepos = async function* ({
-	binding,
 	serviceOrigin,
 	cursor,
 	signal,
 }: {
-	binding: SourceBinding
 	serviceOrigin: string
 	cursor?: number
 	signal?: AbortSignal
@@ -331,23 +334,15 @@ export const subscribeRepos = async function* ({
 		return
 
 	if (
-		binding.delivery !== SourceDelivery.RemoteLive
-		|| !binding.operationGroups.includes(SourceOperationGroup.GenericSubscribe)
-		|| !binding.endpoints.some((endpoint) => (
-			endpoint.endpointKind === SourceEndpointKind.WebSocketUrl
-		))
-	)
-		throw new Error('AtprotoSync_Xrpc: subscribeRepos requires the RemoteLive WebSocket binding')
-	if (
 		cursor != null
 		&& (!Number.isSafeInteger(cursor) || cursor < 0)
 	)
 		throw new Error('AtprotoSync_Xrpc: subscribeRepos cursor must be a non-negative safe integer')
 
 	const frames = sourceLive({
-		bindingId: sourceBindingId(binding),
-		source: binding.source,
-		targetKey: binding.target.key,
+		bindingId: sourceBindingId(remoteLiveBinding),
+		source: remoteLiveBinding.source,
+		targetKey: remoteLiveBinding.target.key,
 		operationGroup: SourceOperationGroup.GenericSubscribe,
 		serviceOrigin: validatedServiceOrigin(serviceOrigin),
 		...(cursor != null && {

@@ -75,25 +75,12 @@ describe('AtprotoSync_Xrpc getRepo RemoteQuery transport', () => {
 		}))
 	})
 
-	it('passes the exact modified noncanonical binding without fallback', async () => {
-		await getRepo({
-			binding: resolvedRemoteQueryBinding,
-			serviceOrigin,
-			did,
-		})
-
-		expect(sourceFetch).toHaveBeenCalledOnce()
-		expect(sourceFetch.mock.calls[0][0]).toBe(resolvedRemoteQueryBinding)
-		expect(sourceFetch.mock.calls[0][1]).toContain('https://pds.example/')
-	})
-
 	afterEach(() => {
 		vi.unstubAllGlobals()
 	})
 
 	it('GETs com.atproto.sync.getRepo through sourceFetch with the resolved RemoteQuery binding', async () => {
 		await expect(getRepo({
-			binding: remoteQueryBinding,
 			serviceOrigin,
 			did,
 			since: '3jzfcijpj2z2a',
@@ -109,21 +96,10 @@ describe('AtprotoSync_Xrpc getRepo RemoteQuery transport', () => {
 		expect(remoteQueryBinding.endpoints[0].locator).toBe('https://{pds-host}')
 	})
 
-	it('rejects RemoteLive bindings before transport', async () => {
-		await expect(getRepo({
-			binding: remoteLiveBinding,
-			serviceOrigin,
-			did,
-		})).rejects.toThrow('AtprotoSync_Xrpc: HTTP sync reads require the RemoteQuery binding')
-
-		expect(sourceFetch).not.toHaveBeenCalled()
-	})
-
 	it('rejects browser-side RemoteQuery before transport', async () => {
 		vi.stubGlobal('window', {})
 
 		await expect(getRepo({
-			binding: remoteQueryBinding,
 			serviceOrigin,
 			did,
 		})).rejects.toThrow('AtprotoSync_Xrpc: RemoteQuery must run through a SvelteKit query')
@@ -144,7 +120,6 @@ describe('AtprotoSync_Xrpc getRepo RemoteQuery transport', () => {
 		}))
 
 		await expect(getRepo({
-			binding: remoteQueryBinding,
 			serviceOrigin,
 			did,
 		})).rejects.toThrow(/AtprotoSync_Xrpc:.*400/)
@@ -161,7 +136,6 @@ describe('AtprotoSync_Xrpc getRepo RemoteQuery transport', () => {
 		'https://pds.example/override',
 	])('rejects unsafe or non-origin service input %s before transport', async (unsafeServiceOrigin) => {
 		await expect(getRepo({
-			binding: remoteQueryBinding,
 			serviceOrigin: unsafeServiceOrigin,
 			did,
 		})).rejects.toThrow('AtprotoSync_Xrpc: invalid public HTTPS service origin')
@@ -188,7 +162,6 @@ describe('AtprotoSync_Xrpc getLatestCommit / getRepoStatus', () => {
 		}))
 
 		await expect(getLatestCommit({
-			binding: remoteQueryBinding,
 			serviceOrigin,
 			did,
 		})).resolves.toEqual({
@@ -213,7 +186,6 @@ describe('AtprotoSync_Xrpc getLatestCommit / getRepoStatus', () => {
 		}))
 
 		await expect(getLatestCommit({
-			binding: remoteQueryBinding,
 			serviceOrigin,
 			did,
 		})).rejects.toThrow('malformed getLatestCommit response')
@@ -232,7 +204,6 @@ describe('AtprotoSync_Xrpc getLatestCommit / getRepoStatus', () => {
 		}))
 
 		await expect(getRepoStatus({
-			binding: remoteQueryBinding,
 			serviceOrigin,
 			did,
 		})).resolves.toEqual({
@@ -287,7 +258,6 @@ describe('AtprotoSync_Xrpc getLatestCommit / getRepoStatus', () => {
 			}))
 
 		await expect(listRepos({
-			binding: remoteQueryBinding,
 			serviceOrigin,
 			limit: 10,
 			cursor: 'prev',
@@ -310,7 +280,6 @@ describe('AtprotoSync_Xrpc getLatestCommit / getRepoStatus', () => {
 		)
 
 		await expect(listHosts({
-			binding: remoteQueryBinding,
 			serviceOrigin,
 			limit: 5,
 		})).resolves.toEqual({
@@ -330,7 +299,6 @@ describe('AtprotoSync_Xrpc getLatestCommit / getRepoStatus', () => {
 		)
 
 		await expect(getHostStatus({
-			binding: remoteQueryBinding,
 			serviceOrigin,
 			hostname: 'pds.example',
 		})).resolves.toEqual({
@@ -349,7 +317,6 @@ describe('AtprotoSync_Xrpc getLatestCommit / getRepoStatus', () => {
 
 	it('rejects unsafe listRepos limits before transport', async () => {
 		await expect(listRepos({
-			binding: remoteQueryBinding,
 			serviceOrigin,
 			limit: 0,
 		})).rejects.toThrow('listRepos limit must be an integer from 1 to 1000')
@@ -389,7 +356,6 @@ describe('AtprotoSync_Xrpc subscribeRepos RemoteLive transport', () => {
 
 		const frames = []
 		for await (const message of subscribeRepos({
-			binding: remoteLiveBinding,
 			serviceOrigin,
 			cursor: 7,
 		}))
@@ -411,25 +377,12 @@ describe('AtprotoSync_Xrpc subscribeRepos RemoteLive transport', () => {
 		}])
 	})
 
-	it('rejects non-RemoteLive bindings before opening the stream', async () => {
-		await expect(async () => {
-			for await (const _message of subscribeRepos({
-				binding: remoteQueryBinding,
-				serviceOrigin,
-			}))
-				void _message
-		}).rejects.toThrow('AtprotoSync_Xrpc: subscribeRepos requires the RemoteLive WebSocket binding')
-
-		expect(sourceLive).not.toHaveBeenCalled()
-	})
-
 	it.each([
 		-1,
 		Number.MAX_SAFE_INTEGER + 1,
 	])('rejects unsafe cursor %s before opening the stream', async (cursor) => {
 		await expect(async () => {
 			for await (const _message of subscribeRepos({
-				binding: remoteLiveBinding,
 				serviceOrigin,
 				cursor,
 			}))
@@ -451,7 +404,6 @@ describe('AtprotoSync_Xrpc subscribeRepos RemoteLive transport', () => {
 
 		await expect(async () => {
 			for await (const _message of subscribeRepos({
-				binding: remoteLiveBinding,
 				serviceOrigin,
 			}))
 				void _message
@@ -489,7 +441,6 @@ describe('AtprotoSync_Xrpc subscribeRepos RemoteLive transport', () => {
 		}))
 
 		const iterator = subscribeRepos({
-			binding: remoteLiveBinding,
 			serviceOrigin,
 		})[Symbol.asyncIterator]()
 		await iterator.next()
@@ -499,7 +450,6 @@ describe('AtprotoSync_Xrpc subscribeRepos RemoteLive transport', () => {
 
 		const controller = new AbortController()
 		const abortedIterator = subscribeRepos({
-			binding: remoteLiveBinding,
 			serviceOrigin,
 			signal: controller.signal,
 		})[Symbol.asyncIterator]()

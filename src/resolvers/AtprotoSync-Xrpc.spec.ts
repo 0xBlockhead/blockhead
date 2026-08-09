@@ -7,14 +7,10 @@ import {
 } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/EntityType.ts'
-import bindings from '$/sources/AtprotoSync/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getLatestCommit = vi.fn()
 const getRepoStatus = vi.fn()
-
-const remoteQueryBinding = bindings[Source.AtprotoSync_Xrpc][0]
 
 vi.mock('$/sources/AtprotoSync/Xrpc/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/AtprotoSync/Xrpc/queries.ts')>(),
@@ -24,9 +20,7 @@ vi.mock('$/sources/AtprotoSync/Xrpc/queries.ts', async (importOriginal) => ({
 }))
 
 const resolverModule = (await import('$/resolvers/AtprotoSync-Xrpc.ts')).default
-const repoCommitResolvers = resolverModule.resolvers.filter((resolver) => (
-	resolver.entityType === EntityType.AtprotoRepoCommit
-))
+const repoCommitResolvers = resolverModule.resolvers
 
 const resolveByRev = repoCommitResolvers[0]?.resolve.RepoDidRevSource.resolve
 const resolveByCommitCid = repoCommitResolvers[1]?.resolve.RepoDidCommitCidSource.resolve
@@ -66,12 +60,10 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 		})
 		expect(repoCommitResolvers[0].projections.$$posts(snapshot)).toEqual([])
 		expect(getLatestCommit).toHaveBeenCalledWith({
-			binding: remoteQueryBinding,
 			serviceOrigin: 'https://bsky.network',
 			did: 'did:plc:example',
 		})
 		expect(getRepoStatus).toHaveBeenCalledWith({
-			binding: remoteQueryBinding,
 			serviceOrigin: 'https://bsky.network',
 			did: 'did:plc:example',
 		})

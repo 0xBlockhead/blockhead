@@ -6,22 +6,13 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import bindings from '$/sources/AtprotoSync/bindings.ts'
 import {
 	getLatestCommit,
 	getRepoStatus,
 } from '$/sources/AtprotoSync/Xrpc/queries.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
 
 const defaultAtprotoSyncRelayOrigin = 'https://bsky.network'
-
-const remoteQueryBinding = bindings[Source.AtprotoSync_Xrpc].find((binding) => (
-	binding.delivery === SourceDelivery.RemoteQuery
-))
-
-if (remoteQueryBinding == null)
-	throw new Error('AtprotoSync_Xrpc: RemoteQuery binding is missing')
 
 const projectLatestCommit = async ({
 	repoDid,
@@ -34,12 +25,10 @@ const projectLatestCommit = async ({
 }) => {
 	const [latest, status] = await Promise.all([
 		getLatestCommit({
-			binding: remoteQueryBinding,
 			serviceOrigin: defaultAtprotoSyncRelayOrigin,
 			did: repoDid,
 		}),
 		getRepoStatus({
-			binding: remoteQueryBinding,
 			serviceOrigin: defaultAtprotoSyncRelayOrigin,
 			did: repoDid,
 		}),
