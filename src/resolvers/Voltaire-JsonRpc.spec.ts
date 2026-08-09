@@ -3,22 +3,19 @@ import { describe, expect, it, vi } from 'vitest'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
 
 const getTxpoolStatus = vi.hoisted(() => vi.fn())
-const voltaireJsonRpcTransportsForBinding = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
-	voltaireJsonRpcTransportsForBinding,
-}))
-
-voltaireJsonRpcTransportsForBinding.mockReturnValue([{
-	endpointKind: SourceEndpointKind.HttpUrl,
-	transport: {
-		diagnosticLabel: 'test transport',
-		getTxpoolStatus,
+	voltaireJsonRpcTransports: {
+		txpoolTransportsByChainId: {
+			10: [{
+				diagnosticLabel: 'test transport',
+				getTxpoolStatus,
+			}],
+		},
 	},
-}])
+}))
 
 const { default: voltaireJsonRpc } = await import('$/resolvers/Voltaire-JsonRpc.ts')
 
