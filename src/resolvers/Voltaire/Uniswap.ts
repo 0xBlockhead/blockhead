@@ -285,7 +285,7 @@ export const uniswapV3Resolvers = [
 		resolve: {
 			PoolBlockNumber: {
 				resolve: async ({ $pool, blockNumber }) => {
-					if (!('poolAddress' in $pool))
+					if (!('poolAddress' in $pool) || $pool.$network == null)
 						throw new Error('Voltaire_JsonRpc: UniswapV3Pool_Block requires NetworkPoolAddress')
 
 					const chainId = chainIdFromNetwork($pool.$network)

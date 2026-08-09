@@ -68,7 +68,7 @@ const throwIfLifiHttpNotOk = async (
 }
 
 const assertTransactionInfo = (
-	info: NonNullable<LifiStatusResponse['sending']>,
+	info: NonNullable<LifiStatusWireResponse['sending']>,
 	label: string
 ) => {
 	if (

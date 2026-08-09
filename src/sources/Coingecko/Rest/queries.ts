@@ -48,15 +48,17 @@ const omitUndefinedJson = (
 ): unknown => {
 	if (Array.isArray(value))
 		return value.map(omitUndefinedJson)
-	if (value != null && typeof value === 'object')
+	if (value != null && typeof value === 'object') {
+		const object = value as Record<string, unknown>
 		return Object.fromEntries(
-			Object.entries(value)
+			Object.entries(object)
 				.filter(([, entry]) => entry !== undefined)
 				.map(([key, entry]) => [
 					key,
 					omitUndefinedJson(entry),
 				])
 		)
+	}
 	return value
 }
 
@@ -310,10 +312,10 @@ export const getSimplePrice = async ({
 			}
 			const row = prices[id]
 			return (
-				!Number.isFinite(row?.usd)
+				!Number.isFinite(row.usd)
 				|| (
 					query.include_last_updated_at === true
-					&& !Number.isFinite(row?.last_updated_at)
+					&& !Number.isFinite(row.last_updated_at)
 				)
 			)
 		})

@@ -269,6 +269,7 @@ export type GetCoingeckoDerivativesExchangeArgs = (
 )
 
 export type GetCoingeckoSimplePriceArgs = (
-	& SimplePriceOperation['parameters']['query']
+	& Omit<SimplePriceOperation['parameters']['query'], 'ids' | 'vs_currencies'>
+	& Required<Pick<SimplePriceOperation['parameters']['query'], 'ids' | 'vs_currencies'>>
 	& { publicEnv: SourcePublicEnv }
 )
