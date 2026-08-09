@@ -1,7 +1,9 @@
-import assert from 'node:assert/strict'
-import test from 'node:test'
+import {
+	expect,
+	test,
+} from 'vitest'
 
-import { applicationRuntimeWhenReady } from '../../src/routes/applicationRuntime.ts'
+import { applicationRuntimeWhenReady } from './applicationRuntime.ts'
 
 
 test('mounts once after client readiness and destroys the mounted runtime once', async () => {
@@ -12,7 +14,7 @@ test('mounts once after client readiness and destroys the mounted runtime once',
 	let mountCount = 0
 	let destroyCount = 0
 	const runtime = applicationRuntimeWhenReady(clientPromise, (client) => {
-		assert.equal(client.id, 'canonical')
+		expect(client.id).toBe('canonical')
 		mountCount += 1
 
 		return {
@@ -22,14 +24,14 @@ test('mounts once after client readiness and destroys the mounted runtime once',
 		}
 	})
 
-	assert.equal(mountCount, 0)
+	expect(mountCount).toBe(0)
 	resolveClient?.({ id: 'canonical' })
 	await runtime.ready
-	assert.equal(mountCount, 1)
+	expect(mountCount).toBe(1)
 
 	runtime.destroy()
 	runtime.destroy()
-	assert.equal(destroyCount, 1)
+	expect(destroyCount).toBe(1)
 })
 
 test('does not mount after the layout is destroyed before client readiness', async () => {
@@ -49,7 +51,7 @@ test('does not mount after the layout is destroyed before client readiness', asy
 	runtime.destroy()
 	resolveClient?.({ id: 'canonical' })
 	await runtime.ready
-	assert.equal(mountCount, 0)
+	expect(mountCount).toBe(0)
 })
 
 test('propagates a late bootstrap rejection after teardown without mounting', async () => {
@@ -69,24 +71,22 @@ test('propagates a late bootstrap rejection after teardown without mounting', as
 
 	runtime.destroy()
 	rejectClient?.(bootstrapFailure)
-	await assert.rejects(runtime.ready, bootstrapFailure)
-	assert.equal(mountCount, 0)
+	await expect(runtime.ready).rejects.toBe(bootstrapFailure)
+	expect(mountCount).toBe(0)
 })
 
 test('propagates client and runtime failures through the one readiness promise', async () => {
 	const clientFailure = new Error('database open failed')
-	await assert.rejects(
+	await expect(
 		applicationRuntimeWhenReady(Promise.reject(clientFailure), () => ({
 			destroy: () => {},
-		})).ready,
-		clientFailure
-	)
+		})).ready
+	).rejects.toBe(clientFailure)
 
 	const runtimeFailure = new Error('wallet runtime failed')
-	await assert.rejects(
+	await expect(
 		applicationRuntimeWhenReady(Promise.resolve({ id: 'canonical' }), () => {
 			throw runtimeFailure
-		}).ready,
-		runtimeFailure
-	)
+		}).ready
+	).rejects.toBe(runtimeFailure)
 })

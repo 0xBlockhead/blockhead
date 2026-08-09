@@ -5,14 +5,14 @@ import { swarmDocsLandingReference } from '../../src/sources/Swarm/Rest/constant
 import {
 	e2eRouteFixtureMetadataByNodeId,
 	type E2eRouteFixtureMapping,
-} from './_generatedRouteFixtureMetadata.ts'
+} from '../../tests/e2e/_generatedRouteFixtureMetadata.ts'
 import {
 	discoverPathnamesFromRoutes,
 	pathnameFromRouteFixture,
 	routeProbeCaseParams,
 	routeProbeCasesForMapping,
-} from './_routeDiscovery.ts'
-import { e2eRouteProbeAtomValueById } from './_routeParamFixtures.ts'
+} from '../../tests/e2e/_routeDiscovery.ts'
+import { e2eRouteProbeAtomValueById } from '../../tests/e2e/_routeParamFixtures.ts'
 
 
 test('route probe atom values exactly cover every generated atom', () => {

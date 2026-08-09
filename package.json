@@ -37,7 +37,7 @@
 		"sources:precompiles:check": "node --import tsx scripts/sources/precompiles/source.ts check",
 		"sources:precompiles:sync": "node --import tsx scripts/sources/precompiles/source.ts sync",
 		"test:unit": "vitest",
-		"test:contracts": "TSC_PATH=./node_modules/@typescript/native/bin/tsc node --import tsx --test scripts/app/*.test.ts && vitest run src/client/schema-selection-types.test.ts",
+		"test:contracts": "TSC_PATH=./node_modules/@typescript/native/bin/tsc node --import tsx --test scripts/app/*.test.ts scripts/check/*.test.mjs scripts/e2e/*.test.mjs scripts/e2e/*.test.ts",
 		"test": "pnpm run test:unit -- --run && pnpm run test:contracts && pnpm run test:e2e",
 		"test:e2e": "playwright test",
 		"test:e2e:boundaries": "playwright test tests/e2e/boundary-updates.e2e.ts --workers=4",
@@ -48,7 +48,7 @@
 		"test:e2e:persistence:probe": "VITE_BLOCKHEAD_E2E_PROBE=1 PLAYWRIGHT_DEDICATED_SERVER=1 E2E_PROBE_PATH=/network/eip155:1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts",
 		"test:wallet-extensions": "node --import tsx --test scripts/wallet-extensions/WalletCompatibilityMatrix.spec.ts scripts/wallet-extensions/WalletExtensionHarness.spec.ts scripts/wallet-extensions/ecosystems.spec.ts scripts/wallet-extensions/architectures.matrix.spec.ts scripts/wallet-extensions/*/driver.spec.ts scripts/wallet-extensions/acquire.test.mjs",
 		"wallet-extensions:acquire": "node scripts/wallet-extensions/acquire.mjs",
-		"verify": "pnpm run lint && pnpm run check && pnpm run check:e2e && pnpm run check:sources && pnpm run test:contracts"
+		"verify": "pnpm run lint && pnpm run check && pnpm run check:e2e && pnpm run check:sources && pnpm run test:unit -- --run && pnpm run test:contracts"
 	},
 	"devDependencies": {
 		"@dotenvx/dotenvx": "^1.69.2",

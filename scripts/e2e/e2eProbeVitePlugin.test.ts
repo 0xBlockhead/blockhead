@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
 
-import { e2eProbeVitePlugin } from './_e2eProbeVitePlugin.ts'
+import { e2eProbeVitePlugin } from '../../tests/e2e/_e2eProbeVitePlugin.ts'
 
 
 test('injects observational probes at the async bootstrap lifecycle and fails closed on drift', () => {

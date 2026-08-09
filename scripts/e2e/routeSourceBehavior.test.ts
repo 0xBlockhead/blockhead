@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { deriveRouteSourceBehaviorByEntityType } from './_routeSourceBehavior.ts'
+import { deriveRouteSourceBehaviorByEntityType } from '../../tests/e2e/_routeSourceBehavior.ts'
 
 
 const routeMetadata = (

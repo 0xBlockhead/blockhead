@@ -6,7 +6,7 @@ import {
 	installBoundaryProbe,
 	snapshotBoundaryMain,
 	waitForBoundarySettle,
-} from './_e2eBrowserHelpers.ts'
+} from '../../tests/_e2eBrowserHelpers.ts'
 
 
 test('boundary probe init callback is self-contained after tsx serialization', async () => {
