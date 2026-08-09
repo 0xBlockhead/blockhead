@@ -4,6 +4,8 @@ import { expectMainVisible } from '../../../tests/_e2eBrowserHelpers.ts'
 import { routeViewSmokeTimeoutsMs } from '../../../tests/e2e/_routeViewDiagnostics.ts'
 
 
+test.skip(process.env.TALLY_API_KEY == null, 'Tally browser journeys require the runtime-secret capability to be enabled')
+
 const proposalId = '2207450143689540901'
 const proposal = {
 	id: proposalId,
@@ -57,6 +59,30 @@ const proposal = {
 		},
 	],
 }
+const governor = {
+	...proposal.governor,
+	type: 'governorbravo',
+	kind: 'single',
+	quorum: proposal.quorum,
+	timelockId: null,
+	tokenId: null,
+	delegatesCount: 3,
+	delegatesVotesCount: '100000',
+	tokenOwnersCount: 4,
+	isPrimary: true,
+	organization: proposal.organization,
+	proposalStats: {
+		total: 1,
+		active: 1,
+		failed: 0,
+		passed: 0,
+	},
+	parameters: null,
+	contracts: null,
+	metadata: {
+		description: 'Journey governor',
+	},
+}
 
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test * 2)
@@ -73,12 +99,21 @@ test.beforeEach(async ({ page }, testInfo) => {
 
 
 test('Tally proposal route renders proposal and vote breakdown from GraphQL', async ({ page }) => {
-	await page.route('**/api-proxy/Tally/0/**', async (route) => {
-		expect(route.request().postData()).toContain('query TallyProposal')
+	await page.route('**/api-proxy/**', async (route) => {
+		const requestBody = route.request().postData() ?? ''
+		if (!requestBody.includes('query Tally'))
+			return route.continue()
+
+		expect(requestBody).toMatch(/query Tally(?:Proposal|Governor)/)
 		await route.fulfill({
 			json: {
 				data: {
-					proposal,
+					...(requestBody.includes('query TallyProposal') && {
+						proposal,
+					}),
+					...(requestBody.includes('query TallyGovernor') && {
+						governor,
+					}),
 				},
 			},
 		})
@@ -99,7 +134,10 @@ test('Tally proposal route renders proposal and vote breakdown from GraphQL', as
 })
 
 test('Tally proposal route exposes an upstream failure', async ({ page }) => {
-	await page.route('**/api-proxy/Tally/0/**', async (route) => {
+	await page.route('**/api-proxy/**', async (route) => {
+		if (!(route.request().postData() ?? '').includes('query Tally'))
+			return route.continue()
+
 		await route.fulfill({
 			status: 502,
 			body: 'Tally journey failure',
