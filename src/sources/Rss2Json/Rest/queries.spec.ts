@@ -11,6 +11,6 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 it('executes with the selected RSS2JSON binding', async () => {
 	const binding = bindings[Source.Rss2Json_Rest][0]
 	const { getFeed } = await import('./queries.ts')
-	await getFeed(binding, 'https://example.com/feed.xml')
+	await getFeed('https://example.com/feed.xml')
 	expect(sourceGetJson.mock.calls[0][0]).toBe(binding)
 })

@@ -1769,7 +1769,7 @@ describe('resolver registry live resolver architecture', () => {
 			}, resolverContext)).rejects.toThrow('unsupported source')
 		}
 		expect(getNativeFeed.mock.calls.every((call) => call[0] === rssBinding && call[1] === feedUrl)).toBe(true)
-		expect(getRss2JsonFeed.mock.calls.every((call) => call.length === 2 && call[1] === feedUrl)).toBe(true)
+		expect(getRss2JsonFeed.mock.calls.every((call) => call.length === 1 && call[0] === feedUrl)).toBe(true)
 
 		getNativeFeed.mockRejectedValueOnce(new Error('native feed unavailable'))
 		const nativeFeedObservationResolver = allSourceResolverDefinitions.find((resolver) => (
