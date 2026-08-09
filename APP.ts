@@ -55266,8 +55266,8 @@ export const schema = {
 						content: {
 							dl: [
 								["$space", "$network", "state", "type", "author", "$authorAccount"],
-								["startAtMs", "endAtMs", "createdAtMs", "updatedAtMs", "quorum", "votesCount", "scoresTotal"],
-								["choices", "labels", "link", "app", { field: "proposalId", format: "truncated" }],
+								[{ field: "startAtMs", format: "timestamp" }, { field: "endAtMs", format: "timestamp" }, { field: "createdAtMs", format: "timestamp" }, { field: "updatedAtMs", format: "timestamp" }, "quorum", "votesCount", "scoresTotal"],
+								["choices", "labels", { field: "link", format: "url" }, "app", { field: "proposalId", format: "truncated" }],
 							],
 							body: {
 								field: "body",
@@ -60597,7 +60597,7 @@ export const schema = {
 						content: {
 							dl: [
 								["$governor", "$network", "$proposer", "status", "onchainId", "organizationName"],
-								["startAtMs", "endAtMs", "quorum", "voteStats", "discourseUrl", "snapshotUrl", { field: "proposalId", format: "truncated" }],
+								[{ field: "startAtMs", format: "timestamp" }, { field: "endAtMs", format: "timestamp" }, "quorum", "voteStats", { field: "discourseUrl", format: "url" }, { field: "snapshotUrl", format: "url" }, { field: "proposalId", format: "truncated" }],
 							],
 							body: {
 								field: "description",
@@ -77441,6 +77441,25 @@ export const routes = defineRoutes(schema)({
 		},
 
 		"tally": {
+			page: {
+				view: {
+					imports: [
+						{ from: "$app/paths", names: ["resolve"] },
+						{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
+					],
+					Content: dedent `
+										<section data-card>
+											<header data-row-item='flexible'>
+												<HeadingComponent>Tally governance</HeadingComponent>
+											</header>
+
+											<p>Browse a Tally governor or proposal from its canonical Tally link, then follow its organization, network, proposal status, schedule, and discussion links in Blockhead.</p>
+											<p><a href={resolve('/snapshot/spaces')}>Browse Snapshot spaces and proposals</a></p>
+										</section>
+					`,
+				},
+				text: { title: "Tally governance" },
+			},
 			children: {
 				"governor": {
 					children: {
@@ -77517,6 +77536,7 @@ export const routes = defineRoutes(schema)({
 						{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 						{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 						{ from: "$/views/FarcasterNetworkView.svelte", default: "FarcasterNetworkView" },
+						{ from: "$/views/_GlobalRedditNetworkView.svelte", default: "RedditNetworkView" },
 					],
 					Content: dedent `
 											<CollapsibleTabs
@@ -77525,6 +77545,8 @@ export const routes = defineRoutes(schema)({
 												sections={[
 													{ id: 'protocols', label: 'Protocols' },
 													{ id: 'farcaster', label: 'Farcaster' },
+													{ id: 'reddit', label: 'Reddit' },
+													{ id: 'governance', label: 'Governance' },
 												]}
 												data-card
 											>
@@ -77557,6 +77579,20 @@ export const routes = defineRoutes(schema)({
 														selection={select(EntityType.FarcasterNetwork, { scope: 'FarcasterNetwork' })}
 														open={true}
 													/>
+												{/snippet}
+
+												{#snippet SectionReddit()}
+													<RedditNetworkView
+														selection={select(EntityType._GlobalRedditNetwork, { scope: 'Reddit' })}
+														open={true}
+													/>
+												{/snippet}
+
+												{#snippet SectionGovernance()}
+													<ul class='social-protocol-groups'>
+														<li><a href={resolve('/snapshot/spaces')}>Snapshot spaces and proposals</a></li>
+														<li><a href={resolve('/tally')}>Tally governors and proposals</a></li>
+													</ul>
 												{/snippet}
 											</CollapsibleTabs>
 								`,

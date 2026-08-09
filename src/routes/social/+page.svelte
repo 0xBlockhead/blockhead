@@ -8,6 +8,7 @@
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import FarcasterNetworkView from '$/views/FarcasterNetworkView.svelte'
+	import RedditNetworkView from '$/views/_GlobalRedditNetworkView.svelte'
 
 
 	// Components
@@ -27,6 +28,8 @@
 		sections={[
 			{ id: 'protocols', label: 'Protocols' },
 			{ id: 'farcaster', label: 'Farcaster' },
+			{ id: 'reddit', label: 'Reddit' },
+			{ id: 'governance', label: 'Governance' },
 		]}
 		data-card
 	>
@@ -59,6 +62,20 @@
 				selection={select(EntityType.FarcasterNetwork, { scope: 'FarcasterNetwork' })}
 				open={true}
 			/>
+		{/snippet}
+
+		{#snippet SectionReddit()}
+			<RedditNetworkView
+				selection={select(EntityType._GlobalRedditNetwork, { scope: 'Reddit' })}
+				open={true}
+			/>
+		{/snippet}
+
+		{#snippet SectionGovernance()}
+			<ul class='social-protocol-groups'>
+				<li><a href={resolve('/snapshot/spaces')}>Snapshot spaces and proposals</a></li>
+				<li><a href={resolve('/tally')}>Tally governors and proposals</a></li>
+			</ul>
 		{/snippet}
 	</CollapsibleTabs>
 </Page>

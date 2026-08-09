@@ -41,6 +41,7 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import SnapshotSpaceView from '$/views/SnapshotSpaceView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -230,7 +231,7 @@
 						<div>
 							<dt>Starts</dt>
 							<dd>
-								{startAtMs}
+								<Timestamp timestamp={startAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -252,7 +253,7 @@
 						<div>
 							<dt>Ends</dt>
 							<dd>
-								{endAtMs}
+								<Timestamp timestamp={endAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -274,7 +275,7 @@
 						<div>
 							<dt>Created</dt>
 							<dd>
-								{createdAtMs}
+								<Timestamp timestamp={createdAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -296,7 +297,7 @@
 						<div>
 							<dt>Updated</dt>
 							<dd>
-								{updatedAtMs}
+								<Timestamp timestamp={updatedAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -424,7 +425,13 @@
 						<div>
 							<dt>Link</dt>
 							<dd>
-								{link}
+								<a
+									href={link}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={link} />
+								</a>
 							</dd>
 						</div>
 					{/if}

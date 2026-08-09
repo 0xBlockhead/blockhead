@@ -41,6 +41,7 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TallyGovernorView from '$/views/TallyGovernorView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -224,7 +225,7 @@
 						<div>
 							<dt>Starts</dt>
 							<dd>
-								{startAtMs}
+								<Timestamp timestamp={startAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -246,7 +247,7 @@
 						<div>
 							<dt>Ends</dt>
 							<dd>
-								{endAtMs}
+								<Timestamp timestamp={endAtMs} />
 							</dd>
 						</div>
 					{/if}

@@ -2569,6 +2569,19 @@ test('renders source-backed social hub lists as carousel cards', () => {
 	assert.doesNotMatch(renderGeneratedFile(rssFeedsView), /ComponentProps<typeof EntitiesList>|Pick<[\s\S]*?ComponentProps<typeof EntitiesList>/)
 })
 
+test('renders governance discovery and proposal presentation from APP', () => {
+	assert.match(generatedSource('src/routes/social/+page.svelte'), /\{#snippet SectionReddit\(\)\}/)
+	assert.match(generatedSource('src/routes/social/+page.svelte'), /\{#snippet SectionGovernance\(\)\}/)
+	assert.match(generatedSource('src/routes/social/+page.svelte'), /href=\{resolve\('\/snapshot\/spaces'\)\}/)
+	assert.match(generatedSource('src/routes/social/+page.svelte'), /href=\{resolve\('\/tally'\)\}/)
+	assert.match(generatedSource('src/routes/tally/+page.svelte'), /<HeadingComponent>Tally governance<\/HeadingComponent>/)
+	assert.match(generatedSource('src/views/SnapshotProposalView.svelte'), /<Timestamp timestamp=\{startAtMs\} \/>/)
+	assert.match(generatedSource('src/views/SnapshotProposalView.svelte'), /href=\{link\}/)
+	assert.match(generatedSource('src/views/TallyProposalView.svelte'), /<Timestamp timestamp=\{endAtMs\} \/>/)
+	assert.match(generatedSource('src/views/TallyProposalView.svelte'), /href=\{discourseUrl\}/)
+	assert.match(generatedSource('src/views/TallyProposalView.svelte'), /href=\{snapshotUrl\}/)
+})
+
 test('keeps entity-list selection props distinct from projection boundary props', () => {
 	const nostrRelayView = baselineCompiledApp.generatedFiles.find(({ path }) => (
 		path === 'src/views/NostrRelayView.svelte'
