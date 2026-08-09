@@ -3548,8 +3548,9 @@ test('emits every source-axis enum and only valid enum references in provider ro
 
 	const renderedSourceBinding = renderGeneratedFile(sourceBinding)
 	const renderedSourceProviders = renderGeneratedFile(sourceProviders)
-	assert.match(renderedSourceProviders, /import \{ mergeSourceBindingIndexes, type CompleteSourceBindingIndex, type SourceBinding \}/)
+	assert.match(renderedSourceProviders, /import \{[\s\S]*?mergeSourceBindingIndexes,[\s\S]*?sourceBindingId,[\s\S]*?type CompleteSourceBindingIndex,[\s\S]*?type SourceBinding,[\s\S]*?\} from '\.\/SourceBinding\.ts'/)
 	assert.match(renderedSourceProviders, /Object\.values\(sourceBindingsBySource\)\n\t\.flatMap\(\(bindings\): readonly SourceBinding\[\] => bindings\)/)
+	assert.match(renderedSourceProviders, /export const sourceBindingIdsBySource = Object\.fromEntries/)
 	assert.doesNotMatch(renderedSourceProviders, /sourceBindingsBySource\)\.flat\(\)/)
 	assert.doesNotMatch(renderedSourceBinding, /\bprovider: SourceProvider\b/)
 	assert.doesNotMatch(renderedSourceBinding, /\bNone\s*=\s*'None'/)
@@ -4230,7 +4231,7 @@ test('rejects operation groups split across indistinguishable provider sources',
 	)
 })
 
-test('allows same-provider sources with distinct transport or provenance', () => {
+test('rejects endpoint and delivery identities while allowing distinct protocol or provenance', () => {
 	const distinctEndpointApp = structuredClone(app)
 	const forgejoSource = distinctEndpointApp.sources.sources.find(({ source }) => (
 		source === Source.Forgejo_Rest
@@ -4244,7 +4245,26 @@ test('allows same-provider sources with distinct transport or provenance', () =>
 	distinctEndpointSource.binding.endpoints[0].locator = 'https://{forgejo-mirror-host}/api/v1'
 	distinctEndpointApp.sources.sources.push(distinctEndpointSource)
 	alphabetizeSourceDefinitions(distinctEndpointApp)
-	assert.doesNotThrow(() => compileApp(distinctEndpointApp))
+	assert.throws(
+		() => compileApp(distinctEndpointApp),
+		/Forgejo: source identities Forgejo_Rest, ForgejoMirror_Rest share one transport and provenance/
+	)
+
+	const distinctDeliveryApp = structuredClone(app)
+	const distinctDeliverySource = structuredClone(forgejoSource)
+	assert.ok(distinctDeliverySource.binding)
+	Object.defineProperty(distinctDeliverySource, 'source', {
+		value: 'ForgejoRemoteQuery_Rest',
+	})
+	Object.defineProperty(distinctDeliverySource.binding, 'delivery', {
+		value: SourceDelivery.RemoteQuery,
+	})
+	distinctDeliveryApp.sources.sources.push(distinctDeliverySource)
+	alphabetizeSourceDefinitions(distinctDeliveryApp)
+	assert.throws(
+		() => compileApp(distinctDeliveryApp),
+		/Forgejo: source identities Forgejo_Rest, ForgejoRemoteQuery_Rest share one transport and provenance/
+	)
 
 	const distinctProtocolApp = structuredClone(app)
 	const distinctProtocolSource = structuredClone(forgejoSource)

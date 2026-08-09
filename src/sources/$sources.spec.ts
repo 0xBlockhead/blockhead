@@ -10,7 +10,11 @@ import {
 	resolve,
 } from 'node:path'
 
-import sourceProviderDefinitions, { sourceBindings } from '$/sources/$sourceProviders.ts'
+import sourceProviderDefinitions, {
+	sourceBindingIdsBySource,
+	sourceBindings,
+	sourceBindingsBySource,
+} from '$/sources/$sourceProviders.ts'
 import { indexSourceProviders } from '$/sources/$sources.ts'
 import pipedBindings from '$/sources/Piped/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -43,6 +47,15 @@ const {
 } = voltaireJsonRpcTransports
 
 describe('source provider registry', () => {
+	it('indexes exact binding provenance across endpoint and delivery variants', () => {
+		for (const [source, bindings] of Object.entries(sourceBindingsBySource))
+			expect(sourceBindingIdsBySource[source]).toEqual(bindings.map(sourceBindingId))
+
+		expect(sourceBindingsBySource[Source.Snapchain_Rest][0].endpoints.length).toBeGreaterThan(1)
+		expect(new Set(sourceBindingsBySource[Source.Voltaire_JsonRpc].map(({ delivery }) => delivery)).size).toBeGreaterThan(1)
+		expect(new Set(sourceBindingIdsBySource[Source.Voltaire_JsonRpc]).size).toBe(sourceBindingsBySource[Source.Voltaire_JsonRpc].length)
+	})
+
 	it('names every EVM execution binding missing OpenRPC authority', () => {
 		expect(evmExecutionOpenRpcArtifactFailures(sourceBindings
 			.filter((binding) => (

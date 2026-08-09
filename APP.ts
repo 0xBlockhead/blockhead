@@ -1020,6 +1020,7 @@ type _SourceProviderDefinition = {
 type _SourceDefinition<_Provider extends _SourceProvider> = {
 	source: Source
 	provider: _Provider
+	provenance?: string
 	label: string
 	binding?: _SourceBinding
 	bindings?: _SourceBinding[]
@@ -91201,6 +91202,7 @@ export const app = {
 			{
 				source: Source.ChainlinkDataFeeds_AddressCatalog,
 				provider: "ChainlinkDataFeeds",
+				provenance: "address-catalog",
 				label: "Chainlink Data Feeds address catalog",
 				binding: {
 					target: {
@@ -91225,6 +91227,7 @@ export const app = {
 			{
 				source: Source.ChainlinkDataFeeds_Contracts,
 				provider: "ChainlinkDataFeeds",
+				provenance: "contract-catalog",
 				label: "Chainlink Data Feeds contracts",
 				binding: {
 					target: {
@@ -91280,6 +91283,7 @@ export const app = {
 			{
 				source: Source.CircleCctpContracts_Evm,
 				provider: "CircleCctp",
+				provenance: "evm-contract-catalog",
 				label: "Circle CCTP EVM contracts",
 				binding: {
 					target: {
@@ -91304,6 +91308,7 @@ export const app = {
 			{
 				source: Source.CircleCctpContracts_Solana,
 				provider: "CircleCctp",
+				provenance: "solana-contract-catalog",
 				label: "Circle CCTP Solana contracts",
 				binding: {
 					target: {
@@ -91328,6 +91333,7 @@ export const app = {
 			{
 				source: Source.CircleCctpContracts_Stellar,
 				provider: "CircleCctp",
+				provenance: "stellar-contract-catalog",
 				label: "Circle CCTP Stellar contracts",
 				binding: {
 					target: {
@@ -94363,6 +94369,7 @@ export const app = {
 			{
 				source: Source.IcDashboard_Canister,
 				provider: "InternetComputer",
+				provenance: "dashboard-canister",
 				label: "IC dashboard canister",
 				binding: {
 					target: {
@@ -94387,6 +94394,7 @@ export const app = {
 			{
 				source: Source.InternetComputer_Canister,
 				provider: "InternetComputer",
+				provenance: "application-canister",
 				label: "Internet Computer canister",
 				binding: {
 					target: {
@@ -96943,6 +96951,7 @@ export const app = {
 			{
 				source: Source.PayjoinOhttpRelay_Http,
 				provider: "Payjoin",
+				provenance: "ohttp-relay",
 				label: "Payjoin OHTTP relay",
 				binding: {
 					target: {
@@ -96968,6 +96977,7 @@ export const app = {
 			{
 				source: Source.PayjoinReceiver_Http,
 				provider: "Payjoin",
+				provenance: "receiver",
 				label: "Payjoin receiver HTTP",
 				binding: {
 					target: {
@@ -97308,6 +97318,7 @@ export const app = {
 			{
 				source: Source.Pyth_EvmContract,
 				provider: "Pyth",
+				provenance: "evm-contract-catalog",
 				label: "Pyth EVM contract catalog",
 				binding: {
 					target: {
@@ -97332,6 +97343,7 @@ export const app = {
 			{
 				source: Source.Pyth_SolanaProgram,
 				provider: "Pyth",
+				provenance: "solana-program-catalog",
 				label: "Pyth Solana program catalog",
 				binding: {
 					target: {
@@ -104744,6 +104756,7 @@ export const app = {
 			{
 				source: Source.ZeroGChainScan_Rest,
 				provider: "ZeroG",
+				provenance: "chain-scan",
 				label: "0G ChainScan REST",
 				binding: {
 					target: {
@@ -104810,6 +104823,7 @@ export const app = {
 			{
 				source: Source.ZeroGStorageScan_Rest,
 				provider: "ZeroG",
+				provenance: "storage-scan",
 				label: "0G StorageScan REST",
 				binding: {
 					target: {

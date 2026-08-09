@@ -4433,26 +4433,22 @@ const sourceBindings = (source: App['sources']['sources'][number]) => [
 	...(source.bindings ?? []),
 ]
 
-// A source names provenance, not an operation group. Two source names cannot
-// partition one provider transport unless an external provenance axis differs.
+// A source names provenance, not an endpoint, delivery mode, or operation group.
+// Bindings may give one source several endpoint and delivery choices; only an
+// explicit or external protocol/API/credential provenance axis can distinguish it.
 const sourceIdentityTransportKey = ({
 	provider,
+	provenance,
 	binding,
 }: {
 	provider: SourceDefinition['provider']
+	provenance: SourceDefinition['provenance']
 	binding: SourceBinding
 }) => JSON.stringify([
 	provider,
-	[...binding.endpoints]
-		.map(({ endpointKind, locator, corsEnabled }) => JSON.stringify([
-			endpointKind,
-			locator,
-			corsEnabled ?? null,
-		]))
-		.sort(),
+	provenance ?? null,
 	binding.wireProtocol,
 	binding.apiFamily,
-	binding.delivery,
 	[...binding.credentials]
 		.map((credential) => JSON.stringify(
 			'envKey' in credential ?
@@ -5326,6 +5322,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		compiledSourceBindings,
 		({ source, binding }) => sourceIdentityTransportKey({
 			provider: sourceDefinitionById[source].provider,
+			provenance: sourceDefinitionById[source].provenance,
 			binding,
 		})
 	).values()) {
@@ -6636,10 +6633,10 @@ const generateSourceBindingFile = () => tsFile(
 				from: 'arktype',
 				typeNames: ['Type'],
 			},
-			{
-				from: '$/sources/Source.ts',
-				names: ['Source'],
-			},
+				{
+					from: '$/sources/Source.ts',
+					names: ['Source'],
+				},
 			{
 				from: '$/sources/$sources.ts',
 				typeNames: ['SourcePublicEnv'],
@@ -7823,7 +7820,10 @@ const generateSourceProvidersFile = (sourceProviderNames: readonly string[]) => 
 			})),
 			{
 				from: './SourceBinding.ts',
-				names: ['mergeSourceBindingIndexes'],
+				names: [
+					'mergeSourceBindingIndexes',
+					'sourceBindingId',
+				],
 				typeNames: [
 					'CompleteSourceBindingIndex',
 					'SourceBinding',
@@ -7847,6 +7847,13 @@ const generateSourceProvidersFile = (sourceProviderNames: readonly string[]) => 
 			'',
 			'export const sourceBindings = Object.values(sourceBindingsBySource)',
 			'\t.flatMap((bindings): readonly SourceBinding[] => bindings)',
+			'',
+			'export const sourceBindingIdsBySource = Object.fromEntries(',
+			'\tObject.entries(sourceBindingsBySource).map(([source, bindings]) => [',
+			'\t\tsource,',
+			'\t\tbindings.map(sourceBindingId),',
+			'\t])',
+			')',
 		],
 	}
 )
@@ -8129,10 +8136,10 @@ const generateResolverIndexFile = (resolverModules: readonly App['resolvers']['m
 				from: '$/resolvers/defineResolver.ts',
 				typeNames: ['RegisteredSourceResolverModule'],
 			},
-				{
-					from: '$/sources/Source.ts',
-					names: ['Source'],
-				},
+			{
+				from: '$/sources/Source.ts',
+				names: ['Source'],
+			},
 		],
 		body: [
 			'type ResolverLoaderEntry = {',
