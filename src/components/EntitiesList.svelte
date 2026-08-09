@@ -358,9 +358,8 @@
 					{
 						hasMore: true,
 						loading: continuation.loading,
-						onLoadMore: () => {
-							void continuation.loadMore().catch(() => {})
-						},
+						onLoadMore: () => void continuation.loadMore().catch(() => {}),
+						Placeholder: Pagination,
 					}
 			}
 			{...UnorderedListProps}
@@ -375,6 +374,35 @@
 		>
 			{#snippet Empty()}
 				{@render EmptyFallback()}
+			{/snippet}
+
+			{#snippet Pagination({ loading = false })}
+				{#if loading}
+					<button
+						type="button"
+						disabled
+						aria-live="polite"
+					>
+						Loading more…
+					</button>
+				{:else if continuation?.error}
+					<div role="alert">
+						<span>Couldn’t load more items.</span>
+						<button
+							type="button"
+							onclick={() => void continuation.loadMore().catch(() => {})}
+						>
+							Retry
+						</button>
+					</div>
+				{:else}
+					<button
+						type="button"
+						onclick={() => void continuation?.loadMore().catch(() => {})}
+					>
+						Load more
+					</button>
+				{/if}
 			{/snippet}
 		</UnorderedList>
 	{/snippet}

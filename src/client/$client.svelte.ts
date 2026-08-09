@@ -336,6 +336,7 @@ type PersistedCollectionSyncOptions<_Row extends PersistedCollectionRow> = {
 export type PersistedCollectionContinuation = {
 	readonly source: string
 	readonly metadata: ProviderContinuation
+	readonly error: boolean
 	readonly loading: boolean
 	readonly loadMore: () => Promise<void>
 	readonly cancel: () => void
@@ -1681,6 +1682,7 @@ const persistedCollectionSync = <
 }: PersistedCollectionSyncOptions<_Row>): SyncConfig<_Row, string | number> => {
 	const inFlightLoads = new Map<string, Promise<void>>()
 	const inFlightAppendAbortControllerByKey = new Map<string, AbortController>()
+	const failedContinuationByAppendKey = new Map<string, string>()
 	const staleSubsetKeys = new Set<string>()
 
 	return {
@@ -2161,6 +2163,7 @@ const persistedCollectionSync = <
 					return
 				}
 
+				failedContinuationByAppendKey.delete(appendKey)
 				const load = (async () => {
 					const abortController = new AbortController()
 					inFlightAppendAbortControllerByKey.set(appendKey, abortController)
@@ -2298,6 +2301,12 @@ const persistedCollectionSync = <
 				notifyContinuationChange()
 				try {
 					await load
+				} catch (error) {
+					failedContinuationByAppendKey.set(
+						appendKey,
+						stringify(expectedContinuation)
+					)
+					throw error
 				} finally {
 					inFlightLoads.delete(appendKey)
 					inFlightAppendAbortControllerByKey.delete(appendKey)
@@ -2353,6 +2362,10 @@ const persistedCollectionSync = <
 						[{
 							source: candidate.source,
 							metadata: candidate.continuation,
+							error: (
+								failedContinuationByAppendKey.get(`append:${candidate.key}:${candidate.source}`)
+								=== stringify(candidate.continuation)
+							),
 							loading: inFlightLoads.has(`append:${candidate.key}:${candidate.source}`),
 							loadMore: () => appendSubset(
 								candidate.loadSubsetOptions,

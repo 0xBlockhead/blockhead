@@ -1860,6 +1860,7 @@ describe('client resolver stack architecture', () => {
 				},
 			}),
 		] as const
+		let failNextPage = true
 		let releaseCancelledPage: (() => void) | undefined
 		const persistedRowsByCollectionId = new Map<string, Map<string | number, object>>()
 		const persistedMetadataByCollectionId = new Map<string, Map<string, string>>()
@@ -1883,6 +1884,11 @@ describe('client resolver stack architecture', () => {
 					resolve: {
 						Slug: {
 							resolve: async ({ slug }, resolverContext) => {
+								if (resolverContext.providerContinuationToken === 'next-page' && failNextPage) {
+									failNextPage = false
+									throw new Error('continuation temporarily unavailable')
+								}
+
 								if (resolverContext.providerContinuationToken === 'cancelled-page')
 									await new Promise<void>((resolve) => {
 										releaseCancelledPage = resolve
@@ -2008,7 +2014,13 @@ describe('client resolver stack architecture', () => {
 			terminal: false,
 			token: 'next-page',
 		})
-		await firstResource.current?.continuation?.loadMore()
+		await expect(firstResource.current?.continuation?.loadMore()).rejects.toThrow(
+			'continuation temporarily unavailable'
+		)
+		expect(firstResource.current?.continuation?.error).toBe(true)
+		const retriedLoad = firstResource.current?.continuation?.loadMore()
+		expect(firstResource.current?.continuation?.error).toBe(false)
+		await retriedLoad
 		await expect.poll(() => firstResource.current?.entities.map((entity) => entity.entitySelector)).toEqual([
 			{ id: 'first-first' },
 			{ id: 'first-second' },
