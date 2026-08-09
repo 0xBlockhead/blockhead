@@ -27,10 +27,6 @@
 	"exclude": [
 		"node_modules/**",
 		".svelte-kit/types/src/routes/api/e2e/**",
-		"src/routes_/**",
-		"src/resolvers_/**",
-		"src/schema_/**",
-		"src/sources_/**",
 		"src/resolvers/*.ts",
 		"src/sources/*/**",
 		"src/routes/api/e2e/**",

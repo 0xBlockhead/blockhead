@@ -457,7 +457,7 @@ Market graph notes: `$/constants/Market.ts`. Quote / OHLC UI: Entity views — L
 
 ## Sources (`src/sources/**`)
 
-The repo uses `src/sources/**` for external I/O, source metadata registration, generated wire artifacts, proxy/live delivery metadata, and provider transport code. During the sources-v2 migration, the previous implementation has been moved to `src/sources_/**` as a reference copy.
+The repo uses `src/sources/**` for external I/O, source metadata registration, generated wire artifacts, proxy/live delivery metadata, and provider transport code.
 
 Source binding model:
 

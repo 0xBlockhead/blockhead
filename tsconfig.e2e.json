@@ -31,10 +31,6 @@
 	"exclude": [
 		"node_modules/**",
 		"src/routes/demo/**",
-		"src/schema_/**",
-		"src/routes_/**",
-		"src/sources_/**",
-		"src/resolvers_/**",
 		"src/**/*.test.js",
 		"src/**/*.test.ts",
 		"src/**/*.spec.js",

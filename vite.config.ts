@@ -21,13 +21,6 @@ const satteriBrowserEntry = fileURLToPath(new URL(
 	import.meta.url
 ))
 
-const referenceFolderTestExcludes = [
-	'src/schema_/**',
-	'src/routes_/**',
-	'src/sources_/**',
-	'src/resolvers_/**',
-] as const
-
 const generatorPublicationPlugin = (): Plugin => {
 	let paused = false
 	let server: ViteDevServer
@@ -133,7 +126,6 @@ export default defineConfig({
 					exclude: [
 						'src/lib/server/**',
 						'src/routes/demo/**',
-						...referenceFolderTestExcludes,
 					]
 				}
 			},
@@ -147,7 +139,6 @@ export default defineConfig({
 					exclude: [
 						'src/**/*.svelte.{test,spec}.{js,ts}',
 						'src/routes/demo/**',
-						...referenceFolderTestExcludes,
 					]
 				}
 			}
