@@ -8,15 +8,12 @@ import type {
 	MoneroRpcInfo,
 	MoneroRpcTransaction,
 } from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
-import moneroBindings from '$/sources/MoneroDaemonRpc/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 
 const getBlock = vi.hoisted(() => vi.fn())
 const getInfo = vi.hoisted(() => vi.fn())
 const getTransactions = vi.hoisted(() => vi.fn())
-const moneroMainnetBinding = moneroBindings[Source.MoneroDaemonRpc_JsonRpc][0]
-
 vi.mock('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts', () => ({
 	getBlock,
 	getInfo,
@@ -199,7 +196,6 @@ describe('Monero daemon block selectors', () => {
 		})
 
 	expect(getBlock).toHaveBeenNthCalledWith(1, {
-		binding: moneroMainnetBinding,
 		height,
 		})
 		expect(await blockResolver.resolve.NetworkHeightHash.resolve({
@@ -208,7 +204,6 @@ describe('Monero daemon block selectors', () => {
 			hash: block.block_header.hash,
 		})).toEqual(byHeight)
 	expect(getBlock).toHaveBeenNthCalledWith(2, {
-		binding: moneroMainnetBinding,
 		height,
 		})
 		expect(Object.keys(blockResolver.resolve).sort()).toEqual([
@@ -251,7 +246,6 @@ describe('Monero daemon block selectors', () => {
 		)
 		expect(getBlock).toHaveBeenCalledOnce()
 	expect(getBlock).toHaveBeenCalledWith({
-		binding: moneroMainnetBinding,
 		height,
 		})
 	})

@@ -274,18 +274,15 @@ describe('Monero daemon JSON-RPC queries', () => {
 		})).rejects.toThrow('MoneroDaemonRpc_JsonRpc: all selected binding endpoints failed')
 	})
 
-	it('derives endpoints only from the selected binding', async () => {
+	it('uses the canonical mainnet binding endpoints', async () => {
 		fetchMock.mockResolvedValueOnce(rpcResponse(infoEnvelope))
 
-		await expect(getInfo({
-			...moneroMainnetBinding,
-			endpoints: [bindings[Source.MoneroDaemonRpc_JsonRpc][1].endpoints[0]],
-		})).resolves.toMatchObject({
+		await expect(getInfo()).resolves.toMatchObject({
 			height: infoEnvelope.height,
 		})
 		expect(fetchMock).toHaveBeenCalledOnce()
 		expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
-			proxyPath('http://127.0.0.1:18081/json_rpc')
+			proxyPath('https://xmr-node.cakewallet.com:18081/json_rpc')
 		)
 	})
 })
