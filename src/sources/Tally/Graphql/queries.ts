@@ -8,9 +8,12 @@ import {
 	type TallyProposal,
 	type TallyProposalStatus,
 } from '$/sources/Tally/Graphql/types.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Tally/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 import { queryTally } from './client.ts'
+
+const binding = bindings[Source.Tally][0]
 
 const tallyGovernorFields = `
 	id
@@ -376,10 +379,8 @@ const assertProposal = (
 }
 
 export const getGovernor = async ({
-	binding,
 	governorId,
 }: {
-	binding: SourceBinding
 	governorId: string
 }) => {
 	assertAccountId(governorId, 'requested governor ID')
@@ -401,13 +402,11 @@ export const getGovernor = async ({
 }
 
 export const getGovernorsPage = async ({
-	binding,
 	organizationId,
 	limit,
 	afterCursor,
 	includeInactive = false,
 }: {
-	binding: SourceBinding
 	organizationId: string
 	limit: number
 	afterCursor?: string
@@ -464,10 +463,8 @@ export const getGovernorsPage = async ({
 }
 
 export const getProposal = async ({
-	binding,
 	proposalId,
 }: {
-	binding: SourceBinding
 	proposalId: string
 }) => {
 	assertIntId(proposalId, 'requested proposal ID')
@@ -489,12 +486,10 @@ export const getProposal = async ({
 }
 
 export const getProposalsPage = async ({
-	binding,
 	governorId,
 	limit,
 	afterCursor,
 }: {
-	binding: SourceBinding
 	governorId: string
 	limit: number
 	afterCursor?: string

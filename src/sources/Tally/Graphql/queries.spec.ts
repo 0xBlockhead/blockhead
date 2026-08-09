@@ -148,7 +148,6 @@ describe('Tally onchain governance reads', () => {
 		}))
 
 		await expect(getGovernor({
-			binding,
 			governorId,
 		})).resolves.toMatchObject({
 			id: governorId,
@@ -189,7 +188,6 @@ describe('Tally onchain governance reads', () => {
 		}))
 
 		await expect(getGovernorsPage({
-			binding,
 			organizationId,
 			limit: 1,
 			afterCursor: 'prev',
@@ -227,7 +225,6 @@ describe('Tally onchain governance reads', () => {
 		}))
 
 		await expect(getProposal({
-			binding,
 			proposalId,
 		})).resolves.toMatchObject({
 			id: proposalId,
@@ -254,7 +251,6 @@ describe('Tally onchain governance reads', () => {
 		}))
 
 		await expect(getProposalsPage({
-			binding,
 			governorId,
 			limit: 1,
 		})).resolves.toEqual({
@@ -345,37 +341,29 @@ describe('Tally onchain governance reads', () => {
 			}))
 
 		await expect(getGovernor({
-			binding,
 			governorId,
 		})).rejects.toThrow('foreign governor')
 		await expect(getGovernorsPage({
-			binding,
 			organizationId,
 			limit: 1,
 		})).rejects.toThrow('foreign organization')
 		await expect(getProposalsPage({
-			binding,
 			governorId,
 			limit: 1,
 		})).rejects.toThrow('foreign governor')
 		await expect(getGovernor({
-			binding,
 			governorId,
 		})).rejects.toThrow('unauthorized')
 		await expect(getGovernor({
-			binding,
 			governorId,
 		})).rejects.toThrow('byte limit')
 		await expect(getGovernor({
-			binding,
 			governorId: 'not-a-caip10',
 		})).rejects.toThrow('invalid requested governor ID')
 		await expect(getProposal({
-			binding,
 			proposalId: '',
 		})).rejects.toThrow('invalid requested proposal ID')
 		await expect(getGovernorsPage({
-			binding,
 			organizationId,
 			limit: 21,
 		})).rejects.toThrow('page limit')
@@ -444,28 +432,22 @@ describe('Tally onchain governance reads', () => {
 			}))
 
 		await expect(getGovernor({
-			binding,
 			governorId,
 		})).rejects.toThrow('invalid governor envelope')
 		await expect(getGovernor({
-			binding,
 			governorId,
 		})).rejects.toThrow('invalid governor envelope')
 		await expect(getProposal({
-			binding,
 			proposalId,
 		})).rejects.toThrow('invalid proposal envelope')
 		await expect(getProposal({
-			binding,
 			proposalId,
 		})).rejects.toThrow('invalid proposal envelope')
 		await expect(getGovernorsPage({
-			binding,
 			organizationId,
 			limit: 1,
 		})).rejects.toThrow('invalid governors page envelope')
 		await expect(getProposalsPage({
-			binding,
 			governorId,
 			limit: 1,
 		})).rejects.toThrow('invalid proposals page envelope')
