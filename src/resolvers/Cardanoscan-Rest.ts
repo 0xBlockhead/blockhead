@@ -746,4 +746,4 @@ export default {
 			$$delegationEpochs: (account) => account.$$delegationEpochs,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Cardanoscan_Rest>
+} satisfies RegisteredSourceResolverModule

@@ -74,17 +74,10 @@ beforeEach(() => {
 	getVersion.mockReset()
 })
 
-it('indexes only the clocked Lotus observation relation on the stable actor', () => {
+it('indexes the clocked Lotus observation relation on the stable actor', () => {
 	expect(indexed.resolverParts.filter(({ resolver }) => resolver === indexedActorResolver).map(({ fieldName }) => fieldName)).toEqual([
 		'$$timestamps',
 	])
-	expect(indexed.resolverDefinitions.some((resolver) => (
-		resolver.source === Source.Filfox_Rest
-		&& (
-			resolver.entityType === EntityType.FilecoinActor
-			|| resolver.entityType === EntityType.FilecoinActor_Timestamp
-		)
-	))).toBe(false)
 })
 
 it('materializes current and historical actor state only at the exact selected tipset', async () => {

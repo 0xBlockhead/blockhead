@@ -10,10 +10,12 @@ import { Source } from '$/sources/Source.ts'
 const {
 	fetchBrowseResult,
 	getBlock,
+	getTipSet,
 	getTipSetByHeight,
 } = vi.hoisted(() => ({
 	fetchBrowseResult: vi.fn(),
 	getBlock: vi.fn(),
+	getTipSet: vi.fn(),
 	getTipSetByHeight: vi.fn(),
 }))
 
@@ -26,6 +28,7 @@ vi.mock('$/sources/LitecoinCore/JsonRpc/queries.ts', () => ({
 }))
 
 vi.mock('$/sources/Lotus/JsonRpc/queries.ts', () => ({
+	getTipSet,
 	getTipSetByHeight,
 }))
 
@@ -101,7 +104,7 @@ describe('Litecoin, Lotus, and IPFS canonical resolver bindings', () => {
 	})
 
 	it('passes the exact public Lotus mainnet binding and rejects local semantics', async () => {
-		getTipSetByHeight.mockResolvedValueOnce({
+		getTipSet.mockResolvedValueOnce({
 			Cids: [{
 				'/': 'bafy-tipset',
 			}],
@@ -127,8 +130,8 @@ describe('Litecoin, Lotus, and IPFS canonical resolver bindings', () => {
 			tipsetKey: 'bafy-tipset',
 		})
 
-		expect(getTipSetByHeight).toHaveBeenCalledWith({
-			height: 0n,
+		expect(getTipSet).toHaveBeenCalledWith({
+			tipsetKey: [{ '/': 'bafy-tipset' }],
 		})
 		await expect(lotusTipsetResolver.resolve[
 			'NetworkHeightTipsetKey'

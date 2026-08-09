@@ -123,6 +123,7 @@ describe('Network namespace catalog', () => {
 			NetworkNamespace.Aptos,
 			NetworkNamespace.Avail,
 			NetworkNamespace.Avalanche,
+			NetworkNamespace.Arweave,
 			NetworkNamespace.Celestia,
 			NetworkNamespace.Dydx,
 			NetworkNamespace.Hedera,

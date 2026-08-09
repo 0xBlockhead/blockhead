@@ -153,4 +153,4 @@ export default {
 			payload: (pendingTransaction) => pendingTransaction.payload,
 		}),
 	],
-} as const satisfies RegisteredSourceResolverModule<Source.Nodely>
+} as const satisfies RegisteredSourceResolverModule

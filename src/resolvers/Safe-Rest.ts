@@ -448,4 +448,4 @@ export default {
 			$block: (transaction) => transaction.$block,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.SafeTransactionService_Rest>
+} satisfies RegisteredSourceResolverModule

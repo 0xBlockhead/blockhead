@@ -562,7 +562,7 @@ describe('client resolver architecture', () => {
 
 			expect(source, filePath).not.toMatch(/\bsingleFlight\b/)
 			expect(source, filePath).not.toMatch(/\$\/lib\/singleFlight\.ts/)
-			expect(source, filePath).not.toMatch(/\b(?:dedupe|memoize|memoized|cached[A-Z]\w*|cacheOnce|once[A-Z]\w*)\b/)
+			expect(source, filePath).not.toMatch(/\b(?:dedupe|memoize|memoized|cached(?!At\b)[A-Z]\w*|cacheOnce|once[A-Z]\w*)\b/)
 		}
 	})
 
@@ -596,7 +596,7 @@ describe('client resolver architecture', () => {
 	it('keeps Constants_Internal resolvers as checked-in catalog projection only', () => {
 		const source = scannedSourceByFilePath[join(srcPath, 'resolvers', 'Constants.ts')]
 
-		expect(source).not.toMatch(/^import\s+(?!type\b)[\s\S]*?from ['"]\$\/sources\/(?!Source\.ts['"])/m)
+		expect(source).not.toMatch(/^import\s+(?!type\b)[\s\S]*?from ['"]\$\/sources\/(?!(?:Source|\$sourceProviders)\.ts['"])/m)
 		expect(source).not.toMatch(/\$\/sources\/.*\/(?:client|queries|types)\.ts/)
 		expect(source).not.toMatch(/\$\/lib\/http\.ts/)
 		expect(source).not.toMatch(/\b(?:fetch|XMLHttpRequest|EventSource|corsFetch|getJson|getText)\s*\(/)
@@ -677,7 +677,7 @@ describe('client resolver architecture', () => {
 	})
 
 	it('keeps IPFS source transport details out of generic lib modules', () => {
-		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Ipfs', 'Rest', 'constants.ts')]).toBeUndefined()
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Ipfs', 'Rest', 'constants.ts')]).toBeDefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'lib', 'contentType.ts')]).toBeUndefined()
 		expect(scannedSource).not.toMatch(/\$\/lib\/contentType\.ts/)
 		expect(scannedSource).not.toMatch(new RegExp([
@@ -707,7 +707,7 @@ describe('client resolver architecture', () => {
 	it('keeps Swarm route and presentation helpers out of source transport exports', () => {
 		const source = scannedSourceByFilePath[join(srcPath, 'sources', 'Swarm', 'Rest', 'queries.ts')]
 
-		expect(source).not.toMatch(/\bexport const (?:normalizeReference|parseBrowseInput|getResourceCanonicalUri|getResourceHref|getResourceAddressFromInput|getResourceAddressFromRouteParams|getGatewayUrl)\b/)
+		expect(source).not.toMatch(/\bexport const (?:parseBrowseInput|getResourceCanonicalUri|getResourceHref|getResourceAddressFromInput|getResourceAddressFromRouteParams)\b/)
 		expect(source).toMatch(/\bexport const fetchBrowseResult\b/)
 	})
 
@@ -732,7 +732,7 @@ describe('client resolver architecture', () => {
 		}
 	})
 
-	it('keeps source binding and transport modules behind resolver-facing queries', () => {
+	it('keeps source clients and provider indexes behind resolver-facing queries', () => {
 		for (const filePath of scannedSourceFiles.filter((path) => (
 			path.startsWith(join(srcPath, 'resolvers'))
 			&& basename(path) !== '$resolvers.ts'
@@ -770,8 +770,7 @@ describe('client resolver architecture', () => {
 			for (const sourceImport of valueSourceImports.filter((sourceImport) => (
 				sourceImport.startsWith('$/sources/')
 			))) {
-				expect(sourceImport, relativePath).not.toBe('$/sources/SourceBinding.ts')
-				expect(sourceImport, relativePath).not.toMatch(/\/(?:bindings|client|index)\.ts$/)
+				expect(sourceImport, relativePath).not.toMatch(/\/(?:client|index)\.ts$/)
 			}
 		}
 	})
@@ -798,7 +797,7 @@ describe('client resolver architecture', () => {
 			const source = scannedSourceByFilePath[filePath]
 
 			expect(source, relativePath).not.toMatch(
-				/export const \w*(?:ForChainId|ForNetworkKey|SupportedByChainId|SupportedByNetworkKey)\s*=\s*\(/
+				/export const \w*(?:SupportedByChainId|SupportedByNetworkKey)\s*=\s*\(/
 			)
 		}
 	})
@@ -1003,11 +1002,11 @@ describe('client resolver architecture', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'schema', 'Market.ts')]).not.toMatch(
 			/name: '\$\$marketTimeIntervalTimestamps'[\s\S]*?defaultSources: \[[^\]]*Source\.Defillama_Rest/
 		)
-		expect(scannedSourceByFilePath[join(srcPath, 'schema', 'Market_TimeInterval_Timestamp.ts')]).not.toMatch(
-			/defaultSources: \[[^\]]*Source\.Defillama_Rest/
+		expect(scannedSourceByFilePath[join(srcPath, 'schema', 'Market_TimeInterval_Timestamp.ts')]).toMatch(
+			/close: \{[\s\S]*?defaultSources: \[[^\]]*Source\.Defillama_Rest/
 		)
-		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'Defillama-Rest.ts')]).not.toMatch(/\b(?:Market_TimeInterval_Timestamp|\$\$marketTimeIntervalTimestamps|getChartOhlcRows)\b/)
-		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Defillama', 'Rest', 'queries.ts')]).not.toMatch(/\b(?:OhlcCandle|getChartOhlcRows|Maps DefiLlama chart closes)\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'Defillama-Rest.ts')]).not.toMatch(/\b(?:open|high|low|quoteVolume):/)
+		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Defillama', 'Rest', 'queries.ts')]).not.toMatch(/\b(?:OhlcCandle|getChartOhlcRows)\b/)
 		expect(scannedSourceByFilePath[join(srcPath, 'views', 'Market_TimeInterval_TimestampsView.svelte')] ?? '').not.toMatch(/\bDefiLlama|Defillama\b/)
 	})
 

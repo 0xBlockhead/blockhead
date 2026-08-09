@@ -723,4 +723,4 @@ export default {
 			},
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.TezosDappetizer_Postgres>
+} satisfies RegisteredSourceResolverModule

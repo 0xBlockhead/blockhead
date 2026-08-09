@@ -149,7 +149,7 @@ describe('Local_Internal wallet request resolvers', () => {
 
 		expect(localInternal.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.BlockheadAccount
-		))).toBe(true)
+		))).toBe(false)
 	})
 
 	it('gates selected on Connected status in the Local wallet-connection resolver', async () => {

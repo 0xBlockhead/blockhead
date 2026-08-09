@@ -58,6 +58,13 @@ describe('Neynar Farcaster direct replies', () => {
 						parent_author: { fid: 42 },
 						text: 'Direct reply',
 						timestamp: '2026-07-18T12:00:00.000Z',
+						reactions: {
+							likes: [],
+							likes_count: 0,
+							recasts: [],
+							recasts_count: 0,
+						},
+						replies: { count: 1 },
 						channel: {
 							id: 'design',
 							name: 'Design',

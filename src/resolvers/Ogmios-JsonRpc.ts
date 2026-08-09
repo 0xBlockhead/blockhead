@@ -397,4 +397,4 @@ export default {
 			epoch: (observation) => observation.epoch,
 		}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.Ogmios_JsonRpc>
+} satisfies RegisteredSourceResolverModule
