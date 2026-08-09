@@ -749,7 +749,6 @@ export default {
 				NetworkAddress: {
 					resolve: async ({ $network, address }) => {
 						assertHyperliquidMainnet($network)
-						assertHyperliquidAddress(address)
 						const {
 							getApprovedBuilders,
 							getBorrowLendUserState,
@@ -800,18 +799,6 @@ export default {
 								user: address,
 							}),
 						])
-						if (!Number.isSafeInteger(clearinghouseState.time) || clearinghouseState.time < 0)
-							throw new Error(`Hyperliquid_Rest: invalid account state time ${String(clearinghouseState.time)}`)
-
-						if (userRoleWire.role === 'agent')
-							assertHyperliquidAddress(userRoleWire.data.user)
-
-						if (userRoleWire.role === 'subAccount')
-							assertHyperliquidAddress(userRoleWire.data.master)
-
-						for (const builder of approvedBuilders)
-							assertHyperliquidAddress(builder)
-
 						return {
 							accountRole: userRoleWire.role,
 							...(userRoleWire.role === 'agent' && {

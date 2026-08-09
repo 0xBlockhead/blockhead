@@ -68,51 +68,56 @@ export type HyperliquidSpotMeta = {
 }
 
 export type HyperliquidClearinghouseState = {
-	marginSummary: {
-		accountValue: string
-		totalNtlPos: string
-		totalRawUsd: string
-		totalMarginUsed: string
-	}
-	crossMarginSummary: {
-		accountValue: string
-		totalNtlPos: string
-		totalRawUsd: string
-		totalMarginUsed: string
-	}
-	assetPositions: {
-		type: string
-		position: {
-			coin: string
-			szi: string
-			entryPx?: string | null
-			positionValue: string
-			unrealizedPnl: string
-			returnOnEquity: string
-			liquidationPx?: string | null
-			marginUsed: string
-			maxLeverage: number
-			cumFunding: {
-				allTime: string
-				sinceChange: string
-				sinceOpen: string
-			}
-			leverage: JsonValue
-		}
-	}[]
+	marginSummary: HyperliquidMarginSummary
+	crossMarginSummary: HyperliquidMarginSummary
+	assetPositions: HyperliquidAssetPosition[]
 	withdrawable: string
 	crossMaintenanceMarginUsed: string
 	time: number
 }
 
-export type HyperliquidSpotClearinghouseState = {
-	balances: {
+export type HyperliquidMarginSummary = {
+	accountValue: string
+	totalNtlPos: string
+	totalRawUsd: string
+	totalMarginUsed: string
+}
+
+export type HyperliquidAssetPosition = {
+	type: 'oneWay'
+	position: {
 		coin: string
-		token: number
-		total: string
-		hold: string
-		entryNtl: string
-	}[]
+		szi: string
+		entryPx?: string | null
+		positionValue: string
+		unrealizedPnl: string
+		returnOnEquity: string
+		liquidationPx?: string | null
+		marginUsed: string
+		maxLeverage: number
+		cumFunding: {
+			allTime: string
+			sinceChange: string
+			sinceOpen: string
+		}
+		leverage: {
+			rawUsd: string
+			type: 'cross' | 'isolated'
+			value: number
+		}
+	}
+}
+
+export type HyperliquidSpotClearinghouseState = {
+	balances: HyperliquidSpotBalance[]
+}
+
+export type HyperliquidSpotBalance = {
+	coin: string
+	token: number
+	total: string
+	hold: string
+	entryNtl: string
 }
 
 export type HyperliquidFrontendOrder = {
@@ -318,6 +323,10 @@ export type HyperliquidUserAbstraction = (
 	| 'default'
 	| 'dexAbstraction'
 )
+
+export type HyperliquidUserDexAbstraction = boolean
+
+export type HyperliquidApprovedBuilders = string[]
 
 export type HyperliquidBorrowLendPositionState = {
 	borrow: {

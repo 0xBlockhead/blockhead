@@ -83,7 +83,30 @@ const responseByInfoType = {
 			totalRawUsd: '100.5',
 			totalMarginUsed: '12.5',
 		},
-		assetPositions: [],
+		assetPositions: [{
+			type: 'oneWay',
+			position: {
+				coin: 'ETH',
+				szi: '0.5',
+				entryPx: '2_000',
+				positionValue: '1_000',
+				unrealizedPnl: '10',
+				returnOnEquity: '0.1',
+				liquidationPx: '1_500',
+				marginUsed: '100',
+				maxLeverage: 50,
+				cumFunding: {
+					allTime: '1',
+					sinceChange: '0.5',
+					sinceOpen: '0.25',
+				},
+				leverage: {
+					rawUsd: '100',
+					type: 'isolated',
+					value: 10,
+				},
+			},
+		}],
 		withdrawable: '88',
 		crossMaintenanceMarginUsed: '4',
 		time: 1_700_000_000_000,
@@ -213,6 +236,17 @@ describe('Hyperliquid public account resolvers', () => {
 		expect(timestamps[0]?.[EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'accountValue')]: '100.5',
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'withdrawable')]: '88',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'assetPositions')]: [{
+				type: 'oneWay',
+				position: {
+					coin: 'ETH',
+					leverage: {
+						rawUsd: '100',
+						type: 'isolated',
+						value: 10,
+					},
+				},
+			}],
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotBalances')]: responseByInfoType.spotClearinghouseState.balances,
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'feeSchedule')]: responseByInfoType.userFees,
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'stakingSummary')]: responseByInfoType.delegatorSummary,

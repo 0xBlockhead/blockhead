@@ -40,6 +40,7 @@ const {
 	getUserAbstraction,
 	getUserDexAbstraction,
 	getUserFees,
+	getUserRole,
 	getUserFills,
 	getUserFillsByTime,
 	getUserVaultEquities,
@@ -339,6 +340,216 @@ describe('Hyperliquid public account Info transport', () => {
 				}),
 			})
 		)
+	})
+
+	it('parses the documented account position, balance, summary, abstraction, builder, and health wires', async () => {
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				marginSummary: {
+					accountValue: '100',
+					totalNtlPos: '50',
+					totalRawUsd: '100',
+					totalMarginUsed: '10',
+				},
+				crossMarginSummary: {
+					accountValue: '90',
+					totalNtlPos: '40',
+					totalRawUsd: '90',
+					totalMarginUsed: '9',
+				},
+				assetPositions: [{
+					type: 'oneWay',
+					position: {
+						coin: 'ETH',
+						szi: '0.5',
+						entryPx: '2_000',
+						positionValue: '1_000',
+						unrealizedPnl: '10',
+						returnOnEquity: '0.1',
+						liquidationPx: '1_500',
+						marginUsed: '100',
+						maxLeverage: 50,
+						cumFunding: {
+							allTime: '1',
+							sinceChange: '0.5',
+							sinceOpen: '0.25',
+						},
+						leverage: {
+							rawUsd: '100',
+							type: 'isolated',
+							value: 10,
+						},
+					},
+				}],
+				withdrawable: '88',
+				crossMaintenanceMarginUsed: '4',
+				time: 1_700_000_000_000,
+			}),
+		})
+		await expect(getClearinghouseState({
+			user: '0x1111111111111111111111111111111111111111',
+		})).resolves.toMatchObject({
+			assetPositions: [{
+				position: {
+					leverage: {
+						rawUsd: '100',
+						type: 'isolated',
+						value: 10,
+					},
+				},
+			}],
+		})
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				balances: [{
+					coin: 'USDC',
+					token: 0,
+					total: '25',
+					hold: '2',
+					entryNtl: '25',
+				}],
+			}),
+		})
+		await expect(getSpotClearinghouseState({
+			user: '0x1111111111111111111111111111111111111111',
+		})).resolves.toEqual({
+			balances: [{
+				coin: 'USDC',
+				token: 0,
+				total: '25',
+				hold: '2',
+				entryNtl: '25',
+			}],
+		})
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				tokenToState: [[0, {
+					borrow: {
+						basis: '1',
+						value: '2',
+					},
+					supply: {
+						basis: '3',
+						value: '4',
+					},
+				}]],
+				health: 'healthy',
+				healthFactor: null,
+			}),
+		})
+		await expect(getBorrowLendUserState({
+			user: '0x1111111111111111111111111111111111111111',
+		})).resolves.toMatchObject({
+			health: 'healthy',
+			tokenToState: [[0, {
+				borrow: {
+					basis: '1',
+					value: '2',
+				},
+			}]],
+		})
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => 'portfolioMargin',
+		})
+		await expect(getUserAbstraction({
+			user: '0x1111111111111111111111111111111111111111',
+		})).resolves.toBe('portfolioMargin')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => true,
+		})
+		await expect(getUserDexAbstraction({
+			user: '0x1111111111111111111111111111111111111111',
+		})).resolves.toBe(true)
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				role: 'agent',
+				data: {
+					user: '0x3333333333333333333333333333333333333333',
+				},
+			}),
+		})
+		await expect(getUserRole({
+			user: '0x1111111111111111111111111111111111111111',
+		})).resolves.toEqual({
+			role: 'agent',
+			data: {
+				user: '0x3333333333333333333333333333333333333333',
+			},
+		})
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ['0x2222222222222222222222222222222222222222'],
+		})
+		await expect(getApprovedBuilders({
+			user: '0x1111111111111111111111111111111111111111',
+		})).resolves.toEqual(['0x2222222222222222222222222222222222222222'])
+	})
+
+	it('fails closed when stable account wire portions are malformed', async () => {
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				marginSummary: {
+					accountValue: '100',
+					totalNtlPos: '50',
+					totalRawUsd: '100',
+					totalMarginUsed: '10',
+				},
+				crossMarginSummary: {
+					accountValue: '90',
+					totalNtlPos: '40',
+					totalRawUsd: '90',
+					totalMarginUsed: '9',
+				},
+				assetPositions: [{
+					type: 'oneWay',
+					position: {
+						coin: 'ETH',
+						szi: '0.5',
+						positionValue: '1_000',
+						unrealizedPnl: '10',
+						returnOnEquity: '0.1',
+						marginUsed: '100',
+						maxLeverage: 50,
+						cumFunding: {
+							allTime: '1',
+							sinceChange: '0.5',
+							sinceOpen: '0.25',
+						},
+						leverage: {
+							type: 'isolated',
+							value: 10,
+						},
+					},
+				}],
+				withdrawable: '88',
+				crossMaintenanceMarginUsed: '4',
+				time: 1_700_000_000_000,
+			}),
+		})
+		await expect(getClearinghouseState({
+			user: '0x1111111111111111111111111111111111111111',
+		})).rejects.toThrow('Hyperliquid_Rest: invalid clearinghouseState response envelope')
+
+		corsFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ['not-an-address'],
+		})
+		await expect(getApprovedBuilders({
+			user: '0x1111111111111111111111111111111111111111',
+		})).rejects.toThrow('Hyperliquid_Rest: invalid approved builder address not-an-address')
 	})
 
 	it('posts orderStatus and validates the status envelope', async () => {

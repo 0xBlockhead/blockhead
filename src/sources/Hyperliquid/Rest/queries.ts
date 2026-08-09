@@ -9,6 +9,7 @@ import {
 } from '$/sources/_runtime/http.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
+	HyperliquidApprovedBuilders,
 	HyperliquidAllMids,
 	HyperliquidBorrowLendReserveStateRow,
 	HyperliquidBorrowLendUserState,
@@ -30,6 +31,7 @@ import type {
 	HyperliquidSpotMeta,
 	HyperliquidSpotMetaAndAssetCtxs,
 	HyperliquidUserAbstraction,
+	HyperliquidUserDexAbstraction,
 	HyperliquidUserFees,
 	HyperliquidUserRole,
 	HyperliquidUserVaultEquity,
@@ -230,7 +232,7 @@ const hyperliquidClearinghouseStateEnvelope = arktype({
 	marginSummary: hyperliquidMarginSummaryEnvelope,
 	crossMarginSummary: hyperliquidMarginSummaryEnvelope,
 	assetPositions: arktype({
-		type: 'string',
+		type: "'oneWay'",
 		position: {
 			coin: 'string',
 			szi: 'string',
@@ -246,7 +248,11 @@ const hyperliquidClearinghouseStateEnvelope = arktype({
 				sinceChange: 'string',
 				sinceOpen: 'string',
 			},
-			leverage: 'unknown',
+			leverage: {
+				rawUsd: 'string',
+				type: "'cross' | 'isolated'",
+				value: 'number',
+			},
 		},
 	}).array(),
 	withdrawable: 'string',
@@ -330,6 +336,22 @@ const hyperliquidDelegatorSummaryEnvelope = arktype({
 const hyperliquidUserAbstractionEnvelope = arktype(
 	"'unifiedAccount' | 'portfolioMargin' | 'disabled' | 'default' | 'dexAbstraction'"
 )
+const hyperliquidUserDexAbstractionEnvelope = arktype('boolean')
+const hyperliquidUserRoleEnvelope = arktype({
+	role: "'agent'",
+	data: {
+		user: 'string',
+	},
+})
+	.or({
+		role: "'subAccount'",
+		data: {
+			master: 'string',
+		},
+	})
+	.or({
+		role: "'user' | 'vault' | 'missing'",
+	})
 const hyperliquidL2BookEnvelope = arktype({
 	coin: 'string',
 	time: 'number',
@@ -477,6 +499,7 @@ export const getClearinghouseState = async ({
 }: {
 	user: string
 }) => {
+	assertInfoAddress(user)
 	const state = await info<HyperliquidClearinghouseState>({
 		body: {
 			type: 'clearinghouseState',
@@ -485,6 +508,8 @@ export const getClearinghouseState = async ({
 	})
 	if (!hyperliquidClearinghouseStateEnvelope.allows(state))
 		throw new Error('Hyperliquid_Rest: invalid clearinghouseState response envelope')
+	if (!Number.isSafeInteger(state.time) || state.time < 0)
+		throw new Error(`Hyperliquid_Rest: invalid clearinghouseState time ${String(state.time)}`)
 
 	return state
 }
@@ -494,6 +519,7 @@ export const getSpotClearinghouseState = async ({
 }: {
 	user: string
 }) => {
+	assertInfoAddress(user)
 	const state = await info<HyperliquidSpotClearinghouseState>({
 		body: {
 			type: 'spotClearinghouseState',
@@ -570,18 +596,27 @@ export const getUserVaultEquities = async ({
 	return equities
 }
 
-export const getUserRole = ({
+export const getUserRole = async ({
 	user,
 }: {
 	user: string
-}) => (
-	info<HyperliquidUserRole>({
+}) => {
+	assertInfoAddress(user)
+	const role = await info<HyperliquidUserRole>({
 		body: {
 			type: 'userRole',
 			user,
 		},
 	})
-)
+	if (!hyperliquidUserRoleEnvelope.allows(role))
+		throw new Error('Hyperliquid_Rest: invalid userRole response envelope')
+	if (role.role === 'agent')
+		assertInfoAddress(role.data.user, 'agent account address')
+	if (role.role === 'subAccount')
+		assertInfoAddress(role.data.master, 'sub-account master address')
+
+	return role
+}
 
 export const getValidatorSummaries = async () => {
 	const validators = await info<HyperliquidValidatorSummary[]>({
@@ -701,6 +736,7 @@ export const getUserFees = async ({
 }: {
 	user: string
 }) => {
+	assertInfoAddress(user)
 	const fees = await info<HyperliquidUserFees>({
 		body: {
 			type: 'userFees',
@@ -718,6 +754,7 @@ export const getDelegatorSummary = async ({
 }: {
 	user: string
 }) => {
+	assertInfoAddress(user)
 	const summary = await info<HyperliquidDelegatorSummary>({
 		body: {
 			type: 'delegatorSummary',
@@ -735,6 +772,7 @@ export const getUserAbstraction = async ({
 }: {
 	user: string
 }) => {
+	assertInfoAddress(user)
 	const abstraction = await info<HyperliquidUserAbstraction>({
 		body: {
 			type: 'userAbstraction',
@@ -747,25 +785,31 @@ export const getUserAbstraction = async ({
 	return abstraction
 }
 
-export const getUserDexAbstraction = ({
+export const getUserDexAbstraction = async ({
 	user,
 }: {
 	user: string
-}) => (
-	info<boolean>({
+}) => {
+	assertInfoAddress(user)
+	const abstraction = await info<HyperliquidUserDexAbstraction>({
 		body: {
 			type: 'userDexAbstraction',
 			user,
 		},
 	})
-)
+	if (!hyperliquidUserDexAbstractionEnvelope.allows(abstraction))
+		throw new Error('Hyperliquid_Rest: invalid userDexAbstraction response envelope')
+
+	return abstraction
+}
 
 export const getApprovedBuilders = async ({
 	user,
 }: {
 	user: string
 }) => {
-	const builders = await info<string[]>({
+	assertInfoAddress(user)
+	const builders = await info<HyperliquidApprovedBuilders>({
 		body: {
 			type: 'approvedBuilders',
 			user,
@@ -773,6 +817,8 @@ export const getApprovedBuilders = async ({
 	})
 	if (!arktype('string[]').allows(builders))
 		throw new Error('Hyperliquid_Rest: invalid approvedBuilders response envelope')
+	for (const builder of builders)
+		assertInfoAddress(builder, 'approved builder address')
 
 	return builders
 }
@@ -782,6 +828,7 @@ export const getBorrowLendUserState = async ({
 }: {
 	user: string
 }) => {
+	assertInfoAddress(user)
 	const state = await info<HyperliquidBorrowLendUserState>({
 		body: {
 			type: 'borrowLendUserState',
