@@ -3684,21 +3684,6 @@ export const client = <
 			.filter((sourceBinding) => enabledBindingIds.has(sourceBindingId(sourceBinding))),
 		(sourceBinding) => String(sourceBinding.source)
 	)
-	for (const liveSource of new Set([
-		...Object.keys(resolverIndexes.resolverRootLivePartsByEntityType).flatMap((key) => (
-			resolverIndexes.resolverRootLivePartsByEntityType[key] ?? []
-		)),
-		...Object.keys(resolverIndexes.resolverLivePartsByEntityTypeAndFieldName).flatMap((key) => (
-			resolverIndexes.resolverLivePartsByEntityTypeAndFieldName[key] ?? []
-		)),
-	].map((part) => String(part.source)))) {
-		const sourceBindings = sourceBindingsBySource[liveSource] ?? []
-		if (
-			sourceBindings.length > 0
-			&& !sourceBindings.some((sourceBinding) => sourceBinding.delivery === SourceDelivery.RemoteLive)
-		)
-			throw new Error(`${liveSource} declares resolveLive without a RemoteLive source binding`)
-	}
 	const {
 		entityDefinitionByType,
 		projectionDefinitionByEntityTypeAndPath,

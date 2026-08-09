@@ -249,7 +249,7 @@ describe('client resolver stack architecture', () => {
 		expect(productionLayoutSource).not.toMatch(/temporary|inMemory|memoryPersistence|installAppClientProbe/)
 	})
 
-	it('validates live resolvers against enabled bindings only', () => {
+	it('keeps resolver publication cadence independent from transport delivery', () => {
 		const dydxHttpBinding = sourceBindings.find((binding) => (
 			binding.source === Source.DydxIndexer
 			&& binding.delivery === SourceDelivery.HttpProxy
@@ -299,7 +299,7 @@ describe('client resolver stack architecture', () => {
 				},
 			},
 			schemaVersion: 1,
-		})).toThrow('DydxIndexer declares resolveLive without a RemoteLive source binding')
+		})).not.toThrow()
 	})
 
 	it('serializes persisted collection commits before reporting durability', async () => {
