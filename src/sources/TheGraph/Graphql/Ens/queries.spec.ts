@@ -15,7 +15,7 @@ vi.mock('$/sources/TheGraph/Graphql/client.ts', () => ({
 }))
 
 const { ensQueries } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
-const { getName } = ensQueries(bindings[Source.TheGraph_Graphql][0])
+const { getName } = ensQueries
 
 const publicEnv = {
 	PUBLIC_THEGRAPH_API_KEY: 'test',

@@ -11,7 +11,6 @@ import type { Entity } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/TheGraph/bindings.ts'
 import { ensQueries } from '$/sources/TheGraph/Graphql/Ens/queries.ts'
 
 const {
@@ -20,7 +19,7 @@ const {
 	getDomainsContaining,
 	getEnsSubgraphReachability,
 	getName,
-} = ensQueries(bindings[Source.TheGraph_Graphql][0])
+} = ensQueries
 import { hexLowerOfByteSize, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 const normalizedEnsSearchQuery = (query: string) => {
 	const trimmedQuery = query.trim()

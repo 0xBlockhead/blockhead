@@ -1,6 +1,7 @@
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
+import bindings from '$/sources/TheGraph/bindings.ts'
 import { graphql, queryEns as executeEnsQuery } from '$/sources/TheGraph/Graphql/Ens/client.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	EnsDomainFragment,
 	type EnsSubgraphDomain,
@@ -9,7 +10,8 @@ import {
 /** Graph Node default page is 100; tip text/coin values need a larger ordered window. */
 const resolverTipEventPageSize = 1000
 
-export const ensQueries = (binding: SourceBinding) => {
+export const ensQueries = (() => {
+	const binding = bindings[Source.TheGraph_Graphql][0]
 	const queryEns = <_Result extends object, _Variables extends object>(
 		publicEnv: SourcePublicEnv,
 		document: Parameters<typeof executeEnsQuery<_Result, _Variables>>[2],
@@ -45,6 +47,7 @@ const hydrateResolverTipEvents = async ({
 	domain: EnsSubgraphDomain
 }): Promise<EnsSubgraphDomain> => {
 	const resolver = domain.resolver
+	// oxlint-disable-next-line typescript/no-unnecessary-condition -- GraphQL may return a null resolver despite generated type.
 	if (resolver?.id == null)
 		return domain
 
@@ -270,4 +273,4 @@ const hydrateResolverTipEvents = async ({
 		getEnsSubgraphReachability,
 		getName,
 	}
-}
+})()

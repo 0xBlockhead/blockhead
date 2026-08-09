@@ -6,7 +6,6 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import type { EnsSubgraphDomain } from '$/sources/TheGraph/Graphql/Ens/types.ts'
 import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/TheGraph/bindings.ts'
 
 
 const getName = vi.fn()
@@ -21,13 +20,13 @@ vi.mock('@tevm/voltaire/Ens', () => ({
 }))
 
 vi.mock('$/sources/TheGraph/Graphql/Ens/queries.ts', () => ({
-	ensQueries: () => ({
+	ensQueries: {
 		getName,
 		getDomainsByOwner,
 		getDomainsByResolvedAddress,
 		getDomainsContaining,
 		getEnsSubgraphReachability,
-	}),
+	},
 }))
 
 const { default: ensTheGraphResolvers } = await import('$/resolvers/Ens-TheGraph.ts')
