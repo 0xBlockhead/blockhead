@@ -81,6 +81,54 @@ const createFixture = (
 }
 
 describe('TanStackLiveQueryResource', () => {
+	it('keeps plural direct getter and promise reads on one source subscription', async () => {
+		let snapshot = {
+			data: ['first'],
+			isLoading: false,
+			isError: false,
+			isReady: true,
+			status: 'ready',
+		} satisfies TanStackLiveQuerySnapshot<string[]>
+		let sourceSubscriptionCount = 0
+		const listeners = new Set<() => void>()
+		const resource = new TanStackLiveQueryResource(
+			() => snapshot,
+			(update) => {
+				sourceSubscriptionCount += 1
+				listeners.add(update)
+				return () => {
+					sourceSubscriptionCount -= 1
+					listeners.delete(update)
+				}
+			}
+		)
+
+		expect(resource.current).toBeUndefined()
+		await expect(resource).resolves.toEqual(['first'])
+		expect(resource.current).toEqual(['first'])
+		expect(sourceSubscriptionCount).toBe(1)
+
+		snapshot = {
+			...snapshot,
+			data: [
+				'first',
+				'second',
+			],
+		}
+		for (const listener of listeners)
+			listener()
+
+		expect(resource.current).toEqual([
+			'first',
+			'second',
+		])
+		await expect(resource).resolves.toEqual([
+			'first',
+			'second',
+		])
+		expect(sourceSubscriptionCount).toBe(1)
+	})
+
 	it('stays lazy until a getter or promise surface is observed', async () => {
 		let initializationCount = 0
 		const fixture = createFixture(readySnapshot('ready'), () => {
