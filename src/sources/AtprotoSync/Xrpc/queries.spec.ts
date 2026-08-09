@@ -15,7 +15,6 @@ import {
 	sourceBindingId,
 	SourceDelivery,
 	SourceEndpointKind,
-	sourceBindingId,
 } from '$/sources/SourceBinding.ts'
 
 
