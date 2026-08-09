@@ -8,7 +8,7 @@ import { sourceBindingId, SourceDelivery } from '$/sources/SourceBinding.ts'
 
 const binding = bindings[Source.Lens_Graphql][0]
 const { lensQueries } = await import('$/sources/Lens/Graphql/queries.ts')
-const { queryLatestPosts } = lensQueries(binding)
+const { queryLatestPosts } = lensQueries
 
 const fetchMock = vi.fn<typeof fetch>()
 
