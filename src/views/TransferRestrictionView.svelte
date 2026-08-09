@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,15 +16,18 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TransferRestriction>, 'prefetched'> = $props()
 
+	const assetInstance = $derived(selection.entitySelector.$assetInstance)
+
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TransferRestrictionCheck_TimestampsView from '$/views/TransferRestrictionCheck_TimestampsView.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import RegulatedAssetProfileView from '$/views/RegulatedAssetProfileView.svelte'
 </script>
@@ -31,6 +36,26 @@
 <EntityView
 	entityType={EntityType.TransferRestriction}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/restriction/[restrictionKey=stringSegment]/[restrictionSource=stringSegment]',
+				{
+					network: (
+						'caip2' in assetInstance.$network ?
+							caip2StringFromValue(assetInstance.$network.caip2)
+						:
+							assetInstance.$network.slug
+					),
+					kind: assetInstance.kind,
+					assetKey: assetInstance.assetKey,
+					restrictionKey: selection.entitySelector.restrictionKey,
+					restrictionSource: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -132,21 +157,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.TransferRestrictionCheck_Timestamp}
+					<TransferRestrictionCheck_TimestampsView
+						selection={checksResource}
 						countResource={checksResource.count}
 						title='checks'
-						open={true}
 						id='checks'
-						resource={checksResource()}
-					>
-						{#snippet Item({ item: transferRestrictionCheckTimestamp })}
-							<EntityView
-								entityType={EntityType.TransferRestrictionCheck_Timestamp}
-								entitySelector={transferRestrictionCheckTimestamp[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

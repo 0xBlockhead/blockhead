@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,9 +29,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				manager: true,
-				isLensManager: true,
+			...{
+				fields: {
+					manager: true,
+					isLensManager: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,18 @@
 		<EntityView
 			entityType={EntityType.LensAccountManager}
 			entitySelector={lensAccountManagerSelector}
+			href={
+				'address' in lensAccountManagerSelector.$account ?
+					resolve(
+						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/manager/[manager=evmAddress]',
+						{
+							address: lensAccountManagerSelector.$account.address,
+							manager: lensAccountManagerSelector.manager,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{lensAccountManagerSelector.manager || 'Lens account manager'}

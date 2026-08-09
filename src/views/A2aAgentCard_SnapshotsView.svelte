@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				name: true,
-				version: true,
-				contentHash: true,
-				protocolVersion: true,
+			...{
+				fields: {
+					name: true,
+					version: true,
+					contentHash: true,
+					protocolVersion: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,16 @@
 		<EntityView
 			entityType={EntityType.A2aAgentCard_Snapshot}
 			entitySelector={a2aAgentCardSnapshotSelector}
+			href={
+				resolve(
+					'/(agents)/agents/a2a/card/[agentCardUrl=absoluteUrl]/(a2aAgentCard)/snapshot/[contentHashAlgorithm=stringSegment]/[contentHash=zeroExHex]',
+					{
+						agentCardUrl: encodeURIComponent(a2aAgentCardSnapshotSelector.$card.agentCardUrl),
+						contentHashAlgorithm: a2aAgentCardSnapshotSelector.contentHashAlgorithm,
+						contentHash: a2aAgentCardSnapshotSelector.contentHash,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(a2aAgentCardSnapshot.name ?? '') || a2aAgentCardSnapshotSelector.contentHash || 'A2A agent card snapshot'}

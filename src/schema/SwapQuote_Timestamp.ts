@@ -3,7 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -18,11 +18,11 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	quoteRequestHash: {
-		primitiveType: type('string'),
+		primitiveType: ZeroExHex,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$network: {

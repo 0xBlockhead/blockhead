@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -49,6 +51,18 @@
 	entityType={EntityType.CctpMessage}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.nonce || 'CCTP message')}
+	href={
+		href === undefined ?
+			resolve(
+				'/cctp/message/[sourceDomain=nonNegativeInteger]/[nonce=stringSegment]',
+				{
+					sourceDomain: String(selection.entitySelector.sourceDomain),
+					nonce: selection.entitySelector.nonce,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

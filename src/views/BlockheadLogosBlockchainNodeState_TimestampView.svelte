@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadLogosBlockchainNodeState_Timestamp>, 'prefetched'> = $props()
 
+	const nodeState = $derived(selection.entitySelector.$nodeState)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LogosBlockchainNode_Rest,
@@ -44,6 +47,20 @@
 	entityType={EntityType.BlockheadLogosBlockchainNodeState_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/logos/connection/[connectionId=stringSegment]/node-state/[peerId=stringSegment]/(blockheadLogosBlockchainNodeState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					connectionId: nodeState.connectionId,
+					peerId: nodeState.peerId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

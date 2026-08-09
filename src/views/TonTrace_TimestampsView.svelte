@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,9 +29,32 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: tonTraceTimestamp })}
+		{@const tonTraceTimestampSelector = tonTraceTimestamp[EntityMetaKey.Selector]}
+		{@const trace = tonTraceTimestampSelector.$trace}
 		<EntityView
 			entityType={EntityType.TonTrace_Timestamp}
-			entitySelector={tonTraceTimestamp[EntityMetaKey.Selector]}
+			entitySelector={tonTraceTimestampSelector}
+			href={
+				'traceId' in trace
+				&& '$network' in trace ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trace/[traceId=stringSegment]/[traceSource=stringSegment]/(tonTrace)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							network: (
+								'caip2' in trace.$network ?
+									caip2StringFromValue(trace.$network.caip2)
+								:
+									trace.$network.slug
+							),
+							traceId: trace.traceId,
+							traceSource: trace.source,
+							timestampMs: String(tonTraceTimestampSelector.timestampMs),
+							source: tonTraceTimestampSelector.source,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				TON trace timestamp

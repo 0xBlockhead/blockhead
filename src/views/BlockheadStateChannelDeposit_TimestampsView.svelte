@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,19 +27,33 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				source: true,
-				availableBalance: true,
+			...{
+				fields: {
+					timestampMs: true,
+					source: true,
+					availableBalance: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadStateChannelDepositTimestamp })}
 		{@const blockheadStateChannelDepositTimestampSelector = blockheadStateChannelDepositTimestamp[EntityMetaKey.Selector]}
+		{@const deposit = blockheadStateChannelDepositTimestampSelector.$deposit}
 		<EntityView
 			entityType={EntityType.BlockheadStateChannelDeposit_Timestamp}
 			entitySelector={blockheadStateChannelDepositTimestampSelector}
+			href={
+				resolve(
+					'/~/channel/[channelId=stringSegment]/(blockheadStateChannel)/deposit/[accountAddress=evmAddress]/(blockheadStateChannelDeposit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						channelId: deposit.$channel.id,
+						accountAddress: deposit.$account.address,
+						timestampMs: String(blockheadStateChannelDepositTimestampSelector.timestampMs),
+						source: blockheadStateChannelDepositTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadStateChannelDepositTimestampSelector.timestampMs}

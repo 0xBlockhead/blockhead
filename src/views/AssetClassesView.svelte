@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,14 +30,16 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				label: true,
-				classKey: true,
-				classKind: true,
-				$assetInstance: {
-					fields: {
-						symbol: true,
-						name: true,
+			...{
+				fields: {
+					label: true,
+					classKey: true,
+					classKind: true,
+					$assetInstance: {
+						fields: {
+							symbol: true,
+							name: true,
+						},
 					},
 				},
 			},
@@ -44,9 +48,27 @@
 >
 	{#snippet Item({ item: assetClass })}
 		{@const assetClassSelector = assetClass[EntityMetaKey.Selector]}
+		{@const assetInstance = assetClassSelector.$assetInstance}
 		<EntityView
 			entityType={EntityType.AssetClass}
 			entitySelector={assetClassSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/class/[classKind=stringSegment]/[classKey=stringSegment]',
+					{
+						network: (
+							'caip2' in assetInstance.$network ?
+								caip2StringFromValue(assetInstance.$network.caip2)
+							:
+								assetInstance.$network.slug
+						),
+						kind: assetInstance.kind,
+						assetKey: assetInstance.assetKey,
+						classKind: assetClassSelector.classKind,
+						classKey: assetClassSelector.classKey,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[(assetClass.label ?? ''), assetClassSelector.classKey].filter(Boolean).join(' ') || 'asset class'}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,11 +15,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.A2aAgentInterface>, 'prefetched'> = $props()
 
+	const cardSnapshot = $derived(selection.entitySelector.$cardSnapshot)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -41,6 +44,21 @@
 	entityType={EntityType.A2aAgentInterface}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(agents)/agents/a2a/card/[agentCardUrl=absoluteUrl]/(a2aAgentCard)/snapshot/[contentHashAlgorithm=stringSegment]/[contentHash=zeroExHex]/(a2aAgentCardSnapshot)/interface/[protocolBinding=stringSegment]/[url=absoluteUrl]',
+				{
+					agentCardUrl: encodeURIComponent(cardSnapshot.$card.agentCardUrl),
+					contentHashAlgorithm: cardSnapshot.contentHashAlgorithm,
+					contentHash: cardSnapshot.contentHash,
+					protocolBinding: selection.entitySelector.protocolBinding,
+					url: encodeURIComponent(selection.entitySelector.url),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

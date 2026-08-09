@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,10 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				transactionHash: true,
-				transactionKind: true,
-				$block: true,
+			...{
+				fields: {
+					transactionHash: true,
+					transactionKind: true,
+					$block: true,
+				},
 			},
 		})
 	}
@@ -39,6 +43,20 @@
 		<EntityView
 			entityType={EntityType.StarknetTransaction}
 			entitySelector={starknetTransactionSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/transaction/starknet/[transactionHash=stringSegment]',
+					{
+						network: (
+							'caip2' in starknetTransactionSelector.$network.$network ?
+								caip2StringFromValue(starknetTransactionSelector.$network.$network.caip2)
+							:
+								starknetTransactionSelector.$network.$network.slug
+						),
+						transactionHash: starknetTransactionSelector.transactionHash,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{starknetTransactionSelector.transactionHash || 'starknet transaction'}

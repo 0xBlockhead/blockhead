@@ -27,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				symbol: true,
-				channel: true,
-				priceFeedId: true,
-				$market: true,
+			...{
+				fields: {
+					symbol: true,
+					channel: true,
+					priceFeedId: true,
+					$market: true,
+				},
 			},
 		})
 	}
@@ -43,7 +45,7 @@
 			entitySelector={pythPriceFeedSelector}
 			href={
 				resolve(
-					'/pyth/feed/[priceFeedId=zeroExHex]/[channel=stringSegment]',
+					'/~/pyth/feed/[priceFeedId=zeroExHex]/[channel=stringSegment]',
 					{
 						priceFeedId: pythPriceFeedSelector.priceFeedId,
 						channel: pythPriceFeedSelector.channel,

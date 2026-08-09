@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,6 +18,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -57,6 +59,17 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? (selection.entitySelector.walletId || 'blockhead zcash wallet state')}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/zcash/wallet/[walletId=stringSegment]/state',
+				{
+					walletId: selection.entitySelector.walletId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

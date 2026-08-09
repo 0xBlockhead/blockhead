@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$channel: true,
-				$viewer: true,
-				timestampMs: true,
-				source: true,
+			...{
+				fields: {
+					$channel: true,
+					$viewer: true,
+					timestampMs: true,
+					source: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,20 @@
 		<EntityView
 			entityType={EntityType.FarcasterChannel_Viewer_Timestamp}
 			entitySelector={farcasterChannelViewerTimestampSelector}
+			href={
+				'id' in farcasterChannelViewerTimestampSelector.$channel ?
+					resolve(
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/viewer/[fid=farcasterFid]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							channelId: farcasterChannelViewerTimestampSelector.$channel.id,
+							fid: String(farcasterChannelViewerTimestampSelector.$viewer.fid),
+							timestampMs: String(farcasterChannelViewerTimestampSelector.timestampMs),
+							source: farcasterChannelViewerTimestampSelector.source,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{farcasterChannelViewerTimestamp.$channel.id || 'Farcaster channel'}

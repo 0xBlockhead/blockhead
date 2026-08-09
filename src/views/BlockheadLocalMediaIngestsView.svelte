@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				fileName: true,
-				mimeType: true,
-				ingestId: true,
-				createdAt: true,
+			...{
+				fields: {
+					fileName: true,
+					mimeType: true,
+					ingestId: true,
+					createdAt: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,14 @@
 		<EntityView
 			entityType={EntityType.BlockheadLocalMediaIngest}
 			entitySelector={blockheadLocalMediaIngestSelector}
+			href={
+				resolve(
+					'/~/media/ingest/[ingestId=stringSegment]',
+					{
+						ingestId: blockheadLocalMediaIngestSelector.ingestId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(blockheadLocalMediaIngest.fileName ?? '') || blockheadLocalMediaIngestSelector.ingestId || 'local media ingest'}

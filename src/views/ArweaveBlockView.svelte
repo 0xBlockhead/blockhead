@@ -49,9 +49,9 @@
 	href={
 		href === undefined ?
 			(
-				'height' in selection.entitySelector ?
+				'indepHash' in selection.entitySelector ?
 					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/hash/[blockHash=zeroExHexOrStringSegmentOrUtxoTxId]',
 						{
 							network: (
 								'caip2' in selection.entitySelector.$network.$network ?
@@ -59,11 +59,25 @@
 								:
 									selection.entitySelector.$network.$network.slug
 							),
-							blockNumber: String(selection.entitySelector.height),
+							blockHash: selection.entitySelector.indepHash,
 						}
 					)
 				:
-					undefined
+					'height' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+							{
+								network: (
+									'caip2' in selection.entitySelector.$network.$network ?
+										caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+									:
+										selection.entitySelector.$network.$network.slug
+								),
+								blockNumber: String(selection.entitySelector.height),
+							}
+						)
+					:
+						undefined
 			)
 		:
 			href ?? undefined

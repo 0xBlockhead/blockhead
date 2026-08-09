@@ -27,34 +27,45 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$contract: true,
-				symbol: true,
-				$actor: true,
-				$coinInstance: true,
+			...{
+				fields: {
+					symbol: true,
+					$actor: true,
+					$coinInstance: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: evmNetworkActorCoinBalance })}
 		{@const evmNetworkActorCoinBalanceSelector = evmNetworkActorCoinBalance[EntityMetaKey.Selector]}
-		{@const contract = evmNetworkActorCoinBalance.$contract}
+		{@const contract = evmNetworkActorCoinBalanceSelector.$contract}
 		<EntityView
 			entityType={EntityType.EvmNetworkActorCoinBalance}
 			entitySelector={evmNetworkActorCoinBalanceSelector}
 			href={
-				contract != null
-				&& contract.$network.caip2 != null ?
+				'$contract' in evmNetworkActorCoinBalanceSelector
+				&& 'caip2' in contract.$network ?
 					resolve(
 						'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]',
 						{
 							chainId: contract.$network.caip2.reference,
-							owner: evmNetworkActorCoinBalance.$actor.address,
+							owner: evmNetworkActorCoinBalanceSelector.$actor.address,
 							coin: contract.address,
 						}
 					)
 				:
-					undefined
+					'$network' in evmNetworkActorCoinBalanceSelector
+					&& 'caip2' in evmNetworkActorCoinBalanceSelector.$network ?
+						resolve(
+							'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/native',
+							{
+								chainId: evmNetworkActorCoinBalanceSelector.$network.caip2.reference,
+								owner: evmNetworkActorCoinBalanceSelector.$actor.address,
+							}
+						)
+					:
+						undefined
 			}
 		>
 			{#snippet Title()}

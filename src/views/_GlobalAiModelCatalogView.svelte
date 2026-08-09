@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -10,6 +11,7 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -27,7 +29,6 @@
 	import AiModelsView from '$/views/AiModelsView.svelte'
 	import AiDatasetsView from '$/views/AiDatasetsView.svelte'
 	import AiBenchmarksView from '$/views/AiBenchmarksView.svelte'
-	import AiEvaluation_TimestampsView from '$/views/AiEvaluation_TimestampsView.svelte'
 	import GlobalAiModelCatalog_TimestampsView from '$/views/_GlobalAiModelCatalog_TimestampsView.svelte'
 </script>
 
@@ -36,6 +37,17 @@
 	entityType={EntityType._GlobalAiModelCatalog}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/ai/model-catalog/[catalogId=stringSegment]',
+				{
+					catalogId: selection.entitySelector.catalogId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -169,10 +181,6 @@
 						id: 'ai-benchmarks',
 						label: 'Benchmarks',
 					},
-					{
-						id: 'ai-evaluations',
-						label: 'Evaluations',
-					},
 				]
 			}
 			data-card
@@ -200,16 +208,6 @@
 					collapsible={false}
 					title={label}
 					emptyText='No AI benchmarks.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-
-			{#snippet SectionAiEvaluations({ id, label })}
-				<AiEvaluation_TimestampsView
-					selection={selection.$$evaluations}
-					collapsible={false}
-					title={label}
-					emptyText='No AI evaluation observations.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

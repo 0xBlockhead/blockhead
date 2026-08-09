@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				keyFingerprint: true,
-				keyKind: true,
-				$network: true,
+			...{
+				fields: {
+					keyFingerprint: true,
+					keyKind: true,
+					$network: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,15 @@
 		<EntityView
 			entityType={EntityType.BlockheadZcashViewingKey}
 			entitySelector={blockheadZcashViewingKeySelector}
+			href={
+				resolve(
+					'/~/zcash/wallet/[walletId=stringSegment]/viewing-key/[keyFingerprint=stringSegment]',
+					{
+						walletId: blockheadZcashViewingKeySelector.walletId,
+						keyFingerprint: blockheadZcashViewingKeySelector.keyFingerprint,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadZcashViewingKeySelector.keyFingerprint || 'blockhead zcash viewing key'}

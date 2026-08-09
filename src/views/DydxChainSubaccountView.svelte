@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.DydxChainSubaccount>, 'prefetched'> = $props()
 
+	const account = $derived(selection.entitySelector.$account)
 	const viewDomId = $derived('dydx-chain-subaccount-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -40,6 +43,24 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? 'dydx chain subaccount'}
+	href={
+		href === undefined ?
+			(
+				'caip2' in account.$network ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[accountAddress=stringSegment]/subaccount/[subaccountNumber=nonNegativeInteger]',
+						{
+							network: String(account.$network.caip2),
+							accountAddress: account.address,
+							subaccountNumber: String(selection.entitySelector.subaccountNumber),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

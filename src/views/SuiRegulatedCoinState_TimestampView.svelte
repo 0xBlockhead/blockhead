@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.SuiRegulatedCoinState_Timestamp>, 'prefetched'> = $props()
+
+	const coinType = $derived(selection.entitySelector.$coinType)
 
 
 	// Components
@@ -31,6 +36,25 @@
 	entityType={EntityType.SuiRegulatedCoinState_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'Sui regulated coin state timestamp'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/coin-type/[coinType=stringSegment]/(suiCoinType)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in coinType.$network.$network ?
+							caip2StringFromValue(coinType.$network.$network.caip2)
+						:
+							coinType.$network.$network.slug
+					),
+					coinType: coinType.coinType,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

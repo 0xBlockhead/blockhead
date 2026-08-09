@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,11 +15,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BitTorrentPiece>, 'prefetched'> = $props()
 
+	const torrent = $derived(selection.entitySelector.$torrent)
 	const bitTorrentPiece = $derived(selection({
 		fields: {
 			length: true,
@@ -38,6 +41,19 @@
 	entityType={EntityType.BitTorrentPiece}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.pieceIndex)}
+	href={
+		href === undefined ?
+			resolve(
+				'/bittorrent/torrent/[infoHash=stringSegment]/[hashVersion=stringSegment]/(bitTorrentMetainfo)/piece/[pieceIndex=nonNegativeInteger]',
+				{
+					infoHash: torrent.infoHash,
+					hashVersion: torrent.hashVersion,
+					pieceIndex: String(selection.entitySelector.pieceIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

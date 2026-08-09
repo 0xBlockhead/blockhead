@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,19 +30,36 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				id: true,
-				status: true,
-				createdAt: true,
+			...{
+				fields: {
+					id: true,
+					status: true,
+					createdAt: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadTransferRequest })}
 		{@const blockheadTransferRequestSelector = blockheadTransferRequest[EntityMetaKey.Selector]}
+		{@const network = blockheadTransferRequestSelector.$network}
 		<EntityView
 			entityType={EntityType.BlockheadTransferRequest}
 			entitySelector={blockheadTransferRequestSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/~/transfer-request/[id=stringSegment]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						id: blockheadTransferRequestSelector.id,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadTransferRequestSelector.id || 'blockhead transfer request'}

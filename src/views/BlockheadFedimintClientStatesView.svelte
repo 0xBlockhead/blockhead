@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				clientName: true,
-				federationId: true,
-				clientId: true,
+			...{
+				fields: {
+					clientName: true,
+					federationId: true,
+					clientId: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,15 @@
 		<EntityView
 			entityType={EntityType.BlockheadFedimintClientState}
 			entitySelector={blockheadFedimintClientStateSelector}
+			href={
+				resolve(
+					'/~/fedimint/client/[clientId=stringSegment]/federation/[federationId=stringSegment]',
+					{
+						clientId: blockheadFedimintClientStateSelector.clientId,
+						federationId: blockheadFedimintClientStateSelector.federationId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(blockheadFedimintClientState.clientName ?? '') || blockheadFedimintClientStateSelector.clientId || 'blockhead Fedimint client state'}

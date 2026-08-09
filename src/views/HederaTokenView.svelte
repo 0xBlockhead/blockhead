@@ -2,10 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -16,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.HederaToken>, 'prefetched'> = $props()
 
+	const network = $derived(selection.entitySelector.$network)
 	const hederaToken = $derived(selection({
 		fields: {
 			tokenType: true,
@@ -33,13 +36,13 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import HederaTokenAssociationsView from '$/views/HederaTokenAssociationsView.svelte'
 	import HederaNftsView from '$/views/HederaNftsView.svelte'
+	import HederaToken_TimestampsView from '$/views/HederaToken_TimestampsView.svelte'
 </script>
 
 
@@ -48,6 +51,23 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token/[tokenId=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					tokenId: selection.entitySelector.tokenId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -219,22 +239,13 @@
 			{/snippet}
 
 			{#snippet SectionHederaTokenTimestamps({ id, label })}
-				<EntitiesList
-					entityType={EntityType.HederaToken_Timestamp}
+				<HederaToken_TimestampsView
+					selection={selection.$$timestamps}
 					collapsible={false}
 					title={label}
 					emptyText='No timestamps.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$timestamps()}
-				>
-					{#snippet Item({ item: hederaTokenTimestamp })}
-						<EntityView
-							entityType={EntityType.HederaToken_Timestamp}
-							entitySelector={hederaTokenTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

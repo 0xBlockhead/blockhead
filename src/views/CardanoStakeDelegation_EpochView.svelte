@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,10 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.CardanoStakeDelegation_Epoch>, 'prefetched'> = $props()
+
+	const stakeCredential = $derived(selection.entitySelector.$stakeCredential)
 
 
 	// Components
@@ -33,6 +38,25 @@
 	entityType={EntityType.CardanoStakeDelegation_Epoch}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'Cardano stake delegation epoch'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/stake-credential/[credential=stringSegment]/(cardanoStakeCredential)/delegation/[epoch=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in stakeCredential.$network ?
+							caip2StringFromValue(stakeCredential.$network.caip2)
+						:
+							stakeCredential.$network.slug
+					),
+					credential: stakeCredential.credential,
+					epoch: String(selection.entitySelector.epoch),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

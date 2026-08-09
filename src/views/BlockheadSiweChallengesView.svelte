@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,18 +29,29 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				domain: true,
-				verified: true,
-				issuedAt: true,
+			...{
+				fields: {
+					domain: true,
+					verified: true,
+					issuedAt: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadSiweChallenge })}
+		{@const blockheadSiweChallengeSelector = blockheadSiweChallenge[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadSiweChallenge}
-			entitySelector={blockheadSiweChallenge[EntityMetaKey.Selector]}
+			entitySelector={blockheadSiweChallengeSelector}
+			href={
+				resolve(
+					'/~/siwe/challenge/[id=stringSegment]',
+					{
+						id: blockheadSiweChallengeSelector.id,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadSiweChallenge.domain || 'blockhead siwe challenge'}

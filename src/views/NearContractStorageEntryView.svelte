@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.NearContractStorageEntry>, 'prefetched'> = $props()
 
+	const contract = $derived(selection.entitySelector.$contract)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -44,6 +48,26 @@
 	entityType={EntityType.NearContractStorageEntry}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.keyBase64 || 'near contract storage entry')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/storage/[keyBase64=stringSegment]/block/[blockHeight=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in contract.$network ?
+							caip2StringFromValue(contract.$network.caip2)
+						:
+							contract.$network.slug
+					),
+					address: contract.accountId,
+					keyBase64: selection.entitySelector.keyBase64,
+					blockHeight: String(selection.entitySelector.blockHeight),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -14,6 +15,7 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -21,9 +23,9 @@
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import PayoutClaim_TimestampsView from '$/views/PayoutClaim_TimestampsView.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import AssetClassView from '$/views/AssetClassView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -34,6 +36,18 @@
 <EntityView
 	entityType={EntityType.Payout}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/payout/[payoutSource=stringSegment]/[payoutId=stringSegment]',
+				{
+					payoutSource: selection.entitySelector.source,
+					payoutId: selection.entitySelector.payoutId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -275,21 +289,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.PayoutClaim_Timestamp}
+					<PayoutClaim_TimestampsView
+						selection={claimsResource}
 						countResource={claimsResource.count}
 						title='claims'
-						open={true}
 						id='claims'
-						resource={claimsResource()}
-					>
-						{#snippet Item({ item: payoutClaimTimestamp })}
-							<EntityView
-								entityType={EntityType.PayoutClaim_Timestamp}
-								entitySelector={payoutClaimTimestamp[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

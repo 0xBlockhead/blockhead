@@ -30,9 +30,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				slot: true,
-				$epoch: true,
+			...{
+				fields: {
+					slot: true,
+					$epoch: true,
+				},
 			},
 		})
 	}

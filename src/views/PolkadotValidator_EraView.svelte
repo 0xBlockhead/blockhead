@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.PolkadotValidator_Era>, 'prefetched'> = $props()
 
+	const validator = $derived(selection.entitySelector.$validator)
 	const polkadotValidatorEra = $derived(selection({
 		fields: {
 			active: true,
@@ -38,6 +42,25 @@
 	entityType={EntityType.PolkadotValidator_Era}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.eraIndex)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/validator/polkadot/[stashAccountId=stringSegment]/(polkadotValidator)/era/[eraIndex=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in validator.$network ?
+							caip2StringFromValue(validator.$network.caip2)
+						:
+							validator.$network.slug
+					),
+					stashAccountId: validator.stashAccountId,
+					eraIndex: String(selection.entitySelector.eraIndex),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-254 providers register 286 sources and 513 bindings.
+254 providers register 286 sources and 512 bindings.
 
 ## Providers
 
@@ -818,7 +818,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["OpenAI_Rest","Global","openai-api","HttpProxy","RestJson"] | OpenAI | OpenAI_Rest | Global | openai-api | HttpRest | RestJson | AiModelCatalog, AiProviderOperationCatalog, GenericRead | HttpProxy |
 | ["Openchain_Rest","Global","openchain-signatures","HttpProxy","RestJson"] | Openchain | Openchain_Rest | Global | openchain-signatures | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["Openchain_Rest","Global","fourbyte-directory","HttpProxy","RestJson"] | Openchain | Openchain_Rest | Global | fourbyte-directory | HttpRest | RestJson | GenericRead | HttpProxy |
-| ["OpenSea_Rest","Global","opensea-api","ServerOnly","OpenApiHttp"] | OpenSea | OpenSea_Rest | Global | opensea-api | HttpRest | OpenApiHttp | GenericRead | ServerOnly |
+| ["OpenSea_Rest","Global","opensea-api","HttpProxy","OpenApiHttp"] | OpenSea | OpenSea_Rest | Global | opensea-api | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["Osmosis_LCD_Rest","Caip2Network","cosmos:osmosis-1","HttpProxy","CosmosLcdApi"] | Osmosis | Osmosis_LCD_Rest | Caip2Network | cosmos:osmosis-1 | HttpRest | CosmosLcdApi | GenericRead | HttpProxy |
 | ["Pathfinder","NetworkSlug","starknet","LocalOnly","StarknetJsonRpc"] | Pathfinder | Pathfinder | NetworkSlug | starknet | JsonRpc2 | StarknetJsonRpc | GenericRead | LocalOnly |
 | ["PayjoinDirectory_Rest","Global","directory","HttpProxy","RestJson"] | Payjoin | PayjoinDirectory_Rest | Global | directory | HttpRest | RestJson | GenericRead | HttpProxy |
@@ -859,7 +859,6 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["RadicleNode_Control","LocalDevice","radicle-node","ServerOnly","RestJson"] | RadicleNode | RadicleNode_Control | LocalDevice | radicle-node | HttpRest | RestJson | RepositoryMetadata | ServerOnly |
 | ["Reddit_PublicJson","Global","reddit-public-json","HttpProxy","RestJson"] | RedditPublic | Reddit_PublicJson | Global | reddit-public-json | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["Reddit_Rest","Global","oauth-api","HttpProxy","RestJson"] | Reddit | Reddit_Rest | Global | oauth-api | HttpRest | RestJson | GenericRead | HttpProxy |
-| ["Reddit_Rest","Global","oauth-token","HttpProxy","RestJson"] | Reddit | Reddit_Rest | Global | oauth-token | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["Reth_JsonRpc","LocalDevice","reth-node","LocalOnly","EvmExecutionJsonRpc"] | Reth | Reth_JsonRpc | LocalDevice | reth-node | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | LocalOnly |
 | ["Rss_Rest","Feed","https://hnrss.org","HttpProxy","RestJson"] | Rss | Rss_Rest | Feed | https://hnrss.org | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["Rss_Rest","Feed","https://feeds.bbci.co.uk","HttpProxy","RestJson"] | Rss | Rss_Rest | Feed | https://feeds.bbci.co.uk | HttpRest | RestJson | GenericRead | HttpProxy |
@@ -1362,7 +1361,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["OpenAI_Rest","Global","openai-api","HttpProxy","RestJson"] | HttpUrl | https://api.openai.com | https://api.openai.com | false |
 | ["Openchain_Rest","Global","openchain-signatures","HttpProxy","RestJson"] | HttpUrl | https://api.4byte.sourcify.dev/signature-database/v1 | https://api.4byte.sourcify.dev | false |
 | ["Openchain_Rest","Global","fourbyte-directory","HttpProxy","RestJson"] | HttpUrl | https://www.4byte.directory/api/v1 | https://www.4byte.directory | false |
-| ["OpenSea_Rest","Global","opensea-api","ServerOnly","OpenApiHttp"] | HttpUrl | https://api.opensea.io | https://api.opensea.io | false |
+| ["OpenSea_Rest","Global","opensea-api","HttpProxy","OpenApiHttp"] | HttpUrl | https://api.opensea.io | https://api.opensea.io | false |
 | ["Osmosis_LCD_Rest","Caip2Network","cosmos:osmosis-1","HttpProxy","CosmosLcdApi"] | HttpUrl | https://lcd.osmosis.zone | https://lcd.osmosis.zone | false |
 | ["Pathfinder","NetworkSlug","starknet","LocalOnly","StarknetJsonRpc"] | HttpUrl | http://127.0.0.1:9545/rpc/v0_10 | http://127.0.0.1:9545 | false |
 | ["PayjoinDirectory_Rest","Global","directory","HttpProxy","RestJson"] | HttpUrl | https://payjo.in | https://payjo.in | false |
@@ -1407,7 +1406,6 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["RadicleNode_Control","LocalDevice","radicle-node","ServerOnly","RestJson"] | HttpUrl | env:RADICLE_NODE_CONTROL_URL |  | false |
 | ["Reddit_PublicJson","Global","reddit-public-json","HttpProxy","RestJson"] | HttpUrl | https://www.reddit.com | https://www.reddit.com | false |
 | ["Reddit_Rest","Global","oauth-api","HttpProxy","RestJson"] | HttpUrl | https://oauth.reddit.com | https://oauth.reddit.com | false |
-| ["Reddit_Rest","Global","oauth-token","HttpProxy","RestJson"] | HttpUrl | https://www.reddit.com | https://www.reddit.com | false |
 | ["Reth_JsonRpc","LocalDevice","reth-node","LocalOnly","EvmExecutionJsonRpc"] | HttpUrl | http://127.0.0.1:8545 | http://127.0.0.1:8545 | false |
 | ["Rss_Rest","Feed","https://hnrss.org","HttpProxy","RestJson"] | HttpUrl | https://hnrss.org | https://hnrss.org | false |
 | ["Rss_Rest","Feed","https://feeds.bbci.co.uk","HttpProxy","RestJson"] | HttpUrl | https://feeds.bbci.co.uk | https://feeds.bbci.co.uk | false |
@@ -1720,7 +1718,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Nfid_WalletApi","LocalDevice","nfid","BrowserDirect","WalletApi"] | UserDelegated | no |  |
 | ["OciRegistry_Distribution","Global","oci-registry","RemoteQuery","OciDistributionApi"] | UserDelegated | no |  |
 | ["OpenAI_Rest","Global","openai-api","HttpProxy","RestJson"] | RuntimeSecret | no |  |
-| ["OpenSea_Rest","Global","opensea-api","ServerOnly","OpenApiHttp"] | RuntimeSecret | no |  |
+| ["OpenSea_Rest","Global","opensea-api","HttpProxy","OpenApiHttp"] | RuntimeSecret | no |  |
 | ["Petra_WalletApi","LocalDevice","petra","BrowserDirect","WalletApi"] | UserDelegated | no |  |
 | ["PlugWallet_WalletApi","LocalDevice","plug-wallet","BrowserDirect","WalletApi"] | UserDelegated | no |  |
 | ["PolkadotInjectedWeb3_WalletApi","LocalDevice","polkadot-injected-web3","BrowserDirect","WalletApi"] | UserDelegated | no |  |
@@ -1731,7 +1729,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Radicle_Local","GitRepository","radicle-repository","LocalOnly","GitObject"] | LocalSecret | no |  |
 | ["RadicleCli_Local","LocalDevice","radicle-cli","LocalOnly","LocalParser"] | LocalSecret | no |  |
 | ["RadicleNode_Control","LocalDevice","radicle-node","ServerOnly","RestJson"] | LocalSecret | no |  |
-| ["Reddit_Rest","Global","oauth-token","HttpProxy","RestJson"] | PublicConfig | yes | PUBLIC_REDDIT_CLIENT_ID, PUBLIC_REDDIT_CLIENT_SECRET |
+| ["Reddit_Rest","Global","oauth-api","HttpProxy","RestJson"] | RuntimeSecret | no |  |
 | ["Reth_JsonRpc","LocalDevice","reth-node","LocalOnly","EvmExecutionJsonRpc"] | LocalSecret | no |  |
 | ["SafeTransactionService_Rest","Eip155Chain","1","HttpProxy","RestJson"] | RuntimeSecret | no |  |
 | ["SafeTransactionService_Rest","Eip155Chain","10","HttpProxy","RestJson"] | RuntimeSecret | no |  |
@@ -2078,9 +2076,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["OctezNode","Caip2Network","tezos:NetXdQprcVkpaWU","BrowserDirect","TezosNodeRpc"] | OpenApiSpec | src/sources/Octez/OpenApi/openapi.json | yes | https://gitlab.com/tezos/tezos/-/raw/master/docs/api/rpc-openapi.json |  |
 | ["OctezNode","Caip2Network","tezos:NetXdQprcVkpaWU","BrowserDirect","TezosNodeRpc"] | OpenApiTypes | src/sources/Octez/OpenApi/openapi.d.ts | yes |  |  |
 | ["Openchain_Rest","Global","openchain-signatures","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Openchain/Rest/types.ts | no |  |  |
-| ["OpenSea_Rest","Global","opensea-api","ServerOnly","OpenApiHttp"] | GenerationManifest | src/sources/OpenSea/OpenApi/schema-source.ts | no |  |  |
-| ["OpenSea_Rest","Global","opensea-api","ServerOnly","OpenApiHttp"] | OpenApiSpec | src/sources/OpenSea/OpenApi/openapi.json | no |  |  |
-| ["OpenSea_Rest","Global","opensea-api","ServerOnly","OpenApiHttp"] | OpenApiTypes | src/sources/OpenSea/OpenApi/openapi.d.ts | yes |  |  |
+| ["OpenSea_Rest","Global","opensea-api","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/OpenSea/OpenApi/schema-source.ts | no |  |  |
+| ["OpenSea_Rest","Global","opensea-api","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/OpenSea/OpenApi/openapi.json | no |  |  |
+| ["OpenSea_Rest","Global","opensea-api","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/OpenSea/OpenApi/openapi.d.ts | yes |  |  |
 | ["Osmosis_LCD_Rest","Caip2Network","cosmos:osmosis-1","HttpProxy","CosmosLcdApi"] | HandwrittenTypes | src/sources/Osmosis/Rest/types.ts | no |  |  |
 | ["Pathfinder","NetworkSlug","starknet","LocalOnly","StarknetJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/StarknetJsonRpc/OpenRpc/schema-source.ts | no |  |  |
 | ["Pathfinder","NetworkSlug","starknet","LocalOnly","StarknetJsonRpc"] | HandwrittenTypes | src/sources/Pathfinder/JsonRpc/types.ts | no |  |  |

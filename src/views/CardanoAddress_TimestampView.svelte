@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,11 +17,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoAddress_Timestamp> = $props()
 
+	const address = $derived(selection.entitySelector.$address)
 	const cardanoAddressTimestamp = $derived(selection({
 		fields: {
 			timestampMs: true,
@@ -42,6 +46,25 @@
 	entityType={EntityType.CardanoAddress_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/observation/cardano-block/[blockSlot=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in address.$network ?
+							caip2StringFromValue(address.$network.caip2)
+						:
+							address.$network.slug
+					),
+					accountId: address.address,
+					blockSlot: String(selection.entitySelector.blockSlot),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

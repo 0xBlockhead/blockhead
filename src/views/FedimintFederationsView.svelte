@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				name: true,
-				consensusVersion: true,
-				federationId: true,
+			...{
+				fields: {
+					name: true,
+					consensusVersion: true,
+					federationId: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,14 @@
 		<EntityView
 			entityType={EntityType.FedimintFederation}
 			entitySelector={fedimintFederationSelector}
+			href={
+				resolve(
+					'/fedimint/federation/[federationId=stringSegment]',
+					{
+						federationId: fedimintFederationSelector.federationId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(fedimintFederation.name ?? '') || fedimintFederationSelector.federationId || 'Fedimint federation'}

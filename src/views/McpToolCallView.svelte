@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -47,6 +49,18 @@
 	entityType={EntityType.McpToolCall}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.callId || 'mcp tool call')}
+	href={
+		href === undefined ?
+			resolve(
+				'/mcp/server/[serverKey=stringSegment]/(mcpServer)/tool-call/[callId=stringSegment]',
+				{
+					serverKey: selection.entitySelector.$server.serverKey,
+					callId: selection.entitySelector.callId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -60,6 +74,7 @@
 					<McpToolView
 						selection={select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector])}
 						prefetched={mcpTool}
+						href={null}
 						layout={EntityLayout.Value}
 					/>
 				{/if}

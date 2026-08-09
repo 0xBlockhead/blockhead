@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				transportSessionId: true,
-				status: true,
-				transportKind: true,
+			...{
+				fields: {
+					transportSessionId: true,
+					status: true,
+					transportKind: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,15 @@
 		<EntityView
 			entityType={EntityType.BlockheadWalletTransportSession}
 			entitySelector={blockheadWalletTransportSessionSelector}
+			href={
+				resolve(
+					'/~/wallet/connection/[connectionKey=stringSegment]/transport-session/[transportSessionId=stringSegment]',
+					{
+						connectionKey: blockheadWalletTransportSessionSelector.connectionKey,
+						transportSessionId: blockheadWalletTransportSessionSelector.transportSessionId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadWalletTransportSessionSelector.transportSessionId || 'blockhead wallet transport session'}

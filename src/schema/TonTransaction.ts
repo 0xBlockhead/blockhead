@@ -17,7 +17,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	lt: {
-		primitiveType: type('bigint'),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	hash: {

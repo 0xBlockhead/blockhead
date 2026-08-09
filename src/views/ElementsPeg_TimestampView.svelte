@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.ElementsPeg_Timestamp>, 'prefetched'> = $props()
 
+	const peg = $derived(selection.entitySelector.$peg)
 	const elementsPegTimestamp = $derived(selection({
 		fields: {
 			status: true,
@@ -39,6 +43,26 @@
 	entityType={EntityType.ElementsPeg_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(elements)/elements/peg/[pegTransactionId=stringSegment]/[direction=stringSegment]/(elementsPeg)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in peg.$network.$network ?
+							caip2StringFromValue(peg.$network.$network.caip2)
+						:
+							peg.$network.$network.slug
+					),
+					pegTransactionId: peg.pegTransactionId,
+					direction: peg.direction,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

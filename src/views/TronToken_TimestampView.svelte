@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,10 +15,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TronToken_Timestamp>, 'prefetched'> = $props()
+
+	const token = $derived(selection.entitySelector.$token)
 
 
 	// Components
@@ -30,6 +35,25 @@
 <EntityView
 	entityType={EntityType.TronToken_Timestamp}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token/[tokenId=stringSegment]/(selection)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in token.$network ?
+							caip2StringFromValue(token.$network.caip2)
+						:
+							token.$network.slug
+					),
+					tokenId: token.tokenId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

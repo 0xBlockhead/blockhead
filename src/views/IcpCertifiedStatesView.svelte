@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,9 +29,27 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: icpCertifiedState })}
+		{@const icpCertifiedStateSelector = icpCertifiedState[EntityMetaKey.Selector]}
+		{@const canister = icpCertifiedStateSelector.$canister}
 		<EntityView
 			entityType={EntityType.IcpCertifiedState}
-			entitySelector={icpCertifiedState[EntityMetaKey.Selector]}
+			entitySelector={icpCertifiedStateSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/canister/[canisterId=stringSegment]/(icpCanister)/certified-state/[certificateHash=stringSegment]/[pathHash=stringSegment]',
+					{
+						network: (
+							'caip2' in canister.$network.$network ?
+								caip2StringFromValue(canister.$network.$network.caip2)
+							:
+								canister.$network.$network.slug
+						),
+						canisterId: canister.canisterId,
+						certificateHash: icpCertifiedStateSelector.certificateHash,
+						pathHash: icpCertifiedStateSelector.pathHash,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				ICP certified state

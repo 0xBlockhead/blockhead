@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,19 +28,38 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				slot: true,
-				lamports: true,
-				timestampMs: true,
+			...{
+				fields: {
+					slot: true,
+					lamports: true,
+					timestampMs: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: solanaAccountTimestamp })}
 		{@const solanaAccountTimestampSelector = solanaAccountTimestamp[EntityMetaKey.Selector]}
+		{@const account = solanaAccountTimestampSelector.$account}
 		<EntityView
 			entityType={EntityType.SolanaAccount_Timestamp}
 			entitySelector={solanaAccountTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/observation/solana-slot/[slot=nonNegativeBigInt]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in account.$network ?
+								caip2StringFromValue(account.$network.caip2)
+							:
+								account.$network.slug
+						),
+						accountId: account.pubkey,
+						slot: String(solanaAccountTimestampSelector.slot),
+						source: solanaAccountTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{solanaAccountTimestampSelector.slot}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadMoneroTransferState_Timestamp>, 'prefetched'> = $props()
 
+	const transferState = $derived(selection.entitySelector.$transferState)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -45,6 +48,21 @@
 	entityType={EntityType.BlockheadMoneroTransferState_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/monero/wallet/[walletId=stringSegment]/transfer-state/[txHash=stringSegment]/[transferIndex=nonNegativeInteger]/(blockheadMoneroTransferState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					walletId: transferState.walletId,
+					txHash: transferState.txHash,
+					transferIndex: String(transferState.transferIndex),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

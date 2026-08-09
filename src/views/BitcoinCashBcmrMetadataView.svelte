@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,11 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitcoinCashBcmrMetadata> = $props()
 
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.BitcoinCashBcmr_Github,
@@ -48,6 +52,24 @@
 	entityType={EntityType.BitcoinCashBcmrMetadata}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bitcoin-cash/metadata/[categoryId=stringSegment]/[registryUrl=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					categoryId: selection.entitySelector.categoryId,
+					registryUrl: selection.entitySelector.registryUrl,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

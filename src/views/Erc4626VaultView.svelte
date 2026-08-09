@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -17,11 +19,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Erc4626Vault> = $props()
 
+	const contract = $derived(selection.entitySelector.$contract)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockscout_Rest,
@@ -55,6 +59,23 @@
 	entityType={EntityType.Erc4626Vault}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/erc-4626',
+				{
+					network: (
+						'caip2' in contract.$network ?
+							caip2StringFromValue(contract.$network.caip2)
+						:
+							contract.$network.slug
+					),
+					address: contract.address,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

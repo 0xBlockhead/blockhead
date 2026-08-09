@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,11 +15,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.CashuKeyset_Timestamp>, 'prefetched'> = $props()
 
+	const keyset = $derived(selection.entitySelector.$keyset)
 	const cashuKeysetTimestamp = $derived(selection({
 		fields: {
 			active: true,
@@ -39,6 +42,20 @@
 	entityType={EntityType.CashuKeyset_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/keyset/[keysetId=stringSegment]/(cashuKeyset)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					mintUrl: keyset.$mint.mintUrl,
+					keysetId: keyset.keysetId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

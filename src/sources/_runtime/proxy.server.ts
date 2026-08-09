@@ -1,5 +1,9 @@
+import { Buffer } from 'node:buffer'
+import { createHash } from 'node:crypto'
+
 import { error, type RequestEvent } from '@sveltejs/kit'
 import { env as privateEnv } from '$env/dynamic/private'
+import { type as arktype } from 'arktype'
 
 import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
 import {
@@ -13,6 +17,97 @@ import {
 } from '$/sources/index.server.ts'
 
 const PROXY_UPSTREAM_TIMEOUT_MS = 30_000
+const OAUTH_CLIENT_CREDENTIALS_DEFAULT_EXPIRES_IN_SECONDS = 3_600
+const OAUTH_CLIENT_CREDENTIALS_EXPIRY_SKEW_MS = 5_000
+
+const oauthClientCredentialsTokenResponseWire = arktype({
+	access_token: 'string > 0',
+	'expires_in?': 'number.integer > 0',
+})
+
+const oauthAccessTokenPromiseByProxyId = new Map<string, Promise<{
+	credentialFingerprint: string
+	accessToken: string
+	expiresAtMs: number
+}>>()
+
+const oauthAccessTokenFor = async ({
+	fetch,
+	proxyId,
+	definition,
+	clientId,
+	clientSecret,
+	basicAuthorization,
+}: {
+	fetch: RequestEvent['fetch']
+	proxyId: string
+	definition: NonNullable<SourceServerCredentialDefinition['oauthClientCredentials']>
+	clientId: string
+	clientSecret: string
+	basicAuthorization: string
+}) => {
+	const credentialFingerprint = createHash('sha256')
+		.update(clientId)
+		.update('\0')
+		.update(clientSecret)
+		.digest('base64url')
+	const cachedAccessTokenPromise = oauthAccessTokenPromiseByProxyId.get(proxyId)
+	if (cachedAccessTokenPromise != null) {
+		try {
+			const cachedAccessToken = await cachedAccessTokenPromise
+			if (
+				cachedAccessToken.credentialFingerprint === credentialFingerprint
+				&& cachedAccessToken.expiresAtMs > Date.now()
+			)
+				return cachedAccessToken.accessToken
+		} catch {
+			if (oauthAccessTokenPromiseByProxyId.get(proxyId) === cachedAccessTokenPromise)
+				oauthAccessTokenPromiseByProxyId.delete(proxyId)
+		}
+	}
+
+	const accessTokenPromise = (async () => {
+		const tokenEndpoint = new URL(definition.tokenEndpoint)
+		if (tokenEndpoint.protocol !== 'https:')
+			throw new Error('OAuth token endpoint must use HTTPS')
+
+		const response = await fetch(tokenEndpoint, {
+			method: 'POST',
+			headers: {
+				Authorization: basicAuthorization,
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: new URLSearchParams({
+				grant_type: 'client_credentials',
+			}),
+			redirect: 'manual',
+			signal: AbortSignal.timeout(PROXY_UPSTREAM_TIMEOUT_MS),
+		})
+		if (!response.ok)
+			throw new Error('OAuth token exchange failed')
+
+		const tokenResponse = oauthClientCredentialsTokenResponseWire.assert(await response.json())
+		return {
+			credentialFingerprint,
+			accessToken: tokenResponse.access_token,
+			expiresAtMs: (
+				Date.now()
+				+ (tokenResponse.expires_in ?? OAUTH_CLIENT_CREDENTIALS_DEFAULT_EXPIRES_IN_SECONDS) * 1_000
+				- OAUTH_CLIENT_CREDENTIALS_EXPIRY_SKEW_MS
+			),
+		}
+	})()
+	oauthAccessTokenPromiseByProxyId.set(proxyId, accessTokenPromise)
+
+	try {
+		return (await accessTokenPromise).accessToken
+	} catch {
+		if (oauthAccessTokenPromiseByProxyId.get(proxyId) === accessTokenPromise)
+			oauthAccessTokenPromiseByProxyId.delete(proxyId)
+
+		throw error(502, 'Proxy OAuth credential exchange failed.')
+	}
+}
 
 export const proxySourceHttpRequest = async (
 	event: Pick<RequestEvent, 'fetch' | 'request' | 'url'>
@@ -42,6 +137,7 @@ export const proxySourceHttpRequest = async (
 		| {
 			definition: SourceServerCredentialDefinition
 			secret: string
+			redactValues: readonly string[]
 		}
 		| undefined
 	if (credential == null)
@@ -51,9 +147,35 @@ export const proxySourceHttpRequest = async (
 		if (secret == null || secret === '')
 			throw error(502, 'Proxy credential unavailable.')
 
-		credentialDefinition = {
-			definition: credential,
-			secret,
+		if (credential.oauthClientCredentials == null)
+			credentialDefinition = {
+				definition: credential,
+				secret,
+				redactValues: [secret],
+			}
+		else {
+			const clientId = privateEnv[credential.oauthClientCredentials.clientIdEnvKey]?.trim()
+			if (clientId == null || clientId === '')
+				throw error(502, 'Proxy credential unavailable.')
+
+			const basicAuthorization = `Basic ${Buffer.from(`${clientId}:${secret}`).toString('base64')}`
+			const accessToken = await oauthAccessTokenFor({
+				fetch: event.fetch,
+				proxyId,
+				definition: credential.oauthClientCredentials,
+				clientId,
+				clientSecret: secret,
+				basicAuthorization,
+			})
+			credentialDefinition = {
+				definition: credential,
+				secret: accessToken,
+				redactValues: [
+					secret,
+					basicAuthorization,
+					accessToken,
+				],
+			}
 		}
 	}
 
@@ -207,7 +329,7 @@ export const proxySourceHttpRequest = async (
 	responseHeaders.delete('transfer-encoding')
 	if (credentialDefinition != null)
 		for (const [header, value] of responseHeaders)
-			if (value.includes(credentialDefinition.secret))
+			if (credentialDefinition.redactValues.some((redactValue) => value.includes(redactValue)))
 				responseHeaders.delete(header)
 
 	const contentType = upstream.headers.get('content-type') ?? ''
@@ -219,7 +341,10 @@ export const proxySourceHttpRequest = async (
 			|| contentType.includes('xml')
 			)
 		) ?
-			(await upstream.text()).replaceAll(credentialDefinition.secret, '[redacted]')
+			credentialDefinition.redactValues.reduce(
+				(redactedBody, redactValue) => redactedBody.replaceAll(redactValue, '[redacted]'),
+				await upstream.text()
+			)
 		:
 			upstream.body
 

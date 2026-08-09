@@ -26,9 +26,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$network: true,
-				decommissionedAtMs: true,
+			...{
+				fields: {
+					$network: true,
+					decommissionedAtMs: true,
+				},
 			},
 		})
 	}

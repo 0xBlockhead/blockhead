@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				agentId: true,
-				namespace: true,
-				chainId: true,
+			...{
+				fields: {
+					agentId: true,
+					namespace: true,
+					chainId: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,17 @@
 		<EntityView
 			entityType={EntityType.Eip8004AgentRegistration}
 			entitySelector={eip8004AgentRegistrationSelector}
+			href={
+				resolve(
+					'/(agents)/agents/eip-8004/[namespace=stringSegment]/[chainId=nonNegativeInteger]/registry/[identityRegistry=evmAddress]/agent/[agentId=stringSegment]',
+					{
+						namespace: eip8004AgentRegistrationSelector.namespace,
+						chainId: String(eip8004AgentRegistrationSelector.chainId),
+						identityRegistry: eip8004AgentRegistrationSelector.identityRegistry,
+						agentId: eip8004AgentRegistrationSelector.agentId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{eip8004AgentRegistrationSelector.agentId || 'EIP-8004 agent registration'}

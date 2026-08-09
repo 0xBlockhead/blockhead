@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				objectId: true,
-				objectKind: true,
-				objectFormat: true,
+			...{
+				fields: {
+					objectId: true,
+					objectKind: true,
+					objectFormat: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,15 @@
 		<EntityView
 			entityType={EntityType.GitObject}
 			entitySelector={gitObjectSelector}
+			href={
+				resolve(
+					'/git/object/[objectId=zeroExHex]/[objectFormat=stringSegment]',
+					{
+						objectId: gitObjectSelector.objectId,
+						objectFormat: gitObjectSelector.objectFormat,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{gitObjectSelector.objectId || 'Git object'}

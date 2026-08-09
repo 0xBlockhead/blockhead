@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -12,6 +13,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -43,6 +45,38 @@
 	entityType={EntityType.AcpAgentProgram}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'registryAgentId' in selection.entitySelector ?
+					resolve(
+						'/(agents)/agents/acp/program/registry/[registryAgentId=stringSegment]',
+						{
+							registryAgentId: selection.entitySelector.registryAgentId,
+						}
+					)
+				:
+					'packageName' in selection.entitySelector ?
+						resolve(
+							'/(agents)/agents/acp/program/package/[packageName=stringSegment]',
+							{
+								packageName: selection.entitySelector.packageName,
+							}
+						)
+					:
+						'repositoryUrl' in selection.entitySelector ?
+							resolve(
+								'/(agents)/agents/acp/program/repository/[repositoryUrl=absoluteUrl]',
+								{
+									repositoryUrl: encodeURIComponent(selection.entitySelector.repositoryUrl),
+								}
+							)
+						:
+							undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

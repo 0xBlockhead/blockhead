@@ -48,10 +48,6 @@ export default entity({
 		entityType: EntityType.GitObject,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	$$comments: {
-		entityType: EntityType.RadicleDiscussionComment,
-		cardinality: EntityFieldCardinality.Many,
-	},
 })({
 	selectors: {
 		RepositoryIssueId: [

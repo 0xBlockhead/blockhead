@@ -27,12 +27,14 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				title: true,
-				state: true,
-				votesCount: true,
-				proposalId: true,
-				$space: true,
+			...{
+				fields: {
+					title: true,
+					state: true,
+					votesCount: true,
+					proposalId: true,
+					$space: true,
+				},
 			},
 		})
 	}
@@ -44,7 +46,7 @@
 			entitySelector={snapshotProposalSelector}
 			href={
 				resolve(
-					'/snapshot/proposal/[proposalId=stringSegment]',
+					'/~/snapshot/proposal/[proposalId=stringSegment]',
 					{
 						proposalId: encodeURIComponent(snapshotProposalSelector.proposalId),
 					}

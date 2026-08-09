@@ -15,7 +15,7 @@ export default entity({
 	description: 'NEAR network catalog row with RPC endpoints, runtime observations, blocks, and validator sets from declared NEAR sources.',
 })({
 	slug: {
-		primitiveType: type.unit('near'),
+		primitiveType: type('string').matching('^[abcdefghijklmnopqrstuvwxyz0123456789\\-]+$').atLeastLength(1),
 		cardinality: EntityFieldCardinality.One,
 	},
 	name: {

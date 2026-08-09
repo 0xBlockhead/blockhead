@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,10 +15,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.Eip8004AgentRegistrationFile>, 'prefetched'> = $props()
+
+	const registration = $derived(selection.entitySelector.$registration)
 
 
 	// Components
@@ -30,6 +34,21 @@
 	entityType={EntityType.Eip8004AgentRegistrationFile}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.fileUrl || 'EIP-8004 agent registration file')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(agents)/agents/eip-8004/[namespace=stringSegment]/[chainId=nonNegativeInteger]/registry/[identityRegistry=evmAddress]/agent/[agentId=stringSegment]/(eip8004AgentRegistration)/file/[fileUrl=absoluteUrl]',
+				{
+					namespace: registration.namespace,
+					chainId: String(registration.chainId),
+					identityRegistry: registration.identityRegistry,
+					agentId: registration.agentId,
+					fileUrl: encodeURIComponent(selection.entitySelector.fileUrl),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -37,6 +56,7 @@
 	{#snippet Value()}
 		<Eip8004AgentRegistrationView
 			selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

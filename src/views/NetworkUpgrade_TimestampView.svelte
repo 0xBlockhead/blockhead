@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.NetworkUpgrade_Timestamp>, 'prefetched'> = $props()
 
+	const upgrade = $derived(selection.entitySelector.$upgrade)
 	const networkUpgradeTimestamp = $derived(selection({
 		fields: {
 			status: true,
@@ -39,6 +43,25 @@
 	entityType={EntityType.NetworkUpgrade_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/upgrade/id/[upgradeId=stringSegment]/(networkUpgrade)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in upgrade.$network ?
+							caip2StringFromValue(upgrade.$network.caip2)
+						:
+							upgrade.$network.slug
+					),
+					upgradeId: upgrade.upgradeId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

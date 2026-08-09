@@ -220,7 +220,6 @@ export default {
 				},
 			}),
 			version: (agent) => agent.version,
-			distribution: (agent) => agent.distribution,
 			distributionKind: (agent) => distributionKind(agent.distribution),
 			command: (agent) => unambiguousBinaryTarget(agent.distribution)?.cmd,
 			arguments: (agent) => {

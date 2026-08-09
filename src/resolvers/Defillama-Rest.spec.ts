@@ -7,14 +7,10 @@ import {
 } from 'vitest'
 
 import { CoinId } from '$/constants/Coin.ts'
-import {
-	marketOhlcDailyTimeInterval,
-} from '$/constants/Market.ts'
 import { seededCoinSpotUsdMarketByCoinId } from '$/constants/MarketCatalog.ts'
 import { marketSelectorFromCatalogCoinCurrencyMarket } from '$/resolvers/market.ts'
 import {
 	EntityMetaKey,
-	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 
@@ -61,46 +57,20 @@ const marketPriceResolver = defillama.resolvers.find((resolver) => (
 const marketTimestampResolver = defillama.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Market_Timestamp
 ))
-const marketChartListResolver = defillama.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.Market
-	&& '$$marketTimeIntervalTimestamps' in resolver.projections
-))
-const marketChartPointResolver = defillama.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.Market_TimeInterval_Timestamp
-	&& 'close' in resolver.projections
-))
 
 if (
 	marketPriceResolver == null
 	|| marketTimestampResolver == null
-	|| marketChartListResolver == null
-	|| marketChartPointResolver == null
 )
-	throw new Error('Defillama REST price/chart resolvers are not registered')
+	throw new Error('Defillama REST price resolvers are not registered')
 const resolveMarketPrice = (
 	'Market' in marketPriceResolver.resolve ?
 		marketPriceResolver.resolve.Market.resolve
 	:
 		undefined
 )
-const resolveMarketChartList = (
-	'BaseQuoteMarketVenueKind' in marketChartListResolver.resolve ?
-		marketChartListResolver.resolve.BaseQuoteMarketVenueKind.resolve
-	:
-		undefined
-)
-const resolveMarketChartPoint = (
-	'MarketTimeIntervalTimestampMs' in marketChartPointResolver.resolve ?
-		marketChartPointResolver.resolve.MarketTimeIntervalTimestampMs.resolve
-	:
-		undefined
-)
-if (
-	resolveMarketPrice == null
-	|| resolveMarketChartList == null
-	|| resolveMarketChartPoint == null
-)
-	throw new Error('Defillama REST MarketPrice/chart resolvers are not registered')
+if (resolveMarketPrice == null)
+	throw new Error('Defillama REST MarketPrice resolver is not registered')
 
 describe('Defillama REST current-price projection', () => {
 	beforeEach(() => {
@@ -142,6 +112,8 @@ describe('Defillama REST current-price projection', () => {
 		})
 		expect(getCurrentPrices).not.toHaveBeenCalled()
 		expect(getProHistoricalPrices).not.toHaveBeenCalled()
+		expect(getChart).not.toHaveBeenCalled()
+		expect(getProChart).not.toHaveBeenCalled()
 	})
 
 	it('falls back to historical prices when the current clock does not match', async () => {
@@ -178,6 +150,8 @@ describe('Defillama REST current-price projection', () => {
 			timestamp: historicalTimestampSeconds,
 			publicEnv: context.publicEnv,
 		})
+		expect(getChart).not.toHaveBeenCalled()
+		expect(getProChart).not.toHaveBeenCalled()
 	})
 
 	it('returns no quote and fails an addressed timestamp when the row is missing', async () => {
@@ -216,77 +190,19 @@ describe('Defillama REST current-price projection', () => {
 		})
 		expect(getProCurrentPrices).not.toHaveBeenCalled()
 	})
-})
 
-describe('Defillama REST daily chart projection', () => {
-	beforeEach(() => {
-		vi.clearAllMocks()
-	})
-
-	it('projects close-only daily samples from the Pro chart series', async () => {
-		getProChart.mockResolvedValue({
-			coins: {
-				[feedKey]: {
-					symbol: 'ETH',
-					confidence: 0.99,
-					prices: [
-						{
-							timestamp: historicalTimestampSeconds,
-							price: 2_800.5,
-						},
-						{
-							timestamp: timestampSeconds,
-							price: 3_500.125,
-						},
-					],
-				},
-			},
-		})
-
-		await expect(resolveMarketChartList(market, context)).resolves.toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$market: market,
-					timeInterval: marketOhlcDailyTimeInterval,
-					timestampMs: historicalTimestampSeconds * 1_000,
-				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'close')]: 280_050_000_000n,
-				},
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$market: market,
-					timeInterval: marketOhlcDailyTimeInterval,
-					timestampMs: timestampSeconds * 1_000,
-				},
-				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.Market_TimeInterval_Timestamp, [], 'close')]: 350_012_500_000n,
-				},
-			},
-		])
-		await expect(resolveMarketChartPoint({
-			$market: market,
-			timeInterval: marketOhlcDailyTimeInterval,
-			timestampMs: timestampSeconds * 1_000,
-		}, context)).resolves.toEqual({
-			[EntityMetaKey.Selector]: {
-				$market: market,
-				timeInterval: marketOhlcDailyTimeInterval,
-				timestampMs: timestampSeconds * 1_000,
-			},
-			close: 350_012_500_000n,
-		})
-		expect(getProChart).toHaveBeenCalledWith({
-			coins: [feedKey],
-			span: 90,
-			period: '1d',
-			publicEnv: context.publicEnv,
-		})
-		expect(getChart).not.toHaveBeenCalled()
-		expect(marketChartPointResolver.projections).not.toHaveProperty('open')
-		expect(marketChartPointResolver.projections).not.toHaveProperty('high')
-		expect(marketChartPointResolver.projections).not.toHaveProperty('low')
+	it('admits price observations but no OHLC candles', () => {
+		expect(defillama.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.MarketPrice
+			&& '$$quotes' in resolver.projections
+		))).toBe(true)
+		expect(defillama.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.Market_TimeInterval_Timestamp
+		))).toBe(false)
+		expect(defillama.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.Market
+			&& '$$marketTimeIntervalTimestamps' in resolver.projections
+		))).toBe(false)
 	})
 })
 

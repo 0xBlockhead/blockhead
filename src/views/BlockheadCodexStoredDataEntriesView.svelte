@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -30,23 +31,36 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				cid: true,
-				$nodeState: {
-					fields: {
-						endpoint: true,
+			...{
+				fields: {
+					cid: true,
+					$nodeState: {
+						fields: {
+							endpoint: true,
+						},
 					},
+					firstSeenAt: true,
 				},
-				firstSeenAt: true,
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadCodexStoredData })}
 		{@const blockheadCodexStoredDataSelector = blockheadCodexStoredData[EntityMetaKey.Selector]}
+		{@const nodeState = blockheadCodexStoredDataSelector.$nodeState}
 		<EntityView
 			entityType={EntityType.BlockheadCodexStoredData}
 			entitySelector={blockheadCodexStoredDataSelector}
+			href={
+				resolve(
+					'/~/codex/connection/[connectionId=stringSegment]/node/[peerId=stringSegment]/(blockheadCodexStorageNodeState)/stored-data/[cid=stringSegment]',
+					{
+						connectionId: nodeState.connectionId,
+						peerId: nodeState.peerId,
+						cid: blockheadCodexStoredDataSelector.cid,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadCodexStoredDataSelector.cid || 'blockhead codex stored data'}

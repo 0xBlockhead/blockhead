@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,11 +18,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.ZeroGServiceRequest>, 'prefetched'> = $props()
 
+	const serviceProvider = $derived(selection.entitySelector.$serviceProvider)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGChain_JsonRpc,
@@ -43,6 +47,24 @@
 	entityType={EntityType.ZeroGServiceRequest}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.requestId || 'zero g service request')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/service-provider/[providerId=stringSegment]/(zeroGServiceProvider)/request/[requestId=stringSegment]',
+				{
+					network: (
+						'caip2' in serviceProvider.$network ?
+							caip2StringFromValue(serviceProvider.$network.caip2)
+						:
+							serviceProvider.$network.slug
+					),
+					providerId: serviceProvider.providerId,
+					requestId: selection.entitySelector.requestId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -50,6 +72,7 @@
 	{#snippet Value()}
 		<ZeroGServiceProviderView
 			selection={select(EntityType.ZeroGServiceProvider, selection.entitySelector.$serviceProvider)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

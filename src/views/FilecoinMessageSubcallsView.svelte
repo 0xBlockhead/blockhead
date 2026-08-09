@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,19 +28,38 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				method: true,
-				$from: true,
-				$to: true,
-				valueAttoFil: true,
+			...{
+				fields: {
+					method: true,
+					$from: true,
+					$to: true,
+					valueAttoFil: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: filecoinMessageSubcall })}
+		{@const filecoinMessageSubcallSelector = filecoinMessageSubcall[EntityMetaKey.Selector]}
+		{@const message = filecoinMessageSubcallSelector.$message}
 		<EntityView
 			entityType={EntityType.FilecoinMessageSubcall}
-			entitySelector={filecoinMessageSubcall[EntityMetaKey.Selector]}
+			entitySelector={filecoinMessageSubcallSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/message/filecoin/[cid=stringSegment]/(filecoinMessage)/subcall/[index=nonNegativeInteger]',
+					{
+						network: (
+							'caip2' in message.$network ?
+								caip2StringFromValue(message.$network.caip2)
+							:
+								message.$network.slug
+						),
+						cid: message.cid,
+						index: String(filecoinMessageSubcallSelector.index),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{filecoinMessageSubcall.method || 'filecoin message subcall'}

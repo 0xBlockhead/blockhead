@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				refName: true,
-				updateKind: true,
-				timestampMs: true,
+			...{
+				fields: {
+					refName: true,
+					updateKind: true,
+					timestampMs: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,20 @@
 		<EntityView
 			entityType={EntityType.GitRefUpdate}
 			entitySelector={gitRefUpdateSelector}
+			href={
+				'repositoryId' in gitRefUpdateSelector.$repository ?
+					resolve(
+						'/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/ref-update/[refName=stringSegment]/[oldObjectId=zeroExHex]/[newObjectId=zeroExHex]',
+						{
+							repositoryId: gitRefUpdateSelector.$repository.repositoryId,
+							refName: gitRefUpdateSelector.refName,
+							oldObjectId: gitRefUpdateSelector.oldObjectId,
+							newObjectId: gitRefUpdateSelector.newObjectId,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{gitRefUpdateSelector.refName || 'Git ref update'}

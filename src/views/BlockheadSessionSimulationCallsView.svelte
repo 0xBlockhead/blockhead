@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				callPath: true,
-				callType: true,
-				depth: true,
+			...{
+				fields: {
+					callPath: true,
+					callType: true,
+					depth: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,15 @@
 		<EntityView
 			entityType={EntityType.BlockheadSessionSimulationCall}
 			entitySelector={blockheadSessionSimulationCallSelector}
+			href={
+				resolve(
+					'/~/session/simulation/[simulationId=stringSegment]/call/[callPath=stringSegment]',
+					{
+						simulationId: blockheadSessionSimulationCallSelector.simulationId,
+						callPath: blockheadSessionSimulationCallSelector.callPath,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadSessionSimulationCallSelector.callPath || 'blockhead session simulation call'}

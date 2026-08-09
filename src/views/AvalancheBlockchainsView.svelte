@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				chainName: true,
-				chainAlias: true,
-				vmId: true,
-				blockchainId: true,
+			...{
+				fields: {
+					chainName: true,
+					chainAlias: true,
+					vmId: true,
+					blockchainId: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,14 @@
 		<EntityView
 			entityType={EntityType.AvalancheBlockchain}
 			entitySelector={avalancheBlockchainSelector}
+			href={
+				resolve(
+					'/(avalanche)/avalanche/blockchain/[blockchainId=stringSegment]',
+					{
+						blockchainId: avalancheBlockchainSelector.blockchainId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[(avalancheBlockchain.chainName ?? ''), (avalancheBlockchain.chainAlias ?? '')].filter(Boolean).join(' ') || avalancheBlockchainSelector.blockchainId || 'avalanche blockchain'}

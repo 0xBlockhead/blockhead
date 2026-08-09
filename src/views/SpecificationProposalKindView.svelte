@@ -151,8 +151,6 @@
 								selection={proposalsResource}
 								countResource={proposalsResource.count}
 								title={String(entity.labelPlural ?? 'Proposals')}
-								filterRealm={selection.entitySelector.realm}
-								filterCategory={selection.entitySelector.category}
 								id='proposals'
 							/>
 						{/snippet}

@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.OracleFeed_Round>, 'prefetched'> = $props()
 
+	const oracleFeed = $derived(selection.entitySelector.$oracleFeed)
 	const oracleFeedRound = $derived(selection({
 		fields: {
 			answer: true,
@@ -42,6 +46,24 @@
 	entityType={EntityType.OracleFeed_Round}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.roundId)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/oracle/feed/[address=evmAddress]/(oracleFeed)/round/[roundId=nonNegativeBigInt]',
+				{
+					network: (
+						'caip2' in oracleFeed.$network ?
+							caip2StringFromValue(oracleFeed.$network.caip2)
+						:
+							oracleFeed.$network.slug
+					),
+					address: oracleFeed.address,
+					roundId: String(selection.entitySelector.roundId),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

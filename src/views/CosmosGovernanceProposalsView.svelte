@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,19 +30,36 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				title: true,
-				proposalId: true,
-				$network: true,
+			...{
+				fields: {
+					title: true,
+					proposalId: true,
+					$network: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: cosmosGovernanceProposal })}
 		{@const cosmosGovernanceProposalSelector = cosmosGovernanceProposal[EntityMetaKey.Selector]}
+		{@const network = cosmosGovernanceProposalSelector.$network}
 		<EntityView
 			entityType={EntityType.CosmosGovernanceProposal}
 			entitySelector={cosmosGovernanceProposalSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalId=stringSegment]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						proposalId: cosmosGovernanceProposalSelector.proposalId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[(cosmosGovernanceProposal.title ?? ''), 'Proposal ' + cosmosGovernanceProposalSelector.proposalId].filter(Boolean).join(' ') || 'Cosmos governance proposal'}

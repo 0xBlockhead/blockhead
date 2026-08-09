@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,19 +30,38 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				status: true,
-				source: true,
-				timestampMs: true,
+			...{
+				fields: {
+					status: true,
+					source: true,
+					timestampMs: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: cosmosGovernanceProposalTimestamp })}
 		{@const cosmosGovernanceProposalTimestampSelector = cosmosGovernanceProposalTimestamp[EntityMetaKey.Selector]}
+		{@const proposal = cosmosGovernanceProposalTimestampSelector.$proposal}
 		<EntityView
 			entityType={EntityType.CosmosGovernanceProposal_Timestamp}
 			entitySelector={cosmosGovernanceProposalTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalId=stringSegment]/(cosmosGovernanceProposal)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in proposal.$network ?
+								caip2StringFromValue(proposal.$network.caip2)
+							:
+								proposal.$network.slug
+						),
+						proposalId: proposal.proposalId,
+						timestampMs: String(cosmosGovernanceProposalTimestampSelector.timestampMs),
+						source: cosmosGovernanceProposalTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[(cosmosGovernanceProposalTimestamp.status ?? ''), cosmosGovernanceProposalTimestampSelector.source].filter(Boolean).join(' ') || 'Cosmos governance proposal timestamp'}

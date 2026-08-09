@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,10 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				name: true,
-				ticker: true,
-				assetId: true,
+			...{
+				fields: {
+					name: true,
+					ticker: true,
+					assetId: true,
+				},
 			},
 		})
 	}
@@ -39,6 +43,20 @@
 		<EntityView
 			entityType={EntityType.ElementsAsset}
 			entitySelector={elementsAssetSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(elements)/elements/asset/[assetId=stringSegment]',
+					{
+						network: (
+							'caip2' in elementsAssetSelector.$network.$network ?
+								caip2StringFromValue(elementsAssetSelector.$network.$network.caip2)
+							:
+								elementsAssetSelector.$network.$network.slug
+						),
+						assetId: elementsAssetSelector.assetId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[(elementsAsset.name ?? ''), (elementsAsset.ticker ?? ''), elementsAssetSelector.assetId].filter(Boolean).join(' ') || 'Elements asset'}

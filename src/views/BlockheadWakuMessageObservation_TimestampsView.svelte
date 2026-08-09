@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,19 +29,34 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				messageHash: true,
-				timestampMs: true,
-				contentTopic: true,
+			...{
+				fields: {
+					messageHash: true,
+					timestampMs: true,
+					contentTopic: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadWakuMessageObservationTimestamp })}
 		{@const blockheadWakuMessageObservationTimestampSelector = blockheadWakuMessageObservationTimestamp[EntityMetaKey.Selector]}
+		{@const nodeState = blockheadWakuMessageObservationTimestampSelector.$nodeState}
 		<EntityView
 			entityType={EntityType.BlockheadWakuMessageObservation_Timestamp}
 			entitySelector={blockheadWakuMessageObservationTimestampSelector}
+			href={
+				resolve(
+					'/~/waku/connection/[connectionId=stringSegment]/node-state/[nodeId=stringSegment]/(blockheadWakuNodeState)/message/[messageHash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						connectionId: nodeState.connectionId,
+						nodeId: nodeState.nodeId,
+						messageHash: blockheadWakuMessageObservationTimestampSelector.messageHash,
+						timestampMs: String(blockheadWakuMessageObservationTimestampSelector.timestampMs),
+						source: blockheadWakuMessageObservationTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadWakuMessageObservationTimestampSelector.messageHash || 'blockhead waku message observation timestamp'}

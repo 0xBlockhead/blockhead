@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,19 +28,36 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				nodeId: true,
-				$network: true,
-				$quorum: true,
+			...{
+				fields: {
+					nodeId: true,
+					$network: true,
+					$quorum: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: zeroGDaNode })}
 		{@const zeroGDaNodeSelector = zeroGDaNode[EntityMetaKey.Selector]}
+		{@const network = zeroGDaNodeSelector.$network}
 		<EntityView
 			entityType={EntityType.ZeroGDaNode}
 			entitySelector={zeroGDaNodeSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/da-node/[nodeId=stringSegment]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						nodeId: zeroGDaNodeSelector.nodeId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{zeroGDaNodeSelector.nodeId || 'zero g da node'}

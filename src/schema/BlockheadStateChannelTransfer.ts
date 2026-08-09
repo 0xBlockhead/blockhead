@@ -17,7 +17,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	turnNum: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$from: {
@@ -29,7 +29,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	amount: {
-		primitiveType: type('bigint'),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestamp: {

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,18 +27,20 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				label: true,
-				$provider: {
-					fields: {
-						label: true,
-						organizationKind: true,
-						providerId: true,
-						domain: true,
+			...{
+				fields: {
+					label: true,
+					$provider: {
+						fields: {
+							label: true,
+							organizationKind: true,
+							providerId: true,
+							domain: true,
+						},
 					},
+					providerModelId: true,
+					modelFamily: true,
 				},
-				providerModelId: true,
-				modelFamily: true,
 			},
 		})
 	}
@@ -47,6 +50,18 @@
 		<EntityView
 			entityType={EntityType.AiModel}
 			entitySelector={aiModelSelector}
+			href={
+				'providerId' in aiModelSelector.$provider ?
+					resolve(
+						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/model/[providerModelId=stringSegment]',
+						{
+							providerId: aiModelSelector.$provider.providerId,
+							providerModelId: aiModelSelector.providerModelId,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{(aiModel.label ?? '') || aiModelSelector.providerModelId || 'AI model'}

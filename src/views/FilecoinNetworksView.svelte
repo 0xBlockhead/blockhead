@@ -27,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			sources: selection.sources ?? [
-				Source.Lotus_JsonRpc,
-			],
-			fields: {
-				$network: true,
+			...{
+				sources: selection.sources ?? [
+					Source.Lotus_JsonRpc,
+				],
+				fields: {
+					$network: true,
+				},
 			},
 		})
 	}

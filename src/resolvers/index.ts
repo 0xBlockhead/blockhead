@@ -45,6 +45,7 @@ const resolverLoaderEntries = [
 	[Source.Blockscout_Rest, () => import('./Blockscout-Rest.ts')],
 	[Source.Caips_Github, () => import('./Caips-Github.ts')],
 	[Source.CardanoKoios_Rest, () => import('./CardanoKoios-Rest.ts')],
+	[Source.Cardanoscan_Rest, () => import('./Cardanoscan-Rest.ts')],
 	[Source.CashuMint_Rest, () => import('./CashuMint-Rest.ts')],
 	[Source.Celenium_Rest, () => import('./Celenium-Rest.ts')],
 	[Source.CelestiaNode, () => import('./CelestiaNode-JsonRpc.ts')],

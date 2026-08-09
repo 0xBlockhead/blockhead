@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				balanceAtomicUnits: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					balanceAtomicUnits: true,
+					source: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadMoneroWalletState_Timestamp}
 			entitySelector={blockheadMoneroWalletStateTimestampSelector}
+			href={
+				resolve(
+					'/~/monero/wallet/[walletId=stringSegment]/state/(blockheadMoneroWalletState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						walletId: blockheadMoneroWalletStateTimestampSelector.$walletState.walletId,
+						timestampMs: String(blockheadMoneroWalletStateTimestampSelector.timestampMs),
+						source: blockheadMoneroWalletStateTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadMoneroWalletStateTimestampSelector.timestampMs}

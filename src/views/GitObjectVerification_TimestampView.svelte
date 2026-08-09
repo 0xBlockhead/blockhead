@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -10,6 +11,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -34,6 +36,21 @@
 	entityType={EntityType.GitObjectVerification_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/git/object/[objectId=zeroExHex]/[objectFormat=stringSegment]/(gitObject)/byte-source/[byteSource=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					objectId: selection.entitySelector.objectId,
+					objectFormat: selection.entitySelector.objectFormat,
+					byteSource: selection.entitySelector.byteSource,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

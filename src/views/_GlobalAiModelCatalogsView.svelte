@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -31,9 +32,18 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: globalAiModelCatalog })}
+		{@const globalAiModelCatalogSelector = globalAiModelCatalog[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType._GlobalAiModelCatalog}
-			entitySelector={globalAiModelCatalog[EntityMetaKey.Selector]}
+			entitySelector={globalAiModelCatalogSelector}
+			href={
+				resolve(
+					'/~/ai/model-catalog/[catalogId=stringSegment]',
+					{
+						catalogId: globalAiModelCatalogSelector.catalogId,
+					}
+				)
+			}
 		/>
 	{/snippet}
 </EntitiesList>

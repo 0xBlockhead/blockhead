@@ -30,10 +30,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				labelPlural: true,
-				label: true,
-				category: true,
+			...{
+				fields: {
+					labelPlural: true,
+					label: true,
+					category: true,
+				},
 			},
 		})
 	}

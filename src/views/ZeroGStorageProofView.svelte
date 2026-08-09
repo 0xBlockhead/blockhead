@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,11 +18,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.ZeroGStorageProof>, 'prefetched'> = $props()
 
+	const storageNode = $derived(selection.entitySelector.$storageNode)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGStorageScan_Rest,
@@ -46,6 +50,24 @@
 	entityType={EntityType.ZeroGStorageProof}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.proofId || 'zero g storage proof')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/storage-node/[nodeId=evmAddress]/(zeroGStorageNode)/proof/[proofId=stringSegment]',
+				{
+					network: (
+						'caip2' in storageNode.$network ?
+							caip2StringFromValue(storageNode.$network.caip2)
+						:
+							storageNode.$network.slug
+					),
+					nodeId: storageNode.nodeId,
+					proofId: selection.entitySelector.proofId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -53,6 +75,7 @@
 	{#snippet Value()}
 		<ZeroGStorageNodeView
 			selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

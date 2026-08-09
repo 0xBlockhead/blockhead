@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,11 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpAgentProgramVersion> = $props()
 
+	const artifact = $derived(selection.entitySelector.$artifact)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpRegistry_Rest,
@@ -49,6 +52,36 @@
 	entityType={EntityType.AcpAgentProgramVersion}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'version' in selection.entitySelector
+				&& '$program' in selection.entitySelector
+				&& 'registryAgentId' in selection.entitySelector.$program ?
+					resolve(
+						'/(agents)/agents/acp/program/registry/[registryAgentId=stringSegment]/(acpAgentProgram)/version/[version=stringSegment]',
+						{
+							registryAgentId: selection.entitySelector.$program.registryAgentId,
+							version: selection.entitySelector.version,
+						}
+					)
+				:
+					'$artifact' in selection.entitySelector
+					&& 'digestAlgorithm' in artifact
+					&& 'digest' in artifact ?
+						resolve(
+							'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/acp-program-version',
+							{
+								digestAlgorithm: artifact.digestAlgorithm,
+								digest: artifact.digest,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -56,7 +89,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={acpAgentProgramVersion}>
 			{#snippet children(entity)}
-				{(entity.version ?? '') || title || titleFallback}
+				{entity.version || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -66,13 +99,12 @@
 			resource={selection.$program}
 		>
 			{#snippet children(acpAgentProgram)}
-				{#if acpAgentProgram != null}
-					<AcpAgentProgramView
-						selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
-						prefetched={acpAgentProgram}
-						layout={EntityLayout.Value}
-					/>
-				{/if}
+				<AcpAgentProgramView
+					selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
+					prefetched={acpAgentProgram}
+					href={null}
+					layout={EntityLayout.Value}
+				/>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -92,59 +124,52 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={selection.$program}
-			>
-				{#snippet children(acpAgentProgram)}
-					{#if acpAgentProgram != null}
-						<div>
-							<dt>program</dt>
-							<dd>
-								<AcpAgentProgramView
-									selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
-									prefetched={acpAgentProgram}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>program</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$program}
+					>
+						{#snippet children(acpAgentProgram)}
+							<AcpAgentProgramView
+								selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
+								prefetched={acpAgentProgram}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={acpAgentProgramVersion}
-			>
-				{#snippet children(entity)}
-					{@const version = entity.version}
-					{#if version != null}
-						<div>
-							<dt>version</dt>
-							<dd>
-								{version}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>version</dt>
+				<dd>
+					<ResourceBoundary
+						resource={acpAgentProgramVersion}
+					>
+						{#snippet children(entity)}
+							{entity.version}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={selection.$artifact}
-			>
-				{#snippet children(aiArtifact)}
-					{#if aiArtifact != null}
-						<div>
-							<dt>artifact</dt>
-							<dd>
-								<AiArtifactView
-									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
-									prefetched={aiArtifact}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>artifact</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$artifact}
+					>
+						{#snippet children(aiArtifact)}
+							<AiArtifactView
+								selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
+								prefetched={aiArtifact}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">

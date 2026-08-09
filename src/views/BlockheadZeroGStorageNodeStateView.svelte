@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -16,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -47,6 +49,19 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? (selection.entitySelector.nodeId || 'blockhead zero g storage node state')}
+	href={
+		href === undefined ?
+			resolve(
+				'/zerog/[slug=stringSegment]/(zeroGNetwork)/~/zerog/connection/[connectionId=stringSegment]/node-state/[nodeId=evmAddress]',
+				{
+					slug: selection.entitySelector.$network.slug,
+					connectionId: selection.entitySelector.connectionId,
+					nodeId: selection.entitySelector.nodeId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -54,6 +69,7 @@
 	{#snippet Value()}
 		<ZeroGNetworkView
 			selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

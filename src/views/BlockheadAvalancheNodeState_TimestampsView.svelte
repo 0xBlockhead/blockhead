@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,11 +29,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				nodeVersion: true,
-				networkName: true,
-				connectedPeerCount: true,
+			...{
+				fields: {
+					timestampMs: true,
+					nodeVersion: true,
+					networkName: true,
+					connectedPeerCount: true,
+				},
 			},
 		})
 	}
@@ -42,6 +45,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadAvalancheNodeState_Timestamp}
 			entitySelector={blockheadAvalancheNodeStateTimestampSelector}
+			href={
+				resolve(
+					'/~/avalanche/node-state/[nodeId=stringSegment]/(blockheadAvalancheNodeState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						nodeId: blockheadAvalancheNodeStateTimestampSelector.$nodeState.nodeId,
+						timestampMs: String(blockheadAvalancheNodeStateTimestampSelector.timestampMs),
+						source: blockheadAvalancheNodeStateTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadAvalancheNodeStateTimestampSelector.timestampMs}

@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,11 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.NearAction> = $props()
 
+	const transaction = $derived(selection.entitySelector.$transaction)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.NearRpc_JsonRpc,
@@ -46,6 +50,24 @@
 	entityType={EntityType.NearAction}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/action/[actionIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in transaction.$network ?
+							caip2StringFromValue(transaction.$network.caip2)
+						:
+							transaction.$network.slug
+					),
+					transactionId: transaction.hash,
+					actionIndex: String(selection.entitySelector.actionIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

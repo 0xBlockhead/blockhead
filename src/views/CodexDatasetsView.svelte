@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				filename: true,
-				mimetype: true,
-				cid: true,
-				datasetSizeBytes: true,
+			...{
+				fields: {
+					filename: true,
+					mimetype: true,
+					cid: true,
+					datasetSizeBytes: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,14 @@
 		<EntityView
 			entityType={EntityType.CodexDataset}
 			entitySelector={codexDatasetSelector}
+			href={
+				resolve(
+					'/codex/dataset/[cid=stringSegment]',
+					{
+						cid: codexDatasetSelector.cid,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(codexDataset.filename ?? '') || codexDatasetSelector.cid || 'codex dataset'}

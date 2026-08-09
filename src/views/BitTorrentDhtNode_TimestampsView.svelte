@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				nodeId: true,
-				reachable: true,
-				timestampMs: true,
+			...{
+				fields: {
+					nodeId: true,
+					reachable: true,
+					timestampMs: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,16 @@
 		<EntityView
 			entityType={EntityType.BitTorrentDhtNode_Timestamp}
 			entitySelector={bitTorrentDhtNodeTimestampSelector}
+			href={
+				resolve(
+					'/(bittorrent)/bittorrent/dht-node/[nodeId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						nodeId: bitTorrentDhtNodeTimestampSelector.nodeId,
+						timestampMs: String(bitTorrentDhtNodeTimestampSelector.timestampMs),
+						source: bitTorrentDhtNodeTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{bitTorrentDhtNodeTimestampSelector.nodeId || 'bit torrent DHT node timestamp'}

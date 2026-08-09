@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,11 +17,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadRadicleNodeInventory_Timestamp> = $props()
 
+	const node = $derived(selection.entitySelector.$node)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -47,6 +50,20 @@
 	entityType={EntityType.BlockheadRadicleNodeInventory_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/radicle/node-state/[connectionId=stringSegment]/[nodeId=stringSegment]/(blockheadRadicleNodeState)/inventory/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					connectionId: node.connectionId,
+					nodeId: node.nodeId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

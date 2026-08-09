@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,11 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LitecoinMwebOutput> = $props()
 
+	const transaction = $derived(selection.entitySelector.$transaction)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LitecoinCore_JsonRpc,
@@ -45,6 +49,25 @@
 	entityType={EntityType.LitecoinMwebOutput}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/mweb/(litecoinMwebBlock)/transaction/[transactionIndex=nonNegativeInteger]/(litecoinMwebTransaction)/output/[outputIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in transaction.$mwebBlock.$block.$network ?
+							caip2StringFromValue(transaction.$mwebBlock.$block.$network.caip2)
+						:
+							transaction.$mwebBlock.$block.$network.slug
+					),
+					blockNumber: String(transaction.$mwebBlock.$block.height),
+					transactionIndex: String(transaction.transactionIndex),
+					outputIndex: String(selection.entitySelector.outputIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

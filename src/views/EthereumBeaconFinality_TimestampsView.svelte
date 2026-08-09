@@ -30,9 +30,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				finalizedCheckpointEpoch: true,
-				timestampMs: true,
+			...{
+				fields: {
+					finalizedCheckpointEpoch: true,
+					timestampMs: true,
+				},
 			},
 		})
 	}

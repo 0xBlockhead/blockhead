@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.Eip8004AgentRegistration_Timestamp>, 'prefetched'> = $props()
 
+	const registration = $derived(selection.entitySelector.$registration)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
@@ -46,6 +49,22 @@
 	entityType={EntityType.Eip8004AgentRegistration_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(agents)/agents/eip-8004/[namespace=stringSegment]/[chainId=nonNegativeInteger]/registry/[identityRegistry=evmAddress]/agent/[agentId=stringSegment]/(eip8004AgentRegistration)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					namespace: registration.namespace,
+					chainId: String(registration.chainId),
+					identityRegistry: registration.identityRegistry,
+					agentId: registration.agentId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

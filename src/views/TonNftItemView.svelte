@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,10 +17,14 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TonNftItem>, 'prefetched'> = $props()
+
+	const network = $derived(selection.entitySelector.$network)
+	const collection = $derived(selection.entitySelector.$collection)
 
 
 	// Components
@@ -34,6 +40,45 @@
 	entityType={EntityType.TonNftItem}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'TON NFT item'}
+	href={
+		href === undefined ?
+			(
+				'itemIndex' in selection.entitySelector
+				&& '$collection' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nft-collection/[collectionAddress=stringSegment]/(tonNftCollection)/item/[itemIndex=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in collection.$network ?
+									caip2StringFromValue(collection.$network.caip2)
+								:
+									collection.$network.slug
+							),
+							collectionAddress: collection.collectionAddress,
+							itemIndex: String(selection.entitySelector.itemIndex),
+						}
+					)
+				:
+					'itemAddress' in selection.entitySelector
+					&& '$network' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nft-item/[itemAddress=stringSegment]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								itemAddress: selection.entitySelector.itemAddress,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,9 +29,42 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: tonTransaction })}
+		{@const tonTransactionSelector = tonTransaction[EntityMetaKey.Selector]}
+		{@const account = tonTransactionSelector.$account}
 		<EntityView
 			entityType={EntityType.TonTransaction}
-			entitySelector={tonTransaction[EntityMetaKey.Selector]}
+			entitySelector={tonTransactionSelector}
+			href={
+				'hash' in tonTransactionSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/transaction/[lt=nonNegativeBigInt]/(tonTransaction)/[hash=stringSegment]',
+						{
+							network: (
+								'caip2' in account.$network ?
+									caip2StringFromValue(account.$network.caip2)
+								:
+									account.$network.slug
+							),
+							accountId: account.address,
+							lt: String(tonTransactionSelector.lt),
+							hash: tonTransactionSelector.hash,
+						}
+					)
+				:
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/transaction/[lt=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in account.$network ?
+									caip2StringFromValue(account.$network.caip2)
+								:
+									account.$network.slug
+							),
+							accountId: account.address,
+							lt: String(tonTransactionSelector.lt),
+						}
+					)
+			}
 		>
 			{#snippet Title()}
 				TON transaction

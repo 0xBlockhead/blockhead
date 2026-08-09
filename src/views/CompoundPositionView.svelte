@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,11 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CompoundPosition> = $props()
 
+	const comet = $derived(selection.entitySelector.$comet)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Compound_Rest,
@@ -49,6 +53,24 @@
 	entityType={EntityType.CompoundPosition}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/compound-comet/[cometAddress=evmAddress]/(compoundComet)/position/[accountAddress=evmAddress]',
+				{
+					network: (
+						'caip2' in comet.$network ?
+							caip2StringFromValue(comet.$network.caip2)
+						:
+							comet.$network.slug
+					),
+					cometAddress: comet.cometAddress,
+					accountAddress: selection.entitySelector.$account.$actor.address,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,6 +80,7 @@
 			{#snippet children(entity)}
 				<CompoundCometView
 					selection={select(EntityType.CompoundComet, selection.entitySelector.$comet)}
+					href={null}
 					layout={EntityLayout.Title}
 				/>
 				{entity.baseTokenSymbol}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -46,6 +48,17 @@
 	entityType={EntityType.AcpSession}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.sessionId || 'ACP session')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(agents)/agents/acp/session/[sessionId=stringSegment]',
+				{
+					sessionId: selection.entitySelector.sessionId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -58,6 +71,7 @@
 				{#if acpAgentRuntime != null}
 					<AcpAgentRuntimeView
 						selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
+						href={null}
 						layout={EntityLayout.Value}
 					/>
 				{/if}

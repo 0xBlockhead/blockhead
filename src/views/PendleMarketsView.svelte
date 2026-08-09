@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,19 +28,37 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				name: true,
-				impliedApy: true,
-				underlyingApy: true,
-				$network: true,
+			...{
+				fields: {
+					name: true,
+					impliedApy: true,
+					underlyingApy: true,
+					$network: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: pendleMarket })}
+		{@const pendleMarketSelector = pendleMarket[EntityMetaKey.Selector]}
+		{@const network = pendleMarketSelector.$network}
 		<EntityView
 			entityType={EntityType.PendleMarket}
-			entitySelector={pendleMarket[EntityMetaKey.Selector]}
+			entitySelector={pendleMarketSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/pendle/market/[marketAddress=evmAddress]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						marketAddress: pendleMarketSelector.marketAddress,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{pendleMarket.name || 'Pendle market'}

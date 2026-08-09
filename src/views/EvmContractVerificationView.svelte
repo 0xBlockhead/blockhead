@@ -50,7 +50,7 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]/(evmContract)/verification',
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/verification',
 				{
 					network: (
 						'caip2' in contract.$network ?

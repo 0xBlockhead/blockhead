@@ -28,29 +28,43 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				instanceOrigin: true,
-				localStatusId: true,
-				content: true,
-				createdAt: true,
-				sensitive: true,
-				spoilerText: true,
+			...{
+				fields: {
+					content: true,
+					localStatusId: true,
+					createdAt: true,
+					sensitive: true,
+					spoilerText: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: activityPubNote })}
+		{@const activityPubNoteSelector = activityPubNote[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.ActivityPubNote}
-			entitySelector={activityPubNote[EntityMetaKey.Selector]}
+			entitySelector={activityPubNoteSelector}
 			href={
-				resolve(
-					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]',
-					{
-						instanceOrigin: encodeURIComponent(activityPubNote.instanceOrigin),
-						localStatusId: activityPubNote.localStatusId,
-					}
-				)
+				'instanceOrigin' in activityPubNoteSelector
+				&& 'localStatusId' in activityPubNoteSelector ?
+					resolve(
+						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]',
+						{
+							instanceOrigin: encodeURIComponent(activityPubNoteSelector.instanceOrigin),
+							localStatusId: activityPubNoteSelector.localStatusId,
+						}
+					)
+				:
+					'activityStreamsUri' in activityPubNoteSelector ?
+						resolve(
+							'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[activityStreamsUri=stringSegment]',
+							{
+								activityStreamsUri: activityPubNoteSelector.activityStreamsUri,
+							}
+						)
+					:
+						undefined
 			}
 		>
 			{#snippet Title()}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadAgentProviderCall>, 'prefetched'> = $props()
 
+	const turn = $derived(selection.entitySelector.$turn)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -56,6 +59,24 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	idDragPlainText={String(selection.entitySelector.indexInTurn)}
+	href={
+		href === undefined ?
+			(
+				'$conversation' in turn ?
+					resolve(
+						'/~/agents/conversation/[conversationId=stringSegment]/(blockheadAgentConversation)/turn/[turnId=stringSegment]/(blockheadAgentConversationTurn)/provider-call/[indexInTurn=nonNegativeInteger]',
+						{
+							conversationId: turn.$conversation.id,
+							turnId: turn.id,
+							indexInTurn: String(selection.entitySelector.indexInTurn),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

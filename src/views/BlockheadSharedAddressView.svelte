@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -45,6 +47,17 @@
 	entityType={EntityType.BlockheadSharedAddress}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'blockhead shared address'}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/shared-address/[id=stringSegment]',
+				{
+					id: selection.entitySelector.id,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

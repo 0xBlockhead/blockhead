@@ -45,10 +45,6 @@ export default entity({
 		entityType: EntityType.McpServer,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	$$paymentRequirements: {
-		entityType: EntityType.AgentPaymentRequirement_Timestamp,
-		cardinality: EntityFieldCardinality.Many,
-	},
 })({
 	selectors: {
 		RegistrationFileEndpointKindEndpointUrl: [

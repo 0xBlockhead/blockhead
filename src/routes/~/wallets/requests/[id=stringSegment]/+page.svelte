@@ -13,12 +13,10 @@
 
 	// State
 	let {
-		params,
+		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadWalletRequest, {
-		id: params.id,
-	}, {
+	const pageSelection = $derived(select(EntityType.BlockheadWalletRequest, data.selector, {
 		sources: [
 			Source.Local_Internal,
 		],
@@ -35,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entity == null ? 'blockhead wallet request' : pageSelection.entity.requestKind || 'blockhead wallet request'} • blockhead wallet request • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'blockhead wallet request' : pageSelection.entity.requestKind || 'blockhead wallet request')} • blockhead wallet request • Blockhead</title>
 </svelte:head>
 
 

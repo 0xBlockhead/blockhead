@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.CctpAttestation_Timestamp>, 'prefetched'> = $props()
 
+	const message = $derived(selection.entitySelector.$message)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.CircleCctpIris,
@@ -44,6 +47,20 @@
 	entityType={EntityType.CctpAttestation_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/cctp/message/[sourceDomain=nonNegativeInteger]/[nonce=stringSegment]/(cctpMessage)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					sourceDomain: String(message.sourceDomain),
+					nonce: message.nonce,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -13,8 +13,11 @@ import CosmosAccountSchema from '$/schema/CosmosAccount.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import EvmNetworkAccountSchema from '$/schema/EvmNetworkAccount.ts'
 import HederaAccountSchema from '$/schema/HederaAccount.ts'
+import HyperliquidAccountSchema from '$/schema/HyperliquidAccount.ts'
 import { schema } from '$/schema/index.ts'
+import NearAccountSchema from '$/schema/NearAccount.ts'
 import PolkadotAccountSchema from '$/schema/PolkadotAccount.ts'
+import QuilibriumAccountSchema from '$/schema/QuilibriumAccount.ts'
 import SolanaAccountSchema from '$/schema/SolanaAccount.ts'
 import StarknetContractSchema from '$/schema/StarknetContract.ts'
 import TonAccountSchema from '$/schema/TonAccount.ts'
@@ -123,6 +126,33 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				typeof schema,
 				EntityType.XrplAccount,
 				'NetworkAccount'
+			>
+		}
+		| {
+			readonly entityType: EntityType.NearAccount
+			readonly selectorName: 'NetworkAccountId'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.NearAccount,
+				'NetworkAccountId'
+			>
+		}
+		| {
+			readonly entityType: EntityType.HyperliquidAccount
+			readonly selectorName: 'NetworkAddress'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.HyperliquidAccount,
+				'NetworkAddress'
+			>
+		}
+		| {
+			readonly entityType: EntityType.QuilibriumAccount
+			readonly selectorName: 'NetworkAccountAddress'
+			readonly selector: EntitySelectorForSelectorName<
+				typeof schema,
+				EntityType.QuilibriumAccount,
+				'NetworkAccountAddress'
 			>
 		}
 	)[] = []
@@ -364,6 +394,68 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 				entityType: EntityType.XrplAccount,
 				selectorName: 'NetworkAccount',
 				selector: xrplAccountNetworkAccountSelector,
+			})
+	}
+
+	if (parentData.projectionNetwork.namespace === 'Near' && matchStringSegment(params.accountId)) {
+		const nearAccountNetworkAccountIdSelector = parseEntitySelector(
+			schema,
+			NearAccountSchema,
+			{
+				$network: parentData.selector,
+				accountId: params.accountId,
+			},
+			'NetworkAccountId'
+		)
+		if (!(nearAccountNetworkAccountIdSelector instanceof arktype.errors))
+			routeCandidates.push({
+				entityType: EntityType.NearAccount,
+				selectorName: 'NetworkAccountId',
+				selector: nearAccountNetworkAccountIdSelector,
+			})
+	}
+
+	if (
+		parentData.projectionNetwork.namespace === 'Hyperliquid'
+		&& (
+			matchStringSegment(params.accountId)
+			|| matchPolkadotAccountId(params.accountId)
+			|| matchEvmAddress(params.accountId)
+			|| matchSolanaPubkey(params.accountId)
+		)
+	) {
+		const hyperliquidAccountNetworkAddressSelector = parseEntitySelector(
+			schema,
+			HyperliquidAccountSchema,
+			{
+				$network: parentData.selector,
+				address: params.accountId,
+			},
+			'NetworkAddress'
+		)
+		if (!(hyperliquidAccountNetworkAddressSelector instanceof arktype.errors))
+			routeCandidates.push({
+				entityType: EntityType.HyperliquidAccount,
+				selectorName: 'NetworkAddress',
+				selector: hyperliquidAccountNetworkAddressSelector,
+			})
+	}
+
+	if (parentData.projectionNetwork.namespace === 'Quilibrium' && matchStringSegment(params.accountId)) {
+		const quilibriumAccountNetworkAccountAddressSelector = parseEntitySelector(
+			schema,
+			QuilibriumAccountSchema,
+			{
+				$network: parentData.selector,
+				accountAddress: params.accountId,
+			},
+			'NetworkAccountAddress'
+		)
+		if (!(quilibriumAccountNetworkAccountAddressSelector instanceof arktype.errors))
+			routeCandidates.push({
+				entityType: EntityType.QuilibriumAccount,
+				selectorName: 'NetworkAccountAddress',
+				selector: quilibriumAccountNetworkAccountAddressSelector,
 			})
 	}
 

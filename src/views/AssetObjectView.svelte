@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.AssetObject>, 'prefetched'> = $props()
 
+	const assetInstance = $derived(selection.entitySelector.$assetInstance)
 	const assetObject = $derived(selection({
 		fields: {
 			objectKind: true,
@@ -30,9 +34,9 @@
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import UsageRight_TimestampsView from '$/views/UsageRight_TimestampsView.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import AssetClassView from '$/views/AssetClassView.svelte'
 </script>
@@ -42,6 +46,25 @@
 	entityType={EntityType.AssetObject}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/object/[objectKey=stringSegment]',
+				{
+					network: (
+						'caip2' in assetInstance.$network ?
+							caip2StringFromValue(assetInstance.$network.caip2)
+						:
+							assetInstance.$network.slug
+					),
+					kind: assetInstance.kind,
+					assetKey: assetInstance.assetKey,
+					objectKey: selection.entitySelector.objectKey,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -191,21 +214,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.UsageRight_Timestamp}
+					<UsageRight_TimestampsView
+						selection={usageRightsResource}
 						countResource={usageRightsResource.count}
 						title='usage rights'
-						open={true}
 						id='usage-rights'
-						resource={usageRightsResource()}
-					>
-						{#snippet Item({ item: usageRightTimestamp })}
-							<EntityView
-								entityType={EntityType.UsageRight_Timestamp}
-								entitySelector={usageRightTimestamp[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

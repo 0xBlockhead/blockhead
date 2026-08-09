@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -29,9 +31,24 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: kaspaAddress })}
+		{@const kaspaAddressSelector = kaspaAddress[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.KaspaAddress}
-			entitySelector={kaspaAddress[EntityMetaKey.Selector]}
+			entitySelector={kaspaAddressSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[address=stringSegment]',
+					{
+						network: (
+							'caip2' in kaspaAddressSelector.$network.$network ?
+								caip2StringFromValue(kaspaAddressSelector.$network.$network.caip2)
+							:
+								kaspaAddressSelector.$network.$network.slug
+						),
+						address: kaspaAddressSelector.address,
+					}
+				)
+			}
 		/>
 	{/snippet}
 </EntitiesList>

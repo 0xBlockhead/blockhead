@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				name: true,
-				domainId: true,
-				cctpVersion: true,
+			...{
+				fields: {
+					name: true,
+					domainId: true,
+					cctpVersion: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,15 @@
 		<EntityView
 			entityType={EntityType.CctpDomainSupport}
 			entitySelector={cctpDomainSupportSelector}
+			href={
+				resolve(
+					'/cctp/version/[cctpVersion=nonNegativeInteger]/domain/[domainId=nonNegativeInteger]',
+					{
+						cctpVersion: String(cctpDomainSupportSelector.cctpVersion),
+						domainId: String(cctpDomainSupportSelector.domainId),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{cctpDomainSupport.name || 'CCTP domain support'}

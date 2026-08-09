@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BittensorNeuron>, 'prefetched'> = $props()
+
+	const subnet = $derived(selection.entitySelector.$subnet)
 
 
 	// Components
@@ -30,6 +35,24 @@
 	entityType={EntityType.BittensorNeuron}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.uid)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/subnet/[netuid=nonNegativeInteger]/(bittensorSubnet)/neuron/[uid=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in subnet.$network ?
+							caip2StringFromValue(subnet.$network.caip2)
+						:
+							subnet.$network.slug
+					),
+					netuid: String(subnet.netuid),
+					uid: String(selection.entitySelector.uid),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -43,6 +66,7 @@
 	{#snippet Value()}
 		<BittensorSubnetView
 			selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

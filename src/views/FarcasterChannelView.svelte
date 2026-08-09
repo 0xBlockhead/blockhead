@@ -69,7 +69,15 @@
 						}
 					)
 				:
-					undefined
+					'parentUrl' in selection.entitySelector ?
+						resolve(
+							'/farcaster/channel/parent/[parentUrl=stringSegment]',
+							{
+								parentUrl: selection.entitySelector.parentUrl,
+							}
+						)
+					:
+						undefined
 			)
 		:
 			href ?? undefined

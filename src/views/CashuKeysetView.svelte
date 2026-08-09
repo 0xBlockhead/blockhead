@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -16,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -50,6 +52,18 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/keyset/[keysetId=stringSegment]',
+				{
+					mintUrl: selection.entitySelector.$mint.mintUrl,
+					keysetId: selection.entitySelector.keysetId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

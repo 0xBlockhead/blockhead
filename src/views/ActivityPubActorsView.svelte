@@ -27,29 +27,53 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				instanceOrigin: true,
-				localAccountId: true,
-				$icon: true,
-				displayName: true,
-				acct: true,
-				username: true,
+			...{
+				fields: {
+					$icon: true,
+					displayName: true,
+					acct: true,
+					username: true,
+					localAccountId: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: activityPubActor })}
+		{@const activityPubActorSelector = activityPubActor[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.ActivityPubActor}
-			entitySelector={activityPubActor[EntityMetaKey.Selector]}
+			entitySelector={activityPubActorSelector}
 			href={
-				resolve(
-					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
-					{
-						instanceOrigin: encodeURIComponent(activityPubActor.instanceOrigin),
-						localAccountId: activityPubActor.localAccountId,
-					}
-				)
+				'instanceOrigin' in activityPubActorSelector
+				&& 'localAccountId' in activityPubActorSelector ?
+					resolve(
+						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
+						{
+							instanceOrigin: encodeURIComponent(activityPubActorSelector.instanceOrigin),
+							localAccountId: activityPubActorSelector.localAccountId,
+						}
+					)
+				:
+					'instanceOrigin' in activityPubActorSelector
+					&& 'acct' in activityPubActorSelector ?
+						resolve(
+							'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/@[acct=stringSegment]',
+							{
+								instanceOrigin: encodeURIComponent(activityPubActorSelector.instanceOrigin),
+								acct: activityPubActorSelector.acct,
+							}
+						)
+					:
+						'activityStreamsUri' in activityPubActorSelector ?
+							resolve(
+								'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[activityStreamsUri=stringSegment]',
+								{
+									activityStreamsUri: activityPubActorSelector.activityStreamsUri,
+								}
+							)
+						:
+							undefined
 			}
 		>
 			{#snippet Title()}

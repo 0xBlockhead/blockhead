@@ -11,9 +11,15 @@
 	// State
 	let {
 		selection,
+		limit = 12,
 		open = $bindable(true),
 		...EntitiesListProps
-	}: EntityListViewProps<EntityType.AtprotoActor> = $props()
+	}: EntityListViewProps<
+		EntityType.AtprotoActor,
+		{
+			limit?: number
+		}
+	> = $props()
 
 
 	// Components
@@ -27,10 +33,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				did: true,
+			...{
+				fields: {
+					did: true,
+				},
 			},
-			limit: 12,
+			limit: limit,
 		})
 	}
 >

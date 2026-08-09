@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,11 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.A2aTask> = $props()
 
+	const service = $derived(selection.entitySelector.$service)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -56,6 +59,34 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'providerTaskId' in selection.entitySelector
+				&& '$service' in selection.entitySelector ?
+					resolve(
+						'/(agents)/agents/a2a/card/[agentCardUrl=absoluteUrl]/(a2aAgentCard)/service/[protocolBinding=stringSegment]/[endpointUrl=absoluteUrl]/(a2aAgentService)/task/[providerTaskId=stringSegment]',
+						{
+							agentCardUrl: encodeURIComponent(service.$card.agentCardUrl),
+							protocolBinding: service.protocolBinding,
+							endpointUrl: encodeURIComponent(service.endpointUrl),
+							providerTaskId: selection.entitySelector.providerTaskId,
+						}
+					)
+				:
+					'taskId' in selection.entitySelector ?
+						resolve(
+							'/(agents)/agents/a2a/task/[taskId=stringSegment]',
+							{
+								taskId: selection.entitySelector.taskId,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

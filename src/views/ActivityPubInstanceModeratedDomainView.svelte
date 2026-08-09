@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,11 +17,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.ActivityPubInstanceModeratedDomain> = $props()
 
+	const observation = $derived(selection.entitySelector.$observation)
 	const activityPubInstanceModeratedDomain = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Mastodon_Rest,
@@ -43,6 +46,20 @@
 	entityType={EntityType.ActivityPubInstanceModeratedDomain}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/(activityPubInstanceTimestamp)/moderated-domain/[domain=stringSegment]',
+				{
+					instanceOrigin: encodeURIComponent(observation.$instance.instanceOrigin),
+					timestampMs: String(observation.timestampMs),
+					source: observation.source,
+					domain: selection.entitySelector.domain,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

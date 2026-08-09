@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,19 +27,33 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				balanceMsat: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					balanceMsat: true,
+					source: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadFedimintClientStateTimestamp })}
 		{@const blockheadFedimintClientStateTimestampSelector = blockheadFedimintClientStateTimestamp[EntityMetaKey.Selector]}
+		{@const clientState = blockheadFedimintClientStateTimestampSelector.$clientState}
 		<EntityView
 			entityType={EntityType.BlockheadFedimintClientState_Timestamp}
 			entitySelector={blockheadFedimintClientStateTimestampSelector}
+			href={
+				resolve(
+					'/~/fedimint/client/[clientId=stringSegment]/federation/[federationId=stringSegment]/(blockheadFedimintClientState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						clientId: clientState.clientId,
+						federationId: clientState.federationId,
+						timestampMs: String(blockheadFedimintClientStateTimestampSelector.timestampMs),
+						source: blockheadFedimintClientStateTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadFedimintClientStateTimestampSelector.timestampMs}

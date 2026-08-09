@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -16,11 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AptosStateChange> = $props()
 
+	const transaction = $derived(selection.entitySelector.$transaction)
 	const aptosStateChange = $derived(selection({
 		fields: {
 			changeKind: true,
@@ -43,6 +47,29 @@
 	entityType={EntityType.AptosStateChange}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'version' in transaction ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/version/[version=nonNegativeBigInt]/(aptosTransaction)/state-change/[changeIndex=nonNegativeInteger]',
+						{
+							network: (
+								'caip2' in transaction.$network.$network ?
+									caip2StringFromValue(transaction.$network.$network.caip2)
+								:
+									transaction.$network.$network.slug
+							),
+							version: String(transaction.version),
+							changeIndex: String(selection.entitySelector.changeIndex),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

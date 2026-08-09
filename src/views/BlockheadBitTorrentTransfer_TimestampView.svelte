@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,11 +15,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadBitTorrentTransfer_Timestamp>, 'prefetched'> = $props()
 
+	const torrent = $derived(selection.entitySelector.$torrent)
 	const blockheadBitTorrentTransferTimestamp = $derived(selection({
 		fields: {
 			status: true,
@@ -39,6 +42,20 @@
 	entityType={EntityType.BlockheadBitTorrentTransfer_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/bittorrent/client-state/[clientId=stringSegment]/(blockheadBitTorrentClientState)/torrent/[infoHash=stringSegment]/[hashVersion=stringSegment]/observations/[timestampMs=nonNegativeInteger]',
+				{
+					clientId: selection.entitySelector.$client.clientId,
+					infoHash: torrent.infoHash,
+					hashVersion: torrent.hashVersion,
+					timestampMs: String(selection.entitySelector.timestampMs),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

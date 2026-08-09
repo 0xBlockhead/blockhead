@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,6 +17,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -46,6 +48,23 @@
 	entityType={EntityType.A2aArtifact}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'taskId' in selection.entitySelector.$task ?
+					resolve(
+						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/artifact/[artifactId=stringSegment]',
+						{
+							taskId: selection.entitySelector.$task.taskId,
+							artifactId: selection.entitySelector.artifactId,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,6 +80,7 @@
 	{#snippet Value()}
 		<A2aTaskView
 			selection={select(EntityType.A2aTask, selection.entitySelector.$task)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

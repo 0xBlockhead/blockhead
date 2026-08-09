@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.AvailAppId_Timestamp>, 'prefetched'> = $props()
 
+	const appId = $derived(selection.entitySelector.$appId)
 	const availAppIdTimestamp = $derived(selection({
 		fields: {
 			dataSubmissionCount: true,
@@ -38,6 +42,25 @@
 	entityType={EntityType.AvailAppId_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(avail)/app/[appId=nonNegativeInteger]/(availAppId)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in appId.$network.$network ?
+							caip2StringFromValue(appId.$network.$network.caip2)
+						:
+							appId.$network.$network.slug
+					),
+					appId: String(appId.appId),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

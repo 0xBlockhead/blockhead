@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -17,11 +19,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitcoinCashCashTokenFungibleAmount> = $props()
 
+	const output = $derived(selection.entitySelector.$output)
 	const bitcoinCashCashTokenFungibleAmount = $derived(selection({
 		sources: selection.sources ?? [
 			Source.BitcoinCashNode_JsonRpc,
@@ -44,6 +48,24 @@
 	entityType={EntityType.BitcoinCashCashTokenFungibleAmount}
 	entitySelector={selection.entitySelector}
 	title={title ?? (String(prefetched.amount ?? '') || 'Bitcoin Cash CashToken fungible amount')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/output/[outputIndex=nonNegativeInteger]/(selection)/cash-token-fungible',
+				{
+					network: (
+						'caip2' in output.$transaction.$network ?
+							caip2StringFromValue(output.$transaction.$network.caip2)
+						:
+							output.$transaction.$network.slug
+					),
+					transactionId: output.$transaction.txId,
+					outputIndex: String(output.indexInTransaction),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

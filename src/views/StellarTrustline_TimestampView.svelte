@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,10 +15,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.StellarTrustline_Timestamp>, 'prefetched'> = $props()
+
+	const trustline = $derived(selection.entitySelector.$trustline)
 
 
 	// Components
@@ -29,6 +34,26 @@
 <EntityView
 	entityType={EntityType.StellarTrustline_Timestamp}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/stellar/[accountId=stringSegment]/(stellarAccount)/asset/[assetKey=stringSegment]/(stellarTrustline)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in trustline.$account.$network.$network ?
+							caip2StringFromValue(trustline.$account.$network.$network.caip2)
+						:
+							trustline.$account.$network.$network.slug
+					),
+					accountId: trustline.$account.accountId,
+					assetKey: trustline.$asset.assetKey,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

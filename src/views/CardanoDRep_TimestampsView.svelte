@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,9 +29,27 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: cardanoDRepTimestamp })}
+		{@const cardanoDRepTimestampSelector = cardanoDRepTimestamp[EntityMetaKey.Selector]}
+		{@const drep = cardanoDRepTimestampSelector.$drep}
 		<EntityView
 			entityType={EntityType.CardanoDRep_Timestamp}
-			entitySelector={cardanoDRepTimestamp[EntityMetaKey.Selector]}
+			entitySelector={cardanoDRepTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/drep/[drepCredential=stringSegment]/(cardanoDRep)/observations/[epoch=nonNegativeInteger]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in drep.$network ?
+								caip2StringFromValue(drep.$network.caip2)
+							:
+								drep.$network.slug
+						),
+						drepCredential: drep.drepCredential,
+						epoch: String(cardanoDRepTimestampSelector.epoch),
+						source: cardanoDRepTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				Cardano DRep timestamp

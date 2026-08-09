@@ -2,10 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -16,11 +18,14 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TonTrace>, 'prefetched'> = $props()
 
+	const network = $derived(selection.entitySelector.$network)
+	const rootMessage = $derived(selection.entitySelector.$rootMessage)
 	const viewDomId = $derived('ton-trace-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -41,6 +46,47 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? 'TON trace'}
+	href={
+		href === undefined ?
+			(
+				'$rootMessage' in selection.entitySelector
+				&& 'messageHash' in rootMessage
+				&& '$network' in rootMessage ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/message/ton/[messageHash=stringSegment]/(tonMessage)/trace/[source=stringSegment]',
+						{
+							network: (
+								'caip2' in rootMessage.$network ?
+									caip2StringFromValue(rootMessage.$network.caip2)
+								:
+									rootMessage.$network.slug
+							),
+							messageHash: rootMessage.messageHash,
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					'traceId' in selection.entitySelector
+					&& '$network' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trace/[traceId=stringSegment]/[traceSource=stringSegment]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								traceId: selection.entitySelector.traceId,
+								traceSource: selection.entitySelector.source,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -69,7 +69,21 @@
 						}
 					)
 				:
-					undefined
+					'upgradeId' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ethereum/consensus-upgrade/[upgradeId=stringSegment]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								upgradeId: selection.entitySelector.upgradeId,
+							}
+						)
+					:
+						undefined
 			)
 		:
 			href ?? undefined

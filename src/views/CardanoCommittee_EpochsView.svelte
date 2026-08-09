@@ -28,9 +28,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				epoch: true,
-				memberCount: true,
+			...{
+				fields: {
+					epoch: true,
+					memberCount: true,
+				},
 			},
 		})
 	}

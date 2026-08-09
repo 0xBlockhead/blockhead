@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,6 +17,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -44,6 +46,18 @@
 	entityType={EntityType.McpTool}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/mcp/server/[serverKey=stringSegment]/(mcpServer)/tool/[name=stringSegment]',
+				{
+					serverKey: selection.entitySelector.$server.serverKey,
+					name: selection.entitySelector.name,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,6 +73,7 @@
 	{#snippet Value()}
 		<McpServerView
 			selection={select(EntityType.McpServer, selection.entitySelector.$server)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

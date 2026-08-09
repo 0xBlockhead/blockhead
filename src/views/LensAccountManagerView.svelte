@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,6 +15,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -38,6 +40,23 @@
 	entityType={EntityType.LensAccountManager}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.manager || 'Lens account manager')}
+	href={
+		href === undefined ?
+			(
+				'address' in selection.entitySelector.$account ?
+					resolve(
+						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/manager/[manager=evmAddress]',
+						{
+							address: selection.entitySelector.$account.address,
+							manager: selection.entitySelector.manager,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

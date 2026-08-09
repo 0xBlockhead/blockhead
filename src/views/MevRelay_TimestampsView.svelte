@@ -28,11 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				deliveredPayloadSampleCount: true,
-				builderSampleCount: true,
-				$relay: true,
+			...{
+				fields: {
+					timestampMs: true,
+					deliveredPayloadSampleCount: true,
+					builderSampleCount: true,
+					$relay: true,
+				},
 			},
 		})
 	}

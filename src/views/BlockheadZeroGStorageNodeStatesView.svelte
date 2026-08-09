@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,15 +29,17 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				nodeId: true,
-				$network: {
-					fields: {
-						name: true,
-						environment: true,
+			...{
+				fields: {
+					nodeId: true,
+					$network: {
+						fields: {
+							name: true,
+							environment: true,
+						},
 					},
+					connectionId: true,
 				},
-				connectionId: true,
 			},
 		})
 	}
@@ -46,6 +49,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadZeroGStorageNodeState}
 			entitySelector={blockheadZeroGStorageNodeStateSelector}
+			href={
+				resolve(
+					'/zerog/[slug=stringSegment]/(zeroGNetwork)/~/zerog/connection/[connectionId=stringSegment]/node-state/[nodeId=evmAddress]',
+					{
+						slug: blockheadZeroGStorageNodeStateSelector.$network.slug,
+						connectionId: blockheadZeroGStorageNodeStateSelector.connectionId,
+						nodeId: blockheadZeroGStorageNodeStateSelector.nodeId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadZeroGStorageNodeStateSelector.nodeId || 'blockhead zero g storage node state'}

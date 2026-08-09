@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -12,6 +13,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -48,6 +50,18 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/radicle/node-state/[connectionId=stringSegment]/[nodeId=stringSegment]',
+				{
+					connectionId: selection.entitySelector.connectionId,
+					nodeId: selection.entitySelector.nodeId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,19 +29,33 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				proofId: true,
-				verified: true,
-				proofKind: true,
+			...{
+				fields: {
+					proofId: true,
+					verified: true,
+					proofKind: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadZeroGStorageProof })}
 		{@const blockheadZeroGStorageProofSelector = blockheadZeroGStorageProof[EntityMetaKey.Selector]}
+		{@const nodeState = blockheadZeroGStorageProofSelector.$nodeState}
 		<EntityView
 			entityType={EntityType.BlockheadZeroGStorageProof}
 			entitySelector={blockheadZeroGStorageProofSelector}
+			href={
+				resolve(
+					'/zerog/[slug=stringSegment]/(zeroGNetwork)/~/zerog/connection/[connectionId=stringSegment]/node-state/[nodeId=evmAddress]/(blockheadZeroGStorageNodeState)/proof/[proofId=stringSegment]',
+					{
+						slug: nodeState.$network.slug,
+						connectionId: nodeState.connectionId,
+						nodeId: nodeState.nodeId,
+						proofId: blockheadZeroGStorageProofSelector.proofId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadZeroGStorageProofSelector.proofId || 'blockhead zero g storage proof'}

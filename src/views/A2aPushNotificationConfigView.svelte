@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,6 +15,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -43,6 +45,23 @@
 	entityType={EntityType.A2aPushNotificationConfig}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'taskId' in selection.entitySelector.$task ?
+					resolve(
+						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/push-notification/[configId=stringSegment]',
+						{
+							taskId: selection.entitySelector.$task.taskId,
+							configId: selection.entitySelector.configId,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

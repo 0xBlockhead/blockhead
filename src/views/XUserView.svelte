@@ -68,7 +68,15 @@
 						}
 					)
 				:
-					undefined
+					'username' in selection.entitySelector ?
+						resolve(
+							'/x/user/@[username=stringSegment]',
+							{
+								username: selection.entitySelector.username,
+							}
+						)
+					:
+						undefined
 			)
 		:
 			href ?? undefined

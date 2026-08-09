@@ -2,9 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,15 +15,19 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.NftCollection>, 'prefetched'> = $props()
 
+	const assetInstance = $derived(selection.entitySelector.$assetInstance)
+
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import NftTokensView from '$/views/NftTokensView.svelte'
+	import RoyaltyRight_TimestampsView from '$/views/RoyaltyRight_TimestampsView.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 </script>
 
@@ -30,6 +35,24 @@
 <EntityView
 	entityType={EntityType.NftCollection}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/collection',
+				{
+					network: (
+						'caip2' in assetInstance.$network ?
+							caip2StringFromValue(assetInstance.$network.caip2)
+						:
+							assetInstance.$network.slug
+					),
+					kind: assetInstance.kind,
+					assetKey: assetInstance.assetKey,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -55,21 +78,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.NftToken}
+					<NftTokensView
+						selection={tokensResource}
 						countResource={tokensResource.count}
 						title='tokens'
-						open={true}
 						id='tokens'
-						resource={tokensResource()}
-					>
-						{#snippet Item({ item: nftToken })}
-							<EntityView
-								entityType={EntityType.NftToken}
-								entitySelector={nftToken[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -79,21 +93,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.RoyaltyRight_Timestamp}
+					<RoyaltyRight_TimestampsView
+						selection={royaltyTimestampsResource}
 						countResource={royaltyTimestampsResource.count}
 						title='royalty timestamps'
-						open={true}
 						id='royalty-timestamps'
-						resource={royaltyTimestampsResource()}
-					>
-						{#snippet Item({ item: royaltyRightTimestamp })}
-							<EntityView
-								entityType={EntityType.RoyaltyRight_Timestamp}
-								entitySelector={royaltyRightTimestamp[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

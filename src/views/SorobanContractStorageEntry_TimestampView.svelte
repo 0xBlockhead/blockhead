@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,10 +15,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.SorobanContractStorageEntry_Timestamp>, 'prefetched'> = $props()
+
+	const entry = $derived(selection.entitySelector.$entry)
 
 
 	// Components
@@ -28,6 +33,26 @@
 <EntityView
 	entityType={EntityType.SorobanContractStorageEntry_Timestamp}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/soroban/contract/[contractId=stringSegment]/(sorobanContract)/storage/[keyHash=stringSegment]/(sorobanContractStorageEntry)/ledger/[ledgerSequence=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in entry.$contract.$network.$network ?
+							caip2StringFromValue(entry.$contract.$network.$network.caip2)
+						:
+							entry.$contract.$network.$network.slug
+					),
+					contractId: entry.$contract.contractId,
+					keyHash: entry.keyHash,
+					ledgerSequence: String(selection.entitySelector.ledgerSequence),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -27,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				fromChainId: true,
-				toChainId: true,
-				estimatedCostUsd: true,
-				estimatedDurationSeconds: true,
+			...{
+				fields: {
+					fromChainId: true,
+					toChainId: true,
+					estimatedCostUsd: true,
+					estimatedDurationSeconds: true,
+				},
 			},
 		})
 	}
@@ -43,7 +45,7 @@
 			entitySelector={bridgeRouteSelector}
 			href={
 				resolve(
-					'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]',
+					'/~/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]',
 					{
 						fromChainId: String(bridgeRouteSelector.fromChainId),
 						toChainId: String(bridgeRouteSelector.toChainId),

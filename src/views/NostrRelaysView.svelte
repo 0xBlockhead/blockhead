@@ -28,11 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			sources: selection.sources ?? [
-				Source.Constants_Internal,
-			],
-			fields: {
-				relayUrl: true,
+			...{
+				sources: selection.sources ?? [
+					Source.Constants_Internal,
+				],
+				fields: {
+					relayUrl: true,
+				},
 			},
 		})
 	}

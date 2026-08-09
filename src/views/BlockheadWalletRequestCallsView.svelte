@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,9 +27,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				callIndex: true,
-				toAddress: true,
+			...{
+				fields: {
+					callIndex: true,
+					toAddress: true,
+				},
 			},
 		})
 	}
@@ -38,6 +41,15 @@
 		<EntityView
 			entityType={EntityType.BlockheadWalletRequestCall}
 			entitySelector={blockheadWalletRequestCallSelector}
+			href={
+				resolve(
+					'/~/wallets/requests/[id=stringSegment]/(blockheadWalletRequest)/evm-request/(blockheadEvmWalletRequest)/call/[callIndex=nonNegativeInteger]',
+					{
+						id: blockheadWalletRequestCallSelector.$evmRequest.$walletRequest.id,
+						callIndex: String(blockheadWalletRequestCallSelector.callIndex),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{`Call #${blockheadWalletRequestCallSelector.callIndex}`}

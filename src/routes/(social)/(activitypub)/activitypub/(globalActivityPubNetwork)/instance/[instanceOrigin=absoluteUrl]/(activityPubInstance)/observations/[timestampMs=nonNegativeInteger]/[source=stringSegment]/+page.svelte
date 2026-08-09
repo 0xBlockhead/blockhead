@@ -12,17 +12,11 @@
 
 	// State
 	let {
-		params,
+		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.ActivityPubInstance_Timestamp, {
-		$instance: {
-			instanceOrigin: decodeURIComponent(params.instanceOrigin),
-		},
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
+	const pageSelection = $derived(select(EntityType.ActivityPubInstance_Timestamp, data.selector, {
+		sources: [data.selector.source],
 		fields: {
 			title: true,
 		},
@@ -36,7 +30,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'ActivityPub instance observation' : [(pageSelection.entity.title ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'ActivityPub instance observation'} • ActivityPub instance observation • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? String(pageSelection.entitySelector.timestampMs ?? '') || 'ActivityPub instance observation' : [(pageSelection.entity.title ?? ''), String(pageSelection.entitySelector.timestampMs)].filter(Boolean).join(' ') || 'ActivityPub instance observation')} • ActivityPub instance observation • Blockhead</title>
 </svelte:head>
 
 

@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,19 +28,37 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				source: true,
-				minerTip: true,
-				$message: true,
+			...{
+				fields: {
+					source: true,
+					minerTip: true,
+					$message: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: filecoinMessageFee })}
 		{@const filecoinMessageFeeSelector = filecoinMessageFee[EntityMetaKey.Selector]}
+		{@const message = filecoinMessageFeeSelector.$message}
 		<EntityView
 			entityType={EntityType.FilecoinMessageFee}
 			entitySelector={filecoinMessageFeeSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/message/filecoin/[cid=stringSegment]/(filecoinMessage)/fee/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in message.$network ?
+								caip2StringFromValue(message.$network.caip2)
+							:
+								message.$network.slug
+						),
+						cid: message.cid,
+						source: filecoinMessageFeeSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{filecoinMessageFeeSelector.source || 'filecoin message fee'}

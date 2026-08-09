@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.Eip8004AgentServiceEndpoint>, 'prefetched'> = $props()
 
+	const registrationFile = $derived(selection.entitySelector.$registrationFile)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
@@ -35,7 +38,6 @@
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import Eip8004AgentRegistrationFileView from '$/views/Eip8004AgentRegistrationFileView.svelte'
@@ -47,6 +49,23 @@
 	entityType={EntityType.Eip8004AgentServiceEndpoint}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(agents)/agents/eip-8004/[namespace=stringSegment]/[chainId=nonNegativeInteger]/registry/[identityRegistry=evmAddress]/agent/[agentId=stringSegment]/(eip8004AgentRegistration)/file/[fileUrl=absoluteUrl]/(eip8004AgentRegistrationFile)/service-endpoint/[endpointKind=stringSegment]/[endpointUrl=absoluteUrl]',
+				{
+					namespace: registrationFile.$registration.namespace,
+					chainId: String(registrationFile.$registration.chainId),
+					identityRegistry: registrationFile.$registration.identityRegistry,
+					agentId: registrationFile.$registration.agentId,
+					fileUrl: encodeURIComponent(registrationFile.fileUrl),
+					endpointKind: selection.entitySelector.endpointKind,
+					endpointUrl: encodeURIComponent(selection.entitySelector.endpointUrl),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -212,32 +231,5 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
-	{/snippet}
-
-	{#snippet Details()}
-		{@const paymentRequirementsResource = selection.$$paymentRequirements}
-		<ResourceBoundary
-			resource={paymentRequirementsResource}
-		>
-			{#snippet children(entities)}
-				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.AgentPaymentRequirement_Timestamp}
-						countResource={paymentRequirementsResource.count}
-						title='Payment requirements'
-						open={true}
-						id='payment-requirements'
-						resource={paymentRequirementsResource()}
-					>
-						{#snippet Item({ item: agentPaymentRequirementTimestamp })}
-							<EntityView
-								entityType={EntityType.AgentPaymentRequirement_Timestamp}
-								entitySelector={agentPaymentRequirementTimestamp[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
 	{/snippet}
 </EntityView>

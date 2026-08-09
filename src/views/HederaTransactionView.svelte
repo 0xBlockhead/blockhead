@@ -2,10 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -17,11 +19,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HederaTransaction> = $props()
 
+	const network = $derived(selection.entitySelector.$network)
 	const hederaTransaction = $derived(selection({
 		fields: {
 			transactionType: true,
@@ -36,7 +40,6 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -45,6 +48,8 @@
 	import HederaBlockView from '$/views/HederaBlockView.svelte'
 	import HederaScheduleView from '$/views/HederaScheduleView.svelte'
 	import HederaHbarTransfersView from '$/views/HederaHbarTransfersView.svelte'
+	import HederaTokenTransfersView from '$/views/HederaTokenTransfersView.svelte'
+	import HederaContractResultsView from '$/views/HederaContractResultsView.svelte'
 </script>
 
 
@@ -53,6 +58,44 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'transactionId' in selection.entitySelector
+				&& 'nonce' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/nonce/[nonce=nonNegativeInteger]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							transactionId: selection.entitySelector.transactionId,
+							nonce: String(selection.entitySelector.nonce),
+						}
+					)
+				:
+					'consensusTimestamp' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/consensus/[consensusTimestamp=stringSegment]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								consensusTimestamp: selection.entitySelector.consensusTimestamp,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -341,22 +384,13 @@
 			{/snippet}
 
 			{#snippet SectionHederaTransactionTokenTransfers({ id, label })}
-				<EntitiesList
-					entityType={EntityType.HederaTokenTransfer}
+				<HederaTokenTransfersView
+					selection={selection.$$tokenTransfers}
 					collapsible={false}
 					title={label}
 					emptyText='No token transfers.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$tokenTransfers()}
-				>
-					{#snippet Item({ item: hederaTokenTransfer })}
-						<EntityView
-							entityType={EntityType.HederaTokenTransfer}
-							entitySelector={hederaTokenTransfer[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -382,22 +416,13 @@
 			{/snippet}
 
 			{#snippet SectionHederaTransactionContractResults({ id, label })}
-				<EntitiesList
-					entityType={EntityType.HederaContractResult}
+				<HederaContractResultsView
+					selection={selection.$$contractResults}
 					collapsible={false}
 					title={label}
 					emptyText='No contract results.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$contractResults()}
-				>
-					{#snippet Item({ item: hederaContractResult })}
-						<EntityView
-							entityType={EntityType.HederaContractResult}
-							entitySelector={hederaContractResult[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

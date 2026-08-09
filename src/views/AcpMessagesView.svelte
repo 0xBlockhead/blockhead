@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				messageId: true,
-				role: true,
-				createdAt: true,
+			...{
+				fields: {
+					messageId: true,
+					role: true,
+					createdAt: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,15 @@
 		<EntityView
 			entityType={EntityType.AcpMessage}
 			entitySelector={acpMessageSelector}
+			href={
+				resolve(
+					'/(agents)/agents/acp/session/[sessionId=stringSegment]/(acpSession)/message/[messageId=stringSegment]',
+					{
+						sessionId: acpMessageSelector.$session.sessionId,
+						messageId: acpMessageSelector.messageId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{acpMessageSelector.messageId || 'ACP message'}

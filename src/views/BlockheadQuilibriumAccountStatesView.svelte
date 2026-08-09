@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,19 +30,37 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				accountAddress: true,
-				$network: true,
-				accountKind: true,
+			...{
+				fields: {
+					accountAddress: true,
+					$network: true,
+					accountKind: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadQuilibriumAccountState })}
 		{@const blockheadQuilibriumAccountStateSelector = blockheadQuilibriumAccountState[EntityMetaKey.Selector]}
+		{@const network = blockheadQuilibriumAccountStateSelector.$network}
 		<EntityView
 			entityType={EntityType.BlockheadQuilibriumAccountState}
 			entitySelector={blockheadQuilibriumAccountStateSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/~/quilibrium/connection/[connectionId=stringSegment]/account-state/[accountAddress=stringSegment]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						connectionId: blockheadQuilibriumAccountStateSelector.connectionId,
+						accountAddress: blockheadQuilibriumAccountStateSelector.accountAddress,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadQuilibriumAccountStateSelector.accountAddress || 'blockhead quilibrium account state'}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,10 +15,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadLogosBlockchainWalletKeyState>, 'prefetched'> = $props()
+
+	const nodeState = $derived(selection.entitySelector.$nodeState)
 
 
 	// Components
@@ -31,6 +35,19 @@
 	entityType={EntityType.BlockheadLogosBlockchainWalletKeyState}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.publicKey || 'blockhead Logos blockchain wallet key state')}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/logos/connection/[connectionId=stringSegment]/node-state/[peerId=stringSegment]/(blockheadLogosBlockchainNodeState)/wallet-key/[publicKey=zeroExHex]',
+				{
+					connectionId: nodeState.connectionId,
+					peerId: nodeState.peerId,
+					publicKey: selection.entitySelector.publicKey,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -38,6 +55,7 @@
 	{#snippet Value()}
 		<BlockheadLogosBlockchainNodeStateView
 			selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

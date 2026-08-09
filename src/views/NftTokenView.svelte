@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,6 +16,7 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -21,8 +24,8 @@
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import UsageRight_TimestampsView from '$/views/UsageRight_TimestampsView.svelte'
 	import NftCollectionView from '$/views/NftCollectionView.svelte'
 	import AssetObjectView from '$/views/AssetObjectView.svelte'
 	import TokenMetadataDocumentView from '$/views/TokenMetadataDocumentView.svelte'
@@ -32,6 +35,25 @@
 <EntityView
 	entityType={EntityType.NftToken}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/collection/(nftCollection)/token/[tokenKey=stringSegment]',
+				{
+					network: (
+						'caip2' in selection.entitySelector.$collection.$assetInstance.$network ?
+							caip2StringFromValue(selection.entitySelector.$collection.$assetInstance.$network.caip2)
+						:
+							selection.entitySelector.$collection.$assetInstance.$network.slug
+					),
+					kind: selection.entitySelector.$collection.$assetInstance.kind,
+					assetKey: selection.entitySelector.$collection.$assetInstance.assetKey,
+					tokenKey: selection.entitySelector.tokenKey,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -125,21 +147,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.UsageRight_Timestamp}
+					<UsageRight_TimestampsView
+						selection={usageRightTimestampsResource}
 						countResource={usageRightTimestampsResource.count}
 						title='usage right timestamps'
-						open={true}
 						id='usage-right-timestamps'
-						resource={usageRightTimestampsResource()}
-					>
-						{#snippet Item({ item: usageRightTimestamp })}
-							<EntityView
-								entityType={EntityType.UsageRight_Timestamp}
-								entitySelector={usageRightTimestamp[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,11 +17,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BnbBeaconTokenTransfer> = $props()
 
+	const transaction = $derived(selection.entitySelector.$transaction)
 	const bnbBeaconTokenTransfer = $derived(selection({
 		fields: {
 			symbol: true,
@@ -41,6 +45,24 @@
 	entityType={EntityType.BnbBeaconTokenTransfer}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/transaction/[txHash=stringSegment]/(bnbBeaconTransaction)/transfer/[transferIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in transaction.$network.$network ?
+							caip2StringFromValue(transaction.$network.$network.caip2)
+						:
+							transaction.$network.$network.slug
+					),
+					txHash: transaction.txHash,
+					transferIndex: String(selection.entitySelector.transferIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

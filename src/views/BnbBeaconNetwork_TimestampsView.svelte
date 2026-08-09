@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,11 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				latestArchivedHeight: true,
-				archiveCoverageStatus: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					latestArchivedHeight: true,
+					archiveCoverageStatus: true,
+					source: true,
+				},
 			},
 		})
 	}
@@ -40,6 +44,21 @@
 		<EntityView
 			entityType={EntityType.BnbBeaconNetwork_Timestamp}
 			entitySelector={bnbBeaconNetworkTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in bnbBeaconNetworkTimestampSelector.$network.$network ?
+								caip2StringFromValue(bnbBeaconNetworkTimestampSelector.$network.$network.caip2)
+							:
+								bnbBeaconNetworkTimestampSelector.$network.$network.slug
+						),
+						timestampMs: String(bnbBeaconNetworkTimestampSelector.timestampMs),
+						source: bnbBeaconNetworkTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{bnbBeaconNetworkTimestampSelector.timestampMs}

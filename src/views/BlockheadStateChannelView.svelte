@@ -60,7 +60,7 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/channel/[channelId=stringSegment]',
+				'/~/channel/[channelId=stringSegment]',
 				{
 					channelId: selection.entitySelector.id,
 				}

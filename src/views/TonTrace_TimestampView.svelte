@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TonTrace_Timestamp>, 'prefetched'> = $props()
+
+	const trace = $derived(selection.entitySelector.$trace)
 
 
 	// Components
@@ -31,6 +36,32 @@
 	entityType={EntityType.TonTrace_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'TON trace timestamp'}
+	href={
+		href === undefined ?
+			(
+				'traceId' in trace
+				&& '$network' in trace ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trace/[traceId=stringSegment]/[traceSource=stringSegment]/(tonTrace)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							network: (
+								'caip2' in trace.$network ?
+									caip2StringFromValue(trace.$network.caip2)
+								:
+									trace.$network.slug
+							),
+							traceId: trace.traceId,
+							traceSource: trace.source,
+							timestampMs: String(selection.entitySelector.timestampMs),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

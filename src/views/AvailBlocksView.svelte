@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,18 +28,52 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				blockNumber: true,
-				timestampMs: true,
-				blockHash: true,
+			...{
+				fields: {
+					blockNumber: true,
+					timestampMs: true,
+					blockHash: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: availBlock })}
+		{@const availBlockSelector = availBlock[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AvailBlock}
-			entitySelector={availBlock[EntityMetaKey.Selector]}
+			entitySelector={availBlockSelector}
+			href={
+				'blockNumber' in availBlockSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(avail)/block-number/[blockNumber=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in availBlockSelector.$network.$network ?
+									caip2StringFromValue(availBlockSelector.$network.$network.caip2)
+								:
+									availBlockSelector.$network.$network.slug
+							),
+							blockNumber: String(availBlockSelector.blockNumber),
+						}
+					)
+				:
+					'blockHash' in availBlockSelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(avail)/avail/block-hash/[blockHash=stringSegment]',
+							{
+								network: (
+									'caip2' in availBlockSelector.$network.$network ?
+										caip2StringFromValue(availBlockSelector.$network.$network.caip2)
+									:
+										availBlockSelector.$network.$network.slug
+								),
+								blockHash: availBlockSelector.blockHash,
+							}
+						)
+					:
+						undefined
+			}
 		>
 			{#snippet Title()}
 				{availBlock.blockNumber}

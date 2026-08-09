@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				requestId: true,
-				requestKind: true,
-				decision: true,
+			...{
+				fields: {
+					requestId: true,
+					requestKind: true,
+					decision: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,15 @@
 		<EntityView
 			entityType={EntityType.AcpPermissionRequest}
 			entitySelector={acpPermissionRequestSelector}
+			href={
+				resolve(
+					'/(agents)/agents/acp/session/[sessionId=stringSegment]/(acpSession)/permission-request/[requestId=stringSegment]',
+					{
+						sessionId: acpPermissionRequestSelector.$session.sessionId,
+						requestId: acpPermissionRequestSelector.requestId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{acpPermissionRequestSelector.requestId || 'ACP permission request'}

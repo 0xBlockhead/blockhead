@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				sequence: true,
-				eventKind: true,
-				timestampMs: true,
+			...{
+				fields: {
+					sequence: true,
+					eventKind: true,
+					timestampMs: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,18 @@
 		<EntityView
 			entityType={EntityType.A2aTaskEvent}
 			entitySelector={a2aTaskEventSelector}
+			href={
+				'taskId' in a2aTaskEventSelector.$task ?
+					resolve(
+						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/event/[sequence=nonNegativeInteger]',
+						{
+							taskId: a2aTaskEventSelector.$task.taskId,
+							sequence: String(a2aTaskEventSelector.sequence),
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{a2aTaskEventSelector.sequence}

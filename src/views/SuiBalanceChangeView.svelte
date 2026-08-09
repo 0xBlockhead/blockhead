@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,10 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.SuiBalanceChange>, 'prefetched'> = $props()
+
+	const transaction = $derived(selection.entitySelector.$transaction)
 
 
 	// Components
@@ -32,6 +37,24 @@
 	entityType={EntityType.SuiBalanceChange}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'Sui balance change'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/sui-tx/[digest=stringSegment]/(suiTransaction)/balance-change/[changeIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in transaction.$network.$network ?
+							caip2StringFromValue(transaction.$network.$network.caip2)
+						:
+							transaction.$network.$network.slug
+					),
+					digest: transaction.digest,
+					changeIndex: String(selection.entitySelector.changeIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

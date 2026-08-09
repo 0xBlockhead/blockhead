@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,11 +18,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.FilecoinSector_Timestamp>, 'prefetched'> = $props()
 
+	const sector = $derived(selection.entitySelector.$sector)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lotus_JsonRpc,
@@ -46,6 +50,26 @@
 	entityType={EntityType.FilecoinSector_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]/(filecoinMiner)/sector/[sectorNumber=nonNegativeBigInt]/(filecoinSector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in sector.$miner.$network ?
+							caip2StringFromValue(sector.$miner.$network.caip2)
+						:
+							sector.$miner.$network.slug
+					),
+					minerAddress: sector.$miner.minerAddress,
+					sectorNumber: String(sector.sectorNumber),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -57,6 +81,7 @@
 	{#snippet Value()}
 		<FilecoinSectorView
 			selection={select(EntityType.FilecoinSector, selection.entitySelector.$sector)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

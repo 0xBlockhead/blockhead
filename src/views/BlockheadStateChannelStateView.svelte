@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,6 +16,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -45,6 +47,19 @@
 	entityType={EntityType.BlockheadStateChannelState}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.version)}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/channel/[channelId=stringSegment]/(blockheadStateChannel)/state/[version=nonNegativeInteger]/[stateData=stringSegment]',
+				{
+					channelId: selection.entitySelector.$channel.id,
+					version: String(selection.entitySelector.version),
+					stateData: selection.entitySelector.stateData,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

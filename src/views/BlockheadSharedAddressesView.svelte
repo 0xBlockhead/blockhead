@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -30,17 +31,28 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$account: true,
-				sharedAt: true,
+			...{
+				fields: {
+					$account: true,
+					sharedAt: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadSharedAddress })}
+		{@const blockheadSharedAddressSelector = blockheadSharedAddress[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadSharedAddress}
-			entitySelector={blockheadSharedAddress[EntityMetaKey.Selector]}
+			entitySelector={blockheadSharedAddressSelector}
+			href={
+				resolve(
+					'/~/shared-address/[id=stringSegment]',
+					{
+						id: blockheadSharedAddressSelector.id,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadSharedAddress.$account.address || 'EVM account'}

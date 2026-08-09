@@ -29,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				indexInRoute: true,
-				tool: true,
-				stepType: true,
+			...{
+				fields: {
+					indexInRoute: true,
+					tool: true,
+					stepType: true,
+				},
 			},
 		})
 	}
@@ -45,7 +47,7 @@
 			entitySelector={bridgeRouteStepSelector}
 			href={
 				resolve(
-					'/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]/(bridgeRoute)/step/[stepIndex=bridgeRouteStepIndex]',
+					'/~/bridge/route/[fromChainId=nonNegativeInteger]/[toChainId=nonNegativeInteger]/[fromToken=stringSegment]/[toToken=stringSegment]/[fromAmount=nonNegativeBigInt]/[fromAddress=evmAddress]/[slippage=nonNegativeNumber]/[toAddress=evmAddress]/(bridgeRoute)/step/[stepIndex=bridgeRouteStepIndex]',
 					{
 						fromChainId: String(route.fromChainId),
 						toChainId: String(route.toChainId),

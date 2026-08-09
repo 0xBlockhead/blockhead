@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,15 +28,17 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				changeKind: true,
-				changeIndex: true,
-				$transaction: {
-					fields: {
-						hash: true,
-						transactionKind: true,
-						version: true,
-						sender: true,
+			...{
+				fields: {
+					changeKind: true,
+					changeIndex: true,
+					$transaction: {
+						fields: {
+							hash: true,
+							transactionKind: true,
+							version: true,
+							sender: true,
+						},
 					},
 				},
 			},
@@ -43,9 +47,28 @@
 >
 	{#snippet Item({ item: aptosStateChange })}
 		{@const aptosStateChangeSelector = aptosStateChange[EntityMetaKey.Selector]}
+		{@const transaction = aptosStateChangeSelector.$transaction}
 		<EntityView
 			entityType={EntityType.AptosStateChange}
 			entitySelector={aptosStateChangeSelector}
+			href={
+				'version' in transaction ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/version/[version=nonNegativeBigInt]/(aptosTransaction)/state-change/[changeIndex=nonNegativeInteger]',
+						{
+							network: (
+								'caip2' in transaction.$network.$network ?
+									caip2StringFromValue(transaction.$network.$network.caip2)
+								:
+									transaction.$network.$network.slug
+							),
+							version: String(transaction.version),
+							changeIndex: String(aptosStateChangeSelector.changeIndex),
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{aptosStateChange.changeKind || 'aptos state change'}

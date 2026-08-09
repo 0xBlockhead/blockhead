@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,10 +15,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.HyperliquidOrder>, 'prefetched'> = $props()
+
+	const account = $derived(selection.entitySelector.$account)
 
 
 	// Components
@@ -28,6 +33,44 @@
 <EntityView
 	entityType={EntityType.HyperliquidOrder}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			(
+				'cloid' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/order/client/[cloid=stringSegment]',
+						{
+							network: (
+								'caip2' in account.$network ?
+									caip2StringFromValue(account.$network.caip2)
+								:
+									account.$network.slug
+							),
+							accountId: account.address,
+							cloid: selection.entitySelector.cloid,
+						}
+					)
+				:
+					'oid' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/order/id/[oid=nonNegativeBigInt]',
+							{
+								network: (
+									'caip2' in account.$network ?
+										caip2StringFromValue(account.$network.caip2)
+									:
+										account.$network.slug
+								),
+								accountId: account.address,
+								oid: String(selection.entitySelector.oid),
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.AssetEligibility>, 'prefetched'> = $props()
 
+	const assetInstance = $derived(selection.entitySelector.$assetInstance)
 	const assetEligibility = $derived(selection({
 		fields: {
 			canHold: true,
@@ -41,6 +45,29 @@
 	entityType={EntityType.AssetEligibility}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/eligibility/[namespace=stringSegment]/[reference=stringSegment]/[accountAddress=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in assetInstance.$network ?
+							caip2StringFromValue(assetInstance.$network.caip2)
+						:
+							assetInstance.$network.slug
+					),
+					kind: assetInstance.kind,
+					assetKey: assetInstance.assetKey,
+					namespace: selection.entitySelector.$account.caip10.namespace,
+					reference: selection.entitySelector.$account.caip10.reference,
+					accountAddress: selection.entitySelector.$account.caip10.accountAddress,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

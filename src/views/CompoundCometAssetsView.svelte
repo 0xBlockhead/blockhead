@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,19 +28,37 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				symbol: true,
-				borrowCF: true,
-				liquidateCF: true,
+			...{
+				fields: {
+					symbol: true,
+					borrowCF: true,
+					liquidateCF: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: compoundCometAsset })}
 		{@const compoundCometAssetSelector = compoundCometAsset[EntityMetaKey.Selector]}
+		{@const comet = compoundCometAssetSelector.$comet}
 		<EntityView
 			entityType={EntityType.CompoundCometAsset}
 			entitySelector={compoundCometAssetSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/compound-comet/[cometAddress=evmAddress]/(compoundComet)/asset/[symbol=stringSegment]',
+					{
+						network: (
+							'caip2' in comet.$network ?
+								caip2StringFromValue(comet.$network.caip2)
+							:
+								comet.$network.slug
+						),
+						cometAddress: comet.cometAddress,
+						symbol: compoundCometAssetSelector.symbol,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{compoundCometAssetSelector.symbol || 'Compound Comet collateral asset'}

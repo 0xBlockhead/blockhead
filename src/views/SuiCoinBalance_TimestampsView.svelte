@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,9 +29,28 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: suiCoinBalanceTimestamp })}
+		{@const suiCoinBalanceTimestampSelector = suiCoinBalanceTimestamp[EntityMetaKey.Selector]}
+		{@const account = suiCoinBalanceTimestampSelector.$account}
 		<EntityView
 			entityType={EntityType.SuiCoinBalance_Timestamp}
-			entitySelector={suiCoinBalanceTimestamp[EntityMetaKey.Selector]}
+			entitySelector={suiCoinBalanceTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[address=stringSegment]/(selection)/coin/[coinType=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in account.$network.$network ?
+								caip2StringFromValue(account.$network.$network.caip2)
+							:
+								account.$network.$network.slug
+						),
+						address: account.address,
+						coinType: suiCoinBalanceTimestampSelector.coinType,
+						timestampMs: String(suiCoinBalanceTimestampSelector.timestampMs),
+						source: suiCoinBalanceTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				Sui coin balance timestamp

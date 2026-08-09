@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.AptosTransaction_Timestamp>, 'prefetched'> = $props()
 
+	const transaction = $derived(selection.entitySelector.$transaction)
 	const aptosTransactionTimestamp = $derived(selection({
 		fields: {
 			success: true,
@@ -41,6 +45,30 @@
 	entityType={EntityType.AptosTransaction_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.ledgerVersion)}
+	href={
+		href === undefined ?
+			(
+				'version' in transaction ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/version/[version=nonNegativeBigInt]/(aptosTransaction)/observations/[ledgerVersion=nonNegativeBigInt]/[source=stringSegment]',
+						{
+							network: (
+								'caip2' in transaction.$network.$network ?
+									caip2StringFromValue(transaction.$network.$network.caip2)
+								:
+									transaction.$network.$network.slug
+							),
+							version: String(transaction.version),
+							ledgerVersion: String(selection.entitySelector.ledgerVersion),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

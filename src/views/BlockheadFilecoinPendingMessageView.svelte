@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -47,6 +49,19 @@
 	entityType={EntityType.BlockheadFilecoinPendingMessage}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.messageCid || 'blockhead filecoin pending message')}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/filecoin/node/[nodeId=stringSegment]/pending-message/[messageCid=stringSegment]/[observedAtMs=nonNegativeInteger]',
+				{
+					nodeId: selection.entitySelector.nodeId,
+					messageCid: selection.entitySelector.messageCid,
+					observedAtMs: String(selection.entitySelector.observedAtMs),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

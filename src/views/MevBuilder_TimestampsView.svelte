@@ -28,10 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				deliveredPayloadCount: true,
-				deliveredValueWei: true,
-				$builder: true,
+			...{
+				fields: {
+					deliveredPayloadCount: true,
+					deliveredValueWei: true,
+					$builder: true,
+				},
 			},
 		})
 	}

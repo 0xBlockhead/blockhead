@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadZeroGStorageNodeState_Timestamp>, 'prefetched'> = $props()
 
+	const nodeState = $derived(selection.entitySelector.$nodeState)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -45,6 +48,21 @@
 	entityType={EntityType.BlockheadZeroGStorageNodeState_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/zerog/[slug=stringSegment]/(zeroGNetwork)/~/zerog/connection/[connectionId=stringSegment]/node-state/[nodeId=evmAddress]/(blockheadZeroGStorageNodeState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					slug: nodeState.$network.slug,
+					connectionId: nodeState.connectionId,
+					nodeId: nodeState.nodeId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -56,6 +74,7 @@
 	{#snippet Value()}
 		<BlockheadZeroGStorageNodeStateView
 			selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

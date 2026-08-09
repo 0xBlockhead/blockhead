@@ -199,61 +199,36 @@ test('rejects ambiguous same-entity detail components without collapsing selecto
 	)
 })
 
-test('requires one explicit route outcome for every selector', () => {
-	const missingOutcomeApp = structuredClone(app)
-	Reflect.deleteProperty(missingOutcomeApp.routes.outcomes[EntityType._Global], 'Scope')
+test('requires exactly one explicit route mapping for every selector', () => {
+	const missingMappingApp = structuredClone(app)
+	Reflect.deleteProperty(missingMappingApp.routes.children['~'].children.explore.selectors[EntityType._Global], 'Scope')
 
 	assert.throws(
-		() => compileApp(missingOutcomeApp),
-		/_Global\.Scope is missing an explicit route outcome/
+		() => compileApp(missingMappingApp),
+		/_Global\.Scope must have exactly one route mapping; found 0/
 	)
 })
 
-test('rejects competing visible and non-visible selector outcomes', () => {
-	const competingOutcomeApp = structuredClone(app)
-	Object.defineProperty(competingOutcomeApp.routes.outcomes, EntityType.Network, {
+test('rejects duplicate explicit route mappings for one selector', () => {
+	const duplicateMappingApp = structuredClone(app)
+	Object.defineProperty(duplicateMappingApp.routes.children, '(duplicate-global)', {
 		enumerable: true,
 		value: {
-			Caip2: {
-				kind: 'Research',
-				decision: 'Negative control',
-				evidence: 'scripts/app/compiled-app-index.test.ts',
+			children: {
+				'duplicate-explore': {
+					selectors: {
+						[EntityType._Global]: {
+							Scope: structuredClone(duplicateMappingApp.routes.children['~'].children.explore.selectors[EntityType._Global].Scope),
+						},
+					},
+				},
 			},
 		},
 	})
 
 	assert.throws(
-		() => compileApp(competingOutcomeApp),
-		/Network\.Caip2 has both a visible route mapping and Research outcome/
-	)
-})
-
-test('rejects selector outcome alias cycles', () => {
-	const cyclicOutcomeApp = structuredClone(app)
-	Object.defineProperty(cyclicOutcomeApp.routes.outcomes[EntityType._Global], 'Scope', {
-		enumerable: true,
-		value: {
-			kind: 'Alias',
-			target: {
-				entityType: EntityType._GlobalAgentNetwork,
-				selectorName: 'NetworkId',
-			},
-		},
-	})
-	Object.defineProperty(cyclicOutcomeApp.routes.outcomes[EntityType._GlobalAgentNetwork], 'NetworkId', {
-		enumerable: true,
-		value: {
-			kind: 'Alias',
-			target: {
-				entityType: EntityType._Global,
-				selectorName: 'Scope',
-			},
-		},
-	})
-
-	assert.throws(
-		() => compileApp(cyclicOutcomeApp),
-		/Alias outcome contains a cycle/
+		() => compileApp(duplicateMappingApp),
+		/Duplicate route selector mapping _Global\.Scope/
 	)
 })
 

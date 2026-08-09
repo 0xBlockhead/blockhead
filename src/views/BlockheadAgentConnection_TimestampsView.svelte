@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				health: true,
-				latencyMs: true,
+			...{
+				fields: {
+					timestampMs: true,
+					health: true,
+					latencyMs: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadAgentConnection_Timestamp}
 			entitySelector={blockheadAgentConnectionTimestampSelector}
+			href={
+				resolve(
+					'/~/agent/connection/[connectionId=stringSegment]/(blockheadAgentConnection)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						connectionId: blockheadAgentConnectionTimestampSelector.$connection.connectionId,
+						timestampMs: String(blockheadAgentConnectionTimestampSelector.timestampMs),
+						source: blockheadAgentConnectionTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadAgentConnectionTimestampSelector.timestampMs}

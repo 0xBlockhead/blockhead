@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadWakuMessageObservation_Timestamp>, 'prefetched'> = $props()
 
+	const nodeState = $derived(selection.entitySelector.$nodeState)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -45,6 +48,21 @@
 	entityType={EntityType.BlockheadWakuMessageObservation_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.messageHash || 'blockhead waku message observation timestamp')}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/waku/connection/[connectionId=stringSegment]/node-state/[nodeId=stringSegment]/(blockheadWakuNodeState)/message/[messageHash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					connectionId: nodeState.connectionId,
+					nodeId: nodeState.nodeId,
+					messageHash: selection.entitySelector.messageHash,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

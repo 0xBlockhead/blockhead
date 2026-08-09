@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,10 +15,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.AlgorandBox_Round>, 'prefetched'> = $props()
+
+	const box = $derived(selection.entitySelector.$box)
 
 
 	// Components
@@ -29,6 +34,26 @@
 <EntityView
 	entityType={EntityType.AlgorandBox_Round}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/application/[applicationId=nonNegativeBigInt]/(algorandApplication)/box/[boxName=zeroExHex]/(algorandBox)/observation/[round=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in box.$application.$network.$network ?
+							caip2StringFromValue(box.$application.$network.$network.caip2)
+						:
+							box.$application.$network.$network.slug
+					),
+					applicationId: String(box.$application.applicationId),
+					boxName: box.boxName,
+					round: String(selection.entitySelector.round),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

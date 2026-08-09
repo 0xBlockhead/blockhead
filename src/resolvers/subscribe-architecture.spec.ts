@@ -1000,7 +1000,7 @@ describe('client resolver architecture', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'schema', 'Market.ts')]).not.toMatch(
 			/name: '\$\$marketTimeIntervalTimestamps'[\s\S]*?defaultSources: \[[^\]]*Source\.Defillama_Rest/
 		)
-		expect(scannedSourceByFilePath[join(srcPath, 'schema', 'Market_TimeInterval_Timestamp.ts')]).toMatch(
+		expect(scannedSourceByFilePath[join(srcPath, 'schema', 'Market_TimeInterval_Timestamp.ts')]).not.toMatch(
 			/close: \{[\s\S]*?defaultSources: \[[^\]]*Source\.Defillama_Rest/
 		)
 		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'Defillama-Rest.ts')]).not.toMatch(/\b(?:open|high|low|quoteVolume):/)

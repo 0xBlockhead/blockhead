@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -15,11 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AvalancheDelegator> = $props()
 
+	const validator = $derived(selection.entitySelector.$validator)
 	const avalancheDelegator = $derived(selection({
 		fields: {
 			delegatorAddress: true,
@@ -42,6 +45,20 @@
 	entityType={EntityType.AvalancheDelegator}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(avalanche)/avalanche/validator/[nodeId=stringSegment]/[subnetId=stringSegment]/[startTimeMs=nonNegativeInteger]/(avalancheValidator)/delegator/[txId=stringSegment]',
+				{
+					nodeId: validator.nodeId,
+					subnetId: validator.subnetId,
+					startTimeMs: String(validator.startTimeMs),
+					txId: selection.entitySelector.txId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

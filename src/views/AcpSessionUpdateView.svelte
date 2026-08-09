@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,6 +16,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -45,6 +47,18 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	idDragPlainText={String(selection.entitySelector.sequence)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(agents)/agents/acp/session/[sessionId=stringSegment]/(acpSession)/update/[sequence=nonNegativeInteger]',
+				{
+					sessionId: selection.entitySelector.$session.sessionId,
+					sequence: String(selection.entitySelector.sequence),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

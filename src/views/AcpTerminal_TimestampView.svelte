@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.AcpTerminal_Timestamp>, 'prefetched'> = $props()
 
+	const terminal = $derived(selection.entitySelector.$terminal)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
@@ -45,6 +48,20 @@
 	entityType={EntityType.AcpTerminal_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(agents)/agents/acp/session/[sessionId=stringSegment]/(acpSession)/terminal/[terminalId=stringSegment]/(acpTerminal)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					sessionId: terminal.$session.sessionId,
+					terminalId: terminal.terminalId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

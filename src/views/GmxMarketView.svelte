@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,11 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GmxMarket> = $props()
 
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Gmx_Rest,
@@ -47,6 +51,23 @@
 	entityType={EntityType.GmxMarket}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/gmx/market/[marketTokenAddress=evmAddress]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					marketTokenAddress: selection.entitySelector.marketTokenAddress,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

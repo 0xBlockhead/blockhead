@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,18 +29,42 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				value: true,
-				localName: true,
-				timestamp: true,
+			...{
+				fields: {
+					value: true,
+					localName: true,
+					timestamp: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: lensUsername })}
+		{@const lensUsernameSelector = lensUsername[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.LensUsername}
-			entitySelector={lensUsername[EntityMetaKey.Selector]}
+			entitySelector={lensUsernameSelector}
+			href={
+				'namespace' in lensUsernameSelector
+				&& 'localName' in lensUsernameSelector ?
+					resolve(
+						'/lens/username/[namespace=evmAddress]/[localName=stringSegment]',
+						{
+							namespace: lensUsernameSelector.namespace,
+							localName: lensUsernameSelector.localName,
+						}
+					)
+				:
+					'id' in lensUsernameSelector ?
+						resolve(
+							'/lens/username/id/[id=stringSegment]',
+							{
+								id: lensUsernameSelector.id,
+							}
+						)
+					:
+						undefined
+			}
 		>
 			{#snippet Title()}
 				{[(lensUsername.value ?? ''), lensUsername.localName].filter(Boolean).join(' ') || 'Lens username'}

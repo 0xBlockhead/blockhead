@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,6 +15,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -39,6 +41,20 @@
 	entityType={EntityType.BitTorrentTrackerScrape_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/bittorrent/tracker/[trackerUrl=stringSegment]/(bitTorrentTracker)/scrape/[infoHash=stringSegment]/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					trackerUrl: selection.entitySelector.$tracker.trackerUrl,
+					infoHash: selection.entitySelector.infoHash,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

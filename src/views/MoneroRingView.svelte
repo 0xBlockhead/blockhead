@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.MoneroRing>, 'prefetched'> = $props()
+
+	const keyImage = $derived(selection.entitySelector.$keyImage)
 
 
 	// Components
@@ -31,6 +36,25 @@
 	entityType={EntityType.MoneroRing}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'monero ring'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/key-image/[inputIndex=nonNegativeInteger]/[keyImage=stringSegment]/(moneroKeyImage)/ring',
+				{
+					network: (
+						'caip2' in keyImage.$transaction.$network ?
+							caip2StringFromValue(keyImage.$transaction.$network.caip2)
+						:
+							keyImage.$transaction.$network.slug
+					),
+					transactionId: keyImage.$transaction.txHash,
+					inputIndex: String(keyImage.inputIndex),
+					keyImage: keyImage.keyImage,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -38,6 +62,7 @@
 	{#snippet Title()}
 		<MoneroKeyImageView
 			selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
+			href={null}
 			layout={EntityLayout.Title}
 		/>
 	{/snippet}

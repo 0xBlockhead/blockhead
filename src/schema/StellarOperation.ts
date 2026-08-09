@@ -17,7 +17,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	operationIndex: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	operationType: {

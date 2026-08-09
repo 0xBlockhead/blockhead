@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,9 +29,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				grantId: true,
-				authorizationKind: true,
+			...{
+				fields: {
+					grantId: true,
+					authorizationKind: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,14 @@
 		<EntityView
 			entityType={EntityType.BlockheadWalletCapabilityGrant}
 			entitySelector={blockheadWalletCapabilityGrantSelector}
+			href={
+				resolve(
+					'/~/wallet/capability-grant/[grantId=stringSegment]',
+					{
+						grantId: blockheadWalletCapabilityGrantSelector.grantId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadWalletCapabilityGrantSelector.grantId || 'blockhead wallet capability grant'}

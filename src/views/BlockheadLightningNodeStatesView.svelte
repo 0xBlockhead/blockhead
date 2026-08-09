@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,11 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				alias: true,
-				$network: true,
-				connectionId: true,
-				$node: true,
+			...{
+				fields: {
+					alias: true,
+					$network: true,
+					connectionId: true,
+					$node: true,
+				},
 			},
 		})
 	}
@@ -40,6 +44,20 @@
 		<EntityView
 			entityType={EntityType.BlockheadLightningNodeState}
 			entitySelector={blockheadLightningNodeStateSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/~/lightning/connection/[connectionId=stringSegment]/node-state',
+					{
+						network: (
+							'caip2' in blockheadLightningNodeStateSelector.$network.$network ?
+								caip2StringFromValue(blockheadLightningNodeStateSelector.$network.$network.caip2)
+							:
+								blockheadLightningNodeStateSelector.$network.$network.slug
+						),
+						connectionId: blockheadLightningNodeStateSelector.connectionId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(blockheadLightningNodeState.alias ?? '') || blockheadLightningNodeStateSelector.connectionId || 'blockhead Lightning node state'}

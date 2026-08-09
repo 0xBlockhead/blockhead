@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,8 +29,10 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				scope: true,
+			...{
+				fields: {
+					scope: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,12 @@
 		<EntityView
 			entityType={EntityType._GlobalArweaveNetwork}
 			entitySelector={globalArweaveNetworkSelector}
+			href={
+				globalArweaveNetworkSelector.scope === 'global' ?
+					resolve('/~/arweave')
+				:
+					undefined
+			}
 		>
 			{#snippet Value()}
 				{globalArweaveNetworkSelector.scope}

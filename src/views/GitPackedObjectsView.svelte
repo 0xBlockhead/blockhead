@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,12 +27,14 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				objectId: true,
-				storedKind: true,
-				$packfile: {
-					fields: {
-						objectFormat: true,
+			...{
+				fields: {
+					objectId: true,
+					storedKind: true,
+					$packfile: {
+						fields: {
+							objectFormat: true,
+						},
 					},
 				},
 			},
@@ -43,6 +46,16 @@
 		<EntityView
 			entityType={EntityType.GitPackedObject}
 			entitySelector={gitPackedObjectSelector}
+			href={
+				resolve(
+					'/git/pack/[packHash=zeroExHex]/(gitPackfile)/object/[objectId=zeroExHex]/[objectFormat=stringSegment]',
+					{
+						packHash: gitPackedObjectSelector.packHash,
+						objectId: gitPackedObjectSelector.objectId,
+						objectFormat: gitPackedObjectSelector.objectFormat,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{gitPackedObjectSelector.objectId || 'Git packed object'}

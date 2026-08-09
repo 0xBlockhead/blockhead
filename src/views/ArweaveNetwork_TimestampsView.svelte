@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,11 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				latestHeight: true,
-				source: true,
-				reachable: true,
+			...{
+				fields: {
+					timestampMs: true,
+					latestHeight: true,
+					source: true,
+					reachable: true,
+				},
 			},
 		})
 	}
@@ -40,6 +44,21 @@
 		<EntityView
 			entityType={EntityType.ArweaveNetwork_Timestamp}
 			entitySelector={arweaveNetworkTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in arweaveNetworkTimestampSelector.$network.$network ?
+								caip2StringFromValue(arweaveNetworkTimestampSelector.$network.$network.caip2)
+							:
+								arweaveNetworkTimestampSelector.$network.$network.slug
+						),
+						timestampMs: String(arweaveNetworkTimestampSelector.timestampMs),
+						source: arweaveNetworkTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{arweaveNetworkTimestampSelector.timestampMs}

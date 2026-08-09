@@ -28,12 +28,14 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				actionKind: true,
-				indexInTransaction: true,
-				pool: true,
-				nullifier: true,
-				noteCommitment: true,
+			...{
+				fields: {
+					actionKind: true,
+					indexInTransaction: true,
+					pool: true,
+					nullifier: true,
+					noteCommitment: true,
+				},
 			},
 		})
 	}

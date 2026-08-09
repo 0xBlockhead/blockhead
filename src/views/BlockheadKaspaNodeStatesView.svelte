@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,10 +30,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				connectionId: true,
-				$network: true,
-				networkId: true,
+			...{
+				fields: {
+					connectionId: true,
+					$network: true,
+					networkId: true,
+				},
 			},
 		})
 	}
@@ -41,6 +45,20 @@
 		<EntityView
 			entityType={EntityType.BlockheadKaspaNodeState}
 			entitySelector={blockheadKaspaNodeStateSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/~/kaspa/connection/[connectionId=stringSegment]/node-state',
+					{
+						network: (
+							'caip2' in blockheadKaspaNodeStateSelector.$network.$network ?
+								caip2StringFromValue(blockheadKaspaNodeStateSelector.$network.$network.caip2)
+							:
+								blockheadKaspaNodeStateSelector.$network.$network.slug
+						),
+						connectionId: blockheadKaspaNodeStateSelector.connectionId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadKaspaNodeStateSelector.connectionId || 'blockhead kaspa node state'}

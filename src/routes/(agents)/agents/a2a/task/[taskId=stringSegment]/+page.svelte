@@ -1,0 +1,41 @@
+<!-- Generated from APP.ts. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		data,
+	}: PageProps = $props()
+
+	const pageSelection = $derived(select(EntityType.A2aTask, data.selector, {
+		sources: [],
+		fields: {
+			providerTaskId: true,
+		},
+	}))
+
+
+	// Components
+	import Page from '$/components/Page.svelte'
+	import A2aTaskView from '$/views/A2aTaskView.svelte'
+</script>
+
+
+<svelte:head>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.taskId ?? '') || 'A2A task' : pageSelection.entitySelector.taskId || (pageSelection.entity.providerTaskId ?? '') || 'A2A task')} • A2A task • Blockhead</title>
+</svelte:head>
+
+
+<Page>
+	<A2aTaskView
+		selection={pageSelection}
+	/>
+</Page>

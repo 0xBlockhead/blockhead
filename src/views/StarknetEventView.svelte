@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,11 +18,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.StarknetEvent>, 'prefetched'> = $props()
 
+	const transaction = $derived(selection.entitySelector.$transaction)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Starkscan,
@@ -41,6 +45,24 @@
 	entityType={EntityType.StarknetEvent}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.eventIndex)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/transaction/starknet/[transactionHash=stringSegment]/(starknetTransaction)/event/[eventIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in transaction.$network.$network ?
+							caip2StringFromValue(transaction.$network.$network.caip2)
+						:
+							transaction.$network.$network.slug
+					),
+					transactionHash: transaction.transactionHash,
+					eventIndex: String(selection.entitySelector.eventIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -54,6 +76,7 @@
 	{#snippet Value()}
 		<StarknetTransactionView
 			selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

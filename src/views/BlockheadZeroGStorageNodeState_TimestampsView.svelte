@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,28 +29,43 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				$nodeState: {
-					fields: {
-						$network: {
-							fields: {
-								name: true,
-								environment: true,
+			...{
+				fields: {
+					timestampMs: true,
+					$nodeState: {
+						fields: {
+							$network: {
+								fields: {
+									name: true,
+									environment: true,
+								},
 							},
 						},
 					},
+					localChunkCount: true,
 				},
-				localChunkCount: true,
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadZeroGStorageNodeStateTimestamp })}
 		{@const blockheadZeroGStorageNodeStateTimestampSelector = blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector]}
+		{@const nodeState = blockheadZeroGStorageNodeStateTimestampSelector.$nodeState}
 		<EntityView
 			entityType={EntityType.BlockheadZeroGStorageNodeState_Timestamp}
 			entitySelector={blockheadZeroGStorageNodeStateTimestampSelector}
+			href={
+				resolve(
+					'/zerog/[slug=stringSegment]/(zeroGNetwork)/~/zerog/connection/[connectionId=stringSegment]/node-state/[nodeId=evmAddress]/(blockheadZeroGStorageNodeState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						slug: nodeState.$network.slug,
+						connectionId: nodeState.connectionId,
+						nodeId: nodeState.nodeId,
+						timestampMs: String(blockheadZeroGStorageNodeStateTimestampSelector.timestampMs),
+						source: blockheadZeroGStorageNodeStateTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadZeroGStorageNodeStateTimestampSelector.timestampMs}

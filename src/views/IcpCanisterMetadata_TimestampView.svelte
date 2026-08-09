@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.IcpCanisterMetadata_Timestamp>, 'prefetched'> = $props()
+
+	const metadata = $derived(selection.entitySelector.$metadata)
 
 
 	// Components
@@ -32,6 +37,26 @@
 	entityType={EntityType.IcpCanisterMetadata_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'ICP canister metadata timestamp'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/canister/[canisterId=stringSegment]/(icpCanister)/metadata/[metadataName=stringSegment]/(icpCanisterMetadata)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in metadata.$canister.$network.$network ?
+							caip2StringFromValue(metadata.$canister.$network.$network.caip2)
+						:
+							metadata.$canister.$network.$network.slug
+					),
+					canisterId: metadata.$canister.canisterId,
+					metadataName: metadata.metadataName,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

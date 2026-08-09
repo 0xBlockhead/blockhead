@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -49,6 +51,18 @@
 	entityType={EntityType.BlockheadTransferIntent}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'blockhead transfer intent'}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/session/[sessionId=stringSegment]/(blockheadSession)/transfer-intent/[actionId=stringSegment]',
+				{
+					sessionId: selection.entitySelector.sessionId,
+					actionId: selection.entitySelector.actionId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,6 +75,7 @@
 				<BlockheadSessionActionView
 					selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
 					prefetched={blockheadSessionAction}
+					href={null}
 					layout={EntityLayout.Title}
 				/>
 			{/snippet}

@@ -171,7 +171,7 @@
 					selection={selection.$$networkUpgrades}
 					href={
 						selection.entitySelector.scope === '$$networkUpgrades' ?
-							resolve('/upgrades')
+							resolve('/~/upgrades')
 						:
 							undefined
 					}
@@ -434,10 +434,10 @@
 					href={
 						selection.entitySelector.scope === '$$snapshotSpaces' ?
 							true ?
-								resolve('/snapshot')
+								resolve('/~/snapshot')
 							:
 								true ?
-									resolve('/snapshot/spaces')
+									resolve('/~/snapshot/spaces')
 								:
 									undefined
 						:
@@ -617,7 +617,7 @@
 					selection={selection.$$blockheadStateChannels}
 					href={
 						selection.entitySelector.scope === '$$blockheadStateChannels' ?
-							resolve('/channels')
+							resolve('/~/channels')
 						:
 							undefined
 					}
@@ -1062,7 +1062,7 @@
 					selection={selection.$$eip8004Services}
 					href={
 						selection.entitySelector.scope === '$$eip8004Services' ?
-							resolve('/services/agents')
+							resolve('/~/services/agents')
 						:
 							undefined
 					}

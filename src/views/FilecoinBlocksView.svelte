@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,23 +29,40 @@
 	bind:open
 	resource={
 		selection({
-			sources: selection.sources ?? [
-				Source.Lotus_JsonRpc,
-				Source.Filfox_Rest,
-			],
-			fields: {
-				cid: true,
-				$miner: true,
-				$tipset: true,
+			...{
+				sources: selection.sources ?? [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
+				fields: {
+					cid: true,
+					$miner: true,
+					$tipset: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: filecoinBlock })}
 		{@const filecoinBlockSelector = filecoinBlock[EntityMetaKey.Selector]}
+		{@const network = filecoinBlockSelector.$network}
 		<EntityView
 			entityType={EntityType.FilecoinBlock}
 			entitySelector={filecoinBlockSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/cid/[cid=stringSegment]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						cid: filecoinBlockSelector.cid,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{filecoinBlockSelector.cid || 'filecoin block'}

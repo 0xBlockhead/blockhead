@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -30,11 +31,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				source: true,
-				reachable: true,
-				observedNoteCount: true,
+			...{
+				fields: {
+					timestampMs: true,
+					source: true,
+					reachable: true,
+					observedNoteCount: true,
+				},
 			},
 		})
 	}
@@ -44,6 +47,15 @@
 		<EntityView
 			entityType={EntityType._GlobalNostrNetwork_Timestamp}
 			entitySelector={globalNostrNetworkTimestampSelector}
+			href={
+				resolve(
+					'/(social)/(nostr)/nostr/(globalNostrNetwork)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						timestampMs: String(globalNostrNetworkTimestampSelector.timestampMs),
+						source: globalNostrNetworkTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{globalNostrNetworkTimestampSelector.timestampMs}

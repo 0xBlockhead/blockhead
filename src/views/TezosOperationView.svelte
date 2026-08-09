@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TezosOperation>, 'prefetched'> = $props()
+
+	const operationGroup = $derived(selection.entitySelector.$operationGroup)
 
 
 	// Components
@@ -31,6 +36,24 @@
 <EntityView
 	entityType={EntityType.TezosOperation}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/operation-group/[operationHash=stringSegment]/(tezosOperationGroup)/operation/[contentIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in operationGroup.$network.$network ?
+							caip2StringFromValue(operationGroup.$network.$network.caip2)
+						:
+							operationGroup.$network.$network.slug
+					),
+					operationHash: operationGroup.operationHash,
+					contentIndex: String(selection.entitySelector.contentIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

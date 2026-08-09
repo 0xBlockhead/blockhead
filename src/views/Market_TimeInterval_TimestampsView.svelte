@@ -6,6 +6,7 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { and, eq } from '@tanstack/db'
 	import type { RegisteredEntitySelector } from '$/schema/index.ts'
 	import { marketAssetByKind } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,12 +17,14 @@
 		selection,
 		title = 'OHLC',
 		placeholderText = 'Loading OHLC candles...',
+		limit = 4096,
 		open = $bindable(true),
 		timeInterval,
 		...EntitiesListProps
 	}: EntityListViewProps<
 		EntityType.Market_TimeInterval_Timestamp,
 		{
+			limit?: number
 			timeInterval?: RegisteredEntitySelector<EntityType.Market_TimeInterval_Timestamp>['timeInterval']
 		}
 	> = $props()
@@ -50,30 +53,24 @@
 	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={
 		selection({
-			sources: selection.sources ?? [
-				Source.Coingecko_Rest,
-				Source.Coinpaprika_Rest,
-				Source.CoinMarketCap_Rest,
-				Source.Defillama_Rest,
-			],
-			fields: {
-				timeInterval: true,
-				close: true,
-				timestampMs: true,
+			...{
+				sources: selection.sources ?? [
+					Source.Coingecko_Rest,
+					Source.Coinpaprika_Rest,
+					Source.CoinMarketCap_Rest,
+				],
+				fields: {
+					timeInterval: true,
+					close: true,
+					timestampMs: true,
+				},
 			},
-			limit: 4096,
+			...timeInterval == null ? {} : { where: ({ row }) => and(
+				eq(row[EntityMetaKey.Value][EntityMetaKey.Selector].timeInterval.unit, timeInterval.unit),
+				eq(row[EntityMetaKey.Value][EntityMetaKey.Selector].timeInterval.value, timeInterval.value),
+			) },
+			limit: limit,
 		})
-	}
-	getResourceItems={
-		(marketTimeIntervalTimestamps) => marketTimeIntervalTimestamps.values.filter(
-			(marketTimeIntervalTimestamp) => (
-				timeInterval == null
-				|| (
-					marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.unit === timeInterval.unit
-					&& marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.value === timeInterval.value
-				)
-			)
-		)
 	}
 	{placeholderText}
 >

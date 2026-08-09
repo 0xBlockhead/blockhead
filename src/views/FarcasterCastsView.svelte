@@ -27,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				text: true,
-				hash: true,
-				fid: true,
-				timestamp: true,
+			...{
+				fields: {
+					text: true,
+					hash: true,
+					fid: true,
+					timestamp: true,
+				},
 			},
 		})
 	}
@@ -62,7 +64,23 @@
 							}
 						)
 					:
-						undefined
+						'hash' in farcasterCastSelector ?
+							resolve(
+								'/farcaster/cast/[hash=zeroExHex]',
+								{
+									hash: farcasterCastSelector.hash,
+								}
+							)
+						:
+							'clientUrl' in farcasterCastSelector ?
+								resolve(
+									'/farcaster/cast/client/[clientUrl=stringSegment]',
+									{
+										clientUrl: farcasterCastSelector.clientUrl,
+									}
+								)
+							:
+								undefined
 			}
 		>
 			{#snippet Title()}

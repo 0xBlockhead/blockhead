@@ -27,13 +27,15 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				name: true,
-				organizationName: true,
-				governorType: true,
-				slug: true,
-				governorId: true,
-				$network: true,
+			...{
+				fields: {
+					name: true,
+					organizationName: true,
+					governorType: true,
+					slug: true,
+					governorId: true,
+					$network: true,
+				},
 			},
 		})
 	}
@@ -45,7 +47,7 @@
 			entitySelector={tallyGovernorSelector}
 			href={
 				resolve(
-					'/tally/governor/[governorId=stringSegment]',
+					'/~/tally/governor/[governorId=stringSegment]',
 					{
 						governorId: encodeURIComponent(tallyGovernorSelector.governorId),
 					}

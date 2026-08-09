@@ -75,6 +75,7 @@
 				<BlockheadWalletView
 					selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 					prefetched={blockheadWallet}
+					href={null}
 					layout={EntityLayout.Title}
 				/>
 			{/snippet}

@@ -6,6 +6,7 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,32 +28,62 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				originChainId: true,
-				depositId: true,
-				transferId: true,
-				source: true,
-				railId: true,
+			...{
+				fields: {
+					transferId: true,
+					source: true,
+					railId: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: bridgeTransfer })}
+		{@const bridgeTransferSelector = bridgeTransfer[EntityMetaKey.Selector]}
+		{@const sourceTx = bridgeTransferSelector.$sourceTx}
 		<EntityView
 			entityType={EntityType.BridgeTransfer}
-			entitySelector={bridgeTransfer[EntityMetaKey.Selector]}
+			entitySelector={bridgeTransferSelector}
 			href={
-				bridgeTransfer.originChainId != null
-				&& bridgeTransfer.depositId != null ?
+				'source' in bridgeTransferSelector
+				&& 'logIndex' in bridgeTransferSelector
+				&& '$sourceTx' in bridgeTransferSelector ?
 					resolve(
-						'/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/bridge-transfer/[source=stringSegment]/[logIndex=nonNegativeInteger]',
 						{
-							originChainId: String(bridgeTransfer.originChainId),
-							depositId: String(bridgeTransfer.depositId),
+							network: (
+								'caip2' in sourceTx.$network ?
+									caip2StringFromValue(sourceTx.$network.caip2)
+								:
+									sourceTx.$network.slug
+							),
+							transactionId: sourceTx.txHash,
+							source: bridgeTransferSelector.source,
+							logIndex: String(bridgeTransferSelector.logIndex),
 						}
 					)
 				:
-					undefined
+					'originChainId' in bridgeTransferSelector
+					&& 'depositId' in bridgeTransferSelector ?
+						resolve(
+							'/~/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]',
+							{
+								originChainId: String(bridgeTransferSelector.originChainId),
+								depositId: String(bridgeTransferSelector.depositId),
+							}
+						)
+					:
+						'source' in bridgeTransferSelector
+						&& 'transferId' in bridgeTransferSelector ?
+							resolve(
+								'/~/bridge/transfer/[source=stringSegment]/[transferId=stringSegment]',
+								{
+									source: bridgeTransferSelector.source,
+									transferId: bridgeTransferSelector.transferId,
+								}
+							)
+						:
+							undefined
 			}
 		>
 			{#snippet Title()}

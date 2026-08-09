@@ -549,6 +549,10 @@ export type SourceServerCredentialInjection =
 export type SourceServerCredentialDefinition = {
 	envKey: string
 	injection: SourceServerCredentialInjection
+	oauthClientCredentials?: {
+		clientIdEnvKey: string
+		tokenEndpoint: string
+	}
 }
 
 export type SourceBinding<

@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { Source } from '$/sources/Source.ts'
@@ -27,9 +26,23 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import TezosNetwork_TimestampsView from '$/views/TezosNetwork_TimestampsView.svelte'
+	import TezosBlocksView from '$/views/TezosBlocksView.svelte'
+	import TezosOperationGroupsView from '$/views/TezosOperationGroupsView.svelte'
+	import TezosOperationsView from '$/views/TezosOperationsView.svelte'
+	import TezosAccountsView from '$/views/TezosAccountsView.svelte'
+	import TezosContractsView from '$/views/TezosContractsView.svelte'
+	import TezosBakersView from '$/views/TezosBakersView.svelte'
+	import TezosCyclesView from '$/views/TezosCyclesView.svelte'
+	import TezosBakingRightsView from '$/views/TezosBakingRightsView.svelte'
+	import TezosTokensView from '$/views/TezosTokensView.svelte'
+	import TezosTokenTransfersView from '$/views/TezosTokenTransfersView.svelte'
+	import TezosBigMapsView from '$/views/TezosBigMapsView.svelte'
+	import TezosBigMapKeysView from '$/views/TezosBigMapKeysView.svelte'
+	import TezosBigMap_TimestampsView from '$/views/TezosBigMap_TimestampsView.svelte'
+	import TezosBigMapKey_TimestampsView from '$/views/TezosBigMapKey_TimestampsView.svelte'
 </script>
 
 
@@ -98,108 +111,72 @@
 			{/snippet}
 
 			{#snippet SectionTezosChainObservations({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosNetwork_Timestamp}
-					collapsible={false}
-					title={label}
-					emptyText='No Tezos network observations.'
-					open={true}
-					id={`${id}-list`}
-					resource={
+				<TezosNetwork_TimestampsView
+					selection={
 						selection
 						.$$timestamps({
 							sources: [
 								Source.Tzkt_Rest,
 							],
-						})()
+						})
 					}
-				>
-					{#snippet Item({ item: tezosNetworkTimestamp })}
-						<EntityView
-							entityType={EntityType.TezosNetwork_Timestamp}
-							entitySelector={tezosNetworkTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+					collapsible={false}
+					title={label}
+					emptyText='No Tezos network observations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosChainBlocks({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosBlock}
-					collapsible={false}
-					title={label}
-					emptyText='No Tezos blocks.'
-					open={true}
-					id={`${id}-list`}
-					resource={
+				<TezosBlocksView
+					selection={
 						selection
 						.$$blocks({
 							sources: [
 								Source.Tzkt_Rest,
 								Source.TezosDappetizer_Postgres,
 							],
-						})()
+						})
 					}
-				>
-					{#snippet Item({ item: tezosBlock })}
-						<EntityView
-							entityType={EntityType.TezosBlock}
-							entitySelector={tezosBlock[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+					collapsible={false}
+					title={label}
+					emptyText='No Tezos blocks.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosChainOperationGroups({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosOperationGroup}
-					collapsible={false}
-					title={label}
-					emptyText='No Tezos operation groups.'
-					open={true}
-					id={`${id}-list`}
-					resource={
+				<TezosOperationGroupsView
+					selection={
 						selection
 						.$$operationGroups({
 							sources: [
 								Source.Tzkt_Rest,
 							],
-						})()
+						})
 					}
-				>
-					{#snippet Item({ item: tezosOperationGroup })}
-						<EntityView
-							entityType={EntityType.TezosOperationGroup}
-							entitySelector={tezosOperationGroup[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+					collapsible={false}
+					title={label}
+					emptyText='No Tezos operation groups.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosChainOperations({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosOperation}
-					collapsible={false}
-					title={label}
-					emptyText='No Tezos operations.'
-					open={true}
-					id={`${id}-list`}
-					resource={
+				<TezosOperationsView
+					selection={
 						selection
 						.$$operations({
 							sources: [
 								Source.Tzkt_Rest,
 							],
-						})()
+						})
 					}
-				>
-					{#snippet Item({ item: tezosOperation })}
-						<EntityView
-							entityType={EntityType.TezosOperation}
-							entitySelector={tezosOperation[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+					collapsible={false}
+					title={label}
+					emptyText='No Tezos operations.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -229,56 +206,38 @@
 			{/snippet}
 
 			{#snippet SectionTezosAccounts({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosAccount}
-					collapsible={false}
-					title={label}
-					emptyText='No Tezos accounts.'
-					open={true}
-					id={`${id}-list`}
-					resource={
+				<TezosAccountsView
+					selection={
 						selection
 						.$$accounts({
 							sources: [
 								Source.Tzkt_Rest,
 							],
-						})()
+						})
 					}
-				>
-					{#snippet Item({ item: tezosAccount })}
-						<EntityView
-							entityType={EntityType.TezosAccount}
-							entitySelector={tezosAccount[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+					collapsible={false}
+					title={label}
+					emptyText='No Tezos accounts.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosContracts({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosContract}
-					collapsible={false}
-					title={label}
-					emptyText='No Tezos contracts.'
-					open={true}
-					id={`${id}-list`}
-					resource={
+				<TezosContractsView
+					selection={
 						selection
 						.$$contracts({
 							sources: [
 								Source.Tzkt_Rest,
 								Source.TezosDappetizer_Postgres,
 							],
-						})()
+						})
 					}
-				>
-					{#snippet Item({ item: tezosContract })}
-						<EntityView
-							entityType={EntityType.TezosContract}
-							entitySelector={tezosContract[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+					collapsible={false}
+					title={label}
+					emptyText='No Tezos contracts.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -312,60 +271,33 @@
 			{/snippet}
 
 			{#snippet SectionTezosBakers({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosBaker}
+				<TezosBakersView
+					selection={selection.$$bakers}
 					collapsible={false}
 					title={label}
 					emptyText='No Tezos bakers.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$bakers()}
-				>
-					{#snippet Item({ item: tezosBaker })}
-						<EntityView
-							entityType={EntityType.TezosBaker}
-							entitySelector={tezosBaker[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosCycles({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosCycle}
+				<TezosCyclesView
+					selection={selection.$$cycles}
 					collapsible={false}
 					title={label}
 					emptyText='No Tezos cycles.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$cycles()}
-				>
-					{#snippet Item({ item: tezosCycle })}
-						<EntityView
-							entityType={EntityType.TezosCycle}
-							entitySelector={tezosCycle[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosBakingRights({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosBakingRight}
+				<TezosBakingRightsView
+					selection={selection.$$bakingRights}
 					collapsible={false}
 					title={label}
 					emptyText='No Tezos baking rights.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$bakingRights()}
-				>
-					{#snippet Item({ item: tezosBakingRight })}
-						<EntityView
-							entityType={EntityType.TezosBakingRight}
-							entitySelector={tezosBakingRight[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -395,57 +327,39 @@
 			{/snippet}
 
 			{#snippet SectionTezosTokenList({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosToken}
-					collapsible={false}
-					title={label}
-					emptyText='No Tezos tokens.'
-					open={true}
-					id={`${id}-list`}
-					resource={
+				<TezosTokensView
+					selection={
 						selection
 						.$$tokens({
 							sources: [
 								Source.Tzkt_Rest,
 								Source.TezosDappetizer_Postgres,
 							],
-						})()
+						})
 					}
-				>
-					{#snippet Item({ item: tezosToken })}
-						<EntityView
-							entityType={EntityType.TezosToken}
-							entitySelector={tezosToken[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+					collapsible={false}
+					title={label}
+					emptyText='No Tezos tokens.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosTokenTransfers({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosTokenTransfer}
-					collapsible={false}
-					title={label}
-					emptyText='No Tezos token transfers.'
-					open={true}
-					id={`${id}-list`}
-					resource={
+				<TezosTokenTransfersView
+					selection={
 						selection
 						.$$tokenTransfers({
 							sources: [
 								Source.Tzkt_Rest,
 								Source.TezosDappetizer_Postgres,
 							],
-						})()
+						})
 					}
-				>
-					{#snippet Item({ item: tezosTokenTransfer })}
-						<EntityView
-							entityType={EntityType.TezosTokenTransfer}
-							entitySelector={tezosTokenTransfer[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+					collapsible={false}
+					title={label}
+					emptyText='No Tezos token transfers.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -483,79 +397,43 @@
 			{/snippet}
 
 			{#snippet SectionTezosBigMapList({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosBigMap}
+				<TezosBigMapsView
+					selection={selection.$$bigMaps}
 					collapsible={false}
 					title={label}
 					emptyText='No Tezos big maps.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$bigMaps()}
-				>
-					{#snippet Item({ item: tezosBigMap })}
-						<EntityView
-							entityType={EntityType.TezosBigMap}
-							entitySelector={tezosBigMap[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosBigMapKeys({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosBigMapKey}
+				<TezosBigMapKeysView
+					selection={selection.$$bigMapKeys}
 					collapsible={false}
 					title={label}
 					emptyText='No Tezos big map keys.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$bigMapKeys()}
-				>
-					{#snippet Item({ item: tezosBigMapKey })}
-						<EntityView
-							entityType={EntityType.TezosBigMapKey}
-							entitySelector={tezosBigMapKey[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosBigMapObservations({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosBigMap_Timestamp}
+				<TezosBigMap_TimestampsView
+					selection={selection.$$bigMapTimestamps}
 					collapsible={false}
 					title={label}
 					emptyText='No Tezos big map observations.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$bigMapTimestamps()}
-				>
-					{#snippet Item({ item: tezosBigMapTimestamp })}
-						<EntityView
-							entityType={EntityType.TezosBigMap_Timestamp}
-							entitySelector={tezosBigMapTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosBigMapKeyObservations({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosBigMapKey_Timestamp}
+				<TezosBigMapKey_TimestampsView
+					selection={selection.$$bigMapKeyTimestamps}
 					collapsible={false}
 					title={label}
 					emptyText='No Tezos big map key observations.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$bigMapKeyTimestamps()}
-				>
-					{#snippet Item({ item: tezosBigMapKeyTimestamp })}
-						<EntityView
-							entityType={EntityType.TezosBigMapKey_Timestamp}
-							entitySelector={tezosBigMapKeyTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

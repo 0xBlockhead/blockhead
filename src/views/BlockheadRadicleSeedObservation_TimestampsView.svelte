@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				nodeId: true,
-				timestampMs: true,
-				$repository: true,
+			...{
+				fields: {
+					nodeId: true,
+					timestampMs: true,
+					$repository: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,17 @@
 		<EntityView
 			entityType={EntityType.BlockheadRadicleSeedObservation_Timestamp}
 			entitySelector={blockheadRadicleSeedObservationTimestampSelector}
+			href={
+				resolve(
+					'/radicle/repository/[rid=stringSegment]/(radicleRepository)/seed/[nodeId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						rid: blockheadRadicleSeedObservationTimestampSelector.$repository.rid,
+						nodeId: blockheadRadicleSeedObservationTimestampSelector.nodeId,
+						timestampMs: String(blockheadRadicleSeedObservationTimestampSelector.timestampMs),
+						source: blockheadRadicleSeedObservationTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadRadicleSeedObservationTimestampSelector.nodeId || 'blockhead radicle seed observation timestamp'}

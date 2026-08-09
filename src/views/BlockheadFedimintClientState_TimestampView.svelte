@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,11 +15,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadFedimintClientState_Timestamp>, 'prefetched'> = $props()
 
+	const clientState = $derived(selection.entitySelector.$clientState)
 	const blockheadFedimintClientStateTimestamp = $derived(selection({
 		fields: {
 			balanceMsat: true,
@@ -38,6 +41,20 @@
 	entityType={EntityType.BlockheadFedimintClientState_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/fedimint/client/[clientId=stringSegment]/federation/[federationId=stringSegment]/(blockheadFedimintClientState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					clientId: clientState.clientId,
+					federationId: clientState.federationId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

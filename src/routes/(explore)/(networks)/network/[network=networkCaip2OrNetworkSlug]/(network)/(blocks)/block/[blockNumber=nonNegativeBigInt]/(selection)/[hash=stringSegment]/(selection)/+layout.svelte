@@ -35,6 +35,10 @@
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import PolkadotBlockView from '$/views/PolkadotBlockView.svelte'
 	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
+	import BittensorBlockView from '$/views/BittensorBlockView.svelte'
+	import MoneroBlockView from '$/views/MoneroBlockView.svelte'
+	import NearBlockView from '$/views/NearBlockView.svelte'
+	import TronBlockView from '$/views/TronBlockView.svelte'
 </script>
 
 
@@ -42,7 +46,7 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{@const DetailView = data.entityType === EntityType.PolkadotBlock ? PolkadotBlockView : UtxoBlockView}
+		{@const DetailView = data.entityType === EntityType.PolkadotBlock ? PolkadotBlockView : data.entityType === EntityType.UtxoBlock ? UtxoBlockView : data.entityType === EntityType.BittensorBlock ? BittensorBlockView : data.entityType === EntityType.MoneroBlock ? MoneroBlockView : data.entityType === EntityType.NearBlock ? NearBlockView : TronBlockView}
 
 		<DetailView
 			selection={select(data.entityType, data.selector)}

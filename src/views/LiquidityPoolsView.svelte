@@ -35,14 +35,15 @@
 	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={
 		selection({
-			sources: selection.sources ?? [
-				Source.Dexscreener_Rest,
-			],
-			fields: {
-				id: true,
-				$network: true,
+			...{
+				sources: selection.sources ?? [
+					Source.Dexscreener_Rest,
+				],
+				fields: {
+					id: true,
+					$network: true,
+				},
 			},
-			limit: 300,
 		})
 	}
 >

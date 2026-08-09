@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -29,9 +31,24 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: icpRequestStatus })}
+		{@const icpRequestStatusSelector = icpRequestStatus[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.IcpRequestStatus}
-			entitySelector={icpRequestStatus[EntityMetaKey.Selector]}
+			entitySelector={icpRequestStatusSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/request/[requestId=stringSegment]',
+					{
+						network: (
+							'caip2' in icpRequestStatusSelector.$network.$network ?
+								caip2StringFromValue(icpRequestStatusSelector.$network.$network.caip2)
+							:
+								icpRequestStatusSelector.$network.$network.slug
+						),
+						requestId: icpRequestStatusSelector.requestId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				ICP request status

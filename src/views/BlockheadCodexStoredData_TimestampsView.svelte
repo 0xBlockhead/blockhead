@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,19 +29,34 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				downloadStatus: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					downloadStatus: true,
+					source: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadCodexStoredDataTimestamp })}
 		{@const blockheadCodexStoredDataTimestampSelector = blockheadCodexStoredDataTimestamp[EntityMetaKey.Selector]}
+		{@const storedData = blockheadCodexStoredDataTimestampSelector.$storedData}
 		<EntityView
 			entityType={EntityType.BlockheadCodexStoredData_Timestamp}
 			entitySelector={blockheadCodexStoredDataTimestampSelector}
+			href={
+				resolve(
+					'/~/codex/connection/[connectionId=stringSegment]/node/[peerId=stringSegment]/(blockheadCodexStorageNodeState)/stored-data/[cid=stringSegment]/(blockheadCodexStoredData)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						connectionId: storedData.$nodeState.connectionId,
+						peerId: storedData.$nodeState.peerId,
+						cid: storedData.cid,
+						timestampMs: String(blockheadCodexStoredDataTimestampSelector.timestampMs),
+						source: blockheadCodexStoredDataTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadCodexStoredDataTimestampSelector.timestampMs}

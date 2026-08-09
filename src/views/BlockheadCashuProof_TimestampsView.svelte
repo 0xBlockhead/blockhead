@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,19 +27,35 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				state: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					state: true,
+					source: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadCashuProofTimestamp })}
 		{@const blockheadCashuProofTimestampSelector = blockheadCashuProofTimestamp[EntityMetaKey.Selector]}
+		{@const proof = blockheadCashuProofTimestampSelector.$proof}
 		<EntityView
 			entityType={EntityType.BlockheadCashuProof_Timestamp}
 			entitySelector={blockheadCashuProofTimestampSelector}
+			href={
+				resolve(
+					'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/keyset/[keysetId=stringSegment]/proof/[secretHash=stringSegment]/(blockheadCashuProof)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						walletId: proof.walletId,
+						mintUrl: proof.mintUrl,
+						keysetId: proof.keysetId,
+						secretHash: proof.secretHash,
+						timestampMs: String(blockheadCashuProofTimestampSelector.timestampMs),
+						source: blockheadCashuProofTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadCashuProofTimestampSelector.timestampMs}

@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,19 +30,36 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				txHash: true,
-				code: true,
-				gasUsed: true,
+			...{
+				fields: {
+					txHash: true,
+					code: true,
+					gasUsed: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: cosmosTransaction })}
 		{@const cosmosTransactionSelector = cosmosTransaction[EntityMetaKey.Selector]}
+		{@const network = cosmosTransactionSelector.$network}
 		<EntityView
 			entityType={EntityType.CosmosTransaction}
 			entitySelector={cosmosTransactionSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						transactionId: cosmosTransactionSelector.txHash,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{cosmosTransactionSelector.txHash || 'Cosmos transaction'}

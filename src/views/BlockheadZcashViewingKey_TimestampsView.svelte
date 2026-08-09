@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,19 +29,33 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				lastScannedHeight: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					lastScannedHeight: true,
+					source: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadZcashViewingKeyTimestamp })}
 		{@const blockheadZcashViewingKeyTimestampSelector = blockheadZcashViewingKeyTimestamp[EntityMetaKey.Selector]}
+		{@const viewingKey = blockheadZcashViewingKeyTimestampSelector.$viewingKey}
 		<EntityView
 			entityType={EntityType.BlockheadZcashViewingKey_Timestamp}
 			entitySelector={blockheadZcashViewingKeyTimestampSelector}
+			href={
+				resolve(
+					'/~/zcash/wallet/[walletId=stringSegment]/viewing-key/[keyFingerprint=stringSegment]/(blockheadZcashViewingKey)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						walletId: viewingKey.walletId,
+						keyFingerprint: viewingKey.keyFingerprint,
+						timestampMs: String(blockheadZcashViewingKeyTimestampSelector.timestampMs),
+						source: blockheadZcashViewingKeyTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadZcashViewingKeyTimestampSelector.timestampMs}

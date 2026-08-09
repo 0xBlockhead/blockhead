@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				endpointUrl: true,
-				verified: true,
-				timestampMs: true,
+			...{
+				fields: {
+					endpointUrl: true,
+					verified: true,
+					timestampMs: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,16 @@
 		<EntityView
 			entityType={EntityType.Eip8004EndpointDomainVerification_Timestamp}
 			entitySelector={eip8004EndpointDomainVerificationTimestampSelector}
+			href={
+				resolve(
+					'/(agents)/agents/eip-8004/endpoint-verification/[endpointUrl=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						endpointUrl: eip8004EndpointDomainVerificationTimestampSelector.endpointUrl,
+						timestampMs: String(eip8004EndpointDomainVerificationTimestampSelector.timestampMs),
+						source: eip8004EndpointDomainVerificationTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{eip8004EndpointDomainVerificationTimestampSelector.endpointUrl || 'EIP-8004 endpoint domain verification timestamp'}

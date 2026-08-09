@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,12 +17,14 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CosmosBlock> = $props()
 
 	const pendingEntity = $derived({ ...selection.entitySelector, ...prefetched })
+	const network = $derived(selection.entitySelector.$network)
 	const cosmosBlock = $derived(selection({
 		fields: {
 			height: true,
@@ -44,6 +48,42 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? `Block #${pendingEntity.height}`}
 	idDragPlainText={String(pendingEntity.height ?? '')}
+	href={
+		href === undefined ?
+			(
+				'hash' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/hash/[blockHash=zeroExHexOrStringSegmentOrUtxoTxId]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							blockHash: selection.entitySelector.hash,
+						}
+					)
+				:
+					'height' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								blockNumber: String(selection.entitySelector.height),
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

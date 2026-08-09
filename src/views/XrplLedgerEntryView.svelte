@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.XrplLedgerEntry>, 'prefetched'> = $props()
+
+	const ledger = $derived(selection.entitySelector.$ledger)
 
 
 	// Components
@@ -31,6 +36,29 @@
 	entityType={EntityType.XrplLedgerEntry}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'XRPL ledger entry'}
+	href={
+		href === undefined ?
+			(
+				'ledgerHash' in ledger ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/hash/[ledgerHash=stringSegment]/(xrplLedger)/entry/[entryHash=stringSegment]',
+						{
+							network: (
+								'caip2' in ledger.$network ?
+									caip2StringFromValue(ledger.$network.caip2)
+								:
+									ledger.$network.slug
+							),
+							ledgerHash: ledger.ledgerHash,
+							entryHash: selection.entitySelector.entryHash,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

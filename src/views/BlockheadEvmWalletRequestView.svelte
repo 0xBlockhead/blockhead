@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,6 +16,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -33,6 +35,17 @@
 	entityType={EntityType.BlockheadEvmWalletRequest}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'Blockhead EVM wallet request'}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/wallets/requests/[id=stringSegment]/(blockheadWalletRequest)/evm-request',
+				{
+					id: selection.entitySelector.$walletRequest.id,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,6 +74,7 @@
 					<BlockheadSessionSimulationView
 						selection={select(EntityType.BlockheadSessionSimulation, blockheadSessionSimulation[EntityMetaKey.Selector])}
 						prefetched={blockheadSessionSimulation}
+						href={null}
 						layout={EntityLayout.Value}
 					/>
 				{/if}

@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,10 +15,14 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.AlgorandAssetHolding_Round>, 'prefetched'> = $props()
+
+	const account = $derived(selection.entitySelector.$account)
+	const asset = $derived(selection.entitySelector.$asset)
 
 
 	// Components
@@ -29,6 +35,32 @@
 <EntityView
 	entityType={EntityType.AlgorandAssetHolding_Round}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			(
+				'caip2' in asset.$network.$network ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/account/[address=stringSegment]/(algorandAccount)/asset/[assetNetwork=networkCaip2]/[assetId=nonNegativeBigInt]/round/[round=nonNegativeBigInt]/[source=stringSegment]',
+						{
+							network: (
+								'caip2' in account.$network.$network ?
+									caip2StringFromValue(account.$network.$network.caip2)
+								:
+									account.$network.$network.slug
+							),
+							address: account.address,
+							assetNetwork: String(asset.$network.$network.caip2),
+							assetId: String(asset.assetId),
+							round: String(selection.entitySelector.round),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.HederaContractLog>, 'prefetched'> = $props()
+
+	const contract = $derived(selection.entitySelector.$contract)
 
 
 	// Components
@@ -31,6 +36,47 @@
 <EntityView
 	entityType={EntityType.HederaContractLog}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			(
+				'$result' in selection.entitySelector
+				&& 'consensusTimestamp' in selection.entitySelector.$result.$transaction ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/consensus/[consensusTimestamp=stringSegment]/(hederaTransaction)/contract-result/(hederaContractResult)/log/[logIndex=nonNegativeInteger]',
+						{
+							network: (
+								'caip2' in selection.entitySelector.$result.$transaction.$network ?
+									caip2StringFromValue(selection.entitySelector.$result.$transaction.$network.caip2)
+								:
+									selection.entitySelector.$result.$transaction.$network.slug
+							),
+							consensusTimestamp: selection.entitySelector.$result.$transaction.consensusTimestamp,
+							logIndex: String(selection.entitySelector.logIndex),
+						}
+					)
+				:
+					'consensusTimestamp' in selection.entitySelector
+					&& '$contract' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/consensus-log/[consensusTimestamp=stringSegment]/[logIndex=nonNegativeInteger]',
+							{
+								network: (
+									'caip2' in contract.$network ?
+										caip2StringFromValue(contract.$network.caip2)
+									:
+										contract.$network.slug
+								),
+								address: contract.contractId,
+								consensusTimestamp: selection.entitySelector.consensusTimestamp,
+								logIndex: String(selection.entitySelector.logIndex),
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

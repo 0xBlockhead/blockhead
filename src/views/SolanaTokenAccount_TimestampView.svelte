@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.SolanaTokenAccount_Timestamp>, 'prefetched'> = $props()
 
+	const tokenAccount = $derived(selection.entitySelector.$tokenAccount)
 	const solanaTokenAccountTimestamp = $derived(selection({
 		fields: {
 			amount: true,
@@ -40,6 +44,25 @@
 	entityType={EntityType.SolanaTokenAccount_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.slot)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-account/[tokenAccountPubkey=stringSegment]/(solanaTokenAccount)/observations/[slot=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in tokenAccount.$network ?
+							caip2StringFromValue(tokenAccount.$network.caip2)
+						:
+							tokenAccount.$network.slug
+					),
+					tokenAccountPubkey: tokenAccount.tokenAccountPubkey,
+					slot: String(selection.entitySelector.slot),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.IcpRequestStatus_Timestamp>, 'prefetched'> = $props()
+
+	const requestStatus = $derived(selection.entitySelector.$requestStatus)
 
 
 	// Components
@@ -32,6 +37,25 @@
 	entityType={EntityType.IcpRequestStatus_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'ICP request status timestamp'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/request/[requestId=stringSegment]/(icpRequestStatus)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in requestStatus.$network.$network ?
+							caip2StringFromValue(requestStatus.$network.$network.caip2)
+						:
+							requestStatus.$network.$network.slug
+					),
+					requestId: requestStatus.requestId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

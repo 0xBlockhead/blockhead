@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,6 +17,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -43,6 +46,42 @@
 	entityType={EntityType.BnbBeaconBlock}
 	entitySelector={selection.entitySelector}
 	title={title ?? (String(prefetched.height ?? '') || (prefetched.hash ?? '') || 'bnb beacon block')}
+	href={
+		href === undefined ?
+			(
+				'hash' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/block/hash/[hash=stringSegment]',
+						{
+							network: (
+								'caip2' in selection.entitySelector.$network.$network ?
+									caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+								:
+									selection.entitySelector.$network.$network.slug
+							),
+							hash: selection.entitySelector.hash,
+						}
+					)
+				:
+					'height' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/block/height/[height=nonNegativeBigInt]',
+							{
+								network: (
+									'caip2' in selection.entitySelector.$network.$network ?
+										caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+									:
+										selection.entitySelector.$network.$network.slug
+								),
+								height: String(selection.entitySelector.height),
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

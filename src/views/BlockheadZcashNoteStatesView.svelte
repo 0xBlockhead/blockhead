@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				noteCommitment: true,
-				pool: true,
-				valueZatoshis: true,
+			...{
+				fields: {
+					noteCommitment: true,
+					pool: true,
+					valueZatoshis: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadZcashNoteState}
 			entitySelector={blockheadZcashNoteStateSelector}
+			href={
+				resolve(
+					'/~/zcash/wallet/[walletId=stringSegment]/note-state/[pool=stringSegment]/[noteCommitment=stringSegment]',
+					{
+						walletId: blockheadZcashNoteStateSelector.walletId,
+						pool: blockheadZcashNoteStateSelector.pool,
+						noteCommitment: blockheadZcashNoteStateSelector.noteCommitment,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadZcashNoteStateSelector.noteCommitment || 'blockhead zcash note state'}

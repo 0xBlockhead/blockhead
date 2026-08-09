@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				endpointUrl: true,
-				protocolVersion: true,
-				$directory: true,
+			...{
+				fields: {
+					endpointUrl: true,
+					protocolVersion: true,
+					$directory: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,14 @@
 		<EntityView
 			entityType={EntityType.PayjoinEndpoint}
 			entitySelector={payjoinEndpointSelector}
+			href={
+				resolve(
+					'/payjoin/endpoint/[endpointUrl=stringSegment]',
+					{
+						endpointUrl: payjoinEndpointSelector.endpointUrl,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{payjoinEndpointSelector.endpointUrl || 'payjoin endpoint'}

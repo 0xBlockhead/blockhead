@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,6 +16,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -35,6 +37,19 @@
 	entityType={EntityType.BlockheadCashuMeltQuote}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.quoteId || 'blockhead Cashu melt quote')}
+	href={
+		href === undefined ?
+			resolve(
+				'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/melt-quote/[method=stringSegment]/[quoteId=stringSegment]',
+				{
+					mintUrl: selection.entitySelector.$mint.mintUrl,
+					method: selection.entitySelector.method,
+					quoteId: selection.entitySelector.quoteId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

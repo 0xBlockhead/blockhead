@@ -73,7 +73,23 @@
 						}
 					)
 				:
-					undefined
+					'localName' in selection.entitySelector ?
+						resolve(
+							'/lens/account/name/[localName=stringSegment]',
+							{
+								localName: selection.entitySelector.localName,
+							}
+						)
+					:
+						'legacyProfileId' in selection.entitySelector ?
+							resolve(
+								'/lens/account/legacy/[legacyProfileId=stringSegment]',
+								{
+									legacyProfileId: selection.entitySelector.legacyProfileId,
+								}
+							)
+						:
+							undefined
 			)
 		:
 			href ?? undefined

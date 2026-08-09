@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,20 +28,39 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				symbol: true,
-				name: true,
-				poolBalance: true,
-				usdPrice: true,
-				$pool: true,
+			...{
+				fields: {
+					symbol: true,
+					name: true,
+					poolBalance: true,
+					usdPrice: true,
+					$pool: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: curvePoolCoin })}
+		{@const curvePoolCoinSelector = curvePoolCoin[EntityMetaKey.Selector]}
+		{@const pool = curvePoolCoinSelector.$pool}
 		<EntityView
 			entityType={EntityType.CurvePoolCoin}
-			entitySelector={curvePoolCoin[EntityMetaKey.Selector]}
+			entitySelector={curvePoolCoinSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/curve-pool/[poolAddress=evmAddress]/(curvePool)/coin/[coinAddress=evmAddress]',
+					{
+						network: (
+							'caip2' in pool.$network ?
+								caip2StringFromValue(pool.$network.caip2)
+							:
+								pool.$network.slug
+						),
+						poolAddress: pool.poolAddress,
+						coinAddress: curvePoolCoinSelector.coinAddress,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[curvePoolCoin.symbol, curvePoolCoin.name].filter(Boolean).join(' ') || 'Curve pool coin'}

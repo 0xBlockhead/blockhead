@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				apiHost: true,
-				fromDomain: true,
-				toDomain: true,
+			...{
+				fields: {
+					apiHost: true,
+					fromDomain: true,
+					toDomain: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,16 @@
 		<EntityView
 			entityType={EntityType.CctpFee}
 			entitySelector={cctpFeeSelector}
+			href={
+				resolve(
+					'/cctp/fee/[apiHost=stringSegment]/[fromDomain=nonNegativeInteger]/[toDomain=nonNegativeInteger]',
+					{
+						apiHost: cctpFeeSelector.apiHost,
+						fromDomain: String(cctpFeeSelector.fromDomain),
+						toDomain: String(cctpFeeSelector.toDomain),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{cctpFeeSelector.apiHost || 'CCTP fee'}

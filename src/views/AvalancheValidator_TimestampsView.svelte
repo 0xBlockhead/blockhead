@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,20 +27,35 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				connected: true,
-				uptimePercent: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					connected: true,
+					uptimePercent: true,
+					source: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: avalancheValidatorTimestamp })}
 		{@const avalancheValidatorTimestampSelector = avalancheValidatorTimestamp[EntityMetaKey.Selector]}
+		{@const validator = avalancheValidatorTimestampSelector.$validator}
 		<EntityView
 			entityType={EntityType.AvalancheValidator_Timestamp}
 			entitySelector={avalancheValidatorTimestampSelector}
+			href={
+				resolve(
+					'/(avalanche)/avalanche/validator/[nodeId=stringSegment]/[subnetId=stringSegment]/[startTimeMs=nonNegativeInteger]/(avalancheValidator)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						nodeId: validator.nodeId,
+						subnetId: validator.subnetId,
+						startTimeMs: String(validator.startTimeMs),
+						timestampMs: String(avalancheValidatorTimestampSelector.timestampMs),
+						source: avalancheValidatorTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{avalancheValidatorTimestampSelector.timestampMs}

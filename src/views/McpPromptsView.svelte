@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,15 +29,17 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				title: true,
-				$server: {
-					fields: {
-						transportKind: true,
-						endpointUrl: true,
+			...{
+				fields: {
+					title: true,
+					$server: {
+						fields: {
+							transportKind: true,
+							endpointUrl: true,
+						},
 					},
+					name: true,
 				},
-				name: true,
 			},
 		})
 	}
@@ -46,6 +49,15 @@
 		<EntityView
 			entityType={EntityType.McpPrompt}
 			entitySelector={mcpPromptSelector}
+			href={
+				resolve(
+					'/mcp/server/[serverKey=stringSegment]/(mcpServer)/prompt/[name=stringSegment]',
+					{
+						serverKey: mcpPromptSelector.$server.serverKey,
+						name: mcpPromptSelector.name,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(mcpPrompt.title ?? '') || mcpPromptSelector.name || 'mcp prompt'}

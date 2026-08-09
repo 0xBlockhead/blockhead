@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,18 +30,35 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				categoryId: true,
-				$network: true,
+			...{
+				fields: {
+					categoryId: true,
+					$network: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: bitcoinCashCashTokenCategory })}
 		{@const bitcoinCashCashTokenCategorySelector = bitcoinCashCashTokenCategory[EntityMetaKey.Selector]}
+		{@const network = bitcoinCashCashTokenCategorySelector.$network}
 		<EntityView
 			entityType={EntityType.BitcoinCashCashTokenCategory}
 			entitySelector={bitcoinCashCashTokenCategorySelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/cash-token-category/[categoryId=stringSegment]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						categoryId: bitcoinCashCashTokenCategorySelector.categoryId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{bitcoinCashCashTokenCategorySelector.categoryId || 'Bitcoin Cash CashToken category'}

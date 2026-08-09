@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,18 +27,31 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				outcomeKind: true,
-				transactionId: true,
-				createdAt: true,
+			...{
+				fields: {
+					outcomeKind: true,
+					transactionId: true,
+					createdAt: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadActionOutcome })}
+		{@const blockheadActionOutcomeSelector = blockheadActionOutcome[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadActionOutcome}
-			entitySelector={blockheadActionOutcome[EntityMetaKey.Selector]}
+			entitySelector={blockheadActionOutcomeSelector}
+			href={
+				resolve(
+					'/~/session/[sessionId=stringSegment]/(blockheadSession)/action/[actionId=stringSegment]/(blockheadSessionAction)/outcome/[outcomeId=stringSegment]',
+					{
+						sessionId: blockheadActionOutcomeSelector.sessionId,
+						actionId: blockheadActionOutcomeSelector.actionId,
+						outcomeId: blockheadActionOutcomeSelector.outcomeId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadActionOutcome.outcomeKind || 'blockhead action outcome'}

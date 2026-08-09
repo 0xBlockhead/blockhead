@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -11,6 +12,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -37,6 +39,34 @@
 	entityType={EntityType.AtprotoRepoCommit}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'rev' in selection.entitySelector ?
+					resolve(
+						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/repo/[repoDid=stringSegment]/commit/rev/[rev=stringSegment]/[source=stringSegment]',
+						{
+							repoDid: selection.entitySelector.repoDid,
+							rev: selection.entitySelector.rev,
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					'commitCid' in selection.entitySelector ?
+						resolve(
+							'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/repo/[repoDid=stringSegment]/commit/cid/[commitCid=stringSegment]/[source=stringSegment]',
+							{
+								repoDid: selection.entitySelector.repoDid,
+								commitCid: selection.entitySelector.commitCid,
+								source: selection.entitySelector.source,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

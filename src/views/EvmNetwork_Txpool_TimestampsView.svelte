@@ -28,10 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				pendingCount: true,
-				queuedCount: true,
-				$network: true,
+			...{
+				fields: {
+					pendingCount: true,
+					queuedCount: true,
+					$network: true,
+				},
 			},
 		})
 	}

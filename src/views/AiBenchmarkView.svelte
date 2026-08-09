@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,6 +17,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -45,6 +47,40 @@
 	entityType={EntityType.AiBenchmark}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'source' in selection.entitySelector
+				&& 'sourceBenchmarkId' in selection.entitySelector ?
+					resolve(
+						'/(ai)/ai/benchmark/source/[source=stringSegment]/[sourceBenchmarkId=stringSegment]',
+						{
+							source: selection.entitySelector.source,
+							sourceBenchmarkId: selection.entitySelector.sourceBenchmarkId,
+						}
+					)
+				:
+					'benchmarkId' in selection.entitySelector ?
+						resolve(
+							'/(ai)/ai/benchmark/id/[benchmarkId=stringSegment]',
+							{
+								benchmarkId: selection.entitySelector.benchmarkId,
+							}
+						)
+					:
+						'benchmarkUri' in selection.entitySelector ?
+							resolve(
+								'/(ai)/ai/benchmark/uri/[benchmarkUri=absoluteUrl]',
+								{
+									benchmarkUri: encodeURIComponent(selection.entitySelector.benchmarkUri),
+								}
+							)
+						:
+							undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

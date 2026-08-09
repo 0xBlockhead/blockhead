@@ -2,10 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,20 +16,24 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TezosBigMap>, 'prefetched'> = $props()
 
+	const contract = $derived(selection.entitySelector.$contract)
 	const viewDomId = $derived('tezos-big-map-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TezosContractView from '$/views/TezosContractView.svelte'
+	import TezosBigMapKeysView from '$/views/TezosBigMapKeysView.svelte'
+	import TezosBigMapDiffsView from '$/views/TezosBigMapDiffsView.svelte'
+	import TezosBigMap_TimestampsView from '$/views/TezosBigMap_TimestampsView.svelte'
 </script>
 
 
@@ -36,6 +41,24 @@
 	entityType={EntityType.TezosBigMap}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/contract/tezos/[address=stringSegment]/(tezosContract)/big-map/[bigMapId=nonNegativeBigInt]',
+				{
+					network: (
+						'caip2' in contract.$network.$network ?
+							caip2StringFromValue(contract.$network.$network.caip2)
+						:
+							contract.$network.$network.slug
+					),
+					address: contract.address,
+					bigMapId: String(selection.entitySelector.bigMapId),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -109,41 +132,23 @@
 			{/snippet}
 
 			{#snippet SectionTezosBigMapKeys({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosBigMapKey}
+				<TezosBigMapKeysView
+					selection={selection.$$keys}
 					collapsible={false}
 					title={label}
 					emptyText='No keys.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$keys()}
-				>
-					{#snippet Item({ item: tezosBigMapKey })}
-						<EntityView
-							entityType={EntityType.TezosBigMapKey}
-							entitySelector={tezosBigMapKey[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosBigMapUpdates({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosBigMapDiff}
+				<TezosBigMapDiffsView
+					selection={selection.$$updates}
 					collapsible={false}
 					title={label}
 					emptyText='No updates.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$updates()}
-				>
-					{#snippet Item({ item: tezosBigMapDiff })}
-						<EntityView
-							entityType={EntityType.TezosBigMapDiff}
-							entitySelector={tezosBigMapDiff[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -169,22 +174,13 @@
 			{/snippet}
 
 			{#snippet SectionTezosBigMapTimestamps({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosBigMap_Timestamp}
+				<TezosBigMap_TimestampsView
+					selection={selection.$$timestamps}
 					collapsible={false}
 					title={label}
 					emptyText='No timestamps.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$timestamps()}
-				>
-					{#snippet Item({ item: tezosBigMapTimestamp })}
-						<EntityView
-							entityType={EntityType.TezosBigMap_Timestamp}
-							entitySelector={tezosBigMapTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

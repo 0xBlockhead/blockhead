@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				turnId: true,
-				stopReason: true,
-				startedAt: true,
+			...{
+				fields: {
+					turnId: true,
+					stopReason: true,
+					startedAt: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,15 @@
 		<EntityView
 			entityType={EntityType.AcpPromptTurn}
 			entitySelector={acpPromptTurnSelector}
+			href={
+				resolve(
+					'/(agents)/agents/acp/session/[sessionId=stringSegment]/(acpSession)/turn/[turnId=stringSegment]',
+					{
+						sessionId: acpPromptTurnSelector.$session.sessionId,
+						turnId: acpPromptTurnSelector.turnId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{acpPromptTurnSelector.turnId || 'ACP prompt turn'}

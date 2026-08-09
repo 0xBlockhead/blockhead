@@ -195,12 +195,10 @@ export default {
 						const {
 							getNft,
 							openSeaChainForChainId,
-							requireOpenSeaCredential,
 						} = await import('$/sources/OpenSea/Rest/queries.ts')
 						const {
 							nft,
 						} = await getNft({
-							credential: requireOpenSeaCredential(),
 							chain: openSeaChainForChainId(chainId),
 							address: contractAddress,
 							identifier: tokenId,
@@ -238,10 +236,8 @@ export default {
 						const {
 							getAccountNfts,
 							openSeaChainForChainId,
-							requireOpenSeaCredential,
 						} = await import('$/sources/OpenSea/Rest/queries.ts')
 						const page = await getAccountNfts({
-							credential: requireOpenSeaCredential(),
 							chain: openSeaChainForChainId(evmChainIdFromNetworkSelector($network)),
 							address,
 							limit: openSeaNftPageLimit(context),
@@ -304,10 +300,8 @@ export default {
 						const {
 							getNftsByContract,
 							openSeaChainForChainId,
-							requireOpenSeaCredential,
 						} = await import('$/sources/OpenSea/Rest/queries.ts')
 						const page = await getNftsByContract({
-							credential: requireOpenSeaCredential(),
 							chain: openSeaChainForChainId(evmChainIdFromNetworkSelector($network)),
 							address: contractAddress,
 							limit: openSeaNftPageLimit(context),

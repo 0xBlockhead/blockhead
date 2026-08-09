@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.Eip8004CrossRegistration>, 'prefetched'> = $props()
 
+	const registrationFile = $derived(selection.entitySelector.$registrationFile)
 	const titleFallback = $derived(selection.entitySelector.targetKind || 'EIP-8004 cross registration')
 
 
@@ -34,6 +37,24 @@
 	entityType={EntityType.Eip8004CrossRegistration}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(agents)/agents/eip-8004/[namespace=stringSegment]/[chainId=nonNegativeInteger]/registry/[identityRegistry=evmAddress]/agent/[agentId=stringSegment]/(eip8004AgentRegistration)/file/[fileUrl=absoluteUrl]/(eip8004AgentRegistrationFile)/cross-registration/[targetKind=stringSegment]/[targetSelectorHashAlgorithm=stringSegment]/[targetSelectorHash=zeroExHex]',
+				{
+					namespace: registrationFile.$registration.namespace,
+					chainId: String(registrationFile.$registration.chainId),
+					identityRegistry: registrationFile.$registration.identityRegistry,
+					agentId: registrationFile.$registration.agentId,
+					fileUrl: encodeURIComponent(registrationFile.fileUrl),
+					targetKind: selection.entitySelector.targetKind,
+					targetSelectorHashAlgorithm: selection.entitySelector.targetSelectorHashAlgorithm,
+					targetSelectorHash: selection.entitySelector.targetSelectorHash,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,19 +27,34 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				status: true,
-				timestampMs: true,
-				source: true,
+			...{
+				fields: {
+					status: true,
+					timestampMs: true,
+					source: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadActionOutcomeTimestamp })}
 		{@const blockheadActionOutcomeTimestampSelector = blockheadActionOutcomeTimestamp[EntityMetaKey.Selector]}
+		{@const outcome = blockheadActionOutcomeTimestampSelector.$outcome}
 		<EntityView
 			entityType={EntityType.BlockheadActionOutcome_Timestamp}
 			entitySelector={blockheadActionOutcomeTimestampSelector}
+			href={
+				resolve(
+					'/~/session/[sessionId=stringSegment]/(blockheadSession)/action/[actionId=stringSegment]/(blockheadSessionAction)/outcome/[outcomeId=stringSegment]/(blockheadActionOutcome)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						sessionId: outcome.sessionId,
+						actionId: outcome.actionId,
+						outcomeId: outcome.outcomeId,
+						timestampMs: String(blockheadActionOutcomeTimestampSelector.timestampMs),
+						source: blockheadActionOutcomeTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadActionOutcomeTimestamp.status || 'blockhead action outcome timestamp'}

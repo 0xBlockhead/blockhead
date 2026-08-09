@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				walletId: true,
-				primaryAddress: true,
-				$network: true,
+			...{
+				fields: {
+					walletId: true,
+					primaryAddress: true,
+					$network: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,14 @@
 		<EntityView
 			entityType={EntityType.BlockheadMoneroWalletState}
 			entitySelector={blockheadMoneroWalletStateSelector}
+			href={
+				resolve(
+					'/~/monero/wallet/[walletId=stringSegment]/state',
+					{
+						walletId: blockheadMoneroWalletStateSelector.walletId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadMoneroWalletStateSelector.walletId || 'blockhead monero wallet state'}

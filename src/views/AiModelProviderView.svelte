@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -12,6 +13,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -45,6 +47,30 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'providerId' in selection.entitySelector ?
+					resolve(
+						'/(ai)/ai/provider/id/[providerId=stringSegment]',
+						{
+							providerId: selection.entitySelector.providerId,
+						}
+					)
+				:
+					'domain' in selection.entitySelector ?
+						resolve(
+							'/(ai)/ai/provider/domain/[domain=stringSegment]',
+							{
+								domain: selection.entitySelector.domain,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

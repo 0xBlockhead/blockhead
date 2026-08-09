@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,10 +30,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				classHash: true,
-				contractClassVersion: true,
-				declaredAtBlockNumber: true,
+			...{
+				fields: {
+					classHash: true,
+					contractClassVersion: true,
+					declaredAtBlockNumber: true,
+				},
 			},
 		})
 	}
@@ -41,6 +45,20 @@
 		<EntityView
 			entityType={EntityType.StarknetClass}
 			entitySelector={starknetClassSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/class/[classHash=stringSegment]',
+					{
+						network: (
+							'caip2' in starknetClassSelector.$network.$network ?
+								caip2StringFromValue(starknetClassSelector.$network.$network.caip2)
+							:
+								starknetClassSelector.$network.$network.slug
+						),
+						classHash: starknetClassSelector.classHash,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{starknetClassSelector.classHash || 'starknet class'}

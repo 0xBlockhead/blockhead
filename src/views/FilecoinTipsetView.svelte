@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,11 +18,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.FilecoinTipset>, 'prefetched'> = $props()
 
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Lotus_JsonRpc,
@@ -48,6 +52,24 @@
 	entityType={EntityType.FilecoinTipset}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.height)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/tipset/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					height: String(selection.entitySelector.height),
+					tipsetKey: selection.entitySelector.tipsetKey,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

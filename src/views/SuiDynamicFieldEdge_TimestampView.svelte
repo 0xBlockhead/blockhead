@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.SuiDynamicFieldEdge_Timestamp>, 'prefetched'> = $props()
+
+	const edge = $derived(selection.entitySelector.$edge)
 
 
 	// Components
@@ -31,6 +36,27 @@
 	entityType={EntityType.SuiDynamicFieldEdge_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'Sui dynamic field edge timestamp'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/object/[objectId=stringSegment]/(suiObject)/dynamic-field/[fieldNameHash=stringSegment]/[childObjectId=stringSegment]/(suiDynamicFieldEdge)/checkpoint/[checkpointSequence=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in edge.$parentObject.$network.$network ?
+							caip2StringFromValue(edge.$parentObject.$network.$network.caip2)
+						:
+							edge.$parentObject.$network.$network.slug
+					),
+					objectId: edge.$parentObject.objectId,
+					fieldNameHash: edge.fieldNameHash,
+					childObjectId: edge.childObjectId,
+					checkpointSequence: String(selection.entitySelector.checkpointSequence),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -60,7 +60,12 @@
 						}
 					)
 				:
-					undefined
+					resolve(
+						'/xmtp/message/[id=stringSegment]',
+						{
+							id: selection.entitySelector.id,
+						}
+					)
 			)
 		:
 			href ?? undefined

@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,9 +29,46 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: tonNftItem })}
+		{@const tonNftItemSelector = tonNftItem[EntityMetaKey.Selector]}
+		{@const network = tonNftItemSelector.$network}
+		{@const collection = tonNftItemSelector.$collection}
 		<EntityView
 			entityType={EntityType.TonNftItem}
-			entitySelector={tonNftItem[EntityMetaKey.Selector]}
+			entitySelector={tonNftItemSelector}
+			href={
+				'itemIndex' in tonNftItemSelector
+				&& '$collection' in tonNftItemSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nft-collection/[collectionAddress=stringSegment]/(tonNftCollection)/item/[itemIndex=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in collection.$network ?
+									caip2StringFromValue(collection.$network.caip2)
+								:
+									collection.$network.slug
+							),
+							collectionAddress: collection.collectionAddress,
+							itemIndex: String(tonNftItemSelector.itemIndex),
+						}
+					)
+				:
+					'itemAddress' in tonNftItemSelector
+					&& '$network' in tonNftItemSelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nft-item/[itemAddress=stringSegment]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								itemAddress: tonNftItemSelector.itemAddress,
+							}
+						)
+					:
+						undefined
+			}
 		>
 			{#snippet Title()}
 				TON NFT item

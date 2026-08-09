@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,18 +30,37 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				capability: true,
-				$category: true,
-				$commitment: true,
+			...{
+				fields: {
+					capability: true,
+					$category: true,
+					$commitment: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: bitcoinCashCashTokenNft })}
+		{@const bitcoinCashCashTokenNftSelector = bitcoinCashCashTokenNft[EntityMetaKey.Selector]}
+		{@const output = bitcoinCashCashTokenNftSelector.$output}
 		<EntityView
 			entityType={EntityType.BitcoinCashCashTokenNft}
-			entitySelector={bitcoinCashCashTokenNft[EntityMetaKey.Selector]}
+			entitySelector={bitcoinCashCashTokenNftSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/output/[outputIndex=nonNegativeInteger]/(selection)/cash-token-nft',
+					{
+						network: (
+							'caip2' in output.$transaction.$network ?
+								caip2StringFromValue(output.$transaction.$network.caip2)
+							:
+								output.$transaction.$network.slug
+						),
+						transactionId: output.$transaction.txId,
+						outputIndex: String(output.indexInTransaction),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{bitcoinCashCashTokenNft.capability || 'Bitcoin Cash CashToken NFT'}

@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.IbcPacket>, 'prefetched'> = $props()
 
+	const channel = $derived(selection.entitySelector.$channel)
 	const ibcPacket = $derived(selection({
 		fields: {
 			status: true,
@@ -39,6 +43,26 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? `Packet #${selection.entitySelector.sequence}`}
 	idDragPlainText={String(selection.entitySelector.sequence)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ibc-channels/[portId=stringSegment]/[channelId=stringSegment]/(ibcChannel)/packet/[sequence=nonNegativeBigInt]/[direction=stringSegment]',
+				{
+					network: (
+						'caip2' in channel.$network ?
+							caip2StringFromValue(channel.$network.caip2)
+						:
+							channel.$network.slug
+					),
+					portId: channel.portId,
+					channelId: channel.channelId,
+					sequence: String(selection.entitySelector.sequence),
+					direction: selection.entitySelector.direction,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

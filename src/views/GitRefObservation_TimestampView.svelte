@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,11 +15,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.GitRefObservation_Timestamp>, 'prefetched'> = $props()
 
+	const ref = $derived(selection.entitySelector.$ref)
 	const gitRefObservationTimestamp = $derived(selection({
 		fields: {
 			targetObjectId: true,
@@ -38,6 +41,25 @@
 	entityType={EntityType.GitRefObservation_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			(
+				'repositoryId' in ref.$repository ?
+					resolve(
+						'/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/ref/[refName=stringSegment]/(gitRef)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							repositoryId: ref.$repository.repositoryId,
+							refName: ref.refName,
+							timestampMs: String(selection.entitySelector.timestampMs),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

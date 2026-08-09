@@ -161,25 +161,15 @@ describe('Aave Rest resolver module', () => {
 			{
 				[EntityMetaKey.Selector]: {
 					$account: accountSelector,
-					$reserve: {
-						$market: {
-							$network: ethereumNetwork,
-							poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
-						},
-						underlyingTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-					},
+					poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+					underlyingTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
 				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
 					$account: accountSelector,
-					$reserve: {
-						$market: {
-							$network: ethereumNetwork,
-							poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
-						},
-						underlyingTokenAddress: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-					},
+					poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+					underlyingTokenAddress: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
 				},
 			},
 		])
@@ -613,17 +603,22 @@ describe('Aave Rest resolver module', () => {
 			},
 		])
 
-		const snapshot = await aaveReservePositionResolver.resolve.AccountReserve.resolve({
+		const snapshot = await aaveReservePositionResolver.resolve.AccountPoolAddressUnderlyingTokenAddress.resolve({
 			$account: accountSelector,
-			$reserve: {
-				$market: {
-					$network: ethereumNetwork,
-					poolAddress,
-				},
-				underlyingTokenAddress,
-			},
+			poolAddress,
+			underlyingTokenAddress,
 		}, context)
 
+		expect(aaveReservePositionResolver.projections.$account(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: accountSelector,
+		})
+		expect(aaveReservePositionResolver.projections.poolAddress(snapshot)).toBe(poolAddress)
+		expect(aaveReservePositionResolver.projections.underlyingTokenAddress(snapshot)).toBe(
+			underlyingTokenAddress
+		)
+		expect(
+			aaveReservePositionResolver.projections.$reserve(snapshot)[EntityMetaKey.Selector].$market.$network
+		).toEqual(accountSelector.$network)
 		expect(aaveReservePositionResolver.projections.symbol(snapshot)).toBe('USDC')
 		expect(aaveReservePositionResolver.projections.decimals(snapshot)).toBe(6)
 		expect(aaveReservePositionResolver.projections.suppliedBalance(snapshot)).toBe('1000.5')

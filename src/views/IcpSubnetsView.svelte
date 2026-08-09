@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,9 +29,24 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: icpSubnet })}
+		{@const icpSubnetSelector = icpSubnet[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.IcpSubnet}
-			entitySelector={icpSubnet[EntityMetaKey.Selector]}
+			entitySelector={icpSubnetSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/subnet/[subnetId=stringSegment]',
+					{
+						network: (
+							'caip2' in icpSubnetSelector.$network.$network ?
+								caip2StringFromValue(icpSubnetSelector.$network.$network.caip2)
+							:
+								icpSubnetSelector.$network.$network.slug
+						),
+						subnetId: icpSubnetSelector.subnetId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				ICP subnet

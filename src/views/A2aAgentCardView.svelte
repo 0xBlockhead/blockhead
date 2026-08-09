@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -10,6 +11,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -28,6 +30,17 @@
 	entityType={EntityType.A2aAgentCard}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.agentCardUrl || 'A2A agent card')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(agents)/agents/a2a/card/[agentCardUrl=absoluteUrl]',
+				{
+					agentCardUrl: encodeURIComponent(selection.entitySelector.agentCardUrl),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.LitecoinMwebBlock>, 'prefetched'> = $props()
 
+	const block = $derived(selection.entitySelector.$block)
 	const litecoinMwebBlock = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LitecoinCore_JsonRpc,
@@ -43,6 +47,23 @@
 	entityType={EntityType.LitecoinMwebBlock}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/mweb',
+				{
+					network: (
+						'caip2' in block.$network ?
+							caip2StringFromValue(block.$network.caip2)
+						:
+							block.$network.slug
+					),
+					blockNumber: String(block.height),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

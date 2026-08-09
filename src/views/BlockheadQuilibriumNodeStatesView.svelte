@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,19 +30,36 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				connectionId: true,
-				$network: true,
-				endpoint: true,
+			...{
+				fields: {
+					connectionId: true,
+					$network: true,
+					endpoint: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadQuilibriumNodeState })}
 		{@const blockheadQuilibriumNodeStateSelector = blockheadQuilibriumNodeState[EntityMetaKey.Selector]}
+		{@const network = blockheadQuilibriumNodeStateSelector.$network}
 		<EntityView
 			entityType={EntityType.BlockheadQuilibriumNodeState}
 			entitySelector={blockheadQuilibriumNodeStateSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/~/quilibrium/connection/[connectionId=stringSegment]/node-state',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						connectionId: blockheadQuilibriumNodeStateSelector.connectionId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadQuilibriumNodeStateSelector.connectionId || 'blockhead quilibrium node state'}

@@ -54,7 +54,7 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/pyth/feed/[priceFeedId=zeroExHex]/[channel=stringSegment]',
+				'/~/pyth/feed/[priceFeedId=zeroExHex]/[channel=stringSegment]',
 				{
 					priceFeedId: selection.entitySelector.priceFeedId,
 					channel: selection.entitySelector.channel,

@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,24 +28,44 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				$sector: {
-					fields: {
-						$miner: true,
-						sealedCid: true,
+			...{
+				fields: {
+					timestampMs: true,
+					$sector: {
+						fields: {
+							$miner: true,
+							sealedCid: true,
+						},
 					},
+					height: true,
 				},
-				height: true,
 			},
 		})
 	}
 >
 	{#snippet Item({ item: filecoinSectorTimestamp })}
 		{@const filecoinSectorTimestampSelector = filecoinSectorTimestamp[EntityMetaKey.Selector]}
+		{@const sector = filecoinSectorTimestampSelector.$sector}
 		<EntityView
 			entityType={EntityType.FilecoinSector_Timestamp}
 			entitySelector={filecoinSectorTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]/(filecoinMiner)/sector/[sectorNumber=nonNegativeBigInt]/(filecoinSector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in sector.$miner.$network ?
+								caip2StringFromValue(sector.$miner.$network.caip2)
+							:
+								sector.$miner.$network.slug
+						),
+						minerAddress: sector.$miner.minerAddress,
+						sectorNumber: String(sector.sectorNumber),
+						timestampMs: String(filecoinSectorTimestampSelector.timestampMs),
+						source: filecoinSectorTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{filecoinSectorTimestampSelector.timestampMs}

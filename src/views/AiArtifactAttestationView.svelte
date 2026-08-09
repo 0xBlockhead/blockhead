@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.AiArtifactAttestation>, 'prefetched'> = $props()
 
+	const artifact = $derived(selection.entitySelector.$artifact)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
@@ -46,6 +49,42 @@
 	entityType={EntityType.AiArtifactAttestation}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.attestationKind || 'AI artifact attestation')}
+	href={
+		href === undefined ?
+			(
+				'signatureHashAlgorithm' in selection.entitySelector
+				&& 'signatureHash' in selection.entitySelector
+				&& 'digestAlgorithm' in artifact
+				&& 'digest' in artifact ?
+					resolve(
+						'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/attestation/[attestationKind=stringSegment]/signature/[signatureHashAlgorithm=stringSegment]/[signatureHash=stringSegment]',
+						{
+							digestAlgorithm: artifact.digestAlgorithm,
+							digest: artifact.digest,
+							attestationKind: selection.entitySelector.attestationKind,
+							signatureHashAlgorithm: selection.entitySelector.signatureHashAlgorithm,
+							signatureHash: selection.entitySelector.signatureHash,
+						}
+					)
+				:
+					'logEntryId' in selection.entitySelector
+					&& 'digestAlgorithm' in artifact
+					&& 'digest' in artifact ?
+						resolve(
+							'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/attestation/[attestationKind=stringSegment]/log/[logEntryId=stringSegment]',
+							{
+								digestAlgorithm: artifact.digestAlgorithm,
+								digest: artifact.digest,
+								attestationKind: selection.entitySelector.attestationKind,
+								logEntryId: selection.entitySelector.logEntryId,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -53,6 +92,7 @@
 	{#snippet Value()}
 		<AiArtifactView
 			selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

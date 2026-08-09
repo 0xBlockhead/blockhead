@@ -30,29 +30,39 @@
 	bind:open
 	resource={
 		selection({
-			sources: selection.sources ?? [
-				Source.Local_Internal,
-			],
-			fields: {
-				$conversation: true,
-				userPrompt: true,
-				createdAt: true,
+			...{
+				sources: selection.sources ?? [
+					Source.Local_Internal,
+				],
+				fields: {
+					userPrompt: true,
+					createdAt: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadAgentConversationTurn })}
+		{@const blockheadAgentConversationTurnSelector = blockheadAgentConversationTurn[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadAgentConversationTurn}
-			entitySelector={blockheadAgentConversationTurn[EntityMetaKey.Selector]}
+			entitySelector={blockheadAgentConversationTurnSelector}
 			href={
-				resolve(
-					'/~/agents/conversation/[conversationId=stringSegment]/(blockheadAgentConversation)/turn/[turnId=stringSegment]',
-					{
-						conversationId: blockheadAgentConversationTurn.$conversation.id,
-						turnId: blockheadAgentConversationTurn.id,
-					}
-				)
+				'$conversation' in blockheadAgentConversationTurnSelector ?
+					resolve(
+						'/~/agents/conversation/[conversationId=stringSegment]/(blockheadAgentConversation)/turn/[turnId=stringSegment]',
+						{
+							conversationId: blockheadAgentConversationTurnSelector.$conversation.id,
+							turnId: blockheadAgentConversationTurnSelector.id,
+						}
+					)
+				:
+					resolve(
+						'/~/agent/conversation-turn/[id=stringSegment]',
+						{
+							id: blockheadAgentConversationTurnSelector.id,
+						}
+					)
 			}
 		>
 			{#snippet Title()}

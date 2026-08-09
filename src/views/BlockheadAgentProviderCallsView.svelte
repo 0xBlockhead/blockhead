@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,18 +27,34 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				indexInTurn: true,
-				status: true,
+			...{
+				fields: {
+					indexInTurn: true,
+					status: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadAgentProviderCall })}
 		{@const blockheadAgentProviderCallSelector = blockheadAgentProviderCall[EntityMetaKey.Selector]}
+		{@const turn = blockheadAgentProviderCallSelector.$turn}
 		<EntityView
 			entityType={EntityType.BlockheadAgentProviderCall}
 			entitySelector={blockheadAgentProviderCallSelector}
+			href={
+				'$conversation' in turn ?
+					resolve(
+						'/~/agents/conversation/[conversationId=stringSegment]/(blockheadAgentConversation)/turn/[turnId=stringSegment]/(blockheadAgentConversationTurn)/provider-call/[indexInTurn=nonNegativeInteger]',
+						{
+							conversationId: turn.$conversation.id,
+							turnId: turn.id,
+							indexInTurn: String(blockheadAgentProviderCallSelector.indexInTurn),
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{`Call #${blockheadAgentProviderCallSelector.indexInTurn}`}

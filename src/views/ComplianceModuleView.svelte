@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,6 +15,7 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -28,6 +31,25 @@
 <EntityView
 	entityType={EntityType.ComplianceModule}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/regulated-profile/(regulatedAssetProfile)/compliance-module/[moduleKey=stringSegment]',
+				{
+					network: (
+						'caip2' in selection.entitySelector.$profile.$assetInstance.$network ?
+							caip2StringFromValue(selection.entitySelector.$profile.$assetInstance.$network.caip2)
+						:
+							selection.entitySelector.$profile.$assetInstance.$network.slug
+					),
+					kind: selection.entitySelector.$profile.$assetInstance.kind,
+					assetKey: selection.entitySelector.$profile.$assetInstance.assetKey,
+					moduleKey: selection.entitySelector.moduleKey,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

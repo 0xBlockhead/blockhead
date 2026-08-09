@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,6 +15,7 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -29,6 +32,30 @@
 <EntityView
 	entityType={EntityType.HederaContractAction}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			(
+				'consensusTimestamp' in selection.entitySelector.$result.$transaction ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/consensus/[consensusTimestamp=stringSegment]/(hederaTransaction)/contract-result/(hederaContractResult)/action/[callDepth=nonNegativeInteger]/[callIndex=nonNegativeInteger]',
+						{
+							network: (
+								'caip2' in selection.entitySelector.$result.$transaction.$network ?
+									caip2StringFromValue(selection.entitySelector.$result.$transaction.$network.caip2)
+								:
+									selection.entitySelector.$result.$transaction.$network.slug
+							),
+							consensusTimestamp: selection.entitySelector.$result.$transaction.consensusTimestamp,
+							callDepth: String(selection.entitySelector.callDepth),
+							callIndex: String(selection.entitySelector.callIndex),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

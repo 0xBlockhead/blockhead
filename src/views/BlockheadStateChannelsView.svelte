@@ -29,9 +29,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				id: true,
-				createdAt: true,
+			...{
+				fields: {
+					id: true,
+					createdAt: true,
+				},
 			},
 		})
 	}
@@ -43,7 +45,7 @@
 			entitySelector={blockheadStateChannelSelector}
 			href={
 				resolve(
-					'/channel/[channelId=stringSegment]',
+					'/~/channel/[channelId=stringSegment]',
 					{
 						channelId: blockheadStateChannelSelector.id,
 					}

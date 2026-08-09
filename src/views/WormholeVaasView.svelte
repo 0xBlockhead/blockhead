@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				digest: true,
-				emitterChain: true,
-				sequence: true,
+			...{
+				fields: {
+					digest: true,
+					emitterChain: true,
+					sequence: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,16 @@
 		<EntityView
 			entityType={EntityType.WormholeVaa}
 			entitySelector={wormholeVaaSelector}
+			href={
+				resolve(
+					'/wormhole/vaa/[emitterChain=nonNegativeInteger]/[emitter=stringSegment]/[sequence=stringSegment]',
+					{
+						emitterChain: String(wormholeVaaSelector.emitterChain),
+						emitter: wormholeVaaSelector.emitter,
+						sequence: wormholeVaaSelector.sequence,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{wormholeVaa.digest || 'Wormhole VAA'}

@@ -28,9 +28,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				upgradeId: true,
-				name: true,
+			...{
+				fields: {
+					upgradeId: true,
+					name: true,
+				},
 			},
 		})
 	}
@@ -56,7 +58,21 @@
 						}
 					)
 				:
-					undefined
+					'upgradeId' in ethereumExecutionUpgradeSelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ethereum/execution-upgrade/[upgradeId=stringSegment]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								upgradeId: ethereumExecutionUpgradeSelector.upgradeId,
+							}
+						)
+					:
+						undefined
 			}
 		>
 			{#snippet Title()}

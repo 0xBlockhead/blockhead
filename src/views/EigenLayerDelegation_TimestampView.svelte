@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.EigenLayerDelegation_Timestamp>, 'prefetched'> = $props()
 
+	const operator = $derived(selection.entitySelector.$operator)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
@@ -44,6 +48,27 @@
 	entityType={EntityType.EigenLayerDelegation_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'eigen layer delegation timestamp'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/eigenlayer/(eigenLayerProtocol)/operator/[operatorAddress=evmAddress]/(eigenLayerOperator)/delegation/staker/[stakerAddress=evmAddress]/strategy/[strategyAddress=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in operator.$network ?
+							caip2StringFromValue(operator.$network.caip2)
+						:
+							operator.$network.slug
+					),
+					operatorAddress: operator.operatorAddress,
+					stakerAddress: selection.entitySelector.$staker.$actor.address,
+					strategyAddress: selection.entitySelector.$strategy.strategyAddress,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -59,6 +84,7 @@
 	{#snippet Value()}
 		<EigenLayerOperatorView
 			selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

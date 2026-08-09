@@ -28,7 +28,7 @@ export default indexSourceBindings([
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.OpenApiHttp,
 		operationGroups: genericReadOperationGroups,
-		delivery: SourceDelivery.ServerOnly,
+		delivery: SourceDelivery.HttpProxy,
 		credentials: [
 			{
 				scope: SourceCredentialScope.RuntimeSecret,

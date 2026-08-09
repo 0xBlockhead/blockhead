@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.EvmContractSourceBundle>, 'prefetched'> = $props()
+
+	const contract = $derived(selection.entitySelector.$contract)
 
 
 	// Components
@@ -29,6 +34,23 @@
 	entityType={EntityType.EvmContractSourceBundle}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'EVM contract source bundle'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/source-bundle',
+				{
+					network: (
+						'caip2' in contract.$network ?
+							caip2StringFromValue(contract.$network.caip2)
+						:
+							contract.$network.slug
+					),
+					address: contract.address,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

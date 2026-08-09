@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,12 +27,14 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				status: true,
-				$torrent: {
-					fields: {
-						name: true,
+			...{
+				fields: {
+					timestampMs: true,
+					status: true,
+					$torrent: {
+						fields: {
+							name: true,
+						},
 					},
 				},
 			},
@@ -40,9 +43,21 @@
 >
 	{#snippet Item({ item: blockheadBitTorrentTransferTimestamp })}
 		{@const blockheadBitTorrentTransferTimestampSelector = blockheadBitTorrentTransferTimestamp[EntityMetaKey.Selector]}
+		{@const torrent = blockheadBitTorrentTransferTimestampSelector.$torrent}
 		<EntityView
 			entityType={EntityType.BlockheadBitTorrentTransfer_Timestamp}
 			entitySelector={blockheadBitTorrentTransferTimestampSelector}
+			href={
+				resolve(
+					'/~/bittorrent/client-state/[clientId=stringSegment]/(blockheadBitTorrentClientState)/torrent/[infoHash=stringSegment]/[hashVersion=stringSegment]/observations/[timestampMs=nonNegativeInteger]',
+					{
+						clientId: blockheadBitTorrentTransferTimestampSelector.$client.clientId,
+						infoHash: torrent.infoHash,
+						hashVersion: torrent.hashVersion,
+						timestampMs: String(blockheadBitTorrentTransferTimestampSelector.timestampMs),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadBitTorrentTransferTimestampSelector.timestampMs}

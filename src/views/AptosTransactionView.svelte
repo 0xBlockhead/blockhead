@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -16,6 +18,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -51,6 +54,42 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'version' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/version/[version=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in selection.entitySelector.$network.$network ?
+									caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+								:
+									selection.entitySelector.$network.$network.slug
+							),
+							version: String(selection.entitySelector.version),
+						}
+					)
+				:
+					'hash' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
+							{
+								network: (
+									'caip2' in selection.entitySelector.$network.$network ?
+										caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+									:
+										selection.entitySelector.$network.$network.slug
+								),
+								transactionId: selection.entitySelector.hash,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

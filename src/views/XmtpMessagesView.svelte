@@ -27,12 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$conversation: true,
-				contentText: true,
-				id: true,
-				senderInboxId: true,
-				sentAtNs: true,
+			...{
+				fields: {
+					contentText: true,
+					id: true,
+					senderInboxId: true,
+					sentAtNs: true,
+				},
 			},
 		})
 	}
@@ -43,13 +44,21 @@
 			entityType={EntityType.XmtpMessage}
 			entitySelector={xmtpMessageSelector}
 			href={
-				resolve(
-					'/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversation/[conversationId=stringSegment]/(xmtpConversation)/message/[messageId=stringSegment]',
-					{
-						conversationId: xmtpMessage.$conversation.id,
-						messageId: xmtpMessage.id,
-					}
-				)
+				'$conversation' in xmtpMessageSelector ?
+					resolve(
+						'/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversation/[conversationId=stringSegment]/(xmtpConversation)/message/[messageId=stringSegment]',
+						{
+							conversationId: xmtpMessageSelector.$conversation.id,
+							messageId: xmtpMessageSelector.id,
+						}
+					)
+				:
+					resolve(
+						'/xmtp/message/[id=stringSegment]',
+						{
+							id: xmtpMessageSelector.id,
+						}
+					)
 			}
 		>
 			{#snippet Title()}

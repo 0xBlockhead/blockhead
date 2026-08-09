@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,20 +29,38 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$block: true,
-				balance: true,
-				usdValue: true,
-				$actorCoin: true,
+			...{
+				fields: {
+					$block: true,
+					balance: true,
+					usdValue: true,
+					$actorCoin: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: evmNetworkActorCoinBalanceEvmBlock })}
 		{@const evmNetworkActorCoinBalanceEvmBlockSelector = evmNetworkActorCoinBalanceEvmBlock[EntityMetaKey.Selector]}
+		{@const actorCoin = evmNetworkActorCoinBalanceEvmBlockSelector.$actorCoin}
 		<EntityView
 			entityType={EntityType.EvmNetworkActorCoinBalance_EvmBlock}
 			entitySelector={evmNetworkActorCoinBalanceEvmBlockSelector}
+			href={
+				'blockNumber' in evmNetworkActorCoinBalanceEvmBlockSelector.$block
+				&& '$network' in actorCoin
+				&& 'caip2' in actorCoin.$network ?
+					resolve(
+						'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/native/(evmNetworkActorCoinBalance)/block/[blockNumber=nonNegativeBigInt]',
+						{
+							chainId: actorCoin.$network.caip2.reference,
+							owner: actorCoin.$actor.address,
+							blockNumber: String(evmNetworkActorCoinBalanceEvmBlockSelector.$block.blockNumber),
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{`Block #${evmNetworkActorCoinBalanceEvmBlock.$block.blockNumber}`}

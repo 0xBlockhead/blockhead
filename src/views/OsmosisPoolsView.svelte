@@ -28,13 +28,15 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				poolId: true,
-				typeUrl: true,
-				swapFee: true,
-				exitFee: true,
-				$network: true,
-				liquidityKind: true,
+			...{
+				fields: {
+					poolId: true,
+					typeUrl: true,
+					swapFee: true,
+					exitFee: true,
+					$network: true,
+					liquidityKind: true,
+				},
 			},
 		})
 	}

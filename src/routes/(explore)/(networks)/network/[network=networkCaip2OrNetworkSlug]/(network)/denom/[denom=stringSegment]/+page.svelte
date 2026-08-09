@@ -1,0 +1,41 @@
+<!-- Generated from APP.ts. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		data,
+	}: PageProps = $props()
+
+	const pageSelection = $derived(select(EntityType.CosmosDenom, data.selector, {
+		fields: {
+			symbol: true,
+			display: true,
+		},
+	}))
+
+
+	// Components
+	import Page from '$/components/Page.svelte'
+	import CosmosDenomView from '$/views/CosmosDenomView.svelte'
+</script>
+
+
+<svelte:head>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.denom ?? '') || 'Cosmos denom' : [(pageSelection.entity.symbol ?? ''), (pageSelection.entity.display ?? ''), pageSelection.entitySelector.denom].filter(Boolean).join(' ') || 'Cosmos denom')} • Cosmos denom • Blockhead</title>
+</svelte:head>
+
+
+<Page>
+	<CosmosDenomView
+		selection={pageSelection}
+	/>
+</Page>

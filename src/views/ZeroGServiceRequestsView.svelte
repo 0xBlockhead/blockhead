@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,19 +28,37 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				requestId: true,
-				$serviceProvider: true,
-				$requester: true,
+			...{
+				fields: {
+					requestId: true,
+					$serviceProvider: true,
+					$requester: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: zeroGServiceRequest })}
 		{@const zeroGServiceRequestSelector = zeroGServiceRequest[EntityMetaKey.Selector]}
+		{@const serviceProvider = zeroGServiceRequestSelector.$serviceProvider}
 		<EntityView
 			entityType={EntityType.ZeroGServiceRequest}
 			entitySelector={zeroGServiceRequestSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/service-provider/[providerId=stringSegment]/(zeroGServiceProvider)/request/[requestId=stringSegment]',
+					{
+						network: (
+							'caip2' in serviceProvider.$network ?
+								caip2StringFromValue(serviceProvider.$network.caip2)
+							:
+								serviceProvider.$network.slug
+						),
+						providerId: serviceProvider.providerId,
+						requestId: zeroGServiceRequestSelector.requestId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{zeroGServiceRequestSelector.requestId || 'zero g service request'}

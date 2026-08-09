@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -30,10 +31,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				status: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					status: true,
+					source: true,
+				},
 			},
 		})
 	}
@@ -43,6 +46,16 @@
 		<EntityView
 			entityType={EntityType._GlobalAiArtifactCatalog_Timestamp}
 			entitySelector={globalAiArtifactCatalogTimestampSelector}
+			href={
+				resolve(
+					'/~/ai/artifact-catalog/[catalogId=stringSegment]/(globalAiArtifactCatalog)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						catalogId: globalAiArtifactCatalogTimestampSelector.$catalog.catalogId,
+						timestampMs: String(globalAiArtifactCatalogTimestampSelector.timestampMs),
+						source: globalAiArtifactCatalogTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{globalAiArtifactCatalogTimestampSelector.timestampMs}

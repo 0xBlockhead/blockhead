@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -29,9 +30,18 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: globalAgentNetwork })}
+		{@const globalAgentNetworkSelector = globalAgentNetwork[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType._GlobalAgentNetwork}
-			entitySelector={globalAgentNetwork[EntityMetaKey.Selector]}
+			entitySelector={globalAgentNetworkSelector}
+			href={
+				resolve(
+					'/~/agent-network/[networkId=stringSegment]',
+					{
+						networkId: globalAgentNetworkSelector.networkId,
+					}
+				)
+			}
 		/>
 	{/snippet}
 </EntitiesList>

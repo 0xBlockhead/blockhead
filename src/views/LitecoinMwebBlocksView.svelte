@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,24 +28,41 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$block: {
-					fields: {
-						hash: true,
-						transactionCount: true,
+			...{
+				fields: {
+					$block: {
+						fields: {
+							hash: true,
+							transactionCount: true,
+						},
 					},
+					hogExTransactionId: true,
+					kernelRoot: true,
 				},
-				hogExTransactionId: true,
-				kernelRoot: true,
 			},
 		})
 	}
 >
 	{#snippet Item({ item: litecoinMwebBlock })}
 		{@const litecoinMwebBlockSelector = litecoinMwebBlock[EntityMetaKey.Selector]}
+		{@const block = litecoinMwebBlockSelector.$block}
 		<EntityView
 			entityType={EntityType.LitecoinMwebBlock}
 			entitySelector={litecoinMwebBlockSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/mweb',
+					{
+						network: (
+							'caip2' in block.$network ?
+								caip2StringFromValue(block.$network.caip2)
+							:
+								block.$network.slug
+						),
+						blockNumber: String(block.height),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{`Block #${litecoinMwebBlockSelector.$block.height}`}

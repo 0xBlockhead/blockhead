@@ -27,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$video: true,
-				timestampMs: true,
-				source: true,
+			...{
+				fields: {
+					$video: true,
+					timestampMs: true,
+					source: true,
+				},
 			},
 		})
 	}

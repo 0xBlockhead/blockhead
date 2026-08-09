@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -29,9 +31,26 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: kaspaVirtualChainTimestamp })}
+		{@const kaspaVirtualChainTimestampSelector = kaspaVirtualChainTimestamp[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.KaspaVirtualChain_Timestamp}
-			entitySelector={kaspaVirtualChainTimestamp[EntityMetaKey.Selector]}
+			entitySelector={kaspaVirtualChainTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/virtual-chain/[startHash=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in kaspaVirtualChainTimestampSelector.$network.$network ?
+								caip2StringFromValue(kaspaVirtualChainTimestampSelector.$network.$network.caip2)
+							:
+								kaspaVirtualChainTimestampSelector.$network.$network.slug
+						),
+						startHash: kaspaVirtualChainTimestampSelector.startHash,
+						timestampMs: String(kaspaVirtualChainTimestampSelector.timestampMs),
+						source: kaspaVirtualChainTimestampSelector.source,
+					}
+				)
+			}
 		/>
 	{/snippet}
 </EntitiesList>

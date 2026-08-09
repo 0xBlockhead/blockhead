@@ -28,10 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				balanceAttoFil: true,
-				height: true,
+			...{
+				fields: {
+					timestampMs: true,
+					balanceAttoFil: true,
+					height: true,
+				},
 			},
 		})
 	}

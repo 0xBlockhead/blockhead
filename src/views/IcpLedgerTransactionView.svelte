@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,10 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.IcpLedgerTransaction>, 'prefetched'> = $props()
+
+	const block = $derived(selection.entitySelector.$block)
 
 
 	// Components
@@ -33,6 +38,25 @@
 	entityType={EntityType.IcpLedgerTransaction}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'ICP ledger transaction'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/canister/[canisterId=stringSegment]/(icpCanister)/ledger/(icpLedgerCanister)/block/[blockIndex=nonNegativeBigInt]/(icpLedgerBlock)/transaction/[transactionIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in block.$ledger.$canister.$network.$network ?
+							caip2StringFromValue(block.$ledger.$canister.$network.$network.caip2)
+						:
+							block.$ledger.$canister.$network.$network.slug
+					),
+					canisterId: block.$ledger.$canister.canisterId,
+					blockIndex: String(block.blockIndex),
+					transactionIndex: String(selection.entitySelector.transactionIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

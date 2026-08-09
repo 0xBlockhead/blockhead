@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				commitment: true,
-				walletId: true,
-				amountLitoshis: true,
+			...{
+				fields: {
+					commitment: true,
+					walletId: true,
+					amountLitoshis: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,15 @@
 		<EntityView
 			entityType={EntityType.BlockheadLitecoinMwebOutputState}
 			entitySelector={blockheadLitecoinMwebOutputStateSelector}
+			href={
+				resolve(
+					'/~/litecoin-mweb/wallet/[walletId=stringSegment]/output-state/[commitment=stringSegment]',
+					{
+						walletId: blockheadLitecoinMwebOutputStateSelector.walletId,
+						commitment: blockheadLitecoinMwebOutputStateSelector.commitment,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadLitecoinMwebOutputStateSelector.commitment || 'blockhead litecoin mweb output state'}

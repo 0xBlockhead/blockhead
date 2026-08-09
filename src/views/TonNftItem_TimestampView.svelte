@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,10 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TonNftItem_Timestamp>, 'prefetched'> = $props()
+
+	const item = $derived(selection.entitySelector.$item)
 
 
 	// Components
@@ -34,6 +39,31 @@
 	entityType={EntityType.TonNftItem_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'TON NFT item timestamp'}
+	href={
+		href === undefined ?
+			(
+				'itemAddress' in item
+				&& '$network' in item ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nft-item/[itemAddress=stringSegment]/(tonNftItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							network: (
+								'caip2' in item.$network ?
+									caip2StringFromValue(item.$network.caip2)
+								:
+									item.$network.slug
+							),
+							itemAddress: item.itemAddress,
+							timestampMs: String(selection.entitySelector.timestampMs),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

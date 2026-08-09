@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,11 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.McpServerPackageVersion> = $props()
 
+	const artifact = $derived(selection.entitySelector.$artifact)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.McpPackageRegistry_Rest,
@@ -49,6 +52,37 @@
 	entityType={EntityType.McpServerPackageVersion}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'$artifact' in selection.entitySelector
+				&& 'providerArtifactId' in artifact
+				&& '$provider' in artifact
+				&& 'providerId' in artifact.$provider ?
+					resolve(
+						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/artifact/[providerArtifactId=stringSegment]/(aiArtifact)/mcp-package-version',
+						{
+							providerId: artifact.$provider.providerId,
+							providerArtifactId: artifact.providerArtifactId,
+						}
+					)
+				:
+					'version' in selection.entitySelector
+					&& '$package' in selection.entitySelector
+					&& 'registryServerName' in selection.entitySelector.$package ?
+						resolve(
+							'/mcp/package/registry/[registryServerName=stringSegment]/(mcpServerPackage)/version/[version=stringSegment]',
+							{
+								registryServerName: selection.entitySelector.$package.registryServerName,
+								version: selection.entitySelector.version,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -70,6 +104,7 @@
 					<McpServerPackageView
 						selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
 						prefetched={mcpServerPackage}
+						href={null}
 						layout={EntityLayout.Value}
 					/>
 				{/if}

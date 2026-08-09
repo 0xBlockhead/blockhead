@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,10 +15,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TezosContract_Timestamp>, 'prefetched'> = $props()
+
+	const contract = $derived(selection.entitySelector.$contract)
 
 
 	// Components
@@ -30,6 +35,25 @@
 <EntityView
 	entityType={EntityType.TezosContract_Timestamp}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/contract/tezos/[address=stringSegment]/(tezosContract)/level/[level=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in contract.$network.$network ?
+							caip2StringFromValue(contract.$network.$network.caip2)
+						:
+							contract.$network.$network.slug
+					),
+					address: contract.address,
+					level: String(selection.entitySelector.level),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

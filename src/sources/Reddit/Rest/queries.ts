@@ -11,7 +11,6 @@ import {
 	redditApiListingWire,
 	redditApiSubredditAboutWire,
 } from '$/sources/Reddit/Rest/types.ts'
-import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 const assertEnvelope = <_Value>(
 	label: string,
@@ -25,12 +24,11 @@ const assertEnvelope = <_Value>(
 	}
 }
 
-export const getInfo = async (publicEnv: SourcePublicEnv, id: string) => (
+export const getInfo = async (id: string) => (
 	assertEnvelope(
 		'info',
 		redditApiInfoResponseWire,
 		await oauthGetJson<RedditApiInfoResponse>(
-			publicEnv,
 			`/api/info?${(
 				new URLSearchParams({ id, raw_json: '1' }).toString()
 			)}`
@@ -38,16 +36,15 @@ export const getInfo = async (publicEnv: SourcePublicEnv, id: string) => (
 	)
 )
 
-export const getSubredditAbout = async (publicEnv: SourcePublicEnv, name: string) => (
+export const getSubredditAbout = async (name: string) => (
 	assertEnvelope(
 		'subreddit-about',
 		redditApiSubredditAboutWire,
-		await oauthGetJson<RedditApiSubredditAbout>(publicEnv, `/r/${encodeURIComponent(name)}/about?raw_json=1`)
+		await oauthGetJson<RedditApiSubredditAbout>(`/r/${encodeURIComponent(name)}/about?raw_json=1`)
 	)
 )
 
 export const listSubredditLinks = async (
-	publicEnv: SourcePublicEnv,
 	name: string,
 	limit: number,
 	after?: string,
@@ -57,7 +54,6 @@ export const listSubredditLinks = async (
 		'listing',
 		redditApiListingWire,
 		await oauthGetJson<RedditApiListing>(
-			publicEnv,
 			`/r/${encodeURIComponent(name)}/${sort}?${(
 				new URLSearchParams({
 					...(after !== undefined && {
@@ -72,7 +68,6 @@ export const listSubredditLinks = async (
 )
 
 export const getLinkCommentsByArticleId = async (
-	publicEnv: SourcePublicEnv,
 	articleId: string,
 	limit: number
 ) => (
@@ -80,7 +75,6 @@ export const getLinkCommentsByArticleId = async (
 		'comments',
 		redditApiCommentsWire,
 		await oauthGetJson<RedditApiListing[]>(
-			publicEnv,
 			`/comments/${encodeURIComponent(articleId)}?${(
 				new URLSearchParams({
 					limit: String(limit),

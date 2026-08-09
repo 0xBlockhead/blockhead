@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadLightningChannelState>, 'prefetched'> = $props()
 
+	const localNodeState = $derived(selection.entitySelector.$localNodeState)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.LightningLnd_Rest,
@@ -46,6 +50,24 @@
 	entityType={EntityType.BlockheadLightningChannelState}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'blockhead Lightning channel state'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/~/lightning/connection/[connectionId=stringSegment]/node-state/(blockheadLightningNodeState)/channel/[channelId=stringSegment]',
+				{
+					network: (
+						'caip2' in localNodeState.$network.$network ?
+							caip2StringFromValue(localNodeState.$network.$network.caip2)
+						:
+							localNodeState.$network.$network.slug
+					),
+					connectionId: localNodeState.connectionId,
+					channelId: selection.entitySelector.$channel.channelId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -61,6 +83,7 @@
 	{#snippet Value()}
 		<BlockheadLightningNodeStateView
 			selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

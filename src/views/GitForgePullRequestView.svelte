@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -15,11 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.GitForgePullRequest> = $props()
 
+	const forgeMirror = $derived(selection.entitySelector.$forgeMirror)
 	const gitForgePullRequest = $derived(selection({
 		fields: {
 			title: true,
@@ -42,6 +45,20 @@
 	entityType={EntityType.GitForgePullRequest}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]/(gitForgeMirror)/pull-request/[pullRequestNumber=nonNegativeInteger]',
+				{
+					forgeHost: forgeMirror.forgeHost,
+					owner: forgeMirror.owner,
+					repositoryName: forgeMirror.repositoryName,
+					pullRequestNumber: String(selection.entitySelector.pullRequestNumber),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -30,8 +33,8 @@
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import AlgorandTransactionProofsView from '$/views/AlgorandTransactionProofsView.svelte'
 	import AlgorandNetworkView from '$/views/AlgorandNetworkView.svelte'
 	import AlgorandTransactionGroupView from '$/views/AlgorandTransactionGroupView.svelte'
 </script>
@@ -41,6 +44,23 @@
 	entityType={EntityType.AlgorandTransaction}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/transaction/[txId=stringSegment]',
+				{
+					network: (
+						'caip2' in selection.entitySelector.$network.$network ?
+							caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+						:
+							selection.entitySelector.$network.$network.slug
+					),
+					txId: selection.entitySelector.txId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -268,21 +288,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.AlgorandTransactionProof}
+					<AlgorandTransactionProofsView
+						selection={proofsResource}
 						countResource={proofsResource.count}
 						title='proofs'
-						open={true}
 						id='proofs'
-						resource={proofsResource()}
-					>
-						{#snippet Item({ item: algorandTransactionProof })}
-							<EntityView
-								entityType={EntityType.AlgorandTransactionProof}
-								entitySelector={algorandTransactionProof[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

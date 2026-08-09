@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,10 +15,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TezosBigMapKey_Timestamp>, 'prefetched'> = $props()
+
+	const bigMapKey = $derived(selection.entitySelector.$bigMapKey)
 
 
 	// Components
@@ -29,6 +34,27 @@
 <EntityView
 	entityType={EntityType.TezosBigMapKey_Timestamp}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/contract/tezos/[address=stringSegment]/(tezosContract)/big-map/[bigMapId=nonNegativeBigInt]/(tezosBigMap)/key/[keyHash=stringSegment]/(tezosBigMapKey)/level/[level=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in bigMapKey.$bigMap.$contract.$network.$network ?
+							caip2StringFromValue(bigMapKey.$bigMap.$contract.$network.$network.caip2)
+						:
+							bigMapKey.$bigMap.$contract.$network.$network.slug
+					),
+					address: bigMapKey.$bigMap.$contract.address,
+					bigMapId: String(bigMapKey.$bigMap.bigMapId),
+					keyHash: bigMapKey.keyHash,
+					level: String(selection.entitySelector.level),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

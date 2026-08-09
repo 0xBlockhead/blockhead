@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,9 +29,25 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: tonWorkchain })}
+		{@const tonWorkchainSelector = tonWorkchain[EntityMetaKey.Selector]}
+		{@const network = tonWorkchainSelector.$network}
 		<EntityView
 			entityType={EntityType.TonWorkchain}
-			entitySelector={tonWorkchain[EntityMetaKey.Selector]}
+			entitySelector={tonWorkchainSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/workchain/[workchain=nonNegativeInteger]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						workchain: String(tonWorkchainSelector.workchain),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				TON workchain

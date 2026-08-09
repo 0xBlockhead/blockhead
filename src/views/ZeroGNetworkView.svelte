@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -18,6 +19,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -40,13 +42,13 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import ZeroGConsensusNetworkView from '$/views/ZeroGConsensusNetworkView.svelte'
 	import ZeroGNetwork_TimestampsView from '$/views/ZeroGNetwork_TimestampsView.svelte'
+	import ZeroGStorageNodesView from '$/views/ZeroGStorageNodesView.svelte'
 	import ZeroGDataBlobsView from '$/views/ZeroGDataBlobsView.svelte'
 	import ZeroGKvEntriesView from '$/views/ZeroGKvEntriesView.svelte'
 	import ZeroGDaQuorumsView from '$/views/ZeroGDaQuorumsView.svelte'
@@ -60,6 +62,17 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/zerog/[slug=stringSegment]',
+				{
+					slug: selection.entitySelector.slug,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -252,22 +265,13 @@
 			{/snippet}
 
 			{#snippet SectionZerogStorageNodes({ id, label })}
-				<EntitiesList
-					entityType={EntityType.ZeroGStorageNode}
+				<ZeroGStorageNodesView
+					selection={selection.$$storageNodes}
 					collapsible={false}
 					title={label}
 					emptyText='No 0G storage nodes.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$storageNodes()}
-				>
-					{#snippet Item({ item: zeroGStorageNode })}
-						<EntityView
-							entityType={EntityType.ZeroGStorageNode}
-							entitySelector={zeroGStorageNode[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionZerogDataBlobs({ id, label })}

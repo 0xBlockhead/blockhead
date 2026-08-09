@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -32,10 +31,20 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import StellarNetwork_TimestampsView from '$/views/StellarNetwork_TimestampsView.svelte'
+	import StellarLedgersView from '$/views/StellarLedgersView.svelte'
+	import StellarTransactionsView from '$/views/StellarTransactionsView.svelte'
+	import StellarOperationsView from '$/views/StellarOperationsView.svelte'
+	import StellarAccountsView from '$/views/StellarAccountsView.svelte'
+	import StellarAssetsView from '$/views/StellarAssetsView.svelte'
+	import StellarClaimableBalancesView from '$/views/StellarClaimableBalancesView.svelte'
+	import StellarLiquidityPoolsView from '$/views/StellarLiquidityPoolsView.svelte'
+	import StellarOffersView from '$/views/StellarOffersView.svelte'
+	import StellarTradesView from '$/views/StellarTradesView.svelte'
+	import SorobanContractsView from '$/views/SorobanContractsView.svelte'
 </script>
 
 
@@ -128,79 +137,43 @@
 			{/snippet}
 
 			{#snippet SectionStellarChainObservations({ id, label })}
-				<EntitiesList
-					entityType={EntityType.StellarNetwork_Timestamp}
+				<StellarNetwork_TimestampsView
+					selection={selection.$$timestamps}
 					collapsible={false}
 					title={label}
 					emptyText='No Stellar network observations.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$timestamps()}
-				>
-					{#snippet Item({ item: stellarNetworkTimestamp })}
-						<EntityView
-							entityType={EntityType.StellarNetwork_Timestamp}
-							entitySelector={stellarNetworkTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionStellarChainLedgers({ id, label })}
-				<EntitiesList
-					entityType={EntityType.StellarLedger}
+				<StellarLedgersView
+					selection={selection.$$ledgers}
 					collapsible={false}
 					title={label}
 					emptyText='No Stellar ledgers.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$ledgers()}
-				>
-					{#snippet Item({ item: stellarLedger })}
-						<EntityView
-							entityType={EntityType.StellarLedger}
-							entitySelector={stellarLedger[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionStellarChainTransactions({ id, label })}
-				<EntitiesList
-					entityType={EntityType.StellarTransaction}
+				<StellarTransactionsView
+					selection={selection.$$transactions}
 					collapsible={false}
 					title={label}
 					emptyText='No Stellar transactions.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$transactions()}
-				>
-					{#snippet Item({ item: stellarTransaction })}
-						<EntityView
-							entityType={EntityType.StellarTransaction}
-							entitySelector={stellarTransaction[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionStellarChainOperations({ id, label })}
-				<EntitiesList
-					entityType={EntityType.StellarOperation}
+				<StellarOperationsView
+					selection={selection.$$operations}
 					collapsible={false}
 					title={label}
 					emptyText='No Stellar operations.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$operations()}
-				>
-					{#snippet Item({ item: stellarOperation })}
-						<EntityView
-							entityType={EntityType.StellarOperation}
-							entitySelector={stellarOperation[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -234,60 +207,33 @@
 			{/snippet}
 
 			{#snippet SectionStellarAccounts({ id, label })}
-				<EntitiesList
-					entityType={EntityType.StellarAccount}
+				<StellarAccountsView
+					selection={selection.$$accounts}
 					collapsible={false}
 					title={label}
 					emptyText='No Stellar accounts.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$accounts()}
-				>
-					{#snippet Item({ item: stellarAccount })}
-						<EntityView
-							entityType={EntityType.StellarAccount}
-							entitySelector={stellarAccount[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionStellarAssets({ id, label })}
-				<EntitiesList
-					entityType={EntityType.StellarAsset}
+				<StellarAssetsView
+					selection={selection.$$assets}
 					collapsible={false}
 					title={label}
 					emptyText='No Stellar assets.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$assets()}
-				>
-					{#snippet Item({ item: stellarAsset })}
-						<EntityView
-							entityType={EntityType.StellarAsset}
-							entitySelector={stellarAsset[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionStellarClaimables({ id, label })}
-				<EntitiesList
-					entityType={EntityType.StellarClaimableBalance}
+				<StellarClaimableBalancesView
+					selection={selection.$$claimableBalances}
 					collapsible={false}
 					title={label}
 					emptyText='No Stellar claimable balances.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$claimableBalances()}
-				>
-					{#snippet Item({ item: stellarClaimableBalance })}
-						<EntityView
-							entityType={EntityType.StellarClaimableBalance}
-							entitySelector={stellarClaimableBalance[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -321,60 +267,33 @@
 			{/snippet}
 
 			{#snippet SectionStellarLiquidityPools({ id, label })}
-				<EntitiesList
-					entityType={EntityType.StellarLiquidityPool}
+				<StellarLiquidityPoolsView
+					selection={selection.$$liquidityPools}
 					collapsible={false}
 					title={label}
 					emptyText='No Stellar liquidity pools.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$liquidityPools()}
-				>
-					{#snippet Item({ item: stellarLiquidityPool })}
-						<EntityView
-							entityType={EntityType.StellarLiquidityPool}
-							entitySelector={stellarLiquidityPool[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionStellarOffers({ id, label })}
-				<EntitiesList
-					entityType={EntityType.StellarOffer}
+				<StellarOffersView
+					selection={selection.$$offers}
 					collapsible={false}
 					title={label}
 					emptyText='No Stellar offers.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$offers()}
-				>
-					{#snippet Item({ item: stellarOffer })}
-						<EntityView
-							entityType={EntityType.StellarOffer}
-							entitySelector={stellarOffer[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionStellarTrades({ id, label })}
-				<EntitiesList
-					entityType={EntityType.StellarTrade}
+				<StellarTradesView
+					selection={selection.$$trades}
 					collapsible={false}
 					title={label}
 					emptyText='No Stellar trades.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$trades()}
-				>
-					{#snippet Item({ item: stellarTrade })}
-						<EntityView
-							entityType={EntityType.StellarTrade}
-							entitySelector={stellarTrade[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -400,22 +319,13 @@
 			{/snippet}
 
 			{#snippet SectionStellarSorobanContracts({ id, label })}
-				<EntitiesList
-					entityType={EntityType.SorobanContract}
+				<SorobanContractsView
+					selection={selection.$$contracts}
 					collapsible={false}
 					title={label}
 					emptyText='No Soroban contracts.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$contracts()}
-				>
-					{#snippet Item({ item: sorobanContract })}
-						<EntityView
-							entityType={EntityType.SorobanContract}
-							entitySelector={sorobanContract[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

@@ -28,10 +28,7 @@ const resolverContext = {
 	selectorKeys: [],
 	parentSelectorKeys: [],
 	sources: [],
-	publicEnv: {
-		PUBLIC_REDDIT_CLIENT_ID: 'client',
-		PUBLIC_REDDIT_CLIENT_SECRET: 'secret',
-	},
+	publicEnv: {},
 }
 
 describe('Reddit_Rest listing continuation', () => {
@@ -51,7 +48,6 @@ describe('Reddit_Rest listing continuation', () => {
 
 		await resolver.resolve['Scope'].resolve({}, resolverContext)
 		expect(listSubredditLinks).toHaveBeenCalledWith(
-			resolverContext.publicEnv,
 			'popular',
 			64,
 			undefined,
@@ -92,7 +88,6 @@ describe('Reddit_Rest listing continuation', () => {
 			providerContinuationToken: 't3_previous+/=',
 		})).resolves.toEqual(page)
 		expect(listSubredditLinks).toHaveBeenCalledWith(
-			resolverContext.publicEnv,
 			'ethereum',
 			64,
 			't3_previous+/=',

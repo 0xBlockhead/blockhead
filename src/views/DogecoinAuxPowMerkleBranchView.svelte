@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -15,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -38,6 +41,24 @@
 	entityType={EntityType.DogecoinAuxPowMerkleBranch}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.branchKind || 'dogecoin aux pow merkle branch')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/aux-pow/(dogecoinBlockAuxPow)/branch/[branchKind=stringSegment]',
+				{
+					network: (
+						'caip2' in selection.entitySelector.$auxPow.$block.$network ?
+							caip2StringFromValue(selection.entitySelector.$auxPow.$block.$network.caip2)
+						:
+							selection.entitySelector.$auxPow.$block.$network.slug
+					),
+					blockNumber: String(selection.entitySelector.$auxPow.$block.height),
+					branchKind: selection.entitySelector.branchKind,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -45,6 +66,7 @@
 	{#snippet Value()}
 		<DogecoinBlockAuxPowView
 			selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

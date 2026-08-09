@@ -13,12 +13,10 @@
 
 	// State
 	let {
-		params,
+		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadSource, {
-		id: params.sourceId,
-	}, {
+	const pageSelection = $derived(select(EntityType.BlockheadSource, data.selector, {
 		sources: [
 			Source.Constants_Internal,
 			Source.Local_Internal,
@@ -36,7 +34,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'source' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.id || 'source'} • source • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.id ?? '') || 'source' : (pageSelection.entity.label ?? '') || pageSelection.entitySelector.id || 'source')} • source • Blockhead</title>
 </svelte:head>
 
 

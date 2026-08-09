@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,10 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.DogecoinBlockAuxPow>, 'prefetched'> = $props()
+
+	const block = $derived(selection.entitySelector.$block)
 
 
 	// Components
@@ -33,6 +38,23 @@
 	entityType={EntityType.DogecoinBlockAuxPow}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'dogecoin block aux pow'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/aux-pow',
+				{
+					network: (
+						'caip2' in block.$network ?
+							caip2StringFromValue(block.$network.caip2)
+						:
+							block.$network.slug
+					),
+					blockNumber: String(block.height),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -53,6 +75,7 @@
 				{#if dogecoinAuxPowParentBlockHeader != null}
 					<DogecoinAuxPowParentBlockHeaderView
 						selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
+						href={null}
 						layout={EntityLayout.Value}
 					/>
 				{/if}

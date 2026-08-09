@@ -28,11 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				spacedRune: true,
-				rune: true,
-				runeId: true,
-				number: true,
+			...{
+				fields: {
+					spacedRune: true,
+					rune: true,
+					runeId: true,
+					number: true,
+				},
 			},
 		})
 	}

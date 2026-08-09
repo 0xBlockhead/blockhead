@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				path: true,
-				status: true,
-				commitObjectId: true,
+			...{
+				fields: {
+					path: true,
+					status: true,
+					commitObjectId: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,19 @@
 		<EntityView
 			entityType={EntityType.GitTreePathResolution}
 			entitySelector={gitTreePathResolutionSelector}
+			href={
+				'repositoryId' in gitTreePathResolutionSelector.$repository ?
+					resolve(
+						'/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/commit/[commitObjectId=zeroExHex]/path/[path=stringSegment]',
+						{
+							repositoryId: gitTreePathResolutionSelector.$repository.repositoryId,
+							commitObjectId: gitTreePathResolutionSelector.commitObjectId,
+							path: gitTreePathResolutionSelector.path,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{gitTreePathResolutionSelector.path || 'Git tree path resolution'}

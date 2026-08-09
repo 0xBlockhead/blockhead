@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,11 +17,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AssetClass> = $props()
 
+	const assetInstance = $derived(selection.entitySelector.$assetInstance)
 	const titleFallback = $derived([(prefetched.label ?? ''), selection.entitySelector.classKey].filter(Boolean).join(' ') || 'asset class')
 
 
@@ -33,6 +37,26 @@
 	entityType={EntityType.AssetClass}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/class/[classKind=stringSegment]/[classKey=stringSegment]',
+				{
+					network: (
+						'caip2' in assetInstance.$network ?
+							caip2StringFromValue(assetInstance.$network.caip2)
+						:
+							assetInstance.$network.slug
+					),
+					kind: assetInstance.kind,
+					assetKey: assetInstance.assetKey,
+					classKind: selection.entitySelector.classKind,
+					classKey: selection.entitySelector.classKey,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

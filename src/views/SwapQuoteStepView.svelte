@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -14,10 +15,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.SwapQuoteStep>, 'prefetched'> = $props()
+
+	const quote = $derived(selection.entitySelector.$quote)
 
 
 	// Components
@@ -31,6 +35,20 @@
 <EntityView
 	entityType={EntityType.SwapQuoteStep}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/swap/quote/[source=stringSegment]/[quoteRequestHash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]/(swapQuoteTimestamp)/step/[indexInQuote=nonNegativeInteger]',
+				{
+					source: quote.source,
+					quoteRequestHash: quote.quoteRequestHash,
+					timestampMs: String(quote.timestampMs),
+					indexInQuote: String(selection.entitySelector.indexInQuote),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

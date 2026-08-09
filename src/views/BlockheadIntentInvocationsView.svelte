@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,18 +27,30 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				modality: true,
-				resolvedIntentType: true,
-				createdAt: true,
+			...{
+				fields: {
+					modality: true,
+					resolvedIntentType: true,
+					createdAt: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadIntentInvocation })}
+		{@const blockheadIntentInvocationSelector = blockheadIntentInvocation[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadIntentInvocation}
-			entitySelector={blockheadIntentInvocation[EntityMetaKey.Selector]}
+			entitySelector={blockheadIntentInvocationSelector}
+			href={
+				resolve(
+					'/~/session/[sessionId=stringSegment]/(blockheadSession)/intent-invocation/[invocationId=stringSegment]',
+					{
+						sessionId: blockheadIntentInvocationSelector.sessionId,
+						invocationId: blockheadIntentInvocationSelector.invocationId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadIntentInvocation.modality || 'blockhead intent invocation'}

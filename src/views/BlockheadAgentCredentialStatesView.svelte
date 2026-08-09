@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				label: true,
-				credentialKind: true,
-				credentialId: true,
-				$connection: true,
+			...{
+				fields: {
+					label: true,
+					credentialKind: true,
+					credentialId: true,
+					$connection: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,14 @@
 		<EntityView
 			entityType={EntityType.BlockheadAgentCredentialState}
 			entitySelector={blockheadAgentCredentialStateSelector}
+			href={
+				resolve(
+					'/~/agent/credential/[credentialId=stringSegment]',
+					{
+						credentialId: blockheadAgentCredentialStateSelector.credentialId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(blockheadAgentCredentialState.label ?? '') || blockheadAgentCredentialStateSelector.credentialId || 'blockhead agent credential state'}

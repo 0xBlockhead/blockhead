@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,11 +17,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Eip8004ReputationFeedback_Timestamp> = $props()
 
+	const registration = $derived(selection.entitySelector.$registration)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
@@ -48,6 +51,24 @@
 	entityType={EntityType.Eip8004ReputationFeedback_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(agents)/agents/eip-8004/[namespace=stringSegment]/[chainId=nonNegativeInteger]/registry/[identityRegistry=evmAddress]/agent/[agentId=stringSegment]/(eip8004AgentRegistration)/feedback/[clientAddress=evmAddress]/[feedbackIndex=nonNegativeInteger]/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					namespace: registration.namespace,
+					chainId: String(registration.chainId),
+					identityRegistry: registration.identityRegistry,
+					agentId: registration.agentId,
+					clientAddress: selection.entitySelector.clientAddress,
+					feedbackIndex: String(selection.entitySelector.feedbackIndex),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

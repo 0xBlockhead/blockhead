@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,18 +27,30 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$sessionAction: true,
-				amount: true,
-				$network: true,
+			...{
+				fields: {
+					$sessionAction: true,
+					amount: true,
+					$network: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadTransferIntent })}
+		{@const blockheadTransferIntentSelector = blockheadTransferIntent[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadTransferIntent}
-			entitySelector={blockheadTransferIntent[EntityMetaKey.Selector]}
+			entitySelector={blockheadTransferIntentSelector}
+			href={
+				resolve(
+					'/~/session/[sessionId=stringSegment]/(blockheadSession)/transfer-intent/[actionId=stringSegment]',
+					{
+						sessionId: blockheadTransferIntentSelector.sessionId,
+						actionId: blockheadTransferIntentSelector.actionId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadTransferIntent.$sessionAction.actionType || 'blockhead session action'}

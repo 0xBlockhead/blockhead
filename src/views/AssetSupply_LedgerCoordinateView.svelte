@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.AssetSupply_LedgerCoordinate>, 'prefetched'> = $props()
 
+	const assetInstance = $derived(selection.entitySelector.$assetInstance)
 	const assetSupplyLedgerCoordinate = $derived(selection({
 		fields: {
 			totalSupply: true,
@@ -45,6 +49,28 @@
 	entityType={EntityType.AssetSupply_LedgerCoordinate}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.supplyScopeKey || 'asset supply ledger coordinate')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/supply/[supplyScopeKey=stringSegment]/ledger/[ledgerCoordinateKind=stringSegment]/[ledgerCoordinateValue=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in assetInstance.$network ?
+							caip2StringFromValue(assetInstance.$network.caip2)
+						:
+							assetInstance.$network.slug
+					),
+					kind: assetInstance.kind,
+					assetKey: assetInstance.assetKey,
+					supplyScopeKey: selection.entitySelector.supplyScopeKey,
+					ledgerCoordinateKind: selection.entitySelector.ledgerCoordinateKind,
+					ledgerCoordinateValue: String(selection.entitySelector.ledgerCoordinateValue),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

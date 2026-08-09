@@ -39,9 +39,9 @@
 	href={
 		href === undefined ?
 			(
-				'ledgerIndex' in selection.entitySelector ?
+				'ledgerHash' in selection.entitySelector ?
 					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/[ledgerIndex=nonNegativeBigInt]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/hash/[ledgerHash=stringSegment]',
 						{
 							network: (
 								'caip2' in network ?
@@ -49,11 +49,25 @@
 								:
 									network.slug
 							),
-							ledgerIndex: String(selection.entitySelector.ledgerIndex),
+							ledgerHash: selection.entitySelector.ledgerHash,
 						}
 					)
 				:
-					undefined
+					'ledgerIndex' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/xrpl/[ledgerIndex=nonNegativeBigInt]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								ledgerIndex: String(selection.entitySelector.ledgerIndex),
+							}
+						)
+					:
+						undefined
 			)
 		:
 			href ?? undefined

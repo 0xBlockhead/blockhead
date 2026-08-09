@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.HederaTokenCustomFee>, 'prefetched'> = $props()
+
+	const tokenTimestamp = $derived(selection.entitySelector.$tokenTimestamp)
 
 
 	// Components
@@ -32,6 +37,26 @@
 <EntityView
 	entityType={EntityType.HederaTokenCustomFee}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token/[tokenId=stringSegment]/(selection)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/(selection)/fee/[feeIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in tokenTimestamp.$token.$network ?
+							caip2StringFromValue(tokenTimestamp.$token.$network.caip2)
+						:
+							tokenTimestamp.$token.$network.slug
+					),
+					tokenId: tokenTimestamp.$token.tokenId,
+					timestampMs: String(tokenTimestamp.timestampMs),
+					source: tokenTimestamp.source,
+					feeIndex: String(selection.entitySelector.feeIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				sessionId: true,
-				$runtime: true,
-				workspaceUri: true,
+			...{
+				fields: {
+					sessionId: true,
+					$runtime: true,
+					workspaceUri: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,14 @@
 		<EntityView
 			entityType={EntityType.AcpSession}
 			entitySelector={acpSessionSelector}
+			href={
+				resolve(
+					'/(agents)/agents/acp/session/[sessionId=stringSegment]',
+					{
+						sessionId: acpSessionSelector.sessionId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{acpSessionSelector.sessionId || 'ACP session'}

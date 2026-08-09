@@ -56,7 +56,7 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/snapshot/proposal/[proposalId=stringSegment]',
+				'/~/snapshot/proposal/[proposalId=stringSegment]',
 				{
 					proposalId: encodeURIComponent(selection.entitySelector.proposalId),
 				}

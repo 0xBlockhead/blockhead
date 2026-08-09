@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.CardanoGovernanceProposal_Timestamp>, 'prefetched'> = $props()
 
+	const proposal = $derived(selection.entitySelector.$proposal)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Blockfrost_Rest,
@@ -42,6 +46,26 @@
 	entityType={EntityType.CardanoGovernanceProposal_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'Epoch ' + String(selection.entitySelector.epoch)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]/(cardanoGovernanceProposal)/observations/[epoch=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in proposal.$network ?
+							caip2StringFromValue(proposal.$network.caip2)
+						:
+							proposal.$network.slug
+					),
+					proposalTxHash: proposal.proposalTxHash,
+					proposalIndex: String(proposal.proposalIndex),
+					epoch: String(selection.entitySelector.epoch),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

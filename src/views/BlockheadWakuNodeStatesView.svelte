@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				nodeId: true,
-				connectionId: true,
-				endpoint: true,
+			...{
+				fields: {
+					nodeId: true,
+					connectionId: true,
+					endpoint: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,15 @@
 		<EntityView
 			entityType={EntityType.BlockheadWakuNodeState}
 			entitySelector={blockheadWakuNodeStateSelector}
+			href={
+				resolve(
+					'/~/waku/connection/[connectionId=stringSegment]/node-state/[nodeId=stringSegment]',
+					{
+						connectionId: blockheadWakuNodeStateSelector.connectionId,
+						nodeId: blockheadWakuNodeStateSelector.nodeId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadWakuNodeStateSelector.nodeId || 'blockhead waku node state'}

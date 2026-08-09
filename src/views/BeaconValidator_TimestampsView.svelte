@@ -28,9 +28,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				slot: true,
-				status: true,
+			...{
+				fields: {
+					slot: true,
+					status: true,
+				},
 			},
 		})
 	}
@@ -44,7 +46,7 @@
 			href={
 				'indexInNetwork' in validator ?
 					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]/(selection)/observations/[slot=nonNegativeInteger]/[source=stringSegment]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkeyOrStringSegment]/(selection)/observations/[slot=nonNegativeInteger]/[source=stringSegment]',
 						{
 							network: (
 								'caip2' in validator.$network ?

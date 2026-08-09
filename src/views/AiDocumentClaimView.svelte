@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,6 +16,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -46,6 +48,24 @@
 	entityType={EntityType.AiDocumentClaim}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'documentUrl' in selection.entitySelector.$document ?
+					resolve(
+						'/(ai)/ai/document/url/[documentUrl=absoluteUrl]/(aiDocument)/claim/[extractorId=stringSegment]/[claimPath=stringSegment]',
+						{
+							documentUrl: encodeURIComponent(selection.entitySelector.$document.documentUrl),
+							extractorId: selection.entitySelector.extractorId,
+							claimPath: selection.entitySelector.claimPath,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

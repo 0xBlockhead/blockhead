@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				terminalId: true,
-				command: true,
-				cwd: true,
+			...{
+				fields: {
+					terminalId: true,
+					command: true,
+					cwd: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,15 @@
 		<EntityView
 			entityType={EntityType.AcpTerminal}
 			entitySelector={acpTerminalSelector}
+			href={
+				resolve(
+					'/(agents)/agents/acp/session/[sessionId=stringSegment]/(acpSession)/terminal/[terminalId=stringSegment]',
+					{
+						sessionId: acpTerminalSelector.$session.sessionId,
+						terminalId: acpTerminalSelector.terminalId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{acpTerminalSelector.terminalId || 'ACP terminal'}

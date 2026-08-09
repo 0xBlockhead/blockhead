@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,10 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.SuiPackageUpgrade>, 'prefetched'> = $props()
+
+	const packageValue = $derived(selection.entitySelector.$package)
 
 
 	// Components
@@ -35,6 +40,24 @@
 	entityType={EntityType.SuiPackageUpgrade}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'Sui package upgrade'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/package/[originalPackageId=stringSegment]/(suiPackage)/upgrade/[upgradedPackageId=stringSegment]',
+				{
+					network: (
+						'caip2' in packageValue.$network.$network ?
+							caip2StringFromValue(packageValue.$network.$network.caip2)
+						:
+							packageValue.$network.$network.slug
+					),
+					originalPackageId: packageValue.originalPackageId,
+					upgradedPackageId: selection.entitySelector.upgradedPackageId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,20 +29,34 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				status: true,
-				isError: true,
-				error: true,
+			...{
+				fields: {
+					timestampMs: true,
+					status: true,
+					isError: true,
+					error: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: mcpToolCallTimestamp })}
 		{@const mcpToolCallTimestampSelector = mcpToolCallTimestamp[EntityMetaKey.Selector]}
+		{@const toolCall = mcpToolCallTimestampSelector.$toolCall}
 		<EntityView
 			entityType={EntityType.McpToolCall_Timestamp}
 			entitySelector={mcpToolCallTimestampSelector}
+			href={
+				resolve(
+					'/mcp/server/[serverKey=stringSegment]/(mcpServer)/tool-call/[callId=stringSegment]/(mcpToolCall)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						serverKey: toolCall.$server.serverKey,
+						callId: toolCall.callId,
+						timestampMs: String(mcpToolCallTimestampSelector.timestampMs),
+						source: mcpToolCallTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{mcpToolCallTimestampSelector.timestampMs}

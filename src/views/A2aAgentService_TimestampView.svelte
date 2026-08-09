@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,11 +15,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.A2aAgentService_Timestamp>, 'prefetched'> = $props()
 
+	const service = $derived(selection.entitySelector.$service)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -42,6 +45,21 @@
 	entityType={EntityType.A2aAgentService_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(agents)/agents/a2a/card/[agentCardUrl=absoluteUrl]/(a2aAgentCard)/service/[protocolBinding=stringSegment]/[endpointUrl=absoluteUrl]/(a2aAgentService)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					agentCardUrl: encodeURIComponent(service.$card.agentCardUrl),
+					protocolBinding: service.protocolBinding,
+					endpointUrl: encodeURIComponent(service.endpointUrl),
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

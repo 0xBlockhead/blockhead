@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadZeroGStorageProof>, 'prefetched'> = $props()
 
+	const nodeState = $derived(selection.entitySelector.$nodeState)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -49,6 +52,20 @@
 	entityType={EntityType.BlockheadZeroGStorageProof}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.proofId || 'blockhead zero g storage proof')}
+	href={
+		href === undefined ?
+			resolve(
+				'/zerog/[slug=stringSegment]/(zeroGNetwork)/~/zerog/connection/[connectionId=stringSegment]/node-state/[nodeId=evmAddress]/(blockheadZeroGStorageNodeState)/proof/[proofId=stringSegment]',
+				{
+					slug: nodeState.$network.slug,
+					connectionId: nodeState.connectionId,
+					nodeId: nodeState.nodeId,
+					proofId: selection.entitySelector.proofId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

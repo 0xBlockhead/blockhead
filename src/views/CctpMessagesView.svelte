@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				nonce: true,
-				sourceDomain: true,
-				messageHash: true,
+			...{
+				fields: {
+					nonce: true,
+					sourceDomain: true,
+					messageHash: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,15 @@
 		<EntityView
 			entityType={EntityType.CctpMessage}
 			entitySelector={cctpMessageSelector}
+			href={
+				resolve(
+					'/cctp/message/[sourceDomain=nonNegativeInteger]/[nonce=stringSegment]',
+					{
+						sourceDomain: String(cctpMessageSelector.sourceDomain),
+						nonce: cctpMessageSelector.nonce,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{cctpMessageSelector.nonce || 'CCTP message'}

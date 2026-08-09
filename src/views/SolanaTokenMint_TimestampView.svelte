@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.SolanaTokenMint_Timestamp>, 'prefetched'> = $props()
 
+	const mint = $derived(selection.entitySelector.$mint)
 	const solanaTokenMintTimestamp = $derived(selection({
 		fields: {
 			supply: true,
@@ -39,6 +43,25 @@
 	entityType={EntityType.SolanaTokenMint_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.slot)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-mint/[mintAddress=stringSegment]/(solanaTokenMint)/observations/[slot=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in mint.$network ?
+							caip2StringFromValue(mint.$network.caip2)
+						:
+							mint.$network.slug
+					),
+					mintAddress: mint.mintAddress,
+					slot: String(selection.entitySelector.slot),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

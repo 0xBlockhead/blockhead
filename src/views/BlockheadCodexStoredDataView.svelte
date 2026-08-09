@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadCodexStoredData>, 'prefetched'> = $props()
 
+	const nodeState = $derived(selection.entitySelector.$nodeState)
 	const blockheadCodexStoredData = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -44,6 +47,19 @@
 	entityType={EntityType.BlockheadCodexStoredData}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.cid || 'blockhead codex stored data')}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/codex/connection/[connectionId=stringSegment]/node/[peerId=stringSegment]/(blockheadCodexStorageNodeState)/stored-data/[cid=stringSegment]',
+				{
+					connectionId: nodeState.connectionId,
+					peerId: nodeState.peerId,
+					cid: selection.entitySelector.cid,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -51,6 +67,7 @@
 	{#snippet Value()}
 		<BlockheadCodexStorageNodeStateView
 			selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

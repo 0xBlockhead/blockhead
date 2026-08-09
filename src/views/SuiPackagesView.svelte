@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,9 +29,24 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: suiPackage })}
+		{@const suiPackageSelector = suiPackage[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.SuiPackage}
-			entitySelector={suiPackage[EntityMetaKey.Selector]}
+			entitySelector={suiPackageSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/package/[originalPackageId=stringSegment]',
+					{
+						network: (
+							'caip2' in suiPackageSelector.$network.$network ?
+								caip2StringFromValue(suiPackageSelector.$network.$network.caip2)
+							:
+								suiPackageSelector.$network.$network.slug
+						),
+						originalPackageId: suiPackageSelector.originalPackageId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				Sui package

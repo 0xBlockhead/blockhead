@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,20 +28,39 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				status: true,
-				blockHeight: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					status: true,
+					blockHeight: true,
+					source: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: avalanchePChainTransactionTimestamp })}
 		{@const avalanchePChainTransactionTimestampSelector = avalanchePChainTransactionTimestamp[EntityMetaKey.Selector]}
+		{@const transaction = avalanchePChainTransactionTimestampSelector.$transaction}
 		<EntityView
 			entityType={EntityType.AvalanchePChainTransaction_Timestamp}
 			entitySelector={avalanchePChainTransactionTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/avalanche-tx/[txId=stringSegment]/(avalanchePChainTransaction)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in transaction.$network ?
+								caip2StringFromValue(transaction.$network.caip2)
+							:
+								transaction.$network.slug
+						),
+						txId: transaction.txId,
+						timestampMs: String(avalanchePChainTransactionTimestampSelector.timestampMs),
+						source: avalanchePChainTransactionTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{avalanchePChainTransactionTimestampSelector.timestampMs}

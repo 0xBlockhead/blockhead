@@ -2,10 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,6 +17,7 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -25,13 +28,16 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TezosNetworkView from '$/views/TezosNetworkView.svelte'
 	import TezosAccountView from '$/views/TezosAccountView.svelte'
 	import TezosMichelsonScriptView from '$/views/TezosMichelsonScriptView.svelte'
+	import TezosEntrypointsView from '$/views/TezosEntrypointsView.svelte'
+	import TezosBigMapsView from '$/views/TezosBigMapsView.svelte'
+	import TezosOperationsView from '$/views/TezosOperationsView.svelte'
+	import TezosContract_TimestampsView from '$/views/TezosContract_TimestampsView.svelte'
 </script>
 
 
@@ -39,6 +45,23 @@
 	entityType={EntityType.TezosContract}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/contract/tezos/[address=stringSegment]',
+				{
+					network: (
+						'caip2' in selection.entitySelector.$network.$network ?
+							caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+						:
+							selection.entitySelector.$network.$network.slug
+					),
+					address: selection.entitySelector.address,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -174,60 +197,33 @@
 			{/snippet}
 
 			{#snippet SectionTezosContractEntrypoints({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosEntrypoint}
+				<TezosEntrypointsView
+					selection={selection.$$entrypoints}
 					collapsible={false}
 					title={label}
 					emptyText='No entrypoints.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$entrypoints()}
-				>
-					{#snippet Item({ item: tezosEntrypoint })}
-						<EntityView
-							entityType={EntityType.TezosEntrypoint}
-							entitySelector={tezosEntrypoint[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosContractBigMaps({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosBigMap}
+				<TezosBigMapsView
+					selection={selection.$$bigMaps}
 					collapsible={false}
 					title={label}
 					emptyText='No big maps.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$bigMaps()}
-				>
-					{#snippet Item({ item: tezosBigMap })}
-						<EntityView
-							entityType={EntityType.TezosBigMap}
-							entitySelector={tezosBigMap[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosContractOperations({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosOperation}
+				<TezosOperationsView
+					selection={selection.$$operations}
 					collapsible={false}
 					title={label}
 					emptyText='No operations.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$operations()}
-				>
-					{#snippet Item({ item: tezosOperation })}
-						<EntityView
-							entityType={EntityType.TezosOperation}
-							entitySelector={tezosOperation[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -253,22 +249,13 @@
 			{/snippet}
 
 			{#snippet SectionTezosContractTimestamps({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosContract_Timestamp}
+				<TezosContract_TimestampsView
+					selection={selection.$$timestamps}
 					collapsible={false}
 					title={label}
 					emptyText='No timestamps.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$timestamps()}
-				>
-					{#snippet Item({ item: tezosContractTimestamp })}
-						<EntityView
-							entityType={EntityType.TezosContract_Timestamp}
-							entitySelector={tezosContractTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

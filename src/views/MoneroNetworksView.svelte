@@ -27,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			sources: selection.sources ?? [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
-			fields: {
-				$network: true,
+			...{
+				sources: selection.sources ?? [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
+				fields: {
+					$network: true,
+				},
 			},
 		})
 	}

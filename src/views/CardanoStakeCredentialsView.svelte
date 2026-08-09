@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,9 +29,25 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: cardanoStakeCredential })}
+		{@const cardanoStakeCredentialSelector = cardanoStakeCredential[EntityMetaKey.Selector]}
+		{@const network = cardanoStakeCredentialSelector.$network}
 		<EntityView
 			entityType={EntityType.CardanoStakeCredential}
-			entitySelector={cardanoStakeCredential[EntityMetaKey.Selector]}
+			entitySelector={cardanoStakeCredentialSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/stake-credential/[credential=stringSegment]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						credential: cardanoStakeCredentialSelector.credential,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				Cardano stake credential

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				id: true,
-				status: true,
-				totalAmount: true,
-				unit: true,
+			...{
+				fields: {
+					id: true,
+					status: true,
+					totalAmount: true,
+					unit: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,14 @@
 		<EntityView
 			entityType={EntityType.BlockheadCashuToken}
 			entitySelector={blockheadCashuTokenSelector}
+			href={
+				resolve(
+					'/~/cashu/token/[id=stringSegment]',
+					{
+						id: blockheadCashuTokenSelector.id,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadCashuTokenSelector.id || 'blockhead Cashu token'}

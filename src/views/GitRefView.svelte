@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,6 +15,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -40,6 +42,23 @@
 	entityType={EntityType.GitRef}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'repositoryId' in selection.entitySelector.$repository ?
+					resolve(
+						'/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/ref/[refName=stringSegment]',
+						{
+							repositoryId: selection.entitySelector.$repository.repositoryId,
+							refName: selection.entitySelector.refName,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

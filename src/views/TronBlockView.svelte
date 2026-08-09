@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TronBlock>, 'prefetched'> = $props()
+
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -33,6 +38,40 @@
 <EntityView
 	entityType={EntityType.TronBlock}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			(
+				'hash' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							blockNumber: String(selection.entitySelector.height),
+							hash: selection.entitySelector.hash,
+						}
+					)
+				:
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							blockNumber: String(selection.entitySelector.height),
+						}
+					)
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

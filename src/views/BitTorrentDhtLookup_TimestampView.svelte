@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -10,6 +11,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -35,6 +37,19 @@
 	entityType={EntityType.BitTorrentDhtLookup_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(bittorrent)/bittorrent/dht-lookup/[infoHash=stringSegment]/[observerKey=stringSegment]/[timestampMs=nonNegativeInteger]',
+				{
+					infoHash: selection.entitySelector.infoHash,
+					observerKey: selection.entitySelector.observerKey,
+					timestampMs: String(selection.entitySelector.timestampMs),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

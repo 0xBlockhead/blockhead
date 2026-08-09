@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,19 +30,37 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				authorizationIndex: true,
-				delegationAddress: true,
-				authority: true,
+			...{
+				fields: {
+					authorizationIndex: true,
+					delegationAddress: true,
+					authority: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: eip7702Authorization })}
 		{@const eip7702AuthorizationSelector = eip7702Authorization[EntityMetaKey.Selector]}
+		{@const transaction = eip7702AuthorizationSelector.$transaction}
 		<EntityView
 			entityType={EntityType.Eip7702Authorization}
 			entitySelector={eip7702AuthorizationSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/authorization/[authorizationIndex=nonNegativeInteger]',
+					{
+						network: (
+							'caip2' in transaction.$network ?
+								caip2StringFromValue(transaction.$network.caip2)
+							:
+								transaction.$network.slug
+						),
+						transactionId: transaction.txHash,
+						authorizationIndex: String(eip7702AuthorizationSelector.authorizationIndex),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{eip7702AuthorizationSelector.authorizationIndex}

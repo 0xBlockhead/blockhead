@@ -17,11 +17,11 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	transactionVersion: {
-		primitiveType: type('bigint'),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	eventIndex: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	eventType: {

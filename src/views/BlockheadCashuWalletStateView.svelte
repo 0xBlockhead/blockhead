@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -44,6 +46,19 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? (selection.entitySelector.walletId || 'blockhead Cashu wallet state')}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/[unit=stringSegment]',
+				{
+					walletId: selection.entitySelector.walletId,
+					mintUrl: selection.entitySelector.mintUrl,
+					unit: selection.entitySelector.unit,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -56,6 +71,7 @@
 			{#snippet children(cashuMint)}
 				<CashuMintView
 					selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
+					href={null}
 					layout={EntityLayout.Value}
 				/>
 			{/snippet}

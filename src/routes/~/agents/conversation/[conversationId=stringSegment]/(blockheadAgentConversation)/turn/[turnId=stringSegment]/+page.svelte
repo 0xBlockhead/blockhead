@@ -13,15 +13,10 @@
 
 	// State
 	let {
-		params,
+		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.BlockheadAgentConversationTurn, {
-		$conversation: {
-			id: params.conversationId,
-		},
-		id: params.turnId,
-	}, {
+	const pageSelection = $derived(select(EntityType.BlockheadAgentConversationTurn, data.selector, {
 		sources: [
 			Source.Local_Internal,
 		],
@@ -38,7 +33,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entity == null ? 'agent conversation turn' : pageSelection.entity.userPrompt || 'agent conversation turn'} • agent conversation turn • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'agent conversation turn' : pageSelection.entity.userPrompt || 'agent conversation turn')} • agent conversation turn • Blockhead</title>
 </svelte:head>
 
 

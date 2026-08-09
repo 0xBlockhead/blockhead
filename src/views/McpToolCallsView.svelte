@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				callId: true,
-				$tool: true,
-				startedAt: true,
+			...{
+				fields: {
+					callId: true,
+					$tool: true,
+					startedAt: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,15 @@
 		<EntityView
 			entityType={EntityType.McpToolCall}
 			entitySelector={mcpToolCallSelector}
+			href={
+				resolve(
+					'/mcp/server/[serverKey=stringSegment]/(mcpServer)/tool-call/[callId=stringSegment]',
+					{
+						serverKey: mcpToolCallSelector.$server.serverKey,
+						callId: mcpToolCallSelector.callId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{mcpToolCallSelector.callId || 'mcp tool call'}

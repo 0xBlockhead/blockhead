@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,11 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpMessagePart> = $props()
 
+	const message = $derived(selection.entitySelector.$message)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.AcpLocal_JsonRpc,
@@ -49,6 +52,19 @@
 	entityType={EntityType.AcpMessagePart}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(agents)/agents/acp/session/[sessionId=stringSegment]/(acpSession)/message/[messageId=stringSegment]/(acpMessage)/part/[partIndex=nonNegativeInteger]',
+				{
+					sessionId: message.$session.sessionId,
+					messageId: message.messageId,
+					partIndex: String(selection.entitySelector.partIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

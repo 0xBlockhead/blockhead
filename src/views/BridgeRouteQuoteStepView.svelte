@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BridgeRouteQuoteStep>, 'prefetched'> = $props()
 
+	const quote = $derived(selection.entitySelector.$quote)
 	const bridgeRouteQuoteStep = $derived(selection({
 		fields: {
 			tool: true,
@@ -42,6 +45,20 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? `Step #${selection.entitySelector.indexInQuote}`}
 	idDragPlainText={String(selection.entitySelector.indexInQuote)}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/bridge/quote/[source=stringSegment]/[quoteRequestHash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]/(bridgeRouteQuoteTimestamp)/step/[indexInQuote=nonNegativeInteger]',
+				{
+					source: quote.source,
+					quoteRequestHash: quote.quoteRequestHash,
+					timestampMs: String(quote.timestampMs),
+					indexInQuote: String(selection.entitySelector.indexInQuote),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

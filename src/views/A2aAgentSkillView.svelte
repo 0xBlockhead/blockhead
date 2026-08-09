@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -15,11 +16,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.A2aAgentSkill> = $props()
 
+	const cardSnapshot = $derived(selection.entitySelector.$cardSnapshot)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -41,6 +44,20 @@
 	entityType={EntityType.A2aAgentSkill}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(agents)/agents/a2a/card/[agentCardUrl=absoluteUrl]/(a2aAgentCard)/snapshot/[contentHashAlgorithm=stringSegment]/[contentHash=zeroExHex]/(a2aAgentCardSnapshot)/skill/[skillId=stringSegment]',
+				{
+					agentCardUrl: encodeURIComponent(cardSnapshot.$card.agentCardUrl),
+					contentHashAlgorithm: cardSnapshot.contentHashAlgorithm,
+					contentHash: cardSnapshot.contentHash,
+					skillId: selection.entitySelector.skillId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -56,6 +73,7 @@
 	{#snippet Value()}
 		<A2aAgentCard_SnapshotView
 			selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

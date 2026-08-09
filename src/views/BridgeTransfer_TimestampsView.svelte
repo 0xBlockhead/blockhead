@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,20 +27,38 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				status: true,
-				substatus: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					status: true,
+					substatus: true,
+					source: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: bridgeTransferTimestamp })}
 		{@const bridgeTransferTimestampSelector = bridgeTransferTimestamp[EntityMetaKey.Selector]}
+		{@const transfer = bridgeTransferTimestampSelector.$transfer}
 		<EntityView
 			entityType={EntityType.BridgeTransfer_Timestamp}
 			entitySelector={bridgeTransferTimestampSelector}
+			href={
+				'originChainId' in transfer
+				&& 'depositId' in transfer ?
+					resolve(
+						'/~/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]/(bridgeTransfer)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							originChainId: String(transfer.originChainId),
+							depositId: String(transfer.depositId),
+							timestampMs: String(bridgeTransferTimestampSelector.timestampMs),
+							source: bridgeTransferTimestampSelector.source,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{bridgeTransferTimestampSelector.timestampMs}

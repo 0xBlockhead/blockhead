@@ -27,9 +27,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$user: true,
-				authMethod: true,
+			...{
+				fields: {
+					$user: true,
+					authMethod: true,
+				},
 			},
 		})
 	}

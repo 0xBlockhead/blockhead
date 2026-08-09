@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,9 +29,29 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: xrplTrustlineTimestamp })}
+		{@const xrplTrustlineTimestampSelector = xrplTrustlineTimestamp[EntityMetaKey.Selector]}
+		{@const trustline = xrplTrustlineTimestampSelector.$trustline}
 		<EntityView
 			entityType={EntityType.XrplTrustline_Timestamp}
-			entitySelector={xrplTrustlineTimestamp[EntityMetaKey.Selector]}
+			entitySelector={xrplTrustlineTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]/(xrplTrustline)/observations/[ledgerIndex=nonNegativeBigInt]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in trustline.$network ?
+								caip2StringFromValue(trustline.$network.caip2)
+							:
+								trustline.$network.slug
+						),
+						account: trustline.account,
+						currency: trustline.currency,
+						issuer: trustline.issuer,
+						ledgerIndex: String(xrplTrustlineTimestampSelector.ledgerIndex),
+						source: xrplTrustlineTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				XRPL trustline timestamp

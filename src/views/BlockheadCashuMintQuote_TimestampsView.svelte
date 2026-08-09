@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,19 +27,34 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				state: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					state: true,
+					source: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadCashuMintQuoteTimestamp })}
 		{@const blockheadCashuMintQuoteTimestampSelector = blockheadCashuMintQuoteTimestamp[EntityMetaKey.Selector]}
+		{@const mintQuote = blockheadCashuMintQuoteTimestampSelector.$mintQuote}
 		<EntityView
 			entityType={EntityType.BlockheadCashuMintQuote_Timestamp}
 			entitySelector={blockheadCashuMintQuoteTimestampSelector}
+			href={
+				resolve(
+					'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/mint-quote/[method=stringSegment]/[quoteId=stringSegment]/(blockheadCashuMintQuote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						mintUrl: mintQuote.$mint.mintUrl,
+						method: mintQuote.method,
+						quoteId: mintQuote.quoteId,
+						timestampMs: String(blockheadCashuMintQuoteTimestampSelector.timestampMs),
+						source: blockheadCashuMintQuoteTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadCashuMintQuoteTimestampSelector.timestampMs}

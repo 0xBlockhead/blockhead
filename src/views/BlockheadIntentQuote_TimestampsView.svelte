@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				quoteId: true,
-				timestampMs: true,
-				source: true,
-				solverId: true,
+			...{
+				fields: {
+					quoteId: true,
+					timestampMs: true,
+					source: true,
+					solverId: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadIntentQuote_Timestamp}
 			entitySelector={blockheadIntentQuoteTimestampSelector}
+			href={
+				resolve(
+					'/~/intent/quote/[id=stringSegment]/(blockheadIntentQuote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						id: blockheadIntentQuoteTimestampSelector.$quote.id,
+						timestampMs: String(blockheadIntentQuoteTimestampSelector.timestampMs),
+						source: blockheadIntentQuoteTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(blockheadIntentQuoteTimestamp.quoteId ?? '') || blockheadIntentQuoteTimestampSelector.source || 'blockhead intent quote timestamp'}

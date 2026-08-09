@@ -27,27 +27,41 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				id: true,
-				$icon: true,
-				name: true,
-				username: true,
-				createdAt: true,
+			...{
+				fields: {
+					$icon: true,
+					name: true,
+					username: true,
+					id: true,
+					createdAt: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: xUser })}
+		{@const xUserSelector = xUser[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.XUser}
-			entitySelector={xUser[EntityMetaKey.Selector]}
+			entitySelector={xUserSelector}
 			href={
-				resolve(
-					'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
-					{
-						userId: xUser.id,
-					}
-				)
+				'id' in xUserSelector ?
+					resolve(
+						'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
+						{
+							userId: xUserSelector.id,
+						}
+					)
+				:
+					'username' in xUserSelector ?
+						resolve(
+							'/x/user/@[username=stringSegment]',
+							{
+								username: xUserSelector.username,
+							}
+						)
+					:
+						undefined
 			}
 		>
 			{#snippet Title()}

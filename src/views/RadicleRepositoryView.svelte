@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,6 +16,7 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -25,10 +27,12 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import GitRepositoryView from '$/views/GitRepositoryView.svelte'
+	import RadicleDelegatesView from '$/views/RadicleDelegatesView.svelte'
+	import RadicleSignedRefsView from '$/views/RadicleSignedRefsView.svelte'
+	import RadicleIssuesView from '$/views/RadicleIssuesView.svelte'
 	import RadiclePatchesView from '$/views/RadiclePatchesView.svelte'
 	import BlockheadRadicleSeedObservation_TimestampsView from '$/views/BlockheadRadicleSeedObservation_TimestampsView.svelte'
 </script>
@@ -38,6 +42,17 @@
 	entityType={EntityType.RadicleRepository}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
+	href={
+		href === undefined ?
+			resolve(
+				'/radicle/repository/[rid=stringSegment]',
+				{
+					rid: selection.entitySelector.rid,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -181,41 +196,23 @@
 			{/snippet}
 
 			{#snippet SectionRadicleRepositoryDelegates({ id, label })}
-				<EntitiesList
-					entityType={EntityType.RadicleDelegate}
+				<RadicleDelegatesView
+					selection={selection.$$delegates}
 					collapsible={false}
 					title={label}
 					emptyText='No delegates.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$delegates()}
-				>
-					{#snippet Item({ item: radicleDelegate })}
-						<EntityView
-							entityType={EntityType.RadicleDelegate}
-							entitySelector={radicleDelegate[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionRadicleRepositorySignedRefs({ id, label })}
-				<EntitiesList
-					entityType={EntityType.RadicleSignedRef}
+				<RadicleSignedRefsView
+					selection={selection.$$signedRefs}
 					collapsible={false}
 					title={label}
 					emptyText='No signed refs.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$signedRefs()}
-				>
-					{#snippet Item({ item: radicleSignedRef })}
-						<EntityView
-							entityType={EntityType.RadicleSignedRef}
-							entitySelector={radicleSignedRef[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -245,22 +242,13 @@
 			{/snippet}
 
 			{#snippet SectionRadicleRepositoryIssues({ id, label })}
-				<EntitiesList
-					entityType={EntityType.RadicleIssue}
+				<RadicleIssuesView
+					selection={selection.$$issues}
 					collapsible={false}
 					title={label}
 					emptyText='No issues.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$issues()}
-				>
-					{#snippet Item({ item: radicleIssue })}
-						<EntityView
-							entityType={EntityType.RadicleIssue}
-							entitySelector={radicleIssue[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionRadicleRepositoryPatches({ id, label })}

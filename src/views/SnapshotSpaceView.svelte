@@ -53,7 +53,7 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/snapshot/space/[spaceId=stringSegment]',
+				'/~/snapshot/space/[spaceId=stringSegment]',
 				{
 					spaceId: encodeURIComponent(selection.entitySelector.spaceId),
 				}
@@ -282,7 +282,7 @@
 						title='Proposals'
 						href={
 							resolve(
-								'/snapshot/space/[spaceId=stringSegment]/(snapshotSpace)/proposals',
+								'/~/snapshot/space/[spaceId=stringSegment]/(snapshotSpace)/proposals',
 								{
 									spaceId: encodeURIComponent(selection.entitySelector.spaceId),
 								}

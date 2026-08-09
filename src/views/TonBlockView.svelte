@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TonBlock>, 'prefetched'> = $props()
+
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -31,6 +36,48 @@
 	entityType={EntityType.TonBlock}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'TON block'}
+	href={
+		href === undefined ?
+			(
+				'workchain' in selection.entitySelector
+				&& 'shardPrefix' in selection.entitySelector
+				&& 'seqno' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/block/[workchain=nonNegativeInteger]/[shardPrefix=stringSegment]/[seqno=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							workchain: String(selection.entitySelector.workchain),
+							shardPrefix: selection.entitySelector.shardPrefix,
+							seqno: String(selection.entitySelector.seqno),
+						}
+					)
+				:
+					'rootHash' in selection.entitySelector
+					&& 'fileHash' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/block/hash/[rootHash=stringSegment]/[fileHash=stringSegment]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								rootHash: selection.entitySelector.rootHash,
+								fileHash: selection.entitySelector.fileHash,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

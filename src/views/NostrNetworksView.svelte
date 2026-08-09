@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				protocolName: true,
-				registryName: true,
-				scope: true,
+			...{
+				fields: {
+					protocolName: true,
+					registryName: true,
+					scope: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,12 @@
 		<EntityView
 			entityType={EntityType.NostrNetwork}
 			entitySelector={nostrNetworkSelector}
+			href={
+				nostrNetworkSelector.scope === 'NostrNetwork' ?
+					resolve('/(social)/(nostr)/nostr/(globalNostrNetwork)/network')
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{nostrNetwork.protocolName || nostrNetworkSelector.scope || 'Nostr network'}

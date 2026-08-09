@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.GitTreeEntry>, 'prefetched'> = $props()
 
+	const tree = $derived(selection.entitySelector.$tree)
 	const gitTreeEntry = $derived(selection({
 		fields: {
 			objectKind: true,
@@ -41,6 +44,19 @@
 	entityType={EntityType.GitTreeEntry}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/git/tree/[objectId=zeroExHex]/[objectFormat=stringSegment]/(gitTree)/entry/[path=stringSegment]',
+				{
+					objectId: tree.objectId,
+					objectFormat: tree.objectFormat,
+					path: selection.entitySelector.path,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

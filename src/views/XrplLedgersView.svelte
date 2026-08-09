@@ -35,9 +35,9 @@
 			entityType={EntityType.XrplLedger}
 			entitySelector={xrplLedgerSelector}
 			href={
-				'ledgerIndex' in xrplLedgerSelector ?
+				'ledgerHash' in xrplLedgerSelector ?
 					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/[ledgerIndex=nonNegativeBigInt]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/hash/[ledgerHash=stringSegment]',
 						{
 							network: (
 								'caip2' in network ?
@@ -45,11 +45,25 @@
 								:
 									network.slug
 							),
-							ledgerIndex: String(xrplLedgerSelector.ledgerIndex),
+							ledgerHash: xrplLedgerSelector.ledgerHash,
 						}
 					)
 				:
-					undefined
+					'ledgerIndex' in xrplLedgerSelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/xrpl/[ledgerIndex=nonNegativeBigInt]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								ledgerIndex: String(xrplLedgerSelector.ledgerIndex),
+							}
+						)
+					:
+						undefined
 			}
 		>
 			{#snippet Title()}

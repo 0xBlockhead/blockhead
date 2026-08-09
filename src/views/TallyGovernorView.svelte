@@ -56,7 +56,7 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/tally/governor/[governorId=stringSegment]',
+				'/~/tally/governor/[governorId=stringSegment]',
 				{
 					governorId: encodeURIComponent(selection.entitySelector.governorId),
 				}
@@ -366,7 +366,7 @@
 						title='Proposals'
 						href={
 							resolve(
-								'/tally/governor/[governorId=stringSegment]/(tallyGovernor)/proposals',
+								'/~/tally/governor/[governorId=stringSegment]/(tallyGovernor)/proposals',
 								{
 									governorId: encodeURIComponent(selection.entitySelector.governorId),
 								}

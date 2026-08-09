@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.DydxChainOrder>, 'prefetched'> = $props()
 
+	const subaccount = $derived(selection.entitySelector.$subaccount)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.DydxIndexer,
@@ -49,6 +52,25 @@
 	entityType={EntityType.DydxChainOrder}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'caip2' in subaccount.$account.$network ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[accountAddress=stringSegment]/subaccount/[subaccountNumber=nonNegativeInteger]/(dydxChainSubaccount)/order/[orderId=stringSegment]',
+						{
+							network: String(subaccount.$account.$network.caip2),
+							accountAddress: subaccount.$account.address,
+							subaccountNumber: String(subaccount.subaccountNumber),
+							orderId: selection.entitySelector.orderId,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

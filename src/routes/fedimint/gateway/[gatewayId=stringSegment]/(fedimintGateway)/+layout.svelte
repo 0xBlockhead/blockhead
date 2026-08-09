@@ -1,0 +1,57 @@
+<!-- Generated from APP.ts. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { LayoutProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		children,
+		data,
+		params,
+	}: LayoutProps = $props()
+
+	const detailHref = $derived(
+		resolve(
+			'/fedimint/gateway/[gatewayId=stringSegment]',
+			{
+				gatewayId: params.gatewayId,
+			}
+		)
+	)
+
+
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import FedimintGatewayView from '$/views/FedimintGatewayView.svelte'
+</script>
+
+
+<ParentPageCollapsible
+	href={detailHref}
+>
+	{#snippet Summary()}
+		<FedimintGatewayView
+			selection={
+				select(EntityType.FedimintGateway, data.selector, {
+					sources: [
+						Source.FedimintGatewayd_Rest,
+					],
+				})
+			}
+			href={detailHref}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
+
+	{@render children()}
+</ParentPageCollapsible>

@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,19 +28,39 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				assetType: true,
-				amount: true,
-				ledgerVersion: true,
+			...{
+				fields: {
+					assetType: true,
+					amount: true,
+					ledgerVersion: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: aptosCoinBalanceTimestamp })}
 		{@const aptosCoinBalanceTimestampSelector = aptosCoinBalanceTimestamp[EntityMetaKey.Selector]}
+		{@const account = aptosCoinBalanceTimestampSelector.$account}
 		<EntityView
 			entityType={EntityType.AptosCoinBalance_Timestamp}
 			entitySelector={aptosCoinBalanceTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/coin-balance/[storageId=stringSegment]/observation/[ledgerVersion=nonNegativeBigInt]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in account.$network.$network ?
+								caip2StringFromValue(account.$network.$network.caip2)
+							:
+								account.$network.$network.slug
+						),
+						accountId: account.address,
+						storageId: aptosCoinBalanceTimestampSelector.storageId,
+						ledgerVersion: String(aptosCoinBalanceTimestampSelector.ledgerVersion),
+						source: aptosCoinBalanceTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{aptosCoinBalanceTimestamp.assetType || 'current Aptos coin balance observation'}

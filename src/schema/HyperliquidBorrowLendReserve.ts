@@ -19,7 +19,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	tokenIndex: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$asset: {

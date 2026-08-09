@@ -44,10 +44,6 @@ export default entity({
 		entityType: EntityType.AiBenchmark,
 		cardinality: EntityFieldCardinality.Many,
 	},
-	$$evaluations: {
-		entityType: EntityType.AiEvaluation_Timestamp,
-		cardinality: EntityFieldCardinality.Many,
-	},
 	$$timestamps: {
 		entityType: EntityType._GlobalAiModelCatalog_Timestamp,
 		cardinality: EntityFieldCardinality.Many,

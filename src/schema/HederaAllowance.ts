@@ -29,7 +29,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	serialNumber: {
-		primitiveType: type('bigint'),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$token: {

@@ -2,10 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,6 +16,7 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -25,10 +27,12 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AlgorandNetworkView from '$/views/AlgorandNetworkView.svelte'
+	import AlgorandAccount_TimestampsView from '$/views/AlgorandAccount_TimestampsView.svelte'
+	import AlgorandAssetHolding_RoundsView from '$/views/AlgorandAssetHolding_RoundsView.svelte'
+	import AlgorandApplicationLocalState_RoundsView from '$/views/AlgorandApplicationLocalState_RoundsView.svelte'
 </script>
 
 
@@ -36,6 +40,23 @@
 	entityType={EntityType.AlgorandAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/account/[address=stringSegment]',
+				{
+					network: (
+						'caip2' in selection.entitySelector.$network.$network ?
+							caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+						:
+							selection.entitySelector.$network.$network.slug
+					),
+					address: selection.entitySelector.address,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -83,22 +104,13 @@
 			{/snippet}
 
 			{#snippet SectionAlgorandAccountTimestamps({ id, label })}
-				<EntitiesList
-					entityType={EntityType.AlgorandAccount_Timestamp}
+				<AlgorandAccount_TimestampsView
+					selection={selection.$$timestamps}
 					collapsible={false}
 					title={label}
 					emptyText='No Algorand account observations.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$timestamps()}
-				>
-					{#snippet Item({ item: algorandAccountTimestamp })}
-						<EntityView
-							entityType={EntityType.AlgorandAccount_Timestamp}
-							entitySelector={algorandAccountTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -128,41 +140,23 @@
 			{/snippet}
 
 			{#snippet SectionAlgorandAccountAssetHoldings({ id, label })}
-				<EntitiesList
-					entityType={EntityType.AlgorandAssetHolding_Round}
+				<AlgorandAssetHolding_RoundsView
+					selection={selection.$$assetHoldingRounds}
 					collapsible={false}
 					title={label}
 					emptyText='No Algorand asset holding rounds.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$assetHoldingRounds()}
-				>
-					{#snippet Item({ item: algorandAssetHoldingRound })}
-						<EntityView
-							entityType={EntityType.AlgorandAssetHolding_Round}
-							entitySelector={algorandAssetHoldingRound[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionAlgorandAccountAppLocalState({ id, label })}
-				<EntitiesList
-					entityType={EntityType.AlgorandApplicationLocalState_Round}
+				<AlgorandApplicationLocalState_RoundsView
+					selection={selection.$$applicationLocalStateRounds}
 					collapsible={false}
 					title={label}
 					emptyText='No Algorand application local state rounds.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$applicationLocalStateRounds()}
-				>
-					{#snippet Item({ item: algorandApplicationLocalStateRound })}
-						<EntityView
-							entityType={EntityType.AlgorandApplicationLocalState_Round}
-							entitySelector={algorandApplicationLocalStateRound[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

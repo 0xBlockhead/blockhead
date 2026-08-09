@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				version: true,
-				isFinal: true,
-				timestamp: true,
+			...{
+				fields: {
+					version: true,
+					isFinal: true,
+					timestamp: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadStateChannelState}
 			entitySelector={blockheadStateChannelStateSelector}
+			href={
+				resolve(
+					'/~/channel/[channelId=stringSegment]/(blockheadStateChannel)/state/[version=nonNegativeInteger]/[stateData=stringSegment]',
+					{
+						channelId: blockheadStateChannelStateSelector.$channel.id,
+						version: String(blockheadStateChannelStateSelector.version),
+						stateData: blockheadStateChannelStateSelector.stateData,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadStateChannelStateSelector.version}

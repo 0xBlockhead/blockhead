@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				displayName: true,
-				infoHash: true,
-				magnetUri: true,
+			...{
+				fields: {
+					displayName: true,
+					infoHash: true,
+					magnetUri: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,14 @@
 		<EntityView
 			entityType={EntityType.MagnetLink}
 			entitySelector={magnetLinkSelector}
+			href={
+				resolve(
+					'/magnet/[magnetUri=stringSegment]',
+					{
+						magnetUri: magnetLinkSelector.magnetUri,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(magnetLink.displayName ?? '') || magnetLinkSelector.magnetUri || 'magnet link'}

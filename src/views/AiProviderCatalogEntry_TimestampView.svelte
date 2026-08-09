@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.AiProviderCatalogEntry_Timestamp>, 'prefetched'> = $props()
 
+	const entry = $derived(selection.entitySelector.$entry)
 	const aiProviderCatalogEntryTimestamp = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Anthropic_Rest,
@@ -42,6 +45,26 @@
 	entityType={EntityType.AiProviderCatalogEntry_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'AI provider catalog entry timestamp'}
+	href={
+		href === undefined ?
+			(
+				'providerId' in entry.$provider ?
+					resolve(
+						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/catalog/[catalogKind=stringSegment]/[providerEntryId=stringSegment]/(aiProviderCatalogEntry)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							providerId: entry.$provider.providerId,
+							catalogKind: entry.catalogKind,
+							providerEntryId: entry.providerEntryId,
+							timestampMs: String(selection.entitySelector.timestampMs),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -49,6 +72,7 @@
 	{#snippet Title()}
 		<AiProviderCatalogEntryView
 			selection={select(EntityType.AiProviderCatalogEntry, selection.entitySelector.$entry)}
+			href={null}
 			layout={EntityLayout.Title}
 		/>
 	{/snippet}

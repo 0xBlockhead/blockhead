@@ -177,42 +177,6 @@ type SelectorRouteMapping = {
 	projectionRouteParam?: string
 	page?: NonNullable<NonNullable<App['routes']['children'][string]['selectors']>[string]>[string]['page']
 }
-type SelectorOutcome =
-	| {
-		kind: 'VisibleRoute'
-		nodeId: string
-	}
-	| {
-		kind: 'CuratedParent'
-		target: {
-			entityType: string
-			selectorName: string
-		}
-	}
-	| {
-		kind: 'Facet'
-		target: {
-			entityType: string
-			selectorName: string
-		}
-		facetPath: readonly [string, ...string[]]
-	}
-	| {
-		kind: 'Hub' | 'Internal'
-		nodeId: string
-	}
-	| {
-		kind: 'Alias'
-		target: {
-			entityType: string
-			selectorName: string
-		}
-	}
-	| {
-		kind: 'Research' | 'Blocked'
-		decision: string
-		evidence: string
-	}
 type RouteNode = {
 	internalPath: string
 	svelteKitPath: string
@@ -3974,6 +3938,12 @@ const publicRouteShape = (internalPath: string) => publicRouteId(internalPath)
 	.map((segment) => segment.startsWith('[') ? '[]' : segment)
 	.join('/')
 
+const publicRouteMatcherShape = (svelteKitPath: string) => `/${svelteKitPath
+	.split('/')
+	.filter((segment) => segment !== '' && !/^\(.+\)$/.test(segment))
+	.map((segment) => segment.replaceAll(/\[((?:\.\.\.)?)[^=\]]+=([^\]]+)\]/g, '[$1=$2]'))
+	.join('/')}`
+
 const selectorRouteMappingKey = (entityType: string, selectorName: string) => `${entityType}.${selectorName}`
 
 type RouteApplicability = {
@@ -5588,6 +5558,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		routeNodeByInternalPath
 	))
 	const routeNodesByPublicShape = Map.groupBy(indexedRouteNodes, (node) => publicRouteShape(node.internalPath))
+	const routeNodesByPublicMatcherShape = Map.groupBy(indexedRouteNodes, (node) => publicRouteMatcherShape(node.svelteKitPath))
 	const selectorMappingEntries = indexedRouteNodes.flatMap((node) => node.selectorMappings.map((mapping) => ({
 		node,
 		mapping,
@@ -5637,94 +5608,13 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			throw new Error(`${node.internalPath} ${mapping.entityType}.${mapping.selectorName} canonical alias targets non-canonical selector ${mapping.entityType}.${canonicalSelectorNames[0]}`)
 	}
 
-	const selectorOutcomeByEntityTypeAndSelector = new Map<string, SelectorOutcome>([...routeMappingsByEntityTypeAndSelector].flatMap(([key, [entry]]) => (
-		entry == null ? [] : [[key, {
-			kind: 'VisibleRoute',
-			nodeId: entry.node.internalPath,
-		} satisfies SelectorOutcome] as const]
-	)))
 	const schemaSelectorKeys = new Set(activeEntities.flatMap((entity) => entity.selectors.map((selector) => (
 		selectorRouteMappingKey(entity.entityType, selector.name)
 	))))
-	for (const [
-		entityType,
-		outcomes,
-	] of Object.entries(sourceApp.routes.outcomes ?? {}))
-		for (const [
-			selectorName,
-			outcome,
-		] of Object.entries(outcomes)) {
-			const key = selectorRouteMappingKey(entityType, selectorName)
-			if (!schemaSelectorKeys.has(key)) {
-				errors.push(`${key} route outcome references an unknown selector`)
-				continue
-			}
-			if (selectorOutcomeByEntityTypeAndSelector.has(key)) {
-				errors.push(`${key} has both a visible route mapping and ${outcome.kind} outcome`)
-				continue
-			}
-
-			selectorOutcomeByEntityTypeAndSelector.set(key, outcome)
-		}
-
-	if (sourceApp.routes.outcomes != null)
-		for (const key of schemaSelectorKeys)
-			if (!selectorOutcomeByEntityTypeAndSelector.has(key))
-				errors.push(`${key} is missing an explicit route outcome`)
-
-	for (const [
-		key,
-		outcome,
-	] of selectorOutcomeByEntityTypeAndSelector) {
-		if (outcome.kind === 'VisibleRoute')
-			continue
-
-		if (outcome.kind === 'Hub' || outcome.kind === 'Internal') {
-			if (!routeNodeByInternalPath.has(outcome.nodeId))
-				errors.push(`${key} ${outcome.kind} outcome references missing route node ${outcome.nodeId}`)
-			continue
-		}
-
-		if (outcome.kind === 'Research' || outcome.kind === 'Blocked') {
-			if (outcome.decision.trim() === '' || outcome.evidence.trim() === '')
-				errors.push(`${key} ${outcome.kind} outcome requires a decision and evidence`)
-			continue
-		}
-
-		const targetKey = selectorRouteMappingKey(outcome.target.entityType, outcome.target.selectorName)
-		if (!schemaSelectorKeys.has(targetKey))
-			errors.push(`${key} ${outcome.kind} outcome references unknown selector ${targetKey}`)
-		if (
-			outcome.kind === 'Facet'
-			&& entityFacetByPath[projectionPathKey(outcome.target.entityType, outcome.facetPath)] == null
-		)
-			errors.push(`${key} Facet outcome references missing ${outcome.target.entityType}.${outcome.facetPath.join('.')}`)
-	}
-
-	for (const [
-		key,
-		outcome,
-	] of selectorOutcomeByEntityTypeAndSelector) {
-		if (outcome.kind !== 'Alias')
-			continue
-
-		const visited = new Set([key])
-		let targetKey = selectorRouteMappingKey(outcome.target.entityType, outcome.target.selectorName)
-		while (selectorOutcomeByEntityTypeAndSelector.get(targetKey)?.kind === 'Alias') {
-			if (visited.has(targetKey)) {
-				errors.push(`${key} Alias outcome contains a cycle through ${targetKey}`)
-				targetKey = ''
-				break
-			}
-
-			visited.add(targetKey)
-			const target = selectorOutcomeByEntityTypeAndSelector.get(targetKey)
-			if (target?.kind !== 'Alias')
-				break
-			targetKey = selectorRouteMappingKey(target.target.entityType, target.target.selectorName)
-		}
-		if (targetKey !== '' && selectorOutcomeByEntityTypeAndSelector.get(targetKey)?.kind !== 'VisibleRoute')
-			errors.push(`${key} Alias outcome must resolve to one visible route`)
+	for (const key of schemaSelectorKeys) {
+		const mappings = routeMappingsByEntityTypeAndSelector.get(key) ?? []
+		if (mappings.length !== 1)
+			errors.push(`${key} must have exactly one route mapping; found ${mappings.length}`)
 	}
 	const routeProbeMappingsByNode = indexRouteProbeMappings(compiledRouteNodes)
 
@@ -5759,8 +5649,25 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 				if (routeApplicabilitySetsOverlap([applicabilityFor(node, left)], [applicabilityFor(node, right)]))
 					errors.push(`${node.internalPath} selector mappings ${left.entityType}.${left.selectorName} and ${right.entityType}.${right.selectorName} have overlapping or unknown applicability`)
 
+	for (const [matcherShape, indexedEntries] of routeNodesByPublicMatcherShape) {
+		const entries = indexedEntries.filter((node) => (
+			node.page != null
+			|| node.selectorMappings.some((mapping) => mapping.page != null)
+			|| node.selectorVariant?.page != null
+			|| node.collectionMappings.some((mapping) => mapping.page != null)
+		))
+		for (const [index, left] of entries.entries())
+			for (const right of entries.slice(index + 1))
+				errors.push(`${left.internalPath} and ${right.internalPath} conflict at SvelteKit matcher shape ${matcherShape}; parameter names do not distinguish routes`)
+	}
+
 	for (const indexedEntries of routeNodesByPublicShape.values()) {
-		const entries = indexedEntries.filter((node) => node.page != null || node.selectorMappings.length > 0)
+		const entries = indexedEntries.filter((node) => (
+			node.page != null
+			|| node.selectorMappings.some((mapping) => mapping.page != null)
+			|| node.selectorVariant?.page != null
+			|| node.collectionMappings.some((mapping) => mapping.page != null)
+		))
 		for (const [index, left] of entries.entries())
 			for (const right of entries.slice(index + 1)) {
 				const leftMappings = routeProbeMappingsByNode.get(left.internalPath) ?? []
@@ -6861,6 +6768,10 @@ export type SourceServerCredentialInjection =
 export type SourceServerCredentialDefinition = {
 	envKey: string
 	injection: SourceServerCredentialInjection
+	oauthClientCredentials?: {
+		clientIdEnvKey: string
+		tokenEndpoint: string
+	}
 }
 
 export type SourceBinding<
@@ -7151,6 +7062,10 @@ const generateSourceServerCredentialsFile = (
 							kind: 'value',
 							value: credential.injection,
 						}),
+						emitTypeScript({
+							kind: 'value',
+							value: credential.oauthClientCredentials,
+						}),
 					])]
 				:
 					[]
@@ -7158,14 +7073,16 @@ const generateSourceServerCredentialsFile = (
 				bindingId: string,
 				envKey: string,
 				injection: SourceServerCredentialDefinition['injection'],
+				oauthClientCredentials: SourceServerCredentialDefinition['oauthClientCredentials'],
 			])[]`,
 			'',
 			'export default new Map<string, SourceServerCredentialDefinition>(',
-			'	runtimeSecretCredentials.map(([bindingId, envKey, injection]) => [',
+			'	runtimeSecretCredentials.map(([bindingId, envKey, injection, oauthClientCredentials]) => [',
 			'		bindingId,',
 			'		{',
 			'			envKey,',
 			'			injection,',
+			'			...(oauthClientCredentials == null ? {} : { oauthClientCredentials }),',
 			'		},',
 			'] satisfies readonly [string, SourceServerCredentialDefinition])',
 			')',
@@ -9866,6 +9783,7 @@ const generateSingularViewFile = (
 	const usesViewDomId = (
 		carouselsToRender.length > 0
 		|| detailsTabs.length > 0
+		|| latestItems.some((latest) => latest.id != null)
 		|| content?.body?.id != null
 		|| details?.body?.id != null
 	)
@@ -10350,9 +10268,10 @@ const renderIconSnippet = (
 const renderDefinitionListItem = (
 	level: number,
 	label: string,
-	valueLines: readonly string[]
+	valueLines: readonly string[],
+	idExpression?: string
 ) => [
-	`${'\t'.repeat(level)}<div>`,
+	`${'\t'.repeat(level)}<div${idExpression == null ? '' : ` id={${idExpression}}`}>`,
 	`${'\t'.repeat(level + 1)}<dt>${label}</dt>`,
 	`${'\t'.repeat(level + 1)}<dd>`,
 	...valueLines,
@@ -10659,11 +10578,14 @@ const renderLatestContentItem = (
 	const entityType = latestFieldDefinition?.entityType
 	const component = latest.view ?? (entityType == null ? undefined : singularComponentName(entityType))
 	if (
-		latestFieldDefinition?.type !== EntityFieldType.EntitiesReference
+		(
+			latestFieldDefinition?.type !== EntityFieldType.EntityReference
+			&& latestFieldDefinition?.type !== EntityFieldType.EntitiesReference
+		)
 		|| entityType == null
 		|| component == null
 	)
-		throw new Error(`${entity.entityType}.${latest.field} latest reference must identify an entity collection`)
+		throw new Error(`${entity.entityType}.${latest.field} latest reference must identify an entity relationship`)
 	const latestEntityName = camel(entityType)
 	const latestSelectorName = `${latestEntityName}Selector`
 	const latestEntity = indexes.entityByType[entityType]
@@ -10721,6 +10643,7 @@ const renderLatestContentItem = (
 		] : []),
 		`${'\t'.repeat(level + 6)}layout={EntityLayout.Value}`,
 		`${'\t'.repeat(level + 5)}/>`,
+		...(latest.Content == null ? [] : renderRawLines(latest.Content.raw, level + 5)),
 		`${'\t'.repeat(level + 4)}{:else}`,
 		`${'\t'.repeat(level + 5)}<p data-text="muted" data-section-state="resolved-empty">No ${svelteText(latestLabel.toLowerCase())} available.</p>`,
 		`${'\t'.repeat(level + 4)}{/if}`,
@@ -10731,9 +10654,11 @@ const renderLatestContentItem = (
 		fieldReference: FieldReference
 	) => renderDefinitionListItem(level, latestLabel, renderResourceBoundary(
 		level + 2,
-		`${fieldResourceExpression(fieldResourceBase, fieldReference, query)}.first()`,
+		`${fieldResourceExpression(fieldResourceBase, fieldReference, query)}${
+			latestFieldDefinition.type === EntityFieldType.EntitiesReference ? '.first()' : ''
+		}`,
 		renderSvelteSnippet(level + 3, `children(${latestEntityName})`, latestBodyLines)
-	))
+	), latest.id == null ? undefined : `viewDomId + ${emitTypeScript(`-latest-${latest.id}`)}`)
 
 	const renderConditionedLines = (
 		fieldResourceBase: string,
@@ -11378,11 +11303,6 @@ const renderEntityRouteLinkExpression = (
 			))
 		}) === true
 	)
-
-	// Multiple candidates must all discriminate themselves; otherwise route
-	// selection would depend on declaration order.
-	if (routeCandidates.length > 1 && routeCandidates.some((candidate) => candidate.conditionGroups.length === 0))
-		throw new Error(`${entityType} has multiple unconditional entity hrefs`)
 
 	// Alternatives for the same physical route differ only in selector-derived
 	// parameter values. Keep one route and one parameter object, and branch only
@@ -12400,28 +12320,6 @@ const renderEntitiesReferenceSection = (
 	]
 }
 
-const renderFilterCondition = (
-	filter: NonNullable<_ListView['filters']>[number],
-	entityValueName: string
-) => {
-	const value = filter.selectorPath
-		.split('.')
-		.reduce((expression, part) => `${expression}${propertyAccess(part)}`, `${entityValueName}[EntityMetaKey.Selector]`)
-	if (filter.compare === 'timeInterval')
-		return logicalExpression([
-			`${filter.prop} == null`,
-			logicalExpression([
-				`${value}.unit === ${filter.prop}.unit`,
-				`${value}.value === ${filter.prop}.value`,
-			], '&&'),
-		], '||')
-
-	return logicalExpression([
-		`${filter.prop} == null`,
-		`${value} === ${filter.prop}`,
-	], '||')
-}
-
 const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 	const singularView = entity.views.singular
 	const summaryPlan = summaryPlanFor(entity, indexes)
@@ -12436,7 +12334,6 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 		:
 			pluralView?.title
 	)
-	const entityValuesName = camel(componentName.replace(/View$/, ''))
 	const row = pluralView?.row
 	const usesCustomRow = row != null
 	const rowTitleItems = usesCustomRow ? viewItems(row.title) : summaryPlan.title.entries
@@ -12500,7 +12397,13 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 	}))
 	const sourceSelection = pluralView?.query?.sources
 	const query = renderQuery(
-		pluralView?.query?.selection ?? pluralView?.query,
+		pluralView?.query == null ?
+			undefined
+		:
+			{
+				...pluralView.query,
+				limit: undefined,
+			},
 		rowQueryFields.filter((fieldReference) => !isProjectionFieldReference(fieldReference)),
 		sourceSelection == null ?
 			undefined
@@ -12508,23 +12411,23 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 			`selection.sources ?? ${renderSourceSelectionExpression(sourceSelection)}`
 	)
 	const filters = pluralView?.filters ?? []
-	const filterCondition = filters.length === 0 ?
-		'true'
-	: filters.length === 1 ?
-		renderFilterCondition(filters[0], entityValueName)
+	const filterConditions = filters.map((filter) => {
+		const value = filter.selectorPath
+			.split('.')
+			.reduce((expression, part) => `${expression}${propertyAccess(part)}`, `row[EntityMetaKey.Value][EntityMetaKey.Selector]`)
+		return filter.compare === 'timeInterval' ?
+			`and(\n\teq(${value}.unit, ${filter.prop}.unit),\n\teq(${value}.value, ${filter.prop}.value),\n)`
+		:
+			`eq(${value}, ${filter.prop})`
+	})
+	const filterWhereExpression = filterConditions.length === 0 ?
+		undefined
+	: filterConditions.length === 1 ?
+		filterConditions[0]
 	:
-		logicalExpression(
-			filters.map((filter) => renderFilterCondition(filter, entityValueName)),
-			'&&'
-		)
-	const filteredEntityValuesExpression = filters.length === 0 ?
-		`${entityValuesName}.values`
-	:
-		[
-			`${entityValuesName}.values.filter(`,
-			indent(`(${entityValueName}) => ${filterCondition}`),
-			')',
-		].join('\n')
+		`and(\n${filters.map((filter, index) => (
+			indent(`...(${filter.prop} == null ? [] : [${filterConditions[index]}]),`, 1)
+		)).join('\n')}\n)`
 	const modelTypeAnnotationTooltipMarkup = (
 		pluralView?.TypeAnnotationTooltip != null ?
 			renderRawLines(pluralView.TypeAnnotationTooltip.raw, 1)
@@ -12538,8 +12441,13 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 		]))})`
 		:
 		undefined
-	const renderedQuery = selectedSourcesExpression == null ? query : emitObject([
+	const renderedQuery = emitObject([
+		...(query === '{}' ? [] : [{ spread: query }]),
 		['sources', selectedSourcesExpression],
+		...(filterWhereExpression == null ? [] : [{
+			spread: `${filters.map((filter) => `${filter.prop} == null`).join(' && ')} ? {} : { where: ({ row }) => ${filterWhereExpression} }`,
+		}]),
+		['limit', pluralView?.query?.limit?.default == null ? undefined : 'limit'],
 	])
 	const itemSelectorName = `${entityValueName}Selector`
 	const itemFieldsName = `${entityValueName}Fields`
@@ -12853,8 +12761,13 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 	}
 	const directSummaryRow = directSummaryRowMarkup(2)
 	const directSummarySelectorReferenceCount = directSummaryRow.selectorReferenceCount
+	const usesItemSelectorBinding = (
+		rowProjectionPaths.length > 0
+		|| directSummarySelectorReferenceCount > 1
+		|| hrefFieldBindings.some(({ expression }) => typeScriptExpressionReferencesBinding(expression, itemSelectorName))
+	)
 	const directSummaryRenderedLines = (
-		directSummarySelectorReferenceCount === 1 ?
+		directSummarySelectorReferenceCount === 1 && !usesItemSelectorBinding ?
 			directSummaryRowMarkup(
 				2,
 				undefined,
@@ -12881,9 +12794,10 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 		'import EntitiesList, { type EntityListViewProps } from \'$/components/EntitiesList.svelte\'',
 		'import { EntityMetaKey } from \'$/schema/$schema.ts\'',
 		'import { EntityType } from \'$/schema/EntityType.ts\'',
+		...(filters.length === 0 ? [] : ['import { and, eq } from \'@tanstack/db\'']),
 		...(filters.length === 0 ? [] : ['import type { RegisteredEntitySelector } from \'$/schema/index.ts\'']),
 		...imports.map(emitImport),
-		...(!Array.isArray(sourceSelection) && sourceSelection?.name != null && selectedSourcesExpression != null ? [
+		...(!Array.isArray(sourceSelection) && sourceSelection?.name != null ? [
 			`import ${sourceSelectionFunctionName(sourceSelection)} from '${sourceSelectionModulePath(sourceSelection)}'`,
 		] : []),
 		...(typeScriptExpressionReferencesBinding(renderedQuery, 'Source') ? ['import { Source } from \'$/sources/Source.ts\''] : []),
@@ -12907,18 +12821,22 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 		...(pluralView?.emptyText == null ? [] : [
 			`\temptyText = ${emitTypeScript(pluralView.emptyText)},`,
 		]),
+		...(pluralView?.query?.limit?.default == null ? [] : [
+			`\tlimit = ${pluralView.query.limit.default},`,
+		]),
 		'\topen = $bindable(true),',
 		...(usesCustomPluralId ? [
 			`\tid = ${emitTypeScript(`${pluralViewName(entity)}-list`)},`,
 		] : []),
 		...filters.map((filter) => `\t${filter.prop},`),
 		'\t...EntitiesListProps',
-		...(filters.length === 0 ? [
+		...(filters.length === 0 && pluralView?.query?.limit?.default == null ? [
 			`}: EntityListViewProps<EntityType.${entity.entityType}> = $props()`,
 		] : [
 			'}: EntityListViewProps<',
 			`\tEntityType.${entity.entityType},`,
 			'\t{',
+			...(pluralView?.query?.limit?.default == null ? [] : ['\t\tlimit?: number']),
 			...filters.map((filter) => (
 				`\t\t${filter.prop}?: RegisteredEntitySelector<EntityType.${entity.entityType}>${filter.selectorPath
 					.split('.')
@@ -12957,14 +12875,11 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 			:
 				`selection(${renderedQuery})`
 		),
-		...(filters.length === 0 ? [] : [
-			renderSvelteAttribute(1, 'getResourceItems', `(${entityValuesName}) => ${filteredEntityValuesExpression}`),
-		]),
 		...(pluralView?.placeholderText == null ? [] : ['\t{placeholderText}']),
 		...(pluralView?.emptyText == null ? [] : ['\t{emptyText}']),
 		'>',
 		`\t{#snippet Item({ item: ${entityValueName} })}`,
-		...(rowProjectionPaths.length > 0 || directSummarySelectorReferenceCount > 1 || hrefFieldBindings.some(({ expression }) => typeScriptExpressionReferencesBinding(expression, itemSelectorName)) ? [
+		...(usesItemSelectorBinding ? [
 			`\t\t{@const ${itemSelectorName} = ${entityValueName}[EntityMetaKey.Selector]}`,
 		] : []),
 		...hrefFieldBindings.map(({ expression, name }) => (
@@ -13114,8 +13029,6 @@ const routeMappingContext = (
 		}),
 	]))
 	const usesParentSelector = mapping.fields.some((field) => expressionUsesKind(field.value, 'pageSelector'))
-	if (networkParam != null && !usesParentSelector)
-		throw new Error(`${routePath} projects a network facet without inheriting its network selector`)
 	const projectionEntity = mapping.projection == null ? undefined : indexes.entityByType[mapping.projection.entityType]
 	if (mapping.projection != null && projectionEntity == null)
 		throw new Error(`${routePath} references missing projection entity ${mapping.projection.entityType}`)

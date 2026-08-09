@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,19 +27,31 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$sessionAction: true,
-				amount: true,
-				$fromNetwork: true,
-				$toNetwork: true,
+			...{
+				fields: {
+					$sessionAction: true,
+					amount: true,
+					$fromNetwork: true,
+					$toNetwork: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadBridgeIntent })}
+		{@const blockheadBridgeIntentSelector = blockheadBridgeIntent[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadBridgeIntent}
-			entitySelector={blockheadBridgeIntent[EntityMetaKey.Selector]}
+			entitySelector={blockheadBridgeIntentSelector}
+			href={
+				resolve(
+					'/~/session/[sessionId=stringSegment]/(blockheadSession)/bridge-intent/[actionId=stringSegment]',
+					{
+						sessionId: blockheadBridgeIntentSelector.sessionId,
+						actionId: blockheadBridgeIntentSelector.actionId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadBridgeIntent.$sessionAction.actionType || 'blockhead session action'}

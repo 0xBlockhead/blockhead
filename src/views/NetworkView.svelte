@@ -222,8 +222,8 @@
 
 
 	// Components
+	import Market_TimestampView from '$/views/Market_TimestampView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -307,6 +307,7 @@
 	import BittensorBlocksView from '$/views/BittensorBlocksView.svelte'
 	import BittensorSubnetsView from '$/views/BittensorSubnetsView.svelte'
 	import ZeroGNetwork_TimestampsView from '$/views/ZeroGNetwork_TimestampsView.svelte'
+	import ZeroGStorageNodesView from '$/views/ZeroGStorageNodesView.svelte'
 	import ZeroGDataBlobsView from '$/views/ZeroGDataBlobsView.svelte'
 	import ZeroGStorageLogEntriesView from '$/views/ZeroGStorageLogEntriesView.svelte'
 	import CelestiaNetwork_TimestampsView from '$/views/CelestiaNetwork_TimestampsView.svelte'
@@ -343,6 +344,8 @@
 	import CardanoCommittee_EpochsView from '$/views/CardanoCommittee_EpochsView.svelte'
 	import CardanoNativeAssetsView from '$/views/CardanoNativeAssetsView.svelte'
 	import CardanoProtocolParameters_EpochsView from '$/views/CardanoProtocolParameters_EpochsView.svelte'
+	import TronNetwork_TimestampsView from '$/views/TronNetwork_TimestampsView.svelte'
+	import TronBlocksView from '$/views/TronBlocksView.svelte'
 	import TronWitnessesView from '$/views/TronWitnessesView.svelte'
 	import TonNetwork_TimestampsView from '$/views/TonNetwork_TimestampsView.svelte'
 	import XrplLedgersView from '$/views/XrplLedgersView.svelte'
@@ -351,10 +354,16 @@
 	import XrplLedgerEntriesView from '$/views/XrplLedgerEntriesView.svelte'
 	import XrplAmendmentsView from '$/views/XrplAmendmentsView.svelte'
 	import XrplAmmsView from '$/views/XrplAmmsView.svelte'
+	import HederaBlocksView from '$/views/HederaBlocksView.svelte'
 	import HederaAccountsView from '$/views/HederaAccountsView.svelte'
 	import HyperliquidNetwork_TimestampsView from '$/views/HyperliquidNetwork_TimestampsView.svelte'
+	import HyperliquidBlocksView from '$/views/HyperliquidBlocksView.svelte'
+	import HyperliquidTransactionsView from '$/views/HyperliquidTransactionsView.svelte'
+	import HyperliquidValidatorsView from '$/views/HyperliquidValidatorsView.svelte'
 	import HyperliquidPerpMarketsView from '$/views/HyperliquidPerpMarketsView.svelte'
 	import HyperliquidSpotAssetsView from '$/views/HyperliquidSpotAssetsView.svelte'
+	import HyperliquidSpotPairsView from '$/views/HyperliquidSpotPairsView.svelte'
+	import HyperliquidVaultsView from '$/views/HyperliquidVaultsView.svelte'
 	import HyperliquidBorrowLendReservesView from '$/views/HyperliquidBorrowLendReservesView.svelte'
 	import SpecificationProposalView from '$/views/SpecificationProposalView.svelte'
 </script>
@@ -414,7 +423,7 @@
 				resource={selection.Evm}
 			>
 				{#snippet Applicable(projection)}
-					<div>
+					<div id={viewDomId + '-latest-summary-head-upgrade'}>
 						<dt>Upgrade</dt>
 						<dd>
 							<ResourceBoundary
@@ -456,7 +465,7 @@
 						</dd>
 					</div>
 
-					<div>
+					<div id={viewDomId + '-latest-summary-head-block'}>
 						<dt>Block</dt>
 						<dd>
 							<ResourceBoundary
@@ -497,7 +506,7 @@
 						</dd>
 					</div>
 
-					<div>
+					<div id={viewDomId + '-latest-summary-head-fee-market'}>
 						<dt>Fee market</dt>
 						<dd>
 							<ResourceBoundary
@@ -540,7 +549,95 @@
 						</dd>
 					</div>
 
-					<div>
+					<div id={viewDomId + '-latest-summary-head-native-price'}>
+						<dt>Native price</dt>
+						<dd>
+							<ResourceBoundary
+								resource={
+									projection
+									.$nativeCoin({
+										sources: [
+											Source.Constants_Internal,
+										],
+									})
+								}
+							>
+								{#snippet children(coin)}
+									{#if coin != null}
+										{@const coinSelector = coin[EntityMetaKey.Selector]}
+										<CoinView
+											selection={
+												select(EntityType.Coin, coinSelector, {
+													sources: [
+														Source.Constants_Internal,
+													],
+												})
+											}
+											prefetched={{ ...coinSelector, ...coin }}
+											layout={EntityLayout.Value}
+										/>
+
+										<ResourceBoundary
+											resource={
+												select(EntityType.Coin, coin[EntityMetaKey.Selector])
+													.$$marketsWithCoinAsBase({
+														sources: [
+															Source.Constants_Internal,
+														],
+														limit: 1,
+													}).first()
+											}
+										>
+											{#snippet children(nativeCoinUsdMarket)}
+												{#if nativeCoinUsdMarket != null}
+													<ResourceBoundary
+														resource={
+															select(EntityType.MarketPrice, {
+																$market: nativeCoinUsdMarket[EntityMetaKey.Selector],
+															})
+																.$$quotes({
+																	sources: [
+																		Source.Coingecko_Rest,
+																	],
+																	fields: {
+																		price: true,
+																	},
+																	orderBy: [
+																		[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+																	],
+																}).first()
+														}
+													>
+														{#snippet children(nativeCoinUsdQuote)}
+															{#if nativeCoinUsdQuote != null}
+																<Market_TimestampView
+																	selection={select(EntityType.Market_Timestamp, nativeCoinUsdQuote[EntityMetaKey.Selector], {
+																		sources: [
+																			Source.Coingecko_Rest,
+																		],
+																	})}
+																	prefetched={{ ...nativeCoinUsdQuote[EntityMetaKey.Selector], ...nativeCoinUsdQuote }}
+																	layout={EntityLayout.Value}
+																/>
+															{:else}
+																<p data-text="muted" data-section-state="resolved-empty">No native price available.</p>
+															{/if}
+														{/snippet}
+													</ResourceBoundary>
+												{:else}
+													<p data-text="muted" data-section-state="resolved-empty">No native USD market available.</p>
+												{/if}
+											{/snippet}
+										</ResourceBoundary>
+									{:else}
+										<p data-text="muted" data-section-state="resolved-empty">No native price available.</p>
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+
+					<div id={viewDomId + '-latest-summary-head-mempool'}>
 						<dt>Mempool</dt>
 						<dd>
 							<ResourceBoundary
@@ -587,7 +684,7 @@
 						resource={projection.EthereumBeacon}
 					>
 						{#snippet Applicable(projection)}
-							<div>
+							<div id={viewDomId + '-latest-summary-head-epoch'}>
 								<dt>Epoch</dt>
 								<dd>
 									<ResourceBoundary
@@ -628,7 +725,7 @@
 								</dd>
 							</div>
 
-							<div>
+							<div id={viewDomId + '-latest-summary-head-slot'}>
 								<dt>Slot</dt>
 								<dd>
 									<ResourceBoundary
@@ -4446,29 +4543,20 @@
 					{/snippet}
 
 					{#snippet SectionZeroGStorageNodes({ id, label })}
-						<EntitiesList
-							entityType={EntityType.ZeroGStorageNode}
-							collapsible={false}
-							title={label}
-							open={true}
-							id={`${id}-list`}
-							resource={
+						<ZeroGStorageNodesView
+							selection={
 								projection
 								.$$storageNodes({
 									sources: [
 										Source.ZeroGStorageScan_Rest,
 									],
 									limit: 16,
-								})()
+								})
 							}
-						>
-							{#snippet Item({ item: zeroGStorageNode })}
-								<EntityView
-									entityType={EntityType.ZeroGStorageNode}
-									entitySelector={zeroGStorageNode[EntityMetaKey.Selector]}
-								/>
-							{/snippet}
-						</EntitiesList>
+							collapsible={false}
+							title={label}
+							id={`${id}-list`}
+						/>
 					{/snippet}
 
 					{#snippet SectionZeroGStorageDataBlobs({ id, label })}
@@ -6240,51 +6328,33 @@
 						{/snippet}
 
 						{#snippet SectionTronChainObservations({ id, label })}
-							<EntitiesList
-								entityType={EntityType.TronNetwork_Timestamp}
-								collapsible={false}
-								title={label}
-								open={true}
-								id={`${id}-list`}
-								resource={
+							<TronNetwork_TimestampsView
+								selection={
 									projection
 									.$$timestamps({
 										sources: tronGridRestSources,
 										limit: 16,
-									})()
+									})
 								}
-							>
-								{#snippet Item({ item: tronNetworkTimestamp })}
-									<EntityView
-										entityType={EntityType.TronNetwork_Timestamp}
-										entitySelector={tronNetworkTimestamp[EntityMetaKey.Selector]}
-									/>
-								{/snippet}
-							</EntitiesList>
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 						{#snippet SectionTronChainBlocks({ id, label })}
-							<EntitiesList
-								entityType={EntityType.TronBlock}
-								collapsible={false}
-								title={label}
-								open={true}
-								id={`${id}-list`}
-								resource={
+							<TronBlocksView
+								selection={
 									projection
 									.$$blocks({
 										sources: tronGridRestSources,
 										limit: 16,
-									})()
+									})
 								}
-							>
-								{#snippet Item({ item: tronBlock })}
-									<EntityView
-										entityType={EntityType.TronBlock}
-										entitySelector={tronBlock[EntityMetaKey.Selector]}
-									/>
-								{/snippet}
-							</EntitiesList>
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 						{#snippet SectionTronChainWitnesses({ id, label })}
@@ -6743,28 +6813,19 @@
 						{/snippet}
 
 						{#snippet SectionHederaChainBlocks({ id, label })}
-							<EntitiesList
-								entityType={EntityType.HederaBlock}
-								collapsible={false}
-								title={label}
-								emptyText='No Hedera blocks.'
-								open={true}
-								id={`${id}-list`}
-								resource={
+							<HederaBlocksView
+								selection={
 									projection
 									.$$blocks({
 										sources: hederaMirrorNodeRestSources,
 										limit: 16,
-									})()
+									})
 								}
-							>
-								{#snippet Item({ item: hederaBlock })}
-									<EntityView
-										entityType={EntityType.HederaBlock}
-										entitySelector={hederaBlock[EntityMetaKey.Selector]}
-									/>
-								{/snippet}
-							</EntitiesList>
+								collapsible={false}
+								title={label}
+								emptyText='No Hedera blocks.'
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 					</CollapsibleTabs>
@@ -6888,51 +6949,33 @@
 						{/snippet}
 
 						{#snippet SectionHyperliquidChainBlocks({ id, label })}
-							<EntitiesList
-								entityType={EntityType.HyperliquidBlock}
-								collapsible={false}
-								title={label}
-								open={true}
-								id={`${id}-list`}
-								resource={
+							<HyperliquidBlocksView
+								selection={
 									projection
 									.$$blocks({
 										sources: hyperliquidSources,
 										limit: 16,
-									})()
+									})
 								}
-							>
-								{#snippet Item({ item: hyperliquidBlock })}
-									<EntityView
-										entityType={EntityType.HyperliquidBlock}
-										entitySelector={hyperliquidBlock[EntityMetaKey.Selector]}
-									/>
-								{/snippet}
-							</EntitiesList>
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 						{#snippet SectionHyperliquidChainTransactions({ id, label })}
-							<EntitiesList
-								entityType={EntityType.HyperliquidTransaction}
-								collapsible={false}
-								title={label}
-								open={true}
-								id={`${id}-list`}
-								resource={
+							<HyperliquidTransactionsView
+								selection={
 									projection
 									.$$transactions({
 										sources: hyperliquidSources,
 										limit: 16,
-									})()
+									})
 								}
-							>
-								{#snippet Item({ item: hyperliquidTransaction })}
-									<EntityView
-										entityType={EntityType.HyperliquidTransaction}
-										entitySelector={hyperliquidTransaction[EntityMetaKey.Selector]}
-									/>
-								{/snippet}
-							</EntitiesList>
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 					</CollapsibleTabs>
@@ -6966,27 +7009,18 @@
 						{/snippet}
 
 						{#snippet SectionHyperliquidConsensusValidators({ id, label })}
-							<EntitiesList
-								entityType={EntityType.HyperliquidValidator}
-								collapsible={false}
-								title={label}
-								open={true}
-								id={`${id}-list`}
-								resource={
+							<HyperliquidValidatorsView
+								selection={
 									projection
 									.$$validators({
 										sources: hyperliquidSources,
 										limit: 16,
-									})()
+									})
 								}
-							>
-								{#snippet Item({ item: hyperliquidValidator })}
-									<EntityView
-										entityType={EntityType.HyperliquidValidator}
-										entitySelector={hyperliquidValidator[EntityMetaKey.Selector]}
-									/>
-								{/snippet}
-							</EntitiesList>
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 					</CollapsibleTabs>
@@ -7096,53 +7130,35 @@
 						{/snippet}
 
 						{#snippet SectionHyperliquidMarketsSpotPairs({ id, label })}
-							<EntitiesList
-								entityType={EntityType.HyperliquidSpotPair}
-								collapsible={false}
-								title={label}
-								emptyText='No Hyperliquid spot pairs.'
-								open={true}
-								id={`${id}-list`}
-								resource={
+							<HyperliquidSpotPairsView
+								selection={
 									projection
 									.$$spotPairs({
 										sources: hyperliquidSources,
 										limit: 16,
-									})()
+									})
 								}
-							>
-								{#snippet Item({ item: hyperliquidSpotPair })}
-									<EntityView
-										entityType={EntityType.HyperliquidSpotPair}
-										entitySelector={hyperliquidSpotPair[EntityMetaKey.Selector]}
-									/>
-								{/snippet}
-							</EntitiesList>
+								collapsible={false}
+								title={label}
+								emptyText='No Hyperliquid spot pairs.'
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 						{#snippet SectionHyperliquidMarketsVaults({ id, label })}
-							<EntitiesList
-								entityType={EntityType.HyperliquidVault}
-								collapsible={false}
-								title={label}
-								emptyText='No Hyperliquid vaults.'
-								open={true}
-								id={`${id}-list`}
-								resource={
+							<HyperliquidVaultsView
+								selection={
 									projection
 									.$$vaults({
 										sources: hyperliquidSources,
 										limit: 16,
-									})()
+									})
 								}
-							>
-								{#snippet Item({ item: hyperliquidVault })}
-									<EntityView
-										entityType={EntityType.HyperliquidVault}
-										entitySelector={hyperliquidVault[EntityMetaKey.Selector]}
-									/>
-								{/snippet}
-							</EntitiesList>
+								collapsible={false}
+								title={label}
+								emptyText='No Hyperliquid vaults.'
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 						{#snippet SectionHyperliquidMarketsBorrowLendReserves({ id, label })}

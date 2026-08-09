@@ -30,9 +30,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				votePubkey: true,
-				$network: true,
+			...{
+				fields: {
+					votePubkey: true,
+					$network: true,
+				},
 			},
 		})
 	}
@@ -45,7 +47,7 @@
 			entitySelector={solanaValidatorSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkeyOrStringSegment]',
 					{
 						network: (
 							'caip2' in network ?

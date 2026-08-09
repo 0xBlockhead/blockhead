@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,17 +27,31 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				path: true,
-				length: true,
+			...{
+				fields: {
+					path: true,
+					length: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: bitTorrentFile })}
+		{@const bitTorrentFileSelector = bitTorrentFile[EntityMetaKey.Selector]}
+		{@const torrent = bitTorrentFileSelector.$torrent}
 		<EntityView
 			entityType={EntityType.BitTorrentFile}
-			entitySelector={bitTorrentFile[EntityMetaKey.Selector]}
+			entitySelector={bitTorrentFileSelector}
+			href={
+				resolve(
+					'/bittorrent/torrent/[infoHash=stringSegment]/[hashVersion=stringSegment]/(bitTorrentMetainfo)/file/[fileIndex=nonNegativeInteger]',
+					{
+						infoHash: torrent.infoHash,
+						hashVersion: torrent.hashVersion,
+						fileIndex: String(bitTorrentFileSelector.fileIndex),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{bitTorrentFile.path || 'bit torrent file'}

@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,10 +15,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.ZeroGDataChunk>, 'prefetched'> = $props()
+
+	const dataBlob = $derived(selection.entitySelector.$dataBlob)
 
 
 	// Components
@@ -28,6 +33,24 @@
 <EntityView
 	entityType={EntityType.ZeroGDataChunk}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/data-blob/[dataRoot=stringSegment]/(zeroGDataBlob)/chunk/[chunkIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in dataBlob.$network ?
+							caip2StringFromValue(dataBlob.$network.caip2)
+						:
+							dataBlob.$network.slug
+					),
+					dataRoot: dataBlob.dataRoot,
+					chunkIndex: String(selection.entitySelector.chunkIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

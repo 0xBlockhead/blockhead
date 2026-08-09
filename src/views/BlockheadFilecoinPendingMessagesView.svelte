@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				messageCid: true,
-				observedAtMs: true,
-				local: true,
+			...{
+				fields: {
+					messageCid: true,
+					observedAtMs: true,
+					local: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadFilecoinPendingMessage}
 			entitySelector={blockheadFilecoinPendingMessageSelector}
+			href={
+				resolve(
+					'/~/filecoin/node/[nodeId=stringSegment]/pending-message/[messageCid=stringSegment]/[observedAtMs=nonNegativeInteger]',
+					{
+						nodeId: blockheadFilecoinPendingMessageSelector.nodeId,
+						messageCid: blockheadFilecoinPendingMessageSelector.messageCid,
+						observedAtMs: String(blockheadFilecoinPendingMessageSelector.observedAtMs),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadFilecoinPendingMessageSelector.messageCid || 'blockhead filecoin pending message'}

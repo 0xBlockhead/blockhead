@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,11 +16,14 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.A2aMessagePart>, 'prefetched'> = $props()
 
+	const message = $derived(selection.entitySelector.$message)
+	const artifact = $derived(selection.entitySelector.$artifact)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [],
 	}))
@@ -44,6 +48,36 @@
 	entityType={EntityType.A2aMessagePart}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.partIndex)}
+	href={
+		href === undefined ?
+			(
+				'$artifact' in selection.entitySelector
+				&& 'taskId' in artifact.$task ?
+					resolve(
+						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/artifact/[artifactId=stringSegment]/(a2aArtifact)/part/[partIndex=nonNegativeInteger]',
+						{
+							taskId: artifact.$task.taskId,
+							artifactId: artifact.artifactId,
+							partIndex: String(selection.entitySelector.partIndex),
+						}
+					)
+				:
+					'$message' in selection.entitySelector
+					&& 'taskId' in message.$task ?
+						resolve(
+							'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/message/[messageId=stringSegment]/(a2aMessage)/part/[partIndex=nonNegativeInteger]',
+							{
+								taskId: message.$task.taskId,
+								messageId: message.messageId,
+								partIndex: String(selection.entitySelector.partIndex),
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

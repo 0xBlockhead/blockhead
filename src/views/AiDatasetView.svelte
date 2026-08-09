@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,11 +17,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiDataset> = $props()
 
+	const artifact = $derived(selection.entitySelector.$artifact)
 	const aiDataset = $derived(selection({
 		fields: {
 			label: true,
@@ -46,6 +49,55 @@
 	entityType={EntityType.AiDataset}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'$artifact' in selection.entitySelector
+				&& 'digestAlgorithm' in artifact
+				&& 'digest' in artifact ?
+					resolve(
+						'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/dataset',
+						{
+							digestAlgorithm: artifact.digestAlgorithm,
+							digest: artifact.digest,
+						}
+					)
+				:
+					'source' in selection.entitySelector
+					&& 'datasetName' in selection.entitySelector
+					&& 'datasetDigest' in selection.entitySelector ?
+						resolve(
+							'/(ai)/ai/dataset/source/[source=stringSegment]/[datasetName=stringSegment]/[datasetDigest=stringSegment]',
+							{
+								source: selection.entitySelector.source,
+								datasetName: selection.entitySelector.datasetName,
+								datasetDigest: selection.entitySelector.datasetDigest,
+							}
+						)
+					:
+						'huggingFaceDatasetId' in selection.entitySelector
+						&& 'revision' in selection.entitySelector ?
+							resolve(
+								'/(ai)/ai/dataset/huggingface/[huggingFaceDatasetId=stringSegment]/[revision=stringSegment]',
+								{
+									huggingFaceDatasetId: selection.entitySelector.huggingFaceDatasetId,
+									revision: selection.entitySelector.revision,
+								}
+							)
+						:
+							'datasetUri' in selection.entitySelector ?
+								resolve(
+									'/(ai)/ai/dataset/uri/[datasetUri=absoluteUrl]',
+									{
+										datasetUri: encodeURIComponent(selection.entitySelector.datasetUri),
+									}
+								)
+							:
+								undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,19 +29,34 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				spent: true,
-				confirmations: true,
+			...{
+				fields: {
+					timestampMs: true,
+					spent: true,
+					confirmations: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadMoneroTransferStateTimestamp })}
 		{@const blockheadMoneroTransferStateTimestampSelector = blockheadMoneroTransferStateTimestamp[EntityMetaKey.Selector]}
+		{@const transferState = blockheadMoneroTransferStateTimestampSelector.$transferState}
 		<EntityView
 			entityType={EntityType.BlockheadMoneroTransferState_Timestamp}
 			entitySelector={blockheadMoneroTransferStateTimestampSelector}
+			href={
+				resolve(
+					'/~/monero/wallet/[walletId=stringSegment]/transfer-state/[txHash=stringSegment]/[transferIndex=nonNegativeInteger]/(blockheadMoneroTransferState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						walletId: transferState.walletId,
+						txHash: transferState.txHash,
+						transferIndex: String(transferState.transferIndex),
+						timestampMs: String(blockheadMoneroTransferStateTimestampSelector.timestampMs),
+						source: blockheadMoneroTransferStateTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadMoneroTransferStateTimestampSelector.timestampMs}

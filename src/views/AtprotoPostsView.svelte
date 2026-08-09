@@ -11,9 +11,15 @@
 	// State
 	let {
 		selection,
+		limit = 25,
 		open = $bindable(true),
 		...EntitiesListProps
-	}: EntityListViewProps<EntityType.AtprotoPost> = $props()
+	}: EntityListViewProps<
+		EntityType.AtprotoPost,
+		{
+			limit?: number
+		}
+	> = $props()
 
 
 	// Components
@@ -27,12 +33,14 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				text: true,
-				uri: true,
-				createdAt: true,
+			...{
+				fields: {
+					text: true,
+					uri: true,
+					createdAt: true,
+				},
 			},
-			limit: 25,
+			limit: limit,
 		})
 	}
 >

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,19 +29,33 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				indexInQuote: true,
-				tool: true,
-				stepType: true,
+			...{
+				fields: {
+					indexInQuote: true,
+					tool: true,
+					stepType: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: bridgeRouteQuoteStep })}
 		{@const bridgeRouteQuoteStepSelector = bridgeRouteQuoteStep[EntityMetaKey.Selector]}
+		{@const quote = bridgeRouteQuoteStepSelector.$quote}
 		<EntityView
 			entityType={EntityType.BridgeRouteQuoteStep}
 			entitySelector={bridgeRouteQuoteStepSelector}
+			href={
+				resolve(
+					'/~/bridge/quote/[source=stringSegment]/[quoteRequestHash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]/(bridgeRouteQuoteTimestamp)/step/[indexInQuote=nonNegativeInteger]',
+					{
+						source: quote.source,
+						quoteRequestHash: quote.quoteRequestHash,
+						timestampMs: String(quote.timestampMs),
+						indexInQuote: String(bridgeRouteQuoteStepSelector.indexInQuote),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{`Step #${bridgeRouteQuoteStepSelector.indexInQuote}`}

@@ -154,26 +154,14 @@ export const openSeaChainForChainId = (
 	return chain
 }
 
-export const requireOpenSeaCredential = (
-	credential = process.env.OPENSEA_API_KEY?.trim()
-) => {
-	if (credential == null || credential === '')
-		throw new Error('OpenSea_Rest: API key is required')
-
-	return credential
-}
-
 const requestOpenSeaJson = async <_Response>({
 	path,
-	credential,
 }: {
 	path: string
-	credential: string
 }) => {
 	const response = await sourceFetch(binding, new URL(path, firstHttpUrlForBinding(binding)).toString(), {
 		headers: {
 			accept: 'application/json',
-			'x-api-key': requireOpenSeaCredential(credential),
 		},
 	})
 
@@ -236,7 +224,6 @@ const requireAssetEvents = <
 }
 
 export const getAccountNfts = async ({
-	credential,
 	chain,
 	address,
 	collection,
@@ -245,7 +232,6 @@ export const getAccountNfts = async ({
 }: (
 	& OpenSeaAccountNftsPath
 	& OpenSeaAccountNftsQuery
-	& { credential: string }
 )) => {
 	const searchParameters = pagination({
 		limit,
@@ -257,7 +243,6 @@ export const getAccountNfts = async ({
 
 	return requireNftList(
 		await requestOpenSeaJson<OpenSeaAccountNftsResponse>({
-			credential,
 			path: `/api/v2/chain/${encodeURIComponent(chain)}/account/${encodeURIComponent(address)}/nfts?${searchParameters}`,
 		}),
 		'account NFTs'
@@ -265,7 +250,6 @@ export const getAccountNfts = async ({
 }
 
 export const getAccountEvents = async ({
-	credential,
 	address,
 	after,
 	before,
@@ -277,7 +261,6 @@ export const getAccountEvents = async ({
 	& OpenSeaAccountEventsPath
 	& Omit<OpenSeaAccountEventsQuery, 'event_type'>
 	& {
-		credential: string
 		eventTypes?: OpenSeaAccountEventsQuery['event_type']
 	}
 )) => {
@@ -300,7 +283,6 @@ export const getAccountEvents = async ({
 
 	return requireAssetEvents(
 		await requestOpenSeaJson<OpenSeaAccountEventsResponse>({
-			credential,
 			path: `/api/v2/events/accounts/${encodeURIComponent(address)}?${searchParameters}`,
 		}),
 		'account events'
@@ -308,16 +290,13 @@ export const getAccountEvents = async ({
 }
 
 export const getNft = async ({
-	credential,
 	chain,
 	address,
 	identifier,
 }: (
 	& OpenSeaNftPath
-	& { credential: string }
 )) => {
 	const body = await requestOpenSeaJson<OpenSeaNftResponse>({
-		credential,
 		path: `/api/v2/chain/${encodeURIComponent(chain)}/contract/${encodeURIComponent(address)}/nfts/${encodeURIComponent(identifier)}`,
 	})
 
@@ -326,15 +305,12 @@ export const getNft = async ({
 }
 
 export const getContract = async ({
-	credential,
 	chain,
 	address,
 }: (
 	& OpenSeaContractPath
-	& { credential: string }
 )) => {
 	const body = await requestOpenSeaJson<OpenSeaContractResponse>({
-		credential,
 		path: `/api/v2/chain/${encodeURIComponent(chain)}/contract/${encodeURIComponent(address)}`,
 	})
 
@@ -343,7 +319,6 @@ export const getContract = async ({
 }
 
 export const getNftsByContract = async ({
-	credential,
 	chain,
 	address,
 	limit = 200,
@@ -351,7 +326,6 @@ export const getNftsByContract = async ({
 }: (
 	& OpenSeaContractNftsPath
 	& OpenSeaContractNftsQuery
-	& { credential: string }
 )) => {
 	const searchParameters = pagination({
 		limit,
@@ -360,7 +334,6 @@ export const getNftsByContract = async ({
 
 	return requireNftList(
 		await requestOpenSeaJson<OpenSeaContractNftsResponse>({
-			credential,
 			path: `/api/v2/chain/${encodeURIComponent(chain)}/contract/${encodeURIComponent(address)}/nfts?${searchParameters}`,
 		}),
 		'contract NFTs'
@@ -368,7 +341,6 @@ export const getNftsByContract = async ({
 }
 
 export const getNftOwners = async ({
-	credential,
 	chain,
 	address,
 	identifier,
@@ -377,7 +349,6 @@ export const getNftOwners = async ({
 }: (
 	& OpenSeaNftOwnersPath
 	& OpenSeaNftOwnersQuery
-	& { credential: string }
 )) => {
 	const searchParameters = pagination({
 		limit,
@@ -387,14 +358,12 @@ export const getNftOwners = async ({
 
 	return requireOwnersList(
 		await requestOpenSeaJson<OpenSeaNftOwnersResponse>({
-			credential,
 			path: `/api/v2/chain/${encodeURIComponent(chain)}/contract/${encodeURIComponent(address)}/nfts/${encodeURIComponent(identifier)}/owners?${searchParameters}`,
 		})
 	)
 }
 
 export const getNftEvents = async ({
-	credential,
 	chain,
 	address,
 	identifier,
@@ -407,7 +376,6 @@ export const getNftEvents = async ({
 	& OpenSeaNftEventsPath
 	& Omit<OpenSeaNftEventsQuery, 'event_type'>
 	& {
-		credential: string
 		eventTypes?: OpenSeaNftEventsQuery['event_type']
 	}
 )) => {
@@ -427,7 +395,6 @@ export const getNftEvents = async ({
 
 	return requireAssetEvents(
 		await requestOpenSeaJson<OpenSeaNftEventsResponse>({
-			credential,
 			path: `/api/v2/events/chain/${encodeURIComponent(chain)}/contract/${encodeURIComponent(address)}/nfts/${encodeURIComponent(identifier)}?${searchParameters}`,
 		}),
 		'NFT events'
@@ -435,14 +402,11 @@ export const getNftEvents = async ({
 }
 
 export const getCollection = async ({
-	credential,
 	slug,
 }: (
 	& OpenSeaCollectionPath
-	& { credential: string }
 )) => {
 	const body = await requestOpenSeaJson<OpenSeaCollectionResponse>({
-		credential,
 		path: `/api/v2/collections/${encodeURIComponent(slug)}`,
 	})
 
@@ -451,7 +415,6 @@ export const getCollection = async ({
 }
 
 export const getNftsByCollection = async ({
-	credential,
 	slug,
 	traits,
 	has_agent_binding: hasAgentBinding,
@@ -460,7 +423,6 @@ export const getNftsByCollection = async ({
 }: (
 	& OpenSeaCollectionNftsPath
 	& OpenSeaCollectionNftsQuery
-	& { credential: string }
 )) => {
 	const searchParameters = pagination({
 		limit,
@@ -475,7 +437,6 @@ export const getNftsByCollection = async ({
 
 	return requireNftList(
 		await requestOpenSeaJson<OpenSeaCollectionNftsResponse>({
-			credential,
 			path: `/api/v2/collection/${encodeURIComponent(slug)}/nfts?${searchParameters}`,
 		}),
 		'collection NFTs'

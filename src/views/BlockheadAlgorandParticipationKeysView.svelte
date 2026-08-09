@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				participationId: true,
-				nodeId: true,
-				firstValidRound: true,
+			...{
+				fields: {
+					participationId: true,
+					nodeId: true,
+					firstValidRound: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,15 @@
 		<EntityView
 			entityType={EntityType.BlockheadAlgorandParticipationKey}
 			entitySelector={blockheadAlgorandParticipationKeySelector}
+			href={
+				resolve(
+					'/~/algorand/participation-key/[nodeId=stringSegment]/[participationId=stringSegment]',
+					{
+						nodeId: blockheadAlgorandParticipationKeySelector.nodeId,
+						participationId: blockheadAlgorandParticipationKeySelector.participationId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadAlgorandParticipationKeySelector.participationId || 'blockhead algorand participation key'}

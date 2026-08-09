@@ -27,12 +27,14 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				name: true,
-				symbol: true,
-				proposalsCount: true,
-				spaceId: true,
-				$network: true,
+			...{
+				fields: {
+					name: true,
+					symbol: true,
+					proposalsCount: true,
+					spaceId: true,
+					$network: true,
+				},
 			},
 		})
 	}
@@ -44,7 +46,7 @@
 			entitySelector={snapshotSpaceSelector}
 			href={
 				resolve(
-					'/snapshot/space/[spaceId=stringSegment]',
+					'/~/snapshot/space/[spaceId=stringSegment]',
 					{
 						spaceId: encodeURIComponent(snapshotSpaceSelector.spaceId),
 					}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,15 +27,17 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$network: {
-					fields: {
-						name: true,
-						environment: true,
+			...{
+				fields: {
+					$network: {
+						fields: {
+							name: true,
+							environment: true,
+						},
 					},
+					timestampMs: true,
+					storageTransactionCount: true,
 				},
-				timestampMs: true,
-				storageTransactionCount: true,
 			},
 		})
 	}
@@ -44,6 +47,16 @@
 		<EntityView
 			entityType={EntityType.ZeroGNetwork_Timestamp}
 			entitySelector={zeroGNetworkTimestampSelector}
+			href={
+				resolve(
+					'/zerog/[slug=stringSegment]/(zeroGNetwork)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						slug: zeroGNetworkTimestampSelector.$network.slug,
+						timestampMs: String(zeroGNetworkTimestampSelector.timestampMs),
+						source: zeroGNetworkTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{zeroGNetworkTimestamp.$network.name || 'zero g network'}

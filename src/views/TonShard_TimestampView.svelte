@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TonShard_Timestamp>, 'prefetched'> = $props()
+
+	const workchain = $derived(selection.entitySelector.$workchain)
 
 
 	// Components
@@ -32,6 +37,26 @@
 	entityType={EntityType.TonShard_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'TON shard timestamp'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/workchain/[workchain=nonNegativeInteger]/(tonWorkchain)/shard/[shardPrefix=stringSegment]/[seqno=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in workchain.$network ?
+							caip2StringFromValue(workchain.$network.caip2)
+						:
+							workchain.$network.slug
+					),
+					workchain: String(workchain.workchain),
+					shardPrefix: selection.entitySelector.shardPrefix,
+					seqno: String(selection.entitySelector.seqno),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

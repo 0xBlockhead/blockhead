@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				messageId: true,
-				role: true,
-				createdAt: true,
+			...{
+				fields: {
+					messageId: true,
+					role: true,
+					createdAt: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,18 @@
 		<EntityView
 			entityType={EntityType.A2aMessage}
 			entitySelector={a2aMessageSelector}
+			href={
+				'taskId' in a2aMessageSelector.$task ?
+					resolve(
+						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/message/[messageId=stringSegment]',
+						{
+							taskId: a2aMessageSelector.$task.taskId,
+							messageId: a2aMessageSelector.messageId,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{a2aMessageSelector.messageId || 'A2A message'}

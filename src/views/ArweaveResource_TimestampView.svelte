@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.ArweaveResource_Timestamp>, 'prefetched'> = $props()
 
+	const resource = $derived(selection.entitySelector.$resource)
 	const arweaveResourceTimestamp = $derived(selection({
 		fields: {
 			contentType: true,
@@ -43,6 +46,20 @@
 	entityType={EntityType.ArweaveResource_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(arweave)/arweave/resource/[transactionId=stringSegment]/[contentPath=stringSegment]/(arweaveResource)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					transactionId: resource.transactionId,
+					contentPath: resource.contentPath,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

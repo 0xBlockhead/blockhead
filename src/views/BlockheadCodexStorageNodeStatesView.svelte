@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				peerId: true,
-				connectionId: true,
-				endpoint: true,
+			...{
+				fields: {
+					peerId: true,
+					connectionId: true,
+					endpoint: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,15 @@
 		<EntityView
 			entityType={EntityType.BlockheadCodexStorageNodeState}
 			entitySelector={blockheadCodexStorageNodeStateSelector}
+			href={
+				resolve(
+					'/~/codex/connection/[connectionId=stringSegment]/node/[peerId=stringSegment]',
+					{
+						connectionId: blockheadCodexStorageNodeStateSelector.connectionId,
+						peerId: blockheadCodexStorageNodeStateSelector.peerId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadCodexStorageNodeStateSelector.peerId || 'blockhead codex storage node state'}

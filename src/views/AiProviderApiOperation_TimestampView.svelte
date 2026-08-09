@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.AiProviderApiOperation_Timestamp>, 'prefetched'> = $props()
 
+	const operation = $derived(selection.entitySelector.$operation)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Anthropic_Rest,
@@ -46,6 +49,25 @@
 	entityType={EntityType.AiProviderApiOperation_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'providerId' in operation.$provider ?
+					resolve(
+						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/operation/[operationId=stringSegment]/(aiProviderApiOperation)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							providerId: operation.$provider.providerId,
+							operationId: operation.operationId,
+							timestampMs: String(selection.entitySelector.timestampMs),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -53,6 +75,7 @@
 	{#snippet Title()}
 		<AiProviderApiOperationView
 			selection={select(EntityType.AiProviderApiOperation, selection.entitySelector.$operation)}
+			href={null}
 			layout={EntityLayout.Title}
 		/>
 	{/snippet}

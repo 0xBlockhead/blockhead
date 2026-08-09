@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,6 +15,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -32,6 +34,20 @@
 	entityType={EntityType.EnsReverseRecord}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'ENS reverse record'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/account/[namespace=stringSegment]:[reference=stringSegment]/[accountAddress=stringSegment]/(account)/ens/reverse/[ensName=stringSegment]',
+				{
+					namespace: selection.entitySelector.$account.caip10.namespace,
+					reference: selection.entitySelector.$account.caip10.reference,
+					accountAddress: selection.entitySelector.$account.caip10.accountAddress,
+					ensName: encodeURIComponent(selection.entitySelector.$name.name),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -47,6 +63,7 @@
 	{#snippet Value()}
 		<AccountView
 			selection={select(EntityType.Account, selection.entitySelector.$account)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

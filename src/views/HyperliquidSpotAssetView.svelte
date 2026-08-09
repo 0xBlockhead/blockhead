@@ -2,10 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -18,11 +19,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.HyperliquidSpotAsset> = $props()
 
+	const network = $derived(selection.entitySelector.$network)
 	const hyperliquidSpotAsset = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Hyperliquid,
@@ -40,12 +43,12 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import HyperliquidSpotPairsView from '$/views/HyperliquidSpotPairsView.svelte'
 </script>
 
 
@@ -54,6 +57,23 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/spot-asset/[assetId=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					assetId: String(selection.entitySelector.assetId),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -200,41 +220,23 @@
 			{/snippet}
 
 			{#snippet SectionHyperliquidSpotAssetBasePairs({ id, label })}
-				<EntitiesList
-					entityType={EntityType.HyperliquidSpotPair}
+				<HyperliquidSpotPairsView
+					selection={selection.$$basePairs}
 					collapsible={false}
 					title={label}
 					emptyText='No base pairs.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$basePairs()}
-				>
-					{#snippet Item({ item: hyperliquidSpotPair })}
-						<EntityView
-							entityType={EntityType.HyperliquidSpotPair}
-							entitySelector={hyperliquidSpotPair[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionHyperliquidSpotAssetQuotePairs({ id, label })}
-				<EntitiesList
-					entityType={EntityType.HyperliquidSpotPair}
+				<HyperliquidSpotPairsView
+					selection={selection.$$quotePairs}
 					collapsible={false}
 					title={label}
 					emptyText='No quote pairs.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$quotePairs()}
-				>
-					{#snippet Item({ item: hyperliquidSpotPair })}
-						<EntityView
-							entityType={EntityType.HyperliquidSpotPair}
-							entitySelector={hyperliquidSpotPair[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

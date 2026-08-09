@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,9 +29,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				directoryUrl: true,
-				ohttpGatewayUrl: true,
+			...{
+				fields: {
+					directoryUrl: true,
+					ohttpGatewayUrl: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,14 @@
 		<EntityView
 			entityType={EntityType.PayjoinDirectory}
 			entitySelector={payjoinDirectorySelector}
+			href={
+				resolve(
+					'/payjoin/directory/[directoryUrl=stringSegment]',
+					{
+						directoryUrl: payjoinDirectorySelector.directoryUrl,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{payjoinDirectorySelector.directoryUrl || 'payjoin directory'}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				label: true,
-				$model: true,
-				profileId: true,
-				updatedAt: true,
+			...{
+				fields: {
+					label: true,
+					$model: true,
+					profileId: true,
+					updatedAt: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,14 @@
 		<EntityView
 			entityType={EntityType.BlockheadAgentProfile}
 			entitySelector={blockheadAgentProfileSelector}
+			href={
+				resolve(
+					'/~/agent/profile/[profileId=stringSegment]',
+					{
+						profileId: blockheadAgentProfileSelector.profileId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(blockheadAgentProfile.label ?? '') || blockheadAgentProfileSelector.profileId || 'blockhead agent profile'}

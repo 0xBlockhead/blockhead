@@ -67,7 +67,17 @@
 						}
 					)
 				:
-					undefined
+					'$network' in selection.entitySelector
+					&& 'caip2' in selection.entitySelector.$network ?
+						resolve(
+							'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/native',
+							{
+								chainId: selection.entitySelector.$network.caip2.reference,
+								owner: selection.entitySelector.$actor.address,
+							}
+						)
+					:
+						undefined
 			)
 		:
 			href ?? undefined

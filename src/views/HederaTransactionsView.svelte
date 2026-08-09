@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,19 +28,56 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				transactionType: true,
-				result: true,
-				transactionId: true,
-				consensusTimestamp: true,
+			...{
+				fields: {
+					transactionType: true,
+					result: true,
+					transactionId: true,
+					consensusTimestamp: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: hederaTransaction })}
+		{@const hederaTransactionSelector = hederaTransaction[EntityMetaKey.Selector]}
+		{@const network = hederaTransactionSelector.$network}
 		<EntityView
 			entityType={EntityType.HederaTransaction}
-			entitySelector={hederaTransaction[EntityMetaKey.Selector]}
+			entitySelector={hederaTransactionSelector}
+			href={
+				'transactionId' in hederaTransactionSelector
+				&& 'nonce' in hederaTransactionSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/nonce/[nonce=nonNegativeInteger]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							transactionId: hederaTransactionSelector.transactionId,
+							nonce: String(hederaTransactionSelector.nonce),
+						}
+					)
+				:
+					'consensusTimestamp' in hederaTransactionSelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/consensus/[consensusTimestamp=stringSegment]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								consensusTimestamp: hederaTransactionSelector.consensusTimestamp,
+							}
+						)
+					:
+						undefined
+			}
 		>
 			{#snippet Title()}
 				{hederaTransaction.transactionType || hederaTransaction.transactionId || 'hedera transaction'}

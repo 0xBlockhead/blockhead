@@ -22,14 +22,12 @@ const openSeaChainForChainId = vi.hoisted(() => vi.fn((chainId: number) => {
 		return 'ethereum'
 	throw new Error(`OpenSea_Rest: unsupported EIP-155 chain ${chainId}`)
 }))
-const requireOpenSeaCredential = vi.hoisted(() => vi.fn(() => 'secret'))
 
 vi.mock('$/sources/OpenSea/Rest/queries.ts', () => ({
 	getAccountNfts,
 	getNft,
 	getNftsByContract,
 	openSeaChainForChainId,
-	requireOpenSeaCredential,
 }))
 
 const { default: openSeaRest } = await import('$/resolvers/OpenSea-Rest.ts')
@@ -77,7 +75,6 @@ describe('OpenSea REST resolver module', () => {
 		getNft.mockReset()
 		getNftsByContract.mockReset()
 		openSeaChainForChainId.mockClear()
-		requireOpenSeaCredential.mockClear()
 		getNft.mockResolvedValue({
 			nft: {
 				...listNft,
@@ -123,7 +120,6 @@ describe('OpenSea REST resolver module', () => {
 		expect(resolver.projections.tokenUri(snapshot)).toBe('ipfs://cid/metadata.json')
 		expect(resolver.projections.active(snapshot)).toBe(true)
 		expect(getNft).toHaveBeenCalledWith({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contractAddress,
 			identifier: tokenId,
@@ -185,7 +181,6 @@ describe('OpenSea REST resolver module', () => {
 		}, context)
 
 		expect(getAccountNfts).toHaveBeenCalledWith({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: accountAddress,
 			limit: 16,
@@ -227,7 +222,6 @@ describe('OpenSea REST resolver module', () => {
 		})
 
 		expect(getNftsByContract).toHaveBeenCalledWith({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contractAddress,
 			limit: 16,

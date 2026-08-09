@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -16,6 +18,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -45,6 +48,42 @@
 	entityType={EntityType.AvailBlock}
 	entitySelector={selection.entitySelector}
 	title={title ?? (String(prefetched.blockNumber ?? '') || (prefetched.blockHash ?? '') || 'avail block')}
+	href={
+		href === undefined ?
+			(
+				'blockNumber' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(avail)/block-number/[blockNumber=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in selection.entitySelector.$network.$network ?
+									caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+								:
+									selection.entitySelector.$network.$network.slug
+							),
+							blockNumber: String(selection.entitySelector.blockNumber),
+						}
+					)
+				:
+					'blockHash' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(avail)/avail/block-hash/[blockHash=stringSegment]',
+							{
+								network: (
+									'caip2' in selection.entitySelector.$network.$network ?
+										caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+									:
+										selection.entitySelector.$network.$network.slug
+								),
+								blockHash: selection.entitySelector.blockHash,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

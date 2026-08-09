@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				online: true,
-				version: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					online: true,
+					version: true,
+					source: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,16 @@
 		<EntityView
 			entityType={EntityType.FedimintGateway_Timestamp}
 			entitySelector={fedimintGatewayTimestampSelector}
+			href={
+				resolve(
+					'/fedimint/gateway/[gatewayId=stringSegment]/(fedimintGateway)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						gatewayId: fedimintGatewayTimestampSelector.$gateway.gatewayId,
+						timestampMs: String(fedimintGatewayTimestampSelector.timestampMs),
+						source: fedimintGatewayTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{fedimintGatewayTimestampSelector.timestampMs}

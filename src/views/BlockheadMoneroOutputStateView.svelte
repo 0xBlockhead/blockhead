@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -48,6 +50,19 @@
 	entityType={EntityType.BlockheadMoneroOutputState}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.txHash || 'blockhead monero output state')}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/monero/wallet/[walletId=stringSegment]/output-state/[txHash=stringSegment]/[outputIndex=nonNegativeInteger]',
+				{
+					walletId: selection.entitySelector.walletId,
+					txHash: selection.entitySelector.txHash,
+					outputIndex: String(selection.entitySelector.outputIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

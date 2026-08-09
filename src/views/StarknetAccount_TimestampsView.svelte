@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,19 +28,38 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$contract: true,
-				blockNumber: true,
-				source: true,
+			...{
+				fields: {
+					$contract: true,
+					blockNumber: true,
+					source: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: starknetAccountTimestamp })}
 		{@const starknetAccountTimestampSelector = starknetAccountTimestamp[EntityMetaKey.Selector]}
+		{@const contract = starknetAccountTimestampSelector.$contract}
 		<EntityView
 			entityType={EntityType.StarknetAccount_Timestamp}
 			entitySelector={starknetAccountTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/observation/starknet-block/[blockNumber=nonNegativeBigInt]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in contract.$network.$network ?
+								caip2StringFromValue(contract.$network.$network.caip2)
+							:
+								contract.$network.$network.slug
+						),
+						accountId: contract.address,
+						blockNumber: String(starknetAccountTimestampSelector.blockNumber),
+						source: starknetAccountTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{starknetAccountTimestampSelector.$contract.address || 'starknet contract'}

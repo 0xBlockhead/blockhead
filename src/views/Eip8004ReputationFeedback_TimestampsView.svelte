@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,20 +27,38 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				value: true,
-				timestampMs: true,
-				feedbackIndex: true,
-				source: true,
+			...{
+				fields: {
+					value: true,
+					timestampMs: true,
+					feedbackIndex: true,
+					source: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: eip8004ReputationFeedbackTimestamp })}
 		{@const eip8004ReputationFeedbackTimestampSelector = eip8004ReputationFeedbackTimestamp[EntityMetaKey.Selector]}
+		{@const registration = eip8004ReputationFeedbackTimestampSelector.$registration}
 		<EntityView
 			entityType={EntityType.Eip8004ReputationFeedback_Timestamp}
 			entitySelector={eip8004ReputationFeedbackTimestampSelector}
+			href={
+				resolve(
+					'/(agents)/agents/eip-8004/[namespace=stringSegment]/[chainId=nonNegativeInteger]/registry/[identityRegistry=evmAddress]/agent/[agentId=stringSegment]/(eip8004AgentRegistration)/feedback/[clientAddress=evmAddress]/[feedbackIndex=nonNegativeInteger]/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						namespace: registration.namespace,
+						chainId: String(registration.chainId),
+						identityRegistry: registration.identityRegistry,
+						agentId: registration.agentId,
+						clientAddress: eip8004ReputationFeedbackTimestampSelector.clientAddress,
+						feedbackIndex: String(eip8004ReputationFeedbackTimestampSelector.feedbackIndex),
+						timestampMs: String(eip8004ReputationFeedbackTimestampSelector.timestampMs),
+						source: eip8004ReputationFeedbackTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(eip8004ReputationFeedbackTimestamp.value ?? '') || String(eip8004ReputationFeedbackTimestampSelector.feedbackIndex) || 'EIP-8004 reputation feedback timestamp'}

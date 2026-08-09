@@ -41,11 +41,13 @@
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TokenMetadataDocumentsView from '$/views/TokenMetadataDocumentsView.svelte'
 	import TokenProgramExtension_TimestampsView from '$/views/TokenProgramExtension_TimestampsView.svelte'
 	import RegulatedAssetProfilesView from '$/views/RegulatedAssetProfilesView.svelte'
+	import TransferRestrictionsView from '$/views/TransferRestrictionsView.svelte'
+	import NftCollectionsView from '$/views/NftCollectionsView.svelte'
+	import PayoutsView from '$/views/PayoutsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
@@ -264,21 +266,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.TransferRestriction}
+					<TransferRestrictionsView
+						selection={transferRestrictionsResource}
 						countResource={transferRestrictionsResource.count}
 						title='Transfer restrictions'
-						open={true}
 						id='transfer-restrictions'
-						resource={transferRestrictionsResource()}
-					>
-						{#snippet Item({ item: transferRestriction })}
-							<EntityView
-								entityType={EntityType.TransferRestriction}
-								entitySelector={transferRestriction[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -288,21 +281,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.NftCollection}
+					<NftCollectionsView
+						selection={nftCollectionsResource}
 						countResource={nftCollectionsResource.count}
 						title='NFT collections'
-						open={true}
 						id='nft-collections'
-						resource={nftCollectionsResource()}
-					>
-						{#snippet Item({ item: nftCollection })}
-							<EntityView
-								entityType={EntityType.NftCollection}
-								entitySelector={nftCollection[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -312,21 +296,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.Payout}
+					<PayoutsView
+						selection={payoutsResource}
 						countResource={payoutsResource.count}
 						title='Payouts'
-						open={true}
 						id='payouts'
-						resource={payoutsResource()}
-					>
-						{#snippet Item({ item: payout })}
-							<EntityView
-								entityType={EntityType.Payout}
-								entitySelector={payout[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

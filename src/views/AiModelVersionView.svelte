@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,11 +18,14 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiModelVersion> = $props()
 
+	const model = $derived(selection.entitySelector.$model)
+	const artifact = $derived(selection.entitySelector.$artifact)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.HuggingFaceHub_Rest,
@@ -54,6 +58,47 @@
 	entityType={EntityType.AiModelVersion}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'versionId' in selection.entitySelector
+				&& '$model' in selection.entitySelector
+				&& 'providerId' in model.$provider ?
+					resolve(
+						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/model/[providerModelId=stringSegment]/(aiModel)/version/[versionId=stringSegment]',
+						{
+							providerId: model.$provider.providerId,
+							providerModelId: model.providerModelId,
+							versionId: selection.entitySelector.versionId,
+						}
+					)
+				:
+					'$artifact' in selection.entitySelector
+					&& 'digestAlgorithm' in artifact
+					&& 'digest' in artifact ?
+						resolve(
+							'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/model-version',
+							{
+								digestAlgorithm: artifact.digestAlgorithm,
+								digest: artifact.digest,
+							}
+						)
+					:
+						'huggingFaceRepo' in selection.entitySelector
+						&& 'revision' in selection.entitySelector ?
+							resolve(
+								'/(ai)/ai/model-version/huggingface/[huggingFaceRepo=stringSegment]/[revision=stringSegment]',
+								{
+									huggingFaceRepo: selection.entitySelector.huggingFaceRepo,
+									revision: selection.entitySelector.revision,
+								}
+							)
+						:
+							undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -75,6 +120,7 @@
 					<AiModelView
 						selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
 						prefetched={aiModel}
+						href={null}
 						layout={EntityLayout.Value}
 					/>
 				{/if}

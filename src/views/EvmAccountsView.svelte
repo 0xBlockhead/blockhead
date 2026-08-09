@@ -27,8 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				address: true,
+			...{
+				fields: {
+					address: true,
+				},
 			},
 		})
 	}
@@ -39,12 +41,21 @@
 			entityType={EntityType.EvmAccount}
 			entitySelector={evmAccountSelector}
 			href={
-				resolve(
-					'/(explore)/account/[address=evmAddress]',
-					{
-						address: evmAccountSelector.address,
-					}
-				)
+				'interopAddress' in evmAccountSelector ?
+					resolve(
+						'/evm/account/[address=evmAddress]/interop/[interopAddress=stringSegment]',
+						{
+							address: evmAccountSelector.address,
+							interopAddress: evmAccountSelector.interopAddress,
+						}
+					)
+				:
+					resolve(
+						'/(explore)/account/[address=evmAddress]',
+						{
+							address: evmAccountSelector.address,
+						}
+					)
 			}
 		>
 			{#snippet Title()}

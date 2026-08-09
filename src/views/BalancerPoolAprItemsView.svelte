@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,19 +28,38 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				title: true,
-				apr: true,
-				aprType: true,
+			...{
+				fields: {
+					title: true,
+					apr: true,
+					aprType: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: balancerPoolAprItem })}
 		{@const balancerPoolAprItemSelector = balancerPoolAprItem[EntityMetaKey.Selector]}
+		{@const pool = balancerPoolAprItemSelector.$pool}
 		<EntityView
 			entityType={EntityType.BalancerPoolAprItem}
 			entitySelector={balancerPoolAprItemSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/balancer-pool/[poolId=stringSegment]/(balancerPool)/apr/[title=stringSegment]/[aprType=stringSegment]',
+					{
+						network: (
+							'caip2' in pool.$network ?
+								caip2StringFromValue(pool.$network.caip2)
+							:
+								pool.$network.slug
+						),
+						poolId: pool.poolId,
+						title: balancerPoolAprItemSelector.title,
+						aprType: balancerPoolAprItemSelector.aprType,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{balancerPoolAprItemSelector.title || 'Balancer pool APR item'}

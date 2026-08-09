@@ -4,6 +4,7 @@ import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { NonNegativeDecimalString } from '$/schema/NonNegativeDecimalString.ts'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
@@ -21,6 +22,17 @@ export default entity({
 	},
 	$reserve: {
 		entityType: EntityType.AaveReserve,
+		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Aave_Rest,
+		],
+	},
+	poolAddress: {
+		primitiveType: EvmAddress,
+		cardinality: EntityFieldCardinality.One,
+	},
+	underlyingTokenAddress: {
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	symbol: {
@@ -88,9 +100,10 @@ export default entity({
 	},
 })({
 	selectors: {
-		AccountReserve: [
+		AccountPoolAddressUnderlyingTokenAddress: [
 			'$account',
-			'$reserve',
+			'poolAddress',
+			'underlyingTokenAddress',
 		],
 	},
 })

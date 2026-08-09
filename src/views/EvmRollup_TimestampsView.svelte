@@ -28,10 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				listingStage: true,
-				timestampMs: true,
-				$rollup: true,
+			...{
+				fields: {
+					listingStage: true,
+					timestampMs: true,
+					$rollup: true,
+				},
 			},
 		})
 	}

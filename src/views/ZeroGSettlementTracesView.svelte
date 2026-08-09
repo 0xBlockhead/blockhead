@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,19 +28,38 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				traceId: true,
-				$serviceRequest: true,
-				settlementTransactionHash: true,
+			...{
+				fields: {
+					traceId: true,
+					$serviceRequest: true,
+					settlementTransactionHash: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: zeroGSettlementTrace })}
 		{@const zeroGSettlementTraceSelector = zeroGSettlementTrace[EntityMetaKey.Selector]}
+		{@const serviceRequest = zeroGSettlementTraceSelector.$serviceRequest}
 		<EntityView
 			entityType={EntityType.ZeroGSettlementTrace}
 			entitySelector={zeroGSettlementTraceSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/service-provider/[providerId=stringSegment]/(zeroGServiceProvider)/request/[requestId=stringSegment]/(zeroGServiceRequest)/trace/[traceId=stringSegment]',
+					{
+						network: (
+							'caip2' in serviceRequest.$serviceProvider.$network ?
+								caip2StringFromValue(serviceRequest.$serviceProvider.$network.caip2)
+							:
+								serviceRequest.$serviceProvider.$network.slug
+						),
+						providerId: serviceRequest.$serviceProvider.providerId,
+						requestId: serviceRequest.requestId,
+						traceId: zeroGSettlementTraceSelector.traceId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{zeroGSettlementTraceSelector.traceId || 'zero g settlement trace'}

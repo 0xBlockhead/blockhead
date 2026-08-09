@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.XrplTrustline_Timestamp>, 'prefetched'> = $props()
+
+	const trustline = $derived(selection.entitySelector.$trustline)
 
 
 	// Components
@@ -31,6 +36,27 @@
 	entityType={EntityType.XrplTrustline_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'XRPL trustline timestamp'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]/(xrplTrustline)/observations/[ledgerIndex=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in trustline.$network ?
+							caip2StringFromValue(trustline.$network.caip2)
+						:
+							trustline.$network.slug
+					),
+					account: trustline.account,
+					currency: trustline.currency,
+					issuer: trustline.issuer,
+					ledgerIndex: String(selection.entitySelector.ledgerIndex),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

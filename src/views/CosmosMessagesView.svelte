@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,18 +30,36 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				indexInTransaction: true,
-				typeUrl: true,
+			...{
+				fields: {
+					indexInTransaction: true,
+					typeUrl: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: cosmosMessage })}
 		{@const cosmosMessageSelector = cosmosMessage[EntityMetaKey.Selector]}
+		{@const transaction = cosmosMessageSelector.$transaction}
 		<EntityView
 			entityType={EntityType.CosmosMessage}
 			entitySelector={cosmosMessageSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/message/[indexInTransaction=nonNegativeInteger]',
+					{
+						network: (
+							'caip2' in transaction.$network ?
+								caip2StringFromValue(transaction.$network.caip2)
+							:
+								transaction.$network.slug
+						),
+						transactionId: transaction.txHash,
+						indexInTransaction: String(cosmosMessageSelector.indexInTransaction),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{`Message #${cosmosMessageSelector.indexInTransaction}`}

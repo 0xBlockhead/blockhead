@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -29,9 +31,24 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: sorobanWasm })}
+		{@const sorobanWasmSelector = sorobanWasm[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.SorobanWasm}
-			entitySelector={sorobanWasm[EntityMetaKey.Selector]}
+			entitySelector={sorobanWasmSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/soroban/wasm/[wasmHash=stringSegment]',
+					{
+						network: (
+							'caip2' in sorobanWasmSelector.$network.$network ?
+								caip2StringFromValue(sorobanWasmSelector.$network.$network.caip2)
+							:
+								sorobanWasmSelector.$network.$network.slug
+						),
+						wasmHash: sorobanWasmSelector.wasmHash,
+					}
+				)
+			}
 		/>
 	{/snippet}
 </EntitiesList>

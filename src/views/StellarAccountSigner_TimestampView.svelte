@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,10 +15,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.StellarAccountSigner_Timestamp>, 'prefetched'> = $props()
+
+	const signer = $derived(selection.entitySelector.$signer)
 
 
 	// Components
@@ -29,6 +34,27 @@
 <EntityView
 	entityType={EntityType.StellarAccountSigner_Timestamp}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/stellar/[accountId=stringSegment]/(stellarAccount)/signer/[signerKey=stringSegment]/[signerType=stringSegment]/(stellarAccountSigner)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in signer.$account.$network.$network ?
+							caip2StringFromValue(signer.$account.$network.$network.caip2)
+						:
+							signer.$account.$network.$network.slug
+					),
+					accountId: signer.$account.accountId,
+					signerKey: signer.signerKey,
+					signerType: signer.signerType,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

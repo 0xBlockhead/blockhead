@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -27,9 +29,27 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: icpRequestStatusTimestamp })}
+		{@const icpRequestStatusTimestampSelector = icpRequestStatusTimestamp[EntityMetaKey.Selector]}
+		{@const requestStatus = icpRequestStatusTimestampSelector.$requestStatus}
 		<EntityView
 			entityType={EntityType.IcpRequestStatus_Timestamp}
-			entitySelector={icpRequestStatusTimestamp[EntityMetaKey.Selector]}
+			entitySelector={icpRequestStatusTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/request/[requestId=stringSegment]/(icpRequestStatus)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in requestStatus.$network.$network ?
+								caip2StringFromValue(requestStatus.$network.$network.caip2)
+							:
+								requestStatus.$network.$network.slug
+						),
+						requestId: requestStatus.requestId,
+						timestampMs: String(icpRequestStatusTimestampSelector.timestampMs),
+						source: icpRequestStatusTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				ICP request status timestamp

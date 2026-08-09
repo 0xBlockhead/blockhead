@@ -14,15 +14,15 @@ export default entity({
 })({
 	$program: {
 		entityType: EntityType.AcpAgentProgram,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	version: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	$artifact: {
 		entityType: EntityType.AiArtifact,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	releaseDate: {
 		primitiveType: type('number'),
@@ -32,20 +32,16 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	distribution: {
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	command: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	arguments: {
-		primitiveType: type('unknown'),
+		primitiveType: type('string').array(),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	environmentKeys: {
-		primitiveType: type('unknown'),
+		primitiveType: type('string').array(),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$$documents: {

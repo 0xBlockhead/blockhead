@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BridgeTransfer_Timestamp>, 'prefetched'> = $props()
 
+	const transfer = $derived(selection.entitySelector.$transfer)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Across_Rest,
@@ -53,6 +56,26 @@
 	entityType={EntityType.BridgeTransfer_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			(
+				'originChainId' in transfer
+				&& 'depositId' in transfer ?
+					resolve(
+						'/~/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]/(bridgeTransfer)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							originChainId: String(transfer.originChainId),
+							depositId: String(transfer.depositId),
+							timestampMs: String(selection.entitySelector.timestampMs),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

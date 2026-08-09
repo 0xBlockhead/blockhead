@@ -98,11 +98,59 @@ export default entity({
 	},
 
 	facets: {
+		Algorand: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Algorand',
+		})({}),
 		Aptos: facet({
 			path: [
 				'namespace',
 			],
 			is: 'Aptos',
+		})({}),
+		InternetComputer: facet({
+			path: [
+				'namespace',
+			],
+			is: 'InternetComputer',
+		})({}),
+		Kaspa: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Kaspa',
+		})({}),
+		Logos: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Logos',
+		})({}),
+		Stellar: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Stellar',
+		})({}),
+		Tezos: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Tezos',
+		})({}),
+		BnbBeacon: facet({
+			path: [
+				'slug',
+			],
+			is: 'bnb-beacon',
+		})({}),
+		Elements: facet({
+			path: [
+				'namespace',
+			],
+			is: 'Elements',
 		})({}),
 		Dydx: facet({
 			path: [

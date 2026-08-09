@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				infoHash: true,
-				status: true,
-				timestampMs: true,
+			...{
+				fields: {
+					infoHash: true,
+					status: true,
+					timestampMs: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,16 @@
 		<EntityView
 			entityType={EntityType.BitTorrentDhtLookup_Timestamp}
 			entitySelector={bitTorrentDhtLookupTimestampSelector}
+			href={
+				resolve(
+					'/(bittorrent)/bittorrent/dht-lookup/[infoHash=stringSegment]/[observerKey=stringSegment]/[timestampMs=nonNegativeInteger]',
+					{
+						infoHash: bitTorrentDhtLookupTimestampSelector.infoHash,
+						observerKey: bitTorrentDhtLookupTimestampSelector.observerKey,
+						timestampMs: String(bitTorrentDhtLookupTimestampSelector.timestampMs),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{bitTorrentDhtLookupTimestampSelector.infoHash || 'bit torrent DHT lookup timestamp'}

@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { RegisteredEntitySelector } from '$/schema/index.ts'
 	import { proposalCategoryById, specificationRealmById } from '$/constants/SpecificationProposal.ts'
 	import specificationProposalSources from '$/sources/specificationProposalSources.ts'
 
@@ -15,15 +14,13 @@
 	let {
 		selection,
 		title = 'Proposals',
+		limit = 64,
 		open = $bindable(true),
-		filterRealm,
-		filterCategory,
 		...EntitiesListProps
 	}: EntityListViewProps<
 		EntityType.SpecificationProposal,
 		{
-			filterRealm?: RegisteredEntitySelector<EntityType.SpecificationProposal>['realm']
-			filterCategory?: RegisteredEntitySelector<EntityType.SpecificationProposal>['category']
+			limit?: number
 		}
 	> = $props()
 
@@ -51,19 +48,15 @@
 	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={
 		selection({
-			sources: specificationProposalSources({
-				realm: filterRealm,
-				category: filterCategory,
-			}),
+			...{
+				sources: selection.sources ?? specificationProposalSources({}),
+				fields: {
+					documentTitle: true,
+					number: true,
+				},
+			},
+			limit: limit,
 		})
-	}
-	getResourceItems={
-		(specificationProposals) => specificationProposals.values.filter(
-			(specificationProposal) => (
-				(filterRealm == null || specificationProposal[EntityMetaKey.Selector].realm === filterRealm)
-				&& (filterCategory == null || specificationProposal[EntityMetaKey.Selector].category === filterCategory)
-			)
-		)
 	}
 >
 	{#snippet Item({ item: specificationProposal })}

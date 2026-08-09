@@ -71,7 +71,25 @@
 						}
 					)
 				:
-					undefined
+					'instanceOrigin' in selection.entitySelector
+					&& 'acct' in selection.entitySelector ?
+						resolve(
+							'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/@[acct=stringSegment]',
+							{
+								instanceOrigin: encodeURIComponent(selection.entitySelector.instanceOrigin),
+								acct: selection.entitySelector.acct,
+							}
+						)
+					:
+						'activityStreamsUri' in selection.entitySelector ?
+							resolve(
+								'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[activityStreamsUri=stringSegment]',
+								{
+									activityStreamsUri: selection.entitySelector.activityStreamsUri,
+								}
+							)
+						:
+							undefined
 			)
 		:
 			href ?? undefined

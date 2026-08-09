@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -29,9 +30,18 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: radicleRepository })}
+		{@const radicleRepositorySelector = radicleRepository[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.RadicleRepository}
-			entitySelector={radicleRepository[EntityMetaKey.Selector]}
+			entitySelector={radicleRepositorySelector}
+			href={
+				resolve(
+					'/radicle/repository/[rid=stringSegment]',
+					{
+						rid: radicleRepositorySelector.rid,
+					}
+				)
+			}
 		/>
 	{/snippet}
 </EntitiesList>

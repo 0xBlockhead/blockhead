@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.FilecoinMessageFee>, 'prefetched'> = $props()
 
+	const message = $derived(selection.entitySelector.$message)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Filfox_Rest,
@@ -43,6 +47,24 @@
 	entityType={EntityType.FilecoinMessageFee}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.source || 'filecoin message fee')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/message/filecoin/[cid=stringSegment]/(filecoinMessage)/fee/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in message.$network ?
+							caip2StringFromValue(message.$network.caip2)
+						:
+							message.$network.slug
+					),
+					cid: message.cid,
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

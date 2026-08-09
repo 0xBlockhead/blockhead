@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				objectId: true,
-				status: true,
-				timestampMs: true,
+			...{
+				fields: {
+					objectId: true,
+					status: true,
+					timestampMs: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,18 @@
 		<EntityView
 			entityType={EntityType.GitObjectVerification_Timestamp}
 			entitySelector={gitObjectVerificationTimestampSelector}
+			href={
+				resolve(
+					'/git/object/[objectId=zeroExHex]/[objectFormat=stringSegment]/(gitObject)/byte-source/[byteSource=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						objectId: gitObjectVerificationTimestampSelector.objectId,
+						objectFormat: gitObjectVerificationTimestampSelector.objectFormat,
+						byteSource: gitObjectVerificationTimestampSelector.byteSource,
+						timestampMs: String(gitObjectVerificationTimestampSelector.timestampMs),
+						source: gitObjectVerificationTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{gitObjectVerificationTimestampSelector.objectId || 'Git object verification timestamp'}

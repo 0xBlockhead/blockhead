@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,6 +17,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -41,6 +43,20 @@
 	entityType={EntityType.BlockheadRadicleSeedObservation_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.nodeId || 'blockhead radicle seed observation timestamp')}
+	href={
+		href === undefined ?
+			resolve(
+				'/radicle/repository/[rid=stringSegment]/(radicleRepository)/seed/[nodeId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					rid: selection.entitySelector.$repository.rid,
+					nodeId: selection.entitySelector.nodeId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

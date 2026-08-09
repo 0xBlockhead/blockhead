@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,6 +16,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -43,6 +45,23 @@
 	entityType={EntityType.A2aTaskEvent}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.sequence)}
+	href={
+		href === undefined ?
+			(
+				'taskId' in selection.entitySelector.$task ?
+					resolve(
+						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/event/[sequence=nonNegativeInteger]',
+						{
+							taskId: selection.entitySelector.$task.taskId,
+							sequence: String(selection.entitySelector.sequence),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

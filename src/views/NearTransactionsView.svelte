@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -27,24 +29,56 @@
 	bind:open
 	resource={
 		selection({
-			sources: selection.sources ?? [
-				Source.NearRpc_JsonRpc,
-				Source.NearBlocks_Rest,
-			],
-			fields: {
-				hash: true,
-				$signer: true,
-				signerAccountId: true,
-				$receiver: true,
+			...{
+				sources: selection.sources ?? [
+					Source.NearRpc_JsonRpc,
+					Source.NearBlocks_Rest,
+				],
+				fields: {
+					hash: true,
+					$signer: true,
+					signerAccountId: true,
+					$receiver: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: nearTransaction })}
 		{@const nearTransactionSelector = nearTransaction[EntityMetaKey.Selector]}
+		{@const network = nearTransactionSelector.$network}
 		<EntityView
 			entityType={EntityType.NearTransaction}
 			entitySelector={nearTransactionSelector}
+			href={
+				'signerAccountId' in nearTransactionSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/signer/[signerAccountId=stringSegment]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							transactionId: nearTransactionSelector.hash,
+							signerAccountId: nearTransactionSelector.signerAccountId,
+						}
+					)
+				:
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
+						{
+							network: (
+								'caip2' in network ?
+									caip2StringFromValue(network.caip2)
+								:
+									network.slug
+							),
+							transactionId: nearTransactionSelector.hash,
+						}
+					)
+			}
 		>
 			{#snippet Title()}
 				{nearTransactionSelector.hash || 'near transaction'}

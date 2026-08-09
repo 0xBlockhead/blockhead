@@ -1,0 +1,49 @@
+<!-- Generated from APP.ts. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		data,
+		params,
+	}: PageProps = $props()
+
+	const pageSelection = $derived(select(EntityType.ActivityPubInstanceModeratedDomain, {
+		$observation: data.selector,
+		domain: params.domain,
+	}, {
+		sources: [
+			Source.Mastodon_Rest,
+		],
+		fields: {
+			severity: true,
+			comment: true,
+		},
+	}))
+
+
+	// Components
+	import Page from '$/components/Page.svelte'
+	import ActivityPubInstanceModeratedDomainView from '$/views/ActivityPubInstanceModeratedDomainView.svelte'
+</script>
+
+
+<svelte:head>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.domain ?? '') || 'ActivityPub instance moderated domain' : [pageSelection.entitySelector.domain, (pageSelection.entity.severity ?? ''), (pageSelection.entity.comment ?? '')].filter(Boolean).join(' ') || 'ActivityPub instance moderated domain')} • ActivityPub instance moderated domain • Blockhead</title>
+</svelte:head>
+
+
+<Page>
+	<ActivityPubInstanceModeratedDomainView
+		selection={pageSelection}
+	/>
+</Page>

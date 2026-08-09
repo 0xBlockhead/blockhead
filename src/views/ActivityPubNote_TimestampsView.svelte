@@ -28,15 +28,17 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$note: {
-					fields: {
-						content: true,
-						localStatusId: true,
-						createdAt: true,
+			...{
+				fields: {
+					$note: {
+						fields: {
+							content: true,
+							localStatusId: true,
+							createdAt: true,
+						},
 					},
+					timestampMs: true,
 				},
-				timestampMs: true,
 			},
 		})
 	}

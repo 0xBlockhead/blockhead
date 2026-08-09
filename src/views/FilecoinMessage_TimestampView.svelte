@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -17,11 +19,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FilecoinMessage_Timestamp> = $props()
 
+	const message = $derived(selection.entitySelector.$message)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Filfox_Rest,
@@ -47,6 +51,26 @@
 	entityType={EntityType.FilecoinMessage_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? (String(prefetched.timestampMs ?? '') || 'filecoin message timestamp')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/message/filecoin/[cid=stringSegment]/(filecoinMessage)/tipset/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in message.$network ?
+							caip2StringFromValue(message.$network.caip2)
+						:
+							message.$network.slug
+					),
+					cid: message.cid,
+					height: String(selection.entitySelector.height),
+					tipsetKey: selection.entitySelector.tipsetKey,
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,9 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,6 +16,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -28,8 +30,9 @@
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import AlgorandAssetHolding_RoundsView from '$/views/AlgorandAssetHolding_RoundsView.svelte'
+	import AlgorandAsset_TimestampsView from '$/views/AlgorandAsset_TimestampsView.svelte'
 	import AlgorandNetworkView from '$/views/AlgorandNetworkView.svelte'
 </script>
 
@@ -38,6 +41,23 @@
 	entityType={EntityType.AlgorandAsset}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.assetId)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/asset/[assetId=nonNegativeBigInt]',
+				{
+					network: (
+						'caip2' in selection.entitySelector.$network.$network ?
+							caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+						:
+							selection.entitySelector.$network.$network.slug
+					),
+					assetId: String(selection.entitySelector.assetId),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -106,21 +126,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.AlgorandAssetHolding_Round}
+					<AlgorandAssetHolding_RoundsView
+						selection={holdingRoundsResource}
 						countResource={holdingRoundsResource.count}
 						title='holding rounds'
-						open={true}
 						id='holding-rounds'
-						resource={holdingRoundsResource()}
-					>
-						{#snippet Item({ item: algorandAssetHoldingRound })}
-							<EntityView
-								entityType={EntityType.AlgorandAssetHolding_Round}
-								entitySelector={algorandAssetHoldingRound[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -130,21 +141,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.AlgorandAsset_Timestamp}
+					<AlgorandAsset_TimestampsView
+						selection={timestampsResource}
 						countResource={timestampsResource.count}
 						title='timestamps'
-						open={true}
 						id='timestamps'
-						resource={timestampsResource()}
-					>
-						{#snippet Item({ item: algorandAssetTimestamp })}
-							<EntityView
-								entityType={EntityType.AlgorandAsset_Timestamp}
-								entitySelector={algorandAssetTimestamp[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

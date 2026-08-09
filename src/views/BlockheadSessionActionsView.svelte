@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,18 +27,30 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				actionType: true,
-				selectedProtocol: true,
-				indexInSequence: true,
+			...{
+				fields: {
+					actionType: true,
+					selectedProtocol: true,
+					indexInSequence: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadSessionAction })}
+		{@const blockheadSessionActionSelector = blockheadSessionAction[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadSessionAction}
-			entitySelector={blockheadSessionAction[EntityMetaKey.Selector]}
+			entitySelector={blockheadSessionActionSelector}
+			href={
+				resolve(
+					'/~/session/[sessionId=stringSegment]/(blockheadSession)/action/[actionId=stringSegment]',
+					{
+						sessionId: blockheadSessionActionSelector.sessionId,
+						actionId: blockheadSessionActionSelector.actionId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadSessionAction.actionType || 'blockhead session action'}

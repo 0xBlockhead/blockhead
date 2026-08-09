@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,10 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.NearReceipt>, 'prefetched'> = $props()
+
+	const network = $derived(selection.entitySelector.$network)
 
 
 	// Components
@@ -33,6 +38,23 @@
 	entityType={EntityType.NearReceipt}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.receiptId || 'near receipt')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/receipt/[receiptId=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					receiptId: selection.entitySelector.receiptId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -49,6 +71,7 @@
 				{#if nearAccount != null}
 					<NearAccountView
 						selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
+						href={null}
 						layout={EntityLayout.Value}
 					/>
 				{/if}

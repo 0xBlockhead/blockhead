@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,19 +30,39 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				balance: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					balance: true,
+					source: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadQuilibriumAccountStateTimestamp })}
 		{@const blockheadQuilibriumAccountStateTimestampSelector = blockheadQuilibriumAccountStateTimestamp[EntityMetaKey.Selector]}
+		{@const accountState = blockheadQuilibriumAccountStateTimestampSelector.$accountState}
 		<EntityView
 			entityType={EntityType.BlockheadQuilibriumAccountState_Timestamp}
 			entitySelector={blockheadQuilibriumAccountStateTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/~/quilibrium/connection/[connectionId=stringSegment]/account-state/[accountAddress=stringSegment]/(blockheadQuilibriumAccountState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in accountState.$network ?
+								caip2StringFromValue(accountState.$network.caip2)
+							:
+								accountState.$network.slug
+						),
+						connectionId: accountState.connectionId,
+						accountAddress: accountState.accountAddress,
+						timestampMs: String(blockheadQuilibriumAccountStateTimestampSelector.timestampMs),
+						source: blockheadQuilibriumAccountStateTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadQuilibriumAccountStateTimestampSelector.timestampMs}

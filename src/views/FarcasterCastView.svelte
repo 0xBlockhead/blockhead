@@ -82,7 +82,23 @@
 							}
 						)
 					:
-						undefined
+						'hash' in selection.entitySelector ?
+							resolve(
+								'/farcaster/cast/[hash=zeroExHex]',
+								{
+									hash: selection.entitySelector.hash,
+								}
+							)
+						:
+							'clientUrl' in selection.entitySelector ?
+								resolve(
+									'/farcaster/cast/client/[clientUrl=stringSegment]',
+									{
+										clientUrl: selection.entitySelector.clientUrl,
+									}
+								)
+							:
+								undefined
 			)
 		:
 			href ?? undefined

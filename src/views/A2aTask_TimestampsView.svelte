@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				state: true,
-				error: true,
+			...{
+				fields: {
+					timestampMs: true,
+					state: true,
+					error: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,19 @@
 		<EntityView
 			entityType={EntityType.A2aTask_Timestamp}
 			entitySelector={a2aTaskTimestampSelector}
+			href={
+				'taskId' in a2aTaskTimestampSelector.$task ?
+					resolve(
+						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							taskId: a2aTaskTimestampSelector.$task.taskId,
+							timestampMs: String(a2aTaskTimestampSelector.timestampMs),
+							source: a2aTaskTimestampSelector.source,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{a2aTaskTimestampSelector.timestampMs}

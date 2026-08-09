@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,11 +15,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.EvmNetworkActorCoinBalance_EvmBlock>, 'prefetched'> = $props()
 
+	const actorCoin = $derived(selection.entitySelector.$actorCoin)
 	const evmNetworkActorCoinBalanceEvmBlock = $derived(selection({
 		fields: {
 			balance: true,
@@ -45,6 +48,26 @@
 	entityType={EntityType.EvmNetworkActorCoinBalance_EvmBlock}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'EVM network actor coin balance EVM block'}
+	href={
+		href === undefined ?
+			(
+				'blockNumber' in selection.entitySelector.$block
+				&& '$network' in actorCoin
+				&& 'caip2' in actorCoin.$network ?
+					resolve(
+						'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/native/(evmNetworkActorCoinBalance)/block/[blockNumber=nonNegativeBigInt]',
+						{
+							chainId: actorCoin.$network.caip2.reference,
+							owner: actorCoin.$actor.address,
+							blockNumber: String(selection.entitySelector.$block.blockNumber),
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

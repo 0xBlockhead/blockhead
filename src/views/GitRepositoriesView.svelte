@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,18 +29,40 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				repositoryId: true,
-				canonicalRemoteUrl: true,
-				objectFormat: true,
+			...{
+				fields: {
+					repositoryId: true,
+					canonicalRemoteUrl: true,
+					objectFormat: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: gitRepository })}
+		{@const gitRepositorySelector = gitRepository[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.GitRepository}
-			entitySelector={gitRepository[EntityMetaKey.Selector]}
+			entitySelector={gitRepositorySelector}
+			href={
+				'repositoryId' in gitRepositorySelector ?
+					resolve(
+						'/git/repository/id/[repositoryId=stringSegment]',
+						{
+							repositoryId: gitRepositorySelector.repositoryId,
+						}
+					)
+				:
+					'canonicalRemoteUrl' in gitRepositorySelector ?
+						resolve(
+							'/git/repository/remote/[canonicalRemoteUrl=absoluteUrl]',
+							{
+								canonicalRemoteUrl: encodeURIComponent(gitRepositorySelector.canonicalRemoteUrl),
+							}
+						)
+					:
+						undefined
+			}
 		>
 			{#snippet Title()}
 				{[gitRepository.repositoryId, (gitRepository.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || 'Git repository'}

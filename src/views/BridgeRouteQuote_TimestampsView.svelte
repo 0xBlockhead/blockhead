@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,13 +27,15 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				fromChainId: true,
-				toChainId: true,
-				timestampMs: true,
-				source: true,
-				estimatedCostUsd: true,
-				estimatedDurationSeconds: true,
+			...{
+				fields: {
+					fromChainId: true,
+					toChainId: true,
+					timestampMs: true,
+					source: true,
+					estimatedCostUsd: true,
+					estimatedDurationSeconds: true,
+				},
 			},
 		})
 	}
@@ -42,6 +45,16 @@
 		<EntityView
 			entityType={EntityType.BridgeRouteQuote_Timestamp}
 			entitySelector={bridgeRouteQuoteTimestampSelector}
+			href={
+				resolve(
+					'/~/bridge/quote/[source=stringSegment]/[quoteRequestHash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]',
+					{
+						source: bridgeRouteQuoteTimestampSelector.source,
+						quoteRequestHash: bridgeRouteQuoteTimestampSelector.quoteRequestHash,
+						timestampMs: String(bridgeRouteQuoteTimestampSelector.timestampMs),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[String(bridgeRouteQuoteTimestamp.fromChainId), 'to', String(bridgeRouteQuoteTimestamp.toChainId)].filter(Boolean).join(' ') || 'bridge route quote timestamp'}

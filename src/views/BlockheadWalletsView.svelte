@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,17 +27,28 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				name: true,
-				protocol: true,
+			...{
+				fields: {
+					name: true,
+					protocol: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadWallet })}
+		{@const blockheadWalletSelector = blockheadWallet[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadWallet}
-			entitySelector={blockheadWallet[EntityMetaKey.Selector]}
+			entitySelector={blockheadWalletSelector}
+			href={
+				resolve(
+					'/~/wallet/[id=stringSegment]',
+					{
+						id: blockheadWalletSelector.id,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadWallet.name || 'blockhead wallet'}

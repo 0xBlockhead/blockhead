@@ -13,6 +13,7 @@
 	// State
 	let {
 		data,
+		params,
 	}: PageProps = $props()
 
 
@@ -29,6 +30,13 @@
 
 <Page>
 	<SuiCheckpointView
-		selection={select(EntityType.SuiCheckpoint, data.selector)}
+		selection={
+			select(EntityType.SuiCheckpoint, {
+				$network: {
+					$network: data.selector,
+				},
+				sequence: BigInt(params.sequence),
+			})
+		}
 	/>
 </Page>

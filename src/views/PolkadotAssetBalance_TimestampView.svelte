@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -15,11 +17,14 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.PolkadotAssetBalance_Timestamp>, 'prefetched'> = $props()
 
+	const account = $derived(selection.entitySelector.$account)
+	const asset = $derived(selection.entitySelector.$asset)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.SubstrateSidecar_Rest,
@@ -47,6 +52,27 @@
 	entityType={EntityType.PolkadotAssetBalance_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'Polkadot asset balance timestamp'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/asset/[assetKind=stringSegment]/[assetId=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in account.$network ?
+							caip2StringFromValue(account.$network.caip2)
+						:
+							account.$network.slug
+					),
+					accountId: account.accountId,
+					assetKind: asset.assetKind,
+					assetId: asset.assetId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -54,6 +80,7 @@
 	{#snippet Title()}
 		<PolkadotAssetView
 			selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
+			href={null}
 			layout={EntityLayout.Title}
 		/>
 	{/snippet}

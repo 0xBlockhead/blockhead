@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				name: true,
-				updatedAt: true,
-				id: true,
+			...{
+				fields: {
+					name: true,
+					updatedAt: true,
+					id: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,14 @@
 		<EntityView
 			entityType={EntityType.BlockheadWorkspace}
 			entitySelector={blockheadWorkspaceSelector}
+			href={
+				resolve(
+					'/~/workspace/[id=stringSegment]',
+					{
+						id: blockheadWorkspaceSelector.id,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(blockheadWorkspace.name ?? '') || blockheadWorkspaceSelector.id || 'workspace'}

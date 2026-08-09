@@ -2,10 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -17,11 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.RegulatedAssetProfile> = $props()
 
+	const assetInstance = $derived(selection.entitySelector.$assetInstance)
 	const regulatedAssetProfile = $derived(selection({
 		fields: {
 			standard: true,
@@ -33,10 +36,15 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
+	import ClaimTopicRequirementsView from '$/views/ClaimTopicRequirementsView.svelte'
+	import TrustedIssuersView from '$/views/TrustedIssuersView.svelte'
+	import ComplianceModulesView from '$/views/ComplianceModulesView.svelte'
+	import IssuerPowersView from '$/views/IssuerPowersView.svelte'
+	import TransferRestrictionsView from '$/views/TransferRestrictionsView.svelte'
+	import RegulatedAssetProfile_TimestampsView from '$/views/RegulatedAssetProfile_TimestampsView.svelte'
 </script>
 
 
@@ -45,6 +53,24 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/regulated-profile',
+				{
+					network: (
+						'caip2' in assetInstance.$network ?
+							caip2StringFromValue(assetInstance.$network.caip2)
+						:
+							assetInstance.$network.slug
+					),
+					kind: assetInstance.kind,
+					assetKey: assetInstance.assetKey,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -122,60 +148,33 @@
 			{/snippet}
 
 			{#snippet SectionRegulatedAssetClaimRequirements({ id, label })}
-				<EntitiesList
-					entityType={EntityType.ClaimTopicRequirement}
+				<ClaimTopicRequirementsView
+					selection={selection.$$claimRequirements}
 					collapsible={false}
 					title={label}
 					emptyText='No claim topic requirements.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$claimRequirements()}
-				>
-					{#snippet Item({ item: claimTopicRequirement })}
-						<EntityView
-							entityType={EntityType.ClaimTopicRequirement}
-							entitySelector={claimTopicRequirement[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionRegulatedAssetTrustedIssuers({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TrustedIssuer}
+				<TrustedIssuersView
+					selection={selection.$$trustedIssuers}
 					collapsible={false}
 					title={label}
 					emptyText='No trusted issuers.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$trustedIssuers()}
-				>
-					{#snippet Item({ item: trustedIssuer })}
-						<EntityView
-							entityType={EntityType.TrustedIssuer}
-							entitySelector={trustedIssuer[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionRegulatedAssetComplianceModules({ id, label })}
-				<EntitiesList
-					entityType={EntityType.ComplianceModule}
+				<ComplianceModulesView
+					selection={selection.$$complianceModules}
 					collapsible={false}
 					title={label}
 					emptyText='No compliance modules.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$complianceModules()}
-				>
-					{#snippet Item({ item: complianceModule })}
-						<EntityView
-							entityType={EntityType.ComplianceModule}
-							entitySelector={complianceModule[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -205,41 +204,23 @@
 			{/snippet}
 
 			{#snippet SectionRegulatedAssetIssuerPowers({ id, label })}
-				<EntitiesList
-					entityType={EntityType.IssuerPower}
+				<IssuerPowersView
+					selection={selection.$$issuerPowers}
 					collapsible={false}
 					title={label}
 					emptyText='No issuer powers.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$issuerPowers()}
-				>
-					{#snippet Item({ item: issuerPower })}
-						<EntityView
-							entityType={EntityType.IssuerPower}
-							entitySelector={issuerPower[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionRegulatedAssetRestrictions({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TransferRestriction}
+				<TransferRestrictionsView
+					selection={selection.$$restrictions}
 					collapsible={false}
 					title={label}
 					emptyText='No transfer restrictions.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$restrictions()}
-				>
-					{#snippet Item({ item: transferRestriction })}
-						<EntityView
-							entityType={EntityType.TransferRestriction}
-							entitySelector={transferRestriction[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -265,22 +246,13 @@
 			{/snippet}
 
 			{#snippet SectionRegulatedAssetTimestamps({ id, label })}
-				<EntitiesList
-					entityType={EntityType.RegulatedAssetProfile_Timestamp}
+				<RegulatedAssetProfile_TimestampsView
+					selection={selection.$$timestamps}
 					collapsible={false}
 					title={label}
 					emptyText='No regulated asset profile observations.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$timestamps()}
-				>
-					{#snippet Item({ item: regulatedAssetProfileTimestamp })}
-						<EntityView
-							entityType={EntityType.RegulatedAssetProfile_Timestamp}
-							entitySelector={regulatedAssetProfileTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

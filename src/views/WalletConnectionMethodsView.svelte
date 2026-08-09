@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,18 +27,29 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				label: true,
-				protocol: true,
-				implementationStatus: true,
+			...{
+				fields: {
+					label: true,
+					protocol: true,
+					implementationStatus: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: walletConnectionMethod })}
+		{@const walletConnectionMethodSelector = walletConnectionMethod[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.WalletConnectionMethod}
-			entitySelector={walletConnectionMethod[EntityMetaKey.Selector]}
+			entitySelector={walletConnectionMethodSelector}
+			href={
+				resolve(
+					'/~/wallet/connection-method/[id=stringSegment]',
+					{
+						id: walletConnectionMethodSelector.id,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{walletConnectionMethod.label || 'wallet connection method'}

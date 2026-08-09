@@ -30,9 +30,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				indexInNetwork: true,
-				status: true,
+			...{
+				fields: {
+					indexInNetwork: true,
+					status: true,
+				},
 			},
 		})
 	}
@@ -44,9 +46,9 @@
 			entityType={EntityType.BeaconValidator}
 			entitySelector={beaconValidatorSelector}
 			href={
-				'indexInNetwork' in beaconValidatorSelector ?
+				'pubkey' in beaconValidatorSelector ?
 					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/pubkey/[validatorPubkey=stringSegment]',
 						{
 							network: (
 								'caip2' in network ?
@@ -54,11 +56,25 @@
 								:
 									network.slug
 							),
-							validatorId: String(beaconValidatorSelector.indexInNetwork),
+							validatorPubkey: beaconValidatorSelector.pubkey,
 						}
 					)
 				:
-					undefined
+					'indexInNetwork' in beaconValidatorSelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkeyOrStringSegment]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								validatorId: String(beaconValidatorSelector.indexInNetwork),
+							}
+						)
+					:
+						undefined
 			}
 		>
 			{#snippet Title()}

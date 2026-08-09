@@ -87,7 +87,15 @@
 						}
 					)
 				:
-					undefined
+					'activityStreamsUri' in selection.entitySelector ?
+						resolve(
+							'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[activityStreamsUri=stringSegment]',
+							{
+								activityStreamsUri: selection.entitySelector.activityStreamsUri,
+							}
+						)
+					:
+						undefined
 			)
 		:
 			href ?? undefined

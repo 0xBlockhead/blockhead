@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,6 +16,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -39,6 +41,18 @@
 	entityType={EntityType._GlobalEvmAbiCatalog_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'global EVM ABI catalog timestamp'}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/evm/abi-catalog/(globalEvmAbiCatalog)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -46,6 +60,7 @@
 	{#snippet Title()}
 		<GlobalEvmAbiCatalogView
 			selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
+			href={null}
 			layout={EntityLayout.Title}
 		/>
 	{/snippet}

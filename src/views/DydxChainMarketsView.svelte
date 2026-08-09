@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,10 +30,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				ticker: true,
-				marketKind: true,
-				baseAsset: true,
+			...{
+				fields: {
+					ticker: true,
+					marketKind: true,
+					baseAsset: true,
+				},
 			},
 		})
 	}
@@ -41,6 +45,20 @@
 		<EntityView
 			entityType={EntityType.DydxChainMarket}
 			entitySelector={dydxChainMarketSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(dydx)/market/[ticker=stringSegment]',
+					{
+						network: (
+							'caip2' in dydxChainMarketSelector.$network.$network ?
+								caip2StringFromValue(dydxChainMarketSelector.$network.$network.caip2)
+							:
+								dydxChainMarketSelector.$network.$network.slug
+						),
+						ticker: dydxChainMarketSelector.ticker,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{dydxChainMarketSelector.ticker || 'dydx chain market'}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				nodeId: true,
-				$network: true,
-				nodeIp: true,
+			...{
+				fields: {
+					nodeId: true,
+					$network: true,
+					nodeIp: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,14 @@
 		<EntityView
 			entityType={EntityType.BlockheadAvalancheNodeState}
 			entitySelector={blockheadAvalancheNodeStateSelector}
+			href={
+				resolve(
+					'/~/avalanche/node-state/[nodeId=stringSegment]',
+					{
+						nodeId: blockheadAvalancheNodeStateSelector.nodeId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadAvalancheNodeStateSelector.nodeId || 'blockhead avalanche node state'}

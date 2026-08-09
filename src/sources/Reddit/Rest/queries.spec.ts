@@ -34,7 +34,6 @@ describe('Reddit OAuth listing requests', () => {
 	it('fails closed on malformed listing envelopes', async () => {
 		oauthGetJson.mockResolvedValueOnce({ kind: 'Listing', data: 'nope' })
 		await expect(listSubredditLinks(
-			{},
 			'ethereum',
 			25
 		)).rejects.toThrow('Reddit_Rest: invalid listing response envelope')
@@ -42,7 +41,6 @@ describe('Reddit OAuth listing requests', () => {
 
 	it('preserves the opaque after token and subreddit sort partition', async () => {
 		await expect(listSubredditLinks(
-			{},
 			'ethereum ecosystem',
 			64,
 			't3_opaque+/=',
@@ -56,14 +54,12 @@ describe('Reddit OAuth listing requests', () => {
 		})
 
 		expect(oauthGetJson).toHaveBeenCalledWith(
-			{},
 			'/r/ethereum%20ecosystem/new?after=t3_opaque%2B%2F%3D&limit=64&raw_json=1'
 		)
 	})
 
 	it('preserves the popular listing sort partition independently of pagination', async () => {
 		await listSubredditLinks(
-			{},
 			'popular',
 			25,
 			undefined,
@@ -71,7 +67,6 @@ describe('Reddit OAuth listing requests', () => {
 		)
 
 		expect(oauthGetJson).toHaveBeenCalledWith(
-			{},
 			'/r/popular/rising?limit=25&raw_json=1'
 		)
 	})

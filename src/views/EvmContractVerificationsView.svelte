@@ -28,10 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				match: true,
-				runtimeMatch: true,
-				$contract: true,
+			...{
+				fields: {
+					match: true,
+					runtimeMatch: true,
+					$contract: true,
+				},
 			},
 		})
 	}
@@ -44,7 +46,7 @@
 			entitySelector={evmContractVerificationSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddress]/(evmContract)/verification',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/verification',
 					{
 						network: (
 							'caip2' in contract.$network ?

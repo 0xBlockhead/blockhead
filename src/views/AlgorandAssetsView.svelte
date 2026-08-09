@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,10 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				assetId: true,
-				$network: true,
-				creator: true,
+			...{
+				fields: {
+					assetId: true,
+					$network: true,
+					creator: true,
+				},
 			},
 		})
 	}
@@ -39,6 +43,20 @@
 		<EntityView
 			entityType={EntityType.AlgorandAsset}
 			entitySelector={algorandAssetSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/asset/[assetId=nonNegativeBigInt]',
+					{
+						network: (
+							'caip2' in algorandAssetSelector.$network.$network ?
+								caip2StringFromValue(algorandAssetSelector.$network.$network.caip2)
+							:
+								algorandAssetSelector.$network.$network.slug
+						),
+						assetId: String(algorandAssetSelector.assetId),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{algorandAssetSelector.assetId}

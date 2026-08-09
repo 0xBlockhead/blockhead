@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.CardanoNativeAsset_Timestamp>, 'prefetched'> = $props()
+
+	const asset = $derived(selection.entitySelector.$asset)
 
 
 	// Components
@@ -32,6 +37,26 @@
 	entityType={EntityType.CardanoNativeAsset_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'Cardano native asset timestamp'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/native-asset/[policyId=stringSegment]/[assetName=stringSegment]/(cardanoNativeAsset)/observations/[slot=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in asset.$network ?
+							caip2StringFromValue(asset.$network.caip2)
+						:
+							asset.$network.slug
+					),
+					policyId: asset.policyId,
+					assetName: asset.assetName,
+					slot: String(selection.entitySelector.slot),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

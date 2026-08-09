@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,11 +29,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				title: true,
-				mimeType: true,
-				name: true,
-				uriTemplate: true,
+			...{
+				fields: {
+					title: true,
+					mimeType: true,
+					name: true,
+					uriTemplate: true,
+				},
 			},
 		})
 	}
@@ -42,6 +45,15 @@
 		<EntityView
 			entityType={EntityType.McpResourceTemplate}
 			entitySelector={mcpResourceTemplateSelector}
+			href={
+				resolve(
+					'/mcp/server/[serverKey=stringSegment]/(mcpServer)/resource-template/[uriTemplate=stringSegment]',
+					{
+						serverKey: mcpResourceTemplateSelector.$server.serverKey,
+						uriTemplate: mcpResourceTemplateSelector.uriTemplate,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(mcpResourceTemplate.title ?? '') || [(mcpResourceTemplate.name ?? ''), mcpResourceTemplateSelector.uriTemplate].filter(Boolean).join(' ') || 'mcp resource template'}

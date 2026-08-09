@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,19 +29,34 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				spent: true,
-				confirmations: true,
+			...{
+				fields: {
+					timestampMs: true,
+					spent: true,
+					confirmations: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadZcashNoteStateTimestamp })}
 		{@const blockheadZcashNoteStateTimestampSelector = blockheadZcashNoteStateTimestamp[EntityMetaKey.Selector]}
+		{@const noteState = blockheadZcashNoteStateTimestampSelector.$noteState}
 		<EntityView
 			entityType={EntityType.BlockheadZcashNoteState_Timestamp}
 			entitySelector={blockheadZcashNoteStateTimestampSelector}
+			href={
+				resolve(
+					'/~/zcash/wallet/[walletId=stringSegment]/note-state/[pool=stringSegment]/[noteCommitment=stringSegment]/(blockheadZcashNoteState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						walletId: noteState.walletId,
+						pool: noteState.pool,
+						noteCommitment: noteState.noteCommitment,
+						timestampMs: String(blockheadZcashNoteStateTimestampSelector.timestampMs),
+						source: blockheadZcashNoteStateTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadZcashNoteStateTimestampSelector.timestampMs}

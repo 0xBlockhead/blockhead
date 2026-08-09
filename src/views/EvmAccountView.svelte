@@ -51,11 +51,22 @@
 	title={title ?? (selection.entitySelector.address || 'EVM account')}
 	href={
 		href === undefined ?
-			resolve(
-				'/(explore)/account/[address=evmAddress]',
-				{
-					address: selection.entitySelector.address,
-				}
+			(
+				'interopAddress' in selection.entitySelector ?
+					resolve(
+						'/evm/account/[address=evmAddress]/interop/[interopAddress=stringSegment]',
+						{
+							address: selection.entitySelector.address,
+							interopAddress: selection.entitySelector.interopAddress,
+						}
+					)
+				:
+					resolve(
+						'/(explore)/account/[address=evmAddress]',
+						{
+							address: selection.entitySelector.address,
+						}
+					)
 			)
 		:
 			href ?? undefined

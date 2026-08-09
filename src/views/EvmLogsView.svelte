@@ -40,12 +40,14 @@
 	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={
 		selection({
-			sources: selection.sources ?? [
-				Source.Blockscout_Rest,
-			],
-			fields: {
-				indexInTransaction: true,
-				data: true,
+			...{
+				sources: selection.sources ?? [
+					Source.Blockscout_Rest,
+				],
+				fields: {
+					indexInTransaction: true,
+					data: true,
+				},
 			},
 		})
 	}

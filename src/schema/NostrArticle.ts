@@ -23,7 +23,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	kind: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$latestEvent: {

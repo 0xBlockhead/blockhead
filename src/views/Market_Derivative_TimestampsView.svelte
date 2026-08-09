@@ -30,11 +30,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				feedKey: true,
-				markPrice: true,
-				indexPrice: true,
-				fundingRate: true,
+			...{
+				fields: {
+					feedKey: true,
+					markPrice: true,
+					indexPrice: true,
+					fundingRate: true,
+				},
 			},
 		})
 	}

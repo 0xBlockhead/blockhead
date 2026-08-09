@@ -36,7 +36,7 @@
 			entitySelector={xrplTransactionSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/transaction/[hash=stringSegment]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/transaction/xrpl/[hash=stringSegment]',
 					{
 						network: (
 							'caip2' in network ?

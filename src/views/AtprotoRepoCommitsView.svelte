@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,11 +29,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				rev: true,
-				commitCid: true,
-				repoDid: true,
-				source: true,
+			...{
+				fields: {
+					rev: true,
+					commitCid: true,
+					repoDid: true,
+					source: true,
+				},
 			},
 		})
 	}
@@ -42,6 +45,29 @@
 		<EntityView
 			entityType={EntityType.AtprotoRepoCommit}
 			entitySelector={atprotoRepoCommitSelector}
+			href={
+				'rev' in atprotoRepoCommitSelector ?
+					resolve(
+						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/repo/[repoDid=stringSegment]/commit/rev/[rev=stringSegment]/[source=stringSegment]',
+						{
+							repoDid: atprotoRepoCommitSelector.repoDid,
+							rev: atprotoRepoCommitSelector.rev,
+							source: atprotoRepoCommitSelector.source,
+						}
+					)
+				:
+					'commitCid' in atprotoRepoCommitSelector ?
+						resolve(
+							'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/repo/[repoDid=stringSegment]/commit/cid/[commitCid=stringSegment]/[source=stringSegment]',
+							{
+								repoDid: atprotoRepoCommitSelector.repoDid,
+								commitCid: atprotoRepoCommitSelector.commitCid,
+								source: atprotoRepoCommitSelector.source,
+							}
+						)
+					:
+						undefined
+			}
 		>
 			{#snippet Title()}
 				{[atprotoRepoCommit.rev, atprotoRepoCommit.commitCid].filter(Boolean).join(' ') || 'AT Protocol repo commit'}

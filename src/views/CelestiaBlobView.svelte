@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,10 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.CelestiaBlob>, 'prefetched'> = $props()
+
+	const namespace = $derived(selection.entitySelector.$namespace)
 
 
 	// Components
@@ -34,6 +39,25 @@
 	entityType={EntityType.CelestiaBlob}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.commitment || 'celestia blob')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/namespace/[namespaceId=stringSegment]/(celestiaNamespace)/blob/[height=nonNegativeBigInt]/[commitment=stringSegment]',
+				{
+					network: (
+						'caip2' in namespace.$network.$network ?
+							caip2StringFromValue(namespace.$network.$network.caip2)
+						:
+							namespace.$network.$network.slug
+					),
+					namespaceId: namespace.namespaceId,
+					height: String(selection.entitySelector.height),
+					commitment: selection.entitySelector.commitment,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

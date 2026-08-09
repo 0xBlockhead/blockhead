@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadZcashNoteState_Timestamp>, 'prefetched'> = $props()
 
+	const noteState = $derived(selection.entitySelector.$noteState)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -48,6 +51,21 @@
 	entityType={EntityType.BlockheadZcashNoteState_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/zcash/wallet/[walletId=stringSegment]/note-state/[pool=stringSegment]/[noteCommitment=stringSegment]/(blockheadZcashNoteState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					walletId: noteState.walletId,
+					pool: noteState.pool,
+					noteCommitment: noteState.noteCommitment,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

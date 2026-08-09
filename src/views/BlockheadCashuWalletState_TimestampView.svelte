@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,11 +15,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadCashuWalletState_Timestamp>, 'prefetched'> = $props()
 
+	const walletState = $derived(selection.entitySelector.$walletState)
 	const blockheadCashuWalletStateTimestamp = $derived(selection({
 		fields: {
 			balance: true,
@@ -43,6 +46,21 @@
 	entityType={EntityType.BlockheadCashuWalletState_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/[unit=stringSegment]/(blockheadCashuWalletState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					walletId: walletState.walletId,
+					mintUrl: walletState.mintUrl,
+					unit: walletState.unit,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

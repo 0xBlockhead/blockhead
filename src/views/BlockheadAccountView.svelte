@@ -51,6 +51,7 @@
 	{#snippet Title()}
 		<AccountView
 			selection={select(EntityType.Account, selection.entitySelector.$account)}
+			href={null}
 			layout={EntityLayout.Title}
 		/>
 	{/snippet}

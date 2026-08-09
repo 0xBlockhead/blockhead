@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.AptosTableItem_Timestamp>, 'prefetched'> = $props()
 
+	const tableItem = $derived(selection.entitySelector.$tableItem)
 	const aptosTableItemTimestamp = $derived(selection({
 		fields: {
 			timestampMs: true,
@@ -39,6 +43,26 @@
 	entityType={EntityType.AptosTableItem_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.ledgerVersion)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(aptos)/table-item/[tableHandle=stringSegment]/[keyHash=stringSegment]/(aptosTableItem)/observation/[ledgerVersion=nonNegativeBigInt]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in tableItem.$network.$network ?
+							caip2StringFromValue(tableItem.$network.$network.caip2)
+						:
+							tableItem.$network.$network.slug
+					),
+					tableHandle: tableItem.tableHandle,
+					keyHash: tableItem.keyHash,
+					ledgerVersion: String(selection.entitySelector.ledgerVersion),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

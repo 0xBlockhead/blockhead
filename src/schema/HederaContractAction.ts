@@ -18,11 +18,11 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	callDepth: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	callIndex: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	callType: {

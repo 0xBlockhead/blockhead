@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,19 +29,33 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				spent: true,
-				confirmations: true,
+			...{
+				fields: {
+					timestampMs: true,
+					spent: true,
+					confirmations: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadLitecoinMwebOutputStateTimestamp })}
 		{@const blockheadLitecoinMwebOutputStateTimestampSelector = blockheadLitecoinMwebOutputStateTimestamp[EntityMetaKey.Selector]}
+		{@const outputState = blockheadLitecoinMwebOutputStateTimestampSelector.$outputState}
 		<EntityView
 			entityType={EntityType.BlockheadLitecoinMwebOutputState_Timestamp}
 			entitySelector={blockheadLitecoinMwebOutputStateTimestampSelector}
+			href={
+				resolve(
+					'/~/litecoin-mweb/wallet/[walletId=stringSegment]/output-state/[commitment=stringSegment]/(blockheadLitecoinMwebOutputState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						walletId: outputState.walletId,
+						commitment: outputState.commitment,
+						timestampMs: String(blockheadLitecoinMwebOutputStateTimestampSelector.timestampMs),
+						source: blockheadLitecoinMwebOutputStateTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadLitecoinMwebOutputStateTimestampSelector.timestampMs}

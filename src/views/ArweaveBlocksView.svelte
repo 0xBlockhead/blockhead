@@ -28,10 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				height: true,
-				timestampMs: true,
-				indepHash: true,
+			...{
+				fields: {
+					height: true,
+					timestampMs: true,
+					indepHash: true,
+				},
 			},
 		})
 	}
@@ -42,9 +44,9 @@
 			entityType={EntityType.ArweaveBlock}
 			entitySelector={arweaveBlockSelector}
 			href={
-				'height' in arweaveBlockSelector ?
+				'indepHash' in arweaveBlockSelector ?
 					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/hash/[blockHash=zeroExHexOrStringSegmentOrUtxoTxId]',
 						{
 							network: (
 								'caip2' in arweaveBlockSelector.$network.$network ?
@@ -52,11 +54,25 @@
 								:
 									arweaveBlockSelector.$network.$network.slug
 							),
-							blockNumber: String(arweaveBlockSelector.height),
+							blockHash: arweaveBlockSelector.indepHash,
 						}
 					)
 				:
-					undefined
+					'height' in arweaveBlockSelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+							{
+								network: (
+									'caip2' in arweaveBlockSelector.$network.$network ?
+										caip2StringFromValue(arweaveBlockSelector.$network.$network.caip2)
+									:
+										arweaveBlockSelector.$network.$network.slug
+								),
+								blockNumber: String(arweaveBlockSelector.height),
+							}
+						)
+					:
+						undefined
 			}
 		>
 			{#snippet Title()}

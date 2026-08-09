@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				authenticationId: true,
-				protocol: true,
-				verified: true,
+			...{
+				fields: {
+					authenticationId: true,
+					protocol: true,
+					verified: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,14 @@
 		<EntityView
 			entityType={EntityType.BlockheadWalletAuthentication}
 			entitySelector={blockheadWalletAuthenticationSelector}
+			href={
+				resolve(
+					'/~/wallet/authentication/[authenticationId=stringSegment]',
+					{
+						authenticationId: blockheadWalletAuthenticationSelector.authenticationId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadWalletAuthenticationSelector.authenticationId || 'blockhead wallet authentication'}

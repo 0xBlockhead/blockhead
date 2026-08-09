@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,18 +28,63 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$operator: true,
-				$avs: true,
-				slashedShares: true,
+			...{
+				fields: {
+					$operator: true,
+					$avs: true,
+					slashedShares: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: eigenLayerSlashingEvent })}
+		{@const eigenLayerSlashingEventSelector = eigenLayerSlashingEvent[EntityMetaKey.Selector]}
+		{@const network = eigenLayerSlashingEventSelector.$network}
+		{@const operator = eigenLayerSlashingEventSelector.$operator}
 		<EntityView
 			entityType={EntityType.EigenLayerSlashingEvent}
-			entitySelector={eigenLayerSlashingEvent[EntityMetaKey.Selector]}
+			entitySelector={eigenLayerSlashingEventSelector}
+			href={
+				'source' in eigenLayerSlashingEventSelector
+				&& 'slashId' in eigenLayerSlashingEventSelector
+				&& '$avs' in eigenLayerSlashingEventSelector
+				&& '$operator' in eigenLayerSlashingEventSelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/eigenlayer/(eigenLayerProtocol)/operator/[operatorAddress=evmAddress]/(eigenLayerOperator)/avs/[avsAddress=evmAddress]/slashing/[source=stringSegment]/[slashId=stringSegment]',
+						{
+							network: (
+								'caip2' in operator.$network ?
+									caip2StringFromValue(operator.$network.caip2)
+								:
+									operator.$network.slug
+							),
+							operatorAddress: operator.operatorAddress,
+							avsAddress: eigenLayerSlashingEventSelector.$avs.avsAddress,
+							source: eigenLayerSlashingEventSelector.source,
+							slashId: eigenLayerSlashingEventSelector.slashId,
+						}
+					)
+				:
+					'transactionHash' in eigenLayerSlashingEventSelector
+					&& 'logIndex' in eigenLayerSlashingEventSelector
+					&& '$network' in eigenLayerSlashingEventSelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/eigenlayer/(eigenLayerProtocol)/slashing/[transactionHash=zeroExHex]/[logIndex=nonNegativeInteger]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								transactionHash: eigenLayerSlashingEventSelector.transactionHash,
+								logIndex: String(eigenLayerSlashingEventSelector.logIndex),
+							}
+						)
+					:
+						undefined
+			}
 		>
 			{#snippet Title()}
 				{(eigenLayerSlashingEvent.$operator == null ? '' : eigenLayerSlashingEvent.$operator.operatorAddress || 'eigen layer operator') || 'eigen layer slashing event'}

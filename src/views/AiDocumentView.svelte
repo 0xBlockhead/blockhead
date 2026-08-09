@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,11 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiDocument> = $props()
 
+	const artifact = $derived(selection.entitySelector.$artifact)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
@@ -52,6 +55,47 @@
 	entityType={EntityType.AiDocument}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'documentKind' in selection.entitySelector
+				&& '$artifact' in selection.entitySelector
+				&& 'digestAlgorithm' in artifact
+				&& 'digest' in artifact ?
+					resolve(
+						'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/document/[documentKind=stringSegment]',
+						{
+							digestAlgorithm: artifact.digestAlgorithm,
+							digest: artifact.digest,
+							documentKind: selection.entitySelector.documentKind,
+						}
+					)
+				:
+					'documentKind' in selection.entitySelector
+					&& 'contentHashAlgorithm' in selection.entitySelector
+					&& 'contentHash' in selection.entitySelector ?
+						resolve(
+							'/(ai)/ai/document/[documentKind=stringSegment]/hash/[contentHashAlgorithm=stringSegment]/[contentHash=zeroExHex]',
+							{
+								documentKind: selection.entitySelector.documentKind,
+								contentHashAlgorithm: selection.entitySelector.contentHashAlgorithm,
+								contentHash: selection.entitySelector.contentHash,
+							}
+						)
+					:
+						'documentUrl' in selection.entitySelector ?
+							resolve(
+								'/(ai)/ai/document/url/[documentUrl=absoluteUrl]',
+								{
+									documentUrl: encodeURIComponent(selection.entitySelector.documentUrl),
+								}
+							)
+						:
+							undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

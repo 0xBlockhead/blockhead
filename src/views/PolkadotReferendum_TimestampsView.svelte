@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,19 +30,38 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				status: true,
-				timestampMs: true,
-				source: true,
+			...{
+				fields: {
+					status: true,
+					timestampMs: true,
+					source: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: polkadotReferendumTimestamp })}
 		{@const polkadotReferendumTimestampSelector = polkadotReferendumTimestamp[EntityMetaKey.Selector]}
+		{@const referendum = polkadotReferendumTimestampSelector.$referendum}
 		<EntityView
 			entityType={EntityType.PolkadotReferendum_Timestamp}
 			entitySelector={polkadotReferendumTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/referendum/[referendumId=stringSegment]/(polkadotReferendum)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in referendum.$network ?
+								caip2StringFromValue(referendum.$network.caip2)
+							:
+								referendum.$network.slug
+						),
+						referendumId: referendum.referendumId,
+						timestampMs: String(polkadotReferendumTimestampSelector.timestampMs),
+						source: polkadotReferendumTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(polkadotReferendumTimestamp.status ?? '') || 'Polkadot referendum timestamp'}

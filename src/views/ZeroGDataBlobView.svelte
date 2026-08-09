@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,11 +18,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.ZeroGDataBlob>, 'prefetched'> = $props()
 
+	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.ZeroGStorageScan_Rest,
@@ -35,10 +39,10 @@
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import ZeroGDataChunksView from '$/views/ZeroGDataChunksView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import ZeroGConsensusNetworkView from '$/views/ZeroGConsensusNetworkView.svelte'
 	import ZeroGDaQuorumView from '$/views/ZeroGDaQuorumView.svelte'
@@ -50,6 +54,23 @@
 	entityType={EntityType.ZeroGDataBlob}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.dataRoot || 'zero g data blob')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/data-blob/[dataRoot=stringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					dataRoot: selection.entitySelector.dataRoot,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -223,21 +244,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.ZeroGDataChunk}
+					<ZeroGDataChunksView
+						selection={chunksResource}
 						countResource={chunksResource.count}
 						title='chunks'
-						open={true}
 						id='chunks'
-						resource={chunksResource()}
-					>
-						{#snippet Item({ item: zeroGDataChunk })}
-							<EntityView
-								entityType={EntityType.ZeroGDataChunk}
-								entitySelector={zeroGDataChunk[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

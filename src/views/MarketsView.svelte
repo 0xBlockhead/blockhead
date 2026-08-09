@@ -6,7 +6,6 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { RegisteredEntitySelector } from '$/schema/index.ts'
 	import { marketAssetByKind } from '$/constants/Market.ts'
 
 
@@ -14,16 +13,8 @@
 	let {
 		selection,
 		open = $bindable(true),
-		filterMarketVenueId,
-		filterMarketKind,
 		...EntitiesListProps
-	}: EntityListViewProps<
-		EntityType.Market,
-		{
-			filterMarketVenueId?: RegisteredEntitySelector<EntityType.Market>['$marketVenue']['marketVenueId']
-			filterMarketKind?: RegisteredEntitySelector<EntityType.Market>['marketKind']
-		}
-	> = $props()
+	}: EntityListViewProps<EntityType.Market> = $props()
 
 
 	// Components
@@ -51,14 +42,6 @@
 	bind:open
 	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={selection()}
-	getResourceItems={
-		(markets) => markets.values.filter(
-			(market) => (
-				(filterMarketVenueId == null || market[EntityMetaKey.Selector].$marketVenue.marketVenueId === filterMarketVenueId)
-				&& (filterMarketKind == null || market[EntityMetaKey.Selector].marketKind === filterMarketKind)
-			)
-		)
-	}
 >
 	{#snippet Item({ item: market })}
 		{@const marketSelector = market[EntityMetaKey.Selector]}

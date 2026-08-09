@@ -135,6 +135,7 @@ describe('ACP registry resolver', () => {
 			},
 		})
 		expect(resolver.projections.version(agent)).toBe('2.0.0')
+		expect(resolver.projections).not.toHaveProperty('distribution')
 		expect(resolver.projections.distributionKind(agent)).toBe('binary')
 		expect(resolver.projections.command(agent)).toBe('acme-agent')
 		expect(resolver.projections.arguments(agent)).toEqual([
@@ -176,7 +177,7 @@ describe('ACP registry resolver', () => {
 		expect(resolver.projections.environmentKeys(agent)).toBeUndefined()
 	})
 
-	it('preserves explicit package-runner arguments and environment keys without inventing a command', async () => {
+	it('preserves typed package-runner options without projecting the raw distribution', async () => {
 		fetchRegistry.mockResolvedValueOnce({
 			version: '1.0.0',
 			agents: [{
@@ -205,6 +206,7 @@ describe('ACP registry resolver', () => {
 
 		expect(resolver.projections.distributionKind(agent)).toBe('npx')
 		expect(resolver.projections.command(agent)).toBeUndefined()
+		expect(resolver.projections).not.toHaveProperty('distribution')
 		expect(resolver.projections.arguments(agent)).toEqual([
 			'--stdio',
 		])

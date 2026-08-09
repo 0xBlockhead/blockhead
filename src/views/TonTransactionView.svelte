@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,10 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.TonTransaction>, 'prefetched'> = $props()
+
+	const account = $derived(selection.entitySelector.$account)
 
 
 	// Components
@@ -35,6 +40,42 @@
 	entityType={EntityType.TonTransaction}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'TON transaction'}
+	href={
+		href === undefined ?
+			(
+				'hash' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/transaction/[lt=nonNegativeBigInt]/(tonTransaction)/[hash=stringSegment]',
+						{
+							network: (
+								'caip2' in account.$network ?
+									caip2StringFromValue(account.$network.caip2)
+								:
+									account.$network.slug
+							),
+							accountId: account.address,
+							lt: String(selection.entitySelector.lt),
+							hash: selection.entitySelector.hash,
+						}
+					)
+				:
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/transaction/[lt=nonNegativeBigInt]',
+						{
+							network: (
+								'caip2' in account.$network ?
+									caip2StringFromValue(account.$network.caip2)
+								:
+									account.$network.slug
+							),
+							accountId: account.address,
+							lt: String(selection.entitySelector.lt),
+						}
+					)
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

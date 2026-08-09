@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -16,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadZeroGStoredChunk>, 'prefetched'> = $props()
 
+	const nodeState = $derived(selection.entitySelector.$nodeState)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -48,6 +51,21 @@
 	entityType={EntityType.BlockheadZeroGStoredChunk}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.dataRoot || 'blockhead zero g stored chunk')}
+	href={
+		href === undefined ?
+			resolve(
+				'/zerog/[slug=stringSegment]/(zeroGNetwork)/~/zerog/connection/[connectionId=stringSegment]/node-state/[nodeId=evmAddress]/(blockheadZeroGStorageNodeState)/chunk/[dataRoot=stringSegment]/[chunkIndex=nonNegativeInteger]',
+				{
+					slug: nodeState.$network.slug,
+					connectionId: nodeState.connectionId,
+					nodeId: nodeState.nodeId,
+					dataRoot: selection.entitySelector.dataRoot,
+					chunkIndex: String(selection.entitySelector.chunkIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

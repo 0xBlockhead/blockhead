@@ -18,7 +18,6 @@ import {
 	getNftsByCollection,
 	getNftsByContract,
 	openSeaChainForChainId,
-	requireOpenSeaCredential,
 } from '$/sources/OpenSea/Rest/queries.ts'
 import type {
 	OpenSeaAccountEventsResponse,
@@ -96,7 +95,6 @@ const respond = (
 
 beforeEach(() => {
 	vi.clearAllMocks()
-	delete process.env.OPENSEA_API_KEY
 })
 
 describe('OpenSea account endpoints', () => {
@@ -107,7 +105,6 @@ describe('OpenSea account endpoints', () => {
 		})
 
 		await expect(getAccountNfts({
-			credential: 'secret',
 			chain: 'ethereum',
 			address,
 			collection: 'collection + one',
@@ -123,7 +120,6 @@ describe('OpenSea account endpoints', () => {
 			{
 				headers: {
 					accept: 'application/json',
-					'x-api-key': 'secret',
 				},
 			}
 		)
@@ -146,7 +142,6 @@ describe('OpenSea account endpoints', () => {
 		respond(response)
 
 		await expect(getAccountEvents({
-			credential: 'secret',
 			address,
 			after: 1_700_000_000,
 			before: 1_800_000_000,
@@ -168,20 +163,13 @@ describe('OpenSea account endpoints', () => {
 		)
 	})
 
-	it('keeps credential and pagination policy at the source boundary', async () => {
+	it('keeps pagination policy at the source boundary', async () => {
 		await expect(getAccountNfts({
-			credential: '',
-			chain: 'ethereum',
-			address,
-		})).rejects.toThrow('API key is required')
-		await expect(getAccountNfts({
-			credential: 'secret',
 			chain: 'ethereum',
 			address,
 			limit: 201,
 		})).rejects.toThrow('between 1 and 200')
 		await expect(getAccountEvents({
-			credential: 'secret',
 			address,
 			next: '',
 		})).rejects.toThrow('opaque and nonempty')
@@ -196,7 +184,6 @@ describe('OpenSea NFT endpoints', () => {
 		})
 
 		await expect(getNft({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contract,
 			identifier: detailedNft.identifier,
@@ -209,7 +196,6 @@ describe('OpenSea NFT endpoints', () => {
 			{
 				headers: {
 					accept: 'application/json',
-					'x-api-key': 'secret',
 				},
 			}
 		)
@@ -222,7 +208,6 @@ describe('OpenSea NFT endpoints', () => {
 		})
 
 		await expect(getNftsByContract({
-			credential: 'secret',
 			chain: 'base',
 			address: contract,
 			limit: 25,
@@ -242,23 +227,19 @@ describe('OpenSea NFT endpoints', () => {
 		}, 503)
 
 		await expect(getNft({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contract,
 			identifier: '1',
 		})).rejects.toThrow()
 	})
 
-	it('maps supported EIP-155 chains and requires OPENSEA_API_KEY', () => {
+	it('maps supported EIP-155 chains', () => {
 		expect(openSeaChainForChainId(1)).toBe('ethereum')
 		expect(openSeaChainForChainId(8453)).toBe('base')
 		expect(openSeaChainForChainId(999)).toBe('hyperevm')
 		expect(openSeaChainForChainId(1329)).toBe('sei')
 		expect(openSeaChainForChainId(2741)).toBe('abstract')
 		expect(() => openSeaChainForChainId(998877)).toThrow('unsupported EIP-155 chain 998877')
-		expect(() => requireOpenSeaCredential()).toThrow('API key is required')
-		process.env.OPENSEA_API_KEY = ' from-env '
-		expect(requireOpenSeaCredential()).toBe('from-env')
 	})
 
 	it('hard-fails when NFT list payloads omit nfts', async () => {
@@ -267,7 +248,6 @@ describe('OpenSea NFT endpoints', () => {
 		} as OpenSeaContractNftsResponse)
 
 		await expect(getNftsByContract({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contract,
 		})).rejects.toThrow('invalid contract NFTs response envelope')
@@ -289,7 +269,6 @@ describe('OpenSea NFT endpoints', () => {
 		)
 
 		await expect(getNftsByContract({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contract,
 		})).rejects.toThrow('invalid contract NFTs response envelope')
@@ -312,7 +291,6 @@ describe('OpenSea NFT endpoints', () => {
 		)
 
 		await expect(getNft({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contract,
 			identifier: '1',
@@ -344,7 +322,6 @@ describe('OpenSea NFT endpoints', () => {
 		})
 
 		await expect(getNft({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contract,
 			identifier: leftoverNft.identifier,
@@ -371,7 +348,6 @@ describe('OpenSea NFT endpoints', () => {
 		)
 
 		await expect(getNft({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contract,
 			identifier: '1',
@@ -392,7 +368,6 @@ describe('OpenSea contract / owners / collection endpoints', () => {
 		respond(response)
 
 		await expect(getContract({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contract,
 		})).resolves.toEqual(response)
@@ -402,7 +377,6 @@ describe('OpenSea contract / owners / collection endpoints', () => {
 			{
 				headers: {
 					accept: 'application/json',
-					'x-api-key': 'secret',
 				},
 			}
 		)
@@ -421,7 +395,6 @@ describe('OpenSea contract / owners / collection endpoints', () => {
 		respond(response)
 
 		await expect(getNftOwners({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contract,
 			identifier: '1',
@@ -432,7 +405,6 @@ describe('OpenSea contract / owners / collection endpoints', () => {
 			`https://api.opensea.io/api/v2/chain/ethereum/contract/${contract}/nfts/1/owners?limit=50&next=prior`
 		)
 		await expect(getNftOwners({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contract,
 			identifier: '1',
@@ -457,7 +429,6 @@ describe('OpenSea contract / owners / collection endpoints', () => {
 		respond(response)
 
 		await expect(getNftEvents({
-			credential: 'secret',
 			chain: 'base',
 			address: contract,
 			identifier: '9',
@@ -527,7 +498,6 @@ describe('OpenSea contract / owners / collection endpoints', () => {
 
 		respond(collection)
 		await expect(getCollection({
-			credential: 'secret',
 			slug: 'boredapeyachtclub',
 		})).resolves.toEqual(collection)
 		expect(vi.mocked(sourceFetch).mock.calls[0]?.[1]).toBe(
@@ -539,7 +509,6 @@ describe('OpenSea contract / owners / collection endpoints', () => {
 			next: 'cursor',
 		})
 		await expect(getNftsByCollection({
-			credential: 'secret',
 			slug: 'boredapeyachtclub',
 			traits: '{"Background":["Blue"]}',
 			has_agent_binding: true,
@@ -561,7 +530,6 @@ describe('OpenSea contract / owners / collection endpoints', () => {
 		} as OpenSeaCollectionResponse)
 
 		await expect(getCollection({
-			credential: 'secret',
 			slug: 'slug',
 		})).rejects.toThrow('invalid collection response envelope')
 	})
@@ -572,7 +540,6 @@ describe('OpenSea contract / owners / collection endpoints', () => {
 		} as OpenSeaNftOwnersResponse)
 
 		await expect(getNftOwners({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contract,
 			identifier: '1',
@@ -594,7 +561,6 @@ describe('OpenSea contract / owners / collection endpoints', () => {
 		)
 
 		await expect(getNftEvents({
-			credential: 'secret',
 			chain: 'ethereum',
 			address: contract,
 			identifier: '1',

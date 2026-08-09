@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,21 +28,39 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				tokenIndex: true,
-				supplyValue: true,
-				borrowValue: true,
-				$account: true,
-				$asset: true,
+			...{
+				fields: {
+					tokenIndex: true,
+					supplyValue: true,
+					borrowValue: true,
+					$account: true,
+					$asset: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: hyperliquidBorrowLendPosition })}
 		{@const hyperliquidBorrowLendPositionSelector = hyperliquidBorrowLendPosition[EntityMetaKey.Selector]}
+		{@const account = hyperliquidBorrowLendPositionSelector.$account}
 		<EntityView
 			entityType={EntityType.HyperliquidBorrowLendPosition}
 			entitySelector={hyperliquidBorrowLendPositionSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/borrow-lend/[tokenIndex=nonNegativeInteger]',
+					{
+						network: (
+							'caip2' in account.$network ?
+								caip2StringFromValue(account.$network.caip2)
+							:
+								account.$network.slug
+						),
+						accountId: account.address,
+						tokenIndex: String(hyperliquidBorrowLendPositionSelector.tokenIndex),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{hyperliquidBorrowLendPositionSelector.tokenIndex}

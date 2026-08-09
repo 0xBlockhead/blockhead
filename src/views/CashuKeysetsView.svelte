@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				keysetId: true,
-				unit: true,
-				$mint: true,
+			...{
+				fields: {
+					keysetId: true,
+					unit: true,
+					$mint: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,15 @@
 		<EntityView
 			entityType={EntityType.CashuKeyset}
 			entitySelector={cashuKeysetSelector}
+			href={
+				resolve(
+					'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/keyset/[keysetId=stringSegment]',
+					{
+						mintUrl: cashuKeysetSelector.$mint.mintUrl,
+						keysetId: cashuKeysetSelector.keysetId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{cashuKeysetSelector.keysetId || 'Cashu keyset'}

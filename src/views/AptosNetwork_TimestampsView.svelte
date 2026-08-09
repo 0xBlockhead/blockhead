@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,11 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				ledgerVersion: true,
-				blockHeight: true,
-				timestampMs: true,
-				source: true,
+			...{
+				fields: {
+					ledgerVersion: true,
+					blockHeight: true,
+					timestampMs: true,
+					source: true,
+				},
 			},
 		})
 	}
@@ -40,6 +44,21 @@
 		<EntityView
 			entityType={EntityType.AptosNetwork_Timestamp}
 			entitySelector={aptosNetworkTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/observations/[ledgerVersion=nonNegativeBigInt]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in aptosNetworkTimestampSelector.$network.$network ?
+								caip2StringFromValue(aptosNetworkTimestampSelector.$network.$network.caip2)
+							:
+								aptosNetworkTimestampSelector.$network.$network.slug
+						),
+						ledgerVersion: String(aptosNetworkTimestampSelector.ledgerVersion),
+						source: aptosNetworkTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{aptosNetworkTimestampSelector.ledgerVersion}

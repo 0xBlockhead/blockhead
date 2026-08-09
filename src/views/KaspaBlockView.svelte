@@ -2,9 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -15,6 +16,7 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -31,11 +33,11 @@
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import KaspaAcceptedTransactionsView from '$/views/KaspaAcceptedTransactionsView.svelte'
 	import KaspaNetworkView from '$/views/KaspaNetworkView.svelte'
 </script>
 
@@ -43,6 +45,23 @@
 <EntityView
 	entityType={EntityType.KaspaBlock}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/block/[blockHash=stringSegment]',
+				{
+					network: (
+						'caip2' in selection.entitySelector.$network.$network ?
+							caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+						:
+							selection.entitySelector.$network.$network.slug
+					),
+					blockHash: selection.entitySelector.blockHash,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -210,21 +229,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.KaspaAcceptedTransaction}
+					<KaspaAcceptedTransactionsView
+						selection={acceptedTransactionsResource}
 						countResource={acceptedTransactionsResource.count}
 						title='accepted transactions'
-						open={true}
 						id='accepted-transactions'
-						resource={acceptedTransactionsResource()}
-					>
-						{#snippet Item({ item: kaspaAcceptedTransaction })}
-							<EntityView
-								entityType={EntityType.KaspaAcceptedTransaction}
-								entitySelector={kaspaAcceptedTransaction[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

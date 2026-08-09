@@ -2,10 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,6 +17,7 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -34,13 +36,13 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import KaspaNetworkView from '$/views/KaspaNetworkView.svelte'
 	import UtxoInputsView from '$/views/UtxoInputsView.svelte'
 	import UtxoOutputsView from '$/views/UtxoOutputsView.svelte'
+	import KaspaAcceptedTransactionsView from '$/views/KaspaAcceptedTransactionsView.svelte'
 </script>
 
 
@@ -48,6 +50,23 @@
 	entityType={EntityType.KaspaTransaction}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/transaction/kaspa/[transactionId=stringSegment]',
+				{
+					network: (
+						'caip2' in selection.entitySelector.$network.$network ?
+							caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+						:
+							selection.entitySelector.$network.$network.slug
+					),
+					transactionId: selection.entitySelector.transactionId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -252,22 +271,13 @@
 			{/snippet}
 
 			{#snippet SectionKaspaTxAcceptances({ id, label })}
-				<EntitiesList
-					entityType={EntityType.KaspaAcceptedTransaction}
+				<KaspaAcceptedTransactionsView
+					selection={selection.$$acceptances}
 					collapsible={false}
 					title={label}
 					emptyText='No Kaspa acceptances.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$acceptances()}
-				>
-					{#snippet Item({ item: kaspaAcceptedTransaction })}
-						<EntityView
-							entityType={EntityType.KaspaAcceptedTransaction}
-							entitySelector={kaspaAcceptedTransaction[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

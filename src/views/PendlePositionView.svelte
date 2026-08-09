@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.PendlePosition>, 'prefetched'> = $props()
 
+	const market = $derived(selection.entitySelector.$market)
 	const pendlePosition = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Pendle_Rest,
@@ -45,6 +49,24 @@
 	entityType={EntityType.PendlePosition}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/pendle/market/[marketAddress=evmAddress]/(pendleMarket)/position/[accountAddress=evmAddress]',
+				{
+					network: (
+						'caip2' in market.$network ?
+							caip2StringFromValue(market.$network.caip2)
+						:
+							market.$network.slug
+					),
+					marketAddress: market.marketAddress,
+					accountAddress: selection.entitySelector.$account.$actor.address,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -52,6 +74,7 @@
 	{#snippet Title()}
 		<PendleMarketView
 			selection={select(EntityType.PendleMarket, selection.entitySelector.$market)}
+			href={null}
 			layout={EntityLayout.Title}
 		/>
 	{/snippet}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				status: true,
-				timestampMs: true,
-				source: true,
+			...{
+				fields: {
+					status: true,
+					timestampMs: true,
+					source: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadIntentOrder_Timestamp}
 			entitySelector={blockheadIntentOrderTimestampSelector}
+			href={
+				resolve(
+					'/~/intent/order/[id=stringSegment]/(blockheadIntentOrder)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						id: blockheadIntentOrderTimestampSelector.$order.id,
+						timestampMs: String(blockheadIntentOrderTimestampSelector.timestampMs),
+						source: blockheadIntentOrderTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadIntentOrderTimestamp.status || 'blockhead intent order timestamp'}

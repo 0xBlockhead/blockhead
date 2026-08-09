@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,20 +27,52 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				label: true,
-				taskType: true,
-				benchmarkId: true,
-				benchmarkUri: true,
-				metricName: true,
+			...{
+				fields: {
+					label: true,
+					taskType: true,
+					benchmarkId: true,
+					benchmarkUri: true,
+					metricName: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: aiBenchmark })}
+		{@const aiBenchmarkSelector = aiBenchmark[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.AiBenchmark}
-			entitySelector={aiBenchmark[EntityMetaKey.Selector]}
+			entitySelector={aiBenchmarkSelector}
+			href={
+				'source' in aiBenchmarkSelector
+				&& 'sourceBenchmarkId' in aiBenchmarkSelector ?
+					resolve(
+						'/(ai)/ai/benchmark/source/[source=stringSegment]/[sourceBenchmarkId=stringSegment]',
+						{
+							source: aiBenchmarkSelector.source,
+							sourceBenchmarkId: aiBenchmarkSelector.sourceBenchmarkId,
+						}
+					)
+				:
+					'benchmarkId' in aiBenchmarkSelector ?
+						resolve(
+							'/(ai)/ai/benchmark/id/[benchmarkId=stringSegment]',
+							{
+								benchmarkId: aiBenchmarkSelector.benchmarkId,
+							}
+						)
+					:
+						'benchmarkUri' in aiBenchmarkSelector ?
+							resolve(
+								'/(ai)/ai/benchmark/uri/[benchmarkUri=absoluteUrl]',
+								{
+									benchmarkUri: encodeURIComponent(aiBenchmarkSelector.benchmarkUri),
+								}
+							)
+						:
+							undefined
+			}
 		>
 			{#snippet Title()}
 				{(aiBenchmark.label ?? '') || [(aiBenchmark.benchmarkId ?? ''), (aiBenchmark.benchmarkUri ?? '')].filter(Boolean).join(' ') || 'AI benchmark'}

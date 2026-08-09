@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,18 +27,29 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				orderId: true,
-				providerProtocol: true,
-				submittedAt: true,
+			...{
+				fields: {
+					orderId: true,
+					providerProtocol: true,
+					submittedAt: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadIntentOrder })}
+		{@const blockheadIntentOrderSelector = blockheadIntentOrder[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadIntentOrder}
-			entitySelector={blockheadIntentOrder[EntityMetaKey.Selector]}
+			entitySelector={blockheadIntentOrderSelector}
+			href={
+				resolve(
+					'/~/intent/order/[id=stringSegment]',
+					{
+						id: blockheadIntentOrderSelector.id,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadIntentOrder.orderId || 'blockhead intent order'}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,17 +27,28 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$network: true,
-				$simulation: true,
+			...{
+				fields: {
+					$network: true,
+					$simulation: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadEvmWalletRequest })}
+		{@const blockheadEvmWalletRequestSelector = blockheadEvmWalletRequest[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadEvmWalletRequest}
-			entitySelector={blockheadEvmWalletRequest[EntityMetaKey.Selector]}
+			entitySelector={blockheadEvmWalletRequestSelector}
+			href={
+				resolve(
+					'/~/wallets/requests/[id=stringSegment]/(blockheadWalletRequest)/evm-request',
+					{
+						id: blockheadEvmWalletRequestSelector.$walletRequest.id,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadEvmWalletRequest.$network.name || (blockheadEvmWalletRequest.$network.caip2 == null ? '' : `${blockheadEvmWalletRequest.$network.caip2.namespace}:${blockheadEvmWalletRequest.$network.caip2.reference}`) || 'Network'}

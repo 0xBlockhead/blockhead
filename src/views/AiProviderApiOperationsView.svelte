@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				label: true,
-				operationKind: true,
-				operationId: true,
-				pathTemplate: true,
+			...{
+				fields: {
+					label: true,
+					operationKind: true,
+					operationId: true,
+					pathTemplate: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,18 @@
 		<EntityView
 			entityType={EntityType.AiProviderApiOperation}
 			entitySelector={aiProviderApiOperationSelector}
+			href={
+				'providerId' in aiProviderApiOperationSelector.$provider ?
+					resolve(
+						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/operation/[operationId=stringSegment]',
+						{
+							providerId: aiProviderApiOperationSelector.$provider.providerId,
+							operationId: aiProviderApiOperationSelector.operationId,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{(aiProviderApiOperation.label ?? '') || aiProviderApiOperationSelector.operationId || 'AI provider API operation'}

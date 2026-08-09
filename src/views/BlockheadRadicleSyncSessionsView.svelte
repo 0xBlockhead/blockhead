@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				sessionId: true,
-				status: true,
-				startedAt: true,
+			...{
+				fields: {
+					sessionId: true,
+					status: true,
+					startedAt: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,14 @@
 		<EntityView
 			entityType={EntityType.BlockheadRadicleSyncSession}
 			entitySelector={blockheadRadicleSyncSessionSelector}
+			href={
+				resolve(
+					'/~/radicle/sync-session/[sessionId=stringSegment]',
+					{
+						sessionId: blockheadRadicleSyncSessionSelector.sessionId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadRadicleSyncSessionSelector.sessionId || 'blockhead radicle sync session'}

@@ -37,6 +37,12 @@
 	import CardanoTransactionView from '$/views/CardanoTransactionView.svelte'
 	import UtxoTransactionView from '$/views/UtxoTransactionView.svelte'
 	import ArweaveTransactionView from '$/views/ArweaveTransactionView.svelte'
+	import CosmosTransactionView from '$/views/CosmosTransactionView.svelte'
+	import HyperliquidTransactionView from '$/views/HyperliquidTransactionView.svelte'
+	import MoneroTransactionView from '$/views/MoneroTransactionView.svelte'
+	import NearTransactionView from '$/views/NearTransactionView.svelte'
+	import TronTransactionView from '$/views/TronTransactionView.svelte'
+	import AptosTransactionView from '$/views/AptosTransactionView.svelte'
 </script>
 
 
@@ -44,7 +50,7 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		{@const DetailView = data.entityType === EntityType.EvmTransaction ? EvmTransactionView : data.entityType === EntityType.SolanaTransaction ? SolanaTransactionView : data.entityType === EntityType.CardanoTransaction ? CardanoTransactionView : data.entityType === EntityType.UtxoTransaction ? UtxoTransactionView : ArweaveTransactionView}
+		{@const DetailView = data.entityType === EntityType.EvmTransaction ? EvmTransactionView : data.entityType === EntityType.SolanaTransaction ? SolanaTransactionView : data.entityType === EntityType.CardanoTransaction ? CardanoTransactionView : data.entityType === EntityType.UtxoTransaction ? UtxoTransactionView : data.entityType === EntityType.ArweaveTransaction ? ArweaveTransactionView : data.entityType === EntityType.CosmosTransaction ? CosmosTransactionView : data.entityType === EntityType.HyperliquidTransaction ? HyperliquidTransactionView : data.entityType === EntityType.MoneroTransaction ? MoneroTransactionView : data.entityType === EntityType.NearTransaction ? NearTransactionView : data.entityType === EntityType.TronTransaction ? TronTransactionView : AptosTransactionView}
 
 		<DetailView
 			selection={select(data.entityType, data.selector)}

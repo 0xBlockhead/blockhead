@@ -1,0 +1,48 @@
+<!-- Generated from APP.ts. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		params,
+	}: PageProps = $props()
+
+	const pageSelection = $derived(select(EntityType.AiDocument, {
+		documentKind: params.documentKind,
+		contentHashAlgorithm: params.contentHashAlgorithm,
+		contentHash: params.contentHash,
+	}, {
+		sources: [
+			Source.Eip8004Scan_Rest,
+			Source.HuggingFaceHub_Rest,
+			Source.Ipfs_Rest,
+			Source.Mlflow_Rest,
+		],
+	}))
+
+
+	// Components
+	import Page from '$/components/Page.svelte'
+	import AiDocumentView from '$/views/AiDocumentView.svelte'
+</script>
+
+
+<svelte:head>
+	<title>{pageSelection.entitySelector.documentKind || 'AI document'} • AI document • Blockhead</title>
+</svelte:head>
+
+
+<Page>
+	<AiDocumentView
+		selection={pageSelection}
+	/>
+</Page>

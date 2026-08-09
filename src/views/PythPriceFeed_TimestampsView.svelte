@@ -27,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				publishTimeMs: true,
-				price: true,
-				source: true,
+			...{
+				fields: {
+					publishTimeMs: true,
+					price: true,
+					source: true,
+				},
 			},
 		})
 	}
@@ -43,7 +45,7 @@
 			entitySelector={pythPriceFeedTimestampSelector}
 			href={
 				resolve(
-					'/pyth/feed/[priceFeedId=zeroExHex]/[channel=stringSegment]/(pythPriceFeed)/observations/[publishTimeMs=nonNegativeInteger]/[source=stringSegment]',
+					'/~/pyth/feed/[priceFeedId=zeroExHex]/[channel=stringSegment]/(pythPriceFeed)/observations/[publishTimeMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						priceFeedId: feed.priceFeedId,
 						channel: feed.channel,

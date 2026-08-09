@@ -110,13 +110,8 @@ const mergeAaveReservePositions = (
 			.map((position) => ({
 				[EntityMetaKey.Selector]: {
 					$account,
-					$reserve: {
-						$market: {
-							$network: $account.$network,
-							poolAddress: position.poolAddress,
-						},
-						underlyingTokenAddress: position.underlyingTokenAddress,
-					},
+					poolAddress: position.poolAddress,
+					underlyingTokenAddress: position.underlyingTokenAddress,
 				},
 			})),
 		positionCount: rows.length,
@@ -142,6 +137,8 @@ const mapAaveReservePositionSnapshot = (
 	$account: {
 		[EntityMetaKey.Selector]: $account,
 	},
+	poolAddress: position.poolAddress,
+	underlyingTokenAddress: position.underlyingTokenAddress,
 	$reserve: {
 		[EntityMetaKey.Selector]: {
 			$market: {
@@ -215,23 +212,24 @@ export default {
 		defineResolver({
 			entityType: EntityType.AaveReservePosition,
 			resolve: {
-				AccountReserve: {
+				AccountPoolAddressUnderlyingTokenAddress: {
 					resolve: async ({
 						$account,
-						$reserve,
+						poolAddress,
+						underlyingTokenAddress,
 					}: AaveReservePositionId) => {
 						const chainId = eip155ChainId($account.$network)
 						const { aaveChainByChainId } = await import('$/sources/Aave/Rest/constants.ts')
 						if (aaveChainByChainId[chainId] == null)
 							throw new Error(`${Source.Aave_Rest}: unsupported chain id ${String(chainId)}`)
 
-						const normalizedPoolAddress = hexLowerOfByteSize($reserve.$market.poolAddress, 20)
+						const normalizedPoolAddress = hexLowerOfByteSize(poolAddress, 20)
 						if (normalizedPoolAddress == null)
-							throw new Error(`${Source.Aave_Rest}: invalid pool address ${$reserve.$market.poolAddress}`)
+							throw new Error(`${Source.Aave_Rest}: invalid pool address ${poolAddress}`)
 
-						const normalizedUnderlyingTokenAddress = hexLowerOfByteSize($reserve.underlyingTokenAddress, 20)
+						const normalizedUnderlyingTokenAddress = hexLowerOfByteSize(underlyingTokenAddress, 20)
 						if (normalizedUnderlyingTokenAddress == null)
-							throw new Error(`${Source.Aave_Rest}: invalid underlying token address ${$reserve.underlyingTokenAddress}`)
+							throw new Error(`${Source.Aave_Rest}: invalid underlying token address ${underlyingTokenAddress}`)
 
 						const { getAccountPositions } = await import('$/sources/Aave/Rest/queries.ts')
 						const matched = (
@@ -278,6 +276,8 @@ export default {
 			},
 		})({
 			$account: (position) => position.$account,
+			poolAddress: (position) => position.poolAddress,
+			underlyingTokenAddress: (position) => position.underlyingTokenAddress,
 			$reserve: (position) => position.$reserve,
 			symbol: (position) => position.symbol,
 			decimals: (position) => position.decimals,

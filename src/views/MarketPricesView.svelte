@@ -13,9 +13,15 @@
 	// State
 	let {
 		selection,
+		limit = 400,
 		open = $bindable(true),
 		...EntitiesListProps
-	}: EntityListViewProps<EntityType.MarketPrice> = $props()
+	}: EntityListViewProps<
+		EntityType.MarketPrice,
+		{
+			limit?: number
+		}
+	> = $props()
 
 
 	// Components
@@ -40,13 +46,15 @@
 	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={
 		selection({
-			sources: selection.sources ?? [
-				Source.Constants_Internal,
-			],
-			fields: {
-				$market: true,
+			...{
+				sources: selection.sources ?? [
+					Source.Constants_Internal,
+				],
+				fields: {
+					$market: true,
+				},
 			},
-			limit: 400,
+			limit: limit,
 		})
 	}
 >

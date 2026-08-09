@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				name: true,
-				hashVersion: true,
-				infoHash: true,
+			...{
+				fields: {
+					name: true,
+					hashVersion: true,
+					infoHash: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,15 @@
 		<EntityView
 			entityType={EntityType.BitTorrentMetainfo}
 			entitySelector={bitTorrentMetainfoSelector}
+			href={
+				resolve(
+					'/bittorrent/torrent/[infoHash=stringSegment]/[hashVersion=stringSegment]',
+					{
+						infoHash: bitTorrentMetainfoSelector.infoHash,
+						hashVersion: bitTorrentMetainfoSelector.hashVersion,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(bitTorrentMetainfo.name ?? '') || bitTorrentMetainfoSelector.infoHash || 'bit torrent metainfo'}

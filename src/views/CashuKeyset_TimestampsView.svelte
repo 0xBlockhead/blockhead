@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,19 +27,33 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				active: true,
-				inputFeePpk: true,
+			...{
+				fields: {
+					timestampMs: true,
+					active: true,
+					inputFeePpk: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: cashuKeysetTimestamp })}
 		{@const cashuKeysetTimestampSelector = cashuKeysetTimestamp[EntityMetaKey.Selector]}
+		{@const keyset = cashuKeysetTimestampSelector.$keyset}
 		<EntityView
 			entityType={EntityType.CashuKeyset_Timestamp}
 			entitySelector={cashuKeysetTimestampSelector}
+			href={
+				resolve(
+					'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/keyset/[keysetId=stringSegment]/(cashuKeyset)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						mintUrl: keyset.$mint.mintUrl,
+						keysetId: keyset.keysetId,
+						timestampMs: String(cashuKeysetTimestampSelector.timestampMs),
+						source: cashuKeysetTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{cashuKeysetTimestampSelector.timestampMs}

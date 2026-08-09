@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,11 +29,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				entryLabel: true,
-				catalogKind: true,
-				providerEntryId: true,
-				subjectKind: true,
+			...{
+				fields: {
+					entryLabel: true,
+					catalogKind: true,
+					providerEntryId: true,
+					subjectKind: true,
+				},
 			},
 		})
 	}
@@ -42,6 +45,19 @@
 		<EntityView
 			entityType={EntityType.AiProviderCatalogEntry}
 			entitySelector={aiProviderCatalogEntrySelector}
+			href={
+				'providerId' in aiProviderCatalogEntrySelector.$provider ?
+					resolve(
+						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/catalog/[catalogKind=stringSegment]/[providerEntryId=stringSegment]',
+						{
+							providerId: aiProviderCatalogEntrySelector.$provider.providerId,
+							catalogKind: aiProviderCatalogEntrySelector.catalogKind,
+							providerEntryId: aiProviderCatalogEntrySelector.providerEntryId,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{(aiProviderCatalogEntry.entryLabel ?? '') || aiProviderCatalogEntrySelector.providerEntryId || 'AI provider catalog entry'}

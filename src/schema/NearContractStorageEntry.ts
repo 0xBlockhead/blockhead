@@ -21,7 +21,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	blockHeight: {
-		primitiveType: type('bigint'),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.One,
 	},
 	source: {

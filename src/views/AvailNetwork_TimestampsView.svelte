@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,11 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				latestBlockNumber: true,
-				source: true,
-				health: true,
+			...{
+				fields: {
+					timestampMs: true,
+					latestBlockNumber: true,
+					source: true,
+					health: true,
+				},
 			},
 		})
 	}
@@ -40,6 +44,21 @@
 		<EntityView
 			entityType={EntityType.AvailNetwork_Timestamp}
 			entitySelector={availNetworkTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in availNetworkTimestampSelector.$network.$network ?
+								caip2StringFromValue(availNetworkTimestampSelector.$network.$network.caip2)
+							:
+								availNetworkTimestampSelector.$network.$network.slug
+						),
+						timestampMs: String(availNetworkTimestampSelector.timestampMs),
+						source: availNetworkTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{availNetworkTimestampSelector.timestampMs}

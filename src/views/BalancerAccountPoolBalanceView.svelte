@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,11 +18,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BalancerAccountPoolBalance>, 'prefetched'> = $props()
 
+	const pool = $derived(selection.entitySelector.$pool)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Balancer_Rest,
@@ -48,6 +52,24 @@
 	entityType={EntityType.BalancerAccountPoolBalance}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/balancer-pool/[poolId=stringSegment]/(balancerPool)/balance/[accountAddress=evmAddress]',
+				{
+					network: (
+						'caip2' in pool.$network ?
+							caip2StringFromValue(pool.$network.caip2)
+						:
+							pool.$network.slug
+					),
+					poolId: pool.poolId,
+					accountAddress: selection.entitySelector.$account.$actor.address,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -55,6 +77,7 @@
 	{#snippet Title()}
 		<BalancerPoolView
 			selection={select(EntityType.BalancerPool, selection.entitySelector.$pool)}
+			href={null}
 			layout={EntityLayout.Title}
 		/>
 	{/snippet}

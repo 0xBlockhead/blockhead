@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				txHash: true,
-				outputIndex: true,
-				amountAtomicUnits: true,
+			...{
+				fields: {
+					txHash: true,
+					outputIndex: true,
+					amountAtomicUnits: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadMoneroOutputState}
 			entitySelector={blockheadMoneroOutputStateSelector}
+			href={
+				resolve(
+					'/~/monero/wallet/[walletId=stringSegment]/output-state/[txHash=stringSegment]/[outputIndex=nonNegativeInteger]',
+					{
+						walletId: blockheadMoneroOutputStateSelector.walletId,
+						txHash: blockheadMoneroOutputStateSelector.txHash,
+						outputIndex: String(blockheadMoneroOutputStateSelector.outputIndex),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadMoneroOutputStateSelector.txHash || 'blockhead monero output state'}

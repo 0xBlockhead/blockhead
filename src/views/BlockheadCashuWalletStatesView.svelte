@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				walletId: true,
-				unit: true,
-				$mint: true,
+			...{
+				fields: {
+					walletId: true,
+					unit: true,
+					$mint: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadCashuWalletState}
 			entitySelector={blockheadCashuWalletStateSelector}
+			href={
+				resolve(
+					'/~/cashu/wallet/[walletId=stringSegment]/mint/[mintUrl=stringSegment]/[unit=stringSegment]',
+					{
+						walletId: blockheadCashuWalletStateSelector.walletId,
+						mintUrl: blockheadCashuWalletStateSelector.mintUrl,
+						unit: blockheadCashuWalletStateSelector.unit,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadCashuWalletStateSelector.walletId || 'blockhead Cashu wallet state'}

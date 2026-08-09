@@ -2,10 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,21 +16,26 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.HederaContract>, 'prefetched'> = $props()
 
+	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('hedera-contract-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import HederaContractResultsView from '$/views/HederaContractResultsView.svelte'
+	import HederaContractLogsView from '$/views/HederaContractLogsView.svelte'
+	import HederaContractState_TimestampsView from '$/views/HederaContractState_TimestampsView.svelte'
+	import HederaContract_TimestampsView from '$/views/HederaContract_TimestampsView.svelte'
 </script>
 
 
@@ -37,6 +43,23 @@
 	entityType={EntityType.HederaContract}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					address: selection.entitySelector.contractId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -136,60 +159,33 @@
 			{/snippet}
 
 			{#snippet SectionHederaContractResults({ id, label })}
-				<EntitiesList
-					entityType={EntityType.HederaContractResult}
+				<HederaContractResultsView
+					selection={selection.$$results}
 					collapsible={false}
 					title={label}
 					emptyText='No results.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$results()}
-				>
-					{#snippet Item({ item: hederaContractResult })}
-						<EntityView
-							entityType={EntityType.HederaContractResult}
-							entitySelector={hederaContractResult[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionHederaContractLogs({ id, label })}
-				<EntitiesList
-					entityType={EntityType.HederaContractLog}
+				<HederaContractLogsView
+					selection={selection.$$logs}
 					collapsible={false}
 					title={label}
 					emptyText='No logs.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$logs()}
-				>
-					{#snippet Item({ item: hederaContractLog })}
-						<EntityView
-							entityType={EntityType.HederaContractLog}
-							entitySelector={hederaContractLog[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionHederaContractState({ id, label })}
-				<EntitiesList
-					entityType={EntityType.HederaContractState_Timestamp}
+				<HederaContractState_TimestampsView
+					selection={selection.$$state}
 					collapsible={false}
 					title={label}
 					emptyText='No state.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$state()}
-				>
-					{#snippet Item({ item: hederaContractStateTimestamp })}
-						<EntityView
-							entityType={EntityType.HederaContractState_Timestamp}
-							entitySelector={hederaContractStateTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -215,22 +211,13 @@
 			{/snippet}
 
 			{#snippet SectionHederaContractTimestamps({ id, label })}
-				<EntitiesList
-					entityType={EntityType.HederaContract_Timestamp}
+				<HederaContract_TimestampsView
+					selection={selection.$$timestamps}
 					collapsible={false}
 					title={label}
 					emptyText='No timestamps.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$timestamps()}
-				>
-					{#snippet Item({ item: hederaContractTimestamp })}
-						<EntityView
-							entityType={EntityType.HederaContract_Timestamp}
-							entitySelector={hederaContractTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,18 +27,29 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				providerProtocol: true,
-				source: true,
-				requestedAt: true,
+			...{
+				fields: {
+					providerProtocol: true,
+					source: true,
+					requestedAt: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadIntentQuote })}
+		{@const blockheadIntentQuoteSelector = blockheadIntentQuote[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.BlockheadIntentQuote}
-			entitySelector={blockheadIntentQuote[EntityMetaKey.Selector]}
+			entitySelector={blockheadIntentQuoteSelector}
+			href={
+				resolve(
+					'/~/intent/quote/[id=stringSegment]',
+					{
+						id: blockheadIntentQuoteSelector.id,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadIntentQuote.providerProtocol || 'blockhead intent quote'}

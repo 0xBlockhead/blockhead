@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				remoteName: true,
-				url: true,
-				transportKind: true,
-				hostKind: true,
+			...{
+				fields: {
+					remoteName: true,
+					url: true,
+					transportKind: true,
+					hostKind: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,18 @@
 		<EntityView
 			entityType={EntityType.GitRemote}
 			entitySelector={gitRemoteSelector}
+			href={
+				'repositoryId' in gitRemoteSelector.$repository ?
+					resolve(
+						'/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/remote/[remoteName=stringSegment]',
+						{
+							repositoryId: gitRemoteSelector.$repository.repositoryId,
+							remoteName: gitRemoteSelector.remoteName,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{gitRemoteSelector.remoteName || 'Git remote'}

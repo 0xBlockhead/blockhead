@@ -1,41 +1,10 @@
 // Generated from APP.ts.
 
-import { sourceBindings } from '$/sources/$sourceProviders.ts'
-import { Source } from '$/sources/Source.ts'
-import {
-	sourceBindingId,
-	SourceCredentialScope,
-	type SourceBinding,
-	type SourceServerCredentialDefinition,
-} from '$/sources/SourceBinding.ts'
-
-const runtimeSecretBindingCandidates = sourceBindings.filter(({ credentials }: SourceBinding) => credentials.some(({
-	keys,
-	scope,
-}) => (
-	scope === SourceCredentialScope.RuntimeSecret
-	&& keys == null
-	)))
-
-const runtimeSecretBinding = (
-	source: Source,
-	targetKey?: string
-) => {
-	const bindings = runtimeSecretBindingCandidates.filter((candidate) => (
-		candidate.source === source
-		&& (targetKey === undefined || candidate.target.key === targetKey)
-	))
-	const binding = bindings.at(0)
-	if (binding == null || bindings.length > 1)
-		throw new Error(`Expected one runtime-secret binding for ${source}${targetKey === undefined ? '' : ` target ${targetKey}`}`)
-
-	return binding
-}
+import type { SourceServerCredentialDefinition } from '$/sources/SourceBinding.ts'
 
 const runtimeSecretCredentials = [
 	[
-		Source.Amboss_Graphql,
-		undefined,
+		'["Amboss_Graphql","Global","amboss-space","HttpProxy","GraphqlHttp"]',
 		'AMBOSS_API_KEY',
 		{
 			header: {
@@ -43,40 +12,40 @@ const runtimeSecretCredentials = [
 				prefix: 'Bearer ',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.Blockfrost_Rest,
-		undefined,
+		'["Blockfrost_Rest","Caip2Network","cip34:1-764824073","HttpProxy","OpenApiHttp"]',
 		'BLOCKFROST_PROJECT_ID',
 		{
 			header: {
 				name: 'project_id',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.EigenExplorer_Rest,
-		undefined,
+		'["EigenExplorer_Rest","Global","eigen-explorer-api","HttpProxy","RestJson"]',
 		'EIGEN_EXPLORER_API_TOKEN',
 		{
 			header: {
 				name: 'x-api-token',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.EnvioHyperRpc_JsonRpc,
-		undefined,
+		'["EnvioHyperRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]',
 		'ENVIO_API_TOKEN',
 		{
 			endpointTemplate: {
 				slot: 'ENVIO_API_TOKEN',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.EnvioHyperSync_RawHttp,
-		undefined,
+		'["EnvioHyperSync_RawHttp","Eip155Chain","1","HttpProxy","EnvioHyperSyncApi"]',
 		'ENVIO_API_TOKEN',
 		{
 			header: {
@@ -84,30 +53,30 @@ const runtimeSecretCredentials = [
 				prefix: 'Bearer ',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.GetBlockRpc_JsonRpc,
-		undefined,
+		'["GetBlockRpc_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"]',
 		'GETBLOCK_API_KEY',
 		{
 			endpointTemplate: {
 				slot: 'GETBLOCK_API_KEY',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.GetBlockYellowstone_Grpc,
-		undefined,
+		'["GetBlockYellowstone_Grpc","Caip2Network","solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp","RemoteLive","GrpcService"]',
 		'GETBLOCK_API_KEY',
 		{
 			endpointTemplate: {
 				slot: 'GETBLOCK_API_KEY',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.GoldRushFoundational_Rest,
-		undefined,
+		'["GoldRushFoundational_Rest","Eip155Chain","1","HttpProxy","GoldRushFoundationalApi"]',
 		'COVALENT_API_KEY',
 		{
 			header: {
@@ -115,10 +84,10 @@ const runtimeSecretCredentials = [
 				prefix: 'Bearer ',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.OpenAI_Rest,
-		undefined,
+		'["OpenAI_Rest","Global","openai-api","HttpProxy","RestJson"]',
 		'OPENAI_API_KEY',
 		{
 			header: {
@@ -126,10 +95,20 @@ const runtimeSecretCredentials = [
 				prefix: 'Bearer ',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.PythHermes_Rest,
+		'["OpenSea_Rest","Global","opensea-api","HttpProxy","OpenApiHttp"]',
+		'OPENSEA_API_KEY',
+		{
+			header: {
+				name: 'x-api-key',
+			},
+		},
 		undefined,
+	],
+	[
+		'["PythHermes_Rest","Global","pyth-hermes","HttpProxy","OpenApiHttp"]',
 		'PYTH_API_KEY',
 		{
 			header: {
@@ -137,678 +116,688 @@ const runtimeSecretCredentials = [
 				prefix: 'Bearer ',
 			},
 		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'1',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'10',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'50',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'56',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'100',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'130',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'137',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'143',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'146',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'196',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'204',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'232',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'324',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'480',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'677',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'988',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'999',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'1001',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'1672',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'3338',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'4217',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'4326',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'4663',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'5000',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'5003',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'5042',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'8217',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'8453',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'9745',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'10143',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'10200',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'16661',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'25363',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'42161',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'42220',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'42431',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'43111',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'43114',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'46630',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'57073',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'59144',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'80069',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'80094',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'81224',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'84532',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'102030',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'534352',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'747474',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'5042002',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'11142220',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'11155111',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SafeTransactionService_Rest,
-		'1313161554',
-		'SAFE_TRANSACTION_SERVICE_API_KEY',
-		{
-			header: {
-				name: 'authorization',
-				prefix: 'Bearer ',
-			},
-		},
-	],
-	[
-		Source.SpaceAndTime_MakeInfinite,
 		undefined,
+	],
+	[
+		'["Reddit_Rest","Global","oauth-api","HttpProxy","RestJson"]',
+		'REDDIT_CLIENT_SECRET',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		{
+			clientIdEnvKey: 'REDDIT_CLIENT_ID',
+			tokenEndpoint: 'https://www.reddit.com/api/v1/access_token',
+		},
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","1","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","10","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","50","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","56","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","100","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","130","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","137","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","143","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","146","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","196","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","204","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","232","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","324","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","480","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","677","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","988","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","999","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","1001","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","1672","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","3338","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","4217","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","4326","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","4663","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","5000","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","5003","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","5042","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","8217","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","8453","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","9745","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","10143","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","10200","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","16661","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","25363","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","42161","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","42220","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","42431","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","43111","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","43114","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","46630","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","57073","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","59144","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","80069","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","80094","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","81224","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","84532","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","102030","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","534352","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","747474","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","5042002","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","11142220","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","11155111","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SafeTransactionService_Rest","Eip155Chain","1313161554","HttpProxy","RestJson"]',
+		'SAFE_TRANSACTION_SERVICE_API_KEY',
+		{
+			header: {
+				name: 'authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["SpaceAndTime_MakeInfinite","Caip2Network","eip155:1","HttpProxy","RestJson"]',
 		'MAKEINFINITE_API_KEY',
 		{
 			header: {
 				name: 'apikey',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.Starkscan,
-		undefined,
+		'["Starkscan","NetworkSlug","starknet","HttpProxy","OpenApiHttp"]',
 		'STARKSCAN_API_KEY',
 		{
 			header: {
 				name: 'X-Starkscan-Api-Key',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.Tally,
-		undefined,
+		'["Tally","Global","tally-api","HttpProxy","GraphqlHttp"]',
 		'TALLY_API_KEY',
 		{
 			header: {
 				name: 'Api-Key',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.TonCenter,
-		'ton:-239',
+		'["TonCenter","Caip2Network","ton:-239","HttpProxy","OpenApiHttp"]',
 		'TONCENTER_MAINNET_API_KEY',
 		{
 			header: {
 				name: 'X-API-Key',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.TonCenter,
-		'ton:-3',
+		'["TonCenter","Caip2Network","ton:-3","HttpProxy","OpenApiHttp"]',
 		'TONCENTER_TESTNET_API_KEY',
 		{
 			header: {
 				name: 'X-API-Key',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.TronGrid_Rest,
-		undefined,
+		'["TronGrid_Rest","Caip2Network","tron:0x2b6653dc","HttpProxy","RestJson"]',
 		'TRONGRID_API_KEY',
 		{
 			header: {
 				name: 'TRON-PRO-API-KEY',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.TronScan_Rest,
-		undefined,
+		'["TronScan_Rest","Caip2Network","tron:0x2b6653dc","HttpProxy","RestJson"]',
 		'TRONSCAN_API_KEY',
 		{
 			header: {
 				name: 'TRON-PRO-API-KEY',
 			},
 		},
+		undefined,
 	],
 	[
-		Source.Voyager,
-		undefined,
+		'["Voyager","NetworkSlug","starknet","HttpProxy","OpenApiHttp"]',
 		'VOYAGER_API_KEY',
 		{
 			header: {
 				name: 'x-api-key',
 			},
 		},
+		undefined,
 	],
 ] as const satisfies readonly (readonly [
-	source: Source,
-	targetKey: string | undefined,
-	envKey: string,
-	injection: SourceServerCredentialDefinition['injection'],
-])[]
+				bindingId: string,
+				envKey: string,
+				injection: SourceServerCredentialDefinition['injection'],
+				oauthClientCredentials: SourceServerCredentialDefinition['oauthClientCredentials'],
+			])[]
 
-export default new Map<
-	string,
-	SourceServerCredentialDefinition
->(runtimeSecretCredentials.map(([
-	source,
-	targetKey,
-	envKey,
-	injection,
-]) => [
-	sourceBindingId(runtimeSecretBinding(source, targetKey)),
-	{
-		envKey,
-		injection,
-	},
-] satisfies readonly [string, SourceServerCredentialDefinition]))
+export default new Map<string, SourceServerCredentialDefinition>(
+	runtimeSecretCredentials.map(([bindingId, envKey, injection, oauthClientCredentials]) => [
+		bindingId,
+		{
+			envKey,
+			injection,
+			...(oauthClientCredentials == null ? {} : { oauthClientCredentials }),
+		},
+] satisfies readonly [string, SourceServerCredentialDefinition])
+)

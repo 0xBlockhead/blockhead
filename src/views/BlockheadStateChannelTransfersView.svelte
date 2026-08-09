@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,10 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				amount: true,
-				status: true,
-				timestamp: true,
+			...{
+				fields: {
+					amount: true,
+					status: true,
+					timestamp: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,18 @@
 		<EntityView
 			entityType={EntityType.BlockheadStateChannelTransfer}
 			entitySelector={blockheadStateChannelTransferSelector}
+			href={
+				resolve(
+					'/~/channel/[channelId=stringSegment]/(blockheadStateChannel)/transfer/[turnNum=nonNegativeInteger]/[fromAddress=evmAddress]/[toAddress=evmAddress]/[amount=nonNegativeBigInt]',
+					{
+						channelId: blockheadStateChannelTransferSelector.$channel.id,
+						turnNum: String(blockheadStateChannelTransferSelector.turnNum),
+						fromAddress: blockheadStateChannelTransferSelector.$from.address,
+						toAddress: blockheadStateChannelTransferSelector.$to.address,
+						amount: String(blockheadStateChannelTransferSelector.amount),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadStateChannelTransferSelector.amount}

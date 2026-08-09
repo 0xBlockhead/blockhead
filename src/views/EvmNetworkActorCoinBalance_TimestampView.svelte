@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -14,11 +15,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.EvmNetworkActorCoinBalance_Timestamp>, 'prefetched'> = $props()
 
+	const actorCoin = $derived(selection.entitySelector.$actorCoin)
 	const evmNetworkActorCoinBalanceTimestamp = $derived(selection({
 		fields: {
 			balance: true,
@@ -46,6 +49,27 @@
 	entityType={EntityType.EvmNetworkActorCoinBalance_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.source || 'EVM network actor coin balance timestamp')}
+	href={
+		href === undefined ?
+			(
+				'$contract' in actorCoin
+				&& 'caip2' in actorCoin.$contract.$network ?
+					resolve(
+						'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/(evmNetworkActorCoinBalance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							chainId: actorCoin.$contract.$network.caip2.reference,
+							owner: actorCoin.$actor.address,
+							coin: actorCoin.$contract.address,
+							timestampMs: String(selection.entitySelector.timestampMs),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

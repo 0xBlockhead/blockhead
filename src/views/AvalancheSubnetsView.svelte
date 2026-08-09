@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				label: true,
-				threshold: true,
-				subnetId: true,
+			...{
+				fields: {
+					label: true,
+					threshold: true,
+					subnetId: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,14 @@
 		<EntityView
 			entityType={EntityType.AvalancheSubnet}
 			entitySelector={avalancheSubnetSelector}
+			href={
+				resolve(
+					'/(avalanche)/avalanche/subnet/[subnetId=stringSegment]',
+					{
+						subnetId: avalancheSubnetSelector.subnetId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{(avalancheSubnet.label ?? '') || avalancheSubnetSelector.subnetId || 'avalanche subnet'}

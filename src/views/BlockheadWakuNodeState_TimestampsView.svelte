@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,19 +29,33 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				health: true,
-				peerCount: true,
+			...{
+				fields: {
+					timestampMs: true,
+					health: true,
+					peerCount: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: blockheadWakuNodeStateTimestamp })}
 		{@const blockheadWakuNodeStateTimestampSelector = blockheadWakuNodeStateTimestamp[EntityMetaKey.Selector]}
+		{@const nodeState = blockheadWakuNodeStateTimestampSelector.$nodeState}
 		<EntityView
 			entityType={EntityType.BlockheadWakuNodeState_Timestamp}
 			entitySelector={blockheadWakuNodeStateTimestampSelector}
+			href={
+				resolve(
+					'/~/waku/connection/[connectionId=stringSegment]/node-state/[nodeId=stringSegment]/(blockheadWakuNodeState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						connectionId: nodeState.connectionId,
+						nodeId: nodeState.nodeId,
+						timestampMs: String(blockheadWakuNodeStateTimestampSelector.timestampMs),
+						source: blockheadWakuNodeStateTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadWakuNodeStateTimestampSelector.timestampMs}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -30,9 +31,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				query: true,
-				resultLimit: true,
+			...{
+				fields: {
+					query: true,
+					resultLimit: true,
+				},
 			},
 		})
 	}
@@ -42,6 +45,14 @@
 		<EntityView
 			entityType={EntityType.BlockheadEnsNameSearch}
 			entitySelector={blockheadEnsNameSearchSelector}
+			href={
+				resolve(
+					'/~/ens/name-search/[query=stringSegment]',
+					{
+						query: blockheadEnsNameSearchSelector.query,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadEnsNameSearchSelector.query || 'blockhead ENS name search'}

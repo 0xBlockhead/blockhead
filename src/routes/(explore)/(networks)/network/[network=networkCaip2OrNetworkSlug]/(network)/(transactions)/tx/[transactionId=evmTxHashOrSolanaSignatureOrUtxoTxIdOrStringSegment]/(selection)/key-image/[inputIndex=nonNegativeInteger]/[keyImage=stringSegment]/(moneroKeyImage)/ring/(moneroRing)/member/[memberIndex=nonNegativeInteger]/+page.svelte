@@ -1,0 +1,45 @@
+<!-- Generated from APP.ts. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		data,
+		params,
+	}: PageProps = $props()
+
+	const pageSelection = $derived(select(EntityType.MoneroRingMember, {
+		$ring: data.selector,
+		memberIndex: Number(params.memberIndex),
+	}, {
+		sources: [
+			Source.MoneroDaemonRpc_JsonRpc,
+		],
+	}))
+
+
+	// Components
+	import Page from '$/components/Page.svelte'
+	import MoneroRingMemberView from '$/views/MoneroRingMemberView.svelte'
+</script>
+
+
+<svelte:head>
+	<title>{data.title ?? (String(pageSelection.entitySelector.memberIndex) || 'monero ring member')} • monero ring member • Blockhead</title>
+</svelte:head>
+
+
+<Page>
+	<MoneroRingMemberView
+		selection={pageSelection}
+	/>
+</Page>

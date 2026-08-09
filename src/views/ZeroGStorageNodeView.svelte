@@ -2,10 +2,12 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,21 +17,23 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.ZeroGStorageNode>, 'prefetched'> = $props()
 
+	const network = $derived(selection.entitySelector.$network)
 	const viewDomId = $derived('zero-gstorage-node-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import ZeroGDataChunksView from '$/views/ZeroGDataChunksView.svelte'
 	import ZeroGStorageProofsView from '$/views/ZeroGStorageProofsView.svelte'
 	import ZeroGStorageNode_TimestampsView from '$/views/ZeroGStorageNode_TimestampsView.svelte'
 </script>
@@ -39,6 +43,23 @@
 	entityType={EntityType.ZeroGStorageNode}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/storage-node/[nodeId=evmAddress]',
+				{
+					network: (
+						'caip2' in network ?
+							caip2StringFromValue(network.caip2)
+						:
+							network.slug
+					),
+					nodeId: selection.entitySelector.nodeId,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -130,22 +151,13 @@
 			{/snippet}
 
 			{#snippet SectionZeroGstorageNodeStoredChunks({ id, label })}
-				<EntitiesList
-					entityType={EntityType.ZeroGDataChunk}
+				<ZeroGDataChunksView
+					selection={selection.$$storedChunks}
 					collapsible={false}
 					title={label}
 					emptyText='No stored chunks.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$storedChunks()}
-				>
-					{#snippet Item({ item: zeroGDataChunk })}
-						<EntityView
-							entityType={EntityType.ZeroGDataChunk}
-							entitySelector={zeroGDataChunk[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionZeroGstorageNodeProofs({ id, label })}

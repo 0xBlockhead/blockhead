@@ -1,14 +1,36 @@
 import {
+	beforeEach,
 	describe,
 	expect,
 	it,
 	vi,
 } from 'vitest'
+import type { SourceServerCredentialDefinition } from '$/sources/SourceBinding.ts'
 
-const privateEnv = vi.hoisted(() => ({
-	HEADER_SECRET: 'header-secret',
-	QUERY_SECRET: 'query secret',
-	TEMPLATE_SECRET: 'template/secret',
+const {
+	privateEnv,
+	oauthCredentialDefinition,
+} = vi.hoisted(() => ({
+	privateEnv: {
+		HEADER_SECRET: 'header-secret',
+		QUERY_SECRET: 'query secret',
+		TEMPLATE_SECRET: 'template/secret',
+		OAUTH_CLIENT_ID: 'oauth-client',
+		OAUTH_CLIENT_SECRET: 'oauth-secret',
+	},
+	oauthCredentialDefinition: {
+		envKey: 'OAUTH_CLIENT_SECRET',
+		injection: {
+			header: {
+				name: 'Authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		oauthClientCredentials: {
+			clientIdEnvKey: 'OAUTH_CLIENT_ID',
+			tokenEndpoint: 'https://identity.example.test/oauth/token',
+		},
+	},
 }))
 
 vi.mock('$env/dynamic/private', () => ({
@@ -16,7 +38,7 @@ vi.mock('$env/dynamic/private', () => ({
 }))
 
 vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
-	default: new Map([
+	default: new Map<string, SourceServerCredentialDefinition>([
 		['header', {
 			envKey: 'HEADER_SECRET',
 			injection: {
@@ -42,11 +64,20 @@ vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
 				},
 			},
 		}],
+		['oauth', oauthCredentialDefinition],
+		['oauth-cache', oauthCredentialDefinition],
+		['oauth-rotation', oauthCredentialDefinition],
+		['oauth-failure', oauthCredentialDefinition],
 	]),
 }))
 
 vi.mock('$/sources/index.server.ts', () => ({
-	httpProxyBindingByProxyId: new Map([
+	httpProxyBindingByProxyId: new Map<string, {
+		endpoints: {
+			endpointKind: string
+			locator: string
+		}[]
+	}>([
 		['header', {
 			endpoints: [{
 				endpointKind: 'HttpUrl',
@@ -77,11 +108,36 @@ vi.mock('$/sources/index.server.ts', () => ({
 				},
 			],
 		}],
+		['oauth', {
+			endpoints: [{
+				endpointKind: 'HttpUrl',
+				locator: 'https://oauth-api.example.test',
+			}],
+		}],
+		['oauth-cache', {
+			endpoints: [{
+				endpointKind: 'HttpUrl',
+				locator: 'https://oauth-api.example.test',
+			}],
+		}],
+		['oauth-rotation', {
+			endpoints: [{
+				endpointKind: 'HttpUrl',
+				locator: 'https://oauth-api.example.test',
+			}],
+		}],
+		['oauth-failure', {
+			endpoints: [{
+				endpointKind: 'HttpUrl',
+				locator: 'https://oauth-api.example.test',
+			}],
+		}],
 	]),
 	httpProxyOrigins: new Set([
 		'https://api.example.test',
 		'https://primary.example.test',
 		'https://fallback.example.test',
+		'https://oauth-api.example.test',
 	]),
 }))
 
@@ -109,6 +165,12 @@ const proxyEvent = (
 }
 
 describe('runtime secret proxy', () => {
+	beforeEach(() => {
+		privateEnv.OAUTH_CLIENT_ID = 'oauth-client'
+		privateEnv.OAUTH_CLIENT_SECRET = 'oauth-secret'
+		vi.restoreAllMocks()
+	})
+
 	it('replaces spoofed protected headers and applies the configured prefix', async () => {
 		const { event } = proxyEvent(
 			'header',
@@ -155,6 +217,205 @@ describe('runtime secret proxy', () => {
 
 		expect(String(event.fetch.mock.calls[0]?.[0]))
 			.toBe('https://api.example.test/tenant/template%2Fsecret/v1/blocks')
+	})
+
+	it('performs the OAuth client-credentials grant server-side and replaces spoofed authorization', async () => {
+		const { event } = proxyEvent(
+			'oauth',
+			0,
+			'https://oauth-api.example.test/r/ethereum/hot',
+			undefined,
+			{
+				Authorization: 'Bearer browser-spoof',
+				'X-Api-Key': 'browser-spoof',
+			}
+		)
+		event.fetch
+			.mockReset()
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				access_token: 'server-access-token',
+				expires_in: 3_600,
+			}), {
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			}))
+			.mockResolvedValueOnce(new Response('ok'))
+
+		await expect(proxySourceHttpRequest(event)).resolves.toBeInstanceOf(Response)
+
+		const tokenRequest = new Request(event.fetch.mock.calls[0]?.[0], event.fetch.mock.calls[0]?.[1])
+		expect(tokenRequest.url).toBe('https://identity.example.test/oauth/token')
+		expect(tokenRequest.method).toBe('POST')
+		expect(tokenRequest.headers.get('Authorization'))
+			.toBe('Basic b2F1dGgtY2xpZW50Om9hdXRoLXNlY3JldA==')
+		expect(tokenRequest.headers.get('Content-Type'))
+			.toBe('application/x-www-form-urlencoded')
+		expect(await tokenRequest.text()).toBe('grant_type=client_credentials')
+
+		const apiRequest = new Request(event.fetch.mock.calls[1]?.[0], event.fetch.mock.calls[1]?.[1])
+		expect(apiRequest.headers.get('Authorization')).toBe('Bearer server-access-token')
+		expect(apiRequest.headers.has('X-Api-Key')).toBe(false)
+		expect([
+			event.url.href,
+			JSON.stringify([...event.request.headers]),
+			await event.request.clone().text(),
+		].join('\n')).not.toMatch(/oauth-client|oauth-secret|server-access-token/)
+	})
+
+	it('reuses OAuth access tokens only until the runtime-owned default expiry skew', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(100_000)
+		const first = proxyEvent(
+			'oauth-cache',
+			0,
+			'https://oauth-api.example.test/api/info'
+		)
+		first.event.fetch
+			.mockReset()
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				access_token: 'cached-access-token',
+			}), {
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			}))
+			.mockResolvedValueOnce(new Response('first'))
+		await proxySourceHttpRequest(first.event)
+		expect(first.event.fetch).toHaveBeenCalledTimes(2)
+
+		vi.mocked(Date.now).mockReturnValue(3_694_999)
+		const cached = proxyEvent(
+			'oauth-cache',
+			0,
+			'https://oauth-api.example.test/api/info'
+		)
+		await proxySourceHttpRequest(cached.event)
+		expect(cached.event.fetch).toHaveBeenCalledTimes(1)
+		expect(new Headers(cached.event.fetch.mock.calls[0]?.[1]?.headers).get('Authorization'))
+			.toBe('Bearer cached-access-token')
+
+		vi.mocked(Date.now).mockReturnValue(3_695_000)
+		const expired = proxyEvent(
+			'oauth-cache',
+			0,
+			'https://oauth-api.example.test/api/info'
+		)
+		expired.event.fetch
+			.mockReset()
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				access_token: 'refreshed-access-token',
+			}), {
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			}))
+			.mockResolvedValueOnce(new Response('expired'))
+		await proxySourceHttpRequest(expired.event)
+		expect(expired.event.fetch).toHaveBeenCalledTimes(2)
+		expect(new Headers(expired.event.fetch.mock.calls[1]?.[1]?.headers).get('Authorization'))
+			.toBe('Bearer refreshed-access-token')
+	})
+
+	it('invalidates the OAuth cache when private credentials rotate', async () => {
+		const first = proxyEvent(
+			'oauth-rotation',
+			0,
+			'https://oauth-api.example.test/api/info'
+		)
+		first.event.fetch
+			.mockReset()
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				access_token: 'first-rotation-token',
+				expires_in: 3_600,
+			}), {
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			}))
+			.mockResolvedValueOnce(new Response('first'))
+		await proxySourceHttpRequest(first.event)
+
+		privateEnv.OAUTH_CLIENT_SECRET = 'rotated-secret'
+		const rotated = proxyEvent(
+			'oauth-rotation',
+			0,
+			'https://oauth-api.example.test/api/info'
+		)
+		rotated.event.fetch
+			.mockReset()
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				access_token: 'second-rotation-token',
+				expires_in: 3_600,
+			}), {
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			}))
+			.mockResolvedValueOnce(new Response('rotated'))
+		await proxySourceHttpRequest(rotated.event)
+
+		expect(rotated.event.fetch).toHaveBeenCalledTimes(2)
+		expect(new Request(
+			rotated.event.fetch.mock.calls[0]?.[0],
+			rotated.event.fetch.mock.calls[0]?.[1]
+		).headers.get('Authorization')).not.toBe(
+			'Basic b2F1dGgtY2xpZW50Om9hdXRoLXNlY3JldA=='
+		)
+		expect(new Headers(rotated.event.fetch.mock.calls[1]?.[1]?.headers).get('Authorization'))
+			.toBe('Bearer second-rotation-token')
+	})
+
+	it('fails closed on OAuth exchange errors, avoids poisoning the cache, and redacts every credential form', async () => {
+		const failed = proxyEvent(
+			'oauth-failure',
+			0,
+			'https://oauth-api.example.test/api/info'
+		)
+		failed.event.fetch
+			.mockReset()
+			.mockResolvedValueOnce(new Response(
+				'oauth-secret Basic b2F1dGgtY2xpZW50Om9hdXRoLXNlY3JldA==',
+				{ status: 401 }
+			))
+
+		await expect(proxySourceHttpRequest(failed.event)).rejects.toMatchObject({
+			status: 502,
+			body: {
+				message: 'Proxy OAuth credential exchange failed.',
+			},
+		})
+		expect(failed.event.fetch).toHaveBeenCalledTimes(1)
+
+		const retried = proxyEvent(
+			'oauth-failure',
+			0,
+			'https://oauth-api.example.test/api/info'
+		)
+		retried.event.fetch
+			.mockReset()
+			.mockResolvedValueOnce(new Response(JSON.stringify({
+				access_token: 'recovered-access-token',
+				expires_in: 3_600,
+			}), {
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			}))
+			.mockResolvedValueOnce(new Response(
+				'oauth-secret Basic b2F1dGgtY2xpZW50Om9hdXRoLXNlY3JldA== Bearer recovered-access-token',
+				{
+					headers: {
+						'Content-Type': 'text/plain',
+						'X-Upstream-Diagnostic': 'oauth-secret recovered-access-token',
+					},
+				}
+			))
+
+		const response = await proxySourceHttpRequest(retried.event)
+
+		expect(response.headers.has('X-Upstream-Diagnostic')).toBe(false)
+		expect(await response.text()).toBe('[redacted] [redacted] Bearer [redacted]')
+		expect(retried.event.fetch).toHaveBeenCalledTimes(2)
 	})
 
 	it('fails over transient failures within one credential-free binding', async () => {

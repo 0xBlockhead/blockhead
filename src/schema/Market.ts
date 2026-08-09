@@ -54,7 +54,6 @@ export default entity({
 			Source.Coingecko_Rest,
 			Source.Coinpaprika_Rest,
 			Source.CoinMarketCap_Rest,
-			Source.Defillama_Rest,
 		],
 	},
 	$$derivativeTimestamps: {

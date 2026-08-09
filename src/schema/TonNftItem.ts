@@ -25,7 +25,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	itemIndex: {
-		primitiveType: type('bigint'),
+		primitiveType: type('bigint').narrow((value) => value >= 0n),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	$account: {

@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,20 +28,38 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$pool: true,
-				totalBalance: true,
-				totalBalanceUsd: true,
-				$account: true,
+			...{
+				fields: {
+					$pool: true,
+					totalBalance: true,
+					totalBalanceUsd: true,
+					$account: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: balancerAccountPoolBalance })}
 		{@const balancerAccountPoolBalanceSelector = balancerAccountPoolBalance[EntityMetaKey.Selector]}
+		{@const pool = balancerAccountPoolBalanceSelector.$pool}
 		<EntityView
 			entityType={EntityType.BalancerAccountPoolBalance}
 			entitySelector={balancerAccountPoolBalanceSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/balancer-pool/[poolId=stringSegment]/(balancerPool)/balance/[accountAddress=evmAddress]',
+					{
+						network: (
+							'caip2' in pool.$network ?
+								caip2StringFromValue(pool.$network.caip2)
+							:
+								pool.$network.slug
+						),
+						poolId: pool.poolId,
+						accountAddress: balancerAccountPoolBalanceSelector.$account.$actor.address,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{balancerAccountPoolBalance.$pool.name || 'Balancer pool'}

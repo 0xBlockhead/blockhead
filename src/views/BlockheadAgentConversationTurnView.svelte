@@ -64,7 +64,12 @@
 						}
 					)
 				:
-					undefined
+					resolve(
+						'/~/agent/conversation-turn/[id=stringSegment]',
+						{
+							id: selection.entitySelector.id,
+						}
+					)
 			)
 		:
 			href ?? undefined

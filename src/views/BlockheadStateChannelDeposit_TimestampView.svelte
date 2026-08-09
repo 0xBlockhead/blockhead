@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.BlockheadStateChannelDeposit_Timestamp>, 'prefetched'> = $props()
 
+	const deposit = $derived(selection.entitySelector.$deposit)
 	const blockheadStateChannelDepositTimestamp = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Local_Internal,
@@ -43,6 +46,20 @@
 	entityType={EntityType.BlockheadStateChannelDeposit_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/channel/[channelId=stringSegment]/(blockheadStateChannel)/deposit/[accountAddress=evmAddress]/(blockheadStateChannelDeposit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					channelId: deposit.$channel.id,
+					accountAddress: deposit.$account.address,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

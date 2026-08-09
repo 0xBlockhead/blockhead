@@ -183,9 +183,9 @@ export default {
 			entityType: EntityType.RedditSubreddit,
 			resolve: {
 				Name: {
-					resolve: async ({ name }, context) => {
+					resolve: async ({ name }) => {
 						const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
-						const subredditAbout = (await getSubredditAbout(context.publicEnv, name)).data
+						const subredditAbout = (await getSubredditAbout(name)).data
 						const iconMedia = mediaFromUrl(redditSubredditIconUrl(subredditAbout.icon_img, subredditAbout.community_icon), MediaType.Image)
 						return {
 							title: optionalNonemptyString(subredditAbout.title),
@@ -230,9 +230,9 @@ export default {
 			entityType: EntityType.RedditLink,
 			resolve: {
 				Fullname: {
-					resolve: async ({ fullname }, context) => {
+					resolve: async ({ fullname }) => {
 						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-						const redditThing = (await getInfo(context.publicEnv, fullname))
+						const redditThing = (await getInfo(fullname))
 							.data
 							.children.find((child) => child.data.name === fullname)
 						if (redditThing == null || redditThing.kind !== 't3')
@@ -297,9 +297,9 @@ export default {
 			entityType: EntityType.RedditComment,
 			resolve: {
 				Fullname: {
-					resolve: async ({ fullname }, context) => {
+					resolve: async ({ fullname }) => {
 						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-						const redditThing = (await getInfo(context.publicEnv, fullname))
+						const redditThing = (await getInfo(fullname))
 							.data
 							.children.find((child) => child.data.name === fullname)
 						if (redditThing == null || redditThing.kind !== 't1')
@@ -354,9 +354,9 @@ export default {
 			entityType: EntityType.RedditSubreddit_Timestamp,
 			resolve: {
 				SubredditTimestampMsSource: {
-					resolve: async ({ $subreddit }, context) => {
+					resolve: async ({ $subreddit }) => {
 						const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
-						const subredditAbout = (await getSubredditAbout(context.publicEnv, $subreddit.name)).data
+						const subredditAbout = (await getSubredditAbout($subreddit.name)).data
 						return {
 							...(subredditAbout.subscribers != null && { subscriberCount: subredditAbout.subscribers }),
 							...(subredditAbout.active_user_count != null && {
@@ -375,9 +375,9 @@ export default {
 			entityType: EntityType.RedditLink_Timestamp,
 			resolve: {
 				LinkTimestampMsSource: {
-					resolve: async ({ $link }, context) => {
+					resolve: async ({ $link }) => {
 						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-						const redditThing = (await getInfo(context.publicEnv, $link.fullname))
+						const redditThing = (await getInfo($link.fullname))
 							.data
 							.children.find((child) => child.data.name === $link.fullname)
 						if (redditThing == null || redditThing.kind !== 't3')
@@ -400,9 +400,9 @@ export default {
 			entityType: EntityType.RedditComment_Timestamp,
 			resolve: {
 				CommentTimestampMsSource: {
-					resolve: async ({ $comment }, context) => {
+					resolve: async ({ $comment }) => {
 						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-						const redditThing = (await getInfo(context.publicEnv, $comment.fullname))
+						const redditThing = (await getInfo($comment.fullname))
 							.data
 							.children.find((child) => child.data.name === $comment.fullname)
 						if (redditThing == null || redditThing.kind !== 't1')
@@ -425,7 +425,6 @@ export default {
 						const limit = resolverContextRowLimit(context)
 						const children = (
 							(await listSubredditLinks(
-								context.publicEnv,
 								'popular',
 								limit,
 								undefined,
@@ -462,7 +461,6 @@ export default {
 						const limit = resolverContextRowLimit(context)
 						const children = (
 							(await listSubredditLinks(
-								context.publicEnv,
 								'popular',
 								limit,
 								undefined,
@@ -521,7 +519,6 @@ export default {
 						const limit = resolverContextRowLimit(context)
 						const children = (
 							(await listSubredditLinks(
-								context.publicEnv,
 								'popular',
 								limit,
 								undefined,
@@ -566,7 +563,6 @@ export default {
 					resolve: async ({ name }, context) => {
 						const { listSubredditLinks } = await import('$/sources/Reddit/Rest/queries.ts')
 						return listSubredditLinks(
-							context.publicEnv,
 							name,
 							resolverContextRowLimit(context),
 							context.providerContinuationToken,
@@ -607,11 +603,10 @@ export default {
 				Fullname: {
 					resolve: async ({ fullname }, context) => {
 						const { getLinkCommentsByArticleId } = await import('$/sources/Reddit/Rest/queries.ts')
-						const publicEnv = context.publicEnv
 						const limit = resolverContextRowLimit(context)
 						const articleId = redditLinkArticleIdFromFullname(fullname)
 						return (
-							((await getLinkCommentsByArticleId(publicEnv, articleId, limit))[1]?.data.children ?? [])
+							((await getLinkCommentsByArticleId(articleId, limit))[1]?.data.children ?? [])
 								.flatMap((child) => {
 									const reference = (
 										child.data.parent_id === fullname
@@ -636,9 +631,8 @@ export default {
 				Fullname: {
 					resolve: async ({ fullname }, context) => {
 						const { getInfo, getLinkCommentsByArticleId } = await import('$/sources/Reddit/Rest/queries.ts')
-						const publicEnv = context.publicEnv
 						const limit = resolverContextRowLimit(context)
-						const redditThing = (await getInfo(publicEnv, fullname))
+						const redditThing = (await getInfo(fullname))
 							.data
 							.children.find((child) => child.data.name === fullname)
 						if (redditThing == null || redditThing.kind !== 't1')
@@ -648,7 +642,7 @@ export default {
 							throw new Error('Reddit_Rest: comment link_id missing')
 						const articleId = redditLinkArticleIdFromFullname(linkId)
 						const byParent = redditDirectReplyRefsByParentFromCommentForest(
-							((await getLinkCommentsByArticleId(publicEnv, articleId, limit))[1]?.data.children ?? [])
+							((await getLinkCommentsByArticleId(articleId, limit))[1]?.data.children ?? [])
 						)
 						return byParent.get(fullname) ?? []
 					},

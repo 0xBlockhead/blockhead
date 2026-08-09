@@ -28,9 +28,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				blockNumber: true,
-				hash: true,
+			...{
+				fields: {
+					blockNumber: true,
+					hash: true,
+				},
 			},
 		})
 	}
@@ -42,9 +44,9 @@
 			entityType={EntityType.EvmBlock}
 			entitySelector={evmBlockSelector}
 			href={
-				'blockNumber' in evmBlockSelector ?
+				'hash' in evmBlockSelector ?
 					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/hash/[blockHash=zeroExHexOrStringSegmentOrUtxoTxId]',
 						{
 							network: (
 								'caip2' in network ?
@@ -52,11 +54,25 @@
 								:
 									network.slug
 							),
-							blockNumber: String(evmBlockSelector.blockNumber),
+							blockHash: evmBlockSelector.hash,
 						}
 					)
 				:
-					undefined
+					'blockNumber' in evmBlockSelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								blockNumber: String(evmBlockSelector.blockNumber),
+							}
+						)
+					:
+						undefined
 			}
 		>
 			{#snippet Title()}

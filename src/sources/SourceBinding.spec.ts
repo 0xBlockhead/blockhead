@@ -442,4 +442,78 @@ describe('source binding indexes', () => {
 			&& binding.credentials.some((credential) => credential.scope === SourceCredentialScope.RuntimeSecret)
 		))).toBe(true)
 	})
+
+	it('keeps OpenSea credentials outside its browser-reachable query closure', () => {
+		const openSeaBinding = sourceBindings.find((binding) => (
+			binding.source === Source.OpenSea_Rest
+		))
+		if (openSeaBinding == null)
+			throw new Error('OpenSea binding is missing')
+
+		expect(sourceBindingId(openSeaBinding)).toBe(
+			'["OpenSea_Rest","Global","opensea-api","HttpProxy","OpenApiHttp"]'
+		)
+		expect(openSeaBinding.delivery).toBe(SourceDelivery.HttpProxy)
+		expect(openSeaBinding.credentials).toEqual([{
+			scope: SourceCredentialScope.RuntimeSecret,
+		}])
+		expect(sourceServerCredentialsById.get(sourceBindingId(openSeaBinding))).toEqual({
+			envKey: 'OPENSEA_API_KEY',
+			injection: {
+				header: {
+					name: 'x-api-key',
+				},
+			},
+		})
+		expect(openSeaBinding.credentials.some((credential) => (
+			credential.scope === SourceCredentialScope.PublicConfig
+		))).toBe(false)
+		expect(browserSourceBindings.some((binding) => (
+			binding.source === Source.OpenSea_Rest
+			&& binding.credentials.some((credential) => (
+				credential.scope === SourceCredentialScope.PublicConfig
+			))
+		))).toBe(false)
+		expect([
+			'src/sources/OpenSea/Rest/queries.ts',
+			'src/resolvers/OpenSea-Rest.ts',
+		].map((path) => readFileSync(path, 'utf8')).join('\n')).not.toMatch(
+			/process\.env|\$env\/dynamic\/private|OPENSEA_API_KEY|requireOpenSeaCredential|x-api-key|authorization/i
+		)
+	})
+
+	it('keeps Reddit OAuth authority on one server-credential binding', () => {
+		const redditBindings = sourceBindings.filter((binding) => (
+			binding.source === Source.Reddit_Rest
+		))
+		const [redditBinding] = redditBindings
+		if (redditBinding == null)
+			throw new Error('Reddit binding is missing')
+
+		expect(redditBindings.map(sourceBindingId)).toEqual([
+			'["Reddit_Rest","Global","oauth-api","HttpProxy","RestJson"]',
+		])
+		expect(redditBinding.credentials).toEqual([{
+			scope: SourceCredentialScope.RuntimeSecret,
+		}])
+		expect(sourceServerCredentialsById.get(sourceBindingId(redditBinding))).toEqual({
+			envKey: 'REDDIT_CLIENT_SECRET',
+			injection: {
+				header: {
+					name: 'authorization',
+					prefix: 'Bearer ',
+				},
+			},
+			oauthClientCredentials: {
+				clientIdEnvKey: 'REDDIT_CLIENT_ID',
+				tokenEndpoint: 'https://www.reddit.com/api/v1/access_token',
+			},
+		})
+		expect(browserSourceBindings.some((binding) => (
+			binding.source === Source.Reddit_Rest
+			&& binding.credentials.some((credential) => (
+				credential.scope === SourceCredentialScope.PublicConfig
+			))
+		))).toBe(false)
+	})
 })

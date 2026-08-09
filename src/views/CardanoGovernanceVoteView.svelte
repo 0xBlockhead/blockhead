@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -16,11 +18,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.CardanoGovernanceVote> = $props()
 
+	const proposal = $derived(selection.entitySelector.$proposal)
 	const cardanoGovernanceVote = $derived(selection({
 		fields: {
 			vote: true,
@@ -44,6 +48,28 @@
 	entityType={EntityType.CardanoGovernanceVote}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]/(cardanoGovernanceProposal)/vote/[voterKind=stringSegment]/[voterCredential=stringSegment]/[voteTxHash=stringSegment]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in proposal.$network ?
+							caip2StringFromValue(proposal.$network.caip2)
+						:
+							proposal.$network.slug
+					),
+					proposalTxHash: proposal.proposalTxHash,
+					proposalIndex: String(proposal.proposalIndex),
+					voterKind: selection.entitySelector.voterKind,
+					voterCredential: selection.entitySelector.voterCredential,
+					voteTxHash: selection.entitySelector.voteTxHash,
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

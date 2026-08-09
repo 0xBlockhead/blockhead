@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -17,6 +18,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -59,6 +61,67 @@
 	entityType={EntityType.AiArtifact}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'providerArtifactId' in selection.entitySelector
+				&& '$provider' in selection.entitySelector
+				&& 'providerId' in selection.entitySelector.$provider ?
+					resolve(
+						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/artifact/[providerArtifactId=stringSegment]',
+						{
+							providerId: selection.entitySelector.$provider.providerId,
+							providerArtifactId: selection.entitySelector.providerArtifactId,
+						}
+					)
+				:
+					'digestAlgorithm' in selection.entitySelector
+					&& 'digest' in selection.entitySelector ?
+						resolve(
+							'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]',
+							{
+								digestAlgorithm: selection.entitySelector.digestAlgorithm,
+								digest: selection.entitySelector.digest,
+							}
+						)
+					:
+						'ociDigest' in selection.entitySelector ?
+							resolve(
+								'/(ai)/ai/artifact/oci/[ociDigest=stringSegment]',
+								{
+									ociDigest: selection.entitySelector.ociDigest,
+								}
+							)
+						:
+							'ipfsCid' in selection.entitySelector ?
+								resolve(
+									'/(ai)/ai/artifact/ipfs/[ipfsCid=stringSegment]',
+									{
+										ipfsCid: selection.entitySelector.ipfsCid,
+									}
+								)
+							:
+								'arweaveId' in selection.entitySelector ?
+									resolve(
+										'/(ai)/ai/artifact/arweave/[arweaveId=stringSegment]',
+										{
+											arweaveId: selection.entitySelector.arweaveId,
+										}
+									)
+								:
+									'gitObject' in selection.entitySelector ?
+										resolve(
+											'/(ai)/ai/artifact/git/[gitObject=stringSegment]',
+											{
+												gitObject: selection.entitySelector.gitObject,
+											}
+										)
+									:
+										undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

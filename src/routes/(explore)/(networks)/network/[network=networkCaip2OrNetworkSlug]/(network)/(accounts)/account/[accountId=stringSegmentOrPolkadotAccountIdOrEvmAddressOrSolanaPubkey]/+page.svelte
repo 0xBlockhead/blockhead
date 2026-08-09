@@ -28,6 +28,9 @@
 		[EntityType.TronAccount]: TronAccountView,
 		[EntityType.TonAccount]: TonAccountView,
 		[EntityType.XrplAccount]: XrplAccountView,
+		[EntityType.NearAccount]: NearAccountView,
+		[EntityType.HyperliquidAccount]: HyperliquidAccountView,
+		[EntityType.QuilibriumAccount]: QuilibriumAccountView,
 	}
 
 	// Components
@@ -43,6 +46,9 @@
 	import TronAccountView from '$/views/TronAccountView.svelte'
 	import TonAccountView from '$/views/TonAccountView.svelte'
 	import XrplAccountView from '$/views/XrplAccountView.svelte'
+	import NearAccountView from '$/views/NearAccountView.svelte'
+	import HyperliquidAccountView from '$/views/HyperliquidAccountView.svelte'
+	import QuilibriumAccountView from '$/views/QuilibriumAccountView.svelte'
 </script>
 
 
@@ -79,7 +85,16 @@
 			data.entityType === EntityType.TonAccount ?
 				('TON account') + ' • TON account • Blockhead'
 			:
+			data.entityType === EntityType.XrplAccount ?
 				(data.selector.account || 'XRPL account') + ' • XRPL account • Blockhead'
+			:
+			data.entityType === EntityType.NearAccount ?
+				(data.selector.accountId || 'near account') + ' • near account • Blockhead'
+			:
+			data.entityType === EntityType.HyperliquidAccount ?
+				('hyperliquid account') + ' • hyperliquid account • Blockhead'
+			:
+				(data.selector.accountAddress || 'quilibrium account') + ' • quilibrium account • Blockhead'
 		)
 	}</title>
 </svelte:head>
@@ -143,10 +158,28 @@
 			data.entityType === EntityType.TonAccount ?
 				select(EntityType.TonAccount, data.selector)
 			:
+			data.entityType === EntityType.XrplAccount ?
 				select(EntityType.XrplAccount, data.selector, {
 					sources: [
 						Source.Xrpl_Rippled,
 						Source.XrpScan_Rest,
+					],
+				})
+			:
+			data.entityType === EntityType.NearAccount ?
+				select(EntityType.NearAccount, data.selector, {
+					sources: [
+						Source.NearRpc_JsonRpc,
+						Source.NearBlocks_Rest,
+					],
+				})
+			:
+			data.entityType === EntityType.HyperliquidAccount ?
+				select(EntityType.HyperliquidAccount, data.selector)
+			:
+				select(EntityType.QuilibriumAccount, data.selector, {
+					sources: [
+						Source.QuilibriumNode_Grpc,
 					],
 				})
 		}

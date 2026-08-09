@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				operationId: true,
-				operationKind: true,
-				path: true,
+			...{
+				fields: {
+					operationId: true,
+					operationKind: true,
+					path: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,15 @@
 		<EntityView
 			entityType={EntityType.AcpFileOperation}
 			entitySelector={acpFileOperationSelector}
+			href={
+				resolve(
+					'/(agents)/agents/acp/session/[sessionId=stringSegment]/(acpSession)/file-operation/[operationId=stringSegment]',
+					{
+						sessionId: acpFileOperationSelector.$session.sessionId,
+						operationId: acpFileOperationSelector.operationId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{acpFileOperationSelector.operationId || 'ACP file operation'}

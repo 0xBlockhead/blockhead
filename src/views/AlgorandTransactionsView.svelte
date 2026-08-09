@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,10 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				txId: true,
-				transactionType: true,
-				sender: true,
+			...{
+				fields: {
+					txId: true,
+					transactionType: true,
+					sender: true,
+				},
 			},
 		})
 	}
@@ -39,6 +43,20 @@
 		<EntityView
 			entityType={EntityType.AlgorandTransaction}
 			entitySelector={algorandTransactionSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/transaction/[txId=stringSegment]',
+					{
+						network: (
+							'caip2' in algorandTransactionSelector.$network.$network ?
+								caip2StringFromValue(algorandTransactionSelector.$network.$network.caip2)
+							:
+								algorandTransactionSelector.$network.$network.slug
+						),
+						txId: algorandTransactionSelector.txId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{algorandTransactionSelector.txId || 'algorand transaction'}

@@ -33,7 +33,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	outputIndex: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	accountIndex: {

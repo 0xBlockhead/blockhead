@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,11 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				validatorCount: true,
-				delegatorCount: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					validatorCount: true,
+					delegatorCount: true,
+					source: true,
+				},
 			},
 		})
 	}
@@ -40,6 +43,16 @@
 		<EntityView
 			entityType={EntityType.AvalancheSubnet_Timestamp}
 			entitySelector={avalancheSubnetTimestampSelector}
+			href={
+				resolve(
+					'/(avalanche)/avalanche/subnet/[subnetId=stringSegment]/(avalancheSubnet)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						subnetId: avalancheSubnetTimestampSelector.$subnet.subnetId,
+						timestampMs: String(avalancheSubnetTimestampSelector.timestampMs),
+						source: avalancheSubnetTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{avalancheSubnetTimestampSelector.timestampMs}

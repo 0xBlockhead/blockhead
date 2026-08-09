@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -17,11 +19,14 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BitcoinRuneBalance> = $props()
 
+	const output = $derived(selection.entitySelector.$output)
+	const address = $derived(selection.entitySelector.$address)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.UniSat_Rest,
@@ -47,6 +52,45 @@
 	entityType={EntityType.BitcoinRuneBalance}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'$output' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/output/[outputIndex=nonNegativeInteger]/(selection)/rune/[runeId=stringSegment]',
+						{
+							network: (
+								'caip2' in output.$transaction.$network ?
+									caip2StringFromValue(output.$transaction.$network.caip2)
+								:
+									output.$transaction.$network.slug
+							),
+							transactionId: output.$transaction.txId,
+							outputIndex: String(output.indexInTransaction),
+							runeId: selection.entitySelector.$rune.runeId,
+						}
+					)
+				:
+					'$address' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]/(utxoAddress)/rune/[runeId=stringSegment]',
+							{
+								network: (
+									'caip2' in address.$network ?
+										caip2StringFromValue(address.$network.caip2)
+									:
+										address.$network.slug
+								),
+								address: address.address,
+								runeId: selection.entitySelector.$rune.runeId,
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -11,6 +12,7 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -36,6 +38,30 @@
 	entityType={EntityType.McpServerPackage}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'registryServerName' in selection.entitySelector ?
+					resolve(
+						'/mcp/package/registry/[registryServerName=stringSegment]',
+						{
+							registryServerName: selection.entitySelector.registryServerName,
+						}
+					)
+				:
+					'repositoryUrl' in selection.entitySelector ?
+						resolve(
+							'/mcp/package/repository/[repositoryUrl=absoluteUrl]',
+							{
+								repositoryUrl: encodeURIComponent(selection.entitySelector.repositoryUrl),
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

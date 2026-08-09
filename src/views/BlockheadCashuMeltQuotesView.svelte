@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,9 +27,11 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				quoteId: true,
-				amount: true,
+			...{
+				fields: {
+					quoteId: true,
+					amount: true,
+				},
 			},
 		})
 	}
@@ -38,6 +41,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadCashuMeltQuote}
 			entitySelector={blockheadCashuMeltQuoteSelector}
+			href={
+				resolve(
+					'/cashu/mint/[mintUrl=stringSegment]/(cashuMint)/melt-quote/[method=stringSegment]/[quoteId=stringSegment]',
+					{
+						mintUrl: blockheadCashuMeltQuoteSelector.$mint.mintUrl,
+						method: blockheadCashuMeltQuoteSelector.method,
+						quoteId: blockheadCashuMeltQuoteSelector.quoteId,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadCashuMeltQuoteSelector.quoteId || 'blockhead Cashu melt quote'}

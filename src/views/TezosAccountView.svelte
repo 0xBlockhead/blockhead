@@ -2,10 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,6 +16,7 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -25,11 +27,14 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import TezosNetworkView from '$/views/TezosNetworkView.svelte'
+	import TezosOperationsView from '$/views/TezosOperationsView.svelte'
+	import TezosTokenTransfersView from '$/views/TezosTokenTransfersView.svelte'
+	import TezosTokenBalance_TimestampsView from '$/views/TezosTokenBalance_TimestampsView.svelte'
+	import TezosAccount_TimestampsView from '$/views/TezosAccount_TimestampsView.svelte'
 </script>
 
 
@@ -37,6 +42,23 @@
 	entityType={EntityType.TezosAccount}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[address=stringSegment]',
+				{
+					network: (
+						'caip2' in selection.entitySelector.$network.$network ?
+							caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
+						:
+							selection.entitySelector.$network.$network.slug
+					),
+					address: selection.entitySelector.address,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -107,41 +129,23 @@
 			{/snippet}
 
 			{#snippet SectionTezosAccountOperations({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosOperation}
+				<TezosOperationsView
+					selection={selection.$$operations}
 					collapsible={false}
 					title={label}
 					emptyText='No operations.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$operations()}
-				>
-					{#snippet Item({ item: tezosOperation })}
-						<EntityView
-							entityType={EntityType.TezosOperation}
-							entitySelector={tezosOperation[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosAccountTokenTransfers({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosTokenTransfer}
+				<TezosTokenTransfersView
+					selection={selection.$$tokenTransfers}
 					collapsible={false}
 					title={label}
 					emptyText='No token transfers.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$tokenTransfers()}
-				>
-					{#snippet Item({ item: tezosTokenTransfer })}
-						<EntityView
-							entityType={EntityType.TezosTokenTransfer}
-							entitySelector={tezosTokenTransfer[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>
@@ -171,41 +175,23 @@
 			{/snippet}
 
 			{#snippet SectionTezosAccountTokenBalanceTimestamps({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosTokenBalance_Timestamp}
+				<TezosTokenBalance_TimestampsView
+					selection={selection.$$tokenBalanceTimestamps}
 					collapsible={false}
 					title={label}
 					emptyText='No token balance timestamps.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$tokenBalanceTimestamps()}
-				>
-					{#snippet Item({ item: tezosTokenBalanceTimestamp })}
-						<EntityView
-							entityType={EntityType.TezosTokenBalance_Timestamp}
-							entitySelector={tezosTokenBalanceTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionTezosAccountTimestamps({ id, label })}
-				<EntitiesList
-					entityType={EntityType.TezosAccount_Timestamp}
+				<TezosAccount_TimestampsView
+					selection={selection.$$timestamps}
 					collapsible={false}
 					title={label}
 					emptyText='No timestamps.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$timestamps()}
-				>
-					{#snippet Item({ item: tezosAccountTimestamp })}
-						<EntityView
-							entityType={EntityType.TezosAccount_Timestamp}
-							entitySelector={tezosAccountTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 		</CollapsibleTabs>

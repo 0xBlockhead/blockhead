@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				status: true,
-				timestampMs: true,
-				source: true,
+			...{
+				fields: {
+					status: true,
+					timestampMs: true,
+					source: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadLocalMediaIngest_Timestamp}
 			entitySelector={blockheadLocalMediaIngestTimestampSelector}
+			href={
+				resolve(
+					'/~/media/ingest/[ingestId=stringSegment]/(blockheadLocalMediaIngest)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						ingestId: blockheadLocalMediaIngestTimestampSelector.$ingest.ingestId,
+						timestampMs: String(blockheadLocalMediaIngestTimestampSelector.timestampMs),
+						source: blockheadLocalMediaIngestTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadLocalMediaIngestTimestamp.status || 'local media ingest timestamp'}

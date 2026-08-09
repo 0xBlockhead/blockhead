@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.McpPromptResult>, 'prefetched'> = $props()
 
+	const prompt = $derived(selection.entitySelector.$prompt)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.McpDeclared_Protocol,
@@ -44,6 +47,22 @@
 	entityType={EntityType.McpPromptResult}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			resolve(
+				'/mcp/server/[serverKey=stringSegment]/(mcpServer)/prompt/[name=stringSegment]/(mcpPrompt)/result/[argumentsHashAlgorithm=stringSegment]/[argumentsHash=zeroExHex]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					serverKey: prompt.$server.serverKey,
+					name: prompt.name,
+					argumentsHashAlgorithm: selection.entitySelector.argumentsHashAlgorithm,
+					argumentsHash: selection.entitySelector.argumentsHash,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -55,6 +74,7 @@
 	{#snippet Value()}
 		<McpPromptView
 			selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				claimPath: true,
-				claimKind: true,
-				confidence: true,
+			...{
+				fields: {
+					claimPath: true,
+					claimKind: true,
+					confidence: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,19 @@
 		<EntityView
 			entityType={EntityType.AiDocumentClaim}
 			entitySelector={aiDocumentClaimSelector}
+			href={
+				'documentUrl' in aiDocumentClaimSelector.$document ?
+					resolve(
+						'/(ai)/ai/document/url/[documentUrl=absoluteUrl]/(aiDocument)/claim/[extractorId=stringSegment]/[claimPath=stringSegment]',
+						{
+							documentUrl: encodeURIComponent(aiDocumentClaimSelector.$document.documentUrl),
+							extractorId: aiDocumentClaimSelector.extractorId,
+							claimPath: aiDocumentClaimSelector.claimPath,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				{aiDocumentClaimSelector.claimPath || 'AI document claim'}

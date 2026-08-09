@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.SolanaValidator_Timestamp>, 'prefetched'> = $props()
 
+	const validator = $derived(selection.entitySelector.$validator)
 	const solanaValidatorTimestamp = $derived(selection({
 		fields: {
 			delinquent: true,
@@ -39,6 +43,25 @@
 	entityType={EntityType.SolanaValidator_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.slot)}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkeyOrStringSegment]/(selection)/observations/[slot=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in validator.$network ?
+							caip2StringFromValue(validator.$network.caip2)
+						:
+							validator.$network.slug
+					),
+					validatorId: validator.votePubkey,
+					slot: String(selection.entitySelector.slot),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

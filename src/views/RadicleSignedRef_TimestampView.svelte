@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -13,10 +14,13 @@
 	// State
 	let {
 		selection,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.RadicleSignedRef_Timestamp>, 'prefetched'> = $props()
+
+	const signedRef = $derived(selection.entitySelector.$signedRef)
 
 
 	// Components
@@ -29,6 +33,21 @@
 <EntityView
 	entityType={EntityType.RadicleSignedRef_Timestamp}
 	entitySelector={selection.entitySelector}
+	href={
+		href === undefined ?
+			resolve(
+				'/radicle/repository/[rid=stringSegment]/(radicleRepository)/signed-ref/[nodeId=stringSegment]/[refName=stringSegment]/(radicleSignedRef)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					rid: signedRef.$repository.rid,
+					nodeId: signedRef.nodeId,
+					refName: signedRef.refName,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -10,6 +11,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -26,6 +28,19 @@
 	entityType={EntityType.CctpFee}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/cctp/fee/[apiHost=stringSegment]/[fromDomain=nonNegativeInteger]/[toDomain=nonNegativeInteger]',
+				{
+					apiHost: selection.entitySelector.apiHost,
+					fromDomain: String(selection.entitySelector.fromDomain),
+					toDomain: String(selection.entitySelector.toDomain),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

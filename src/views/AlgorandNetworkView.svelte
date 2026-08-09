@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -25,10 +24,12 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import AlgorandNetwork_TimestampsView from '$/views/AlgorandNetwork_TimestampsView.svelte'
+	import AlgorandRoundsView from '$/views/AlgorandRoundsView.svelte'
 	import AlgorandTransactionsView from '$/views/AlgorandTransactionsView.svelte'
+	import AlgorandAccountsView from '$/views/AlgorandAccountsView.svelte'
 	import AlgorandAssetsView from '$/views/AlgorandAssetsView.svelte'
 	import AlgorandApplicationsView from '$/views/AlgorandApplicationsView.svelte'
 	import AlgorandTealProgramsView from '$/views/AlgorandTealProgramsView.svelte'
@@ -87,41 +88,23 @@
 			{/snippet}
 
 			{#snippet SectionAlgorandChainObservations({ id, label })}
-				<EntitiesList
-					entityType={EntityType.AlgorandNetwork_Timestamp}
+				<AlgorandNetwork_TimestampsView
+					selection={selection.$$timestamps}
 					collapsible={false}
 					title={label}
 					emptyText='No Algorand network observations.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$timestamps()}
-				>
-					{#snippet Item({ item: algorandNetworkTimestamp })}
-						<EntityView
-							entityType={EntityType.AlgorandNetwork_Timestamp}
-							entitySelector={algorandNetworkTimestamp[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionAlgorandChainRounds({ id, label })}
-				<EntitiesList
-					entityType={EntityType.AlgorandRound}
+				<AlgorandRoundsView
+					selection={selection.$$rounds}
 					collapsible={false}
 					title={label}
 					emptyText='No Algorand rounds.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$rounds()}
-				>
-					{#snippet Item({ item: algorandRound })}
-						<EntityView
-							entityType={EntityType.AlgorandRound}
-							entitySelector={algorandRound[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionAlgorandChainTransactions({ id, label })}
@@ -161,22 +144,13 @@
 			{/snippet}
 
 			{#snippet SectionAlgorandAccounts({ id, label })}
-				<EntitiesList
-					entityType={EntityType.AlgorandAccount}
+				<AlgorandAccountsView
+					selection={selection.$$accounts}
 					collapsible={false}
 					title={label}
 					emptyText='No Algorand accounts.'
-					open={true}
 					id={`${id}-list`}
-					resource={selection.$$accounts()}
-				>
-					{#snippet Item({ item: algorandAccount })}
-						<EntityView
-							entityType={EntityType.AlgorandAccount}
-							entitySelector={algorandAccount[EntityMetaKey.Selector]}
-						/>
-					{/snippet}
-				</EntitiesList>
+				/>
 			{/snippet}
 
 			{#snippet SectionAlgorandAssets({ id, label })}

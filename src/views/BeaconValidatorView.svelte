@@ -56,9 +56,9 @@
 	href={
 		href === undefined ?
 			(
-				'indexInNetwork' in selection.entitySelector ?
+				'pubkey' in selection.entitySelector ?
 					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkey]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/pubkey/[validatorPubkey=stringSegment]',
 						{
 							network: (
 								'caip2' in network ?
@@ -66,11 +66,25 @@
 								:
 									network.slug
 							),
-							validatorId: String(selection.entitySelector.indexInNetwork),
+							validatorPubkey: selection.entitySelector.pubkey,
 						}
 					)
 				:
-					undefined
+					'indexInNetwork' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkeyOrStringSegment]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								validatorId: String(selection.entitySelector.indexInNetwork),
+							}
+						)
+					:
+						undefined
 			)
 		:
 			href ?? undefined

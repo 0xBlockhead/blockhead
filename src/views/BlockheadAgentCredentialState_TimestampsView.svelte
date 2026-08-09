@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				status: true,
-				source: true,
+			...{
+				fields: {
+					timestampMs: true,
+					status: true,
+					source: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,16 @@
 		<EntityView
 			entityType={EntityType.BlockheadAgentCredentialState_Timestamp}
 			entitySelector={blockheadAgentCredentialStateTimestampSelector}
+			href={
+				resolve(
+					'/~/agent/credential/[credentialId=stringSegment]/(blockheadAgentCredentialState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						credentialId: blockheadAgentCredentialStateTimestampSelector.$credential.credentialId,
+						timestampMs: String(blockheadAgentCredentialStateTimestampSelector.timestampMs),
+						source: blockheadAgentCredentialStateTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{blockheadAgentCredentialStateTimestampSelector.timestampMs}

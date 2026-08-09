@@ -3,7 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { type } from 'arktype'
+import { EvmAddress } from '$/schema/ZeroExHex.ts'
 
 export default entity({
 	entityType: EntityType.HyperliquidVault,
@@ -17,7 +17,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	vaultAddress: {
-		primitiveType: type('string'),
+		primitiveType: EvmAddress,
 		cardinality: EntityFieldCardinality.One,
 	},
 	$leader: {

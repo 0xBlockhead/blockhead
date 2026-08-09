@@ -29,11 +29,13 @@
 	bind:open
 	resource={
 		selection({
-			sources: selection.sources ?? [
-				Source.Lotus_JsonRpc,
-			],
-			fields: {
-				address: true,
+			...{
+				sources: selection.sources ?? [
+					Source.Lotus_JsonRpc,
+				],
+				fields: {
+					address: true,
+				},
 			},
 		})
 	}

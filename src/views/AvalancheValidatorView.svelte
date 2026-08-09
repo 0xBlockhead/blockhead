@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -15,6 +16,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -42,6 +44,19 @@
 	entityType={EntityType.AvalancheValidator}
 	entitySelector={selection.entitySelector}
 	title={title ?? (selection.entitySelector.nodeId || 'avalanche validator')}
+	href={
+		href === undefined ?
+			resolve(
+				'/(avalanche)/avalanche/validator/[nodeId=stringSegment]/[subnetId=stringSegment]/[startTimeMs=nonNegativeInteger]',
+				{
+					nodeId: selection.entitySelector.nodeId,
+					subnetId: selection.entitySelector.subnetId,
+					startTimeMs: String(selection.entitySelector.startTimeMs),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -28,14 +29,16 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				$media: true,
-				name: true,
-				symbol: true,
-				metadataKey: true,
-				metadataStandard: true,
-				source: true,
-				timestampMs: true,
+			...{
+				fields: {
+					$media: true,
+					name: true,
+					symbol: true,
+					metadataKey: true,
+					metadataStandard: true,
+					source: true,
+					timestampMs: true,
+				},
 			},
 		})
 	}
@@ -45,6 +48,17 @@
 		<EntityView
 			entityType={EntityType.TokenMetadataDocument}
 			entitySelector={tokenMetadataDocumentSelector}
+			href={
+				resolve(
+					'/token-metadata/[metadataSubjectKey=stringSegment]/[metadataKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						metadataSubjectKey: tokenMetadataDocumentSelector.metadataSubjectKey,
+						metadataKey: tokenMetadataDocumentSelector.metadataKey,
+						timestampMs: String(tokenMetadataDocumentSelector.timestampMs),
+						source: tokenMetadataDocumentSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[(tokenMetadataDocument.name ?? ''), (tokenMetadataDocument.symbol ?? ''), tokenMetadataDocumentSelector.metadataKey].filter(Boolean).join(' ') || 'token metadata document'}

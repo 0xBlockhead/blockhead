@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,22 +30,39 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				name: true,
-				fullyQualifiedName: true,
-				compiler: true,
-				compilerVersion: true,
-				language: true,
-				$contract: true,
+			...{
+				fields: {
+					name: true,
+					fullyQualifiedName: true,
+					compiler: true,
+					compilerVersion: true,
+					language: true,
+					$contract: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: evmContractCompilation })}
 		{@const evmContractCompilationSelector = evmContractCompilation[EntityMetaKey.Selector]}
+		{@const contract = evmContractCompilationSelector.$contract}
 		<EntityView
 			entityType={EntityType.EvmContractCompilation}
 			entitySelector={evmContractCompilationSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/compilation',
+					{
+						network: (
+							'caip2' in contract.$network ?
+								caip2StringFromValue(contract.$network.caip2)
+							:
+								contract.$network.slug
+						),
+						address: contract.address,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[(evmContractCompilation.name ?? ''), (evmContractCompilation.fullyQualifiedName ?? ''), (evmContractCompilation.compiler ?? '')].filter(Boolean).join(' ') || 'EVM contract compilation'}

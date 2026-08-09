@@ -28,10 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				outputIndex: true,
-				lovelace: true,
-				address: true,
+			...{
+				fields: {
+					outputIndex: true,
+					lovelace: true,
+					address: true,
+				},
 			},
 		})
 	}

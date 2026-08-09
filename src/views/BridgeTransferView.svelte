@@ -6,6 +6,7 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -24,6 +25,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BridgeTransfer> = $props()
 
+	const sourceTx = $derived(selection.entitySelector.$sourceTx)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Across_Rest,
@@ -64,17 +66,45 @@
 	href={
 		href === undefined ?
 			(
-				'originChainId' in selection.entitySelector
-				&& 'depositId' in selection.entitySelector ?
+				'source' in selection.entitySelector
+				&& 'logIndex' in selection.entitySelector
+				&& '$sourceTx' in selection.entitySelector ?
 					resolve(
-						'/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/bridge-transfer/[source=stringSegment]/[logIndex=nonNegativeInteger]',
 						{
-							originChainId: String(selection.entitySelector.originChainId),
-							depositId: String(selection.entitySelector.depositId),
+							network: (
+								'caip2' in sourceTx.$network ?
+									caip2StringFromValue(sourceTx.$network.caip2)
+								:
+									sourceTx.$network.slug
+							),
+							transactionId: sourceTx.txHash,
+							source: selection.entitySelector.source,
+							logIndex: String(selection.entitySelector.logIndex),
 						}
 					)
 				:
-					undefined
+					'originChainId' in selection.entitySelector
+					&& 'depositId' in selection.entitySelector ?
+						resolve(
+							'/~/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]',
+							{
+								originChainId: String(selection.entitySelector.originChainId),
+								depositId: String(selection.entitySelector.depositId),
+							}
+						)
+					:
+						'source' in selection.entitySelector
+						&& 'transferId' in selection.entitySelector ?
+							resolve(
+								'/~/bridge/transfer/[source=stringSegment]/[transferId=stringSegment]',
+								{
+									source: selection.entitySelector.source,
+									transferId: selection.entitySelector.transferId,
+								}
+							)
+						:
+							undefined
 			)
 		:
 			href ?? undefined

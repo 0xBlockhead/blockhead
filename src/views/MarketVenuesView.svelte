@@ -38,9 +38,11 @@
 	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={
 		selection({
-			fields: {
-				label: true,
-				marketVenueId: true,
+			...{
+				fields: {
+					label: true,
+					marketVenueId: true,
+				},
 			},
 		})
 	}

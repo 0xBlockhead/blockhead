@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -15,11 +17,13 @@
 		selection,
 		prefetched = {},
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BnbBeaconTokenMigration> = $props()
 
+	const token = $derived(selection.entitySelector.$token)
 	const bnbBeaconTokenMigration = $derived(selection({
 		fields: {
 			migrationKind: true,
@@ -42,6 +46,30 @@
 	entityType={EntityType.BnbBeaconTokenMigration}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			(
+				'slug' in selection.entitySelector.$targetNetwork ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/token/[symbol=stringSegment]/(bnbBeaconToken)/migration/[targetNetwork=networkSlug]/[targetAddress=stringSegment]',
+						{
+							network: (
+								'caip2' in token.$network.$network ?
+									caip2StringFromValue(token.$network.$network.caip2)
+								:
+									token.$network.$network.slug
+							),
+							symbol: token.symbol,
+							targetNetwork: selection.entitySelector.$targetNetwork.slug,
+							targetAddress: selection.entitySelector.targetAddress,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -57,6 +85,7 @@
 	{#snippet Value()}
 		<BnbBeaconTokenView
 			selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 

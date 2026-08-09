@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				nodeId: true,
-				stakeAmountNavax: true,
-				startTimeMs: true,
+			...{
+				fields: {
+					nodeId: true,
+					stakeAmountNavax: true,
+					startTimeMs: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,16 @@
 		<EntityView
 			entityType={EntityType.AvalancheValidator}
 			entitySelector={avalancheValidatorSelector}
+			href={
+				resolve(
+					'/(avalanche)/avalanche/validator/[nodeId=stringSegment]/[subnetId=stringSegment]/[startTimeMs=nonNegativeInteger]',
+					{
+						nodeId: avalancheValidatorSelector.nodeId,
+						subnetId: avalancheValidatorSelector.subnetId,
+						startTimeMs: String(avalancheValidatorSelector.startTimeMs),
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{avalancheValidatorSelector.nodeId || 'avalanche validator'}

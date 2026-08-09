@@ -7,6 +7,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -25,6 +26,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.UniswapV3Pool> = $props()
 
+	const token0 = $derived(selection.entitySelector.$token0)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Voltaire_JsonRpc,
@@ -60,18 +62,36 @@
 	href={
 		href === undefined ?
 			(
-				'poolAddress' in selection.entitySelector
-				&& '$network' in selection.entitySelector
-				&& 'caip2' in selection.entitySelector.$network ?
+				'fee' in selection.entitySelector
+				&& '$token1' in selection.entitySelector
+				&& '$token0' in selection.entitySelector ?
 					resolve(
-						'/(assets)/uniswap-v3/pool/[chainId=eip155ChainId]/[poolAddress=evmAddress]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/uniswap-v3/pool/[token1Address=evmAddress]/[fee=nonNegativeInteger]',
 						{
-							chainId: selection.entitySelector.$network.caip2.reference,
-							poolAddress: selection.entitySelector.poolAddress,
+							network: (
+								'caip2' in token0.$network ?
+									caip2StringFromValue(token0.$network.caip2)
+								:
+									token0.$network.slug
+							),
+							address: token0.address,
+							token1Address: selection.entitySelector.$token1.address,
+							fee: String(selection.entitySelector.fee),
 						}
 					)
 				:
-					undefined
+					'poolAddress' in selection.entitySelector
+					&& '$network' in selection.entitySelector
+					&& 'caip2' in selection.entitySelector.$network ?
+						resolve(
+							'/(assets)/uniswap-v3/pool/[chainId=eip155ChainId]/[poolAddress=evmAddress]',
+							{
+								chainId: selection.entitySelector.$network.caip2.reference,
+								poolAddress: selection.entitySelector.poolAddress,
+							}
+						)
+					:
+						undefined
 			)
 		:
 			href ?? undefined

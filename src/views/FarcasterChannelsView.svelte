@@ -27,25 +27,39 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				id: true,
-				parentUrl: true,
-				createdAt: true,
+			...{
+				fields: {
+					id: true,
+					parentUrl: true,
+					createdAt: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: farcasterChannel })}
+		{@const farcasterChannelSelector = farcasterChannel[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.FarcasterChannel}
-			entitySelector={farcasterChannel[EntityMetaKey.Selector]}
+			entitySelector={farcasterChannelSelector}
 			href={
-				resolve(
-					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
-					{
-						channelId: farcasterChannel.id,
-					}
-				)
+				'id' in farcasterChannelSelector ?
+					resolve(
+						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
+						{
+							channelId: farcasterChannelSelector.id,
+						}
+					)
+				:
+					'parentUrl' in farcasterChannelSelector ?
+						resolve(
+							'/farcaster/channel/parent/[parentUrl=stringSegment]',
+							{
+								parentUrl: farcasterChannelSelector.parentUrl,
+							}
+						)
+					:
+						undefined
 			}
 		>
 			{#snippet Title()}

@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -15,11 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.DydxChainSubaccount_Timestamp>, 'prefetched'> = $props()
 
+	const subaccount = $derived(selection.entitySelector.$subaccount)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.DydxIndexer,
@@ -40,6 +43,26 @@
 	entityType={EntityType.DydxChainSubaccount_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
+	href={
+		href === undefined ?
+			(
+				'caip2' in subaccount.$account.$network ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[accountAddress=stringSegment]/subaccount/[subaccountNumber=nonNegativeInteger]/(dydxChainSubaccount)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+						{
+							network: String(subaccount.$account.$network.caip2),
+							accountAddress: subaccount.$account.address,
+							subaccountNumber: String(subaccount.subaccountNumber),
+							timestampMs: String(selection.entitySelector.timestampMs),
+							source: selection.entitySelector.source,
+						}
+					)
+				:
+					undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -51,6 +74,7 @@
 	{#snippet Value()}
 		<DydxChainSubaccountView
 			selection={select(EntityType.DydxChainSubaccount, selection.entitySelector.$subaccount)}
+			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

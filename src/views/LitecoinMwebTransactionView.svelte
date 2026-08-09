@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,6 +18,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -49,6 +52,24 @@
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
 	title={title ?? 'litecoin MWEB transaction'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/mweb/(litecoinMwebBlock)/transaction/[transactionIndex=nonNegativeInteger]',
+				{
+					network: (
+						'caip2' in selection.entitySelector.$mwebBlock.$block.$network ?
+							caip2StringFromValue(selection.entitySelector.$mwebBlock.$block.$network.caip2)
+						:
+							selection.entitySelector.$mwebBlock.$block.$network.slug
+					),
+					blockNumber: String(selection.entitySelector.$mwebBlock.$block.height),
+					transactionIndex: String(selection.entitySelector.transactionIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -56,6 +77,7 @@
 	{#snippet Title()}
 		<LitecoinMwebBlockView
 			selection={select(EntityType.LitecoinMwebBlock, selection.entitySelector.$mwebBlock)}
+			href={null}
 			layout={EntityLayout.Title}
 		/>
 	{/snippet}

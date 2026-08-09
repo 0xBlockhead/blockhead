@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,10 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				owner: true,
-				repositoryName: true,
-				forgeHost: true,
+			...{
+				fields: {
+					owner: true,
+					repositoryName: true,
+					forgeHost: true,
+				},
 			},
 		})
 	}
@@ -39,6 +42,16 @@
 		<EntityView
 			entityType={EntityType.GitForgeMirror}
 			entitySelector={gitForgeMirrorSelector}
+			href={
+				resolve(
+					'/git/forge/[forgeHost=stringSegment]/[owner=stringSegment]/[repositoryName=stringSegment]',
+					{
+						forgeHost: gitForgeMirrorSelector.forgeHost,
+						owner: gitForgeMirrorSelector.owner,
+						repositoryName: gitForgeMirrorSelector.repositoryName,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[gitForgeMirrorSelector.owner, gitForgeMirrorSelector.repositoryName].filter(Boolean).join(' ') || 'Git forge mirror'}

@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,22 +28,42 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				architectureKind: true,
-				protocolLabel: true,
-				timestampMs: true,
-				stack: true,
-				proofSystemKind: true,
-				$claim: true,
+			...{
+				fields: {
+					architectureKind: true,
+					protocolLabel: true,
+					timestampMs: true,
+					stack: true,
+					proofSystemKind: true,
+					$claim: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: scalingDeploymentClaimTimestamp })}
 		{@const scalingDeploymentClaimTimestampSelector = scalingDeploymentClaimTimestamp[EntityMetaKey.Selector]}
+		{@const claim = scalingDeploymentClaimTimestampSelector.$claim}
 		<EntityView
 			entityType={EntityType.ScalingDeploymentClaim_Timestamp}
 			entitySelector={scalingDeploymentClaimTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/scaling/[claimSource=stringSegment]/[sourceProjectId=stringSegment]/(scalingDeploymentClaim)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in claim.$network ?
+								caip2StringFromValue(claim.$network.caip2)
+							:
+								claim.$network.slug
+						),
+						claimSource: claim.source,
+						sourceProjectId: claim.sourceProjectId,
+						timestampMs: String(scalingDeploymentClaimTimestampSelector.timestampMs),
+						source: scalingDeploymentClaimTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[(scalingDeploymentClaimTimestamp.architectureKind ?? ''), (scalingDeploymentClaimTimestamp.protocolLabel ?? ''), String(scalingDeploymentClaimTimestampSelector.timestampMs)].filter(Boolean).join(' ') || 'scaling deployment claim timestamp'}

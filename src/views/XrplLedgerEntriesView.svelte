@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -29,9 +31,29 @@
 	resource={selection()}
 >
 	{#snippet Item({ item: xrplLedgerEntry })}
+		{@const xrplLedgerEntrySelector = xrplLedgerEntry[EntityMetaKey.Selector]}
+		{@const ledger = xrplLedgerEntrySelector.$ledger}
 		<EntityView
 			entityType={EntityType.XrplLedgerEntry}
-			entitySelector={xrplLedgerEntry[EntityMetaKey.Selector]}
+			entitySelector={xrplLedgerEntrySelector}
+			href={
+				'ledgerHash' in ledger ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/hash/[ledgerHash=stringSegment]/(xrplLedger)/entry/[entryHash=stringSegment]',
+						{
+							network: (
+								'caip2' in ledger.$network ?
+									caip2StringFromValue(ledger.$network.caip2)
+								:
+									ledger.$network.slug
+							),
+							ledgerHash: ledger.ledgerHash,
+							entryHash: xrplLedgerEntrySelector.entryHash,
+						}
+					)
+				:
+					undefined
+			}
 		>
 			{#snippet Title()}
 				XRPL ledger entry

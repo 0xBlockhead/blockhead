@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.EigenLayerAvs_Timestamp>, 'prefetched'> = $props()
 
+	const avs = $derived(selection.entitySelector.$avs)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
@@ -47,6 +51,25 @@
 	entityType={EntityType.EigenLayerAvs_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'eigen layer avs timestamp'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/eigenlayer/(eigenLayerProtocol)/avs/[avsAddress=evmAddress]/(eigenLayerAvs)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+				{
+					network: (
+						'caip2' in avs.$network ?
+							caip2StringFromValue(avs.$network.caip2)
+						:
+							avs.$network.slug
+					),
+					avsAddress: avs.avsAddress,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					source: selection.entitySelector.source,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -54,6 +77,7 @@
 	{#snippet Title()}
 		<EigenLayerAvsView
 			selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
+			href={null}
 			layout={EntityLayout.Title}
 		/>
 	{/snippet}

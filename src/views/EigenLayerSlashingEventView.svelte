@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -16,11 +18,14 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.EigenLayerSlashingEvent>, 'prefetched'> = $props()
 
+	const network = $derived(selection.entitySelector.$network)
+	const operator = $derived(selection.entitySelector.$operator)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
@@ -52,6 +57,51 @@
 	entityType={EntityType.EigenLayerSlashingEvent}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'eigen layer slashing event'}
+	href={
+		href === undefined ?
+			(
+				'source' in selection.entitySelector
+				&& 'slashId' in selection.entitySelector
+				&& '$avs' in selection.entitySelector
+				&& '$operator' in selection.entitySelector ?
+					resolve(
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/eigenlayer/(eigenLayerProtocol)/operator/[operatorAddress=evmAddress]/(eigenLayerOperator)/avs/[avsAddress=evmAddress]/slashing/[source=stringSegment]/[slashId=stringSegment]',
+						{
+							network: (
+								'caip2' in operator.$network ?
+									caip2StringFromValue(operator.$network.caip2)
+								:
+									operator.$network.slug
+							),
+							operatorAddress: operator.operatorAddress,
+							avsAddress: selection.entitySelector.$avs.avsAddress,
+							source: selection.entitySelector.source,
+							slashId: selection.entitySelector.slashId,
+						}
+					)
+				:
+					'transactionHash' in selection.entitySelector
+					&& 'logIndex' in selection.entitySelector
+					&& '$network' in selection.entitySelector ?
+						resolve(
+							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/eigenlayer/(eigenLayerProtocol)/slashing/[transactionHash=zeroExHex]/[logIndex=nonNegativeInteger]',
+							{
+								network: (
+									'caip2' in network ?
+										caip2StringFromValue(network.caip2)
+									:
+										network.slug
+								),
+								transactionHash: selection.entitySelector.transactionHash,
+								logIndex: String(selection.entitySelector.logIndex),
+							}
+						)
+					:
+						undefined
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -64,6 +114,7 @@
 				{#if eigenLayerOperator != null}
 					<EigenLayerOperatorView
 						selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
+						href={null}
 						layout={EntityLayout.Title}
 					/>
 				{/if}
@@ -79,6 +130,7 @@
 				{#if eigenLayerAvs != null}
 					<EigenLayerAvsView
 						selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
+						href={null}
 						layout={EntityLayout.Value}
 					/>
 				{/if}

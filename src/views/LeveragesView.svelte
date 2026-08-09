@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -28,19 +30,36 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				id: true,
-				liquidity: true,
-				origin: true,
+			...{
+				fields: {
+					id: true,
+					liquidity: true,
+					origin: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: leverage })}
 		{@const leverageSelector = leverage[EntityMetaKey.Selector]}
+		{@const network = leverageSelector.$network}
 		<EntityView
 			entityType={EntityType.Leverage}
 			entitySelector={leverageSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/leverage/[id=stringSegment]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						id: leverageSelector.id,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{leverageSelector.id || 'leverage'}

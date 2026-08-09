@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,19 +28,38 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				slot: true,
-				supply: true,
-				timestampMs: true,
+			...{
+				fields: {
+					slot: true,
+					supply: true,
+					timestampMs: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: solanaTokenMintTimestamp })}
 		{@const solanaTokenMintTimestampSelector = solanaTokenMintTimestamp[EntityMetaKey.Selector]}
+		{@const mint = solanaTokenMintTimestampSelector.$mint}
 		<EntityView
 			entityType={EntityType.SolanaTokenMint_Timestamp}
 			entitySelector={solanaTokenMintTimestampSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-mint/[mintAddress=stringSegment]/(solanaTokenMint)/observations/[slot=nonNegativeBigInt]/[source=stringSegment]',
+					{
+						network: (
+							'caip2' in mint.$network ?
+								caip2StringFromValue(mint.$network.caip2)
+							:
+								mint.$network.slug
+						),
+						mintAddress: mint.mintAddress,
+						slot: String(solanaTokenMintTimestampSelector.slot),
+						source: solanaTokenMintTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{solanaTokenMintTimestampSelector.slot}

@@ -27,28 +27,50 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				address: true,
-				$icon: true,
-				displayName: true,
-				localName: true,
-				legacyProfileId: true,
-				createdAt: true,
+			...{
+				fields: {
+					$icon: true,
+					displayName: true,
+					localName: true,
+					address: true,
+					legacyProfileId: true,
+					createdAt: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: lensAccount })}
+		{@const lensAccountSelector = lensAccount[EntityMetaKey.Selector]}
 		<EntityView
 			entityType={EntityType.LensAccount}
-			entitySelector={lensAccount[EntityMetaKey.Selector]}
+			entitySelector={lensAccountSelector}
 			href={
-				resolve(
-					'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
-					{
-						address: lensAccount.address,
-					}
-				)
+				'address' in lensAccountSelector ?
+					resolve(
+						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
+						{
+							address: lensAccountSelector.address,
+						}
+					)
+				:
+					'localName' in lensAccountSelector ?
+						resolve(
+							'/lens/account/name/[localName=stringSegment]',
+							{
+								localName: lensAccountSelector.localName,
+							}
+						)
+					:
+						'legacyProfileId' in lensAccountSelector ?
+							resolve(
+								'/lens/account/legacy/[legacyProfileId=stringSegment]',
+								{
+									legacyProfileId: lensAccountSelector.legacyProfileId,
+								}
+							)
+						:
+							undefined
 			}
 		>
 			{#snippet Title()}

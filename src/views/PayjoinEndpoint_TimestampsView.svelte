@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -26,12 +27,14 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				timestampMs: true,
-				responseStatus: true,
-				error: true,
-				requiresOhttp: true,
-				supportsOutputSubstitution: true,
+			...{
+				fields: {
+					timestampMs: true,
+					responseStatus: true,
+					error: true,
+					requiresOhttp: true,
+					supportsOutputSubstitution: true,
+				},
 			},
 		})
 	}
@@ -41,6 +44,16 @@
 		<EntityView
 			entityType={EntityType.PayjoinEndpoint_Timestamp}
 			entitySelector={payjoinEndpointTimestampSelector}
+			href={
+				resolve(
+					'/payjoin/endpoint/[endpointUrl=stringSegment]/(payjoinEndpoint)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+					{
+						endpointUrl: payjoinEndpointTimestampSelector.$endpoint.endpointUrl,
+						timestampMs: String(payjoinEndpointTimestampSelector.timestampMs),
+						source: payjoinEndpointTimestampSelector.source,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{payjoinEndpointTimestampSelector.timestampMs}

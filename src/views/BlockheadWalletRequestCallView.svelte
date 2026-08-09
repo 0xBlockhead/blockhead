@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -11,6 +12,7 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -36,6 +38,18 @@
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
 	idDragPlainText={String(selection.entitySelector.callIndex)}
+	href={
+		href === undefined ?
+			resolve(
+				'/~/wallets/requests/[id=stringSegment]/(blockheadWalletRequest)/evm-request/(blockheadEvmWalletRequest)/call/[callIndex=nonNegativeInteger]',
+				{
+					id: selection.entitySelector.$evmRequest.$walletRequest.id,
+					callIndex: String(selection.entitySelector.callIndex),
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -2,9 +2,11 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -26,22 +28,39 @@
 	bind:open
 	resource={
 		selection({
-			fields: {
-				poolSymbol: true,
-				gaugeAddress: true,
-				isKilled: true,
-				relativeWeightCap: true,
-				$network: true,
-				$pool: true,
+			...{
+				fields: {
+					poolSymbol: true,
+					gaugeAddress: true,
+					isKilled: true,
+					relativeWeightCap: true,
+					$network: true,
+					$pool: true,
+				},
 			},
 		})
 	}
 >
 	{#snippet Item({ item: balancerGauge })}
 		{@const balancerGaugeSelector = balancerGauge[EntityMetaKey.Selector]}
+		{@const network = balancerGaugeSelector.$network}
 		<EntityView
 			entityType={EntityType.BalancerGauge}
 			entitySelector={balancerGaugeSelector}
+			href={
+				resolve(
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/balancer-gauge/[gaugeAddress=evmAddress]',
+					{
+						network: (
+							'caip2' in network ?
+								caip2StringFromValue(network.caip2)
+							:
+								network.slug
+						),
+						gaugeAddress: balancerGaugeSelector.gaugeAddress,
+					}
+				)
+			}
 		>
 			{#snippet Title()}
 				{[(balancerGauge.poolSymbol ?? ''), balancerGaugeSelector.gaugeAddress].filter(Boolean).join(' ') || 'Balancer gauge'}

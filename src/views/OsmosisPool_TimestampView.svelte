@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -15,11 +17,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.OsmosisPool_Timestamp>, 'prefetched'> = $props()
 
+	const pool = $derived(selection.entitySelector.$pool)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Osmosis_LCD_Rest,
@@ -44,6 +48,26 @@
 	entityType={EntityType.OsmosisPool_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/osmosis-pool/[poolId=stringSegment]/(osmosisPool)/observations/[timestampMs=nonNegativeInteger]/[baseAssetDenom=stringSegment]/[quoteAssetDenom=stringSegment]',
+				{
+					network: (
+						'caip2' in pool.$network ?
+							caip2StringFromValue(pool.$network.caip2)
+						:
+							pool.$network.slug
+					),
+					poolId: pool.poolId,
+					timestampMs: String(selection.entitySelector.timestampMs),
+					baseAssetDenom: selection.entitySelector.baseAssetDenom,
+					quoteAssetDenom: selection.entitySelector.quoteAssetDenom,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

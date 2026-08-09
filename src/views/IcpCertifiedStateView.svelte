@@ -2,8 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
+	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -14,10 +16,13 @@
 	let {
 		selection,
 		title,
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.IcpCertifiedState>, 'prefetched'> = $props()
+
+	const canister = $derived(selection.entitySelector.$canister)
 
 
 	// Components
@@ -31,6 +36,25 @@
 	entityType={EntityType.IcpCertifiedState}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'ICP certified state'}
+	href={
+		href === undefined ?
+			resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/canister/[canisterId=stringSegment]/(icpCanister)/certified-state/[certificateHash=stringSegment]/[pathHash=stringSegment]',
+				{
+					network: (
+						'caip2' in canister.$network.$network ?
+							caip2StringFromValue(canister.$network.$network.caip2)
+						:
+							canister.$network.$network.slug
+					),
+					canisterId: canister.canisterId,
+					certificateHash: selection.entitySelector.certificateHash,
+					pathHash: selection.entitySelector.pathHash,
+				}
+			)
+		:
+			href ?? undefined
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

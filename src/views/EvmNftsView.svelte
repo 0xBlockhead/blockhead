@@ -13,9 +13,15 @@
 	let {
 		selection,
 		title = 'ERC-8004 Registrations',
+		limit = 100,
 		open = $bindable(true),
 		...EntitiesListProps
-	}: EntityListViewProps<EntityType.EvmNft> = $props()
+	}: EntityListViewProps<
+		EntityType.EvmNft,
+		{
+			limit?: number
+		}
+	> = $props()
 
 
 	// Components
@@ -30,32 +36,36 @@
 	bind:open
 	resource={
 		selection({
-			sources: selection.sources ?? [
-				Source.Eip8004Scan_Rest,
-				Source.OpenSea_Rest,
-			],
-			fields: {
-				name: true,
-				tokenId: true,
+			...{
+				sources: selection.sources ?? [
+					Source.Eip8004Scan_Rest,
+					Source.OpenSea_Rest,
+				],
+				fields: {
+					format: true,
+					name: true,
+					tokenId: true,
+				},
 			},
-			limit: 100,
+			limit: limit,
 		})
 	}
 >
 	{#snippet Item({ item: evmNft })}
 		{@const evmNftSelector = evmNft[EntityMetaKey.Selector]}
-		{@const contract = evmNftSelector.$contract}
+		{@const contract = evmNft.$contract}
 		<EntityView
 			entityType={EntityType.EvmNft}
 			entitySelector={evmNftSelector}
 			href={
-				'caip2' in contract.$network ?
+				evmNft.format === 'Eip8004Registration'
+				&& contract.$network.caip2 != null ?
 					resolve(
-						'/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]',
+						'/~/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]',
 						{
 							chainId: contract.$network.caip2.reference,
 							contractAddress: contract.address,
-							tokenId: evmNftSelector.tokenId,
+							tokenId: evmNft.tokenId,
 						}
 					)
 				:
