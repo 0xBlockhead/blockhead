@@ -22,6 +22,20 @@
 		SvelteHTMLElements['output']
 	> = $props()
 
+	let displayedValue = $derived(
+		value === undefined
+		|| (
+			typeof value === 'number'
+			&& (
+				!Number.isFinite(value)
+				|| (decimalPlaces !== undefined && !Number.isInteger(value))
+			)
+		) ?
+			undefined
+		:
+			value
+	)
+
 
 	// Functions
 	const indexParts = (parts: Intl.NumberFormatPart[]) => {
@@ -111,7 +125,7 @@
 </script>
 
 
-{#if value !== undefined}
+{#if displayedValue !== undefined}
 	<output
 		class={[
 			'number-value',
@@ -121,10 +135,10 @@
 	>
 		{#each indexParts(
 			decimalPlaces !== undefined ?
-				scaledIntegerParts(value, decimalPlaces)
+				scaledIntegerParts(displayedValue, decimalPlaces)
 			: formatValueOptions ?
 				(formatValue(
-					Number(value) || 0,
+					displayedValue,
 					{ ...formatValueOptions, toParts: true },
 				))
 			:
@@ -132,7 +146,7 @@
 					undefined,
 					options,
 				)
-					.formatToParts(value)
+					.formatToParts(displayedValue)
 			)
 		) as indexed (indexed.key)}
 			<span

@@ -8,15 +8,15 @@ type FormatValueOptions<ToParts extends boolean = false> = {
 }
 
 export function formatValue(
-	value: number,
+	value: number | bigint,
 	options: FormatValueOptions<true> & { toParts: true }
 ): Intl.NumberFormatPart[]
 export function formatValue(
-	value: number,
+	value: number | bigint,
 	options?: FormatValueOptions<false>
 ): string
 export function formatValue(
-	value: number,
+	value: number | bigint,
 	{
 		currency,
 		showDecimalPlaces,
@@ -54,8 +54,16 @@ export function formatValue(
 								compactDisplay: 'short',
 								...(showDecimalPlaces !== undefined && {
 									minimumSignificantDigits: 1,
-									maximumSignificantDigits:
-										((Math.log10(value) % 3) + 1) + showDecimalPlaces,
+									maximumSignificantDigits: (
+										(
+											typeof value === 'bigint' ?
+												value.toString().length - 1
+											:
+												Math.log10(value)
+										) % 3
+										+ 1
+										+ showDecimalPlaces
+									),
 								}),
 							}
 						:

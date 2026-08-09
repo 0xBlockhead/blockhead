@@ -36,6 +36,31 @@ test('formats a bigint with decimal places without losing precision', async () =
 	)
 })
 
+test('preserves zero, negative, and large integer values', async () => {
+	const rendered = await render(NumberValue, {
+		value: 0,
+	})
+
+	expect(rendered.container.querySelector('output')?.textContent).toBe(
+		new Intl.NumberFormat().format(0)
+	)
+
+	await rendered.rerender({
+		value: -1234,
+	})
+	expect(rendered.container.querySelector('output')?.textContent).toBe(
+		new Intl.NumberFormat().format(-1234)
+	)
+
+	const largeInteger = 9007199254740993n
+	await rendered.rerender({
+		value: largeInteger,
+	})
+	expect(rendered.container.querySelector('output')?.textContent).toBe(
+		new Intl.NumberFormat().format(largeInteger)
+	)
+})
+
 test('applies native and domain number-format options', async () => {
 	const native = await render(NumberValue, {
 		value: 1234.5,
@@ -64,9 +89,23 @@ test('applies native and domain number-format options', async () => {
 			useGrouping: false,
 		})
 	)
+
+	const largeInteger = 9007199254740993n
+	const preciseDomain = await render(NumberValue, {
+		value: largeInteger,
+		formatValueOptions: {
+			useGrouping: false,
+		},
+	})
+
+	expect(preciseDomain.container.querySelector('output')?.textContent).toBe(
+		formatValue(largeInteger, {
+			useGrouping: false,
+		})
+	)
 })
 
-test('omits an undefined value and preserves native non-finite formatting', async () => {
+test('omits absent and non-finite values', async () => {
 	const rendered = await render(NumberValue, {
 		value: undefined,
 	})
@@ -76,14 +115,21 @@ test('omits an undefined value and preserves native non-finite formatting', asyn
 	await rendered.rerender({
 		value: Number.NaN,
 	})
-	expect(rendered.container.querySelector('output')?.textContent).toBe(
-		new Intl.NumberFormat().format(Number.NaN)
-	)
+	expect(rendered.container.querySelector('output')).toBeNull()
 
 	await rendered.rerender({
 		value: Number.POSITIVE_INFINITY,
 	})
-	expect(rendered.container.querySelector('output')?.textContent).toBe(
-		new Intl.NumberFormat().format(Number.POSITIVE_INFINITY)
-	)
+	expect(rendered.container.querySelector('output')).toBeNull()
+
+	await rendered.rerender({
+		value: Number.NEGATIVE_INFINITY,
+	})
+	expect(rendered.container.querySelector('output')).toBeNull()
+
+	await rendered.rerender({
+		value: 1234.5,
+		decimalPlaces: 2,
+	})
+	expect(rendered.container.querySelector('output')).toBeNull()
 })
