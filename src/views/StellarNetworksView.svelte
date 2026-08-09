@@ -41,7 +41,7 @@
 			entitySelector={stellarNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{stellarNetwork.$network.name || (stellarNetwork.$network.caip2 == null ? '' : `${stellarNetwork.$network.caip2.namespace}:${stellarNetwork.$network.caip2.reference}`) || 'Network'}
+				{stellarNetwork.$network.name || `${stellarNetwork.$network.caip2.namespace}:${stellarNetwork.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

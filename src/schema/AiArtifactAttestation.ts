@@ -22,15 +22,15 @@ export default entity({
 	},
 	logEntryId: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	signatureHashAlgorithm: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	signatureHash: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	certificateIdentity: {
 		primitiveType: type('string'),

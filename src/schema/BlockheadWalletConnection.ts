@@ -1,6 +1,6 @@
 // Generated from APP.ts.
 
-import { entity } from '$/schema/$schema.ts'
+import { entity, facet } from '$/schema/$schema.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -42,10 +42,6 @@ export default entity({
 		}).array(),
 		cardinality: EntityFieldCardinality.One,
 	},
-	selected: {
-		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.One,
-	},
 	connectedAt: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -79,5 +75,19 @@ export default entity({
 		ConnectionKey: [
 			'connectionKey',
 		],
+	},
+
+	facets: {
+		Connected: facet({
+			path: [
+				'status',
+			],
+			is: 'connected',
+		})({
+			selected: {
+				primitiveType: type('boolean'),
+				cardinality: EntityFieldCardinality.One,
+			},
+		}),
 	},
 })

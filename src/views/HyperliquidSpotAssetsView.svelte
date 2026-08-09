@@ -68,7 +68,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{hyperliquidSpotAsset.$network.name || (hyperliquidSpotAsset.$network.caip2 == null ? '' : `${hyperliquidSpotAsset.$network.caip2.namespace}:${hyperliquidSpotAsset.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{hyperliquidSpotAsset.$network.name || `${hyperliquidSpotAsset.$network.caip2.namespace}:${hyperliquidSpotAsset.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -62,7 +62,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{eigenLayerProtocol.$network.name || (eigenLayerProtocol.$network.caip2 == null ? '' : `${eigenLayerProtocol.$network.caip2.namespace}:${eigenLayerProtocol.$network.caip2.reference}`) || 'Network'}
+				{eigenLayerProtocol.$network.name || `${eigenLayerProtocol.$network.caip2.namespace}:${eigenLayerProtocol.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -180,41 +180,37 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={selection.$output}
-			>
-				{#snippet children(utxoOutput)}
-					{#if utxoOutput != null}
-						<div>
-							<dt>Output</dt>
-							<dd>
-								<UtxoOutputView
-									selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Output</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$output}
+					>
+						{#snippet children(utxoOutput)}
+							<UtxoOutputView
+								selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={selection.$address}
-			>
-				{#snippet children(utxoAddress)}
-					{#if utxoAddress != null}
-						<div>
-							<dt>Address</dt>
-							<dd>
-								<UtxoAddressView
-									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Address</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$address}
+					>
+						{#snippet children(utxoAddress)}
+							<UtxoAddressView
+								selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 	{/snippet}
 </EntityView>

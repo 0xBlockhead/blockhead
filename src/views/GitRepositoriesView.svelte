@@ -65,7 +65,7 @@
 			}
 		>
 			{#snippet Title()}
-				{[gitRepository.repositoryId, (gitRepository.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || 'Git repository'}
+				{[gitRepository.repositoryId, gitRepository.canonicalRemoteUrl].filter(Boolean).join(' ') || 'Git repository'}
 			{/snippet}
 
 			{#snippet Value()}

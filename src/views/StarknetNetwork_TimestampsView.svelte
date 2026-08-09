@@ -60,7 +60,7 @@
 			}
 		>
 			{#snippet Title()}
-				{starknetNetworkTimestamp.$network.$network.name || (starknetNetworkTimestamp.$network.$network.caip2 == null ? '' : `${starknetNetworkTimestamp.$network.$network.caip2.namespace}:${starknetNetworkTimestamp.$network.$network.caip2.reference}`) || 'Network'}
+				{starknetNetworkTimestamp.$network.$network.name || `${starknetNetworkTimestamp.$network.$network.caip2.namespace}:${starknetNetworkTimestamp.$network.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

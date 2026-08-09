@@ -107,7 +107,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[hederaAllowance.$token == null ? '' : hederaAllowance.$token.tokenId || 'hedera token', String(hederaAllowance.serialNumber ?? '')].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[hederaAllowance.$token == null ? '' : hederaAllowance.$token.tokenId || 'hedera token', String(hederaAllowance.serialNumber)].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

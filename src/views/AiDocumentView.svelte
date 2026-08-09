@@ -119,18 +119,15 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={aiDocument}>
 			{#snippet children(entity)}
-				{@const documentUrl = entity.documentUrl}
-				{#if documentUrl != null}
-					<span data-text="muted">
-						<a
-							href={documentUrl}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={documentUrl} />
-						</a>
-					</span>
-				{/if}
+				<span data-text="muted">
+					<a
+						href={entity.documentUrl}
+						target="_blank"
+						rel="noreferrer noopener"
+					>
+						<TruncatedValue value={entity.documentUrl} />
+					</a>
+				</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -150,90 +147,79 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							contentHashAlgorithm: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const contentHashAlgorithm = entity.contentHashAlgorithm}
-					{#if contentHashAlgorithm != null}
-						<div>
-							<dt>content hash algorithm</dt>
-							<dd>
-								{contentHashAlgorithm}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>content hash algorithm</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									contentHashAlgorithm: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.contentHashAlgorithm}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							contentHash: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const contentHash = entity.contentHash}
-					{#if contentHash != null}
-						<div>
-							<dt>content hash</dt>
-							<dd>
-								<TruncatedValue value={contentHash} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>content hash</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									contentHash: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<TruncatedValue value={entity.contentHash} />
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={selection.$artifact}
-			>
-				{#snippet children(aiArtifact)}
-					{#if aiArtifact != null}
-						<div>
-							<dt>artifact</dt>
-							<dd>
-								<AiArtifactView
-									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
-									prefetched={aiArtifact}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>artifact</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$artifact}
+					>
+						{#snippet children(aiArtifact)}
+							<AiArtifactView
+								selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
+								prefetched={aiArtifact}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={aiDocument}
-			>
-				{#snippet children(entity)}
-					{@const documentUrl = entity.documentUrl}
-					{#if documentUrl != null}
-						<div>
-							<dt>document URL</dt>
-							<dd>
-								<a
-									href={documentUrl}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={documentUrl} />
-								</a>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>document URL</dt>
+				<dd>
+					<ResourceBoundary
+						resource={aiDocument}
+					>
+						{#snippet children(entity)}
+							<a
+								href={entity.documentUrl}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={entity.documentUrl} />
+							</a>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">

@@ -14,23 +14,23 @@ export default entity({
 })({
 	$model: {
 		entityType: EntityType.AiModel,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	versionId: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	$artifact: {
 		entityType: EntityType.AiArtifact,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	huggingFaceRepo: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	revision: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	mlflowRegisteredModelName: {
 		primitiveType: type('string'),

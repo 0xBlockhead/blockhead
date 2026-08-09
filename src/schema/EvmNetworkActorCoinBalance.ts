@@ -23,7 +23,7 @@ export default entity({
 	},
 	$contract: {
 		entityType: EntityType.EvmContract,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	$coinInstance: {
 		entityType: EntityType.EvmCoinInstance,

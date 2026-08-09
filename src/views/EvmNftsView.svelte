@@ -58,8 +58,7 @@
 			entityType={EntityType.EvmNft}
 			entitySelector={evmNftSelector}
 			href={
-				evmNft.format === 'Eip8004Registration'
-				&& contract.$network.caip2 != null ?
+				evmNft.format === 'Eip8004Registration' ?
 					resolve(
 						'/~/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]',
 						{

@@ -57,7 +57,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{blockheadStateChannelDeposit.$network.name || (blockheadStateChannelDeposit.$network.caip2 == null ? '' : `${blockheadStateChannelDeposit.$network.caip2.namespace}:${blockheadStateChannelDeposit.$network.caip2.reference}`) || 'Network'}
+				{blockheadStateChannelDeposit.$network.name || `${blockheadStateChannelDeposit.$network.caip2.namespace}:${blockheadStateChannelDeposit.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

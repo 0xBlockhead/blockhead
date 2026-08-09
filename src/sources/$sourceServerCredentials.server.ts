@@ -130,6 +130,7 @@ const runtimeSecretCredentials = [
 		{
 			clientIdEnvKey: 'REDDIT_CLIENT_ID',
 			tokenEndpoint: 'https://www.reddit.com/api/v1/access_token',
+			userAgent: 'Blockhead/1.0.0 (+https://blockhead.vision) by /u/blockhead',
 		},
 	],
 	[

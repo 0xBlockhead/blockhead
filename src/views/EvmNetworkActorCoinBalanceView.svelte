@@ -140,24 +140,22 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={selection.$contract}
-			>
-				{#snippet children(evmContract)}
-					{#if evmContract != null}
-						<div>
-							<dt>Contract</dt>
-							<dd>
-								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Contract</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$contract}
+					>
+						{#snippet children(evmContract)}
+							<EvmContractView
+								selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
+								prefetched={evmContract}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<div>
 				<dt>Coin</dt>

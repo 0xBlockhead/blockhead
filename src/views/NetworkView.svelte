@@ -409,10 +409,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={network}>
 			{#snippet children(entity)}
-				{@const caip2 = entity.caip2}
-				{#if caip2 != null}
-					<TruncatedValue value={`${caip2.namespace}:${caip2.reference}`} />
-				{/if}
+				<TruncatedValue value={`${entity.caip2.namespace}:${entity.caip2.reference}`} />
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -855,21 +852,18 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={network}
-			>
-				{#snippet children(entity)}
-					{@const caip2 = entity.caip2}
-					{#if caip2 != null}
-						<div>
-							<dt>CAIP-2</dt>
-							<dd>
-								<TruncatedValue value={`${caip2.namespace}:${caip2.reference}`} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>CAIP-2</dt>
+				<dd>
+					<ResourceBoundary
+						resource={network}
+					>
+						{#snippet children(entity)}
+							<TruncatedValue value={`${entity.caip2.namespace}:${entity.caip2.reference}`} />
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<ProjectionBoundary

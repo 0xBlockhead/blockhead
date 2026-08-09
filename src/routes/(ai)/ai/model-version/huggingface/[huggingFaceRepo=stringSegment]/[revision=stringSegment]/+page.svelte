@@ -37,7 +37,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.revision ?? '') || 'AI model version' : (pageSelection.entity.versionId ?? '') || (pageSelection.entitySelector.revision ?? '') || 'AI model version'} • AI model version • Blockhead</title>
+	<title>{pageSelection.entity == null ? (pageSelection.entitySelector.revision ?? '') || 'AI model version' : pageSelection.entity.versionId || pageSelection.entitySelector.revision || 'AI model version'} • AI model version • Blockhead</title>
 </svelte:head>
 
 

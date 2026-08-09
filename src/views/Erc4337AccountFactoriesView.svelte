@@ -69,7 +69,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{erc4337AccountFactory.$network.name || (erc4337AccountFactory.$network.caip2 == null ? '' : `${erc4337AccountFactory.$network.caip2.namespace}:${erc4337AccountFactory.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{erc4337AccountFactory.$network.name || `${erc4337AccountFactory.$network.caip2.namespace}:${erc4337AccountFactory.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

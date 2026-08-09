@@ -69,7 +69,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{solanaTokenMint.$network.name || (solanaTokenMint.$network.caip2 == null ? '' : `${solanaTokenMint.$network.caip2.namespace}:${solanaTokenMint.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{solanaTokenMint.$network.name || `${solanaTokenMint.$network.caip2.namespace}:${solanaTokenMint.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

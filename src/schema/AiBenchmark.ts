@@ -15,19 +15,19 @@ export default entity({
 })({
 	benchmarkId: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	benchmarkUri: {
 		primitiveType: UrlString,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	source: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	sourceBenchmarkId: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	label: {
 		primitiveType: type('string'),

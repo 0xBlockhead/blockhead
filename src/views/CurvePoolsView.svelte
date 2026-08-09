@@ -70,7 +70,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{curvePool.$network.name || (curvePool.$network.caip2 == null ? '' : `${curvePool.$network.caip2.namespace}:${curvePool.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{curvePool.$network.name || `${curvePool.$network.caip2.namespace}:${curvePool.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

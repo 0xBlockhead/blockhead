@@ -116,87 +116,75 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={aiBenchmark}
-			>
-				{#snippet children(entity)}
-					{@const benchmarkId = entity.benchmarkId}
-					{#if benchmarkId != null}
-						<div>
-							<dt>benchmark ID</dt>
-							<dd>
-								{benchmarkId}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>benchmark ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={aiBenchmark}
+					>
+						{#snippet children(entity)}
+							{entity.benchmarkId}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={aiBenchmark}
-			>
-				{#snippet children(entity)}
-					{@const benchmarkUri = entity.benchmarkUri}
-					{#if benchmarkUri != null}
-						<div>
-							<dt>benchmark URI</dt>
-							<dd>
-								<a
-									href={benchmarkUri}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={benchmarkUri} />
-								</a>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>benchmark URI</dt>
+				<dd>
+					<ResourceBoundary
+						resource={aiBenchmark}
+					>
+						{#snippet children(entity)}
+							<a
+								href={entity.benchmarkUri}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={entity.benchmarkUri} />
+							</a>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							source: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const source = entity.source}
-					{#if source != null}
-						<div>
-							<dt>Source</dt>
-							<dd>
-								{source}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Source</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.source}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							sourceBenchmarkId: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const sourceBenchmarkId = entity.sourceBenchmarkId}
-					{#if sourceBenchmarkId != null}
-						<div>
-							<dt>source benchmark ID</dt>
-							<dd>
-								{sourceBenchmarkId}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>source benchmark ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									sourceBenchmarkId: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.sourceBenchmarkId}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={aiBenchmark}

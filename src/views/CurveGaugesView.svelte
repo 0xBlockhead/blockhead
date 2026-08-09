@@ -72,7 +72,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[curveGauge.$network.name || (curveGauge.$network.caip2 == null ? '' : `${curveGauge.$network.caip2.namespace}:${curveGauge.$network.caip2.reference}`) || 'Network', curveGauge.$pool == null ? '' : [curveGauge.$pool.name, curveGauge.$pool.symbol].filter(Boolean).join(' ') || 'Curve pool'].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[curveGauge.$network.name || `${curveGauge.$network.caip2.namespace}:${curveGauge.$network.caip2.reference}` || 'Network', curveGauge.$pool == null ? '' : [curveGauge.$pool.name, curveGauge.$pool.symbol].filter(Boolean).join(' ') || 'Curve pool'].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

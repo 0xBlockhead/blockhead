@@ -129,29 +129,26 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							indexInInstruction: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const indexInInstruction = entity.indexInInstruction}
-					{#if indexInInstruction != null}
-						<div>
-							<dt>Index in instruction</dt>
-							<dd>
-								<NumberValue
-									value={indexInInstruction}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Index in instruction</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									indexInInstruction: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<NumberValue
+								value={entity.indexInInstruction}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={

@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{pageSelection.entity == null ? 'AI benchmark' : (pageSelection.entity.label ?? '') || [(pageSelection.entity.benchmarkId ?? ''), (pageSelection.entity.benchmarkUri ?? '')].filter(Boolean).join(' ') || 'AI benchmark'} • AI benchmark • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'AI benchmark' : (pageSelection.entity.label ?? '') || [pageSelection.entity.benchmarkId, pageSelection.entity.benchmarkUri].filter(Boolean).join(' ') || 'AI benchmark'} • AI benchmark • Blockhead</title>
 </svelte:head>
 
 

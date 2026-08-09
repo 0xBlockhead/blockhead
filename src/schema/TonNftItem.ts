@@ -22,11 +22,11 @@ export default entity({
 	},
 	$collection: {
 		entityType: EntityType.TonNftCollection,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	itemIndex: {
 		primitiveType: type('bigint').narrow((value) => value >= 0n),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	$account: {
 		entityType: EntityType.TonAccount,

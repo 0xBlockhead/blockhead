@@ -15,15 +15,15 @@ export default entity({
 })({
 	$package: {
 		entityType: EntityType.McpServerPackage,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	version: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	$artifact: {
 		entityType: EntityType.AiArtifact,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	releaseDate: {
 		primitiveType: type('number'),

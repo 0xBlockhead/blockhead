@@ -157,45 +157,40 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={selection.$sourceTx}
-			>
-				{#snippet children(evmTransaction)}
-					{#if evmTransaction != null}
-						<div>
-							<dt>source tx</dt>
-							<dd>
-								<EvmTransactionView
-									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>source tx</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$sourceTx}
+					>
+						{#snippet children(evmTransaction)}
+							<EvmTransactionView
+								selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							logIndex: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const logIndex = entity.logIndex}
-					{#if logIndex != null}
-						<div>
-							<dt>log index</dt>
-							<dd>
-								{logIndex}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>log index</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									logIndex: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.logIndex}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={selection.$destinationTx}
@@ -217,53 +212,47 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							originChainId: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const originChainId = entity.originChainId}
-					{#if originChainId != null}
-						<div>
-							<dt>origin chain ID</dt>
-							<dd>
-								<NumberValue
-									value={originChainId}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>origin chain ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									originChainId: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<NumberValue
+								value={entity.originChainId}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							depositId: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const depositId = entity.depositId}
-					{#if depositId != null}
-						<div>
-							<dt>deposit ID</dt>
-							<dd>
-								<NumberValue
-									value={depositId}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>deposit ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									depositId: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<NumberValue
+								value={entity.depositId}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">

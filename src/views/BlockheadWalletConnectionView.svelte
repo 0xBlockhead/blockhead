@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
+	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -33,13 +34,13 @@
 			status: true,
 			protocol: true,
 			transportKind: true,
-			selected: true,
 		},
 	}))
 	const titleFallback = 'wallet connection'
 
 
 	// Components
+	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import AccountsView from '$/views/AccountsView.svelte'
@@ -67,6 +68,10 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Icon()}
+		<IconComponent />
+	{/snippet}
+
 	{#snippet Title()}
 		<ResourceBoundary
 			resource={selection.$wallet}
@@ -160,19 +165,6 @@
 					>
 						{#snippet children(entity)}
 							{entity.transportKind}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Selected</dt>
-				<dd>
-					<ResourceBoundary
-						resource={blockheadWalletConnection}
-					>
-						{#snippet children(entity)}
-							{entity.selected ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -308,6 +300,27 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<ProjectionBoundary
+			resource={selection.Connected}
+		>
+			{#snippet Applicable(projection)}
+				<dl data-column-item="center">
+					<div>
+						<dt>Selected</dt>
+						<dd>
+							<ResourceBoundary
+								resource={projection.selected}
+							>
+								{#snippet children(selected)}
+									{selected ? 'Yes' : 'No'}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ProjectionBoundary>
 	{/snippet}
 
 	{#snippet Details()}

@@ -41,7 +41,7 @@
 			entitySelector={starknetNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{starknetNetwork.$network.name || (starknetNetwork.$network.caip2 == null ? '' : `${starknetNetwork.$network.caip2.namespace}:${starknetNetwork.$network.caip2.reference}`) || 'Network'}
+				{starknetNetwork.$network.name || `${starknetNetwork.$network.caip2.namespace}:${starknetNetwork.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

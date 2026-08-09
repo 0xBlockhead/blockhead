@@ -32,7 +32,7 @@ export default entity({
 	},
 	$token0: {
 		entityType: EntityType.EvmContract,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Voltaire_JsonRpc,
 			Source.UniswapContracts_Evm,
@@ -40,7 +40,7 @@ export default entity({
 	},
 	$token1: {
 		entityType: EntityType.EvmContract,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Voltaire_JsonRpc,
 			Source.UniswapContracts_Evm,
@@ -48,7 +48,7 @@ export default entity({
 	},
 	fee: {
 		primitiveType: type('number.integer >= 0'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	tickSpacing: {
 		primitiveType: type('number'),

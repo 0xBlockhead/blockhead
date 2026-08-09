@@ -4427,7 +4427,7 @@ test('lowers latest EntityReference content without collection-first semantics',
 	assert.match(renderedFarcasterChannelView, /<FarcasterUserView[\s\S]*?<span>\{farcasterUser\.username\}<\/span>/)
 })
 
-test('rejects missing, Many, and Zero selector fields before route compilation', () => {
+test('requires every selector field to have cardinality One before route compilation', () => {
 	const network = app.schema.entities.find((entity) => entity.entityType === EntityType.Network)
 
 	assert.ok(network)
@@ -4445,7 +4445,7 @@ test('rejects missing, Many, and Zero selector fields before route compilation',
 				}),
 			},
 		}),
-		/Network\.Caip2 selector field caip2 must be singular, received Many/
+		/Network\.Caip2 selector field caip2 must have cardinality One, received Many/
 	)
 	assert.throws(
 		() => compileApp({
@@ -4461,7 +4461,23 @@ test('rejects missing, Many, and Zero selector fields before route compilation',
 				}),
 			},
 		}),
-		/Network\.Caip2 selector field caip2 must be singular, received Zero/
+		/Network\.Caip2 selector field caip2 must have cardinality One, received Zero/
+	)
+	assert.throws(
+		() => compileApp({
+			...app,
+			schema: {
+				...app.schema,
+				entities: app.schema.entities.map((entity) => entity !== network ? entity : {
+					...entity,
+					fields: entity.fields.map((field) => field.name !== 'caip2' ? field : {
+						...field,
+						cardinality: EntityFieldCardinality.ZeroOrOne,
+					}),
+				}),
+			},
+		}),
+		/Network\.Caip2 selector field caip2 must have cardinality One, received ZeroOrOne/
 	)
 	assert.throws(
 		() => compileApp({
@@ -6811,6 +6827,7 @@ const typedSourceServerCredentials: Map<string, SourceServerCredentialDefinition
 declare const typedSourceServerCredential: SourceServerCredentialDefinition
 const oauthClientIdEnvKey: string | undefined = typedSourceServerCredential.oauthClientCredentials?.clientIdEnvKey
 const oauthTokenEndpoint: string | undefined = typedSourceServerCredential.oauthClientCredentials?.tokenEndpoint
+const oauthUserAgent: string | undefined = typedSourceServerCredential.oauthClientCredentials?.userAgent
 // @ts-expect-error OAuth server credential metadata owns no runtime expiry policy.
 typedSourceServerCredential.oauthClientCredentials?.expiresInSeconds
 const acrossBinding = acrossBindings[Source.Across_Rest][0]
@@ -7232,8 +7249,8 @@ test('emits runtime secret configuration from authored binding identities', () =
 		serverCredentials.indexOf('["OpenSea_Rest","Global","opensea-api","HttpProxy","OpenApiHttp"]'),
 		serverCredentials.indexOf('["PythHermes_Rest"')
 	)
-	assert.match(sourceBinding, /oauthClientCredentials\?: \{\n\t\tclientIdEnvKey: string\n\t\ttokenEndpoint: string\n\t\}/)
-	assert.match(redditCredential, /REDDIT_CLIENT_SECRET[\s\S]*?authorization[\s\S]*?Bearer [\s\S]*?REDDIT_CLIENT_ID[\s\S]*?https:\/\/www\.reddit\.com\/api\/v1\/access_token/)
+	assert.match(sourceBinding, /oauthClientCredentials\?: \{\n\t\tclientIdEnvKey: string\n\t\ttokenEndpoint: string\n\t\tuserAgent\?: string\n\t\}/)
+	assert.match(redditCredential, /REDDIT_CLIENT_SECRET[\s\S]*?authorization[\s\S]*?Bearer [\s\S]*?REDDIT_CLIENT_ID[\s\S]*?https:\/\/www\.reddit\.com\/api\/v1\/access_token[\s\S]*?Blockhead\/1\.0\.0 \(\+https:\/\/blockhead\.vision\) by \/u\/blockhead/)
 	assert.doesNotMatch(openSeaCredential, /oauthClientCredentials|REDDIT_CLIENT_ID|access_token/)
 
 	const oauthOmittedApp = structuredClone(app)

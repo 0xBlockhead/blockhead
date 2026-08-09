@@ -71,7 +71,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[balancerGauge.$network.name || (balancerGauge.$network.caip2 == null ? '' : `${balancerGauge.$network.caip2.namespace}:${balancerGauge.$network.caip2.reference}`) || 'Network', balancerGauge.$pool == null ? '' : balancerGauge.$pool.name || 'Balancer pool'].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[balancerGauge.$network.name || `${balancerGauge.$network.caip2.namespace}:${balancerGauge.$network.caip2.reference}` || 'Network', balancerGauge.$pool == null ? '' : balancerGauge.$pool.name || 'Balancer pool'].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

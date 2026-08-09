@@ -62,7 +62,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{snapshotSpace.$network == null ? '' : snapshotSpace.$network.name || (snapshotSpace.$network.caip2 == null ? '' : `${snapshotSpace.$network.caip2.namespace}:${snapshotSpace.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{snapshotSpace.$network == null ? '' : snapshotSpace.$network.name || `${snapshotSpace.$network.caip2.namespace}:${snapshotSpace.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

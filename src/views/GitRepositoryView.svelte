@@ -78,7 +78,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={gitRepository}>
 			{#snippet children(entity)}
-				{[entity.repositoryId, (entity.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+				{[entity.repositoryId, entity.canonicalRemoteUrl].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -86,7 +86,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={gitRepository}>
 			{#snippet children(entity)}
-				{entity.objectFormat || [entity.repositoryId, (entity.canonicalRemoteUrl ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{entity.objectFormat || [entity.repositoryId, entity.canonicalRemoteUrl].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -106,27 +106,24 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={gitRepository}
-			>
-				{#snippet children(entity)}
-					{@const canonicalRemoteUrl = entity.canonicalRemoteUrl}
-					{#if canonicalRemoteUrl != null}
-						<div>
-							<dt>canonical remote URL</dt>
-							<dd>
-								<a
-									href={canonicalRemoteUrl}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={canonicalRemoteUrl} />
-								</a>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>canonical remote URL</dt>
+				<dd>
+					<ResourceBoundary
+						resource={gitRepository}
+					>
+						{#snippet children(entity)}
+							<a
+								href={entity.canonicalRemoteUrl}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={entity.canonicalRemoteUrl} />
+							</a>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<div>
 				<dt>object format</dt>

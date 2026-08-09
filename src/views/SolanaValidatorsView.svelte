@@ -69,7 +69,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{solanaValidator.$network.name || (solanaValidator.$network.caip2 == null ? '' : `${solanaValidator.$network.caip2.namespace}:${solanaValidator.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{solanaValidator.$network.name || `${solanaValidator.$network.caip2.namespace}:${solanaValidator.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

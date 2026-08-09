@@ -69,7 +69,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{compoundComet.$network.name || (compoundComet.$network.caip2 == null ? '' : `${compoundComet.$network.caip2.namespace}:${compoundComet.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{compoundComet.$network.name || `${compoundComet.$network.caip2.namespace}:${compoundComet.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -40,7 +40,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerArtifactId ?? '') || 'AI artifact' : (pageSelection.entity.artifactType ?? '') || [(pageSelection.entitySelector.providerArtifactId ?? ''), (pageSelection.entity.ociDigest ?? ''), (pageSelection.entity.ipfsCid ?? ''), (pageSelection.entity.arweaveId ?? ''), (pageSelection.entity.gitObject ?? ''), (pageSelection.entity.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact')} • AI artifact • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.providerArtifactId ?? '') || 'AI artifact' : (pageSelection.entity.artifactType ?? '') || [pageSelection.entitySelector.providerArtifactId, pageSelection.entity.ociDigest, pageSelection.entity.ipfsCid, pageSelection.entity.arweaveId, pageSelection.entity.gitObject, pageSelection.entity.digest].filter(Boolean).join(' ') || 'AI artifact')} • AI artifact • Blockhead</title>
 </svelte:head>
 
 

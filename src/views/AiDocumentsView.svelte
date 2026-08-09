@@ -89,7 +89,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{aiDocument.documentUrl ?? ''}</span>
+				<span data-text="annotation">{aiDocument.documentUrl}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -71,7 +71,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{cosmosDenom.$network.name || (cosmosDenom.$network.caip2 == null ? '' : `${cosmosDenom.$network.caip2.namespace}:${cosmosDenom.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{cosmosDenom.$network.name || `${cosmosDenom.$network.caip2.namespace}:${cosmosDenom.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

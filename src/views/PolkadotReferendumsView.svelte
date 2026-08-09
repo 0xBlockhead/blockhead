@@ -70,7 +70,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{polkadotReferendum.$network.name || (polkadotReferendum.$network.caip2 == null ? '' : `${polkadotReferendum.$network.caip2.namespace}:${polkadotReferendum.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{polkadotReferendum.$network.name || `${polkadotReferendum.$network.caip2.namespace}:${polkadotReferendum.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

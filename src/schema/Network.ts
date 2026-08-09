@@ -21,7 +21,7 @@ export default entity({
 			namespace: type('string'),
 			reference: type('string'),
 		}),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	slug: {
 		primitiveType: type('string').matching('^[abcdefghijklmnopqrstuvwxyz0123456789\\-]+$').atLeastLength(1),

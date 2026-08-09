@@ -65,7 +65,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{beaconSyncCommittee.$network.name || (beaconSyncCommittee.$network.caip2 == null ? '' : `${beaconSyncCommittee.$network.caip2.namespace}:${beaconSyncCommittee.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{beaconSyncCommittee.$network.name || `${beaconSyncCommittee.$network.caip2.namespace}:${beaconSyncCommittee.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

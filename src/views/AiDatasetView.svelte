@@ -133,144 +133,124 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={aiDataset}
-			>
-				{#snippet children(entity)}
-					{@const datasetUri = entity.datasetUri}
-					{#if datasetUri != null}
-						<div>
-							<dt>dataset URI</dt>
-							<dd>
-								<a
-									href={datasetUri}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={datasetUri} />
-								</a>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>dataset URI</dt>
+				<dd>
+					<ResourceBoundary
+						resource={aiDataset}
+					>
+						{#snippet children(entity)}
+							<a
+								href={entity.datasetUri}
+								target="_blank"
+								rel="noreferrer noopener"
+							>
+								<TruncatedValue value={entity.datasetUri} />
+							</a>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={aiDataset}
-			>
-				{#snippet children(entity)}
-					{@const huggingFaceDatasetId = entity.huggingFaceDatasetId}
-					{#if huggingFaceDatasetId != null}
-						<div>
-							<dt>hugging face dataset ID</dt>
-							<dd>
-								{huggingFaceDatasetId}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>hugging face dataset ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={aiDataset}
+					>
+						{#snippet children(entity)}
+							{entity.huggingFaceDatasetId}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							revision: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const revision = entity.revision}
-					{#if revision != null}
-						<div>
-							<dt>revision</dt>
-							<dd>
-								{revision}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>revision</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									revision: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.revision}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							source: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const source = entity.source}
-					{#if source != null}
-						<div>
-							<dt>Source</dt>
-							<dd>
-								{source}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Source</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.source}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={aiDataset}
-			>
-				{#snippet children(entity)}
-					{@const datasetName = entity.datasetName}
-					{#if datasetName != null}
-						<div>
-							<dt>dataset name</dt>
-							<dd>
-								{datasetName}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>dataset name</dt>
+				<dd>
+					<ResourceBoundary
+						resource={aiDataset}
+					>
+						{#snippet children(entity)}
+							{entity.datasetName}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							datasetDigest: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const datasetDigest = entity.datasetDigest}
-					{#if datasetDigest != null}
-						<div>
-							<dt>dataset digest</dt>
-							<dd>
-								<TruncatedValue value={datasetDigest} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>dataset digest</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									datasetDigest: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<TruncatedValue value={entity.datasetDigest} />
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={selection.$artifact}
-			>
-				{#snippet children(aiArtifact)}
-					{#if aiArtifact != null}
-						<div>
-							<dt>artifact</dt>
-							<dd>
-								<AiArtifactView
-									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
-									prefetched={aiArtifact}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>artifact</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$artifact}
+					>
+						{#snippet children(aiArtifact)}
+							<AiArtifactView
+								selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
+								prefetched={aiArtifact}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">

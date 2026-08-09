@@ -122,45 +122,40 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={selection.$sourceTransaction}
-			>
-				{#snippet children(tonTransaction)}
-					{#if tonTransaction != null}
-						<div>
-							<dt>source transaction</dt>
-							<dd>
-								<TonTransactionView
-									selection={select(EntityType.TonTransaction, tonTransaction[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>source transaction</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$sourceTransaction}
+					>
+						{#snippet children(tonTransaction)}
+							<TonTransactionView
+								selection={select(EntityType.TonTransaction, tonTransaction[EntityMetaKey.Selector])}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							outIndex: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const outIndex = entity.outIndex}
-					{#if outIndex != null}
-						<div>
-							<dt>out index</dt>
-							<dd>
-								{outIndex}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>out index</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									outIndex: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.outIndex}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<div>
 				<dt>message kind</dt>

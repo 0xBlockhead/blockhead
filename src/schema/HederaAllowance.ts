@@ -26,11 +26,11 @@ export default entity({
 	},
 	tokenId: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	serialNumber: {
 		primitiveType: type('bigint').narrow((value) => value >= 0n),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	$token: {
 		entityType: EntityType.HederaToken,

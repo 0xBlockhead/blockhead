@@ -552,6 +552,7 @@ export type SourceServerCredentialDefinition = {
 	oauthClientCredentials?: {
 		clientIdEnvKey: string
 		tokenEndpoint: string
+		userAgent?: string
 	}
 }
 

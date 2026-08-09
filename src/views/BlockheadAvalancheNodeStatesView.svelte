@@ -58,7 +58,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{blockheadAvalancheNodeState.$network == null ? '' : blockheadAvalancheNodeState.$network.name || (blockheadAvalancheNodeState.$network.caip2 == null ? '' : `${blockheadAvalancheNodeState.$network.caip2.namespace}:${blockheadAvalancheNodeState.$network.caip2.reference}`) || 'Network'}
+				{blockheadAvalancheNodeState.$network == null ? '' : blockheadAvalancheNodeState.$network.name || `${blockheadAvalancheNodeState.$network.caip2.namespace}:${blockheadAvalancheNodeState.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

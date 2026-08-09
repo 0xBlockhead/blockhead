@@ -59,7 +59,7 @@
 			}
 		>
 			{#snippet Title()}
-				{cronosNetworkProfile.$network.name || (cronosNetworkProfile.$network.caip2 == null ? '' : `${cronosNetworkProfile.$network.caip2.namespace}:${cronosNetworkProfile.$network.caip2.reference}`) || 'Network'}
+				{cronosNetworkProfile.$network.name || `${cronosNetworkProfile.$network.caip2.namespace}:${cronosNetworkProfile.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 
 			{#snippet Value()}

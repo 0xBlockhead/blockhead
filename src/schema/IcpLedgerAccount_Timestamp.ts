@@ -22,7 +22,7 @@ export default entity({
 	},
 	subaccount: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
 		primitiveType: type('number.integer >= 0'),

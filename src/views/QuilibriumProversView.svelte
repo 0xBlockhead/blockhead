@@ -64,7 +64,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{quilibriumProver.$network.name || (quilibriumProver.$network.caip2 == null ? '' : `${quilibriumProver.$network.caip2.namespace}:${quilibriumProver.$network.caip2.reference}`) || 'Network'}
+				{quilibriumProver.$network.name || `${quilibriumProver.$network.caip2.namespace}:${quilibriumProver.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

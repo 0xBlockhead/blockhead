@@ -677,10 +677,12 @@ describe('local mutation authority journal', () => {
 
 		expect(context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
 			EntityType.BlockheadWalletConnection,
-			[],
+			['Connected'],
 			'selected'
 		)].toArray).toEqual([
 			expect.objectContaining({
+				facetPath: ['Connected'],
+				facetPathKey: stringify(['Connected']),
 				[EntityMetaKey.Value]: false,
 			}),
 		])
@@ -699,6 +701,18 @@ describe('local mutation authority journal', () => {
 					selectorKey: walletSelectorKey,
 				}),
 				resolution: 'present',
+			}),
+			expect.objectContaining({
+				selectorKey: connectionSelectorKey,
+				authorityKey: localMutationAuthorityKey({
+					source: Source.Local_Internal,
+					entityType: EntityType.BlockheadWalletConnection,
+					selectorKey: connectionSelectorKey,
+					fieldName: 'selected',
+					fieldAddressKey: entityFieldAddressKey(EntityType.BlockheadWalletConnection, ['Connected'], 'selected'),
+					facetPathKey: stringify(['Connected']),
+				}),
+				resolution: 'resolved',
 			}),
 			expect.objectContaining({
 				selectorKey: connectionSelectorKey,
@@ -1158,6 +1172,11 @@ describe('local mutation authority journal', () => {
 			accounts: [],
 			activeAccount: undefined,
 		})
+		expect(context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(
+			EntityType.BlockheadWalletConnection,
+			['Connected'],
+			'selected'
+		)].toArray).toHaveLength(0)
 
 		expect(context.entityCollections[EntityType.BlockheadWalletConnection].toArray).toHaveLength(1)
 		expect(context.entityFieldCollections[EntityType.BlockheadWalletConnection][entityFieldAddressKey(

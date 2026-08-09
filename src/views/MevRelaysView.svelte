@@ -67,7 +67,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{mevRelay.$network.name || (mevRelay.$network.caip2 == null ? '' : `${mevRelay.$network.caip2.namespace}:${mevRelay.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{mevRelay.$network.name || `${mevRelay.$network.caip2.namespace}:${mevRelay.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -62,7 +62,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{blockheadMoneroWalletState.$network.$network.name || (blockheadMoneroWalletState.$network.$network.caip2 == null ? '' : `${blockheadMoneroWalletState.$network.$network.caip2.namespace}:${blockheadMoneroWalletState.$network.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{blockheadMoneroWalletState.$network.$network.name || `${blockheadMoneroWalletState.$network.$network.caip2.namespace}:${blockheadMoneroWalletState.$network.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

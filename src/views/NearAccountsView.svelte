@@ -73,7 +73,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{nearAccount.$network.name || (nearAccount.$network.caip2 == null ? '' : `${nearAccount.$network.caip2.namespace}:${nearAccount.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{nearAccount.$network.name || `${nearAccount.$network.caip2.namespace}:${nearAccount.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

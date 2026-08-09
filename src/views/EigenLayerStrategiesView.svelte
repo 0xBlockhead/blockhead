@@ -70,7 +70,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{eigenLayerStrategy.$network.name || (eigenLayerStrategy.$network.caip2 == null ? '' : `${eigenLayerStrategy.$network.caip2.namespace}:${eigenLayerStrategy.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{eigenLayerStrategy.$network.name || `${eigenLayerStrategy.$network.caip2.namespace}:${eigenLayerStrategy.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

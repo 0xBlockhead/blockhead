@@ -68,7 +68,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{a2aArtifact.$task.taskId || (a2aArtifact.$task.providerTaskId ?? '') || 'A2A task'}
+				{a2aArtifact.$task.taskId || a2aArtifact.$task.providerTaskId || 'A2A task'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -18,11 +18,11 @@ export default entity({
 	},
 	$service: {
 		entityType: EntityType.A2aAgentService,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	providerTaskId: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	contextId: {
 		primitiveType: type('string'),

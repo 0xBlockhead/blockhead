@@ -402,12 +402,14 @@ export default {
 				scopes: (connection) => connection.scopes,
 				$$accounts: (connection) => connection.$$accounts,
 				$activeAccount: (connection) => connection.$activeAccount,
-				selected: (connection) => connection.selected,
 				connectedAt: (connection) => connection.connectedAt,
 				disconnectedAt: (connection) => connection.disconnectedAt,
 				sessionId: (connection) => connection.sessionId,
 				sessionTopic: (connection) => connection.sessionTopic,
 				error: (connection) => connection.error,
+				Connected: {
+					selected: (connection) => connection.selected,
+				},
 			}),
 
 		defineResolver({

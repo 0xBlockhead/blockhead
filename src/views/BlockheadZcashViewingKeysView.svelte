@@ -63,7 +63,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{blockheadZcashViewingKey.$network.name || (blockheadZcashViewingKey.$network.caip2 == null ? '' : `${blockheadZcashViewingKey.$network.caip2.namespace}:${blockheadZcashViewingKey.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{blockheadZcashViewingKey.$network.name || `${blockheadZcashViewingKey.$network.caip2.namespace}:${blockheadZcashViewingKey.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

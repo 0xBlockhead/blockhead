@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.registryAgentId ?? '') || 'ACP agent program' : (pageSelection.entity.label ?? '') || [(pageSelection.entitySelector.registryAgentId ?? ''), (pageSelection.entity.packageName ?? ''), (pageSelection.entity.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program')} • ACP agent program • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.registryAgentId ?? '') || 'ACP agent program' : (pageSelection.entity.label ?? '') || [pageSelection.entitySelector.registryAgentId, pageSelection.entity.packageName, pageSelection.entity.repositoryUrl].filter(Boolean).join(' ') || 'ACP agent program')} • ACP agent program • Blockhead</title>
 </svelte:head>
 
 

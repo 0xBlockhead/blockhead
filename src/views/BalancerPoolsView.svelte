@@ -69,7 +69,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{balancerPool.$network.name || (balancerPool.$network.caip2 == null ? '' : `${balancerPool.$network.caip2.namespace}:${balancerPool.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{balancerPool.$network.name || `${balancerPool.$network.caip2.namespace}:${balancerPool.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

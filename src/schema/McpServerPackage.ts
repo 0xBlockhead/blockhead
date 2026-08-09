@@ -15,11 +15,11 @@ export default entity({
 })({
 	registryServerName: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	repositoryUrl: {
 		primitiveType: UrlString,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	label: {
 		primitiveType: type('string'),

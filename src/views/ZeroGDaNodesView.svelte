@@ -64,7 +64,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{zeroGDaNode.$network.name || (zeroGDaNode.$network.caip2 == null ? '' : `${zeroGDaNode.$network.caip2.namespace}:${zeroGDaNode.$network.caip2.reference}`) || 'Network'}
+				{zeroGDaNode.$network.name || `${zeroGDaNode.$network.caip2.namespace}:${zeroGDaNode.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

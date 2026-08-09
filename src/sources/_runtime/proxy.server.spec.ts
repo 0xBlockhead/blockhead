@@ -29,6 +29,7 @@ const {
 		oauthClientCredentials: {
 			clientIdEnvKey: 'OAUTH_CLIENT_ID',
 			tokenEndpoint: 'https://identity.example.test/oauth/token',
+			userAgent: 'Blockhead/1.0.0 (+https://blockhead.vision) by /u/blockhead',
 		},
 	},
 }))
@@ -227,6 +228,7 @@ describe('runtime secret proxy', () => {
 			undefined,
 			{
 				Authorization: 'Bearer browser-spoof',
+				'User-Agent': 'browser-spoof',
 				'X-Api-Key': 'browser-spoof',
 			}
 		)
@@ -251,10 +253,14 @@ describe('runtime secret proxy', () => {
 			.toBe('Basic b2F1dGgtY2xpZW50Om9hdXRoLXNlY3JldA==')
 		expect(tokenRequest.headers.get('Content-Type'))
 			.toBe('application/x-www-form-urlencoded')
+		expect(tokenRequest.headers.get('User-Agent'))
+			.toBe('Blockhead/1.0.0 (+https://blockhead.vision) by /u/blockhead')
 		expect(await tokenRequest.text()).toBe('grant_type=client_credentials')
 
 		const apiRequest = new Request(event.fetch.mock.calls[1]?.[0], event.fetch.mock.calls[1]?.[1])
 		expect(apiRequest.headers.get('Authorization')).toBe('Bearer server-access-token')
+		expect(apiRequest.headers.get('User-Agent'))
+			.toBe('Blockhead/1.0.0 (+https://blockhead.vision) by /u/blockhead')
 		expect(apiRequest.headers.has('X-Api-Key')).toBe(false)
 		expect([
 			event.url.href,

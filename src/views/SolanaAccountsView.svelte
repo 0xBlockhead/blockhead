@@ -65,7 +65,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{solanaAccount.$network.name || (solanaAccount.$network.caip2 == null ? '' : `${solanaAccount.$network.caip2.namespace}:${solanaAccount.$network.caip2.reference}`) || 'Network'}
+				{solanaAccount.$network.name || `${solanaAccount.$network.caip2.namespace}:${solanaAccount.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

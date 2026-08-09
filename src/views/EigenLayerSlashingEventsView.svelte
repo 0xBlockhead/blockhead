@@ -87,11 +87,11 @@
 			}
 		>
 			{#snippet Title()}
-				{(eigenLayerSlashingEvent.$operator == null ? '' : eigenLayerSlashingEvent.$operator.operatorAddress || 'eigen layer operator') || 'eigen layer slashing event'}
+				{eigenLayerSlashingEvent.$operator.operatorAddress || 'eigen layer operator'}
 			{/snippet}
 
 			{#snippet Value()}
-				{eigenLayerSlashingEvent.$avs == null ? '' : eigenLayerSlashingEvent.$avs.avsAddress || 'eigen layer avs'}
+				{eigenLayerSlashingEvent.$avs.avsAddress || 'eigen layer avs'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

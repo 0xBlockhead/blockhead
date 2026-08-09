@@ -35,7 +35,7 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? 'mcp server package version' : (pageSelection.entity.version ?? '') || 'mcp server package version')} • mcp server package version • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entity == null ? 'mcp server package version' : pageSelection.entity.version || 'mcp server package version')} • mcp server package version • Blockhead</title>
 </svelte:head>
 
 

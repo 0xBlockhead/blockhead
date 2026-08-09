@@ -806,6 +806,7 @@ type _SourceRuntimeSecret = {
 	oauthClientCredentials?: {
 		clientIdEnvKey: string
 		tokenEndpoint: string
+		userAgent?: string
 	}
 }
 
@@ -6791,8 +6792,8 @@ export const schema = {
 					plural: "a2a message parts",
 				},
 			})({
-				"$message": { label: "message", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.A2aMessage },
-				"$artifact": { label: "artifact", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.A2aArtifact },
+				"$message": { label: "message", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.A2aMessage },
+				"$artifact": { label: "artifact", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.A2aArtifact },
 				"partIndex": { label: "part index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"partKind": { label: "part kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"text": { label: "text", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -6860,8 +6861,8 @@ export const schema = {
 				},
 			})({
 				"taskId": { label: "task ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"$service": { label: "service", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.A2aAgentService },
-				"providerTaskId": { label: "provider task ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"$service": { label: "service", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.A2aAgentService },
+				"providerTaskId": { label: "provider task ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"contextId": { label: "context ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"createdAt": { label: "Created", description: "The time when the subject was created according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"updatedAt": { label: "Updated", description: "The time when the subject was last updated according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -7214,9 +7215,9 @@ export const schema = {
 					plural: "ACP agent programs",
 				},
 			})({
-				"registryAgentId": { label: "registry agent ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AcpRegistry_Rest] },
-				"packageName": { label: "package name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AcpRegistry_Rest] },
-				"repositoryUrl": { label: "repository URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString", defaultSources: [Source.AcpRegistry_Rest] },
+				"registryAgentId": { label: "registry agent ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.AcpRegistry_Rest] },
+				"packageName": { label: "package name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.AcpRegistry_Rest] },
+				"repositoryUrl": { label: "repository URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString", defaultSources: [Source.AcpRegistry_Rest] },
 				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AcpRegistry_Rest] },
 				"authors": { label: "authors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "stringArray", defaultSources: [Source.AcpRegistry_Rest] },
 			})({
@@ -8195,14 +8196,14 @@ export const schema = {
 					plural: "AI artifacts",
 				},
 			})({
-				"$provider": { label: "provider", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AiModelProvider },
-				"providerArtifactId": { label: "provider artifact ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"digestAlgorithm": { label: "digest algorithm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"digest": { label: "digest", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
-				"ociDigest": { label: "OCI digest", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"ipfsCid": { label: "IPFS CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"arweaveId": { label: "Arweave ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"gitObject": { label: "Git object", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"$provider": { label: "provider", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AiModelProvider },
+				"providerArtifactId": { label: "provider artifact ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"digestAlgorithm": { label: "digest algorithm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"digest": { label: "digest", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"ociDigest": { label: "OCI digest", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"ipfsCid": { label: "IPFS CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"arweaveId": { label: "Arweave ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"gitObject": { label: "Git object", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"uri": { label: "URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 				"mediaType": { label: "media type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"artifactType": { label: "artifact type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -8250,9 +8251,9 @@ export const schema = {
 			})({
 				"$artifact": { label: "artifact", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AiArtifact },
 				"attestationKind": { label: "attestation kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"logEntryId": { label: "log entry ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"signatureHashAlgorithm": { label: "signature hash algorithm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"signatureHash": { label: "signature hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"logEntryId": { label: "log entry ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"signatureHashAlgorithm": { label: "signature hash algorithm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"signatureHash": { label: "signature hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"certificateIdentity": { label: "certificate identity", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"certificateIssuer": { label: "certificate issuer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"logIndex": { label: "log index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -8289,10 +8290,10 @@ export const schema = {
 					plural: "AI benchmarks",
 				},
 			})({
-				"benchmarkId": { label: "benchmark ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"benchmarkUri": { label: "benchmark URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"sourceBenchmarkId": { label: "source benchmark ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"benchmarkId": { label: "benchmark ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"benchmarkUri": { label: "benchmark URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"sourceBenchmarkId": { label: "source benchmark ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"taskType": { label: "task type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"metricName": { label: "metric name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -8324,13 +8325,13 @@ export const schema = {
 					plural: "AI datasets",
 				},
 			})({
-				"datasetUri": { label: "dataset URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
-				"huggingFaceDatasetId": { label: "hugging face dataset ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"revision": { label: "revision", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"datasetName": { label: "dataset name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"datasetDigest": { label: "dataset digest", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$artifact": { label: "artifact", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AiArtifact },
+				"datasetUri": { label: "dataset URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
+				"huggingFaceDatasetId": { label: "hugging face dataset ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"revision": { label: "revision", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"datasetName": { label: "dataset name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"datasetDigest": { label: "dataset digest", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$artifact": { label: "artifact", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AiArtifact },
 				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"license": { label: "license", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"modality": { label: "modality", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -8363,10 +8364,10 @@ export const schema = {
 				},
 			})({
 				"documentKind": { label: "document kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"contentHashAlgorithm": { label: "content hash algorithm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"contentHash": { label: "content hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
-				"$artifact": { label: "artifact", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AiArtifact },
-				"documentUrl": { label: "document URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
+				"contentHashAlgorithm": { label: "content hash algorithm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"contentHash": { label: "content hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"$artifact": { label: "artifact", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AiArtifact },
+				"documentUrl": { label: "document URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"mediaType": { label: "media type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"schemaVersion": { label: "schema version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"conformsTo": { label: "conforms to", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
@@ -8569,8 +8570,8 @@ export const schema = {
 					plural: "AI model providers",
 				},
 			})({
-				"domain": { label: "domain", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"providerId": { label: "provider ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"domain": { label: "domain", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"providerId": { label: "provider ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"organizationKind": { label: "organization kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"homepageUrl": { label: "homepage URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
@@ -8619,11 +8620,11 @@ export const schema = {
 					plural: "AI model versions",
 				},
 			})({
-				"$model": { label: "model", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AiModel },
-				"versionId": { label: "version ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$artifact": { label: "artifact", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AiArtifact },
-				"huggingFaceRepo": { label: "hugging face repo", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"revision": { label: "revision", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"$model": { label: "model", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AiModel },
+				"versionId": { label: "version ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$artifact": { label: "artifact", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AiArtifact },
+				"huggingFaceRepo": { label: "hugging face repo", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"revision": { label: "revision", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"mlflowRegisteredModelName": { label: "mlflow registered model name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"mlflowModelVersion": { label: "mlflow model version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"onnxIrVersion": { label: "onnx ir version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -9565,7 +9566,7 @@ export const schema = {
 			})({
 				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AptosNetwork },
 				"height": { label: "Height", description: "The block or ledger height in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
-				"version": { label: "lookup version", description: "A ledger version used to locate the canonical block that contains it.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeBigInt" },
+				"version": { label: "lookup version", description: "A ledger version used to locate the canonical block that contains it.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
 				"firstVersion": { label: "first version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
 				"lastVersion": { label: "last version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
 				"timestampMs": { label: "Timestamp", description: "The block timestamp in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
@@ -13345,8 +13346,8 @@ export const schema = {
 				},
 				description: "Runes balance attached to a Bitcoin UTXO (txid:vout) or address view.",
 			})({
-				"$output": { label: "Output", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoOutput },
-				"$address": { label: "Address", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.UtxoAddress },
+				"$output": { label: "Output", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.UtxoOutput },
+				"$address": { label: "Address", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.UtxoAddress },
 				"$rune": { label: "Rune", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BitcoinRune, defaultSources: [Source.UniSat_Rest] },
 				"amount": { label: "Amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.UniSat_Rest] },
 				"divisibility": { label: "Divisibility", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.UniSat_Rest] },
@@ -19434,7 +19435,6 @@ export const schema = {
 				"protocol": { label: "Protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"transportKind": { label: "Transport", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"scopes": { label: "Scopes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "walletConnectionScopes" },
-				"selected": { label: "Selected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
 				"connectedAt": { label: "Connected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"disconnectedAt": { label: "Disconnected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"sessionId": { label: "Session ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -19446,11 +19446,31 @@ export const schema = {
 				selectors: {
 					"ConnectionKey": ["connectionKey"],
 				},
+				facets: {
+					Connected: facet({
+						path: ["status"],
+						is: "connected",
+					})({
+						"selected": { label: "Selected", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+					})({
+						singularView: {
+							query: {
+								sources: [Source.Local_Internal],
+								fields: ["selected"],
+							},
+							content: {
+								dl: [
+									["selected"],
+								],
+							},
+						},
+					}),
+				},
 				views: {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["status", "protocol", "transportKind", "selected"],
+							fields: ["status", "protocol", "transportKind"],
 							openFields: ["connectedAt", "disconnectedAt", "sessionId", "sessionTopic", "error"],
 						},
 						summary: {
@@ -19460,7 +19480,7 @@ export const schema = {
 						},
 						content: {
 							dl: [
-								["connectionKey", "$wallet", "status", "protocol", "transportKind", "selected"],
+								["connectionKey", "$wallet", "status", "protocol", "transportKind"],
 								[{ field: "connectedAt", format: "timestamp" }, { field: "disconnectedAt", format: "timestamp" }, "sessionId", "sessionTopic", "error", "$activeAccount"],
 							],
 						},
@@ -20884,10 +20904,10 @@ export const schema = {
 			})({
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"transferId": { label: "transfer ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"originChainId": { label: "origin chain ID", description: "The origin chain ID of the Across V3FundsDeposited intent.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
-				"depositId": { label: "deposit ID", description: "The Across V3FundsDeposited deposit ID, unique per origin chain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
-				"$sourceTx": { label: "source tx", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmTransaction },
-				"logIndex": { label: "log index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
+				"originChainId": { label: "origin chain ID", description: "The origin chain ID of the Across V3FundsDeposited intent.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"depositId": { label: "deposit ID", description: "The Across V3FundsDeposited deposit ID, unique per origin chain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"$sourceTx": { label: "source tx", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmTransaction },
+				"logIndex": { label: "log index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"$destinationTx": { label: "destination tx", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmTransaction },
 				"$sender": { label: "sender", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount },
 				"$recipient": { label: "recipient", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount },
@@ -26623,12 +26643,12 @@ export const schema = {
 				},
 			})({
 				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
-				"transactionHash": { label: "transaction hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
-				"logIndex": { label: "log index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
-				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"slashId": { label: "slash ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$operator": { label: "operator", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EigenLayerOperator },
-				"$avs": { label: "AVS", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EigenLayerAvs },
+				"transactionHash": { label: "transaction hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"logIndex": { label: "log index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"slashId": { label: "slash ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$operator": { label: "operator", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EigenLayerOperator },
+				"$avs": { label: "AVS", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EigenLayerAvs },
 				"$strategy": { label: "strategy", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EigenLayerStrategy },
 				"slashedShares": { label: "slashed shares", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"slashedAmount": { label: "slashed amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -29043,7 +29063,7 @@ export const schema = {
 				"interopAddress": {
 					label: "Interop address",
 					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 					valueType: "string",
 				},
 				"$primaryName": {
@@ -29651,7 +29671,7 @@ export const schema = {
 				"$contract": {
 					label: "Contract",
 					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.EvmContract,
 				},
 			})({
@@ -31218,7 +31238,7 @@ export const schema = {
 			})({
 				"$actor": { label: "Actor", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
-				"$contract": { label: "Contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract },
+				"$contract": { label: "Contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmContract },
 				"$coinInstance": { label: "Coin", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmCoinInstance },
 				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"decimals": { label: "Decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
@@ -33541,9 +33561,9 @@ export const schema = {
 			})({
 				"fid": { label: "FID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "FarcasterFid" },
 				"hash": { label: "Hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
-				"username": { label: "Username", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"hashPrefix": { label: "Hash prefix", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
-				"clientUrl": { label: "Client URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"username": { label: "Username", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"hashPrefix": { label: "Hash prefix", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
+				"clientUrl": { label: "Client URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$author": { label: "Author", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FarcasterUser },
 				"text": { label: "Text", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$parentCast": { label: "Parent cast", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FarcasterCast },
@@ -33865,9 +33885,9 @@ export const schema = {
 				},
 			})({
 				"variant": { label: "Variant", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"fid": { label: "FID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "FarcasterFid" },
-				"channelId": { label: "Channel ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"viewerFid": { label: "Viewer FID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "FarcasterFid" },
+				"fid": { label: "FID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "FarcasterFid" },
+				"channelId": { label: "Channel ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"viewerFid": { label: "Viewer FID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "FarcasterFid" },
 				"label": { label: "Label", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$$entries": { label: "Entries", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCast, defaultSources: [Source.Neynar_Rest, Source.Snapchain_Rest] },
 			})({
@@ -35925,7 +35945,7 @@ export const schema = {
 				},
 			})({
 				"repositoryId": { label: "repository ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"canonicalRemoteUrl": { label: "canonical remote URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
+				"canonicalRemoteUrl": { label: "canonical remote URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"defaultRefName": { label: "default ref name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"objectFormat": { label: "object format", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$$refs": { label: "refs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.GitRef },
@@ -36484,13 +36504,13 @@ export const schema = {
 					description: 'The token identifier within its collection or contract.',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 				},
 				"serialNumber": {
 					label: 'serial number',
 					type: EntityFieldType.Primitive,
 					valueType: "NonNegativeBigInt",
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 				},
 				"$token": {
 					label: 'token',
@@ -40062,7 +40082,7 @@ export const schema = {
 					label: "cloid",
 					type: EntityFieldType.Primitive,
 					valueType: "string",
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 				},
 				"coin": {
 					label: "coin",
@@ -41993,7 +42013,7 @@ export const schema = {
 					label: 'subaccount',
 					type: EntityFieldType.Primitive,
 					valueType: "string",
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 				},
 				"timestampMs": {
 					label: 'Timestamp',
@@ -43437,8 +43457,8 @@ export const schema = {
 				},
 			})({
 				"address": { label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
-				"localName": { label: "Local name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"legacyProfileId": { label: "Legacy profile ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"localName": { label: "Local name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"legacyProfileId": { label: "Legacy profile ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"displayName": { label: "Display name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"bio": { label: "Bio", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"createdAt": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -45990,8 +46010,8 @@ export const schema = {
 					plural: "MCP server packages",
 				},
 			})({
-				"registryServerName": { label: "registry server name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"repositoryUrl": { label: "repository URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
+				"registryServerName": { label: "registry server name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"repositoryUrl": { label: "repository URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
@@ -46015,9 +46035,9 @@ export const schema = {
 					plural: "mcp server package versions",
 				},
 			})({
-				"$package": { label: "package", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.McpServerPackage },
-				"version": { label: "version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$artifact": { label: "artifact", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.AiArtifact },
+				"$package": { label: "package", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.McpServerPackage },
+				"version": { label: "version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$artifact": { label: "artifact", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AiArtifact },
 				"releaseDate": { label: "release date", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"registryStatus": { label: "registry status", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"publishedAt": { label: "published AT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -48530,7 +48550,7 @@ export const schema = {
 					label: "CAIP-2",
 					description: "The chain identifier in CAIP-2 namespace and reference form.",
 					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 					valueType: "caip2",
 				},
 				"slug": {
@@ -55223,7 +55243,7 @@ export const schema = {
 				"$transaction": { label: "Transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.SolanaTransaction },
 				"instructionKind": { label: "Instruction kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "SolanaInstructionKind" },
 				"indexInTransaction": { label: "Index in transaction", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"indexInInstruction": { label: "Index in instruction", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
+				"indexInInstruction": { label: "Index in instruction", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"$program": { label: "Program", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.SolanaProgram },
 				"parsedType": { label: "Parsed type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"data": { label: "Data", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -63708,13 +63728,13 @@ export const schema = {
 					label: 'source transaction',
 					type: EntityFieldType.EntityReference,
 					entityType: EntityType.TonTransaction,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 				},
 				"outIndex": {
 					label: 'out index',
 					type: EntityFieldType.Primitive,
 					valueType: "NonNegativeInteger",
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 				},
 				"messageKind": {
 					label: 'message kind',
@@ -64105,13 +64125,13 @@ export const schema = {
 					label: 'collection',
 					type: EntityFieldType.EntityReference,
 					entityType: EntityType.TonNftCollection,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 				},
 				"itemIndex": {
 					label: 'item index',
 					type: EntityFieldType.Primitive,
 					valueType: "NonNegativeBigInt",
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 				},
 				"$account": {
 					label: 'account',
@@ -65452,18 +65472,18 @@ export const schema = {
 				"$token0": {
 					label: "Token 0",
 					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.EvmContract,
 					defaultSources: [Source.Voltaire_JsonRpc, Source.UniswapContracts_Evm],
 				},
 				"$token1": {
 					label: "Token 1",
 					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.EvmContract,
 					defaultSources: [Source.Voltaire_JsonRpc, Source.UniswapContracts_Evm],
 				},
-				"fee": { label: "Fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
+				"fee": { label: "Fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"tickSpacing": { label: "Tick spacing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"$poolContract": {
 					label: "Pool contract",
@@ -107395,6 +107415,7 @@ export const app = {
 							oauthClientCredentials: {
 								clientIdEnvKey: "REDDIT_CLIENT_ID",
 								tokenEndpoint: "https://www.reddit.com/api/v1/access_token",
+								userAgent: "Blockhead/1.0.0 (+https://blockhead.vision) by /u/blockhead",
 							},
 						},
 					],

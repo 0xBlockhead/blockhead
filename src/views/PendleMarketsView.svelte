@@ -69,7 +69,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{pendleMarket.$network.name || (pendleMarket.$network.caip2 == null ? '' : `${pendleMarket.$network.caip2.namespace}:${pendleMarket.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{pendleMarket.$network.name || `${pendleMarket.$network.caip2.namespace}:${pendleMarket.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

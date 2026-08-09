@@ -106,27 +106,24 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							cloid: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const cloid = entity.cloid}
-					{#if cloid != null}
-						<div>
-							<dt>cloid</dt>
-							<dd>
-								{cloid}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>cloid</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									cloid: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.cloid}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<div>
 				<dt>coin</dt>

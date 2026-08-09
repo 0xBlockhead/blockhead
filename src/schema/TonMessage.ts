@@ -22,11 +22,11 @@ export default entity({
 	},
 	$sourceTransaction: {
 		entityType: EntityType.TonTransaction,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	outIndex: {
 		primitiveType: type('number.integer >= 0'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	messageKind: {
 		primitiveType: type('string'),

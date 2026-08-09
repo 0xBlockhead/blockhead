@@ -40,7 +40,7 @@
 			entitySelector={tezosNetwork[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
-				{tezosNetwork.$network.name || (tezosNetwork.$network.caip2 == null ? '' : `${tezosNetwork.$network.caip2.namespace}:${tezosNetwork.$network.caip2.reference}`) || 'Network'}
+				{tezosNetwork.$network.name || `${tezosNetwork.$network.caip2.namespace}:${tezosNetwork.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

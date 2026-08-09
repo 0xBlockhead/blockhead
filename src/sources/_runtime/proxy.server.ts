@@ -76,6 +76,9 @@ const oauthAccessTokenFor = async ({
 			headers: {
 				Authorization: basicAuthorization,
 				'Content-Type': 'application/x-www-form-urlencoded',
+				...(definition.userAgent != null && {
+					'User-Agent': definition.userAgent,
+				}),
 			},
 			body: new URLSearchParams({
 				grant_type: 'client_credentials',
@@ -231,6 +234,9 @@ export const proxySourceHttpRequest = async (
 			`${credentialDefinition.definition.injection.header.prefix ?? ''}${credentialDefinition.secret}`
 		)
 	}
+	if (credentialDefinition?.definition.oauthClientCredentials?.userAgent != null)
+		requestHeaders.set('user-agent', credentialDefinition.definition.oauthClientCredentials.userAgent)
+
 	if (credentialDefinition?.definition.injection.query != null) {
 		url.searchParams.delete(credentialDefinition.definition.injection.query.name)
 		url.searchParams.set(

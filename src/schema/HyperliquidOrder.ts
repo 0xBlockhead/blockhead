@@ -22,7 +22,7 @@ export default entity({
 	},
 	cloid: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	coin: {
 		primitiveType: type('string'),

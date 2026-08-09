@@ -70,7 +70,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{cosmosValidator.$network.name || (cosmosValidator.$network.caip2 == null ? '' : `${cosmosValidator.$network.caip2.namespace}:${cosmosValidator.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{cosmosValidator.$network.name || `${cosmosValidator.$network.caip2.namespace}:${cosmosValidator.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

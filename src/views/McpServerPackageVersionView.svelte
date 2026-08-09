@@ -90,7 +90,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={mcpServerPackageVersion}>
 			{#snippet children(entity)}
-				{(entity.version ?? '') || title || titleFallback}
+				{entity.version || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -100,14 +100,12 @@
 			resource={selection.$package}
 		>
 			{#snippet children(mcpServerPackage)}
-				{#if mcpServerPackage != null}
-					<McpServerPackageView
-						selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
-						prefetched={mcpServerPackage}
-						href={null}
-						layout={EntityLayout.Value}
-					/>
-				{/if}
+				<McpServerPackageView
+					selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
+					prefetched={mcpServerPackage}
+					href={null}
+					layout={EntityLayout.Value}
+				/>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -127,59 +125,52 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={selection.$package}
-			>
-				{#snippet children(mcpServerPackage)}
-					{#if mcpServerPackage != null}
-						<div>
-							<dt>package</dt>
-							<dd>
-								<McpServerPackageView
-									selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
-									prefetched={mcpServerPackage}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>package</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$package}
+					>
+						{#snippet children(mcpServerPackage)}
+							<McpServerPackageView
+								selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
+								prefetched={mcpServerPackage}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={mcpServerPackageVersion}
-			>
-				{#snippet children(entity)}
-					{@const version = entity.version}
-					{#if version != null}
-						<div>
-							<dt>version</dt>
-							<dd>
-								{version}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>version</dt>
+				<dd>
+					<ResourceBoundary
+						resource={mcpServerPackageVersion}
+					>
+						{#snippet children(entity)}
+							{entity.version}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={selection.$artifact}
-			>
-				{#snippet children(aiArtifact)}
-					{#if aiArtifact != null}
-						<div>
-							<dt>artifact</dt>
-							<dd>
-								<AiArtifactView
-									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
-									prefetched={aiArtifact}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>artifact</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$artifact}
+					>
+						{#snippet children(aiArtifact)}
+							<AiArtifactView
+								selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
+								prefetched={aiArtifact}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={mcpServerPackageVersion}

@@ -1155,7 +1155,7 @@ describe('wallet connection runtime normalization', () => {
 					[entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], 'scopes')]: fieldCollection(),
 					[entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], '$$accounts')]: fieldCollection(),
 					[entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], '$activeAccount')]: fieldCollection(),
-					[entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], 'selected')]: fieldCollection(),
+					[entityFieldAddressKey(EntityType.BlockheadWalletConnection, ['Connected'], 'selected')]: fieldCollection(),
 					[entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], 'connectedAt')]: fieldCollection(),
 					[entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], 'disconnectedAt')]: fieldCollection(),
 					[entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], 'sessionId')]: fieldCollection(),

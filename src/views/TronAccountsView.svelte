@@ -63,7 +63,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{tronAccount.$network.name || (tronAccount.$network.caip2 == null ? '' : `${tronAccount.$network.caip2.namespace}:${tronAccount.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{tronAccount.$network.name || `${tronAccount.$network.caip2.namespace}:${tronAccount.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

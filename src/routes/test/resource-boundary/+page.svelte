@@ -12,7 +12,14 @@
 		type SvelteKitResource,
 		TanStackLiveQueryResource,
 	} from '$/lib/db/queryResource.svelte.ts'
+	import { projectResource } from '$/client/$proxy.svelte.ts'
 	import { select } from '$/routes/+layout.svelte'
+
+	declare global {
+		interface Window {
+			__projectedResourceCurrent?: () => string | undefined
+		}
+	}
 
 	let cachedBoundaryOpen = $state(
 		true
@@ -45,6 +52,26 @@
 			}
 		},
 	)
+	let projectedQuery = {
+		data: 'Initial projected value',
+		isLoading: false,
+		isError: false,
+		isReady: true,
+		status: 'ready',
+	} satisfies TanStackLiveQuerySnapshot<string>
+	const projectedQueryListeners = new Set<() => void>()
+	const projectedResource = projectResource(
+		new TanStackLiveQueryResource(
+			() => projectedQuery,
+			(update) => {
+				projectedQueryListeners.add(update)
+				return () => projectedQueryListeners.delete(update)
+			}
+		),
+		(value) => ({ value })
+	)
+	if (typeof window !== 'undefined')
+		window.__projectedResourceCurrent = () => projectedResource.current?.value
 	const initialFailableQuery = {
 		data: '',
 		isLoading: true,
@@ -221,6 +248,20 @@
 			listener()
 	}
 
+	const publishProjectedValue = () => {
+		setTimeout(() => {
+			projectedQuery = {
+				data: 'Updated projected value',
+				isLoading: false,
+				isError: false,
+				isReady: true,
+				status: 'ready',
+			}
+			for (const listener of projectedQueryListeners)
+				listener()
+		})
+	}
+
 	const writeResourceFixtureValue = (
 		id: string,
 		value: string,
@@ -387,6 +428,26 @@
 			<p data-testid="selected-awaited-value">pending</p>
 		{/snippet}
 	</svelte:boundary>
+</section>
+
+<section data-testid="projected-resource-boundary-section">
+	<h2>Projected resource</h2>
+
+	<button
+		data-testid="publish-projected-resource"
+		onclick={publishProjectedValue}
+	>
+		Publish projected value
+	</button>
+
+	<ResourceBoundary
+		resource={projectedResource}
+		placeholderText="Loading projected value"
+	>
+		{#snippet children(projected)}
+			<p data-testid="projected-resource-boundary-value">{projected.value}</p>
+		{/snippet}
+	</ResourceBoundary>
 </section>
 
 <section data-testid="parity-boundary-section">

@@ -71,7 +71,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[hyperliquidBorrowLendReserve.$network.name || (hyperliquidBorrowLendReserve.$network.caip2 == null ? '' : `${hyperliquidBorrowLendReserve.$network.caip2.namespace}:${hyperliquidBorrowLendReserve.$network.caip2.reference}`) || 'Network', hyperliquidBorrowLendReserve.$asset == null ? '' : (hyperliquidBorrowLendReserve.$asset.name ?? '') || String(hyperliquidBorrowLendReserve.$asset.assetId) || 'hyperliquid spot asset'].filter(Boolean).join(' ')}</span>
+				<span data-text="annotation">{[hyperliquidBorrowLendReserve.$network.name || `${hyperliquidBorrowLendReserve.$network.caip2.namespace}:${hyperliquidBorrowLendReserve.$network.caip2.reference}` || 'Network', hyperliquidBorrowLendReserve.$asset == null ? '' : (hyperliquidBorrowLendReserve.$asset.name ?? '') || String(hyperliquidBorrowLendReserve.$asset.assetId) || 'hyperliquid spot asset'].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

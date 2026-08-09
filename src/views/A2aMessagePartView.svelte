@@ -105,42 +105,38 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={selection.$message}
-			>
-				{#snippet children(a2aMessage)}
-					{#if a2aMessage != null}
-						<div>
-							<dt>message</dt>
-							<dd>
-								<A2aMessageView
-									selection={select(EntityType.A2aMessage, a2aMessage[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>message</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$message}
+					>
+						{#snippet children(a2aMessage)}
+							<A2aMessageView
+								selection={select(EntityType.A2aMessage, a2aMessage[EntityMetaKey.Selector])}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={selection.$artifact}
-			>
-				{#snippet children(a2aArtifact)}
-					{#if a2aArtifact != null}
-						<div>
-							<dt>artifact</dt>
-							<dd>
-								<A2aArtifactView
-									selection={select(EntityType.A2aArtifact, a2aArtifact[EntityMetaKey.Selector])}
-									prefetched={a2aArtifact}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>artifact</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$artifact}
+					>
+						{#snippet children(a2aArtifact)}
+							<A2aArtifactView
+								selection={select(EntityType.A2aArtifact, a2aArtifact[EntityMetaKey.Selector])}
+								prefetched={a2aArtifact}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<div>
 				<dt>part index</dt>

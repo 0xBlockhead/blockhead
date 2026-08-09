@@ -63,7 +63,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{lightningNode.$network.name || (lightningNode.$network.caip2 == null ? '' : `${lightningNode.$network.caip2.namespace}:${lightningNode.$network.caip2.reference}`) || 'Network'}
+				{lightningNode.$network.name || `${lightningNode.$network.caip2.namespace}:${lightningNode.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 		</EntityView>
 	{/snippet}

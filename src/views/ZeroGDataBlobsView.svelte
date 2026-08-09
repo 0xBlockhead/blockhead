@@ -64,7 +64,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{zeroGDataBlob.$network.name || (zeroGDataBlob.$network.caip2 == null ? '' : `${zeroGDataBlob.$network.caip2.namespace}:${zeroGDataBlob.$network.caip2.reference}`) || 'Network'}
+				{zeroGDataBlob.$network.name || `${zeroGDataBlob.$network.caip2.namespace}:${zeroGDataBlob.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

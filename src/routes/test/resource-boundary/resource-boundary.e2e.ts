@@ -86,6 +86,19 @@ test('ResourceBoundary updates from a mock TanStackLiveQueryResource snapshot', 
 	expectNoWarnings()
 })
 
+test('projected resource getter and await surface publish one source notification', async ({ page }) => {
+	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
+	await openRoute(page)
+	await expect(page.getByTestId('projected-resource-boundary-value')).toHaveText('Initial projected value')
+
+	await page.getByTestId('publish-projected-resource').click()
+	await expect.poll(() => page.evaluate(() => (
+		window.__projectedResourceCurrent?.()
+	))).toBe('Updated projected value')
+	await expect(page.getByTestId('projected-resource-boundary-value')).toHaveText('Updated projected value')
+	expectNoWarnings()
+})
+
 test('one resource-owned state machine keeps getters, promises, and ResourceBoundary parity', async ({ page }) => {
 	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
 	await openRoute(page)

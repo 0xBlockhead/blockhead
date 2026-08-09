@@ -69,7 +69,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{gmxMarket.$network.name || (gmxMarket.$network.caip2 == null ? '' : `${gmxMarket.$network.caip2.namespace}:${gmxMarket.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{gmxMarket.$network.name || `${gmxMarket.$network.caip2.namespace}:${gmxMarket.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

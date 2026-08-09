@@ -68,7 +68,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{evmNetworkGasFeeBlock.$network.name || (evmNetworkGasFeeBlock.$network.caip2 == null ? '' : `${evmNetworkGasFeeBlock.$network.caip2.namespace}:${evmNetworkGasFeeBlock.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{evmNetworkGasFeeBlock.$network.name || `${evmNetworkGasFeeBlock.$network.caip2.namespace}:${evmNetworkGasFeeBlock.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

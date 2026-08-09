@@ -115,27 +115,24 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							interopAddress: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const interopAddress = entity.interopAddress}
-					{#if interopAddress != null}
-						<div>
-							<dt>Interop address</dt>
-							<dd>
-								<TruncatedValue value={interopAddress} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Interop address</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									interopAddress: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<TruncatedValue value={entity.interopAddress} />
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={

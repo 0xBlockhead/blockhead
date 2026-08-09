@@ -67,7 +67,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{blockheadQuilibriumAccountState.$network.name || (blockheadQuilibriumAccountState.$network.caip2 == null ? '' : `${blockheadQuilibriumAccountState.$network.caip2.namespace}:${blockheadQuilibriumAccountState.$network.caip2.reference}`) || 'Network'}
+				{blockheadQuilibriumAccountState.$network.name || `${blockheadQuilibriumAccountState.$network.caip2.namespace}:${blockheadQuilibriumAccountState.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

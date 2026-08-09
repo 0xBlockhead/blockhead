@@ -64,7 +64,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{quilibriumShard.$network.name || (quilibriumShard.$network.caip2 == null ? '' : `${quilibriumShard.$network.caip2.namespace}:${quilibriumShard.$network.caip2.reference}`) || 'Network'}
+				{quilibriumShard.$network.name || `${quilibriumShard.$network.caip2.namespace}:${quilibriumShard.$network.caip2.reference}` || 'Network'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

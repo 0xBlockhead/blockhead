@@ -63,7 +63,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{tallyGovernor.$network.name || (tallyGovernor.$network.caip2 == null ? '' : `${tallyGovernor.$network.caip2.namespace}:${tallyGovernor.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{tallyGovernor.$network.name || `${tallyGovernor.$network.caip2.namespace}:${tallyGovernor.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

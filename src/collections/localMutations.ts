@@ -354,7 +354,8 @@ const deleteLocalPresence = (
 const localMutationAuthority = (
 	entityType: EntityType,
 	entitySelector: object,
-	details: Omit<LocalMutationAuthority, 'authorityKey' | 'source' | 'entityType' | 'selectorKey'>
+	details: Omit<LocalMutationAuthority, 'authorityKey' | 'source' | 'entityType' | 'selectorKey'>,
+	facetPath: readonly string[] = []
 ) => {
 	const selectorKey = entitySelectorKey(schema, entityDefinitionByType[entityType], entitySelector)
 	return {
@@ -363,7 +364,7 @@ const localMutationAuthority = (
 			details.fieldName === undefined ?
 				undefined
 			:
-				entityFieldAddressKey(String(entityType), [], details.fieldName)
+				entityFieldAddressKey(String(entityType), facetPath, details.fieldName)
 		),
 		authorityKey: localMutationAuthorityKey({
 			source: Source.Local_Internal,
@@ -374,7 +375,7 @@ const localMutationAuthority = (
 				details.fieldName === undefined ?
 					undefined
 				:
-					entityFieldAddressKey(String(entityType), [], details.fieldName)
+					entityFieldAddressKey(String(entityType), facetPath, details.fieldName)
 			),
 		}),
 		source: Source.Local_Internal,
@@ -387,26 +388,27 @@ const writeLocalPrimitiveFields = (
 	context: LocalMutationContext,
 	entityType: EntityType,
 	entitySelector: object,
-	fields: Partial<Record<string, LocalPrimitiveFieldValue | undefined>>
+	fields: Partial<Record<string, LocalPrimitiveFieldValue | undefined>>,
+	facetPath: readonly string[] = []
 ) => {
 	Object.entries(fields).forEach(([fieldName, value]) => {
 		const parentSelectorKey = entitySelectorKey(schema, entityDefinitionByType[entityType], entitySelector)
-		const collection = context.entityFieldCollections[entityType][entityFieldAddressKey(entityType, [], fieldName)]
+		const collection = context.entityFieldCollections[entityType][entityFieldAddressKey(entityType, facetPath, fieldName)]
 		collection.startSyncImmediate()
 		const authority = localMutationAuthority(entityType, entitySelector, {
 			fieldName,
-			facetPathKey: stringify([]),
+			facetPathKey: stringify(facetPath),
 			resolution: 'resolved',
-		})
+		}, facetPath)
 		collection.utils.replaceRowsWithAuthority(
 			(row) => (
 				row[EntityMetaKey.Source] === Source.Local_Internal
 				&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
-				&& row.facetPathKey === stringify([])
+				&& row.facetPathKey === stringify(facetPath)
 			),
 			value === undefined ? [] : [{
-				facetPath: [],
-				facetPathKey: stringify([]),
+				facetPath,
+				facetPathKey: stringify(facetPath),
 				fieldName,
 				[EntityMetaKey.ParentSelector]: entitySelector,
 				[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
@@ -2722,15 +2724,17 @@ export const writeLocalBlockheadWalletConnection = async (
 			}]
 		),
 	]
-	// Always write optional lifecycle fields (undefined clears stale error/selected timestamps).
+	// Always write optional lifecycle fields (undefined clears stale error/timestamps).
 	writeLocalPrimitiveFields(context, EntityType.BlockheadWalletConnection, entitySelector, {
-		selected: 'selected' in persisted ? persisted.selected : undefined,
 		connectedAt: 'connectedAt' in persisted ? persisted.connectedAt : undefined,
 		disconnectedAt: 'disconnectedAt' in persisted ? persisted.disconnectedAt : undefined,
 		sessionId: persisted.sessionId,
 		sessionTopic: persisted.sessionTopic,
 		error: 'error' in persisted ? persisted.error : undefined,
 	})
+	writeLocalPrimitiveFields(context, EntityType.BlockheadWalletConnection, entitySelector, {
+		selected: 'selected' in persisted ? persisted.selected : undefined,
+	}, ['Connected'])
 	relationshipApplications.push(writeLocalEntityReferenceField(
 		context,
 		EntityType._Global,
@@ -2750,7 +2754,6 @@ export const writeLocalBlockheadWalletConnection = async (
 			'scopes',
 			'$$accounts',
 			'$activeAccount',
-			'selected',
 			'connectedAt',
 			'disconnectedAt',
 			'sessionId',
@@ -2761,6 +2764,9 @@ export const writeLocalBlockheadWalletConnection = async (
 				entityFieldAddressKey(EntityType.BlockheadWalletConnection, [], fieldName)
 			].utils.waitForPersistence()
 		)),
+		context.entityFieldCollections[EntityType.BlockheadWalletConnection][
+			entityFieldAddressKey(EntityType.BlockheadWalletConnection, ['Connected'], 'selected')
+		].utils.waitForPersistence(),
 		context.entityFieldCollections[EntityType._Global][
 			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletConnections')
 		].utils.waitForPersistence(),

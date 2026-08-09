@@ -73,7 +73,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{morphoMarket.$network.name || (morphoMarket.$network.caip2 == null ? '' : `${morphoMarket.$network.caip2.namespace}:${morphoMarket.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{morphoMarket.$network.name || `${morphoMarket.$network.caip2.namespace}:${morphoMarket.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

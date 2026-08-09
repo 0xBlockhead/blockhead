@@ -3,7 +3,10 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import localInternal from '$/resolvers/Local.ts'
 import { readNormalizedLocalInternal } from '$/resolvers/Local/Internal/catalog.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
+import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
+import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { entityDefinitionByType } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 
@@ -153,6 +156,24 @@ describe('Local_Internal wallet request resolvers', () => {
 	})
 
 	it('gates selected on Connected status in the Local wallet-connection resolver', async () => {
+		const definition = entityDefinitionByType[EntityType.BlockheadWalletConnection]
+		const connected = definition.facets[0]
+		expect(definition.fields.some((field) => field.name === 'selected')).toBe(false)
+		expect(connected).toMatchObject({
+			condition: {
+				path: ['status'],
+				is: BlockheadConnectionStatus.Connected,
+			},
+			fields: [
+				expect.objectContaining({
+					name: 'selected',
+					cardinality: EntityFieldCardinality.One,
+				}),
+			],
+		})
+		expect(walletConnectionResolver.projections).not.toHaveProperty('selected')
+		expect(walletConnectionResolver.projections.Connected).toHaveProperty('selected')
+
 		const { readFile } = await import('node:fs/promises')
 		const source = await readFile(new URL('./Local.ts', import.meta.url), 'utf8')
 		expect(source).toMatch(/blockheadWalletConnection\.status === 'connected'[\s\S]*?selected:/)

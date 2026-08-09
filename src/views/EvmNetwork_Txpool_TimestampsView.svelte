@@ -69,7 +69,7 @@
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{evmNetworkTxpoolTimestamp.$network.name || (evmNetworkTxpoolTimestamp.$network.caip2 == null ? '' : `${evmNetworkTxpoolTimestamp.$network.caip2.namespace}:${evmNetworkTxpoolTimestamp.$network.caip2.reference}`) || 'Network'}</span>
+				<span data-text="annotation">{evmNetworkTxpoolTimestamp.$network.name || `${evmNetworkTxpoolTimestamp.$network.caip2.namespace}:${evmNetworkTxpoolTimestamp.$network.caip2.reference}` || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

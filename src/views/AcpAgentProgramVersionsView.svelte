@@ -90,11 +90,11 @@
 			}
 		>
 			{#snippet Title()}
-				{acpAgentProgramVersion.version || (acpAgentProgramVersion.$artifact.artifactType ?? '') || [(acpAgentProgramVersion.$artifact.providerArtifactId ?? ''), (acpAgentProgramVersion.$artifact.ociDigest ?? ''), (acpAgentProgramVersion.$artifact.ipfsCid ?? ''), (acpAgentProgramVersion.$artifact.arweaveId ?? ''), (acpAgentProgramVersion.$artifact.gitObject ?? ''), (acpAgentProgramVersion.$artifact.digest ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
+				{acpAgentProgramVersion.version || (acpAgentProgramVersion.$artifact.artifactType ?? '') || [acpAgentProgramVersion.$artifact.providerArtifactId, acpAgentProgramVersion.$artifact.ociDigest, acpAgentProgramVersion.$artifact.ipfsCid, acpAgentProgramVersion.$artifact.arweaveId, acpAgentProgramVersion.$artifact.gitObject, acpAgentProgramVersion.$artifact.digest].filter(Boolean).join(' ') || 'AI artifact'}
 			{/snippet}
 
 			{#snippet Value()}
-				{(acpAgentProgramVersion.$program.label ?? '') || [(acpAgentProgramVersion.$program.registryAgentId ?? ''), (acpAgentProgramVersion.$program.packageName ?? ''), (acpAgentProgramVersion.$program.repositoryUrl ?? '')].filter(Boolean).join(' ') || 'ACP agent program'}
+				{(acpAgentProgramVersion.$program.label ?? '') || [acpAgentProgramVersion.$program.registryAgentId, acpAgentProgramVersion.$program.packageName, acpAgentProgramVersion.$program.repositoryUrl].filter(Boolean).join(' ') || 'ACP agent program'}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -28,7 +28,7 @@ export default entity({
 	},
 	indexInInstruction: {
 		primitiveType: type('number.integer >= 0'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 	},
 	$program: {
 		entityType: EntityType.SolanaProgram,

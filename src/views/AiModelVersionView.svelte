@@ -106,7 +106,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={aiModelVersion}>
 			{#snippet children(entity)}
-				{(entity.versionId ?? '') || title || titleFallback}
+				{entity.versionId || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -116,14 +116,12 @@
 			resource={selection.$model}
 		>
 			{#snippet children(aiModel)}
-				{#if aiModel != null}
-					<AiModelView
-						selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
-						prefetched={aiModel}
-						href={null}
-						layout={EntityLayout.Value}
-					/>
-				{/if}
+				<AiModelView
+					selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
+					prefetched={aiModel}
+					href={null}
+					layout={EntityLayout.Value}
+				/>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -143,91 +141,78 @@
 
 	{#snippet Content()}
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={selection.$model}
-			>
-				{#snippet children(aiModel)}
-					{#if aiModel != null}
-						<div>
-							<dt>model</dt>
-							<dd>
-								<AiModelView
-									selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
-									prefetched={aiModel}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>model</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$model}
+					>
+						{#snippet children(aiModel)}
+							<AiModelView
+								selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
+								prefetched={aiModel}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={aiModelVersion}
-			>
-				{#snippet children(entity)}
-					{@const versionId = entity.versionId}
-					{#if versionId != null}
-						<div>
-							<dt>version ID</dt>
-							<dd>
-								{versionId}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>version ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={aiModelVersion}
+					>
+						{#snippet children(entity)}
+							{entity.versionId}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={selection.$artifact}
-			>
-				{#snippet children(aiArtifact)}
-					{#if aiArtifact != null}
-						<div>
-							<dt>artifact</dt>
-							<dd>
-								<AiArtifactView
-									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
-									prefetched={aiArtifact}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>artifact</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$artifact}
+					>
+						{#snippet children(aiArtifact)}
+							<AiArtifactView
+								selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
+								prefetched={aiArtifact}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={aiModelVersion}
-			>
-				{#snippet children(entity)}
-					{@const huggingFaceRepo = entity.huggingFaceRepo}
-					{#if huggingFaceRepo != null}
-						<div>
-							<dt>hugging face repo</dt>
-							<dd>
-								{huggingFaceRepo}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>hugging face repo</dt>
+				<dd>
+					<ResourceBoundary
+						resource={aiModelVersion}
+					>
+						{#snippet children(entity)}
+							{entity.huggingFaceRepo}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={aiModelVersion}
-			>
-				{#snippet children(entity)}
-					{@const revision = entity.revision}
-					{#if revision != null}
-						<div>
-							<dt>revision</dt>
-							<dd>
-								{revision}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>revision</dt>
+				<dd>
+					<ResourceBoundary
+						resource={aiModelVersion}
+					>
+						{#snippet children(entity)}
+							{entity.revision}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">

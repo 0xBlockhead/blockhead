@@ -69,7 +69,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[bnbBeaconTokenMigrationSelector.$token.symbol || 'bnb beacon token', bnbBeaconTokenMigration.$targetNetwork.name || (bnbBeaconTokenMigration.$targetNetwork.caip2 == null ? '' : `${bnbBeaconTokenMigration.$targetNetwork.caip2.namespace}:${bnbBeaconTokenMigration.$targetNetwork.caip2.reference}`) || 'Network'].filter(Boolean).join(' ')}
+				{[bnbBeaconTokenMigrationSelector.$token.symbol || 'bnb beacon token', bnbBeaconTokenMigration.$targetNetwork.name || `${bnbBeaconTokenMigration.$targetNetwork.caip2.namespace}:${bnbBeaconTokenMigration.$targetNetwork.caip2.reference}` || 'Network'].filter(Boolean).join(' ')}
 			{/snippet}
 		</EntityView>
 	{/snippet}
