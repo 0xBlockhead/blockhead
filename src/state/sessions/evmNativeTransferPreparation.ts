@@ -21,7 +21,9 @@ import { UrlString } from '$/schema/UrlString.ts'
 import { EvmAddress, Hash32, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import {
 	type LocalMutationContext,
+	writeLocalBlockheadActionOutcome,
 	writeLocalBlockheadActionReadinessChecks,
+	writeLocalBlockheadIntentInvocation,
 	writeLocalBlockheadSessionSimulation,
 	writeLocalBlockheadTransferIntent,
 	writeLocalBlockheadWalletRequest,
@@ -62,6 +64,12 @@ type ExecutionCall = {
 	input: ZeroExHexValue
 	value: bigint
 	blockTag: ZeroExHexValue
+}
+
+type EvmNativeTransferSimulationDispatch = {
+	invocationPayloadHash: ZeroExHexValue
+	sourceSelector: EntitySelector<typeof schema, EntityType.Account>
+	targetSelector: EntitySelector<typeof schema, EntityType.Account>
 }
 
 export type EvmNativeTransferExecutionTransport = {
@@ -152,6 +160,7 @@ export const prepareEvmNativeTransfer = async ({
 	actions,
 	walletConnections,
 	executionTransport,
+	onSimulationDispatch,
 	simulationId: providedSimulationId,
 	timestampMs = Date.now(),
 }: {
@@ -159,6 +168,7 @@ export const prepareEvmNativeTransfer = async ({
 	actions: readonly SessionAction[]
 	walletConnections: readonly WalletConnection[]
 	executionTransport?: EvmNativeTransferExecutionTransport
+	onSimulationDispatch?: (dispatch: EvmNativeTransferSimulationDispatch) => Promise<void>
 	simulationId?: string
 	timestampMs?: number
 }): Promise<EvmNativeTransferPreparation> => {
@@ -216,6 +226,8 @@ export const prepareEvmNativeTransfer = async ({
 			undefined
 		: selectedWalletConnections.length !== 1 ?
 			`Transfer preparation requires exactly one selected wallet connection; received ${selectedWalletConnections.length}.`
+		: walletConnection?.connectionKey == null ?
+			'Selected wallet connection has no persistent identity.'
 		: walletAccount == null ?
 			'Selected wallet connection has no active account.'
 		: walletAccount.namespace !== Caip2Namespace.Eip155 ?
@@ -505,10 +517,44 @@ export const prepareEvmNativeTransfer = async ({
 	}
 
 	let forkRpcOrigin: typeof UrlString.infer
+	try {
+		forkRpcOrigin = UrlString.assert(executionTransport.origin)
+	}
+	catch (cause) {
+		const error = `RPC simulation could not capture an execution block: ${cause instanceof Error ? cause.message : String(cause)}`
+		return {
+			ready: false,
+			error,
+			paramsHash,
+			intent,
+			readiness: readiness('blocked', error),
+			transaction,
+			simulation: {
+				id: simulationId,
+				$session: { [EntityMetaKey.Selector]: { id: session.id } },
+				status: 'failed',
+				createdAt: timestampMs,
+				completedAt: timestampMs,
+				paramsHash,
+				actionCount: 1,
+				error,
+			},
+		}
+	}
+
+	await onSimulationDispatch?.({
+		invocationPayloadHash: paramsHash,
+		sourceSelector: {
+			caip10: fromCaip10,
+		},
+		targetSelector: {
+			caip10: toCaip10,
+		},
+	})
+
 	let forkBlockNumber: bigint
 	let blockTag: ZeroExHexValue
 	try {
-		forkRpcOrigin = UrlString.assert(executionTransport.origin)
 		const block = await executionTransport.getBlockByNumber({
 			blockNumber: 'latest',
 			txObjects: false,
@@ -694,6 +740,15 @@ export const applyEvmNativeTransferPreparation = async ({
 }) => {
 	const action = actions.length === 1 ? actions[0] : undefined
 	const transferParams = transferParamsFromAction(action)
+	const preparationTimestampMs = timestampMs ?? Date.now()
+	const preparationId = simulationId ?? globalThis.crypto.randomUUID()
+	const lifecycleId = Hash32.assert(sha256Text(JSON.stringify([
+		'evm-native-transfer-preparation-lifecycle',
+		session.id,
+		action?.actionId,
+		preparationId,
+		preparationTimestampMs,
+	])))
 	const executionTransports = (
 		transferParams != null
 		&& Number.isSafeInteger(transferParams.chainId)
@@ -701,14 +756,44 @@ export const applyEvmNativeTransferPreparation = async ({
 		&& transferParams.tokenAddress.toLowerCase() === zeroAddress
 		&& transferParams.amount > 0n
 	) ? (executionTransportsByChainId[transferParams.chainId] ?? []) : []
+	let simulationDispatched = false
 
 	let preparation = await prepareEvmNativeTransfer({
 		session,
 		actions,
 		walletConnections,
 		executionTransport: executionTransports[0],
-		simulationId,
-		timestampMs,
+		onSimulationDispatch: action == null ? undefined : async ({
+			invocationPayloadHash,
+			sourceSelector,
+			targetSelector,
+		}) => {
+			await writeLocalBlockheadIntentInvocation(
+				context,
+				{ id: session.id },
+				{
+					invocationId: lifecycleId,
+					modality: 'click',
+					sourceEntityType: EntityType.Account,
+					sourceSelector,
+					targetEntityType: EntityType.Account,
+					targetSelector,
+					sourcePlacement: 'From',
+					targetPlacement: 'To',
+					invocationPayloadHash,
+					resolvedIntentType: EntityType.BlockheadTransferIntent,
+					intentDefinitionKey: ActionType.Transfer,
+					createdAt: preparationTimestampMs,
+					createdAction: {
+						sessionId: session.id,
+						actionId: action.actionId,
+					},
+				}
+			)
+			simulationDispatched = true
+		},
+		simulationId: preparationId,
+		timestampMs: preparationTimestampMs,
 	})
 	if (shouldRetryPreparationOnNextTransport(preparation)) {
 		for (const executionTransport of executionTransports.slice(1)) {
@@ -717,8 +802,8 @@ export const applyEvmNativeTransferPreparation = async ({
 				actions,
 				walletConnections,
 				executionTransport,
-				simulationId,
-				timestampMs,
+				simulationId: preparationId,
+				timestampMs: preparationTimestampMs,
 			})
 			if (preparation.ready || !shouldRetryPreparationOnNextTransport(preparation))
 				break
@@ -757,8 +842,41 @@ export const applyEvmNativeTransferPreparation = async ({
 	if (
 		!preparation.ready
 		|| action == null
-	)
+	) {
+		// oxlint-disable-next-line typescript/no-unnecessary-condition -- The awaited dispatch callback mutates this state before an RPC result returns.
+		if (action != null && preparation.simulation != null && simulationDispatched) {
+			const outcomePayloadHash = Hash32.assert(sha256Text(JSON.stringify([
+				preparation.simulation.id,
+				preparation.paramsHash,
+				preparation.error,
+			])))
+			await writeLocalBlockheadActionOutcome(
+				context,
+				{
+					sessionId: session.id,
+					actionId: action.actionId,
+				},
+				{
+					outcomeId: lifecycleId,
+					outcomeKind: 'simulation',
+					simulation: {
+						id: preparation.simulation.id,
+					},
+					createdAt: preparation.simulation.createdAt,
+					outcomePayloadHash,
+				},
+				{
+					timestampMs: preparation.simulation.completedAt ?? preparation.simulation.createdAt,
+					source: Source.Local_Internal,
+					status: 'failed',
+					sourcePayloadHash: outcomePayloadHash,
+					...(preparation.error != null && { error: preparation.error }),
+				}
+			)
+		}
+
 		return preparation
+	}
 
 	const selectedWalletConnections = walletConnections.filter(isSelectedWalletConnection)
 	const walletConnection = selectedWalletConnections.length === 1 ? selectedWalletConnections[0] : undefined
@@ -798,53 +916,114 @@ export const applyEvmNativeTransferPreparation = async ({
 		preparation.simulation.id,
 		preparation.paramsHash,
 	])))
-	const requestedAt = timestampMs ?? preparation.simulation.createdAt
+	const requestedAt = preparationTimestampMs
 	try {
-		await writeLocalBlockheadWalletRequest(context, {
-			id: walletRequestSelector.id,
-			sessionAction: {
+		try {
+			await writeLocalBlockheadWalletRequest(context, {
+				id: walletRequestSelector.id,
+				sessionAction: {
+					sessionId: session.id,
+					actionId: action.actionId,
+				},
+				walletConnection: {
+					connectionKey,
+				},
+				account: {
+					caip10: {
+						namespace: walletAccount.namespace,
+						reference: walletAccount.reference,
+						accountAddress: EvmAddress.assert(walletAccount.accountAddress.toLowerCase()),
+					},
+				},
+				requestKind: 'transaction',
+				requestMethod: 'eth_sendTransaction',
+				requestPayloadHash,
+				requestedAt,
+				evm: {
+					network: preparation.intent.$network[EntityMetaKey.Selector],
+					simulation: {
+						id: preparation.simulation.id,
+					},
+					calls: [{
+						toAddress: preparation.transaction.to,
+						value: preparation.transaction.value,
+						inputDataHash: (
+							preparation.simulationCall?.inputDataHash
+							?? Hash.sha256(preparation.transaction.input)
+						),
+					}],
+				},
+			}, walletConnections)
+		}
+		catch (error) {
+			if (!(error instanceof Error) || !error.message.startsWith('Wallet request definition already exists:'))
+				throw error
+		}
+		await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+			timestampMs: requestedAt,
+			source: Source.Local_Internal,
+			status: 'prepared',
+		})
+	}
+	catch (error) {
+		const preparationError = `Preparation could not save the wallet request: ${error instanceof Error ? error.message : String(error)}`
+		const outcomePayloadHash = Hash32.assert(sha256Text(JSON.stringify([
+			preparation.simulation.id,
+			preparation.paramsHash,
+			preparationError,
+		])))
+		await writeLocalBlockheadActionOutcome(
+			context,
+			{
 				sessionId: session.id,
 				actionId: action.actionId,
 			},
-			walletConnection: {
-				connectionKey,
-			},
-			account: {
-				caip10: {
-					namespace: walletAccount.namespace,
-					reference: walletAccount.reference,
-					accountAddress: EvmAddress.assert(walletAccount.accountAddress.toLowerCase()),
-				},
-			},
-			requestKind: 'transaction',
-			requestMethod: 'eth_sendTransaction',
-			requestPayloadHash,
-			requestedAt,
-			evm: {
-				network: preparation.intent.$network[EntityMetaKey.Selector],
+			{
+				outcomeId: lifecycleId,
+				outcomeKind: 'wallet-request',
 				simulation: {
 					id: preparation.simulation.id,
 				},
-				calls: [{
-					toAddress: preparation.transaction.to,
-					value: preparation.transaction.value,
-					inputDataHash: (
-						preparation.simulationCall?.inputDataHash
-						?? Hash.sha256(preparation.transaction.input)
-					),
-				}],
+				createdAt: requestedAt,
+				outcomePayloadHash,
 			},
-		}, walletConnections)
+			{
+				timestampMs: requestedAt,
+				source: Source.Local_Internal,
+				status: 'failed',
+				sourcePayloadHash: outcomePayloadHash,
+				error: preparationError,
+			}
+		)
+		return {
+			...preparation,
+			ready: false,
+			error: preparationError,
+		}
 	}
-	catch (error) {
-		if (!(error instanceof Error) || !error.message.startsWith('Wallet request definition already exists:'))
-			throw error
-	}
-	await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
-		timestampMs: requestedAt,
-		source: Source.Local_Internal,
-		status: 'prepared',
-	})
+	await writeLocalBlockheadActionOutcome(
+		context,
+		{
+			sessionId: session.id,
+			actionId: action.actionId,
+		},
+		{
+			outcomeId: lifecycleId,
+			outcomeKind: 'wallet-request',
+			walletRequest: walletRequestSelector,
+			simulation: {
+				id: preparation.simulation.id,
+			},
+			createdAt: requestedAt,
+			outcomePayloadHash: requestPayloadHash,
+		},
+		{
+			timestampMs: requestedAt,
+			source: Source.Local_Internal,
+			status: 'prepared',
+			sourcePayloadHash: requestPayloadHash,
+		}
+	)
 
 	return {
 		...preparation,

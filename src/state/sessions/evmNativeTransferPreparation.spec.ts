@@ -11,6 +11,7 @@ import { WalletCapability, WalletProtocol, WalletTransportKind } from '$/constan
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import type { WalletConnection } from '$/state/wallets/adapters/types.ts'
 import {
@@ -20,7 +21,9 @@ import {
 } from './evmNativeTransferPreparation.ts'
 
 const localMutationMocks = vi.hoisted(() => ({
+	writeLocalBlockheadActionOutcome: vi.fn(),
 	writeLocalBlockheadActionReadinessChecks: vi.fn(),
+	writeLocalBlockheadIntentInvocation: vi.fn(),
 	writeLocalBlockheadSessionSimulation: vi.fn(),
 	writeLocalBlockheadTransferIntent: vi.fn(),
 	writeLocalBlockheadWalletRequest: vi.fn(),
@@ -37,6 +40,7 @@ const secondToAddress = '0x3333333333333333333333333333333333333333'
 const expectedParamsHash = '0x2794f5ea61c302942d597479cd8700c04dee988b2dafe7f1f78af7be5dfe502d'
 const expectedResultHash = '0xcc5693b5ef1922db451cab54d37683180721b36fbb6d2ea6691a1d8014eecc17'
 const expectedEmptyDataHash = '0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+const expectedApplicationLifecycleId = '0x392de625d813f24e47c5aee59d3c10785d2751aa7f22ec4bbb50b1d602b97404'
 const expectedWalletRequestIdBySimulationId = {
 	'simulation-application': '0x9855d71980eb5d6907d816e7625109a80d3ce822b85842288779a5ed4ae47f9e',
 	'simulation-fallback': '0x19c4728df25c9a40df7a992c851f022b8e4b663b0d8cc0724b1af3e2dd2569e4',
@@ -673,6 +677,43 @@ describe('EVM native transfer preparation application', () => {
 		expect(firstTransport.getCall).toHaveBeenCalledOnce()
 		expect(firstTransport.estimateGas).toHaveBeenCalledOnce()
 		expect(secondTransport.getBlockByNumber).not.toHaveBeenCalled()
+		expect(localMutationMocks.writeLocalBlockheadIntentInvocation).toHaveBeenCalledExactlyOnceWith(
+			context,
+			{ id: 'session-1' },
+			{
+				invocationId: expectedApplicationLifecycleId,
+				modality: 'click',
+				sourceEntityType: EntityType.Account,
+				sourceSelector: {
+					caip10: {
+						namespace: 'eip155',
+						reference: '1',
+						accountAddress: fromAddress,
+					},
+				},
+				targetEntityType: EntityType.Account,
+				targetSelector: {
+					caip10: {
+						namespace: 'eip155',
+						reference: '1',
+						accountAddress: toAddress,
+					},
+				},
+				sourcePlacement: 'From',
+				targetPlacement: 'To',
+				invocationPayloadHash: expectedParamsHash,
+				resolvedIntentType: EntityType.BlockheadTransferIntent,
+				intentDefinitionKey: ActionType.Transfer,
+				createdAt: 10,
+				createdAction: {
+					sessionId: 'session-1',
+					actionId: 'action-1',
+				},
+			}
+		)
+		expect(localMutationMocks.writeLocalBlockheadIntentInvocation.mock.invocationCallOrder[0]).toBeLessThan(
+			firstTransport.getBlockByNumber.mock.invocationCallOrder[0]
+		)
 		expect(localMutationMocks.writeLocalBlockheadTransferIntent).toHaveBeenCalledExactlyOnceWith(
 			context,
 			preparation.intent
@@ -752,6 +793,32 @@ describe('EVM native transfer preparation application', () => {
 				status: 'prepared',
 			}
 		)
+		expect(localMutationMocks.writeLocalBlockheadActionOutcome).toHaveBeenCalledExactlyOnceWith(
+			context,
+			{
+				sessionId: 'session-1',
+				actionId: 'action-1',
+			},
+			{
+				outcomeId: expectedApplicationLifecycleId,
+				outcomeKind: 'wallet-request',
+				walletRequest: preparation.walletRequest,
+				simulation: {
+					id: 'simulation-application',
+				},
+				createdAt: 10,
+				outcomePayloadHash: expect.stringMatching(/^0x[\da-f]{64}$/),
+			},
+			{
+				timestampMs: 10,
+				source: Source.Local_Internal,
+				status: 'prepared',
+				sourcePayloadHash: expect.stringMatching(/^0x[\da-f]{64}$/),
+			}
+		)
+		expect(localMutationMocks.writeLocalBlockheadWalletRequest_Timestamp.mock.invocationCallOrder[0]).toBeLessThan(
+			localMutationMocks.writeLocalBlockheadActionOutcome.mock.invocationCallOrder[0]
+		)
 	})
 
 	it('retries later chain transports after an RPC simulation block', async () => {
@@ -789,6 +856,125 @@ describe('EVM native transfer preparation application', () => {
 		expect(preparation.walletRequest).toEqual({
 			id: expectedWalletRequestIdBySimulationId['simulation-fallback'],
 		})
+		expect(localMutationMocks.writeLocalBlockheadIntentInvocation).toHaveBeenCalledOnce()
+		expect(localMutationMocks.writeLocalBlockheadActionOutcome).toHaveBeenCalledOnce()
+		expect(localMutationMocks.writeLocalBlockheadActionOutcome.mock.calls[0][2]).toMatchObject({
+			outcomeKind: 'wallet-request',
+			walletRequest: preparation.walletRequest,
+		})
+	})
+
+	it('records a Local failed outcome only after an accepted RPC simulation dispatch', async () => {
+		const context = Object.create(null)
+		let persistInvocation = () => {}
+		localMutationMocks.writeLocalBlockheadIntentInvocation.mockImplementationOnce(() => (
+			new Promise<void>((resolve) => {
+				persistInvocation = resolve
+			})
+		))
+		const transport = executionTransport({
+			getBlockByNumber: async () => {
+				throw new Error('execution RPC unavailable')
+			},
+		})
+		const preparationPromise = applyEvmNativeTransferPreparation({
+			context,
+			session: {
+				id: 'session-1',
+				lockedAt: 1,
+			},
+			actions: [transferAction()],
+			walletConnections: [connectedWallet()],
+			executionTransportsByChainId: {
+				1: [transport.transport],
+			},
+			simulationId: 'simulation-failed',
+			timestampMs: 20,
+		})
+		await vi.waitFor(() => (
+			expect(localMutationMocks.writeLocalBlockheadIntentInvocation).toHaveBeenCalledOnce()
+		))
+		expect(transport.getBlockByNumber).not.toHaveBeenCalled()
+		persistInvocation()
+		const preparation = await preparationPromise
+
+		expect(preparation.ready).toBe(false)
+		expect(localMutationMocks.writeLocalBlockheadIntentInvocation.mock.invocationCallOrder[0]).toBeLessThan(
+			transport.getBlockByNumber.mock.invocationCallOrder[0]
+		)
+		expect(localMutationMocks.writeLocalBlockheadActionOutcome).toHaveBeenCalledExactlyOnceWith(
+			context,
+			{
+				sessionId: 'session-1',
+				actionId: 'action-1',
+			},
+			expect.objectContaining({
+				outcomeId: localMutationMocks.writeLocalBlockheadIntentInvocation.mock.calls[0][2].invocationId,
+				outcomeKind: 'simulation',
+				simulation: {
+					id: 'simulation-failed',
+				},
+				createdAt: 20,
+			}),
+			{
+				timestampMs: 20,
+				source: Source.Local_Internal,
+				status: 'failed',
+				sourcePayloadHash: expect.stringMatching(/^0x[\da-f]{64}$/),
+				error: 'RPC simulation could not capture an execution block: execution RPC unavailable',
+			}
+		)
+		expect(localMutationMocks.writeLocalBlockheadSessionSimulation.mock.invocationCallOrder[0]).toBeLessThan(
+			localMutationMocks.writeLocalBlockheadActionOutcome.mock.invocationCallOrder[0]
+		)
+		expect(localMutationMocks.writeLocalBlockheadWalletRequest).not.toHaveBeenCalled()
+	})
+
+	it('records a failed Local wallet-request outcome when accepted preparation persistence fails', async () => {
+		const context = Object.create(null)
+		localMutationMocks.writeLocalBlockheadWalletRequest.mockRejectedValueOnce(
+			new Error('local request storage unavailable')
+		)
+		const preparation = await applyEvmNativeTransferPreparation({
+			context,
+			session: {
+				id: 'session-1',
+				lockedAt: 1,
+			},
+			actions: [transferAction()],
+			walletConnections: [connectedWallet()],
+			executionTransportsByChainId: {
+				1: [executionTransport().transport],
+			},
+			simulationId: 'simulation-storage-failed',
+			timestampMs: 25,
+		})
+
+		expect(preparation).toMatchObject({
+			ready: false,
+			error: 'Preparation could not save the wallet request: local request storage unavailable',
+		})
+		expect(localMutationMocks.writeLocalBlockheadWalletRequest_Timestamp).not.toHaveBeenCalled()
+		expect(localMutationMocks.writeLocalBlockheadActionOutcome).toHaveBeenCalledExactlyOnceWith(
+			context,
+			{
+				sessionId: 'session-1',
+				actionId: 'action-1',
+			},
+			expect.objectContaining({
+				outcomeId: localMutationMocks.writeLocalBlockheadIntentInvocation.mock.calls[0][2].invocationId,
+				outcomeKind: 'wallet-request',
+				simulation: {
+					id: 'simulation-storage-failed',
+				},
+			}),
+			expect.objectContaining({
+				timestampMs: 25,
+				source: Source.Local_Internal,
+				status: 'failed',
+				error: 'Preparation could not save the wallet request: local request storage unavailable',
+			})
+		)
 	})
 
 	it('creates a distinct wallet request when simulation identity changes', async () => {
@@ -878,6 +1064,61 @@ describe('EVM native transfer preparation application', () => {
 		)
 	})
 
+	it.each([
+		{
+			name: 'wallet-readiness rejection',
+			walletConnections: [],
+			executionTransportsByChainId: {
+				1: [executionTransport().transport],
+			},
+		},
+		{
+			name: 'wallet connection without persistent identity',
+			walletConnections: [{
+				...connectedWallet(),
+				connectionKey: undefined,
+			}],
+			executionTransportsByChainId: {
+				1: [executionTransport().transport],
+			},
+		},
+		{
+			name: 'missing execution transport',
+			walletConnections: [connectedWallet()],
+			executionTransportsByChainId: {},
+		},
+		{
+			name: 'invalid execution transport origin',
+			walletConnections: [connectedWallet()],
+			executionTransportsByChainId: {
+				1: [executionTransport({
+					origin: 'not a URL',
+				}).transport],
+			},
+		},
+	])('does not create lifecycle rows for $name before dispatch', async ({
+		walletConnections,
+		executionTransportsByChainId,
+	}) => {
+		const preparation = await applyEvmNativeTransferPreparation({
+			context: Object.create(null),
+			session: {
+				id: 'session-1',
+				lockedAt: 1,
+			},
+			actions: [transferAction()],
+			walletConnections,
+			executionTransportsByChainId,
+			simulationId: 'simulation-rejected',
+			timestampMs: 30,
+		})
+
+		expect(preparation.ready).toBe(false)
+		expect(localMutationMocks.writeLocalBlockheadIntentInvocation).not.toHaveBeenCalled()
+		expect(localMutationMocks.writeLocalBlockheadActionOutcome).not.toHaveBeenCalled()
+		expect(localMutationMocks.writeLocalBlockheadWalletRequest).not.toHaveBeenCalled()
+	})
+
 	it('does not select or persist an absent action-owned result', async () => {
 		const transport = executionTransport()
 		const preparation = await applyEvmNativeTransferPreparation({
@@ -902,6 +1143,8 @@ describe('EVM native transfer preparation application', () => {
 		expect(localMutationMocks.writeLocalBlockheadSessionSimulation).not.toHaveBeenCalled()
 		expect(localMutationMocks.writeLocalBlockheadWalletRequest).not.toHaveBeenCalled()
 		expect(localMutationMocks.writeLocalBlockheadWalletRequest_Timestamp).not.toHaveBeenCalled()
+		expect(localMutationMocks.writeLocalBlockheadIntentInvocation).not.toHaveBeenCalled()
+		expect(localMutationMocks.writeLocalBlockheadActionOutcome).not.toHaveBeenCalled()
 		expect(preparation.walletRequest).toBeUndefined()
 	})
 
@@ -938,6 +1181,8 @@ describe('EVM native transfer preparation application', () => {
 		expect(localMutationMocks.writeLocalBlockheadSessionSimulation).not.toHaveBeenCalled()
 		expect(localMutationMocks.writeLocalBlockheadWalletRequest).not.toHaveBeenCalled()
 		expect(localMutationMocks.writeLocalBlockheadWalletRequest_Timestamp).not.toHaveBeenCalled()
+		expect(localMutationMocks.writeLocalBlockheadIntentInvocation).not.toHaveBeenCalled()
+		expect(localMutationMocks.writeLocalBlockheadActionOutcome).not.toHaveBeenCalled()
 		expect(preparation.walletRequest).toBeUndefined()
 		expect(localMutationMocks.writeLocalBlockheadActionReadinessChecks).toHaveBeenCalledExactlyOnceWith(
 			context,
