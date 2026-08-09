@@ -1,12 +1,15 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/GetBlock/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import { evmExecutionJsonRpc } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
 
+const queries = evmExecutionJsonRpc({
+	binding: bindings[Source.GetBlockRpc_JsonRpc][0],
+})
+
 export const getTransactionByHash = (
-	binding: SourceBinding,
-	request: Parameters<ReturnType<typeof evmExecutionJsonRpc>['getTransactionByHash']>[0]
-) => evmExecutionJsonRpc({ binding }).getTransactionByHash(request)
+	request: Parameters<typeof queries.getTransactionByHash>[0]
+) => queries.getTransactionByHash(request)
 
 export const getTransactionReceipt = (
-	binding: SourceBinding,
-	request: Parameters<ReturnType<typeof evmExecutionJsonRpc>['getTransactionReceipt']>[0]
-) => evmExecutionJsonRpc({ binding }).getTransactionReceipt(request)
+	request: Parameters<typeof queries.getTransactionReceipt>[0]
+) => queries.getTransactionReceipt(request)

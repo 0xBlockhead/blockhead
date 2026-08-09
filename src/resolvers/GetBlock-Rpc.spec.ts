@@ -81,10 +81,10 @@ describe('GetBlock RPC transaction source', () => {
 		sourceFetch
 			.mockResolvedValueOnce(new Response(transaction))
 			.mockResolvedValueOnce(new Response(receipt))
-		await expect(getTransactionByHash(resolverBinding, { txHash: '0xaaaa' })).resolves.toMatchObject({
+		await expect(getTransactionByHash({ txHash: '0xaaaa' })).resolves.toMatchObject({
 			hash: expect.any(String),
 		})
-		await expect(getTransactionReceipt(resolverBinding, { txHash: '0xaaaa' })).resolves.toMatchObject({
+		await expect(getTransactionReceipt({ txHash: '0xaaaa' })).resolves.toMatchObject({
 			status: '0x1',
 		})
 		expect(JSON.parse(sourceFetch.mock.calls[0][2].body)).toMatchObject({
