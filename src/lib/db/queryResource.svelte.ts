@@ -229,8 +229,8 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 			this.#resolveFirst()
 			this.#resolveFirst = undefined
 			this.#rejectFirst = undefined
-		} else
-			this.#promise = Promise.resolve()
+		}
+		this.#promise = Promise.resolve()
 
 		this.#pending = false
 	}
