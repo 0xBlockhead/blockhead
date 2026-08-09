@@ -6,7 +6,7 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
+	import { marketAssetByKind } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -60,9 +60,9 @@
 					'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]',
 					{
 						marketVenue: marketPriceSelector.$market.$marketVenue.marketVenueId,
-						baseKind: marketAssetRouteLabelByKind[marketPriceSelector.$market.$base.kind],
+						baseKind: marketAssetByKind[marketPriceSelector.$market.$base.kind].label,
 						base: marketPriceSelector.$market.$base.assetKey,
-						quoteKind: marketAssetRouteLabelByKind[marketPriceSelector.$market.$quote.kind],
+						quoteKind: marketAssetByKind[marketPriceSelector.$market.$quote.kind].label,
 						quote: marketPriceSelector.$market.$quote.assetKey,
 						marketKind: marketPriceSelector.$market.marketKind,
 					}

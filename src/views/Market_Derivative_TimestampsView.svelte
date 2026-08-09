@@ -6,7 +6,7 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
+	import { marketAssetByKind } from '$/constants/Market.ts'
 
 
 	// State
@@ -50,9 +50,9 @@
 					'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/derivatives/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
 					{
 						marketVenue: market.$marketVenue.marketVenueId,
-						baseKind: marketAssetRouteLabelByKind[market.$base.kind],
+						baseKind: marketAssetByKind[market.$base.kind].label,
 						base: market.$base.assetKey,
-						quoteKind: marketAssetRouteLabelByKind[market.$quote.kind],
+						quoteKind: marketAssetByKind[market.$quote.kind].label,
 						quote: market.$quote.assetKey,
 						marketKind: market.marketKind,
 						timestampMs: String(marketDerivativeTimestampSelector.timestampMs),

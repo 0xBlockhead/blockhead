@@ -7,7 +7,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { RegisteredEntitySelector } from '$/schema/index.ts'
-	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
+	import { marketAssetByKind } from '$/constants/Market.ts'
 
 
 	// State
@@ -72,9 +72,9 @@
 					'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]',
 					{
 						marketVenue: marketSelector.$marketVenue.marketVenueId,
-						baseKind: marketAssetRouteLabelByKind[base.kind],
+						baseKind: marketAssetByKind[base.kind].label,
 						base: base.assetKey,
-						quoteKind: marketAssetRouteLabelByKind[quote.kind],
+						quoteKind: marketAssetByKind[quote.kind].label,
 						quote: quote.assetKey,
 						marketKind: marketSelector.marketKind,
 					}

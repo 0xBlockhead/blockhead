@@ -7,7 +7,7 @@
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
-	import { marketAssetRouteLabelByKind, MarketKind, marketKindByMarketKind } from '$/constants/Market.ts'
+	import { marketAssetByKind, MarketKind, marketKindByMarketKind } from '$/constants/Market.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -56,9 +56,9 @@
 				'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]',
 				{
 					marketVenue: selection.entitySelector.$marketVenue.marketVenueId,
-					baseKind: marketAssetRouteLabelByKind[base.kind],
+					baseKind: marketAssetByKind[base.kind].label,
 					base: base.assetKey,
-					quoteKind: marketAssetRouteLabelByKind[quote.kind],
+					quoteKind: marketAssetByKind[quote.kind].label,
 					quote: quote.assetKey,
 					marketKind: selection.entitySelector.marketKind,
 				}

@@ -953,11 +953,15 @@ export default {
 						if (validator == null)
 							throw new Error(`SubstrateSidecar_Rest: validator not found for ${stashAccountId}`)
 
-						return {}
+						return {
+							stashAccountId,
+						}
 					},
 				},
 			},
-		})({}),
+		})({
+			stashAccountId: (validator) => validator.stashAccountId,
+		}),
 
 		defineResolver({
 			entityType: EntityType.Network_Timestamp,

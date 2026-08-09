@@ -233,7 +233,7 @@ describe('NEAR contract storage resolver', () => {
 	})
 })
 
-describe('NEAR block selectors', () => {
+describe('Near block selectors', () => {
 	beforeEach(() => {
 		corsFetch.mockReset()
 	})
@@ -566,7 +566,7 @@ describe('NEAR network reading facets', () => {
 	})
 })
 
-describe('NEAR live final head', () => {
+describe('Near live final head', () => {
 	beforeEach(() => {
 		corsFetch.mockReset()
 		vi.useFakeTimers()
@@ -660,7 +660,7 @@ describe('NEAR live final head', () => {
 	})
 })
 
-describe('NEAR block query', () => {
+describe('Near block query', () => {
 	beforeEach(() => {
 		corsFetch.mockReset()
 	})

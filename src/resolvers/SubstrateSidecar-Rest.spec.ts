@@ -691,7 +691,7 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/pallets/on-going-referenda')
 	})
 
-	it('resolves a validator stash from the staking list when public Sidecar answers', async () => {
+	it('restores Polkadot validator stash resolution from the staking list', async () => {
 		const stashAccountId = '15oF4uVJwmo4qjQJeHCDruaKdS2nG6t6dD6rJ8X2vY8rKzq'
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 			validators: [
@@ -704,7 +704,9 @@ describe('Substrate Sidecar network observation + validator leftovers', () => {
 		await expect(validatorResolver.resolve.NetworkStashAccountId.resolve({
 			$network: account.$network,
 			stashAccountId,
-		}, context)).resolves.toEqual({})
+		}, context)).resolves.toEqual({
+			stashAccountId,
+		})
 		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/pallets/staking/validators')
 	})
 })

@@ -53,7 +53,7 @@ export const marketOhlcDayLookbackValues = [
 
 export const marketOhlcDefaultLookbackDayCount = 90 satisfies typeof marketOhlcDayLookbackValues[number]
 
-const marketKinds = [
+export const marketKinds = [
 	{
 		marketKind: MarketKind.Spot,
 		label: 'Spot',
@@ -71,7 +71,7 @@ const marketKinds = [
 	label: string
 }[]
 
-const marketAssetRouteLabels = [
+export const marketAssets = [
 	{
 		kind: MarketAssetKind.Coin,
 		label: 'coin',
@@ -98,9 +98,9 @@ export const marketKindByMarketKind = Object.fromEntries(
 	])
 )
 
-export const marketAssetRouteLabelByKind = Object.fromEntries(
-	marketAssetRouteLabels.map((row) => [
+export const marketAssetByKind = Object.fromEntries(
+	marketAssets.map((row) => [
 		row.kind,
-		row.label,
+		row,
 	])
 )

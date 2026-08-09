@@ -7,7 +7,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import type { RegisteredEntitySelector } from '$/schema/index.ts'
-	import { marketAssetRouteLabelByKind } from '$/constants/Market.ts'
+	import { marketAssetByKind } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -88,9 +88,9 @@
 					'/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind=stringSegment]/[base=stringSegment]/[quoteKind=stringSegment]/[quote=stringSegment]/[marketKind=stringSegment]/(market)/candles/[timeIntervalUnit=stringSegment]/[timeIntervalValue=nonNegativeInteger]/[timestampMs=nonNegativeInteger]',
 					{
 						marketVenue: market.$marketVenue.marketVenueId,
-						baseKind: marketAssetRouteLabelByKind[market.$base.kind],
+						baseKind: marketAssetByKind[market.$base.kind].label,
 						base: market.$base.assetKey,
-						quoteKind: marketAssetRouteLabelByKind[market.$quote.kind],
+						quoteKind: marketAssetByKind[market.$quote.kind].label,
 						quote: market.$quote.assetKey,
 						marketKind: market.marketKind,
 						timeIntervalUnit: marketTimeIntervalTimestampSelector.timeInterval.unit,

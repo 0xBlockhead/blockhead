@@ -211,7 +211,7 @@ export default entity({
 			},
 			$$txpoolTimestamps: {
 				entityType: EntityType.EvmNetwork_Txpool_Timestamp,
-				cardinality: EntityFieldCardinality.ZeroOrMany,
+				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Voltaire_JsonRpc,
 				],
@@ -225,7 +225,7 @@ export default entity({
 			},
 			$$gasEstimateTimestamps: {
 				entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
-				cardinality: EntityFieldCardinality.ZeroOrMany,
+				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Blockscout_Rest,
 					Source.Etherscan_Rest,
