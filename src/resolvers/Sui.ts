@@ -8,16 +8,7 @@ import {
 } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import bindings from '$/sources/Sui/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { ApiFamily } from '$/sources/SourceBinding.ts'
-
-const suiGraphqlBinding = bindings[Source.Sui].find(
-	({ apiFamily }) => apiFamily === ApiFamily.GraphqlHttp
-)
-
-if (suiGraphqlBinding == null)
-	throw new Error('Sui GraphQL binding is missing')
 
 type NetworkSelector = EntitySelector<typeof schema, EntityType.Network>
 type SuiNetworkSelector = EntitySelector<typeof schema, EntityType.SuiNetwork>
@@ -85,7 +76,6 @@ export default {
 						return {
 							address,
 							page: await getAddressBalances({
-								binding: suiGraphqlBinding,
 								address,
 								limit: Math.min(resolverContextRowLimit(context), 50),
 								after: context.providerContinuationToken,
@@ -148,7 +138,6 @@ export default {
 						} = await import('$/sources/Sui/Graphql/queries.ts')
 						const address = normalizeSuiAddress(account.address)
 						const page = await getAddressTransactions({
-							binding: suiGraphqlBinding,
 							address,
 							limit: Math.min(resolverContextRowLimit(context), 50),
 							after: context.providerContinuationToken,
@@ -217,7 +206,6 @@ export default {
 						} = await import('$/sources/Sui/Graphql/queries.ts')
 						const address = normalizeSuiAddress(account.address)
 						const page = await getAddressObjects({
-							binding: suiGraphqlBinding,
 							address,
 							limit: Math.min(resolverContextRowLimit(context), 50),
 							after: context.providerContinuationToken,
@@ -282,7 +270,7 @@ export default {
 					resolve: async ($network) => {
 						assertSuiNetworkEntity($network)
 						const { getLatestCheckpoint } = await import('$/sources/Sui/Graphql/queries.ts')
-						const checkpoint = await getLatestCheckpoint(suiGraphqlBinding)
+						const checkpoint = await getLatestCheckpoint()
 						return {
 							$network,
 							checkpoint,
@@ -355,7 +343,7 @@ export default {
 							getCheckpointBySequence,
 							getLatestCheckpoint,
 						} = await import('$/sources/Sui/Graphql/queries.ts')
-						const tip = await getLatestCheckpoint(suiGraphqlBinding)
+						const tip = await getLatestCheckpoint()
 						const $network = {
 							$network: network,
 						} satisfies SuiNetworkSelector
@@ -366,7 +354,7 @@ export default {
 								Array.from({
 									length: Math.max(0, Math.min(Number(tip.sequence), limit) - 1),
 								}, (_value, offset) => (
-									getCheckpointBySequence(suiGraphqlBinding, tip.sequence - BigInt(offset + 1))
+									getCheckpointBySequence( tip.sequence - BigInt(offset + 1))
 								))
 							),
 						]
@@ -442,7 +430,6 @@ export default {
 						assertSuiNetwork(network)
 						const { getRecentTransactions } = await import('$/sources/Sui/Graphql/queries.ts')
 						const page = await getRecentTransactions({
-							binding: suiGraphqlBinding,
 							limit: Math.min(resolverContextRowLimit(context), 50),
 							after: context.providerContinuationToken,
 						})
@@ -503,7 +490,7 @@ export default {
 						assertSuiNetworkEntity($network)
 						assertSource(source)
 						const { getLatestCheckpoint } = await import('$/sources/Sui/Graphql/queries.ts')
-						const checkpoint = await getLatestCheckpoint(suiGraphqlBinding)
+						const checkpoint = await getLatestCheckpoint()
 						return {
 							timestampMs,
 							latestCheckpointSequence: checkpoint.sequence,
@@ -535,7 +522,7 @@ export default {
 					}) => {
 						assertSuiNetworkEntity($network)
 						const { getCheckpointBySequence } = await import('$/sources/Sui/Graphql/queries.ts')
-						return getCheckpointBySequence(suiGraphqlBinding, sequence)
+						return getCheckpointBySequence( sequence)
 					},
 				},
 				NetworkDigest: {
@@ -546,7 +533,7 @@ export default {
 					}) => {
 						assertSuiNetworkEntity($network)
 						const { getCheckpointByDigest } = await import('$/sources/Sui/Graphql/queries.ts')
-						return getCheckpointByDigest(suiGraphqlBinding, digest)
+						return getCheckpointByDigest( digest)
 					},
 				},
 			},
@@ -569,7 +556,7 @@ export default {
 					}) => {
 						assertSuiNetworkEntity($network)
 						const { getTransaction } = await import('$/sources/Sui/Graphql/queries.ts')
-						const transaction = await getTransaction(suiGraphqlBinding, digest)
+						const transaction = await getTransaction( digest)
 						return {
 							$network,
 							transaction,
@@ -741,7 +728,7 @@ export default {
 						assertSuiNetworkEntity($transaction.$network)
 						assertSource(source)
 						const { getTransaction } = await import('$/sources/Sui/Graphql/queries.ts')
-						const transaction = await getTransaction(suiGraphqlBinding, $transaction.digest)
+						const transaction = await getTransaction( $transaction.digest)
 						if (transaction.checkpointSequence !== checkpointSequence)
 							throw new Error('Sui: transaction checkpoint sequence mismatch')
 						return transaction
@@ -769,7 +756,7 @@ export default {
 					}) => {
 						assertSuiNetworkEntity($network)
 						const { getObject } = await import('$/sources/Sui/Graphql/queries.ts')
-						const object = await getObject(suiGraphqlBinding, objectId)
+						const object = await getObject( objectId)
 						return {
 							$network,
 							object,
@@ -822,7 +809,7 @@ export default {
 					}) => {
 						assertSuiNetworkEntity($network)
 						const { getObject } = await import('$/sources/Sui/Graphql/queries.ts')
-						const object = await getObject(suiGraphqlBinding, objectId)
+						const object = await getObject( objectId)
 						if (object.version !== version || object.digest !== digest)
 							throw new Error('Sui: object version/digest mismatch')
 						return object
@@ -850,7 +837,7 @@ export default {
 					}) => {
 						assertSuiNetworkEntity($network)
 						const { getCoinMetadata } = await import('$/sources/Sui/Graphql/queries.ts')
-						return await getCoinMetadata(suiGraphqlBinding, coinType)
+						return await getCoinMetadata( coinType)
 					},
 				},
 			},
@@ -874,7 +861,7 @@ export default {
 					}) => {
 						assertSuiNetworkEntity($network)
 						const { getPackage } = await import('$/sources/Sui/Graphql/queries.ts')
-						const suiPackage = await getPackage(suiGraphqlBinding, originalPackageId)
+						const suiPackage = await getPackage( originalPackageId)
 						return {
 							$network,
 							suiPackage,

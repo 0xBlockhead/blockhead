@@ -1,8 +1,17 @@
+import bindings from '$/sources/Sui/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
 import {
 	executeSui,
 	graphql,
 } from '$/sources/Sui/Graphql/client.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+const binding = bindings[Source.Sui].find(({ apiFamily }) => (
+	apiFamily === ApiFamily.GraphqlHttp
+))
+
+if (binding == null)
+	throw new Error('Sui GraphQL binding is missing')
+
 
 const addressBalancesDocument = graphql(`
 	query SuiAddressBalances($address: SuiAddress!, $first: Int!, $after: String) {
@@ -598,16 +607,14 @@ const normalizeCheckpoint = (checkpoint: SuiCheckpointWire) => {
 
 export const getAddressBalances = async (
 	{
-		binding,
-		address,
-		limit,
-		after,
-	}: {
-		binding: SourceBinding
-		address: string
-		limit: number
-		after?: string
-	}
+	address,
+	limit,
+	after,
+}: {
+	address: string
+	limit: number
+	after?: string
+}
 ) => {
 	assertPageRequest({
 		address,
@@ -686,16 +693,14 @@ export const getAddressBalances = async (
 
 export const getAddressTransactions = async (
 	{
-		binding,
-		address,
-		limit,
-		after,
-	}: {
-		binding: SourceBinding
-		address: string
-		limit: number
-		after?: string
-	}
+	address,
+	limit,
+	after,
+}: {
+	address: string
+	limit: number
+	after?: string
+}
 ) => {
 	assertPageRequest({
 		address,
@@ -752,14 +757,12 @@ export const getAddressTransactions = async (
 
 export const getRecentTransactions = async (
 	{
-		binding,
-		limit,
-		after,
-	}: {
-		binding: SourceBinding
-		limit: number
-		after?: string
-	}
+	limit,
+	after,
+}: {
+	limit: number
+	after?: string
+}
 ) => {
 	if (!Number.isSafeInteger(limit) || limit < 0 || limit > 50)
 		throw new Error('Sui GraphQL page limit must be a safe integer from 0 through 50')
@@ -816,14 +819,14 @@ export const getRecentTransactions = async (
 	}
 }
 
-export const getLatestCheckpoint = async (binding: SourceBinding) => {
+export const getLatestCheckpoint = async () => {
 	const result = await executeSui(binding, latestCheckpointDocument, {})
 	if (result.checkpoint == null)
 		throw new Error('Sui GraphQL latest checkpoint is missing')
 	return normalizeCheckpoint(result.checkpoint)
 }
 
-export const getCheckpointBySequence = async (binding: SourceBinding, sequence: bigint) => {
+export const getCheckpointBySequence = async (sequence: bigint) => {
 	if (sequence < 0n)
 		throw new Error('Sui GraphQL checkpoint sequence must be nonnegative')
 	const result = await executeSui(
@@ -841,7 +844,7 @@ export const getCheckpointBySequence = async (binding: SourceBinding, sequence: 
 	return checkpoint
 }
 
-export const getCheckpointByDigest = async (binding: SourceBinding, digest: string) => {
+export const getCheckpointByDigest = async (digest: string) => {
 	if (digest.length === 0)
 		throw new Error('Sui GraphQL checkpoint digest must not be empty')
 	const result = await executeSui(
@@ -944,7 +947,7 @@ const transactionArgumentFromWire = (
 	}
 }
 
-export const getTransaction = async (binding: SourceBinding, digest: string) => {
+export const getTransaction = async (digest: string) => {
 	if (digest.length === 0)
 		throw new Error('Sui GraphQL transaction digest must not be empty')
 	const result = await executeSui(
@@ -990,12 +993,7 @@ export const getTransaction = async (binding: SourceBinding, digest: string) => 
 						moduleName: moveFunction.module.name,
 						functionName: moveFunction.name,
 						typeArguments,
-						arguments: (
-							'arguments' in command && command.arguments != null ?
-								command.arguments.map(transactionArgumentFromWire)
-							:
-								[]
-						),
+						arguments: command.arguments.map(transactionArgumentFromWire),
 					}
 				}
 				if (command.__typename === 'TransferObjectsCommand' && 'inputs' in command) {
@@ -1204,12 +1202,10 @@ export const getTransaction = async (binding: SourceBinding, digest: string) => 
 
 
 export const getAddressObjects = async ({
-	binding,
 	address,
 	limit,
 	after,
 }: {
-	binding: SourceBinding
 	address: string
 	limit: number
 	after?: string
@@ -1274,7 +1270,7 @@ export const getAddressObjects = async ({
 	}
 }
 
-export const getObject = async (binding: SourceBinding, objectId: string) => {
+export const getObject = async (objectId: string) => {
 	const address = normalizeSuiAddress(objectId)
 	const result = await executeSui(
 		binding,
@@ -1323,7 +1319,7 @@ export const getObject = async (binding: SourceBinding, objectId: string) => {
 	}
 }
 
-export const getCoinMetadata = async (binding: SourceBinding, coinType: string) => {
+export const getCoinMetadata = async (coinType: string) => {
 	if (coinType.length === 0)
 		throw new Error('Sui GraphQL coin type must not be empty')
 	const result = await executeSui(
@@ -1356,7 +1352,7 @@ export const getCoinMetadata = async (binding: SourceBinding, coinType: string) 
 	}
 }
 
-export const getPackage = async (binding: SourceBinding, packageId: string) => {
+export const getPackage = async (packageId: string) => {
 	const address = normalizeSuiAddress(packageId)
 	const result = await executeSui(
 		binding,
