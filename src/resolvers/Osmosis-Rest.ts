@@ -15,7 +15,6 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import bindings from '$/sources/Osmosis/bindings.ts'
 import { osmosisLcdRestEndpoints } from '$/sources/Osmosis/Rest/queries.ts'
 import type {
 	OsmosisFullPositionBreakdown,
@@ -27,9 +26,6 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type OsmosisPoolId = EntitySelector<typeof schema, EntityType.OsmosisPool>
 type OsmosisPositionId = EntitySelector<typeof schema, EntityType.OsmosisPosition>
 type CosmosAccountId = EntitySelector<typeof schema, EntityType.CosmosAccount>
-
-const osmosisBinding = Object.fromEntries(bindings[Source.Osmosis_LCD_Rest].map((binding) => [binding.target.key, binding]))['cosmos:osmosis-1']
-const osmosisLcdCaip2NetworkKey = osmosisBinding.target.key
 
 const osmosisCaip2 = {
 	namespace: 'cosmos',
@@ -107,7 +103,8 @@ const assertOsmosisNetwork = (network: NetworkId) => {
 
 	if (
 		'caip2' in network
-		&& `${network.caip2.namespace}:${network.caip2.reference}` === osmosisLcdCaip2NetworkKey
+		&& network.caip2.namespace === osmosisCaip2.namespace
+		&& network.caip2.reference === osmosisCaip2.reference
 	)
 		return
 
