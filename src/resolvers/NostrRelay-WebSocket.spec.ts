@@ -16,18 +16,10 @@ import { Source } from '$/sources/Source.ts'
 import type { NostrRelaySubscriptionEvent } from '$/sources/NostrRelay/WebSocket/types.ts'
 import { nostrEventId } from '$/sources/NostrRelay/Nip01/event.ts'
 
-const openRelaySubscription = vi.hoisted(() => vi.fn())
-const listNostrRelayEvents = vi.hoisted(() => vi.fn())
-const nostrRelaySnapshotBindings = vi.hoisted(() => vi.fn(() => [{
-	target: {
-		key: 'wss://relay.nostr.band',
-	},
-}]))
+const openNostrRelaySubscription = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/NostrRelay/WebSocket/queries.ts', () => ({
-	listNostrRelayEvents,
-	nostrRelaySnapshotBindings,
-	openRelaySubscription,
+	openNostrRelaySubscription,
 }))
 
 const { default: nostrRelayWebSocket } = await import('$/resolvers/NostrRelay-WebSocket.ts')
@@ -37,7 +29,7 @@ describe('Nostr relay live note resolver', () => {
 	it('publishes bounded signed notes and preserves lifecycle ownership', async () => {
 		let onEvent: ((event: NostrRelaySubscriptionEvent) => void) | undefined
 		const close = vi.fn()
-		openRelaySubscription.mockImplementationOnce((options) => {
+		openNostrRelaySubscription.mockImplementationOnce((options) => {
 			onEvent = options.onEvent
 			return { close }
 		})
@@ -73,13 +65,8 @@ describe('Nostr relay live note resolver', () => {
 			},
 		})
 
-		expect(openRelaySubscription).toHaveBeenCalledWith(expect.objectContaining({
-			binding: expect.objectContaining({
-				target: {
-					kind: 'Feed',
-					key: 'wss://relay.example/path',
-				},
-			}),
+		expect(openNostrRelaySubscription).toHaveBeenCalledWith(expect.objectContaining({
+			relayUrl: 'wss://relay.example/path',
 			subscriptionId: 'blockhead-live-notes',
 			filters: [{
 				kinds: [1],

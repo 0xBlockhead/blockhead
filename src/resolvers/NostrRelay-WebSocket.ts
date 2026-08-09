@@ -27,7 +27,6 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import bindings from '$/sources/NostrRelay/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceOperationGroup } from '$/sources/SourceBinding.ts'
 import {
@@ -36,21 +35,16 @@ import {
 	validatedNostrEventFromContent,
 } from '$/sources/NostrRelay/Nip01/event.ts'
 import {
-	listNostrRelayEvents as listNostrRelayEventsFromBindings,
-	openRelaySubscription,
+	listNostrRelayEventsForOperationGroup,
+	nostrSearchTargetKey,
+	openNostrRelaySubscription,
 } from '$/sources/NostrRelay/WebSocket/queries.ts'
 import type { NostrRelayEvent } from '$/sources/NostrRelay/WebSocket/types.ts'
 
-const nostrRelayBindings = (
-	operationGroup: SourceOperationGroup.NostrRelayRead | SourceOperationGroup.NostrSearch
-) => bindings[Source.NostrRelay_WebSocket].filter((binding) => (
-	binding.operationGroups.includes(operationGroup)
-))
-
 const listNostrRelayEvents = (
-	request: Omit<Parameters<typeof listNostrRelayEventsFromBindings>[0], 'bindings'>
-) => listNostrRelayEventsFromBindings({
-	bindings: nostrRelayBindings(SourceOperationGroup.NostrRelayRead),
+	request: Omit<Parameters<typeof listNostrRelayEventsForOperationGroup>[0], 'operationGroup'>
+) => listNostrRelayEventsForOperationGroup({
+	operationGroup: SourceOperationGroup.NostrRelayRead,
 	...request,
 })
 
@@ -103,18 +97,8 @@ export default {
 							NonNullable<ReturnType<typeof noteFromRelayEvent>>
 						>()
 						const limit = resolverContextRowLimit(trigger)
-						const subscription = openRelaySubscription({
-							binding: {
-								...nostrRelayBindings(SourceOperationGroup.NostrRelayRead)[0],
-								target: {
-									...nostrRelayBindings(SourceOperationGroup.NostrRelayRead)[0].target,
-									key: parentEntitySelector.relayUrl,
-								},
-								endpoints: [{
-									...nostrRelayBindings(SourceOperationGroup.NostrRelayRead)[0].endpoints[0],
-									locator: parentEntitySelector.relayUrl,
-								}],
-							},
+						const subscription = openNostrRelaySubscription({
+							relayUrl: parentEntitySelector.relayUrl,
 							subscriptionId: 'blockhead-live-notes',
 							filters: [{
 								kinds: [1],
@@ -188,8 +172,8 @@ export default {
 
 						const profiles = [...new Map(
 							validatedNostrEvents(
-								await listNostrRelayEventsFromBindings({
-									bindings: nostrRelayBindings(SourceOperationGroup.NostrSearch),
+								await listNostrRelayEventsForOperationGroup({
+									operationGroup: SourceOperationGroup.NostrSearch,
 									filters: [{
 										kinds: [0],
 										limit: resolverContextRowLimit(context),
@@ -229,7 +213,7 @@ export default {
 				resolveCount: (search) => search.resultCount,
 				continuation: () => ({
 					operation: 'profile-search',
-					target: nostrRelayBindings(SourceOperationGroup.NostrSearch)[0].target.key,
+					target: nostrSearchTargetKey,
 					terminal: true,
 				}),
 			},

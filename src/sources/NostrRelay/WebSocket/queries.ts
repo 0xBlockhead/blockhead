@@ -5,6 +5,9 @@ import type {
 	NostrRelaySocket,
 	NostrRelaySubscriptionEvent,
 } from '$/sources/NostrRelay/WebSocket/types.ts'
+import bindings from '$/sources/NostrRelay/bindings.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceOperationGroup } from '$/sources/SourceBinding.ts'
 import {
 	validateNostrEvent,
 	validatedNostrEventFromContent,
@@ -603,6 +606,74 @@ export const listNostrRelayEvents = async ({
 			), 0))
 	)
 }
+
+export const listNostrRelayEventsForOperationGroup = ({
+	operationGroup,
+	filters,
+	signal,
+	timeoutMs,
+}: {
+	operationGroup: SourceOperationGroup.NostrRelayRead | SourceOperationGroup.NostrSearch
+	filters: readonly NostrRelayFilter[]
+	signal?: AbortSignal
+	timeoutMs?: number
+}) => listNostrRelayEvents({
+	bindings: bindings[Source.NostrRelay_WebSocket].filter((binding) => (
+		binding.operationGroups.includes(operationGroup)
+	)),
+	filters,
+	signal,
+	timeoutMs,
+})
+
+const nostrRelayReadBinding = bindings[Source.NostrRelay_WebSocket].find((binding) => (
+	binding.operationGroups.includes(SourceOperationGroup.NostrRelayRead)
+))
+
+if (nostrRelayReadBinding == null)
+	throw new Error('NostrRelay_WebSocket: NostrRelayRead binding is missing')
+
+const nostrSearchBinding = bindings[Source.NostrRelay_WebSocket].find((binding) => (
+	binding.operationGroups.includes(SourceOperationGroup.NostrSearch)
+))
+
+if (nostrSearchBinding == null)
+	throw new Error('NostrRelay_WebSocket: NostrSearch binding is missing')
+
+export const nostrSearchTargetKey = nostrSearchBinding.target.key
+
+export const openNostrRelaySubscription = ({
+	relayUrl,
+	subscriptionId,
+	filters,
+	signal,
+	onEvent,
+	maxSeenEventIds,
+}: {
+	relayUrl: string
+	subscriptionId: string
+	filters: readonly NostrRelayFilter[]
+	signal?: AbortSignal
+	onEvent: (event: NostrRelaySubscriptionEvent) => void
+	maxSeenEventIds?: number
+}) => openRelaySubscription({
+	binding: {
+		...nostrRelayReadBinding,
+		target: {
+			...nostrRelayReadBinding.target,
+			key: relayUrl,
+		},
+		endpoints: nostrRelayReadBinding.endpoints.map((endpoint) => ({
+			...endpoint,
+			locator: relayUrl,
+		})),
+	},
+	subscriptionId,
+	filters,
+	signal,
+	onEvent,
+	maxSeenEventIds,
+})
 
 export const openRelaySubscription = ({
 	binding,
