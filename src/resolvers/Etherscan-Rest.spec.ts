@@ -12,6 +12,7 @@ const getBlockNumber = vi.hoisted(() => vi.fn())
 const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getCode = vi.hoisted(() => vi.fn())
 const getTransactionsByAddress = vi.hoisted(() => vi.fn())
+const getGasOracle = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Etherscan/Rest/queries.ts', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('$/sources/Etherscan/Rest/queries.ts')>()
@@ -27,6 +28,7 @@ vi.mock('$/sources/Etherscan/Rest/queries.ts', async (importOriginal) => {
 			getBlockByNumber,
 			getCode,
 			getTransactionsByAddress,
+			getGasOracle,
 		}),
 	}
 })
@@ -46,6 +48,34 @@ const context = {
 }
 const address = '0x1111111111111111111111111111111111111111'
 const txHash = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+describe('Etherscan gas estimate observation', () => {
+	it('maps gas-oracle tiers onto the canonical timestamp entity', async () => {
+		getGasOracle.mockResolvedValue({
+			SafeGasPrice: '1.25',
+			ProposeGasPrice: '2.5',
+			FastGasPrice: '3.75',
+		})
+		const resolver = etherscanRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmNetwork_GasEstimate_Timestamp
+		))
+		if (resolver == null)
+			throw new Error('Etherscan gas estimate resolver is not registered')
+
+		await expect(resolver.resolve.NetworkTimestampMsSource.resolve({
+			$network: {
+				slug: 'ethereum',
+			},
+			timestampMs: 1_784_221_554_477,
+			source: Source.Etherscan_Rest,
+		}, context)).resolves.toEqual({
+			slowGwei: 1.25,
+			averageGwei: 2.5,
+			fastGwei: 3.75,
+			transport: 'etherscan-gasoracle',
+		})
+	})
+})
 
 describe('Etherscan Network selectors', () => {
 	beforeEach(() => {
