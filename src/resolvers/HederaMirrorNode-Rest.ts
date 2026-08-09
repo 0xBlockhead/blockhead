@@ -318,15 +318,6 @@ const nodeSnapshot = (
 		timestampMs(node.staking_period.to, 'node staking period')
 	if (node.description.length === 0)
 		throw new Error('HederaMirrorNode_Rest: malformed node description')
-	if (node.service_endpoints.some((endpoint) => (
-		!Number.isSafeInteger(endpoint.port)
-		|| endpoint.port < 0
-		|| (
-			endpoint.domain_name == null
-			&& endpoint.ip_address_v4 == null
-		)
-	)))
-		throw new Error('HederaMirrorNode_Rest: malformed node service endpoints')
 	// Transport leftovers: decline_reward / reward_rate_start / associated_registered_nodes / admin_key —
 	// unenrolled on HederaNode_Timestamp (deleted remains enrolled but absent from Mirror Node wire).
 	nonnegativeBigInt(node.reward_rate_start, 'node reward rate start')
@@ -382,7 +373,12 @@ const hederaTimestampOrderKey = (
 
 	return (
 		BigInt(match[1]) * 1_000_000_000n
-		+ BigInt((match[2] ?? '').padEnd(9, '0'))
+		+ BigInt((
+			value.includes('.') ?
+				value.slice(value.indexOf('.') + 1)
+			:
+				''
+		).padEnd(9, '0'))
 	)
 }
 

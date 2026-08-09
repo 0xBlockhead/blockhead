@@ -4,25 +4,26 @@ import {
 	sourceFetch,
 	sourceGetText,
 } from '$/sources/_runtime/http.ts'
-import type {
-	HederaMirrorNodeAccount,
-	HederaMirrorNodeAccounts,
-	HederaMirrorNodeAccountTokens,
-	HederaMirrorNodeBlock,
-	HederaMirrorNodeBlocks,
-	HederaMirrorNodeContractResult,
-	HederaMirrorNodeCryptoAllowances,
-	HederaMirrorNodeNetworkExchangeRate,
-	HederaMirrorNodeNetworkFees,
-	HederaMirrorNodeNetworkStake,
-	HederaMirrorNodeNetworkSupply,
-	HederaMirrorNodeNftAllowances,
-	HederaMirrorNodeNfts,
-	HederaMirrorNodeNodes,
-	HederaMirrorNodeSchedule,
-	HederaMirrorNodeTokenAllowances,
-	HederaMirrorNodeTransactionResponse,
-	HederaMirrorNodeTransactions,
+import {
+	hederaMirrorNodeNodeServiceEndpointWire,
+	type HederaMirrorNodeAccount,
+	type HederaMirrorNodeAccounts,
+	type HederaMirrorNodeAccountTokens,
+	type HederaMirrorNodeBlock,
+	type HederaMirrorNodeBlocks,
+	type HederaMirrorNodeContractResult,
+	type HederaMirrorNodeCryptoAllowances,
+	type HederaMirrorNodeNetworkExchangeRate,
+	type HederaMirrorNodeNetworkFees,
+	type HederaMirrorNodeNetworkStake,
+	type HederaMirrorNodeNetworkSupply,
+	type HederaMirrorNodeNftAllowances,
+	type HederaMirrorNodeNfts,
+	type HederaMirrorNodeNodes,
+	type HederaMirrorNodeSchedule,
+	type HederaMirrorNodeTokenAllowances,
+	type HederaMirrorNodeTransactionResponse,
+	type HederaMirrorNodeTransactions,
 } from '$/sources/HederaMirrorNode/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -97,6 +98,24 @@ const sourceGetHederaJson = <_Response>(
 			value
 	))(decimalIntegerFromJsonNumberSource(context.source))
 ) as _Response)
+
+const sourceGetHederaNodePage = (
+	url: string
+) => sourceGetHederaJson<HederaMirrorNodeNodes>(url).then((page) => {
+	try {
+		return {
+			...page,
+			nodes: page.nodes.map((node) => ({
+				...node,
+				service_endpoints: node.service_endpoints.map(
+					(endpoint) => hederaMirrorNodeNodeServiceEndpointWire.assert(endpoint)
+				),
+			})),
+		}
+	} catch {
+		throw new Error('HederaMirrorNode_Rest: invalid node service endpoints')
+	}
+})
 
 const paginatedUrl = (
 	pathname: string,
@@ -345,7 +364,7 @@ export const getNodes = (
 	)
 		throw new Error('HederaMirrorNode_Rest: invalid node continuation')
 
-	return sourceGetHederaJson<HederaMirrorNodeNodes>(url.toString())
+	return sourceGetHederaNodePage(url.toString())
 }
 
 export const getNode = (
@@ -359,7 +378,7 @@ export const getNode = (
 	url.searchParams.set('order', 'asc')
 	url.searchParams.set('node.id', `eq:${String(nodeId)}`)
 
-	return sourceGetHederaJson<HederaMirrorNodeNodes>(url.toString()).then((page) => {
+	return sourceGetHederaNodePage(url.toString()).then((page) => {
 		if (page.nodes.length !== 1)
 			throw new Error('HederaMirrorNode_Rest: node not found')
 

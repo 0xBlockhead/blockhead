@@ -79,7 +79,7 @@ describe('Hedera Mirror network collections', () => {
 		largeKey,
 		continuation,
 	}) => {
-		sourceGetText.mockResolvedValueOnce(`{"${rowsKey}":[{"${identityKey}":"${identities[0]}","${largeKey}":9007199254740993},{"${identityKey}":"${identities[1]}","${largeKey}":9007199254740995}],"links":{"next":"${continuation}"}}`)
+		sourceGetText.mockResolvedValueOnce(`{"${rowsKey}":[{"${identityKey}":"${identities[0]}","${largeKey}":9007199254740993${rowsKey === 'nodes' ? ',"service_endpoints":[{"domain_name":"node.example","port":50211}]' : ''}},{"${identityKey}":"${identities[1]}","${largeKey}":9007199254740995${rowsKey === 'nodes' ? ',"service_endpoints":[{"ip_address_v4":"192.0.2.1","port":50211}]' : ''}}],"links":{"next":"${continuation}"}}`)
 
 		const page = await getPage(2)
 		expect(page).toMatchObject({
@@ -108,6 +108,36 @@ describe('Hedera Mirror network collections', () => {
 				node_id: '9007199254740997',
 			}],
 		})
+	})
+
+	it('parses exact node service endpoints while preserving the open node envelope', async () => {
+		sourceGetText
+			.mockResolvedValueOnce('{"nodes":[{"node_id":"3","node_extension":"provider-owned","service_endpoints":[{"domain_name":"node.example","ip_address_v4":"192.0.2.1","port":50211,"provider_extension":"dropped"}]}],"links":{"next":null}}')
+			.mockResolvedValueOnce('{"nodes":[{"node_id":"3"}],"links":{"next":null}}')
+			.mockResolvedValueOnce('{"nodes":[{"node_id":"3","service_endpoints":[{"port":50211}]}],"links":{"next":null}}')
+			.mockResolvedValueOnce('{"nodes":[{"node_id":"3","service_endpoints":[{"domain_name":"node.example","port":"50211"}]}],"links":{"next":null}}')
+			.mockResolvedValueOnce('{"nodes":[{"node_id":"3","service_endpoints":[{"domain_name":"node.example","port":65536}]}],"links":{"next":null}}')
+
+		const page = await getNodes(1)
+		expect(page).toMatchObject({
+			nodes: [{
+				node_extension: 'provider-owned',
+				service_endpoints: [{
+					domain_name: 'node.example',
+					ip_address_v4: '192.0.2.1',
+					port: 50211,
+				}],
+			}],
+		})
+		expect(page.nodes[0].service_endpoints).toEqual([{
+			domain_name: 'node.example',
+			ip_address_v4: '192.0.2.1',
+			port: 50211,
+		}])
+		await expect(getNodes(1)).rejects.toThrow('invalid node service endpoints')
+		await expect(getNodes(1)).rejects.toThrow('invalid node service endpoints')
+		await expect(getNodes(1)).rejects.toThrow('invalid node service endpoints')
+		await expect(getNodes(1)).rejects.toThrow('invalid node service endpoints')
 	})
 
 	it('preserves integer-valued exponent and fractional transaction fields', async () => {
@@ -144,14 +174,16 @@ describe('Hedera Mirror network collections', () => {
 	}) => {
 		sourceGetText
 			.mockResolvedValueOnce(`{"${rowsKey}":[],"links":{"next":null}}`)
-			.mockResolvedValueOnce('{"malformed":"provider pass-through"}')
+			.mockResolvedValueOnce(`{"${rowsKey}":[],"links":{"next":null},"provider_extension":"pass-through"}`)
 
 		await expect(getPage(16)).resolves.toEqual({
 			[rowsKey]: [],
 			links: { next: null },
 		})
 		await expect(getPage(2, continuation)).resolves.toEqual({
-			malformed: 'provider pass-through',
+			[rowsKey]: [],
+			links: { next: null },
+			provider_extension: 'pass-through',
 		})
 		expect(sourceGetText).toHaveBeenLastCalledWith(
 			binding,
@@ -207,9 +239,9 @@ describe('Hedera Mirror network collections', () => {
 
 	it('addresses a single node and hard-fails empty or mismatched pages', async () => {
 		sourceGetText
-			.mockResolvedValueOnce('{"nodes":[{"node_id":"3","node_account_id":"0.0.3","max_stake":9007199254740993}],"links":{"next":null}}')
+			.mockResolvedValueOnce('{"nodes":[{"node_id":"3","node_account_id":"0.0.3","max_stake":9007199254740993,"service_endpoints":[{"domain_name":"node.example","port":50211}]}],"links":{"next":null}}')
 			.mockResolvedValueOnce('{"nodes":[],"links":{"next":null}}')
-			.mockResolvedValueOnce('{"nodes":[{"node_id":"4","node_account_id":"0.0.4"}],"links":{"next":null}}')
+			.mockResolvedValueOnce('{"nodes":[{"node_id":"4","node_account_id":"0.0.4","service_endpoints":[{"domain_name":"node.example","port":50211}]}],"links":{"next":null}}')
 
 		await expect(getNode(3)).resolves.toMatchObject({
 			node_id: '3',

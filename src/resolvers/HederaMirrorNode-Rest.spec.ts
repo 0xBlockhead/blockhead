@@ -1732,6 +1732,27 @@ describe('Hedera Mirror Node node and network observations', () => {
 		])
 	})
 
+	it('rejects malformed node service endpoints before projecting schema fields', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			nodes: [{
+				...nodeFixture,
+				service_endpoints: [{
+					port: 50211,
+				}],
+			}],
+			links: {
+				next: null,
+			},
+		})))
+
+		await expect(hederaMirrorNode.resolvers[9].resolve[
+			'NetworkNodeId'
+		].resolve({
+			$network: network,
+			nodeId: 3,
+		}, context)).rejects.toThrow('invalid node service endpoints')
+	})
+
 	it('maps supply, stake, exchange rate, and fee observations onto schema fields', async () => {
 		sourceFetch
 			.mockResolvedValueOnce(new Response(JSON.stringify({

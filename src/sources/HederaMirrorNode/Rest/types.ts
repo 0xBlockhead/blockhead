@@ -1,3 +1,5 @@
+import { type as arktype } from 'arktype'
+
 // https://docs.hedera.com/api-reference/blocks/get-block-by-hash-or-number
 export type HederaMirrorNodeBlock = {
 	count: number
@@ -11,7 +13,7 @@ export type HederaMirrorNodeBlock = {
 	size: number | null
 	timestamp: {
 		from: string
-		to: string
+		to: string | null
 	}
 }
 
@@ -213,6 +215,23 @@ export type HederaMirrorNodeTransactionResponse = {
 }
 
 // https://docs.hedera.com/api-reference/network/get-the-network-address-book-nodes
+
+const hederaMirrorNodeNodeServiceEndpointPortWire = arktype('number.integer >= 0 <= 65535')
+
+export const hederaMirrorNodeNodeServiceEndpointWire = arktype({
+	'domain_name?': 'string',
+	'ip_address_v4?': 'string',
+	port: hederaMirrorNodeNodeServiceEndpointPortWire,
+})
+	.narrow((endpoint, context) => (
+		endpoint.domain_name != null
+		|| endpoint.ip_address_v4 != null
+		|| context.mustBe('a domain name or IPv4 address')
+	))
+	.onUndeclaredKey('delete')
+
+export type HederaMirrorNodeNodeServiceEndpoint = typeof hederaMirrorNodeNodeServiceEndpointWire.infer
+
 export type HederaMirrorNodeNode = {
 	admin_key: {
 		_type: string
@@ -230,11 +249,7 @@ export type HederaMirrorNodeNode = {
 	node_id: string
 	public_key: string
 	reward_rate_start: string
-	service_endpoints: {
-		domain_name?: string
-		ip_address_v4?: string
-		port: number
-	}[]
+	service_endpoints: HederaMirrorNodeNodeServiceEndpoint[]
 	stake: string
 	stake_not_rewarded: string
 	stake_rewarded: string
