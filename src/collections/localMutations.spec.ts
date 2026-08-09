@@ -1,4 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import {
+	afterEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { stringify } from 'devalue'
@@ -83,6 +89,10 @@ const sessionCapabilityGrantMutationSource = source.slice(
 	source.indexOf('export const writeLocalBlockheadWalletCapabilityGrant'),
 	source.indexOf('export const writeLocalBlockheadTransferIntent')
 )
+
+afterEach(() => {
+	vi.unstubAllGlobals()
+})
 
 describe('local wallet connection mutations', () => {
 	it('coerces flat connection rows through the wallet connection state machine before persistence', () => {
@@ -617,6 +627,30 @@ describe('local mutation authority journal', () => {
 			entityFieldCollections,
 			entityFieldCountCollections,
 		}
+		const sharedLocalStorage = new Map<string, string>()
+		const lockQueueByName = new Map<string, Promise<void>>()
+		const lockRequests: string[] = []
+		vi.stubGlobal('window', {
+			localStorage: {
+				getItem: (key: string) => sharedLocalStorage.get(key) ?? null,
+				setItem: (key: string, value: string) => {
+					sharedLocalStorage.set(key, value)
+				},
+			},
+		})
+		vi.stubGlobal('navigator', {
+			locks: {
+				request: <_Result>(name: string, create: () => Promise<_Result>) => {
+					lockRequests.push(name)
+					const creation = (lockQueueByName.get(name) ?? Promise.resolve()).then(create)
+					lockQueueByName.set(name, creation.then(
+						() => undefined,
+						() => undefined
+					))
+					return creation
+				},
+			},
+		})
 		const walletSelectorKey = stringify({ id: 'wallet-1' })
 		const connectionSelectorKey = stringify({ connectionKey: 'connection-1' })
 
@@ -744,9 +778,47 @@ describe('local mutation authority journal', () => {
 		await writeLocalBlockheadSessionAction(
 			context,
 			sessionSelector,
-			0,
 			ActionType.Transfer
 		)
+		await Promise.all([
+			writeLocalBlockheadSessionAction(
+				context,
+				sessionSelector,
+				ActionType.Swap
+			),
+			writeLocalBlockheadSessionAction(
+				{
+					entityCollections,
+					entityFieldCollections,
+					entityFieldCountCollections,
+				},
+				sessionSelector,
+				ActionType.Bridge
+			),
+		])
+		await writeLocalBlockheadSessionAction(
+			{
+				entityCollections,
+				entityFieldCollections,
+				entityFieldCountCollections,
+			},
+			sessionSelector,
+			ActionType.Transfer
+		)
+		expect(entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
+			EntityType.BlockheadSessionAction,
+			[],
+			'indexInSequence'
+		)].toArray.map((row) => row[EntityMetaKey.Value]).sort()).toEqual([
+			0,
+			1,
+			2,
+			3,
+		])
+		expect(new Set(lockRequests)).toEqual(new Set([
+			`blockhead:session-action-sequence:${stringify(sessionSelector)}`,
+		]))
+		expect(lockRequests).toHaveLength(4)
 		const actionRow = entityCollections[EntityType.BlockheadSessionAction].toArray[0]
 		const actionSelectorKey = actionRow[EntityMetaKey.SelectorKey]
 		const actionSelector = parseEntitySelector(
@@ -771,33 +843,32 @@ describe('local mutation authority journal', () => {
 				slippage: 0.005,
 			}
 		)
-		expect(entityCollections[EntityType.BlockheadSessionAction].toArray).toEqual([
+		expect(entityCollections[EntityType.BlockheadSessionAction].toArray).toContainEqual(
 			expect.objectContaining({
 				[EntityMetaKey.SelectorKey]: actionSelectorKey,
-			}),
-		])
+			})
+		)
 		expect(entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
 			EntityType.BlockheadSessionAction,
 			[],
 			'actionParams'
-		)].toArray).toEqual([
+		)].toArray).toContainEqual(
 			expect.objectContaining({
 				[EntityMetaKey.ParentSelectorKey]: actionSelectorKey,
 				[EntityMetaKey.Value]: expect.objectContaining({
 					amount: 2n,
 				}),
-			}),
-		])
+			})
+		)
 		expect(() => writeLocalBlockheadSessionAction(
 			context,
 			sessionSelector,
-			1,
 			ActionType.Transfer,
 			{
 				amount: 'invalid',
 			}
 		)).toThrow()
-		expect(entityCollections[EntityType.BlockheadSessionAction].toArray).toHaveLength(1)
+		expect(entityCollections[EntityType.BlockheadSessionAction].toArray).toHaveLength(4)
 
 		deleteLocalBlockheadSession(context, sessionParentSelector, sessionSelector)
 		deleteLocalBlockheadSession(context, sessionParentSelector, secondSessionSelector)

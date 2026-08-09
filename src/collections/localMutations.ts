@@ -94,6 +94,30 @@ export type LocalMutationContext = {
 	entityFieldCountCollections: Record<string, Record<string, MutationCollection<LocalEntityFieldCountRow> | undefined>>
 }
 
+const sessionActionCreationQueueByKey = new Map<string, Promise<void>>()
+
+const withSessionActionCreationLock = <_Result>(
+	sessionSelectorKey: string,
+	create: () => Promise<_Result>
+) => {
+	const lockName = `blockhead:session-action-sequence:${sessionSelectorKey}`
+	if (typeof window !== 'undefined')
+		return navigator.locks.request(lockName, create)
+
+	const creation = (sessionActionCreationQueueByKey.get(lockName) ?? Promise.resolve())
+		.catch(() => {})
+		.then(create)
+	const queuedCreation = creation.then(
+		() => undefined,
+		() => undefined
+	)
+	sessionActionCreationQueueByKey.set(lockName, queuedCreation)
+	return creation.finally(() => {
+		if (sessionActionCreationQueueByKey.get(lockName) === queuedCreation)
+			sessionActionCreationQueueByKey.delete(lockName)
+	})
+}
+
 export type LocalMutationAuthority = {
 	authorityKey: string
 	source: Source.Local_Internal
@@ -1075,74 +1099,103 @@ export const writeLocalBlockheadSessionName = (
 export const writeLocalBlockheadSessionAction = (
 	context: LocalMutationContext,
 	sessionEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
-	indexInSequence: number,
 	actionType: ActionType,
 	actionParams?: object
 ) => {
-	const now = Date.now()
 	const validatedActionParams = actionTypeDefinitionByActionType[actionType].params.assert(actionParams ?? {})
-	const entitySelector = {
-		sessionId: sessionEntitySelector.id,
-		actionId: globalThis.crypto.randomUUID(),
-	}
-	writeLocalPresence(context, EntityType.BlockheadSessionAction, entitySelector)
-	const relationshipApplications = [
-		writeLocalEntityReferenceField(
-			context,
-			EntityType.BlockheadSessionAction,
-			entitySelector,
-			'$session',
-			sessionEntitySelector
-		),
-	]
-	writeLocalPrimitiveFields(context, EntityType.BlockheadSessionAction, entitySelector, {
-		indexInSequence,
-		actionType,
-		actionParams: validatedActionParams,
-		createdAt: now,
-		updatedAt: now,
-	})
-	relationshipApplications.push(writeLocalEntityReferenceField(
-		context,
-		EntityType.BlockheadSession,
-		sessionEntitySelector,
-		'$$actions',
-		entitySelector
-	))
-	const previousSession = readLocalBlockheadSessionLifecycle(context, sessionEntitySelector)
-	if (previousSession != null) {
-		applyLocalBlockheadSessionLifecycleUpdate(
-			context,
-			sessionEntitySelector,
-			sessionLifecycleFromPersisted({
-				...persistSessionLifecycle(previousSession),
-				updatedAt: now,
-			})
+	const sessionSelectorKey = entitySelectorKey(
+		schema,
+		entityDefinitionByType[EntityType.BlockheadSession],
+		sessionEntitySelector
+	)
+	return withSessionActionCreationLock(sessionSelectorKey, async () => {
+		const actionsCollection = context.entityFieldCollections[EntityType.BlockheadSession][
+			entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
+		]
+		actionsCollection.startSyncImmediate()
+		await actionsCollection.utils.waitForPersistence()
+		const indexInSequence = Math.max(
+			actionsCollection.toArray.reduce((highestIndexInSequence, action) => (
+				action[EntityMetaKey.Source] === Source.Local_Internal
+				&& action[EntityMetaKey.ParentSelectorKey] === sessionSelectorKey
+				&& action.valueIndex !== undefined ?
+					Math.max(highestIndexInSequence, action.valueIndex)
+				:
+					highestIndexInSequence
+			), -1) + 1,
+			typeof window === 'undefined' ?
+				0
+			:
+				Number(window.localStorage.getItem(`blockhead:session-action-next-index:${sessionSelectorKey}`))
 		)
-	}
-	return Promise.all([
-		...relationshipApplications,
-		context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence(),
-		...[
-			'$session',
-			'indexInSequence',
-			'actionType',
-			'actionParams',
-			'createdAt',
-			'updatedAt',
-		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadSessionAction][
-			entityFieldAddressKey(EntityType.BlockheadSessionAction, [], fieldName)
-		].utils.waitForPersistence()),
-		context.entityFieldCollections[EntityType.BlockheadSession][
-			entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
-		].utils.waitForPersistence(),
-		context.entityFieldCollections[EntityType.BlockheadSession][
-			entityFieldAddressKey(EntityType.BlockheadSession, [], 'updatedAt')
-		].utils.waitForPersistence(),
-		context.entityFieldCountCollections[EntityType.BlockheadSession][
-			entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
-		]?.utils.waitForPersistence(),
-	])
+		if (typeof window !== 'undefined')
+			window.localStorage.setItem(
+				`blockhead:session-action-next-index:${sessionSelectorKey}`,
+				String(indexInSequence + 1)
+			)
+		const now = Date.now()
+		const entitySelector = {
+			sessionId: sessionEntitySelector.id,
+			actionId: globalThis.crypto.randomUUID(),
+		}
+		writeLocalPresence(context, EntityType.BlockheadSessionAction, entitySelector)
+		const relationshipApplications = [
+			writeLocalEntityReferenceField(
+				context,
+				EntityType.BlockheadSessionAction,
+				entitySelector,
+				'$session',
+				sessionEntitySelector
+			),
+		]
+		writeLocalPrimitiveFields(context, EntityType.BlockheadSessionAction, entitySelector, {
+			indexInSequence,
+			actionType,
+			actionParams: validatedActionParams,
+			createdAt: now,
+			updatedAt: now,
+		})
+		relationshipApplications.push(writeLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadSession,
+			sessionEntitySelector,
+			'$$actions',
+			entitySelector,
+			indexInSequence
+		))
+		const previousSession = readLocalBlockheadSessionLifecycle(context, sessionEntitySelector)
+		if (previousSession != null) {
+			applyLocalBlockheadSessionLifecycleUpdate(
+				context,
+				sessionEntitySelector,
+				sessionLifecycleFromPersisted({
+					...persistSessionLifecycle(previousSession),
+					updatedAt: now,
+				})
+			)
+		}
+		await Promise.all([
+			...relationshipApplications,
+			context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence(),
+			...[
+				'$session',
+				'indexInSequence',
+				'actionType',
+				'actionParams',
+				'createdAt',
+				'updatedAt',
+			].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadSessionAction][
+				entityFieldAddressKey(EntityType.BlockheadSessionAction, [], fieldName)
+			].utils.waitForPersistence()),
+			actionsCollection.utils.waitForPersistence(),
+			context.entityFieldCollections[EntityType.BlockheadSession][
+				entityFieldAddressKey(EntityType.BlockheadSession, [], 'updatedAt')
+			].utils.waitForPersistence(),
+			context.entityFieldCountCollections[EntityType.BlockheadSession][
+				entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
+			]?.utils.waitForPersistence(),
+		])
+	})
 }
 
 export const writeLocalBlockheadSessionLockedAt = (

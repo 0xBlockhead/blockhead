@@ -80,7 +80,6 @@
 		idleSessionActionDraft,
 		idleSessionComposerNotice,
 		isSessionComposerPreparing,
-		nextSessionActionIndexInSequence,
 		retargetSessionActionDraft,
 		sessionComposerNoticeMessage,
 		sessionComposerReadinessCheckIds,
@@ -149,13 +148,6 @@
 	const preparedWalletRequestId = $derived(sessionComposerWalletRequestId(notice))
 	const preparing = $derived(isSessionComposerPreparing(notice))
 	const noticeReadinessCheckIds = $derived(sessionComposerReadinessCheckIds(notice))
-	const nextIndexInSequence = $derived(
-		nextSessionActionIndexInSequence(
-			sessionActions.current?.values.map((action) => action.indexInSequence) ?? []
-		)
-	)
-
-
 	// Functions
 	import { normalizeBoundaryError } from '$/lib/errors.ts'
 	import { applyEvmNativeTransferPreparation } from '$/state/sessions/evmNativeTransferPreparation.ts'
@@ -184,7 +176,6 @@
 			await writeLocalBlockheadSessionAction(
 				getAppClient(),
 				selection.entitySelector,
-				nextIndexInSequence,
 				activeDraft.actionType,
 				actionParams,
 			)
