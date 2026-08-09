@@ -16,7 +16,6 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/Envio/bindings.ts'
 import { envioHyperRpc } from '$/sources/Envio/HyperRpc/queries.ts'
 import type { RpcBlockWire } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 
@@ -26,7 +25,7 @@ const {
 	getBlockNumber,
 	getTransactionByHash,
 	getTransactionReceipt,
-} = envioHyperRpc(bindings[Source.EnvioHyperRpc_JsonRpc][0])
+} = envioHyperRpc
 
 const quantity = (
 	value: string,

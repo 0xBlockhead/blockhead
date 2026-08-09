@@ -77,9 +77,7 @@ describe('ACP registry resolver', () => {
 		])
 		expect(resolver.projections.repositoryUrl(agent)).toBe('https://github.com/acme/agent')
 		expect(resolver.projections.packageName(agent)).toBeUndefined()
-		expect(fetchRegistry).toHaveBeenCalledWith(expect.objectContaining({
-			source: Source.AcpRegistry_Rest,
-		}))
+		expect(fetchRegistry).toHaveBeenCalledWith()
 	})
 
 	it('resolves PackageName when a single package runner is present', async () => {
@@ -145,9 +143,7 @@ describe('ACP registry resolver', () => {
 		expect(resolver.projections.environmentKeys(agent)).toEqual([
 			'ACME_TOKEN',
 		])
-		expect(fetchRegistry).toHaveBeenCalledWith(expect.objectContaining({
-			source: Source.AcpRegistry_Rest,
-		}))
+		expect(fetchRegistry).toHaveBeenCalledWith()
 	})
 
 	it('does not collapse multiple distribution variants into a fabricated command', async () => {

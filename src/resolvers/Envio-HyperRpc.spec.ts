@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { envioHyperRpc as createEnvioHyperRpc } from '$/sources/Envio/HyperRpc/queries.ts'
-import bindings from '$/sources/Envio/bindings.ts'
+import { envioHyperRpc as envioHyperRpcQuery } from '$/sources/Envio/HyperRpc/queries.ts'
 import { Source } from '$/sources/Source.ts'
 
 import {
@@ -20,7 +19,7 @@ const {
 	getBlockNumber,
 	getTransactionByHash,
 	getTransactionReceipt,
-} = createEnvioHyperRpc(bindings[Source.EnvioHyperRpc_JsonRpc][0])
+} = envioHyperRpcQuery
 
 const {
 	jsonRpc2,
@@ -171,6 +170,7 @@ describe('Envio HyperRPC query boundary', () => {
 			txObjects: false,
 		})).resolves.toBeNull()
 	})
+
 })
 
 describe('Envio HyperRPC resolver', () => {

@@ -2,11 +2,14 @@ import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
 } from '$/sources/_runtime/http.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Acp/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import {
 	acpRegistryWire,
 	type AcpRegistry,
 } from '$/sources/Acp/Rest/types.ts'
+
+const binding = bindings[Source.AcpRegistry_Rest][0]
 
 const assertEnvelope = <_Value>(
 	label: string,
@@ -20,7 +23,7 @@ const assertEnvelope = <_Value>(
 	}
 }
 
-export const fetchRegistry = async (binding: SourceBinding): Promise<AcpRegistry> => (
+export const fetchRegistry = async (): Promise<AcpRegistry> => (
 	assertEnvelope(
 		'registry',
 		acpRegistryWire,

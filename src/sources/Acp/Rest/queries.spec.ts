@@ -70,29 +70,10 @@ describe('AcpRegistry REST queries', () => {
 		expect(registryBinding.endpoints[0].corsEnabled).toBe(false)
 	})
 
-	it('uses only the caller-provided noncanonical binding', async () => {
-		const modifiedBinding = {
-			...registryBinding,
-			endpoints: registryBinding.endpoints.map((endpoint) => ({
-				...endpoint,
-				locator: 'https://noncanonical.example/registry.json',
-			})),
-		}
-		sourceGetJson.mockResolvedValueOnce(registry)
-
-		await fetchRegistry(modifiedBinding)
-
-		expect(sourceGetJson).toHaveBeenCalledOnce()
-		expect(sourceGetJson).toHaveBeenCalledWith(
-			modifiedBinding,
-			'https://noncanonical.example/registry.json'
-		)
-	})
-
 	it('assert-closes a valid registry envelope', async () => {
 		sourceGetJson.mockResolvedValueOnce(registry)
 
-		await expect(fetchRegistry(registryBinding)).resolves.toEqual(registry)
+		await expect(fetchRegistry()).resolves.toEqual(registry)
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			registryBinding,
 			'https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json',
@@ -104,7 +85,7 @@ describe('AcpRegistry REST queries', () => {
 			version: '1.0.0',
 		})
 
-		await expect(fetchRegistry(registryBinding)).rejects.toThrow('invalid registry response envelope')
+		await expect(fetchRegistry()).rejects.toThrow('invalid registry response envelope')
 	})
 
 	it('rejects agents with empty distribution targets', async () => {
@@ -126,6 +107,6 @@ describe('AcpRegistry REST queries', () => {
 			}],
 		})
 
-		await expect(fetchRegistry(registryBinding)).rejects.toThrow('invalid registry response envelope')
+		await expect(fetchRegistry()).rejects.toThrow('invalid registry response envelope')
 	})
 })

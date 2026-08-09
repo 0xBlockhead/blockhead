@@ -10,12 +10,9 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import bindings from '$/sources/Avail/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
-
-const availBinding = bindings[Source.Avail][0]
 
 const assertAvailMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== 'avail')
@@ -48,15 +45,15 @@ export default {
 							health,
 							syncState,
 						] = await Promise.all([
-							getNetworkIdentity(availBinding, publicEnv),
-							getBlockHash(availBinding, publicEnv),
-							getFinalizedHead(availBinding, publicEnv),
-							getSystemHealth(availBinding, publicEnv),
-							getSystemSyncState(availBinding, publicEnv),
+							getNetworkIdentity(publicEnv),
+							getBlockHash(publicEnv),
+							getFinalizedHead(publicEnv),
+							getSystemHealth(publicEnv),
+							getSystemSyncState(publicEnv),
 						])
 						if (identity.chainName !== 'Avail DA Mainnet')
 							throw new Error('Avail: foreign chain name')
-						const latest = await getHeader(availBinding, publicEnv, latestHash)
+						const latest = await getHeader(publicEnv, latestHash)
 						const syncing = health.isSyncing || syncState.currentBlock < syncState.highestBlock
 						const tipHealth = (
 							health.isSyncing ?
@@ -110,8 +107,8 @@ export default {
 							getHeaderByBlockNumber,
 						} = await import('$/sources/Avail/JsonRpc/queries.ts')
 						const publicEnv = context.publicEnv
-						const tipHash = await getBlockHash(availBinding, publicEnv)
-						const tip = await getHeader(availBinding, publicEnv, tipHash)
+						const tipHash = await getBlockHash(publicEnv)
+						const tip = await getHeader(publicEnv, tipHash)
 						const tipNumber = tip.blockNumber
 						const blockNumbers = Array.from({
 							length: Math.min(Number(tipNumber + 1n), limit),
@@ -127,9 +124,9 @@ export default {
 											hash: tip.hash,
 										}
 									:
-										await getHeaderByBlockNumber(availBinding, publicEnv, blockNumber)
+										await getHeaderByBlockNumber(publicEnv, blockNumber)
 								)
-								const block = await getBlock(availBinding, publicEnv, header.hash)
+								const block = await getBlock(publicEnv, header.hash)
 								return {
 									[EntityMetaKey.Selector]: {
 										$network: {
@@ -174,8 +171,8 @@ export default {
 							getBlockHash,
 							getHeader,
 						} = await import('$/sources/Avail/JsonRpc/queries.ts')
-						const tipHash = await getBlockHash(availBinding, context.publicEnv)
-						const tip = await getHeader(availBinding, context.publicEnv, tipHash)
+						const tipHash = await getBlockHash(context.publicEnv)
+						const tip = await getHeader(context.publicEnv, tipHash)
 						return Number(tip.blockNumber + 1n)
 					},
 				},
@@ -215,13 +212,13 @@ export default {
 							health,
 							syncState,
 						] = await Promise.all([
-							getNetworkIdentity(availBinding, publicEnv),
-							getBlockHash(availBinding, publicEnv),
-							getFinalizedHead(availBinding, publicEnv),
-							getSystemHealth(availBinding, publicEnv),
-							getSystemSyncState(availBinding, publicEnv),
+							getNetworkIdentity(publicEnv),
+							getBlockHash(publicEnv),
+							getFinalizedHead(publicEnv),
+							getSystemHealth(publicEnv),
+							getSystemSyncState(publicEnv),
 						])
-						const latest = await getHeader(availBinding, publicEnv, latestHash)
+						const latest = await getHeader(publicEnv, latestHash)
 						if (identity.chainName !== 'Avail DA Mainnet')
 							throw new Error('Avail: foreign chain name')
 
@@ -271,12 +268,10 @@ export default {
 							getHeaderByBlockNumber,
 						} = await import('$/sources/Avail/JsonRpc/queries.ts')
 						const header = await getHeaderByBlockNumber(
-							availBinding,
 							context.publicEnv,
 							blockNumber
 						)
 						const block = await getBlock(
-							availBinding,
 							context.publicEnv,
 							header.hash
 						)
@@ -305,7 +300,6 @@ export default {
 							getBlock,
 						} = await import('$/sources/Avail/JsonRpc/queries.ts')
 						const block = await getBlock(
-							availBinding,
 							context.publicEnv,
 							blockHash
 						)
