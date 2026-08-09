@@ -46,7 +46,7 @@ const {
 }))
 
 vi.mock('$/sources/Lens/Graphql/queries.ts', () => ({
-	lensQueries: () => ({
+	lensQueries: {
 		queryAccount,
 		queryAccountStats,
 		queryAccounts,
@@ -61,7 +61,7 @@ vi.mock('$/sources/Lens/Graphql/queries.ts', () => ({
 		queryPostsByAuthor,
 		queryUsername,
 		queryUsernames,
-	}),
+	},
 }))
 
 const { default: lensGraphql } = await import('$/resolvers/Lens-Graphql.ts')

@@ -17,7 +17,7 @@ const {
 	queryPost,
 	queryUsername,
 	queryUsernames,
-} = lensQueries(binding)
+} = lensQueries
 
 
 const fetchMock = vi.fn<typeof fetch>()

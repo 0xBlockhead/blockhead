@@ -4,7 +4,8 @@ import {
 	graphql,
 	queryLens as executeLensQuery,
 } from '$/sources/Lens/Graphql/client.ts'
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Lens/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 
 type LensPageSize = 'TEN' | 'FIFTY'
 type LensPageInfo = {
@@ -639,7 +640,8 @@ const LensNamespacesDocument = graphql(`
 	}
 `, [LensUsernameNamespace])
 
-export const lensQueries = (binding: SourceBinding) => {
+export const lensQueries = (() => {
+	const binding = bindings[Source.Lens_Graphql][0]
 	const queryLens = <_Result extends object, _Variables extends object>(
 		document: Parameters<typeof executeLensQuery<_Result, _Variables>>[1],
 		variables?: _Variables
@@ -781,10 +783,10 @@ export const lensQueries = (binding: SourceBinding) => {
 					}
 				)).posts
 			),
-			(post) => post.slug
-		),
+				(post) => post.slug
+			),
+		}
 	}
-}
 
 	const queryFeeds = async (
 	limit = 10
@@ -879,4 +881,4 @@ export const lensQueries = (binding: SourceBinding) => {
 		queryUsername,
 		queryUsernames,
 	}
-}
+})()

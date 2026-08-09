@@ -11,7 +11,6 @@ import {
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/Lens/bindings.ts'
 import { lensQueries } from '$/sources/Lens/Graphql/queries.ts'
 
 const {
@@ -29,7 +28,7 @@ const {
 	queryPostsByAuthor,
 	queryUsername,
 	queryUsernames,
-} = lensQueries(bindings[Source.Lens_Graphql][0])
+} = lensQueries
 
 /** Lens / subgraph wire — may omit `0x` or use mixed case. */
 const lensEvmAddressFromWire = (address: string): `0x${string}` => {
