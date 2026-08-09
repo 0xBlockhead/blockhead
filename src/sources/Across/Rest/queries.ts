@@ -1,4 +1,5 @@
-import type { SourceBinding } from '$/sources/SourceBinding.ts'
+import bindings from '$/sources/Across/bindings.ts'
+import { Source } from '$/sources/Source.ts'
 import { sourceGetJson } from '$/sources/_runtime/http.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 import {
@@ -20,6 +21,7 @@ import {
 } from '$/sources/Across/Rest/types.ts'
 const integerStringPattern = /^(?:0|[1-9]\d*)$/
 const decimalStringPattern = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/
+const binding = bindings[Source.Across_Rest][0]
 
 const fetchAcrossJson = <_Json>(binding: SourceBinding, path: string) => (
 	sourceGetJson<_Json>(binding, httpUrl(binding, path))
@@ -143,7 +145,7 @@ const assertDepositResponse = (
 	return response
 }
 
-export const getDeposit = async (binding: SourceBinding, query: (
+export const getDeposit = async (query: (
 	| {
 		depositId: string
 		depositTxnRef?: never
@@ -196,11 +198,9 @@ export const getDeposit = async (binding: SourceBinding, query: (
 }
 
 export const getDepositStatus = async ({
-	binding,
 	originChainId,
 	depositId,
 }: {
-	binding: SourceBinding
 	originChainId: number
 	depositId: string
 }) => {
@@ -231,12 +231,10 @@ export const getDepositStatus = async ({
 }
 
 export const getDeposits = async ({
-	binding,
 	depositor,
 	limit = 50,
 	skip = 0,
 }: {
-	binding: SourceBinding
 	depositor: string
 	limit?: number
 	skip?: number
@@ -265,14 +263,12 @@ export const getDeposits = async ({
 }
 
 export const getSuggestedFees = async ({
-	binding,
 	inputToken,
 	outputToken,
 	originChainId,
 	destinationChainId,
 	amount,
 }: {
-	binding: SourceBinding
 	inputToken: string
 	outputToken: string
 	originChainId: number

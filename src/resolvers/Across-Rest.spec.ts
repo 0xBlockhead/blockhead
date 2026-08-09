@@ -88,9 +88,7 @@ describe('Across BridgeTransfer resolvers', () => {
 
 		const snapshot = await resolver.resolve.SourceTransferId.resolve(transfer)
 
-		expect(getDeposit).toHaveBeenCalledWith(expect.objectContaining({
-			source: Source.Across_Rest,
-		}), {
+		expect(getDeposit).toHaveBeenCalledWith({
 			originChainId: 8453,
 			depositId,
 		})
@@ -242,10 +240,10 @@ describe('Across BridgeTransfer resolvers', () => {
 			source: Source.Across_Rest,
 		})
 
-		expect(snapshot).toMatchObject({
-			status: 'expired',
-			error: 'Fill deadline passed; refund pending on origin',
-			estimatedCompletionMs: Date.parse(deposit.fillDeadline!),
+			expect(snapshot).toMatchObject({
+				status: 'expired',
+				error: 'Fill deadline passed; refund pending on origin',
+				estimatedCompletionMs: Date.parse(deposit.fillDeadline),
 		})
 	})
 
@@ -407,9 +405,9 @@ describe('Across BridgeTransfer resolvers', () => {
 			source: Source.Across_Rest,
 		})
 
-		expect(snapshot).toMatchObject({
-			status: 'pending',
-			estimatedCompletionMs: Date.parse(deposit.fillDeadline!),
+			expect(snapshot).toMatchObject({
+				status: 'pending',
+				estimatedCompletionMs: Date.parse(deposit.fillDeadline),
 		})
 		expect(snapshot).not.toHaveProperty('completedAt')
 		expect(snapshot).not.toHaveProperty('destinationTxHash')

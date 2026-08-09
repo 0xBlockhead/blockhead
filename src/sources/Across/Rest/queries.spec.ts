@@ -71,25 +71,6 @@ describe('Across public bridge queries', () => {
 		sourceGetJson.mockReset()
 	})
 
-	it('passes only the caller-provided noncanonical binding to transport', async () => {
-		const modifiedBinding = {
-			...binding,
-			endpoints: binding.endpoints.map((endpoint) => ({
-				...endpoint,
-				locator: 'https://noncanonical.example/across',
-			})),
-		}
-		sourceGetJson.mockResolvedValueOnce([])
-
-		await getDeposits({
-			binding: modifiedBinding,
-			depositor,
-		})
-
-		expect(sourceGetJson).toHaveBeenCalledOnce()
-		expect(sourceGetJson.mock.calls[0][0]).toBe(modifiedBinding)
-	})
-
 	it('preserves deposit, relay, fill, token, amount, fee, and lifecycle identity', async () => {
 		sourceGetJson.mockResolvedValue({
 			deposit,
@@ -99,7 +80,7 @@ describe('Across public bridge queries', () => {
 			},
 		})
 
-		await expect(getDeposit(binding, {
+		await expect(getDeposit({
 			originChainId: 8453,
 			depositId,
 		})).resolves.toMatchObject({
@@ -128,7 +109,7 @@ describe('Across public bridge queries', () => {
 			},
 		})
 
-		await getDeposit(binding, {
+		await getDeposit({
 			depositTxnRef,
 			index: 2,
 		})
@@ -157,7 +138,6 @@ describe('Across public bridge queries', () => {
 		})
 
 		await expect(getDepositStatus({
-			binding,
 			originChainId: 8453,
 			depositId,
 		})).resolves.toMatchObject({
@@ -169,7 +149,6 @@ describe('Across public bridge queries', () => {
 	it('bounds depositor pagination and rejects foreign rows', async () => {
 		sourceGetJson.mockResolvedValue([deposit])
 		await getDeposits({
-			binding,
 			depositor,
 			limit: 1,
 			skip: 100,
@@ -184,7 +163,6 @@ describe('Across public bridge queries', () => {
 			depositor: recipient,
 		}])
 		await expect(getDeposits({
-			binding,
 			depositor,
 		})).rejects.toThrow('foreign depositor deposit')
 	})
@@ -195,7 +173,7 @@ describe('Across public bridge queries', () => {
 			binding, depositor })).resolves.toEqual([])
 
 		sourceGetJson.mockResolvedValue({})
-		await expect(getDeposit(binding, {
+		await expect(getDeposit({
 			originChainId: 8453,
 			depositId,
 		})).rejects.toThrow('invalid deposit response envelope')
@@ -203,7 +181,7 @@ describe('Across public bridge queries', () => {
 		sourceGetJson.mockResolvedValue({
 			deposit,
 		})
-		await expect(getDeposit(binding, {
+		await expect(getDeposit({
 			originChainId: 8453,
 			depositId,
 		})).rejects.toThrow('invalid deposit response envelope')
@@ -215,7 +193,7 @@ describe('Across public bridge queries', () => {
 				maxIndex: -1,
 			},
 		})
-		await expect(getDeposit(binding, {
+		await expect(getDeposit({
 			originChainId: 8453,
 			depositId,
 		})).rejects.toThrow('invalid deposit pagination envelope')
@@ -299,7 +277,6 @@ describe('Across public bridge queries', () => {
 		})
 
 		await expect(getSuggestedFees({
-			binding,
 			inputToken,
 			outputToken,
 			originChainId: 8453,
@@ -314,17 +291,15 @@ describe('Across public bridge queries', () => {
 	})
 
 	it('rejects malformed identities, bounds, units, and impossible chronology', async () => {
-		await expect(getDeposit(binding, {
+		await expect(getDeposit({
 			originChainId: 8453,
 			depositId: '9e18',
 		})).rejects.toThrow('invalid deposit id')
 		await expect(getDeposits({
-			binding,
 			depositor,
 			limit: 101,
 		})).rejects.toThrow('invalid page limit')
 		await expect(getSuggestedFees({
-			binding,
 			inputToken,
 			outputToken,
 			originChainId: 999999,
@@ -342,7 +317,7 @@ describe('Across public bridge queries', () => {
 				maxIndex: 0,
 			},
 		})
-		await expect(getDeposit(binding, {
+		await expect(getDeposit({
 			originChainId: 8453,
 			depositId,
 		})).rejects.toThrow('invalid input amount')
@@ -357,7 +332,7 @@ describe('Across public bridge queries', () => {
 				maxIndex: 0,
 			},
 		})
-		await expect(getDeposit(binding, {
+		await expect(getDeposit({
 			originChainId: 8453,
 			depositId,
 		})).rejects.toThrow('fill predates deposit')
@@ -373,7 +348,7 @@ describe('Across public bridge queries', () => {
 				maxIndex: 0,
 			},
 		})
-		await expect(getDeposit(binding, {
+		await expect(getDeposit({
 			originChainId: 8453,
 			depositId,
 		})).rejects.toThrow('filled deposit missing fill transaction')
@@ -391,7 +366,7 @@ describe('Across public bridge queries', () => {
 				maxIndex: 0,
 			},
 		})
-		await expect(getDeposit(binding, {
+		await expect(getDeposit({
 			originChainId: 8453,
 			depositId,
 		})).rejects.toThrow('fill transaction present for pending deposit')
@@ -413,7 +388,6 @@ describe('Across public bridge queries', () => {
 			},
 		})
 		await expect(getDepositStatus({
-			binding,
 			originChainId: 8453,
 			depositId,
 		})).rejects.toThrow('refunded deposit missing refund transaction')
