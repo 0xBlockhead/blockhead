@@ -1573,6 +1573,7 @@ describe('entity selectors', () => {
 
 		expect(entityFieldDefinitions(evmNetworkAccount).find(({ name }) => name === '$$transactions')?.defaultSources).toEqual([
 			Source.Blockscout_Rest,
+			Source.GoldRushFoundational_Rest,
 			Source.SafeTransactionService_Rest,
 		])
 		expect(entityFieldDefinitions(evmNetworkAccount).find(({ name }) => name === '$$queuedTransactions')?.defaultSources).toEqual([
@@ -1730,10 +1731,8 @@ describe('entity selectors', () => {
 		])
 		expect(entityFieldDefinitions(hyperliquidNetworkTimestamp).find(({ name }) => name === 'perpMarketCount')).toMatchObject({
 			type: EntityFieldType.Primitive,
-			defaultSources: [
-				Source.Hyperliquid,
-			],
 		})
+		expect(entityFieldDefinitions(hyperliquidNetworkTimestamp).find(({ name }) => name === 'perpMarketCount')?.defaultSources).toBeUndefined()
 
 		expect(hyperliquidPerpMarket.selectors.map((selector) => selector.fields)).toEqual([
 			[
