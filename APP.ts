@@ -7262,11 +7262,11 @@ export const schema = {
 					plural: "ACP agent programs",
 				},
 			})({
-				"registryAgentId": { label: "registry agent ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"packageName": { label: "package name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"repositoryUrl": { label: "repository URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
-				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"authors": { label: "authors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "stringArray" },
+				"registryAgentId": { label: "registry agent ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AcpRegistry_Rest] },
+				"packageName": { label: "package name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AcpRegistry_Rest] },
+				"repositoryUrl": { label: "repository URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString", defaultSources: [Source.AcpRegistry_Rest] },
+				"label": { label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AcpRegistry_Rest] },
+				"authors": { label: "authors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "stringArray", defaultSources: [Source.AcpRegistry_Rest] },
 			})({
 				selectors: {
 					"RegistryAgentId": ["registryAgentId"],
@@ -7275,6 +7275,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						query: { sources: [Source.AcpRegistry_Rest] },
 						summary: { title: ["label"], titleFallback: ["registryAgentId", "packageName", "repositoryUrl"], value: ["packageName"] },
 						closed: ["registryAgentId", "label", "packageName"],
 						content: { dl: [["registryAgentId", "packageName", "repositoryUrl", "label", "authors"]] },
@@ -34359,15 +34360,15 @@ export const schema = {
 					plural: "Fedimint federations",
 				},
 			})({
-				"federationId": { label: "federation ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"federationId": { label: "federation ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.FedimintGatewayd_Rest] },
+				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.FedimintGatewayd_Rest] },
 				"guardianCount": { label: "guardian count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"guardianThreshold": { label: "guardian threshold", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"clientConfigJson": { label: "client config JSON", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"moduleConfigJson": { label: "module config JSON", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"consensusVersion": { label: "consensus version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FedimintFederation_Timestamp },
-				"$$gateways": { label: "gateways", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FedimintGateway },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FedimintFederation_Timestamp, defaultSources: [Source.FedimintGatewayd_Rest] },
+				"$$gateways": { label: "gateways", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FedimintGateway, defaultSources: [Source.FedimintGatewayd_Rest] },
 			})({
 				selectors: {
 					"FederationId": ["federationId"],
@@ -34443,17 +34444,18 @@ export const schema = {
 					plural: "Fedimint gateways",
 				},
 			})({
-				"gatewayId": { label: "gateway ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"apiUrl": { label: "API URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"nodePubkey": { label: "node public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"$$federations": { label: "federations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FedimintFederation },
-				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FedimintGateway_Timestamp },
+				"gatewayId": { label: "gateway ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.FedimintGatewayd_Rest] },
+				"apiUrl": { label: "API URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.FedimintGatewayd_Rest] },
+				"nodePubkey": { label: "node public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.FedimintGatewayd_Rest] },
+				"$$federations": { label: "federations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FedimintFederation, defaultSources: [Source.FedimintGatewayd_Rest] },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FedimintGateway_Timestamp, defaultSources: [Source.FedimintGatewayd_Rest] },
 			})({
 				selectors: {
 					"GatewayId": ["gatewayId"],
 				},
 				views: {
 					singular: {
+						query: { sources: [Source.FedimintGatewayd_Rest] },
 						summary: {
 							title: ["gatewayId"],
 							value: ["apiUrl"],
@@ -105138,6 +105140,10 @@ export const app = {
 			{
 				source: Source.Farcaster_Rest,
 				path: "src/resolvers/Farcaster-Rest.ts",
+			},
+			{
+				source: Source.FedimintGatewayd_Rest,
+				path: "src/resolvers/FedimintGatewayd-Rest.ts",
 			},
 			{
 				source: Source.FilecoinFips_Github,

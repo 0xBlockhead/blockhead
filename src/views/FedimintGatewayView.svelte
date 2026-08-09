@@ -4,6 +4,7 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -15,7 +16,12 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.FedimintGateway>, 'prefetched'> = $props()
 
-	const fedimintGateway = $derived(selection({
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.FedimintGatewayd_Rest,
+		],
+	}))
+	const fedimintGateway = $derived(viewSelection({
 		fields: {
 			apiUrl: true,
 		},
@@ -80,7 +86,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							nodePubkey: true,
 						},

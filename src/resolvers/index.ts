@@ -84,6 +84,7 @@ const resolverLoaderEntries = [
 	[Source.Etherscan_Rest, () => import('./Etherscan-Rest.ts')],
 	[Source.Euler_Rest, () => import('./Euler-Rest.ts')],
 	[Source.Farcaster_Rest, () => import('./Farcaster-Rest.ts')],
+	[Source.FedimintGatewayd_Rest, () => import('./FedimintGatewayd-Rest.ts')],
 	[Source.FilecoinFips_Github, () => import('./FilecoinFips-Github.ts')],
 	[Source.Filfox_Rest, () => import('./Filfox-Rest.ts')],
 	[Source.GetBlockRpc_JsonRpc, () => import('./GetBlock-Rpc.ts')],

@@ -4,6 +4,7 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -16,7 +17,12 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AcpAgentProgram> = $props()
 
-	const acpAgentProgram = $derived(selection({
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.AcpRegistry_Rest,
+		],
+	}))
+	const acpAgentProgram = $derived(viewSelection({
 		fields: {
 			label: true,
 			packageName: true,
@@ -131,7 +137,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							authors: true,
 						},

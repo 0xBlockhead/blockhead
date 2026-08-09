@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -15,10 +16,16 @@ export default entity({
 	federationId: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.FedimintGatewayd_Rest,
+		],
 	},
 	name: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.FedimintGatewayd_Rest,
+		],
 	},
 	guardianCount: {
 		primitiveType: type('number'),
@@ -43,10 +50,16 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.FedimintFederation_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.FedimintGatewayd_Rest,
+		],
 	},
 	$$gateways: {
 		entityType: EntityType.FedimintGateway,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.FedimintGatewayd_Rest,
+		],
 	},
 })({
 	selectors: {
