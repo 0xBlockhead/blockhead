@@ -285,10 +285,14 @@ export const resolveTallyProposals = async ({
 	const page = await getProposalsPage({
 		governorId,
 		limit: Math.min(resolverContextRowLimit(context), 20),
+		afterCursor: context.providerContinuationToken,
 	})
-	return page.nodes.map((proposal) => ({
-		[EntityMetaKey.Selector]: proposalSelector(proposal.id),
-	}))
+	return {
+		rows: page.nodes.map((proposal) => ({
+			[EntityMetaKey.Selector]: proposalSelector(proposal.id),
+		})),
+		nextCursor: page.pageInfo.lastCursor,
+	}
 }
 
 export default {
@@ -326,16 +330,31 @@ export default {
 			entityType: EntityType.TallyGovernor,
 			resolve: {
 				GovernorId: {
-					resolve: async ({ governorId }, context) => ({
-						$$proposals: await resolveTallyProposals({
+					resolve: async ({ governorId }, context) => (
+						resolveTallyProposals({
 							governorId,
-						}, context),
-					}),
+						}, context)
+					),
 				},
 			},
 		})({
 			$$proposals: {
-				select: (snapshot) => snapshot.$$proposals,
+				select: (snapshot) => snapshot.rows,
+				continuation: (snapshot) => (
+					snapshot.nextCursor == null ?
+						{
+							operation: 'proposals',
+							target: 'tally-api',
+							terminal: true,
+						}
+					:
+						{
+							operation: 'proposals',
+							target: 'tally-api',
+							terminal: false,
+							token: snapshot.nextCursor,
+						}
+				),
 			},
 		}),
 

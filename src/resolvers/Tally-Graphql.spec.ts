@@ -280,11 +280,19 @@ describe('Tally resolver field shaping', () => {
 		})
 		await expect(resolveTallyProposals({
 			governorId,
-		}, context)).resolves.toEqual([{
-			[EntityMetaKey.Selector]: {
-				proposalId,
-			},
-		}])
+		}, context)).resolves.toEqual({
+			rows: [{
+				[EntityMetaKey.Selector]: {
+					proposalId,
+				},
+			}],
+			nextCursor: null,
+		})
+		expect(getProposalsPage).toHaveBeenCalledWith({
+			governorId,
+			limit: 10,
+			afterCursor: undefined,
+		})
 	})
 
 	it('registers Tally governor and proposal resolver facets that project enrolled fields', () => {
@@ -302,12 +310,66 @@ describe('Tally resolver field shaping', () => {
 			resolver.entityType === EntityType.TallyProposal
 			&& 'title' in resolver.projections
 		))
+		const governorProposalsResolver = tally.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.TallyGovernor
+			&& '$$proposals' in resolver.projections
+		))
 		expect(governorResolver?.projections.name({ governorId, name: 'Uniswap' })).toBe('Uniswap')
 		expect(proposalResolver?.projections.title({ proposalId, title: 'Fund public goods' })).toBe('Fund public goods')
 		expect(proposalResolver?.projections.voteStats({
 			proposalId,
 			voteStats: proposal.voteStats,
 		})).toEqual(proposal.voteStats)
+		expect(governorProposalsResolver?.resolve).toHaveProperty('GovernorId')
+	})
+
+	it('continues governor proposal pages with the provider cursor', async () => {
+		const governorProposalsResolver = tally.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.TallyGovernor
+			&& 'GovernorId' in resolver.resolve
+			&& '$$proposals' in resolver.projections
+		))
+		if (governorProposalsResolver == null || !('GovernorId' in governorProposalsResolver.resolve))
+			throw new Error('Tally spec missing governor proposals resolver')
+
+		getProposalsPage.mockResolvedValueOnce({
+			nodes: [proposal],
+			pageInfo: {
+				firstCursor: 'cursor-2',
+				lastCursor: 'cursor-2',
+				count: 1,
+			},
+		})
+		const page = await governorProposalsResolver.resolve.GovernorId.resolve({
+			governorId,
+		}, {
+			...context,
+			providerContinuationToken: 'cursor-1',
+		})
+
+		expect(getProposalsPage).toHaveBeenCalledWith({
+			governorId,
+			limit: 10,
+			afterCursor: 'cursor-1',
+		})
+		expect(governorProposalsResolver.projections.$$proposals.select(page)).toEqual([{
+			[EntityMetaKey.Selector]: { proposalId },
+		}])
+		expect(governorProposalsResolver.projections.$$proposals.continuation(page)).toEqual({
+			operation: 'proposals',
+			target: 'tally-api',
+			terminal: false,
+			token: 'cursor-2',
+		})
+
+		expect(governorProposalsResolver.projections.$$proposals.continuation({
+			rows: [],
+			nextCursor: null,
+		})).toEqual({
+			operation: 'proposals',
+			target: 'tally-api',
+			terminal: true,
+		})
 	})
 
 	it('preserves an upstream proposal failure instead of materializing an empty proposal', async () => {
