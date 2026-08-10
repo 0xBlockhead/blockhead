@@ -19,6 +19,7 @@ const {
 	getChannelMembersPage,
 	getPrimaryAddress,
 	getUserChannelFollowStatus,
+	getUserThreadCastsByClientUrl,
 	getUserThreadCasts,
 } = await import(
 	'$/sources/Farcaster/Rest/queries.ts'
@@ -155,6 +156,9 @@ describe('Farcaster channel request identity', () => {
 })
 
 describe('Farcaster public thread endpoint', () => {
+	beforeEach(() => {
+		farcasterGet.mockReset()
+	})
 
 	it('returns the endpoint-native ordered thread response', async () => {
 		const response = {
@@ -207,6 +211,50 @@ describe('Farcaster public thread endpoint', () => {
 				limit: 15,
 			}
 		)
+	})
+
+	it('derives the exact public thread operation from a canonical cast client URL', async () => {
+		const response = {
+			result: {
+				casts: [{
+					hash: '0xABCDEF1234567890123456789012345678901234',
+					author: {
+						fid: 1,
+						username: 'alice',
+					},
+				}],
+			},
+		}
+		farcasterGet.mockResolvedValueOnce(response)
+
+		await expect(getUserThreadCastsByClientUrl(
+			'https://FARCASTER.XYZ/Alice/0xABCDEF12'
+		)).resolves.toEqual({
+			username: 'alice',
+			castHashPrefix: '0xabcdef12',
+			response,
+		})
+		expect(farcasterGet).toHaveBeenLastCalledWith(
+			'web-api',
+			'/~api/v2/user-thread-casts',
+			{
+				username: 'alice',
+				castHashPrefix: '0xabcdef12',
+				limit: 15,
+			}
+		)
+	})
+
+	it.each([
+		'https://farcaster.xyz/~/conversations/0xabcdef1234567890123456789012345678901234',
+		'https://farcaster.xyz.evil.example/alice/0xabcdef12',
+		'https://user@farcaster.xyz/alice/0xabcdef12',
+		'https://farcaster.xyz/alice/0xabcdef12?other=true',
+	])('rejects unsupported client URL %s before transport', async (clientUrl) => {
+		await expect(getUserThreadCastsByClientUrl(clientUrl)).rejects.toThrow(
+			'unsupported cast client URL'
+		)
+		expect(farcasterGet).not.toHaveBeenCalled()
 	})
 
 	it('rejects a primary address for a different account or protocol', async () => {

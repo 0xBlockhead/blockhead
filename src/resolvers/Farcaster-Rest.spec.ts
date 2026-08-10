@@ -15,6 +15,7 @@ const getAllChannels = vi.hoisted(() => vi.fn())
 const getChannel = vi.hoisted(() => vi.fn())
 const getChannelMember = vi.hoisted(() => vi.fn())
 const getUserFollowingChannelsPage = vi.hoisted(() => vi.fn())
+const getUserThreadCastsByClientUrl = vi.hoisted(() => vi.fn())
 const getUserThreadCasts = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Farcaster/Rest/queries.ts', () => ({
@@ -22,6 +23,7 @@ vi.mock('$/sources/Farcaster/Rest/queries.ts', () => ({
 	getChannel,
 	getChannelMember,
 	getUserFollowingChannelsPage,
+	getUserThreadCastsByClientUrl,
 	getUserThreadCasts,
 }))
 
@@ -29,11 +31,16 @@ const { default: farcasterRest } = await import('$/resolvers/Farcaster-Rest.ts')
 
 const castResolver = farcasterRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.FarcasterCast
+	&& 'ClientUrl' in resolver.resolve
 	&& 'UsernameHashPrefix' in resolver.resolve
 ))
 
-if (castResolver == null || !('UsernameHashPrefix' in castResolver.resolve))
-	throw new Error('Farcaster spec missing UsernameHashPrefix cast resolver')
+if (
+	castResolver == null
+	|| !('ClientUrl' in castResolver.resolve)
+	|| !('UsernameHashPrefix' in castResolver.resolve)
+)
+	throw new Error('Farcaster spec missing client URL and username/hash-prefix cast resolvers')
 
 const castResolve = castResolver.resolve
 
@@ -199,6 +206,41 @@ describe('Farcaster channel directory', () => {
 })
 
 describe('Farcaster public cast direct replies', () => {
+	it('materializes the exact ClientUrl selector through the public thread operation', async () => {
+		const clientUrl = 'https://farcaster.xyz/alice/0xabcdef12'
+		getUserThreadCastsByClientUrl.mockResolvedValueOnce({
+			username: 'alice',
+			castHashPrefix: '0xabcdef12',
+			response: {
+				result: {
+					casts: [{
+						hash: '0xabcdef1234567890123456789012345678901234',
+						author: {
+							fid: 42,
+							username: 'alice',
+						},
+						text: 'Focal cast',
+						timestamp: 1_752_840_000,
+					}],
+				},
+			},
+		})
+
+		const cast = await castResolve.ClientUrl.resolve({ clientUrl })
+
+		expect(getUserThreadCastsByClientUrl).toHaveBeenCalledWith(clientUrl)
+		expect(castResolver.projections.clientUrl(cast)).toBe(clientUrl)
+		expect(cast).toMatchObject({
+			fid: 42,
+			hash: '0xabcdef1234567890123456789012345678901234',
+			username: 'alice',
+			hashPrefix: '0xabcdef12',
+			clientUrl,
+			text: 'Focal cast',
+			timestamp: 1_752_840_000_000,
+		})
+	})
+
 	it('keeps valid direct reply siblings when another row is malformed', async () => {
 		getUserThreadCasts.mockResolvedValueOnce({
 			result: {

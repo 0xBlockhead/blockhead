@@ -172,6 +172,48 @@ export const getUserThreadCasts = ({
 	})
 )
 
+export const getUserThreadCastsByClientUrl = async (clientUrl: string) => {
+	let url: URL
+	try {
+		url = new URL(clientUrl)
+	} catch {
+		throw new Error('Farcaster_Rest: invalid cast client URL')
+	}
+	const [
+		empty,
+		username,
+		castHashPrefix,
+		...rest
+	] = url.pathname.split('/')
+	if (
+		clientUrl.length > 512
+		|| url.protocol !== 'https:'
+		|| ![
+			'farcaster.xyz',
+			'warpcast.com',
+		].includes(url.hostname.toLowerCase())
+		|| url.port !== ''
+		|| url.username !== ''
+		|| url.password !== ''
+		|| url.search !== ''
+		|| url.hash !== ''
+		|| empty !== ''
+		|| !/^[a-z0-9][a-z0-9.-]{0,15}$/i.test(username)
+		|| !/^0x[0-9a-f]{8,40}$/i.test(castHashPrefix)
+		|| rest.length > 0
+	)
+		throw new Error('Farcaster_Rest: unsupported cast client URL')
+
+	return {
+		username: username.toLowerCase(),
+		castHashPrefix: castHashPrefix.toLowerCase(),
+		response: await getUserThreadCasts({
+			username: username.toLowerCase(),
+			castHashPrefix: castHashPrefix.toLowerCase(),
+		}),
+	}
+}
+
 /**
  * `GET /v1/channel-followers`
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-channel-followers
