@@ -87,6 +87,7 @@ import { Source } from '$/sources/Source.ts'
 import {
 	sourceBindingId,
 	SourceDelivery,
+	SourceTargetKind,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
@@ -3428,6 +3429,22 @@ const mountFieldLive = <
 		selector: parentEntitySelector,
 		selectorKey: parentSelectorKey,
 	} of parentSelectors) {
+		const applicableRemoteLiveBindings = (source: string) => (
+			context.sourceBindingsBySource[source]?.filter((sourceBinding) => (
+				sourceBinding.delivery === SourceDelivery.RemoteLive
+				&& (
+					sourceBinding.target.kind === SourceTargetKind.NetworkSlug && 'slug' in parentEntitySelector ?
+						sourceBinding.target.key === parentEntitySelector.slug
+					: sourceBinding.target.kind === SourceTargetKind.Caip2Network && 'caip2' in parentEntitySelector ?
+						sourceBinding.target.key === `${parentEntitySelector.caip2.namespace}:${parentEntitySelector.caip2.reference}`
+					: sourceBinding.target.kind === SourceTargetKind.Eip155Chain && 'caip2' in parentEntitySelector && parentEntitySelector.caip2.namespace === 'eip155' ?
+						sourceBinding.target.key === parentEntitySelector.caip2.reference
+					:
+						true
+				)
+			))
+			?? [undefined]
+		)
 		const selectorName = validateEntitySelector(
 			context.schema,
 			context.entityDefinitionByType[entityType],
@@ -3581,10 +3598,7 @@ const mountFieldLive = <
 				continue
 
 			const source = String(part.source)
-			for (const sourceBinding of (
-				context.sourceBindingsBySource[source]?.filter(({ delivery }) => delivery === SourceDelivery.RemoteLive)
-				?? [undefined]
-			)) {
+			for (const sourceBinding of applicableRemoteLiveBindings(source)) {
 				releases.push(acquire(stringify([
 				'root',
 				source,
@@ -3620,10 +3634,7 @@ const mountFieldLive = <
 			const source = String(part.source)
 			const fields = fieldsForSource(source, part.facetPath)
 			const resolveLive = part.resolveLive
-			for (const sourceBinding of (
-				context.sourceBindingsBySource[source]?.filter(({ delivery }) => delivery === SourceDelivery.RemoteLive)
-				?? [undefined]
-			)) {
+			for (const sourceBinding of applicableRemoteLiveBindings(source)) {
 				releases.push(acquire(stringify([
 				'field',
 				source,

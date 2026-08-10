@@ -3839,6 +3839,115 @@ describe('client resolver stack architecture', () => {
 		expect(allSourcesContext.collectionLoadFailures.list).toEqual([])
 	})
 
+	it('acquires only the RemoteLive binding applicable to a CAIP-2 network selector', async () => {
+		const fixtureSchema = [
+			entity({
+				entityType: 'LiveNetworkFixture',
+				labels: {
+					singular: 'Live network fixture',
+					plural: 'Live network fixtures',
+				},
+			})({
+				caip2: {
+					primitiveType: arktype({
+						namespace: 'string',
+						reference: 'string',
+					}),
+					cardinality: EntityFieldCardinality.One,
+				},
+				items: {
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.Many,
+				},
+			})({
+				selectors: {
+					Caip2: ['caip2'],
+				},
+			}),
+		] as const
+		const remoteLiveBindings = sourceBindings.filter((binding) => (
+			binding.source === Source.Voltaire_JsonRpc
+			&& binding.delivery === SourceDelivery.RemoteLive
+			&& (binding.target.key === '1' || binding.target.key === '10')
+		))
+		expect(remoteLiveBindings).toHaveLength(2)
+		const startedBindingTargets: string[] = []
+		const context = client({
+			schema: fixtureSchema,
+			sourceProviders,
+		})({
+			resolvers: [{
+				source: Source.Voltaire_JsonRpc,
+				resolvers: [{
+					entityType: 'LiveNetworkFixture',
+					resolve: {
+						Caip2: {
+							resolve: async () => ({}),
+						},
+					},
+					resolveLive: {
+						items: {
+							facetPath: [],
+							publishes: {
+								items: true,
+							},
+							start: ({ trigger }) => {
+								startedBindingTargets.push(trigger.sourceBinding?.target.key ?? '')
+							},
+						},
+					},
+					projections: {
+						items: () => [],
+					},
+				}],
+			}],
+			sourceIndex: {
+				enabledBindingIds: new Set(remoteLiveBindings.map(sourceBindingId)),
+				enabledSources: new Set([Source.Voltaire_JsonRpc]),
+				resolverPublicEnvBySource: new Map([[Source.Voltaire_JsonRpc, {}]]),
+			},
+		})({
+			queryClient: new QueryClient(),
+			persistence: {
+				adapter: {
+					loadSubset: async () => [],
+					applyCommittedTx: async () => {},
+					ensureIndex: async () => {},
+				} satisfies PersistenceAdapter,
+			},
+			schemaVersion: 1,
+		})
+		const fieldCollection = context.entityFieldCollections.LiveNetworkFixture[
+			entityFieldAddressKey('LiveNetworkFixture', [], 'items')
+		]
+		const parentSelectorKey = stringify({
+			caip2: {
+				namespace: 'eip155',
+				reference: '1',
+			},
+		})
+		const liveQuery = createLiveQueryCollection({
+			gcTime: 1,
+			startSync: true,
+			query: (query) => query
+				.from({
+					row: fieldCollection,
+				})
+				.where(({ row }) => and(
+					eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+					eq(row[EntityMetaKey.Source], Source.Voltaire_JsonRpc)
+				)),
+		})
+		const subscription = liveQuery.subscribeChanges(() => {}, {
+			includeInitialState: true,
+		})
+
+		await expect.poll(() => startedBindingTargets).toEqual(['1'])
+		expect(context.liveSubscriptions.size).toBe(1)
+		subscription.unsubscribe()
+		await expect.poll(() => context.liveSubscriptions.size).toBe(0)
+	})
+
 	it('shares projection live publishers and cleans up after the last field subscriber', async () => {
 		const fixtureSchema = [
 			entity({
