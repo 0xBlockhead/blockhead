@@ -13,18 +13,35 @@ const { voltaireJsonRpcTransportsForBinding } = await import('$/sources/Voltaire
 
 describe('Voltaire binding-owned transports', () => {
 	it('derives candidates only from the selected binding and preserves it through execution', async () => {
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_123)
 		const binding = bindings[Source.Voltaire_JsonRpc][0]
 		const rows = voltaireJsonRpcTransportsForBinding(binding)
 
 		expect(rows.map(({ transport }) => transport.origin)).toEqual(
 			binding.endpoints.map(({ locator }) => locator)
 		)
-		await expect(rows[0].transport.getBlockNumber()).resolves.toBe(1n)
-		expect(jsonRpc2).toHaveBeenCalledWith(
-			binding,
-			'eth_blockNumber',
-			undefined,
-			binding.endpoints[0]
+		expect(rows.map(({ transport }) => transport.endpointKind)).toEqual(
+			binding.endpoints.map(({ endpointKind }) => endpointKind)
 		)
+		await expect(rows[0].transport.getBlockNumber()).resolves.toBe(1n)
+		await expect(rows[0].transport.getPeerCountObservation()).resolves.toEqual({
+			peerCount: 1,
+			fetchedAtMs: 1_700_000_000_123,
+		})
+		expect(jsonRpc2.mock.calls).toEqual([
+			[
+				binding,
+				'eth_blockNumber',
+				undefined,
+				binding.endpoints[0],
+			],
+			[
+				binding,
+				'net_peerCount',
+				undefined,
+				binding.endpoints[0],
+			],
+		])
+		dateNow.mockRestore()
 	})
 })

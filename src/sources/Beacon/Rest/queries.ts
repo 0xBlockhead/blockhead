@@ -23,6 +23,18 @@ type BeaconHeaderWire = (
 type BeaconGenesisWire = (
 	operations['getGenesis']['responses'][200]['content']['application/json']['data']
 )
+type BeaconPeerCountWire = (
+	operations['getPeerCount']['responses'][200]['content']['application/json']['data']
+)
+type BeaconNetworkIdentityWire = (
+	operations['getNetworkIdentity']['responses'][200]['content']['application/json']['data']
+)
+type BeaconNodeVersionWire = (
+	operations['getNodeVersion']['responses'][200]['content']['application/json']['data']
+)
+type BeaconSyncingWire = (
+	operations['getSyncingStatus']['responses'][200]['content']['application/json']['data']
+)
 
 const beaconHeaderWire = arktype({
 	root: 'string',
@@ -44,6 +56,38 @@ const beaconGenesisWire = arktype({
 	genesis_validators_root: 'string',
 	genesis_fork_version: 'string',
 }) satisfies Type<BeaconGenesisWire>
+
+const beaconPeerCountWire = arktype({
+	disconnected: 'string',
+	connecting: 'string',
+	connected: 'string',
+	disconnecting: 'string',
+}) satisfies Type<BeaconPeerCountWire>
+
+const beaconNetworkIdentityWire = arktype({
+	peer_id: 'string',
+	enr: 'string',
+	p2p_addresses: 'string[]',
+	discovery_addresses: 'string[]',
+	metadata: {
+		seq_number: 'string',
+		attnets: 'string',
+		'syncnets?': 'string',
+		'custody_group_count?': 'string',
+	},
+}) satisfies Type<BeaconNetworkIdentityWire>
+
+const beaconNodeVersionWire = arktype({
+	version: 'string',
+}) satisfies Type<BeaconNodeVersionWire>
+
+const beaconSyncingWire = arktype({
+	head_slot: 'string',
+	sync_distance: 'string',
+	is_syncing: 'boolean',
+	is_optimistic: 'boolean',
+	el_offline: 'boolean',
+}) satisfies Type<BeaconSyncingWire>
 
 const isUint64Wire = (value: string) => (
 	/^[0-9]+$/.test(value)
@@ -80,6 +124,167 @@ const beaconFetch = (
 export const getHeadSlot = async (chainId: number) => {
 	const header = await getHeader(chainId, 'head')
 	return header.header.message.slot
+}
+
+export const getNodePeerCountFromWire = (
+	wire: JsonValue
+) => {
+	if (!isJsonObject(wire)) return undefined
+	const peerCount = beaconPeerCountWire(wire.data)
+	if (
+		peerCount instanceof arktype.errors
+		|| !Object.values(peerCount).every(isUint64Wire)
+	) return undefined
+	return peerCount
+}
+
+export const getNodePeerCountObservation = async (chainId: number) => {
+	const endpointUrl = beaconRestByChainId.get(chainId)?.restBaseUrls[0]
+	if (endpointUrl == null)
+		throw new Error(`Beacon_Rest: no binding for chain ${String(chainId)}`)
+
+	const response = await beaconFetch(chainId, '/eth/v1/node/peer_count', {
+		headers: { accept: 'application/json' },
+	})
+	if (!response.ok) await throwHttpError('Beacon GET node peer_count', response)
+	const peerCount = getNodePeerCountFromWire(await response.json<JsonValue>())
+	if (peerCount == null)
+		throw new Error('Beacon: invalid node peer_count response')
+
+	return {
+		...peerCount,
+		endpointUrl,
+		fetchedAtMs: Date.now(),
+	}
+}
+
+export const getNodeIdentityFromWire = (
+	wire: JsonValue
+) => {
+	if (!isJsonObject(wire)) return undefined
+	const identity = beaconNetworkIdentityWire(wire.data)
+	if (
+		identity instanceof arktype.errors
+		|| !isUint64Wire(identity.metadata.seq_number)
+		|| !/^0x[0-9a-fA-F]{2,}$/.test(identity.metadata.attnets)
+		|| (
+			identity.metadata.syncnets != null
+			&& !/^0x[0-9a-fA-F]{2,}$/.test(identity.metadata.syncnets)
+		)
+		|| (
+			identity.metadata.custody_group_count != null
+			&& !isUint64Wire(identity.metadata.custody_group_count)
+		)
+	) return undefined
+	return identity
+}
+
+export const getNodeIdentityObservation = async (chainId: number) => {
+	const endpointUrl = beaconRestByChainId.get(chainId)?.restBaseUrls[0]
+	if (endpointUrl == null)
+		throw new Error(`Beacon_Rest: no binding for chain ${String(chainId)}`)
+
+	const response = await beaconFetch(chainId, '/eth/v1/node/identity', {
+		headers: { accept: 'application/json' },
+	})
+	if (!response.ok) await throwHttpError('Beacon GET node identity', response)
+	const identity = getNodeIdentityFromWire(await response.json<JsonValue>())
+	if (identity == null)
+		throw new Error('Beacon: invalid node identity response')
+
+	return {
+		...identity,
+		endpointUrl,
+		fetchedAtMs: Date.now(),
+	}
+}
+
+export const getNodeHealthObservation = async (chainId: number) => {
+	const endpointUrl = beaconRestByChainId.get(chainId)?.restBaseUrls[0]
+	if (endpointUrl == null)
+		throw new Error(`Beacon_Rest: no binding for chain ${String(chainId)}`)
+
+	const response = await beaconFetch(chainId, '/eth/v1/node/health', {
+		headers: { accept: 'application/json' },
+	})
+	if (
+		response.status !== 200
+		&& response.status !== 206
+		&& response.status !== 503
+	) await throwHttpError('Beacon GET node health', response)
+
+	return {
+		statusCode: (
+			response.status === 200 ?
+				200
+			:
+				response.status === 206 ?
+					206
+				:
+					503
+		),
+		endpointUrl,
+		fetchedAtMs: Date.now(),
+	}
+}
+
+export const getNodeVersionObservation = async (chainId: number) => {
+	const endpointUrl = beaconRestByChainId.get(chainId)?.restBaseUrls[0]
+	if (endpointUrl == null)
+		throw new Error(`Beacon_Rest: no binding for chain ${String(chainId)}`)
+
+	const response = await beaconFetch(chainId, '/eth/v1/node/version', {
+		headers: { accept: 'application/json' },
+	})
+	if (!response.ok) await throwHttpError('Beacon GET node version', response)
+	const wire = await response.json<JsonValue>()
+	const version = isJsonObject(wire) ? beaconNodeVersionWire(wire.data) : undefined
+	if (
+		version == null
+		|| version instanceof arktype.errors
+		|| version.version.length === 0
+	) throw new Error('Beacon: invalid node version response')
+
+	return {
+		...version,
+		endpointUrl,
+		fetchedAtMs: Date.now(),
+	}
+}
+
+export const getNodeSyncingFromWire = (
+	wire: JsonValue
+) => {
+	if (!isJsonObject(wire)) return undefined
+	const syncing = beaconSyncingWire(wire.data)
+	if (
+		syncing instanceof arktype.errors
+		|| ![
+			syncing.head_slot,
+			syncing.sync_distance,
+		].every(isUint64Wire)
+	) return undefined
+	return syncing
+}
+
+export const getNodeSyncingObservation = async (chainId: number) => {
+	const endpointUrl = beaconRestByChainId.get(chainId)?.restBaseUrls[0]
+	if (endpointUrl == null)
+		throw new Error(`Beacon_Rest: no binding for chain ${String(chainId)}`)
+
+	const response = await beaconFetch(chainId, '/eth/v1/node/syncing', {
+		headers: { accept: 'application/json' },
+	})
+	if (!response.ok) await throwHttpError('Beacon GET node syncing', response)
+	const syncing = getNodeSyncingFromWire(await response.json<JsonValue>())
+	if (syncing == null)
+		throw new Error('Beacon: invalid node syncing response')
+
+	return {
+		...syncing,
+		endpointUrl,
+		fetchedAtMs: Date.now(),
+	}
 }
 
 export const getHeaderFromWire = (

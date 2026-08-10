@@ -251,6 +251,21 @@ export const evmExecutionJsonRpc = ({
 	return {
 		getBlockNumber: () => request('eth_blockNumber')
 			.then((result) => BigInt(stringResult(result, 'eth_blockNumber'))),
+		getPeerCountObservation: () => request('net_peerCount')
+			.then((result) => {
+				const quantity = stringResult(result, 'net_peerCount')
+				if (!/^0x(?:0|[1-9a-f][0-9a-f]*)$/i.test(quantity))
+					throw new Error('EVM execution JSON-RPC net_peerCount: malformed QUANTITY result')
+
+				const peerCount = BigInt(quantity)
+				if (peerCount > BigInt(Number.MAX_SAFE_INTEGER))
+					throw new Error('EVM execution JSON-RPC net_peerCount: peer count exceeds safe integer range')
+
+				return {
+					peerCount: Number(peerCount),
+					fetchedAtMs: Date.now(),
+				}
+			}),
 		getGasPrice: () => request('eth_gasPrice')
 			.then((result) => stringResult(result, 'eth_gasPrice')),
 		getMaxPriorityFeePerGas: () => request('eth_maxPriorityFeePerGas')
