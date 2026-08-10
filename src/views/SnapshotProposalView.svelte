@@ -43,6 +43,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import SnapshotVotesView from '$/views/SnapshotVotesView.svelte'
 	import SnapshotSpaceView from '$/views/SnapshotSpaceView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
@@ -483,6 +484,32 @@
 					{body}
 				{:else}
 					<p data-text="muted">No proposal body.</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const votesResource = selection.$$votes}
+		<ResourceBoundary
+			resource={votesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<SnapshotVotesView
+						selection={votesResource}
+						countResource={votesResource.count}
+						title='Votes'
+						href={
+							resolve(
+								'/~/snapshot/proposal/[proposalId=stringSegment]/(snapshotProposal)/votes',
+								{
+									proposalId: encodeURIComponent(selection.entitySelector.proposalId),
+								}
+							)
+						}
+						id='votes'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -2993,6 +2993,7 @@ export const e2eRouteProbeAtomValueById = {
 	"/~/shared-address/[id]:BlockheadSharedAddress.Id.1.id": "e2e-probe-id",
 	"/~/siwe/challenge/[id]:BlockheadSiweChallenge.Id.1.id": "e2e-probe-id",
 	"/~/snapshot/proposal/[proposalId]:SnapshotProposal.ProposalId.1.proposalId": "e2e-probe-proposalId",
+	"/~/snapshot/vote/[voteId]:SnapshotVote.VoteId.1.voteId": "e2e-probe-voteId",
 	"/~/snapshot/space/[spaceId]:SnapshotSpace.SpaceId.1.spaceId": "e2e-probe-spaceId",
 	"/~/social-post/session/[id]:BlockheadSocialPostSession.Id.1.id": "e2e-probe-id",
 	"/~/tally/governor/[governorId]:TallyGovernor.GovernorId.1.governorId": "e2e-probe-governorId",

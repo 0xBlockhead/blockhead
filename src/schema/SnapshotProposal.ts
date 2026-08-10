@@ -165,6 +165,13 @@ export default entity({
 			Source.SnapshotHub_Graphql,
 		],
 	},
+	$$votes: {
+		entityType: EntityType.SnapshotVote,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
 })({
 	selectors: {
 		ProposalId: [

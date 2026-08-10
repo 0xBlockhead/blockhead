@@ -12820,6 +12820,19 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/~/snapshot/proposal/[proposalId]/votes': {
+		routeId: '/~/snapshot/proposal/[proposalId=stringSegment]/(snapshotProposal)/votes',
+		parameterEncodingByName: {
+			proposalId: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'SnapshotProposal.ProposalId',
+				probeAtomPrefixes: ['/~/snapshot/proposal/[proposalId]:SnapshotProposal.ProposalId'],
+				probeCases: [[[0, '1', ['proposalId']]]],
+			},
+		],
+	},
 	'/~/snapshot/space/[spaceId]': {
 		routeId: '/~/snapshot/space/[spaceId=stringSegment]',
 		parameterEncodingByName: {
@@ -12843,6 +12856,19 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'SnapshotSpace.SpaceId',
 				probeAtomPrefixes: ['/~/snapshot/space/[spaceId]:SnapshotSpace.SpaceId'],
 				probeCases: [[[0, '1', ['spaceId']]]],
+			},
+		],
+	},
+	'/~/snapshot/vote/[voteId]': {
+		routeId: '/~/snapshot/vote/[voteId=stringSegment]',
+		parameterEncodingByName: {
+			voteId: 'Opaque',
+		},
+		mappings: [
+			{
+				id: 'SnapshotVote.VoteId',
+				probeAtomPrefixes: ['/~/snapshot/vote/[voteId]:SnapshotVote.VoteId'],
+				probeCases: [[[0, '1', ['voteId']]]],
 			},
 		],
 	},

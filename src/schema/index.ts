@@ -834,6 +834,7 @@ import ScalingDeploymentClaim_TimestampSchema from '$/schema/ScalingDeploymentCl
 import ScalingDeploymentClaimSchema from '$/schema/ScalingDeploymentClaim.ts'
 import SnapshotProposalSchema from '$/schema/SnapshotProposal.ts'
 import SnapshotSpaceSchema from '$/schema/SnapshotSpace.ts'
+import SnapshotVoteSchema from '$/schema/SnapshotVote.ts'
 import SolanaAccount_TimestampSchema from '$/schema/SolanaAccount_Timestamp.ts'
 import SolanaAccountSchema from '$/schema/SolanaAccount.ts'
 import SolanaBlockSchema from '$/schema/SolanaBlock.ts'
@@ -1930,6 +1931,7 @@ const schemaChunk16 = [
 	ScalingDeploymentClaim_TimestampSchema,
 	SnapshotProposalSchema,
 	SnapshotSpaceSchema,
+	SnapshotVoteSchema,
 	SolanaAccountSchema,
 	SolanaAccount_TimestampSchema,
 	SolanaBlockSchema,
@@ -1946,10 +1948,10 @@ const schemaChunk16 = [
 	SorobanContractSchema,
 	SorobanContract_TimestampSchema,
 	SorobanContractStorageEntrySchema,
-	SorobanContractStorageEntry_TimestampSchema,
 ] as const
 
 const schemaChunk17 = [
+	SorobanContractStorageEntry_TimestampSchema,
 	SorobanWasmSchema,
 	SorobanWasm_TimestampSchema,
 	SpecificationProposalSchema,
@@ -1999,10 +2001,10 @@ const schemaChunk17 = [
 	SuiObjectSchema,
 	SuiObjectChangeSchema,
 	SuiObjectVersionSchema,
-	SuiPackageSchema,
 ] as const
 
 const schemaChunk18 = [
+	SuiPackageSchema,
 	SuiPackageUpgradeSchema,
 	SuiPackageVersionSchema,
 	SuiProgrammableTransactionCommandSchema,
@@ -2052,10 +2054,10 @@ const schemaChunk18 = [
 	TonContractGetMethodSchema,
 	TonContractGetMethod_TimestampSchema,
 	TonJettonSchema,
-	TonJetton_TimestampSchema,
 ] as const
 
 const schemaChunk19 = [
+	TonJetton_TimestampSchema,
 	TonJettonBalance_TimestampSchema,
 	TonJettonTransferSchema,
 	TonMessageSchema,
@@ -2105,10 +2107,10 @@ const schemaChunk19 = [
 	WormholeVaaSchema,
 	XmtpConversationSchema,
 	XmtpMessageSchema,
-	XmtpNetworkSchema,
 ] as const
 
 const schemaChunk20 = [
+	XmtpNetworkSchema,
 	XmtpParticipantSchema,
 	XNetworkSchema,
 	XPostSchema,

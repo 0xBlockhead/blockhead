@@ -834,6 +834,7 @@ export enum EntityType {
 	ScalingDeploymentClaim_Timestamp = 'ScalingDeploymentClaim_Timestamp',
 	SnapshotProposal = 'SnapshotProposal',
 	SnapshotSpace = 'SnapshotSpace',
+	SnapshotVote = 'SnapshotVote',
 	SolanaAccount = 'SolanaAccount',
 	SolanaAccount_Timestamp = 'SolanaAccount_Timestamp',
 	SolanaBlock = 'SolanaBlock',

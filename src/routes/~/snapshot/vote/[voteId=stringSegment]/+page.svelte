@@ -13,32 +13,34 @@
 
 	// State
 	let {
-		data,
+		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.SnapshotProposal, data.selector, {
+	const pageSelection = $derived(select(EntityType.SnapshotVote, {
+		voteId: decodeURIComponent(params.voteId),
+	}, {
 		sources: [
 			Source.SnapshotHub_Graphql,
 		],
 		fields: {
-			title: true,
+			voter: true,
 		},
 	}))
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import SnapshotProposalView from '$/views/SnapshotProposalView.svelte'
+	import SnapshotVoteView from '$/views/SnapshotVoteView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entity == null ? (pageSelection.entitySelector.proposalId ?? '') || 'Snapshot proposal' : (pageSelection.entity.title ?? '') || pageSelection.entitySelector.proposalId || 'Snapshot proposal')} • Snapshot proposal • Blockhead</title>
+	<title>{pageSelection.entity == null ? 'Snapshot vote' : pageSelection.entity.voter || 'Snapshot vote'} • Snapshot vote • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	<SnapshotProposalView
+	<SnapshotVoteView
 		selection={pageSelection}
 	/>
 </Page>

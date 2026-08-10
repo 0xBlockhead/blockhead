@@ -509,5 +509,80 @@ export default {
 			link: (proposal) => proposal.link,
 			app: (proposal) => proposal.app,
 		}),
+
+		defineResolver({
+			entityType: EntityType.SnapshotProposal,
+			resolve: {
+				ProposalId: {
+					resolve: async ({ proposalId }, context) => {
+						const offset = (
+							context.providerContinuationToken == null ?
+								context.pagination.offset ?? 0
+							:
+								Number(context.providerContinuationToken)
+						)
+						if (!Number.isSafeInteger(offset) || offset < 0)
+							throw new Error('SnapshotHub_Graphql: invalid votes continuation')
+
+						return {
+							offset,
+							limit: resolverContextRowLimit(context),
+							$$votes: await resolveSnapshotVotes({
+								proposalId,
+							}, {
+								...context,
+								pagination: {
+									...context.pagination,
+									offset,
+								},
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$$votes: {
+				select: (snapshot) => snapshot.$$votes,
+				continuation: (snapshot) => {
+					const nextOffset = snapshot.offset + snapshot.$$votes.length
+					return {
+						operation: 'votes',
+						target: 'snapshot-hub',
+						terminal: snapshot.$$votes.length < snapshot.limit,
+						...(snapshot.$$votes.length === snapshot.limit && {
+							token: String(nextOffset),
+						}),
+					}
+				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.SnapshotVote,
+			resolve: {
+				VoteId: {
+					resolve: async ({ voteId }) => (
+						resolveSnapshotVote({
+							voteId,
+						})
+					),
+				},
+			},
+		})({
+			voteId: (vote) => vote.voteId,
+			ipfs: (vote) => vote.ipfs,
+			$space: (vote) => vote.$space,
+			$proposal: (vote) => vote.$proposal,
+			voter: (vote) => vote.voter,
+			choice: (vote) => vote.choice,
+			reason: (vote) => vote.reason,
+			app: (vote) => vote.app,
+			votingPower: (vote) => vote.votingPower,
+			votingPowerByStrategy: (vote) => vote.votingPowerByStrategy,
+			votingPowerState: (vote) => vote.votingPowerState,
+			votingPowerValue: (vote) => vote.votingPowerValue,
+			metadata: (vote) => vote.metadata,
+			createdAtMs: (vote) => vote.createdAtMs,
+		}),
 	],
 } satisfies RegisteredSourceResolverModule

@@ -1531,6 +1531,7 @@ export enum EntityType {
 	ScalingDeploymentClaim_Timestamp = "ScalingDeploymentClaim_Timestamp",
 	SnapshotProposal = "SnapshotProposal",
 	SnapshotSpace = "SnapshotSpace",
+	SnapshotVote = "SnapshotVote",
 	SolanaAccount = "SolanaAccount",
 	SolanaAccount_Timestamp = "SolanaAccount_Timestamp",
 	SolanaBlock = "SolanaBlock",
@@ -2435,6 +2436,11 @@ export const schema = {
 					matcher: "rssItemIdentityKind",
 				},
 				type: { raw: "type.enumerated('Guid', 'Link')" },
+			},
+			{
+				id: "SnapshotHubAny",
+				displayExpression: "JSON.stringify(value)",
+				type: { primitive: "unknown" },
 			},
 			{
 				id: "solanaCaip2",
@@ -53008,6 +53014,7 @@ export const schema = {
 				"scoresTotal": { label: "Scores total", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
 				"link": { label: "Link", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
 				"app": { label: "App", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"$$votes": { label: "Votes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SnapshotVote, defaultSources: [Source.SnapshotHub_Graphql] },
 			})({
 				selectors: {
 					"ProposalId": ["proposalId"],
@@ -53033,6 +53040,9 @@ export const schema = {
 								emptyText: "No proposal body.",
 							},
 						},
+						lists: [
+							{ field: "$$votes", component: "SnapshotVotesView", label: "Votes", emptyText: "No votes on this proposal." },
+						],
 					},
 					plural: { component: "SnapshotProposalsView", title: "Snapshot proposals" },
 				},
@@ -53082,6 +53092,56 @@ export const schema = {
 						],
 					},
 					plural: { component: "SnapshotSpacesView", title: "Snapshot spaces" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.SnapshotVote,
+				labels: {
+					singular: "Snapshot vote",
+					plural: "Snapshot votes",
+				},
+				description: "An off-chain Snapshot Hub vote identified by its Hub vote id.",
+			})({
+				"voteId": { label: "Vote ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "opaqueRouteIdentifier" },
+				"ipfs": { label: "IPFS ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"$space": { label: "Space", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.SnapshotSpace, defaultSources: [Source.SnapshotHub_Graphql] },
+				"$proposal": { label: "Proposal", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.SnapshotProposal, defaultSources: [Source.SnapshotHub_Graphql] },
+				"voter": { label: "Voter", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"choice": { label: "Choice", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "SnapshotHubAny", defaultSources: [Source.SnapshotHub_Graphql] },
+				"reason": { label: "Reason", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"app": { label: "App", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"votingPower": { label: "Voting power", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"votingPowerByStrategy": { label: "Voting power by strategy", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "numberArray", defaultSources: [Source.SnapshotHub_Graphql] },
+				"votingPowerState": { label: "Voting power state", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"votingPowerValue": { label: "Voting power value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"metadata": { label: "Metadata", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "SnapshotHubAny", defaultSources: [Source.SnapshotHub_Graphql] },
+				"createdAtMs": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+			})({
+				selectors: {
+					"VoteId": ["voteId"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.SnapshotHub_Graphql],
+							openFields: ["ipfs", "reason", "app", "votingPower", "votingPowerByStrategy", "votingPowerState", "votingPowerValue", "metadata"],
+						},
+						summary: {
+							title: ["voter"],
+							value: ["votingPower"],
+							HeadingAfter: ["$proposal"],
+						},
+						closed: ["voter", "choice"],
+						content: {
+							dl: [
+								["$proposal", "$space", "voter", "choice", { field: "createdAtMs", format: "timestamp" }],
+								["votingPower", "votingPowerByStrategy", "votingPowerState", "votingPowerValue"],
+								["reason", "app", "ipfs", "metadata"],
+							],
+						},
+					},
+					plural: { component: "SnapshotVotesView", title: "Snapshot votes" },
 				},
 			}),
 
@@ -71368,6 +71428,52 @@ export const routes = defineRoutes(schema)({
 											"ProposalId": {
 												params: {
 													"proposalId": ["proposalId"],
+												},
+												page: {},
+											},
+										},
+									},
+									children: {
+										"votes": {
+											collections: [
+												{
+													field: [
+														EntityType.SnapshotProposal,
+														"$$votes"
+													],
+													query: {
+														sources: [Source.SnapshotHub_Graphql],
+													},
+													derivations: {
+														"proposalId": {
+															kind: "param",
+															name: "proposalId",
+															decode: _ExpressionDecode.DecodeURIComponent,
+														}
+													},
+													page: {
+														view: {
+															component: "SnapshotVotesView",
+														},
+														text: {
+															title: "Proposal votes",
+														}
+													}
+												},
+											],
+										},
+									},
+								},
+							},
+						},
+						"vote": {
+							children: {
+								"[voteId]": {
+									selectors: {
+										[EntityType.SnapshotVote]: {
+											"VoteId": {
+												params: {
+													"voteId": ["voteId"],
 												},
 												page: {},
 											},

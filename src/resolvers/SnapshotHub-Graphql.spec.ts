@@ -218,13 +218,15 @@ describe('SnapshotHub GraphQL resolvers', () => {
 		getVotesPage.mockReset()
 	})
 
-	it('registers Snapshot space/proposal resolver facets that project enrolled fields', () => {
+	it('registers Snapshot space, proposal, and vote resolver facets that project enrolled fields', () => {
 		expect(snapshotHubGraphql.source).toBe(Source.SnapshotHub_Graphql)
 		expect(snapshotHubGraphql.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType._Global,
 			EntityType.SnapshotSpace,
 			EntityType.SnapshotSpace,
 			EntityType.SnapshotProposal,
+			EntityType.SnapshotProposal,
+			EntityType.SnapshotVote,
 		])
 		const spaceResolver = snapshotHubGraphql.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.SnapshotSpace
@@ -237,12 +239,21 @@ describe('SnapshotHub GraphQL resolvers', () => {
 			resolver.entityType === EntityType.SnapshotProposal
 			&& 'title' in resolver.projections
 		))
+		const proposalVotesResolver = snapshotHubGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.SnapshotProposal
+			&& '$$votes' in resolver.projections
+		))
+		const voteResolver = snapshotHubGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.SnapshotVote
+		))
 		expect(spaceResolver?.projections.spaceId({ spaceId, name: 'ENS' })).toBe(spaceId)
 		expect(spaceResolver?.projections.name({ spaceId, name: 'ENS' })).toBe('ENS')
 		expect(globalResolver?.projections.$$snapshotSpaces.select({
 			$$snapshotSpaces: [{ [EntityMetaKey.Selector]: { spaceId } }],
 		})).toEqual([{ [EntityMetaKey.Selector]: { spaceId } }])
 		expect(proposalResolver?.projections.title({ proposalId, title: 'Upgrade' })).toBe('Upgrade')
+		expect(proposalVotesResolver?.resolve).toHaveProperty('ProposalId')
+		expect(voteResolver?.resolve).toHaveProperty('VoteId')
 	})
 
 	it('projects space identity, EVM network, strategies, and admin accounts', () => {
@@ -422,6 +433,88 @@ describe('SnapshotHub GraphQL resolvers', () => {
 				},
 			},
 		])
+	})
+
+	it('registers vote detail without interpreting opaque choice or metadata scalars', async () => {
+		const voteResolver = snapshotHubGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.SnapshotVote
+			&& 'VoteId' in resolver.resolve
+		))
+		if (voteResolver == null || !('VoteId' in voteResolver.resolve))
+			throw new Error('SnapshotHub_Graphql spec missing SnapshotVote.VoteId resolver')
+
+		getVote.mockResolvedValueOnce(vote)
+		const snapshot = await voteResolver.resolve.VoteId.resolve({ voteId })
+
+		expect(voteResolver.projections.choice(snapshot)).toBe(vote.choice)
+		expect(voteResolver.projections.metadata(snapshot)).toBe(vote.metadata)
+		expect(snapshot).toMatchObject({
+			voteId,
+			voter,
+			votingPower: 123.456,
+			createdAtMs: 1_700_050_000_000,
+		})
+	})
+
+	it('registers proposal vote pagination with an opaque offset continuation', async () => {
+		const proposalVotesResolver = snapshotHubGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.SnapshotProposal
+			&& 'ProposalId' in resolver.resolve
+			&& '$$votes' in resolver.projections
+		))
+		if (proposalVotesResolver == null || !('ProposalId' in proposalVotesResolver.resolve))
+			throw new Error('SnapshotHub_Graphql spec missing SnapshotProposal.$$votes resolver')
+
+		getVotesPage.mockResolvedValueOnce([
+			vote,
+			{
+				...vote,
+				id: `0x${'3'.repeat(64)}`,
+			},
+		])
+		const page = await proposalVotesResolver.resolve.ProposalId.resolve({
+			proposalId,
+		}, {
+			...context,
+			pagination: { limit: 2 },
+			providerContinuationToken: '6',
+		})
+
+		expect(getVotesPage).toHaveBeenCalledWith({
+			proposalId,
+			limit: 2,
+			offset: 6,
+		})
+		expect(proposalVotesResolver.projections.$$votes.select(page)).toEqual([
+			{
+				[EntityMetaKey.Selector]: { voteId },
+			},
+			{
+				[EntityMetaKey.Selector]: { voteId: `0x${'3'.repeat(64)}` },
+			},
+		])
+		expect(proposalVotesResolver.projections.$$votes.continuation(page)).toEqual({
+			operation: 'votes',
+			target: 'snapshot-hub',
+			terminal: false,
+			token: '8',
+		})
+
+		getVotesPage.mockResolvedValueOnce([
+			vote,
+		])
+		const terminalPage = await proposalVotesResolver.resolve.ProposalId.resolve({
+			proposalId,
+		}, {
+			...context,
+			pagination: { limit: 2 },
+			providerContinuationToken: '8',
+		})
+		expect(proposalVotesResolver.projections.$$votes.continuation(terminalPage)).toEqual({
+			operation: 'votes',
+			target: 'snapshot-hub',
+			terminal: true,
+		})
 	})
 
 	it('hard-fails missing entities and upstream HTTP errors instead of soft-empty', async () => {
