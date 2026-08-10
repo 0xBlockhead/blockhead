@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -44,19 +43,6 @@
 		<EntityView
 			entityType={EntityType.FarcasterChannel_Timestamp}
 			entitySelector={farcasterChannelTimestampSelector}
-			href={
-				'id' in farcasterChannelTimestampSelector.$channel ?
-					resolve(
-						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
-						{
-							channelId: farcasterChannelTimestampSelector.$channel.id,
-							timestampMs: String(farcasterChannelTimestampSelector.timestampMs),
-							source: farcasterChannelTimestampSelector.source,
-						}
-					)
-				:
-					undefined
-			}
 		>
 			{#snippet Title()}
 				{[(farcasterChannelTimestamp.name ?? ''), farcasterChannelTimestamp.$channel.id || 'Farcaster channel'].filter(Boolean).join(' ') || 'Farcaster channel observation'}

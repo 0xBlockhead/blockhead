@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -98,9 +99,10 @@
 						resource={selection.$transaction}
 					>
 						{#snippet children(aptosTransaction)}
+							{@const aptosTransactionInitial = untrack(() => aptosTransaction)}
 							<AptosTransactionView
-								selection={select(EntityType.AptosTransaction, aptosTransaction[EntityMetaKey.Selector])}
-								prefetched={aptosTransaction}
+								selection={select(EntityType.AptosTransaction, (aptosTransaction ?? aptosTransactionInitial)[EntityMetaKey.Selector])}
+								prefetched={aptosTransaction ?? aptosTransactionInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

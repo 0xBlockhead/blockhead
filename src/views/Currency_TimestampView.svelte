@@ -70,7 +70,7 @@
 				{@const marketCap = entity.marketCap}
 				{#if marketCap != null}
 					<NumberValue
-						value={Number(marketCap)}
+						value={marketCap}
 						formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 					/>
 				{/if}
@@ -96,7 +96,7 @@
 							<dt>Market cap</dt>
 							<dd>
 								<NumberValue
-									value={Number(marketCap)}
+									value={marketCap}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>

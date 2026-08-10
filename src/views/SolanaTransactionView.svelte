@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -185,11 +186,12 @@
 			>
 				{#snippet children(solanaBlock)}
 					{#if solanaBlock != null}
+						{@const solanaBlockInitial = untrack(() => solanaBlock)}
 						<div>
 							<dt>Block</dt>
 							<dd>
 								<SolanaBlockView
-									selection={select(EntityType.SolanaBlock, solanaBlock[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaBlock, (solanaBlock ?? solanaBlockInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -203,11 +205,12 @@
 			>
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null}
+						{@const solanaAccountInitial = untrack(() => solanaAccount)}
 						<div>
 							<dt>Fee payer</dt>
 							<dd>
 								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaAccount, (solanaAccount ?? solanaAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

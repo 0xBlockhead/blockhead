@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -41,16 +40,6 @@
 		<EntityView
 			entityType={EntityType.EnsName_Timestamp}
 			entitySelector={ensNameTimestampSelector}
-			href={
-				resolve(
-					'/(explore)/(ens)/ens/(globalEnsNetwork)/name/[ensName=stringSegment]/(ensName)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						ensName: encodeURIComponent(ensNameTimestampSelector.$name.name),
-						timestampMs: String(ensNameTimestampSelector.timestampMs),
-						source: ensNameTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{ensNameTimestampSelector.$name.name || 'ENS name'}

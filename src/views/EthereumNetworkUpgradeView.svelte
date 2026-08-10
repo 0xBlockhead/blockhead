@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -173,9 +174,10 @@
 							resource={selection.$networkExecutionUpgrade}
 						>
 							{#snippet children(ethereumExecutionUpgrade)}
+								{@const ethereumExecutionUpgradeInitial = untrack(() => ethereumExecutionUpgrade)}
 								<EthereumExecutionUpgradeView
-									selection={select(EntityType.EthereumExecutionUpgrade, ethereumExecutionUpgrade[EntityMetaKey.Selector])}
-									prefetched={ethereumExecutionUpgrade}
+									selection={select(EntityType.EthereumExecutionUpgrade, (ethereumExecutionUpgrade ?? ethereumExecutionUpgradeInitial)[EntityMetaKey.Selector])}
+									prefetched={ethereumExecutionUpgrade ?? ethereumExecutionUpgradeInitial}
 									layout={EntityLayout.Value}
 								/>
 							{/snippet}
@@ -190,12 +192,13 @@
 				>
 					{#snippet children(ethereumConsensusUpgrade)}
 						{#if ethereumConsensusUpgrade != null}
+							{@const ethereumConsensusUpgradeInitial = untrack(() => ethereumConsensusUpgrade)}
 							<div>
 								<dt>Consensus layer</dt>
 								<dd>
 									<EthereumConsensusUpgradeView
-										selection={select(EntityType.EthereumConsensusUpgrade, ethereumConsensusUpgrade[EntityMetaKey.Selector])}
-										prefetched={ethereumConsensusUpgrade}
+										selection={select(EntityType.EthereumConsensusUpgrade, (ethereumConsensusUpgrade ?? ethereumConsensusUpgradeInitial)[EntityMetaKey.Selector])}
+										prefetched={ethereumConsensusUpgrade ?? ethereumConsensusUpgradeInitial}
 										layout={EntityLayout.Value}
 									/>
 								</dd>

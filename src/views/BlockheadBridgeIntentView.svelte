@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -71,9 +72,10 @@
 			resource={selection.$sessionAction}
 		>
 			{#snippet children(blockheadSessionAction)}
+				{@const blockheadSessionActionInitial = untrack(() => blockheadSessionAction)}
 				<BlockheadSessionActionView
-					selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
-					prefetched={blockheadSessionAction}
+					selection={select(EntityType.BlockheadSessionAction, (blockheadSessionAction ?? blockheadSessionActionInitial)[EntityMetaKey.Selector])}
+					prefetched={blockheadSessionAction ?? blockheadSessionActionInitial}
 					href={null}
 					layout={EntityLayout.Title}
 				/>
@@ -100,10 +102,11 @@
 		>
 			{#snippet children(network)}
 				{#if network != null}
+					{@const networkInitial = untrack(() => network)}
 					<span data-text="muted">
 						<NetworkView
-							selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-							prefetched={network}
+							selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+							prefetched={network ?? networkInitial}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -116,10 +119,11 @@
 		>
 			{#snippet children(network)}
 				{#if network != null}
+					{@const networkInitial = untrack(() => network)}
 					<span data-text="muted">
 						<NetworkView
-							selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-							prefetched={network}
+							selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+							prefetched={network ?? networkInitial}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -137,9 +141,10 @@
 						resource={selection.$sessionAction}
 					>
 						{#snippet children(blockheadSessionAction)}
+							{@const blockheadSessionActionInitial = untrack(() => blockheadSessionAction)}
 							<BlockheadSessionActionView
-								selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
-								prefetched={blockheadSessionAction}
+								selection={select(EntityType.BlockheadSessionAction, (blockheadSessionAction ?? blockheadSessionActionInitial)[EntityMetaKey.Selector])}
+								prefetched={blockheadSessionAction ?? blockheadSessionActionInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -380,12 +385,13 @@
 			>
 				{#snippet children(network)}
 					{#if network != null}
+						{@const networkInitial = untrack(() => network)}
 						<div>
 							<dt>from network</dt>
 							<dd>
 								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
+									selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+									prefetched={network ?? networkInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -399,12 +405,13 @@
 			>
 				{#snippet children(network)}
 					{#if network != null}
+						{@const networkInitial = untrack(() => network)}
 						<div>
 							<dt>to network</dt>
 							<dd>
 								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
+									selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+									prefetched={network ?? networkInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -418,12 +425,13 @@
 			>
 				{#snippet children(network)}
 					{#if network != null}
+						{@const networkInitial = untrack(() => network)}
 						<div>
 							<dt>from EVM network</dt>
 							<dd>
 								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
+									selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+									prefetched={network ?? networkInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -437,12 +445,13 @@
 			>
 				{#snippet children(network)}
 					{#if network != null}
+						{@const networkInitial = untrack(() => network)}
 						<div>
 							<dt>to EVM network</dt>
 							<dd>
 								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
+									selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+									prefetched={network ?? networkInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -456,11 +465,12 @@
 			>
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null}
+						{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 						<div>
 							<dt>from token</dt>
 							<dd>
 								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -474,11 +484,12 @@
 			>
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null}
+						{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 						<div>
 							<dt>to token</dt>
 							<dd>
 								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

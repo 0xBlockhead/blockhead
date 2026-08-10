@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -83,9 +84,10 @@
 		>
 			{#snippet children(evmAccount)}
 				{#if evmAccount != null}
+					{@const evmAccountInitial = untrack(() => evmAccount)}
 					<span data-text="muted">
 						<EvmAccountView
-							selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+							selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -118,11 +120,12 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
+						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>requester</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -180,11 +183,12 @@
 			>
 				{#snippet children(zeroGSettlementTrace)}
 					{#if zeroGSettlementTrace != null}
+						{@const zeroGSettlementTraceInitial = untrack(() => zeroGSettlementTrace)}
 						<div>
 							<dt>settlement trace</dt>
 							<dd>
 								<ZeroGSettlementTraceView
-									selection={select(EntityType.ZeroGSettlementTrace, zeroGSettlementTrace[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGSettlementTrace, (zeroGSettlementTrace ?? zeroGSettlementTraceInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

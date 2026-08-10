@@ -25,6 +25,23 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Currency> = $props()
 
+	const currencyLatestResource1 = $derived(
+		selection
+			.$$timestamps({
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					marketCap: true,
+					timestampMs: true,
+				},
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
+
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
@@ -91,23 +108,10 @@
 				<dt>Catalog snapshot</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection
-							.$$timestamps({
-								sources: [
-									Source.Constants_Internal,
-								],
-								fields: {
-									marketCap: true,
-									timestampMs: true,
-								},
-								orderBy: [
-									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-								],
-							}).first()
-						}
+						resource={currencyLatestResource1}
 					>
-						{#snippet children(currencyTimestamp)}
+						{#snippet children(currencyTimestamps)}
+							{@const currencyTimestamp = currencyTimestamps.values[0]}
 							{#if currencyTimestamp != null}
 								<Currency_TimestampView
 									selection={

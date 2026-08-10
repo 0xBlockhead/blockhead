@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -105,12 +106,13 @@
 			>
 				{#snippet children(evmNft)}
 					{#if evmNft != null}
+						{@const evmNftInitial = untrack(() => evmNft)}
 						<div>
 							<dt>EVM NFT</dt>
 							<dd>
 								<EvmNftView
-									selection={select(EntityType.EvmNft, evmNft[EntityMetaKey.Selector])}
-									prefetched={evmNft}
+									selection={select(EntityType.EvmNft, (evmNft ?? evmNftInitial)[EntityMetaKey.Selector])}
+									prefetched={evmNft ?? evmNftInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

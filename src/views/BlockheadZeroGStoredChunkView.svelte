@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -119,11 +120,12 @@
 			>
 				{#snippet children(zeroGDataBlob)}
 					{#if zeroGDataBlob != null}
+						{@const zeroGDataBlobInitial = untrack(() => zeroGDataBlob)}
 						<div>
 							<dt>data blob</dt>
 							<dd>
 								<ZeroGDataBlobView
-									selection={select(EntityType.ZeroGDataBlob, zeroGDataBlob[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGDataBlob, (zeroGDataBlob ?? zeroGDataBlobInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -137,11 +139,12 @@
 			>
 				{#snippet children(zeroGDataChunk)}
 					{#if zeroGDataChunk != null}
+						{@const zeroGDataChunkInitial = untrack(() => zeroGDataChunk)}
 						<div>
 							<dt>public chunk</dt>
 							<dd>
 								<ZeroGDataChunkView
-									selection={select(EntityType.ZeroGDataChunk, zeroGDataChunk[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGDataChunk, (zeroGDataChunk ?? zeroGDataChunkInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

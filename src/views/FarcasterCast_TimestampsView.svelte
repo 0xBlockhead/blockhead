@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -46,25 +45,9 @@
 >
 	{#snippet Item({ item: farcasterCastTimestamp })}
 		{@const farcasterCastTimestampSelector = farcasterCastTimestamp[EntityMetaKey.Selector]}
-		{@const cast = farcasterCastTimestampSelector.$cast}
 		<EntityView
 			entityType={EntityType.FarcasterCast_Timestamp}
 			entitySelector={farcasterCastTimestampSelector}
-			href={
-				'fid' in cast
-				&& 'hash' in cast ?
-					resolve(
-						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]/(farcasterCast)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
-						{
-							fid: String(cast.fid),
-							hash: cast.hash,
-							timestampMs: String(farcasterCastTimestampSelector.timestampMs),
-							source: farcasterCastTimestampSelector.source,
-						}
-					)
-				:
-					undefined
-			}
 		>
 			{#snippet Title()}
 				{[(farcasterCastTimestamp.$cast.text ?? ''), farcasterCastTimestamp.$cast.hash].filter(Boolean).join(' ') || 'Farcaster cast'}

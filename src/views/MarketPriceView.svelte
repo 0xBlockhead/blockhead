@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { marketAssetByKind } from '$/constants/Market.ts'
@@ -22,6 +23,16 @@
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.MarketPrice>, 'prefetched'> = $props()
+
+	const marketPriceLatestResource1 = $derived(
+		selection
+			.$$quotes({
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
 
 	const market = $derived(selection.entitySelector.$market)
 
@@ -80,16 +91,10 @@
 				<dt>Latest quote</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection
-							.$$quotes({
-								orderBy: [
-									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-								],
-							}).first()
-						}
+						resource={marketPriceLatestResource1}
 					>
-						{#snippet children(marketTimestamp)}
+						{#snippet children(marketTimestamps)}
+							{@const marketTimestamp = marketTimestamps.values[0]}
 							{#if marketTimestamp != null}
 								<Market_TimestampView
 									selection={select(EntityType.Market_Timestamp, marketTimestamp[EntityMetaKey.Selector])}
@@ -122,8 +127,9 @@
 						resource={selection.$parentMarket}
 					>
 						{#snippet children(market)}
+							{@const marketInitial = untrack(() => market)}
 							<MarketView
-								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
+								selection={select(EntityType.Market, (market ?? marketInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

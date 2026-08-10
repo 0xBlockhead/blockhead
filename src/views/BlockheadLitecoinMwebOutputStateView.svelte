@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -100,12 +101,13 @@
 			>
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null}
+						{@const blockheadWalletInitial = untrack(() => blockheadWallet)}
 						<div>
 							<dt>wallet</dt>
 							<dd>
 								<BlockheadWalletView
-									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
-									prefetched={blockheadWallet}
+									selection={select(EntityType.BlockheadWallet, (blockheadWallet ?? blockheadWalletInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadWallet ?? blockheadWalletInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -121,9 +123,10 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
+							{@const networkInitial = untrack(() => network)}
 							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
+								selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+								prefetched={network ?? networkInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -143,12 +146,13 @@
 			>
 				{#snippet children(litecoinMwebOutput)}
 					{#if litecoinMwebOutput != null}
+						{@const litecoinMwebOutputInitial = untrack(() => litecoinMwebOutput)}
 						<div>
 							<dt>public output</dt>
 							<dd>
 								<LitecoinMwebOutputView
-									selection={select(EntityType.LitecoinMwebOutput, litecoinMwebOutput[EntityMetaKey.Selector])}
-									prefetched={litecoinMwebOutput}
+									selection={select(EntityType.LitecoinMwebOutput, (litecoinMwebOutput ?? litecoinMwebOutputInitial)[EntityMetaKey.Selector])}
+									prefetched={litecoinMwebOutput ?? litecoinMwebOutputInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

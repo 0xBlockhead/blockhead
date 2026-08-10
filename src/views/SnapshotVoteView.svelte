@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -86,10 +87,11 @@
 			resource={selection.$proposal}
 		>
 			{#snippet children(snapshotProposal)}
+				{@const snapshotProposalInitial = untrack(() => snapshotProposal)}
 				<span data-text="muted">
 					<SnapshotProposalView
-						selection={select(EntityType.SnapshotProposal, snapshotProposal[EntityMetaKey.Selector])}
-						prefetched={snapshotProposal}
+						selection={select(EntityType.SnapshotProposal, (snapshotProposal ?? snapshotProposalInitial)[EntityMetaKey.Selector])}
+						prefetched={snapshotProposal ?? snapshotProposalInitial}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -106,9 +108,10 @@
 						resource={selection.$proposal}
 					>
 						{#snippet children(snapshotProposal)}
+							{@const snapshotProposalInitial = untrack(() => snapshotProposal)}
 							<SnapshotProposalView
-								selection={select(EntityType.SnapshotProposal, snapshotProposal[EntityMetaKey.Selector])}
-								prefetched={snapshotProposal}
+								selection={select(EntityType.SnapshotProposal, (snapshotProposal ?? snapshotProposalInitial)[EntityMetaKey.Selector])}
+								prefetched={snapshotProposal ?? snapshotProposalInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -123,9 +126,10 @@
 						resource={selection.$space}
 					>
 						{#snippet children(snapshotSpace)}
+							{@const snapshotSpaceInitial = untrack(() => snapshotSpace)}
 							<SnapshotSpaceView
-								selection={select(EntityType.SnapshotSpace, snapshotSpace[EntityMetaKey.Selector])}
-								prefetched={snapshotSpace}
+								selection={select(EntityType.SnapshotSpace, (snapshotSpace ?? snapshotSpaceInitial)[EntityMetaKey.Selector])}
+								prefetched={snapshotSpace ?? snapshotSpaceInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

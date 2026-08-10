@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -93,9 +94,10 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
+							{@const networkInitial = untrack(() => network)}
 							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
+								selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+								prefetched={network ?? networkInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -112,8 +114,9 @@
 						resource={selection.$participant0}
 					>
 						{#snippet children(evmAccount)}
+							{@const evmAccountInitial = untrack(() => evmAccount)}
 							<EvmAccountView
-								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -130,8 +133,9 @@
 						resource={selection.$participant1}
 					>
 						{#snippet children(evmAccount)}
+							{@const evmAccountInitial = untrack(() => evmAccount)}
 							<EvmAccountView
-								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -148,8 +152,9 @@
 						resource={selection.$asset}
 					>
 						{#snippet children(evmCoinInstance)}
+							{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 							<EvmCoinInstanceView
-								selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -164,12 +169,13 @@
 			>
 				{#snippet children(blockheadRoom)}
 					{#if blockheadRoom != null}
+						{@const blockheadRoomInitial = untrack(() => blockheadRoom)}
 						<div>
 							<dt>Room</dt>
 							<dd>
 								<BlockheadRoomView
-									selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
-									prefetched={blockheadRoom}
+									selection={select(EntityType.BlockheadRoom, (blockheadRoom ?? blockheadRoomInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadRoom ?? blockheadRoomInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

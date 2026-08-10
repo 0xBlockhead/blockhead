@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -88,9 +89,10 @@
 		>
 			{#snippet children(blockheadAgentConnection)}
 				{#if blockheadAgentConnection != null}
+					{@const blockheadAgentConnectionInitial = untrack(() => blockheadAgentConnection)}
 					<span data-text="muted">
 						<BlockheadAgentConnectionView
-							selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
+							selection={select(EntityType.BlockheadAgentConnection, (blockheadAgentConnection ?? blockheadAgentConnectionInitial)[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -113,11 +115,12 @@
 			>
 				{#snippet children(blockheadAgentConnection)}
 					{#if blockheadAgentConnection != null}
+						{@const blockheadAgentConnectionInitial = untrack(() => blockheadAgentConnection)}
 						<div>
 							<dt>connection</dt>
 							<dd>
 								<BlockheadAgentConnectionView
-									selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadAgentConnection, (blockheadAgentConnection ?? blockheadAgentConnectionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

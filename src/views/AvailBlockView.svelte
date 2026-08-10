@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -176,12 +177,13 @@
 			>
 				{#snippet children(availBlock)}
 					{#if availBlock != null}
+						{@const availBlockInitial = untrack(() => availBlock)}
 						<div>
 							<dt>parent</dt>
 							<dd>
 								<AvailBlockView
-									selection={select(EntityType.AvailBlock, availBlock[EntityMetaKey.Selector])}
-									prefetched={availBlock}
+									selection={select(EntityType.AvailBlock, (availBlock ?? availBlockInitial)[EntityMetaKey.Selector])}
+									prefetched={availBlock ?? availBlockInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

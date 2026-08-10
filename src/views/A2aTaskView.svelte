@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -140,11 +141,12 @@
 			>
 				{#snippet children(a2aAgentService)}
 					{#if a2aAgentService != null}
+						{@const a2aAgentServiceInitial = untrack(() => a2aAgentService)}
 						<div>
 							<dt>service</dt>
 							<dd>
 								<A2aAgentServiceView
-									selection={select(EntityType.A2aAgentService, a2aAgentService[EntityMetaKey.Selector])}
+									selection={select(EntityType.A2aAgentService, (a2aAgentService ?? a2aAgentServiceInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

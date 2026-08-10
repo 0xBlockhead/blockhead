@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -72,12 +73,13 @@
 			>
 				{#snippet children(blockheadWorkspace)}
 					{#if blockheadWorkspace != null}
+						{@const blockheadWorkspaceInitial = untrack(() => blockheadWorkspace)}
 						<div>
 							<dt>workspace</dt>
 							<dd>
 								<BlockheadWorkspaceView
-									selection={select(EntityType.BlockheadWorkspace, blockheadWorkspace[EntityMetaKey.Selector])}
-									prefetched={blockheadWorkspace}
+									selection={select(EntityType.BlockheadWorkspace, (blockheadWorkspace ?? blockheadWorkspaceInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadWorkspace ?? blockheadWorkspaceInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

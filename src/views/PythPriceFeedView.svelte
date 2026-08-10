@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -28,8 +29,6 @@
 		sources: selection.sources ?? [
 			Source.PythBenchmarks_Rest,
 			Source.PythHermes_Rest,
-			Source.Pyth_EvmContract,
-			Source.Pyth_SolanaProgram,
 		],
 	}))
 	const pythPriceFeed = $derived(viewSelection({
@@ -85,9 +84,10 @@
 		>
 			{#snippet children(market)}
 				{#if market != null}
+					{@const marketInitial = untrack(() => market)}
 					<span data-text="muted">
 						<MarketView
-							selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
+							selection={select(EntityType.Market, (market ?? marketInitial)[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -201,11 +201,12 @@
 			>
 				{#snippet children(market)}
 					{#if market != null}
+						{@const marketInitial = untrack(() => market)}
 						<div>
 							<dt>Market</dt>
 							<dd>
 								<MarketView
-									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
+									selection={select(EntityType.Market, (market ?? marketInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

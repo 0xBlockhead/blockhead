@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -106,12 +107,13 @@
 			>
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null}
+						{@const blockheadWalletInitial = untrack(() => blockheadWallet)}
 						<div>
 							<dt>wallet</dt>
 							<dd>
 								<BlockheadWalletView
-									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
-									prefetched={blockheadWallet}
+									selection={select(EntityType.BlockheadWallet, (blockheadWallet ?? blockheadWalletInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadWallet ?? blockheadWalletInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -127,8 +129,9 @@
 						resource={selection.$network}
 					>
 						{#snippet children(moneroNetwork)}
+							{@const moneroNetworkInitial = untrack(() => moneroNetwork)}
 							<MoneroNetworkView
-								selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
+								selection={select(EntityType.MoneroNetwork, (moneroNetwork ?? moneroNetworkInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

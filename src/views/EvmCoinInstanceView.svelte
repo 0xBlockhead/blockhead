@@ -5,6 +5,7 @@
 	import { resolve } from '$app/paths'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -183,12 +184,13 @@
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}
+						{@const evmContractInitial = untrack(() => evmContract)}
 						<div>
 							<dt>Contract</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
+									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContract ?? evmContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -322,11 +324,12 @@
 					>
 						{#snippet children(evmCoinInstance)}
 							{#if evmCoinInstance != null}
+								{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 								<div>
 									<dt>Canonical instance</dt>
 									<dd>
 										<EvmCoinInstanceView
-											selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+											selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
 											layout={EntityLayout.Value}
 										/>
 									</dd>
@@ -340,12 +343,13 @@
 					>
 						{#snippet children(media)}
 							{#if media != null}
+								{@const mediaInitial = untrack(() => media)}
 								<div>
 									<dt>Icon</dt>
 									<dd>
 										<MediaView
-											selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
-											prefetched={media}
+											selection={select(EntityType.Media, (media ?? mediaInitial)[EntityMetaKey.Selector])}
+											prefetched={media ?? mediaInitial}
 											layout={EntityLayout.Value}
 										/>
 									</dd>

@@ -24,6 +24,26 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.FilecoinActor>, 'prefetched'> = $props()
 
+	const filecoinActorLatestResource1 = $derived(
+		selection
+			.$$timestamps({
+				sources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
+				fields: {
+					height: true,
+					timestampMs: true,
+					balanceAttoFil: true,
+					source: true,
+				},
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
+
 	const network = $derived(selection.entitySelector.$network)
 
 
@@ -67,26 +87,10 @@
 				<dt>Latest observation</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection
-							.$$timestamps({
-								sources: [
-									Source.Lotus_JsonRpc,
-									Source.Filfox_Rest,
-								],
-								fields: {
-									height: true,
-									timestampMs: true,
-									balanceAttoFil: true,
-									source: true,
-								},
-								orderBy: [
-									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
-								],
-							}).first()
-						}
+						resource={filecoinActorLatestResource1}
 					>
-						{#snippet children(filecoinActorTimestamp)}
+						{#snippet children(filecoinActorTimestamps)}
+							{@const filecoinActorTimestamp = filecoinActorTimestamps.values[0]}
 							{#if filecoinActorTimestamp != null}
 								{@const filecoinActorTimestampSelector = filecoinActorTimestamp[EntityMetaKey.Selector]}
 								<FilecoinActor_TimestampView

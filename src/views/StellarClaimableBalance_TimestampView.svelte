@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -113,11 +114,12 @@
 			>
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null}
+						{@const stellarAssetInitial = untrack(() => stellarAsset)}
 						<div>
 							<dt>asset</dt>
 							<dd>
 								<StellarAssetView
-									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarAsset, (stellarAsset ?? stellarAssetInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -175,11 +177,12 @@
 			>
 				{#snippet children(stellarTransaction)}
 					{#if stellarTransaction != null}
+						{@const stellarTransactionInitial = untrack(() => stellarTransaction)}
 						<div>
 							<dt>claimed by transaction</dt>
 							<dd>
 								<StellarTransactionView
-									selection={select(EntityType.StellarTransaction, stellarTransaction[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarTransaction, (stellarTransaction ?? stellarTransactionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

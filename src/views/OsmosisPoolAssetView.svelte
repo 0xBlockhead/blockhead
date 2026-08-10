@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -131,12 +132,13 @@
 			>
 				{#snippet children(cosmosDenom)}
 					{#if cosmosDenom != null}
+						{@const cosmosDenomInitial = untrack(() => cosmosDenom)}
 						<div>
 							<dt>Cosmos denom</dt>
 							<dd>
 								<CosmosDenomView
-									selection={select(EntityType.CosmosDenom, cosmosDenom[EntityMetaKey.Selector])}
-									prefetched={cosmosDenom}
+									selection={select(EntityType.CosmosDenom, (cosmosDenom ?? cosmosDenomInitial)[EntityMetaKey.Selector])}
+									prefetched={cosmosDenom ?? cosmosDenomInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

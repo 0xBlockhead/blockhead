@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -103,9 +104,10 @@
 						resource={selection.$conversation}
 					>
 						{#snippet children(blockheadAgentConversation)}
+							{@const blockheadAgentConversationInitial = untrack(() => blockheadAgentConversation)}
 							<BlockheadAgentConversationView
-								selection={select(EntityType.BlockheadAgentConversation, blockheadAgentConversation[EntityMetaKey.Selector])}
-								prefetched={blockheadAgentConversation}
+								selection={select(EntityType.BlockheadAgentConversation, (blockheadAgentConversation ?? blockheadAgentConversationInitial)[EntityMetaKey.Selector])}
+								prefetched={blockheadAgentConversation ?? blockheadAgentConversationInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

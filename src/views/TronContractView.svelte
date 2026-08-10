@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -82,11 +83,12 @@
 			>
 				{#snippet children(tronAccount)}
 					{#if tronAccount != null}
+						{@const tronAccountInitial = untrack(() => tronAccount)}
 						<div>
 							<dt>Account</dt>
 							<dd>
 								<TronAccountView
-									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.TronAccount, (tronAccount ?? tronAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -122,11 +124,12 @@
 			>
 				{#snippet children(tronAccount)}
 					{#if tronAccount != null}
+						{@const tronAccountInitial = untrack(() => tronAccount)}
 						<div>
 							<dt>Creator</dt>
 							<dd>
 								<TronAccountView
-									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.TronAccount, (tronAccount ?? tronAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -140,11 +143,12 @@
 			>
 				{#snippet children(tronTransaction)}
 					{#if tronTransaction != null}
+						{@const tronTransactionInitial = untrack(() => tronTransaction)}
 						<div>
 							<dt>Creation transaction</dt>
 							<dd>
 								<TronTransactionView
-									selection={select(EntityType.TronTransaction, tronTransaction[EntityMetaKey.Selector])}
+									selection={select(EntityType.TronTransaction, (tronTransaction ?? tronTransactionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

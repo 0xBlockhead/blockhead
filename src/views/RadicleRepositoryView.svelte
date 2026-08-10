@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -73,9 +74,10 @@
 						resource={selection.$gitRepository}
 					>
 						{#snippet children(gitRepository)}
+							{@const gitRepositoryInitial = untrack(() => gitRepository)}
 							<GitRepositoryView
-								selection={select(EntityType.GitRepository, gitRepository[EntityMetaKey.Selector])}
-								prefetched={gitRepository}
+								selection={select(EntityType.GitRepository, (gitRepository ?? gitRepositoryInitial)[EntityMetaKey.Selector])}
+								prefetched={gitRepository ?? gitRepositoryInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

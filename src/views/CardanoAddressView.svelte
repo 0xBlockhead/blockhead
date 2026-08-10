@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -126,11 +127,12 @@
 			>
 				{#snippet children(cardanoStakeCredential)}
 					{#if cardanoStakeCredential != null}
+						{@const cardanoStakeCredentialInitial = untrack(() => cardanoStakeCredential)}
 						<div>
 							<dt>stake credential</dt>
 							<dd>
 								<CardanoStakeCredentialView
-									selection={select(EntityType.CardanoStakeCredential, cardanoStakeCredential[EntityMetaKey.Selector])}
+									selection={select(EntityType.CardanoStakeCredential, (cardanoStakeCredential ?? cardanoStakeCredentialInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

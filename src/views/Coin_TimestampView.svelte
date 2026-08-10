@@ -124,7 +124,7 @@
 							<dt>Market cap</dt>
 							<dd>
 								<NumberValue
-									value={Number(marketCap)}
+									value={marketCap}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>
@@ -143,7 +143,7 @@
 							<dt>Market cap USD</dt>
 							<dd>
 								<NumberValue
-									value={Number(marketCapUsd)}
+									value={marketCapUsd}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>

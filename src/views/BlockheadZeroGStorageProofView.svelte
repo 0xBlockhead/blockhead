@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -131,11 +132,12 @@
 			>
 				{#snippet children(zeroGDataBlob)}
 					{#if zeroGDataBlob != null}
+						{@const zeroGDataBlobInitial = untrack(() => zeroGDataBlob)}
 						<div>
 							<dt>data blob</dt>
 							<dd>
 								<ZeroGDataBlobView
-									selection={select(EntityType.ZeroGDataBlob, zeroGDataBlob[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGDataBlob, (zeroGDataBlob ?? zeroGDataBlobInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -149,11 +151,12 @@
 			>
 				{#snippet children(blockheadZeroGStoredChunk)}
 					{#if blockheadZeroGStoredChunk != null}
+						{@const blockheadZeroGStoredChunkInitial = untrack(() => blockheadZeroGStoredChunk)}
 						<div>
 							<dt>chunk</dt>
 							<dd>
 								<BlockheadZeroGStoredChunkView
-									selection={select(EntityType.BlockheadZeroGStoredChunk, blockheadZeroGStoredChunk[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadZeroGStoredChunk, (blockheadZeroGStoredChunk ?? blockheadZeroGStoredChunkInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

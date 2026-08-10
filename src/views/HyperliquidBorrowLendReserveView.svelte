@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -99,10 +100,11 @@
 		>
 			{#snippet children(hyperliquidSpotAsset)}
 				{#if hyperliquidSpotAsset != null}
+					{@const hyperliquidSpotAssetInitial = untrack(() => hyperliquidSpotAsset)}
 					<span data-text="muted">
 						<HyperliquidSpotAssetView
-							selection={select(EntityType.HyperliquidSpotAsset, hyperliquidSpotAsset[EntityMetaKey.Selector])}
-							prefetched={hyperliquidSpotAsset}
+							selection={select(EntityType.HyperliquidSpotAsset, (hyperliquidSpotAsset ?? hyperliquidSpotAssetInitial)[EntityMetaKey.Selector])}
+							prefetched={hyperliquidSpotAsset ?? hyperliquidSpotAssetInitial}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -137,12 +139,13 @@
 			>
 				{#snippet children(hyperliquidSpotAsset)}
 					{#if hyperliquidSpotAsset != null}
+						{@const hyperliquidSpotAssetInitial = untrack(() => hyperliquidSpotAsset)}
 						<div>
 							<dt>spot asset</dt>
 							<dd>
 								<HyperliquidSpotAssetView
-									selection={select(EntityType.HyperliquidSpotAsset, hyperliquidSpotAsset[EntityMetaKey.Selector])}
-									prefetched={hyperliquidSpotAsset}
+									selection={select(EntityType.HyperliquidSpotAsset, (hyperliquidSpotAsset ?? hyperliquidSpotAssetInitial)[EntityMetaKey.Selector])}
+									prefetched={hyperliquidSpotAsset ?? hyperliquidSpotAssetInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

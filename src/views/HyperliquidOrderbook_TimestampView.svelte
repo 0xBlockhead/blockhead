@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -98,11 +99,12 @@
 			>
 				{#snippet children(hyperliquidPerpMarket)}
 					{#if hyperliquidPerpMarket != null}
+						{@const hyperliquidPerpMarketInitial = untrack(() => hyperliquidPerpMarket)}
 						<div>
 							<dt>perp market</dt>
 							<dd>
 								<HyperliquidPerpMarketView
-									selection={select(EntityType.HyperliquidPerpMarket, hyperliquidPerpMarket[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidPerpMarket, (hyperliquidPerpMarket ?? hyperliquidPerpMarketInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -116,11 +118,12 @@
 			>
 				{#snippet children(hyperliquidSpotPair)}
 					{#if hyperliquidSpotPair != null}
+						{@const hyperliquidSpotPairInitial = untrack(() => hyperliquidSpotPair)}
 						<div>
 							<dt>spot pair</dt>
 							<dd>
 								<HyperliquidSpotPairView
-									selection={select(EntityType.HyperliquidSpotPair, hyperliquidSpotPair[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidSpotPair, (hyperliquidSpotPair ?? hyperliquidSpotPairInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

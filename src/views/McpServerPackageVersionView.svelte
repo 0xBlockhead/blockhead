@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -101,9 +102,10 @@
 		>
 			{#snippet children(mcpServerPackage)}
 				{#if mcpServerPackage != null}
+					{@const mcpServerPackageInitial = untrack(() => mcpServerPackage)}
 					<McpServerPackageView
-						selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
-						prefetched={mcpServerPackage}
+						selection={select(EntityType.McpServerPackage, (mcpServerPackage ?? mcpServerPackageInitial)[EntityMetaKey.Selector])}
+						prefetched={mcpServerPackage ?? mcpServerPackageInitial}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -132,12 +134,13 @@
 			>
 				{#snippet children(mcpServerPackage)}
 					{#if mcpServerPackage != null}
+						{@const mcpServerPackageInitial = untrack(() => mcpServerPackage)}
 						<div>
 							<dt>package</dt>
 							<dd>
 								<McpServerPackageView
-									selection={select(EntityType.McpServerPackage, mcpServerPackage[EntityMetaKey.Selector])}
-									prefetched={mcpServerPackage}
+									selection={select(EntityType.McpServerPackage, (mcpServerPackage ?? mcpServerPackageInitial)[EntityMetaKey.Selector])}
+									prefetched={mcpServerPackage ?? mcpServerPackageInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -167,12 +170,13 @@
 			>
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null}
+						{@const aiArtifactInitial = untrack(() => aiArtifact)}
 						<div>
 							<dt>artifact</dt>
 							<dd>
 								<AiArtifactView
-									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
-									prefetched={aiArtifact}
+									selection={select(EntityType.AiArtifact, (aiArtifact ?? aiArtifactInitial)[EntityMetaKey.Selector])}
+									prefetched={aiArtifact ?? aiArtifactInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

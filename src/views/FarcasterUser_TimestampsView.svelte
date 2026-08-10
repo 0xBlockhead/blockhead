@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -42,16 +41,6 @@
 		<EntityView
 			entityType={EntityType.FarcasterUser_Timestamp}
 			entitySelector={farcasterUserTimestampSelector}
-			href={
-				resolve(
-					'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]/(farcasterUser)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
-					{
-						userId: String(farcasterUserTimestampSelector.$user.fid),
-						timestampMs: String(farcasterUserTimestampSelector.timestampMs),
-						source: farcasterUserTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{[(farcasterUserTimestamp.$user.displayName ?? ''), (farcasterUserTimestamp.$user.username ?? ''), String(farcasterUserTimestampSelector.$user.fid)].filter(Boolean).join(' ') || 'Farcaster user'}

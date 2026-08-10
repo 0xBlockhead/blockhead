@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -86,10 +87,11 @@
 			resource={selection.$pool}
 		>
 			{#snippet children(osmosisPool)}
+				{@const osmosisPoolInitial = untrack(() => osmosisPool)}
 				<span data-text="muted">
 					<OsmosisPoolView
-						selection={select(EntityType.OsmosisPool, osmosisPool[EntityMetaKey.Selector])}
-						prefetched={osmosisPool}
+						selection={select(EntityType.OsmosisPool, (osmosisPool ?? osmosisPoolInitial)[EntityMetaKey.Selector])}
+						prefetched={osmosisPool ?? osmosisPoolInitial}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -123,9 +125,10 @@
 						resource={selection.$pool}
 					>
 						{#snippet children(osmosisPool)}
+							{@const osmosisPoolInitial = untrack(() => osmosisPool)}
 							<OsmosisPoolView
-								selection={select(EntityType.OsmosisPool, osmosisPool[EntityMetaKey.Selector])}
-								prefetched={osmosisPool}
+								selection={select(EntityType.OsmosisPool, (osmosisPool ?? osmosisPoolInitial)[EntityMetaKey.Selector])}
+								prefetched={osmosisPool ?? osmosisPoolInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -138,11 +141,12 @@
 			>
 				{#snippet children(cosmosAccount)}
 					{#if cosmosAccount != null}
+						{@const cosmosAccountInitial = untrack(() => cosmosAccount)}
 						<div>
 							<dt>Account</dt>
 							<dd>
 								<CosmosAccountView
-									selection={select(EntityType.CosmosAccount, cosmosAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.CosmosAccount, (cosmosAccount ?? cosmosAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

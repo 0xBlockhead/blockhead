@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -86,10 +87,11 @@
 		>
 			{#snippet children(avalanchePChainBlock)}
 				{#if avalanchePChainBlock != null}
+					{@const avalanchePChainBlockInitial = untrack(() => avalanchePChainBlock)}
 					<span data-text="muted">
 						<AvalanchePChainBlockView
-							selection={select(EntityType.AvalanchePChainBlock, avalanchePChainBlock[EntityMetaKey.Selector])}
-							prefetched={avalanchePChainBlock}
+							selection={select(EntityType.AvalanchePChainBlock, (avalanchePChainBlock ?? avalanchePChainBlockInitial)[EntityMetaKey.Selector])}
+							prefetched={avalanchePChainBlock ?? avalanchePChainBlockInitial}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -138,12 +140,13 @@
 			>
 				{#snippet children(avalanchePChainBlock)}
 					{#if avalanchePChainBlock != null}
+						{@const avalanchePChainBlockInitial = untrack(() => avalanchePChainBlock)}
 						<div>
 							<dt>block</dt>
 							<dd>
 								<AvalanchePChainBlockView
-									selection={select(EntityType.AvalanchePChainBlock, avalanchePChainBlock[EntityMetaKey.Selector])}
-									prefetched={avalanchePChainBlock}
+									selection={select(EntityType.AvalanchePChainBlock, (avalanchePChainBlock ?? avalanchePChainBlockInitial)[EntityMetaKey.Selector])}
+									prefetched={avalanchePChainBlock ?? avalanchePChainBlockInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

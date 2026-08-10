@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -218,11 +219,12 @@
 			>
 				{#snippet children(mcpServer)}
 					{#if mcpServer != null}
+						{@const mcpServerInitial = untrack(() => mcpServer)}
 						<div>
 							<dt>MCP server</dt>
 							<dd>
 								<McpServerView
-									selection={select(EntityType.McpServer, mcpServer[EntityMetaKey.Selector])}
+									selection={select(EntityType.McpServer, (mcpServer ?? mcpServerInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

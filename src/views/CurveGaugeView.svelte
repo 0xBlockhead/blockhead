@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -105,10 +106,11 @@
 		>
 			{#snippet children(curvePool)}
 				{#if curvePool != null}
+					{@const curvePoolInitial = untrack(() => curvePool)}
 					<span data-text="muted">
 						<CurvePoolView
-							selection={select(EntityType.CurvePool, curvePool[EntityMetaKey.Selector])}
-							prefetched={curvePool}
+							selection={select(EntityType.CurvePool, (curvePool ?? curvePoolInitial)[EntityMetaKey.Selector])}
+							prefetched={curvePool ?? curvePoolInitial}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -141,12 +143,13 @@
 			>
 				{#snippet children(curvePool)}
 					{#if curvePool != null}
+						{@const curvePoolInitial = untrack(() => curvePool)}
 						<div>
 							<dt>Pool</dt>
 							<dd>
 								<CurvePoolView
-									selection={select(EntityType.CurvePool, curvePool[EntityMetaKey.Selector])}
-									prefetched={curvePool}
+									selection={select(EntityType.CurvePool, (curvePool ?? curvePoolInitial)[EntityMetaKey.Selector])}
+									prefetched={curvePool ?? curvePoolInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

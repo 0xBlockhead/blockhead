@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -100,8 +101,9 @@
 						resource={selection.$localNode}
 					>
 						{#snippet children(blockheadRadicleNodeState)}
+							{@const blockheadRadicleNodeStateInitial = untrack(() => blockheadRadicleNodeState)}
 							<BlockheadRadicleNodeStateView
-								selection={select(EntityType.BlockheadRadicleNodeState, blockheadRadicleNodeState[EntityMetaKey.Selector])}
+								selection={select(EntityType.BlockheadRadicleNodeState, (blockheadRadicleNodeState ?? blockheadRadicleNodeStateInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -127,11 +129,12 @@
 			>
 				{#snippet children(radicleRepository)}
 					{#if radicleRepository != null}
+						{@const radicleRepositoryInitial = untrack(() => radicleRepository)}
 						<div>
 							<dt>repository</dt>
 							<dd>
 								<RadicleRepositoryView
-									selection={select(EntityType.RadicleRepository, radicleRepository[EntityMetaKey.Selector])}
+									selection={select(EntityType.RadicleRepository, (radicleRepository ?? radicleRepositoryInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -24,6 +25,38 @@
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.FarcasterChannel> = $props()
+
+	const farcasterChannelLatestResource1 = $derived(
+		selection
+			.$$timestamps({
+				sources: [
+					Source.Farcaster_Rest,
+					Source.Neynar_Rest,
+				],
+				fields: {
+					name: true,
+					description: true,
+					iconUrl: true,
+					$icon: true,
+					headerImageUrl: true,
+					$headerImage: true,
+					$moderator: true,
+					$$moderators: true,
+					pinnedCastHash: true,
+					publicCasting: true,
+					externalLinkTitle: true,
+					externalLinkUrl: true,
+					followerCount: true,
+					memberCount: true,
+					timestampMs: true,
+					source: true,
+				},
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
 
 	const farcasterChannel = $derived(selection({
 		sources: selection.sources ?? [
@@ -121,38 +154,10 @@
 				<dt>Latest observation</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection
-							.$$timestamps({
-								sources: [
-									Source.Farcaster_Rest,
-									Source.Neynar_Rest,
-								],
-								fields: {
-									name: true,
-									description: true,
-									iconUrl: true,
-									$icon: true,
-									headerImageUrl: true,
-									$headerImage: true,
-									$moderator: true,
-									$$moderators: true,
-									pinnedCastHash: true,
-									publicCasting: true,
-									externalLinkTitle: true,
-									externalLinkUrl: true,
-									followerCount: true,
-									memberCount: true,
-									timestampMs: true,
-									source: true,
-								},
-								orderBy: [
-									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-								],
-							}).first()
-						}
+						resource={farcasterChannelLatestResource1}
 					>
-						{#snippet children(farcasterChannelTimestamp)}
+						{#snippet children(farcasterChannelTimestamps)}
+							{@const farcasterChannelTimestamp = farcasterChannelTimestamps.values[0]}
 							{#if farcasterChannelTimestamp != null}
 								{@const farcasterChannelTimestampSelector = farcasterChannelTimestamp[EntityMetaKey.Selector]}
 								<FarcasterChannel_TimestampView
@@ -212,12 +217,13 @@
 			>
 				{#snippet children(farcasterUser)}
 					{#if farcasterUser != null}
+						{@const farcasterUserInitial = untrack(() => farcasterUser)}
 						<div>
 							<dt>Lead</dt>
 							<dd>
 								<FarcasterUserView
-									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
-									prefetched={farcasterUser}
+									selection={select(EntityType.FarcasterUser, (farcasterUser ?? farcasterUserInitial)[EntityMetaKey.Selector])}
+									prefetched={farcasterUser ?? farcasterUserInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

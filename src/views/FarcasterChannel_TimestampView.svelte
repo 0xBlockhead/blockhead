@@ -2,8 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -18,7 +18,6 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -52,24 +51,6 @@
 	entityType={EntityType.FarcasterChannel_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? ((prefetched.name ?? '') || 'Farcaster channel observation')}
-	href={
-		href === undefined ?
-			(
-				'id' in selection.entitySelector.$channel ?
-					resolve(
-						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/observations/[timestampMs=nonNegativeInteger]-[source=stringSegment]',
-						{
-							channelId: selection.entitySelector.$channel.id,
-							timestampMs: String(selection.entitySelector.timestampMs),
-							source: selection.entitySelector.source,
-						}
-					)
-				:
-					undefined
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -199,12 +180,13 @@
 			>
 				{#snippet children(farcasterUser)}
 					{#if farcasterUser != null}
+						{@const farcasterUserInitial = untrack(() => farcasterUser)}
 						<div>
 							<dt>Moderator</dt>
 							<dd>
 								<FarcasterUserView
-									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
-									prefetched={farcasterUser}
+									selection={select(EntityType.FarcasterUser, (farcasterUser ?? farcasterUserInitial)[EntityMetaKey.Selector])}
+									prefetched={farcasterUser ?? farcasterUserInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

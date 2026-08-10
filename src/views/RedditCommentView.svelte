@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -171,12 +172,13 @@
 				>
 					{#snippet children(redditLink)}
 						{#if redditLink != null}
+							{@const redditLinkInitial = untrack(() => redditLink)}
 							<div>
 								<dt>Submission</dt>
 								<dd>
 									<RedditLinkView
-										selection={select(EntityType.RedditLink, redditLink[EntityMetaKey.Selector])}
-										prefetched={redditLink}
+										selection={select(EntityType.RedditLink, (redditLink ?? redditLinkInitial)[EntityMetaKey.Selector])}
+										prefetched={redditLink ?? redditLinkInitial}
 										layout={EntityLayout.Value}
 									/>
 								</dd>
@@ -192,12 +194,13 @@
 				>
 					{#snippet children(redditComment)}
 						{#if redditComment != null}
+							{@const redditCommentInitial = untrack(() => redditComment)}
 							<div>
 								<dt>Reply to</dt>
 								<dd>
 									<RedditCommentView
-										selection={select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector])}
-										prefetched={redditComment}
+										selection={select(EntityType.RedditComment, (redditComment ?? redditCommentInitial)[EntityMetaKey.Selector])}
+										prefetched={redditComment ?? redditCommentInitial}
 										layout={EntityLayout.Value}
 									/>
 								</dd>

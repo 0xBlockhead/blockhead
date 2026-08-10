@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -208,12 +209,13 @@
 			>
 				{#snippet children(bitTorrentMetainfo)}
 					{#if bitTorrentMetainfo != null}
+						{@const bitTorrentMetainfoInitial = untrack(() => bitTorrentMetainfo)}
 						<div>
 							<dt>torrent</dt>
 							<dd>
 								<BitTorrentMetainfoView
-									selection={select(EntityType.BitTorrentMetainfo, bitTorrentMetainfo[EntityMetaKey.Selector])}
-									prefetched={bitTorrentMetainfo}
+									selection={select(EntityType.BitTorrentMetainfo, (bitTorrentMetainfo ?? bitTorrentMetainfoInitial)[EntityMetaKey.Selector])}
+									prefetched={bitTorrentMetainfo ?? bitTorrentMetainfoInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

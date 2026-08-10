@@ -26,7 +26,6 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.DydxIndexer,
-			Source.KingnodesDydxNode,
 		],
 	}))
 	const dydxChainMarket = $derived(viewSelection({

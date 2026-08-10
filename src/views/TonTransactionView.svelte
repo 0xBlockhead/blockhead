@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -299,11 +300,12 @@
 			>
 				{#snippet children(tonBlock)}
 					{#if tonBlock != null}
+						{@const tonBlockInitial = untrack(() => tonBlock)}
 						<div>
 							<dt>block</dt>
 							<dd>
 								<TonBlockView
-									selection={select(EntityType.TonBlock, tonBlock[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonBlock, (tonBlock ?? tonBlockInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -317,11 +319,12 @@
 			>
 				{#snippet children(tonTrace)}
 					{#if tonTrace != null}
+						{@const tonTraceInitial = untrack(() => tonTrace)}
 						<div>
 							<dt>trace</dt>
 							<dd>
 								<TonTraceView
-									selection={select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonTrace, (tonTrace ?? tonTraceInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -335,11 +338,12 @@
 			>
 				{#snippet children(tonMessage)}
 					{#if tonMessage != null}
+						{@const tonMessageInitial = untrack(() => tonMessage)}
 						<div>
 							<dt>in message</dt>
 							<dd>
 								<TonMessageView
-									selection={select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonMessage, (tonMessage ?? tonMessageInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

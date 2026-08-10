@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -24,6 +25,30 @@
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Coin> = $props()
+
+	const coinLatestResource1 = $derived(
+		selection
+			.$$timestamps({
+				sources: [
+					Source.Constants_Internal,
+					Source.Coingecko_Rest,
+					Source.CoinMarketCap_Rest,
+					Source.Coinpaprika_Rest,
+				],
+				fields: {
+					marketCapRank: true,
+					marketCapUsd: true,
+					marketCap: true,
+					change24hPercent: true,
+					timestampMs: true,
+					source: true,
+				},
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
 
 	const coin = $derived(selection({
 		sources: selection.sources ?? [
@@ -120,30 +145,10 @@
 				<dt>Latest snapshot</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection
-							.$$timestamps({
-								sources: [
-									Source.Constants_Internal,
-									Source.Coingecko_Rest,
-									Source.CoinMarketCap_Rest,
-									Source.Coinpaprika_Rest,
-								],
-								fields: {
-									marketCapRank: true,
-									marketCapUsd: true,
-									marketCap: true,
-									change24hPercent: true,
-									timestampMs: true,
-									source: true,
-								},
-								orderBy: [
-									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-								],
-							}).first()
-						}
+						resource={coinLatestResource1}
 					>
-						{#snippet children(coinTimestamp)}
+						{#snippet children(coinTimestamps)}
+							{@const coinTimestamp = coinTimestamps.values[0]}
 							{#if coinTimestamp != null}
 								<Coin_TimestampView
 									selection={

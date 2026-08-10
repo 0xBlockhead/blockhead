@@ -2,11 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -17,19 +16,12 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.LiquidityPool_Block>, 'prefetched'> = $props()
 
-	const liquidityPool = $derived(selection.entitySelector.$liquidityPool)
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.Voltaire_JsonRpc,
-		],
-	}))
-	const liquidityPoolBlock = $derived(viewSelection({
+	const liquidityPoolBlock = $derived(selection({
 		fields: {
 			tick: true,
 		},
@@ -47,24 +39,6 @@
 	entityType={EntityType.LiquidityPool_Block}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.blockNumber)}
-	href={
-		href === undefined ?
-			(
-				'caip2' in liquidityPool.$network ?
-					resolve(
-						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/block/[blockNumber=nonNegativeBigInt]',
-						{
-							chainId: liquidityPool.$network.caip2.reference,
-							poolId: liquidityPool.id,
-							blockNumber: String(selection.entitySelector.blockNumber),
-						}
-					)
-				:
-					undefined
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -125,8 +99,9 @@
 						resource={selection.$parentLiquidityPool}
 					>
 						{#snippet children(liquidityPool)}
+							{@const liquidityPoolInitial = untrack(() => liquidityPool)}
 							<LiquidityPoolView
-								selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
+								selection={select(EntityType.LiquidityPool, (liquidityPool ?? liquidityPoolInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -138,7 +113,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							sqrtPriceX96: true,
 						},
@@ -162,7 +137,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							liquidity: true,
 						},
@@ -204,7 +179,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							feeProtocol: true,
 						},
@@ -228,7 +203,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							unlocked: true,
 						},
@@ -252,7 +227,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							observationIndex: true,
 						},
@@ -276,7 +251,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							observationCardinality: true,
 						},
@@ -300,7 +275,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							observationCardinalityNext: true,
 						},

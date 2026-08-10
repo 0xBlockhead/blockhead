@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -134,11 +135,12 @@
 			>
 				{#snippet children(tezosAccount)}
 					{#if tezosAccount != null}
+						{@const tezosAccountInitial = untrack(() => tezosAccount)}
 						<div>
 							<dt>account</dt>
 							<dd>
 								<TezosAccountView
-									selection={select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosAccount, (tezosAccount ?? tezosAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -152,11 +154,12 @@
 			>
 				{#snippet children(tezosMichelsonScript)}
 					{#if tezosMichelsonScript != null}
+						{@const tezosMichelsonScriptInitial = untrack(() => tezosMichelsonScript)}
 						<div>
 							<dt>script</dt>
 							<dd>
 								<TezosMichelsonScriptView
-									selection={select(EntityType.TezosMichelsonScript, tezosMichelsonScript[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosMichelsonScript, (tezosMichelsonScript ?? tezosMichelsonScriptInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

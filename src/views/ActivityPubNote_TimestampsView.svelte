@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -45,25 +44,9 @@
 >
 	{#snippet Item({ item: activityPubNoteTimestamp })}
 		{@const activityPubNoteTimestampSelector = activityPubNoteTimestamp[EntityMetaKey.Selector]}
-		{@const note = activityPubNoteTimestampSelector.$note}
 		<EntityView
 			entityType={EntityType.ActivityPubNote_Timestamp}
 			entitySelector={activityPubNoteTimestampSelector}
-			href={
-				'instanceOrigin' in note
-				&& 'localStatusId' in note ?
-					resolve(
-						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-						{
-							instanceOrigin: encodeURIComponent(note.instanceOrigin),
-							localStatusId: note.localStatusId,
-							timestampMs: String(activityPubNoteTimestampSelector.timestampMs),
-							source: activityPubNoteTimestampSelector.source,
-						}
-					)
-				:
-					undefined
-			}
 		>
 			{#snippet Title()}
 				{[activityPubNoteTimestamp.$note.content == null ? '' : htmlToPlainText(activityPubNoteTimestamp.$note.content), activityPubNoteTimestamp.$note.localStatusId].filter(Boolean).join(' ') || 'ActivityPub note'}

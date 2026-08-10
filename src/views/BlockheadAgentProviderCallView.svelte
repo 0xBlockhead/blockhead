@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -124,11 +125,12 @@
 			>
 				{#snippet children(blockheadAgentConnection)}
 					{#if blockheadAgentConnection != null}
+						{@const blockheadAgentConnectionInitial = untrack(() => blockheadAgentConnection)}
 						<div>
 							<dt>connection</dt>
 							<dd>
 								<BlockheadAgentConnectionView
-									selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadAgentConnection, (blockheadAgentConnection ?? blockheadAgentConnectionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -142,12 +144,13 @@
 			>
 				{#snippet children(aiModelProvider)}
 					{#if aiModelProvider != null}
+						{@const aiModelProviderInitial = untrack(() => aiModelProvider)}
 						<div>
 							<dt>provider</dt>
 							<dd>
 								<AiModelProviderView
-									selection={select(EntityType.AiModelProvider, aiModelProvider[EntityMetaKey.Selector])}
-									prefetched={aiModelProvider}
+									selection={select(EntityType.AiModelProvider, (aiModelProvider ?? aiModelProviderInitial)[EntityMetaKey.Selector])}
+									prefetched={aiModelProvider ?? aiModelProviderInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -161,12 +164,13 @@
 			>
 				{#snippet children(aiModel)}
 					{#if aiModel != null}
+						{@const aiModelInitial = untrack(() => aiModel)}
 						<div>
 							<dt>model</dt>
 							<dd>
 								<AiModelView
-									selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
-									prefetched={aiModel}
+									selection={select(EntityType.AiModel, (aiModel ?? aiModelInitial)[EntityMetaKey.Selector])}
+									prefetched={aiModel ?? aiModelInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -180,12 +184,13 @@
 			>
 				{#snippet children(aiProviderApiOperation)}
 					{#if aiProviderApiOperation != null}
+						{@const aiProviderApiOperationInitial = untrack(() => aiProviderApiOperation)}
 						<div>
 							<dt>operation</dt>
 							<dd>
 								<AiProviderApiOperationView
-									selection={select(EntityType.AiProviderApiOperation, aiProviderApiOperation[EntityMetaKey.Selector])}
-									prefetched={aiProviderApiOperation}
+									selection={select(EntityType.AiProviderApiOperation, (aiProviderApiOperation ?? aiProviderApiOperationInitial)[EntityMetaKey.Selector])}
+									prefetched={aiProviderApiOperation ?? aiProviderApiOperationInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -201,11 +206,12 @@
 			>
 				{#snippet children(mcpToolCall)}
 					{#if mcpToolCall != null}
+						{@const mcpToolCallInitial = untrack(() => mcpToolCall)}
 						<div>
 							<dt>MCP tool call</dt>
 							<dd>
 								<McpToolCallView
-									selection={select(EntityType.McpToolCall, mcpToolCall[EntityMetaKey.Selector])}
+									selection={select(EntityType.McpToolCall, (mcpToolCall ?? mcpToolCallInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -219,12 +225,13 @@
 			>
 				{#snippet children(a2aTask)}
 					{#if a2aTask != null}
+						{@const a2aTaskInitial = untrack(() => a2aTask)}
 						<div>
 							<dt>A2A task</dt>
 							<dd>
 								<A2aTaskView
-									selection={select(EntityType.A2aTask, a2aTask[EntityMetaKey.Selector])}
-									prefetched={a2aTask}
+									selection={select(EntityType.A2aTask, (a2aTask ?? a2aTaskInitial)[EntityMetaKey.Selector])}
+									prefetched={a2aTask ?? a2aTaskInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -238,11 +245,12 @@
 			>
 				{#snippet children(acpSession)}
 					{#if acpSession != null}
+						{@const acpSessionInitial = untrack(() => acpSession)}
 						<div>
 							<dt>ACP session</dt>
 							<dd>
 								<AcpSessionView
-									selection={select(EntityType.AcpSession, acpSession[EntityMetaKey.Selector])}
+									selection={select(EntityType.AcpSession, (acpSession ?? acpSessionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -256,11 +264,12 @@
 			>
 				{#snippet children(acpPromptTurn)}
 					{#if acpPromptTurn != null}
+						{@const acpPromptTurnInitial = untrack(() => acpPromptTurn)}
 						<div>
 							<dt>ACP prompt turn</dt>
 							<dd>
 								<AcpPromptTurnView
-									selection={select(EntityType.AcpPromptTurn, acpPromptTurn[EntityMetaKey.Selector])}
+									selection={select(EntityType.AcpPromptTurn, (acpPromptTurn ?? acpPromptTurnInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

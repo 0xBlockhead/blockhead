@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -74,9 +75,10 @@
 		>
 			{#snippet children(zeroGConsensusNetwork)}
 				{#if zeroGConsensusNetwork != null}
+					{@const zeroGConsensusNetworkInitial = untrack(() => zeroGConsensusNetwork)}
 					<span data-text="muted">
 						<ZeroGConsensusNetworkView
-							selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
+							selection={select(EntityType.ZeroGConsensusNetwork, (zeroGConsensusNetwork ?? zeroGConsensusNetworkInitial)[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -109,11 +111,12 @@
 			>
 				{#snippet children(zeroGConsensusNetwork)}
 					{#if zeroGConsensusNetwork != null}
+						{@const zeroGConsensusNetworkInitial = untrack(() => zeroGConsensusNetwork)}
 						<div>
 							<dt>consensus network</dt>
 							<dd>
 								<ZeroGConsensusNetworkView
-									selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGConsensusNetwork, (zeroGConsensusNetwork ?? zeroGConsensusNetworkInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -73,12 +74,13 @@
 			>
 				{#snippet children(assetInstance)}
 					{#if assetInstance != null}
+						{@const assetInstanceInitial = untrack(() => assetInstance)}
 						<div>
 							<dt>asset instance</dt>
 							<dd>
 								<AssetInstanceView
-									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
-									prefetched={assetInstance}
+									selection={select(EntityType.AssetInstance, (assetInstance ?? assetInstanceInitial)[EntityMetaKey.Selector])}
+									prefetched={assetInstance ?? assetInstanceInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -92,12 +94,13 @@
 			>
 				{#snippet children(assetClass)}
 					{#if assetClass != null}
+						{@const assetClassInitial = untrack(() => assetClass)}
 						<div>
 							<dt>asset class</dt>
 							<dd>
 								<AssetClassView
-									selection={select(EntityType.AssetClass, assetClass[EntityMetaKey.Selector])}
-									prefetched={assetClass}
+									selection={select(EntityType.AssetClass, (assetClass ?? assetClassInitial)[EntityMetaKey.Selector])}
+									prefetched={assetClass ?? assetClassInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -111,12 +114,13 @@
 			>
 				{#snippet children(network)}
 					{#if network != null}
+						{@const networkInitial = untrack(() => network)}
 						<div>
 							<dt>network</dt>
 							<dd>
 								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
+									selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+									prefetched={network ?? networkInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -130,12 +134,13 @@
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}
+						{@const evmContractInitial = untrack(() => evmContract)}
 						<div>
 							<dt>distributor contract</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
+									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContract ?? evmContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

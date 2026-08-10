@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -108,9 +109,10 @@
 						resource={selection.$sessionAction}
 					>
 						{#snippet children(blockheadSessionAction)}
+							{@const blockheadSessionActionInitial = untrack(() => blockheadSessionAction)}
 							<BlockheadSessionActionView
-								selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
-								prefetched={blockheadSessionAction}
+								selection={select(EntityType.BlockheadSessionAction, (blockheadSessionAction ?? blockheadSessionActionInitial)[EntityMetaKey.Selector])}
+								prefetched={blockheadSessionAction ?? blockheadSessionActionInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -143,12 +145,13 @@
 			>
 				{#snippet children(blockheadWalletRequest)}
 					{#if blockheadWalletRequest != null}
+						{@const blockheadWalletRequestInitial = untrack(() => blockheadWalletRequest)}
 						<div>
 							<dt>wallet request</dt>
 							<dd>
 								<BlockheadWalletRequestView
-									selection={select(EntityType.BlockheadWalletRequest, blockheadWalletRequest[EntityMetaKey.Selector])}
-									prefetched={blockheadWalletRequest}
+									selection={select(EntityType.BlockheadWalletRequest, (blockheadWalletRequest ?? blockheadWalletRequestInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadWalletRequest ?? blockheadWalletRequestInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -162,12 +165,13 @@
 			>
 				{#snippet children(blockheadIntentOrder)}
 					{#if blockheadIntentOrder != null}
+						{@const blockheadIntentOrderInitial = untrack(() => blockheadIntentOrder)}
 						<div>
 							<dt>intent order</dt>
 							<dd>
 								<BlockheadIntentOrderView
-									selection={select(EntityType.BlockheadIntentOrder, blockheadIntentOrder[EntityMetaKey.Selector])}
-									prefetched={blockheadIntentOrder}
+									selection={select(EntityType.BlockheadIntentOrder, (blockheadIntentOrder ?? blockheadIntentOrderInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadIntentOrder ?? blockheadIntentOrderInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -181,12 +185,13 @@
 			>
 				{#snippet children(blockheadSessionSimulation)}
 					{#if blockheadSessionSimulation != null}
+						{@const blockheadSessionSimulationInitial = untrack(() => blockheadSessionSimulation)}
 						<div>
 							<dt>simulation</dt>
 							<dd>
 								<BlockheadSessionSimulationView
-									selection={select(EntityType.BlockheadSessionSimulation, blockheadSessionSimulation[EntityMetaKey.Selector])}
-									prefetched={blockheadSessionSimulation}
+									selection={select(EntityType.BlockheadSessionSimulation, (blockheadSessionSimulation ?? blockheadSessionSimulationInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadSessionSimulation ?? blockheadSessionSimulationInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -48,15 +47,6 @@
 		<EntityView
 			entityType={EntityType._GlobalActivityPubNetwork_Timestamp}
 			entitySelector={globalActivityPubNetworkTimestampSelector}
-			href={
-				resolve(
-					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						timestampMs: String(globalActivityPubNetworkTimestampSelector.timestampMs),
-						source: globalActivityPubNetworkTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{[(globalActivityPubNetworkTimestamp.instanceTitle ?? ''), String(globalActivityPubNetworkTimestampSelector.timestampMs)].filter(Boolean).join(' ') || 'global ActivityPub network timestamp'}

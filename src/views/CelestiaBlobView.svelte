@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -256,12 +257,13 @@
 			>
 				{#snippet children(celestiaBlock)}
 					{#if celestiaBlock != null}
+						{@const celestiaBlockInitial = untrack(() => celestiaBlock)}
 						<div>
 							<dt>block</dt>
 							<dd>
 								<CelestiaBlockView
-									selection={select(EntityType.CelestiaBlock, celestiaBlock[EntityMetaKey.Selector])}
-									prefetched={celestiaBlock}
+									selection={select(EntityType.CelestiaBlock, (celestiaBlock ?? celestiaBlockInitial)[EntityMetaKey.Selector])}
+									prefetched={celestiaBlock ?? celestiaBlockInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

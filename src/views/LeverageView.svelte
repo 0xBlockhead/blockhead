@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -256,8 +257,9 @@
 						resource={selection.$pool}
 					>
 						{#snippet children(liquidityPool)}
+							{@const liquidityPoolInitial = untrack(() => liquidityPool)}
 							<LiquidityPoolView
-								selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
+								selection={select(EntityType.LiquidityPool, (liquidityPool ?? liquidityPoolInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -272,8 +274,9 @@
 						resource={selection.$owner}
 					>
 						{#snippet children(evmAccount)}
+							{@const evmAccountInitial = untrack(() => evmAccount)}
 							<EvmAccountView
-								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

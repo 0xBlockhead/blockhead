@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -134,11 +135,12 @@
 			>
 				{#snippet children(sorobanWasm)}
 					{#if sorobanWasm != null}
+						{@const sorobanWasmInitial = untrack(() => sorobanWasm)}
 						<div>
 							<dt>Wasm</dt>
 							<dd>
 								<SorobanWasmView
-									selection={select(EntityType.SorobanWasm, sorobanWasm[EntityMetaKey.Selector])}
+									selection={select(EntityType.SorobanWasm, (sorobanWasm ?? sorobanWasmInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

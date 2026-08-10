@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -88,10 +89,11 @@
 		>
 			{#snippet children(arweaveBlock)}
 				{#if arweaveBlock != null}
+					{@const arweaveBlockInitial = untrack(() => arweaveBlock)}
 					<span data-text="muted">
 						<ArweaveBlockView
-							selection={select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector])}
-							prefetched={arweaveBlock}
+							selection={select(EntityType.ArweaveBlock, (arweaveBlock ?? arweaveBlockInitial)[EntityMetaKey.Selector])}
+							prefetched={arweaveBlock ?? arweaveBlockInitial}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -104,10 +106,11 @@
 		>
 			{#snippet children(arweaveResource)}
 				{#if arweaveResource != null}
+					{@const arweaveResourceInitial = untrack(() => arweaveResource)}
 					<span data-text="muted">
 						<ArweaveResourceView
-							selection={select(EntityType.ArweaveResource, arweaveResource[EntityMetaKey.Selector])}
-							prefetched={arweaveResource}
+							selection={select(EntityType.ArweaveResource, (arweaveResource ?? arweaveResourceInitial)[EntityMetaKey.Selector])}
+							prefetched={arweaveResource ?? arweaveResourceInitial}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -140,12 +143,13 @@
 			>
 				{#snippet children(arweaveBlock)}
 					{#if arweaveBlock != null}
+						{@const arweaveBlockInitial = untrack(() => arweaveBlock)}
 						<div>
 							<dt>block</dt>
 							<dd>
 								<ArweaveBlockView
-									selection={select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector])}
-									prefetched={arweaveBlock}
+									selection={select(EntityType.ArweaveBlock, (arweaveBlock ?? arweaveBlockInitial)[EntityMetaKey.Selector])}
+									prefetched={arweaveBlock ?? arweaveBlockInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -159,12 +163,13 @@
 			>
 				{#snippet children(arweaveResource)}
 					{#if arweaveResource != null}
+						{@const arweaveResourceInitial = untrack(() => arweaveResource)}
 						<div>
 							<dt>resource</dt>
 							<dd>
 								<ArweaveResourceView
-									selection={select(EntityType.ArweaveResource, arweaveResource[EntityMetaKey.Selector])}
-									prefetched={arweaveResource}
+									selection={select(EntityType.ArweaveResource, (arweaveResource ?? arweaveResourceInitial)[EntityMetaKey.Selector])}
+									prefetched={arweaveResource ?? arweaveResourceInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

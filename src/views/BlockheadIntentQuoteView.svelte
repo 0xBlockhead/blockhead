@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -134,12 +135,13 @@
 			>
 				{#snippet children(blockheadSessionAction)}
 					{#if blockheadSessionAction != null}
+						{@const blockheadSessionActionInitial = untrack(() => blockheadSessionAction)}
 						<div>
 							<dt>session action</dt>
 							<dd>
 								<BlockheadSessionActionView
-									selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
-									prefetched={blockheadSessionAction}
+									selection={select(EntityType.BlockheadSessionAction, (blockheadSessionAction ?? blockheadSessionActionInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadSessionAction ?? blockheadSessionActionInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

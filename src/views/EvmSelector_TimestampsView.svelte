@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -46,16 +45,6 @@
 		<EntityView
 			entityType={EntityType.EvmSelector_Timestamp}
 			entitySelector={evmSelectorTimestampSelector}
-			href={
-				resolve(
-					'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]/(evmSelector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						hex: evmSelectorTimestampSelector.$selector.hex,
-						timestampMs: String(evmSelectorTimestampSelector.timestampMs),
-						source: evmSelectorTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{evmSelectorTimestamp.signatures.values.join(', ') || 'EVM selector observation'}

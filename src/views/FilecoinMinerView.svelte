@@ -24,6 +24,27 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.FilecoinMiner>, 'prefetched'> = $props()
 
+	const filecoinMinerLatestResource1 = $derived(
+		selection
+			.$$timestamps({
+				sources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
+				fields: {
+					height: true,
+					timestampMs: true,
+					qualityAdjustedPower: true,
+					liveSectorCount: true,
+					source: true,
+				},
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
+
 	const network = $derived(selection.entitySelector.$network)
 
 
@@ -68,27 +89,10 @@
 				<dt>Latest observation</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection
-							.$$timestamps({
-								sources: [
-									Source.Lotus_JsonRpc,
-									Source.Filfox_Rest,
-								],
-								fields: {
-									height: true,
-									timestampMs: true,
-									qualityAdjustedPower: true,
-									liveSectorCount: true,
-									source: true,
-								},
-								orderBy: [
-									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].height ?? Number.NEGATIVE_INFINITY, 'desc'],
-								],
-							}).first()
-						}
+						resource={filecoinMinerLatestResource1}
 					>
-						{#snippet children(filecoinMinerTimestamp)}
+						{#snippet children(filecoinMinerTimestamps)}
+							{@const filecoinMinerTimestamp = filecoinMinerTimestamps.values[0]}
 							{#if filecoinMinerTimestamp != null}
 								{@const filecoinMinerTimestampSelector = filecoinMinerTimestamp[EntityMetaKey.Selector]}
 								<FilecoinMiner_TimestampView

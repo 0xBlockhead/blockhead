@@ -5,6 +5,7 @@
 	import { resolve } from '$app/paths'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -98,9 +99,10 @@
 				>
 					{#snippet children(utxoAddress)}
 						{#if utxoAddress != null}
+							{@const utxoAddressInitial = untrack(() => utxoAddress)}
 							<span data-text="muted">
 								<UtxoAddressView
-									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoAddress, (utxoAddress ?? utxoAddressInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 								/>
 							</span>
@@ -163,11 +165,12 @@
 			>
 				{#snippet children(utxoAddress)}
 					{#if utxoAddress != null}
+						{@const utxoAddressInitial = untrack(() => utxoAddress)}
 						<div>
 							<dt>Address</dt>
 							<dd>
 								<UtxoAddressView
-									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoAddress, (utxoAddress ?? utxoAddressInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -281,12 +284,13 @@
 			>
 				{#snippet children(bitcoinCashCashTokenFungibleAmount)}
 					{#if bitcoinCashCashTokenFungibleAmount != null}
+						{@const bitcoinCashCashTokenFungibleAmountInitial = untrack(() => bitcoinCashCashTokenFungibleAmount)}
 						<div>
 							<dt>Bitcoin Cash CashToken fungible amount</dt>
 							<dd>
 								<BitcoinCashCashTokenFungibleAmountView
-									selection={select(EntityType.BitcoinCashCashTokenFungibleAmount, bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector])}
-									prefetched={bitcoinCashCashTokenFungibleAmount}
+									selection={select(EntityType.BitcoinCashCashTokenFungibleAmount, (bitcoinCashCashTokenFungibleAmount ?? bitcoinCashCashTokenFungibleAmountInitial)[EntityMetaKey.Selector])}
+									prefetched={bitcoinCashCashTokenFungibleAmount ?? bitcoinCashCashTokenFungibleAmountInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -300,12 +304,13 @@
 			>
 				{#snippet children(bitcoinCashCashTokenNft)}
 					{#if bitcoinCashCashTokenNft != null}
+						{@const bitcoinCashCashTokenNftInitial = untrack(() => bitcoinCashCashTokenNft)}
 						<div>
 							<dt>Bitcoin Cash CashToken NFT</dt>
 							<dd>
 								<BitcoinCashCashTokenNftView
-									selection={select(EntityType.BitcoinCashCashTokenNft, bitcoinCashCashTokenNft[EntityMetaKey.Selector])}
-									prefetched={bitcoinCashCashTokenNft}
+									selection={select(EntityType.BitcoinCashCashTokenNft, (bitcoinCashCashTokenNft ?? bitcoinCashCashTokenNftInitial)[EntityMetaKey.Selector])}
+									prefetched={bitcoinCashCashTokenNft ?? bitcoinCashCashTokenNftInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

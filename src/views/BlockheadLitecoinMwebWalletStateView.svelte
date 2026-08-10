@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -74,10 +75,11 @@
 		>
 			{#snippet children(blockheadWallet)}
 				{#if blockheadWallet != null}
+					{@const blockheadWalletInitial = untrack(() => blockheadWallet)}
 					<span data-text="muted">
 						<BlockheadWalletView
-							selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
-							prefetched={blockheadWallet}
+							selection={select(EntityType.BlockheadWallet, (blockheadWallet ?? blockheadWalletInitial)[EntityMetaKey.Selector])}
+							prefetched={blockheadWallet ?? blockheadWalletInitial}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -100,12 +102,13 @@
 			>
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null}
+						{@const blockheadWalletInitial = untrack(() => blockheadWallet)}
 						<div>
 							<dt>wallet</dt>
 							<dd>
 								<BlockheadWalletView
-									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
-									prefetched={blockheadWallet}
+									selection={select(EntityType.BlockheadWallet, (blockheadWallet ?? blockheadWalletInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadWallet ?? blockheadWalletInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

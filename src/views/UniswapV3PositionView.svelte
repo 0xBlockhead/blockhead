@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -98,12 +99,13 @@
 			>
 				{#snippet children(uniswapV3Pool)}
 					{#if uniswapV3Pool != null}
+						{@const uniswapV3PoolInitial = untrack(() => uniswapV3Pool)}
 						<div>
 							<dt>Pool</dt>
 							<dd>
 								<UniswapV3PoolView
-									selection={select(EntityType.UniswapV3Pool, uniswapV3Pool[EntityMetaKey.Selector])}
-									prefetched={uniswapV3Pool}
+									selection={select(EntityType.UniswapV3Pool, (uniswapV3Pool ?? uniswapV3PoolInitial)[EntityMetaKey.Selector])}
+									prefetched={uniswapV3Pool ?? uniswapV3PoolInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

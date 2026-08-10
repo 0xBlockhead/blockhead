@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -90,11 +91,12 @@
 			>
 				{#snippet children(tezosToken)}
 					{#if tezosToken != null}
+						{@const tezosTokenInitial = untrack(() => tezosToken)}
 						<div>
 							<dt>token</dt>
 							<dd>
 								<TezosTokenView
-									selection={select(EntityType.TezosToken, tezosToken[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosToken, (tezosToken ?? tezosTokenInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -108,11 +110,12 @@
 			>
 				{#snippet children(tezosAccount)}
 					{#if tezosAccount != null}
+						{@const tezosAccountInitial = untrack(() => tezosAccount)}
 						<div>
 							<dt>from</dt>
 							<dd>
 								<TezosAccountView
-									selection={select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosAccount, (tezosAccount ?? tezosAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -126,11 +129,12 @@
 			>
 				{#snippet children(tezosAccount)}
 					{#if tezosAccount != null}
+						{@const tezosAccountInitial = untrack(() => tezosAccount)}
 						<div>
 							<dt>to</dt>
 							<dd>
 								<TezosAccountView
-									selection={select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosAccount, (tezosAccount ?? tezosAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -144,11 +148,12 @@
 			>
 				{#snippet children(tezosOperation)}
 					{#if tezosOperation != null}
+						{@const tezosOperationInitial = untrack(() => tezosOperation)}
 						<div>
 							<dt>operation</dt>
 							<dd>
 								<TezosOperationView
-									selection={select(EntityType.TezosOperation, tezosOperation[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosOperation, (tezosOperation ?? tezosOperationInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

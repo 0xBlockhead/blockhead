@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -211,12 +212,13 @@
 			>
 				{#snippet children(cctpDomainSupport)}
 					{#if cctpDomainSupport != null}
+						{@const cctpDomainSupportInitial = untrack(() => cctpDomainSupport)}
 						<div>
 							<dt>Source domain</dt>
 							<dd>
 								<CctpDomainSupportView
-									selection={select(EntityType.CctpDomainSupport, cctpDomainSupport[EntityMetaKey.Selector])}
-									prefetched={cctpDomainSupport}
+									selection={select(EntityType.CctpDomainSupport, (cctpDomainSupport ?? cctpDomainSupportInitial)[EntityMetaKey.Selector])}
+									prefetched={cctpDomainSupport ?? cctpDomainSupportInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -230,12 +232,13 @@
 			>
 				{#snippet children(cctpDomainSupport)}
 					{#if cctpDomainSupport != null}
+						{@const cctpDomainSupportInitial = untrack(() => cctpDomainSupport)}
 						<div>
 							<dt>Destination domain</dt>
 							<dd>
 								<CctpDomainSupportView
-									selection={select(EntityType.CctpDomainSupport, cctpDomainSupport[EntityMetaKey.Selector])}
-									prefetched={cctpDomainSupport}
+									selection={select(EntityType.CctpDomainSupport, (cctpDomainSupport ?? cctpDomainSupportInitial)[EntityMetaKey.Selector])}
+									prefetched={cctpDomainSupport ?? cctpDomainSupportInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

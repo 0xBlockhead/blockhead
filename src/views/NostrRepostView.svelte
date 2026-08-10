@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -156,11 +157,12 @@
 				>
 					{#snippet children(nostrProfile)}
 						{#if nostrProfile != null}
+							{@const nostrProfileInitial = untrack(() => nostrProfile)}
 							<div>
 								<dt>Author</dt>
 								<dd>
 									<NostrProfileView
-										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
+										selection={select(EntityType.NostrProfile, (nostrProfile ?? nostrProfileInitial)[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 									/>
 								</dd>
@@ -194,12 +196,13 @@
 				>
 					{#snippet children(nostrNote)}
 						{#if nostrNote != null}
+							{@const nostrNoteInitial = untrack(() => nostrNote)}
 							<div>
 								<dt>Reposted note</dt>
 								<dd>
 									<NostrNoteView
-										selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
-										prefetched={nostrNote}
+										selection={select(EntityType.NostrNote, (nostrNote ?? nostrNoteInitial)[EntityMetaKey.Selector])}
+										prefetched={nostrNote ?? nostrNoteInitial}
 										layout={EntityLayout.Value}
 									/>
 								</dd>
@@ -215,11 +218,12 @@
 				>
 					{#snippet children(nostrArticle)}
 						{#if nostrArticle != null}
+							{@const nostrArticleInitial = untrack(() => nostrArticle)}
 							<div>
 								<dt>Reposted article</dt>
 								<dd>
 									<NostrArticleView
-										selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
+										selection={select(EntityType.NostrArticle, (nostrArticle ?? nostrArticleInitial)[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 									/>
 								</dd>

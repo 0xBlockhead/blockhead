@@ -5,6 +5,7 @@
 	import { resolve } from '$app/paths'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -77,9 +78,10 @@
 			resource={selection.$wallet}
 		>
 			{#snippet children(blockheadWallet)}
+				{@const blockheadWalletInitial = untrack(() => blockheadWallet)}
 				<BlockheadWalletView
-					selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
-					prefetched={blockheadWallet}
+					selection={select(EntityType.BlockheadWallet, (blockheadWallet ?? blockheadWalletInitial)[EntityMetaKey.Selector])}
+					prefetched={blockheadWallet ?? blockheadWalletInitial}
 					href={null}
 					layout={EntityLayout.Title}
 				/>
@@ -121,9 +123,10 @@
 						resource={selection.$wallet}
 					>
 						{#snippet children(blockheadWallet)}
+							{@const blockheadWalletInitial = untrack(() => blockheadWallet)}
 							<BlockheadWalletView
-								selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
-								prefetched={blockheadWallet}
+								selection={select(EntityType.BlockheadWallet, (blockheadWallet ?? blockheadWalletInitial)[EntityMetaKey.Selector])}
+								prefetched={blockheadWallet ?? blockheadWalletInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -287,11 +290,12 @@
 			>
 				{#snippet children(account)}
 					{#if account != null}
+						{@const accountInitial = untrack(() => account)}
 						<div>
 							<dt>Active account</dt>
 							<dd>
 								<AccountView
-									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
+									selection={select(EntityType.Account, (account ?? accountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -69,8 +70,9 @@
 			resource={selection.$mint}
 		>
 			{#snippet children(cashuMint)}
+				{@const cashuMintInitial = untrack(() => cashuMint)}
 				<CashuMintView
-					selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
+					selection={select(EntityType.CashuMint, (cashuMint ?? cashuMintInitial)[EntityMetaKey.Selector])}
 					href={null}
 					layout={EntityLayout.Value}
 				/>
@@ -92,12 +94,13 @@
 			>
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null}
+						{@const blockheadWalletInitial = untrack(() => blockheadWallet)}
 						<div>
 							<dt>wallet</dt>
 							<dd>
 								<BlockheadWalletView
-									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
-									prefetched={blockheadWallet}
+									selection={select(EntityType.BlockheadWallet, (blockheadWallet ?? blockheadWalletInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadWallet ?? blockheadWalletInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -113,8 +116,9 @@
 						resource={selection.$mint}
 					>
 						{#snippet children(cashuMint)}
+							{@const cashuMintInitial = untrack(() => cashuMint)}
 							<CashuMintView
-								selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
+								selection={select(EntityType.CashuMint, (cashuMint ?? cashuMintInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

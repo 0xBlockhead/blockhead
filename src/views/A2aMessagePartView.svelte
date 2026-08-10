@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -110,11 +111,12 @@
 			>
 				{#snippet children(a2aMessage)}
 					{#if a2aMessage != null}
+						{@const a2aMessageInitial = untrack(() => a2aMessage)}
 						<div>
 							<dt>message</dt>
 							<dd>
 								<A2aMessageView
-									selection={select(EntityType.A2aMessage, a2aMessage[EntityMetaKey.Selector])}
+									selection={select(EntityType.A2aMessage, (a2aMessage ?? a2aMessageInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -128,12 +130,13 @@
 			>
 				{#snippet children(a2aArtifact)}
 					{#if a2aArtifact != null}
+						{@const a2aArtifactInitial = untrack(() => a2aArtifact)}
 						<div>
 							<dt>artifact</dt>
 							<dd>
 								<A2aArtifactView
-									selection={select(EntityType.A2aArtifact, a2aArtifact[EntityMetaKey.Selector])}
-									prefetched={a2aArtifact}
+									selection={select(EntityType.A2aArtifact, (a2aArtifact ?? a2aArtifactInitial)[EntityMetaKey.Selector])}
+									prefetched={a2aArtifact ?? a2aArtifactInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -233,12 +236,13 @@
 			>
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null}
+						{@const aiArtifactInitial = untrack(() => aiArtifact)}
 						<div>
 							<dt>AI artifact</dt>
 							<dd>
 								<AiArtifactView
-									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
-									prefetched={aiArtifact}
+									selection={select(EntityType.AiArtifact, (aiArtifact ?? aiArtifactInitial)[EntityMetaKey.Selector])}
+									prefetched={aiArtifact ?? aiArtifactInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

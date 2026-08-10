@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -78,9 +79,10 @@
 		>
 			{#snippet children(moneroRing)}
 				{#if moneroRing != null}
+					{@const moneroRingInitial = untrack(() => moneroRing)}
 					<span data-text="muted">
 						<MoneroRingView
-							selection={select(EntityType.MoneroRing, moneroRing[EntityMetaKey.Selector])}
+							selection={select(EntityType.MoneroRing, (moneroRing ?? moneroRingInitial)[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -122,11 +124,12 @@
 			>
 				{#snippet children(moneroRing)}
 					{#if moneroRing != null}
+						{@const moneroRingInitial = untrack(() => moneroRing)}
 						<div>
 							<dt>Ring</dt>
 							<dd>
 								<MoneroRingView
-									selection={select(EntityType.MoneroRing, moneroRing[EntityMetaKey.Selector])}
+									selection={select(EntityType.MoneroRing, (moneroRing ?? moneroRingInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

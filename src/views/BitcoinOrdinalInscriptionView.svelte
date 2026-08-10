@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -174,11 +175,12 @@
 			>
 				{#snippet children(utxoTransaction)}
 					{#if utxoTransaction != null}
+						{@const utxoTransactionInitial = untrack(() => utxoTransaction)}
 						<div>
 							<dt>Reveal transaction</dt>
 							<dd>
 								<UtxoTransactionView
-									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoTransaction, (utxoTransaction ?? utxoTransactionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -236,11 +238,12 @@
 			>
 				{#snippet children(utxoOutput)}
 					{#if utxoOutput != null}
+						{@const utxoOutputInitial = untrack(() => utxoOutput)}
 						<div>
 							<dt>Content output</dt>
 							<dd>
 								<UtxoOutputView
-									selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoOutput, (utxoOutput ?? utxoOutputInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -254,11 +257,12 @@
 			>
 				{#snippet children(utxoAddress)}
 					{#if utxoAddress != null}
+						{@const utxoAddressInitial = untrack(() => utxoAddress)}
 						<div>
 							<dt>Address</dt>
 							<dd>
 								<UtxoAddressView
-									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoAddress, (utxoAddress ?? utxoAddressInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

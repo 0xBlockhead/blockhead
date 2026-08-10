@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -143,12 +144,13 @@
 			>
 				{#snippet children(farcasterUser)}
 					{#if farcasterUser != null}
+						{@const farcasterUserInitial = untrack(() => farcasterUser)}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<FarcasterUserView
-									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
-									prefetched={farcasterUser}
+									selection={select(EntityType.FarcasterUser, (farcasterUser ?? farcasterUserInitial)[EntityMetaKey.Selector])}
+									prefetched={farcasterUser ?? farcasterUserInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -182,12 +184,13 @@
 			>
 				{#snippet children(farcasterChannel)}
 					{#if farcasterChannel != null}
+						{@const farcasterChannelInitial = untrack(() => farcasterChannel)}
 						<div>
 							<dt>Channel</dt>
 							<dd>
 								<FarcasterChannelView
-									selection={select(EntityType.FarcasterChannel, farcasterChannel[EntityMetaKey.Selector])}
-									prefetched={farcasterChannel}
+									selection={select(EntityType.FarcasterChannel, (farcasterChannel ?? farcasterChannelInitial)[EntityMetaKey.Selector])}
+									prefetched={farcasterChannel ?? farcasterChannelInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -203,12 +206,13 @@
 			>
 				{#snippet children(farcasterCast)}
 					{#if farcasterCast != null}
+						{@const farcasterCastInitial = untrack(() => farcasterCast)}
 						<div>
 							<dt>Parent cast</dt>
 							<dd>
 								<FarcasterCastView
-									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
-									prefetched={farcasterCast}
+									selection={select(EntityType.FarcasterCast, (farcasterCast ?? farcasterCastInitial)[EntityMetaKey.Selector])}
+									prefetched={farcasterCast ?? farcasterCastInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

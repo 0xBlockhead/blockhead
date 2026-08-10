@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -106,9 +107,10 @@
 				>
 					{#snippet children(farcasterCast)}
 						{#if farcasterCast != null}
+							{@const farcasterCastInitial = untrack(() => farcasterCast)}
 							<FarcasterCastView
-								selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
-								prefetched={farcasterCast}
+								selection={select(EntityType.FarcasterCast, (farcasterCast ?? farcasterCastInitial)[EntityMetaKey.Selector])}
+								prefetched={farcasterCast ?? farcasterCastInitial}
 								href={null}
 								layout={EntityLayout.Title}
 							/>
@@ -173,12 +175,13 @@
 			>
 				{#snippet children(farcasterCast)}
 					{#if farcasterCast != null}
+						{@const farcasterCastInitial = untrack(() => farcasterCast)}
 						<div>
 							<dt>Embedded cast</dt>
 							<dd>
 								<FarcasterCastView
-									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
-									prefetched={farcasterCast}
+									selection={select(EntityType.FarcasterCast, (farcasterCast ?? farcasterCastInitial)[EntityMetaKey.Selector])}
+									prefetched={farcasterCast ?? farcasterCastInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

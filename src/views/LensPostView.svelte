@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -92,12 +93,13 @@
 			>
 				{#snippet children(lensAccount)}
 					{#if lensAccount != null}
+						{@const lensAccountInitial = untrack(() => lensAccount)}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<LensAccountView
-									selection={select(EntityType.LensAccount, lensAccount[EntityMetaKey.Selector])}
-									prefetched={lensAccount}
+									selection={select(EntityType.LensAccount, (lensAccount ?? lensAccountInitial)[EntityMetaKey.Selector])}
+									prefetched={lensAccount ?? lensAccountInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -227,12 +229,13 @@
 			>
 				{#snippet children(lensPost)}
 					{#if lensPost != null}
+						{@const lensPostInitial = untrack(() => lensPost)}
 						<div>
 							<dt>Comment on</dt>
 							<dd>
 								<LensPostView
-									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
-									prefetched={lensPost}
+									selection={select(EntityType.LensPost, (lensPost ?? lensPostInitial)[EntityMetaKey.Selector])}
+									prefetched={lensPost ?? lensPostInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -248,12 +251,13 @@
 			>
 				{#snippet children(lensPost)}
 					{#if lensPost != null}
+						{@const lensPostInitial = untrack(() => lensPost)}
 						<div>
 							<dt>Quote of</dt>
 							<dd>
 								<LensPostView
-									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
-									prefetched={lensPost}
+									selection={select(EntityType.LensPost, (lensPost ?? lensPostInitial)[EntityMetaKey.Selector])}
+									prefetched={lensPost ?? lensPostInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -269,12 +273,13 @@
 			>
 				{#snippet children(lensPost)}
 					{#if lensPost != null}
+						{@const lensPostInitial = untrack(() => lensPost)}
 						<div>
 							<dt>Repost of</dt>
 							<dd>
 								<LensPostView
-									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
-									prefetched={lensPost}
+									selection={select(EntityType.LensPost, (lensPost ?? lensPostInitial)[EntityMetaKey.Selector])}
+									prefetched={lensPost ?? lensPostInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -290,12 +295,13 @@
 			>
 				{#snippet children(lensPost)}
 					{#if lensPost != null}
+						{@const lensPostInitial = untrack(() => lensPost)}
 						<div>
 							<dt>Root</dt>
 							<dd>
 								<LensPostView
-									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
-									prefetched={lensPost}
+									selection={select(EntityType.LensPost, (lensPost ?? lensPostInitial)[EntityMetaKey.Selector])}
+									prefetched={lensPost ?? lensPostInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

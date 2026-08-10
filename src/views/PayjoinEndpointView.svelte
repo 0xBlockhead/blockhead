@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -72,9 +73,10 @@
 		>
 			{#snippet children(payjoinDirectory)}
 				{#if payjoinDirectory != null}
+					{@const payjoinDirectoryInitial = untrack(() => payjoinDirectory)}
 					<span data-text="muted">
 						<PayjoinDirectoryView
-							selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
+							selection={select(EntityType.PayjoinDirectory, (payjoinDirectory ?? payjoinDirectoryInitial)[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -119,11 +121,12 @@
 			>
 				{#snippet children(payjoinDirectory)}
 					{#if payjoinDirectory != null}
+						{@const payjoinDirectoryInitial = untrack(() => payjoinDirectory)}
 						<div>
 							<dt>directory</dt>
 							<dd>
 								<PayjoinDirectoryView
-									selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
+									selection={select(EntityType.PayjoinDirectory, (payjoinDirectory ?? payjoinDirectoryInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

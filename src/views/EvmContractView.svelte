@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -149,11 +150,12 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
+						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>Deployer</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -167,11 +169,12 @@
 			>
 				{#snippet children(evmTransaction)}
 					{#if evmTransaction != null}
+						{@const evmTransactionInitial = untrack(() => evmTransaction)}
 						<div>
 							<dt>Creation transaction</dt>
 							<dd>
 								<EvmTransactionView
-									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmTransaction, (evmTransaction ?? evmTransactionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -185,12 +188,13 @@
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}
+						{@const evmContractInitial = untrack(() => evmContract)}
 						<div>
 							<dt>Implementation</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
+									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContract ?? evmContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -204,12 +208,13 @@
 			>
 				{#snippet children(evmContractVerification)}
 					{#if evmContractVerification != null}
+						{@const evmContractVerificationInitial = untrack(() => evmContractVerification)}
 						<div>
 							<dt>Verification</dt>
 							<dd>
 								<EvmContractVerificationView
-									selection={select(EntityType.EvmContractVerification, evmContractVerification[EntityMetaKey.Selector])}
-									prefetched={evmContractVerification}
+									selection={select(EntityType.EvmContractVerification, (evmContractVerification ?? evmContractVerificationInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContractVerification ?? evmContractVerificationInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -293,12 +298,13 @@
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}
+						{@const evmContractInitial = untrack(() => evmContract)}
 						<div>
 							<dt>Fallback handler</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
+									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContract ?? evmContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -312,12 +318,13 @@
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}
+						{@const evmContractInitial = untrack(() => evmContract)}
 						<div>
 							<dt>Guard</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
+									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContract ?? evmContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

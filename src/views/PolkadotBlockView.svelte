@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -183,11 +184,12 @@
 			>
 				{#snippet children(polkadotBlock)}
 					{#if polkadotBlock != null}
+						{@const polkadotBlockInitial = untrack(() => polkadotBlock)}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<PolkadotBlockView
-									selection={select(EntityType.PolkadotBlock, polkadotBlock[EntityMetaKey.Selector])}
+									selection={select(EntityType.PolkadotBlock, (polkadotBlock ?? polkadotBlockInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -90,10 +91,11 @@
 			resource={selection.$session}
 		>
 			{#snippet children(blockheadSession)}
+				{@const blockheadSessionInitial = untrack(() => blockheadSession)}
 				<span data-text="muted">
 					<BlockheadSessionView
-						selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
-						prefetched={blockheadSession}
+						selection={select(EntityType.BlockheadSession, (blockheadSession ?? blockheadSessionInitial)[EntityMetaKey.Selector])}
+						prefetched={blockheadSession ?? blockheadSessionInitial}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -110,9 +112,10 @@
 						resource={selection.$session}
 					>
 						{#snippet children(blockheadSession)}
+							{@const blockheadSessionInitial = untrack(() => blockheadSession)}
 							<BlockheadSessionView
-								selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
-								prefetched={blockheadSession}
+								selection={select(EntityType.BlockheadSession, (blockheadSession ?? blockheadSessionInitial)[EntityMetaKey.Selector])}
+								prefetched={blockheadSession ?? blockheadSessionInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -223,11 +224,12 @@
 			>
 				{#snippet children(gitCommit)}
 					{#if gitCommit != null}
+						{@const gitCommitInitial = untrack(() => gitCommit)}
 						<div>
 							<dt>head commit</dt>
 							<dd>
 								<GitCommitView
-									selection={select(EntityType.GitCommit, gitCommit[EntityMetaKey.Selector])}
+									selection={select(EntityType.GitCommit, (gitCommit ?? gitCommitInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -241,11 +243,12 @@
 			>
 				{#snippet children(gitCommit)}
 					{#if gitCommit != null}
+						{@const gitCommitInitial = untrack(() => gitCommit)}
 						<div>
 							<dt>base commit</dt>
 							<dd>
 								<GitCommitView
-									selection={select(EntityType.GitCommit, gitCommit[EntityMetaKey.Selector])}
+									selection={select(EntityType.GitCommit, (gitCommit ?? gitCommitInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

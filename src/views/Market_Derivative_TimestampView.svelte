@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { marketAssetByKind } from '$/constants/Market.ts'
@@ -27,15 +28,22 @@
 	const marketDerivativeTimestamp = $derived(selection({
 		fields: {
 			markPrice: true,
+			$market: {
+				fields: {
+					$quote: {
+						fields: {
+							assetKey: true,
+						},
+					},
+				},
+			},
 			indexPrice: true,
 			fundingRate: true,
 		},
 	}))
-	const titleFallback = $derived(selection.entitySelector.feedKey || 'market derivative timestamp')
 
 
 	// Components
-	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import MarketView from '$/views/MarketView.svelte'
@@ -45,7 +53,7 @@
 <EntityView
 	entityType={EntityType.Market_Derivative_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? (selection.entitySelector.feedKey || 'market derivative timestamp')}
 	href={
 		href === undefined ?
 			resolve(
@@ -71,7 +79,16 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={marketDerivativeTimestamp}>
 			{#snippet children(entity)}
-				{[String(entity.markPrice ?? ''), String(entity.indexPrice ?? '')].filter(Boolean).join(' ') || selection.entitySelector.feedKey || titleFallback}
+				{@const markPrice = entity.markPrice}
+				{#if markPrice != null}
+					{markPrice}
+					<span>{selection.entitySelector.$market.$quote.assetKey == null ? '' : ` ${selection.entitySelector.$market.$quote.assetKey}`}</span>
+				{/if}
+				{@const indexPrice = entity.indexPrice}
+				{#if indexPrice != null}
+					{indexPrice}
+					<span>{selection.entitySelector.$market.$quote.assetKey == null ? '' : ` ${selection.entitySelector.$market.$quote.assetKey}`}</span>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -138,10 +155,8 @@
 						<div>
 							<dt>Open interest USD</dt>
 							<dd>
-								<NumberValue
-									value={Number(openInterestUsd)}
-									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-								/>
+								{openInterestUsd}
+								<span> USD</span>
 							</dd>
 						</div>
 					{/if}
@@ -182,10 +197,8 @@
 						<div>
 							<dt>Mark price</dt>
 							<dd>
-								<NumberValue
-									value={Number(markPrice) / 1e8}
-									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-								/>
+								{markPrice}
+								<span>{selection.entitySelector.$market.$quote.assetKey == null ? '' : ` ${selection.entitySelector.$market.$quote.assetKey}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -201,10 +214,8 @@
 						<div>
 							<dt>Index price</dt>
 							<dd>
-								<NumberValue
-									value={Number(indexPrice) / 1e8}
-									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-								/>
+								{indexPrice}
+								<span>{selection.entitySelector.$market.$quote.assetKey == null ? '' : ` ${selection.entitySelector.$market.$quote.assetKey}`}</span>
 							</dd>
 						</div>
 					{/if}
@@ -316,8 +327,9 @@
 						resource={selection.$parentMarket}
 					>
 						{#snippet children(market)}
+							{@const marketInitial = untrack(() => market)}
 							<MarketView
-								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
+								selection={select(EntityType.Market, (market ?? marketInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

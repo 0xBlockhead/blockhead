@@ -36,7 +36,7 @@
 	href={
 		href === undefined ?
 			resolve(
-				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/(activityPubInstanceTimestamp)/peer/[peerDomain=stringSegment]',
+				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/peer/[peerDomain=stringSegment]',
 				{
 					instanceOrigin: encodeURIComponent(observation.$instance.instanceOrigin),
 					timestampMs: String(observation.timestampMs),
@@ -54,7 +54,6 @@
 	{#snippet Value()}
 		<ActivityPubInstance_TimestampView
 			selection={select(EntityType.ActivityPubInstance_Timestamp, selection.entitySelector.$observation)}
-			href={null}
 			layout={EntityLayout.Value}
 		/>
 	{/snippet}

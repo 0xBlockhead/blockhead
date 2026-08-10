@@ -68,11 +68,11 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{[String(marketDerivativeTimestamp.markPrice ?? ''), String(marketDerivativeTimestamp.indexPrice ?? '')].filter(Boolean).join(' ')}
+				{[(marketDerivativeTimestamp.markPrice ? marketDerivativeTimestamp.markPrice + marketDerivativeTimestampSelector.$market.$quote.assetKey : ''), (marketDerivativeTimestamp.indexPrice ? marketDerivativeTimestamp.indexPrice + marketDerivativeTimestampSelector.$market.$quote.assetKey : '')].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}
-				<span data-text="annotation">{marketDerivativeTimestamp.fundingRate != null ? marketDerivativeTimestamp.fundingRate + '%' : ''}</span>
+				<span data-text="annotation">{marketDerivativeTimestamp.fundingRate ? marketDerivativeTimestamp.fundingRate + '%' : ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

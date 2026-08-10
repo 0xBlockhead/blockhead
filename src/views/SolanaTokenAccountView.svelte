@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -73,9 +74,10 @@
 			resource={selection.$mint}
 		>
 			{#snippet children(solanaTokenMint)}
+				{@const solanaTokenMintInitial = untrack(() => solanaTokenMint)}
 				<span data-text="muted">
 					<SolanaTokenMintView
-						selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
+						selection={select(EntityType.SolanaTokenMint, (solanaTokenMint ?? solanaTokenMintInitial)[EntityMetaKey.Selector])}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -99,8 +101,9 @@
 						resource={selection.$mint}
 					>
 						{#snippet children(solanaTokenMint)}
+							{@const solanaTokenMintInitial = untrack(() => solanaTokenMint)}
 							<SolanaTokenMintView
-								selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
+								selection={select(EntityType.SolanaTokenMint, (solanaTokenMint ?? solanaTokenMintInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -113,11 +116,12 @@
 			>
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null}
+						{@const solanaAccountInitial = untrack(() => solanaAccount)}
 						<div>
 							<dt>Account</dt>
 							<dd>
 								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaAccount, (solanaAccount ?? solanaAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -131,11 +135,12 @@
 			>
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null}
+						{@const solanaAccountInitial = untrack(() => solanaAccount)}
 						<div>
 							<dt>Owner</dt>
 							<dd>
 								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaAccount, (solanaAccount ?? solanaAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -151,11 +156,12 @@
 			>
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null}
+						{@const solanaAccountInitial = untrack(() => solanaAccount)}
 						<div>
 							<dt>Delegate</dt>
 							<dd>
 								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaAccount, (solanaAccount ?? solanaAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -169,11 +175,12 @@
 			>
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null}
+						{@const solanaAccountInitial = untrack(() => solanaAccount)}
 						<div>
 							<dt>Close authority</dt>
 							<dd>
 								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaAccount, (solanaAccount ?? solanaAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -72,9 +73,10 @@
 		>
 			{#snippet children(acpAgentProgramVersion)}
 				{#if acpAgentProgramVersion != null}
+					{@const acpAgentProgramVersionInitial = untrack(() => acpAgentProgramVersion)}
 					<AcpAgentProgramVersionView
-						selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector])}
-						prefetched={acpAgentProgramVersion}
+						selection={select(EntityType.AcpAgentProgramVersion, (acpAgentProgramVersion ?? acpAgentProgramVersionInitial)[EntityMetaKey.Selector])}
+						prefetched={acpAgentProgramVersion ?? acpAgentProgramVersionInitial}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -110,12 +112,13 @@
 			>
 				{#snippet children(blockheadSource)}
 					{#if blockheadSource != null}
+						{@const blockheadSourceInitial = untrack(() => blockheadSource)}
 						<div>
 							<dt>Source</dt>
 							<dd>
 								<BlockheadSourceView
-									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
-									prefetched={blockheadSource}
+									selection={select(EntityType.BlockheadSource, (blockheadSource ?? blockheadSourceInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadSource ?? blockheadSourceInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -129,12 +132,13 @@
 			>
 				{#snippet children(acpAgentProgramVersion)}
 					{#if acpAgentProgramVersion != null}
+						{@const acpAgentProgramVersionInitial = untrack(() => acpAgentProgramVersion)}
 						<div>
 							<dt>program version</dt>
 							<dd>
 								<AcpAgentProgramVersionView
-									selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector])}
-									prefetched={acpAgentProgramVersion}
+									selection={select(EntityType.AcpAgentProgramVersion, (acpAgentProgramVersion ?? acpAgentProgramVersionInitial)[EntityMetaKey.Selector])}
+									prefetched={acpAgentProgramVersion ?? acpAgentProgramVersionInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -148,11 +152,12 @@
 			>
 				{#snippet children(blockheadAgentProgramInstall)}
 					{#if blockheadAgentProgramInstall != null}
+						{@const blockheadAgentProgramInstallInitial = untrack(() => blockheadAgentProgramInstall)}
 						<div>
 							<dt>program install</dt>
 							<dd>
 								<BlockheadAgentProgramInstallView
-									selection={select(EntityType.BlockheadAgentProgramInstall, blockheadAgentProgramInstall[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadAgentProgramInstall, (blockheadAgentProgramInstall ?? blockheadAgentProgramInstallInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -106,11 +107,12 @@
 			>
 				{#snippet children(assetObject)}
 					{#if assetObject != null}
+						{@const assetObjectInitial = untrack(() => assetObject)}
 						<div>
 							<dt>asset object</dt>
 							<dd>
 								<AssetObjectView
-									selection={select(EntityType.AssetObject, assetObject[EntityMetaKey.Selector])}
+									selection={select(EntityType.AssetObject, (assetObject ?? assetObjectInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -124,12 +126,13 @@
 			>
 				{#snippet children(tokenMetadataDocument)}
 					{#if tokenMetadataDocument != null}
+						{@const tokenMetadataDocumentInitial = untrack(() => tokenMetadataDocument)}
 						<div>
 							<dt>metadata</dt>
 							<dd>
 								<TokenMetadataDocumentView
-									selection={select(EntityType.TokenMetadataDocument, tokenMetadataDocument[EntityMetaKey.Selector])}
-									prefetched={tokenMetadataDocument}
+									selection={select(EntityType.TokenMetadataDocument, (tokenMetadataDocument ?? tokenMetadataDocumentInitial)[EntityMetaKey.Selector])}
+									prefetched={tokenMetadataDocument ?? tokenMetadataDocumentInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

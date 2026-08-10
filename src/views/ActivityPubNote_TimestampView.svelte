@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,13 +15,11 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.ActivityPubNote_Timestamp>, 'prefetched'> = $props()
 
-	const note = $derived(selection.entitySelector.$note)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Mastodon_Rest,
@@ -42,26 +39,6 @@
 	entityType={EntityType.ActivityPubNote_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'ActivityPub note observation'}
-	href={
-		href === undefined ?
-			(
-				'instanceOrigin' in note
-				&& 'localStatusId' in note ?
-					resolve(
-						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-						{
-							instanceOrigin: encodeURIComponent(note.instanceOrigin),
-							localStatusId: note.localStatusId,
-							timestampMs: String(selection.entitySelector.timestampMs),
-							source: selection.entitySelector.source,
-						}
-					)
-				:
-					undefined
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

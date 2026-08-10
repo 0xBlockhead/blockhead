@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -146,12 +147,13 @@
 			>
 				{#snippet children(evmRollup)}
 					{#if evmRollup != null}
+						{@const evmRollupInitial = untrack(() => evmRollup)}
 						<div>
 							<dt>Rollup</dt>
 							<dd>
 								<EvmRollupView
-									selection={select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector])}
-									prefetched={evmRollup}
+									selection={select(EntityType.EvmRollup, (evmRollup ?? evmRollupInitial)[EntityMetaKey.Selector])}
+									prefetched={evmRollup ?? evmRollupInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -39,21 +38,9 @@
 >
 	{#snippet Item({ item: cctpAttestationTimestamp })}
 		{@const cctpAttestationTimestampSelector = cctpAttestationTimestamp[EntityMetaKey.Selector]}
-		{@const message = cctpAttestationTimestampSelector.$message}
 		<EntityView
 			entityType={EntityType.CctpAttestation_Timestamp}
 			entitySelector={cctpAttestationTimestampSelector}
-			href={
-				resolve(
-					'/cctp/message/[sourceDomain=nonNegativeInteger]/[nonce=stringSegment]/(cctpMessage)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						sourceDomain: String(message.sourceDomain),
-						nonce: message.nonce,
-						timestampMs: String(cctpAttestationTimestampSelector.timestampMs),
-						source: cctpAttestationTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{cctpAttestationTimestampSelector.timestampMs}

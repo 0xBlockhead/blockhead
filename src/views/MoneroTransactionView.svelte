@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -83,8 +84,9 @@
 		>
 			{#snippet children(moneroBlock)}
 				{#if moneroBlock != null}
+					{@const moneroBlockInitial = untrack(() => moneroBlock)}
 					<MoneroBlockView
-						selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.MoneroBlock, (moneroBlock ?? moneroBlockInitial)[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -132,11 +134,12 @@
 			>
 				{#snippet children(moneroBlock)}
 					{#if moneroBlock != null}
+						{@const moneroBlockInitial = untrack(() => moneroBlock)}
 						<div>
 							<dt>Block</dt>
 							<dd>
 								<MoneroBlockView
-									selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
+									selection={select(EntityType.MoneroBlock, (moneroBlock ?? moneroBlockInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

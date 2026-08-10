@@ -5,6 +5,7 @@
 	import { resolve } from '$app/paths'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -87,9 +88,10 @@
 								resource={projection.$coin}
 							>
 								{#snippet children(coin)}
+									{@const coinInitial = untrack(() => coin)}
 									<CoinView
-										selection={select(EntityType.Coin, coin[EntityMetaKey.Selector])}
-										prefetched={coin}
+										selection={select(EntityType.Coin, (coin ?? coinInitial)[EntityMetaKey.Selector])}
+										prefetched={coin ?? coinInitial}
 										layout={EntityLayout.Value}
 									/>
 								{/snippet}
@@ -110,8 +112,9 @@
 								resource={projection.$coinInstance}
 							>
 								{#snippet children(evmCoinInstance)}
+									{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 									<EvmCoinInstanceView
-										selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+										selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 									/>
 								{/snippet}
@@ -132,9 +135,10 @@
 								resource={projection.$currency}
 							>
 								{#snippet children(currency)}
+									{@const currencyInitial = untrack(() => currency)}
 									<CurrencyView
-										selection={select(EntityType.Currency, currency[EntityMetaKey.Selector])}
-										prefetched={currency}
+										selection={select(EntityType.Currency, (currency ?? currencyInitial)[EntityMetaKey.Selector])}
+										prefetched={currency ?? currencyInitial}
 										layout={EntityLayout.Value}
 									/>
 								{/snippet}

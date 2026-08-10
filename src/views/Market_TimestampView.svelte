@@ -68,7 +68,8 @@
 		<ResourceBoundary resource={marketTimestamp}>
 			{#snippet children(entity)}
 				<NumberValue
-					value={Number(entity.price) / 1e8}
+					value={entity.price}
+					decimalPlaces={8}
 					formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 				/>
 			{/snippet}
@@ -91,7 +92,8 @@
 					>
 						{#snippet children(entity)}
 							<NumberValue
-								value={Number(entity.price) / 1e8}
+								value={entity.price}
+								decimalPlaces={8}
 								formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 							/>
 						{/snippet}

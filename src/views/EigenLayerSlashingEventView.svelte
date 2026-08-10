@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -24,14 +25,10 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.EigenLayerSlashingEvent>, 'prefetched'> = $props()
 
-	const network = $derived(selection.entitySelector.$network)
 	const operator = $derived(selection.entitySelector.$operator)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
-			Source.EigenLayerContracts_Evm,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
 		],
 	}))
 	const eigenLayerSlashingEvent = $derived(viewSelection({
@@ -80,24 +77,7 @@
 						}
 					)
 				:
-					'transactionHash' in selection.entitySelector
-					&& 'logIndex' in selection.entitySelector
-					&& '$network' in selection.entitySelector ?
-						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/eigenlayer/(eigenLayerProtocol)/slashing/[transactionHash=zeroExHex]/[logIndex=nonNegativeInteger]',
-							{
-								network: (
-									'caip2' in network ?
-										caip2StringFromValue(network.caip2)
-									:
-										network.slug
-								),
-								transactionHash: selection.entitySelector.transactionHash,
-								logIndex: String(selection.entitySelector.logIndex),
-							}
-						)
-					:
-						undefined
+					undefined
 			)
 		:
 			href ?? undefined
@@ -112,8 +92,9 @@
 		>
 			{#snippet children(eigenLayerOperator)}
 				{#if eigenLayerOperator != null}
+					{@const eigenLayerOperatorInitial = untrack(() => eigenLayerOperator)}
 					<EigenLayerOperatorView
-						selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
+						selection={select(EntityType.EigenLayerOperator, (eigenLayerOperator ?? eigenLayerOperatorInitial)[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Title}
 					/>
@@ -128,8 +109,9 @@
 		>
 			{#snippet children(eigenLayerAvs)}
 				{#if eigenLayerAvs != null}
+					{@const eigenLayerAvsInitial = untrack(() => eigenLayerAvs)}
 					<EigenLayerAvsView
-						selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
+						selection={select(EntityType.EigenLayerAvs, (eigenLayerAvs ?? eigenLayerAvsInitial)[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -160,11 +142,12 @@
 			>
 				{#snippet children(eigenLayerOperator)}
 					{#if eigenLayerOperator != null}
+						{@const eigenLayerOperatorInitial = untrack(() => eigenLayerOperator)}
 						<div>
 							<dt>operator</dt>
 							<dd>
 								<EigenLayerOperatorView
-									selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
+									selection={select(EntityType.EigenLayerOperator, (eigenLayerOperator ?? eigenLayerOperatorInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -178,11 +161,12 @@
 			>
 				{#snippet children(eigenLayerAvs)}
 					{#if eigenLayerAvs != null}
+						{@const eigenLayerAvsInitial = untrack(() => eigenLayerAvs)}
 						<div>
 							<dt>AVS</dt>
 							<dd>
 								<EigenLayerAvsView
-									selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
+									selection={select(EntityType.EigenLayerAvs, (eigenLayerAvs ?? eigenLayerAvsInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -196,11 +180,12 @@
 			>
 				{#snippet children(eigenLayerStrategy)}
 					{#if eigenLayerStrategy != null}
+						{@const eigenLayerStrategyInitial = untrack(() => eigenLayerStrategy)}
 						<div>
 							<dt>strategy</dt>
 							<dd>
 								<EigenLayerStrategyView
-									selection={select(EntityType.EigenLayerStrategy, eigenLayerStrategy[EntityMetaKey.Selector])}
+									selection={select(EntityType.EigenLayerStrategy, (eigenLayerStrategy ?? eigenLayerStrategyInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -304,9 +289,10 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
+							{@const networkInitial = untrack(() => network)}
 							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
+								selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+								prefetched={network ?? networkInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -41,18 +40,6 @@
 		<EntityView
 			entityType={EntityType.LensAccount_Timestamp}
 			entitySelector={lensAccountTimestampSelector}
-			href={
-				'address' in lensAccountTimestampSelector.$account ?
-					resolve(
-						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/observations/[timestampMs=nonNegativeInteger]',
-						{
-							address: lensAccountTimestampSelector.$account.address,
-							timestampMs: String(lensAccountTimestampSelector.timestampMs),
-						}
-					)
-				:
-					undefined
-			}
 		>
 			{#snippet Title()}
 				{[(lensAccountTimestamp.$account.displayName ?? ''), (lensAccountTimestamp.$account.localName ?? ''), lensAccountTimestamp.$account.address, (lensAccountTimestamp.$account.legacyProfileId ?? '')].filter(Boolean).join(' ') || 'Lens account'}

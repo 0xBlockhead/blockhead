@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -122,9 +123,10 @@
 				>
 					{#snippet children(hederaToken)}
 						{#if hederaToken != null}
+							{@const hederaTokenInitial = untrack(() => hederaToken)}
 							<span data-text="muted">
 								<HederaTokenView
-									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
+									selection={select(EntityType.HederaToken, (hederaToken ?? hederaTokenInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 								/>
 							</span>
@@ -179,11 +181,12 @@
 			>
 				{#snippet children(hederaToken)}
 					{#if hederaToken != null}
+						{@const hederaTokenInitial = untrack(() => hederaToken)}
 						<div>
 							<dt>token</dt>
 							<dd>
 								<HederaTokenView
-									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
+									selection={select(EntityType.HederaToken, (hederaToken ?? hederaTokenInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -215,11 +218,12 @@
 			>
 				{#snippet children(hederaNft)}
 					{#if hederaNft != null}
+						{@const hederaNftInitial = untrack(() => hederaNft)}
 						<div>
 							<dt>NFT</dt>
 							<dd>
 								<HederaNftView
-									selection={select(EntityType.HederaNft, hederaNft[EntityMetaKey.Selector])}
+									selection={select(EntityType.HederaNft, (hederaNft ?? hederaNftInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

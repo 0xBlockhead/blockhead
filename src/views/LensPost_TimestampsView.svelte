@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -46,15 +45,6 @@
 		<EntityView
 			entityType={EntityType.LensPost_Timestamp}
 			entitySelector={lensPostTimestampSelector}
-			href={
-				resolve(
-					'/(social)/(lens)/lens/(lensNetwork)/post/[postId=stringSegment]/(lensPost)/observations/[timestampMs=nonNegativeInteger]',
-					{
-						postId: lensPostTimestampSelector.$post.id,
-						timestampMs: String(lensPostTimestampSelector.timestampMs),
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{[(lensPostTimestamp.$post.text ?? ''), lensPostTimestampSelector.$post.id].filter(Boolean).join(' ') || 'Lens post'}

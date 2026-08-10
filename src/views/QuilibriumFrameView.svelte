@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -194,11 +195,12 @@
 			>
 				{#snippet children(quilibriumShard)}
 					{#if quilibriumShard != null}
+						{@const quilibriumShardInitial = untrack(() => quilibriumShard)}
 						<div>
 							<dt>shard</dt>
 							<dd>
 								<QuilibriumShardView
-									selection={select(EntityType.QuilibriumShard, quilibriumShard[EntityMetaKey.Selector])}
+									selection={select(EntityType.QuilibriumShard, (quilibriumShard ?? quilibriumShardInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -212,11 +214,12 @@
 			>
 				{#snippet children(quilibriumProver)}
 					{#if quilibriumProver != null}
+						{@const quilibriumProverInitial = untrack(() => quilibriumProver)}
 						<div>
 							<dt>prover</dt>
 							<dd>
 								<QuilibriumProverView
-									selection={select(EntityType.QuilibriumProver, quilibriumProver[EntityMetaKey.Selector])}
+									selection={select(EntityType.QuilibriumProver, (quilibriumProver ?? quilibriumProverInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

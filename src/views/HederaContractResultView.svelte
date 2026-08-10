@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -79,11 +80,12 @@
 			>
 				{#snippet children(hederaContract)}
 					{#if hederaContract != null}
+						{@const hederaContractInitial = untrack(() => hederaContract)}
 						<div>
 							<dt>contract</dt>
 							<dd>
 								<HederaContractView
-									selection={select(EntityType.HederaContract, hederaContract[EntityMetaKey.Selector])}
+									selection={select(EntityType.HederaContract, (hederaContract ?? hederaContractInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

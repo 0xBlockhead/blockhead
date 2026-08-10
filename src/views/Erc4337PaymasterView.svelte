@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -92,9 +93,10 @@
 						resource={selection.$contract}
 					>
 						{#snippet children(evmContract)}
+							{@const evmContractInitial = untrack(() => evmContract)}
 							<EvmContractView
-								selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-								prefetched={evmContract}
+								selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+								prefetched={evmContract ?? evmContractInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

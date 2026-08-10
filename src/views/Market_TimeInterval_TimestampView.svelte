@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { marketAssetByKind } from '$/constants/Market.ts'
@@ -72,7 +73,8 @@
 				{@const close = entity.close}
 				{#if close != null}
 					<NumberValue
-						value={Number(close) / 1e8}
+						value={close}
+						decimalPlaces={8}
 						formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 					/>
 				{/if}
@@ -128,7 +130,8 @@
 							<dt>Open</dt>
 							<dd>
 								<NumberValue
-									value={Number(open) / 1e8}
+									value={open}
+									decimalPlaces={8}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>
@@ -153,7 +156,8 @@
 							<dt>High</dt>
 							<dd>
 								<NumberValue
-									value={Number(high) / 1e8}
+									value={high}
+									decimalPlaces={8}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>
@@ -178,7 +182,8 @@
 							<dt>Low</dt>
 							<dd>
 								<NumberValue
-									value={Number(low) / 1e8}
+									value={low}
+									decimalPlaces={8}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>
@@ -197,7 +202,8 @@
 							<dt>Close</dt>
 							<dd>
 								<NumberValue
-									value={Number(close) / 1e8}
+									value={close}
+									decimalPlaces={8}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>
@@ -224,7 +230,8 @@
 							<dt>Quote volume</dt>
 							<dd>
 								<NumberValue
-									value={Number(quoteVolume) / 1e8}
+									value={quoteVolume}
+									decimalPlaces={8}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>
@@ -240,8 +247,9 @@
 						resource={selection.$parentMarket}
 					>
 						{#snippet children(market)}
+							{@const marketInitial = untrack(() => market)}
 							<MarketView
-								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
+								selection={select(EntityType.Market, (market ?? marketInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

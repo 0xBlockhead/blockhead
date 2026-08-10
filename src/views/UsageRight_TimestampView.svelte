@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -128,11 +129,12 @@
 			>
 				{#snippet children(assetObject)}
 					{#if assetObject != null}
+						{@const assetObjectInitial = untrack(() => assetObject)}
 						<div>
 							<dt>object</dt>
 							<dd>
 								<AssetObjectView
-									selection={select(EntityType.AssetObject, assetObject[EntityMetaKey.Selector])}
+									selection={select(EntityType.AssetObject, (assetObject ?? assetObjectInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -146,11 +148,12 @@
 			>
 				{#snippet children(nftToken)}
 					{#if nftToken != null}
+						{@const nftTokenInitial = untrack(() => nftToken)}
 						<div>
 							<dt>token</dt>
 							<dd>
 								<NftTokenView
-									selection={select(EntityType.NftToken, nftToken[EntityMetaKey.Selector])}
+									selection={select(EntityType.NftToken, (nftToken ?? nftTokenInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -164,11 +167,12 @@
 			>
 				{#snippet children(account)}
 					{#if account != null}
+						{@const accountInitial = untrack(() => account)}
 						<div>
 							<dt>user</dt>
 							<dd>
 								<AccountView
-									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
+									selection={select(EntityType.Account, (account ?? accountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

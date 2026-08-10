@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -98,9 +99,10 @@
 		>
 			{#snippet children(youtubeChannel)}
 				{#if youtubeChannel != null}
+					{@const youtubeChannelInitial = untrack(() => youtubeChannel)}
 					<YoutubeChannelView
-						selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
-						prefetched={youtubeChannel}
+						selection={select(EntityType.YoutubeChannel, (youtubeChannel ?? youtubeChannelInitial)[EntityMetaKey.Selector])}
+						prefetched={youtubeChannel ?? youtubeChannelInitial}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -179,12 +181,13 @@
 				>
 					{#snippet children(youtubeChannel)}
 						{#if youtubeChannel != null}
+							{@const youtubeChannelInitial = untrack(() => youtubeChannel)}
 							<div>
 								<dt>Channel</dt>
 								<dd>
 									<YoutubeChannelView
-										selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
-										prefetched={youtubeChannel}
+										selection={select(EntityType.YoutubeChannel, (youtubeChannel ?? youtubeChannelInitial)[EntityMetaKey.Selector])}
+										prefetched={youtubeChannel ?? youtubeChannelInitial}
 										layout={EntityLayout.Value}
 									/>
 								</dd>

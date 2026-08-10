@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -104,11 +105,12 @@
 			>
 				{#snippet children(tronAccount)}
 					{#if tronAccount != null}
+						{@const tronAccountInitial = untrack(() => tronAccount)}
 						<div>
 							<dt>Owner</dt>
 							<dd>
 								<TronAccountView
-									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.TronAccount, (tronAccount ?? tronAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -122,11 +124,12 @@
 			>
 				{#snippet children(tronContract)}
 					{#if tronContract != null}
+						{@const tronContractInitial = untrack(() => tronContract)}
 						<div>
 							<dt>Contract</dt>
 							<dd>
 								<TronContractView
-									selection={select(EntityType.TronContract, tronContract[EntityMetaKey.Selector])}
+									selection={select(EntityType.TronContract, (tronContract ?? tronContractInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

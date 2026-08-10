@@ -40,7 +40,6 @@
 >
 	{#snippet Item({ item: eigenLayerSlashingEvent })}
 		{@const eigenLayerSlashingEventSelector = eigenLayerSlashingEvent[EntityMetaKey.Selector]}
-		{@const network = eigenLayerSlashingEventSelector.$network}
 		{@const operator = eigenLayerSlashingEventSelector.$operator}
 		<EntityView
 			entityType={EntityType.EigenLayerSlashingEvent}
@@ -66,24 +65,7 @@
 						}
 					)
 				:
-					'transactionHash' in eigenLayerSlashingEventSelector
-					&& 'logIndex' in eigenLayerSlashingEventSelector
-					&& '$network' in eigenLayerSlashingEventSelector ?
-						resolve(
-							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/eigenlayer/(eigenLayerProtocol)/slashing/[transactionHash=zeroExHex]/[logIndex=nonNegativeInteger]',
-							{
-								network: (
-									'caip2' in network ?
-										caip2StringFromValue(network.caip2)
-									:
-										network.slug
-								),
-								transactionHash: eigenLayerSlashingEventSelector.transactionHash,
-								logIndex: String(eigenLayerSlashingEventSelector.logIndex),
-							}
-						)
-					:
-						undefined
+					undefined
 			}
 		>
 			{#snippet Title()}

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -65,9 +66,10 @@
 		>
 			{#snippet children(nostrProfileMetadataEvent)}
 				{#if nostrProfileMetadataEvent != null}
+					{@const nostrProfileMetadataEventInitial = untrack(() => nostrProfileMetadataEvent)}
 					<NostrProfileMetadataEventView
-						selection={select(EntityType.NostrProfileMetadataEvent, nostrProfileMetadataEvent[EntityMetaKey.Selector])}
-						prefetched={nostrProfileMetadataEvent}
+						selection={select(EntityType.NostrProfileMetadataEvent, (nostrProfileMetadataEvent ?? nostrProfileMetadataEventInitial)[EntityMetaKey.Selector])}
+						prefetched={nostrProfileMetadataEvent ?? nostrProfileMetadataEventInitial}
 						href={null}
 						layout={EntityLayout.Title}
 					/>
@@ -92,12 +94,13 @@
 			>
 				{#snippet children(nostrProfileMetadataEvent)}
 					{#if nostrProfileMetadataEvent != null}
+						{@const nostrProfileMetadataEventInitial = untrack(() => nostrProfileMetadataEvent)}
 						<div>
 							<dt>Latest signed metadata</dt>
 							<dd>
 								<NostrProfileMetadataEventView
-									selection={select(EntityType.NostrProfileMetadataEvent, nostrProfileMetadataEvent[EntityMetaKey.Selector])}
-									prefetched={nostrProfileMetadataEvent}
+									selection={select(EntityType.NostrProfileMetadataEvent, (nostrProfileMetadataEvent ?? nostrProfileMetadataEventInitial)[EntityMetaKey.Selector])}
+									prefetched={nostrProfileMetadataEvent ?? nostrProfileMetadataEventInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
