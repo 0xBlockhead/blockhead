@@ -1,13 +1,30 @@
-import { describe, expect, it, vi } from 'vitest'
+import {
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getTxpoolStatus = vi.hoisted(() => vi.fn())
+const getPeerCountObservation = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 	voltaireJsonRpcTransports: {
+		httpTransportsByChainId: {
+			10: [{
+				diagnosticLabel: 'test execution endpoint',
+				origin: 'https://optimism.example',
+				getPeerCountObservation,
+			}],
+		},
 		txpoolTransportsByChainId: {
 			10: [{
 				diagnosticLabel: 'test transport',
@@ -20,6 +37,10 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 const { default: voltaireJsonRpc } = await import('$/resolvers/Voltaire-JsonRpc.ts')
 
 describe('Voltaire txpool observation', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
 	it('publishes pending and queued counts on the canonical timestamp entity', async () => {
 		getTxpoolStatus.mockResolvedValue({
 			pending: '0x10',
@@ -54,5 +75,85 @@ describe('Voltaire txpool observation', () => {
 			pendingCount: 16,
 			queuedCount: 2,
 		})
+	})
+})
+
+describe('Voltaire endpoint observation', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('materializes the current execution endpoint snapshot from Network', async () => {
+		getPeerCountObservation.mockResolvedValue({
+			peerCount: 17,
+			fetchedAtMs: 1_785_477_600_123,
+		})
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& '$$endpointObservations' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Voltaire endpoint observation resolver is not registered')
+
+		const observation = await resolver.resolve.Caip2.resolve({
+			caip2: {
+				namespace: 'eip155',
+				reference: '10',
+			},
+		}, {
+			filters: [],
+			sorts: [],
+			pagination: {},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		})
+
+		expect(resolver.projections.$$endpointObservations(observation)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: {
+					caip2: {
+						namespace: 'eip155',
+						reference: '10',
+					},
+				},
+				endpointUrl: 'https://optimism.example',
+				endpointKind: 'EvmExecutionJsonRpc',
+				timestampMs: 1_785_477_600_123,
+				source: Source.Voltaire_JsonRpc,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Execution'], 'peerCount')]: 17n,
+			},
+		}])
+		expect(voltaireJsonRpc.resolvers.some((candidate) => (
+			candidate.entityType === EntityType.NetworkEndpointObservation_Timestamp
+		))).toBe(false)
+	})
+
+	it('rejects the field when every execution endpoint fails', async () => {
+		getPeerCountObservation.mockRejectedValue(new Error('peer count unavailable'))
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& '$$endpointObservations' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Voltaire endpoint observation resolver is not registered')
+
+		await expect(resolver.resolve.Caip2.resolve({
+			caip2: {
+				namespace: 'eip155',
+				reference: '10',
+			},
+		}, {
+			filters: [],
+			sorts: [],
+			pagination: {},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		})).rejects.toThrow('all JSON-RPC endpoints failed for Network.$$endpointObservations')
 	})
 })

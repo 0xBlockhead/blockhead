@@ -46649,6 +46649,13 @@ export const schema = {
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.Network_Timestamp,
 				},
+				"$$endpointObservations": {
+					label: "Endpoint observations",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.NetworkEndpointObservation_Timestamp,
+					defaultSources: [Source.Beacon_Rest, Source.Voltaire_JsonRpc],
+				},
 			})({
 				selectors: {
 					"Caip2": ["caip2"],
@@ -48124,6 +48131,14 @@ export const schema = {
 						},
 						carousels: [
 							{
+								id: "network-endpoint-observations",
+								label: "Endpoint observations",
+								className: "network-view-collapsible-resources",
+								sections: [
+									{ id: "network-endpoint-observations-history", field: "$$endpointObservations", List: "NetworkEndpointObservation_TimestampsView", label: "Endpoint observations", selection: { sources: [Source.Beacon_Rest, Source.Voltaire_JsonRpc], limit: 16 }, emptyText: "No endpoint observations." },
+								],
+							},
+							{
 								id: "network-assets",
 								label: "Assets",
 								className: "network-view-collapsible-assets",
@@ -48324,8 +48339,43 @@ export const schema = {
 				selectors: {
 					"NetworkEndpointUrlEndpointKindTimestampMsSource": ["$network", "endpointUrl", "endpointKind", "timestampMs", "source"],
 				},
+				facets: {
+					"Execution": facet({
+						path: ["endpointKind"],
+						is: "EvmExecutionJsonRpc",
+					})({
+						"peerCount": { label: "Peer count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Voltaire_JsonRpc] },
+					})({}),
+					"Beacon": facet({
+						path: ["endpointKind"],
+						is: "EthereumBeaconRest",
+					})({
+						"disconnectedPeerCount": { label: "Disconnected peers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+						"connectingPeerCount": { label: "Connecting peers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+						"connectedPeerCount": { label: "Connected peers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+						"disconnectingPeerCount": { label: "Disconnecting peers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+						"headSlot": { label: "Head slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+						"syncDistance": { label: "Sync distance", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+						"isSyncing": { label: "Syncing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Beacon_Rest] },
+						"isOptimistic": { label: "Optimistic", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Beacon_Rest] },
+						"executionLayerOffline": { label: "Execution layer offline", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Beacon_Rest] },
+						"version": { label: "Version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Beacon_Rest] },
+						"peerId": { label: "Peer ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Beacon_Rest] },
+						"enr": { label: "ENR", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Beacon_Rest] },
+						"p2pAddresses": { label: "P2P addresses", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.Beacon_Rest] },
+						"discoveryAddresses": { label: "Discovery addresses", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string", defaultSources: [Source.Beacon_Rest] },
+						"metadataSequenceNumber": { label: "Metadata sequence number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+						"attestationSubnets": { label: "Attestation subnets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Beacon_Rest] },
+						"syncCommitteeSubnets": { label: "Sync committee subnets", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Beacon_Rest] },
+						"custodyGroupCount": { label: "Custody group count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Beacon_Rest] },
+						"statusCode": { label: "Health status code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.Beacon_Rest] },
+					})({}),
+				},
 				views: {
 					singular: {
+						query: {
+							sources: [Source.Beacon_Rest, Source.Voltaire_JsonRpc],
+						},
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
 							value: ["health", { field: "latencyMs", format: "number" }],
@@ -48336,10 +48386,53 @@ export const schema = {
 								["$network", "endpointUrl", "endpointKind"],
 								[{ field: "timestampMs", format: "timestamp" }, "source", "health", { field: "latencyMs", format: "number" }],
 								["corsEnabled", "proxyAllowed", "error"],
+								[{ field: ["Execution", "peerCount"], format: "numberValue" }],
+								[{ field: ["Beacon", "disconnectedPeerCount"], format: "numberValue" }, { field: ["Beacon", "connectingPeerCount"], format: "numberValue" }, { field: ["Beacon", "connectedPeerCount"], format: "numberValue" }, { field: ["Beacon", "disconnectingPeerCount"], format: "numberValue" }],
+								[{ field: ["Beacon", "headSlot"], format: "numberValue" }, { field: ["Beacon", "syncDistance"], format: "numberValue" }, ["Beacon", "isSyncing"], ["Beacon", "isOptimistic"], ["Beacon", "executionLayerOffline"]],
+								[["Beacon", "version"], ["Beacon", "peerId"], ["Beacon", "enr"], ["Beacon", "p2pAddresses"], ["Beacon", "discoveryAddresses"]],
+								[{ field: ["Beacon", "metadataSequenceNumber"], format: "numberValue" }, ["Beacon", "attestationSubnets"], ["Beacon", "syncCommitteeSubnets"], { field: ["Beacon", "custodyGroupCount"], format: "numberValue" }, { field: ["Beacon", "statusCode"], format: "number" }],
 							],
 						},
 					},
-					plural: { component: "NetworkEndpointObservation_TimestampsView",
+					plural: {
+						component: "NetworkEndpointObservation_TimestampsView",
+						row: {
+							title: [
+								{ field: "timestampMs", format: "timestamp" },
+								"endpointKind",
+							],
+							value: [
+								"health",
+								{ field: "latencyMs", format: "number" },
+								{ field: ["Execution", "peerCount"], format: "numberValue" },
+								{ field: ["Beacon", "statusCode"], format: "number" },
+								["Beacon", "version"],
+								{ field: ["Beacon", "disconnectedPeerCount"], format: "numberValue" },
+								{ field: ["Beacon", "connectingPeerCount"], format: "numberValue" },
+								{ field: ["Beacon", "connectedPeerCount"], format: "numberValue" },
+								{ field: ["Beacon", "disconnectingPeerCount"], format: "numberValue" },
+								{ field: ["Beacon", "headSlot"], format: "numberValue" },
+								{ field: ["Beacon", "syncDistance"], format: "numberValue" },
+								["Beacon", "isSyncing"],
+								["Beacon", "isOptimistic"],
+								["Beacon", "executionLayerOffline"],
+							],
+							HeadingAfter: [
+								"endpointUrl",
+								"source",
+								["Beacon", "peerId"],
+								["Beacon", "enr"],
+								["Beacon", "p2pAddresses"],
+								["Beacon", "discoveryAddresses"],
+								{ field: ["Beacon", "metadataSequenceNumber"], format: "numberValue" },
+								["Beacon", "attestationSubnets"],
+								["Beacon", "syncCommitteeSubnets"],
+								{ field: ["Beacon", "custodyGroupCount"], format: "numberValue" },
+								"corsEnabled",
+								"proxyAllowed",
+								"error",
+							],
+						},
 					},
 				},
 			}),
@@ -85751,7 +85844,6 @@ export const routes = defineRoutes(schema)({
 																						[EntityType.NetworkEndpointObservation_Timestamp]: {
 																							"NetworkEndpointUrlEndpointKindTimestampMsSource": {
 																								params: { "endpointUrl": ["endpointUrl"], "endpointKind": ["endpointKind"], "timestampMs": ["timestampMs"], "source": ["source"] },
-																								page: {},
 																							}
 																						}
 																					}

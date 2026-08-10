@@ -87,6 +87,14 @@ export default entity({
 		entityType: EntityType.Network_Timestamp,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$endpointObservations: {
+		entityType: EntityType.NetworkEndpointObservation_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Beacon_Rest,
+			Source.Voltaire_JsonRpc,
+		],
+	},
 })({
 	selectors: {
 		Caip2: [

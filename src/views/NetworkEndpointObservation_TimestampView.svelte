@@ -2,10 +2,10 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
+	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -16,14 +16,18 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.NetworkEndpointObservation_Timestamp>, 'prefetched'> = $props()
 
-	const network = $derived(selection.entitySelector.$network)
-	const networkEndpointObservationTimestamp = $derived(selection({
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.Beacon_Rest,
+			Source.Voltaire_JsonRpc,
+		],
+	}))
+	const networkEndpointObservationTimestamp = $derived(viewSelection({
 		fields: {
 			health: true,
 			latencyMs: true,
@@ -44,26 +48,6 @@
 	entityType={EntityType.NetworkEndpointObservation_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
-	href={
-		href === undefined ?
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/endpoint/[endpointUrl=stringSegment]/[endpointKind=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-				{
-					network: (
-						'caip2' in network ?
-							caip2StringFromValue(network.caip2)
-						:
-							network.slug
-					),
-					endpointUrl: selection.entitySelector.endpointUrl,
-					endpointKind: selection.entitySelector.endpointKind,
-					timestampMs: String(selection.entitySelector.timestampMs),
-					source: selection.entitySelector.source,
-				}
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -176,7 +160,7 @@
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							corsEnabled: true,
 						},
@@ -198,7 +182,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							proxyAllowed: true,
 						},
@@ -220,7 +204,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							error: true,
 						},
@@ -240,5 +224,343 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<ProjectionBoundary
+			resource={selection.Execution}
+		>
+			{#snippet Applicable(projection)}
+				<dl data-column-item="center">
+					<ResourceBoundary
+						resource={projection.peerCount}
+					>
+						{#snippet children(peerCount)}
+							{#if peerCount != null}
+								<div>
+									<dt>Peer count</dt>
+									<dd>
+										<NumberValue
+											value={peerCount}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dl>
+			{/snippet}
+		</ProjectionBoundary>
+
+		<ProjectionBoundary
+			resource={selection.Beacon}
+		>
+			{#snippet Applicable(projection)}
+				<dl data-column-item="center">
+					<ResourceBoundary
+						resource={projection.disconnectedPeerCount}
+					>
+						{#snippet children(disconnectedPeerCount)}
+							{#if disconnectedPeerCount != null}
+								<div>
+									<dt>Disconnected peers</dt>
+									<dd>
+										<NumberValue
+											value={disconnectedPeerCount}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.connectingPeerCount}
+					>
+						{#snippet children(connectingPeerCount)}
+							{#if connectingPeerCount != null}
+								<div>
+									<dt>Connecting peers</dt>
+									<dd>
+										<NumberValue
+											value={connectingPeerCount}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.connectedPeerCount}
+					>
+						{#snippet children(connectedPeerCount)}
+							{#if connectedPeerCount != null}
+								<div>
+									<dt>Connected peers</dt>
+									<dd>
+										<NumberValue
+											value={connectedPeerCount}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.disconnectingPeerCount}
+					>
+						{#snippet children(disconnectingPeerCount)}
+							{#if disconnectingPeerCount != null}
+								<div>
+									<dt>Disconnecting peers</dt>
+									<dd>
+										<NumberValue
+											value={disconnectingPeerCount}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dl>
+
+				<dl data-column-item="center">
+					<ResourceBoundary
+						resource={projection.headSlot}
+					>
+						{#snippet children(headSlot)}
+							{#if headSlot != null}
+								<div>
+									<dt>Head slot</dt>
+									<dd>
+										<NumberValue
+											value={headSlot}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.syncDistance}
+					>
+						{#snippet children(syncDistance)}
+							{#if syncDistance != null}
+								<div>
+									<dt>Sync distance</dt>
+									<dd>
+										<NumberValue
+											value={syncDistance}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.isSyncing}
+					>
+						{#snippet children(isSyncing)}
+							{#if isSyncing != null}
+								<div>
+									<dt>Syncing</dt>
+									<dd>
+										{isSyncing ? 'Yes' : 'No'}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.isOptimistic}
+					>
+						{#snippet children(isOptimistic)}
+							{#if isOptimistic != null}
+								<div>
+									<dt>Optimistic</dt>
+									<dd>
+										{isOptimistic ? 'Yes' : 'No'}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.executionLayerOffline}
+					>
+						{#snippet children(executionLayerOffline)}
+							{#if executionLayerOffline != null}
+								<div>
+									<dt>Execution layer offline</dt>
+									<dd>
+										{executionLayerOffline ? 'Yes' : 'No'}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dl>
+
+				<dl data-column-item="center">
+					<ResourceBoundary
+						resource={projection.version}
+					>
+						{#snippet children(version)}
+							{#if version != null}
+								<div>
+									<dt>Version</dt>
+									<dd>
+										{version}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.peerId}
+					>
+						{#snippet children(peerId)}
+							{#if peerId != null}
+								<div>
+									<dt>Peer ID</dt>
+									<dd>
+										{peerId}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.enr}
+					>
+						{#snippet children(enr)}
+							{#if enr != null}
+								<div>
+									<dt>ENR</dt>
+									<dd>
+										{enr}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<div>
+						<dt>P2P addresses</dt>
+						<dd>
+							<ResourceBoundary
+								resource={projection.p2pAddresses}
+							>
+								{#snippet children(p2pAddresses)}
+									{p2pAddresses.values.join(', ')}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+
+					<div>
+						<dt>Discovery addresses</dt>
+						<dd>
+							<ResourceBoundary
+								resource={projection.discoveryAddresses}
+							>
+								{#snippet children(discoveryAddresses)}
+									{discoveryAddresses.values.join(', ')}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				</dl>
+
+				<dl data-column-item="center">
+					<ResourceBoundary
+						resource={projection.metadataSequenceNumber}
+					>
+						{#snippet children(metadataSequenceNumber)}
+							{#if metadataSequenceNumber != null}
+								<div>
+									<dt>Metadata sequence number</dt>
+									<dd>
+										<NumberValue
+											value={metadataSequenceNumber}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.attestationSubnets}
+					>
+						{#snippet children(attestationSubnets)}
+							{#if attestationSubnets != null}
+								<div>
+									<dt>Attestation subnets</dt>
+									<dd>
+										{attestationSubnets}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.syncCommitteeSubnets}
+					>
+						{#snippet children(syncCommitteeSubnets)}
+							{#if syncCommitteeSubnets != null}
+								<div>
+									<dt>Sync committee subnets</dt>
+									<dd>
+										{syncCommitteeSubnets}
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.custodyGroupCount}
+					>
+						{#snippet children(custodyGroupCount)}
+							{#if custodyGroupCount != null}
+								<div>
+									<dt>Custody group count</dt>
+									<dd>
+										<NumberValue
+											value={custodyGroupCount}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<ResourceBoundary
+						resource={projection.statusCode}
+					>
+						{#snippet children(statusCode)}
+							{#if statusCode != null}
+								<div>
+									<dt>Health status code</dt>
+									<dd>
+										<NumberValue
+											value={statusCode}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dl>
+			{/snippet}
+		</ProjectionBoundary>
 	{/snippet}
 </EntityView>

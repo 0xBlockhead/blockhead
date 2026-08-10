@@ -7503,16 +7503,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/endpoint/[endpointUrl]/[endpointKind]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/endpoint/[endpointUrl=stringSegment]/[endpointKind=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'NetworkEndpointObservation_Timestamp.NetworkEndpointUrlEndpointKindTimestampMsSource',
-				probeAtomPrefixes: ['/network/[network]/endpoint/[endpointUrl]/[endpointKind]/observations/[timestampMs]/[source]:NetworkEndpointObservation_Timestamp.NetworkEndpointUrlEndpointKindTimestampMsSource'],
-				probeCases: [[[0, '1', ['endpointUrl', 'endpointKind', 'timestampMs', 'source', 'network']]]],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/epoch/[epoch]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/epoch/[epoch=nonNegativeInteger]',
 		mappings: [

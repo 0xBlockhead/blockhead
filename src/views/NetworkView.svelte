@@ -240,6 +240,7 @@
 	import EvmNetwork_Txpool_TimestampView from '$/views/EvmNetwork_Txpool_TimestampView.svelte'
 	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
+	import NetworkEndpointObservation_TimestampsView from '$/views/NetworkEndpointObservation_TimestampsView.svelte'
 	import AssetInstancesView from '$/views/AssetInstancesView.svelte'
 	import UrlsView from '$/views/UrlsView.svelte'
 	import DydxChainNetworkView from '$/views/DydxChainNetworkView.svelte'
@@ -1150,6 +1151,58 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const networkEndpointObservationsHistorySources = networkApplicableSources([
+				Source.Beacon_Rest,
+				Source.Voltaire_JsonRpc,
+			], pendingEntity)}
+
+		{@const networkEndpointObservationsSections = [
+				...(
+					networkEndpointObservationsHistorySources.length > 0 ?
+						[
+							{
+								id: 'network-endpoint-observations-history',
+								label: 'Endpoint observations',
+							},
+						]
+					:
+						[]
+				),
+			]}
+
+		{#if networkEndpointObservationsSections.length > 0}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-network-endpoint-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={networkEndpointObservationsSections}
+				data-card
+				class='network-view-collapsible-resources'
+			>
+				{#snippet Summary()}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Endpoint observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionNetworkEndpointObservationsHistory({ id, label })}
+					<NetworkEndpointObservation_TimestampsView
+						selection={
+							selection
+							.$$endpointObservations({
+								sources: networkEndpointObservationsHistorySources,
+								limit: 16,
+							})
+						}
+						collapsible={false}
+						title={label}
+						emptyText='No endpoint observations.'
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
+
 		<CollapsibleTabs
 			id={viewDomId + '-carousel-network-assets'}
 			sectionIdPrefix={viewDomId}
