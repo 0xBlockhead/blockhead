@@ -5,9 +5,12 @@ import test from 'node:test'
 import {
 	app,
 	Source,
+} from '../../APP.ts'
+import {
 	SourceCredentialScope,
 	SourceEndpointKind,
-} from '../../APP.ts'
+	SourceOperationGroup,
+} from './source.ts'
 import {
 	compileApp,
 	sourceBindingId,
@@ -157,6 +160,83 @@ test('declares live resolver transport in source bindings', () => {
 	)), true)
 })
 
+test('declares Cashu mint operations at the Cashu source binding', () => {
+	assert.deepEqual(
+		sourceBindingRows.find(({ source }) => source === Source.CashuMint_Rest)?.binding.operationGroups,
+		[
+			SourceOperationGroup.EcashMintOperations,
+			SourceOperationGroup.GenericRead,
+		]
+	)
+})
+
+test('keeps server capabilities out of browser-visible binding configuration', () => {
+	assert.deepEqual(
+		Object.fromEntries([
+			Source.CardanoDbSync_Postgres,
+			Source.Conseil_Postgres,
+			Source.LightningLnd_Rest,
+			Source.X_Rest,
+		].map((source) => [
+			source,
+			sourceBindingRows.find((row) => row.source === source)?.binding.credentials,
+		])),
+		{
+			[Source.CardanoDbSync_Postgres]: [
+				{
+					scope: SourceCredentialScope.RuntimeSecret,
+					env: {
+						keys: [
+							{
+								name: 'CARDANO_DB_SYNC_DATABASE_URL',
+								type: 'string',
+							},
+						],
+					},
+					keys: ['CARDANO_DB_SYNC_DATABASE_URL'],
+				},
+			],
+			[Source.Conseil_Postgres]: [
+				{
+					scope: SourceCredentialScope.RuntimeSecret,
+					env: {
+						keys: [
+							{
+								name: 'CONSEIL_DATABASE_URL',
+								type: 'string',
+							},
+						],
+					},
+					keys: ['CONSEIL_DATABASE_URL'],
+				},
+			],
+			[Source.LightningLnd_Rest]: [
+				{
+					scope: SourceCredentialScope.RuntimeSecret,
+					envKey: 'LND_MACAROON_HEX',
+					injection: {
+						header: {
+							name: 'Grpc-Metadata-macaroon',
+						},
+					},
+				},
+			],
+			[Source.X_Rest]: [
+				{
+					scope: SourceCredentialScope.RuntimeSecret,
+					envKey: 'X_API_BEARER',
+					injection: {
+						header: {
+							name: 'Authorization',
+							prefix: 'Bearer ',
+						},
+					},
+				},
+			],
+		}
+	)
+})
+
 test('retains only canonical source binding facts in compiler rows', async () => {
 	const generatorSource = await readFile('scripts/app/generate.ts', 'utf8')
 	const sourceBindingEntry = generatorSource.slice(
@@ -204,36 +284,6 @@ test('keeps provider-owned definitions outside compiler emitter inputs', async (
 	assert.doesNotMatch(generatorSource, /generateSourceProvider(?:Bindings|Definition)File/)
 	assert.match(generatorSource, /generateSourceProvidersFile\(sourceProviderNames\)/)
 	assert.match(generatorSource, /generateSourceServerCredentialsFile\(indexes\.sourceBindings\)/)
-})
-
-test('uses authored binding identity instead of synthetic row indexes', async () => {
-	const generatorSource = await readFile('scripts/app/generate.ts', 'utf8')
-	const bindingsEmitter = generatorSource.slice(
-		generatorSource.indexOf('const generateSourceProviderBindingsFile ='),
-		generatorSource.indexOf('const generateSourceProviderDefinitionFile =')
-	)
-
-	assert.doesNotMatch(bindingsEmitter, /bindingGroupIndexByBinding|row\?\.index|sourceBindingRows\[index\]\?\.index/)
-	assert.doesNotMatch(bindingsEmitter, /bindings\.map\(\(\{ binding, source \}, index\) =>/)
-	assert.match(bindingsEmitter, /const repeatedBindingBaseByBinding = new Map\(bindingGroups\.flatMap\(\(\{ baseIdentifier, rows \}\) => \{[\s\S]*?baseIdentifier == null \|\| publicBinding == null[\s\S]*?return \[\][\s\S]*?rows\.map\(\(\{ binding: groupedBinding \}\) => \[groupedBinding, base\] as const\)/)
-	assert.match(bindingsEmitter, /const bindingBaseByBinding = new Map\(sourceBindingRows\.flatMap\(\(\{ binding, publicBinding \}\) => \{/)
-	assert.match(bindingsEmitter, /}, sourcePlan\.bindingBaseByBinding\.get\(bindingRow\.binding\)\)/)
-	assert.doesNotMatch(bindingsEmitter, /\blet bindingIndex\b|bindingIndex \+= partialMatrix\.rowCount/)
-	assert.match(bindingsEmitter, /const parts = matrices\.flatMap\(\(partialMatrix, matrixIndex\) => \{[\s\S]*?sourcePlan\.sourceBindingRows[\s\S]*?\.slice\([\s\S]*?partialMatrix\.firstRowIndex\)[\s\S]*?\.slice\(partialMatrix\.firstRowIndex \+ partialMatrix\.rowCount\)/)
-})
-
-test('retains repeated binding plans only when they emit declarations', async () => {
-	const generatorSource = await readFile('scripts/app/generate.ts', 'utf8')
-	const repeatedValuePlanner = generatorSource.slice(
-		generatorSource.indexOf('const planRepeatedBindingValues ='),
-		generatorSource.indexOf('const generateSourceProviderBindingsFile =')
-	)
-
-	assert.match(repeatedValuePlanner, /if \(sharedRows\.length === 0\)\n\t\treturn/)
-	assert.match(repeatedValuePlanner, /return \{\n\t\tdeclarations:[\s\S]*?\n\t\tnameByIdentity,\n\t\}/)
-	assert.doesNotMatch(repeatedValuePlanner, /reference:/)
-	assert.match(repeatedValuePlanner, /const bindingValueReference = \([\s\S]*?plan\?\.nameByIdentity\.get\(identity\) \?\? expression/)
-	assert.equal((generatorSource.match(/bindingValueReference\(properties\./g) ?? []).length, 7)
 })
 
 test('owns Esplora target identities without object stringification', () => {

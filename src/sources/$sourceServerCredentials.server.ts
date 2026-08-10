@@ -87,6 +87,16 @@ const runtimeSecretCredentials = [
 		undefined,
 	],
 	[
+		'["LightningLnd_Rest","LocalDevice","lnd","HttpProxy","RestJson"]',
+		'LND_MACAROON_HEX',
+		{
+			header: {
+				name: 'Grpc-Metadata-macaroon',
+			},
+		},
+		undefined,
+	],
+	[
 		'["OpenAI_Rest","Global","openai-api","HttpProxy","RestJson"]',
 		'OPENAI_API_KEY',
 		{
@@ -781,6 +791,17 @@ const runtimeSecretCredentials = [
 		{
 			header: {
 				name: 'x-api-key',
+			},
+		},
+		undefined,
+	],
+	[
+		'["X_Rest","Global","api-v2","HttpProxy","RestJson"]',
+		'X_API_BEARER',
+		{
+			header: {
+				name: 'Authorization',
+				prefix: 'Bearer ',
 			},
 		},
 		undefined,

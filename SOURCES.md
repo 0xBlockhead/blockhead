@@ -630,7 +630,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["CardanoKoios_Rest","Caip2Network","cip34:1-764824073","HttpProxy","RestJson"] | CardanoKoios | CardanoKoios_Rest | Caip2Network | cip34:1-764824073 | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["CardanoNode_LocalStateQuery","Caip2Network","cip34:1-764824073","ServerOnly","CardanoLocalStateQuery"] | CardanoNode | CardanoNode_LocalStateQuery | Caip2Network | cip34:1-764824073 | InProcess | CardanoLocalStateQuery | GenericRead | ServerOnly |
 | ["Cardanoscan_Rest","Global","cardanoscan-api","HttpProxy","RestJson"] | Cardanoscan | Cardanoscan_Rest | Global | cardanoscan-api | HttpRest | RestJson | GenericRead | HttpProxy |
-| ["CashuMint_Rest","Global","https://8333.space:3338","HttpProxy","RestJson"] | Cashu | CashuMint_Rest | Global | https://8333.space:3338 | HttpRest | RestJson | GenericRead | HttpProxy |
+| ["CashuMint_Rest","Global","https://8333.space:3338","HttpProxy","RestJson"] | Cashu | CashuMint_Rest | Global | https://8333.space:3338 | HttpRest | RestJson | EcashMintOperations, GenericRead | HttpProxy |
 | ["Celenium_Rest","Global","celenium-api","HttpProxy","RestJson"] | Celenium | Celenium_Rest | Global | celenium-api | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["CelestiaNode","NetworkSlug","celestia","RemoteQuery","CelestiaNodeJsonRpc"] | Celestia | CelestiaNode | NetworkSlug | celestia | JsonRpc2 | CelestiaNodeJsonRpc | GenericRead | RemoteQuery |
 | ["ChainlinkDataFeeds_AddressCatalog","Global","chainlink-data-feeds-address-catalog","BrowserDirect","CatalogRows"] | ChainlinkDataFeeds | ChainlinkDataFeeds_AddressCatalog | Global | chainlink-data-feeds-address-catalog | InProcess | CatalogRows | GenericRead | BrowserDirect |
@@ -1658,7 +1658,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Blockchair_Rest","Global","blockchair","HttpProxy","RestJson"] | PublicConfig | yes | PUBLIC_BLOCKCHAIR_API_KEY |
 | ["Blockfrost_Rest","Caip2Network","cip34:1-764824073","HttpProxy","OpenApiHttp"] | RuntimeSecret | no |  |
 | ["CardanoCip30_WalletApi","LocalDevice","cardano-cip30-wallet","BrowserDirect","WalletApi"] | UserDelegated | no |  |
-| ["CardanoDbSync_Postgres","SqlDataset","cardano-db-sync","ServerOnly","Postgres"] | RuntimeSecret | no |  |
+| ["CardanoDbSync_Postgres","SqlDataset","cardano-db-sync","ServerOnly","Postgres"] | RuntimeSecret | yes | CARDANO_DB_SYNC_DATABASE_URL |
 | ["CardanoNode_LocalStateQuery","Caip2Network","cip34:1-764824073","ServerOnly","CardanoLocalStateQuery"] | LocalSecret | no |  |
 | ["CelestiaNode","NetworkSlug","celestia","RemoteQuery","CelestiaNodeJsonRpc"] | PublicConfig | yes | PUBLIC_CELESTIA_NODE_RPC_URL |
 | ["Cohere_Rest","Global","cohere-api","RemoteQuery","RestJson"] | RuntimeSecret | no | COHERE_API_KEY |
@@ -1666,7 +1666,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Coingecko_Rest","Global","coingecko-pro","HttpProxy","OpenApiHttp"] | PublicConfig | yes | PUBLIC_COINGECKO_PRO_API_KEY |
 | ["CoinMarketCap_Rest","Global","pro-api","HttpProxy","RestJson"] | PublicConfig | yes | PUBLIC_COINMARKETCAP_API_KEY |
 | ["Coinpaprika_Rest","Global","pro-api","HttpProxy","OpenApiHttp"] | PublicConfig | yes | PUBLIC_COINPAPRIKA_API_KEY |
-| ["Conseil_Postgres","SqlDataset","conseil","ServerOnly","Postgres"] | RuntimeSecret | no |  |
+| ["Conseil_Postgres","SqlDataset","conseil","ServerOnly","Postgres"] | RuntimeSecret | yes | CONSEIL_DATABASE_URL |
 | ["Defillama_Rest","Global","coins-pro","HttpProxy","OpenApiHttp"] | PublicConfig | yes | PUBLIC_DEFILLAMA_PRO_API_KEY |
 | ["DogecoinCore_JsonRpc","Caip2Network","bip122:1a91e3dace36e2be3bf030a65679fe82","LocalOnly","BitcoinJsonRpc"] | LocalSecret | no |  |
 | ["Dune_Rest","Global","api","HttpProxy","RestJson"] | PublicConfig | yes | PUBLIC_DUNE_API_KEY |
@@ -1700,7 +1700,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Keplr_WalletApi","LocalDevice","keplr","BrowserDirect","WalletApi"] | UserDelegated | no |  |
 | ["Leap_WalletApi","LocalDevice","leap","BrowserDirect","WalletApi"] | UserDelegated | no |  |
 | ["LedgerFilecoin_WalletApi","LocalDevice","ledger-filecoin","BrowserDirect","WalletApi"] | UserDelegated | no |  |
-| ["LightningLnd_Rest","LocalDevice","lnd","HttpProxy","RestJson"] | PublicConfig | yes | PUBLIC_LND_MACAROON_HEX |
+| ["LightningLnd_Rest","LocalDevice","lnd","HttpProxy","RestJson"] | RuntimeSecret | no |  |
 | ["LitecoinCore_JsonRpc","Caip2Network","bip122:12a765e31ffd4059bada1e25190f6e98","LocalOnly","BitcoinJsonRpc"] | LocalSecret | no |  |
 | ["LitecoinWalletRpc_JsonRpc","LocalDevice","wallet-rpc","LocalOnly","JsonRpcApi"] | LocalSecret | no |  |
 | ["Lotus_JsonRpc","LocalDevice","local-lotus","LocalOnly","FilecoinLotusJsonRpc"] | LocalSecret | no |  |
@@ -1805,7 +1805,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Voyager","NetworkSlug","starknet","HttpProxy","OpenApiHttp"] | RuntimeSecret | no |  |
 | ["WalletConnect_SignClient","LocalDevice","walletconnect-sign-client","BrowserDirect","WalletApi"] | UserDelegated | no |  |
 | ["WalletStandard_WalletApi","LocalDevice","wallet-standard","BrowserDirect","WalletApi"] | UserDelegated | no |  |
-| ["X_Rest","Global","api-v2","HttpProxy","RestJson"] | PublicConfig | yes | PUBLIC_X_API_BEARER |
+| ["X_Rest","Global","api-v2","HttpProxy","RestJson"] | RuntimeSecret | no |  |
 | ["Xaman_Api","LocalDevice","xaman","BrowserDirect","WalletApi"] | UserDelegated | no |  |
 | ["Xmtp_BrowserSdk","Global","xmtp","BrowserDirect","XmtpClientApi"] | UserDelegated | no |  |
 | ["Xmtp_NodeSdk","Global","xmtp","ServerOnly","XmtpClientApi"] | RuntimeSecret | no |  |

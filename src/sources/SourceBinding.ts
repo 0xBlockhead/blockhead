@@ -132,6 +132,7 @@ export enum SourceOperationGroup {
 	BlockscoutAccountAbstraction = 'BlockscoutAccountAbstraction',
 	ContentGatewayRead = 'ContentGatewayRead',
 	DocumentClaimExtraction = 'DocumentClaimExtraction',
+	EcashMintOperations = 'EcashMintOperations',
 	EtherscanAccountModule = 'EtherscanAccountModule',
 	EtherscanContractModule = 'EtherscanContractModule',
 	EvmRpcCore = 'EvmRpcCore',

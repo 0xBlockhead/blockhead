@@ -1,10 +1,16 @@
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
-	EntityType,
-	Source,
 	entity,
-} from '../../APP.ts'
+} from './model.ts'
+
+enum EntityType {
+	Network = 'Network',
+}
+
+enum Source {
+	Constants_Internal = 'Constants_Internal',
+}
 
 entity({
 	entityType: EntityType.Network,

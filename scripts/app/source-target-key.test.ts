@@ -5,12 +5,12 @@ import {
 } from 'node:test'
 
 import {
-	SourceTargetKind,
 	app,
 } from '../../APP.ts'
 import { compileApp } from './generate.ts'
 import { networks } from '../../src/constants/Network.ts'
 import { renderGeneratedFile } from './render.ts'
+import { SourceTargetKind } from './source.ts'
 
 const bindings = app.sources.sources.flatMap((source) => [
 	...(source.binding == null ? [] : [{

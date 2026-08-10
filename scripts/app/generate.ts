@@ -22,23 +22,14 @@ import {
 } from './render.ts'
 
 import {
-	ApiFamily,
-	EntityFieldCardinality,
-	EntityFieldType,
 	EntityType,
 	Source,
-	SourceArtifactKind,
-	SourceBindingDeliveryCredentialLayout,
-	SourceBindingDeliveryEndpointLayout,
-	SourceCredentialScope,
-	SourceDelivery,
-	SourceEndpointKind,
-	SourceOperationGroup,
 	SourceProvider,
-	SourceTargetKind,
-	WireProtocol,
-	sourceBindingCompatibility,
-	sourceBindingDeliveryCompatibility,
+	app,
+} from '../../APP.ts'
+import {
+	EntityFieldCardinality,
+	EntityFieldType,
 	_ExpressionDecode,
 	_RouteParamEncoding,
 	_ViewItemKind,
@@ -54,9 +45,22 @@ import {
 	type _ViewListSection,
 	type _ViewQuery,
 	type App,
-	app,
 	rawSnippetReference,
-} from '../../APP.ts'
+} from './model.ts'
+import {
+	ApiFamily,
+	SourceArtifactKind,
+	SourceBindingDeliveryCredentialLayout,
+	SourceBindingDeliveryEndpointLayout,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	WireProtocol,
+	sourceBindingCompatibility,
+	sourceBindingDeliveryCompatibility,
+} from './source.ts'
 
 import { networks } from '../../src/constants/Network.ts'
 

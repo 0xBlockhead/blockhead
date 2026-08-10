@@ -1,18 +1,16 @@
 import {
 	ApiFamily,
-	Source,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
-	SourceProvider,
 	SourceTargetKind,
 	WireProtocol,
 	defineSources,
 	type _SourceArtifact,
 	type _SourceBinding,
-} from '../../APP.ts'
+} from './source.ts'
 
 const validHttpBinding = {
 	target: {
@@ -52,20 +50,20 @@ const invalidEip155Target = {
 	},
 } as const satisfies _SourceBinding
 
-defineSources([
+defineSources<'Across_Rest' | 'Allium_Rest'>()([
 	{
-		provider: SourceProvider.Across,
+		provider: 'Across',
 		label: 'Fixture',
 	},
 ])([
 	{
-		source: Source.Across_Rest,
-		provider: SourceProvider.Across,
+		source: 'Across_Rest',
+		provider: 'Across',
 		label: 'Valid fixture',
 		binding: validHttpBinding,
 	},
 	{
-		source: Source.Allium_Rest,
+		source: 'Allium_Rest',
 		// @ts-expect-error Source rows must reference a captured provider identifier.
 		provider: 'Missing',
 		label: 'Invalid provider fixture',
@@ -74,15 +72,15 @@ defineSources([
 	{
 		// @ts-expect-error Source rows must use a declared Source identifier.
 		source: 'Unknown_Source',
-		provider: SourceProvider.Across,
+		provider: 'Across',
 		label: 'Invalid source fixture',
 		binding: validHttpBinding,
 	},
 ])
 
-defineSources([
+defineSources<'Across_Rest'>()([
 	{
-		provider: SourceProvider.Across,
+		provider: 'Across',
 		label: 'Invalid provider env fixture',
 		// @ts-expect-error Environment requirements belong to executable binding credentials.
 		env: {
@@ -91,15 +89,15 @@ defineSources([
 	},
 ])([])
 
-defineSources([
+defineSources<'Across_Rest'>()([
 	{
-		provider: SourceProvider.Across,
+		provider: 'Across',
 		label: 'Fixture',
 	},
 ])([
 	{
-		source: Source.Across_Rest,
-		provider: SourceProvider.Across,
+		source: 'Across_Rest',
+		provider: 'Across',
 		label: 'Invalid source env fixture',
 		binding: validHttpBinding,
 		// @ts-expect-error Environment requirements belong to executable binding credentials.

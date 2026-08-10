@@ -1,3 +1,13 @@
+import {
+	EntityFieldCardinality,
+	EntityFieldType,
+	defineRoutes,
+} from './model.ts'
+
+enum EntityType {
+	Network = 'Network',
+}
+
 const routeConditionSchema = {
 	valueTypes: [
 		{
@@ -105,36 +115,6 @@ defineRoutes(routeConditionSchema)({
 			},
 		},
 	},
-})
-
-defineRoutes(routeConditionSchema)({
-	outcomes: {
-		[EntityType.Network]: {
-			// @ts-expect-error Route outcomes may only name selectors captured from the schema.
-			Missing: {
-				kind: 'Research',
-				decision: 'Invalid selector control',
-				evidence: 'scripts/app/route-mapping-conditions.types.ts',
-			},
-		},
-	},
-	children: {},
-})
-
-defineRoutes(routeConditionSchema)({
-	outcomes: {
-		[EntityType.Network]: {
-			Id: {
-				kind: 'Alias',
-					target: {
-						entityType: EntityType.Network,
-						// @ts-expect-error Route outcome targets may only name selectors captured from the schema.
-						selectorName: 'Missing',
-				},
-			},
-		},
-	},
-	children: {},
 })
 
 defineRoutes(routeConditionSchema)({

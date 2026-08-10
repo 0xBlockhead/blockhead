@@ -45,60 +45,15 @@ const appSourceFile = ts.createSourceFile(
 	true,
 	ts.ScriptKind.TS
 )
-const defineSourcesStatement = appSourceFile.statements.find((statement) => (
-	ts.isVariableStatement(statement)
-	&& statement.declarationList.declarations.some((declaration) => (
-		ts.isIdentifier(declaration.name)
-		&& declaration.name.text === 'defineSources'
-	))
-))
-
-assert.ok(defineSourcesStatement)
-
 test('rejects incompatible source binding declarations at compile time', () => {
-	const temporaryDirectory = mkdtempSync(join(tmpdir(), 'blockhead-source-binding-types-'))
-	const fixtureSource = readFileSync('scripts/app/source-binding-types.types.ts', 'utf8')
-	const fixtureSourceFile = ts.createSourceFile(
-		'source-binding-types.types.ts',
-		fixtureSource,
-		ts.ScriptTarget.Latest,
-		true,
-		ts.ScriptKind.TS
-	)
-	const fixtureImport = fixtureSourceFile.statements.find(ts.isImportDeclaration)
+	const fixturePath = join(process.cwd(), 'scripts/app/source-binding-types.types.ts')
+	const result = runTypeScript(fixturePath, true)
 
-	assert.ok(fixtureImport)
-
-	try {
-		mkdirSync(join(temporaryDirectory, 'scripts/app/inputs'), {
-			recursive: true,
-		})
-		mkdirSync(join(temporaryDirectory, 'src/constants'), {
-			recursive: true,
-		})
-		cpSync(
-			join(process.cwd(), 'scripts/app/inputs/source-target.ts'),
-			join(temporaryDirectory, 'scripts/app/inputs/source-target.ts')
-		)
-		cpSync(
-			join(process.cwd(), 'src/constants/Network.ts'),
-			join(temporaryDirectory, 'src/constants/Network.ts')
-		)
-		const fixturePath = join(temporaryDirectory, 'source-binding-types.types.ts')
-		writeFileSync(fixturePath, `${appSource.slice(0, defineSourcesStatement.end)}\n${fixtureSource.slice(fixtureImport.end)}`)
-		const result = runTypeScript(fixturePath, true)
-
-		assert.equal(result.status, 0, result.stderr || result.stdout)
-		const listedFiles = result.stdout.split('\n')
-		assert.equal(listedFiles.includes(join(process.cwd(), 'APP.ts')), false)
-		assert.equal(listedFiles.includes(join(process.cwd(), 'APP.sources.ts')), false)
-		assert.equal(listedFiles.includes(fixturePath), true)
-	} finally {
-		rmSync(temporaryDirectory, {
-			force: true,
-			recursive: true,
-		})
-	}
+	assert.equal(result.status, 0, result.stderr || result.stdout)
+	const listedFiles = result.stdout.split('\n')
+	assert.equal(listedFiles.includes(join(process.cwd(), 'APP.ts')), false)
+	assert.equal(listedFiles.includes(join(process.cwd(), 'APP.sources.ts')), false)
+	assert.equal(listedFiles.includes(fixturePath), true)
 })
 
 test('type-checks the actual APP Envio and GetBlock EVM execution rows', () => {
@@ -146,6 +101,10 @@ test('type-checks the actual APP Envio and GetBlock EVM execution rows', () => {
 			recursive: true,
 		})
 		cpSync(
+			join(process.cwd(), 'scripts/app/source.ts'),
+			join(temporaryDirectory, 'scripts/app/source.ts')
+		)
+		cpSync(
 			join(process.cwd(), 'scripts/app/inputs/source-target.ts'),
 			join(temporaryDirectory, 'scripts/app/inputs/source-target.ts')
 		)
@@ -153,9 +112,30 @@ test('type-checks the actual APP Envio and GetBlock EVM execution rows', () => {
 			join(process.cwd(), 'src/constants/Network.ts'),
 			join(temporaryDirectory, 'src/constants/Network.ts')
 		)
-		writeFileSync(fixturePath, `${appSource.slice(0, defineSourcesStatement.end)}
+		writeFileSync(fixturePath, `import {
+	ApiFamily,
+	SourceArtifactKind,
+	SourceCredentialScope,
+	SourceDelivery,
+	SourceEndpointKind,
+	SourceOperationGroup,
+	SourceTargetKind,
+	WireProtocol,
+	defineSources,
+} from './scripts/app/source.ts'
 
-defineSources([
+enum Source {
+	EnvioHyperRpc_JsonRpc = 'EnvioHyperRpc_JsonRpc',
+	GetBlockRpc_JsonRpc = 'GetBlockRpc_JsonRpc',
+	GetBlockYellowstone_Grpc = 'GetBlockYellowstone_Grpc',
+}
+
+enum SourceProvider {
+	Envio = 'Envio',
+	GetBlock = 'GetBlock',
+}
+
+defineSources<Source>()([
 	{
 		provider: 'Envio',
 		label: 'Envio',

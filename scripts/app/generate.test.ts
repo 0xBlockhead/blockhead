@@ -21,26 +21,30 @@ import { type as arktype } from 'arktype'
 import { compile as compileSvelte } from 'svelte/compiler'
 
 import {
-	ApiFamily,
 	app,
+	EntityType,
+	Source,
+	SourceProvider,
+} from '../../APP.ts'
+import {
 	EntityFieldCardinality,
 	EntityFieldType,
-	EntityType,
+	_ExpressionDecode,
+	type _SourceSelection,
 	rawSnippetReference,
-	Source,
+} from './model.ts'
+import {
+	ApiFamily,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
-	SourceProvider,
 	SourceTargetKind,
 	WireProtocol,
 	sourceBindingCompatibility,
 	sourceBindingDeliveryCompatibility,
-	_ExpressionDecode,
-	type _SourceSelection,
-} from '../../APP.ts'
+} from './source.ts'
 import {
 	compileApp,
 	composeSelectorRouteParamAlternatives,

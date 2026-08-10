@@ -1,14 +1,16 @@
 import {
+	EntityType,
+} from '../../APP.ts'
+import {
 	EntityFieldCardinality,
 	EntityFieldType,
-	EntityType,
 	_ViewItemKind,
 	entity,
 	facet,
 	type _ViewItem,
 	type _ViewListSection,
 	type _ViewQuery,
-} from '../../APP.ts'
+} from './model.ts'
 
 
 const rejectedQueryMetadata = {
