@@ -8,6 +8,7 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 const ADDRESS_OUTPUT = [{ type: 'address' as const, name: '' }] as const
 const UINT24_OUTPUT = [{ type: 'uint24' as const, name: '' }] as const
+const UINT64_OUTPUT = [{ type: 'uint64' as const, name: '' }] as const
 const INT24_OUTPUT = [{ type: 'int24' as const, name: '' }] as const
 const UINT128_OUTPUT = [{ type: 'uint128' as const, name: '' }] as const
 const UINT256_OUTPUT = [{ type: 'uint256' as const, name: '' }] as const
@@ -144,6 +145,116 @@ const NONFUNGIBLE_POSITION_MANAGER_ABI = new Abi([
 	},
 ])
 
+const CCA_LENS_ABI = new Abi([
+	{
+		type: 'function',
+		name: 'state',
+		stateMutability: 'nonpayable',
+		inputs: [{ type: 'address', name: 'auction' }],
+		outputs: [{
+			type: 'tuple',
+			name: '',
+			components: [
+				{
+					type: 'tuple',
+					name: 'checkpoint',
+					components: [
+						{ type: 'uint256', name: 'clearingPrice' },
+						{ type: 'uint256', name: 'currencyRaisedAtClearingPriceQ96X7' },
+						{ type: 'uint256', name: 'cumulativeMpsPerPrice' },
+						{ type: 'uint24', name: 'cumulativeMps' },
+						{ type: 'uint64', name: 'prev' },
+						{ type: 'uint64', name: 'next' },
+					],
+				},
+				{ type: 'uint256', name: 'currencyRaised' },
+				{ type: 'uint256', name: 'totalCleared' },
+				{ type: 'bool', name: 'isGraduated' },
+			],
+		}],
+	},
+])
+
+const CCA_AUCTION_ABI = new Abi([
+	{
+		type: 'function',
+		name: 'currency',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'address', name: '' }],
+	},
+	{
+		type: 'function',
+		name: 'token',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'address', name: '' }],
+	},
+	{
+		type: 'function',
+		name: 'totalSupply',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'uint128', name: '' }],
+	},
+	{
+		type: 'function',
+		name: 'tokensRecipient',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'address', name: '' }],
+	},
+	{
+		type: 'function',
+		name: 'fundsRecipient',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'address', name: '' }],
+	},
+	{
+		type: 'function',
+		name: 'startBlock',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'uint64', name: '' }],
+	},
+	{
+		type: 'function',
+		name: 'endBlock',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'uint64', name: '' }],
+	},
+	{
+		type: 'function',
+		name: 'claimBlock',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'uint64', name: '' }],
+	},
+	{
+		type: 'function',
+		name: 'validationHook',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'address', name: '' }],
+	},
+	{
+		type: 'function',
+		name: 'floorPrice',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'uint256', name: '' }],
+	},
+	{
+		type: 'function',
+		name: 'tickSpacing',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'uint256', name: '' }],
+	},
+])
+
 const SLOT0_OUTPUT = [
 	{ type: 'uint160' as const, name: 'sqrtPriceX96' },
 	{ type: 'int24' as const, name: 'tick' },
@@ -167,6 +278,17 @@ const POSITIONS_OUTPUT = [
 	{ type: 'uint256' as const, name: 'feeGrowthInside1LastX128' },
 	{ type: 'uint128' as const, name: 'tokensOwed0' },
 	{ type: 'uint128' as const, name: 'tokensOwed1' },
+] as const
+const CCA_AUCTION_STATE_OUTPUT = [
+	{ type: 'uint256' as const, name: 'clearingPriceQ96' },
+	{ type: 'uint256' as const, name: 'currencyRaisedAtClearingPriceQ96X7' },
+	{ type: 'uint256' as const, name: 'cumulativeMpsPerPrice' },
+	{ type: 'uint24' as const, name: 'cumulativeMps' },
+	{ type: 'uint64' as const, name: 'previousCheckpointBlock' },
+	{ type: 'uint64' as const, name: 'nextCheckpointBlock' },
+	{ type: 'uint256' as const, name: 'currencyRaised' },
+	{ type: 'uint256' as const, name: 'totalCleared' },
+	{ type: 'bool' as const, name: 'isGraduated' },
 ] as const
 
 
@@ -202,7 +324,8 @@ const assertAddress = (
 
 const decodeAddressResult = (
 	response: string,
-	label: string
+	label: string,
+	allowZero = false
 ) => {
 	if (typeof response !== 'string' || response === '0x' || response.length < 66)
 		throw new Error(`UniswapContracts_Evm: empty ${label} result`)
@@ -215,10 +338,28 @@ const decodeAddressResult = (
 		throw new Error(`UniswapContracts_Evm: malformed ${label} address`)
 
 	const normalized = hexLowerOfByteSize(address, 20)
-	if (normalized == null || normalized === ZERO_ADDRESS)
+	if (normalized == null || (!allowZero && normalized === ZERO_ADDRESS))
 		throw new Error(`UniswapContracts_Evm: zero or invalid ${label}`)
 
 	return normalized
+}
+
+
+const decodeUint64 = (
+	response: string,
+	label: string
+) => {
+	if (typeof response !== 'string' || response === '0x' || response.length < 66)
+		throw new Error(`UniswapContracts_Evm: empty ${label} result`)
+
+	const [value] = decodeResponse(
+		() => decodeParameters(UINT64_OUTPUT, toBytes(response)),
+		label
+	)
+	if (typeof value === 'bigint')
+		return value
+
+	return BigInt(String(value))
 }
 
 
@@ -337,6 +478,158 @@ export const getPoolFactory = async ({
 		'factory'
 	)
 )
+
+
+export const getCcaAuctionState = async ({
+	getCall,
+	lensAddress,
+	auctionAddress,
+	blockNumber,
+}: {
+	getCall: EthCall
+	lensAddress: string
+	auctionAddress: string
+	blockNumber: bigint
+}) => {
+	const normalizedAuctionAddress = assertAddress(auctionAddress, 'CCA auction address')
+	const response = await getCall({
+		to: assertAddress(lensAddress, 'CCA lens address'),
+		input: encodeFunction(CCA_LENS_ABI, 'state', [
+			normalizedAuctionAddress,
+		]),
+		blockTag: blockTagFor(blockNumber),
+	})
+	if (typeof response !== 'string' || response === '0x' || response.length < 2 + 9 * 64)
+		throw new Error('UniswapContracts_Evm: empty CCA auction state result')
+
+	const [
+		clearingPriceQ96,
+		currencyRaisedAtClearingPriceQ96X7,
+		cumulativeMpsPerPrice,
+		cumulativeMps,
+		previousCheckpointBlock,
+		nextCheckpointBlock,
+		currencyRaised,
+		totalCleared,
+		isGraduated,
+	] = decodeResponse(
+		() => decodeParameters(CCA_AUCTION_STATE_OUTPUT, toBytes(response)),
+		'CCA auction state'
+	)
+
+	return {
+		auctionAddress: normalizedAuctionAddress,
+		blockNumber,
+		clearingPriceQ96: BigInt(String(clearingPriceQ96)),
+		currencyRaisedAtClearingPriceQ96X7: BigInt(String(currencyRaisedAtClearingPriceQ96X7)),
+		cumulativeMpsPerPrice: BigInt(String(cumulativeMpsPerPrice)),
+		cumulativeMps: Number(cumulativeMps),
+		previousCheckpointBlock: BigInt(String(previousCheckpointBlock)),
+		nextCheckpointBlock: BigInt(String(nextCheckpointBlock)),
+		currencyRaised: BigInt(String(currencyRaised)),
+		totalCleared: BigInt(String(totalCleared)),
+		isGraduated,
+	}
+}
+
+
+export const getCcaAuctionConfiguration = async ({
+	getCall,
+	auctionAddress,
+	blockNumber,
+}: {
+	getCall: EthCall
+	auctionAddress: string
+	blockNumber: bigint
+}) => {
+	const normalizedAuctionAddress = assertAddress(auctionAddress, 'CCA auction address')
+	const blockTag = blockTagFor(blockNumber)
+	const [
+		currencyResponse,
+		tokenResponse,
+		totalSupplyResponse,
+		tokensRecipientResponse,
+		fundsRecipientResponse,
+		startBlockResponse,
+		endBlockResponse,
+		claimBlockResponse,
+		validationHookResponse,
+		floorPriceResponse,
+		tickSpacingResponse,
+	] = await Promise.all([
+		getCall({
+			to: normalizedAuctionAddress,
+			input: encodeFunction(CCA_AUCTION_ABI, 'currency', []),
+			blockTag,
+		}),
+		getCall({
+			to: normalizedAuctionAddress,
+			input: encodeFunction(CCA_AUCTION_ABI, 'token', []),
+			blockTag,
+		}),
+		getCall({
+			to: normalizedAuctionAddress,
+			input: encodeFunction(CCA_AUCTION_ABI, 'totalSupply', []),
+			blockTag,
+		}),
+		getCall({
+			to: normalizedAuctionAddress,
+			input: encodeFunction(CCA_AUCTION_ABI, 'tokensRecipient', []),
+			blockTag,
+		}),
+		getCall({
+			to: normalizedAuctionAddress,
+			input: encodeFunction(CCA_AUCTION_ABI, 'fundsRecipient', []),
+			blockTag,
+		}),
+		getCall({
+			to: normalizedAuctionAddress,
+			input: encodeFunction(CCA_AUCTION_ABI, 'startBlock', []),
+			blockTag,
+		}),
+		getCall({
+			to: normalizedAuctionAddress,
+			input: encodeFunction(CCA_AUCTION_ABI, 'endBlock', []),
+			blockTag,
+		}),
+		getCall({
+			to: normalizedAuctionAddress,
+			input: encodeFunction(CCA_AUCTION_ABI, 'claimBlock', []),
+			blockTag,
+		}),
+		getCall({
+			to: normalizedAuctionAddress,
+			input: encodeFunction(CCA_AUCTION_ABI, 'validationHook', []),
+			blockTag,
+		}),
+		getCall({
+			to: normalizedAuctionAddress,
+			input: encodeFunction(CCA_AUCTION_ABI, 'floorPrice', []),
+			blockTag,
+		}),
+		getCall({
+			to: normalizedAuctionAddress,
+			input: encodeFunction(CCA_AUCTION_ABI, 'tickSpacing', []),
+			blockTag,
+		}),
+	])
+
+	return {
+		auctionAddress: normalizedAuctionAddress,
+		blockNumber,
+		currencyAddress: decodeAddressResult(currencyResponse, 'CCA currency', true),
+		tokenAddress: decodeAddressResult(tokenResponse, 'CCA token'),
+		totalSupply: decodeUint128(totalSupplyResponse, 'CCA total supply'),
+		tokensRecipient: decodeAddressResult(tokensRecipientResponse, 'CCA tokens recipient'),
+		fundsRecipient: decodeAddressResult(fundsRecipientResponse, 'CCA funds recipient'),
+		startBlock: decodeUint64(startBlockResponse, 'CCA start block'),
+		endBlock: decodeUint64(endBlockResponse, 'CCA end block'),
+		claimBlock: decodeUint64(claimBlockResponse, 'CCA claim block'),
+		validationHookAddress: decodeAddressResult(validationHookResponse, 'CCA validation hook', true),
+		floorPriceQ96: decodeUint256(floorPriceResponse, 'CCA floor price'),
+		tickSpacingQ96: decodeUint256(tickSpacingResponse, 'CCA tick spacing'),
+	}
+}
 
 
 export const getPoolToken0 = async ({
@@ -550,16 +843,7 @@ export const getPoolSlot0 = async ({
 		observationCardinality: Number(observationCardinality),
 		observationCardinalityNext: Number(observationCardinalityNext),
 		feeProtocol: Number(feeProtocol),
-		unlocked: (
-			unlocked === true ?
-				true
-			: unlocked === false ?
-				false
-			:
-				(() => {
-					throw new Error('UniswapContracts_Evm: malformed slot0 unlocked')
-				})()
-		),
+		unlocked,
 	}
 }
 

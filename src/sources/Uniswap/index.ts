@@ -8,7 +8,7 @@ export default {
 	label: 'Uniswap',
 	sources: {
 		[Source.UniswapContracts_Evm]: {
-			label: 'Uniswap V3 contract catalog',
+			label: 'Uniswap contract interface catalog',
 		},
 	},
 	bindings,
