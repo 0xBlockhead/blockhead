@@ -101,9 +101,11 @@ const tipParsedUpdateFor = async (
 	priceFeedId: `0x${string}`
 ) => {
 	const { getBenchmarkPriceUpdateAt } = await import('$/sources/Pyth/Rest/queries.ts')
-	const observedAtMs = Date.now()
-	const priceUpdate = await getBenchmarkPriceUpdateAt({
-		timestampSec: Math.floor(observedAtMs / 1000),
+	const {
+		priceUpdate,
+		fetchedAtMs,
+	} = await getBenchmarkPriceUpdateAt({
+		timestampSec: Math.floor(Date.now() / 1000),
 		ids: [priceFeedId.slice(2)],
 		encoding: 'hex',
 		parsed: true,
@@ -118,7 +120,7 @@ const tipParsedUpdateFor = async (
 	return {
 		priceUpdate,
 		update,
-		observedAtMs,
+		fetchedAtMs,
 	}
 }
 
@@ -130,8 +132,10 @@ const historicalParsedUpdateFor = async (
 		throw new Error(`PythBenchmarks_Rest: invalid publishTimeMs ${publishTimeMs}`)
 
 	const { getBenchmarkPriceUpdateAt } = await import('$/sources/Pyth/Rest/queries.ts')
-	const observedAtMs = Date.now()
-	const priceUpdate = await getBenchmarkPriceUpdateAt({
+	const {
+		priceUpdate,
+		fetchedAtMs,
+	} = await getBenchmarkPriceUpdateAt({
 		timestampSec: publishTimeMs / 1000,
 		ids: [priceFeedId.slice(2)],
 		encoding: 'hex',
@@ -149,7 +153,7 @@ const historicalParsedUpdateFor = async (
 	return {
 		priceUpdate,
 		update,
-		observedAtMs,
+		fetchedAtMs,
 	}
 }
 
@@ -178,7 +182,7 @@ export default {
 						const {
 							priceUpdate,
 							update,
-							observedAtMs,
+							fetchedAtMs,
 						} = await tipParsedUpdateFor(feedId)
 
 						return {
@@ -191,7 +195,7 @@ export default {
 									},
 									update,
 									priceUpdate,
-									observedAtMs
+									fetchedAtMs
 								),
 							],
 						}
@@ -224,7 +228,7 @@ export default {
 						const {
 							priceUpdate,
 							update,
-							observedAtMs,
+							fetchedAtMs,
 						} = await historicalParsedUpdateFor(feedId, publishTimeMs)
 
 						const observation = observationFromParsedUpdate(
@@ -234,7 +238,7 @@ export default {
 							},
 							update,
 							priceUpdate,
-							observedAtMs
+							fetchedAtMs
 						)
 
 						return {

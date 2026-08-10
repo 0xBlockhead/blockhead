@@ -32,6 +32,7 @@ const context = {
 
 const priceFeedId = '0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43' as const
 const publishTimeSec = 1_785_470_400
+const fetchedAtMs = 1_785_470_400_456
 
 const feedWire = {
 	id: priceFeedId.slice(2),
@@ -90,7 +91,10 @@ describe('PythBenchmarks_Rest PythPriceFeed projections', () => {
 
 	it('projects enrolled catalog leftovers + tip observation', async () => {
 		getBenchmarkPriceFeed.mockResolvedValue(feedWire)
-		getBenchmarkPriceUpdateAt.mockResolvedValue(priceUpdate)
+		getBenchmarkPriceUpdateAt.mockResolvedValue({
+			priceUpdate,
+			fetchedAtMs,
+		})
 
 		await expect(feedResolver.resolve.PriceFeedIdChannel.resolve({
 			priceFeedId,
@@ -111,7 +115,7 @@ describe('PythBenchmarks_Rest PythPriceFeed projections', () => {
 					publishTimeMs: publishTimeSec * 1000,
 					source: Source.PythBenchmarks_Rest,
 				},
-				observedAtMs: expect.any(Number),
+				observedAtMs: fetchedAtMs,
 				price: 6425840822437n,
 				conf: 1613066739n,
 				expo: -8,
@@ -125,7 +129,10 @@ describe('PythBenchmarks_Rest PythPriceFeed projections', () => {
 	})
 
 	it('re-resolves historical observations by publishTimeMs', async () => {
-		getBenchmarkPriceUpdateAt.mockResolvedValue(priceUpdate)
+		getBenchmarkPriceUpdateAt.mockResolvedValue({
+			priceUpdate,
+			fetchedAtMs,
+		})
 
 		await expect(timestampResolver.resolve.FeedPublishTimeMsSource.resolve({
 			$feed: {
@@ -135,6 +142,7 @@ describe('PythBenchmarks_Rest PythPriceFeed projections', () => {
 			publishTimeMs: publishTimeSec * 1000,
 			source: Source.PythBenchmarks_Rest,
 		}, context)).resolves.toMatchObject({
+			observedAtMs: fetchedAtMs,
 			price: 6425840822437n,
 			publishTimeMs: publishTimeSec * 1000,
 			source: Source.PythBenchmarks_Rest,

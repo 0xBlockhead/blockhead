@@ -1,4 +1,5 @@
 import {
+	afterEach,
 	beforeEach,
 	describe,
 	expect,
@@ -60,6 +61,10 @@ const priceUpdate = {
 	}],
 }
 
+afterEach(() => {
+	vi.useRealTimers()
+})
+
 describe('Pyth Hermes OpenAPI operations', () => {
 	beforeEach(() => {
 		getJson.mockReset()
@@ -95,17 +100,39 @@ describe('Pyth Hermes OpenAPI operations', () => {
 			parsed: true,
 			ignore_invalid_price_ids: false,
 		})).resolves.toMatchObject({
-			parsed: [{
-				price: {
-					price: '900719925474099312345',
-					conf: '12345678901234567890',
-				},
-			}],
+			priceUpdate: {
+				parsed: [{
+					price: {
+						price: '900719925474099312345',
+						conf: '12345678901234567890',
+					},
+				}],
+			},
+			fetchedAtMs: expect.any(Number),
 		})
 		expect(getJson).toHaveBeenCalledWith(
 			hermesBinding,
 			`/v2/updates/price/latest?ids%5B%5D=${priceFeedId}&encoding=base64&parsed=true&ignore_invalid_price_ids=false`
 		)
+	})
+
+	it('records Hermes fetch time after the validated response resolves', async () => {
+		vi.useFakeTimers()
+		vi.setSystemTime(1_700_000_000_000)
+		const pendingResponse = Promise.withResolvers<unknown>()
+		getJson.mockReturnValue(pendingResponse.promise)
+
+		const result = queries.getLatestPriceUpdates({
+			'ids[]': [priceFeedId],
+			parsed: true,
+		})
+		vi.setSystemTime(1_700_000_000_123)
+		pendingResponse.resolve(priceUpdate)
+
+		await expect(result).resolves.toEqual({
+			priceUpdate,
+			fetchedAtMs: 1_700_000_000_123,
+		})
 	})
 
 	it('fail-closes malformed Hermes price-feed catalogs', async () => {
@@ -196,16 +223,38 @@ describe('Pyth Benchmarks REST operations', () => {
 			encoding: 'hex',
 			parsed: true,
 		})).resolves.toMatchObject({
-			parsed: [{
-				price: {
-					price: '900719925474099312345',
-				},
-			}],
+			priceUpdate: {
+				parsed: [{
+					price: {
+						price: '900719925474099312345',
+					},
+				}],
+			},
+			fetchedAtMs: expect.any(Number),
 		})
 		expect(getJson).toHaveBeenCalledWith(
 			benchmarksBinding,
 			`/v1/updates/price/1785470400?ids=${priceFeedId}&encoding=hex&parsed=true`
 		)
+	})
+
+	it('records Benchmarks fetch time after the validated response resolves', async () => {
+		vi.useFakeTimers()
+		vi.setSystemTime(1_700_000_000_000)
+		const pendingResponse = Promise.withResolvers<unknown>()
+		getJson.mockReturnValue(pendingResponse.promise)
+
+		const result = queries.getBenchmarkPriceUpdateAt({
+			timestampSec: 1_785_470_400,
+			ids: [priceFeedId],
+		})
+		vi.setSystemTime(1_700_000_000_456)
+		pendingResponse.resolve(priceUpdate)
+
+		await expect(result).resolves.toEqual({
+			priceUpdate,
+			fetchedAtMs: 1_700_000_000_456,
+		})
 	})
 
 	it('fail-closes malformed Benchmarks price feeds and updates', async () => {

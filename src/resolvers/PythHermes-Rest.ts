@@ -67,8 +67,10 @@ const latestParsedUpdateFor = async (
 	priceFeedId: `0x${string}`
 ) => {
 	const { getLatestPriceUpdates } = await import('$/sources/Pyth/Rest/queries.ts')
-	const observedAtMs = Date.now()
-	const priceUpdate = await getLatestPriceUpdates({
+	const {
+		priceUpdate,
+		fetchedAtMs,
+	} = await getLatestPriceUpdates({
 		'ids[]': [priceFeedId.slice(2)],
 		encoding: 'hex',
 		parsed: true,
@@ -84,7 +86,7 @@ const latestParsedUpdateFor = async (
 	return {
 		priceUpdate,
 		update,
-		observedAtMs,
+		fetchedAtMs,
 	}
 }
 
@@ -105,7 +107,7 @@ export default {
 						const {
 							priceUpdate,
 							update,
-							observedAtMs,
+							fetchedAtMs,
 						} = await latestParsedUpdateFor(feedId)
 
 						return {
@@ -119,7 +121,7 @@ export default {
 									},
 									update,
 									priceUpdate,
-									observedAtMs
+									fetchedAtMs
 								),
 							],
 						}
@@ -148,7 +150,7 @@ export default {
 						const {
 							priceUpdate,
 							update,
-							observedAtMs,
+							fetchedAtMs,
 						} = await latestParsedUpdateFor(feedId)
 						if (update.price.publish_time * 1000 !== publishTimeMs)
 							throw new Error('PythHermes_Rest: observation publishTimeMs does not match Hermes tip')
@@ -160,7 +162,7 @@ export default {
 							},
 							update,
 							priceUpdate,
-							observedAtMs
+							fetchedAtMs
 						)
 
 						return {

@@ -67,8 +67,11 @@ export const getPriceFeeds = async (
 
 export const getLatestPriceUpdates = async (
 	parameters: paths['/v2/updates/price/latest']['get']['parameters']['query']
-): Promise<PythPriceUpdateResponse> => (
-	assertEnvelope(
+): Promise<{
+	priceUpdate: PythPriceUpdateResponse
+	fetchedAtMs: number
+}> => {
+	const priceUpdate = assertEnvelope(
 		'Hermes latest price updates',
 		pythPriceUpdateResponseWire,
 		await getJson(
@@ -84,7 +87,12 @@ export const getLatestPriceUpdates = async (
 			])}`
 		)
 	)
-)
+
+	return {
+		priceUpdate,
+		fetchedAtMs: Date.now(),
+	}
+}
 
 export const getBenchmarkPriceFeeds = async (
 	parameters: {
@@ -135,13 +143,16 @@ export const getBenchmarkPriceUpdateAt = async (
 		encoding?: 'hex' | 'base64'
 		parsed?: boolean
 	}
-): Promise<PythPriceUpdateResponse> => {
+): Promise<{
+	priceUpdate: PythPriceUpdateResponse
+	fetchedAtMs: number
+}> => {
 	if (!Number.isSafeInteger(timestampSec) || timestampSec < 0)
 		throw new Error(`Pyth_Rest: invalid Benchmarks price update timestamp ${timestampSec}`)
 	if (ids.length === 0)
 		throw new Error('Pyth_Rest: Benchmarks price update requires at least one price feed id')
 
-	return assertEnvelope(
+	const priceUpdate = assertEnvelope(
 		'Benchmarks price update',
 		pythPriceUpdateResponseWire,
 		await getJson(
@@ -153,4 +164,9 @@ export const getBenchmarkPriceUpdateAt = async (
 			])}`
 		)
 	)
+
+	return {
+		priceUpdate,
+		fetchedAtMs: Date.now(),
+	}
 }
