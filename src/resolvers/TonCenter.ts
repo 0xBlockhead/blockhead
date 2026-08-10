@@ -300,16 +300,13 @@ export const createTonCenterV3Resolvers = () => ({
 			resolve: tonNetworkSelectors(async (network, context) => {
 				assertTonMainnet(network)
 				const { getTonCenterV3CompletedTraces } = await import('$/sources/TonCenter/V3/Rest/queries.ts')
-				return {
-					...await resolvePage(context, (limit, pageOffset) => (
-						getTonCenterV3CompletedTraces({
-							limit,
-							offset: pageOffset,
-							order: 'desc',
-						})
-					)),
-					resolvedAtMs: Date.now(),
-				}
+				return resolvePage(context, (limit, pageOffset) => (
+					getTonCenterV3CompletedTraces({
+						limit,
+						offset: pageOffset,
+						order: 'desc',
+					})
+				))
 			}),
 		})({
 			Ton: {
@@ -330,7 +327,7 @@ export const createTonCenterV3Resolvers = () => ({
 									[entityFieldAddressKey(EntityType.TonTrace, [], '$$timestamps')]: [{
 										[EntityMetaKey.Selector]: {
 											$trace: traceSelector,
-											timestampMs: page.resolvedAtMs,
+											timestampMs: trace.end_utime * 1_000,
 											source: Source.TonCenter,
 										},
 										[EntityMetaKey.Fields]: {

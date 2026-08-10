@@ -724,6 +724,22 @@ describe('TON Center v3 source foundation', () => {
 			},
 			error: 'malformed trace root transaction hash',
 		},
+		{
+			start_lt: '9007199254741000',
+			error: 'logical-time range is reversed',
+		},
+		{
+			end_utime: trace.start_utime - 1,
+			error: 'completion-time range is reversed',
+		},
+		{
+			end_utime: Math.floor(Number.MAX_SAFE_INTEGER / 1_000) + 1,
+			error: 'completion time exceeds safe millisecond bounds',
+		},
+		{
+			mc_seqno_start: '52000002',
+			error: 'masterchain range is reversed',
+		},
 	])('fails closed on invalid completed-trace evidence', async ({
 		error,
 		...mutation

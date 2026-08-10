@@ -260,7 +260,7 @@ describe('TonCenter v3 network resolver', () => {
 		}))
 	})
 
-	it('projects completed trace and asset observations with exact provenance and resolution time', async () => {
+	it('projects completed traces at the provider completion clock and assets at resolution time', async () => {
 		const rootMessage = {
 			hash: '1'.repeat(64),
 			destination: `0:${'2'.repeat(64)}`,
@@ -309,7 +309,7 @@ describe('TonCenter v3 network resolver', () => {
 			entityFieldAddressKey(EntityType.TonTrace, [], '$$timestamps')
 		][0][EntityMetaKey.Selector]).toEqual({
 			$trace: trace[EntityMetaKey.Selector],
-			timestampMs: 1_750_000_000_000,
+			timestampMs: 1_700_000_001_000,
 			source: Source.TonCenter,
 		})
 		expect(trace[EntityMetaKey.Fields]).toEqual(expect.objectContaining({

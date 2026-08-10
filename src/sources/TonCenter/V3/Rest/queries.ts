@@ -24,9 +24,8 @@ import {
 } from '$/sources/TonCenter/V3/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
-const binding = bindings[Source.TonCenter].find(({ apiFamily, target }) => (
+const binding = bindings[Source.TonCenter].find(({ apiFamily }) => (
 	apiFamily === ApiFamily.TonCenterV3Api
-	&& target.key === 'ton:-239'
 ))
 
 if (binding == null)
@@ -266,17 +265,31 @@ export const getTonCenterV3CompletedTraces = async (
 		if (trace.trace_info.transactions !== transactionHashes.length)
 			throw new Error('TON Center v3: trace transaction count mismatch')
 
+		const startLt = tonCenterV3NonnegativeInt64(trace.start_lt, 'trace start logical time')
 		const endLt = tonCenterV3NonnegativeInt64(trace.end_lt, 'trace end logical time')
+		if (endLt < startLt)
+			throw new Error('TON Center v3: trace logical-time range is reversed')
 		assertOrdered(previousLogicalTime, endLt, options.order, 'traces')
 		previousLogicalTime = endLt
 
 		if (trace.external_hash != null)
 			tonCenterV3Hash(trace.external_hash, 'trace external hash')
-		tonCenterV3NonnegativeInt64(trace.start_lt, 'trace start logical time')
-		tonCenterV3NonnegativeSafeInteger(trace.start_utime, 'trace start time')
-		tonCenterV3NonnegativeSafeInteger(trace.end_utime, 'trace end time')
-		tonCenterV3NonnegativeInt64(trace.mc_seqno_start, 'trace start masterchain seqno')
-		tonCenterV3NonnegativeInt64(trace.mc_seqno_end, 'trace end masterchain seqno')
+		const startUtime = tonCenterV3NonnegativeSafeInteger(trace.start_utime, 'trace start time')
+		const endUtime = tonCenterV3NonnegativeSafeInteger(trace.end_utime, 'trace end time')
+		if (endUtime < startUtime)
+			throw new Error('TON Center v3: trace completion-time range is reversed')
+		if (!Number.isSafeInteger(endUtime * 1_000))
+			throw new Error('TON Center v3: trace completion time exceeds safe millisecond bounds')
+		const startMasterchainSeqno = tonCenterV3NonnegativeInt64(
+			trace.mc_seqno_start,
+			'trace start masterchain seqno'
+		)
+		const endMasterchainSeqno = tonCenterV3NonnegativeInt64(
+			trace.mc_seqno_end,
+			'trace end masterchain seqno'
+		)
+		if (endMasterchainSeqno < startMasterchainSeqno)
+			throw new Error('TON Center v3: trace masterchain range is reversed')
 		tonCenterV3NonnegativeSafeInteger(trace.trace_info.messages, 'trace message count')
 		tonCenterV3NonnegativeSafeInteger(trace.trace_info.transactions, 'trace transaction count')
 		if (trace.trace.tx_hash != null)
