@@ -1117,6 +1117,7 @@ export enum EntityType {
 	DydxChainNetwork_Timestamp = "DydxChainNetwork_Timestamp",
 	DydxChainOrder = "DydxChainOrder",
 	DydxChainOrder_Timestamp = "DydxChainOrder_Timestamp",
+	DydxChainPerpetualPosition = "DydxChainPerpetualPosition",
 	DydxChainPerpetualPosition_Timestamp = "DydxChainPerpetualPosition_Timestamp",
 	DydxChainSubaccount = "DydxChainSubaccount",
 	DydxChainSubaccount_Timestamp = "DydxChainSubaccount_Timestamp",
@@ -23881,7 +23882,7 @@ export const schema = {
 				"$$markets": { label: "markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.DydxChainMarket },
 				"$$subaccounts": { label: "subaccounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.DydxChainSubaccount },
 				"$$orders": { label: "orders", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.DydxChainOrder },
-				"$$positions": { label: "positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.DydxChainPerpetualPosition_Timestamp },
+				"$$positions": { label: "positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.DydxChainPerpetualPosition },
 			})({
 				selectors: {
 					"Network": ["$network"],
@@ -24022,14 +24023,41 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.DydxChainPerpetualPosition,
+				labels: {
+					singular: "dydx chain perpetual position",
+					plural: "dydx chain perpetual positions",
+				},
+			})({
+				"$subaccount": { label: "subaccount", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.DydxChainSubaccount },
+				"$market": { label: "market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.DydxChainMarket },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.DydxChainPerpetualPosition_Timestamp },
+			})({
+				selectors: {
+					"SubaccountMarket": ["$subaccount", "$market"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.DydxIndexer],
+						},
+						summary: { title: ["$market"], value: ["$subaccount"] },
+						closed: ["$subaccount", "$market"],
+						content: { dl: [["$subaccount", "$market"]] },
+						lists: [{ field: "$$timestamps", component: "DydxChainPerpetualPosition_TimestampsView", emptyText: "No dYdX position observations." }],
+					},
+					plural: { component: "DydxChainPerpetualPositionsView", title: "dYdX chain perpetual positions", },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.DydxChainPerpetualPosition_Timestamp,
 				labels: {
 					singular: "dydx chain perpetual position timestamp",
 					plural: "dydx chain perpetual position observations",
 				},
 			})({
-				"$subaccount": { label: "subaccount", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.DydxChainSubaccount },
-				"$market": { label: "market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.DydxChainMarket },
+				"$position": { label: "position", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.DydxChainPerpetualPosition },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"blockHeight": { label: "block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -24041,17 +24069,17 @@ export const schema = {
 				"netFunding": { label: "net funding", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "DecimalString" },
 			})({
 				selectors: {
-					"SubaccountMarketTimestampMsSource": ["$subaccount", "$market", "timestampMs", "source"],
+					"PositionTimestampMsSource": ["$position", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
+							sources: [Source.DydxIndexer],
 							openFields: ["blockHeight", "side", "size", "entryPrice", "unrealizedPnl", "realizedPnl", "netFunding"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["side"] },
-						closed: ["$subaccount", "$market", { field: "timestampMs", format: "timestamp" }],
-						content: { dl: [["$subaccount", "$market", { field: "timestampMs", format: "timestamp" }, "source", "blockHeight"], ["side", "size", "entryPrice", "unrealizedPnl", "realizedPnl", "netFunding"]] },
+						closed: ["$position", { field: "timestampMs", format: "timestamp" }],
+						content: { dl: [["$position", { field: "timestampMs", format: "timestamp" }, "source", "blockHeight"], ["side", "size", "entryPrice", "unrealizedPnl", "realizedPnl", "netFunding"]] },
 					},
 					plural: { component: "DydxChainPerpetualPosition_TimestampsView", title: "dYdX chain perpetual position observations", },
 				},
@@ -24067,7 +24095,7 @@ export const schema = {
 				"$network": { label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.DydxChainNetwork },
 				"$account": { label: "account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CosmosAccount },
 				"subaccountNumber": { label: "subaccount number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
-				"$$positions": { label: "positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.DydxChainPerpetualPosition_Timestamp },
+				"$$positions": { label: "positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.DydxChainPerpetualPosition },
 				"$$orders": { label: "orders", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.DydxChainOrder },
 				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.DydxChainSubaccount_Timestamp },
 			})({
@@ -24088,7 +24116,7 @@ export const schema = {
 								label: "Trading",
 								className: "network-view-collapsible-trading",
 								sections: [
-									{ id: "dydx-subaccount-positions", field: "$$positions", List: "DydxChainPerpetualPosition_TimestampsView", label: "Positions", emptyText: "No dYdX position observations." },
+									{ id: "dydx-subaccount-positions", field: "$$positions", List: "DydxChainPerpetualPositionsView", label: "Positions", emptyText: "No dYdX positions." },
 									{ id: "dydx-subaccount-orders", field: "$$orders", List: "DydxChainOrdersView", label: "Orders", emptyText: "No dYdX orders." },
 								],
 							},
@@ -84131,21 +84159,30 @@ export const routes = defineRoutes(schema)({
 																						}
 																					}
 																				},
-																				"market": {
-																					children: {
-																						"[ticker]": {
-																							children: {
+																												"market": {
+																													children: {
+																														"[ticker]": {
+																															selectors: {
+																																[EntityType.DydxChainPerpetualPosition]: {
+																																	"SubaccountMarket": {
+																																		params: { "ticker": ["$market", "ticker"] },
+																																		page: {},
+																																		when: { path: ["namespace"], is: "Dydx" },
+																																		projection: { entityType: EntityType.Network, facetPath: ["Dydx"] },
+																																	}
+																																}
+																															},
+																															children: {
 																								"observations": {
 																									children: {
 																										"[timestampMs]": {
 																											children: {
 																												"[source]": {
 																													selectors: {
-																														[EntityType.DydxChainPerpetualPosition_Timestamp]: {
-																															"SubaccountMarketTimestampMsSource": {
-																																params: { "ticker": ["$market", "ticker"], "timestampMs": ["timestampMs"], "source": ["source"] },
-																																page: {},
-																																when: { path: ["namespace"], is: "Dydx" },
+																																						[EntityType.DydxChainPerpetualPosition_Timestamp]: {
+																																								"PositionTimestampMsSource": {
+																																										params: { "timestampMs": ["timestampMs"], "source": ["source"] },
+																																										when: { path: ["namespace"], is: "Dydx" },
 																																projection: { entityType: EntityType.Network, facetPath: ["Dydx"] },
 																															}
 																														}

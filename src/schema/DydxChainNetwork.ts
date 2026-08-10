@@ -32,7 +32,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$positions: {
-		entityType: EntityType.DydxChainPerpetualPosition_Timestamp,
+		entityType: EntityType.DydxChainPerpetualPosition,
 		cardinality: EntityFieldCardinality.Many,
 	},
 })({

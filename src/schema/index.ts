@@ -421,6 +421,7 @@ import DydxChainNetworkSchema from '$/schema/DydxChainNetwork.ts'
 import DydxChainOrder_TimestampSchema from '$/schema/DydxChainOrder_Timestamp.ts'
 import DydxChainOrderSchema from '$/schema/DydxChainOrder.ts'
 import DydxChainPerpetualPosition_TimestampSchema from '$/schema/DydxChainPerpetualPosition_Timestamp.ts'
+import DydxChainPerpetualPositionSchema from '$/schema/DydxChainPerpetualPosition.ts'
 import DydxChainSubaccount_TimestampSchema from '$/schema/DydxChainSubaccount_Timestamp.ts'
 import DydxChainSubaccountSchema from '$/schema/DydxChainSubaccount.ts'
 import EasAttestation_TimestampSchema from '$/schema/EasAttestation_Timestamp.ts'
@@ -1495,6 +1496,7 @@ const schemaChunk8 = [
 	DydxChainNetwork_TimestampSchema,
 	DydxChainOrderSchema,
 	DydxChainOrder_TimestampSchema,
+	DydxChainPerpetualPositionSchema,
 	DydxChainPerpetualPosition_TimestampSchema,
 	DydxChainSubaccountSchema,
 	DydxChainSubaccount_TimestampSchema,
@@ -1525,10 +1527,10 @@ const schemaChunk8 = [
 	ElementsIssuanceSchema,
 	ElementsNetworkSchema,
 	ElementsPegSchema,
-	ElementsPeg_TimestampSchema,
 ] as const
 
 const schemaChunk9 = [
+	ElementsPeg_TimestampSchema,
 	EnsNameSchema,
 	EnsName_TimestampSchema,
 	EnsRecordSchema,
@@ -1578,10 +1580,10 @@ const schemaChunk9 = [
 	EvmNetworkActorCoinBalance_TimestampSchema,
 	EvmNetworkBridgeSchema,
 	EvmNftSchema,
-	EvmProtocolSchema,
 ] as const
 
 const schemaChunk10 = [
+	EvmProtocolSchema,
 	EvmRollupSchema,
 	EvmRollup_TimestampSchema,
 	EvmSelectorSchema,
@@ -1631,10 +1633,10 @@ const schemaChunk10 = [
 	GitBlobSchema,
 	GitCommitSchema,
 	GitFetchObservationSchema,
-	GitForgeIssueSchema,
 ] as const
 
 const schemaChunk11 = [
+	GitForgeIssueSchema,
 	GitForgeMirrorSchema,
 	GitForgePullRequestSchema,
 	GitForgeReleaseSchema,
@@ -1684,10 +1686,10 @@ const schemaChunk11 = [
 	HederaTokenAssociationSchema,
 	HederaTokenAssociation_TimestampSchema,
 	HederaTokenCustomFeeSchema,
-	HederaTokenTransferSchema,
 ] as const
 
 const schemaChunk12 = [
+	HederaTokenTransferSchema,
 	HederaTopicSchema,
 	HederaTopic_TimestampSchema,
 	HederaTopicMessageSchema,
@@ -1737,10 +1739,10 @@ const schemaChunk12 = [
 	IcpNetworkSchema,
 	IcpNetwork_TimestampSchema,
 	IcpRequestStatusSchema,
-	IcpRequestStatus_TimestampSchema,
 ] as const
 
 const schemaChunk13 = [
+	IcpRequestStatus_TimestampSchema,
 	IcpSubnetSchema,
 	IcpSubnet_TimestampSchema,
 	IcpSubnetCanisterRange_TimestampSchema,
@@ -1790,10 +1792,10 @@ const schemaChunk13 = [
 	Market_TimeInterval_TimestampSchema,
 	Market_TimestampSchema,
 	MarketAssetSchema,
-	MarketPriceSchema,
 ] as const
 
 const schemaChunk14 = [
+	MarketPriceSchema,
 	MarketVenueSchema,
 	McpPromptSchema,
 	McpPromptResultSchema,
@@ -1843,10 +1845,10 @@ const schemaChunk14 = [
 	NearNetworkSchema,
 	NearNetwork_TimestampSchema,
 	NearReceiptSchema,
-	NearTransactionSchema,
 ] as const
 
 const schemaChunk15 = [
+	NearTransactionSchema,
 	NearValidatorSchema,
 	NearValidator_TimestampSchema,
 	NetworkSchema,
@@ -1896,10 +1898,10 @@ const schemaChunk15 = [
 	PolkadotReferendum_TimestampSchema,
 	PolkadotValidatorSchema,
 	PolkadotValidator_EraSchema,
-	PythPriceFeedSchema,
 ] as const
 
 const schemaChunk16 = [
+	PythPriceFeedSchema,
 	PythPriceFeed_TimestampSchema,
 	QuilibriumAccountSchema,
 	QuilibriumFrameSchema,
@@ -1949,10 +1951,10 @@ const schemaChunk16 = [
 	SolanaValidator_TimestampSchema,
 	SorobanContractSchema,
 	SorobanContract_TimestampSchema,
-	SorobanContractStorageEntrySchema,
 ] as const
 
 const schemaChunk17 = [
+	SorobanContractStorageEntrySchema,
 	SorobanContractStorageEntry_TimestampSchema,
 	SorobanWasmSchema,
 	SorobanWasm_TimestampSchema,
@@ -2002,10 +2004,10 @@ const schemaChunk17 = [
 	SuiEventSchema,
 	SuiNetworkSchema,
 	SuiNetwork_TimestampSchema,
-	SuiObjectSchema,
 ] as const
 
 const schemaChunk18 = [
+	SuiObjectSchema,
 	SuiObjectChangeSchema,
 	SuiObjectVersionSchema,
 	SuiPackageSchema,
@@ -2055,10 +2057,10 @@ const schemaChunk18 = [
 	TonBlockSchema,
 	TonContractSchema,
 	TonContract_TimestampSchema,
-	TonContractGetMethodSchema,
 ] as const
 
 const schemaChunk19 = [
+	TonContractGetMethodSchema,
 	TonContractGetMethod_TimestampSchema,
 	TonJettonSchema,
 	TonJetton_TimestampSchema,
@@ -2108,10 +2110,10 @@ const schemaChunk19 = [
 	UtxoOutputSchema,
 	UtxoTransactionSchema,
 	WalletConnectionMethodSchema,
-	WormholeVaaSchema,
 ] as const
 
 const schemaChunk20 = [
+	WormholeVaaSchema,
 	XmtpConversationSchema,
 	XmtpMessageSchema,
 	XmtpNetworkSchema,

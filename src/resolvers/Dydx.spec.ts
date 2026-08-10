@@ -36,6 +36,7 @@ const {
 	dydxChainMarketResolver,
 	dydxChainNetworkResolver,
 	dydxChainOrderResolver,
+	dydxChainPerpetualPositionResolver,
 	dydxChainSubaccountOrdersResolver,
 	dydxChainSubaccountResolver,
 	dydxNetworkReferenceResolver,
@@ -78,6 +79,11 @@ const subaccount = {
 		address,
 	},
 	subaccountNumber: 0,
+}
+
+const perpetualPosition = {
+	$subaccount: subaccount,
+	$market: market,
 }
 
 const subaccountResponse = {
@@ -262,6 +268,7 @@ describe('dYdX Indexer resolvers', () => {
 			dydxChainMarketResolver,
 			dydxChainNetworkResolver,
 			dydxChainOrderResolver,
+			dydxChainPerpetualPositionResolver,
 			dydxChainSubaccountOrdersResolver,
 			dydxChainSubaccountResolver,
 			dydxNetworkReferenceResolver,
@@ -756,15 +763,31 @@ describe('dYdX Indexer resolvers', () => {
 		expect(dydxChainSubaccountResolver.projections.$$positions.select(
 			observation,
 			subaccount
-		)[0]).toMatchObject({
+		)[0]).toEqual({
 			[EntityMetaKey.Selector]: {
 				$subaccount: subaccount,
 				$market: {
 					$network: network,
 					ticker: 'BTC-USD',
 				},
-				timestampMs: observedAtMs,
-				source: Source.DydxIndexer,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$position: perpetualPosition,
+						timestampMs: observedAtMs,
+						source: Source.DydxIndexer,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'blockHeight')]: 12345678901234567890n,
+						[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'side')]: 'LONG',
+						[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'size')]: '0.25',
+						[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'entryPrice')]: '64000',
+						[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'unrealizedPnl')]: '12.75',
+						[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'realizedPnl')]: '-1.5',
+						[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'netFunding')]: '-0.05',
+					},
+				}],
 			},
 		})
 		expect(dydxChainSubaccountResolver.projections.$$positions.resolveCount(
@@ -772,6 +795,35 @@ describe('dYdX Indexer resolvers', () => {
 			subaccount,
 			context
 		)).toBe(2)
+	})
+
+	it('resolves a stable position and its timestamp observation from one account snapshot', async () => {
+		const observation = await dydxChainPerpetualPositionResolver.resolve.SubaccountMarket.resolve(
+			perpetualPosition,
+			context
+		)
+
+		expect(sourceGetJson).toHaveBeenCalledTimes(1)
+		expect(sourceGetJson.mock.calls[0][1]).toContain(`/v4/addresses/${address}/subaccountNumber/0`)
+		expect(dydxChainPerpetualPositionResolver.projections.$$timestamps(
+			observation,
+			perpetualPosition
+		)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$position: perpetualPosition,
+				timestampMs: observedAtMs,
+				source: Source.DydxIndexer,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'blockHeight')]: 12345678901234567890n,
+				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'side')]: 'LONG',
+				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'size')]: '0.25',
+				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'entryPrice')]: '64000',
+				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'unrealizedPnl')]: '12.75',
+				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'realizedPnl')]: '-1.5',
+				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'netFunding')]: '-0.05',
+			},
+		}])
 	})
 
 	it('loads orders independently and preserves their native update coordinate', async () => {

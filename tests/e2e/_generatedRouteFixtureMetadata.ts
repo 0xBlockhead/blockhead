@@ -3445,14 +3445,14 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/(protocol-networks)/account/[accountAddress]/subaccount/[subaccountNumber]/market/[ticker]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[accountAddress=stringSegment]/subaccount/[subaccountNumber=nonNegativeInteger]/(dydxChainSubaccount)/market/[ticker=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+	'/(explore)/(networks)/network/[network]/(protocol-networks)/account/[accountAddress]/subaccount/[subaccountNumber]/market/[ticker]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[accountAddress=stringSegment]/subaccount/[subaccountNumber=nonNegativeInteger]/(dydxChainSubaccount)/market/[ticker=stringSegment]',
 		mappings: [
 			{
-				id: 'DydxChainPerpetualPosition_Timestamp.SubaccountMarketTimestampMsSource',
+				id: 'DydxChainPerpetualPosition.SubaccountMarket',
 				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/account/[accountAddress]/subaccount/[subaccountNumber]/market/[ticker]/observations/[timestampMs]/[source]:DydxChainPerpetualPosition_Timestamp.SubaccountMarketTimestampMsSource'],
-				probeCases: [[[0, '1', ['ticker', 'timestampMs', 'source', 'subaccountNumber', 'network', 'accountAddress']]]],
+				probeAtomPrefixes: ['/network/[network]/account/[accountAddress]/subaccount/[subaccountNumber]/market/[ticker]:DydxChainPerpetualPosition.SubaccountMarket'],
+				probeCases: [[[0, '1', ['ticker', 'subaccountNumber', 'network', 'accountAddress']]]],
 				projectionPath: [
 					'Dydx',
 				],

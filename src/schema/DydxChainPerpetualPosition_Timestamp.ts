@@ -14,12 +14,8 @@ export default entity({
 		plural: 'dydx chain perpetual position observations',
 	},
 })({
-	$subaccount: {
-		entityType: EntityType.DydxChainSubaccount,
-		cardinality: EntityFieldCardinality.One,
-	},
-	$market: {
-		entityType: EntityType.DydxChainMarket,
+	$position: {
+		entityType: EntityType.DydxChainPerpetualPosition,
 		cardinality: EntityFieldCardinality.One,
 	},
 	timestampMs: {
@@ -60,9 +56,8 @@ export default entity({
 	},
 })({
 	selectors: {
-		SubaccountMarketTimestampMsSource: [
-			'$subaccount',
-			'$market',
+		PositionTimestampMsSource: [
+			'$position',
 			'timestampMs',
 			'source',
 		],

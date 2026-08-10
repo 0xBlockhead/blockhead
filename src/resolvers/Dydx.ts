@@ -11,10 +11,14 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import { dydxNextFundingAtMs } from '$/sources/Dydx/Rest/types.ts'
+import {
+	dydxNextFundingAtMs,
+	type DydxPerpetualPosition,
+} from '$/sources/Dydx/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+type DydxPerpetualPositionId = EntitySelector<typeof schema, EntityType.DydxChainPerpetualPosition>
 type DydxSubaccountId = EntitySelector<typeof schema, EntityType.DydxChainSubaccount>
 
 type DydxLiveMarket = {
@@ -66,6 +70,25 @@ const dydxOrderApplicability = [
 	},
 	{
 		$subaccount: dydxSubaccountApplicability[1],
+	},
+] as const
+
+const dydxPerpetualPositionApplicability = [
+	{
+		$subaccount: dydxSubaccountApplicability[0],
+		$market: dydxMarketApplicability[0],
+	},
+	{
+		$subaccount: dydxSubaccountApplicability[0],
+		$market: dydxMarketApplicability[1],
+	},
+	{
+		$subaccount: dydxSubaccountApplicability[1],
+		$market: dydxMarketApplicability[0],
+	},
+	{
+		$subaccount: dydxSubaccountApplicability[1],
+		$market: dydxMarketApplicability[1],
 	},
 ] as const
 
@@ -218,6 +241,67 @@ const projectOrderFields = (
 		),
 	},
 })
+
+const dydxPerpetualPositionTimestampSnapshot = (
+	position: DydxPerpetualPosition,
+	updatedAtHeight: string
+) => ({
+	blockHeight: BigInt(updatedAtHeight),
+	side: position.side,
+	size: position.size,
+	entryPrice: position.entryPrice,
+	unrealizedPnl: position.unrealizedPnl,
+	realizedPnl: position.realizedPnl,
+	netFunding: position.netFunding,
+})
+
+const projectPerpetualPositionTimestamp = (
+	position: DydxPerpetualPosition,
+	positionSelector: DydxPerpetualPositionId,
+	observedAtMs: number,
+	updatedAtHeight: string
+) => {
+	const timestamp = dydxPerpetualPositionTimestampSnapshot(
+		position,
+		updatedAtHeight
+	)
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$position: positionSelector,
+			timestampMs: observedAtMs,
+			source: Source.DydxIndexer,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'blockHeight')]: timestamp.blockHeight,
+			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'side')]: timestamp.side,
+			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'size')]: timestamp.size,
+			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'entryPrice')]: timestamp.entryPrice,
+			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'unrealizedPnl')]: timestamp.unrealizedPnl,
+			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'realizedPnl')]: timestamp.realizedPnl,
+			[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'netFunding')]: timestamp.netFunding,
+		},
+	}
+}
+
+const resolveDydxPerpetualPosition = async (
+	entitySelector: DydxPerpetualPositionId
+) => {
+	assertDydxSubaccount(entitySelector.$subaccount)
+	assertDydxMainnet(entitySelector.$market.$network.$network)
+	const { getSubaccount } = await import('$/sources/Dydx/Rest/queries.ts')
+	const observation = await getSubaccount({
+		address: entitySelector.$subaccount.$account.address,
+		subaccountNumber: entitySelector.$subaccount.subaccountNumber,
+	})
+	if (!Object.hasOwn(observation.value.openPerpetualPositions, entitySelector.$market.ticker))
+		throw new Error(`DydxIndexer_Rest: open position not found for ${entitySelector.$market.ticker}`)
+
+	return {
+		...observation,
+		position: observation.value.openPerpetualPositions[entitySelector.$market.ticker],
+	}
+}
 
 export const dydxChainNetworkResolver = defineResolver({
 	entityType: EntityType.DydxChainNetwork,
@@ -632,26 +716,29 @@ export const dydxChainSubaccountResolver = defineResolver({
 	},
 })({
 	$$positions: {
-		select: (observation, subaccount) => observation.positions.map((position) => ({
-			[EntityMetaKey.Selector]: {
+		select: (observation, subaccount) => observation.positions.map((position) => {
+			const positionSelector = {
 				$subaccount: subaccount,
 				$market: {
 					$network: subaccount.$network,
 					ticker: position.market,
 				},
-				timestampMs: observation.observedAtMs,
-				source: Source.DydxIndexer,
-			},
-			[EntityMetaKey.Fields]: {
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'blockHeight')]: BigInt(observation.value.updatedAtHeight),
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'side')]: position.side,
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'size')]: position.size,
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'entryPrice')]: position.entryPrice,
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'unrealizedPnl')]: position.unrealizedPnl,
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'realizedPnl')]: position.realizedPnl,
-				[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition_Timestamp, [], 'netFunding')]: position.netFunding,
-			},
-		})),
+			}
+
+			return {
+				[EntityMetaKey.Selector]: positionSelector,
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.DydxChainPerpetualPosition, [], '$$timestamps')]: [
+						projectPerpetualPositionTimestamp(
+							position,
+							positionSelector,
+							observation.observedAtMs,
+							observation.value.updatedAtHeight
+						),
+					],
+				},
+			}
+		}),
 		resolveCount: (observation) => Object.keys(observation.value.openPerpetualPositions).length,
 	},
 	$$timestamps: (observation, subaccount) => {
@@ -680,6 +767,25 @@ export const dydxChainSubaccountResolver = defineResolver({
 			},
 		}]
 	},
+})
+
+export const dydxChainPerpetualPositionResolver = defineResolver({
+	entityType: EntityType.DydxChainPerpetualPosition,
+	resolve: {
+		SubaccountMarket: {
+			appliesTo: dydxPerpetualPositionApplicability,
+			resolve: resolveDydxPerpetualPosition,
+		},
+	},
+})({
+	$$timestamps: (observation, position) => [
+		projectPerpetualPositionTimestamp(
+			observation.position,
+			position,
+			observation.observedAtMs,
+			observation.value.updatedAtHeight
+		),
+	],
 })
 
 export const dydxChainSubaccountOrdersResolver = defineResolver({
@@ -788,6 +894,7 @@ export default {
 		dydxChainMarketResolver,
 		dydxChainNetworkResolver,
 		dydxChainOrderResolver,
+		dydxChainPerpetualPositionResolver,
 		dydxChainSubaccountOrdersResolver,
 		dydxChainSubaccountResolver,
 		dydxNetworkReferenceResolver,

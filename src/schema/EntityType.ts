@@ -420,6 +420,7 @@ export enum EntityType {
 	DydxChainNetwork_Timestamp = 'DydxChainNetwork_Timestamp',
 	DydxChainOrder = 'DydxChainOrder',
 	DydxChainOrder_Timestamp = 'DydxChainOrder_Timestamp',
+	DydxChainPerpetualPosition = 'DydxChainPerpetualPosition',
 	DydxChainPerpetualPosition_Timestamp = 'DydxChainPerpetualPosition_Timestamp',
 	DydxChainSubaccount = 'DydxChainSubaccount',
 	DydxChainSubaccount_Timestamp = 'DydxChainSubaccount_Timestamp',
