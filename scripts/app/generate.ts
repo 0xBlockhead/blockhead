@@ -319,6 +319,16 @@ type GenerationIndexes = Readonly<
 >
 export type CompiledApp = Readonly<{
 	generatedFiles: readonly GeneratedFile[]
+	sourceClaims: readonly CompiledSourceClaim[]
+}>
+
+export type CompiledSourceClaim = Readonly<{
+	source: string
+	entityType: string
+	selectorName?: string
+	facetPath: readonly string[]
+	fieldName?: string
+	publicRoute?: string
 }>
 
 const repoRoot = process.cwd()
@@ -1743,6 +1753,83 @@ const sourceSelectionName = (selection: _SourceSelection) => selection.name ?? '
 const sourceSelectionFunctionName = (selection: _SourceSelection) => `${sourceSelectionName(selection)}Sources`
 
 const sourceSelectionModulePath = (selection: _SourceSelection) => `$/sources/${sourceSelectionFunctionName(selection)}.ts`
+
+const sourceSelectionSources = (
+	selection: readonly string[] | _SourceSelection
+) => unique(
+	Array.isArray(selection) ?
+		selection
+	:
+		[
+			...selection.default,
+			...(selection.cases ?? []).flatMap(({ sources }) => sources),
+	]
+)
+
+const compileSourceClaims = (
+	entities: readonly Entity[],
+	facetEntries: readonly EntityFacetEntry[],
+	physicalRouteFiles: readonly CompiledPhysicalRouteFileFacts[],
+	indexes: GenerationIndexes
+) => [
+	...entities.flatMap((entity) => [
+		...entity.fields.map((field) => ({
+			field,
+			facetPath: [] as readonly string[],
+		})),
+		...facetEntries
+			.filter((facetEntry) => facetEntry.entityType === entity.entityType)
+			.flatMap((facetEntry) => (facetEntry.facet.fields ?? []).map((field) => ({
+				field,
+				facetPath: facetEntry.projectionPath,
+			}))),
+	].flatMap(({ facetPath, field }) => (field.defaultSources ?? []).map((source) => ({
+		source,
+		entityType: entity.entityType,
+		facetPath,
+		fieldName: field.name,
+	})))),
+	...physicalRouteFiles.flatMap((routeFile) => routeFile.kind !== 'page' ? [] : [
+		...routeFile.mappings.flatMap((mapping) => mapping.sourceSelection == null ? [] : (
+			sourceSelectionSources(mapping.sourceSelection).map((source) => ({
+				source,
+				entityType: mapping.entityType,
+				selectorName: mapping.selectorName,
+				facetPath: [] as readonly string[],
+				publicRoute: publicRouteId(routeFile.appRoutePath),
+			}))
+		)),
+		...routeFile.collections.flatMap((collection) => {
+			if (collection.query?.sources == null)
+				return []
+
+			let fieldOwner = indexes.entityByType[collection.source.entity]
+			let field: EntityField | undefined
+			let terminalFieldOwner: Entity | undefined
+			let facetPath: readonly string[] = []
+			for (const fieldReference of collection.source.referencePath) {
+				if (fieldOwner == null)
+					return []
+
+				terminalFieldOwner = fieldOwner
+				field = fieldDefinitionByReference(fieldOwner, fieldReference, indexes)
+				facetPath = isProjectionFieldReference(fieldReference) ? fieldReference.slice(0, -1) : []
+				if (field?.entityType != null)
+					fieldOwner = indexes.entityByType[field.entityType]
+			}
+			if (field == null || terminalFieldOwner == null)
+				return []
+
+			return sourceSelectionSources(collection.query.sources).map((source) => ({
+				source,
+				entityType: terminalFieldOwner.entityType,
+				facetPath,
+				fieldName: field.name,
+				publicRoute: publicRouteId(routeFile.appRoutePath),
+			}))
+		}),
+	]),
+].toSorted((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right), 'en')) satisfies CompiledSourceClaim[]
 
 const sourceSelectionConditionFields = (
 	selection: _SourceSelection
@@ -5846,6 +5933,12 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 
 	return freezeCompiled({
 		generatedFiles: generateFiles(compiledApp),
+		sourceClaims: compileSourceClaims(
+			activeEntities,
+			facetEntries,
+			physicalRouteFiles,
+			compiledApp
+		),
 	})
 }
 

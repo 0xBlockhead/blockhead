@@ -37,6 +37,7 @@ const semanticPropertyNames = new Set([
 	'routeNodes',
 	'routes',
 	'sourceBindings',
+	'sourceClaims',
 	'sourceProviders',
 	'sources',
 ])
@@ -531,38 +532,80 @@ test('allows serialization-only IR helpers, aliases, and nested callbacks', {
 	`), [])
 })
 
-test('product compiler exports only generated-file IR and renderer has no semantic capability', {
+test('product compiler separates source-claim analysis IR from renderer capability', {
 	skip: mode !== 'product',
 }, () => {
 	const rendererPath = path.join(process.cwd(), 'scripts/app/render.ts')
 	const generatorPath = path.join(process.cwd(), 'scripts/app/generate.ts')
+	const renderer = readFileSync(rendererPath, 'utf8')
 	const generator = readFileSync(generatorPath, 'utf8')
+	const rendererSourceFile = ts.createSourceFile(rendererPath, renderer, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
 	const generatorSourceFile = ts.createSourceFile(generatorPath, generator, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
+	const renderGeneratedFileDeclaration = rendererSourceFile.statements
+		.filter(ts.isVariableStatement)
+		.flatMap((statement) => statement.declarationList.declarations)
+		.find((declaration) => ts.isIdentifier(declaration.name) && declaration.name.text === 'renderGeneratedFile')
 	const compiledAppDeclaration = generatorSourceFile.statements.find((statement): statement is ts.TypeAliasDeclaration => (
 		ts.isTypeAliasDeclaration(statement) && statement.name.text === 'CompiledApp'
 	))
+	const compiledSourceClaimDeclaration = generatorSourceFile.statements.find((statement): statement is ts.TypeAliasDeclaration => (
+		ts.isTypeAliasDeclaration(statement) && statement.name.text === 'CompiledSourceClaim'
+	))
 
 	assert.deepEqual(
-		analyzeRenderModule(readFileSync(rendererPath, 'utf8'), rendererPath),
-		[],
-		'Renderer module exceeds the generated-file serialization capability'
+		rendererSourceFile.statements
+			.filter(ts.isImportDeclaration)
+			.map((declaration) => declaration.moduleSpecifier)
+			.filter(ts.isStringLiteral)
+			.map((moduleSpecifier) => moduleSpecifier.text),
+		[
+			'svelte/compiler',
+			'typescript',
+		]
 	)
+	assert.ok(renderGeneratedFileDeclaration?.initializer != null && ts.isArrowFunction(renderGeneratedFileDeclaration.initializer))
+	assert.equal(renderGeneratedFileDeclaration.initializer.parameters[0]?.type?.getText(rendererSourceFile), 'GeneratedFile')
 	assert.ok(compiledAppDeclaration)
-	assert.doesNotMatch(compiledAppDeclaration.type.getText(generatorSourceFile), /CompiledAppFacts|Entity|Route|Source|Provider|Binding|Index/)
+	assert.ok(compiledSourceClaimDeclaration)
+	assert.doesNotMatch(compiledAppDeclaration.type.getText(generatorSourceFile), /CompiledAppFacts|Entity|Route|Provider|Binding|Index/)
 	const compiledAppType = ts.isTypeReferenceNode(compiledAppDeclaration.type)
 		&& compiledAppDeclaration.type.typeArguments?.length === 1 ?
 		compiledAppDeclaration.type.typeArguments[0]
 	:
 		compiledAppDeclaration.type
+	const compiledSourceClaimType = ts.isTypeReferenceNode(compiledSourceClaimDeclaration.type)
+		&& compiledSourceClaimDeclaration.type.typeArguments?.length === 1 ?
+		compiledSourceClaimDeclaration.type.typeArguments[0]
+	:
+		compiledSourceClaimDeclaration.type
 	assert.ok(ts.isTypeLiteralNode(compiledAppType))
+	assert.ok(ts.isTypeLiteralNode(compiledSourceClaimType))
 	assert.deepEqual(
 		[...compiledAppType.members]
 			.filter(ts.isPropertySignature)
 			.map((property) => property.name.getText(generatorSourceFile)),
-		['generatedFiles']
+		[
+			'generatedFiles',
+			'sourceClaims',
+		]
 	)
+	assert.deepEqual(
+		[...compiledSourceClaimType.members]
+			.filter(ts.isPropertySignature)
+			.map((property) => property.name.getText(generatorSourceFile)),
+		[
+			'source',
+			'entityType',
+			'selectorName',
+			'facetPath',
+			'fieldName',
+			'publicRoute',
+		]
+	)
+	assert.doesNotMatch(renderer, /CompiledSourceClaim|sourceClaims/)
 	assert.match(generator, /from '\.\/render\.ts'/)
-	assert.match(generator, /generatedFiles: generateFiles\(generationInput\)/)
+	assert.match(generator, /generatedFiles: generateFiles\(compiledApp\)/)
+	assert.match(generator, /sourceClaims: compileSourceClaims\(/)
 	assert.match(generator, /const files = compileApp\(app\)\.generatedFiles/)
 	assert.doesNotMatch(generator, /compileApp\(app\)\.renderPlan/)
 })

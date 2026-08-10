@@ -16,16 +16,48 @@ const assertRecursivelyFrozen = (value: object) => {
 			assertRecursivelyFrozen(nestedValue)
 }
 
-test('exports only complete immutable generated-file IR', () => {
+test('exports complete immutable generated-file and source-claim IR', () => {
 	const compiledApp = baselineCompiledApp
 
-	assert.deepEqual(Object.keys(compiledApp), ['generatedFiles'])
+	assert.deepEqual(Object.keys(compiledApp), [
+		'generatedFiles',
+		'sourceClaims',
+	])
 	assertRecursivelyFrozen(compiledApp)
 	assert.ok(compiledApp.generatedFiles.length > 0)
+	assert.ok(compiledApp.sourceClaims.length > 0)
 	assert.equal(
 		new Set(compiledApp.generatedFiles.map((generatedFile) => generatedFile.path)).size,
 		compiledApp.generatedFiles.length
 	)
+	assert.equal(
+		new Set(compiledApp.sourceClaims.map((claim) => JSON.stringify(claim))).size,
+		compiledApp.sourceClaims.length
+	)
+	assert.deepEqual(
+		compiledApp.sourceClaims,
+		[...compiledApp.sourceClaims].toSorted((left, right) => (
+			JSON.stringify(left).localeCompare(JSON.stringify(right), 'en')
+		))
+	)
+	for (const claim of compiledApp.sourceClaims) {
+		assert.deepEqual(
+			Object.keys(claim).toSorted(),
+			[
+				'entityType',
+				'facetPath',
+				...(claim.fieldName == null ? [] : ['fieldName']),
+				...(claim.publicRoute == null ? [] : ['publicRoute']),
+				...(claim.selectorName == null ? [] : ['selectorName']),
+				'source',
+			].toSorted()
+		)
+		assert.equal(claim.source.length > 0, true)
+		assert.equal(claim.entityType.length > 0, true)
+		assert.notEqual(claim.fieldName == null, claim.selectorName == null)
+		if (claim.selectorName != null)
+			assert.equal(claim.publicRoute?.startsWith('/'), true)
+	}
 	for (const generatedFile of compiledApp.generatedFiles) {
 		assert.deepEqual(
 			Object.keys(generatedFile).toSorted(),
