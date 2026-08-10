@@ -177,6 +177,48 @@ describe('Across BridgeTransfer resolvers', () => {
 		expect(snapshot).not.toHaveProperty('refundTxHash')
 	})
 
+	it('resolves an exact observation beneath the public Across deposit route', async () => {
+		const exactDeposit = {
+			...deposit,
+			depositId: '42',
+		}
+		getDeposit.mockResolvedValue({
+			deposit: exactDeposit,
+			pagination: {
+				currentIndex: 0,
+				maxIndex: 0,
+			},
+		})
+		const resolver = across.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.BridgeTransfer_Timestamp
+		))
+		if (resolver == null)
+			throw new Error('Across_Rest: BridgeTransfer_Timestamp resolver missing')
+
+		const $transfer = {
+			originChainId: exactDeposit.originChainId,
+			depositId: Number(exactDeposit.depositId),
+		}
+		const snapshot = await resolver.resolve.TransferTimestampMsSource.resolve({
+			$transfer,
+			timestampMs: Date.parse(exactDeposit.fillBlockTimestamp),
+			source: Source.Across_Rest,
+		})
+
+		expect(getDeposit).toHaveBeenCalledWith({
+			originChainId: exactDeposit.originChainId,
+			depositId: exactDeposit.depositId,
+		})
+		expect(snapshot).toMatchObject({
+			$transfer: {
+				[EntityMetaKey.Selector]: $transfer,
+			},
+			timestampMs: Date.parse(exactDeposit.fillBlockTimestamp),
+			source: Source.Across_Rest,
+			status: 'filled',
+		})
+	})
+
 	it('fails closed on bad transfer ids, unsupported chains, and clock mismatch', async () => {
 		const transferResolver = across.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.BridgeTransfer
@@ -209,6 +251,15 @@ describe('Across BridgeTransfer resolvers', () => {
 			timestampMs: Date.parse(deposit.depositBlockTimestamp),
 			source: Source.Across_Rest,
 		})).rejects.toThrow('observation clock mismatch')
+
+		await expect(observationResolver.resolve.TransferTimestampMsSource.resolve({
+			$transfer: {
+				originChainId: 8453,
+				depositId: Number.MAX_SAFE_INTEGER + 1,
+			},
+			timestampMs: Date.parse(deposit.depositBlockTimestamp),
+			source: Source.Across_Rest,
+		})).rejects.toThrow('exact deposit selector requires safe integer coordinates')
 	})
 
 	it('projects expired deposit status labels onto observation errors', async () => {

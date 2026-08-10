@@ -12,7 +12,6 @@ import {
 import {
 	EntityMetaKey,
 	type EntitySelector,
-	type EntitySelectorForSelectorName,
 } from '$/schema/$schema.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -203,16 +202,30 @@ const acrossBridgeTransferSnapshot = (
 }
 
 const loadAcrossDeposit = async (
-	transfer: EntitySelectorForSelectorName<
-		typeof schema,
-		EntityType.BridgeTransfer,
-		'SourceTransferId'
-	>
+	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>
 ) => {
-	if (transfer.source !== Source.Across_Rest)
-		throw new Error(`Across_Rest: unsupported bridge transfer source ${transfer.source}`)
+	let originChainId: number
+	let depositId: string
+	if ('transferId' in transfer) {
+		if (transfer.source !== Source.Across_Rest)
+			throw new Error(`Across_Rest: unsupported bridge transfer source ${transfer.source}`)
 
-	const { originChainId, depositId } = acrossTransferIdParts(transfer.transferId)
+		;({
+			originChainId,
+			depositId,
+		} = acrossTransferIdParts(transfer.transferId))
+	} else if ('originChainId' in transfer) {
+		if (
+			!Number.isSafeInteger(transfer.originChainId)
+			|| !Number.isSafeInteger(transfer.depositId)
+		)
+			throw new Error('Across_Rest: exact deposit selector requires safe integer coordinates')
+
+		originChainId = transfer.originChainId
+		depositId = String(transfer.depositId)
+	} else
+		throw new Error('Across_Rest: unsupported bridge transfer selector')
+
 	const { getDeposit } = await import('$/sources/Across/Rest/queries.ts')
 	const { deposit } = await getDeposit({
 		originChainId,
@@ -347,11 +360,6 @@ export default {
 					}) => {
 						if (source !== Source.Across_Rest)
 							throw new Error(`Across_Rest: unsupported bridge transfer timestamp source ${source}`)
-						if (
-							!('source' in $transfer)
-							|| !('transferId' in $transfer)
-						)
-							throw new Error('Across_Rest: bridge transfer timestamp requires SourceTransferId')
 
 						const deposit = await loadAcrossDeposit($transfer)
 						const observedAtMs = acrossObservationMs(deposit)
