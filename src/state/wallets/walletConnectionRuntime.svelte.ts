@@ -316,7 +316,6 @@ const createWalletRuntimeState = (
 							protocol: true,
 							transportKind: true,
 							scopes: true,
-							selected: true,
 							connectedAt: true,
 							disconnectedAt: true,
 							sessionId: true,
@@ -346,6 +345,14 @@ const createWalletRuntimeState = (
 				))?.transportKind
 				if (protocol == null || transportKind == null)
 					throw new Error(`Persisted wallet connection ${persistedConnectionReference.connectionKey} has an unknown protocol or transport`)
+				const selected = (
+					persistedConnection.status === BlockheadConnectionStatus.Connected ?
+						await persistedConnectionSelection.Connected.selected({
+							sources: [Source.Local_Internal],
+						})
+					:
+						undefined
+				)
 
 				return walletConnectionFromPersisted({
 					connectionKey: persistedConnectionReference.connectionKey,
@@ -360,7 +367,10 @@ const createWalletRuntimeState = (
 						&& account.reference === persistedActiveAccount[EntityMetaKey.Selector].caip10.reference
 						&& account.accountAddress === persistedActiveAccount[EntityMetaKey.Selector].caip10.accountAddress
 					)),
-					selected: persistedConnection.selected,
+					...(
+						selected !== undefined
+						&& { selected }
+					),
 					connectedAt: persistedConnection.connectedAt,
 					disconnectedAt: persistedConnection.disconnectedAt,
 					sessionId: persistedConnection.sessionId,

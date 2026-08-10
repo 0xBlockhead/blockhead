@@ -19,7 +19,7 @@ import {
 
 export type WalletConnectionWire = WalletConnectionBase & {
 	status: BlockheadConnectionStatus
-	selected: boolean
+	selected?: boolean
 	connectedAt?: number
 	disconnectedAt?: number
 	error?: string

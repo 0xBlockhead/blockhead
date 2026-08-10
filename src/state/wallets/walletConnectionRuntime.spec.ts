@@ -191,6 +191,9 @@ const mountMockWalletRuntime = async ({
 				then: persistedConnectionPromise.then.bind(persistedConnectionPromise),
 				catch: persistedConnectionPromise.catch.bind(persistedConnectionPromise),
 				finally: persistedConnectionPromise.finally.bind(persistedConnectionPromise),
+				Connected: {
+					selected: () => Promise.resolve(persistedConnection?.selected),
+				},
 				$wallet: Promise.resolve({
 					[EntityMetaKey.Selector]: {
 						id: persistedConnection?.walletId ?? walletId,
