@@ -11,6 +11,7 @@ import { SourceOperationGroup } from '$/sources/SourceBinding.ts'
 import {
 	validateNostrEvent,
 	validatedNostrEventFromContent,
+	type NostrEventEnvelope,
 } from '$/sources/NostrRelay/Nip01/event.ts'
 import {
 	SourceEndpointKind,
@@ -475,6 +476,93 @@ export const sendRelayMessage = (
 	message: NostrRelayMessage
 ) => {
 	socket.send(JSON.stringify(message))
+}
+
+export const publishRelayEvent = ({
+	binding,
+	event,
+	signal,
+	timeoutMs = 10_000,
+	socketFactory = openRelaySocket,
+}: {
+	binding: SourceBinding
+	event: NostrEventEnvelope
+	signal?: AbortSignal
+	timeoutMs?: number
+	socketFactory?: (binding: SourceBinding) => NostrRelaySocket
+}) => {
+	if (!binding.operationGroups.includes(SourceOperationGroup.NostrRelayPublish))
+		throw new Error('Nostr relay binding does not support publishing')
+	if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1)
+		throw new Error('Nostr relay publish timeout must be a positive integer')
+
+	const validatedEvent = validateNostrEvent(event)
+	const relayUrl = relayUrlForBinding(binding)
+	return new Promise<{
+		eventId: string
+		relayUrl: string
+		message: string
+	}>((resolve, reject) => {
+		const socket = socketFactory(binding)
+		let settled = false
+		const timeout = setTimeout(() => {
+			settle(() => reject(new Error(`Nostr relay publish timed out after ${timeoutMs}ms`)))
+		}, timeoutMs)
+		const settle = (settlement: () => void) => {
+			if (settled) return
+			settled = true
+			clearTimeout(timeout)
+			signal?.removeEventListener('abort', abort)
+			socket.removeEventListener('open', handleOpen)
+			socket.removeEventListener('message', handleMessage)
+			socket.removeEventListener('close', handleClose)
+			socket.close()
+			settlement()
+		}
+		const abort = () => settle(() => reject(signal?.reason))
+		const handleOpen = () => sendRelayMessage(socket, [
+			'EVENT',
+			validatedEvent,
+		])
+		const handleMessage = (messageEvent: MessageEvent) => {
+			let message: JsonValue
+			try {
+				message = JSON.parse(String(messageEvent.data))
+			} catch {
+				return
+			}
+			if (
+				!isJsonArray(message)
+				|| message[0] !== 'OK'
+				|| message[1] !== validatedEvent.id
+				|| (message[2] !== true && message[2] !== false)
+				|| !isJsonString(message[3])
+			) return
+
+			settle(() => (
+				message[2] ?
+					resolve({
+						eventId: validatedEvent.id,
+						relayUrl,
+						message: message[3],
+					})
+				:
+					reject(new Error(`Nostr relay rejected event: ${message[3]}`))
+			))
+		}
+		const handleClose = () => settle(() => reject(new Error('Nostr relay closed before acknowledging event')))
+
+		signal?.addEventListener('abort', abort, {
+			once: true,
+		})
+		if (signal?.aborted)
+			abort()
+		else {
+			socket.addEventListener('open', handleOpen)
+			socket.addEventListener('message', handleMessage)
+			socket.addEventListener('close', handleClose)
+		}
+	})
 }
 
 export const listRelayEvents = ({

@@ -14,6 +14,7 @@ import {
 	nostrZapReceiptFromEvent,
 	nostrZapRequestFromEvent,
 	openRelaySubscription,
+	publishRelayEvent,
 	relayWebSocketUrl,
 } from '$/sources/NostrRelay/WebSocket/queries.ts'
 import { Source } from '$/sources/Source.ts'
@@ -125,6 +126,100 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		expect(relayWebSocketUrl('https://relay.example/path')).toBe('wss://relay.example/path')
 		expect(relayWebSocketUrl('ws://relay.example/path')).toBe('ws://relay.example/path')
 		expect(relayWebSocketUrl('HTTPS://Relay.Example:443/path?limit=20')).toBe('wss://relay.example/path?limit=20')
+	})
+
+	it('publishes one validated signed event and owns the relay acknowledgement lifecycle', async () => {
+		const socket = new RelaySocketFixture()
+		const event = signedEvent(1, {
+			content: 'Authority stays with the signer.',
+		})
+		const result = publishRelayEvent({
+			binding: bindingForRelayUrl('wss://relay.example'),
+			event,
+			timeoutMs: 1_000,
+			socketFactory: () => socket as NostrRelaySocket,
+		})
+
+		socket.open()
+		socket.message([
+			'OK',
+			'other-event',
+			true,
+			'ignored',
+		])
+		socket.message([
+			'OK',
+			event.id,
+			true,
+			'saved',
+		])
+
+		await expect(result).resolves.toEqual({
+			eventId: event.id,
+			relayUrl: 'wss://relay.example/',
+			message: 'saved',
+		})
+		expect(socket.sent).toHaveLength(1)
+		expect(JSON.parse(socket.sent[0])).toEqual([
+			'EVENT',
+			event,
+		])
+		expect(socket.closed).toBe(true)
+	})
+
+	it('rejects relay refusal, caller cancellation, and unpublishable bindings', async () => {
+		const event = signedEvent(1)
+		const refusedSocket = new RelaySocketFixture()
+		const refused = publishRelayEvent({
+			binding: bindingForRelayUrl('wss://relay.example'),
+			event,
+			timeoutMs: 1_000,
+			socketFactory: () => refusedSocket as NostrRelaySocket,
+		})
+		refusedSocket.open()
+		refusedSocket.message([
+			'OK',
+			event.id,
+			false,
+			'blocked: policy',
+		])
+		await expect(refused).rejects.toThrow('Nostr relay rejected event: blocked: policy')
+		expect(refusedSocket.closed).toBe(true)
+
+		const cancelledSocket = new RelaySocketFixture()
+		const abortController = new AbortController()
+		const cancelled = publishRelayEvent({
+			binding: bindingForRelayUrl('wss://relay.example'),
+			event,
+			signal: abortController.signal,
+			timeoutMs: 1_000,
+			socketFactory: () => cancelledSocket as NostrRelaySocket,
+		})
+		const cancellation = new Error('cancelled')
+		abortController.abort(cancellation)
+		await expect(cancelled).rejects.toBe(cancellation)
+		expect(cancelledSocket.closed).toBe(true)
+
+		vi.useFakeTimers()
+		const timedOutSocket = new RelaySocketFixture()
+		const timedOut = publishRelayEvent({
+			binding: bindingForRelayUrl('wss://relay.example'),
+			event,
+			timeoutMs: 25,
+			socketFactory: () => timedOutSocket as NostrRelaySocket,
+		})
+		const timedOutExpectation = expect(timedOut).rejects.toThrow('timed out after 25ms')
+		await vi.advanceTimersByTimeAsync(25)
+		await timedOutExpectation
+		expect(timedOutSocket.closed).toBe(true)
+
+		expect(() => publishRelayEvent({
+			binding: {
+				...bindingForRelayUrl('wss://relay.example'),
+				operationGroups: [SourceOperationGroup.NostrRelayRead],
+			},
+			event,
+		})).toThrow('does not support publishing')
 	})
 
 	it.each([

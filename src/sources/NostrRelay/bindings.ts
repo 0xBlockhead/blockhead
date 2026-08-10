@@ -34,6 +34,7 @@ const nostrRelayWebSocketBindingAxes = {
 	apiFamily: ApiFamily.NostrRelay,
 	operationGroups: [
 		SourceOperationGroup.GenericSubscribe,
+		SourceOperationGroup.NostrRelayPublish,
 		SourceOperationGroup.NostrRelayRead,
 	],
 	delivery: SourceDelivery.RemoteLive,

@@ -144,6 +144,7 @@ export enum SourceOperationGroup {
 	GithubRepositoryContents = 'GithubRepositoryContents',
 	GitRepositoryContents = 'GitRepositoryContents',
 	IssueTracking = 'IssueTracking',
+	NostrRelayPublish = 'NostrRelayPublish',
 	NostrRelayRead = 'NostrRelayRead',
 	NostrSearch = 'NostrSearch',
 	PaymentNegotiation = 'PaymentNegotiation',
@@ -441,7 +442,7 @@ type SourceBindingCompatibility =
 		WireProtocol.WebSocketMessages,
 		ApiFamily.NostrRelay,
 		SourceEndpointKind.WebSocketUrl,
-		SourceOperationGroup.GenericSubscribe | SourceOperationGroup.NostrRelayRead | SourceOperationGroup.NostrSearch,
+		SourceOperationGroup.GenericSubscribe | SourceOperationGroup.NostrRelayPublish | SourceOperationGroup.NostrRelayRead | SourceOperationGroup.NostrSearch,
 		SourceArtifactKind.HandwrittenTypes
 	>
 	| SourceBindingCompatibilityRow<
