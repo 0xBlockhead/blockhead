@@ -221,15 +221,21 @@ export default {
 			entityType: EntityType.LightningNetwork_Timestamp,
 			resolve: {
 				LightningNetworkTimestampMsSource: {
-					resolve: async ({ $lightningNetwork, source }) => {
+					resolve: async ({
+						$lightningNetwork,
+						timestampMs,
+						source,
+					}) => {
 						if (source !== Source.LightningMempoolSpace_Rest)
 							throw new Error(`LightningMempoolSpace_Rest: unsupported source ${source}`)
 
 						assertLightningNetwork($lightningNetwork.$network)
 						const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
-						return timestampSnapshotFromMempoolSpaceStatistics(
-							(await getLightningStatistics()).latest
-						)
+						const statistics = (await getLightningStatistics()).latest
+						if (timestampMsFromIso(statistics.added) !== timestampMs)
+							throw new Error('LightningMempoolSpace_Rest: statistics observation clock mismatch')
+
+						return timestampSnapshotFromMempoolSpaceStatistics(statistics)
 					},
 				}
 			},
@@ -257,18 +263,23 @@ export default {
 							publicKey,
 						})
 						return {
-							$$timestamps: [
-								{
-									[EntityMetaKey.Selector]: {
-										$node: {
-											$network,
-											publicKey,
+							$$timestamps: (
+								node.updated_at == null ?
+									[]
+								:
+									[
+										{
+											[EntityMetaKey.Selector]: {
+												$node: {
+													$network,
+													publicKey,
+												},
+												timestampMs: timestampMsFromSeconds(node.updated_at),
+												source: Source.LightningMempoolSpace_Rest,
+											},
 										},
-										timestampMs: timestampMsFromSeconds(node.updated_at) ?? Date.now(),
-										source: Source.LightningMempoolSpace_Rest,
-									},
-								},
-							],
+									]
+							),
 						}
 					},
 				}
@@ -281,17 +292,23 @@ export default {
 			entityType: EntityType.LightningNode_Timestamp,
 			resolve: {
 				NodeTimestampMsSource: {
-					resolve: async ({ $node, source }) => {
+					resolve: async ({
+						$node,
+						timestampMs,
+						source,
+					}) => {
 						if (source !== Source.LightningMempoolSpace_Rest)
 							throw new Error(`LightningMempoolSpace_Rest: unsupported source ${source}`)
 
 						assertLightningNetwork($node.$network)
 						const { getLightningNode } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
-						return nodeSnapshotFromMempoolSpaceNode(
-							await getLightningNode({
-								publicKey: $node.publicKey,
-							})
-						)
+						const node = await getLightningNode({
+							publicKey: $node.publicKey,
+						})
+						if (timestampMsFromSeconds(node.updated_at) !== timestampMs)
+							throw new Error('LightningMempoolSpace_Rest: node observation clock mismatch')
+
+						return nodeSnapshotFromMempoolSpaceNode(node)
 					},
 				}
 			},
@@ -311,14 +328,28 @@ export default {
 			entityType: EntityType.LightningChannel,
 			resolve: {
 				NetworkChannelId: {
-					resolve: async ({ $network, channelId }) => {
+					resolve: async (channelSelector) => {
+						const { $network, channelId } = channelSelector
 						assertLightningNetwork($network)
 						const { getLightningChannel } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
-						return channelSnapshotFromMempoolSpaceChannel(
-							await getLightningChannel({
-								channelId,
-							})
-						)
+						const channel = await getLightningChannel({
+							channelId,
+						})
+						return {
+							...channelSnapshotFromMempoolSpaceChannel(channel),
+							$$timestamps: (
+								channel.updated_at == null ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											$channel: channelSelector,
+											timestampMs: timestampMsFromIso(channel.updated_at),
+											source: Source.LightningMempoolSpace_Rest,
+										},
+									}]
+							),
+						}
 					},
 				}
 			},
@@ -328,23 +359,30 @@ export default {
 			fundingOutputIndex: (snapshot) => snapshot.fundingOutputIndex,
 			openedAtMs: (snapshot) => snapshot.openedAtMs,
 			$node1: (snapshot) => snapshot.$node1,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
 		defineResolver({
 			entityType: EntityType.LightningChannel_Timestamp,
 			resolve: {
 				ChannelTimestampMsSource: {
-					resolve: async ({ $channel, source }) => {
+					resolve: async ({
+						$channel,
+						timestampMs,
+						source,
+					}) => {
 						if (source !== Source.LightningMempoolSpace_Rest)
 							throw new Error(`LightningMempoolSpace_Rest: unsupported source ${source}`)
 
 						assertLightningNetwork($channel.$network)
 						const { getLightningChannel } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
-						return channelTimestampSnapshotFromMempoolSpaceChannel(
-							await getLightningChannel({
-								channelId: $channel.channelId,
-							})
-						)
+						const channel = await getLightningChannel({
+							channelId: $channel.channelId,
+						})
+						if (timestampMsFromIso(channel.updated_at) !== timestampMs)
+							throw new Error('LightningMempoolSpace_Rest: channel observation clock mismatch')
+
+						return channelTimestampSnapshotFromMempoolSpaceChannel(channel)
 					},
 				}
 			},

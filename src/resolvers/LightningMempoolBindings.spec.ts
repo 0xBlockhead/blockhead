@@ -216,7 +216,7 @@ describe('Lightning and mempool resolver bindings', () => {
 			$lightningNetwork: {
 				$network: lightningNetwork,
 			},
-			timestampMs: 1,
+			timestampMs: Date.parse('2026-01-01T00:00:00.000Z'),
 			source: Source.LightningMempoolSpace_Rest,
 		}, context)
 		expect(getInfo).toHaveBeenCalledOnce()

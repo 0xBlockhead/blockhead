@@ -47,6 +47,10 @@ const assertLosslessUnsigned = (
 
 const assertNode = (node: MempoolSpaceLightningNode) => {
 	assertPublicKey(node.public_key)
+	if (node.first_seen != null)
+		assertSafeUnsigned(node.first_seen, 'node first-seen timestamp')
+	if (node.updated_at != null)
+		assertSafeUnsigned(node.updated_at, 'node updated timestamp')
 	if (node.active_channel_count != null)
 		assertSafeUnsigned(node.active_channel_count, 'active channel count')
 	if (node.channels != null)
@@ -71,6 +75,15 @@ const assertChannel = (
 		assertPublicKey(channel.node_right.public_key)
 	if (channel.node != null)
 		assertPublicKey(channel.node.public_key)
+	for (const [label, value] of Object.entries({
+		'channel created timestamp': channel.created,
+		'channel updated timestamp': channel.updated_at,
+		'channel closing timestamp': channel.closing_date,
+	}))
+		if (value != null && !Number.isFinite(Date.parse(value)))
+			throw new Error(`LightningMempoolSpace_Rest: invalid ${label}`)
+	if (channel.fee_rate != null && (!Number.isFinite(channel.fee_rate) || channel.fee_rate < 0))
+		throw new Error('LightningMempoolSpace_Rest: invalid channel fee rate')
 }
 
 export const getLightningStatistics = async (
@@ -97,6 +110,12 @@ export const getLightningStatistics = async (
 	}))
 		if (value != null)
 			assertSafeUnsigned(value, label)
+	for (const [label, value] of Object.entries({
+		'average fee rate': response.latest.avg_fee_rate,
+		'median fee rate': response.latest.med_fee_rate,
+	}))
+		if (value != null && (!Number.isFinite(value) || value < 0))
+			throw new Error(`LightningMempoolSpace_Rest: invalid ${label}`)
 	return response
 }
 
