@@ -10,15 +10,18 @@ import {
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { loadResolvers } from '$/resolvers/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getMessages = vi.hoisted(() => vi.fn())
+const getAttestation = vi.hoisted(() => vi.fn())
 const getBurnUsdcFees = vi.hoisted(() => vi.fn())
 const getFastBurnUsdcAllowance = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/CircleCctp/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/CircleCctp/Rest/queries.ts')>(),
 	getMessages,
+	getAttestation,
 	getBurnUsdcFees,
 	getFastBurnUsdcAllowance,
 }))
@@ -73,6 +76,7 @@ describe('CircleCctpIris_Rest resolvers', () => {
 	afterEach(() => {
 		vi.restoreAllMocks()
 		getMessages.mockReset()
+		getAttestation.mockReset()
 		getBurnUsdcFees.mockReset()
 		getFastBurnUsdcAllowance.mockReset()
 	})
@@ -85,6 +89,14 @@ describe('CircleCctpIris_Rest resolvers', () => {
 			EntityType.CctpAttestation_Timestamp,
 			EntityType.CctpBurnFee_Timestamp,
 			EntityType.CctpFastBurnAllowance_Timestamp,
+		])
+	})
+
+	it('loads the Iris lifecycle resolver through the canonical registry', async () => {
+		await expect(loadResolvers(new Set([
+			Source.CircleCctpIris,
+		]))).resolves.toEqual([
+			circleCctpRest,
 		])
 	})
 
@@ -153,6 +165,13 @@ describe('CircleCctpIris_Rest resolvers', () => {
 	it('resolves attestation observations and burn-fee / allowance timestamps', async () => {
 		getMessages.mockResolvedValue({
 			body: messagesResponse,
+			requestId: 'message-request',
+		})
+		getAttestation.mockResolvedValue({
+			body: {
+				status: 'complete',
+				attestation: `0x${'ef'.repeat(65)}`,
+			},
 			requestId: 'attestation-request',
 		})
 		getBurnUsdcFees.mockResolvedValue({
@@ -202,10 +221,13 @@ describe('CircleCctpIris_Rest resolvers', () => {
 			timestampMs: 1_700_000_000_123,
 			source: Source.CircleCctpIris,
 			status: 'complete',
-			attestation: message.attestation,
+			attestation: `0x${'ef'.repeat(65)}`,
 			forwardState: 'PENDING',
 			forwardTxHash: forwardTransactionHash,
 			requestId: 'attestation-request',
+		})
+		expect(getAttestation).toHaveBeenCalledWith({
+			messageHash: toHex(keccak256(toBytes(messageBytes))),
 		})
 
 		const sourceDomain = {
@@ -282,6 +304,59 @@ describe('CircleCctpIris_Rest resolvers', () => {
 			allowanceUsdc: 123999.999999,
 			requestId: 'allowance-request',
 		})
+	})
+
+	it('does not retain stale message attestation fields while Iris is pending', async () => {
+		getMessages.mockResolvedValue({
+			body: messagesResponse,
+			requestId: 'message-request',
+		})
+		getAttestation.mockResolvedValue({
+			body: {
+				status: 'pending_confirmations',
+				attestation: null,
+			},
+		})
+		const resolver = circleCctpRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.CctpAttestation_Timestamp
+		))
+		if (resolver == null)
+			throw new Error('missing CctpAttestation_Timestamp resolver')
+
+		const observation = await resolver.resolve.MessageTimestampMsSource.resolve({
+			$message: messageId,
+			timestampMs: 1_700_000_000_123,
+			source: Source.CircleCctpIris,
+		})
+		expect(observation).toMatchObject({
+			status: 'pending_confirmations',
+		})
+		expect(observation).not.toHaveProperty('attestation')
+		expect(observation).not.toHaveProperty('requestId')
+	})
+
+	it('rejects attestation lookup when the selected message has no hashable bytes', async () => {
+		getMessages.mockResolvedValue({
+			body: {
+				...messagesResponse,
+				messages: [{
+					...message,
+					message: undefined,
+				}],
+			},
+		})
+		const resolver = circleCctpRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.CctpAttestation_Timestamp
+		))
+		if (resolver == null)
+			throw new Error('missing CctpAttestation_Timestamp resolver')
+
+		await expect(resolver.resolve.MessageTimestampMsSource.resolve({
+			$message: messageId,
+			timestampMs: 1_700_000_000_123,
+			source: Source.CircleCctpIris,
+		})).rejects.toThrow('message bytes required for attestation lookup')
+		expect(getAttestation).not.toHaveBeenCalled()
 	})
 
 	it('hard-fails missing messages and non-Iris timestamp sources', async () => {

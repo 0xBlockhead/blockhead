@@ -410,7 +410,6 @@ export default {
 						const {
 							result,
 							message,
-							requestId,
 						} = await loadMessageForSelector($message)
 						const { irisCctpVersion } = await import('$/sources/CircleCctp/Catalog/constants.ts')
 						const snapshot = cctpMessageSnapshot(
@@ -418,10 +417,38 @@ export default {
 							result,
 							message,
 							timestampMs,
-							irisCctpVersion,
-							requestId
+							irisCctpVersion
 						)
-						return snapshot.attestationObservation
+						if (snapshot.messageHash == null)
+							throw new Error('CircleCctpIris_Rest: message bytes required for attestation lookup')
+
+						const { getAttestation } = await import('$/sources/CircleCctp/Rest/queries.ts')
+						const attestation = await getAttestation({
+							messageHash: snapshot.messageHash,
+						})
+						const attestationBytes = optionalZeroExHex(attestation.body.attestation)
+						const messageObservation = snapshot.attestationObservation
+						return {
+							$message: messageObservation.$message,
+							timestampMs: messageObservation.timestampMs,
+							source: messageObservation.source,
+							status: attestation.body.status,
+							...(attestationBytes != null && {
+								attestation: attestationBytes,
+							}),
+							...(messageObservation.delayReason != null && {
+								delayReason: messageObservation.delayReason,
+							}),
+							...(messageObservation.forwardState != null && {
+								forwardState: messageObservation.forwardState,
+							}),
+							...(messageObservation.forwardTxHash != null && {
+								forwardTxHash: messageObservation.forwardTxHash,
+							}),
+							...(attestation.requestId != null && {
+								requestId: attestation.requestId,
+							}),
+						}
 					},
 				},
 			},

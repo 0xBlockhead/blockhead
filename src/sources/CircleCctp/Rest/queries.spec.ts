@@ -320,6 +320,22 @@ describe('CircleCctpIris_Rest burn fees, allowance, attestation, public keys', (
 		)
 
 		respond({
+			attestation: null,
+			status: 'pending_confirmations',
+		}, {
+			requestId: 'pending-request',
+		})
+		await expect(getAttestation({
+			messageHash,
+		})).resolves.toEqual({
+			body: {
+				attestation: null,
+				status: 'pending_confirmations',
+			},
+			requestId: 'pending-request',
+		})
+
+		respond({
 			publicKeys: [{
 				publicKey: `0x${'04'}${'bb'.repeat(64)}`,
 				cctpVersion: 2,
