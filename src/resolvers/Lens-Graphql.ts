@@ -332,10 +332,23 @@ const lensUsernameReferenceFromWire = (
 	}
 }
 
-const lensRulesPassthroughFromWire = (
+const lensRulesWithoutConfigurationFromWire = (
 	rules: LensFeedRules | LensUsernameNamespaceRules | null | undefined
 ) => (
-	rules == null ? undefined : { required: rules.required, anyOf: rules.anyOf }
+	rules == null ? undefined : {
+		required: rules.required.map((rule) => ({
+			id: rule.id,
+			type: rule.type,
+			address: rule.address,
+			executesOn: rule.executesOn,
+		})),
+		anyOf: rules.anyOf.map((rule) => ({
+			id: rule.id,
+			type: rule.type,
+			address: rule.address,
+			executesOn: rule.executesOn,
+		})),
+	}
 )
 
 const lensUsernameNamespaceFromWire = (
@@ -358,7 +371,7 @@ const lensUsernameNamespaceFromWire = (
 		...((createdAt) => createdAt != null && { createdAt })(optionalTimestampMs(namespace.createdAt)),
 		...((description) => description != null && { description })(optionalNonemptyString(namespace.metadata?.description)),
 		totalUsernames: namespace.stats.totalUsernames,
-		...((rules) => rules != null && { rules })(lensRulesPassthroughFromWire(namespace.rules)),
+		...((rules) => rules != null && { rules })(lensRulesWithoutConfigurationFromWire(namespace.rules)),
 	}
 }
 
@@ -824,7 +837,7 @@ const lensGraphqlResolvers = {
 							const name = optionalNonemptyString(feed.metadata?.name)
 							const description = optionalNonemptyString(feed.metadata?.description)
 							const createdAt = optionalTimestampMs(feed.createdAt)
-							const rules = lensRulesPassthroughFromWire(feed.rules)
+							const rules = lensRulesWithoutConfigurationFromWire(feed.rules)
 							return [{
 								[EntityMetaKey.Selector]: { address },
 								[EntityMetaKey.Fields]: {
@@ -917,7 +930,7 @@ const lensGraphqlResolvers = {
 							...((name) => name != null && { name })(optionalNonemptyString(feed.metadata?.name)),
 							...((description) => description != null && { description })(optionalNonemptyString(feed.metadata?.description)),
 							...((createdAt) => createdAt != null && { createdAt })(optionalTimestampMs(feed.createdAt)),
-							...((rules) => rules != null && { rules })(lensRulesPassthroughFromWire(feed.rules)),
+							...((rules) => rules != null && { rules })(lensRulesWithoutConfigurationFromWire(feed.rules)),
 						}
 					},
 				},

@@ -216,7 +216,7 @@ it('continues public directories by cursor, dedupes identities, and stops at exh
 	expect(fetchMock).toHaveBeenCalledTimes(2)
 })
 
-it('parses documented feed and username namespace rules while retaining open configuration', async () => {
+it('parses documented feed and username namespace rule discriminants', async () => {
 	const feedAddress = '0x1111111111111111111111111111111111111111'
 	const namespaceAddress = '0x2222222222222222222222222222222222222222'
 	fetchMock
@@ -281,23 +281,53 @@ it('parses documented feed and username namespace rules while retaining open con
 					id: 'feed-rule',
 					type: 'SIMPLE_PAYMENT',
 					config: [{
-						provider_extension: 'open',
+						__typename: 'RawKeyValue',
 					}],
 				}],
 			},
 		},
 	})
-	await expect(queryNamespace(namespaceAddress)).resolves.toMatchObject({
+	await expect(queryNamespace(namespaceAddress)).resolves.toEqual({
 		namespace: {
+			address: namespaceAddress,
 			rules: {
+				required: [],
 				anyOf: [{
+					id: 'namespace-rule',
 					type: 'USERNAME_LENGTH',
+					address: '0x4444444444444444444444444444444444444444',
+					executesOn: ['CREATING'],
+					config: [{
+						__typename: 'IntKeyValue',
+					}],
 				}],
 			},
 		},
 	})
 	await expect(queryFeed(feedAddress)).rejects.toThrow('invalid feed rules response')
 	expect(requestBody(0).query).toMatch(/config[\s\S]*__typename/)
+	expect(requestBody(1).query).toMatch(/config[\s\S]*__typename/)
+})
+
+it('rejects namespace rule configuration that does not match the selected wire envelope', async () => {
+	const namespaceAddress = '0x2222222222222222222222222222222222222222'
+	fetchMock.mockResolvedValueOnce(response({
+		namespace: {
+			address: namespaceAddress,
+			rules: {
+				required: [{
+					id: 'namespace-rule',
+					type: 'USERNAME_LENGTH',
+					address: '0x4444444444444444444444444444444444444444',
+					executesOn: ['CREATING'],
+					config: [{}],
+				}],
+				anyOf: [],
+			},
+		},
+	}))
+
+	await expect(queryNamespace(namespaceAddress)).rejects.toThrow('invalid username namespace rules response')
 })
 
 it('issues typed unsigned feed, username, and namespace detail and directory operations', async () => {

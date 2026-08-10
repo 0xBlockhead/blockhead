@@ -2,7 +2,9 @@ import { type as arktype } from 'arktype'
 
 const lensRuleIdWire = arktype('string > 0')
 const lensRuleAddressWire = arktype(/^0x[0-9a-f]{40}$/i)
-const lensRuleConfigurationWire = arktype('unknown[]')
+const lensRuleConfigurationWire = arktype({
+	__typename: "'AddressKeyValue' | 'ArrayKeyValue' | 'BigDecimalKeyValue' | 'BooleanKeyValue' | 'DictionaryKeyValue' | 'IntKeyValue' | 'IntNullableKeyValue' | 'RawKeyValue' | 'StringKeyValue'",
+}).onUndeclaredKey('delete').array()
 
 export const lensFeedRuleWire = arktype({
 	id: lensRuleIdWire,

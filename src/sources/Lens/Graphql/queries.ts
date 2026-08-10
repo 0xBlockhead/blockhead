@@ -165,12 +165,18 @@ const LensUsernameNamespace = graphql(`
 				type
 				address
 				executesOn
+				config {
+					__typename
+				}
 			}
 			anyOf {
 				id
 				type
 				address
 				executesOn
+				config {
+					__typename
+				}
 			}
 		}
 	}

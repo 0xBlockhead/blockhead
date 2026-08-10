@@ -876,6 +876,9 @@ describe('Lens_Graphql reading relationships', () => {
 								type: 'TOKEN_GATED',
 								address: '0x4444444444444444444444444444444444444444',
 								executesOn: ['CREATE_USERNAME'],
+								config: [{
+									__typename: 'AddressKeyValue',
+								}],
 							}],
 						},
 					},
@@ -977,5 +980,20 @@ describe('Lens_Graphql reading relationships', () => {
 		await expect(feedsResolver.resolve.Scope.resolve({
 			scope: 'LensNetwork',
 		}, context)).rejects.toThrow('invalid feed rules response')
+	})
+
+	it('propagates typed-rule producer failures before namespace projection', async () => {
+		queryNamespaces.mockRejectedValueOnce(new Error('Lens_Graphql: invalid username namespace rules response'))
+
+		const namespacesResolver = lensGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.LensNetwork
+			&& '$$usernameNamespaces' in resolver.projections
+		))
+		if (namespacesResolver == null || !('Scope' in namespacesResolver.resolve))
+			throw new Error('Lens spec missing LensNetwork username namespace list resolver')
+
+		await expect(namespacesResolver.resolve.Scope.resolve({
+			scope: 'LensNetwork',
+		}, context)).rejects.toThrow('invalid username namespace rules response')
 	})
 })
