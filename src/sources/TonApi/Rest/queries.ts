@@ -171,3 +171,32 @@ export const getBlockchainAccountTransactions = async (
 		),
 	}
 }
+
+export const getBlockchainAccountTransaction = async (
+	{
+		accountId,
+		lt,
+		hash,
+	}: {
+		accountId: string
+		lt: bigint
+		hash?: string
+	}
+) => {
+	if (lt < 0n)
+		throw new Error('TonApi_Rest: transaction logical time must be non-negative')
+	if (hash != null && !/^[0-9a-fA-F]{64}$/.test(hash))
+		throw new Error('TonApi_Rest: malformed transaction hash')
+
+	const transaction = (await getBlockchainAccountTransactions({
+		accountId,
+		limit: 1,
+		beforeLt: lt + 1n,
+	})).transactions.at(0)
+	if (transaction == null || transaction.lt !== lt)
+		throw new Error(`TonApi_Rest: transaction not found for ${accountId}:${lt.toString()}`)
+	if (hash != null && transaction.hash !== hash.toLowerCase())
+		throw new Error(`TonApi_Rest: transaction hash mismatch for ${accountId}:${lt.toString()}`)
+
+	return transaction
+}

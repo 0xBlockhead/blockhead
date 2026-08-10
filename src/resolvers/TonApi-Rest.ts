@@ -7,8 +7,10 @@ import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
+	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 const tonMainnetCaip2 = {
@@ -22,6 +24,19 @@ const tonNetworkApplicability = [
 	},
 	{
 		slug: networkBySlug.ton.slug,
+	},
+] as const
+
+const tonTransactionApplicability = [
+	{
+		$account: {
+			$network: tonNetworkApplicability[0],
+		},
+	},
+	{
+		$account: {
+			$network: tonNetworkApplicability[1],
+		},
 	},
 ] as const
 
@@ -80,6 +95,32 @@ const tonNetworkTimestamps = async (network: Parameters<typeof assertTonNetwork>
 			[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'latestBlockUtimeMs')]: masterchainHead.gen_utime * 1_000,
 		},
 	}]
+}
+
+const resolveTonTransaction = async (
+	transactionSelector: EntitySelector<typeof schema, EntityType.TonTransaction>
+) => {
+	assertTonNetwork(transactionSelector.$account.$network)
+	const {
+		getAccount,
+		getBlockchainAccountTransaction,
+	} = await import('$/sources/TonApi/Rest/queries.ts')
+	const account = await getAccount(transactionSelector.$account.address)
+	tonRawAddressCoordinates(account.address)
+	const transaction = await getBlockchainAccountTransaction({
+		accountId: account.address,
+		lt: transactionSelector.lt,
+		...('hash' in transactionSelector && {
+			hash: transactionSelector.hash,
+		}),
+	})
+
+	return {
+		hash: transaction.hash,
+		nowMs: transaction.utime * 1_000,
+		transactionKind: transaction.transactionType,
+		totalFeesNano: transaction.totalFeesNano,
+	}
 }
 
 export default {
@@ -163,6 +204,25 @@ export default {
 			workchain: (account) => account.workchain,
 			addressHash: (account) => account.addressHash,
 			$$timestamps: (account) => account.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.TonTransaction,
+			resolve: {
+				AccountLt: {
+					appliesTo: tonTransactionApplicability,
+					resolve: resolveTonTransaction,
+				},
+				AccountLtHash: {
+					appliesTo: tonTransactionApplicability,
+					resolve: resolveTonTransaction,
+				},
+			},
+		})({
+			hash: (transaction) => transaction.hash,
+			nowMs: (transaction) => transaction.nowMs,
+			transactionKind: (transaction) => transaction.transactionKind,
+			totalFeesNano: (transaction) => transaction.totalFeesNano,
 		}),
 
 		defineResolver({

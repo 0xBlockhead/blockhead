@@ -17,6 +17,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 }))
 
 const {
+	getBlockchainAccountTransaction,
 	getBlockchainAccountTransactions,
 	getBlockchainRawAccount,
 } = await import('$/sources/TonApi/Rest/queries.ts')
@@ -198,6 +199,58 @@ describe('TonAPI raw account transaction transport', () => {
 			beforeLt: -1n,
 		})).rejects.toThrow('non-negative')
 		expect(getJson).not.toHaveBeenCalled()
+	})
+
+	it('resolves one exact logical-time and hash identity', async () => {
+		getJson.mockResolvedValueOnce({
+			transactions: [transaction],
+		})
+
+		await expect(getBlockchainAccountTransaction({
+			accountId,
+			lt: BigInt(transaction.lt),
+			hash: transaction.hash.toLowerCase(),
+		})).resolves.toMatchObject({
+			hash: transaction.hash.toLowerCase(),
+			lt: BigInt(transaction.lt),
+		})
+		expect(getJson).toHaveBeenCalledWith(
+			binding,
+			`/v2/blockchain/accounts/${encodeURIComponent(accountId)}/transactions?limit=1&sort_order=desc&before_lt=${transaction.lt + 1}`
+		)
+	})
+
+	it('rejects absent, mismatched, and malformed exact transaction identities', async () => {
+		getJson.mockResolvedValueOnce({
+			transactions: [{
+				...transaction,
+				lt: transaction.lt - 1,
+			}],
+		})
+		await expect(getBlockchainAccountTransaction({
+			accountId,
+			lt: BigInt(transaction.lt),
+		})).rejects.toThrow('transaction not found')
+
+		getJson.mockResolvedValueOnce({
+			transactions: [transaction],
+		})
+		await expect(getBlockchainAccountTransaction({
+			accountId,
+			lt: BigInt(transaction.lt),
+			hash: 'a'.repeat(64),
+		})).rejects.toThrow('transaction hash mismatch')
+
+		await expect(getBlockchainAccountTransaction({
+			accountId,
+			lt: -1n,
+		})).rejects.toThrow('logical time must be non-negative')
+		await expect(getBlockchainAccountTransaction({
+			accountId,
+			lt: BigInt(transaction.lt),
+			hash: 'not-a-hash',
+		})).rejects.toThrow('malformed transaction hash')
+		expect(getJson).toHaveBeenCalledTimes(2)
 	})
 })
 

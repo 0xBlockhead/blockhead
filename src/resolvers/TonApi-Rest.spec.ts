@@ -77,9 +77,17 @@ const networkResolver = tonApiResolvers.resolvers.find((resolver) => (
 const jettonResolver = tonApiResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.TonJetton
 ))
+const transactionResolver = tonApiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.TonTransaction
+))
 
-if (networkResolver == null || accountResolver == null || jettonResolver == null)
-	throw new Error('TonApi-Rest spec missing network, account, or jetton resolver')
+if (
+	networkResolver == null
+	|| accountResolver == null
+	|| jettonResolver == null
+	|| transactionResolver == null
+)
+	throw new Error('TonApi-Rest spec missing network, account, transaction, or jetton resolver')
 
 describe('TonAPI masterchain-head transport', () => {
 	beforeEach(() => {
@@ -392,6 +400,86 @@ describe('TonAPI jetton resolver', () => {
 				masterAddress: 'EQ/a+b',
 				}
 			)).rejects.toThrow('malformed raw address')
+	})
+})
+
+describe('TonAPI transaction resolver', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it.each([
+		[
+			'AccountLt',
+			{},
+		],
+		[
+			'AccountLtHash',
+			{
+				hash: 'd43981844b5fb58ffab8a78ef19b5b4c3b1d2b4201b57a7a5fdfdb425ba81c9e',
+			},
+		],
+	] as const)('maps the exact %s selector to native TonAPI fields', async (selector, identity) => {
+		sourceGetJson
+			.mockResolvedValueOnce(accountFixture)
+			.mockResolvedValueOnce({
+				transactions: [{
+					hash: 'D43981844B5FB58FFAB8A78EF19B5B4C3B1D2B4201B57A7A5FDFDB425BA81C9E',
+					lt: 34_758_440_000_003,
+					account: {
+						address: accountFixture.address,
+						is_scam: false,
+						is_wallet: true,
+					},
+					success: true,
+					utime: 1_674_646_605,
+					total_fees: 333_328,
+					end_balance: 1_000,
+					transaction_type: 'TransOrd',
+					block: '(0,8000000000000000,32400585)',
+					aborted: false,
+					destroyed: false,
+				}],
+			})
+
+		await expect(transactionResolver.resolve[selector].resolve({
+			$account: {
+				$network: {
+					slug: 'ton',
+				},
+				address: 'EQ/a+b',
+			},
+			lt: 34_758_440_000_003n,
+			...identity,
+		})).resolves.toEqual({
+			hash: 'd43981844b5fb58ffab8a78ef19b5b4c3b1d2b4201b57a7a5fdfdb425ba81c9e',
+			nowMs: 1_674_646_605_000,
+			transactionKind: 'TransOrd',
+			totalFeesNano: 333_328n,
+		})
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			1,
+			tonApiBinding,
+			'https://tonapi.io/v2/accounts/EQ%2Fa%2Bb'
+		)
+		expect(sourceGetJson).toHaveBeenNthCalledWith(
+			2,
+			tonApiBinding,
+			`https://tonapi.io/v2/blockchain/accounts/${encodeURIComponent(accountFixture.address)}/transactions?limit=1&sort_order=desc&before_lt=34758440000004`
+		)
+	})
+
+	it('rejects non-TON parents before transport', async () => {
+		await expect(transactionResolver.resolve['AccountLt'].resolve({
+			$account: {
+				$network: {
+					slug: 'ethereum',
+				},
+				address: 'EQ/a+b',
+			},
+			lt: 1n,
+		})).rejects.toThrow('unsupported network')
+		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 })
 
