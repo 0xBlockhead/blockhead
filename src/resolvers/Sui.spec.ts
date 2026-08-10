@@ -28,9 +28,27 @@ const transactionResolver = suiResolvers.resolvers.find((resolver) => (
 const transactionTimestampResolver = suiResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.SuiTransaction_Timestamp
 ))
+const coinTypeResolver = suiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.SuiCoinType
+))
+const packageVersionResolver = suiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.SuiPackageVersion
+))
+const eventResolver = suiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.SuiEvent
+))
+const commandResolver = suiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.SuiProgrammableTransactionCommand
+))
+const balanceChangeResolver = suiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.SuiBalanceChange
+))
+const objectChangeResolver = suiResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.SuiObjectChange
+))
 
-if (networkResolver == null || checkpointResolver == null || transactionResolver == null || transactionTimestampResolver == null)
-	throw new Error('Sui spec missing network/checkpoint/transaction resolvers')
+if (networkResolver == null || checkpointResolver == null || transactionResolver == null || transactionTimestampResolver == null || coinTypeResolver == null || packageVersionResolver == null || eventResolver == null || commandResolver == null || balanceChangeResolver == null || objectChangeResolver == null)
+	throw new Error('Sui spec missing network/checkpoint/transaction/coin/package/event/child resolvers')
 
 const canonicalAddress = `0x${'0'.repeat(63)}2`
 const account = {
@@ -51,6 +69,69 @@ const context = {
 	parentSelectorKeys: [],
 	sources: [],
 	publicEnv: {},
+}
+const childTransactionWire = {
+	transaction: {
+		digest: 'TransactionDigest',
+		sender: null,
+		kind: {
+			__typename: 'ProgrammableTransaction',
+			commands: {
+				nodes: [{
+					__typename: 'MoveCallCommand',
+					function: {
+						name: 'transfer',
+						module: {
+							name: 'coin',
+							package: {
+								address: canonicalAddress,
+							},
+						},
+					},
+					arguments: [],
+				}],
+			},
+		},
+		gasInput: null,
+		effects: {
+			checkpoint: {
+				sequenceNumber: 100,
+			},
+			balanceChanges: {
+				nodes: [{
+					owner: {
+						address: canonicalAddress,
+					},
+					coinType: {
+						repr: '0x2::sui::SUI',
+					},
+					amount: '-42',
+				}],
+			},
+			objectChanges: {
+				nodes: [{
+					address: canonicalAddress,
+					idCreated: false,
+					idDeleted: false,
+					outputState: {
+						version: 9,
+						digest: 'ObjectDigest',
+						asMoveObject: {
+							contents: {
+								type: {
+									repr: '0x2::coin::Coin<0x2::sui::SUI>',
+								},
+							},
+						},
+						owner: null,
+					},
+				}],
+			},
+			events: {
+				nodes: [],
+			},
+		},
+	},
 }
 
 describe('Sui GraphQL public-account resolver', () => {
@@ -320,6 +401,286 @@ describe('Sui GraphQL network / checkpoint / transaction resolvers', () => {
 				[entityFieldAddressKey(EntityType.SuiCheckpoint, [], 'previousDigest')]: 'PreviousDigest',
 			},
 		}])
+	})
+
+	it('projects deny-cap metadata into the existing regulated-state observation without fabricating pause state', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_752_624_000_123)
+		executeSui.mockResolvedValueOnce({
+			coinMetadata: {
+				address: '0xabc',
+				regulatedState: 'REGULATED',
+				allowGlobalPause: true,
+				denyCap: {
+					address: '0xdef',
+					version: 4,
+					digest: 'DenyCapDigest',
+				},
+			},
+		})
+		const selector = {
+			$network: suiNetwork,
+			coinType: '0x2::sui::SUI',
+		}
+		const snapshot = await coinTypeResolver.resolve.NetworkCoinType.resolve(selector, context)
+
+		expect(coinTypeResolver.projections.$$regulatedStates(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$coinType: selector,
+				timestampMs: 1_752_624_000_123,
+				source: 'Sui',
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.SuiRegulatedCoinState_Timestamp, [], 'denyCapObjectId')]: `0x${'0'.repeat(61)}def`,
+			},
+		}])
+		expect(coinTypeResolver.projections.$$regulatedStates(snapshot)[0]?.[EntityMetaKey.Fields]).not.toHaveProperty(
+			entityFieldAddressKey(EntityType.SuiRegulatedCoinState_Timestamp, [], 'globalPause')
+		)
+	})
+
+	it('projects paginated package module identities through the existing MoveModule selector', async () => {
+		executeSui.mockResolvedValueOnce({
+			package: {
+				address: '0x2',
+				version: 1,
+				digest: 'PackageDigest',
+				modules: {
+					pageInfo: {
+						hasNextPage: true,
+						endCursor: 'module-cursor',
+					},
+					nodes: [
+						{
+							name: 'coin',
+						},
+						{
+							name: 'balance',
+						},
+					],
+				},
+			},
+		})
+		const selector = {
+			$network: suiNetwork,
+			packageId: canonicalAddress,
+			version: 1n,
+			digest: 'PackageDigest',
+		}
+		const snapshot = await packageVersionResolver.resolve.NetworkPackageIdVersionDigest.resolve(
+			selector,
+			{
+				...context,
+				providerContinuationToken: 'previous-module-cursor',
+			}
+		)
+
+		expect(packageVersionResolver.projections.$$modules.select(snapshot, selector, context)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: suiNetwork.$network,
+					address: canonicalAddress,
+					moduleName: 'coin',
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: suiNetwork.$network,
+					address: canonicalAddress,
+					moduleName: 'balance',
+				},
+			},
+		])
+		expect(packageVersionResolver.projections.$$modules.continuation(snapshot, selector, context)).toEqual({
+			operation: 'package-modules',
+			target: canonicalAddress,
+			terminal: false,
+			token: 'module-cursor',
+		})
+		expect(executeSui.mock.calls[0][2]).toEqual({
+			address: canonicalAddress,
+			moduleFirst: 2,
+			moduleAfter: 'previous-module-cursor',
+		})
+	})
+
+	it('rejects a package module page that does not match the selected version', async () => {
+		executeSui.mockResolvedValueOnce({
+			package: {
+				address: '0x2',
+				version: 2,
+				digest: 'OtherDigest',
+				modules: {
+					pageInfo: {
+						hasNextPage: false,
+						endCursor: null,
+					},
+					nodes: [],
+				},
+			},
+		})
+
+		await expect(packageVersionResolver.resolve.NetworkPackageIdVersionDigest.resolve({
+			$network: suiNetwork,
+			packageId: canonicalAddress,
+			version: 1n,
+			digest: 'PackageDigest',
+		}, context)).rejects.toThrow('package version selector does not match')
+	})
+
+	it('resolves a public Sui event route from the owning transaction snapshot', async () => {
+		executeSui.mockResolvedValueOnce({
+			transaction: {
+				digest: 'TransactionDigest',
+				sender: null,
+				kind: null,
+				gasInput: null,
+				effects: {
+					status: 'SUCCESS',
+					effectsDigest: null,
+					timestamp: null,
+					gasEffects: null,
+					checkpoint: {
+						sequenceNumber: 100,
+					},
+					balanceChanges: {
+						nodes: [],
+					},
+					objectChanges: {
+						nodes: [],
+					},
+					events: {
+						nodes: [{
+							sequenceNumber: 3,
+							sender: {
+								address: canonicalAddress,
+							},
+							contents: {
+								type: {
+									repr: '0x2::coin::TransferEvent',
+								},
+								json: {
+									amount: '42',
+								},
+							},
+							transactionModule: {
+								name: 'coin',
+								package: {
+									address: canonicalAddress,
+								},
+							},
+						}],
+					},
+				},
+			},
+		})
+		const event = await eventResolver.resolve.NetworkTransactionDigestEventIndex.resolve({
+			$network: suiNetwork,
+			transactionDigest: 'TransactionDigest',
+			eventIndex: 3,
+		}, context)
+
+		expect(eventResolver.projections.eventType(event)).toBe('0x2::coin::TransferEvent')
+		expect(eventResolver.projections.packageId(event)).toBe(canonicalAddress)
+		expect(eventResolver.projections.moduleName(event)).toBe('coin')
+		expect(eventResolver.projections.sender(event)).toBe(canonicalAddress)
+		expect(eventResolver.projections.value(event)).toEqual({
+			amount: '42',
+		})
+	})
+
+	it('rejects a missing direct event index', async () => {
+		executeSui.mockResolvedValueOnce({
+			transaction: {
+				digest: 'TransactionDigest',
+				sender: null,
+				kind: null,
+				gasInput: null,
+				effects: {
+					status: 'SUCCESS',
+					effectsDigest: null,
+					timestamp: null,
+					gasEffects: null,
+					checkpoint: {
+						sequenceNumber: 100,
+					},
+					balanceChanges: {
+						nodes: [],
+					},
+					objectChanges: {
+						nodes: [],
+					},
+					events: {
+						nodes: [],
+					},
+				},
+			},
+		})
+
+		await expect(eventResolver.resolve.NetworkTransactionDigestEventIndex.resolve({
+			$network: suiNetwork,
+			transactionDigest: 'TransactionDigest',
+			eventIndex: 3,
+		}, context)).rejects.toThrow('event index was not found')
+	})
+
+	it('resolves public command and change routes from one transaction snapshot per subject', async () => {
+		executeSui
+			.mockResolvedValueOnce(childTransactionWire)
+			.mockResolvedValueOnce(childTransactionWire)
+			.mockResolvedValueOnce(childTransactionWire)
+		const $transaction = {
+			$network: suiNetwork,
+			digest: 'TransactionDigest',
+		}
+		const command = await commandResolver.resolve.TransactionCommandIndex.resolve({
+			$transaction,
+			commandIndex: 0,
+		}, context)
+		const balanceChange = await balanceChangeResolver.resolve.TransactionChangeIndex.resolve({
+			$transaction,
+			changeIndex: 0,
+		}, context)
+		const objectChange = await objectChangeResolver.resolve.TransactionChangeIndex.resolve({
+			$transaction,
+			changeIndex: 0,
+		}, context)
+
+		expect(commandResolver.projections.commandKind(command)).toBe('MoveCallCommand')
+		expect(commandResolver.projections.functionName(command)).toBe('transfer')
+		expect(balanceChangeResolver.projections.amountDelta(balanceChange)).toBe(-42n)
+		expect(balanceChangeResolver.projections.$coinType(balanceChange)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: suiNetwork,
+				coinType: '0x2::sui::SUI',
+			},
+		})
+		expect(objectChangeResolver.projections.changeKind(objectChange)).toBe('Mutated')
+		expect(objectChangeResolver.projections.objectId(objectChange)).toBe(canonicalAddress)
+		expect(executeSui).toHaveBeenCalledTimes(3)
+	})
+
+	it('rejects absent direct transaction-child indexes', async () => {
+		executeSui
+			.mockResolvedValueOnce(childTransactionWire)
+			.mockResolvedValueOnce(childTransactionWire)
+			.mockResolvedValueOnce(childTransactionWire)
+		const $transaction = {
+			$network: suiNetwork,
+			digest: 'TransactionDigest',
+		}
+
+		await expect(commandResolver.resolve.TransactionCommandIndex.resolve({
+			$transaction,
+			commandIndex: 1,
+		}, context)).rejects.toThrow('command index was not found')
+		await expect(balanceChangeResolver.resolve.TransactionChangeIndex.resolve({
+			$transaction,
+			changeIndex: 1,
+		}, context)).rejects.toThrow('balance-change index was not found')
+		await expect(objectChangeResolver.resolve.TransactionChangeIndex.resolve({
+			$transaction,
+			changeIndex: 1,
+		}, context)).rejects.toThrow('object-change index was not found')
 	})
 
 	const networkFacetCheckpointsResolver = suiResolvers.resolvers.find((resolver) => (

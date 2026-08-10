@@ -56,6 +56,9 @@ const suiTransactionTimestampApplicability = [
 		source: Source.Sui,
 	},
 ] as const
+const suiTransactionChildApplicability = [{
+	$transaction: suiTransactionApplicability[0],
+}] as const
 
 export default {
 	source: Source.Sui,
@@ -746,6 +749,129 @@ export default {
 		}),
 
 		defineResolver({
+			entityType: EntityType.SuiEvent,
+			resolve: {
+				NetworkTransactionDigestEventIndex: {
+					appliesTo: suiChildApplicability,
+					resolve: async ({
+						$network,
+						transactionDigest,
+						eventIndex,
+					}) => {
+						assertSuiNetworkEntity($network)
+						const { getTransaction } = await import('$/sources/Sui/Graphql/queries.ts')
+						const event = (await getTransaction(transactionDigest)).events.find(
+							(candidate) => candidate.eventIndex === eventIndex
+						)
+						if (event == null)
+							throw new Error('Sui: transaction event index was not found')
+
+						return event
+					},
+				},
+			},
+		})({
+			eventType: (event) => event.eventType,
+			packageId: (event) => event.packageId,
+			moduleName: (event) => event.moduleName,
+			sender: (event) => event.sender,
+			value: (event) => event.value,
+		}),
+
+		defineResolver({
+			entityType: EntityType.SuiProgrammableTransactionCommand,
+			resolve: {
+				TransactionCommandIndex: {
+					appliesTo: suiTransactionChildApplicability,
+					resolve: async ({
+						$transaction,
+						commandIndex,
+					}) => {
+						assertSuiNetworkEntity($transaction.$network)
+						const { getTransaction } = await import('$/sources/Sui/Graphql/queries.ts')
+						const command = (await getTransaction($transaction.digest)).commands.at(commandIndex)
+						if (command == null)
+							throw new Error('Sui: transaction command index was not found')
+
+						return command
+					},
+				},
+			},
+		})({
+			commandKind: (command) => command.commandKind,
+			packageId: (command) => command.packageId,
+			moduleName: (command) => command.moduleName,
+			functionName: (command) => command.functionName,
+			typeArguments: (command) => command.typeArguments,
+			arguments: (command) => ('arguments' in command ? command.arguments : undefined),
+		}),
+
+		defineResolver({
+			entityType: EntityType.SuiBalanceChange,
+			resolve: {
+				TransactionChangeIndex: {
+					appliesTo: suiTransactionChildApplicability,
+					resolve: async ({
+						$transaction,
+						changeIndex,
+					}) => {
+						assertSuiNetworkEntity($transaction.$network)
+						const { getTransaction } = await import('$/sources/Sui/Graphql/queries.ts')
+						const change = (await getTransaction($transaction.digest)).balanceChanges.at(changeIndex)
+						if (change == null)
+							throw new Error('Sui: transaction balance-change index was not found')
+
+						return {
+							$network: $transaction.$network,
+							change,
+						}
+					},
+				},
+			},
+		})({
+			ownerSelector: ({ change }) => change.ownerSelector,
+			coinType: ({ change }) => change.coinType,
+			$coinType: ({
+				$network,
+				change,
+			}) => ({
+				[EntityMetaKey.Selector]: {
+					$network,
+					coinType: change.coinType,
+				},
+			}),
+			amountDelta: ({ change }) => change.amountDelta,
+		}),
+
+		defineResolver({
+			entityType: EntityType.SuiObjectChange,
+			resolve: {
+				TransactionChangeIndex: {
+					appliesTo: suiTransactionChildApplicability,
+					resolve: async ({
+						$transaction,
+						changeIndex,
+					}) => {
+						assertSuiNetworkEntity($transaction.$network)
+						const { getTransaction } = await import('$/sources/Sui/Graphql/queries.ts')
+						const change = (await getTransaction($transaction.digest)).objectChanges.at(changeIndex)
+						if (change == null)
+							throw new Error('Sui: transaction object-change index was not found')
+
+						return change
+					},
+				},
+			},
+		})({
+			changeKind: (change) => change.changeKind,
+			objectId: (change) => change.objectId,
+			objectType: (change) => change.objectType,
+			ownerSelector: (change) => change.ownerSelector,
+			version: (change) => change.version,
+			digest: (change) => change.digest,
+		}),
+
+		defineResolver({
 			entityType: EntityType.SuiObject,
 			resolve: {
 				NetworkObjectId: {
@@ -837,17 +963,36 @@ export default {
 					}) => {
 						assertSuiNetworkEntity($network)
 						const { getCoinMetadata } = await import('$/sources/Sui/Graphql/queries.ts')
-						return await getCoinMetadata( coinType)
+						return {
+							$network,
+							coin: await getCoinMetadata(coinType),
+						}
 					},
 				},
 			},
 		})({
-			coinType: (coin) => coin.coinType,
-			decimals: (coin) => coin.decimals,
-			symbol: (coin) => coin.symbol,
-			name: (coin) => coin.name,
-			description: (coin) => coin.description,
-			iconUrl: (coin) => coin.iconUrl,
+			coinType: ({ coin }) => coin.coinType,
+			decimals: ({ coin }) => coin.decimals,
+			symbol: ({ coin }) => coin.symbol,
+			name: ({ coin }) => coin.name,
+			description: ({ coin }) => coin.description,
+			iconUrl: ({ coin }) => coin.iconUrl,
+			$$regulatedStates: ({
+				$network,
+				coin,
+			}) => coin.denyCap == null ? [] : [{
+				[EntityMetaKey.Selector]: {
+					$coinType: {
+						$network,
+						coinType: coin.coinType,
+					},
+					timestampMs: coin.fetchedAtMs,
+					source: Source.Sui,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.SuiRegulatedCoinState_Timestamp, [], 'denyCapObjectId')]: coin.denyCap.objectId,
+				},
+			}],
 		}),
 
 		defineResolver({
@@ -858,10 +1003,13 @@ export default {
 					resolve: async ({
 						$network,
 						originalPackageId,
-					}) => {
+					}, context) => {
 						assertSuiNetworkEntity($network)
 						const { getPackage } = await import('$/sources/Sui/Graphql/queries.ts')
-						const suiPackage = await getPackage( originalPackageId)
+						const suiPackage = await getPackage({
+							packageId: originalPackageId,
+							moduleLimit: Math.min(resolverContextRowLimit(context), 50),
+						})
 						return {
 							$network,
 							suiPackage,
@@ -890,6 +1038,64 @@ export default {
 					},
 				},
 			}],
+		}),
+
+		defineResolver({
+			entityType: EntityType.SuiPackageVersion,
+			resolve: {
+				NetworkPackageIdVersionDigest: {
+					appliesTo: suiChildApplicability,
+					resolve: async ({
+						$network,
+						packageId,
+						version,
+						digest,
+					}, context) => {
+						assertSuiNetworkEntity($network)
+						const { getPackage } = await import('$/sources/Sui/Graphql/queries.ts')
+						const suiPackage = await getPackage({
+							packageId,
+							moduleLimit: Math.min(resolverContextRowLimit(context), 50),
+							moduleAfter: context.providerContinuationToken,
+						})
+						if (suiPackage.version !== version || suiPackage.digest !== digest)
+							throw new Error('Sui: package version selector does not match the current package')
+
+						return {
+							$network,
+							suiPackage,
+						}
+					},
+				},
+			},
+		})({
+			$$modules: {
+				select: ({
+					$network,
+					suiPackage,
+				}) => suiPackage.moduleNames.map((moduleName) => ({
+					[EntityMetaKey.Selector]: {
+						$network: $network.$network,
+						address: suiPackage.packageId,
+						moduleName,
+					},
+				})),
+				continuation: ({ suiPackage }) => (
+					suiPackage.modulePagination.nextAfter == null ?
+						{
+							operation: 'package-modules',
+							target: suiPackage.packageId,
+							terminal: true,
+						}
+					:
+						{
+							operation: 'package-modules',
+							target: suiPackage.packageId,
+							terminal: false,
+							token: suiPackage.modulePagination.nextAfter,
+						}
+				),
+			},
 		}),
 	] as const,
 } satisfies RegisteredSourceResolverModule

@@ -143,17 +143,35 @@ const coinMetadataDocument = graphql(`
 			name
 			description
 			iconUrl
+			regulatedState
+			allowGlobalPause
+			denyCap {
+				address
+				version
+				digest
+			}
 		}
 	}
 `)
 
 const packageDocument = graphql(`
-	query SuiPackage($address: SuiAddress!) {
+	query SuiPackage(
+		$address: SuiAddress!
+		$moduleFirst: Int!
+		$moduleAfter: String
+	) {
 		package(address: $address) {
 			address
 			version
 			digest
-			modules(first: 50) {
+			modules(
+				first: $moduleFirst
+				after: $moduleAfter
+			) {
+				pageInfo {
+					hasNextPage
+					endCursor
+				}
 				nodes {
 					name
 				}
@@ -1134,13 +1152,20 @@ export const getTransaction = async (digest: string) => {
 		}
 	})
 
+	const eventIndexes = new Set<number>()
 	const events = (effects.events?.nodes ?? []).map((event) => {
 		const eventType = event.contents?.type?.repr
 		if (eventType == null || eventType === '')
 			throw new Error('Sui GraphQL event is missing type')
+		const eventIndex = Number(event.sequenceNumber)
+		if (!Number.isSafeInteger(eventIndex) || eventIndex < 0)
+			throw new Error('Sui GraphQL event has an invalid sequence number')
+		if (eventIndexes.has(eventIndex))
+			throw new Error('Sui GraphQL transaction returned a duplicate event sequence number')
+		eventIndexes.add(eventIndex)
 		const packageAddress = event.transactionModule?.package?.address
 		return {
-			eventIndex: Number(event.sequenceNumber),
+			eventIndex,
 			eventType,
 			...(packageAddress != null && packageAddress !== '' && {
 				packageId: normalizeSuiAddress(packageAddress),
@@ -1333,6 +1358,7 @@ export const getCoinMetadata = async (coinType: string) => {
 		throw new Error(`Sui GraphQL coin metadata for ${coinType} was not found`)
 	return {
 		coinType,
+		fetchedAtMs: Date.now(),
 		metadataObjectId: normalizeSuiAddress(result.coinMetadata.address),
 		...(result.coinMetadata.decimals != null && {
 			decimals: result.coinMetadata.decimals,
@@ -1349,16 +1375,48 @@ export const getCoinMetadata = async (coinType: string) => {
 		...(result.coinMetadata.iconUrl != null && result.coinMetadata.iconUrl !== '' && {
 			iconUrl: result.coinMetadata.iconUrl,
 		}),
+		...(result.coinMetadata.regulatedState != null && {
+			regulatedState: result.coinMetadata.regulatedState,
+		}),
+		...(result.coinMetadata.allowGlobalPause != null && {
+			allowGlobalPause: result.coinMetadata.allowGlobalPause,
+		}),
+		...(result.coinMetadata.denyCap != null && {
+			denyCap: {
+				objectId: normalizeSuiAddress(result.coinMetadata.denyCap.address),
+				...(result.coinMetadata.denyCap.version != null && {
+					version: bigintFromWire(result.coinMetadata.denyCap.version, 'coin deny cap version'),
+				}),
+				...(result.coinMetadata.denyCap.digest != null && result.coinMetadata.denyCap.digest !== '' && {
+					digest: result.coinMetadata.denyCap.digest,
+				}),
+			},
+		}),
 	}
 }
 
-export const getPackage = async (packageId: string) => {
+export const getPackage = async ({
+	packageId,
+	moduleLimit,
+	moduleAfter,
+}: {
+	packageId: string
+	moduleLimit: number
+	moduleAfter?: string
+}) => {
 	const address = normalizeSuiAddress(packageId)
+	assertPageRequest({
+		address,
+		limit: moduleLimit,
+		after: moduleAfter,
+	})
 	const result = await executeSui(
 		binding,
 		packageDocument,
 		{
 			address,
+			moduleFirst: moduleLimit,
+			...(moduleAfter != null && { moduleAfter }),
 		}
 	)
 	if (result.package == null)
@@ -1369,9 +1427,15 @@ export const getPackage = async (packageId: string) => {
 		throw new Error(`Sui GraphQL package ${address} is missing version`)
 	if (result.package.digest == null || result.package.digest === '')
 		throw new Error(`Sui GraphQL package ${address} is missing digest`)
+	if (result.package.modules != null && result.package.modules.nodes.length > moduleLimit)
+		throw new Error('Sui GraphQL package modules exceeded the requested limit')
+	const moduleNamesSeen = new Set<string>()
 	const moduleNames = (result.package.modules?.nodes ?? []).map((module) => {
 		if (module.name.length === 0)
 			throw new Error('Sui GraphQL package module name must not be empty')
+		if (moduleNamesSeen.has(module.name))
+			throw new Error('Sui GraphQL package returned a duplicate module name')
+		moduleNamesSeen.add(module.name)
 		return module.name
 	})
 	return {
@@ -1379,5 +1443,18 @@ export const getPackage = async (packageId: string) => {
 		version: bigintFromWire(result.package.version, 'package version'),
 		digest: result.package.digest,
 		moduleNames,
+		modulePagination: (
+			result.package.modules == null ?
+				{
+					limit: moduleLimit,
+					...(moduleAfter != null && { after: moduleAfter }),
+				}
+			:
+				pagination(
+					moduleLimit,
+					moduleAfter,
+					result.package.modules.pageInfo
+				)
+		),
 	}
 }

@@ -668,6 +668,13 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 					name: 'Sui',
 					description: 'Sui Coin',
 					iconUrl: 'https://example.com/sui.png',
+					regulatedState: 'REGULATED',
+					allowGlobalPause: true,
+					denyCap: {
+						address: '0xdef',
+						version: 4,
+						digest: 'DenyCapDigest',
+					},
 				},
 			})
 			.mockResolvedValueOnce({
@@ -676,6 +683,7 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 					version: 1,
 					digest: 'PackageDigest',
 					modules: {
+						pageInfo,
 						nodes: [{
 							name: 'coin',
 						}],
@@ -713,23 +721,47 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 				balance: '1',
 			},
 		})
+		const fetchedAtMs = Date.now()
+		vi.spyOn(Date, 'now').mockReturnValueOnce(fetchedAtMs)
 		await expect(getCoinMetadata('0x2::sui::SUI')).resolves.toEqual({
 			coinType: '0x2::sui::SUI',
+			fetchedAtMs,
 			metadataObjectId: `0x${'0'.repeat(61)}abc`,
 			decimals: 9,
 			symbol: 'SUI',
 			name: 'Sui',
 			description: 'Sui Coin',
 			iconUrl: 'https://example.com/sui.png',
+			regulatedState: 'REGULATED',
+			allowGlobalPause: true,
+			denyCap: {
+				objectId: `0x${'0'.repeat(61)}def`,
+				version: 4n,
+				digest: 'DenyCapDigest',
+			},
 		})
-		await expect(getPackage('0x2')).resolves.toEqual({
+		await expect(getPackage({
+			packageId: '0x2',
+			moduleLimit: 1,
+		})).resolves.toEqual({
 			packageId: `0x${'0'.repeat(63)}2`,
 			version: 1n,
 			digest: 'PackageDigest',
 			moduleNames: [
 				'coin',
 			],
+			modulePagination: {
+				limit: 1,
+				nextAfter: 'next-cursor',
+			},
 		})
+		expect(executeSui.mock.calls[3][2]).toEqual({
+			address: `0x${'0'.repeat(63)}2`,
+			moduleFirst: 1,
+		})
+		expect(print(executeSui.mock.calls[2][1])).toContain('regulatedState')
+		expect(print(executeSui.mock.calls[2][1])).toContain('allowGlobalPause')
+		expect(print(executeSui.mock.calls[2][1])).toContain('denyCap')
 	})
 
 	it('fail-closes missing checkpoint digests, sequence mismatches, and incomplete transactions', async () => {
@@ -769,5 +801,68 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 		await expect(getCheckpointBySequence(100n)).rejects.toThrow('sequence mismatch')
 		await expect(getTransaction('TransactionDigest')).rejects.toThrow('missing checkpoint effects')
 		await expect(getTransaction('TransactionDigest')).rejects.toThrow('was not found')
+	})
+
+	it('fail-closes unsafe and duplicate event sequence numbers', async () => {
+		executeSui
+			.mockResolvedValueOnce({
+				transaction: {
+					digest: 'TransactionDigest',
+					sender: null,
+					kind: null,
+					gasInput: null,
+					effects: {
+						checkpoint: {
+							sequenceNumber: 100,
+						},
+						events: {
+							nodes: [{
+								sequenceNumber: '9007199254740993',
+								contents: {
+									type: {
+										repr: '0x2::coin::Event',
+									},
+								},
+							}],
+						},
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				transaction: {
+					digest: 'TransactionDigest',
+					sender: null,
+					kind: null,
+					gasInput: null,
+					effects: {
+						checkpoint: {
+							sequenceNumber: 100,
+						},
+						events: {
+							nodes: [
+								{
+									sequenceNumber: 1,
+									contents: {
+										type: {
+											repr: '0x2::coin::Event',
+										},
+									},
+								},
+								{
+									sequenceNumber: 1,
+									contents: {
+										type: {
+											repr: '0x2::coin::Event',
+										},
+									},
+								},
+							],
+						},
+					},
+				},
+			})
+
+		await expect(getTransaction('TransactionDigest')).rejects.toThrow('invalid sequence number')
+		await expect(getTransaction('TransactionDigest')).rejects.toThrow('duplicate event sequence number')
 	})
 })
