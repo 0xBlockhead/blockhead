@@ -1122,6 +1122,31 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType.EigenLayerProtocol,
+			resolve: {
+				Network: {
+					appliesTo: [
+						{
+							$network: {
+								caip2: networkBySlug.ethereum.caip2,
+							},
+						},
+						{
+							$network: {
+								slug: networkBySlug.ethereum.slug,
+							},
+						},
+					],
+					resolve: async () => ({
+						protocolName: 'EigenLayer',
+					}),
+				},
+			},
+		})({
+			protocolName: (protocol) => protocol.protocolName,
+		}),
+
+		defineResolver({
 			entityType: EntityType.MarketVenue,
 			resolve: {
 				MarketVenueId: {

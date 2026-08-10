@@ -79,6 +79,9 @@ const networkConsensusProtocolResolver = constantsResolvers.resolvers.find((reso
 	&& 'Evm' in resolver.projections
 	&& 'consensusProtocol' in resolver.projections.Evm
 ))
+const eigenLayerProtocolResolver = constantsResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EigenLayerProtocol
+))
 const globalIpfsAccessResolver = constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType._GlobalIpfsAccess
 ))
@@ -258,6 +261,28 @@ describe('Constants resolver projections', () => {
 		expect(network.evmConsensusProtocol).toBe(ConsensusProtocol.EthereumBeacon)
 		expect(network).not.toHaveProperty('consensusEndpoints')
 		expect(networkConsensusProtocolResolver.projections.Evm).not.toHaveProperty('consensusEndpoints')
+	})
+
+	it('names the Ethereum EigenLayer protocol from its internal product catalog', async () => {
+		const protocol = await eigenLayerProtocolResolver.resolve.Network.resolve({
+			$network: {
+				caip2: networkBySlug.ethereum.caip2,
+			},
+		}, resolverContext)
+
+		expect(eigenLayerProtocolResolver.resolve.Network.appliesTo).toEqual([
+			{
+				$network: {
+					caip2: networkBySlug.ethereum.caip2,
+				},
+			},
+			{
+				$network: {
+					slug: networkBySlug.ethereum.slug,
+				},
+			},
+		])
+		expect(eigenLayerProtocolResolver.projections.protocolName(protocol)).toBe('EigenLayer')
 	})
 
 	it('keeps unsigned Nostr seeds on stable identity and note relationships only', async () => {
