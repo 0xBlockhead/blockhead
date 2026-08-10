@@ -43,6 +43,7 @@
 		"src/**/*.spec.ts",
 		"src/**/*.e2e.js",
 		"src/**/*.e2e.ts",
+		"src/client/schema-selection-types.types.ts",
 		"tests/**"
 	]
 }

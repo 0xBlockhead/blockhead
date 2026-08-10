@@ -129,9 +129,20 @@ export const readCanonicalFileManifest = (projectRoot, tsconfigPath) => {
 		}))
 
 	const canonicalFiles = [...new Set(parsed.fileNames.map((fileName) => path.resolve(fileName)))].sort()
+	const declarationFiles = canonicalFiles.filter((fileName) => fileName.endsWith('.d.ts'))
 	return {
-		declarationFiles: canonicalFiles.filter((fileName) => fileName.endsWith('.d.ts')),
+		declarationFiles,
+		ambientDeclarationFiles: declarationFiles.filter(
+			(fileName) => !fileName.includes(`${path.sep}.svelte-kit${path.sep}types${path.sep}`)
+		),
 		svelteRoots: canonicalFiles.filter((fileName) => fileName.endsWith('.svelte')),
+		typeScriptRoots: canonicalFiles.filter((fileName) => (
+			!fileName.endsWith('.d.ts')
+			&& (
+				fileName.endsWith('.js')
+				|| fileName.endsWith('.ts')
+			)
+		)),
 	}
 }
 
@@ -190,6 +201,66 @@ export const readSvelteGraph = async (projectRoot, roots) => {
 	}))
 
 	return new Map(entries)
+}
+
+export const readTypeScriptRootsReachedFromSvelte = async (projectRoot, manifest) => {
+	const canonicalFiles = new Set([
+		...manifest.svelteRoots,
+		...manifest.typeScriptRoots,
+	])
+	const reachedTypeScriptRoots = new Set()
+	const visited = new Set()
+	const pending = [...manifest.svelteRoots]
+	const importsByFile = new Map(await Promise.all([...canonicalFiles].map(async (filePath) => {
+		const source = await fs.readFile(filePath, 'utf8')
+		return [
+			filePath,
+			(
+				filePath.endsWith('.svelte') ?
+					svelteScriptSources(source)
+				:
+					[source]
+			).flatMap((scriptSource) => ts.preProcessFile(scriptSource).importedFiles),
+		]
+	})))
+
+	while (pending.length > 0) {
+		const importerPath = pending.pop()
+		if (importerPath == null || visited.has(importerPath))
+			continue
+		visited.add(importerPath)
+
+		for (const importedFile of importsByFile.get(importerPath) ?? []) {
+			const unresolvedPath = importedFile.fileName.startsWith('$/') ?
+				path.resolve(projectRoot, 'src', importedFile.fileName.slice(2))
+				: importedFile.fileName.startsWith('.') ?
+					path.resolve(path.dirname(importerPath), importedFile.fileName)
+					: undefined
+			if (unresolvedPath == null)
+				continue
+
+			const canonicalPath = [
+				unresolvedPath,
+				...(unresolvedPath.endsWith('.js') ?
+					[`${unresolvedPath.slice(0, -3)}.ts`]
+					: []),
+				`${unresolvedPath}.ts`,
+				`${unresolvedPath}.js`,
+				`${unresolvedPath}.svelte`,
+				path.join(unresolvedPath, 'index.ts'),
+				path.join(unresolvedPath, 'index.js'),
+			].find((candidate) => canonicalFiles.has(candidate))
+			if (canonicalPath == null)
+				continue
+			if (visited.has(canonicalPath))
+				continue
+			if (!canonicalPath.endsWith('.svelte'))
+				reachedTypeScriptRoots.add(canonicalPath)
+			pending.push(canonicalPath)
+		}
+	}
+
+	return reachedTypeScriptRoots
 }
 
 const transitiveClosure = (root, graph) => {
@@ -267,6 +338,47 @@ export const partitionSvelteRoots = (roots, graph, requestedShardCount) => {
 	}) => shard)
 }
 
+export const partitionTypeScriptRoots = async (roots, requestedShardCount) => {
+	const shardCount = Math.min(requestedShardCount, roots.length)
+	if (shardCount === 0)
+		return []
+
+	const bytesByRoot = new Map(await Promise.all(roots.map(async (filePath) => [
+		filePath,
+		(await fs.stat(filePath)).size,
+	])))
+	const shards = Array.from({ length: shardCount }, (_, index) => ({
+		id: `typescript-${String(index + 1).padStart(2, '0')}`,
+		roots: [],
+		weight: 0,
+	}))
+	for (const root of [...roots].sort((left, right) => (
+		bytesByRoot.get(right) - bytesByRoot.get(left)
+		|| left.localeCompare(right)
+	))) {
+		const shard = [...shards].sort((left, right) => (
+			left.weight - right.weight
+			|| left.roots.length - right.roots.length
+			|| left.id.localeCompare(right.id)
+		))[0]
+		shard.roots.push(root)
+		shard.weight += bytesByRoot.get(root)
+	}
+
+	for (const shard of shards)
+		shard.roots.sort()
+
+	const assignedRoots = shards.flatMap((shard) => shard.roots)
+	if (
+		assignedRoots.length !== roots.length
+		|| new Set(assignedRoots).size !== roots.length
+		|| roots.some((root) => !assignedRoots.includes(root))
+	)
+		throw new Error('TypeScript shard partition is not an exhaustive one-to-one root assignment')
+
+	return shards.sort((left, right) => left.id.localeCompare(right.id))
+}
+
 export const writeShardConfigs = async (
 	tsconfigPath,
 	shardDirectory,
@@ -314,6 +426,7 @@ export const runShardQueue = async ({
 	shardTimeoutMs,
 	deadline,
 	environment,
+	argsForShard = (shard) => svelteCheckArgs(projectRoot, shard.configPath),
 }) => {
 	let nextIndex = 0
 	let failed = false
@@ -338,7 +451,7 @@ export const runShardQueue = async ({
 			const result = {
 				...await runProcess({
 					command,
-					args: svelteCheckArgs(projectRoot, shard.configPath),
+					args: argsForShard(shard),
 					cwd: projectRoot,
 					timeoutMs: Math.min(shardTimeoutMs, remainingMs),
 					label: shard.id,
@@ -377,45 +490,68 @@ export const runCanonicalSvelteCheck = async ({
 	tsconfigPath = path.resolve(projectRoot, 'tsconfig.svelte-check.json'),
 	tscCommand = process.env.SVELTE_CHECK_TSC_COMMAND ?? path.resolve(projectRoot, 'node_modules/.bin/tsc'),
 	svelteCheckCommand = process.env.SVELTE_CHECK_COMMAND ?? path.resolve(projectRoot, 'node_modules/.bin/svelte-check'),
+	typeScriptShardCount = positiveInteger(process.env.SVELTE_CHECK_TYPESCRIPT_SHARD_COUNT, 64),
 	shardCount = positiveInteger(process.env.SVELTE_CHECK_SHARD_COUNT, 64),
-	concurrency = Math.min(2, positiveInteger(process.env.SVELTE_CHECK_CONCURRENCY, 2)),
+	concurrency = positiveInteger(
+		process.env.SVELTE_CHECK_CONCURRENCY,
+		Math.max(1, Math.floor(os.availableParallelism() / 2))
+	),
 	shardTimeoutMs = positiveInteger(process.env.SVELTE_CHECK_SHARD_TIMEOUT_MS, 420_000),
 	globalTimeoutMs = positiveInteger(process.env.SVELTE_CHECK_GLOBAL_TIMEOUT_MS, 720_000),
 	environment = process.env,
 } = {}) => {
 	const deadline = Date.now() + globalTimeoutMs
-	const typeScriptResult = await runProcess({
+	const manifest = readCanonicalFileManifest(projectRoot, tsconfigPath)
+	const reachedTypeScriptRoots = await readTypeScriptRootsReachedFromSvelte(
+		projectRoot,
+		manifest
+	)
+	const plainTypeScriptRoots = manifest.typeScriptRoots.filter(
+		(filePath) => !reachedTypeScriptRoots.has(filePath)
+	)
+	const typeScriptShards = await writeShardConfigs(
+		tsconfigPath,
+		path.resolve(projectRoot, '.svelte-kit/svelte-check-typescript-shards'),
+		await partitionTypeScriptRoots(plainTypeScriptRoots, typeScriptShardCount),
+		manifest.ambientDeclarationFiles
+	)
+	process.stdout.write(`TypeScript roots: ${manifest.typeScriptRoots.length}; covered through Svelte: ${reachedTypeScriptRoots.size}; plain TypeScript roots: ${plainTypeScriptRoots.length}; shards: ${typeScriptShards.length}; concurrency: ${concurrency}\n`)
+	const typeScriptResults = await runShardQueue({
+		shards: typeScriptShards,
 		command: tscCommand,
-		args: [
+		projectRoot,
+		concurrency,
+		shardTimeoutMs,
+		deadline,
+		environment,
+		argsForShard: (shard) => [
 			'--project',
-			tsconfigPath,
+			shard.configPath,
 			'--noEmit',
 			'--pretty',
 			'false',
 			'--incremental',
 			'false',
 		],
-		cwd: projectRoot,
-		timeoutMs: Math.max(1, deadline - Date.now()),
-		label: 'plain-typescript',
-		environment,
 	})
-	printResult(typeScriptResult)
-	if (typeScriptResult.code !== 0 || typeScriptResult.timedOut)
+	for (const result of typeScriptResults)
+		printResult(result)
+	if (typeScriptResults.some((result) => result.code !== 0 || result.timedOut))
 		return 1
 
 	const {
+		ambientDeclarationFiles,
 		declarationFiles,
 		svelteRoots: roots,
-	} = readCanonicalFileManifest(projectRoot, tsconfigPath)
+	} = manifest
 	const graph = await readSvelteGraph(projectRoot, roots)
 	const shards = await writeShardConfigs(
 		tsconfigPath,
 		path.resolve(projectRoot, '.svelte-kit/svelte-check-shards'),
 		partitionSvelteRoots(roots, graph, shardCount),
-		declarationFiles
+		ambientDeclarationFiles
 	)
-	process.stdout.write(`svelte roots: ${roots.length}; declarations covered by plain TypeScript: ${declarationFiles.length}; shards: ${shards.length}; concurrency: ${concurrency}\n`)
+	process.stdout.write(`Svelte roots: ${roots.length}; ambient declarations: ${ambientDeclarationFiles.length}; generated declarations resolved on demand: ${declarationFiles.length - ambientDeclarationFiles.length}; shards: ${shards.length}; concurrency: ${concurrency}\n`)
 	const results = await runShardQueue({
 		shards,
 		command: svelteCheckCommand,

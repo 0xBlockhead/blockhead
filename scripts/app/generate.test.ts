@@ -443,6 +443,31 @@ test('generated views import runtime schema symbols used by raw snippets', () =>
 	)
 })
 
+test('preserves exact derivative decimals and legacy scaled market values', () => {
+	const currencyTimestampView = generatedSource('src/views/Currency_TimestampView.svelte')
+	const marketDerivativeTimestampSchema = generatedSource('src/schema/Market_Derivative_Timestamp.ts')
+	const marketDerivativeTimestampView = generatedSource('src/views/Market_Derivative_TimestampView.svelte')
+	const marketOhlcTimestampView = generatedSource('src/views/Market_TimeInterval_TimestampView.svelte')
+	const marketTimestampView = generatedSource('src/views/Market_TimestampView.svelte')
+
+	assert.match(currencyTimestampView, /<NumberValue\s+value=\{marketCap\}\s+formatValueOptions=/)
+	assert.match(marketDerivativeTimestampSchema, /fundingRate: \{\s+primitiveType: DecimalString,/)
+	assert.match(marketDerivativeTimestampSchema, /openInterestUsd: \{\s+primitiveType: NonNegativeDecimalString,/)
+	assert.match(marketDerivativeTimestampSchema, /indexBasisPercent: \{\s+primitiveType: DecimalString,/)
+	assert.match(marketDerivativeTimestampSchema, /markPrice: \{\s+primitiveType: NonNegativeDecimalString,/)
+	assert.match(marketDerivativeTimestampSchema, /indexPrice: \{\s+primitiveType: NonNegativeDecimalString,/)
+	assert.match(marketDerivativeTimestampView, /\{markPrice\}\s+<span>\{selection\.entitySelector\.\$market\.\$quote\.assetKey == null \? '' : ` \$\{selection\.entitySelector\.\$market\.\$quote\.assetKey\}`\}<\/span>/)
+	assert.match(marketDerivativeTimestampView, /\{indexPrice\}\s+<span>\{selection\.entitySelector\.\$market\.\$quote\.assetKey == null \? '' : ` \$\{selection\.entitySelector\.\$market\.\$quote\.assetKey\}`\}<\/span>/)
+	assert.match(marketDerivativeTimestampView, /\{openInterestUsd\}\s+<span> USD<\/span>/)
+	assert.match(marketDerivativeTimestampView, /\{fundingRate\}\s+<span>%<\/span>/)
+	assert.match(marketDerivativeTimestampView, /\{indexBasisPercent\}\s+<span>%<\/span>/)
+	assert.match(marketTimestampView, /<NumberValue\s+value=\{entity\.price\}\s+decimalPlaces=\{8\}\s+formatValueOptions=/)
+	assert.match(marketOhlcTimestampView, /<NumberValue\s+value=\{open\}\s+decimalPlaces=\{8\}\s+formatValueOptions=/)
+	assert.doesNotMatch(currencyTimestampView, /value=\{Number\(marketCap\)\}/)
+	assert.doesNotMatch(marketDerivativeTimestampView, /NumberValue|Number\(markPrice\)|markPrice \/ 1e8/)
+	assert.doesNotMatch(marketTimestampView, /Number\(entity\.price\)|entity\.price \/ 1e8/)
+})
+
 test('raw snippet imports are declarative rather than inferred from rendered text', () => {
 	const textOnlyApp = structuredClone(app)
 	const textOnlyCctpFee = textOnlyApp.schema.entities.find(({ entityType }) => entityType === EntityType.CctpFee)
@@ -780,6 +805,82 @@ const omittedPluralEntities = app.schema.entities.filter((entity) => (
 const retainedPluralEntities = app.schema.entities.filter((entity) => (
 	generatedPaths.has(`src/views/${entity.views.plural.component}.svelte`)
 ))
+
+test('resolves nested route selector derivations before emitting page modules', () => {
+	const routePaths = [
+		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/starknet-token/[tokenAddress=stringSegment]/+layout.ts',
+		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/allowance/spender/[spenderAccountId=stringSegment]/[allowanceKind=stringSegment]/+layout.ts',
+		'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[accountAddress=stringSegment]/subaccount/[subaccountNumber=nonNegativeInteger]/+layout.ts',
+	] as const
+	const routeSources = routePaths.map(generatedSource)
+
+	assert.match(routeSources[0], /\$network: parentData\.selector\.\$network/)
+	assert.match(routeSources[1], /\$network: parentData\.selector\.\$network/)
+	assert.match(routeSources[2], /export const load: LayoutLoad = async \(\{ params, parent \}\) => \{/)
+	assert.match(routeSources[2], /const parentData = await parent\(\)/)
+	assert.match(routeSources[2], /parentData\.projectionNetwork\.namespace === 'Dydx'/)
+	for (const [index, source] of routeSources.entries()) {
+		assert.doesNotMatch(source, /(?:^|[^.\w])selector\.\$/m, routePaths[index])
+		assert.deepEqual(
+			ts.transpileModule(source, {
+				compilerOptions: {
+					module: ts.ModuleKind.ESNext,
+					target: ts.ScriptTarget.ESNext,
+				},
+				fileName: routePaths[index],
+				reportDiagnostics: true,
+			}).diagnostics?.filter(({ category }) => category === ts.DiagnosticCategory.Error) ?? [],
+			[],
+			routePaths[index]
+		)
+	}
+
+	const typeTestRoot = createFreshRoot('blockhead-route-selector-derivation-types-')
+	try {
+		const selectorExpressions = routeSources.map((source, index) => {
+			const sourceFile = ts.createSourceFile(
+				routePaths[index] ?? 'route.ts',
+				source,
+				ts.ScriptTarget.Latest,
+				true,
+				ts.ScriptKind.TS
+			)
+			let selectorExpression: ts.ObjectLiteralExpression | undefined
+			const visit = (node: ts.Node) => {
+				const selectorArgument = ts.isCallExpression(node) ? node.arguments[2] : undefined
+				if (
+					ts.isCallExpression(node)
+					&& ts.isIdentifier(node.expression)
+					&& node.expression.text === 'parseEntitySelector'
+					&& selectorArgument != null
+					&& ts.isObjectLiteralExpression(selectorArgument)
+				)
+					selectorExpression = selectorArgument
+				else
+					ts.forEachChild(node, visit)
+			}
+			visit(sourceFile)
+			assert.ok(selectorExpression)
+
+			return selectorExpression.getText(sourceFile)
+		})
+		const fixturePath = path.join(typeTestRoot, 'route-selector-derivations.ts')
+		writeFileSync(fixturePath, `declare const params: Record<string, string>
+declare const parentData: { selector: Record<string, unknown> }
+
+const starknetTokenHoldingSelector = ${selectorExpressions[0]}
+const hederaAllowanceSelector = ${selectorExpressions[1]}
+const dydxChainSubaccountSelector = ${selectorExpressions[2]}
+
+void starknetTokenHoldingSelector
+void hederaAllowanceSelector
+void dydxChainSubaccountSelector
+`)
+		assertTypeChecks('route-selector-derivations:typecheck', [fixturePath], true)
+	} finally {
+		removeFreshRoot(typeTestRoot)
+	}
+})
 
 test('preserves explicit view source selections independently of field defaults', () => {
 	const filecoinActorView = generatedSource('src/views/FilecoinActorView.svelte')
@@ -1372,6 +1473,174 @@ test('generates one APP-ordered lazy resolver loader registry', () => {
 			},
 		}),
 		/references missing source MissingSource/
+	)
+})
+
+test('compiles resolver source claims from field facets and public routes', () => {
+	assert.deepEqual(
+		baselineCompiledApp.sourceClaims.filter((claim) => (
+			claim.entityType === EntityType.Network
+			&& claim.source === Source.Constants_Internal
+			&& (
+				claim.fieldName === 'consensusProtocol'
+				|| claim.publicRoute === '/network/[network]'
+			)
+		)).map((claim) => ({ ...claim })),
+		[
+			{
+				source: Source.Constants_Internal,
+				entityType: EntityType.Network,
+				facetPath: ['Evm'],
+				fieldName: 'consensusProtocol',
+			},
+			{
+				source: Source.Constants_Internal,
+				entityType: EntityType.Network,
+				selectorName: 'Caip2',
+				facetPath: [],
+				publicRoute: '/network/[network]',
+			},
+			{
+				source: Source.Constants_Internal,
+				entityType: EntityType.Network,
+				selectorName: 'Slug',
+				facetPath: [],
+				publicRoute: '/network/[network]',
+			},
+		]
+	)
+	const uniswapCcaSourceClaims = baselineCompiledApp.sourceClaims.filter((claim) => (
+		claim.entityType === EntityType.UniswapCcaAuction
+		|| claim.entityType === EntityType.UniswapCcaAuction_EvmBlock
+	))
+	assert.equal(uniswapCcaSourceClaims.length, 13)
+	assert.deepEqual(
+		[...new Set(uniswapCcaSourceClaims.map((claim) => claim.source))],
+		[Source.UniswapContracts_Evm]
+	)
+	assert.equal(uniswapCcaSourceClaims.some((claim) => (
+		claim.entityType === EntityType.UniswapCcaAuction_EvmBlock
+	)), false)
+	assert.deepEqual(
+		uniswapCcaSourceClaims.filter((claim) => claim.publicRoute != null).map((claim) => ({ ...claim })),
+		[{
+			source: Source.UniswapContracts_Evm,
+			entityType: EntityType.UniswapCcaAuction,
+			selectorName: 'NetworkAuctionAddress',
+			facetPath: [],
+			publicRoute: '/uniswap-cca/auction/[chainId]/[auctionAddress]',
+		}]
+	)
+})
+
+test('keeps unsupported dYdX, EigenLayer, and Hyperliquid selectors mapped without public source claims', () => {
+	const targets = [
+		{
+			entityType: EntityType.DydxChainPerpetualPosition_Timestamp,
+			fields: ['$position', 'timestampMs', 'source'],
+			selectorName: 'PositionTimestampMsSource',
+		},
+		{
+			entityType: EntityType.EigenLayerSlashingEvent,
+			fields: ['$network', 'transactionHash', 'logIndex'],
+			selectorName: 'NetworkTransactionHashLogIndex',
+		},
+		{
+			entityType: EntityType.EigenLayerStrategy_Timestamp,
+			fields: ['$strategy', 'timestampMs', 'source'],
+			selectorName: 'StrategyTimestampMsSource',
+		},
+		{
+			entityType: EntityType.HyperliquidAccount_Timestamp,
+			fields: [
+				'$account',
+				'infoType',
+				'timestampMs',
+				'source',
+			],
+			selectorName: 'AccountInfoTypeTimestampMsSource',
+		},
+	] as const
+	const mappedSelectors: {
+		entityType: string
+		selectorName: string
+		hasAuthoredPage: boolean
+	}[] = []
+	const collectMappedSelectors = (nodes: typeof app.routes.children): void => {
+		for (const node of Object.values(nodes)) {
+			for (const [entityType, selectors] of Object.entries(node.selectors ?? {}))
+				for (const [selectorName, mapping] of Object.entries(selectors))
+					if (targets.some((target) => (
+						target.entityType === entityType
+						&& target.selectorName === selectorName
+					)))
+						mappedSelectors.push({
+							entityType,
+							selectorName,
+							hasAuthoredPage: Object.hasOwn(mapping, 'page'),
+						})
+
+			collectMappedSelectors(node.children ?? {})
+		}
+	}
+
+	collectMappedSelectors(app.routes.children)
+	for (const target of targets) {
+		assert.deepEqual(
+			app.schema.entities
+				.find(({ entityType }) => entityType === target.entityType)
+				?.selectors.find(({ name }) => name === target.selectorName)
+				?.fields,
+			target.fields
+		)
+		assert.deepEqual(
+			mappedSelectors.filter((mapping) => (
+				mapping.entityType === target.entityType
+				&& mapping.selectorName === target.selectorName
+			)),
+			[{
+				entityType: target.entityType,
+				hasAuthoredPage: false,
+				selectorName: target.selectorName,
+			}]
+		)
+		assert.equal(baselineCompiledApp.sourceClaims.some((claim) => (
+			claim.entityType === target.entityType
+			&& claim.selectorName === target.selectorName
+			&& claim.publicRoute != null
+		)), false)
+	}
+	assert.deepEqual(
+		baselineCompiledApp.sourceClaims.filter((claim) => (
+			claim.entityType === EntityType.DydxChainPerpetualPosition_Timestamp
+			|| claim.entityType === EntityType.EigenLayerSlashingEvent
+			|| claim.entityType === EntityType.EigenLayerStrategy_Timestamp
+		)).map((claim) => ({ ...claim })),
+		[{
+			source: Source.EigenExplorer_Rest,
+			entityType: EntityType.EigenLayerSlashingEvent,
+			selectorName: 'OperatorAvsSourceSlashId',
+			facetPath: [],
+			publicRoute: '/network/[network]/eigenlayer/operator/[operatorAddress]/avs/[avsAddress]/slashing/[source]/[slashId]',
+		}]
+	)
+	assert.equal(baselineCompiledApp.sourceClaims.some((claim) => (
+		claim.entityType === EntityType.HyperliquidAccount_Timestamp
+		&& claim.selectorName === 'AccountInfoTypeTimestampMsSource'
+		&& claim.publicRoute != null
+	)), false)
+	const hyperliquidAccountTimestampSchema = baselineCompiledApp.generatedFiles.find(({ path }) => (
+		path === 'src/schema/HyperliquidAccount_Timestamp.ts'
+	))
+	assert.ok(hyperliquidAccountTimestampSchema)
+	const hyperliquidAccountTimestampSource = renderGeneratedFile(hyperliquidAccountTimestampSchema)
+	assert.match(
+		hyperliquidAccountTimestampSource,
+		/infoType: \{[\s\S]*?type\.enumerated\('clearinghouseState', 'spotClearinghouseState', 'userFees', 'delegatorSummary', 'userAbstraction', 'userDexAbstraction', 'approvedBuilders', 'borrowLendUserState'\)[\s\S]*?cardinality: EntityFieldCardinality\.One/
+	)
+	assert.match(
+		hyperliquidAccountTimestampSource,
+		/AccountInfoTypeTimestampMsSource: \[\s*'\$account',\s*'infoType',\s*'timestampMs',\s*'source',\s*\]/
 	)
 })
 
@@ -2103,7 +2372,7 @@ test('uses one resource-owned declarative summary path', () => {
 	assert.match(renderedViewByPath['src/views/BlockheadWalletConnectionView.svelte'], /\{entity\.status\}/)
 	assert.doesNotMatch(renderedViewByPath['src/views/BlockheadWalletConnectionView.svelte'], /String\(entity\.status\)/)
 	assert.doesNotMatch(renderedViewByPath['src/views/BlockheadWalletConnectionView.svelte'], /Object\.hasOwn\(prefetched|layout !== EntityLayout\.SummaryDetails/)
-	assert.match(renderedViewByPath['src/views/BlockheadWalletConnectionView.svelte'], /selection=\{select\(EntityType\.Account, account\[EntityMetaKey\.Selector\]\)\}/)
+	assert.match(renderedViewByPath['src/views/BlockheadWalletConnectionView.svelte'], /\{@const accountSelector = accountSnapshot\[EntityMetaKey\.Selector\]\}[\s\S]*?\{@const accountSelection = select\(EntityType\.Account, accountSelector\)\}[\s\S]*?selection=\{accountSelection\}/)
 	assert.doesNotMatch(renderedViewByPath['src/views/BlockheadWalletConnectionView.svelte'], /select\(EntityType\.Account, account\[EntityMetaKey\.Selector\], \{ sources: selection\.sources \}\)/)
 	assert.match(renderedViewByPath['src/views/BlockheadWalletConnectionsView.svelte'], /\$wallet: \{[\s\S]*?fields: \{[\s\S]*?name: true,[\s\S]*?protocol: true,[\s\S]*?\}/)
 	assert.match(renderedViewByPath['src/views/BlockheadWalletConnectionsView.svelte'], /\{blockheadWalletConnection\.status\}/)
@@ -2711,8 +2980,33 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 	assert.match(renderedNetworkView, /\{#snippet Icon\(\)\}\s*<IconComponent \/>/)
 	assert.match(renderedNetworkView, /\{#snippet Title\(\)\}\s*<ResourceBoundary resource=\{network\}>[\s\S]*?entity\.name/)
 	assert.match(renderedNetworkView, /\{#snippet Value\(\)\}\s*<ResourceBoundary resource=\{network\}>[\s\S]*?entity\.caip2/)
-	assert.match(renderedNetworkView, /\.\$\$upgrades\(\{[\s\S]*?orderBy:[\s\S]*?\}\)\.first\(\)[\s\S]*?\{#snippet children\(ethereumNetworkUpgrade\)\}/)
-	assert.doesNotMatch(renderedNetworkView, /ethereumNetworkUpgrades\.values\[0\]/)
+	const networkLatestDeclarations = renderedNetworkView.slice(
+		renderedNetworkView.indexOf('const networkLatestResource1 = $derived('),
+		renderedNetworkView.indexOf('const pendingEntity = $derived(')
+	)
+	assert.equal(
+		networkLatestDeclarations.match(/const networkLatestResource\d+ = \$derived\(/g)?.length,
+		7
+	)
+	assert.match(
+		networkLatestDeclarations,
+		/const networkLatestResource1 = \$derived\(\s*selection\.Evm\s*\.\$\$upgrades\(\{[\s\S]*?limit: 1,[\s\S]*?orderBy: \[[\s\S]*?activationBlock[\s\S]*?'desc'[\s\S]*?\}\)\s*\)/
+	)
+	assert.match(
+		networkLatestDeclarations,
+		/const networkLatestResource2 = \$derived\(\s*selection\.Evm\s*\.\$\$blocks\(\{[\s\S]*?blockNumber: true,[\s\S]*?limit: 1,[\s\S]*?orderBy: \[\s*\[\(\{ fieldRow \}\) => fieldRow\[EntityMetaKey\.Value\]\[EntityMetaKey\.Selector\]\.blockNumber \?\? Number\.NEGATIVE_INFINITY, 'desc'\],[\s\S]*?\}\)\s*\)/
+	)
+	assert.doesNotMatch(networkLatestDeclarations, /\bprojection\b/)
+	assert.match(renderedNetworkView, /resource=\{networkLatestResource1\}[\s\S]*?\{#snippet children\(ethereumNetworkUpgrades\)\}[\s\S]*?\{@const ethereumNetworkUpgrade = ethereumNetworkUpgrades\.values\[0\]\}/)
+	assert.match(renderedNetworkView, /resource=\{networkLatestResource2\}[\s\S]*?\{#snippet children\(evmBlocks\)\}[\s\S]*?\{@const evmBlock = evmBlocks\.values\[0\]\}/)
+	assert.doesNotThrow(() => compileSvelte(renderedNetworkView, {
+		filename: networkView.path,
+		generate: false,
+	}))
+	assert.deepEqual(
+		generatedViewSources.filter(([, source]) => source.includes('.first()')).map(([path]) => path),
+		[]
+	)
 	assert.match(renderedNetworkView, /MarkerEvmAssetsNativeCoin[\s\S]*?<ResourceBoundary[\s\S]*?\{#snippet children\(_resolved\)\}[\s\S]*?\{@render Content\(\)\}/)
 	assert.match(
 		renderedNetworkView,
@@ -2970,7 +3264,8 @@ test('emits declarative Network enrichment and stable carousel article boundarie
 	assert.match(networkLatest, /<dt>Upgrade<\/dt>[\s\S]*?<dt>Block<\/dt>[\s\S]*?<dt>Fee market<\/dt>[\s\S]*?<dt>Mempool<\/dt>[\s\S]*?<dt>Epoch<\/dt>[\s\S]*?<dt>Slot<\/dt>/)
 	assert.doesNotMatch(networkLatest, /pendingEntity\.executionModels/)
 	assert.equal(networkLatest.match(/resource=\{selection\.Evm\}/g)?.length, 1)
-	assert.match(networkLatest, /\{#snippet Applicable\(projection\)\}[\s\S]*?<dt>Mempool<\/dt>[\s\S]*?resource=\{projection\.EthereumBeacon\}[\s\S]*?<dt>Epoch<\/dt>[\s\S]*?selection\.Evm\s*\.\$\$beaconEpochs\([\s\S]*?<dt>Slot<\/dt>[\s\S]*?selection\.Evm\s*\.\$\$beaconSlots\(/)
+	assert.match(networkLatest, /\{#snippet Applicable\(projection\)\}[\s\S]*?<dt>Mempool<\/dt>[\s\S]*?resource=\{networkLatestResource5\}[\s\S]*?resource=\{projection\.EthereumBeacon\}[\s\S]*?<dt>Epoch<\/dt>[\s\S]*?resource=\{networkLatestResource6\}[\s\S]*?<dt>Slot<\/dt>[\s\S]*?resource=\{networkLatestResource7\}/)
+	assert.doesNotMatch(networkLatest, /<ResourceBoundary\s+resource=\{\s*(?:selection|projection)\b/)
 	const ethereumBeaconCarousel = renderedNetworkView.slice(
 		renderedNetworkView.indexOf('{#snippet SectionEvmConsensusUpgrades'),
 		renderedNetworkView.indexOf('{#snippet SectionEvmContractsPrecompiles')
@@ -4424,11 +4719,103 @@ test('lowers latest EntityReference content without collection-first semantics',
 	))
 	assert.ok(farcasterChannelView)
 	const renderedFarcasterChannelView = renderGeneratedFile(farcasterChannelView)
-	assert.match(renderedFarcasterChannelView, /selection\s*\.\$lead\(\{[\s\S]*?fields: \{[\s\S]*?username: true/)
-	assert.doesNotMatch(renderedFarcasterChannelView, /selection\s*\.\$lead\([\s\S]*?\)\.first\(\)/)
+	assert.match(renderedFarcasterChannelView, /const farcasterChannelLatestResource1 = \$derived\(\s*selection\s*\.\$lead\(\{[\s\S]*?fields: \{[\s\S]*?username: true[\s\S]*?\}\)\s*\)/)
+	assert.match(renderedFarcasterChannelView, /resource=\{farcasterChannelLatestResource1\}[\s\S]*?\{#snippet children\(farcasterUser\)\}/)
+	assert.doesNotMatch(renderedFarcasterChannelView, /resource=\{\s*selection\s*\.\$lead\(/)
+	assert.match(renderedFarcasterChannelView, /\{#snippet children\(farcasterUser\)\}/)
+	assert.doesNotMatch(renderedFarcasterChannelView, /\.first\(\)/)
+	assert.doesNotThrow(() => compileSvelte(renderedFarcasterChannelView, {
+		filename: farcasterChannelView.path,
+		generate: false,
+	}))
 	assert.match(renderedFarcasterChannelView, /const viewDomId = \$derived\('farcaster-channel-' \+ encodeURIComponent\(stringify\(selection\.entitySelector\)\)\)/)
 	assert.match(renderedFarcasterChannelView, /<div id=\{viewDomId \+ '-latest-lead'\}>/)
 	assert.match(renderedFarcasterChannelView, /<FarcasterUserView[\s\S]*?<span>\{farcasterUser\.username\}<\/span>/)
+})
+
+test('snapshots resolved EntityReference child props before nested view rendering', () => {
+	const blockheadSessionView = generatedSource('src/views/BlockheadSessionView.svelte')
+	const blockheadSessionSimulationView = generatedSource('src/views/BlockheadSessionSimulationView.svelte')
+
+	assert.match(
+		blockheadSessionView,
+		/\{#if blockheadSessionSimulation != null\}[\s\S]*?\{@const blockheadSessionSimulationInitial = untrack\(\(\) => blockheadSessionSimulation\)\}[\s\S]*?<BlockheadSessionSimulationView[\s\S]*?selection=\{select\([\s\S]*?EntityType\.BlockheadSessionSimulation,[\s\S]*?\(blockheadSessionSimulation \?\? blockheadSessionSimulationInitial\)\[EntityMetaKey\.Selector\][\s\S]*?\)\}[\s\S]*?prefetched=\{blockheadSessionSimulation \?\? blockheadSessionSimulationInitial\}/
+	)
+	assert.match(
+		blockheadSessionSimulationView,
+		/\{#snippet HeadingAfter\(\)\}[\s\S]*?\{@const blockheadSessionInitial = untrack\(\(\) => blockheadSession\)\}[\s\S]*?<BlockheadSessionView[\s\S]*?selection=\{select\([\s\S]*?EntityType\.BlockheadSession,[\s\S]*?\(blockheadSession \?\? blockheadSessionInitial\)\[EntityMetaKey\.Selector\][\s\S]*?\)\}[\s\S]*?prefetched=\{blockheadSession \?\? blockheadSessionInitial\}/
+	)
+	assert.match(blockheadSessionView, /import \{ untrack \} from 'svelte'/)
+	assert.match(blockheadSessionSimulationView, /import \{ untrack \} from 'svelte'/)
+	assert.doesNotMatch(
+		blockheadSessionView,
+		/selection=\{select\(EntityType\.BlockheadSessionSimulation, blockheadSessionSimulation\[EntityMetaKey\.Selector\]/
+	)
+	assert.doesNotMatch(
+		blockheadSessionSimulationView,
+		/selection=\{select\(EntityType\.BlockheadSession, blockheadSession\[EntityMetaKey\.Selector\]/
+	)
+	const compiledBlockheadSessionView = compileSvelte(blockheadSessionView, {
+		filename: 'src/views/BlockheadSessionView.svelte',
+		generate: 'client',
+		experimental: {
+			async: true,
+		},
+	})
+	assert.match(
+		compiledBlockheadSessionView.js.code,
+		/derived\(\(\) => untrack\(\(\) => blockheadSessionSimulation\(\)\)\)/
+	)
+	assert.doesNotMatch(
+		compiledBlockheadSessionView.js.code,
+		/\$\.get\(blockheadSessionSimulation(?:Snapshot|Selector|Selection)\)/
+	)
+	assert.doesNotThrow(() => compileSvelte(blockheadSessionSimulationView, {
+		filename: 'src/views/BlockheadSessionSimulationView.svelte',
+		generate: false,
+	}))
+
+	const carouselApp = structuredClone(app)
+	const blockheadSession = carouselApp.schema.entities.find(({ entityType }) => (
+		entityType === EntityType.BlockheadSession
+	))
+	assert.ok(blockheadSession?.views.singular)
+	Object.defineProperty(blockheadSession.views.singular, 'carousels', {
+		enumerable: true,
+		value: [
+			...(blockheadSession.views.singular.carousels ?? []),
+			{
+				id: 'blockhead-session-latest-simulation',
+				label: 'Latest simulation',
+				sections: [{
+					id: 'blockhead-session-latest-simulation',
+					field: '$latestSimulation',
+					List: 'BlockheadSessionSimulationView',
+					label: 'Latest simulation',
+				}],
+			},
+		],
+	})
+	const carouselViewFile = compileApp(carouselApp).generatedFiles.find(({ path }) => (
+		path === 'src/views/BlockheadSessionView.svelte'
+	))
+	assert.ok(carouselViewFile)
+	const carouselView = renderGeneratedFile(carouselViewFile)
+	const carouselStart = carouselView.indexOf('{#snippet SectionBlockheadSessionLatestSimulation')
+	const carouselEnd = carouselView.indexOf('{/snippet}', carouselStart)
+	const carouselSection = carouselView.slice(carouselStart, carouselEnd)
+	assert.match(carouselSection, /\{@const blockheadSessionSimulationInitial = untrack\(\(\) => blockheadSessionSimulation\)\}/)
+	assert.doesNotMatch(carouselSection, /blockheadSessionSimulation(?:Snapshot|Selector|Selection)/)
+	assert.match(carouselSection, /selection=\{\s*select\([\s\S]*?\(blockheadSessionSimulation \?\? blockheadSessionSimulationInitial\)\[EntityMetaKey\.Selector\]/)
+	assert.match(carouselSection, /prefetched=\{blockheadSessionSimulation \?\? blockheadSessionSimulationInitial\}/)
+	assert.doesNotMatch(
+		carouselSection,
+		/selection=\{select\(EntityType\.BlockheadSessionSimulation, blockheadSessionSimulation\[EntityMetaKey\.Selector\]/
+	)
+	assert.doesNotThrow(() => compileSvelte(carouselView, {
+		filename: carouselViewFile.path,
+		generate: false,
+	}))
 })
 
 test('requires every selector field to have singular cardinality before route compilation', () => {

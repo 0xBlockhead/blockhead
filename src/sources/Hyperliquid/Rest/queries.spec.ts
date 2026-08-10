@@ -77,6 +77,7 @@ const vaultDetails = {
 
 describe('Hyperliquid public account Info transport', () => {
 	beforeEach(() => {
+		vi.restoreAllMocks()
 		corsFetch.mockReset()
 		corsFetch.mockImplementation(async (_url, options) => ({
 			ok: true,
@@ -342,7 +343,54 @@ describe('Hyperliquid public account Info transport', () => {
 		)
 	})
 
+	it('preserves exact Info operation identity when all account observations share one clock', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1)
+
+		const observations = await Promise.all([
+			getClearinghouseState({
+				user: '0x1111111111111111111111111111111111111111',
+			}),
+			getSpotClearinghouseState({
+				user: '0x1111111111111111111111111111111111111111',
+			}),
+			getUserFees({
+				user: '0x1111111111111111111111111111111111111111',
+			}),
+			getDelegatorSummary({
+				user: '0x1111111111111111111111111111111111111111',
+			}),
+			getUserAbstraction({
+				user: '0x1111111111111111111111111111111111111111',
+			}),
+			getUserDexAbstraction({
+				user: '0x1111111111111111111111111111111111111111',
+			}),
+			getApprovedBuilders({
+				user: '0x1111111111111111111111111111111111111111',
+			}),
+			getBorrowLendUserState({
+				user: '0x1111111111111111111111111111111111111111',
+			}),
+		])
+
+		expect(observations.map(({ infoType }) => infoType)).toEqual([
+			'clearinghouseState',
+			'spotClearinghouseState',
+			'userFees',
+			'delegatorSummary',
+			'userAbstraction',
+			'userDexAbstraction',
+			'approvedBuilders',
+			'borrowLendUserState',
+		])
+		expect(observations.map((observation) => (
+			'timestampMs' in observation ? observation.timestampMs : observation.fetchedAtMs
+		))).toEqual(Array.from({ length: 8 }, () => 1))
+	})
+
 	it('parses the documented account position, balance, summary, abstraction, builder, and health wires', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_123)
+
 		corsFetch.mockResolvedValueOnce({
 			ok: true,
 			json: async () => ({
@@ -390,15 +438,19 @@ describe('Hyperliquid public account Info transport', () => {
 		await expect(getClearinghouseState({
 			user: '0x1111111111111111111111111111111111111111',
 		})).resolves.toMatchObject({
-			assetPositions: [{
-				position: {
-					leverage: {
-						rawUsd: '100',
-						type: 'isolated',
-						value: 10,
+			infoType: 'clearinghouseState',
+			state: {
+				assetPositions: [{
+					position: {
+						leverage: {
+							rawUsd: '100',
+							type: 'isolated',
+							value: 10,
+						},
 					},
-				},
-			}],
+				}],
+			},
+			timestampMs: 1_700_000_000_000,
 		})
 
 		corsFetch.mockResolvedValueOnce({
@@ -416,13 +468,17 @@ describe('Hyperliquid public account Info transport', () => {
 		await expect(getSpotClearinghouseState({
 			user: '0x1111111111111111111111111111111111111111',
 		})).resolves.toEqual({
-			balances: [{
-				coin: 'USDC',
-				token: 0,
-				total: '25',
-				hold: '2',
-				entryNtl: '25',
-			}],
+			infoType: 'spotClearinghouseState',
+			state: {
+				balances: [{
+					coin: 'USDC',
+					token: 0,
+					total: '25',
+					hold: '2',
+					entryNtl: '25',
+				}],
+			},
+			fetchedAtMs: 1_700_000_000_123,
 		})
 
 		corsFetch.mockResolvedValueOnce({
@@ -445,13 +501,17 @@ describe('Hyperliquid public account Info transport', () => {
 		await expect(getBorrowLendUserState({
 			user: '0x1111111111111111111111111111111111111111',
 		})).resolves.toMatchObject({
-			health: 'healthy',
-			tokenToState: [[0, {
-				borrow: {
-					basis: '1',
-					value: '2',
-				},
-			}]],
+			infoType: 'borrowLendUserState',
+			state: {
+				health: 'healthy',
+				tokenToState: [[0, {
+					borrow: {
+						basis: '1',
+						value: '2',
+					},
+				}]],
+			},
+			fetchedAtMs: 1_700_000_000_123,
 		})
 
 		corsFetch.mockResolvedValueOnce({
@@ -460,7 +520,11 @@ describe('Hyperliquid public account Info transport', () => {
 		})
 		await expect(getUserAbstraction({
 			user: '0x1111111111111111111111111111111111111111',
-		})).resolves.toBe('portfolioMargin')
+		})).resolves.toEqual({
+			abstraction: 'portfolioMargin',
+			fetchedAtMs: 1_700_000_000_123,
+			infoType: 'userAbstraction',
+		})
 
 		corsFetch.mockResolvedValueOnce({
 			ok: true,
@@ -468,7 +532,11 @@ describe('Hyperliquid public account Info transport', () => {
 		})
 		await expect(getUserDexAbstraction({
 			user: '0x1111111111111111111111111111111111111111',
-		})).resolves.toBe(true)
+		})).resolves.toEqual({
+			abstraction: true,
+			fetchedAtMs: 1_700_000_000_123,
+			infoType: 'userDexAbstraction',
+		})
 
 		corsFetch.mockResolvedValueOnce({
 			ok: true,
@@ -494,7 +562,11 @@ describe('Hyperliquid public account Info transport', () => {
 		})
 		await expect(getApprovedBuilders({
 			user: '0x1111111111111111111111111111111111111111',
-		})).resolves.toEqual(['0x2222222222222222222222222222222222222222'])
+		})).resolves.toEqual({
+			builders: ['0x2222222222222222222222222222222222222222'],
+			fetchedAtMs: 1_700_000_000_123,
+			infoType: 'approvedBuilders',
+		})
 	})
 
 	it('fails closed when stable account wire portions are malformed', async () => {

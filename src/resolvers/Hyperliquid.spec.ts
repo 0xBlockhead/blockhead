@@ -220,22 +220,43 @@ describe('Hyperliquid public account resolvers', () => {
 		}))
 	})
 
-	it('materializes one source-timestamped perp and spot portfolio observation', async () => {
+	it('keeps same-millisecond account operations on distinct protocol-native selectors', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
+
 		expect(accountResolvers).toHaveLength(4)
 		const snapshot = await accountPortfolioResolver.resolve[
 			'NetworkAddress'
 		].resolve(account, context)
 		const timestamps = accountPortfolioResolver.projections.$$timestamps(snapshot)
 
-		expect(timestamps).toHaveLength(1)
-		expect(timestamps[0]?.[EntityMetaKey.Selector]).toEqual({
+		expect(timestamps).toHaveLength(8)
+		expect(timestamps.map((timestamp) => (
+			timestamp[EntityMetaKey.Selector]
+		))).toEqual([
+			'clearinghouseState',
+			'spotClearinghouseState',
+			'userFees',
+			'delegatorSummary',
+			'userAbstraction',
+			'userDexAbstraction',
+			'approvedBuilders',
+			'borrowLendUserState',
+		].map((infoType) => ({
 			$account: account,
+			infoType,
 			timestampMs: 1_700_000_000_000,
 			source: Source.Hyperliquid,
-		})
+		})))
+		expect(new Set(timestamps.map((timestamp) => (
+			timestamp[EntityMetaKey.Selector].infoType
+		)))).toHaveLength(8)
 		expect(timestamps[0]?.[EntityMetaKey.Fields]).toMatchObject({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'accountValue')]: '100.5',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalNtlPos')]: '50.25',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalRawUsd')]: '100.5',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalMarginUsed')]: '12.5',
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'withdrawable')]: '88',
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'crossMaintenanceMarginUsed')]: '4',
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'assetPositions')]: [{
 				type: 'oneWay',
 				position: {
@@ -247,15 +268,38 @@ describe('Hyperliquid public account resolvers', () => {
 					},
 				},
 			}],
+		})
+		expect(Object.keys(timestamps[0]?.[EntityMetaKey.Fields] ?? {})).toEqual([
+			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'accountValue'),
+			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalNtlPos'),
+			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalRawUsd'),
+			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalMarginUsed'),
+			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'withdrawable'),
+			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'crossMaintenanceMarginUsed'),
+			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'assetPositions'),
+		])
+		expect(timestamps[1]?.[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotBalances')]: responseByInfoType.spotClearinghouseState.balances,
+		})
+		expect(timestamps[2]?.[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'feeSchedule')]: responseByInfoType.userFees,
+		})
+		expect(timestamps[3]?.[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'stakingSummary')]: responseByInfoType.delegatorSummary,
+		})
+		expect(timestamps[4]?.[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userAbstraction')]: 'default',
+		})
+		expect(timestamps[5]?.[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userDexAbstraction')]: false,
+		})
+		expect(timestamps[6]?.[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'approvedBuilders')]: responseByInfoType.approvedBuilders,
+		})
+		expect(timestamps[7]?.[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendHealth')]: 'healthy',
 		})
-		expect(timestamps[0]?.[EntityMetaKey.Fields]).not.toHaveProperty(
+		expect(timestamps[7]?.[EntityMetaKey.Fields]).not.toHaveProperty(
 			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendHealthFactor')
 		)
 		expect(accountPortfolioResolver.projections.$$borrowLendPositions(snapshot)).toEqual([

@@ -7,9 +7,11 @@ import test from 'node:test'
 import {
 	fatalCompilerWarnings,
 	partitionSvelteRoots,
+	partitionTypeScriptRoots,
 	readCanonicalFileManifest,
 	readCanonicalSvelteRoots,
 	readSvelteGraph,
+	readTypeScriptRootsReachedFromSvelte,
 	runProcess,
 	runShardQueue,
 	svelteCheckArgs,
@@ -29,6 +31,7 @@ const fixture = async () => {
 		},
 		include: [
 			'src/**/*.d.ts',
+			'src/**/*.ts',
 			'src/**/*.svelte',
 		],
 		exclude: ['src/**/*.test.svelte'],
@@ -85,6 +88,21 @@ test('discovers every canonical active Svelte root and partitions deterministica
 		manifest.declarationFiles.map((filePath) => path.relative(root, filePath)),
 		['src/globals.d.ts']
 	)
+	assert.deepEqual(manifest.ambientDeclarationFiles, manifest.declarationFiles)
+})
+
+test('leaves the expensive schema selection type fixture to its dedicated unit harness', async () => {
+	const root = process.cwd()
+	const fixturePath = path.join(root, 'src/client/schema-selection-types.types.ts')
+	const manifest = readCanonicalFileManifest(
+		root,
+		path.join(root, 'tsconfig.svelte-check.json')
+	)
+	assert.equal(manifest.typeScriptRoots.includes(fixturePath), false)
+	assert.match(
+		await fs.readFile(path.join(root, 'src/client/schema-selection-types.test.ts'), 'utf8'),
+		/files: \[path\.join\(root, 'src\/client\/schema-selection-types\.types\.ts'\)\]/
+	)
 })
 
 test('emits unchanged canonical inheritance without shard exclusions', async () => {
@@ -105,6 +123,58 @@ test('emits unchanged canonical inheritance without shard exclusions', async () 
 		assert.deepEqual(config.include, shard.roots)
 		assert.equal('exclude' in config, false)
 		assert.equal('compilerOptions' in config, false)
+	}
+})
+
+test('checks TypeScript roots once through Svelte dependencies or the plain project', async () => {
+	const root = await fixture()
+	await fs.writeFile(
+		path.join(root, 'src/views/reachable.ts'),
+		'import { dependency } from "./reachable-dependency.ts"\nexport const reachable = dependency\n'
+	)
+	await fs.writeFile(
+		path.join(root, 'src/views/reachable-dependency.ts'),
+		'export const dependency = "dependency"\n'
+	)
+	await fs.writeFile(
+		path.join(root, 'src/views/orphan.ts'),
+		'export const orphan = "orphan"\n'
+	)
+	await fs.writeFile(
+		path.join(root, 'src/views/second-orphan.ts'),
+		'export const secondOrphan = "second"\n'
+	)
+	await fs.writeFile(
+		path.join(root, 'src/views/ReachableConsumer.svelte'),
+		'<script lang="ts">import { reachable } from "./reachable.ts"</script>\n<p>{reachable}</p>\n'
+	)
+
+	const tsconfigPath = path.join(root, 'tsconfig.json')
+	const manifest = readCanonicalFileManifest(root, tsconfigPath)
+	const reached = await readTypeScriptRootsReachedFromSvelte(root, manifest)
+	assert.deepEqual(
+		[...reached].map((filePath) => path.relative(root, filePath)).sort(),
+		[
+			'src/views/reachable-dependency.ts',
+			'src/views/reachable.ts',
+		]
+	)
+	const plainRoots = manifest.typeScriptRoots.filter((filePath) => !reached.has(filePath))
+	const shards = await writeShardConfigs(
+		tsconfigPath,
+		path.join(root, 'typescript-shards'),
+		await partitionTypeScriptRoots(plainRoots, 2),
+		manifest.declarationFiles
+	)
+	assert.deepEqual([...shards.flatMap((shard) => shard.roots)].sort(), plainRoots)
+	assert.equal(new Set(shards.flatMap((shard) => shard.roots)).size, plainRoots.length)
+	for (const shard of shards) {
+		const config = JSON.parse(await fs.readFile(shard.configPath, 'utf8'))
+		assert.deepEqual(
+			config.files.map((filePath) => path.relative(root, filePath)).sort(),
+			['src/globals.d.ts']
+		)
+		assert.deepEqual(config.include, shard.roots)
 	}
 })
 

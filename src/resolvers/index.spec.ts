@@ -2,6 +2,12 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import { QueryClient } from '@tanstack/query-core'
 
+import { app } from '../../APP.ts'
+import {
+	compileApp,
+	type CompiledSourceClaim,
+} from '../../scripts/app/generate.ts'
+
 import {
 	materializeResolverOutput,
 	ResolverOutputMaterialization,
@@ -33,9 +39,11 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
+	ApiFamily,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceTargetKind,
+	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 import sourceProviders, { sourceBindings } from '$/sources/$sourceProviders.ts'
 import { loadResolvers } from '$/resolvers/index.ts'
@@ -67,6 +75,8 @@ const {
 	resolvers,
 	declaredBrowserSources
 )
+const compiledSourceClaims = compileApp(app).sourceClaims
+const schemaIndex = indexSchema(schema)
 const {
 	resolverDefinitions: allSourceResolverDefinitions,
 	resolverParts: allSourceResolverParts,
@@ -97,6 +107,88 @@ const resolverFieldSelector = (
 	resolverPart.resolver === resolver
 	&& resolverPart.fieldName === fieldName
 ))?.select
+
+const resolverSourceClaimKey = (claim: CompiledSourceClaim) => [
+	claim.publicRoute,
+	claim.source,
+	claim.entityType,
+	claim.selectorName,
+	claim.facetPath.join('.'),
+	claim.fieldName,
+].filter((part) => part != null && part !== '').join(':')
+
+const resolverSourceClaimGaps = (
+	claims: readonly CompiledSourceClaim[]
+) => claims.flatMap((claim) => {
+	const resolverDefinitionsForClaim = allSourceResolverDefinitions.filter((resolver) => (
+		resolver.source === claim.source
+		&& resolver.entityType === claim.entityType
+	))
+	const routeSelectorMaterialized = (
+		claim.selectorName != null
+		&& resolverDefinitionsForClaim.some((resolver) => resolver.resolve[claim.selectorName] != null)
+	)
+	if (claim.fieldName == null)
+		return routeSelectorMaterialized ? [] : [resolverSourceClaimKey(claim)]
+
+	const fieldMaterialized = allSourceResolverParts.some((resolverPart) => (
+		resolverPart.source === claim.source
+		&& resolverPart.entityType === claim.entityType
+		&& resolverPart.fieldName === claim.fieldName
+		&& resolverPart.facetPath.length === claim.facetPath.length
+		&& resolverPart.facetPath.every((facetName, index) => facetName === claim.facetPath[index])
+		&& (
+			claim.selectorName == null
+			|| (
+				resolverPart.parentSelectors
+				?? Object.keys(resolverPart.resolver.resolve)
+			).includes(claim.selectorName)
+		)
+	))
+	const selectorFieldMaterialized = claim.facetPath.length === 0 && resolverDefinitionsForClaim.some((resolver) => (
+		(
+			claim.selectorName == null ? Object.keys(resolver.resolve) : [claim.selectorName]
+		).some((selectorName) => (
+			resolver.resolve[selectorName] != null
+			&& schema.find((entityDefinition) => entityDefinition.entityType === claim.entityType)
+				?.selectors.find((selector) => selector.name === selectorName)
+				?.fields.includes(claim.fieldName) === true
+		))
+	))
+
+	return fieldMaterialized || selectorFieldMaterialized ? [] : [resolverSourceClaimKey(claim)]
+})
+
+const sourceClaimParentMaterializers = (claim: CompiledSourceClaim) => allSourceResolverParts.filter((resolverPart) => {
+	if (
+		resolverPart.source !== claim.source
+		|| (
+			resolverPart.select == null
+			&& resolverPart.resolveLive == null
+		)
+	)
+		return false
+
+	const fieldDefinition = schemaIndex.entityFieldDefinitionByEntityTypePathAndName[resolverPart.entityType][
+		entityFieldAddressKey(
+			resolverPart.entityType,
+			resolverPart.facetPath,
+			resolverPart.fieldName
+		)
+	]
+	return (
+		(
+			fieldDefinition?.type === EntityFieldType.EntityReference
+			|| fieldDefinition?.type === EntityFieldType.EntitiesReference
+		)
+		&& fieldDefinition.entityType === claim.entityType
+	)
+})
+
+const compiledResolverSourceClaimGapKeys = new Set(resolverSourceClaimGaps(compiledSourceClaims))
+const compiledResolverSourceClaimGaps = compiledSourceClaims.filter((claim) => (
+	compiledResolverSourceClaimGapKeys.has(resolverSourceClaimKey(claim))
+))
 
 const fieldDefinitionByEntityTypeAndFieldName = Object.fromEntries(
 	schema.map((entityDefinition) => [
@@ -875,58 +967,238 @@ describe('resolver registry live resolver architecture', () => {
 		expect(resolvers.filter((resolverModule) => !generatedSources.includes(resolverModule.source))).toEqual([])
 	})
 
-	it('keeps default source field coverage backed by matching resolver facets', () => {
-		const resolverDefinitionsBySourceEntityType = Map.groupBy(
-			allSourceResolverDefinitions,
-			(resolver) => `${resolver.source}:${resolver.entityType}`
-		)
-
-		const defaultSourceCoverageGaps = schema.flatMap((entityDefinition) => {
-				const selectorByName = Object.fromEntries(
-					entityDefinition.selectors.map((selector) => [
-						selector.name,
-						selector,
-					])
+	it('joins compiled public and default source claims to loaded resolver materializers', () => {
+		const compiledNetworkClaims = compiledSourceClaims.filter((claim) => (
+			claim.source === Source.Constants_Internal
+			&& claim.entityType === EntityType.Network
+			&& (
+				claim.publicRoute === '/network/[network]'
+				|| (
+					claim.facetPath.join('.') === 'Evm'
+					&& claim.fieldName === 'consensusProtocol'
 				)
+			)
+		))
+		expect(compiledNetworkClaims).toHaveLength(3)
+		expect(resolverSourceClaimGaps(compiledNetworkClaims)).toEqual([])
+		const auditedPublicSourceClaims = compiledSourceClaims.filter((claim) => (
+			claim.publicRoute != null
+			&& [
+				'/network/[network]/account/[accountAddress]/subaccount/[subaccountNumber]/market/[ticker]',
+				'/network/[network]/eas/',
+				'/network/[network]/eigenlayer',
+				'/~/pyth/feed/',
+			].some((publicRoutePrefix) => claim.publicRoute.startsWith(publicRoutePrefix))
+		))
+		expect(resolverSourceClaimGaps(auditedPublicSourceClaims)).toEqual([])
+		expect(auditedPublicSourceClaims.filter((claim) => (
+			claim.entityType === EntityType.DydxChainPerpetualPosition
+			|| claim.entityType === EntityType.DydxChainPerpetualPosition_Timestamp
+		)).map((claim) => ({ ...claim }))).toEqual([{
+			source: Source.DydxIndexer,
+			entityType: EntityType.DydxChainPerpetualPosition,
+			selectorName: 'SubaccountMarket',
+			facetPath: [],
+			publicRoute: '/network/[network]/account/[accountAddress]/subaccount/[subaccountNumber]/market/[ticker]',
+		}])
+		expect(compiledSourceClaims.filter((claim) => [
+			`${EntityType.DydxChainPerpetualPosition_Timestamp}:PositionTimestampMsSource`,
+			`${EntityType.EigenLayerSlashingEvent}:NetworkTransactionHashLogIndex`,
+			`${EntityType.EigenLayerStrategy_Timestamp}:StrategyTimestampMsSource`,
+		].includes(`${claim.entityType}:${claim.selectorName}`))).toEqual([])
+		expect(compiledSourceClaims.some((claim) => (
+			claim.entityType === EntityType.LiquidityPool_Block
+			&& claim.publicRoute != null
+		))).toBe(false)
+		expect(resolverSourceClaimGaps([{
+			source: Source.Constants_Internal,
+			entityType: EntityType.Network,
+			selectorName: 'Caip2',
+			facetPath: [],
+			fieldName: 'missingCompilerFixtureField',
+			publicRoute: '/compiler-source-claim-fixture',
+		}])).toEqual([
+			'/compiler-source-claim-fixture:Constants_Internal:Network:Caip2:missingCompilerFixtureField',
+		])
+	})
 
-				return entityFieldDefinitions(entityDefinition).flatMap((fieldDefinition) => {
-					const defaultSources = fieldDefinition.defaultSources ?? []
-					const sourceCoverage = defaultSources.map((source) => {
-						if (source === Source.Local_Internal)
-							return {
-								source,
-								covered: true,
-							}
+	it('registers Snapshot vote detail and proposal vote-list source claims', () => {
+		const snapshotVoteClaims = compiledSourceClaims.filter((claim) => (
+			claim.source === Source.SnapshotHub_Graphql
+			&& (
+				claim.entityType === EntityType.SnapshotVote
+				|| (
+					claim.entityType === EntityType.SnapshotProposal
+					&& claim.fieldName === '$$votes'
+				)
+			)
+		))
+		expect(snapshotVoteClaims).toHaveLength(16)
+		expect(snapshotVoteClaims).toEqual(expect.arrayContaining([
+			expect.objectContaining({
+				entityType: EntityType.SnapshotVote,
+				selectorName: 'VoteId',
+				publicRoute: '/~/snapshot/vote/[voteId]',
+			}),
+			expect.objectContaining({
+				entityType: EntityType.SnapshotProposal,
+				fieldName: '$$votes',
+				publicRoute: '/~/snapshot/proposal/[proposalId]/votes',
+			}),
+		]))
+		expect(resolverSourceClaimGaps(snapshotVoteClaims)).toEqual([])
+		expect(allSourceResolverDefinitions.some((resolver) => (
+			resolver.source === Source.SnapshotHub_Graphql
+			&& resolver.entityType === EntityType.SnapshotVote
+			&& resolver.resolve['VoteId'] != null
+		))).toBe(true)
+		expect(allSourceResolverParts.some((resolverPart) => (
+			resolverPart.source === Source.SnapshotHub_Graphql
+			&& resolverPart.entityType === EntityType.SnapshotProposal
+			&& resolverPart.fieldName === '$$votes'
+			&& resolverPart.select != null
+		))).toBe(true)
+	})
 
-						const resolversForSource = resolverDefinitionsBySourceEntityType.get(
-							`${source}:${entityDefinition.entityType}`
-						) ?? []
-						const resolverAcceptsFieldThroughSelector = resolversForSource.some((resolver) => (
-							Object.keys(resolver.resolve).some((selectorName) => (
-								selectorByName[selectorName].fields.includes(fieldDefinition.name) === true
-							))
-						))
-						const resolverMaterializesField = resolversForSource.some((resolver) => (
-							resolverFieldNames(resolver).includes(fieldDefinition.name)
-						))
+	it('accounts for endpoint observation source claims through current Network snapshot materializers', () => {
+		expect(compiledSourceClaims.filter((claim) => (
+			claim.entityType === EntityType.NetworkEndpointObservation_Timestamp
+		)).map((claim) => [
+			claim.source,
+			claim.facetPath.join('.'),
+			claim.fieldName,
+		])).toEqual([
+			[Source.Beacon_Rest, 'Beacon', 'attestationSubnets'],
+			[Source.Beacon_Rest, 'Beacon', 'connectedPeerCount'],
+			[Source.Beacon_Rest, 'Beacon', 'connectingPeerCount'],
+			[Source.Beacon_Rest, 'Beacon', 'custodyGroupCount'],
+			[Source.Beacon_Rest, 'Beacon', 'disconnectedPeerCount'],
+			[Source.Beacon_Rest, 'Beacon', 'disconnectingPeerCount'],
+			[Source.Beacon_Rest, 'Beacon', 'discoveryAddresses'],
+			[Source.Beacon_Rest, 'Beacon', 'enr'],
+			[Source.Beacon_Rest, 'Beacon', 'executionLayerOffline'],
+			[Source.Beacon_Rest, 'Beacon', 'headSlot'],
+			[Source.Beacon_Rest, 'Beacon', 'isOptimistic'],
+			[Source.Beacon_Rest, 'Beacon', 'isSyncing'],
+			[Source.Beacon_Rest, 'Beacon', 'metadataSequenceNumber'],
+			[Source.Beacon_Rest, 'Beacon', 'p2pAddresses'],
+			[Source.Beacon_Rest, 'Beacon', 'peerId'],
+			[Source.Beacon_Rest, 'Beacon', 'statusCode'],
+			[Source.Beacon_Rest, 'Beacon', 'syncCommitteeSubnets'],
+			[Source.Beacon_Rest, 'Beacon', 'syncDistance'],
+			[Source.Beacon_Rest, 'Beacon', 'version'],
+			[Source.Voltaire_JsonRpc, 'Execution', 'peerCount'],
+		])
+		expect(allSourceResolverDefinitions.filter((resolver) => (
+			resolver.entityType === EntityType.Network
+			&& (
+				resolver.source === Source.Beacon_Rest
+				|| resolver.source === Source.Voltaire_JsonRpc
+			)
+			&& resolverFieldNames(resolver).includes('$$endpointObservations')
+		)).map((resolver) => resolver.source)).toEqual([
+			Source.Beacon_Rest,
+			Source.Voltaire_JsonRpc,
+		])
+		expect(allSourceResolverDefinitions.filter((resolver) => (
+			resolver.entityType === EntityType.NetworkEndpointObservation_Timestamp
+			&& (
+				resolver.source === Source.Beacon_Rest
+				|| resolver.source === Source.Voltaire_JsonRpc
+			)
+		))).toEqual([])
+	})
 
-						return {
-							source,
-							covered: resolverAcceptsFieldThroughSelector || resolverMaterializesField,
-						}
-					})
+	it('accounts for unresolved child-field claims through same-source parent materializers', () => {
+		const parentOwnedClaims = compiledResolverSourceClaimGaps.filter((claim) => (
+			claim.publicRoute == null
+			&& claim.source !== Source.Constants_Internal
+			&& claim.source !== Source.Local_Internal
+			&& sourceClaimParentMaterializers(claim).length > 0
+		))
 
-					return (
-						defaultSources.length === 0
-						|| sourceCoverage.some((source) => source.covered)
-					) ?
-						[]
-					:
-						[`${defaultSources.join('|')}:${entityDefinition.entityType}.${fieldDefinition.name}`]
-				})
-			})
+		expect(parentOwnedClaims).toHaveLength(35)
+		expect(Object.entries(Object.groupBy(
+			parentOwnedClaims,
+			(claim) => claim.entityType
+		)).map(([entityType, claims]) => [
+			entityType,
+			(claims ?? []).length,
+		]).toSorted(([leftEntityType], [rightEntityType]) => (
+			String(leftEntityType).localeCompare(String(rightEntityType), 'en')
+		))).toEqual([
+			[EntityType.BridgeTransfer_Timestamp, 1],
+			[EntityType.CardanoTransaction, 1],
+			[EntityType.EvmNetworkActorCoinBalance_Timestamp, 1],
+			[EntityType.NetworkEndpointObservation_Timestamp, 20],
+			[EntityType.UniswapV3Position, 1],
+			[EntityType.UtxoAddress_Timestamp, 1],
+			[EntityType.XrplLedger, 1],
+			[EntityType.XrplLedgerEntry, 5],
+			[EntityType.XrplTransaction, 4],
+		])
+		for (const claim of parentOwnedClaims) {
+			expect(claim.fieldName).toBeDefined()
+			expect(sourceClaimParentMaterializers(claim).every((resolverPart) => {
+				const fieldDefinition = schemaIndex.entityFieldDefinitionByEntityTypePathAndName[resolverPart.entityType][
+					entityFieldAddressKey(
+						resolverPart.entityType,
+						resolverPart.facetPath,
+						resolverPart.fieldName
+					)
+				]
+				return (
+					resolverPart.source === claim.source
+					&& (
+						fieldDefinition?.type === EntityFieldType.EntityReference
+						|| fieldDefinition?.type === EntityFieldType.EntitiesReference
+					)
+					&& fieldDefinition.entityType === claim.entityType
+				)
+			})).toBe(true)
+		}
+	})
 
-		expect(defaultSourceCoverageGaps).toEqual([])
+	it('classifies unresolved checked-in and local claims under in-process catalog owners', () => {
+		const catalogOwnedClaims = compiledResolverSourceClaimGaps.filter((claim) => (
+			claim.source === Source.Constants_Internal
+			|| claim.source === Source.Local_Internal
+		))
+
+		expect(catalogOwnedClaims).toHaveLength(100)
+		expect(Object.entries(Object.groupBy(
+			catalogOwnedClaims,
+			(claim) => claim.source
+		)).map(([source, claims]) => [
+			source,
+			(claims ?? []).length,
+		])).toEqual([
+			[Source.Constants_Internal, 16],
+			[Source.Local_Internal, 84],
+		])
+		for (const source of [
+			Source.Constants_Internal,
+			Source.Local_Internal,
+		]) {
+			expect(catalogOwnedClaims.some((claim) => claim.source === source)).toBe(true)
+			expect(allSourceResolverDefinitions.some((resolver) => resolver.source === source)).toBe(true)
+			expect(sourceBindings.filter((binding) => binding.source === source)).toEqual([
+				expect.objectContaining({
+					source,
+					target: {
+						kind: SourceTargetKind.Global,
+						key: source === Source.Constants_Internal ? 'checked-in-catalog' : 'internal-catalog',
+					},
+					endpoints: [expect.objectContaining({
+						endpointKind: SourceEndpointKind.InProcess,
+					})],
+					wireProtocol: WireProtocol.InProcess,
+					apiFamily: ApiFamily.CatalogRows,
+					delivery: SourceDelivery.BrowserDirect,
+					credentials: [],
+				}),
+			])
+		}
 	})
 
 	it('keeps generated schema entities accountable without treating view source forwarding as ownership', () => {
