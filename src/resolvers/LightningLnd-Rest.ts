@@ -865,12 +865,13 @@ export default {
 				NetworkPaymentHash: {
 					resolve: async ({ $network, paymentHash }) => {
 						assertLightningNetwork($network)
-						const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
-						const invoice = ((await listInvoices()).invoices ?? [])
-							.find((invoice) => invoicePaymentHash(invoice) === paymentHash)
-						if (invoice == null)
-							throw new Error(`LightningLnd_Rest: invoice not found ${paymentHash}`)
-						return invoiceFieldsFromLndInvoice(invoice, paymentHash)
+						const { getInvoice } = await import('$/sources/LightningLnd/Rest/queries.ts')
+						return invoiceFieldsFromLndInvoice(
+							await getInvoice({
+								paymentHash,
+							}),
+							paymentHash
+						)
 					},
 				},
 			},
@@ -892,12 +893,12 @@ export default {
 					resolve: async ({ $invoice, source }) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($invoice.$network)
-						const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
-						const invoice = ((await listInvoices()).invoices ?? [])
-							.find((invoice) => invoicePaymentHash(invoice) === $invoice.paymentHash)
-						if (invoice == null)
-							throw new Error(`LightningLnd_Rest: invoice not found ${$invoice.paymentHash}`)
-						return invoiceTimestampFieldsFromLndInvoice(invoice)
+						const { getInvoice } = await import('$/sources/LightningLnd/Rest/queries.ts')
+						return invoiceTimestampFieldsFromLndInvoice(
+							await getInvoice({
+								paymentHash: $invoice.paymentHash,
+							})
+						)
 					},
 				},
 			},
@@ -1009,29 +1010,50 @@ export default {
 					resolve: async ({ $network }, context) => {
 						assertLightningNetwork($network)
 						const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
-						return (
-							(await listInvoices({
+						return {
+							page: await listInvoices({
+								indexOffset: context.providerContinuationToken,
 								numMaxInvoices: resolverContextRowLimit(context),
-							})).invoices ?? []
-						).flatMap((invoice) => {
-							const paymentHash = invoicePaymentHash(invoice)
-							return (
-								paymentHash == null ?
-									[]
-								:
-									[{
-										[EntityMetaKey.Selector]: {
-											$network: lightningNetwork,
-											paymentHash,
-										},
-									}]
-							)
-						})
+							}),
+							pageSize: resolverContextRowLimit(context),
+						}
 					},
 				},
 			},
 		})({
-			$$invoices: (invoices) => invoices,
+			$$invoices: {
+				select: ({ page }) => (page.invoices ?? []).flatMap((invoice) => {
+					const paymentHash = invoicePaymentHash(invoice)
+					return (
+						paymentHash == null ?
+							[]
+						:
+							[{
+								[EntityMetaKey.Selector]: {
+									$network: lightningNetwork,
+									paymentHash,
+								},
+							}]
+					)
+				}),
+				continuation: ({ page, pageSize }, _network, context) => (
+					page.last_index_offset == null
+					|| page.last_index_offset === context.providerContinuationToken
+					|| (page.invoices ?? []).length < pageSize ?
+						{
+							operation: 'invoices',
+							target: 'lightning',
+							terminal: true,
+						}
+					:
+						{
+							operation: 'invoices',
+							target: 'lightning',
+							terminal: false,
+							token: page.last_index_offset,
+						}
+				),
+			},
 		}),
 
 		defineResolver({
@@ -1041,21 +1063,42 @@ export default {
 					resolve: async ({ $network }, context) => {
 						assertLightningNetwork($network)
 						const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
-						return (
-							(await listPayments({
+						return {
+							page: await listPayments({
+								indexOffset: context.providerContinuationToken,
 								maxPayments: resolverContextRowLimit(context),
-							})).payments ?? []
-						).map((payment) => ({
-							[EntityMetaKey.Selector]: {
-								$network: lightningNetwork,
-								paymentHash: payment.payment_hash,
-							},
-						}))
+							}),
+							pageSize: resolverContextRowLimit(context),
+						}
 					},
 				},
 			},
 		})({
-			$$payments: (payments) => payments,
+			$$payments: {
+				select: ({ page }) => (page.payments ?? []).map((payment) => ({
+					[EntityMetaKey.Selector]: {
+						$network: lightningNetwork,
+						paymentHash: payment.payment_hash,
+					},
+				})),
+				continuation: ({ page, pageSize }, _network, context) => (
+					page.last_index_offset == null
+					|| page.last_index_offset === context.providerContinuationToken
+					|| (page.payments ?? []).length < pageSize ?
+						{
+							operation: 'payments',
+							target: 'lightning',
+							terminal: true,
+						}
+					:
+						{
+							operation: 'payments',
+							target: 'lightning',
+							terminal: false,
+							token: page.last_index_offset,
+						}
+				),
+			},
 		}),
 
 		defineResolver({

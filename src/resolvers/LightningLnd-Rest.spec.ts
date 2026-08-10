@@ -8,6 +8,7 @@ const {
 	getChannelBalance,
 	getChannelInfo,
 	getInfo,
+	getInvoice,
 	getNetworkInfo,
 	getNodeInfo,
 	getWalletBalance,
@@ -18,6 +19,7 @@ const {
 	getChannelBalance: vi.fn(),
 	getChannelInfo: vi.fn(),
 	getInfo: vi.fn(),
+	getInvoice: vi.fn(),
 	getNetworkInfo: vi.fn(),
 	getNodeInfo: vi.fn(),
 	getWalletBalance: vi.fn(),
@@ -30,6 +32,7 @@ vi.mock('$/sources/LightningLnd/Rest/queries.ts', () => ({
 	getChannelBalance,
 	getChannelInfo,
 	getInfo,
+	getInvoice,
 	getNetworkInfo,
 	getNodeInfo,
 	getWalletBalance,
@@ -43,6 +46,10 @@ const { default: lightningLnd } = await import('$/resolvers/LightningLnd-Rest.ts
 type InvoiceListResolver = Extract<
 	typeof lightningLnd.resolvers[number],
 	{ projections: Record<'$$invoices', unknown> }
+>
+type PaymentListResolver = Extract<
+	typeof lightningLnd.resolvers[number],
+	{ projections: Record<'$$payments', unknown> }
 >
 
 const nodeStateResolver = lightningLnd.resolvers.find((resolver) => (
@@ -80,6 +87,10 @@ const invoiceListResolver = lightningLnd.resolvers.find((resolver): resolver is 
 	resolver.entityType === EntityType.LightningNetwork
 	&& '$$invoices' in resolver.projections
 ))
+const paymentListResolver = lightningLnd.resolvers.find((resolver): resolver is PaymentListResolver => (
+	resolver.entityType === EntityType.LightningNetwork
+	&& '$$payments' in resolver.projections
+))
 const nodeChannelsResolver = lightningLnd.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.LightningNode
 	&& '$$channels' in resolver.projections
@@ -99,7 +110,6 @@ if (
 	|| invoiceTimestampResolver == null
 	|| paymentResolver == null
 	|| paymentTimestampResolver == null
-	|| invoiceListResolver == null
 	|| nodeChannelsResolver == null
 )
 	throw new Error('LightningLnd-Rest spec missing resolver')
@@ -364,6 +374,7 @@ describe('Lightning LND resolver ownership', () => {
 	})
 
 	it('omits hashless invoices and separates stable and observed invoice fields', async () => {
+		getInvoice.mockResolvedValue(invoice)
 		listInvoices.mockResolvedValue({
 			invoices: [
 				{},
@@ -389,11 +400,69 @@ describe('Lightning LND resolver ownership', () => {
 			state: 'Settled',
 			settleIndex: 5n,
 		})
-		await expect(invoiceListResolver.resolve.Network.resolve({ $network: lightningNetwork }, context)).resolves.toEqual([{
+		expect(getInvoice).toHaveBeenCalledTimes(2)
+		expect(getInvoice).toHaveBeenLastCalledWith({
+			paymentHash: invoice.r_hash_str,
+		})
+		const invoicePage = await invoiceListResolver.resolve.Network.resolve({ $network: lightningNetwork }, context)
+		expect(invoiceListResolver.projections.$$invoices.select(invoicePage)).toEqual([{
 			[EntityMetaKey.Selector]: invoiceSelector,
 		}])
 		expect(listInvoices).toHaveBeenLastCalledWith({
+			indexOffset: undefined,
 			numMaxInvoices: 64,
+		})
+	})
+
+	it('continues invoice and payment pages from lossless LND offsets', async () => {
+		const invoicePage = {
+			page: {
+				invoices: Array.from({ length: 2 }, () => invoice),
+				last_index_offset: '9007199254740993',
+			},
+			pageSize: 2,
+		}
+		expect(invoiceListResolver.projections.$$invoices.continuation(
+			invoicePage,
+			{ $network: lightningNetwork },
+			context
+		)).toEqual({
+			operation: 'invoices',
+			target: 'lightning',
+			terminal: false,
+			token: '9007199254740993',
+		})
+
+		const continuationContext = {
+			...context,
+			providerContinuationToken: '9007199254740993',
+		}
+		listPayments.mockResolvedValue({
+			payments: [payment],
+			last_index_offset: '9007199254740994',
+		})
+		const paymentPage = await paymentListResolver.resolve.Network.resolve(
+			{ $network: lightningNetwork },
+			continuationContext
+		)
+		expect(listPayments).toHaveBeenCalledWith({
+			indexOffset: '9007199254740993',
+			maxPayments: 64,
+		})
+		expect(paymentListResolver.projections.$$payments.select(paymentPage)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: lightningNetwork,
+				paymentHash: payment.payment_hash,
+			},
+		}])
+		expect(paymentListResolver.projections.$$payments.continuation(
+			paymentPage,
+			{ $network: lightningNetwork },
+			continuationContext
+		)).toEqual({
+			operation: 'payments',
+			target: 'lightning',
+			terminal: true,
 		})
 	})
 

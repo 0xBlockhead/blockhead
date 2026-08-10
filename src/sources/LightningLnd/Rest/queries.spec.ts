@@ -19,9 +19,12 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 import {
 	getChannelBalance,
 	getChannelInfo,
+	getInvoice,
 	getNetworkInfo,
 	getNodeInfo,
 	getWalletBalance,
+	listInvoices,
+	listPayments,
 } from '$/sources/LightningLnd/Rest/queries.ts'
 
 const binding = bindings[Source.LightningLnd_Rest][0]
@@ -89,6 +92,71 @@ describe('LND server-authenticated public graph reads', () => {
 		})).resolves.toMatchObject({
 			capacity: '9007199254740993',
 		})
+	})
+
+	it('loads an exact invoice and rejects identity substitution', async () => {
+		respond({
+			r_hash_str: 'invoice/hash',
+			value_msat: '9007199254740993000',
+			state: 'OPEN',
+		})
+
+		await expect(getInvoice({
+			paymentHash: 'invoice/hash',
+		})).resolves.toMatchObject({
+			value_msat: '9007199254740993000',
+		})
+		expect(sourceFetch).toHaveBeenLastCalledWith(
+			binding,
+			'https://127.0.0.1:8080/v1/invoice/invoice%2Fhash'
+		)
+
+		respond({
+			r_hash_str: 'other-hash',
+		})
+		await expect(getInvoice({
+			paymentHash: 'requested-hash',
+		})).rejects.toThrow('mismatched identity')
+	})
+
+	it('preserves invoice and payment continuation offsets', async () => {
+		respond({
+			invoices: [{
+				r_hash_str: 'invoice-hash',
+			}],
+			first_index_offset: '9007199254740992',
+			last_index_offset: '9007199254740993',
+		})
+		await expect(listInvoices({
+			indexOffset: '9007199254740991',
+			numMaxInvoices: 25,
+		})).resolves.toMatchObject({
+			last_index_offset: '9007199254740993',
+		})
+		expect(sourceFetch).toHaveBeenLastCalledWith(
+			binding,
+			'https://127.0.0.1:8080/v1/invoices?index_offset=9007199254740991&num_max_invoices=25'
+		)
+
+		respond({
+			payments: [{
+				payment_hash: 'payment-hash',
+			}],
+			first_index_offset: '9007199254740994',
+			last_index_offset: '9007199254740995',
+			total_num_payments: '9007199254740996',
+		})
+		await expect(listPayments({
+			indexOffset: '9007199254740993',
+			maxPayments: 25,
+		})).resolves.toMatchObject({
+			last_index_offset: '9007199254740995',
+			total_num_payments: '9007199254740996',
+		})
+		expect(sourceFetch).toHaveBeenLastCalledWith(
+			binding,
+			'https://127.0.0.1:8080/v1/payments?index_offset=9007199254740993&max_payments=25'
+		)
 	})
 
 	it('fails closed when the graph edge has an unsafe update height', async () => {

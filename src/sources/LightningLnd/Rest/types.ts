@@ -95,6 +95,8 @@ export type LndInvoice = {
 
 export type LndListInvoicesResponse = {
 	invoices?: LndInvoice[]
+	last_index_offset?: string
+	first_index_offset?: string
 }
 
 export type LndPayment = {
@@ -112,6 +114,9 @@ export type LndPayment = {
 
 export type LndListPaymentsResponse = {
 	payments?: LndPayment[]
+	first_index_offset?: string
+	last_index_offset?: string
+	total_num_payments?: string
 }
 
 export type LndNetworkInfoResponse = {

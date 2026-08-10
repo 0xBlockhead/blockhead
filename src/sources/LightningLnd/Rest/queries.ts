@@ -160,6 +160,8 @@ const invoiceWire = arktype({
 
 const listInvoicesWire = arktype({
 	'invoices?': invoiceWire.array(),
+	'last_index_offset?': losslessUnsignedString,
+	'first_index_offset?': losslessUnsignedString,
 })
 
 const paymentWire = arktype({
@@ -177,6 +179,9 @@ const paymentWire = arktype({
 
 const listPaymentsWire = arktype({
 	'payments?': paymentWire.array(),
+	'first_index_offset?': losslessUnsignedString,
+	'last_index_offset?': losslessUnsignedString,
+	'total_num_payments?': losslessUnsignedString,
 })
 
 const assertEnvelope = <_Value>(
@@ -322,6 +327,27 @@ export const getChannelInfo = async ({
 	return edge
 }
 
+export const getInvoice = async ({
+	paymentHash,
+}: {
+	paymentHash: string
+}) => {
+	// Official LND REST/OpenAPI proof:
+	// https://lightning.engineering/api-docs/api/lnd/lightning/lookup-invoice/
+	if (!nonEmptyString.allows(paymentHash))
+		throw new Error('LightningLnd_Rest: invalid invoice payment hash')
+	const invoice = assertEnvelope(
+		invoiceWire,
+		await requestLightningLndRestJson({
+			path: `/v1/invoice/${encodeURIComponent(paymentHash)}`,
+		}),
+		'invoice'
+	)
+	if ((invoice.r_hash_str ?? invoice.r_hash) !== paymentHash)
+		throw new Error('LightningLnd_Rest: invoice response has mismatched identity')
+	return invoice
+}
+
 export const listChannels = async () => {
 	const response = assertEnvelope(
 		listChannelsWire,
@@ -336,32 +362,56 @@ export const listChannels = async () => {
 }
 
 export const listInvoices = async ({
+	indexOffset,
 	numMaxInvoices,
 }: {
+	indexOffset?: string
 	numMaxInvoices?: number
 } = {}) => {
+	if (indexOffset != null && !losslessUnsignedString.allows(indexOffset))
+		throw new Error('LightningLnd_Rest: invoice index offset must be an unsigned integer string')
 	if (numMaxInvoices != null && (!Number.isSafeInteger(numMaxInvoices) || numMaxInvoices < 1))
 		throw new Error('LightningLnd_Rest: invoice page size must be a positive safe integer')
+	const searchParams = new URLSearchParams({
+		...(indexOffset != null && {
+			index_offset: indexOffset,
+		}),
+		...(numMaxInvoices != null && {
+			num_max_invoices: String(numMaxInvoices),
+		}),
+	})
 	return assertEnvelope(
 		listInvoicesWire,
 		await requestLightningLndRestJson({
-			path: `/v1/invoices${numMaxInvoices == null ? '' : `?num_max_invoices=${numMaxInvoices}`}`,
+			path: `/v1/invoices${searchParams.size === 0 ? '' : `?${searchParams}`}`,
 		}),
 		'list invoices'
 	)
 }
 
 export const listPayments = async ({
+	indexOffset,
 	maxPayments,
 }: {
+	indexOffset?: string
 	maxPayments?: number
 } = {}) => {
+	if (indexOffset != null && !losslessUnsignedString.allows(indexOffset))
+		throw new Error('LightningLnd_Rest: payment index offset must be an unsigned integer string')
 	if (maxPayments != null && (!Number.isSafeInteger(maxPayments) || maxPayments < 1))
 		throw new Error('LightningLnd_Rest: payment page size must be a positive safe integer')
+	const searchParams = new URLSearchParams({
+		...(indexOffset != null && {
+			index_offset: indexOffset,
+		}),
+		...(maxPayments != null && {
+			max_payments: String(maxPayments),
+		}),
+	})
 	return assertEnvelope(
 		listPaymentsWire,
 		await requestLightningLndRestJson({
-			path: `/v1/payments${maxPayments == null ? '' : `?max_payments=${maxPayments}`}`,
+			path: `/v1/payments${searchParams.size === 0 ? '' : `?${searchParams}`}`,
 		}),
 		'list payments'
 	)
