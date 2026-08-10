@@ -31,6 +31,7 @@ import {
 	writeLocalBlockheadAccount,
 	writeLocalBlockheadActionOutcome,
 	writeLocalBlockheadActionReadinessChecks,
+	writeLocalBlockheadCashuMintQuote,
 	writeLocalBlockheadEvmWalletRequest,
 	writeLocalBlockheadIntentInvocation,
 	writeLocalBlockheadLocalMediaIngest,
@@ -1038,6 +1039,56 @@ describe('local mutation authority journal', () => {
 				}),
 			}),
 		}
+		const {
+			entitySelector: cashuMintQuoteSelector,
+			observationEntitySelector: cashuMintQuoteObservationSelector,
+		} = await writeLocalBlockheadCashuMintQuote(
+			context,
+			{
+				mintUrl: 'https://mint.example',
+				method: 'bolt11',
+				quoteId: 'quote-1',
+				request: 'lnbc-invoice',
+				amount: 21n,
+				unit: 'sat',
+			},
+			{
+				timestampMs: 1_700_000_000_000,
+				source: Source.CashuMint_Rest,
+				state: 'UNPAID',
+				expiryMs: 1_700_000_100_000,
+			}
+		)
+		expect(cashuMintQuoteObservationSelector).toEqual({
+			$mintQuote: cashuMintQuoteSelector,
+			timestampMs: 1_700_000_000_000,
+			source: Source.CashuMint_Rest,
+		})
+		expect(context.entityCollections[EntityType.BlockheadCashuMintQuote].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Selector]: cashuMintQuoteSelector,
+				[EntityMetaKey.Source]: Source.Local_Internal,
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadCashuMintQuote][entityFieldAddressKey(
+			EntityType.BlockheadCashuMintQuote,
+			[],
+			'amount'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 21n,
+			}),
+		])
+		expect(context.entityFieldCollections[EntityType.BlockheadCashuMintQuote_Timestamp][entityFieldAddressKey(
+			EntityType.BlockheadCashuMintQuote_Timestamp,
+			[],
+			'state'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Source]: Source.Local_Internal,
+				[EntityMetaKey.Value]: 'UNPAID',
+			}),
+		])
 		const firstAccount = {
 			namespace: 'eip155',
 			reference: '1',

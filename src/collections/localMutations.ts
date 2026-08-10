@@ -297,6 +297,16 @@ type LocalBlockheadActionOutcome_Timestamp = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadActionOutcome_Timestamp>,
 	'$outcome'
 >
+type LocalBlockheadCashuMintQuote = Omit<
+	EntityFieldValues<typeof schema, EntityType.BlockheadCashuMintQuote>,
+	'$$timestamps' | '$mint' | '$walletState'
+> & {
+	mintUrl: string
+}
+type LocalBlockheadCashuMintQuote_Timestamp = Omit<
+	EntityFieldValues<typeof schema, EntityType.BlockheadCashuMintQuote_Timestamp>,
+	'$mintQuote'
+>
 
 const writeLocalPresence = (
 	context: LocalMutationContext,
@@ -947,6 +957,116 @@ const readLocalBlockheadWalletCapabilityGrant = (
 		...(typeof revokedAt === 'number' && { revokedAt }),
 		...(typeof proofKind === 'string' && { proofKind }),
 		...(typeof proofSummary === 'string' && { proofSummary }),
+	}
+}
+
+export const writeLocalBlockheadCashuMintQuote = async (
+	context: LocalMutationContext,
+	quote: LocalBlockheadCashuMintQuote,
+	observation?: LocalBlockheadCashuMintQuote_Timestamp
+) => {
+	const entitySelector = {
+		$mint: {
+			mintUrl: quote.mintUrl,
+		},
+		method: quote.method,
+		quoteId: quote.quoteId,
+	}
+	const observationEntitySelector = observation === undefined ? undefined : {
+		$mintQuote: entitySelector,
+		timestampMs: observation.timestampMs,
+		source: observation.source,
+	}
+	const primitiveFields = {
+		method: quote.method,
+		quoteId: quote.quoteId,
+		request: quote.request,
+		unit: quote.unit,
+		amount: quote.amount,
+	}
+	writeLocalPresence(context, EntityType.BlockheadCashuMintQuote, entitySelector)
+	writeLocalPrimitiveFields(
+		context,
+		EntityType.BlockheadCashuMintQuote,
+		entitySelector,
+		primitiveFields
+	)
+	if (observationEntitySelector !== undefined) {
+		writeLocalPresence(
+			context,
+			EntityType.BlockheadCashuMintQuote_Timestamp,
+			observationEntitySelector
+		)
+		writeLocalPrimitiveFields(
+			context,
+			EntityType.BlockheadCashuMintQuote_Timestamp,
+			observationEntitySelector,
+			{
+				timestampMs: observation.timestampMs,
+				source: observation.source,
+				state: observation.state,
+				expiryMs: observation.expiryMs,
+				subscriptionId: observation.subscriptionId,
+			}
+		)
+	}
+	await Promise.all([
+		replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadCashuMintQuote,
+			entitySelector,
+			'$mint',
+			[entitySelector.$mint]
+		),
+		...(observationEntitySelector === undefined ? [] : [
+			writeLocalEntityReferenceField(
+				context,
+				EntityType.BlockheadCashuMintQuote,
+				entitySelector,
+				'$$timestamps',
+				observationEntitySelector
+			),
+			replaceLocalEntityReferenceFieldRows(
+				context,
+				EntityType.BlockheadCashuMintQuote_Timestamp,
+				observationEntitySelector,
+				'$mintQuote',
+				[entitySelector]
+			),
+		]),
+	])
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadCashuMintQuote].utils.waitForPersistence(),
+		...[
+			'$mint',
+			...Object.keys(primitiveFields),
+		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadCashuMintQuote][
+			entityFieldAddressKey(EntityType.BlockheadCashuMintQuote, [], fieldName)
+		].utils.waitForPersistence()),
+		...(observationEntitySelector === undefined ? [] : [
+			context.entityCollections[EntityType.BlockheadCashuMintQuote_Timestamp].utils.waitForPersistence(),
+			...[
+				'$mintQuote',
+				'timestampMs',
+				'source',
+				'state',
+				'expiryMs',
+				'subscriptionId',
+			].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadCashuMintQuote_Timestamp][
+				entityFieldAddressKey(EntityType.BlockheadCashuMintQuote_Timestamp, [], fieldName)
+			].utils.waitForPersistence()),
+			context.entityFieldCollections[EntityType.BlockheadCashuMintQuote][
+				entityFieldAddressKey(EntityType.BlockheadCashuMintQuote, [], '$$timestamps')
+			].utils.waitForPersistence(),
+			context.entityFieldCountCollections[EntityType.BlockheadCashuMintQuote][
+				entityFieldAddressKey(EntityType.BlockheadCashuMintQuote, [], '$$timestamps')
+			]?.utils.waitForPersistence(),
+		]),
+	])
+
+	return {
+		entitySelector,
+		...(observationEntitySelector !== undefined && { observationEntitySelector }),
 	}
 }
 
