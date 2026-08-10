@@ -17,6 +17,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { evmNetworkSelectorFromChainId } from '$/resolvers/evm.ts'
 import { uniswapV3Resolvers } from '$/resolvers/Voltaire/Uniswap.ts'
+import { erc4626Resolvers } from '$/resolvers/Voltaire/Erc4626.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -1958,5 +1959,6 @@ export default {
 		}),
 
 		...uniswapV3Resolvers,
+		...erc4626Resolvers,
 	],
 }
