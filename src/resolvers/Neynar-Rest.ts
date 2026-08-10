@@ -869,8 +869,7 @@ export default {
 						if (!castHash.startsWith(normalizedPrefix))
 							throw new Error('Neynar_Rest: cast hash prefix mismatch')
 						if (
-							cast.author.username != null
-							&& cast.author.username !== ''
+							cast.author.username !== ''
 							&& cast.author.username.toLowerCase() !== username.toLowerCase()
 						)
 							throw new Error('Neynar_Rest: cast author username mismatch')
@@ -1195,19 +1194,18 @@ export default {
 			resolve: {
 				Fid: {
 					resolve: async ({ fid }, context) => {
-						const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
-						const limit = resolverContextRowLimit(context)
-						const page = await getFeed(
+						const { getUserCastsPage } = await import('$/sources/Neynar/Rest/queries.ts')
+						const page = await getUserCastsPage(
 							context.publicEnv,
 							{
-								feedType: 'filter',
-								filterType: 'fids',
-								fids: [fid],
-								limit,
+								fid,
+								limit: resolverContextRowLimit(context),
 								cursor: context.providerContinuationToken,
 							}
 						)
 						if (page == null) throw new Error('Neynar_Rest: feed response missing')
+						if (page.casts.some((cast) => cast.author.fid !== fid))
+							throw new Error('Neynar_Rest: user casts subject mismatch')
 						return page
 					},
 				}

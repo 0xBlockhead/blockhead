@@ -18,6 +18,7 @@ const {
 	getChannel,
 	getChannelMembersPage,
 	getFeed,
+	getUserCastsPage,
 	getUserChannelMembershipsPage,
 	getUserChannelsPage,
 } = await import('$/sources/Neynar/Rest/queries.ts')
@@ -238,6 +239,41 @@ describe('Neynar feed request identity', () => {
 			{},
 			`/v2/farcaster/feed/?${expected}`
 		)
+	})
+})
+
+describe('Neynar user-cast request identity', () => {
+	it('uses the dedicated FID operation with bounded cursor pagination', async () => {
+		await getUserCastsPage({}, {
+			fid: 42,
+			limit: 1_000,
+			cursor: 'opaque+/=cursor',
+		})
+
+		expect(neynarFetch).toHaveBeenLastCalledWith(
+			{},
+			'/v2/farcaster/feed/user/casts/?fid=42&limit=150&cursor=opaque%2B%2F%3Dcursor'
+		)
+	})
+
+	it('uses the provider default page bound without inventing a cursor', async () => {
+		await getUserCastsPage({}, {
+			fid: 42,
+		})
+
+		expect(neynarFetch).toHaveBeenLastCalledWith(
+			{},
+			'/v2/farcaster/feed/user/casts/?fid=42&limit=25'
+		)
+	})
+
+	it('rejects a non-protocol FID before transport', () => {
+		neynarFetch.mockClear()
+
+		expect(() => getUserCastsPage({}, {
+			fid: 0,
+		})).toThrow('positive FID')
+		expect(neynarFetch).not.toHaveBeenCalled()
 	})
 })
 

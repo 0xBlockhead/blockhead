@@ -12,6 +12,7 @@ type NeynarCastParameters = operations['lookup-cast-by-hash-or-url']['parameters
 type NeynarChannelLookupParameters = operations['lookup-channel']['parameters']['query']
 type NeynarChannelMembersParameters = operations['fetch-channel-members']['parameters']['query']
 type NeynarFeedParameters = NonNullable<operations['fetch-feed']['parameters']['query']>
+type NeynarUserCastsParameters = operations['fetch-casts-for-user']['parameters']['query']
 type NeynarFeedType = NonNullable<NeynarFeedParameters['feed_type']>
 type NeynarFeedFilterType = NonNullable<NeynarFeedParameters['filter_type']>
 type NeynarFeedPageQuery = {
@@ -34,6 +35,7 @@ export type NeynarUserChannelsQuery = operations['fetch-user-channels']['paramet
 export type NeynarUserChannelsResponse = operations['fetch-user-channels']['responses'][200]['content']['application/json']
 export type NeynarUserChannelMembershipsQuery = operations['fetch-user-channel-memberships']['parameters']['query']
 export type NeynarUserChannelMembershipsResponse = operations['fetch-user-channel-memberships']['responses'][200]['content']['application/json']
+export type NeynarUserCastsResponse = operations['fetch-casts-for-user']['responses'][200]['content']['application/json']
 
 export type NeynarChannelLookupQuery = {
 	id: NeynarChannelLookupParameters['id']
@@ -46,6 +48,12 @@ export type NeynarChannelMembersQuery = {
 	fid?: NeynarChannelMembersParameters['fid']
 	limit?: NeynarChannelMembersParameters['limit']
 	cursor?: NeynarChannelMembersParameters['cursor']
+}
+
+export type NeynarUserCastsQuery = {
+	fid: NeynarUserCastsParameters['fid']
+	limit?: NeynarUserCastsParameters['limit']
+	cursor?: NeynarUserCastsParameters['cursor']
 }
 
 export type NeynarCastQuery =

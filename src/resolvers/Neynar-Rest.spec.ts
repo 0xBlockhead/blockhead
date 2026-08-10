@@ -7,6 +7,7 @@ import {
 
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { loadResolvers } from '$/resolvers/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	NeynarCast,
@@ -19,6 +20,7 @@ const getChannel = vi.hoisted(() => vi.fn())
 const getChannelMembersPage = vi.hoisted(() => vi.fn())
 const getFeed = vi.hoisted(() => vi.fn())
 const getUserChannelsPage = vi.hoisted(() => vi.fn())
+const getUserCastsPage = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Neynar/Rest/queries.ts', () => ({
 	getBulkUsers,
@@ -27,6 +29,7 @@ vi.mock('$/sources/Neynar/Rest/queries.ts', () => ({
 	getChannelMembersPage,
 	getFeed,
 	getUserChannelsPage,
+	getUserCastsPage,
 }))
 
 const { default: neynarResolvers } = await import('$/resolvers/Neynar-Rest.ts')
@@ -175,6 +178,14 @@ const neynarCast = (
 }) satisfies NeynarCast
 
 describe('Neynar Farcaster feed resolver', () => {
+	it('loads the Farcaster cast/feed materializers through the canonical registry', async () => {
+		await expect(loadResolvers(new Set([
+			Source.Neynar_Rest,
+		]))).resolves.toEqual([
+			neynarResolvers,
+		])
+	})
+
 	it('materializes visible cast content from the feed response', async () => {
 		const page = {
 			casts: [
@@ -499,6 +510,87 @@ describe('Neynar Farcaster feed resolver', () => {
 				hash: '0x5555',
 			},
 		])
+	})
+
+	it('materializes an exact FID cast page through the dedicated user-casts operation', async () => {
+		const page = {
+			casts: [
+				neynarCast({
+					hash: '0x1111',
+					fid: 42,
+				}),
+				neynarCast({
+					hash: '0x2222',
+					fid: 42,
+				}),
+			],
+			next: {
+				cursor: 'next-user-page',
+			},
+		}
+		getUserCastsPage.mockResolvedValueOnce(page)
+
+		const resolvedPage = await userFeedResolver.resolve.Fid.resolve({
+			fid: 42,
+		}, {
+			...resolverContext,
+			providerContinuationToken: 'current-user-page',
+		})
+		expect(getUserCastsPage).toHaveBeenCalledWith(
+			resolverContext.publicEnv,
+			{
+				fid: 42,
+				limit: 64,
+				cursor: 'current-user-page',
+			}
+		)
+		const projection = userFeedResolver.projections.$$casts
+		if (
+			typeof projection === 'function'
+			|| projection.select == null
+			|| projection.continuation == null
+		)
+			throw new Error('Neynar spec missing user-cast pagination')
+
+		expect(projection.select(
+			resolvedPage,
+			{ fid: 42 },
+			resolverContext
+		).map((cast) => cast[EntityMetaKey.Selector])).toEqual([{
+			fid: 42,
+			hash: '0x1111',
+		}, {
+			fid: 42,
+			hash: '0x2222',
+		}])
+		expect(projection.continuation(
+			resolvedPage,
+			{ fid: 42 },
+			resolverContext
+		)).toEqual({
+			operation: 'user-feed',
+			target: 'api',
+			terminal: false,
+			token: 'next-user-page',
+		})
+	})
+
+	it('rejects a dedicated user-casts page for a foreign FID', async () => {
+		getUserCastsPage.mockResolvedValueOnce({
+			casts: [
+				neynarCast({
+					hash: '0x2222',
+					fid: 43,
+				}),
+			],
+			next: {
+				cursor: null,
+			},
+		})
+
+		await expect(userFeedResolver.resolve.Fid.resolve({
+			fid: 42,
+		}, resolverContext)).rejects.toThrow('user casts subject mismatch')
 	})
 
 	it('marks user and channel continuations terminal without inventing tokens', () => {

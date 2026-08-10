@@ -9,6 +9,8 @@ import {
 	neynarFeedDefaultLimit,
 	neynarFeedMaxLimit,
 	neynarFidCountMax,
+	neynarUserCastsDefaultLimit,
+	neynarUserCastsMaxLimit,
 } from '$/sources/Neynar/Rest/constants.ts'
 import type {
 	NeynarBulkUsersResponse,
@@ -25,6 +27,8 @@ import type {
 	NeynarUserChannelMembershipsResponse,
 	NeynarUserChannelsQuery,
 	NeynarUserChannelsResponse,
+	NeynarUserCastsQuery,
+	NeynarUserCastsResponse,
 } from '$/sources/Neynar/Rest/types.ts'
 
 /** Channel lookup by canonical channel id or FIP-2 parent URL. */
@@ -117,6 +121,30 @@ export const getBulkUsers = async ({
 			publicEnv,
 			`/v2/farcaster/user/bulk/?${searchParams}`
 		))?.users ?? []
+)
+}
+
+/** Reverse-chronological casts authored by one exact FID. */
+export const getUserCastsPage = (
+	publicEnv: SourcePublicEnv,
+	query: NeynarUserCastsQuery
+) => {
+	if (!Number.isSafeInteger(query.fid) || query.fid < 1)
+		throw new Error('Neynar user casts require a positive FID')
+
+	const searchParams = new URLSearchParams({
+		fid: String(query.fid),
+		limit: String(Math.min(
+			Math.max(query.limit ?? neynarUserCastsDefaultLimit, 1),
+			neynarUserCastsMaxLimit
+		)),
+	})
+	if (query.cursor != null && query.cursor !== '')
+		searchParams.set('cursor', query.cursor)
+
+	return neynarFetch<NeynarUserCastsResponse>(
+		publicEnv,
+		`/v2/farcaster/feed/user/casts/?${searchParams}`
 	)
 }
 
