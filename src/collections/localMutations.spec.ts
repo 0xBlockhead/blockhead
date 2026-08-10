@@ -1536,22 +1536,28 @@ describe('local mutation authority journal', () => {
 				}),
 			])
 
-		writeLocalBlockheadWorkspace(context, {
+		const workspaceSelector = await writeLocalBlockheadWorkspace(context, {
 			id: 'workspace-1',
 			name: 'Workspace',
 			activePanelTreeId: 'tree-1',
 		})
-		writeLocalBlockheadPanelTree(context, {
+		expect(workspaceSelector).toEqual({ id: 'workspace-1' })
+		const panelTreeSelector = await writeLocalBlockheadPanelTree(context, {
 			id: 'tree-1',
 			workspaceId: 'workspace-1',
 		})
-		writeLocalBlockheadPanel(context, {
+		expect(panelTreeSelector).toEqual({ id: 'tree-1' })
+		const rootPanelSelector = await writeLocalBlockheadPanel(context, {
 			treeId: 'tree-1',
 			panelId: 'root',
 			indexInParent: 0,
 			kind: 'split',
 		})
-		writeLocalBlockheadPanel(context, {
+		expect(rootPanelSelector).toEqual({
+			treeId: 'tree-1',
+			panelId: 'root',
+		})
+		await writeLocalBlockheadPanel(context, {
 			treeId: 'tree-1',
 			panelId: 'entity',
 			parentPanelId: 'root',
@@ -1565,6 +1571,15 @@ describe('local mutation authority journal', () => {
 				},
 			},
 		})
+		for (const persistedAddress of [
+			`entity:${EntityType.BlockheadWorkspace}`,
+			`field:${EntityType._Global}:${entityFieldAddressKey(EntityType._Global, [], '$$blockheadWorkspaces')}`,
+			`entity:${EntityType.BlockheadPanelTree}`,
+			`field:${EntityType._Global}:${entityFieldAddressKey(EntityType._Global, [], '$$blockheadPanelTrees')}`,
+			`entity:${EntityType.BlockheadPanel}`,
+			`field:${EntityType.BlockheadPanelTree}:${entityFieldAddressKey(EntityType.BlockheadPanelTree, [], '$$panels')}`,
+		])
+			expect(persistedAddresses).toContain(persistedAddress)
 
 		expect(context.entityFieldCollections[EntityType.BlockheadPanelTree][entityFieldAddressKey(
 			EntityType.BlockheadPanelTree,
@@ -1616,7 +1631,7 @@ describe('local mutation authority journal', () => {
 				}),
 			])
 
-		writeLocalBlockheadPanel(context, {
+		await writeLocalBlockheadPanel(context, {
 			treeId: 'tree-1',
 			panelId: 'entity',
 			parentPanelId: 'root',
@@ -1650,11 +1665,11 @@ describe('local mutation authority journal', () => {
 			}),
 		])
 
-		writeLocalBlockheadPanelTree(context, {
+		await writeLocalBlockheadPanelTree(context, {
 			id: 'tree-duplicate',
 			workspaceId: 'workspace-1',
 		})
-		writeLocalBlockheadPanel(context, {
+		await writeLocalBlockheadPanel(context, {
 			treeId: 'tree-duplicate',
 			panelId: 'root',
 			indexInParent: 0,
@@ -1674,7 +1689,7 @@ describe('local mutation authority journal', () => {
 				...duplicatePanelRow,
 				valueIndex: 1,
 			})
-		writeLocalBlockheadPanel(context, {
+		await writeLocalBlockheadPanel(context, {
 			treeId: 'tree-duplicate',
 			panelId: 'root',
 			indexInParent: 0,

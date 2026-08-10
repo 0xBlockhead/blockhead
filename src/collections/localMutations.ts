@@ -2488,7 +2488,7 @@ export const writeLocalBlockheadSessionSimulation = async (
 	return entitySelector
 }
 
-export const writeLocalBlockheadWorkspace = (
+export const writeLocalBlockheadWorkspace = async (
 	context: LocalMutationContext,
 	workspace: LocalBlockheadWorkspace
 ) => {
@@ -2502,32 +2502,54 @@ export const writeLocalBlockheadWorkspace = (
 		createdAt: workspace.createdAt ?? now,
 		updatedAt: workspace.updatedAt ?? now,
 	})
-	deleteLocalEntityReferenceFieldRows(
-		context,
-		EntityType.BlockheadWorkspace,
-		entitySelector,
-		'$activePanelTree'
-	)
-	if (workspace.activePanelTreeId != null)
+	await Promise.all([
+		workspace.activePanelTreeId == null ?
+			deleteLocalEntityReferenceFieldRows(
+				context,
+				EntityType.BlockheadWorkspace,
+				entitySelector,
+				'$activePanelTree'
+			)
+		:
+			writeLocalEntityReferenceField(
+				context,
+				EntityType.BlockheadWorkspace,
+				entitySelector,
+				'$activePanelTree',
+				{
+					id: workspace.activePanelTreeId,
+				}
+			),
 		writeLocalEntityReferenceField(
 			context,
-			EntityType.BlockheadWorkspace,
-			entitySelector,
+			EntityType._Global,
+			{ scope: '$$blockheadWorkspaces' },
+			'$$blockheadWorkspaces',
+			entitySelector
+		),
+	])
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadWorkspace].utils.waitForPersistence(),
+		...[
+			'name',
+			'createdAt',
+			'updatedAt',
 			'$activePanelTree',
-			{
-				id: workspace.activePanelTreeId,
-			}
-		)
-	writeLocalEntityReferenceField(
-		context,
-		EntityType._Global,
-		{ scope: '$$blockheadWorkspaces' },
-		'$$blockheadWorkspaces',
-		entitySelector
-	)
+		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadWorkspace][
+			entityFieldAddressKey(EntityType.BlockheadWorkspace, [], fieldName)
+		].utils.waitForPersistence()),
+		context.entityFieldCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWorkspaces')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWorkspaces')
+		]?.utils.waitForPersistence(),
+	])
+
+	return entitySelector
 }
 
-export const writeLocalBlockheadPanelTree = (
+export const writeLocalBlockheadPanelTree = async (
 	context: LocalMutationContext,
 	panelTree: LocalBlockheadPanelTree
 ) => {
@@ -2535,32 +2557,49 @@ export const writeLocalBlockheadPanelTree = (
 		id: panelTree.id,
 	}
 	writeLocalPresence(context, EntityType.BlockheadPanelTree, entitySelector)
-	deleteLocalEntityReferenceFieldRows(
-		context,
-		EntityType.BlockheadPanelTree,
-		entitySelector,
-		'$workspace'
-	)
-	if (panelTree.workspaceId != null)
+	await Promise.all([
+		panelTree.workspaceId == null ?
+			deleteLocalEntityReferenceFieldRows(
+				context,
+				EntityType.BlockheadPanelTree,
+				entitySelector,
+				'$workspace'
+			)
+		:
+			writeLocalEntityReferenceField(
+				context,
+				EntityType.BlockheadPanelTree,
+				entitySelector,
+				'$workspace',
+				{
+					id: panelTree.workspaceId,
+				}
+			),
 		writeLocalEntityReferenceField(
 			context,
-			EntityType.BlockheadPanelTree,
-			entitySelector,
-			'$workspace',
-			{
-				id: panelTree.workspaceId,
-			}
-		)
-	writeLocalEntityReferenceField(
-		context,
-		EntityType._Global,
-		{ scope: '$$blockheadPanelTrees' },
-		'$$blockheadPanelTrees',
-		entitySelector
-	)
+			EntityType._Global,
+			{ scope: '$$blockheadPanelTrees' },
+			'$$blockheadPanelTrees',
+			entitySelector
+		),
+	])
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadPanelTree].utils.waitForPersistence(),
+		context.entityFieldCollections[EntityType.BlockheadPanelTree][
+			entityFieldAddressKey(EntityType.BlockheadPanelTree, [], '$workspace')
+		].utils.waitForPersistence(),
+		context.entityFieldCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadPanelTrees')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType._Global][
+			entityFieldAddressKey(EntityType._Global, [], '$$blockheadPanelTrees')
+		]?.utils.waitForPersistence(),
+	])
+
+	return entitySelector
 }
 
-export const writeLocalBlockheadPanel = (
+export const writeLocalBlockheadPanel = async (
 	context: LocalMutationContext,
 	panel: LocalBlockheadPanel
 ) => {
@@ -2569,15 +2608,6 @@ export const writeLocalBlockheadPanel = (
 		panelId: panel.panelId,
 	}
 	writeLocalPresence(context, EntityType.BlockheadPanel, entitySelector)
-	writeLocalEntityReferenceField(
-		context,
-		EntityType.BlockheadPanel,
-		entitySelector,
-		'$panelTree',
-		{
-			id: panel.treeId,
-		}
-	)
 	writeLocalPrimitiveFields(context, EntityType.BlockheadPanel, entitySelector, {
 		parentPanelId: panel.parentPanelId,
 		indexInParent: panel.indexInParent,
@@ -2585,16 +2615,48 @@ export const writeLocalBlockheadPanel = (
 		entityType: panel.entityType,
 		selector: panel.selector,
 	})
-	writeLocalEntityReferenceField(
-		context,
-		EntityType.BlockheadPanelTree,
-		{
-			id: panel.treeId,
-		},
-		'$$panels',
-		entitySelector,
-		panel.indexInParent
-	)
+	await Promise.all([
+		writeLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadPanel,
+			entitySelector,
+			'$panelTree',
+			{
+				id: panel.treeId,
+			}
+		),
+		writeLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadPanelTree,
+			{
+				id: panel.treeId,
+			},
+			'$$panels',
+			entitySelector,
+			panel.indexInParent
+		),
+	])
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadPanel].utils.waitForPersistence(),
+		...[
+			'$panelTree',
+			'parentPanelId',
+			'indexInParent',
+			'kind',
+			'entityType',
+			'selector',
+		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadPanel][
+			entityFieldAddressKey(EntityType.BlockheadPanel, [], fieldName)
+		].utils.waitForPersistence()),
+		context.entityFieldCollections[EntityType.BlockheadPanelTree][
+			entityFieldAddressKey(EntityType.BlockheadPanelTree, [], '$$panels')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType.BlockheadPanelTree][
+			entityFieldAddressKey(EntityType.BlockheadPanelTree, [], '$$panels')
+		]?.utils.waitForPersistence(),
+	])
+
+	return entitySelector
 }
 
 export const deleteLocalBlockheadPanel = (
