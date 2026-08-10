@@ -21,10 +21,12 @@
 
 	const detailHref = $derived(
 		resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(dydx)/market/[ticker=stringSegment]',
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 			{
 				network: params.network,
-				ticker: params.ticker,
+				accountId: params.accountId,
+				timestampMs: params.timestampMs,
+				source: params.source,
 			}
 		)
 	)
@@ -33,7 +35,7 @@
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
-	import DydxChainMarketView from '$/views/DydxChainMarketView.svelte'
+	import NearAccount_TimestampView from '$/views/NearAccount_TimestampView.svelte'
 </script>
 
 
@@ -41,11 +43,11 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<DydxChainMarketView
+		<NearAccount_TimestampView
 			selection={
-				select(EntityType.DydxChainMarket, data.selector, {
+				select(EntityType.NearAccount_Timestamp, data.selector, {
 					sources: [
-						Source.DydxIndexer,
+						Source.NearRpc_JsonRpc,
 					],
 				})
 			}

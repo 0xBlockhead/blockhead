@@ -150,3 +150,73 @@ test('runtime wallet authority survives re-entry and deletes atomically', async 
 	await expect(page.getByTestId('wallet-awaited')).toHaveText('authority-connection-b')
 	await expect(page.locator('#main')).not.toContainText('Local_Internal')
 })
+
+test('nested callable references update collection and first ResourceBoundary consumers', async ({ page }, testInfo) => {
+	testInfo.setTimeout(240_000)
+	const derivedInertWarnings: string[] = []
+	page.on('console', (message) => {
+		if (message.type() === 'warning' && message.text().includes('derived_inert'))
+			derivedInertWarnings.push(message.text())
+	})
+	const diagnostics = await openFixture(page, testInfo)
+	const collectionBoundary = page.getByTestId('nested-resource-collection-awaited')
+	const firstBoundary = page.getByTestId('nested-resource-first-awaited')
+	await expect(collectionBoundary).toBeAttached({
+		timeout: 120_000,
+	})
+	await expect(firstBoundary).toBeAttached({
+		timeout: 120_000,
+	})
+	await expect(collectionBoundary).toHaveText('')
+	await expect(firstBoundary).toHaveText('')
+
+	await diagnostics.step(page.getByRole('button', {
+		name: 'Materialize boundary session',
+	}).click())
+	await diagnostics.step(expect(collectionBoundary).toHaveText('Resource Boundary 100', {
+		timeout: 120_000,
+	}))
+	await diagnostics.step(expect(firstBoundary).toHaveText('Resource Boundary 100', {
+		timeout: 120_000,
+	}))
+
+	await diagnostics.step(page.getByRole('button', {
+		name: 'Update boundary session',
+	}).click())
+	await diagnostics.step(expect(collectionBoundary).toHaveText('Resource Boundary 101', {
+		timeout: 120_000,
+	}))
+	await diagnostics.step(expect(firstBoundary).toHaveText('Resource Boundary 101', {
+		timeout: 120_000,
+	}))
+
+	await diagnostics.step(page.getByRole('button', {
+		name: 'Materialize entity reference',
+	}).click())
+	const latestSimulation = page
+		.getByTestId('entity-reference-session-view')
+		.getByText('Latest simulation', {
+			exact: true,
+		})
+		.locator('..')
+		.locator('dd')
+	await diagnostics.step(expect(latestSimulation.getByRole('link')).toHaveAttribute(
+		'href',
+		'/~/session/simulation/entity-reference-simulation-a',
+		{
+			timeout: 120_000,
+		}
+	))
+
+	await diagnostics.step(page.getByRole('button', {
+		name: 'Replace entity reference',
+	}).click())
+	await diagnostics.step(expect(latestSimulation.getByRole('link')).toHaveAttribute(
+		'href',
+		'/~/session/simulation/entity-reference-simulation-b',
+		{
+			timeout: 120_000,
+		}
+	))
+	expect(derivedInertWarnings).toEqual([])
+})

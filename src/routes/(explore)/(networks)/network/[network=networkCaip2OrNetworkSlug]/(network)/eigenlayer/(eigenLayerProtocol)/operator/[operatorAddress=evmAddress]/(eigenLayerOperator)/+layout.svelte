@@ -46,9 +46,6 @@
 				select(EntityType.EigenLayerOperator, data.selector, {
 					sources: [
 						Source.EigenExplorer_Rest,
-						Source.EigenLayerContracts_Evm,
-						Source.Etherscan_Rest,
-						Source.Voltaire_JsonRpc,
 					],
 				})
 			}

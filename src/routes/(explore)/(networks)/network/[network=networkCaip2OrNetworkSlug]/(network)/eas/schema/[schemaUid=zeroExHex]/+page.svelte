@@ -22,11 +22,7 @@
 		schemaUid: params.schemaUid,
 	}, {
 		sources: [
-			Source.Blockscout_Rest,
-			Source.EasContracts_Evm,
 			Source.EasScan_Graphql,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
 		],
 	}))
 

@@ -20,7 +20,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		{
 			$owner: parentData.selector,
 			$spender: {
-				$network: selector.$owner.$network,
+				$network: parentData.selector.$network,
 				accountId: params.spenderAccountId,
 			},
 			allowanceKind: params.allowanceKind,

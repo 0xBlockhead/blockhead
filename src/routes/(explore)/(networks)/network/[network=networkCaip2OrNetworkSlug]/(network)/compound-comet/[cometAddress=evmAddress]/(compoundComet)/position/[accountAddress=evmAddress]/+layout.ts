@@ -19,7 +19,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		CompoundPositionSchema,
 		{
 			$account: {
-				$network: selector.$comet.$network,
+				$network: parentData.selector.$network,
 				$actor: {
 					address: params.accountAddress,
 				},

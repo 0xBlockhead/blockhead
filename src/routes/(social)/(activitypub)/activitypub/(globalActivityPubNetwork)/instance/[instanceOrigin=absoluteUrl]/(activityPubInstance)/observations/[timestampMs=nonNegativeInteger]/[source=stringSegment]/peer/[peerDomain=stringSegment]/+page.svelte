@@ -14,28 +14,32 @@
 	// State
 	let {
 		data,
+		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.DydxChainMarket, data.selector, {
+	const pageSelection = $derived(select(EntityType.ActivityPubInstancePeer, {
+		$observation: data.selector,
+		peerDomain: params.peerDomain,
+	}, {
 		sources: [
-			Source.DydxIndexer,
+			Source.Mastodon_Rest,
 		],
 	}))
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import DydxChainMarketView from '$/views/DydxChainMarketView.svelte'
+	import ActivityPubInstancePeerView from '$/views/ActivityPubInstancePeerView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>{data.title ?? (pageSelection.entitySelector.ticker || 'dydx chain market')} • dydx chain market • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.peerDomain || 'ActivityPub instance peer')} • ActivityPub instance peer • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	<DydxChainMarketView
+	<ActivityPubInstancePeerView
 		selection={pageSelection}
 	/>
 </Page>

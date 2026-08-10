@@ -21,10 +21,10 @@
 
 	const detailHref = $derived(
 		resolve(
-			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(dydx)/market/[ticker=stringSegment]',
+			'/(assets)/uniswap-cca/auction/[chainId=eip155ChainId]/[auctionAddress=evmAddress]',
 			{
-				network: params.network,
-				ticker: params.ticker,
+				chainId: params.chainId,
+				auctionAddress: params.auctionAddress,
 			}
 		)
 	)
@@ -33,7 +33,7 @@
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
-	import DydxChainMarketView from '$/views/DydxChainMarketView.svelte'
+	import UniswapCcaAuctionView from '$/views/UniswapCcaAuctionView.svelte'
 </script>
 
 
@@ -41,11 +41,11 @@
 	href={detailHref}
 >
 	{#snippet Summary()}
-		<DydxChainMarketView
+		<UniswapCcaAuctionView
 			selection={
-				select(EntityType.DydxChainMarket, data.selector, {
+				select(EntityType.UniswapCcaAuction, data.selector, {
 					sources: [
-						Source.DydxIndexer,
+						Source.UniswapContracts_Evm,
 					],
 				})
 			}

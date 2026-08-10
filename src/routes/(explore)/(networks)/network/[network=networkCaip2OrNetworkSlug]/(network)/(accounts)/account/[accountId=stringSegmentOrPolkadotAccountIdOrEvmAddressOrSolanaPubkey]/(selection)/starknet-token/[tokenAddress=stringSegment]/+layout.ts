@@ -21,7 +21,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		{
 			$owner: parentData.selector,
 			$tokenContract: {
-				$network: selector.$owner.$network,
+				$network: parentData.selector.$network,
 				address: params.tokenAddress,
 			},
 		},
