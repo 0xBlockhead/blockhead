@@ -11,7 +11,10 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceFetch,
 }))
 
-const { getBlockById: getFullNodeBlockById } = await import('$/sources/TronFullNode/Rest/queries.ts')
+const {
+	getAccount: getFullNodeAccount,
+	getBlockById: getFullNodeBlockById,
+} = await import('$/sources/TronFullNode/Rest/queries.ts')
 const { getBlockById: getSolidityNodeBlockById } = await import('$/sources/TronSolidityNode/Rest/queries.ts')
 
 const binding = bindings[Source.TronFullNode_Rest][0]
@@ -43,6 +46,29 @@ describe('TRON local node transport', () => {
 				method: 'POST',
 			})
 		)
+	})
+
+	it('preserves account resource usage from the typed account envelope', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			address: 'Taccount',
+			free_net_usage: 11,
+			net_usage: 12,
+			account_resource: {
+				energy_usage: 13,
+			},
+		}), {
+			status: 200,
+		}))
+
+		await expect(getFullNodeAccount({
+			address: 'Taccount',
+		})).resolves.toMatchObject({
+			free_net_usage: 11,
+			net_usage: 12,
+			account_resource: {
+				energy_usage: 13,
+			},
+		})
 	})
 
 	it('keeps SolidityNode requests on the walletsolidity namespace', async () => {

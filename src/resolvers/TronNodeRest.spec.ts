@@ -100,6 +100,11 @@ describe.each([
 			balance: 10,
 			create_time: 1_700_000_000_000,
 			latest_opration_time: 1_750_000_000_000,
+			free_net_usage: 11,
+			net_usage: 12,
+			account_resource: {
+				energy_usage: 13,
+			},
 		})
 		queries.getBlockById.mockResolvedValue(block)
 		queries.getTransactionById.mockResolvedValue(block.transactions[0])
@@ -192,7 +197,66 @@ describe.each([
 					timestampMs: 1_750_000_000_000,
 					source,
 				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'balanceSun')]: 10n,
+					[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'freeNetUsed')]: 11n,
+					[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'netUsed')]: 12n,
+					[entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], 'energyUsed')]: 13n,
+				},
 			}],
+		})
+	})
+
+	it('resolves account resource observations only at the requested source clock', async () => {
+		const timestampResolver = resolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.TronAccount_Timestamp
+		))
+		if (timestampResolver == null)
+			throw new Error('TRON account timestamp resolver is missing')
+
+		const selector = {
+			$account: {
+				$network: tronSlugNetwork,
+				address: 'account',
+			},
+			timestampMs: 1_750_000_000_000,
+			source,
+		}
+		await expect(timestampResolver.resolve.AccountTimestampMsSource.resolve(selector)).resolves.toEqual({
+			balanceSun: 10n,
+			createdTimestampMs: 1_700_000_000_000,
+			latestOperationTimestampMs: 1_750_000_000_000,
+			freeNetUsed: 11n,
+			netUsed: 12n,
+			energyUsed: 13n,
+		})
+		await expect(timestampResolver.resolve.AccountTimestampMsSource.resolve({
+			...selector,
+			timestampMs: selector.timestampMs + 1,
+		})).rejects.toThrow(`${source}: account observation clock mismatch`)
+		await expect(timestampResolver.resolve.AccountTimestampMsSource.resolve({
+			...selector,
+			source: Source.TronGrid_Rest,
+		})).rejects.toThrow(`${source}: account observation source mismatch`)
+	})
+
+	it('does not fabricate an observation when the account response has no upstream clock', async () => {
+		queries.getAccount.mockResolvedValueOnce({
+			account_name: 'Clockless',
+			balance: 10,
+		})
+		const accountResolver = resolvers.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.TronAccount
+		))
+		if (accountResolver == null)
+			throw new Error('TRON account resolver is missing')
+
+		await expect(accountResolver.resolve.NetworkAddress.resolve({
+			$network: tronSlugNetwork,
+			address: 'account',
+		})).resolves.toEqual({
+			name: 'Clockless',
+			$$timestamps: [],
 		})
 	})
 

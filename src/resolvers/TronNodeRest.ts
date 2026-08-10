@@ -14,6 +14,7 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { tronNodeRest } from '$/sources/_shared/interfaces/TronNodeRest/queries.ts'
 import type {
+	TronNodeAccount,
 	TronNodeBlock,
 	TronNodeTransaction,
 	TronNodeTransactionInfo,
@@ -79,6 +80,31 @@ const bigintFromNumberOrString = (value: number | string | undefined) => (
 	:
 		BigInt(value)
 )
+
+const accountObservationTimestampMs = (account: TronNodeAccount) => (
+	account.latest_opration_time ?? account.create_time
+)
+
+const accountTimestampFields = (account: TronNodeAccount) => ({
+	...(account.balance != null && {
+		balanceSun: BigInt(account.balance),
+	}),
+	...(account.create_time != null && {
+		createdTimestampMs: account.create_time,
+	}),
+	...(account.latest_opration_time != null && {
+		latestOperationTimestampMs: account.latest_opration_time,
+	}),
+	...(account.free_net_usage != null && {
+		freeNetUsed: BigInt(account.free_net_usage),
+	}),
+	...(account.net_usage != null && {
+		netUsed: BigInt(account.net_usage),
+	}),
+	...(account.account_resource?.energy_usage != null && {
+		energyUsed: BigInt(account.account_resource.energy_usage),
+	}),
+})
 
 const firstContractValue = (transaction: TronNodeTransaction) => (
 	transaction.raw_data?.contract?.[0]?.parameter?.value
@@ -345,18 +371,30 @@ export const tronNodeRestResolvers = <
 							assertTronMainnet(source, $network)
 							const { getAccount } = await loadQueries()
 							const account = await getAccount({ address })
+							const timestampMs = accountObservationTimestampMs(account)
 							return {
 								name: account.account_name,
-								$$timestamps: [{
-									[EntityMetaKey.Selector]: {
-										$account: {
-											$network,
-											address,
-										},
-										timestampMs: account.latest_opration_time ?? account.create_time ?? Date.now(),
-										source,
-									},
-								}],
+								$$timestamps: (
+									timestampMs == null ?
+										[]
+									:
+										[{
+											[EntityMetaKey.Selector]: {
+												$account: {
+													$network,
+													address,
+												},
+												timestampMs,
+												source,
+											},
+											[EntityMetaKey.Fields]: Object.fromEntries(
+												Object.entries(accountTimestampFields(account)).map(([fieldName, value]) => [
+													entityFieldAddressKey(EntityType.TronAccount_Timestamp, [], fieldName),
+													value,
+												])
+											),
+										}]
+								),
 							}
 						},
 					}
@@ -371,17 +409,21 @@ export const tronNodeRestResolvers = <
 				resolve: {
 					AccountTimestampMsSource: {
 						appliesTo: tronAccountTimestampApplicability,
-						resolve: async ({ $account }) => {
+						resolve: async ({
+							$account,
+							timestampMs,
+							source: observationSource,
+						}) => {
 							assertTronMainnet(source, $account.$network)
+							if (observationSource !== source)
+								throw new Error(`${source}: account observation source mismatch`)
+
 							const { getAccount } = await loadQueries()
 							const account = await getAccount({ address: $account.address })
-							return {
-								...(account.balance != null && {
-									balanceSun: BigInt(account.balance),
-								}),
-								createdTimestampMs: account.create_time,
-								latestOperationTimestampMs: account.latest_opration_time,
-							}
+							if (accountObservationTimestampMs(account) !== timestampMs)
+								throw new Error(`${source}: account observation clock mismatch`)
+
+							return accountTimestampFields(account)
 						},
 					}
 				},
@@ -389,6 +431,9 @@ export const tronNodeRestResolvers = <
 				balanceSun: (account) => account.balanceSun,
 				createdTimestampMs: (account) => account.createdTimestampMs,
 				latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
+				freeNetUsed: (account) => account.freeNetUsed,
+				netUsed: (account) => account.netUsed,
+				energyUsed: (account) => account.energyUsed,
 			}),
 
 			defineResolver({

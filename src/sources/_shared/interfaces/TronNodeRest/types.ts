@@ -157,6 +157,11 @@ export type TronNodeAccount = {
 	balance?: number
 	create_time?: number
 	latest_opration_time?: number
+	free_net_usage?: number
+	net_usage?: number
+	account_resource?: {
+		energy_usage?: number
+	}
 }
 
 export const tronNodeAccountWire = arktype({
@@ -165,6 +170,11 @@ export const tronNodeAccountWire = arktype({
 	'balance?': 'number.integer >= 0',
 	'create_time?': 'number.integer >= 0',
 	'latest_opration_time?': 'number.integer >= 0',
+	'free_net_usage?': 'number.integer >= 0',
+	'net_usage?': 'number.integer >= 0',
+	'account_resource?': {
+		'energy_usage?': 'number.integer >= 0',
+	},
 }).and(arktype('Record<string, unknown>'))
 
 export type TronNodeAccountResource = {
