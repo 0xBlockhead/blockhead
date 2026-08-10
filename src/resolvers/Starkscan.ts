@@ -13,6 +13,10 @@ import { Source } from '$/sources/Source.ts'
 type NetworkIdentity = EntitySelector<typeof schema, EntityType.Network>
 type StarknetBlockIdentity = EntitySelector<typeof schema, EntityType.StarknetBlock>
 type StarknetClassIdentity = EntitySelector<typeof schema, EntityType.StarknetClass>
+type StarknetTokenHoldingIdentity = EntitySelector<typeof schema, EntityType.StarknetTokenHolding>
+type StarkscanExactTokenHoldings = Awaited<ReturnType<
+	(typeof import('$/sources/Starkscan/Rest/queries.ts'))['getExactTokenHoldings']
+>>
 
 const starknetContractApplicability = [
 	{
@@ -91,6 +95,30 @@ const gasPriceString = (
 		throw new Error(`Starkscan_Rest: invalid ${label}`)
 	return value
 }
+
+const starknetTokenHoldingObservation = (
+	holding: StarknetTokenHoldingIdentity,
+	token: StarkscanExactTokenHoldings['items'][number],
+	fetchedAtMs: number
+) => ({
+	[EntityMetaKey.Selector]: {
+		$holding: holding,
+		timestampMs: fetchedAtMs,
+		source: Source.Starkscan,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.StarknetTokenHolding_Timestamp, [], 'indexedBalanceRaw')]: BigInt(token.indexedBalanceRaw),
+		...(token.symbol != null && {
+			[entityFieldAddressKey(EntityType.StarknetTokenHolding_Timestamp, [], 'symbol')]: token.symbol,
+		}),
+		...(token.name != null && {
+			[entityFieldAddressKey(EntityType.StarknetTokenHolding_Timestamp, [], 'name')]: token.name,
+		}),
+		...(token.decimals != null && {
+			[entityFieldAddressKey(EntityType.StarknetTokenHolding_Timestamp, [], 'decimals')]: token.decimals,
+		}),
+	},
+})
 
 const resolveBlockSnapshot = async (
 	block: StarknetBlockIdentity,
@@ -225,6 +253,84 @@ export default {
 					},
 				}]
 			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetContract,
+			resolve: {
+				NetworkAddress: {
+					appliesTo: starknetContractApplicability,
+					resolve: async (owner, context) => {
+						assertStarknetMainnet(owner.$network.$network)
+						if (resolverContextRowLimit(context) === 0)
+							return []
+
+						const { getExactTokenHoldings } = await import('$/sources/Starkscan/Rest/queries.ts')
+						const holdings = await getExactTokenHoldings(canonicalFelt(owner.address, 'owner address'))
+						return holdings.items
+							.slice(0, resolverContextRowLimit(context))
+							.map((token) => {
+								const holding = {
+									$owner: owner,
+									$tokenContract: {
+										$network: owner.$network,
+										address: canonicalFelt(token.normalizedTokenAddress, 'token address'),
+									},
+								}
+
+								return {
+									[EntityMetaKey.Selector]: holding,
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.StarknetTokenHolding, [], '$$timestamps')]: [
+											starknetTokenHoldingObservation(
+												holding,
+												token,
+												holdings.fetchedAtMs
+											),
+										],
+									},
+								}
+							})
+					},
+				},
+			},
+		})({
+			$$tokenHoldings: (holdings) => holdings,
+		}),
+
+		defineResolver({
+			entityType: EntityType.StarknetTokenHolding,
+			resolve: {
+				OwnerTokenContract: {
+					resolve: async (holding) => {
+						assertStarknetMainnet(holding.$owner.$network.$network)
+						assertStarknetMainnet(holding.$tokenContract.$network.$network)
+
+						const ownerAddress = canonicalFelt(holding.$owner.address, 'owner address')
+						const tokenAddress = canonicalFelt(holding.$tokenContract.address, 'token address')
+						const { getExactTokenHoldings } = await import('$/sources/Starkscan/Rest/queries.ts')
+						const holdings = await getExactTokenHoldings(ownerAddress)
+						const token = holdings.items.find((item) => (
+							canonicalFelt(item.normalizedTokenAddress, 'token address') === tokenAddress
+						))
+						if (token == null)
+							throw new Error('Starkscan_Rest: token holding was not found')
+
+						return {
+							fetchedAtMs: holdings.fetchedAtMs,
+							token,
+						}
+					},
+				},
+			},
+		})({
+			$$timestamps: (snapshot, holding) => [
+				starknetTokenHoldingObservation(
+					holding,
+					snapshot.token,
+					snapshot.fetchedAtMs
+				),
+			],
 		}),
 
 		defineResolver({

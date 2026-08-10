@@ -35,6 +35,7 @@
 	import StarknetEventsView from '$/views/StarknetEventsView.svelte'
 	import StarknetStorageEntriesView from '$/views/StarknetStorageEntriesView.svelte'
 	import StarknetTransactionsView from '$/views/StarknetTransactionsView.svelte'
+	import StarknetTokenHoldingsView from '$/views/StarknetTokenHoldingsView.svelte'
 </script>
 
 
@@ -152,6 +153,10 @@
 						id: 'starknet-contract-transactions',
 						label: 'Transactions',
 					},
+					{
+						id: 'starknet-contract-token-holdings',
+						label: 'Token holdings',
+					},
 				]
 			}
 			data-card
@@ -179,6 +184,16 @@
 					collapsible={false}
 					title={label}
 					emptyText='No transactions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionStarknetContractTokenHoldings({ id, label })}
+				<StarknetTokenHoldingsView
+					selection={selection.$$tokenHoldings}
+					collapsible={false}
+					title={label}
+					emptyText='No token holdings.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

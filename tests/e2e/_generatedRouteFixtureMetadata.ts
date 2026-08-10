@@ -1885,6 +1885,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/starknet-token/[tokenAddress]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/starknet-token/[tokenAddress=stringSegment]',
+		mappings: [
+			{
+				id: 'StarknetTokenHolding.OwnerTokenContract',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/account/[accountId]/starknet-token/[tokenAddress]:StarknetTokenHolding.OwnerTokenContract'],
+				probeCases: [[[0, '1', ['tokenAddress', 'accountId', 'network']]]],
+				projectionPath: [
+					'Starknet',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/storage/[storageKey]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/storage/[storageKey=stringSegment]',
 		mappings: [

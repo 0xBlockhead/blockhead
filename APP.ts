@@ -1563,6 +1563,8 @@ export enum EntityType {
 	StarknetNetwork_Timestamp = "StarknetNetwork_Timestamp",
 	StarknetStorageEntry = "StarknetStorageEntry",
 	StarknetStorageEntry_Timestamp = "StarknetStorageEntry_Timestamp",
+	StarknetTokenHolding = "StarknetTokenHolding",
+	StarknetTokenHolding_Timestamp = "StarknetTokenHolding_Timestamp",
 	StarknetTransaction = "StarknetTransaction",
 	StarknetTransaction_Timestamp = "StarknetTransaction_Timestamp",
 	StellarAccount = "StellarAccount",
@@ -54591,6 +54593,7 @@ export const schema = {
 				"$$storage": { label: "storage", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.StarknetStorageEntry },
 				"$$events": { label: "events", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.StarknetEvent },
 				"$$transactions": { label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.StarknetTransaction },
+				"$$tokenHoldings": { label: "token holdings", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.StarknetTokenHolding, defaultSources: [Source.Starkscan] },
 			})({
 				selectors: {
 					"NetworkAddress": ["$network", "address"],
@@ -54622,6 +54625,7 @@ export const schema = {
 								sections: [
 									{ id: "starknet-contract-storage", field: "$$storage", List: "StarknetStorageEntriesView", label: "Storage", emptyText: "No storage." },
 									{ id: "starknet-contract-transactions", field: "$$transactions", List: "StarknetTransactionsView", label: "Transactions", emptyText: "No transactions." },
+									{ id: "starknet-contract-token-holdings", field: "$$tokenHoldings", List: "StarknetTokenHoldingsView", label: "Token holdings", emptyText: "No token holdings." },
 								],
 							},
 						],
@@ -54813,6 +54817,68 @@ export const schema = {
 						},
 					},
 					plural: { component: "StarknetStorageEntry_TimestampsView", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.StarknetTokenHolding,
+				labels: {
+					singular: "starknet token holding",
+					plural: "starknet token holdings",
+				},
+			})({
+				"$owner": { label: "owner", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.StarknetContract },
+				"$tokenContract": { label: "token contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.StarknetContract },
+				"$$timestamps": { label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.StarknetTokenHolding_Timestamp, defaultSources: [Source.Starkscan] },
+			})({
+				selectors: {
+					"OwnerTokenContract": ["$owner", "$tokenContract"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Starkscan] },
+						summary: { title: ["$tokenContract"], value: ["$owner"] },
+						closed: ["$owner", "$tokenContract", "$$timestamps"],
+						content: { dl: [["$owner", "$tokenContract", "$$timestamps"]] },
+						lists: [
+							{ field: "$$timestamps", component: "StarknetTokenHolding_TimestampsView", emptyText: "No Starknet token holding observations." },
+						],
+					},
+					plural: { component: "StarknetTokenHoldingsView", title: "Starknet token holdings" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.StarknetTokenHolding_Timestamp,
+				labels: {
+					singular: "starknet token holding timestamp",
+					plural: "starknet token holding observations",
+				},
+			})({
+				"$holding": { label: "holding", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.StarknetTokenHolding },
+				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"indexedBalanceRaw": { label: "indexed balance raw", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"symbol": { label: "symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"decimals": { label: "decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
+			})({
+				selectors: {
+					"HoldingTimestampMsSource": ["$holding", "timestampMs", "source"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Starkscan] },
+						summary: { title: ["$holding"], value: [{ field: "indexedBalanceRaw", format: "number" }], HeadingAfter: [{ field: "timestampMs", format: "timestamp" }] },
+						closed: ["$holding", { field: "timestampMs", format: "timestamp" }, { field: "indexedBalanceRaw", format: "number" }],
+						content: {
+							dl: [
+								["$holding", { field: "timestampMs", format: "timestamp" }, "source", { field: "indexedBalanceRaw", format: "number" }],
+								["symbol", "name", { field: "decimals", format: "number" }],
+							],
+						},
+					},
+					plural: { component: "StarknetTokenHolding_TimestampsView", title: "Starknet token holding observations" },
 				},
 			}),
 
@@ -73805,6 +73871,62 @@ export const routes = defineRoutes(schema)({
 																							}
 																						}
 																					}
+																				}
+																			}
+																		}
+																	}
+																},
+																"starknet-token": {
+																	children: {
+																		"[tokenAddress]": {
+																			params: { "tokenAddress": ["string"] },
+																			selectors: {
+																				[EntityType.StarknetTokenHolding]: {
+																					"OwnerTokenContract": {
+																						derivations: {
+																							"$tokenContract": {
+																								kind: "selector",
+																								entity: EntityType.StarknetContract,
+																								selector: "NetworkAddress",
+																								params: [
+																									{
+																										field: "$network",
+																										value: { kind: "property", value: { kind: "field", name: "$owner" }, property: "$network" },
+																									},
+																									{ field: "address", param: "tokenAddress" },
+																								],
+																							},
+																						},
+																						page: {},
+																						when: { path: ["namespace"], is: "Starknet" },
+																						projection: { entityType: EntityType.Network, facetPath: ["Starknet"] },
+																					}
+																				}
+																			},
+																			children: {
+																				"observations": {
+																					children: {
+																						"[timestampMs]": {
+																							params: { "timestampMs": ["NonNegativeInteger"] },
+																							children: {
+																								"[source]": {
+																									params: { "source": ["string"] },
+																									selectors: {
+																										[EntityType.StarknetTokenHolding_Timestamp]: {
+																											"HoldingTimestampMsSource": {
+																												when: { path: ["namespace"], is: "Starknet" },
+																												projection: { entityType: EntityType.Network, facetPath: ["Starknet"] },
+																												derivations: {
+																													"timestampMs": { kind: "param", name: "timestampMs" },
+																													"source": { kind: "param", name: "source" },
+																												},
+																											},
+																										},
+																									},
+																								},
+																							},
+																						},
+																					},
 																				}
 																			}
 																		}

@@ -866,6 +866,8 @@ import StarknetNetwork_TimestampSchema from '$/schema/StarknetNetwork_Timestamp.
 import StarknetNetworkSchema from '$/schema/StarknetNetwork.ts'
 import StarknetStorageEntry_TimestampSchema from '$/schema/StarknetStorageEntry_Timestamp.ts'
 import StarknetStorageEntrySchema from '$/schema/StarknetStorageEntry.ts'
+import StarknetTokenHolding_TimestampSchema from '$/schema/StarknetTokenHolding_Timestamp.ts'
+import StarknetTokenHoldingSchema from '$/schema/StarknetTokenHolding.ts'
 import StarknetTransaction_TimestampSchema from '$/schema/StarknetTransaction_Timestamp.ts'
 import StarknetTransactionSchema from '$/schema/StarknetTransaction.ts'
 import StellarAccount_TimestampSchema from '$/schema/StellarAccount_Timestamp.ts'
@@ -1966,6 +1968,8 @@ const schemaChunk17 = [
 	StarknetNetwork_TimestampSchema,
 	StarknetStorageEntrySchema,
 	StarknetStorageEntry_TimestampSchema,
+	StarknetTokenHoldingSchema,
+	StarknetTokenHolding_TimestampSchema,
 	StarknetTransactionSchema,
 	StarknetTransaction_TimestampSchema,
 	StellarAccountSchema,
@@ -1999,11 +2003,11 @@ const schemaChunk17 = [
 	SuiNetworkSchema,
 	SuiNetwork_TimestampSchema,
 	SuiObjectSchema,
-	SuiObjectChangeSchema,
-	SuiObjectVersionSchema,
 ] as const
 
 const schemaChunk18 = [
+	SuiObjectChangeSchema,
+	SuiObjectVersionSchema,
 	SuiPackageSchema,
 	SuiPackageUpgradeSchema,
 	SuiPackageVersionSchema,
@@ -2052,11 +2056,11 @@ const schemaChunk18 = [
 	TonContractSchema,
 	TonContract_TimestampSchema,
 	TonContractGetMethodSchema,
-	TonContractGetMethod_TimestampSchema,
-	TonJettonSchema,
 ] as const
 
 const schemaChunk19 = [
+	TonContractGetMethod_TimestampSchema,
+	TonJettonSchema,
 	TonJetton_TimestampSchema,
 	TonJettonBalance_TimestampSchema,
 	TonJettonTransferSchema,
@@ -2105,11 +2109,11 @@ const schemaChunk19 = [
 	UtxoTransactionSchema,
 	WalletConnectionMethodSchema,
 	WormholeVaaSchema,
-	XmtpConversationSchema,
-	XmtpMessageSchema,
 ] as const
 
 const schemaChunk20 = [
+	XmtpConversationSchema,
+	XmtpMessageSchema,
 	XmtpNetworkSchema,
 	XmtpParticipantSchema,
 	XNetworkSchema,

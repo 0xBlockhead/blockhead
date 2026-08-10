@@ -363,7 +363,10 @@ export const getExactTokenHoldings = async (
 			throw new Error('Starkscan_Rest: duplicate token holding')
 		tokenAddresses.add(holding.normalizedTokenAddress)
 	}
-	return holdings
+	return {
+		...holdings,
+		fetchedAtMs: Date.now(),
+	}
 }
 
 export const getContractEvents = async (

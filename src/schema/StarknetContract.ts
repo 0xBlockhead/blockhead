@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -35,6 +36,13 @@ export default entity({
 	$$transactions: {
 		entityType: EntityType.StarknetTransaction,
 		cardinality: EntityFieldCardinality.Many,
+	},
+	$$tokenHoldings: {
+		entityType: EntityType.StarknetTokenHolding,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Starkscan,
+		],
 	},
 })({
 	selectors: {
