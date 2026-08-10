@@ -52416,7 +52416,7 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Rss_Rest, Source.Rss2Json_Rest],
-							fields: ["title", "description", "siteUrl", "language", "lastBuildDate"],
+							fields: ["title", "description", "siteUrl", "language", "lastBuildDate", "imageUrl"],
 						},
 						summary: {
 							title: [{ field: "title" }, { field: "feedUrl" }],
@@ -52431,6 +52431,7 @@ export const schema = {
 							dl: [
 								[{ field: "feedUrl", format: "url" }],
 								[{ field: "siteUrl", format: "url" }],
+								[{ field: "imageUrl", format: "url" }],
 								[{ field: "language" }],
 								[{ field: "lastBuildDate", format: "timestamp" }],
 							],

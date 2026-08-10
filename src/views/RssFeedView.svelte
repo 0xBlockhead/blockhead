@@ -30,6 +30,7 @@
 			siteUrl: true,
 			language: true,
 			lastBuildDate: true,
+			imageUrl: true,
 		},
 	}))
 	const titleFallback = $derived([(prefetched.title ?? ''), selection.entitySelector.feedUrl].filter(Boolean).join(' ') || 'RSS feed')
@@ -120,6 +121,30 @@
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue value={siteUrl} />
+								</a>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={rssFeed}
+			>
+				{#snippet children(entity)}
+					{@const imageUrl = entity.imageUrl}
+					{#if imageUrl != null}
+						<div>
+							<dt>Image URL</dt>
+							<dd>
+								<a
+									href={imageUrl}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={imageUrl} />
 								</a>
 							</dd>
 						</div>
