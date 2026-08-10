@@ -12,14 +12,7 @@
 		type SvelteKitResource,
 		TanStackLiveQueryResource,
 	} from '$/lib/db/queryResource.svelte.ts'
-	import { projectResource } from '$/client/$proxy.svelte.ts'
 	import { select } from '$/routes/+layout.svelte'
-
-	declare global {
-		interface Window {
-			__projectedResourceCurrent?: () => string | undefined
-		}
-	}
 
 	let cachedBoundaryOpen = $state(
 		true
@@ -52,26 +45,6 @@
 			}
 		},
 	)
-	let projectedQuery = {
-		data: 'Initial projected value',
-		isLoading: false,
-		isError: false,
-		isReady: true,
-		status: 'ready',
-	} satisfies TanStackLiveQuerySnapshot<string>
-	const projectedQueryListeners = new Set<() => void>()
-	const projectedResource = projectResource(
-		new TanStackLiveQueryResource(
-			() => projectedQuery,
-			(update) => {
-				projectedQueryListeners.add(update)
-				return () => projectedQueryListeners.delete(update)
-			}
-		),
-		(value) => ({ value })
-	)
-	if (typeof window !== 'undefined')
-		window.__projectedResourceCurrent = () => projectedResource.current?.value
 	const initialFailableQuery = {
 		data: '',
 		isLoading: true,
@@ -90,28 +63,6 @@
 			}
 		},
 	)
-	const initialParityQuery = {
-		data: '',
-		isLoading: true,
-		isError: false,
-		isReady: false,
-		status: 'loading',
-	} satisfies TanStackLiveQuerySnapshot<string>
-	let parityQuery = $state<TanStackLiveQuerySnapshot<string>>(initialParityQuery)
-	const parityQueryListeners = new Set<() => void>()
-	const parityResource = new TanStackLiveQueryResource(
-		() => parityQuery,
-		(update) => {
-			parityQueryListeners.add(update)
-			return () => {
-				parityQueryListeners.delete(update)
-			}
-		},
-	)
-	let parityThen = $state('pending')
-	let parityCatch = $state('')
-	let parityFinallyCount = $state(0)
-
 	let remoteValue = $state('')
 	let remoteReady = $state(false)
 	let queryTaggedValue = $state('')
@@ -248,20 +199,6 @@
 			listener()
 	}
 
-	const publishProjectedValue = () => {
-		setTimeout(() => {
-			projectedQuery = {
-				data: 'Updated projected value',
-				isLoading: false,
-				isError: false,
-				isReady: true,
-				status: 'ready',
-			}
-			for (const listener of projectedQueryListeners)
-				listener()
-		})
-	}
-
 	const writeResourceFixtureValue = (
 		id: string,
 		value: string,
@@ -300,41 +237,6 @@
 		for (const listener of failableQueryListeners)
 			listener()
 	}
-
-	const observeParityPromise = () => {
-		parityThen = 'pending'
-		parityCatch = ''
-		void parityResource.then(
-			(value) => {
-				parityThen = value
-			},
-			(error) => {
-				parityThen = String(error)
-			},
-		)
-		void parityResource.catch((error) => {
-			parityCatch = String(error)
-		})
-		void parityResource.finally(() => {
-			parityFinallyCount += 1
-		}).catch(() => {})
-	}
-
-	const applyParitySnapshot = (
-		nextParityQuery: TanStackLiveQuerySnapshot<string>,
-	) => {
-		parityQuery.data = nextParityQuery.data
-		parityQuery.isLoading = nextParityQuery.isLoading
-		parityQuery.isError = nextParityQuery.isError
-		parityQuery.isReady = nextParityQuery.isReady
-		parityQuery.error = nextParityQuery.error
-		parityQuery.status = nextParityQuery.status
-		for (const listener of parityQueryListeners)
-			listener()
-		observeParityPromise()
-	}
-
-	observeParityPromise()
 
 	const applyRemoteValue = (
 		value: string,
@@ -428,135 +330,6 @@
 			<p data-testid="selected-awaited-value">pending</p>
 		{/snippet}
 	</svelte:boundary>
-</section>
-
-<section data-testid="projected-resource-boundary-section">
-	<h2>Projected resource</h2>
-
-	<button
-		data-testid="publish-projected-resource"
-		onclick={publishProjectedValue}
-	>
-		Publish projected value
-	</button>
-
-	<ResourceBoundary
-		resource={projectedResource}
-		placeholderText="Loading projected value"
-	>
-		{#snippet children(projected)}
-			<p data-testid="projected-resource-boundary-value">{projected.value}</p>
-		{/snippet}
-	</ResourceBoundary>
-</section>
-
-<section data-testid="parity-boundary-section">
-	<h2>Resource state parity</h2>
-
-	<button
-		data-testid="parity-ready"
-		onclick={() => applyParitySnapshot({
-			data: 'Ready parity value',
-			isLoading: false,
-			isError: false,
-			isReady: true,
-			status: 'ready',
-		})}
-	>
-		Resolve parity resource
-	</button>
-
-	<button
-		data-testid="parity-source-update"
-		onclick={() => applyParitySnapshot({
-			data: 'Source-updated parity value',
-			isLoading: false,
-			isError: false,
-			isReady: true,
-			status: 'ready',
-		})}
-	>
-		Publish parity source update
-	</button>
-
-	<button
-		data-testid="parity-error"
-		onclick={() => applyParitySnapshot({
-			data: '',
-			isLoading: false,
-			isError: true,
-			isReady: false,
-			error: 'Parity failure',
-			status: 'error',
-		})}
-	>
-		Fail parity resource
-	</button>
-
-	<button
-		data-testid="parity-recovered-ready"
-		onclick={() => applyParitySnapshot({
-			data: 'Recovered parity value',
-			isLoading: false,
-			isError: false,
-			isReady: true,
-			status: 'ready',
-		})}
-	>
-		Resolve retried parity resource
-	</button>
-
-	<dl>
-		<dt>current</dt>
-		<dd data-testid="parity-current">{parityResource.current ?? ''}</dd>
-
-		<dt>loading</dt>
-		<dd data-testid="parity-loading">{String(parityResource.loading)}</dd>
-
-		<dt>ready</dt>
-		<dd data-testid="parity-ready-state">{String(parityResource.ready)}</dd>
-
-		<dt>error</dt>
-		<dd data-testid="parity-error-state">{parityResource.error ?? ''}</dd>
-
-		<dt>then</dt>
-		<dd data-testid="parity-then">{parityThen}</dd>
-
-		<dt>catch</dt>
-		<dd data-testid="parity-catch">{parityCatch}</dd>
-
-		<dt>finally</dt>
-		<dd data-testid="parity-finally-count">{parityFinallyCount}</dd>
-	</dl>
-
-	<ResourceBoundary
-		resource={parityResource}
-		placeholderText="Loading parity resource"
-	>
-		{#snippet children(value)}
-			<p data-testid="parity-boundary-value">{value}</p>
-		{/snippet}
-
-		{#snippet Failed(error, retry)}
-			<p data-testid="parity-boundary-error">{String(error)}</p>
-
-			<button
-				data-testid="parity-boundary-retry"
-				onclick={() => {
-					applyParitySnapshot({
-						data: '',
-						isLoading: true,
-						isError: false,
-						isReady: false,
-						status: 'loading',
-					})
-					retry()
-				}}
-			>
-				Retry parity resource
-			</button>
-		{/snippet}
-	</ResourceBoundary>
 </section>
 
 <section data-testid="failable-boundary-section">
