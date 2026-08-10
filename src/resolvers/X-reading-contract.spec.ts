@@ -40,9 +40,7 @@ const context = {
 	selectorKeys: [],
 	parentSelectorKeys: [],
 	sources: [],
-	publicEnv: {
-		PUBLIC_X_API_BEARER: 'fixture',
-	},
+	publicEnv: {},
 	limit: 10,
 }
 

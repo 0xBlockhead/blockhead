@@ -43,9 +43,7 @@ const context = {
 	selectorKeys: [],
 	parentSelectorKeys: [],
 	sources: [],
-	publicEnv: {
-		PUBLIC_X_API_BEARER: 'fixture',
-	},
+	publicEnv: {},
 	limit: 10,
 	providerContinuationToken: 'opaque/+%',
 }
@@ -118,7 +116,6 @@ describe('X Rest network search projections', () => {
 			context
 		)).toHaveLength(1)
 		expect(xQueries.searchRecentTweets).toHaveBeenCalledWith(
-			context.publicEnv,
 			expect.any(Number),
 			'opaque/+%'
 		)
@@ -142,7 +139,6 @@ describe('X Rest network search projections', () => {
 			name: 'Current',
 		})
 		expect(xQueries.getUserByUsername).toHaveBeenCalledWith(
-			context.publicEnv,
 			'former_reader'
 		)
 	})

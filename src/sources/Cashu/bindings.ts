@@ -6,6 +6,7 @@ import {
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
@@ -26,7 +27,10 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.EcashMintOperations,
+			...genericReadOperationGroups,
+		],
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
 		artifacts: [

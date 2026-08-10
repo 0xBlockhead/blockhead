@@ -9,6 +9,41 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+
+
+const cashuMintQuoteBolt11 = async (
+	mintUrl: string,
+	method: string,
+	quoteId: string
+) => {
+	if (method !== 'bolt11')
+		throw new Error(`CashuMint_Rest: unsupported mint method ${method}`)
+
+	const { getMintQuoteBolt11 } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
+	const quote = await getMintQuoteBolt11(mintUrl, quoteId)
+	if (quote.quote !== quoteId)
+		throw new Error(`CashuMint_Rest: mint quote identity mismatch ${quote.quote} !== ${quoteId}`)
+
+	return quote
+}
+
+const cashuMeltQuoteBolt11 = async (
+	mintUrl: string,
+	method: string,
+	quoteId: string
+) => {
+	if (method !== 'bolt11')
+		throw new Error(`CashuMint_Rest: unsupported melt method ${method}`)
+
+	const { getMeltQuoteBolt11 } = await import('$/sources/Cashu/Mint/Rest/queries.ts')
+	const quote = await getMeltQuoteBolt11(mintUrl, quoteId)
+	if (quote.quote !== quoteId)
+		throw new Error(`CashuMint_Rest: melt quote identity mismatch ${quote.quote} !== ${quoteId}`)
+
+	return quote
+}
+
+
 export default {
 	source: Source.CashuMint_Rest,
 
@@ -135,6 +170,155 @@ export default {
 			mintMethodsJson: (snapshot) => snapshot.mintMethodsJson,
 			meltMethodsJson: (snapshot) => snapshot.meltMethodsJson,
 			supportedNutNumbers: (snapshot) => snapshot.supportedNutNumbers ?? [],
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadCashuMintQuote,
+			resolve: {
+				MintMethodQuoteId: {
+					resolve: async ({ $mint, method, quoteId }) => {
+						const quote = await cashuMintQuoteBolt11(
+							$mint.mintUrl,
+							method,
+							quoteId
+						)
+						return {
+							request: quote.request,
+							unit: quote.unit,
+							amount: BigInt(quote.amount),
+							$$timestamps: (
+								quote.state == null ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											$mintQuote: { $mint, method, quoteId },
+											timestampMs: quote.updated_at * 1000,
+											source: Source.CashuMint_Rest,
+										},
+									}]
+							),
+						}
+					},
+				},
+			},
+		})({
+			request: (snapshot) => snapshot.request,
+			unit: (snapshot) => snapshot.unit,
+			amount: (snapshot) => snapshot.amount,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadCashuMintQuote_Timestamp,
+			resolve: {
+				MintQuoteTimestampMsSource: {
+					resolve: async ({ $mintQuote, timestampMs, source }) => {
+						if (source !== Source.CashuMint_Rest)
+							throw new Error(`CashuMint_Rest: unsupported source ${source}`)
+
+						const quote = await cashuMintQuoteBolt11(
+							$mintQuote.$mint.mintUrl,
+							$mintQuote.method,
+							$mintQuote.quoteId
+						)
+						if (quote.updated_at * 1000 !== timestampMs)
+							throw new Error(`CashuMint_Rest: mint quote observation timestamp mismatch ${quote.updated_at * 1000} !== ${timestampMs}`)
+						if (quote.state == null)
+							throw new Error('CashuMint_Rest: mint quote state is absent')
+
+						return {
+							$mintQuote: {
+								[EntityMetaKey.Selector]: $mintQuote,
+							},
+							timestampMs,
+							source,
+							state: quote.state,
+							...(quote.expiry != null && {
+								expiryMs: quote.expiry * 1000,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$mintQuote: (snapshot) => snapshot.$mintQuote,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			source: (snapshot) => snapshot.source,
+			state: (snapshot) => snapshot.state,
+			expiryMs: (snapshot) => snapshot.expiryMs,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadCashuMeltQuote,
+			resolve: {
+				MintMethodQuoteId: {
+					resolve: async ({ $mint, method, quoteId }) => {
+						const quote = await cashuMeltQuoteBolt11(
+							$mint.mintUrl,
+							method,
+							quoteId
+						)
+						return {
+							request: quote.request,
+							amount: BigInt(quote.amount),
+							unit: quote.unit,
+							feeReserve: BigInt(quote.fee_reserve),
+							$$timestamps: [{
+								[EntityMetaKey.Selector]: {
+									$meltQuote: { $mint, method, quoteId },
+									timestampMs: Date.now(),
+									source: Source.CashuMint_Rest,
+								},
+							}],
+						}
+					},
+				},
+			},
+		})({
+			request: (snapshot) => snapshot.request,
+			amount: (snapshot) => snapshot.amount,
+			unit: (snapshot) => snapshot.unit,
+			feeReserve: (snapshot) => snapshot.feeReserve,
+			$$timestamps: (snapshot) => snapshot.$$timestamps,
+		}),
+
+		defineResolver({
+			entityType: EntityType.BlockheadCashuMeltQuote_Timestamp,
+			resolve: {
+				MeltQuoteTimestampMsSource: {
+					resolve: async ({ $meltQuote, timestampMs, source }) => {
+						if (source !== Source.CashuMint_Rest)
+							throw new Error(`CashuMint_Rest: unsupported source ${source}`)
+
+						const quote = await cashuMeltQuoteBolt11(
+							$meltQuote.$mint.mintUrl,
+							$meltQuote.method,
+							$meltQuote.quoteId
+						)
+
+						return {
+							$meltQuote: {
+								[EntityMetaKey.Selector]: $meltQuote,
+							},
+							timestampMs,
+							source,
+							state: quote.state,
+							expiryMs: quote.expiry * 1000,
+							...(quote.payment_preimage != null && {
+								paymentPreimage: quote.payment_preimage,
+							}),
+						}
+					},
+				},
+			},
+		})({
+			$meltQuote: (snapshot) => snapshot.$meltQuote,
+			timestampMs: (snapshot) => snapshot.timestampMs,
+			source: (snapshot) => snapshot.source,
+			state: (snapshot) => snapshot.state,
+			expiryMs: (snapshot) => snapshot.expiryMs,
+			paymentPreimage: (snapshot) => snapshot.paymentPreimage,
 		}),
 
 		defineResolver({

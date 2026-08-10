@@ -234,9 +234,7 @@ describe('Lightning and mempool resolver bindings', () => {
 				hash: 'block',
 			}, context)
 
-		expect(getInfo).toHaveBeenCalledWith({
-			publicEnv: {},
-		})
+		expect(getInfo).toHaveBeenCalledWith()
 		expect(getBlock).toHaveBeenCalledWith('block')
 	})
 })

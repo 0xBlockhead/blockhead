@@ -773,6 +773,52 @@ describe('client resolver architecture', () => {
 		}
 	})
 
+	it('keeps X and LND runtime credentials out of resolver production code', () => {
+		for (const relativePath of [
+			'resolvers/LightningLnd-Rest.ts',
+			'resolvers/X-Rest.ts',
+		]) {
+			const filePath = join(srcPath, relativePath)
+			const sourceFile = ts.createSourceFile(
+				filePath,
+				scannedSourceByFilePath[filePath],
+				ts.ScriptTarget.Latest,
+				true,
+				ts.ScriptKind.TS
+			)
+			const credentialReferences: string[] = []
+			const visit = (node: ts.Node) => {
+				if (
+					ts.isIdentifier(node)
+					&& (
+						node.text === 'publicEnv'
+						|| node.text === 'PUBLIC_X_API_BEARER'
+						|| node.text === 'PUBLIC_LND_MACAROON_HEX'
+						|| node.text === 'X_API_BEARER'
+						|| node.text === 'LND_MACAROON_HEX'
+					)
+				)
+					credentialReferences.push(node.text)
+
+				if (
+					ts.isStringLiteralLike(node)
+					&& (
+						node.text === 'PUBLIC_X_API_BEARER'
+						|| node.text === 'PUBLIC_LND_MACAROON_HEX'
+						|| node.text === 'X_API_BEARER'
+						|| node.text === 'LND_MACAROON_HEX'
+					)
+				)
+					credentialReferences.push(node.text)
+
+				ts.forEachChild(node, visit)
+			}
+			visit(sourceFile)
+
+			expect(credentialReferences, relativePath).toEqual([])
+		}
+	})
+
 	it('keeps source binding lookup hot paths pre-indexed', () => {
 		for (const filePath of scannedSourceFiles.filter((path) => (
 			path.startsWith(join(srcPath, 'sources'))

@@ -1,6 +1,4 @@
 import { throwHttpError } from '$/lib/http.ts'
-import { requiredPublicEnvString } from '$/sources/$sources.ts'
-import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import bindings from '$/sources/LightningLnd/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
@@ -208,28 +206,18 @@ const assertChannelId = (channelId: string) => {
 const assertChannelPoint = (channelPoint: string) => {
 	const [fundingTransactionId, outputIndex] = channelPoint.split(':')
 	if (
-		fundingTransactionId == null
-		|| fundingTransactionId === ''
-		|| outputIndex == null
+		fundingTransactionId === ''
 		|| !losslessUnsignedString.allows(outputIndex)
 	)
 		throw new Error('LightningLnd_Rest: invalid channel funding point')
 }
 
-const lndHeaders = (macaroonHex: string) => ({
-	'Grpc-Metadata-macaroon': macaroonHex,
-})
-
 const requestLightningLndRestJson = async ({
-	publicEnv,
 	path,
 }: {
-	publicEnv: SourcePublicEnv
 	path: string
 }) => {
-	const response = await sourceFetch(binding, httpUrl(binding, path), {
-		headers: lndHeaders(requiredPublicEnvString(publicEnv, 'PUBLIC_LND_MACAROON_HEX')),
-	})
+	const response = await sourceFetch(binding, httpUrl(binding, path))
 	if (!response.ok)
 		await throwHttpError(`${binding.source} ${path}`, response)
 
@@ -246,64 +234,44 @@ const assertGraphEdge = (
 		assertChannelPoint(edge.chan_point)
 }
 
-export const getInfo = async ({
-	publicEnv,
-}: {
-	publicEnv: SourcePublicEnv
-}) => (
+export const getInfo = async () => (
 	assertEnvelope(
 		getInfoWire,
 		await requestLightningLndRestJson({
-			publicEnv,
 			path: '/v1/getinfo',
 		}),
 		'getinfo'
 	)
 )
 
-export const getWalletBalance = async ({
-	publicEnv,
-}: {
-	publicEnv: SourcePublicEnv
-}) => (
+export const getWalletBalance = async () => (
 	// Official LND REST/OpenAPI proof:
 	// https://lightning.engineering/api-docs/api/lnd/lightning/wallet-balance/
 	assertEnvelope(
 		walletBalanceWire,
 		await requestLightningLndRestJson({
-			publicEnv,
 			path: '/v1/balance/blockchain',
 		}),
 		'wallet balance'
 	)
 )
 
-export const getChannelBalance = async ({
-	publicEnv,
-}: {
-	publicEnv: SourcePublicEnv
-}) => (
+export const getChannelBalance = async () => (
 	// Official LND REST/OpenAPI proof:
 	// https://lightning.engineering/api-docs/api/lnd/lightning/channel-balance/
 	assertEnvelope(
 		channelBalanceWire,
 		await requestLightningLndRestJson({
-			publicEnv,
 			path: '/v1/balance/channels',
 		}),
 		'channel balance'
 	)
 )
 
-export const getNetworkInfo = async ({
-	publicEnv,
-}: {
-	publicEnv: SourcePublicEnv
-}) => (
+export const getNetworkInfo = async () => (
 	assertEnvelope(
 		networkInfoWire,
 		await requestLightningLndRestJson({
-			publicEnv,
 			path: '/v1/graph/info',
 		}),
 		'network info'
@@ -311,11 +279,9 @@ export const getNetworkInfo = async ({
 )
 
 export const getNodeInfo = async ({
-	publicEnv,
 	publicKey,
 	includeChannels = false,
 }: {
-	publicEnv: SourcePublicEnv
 	publicKey: string
 	includeChannels?: boolean
 }) => {
@@ -323,7 +289,6 @@ export const getNodeInfo = async ({
 	const info = assertEnvelope(
 		nodeInfoWire,
 		await requestLightningLndRestJson({
-			publicEnv,
 			path: `/v1/graph/node/${encodeURIComponent(publicKey)}?include_channels=${includeChannels}`,
 		}),
 		'node info'
@@ -339,10 +304,8 @@ export const getNodeInfo = async ({
 }
 
 export const getChannelInfo = async ({
-	publicEnv,
 	channelId,
 }: {
-	publicEnv: SourcePublicEnv
 	channelId: string
 }) => {
 	// Official LND REST/OpenAPI proof:
@@ -351,7 +314,6 @@ export const getChannelInfo = async ({
 	const edge = assertEnvelope(
 		channelEdgeWire,
 		await requestLightningLndRestJson({
-			publicEnv,
 			path: `/v1/graph/edge/${encodeURIComponent(channelId)}`,
 		}),
 		'channel edge'
@@ -360,15 +322,10 @@ export const getChannelInfo = async ({
 	return edge
 }
 
-export const listChannels = async ({
-	publicEnv,
-}: {
-	publicEnv: SourcePublicEnv
-}) => {
+export const listChannels = async () => {
 	const response = assertEnvelope(
 		listChannelsWire,
 		await requestLightningLndRestJson({
-			publicEnv,
 			path: '/v1/channels',
 		}),
 		'list channels'
@@ -379,18 +336,15 @@ export const listChannels = async ({
 }
 
 export const listInvoices = async ({
-	publicEnv,
 	numMaxInvoices,
 }: {
-	publicEnv: SourcePublicEnv
 	numMaxInvoices?: number
-}) => {
+} = {}) => {
 	if (numMaxInvoices != null && (!Number.isSafeInteger(numMaxInvoices) || numMaxInvoices < 1))
 		throw new Error('LightningLnd_Rest: invoice page size must be a positive safe integer')
 	return assertEnvelope(
 		listInvoicesWire,
 		await requestLightningLndRestJson({
-			publicEnv,
 			path: `/v1/invoices${numMaxInvoices == null ? '' : `?num_max_invoices=${numMaxInvoices}`}`,
 		}),
 		'list invoices'
@@ -398,18 +352,15 @@ export const listInvoices = async ({
 }
 
 export const listPayments = async ({
-	publicEnv,
 	maxPayments,
 }: {
-	publicEnv: SourcePublicEnv
 	maxPayments?: number
-}) => {
+} = {}) => {
 	if (maxPayments != null && (!Number.isSafeInteger(maxPayments) || maxPayments < 1))
 		throw new Error('LightningLnd_Rest: payment page size must be a positive safe integer')
 	return assertEnvelope(
 		listPaymentsWire,
 		await requestLightningLndRestJson({
-			publicEnv,
 			path: `/v1/payments${maxPayments == null ? '' : `?max_payments=${maxPayments}`}`,
 		}),
 		'list payments'

@@ -17,6 +17,7 @@ import {
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 	indexSourceBindings,
@@ -429,6 +430,88 @@ describe('source binding indexes', () => {
 		))).toBe(true)
 	})
 
+	it('keeps authored credential and Cashu capability facts aligned with generated server metadata', () => {
+		expect(Object.fromEntries([
+			Source.CardanoDbSync_Postgres,
+			Source.Conseil_Postgres,
+			Source.LightningLnd_Rest,
+			Source.X_Rest,
+		].map((source) => {
+			const binding = sourceBindings.find((binding) => binding.source === source)
+			if (binding == null)
+				throw new Error(`${source} binding is missing`)
+
+			return [
+				source,
+				binding.credentials.map((credential) => ({
+					scope: credential.scope,
+					keys: credential.keys,
+					envKeys: credential.env?.props.map(({ key }) => String(key)),
+				})),
+			]
+		}))).toEqual({
+			[Source.CardanoDbSync_Postgres]: [{
+				scope: SourceCredentialScope.RuntimeSecret,
+				keys: ['CARDANO_DB_SYNC_DATABASE_URL'],
+				envKeys: ['CARDANO_DB_SYNC_DATABASE_URL'],
+			}],
+			[Source.Conseil_Postgres]: [{
+				scope: SourceCredentialScope.RuntimeSecret,
+				keys: ['CONSEIL_DATABASE_URL'],
+				envKeys: ['CONSEIL_DATABASE_URL'],
+			}],
+			[Source.LightningLnd_Rest]: [{
+				scope: SourceCredentialScope.RuntimeSecret,
+				keys: ['LND_MACAROON_HEX'],
+				envKeys: undefined,
+			}],
+			[Source.X_Rest]: [{
+				scope: SourceCredentialScope.RuntimeSecret,
+				keys: ['X_API_BEARER'],
+				envKeys: undefined,
+			}],
+		})
+
+		for (const [source, serverCredential] of [
+			[
+				Source.LightningLnd_Rest,
+				{
+					envKey: 'LND_MACAROON_HEX',
+					injection: {
+						header: {
+							name: 'Grpc-Metadata-macaroon',
+						},
+					},
+				},
+			],
+			[
+				Source.X_Rest,
+				{
+					envKey: 'X_API_BEARER',
+					injection: {
+						header: {
+							name: 'Authorization',
+							prefix: 'Bearer ',
+						},
+					},
+				},
+			],
+		] as const) {
+			const binding = sourceBindings.find((binding) => binding.source === source)
+			if (binding == null)
+				throw new Error(`${source} binding is missing`)
+
+			expect(sourceServerCredentialsById.get(sourceBindingId(binding))).toEqual(serverCredential)
+		}
+
+		expect(sourceBindings.find((binding) => (
+			binding.source === Source.CashuMint_Rest
+		))?.operationGroups).toEqual([
+			SourceOperationGroup.EcashMintOperations,
+			SourceOperationGroup.GenericRead,
+		])
+	})
+
 	it('keeps server-only bindings out of the browser registry', () => {
 		expect(browserSourceBindings.some((binding) => (
 			binding.source === Source.TezosDappetizer_Postgres
@@ -507,6 +590,7 @@ describe('source binding indexes', () => {
 			oauthClientCredentials: {
 				clientIdEnvKey: 'REDDIT_CLIENT_ID',
 				tokenEndpoint: 'https://www.reddit.com/api/v1/access_token',
+				userAgent: 'Blockhead/1.0.0 (+https://blockhead.vision) by /u/blockhead',
 			},
 		})
 		expect(browserSourceBindings.some((binding) => (

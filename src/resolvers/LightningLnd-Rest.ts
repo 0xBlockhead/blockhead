@@ -6,7 +6,7 @@
  * from the connected node. This is not a browser wallet adapter; public-graph
  * indexing without a local node remains `LightningMempoolSpace_Rest`.
  */
-import { resolverContextRowLimit, type ResolverContext } from '$/resolvers/$resolvers.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
@@ -342,26 +342,20 @@ const networkTimestampFieldsFromLndNetworkInfo = (info: LndNetworkInfoResponse) 
 	}),
 })
 
-const lndChannels = async (context: ResolverContext) => {
+const lndChannels = async () => {
 	const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
-	return ((await listChannels({
-		publicEnv: context.publicEnv,
-	})).channels ?? [])
+	return ((await listChannels()).channels ?? [])
 		.filter((channel) => channel.private === false)
 }
 
-const lndLocalChannels = async (context: ResolverContext) => {
+const lndLocalChannels = async () => {
 	const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
-	return (await listChannels({
-		publicEnv: context.publicEnv,
-	})).channels ?? []
+	return (await listChannels()).channels ?? []
 }
 
-const lndInfo = async (context: ResolverContext) => {
+const lndInfo = async () => {
 	const { getInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
-	return getInfo({
-		publicEnv: context.publicEnv,
-	})
+	return getInfo()
 }
 
 const channelStateTimestampFieldsFromLndChannel = (channel: LndChannel) => ({
@@ -483,13 +477,11 @@ export default {
 			entityType: EntityType.LightningNetwork_Timestamp,
 			resolve: {
 				LightningNetworkTimestampMsSource: {
-					resolve: async ({ $lightningNetwork, source }, context) => {
+					resolve: async ({ $lightningNetwork, source }) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($lightningNetwork.$network)
 						const { getNetworkInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
-						return networkTimestampFieldsFromLndNetworkInfo(await getNetworkInfo({
-							publicEnv: context.publicEnv,
-						}))
+						return networkTimestampFieldsFromLndNetworkInfo(await getNetworkInfo())
 					},
 				},
 			},
@@ -505,9 +497,9 @@ export default {
 			entityType: EntityType.BlockheadLightningNodeState,
 			resolve: {
 				ConnectionIdNetwork: {
-					resolve: async ({ connectionId, $network }, context) => {
+					resolve: async ({ connectionId, $network }) => {
 						assertLightningNetwork($network.$network)
-						const info = await lndInfo(context)
+						const info = await lndInfo()
 						const timestampMs = Date.now()
 						return {
 							connectionId,
@@ -551,7 +543,7 @@ export default {
 			entityType: EntityType.BlockheadLightningNodeState_Timestamp,
 			resolve: {
 				LocalNodeStateTimestampMsSource: {
-					resolve: async ({ $localNodeState, source }, context) => {
+					resolve: async ({ $localNodeState, source }) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($localNodeState.$network.$network)
 						const {
@@ -560,15 +552,9 @@ export default {
 							getWalletBalance,
 						} = await import('$/sources/LightningLnd/Rest/queries.ts')
 						const [info, walletBalance, channelBalance] = await Promise.all([
-							getInfo({
-								publicEnv: context.publicEnv,
-							}),
-							getWalletBalance({
-								publicEnv: context.publicEnv,
-							}),
-							getChannelBalance({
-								publicEnv: context.publicEnv,
-							}),
+							getInfo(),
+							getWalletBalance(),
+							getChannelBalance(),
 						])
 						return nodeStateTimestampFieldsFromLndInfo(info, walletBalance, channelBalance)
 					},
@@ -594,7 +580,7 @@ export default {
 				ConnectionIdNetwork: {
 					resolve: async ({ connectionId, $network }, context) => {
 						assertLightningNetwork($network.$network)
-						return (await lndLocalChannels(context))
+						return (await lndLocalChannels())
 							.slice(0, resolverContextRowLimit(context))
 							.map((channel) => ({
 								[EntityMetaKey.Selector]: {
@@ -619,10 +605,10 @@ export default {
 			entityType: EntityType.BlockheadLightningChannelState,
 			resolve: {
 				LocalNodeStateChannel: {
-					resolve: async ({ $localNodeState, $channel }, context) => {
+					resolve: async ({ $localNodeState, $channel }) => {
 						assertLightningNetwork($localNodeState.$network.$network)
 						assertLightningNetwork($channel.$network)
-						const channel = (await lndLocalChannels(context)).find((channel) => channel.chan_id === $channel.channelId)
+						const channel = (await lndLocalChannels()).find((channel) => channel.chan_id === $channel.channelId)
 						if (channel == null)
 							throw new Error(`LightningLnd_Rest: channel not found ${$channel.channelId}`)
 						const timestampMs = Date.now()
@@ -655,11 +641,11 @@ export default {
 			entityType: EntityType.BlockheadLightningChannelState_Timestamp,
 			resolve: {
 				ChannelStateTimestampMsSource: {
-					resolve: async ({ $channelState, source }, context) => {
+					resolve: async ({ $channelState, source }) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($channelState.$localNodeState.$network.$network)
 						assertLightningNetwork($channelState.$channel.$network)
-						const channel = (await lndLocalChannels(context)).find((channel) => channel.chan_id === $channelState.$channel.channelId)
+						const channel = (await lndLocalChannels()).find((channel) => channel.chan_id === $channelState.$channel.channelId)
 						if (channel == null)
 							throw new Error(`LightningLnd_Rest: channel not found ${$channelState.$channel.channelId}`)
 						return channelStateTimestampFieldsFromLndChannel(channel)
@@ -682,10 +668,10 @@ export default {
 			entityType: EntityType.BlockheadLightningChannelState,
 			resolve: {
 				LocalNodeStateChannel: {
-					resolve: async ({ $localNodeState, $channel }, context) => {
+					resolve: async ({ $localNodeState, $channel }) => {
 						assertLightningNetwork($localNodeState.$network.$network)
 						assertLightningNetwork($channel.$network)
-						const channel = (await lndLocalChannels(context)).find((channel) => channel.chan_id === $channel.channelId)
+						const channel = (await lndLocalChannels()).find((channel) => channel.chan_id === $channel.channelId)
 						if (channel == null)
 							throw new Error(`LightningLnd_Rest: channel not found ${$channel.channelId}`)
 						return (channel.pending_htlcs ?? []).map((htlc, index) => {
@@ -711,10 +697,10 @@ export default {
 			entityType: EntityType.BlockheadLightningHtlc,
 			resolve: {
 				ChannelStateHtlcIndex: {
-					resolve: async ({ $channelState, htlcIndex }, context) => {
+					resolve: async ({ $channelState, htlcIndex }) => {
 						assertLightningNetwork($channelState.$localNodeState.$network.$network)
 						assertLightningNetwork($channelState.$channel.$network)
-						const channel = (await lndLocalChannels(context)).find((channel) => channel.chan_id === $channelState.$channel.channelId)
+						const channel = (await lndLocalChannels()).find((channel) => channel.chan_id === $channelState.$channel.channelId)
 						if (channel == null)
 							throw new Error(`LightningLnd_Rest: channel not found ${$channelState.$channel.channelId}`)
 						for (const [index, htlc] of (channel.pending_htlcs ?? []).entries()) {
@@ -739,17 +725,16 @@ export default {
 			entityType: EntityType.LightningNode,
 			resolve: {
 				NetworkPublicKey: {
-					resolve: async ({ $network, publicKey }, context) => {
+					resolve: async ({ $network, publicKey }) => {
 						assertLightningNetwork($network)
 						try {
 							const { getNodeInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
 							await getNodeInfo({
-								publicEnv: context.publicEnv,
 								publicKey,
 							})
 						} catch {
-							const info = await lndInfo(context)
-							const channels = await lndChannels(context)
+							const info = await lndInfo()
+							const channels = await lndChannels()
 							lightningNodeTimestampFields(publicKey, info, channels)
 						}
 						return {
@@ -777,20 +762,19 @@ export default {
 			entityType: EntityType.LightningNode_Timestamp,
 			resolve: {
 				NodeTimestampMsSource: {
-					resolve: async ({ $node, source }, context) => {
+					resolve: async ({ $node, source }) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($node.$network)
 						try {
 							const { getNodeInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
 							return lightningNodeTimestampFieldsFromGraph(
 								await getNodeInfo({
-									publicEnv: context.publicEnv,
 									publicKey: $node.publicKey,
 								})
 							)
 						} catch {
-							const info = await lndInfo(context)
-							const channels = await lndChannels(context)
+							const info = await lndInfo()
+							const channels = await lndChannels()
 							return lightningNodeTimestampFields($node.publicKey, info, channels)
 						}
 					},
@@ -814,18 +798,17 @@ export default {
 			entityType: EntityType.LightningChannel,
 			resolve: {
 				NetworkChannelId: {
-					resolve: async ({ $network, channelId }, context) => {
+					resolve: async ({ $network, channelId }) => {
 						assertLightningNetwork($network)
 						try {
 							const { getChannelInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
 							return channelFieldsFromLndEdge(
 								await getChannelInfo({
-									publicEnv: context.publicEnv,
 									channelId,
 								})
 							)
 						} catch {
-							const channel = (await lndChannels(context)).find((channel) => channel.chan_id === channelId)
+							const channel = (await lndChannels()).find((channel) => channel.chan_id === channelId)
 							if (channel == null)
 								throw new Error(`LightningLnd_Rest: channel not found ${channelId}`)
 							return channelFieldsFromLndChannel(channel)
@@ -844,16 +827,15 @@ export default {
 			entityType: EntityType.LightningChannel_Timestamp,
 			resolve: {
 				ChannelTimestampMsSource: {
-					resolve: async ({ $channel, source }, context) => {
+					resolve: async ({ $channel, source }) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($channel.$network)
-						const channel = (await lndChannels(context)).find((channel) => channel.chan_id === $channel.channelId)
+						const channel = (await lndChannels()).find((channel) => channel.chan_id === $channel.channelId)
 						try {
 							const { getChannelInfo } = await import('$/sources/LightningLnd/Rest/queries.ts')
 							return channelTimestampFieldsFromLndEdge(
 								channel,
 								await getChannelInfo({
-									publicEnv: context.publicEnv,
 									channelId: $channel.channelId,
 								})
 							)
@@ -881,14 +863,11 @@ export default {
 			entityType: EntityType.BlockheadLightningInvoice,
 			resolve: {
 				NetworkPaymentHash: {
-					resolve: async ({ $network, paymentHash }, context) => {
+					resolve: async ({ $network, paymentHash }) => {
 						assertLightningNetwork($network)
 						const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
-						const invoice = (
-							(await listInvoices({
-								publicEnv: context.publicEnv,
-							})).invoices ?? []
-						).find((invoice) => invoicePaymentHash(invoice) === paymentHash)
+						const invoice = ((await listInvoices()).invoices ?? [])
+							.find((invoice) => invoicePaymentHash(invoice) === paymentHash)
 						if (invoice == null)
 							throw new Error(`LightningLnd_Rest: invoice not found ${paymentHash}`)
 						return invoiceFieldsFromLndInvoice(invoice, paymentHash)
@@ -910,15 +889,12 @@ export default {
 			entityType: EntityType.BlockheadLightningInvoice_Timestamp,
 			resolve: {
 				InvoiceTimestampMsSource: {
-					resolve: async ({ $invoice, source }, context) => {
+					resolve: async ({ $invoice, source }) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($invoice.$network)
 						const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
-						const invoice = (
-							(await listInvoices({
-								publicEnv: context.publicEnv,
-							})).invoices ?? []
-						).find((invoice) => invoicePaymentHash(invoice) === $invoice.paymentHash)
+						const invoice = ((await listInvoices()).invoices ?? [])
+							.find((invoice) => invoicePaymentHash(invoice) === $invoice.paymentHash)
 						if (invoice == null)
 							throw new Error(`LightningLnd_Rest: invoice not found ${$invoice.paymentHash}`)
 						return invoiceTimestampFieldsFromLndInvoice(invoice)
@@ -941,14 +917,11 @@ export default {
 			entityType: EntityType.BlockheadLightningPayment,
 			resolve: {
 				NetworkPaymentHash: {
-					resolve: async ({ $network, paymentHash }, context) => {
+					resolve: async ({ $network, paymentHash }) => {
 						assertLightningNetwork($network)
 						const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
-						const payment = (
-							(await listPayments({
-								publicEnv: context.publicEnv,
-							})).payments ?? []
-						).find((payment) => payment.payment_hash === paymentHash)
+						const payment = ((await listPayments()).payments ?? [])
+							.find((payment) => payment.payment_hash === paymentHash)
 						if (payment == null)
 							throw new Error(`LightningLnd_Rest: payment not found ${paymentHash}`)
 						return paymentFieldsFromLndPayment(payment)
@@ -967,15 +940,12 @@ export default {
 			entityType: EntityType.BlockheadLightningPayment_Timestamp,
 			resolve: {
 				PaymentTimestampMsSource: {
-					resolve: async ({ $payment, source }, context) => {
+					resolve: async ({ $payment, source }) => {
 						if (source !== Source.LightningLnd_Rest) throw new Error(`LightningLnd_Rest: unsupported source ${source}`)
 						assertLightningNetwork($payment.$network)
 						const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
-						const payment = (
-							(await listPayments({
-								publicEnv: context.publicEnv,
-							})).payments ?? []
-						).find((payment) => payment.payment_hash === $payment.paymentHash)
+						const payment = ((await listPayments()).payments ?? [])
+							.find((payment) => payment.payment_hash === $payment.paymentHash)
 						if (payment == null)
 							throw new Error(`LightningLnd_Rest: payment not found ${$payment.paymentHash}`)
 						return paymentTimestampFieldsFromLndPayment(payment)
@@ -998,9 +968,9 @@ export default {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				Network: {
-					resolve: async ({ $network }, context) => {
+					resolve: async ({ $network }) => {
 						assertLightningNetwork($network)
-						const info = await lndInfo(context)
+						const info = await lndInfo()
 						return [
 							{
 								[EntityMetaKey.Selector]: {
@@ -1022,7 +992,7 @@ export default {
 				Network: {
 					resolve: async ({ $network }, context) => {
 						assertLightningNetwork($network)
-						return (await lndChannels(context))
+						return (await lndChannels())
 							.slice(0, resolverContextRowLimit(context))
 							.map(channelReferenceFromLndChannel)
 					},
@@ -1041,7 +1011,6 @@ export default {
 						const { listInvoices } = await import('$/sources/LightningLnd/Rest/queries.ts')
 						return (
 							(await listInvoices({
-								publicEnv: context.publicEnv,
 								numMaxInvoices: resolverContextRowLimit(context),
 							})).invoices ?? []
 						).flatMap((invoice) => {
@@ -1074,7 +1043,6 @@ export default {
 						const { listPayments } = await import('$/sources/LightningLnd/Rest/queries.ts')
 						return (
 							(await listPayments({
-								publicEnv: context.publicEnv,
 								maxPayments: resolverContextRowLimit(context),
 							})).payments ?? []
 						).map((payment) => ({
@@ -1101,7 +1069,6 @@ export default {
 							return (
 								(
 									await getNodeInfo({
-										publicEnv: context.publicEnv,
 										publicKey,
 										includeChannels: true,
 									})
@@ -1115,8 +1082,8 @@ export default {
 									},
 								}))
 						} catch {
-							const info = await lndInfo(context)
-							return (await lndChannels(context))
+							const info = await lndInfo()
+							return (await lndChannels())
 								.filter((channel) => (
 									publicKey === info.identity_pubkey
 									|| publicKey === channel.remote_pubkey

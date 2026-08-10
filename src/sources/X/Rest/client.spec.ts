@@ -2,7 +2,6 @@ import { beforeEach, expect, it, vi } from 'vitest'
 
 import {
 	ApiFamily,
-	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceOperationGroup,
@@ -34,10 +33,8 @@ beforeEach(() => {
 	})
 })
 
-it('uses the proxied X origin with the configured bearer', async () => {
-	await listUserTweets({
-		PUBLIC_X_API_BEARER: 'bearer',
-	}, 'user/with reserved', 25)
+it('delegates X bearer injection to the server-owned proxy boundary', async () => {
+	await listUserTweets('user/with reserved', 25)
 
 	expect(sourceFetch).toHaveBeenCalledTimes(1)
 	expect(sourceFetch.mock.calls[0][0]).toMatchObject({
@@ -55,36 +52,23 @@ it('uses the proxied X origin with the configured bearer', async () => {
 		apiFamily: ApiFamily.RestJson,
 		operationGroups: [SourceOperationGroup.GenericRead],
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [{
-			scope: SourceCredentialScope.PublicConfig,
-		}],
 	})
-	expect(xBinding.credentials[0].env.props.map(({ key }) => String(key)))
-		.toEqual(['PUBLIC_X_API_BEARER'])
 	expect(sourceFetch.mock.calls[0][1]).toContain(
 		'https://api.x.com/2/users/user%2Fwith%20reserved/tweets?'
 	)
-	expect(sourceFetch.mock.calls[0][2].headers.Authorization).toBe('Bearer bearer')
+	expect(sourceFetch.mock.calls[0]).toHaveLength(2)
 	expect(new URL(sourceFetch.mock.calls[0][1]).searchParams.get('max_results')).toBe('25')
 	expect(new URL(sourceFetch.mock.calls[0][1]).searchParams.get('expansions'))
 		.toContain('referenced_tweets.id.author_id')
 })
 
-it('clamps bounded windows and fails closed without provider authentication', async () => {
-	await searchRecentTweets({
-		PUBLIC_X_API_BEARER: 'bearer',
-	}, 500)
+it('clamps bounded windows without consuming browser configuration', async () => {
+	await searchRecentTweets(500)
 	expect(new URL(sourceFetch.mock.calls[0][1]).searchParams.get('max_results')).toBe('100')
-
-	await expect(searchRecentTweets({}, 10)).rejects.toThrow(
-		'Missing or empty required env: PUBLIC_X_API_BEARER'
-	)
 })
 
 it('preserves opaque user-timeline continuation tokens', async () => {
-	await listUserTweets({
-		PUBLIC_X_API_BEARER: 'bearer',
-	}, 'user', 25, 'opaque/+ %=token')
+	await listUserTweets('user', 25, 'opaque/+ %=token')
 
 	expect(new URL(sourceFetch.mock.calls[0][1]).searchParams.get('pagination_token'))
 		.toBe('opaque/+ %=token')

@@ -26,9 +26,6 @@ import {
 
 const binding = bindings[Source.LightningLnd_Rest][0]
 
-const publicEnv = {
-	PUBLIC_LND_MACAROON_HEX: 'macaroon',
-}
 const publicKey = `02${'a'.repeat(64)}`
 const peerPublicKey = `03${'b'.repeat(64)}`
 
@@ -36,7 +33,7 @@ const respond = (body: unknown) => {
 	sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify(body)))
 }
 
-describe('LND authenticated public graph reads', () => {
+describe('LND server-authenticated public graph reads', () => {
 	it('preserves network capacities as lossless decimal strings', async () => {
 		respond({
 			num_nodes: 20_000,
@@ -45,9 +42,7 @@ describe('LND authenticated public graph reads', () => {
 			num_zombie_chans: '1000',
 		})
 
-		await expect(getNetworkInfo({
-			publicEnv,
-		})).resolves.toMatchObject({
+		await expect(getNetworkInfo()).resolves.toMatchObject({
 			total_network_capacity: '5000000000000',
 		})
 	})
@@ -59,7 +54,6 @@ describe('LND authenticated public graph reads', () => {
 			},
 		})
 		await expect(getNodeInfo({
-			publicEnv,
 			publicKey,
 		})).rejects.toThrow('mismatched identity')
 
@@ -77,7 +71,6 @@ describe('LND authenticated public graph reads', () => {
 			],
 		})
 		await expect(getNodeInfo({
-			publicEnv,
 			publicKey,
 			includeChannels: true,
 		})).rejects.toThrow('foreign channel')
@@ -92,7 +85,6 @@ describe('LND authenticated public graph reads', () => {
 		})
 
 		await expect(getChannelInfo({
-			publicEnv,
 			channelId: '123',
 		})).resolves.toMatchObject({
 			capacity: '9007199254740993',
@@ -108,7 +100,6 @@ describe('LND authenticated public graph reads', () => {
 		})
 
 		await expect(getChannelInfo({
-			publicEnv,
 			channelId: '123',
 		})).rejects.toThrow('invalid channel edge envelope')
 	})
@@ -123,7 +114,7 @@ describe('LND authenticated public graph reads', () => {
 				capacity: 'not-a-number',
 			}],
 		})
-		await expect(listChannels({ publicEnv })).rejects.toThrow('invalid list channels envelope')
+		await expect(listChannels()).rejects.toThrow('invalid list channels envelope')
 
 		respond({
 			channels: [{
@@ -133,7 +124,7 @@ describe('LND authenticated public graph reads', () => {
 				capacity: '1000',
 			}],
 		})
-		await expect(listChannels({ publicEnv })).rejects.toThrow('invalid channel funding point')
+		await expect(listChannels()).rejects.toThrow('invalid channel funding point')
 	})
 
 	it('preserves wallet and channel balance sats as lossless decimal strings', async () => {
@@ -141,19 +132,12 @@ describe('LND authenticated public graph reads', () => {
 			total_balance: '9007199254740993',
 			confirmed_balance: '9007199254740993',
 		})
-		await expect(getWalletBalance({
-			publicEnv,
-		})).resolves.toMatchObject({
+		await expect(getWalletBalance()).resolves.toMatchObject({
 			total_balance: '9007199254740993',
 		})
 		expect(sourceFetch).toHaveBeenLastCalledWith(
 			binding,
-			'https://127.0.0.1:8080/v1/balance/blockchain',
-			expect.objectContaining({
-				headers: {
-					'Grpc-Metadata-macaroon': 'macaroon',
-				},
-			})
+			'https://127.0.0.1:8080/v1/balance/blockchain'
 		)
 
 		respond({
@@ -165,9 +149,7 @@ describe('LND authenticated public graph reads', () => {
 				sat: '42',
 			},
 		})
-		await expect(getChannelBalance({
-			publicEnv,
-		})).resolves.toMatchObject({
+		await expect(getChannelBalance()).resolves.toMatchObject({
 			local_balance: {
 				sat: '12345678901234567890',
 			},
@@ -177,12 +159,7 @@ describe('LND authenticated public graph reads', () => {
 		})
 		expect(sourceFetch).toHaveBeenLastCalledWith(
 			binding,
-			'https://127.0.0.1:8080/v1/balance/channels',
-			expect.objectContaining({
-				headers: {
-					'Grpc-Metadata-macaroon': 'macaroon',
-				},
-			})
+			'https://127.0.0.1:8080/v1/balance/channels'
 		)
 	})
 
@@ -190,17 +167,13 @@ describe('LND authenticated public graph reads', () => {
 		respond({
 			total_balance: '1.5',
 		})
-		await expect(getWalletBalance({
-			publicEnv,
-		})).rejects.toThrow('invalid wallet balance envelope')
+		await expect(getWalletBalance()).rejects.toThrow('invalid wallet balance envelope')
 
 		respond({
 			local_balance: {
 				sat: 'not-a-number',
 			},
 		})
-		await expect(getChannelBalance({
-			publicEnv,
-		})).rejects.toThrow('invalid channel balance envelope')
+		await expect(getChannelBalance()).rejects.toThrow('invalid channel balance envelope')
 	})
 })

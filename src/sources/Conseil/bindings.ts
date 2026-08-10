@@ -9,6 +9,7 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
+import { type as arktype } from 'arktype'
 
 export default indexSourceBindings([
 	{
@@ -30,6 +31,12 @@ export default indexSourceBindings([
 		credentials: [
 			{
 				scope: SourceCredentialScope.RuntimeSecret,
+				env: arktype({
+					'CONSEIL_DATABASE_URL': 'string',
+				}),
+				keys: [
+					'CONSEIL_DATABASE_URL',
+				],
 			},
 		],
 	},

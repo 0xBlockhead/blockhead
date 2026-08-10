@@ -21,10 +21,6 @@ const {
 	searchRecentTweets,
 } = await import('$/sources/X/Rest/queries.ts')
 
-const publicEnv = {
-	PUBLIC_X_API_BEARER: 'bearer',
-}
-
 beforeEach(() => {
 	sourceFetch.mockReset()
 })
@@ -78,19 +74,19 @@ describe('X Rest arktype envelopes', () => {
 				}),
 			})
 
-		await expect(getUser(publicEnv, '1')).resolves.toMatchObject({
+		await expect(getUser('1')).resolves.toMatchObject({
 			data: { id: '1', username: 'fixture' },
 		})
-		await expect(getUserByUsername(publicEnv, 'fixture')).resolves.toMatchObject({
+		await expect(getUserByUsername('fixture')).resolves.toMatchObject({
 			data: { id: '1' },
 		})
-		await expect(getTweet(publicEnv, '189')).resolves.toMatchObject({
+		await expect(getTweet('189')).resolves.toMatchObject({
 			data: { id: '189' },
 		})
-		await expect(listUserTweets(publicEnv, '1', 25)).resolves.toMatchObject({
+		await expect(listUserTweets('1', 25)).resolves.toMatchObject({
 			meta: { next_token: 'opaque/+%' },
 		})
-		await expect(searchRecentTweets(publicEnv, 10)).resolves.toMatchObject({
+		await expect(searchRecentTweets(10)).resolves.toMatchObject({
 			includes: {
 				users: [{ id: '1' }],
 			},
@@ -107,13 +103,13 @@ describe('X Rest arktype envelopes', () => {
 			json: () => Promise.resolve({ data: 'not-an-object' }),
 		})
 
-		await expect(getUser(publicEnv, '1')).rejects.toThrow(
+		await expect(getUser('1')).rejects.toThrow(
 			'X_Rest: invalid user response envelope'
 		)
-		await expect(getUserByUsername(publicEnv, 'fixture')).rejects.toThrow(
+		await expect(getUserByUsername('fixture')).rejects.toThrow(
 			'X_Rest: invalid user-by-username response envelope'
 		)
-		await expect(getTweet(publicEnv, '189')).rejects.toThrow(
+		await expect(getTweet('189')).rejects.toThrow(
 			'X_Rest: invalid tweet response envelope'
 		)
 
@@ -121,10 +117,10 @@ describe('X Rest arktype envelopes', () => {
 			ok: true,
 			json: () => Promise.resolve({ data: { id: 1 } }),
 		})
-		await expect(listUserTweets(publicEnv, '1', 10)).rejects.toThrow(
+		await expect(listUserTweets('1', 10)).rejects.toThrow(
 			'X_Rest: invalid user-tweets response envelope'
 		)
-		await expect(searchRecentTweets(publicEnv, 10)).rejects.toThrow(
+		await expect(searchRecentTweets(10)).rejects.toThrow(
 			'X_Rest: invalid search-recent response envelope'
 		)
 	})

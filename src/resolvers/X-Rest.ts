@@ -172,9 +172,9 @@ export default {
 			entityType: EntityType.XUser,
 			resolve: {
 				Id: {
-					resolve: async ({ id }, context) => {
+					resolve: async ({ id }) => {
 						const { getUser } = await import('$/sources/X/Rest/queries.ts')
-						const xUser = (await getUser(context.publicEnv, id)).data
+						const xUser = (await getUser(id)).data
 						if (xUser == null) throw new Error('X_Rest: user not found')
 						if (xUser.id !== id)
 							throw new Error(`X_Rest: user id mismatch ${xUser.id} !== ${id}`)
@@ -184,9 +184,9 @@ export default {
 					},
 				},
 				Username: {
-					resolve: async ({ username }, context) => {
+					resolve: async ({ username }) => {
 						const { getUserByUsername } = await import('$/sources/X/Rest/queries.ts')
-						const xUser = (await getUserByUsername(context.publicEnv, username)).data
+						const xUser = (await getUserByUsername(username)).data
 						if (xUser?.id == null) throw new Error('X_Rest: user not found')
 						const resolvedUsername = optionalNonemptyString(xUser.username)
 						if (resolvedUsername == null) throw new Error('X_Rest: user username not found')
@@ -212,9 +212,9 @@ export default {
 			entityType: EntityType.XPost,
 			resolve: {
 				Id: {
-					resolve: async ({ id }, context) => {
+					resolve: async ({ id }) => {
 						const { getTweet } = await import('$/sources/X/Rest/queries.ts')
-						const response = await getTweet(context.publicEnv, id)
+						const response = await getTweet(id)
 						const tweet = response.data
 						if (tweet == null) throw new Error('X_Rest: post not found')
 						if (tweet.id !== id) throw new Error('X_Rest: post id mismatch')
@@ -337,7 +337,6 @@ export default {
 						return {
 							userId: id,
 							page: await listUserTweets(
-								context.publicEnv,
 								id,
 								limit,
 								context.providerContinuationToken
@@ -397,7 +396,6 @@ export default {
 					resolve: async (_entitySelector, context) => {
 						const { searchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
 						return searchRecentTweets(
-							context.publicEnv,
 							resolverContextRowLimit(context),
 							context.providerContinuationToken
 						)
@@ -460,7 +458,6 @@ export default {
 					resolve: async (_entitySelector, context) => {
 						const { searchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
 						return searchRecentTweets(
-							context.publicEnv,
 							resolverContextRowLimit(context),
 							context.providerContinuationToken
 						)

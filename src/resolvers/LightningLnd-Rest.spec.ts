@@ -114,9 +114,7 @@ const context = {
 	selectorKeys: [],
 	parentSelectorKeys: [],
 	sources: [],
-	publicEnv: {
-		PUBLIC_LND_MACAROON_HEX: 'macaroon',
-	},
+	publicEnv: {},
 }
 const localPublicKey = `02${'a'.repeat(64)}`
 const peerPublicKey = `03${'b'.repeat(64)}`
@@ -360,7 +358,6 @@ describe('Lightning LND resolver ownership', () => {
 			},
 		])
 		expect(getNodeInfo).toHaveBeenCalledWith({
-			publicEnv: context.publicEnv,
 			publicKey: peerPublicKey,
 			includeChannels: true,
 		})
@@ -396,7 +393,6 @@ describe('Lightning LND resolver ownership', () => {
 			[EntityMetaKey.Selector]: invoiceSelector,
 		}])
 		expect(listInvoices).toHaveBeenLastCalledWith({
-			publicEnv: context.publicEnv,
 			numMaxInvoices: 64,
 		})
 	})
@@ -489,12 +485,8 @@ describe('Lightning LND resolver ownership', () => {
 			inactiveChannelCount: 0,
 			pendingChannelCount: 2,
 		})
-		expect(getWalletBalance).toHaveBeenCalledWith({
-			publicEnv: context.publicEnv,
-		})
-		expect(getChannelBalance).toHaveBeenCalledWith({
-			publicEnv: context.publicEnv,
-		})
+		expect(getWalletBalance).toHaveBeenCalledWith()
+		expect(getChannelBalance).toHaveBeenCalledWith()
 
 		await expect(nodeChannelStatesResolver.resolve.ConnectionIdNetwork.resolve(localNodeState, context)).resolves.toEqual([
 			{
