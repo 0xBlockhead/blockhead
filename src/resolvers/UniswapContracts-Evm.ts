@@ -7,6 +7,7 @@ import {
 	EntityMetaKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
+import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
@@ -79,6 +80,128 @@ export default {
 			},
 		})({
 			$$uniswapV3Pools: (snapshot) => snapshot,
+		}),
+
+		defineResolver({
+			entityType: EntityType.UniswapCcaAuction,
+			resolve: {
+				NetworkAuctionAddress: {
+					resolve: async ({ $network, auctionAddress }) => {
+						const {
+							getCcaAuctionConfiguration,
+							normalizeUniswapAddress,
+						} = await import('$/sources/Uniswap/Contracts/queries.ts')
+						const chainId = chainIdFromNetwork($network)
+						const address = normalizeUniswapAddress(auctionAddress)
+						const voltaireTransports = (await import('$/sources/Voltaire/JsonRpc/queries.ts')).voltaireJsonRpcTransports.httpTransportsByChainId[chainId] ?? []
+						if (voltaireTransports.length === 0)
+							throw new Error(`UniswapContracts_Evm: no JSON-RPC URL for UniswapCcaAuction on chain ${String(chainId)}`)
+
+						const errors: string[] = []
+						for (const transport of voltaireTransports) {
+							try {
+								const blockNumber = await transport.getBlockNumber()
+								const configuration = await getCcaAuctionConfiguration({
+									getCall: transport.getCall,
+									auctionAddress: address,
+									blockNumber,
+								})
+								if (configuration.auctionAddress !== address)
+									throw new Error(`configuration address ${configuration.auctionAddress} does not match ${address}`)
+								if (configuration.blockNumber !== blockNumber)
+									throw new Error(`configuration block ${String(configuration.blockNumber)} does not match ${String(blockNumber)}`)
+
+								return {
+									auctionAddress: configuration.auctionAddress,
+									$auctionContract: evmContractRef($network, configuration.auctionAddress),
+									$currency: {
+										[EntityMetaKey.Selector]: (
+											configuration.currencyAddress === '0x0000000000000000000000000000000000000000' ?
+												{
+													$network,
+													type: CoinInstanceType.NativeCurrency,
+												}
+											:
+												{
+													$network,
+													type: CoinInstanceType.Erc20Token,
+													$contract: {
+														$network,
+														address: configuration.currencyAddress,
+													},
+												}
+										),
+									},
+									$token: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											type: CoinInstanceType.Erc20Token,
+											$contract: {
+												$network,
+												address: configuration.tokenAddress,
+											},
+										},
+									},
+									totalSupply: configuration.totalSupply,
+									$tokensRecipient: {
+										[EntityMetaKey.Selector]: {
+											address: configuration.tokensRecipient,
+										},
+									},
+									$fundsRecipient: {
+										[EntityMetaKey.Selector]: {
+											address: configuration.fundsRecipient,
+										},
+									},
+									$startBlock: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											blockNumber: configuration.startBlock,
+										},
+									},
+									$endBlock: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											blockNumber: configuration.endBlock,
+										},
+									},
+									$claimBlock: {
+										[EntityMetaKey.Selector]: {
+											$network,
+											blockNumber: configuration.claimBlock,
+										},
+									},
+									$validationHook: (
+										configuration.validationHookAddress === '0x0000000000000000000000000000000000000000' ?
+											undefined
+										:
+											evmContractRef($network, configuration.validationHookAddress)
+									),
+									floorPriceQ96: configuration.floorPriceQ96,
+									tickSpacingQ96: configuration.tickSpacingQ96,
+								}
+							} catch (error) {
+								errors.push(`${transport.diagnosticLabel}: ${error instanceof Error ? error.message : String(error)}`)
+							}
+						}
+						throw new Error(`UniswapContracts_Evm: all UniswapCcaAuction endpoints failed for ${address} on chain ${String(chainId)}${errors.length > 0 ? `: ${errors.join('; ')}` : ''}`)
+					},
+				},
+			},
+		})({
+			auctionAddress: (entity) => entity.auctionAddress,
+			$auctionContract: (entity) => entity.$auctionContract,
+			$currency: (entity) => entity.$currency,
+			$token: (entity) => entity.$token,
+			totalSupply: (entity) => entity.totalSupply,
+			$tokensRecipient: (entity) => entity.$tokensRecipient,
+			$fundsRecipient: (entity) => entity.$fundsRecipient,
+			$startBlock: (entity) => entity.$startBlock,
+			$endBlock: (entity) => entity.$endBlock,
+			$claimBlock: (entity) => entity.$claimBlock,
+			$validationHook: (entity) => entity.$validationHook,
+			floorPriceQ96: (entity) => entity.floorPriceQ96,
+			tickSpacingQ96: (entity) => entity.tickSpacingQ96,
 		}),
 
 		defineResolver({

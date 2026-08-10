@@ -762,14 +762,14 @@ export default {
 						} = await import('$/sources/Hyperliquid/Rest/queries.ts')
 						const [
 							userRoleWire,
-							clearinghouseState,
-							spotClearinghouseState,
-							userFees,
-							delegatorSummary,
-							userAbstraction,
-							userDexAbstraction,
-							approvedBuilders,
-							borrowLendState,
+							clearinghouseObservation,
+							spotClearinghouseObservation,
+							userFeesObservation,
+							delegatorSummaryObservation,
+							userAbstractionObservation,
+							userDexAbstractionObservation,
+							approvedBuildersObservation,
+							borrowLendObservation,
 						] = await Promise.all([
 							getUserRole({
 								user: address,
@@ -817,36 +817,130 @@ export default {
 									},
 								},
 							}),
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
-									$account: {
-										$network,
-										address,
+							$$timestamps: [
+								{
+									[EntityMetaKey.Selector]: {
+										$account: {
+											$network,
+											address,
+										},
+										infoType: clearinghouseObservation.infoType,
+										timestampMs: clearinghouseObservation.timestampMs,
+										source: Source.Hyperliquid,
 									},
-									timestampMs: clearinghouseState.time,
-									source: Source.Hyperliquid,
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'accountValue')]: clearinghouseObservation.state.marginSummary.accountValue,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalNtlPos')]: clearinghouseObservation.state.marginSummary.totalNtlPos,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalRawUsd')]: clearinghouseObservation.state.marginSummary.totalRawUsd,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalMarginUsed')]: clearinghouseObservation.state.marginSummary.totalMarginUsed,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'withdrawable')]: clearinghouseObservation.state.withdrawable,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'crossMaintenanceMarginUsed')]: clearinghouseObservation.state.crossMaintenanceMarginUsed,
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'assetPositions')]: clearinghouseObservation.state.assetPositions,
+									},
 								},
-								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'accountValue')]: clearinghouseState.marginSummary.accountValue,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalNtlPos')]: clearinghouseState.marginSummary.totalNtlPos,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalRawUsd')]: clearinghouseState.marginSummary.totalRawUsd,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'totalMarginUsed')]: clearinghouseState.marginSummary.totalMarginUsed,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'withdrawable')]: clearinghouseState.withdrawable,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'crossMaintenanceMarginUsed')]: clearinghouseState.crossMaintenanceMarginUsed,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'assetPositions')]: clearinghouseState.assetPositions,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotBalances')]: spotClearinghouseState.balances,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'feeSchedule')]: userFees,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'stakingSummary')]: delegatorSummary,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userAbstraction')]: userAbstraction,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userDexAbstraction')]: userDexAbstraction,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'approvedBuilders')]: approvedBuilders,
-									[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendHealth')]: borrowLendState.health,
-									...(borrowLendState.healthFactor != null && {
-										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendHealthFactor')]: borrowLendState.healthFactor,
-									}),
+								{
+									[EntityMetaKey.Selector]: {
+										$account: {
+											$network,
+											address,
+										},
+										infoType: spotClearinghouseObservation.infoType,
+										timestampMs: spotClearinghouseObservation.fetchedAtMs,
+										source: Source.Hyperliquid,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotBalances')]: spotClearinghouseObservation.state.balances,
+									},
 								},
-							}],
-							$$borrowLendPositions: borrowLendState.tokenToState.map(([tokenIndex, position]) => ({
+								{
+									[EntityMetaKey.Selector]: {
+										$account: {
+											$network,
+											address,
+										},
+										infoType: userFeesObservation.infoType,
+										timestampMs: userFeesObservation.fetchedAtMs,
+										source: Source.Hyperliquid,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'feeSchedule')]: userFeesObservation.fees,
+									},
+								},
+								{
+									[EntityMetaKey.Selector]: {
+										$account: {
+											$network,
+											address,
+										},
+										infoType: delegatorSummaryObservation.infoType,
+										timestampMs: delegatorSummaryObservation.fetchedAtMs,
+										source: Source.Hyperliquid,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'stakingSummary')]: delegatorSummaryObservation.summary,
+									},
+								},
+								{
+									[EntityMetaKey.Selector]: {
+										$account: {
+											$network,
+											address,
+										},
+										infoType: userAbstractionObservation.infoType,
+										timestampMs: userAbstractionObservation.fetchedAtMs,
+										source: Source.Hyperliquid,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userAbstraction')]: userAbstractionObservation.abstraction,
+									},
+								},
+								{
+									[EntityMetaKey.Selector]: {
+										$account: {
+											$network,
+											address,
+										},
+										infoType: userDexAbstractionObservation.infoType,
+										timestampMs: userDexAbstractionObservation.fetchedAtMs,
+										source: Source.Hyperliquid,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userDexAbstraction')]: userDexAbstractionObservation.abstraction,
+									},
+								},
+								{
+									[EntityMetaKey.Selector]: {
+										$account: {
+											$network,
+											address,
+										},
+										infoType: approvedBuildersObservation.infoType,
+										timestampMs: approvedBuildersObservation.fetchedAtMs,
+										source: Source.Hyperliquid,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'approvedBuilders')]: approvedBuildersObservation.builders,
+									},
+								},
+								{
+									[EntityMetaKey.Selector]: {
+										$account: {
+											$network,
+											address,
+										},
+										infoType: borrowLendObservation.infoType,
+										timestampMs: borrowLendObservation.fetchedAtMs,
+										source: Source.Hyperliquid,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendHealth')]: borrowLendObservation.state.health,
+										...(borrowLendObservation.state.healthFactor != null && {
+											[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendHealthFactor')]: borrowLendObservation.state.healthFactor,
+										}),
+									},
+								},
+							],
+							$$borrowLendPositions: borrowLendObservation.state.tokenToState.map(([tokenIndex, position]) => ({
 								[EntityMetaKey.Selector]: {
 									$account: {
 										$network,
@@ -1365,7 +1459,7 @@ export default {
 							throw new Error(`Hyperliquid_Rest: invalid borrow/lend position token index ${String(tokenIndex)}`)
 
 						const { getBorrowLendUserState } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-						const state = await getBorrowLendUserState({
+						const { state } = await getBorrowLendUserState({
 							user: $account.address,
 						})
 						const row = state.tokenToState.find(([index]) => index === tokenIndex)

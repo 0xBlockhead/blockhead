@@ -987,6 +987,8 @@ import TronTransactionReceiptSchema from '$/schema/TronTransactionReceipt.ts'
 import TronWitness_TimestampSchema from '$/schema/TronWitness_Timestamp.ts'
 import TronWitnessSchema from '$/schema/TronWitness.ts'
 import TrustedIssuerSchema from '$/schema/TrustedIssuer.ts'
+import UniswapCcaAuction_EvmBlockSchema from '$/schema/UniswapCcaAuction_EvmBlock.ts'
+import UniswapCcaAuctionSchema from '$/schema/UniswapCcaAuction.ts'
 import UniswapV3Pool_BlockSchema from '$/schema/UniswapV3Pool_Block.ts'
 import UniswapV3PoolSchema from '$/schema/UniswapV3Pool.ts'
 import UniswapV3Position_BlockSchema from '$/schema/UniswapV3Position_Block.ts'
@@ -2096,6 +2098,8 @@ const schemaChunk19 = [
 	TronWitnessSchema,
 	TronWitness_TimestampSchema,
 	TrustedIssuerSchema,
+	UniswapCcaAuctionSchema,
+	UniswapCcaAuction_EvmBlockSchema,
 	UniswapV3PoolSchema,
 	UniswapV3Pool_BlockSchema,
 	UniswapV3PositionSchema,
@@ -2108,11 +2112,11 @@ const schemaChunk19 = [
 	UtxoBlockSchema,
 	UtxoInputSchema,
 	UtxoOutputSchema,
-	UtxoTransactionSchema,
-	WalletConnectionMethodSchema,
 ] as const
 
 const schemaChunk20 = [
+	UtxoTransactionSchema,
+	WalletConnectionMethodSchema,
 	WormholeVaaSchema,
 	XmtpConversationSchema,
 	XmtpMessageSchema,
@@ -2161,6 +2165,9 @@ const schemaChunk20 = [
 	ZeroGSettlementTraceSchema,
 	ZeroGStorageLogEntrySchema,
 	ZeroGStorageNodeSchema,
+] as const
+
+const schemaChunk21 = [
 	ZeroGStorageNode_TimestampSchema,
 	ZeroGStorageProofSchema,
 ] as const
@@ -2187,6 +2194,7 @@ export const schema = [
 	...schemaChunk18,
 	...schemaChunk19,
 	...schemaChunk20,
+	...schemaChunk21,
 ] as const satisfies Schema
 export const schemaMeta = indexSchema(schema)
 export const entityDefinitionByType = schemaMeta.entityDefinitionByType

@@ -511,7 +511,11 @@ export const getClearinghouseState = async ({
 	if (!Number.isSafeInteger(state.time) || state.time < 0)
 		throw new Error(`Hyperliquid_Rest: invalid clearinghouseState time ${String(state.time)}`)
 
-	return state
+	return {
+		infoType: 'clearinghouseState' as const,
+		state,
+		timestampMs: state.time,
+	}
 }
 
 export const getSpotClearinghouseState = async ({
@@ -529,7 +533,11 @@ export const getSpotClearinghouseState = async ({
 	if (!hyperliquidSpotClearinghouseStateEnvelope.allows(state))
 		throw new Error('Hyperliquid_Rest: invalid spotClearinghouseState response envelope')
 
-	return state
+	return {
+		infoType: 'spotClearinghouseState' as const,
+		state,
+		fetchedAtMs: Date.now(),
+	}
 }
 
 export const getHistoricalOrders = async ({
@@ -746,7 +754,11 @@ export const getUserFees = async ({
 	if (!hyperliquidUserFeesEnvelope.allows(fees))
 		throw new Error('Hyperliquid_Rest: invalid userFees response envelope')
 
-	return fees
+	return {
+		infoType: 'userFees' as const,
+		fees,
+		fetchedAtMs: Date.now(),
+	}
 }
 
 export const getDelegatorSummary = async ({
@@ -764,7 +776,11 @@ export const getDelegatorSummary = async ({
 	if (!hyperliquidDelegatorSummaryEnvelope.allows(summary))
 		throw new Error('Hyperliquid_Rest: invalid delegatorSummary response envelope')
 
-	return summary
+	return {
+		infoType: 'delegatorSummary' as const,
+		summary,
+		fetchedAtMs: Date.now(),
+	}
 }
 
 export const getUserAbstraction = async ({
@@ -782,7 +798,11 @@ export const getUserAbstraction = async ({
 	if (!hyperliquidUserAbstractionEnvelope.allows(abstraction))
 		throw new Error('Hyperliquid_Rest: invalid userAbstraction response envelope')
 
-	return abstraction
+	return {
+		infoType: 'userAbstraction' as const,
+		abstraction,
+		fetchedAtMs: Date.now(),
+	}
 }
 
 export const getUserDexAbstraction = async ({
@@ -800,7 +820,11 @@ export const getUserDexAbstraction = async ({
 	if (!hyperliquidUserDexAbstractionEnvelope.allows(abstraction))
 		throw new Error('Hyperliquid_Rest: invalid userDexAbstraction response envelope')
 
-	return abstraction
+	return {
+		infoType: 'userDexAbstraction' as const,
+		abstraction,
+		fetchedAtMs: Date.now(),
+	}
 }
 
 export const getApprovedBuilders = async ({
@@ -820,7 +844,11 @@ export const getApprovedBuilders = async ({
 	for (const builder of builders)
 		assertInfoAddress(builder, 'approved builder address')
 
-	return builders
+	return {
+		infoType: 'approvedBuilders' as const,
+		builders,
+		fetchedAtMs: Date.now(),
+	}
 }
 
 export const getBorrowLendUserState = async ({
@@ -843,7 +871,11 @@ export const getBorrowLendUserState = async ({
 			throw new Error(`Hyperliquid_Rest: invalid borrow/lend position token index ${String(tokenIndex)}`)
 	}
 
-	return state
+	return {
+		infoType: 'borrowLendUserState' as const,
+		state,
+		fetchedAtMs: Date.now(),
+	}
 }
 
 export const getAllBorrowLendReserveStates = async () => {

@@ -987,6 +987,8 @@ export enum EntityType {
 	TronWitness = 'TronWitness',
 	TronWitness_Timestamp = 'TronWitness_Timestamp',
 	TrustedIssuer = 'TrustedIssuer',
+	UniswapCcaAuction = 'UniswapCcaAuction',
+	UniswapCcaAuction_EvmBlock = 'UniswapCcaAuction_EvmBlock',
 	UniswapV3Pool = 'UniswapV3Pool',
 	UniswapV3Pool_Block = 'UniswapV3Pool_Block',
 	UniswapV3Position = 'UniswapV3Position',

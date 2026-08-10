@@ -1684,6 +1684,8 @@ export enum EntityType {
 	TronWitness = "TronWitness",
 	TronWitness_Timestamp = "TronWitness_Timestamp",
 	TrustedIssuer = "TrustedIssuer",
+	UniswapCcaAuction = "UniswapCcaAuction",
+	UniswapCcaAuction_EvmBlock = "UniswapCcaAuction_EvmBlock",
 	UniswapV3Pool = "UniswapV3Pool",
 	UniswapV3Pool_Block = "UniswapV3Pool_Block",
 	UniswapV3Position = "UniswapV3Position",
@@ -2184,6 +2186,10 @@ export const schema = {
 				type: { raw: "Hash32" },
 			},
 			{
+				id: "HyperliquidAccountInfoType",
+				type: { raw: "type.enumerated('clearinghouseState', 'spotClearinghouseState', 'userFees', 'delegatorSummary', 'userAbstraction', 'userDexAbstraction', 'approvedBuilders', 'borrowLendUserState')" },
+			},
+			{
 				id: "IpfsNamespace",
 				routeParam: {
 					matcher: "ipfsNamespace",
@@ -2546,6 +2552,10 @@ export const schema = {
 						{ name: "unit", type: { primitive: "string" } },
 					],
 				},
+			},
+			{
+				id: "UniswapCcaAuctionSchedulePhase",
+				type: { raw: "type.enumerated('BeforeStart', 'BiddingWindow', 'AfterBiddingBeforeClaim', 'ClaimWindow')" },
 			},
 			{
 				id: "unknown",
@@ -6169,7 +6179,6 @@ export const schema = {
 					},
 				},
 			}),
-
 
 
 			entity({
@@ -23825,7 +23834,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
+							sources: [Source.DydxIndexer],
 							openFields: ["baseAsset", "quoteAsset", "marketKind"],
 						},
 						summary: { title: ["ticker"], value: ["marketKind"], HeadingAfter: ["baseAsset"] },
@@ -23859,7 +23868,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
+							sources: [Source.DydxIndexer],
 							openFields: ["oraclePrice", "fundingRate", "openInterest", "status", "nextFundingAtMs"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status"] },
@@ -23890,7 +23899,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
+							sources: [Source.DydxIndexer],
 						},
 						summary: { title: ["$network"] },
 						closed: ["$network"],
@@ -23942,7 +23951,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
+							sources: [Source.DydxIndexer],
 							openFields: ["blockHeight", "indexerHeight", "marketCount", "subaccountCount", "openOrderCount", "openPositionCount", "health"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["health"] },
@@ -23977,7 +23986,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.DydxIndexer, Source.KingnodesDydxNode],
+							sources: [Source.DydxIndexer],
 							openFields: ["side", "orderType", "timeInForce", "clientId", "goodTilBlock", "goodTilBlockTimeMs"],
 						},
 						summary: { title: ["orderId"], value: ["side"], HeadingAfter: ["orderType"] },
@@ -24197,7 +24206,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Blockscout_Rest, Source.EasContracts_Evm, Source.EasScan_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.EasScan_Graphql],
 							fields: ["schemaUid", "recipient", "attester"],
 							openFields: ["refUid", "attestedAt", "expirationTime", "revocable", "data"],
 						},
@@ -24244,7 +24253,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Blockscout_Rest, Source.EasContracts_Evm, Source.EasScan_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.EasScan_Graphql],
 							openFields: ["revoked", "revocationTime", "valid", "expired", "blockNumber", "transactionHash", "logIndex", "revokedTransactionHash", "revokedLogIndex"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["valid"], HeadingAfter: ["revoked"] },
@@ -24286,7 +24295,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Blockscout_Rest, Source.EasContracts_Evm, Source.EasScan_Graphql, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.EasScan_Graphql],
 							fields: ["schema"],
 							openFields: ["resolver", "revocable", "registerer", "registeredAt", "registeredTransactionHash", "registeredLogIndex"],
 						},
@@ -24330,7 +24339,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.EigenExplorer_Rest] },
 						summary: { title: ["$operator"], value: ["$avs"], HeadingAfter: ["$strategy"] },
 						closed: ["$operator", "$avs", "$strategy"],
 						content: {
@@ -24369,7 +24378,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.EigenExplorer_Rest],
 							openFields: ["metadataUri", "name", "website", "description"],
 						},
 						summary: { title: ["avsAddress"], value: ["name"], HeadingAfter: ["$network"] },
@@ -24425,7 +24434,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.EigenExplorer_Rest] },
 						summary: { title: ["$avs"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: [{ field: "operatorCount", format: "number" }] },
 						closed: ["$avs", { field: "timestampMs", format: "timestamp" }, { field: "operatorCount", format: "number" }],
 						content: {
@@ -24462,7 +24471,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.EigenExplorer_Rest] },
 						summary: { title: ["$staker"], value: ["$operator"], HeadingAfter: ["$strategy"] },
 						closed: ["$staker", "$operator", "$strategy"],
 						content: {
@@ -24504,7 +24513,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.EigenExplorer_Rest],
 							openFields: ["earningsReceiver", "delegationApprover", "stakerOptOutWindowBlocks", "metadataUri", "name", "website", "description"],
 						},
 						summary: { title: ["operatorAddress"], value: ["name"], HeadingAfter: ["$network"] },
@@ -24567,7 +24576,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Constants_Internal, Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.Constants_Internal, Source.EigenExplorer_Rest],
 							openFields: ["protocolName"],
 						},
 						summary: { title: ["protocolName"], value: ["$network"] },
@@ -24630,7 +24639,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.EigenExplorer_Rest] },
 						summary: { title: ["$earner"], value: ["rewardContextKey"], HeadingAfter: ["rewardToken"] },
 						closed: ["$earner", "rewardContextKey", "rewardToken"],
 						content: {
@@ -24672,7 +24681,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.EigenExplorer_Rest] },
 						summary: { title: ["$operator"], value: ["$avs"], HeadingAfter: [{ field: "slashedShares", format: "number" }] },
 						closed: ["$operator", "$avs", { field: "slashedShares", format: "number" }],
 						content: {
@@ -24710,7 +24719,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc],
+							sources: [Source.EigenExplorer_Rest],
 							openFields: ["underlyingToken", "strategyKind"],
 						},
 						summary: { title: ["strategyAddress"], value: ["underlyingToken"], HeadingAfter: ["$network"] },
@@ -24766,7 +24775,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.EigenExplorer_Rest, Source.EigenLayerContracts_Evm, Source.Etherscan_Rest, Source.Voltaire_JsonRpc] },
+						query: { sources: [Source.EigenExplorer_Rest] },
 						summary: { title: ["$strategy"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: [{ field: "totalShares", format: "number" }] },
 						closed: ["$strategy", { field: "timestampMs", format: "timestamp" }, "source"],
 						content: {
@@ -37225,6 +37234,13 @@ export const schema = {
 					valueType: "string",
 					cardinality: EntityFieldCardinality.One,
 				},
+				"infoType": {
+					label: "Info operation",
+					description: "The Hyperliquid Info request type that produced this observation.",
+					type: EntityFieldType.Primitive,
+					valueType: "HyperliquidAccountInfoType",
+					cardinality: EntityFieldCardinality.One,
+				},
 				"accountValue": {
 					label: "account value",
 					type: EntityFieldType.Primitive,
@@ -37317,8 +37333,9 @@ export const schema = {
 				},
 			})({
 				selectors: {
-					"AccountTimestampMsSource": [
+					"AccountInfoTypeTimestampMsSource": [
 						"$account",
+						"infoType",
 						"timestampMs",
 						"source",
 					],
@@ -42412,7 +42429,6 @@ export const schema = {
 				},
 				views: {
 					singular: {
-						query: { sources: [Source.Voltaire_JsonRpc] },
 						summary: {
 							title: [{ field: "blockNumber", format: "numberValue" }],
 							value: [{ field: "tick", format: "number" }],
@@ -43167,11 +43183,11 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.Market,
 				},
-				"fundingRate": { label: "Funding rate", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"openInterestUsd": { label: "Open interest USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"indexBasisPercent": { label: "Index basis percent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"markPrice": { label: "Mark price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"indexPrice": { label: "Index price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+				"fundingRate": { label: "Funding rate", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "DecimalString" },
+				"openInterestUsd": { label: "Open interest USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"indexBasisPercent": { label: "Index basis percent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "DecimalString" },
+				"markPrice": { label: "Mark price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"indexPrice": { label: "Index price", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
 				"expiredAtMs": { label: "Expired at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"lastTradedAtMs": { label: "Last traded at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"providerAssetId": { label: "Provider asset ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -43185,8 +43201,8 @@ export const schema = {
 						summary: {
 							title: ["feedKey"],
 							value: [
-								{ field: "markPrice", format: "currencyScaled" },
-								{ field: "indexPrice", format: "currencyScaled" },
+								{ field: "markPrice", suffix: routeProperty(routeProperty(routeField("$market"), "$quote"), "assetKey") },
+								{ field: "indexPrice", suffix: routeProperty(routeProperty(routeField("$market"), "$quote"), "assetKey") },
 							],
 							HeadingAfter: [{ field: "fundingRate", suffix: "%" }],
 						},
@@ -43197,12 +43213,12 @@ export const schema = {
 									"feedKey",
 									{ field: "timestampMs", format: "timestamp" },
 									{ field: "fundingRate", suffix: "%" },
-									{ field: "openInterestUsd", format: "currency" },
+									{ field: "openInterestUsd", suffix: " USD" },
 									{ field: "indexBasisPercent", suffix: "%" },
-								],
-								[
-									{ field: "markPrice", format: "currencyScaled" },
-									{ field: "indexPrice", format: "currencyScaled" },
+							],
+							[
+								{ field: "markPrice", suffix: routeProperty(routeProperty(routeField("$market"), "$quote"), "assetKey") },
+								{ field: "indexPrice", suffix: routeProperty(routeProperty(routeField("$market"), "$quote"), "assetKey") },
 									"expiredAtMs",
 									"lastTradedAtMs",
 									"providerAssetId",
@@ -46921,36 +46937,45 @@ export const schema = {
 									Content: dedent `
 	<ResourceBoundary
 		resource={
-			select(EntityType.Coin, coin[EntityMetaKey.Selector])
-				.$$marketsWithCoinAsBase({
-					sources: [
-						Source.Constants_Internal,
-					],
-					limit: 1,
-				}).first()
+			select(EntityType.Coin, coin[EntityMetaKey.Selector], {
+				fields: {
+					$$marketsWithCoinAsBase: {
+						sources: [
+							Source.Constants_Internal,
+						],
+						limit: 1,
+					},
+				},
+			})
 		}
 	>
-		{#snippet children(nativeCoinUsdMarket)}
+		{#snippet children(nativeCoinWithUsdMarket)}
+			{@const nativeCoinUsdMarket = nativeCoinWithUsdMarket.$$marketsWithCoinAsBase.values[0]}
 			{#if nativeCoinUsdMarket != null}
 				<ResourceBoundary
 					resource={
 						select(EntityType.MarketPrice, {
 							$market: nativeCoinUsdMarket[EntityMetaKey.Selector],
-						})
-							.$$quotes({
-								sources: [
-									Source.Coingecko_Rest,
-								],
-								fields: {
-									price: true,
+						}, {
+							fields: {
+								$$quotes: {
+									sources: [
+										Source.Coingecko_Rest,
+									],
+									fields: {
+										price: true,
+									},
+									orderBy: [
+										[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+									],
+									limit: 1,
 								},
-								orderBy: [
-									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-								],
-							}).first()
+							},
+						})
 					}
 				>
-					{#snippet children(nativeCoinUsdQuote)}
+					{#snippet children(nativeCoinUsdMarketPrice)}
+						{@const nativeCoinUsdQuote = nativeCoinUsdMarketPrice.$$quotes.values[0]}
 						{#if nativeCoinUsdQuote != null}
 							<Market_TimestampView
 								selection={select(EntityType.Market_Timestamp, nativeCoinUsdQuote[EntityMetaKey.Selector], {
@@ -50753,7 +50778,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.PythBenchmarks_Rest, Source.PythHermes_Rest, Source.Pyth_EvmContract, Source.Pyth_SolanaProgram],
+							sources: [Source.PythBenchmarks_Rest, Source.PythHermes_Rest],
 							openFields: ["symbol", "assetClass", "baseAsset", "quoteAsset"],
 						},
 						summary: { title: ["symbol"], titleFallback: ["priceFeedId"], value: ["channel"], HeadingAfter: ["$market"] },
@@ -50802,7 +50827,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.PythBenchmarks_Rest, Source.PythHermes_Rest, Source.Pyth_EvmContract, Source.Pyth_SolanaProgram],
+							sources: [Source.PythBenchmarks_Rest, Source.PythHermes_Rest],
 							openFields: ["observedAtMs", "price", "conf", "expo", "emaPrice", "emaConf", "vaa", "updateDataHash", "slot", "sequence", "onChainNetwork", "onChainContract", "stale"],
 						},
 						summary: { title: [{ field: "publishTimeMs", format: "timestamp" }], value: ["price"], HeadingAfter: ["source"] },
@@ -63671,6 +63696,174 @@ export const schema = {
 
 
 			entity({
+				entityType: EntityType.UniswapCcaAuction,
+				labels: {
+					singular: "Uniswap CCA auction",
+					plural: "Uniswap CCA auctions",
+				},
+				description: "A Uniswap Continuous Clearing Auction identified by its EVM network and auction contract address.",
+			})({
+				"$network": {
+					label: "Network",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.One,
+					entityType: EntityType.Network,
+				},
+				"auctionAddress": { label: "Auction address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"$auctionContract": {
+					label: "Auction contract",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.One,
+					entityType: EntityType.EvmContract,
+					defaultSources: [Source.UniswapContracts_Evm],
+				},
+				"$currency": {
+					label: "Currency",
+					description: "The native currency or ERC-20 currency accepted by the auction.",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.One,
+					entityType: EntityType.EvmCoinInstance,
+					defaultSources: [Source.UniswapContracts_Evm],
+				},
+				"$token": {
+					label: "Auction token",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.One,
+					entityType: EntityType.EvmCoinInstance,
+					defaultSources: [Source.UniswapContracts_Evm],
+				},
+				"totalSupply": { label: "Total supply", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt", defaultSources: [Source.UniswapContracts_Evm] },
+				"$tokensRecipient": {
+					label: "Tokens recipient",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.One,
+					entityType: EntityType.EvmAccount,
+					defaultSources: [Source.UniswapContracts_Evm],
+				},
+				"$fundsRecipient": {
+					label: "Funds recipient",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.One,
+					entityType: EntityType.EvmAccount,
+					defaultSources: [Source.UniswapContracts_Evm],
+				},
+				"$startBlock": {
+					label: "Start block",
+					description: "The first block in the auction bidding window.",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.One,
+					entityType: EntityType.EvmBlock,
+					defaultSources: [Source.UniswapContracts_Evm],
+				},
+				"$endBlock": {
+					label: "End block",
+					description: "The block coordinate that ends the auction bidding window.",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.One,
+					entityType: EntityType.EvmBlock,
+					defaultSources: [Source.UniswapContracts_Evm],
+				},
+				"$claimBlock": {
+					label: "Claim block",
+					description: "The block coordinate at which the claim window begins.",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.One,
+					entityType: EntityType.EvmBlock,
+					defaultSources: [Source.UniswapContracts_Evm],
+				},
+				"$validationHook": {
+					label: "Validation hook",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					entityType: EntityType.EvmContract,
+					defaultSources: [Source.UniswapContracts_Evm],
+				},
+				"floorPriceQ96": { label: "Floor price Q96", description: "The raw auction floor price in Q96 fixed-point units.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt", defaultSources: [Source.UniswapContracts_Evm] },
+				"tickSpacingQ96": { label: "Tick spacing Q96", description: "The raw auction tick spacing in Q96 fixed-point units.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt", defaultSources: [Source.UniswapContracts_Evm] },
+				"$$blocks": {
+					label: "Block observations",
+					type: EntityFieldType.EntitiesReference,
+					cardinality: EntityFieldCardinality.Many,
+					entityType: EntityType.UniswapCcaAuction_EvmBlock,
+				},
+			})({
+				selectors: {
+					"NetworkAuctionAddress": ["$network", "auctionAddress"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.UniswapContracts_Evm],
+							fields: ["totalSupply", "floorPriceQ96", "tickSpacingQ96"],
+						},
+						summary: {
+							title: [{ field: "auctionAddress", format: "address" }],
+							value: ["$token"],
+							HeadingAfter: ["$network"],
+						},
+						closed: ["$network", { field: "auctionAddress", format: "address" }, "$currency", "$token"],
+						content: {
+							dl: [
+								["$network", { field: "auctionAddress", format: "address" }, "$auctionContract"],
+								["$currency", "$token", { field: "totalSupply", format: "numberValue" }],
+								["$tokensRecipient", "$fundsRecipient", "$validationHook"],
+								["$startBlock", "$endBlock", "$claimBlock"],
+								[{ field: "floorPriceQ96", format: "numberValue" }, { field: "tickSpacingQ96", format: "numberValue" }],
+							],
+						},
+					},
+					plural: { component: "UniswapCcaAuctionsView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.UniswapCcaAuction_EvmBlock,
+				labels: {
+					singular: "Uniswap CCA auction block",
+					plural: "Uniswap CCA auction blocks",
+				},
+				description: "A checkpointed Uniswap CCA state observation at an exact EVM block.",
+			})({
+				"$auction": { label: "Auction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.UniswapCcaAuction },
+				"blockNumber": { label: "Block number", description: "The exact EVM block coordinate used for this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"$block": { label: "Block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmBlock },
+				"clearingPriceQ96": { label: "Clearing price Q96", description: "The raw checkpoint clearing price in Q96 fixed-point units.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"currencyRaisedAtClearingPriceQ96X7": { label: "Currency raised at clearing price Q96X7", description: "The raw checkpoint accumulator in the contract's Q96X7 units.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"cumulativeMpsPerPrice": { label: "Cumulative MPS per price", description: "The raw cumulative MPS-per-price checkpoint value.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"cumulativeMps": { label: "Cumulative MPS", description: "The raw cumulative millionths-of-percentage checkpoint value.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"$previousCheckpoint": { label: "Previous checkpoint", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmBlock },
+				"$nextCheckpoint": { label: "Next checkpoint", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmBlock },
+				"currencyRaised": { label: "Currency raised", description: "The raw currency amount raised at this block.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"totalCleared": { label: "Total cleared", description: "The raw auction token amount cleared at this block.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt" },
+				"isGraduated": { label: "Graduated", description: "The auction contract's checkpointed graduation flag.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				"schedulePhase": { label: "Schedule phase", description: "A phase derived only from this observation's block coordinate relative to the auction start, end, and claim blocks.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "UniswapCcaAuctionSchedulePhase" },
+			})({
+				selectors: {
+					"AuctionBlockNumber": ["$auction", "blockNumber"],
+				},
+				views: {
+					singular: {
+						summary: {
+							title: [{ field: "blockNumber", format: "numberValue" }],
+							value: ["schedulePhase", "isGraduated"],
+							HeadingAfter: ["$auction"],
+						},
+						closed: ["$auction", "$block", "schedulePhase", "isGraduated"],
+						content: {
+							dl: [
+								["$auction", "$block", "schedulePhase", { field: "isGraduated", format: "boolean" }],
+								[{ field: "clearingPriceQ96", format: "numberValue" }, { field: "currencyRaisedAtClearingPriceQ96X7", format: "numberValue" }],
+								[{ field: "cumulativeMpsPerPrice", format: "numberValue" }, { field: "cumulativeMps", format: "number" }],
+								[{ field: "currencyRaised", format: "numberValue" }, { field: "totalCleared", format: "numberValue" }],
+								["$previousCheckpoint", "$nextCheckpoint"],
+							],
+						},
+					},
+					plural: { component: "UniswapCcaAuction_EvmBlocksView" },
+				},
+			}),
+
+			entity({
 				entityType: EntityType.UniswapV3Pool,
 				labels: {
 					singular: "Uniswap V3 pool",
@@ -68112,10 +68305,10 @@ export const routes = defineRoutes(schema)({
 																		params: [{
 																				field: "caip2",
 																				value: { kind: "object", fields: [
-																						{ name: "namespace", value: { kind: "literal", value: "eip155" } },
-																						{ name: "reference", value: { kind: "param", name: "chainId" } },
-																					] },
-																			}],
+																				{ name: "namespace", value: { kind: "literal", value: "eip155" } },
+																				{ name: "reference", value: { kind: "param", name: "chainId" } },
+																			] },
+																		}],
 																	},
 																},
 																page: {},
@@ -68436,8 +68629,8 @@ export const routes = defineRoutes(schema)({
 												}
 											}
 										}
-									}
-								}
+											}
+										}
 							}
 						}
 					},
@@ -68732,17 +68925,17 @@ export const routes = defineRoutes(schema)({
 									children: {
 										"[actionId]": {
 											children: {
-												"outcome": {
-													children: {
-														"[outcomeId]": {
-															selectors: {
-																[EntityType.BlockheadActionOutcome]: {
-																	"SessionIdActionIdOutcomeId": {
-																		params: { "sessionId": ["sessionId"], "actionId": ["actionId"], "outcomeId": ["outcomeId"] },
-																		page: {},
-																	}
-																}
-															},
+														"outcome": {
+															children: {
+																"[outcomeId]": {
+																	selectors: {
+																		[EntityType.BlockheadActionOutcome]: {
+																			"SessionIdActionIdOutcomeId": {
+																				params: { "sessionId": ["sessionId"], "actionId": ["actionId"], "outcomeId": ["outcomeId"] },
+																				page: {},
+																			}
+																		}
+																	},
 															children: {
 																"observations": {
 																	children: {
@@ -71836,7 +72029,7 @@ export const routes = defineRoutes(schema)({
 						text: { title: "Social" }
 					}
 				}
-			}
+			},
 		},
 		"(explore)": {
 			children: {
@@ -71907,7 +72100,6 @@ export const routes = defineRoutes(schema)({
 																						[EntityType.EnsReverseRecord_Timestamp]: {
 																							"ReverseRecordTimestampMsSource": {
 																								params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																								page: {},
 																							}
 																						}
 																					}
@@ -72080,7 +72272,6 @@ export const routes = defineRoutes(schema)({
 																								],
 																							}
 																						},
-																						page: {}
 																					}
 																				}
 																			},
@@ -72162,7 +72353,6 @@ export const routes = defineRoutes(schema)({
 																								],
 																							}
 																						},
-																						page: {}
 																					}
 																				}
 																			},
@@ -72192,7 +72382,6 @@ export const routes = defineRoutes(schema)({
 														{ from: "$/schema/EntityType.ts", names: ["EntityType"] },
 														{ from: "$/routes/+layout.svelte", names: ["select"] },
 														{ from: "$/constants/calldata-examples.ts", typeNames: ["CalldataExample"], names: ["calldataExamples"] },
-														{ from: "$/lib/calldata-decode.ts", names: ["decodeCalldataWithSignature", "decodeEventDataWithSignature", "formatDecodedParamValue"] },
 														{ from: "$/schema/ZeroExHex.ts", names: ["EvmAddress", "ZeroExHex"] },
 														{ from: "$/sources/Source.ts", names: ["Source"] },
 														{ from: "$/lib/signature-paths.ts", names: ["normalizeEvmSelectorHex", "normalizeEvmTopicHex"] },
@@ -72203,10 +72392,9 @@ export const routes = defineRoutes(schema)({
 														{ from: "$/components/EntityView.svelte", default: "EntityView", names: ["EntityLayout"] },
 														{ from: "$/components/Heading.svelte", default: "Heading" },
 														{ from: "$/components/Icon.svelte", default: "Icon" },
-														{ from: "$/components/ResourceBoundary.svelte", default: "ResourceBoundary" },
 														{ from: "$/components/Select.svelte", default: "Select" },
-														{ from: "$/components/TruncatedValue.svelte", default: "TruncatedValue" },
 														{ from: "$/views/EvmAccountView.svelte", default: "EvmAccountView" },
+														{ from: "./CalldataSignatureResult.svelte", default: "CalldataSignatureResult", names: ["CalldataSignatureKind"] },
 													],
 													script: dedent `
 															const hexFromParam = (value: string | null) => {
@@ -72219,13 +72407,9 @@ export const routes = defineRoutes(schema)({
 																return evenDigits ? \`0x\${evenDigits}\` : ''
 															}
 
-															const EMPTY_SIGNATURES: readonly string[] = []
-
 															const IDLE_SELECTOR_HEX: \`0x\${string}\` = '0xffffffff'
 
 															const IDLE_TOPIC_HEX = ZeroExHex.assert(\`0x\${'f'.repeat(64)}\`)
-
-															const TRUNCATE_PARAM_LENGTH = 28
 
 															let inputRaw = $state(
 																hexFromParam(page.url.searchParams.get('data')),
@@ -72327,54 +72511,6 @@ export const routes = defineRoutes(schema)({
 																	fields: { signatures: true },
 																},
 															))
-
-															const functionSignatures = $derived(
-																selector ?
-																	selectorEntity.signatures.current?.values.map(String) ?? EMPTY_SIGNATURES
-																:
-																	EMPTY_SIGNATURES,
-															)
-
-															const eventSignatures = $derived(
-																topic ?
-																	topicEntity.signatures.current?.values.map(String) ?? EMPTY_SIGNATURES
-																:
-																	EMPTY_SIGNATURES,
-															)
-
-															const signatureForDecode = $derived(
-																functionSignatures.length > 0 ?
-																	functionSignatures[Math.min(selectedSignatureIndex, functionSignatures.length - 1)]
-																:
-																	null,
-															)
-
-															const decodedCall = $derived(
-																hexWithPrefix && selector && signatureForDecode ?
-																	decodeCalldataWithSignature(
-																		signatureForDecode,
-																		ZeroExHex.assert(hexWithPrefix),
-																	)
-																:
-																	null,
-															)
-
-															const eventSignatureForDecode = $derived(
-																eventSignatures.length > 0 ?
-																	eventSignatures[Math.min(selectedEventSignatureIndex, eventSignatures.length - 1)]
-																:
-																	null,
-															)
-
-															const decodedEvent = $derived(
-																hexWithPrefix && hexNormalized.length >= 64 && eventSignatureForDecode ?
-																	decodeEventDataWithSignature(
-																		eventSignatureForDecode,
-																		ZeroExHex.assert(hexWithPrefix),
-																	)
-																:
-																	null,
-															)
 														`.raw,
 													Content: dedent `
 															<section
@@ -72458,27 +72594,20 @@ export const routes = defineRoutes(schema)({
 																							{/snippet}
 
 																							{#snippet Title()}
-																								<ResourceBoundary
-																									resource={selectorEntity}
-																									placeholderText="Loading function signature..."
-																								>
-																									{#snippet children()}
-																										<Heading>
-																											<a
-																												href={
-																													resolve(
-																														'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
-																														{
-																															hex: normalizedSelector,
-																														}
-																													)
+																								<Heading>
+																									<a
+																										href={
+																											resolve(
+																												'/(explore)/(protocols)/evm/(evmProtocol)/(selectors)/selector/[hex=zeroExHex]',
+																												{
+																													hex: normalizedSelector,
 																												}
-																											>
-																												{functionSignatures[selectedSignatureIndex] ?? normalizedSelector}
-																											</a>
-																										</Heading>
-																									{/snippet}
-																								</ResourceBoundary>
+																											)
+																										}
+																									>
+																										{normalizedSelector}
+																									</a>
+																								</Heading>
 																							{/snippet}
 
 																							{#snippet Value()}
@@ -72486,63 +72615,19 @@ export const routes = defineRoutes(schema)({
 																							{/snippet}
 
 																							{#snippet Content()}
-																								{#if functionSignatures.length > 0}
-																									<dl data-definition-list="vertical">
-																										<div>
-																											<dt>Signature</dt>
-																											<dd>
-																												{#if functionSignatures.length > 1}
-																													<select
-																														bind:value={selectedSignatureIndex}
-																														aria-label="Choose function signature"
-																														class="calldata-result-select"
-																													>
-																														{#each functionSignatures as signature, index (signature)}
-																															<option value={index}>{signature}</option>
-																														{/each}
-																													</select>
-																												{:else}
-																													<code>{functionSignatures[0]}</code>
-																												{/if}
-																											</dd>
-																										</div>
-
-																										{#if decodedCall}
-																											<div>
-																												<dt>Arguments</dt>
-																												<dd>
-																													<ol class="calldata-result-args">
-																														{#each decodedCall.params as param, index (\`\${index}:\${param.type}\`)}
-																															<div class="calldata-result-arg">
-																																<li>
-																																	<span>{index}</span>
-																																	{#if param.type === 'address' && typeof param.value === 'string'}
-																																		<EvmAccountView
-																																			selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(param.value) })}
-																																			layout={EntityLayout.Value}
-																																		/>
-																																	{:else}
-																																		{@const decodedValue = formatDecodedParamValue(param.type, param.value)}
-
-																																		{#if decodedValue.length > TRUNCATE_PARAM_LENGTH}
-																																			<TruncatedValue
-																																				value={decodedValue}
-																																				startLength={10}
-																																				endLength={8}
-																																			/>
-																																		{:else}
-																																			<span class="calldata-result-arg-value">{decodedValue}</span>
-																																		{/if}
-																																	{/if}
-																																</li>
-																															</div>
-																														{/each}
-																													</ol>
-																												</dd>
-																											</div>
-																										{/if}
-																									</dl>
-																								{/if}
+																								<CalldataSignatureResult
+																									hex={ZeroExHex.assert(hexWithPrefix)}
+																									kind={CalldataSignatureKind.Function}
+																									resource={selectorEntity.signatures}
+																									bind:selectedSignatureIndex
+																								>
+																									{#snippet Address(address)}
+																										<EvmAccountView
+																											selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(address) })}
+																											layout={EntityLayout.Value}
+																										/>
+																									{/snippet}
+																								</CalldataSignatureResult>
 																							{/snippet}
 																						</EntityView>
 																					</li>
@@ -72571,27 +72656,20 @@ export const routes = defineRoutes(schema)({
 																							{/snippet}
 
 																							{#snippet Title()}
-																								<ResourceBoundary
-																									resource={topicEntity}
-																									placeholderText="Loading event signature..."
-																								>
-																									{#snippet children()}
-																										<Heading>
-																											<a
-																												href={
-																													resolve(
-																														'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
-																														{
-																															hex: normalizedTopic,
-																														}
-																													)
+																								<Heading>
+																									<a
+																										href={
+																											resolve(
+																												'/(explore)/(protocols)/evm/(evmProtocol)/(topics)/topic/[hex=evmTopicHash]',
+																												{
+																													hex: normalizedTopic,
 																												}
-																											>
-																												{eventSignatures[selectedEventSignatureIndex] ?? normalizedTopic}
-																											</a>
-																										</Heading>
-																									{/snippet}
-																								</ResourceBoundary>
+																											)
+																										}
+																									>
+																										{normalizedTopic}
+																									</a>
+																								</Heading>
 																							{/snippet}
 
 																							{#snippet Value()}
@@ -72599,63 +72677,19 @@ export const routes = defineRoutes(schema)({
 																							{/snippet}
 
 																							{#snippet Content()}
-																								{#if eventSignatures.length > 0}
-																									<dl data-definition-list="vertical">
-																										<div>
-																											<dt>Signature</dt>
-																											<dd>
-																												{#if eventSignatures.length > 1}
-																													<select
-																														bind:value={selectedEventSignatureIndex}
-																														aria-label="Choose event signature"
-																														class="calldata-result-select"
-																													>
-																														{#each eventSignatures as signature, index (signature)}
-																															<option value={index}>{signature}</option>
-																														{/each}
-																													</select>
-																												{:else}
-																													<code>{eventSignatures[0]}</code>
-																												{/if}
-																											</dd>
-																										</div>
-
-																										{#if decodedEvent}
-																											<div>
-																												<dt>Arguments</dt>
-																												<dd>
-																													<ol class="calldata-result-args">
-																														{#each decodedEvent.params as param, index (\`\${index}:\${param.type}\`)}
-																															<div class="calldata-result-arg">
-																																<li>
-																																	<span>{index}</span>
-																																	{#if param.type === 'address' && typeof param.value === 'string'}
-																																		<EvmAccountView
-																																			selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(param.value) })}
-																																			layout={EntityLayout.Value}
-																																		/>
-																																	{:else}
-																																		{@const decodedValue = formatDecodedParamValue(param.type, param.value)}
-
-																																		{#if decodedValue.length > TRUNCATE_PARAM_LENGTH}
-																																			<TruncatedValue
-																																				value={decodedValue}
-																																				startLength={10}
-																																				endLength={8}
-																																			/>
-																																		{:else}
-																																			<span class="calldata-result-arg-value">{decodedValue}</span>
-																																		{/if}
-																																	{/if}
-																																</li>
-																															</div>
-																														{/each}
-																													</ol>
-																												</dd>
-																											</div>
-																										{/if}
-																									</dl>
-																								{/if}
+																								<CalldataSignatureResult
+																									hex={ZeroExHex.assert(hexWithPrefix)}
+																									kind={CalldataSignatureKind.Event}
+																									resource={topicEntity.signatures}
+																									bind:selectedSignatureIndex={selectedEventSignatureIndex}
+																								>
+																									{#snippet Address(address)}
+																										<EvmAccountView
+																											selection={select(EntityType.EvmAccount, { address: EvmAddress.assert(address) })}
+																											layout={EntityLayout.Value}
+																										/>
+																									{/snippet}
+																								</CalldataSignatureResult>
 																							{/snippet}
 																						</EntityView>
 																					</li>
@@ -72703,24 +72737,6 @@ export const routes = defineRoutes(schema)({
 																padding-inline-start: 0;
 															}
 
-															.calldata-result-select {
-																font-family: var(--fontFamily-monospace);
-																max-width: 100%;
-															}
-
-															.calldata-result-args {
-																margin: 0;
-															}
-
-															.calldata-result-arg dt {
-																font-family: var(--fontFamily-monospace);
-																min-inline-size: 1.5em;
-															}
-
-															.calldata-result-arg-value {
-																font-family: var(--fontFamily-monospace);
-																word-break: break-all;
-															}
 														`.raw,
 												},
 												text: { title: "Calldata decoder" }
@@ -72813,7 +72829,6 @@ export const routes = defineRoutes(schema)({
 																								],
 																							}
 																						},
-																						page: {}
 																					}
 																				}
 																			},
@@ -72870,7 +72885,6 @@ export const routes = defineRoutes(schema)({
 																		],
 																	}
 																},
-																page: {}
 															}
 														}
 													},
@@ -72919,7 +72933,6 @@ export const routes = defineRoutes(schema)({
 																						],
 																					}
 																				},
-																				page: {}
 																			}
 																		}
 																	},
@@ -73005,7 +73018,6 @@ export const routes = defineRoutes(schema)({
 																										],
 																									}
 																								},
-																								page: {}
 																							}
 																						}
 																					},
@@ -73093,7 +73105,6 @@ export const routes = defineRoutes(schema)({
 																				],
 																			}
 																		},
-																		page: {}
 																	}
 																}
 															},
@@ -73767,11 +73778,11 @@ export const routes = defineRoutes(schema)({
 																			children: {
 																				"observations": {
 																					children: {
-																						"[timestampMs]": {
-																							children: {
-																								"[source]": {
-																									selectors: {
-																										[EntityType.NearAccessKey_Timestamp]: {
+																								"[timestampMs]": {
+																									children: {
+																										"[source]": {
+																										selectors: {
+																											[EntityType.NearAccessKey_Timestamp]: {
 																											"AccessKeyTimestampMsSource": {
 																												params: {},
 																												derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
@@ -73798,17 +73809,6 @@ export const routes = defineRoutes(schema)({
 																				"[source]": {
 																					params: { "source": ["string"] },
 																					selectors: {
-																						[EntityType.HyperliquidAccount_Timestamp]: {
-																							"AccountTimestampMsSource": {
-																								when: { path: ["namespace"], is: "Hyperliquid" },
-																								projection: { entityType: EntityType.Network, facetPath: ["Hyperliquid"] },
-																								derivations: {
-																									"timestampMs": { kind: "param", name: "timestampMs" },
-																									"source": { kind: "param", name: "source" },
-																								},
-																								page: {},
-																							},
-																						},
 																						[EntityType.NearAccount_Timestamp]: {
 																							"AccountTimestampMsSource": {
 																								params: {},
@@ -73818,6 +73818,24 @@ export const routes = defineRoutes(schema)({
 																								projection: { entityType: EntityType.Network, facetPath: ["Near"] },
 																							}
 																						}
+																					},
+																					children: {
+																						"[infoType]": {
+																							params: { "infoType": ["string"] },
+																							selectors: {
+																								[EntityType.HyperliquidAccount_Timestamp]: {
+																									"AccountInfoTypeTimestampMsSource": {
+																										when: { path: ["namespace"], is: "Hyperliquid" },
+																										projection: { entityType: EntityType.Network, facetPath: ["Hyperliquid"] },
+																										derivations: {
+																											"infoType": { kind: "param", name: "infoType" },
+																											"timestampMs": { kind: "param", name: "timestampMs" },
+																											"source": { kind: "param", name: "source" },
+																										},
+																									},
+																								},
+																							},
+																						},
 																					},
 																				},
 																			},
@@ -74412,14 +74430,14 @@ export const routes = defineRoutes(schema)({
 																											property: "$network",
 																										},
 																									},
-																									{ field: "tokenId", param: "tokenId" },
-																								],
-																							},
+																								{ field: "tokenId", param: "tokenId" },
+																							],
 																						},
-																						page: {},
-																					}
+																					},
+																					page: {},
 																				}
-																			},
+																			}
+																		},
 																			children: {
 																				"observations": {
 																					children: {
@@ -74452,11 +74470,11 @@ export const routes = defineRoutes(schema)({
 																										[EntityType.HederaTokenAssociation_Timestamp]: {
 																											"AssociationTimestampMsSource": {
 																												params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																												page: {},
-																												when: { path: ["namespace"], is: "Hedera" },
-																												projection: { entityType: EntityType.Network, facetPath: ["Hedera"] },
-																											}
-																										}
+																													page: {},
+																													when: { path: ["namespace"], is: "Hedera" },
+																													projection: { entityType: EntityType.Network, facetPath: ["Hedera"] },
+																												}
+																			}
 																									}
 																								}
 																							}
@@ -74496,7 +74514,6 @@ export const routes = defineRoutes(schema)({
 																																],
 																															},
 																														},
-																														page: {},
 																													}
 																												}
 																											}
@@ -77704,7 +77721,6 @@ export const routes = defineRoutes(schema)({
 																									"VaultTimestampMsSource": {
 																										params: {},
 																										derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
-																										page: {},
 																									}
 																								}
 																							},
@@ -79573,7 +79589,6 @@ export const routes = defineRoutes(schema)({
 																		projection: { entityType: EntityType.Network, facetPath: ["Bittensor"] },
 																		params: { "source": ["source"] },
 																		derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
-																		page: {},
 																	},
 																},
 																[EntityType.CardanoNetwork_Timestamp]: {
@@ -79697,7 +79712,6 @@ export const routes = defineRoutes(schema)({
 																				params: [{ field: "$network", value: { kind: "pageSelector" } }],
 																			},
 																		},
-																		page: {},
 																		when: { path: ["namespace"], is: "Dydx" },
 																		projection: { entityType: EntityType.Network, facetPath: ["Dydx"] },
 																	}
@@ -79747,7 +79761,6 @@ export const routes = defineRoutes(schema)({
 																				params: [{ field: "$network", value: { kind: "pageSelector" } }],
 																			},
 																		},
-																		page: {},
 																	}
 																},
 																[EntityType.IcpNetwork_Timestamp]: {
@@ -80624,7 +80637,6 @@ export const routes = defineRoutes(schema)({
 																							"timestampMs": { kind: "param", name: "timestampMs" },
 																							"source": { kind: "param", name: "source" },
 																						},
-																						page: {},
 																					},
 																				},
 																			},
@@ -80808,7 +80820,6 @@ export const routes = defineRoutes(schema)({
 																					"SubnetTimestampMsSource": {
 																						params: {},
 																						derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
-																						page: {},
 																						when: { path: ["namespace"], is: "Bittensor" },
 																						projection: { entityType: EntityType.Network, facetPath: ["Bittensor"] },
 																					}
@@ -82042,7 +82053,6 @@ export const routes = defineRoutes(schema)({
 																									"MarketTimestampMsSource": {
 																										params: {},
 																										derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
-																										page: {},
 																										when: { path: ["namespace"], is: "Dydx" },
 																										projection: { entityType: EntityType.Network, facetPath: ["Dydx"] },
 																									}
@@ -82124,7 +82134,7 @@ export const routes = defineRoutes(schema)({
 																						projection: { entityType: EntityType.Network, facetPath: ["Starknet"] },
 																					}
 																				}
-																			}
+																			},
 																		},
 																	},
 																},
@@ -82929,7 +82939,6 @@ export const routes = defineRoutes(schema)({
 																						[EntityType.PolkadotAsset_Timestamp]: {
 																							"AssetTimestampMsSource": {
 																								params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																								page: {},
 																								when: { path: ["namespace"], is: "Polkadot" },
 																								projection: { entityType: EntityType.Network, facetPath: ["Polkadot"] },
 																							}
@@ -84241,7 +84250,6 @@ export const routes = defineRoutes(schema)({
 																										[EntityType.DydxChainSubaccount_Timestamp]: {
 																											"SubaccountTimestampMsSource": {
 																												params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																												page: {},
 																												when: { path: ["namespace"], is: "Dydx" },
 																												projection: { entityType: EntityType.Network, facetPath: ["Dydx"] },
 																											}
@@ -84312,7 +84320,6 @@ export const routes = defineRoutes(schema)({
 																														[EntityType.DydxChainOrder_Timestamp]: {
 																															"OrderTimestampMsSource": {
 																																params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																																page: {},
 																																when: { path: ["namespace"], is: "Dydx" },
 																																projection: { entityType: EntityType.Network, facetPath: ["Dydx"] },
 																															}
@@ -85345,7 +85352,6 @@ export const routes = defineRoutes(schema)({
 																							"AttestationTimestampMsSource": {
 																								params: {},
 																								derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
-																								page: {},
 																							}
 																						}
 																					},
@@ -85590,10 +85596,9 @@ export const routes = defineRoutes(schema)({
 																				"[source]": {
 																					selectors: {
 																						[EntityType.EigenLayerStrategy_Timestamp]: {
-																							"StrategyTimestampMsSource": {
-																								params: {},
-																								derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
-																								page: {},
+																																								"StrategyTimestampMsSource": {
+																																									params: {},
+																																									derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
 																							}
 																						}
 																					},
@@ -85615,9 +85620,8 @@ export const routes = defineRoutes(schema)({
 																"[logIndex]": {
 																	selectors: {
 																		[EntityType.EigenLayerSlashingEvent]: {
-																			"NetworkTransactionHashLogIndex": {
-																				params: { "transactionHash": ["transactionHash"], "logIndex": ["logIndex"] },
-																				page: {},
+																											"NetworkTransactionHashLogIndex": {
+																												params: { "transactionHash": ["transactionHash"], "logIndex": ["logIndex"] },
 																			}
 																		}
 																	}
@@ -87046,7 +87050,6 @@ export const routes = defineRoutes(schema)({
 																									"AssetTimestampMsSource": {
 																										params: {},
 																										derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
-																										page: {},
 																										when: { path: ["namespace"], is: "Elements" },
 																										projection: { entityType: EntityType.Network, facetPath: ["Elements"] },
 																									}
@@ -87166,7 +87169,6 @@ export const routes = defineRoutes(schema)({
 																		],
 																	}
 																},
-																page: {}
 															}
 														}
 													},
@@ -87704,10 +87706,7 @@ export const routes = defineRoutes(schema)({
 																		],
 																	}
 																},
-																page: {
-																	text: { title: "Liquidity pool block" }
-																}
-															}
+																	}
 														}
 													},
 												}
@@ -87718,6 +87717,101 @@ export const routes = defineRoutes(schema)({
 							}
 						}
 					}
+				},
+				"uniswap-cca": {
+					children: {
+						"auction": {
+							children: {
+								"[chainId]": {
+									params: {
+										"chainId": ["Eip155ChainId"],
+									},
+									children: {
+										"[auctionAddress]": {
+											selectors: {
+												[EntityType.UniswapCcaAuction]: {
+													"NetworkAuctionAddress": {
+														params: {
+															"auctionAddress": ["auctionAddress"],
+														},
+														derivations: {
+															$network: {
+																kind: "selector",
+																entity: EntityType.Network,
+																selector: "Caip2",
+																params: [
+																	{
+																		field: "caip2",
+																		value: {
+																			kind: "object",
+																			fields: [
+																				{ name: "namespace", value: { kind: "literal", value: "eip155" } },
+																				{ name: "reference", value: { kind: "param", name: "chainId" } },
+																			],
+																		},
+																	},
+																],
+															},
+														},
+														page: {
+															text: { title: "Uniswap CCA auction" },
+														},
+													},
+												},
+											},
+											children: {
+												"block": {
+													children: {
+														"[blockNumber]": {
+															selectors: {
+																[EntityType.UniswapCcaAuction_EvmBlock]: {
+																	"AuctionBlockNumber": {
+																		params: {
+																			"blockNumber": ["blockNumber"],
+																		},
+																		derivations: {
+																			$auction: {
+																				kind: "selector",
+																				entity: EntityType.UniswapCcaAuction,
+																				selector: "NetworkAuctionAddress",
+																				params: [
+																					{
+																						field: "$network",
+																						value: {
+																							kind: "selector",
+																							entity: EntityType.Network,
+																							selector: "Caip2",
+																							params: [
+																								{
+																									field: "caip2",
+																									value: {
+																										kind: "object",
+																										fields: [
+																											{ name: "namespace", value: { kind: "literal", value: "eip155" } },
+																											{ name: "reference", value: { kind: "param", name: "chainId" } },
+																										],
+																									},
+																								},
+																							],
+																						},
+																					},
+																					{ field: "auctionAddress", param: "auctionAddress" },
+																				],
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 				"uniswap-v3": {
 					children: {
@@ -88063,7 +88157,6 @@ export const routes = defineRoutes(schema)({
 																				],
 																			},
 																		},
-																		page: {},
 																	},
 																},
 															},
@@ -88540,7 +88633,6 @@ export const routes = defineRoutes(schema)({
 																											"timestampMs": ["timestampMs"],
 																											"source": ["source"]
 																										},
-																										page: {}
 																									}
 																								}
 																							}
@@ -88581,7 +88673,6 @@ export const routes = defineRoutes(schema)({
 																					"timestampMs": ["timestampMs"],
 																					"source": ["source"]
 																				},
-																				page: {}
 																			}
 																		}
 																	}
@@ -88775,7 +88866,6 @@ export const routes = defineRoutes(schema)({
 																				],
 																			}
 																		},
-																		page: {}
 																	}
 																}
 															},
@@ -88842,7 +88932,6 @@ export const routes = defineRoutes(schema)({
 																				],
 																			}
 																		},
-																		page: {}
 																	}
 																}
 															},
@@ -88862,7 +88951,6 @@ export const routes = defineRoutes(schema)({
 																						[EntityType.FarcasterChannel_Viewer_Timestamp]: {
 																							"ChannelViewerTimestampMsSource": {
 																								params: { "fid": ["$viewer", "fid"], "timestampMs": ["timestampMs"], "source": ["source"] },
-																								page: {},
 																							}
 																						}
 																					}
@@ -88956,7 +89044,6 @@ export const routes = defineRoutes(schema)({
 																						],
 																					}
 																				},
-																				page: {}
 																			}
 																		}
 																	},
@@ -89348,7 +89435,6 @@ export const routes = defineRoutes(schema)({
 																				],
 																			}
 																		},
-																		page: {}
 																	}
 																}
 															},
@@ -89424,7 +89510,6 @@ export const routes = defineRoutes(schema)({
 																				],
 																			}
 																		},
-																		page: {}
 																	}
 																}
 															},
@@ -89746,7 +89831,6 @@ export const routes = defineRoutes(schema)({
 															"HubTimestampMsSource": {
 																params: { "source": ["source"] },
 																derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
-																page: {},
 															},
 														},
 													},
@@ -89835,7 +89919,6 @@ export const routes = defineRoutes(schema)({
 																						],
 																					}
 																				},
-																				page: {}
 																			}
 																		}
 																	},
@@ -89957,7 +90040,6 @@ export const routes = defineRoutes(schema)({
 																								],
 																							}
 																						},
-																						page: {}
 																					}
 																				}
 																			}
@@ -90061,7 +90143,6 @@ export const routes = defineRoutes(schema)({
 																								],
 																							}
 																						},
-																						page: {}
 																					}
 																				}
 																			}
@@ -94412,7 +94493,6 @@ export const routes = defineRoutes(schema)({
 																						derivations: {
 																							"$destinationDomain": { kind: "selector", entity: EntityType.CctpDomainSupport, selector: "CctpVersionDomainId", params: [{ field: "cctpVersion", value: { kind: "property", value: { kind: "field", name: "$sourceDomain" }, property: "cctpVersion" } }, { field: "domainId", param: "destinationDomain" }] },
 																						},
-																						page: {},
 																					}
 																				}
 																			}
@@ -94477,7 +94557,6 @@ export const routes = defineRoutes(schema)({
 																[EntityType.CctpAttestation_Timestamp]: {
 																	"MessageTimestampMsSource": {
 																		params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																		page: {},
 																	}
 																}
 															}
@@ -94580,7 +94659,6 @@ export const routes = defineRoutes(schema)({
 																						[EntityType.AiModel_Timestamp]: {
 																							"ModelTimestampMsSource": {
 																								params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																								page: {},
 																							}
 																						}
 																					}
@@ -94628,7 +94706,6 @@ export const routes = defineRoutes(schema)({
 																						[EntityType.AiProviderApiOperation_Timestamp]: {
 																							"OperationTimestampMsSource": {
 																								params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																								page: {},
 																							}
 																						}
 																					}
@@ -94664,7 +94741,6 @@ export const routes = defineRoutes(schema)({
 																								[EntityType.AiProviderCatalogEntry_Timestamp]: {
 																									"EntryTimestampMsSource": {
 																										params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																										page: {},
 																									}
 																								}
 																							}
@@ -109435,26 +109511,47 @@ export const app = {
 			{
 				source: Source.UniswapContracts_Evm,
 				provider: "Uniswap",
-				label: "Uniswap V3 contract catalog",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Global,
-						key: "uniswap-v3-evm-contract-catalog",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.InProcess,
-							locator: "uniswap-v3-evm-contract-catalog",
+				label: "Uniswap contract interface catalog",
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "uniswap-v3-evm-contract-catalog",
 						},
-					],
-					wireProtocol: WireProtocol.InProcess,
-					apiFamily: ApiFamily.CatalogRows,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.BrowserDirect,
-					credentials: [],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.InProcess,
+								locator: "uniswap-v3-evm-contract-catalog",
+							},
+						],
+						wireProtocol: WireProtocol.InProcess,
+						apiFamily: ApiFamily.CatalogRows,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "uniswap-cca-v2-contract-interface",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.InProcess,
+								locator: "uniswap-cca-v2-contract-interface",
+							},
+						],
+						wireProtocol: WireProtocol.InProcess,
+						apiFamily: ApiFamily.CatalogRows,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+					},
+				],
 			},
 			{
 				source: Source.Voltaire_JsonRpc,
