@@ -158,6 +158,19 @@ describe('EasScan GraphQL resolvers', () => {
 		})
 	})
 
+	it('rejects an observation before attestation creation', async () => {
+		getAttestation.mockResolvedValue(attestation)
+
+		await expect(easAttestationTimestampResolver.resolve.AttestationTimestampMsSource.resolve({
+			$attestation: {
+				$network: network,
+				uid,
+			},
+			timestampMs: 1_699_999_999_999,
+			source: Source.EasScan_Graphql,
+		}, context)).rejects.toThrow('observation precedes attestation creation')
+	})
+
 	it('materializes a schema registration with authoritative attestation count', async () => {
 		getSchema.mockResolvedValue({
 			id: schemaUid,

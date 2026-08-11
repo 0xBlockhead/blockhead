@@ -148,6 +148,8 @@ const easAttestationTimestampResolver = defineResolver({
 				})
 				if (attestation == null)
 					throw new Error('EasScan_Graphql: attestation not found')
+				if (timestampMs < attestation.timeCreated * 1_000)
+					throw new Error('EasScan_Graphql: observation precedes attestation creation')
 
 				const expired = (
 					attestation.expirationTime !== 0
