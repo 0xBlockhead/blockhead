@@ -114,4 +114,26 @@ describe('Cosmos Chain Registry Github queries', () => {
 			'invalid asset list envelope'
 		)
 	})
+
+	it('rejects duplicate base denoms instead of silently selecting the first asset', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			chain_name: 'osmosis',
+			assets: [
+				{
+					base: 'uosmo',
+					name: 'Osmosis',
+					symbol: 'OSMO',
+				},
+				{
+					base: 'uosmo',
+					name: 'Duplicate Osmosis',
+					symbol: 'OSMO2',
+				},
+			],
+		})
+
+		await expect(getAssetList({ chainName: 'osmosis' })).rejects.toThrow(
+			'duplicate base denoms'
+		)
+	})
 })

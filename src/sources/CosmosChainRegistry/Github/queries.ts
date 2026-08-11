@@ -69,6 +69,8 @@ export const getAssetList = async ({
 	)
 	if (assetList.chain_name !== chainName)
 		throw new Error(`CosmosChainRegistry_Github: mismatched asset list chain_name ${assetList.chain_name}`)
+	if (new Set(assetList.assets.map((asset) => asset.base)).size !== assetList.assets.length)
+		throw new Error('CosmosChainRegistry_Github: asset list contains duplicate base denoms')
 
 	return assetList
 }
