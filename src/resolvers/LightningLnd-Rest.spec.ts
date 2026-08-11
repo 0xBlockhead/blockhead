@@ -353,13 +353,13 @@ describe('Lightning LND resolver ownership', () => {
 		await expect(nodeChannelsResolver.resolve.NetworkPublicKey.resolve({
 			$network: lightningNetwork,
 			publicKey: peerPublicKey,
-		}, context)).resolves.toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: lightningNetwork,
-					channelId: '42',
-				},
+		}, {
+			...context,
+			pagination: {
+				limit: 1,
+				offset: 1,
 			},
+		})).resolves.toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: lightningNetwork,
@@ -371,6 +371,37 @@ describe('Lightning LND resolver ownership', () => {
 			publicKey: peerPublicKey,
 			includeChannels: true,
 		})
+
+		getNodeInfo.mockRejectedValueOnce(new Error('graph lookup unavailable'))
+		getInfo.mockResolvedValue({
+			identity_pubkey: localPublicKey,
+		})
+		listChannels.mockResolvedValue({
+			channels: [
+				channel,
+				{
+					...channel,
+					chan_id: '99',
+				},
+			],
+		})
+		await expect(nodeChannelsResolver.resolve.NetworkPublicKey.resolve({
+			$network: lightningNetwork,
+			publicKey: peerPublicKey,
+		}, {
+			...context,
+			pagination: {
+				limit: 1,
+				offset: 1,
+			},
+		})).resolves.toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: lightningNetwork,
+					channelId: '99',
+				},
+			},
+		])
 	})
 
 	it('omits hashless invoices and separates stable and observed invoice fields', async () => {

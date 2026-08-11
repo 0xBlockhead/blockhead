@@ -1117,7 +1117,10 @@ export default {
 									})
 								).channels ?? []
 							)
-								.slice(0, resolverContextRowLimit(context))
+								.slice(
+									context.pagination.offset ?? 0,
+									(context.pagination.offset ?? 0) + resolverContextRowLimit(context)
+								)
 								.map((edge) => ({
 									[EntityMetaKey.Selector]: {
 										$network: lightningNetwork,
@@ -1131,7 +1134,10 @@ export default {
 									publicKey === info.identity_pubkey
 									|| publicKey === channel.remote_pubkey
 								))
-								.slice(0, resolverContextRowLimit(context))
+								.slice(
+									context.pagination.offset ?? 0,
+									(context.pagination.offset ?? 0) + resolverContextRowLimit(context)
+								)
 								.map(channelReferenceFromLndChannel)
 						}
 					},
