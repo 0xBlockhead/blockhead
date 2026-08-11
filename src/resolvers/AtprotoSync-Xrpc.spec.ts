@@ -83,6 +83,20 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 		})).rejects.toThrow('disagrees with getLatestCommit')
 	})
 
+	it('rejects a latest commit when the relay marks its repository inactive', async () => {
+		getRepoStatus.mockResolvedValue({
+			did: 'did:plc:example',
+			active: false,
+			rev: '3jzfcijpj2z2a',
+		})
+
+		await expect(resolveByRev({
+			repoDid: 'did:plc:example',
+			rev: '3jzfcijpj2z2a',
+			source: Source.AtprotoSync_Xrpc,
+		})).rejects.toThrow('repository did:plc:example is inactive')
+	})
+
 	it('rejects non-tip historical revs instead of inventing CAR decode', async () => {
 		await expect(resolveByRev({
 			repoDid: 'did:plc:example',

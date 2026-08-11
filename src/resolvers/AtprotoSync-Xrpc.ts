@@ -36,6 +36,8 @@ const projectLatestCommit = async ({
 
 	if (status.did !== repoDid)
 		throw new Error(`AtprotoSync_Xrpc: getRepoStatus did ${status.did} does not match ${repoDid}`)
+	if (!status.active)
+		throw new Error(`AtprotoSync_Xrpc: repository ${repoDid} is inactive`)
 
 	if (status.rev != null && status.rev !== latest.rev)
 		throw new Error(
