@@ -177,8 +177,8 @@ const assertMintInfoHasFields = (
 
 export const getMintInfo = async (
 	mintUrl: string
-): Promise<CashuMintInfoWire> => (
-	assertMintInfoHasFields(
+): Promise<CashuMintInfoWire> => {
+	const info = assertMintInfoHasFields(
 		mintUrl,
 		assertEnvelope(
 			mintUrl,
@@ -187,29 +187,41 @@ export const getMintInfo = async (
 			await requestMintJson(mintUrl, '/v1/info')
 		)
 	)
-)
+	if (info.time != null && (!Number.isSafeInteger(info.time) || info.time < 0))
+		throw new Error(`CashuMint_Rest: mint info time is outside the native clock for mint ${mintUrl}`)
+
+	return info
+}
 
 export const getMintKeysets = async (
 	mintUrl: string
-): Promise<CashuMintKeysetsWire> => (
-	assertEnvelope(
+): Promise<CashuMintKeysetsWire> => {
+	const keysets = assertEnvelope(
 		mintUrl,
 		'mint keysets',
 		cashuMintKeysetsWire,
 		await requestMintJson(mintUrl, '/v1/keysets')
 	)
-)
+	if (new Set(keysets.keysets.map((keyset) => keyset.id)).size !== keysets.keysets.length)
+		throw new Error(`CashuMint_Rest: duplicate keyset identity in keysets for mint ${mintUrl}`)
+
+	return keysets
+}
 
 export const getMintKeys = async (
 	mintUrl: string
-): Promise<CashuMintKeysWire> => (
-	assertEnvelope(
+): Promise<CashuMintKeysWire> => {
+	const keys = assertEnvelope(
 		mintUrl,
 		'mint keys',
 		cashuMintKeysWire,
 		await requestMintJson(mintUrl, '/v1/keys')
 	)
-)
+	if (new Set(keys.keysets.map((keyset) => keyset.id)).size !== keys.keysets.length)
+		throw new Error(`CashuMint_Rest: duplicate keyset identity in keys for mint ${mintUrl}`)
+
+	return keys
+}
 
 export const getMintKeysForKeyset = async (
 	mintUrl: string,
@@ -225,6 +237,8 @@ export const getMintKeysForKeyset = async (
 		cashuMintKeysWire,
 		await requestMintJson(mintUrl, `/v1/keys/${encodeURIComponent(keysetId)}`)
 	)
+	if (new Set(keys.keysets.map((keyset) => keyset.id)).size !== keys.keysets.length)
+		throw new Error(`CashuMint_Rest: duplicate keyset identity in keys for mint ${mintUrl}`)
 	if (!keys.keysets.some((keyset) => keyset.id === keysetId))
 		throw new Error(`CashuMint_Rest: mint keys response is missing requested keyset ${keysetId}`)
 
@@ -266,6 +280,8 @@ export const getMintQuoteBolt11 = async (
 	)
 	if (quote.quote !== quoteId)
 		throw new Error(`CashuMint_Rest: mint quote response does not match requested quote ${quoteId}`)
+	if (quote.expiry != null && quote.expiry < quote.updated_at)
+		throw new Error(`CashuMint_Rest: mint quote clock is reversed for mint ${mintUrl}`)
 
 	return quote
 }
@@ -367,8 +383,9 @@ export const checkProofStates = async (
 	mintUrl: string,
 	request: CashuCheckProofStatesRequestWire,
 	{ signal }: CashuMintRequestOptions = {}
-): Promise<CashuProofStatesWire> => (
-	assertEnvelope(
+): Promise<CashuProofStatesWire> => {
+	const requestedYs = new Set(request.Ys)
+	const states = assertEnvelope(
 		mintUrl,
 		'proof states',
 		cashuProofStatesWire,
@@ -379,7 +396,19 @@ export const checkProofStates = async (
 			signal
 		)
 	)
-)
+	const returnedYs = new Set<string>()
+	for (const state of states.states) {
+		if (!requestedYs.has(state.Y))
+			throw new Error(`CashuMint_Rest: proof state response contains a foreign Y for mint ${mintUrl}`)
+		if (returnedYs.has(state.Y))
+			throw new Error(`CashuMint_Rest: duplicate proof state response identity for mint ${mintUrl}`)
+		returnedYs.add(state.Y)
+	}
+	if (returnedYs.size !== requestedYs.size)
+		throw new Error(`CashuMint_Rest: proof state response is missing a requested Y for mint ${mintUrl}`)
+
+	return states
+}
 
 export const restoreSignatures = async (
 	mintUrl: string,

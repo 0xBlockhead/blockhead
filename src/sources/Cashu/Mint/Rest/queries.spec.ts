@@ -489,3 +489,106 @@ it('preserves typed NUT-00 protocol failures', async () => {
 		detail: 'quote expired',
 	})
 })
+
+it('fails closed on a mint info time outside the native clock', async () => {
+	sourceFetch.mockResolvedValueOnce(jsonResponse({
+		name: 'Mint',
+		time: -1,
+	}))
+
+	await expect(getMintInfo('https://first.mint')).rejects.toThrow(
+		'CashuMint_Rest: mint info time is outside the native clock for mint https://first.mint'
+	)
+})
+
+it('fails closed on duplicate keyset identities', async () => {
+	sourceFetch.mockResolvedValueOnce(jsonResponse({
+		keysets: [
+			{
+				id: 'same',
+				unit: 'sat',
+				active: true,
+			},
+			{
+				id: 'same',
+				unit: 'sat',
+				active: true,
+			},
+		],
+	}))
+
+	await expect(getMintKeysets('https://first.mint')).rejects.toThrow(
+		'CashuMint_Rest: duplicate keyset identity in keysets for mint https://first.mint'
+	)
+})
+
+it('fails closed on a mint quote with a reversed clock', async () => {
+	sourceFetch.mockResolvedValueOnce(jsonResponse({
+		quote: 'q',
+		request: 'lnbc-q',
+		amount: 1,
+		unit: 'sat',
+		method: 'bolt11',
+		amount_paid: 0,
+		amount_issued: 0,
+		updated_at: 100,
+		state: 'UNPAID',
+		expiry: 50,
+	}))
+
+	await expect(getMintQuoteBolt11('https://first.mint', 'q')).rejects.toThrow(
+		'CashuMint_Rest: mint quote clock is reversed for mint https://first.mint'
+	)
+})
+
+it('fails closed on proof state responses with foreign or duplicate Ys', async () => {
+	sourceFetch
+		.mockResolvedValueOnce(jsonResponse({
+			states: [
+				{
+					Y: 'foreign-y',
+					state: 'SPENT',
+					witness: null,
+				},
+			],
+		}))
+		.mockResolvedValueOnce(jsonResponse({
+			states: [
+				{
+					Y: 'same-y',
+					state: 'SPENT',
+					witness: null,
+				},
+				{
+					Y: 'same-y',
+					state: 'SPENT',
+					witness: null,
+				},
+			],
+		}))
+		.mockResolvedValueOnce(jsonResponse({
+			states: [
+				{
+					Y: 'proof-y',
+					state: 'SPENT',
+					witness: null,
+				},
+			],
+		}))
+
+	await expect(checkProofStates('https://first.mint', {
+		Ys: ['requested-y'],
+	})).rejects.toThrow(
+		'CashuMint_Rest: proof state response contains a foreign Y for mint https://first.mint'
+	)
+	await expect(checkProofStates('https://first.mint', {
+		Ys: ['same-y'],
+	})).rejects.toThrow(
+		'CashuMint_Rest: duplicate proof state response identity for mint https://first.mint'
+	)
+	await expect(checkProofStates('https://first.mint', {
+		Ys: ['proof-y', 'missing-y'],
+	})).rejects.toThrow(
+		'CashuMint_Rest: proof state response is missing a requested Y for mint https://first.mint'
+	)
+})
