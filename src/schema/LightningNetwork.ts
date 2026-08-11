@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -27,14 +28,26 @@ export default entity({
 	$$timestamps: {
 		entityType: EntityType.LightningNetwork_Timestamp,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
+		defaultSources: [
+			Source.LightningMempoolSpace_Rest,
+			Source.LightningLnd_Rest,
+		],
 	},
 	$$nodes: {
 		entityType: EntityType.LightningNode,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
+		defaultSources: [
+			Source.LightningMempoolSpace_Rest,
+			Source.LightningLnd_Rest,
+			Source.Amboss_Graphql,
+		],
 	},
 	$$channels: {
 		entityType: EntityType.LightningChannel,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
+		defaultSources: [
+			Source.LightningLnd_Rest,
+		],
 	},
 	$$invoices: {
 		entityType: EntityType.BlockheadLightningInvoice,

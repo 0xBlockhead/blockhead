@@ -7,7 +7,9 @@ import {
 } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
+import { entityFieldDefinitions } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import lightningNetworkDefinition from '$/schema/LightningNetwork.ts'
 import { Source } from '$/sources/Source.ts'
 
 const {
@@ -89,6 +91,32 @@ beforeEach(() => {
 })
 
 describe('Lightning and mempool resolver bindings', () => {
+	it('binds public graph collections only to their registered materializers', () => {
+		expect(Object.fromEntries(entityFieldDefinitions(lightningNetworkDefinition)
+			.filter(({ name }) => [
+				'$$timestamps',
+				'$$nodes',
+				'$$channels',
+			].includes(name))
+			.map(({ defaultSources, name }) => [
+				name,
+				defaultSources,
+			]))).toEqual({
+			'$$timestamps': [
+				Source.LightningMempoolSpace_Rest,
+				Source.LightningLnd_Rest,
+			],
+			'$$nodes': [
+				Source.LightningMempoolSpace_Rest,
+				Source.LightningLnd_Rest,
+				Source.Amboss_Graphql,
+			],
+			'$$channels': [
+				Source.LightningLnd_Rest,
+			],
+		})
+	})
+
 	it('keeps MempoolSpace on public graph entities and LND on local session rows', () => {
 		const mempoolEntityTypes = new Set(
 			lightningMempoolSpace.resolvers.map((resolver) => resolver.entityType)

@@ -42106,9 +42106,9 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$settlementNetwork": { label: "Settlement network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningNetwork_Timestamp },
-				"$$nodes": { label: "Nodes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningNode },
-				"$$channels": { label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningChannel },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningNetwork_Timestamp, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest] },
+				"$$nodes": { label: "Nodes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningNode, defaultSources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql] },
+				"$$channels": { label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.LightningChannel, defaultSources: [Source.LightningLnd_Rest] },
 				"$$invoices": { label: "Invoices", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningInvoice },
 				"$$payments": { label: "Payments", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadLightningPayment },
 			})({
