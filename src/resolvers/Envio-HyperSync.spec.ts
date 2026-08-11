@@ -368,16 +368,7 @@ describe('Envio HyperSync resolver', () => {
 			},
 		})
 
-		sourceFetch.mockResolvedValueOnce(Response.json({
-			height: 19_000_020,
-		}))
-		await expect(resolverFor(EntityType.EvmNetwork_Timestamp).resolve.NetworkTimestampMsSource.resolve({
-			$network: network,
-			timestampMs: 1_700_000_000_000,
-			source: Source.EnvioHyperSync_RawHttp,
-		}, context)).resolves.toMatchObject({
-			blockHeight: 19_000_020n,
-		})
+		expect(resolverFor(EntityType.EvmNetwork_Timestamp)).toBeUndefined()
 	})
 
 	it('hard-fails unsupported networks and non-Complete HyperSync pages', async () => {

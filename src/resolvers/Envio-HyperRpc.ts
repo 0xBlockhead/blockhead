@@ -453,30 +453,5 @@ export default {
 			},
 		}),
 
-		defineResolver({
-			entityType: EntityType.EvmNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({ $network, timestampMs, source }) => {
-						assertEthereumMainnet($network)
-						if (source !== Source.EnvioHyperRpc_JsonRpc)
-							throw new Error(`EnvioHyperRpc_JsonRpc: unsupported network timestamp source ${source}`)
-						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
-							throw new Error('EnvioHyperRpc_JsonRpc: invalid network observation timestamp')
-
-						return {
-							[EntityMetaKey.Selector]: {
-								$network,
-								timestampMs,
-								source,
-							},
-							blockHeight: await getBlockNumber(),
-						}
-					},
-				},
-			},
-		})({
-			blockHeight: (observation) => observation.blockHeight,
-		}),
 	],
 } satisfies RegisteredSourceResolverModule

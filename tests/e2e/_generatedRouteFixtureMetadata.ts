@@ -4005,20 +4005,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/(protocol-networks)/consensus-network/[consensusNetworkId]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/consensus-network/[consensusNetworkId=stringSegment]/(zeroGConsensusNetwork)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'ZeroGConsensusNetwork_Timestamp.ConsensusNetworkTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/consensus-network/[consensusNetworkId]/observations/[timestampMs]/[source]:ZeroGConsensusNetwork_Timestamp.ConsensusNetworkTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'consensusNetworkId', 'network']]]],
-				projectionPath: [
-					'ZeroG',
-				],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/(protocol-networks)/contract/tezos/[address]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/contract/tezos/[address=stringSegment]',
 		mappings: [
@@ -8061,35 +8047,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/mempool': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mempool',
-		mappings: [
-			{
-				id: 'Network.Caip2',
-				probeAtomPrefixes: ['/network/[network]:Network.Caip2'],
-				probeCases: [[[0, '1', ['network']]]],
-			},
-			{
-				id: 'Network.Slug',
-				probeAtomPrefixes: ['/network/[network]:Network.Slug'],
-				probeCases: [[[0, '1', ['network']]], [[0, '2', ['network']]], [[0, '3', ['network']]], [[0, '4', ['network']]], [[0, '5', ['network']]], [[0, '6', ['network']]], [[0, '7', ['network']]], [[0, '8', ['network']]], [[0, '9', ['network']]], [[0, '10', ['network']]], [[0, '11', ['network']]], [[0, '12', ['network']]], [[0, '13', ['network']]], [[0, '14', ['network']]], [[0, '15', ['network']]]],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/mempool/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mempool/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'EvmNetwork_Txpool_Timestamp.NetworkTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/mempool/[timestampMs]/[source]:EvmNetwork_Txpool_Timestamp.NetworkTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/message/filecoin/[cid]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/message/filecoin/[cid=stringSegment]',
 		mappings: [
@@ -8647,21 +8604,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'Network_Timestamp.NetworkTimestampMsSource',
 				probeAtomPrefixes: ['/network/[network]/observation/[timestampMs]/[source]:Network_Timestamp.NetworkTimestampMsSource'],
 				probeCases: [[[0, '1', ['timestampMs', 'source', 'network']]]],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/observations': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observations',
-		mappings: [
-			{
-				id: 'Network.Caip2',
-				probeAtomPrefixes: ['/network/[network]:Network.Caip2'],
-				probeCases: [[[0, '1', ['network']]]],
-			},
-			{
-				id: 'Network.Slug',
-				probeAtomPrefixes: ['/network/[network]:Network.Slug'],
-				probeCases: [[[0, '1', ['network']]], [[0, '2', ['network']]], [[0, '3', ['network']]], [[0, '4', ['network']]], [[0, '5', ['network']]], [[0, '6', ['network']]], [[0, '7', ['network']]], [[0, '8', ['network']]], [[0, '9', ['network']]], [[0, '10', ['network']]], [[0, '11', ['network']]], [[0, '12', ['network']]], [[0, '13', ['network']]], [[0, '14', ['network']]], [[0, '15', ['network']]]],
 			},
 		],
 	},

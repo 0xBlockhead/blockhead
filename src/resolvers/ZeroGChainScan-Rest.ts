@@ -57,31 +57,5 @@ export default {
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 		}),
 
-		defineResolver({
-			entityType: EntityType.ZeroGConsensusNetwork_Timestamp,
-			resolve: {
-				ConsensusNetworkTimestampMsSource: {
-					resolve: async ({ $consensusNetwork, timestampMs, source }) => {
-						if (source !== Source.ZeroGChainScan_Rest) throw new Error(`ZeroGChainScan_Rest: unsupported source ${source}`)
-						assertZeroGMainnet($consensusNetwork.$network)
-						const { getExplorerIdentity } = await import('$/sources/ZeroG/ChainScan/Rest/queries.ts')
-						const identity = await getExplorerIdentity()
-						return {
-							$consensusNetwork: {
-								[EntityMetaKey.Selector]: $consensusNetwork,
-							},
-							timestampMs,
-							source: Source.ZeroGChainScan_Rest,
-							sharedStakingStatusSource: identity.url,
-						}
-					},
-				},
-			},
-		})({
-			$consensusNetwork: (timestamp) => timestamp.$consensusNetwork,
-			timestampMs: (timestamp) => timestamp.timestampMs,
-			source: (timestamp) => timestamp.source,
-			sharedStakingStatusSource: (timestamp) => timestamp.sharedStakingStatusSource,
-		}),
 	],
 } satisfies RegisteredSourceResolverModule

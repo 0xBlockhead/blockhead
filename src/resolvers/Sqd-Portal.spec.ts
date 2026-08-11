@@ -354,16 +354,9 @@ describe('SQD Portal resolver', () => {
 			},
 		})
 
-		sourceFetch.mockResolvedValueOnce(Response.json(finalizedHead))
-		await expect(sqdPortal.resolvers.find((resolver) => (
+		expect(sqdPortal.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.EvmNetwork_Timestamp
-		))!.resolve.NetworkTimestampMsSource.resolve({
-			$network: network,
-			timestampMs: 1_700_000_000_000,
-			source: Source.SqdPortal_RawHttp,
-		}, context)).resolves.toMatchObject({
-			blockHeight: 17_999_990n,
-		})
+		))).toBeUndefined()
 	})
 
 	it('hard-fails unsupported networks and non-Complete Portal pages', async () => {

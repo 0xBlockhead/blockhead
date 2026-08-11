@@ -75272,10 +75272,6 @@ export const routes = defineRoutes(schema)({
 														EntityType.Network,
 														["Evm", "$$txpoolTimestamps"]
 													],
-													page: {
-														view: { component: "EvmNetwork_Txpool_TimestampsView" },
-														text: { title: "Mempool" }
-													}
 												},
 											],
 											children: {
@@ -75296,8 +75292,7 @@ export const routes = defineRoutes(schema)({
 																			"source": [
 																				"source"
 																			]
-																		},
-																		page: {}
+																		}
 																	}
 																}
 															},
@@ -79790,10 +79785,6 @@ export const routes = defineRoutes(schema)({
 														EntityType.Network,
 														["Evm", "$$timestamps"]
 													],
-													page: {
-														view: { component: "EvmNetwork_TimestampsView" },
-														text: { title: "Observations" }
-													}
 												},
 											],
 											children: {
@@ -79862,13 +79853,12 @@ export const routes = defineRoutes(schema)({
 																		derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
 																	},
 																},
-																[EntityType.EvmNetwork_Timestamp]: {
-																	"NetworkTimestampMsSource": {
-																		when: { path: ["namespace"], is: "Evm" },
-																		projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
-																		params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																		page: {},
-																	}
+														[EntityType.EvmNetwork_Timestamp]: {
+															"NetworkTimestampMsSource": {
+																when: { path: ["namespace"], is: "Evm" },
+																projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
+																params: { "timestampMs": ["timestampMs"], "source": ["source"] },
+															}
 																},
 																[EntityType.ArweaveNetwork_Timestamp]: {
 																	"NetworkTimestampMsSource": {
@@ -83308,11 +83298,10 @@ export const routes = defineRoutes(schema)({
 																			children: {
 																				"[source]": {
 																					selectors: {
-																						[EntityType.ZeroGConsensusNetwork_Timestamp]: {
-																							"ConsensusNetworkTimestampMsSource": {
-																								params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																								page: {},
-																								when: { path: ["namespace"], is: "ZeroG" },
+																			[EntityType.ZeroGConsensusNetwork_Timestamp]: {
+																				"ConsensusNetworkTimestampMsSource": {
+																					params: { "timestampMs": ["timestampMs"], "source": ["source"] },
+																					when: { path: ["namespace"], is: "ZeroG" },
 																								projection: { entityType: EntityType.Network, facetPath: ["ZeroG"] },
 																							}
 																						}

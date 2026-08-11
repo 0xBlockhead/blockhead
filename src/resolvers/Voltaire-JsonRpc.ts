@@ -913,40 +913,6 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.EvmNetwork_Txpool_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({ $network, timestampMs, source }) => {
-						const chainId = chainIdFromEvmNetworkId($network)
-						const jsonRpcTransports = (await voltaireJsonRpcTxpoolTransportsByChainId())[chainId] ?? []
-						if (jsonRpcTransports.length === 0) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL for EvmNetwork_Txpool_Timestamp')
-						const errors: string[] = []
-						for (const jsonRpcTransport of jsonRpcTransports) {
-							try {
-								const status = await jsonRpcTransport.getTxpoolStatus()
-								return {
-									[EntityMetaKey.Selector]: {
-										$network,
-										timestampMs,
-										source,
-									},
-									pendingCount: txpoolCountFromHex('pending', status.pending),
-									queuedCount: txpoolCountFromHex('queued', status.queued),
-								}
-							} catch (error) {
-								errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
-							}
-						}
-						throw allJsonRpcEndpointsFailedError(chainId, 'EvmNetwork_Txpool_Timestamp', errors)
-					},
-				}
-			},
-		})({
-			pendingCount: (txpool) => txpool.pendingCount,
-			queuedCount: (txpool) => txpool.queuedCount,
-		}),
-
-		defineResolver({
 			entityType: EntityType.EnsName,
 			resolve: {
 				NormalizedName: {
@@ -1619,37 +1585,6 @@ export default {
 			Evm: {
 				$$timestamps: (entity) => entity,
 			},
-		}),
-
-		defineResolver({
-			entityType: EntityType.EvmNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({ $network, timestampMs, source }) => {
-						const jsonRpcTransports = (await voltaireJsonRpcTransportsByChainId())[chainIdFromEvmNetworkId($network)] ?? []
-						if (jsonRpcTransports.length === 0) throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for EvmNetwork_Timestamp.blockHeight on chain ${String(chainIdFromEvmNetworkId($network))}`)
-					const errors: string[] = []
-					for (const jsonRpcTransport of jsonRpcTransports) {
-						try {
-							return {
-								[EntityMetaKey.Selector]: {
-									$network,
-									timestampMs,
-									source,
-								},
-								blockHeight: await jsonRpcTransport.getBlockNumber(),
-							}
-						} catch (error) {
-							errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
-							continue
-						}
-					}
-					throw allJsonRpcEndpointsFailedError(chainIdFromEvmNetworkId($network), 'blockHeight', errors)
-				},
-				}
-			},
-		})({
-			blockHeight: (entity) => entity.blockHeight,
 		}),
 
 		defineResolver({

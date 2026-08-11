@@ -2,11 +2,9 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
 	// State
@@ -39,26 +37,9 @@
 	}
 >
 	{#snippet Item({ item: evmNetworkTxpoolTimestamp })}
-		{@const evmNetworkTxpoolTimestampSelector = evmNetworkTxpoolTimestamp[EntityMetaKey.Selector]}
-		{@const network = evmNetworkTxpoolTimestampSelector.$network}
 		<EntityView
 			entityType={EntityType.EvmNetwork_Txpool_Timestamp}
-			entitySelector={evmNetworkTxpoolTimestampSelector}
-			href={
-				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mempool/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						network: (
-							'caip2' in network ?
-								caip2StringFromValue(network.caip2)
-							:
-								network.slug
-						),
-						timestampMs: String(evmNetworkTxpoolTimestampSelector.timestampMs),
-						source: evmNetworkTxpoolTimestampSelector.source,
-					}
-				)
-			}
+			entitySelector={evmNetworkTxpoolTimestamp[EntityMetaKey.Selector]}
 		>
 			{#snippet Title()}
 				{[String(evmNetworkTxpoolTimestamp.pendingCount) + ' pending', String(evmNetworkTxpoolTimestamp.queuedCount) + ' queued'].filter(Boolean).join(' ') || 'EVM network txpool timestamp'}

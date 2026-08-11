@@ -262,31 +262,5 @@ export default {
 			},
 		}),
 
-		defineResolver({
-			entityType: EntityType.EvmNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({ $network, timestampMs, source }) => {
-						assertEthereumMainnet($network)
-						if (source !== Source.EnvioHyperSync_RawHttp)
-							throw new Error(`EnvioHyperSync_RawHttp: unsupported network timestamp source ${source}`)
-						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
-							throw new Error('EnvioHyperSync_RawHttp: invalid network observation timestamp')
-
-						const { getHeight } = await import('$/sources/Envio/HyperSync/queries.ts')
-						return {
-							[EntityMetaKey.Selector]: {
-								$network,
-								timestampMs,
-								source,
-							},
-							blockHeight: BigInt((await getHeight()).height),
-						}
-					},
-				},
-			},
-		})({
-			blockHeight: (observation) => observation.blockHeight,
-		}),
 	],
 } satisfies RegisteredSourceResolverModule

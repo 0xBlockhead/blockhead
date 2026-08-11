@@ -421,13 +421,6 @@ describe('Envio HyperRPC resolver', () => {
 			},
 		})
 
-		jsonRpc2.mockResolvedValueOnce('0x122a134')
-		await expect(resolverFor(EntityType.EvmNetwork_Timestamp).resolve.NetworkTimestampMsSource.resolve({
-			$network: network,
-			timestampMs: 1_700_000_000_000,
-			source: Source.EnvioHyperRpc_JsonRpc,
-		}, context)).resolves.toMatchObject({
-			blockHeight: 19_046_708n,
-		})
+		expect(resolverFor(EntityType.EvmNetwork_Timestamp)).toBeUndefined()
 	})
 })

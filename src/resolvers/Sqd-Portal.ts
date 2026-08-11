@@ -258,31 +258,5 @@ export default {
 			},
 		}),
 
-		defineResolver({
-			entityType: EntityType.EvmNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({ $network, timestampMs, source }) => {
-						assertEthereumMainnet($network)
-						if (source !== Source.SqdPortal_RawHttp)
-							throw new Error(`SqdPortal_RawHttp: unsupported network timestamp source ${source}`)
-						if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
-							throw new Error('SqdPortal_RawHttp: invalid network observation timestamp')
-
-						const { getFinalizedHead } = await import('$/sources/Sqd/Portal/queries.ts')
-						return {
-							[EntityMetaKey.Selector]: {
-								$network,
-								timestampMs,
-								source,
-							},
-							blockHeight: BigInt((await getFinalizedHead()).number),
-						}
-					},
-				},
-			},
-		})({
-			blockHeight: (observation) => observation.blockHeight,
-		}),
 	],
 } satisfies RegisteredSourceResolverModule
