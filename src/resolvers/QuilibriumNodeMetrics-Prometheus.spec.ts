@@ -46,6 +46,7 @@ quilibrium_app_consensus_current_difficulty 10000
 quilibrium_app_consensus_pending_messages_count 7
 blossomsub_peers 42
 quilibrium_app_consensus_time_since_last_proven_frame_seconds 12.5
+quilibrium_build_info{revision="abcdef",version="2.1.0"} 1
 `
 		expect(queries.parsePrometheusGaugeSamples(text)).toMatchObject({
 			quilibrium_app_consensus_engine_state: 4,
@@ -53,6 +54,7 @@ quilibrium_app_consensus_time_since_last_proven_frame_seconds 12.5
 			blossomsub_peers: 42,
 		})
 		expect(queries.nodeStateObservationFromPrometheusText(text, 1_000_000)).toEqual({
+			nodeVersion: '2.1.0',
 			engineState: 'proving',
 			latestFrameNumber: 12345n,
 			frameStoreHead: 12000n,

@@ -9,6 +9,7 @@ export const getMetrics = () => (
 )
 
 const prometheusSampleLine = /^(?<name>[a-zA-Z_:][a-zA-Z0-9_:]*)(?:\{[^}]*\})?\s+(?<value>[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)(?:\s+\d+)?\s*$/
+const prometheusBuildVersionLine = /^(?:[a-zA-Z_:][a-zA-Z0-9_:]*build_info)\{[^}]*\bversion="(?<version>[^"\\]+)"[^}]*\}\s+1(?:\.0+)?(?:\s+\d+)?\s*$/
 
 export const parsePrometheusGaugeSamples = (
 	text: string
@@ -98,9 +99,10 @@ export const nodeStateObservationFromPrometheusText = (
 		?? gaugeEndingWith(gauges, 'peers')
 	)
 	const secondsSinceLastProven = preferSubsystemGauge(gauges, 'time_since_last_proven_frame_seconds', 'app_consensus')
-	const nodeVersion = (
-		Object.entries(gauges).find(([name]) => name.includes('build_info') || name.endsWith('_version'))?.[0]
-	)
+	const nodeVersion = text
+		.split('\n')
+		.map((line) => prometheusBuildVersionLine.exec(line.trim())?.groups?.version)
+		.find((version) => version != null)
 
 	return {
 		...(
