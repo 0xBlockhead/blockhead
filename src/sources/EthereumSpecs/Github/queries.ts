@@ -35,9 +35,12 @@ export const fetchExecutionSpecsMainnetUpgradeMarkdown = ({
 	filename,
 }: {
 	filename: string
-}) => (
-	getText(
+}) => {
+	if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]*\.md$/.test(filename))
+		throw new Error('EthereumSpecs_Github: invalid mainnet upgrade Markdown filename')
+
+	return getText(
 		bindingByTargetKey['ethereum/execution-specs@8dbde99b65d519ea4c96084d784f85957e9314d0:network-upgrades/mainnet-upgrades'],
 		filename
 	)
-)
+}
