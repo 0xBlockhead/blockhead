@@ -444,10 +444,14 @@ export const listVaults = async ({
 	if (response.data == null)
 		throw new Error(`${Source.Euler_Rest}: vault list response missing data`)
 
-	return response.data.map((wire) => assertSummaryWire(wire, {
+	const vaults = response.data.map((wire) => assertSummaryWire(wire, {
 		chainId,
 		vaultAddress: assertVaultAddress(wire.address),
 	}))
+	if (new Set(vaults.map((vault) => vault.vaultAddress)).size !== vaults.length)
+		throw new Error(`${Source.Euler_Rest}: vault list contains duplicate vault identities`)
+
+	return vaults
 }
 
 /** Fetch canonical EVK vault detail by chain id and vault address. */
@@ -502,8 +506,14 @@ export const getAccountPositions = async ({
 	if (response.data == null)
 		throw new Error(`${Source.Euler_Rest}: account positions response missing data`)
 
-	return response.data.map((wire) => assertAccountPositionWire(wire, {
+	const positions = response.data.map((wire) => assertAccountPositionWire(wire, {
 		chainId,
 		account: normalizedAccount,
 	}))
+	if (new Set(positions.map((position) => (
+		`${position.vaultAddress}:${position.assetAddress}:${position.subAccount.owner}`
+	))).size !== positions.length)
+		throw new Error(`${Source.Euler_Rest}: account positions contain duplicate identities`)
+
+	return positions
 }

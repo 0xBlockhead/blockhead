@@ -232,6 +232,22 @@ describe('Euler EVK vault operations', () => {
 		})).rejects.toThrow(`${Source.Euler_Rest}: vault missing totalAssets`)
 	})
 
+	it('rejects duplicate vault identities after address normalization', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: [
+				baseVaultSummary,
+				{
+					...baseVaultSummary,
+					address: baseVaultSummary.address.toLowerCase(),
+				},
+			],
+		})
+
+		await expect(listVaults({
+			chainId: 1,
+		})).rejects.toThrow(`${Source.Euler_Rest}: vault list contains duplicate vault identities`)
+	})
+
 	it('rejects invalid vault list limits before transport', async () => {
 		await expect(listVaults({
 			chainId: 1,
@@ -520,6 +536,28 @@ describe('Euler EVK vault operations', () => {
 			chainId: 1,
 			account: baseVaultAddress,
 		})).rejects.toThrow(`${Source.Euler_Rest}: account positions response missing data`)
+	})
+
+	it('rejects duplicate account position identities after address normalization', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: [
+				baseAccountPosition,
+				{
+					...baseAccountPosition,
+					vault: baseAccountPosition.vault.toUpperCase(),
+					asset: baseAccountPosition.asset.toUpperCase(),
+					subAccount: {
+						...baseAccountPosition.subAccount,
+						owner: baseAccountPosition.subAccount.owner.toUpperCase(),
+					},
+				},
+			],
+		})
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: baseVaultAddress,
+		})).rejects.toThrow(`${Source.Euler_Rest}: account positions contain duplicate identities`)
 	})
 
 	it('rejects an unsupported account-position chain before transport', async () => {
