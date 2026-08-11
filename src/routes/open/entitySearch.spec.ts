@@ -13,6 +13,10 @@ import {
 
 describe(entityHrefFromSearchInput, () => {
 	it.each([
+		['https://www.youtube.com/watch?v=dQw4w9WgXcQ', '/youtube/video/dQw4w9WgXcQ'],
+		['https://youtu.be/dQw4w9WgXcQ?t=43', '/youtube/video/dQw4w9WgXcQ'],
+		['https://youtube.com/shorts/dQw4w9WgXcQ', '/youtube/video/dQw4w9WgXcQ'],
+		['https://www.youtube.com/embed/dQw4w9WgXcQ', '/youtube/video/dQw4w9WgXcQ'],
 		['ar://1234567890123456789012345678901234567890123/docs/index.html', '/arweave/resource/1234567890123456789012345678901234567890123/docs%2Findex.html'],
 		['did:plc:ewvi7nxzyoun6zhxrhs64oiz', '/atproto/actor/did%3Aplc%3Aewvi7nxzyoun6zhxrhs64oiz'],
 		['bzz://0000000000000000000000000000000000000000000000000000000000000001/docs/index.html', '/swarm/0000000000000000000000000000000000000000000000000000000000000001/path/docs/index.html'],
@@ -79,6 +83,14 @@ describe(entityHrefFromSearchInput, () => {
 		['did:web:example.com'],
 	])('does not infer AT Protocol actor from unsupported DID %s', (query) => {
 		expect(entityHrefFromSearchInput(query)).toBeUndefined()
+	})
+
+	it.each([
+		['https://www.youtube.com/watch?v=short'],
+		['https://www.youtube.com/channel/UC1234567890123456789012'],
+		['https://example.com/watch?v=dQw4w9WgXcQ'],
+	])('does not relabel non-video URL %s as a YouTube video', (query) => {
+		expect(entityHrefFromSearchInput(query)).toBe(`/url/${encodeURIComponent(query)}`)
 	})
 })
 

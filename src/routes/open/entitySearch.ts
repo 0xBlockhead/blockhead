@@ -95,6 +95,20 @@ export const nostrHexEntityKinds = [
 ] as const
 
 export const entityHrefFromSearchInput = (query: string) => {
+	const youtubeVideo = (
+		query.match(/^https?:\/\/(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})(?:[/?#]|$)/i)
+		?? query.match(/^https?:\/\/(?:www\.)?youtube\.com\/(?:shorts|embed)\/([a-zA-Z0-9_-]{11})(?:[/?#]|$)/i)
+		?? query.match(/^https?:\/\/(?:www\.)?youtube\.com\/watch\?(?:[^#]*&)?v=([a-zA-Z0-9_-]{11})(?:[&#]|$)/i)
+	)
+
+	if (youtubeVideo)
+		return resolve(
+			'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]',
+			{
+				videoId: youtubeVideo[1],
+			}
+		)
+
 	const arweaveResource = query.match(/^ar:\/\/([a-zA-Z0-9_-]{43})\/([^?#]+)(?:[?#].*)?$/)
 
 	if (arweaveResource)
