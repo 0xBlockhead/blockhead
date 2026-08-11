@@ -41,15 +41,15 @@ describe('Beacon REST native checkpoint and fork wires', () => {
 			data: {
 				previous_justified: {
 					epoch: '100',
-					root: '0xAABB',
+					root: `0x${'AA'.repeat(32)}`,
 				},
 				current_justified: {
 					epoch: '101',
-					root: '0xCCDD',
+					root: `0x${'CC'.repeat(32)}`,
 				},
 				finalized: {
 					epoch: '99',
-					root: '0xEEFF',
+					root: `0x${'EE'.repeat(32)}`,
 				},
 			},
 			execution_optimistic: false,
@@ -57,17 +57,45 @@ describe('Beacon REST native checkpoint and fork wires', () => {
 		})).toEqual({
 			previous_justified: {
 				epoch: '100',
-				root: '0xAABB',
+				root: `0x${'AA'.repeat(32)}`,
 			},
 			current_justified: {
 				epoch: '101',
-				root: '0xCCDD',
+				root: `0x${'CC'.repeat(32)}`,
 			},
 			finalized: {
 				epoch: '99',
-				root: '0xEEFF',
+				root: `0x${'EE'.repeat(32)}`,
 			},
 		})
+	})
+
+	it('rejects non-canonical roots and unsafe epoch identities', () => {
+		const checkpoint = {
+			epoch: '100',
+			root: `0x${'11'.repeat(32)}`,
+		}
+
+		expect(getFinalityCheckpointsFromWire({
+			data: {
+				previous_justified: checkpoint,
+				current_justified: {
+					...checkpoint,
+					root: '0x1234',
+				},
+				finalized: checkpoint,
+			},
+		})).toBeUndefined()
+		expect(getFinalityCheckpointsFromWire({
+			data: {
+				previous_justified: checkpoint,
+				current_justified: checkpoint,
+				finalized: {
+					...checkpoint,
+					epoch: '9007199254740992',
+				},
+			},
+		})).toBeUndefined()
 	})
 
 	it('preserves native fork schedule ordering and fields without canonical conversion', () => {

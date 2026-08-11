@@ -518,8 +518,8 @@ export const getFinalityCheckpointsFromWire = (
 	if (
 		checkpoints instanceof arktype.errors
 		|| Object.values(checkpoints).some((checkpoint) => (
-			!checkpoint.root.startsWith('0x')
-			|| !/^[0-9]+$/.test(checkpoint.epoch)
+			!/^0x[0-9a-fA-F]{64}$/.test(checkpoint.root)
+			|| !isNonNegativeSafeIntegerWire(checkpoint.epoch)
 		))
 	) return undefined
 	return checkpoints
