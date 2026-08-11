@@ -15,7 +15,7 @@
 		| 'Toolbar'
 	>
 
-	export type EntitiesListForwardProps = {
+	type EntitiesListForwardProps = {
 		CollapsibleProps?: CollapsibleForwardProps
 		'data-card'?: boolean
 		'data-column-item'?: string

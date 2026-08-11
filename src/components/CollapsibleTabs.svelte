@@ -3,23 +3,23 @@
 	import type { Snippet } from 'svelte'
 
 
-	export type CollapsibleTabsSectionContentProps = {
+	type CollapsibleTabsSectionContentProps = {
 		id: string
 		label: string
 		open?: boolean
 		active?: boolean
 	}
 
-	export type CollapsibleTabsSectionSnippet = Snippet<[
+	type CollapsibleTabsSectionSnippet = Snippet<[
 		CollapsibleTabsSectionContentProps,
 	]>
-	export type CollapsibleTabsMarkerSnippet = Snippet<[
+	type CollapsibleTabsMarkerSnippet = Snippet<[
 		CollapsibleTabsSectionContentProps,
 		Content: Snippet,
 	]>
 
 
-	export type CollapsibleTabsSectionRow<SectionId extends string = string> = {
+	type CollapsibleTabsSectionRow<SectionId extends string = string> = {
 		id: SectionId
 		label: string
 		description?: string
@@ -27,17 +27,17 @@
 	}
 
 
-	export type CollapsibleTabsSectionIds<
+	type CollapsibleTabsSectionIds<
 		Sections extends readonly CollapsibleTabsSectionRow[],
 	> = Sections[number]['id']
 
-	export type CollapsibleTabsSectionSnippets = {
+	type CollapsibleTabsSectionSnippets = {
 		[SectionSnippetKey in `Section${string}`]?: CollapsibleTabsSectionSnippet
 	} & {
 		[MarkerSnippetKey in `Marker${string}`]?: CollapsibleTabsMarkerSnippet
 	}
 
-	export type CollapsibleTabsOwnProps<
+	type CollapsibleTabsOwnProps<
 		Sections extends readonly CollapsibleTabsSectionRow[],
 	> = {
 		sectionIdPrefix: string
@@ -58,7 +58,7 @@
 			.join('')
 	)
 
-	export const sectionSnippetName = (
+	const sectionSnippetName = (
 		sectionId: string,
 	): `Section${string}` => (
 		`Section${kebabToPascalCase(sectionId)}`
