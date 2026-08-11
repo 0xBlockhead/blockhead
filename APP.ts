@@ -5160,6 +5160,25 @@ export const schema = {
 					})({
 						"$account": { label: "Solana account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.SolanaAccount, defaultSources: [Source.Constants_Internal] },
 					}),
+					Sui: facet({
+						path: ["namespace"],
+						is: "sui",
+					})({
+						"$account": { label: "Sui account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.SuiAccount, defaultSources: [Source.Constants_Internal] },
+					})({
+						singularView: {
+							carousels: [
+								{
+									id: "account-sui",
+									label: "Sui",
+									className: "account-view-collapsible-sui",
+									sections: [
+										{ id: "account-sui-projection", field: ["Sui", "$account"], List: "SuiAccountView", label: "Sui account", layout: EntityLayout.SummaryDetails },
+									],
+								},
+							],
+						},
+					}),
 					Starknet: facet({
 						path: ["namespace"],
 						is: "starknet",
