@@ -24,6 +24,7 @@
 
 
 	// Components
+	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import SuiNetworkView from '$/views/SuiNetworkView.svelte'
@@ -78,7 +79,9 @@
 			<div>
 				<dt>event index</dt>
 				<dd>
-					{selection.entitySelector.eventIndex}
+					<NumberValue
+						value={selection.entitySelector.eventIndex}
+					/>
 				</dd>
 			</div>
 
@@ -100,7 +103,9 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					selection({
@@ -167,5 +172,24 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						value: true,
+					},
+				})
+			}
+		>
+			{#snippet children(entity)}
+				{@const value = entity.value}
+				{#if value != null && value !== ''}
+					<code>{JSON.stringify(value)}</code>
+				{:else}
+					<p data-text="muted">No event value available.</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

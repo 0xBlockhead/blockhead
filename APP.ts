@@ -2520,6 +2520,11 @@ export const schema = {
 				type: { array: { primitive: "string" } },
 			},
 			{
+				id: "SuiEventValue",
+				displayExpression: "JSON.stringify(value)",
+				type: { primitive: "unknown" },
+			},
+			{
 				id: "syndicationHtml",
 				displayImports: [
 					{
@@ -57224,7 +57229,7 @@ export const schema = {
 					label: 'Value',
 					description: 'The source-domain value.',
 					type: EntityFieldType.Primitive,
-					valueType: "unknown",
+					valueType: "SuiEventValue",
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
 			})({
@@ -57236,6 +57241,19 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						content: {
+							dl: [
+								["$network", { field: "transactionDigest", format: "truncated" }, { field: "eventIndex", format: "number" }, "eventType"],
+								["packageId", "moduleName", "sender"],
+							],
+							body: {
+								field: "value",
+								format: "code",
+								emptyText: "No event value available.",
+							},
+						},
+					},
 					plural: { component: "SuiEventsView", },
 				},
 			}),
