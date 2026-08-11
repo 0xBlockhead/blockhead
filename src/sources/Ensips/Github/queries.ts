@@ -11,14 +11,20 @@ import { Source } from '$/sources/Source.ts'
 const binding = bindings[Source.Ensips_Github][0]
 const target = githubRepositoryTargetFromKey(binding.target.key)
 
+const assertEnsipNumber = (number: number) => {
+	if (!Number.isSafeInteger(number) || number < 1)
+		throw new Error('Ensips_Github: ENSIP number must be a positive safe integer')
+}
+
 export const getContentsUrl = () => githubContentsUrl(target)
 
-export const getProposalMarkdownUrl = ({ number }: { number: number }) => (
-	githubRawUrl({
+export const getProposalMarkdownUrl = ({ number }: { number: number }) => {
+	assertEnsipNumber(number)
+	return githubRawUrl({
 		...target,
 		path: `${target.path}/${number}.md`,
 	})
-)
+}
 
 export const getContents = () => (
 	getGithubContents({
