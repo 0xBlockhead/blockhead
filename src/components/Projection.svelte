@@ -36,7 +36,23 @@
 {:else if projection.resolution === ProjectionResolution.Blocked}
 	{#if Blocked}
 		{@render Blocked(projection.dependencies)}
+	{:else}
+		<span
+			data-text="muted"
+			data-section-state="blocked"
+		>
+			This section is waiting for required data.
+		</span>
 	{/if}
-{:else if Unsupported}
-	{@render Unsupported()}
+{:else}
+	{#if Unsupported}
+		{@render Unsupported()}
+	{:else}
+		<span
+			data-text="muted"
+			data-section-state="unsupported"
+		>
+			This section is unsupported for this entity.
+		</span>
+	{/if}
 {/if}
