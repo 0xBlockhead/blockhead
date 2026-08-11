@@ -617,7 +617,6 @@ export enum EntityType {
 	HyperliquidNetwork_Timestamp = 'HyperliquidNetwork_Timestamp',
 	HyperliquidOrder = 'HyperliquidOrder',
 	HyperliquidOrder_Timestamp = 'HyperliquidOrder_Timestamp',
-	HyperliquidOrderbook_Timestamp = 'HyperliquidOrderbook_Timestamp',
 	HyperliquidPerpMarket = 'HyperliquidPerpMarket',
 	HyperliquidPerpMarket_Timestamp = 'HyperliquidPerpMarket_Timestamp',
 	HyperliquidSpotAsset = 'HyperliquidSpotAsset',

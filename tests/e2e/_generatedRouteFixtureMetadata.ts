@@ -4453,20 +4453,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/(protocol-networks)/orderbook/[bookKey]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/orderbook/[bookKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'HyperliquidOrderbook_Timestamp.NetworkBookKeyTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/orderbook/[bookKey]/observations/[timestampMs]/[source]:HyperliquidOrderbook_Timestamp.NetworkBookKeyTimestampMsSource'],
-				probeCases: [[[0, '1', ['bookKey', 'timestampMs', 'source', 'network']]]],
-				projectionPath: [
-					'Hyperliquid',
-				],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/(protocol-networks)/package/[originalPackageId]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/package/[originalPackageId=stringSegment]',
 		mappings: [
@@ -5097,20 +5083,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/(protocol-networks)/validator/hyperliquid/[validator]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/validator/hyperliquid/[validator=stringSegment]/(hyperliquidValidator)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'HyperliquidValidator_Timestamp.ValidatorTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/validator/hyperliquid/[validator]/observations/[timestampMs]/[source]:HyperliquidValidator_Timestamp.ValidatorTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'validator', 'network']]]],
-				projectionPath: [
-					'Hyperliquid',
-				],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/(protocol-networks)/validator/polkadot/[stashAccountId]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/validator/polkadot/[stashAccountId=stringSegment]',
 		mappings: [
@@ -5634,20 +5606,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				probeCases: [[[0, '1', ['source', 'slot', 'transactionId', 'network']]]],
 				projectionPath: [
 					'Solana',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'HyperliquidTransaction_Timestamp.TransactionTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/tx/[transactionId]/observations/[timestampMs]/[source]:HyperliquidTransaction_Timestamp.TransactionTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'transactionId', 'network']]]],
-				projectionPath: [
-					'Hyperliquid',
 				],
 			},
 		],

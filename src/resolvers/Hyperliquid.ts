@@ -396,31 +396,6 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.HyperliquidPerpMarket_Timestamp,
-			resolve: {
-				PerpMarketTimestampMsSource: {
-					resolve: async ({ $perpMarket }) => {
-						assertHyperliquidMainnet($perpMarket.$network)
-						const { getMetaAndAssetCtxs } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-						const perpMarket = assertPerpMarketSnapshot(await getMetaAndAssetCtxs()).universe
-							.find((market) => market.name === $perpMarket.coin)
-						if (perpMarket == null)
-							throw new Error(`Hyperliquid_Rest: perp market not found for ${$perpMarket.coin}`)
-						return {
-							maxLeverage: perpMarket.maxLeverage,
-							...(perpMarket.onlyIsolated != null && {
-								onlyIsolated: perpMarket.onlyIsolated,
-							}),
-						}
-					},
-				}
-			},
-		})({
-			maxLeverage: (snapshot) => snapshot.maxLeverage,
-			onlyIsolated: (snapshot) => snapshot.onlyIsolated,
-		}),
-
-		defineResolver({
 			entityType: EntityType.HyperliquidSpotAsset,
 			resolve: {
 				NetworkAssetId: {
@@ -641,50 +616,6 @@ export default {
 			$leader: (snapshot) => snapshot.$leader,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
 			$$equities: (snapshot) => snapshot.$$equities,
-		}),
-
-		defineResolver({
-			entityType: EntityType.HyperliquidOrderbook_Timestamp,
-			resolve: {
-				NetworkBookKeyTimestampMsSource: {
-					resolve: async ({
-						$network,
-						bookKey,
-					}) => {
-						assertHyperliquidMainnet($network)
-						const { getL2Book } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-						const book = await getL2Book({
-							coin: bookKey,
-						})
-						assertSafeWireInteger(book.time, 'orderbook time')
-						const [
-							bids,
-							asks,
-						] = book.levels
-						return {
-							bids,
-							asks,
-							...(
-								bookKey.includes('/') || bookKey.startsWith('@') ?
-									{}
-								:
-									{
-										$perpMarket: {
-											[EntityMetaKey.Selector]: {
-												$network,
-												coin: bookKey,
-											},
-										},
-									}
-							),
-						}
-					},
-				}
-			},
-		})({
-			bids: (snapshot) => snapshot.bids,
-			asks: (snapshot) => snapshot.asks,
-			$perpMarket: (snapshot) => snapshot.$perpMarket,
 		}),
 
 		defineResolver({
@@ -1345,45 +1276,6 @@ export default {
 			},
 		})({
 			$$timestamps: (snapshot) => snapshot,
-		}),
-
-		defineResolver({
-			entityType: EntityType.HyperliquidValidator_Timestamp,
-			resolve: {
-				ValidatorTimestampMsSource: {
-					resolve: async ({ $validator }) => {
-						assertHyperliquidMainnet($validator.$network)
-						const { getValidatorSummaries } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-						const validator = (await getValidatorSummaries())
-							.find((summary) => summary.validator.toLowerCase() === $validator.validator.toLowerCase())
-						if (validator == null) throw new Error(`Hyperliquid_Rest: validator not found for ${$validator.validator}`)
-						return {
-							name: validator.name,
-							signerAddress: validator.signer,
-							$signer: {
-								[EntityMetaKey.Selector]: {
-									$network: $validator.$network,
-									address: validator.signer,
-								},
-							},
-							commission: validator.commission,
-							recentBlockCount: validator.nRecentBlocks,
-							stake: BigInt(validator.stake),
-							isActive: validator.isActive,
-							isJailed: validator.isJailed,
-						}
-					},
-				}
-			},
-		})({
-			name: (snapshot) => snapshot.name,
-			signerAddress: (snapshot) => snapshot.signerAddress,
-			$signer: (snapshot) => snapshot.$signer,
-			commission: (snapshot) => snapshot.commission,
-			recentBlockCount: (snapshot) => snapshot.recentBlockCount,
-			stake: (snapshot) => snapshot.stake,
-			isActive: (snapshot) => snapshot.isActive,
-			isJailed: (snapshot) => snapshot.isJailed,
 		}),
 
 		defineResolver({

@@ -1330,14 +1330,6 @@ const probeEntitySelectorByType = defineProbeEntitySelectors({
 		$network: hyperliquidNetwork,
 		txHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
 	},
-	[EntityType.HyperliquidTransaction_Timestamp]: {
-		$transaction: {
-			$network: hyperliquidNetwork,
-			txHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
-		},
-		timestampMs: 0,
-		source: Source.Hyperliquid,
-	},
 	[EntityType.HyperliquidAccount]: {
 		$network: hyperliquidNetwork,
 		address: '0x0000000000000000000000000000000000000000',
@@ -2302,26 +2294,6 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 		UsernameHashPrefix: {
 			username: 'vitalik.eth',
 			hashPrefix: CAST_HASH_32.slice(0, 12),
-		},
-	},
-	[EntityType.HyperliquidPerpMarket_Timestamp]: {
-		PerpMarketTimestampMsSource: {
-			$perpMarket: {
-				$network: hyperliquidNetwork,
-				coin: 'BTC',
-			},
-			timestampMs: 0,
-			source: Source.Hyperliquid,
-		},
-	},
-	[EntityType.HyperliquidValidator_Timestamp]: {
-		ValidatorTimestampMsSource: {
-			$validator: {
-				$network: hyperliquidNetwork,
-				validator: 'e2e-probe-validator',
-			},
-			timestampMs: 0,
-			source: Source.Hyperliquid,
 		},
 	},
 	[EntityType.LensAccount_Timestamp]: {

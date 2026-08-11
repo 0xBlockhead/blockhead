@@ -1342,98 +1342,37 @@ describe('Hyperliquid market catalog resolvers', () => {
 		expect(positionResolver.projections.supplyValue(snapshot)).toBe('0.0')
 	})
 
-	it('rejects a perp market snapshot without a context for every market', async () => {
-		const perpMarketTimestampResolver = hyperliquid.resolvers.find((resolver) => (
+	it('retains current observation selectors without arbitrary timestamp resolution', () => {
+		expect(hyperliquid.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.HyperliquidPerpMarket_Timestamp
-		))
-		expect(perpMarketTimestampResolver).toBeTruthy()
-
-		corsFetch.mockResolvedValue({
-			ok: true,
-			json: async () => [{
-				universe: [{
-					name: 'ETH',
-					szDecimals: 4,
-					maxLeverage: 25,
-				}],
-			}, []],
-		})
-
-		await expect(perpMarketTimestampResolver.resolve[
-			'PerpMarketTimestampMsSource'
-		].resolve({
-			$perpMarket: {
-				$network: account.$network,
-				coin: 'ETH',
-			},
-			timestampMs: 1_700_000_000_000,
-			source: Source.Hyperliquid,
-		}, context)).rejects.toThrow('perp universe and asset context count differ')
+		))).toBeUndefined()
+		expect(hyperliquid.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.HyperliquidValidator_Timestamp
+		))).toBeUndefined()
 	})
 
-	it('maps L2 book and candle snapshots onto market observation fields', async () => {
-		const orderbookResolver = hyperliquid.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.HyperliquidOrderbook_Timestamp
-		))
+	it('maps candle snapshots onto market observation fields', async () => {
 		const candleResolver = hyperliquid.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.HyperliquidMarket_TimeInterval_Timestamp
 		))
-		expect(orderbookResolver).toBeTruthy()
 		expect(candleResolver).toBeTruthy()
 
-		corsFetch.mockImplementation(async (_url, options) => {
-			const body = JSON.parse(options.init.body)
+		corsFetch.mockImplementation(async () => {
 			return {
 				ok: true,
-				json: async () => (
-					body.type === 'l2Book' ?
-						{
-							coin: 'ETH',
-							time: 1_700_000_000_000,
-							levels: [
-								[{
-									px: '2000',
-									sz: '1',
-									n: 1,
-								}],
-								[{
-									px: '2001',
-									sz: '2',
-									n: 1,
-								}],
-							],
-						}
-					:
-						[{
-							t: 1_700_000_000_000,
-							T: 1_700_003_599_999,
-							s: 'ETH',
-							i: '1h',
-							o: '2000.0',
-							c: '2010.5',
-							h: '2011.0',
-							l: '1999.0',
-							v: '12.5',
-							n: 9,
-						}]
-				),
+				json: async () => [{
+					t: 1_700_000_000_000,
+					T: 1_700_003_599_999,
+					s: 'ETH',
+					i: '1h',
+					o: '2000.0',
+					c: '2010.5',
+					h: '2011.0',
+					l: '1999.0',
+					v: '12.5',
+					n: 9,
+				}],
 			}
-		})
-
-		const book = await orderbookResolver.resolve.NetworkBookKeyTimestampMsSource.resolve({
-			$network: account.$network,
-			bookKey: 'ETH',
-			timestampMs: 1_700_000_000_000,
-			source: Source.Hyperliquid,
-		}, context)
-		expect(orderbookResolver.projections.bids(book)).toEqual([{
-			px: '2000',
-			sz: '1',
-			n: 1,
-		}])
-		expect(orderbookResolver.projections.$perpMarket(book)?.[EntityMetaKey.Selector]).toEqual({
-			$network: account.$network,
-			coin: 'ETH',
 		})
 
 		const candle = await candleResolver.resolve.NetworkMarketKeyTimeIntervalTimestampMs.resolve({

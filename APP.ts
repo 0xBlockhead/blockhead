@@ -1314,7 +1314,6 @@ export enum EntityType {
 	HyperliquidNetwork_Timestamp = "HyperliquidNetwork_Timestamp",
 	HyperliquidOrder = "HyperliquidOrder",
 	HyperliquidOrder_Timestamp = "HyperliquidOrder_Timestamp",
-	HyperliquidOrderbook_Timestamp = "HyperliquidOrderbook_Timestamp",
 	HyperliquidPerpMarket = "HyperliquidPerpMarket",
 	HyperliquidPerpMarket_Timestamp = "HyperliquidPerpMarket_Timestamp",
 	HyperliquidSpotAsset = "HyperliquidSpotAsset",
@@ -38323,95 +38322,6 @@ export const schema = {
 				},
 				views: {
 					plural: { component: "HyperliquidOrder_TimestampsView" },
-				},
-			}),
-
-			entity({
-				entityType: EntityType.HyperliquidOrderbook_Timestamp,
-				labels: {
-					singular: "hyperliquid orderbook timestamp",
-					plural: "hyperliquid orderbook observations",
-				},
-			})({
-				"$network": {
-					label: "network",
-					type: EntityFieldType.EntityReference,
-					entityType: EntityType.Network,
-					cardinality: EntityFieldCardinality.One,
-				},
-				"bookKey": {
-					label: "book key",
-					type: EntityFieldType.Primitive,
-					valueType: "string",
-					cardinality: EntityFieldCardinality.One,
-				},
-				"timestampMs": {
-					label: "Timestamp",
-					description: "The observation time in Unix milliseconds.",
-					type: EntityFieldType.Primitive,
-					valueType: "NonNegativeInteger",
-					cardinality: EntityFieldCardinality.One,
-				},
-				"source": {
-					label: "Source",
-					description: "The source that produced this observation.",
-					type: EntityFieldType.Primitive,
-					valueType: "string",
-					cardinality: EntityFieldCardinality.One,
-				},
-				"$perpMarket": {
-					label: "perp market",
-					type: EntityFieldType.EntityReference,
-					entityType: EntityType.HyperliquidPerpMarket,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"$spotPair": {
-					label: "spot pair",
-					type: EntityFieldType.EntityReference,
-					entityType: EntityType.HyperliquidSpotPair,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"bids": {
-					label: "bids",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "unknown" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"asks": {
-					label: "asks",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "unknown" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"nSigFigs": {
-					label: "n sig figs",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "number" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"mantissa": {
-					label: "mantissa",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "number" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-				"depthLimit": {
-					label: "depth limit",
-					type: EntityFieldType.Primitive,
-					primitiveType: { primitive: "number" },
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-				},
-			})({
-				selectors: {
-					"NetworkBookKeyTimestampMsSource": [
-						"$network",
-						"bookKey",
-						"timestampMs",
-						"source",
-					],
-				},
-				views: {
-					plural: { component: "HyperliquidOrderbook_TimestampsView" },
 				},
 			}),
 
@@ -77225,11 +77135,11 @@ export const routes = defineRoutes(schema)({
 																							"TransactionTimestampMsSource": {
 																								when: { path: ["namespace"], is: "Hyperliquid" },
 																								projection: { entityType: EntityType.Network, facetPath: ["Hyperliquid"] },
-																								derivations: {
-																									"timestampMs": { kind: "param", name: "timestampMs" },
-																									"source": { kind: "param", name: "source" },
-																								},
-																								page: {},
+														derivations: {
+															"timestampMs": { kind: "param", name: "timestampMs" },
+															"source": { kind: "param", name: "source" },
+														},
+														page: false,
 																							},
 																						},
 																					},
@@ -80840,13 +80750,14 @@ export const routes = defineRoutes(schema)({
 																		"[source]": {
 																			params: { "source": ["string"] },
 																			selectors: {
-																				[EntityType.HyperliquidPerpMarket_Timestamp]: {
-																					"PerpMarketTimestampMsSource": {
-																						derivations: {
-																							"timestampMs": { kind: "param", name: "timestampMs" },
-																							"source": { kind: "param", name: "source" },
-																						},
-																					},
+																			[EntityType.HyperliquidPerpMarket_Timestamp]: {
+																"PerpMarketTimestampMsSource": {
+																	derivations: {
+																		"timestampMs": { kind: "param", name: "timestampMs" },
+																		"source": { kind: "param", name: "source" },
+																	},
+																	page: false,
+																},
 																				},
 																			},
 																		},
@@ -82861,34 +82772,6 @@ export const routes = defineRoutes(schema)({
 														}
 													}
 												},
-												"orderbook": {
-													children: {
-														"[bookKey]": {
-															children: {
-																"observations": {
-																	children: {
-																		"[timestampMs]": {
-																			children: {
-																				"[source]": {
-																					selectors: {
-																						[EntityType.HyperliquidOrderbook_Timestamp]: {
-																							"NetworkBookKeyTimestampMsSource": {
-																								when: { path: ["namespace"], is: "Hyperliquid" },
-																								projection: { entityType: EntityType.Network, facetPath: ["Hyperliquid"] },
-																								params: { "bookKey": ["bookKey"], "timestampMs": ["timestampMs"], "source": ["source"] },
-																								page: {},
-																							}
-																						}
-																					}
-																				}
-																			}
-																		}
-																	}
-																}
-															}
-														}
-													}
-												},
 												"spot-asset": {
 													children: {
 														"[assetId]": {
@@ -82965,10 +82848,10 @@ export const routes = defineRoutes(schema)({
 																					children: {
 																						"[source]": {
 																							selectors: {
-																								[EntityType.HyperliquidValidator_Timestamp]: {
-																									"ValidatorTimestampMsSource": {
-																										params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																										page: {},
+																			[EntityType.HyperliquidValidator_Timestamp]: {
+																"ValidatorTimestampMsSource": {
+																	params: { "timestampMs": ["timestampMs"], "source": ["source"] },
+																	page: false,
 																										when: { path: ["namespace"], is: "Hyperliquid" },
 																										projection: { entityType: EntityType.Network, facetPath: ["Hyperliquid"] },
 																									}

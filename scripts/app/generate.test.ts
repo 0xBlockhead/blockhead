@@ -6054,6 +6054,34 @@ test('retains EVM observation selector coverage without shared arbitrary-timesta
 	assert.equal(baselineCompiledApp.generatedFiles.some(({ path }) => path.includes('/(network)/mempool/+page.ts')), false)
 })
 
+test('retracts stale Hyperliquid orderbook and arbitrary timestamp page surfaces', () => {
+	assert.doesNotMatch(JSON.stringify(app.schema), /HyperliquidOrderbook_Timestamp/)
+
+	for (const pathFragment of [
+		'/orderbook/[bookKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/',
+		'/perp-market/[coin=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/',
+		'/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/',
+		'/validator/hyperliquid/[validator=stringSegment]/(hyperliquidValidator)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/',
+	])
+		assert.equal(baselineCompiledApp.generatedFiles.some(({ path }) => path.includes(pathFragment)), false, pathFragment)
+
+	for (const path of [
+		'src/views/HyperliquidOrderbook_TimestampView.svelte',
+		'src/views/HyperliquidOrderbook_TimestampsView.svelte',
+		'src/views/HyperliquidTransaction_TimestampsView.svelte',
+		'src/views/HyperliquidValidator_TimestampsView.svelte',
+	])
+		assert.equal(baselineCompiledApp.generatedFiles.some((file) => file.path === path), false, path)
+
+	assert.doesNotMatch(generatedSource('src/schema/EntityType.ts'), /HyperliquidOrderbook_Timestamp/)
+	const routeFixtures = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'tests/e2e/_generatedRouteFixtureMetadata.ts')
+	assert.ok(routeFixtures)
+	assert.doesNotMatch(
+		renderGeneratedFile(routeFixtures),
+		/Hyperliquid(?:Orderbook|PerpMarket|Transaction|Validator)_Timestamp\.(?:NetworkBookKeyTimestampMsSource|PerpMarketTimestampMsSource|TransactionTimestampMsSource|ValidatorTimestampMsSource)/
+	)
+})
+
 test('retains only rendered detail layout facts', () => {
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 	const detailPlanSource = generatorSource.slice(

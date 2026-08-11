@@ -7,18 +7,17 @@ import {
 } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getBlockNumber = vi.hoisted(() => vi.fn())
 const getTransactionByHash = vi.hoisted(() => vi.fn())
-const getTransactionReceipt = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Hyperliquid/JsonRpc/queries.ts', () => ({
 	getBlockByNumber,
 	getBlockNumber,
 	getTransactionByHash,
-	getTransactionReceipt,
 }))
 
 const { hyperliquidEvmResolvers } = await import('$/resolvers/HyperliquidEvm.ts')
@@ -26,8 +25,7 @@ const { hyperliquidEvmResolvers } = await import('$/resolvers/HyperliquidEvm.ts'
 const [
 	blockResolver,
 	transactionResolver,
-,
-	transactionTimestampResolver,
+	transactionTimestampsResolver,
 ] = hyperliquidEvmResolvers
 const network = {
 	slug: 'hyperliquid',
@@ -66,23 +64,9 @@ describe('Hyperliquid EVM resolvers', () => {
 		getBlockByNumber.mockReset()
 		getBlockNumber.mockReset()
 		getTransactionByHash.mockReset()
-		getTransactionReceipt.mockReset()
 		getBlockByNumber.mockResolvedValue(block)
 		getBlockNumber.mockResolvedValue('0x10')
 		getTransactionByHash.mockResolvedValue(transaction)
-		getTransactionReceipt.mockResolvedValue({
-			transactionHash: transactionHash.toUpperCase(),
-			transactionIndex: '0x0',
-			blockHash,
-			blockNumber: '0x10',
-			from: accountAddress,
-			gasUsed: '0x0',
-			cumulativeGasUsed: '0x0',
-			effectiveGasPrice: '0x0',
-			logs: [],
-			logsBloom: '0x',
-			status: '0x1',
-		})
 	})
 
 	it('normalizes block transaction identities only after verifying their block', async () => {
@@ -120,27 +104,24 @@ describe('Hyperliquid EVM resolvers', () => {
 		})).rejects.toThrow('transaction hash does not match request')
 	})
 
-	it('rejects a receipt for another transaction before projecting status', async () => {
-		getTransactionReceipt.mockResolvedValueOnce({
-			transactionHash: `0x${'f'.repeat(64)}`,
-			transactionIndex: '0x0',
-			blockHash,
-			blockNumber: '0x10',
-			from: accountAddress,
-			gasUsed: '0x0',
-			cumulativeGasUsed: '0x0',
-			effectiveGasPrice: '0x0',
-			logs: [],
-			logsBloom: '0x',
-		})
+	it('materializes an observed-at transaction selector without arbitrary timestamp resolution', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
 
-		await expect(transactionTimestampResolver.resolve.TransactionTimestampMsSource.resolve({
-			$transaction: {
-				$network: network,
-				txHash: transactionHash,
+		await expect(transactionTimestampsResolver.resolve.NetworkTxHash.resolve({
+			$network: network,
+			txHash: transactionHash,
+		})).resolves.toEqual([{
+			[EntityMetaKey.Selector]: {
+				$transaction: {
+					$network: network,
+					txHash: transactionHash,
+				},
+				timestampMs: 1_700_000_000_000,
+				source: Source.Hyperliquid,
 			},
-			timestampMs: Date.now(),
-			source: Source.Hyperliquid,
-		})).rejects.toThrow('receipt hash does not match transaction')
+		}])
+		expect(hyperliquidEvmResolvers.find((resolver) => (
+			resolver.entityType === EntityType.HyperliquidTransaction_Timestamp
+		))).toBeUndefined()
 	})
 })

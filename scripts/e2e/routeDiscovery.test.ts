@@ -26,16 +26,30 @@ test('route probe atom values exactly cover every generated atom', () => {
 	)
 })
 
-test('excludes the unsupported Hyperliquid account observation page from route discovery', () => {
+test('excludes unsupported Hyperliquid observation pages from route discovery', () => {
 	const mappingIds = Object.values(e2eRouteFixtureMetadataByNodeId).flatMap(({ mappings }) => (
 		mappings.map(({ id }) => id)
 	))
 
-	assert.equal(mappingIds.includes('HyperliquidAccount_Timestamp.AccountTimestampMsSource'), false)
-	assert.equal(mappingIds.includes('HyperliquidAccount_Timestamp.AccountInfoTypeTimestampMsSource'), false)
+	for (const mappingId of [
+		'HyperliquidAccount_Timestamp.AccountTimestampMsSource',
+		'HyperliquidAccount_Timestamp.AccountInfoTypeTimestampMsSource',
+		'HyperliquidOrderbook_Timestamp.NetworkBookKeyTimestampMsSource',
+		'HyperliquidPerpMarket_Timestamp.PerpMarketTimestampMsSource',
+		'HyperliquidTransaction_Timestamp.TransactionTimestampMsSource',
+		'HyperliquidValidator_Timestamp.ValidatorTimestampMsSource',
+	])
+		assert.equal(mappingIds.includes(mappingId), false)
+
 	assert.equal(mappingIds.includes('NearAccount_Timestamp.AccountTimestampMsSource'), true)
 	assert.equal(Object.keys(e2eRouteProbeAtomValueById).some((atom) => (
-		atom.includes(':HyperliquidAccount_Timestamp.')
+		[
+			'HyperliquidAccount_Timestamp',
+			'HyperliquidOrderbook_Timestamp',
+			'HyperliquidPerpMarket_Timestamp',
+			'HyperliquidTransaction_Timestamp',
+			'HyperliquidValidator_Timestamp',
+		].some((entityType) => atom.includes(`:${entityType}.`))
 	)), false)
 })
 

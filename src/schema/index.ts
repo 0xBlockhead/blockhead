@@ -617,7 +617,6 @@ import HyperliquidNetwork_TimestampSchema from '$/schema/HyperliquidNetwork_Time
 import HyperliquidNetworkSchema from '$/schema/HyperliquidNetwork.ts'
 import HyperliquidOrder_TimestampSchema from '$/schema/HyperliquidOrder_Timestamp.ts'
 import HyperliquidOrderSchema from '$/schema/HyperliquidOrder.ts'
-import HyperliquidOrderbook_TimestampSchema from '$/schema/HyperliquidOrderbook_Timestamp.ts'
 import HyperliquidPerpMarket_TimestampSchema from '$/schema/HyperliquidPerpMarket_Timestamp.ts'
 import HyperliquidPerpMarketSchema from '$/schema/HyperliquidPerpMarket.ts'
 import HyperliquidSpotAssetSchema from '$/schema/HyperliquidSpotAsset.ts'
@@ -1709,7 +1708,6 @@ const schemaChunk12 = [
 	HyperliquidNetwork_TimestampSchema,
 	HyperliquidOrderSchema,
 	HyperliquidOrder_TimestampSchema,
-	HyperliquidOrderbook_TimestampSchema,
 	HyperliquidPerpMarketSchema,
 	HyperliquidPerpMarket_TimestampSchema,
 	HyperliquidSpotAssetSchema,
@@ -1743,10 +1741,10 @@ const schemaChunk12 = [
 	IcpNetworkSchema,
 	IcpNetwork_TimestampSchema,
 	IcpRequestStatusSchema,
+	IcpRequestStatus_TimestampSchema,
 ] as const
 
 const schemaChunk13 = [
-	IcpRequestStatus_TimestampSchema,
 	IcpSubnetSchema,
 	IcpSubnet_TimestampSchema,
 	IcpSubnetCanisterRange_TimestampSchema,
@@ -1796,10 +1794,10 @@ const schemaChunk13 = [
 	MarketSchema,
 	Market_Derivative_TimestampSchema,
 	Market_TimeInterval_TimestampSchema,
+	Market_TimestampSchema,
 ] as const
 
 const schemaChunk14 = [
-	Market_TimestampSchema,
 	MarketAssetSchema,
 	MarketPriceSchema,
 	MarketVenueSchema,
@@ -1849,10 +1847,10 @@ const schemaChunk14 = [
 	NearContractStorageEntrySchema,
 	NearExecutionOutcomeSchema,
 	NearNetworkSchema,
+	NearNetwork_TimestampSchema,
 ] as const
 
 const schemaChunk15 = [
-	NearNetwork_TimestampSchema,
 	NearReceiptSchema,
 	NearTransactionSchema,
 	NearValidatorSchema,
@@ -1902,10 +1900,10 @@ const schemaChunk15 = [
 	PolkadotPalletSchema,
 	PolkadotReferendumSchema,
 	PolkadotReferendum_TimestampSchema,
+	PolkadotValidatorSchema,
 ] as const
 
 const schemaChunk16 = [
-	PolkadotValidatorSchema,
 	PolkadotValidator_EraSchema,
 	PythPriceFeedSchema,
 	PythPriceFeed_TimestampSchema,
@@ -1955,10 +1953,10 @@ const schemaChunk16 = [
 	SolanaTransaction_TimestampSchema,
 	SolanaValidatorSchema,
 	SolanaValidator_TimestampSchema,
+	SorobanContractSchema,
 ] as const
 
 const schemaChunk17 = [
-	SorobanContractSchema,
 	SorobanContract_TimestampSchema,
 	SorobanContractStorageEntrySchema,
 	SorobanContractStorageEntry_TimestampSchema,
@@ -2008,10 +2006,10 @@ const schemaChunk17 = [
 	SuiDynamicFieldEdgeSchema,
 	SuiDynamicFieldEdge_TimestampSchema,
 	SuiEventSchema,
+	SuiNetworkSchema,
 ] as const
 
 const schemaChunk18 = [
-	SuiNetworkSchema,
 	SuiNetwork_TimestampSchema,
 	SuiObjectSchema,
 	SuiObjectChangeSchema,
@@ -2061,10 +2059,10 @@ const schemaChunk18 = [
 	TonAccountSchema,
 	TonAccount_TimestampSchema,
 	TonBlockSchema,
+	TonContractSchema,
 ] as const
 
 const schemaChunk19 = [
-	TonContractSchema,
 	TonContract_TimestampSchema,
 	TonContractGetMethodSchema,
 	TonContractGetMethod_TimestampSchema,
@@ -2114,10 +2112,10 @@ const schemaChunk19 = [
 	UtxoAddressSchema,
 	UtxoAddress_TimestampSchema,
 	UtxoBlockSchema,
+	UtxoInputSchema,
 ] as const
 
 const schemaChunk20 = [
-	UtxoInputSchema,
 	UtxoOutputSchema,
 	UtxoTransactionSchema,
 	WalletConnectionMethodSchema,
@@ -2167,10 +2165,10 @@ const schemaChunk20 = [
 	ZeroGServiceProviderSchema,
 	ZeroGServiceRequestSchema,
 	ZeroGSettlementTraceSchema,
+	ZeroGStorageLogEntrySchema,
 ] as const
 
 const schemaChunk21 = [
-	ZeroGStorageLogEntrySchema,
 	ZeroGStorageNodeSchema,
 	ZeroGStorageNode_TimestampSchema,
 	ZeroGStorageProofSchema,

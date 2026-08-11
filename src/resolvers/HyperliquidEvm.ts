@@ -229,32 +229,6 @@ export const hyperliquidEvmResolvers = [
 		$$timestamps: (snapshot) => snapshot,
 	}),
 	defineResolver({
-		entityType: EntityType.HyperliquidTransaction_Timestamp,
-		resolve: {
-			TransactionTimestampMsSource: {
-				resolve: async ({ $transaction }) => {
-					assertHyperliquidMainnet($transaction.$network)
-					const { getTransactionReceipt } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-					const receipt = await getTransactionReceipt({ txHash: $transaction.txHash })
-					if (receipt == null)
-						throw new Error(`Hyperliquid_JsonRpc: receipt not found for ${$transaction.txHash}`)
-					if (hexLowerOfByteSize(receipt.transactionHash, 32) !== $transaction.txHash)
-						throw new Error('Hyperliquid_JsonRpc: receipt hash does not match transaction')
-
-					return {
-						...(receipt.status != null && {
-							status: receipt.status === '0x1' ? 'success' : 'failed',
-						}),
-						blockNumber: hexToBigInt(receipt.blockNumber, 'receipt block number'),
-					}
-				},
-			},
-		},
-	})({
-		status: (snapshot) => snapshot.status,
-		blockNumber: (snapshot) => snapshot.blockNumber,
-	}),
-	defineResolver({
 		entityType: EntityType.HyperliquidNetwork,
 		resolve: {
 			Network: {
