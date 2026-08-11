@@ -17,6 +17,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 }))
 
 const {
+	getAccount,
 	getBlockchainAccountTransaction,
 	getBlockchainAccountTransactions,
 	getBlockchainRawAccount,
@@ -293,5 +294,44 @@ describe('TonAPI blockchain raw account transport leftovers', () => {
 			},
 		})
 		await expect(getBlockchainRawAccount(accountId)).rejects.toThrow()
+	})
+
+	it('rejects malformed account identity and unsafe account clocks before resolver projection', async () => {
+		getJson
+			.mockResolvedValueOnce({
+				address: '0:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+				balance: '1',
+				last_activity: 1,
+				status: 'active',
+				interfaces: [],
+				get_methods: [],
+				is_wallet: false,
+			})
+			.mockResolvedValueOnce({
+				address: accountId,
+				balance: '1',
+				last_activity: Number.MAX_SAFE_INTEGER,
+				status: 'active',
+				interfaces: [],
+				get_methods: [],
+				is_wallet: false,
+			})
+			.mockResolvedValueOnce({
+				address: accountId,
+				balance: 1,
+				status: 'active',
+				last_transaction_lt: 2,
+				storage: {
+					used_cells: Number.MAX_SAFE_INTEGER + 1,
+					used_bits: 0,
+					used_public_cells: 0,
+					last_paid: 0,
+					due_payment: 0,
+				},
+			})
+
+		await expect(getAccount(accountId)).rejects.toThrow('account response identity mismatch')
+		await expect(getAccount(accountId)).rejects.toThrow('activity clock exceeds safe millisecond bounds')
+		await expect(getBlockchainRawAccount(accountId)).rejects.toThrow('raw account numeric field exceeds lossless JSON bounds')
 	})
 })

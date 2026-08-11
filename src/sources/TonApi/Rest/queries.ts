@@ -25,17 +25,22 @@ const getTonApiRestJson = <_Json>(
 
 export const getAccount = (
 	accountId: string
-) => (
-	getTonApiRestJson<unknown>(
+) => {
+	const canonicalAccountId = rawTonAddressCoordinates(accountId)
+	return getTonApiRestJson<unknown>(
 		`/v2/accounts/${encodeURIComponent(accountId)}`
 	).then((wire) => {
 		const account = TonApiAccount.assert(wire)
 		if (!/^(?:0|[1-9]\d*)$/.test(account.balance))
 			throw new Error('TonApi_Rest: account balance is not a non-negative decimal integer')
+		if (rawTonAddressCoordinates(account.address) !== canonicalAccountId)
+			throw new Error('TonApi_Rest: account response identity mismatch')
+		if (!Number.isSafeInteger(account.last_activity * 1_000))
+			throw new Error('TonApi_Rest: account activity clock exceeds safe millisecond bounds')
 
 		return account
 	})
-)
+}
 
 export const getBlockchainMasterchainHead = () => (
 	getTonApiRestJson<unknown>(
@@ -62,6 +67,11 @@ export const getBlockchainRawAccount = (
 		if (
 			!Number.isSafeInteger(account.balance)
 			|| !Number.isSafeInteger(account.last_transaction_lt)
+			|| !Number.isSafeInteger(account.storage.used_cells)
+			|| !Number.isSafeInteger(account.storage.used_bits)
+			|| !Number.isSafeInteger(account.storage.used_public_cells)
+			|| !Number.isSafeInteger(account.storage.last_paid)
+			|| !Number.isSafeInteger(account.storage.due_payment)
 		)
 			throw new Error('TonApi_Rest: raw account numeric field exceeds lossless JSON bounds')
 		if (
