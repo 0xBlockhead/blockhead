@@ -243,6 +243,12 @@ const loadAcrossDeposit = async (
 const acrossPaginationSkip = (
 	context: ResolverContext
 ) => {
+	if (
+		context.providerContinuationToken != null
+		&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+	)
+		throw new Error('Across_Rest: invalid pagination offset')
+
 	const skip = context.providerContinuationToken == null ?
 		context.pagination.offset ?? 0
 	:

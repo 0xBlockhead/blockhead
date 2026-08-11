@@ -385,6 +385,24 @@ describe('Across BridgeTransfer resolvers', () => {
 		})
 	})
 
+	it('rejects non-canonical depositor continuation tokens before transport', async () => {
+		const resolver = across.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmAccount
+		))
+		if (resolver == null)
+			throw new Error('Across_Rest: EvmAccount resolver missing')
+
+		await expect(resolver.resolve.Address.resolve({
+			address: depositor,
+		}, {
+			pagination: {
+				limit: 50,
+			},
+			providerContinuationToken: '1e2',
+		})).rejects.toThrow('invalid pagination offset')
+		expect(getDeposits).not.toHaveBeenCalled()
+	})
+
 	it('preserves an empty depositor-scoped list without inventing transfers', async () => {
 		getDeposits.mockResolvedValue([])
 		const resolver = across.resolvers.find((candidate) => (
