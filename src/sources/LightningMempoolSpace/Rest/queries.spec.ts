@@ -24,6 +24,7 @@ import {
 	getLightningNode,
 	getLightningNodeChannels,
 	getLightningStatistics,
+	searchLightning,
 } from '$/sources/LightningMempoolSpace/Rest/queries.ts'
 import lightningMempoolSpaceResolvers from '$/resolvers/LightningMempoolSpace-Rest.ts'
 
@@ -340,5 +341,12 @@ describe('mempool.space public Lightning graph queries', () => {
 			},
 		})
 		await expect(getLightningStatistics()).rejects.toThrow('invalid average fee rate')
+	})
+
+	it('rejects an empty Lightning search before transport', () => {
+		expect(() => searchLightning({
+			searchText: '',
+		})).toThrow('search text is empty')
+		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 })

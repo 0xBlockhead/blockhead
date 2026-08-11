@@ -201,6 +201,8 @@ export const searchLightning = ({
 }: {
 	searchText: string
 }) => {
+	if (searchText.length === 0)
+		throw new Error('LightningMempoolSpace_Rest: search text is empty')
 	return getLightningMempoolSpaceRestJson<MempoolSpaceLightningSearchResult>(
 		binding,
 		`/api/v1/lightning/search?searchText=${encodeURIComponent(searchText)}`
