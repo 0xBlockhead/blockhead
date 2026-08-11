@@ -185,6 +185,45 @@ it('rejects a keyset endpoint response that substitutes the requested identity',
 	)
 })
 
+it('rejects mint and melt quote responses that substitute the requested identity', async () => {
+	sourceFetch
+		.mockResolvedValueOnce(jsonResponse({
+			quote: 'other-mint-quote',
+			request: 'lnbc-mint-invoice',
+			amount: 1,
+			unit: 'sat',
+			method: 'bolt11',
+			amount_paid: 0,
+			amount_issued: 0,
+			updated_at: 1,
+			state: 'UNPAID',
+			expiry: 2,
+		}))
+		.mockResolvedValueOnce(jsonResponse({
+			quote: 'other-melt-quote',
+			request: 'lnbc-melt-invoice',
+			amount: 1,
+			unit: 'sat',
+			method: 'bolt11',
+			fee_reserve: 0,
+			state: 'UNPAID',
+			expiry: 2,
+		}))
+
+	await expect(getMintQuoteBolt11(
+		'https://first.mint',
+		'requested-mint-quote'
+	)).rejects.toThrow(
+		'CashuMint_Rest: mint quote response does not match requested quote requested-mint-quote'
+	)
+	await expect(getMeltQuoteBolt11(
+		'https://first.mint',
+		'requested-melt-quote'
+	)).rejects.toThrow(
+		'CashuMint_Rest: melt quote response does not match requested quote requested-melt-quote'
+	)
+})
+
 it('strips undeclared mint info keys at the read boundary', async () => {
 	sourceFetch.mockResolvedValueOnce(jsonResponse({
 		name: 'Mint',
@@ -221,7 +260,7 @@ it('owns the exact BOLT11, swap, state, and restore request surfaces', async () 
 		C_: 'blind-signature',
 	}
 	const mintQuote = {
-		quote: 'mint-quote',
+		quote: 'mint/quote',
 		request: 'lnbc-mint-invoice',
 		amount: 1,
 		unit: 'sat',
@@ -233,7 +272,7 @@ it('owns the exact BOLT11, swap, state, and restore request surfaces', async () 
 		expiry: 1_700_000_100,
 	}
 	const meltQuote = {
-		quote: 'melt-quote',
+		quote: 'melt/quote',
 		request: 'lnbc-melt-invoice',
 		amount: 1,
 		unit: 'sat',

@@ -253,8 +253,8 @@ export const getMintQuoteBolt11 = async (
 	mintUrl: string,
 	quoteId: string,
 	{ signal }: CashuMintRequestOptions = {}
-): Promise<CashuMintQuoteBolt11Wire> => (
-	assertEnvelope(
+): Promise<CashuMintQuoteBolt11Wire> => {
+	const quote = assertEnvelope(
 		mintUrl,
 		'mint quote',
 		cashuMintQuoteBolt11Wire,
@@ -264,7 +264,11 @@ export const getMintQuoteBolt11 = async (
 			{ signal }
 		)
 	)
-)
+	if (quote.quote !== quoteId)
+		throw new Error(`CashuMint_Rest: mint quote response does not match requested quote ${quoteId}`)
+
+	return quote
+}
 
 export const mintBolt11 = async (
 	mintUrl: string,
@@ -324,8 +328,8 @@ export const getMeltQuoteBolt11 = async (
 	mintUrl: string,
 	quoteId: string,
 	{ signal }: CashuMintRequestOptions = {}
-): Promise<CashuMeltQuoteBolt11Wire> => (
-	assertEnvelope(
+): Promise<CashuMeltQuoteBolt11Wire> => {
+	const quote = assertEnvelope(
 		mintUrl,
 		'melt quote',
 		cashuMeltQuoteBolt11Wire,
@@ -335,7 +339,11 @@ export const getMeltQuoteBolt11 = async (
 			{ signal }
 		)
 	)
-)
+	if (quote.quote !== quoteId)
+		throw new Error(`CashuMint_Rest: melt quote response does not match requested quote ${quoteId}`)
+
+	return quote
+}
 
 export const meltBolt11 = async (
 	mintUrl: string,
