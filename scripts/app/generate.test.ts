@@ -6031,6 +6031,29 @@ test('compiles each collection reference path once into its canonical route mapp
 	assert.doesNotMatch(generatorSource, /collectionMappings: collectionMappings\.map|const collections = node\.collectionMappings\.map/)
 })
 
+test('retains EVM observation selector coverage without shared arbitrary-timestamp dispatch', () => {
+	const observations = app.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.children?.observations
+	const evmObservation = observations?.children?.['[timestampMs]']?.children?.['[source]']?.selectors?.[EntityType.EvmNetwork_Timestamp]?.NetworkTimestampMsSource
+	const mempool = app.routes.children['(explore)']?.children?.['(networks)']?.children?.network?.children?.['[network]']?.children?.mempool
+	const evmTxpoolObservation = mempool?.children?.['[timestampMs]']?.children?.['[source]']?.selectors?.[EntityType.EvmNetwork_Txpool_Timestamp]?.NetworkTimestampMsSource
+
+	assert.equal(evmObservation?.page, false)
+	assert.equal(evmTxpoolObservation?.page, false)
+
+	const sharedObservationRoute = 'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]'
+	const sharedObservationModule = baselineCompiledApp.generatedFiles.find(({ path }) => path === `${sharedObservationRoute}/+page.ts`)
+	const sharedObservationPage = baselineCompiledApp.generatedFiles.find(({ path }) => path === `${sharedObservationRoute}/+page.svelte`)
+	const routeFixtures = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'tests/e2e/_generatedRouteFixtureMetadata.ts')
+
+	assert.ok(sharedObservationModule)
+	assert.ok(sharedObservationPage)
+	assert.ok(routeFixtures)
+	assert.doesNotMatch(renderGeneratedFile(sharedObservationModule), /EvmNetwork_Timestamp/)
+	assert.doesNotMatch(renderGeneratedFile(sharedObservationPage), /EvmNetwork_Timestamp/)
+	assert.doesNotMatch(renderGeneratedFile(routeFixtures), /EvmNetwork_Timestamp\.NetworkTimestampMsSource/)
+	assert.equal(baselineCompiledApp.generatedFiles.some(({ path }) => path.includes('/(network)/mempool/+page.ts')), false)
+})
+
 test('retains only rendered detail layout facts', () => {
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 	const detailPlanSource = generatorSource.slice(

@@ -179,7 +179,7 @@ type SelectorRouteMapping = {
 	}
 	when?: _AppFacetCondition
 	projectionRouteParam?: string
-	page?: NonNullable<NonNullable<App['routes']['children'][string]['selectors']>[string]>[string]['page']
+	page?: false | NonNullable<NonNullable<App['routes']['children'][string]['selectors']>[string]>[string]['page']
 }
 type RouteNode = {
 	internalPath: string
@@ -3699,6 +3699,8 @@ const compileRouteTree = (
 			}
 		})
 		const ownDetailEntityTypes = unique(selectorMappings.flatMap((mapping) => (
+			mapping.page !== false
+			&&
 			mapping.fields.length > 0
 			&& (
 				mapping.page != null
@@ -3915,13 +3917,14 @@ const viewConditionFromFacetCondition = (
 const selectorMappingOwnsDetailPage = (
 	node: RouteNode,
 	mapping: SelectorRouteMapping
-) => node.selectorVariant === mapping || (
+
+) => mapping.page !== false && (node.selectorVariant === mapping || (
 	mapping.fields.length > 0
 	&& (
 		mapping.page != null
 		|| mapping.entityType === node.page?.view?.entity
 	)
-)
+))
 
 const literalFieldConditions = (fields: readonly {
 	name: string
@@ -4358,11 +4361,12 @@ const compilePhysicalRouteFiles = (
 	}])), ({ key }) => key)
 	const compileNodes = (routeNodes: readonly RouteNode[]): CompiledPhysicalRouteFileFacts[] => routeNodes.flatMap((node) => {
 		const renderMappings = routeNodeSelectorMappings(node)
-		const [firstMapping, ...remainingMappings] = renderMappings
+		const pageMappings = renderMappings.filter((mapping) => mapping.page !== false)
+		const [firstMapping, ...remainingMappings] = pageMappings
 		const moduleMappings = firstMapping == null ? undefined : [firstMapping, ...remainingMappings] as const
 		const routeDirectory = node.svelteKitPath === '' ? 'src/routes' : `src/routes/${node.svelteKitPath.replace(/^\//, '')}`
 		const publicHref = publicRouteId(node.svelteKitPath)
-		const projectedMappings = renderMappings.filter((mapping) => mapping.projection != null)
+		const projectedMappings = pageMappings.filter((mapping) => mapping.projection != null)
 		const projectionOwnedByAncestor = projectedMappings.length > 0 && projectedMappings.every((mapping) => (
 			projectionOwnersByKey.get(routeProjectionKey(mapping))?.some(({ href }) => (
 				href !== publicHref
@@ -4372,8 +4376,8 @@ const compilePhysicalRouteFiles = (
 		const moduleKind = moduleMappings == null ? undefined : (
 			node.children.length > 0 ?
 				'layoutModule'
-			: renderMappings.length > 1 || (
-				renderMappings.some((mapping) => mapping.projectionRouteParam != null)
+			: pageMappings.length > 1 || (
+				pageMappings.some((mapping) => mapping.projectionRouteParam != null)
 				&& !projectionOwnedByAncestor
 			) ?
 				'pageModule'
@@ -4381,7 +4385,7 @@ const compilePhysicalRouteFiles = (
 				undefined
 		)
 		const mappingPages = [
-			...renderMappings.flatMap((mapping) => mapping.page == null ? [] : [mapping.page]),
+			...pageMappings.flatMap((mapping) => mapping.page == null ? [] : [mapping.page]),
 			...node.collectionMappings.flatMap((mapping) => mapping.page == null ? [] : [mapping.page]),
 		]
 		const page = node.page ?? (
@@ -4394,7 +4398,7 @@ const compilePhysicalRouteFiles = (
 				[{
 					entityType: mapping.entityType,
 					selectorName: mapping.selectorName,
-					component: mapping.page?.view?.component ?? node.page?.view?.component ?? singularComponentName(mapping.entityType),
+					component: (mapping.page === false ? undefined : mapping.page?.view?.component) ?? node.page?.view?.component ?? singularComponentName(mapping.entityType),
 					...(mapping.sourceSelection == null ? {} : { sourceSelection: mapping.sourceSelection }),
 				}]
 			:
@@ -4441,7 +4445,7 @@ const compilePhysicalRouteFiles = (
 				appRoutePath: node.svelteKitPath.replace(/^\//, ''),
 				semanticNodeId: node.internalPath,
 				page,
-				mappings: renderMappings,
+				mappings: pageMappings,
 				collections: node.collectionMappings,
 				generatedPageModule: moduleKind != null,
 			}]),
@@ -5759,7 +5763,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	for (const [matcherShape, indexedEntries] of routeNodesByPublicMatcherShape) {
 		const entries = indexedEntries.filter((node) => (
 			node.page != null
-			|| node.selectorMappings.some((mapping) => mapping.page != null)
+			|| node.selectorMappings.some((mapping) => mapping.page != null && mapping.page !== false)
 			|| node.selectorVariant?.page != null
 			|| node.collectionMappings.some((mapping) => mapping.page != null)
 		))
@@ -5771,7 +5775,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	for (const indexedEntries of routeNodesByPublicShape.values()) {
 		const entries = indexedEntries.filter((node) => (
 			node.page != null
-			|| node.selectorMappings.some((mapping) => mapping.page != null)
+			|| node.selectorMappings.some((mapping) => mapping.page != null && mapping.page !== false)
 			|| node.selectorVariant?.page != null
 			|| node.collectionMappings.some((mapping) => mapping.page != null)
 		))
@@ -5883,7 +5887,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		if (node == null)
 			throw new Error(`${physicalRouteFile.path} has no normalized route node ${physicalRouteFile.semanticNodeId}`)
 
-		const mappings = routeProbeMappingsByNode.get(node.internalPath) ?? []
+		const mappings = (routeProbeMappingsByNode.get(node.internalPath) ?? []).filter((mapping) => mapping.page !== false)
 		if (mappings.length === 0)
 			errors.push(`${physicalRouteFile.path} has no selector-owned probe cases`)
 

@@ -12,7 +12,6 @@ import CardanoNetwork_TimestampSchema from '$/schema/CardanoNetwork_Timestamp.ts
 import CelestiaNetwork_TimestampSchema from '$/schema/CelestiaNetwork_Timestamp.ts'
 import DydxChainNetwork_TimestampSchema from '$/schema/DydxChainNetwork_Timestamp.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import EvmNetwork_TimestampSchema from '$/schema/EvmNetwork_Timestamp.ts'
 import FilecoinNetwork_TimestampSchema from '$/schema/FilecoinNetwork_Timestamp.ts'
 import HederaNetwork_TimestampSchema from '$/schema/HederaNetwork_Timestamp.ts'
 import HyperliquidNetwork_TimestampSchema from '$/schema/HyperliquidNetwork_Timestamp.ts'
@@ -94,15 +93,6 @@ export const load: PageLoad = async ({ params, parent }) => {
 			readonly selector: EntitySelectorForSelectorName<
 				typeof schema,
 				EntityType.TronNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.EvmNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.EvmNetwork_Timestamp,
 				'NetworkTimestampMsSource'
 			>
 		}
@@ -383,35 +373,6 @@ export const load: PageLoad = async ({ params, parent }) => {
 				entityType: EntityType.TronNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: tronNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
-
-	if (
-		(
-			(
-				parentData.projectionNetwork.executionModels !== undefined
-				&& parentData.projectionNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')
-			)
-			&& parentData.projectionNetwork.namespace === 'Evm'
-		)
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const evmNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
-			schema,
-			EvmNetwork_TimestampSchema,
-			{
-				$network: parentData.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			},
-			'NetworkTimestampMsSource'
-		)
-		if (!(evmNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
-				entityType: EntityType.EvmNetwork_Timestamp,
-				selectorName: 'NetworkTimestampMsSource',
-				selector: evmNetworkTimestampNetworkTimestampMsSourceSelector,
 			})
 	}
 

@@ -8674,15 +8674,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				],
 			},
 			{
-				id: 'EvmNetwork_Timestamp.NetworkTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/observations/[timestampMs]/[source]:EvmNetwork_Timestamp.NetworkTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-			{
 				id: 'ArweaveNetwork_Timestamp.NetworkTimestampMsSource',
 				projectionEntity: 'Network',
 				probeAtomPrefixes: ['/network/[network]/observations/[timestampMs]/[source]:ArweaveNetwork_Timestamp.NetworkTimestampMsSource'],

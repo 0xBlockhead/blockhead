@@ -1053,7 +1053,7 @@ type _SelectorRouteMapping = {
 	}
 	probeCount?: number
 	boundaryLiveOptional?: true
-	page?: {
+	page?: false | {
 		view?: Omit<_RouteView, 'entity' | 'selector'>
 		text?: _Text
 	}

@@ -75291,15 +75291,16 @@ export const routes = defineRoutes(schema)({
 																			],
 																			"source": [
 																				"source"
-																			]
-																		}
-																	}
-																}
+																			],
+																		},
+																		page: false,
+																	},
+																},
 															},
-														}
-													}
-												}
-											}
+														},
+													},
+												},
+											},
 										},
 										"fee-market": {
 											collections: [
@@ -79853,12 +79854,13 @@ export const routes = defineRoutes(schema)({
 																		derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
 																	},
 																},
-														[EntityType.EvmNetwork_Timestamp]: {
-															"NetworkTimestampMsSource": {
-																when: { path: ["namespace"], is: "Evm" },
-																projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
-																params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-															}
+																[EntityType.EvmNetwork_Timestamp]: {
+																	"NetworkTimestampMsSource": {
+																		when: { path: ["namespace"], is: "Evm" },
+																		projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
+																		params: { "timestampMs": ["timestampMs"], "source": ["source"] },
+																		page: false,
+																	},
 																},
 																[EntityType.ArweaveNetwork_Timestamp]: {
 																	"NetworkTimestampMsSource": {
