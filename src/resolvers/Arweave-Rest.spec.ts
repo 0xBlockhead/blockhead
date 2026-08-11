@@ -426,6 +426,45 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 		expect(getBlockByHeight).toHaveBeenCalledWith(422_250)
 	})
 
+	it('rejects block and transaction responses whose native identities differ from the request', async () => {
+		getBlockByHeight.mockResolvedValueOnce({
+			...tipBlockWire,
+			height: 10,
+		})
+		await expect(blockResolver.resolve.NetworkHeight.resolve({
+			$network: arweaveNetwork,
+			height: 9n,
+		}, context)).rejects.toThrow('block height does not match request')
+
+		getBlockByHash.mockResolvedValueOnce({
+			...tipBlockWire,
+			indep_hash: 'G'.repeat(64),
+		})
+		await expect(blockResolver.resolve.NetworkIndepHash.resolve({
+			$network: arweaveNetwork,
+			indepHash: blockId,
+		}, context)).rejects.toThrow('block hash does not match request')
+
+		getTransaction.mockResolvedValueOnce({
+			format: 2,
+			id: 'B'.repeat(43),
+			last_tx: '',
+			owner: 'owner-key-bytes',
+			tags: [],
+			target: '',
+			quantity: '0',
+			data: '',
+			data_size: '0',
+			data_root: '',
+			reward: '0',
+			signature: 'signature',
+		})
+		await expect(transactionResolver.resolve.NetworkTransactionId.resolve({
+			$network: arweaveNetwork,
+			transactionId,
+		}, context)).rejects.toThrow('transaction ID does not match request')
+	})
+
 	it('fail-closes foreign networks', async () => {
 		await expect(blockResolver.resolve.NetworkHeight.resolve(
 			{

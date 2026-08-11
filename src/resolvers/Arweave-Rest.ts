@@ -298,9 +298,13 @@ export default {
 							throw new Error('Arweave_Rest: block height exceeds safe integer range')
 
 						const { getBlockByHeight } = await import('$/sources/Arweave/Rest/queries.ts')
+						const block = await getBlockByHeight(Number(height))
+						if (BigInt(block.height) !== height)
+							throw new Error('Arweave_Rest: block height does not match request')
+
 						return mapBlockWire(
 							$network.$network,
-							await getBlockByHeight(Number(height))
+							block
 						)
 					},
 				},
@@ -311,9 +315,13 @@ export default {
 					}) => {
 						assertArweaveNetworkHub($network)
 						const { getBlockByHash } = await import('$/sources/Arweave/Rest/queries.ts')
+						const block = await getBlockByHash(indepHash)
+						if (block.indep_hash !== indepHash)
+							throw new Error('Arweave_Rest: block hash does not match request')
+
 						return mapBlockWire(
 							$network.$network,
-							await getBlockByHash(indepHash)
+							block
 						)
 					},
 				},
@@ -352,6 +360,9 @@ export default {
 							ownerAddressFromOwnerKey,
 						} = await import('$/sources/Arweave/Rest/queries.ts')
 						const transaction = await getTransaction(transactionId)
+						if (transaction.id !== transactionId)
+							throw new Error('Arweave_Rest: transaction ID does not match request')
+
 						const ownerAddress = await ownerAddressFromOwnerKey(transaction.owner)
 						const dataSizeBytes = BigInt(transaction.data_size)
 						const status = await getTransactionStatus(transactionId)
