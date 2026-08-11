@@ -1022,20 +1022,21 @@ export default {
 			},
 		})({
 			$$invoices: {
-				select: ({ page }) => (page.invoices ?? []).flatMap((invoice) => {
-					const paymentHash = invoicePaymentHash(invoice)
-					return (
-						paymentHash == null ?
-							[]
-						:
-							[{
-								[EntityMetaKey.Selector]: {
-									$network: lightningNetwork,
-									paymentHash,
-								},
-							}]
-					)
-				}),
+				select: ({ page }) => {
+					const paymentHashes = (page.invoices ?? []).flatMap((invoice) => {
+						const paymentHash = invoicePaymentHash(invoice)
+						return paymentHash == null ? [] : [paymentHash]
+					})
+					if (new Set(paymentHashes).size !== paymentHashes.length)
+						throw new Error('LightningLnd_Rest: invoice page contains duplicate identities')
+
+					return paymentHashes.map((paymentHash) => ({
+						[EntityMetaKey.Selector]: {
+							$network: lightningNetwork,
+							paymentHash,
+						},
+					}))
+				},
 				continuation: ({ page, pageSize }, _network, context) => (
 					page.last_index_offset == null
 					|| page.last_index_offset === context.providerContinuationToken
@@ -1075,12 +1076,18 @@ export default {
 			},
 		})({
 			$$payments: {
-				select: ({ page }) => (page.payments ?? []).map((payment) => ({
-					[EntityMetaKey.Selector]: {
-						$network: lightningNetwork,
-						paymentHash: payment.payment_hash,
-					},
-				})),
+				select: ({ page }) => {
+					const paymentHashes = (page.payments ?? []).map((payment) => payment.payment_hash)
+					if (new Set(paymentHashes).size !== paymentHashes.length)
+						throw new Error('LightningLnd_Rest: payment page contains duplicate identities')
+
+					return paymentHashes.map((paymentHash) => ({
+						[EntityMetaKey.Selector]: {
+							$network: lightningNetwork,
+							paymentHash,
+						},
+					}))
+				},
 				continuation: ({ page, pageSize }, _network, context) => (
 					page.last_index_offset == null
 					|| page.last_index_offset === context.providerContinuationToken

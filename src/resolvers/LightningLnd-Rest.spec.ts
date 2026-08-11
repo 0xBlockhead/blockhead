@@ -445,6 +445,28 @@ describe('Lightning LND resolver ownership', () => {
 		})
 	})
 
+	it('rejects duplicate invoice and payment identities from provider pages', () => {
+		expect(() => invoiceListResolver.projections.$$invoices.select({
+			page: {
+				invoices: [
+					invoice,
+					invoice,
+				],
+			},
+			pageSize: 2,
+		})).toThrow('LightningLnd_Rest: invoice page contains duplicate identities')
+
+		expect(() => paymentListResolver.projections.$$payments.select({
+			page: {
+				payments: [
+					payment,
+					payment,
+				],
+			},
+			pageSize: 2,
+		})).toThrow('LightningLnd_Rest: payment page contains duplicate identities')
+	})
+
 	it('continues invoice and payment pages from lossless LND offsets', async () => {
 		const invoicePage = {
 			page: {
