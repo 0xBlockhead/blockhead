@@ -318,6 +318,7 @@ const getBlockPage = async ({
 	if (edges.length > first)
 		throw new Error('Arweave_Graphql: block page exceeds requested size')
 	const blockIds = new Set<string>()
+	const blockHeights = new Set<number>()
 	const cursors = new Set<string>()
 	const confirmedEdges = [] as {
 		cursor: string
@@ -331,6 +332,9 @@ const getBlockPage = async ({
 		if (blockIds.has(confirmed.id))
 			throw new Error('Arweave_Graphql: duplicate block in page')
 		blockIds.add(confirmed.id)
+		if (blockHeights.has(confirmed.height))
+			throw new Error('Arweave_Graphql: duplicate block height in page')
+		blockHeights.add(confirmed.height)
 		if (ids != null && !ids.includes(confirmed.id))
 			throw new Error('Arweave_Graphql: block ID filter was violated')
 		if (

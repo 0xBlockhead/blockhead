@@ -139,6 +139,33 @@ describe('Arweave GraphQL public transaction and block discovery', () => {
 		await expect(getBlockById(blockId)).rejects.toThrow('incomplete confirmed block coordinates')
 	})
 
+	it('rejects competing block identities for one height before resolver rows are keyed by height', async () => {
+		vi.mocked(graphql).mockResolvedValueOnce({
+			blocks: {
+				pageInfo: {
+					hasNextPage: false,
+				},
+				edges: [
+					{
+						cursor: 'block-1',
+						node: block,
+					},
+					{
+						cursor: 'block-2',
+						node: {
+							...block,
+							id: 'E'.repeat(64),
+						},
+					},
+				],
+			},
+		})
+
+		await expect(getBlocksPage({
+			first: 2,
+		})).rejects.toThrow('duplicate block height in page')
+	})
+
 	it('keeps pending transactions blockless and advances opaque cursors', async () => {
 		vi.mocked(graphql).mockResolvedValue({
 			transactions: {
