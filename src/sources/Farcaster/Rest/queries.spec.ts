@@ -401,6 +401,29 @@ describe('Farcaster envelope validation and materialization', () => {
 		)
 	})
 
+	it('rejects duplicate channel identities in a following page', async () => {
+		farcasterGet.mockResolvedValueOnce({
+			result: {
+				channels: [
+					{
+						id: 'design',
+						url: 'https://farcaster.xyz/~/channel/design',
+						followedAt: 1,
+					},
+					{
+						id: 'design',
+						url: 'https://farcaster.xyz/~/channel/design',
+						followedAt: 2,
+					},
+				],
+			},
+		})
+
+		await expect(getUserFollowingChannelsPage({
+			fid: 3,
+		})).rejects.toThrow('duplicate user-following-channels identity')
+	})
+
 	it('materializes an exact channel and thread envelope', async () => {
 		farcasterGet.mockResolvedValueOnce({
 			result: {

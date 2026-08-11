@@ -258,6 +258,11 @@ export const getUserFollowingChannelsPage = async ({
 	assertEnvelope('user-following-channels', farcasterUserFollowingChannelsResponseWire, page)
 	if (cursor != null && cursor !== '' && page.next?.cursor === cursor)
 		throw new Error('Farcaster_Rest: repeated user-following-channels cursor')
+	if (
+		page.result != null
+		&& new Set(page.result.channels.map((channel) => channel.id)).size !== page.result.channels.length
+	)
+		throw new Error('Farcaster_Rest: duplicate user-following-channels identity')
 
 	return {
 		...(page.result != null && {
