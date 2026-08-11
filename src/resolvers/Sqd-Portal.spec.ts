@@ -301,24 +301,30 @@ describe('SQD Portal resolver', () => {
 
 	it('projects Network.Evm tip $$blocks / resolveCount / $$timestamps from /finalized-head', async () => {
 		sourceFetch.mockResolvedValueOnce(Response.json(finalizedHead))
-		const blocks = await resolverFor(EntityType.Network).resolve.Caip2.resolve(network, context)
+		const blocks = await resolverFor(EntityType.Network).resolve.Caip2.resolve(network, {
+			...context,
+			pagination: {
+				limit: 3,
+				offset: 2,
+			},
+		})
 		expect(blocks).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					blockNumber: 17_999_990n,
-				},
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					blockNumber: 17_999_989n,
-				},
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: network,
 					blockNumber: 17_999_988n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 17_999_987n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 17_999_986n,
 				},
 			},
 		])
