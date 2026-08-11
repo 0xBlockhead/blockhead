@@ -216,7 +216,8 @@ const osmosisDurationToNs = (
 
 const getOsmosisBlockReferences = async (
 	network: NetworkId,
-	limit: number
+	limit: number,
+	offset: number
 ) => {
 	assertOsmosisNetwork(network)
 	const { getLatestBlock } = await import('$/sources/Osmosis/Rest/queries.ts')
@@ -224,13 +225,16 @@ const getOsmosisBlockReferences = async (
 	const latestBlockHeight = BigInt(latestBlock.block.header.height)
 	return Array.from({
 		length: Math.min(
-			Number(latestBlockHeight + 1n),
+			Math.max(
+				Number(latestBlockHeight + 1n - BigInt(offset)),
+				0
+			),
 			limit
 		),
 	}, (_value, blockOffset) => ({
 		[EntityMetaKey.Selector]: {
 			$network: network,
-			height: latestBlockHeight - BigInt(blockOffset),
+			height: latestBlockHeight - BigInt(offset + blockOffset),
 		},
 	}))
 }
@@ -973,7 +977,8 @@ export default {
 				async (network, context) => (
 					getOsmosisBlockReferences(
 						network,
-						resolverContextRowLimit(context)
+						resolverContextRowLimit(context),
+						context.pagination.offset ?? 0
 					)
 				)
 			),

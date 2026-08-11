@@ -368,6 +368,59 @@ describe('Osmosis LCD resolver module', () => {
 		])
 	})
 
+	it('walks disjoint Cosmos block pages and stops at genesis', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({
+				block: {
+					header: {
+						height: '3',
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				block: {
+					header: {
+						height: '3',
+					},
+				},
+			})
+
+		if (networkBlocksResolver == null)
+			throw new Error('missing Network $$blocks resolver')
+
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks(
+			await networkBlocksResolver.resolve.Caip2.resolve(osmosisNetwork, {
+				...context,
+				pagination: {
+					limit: 2,
+					offset: 2,
+				},
+			})
+		)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: osmosisNetwork,
+					height: 1n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: osmosisNetwork,
+					height: 0n,
+				},
+			},
+		])
+		expect(networkBlocksResolver.projections.Cosmos.$$blocks(
+			await networkBlocksResolver.resolve.Caip2.resolve(osmosisNetwork, {
+				...context,
+				pagination: {
+					limit: 2,
+					offset: 4,
+				},
+			})
+		)).toEqual([])
+	})
+
 	it('lists all OsmosisPool kinds from poolmanager all-pools with nested fields', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			pools: [
