@@ -13,11 +13,16 @@ import {
 
 describe(entityHrefFromSearchInput, () => {
 	it.each([
+		['https://farcaster.xyz/~/profiles/3', '/farcaster/user/3'],
+		['https://warpcast.com/~/channel/ethereum', '/farcaster/channel/ethereum'],
+		['https://FARCASTER.XYZ/Vitalik/0xABCDEF12', '/farcaster/c/vitalik/0xabcdef12'],
 		['https://www.youtube.com/watch?v=dQw4w9WgXcQ', '/youtube/video/dQw4w9WgXcQ'],
 		['https://youtu.be/dQw4w9WgXcQ?t=43', '/youtube/video/dQw4w9WgXcQ'],
 		['https://youtube.com/shorts/dQw4w9WgXcQ', '/youtube/video/dQw4w9WgXcQ'],
 		['https://www.youtube.com/embed/dQw4w9WgXcQ', '/youtube/video/dQw4w9WgXcQ'],
-		['ar://1234567890123456789012345678901234567890123/docs/index.html', '/arweave/resource/1234567890123456789012345678901234567890123/docs%2Findex.html'],
+		['https://www.youtube.com/playlist?list=PL1234567890_example', '/youtube/playlist/PL1234567890_example'],
+		['https://youtube.com/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw', '/youtube/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw'],
+		['ar://1234567890123456789012345678901234567890123/docs/index.html', '/arweave/resource/1234567890123456789012345678901234567890123/docs/index.html'],
 		['did:plc:ewvi7nxzyoun6zhxrhs64oiz', '/atproto/actor/did%3Aplc%3Aewvi7nxzyoun6zhxrhs64oiz'],
 		['bzz://0000000000000000000000000000000000000000000000000000000000000001/docs/index.html', '/swarm/0000000000000000000000000000000000000000000000000000000000000001/path/docs/index.html'],
 		['swarm://0x0000000000000000000000000000000000000000000000000000000000000001', '/swarm/0000000000000000000000000000000000000000000000000000000000000001'],
@@ -78,18 +83,26 @@ describe(entityHrefFromSearchInput, () => {
 	})
 
 	it.each([
-		['did:plc:short'],
-		['did:plc:EWVI7NXZYOUN6ZHXrhs64oiz'],
-		['did:web:example.com'],
-	])('does not infer AT Protocol actor from unsupported DID %s', (query) => {
-		expect(entityHrefFromSearchInput(query)).toBeUndefined()
+		['did:plc:short', '/account/did:plc/short'],
+		['did:plc:EWVI7NXZYOUN6ZHXrhs64oiz', '/account/did:plc/EWVI7NXZYOUN6ZHXrhs64oiz'],
+		['did:web:example.com', '/account/did:web/example.com'],
+	])('keeps unsupported DID %s on the generic account route', (query, href) => {
+		expect(entityHrefFromSearchInput(query)).toBe(href)
 	})
 
 	it.each([
 		['https://www.youtube.com/watch?v=short'],
-		['https://www.youtube.com/channel/UC1234567890123456789012'],
+		['https://www.youtube.com/@GoogleDevelopers'],
 		['https://example.com/watch?v=dQw4w9WgXcQ'],
 	])('does not relabel non-video URL %s as a YouTube video', (query) => {
+		expect(entityHrefFromSearchInput(query)).toBe(`/url/${encodeURIComponent(query)}`)
+	})
+
+	it.each([
+		['http://farcaster.xyz/alice/0xabcdef12'],
+		['https://farcaster.xyz.evil.example/alice/0xabcdef12'],
+		['https://farcaster.xyz:8443/alice/0xabcdef12'],
+	])('does not relabel unsafe Farcaster URL %s', (query) => {
 		expect(entityHrefFromSearchInput(query)).toBe(`/url/${encodeURIComponent(query)}`)
 	})
 })

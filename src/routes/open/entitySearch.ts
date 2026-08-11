@@ -3,6 +3,7 @@ import { resolve } from '$app/paths'
 import { NetworkExecutionModel, NetworkNamespace, networks } from '$/constants/Network.ts'
 import { ipfsResourceAddressFromInput, ipfsResourceHref } from '$/lib/ipfs.ts'
 import { swarmResourceHrefFromInput } from '$/lib/swarm.ts'
+import { parseFarcasterUrlIngress } from '$/routes/(social)/(farcaster)/farcaster/farcasterUrlIngress.ts'
 
 
 export const evmNetworkChoices = networks.flatMap((network) => (
@@ -94,7 +95,45 @@ export const nostrHexEntityKinds = [
 	},
 ] as const
 
+const farcasterHrefFromSearchInput = (query: string) => {
+	if (!/^https:\/\/(?:farcaster\.xyz|warpcast\.com)\//i.test(query)) return
+
+	try {
+		const ingress = parseFarcasterUrlIngress(query)
+
+		if (ingress.kind === 'profile')
+			return resolve(
+				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/user/[userId=farcasterFid]',
+				{
+					userId: String(ingress.fid),
+				}
+			)
+
+		if (ingress.kind === 'channel')
+			return resolve(
+				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
+				{
+					channelId: ingress.channelId,
+				}
+			)
+
+		if (ingress.username !== undefined)
+			return resolve(
+				'/(social)/(farcaster)/farcaster/(farcasterNetwork)/c/[fname=stringSegment]/[hash=zeroExHex]',
+				{
+					fname: ingress.username,
+					hash: ingress.hashPrefix,
+				}
+			)
+	} catch {
+		return undefined
+	}
+}
+
 export const entityHrefFromSearchInput = (query: string) => {
+	const farcasterHref = farcasterHrefFromSearchInput(query)
+	if (farcasterHref !== undefined) return farcasterHref
+
 	const youtubeVideo = (
 		query.match(/^https?:\/\/(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})(?:[/?#]|$)/i)
 		?? query.match(/^https?:\/\/(?:www\.)?youtube\.com\/(?:shorts|embed)\/([a-zA-Z0-9_-]{11})(?:[/?#]|$)/i)
@@ -106,6 +145,26 @@ export const entityHrefFromSearchInput = (query: string) => {
 			'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/video/[videoId=stringSegment]',
 			{
 				videoId: youtubeVideo[1],
+			}
+		)
+
+	const youtubePlaylist = query.match(/^https?:\/\/(?:www\.)?youtube\.com\/playlist\?(?:[^#]*&)?list=([a-zA-Z0-9_-]+)(?:[&#]|$)/i)
+
+	if (youtubePlaylist)
+		return resolve(
+			'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/playlist/[playlistId=stringSegment]',
+			{
+				playlistId: youtubePlaylist[1],
+			}
+		)
+
+	const youtubeChannel = query.match(/^https?:\/\/(?:www\.)?youtube\.com\/channel\/([a-zA-Z0-9_-]+)(?:[/?#]|$)/i)
+
+	if (youtubeChannel)
+		return resolve(
+			'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/channel/[channelId=stringSegment]',
+			{
+				channelId: youtubeChannel[1],
 			}
 		)
 
