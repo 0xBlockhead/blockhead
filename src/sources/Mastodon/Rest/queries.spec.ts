@@ -193,6 +193,23 @@ describe('Mastodon public timeline', () => {
 		await expect(listPublicTimelinePage(fosstodonPublicTimeline.binding, 'https://fosstodon.org', 2)).rejects.toThrow('ambiguous public timeline continuation')
 	})
 
+	it('rejects duplicate status identities in public and authored timeline pages', async () => {
+		mastodonFetchPublicTimelineUrl.mockResolvedValueOnce(new Response('[{"id":"1"},{"id":"1"}]'))
+		mastodonFetchUrl.mockResolvedValueOnce(new Response('[{"id":"2"},{"id":"2"}]'))
+
+		await expect(listPublicTimelinePage(
+			fosstodonPublicTimeline.binding,
+			'https://fosstodon.org',
+			2
+		)).rejects.toThrow('public timeline response contains a duplicate status')
+		await expect(listAccountStatusesPageByLocalAccountId(
+			mastodonSocialBinding,
+			'https://mastodon.social',
+			'13179',
+			2
+		)).rejects.toThrow('authored notes response contains a duplicate status')
+	})
+
 	it('continues one actor status collection with the shared opaque Link contract', async () => {
 		mastodonFetchUrl
 			.mockResolvedValueOnce(new Response('[{"id":"1","uri":"https://mastodon.social/users/alice/statuses/1"}]', {

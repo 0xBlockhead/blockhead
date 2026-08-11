@@ -118,6 +118,18 @@ const assertEnvelope = <_Value>(
 	}
 }
 
+const assertUniqueStatusIds = (
+	statuses: { id: string }[],
+	operationLabel: string
+) => {
+	const statusIds = new Set<string>()
+	for (const status of statuses) {
+		if (statusIds.has(status.id))
+			throw new Error(`Mastodon_Rest: ${operationLabel} response contains a duplicate status`)
+		statusIds.add(status.id)
+	}
+}
+
 export const getAccountByLocalAccountId = async (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],
 	instanceOrigin: string,
@@ -271,12 +283,14 @@ export const listAccountStatusesPageByLocalAccountId = async (
 			throw new Error('Mastodon_Rest: invalid authored notes continuation')
 	}
 
+	const statuses = assertEnvelope(
+		'authored-notes',
+		mastodonApiV1StatusListWire,
+		await response.json()
+	)
+	assertUniqueStatusIds(statuses, 'authored notes')
 	return {
-		statuses: assertEnvelope(
-			'authored-notes',
-			mastodonApiV1StatusListWire,
-			await response.json()
-		),
+		statuses,
 		continuationToken: nextUrl === continuationToken ? undefined : nextUrl,
 	}
 }
@@ -344,12 +358,14 @@ export const listPublicTimelinePage = async (
 			throw new Error('Mastodon_Rest: invalid public timeline continuation')
 	}
 
+	const statuses = assertEnvelope(
+		'public-timeline',
+		mastodonApiV1StatusListWire,
+		await response.json()
+	)
+	assertUniqueStatusIds(statuses, 'public timeline')
 	return {
-		statuses: assertEnvelope(
-			'public-timeline',
-			mastodonApiV1StatusListWire,
-			await response.json()
-		),
+		statuses,
 		continuationToken: nextUrl === continuationToken ? undefined : nextUrl,
 	}
 }
