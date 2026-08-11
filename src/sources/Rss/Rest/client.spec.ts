@@ -89,6 +89,15 @@ test('preserves a registered feed URL path, query, and reserved values', async (
 	)
 })
 
+test('rejects credentials in a same-origin feed URL before transport', async () => {
+	await expect(rssFetchFeed(
+		hnrssBinding,
+		'https://reader:secret@hnrss.org/frontpage'
+	)).rejects.toThrow('feed URL must not contain credentials')
+
+	expect(sourceFetch).not.toHaveBeenCalled()
+})
+
 test('rejects repeated canonical item identities from the scoped feed response', async () => {
 	sourceFetch.mockResolvedValueOnce(new Response(`
 		<rss>

@@ -8,7 +8,10 @@ import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 export const rssFetchFeed = async (binding: SourceBinding, feedUrl: string) => {
 	const normalizedFeedUrl = normalizeRssFeedUrl(feedUrl)
-	if (new URL(normalizedFeedUrl).origin !== binding.target.key)
+	const requestedFeedUrl = new URL(normalizedFeedUrl)
+	if (requestedFeedUrl.username !== '' || requestedFeedUrl.password !== '')
+		throw new Error('Rss_Rest: feed URL must not contain credentials')
+	if (requestedFeedUrl.origin !== binding.target.key)
 		throw new Error('Rss_Rest: feed URL does not match binding')
 
 	const response = await sourceFetch(binding, normalizedFeedUrl)
