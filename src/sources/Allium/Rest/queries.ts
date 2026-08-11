@@ -35,9 +35,23 @@ const assertEnvelope = <_Value>(
 }
 
 const assertAlliumLatestWalletBalancesBusinessRules = (
-	envelope: AlliumLatestWalletBalancesEnvelope
+	envelope: AlliumLatestWalletBalancesEnvelope,
+	address: string,
+	apiChain: string,
+	cursor?: string
 ) => {
+	if (cursor != null && cursor !== '' && envelope.cursor === cursor)
+		throw new Error('Allium_Rest: wallet balances cursor did not advance')
+
 	for (const balance of envelope.items) {
+		if (
+			balance.address.toLowerCase() !== address.toLowerCase()
+			|| balance.chain !== apiChain
+		)
+			throw new Error('Allium_Rest: wallet balance subject mismatch')
+		if (balance.token != null && balance.token.chain !== apiChain)
+			throw new Error('Allium_Rest: wallet balance token chain mismatch')
+
 		if (
 			balance.token?.type === 'evm_erc20'
 			&& !evmAddressPattern.test(balance.token.address)
@@ -100,7 +114,10 @@ export const getLatestWalletBalances = async ({
 					]),
 				}
 			)
-		)
+		),
+		address,
+		apiChain,
+		cursor
 	)
 }
 
@@ -159,6 +176,11 @@ export const getTokensByChainAddress = async ({
 		)
 		if (!evmAddressPattern.test(token.address))
 			throw new Error('Allium_Rest: invalid token address')
+		if (
+			token.chain !== apiChain
+			|| token.address.toLowerCase() !== tokenAddress.toLowerCase()
+		)
+			throw new Error('Allium_Rest: token response subject mismatch')
 
 		parsed.push(token)
 	}

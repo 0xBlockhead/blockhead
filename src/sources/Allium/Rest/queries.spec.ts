@@ -160,6 +160,50 @@ describe('Allium wallet balance envelopes', () => {
 		})).rejects.toThrow('invalid wallet address')
 		expect(alliumFetch).not.toHaveBeenCalled()
 	})
+
+	it('rejects substituted wallet subjects, token chains, and repeated cursors', async () => {
+		alliumFetch.mockResolvedValueOnce({
+			items: [{
+				chain: 'ethereum',
+				address: tokenAddress,
+			}],
+		})
+		await expect(getLatestWalletBalances({
+			binding,
+			publicEnv,
+			address,
+			apiChain: 'ethereum',
+		})).rejects.toThrow('wallet balance subject mismatch')
+
+		alliumFetch.mockResolvedValueOnce({
+			items: [{
+				chain: 'ethereum',
+				address,
+				token: {
+					chain: 'polygon',
+					address: tokenAddress,
+				},
+			}],
+		})
+		await expect(getLatestWalletBalances({
+			binding,
+			publicEnv,
+			address,
+			apiChain: 'ethereum',
+		})).rejects.toThrow('wallet balance token chain mismatch')
+
+		alliumFetch.mockResolvedValueOnce({
+			items: [],
+			cursor: 'same',
+		})
+		await expect(getLatestWalletBalances({
+			binding,
+			publicEnv,
+			address,
+			apiChain: 'ethereum',
+			cursor: 'same',
+		})).rejects.toThrow('wallet balances cursor did not advance')
+	})
 })
 
 describe('Allium tokens-by-address envelopes', () => {
@@ -205,5 +249,29 @@ describe('Allium tokens-by-address envelopes', () => {
 			apiChain: 'ethereum',
 			tokenAddress,
 		})).rejects.toThrow('invalid tokens-by-address response envelope')
+	})
+
+	it('rejects token metadata for another chain or address', async () => {
+		alliumFetch.mockResolvedValueOnce([{
+			chain: 'polygon',
+			address: tokenAddress,
+		}])
+		await expect(getTokensByChainAddress({
+			binding,
+			publicEnv,
+			apiChain: 'ethereum',
+			tokenAddress,
+		})).rejects.toThrow('token response subject mismatch')
+
+		alliumFetch.mockResolvedValueOnce([{
+			chain: 'ethereum',
+			address,
+		}])
+		await expect(getTokensByChainAddress({
+			binding,
+			publicEnv,
+			apiChain: 'ethereum',
+			tokenAddress,
+		})).rejects.toThrow('token response subject mismatch')
 	})
 })
