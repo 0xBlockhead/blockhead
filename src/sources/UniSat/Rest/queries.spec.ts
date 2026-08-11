@@ -183,6 +183,13 @@ describe('UniSat Rest queries', () => {
 	it('getUtxoRuneBalances and address list queries reject invalid pagination', async () => {
 		await expect(
 			getUtxoRuneBalances(publicEnv, {
+				txId: 'not-a-transaction-id',
+				outputIndex: 0,
+			})
+		).rejects.toThrow(`${Source.UniSat_Rest}: invalid txId`)
+
+		await expect(
+			getUtxoRuneBalances(publicEnv, {
 				txId: 'aa'.repeat(32),
 				outputIndex: -1,
 			})

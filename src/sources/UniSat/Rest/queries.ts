@@ -40,6 +40,11 @@ const assertNonEmpty = (
 	return value
 }
 
+const assertTransactionId = (txId: string) => {
+	if (!/^[0-9a-f]{64}$/i.test(txId))
+		throw new Error(`${Source.UniSat_Rest}: invalid txId ${txId}`)
+}
+
 const assertNonNegativeInteger = (
 	value: number,
 	label: string
@@ -169,7 +174,7 @@ export const getUtxoInfo = async (
 		outputIndex: number
 	}
 ) => {
-	assertNonEmpty(txId, 'txId')
+	assertTransactionId(txId)
 	assertNonNegativeInteger(outputIndex, 'outputIndex')
 	const utxo = await unisatGetJson(
 		publicEnv,
@@ -198,7 +203,7 @@ export const getUtxoRuneBalances = async (
 		outputIndex: number
 	}
 ) => {
-	assertNonEmpty(txId, 'txId')
+	assertTransactionId(txId)
 	assertNonNegativeInteger(outputIndex, 'outputIndex')
 	return unisatGetJson(
 		publicEnv,
