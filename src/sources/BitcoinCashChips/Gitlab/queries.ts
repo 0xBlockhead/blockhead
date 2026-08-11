@@ -25,6 +25,20 @@ const gitlabProjectUrl = (path: string) => (
 	`${firstHttpUrlForBinding(binding)}/api/v4/projects/${bitcoinCashChipsGitlabRepo.projectId}${path}`
 )
 
+const assertTreePath = (path: string) => {
+	const segments = path.split('/')
+	if (
+		segments.length === 0
+		|| segments.some((segment) => (
+			segment === ''
+			|| segment === '.'
+			|| segment === '..'
+			|| /[\u0000-\u001f\u007f]/.test(segment)
+		))
+	)
+		throw new Error('BitcoinCashChips_Gitlab: invalid repository tree path')
+}
+
 export const getTree = async () => {
 	const tree = await sourceGetJson<BitcoinCashChipsGitlabTree>(
 		binding,
@@ -34,7 +48,17 @@ export const getTree = async () => {
 	)
 
 	try {
-		return bitcoinCashChipsGitlabTreeWire.assert(tree)
+		const entries = bitcoinCashChipsGitlabTreeWire.assert(tree)
+		const paths = new Set<string>()
+		for (const entry of entries) {
+			assertTreePath(entry.path)
+			if (entry.path.split('/').at(-1) !== entry.name)
+				throw new Error('BitcoinCashChips_Gitlab: repository tree name does not match path')
+			if (paths.has(entry.path))
+				throw new Error('BitcoinCashChips_Gitlab: duplicate repository tree path')
+			paths.add(entry.path)
+		}
+		return entries
 	} catch {
 		throw new Error('BitcoinCashChips_Gitlab: invalid repository tree response')
 	}
@@ -42,11 +66,12 @@ export const getTree = async () => {
 
 export const getChipMarkdownText = (
 	{ path }: { path: string }
-) => (
-	sourceGetText(
+) => {
+	assertTreePath(path)
+	return sourceGetText(
 		binding,
 		gitlabProjectUrl(
 			`/repository/files/${encodeURIComponent(path)}/raw?ref=${bitcoinCashChipsGitlabRepo.ref}`
 		)
 	)
-)
+}

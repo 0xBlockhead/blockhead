@@ -4,19 +4,24 @@ import bindings from '$/sources/BitcoinCashChips/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
+const sourceGetText = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
 	firstHttpUrlForBinding: (binding: { endpoints: { locator: string }[] }) => binding.endpoints[0].locator,
 	sourceGetJson,
-	sourceGetText: vi.fn(),
+	sourceGetText,
 }))
 
-const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
+const {
+	getChipMarkdownText,
+	getTree,
+} = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
 const binding = bindings[Source.BitcoinCashChips_Gitlab][0]
 
 describe('Bitcoin Cash CHIP GitLab repository tree', () => {
 	beforeEach(() => {
 		sourceGetJson.mockReset()
+		sourceGetText.mockReset()
 	})
 
 	it('uses the binding-owned repository and accepts file identities', async () => {
@@ -52,5 +57,33 @@ describe('Bitcoin Cash CHIP GitLab repository tree', () => {
 		sourceGetJson.mockRejectedValueOnce(new Error('unavailable'))
 
 		await expect(getTree()).rejects.toThrow('unavailable')
+	})
+
+	it('rejects duplicate or traversal-shaped tree paths before they become document fetch targets', async () => {
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				type: 'blob',
+				name: 'CHIP-2026-08-example.md',
+				path: 'spec/CHIP-2026-08-example.md',
+			},
+			{
+				type: 'blob',
+				name: 'CHIP-2026-08-example.md',
+				path: 'spec/CHIP-2026-08-example.md',
+			},
+		])
+		await expect(getTree()).rejects.toThrow('invalid repository tree response')
+
+		sourceGetJson.mockResolvedValueOnce([{
+			type: 'blob',
+			name: 'CHIP-2026-08-example.md',
+			path: 'spec/../CHIP-2026-08-example.md',
+		}])
+		await expect(getTree()).rejects.toThrow('invalid repository tree response')
+
+		expect(() => getChipMarkdownText({
+			path: 'spec/../CHIP-2026-08-example.md',
+		})).toThrow('invalid repository tree path')
+		expect(sourceGetText).not.toHaveBeenCalled()
 	})
 })
