@@ -16,6 +16,11 @@ import {
 const binding = bindings[Source.Caips_Github][0]
 const target = githubRepositoryTargetFromKey(binding.target.key)
 
+const assertCaipNumber = (number: number) => {
+	if (!Number.isSafeInteger(number) || number < 1)
+		throw new Error('Caips_Github: CAIP number must be a positive safe integer')
+}
+
 export const getContentsUrl = () => githubContentsUrl(target)
 
 export const getRawMarkdownUrl = ({
@@ -32,16 +37,18 @@ export const getRawMarkdownUrl = ({
 	})
 )
 
-export const getMarkdownUrlForNumber = ({ number }: { number: number }) => (
-	githubRawUrl({
+export const getMarkdownUrlForNumber = ({ number }: { number: number }) => {
+	assertCaipNumber(number)
+	return githubRawUrl({
 		...target,
 		path: `${target.path}/caip-${number}.md`,
 	})
-)
+}
 
-export const getHumanDocUrl = ({ number }: { number: number }) => (
-	`${caipOfficialHumanBaseUrl}${number}`
-)
+export const getHumanDocUrl = ({ number }: { number: number }) => {
+	assertCaipNumber(number)
+	return `${caipOfficialHumanBaseUrl}${number}`
+}
 
 export const getContents = () => (
 	getGithubContents({
