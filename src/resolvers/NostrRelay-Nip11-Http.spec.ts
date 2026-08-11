@@ -167,13 +167,13 @@ describe('NostrRelay NIP-11 Http resolver', () => {
 		expect(Object.keys(timestampResolver.projections)).not.toContain('tags')
 	})
 
-	it('marks unreachable when NIP-11 transport fails', async () => {
+	it('propagates NIP-11 transport failures', async () => {
 		if (timestampResolver == null || boundRelayUrl == null)
 			throw new Error('missing NIP-11 timestamp resolver or binding')
 
 		fetchRelayInformation.mockRejectedValue(new Error('NostrRelay_Nip11_Http: invalid NIP-11 response envelope'))
 
-		const snapshot = await timestampResolver.resolve.RelayTimestampMsSource.resolve({
+		await expect(timestampResolver.resolve.RelayTimestampMsSource.resolve({
 			$relay: {
 				relayUrl: boundRelayUrl,
 			},
@@ -189,10 +189,6 @@ describe('NostrRelay NIP-11 Http resolver', () => {
 			parentSelectorKeys: [],
 			sources: [],
 			publicEnv: {},
-		})
-
-		expect(timestampResolver.projections.reachable(snapshot)).toBe(false)
-		expect(timestampResolver.projections.error(snapshot)).toBe('NostrRelay_Nip11_Http: invalid NIP-11 response envelope')
-		expect(timestampResolver.projections.name(snapshot)).toBeUndefined()
+		})).rejects.toThrow('NostrRelay_Nip11_Http: invalid NIP-11 response envelope')
 	})
 })
