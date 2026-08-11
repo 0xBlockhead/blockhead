@@ -112,5 +112,8 @@ describe('Swarm gateway binding transport', () => {
 		expect(assertSwarmGatewayReference(`swarm://${swarmDocsLandingReference}/`)).toBe(
 			swarmDocsLandingReference
 		)
+		expect(assertSwarmGatewayReference(`BZZ://0X${swarmDocsLandingReference.toUpperCase()}`)).toBe(
+			swarmDocsLandingReference
+		)
 	})
 })

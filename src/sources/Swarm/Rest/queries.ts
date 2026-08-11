@@ -26,7 +26,7 @@ export const normalizeSwarmReference = (
 			:
 				trimmed
 	)
-	return stripOptionalHexPrefix(trimGatewayPathSlashes(withoutScheme))
+	return stripOptionalHexPrefix(trimGatewayPathSlashes(withoutScheme)).toLowerCase()
 }
 
 export const assertSwarmGatewayReference = (
