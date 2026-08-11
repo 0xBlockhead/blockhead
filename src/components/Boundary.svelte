@@ -81,6 +81,13 @@
 				)}
 			{:else}
 				<div>
+					<p
+						data-text="muted"
+						data-section-state="failed"
+					>
+						This section could not be loaded.
+					</p>
+
 					<header data-row="wrap">
 						<div
 							data-row="start"

@@ -55,6 +55,7 @@ it('renders bootstrap-owned failure diagnostics without mounting a route child',
 		timeout: 2_000,
 	})
 	expect(alert.element().getAttribute('data-error')).toBe('ApplicationBootstrap')
+	expect(alert.element().querySelector('[data-section-state="failed"]')?.textContent).toBe('This section could not be loaded.')
 	await expect.element(page.getByText('resolver loading failed', {
 		exact: true,
 	})).toBeVisible()
