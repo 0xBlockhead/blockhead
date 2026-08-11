@@ -32,6 +32,15 @@ describe('Farcaster URL ingress', () => {
 				fullHash: false,
 			},
 		],
+		[
+			'https://warpcast.com/~/conversations/0xabcdef1234567890123456789012345678901234',
+			{
+				kind: 'cast',
+				clientUrl: 'https://warpcast.com/~/conversations/0xabcdef1234567890123456789012345678901234',
+				hashPrefix: '0xabcdef1234567890123456789012345678901234',
+				fullHash: true,
+			},
+		],
 	])('normalizes %s', (input, expected) => {
 		expect(parseFarcasterUrlIngress(input)).toEqual(expected)
 	})
@@ -43,6 +52,7 @@ describe('Farcaster URL ingress', () => {
 		'https://farcaster.xyz:8443/alice/0xabcdef12',
 		'https://farcaster.xyz/alice/0xabcdef12#other',
 		'https://farcaster.xyz/alice%2Fother/0xabcdef12',
+		'https://farcaster.xyz/~/profiles/0',
 		'https://farcaster.xyz/~/profiles/03',
 	])('rejects %s', (input) => {
 		expect(() => parseFarcasterUrlIngress(input)).toThrow()
@@ -70,5 +80,23 @@ describe('Farcaster URL ingress', () => {
 				username: 'mallory',
 			},
 		})).toThrow('does not match')
+	})
+
+	it('accepts the exact full-hash conversation result without inventing username authority', () => {
+		const ingress = parseFarcasterUrlIngress(
+			'https://warpcast.com/~/conversations/0xabcdef1234567890123456789012345678901234'
+		)
+		if (ingress.kind !== 'cast')
+			throw new Error('Expected cast ingress')
+
+		expect(verifyFarcasterIngressCast(ingress, {
+			hash: '0xabcdef1234567890123456789012345678901234',
+			author: {
+				fid: 42,
+			},
+		})).toEqual({
+			fid: 42,
+			hash: '0xabcdef1234567890123456789012345678901234',
+		})
 	})
 })

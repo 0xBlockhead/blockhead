@@ -62,7 +62,7 @@ export const parseFarcasterUrlIngress = (input: string): FarcasterUrlIngress => 
 
 	if (segments[0] === '~' && segments[1] === 'profiles' && segments.length === 3) {
 		const fid = Number(segments[2])
-		if (!Number.isSafeInteger(fid) || fid < 0 || String(fid) !== segments[2])
+		if (!Number.isSafeInteger(fid) || fid < 1 || String(fid) !== segments[2])
 			throw new Error('Invalid Farcaster FID')
 
 		return {
