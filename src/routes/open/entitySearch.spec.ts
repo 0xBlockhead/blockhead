@@ -13,6 +13,8 @@ import {
 
 describe(entityHrefFromSearchInput, () => {
 	it.each([
+		['bzz://0000000000000000000000000000000000000000000000000000000000000001/docs/index.html', '/swarm/0000000000000000000000000000000000000000000000000000000000000001/path/docs/index.html'],
+		['swarm://0x0000000000000000000000000000000000000000000000000000000000000001', '/swarm/0000000000000000000000000000000000000000000000000000000000000001'],
 		['@alice@mastodon.social', '/activitypub/actor/https%3A%2F%2Fmastodon.social/@alice'],
 		['rad:z3gqcJUoA1n9HaHKufZs5FCSGazv5D6Dt7Fnx1C4h2kKz', '/radicle/repository/rad:z3gqcJUoA1n9HaHKufZs5FCSGazv5D6Dt7Fnx1C4h2kKz'],
 		['at://did:plc:ewvi7nxzyoun6zhxrhs64oiz/app.bsky.feed.post/3lbm6y55c2c2a', '/atproto/post/at%3A%2F%2Fdid%3Aplc%3Aewvi7nxzyoun6zhxrhs64oiz%2Fapp.bsky.feed.post%2F3lbm6y55c2c2a'],
@@ -51,6 +53,13 @@ describe(entityHrefFromSearchInput, () => {
 		['rad:z3gqc!'],
 		['rad:z3gqc/path'],
 	])('does not relabel malformed Radicle RID %s', (query) => {
+		expect(entityHrefFromSearchInput(query)).toBeUndefined()
+	})
+
+	it.each([
+		['bzz://'],
+		['swarm:///docs'],
+	])('does not route malformed Swarm resource %s', (query) => {
 		expect(entityHrefFromSearchInput(query)).toBeUndefined()
 	})
 })

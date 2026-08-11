@@ -2,6 +2,7 @@ import { resolve } from '$app/paths'
 
 import { NetworkExecutionModel, NetworkNamespace, networks } from '$/constants/Network.ts'
 import { ipfsResourceAddressFromInput, ipfsResourceHref } from '$/lib/ipfs.ts'
+import { swarmResourceHrefFromInput } from '$/lib/swarm.ts'
 
 
 export const evmNetworkChoices = networks.flatMap((network) => (
@@ -94,6 +95,9 @@ export const nostrHexEntityKinds = [
 ] as const
 
 export const entityHrefFromSearchInput = (query: string) => {
+	if (/^(?:bzz|swarm):\/\//i.test(query))
+		return swarmResourceHrefFromInput(query)
+
 	const activityPubHandle = query.match(/^@([a-zA-Z0-9_.-]+)@((?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63})$/)
 
 	if (activityPubHandle)
