@@ -280,6 +280,14 @@ describe('Aave market list/detail operations', () => {
 		expect(graphql).not.toHaveBeenCalled()
 	})
 
+	it('rejects duplicate chain ids before transport', async () => {
+		await expect(listMarkets({
+			binding,
+			chainIds: [1, 1],
+		})).rejects.toThrow(`${Source.Aave_Rest}: duplicate chain ids`)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
 	it('reads a market by pool address and chain id', async () => {
 		graphql.mockResolvedValueOnce({
 			market: ethereumMarketSnapshot,

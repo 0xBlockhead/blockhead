@@ -441,6 +441,8 @@ export const listMarkets = async ({
 }) => {
 	if (chainIds.length < 1)
 		throw new Error(`${Source.Aave_Rest}: chainIds required`)
+	if (new Set(chainIds).size !== chainIds.length)
+		throw new Error(`${Source.Aave_Rest}: duplicate chain ids`)
 	for (const chainId of chainIds)
 		assertChainId(chainId)
 
