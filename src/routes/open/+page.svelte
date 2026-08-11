@@ -83,6 +83,23 @@
 		<button type="submit">Open entity</button>
 	</form>
 
+	{#if evmAccountCandidates.length || isEvmHash}
+		<aside
+			aria-label="Candidate provenance"
+			data-card="padding-2"
+			data-column="gap-1"
+		>
+			<p>
+				<strong>Candidate authority:</strong>
+				Network identities and environments come from Blockhead’s checked-in network catalog.
+			</p>
+
+			<p>
+				A candidate route identifies the entity coordinates; it does not claim that a configured provider supports or will resolve them.
+			</p>
+		</aside>
+	{/if}
+
 	{#if evmAccountCandidates.length}
 		<section data-column="gap-2">
 			<h2>Choose an EVM network</h2>

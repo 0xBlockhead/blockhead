@@ -17,6 +17,8 @@ it('renders separate network and entity-kind coordinates for a bare EVM hash', a
 	await expect.element(page.getByRole('heading', { name: 'Identify this EVM hash' })).toBeVisible()
 	await expect.element(page.getByRole('status')).toHaveTextContent('valid 32-byte EVM hash')
 	await expect.element(page.getByRole('alert')).not.toBeInTheDocument()
+	await expect.element(page.getByRole('complementary', { name: 'Candidate provenance' })).toHaveTextContent('checked-in network catalog')
+	await expect.element(page.getByRole('complementary', { name: 'Candidate provenance' })).toHaveTextContent('does not claim that a configured provider supports')
 	await expect.element(page.getByRole('combobox', { name: 'Network' })).toBeVisible()
 	await expect.element(page.getByRole('option', { name: 'Ethereum Mainnet — Mainnet (eip155:1)' })).toBeInTheDocument()
 	await expect.element(page.getByRole('option', { name: 'Ethereum Sepolia — Testnet (eip155:11155111)' })).toBeInTheDocument()
@@ -35,6 +37,7 @@ it('does not render hash coordinates for other unresolved input', async () => {
 	})
 
 	await expect.element(page.getByRole('heading', { name: 'Identify this EVM hash' })).not.toBeInTheDocument()
+	await expect.element(page.getByRole('complementary', { name: 'Candidate provenance' })).not.toBeInTheDocument()
 	await expect.element(page.getByRole('alert')).toHaveTextContent('is unsupported')
 })
 
@@ -47,5 +50,6 @@ it('identifies a bare EVM address as incomplete rather than unsupported', async 
 
 	await expect.element(page.getByRole('status')).toHaveTextContent('valid EVM address')
 	await expect.element(page.getByRole('heading', { name: 'Choose an EVM network' })).toBeVisible()
+	await expect.element(page.getByRole('complementary', { name: 'Candidate provenance' })).toBeVisible()
 	await expect.element(page.getByRole('alert')).not.toBeInTheDocument()
 })
