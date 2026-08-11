@@ -20,7 +20,7 @@
 	const pageSelection = $derived(select(EntityType.BitcoinRuneBalance, {
 		$output: data.selector,
 		$rune: {
-			$network: selector.$output.$transaction.$network,
+			$network: data.selector.$transaction.$network,
 			runeId: params.runeId,
 		},
 	}, {

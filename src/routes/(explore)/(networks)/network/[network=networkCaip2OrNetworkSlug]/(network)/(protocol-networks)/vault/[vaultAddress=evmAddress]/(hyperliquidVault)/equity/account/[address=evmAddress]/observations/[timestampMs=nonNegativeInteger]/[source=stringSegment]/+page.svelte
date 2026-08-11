@@ -33,7 +33,7 @@
 		selection={
 			select(EntityType.HyperliquidVaultEquity_Timestamp, {
 				$account: {
-					$network: selector.$vault.$network,
+					$network: data.selector.$network,
 					address: params.address,
 				},
 				$vault: data.selector,

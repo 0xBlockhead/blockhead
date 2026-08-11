@@ -35,7 +35,7 @@
 			select(EntityType.KaspaAcceptedTransaction, {
 				$acceptingBlock: data.selector,
 				$transaction: {
-					$network: selector.$acceptingBlock.$network,
+					$network: data.selector.$network,
 					transactionId: params.transactionId,
 				},
 			}, {

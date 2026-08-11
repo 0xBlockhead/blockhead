@@ -34,7 +34,7 @@
 		selection={
 			select(EntityType.MorphoMarketPosition, {
 				$account: {
-					$network: selector.$market.$network,
+					$network: data.selector.$network,
 					$actor: {
 						address: params.accountAddress,
 					},

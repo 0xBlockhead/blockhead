@@ -20,7 +20,7 @@
 	const pageSelection = $derived(select(EntityType.UniswapV3Pool, {
 		$token0: data.selector,
 		$token1: {
-			$network: selector.$token0.$network,
+			$network: data.selector.$network,
 			address: params.token1Address,
 		},
 		fee: Number(params.fee),

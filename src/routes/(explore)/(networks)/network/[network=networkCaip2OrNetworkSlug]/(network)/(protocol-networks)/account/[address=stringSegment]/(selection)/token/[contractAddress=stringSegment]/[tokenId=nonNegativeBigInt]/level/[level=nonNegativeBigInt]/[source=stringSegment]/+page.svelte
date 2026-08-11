@@ -34,7 +34,7 @@
 			select(EntityType.TezosTokenBalance_Timestamp, {
 				$account: data.selector,
 				$token: {
-					$network: selector.$account.$network,
+					$network: data.selector.$network,
 					contractAddress: params.contractAddress,
 					tokenId: BigInt(params.tokenId),
 				},

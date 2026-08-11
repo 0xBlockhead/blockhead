@@ -34,7 +34,7 @@
 			select(EntityType.ZcashShieldedPoolBlockState, {
 				$block: data.selector,
 				$pool: {
-					$network: selector.$block.$network,
+					$network: data.selector.$network,
 					pool: params.pool,
 				},
 			})

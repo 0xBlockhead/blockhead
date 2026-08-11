@@ -33,14 +33,14 @@
 		selection={
 			select(EntityType.EigenLayerDelegation_Timestamp, {
 				$staker: {
-					$network: selector.$operator.$network,
+					$network: data.selector.$network,
 					$actor: {
 						address: params.stakerAddress,
 					},
 				},
 				$operator: data.selector,
 				$strategy: {
-					$network: selector.$operator.$network,
+					$network: data.selector.$network,
 					strategyAddress: params.strategyAddress,
 				},
 				timestampMs: Number(params.timestampMs),

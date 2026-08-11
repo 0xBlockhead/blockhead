@@ -34,7 +34,7 @@
 			select(EntityType.EigenLayerSlashingEvent, {
 				$operator: data.selector,
 				$avs: {
-					$network: selector.$operator.$network,
+					$network: data.selector.$network,
 					avsAddress: params.avsAddress,
 				},
 				source: params.source,

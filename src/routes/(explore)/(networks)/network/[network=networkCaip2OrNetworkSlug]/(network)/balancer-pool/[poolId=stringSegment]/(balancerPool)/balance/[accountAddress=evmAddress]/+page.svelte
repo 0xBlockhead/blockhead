@@ -34,7 +34,7 @@
 		selection={
 			select(EntityType.BalancerAccountPoolBalance, {
 				$account: {
-					$network: selector.$pool.$network,
+					$network: data.selector.$network,
 					$actor: {
 						address: params.accountAddress,
 					},

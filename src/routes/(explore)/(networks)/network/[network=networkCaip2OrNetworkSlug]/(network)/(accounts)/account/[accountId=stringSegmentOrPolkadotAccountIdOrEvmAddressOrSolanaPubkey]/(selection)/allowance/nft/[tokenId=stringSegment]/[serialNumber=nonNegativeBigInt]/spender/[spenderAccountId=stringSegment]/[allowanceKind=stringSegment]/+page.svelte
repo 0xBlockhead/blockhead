@@ -19,7 +19,7 @@
 	const pageSelection = $derived(select(EntityType.HederaAllowance, {
 		$owner: data.selector,
 		$spender: {
-			$network: selector.$owner.$network,
+			$network: data.selector.$network,
 			accountId: params.spenderAccountId,
 		},
 		allowanceKind: params.allowanceKind,

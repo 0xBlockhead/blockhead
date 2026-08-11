@@ -34,7 +34,7 @@
 			select(EntityType.CardanoTxOutputAsset, {
 				$output: data.selector,
 				$asset: {
-					$network: selector.$output.$transaction.$network,
+					$network: data.selector.$transaction.$network,
 					policyId: params.policyId,
 					assetName: params.assetName,
 				},

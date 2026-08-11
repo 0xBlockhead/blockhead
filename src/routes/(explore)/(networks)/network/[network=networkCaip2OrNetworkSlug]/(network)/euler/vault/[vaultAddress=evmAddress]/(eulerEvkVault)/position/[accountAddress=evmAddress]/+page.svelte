@@ -34,7 +34,7 @@
 		selection={
 			select(EntityType.EulerEvkVaultPosition, {
 				$account: {
-					$network: selector.$vault.$network,
+					$network: data.selector.$network,
 					$actor: {
 						address: params.accountAddress,
 					},

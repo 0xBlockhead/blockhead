@@ -34,11 +34,11 @@
 			select(EntityType.EigenLayerAllocation_Timestamp, {
 				$operator: data.selector,
 				$avs: {
-					$network: selector.$operator.$network,
+					$network: data.selector.$network,
 					avsAddress: params.avsAddress,
 				},
 				$strategy: {
-					$network: selector.$operator.$network,
+					$network: data.selector.$network,
 					strategyAddress: params.strategyAddress,
 				},
 				timestampMs: Number(params.timestampMs),

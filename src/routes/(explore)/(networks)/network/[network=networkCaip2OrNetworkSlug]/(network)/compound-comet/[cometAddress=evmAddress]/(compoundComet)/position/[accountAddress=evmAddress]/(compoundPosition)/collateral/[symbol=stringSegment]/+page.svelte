@@ -35,7 +35,7 @@
 			select(EntityType.CompoundPositionCollateral, {
 				$position: data.selector,
 				$asset: {
-					$comet: selector.$position.$comet,
+					$comet: data.selector.$comet,
 					symbol: params.symbol,
 				},
 			}, {

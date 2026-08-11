@@ -34,7 +34,7 @@
 			select(EntityType.TonJettonBalance_Timestamp, {
 				$account: data.selector,
 				$jetton: {
-					$network: selector.$account.$network,
+					$network: data.selector.$network,
 					masterAddress: params.masterAddress,
 				},
 				timestampMs: Number(params.timestampMs),
