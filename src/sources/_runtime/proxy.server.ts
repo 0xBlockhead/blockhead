@@ -13,7 +13,6 @@ import {
 } from '$/sources/SourceBinding.ts'
 import {
 	httpProxyBindingByProxyId,
-	httpProxyOrigins,
 } from '$/sources/index.server.ts'
 
 const PROXY_UPSTREAM_TIMEOUT_MS = 30_000
@@ -202,8 +201,7 @@ export const proxySourceHttpRequest = async (
 	const locatorUrl = new URL(endpoint.locator)
 
 	if (
-		!httpProxyOrigins.has(url.origin)
-		|| url.origin !== sourceEndpointOrigin(endpoint)
+		url.origin !== sourceEndpointOrigin(endpoint)
 		|| (
 			credentialDefinition?.definition.injection.endpointTemplate == null
 			&& (
@@ -274,7 +272,6 @@ export const proxySourceHttpRequest = async (
 		if (
 			candidateEndpoint.endpointKind !== SourceEndpointKind.HttpUrl
 			|| candidateOrigin == null
-			|| !httpProxyOrigins.has(candidateOrigin)
 		)
 			continue
 

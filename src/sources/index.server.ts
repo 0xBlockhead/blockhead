@@ -1,6 +1,6 @@
 import { sourceBindings } from '$/sources/$sourceProviders.ts'
 import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
-import { sourceBindingId, SourceCredentialScope, SourceDelivery, sourceEndpointOrigin, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { sourceBindingId, SourceCredentialScope, SourceDelivery, type SourceBinding } from '$/sources/SourceBinding.ts'
 import { env as privateEnv } from '$env/dynamic/private'
 
 const privateEnvHasValue = (key: string | undefined) => (
@@ -36,13 +36,6 @@ export const enabledBrowserServerSourceBindingIds = new Set(
 				|| binding.delivery === SourceDelivery.RemoteQuery
 		))
 		.map(sourceBindingId)
-)
-
-export const httpProxyOrigins = new Set(
-	enabledSourceBindings
-		.filter((binding) => binding.delivery === SourceDelivery.HttpProxy)
-		.flatMap((binding) => binding.endpoints)
-		.flatMap((endpoint) => sourceEndpointOrigin(endpoint) ?? [])
 )
 
 export const httpProxyBindingByProxyId = new Map<

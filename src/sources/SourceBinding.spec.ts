@@ -35,7 +35,6 @@ import {
 } from '$/sources/index.ts'
 import {
 	enabledSourceBindings,
-	httpProxyOrigins,
 	remoteLiveBindings,
 } from '$/sources/index.server.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
@@ -47,6 +46,13 @@ import snapchainBindings from '$/sources/Snapchain/bindings.ts'
 import { snapchainGet } from '$/sources/Snapchain/Rest/client.ts'
 
 const sourceProviders = generatedSourceProviders
+
+const enabledHttpProxyOrigins = new Set(
+	enabledSourceBindings
+		.filter((binding) => binding.delivery === SourceDelivery.HttpProxy)
+		.flatMap((binding) => binding.endpoints)
+		.flatMap((endpoint) => sourceEndpointOrigin(endpoint) ?? [])
+)
 
 const sourceMember = (
 	name: string
@@ -121,17 +127,9 @@ describe('source binding indexes', () => {
 			.toBeLessThanOrEqual(sourceBindings.length)
 	})
 
-	it('derives HTTP proxy origins from enabled HttpProxy HTTP endpoints', () => {
-		expect(httpProxyOrigins).toEqual(new Set(
-			enabledSourceBindings
-				.filter((binding) => binding.delivery === SourceDelivery.HttpProxy)
-				.flatMap((binding) => (
-					binding.endpoints
-						.flatMap((endpoint) => sourceEndpointOrigin(endpoint) ?? [])
-				))
-		))
-		expect(httpProxyOrigins.size).toBeGreaterThan(0)
-		expect([...httpProxyOrigins].every((origin) => (
+	it('keeps enabled HttpProxy endpoints on HTTP origins', () => {
+		expect(enabledHttpProxyOrigins.size).toBeGreaterThan(0)
+		expect([...enabledHttpProxyOrigins].every((origin) => (
 			origin.startsWith('http://') || origin.startsWith('https://')
 		))).toBe(true)
 	})
@@ -221,12 +219,12 @@ describe('source binding indexes', () => {
 		expect(remoteLiveBindings.some((binding) => (
 			binding.source === Source.Voltaire_JsonRpc
 		))).toBe(true)
-		expect(httpProxyOrigins.has('wss://ethereum.publicnode.com')).toBe(false)
+		expect(enabledHttpProxyOrigins.has('wss://ethereum.publicnode.com')).toBe(false)
 		expect(remoteLiveBindings.flatMap((binding) => (
 			binding.endpoints
 				.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.WebSocketUrl)
 				.map((endpoint) => endpoint.locator)
-		)).some((locator) => httpProxyOrigins.has(locator))).toBe(false)
+		)).some((locator) => enabledHttpProxyOrigins.has(locator))).toBe(false)
 	})
 
 	it('keeps social, storage, and operator reads on their verified delivery boundaries', () => {

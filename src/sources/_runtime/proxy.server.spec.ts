@@ -109,6 +109,12 @@ vi.mock('$/sources/index.server.ts', () => ({
 				},
 			],
 		}],
+		['other', {
+			endpoints: [{
+				endpointKind: 'HttpUrl',
+				locator: 'https://other.example.test/v1',
+			}],
+		}],
 		['oauth', {
 			endpoints: [{
 				endpointKind: 'HttpUrl',
@@ -133,12 +139,6 @@ vi.mock('$/sources/index.server.ts', () => ({
 				locator: 'https://oauth-api.example.test',
 			}],
 		}],
-	]),
-	httpProxyOrigins: new Set([
-		'https://api.example.test',
-		'https://primary.example.test',
-		'https://fallback.example.test',
-		'https://oauth-api.example.test',
 	]),
 }))
 
@@ -463,7 +463,7 @@ describe('runtime secret proxy', () => {
 	it.each([
 		['unknown proxy identity', 'missing', 0, 'https://api.example.test/v1'],
 		['wrong endpoint index', 'header', 1, 'https://api.example.test/v1'],
-		['wrong origin', 'header', 0, 'https://other.example.test/v1'],
+		['origin owned by another binding', 'header', 0, 'https://other.example.test/v1'],
 		['wrong locator', 'header', 0, 'https://api.example.test/v2'],
 	])('fails closed for %s', async (_label, proxyId, endpointIndex, upstreamUrl) => {
 		const { event } = proxyEvent(proxyId, endpointIndex, upstreamUrl)
