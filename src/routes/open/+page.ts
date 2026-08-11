@@ -5,6 +5,7 @@ import {
 	entityHrefFromSearchInput,
 	evmAddressHrefFromCoordinates,
 	evmHashHrefFromCoordinates,
+	utxoTransactionHrefFromCoordinates,
 } from './entitySearch.ts'
 
 
@@ -21,6 +22,10 @@ export const load: PageLoad = ({ url }) => {
 			query,
 			networkCaip2: url.searchParams.get('network'),
 			entityKind: url.searchParams.get('kind'),
+		})
+		?? utxoTransactionHrefFromCoordinates({
+			query,
+			networkKey: url.searchParams.get('network'),
 		})
 	)
 

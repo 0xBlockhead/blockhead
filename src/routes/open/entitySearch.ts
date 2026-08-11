@@ -1,6 +1,6 @@
 import { resolve } from '$app/paths'
 
-import { NetworkExecutionModel, networks } from '$/constants/Network.ts'
+import { NetworkExecutionModel, NetworkNamespace, networks } from '$/constants/Network.ts'
 import { ipfsResourceAddressFromInput, ipfsResourceHref } from '$/lib/ipfs.ts'
 
 
@@ -39,6 +39,32 @@ export const evmAddressEntityKinds = [
 		label: 'Contract',
 	},
 ] as const
+
+export const utxoTransactionNetworkChoices = networks.flatMap((network) => (
+	[
+		NetworkNamespace.Bitcoin,
+		NetworkNamespace.BitcoinCash,
+		NetworkNamespace.Cardano,
+		NetworkNamespace.Dogecoin,
+		NetworkNamespace.Elements,
+		NetworkNamespace.Litecoin,
+		NetworkNamespace.Zcash,
+	].some((namespace) => namespace === network.namespace) ?
+		[{
+			name: network.name,
+			environment: network.environment,
+			network: 'caip2' in network ?
+				`${network.caip2.namespace}:${network.caip2.reference}`
+			:
+				network.slug,
+			identity: 'caip2' in network ?
+				`${network.caip2.namespace}:${network.caip2.reference}`
+			:
+				`${network.namespace} catalog slug: ${network.slug}`,
+		}]
+	:
+		[]
+))
 
 export const entityHrefFromSearchInput = (query: string) => {
 	if (/^ip(?:fs|ns):\/\//i.test(query)) {
@@ -169,4 +195,24 @@ export const evmHashHrefFromCoordinates = ({
 				userOperationHash: query,
 			}
 		)
+}
+
+export const utxoTransactionHrefFromCoordinates = ({
+	query,
+	networkKey,
+}: {
+	query: string
+	networkKey: string | null
+}) => {
+	const network = utxoTransactionNetworkChoices.find((candidate) => candidate.network === networkKey)
+
+	if (!network || !/^[0-9a-fA-F]{64}$/.test(query)) return
+
+	return resolve(
+		'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
+		{
+			network: network.network,
+			transactionId: query,
+		}
+	)
 }

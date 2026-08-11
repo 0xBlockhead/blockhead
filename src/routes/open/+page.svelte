@@ -9,6 +9,7 @@
 		evmAccountCandidatesFromSearchInput,
 		evmHashEntityKinds,
 		evmNetworkChoices,
+		utxoTransactionNetworkChoices,
 	} from './entitySearch.ts'
 
 	let {
@@ -24,6 +25,9 @@
 	)
 	const isEvmHash = $derived(
 		/^0x[a-fA-F0-9]{64}$/.test(data.query)
+	)
+	const isUtxoTransactionId = $derived(
+		/^[a-fA-F0-9]{64}$/.test(data.query)
 	)
 </script>
 
@@ -48,6 +52,10 @@
 		{:else if isEvmHash}
 			<p role="status">
 				“{data.query}” is a valid 32-byte EVM hash, but a hash does not identify its network or entity kind.
+			</p>
+		{:else if isUtxoTransactionId}
+			<p role="status">
+				“{data.query}” is a valid 32-byte transaction ID, but it does not identify its network.
 			</p>
 		{:else if data.query}
 			<p role="alert">
@@ -84,7 +92,7 @@
 		<button type="submit">Open entity</button>
 	</form>
 
-	{#if evmAccountCandidates.length || isEvmHash}
+	{#if evmAccountCandidates.length || isEvmHash || isUtxoTransactionId}
 		<aside
 			aria-label="Candidate provenance"
 			data-card="padding-2"
@@ -169,6 +177,33 @@
 				</select>
 
 				<button type="submit">Open hash</button>
+			</form>
+		</section>
+	{/if}
+
+	{#if isUtxoTransactionId}
+		<section data-column="gap-2">
+			<h2>Identify this transaction</h2>
+
+			<p>The same transaction-ID shape is used by multiple checked-in networks. Choose the network coordinate to continue.</p>
+
+			<form
+				action={resolve('/open')}
+				method="get"
+				data-column="gap-2"
+			>
+				<input name="q" type="hidden" value={data.query} />
+
+				<label for="utxo-transaction-network">Network</label>
+
+				<select id="utxo-transaction-network" name="network" required>
+					<option value="">Choose a network</option>
+					{#each utxoTransactionNetworkChoices as network (network.network)}
+						<option value={network.network}>{network.name} — {network.environment} ({network.identity})</option>
+					{/each}
+				</select>
+
+				<button type="submit">Open transaction</button>
 			</form>
 		</section>
 	{/if}

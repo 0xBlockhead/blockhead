@@ -58,3 +58,20 @@ it('identifies a bare EVM address as incomplete rather than unsupported', async 
 	await expect.element(page.getByRole('complementary', { name: 'Candidate provenance' })).toBeVisible()
 	await expect.element(page.getByRole('alert')).not.toBeInTheDocument()
 })
+
+it('groups a bare 32-byte transaction ID by checked-in network identity', async () => {
+	await render(OpenEntityPage, {
+		data: {
+			query: '31ed178236b6bc4dd6dc8c6026e9d344e39afe0dc6d832c228131ce4ee40a8ca',
+		},
+	})
+
+	await expect.element(page.getByRole('status')).toHaveTextContent('valid 32-byte transaction ID')
+	await expect.element(page.getByRole('heading', { name: 'Identify this transaction' })).toBeVisible()
+	await expect.element(page.getByRole('combobox', { name: 'Network' })).toBeVisible()
+	await expect.element(page.getByRole('option', { name: 'Bitcoin — Mainnet (bip122:000000000019d6689c085ae165831e93)' })).toBeInTheDocument()
+	await expect.element(page.getByRole('option', { name: 'Cardano — Mainnet (cip34:1-764824073)' })).toBeInTheDocument()
+	await expect.element(page.getByRole('option', { name: 'Liquid Network — Mainnet (Elements catalog slug: liquid)' })).toBeInTheDocument()
+	await expect.element(page.getByRole('complementary', { name: 'Candidate provenance' })).toBeVisible()
+	await expect.element(page.getByRole('alert')).not.toBeInTheDocument()
+})

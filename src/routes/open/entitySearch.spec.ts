@@ -5,6 +5,8 @@ import {
 	evmAccountCandidatesFromSearchInput,
 	evmAddressHrefFromCoordinates,
 	evmHashHrefFromCoordinates,
+	utxoTransactionHrefFromCoordinates,
+	utxoTransactionNetworkChoices,
 } from './entitySearch.ts'
 
 
@@ -129,6 +131,36 @@ describe(evmHashHrefFromCoordinates, () => {
 			query: hash,
 			networkCaip2,
 			entityKind,
+		})).toBeUndefined()
+	})
+})
+
+
+describe(utxoTransactionHrefFromCoordinates, () => {
+	const transactionId = '31ed178236b6bc4dd6dc8c6026e9d344e39afe0dc6d832c228131ce4ee40a8ca'
+
+	it('offers every checked-in transaction route supported by this identifier shape', () => {
+		expect(utxoTransactionNetworkChoices).toEqual(expect.arrayContaining([
+			expect.objectContaining({ name: 'Bitcoin', network: 'bip122:000000000019d6689c085ae165831e93' }),
+			expect.objectContaining({ name: 'Cardano', network: 'cip34:1-764824073' }),
+			expect.objectContaining({ name: 'Liquid Network', network: 'liquid' }),
+		]))
+	})
+
+	it('opens a canonical transaction route after its network is chosen', () => {
+		expect(utxoTransactionHrefFromCoordinates({
+			query: transactionId,
+			networkKey: 'bip122:000000000019d6689c085ae165831e93',
+		})).toBe(`/network/bip122:000000000019d6689c085ae165831e93/tx/${transactionId}`)
+	})
+
+	it.each([
+		[null],
+		['eip155:1'],
+	])('rejects an unsupported network coordinate %s', (networkKey) => {
+		expect(utxoTransactionHrefFromCoordinates({
+			query: transactionId,
+			networkKey,
 		})).toBeUndefined()
 	})
 })
