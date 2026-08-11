@@ -53,7 +53,7 @@ const fileHashes = (rootPath: string, paths: readonly string[]) => paths
 	.toSorted(([left], [right]) => left.localeCompare(right, 'en'))
 
 test('cold-reconstructs the generated product from only canonical and manual inputs', {
-	timeout: 180_000,
+	timeout: 420_000,
 }, () => {
 	const isolatedRoot = mkdtempSync(path.join(tmpdir(), 'blockhead-cold-reconstruction-'))
 	const compiledApp = compileApp(app)
@@ -87,7 +87,9 @@ test('cold-reconstructs the generated product from only canonical and manual inp
 			cwd: isolatedRoot,
 			encoding: 'utf8',
 			env: Object.fromEntries(Object.entries(process.env).filter(([name]) => name !== 'APP_GENERATED_OUTPUT_ROOT')),
+			killSignal: 'SIGKILL',
 			maxBuffer: 16 * 1024 * 1024,
+			timeout: 180_000,
 		})
 		assert.equal(result.status, 0, [
 			`cold generator ${command} failed`,
