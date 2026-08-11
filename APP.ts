@@ -73848,7 +73848,6 @@ export const routes = defineRoutes(schema)({
 																								projection: { entityType: EntityType.Network, facetPath: ["Tron"] },
 																								params: { "source": ["source"] },
 																								derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
-																								page: {},
 																							},
 																						}
 																					},
@@ -79737,7 +79736,6 @@ export const routes = defineRoutes(schema)({
 																		projection: { entityType: EntityType.Network, facetPath: ["Tron"] },
 																		params: { "source": ["source"] },
 																		derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
-																		page: {},
 																	},
 																},
 																[EntityType.EvmNetwork_Timestamp]: {
@@ -86465,7 +86463,6 @@ export const routes = defineRoutes(schema)({
 																				[EntityType.TronWitness_Timestamp]: {
 																					"WitnessTimestampMsSource": {
 																						params: { "timestampMs": ["timestampMs"], "source": ["source"] },
-																						page: {},
 																					}
 																				}
 																			}
