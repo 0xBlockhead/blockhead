@@ -305,6 +305,29 @@ describe('Neynar user-cast request identity', () => {
 		})).toThrow('positive FID')
 		expect(neynarFetch).not.toHaveBeenCalled()
 	})
+
+	it('rejects substituted user-cast authors and repeated continuations', async () => {
+		neynarFetch.mockResolvedValueOnce({
+			casts: [{
+				author: { fid: 43 },
+			}],
+			next: { cursor: '' },
+		})
+
+		await expect(getUserCastsPage({}, {
+			fid: 42,
+		})).rejects.toThrow('user casts subject mismatch')
+
+		neynarFetch.mockResolvedValueOnce({
+			casts: [],
+			next: { cursor: 'same' },
+		})
+
+		await expect(getUserCastsPage({}, {
+			fid: 42,
+			cursor: 'same',
+		})).rejects.toThrow('user casts repeated cursor')
+	})
 })
 
 describe('Neynar cast request identity', () => {

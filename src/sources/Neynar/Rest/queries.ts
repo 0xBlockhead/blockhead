@@ -137,7 +137,7 @@ export const getBulkUsers = async ({
 }
 
 /** Reverse-chronological casts authored by one exact FID. */
-export const getUserCastsPage = (
+export const getUserCastsPage = async (
 	publicEnv: SourcePublicEnv,
 	query: NeynarUserCastsQuery
 ) => {
@@ -154,10 +154,16 @@ export const getUserCastsPage = (
 	if (query.cursor != null && query.cursor !== '')
 		searchParams.set('cursor', query.cursor)
 
-	return neynarFetch<NeynarUserCastsResponse>(
+	const page = await neynarFetch<NeynarUserCastsResponse>(
 		publicEnv,
 		`/v2/farcaster/feed/user/casts/?${searchParams}`
 	)
+	if (page?.casts.some((cast) => cast.author.fid !== query.fid))
+		throw new Error('Neynar user casts subject mismatch')
+	if (query.cursor != null && query.cursor !== '' && page?.next.cursor === query.cursor)
+		throw new Error('Neynar user casts repeated cursor')
+
+	return page
 }
 
 /**
