@@ -132,6 +132,9 @@ describe('Bitcoin Core JSON-RPC', () => {
 			height: 1n,
 		})).rejects.toThrow('invalid block hash')
 
+		jsonRpc2.mockResolvedValueOnce(Number.MAX_SAFE_INTEGER + 1)
+		await expect(getBlockCount()).rejects.toThrow('block count exceeds lossless JSON integer range')
+
 		const mempoolInfo = {
 			loaded: true,
 			size: 1,
