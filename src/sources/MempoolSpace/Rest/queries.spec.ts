@@ -18,9 +18,11 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 const {
 	getBlock,
 	getBlockHashByHeight,
+	getAddress,
 	getAddressUtxos,
 	getMempoolStats,
 	getRecommendedFees,
+	getTransaction,
 	getTransactionProtocolPayloads,
 } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 
@@ -49,7 +51,7 @@ describe('mempool.space Bitcoin REST binding', () => {
 				minimumFee: 1,
 			})
 
-		await getBlock('block/hash')
+		await getBlock('a'.repeat(64))
 		await getRecommendedFees()
 
 		expect(binding).not.toBe(
@@ -58,7 +60,7 @@ describe('mempool.space Bitcoin REST binding', () => {
 		expect(sourceGetJson.mock.calls).toEqual([
 			[
 				binding,
-				'https://mempool.space/api/block/block%2Fhash',
+				`https://mempool.space/api/block/${'a'.repeat(64)}`,
 			],
 			[
 				binding,
@@ -94,6 +96,51 @@ describe('mempool.space Bitcoin REST binding', () => {
 				'https://mempool.space/api/address/bc1qexample/utxo',
 			],
 		])
+	})
+
+	it('rejects invalid or substituted block, transaction, and address identities before returning provider rows', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...validBlock,
+			id: 'b'.repeat(64),
+		})
+		await expect(getBlock('a'.repeat(64))).rejects.toThrow('block response has mismatched identity')
+
+		sourceGetJson.mockResolvedValueOnce({
+			txid: 'b'.repeat(64),
+			status: { confirmed: false },
+			vin: [],
+			vout: [],
+		})
+		await expect(getTransaction('a'.repeat(64))).rejects.toThrow('transaction response has mismatched identity')
+
+		sourceGetJson.mockResolvedValueOnce({
+			address: 'bc1qother',
+			chain_stats: {
+				funded_txo_count: 0,
+				funded_txo_sum: 0,
+				spent_txo_count: 0,
+				spent_txo_sum: 0,
+				tx_count: 0,
+			},
+			mempool_stats: {
+				funded_txo_count: 0,
+				funded_txo_sum: 0,
+				spent_txo_count: 0,
+				spent_txo_sum: 0,
+				tx_count: 0,
+			},
+		})
+		await expect(getAddress('bc1qrequested')).rejects.toThrow('address response has mismatched identity')
+
+		sourceGetJson.mockReset()
+		for (const query of [
+			() => getBlock('not-a-hash'),
+			() => getTransaction('not-a-transaction'),
+			() => getBlockHashByHeight(-1n),
+			() => getAddress(''),
+		])
+			await expect(query()).rejects.toThrow('MempoolSpace_Rest:')
+		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
 	it('fail-closes malformed mempool stats and recommended fee envelopes', async () => {

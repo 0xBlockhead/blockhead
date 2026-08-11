@@ -10,6 +10,7 @@ import {
 	esploraBlockWire,
 	esploraMempoolStatsWire,
 	esploraTransactionWire,
+	esploraTxIdWire,
 	esploraTxIdListWire,
 	mempoolSpaceRecommendedFeesWire,
 } from '$/sources/Esplora/Rest/envelopes.ts'
@@ -33,20 +34,36 @@ const getMempoolSpaceJson = <_Response>(
 	mempoolSpaceRestUrl(path)
 )
 
+const assertBlockHash = (blockHash: string) => {
+	if (!esploraBlockHashWire.allows(blockHash))
+		throw new Error(`${sourceLabel}: invalid block hash`)
+}
+
+const assertTransactionId = (transactionId: string) => {
+	if (!esploraTxIdWire.allows(transactionId))
+		throw new Error(`${sourceLabel}: invalid transaction ID`)
+}
+
 export const getBlock = async (
 	blockHash: string
-) => (
-	assertEsploraEnvelope(
+) => {
+	assertBlockHash(blockHash)
+	const block = assertEsploraEnvelope(
 		esploraBlockWire,
 		await getMempoolSpaceJson(`block/${encodeURIComponent(blockHash)}`),
 		'block',
 		sourceLabel
 	)
-)
+	if (block.id.toLowerCase() !== blockHash.toLowerCase())
+		throw new Error(`${sourceLabel}: block response has mismatched identity`)
+	return block
+}
 
 export const getBlockHashByHeight = async (
 	height: bigint
 ) => {
+	if (height < 0n)
+		throw new Error(`${sourceLabel}: block height must be non-negative`)
 	const hash = await getMempoolSpaceJson<unknown>(`block-height/${height.toString()}`)
 	if (!esploraBlockHashWire.allows(hash))
 		throw new Error(`${sourceLabel}: invalid block hash envelope`)
@@ -66,14 +83,18 @@ export const getBlockTransactionIds = async (
 
 export const getTransaction = async (
 	txId: string
-) => (
-	assertEsploraEnvelope(
+) => {
+	assertTransactionId(txId)
+	const transaction = assertEsploraEnvelope(
 		esploraTransactionWire,
 		await getMempoolSpaceJson(`tx/${encodeURIComponent(txId)}`),
 		'transaction',
 		sourceLabel
 	)
-)
+	if (transaction.txid !== txId)
+		throw new Error(`${sourceLabel}: transaction response has mismatched identity`)
+	return transaction
+}
 
 /**
  * Extract Ordinals envelopes + Runestone from a mempool.space (Esplora-compatible) transaction.
@@ -126,14 +147,19 @@ export const getMempoolTxids = async () => (
 
 export const getAddress = async (
 	address: string
-) => (
-	assertEsploraEnvelope(
+) => {
+	if (address.length === 0)
+		throw new Error(`${sourceLabel}: address is empty`)
+	const addressResponse = assertEsploraEnvelope(
 		esploraAddressWire,
 		await getMempoolSpaceJson(`address/${encodeURIComponent(address)}`),
 		'address',
 		sourceLabel
 	)
-)
+	if (addressResponse.address !== address)
+		throw new Error(`${sourceLabel}: address response has mismatched identity`)
+	return addressResponse
+}
 
 export const getAddressUtxos = async (
 	address: string
