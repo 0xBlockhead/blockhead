@@ -43,13 +43,16 @@ export const getBlock = async ({
 }: {
 	blockHash: string
 	target: EsploraTarget
-}) => (
-	assertEsploraEnvelope(
+}) => {
+	const block = assertEsploraEnvelope(
 		esploraBlockWire,
 		await getEsploraJson(target, `/block/${encodeURIComponent(blockHash)}`),
 		'block'
 	)
-)
+	if (block.id.toLowerCase() !== blockHash.toLowerCase())
+		throw new Error('Esplora_Rest: block response has mismatched identity')
+	return block
+}
 
 export const getBlockHashByHeight = async ({
 	height,
@@ -104,13 +107,16 @@ export const getTransaction = async ({
 }: {
 	target: EsploraTarget
 	txId: string
-}) => (
-	assertEsploraEnvelope(
+}) => {
+	const transaction = assertEsploraEnvelope(
 		esploraTransactionWire,
 		await getEsploraJson(target, `/tx/${encodeURIComponent(txId)}`),
 		'transaction'
 	)
-)
+	if (transaction.txid !== txId)
+		throw new Error('Esplora_Rest: transaction response has mismatched identity')
+	return transaction
+}
 
 /**
  * Extract Ordinals envelopes + Runestone from an Esplora transaction wire.
@@ -183,13 +189,16 @@ export const getAddress = async ({
 }: {
 	address: string
 	target: EsploraTarget
-}) => (
-	assertEsploraEnvelope(
+}) => {
+	const addressResponse = assertEsploraEnvelope(
 		esploraAddressWire,
 		await getEsploraJson(target, `/address/${encodeURIComponent(address)}`),
 		'address'
 	)
-)
+	if (addressResponse.address !== address)
+		throw new Error('Esplora_Rest: address response has mismatched identity')
+	return addressResponse
+}
 
 export const getAddressUtxos = async ({
 	address,
@@ -235,13 +244,16 @@ export const getAsset = async ({
 }: {
 	assetId: string
 	target: EsploraTarget
-}) => (
-	assertEsploraEnvelope(
+}) => {
+	const asset = assertEsploraEnvelope(
 		esploraAssetWire,
 		await getEsploraJson(target, `/asset/${encodeURIComponent(assetId)}`),
 		'asset'
 	)
-)
+	if (asset.asset_id !== assetId)
+		throw new Error('Esplora_Rest: asset response has mismatched identity')
+	return asset
+}
 
 export const listRegistryAssets = async ({
 	target,

@@ -23,6 +23,7 @@ const {
 	getAddress,
 	getMempoolStats,
 	getSuggestedFeePerByteSats,
+	getTransaction,
 	getTransactionProtocolPayloads,
 } = await import('$/sources/Esplora/Rest/queries.ts')
 
@@ -53,24 +54,49 @@ describe('Esplora REST binding selection', () => {
 			.mockResolvedValueOnce(validBlock)
 
 		await getBlock({
-			blockHash: 'bitcoin-block',
+			blockHash: validBlock.id,
 			target: bitcoinBinding.target.key,
 		})
 		await getBlock({
-			blockHash: 'liquid-block',
+			blockHash: validBlock.id,
 			target: liquidBinding.target.key,
 		})
 
 		expect(sourceGetJson.mock.calls).toEqual([
 			[
 				bitcoinBinding,
-				'https://blockstream.info/api/block/bitcoin-block',
+				`https://blockstream.info/api/block/${validBlock.id}`,
 			],
 			[
 				liquidBinding,
-				'https://blockstream.info/liquid/api/block/liquid-block',
+				`https://blockstream.info/liquid/api/block/${validBlock.id}`,
 			],
 		])
+	})
+
+	it('rejects substituted block and transaction identities', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({
+				...validBlock,
+				id: 'b'.repeat(64),
+			})
+			.mockResolvedValueOnce({
+				txid: 'b'.repeat(64),
+				status: {
+					confirmed: false,
+				},
+				vin: [],
+				vout: [],
+			})
+
+		await expect(getBlock({
+			blockHash: validBlock.id,
+			target: bitcoinBinding.target.key,
+		})).rejects.toThrow('mismatched identity')
+		await expect(getTransaction({
+			target: bitcoinBinding.target.key,
+			txId: validBlock.id,
+		})).rejects.toThrow('mismatched identity')
 	})
 
 	it('fail-closes malformed block and asset envelopes', async () => {
