@@ -433,4 +433,29 @@ describe('XRPL Clio historical ledger deepen', () => {
 			},
 		}])
 	})
+
+	it('rejects duplicate transaction identities in a ledger page', async () => {
+		getLedgerTransactions.mockResolvedValue({
+			...tipLedger,
+			transactions: [
+				{
+					hash: 'DUPLICATE_TX',
+					TransactionType: 'Payment',
+					Account: 'rSender',
+				},
+				{
+					hash: 'DUPLICATE_TX',
+					TransactionType: 'OfferCreate',
+					Account: 'rSender',
+				},
+			],
+		})
+
+		await expect(ledgerTxResolver.resolve.NetworkLedgerIndex.resolve({
+			$network: {
+				caip2: networkBySlug.xrpl.caip2,
+			},
+			ledgerIndex: 92000002n,
+		}, context)).rejects.toThrow('ledger transactions contain duplicate hashes')
+	})
 })

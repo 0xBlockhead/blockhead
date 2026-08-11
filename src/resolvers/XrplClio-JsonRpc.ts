@@ -439,9 +439,15 @@ export default {
 						assertValidatedLedger(ledger)
 						if (BigInt(ledger.ledger_index) !== ledgerIndex)
 							throw new Error('XrplClio_JsonRpc: ledger index does not match')
-						return (ledger.transactions ?? [])
+						const transactions = (ledger.transactions ?? [])
 							.slice(0, limit)
-							.map((transaction) => projectLedgerTransaction($network, ledgerIndex, transaction))
+
+						if (new Set(transactions.map((transaction) => transaction.hash)).size !== transactions.length)
+							throw new Error('XrplClio_JsonRpc: ledger transactions contain duplicate hashes')
+
+						return transactions.map((transaction) => (
+							projectLedgerTransaction($network, ledgerIndex, transaction)
+						))
 					},
 				},
 			},
