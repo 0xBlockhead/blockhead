@@ -796,11 +796,14 @@ export const lensQueries = (() => {
 	const queryFeed = async (
 	address: `0x${string}`
 ) => {
-	const response = await queryLens(
-		LensFeedDocument,
-		{ address }
-	)
-	return response.feed == null ? response : {
+		const response = await queryLens(
+			LensFeedDocument,
+			{ address }
+		)
+		if (response.feed != null && response.feed.address.toLowerCase() !== address.toLowerCase())
+			throw new Error('Lens_Graphql: feed response does not match request')
+
+		return response.feed == null ? response : {
 		...response,
 		feed: {
 			...response.feed,
@@ -893,11 +896,17 @@ export const lensQueries = (() => {
 	const queryNamespace = async (
 	address: `0x${string}`
 ) => {
-	const response = await queryLens(
-		LensNamespaceDocument,
-		{ address }
-	)
-	return response.namespace == null ? response : {
+		const response = await queryLens(
+			LensNamespaceDocument,
+			{ address }
+		)
+		if (
+			response.namespace != null
+			&& response.namespace.address.toLowerCase() !== address.toLowerCase()
+		)
+			throw new Error('Lens_Graphql: namespace response does not match request')
+
+		return response.namespace == null ? response : {
 		...response,
 		namespace: {
 			...response.namespace,

@@ -488,6 +488,33 @@ it('rejects foreign post response identities before enrichment', async () => {
 	await expect(queryPost('requested-post')).rejects.toThrow('post response does not match request')
 })
 
+it('rejects foreign feed and namespace response identities before enrichment', async () => {
+	const requestedAddress = '0x1111111111111111111111111111111111111111'
+	const foreignAddress = '0x2222222222222222222222222222222222222222'
+	fetchMock
+		.mockResolvedValueOnce(response({
+			feed: {
+				address: foreignAddress,
+				rules: {
+					required: [],
+					anyOf: [],
+				},
+			},
+		}))
+		.mockResolvedValueOnce(response({
+			namespace: {
+				address: foreignAddress,
+				rules: {
+					required: [],
+					anyOf: [],
+				},
+			},
+		}))
+
+	await expect(queryFeed(requestedAddress)).rejects.toThrow('feed response does not match request')
+	await expect(queryNamespace(requestedAddress)).rejects.toThrow('namespace response does not match request')
+})
+
 it('rejects malformed identities and invalid directory limits before transport', async () => {
 	await expect(queryPost(' ')).rejects.toThrow('post identity must not be empty')
 	await expect(queryAccounts(-1)).rejects.toThrow('page limit must be a nonnegative safe integer')
