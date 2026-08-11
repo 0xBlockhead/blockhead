@@ -151,8 +151,10 @@ export const getFeatures = async () => (
 export const getAccountInfo = async (
 	account: string,
 	ledgerIndex: XrplLedgerSpecifier = 'validated'
-) => (
-	assertEnvelope(
+) => {
+	if (account === '')
+		throw new Error('Xrpl_Rippled: account must not be empty')
+	const response = assertEnvelope(
 		'account_info',
 		xrplAccountInfo,
 		await jsonRpc2<unknown>(binding, 'account_info', [{
@@ -160,17 +162,22 @@ export const getAccountInfo = async (
 			ledger_index: ledgerIndex,
 		}])
 	) as XrplAccountInfoResult
-)
+	if (response.account_data.Account !== account)
+		throw new Error('Xrpl_Rippled: account_info response does not match request')
+	return response
+}
 
 export const getAccountObjects = async (
 	account: string,
 	limit: number,
 	marker?: XrplMarker
 ) => {
+	if (account === '')
+		throw new Error('Xrpl_Rippled: account must not be empty')
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 400)
 		throw new Error('Xrpl_Rippled: invalid account objects limit')
 
-	return assertEnvelope(
+	const response = assertEnvelope(
 		'account_objects',
 		xrplAccountObjects,
 		await jsonRpc2<unknown>(binding, 'account_objects', [{
@@ -182,6 +189,9 @@ export const getAccountObjects = async (
 			}),
 		}])
 	) as XrplAccountObjectsResult
+	if (response.account !== account)
+		throw new Error('Xrpl_Rippled: account_objects response does not match request')
+	return response
 }
 
 export const getAccountLines = async (
@@ -189,10 +199,12 @@ export const getAccountLines = async (
 	limit: number,
 	marker?: XrplMarker
 ) => {
+	if (account === '')
+		throw new Error('Xrpl_Rippled: account must not be empty')
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 400)
 		throw new Error('Xrpl_Rippled: invalid account lines limit')
 
-	return assertEnvelope(
+	const response = assertEnvelope(
 		'account_lines',
 		xrplAccountLines,
 		await jsonRpc2<unknown>(binding, 'account_lines', [{
@@ -204,6 +216,9 @@ export const getAccountLines = async (
 			}),
 		}])
 	) as XrplAccountLinesResult
+	if (response.account !== account)
+		throw new Error('Xrpl_Rippled: account_lines response does not match request')
+	return response
 }
 
 export const getAccountTransactions = async (
@@ -211,10 +226,12 @@ export const getAccountTransactions = async (
 	limit: number,
 	marker?: XrplMarker
 ) => {
+	if (account === '')
+		throw new Error('Xrpl_Rippled: account must not be empty')
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 400)
 		throw new Error('Xrpl_Rippled: invalid account transactions limit')
 
-	return assertEnvelope(
+	const response = assertEnvelope(
 		'account_tx',
 		xrplAccountTransactions,
 		await jsonRpc2<unknown>(binding, 'account_tx', [{
@@ -229,6 +246,9 @@ export const getAccountTransactions = async (
 			}),
 		}])
 	) as XrplAccountTransactionsResult
+	if (response.account !== account)
+		throw new Error('Xrpl_Rippled: account_tx response does not match request')
+	return response
 }
 
 export const getAmmInfo = async (
@@ -238,7 +258,7 @@ export const getAmmInfo = async (
 	if (ammAccount.length === 0)
 		throw new Error('Xrpl_Rippled: AMM account must not be empty')
 
-	return assertEnvelope(
+	const response = assertEnvelope(
 		'amm_info',
 		xrplAmmInfo,
 		await jsonRpc2<unknown>(binding, 'amm_info', [{
@@ -246,4 +266,7 @@ export const getAmmInfo = async (
 			ledger_index: ledgerIndex,
 		}])
 	) as XrplAmmInfoResult
+	if (response.amm.account !== ammAccount)
+		throw new Error('Xrpl_Rippled: amm_info response does not match request')
+	return response
 }

@@ -8,6 +8,11 @@ import {
 } from 'vitest'
 
 import {
+	getAccountInfo,
+	getAccountLines,
+	getAccountObjects,
+	getAccountTransactions,
+	getAmmInfo,
 	getLedger,
 	getValidatedLedger,
 } from '$/sources/Xrpl/JsonRpc/queries.ts'
@@ -81,5 +86,75 @@ describe('Xrpl_Rippled ledger transport', () => {
 			},
 		}))
 		await expect(getValidatedLedger()).rejects.toThrow('invalid ledger response envelope')
+	})
+})
+
+describe('Xrpl_Rippled account and AMM request identity', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('rejects substituted account and AMM subjects', async () => {
+		const requestedAccount = 'rRequested'
+		const foreignAccount = 'rForeign'
+		for (const result of [
+			{
+				account_data: {
+					Account: foreignAccount,
+					Balance: '0',
+					Flags: 0,
+					LedgerEntryType: 'AccountRoot',
+					OwnerCount: 0,
+					Sequence: 1,
+				},
+				validated: true,
+			},
+			{
+				account: foreignAccount,
+				account_objects: [],
+				validated: true,
+			},
+			{
+				account: foreignAccount,
+				lines: [],
+				validated: true,
+			},
+			{
+				account: foreignAccount,
+				ledger_index_min: -1,
+				ledger_index_max: -1,
+				transactions: [],
+				validated: true,
+			},
+			{
+				amm: {
+					account: foreignAccount,
+					amount: '1',
+					amount2: '2',
+					lp_token: {
+						currency: 'LP',
+						issuer: foreignAccount,
+						value: '3',
+					},
+					trading_fee: 0,
+				},
+				validated: true,
+			},
+		])
+			sourceFetch.mockResolvedValueOnce(jsonRpcResponse(result))
+
+		await expect(getAccountInfo(requestedAccount)).rejects.toThrow('account_info response does not match request')
+		await expect(getAccountObjects(requestedAccount, 10)).rejects.toThrow('account_objects response does not match request')
+		await expect(getAccountLines(requestedAccount, 10)).rejects.toThrow('account_lines response does not match request')
+		await expect(getAccountTransactions(requestedAccount, 10)).rejects.toThrow('account_tx response does not match request')
+		await expect(getAmmInfo(requestedAccount)).rejects.toThrow('amm_info response does not match request')
+	})
+
+	it('rejects empty account selectors before transport', async () => {
+		await expect(getAccountInfo('')).rejects.toThrow('account must not be empty')
+		await expect(getAccountObjects('', 10)).rejects.toThrow('account must not be empty')
+		await expect(getAccountLines('', 10)).rejects.toThrow('account must not be empty')
+		await expect(getAccountTransactions('', 10)).rejects.toThrow('account must not be empty')
+		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })
