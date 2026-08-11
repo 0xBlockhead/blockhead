@@ -111,6 +111,9 @@ export const getChannel = async (channelId: string) => {
 	const response = await farcasterGet<FarcasterChannelResponse>('client-api', '/v1/channel', { channelId })
 	assertEnvelope('channel', farcasterChannelResponseWire, response)
 	const channel = response.result?.channel
+	if (channel != null && channel.id !== channelId)
+		throw new Error('Farcaster_Rest: channel subject mismatch')
+
 	return channel == null ? undefined : normalizeFarcasterChannel(channel)
 }
 

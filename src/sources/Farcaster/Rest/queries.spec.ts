@@ -73,6 +73,20 @@ describe('Farcaster channel request identity', () => {
 		)
 	})
 
+	it('rejects a channel response for a different requested id', async () => {
+		farcasterGet.mockResolvedValueOnce({
+			result: {
+				channel: {
+					id: 'development',
+					name: 'Development',
+					url: 'https://farcaster.xyz/~/channel/development',
+				},
+			},
+		})
+
+		await expect(getChannel('design')).rejects.toThrow('channel subject mismatch')
+	})
+
 	it('preserves an explicit not-following viewer result', async () => {
 		farcasterGet.mockResolvedValueOnce({ result: { following: false } })
 
