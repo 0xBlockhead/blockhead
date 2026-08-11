@@ -50,6 +50,19 @@ const lifiEvmNetworkRef = (
 		undefined
 )
 
+const lifiEvmChainId = (
+	reference: string
+) => {
+	if (!/^[1-9][0-9]*$/.test(reference))
+		throw new Error(`Lifi_Rest: invalid eip155 chain id ${reference}`)
+
+	const chainId = Number(reference)
+	if (!Number.isSafeInteger(chainId))
+		throw new Error(`Lifi_Rest: invalid eip155 chain id ${reference}`)
+
+	return chainId
+}
+
 const lifiCoinInstanceSelector = (
 	entitySelector: EntitySelector<typeof schema, EntityType.EvmCoinInstance>
 ): CoinInstanceEntitySelector => {
@@ -421,8 +434,9 @@ export default {
 						if (caip2.namespace !== 'eip155')
 							throw new Error('Lifi_Rest: only eip155 networks are supported')
 
+						const chainId = lifiEvmChainId(caip2.reference)
 						const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
-						const lifiChain = (await fetchChains()).chains.find((chain) => chain.id === Number(caip2.reference))
+						const lifiChain = (await fetchChains()).chains.find((chain) => chain.id === chainId)
 						if (lifiChain == null)
 							throw new Error('Lifi_Rest: chain not in LI.FI catalog')
 
@@ -712,8 +726,9 @@ export default {
 						if (caip2.namespace !== 'eip155')
 							throw new Error('Lifi_Rest: only eip155 networks are supported')
 
+						const chainId = lifiEvmChainId(caip2.reference)
 						const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
-						const lifiChain = (await fetchChains()).chains.find((chain) => chain.id === Number(caip2.reference))
+						const lifiChain = (await fetchChains()).chains.find((chain) => chain.id === chainId)
 						if (lifiChain == null)
 							throw new Error('Lifi_Rest: chain not in LI.FI catalog')
 

@@ -436,6 +436,23 @@ describe('LI.FI network catalog projections', () => {
 			},
 		})).rejects.toThrow('chain display name missing')
 	})
+
+	it('rejects non-canonical EIP-155 chain references before loading the LI.FI catalog', async () => {
+		const resolver = lifiRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'name' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('LI.FI Network name resolver is not registered')
+
+		await expect(resolver.resolve.Caip2.resolve({
+			caip2: {
+				namespace: 'eip155',
+				reference: '1e0',
+			},
+		})).rejects.toThrow('invalid eip155 chain id 1e0')
+		expect(fetchChains).not.toHaveBeenCalled()
+	})
 })
 
 describe('LI.FI bridge route step counts', () => {
