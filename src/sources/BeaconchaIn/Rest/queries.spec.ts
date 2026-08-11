@@ -407,4 +407,81 @@ describe('BeaconchaIn REST queries', () => {
 			indexOrPubkey: 20,
 		})).rejects.toThrow('invalid BeaconchaIn GET validator attestations[0] response envelope')
 	})
+
+	it('rejects an epoch response with a mismatched number or invalid timestamp', async () => {
+		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
+			status: 'OK',
+			data: epochWire,
+		})))
+		vi.stubGlobal('window', {})
+
+		await expect(getEpoch(publicEnv, {
+			chainId: 1,
+			epoch: 300001,
+		})).rejects.toThrow('does not match the requested epoch')
+	})
+
+	it('rejects slot duty rows from a different slot or with duplicate identities', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: [{
+					aggregationbits: '0xff',
+					block_index: 0,
+					committeeindex: 1,
+					slot: 9599999,
+					block_slot: 9600001,
+				}],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				status: 'OK',
+				data: [slotWire, slotWire],
+			}))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getSlotAttestations(publicEnv, {
+			chainId: 1,
+			slot: 9600000,
+		})).rejects.toThrow('does not match the requested slot')
+
+		await expect(getEpochSlots(publicEnv, {
+			chainId: 1,
+			epoch: 300000,
+		})).rejects.toThrow('duplicate identities')
+	})
+
+	it('rejects validator attestations with mismatched index or duplicate attesterslot', async () => {
+		const attestationWire = {
+			attesterslot: 12779525,
+			epoch: 399360,
+			inclusionslot: 12779526,
+			status: 1,
+			validatorindex: 21,
+			committeeindex: 0,
+			week: 253,
+			week_start: '2025-10-07T12:00:23Z',
+			week_end: '2025-10-14T12:00:23Z',
+		}
+		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
+			status: 'OK',
+			data: [attestationWire],
+		})))
+		vi.stubGlobal('window', {})
+
+		await expect(getValidatorAttestations(publicEnv, {
+			chainId: 1,
+			indexOrPubkey: 20,
+		})).rejects.toThrow('does not match the requested validator')
+
+		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({
+			status: 'OK',
+			data: [attestationWire, attestationWire],
+		})))
+
+		await expect(getValidatorAttestations(publicEnv, {
+			chainId: 1,
+			indexOrPubkey: 21,
+		})).rejects.toThrow('duplicate identities')
+	})
 })

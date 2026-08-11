@@ -35,6 +35,25 @@ const assertEnvelope = <_Value>(
 	}
 }
 
+const beaconchaInTimestampMs = (timestamp: string, label: string) => {
+	const ms = Date.parse(timestamp)
+	if (!Number.isFinite(ms) || ms < 0)
+		throw new Error(`${Source.BeaconchaIn_Rest}: invalid ${label} timestamp`)
+
+	return ms
+}
+
+const beaconchaInRequestedValidatorIndex = (indexOrPubkey: number | string) => {
+	if (typeof indexOrPubkey === 'number')
+		return indexOrPubkey
+
+	const asNumber = Number(indexOrPubkey)
+	if (Number.isSafeInteger(asNumber))
+		return asNumber
+
+	return undefined
+}
+
 const beaconchaInGetJson = async <_Data>(
 	publicEnv: SourcePublicEnv,
 	{
@@ -111,8 +130,8 @@ export const getEpoch = async (
 		chainId: number
 		epoch: number | 'latest' | 'finalized'
 	}
-) => (
-	assertEnvelope(
+) => {
+	const wire = assertEnvelope(
 		beaconchaInEpochEnvelope,
 		await beaconchaInGetJson(
 			publicEnv,
@@ -124,9 +143,14 @@ export const getEpoch = async (
 		),
 		'epoch'
 	)
-)
+	if (typeof epoch === 'number' && wire.epoch !== epoch)
+		throw new Error(`${Source.BeaconchaIn_Rest}: epoch response does not match the requested epoch`)
 
-export const getEpochSlots = (
+	beaconchaInTimestampMs(wire.ts, 'epoch')
+	return wire
+}
+
+export const getEpochSlots = async (
 	publicEnv: SourcePublicEnv,
 	{
 		chainId,
@@ -135,8 +159,9 @@ export const getEpochSlots = (
 		chainId: number
 		epoch: number | 'latest' | 'finalized'
 	}
-) => (
-	beaconchaInGetList(
+) => {
+	const requestedEpoch = typeof epoch === 'number' ? epoch : undefined
+	const slots = await beaconchaInGetList(
 		publicEnv,
 		{
 			chainId,
@@ -145,7 +170,18 @@ export const getEpochSlots = (
 			itemEnvelope: beaconchaInSlotEnvelope,
 		}
 	)
-)
+	const seen = new Set<number>()
+	for (const slot of slots) {
+		if (requestedEpoch != null && slot.epoch !== requestedEpoch)
+			throw new Error(`${Source.BeaconchaIn_Rest}: epoch slot does not match the requested epoch`)
+		if (seen.has(slot.slot))
+			throw new Error(`${Source.BeaconchaIn_Rest}: epoch slots contain duplicate identities`)
+
+		seen.add(slot.slot)
+	}
+
+	return slots
+}
 
 export const getSlot = async (
 	publicEnv: SourcePublicEnv,
@@ -156,8 +192,8 @@ export const getSlot = async (
 		chainId: number
 		slot: number | 'latest' | 'head'
 	}
-) => (
-	assertEnvelope(
+) => {
+	const wire = assertEnvelope(
 		beaconchaInSlotEnvelope,
 		await beaconchaInGetJson(
 			publicEnv,
@@ -169,7 +205,11 @@ export const getSlot = async (
 		),
 		'slot'
 	)
-)
+	if (typeof slot === 'number' && wire.slot !== slot)
+		throw new Error(`${Source.BeaconchaIn_Rest}: slot response does not match the requested slot`)
+
+	return wire
+}
 
 export const getValidator = async (
 	publicEnv: SourcePublicEnv,
@@ -180,8 +220,8 @@ export const getValidator = async (
 		chainId: number
 		indexOrPubkey: number | string
 	}
-) => (
-	assertEnvelope(
+) => {
+	const wire = assertEnvelope(
 		beaconchaInValidatorEnvelope,
 		await beaconchaInGetJson(
 			publicEnv,
@@ -193,10 +233,20 @@ export const getValidator = async (
 		),
 		'validator'
 	)
-)
+	const requestedIndex = beaconchaInRequestedValidatorIndex(indexOrPubkey)
+	if (requestedIndex != null) {
+		if (wire.validator_index !== requestedIndex)
+			throw new Error(`${Source.BeaconchaIn_Rest}: validator response does not match the requested validator index`)
+	} else if (/^0x[0-9a-fA-F]{96}$/.test(String(indexOrPubkey))) {
+		if (wire.pubkey.toLowerCase() !== String(indexOrPubkey).toLowerCase())
+			throw new Error(`${Source.BeaconchaIn_Rest}: validator response does not match the requested validator pubkey`)
+	}
+
+	return wire
+}
 
 /** @see https://docs.beaconcha.in/api-reference/validators/validator-attestations-history */
-export const getValidatorAttestations = (
+export const getValidatorAttestations = async (
 	publicEnv: SourcePublicEnv,
 	{
 		chainId,
@@ -212,6 +262,7 @@ export const getValidatorAttestations = (
 		slim?: boolean
 	}
 ) => {
+	const requestedValidatorIndex = beaconchaInRequestedValidatorIndex(indexOrPubkey)
 	const search = new URLSearchParams(
 		Object.entries({
 			...(startEpoch != null && { startEpoch: String(startEpoch) }),
@@ -219,7 +270,7 @@ export const getValidatorAttestations = (
 			...(slim != null && { slim: String(slim) }),
 		})
 	)
-	return beaconchaInGetList(
+	const attestations = await beaconchaInGetList(
 		publicEnv,
 		{
 			chainId,
@@ -228,9 +279,24 @@ export const getValidatorAttestations = (
 			itemEnvelope: beaconchaInValidatorAttestationEnvelope,
 		}
 	)
+	const seen = new Set<number>()
+	for (const attestation of attestations) {
+		if (requestedValidatorIndex != null && attestation.validatorindex !== requestedValidatorIndex)
+			throw new Error(`${Source.BeaconchaIn_Rest}: validator attestation does not match the requested validator`)
+		if (seen.has(attestation.attesterslot))
+			throw new Error(`${Source.BeaconchaIn_Rest}: validator attestations contain duplicate identities`)
+
+		seen.add(attestation.attesterslot)
+		if (attestation.week_start != null)
+			beaconchaInTimestampMs(attestation.week_start, 'validator attestation week_start')
+		if (attestation.week_end != null)
+			beaconchaInTimestampMs(attestation.week_end, 'validator attestation week_end')
+	}
+
+	return attestations
 }
 
-export const getSlotAttestations = (
+export const getSlotAttestations = async (
 	publicEnv: SourcePublicEnv,
 	{
 		chainId,
@@ -239,8 +305,9 @@ export const getSlotAttestations = (
 		chainId: number
 		slot: number | 'latest'
 	}
-) => (
-	beaconchaInGetList(
+) => {
+	const requestedSlot = typeof slot === 'number' ? slot : undefined
+	const attestations = await beaconchaInGetList(
 		publicEnv,
 		{
 			chainId,
@@ -249,9 +316,20 @@ export const getSlotAttestations = (
 			itemEnvelope: beaconchaInAttestationEnvelope,
 		}
 	)
-)
+	const seen = new Set<number>()
+	for (const attestation of attestations) {
+		if (requestedSlot != null && attestation.block_slot !== requestedSlot)
+			throw new Error(`${Source.BeaconchaIn_Rest}: slot attestation does not match the requested slot`)
+		if (seen.has(attestation.block_index))
+			throw new Error(`${Source.BeaconchaIn_Rest}: slot attestations contain duplicate identities`)
 
-export const getSlotWithdrawals = (
+		seen.add(attestation.block_index)
+	}
+
+	return attestations
+}
+
+export const getSlotWithdrawals = async (
 	publicEnv: SourcePublicEnv,
 	{
 		chainId,
@@ -260,8 +338,9 @@ export const getSlotWithdrawals = (
 		chainId: number
 		slot: number | 'latest'
 	}
-) => (
-	beaconchaInGetList(
+) => {
+	const requestedSlot = typeof slot === 'number' ? slot : undefined
+	const withdrawals = await beaconchaInGetList(
 		publicEnv,
 		{
 			chainId,
@@ -270,9 +349,20 @@ export const getSlotWithdrawals = (
 			itemEnvelope: beaconchaInWithdrawalEnvelope,
 		}
 	)
-)
+	const seen = new Set<number>()
+	for (const withdrawal of withdrawals) {
+		if (requestedSlot != null && withdrawal.block_slot !== requestedSlot)
+			throw new Error(`${Source.BeaconchaIn_Rest}: slot withdrawal does not match the requested slot`)
+		if (seen.has(withdrawal.withdrawalindex))
+			throw new Error(`${Source.BeaconchaIn_Rest}: slot withdrawals contain duplicate identities`)
 
-export const getSlotAttesterSlashings = (
+		seen.add(withdrawal.withdrawalindex)
+	}
+
+	return withdrawals
+}
+
+export const getSlotAttesterSlashings = async (
 	publicEnv: SourcePublicEnv,
 	{
 		chainId,
@@ -281,8 +371,9 @@ export const getSlotAttesterSlashings = (
 		chainId: number
 		slot: number | 'latest'
 	}
-) => (
-	beaconchaInGetList(
+) => {
+	const requestedSlot = typeof slot === 'number' ? slot : undefined
+	const slashings = await beaconchaInGetList(
 		publicEnv,
 		{
 			chainId,
@@ -291,9 +382,20 @@ export const getSlotAttesterSlashings = (
 			itemEnvelope: beaconchaInAttesterSlashingEnvelope,
 		}
 	)
-)
+	const seen = new Set<number>()
+	for (const slashing of slashings) {
+		if (requestedSlot != null && slashing.block_slot !== requestedSlot)
+			throw new Error(`${Source.BeaconchaIn_Rest}: slot attester slashing does not match the requested slot`)
+		if (seen.has(slashing.block_index))
+			throw new Error(`${Source.BeaconchaIn_Rest}: slot attester slashings contain duplicate identities`)
 
-export const getSlotProposerSlashings = (
+		seen.add(slashing.block_index)
+	}
+
+	return slashings
+}
+
+export const getSlotProposerSlashings = async (
 	publicEnv: SourcePublicEnv,
 	{
 		chainId,
@@ -302,8 +404,9 @@ export const getSlotProposerSlashings = (
 		chainId: number
 		slot: number | 'latest'
 	}
-) => (
-	beaconchaInGetList(
+) => {
+	const requestedSlot = typeof slot === 'number' ? slot : undefined
+	const slashings = await beaconchaInGetList(
 		publicEnv,
 		{
 			chainId,
@@ -312,4 +415,15 @@ export const getSlotProposerSlashings = (
 			itemEnvelope: beaconchaInProposerSlashingEnvelope,
 		}
 	)
-)
+	const seen = new Set<number>()
+	for (const slashing of slashings) {
+		if (requestedSlot != null && slashing.block_slot !== requestedSlot)
+			throw new Error(`${Source.BeaconchaIn_Rest}: slot proposer slashing does not match the requested slot`)
+		if (seen.has(slashing.block_index))
+			throw new Error(`${Source.BeaconchaIn_Rest}: slot proposer slashings contain duplicate identities`)
+
+		seen.add(slashing.block_index)
+	}
+
+	return slashings
+}
