@@ -40,6 +40,14 @@ const assertProposalNumber = (number: number) => {
 		throw new Error('EthereumEips_Github: proposal number must be a positive safe integer')
 }
 
+const assertProposalFileName = (
+	ledger: EthereumEipSpecLedger,
+	fileName: string
+) => {
+	if (!new RegExp(`^${ethereumEipSpecMarkdownPrefixByLedger[ledger]}-[1-9][0-9]*\\.md$`).test(fileName))
+		throw new Error('EthereumEips_Github: invalid proposal Markdown filename')
+}
+
 export const getContentsUrl = ({ ledger }: { ledger: EthereumEipSpecLedger }) => (
 	githubContentsUrl({
 		...githubTargetForLedger(ledger),
@@ -55,14 +63,16 @@ export const getRawMarkdownUrl = ({
 	fileName: string
 	downloadUrl: string | null | undefined
 }) => {
+	assertProposalFileName(ledger, fileName)
 	const target = githubTargetForLedger(ledger)
-	return (
-		downloadUrl ??
-		githubRawUrl({
-			...target,
-			path: `${target.path}/${fileName}`,
-		})
-	)
+	const rawUrl = githubRawUrl({
+		...target,
+		path: `${target.path}/${fileName}`,
+	})
+	if (downloadUrl != null && downloadUrl !== rawUrl)
+		throw new Error('EthereumEips_Github: proposal download URL does not match its registered source target')
+
+	return rawUrl
 }
 
 export const getProposalMarkdownUrl = ({

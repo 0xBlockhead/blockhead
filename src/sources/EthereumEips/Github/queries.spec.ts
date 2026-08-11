@@ -15,6 +15,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 
 import {
 	getContents,
+	getRawMarkdownUrl,
 	getProposalMarkdownPageUrl,
 	getProposalMarkdownUrl,
 } from '$/sources/EthereumEips/Github/queries.ts'
@@ -43,6 +44,19 @@ it('rejects unscoped proposal numbers before deriving provider URLs', () => {
 		ledger: 'erc',
 		number: Number.MAX_SAFE_INTEGER + 1,
 	})).toThrow('proposal number must be a positive safe integer')
+})
+
+it('rejects unscoped Markdown filenames and download URLs before transport', () => {
+	expect(() => getRawMarkdownUrl({
+		ledger: 'eip',
+		fileName: '../eip-1.md',
+		downloadUrl: null,
+	})).toThrow('invalid proposal Markdown filename')
+	expect(() => getRawMarkdownUrl({
+		ledger: 'erc',
+		fileName: 'erc-721.md',
+		downloadUrl: 'https://example.com/erc-721.md',
+	})).toThrow('download URL does not match')
 })
 
 it('rejects duplicate repository entries before they become duplicate proposal rows', async () => {
