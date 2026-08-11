@@ -333,6 +333,13 @@ export const listTransactions = async (
 	)
 	if (response.items.length > pageSize(limit))
 		throw new Error('Voyager_Rest: transactions page exceeds requested page size')
+	const transactionHashes = new Set<bigint>()
+	for (const transaction of response.items) {
+		const transactionHash = BigInt(transaction.hash)
+		if (transactionHashes.has(transactionHash))
+			throw new Error('Voyager_Rest: transactions page returned a duplicate identity')
+		transactionHashes.add(transactionHash)
+	}
 	return response
 }
 
@@ -415,6 +422,13 @@ export const listContracts = async (
 	)
 	if (response.items.length > pageSize(limit))
 		throw new Error('Voyager_Rest: contracts page exceeds requested page size')
+	const contractAddresses = new Set<bigint>()
+	for (const contract of response.items) {
+		const contractAddress = BigInt(contract.address)
+		if (contractAddresses.has(contractAddress))
+			throw new Error('Voyager_Rest: contracts page returned a duplicate identity')
+		contractAddresses.add(contractAddress)
+	}
 	return response
 }
 
@@ -444,6 +458,13 @@ export const listClasses = async (
 	)
 	if (response.items.length > pageSize(limit))
 		throw new Error('Voyager_Rest: classes page exceeds requested page size')
+	const classHashes = new Set<bigint>()
+	for (const klass of response.items) {
+		const classHash = BigInt(klass.hash)
+		if (classHashes.has(classHash))
+			throw new Error('Voyager_Rest: classes page returned a duplicate identity')
+		classHashes.add(classHash)
+	}
 	return response
 }
 
@@ -478,5 +499,12 @@ export const listClassContracts = async (
 	)
 	if (response.items.length > pageSize(limit))
 		throw new Error('Voyager_Rest: class contracts page exceeds requested page size')
+	const contractAddresses = new Set<bigint>()
+	for (const contract of response.items) {
+		const contractAddress = BigInt(contract.address)
+		if (contractAddresses.has(contractAddress))
+			throw new Error('Voyager_Rest: class contracts page returned a duplicate identity')
+		contractAddresses.add(contractAddress)
+	}
 	return response
 }

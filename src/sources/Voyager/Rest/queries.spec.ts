@@ -236,6 +236,71 @@ describe('Voyager OpenAPI operations', () => {
 		})).rejects.toThrow('Voyager_Rest: invalid contracts page envelope')
 	})
 
+	it('rejects duplicate native identities from list pages', async () => {
+		getJson
+			.mockResolvedValueOnce({
+				items: [
+					{
+						hash: '0x1',
+						type: 'INVOKE',
+						timestamp: 1,
+						status: 'Accepted on L2',
+					},
+					{
+						hash: '0x01',
+						type: 'INVOKE',
+						timestamp: 2,
+						status: 'Accepted on L2',
+					},
+				],
+				lastPage: 1,
+			})
+			.mockResolvedValueOnce({
+				items: [
+					{
+						address: '0x1',
+						blockNumber: 1,
+						classHash: '0x2',
+					},
+					{
+						address: '0x01',
+						blockNumber: 2,
+						classHash: '0x3',
+					},
+				],
+				lastPage: 1,
+			})
+			.mockResolvedValueOnce({
+				items: [
+					{
+						hash: '0x1',
+						transactionHash: '0x2',
+					},
+					{
+						hash: '0x01',
+						transactionHash: '0x3',
+					},
+				],
+				lastPage: 1,
+			})
+			.mockResolvedValueOnce({
+				items: [
+					{
+						address: '0x1',
+					},
+					{
+						address: '0x01',
+					},
+				],
+				lastPage: 1,
+			})
+
+		await expect(listTransactions({ limit: 10 })).rejects.toThrow('transactions page returned a duplicate identity')
+		await expect(listContracts({ limit: 10 })).rejects.toThrow('contracts page returned a duplicate identity')
+		await expect(listClasses({ limit: 10 })).rejects.toThrow('classes page returned a duplicate identity')
+		await expect(listClassContracts({ classHash: '0x1', limit: 10 })).rejects.toThrow('class contracts page returned a duplicate identity')
+	})
+
 	it('exports deepened endpoint operations', () => {
 		expect(Object.keys(queries).sort()).toEqual([
 			'getApiStatus',
