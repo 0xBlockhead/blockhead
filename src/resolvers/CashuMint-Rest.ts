@@ -10,6 +10,19 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
+const cashuMillisecondsFromSeconds = (
+	seconds: number,
+	label: string
+) => {
+	if (
+		!Number.isSafeInteger(seconds)
+		|| seconds < 0
+		|| seconds > Math.floor(Number.MAX_SAFE_INTEGER / 1000)
+	)
+		throw new Error(`CashuMint_Rest: invalid ${label}`)
+
+	return seconds * 1000
+}
 
 const cashuMintQuoteBolt11 = async (
 	mintUrl: string,
@@ -137,7 +150,7 @@ export default {
 							...(info.motd != null && { motd: info.motd }),
 							...(info.icon_url != null && { iconUrl: info.icon_url }),
 							...(info.tos_url != null && { tosUrl: info.tos_url }),
-							...(info.time != null && { serverTimeMs: info.time * 1000 }),
+							...(info.time != null && { serverTimeMs: cashuMillisecondsFromSeconds(info.time, 'mint server time') }),
 							...(info.contact != null && { contactJson: JSON.stringify(info.contact) }),
 							...(info.urls != null && { urls: info.urls }),
 							...(info.nuts != null && {
@@ -193,7 +206,7 @@ export default {
 									[{
 										[EntityMetaKey.Selector]: {
 											$mintQuote: { $mint, method, quoteId },
-											timestampMs: quote.updated_at * 1000,
+											timestampMs: cashuMillisecondsFromSeconds(quote.updated_at, 'mint quote updated_at'),
 											source: Source.CashuMint_Rest,
 										},
 									}]
@@ -222,8 +235,9 @@ export default {
 							$mintQuote.method,
 							$mintQuote.quoteId
 						)
-						if (quote.updated_at * 1000 !== timestampMs)
-							throw new Error(`CashuMint_Rest: mint quote observation timestamp mismatch ${quote.updated_at * 1000} !== ${timestampMs}`)
+						const updatedAtMs = cashuMillisecondsFromSeconds(quote.updated_at, 'mint quote updated_at')
+						if (updatedAtMs !== timestampMs)
+							throw new Error(`CashuMint_Rest: mint quote observation timestamp mismatch ${updatedAtMs} !== ${timestampMs}`)
 						if (quote.state == null)
 							throw new Error('CashuMint_Rest: mint quote state is absent')
 
@@ -235,7 +249,7 @@ export default {
 							source,
 							state: quote.state,
 							...(quote.expiry != null && {
-								expiryMs: quote.expiry * 1000,
+								expiryMs: cashuMillisecondsFromSeconds(quote.expiry, 'mint quote expiry'),
 							}),
 						}
 					},
@@ -304,7 +318,7 @@ export default {
 							timestampMs,
 							source,
 							state: quote.state,
-							expiryMs: quote.expiry * 1000,
+							expiryMs: cashuMillisecondsFromSeconds(quote.expiry, 'melt quote expiry'),
 							...(quote.payment_preimage != null && {
 								paymentPreimage: quote.payment_preimage,
 							}),
@@ -353,7 +367,7 @@ export default {
 							source,
 							active: keyset.active,
 							inputFeePpk: keyset.input_fee_ppk ?? 0,
-							...(keyset.final_expiry != null && { finalExpiryMs: keyset.final_expiry * 1000 }),
+							...(keyset.final_expiry != null && { finalExpiryMs: cashuMillisecondsFromSeconds(keyset.final_expiry, 'keyset final expiry') }),
 							listedByKeysetsEndpoint: true,
 							listedByKeysEndpoint,
 						}

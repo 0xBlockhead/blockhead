@@ -234,6 +234,27 @@ it('does not fabricate a mint quote observation when the wire omits state', asyn
 	}, {})).rejects.toThrow('mint quote state is absent')
 })
 
+it('rejects unsafe Cashu timestamp conversions before creating an observation selector', async () => {
+	getMintQuoteBolt11.mockResolvedValue({
+		quote: 'mint-quote',
+		request: 'lnbc-invoice',
+		amount: 10,
+		unit: 'sat',
+		method: 'bolt11',
+		amount_paid: 0,
+		amount_issued: 0,
+		updated_at: Number.MAX_SAFE_INTEGER,
+		state: 'UNPAID',
+		expiry: null,
+	})
+
+	await expect(mintQuoteResolver.resolve.MintMethodQuoteId.resolve({
+		$mint: { mintUrl: 'https://mint.example' },
+		method: 'bolt11',
+		quoteId: 'mint-quote',
+	}, {})).rejects.toThrow('invalid mint quote updated_at')
+})
+
 it('projects an exact BOLT11 melt quote read without owning the mutation', async () => {
 	vi.spyOn(Date, 'now').mockReturnValue(100)
 	getMeltQuoteBolt11.mockResolvedValue({
