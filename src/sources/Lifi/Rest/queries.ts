@@ -251,7 +251,10 @@ export async function fetchTokens(
 export const fetchTransferStatus = async (
 	params: LifiStatusRequest
 ) => {
-	if (params.txHash.trim() === '')
+	if (
+		params.txHash.trim() === ''
+		|| params.txHash !== params.txHash.trim()
+	)
 		throw new Error('Lifi_Rest: transfer status requires a transaction hash or step id')
 
 	const path = `/v1/status?${new URLSearchParams({

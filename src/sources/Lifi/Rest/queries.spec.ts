@@ -514,9 +514,15 @@ describe('LI.FI transfer status', () => {
 	})
 
 	it('rejects an empty transfer identifier before transport', async () => {
-		await expect(fetchTransferStatus({ txHash: ' ' })).rejects.toThrow(
-			'transfer status requires'
-		)
+		for (const txHash of [
+			' ',
+			' transfer-id',
+			'transfer-id ',
+		])
+			await expect(fetchTransferStatus({ txHash })).rejects.toThrow(
+				'transfer status requires'
+			)
+
 		expect(lifiRestFetch).not.toHaveBeenCalled()
 	})
 
