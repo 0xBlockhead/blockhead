@@ -4,8 +4,13 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -18,6 +23,30 @@
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.BlockheadSource> = $props()
+
+	const blockheadSourceLatestResource1 = $derived(
+		selection
+			.$$timestamps({
+				sources: [
+					Source.Local_Internal,
+				],
+				fields: {
+					timestampMs: true,
+					enabled: true,
+					health: true,
+					latencyMs: true,
+					statusCode: true,
+					error: true,
+					rateLimitRemaining: true,
+					rateLimitResetMs: true,
+					resolverCount: true,
+				},
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
@@ -40,6 +69,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BlockheadSource_TimestampsView from '$/views/BlockheadSource_TimestampsView.svelte'
+	import BlockheadSource_TimestampView from '$/views/BlockheadSource_TimestampView.svelte'
 </script>
 
 
@@ -79,6 +109,35 @@
 	{/snippet}
 
 	{#snippet Content()}
+		<dl data-column-item="center">
+			<div>
+				<dt>Latest health</dt>
+				<dd>
+					<ResourceBoundary
+						resource={blockheadSourceLatestResource1}
+					>
+						{#snippet children(blockheadSourceTimestamps)}
+							{@const blockheadSourceTimestamp = blockheadSourceTimestamps.values[0]}
+							{#if blockheadSourceTimestamp != null}
+								<BlockheadSource_TimestampView
+									selection={
+										select(EntityType.BlockheadSource_Timestamp, blockheadSourceTimestamp[EntityMetaKey.Selector], {
+											sources: [
+												Source.Local_Internal,
+											],
+										})
+									}
+									layout={EntityLayout.Value}
+								/>
+							{:else}
+								<p data-text="muted" data-section-state="resolved-empty">No latest health available.</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
 		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={blockheadSource}

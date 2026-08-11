@@ -35,8 +35,14 @@
 				],
 				fields: {
 					label: true,
+					provider: true,
 					source: true,
-					id: true,
+					endpointUrl: true,
+					transportKind: true,
+					authKind: true,
+					corsMode: true,
+					proxyMode: true,
+					environmentScope: true,
 				},
 			},
 		})
@@ -57,11 +63,15 @@
 			}
 		>
 			{#snippet Title()}
-				{(blockheadSource.label ?? '') || blockheadSourceSelector.id || 'source'}
+				{[(blockheadSource.label ?? ''), (blockheadSource.provider ?? '')].filter(Boolean).join(' ') || blockheadSourceSelector.id || 'source'}
 			{/snippet}
 
 			{#snippet Value()}
-				{blockheadSource.source ?? ''}
+				{[(blockheadSource.source ?? ''), (blockheadSource.endpointUrl ?? '')].filter(Boolean).join(' ')}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{[(blockheadSource.transportKind ?? ''), (blockheadSource.authKind ?? ''), (blockheadSource.corsMode ?? ''), (blockheadSource.proxyMode ?? ''), (blockheadSource.environmentScope ?? '')].filter(Boolean).join(' ')}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}
