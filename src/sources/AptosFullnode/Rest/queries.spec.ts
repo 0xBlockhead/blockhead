@@ -15,8 +15,10 @@ const {
 	getAccountModule,
 	getAccountModules,
 	getBlockByHeight,
+	getBlockByVersion,
 	getLedgerInfo,
 	getTableItem,
+	getTransactionByHash,
 	getTransactionByVersion,
 } = await import('$/sources/AptosFullnode/Rest/queries.ts')
 
@@ -162,6 +164,39 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 		await expect(getAccount(binding, '0xa11ce')).rejects.toThrow('invalid account response envelope')
 		await expect(getBlockByHeight(binding, 9n)).rejects.toThrow('invalid block response envelope')
 		await expect(getTransactionByVersion(binding, 42n)).rejects.toThrow('invalid transaction response envelope')
+	})
+
+	it('rejects substituted block and transaction coordinates', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(jsonResponse({
+				block_height: '10',
+				block_hash: '0xblock',
+				block_timestamp: '1',
+				first_version: '40',
+				last_version: '42',
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				block_height: '9',
+				block_hash: '0xblock',
+				block_timestamp: '1',
+				first_version: '40',
+				last_version: '42',
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				type: 'user_transaction',
+				hash: '0x43',
+				version: '42',
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				type: 'user_transaction',
+				hash: '0x42',
+				version: '43',
+			}))
+
+		await expect(getBlockByHeight(binding, 9n)).rejects.toThrow('block height response does not match request')
+		await expect(getBlockByVersion(binding, 43n)).rejects.toThrow('block version response does not contain request')
+		await expect(getTransactionByHash(binding, '0x42')).rejects.toThrow('transaction hash response does not match request')
+		await expect(getTransactionByVersion(binding, 42n)).rejects.toThrow('transaction version response does not match request')
 	})
 
 	it('accepts Move-module bytecode and table-item value envelopes', async () => {
