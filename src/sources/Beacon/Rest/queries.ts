@@ -311,11 +311,27 @@ export const getHeaderFromWire = (
 	return header
 }
 
+const normalizeBeaconStateOrBlockId = (
+	stateOrBlockId: string | number
+) => {
+	if (typeof stateOrBlockId === 'number') {
+		if (!Number.isSafeInteger(stateOrBlockId) || stateOrBlockId < 0)
+			throw new Error('Beacon: state or block slot must be a non-negative safe integer')
+		return String(stateOrBlockId)
+	}
+	if (/^(head|genesis|finalized|justified|0|[1-9][0-9]*)$/.test(stateOrBlockId))
+		return stateOrBlockId
+	if (/^0x[0-9a-fA-F]{64}$/.test(stateOrBlockId))
+		return stateOrBlockId.toLowerCase()
+	throw new Error('Beacon: state or block id must be a named state, slot, or 32-byte root')
+}
+
 export const getHeader = async (
 	chainId: number,
 	blockId: string | number
 ) => {
-	const res = await beaconFetch(chainId, `/eth/v1/beacon/headers/${blockId}`, {
+	const normalizedBlockId = normalizeBeaconStateOrBlockId(blockId)
+	const res = await beaconFetch(chainId, `/eth/v1/beacon/headers/${normalizedBlockId}`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET header', res)
@@ -447,9 +463,10 @@ export const getValidator = async (
 	stateId: string | number = 'head'
 ) => {
 	const normalizedId = normalizeBeaconValidatorId(validatorId)
+	const normalizedStateId = normalizeBeaconStateOrBlockId(stateId)
 	const res = await beaconFetch(
 		chainId,
-		`/eth/v1/beacon/states/${String(stateId)}/validators/${normalizedId}`,
+		`/eth/v1/beacon/states/${normalizedStateId}/validators/${normalizedId}`,
 		{
 			headers: { accept: 'application/json' },
 		}
@@ -616,7 +633,8 @@ export const getCommittees = async (
 	chainId: number,
 	stateId = 'head'
 ) => {
-	const res = await beaconFetch(chainId, `/eth/v1/beacon/states/${stateId}/committees`, {
+	const normalizedStateId = normalizeBeaconStateOrBlockId(stateId)
+	const res = await beaconFetch(chainId, `/eth/v1/beacon/states/${normalizedStateId}/committees`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET committees', res)
@@ -643,13 +661,16 @@ export const getSyncCommittee = async (
 	stateId: string | number = 'head',
 	epoch?: number
 ) => {
+	const normalizedStateId = normalizeBeaconStateOrBlockId(stateId)
+	if (epoch != null && (!Number.isSafeInteger(epoch) || epoch < 0))
+		throw new Error('Beacon: sync committee epoch must be a non-negative safe integer')
 	const res = await beaconFetch(
 		chainId,
 		(
 			epoch == null ?
-				`/eth/v1/beacon/states/${String(stateId)}/sync_committees`
+				`/eth/v1/beacon/states/${normalizedStateId}/sync_committees`
 			:
-				`/eth/v1/beacon/states/${String(stateId)}/sync_committees?epoch=${String(epoch)}`
+				`/eth/v1/beacon/states/${normalizedStateId}/sync_committees?epoch=${String(epoch)}`
 		),
 		{
 			headers: { accept: 'application/json' },
@@ -753,7 +774,8 @@ export const getBlockDutySummary = async (
 	chainId: number,
 	blockId: string | number
 ) => {
-	const res = await beaconFetch(chainId, `/eth/v2/beacon/blocks/${blockId}`, {
+	const normalizedBlockId = normalizeBeaconStateOrBlockId(blockId)
+	const res = await beaconFetch(chainId, `/eth/v2/beacon/blocks/${normalizedBlockId}`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET block', res)

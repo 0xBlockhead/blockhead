@@ -9,10 +9,13 @@ import {
 import * as sourceHttp from '$/sources/_runtime/http.ts'
 import {
 	getCommitteesFromWire,
+	getCommittees,
+	getBlockDutySummary,
 	getFinalityCheckpointsFromWire,
 	getForkScheduleFromWire,
 	getGenesisTimeSeconds,
 	getHeadSlot,
+	getHeader,
 	getHeaderFromWire,
 	getNodePeerCountFromWire,
 	getNodePeerCountObservation,
@@ -24,6 +27,7 @@ import {
 	getNodeSyncingObservation,
 	getRecentProposerValidatorIndices,
 	getSyncCommitteeFromWire,
+	getSyncCommittee,
 	getValidator,
 	getValidatorAtHead,
 	getValidatorEnvelopeFromWire,
@@ -247,6 +251,22 @@ describe('Beacon REST native header wire', () => {
 				},
 			},
 		})).toBeUndefined()
+	})
+
+	it.each([
+		() => getHeader(1, 'head/../../node/identity'),
+		() => getHeader(1, -1),
+		() => getHeader(1, 1.5),
+		() => getValidator(1, 12, 'head/../../validators'),
+		() => getCommittees(1, 'finalized/../../committees'),
+		() => getBlockDutySummary(1, `0x${'A'.repeat(62)}`),
+		() => getSyncCommittee(1, 'head', -1),
+		() => getSyncCommittee(1, 'head', 1.5),
+	])('rejects invalid native state, block, and epoch coordinates before transport', async (query) => {
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch')
+
+		await expect(query()).rejects.toThrow('Beacon:')
+		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })
 
