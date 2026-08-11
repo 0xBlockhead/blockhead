@@ -326,6 +326,9 @@ export const getSimplePrice = async ({
 }: GetCoingeckoSimplePriceArgs) => {
 	assertNonemptyRequiredString(query.ids, 'coin ids')
 	assertNonemptyRequiredString(query.vs_currencies, 'price currencies')
+	const ids = query.ids.split(',')
+	if (ids.some((id) => id === '') || new Set(ids).size !== ids.length)
+		throw new Error('Coingecko_Rest: malformed requested coin ids')
 
 	const searchParams = new URLSearchParams()
 	for (const [name, value] of Object.entries(query))
@@ -344,7 +347,8 @@ export const getSimplePrice = async ({
 	assertEnvelope(coingeckoSimplePriceEnvelope, prices, 'simple price')
 	if (
 		Array.isArray(prices)
-		|| query.ids.split(',').some((id) => {
+		|| Object.keys(prices).some((id) => !ids.includes(id))
+		|| ids.some((id) => {
 			if (id === '' || !Object.hasOwn(prices, id))
 				return true
 			try {

@@ -356,6 +356,29 @@ describe('CoinGecko documented endpoints', () => {
 		})).rejects.toThrow('Coingecko_Rest: incomplete simple price response envelope')
 	})
 
+	it('rejects duplicate requested and foreign returned simple-price identities', async () => {
+		await expect(getSimplePrice({
+			publicEnv: {},
+			ids: 'bitcoin,bitcoin',
+			vs_currencies: 'usd',
+		})).rejects.toThrow('malformed requested coin ids')
+		expect(coingeckoFetch).not.toHaveBeenCalled()
+
+		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			bitcoin: {
+				usd: 100_000,
+			},
+			ethereum: {
+				usd: 3_500,
+			},
+		})))
+		await expect(getSimplePrice({
+			publicEnv: {},
+			ids: 'bitcoin',
+			vs_currencies: 'usd',
+		})).rejects.toThrow('incomplete simple price response envelope')
+	})
+
 	it('returns undefined only for confirmed missing detail resources', async () => {
 		coingeckoFetch.mockResolvedValueOnce(new Response('', { status: 404 }))
 
