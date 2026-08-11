@@ -49,13 +49,6 @@
 	} & CollapsibleTabsSectionSnippets
 
 
-	export const collapsibleTabsSections = <
-		const Sections extends readonly CollapsibleTabsSectionRow[],
-	>(
-		sections: Sections,
-	) => sections
-
-
 	const kebabToPascalCase = (segment: string) => (
 		segment
 			.split('-')
