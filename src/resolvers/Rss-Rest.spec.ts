@@ -95,3 +95,21 @@ it('materializes source-owned feed and item observations from successful reads',
 		},
 	}])
 })
+
+it('rejects duplicate native item identities instead of materializing colliding rows', async () => {
+	const feedResolver = rss.resolvers.find(({ entityType }) => entityType === EntityType.RssFeed)
+	if (feedResolver == null || !('FeedUrl' in feedResolver.resolve))
+		throw new Error('Rss_Rest feed resolver is missing')
+
+	getFeed.mockResolvedValueOnce({
+		items: [{
+			guid: 'item-1',
+		}, {
+			guid: 'item-1',
+		}],
+	})
+
+	await expect(feedResolver.resolve.FeedUrl.resolve({
+		feedUrl: 'https://hnrss.org/frontpage',
+	}, resolverContext)).rejects.toThrow('duplicate feed item identity Guid:item-1')
+})

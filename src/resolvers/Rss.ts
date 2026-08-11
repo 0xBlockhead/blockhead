@@ -32,6 +32,7 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 							const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
 							const feed = await loadFeed(feedUrl)
 							const timestampMs = Date.now()
+							const itemIdentityKeys = new Set<string>()
 							return {
 								...(feed.title != null && { title: feed.title }),
 								...(feed.description != null && { description: feed.description }),
@@ -47,6 +48,17 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 									.slice(0, resolverContextRowLimit(context))
 									.flatMap((feedItem) => {
 										const identity = rssItemIdentityFromParts(feedItem.guid, feedItem.link)
+										const key = (
+											identity == null ?
+												undefined
+											:
+												`${identity.itemIdentityKind}:${identity.itemIdentity}`
+										)
+										if (key != null && itemIdentityKeys.has(key))
+											throw new Error(`${source}: duplicate feed item identity ${key}`)
+										if (key != null)
+											itemIdentityKeys.add(key)
+
 										return identity == null ? [] : [{
 											[EntityMetaKey.Selector]: {
 												$feed: { feedUrl },
