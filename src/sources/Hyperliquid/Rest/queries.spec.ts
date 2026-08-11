@@ -1375,4 +1375,61 @@ describe('Hyperliquid public account Info transport', () => {
 			startTime: 1,
 		})).rejects.toThrow('Hyperliquid_Rest: invalid fundingHistory response envelope')
 	})
+
+	it('rejects foreign, duplicate, and invalid candle rows', async () => {
+		const candle = {
+			t: 1_700_000_000_000,
+			T: 1_700_000_003_600,
+			s: 'ETH',
+			i: '1h',
+			o: '100',
+			c: '101',
+			h: '102',
+			l: '99',
+			v: '1000',
+			n: 1,
+		}
+		corsFetch
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => [
+					{
+						...candle,
+						s: 'BTC',
+					},
+				],
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => [
+					candle,
+					candle,
+				],
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => [
+					{
+						...candle,
+						T: candle.t - 1,
+					},
+				],
+			})
+
+		await expect(getCandleSnapshot({
+			coin: 'ETH',
+			interval: '1h',
+			startTime: 1_700_000_000_000,
+		})).rejects.toThrow('candleSnapshot response contains a foreign coin')
+		await expect(getCandleSnapshot({
+			coin: 'ETH',
+			interval: '1h',
+			startTime: 1_700_000_000_000,
+		})).rejects.toThrow('candleSnapshot response contains duplicate open times')
+		await expect(getCandleSnapshot({
+			coin: 'ETH',
+			interval: '1h',
+			startTime: 1_700_000_000_000,
+		})).rejects.toThrow('candleSnapshot response contains invalid timestamps')
+	})
 })

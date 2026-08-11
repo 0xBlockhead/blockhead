@@ -713,6 +713,16 @@ export const getCandleSnapshot = async ({
 	})
 	if (!hyperliquidCandleEnvelope.array().allows(candles))
 		throw new Error('Hyperliquid_Rest: invalid candleSnapshot response envelope')
+	for (const candle of candles) {
+		if (candle.s !== coin)
+			throw new Error('Hyperliquid_Rest: candleSnapshot response contains a foreign coin')
+		if (candle.i !== interval)
+			throw new Error('Hyperliquid_Rest: candleSnapshot response contains a foreign interval')
+		if (!Number.isSafeInteger(candle.t) || candle.t < 0 || !Number.isSafeInteger(candle.T) || candle.T < candle.t)
+			throw new Error('Hyperliquid_Rest: candleSnapshot response contains invalid timestamps')
+	}
+	if (new Set(candles.map((candle) => candle.t)).size !== candles.length)
+		throw new Error('Hyperliquid_Rest: candleSnapshot response contains duplicate open times')
 
 	return candles
 }
