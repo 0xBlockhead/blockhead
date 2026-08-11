@@ -44,6 +44,11 @@ const assertTransactionId = (transactionId: string) => {
 		throw new Error(`${sourceLabel}: invalid transaction ID`)
 }
 
+const assertAddress = (address: string) => {
+	if (address.length === 0)
+		throw new Error(`${sourceLabel}: address is empty`)
+}
+
 export const getBlock = async (
 	blockHash: string
 ) => {
@@ -72,14 +77,15 @@ export const getBlockHashByHeight = async (
 
 export const getBlockTransactionIds = async (
 	blockHash: string
-) => (
-	assertEsploraEnvelope(
+) => {
+	assertBlockHash(blockHash)
+	return assertEsploraEnvelope(
 		esploraTxIdListWire,
 		await getMempoolSpaceJson(`block/${encodeURIComponent(blockHash)}/txids`),
 		'block txids',
 		sourceLabel
 	)
-)
+}
 
 export const getTransaction = async (
 	txId: string
@@ -113,8 +119,10 @@ export const getTransactionProtocolPayloads = async (
 
 export const getBlocks = async (
 	startHeight?: bigint
-) => (
-	assertEsploraEnvelope(
+) => {
+	if (startHeight != null && startHeight < 0n)
+		throw new Error(`${sourceLabel}: block height must be non-negative`)
+	return assertEsploraEnvelope(
 		esploraBlockWire.array(),
 		await getMempoolSpaceJson(
 			startHeight == null ?
@@ -125,7 +133,7 @@ export const getBlocks = async (
 		'blocks',
 		sourceLabel
 	)
-)
+}
 
 export const getMempoolStats = async () => (
 	assertEsploraEnvelope(
@@ -148,8 +156,7 @@ export const getMempoolTxids = async () => (
 export const getAddress = async (
 	address: string
 ) => {
-	if (address.length === 0)
-		throw new Error(`${sourceLabel}: address is empty`)
+	assertAddress(address)
 	const addressResponse = assertEsploraEnvelope(
 		esploraAddressWire,
 		await getMempoolSpaceJson(`address/${encodeURIComponent(address)}`),
@@ -163,20 +170,24 @@ export const getAddress = async (
 
 export const getAddressUtxos = async (
 	address: string
-) => (
-	assertEsploraEnvelope(
+) => {
+	assertAddress(address)
+	return assertEsploraEnvelope(
 		esploraAddressUtxoWire.array(),
 		await getMempoolSpaceJson(`address/${encodeURIComponent(address)}/utxo`),
 		'address utxos',
 		sourceLabel
 	)
-)
+}
 
 export const getAddressTransactions = async (
 	address: string,
 	lastSeenTransactionId?: string
-) => (
-	assertEsploraEnvelope(
+) => {
+	assertAddress(address)
+	if (lastSeenTransactionId != null)
+		assertTransactionId(lastSeenTransactionId)
+	return assertEsploraEnvelope(
 		esploraTransactionWire.array(),
 		await getMempoolSpaceJson(
 			`address/${encodeURIComponent(address)}/txs/chain${
@@ -189,7 +200,7 @@ export const getAddressTransactions = async (
 		'address transactions',
 		sourceLabel
 	)
-)
+}
 
 export const getRecommendedFees = async () => (
 	assertEsploraEnvelope(

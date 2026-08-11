@@ -18,7 +18,10 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 const {
 	getBlock,
 	getBlockHashByHeight,
+	getBlockTransactionIds,
+	getBlocks,
 	getAddress,
+	getAddressTransactions,
 	getAddressUtxos,
 	getMempoolStats,
 	getRecommendedFees,
@@ -135,9 +138,13 @@ describe('mempool.space Bitcoin REST binding', () => {
 		sourceGetJson.mockReset()
 		for (const query of [
 			() => getBlock('not-a-hash'),
+			() => getBlockTransactionIds('not-a-hash'),
 			() => getTransaction('not-a-transaction'),
 			() => getBlockHashByHeight(-1n),
+			() => getBlocks(-1n),
 			() => getAddress(''),
+			() => getAddressUtxos(''),
+			() => getAddressTransactions('bc1qrequested', 'not-a-transaction'),
 		])
 			await expect(query()).rejects.toThrow('MempoolSpace_Rest:')
 		expect(sourceGetJson).not.toHaveBeenCalled()
