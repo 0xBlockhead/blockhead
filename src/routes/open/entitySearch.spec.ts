@@ -14,6 +14,7 @@ import {
 describe(entityHrefFromSearchInput, () => {
 	it.each([
 		['@alice@mastodon.social', '/activitypub/actor/https%3A%2F%2Fmastodon.social/@alice'],
+		['rad:z3gqcJUoA1n9HaHKufZs5FCSGazv5D6Dt7Fnx1C4h2kKz', '/radicle/repository/rad:z3gqcJUoA1n9HaHKufZs5FCSGazv5D6Dt7Fnx1C4h2kKz'],
 		['at://did:plc:ewvi7nxzyoun6zhxrhs64oiz/app.bsky.feed.post/3lbm6y55c2c2a', '/atproto/post/at%3A%2F%2Fdid%3Aplc%3Aewvi7nxzyoun6zhxrhs64oiz%2Fapp.bsky.feed.post%2F3lbm6y55c2c2a'],
 		['eip155:1', '/network/eip155:1'],
 		['eip155:1:0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', '/account/eip155:1/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'],
@@ -42,6 +43,14 @@ describe(entityHrefFromSearchInput, () => {
 		['@alice@localhost'],
 		['@alice@mastodon.social@extra.example'],
 	])('does not relabel malformed ActivityPub handle %s', (query) => {
+		expect(entityHrefFromSearchInput(query)).toBeUndefined()
+	})
+
+	it.each([
+		['rad:'],
+		['rad:z3gqc!'],
+		['rad:z3gqc/path'],
+	])('does not relabel malformed Radicle RID %s', (query) => {
 		expect(entityHrefFromSearchInput(query)).toBeUndefined()
 	})
 })

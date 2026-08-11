@@ -105,6 +105,14 @@ export const entityHrefFromSearchInput = (query: string) => {
 			}
 		)
 
+	if (/^rad:z[1-9A-HJ-NP-Za-km-z]+$/.test(query))
+		return resolve(
+			'/radicle/repository/[rid=stringSegment]',
+			{
+				rid: query,
+			}
+		)
+
 	if (/^at:\/\/[^/\s]+\/app\.bsky\.feed\.post\/[^/\s]+$/.test(query))
 		return resolve(
 			'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
