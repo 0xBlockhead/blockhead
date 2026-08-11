@@ -216,6 +216,11 @@ describe('Compound III deployment operations', () => {
 			marketSlug: 'usdc',
 		})).rejects.toThrow(`${Source.Compound_Rest}: networkSlug required`)
 		expect(sourceGetJson).not.toHaveBeenCalled()
+
+		await expect(getConfiguration({
+			networkSlug: 'ethereum/../../evil',
+			marketSlug: 'usdc',
+		})).rejects.toThrow(`${Source.Compound_Rest}: invalid network slug`)
 	})
 
 	it('throws when roots comet address mismatches', async () => {

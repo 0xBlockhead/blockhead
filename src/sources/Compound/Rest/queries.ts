@@ -36,6 +36,20 @@ const assertCometAddress = (cometAddress: string) => {
 	return normalized
 }
 
+const assertDeploymentSlug = (
+	value: string,
+	label: string
+) => {
+	if (value.length < 1)
+		throw new Error(`${Source.Compound_Rest}: ${label === 'network slug' ? 'networkSlug' : 'marketSlug'} required`)
+	if (
+		value.length > 128
+		|| value !== value.trim()
+		|| /[\\/\u0000-\u001f\u007f]/.test(value)
+	)
+		throw new Error(`${Source.Compound_Rest}: invalid ${label}`)
+}
+
 const assertAddress = (
 	value: string,
 	label: string
@@ -238,10 +252,8 @@ export const getConfiguration = async ({
 	networkSlug: string
 	marketSlug: string
 }) => {
-	if (networkSlug.length < 1)
-		throw new Error(`${Source.Compound_Rest}: networkSlug required`)
-	if (marketSlug.length < 1)
-		throw new Error(`${Source.Compound_Rest}: marketSlug required`)
+	assertDeploymentSlug(networkSlug, 'network slug')
+	assertDeploymentSlug(marketSlug, 'market slug')
 
 	const wire = await sourceGetJson<CompoundCometConfigurationWire>(
 		binding,
@@ -264,10 +276,8 @@ export const getRoots = async ({
 	marketSlug: string
 	expectedCometAddress: string
 }) => {
-	if (networkSlug.length < 1)
-		throw new Error(`${Source.Compound_Rest}: networkSlug required`)
-	if (marketSlug.length < 1)
-		throw new Error(`${Source.Compound_Rest}: marketSlug required`)
+	assertDeploymentSlug(networkSlug, 'network slug')
+	assertDeploymentSlug(marketSlug, 'market slug')
 
 	const normalizedCometAddress = assertCometAddress(expectedCometAddress)
 	const wire = await sourceGetJson<CompoundCometRootsWire>(
