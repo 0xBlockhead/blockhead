@@ -750,8 +750,17 @@ export const getAccountPositions = async ({
 		account: normalizedAccount,
 		poolAddresses,
 	}
-	return [
+	const positions = [
 		...data.userSupplies.map((wire) => normalizeSupplyPosition(wire, expected)),
 		...data.userBorrows.map((wire) => normalizeBorrowPosition(wire, expected)),
 	].filter((position) => position != null)
+	const positionIdentities = new Set<string>()
+	for (const position of positions) {
+		const identity = `${position.kind}:${position.poolAddress}:${position.underlyingTokenAddress}`
+		if (positionIdentities.has(identity))
+			throw new Error(`${Source.Aave_Rest}: duplicate account position identity`)
+
+		positionIdentities.add(identity)
+	}
+	return positions
 }

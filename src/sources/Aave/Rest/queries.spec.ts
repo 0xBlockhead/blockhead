@@ -596,6 +596,59 @@ describe('Aave account position operations', () => {
 		expect(graphql).toHaveBeenCalledTimes(2)
 	})
 
+	it('rejects duplicate account positions after identity normalization', async () => {
+		const supply = {
+			market: {
+				address: ethereumMarket.address,
+				chain: {
+					chainId: 1,
+				},
+			},
+			currency: {
+				address: '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+				symbol: 'USDC',
+				decimals: 6,
+				chainId: 1,
+			},
+			balance: {
+				amount: {
+					value: '1000.5',
+				},
+				usd: '1000.5',
+			},
+			apy: {
+				value: '0.03',
+			},
+			isCollateral: true,
+			canBeCollateral: true,
+		}
+		graphql
+			.mockResolvedValueOnce({
+				markets: [
+					ethereumMarket,
+				],
+			})
+			.mockResolvedValueOnce({
+				userSupplies: [
+					supply,
+					{
+						...supply,
+						currency: {
+							...supply.currency,
+							address: supply.currency.address.toLowerCase(),
+						},
+					},
+				],
+				userBorrows: [],
+			})
+
+		await expect(getAccountPositions({
+			binding,
+			chainId: 1,
+			account: '0x464C71f6c2F760DdA6093dCB91C24c39e5d6e18c',
+		})).rejects.toThrow(`${Source.Aave_Rest}: duplicate account position identity`)
+	})
+
 	it('returns an empty list when the chain has no markets', async () => {
 		graphql.mockResolvedValueOnce({
 			markets: [],
