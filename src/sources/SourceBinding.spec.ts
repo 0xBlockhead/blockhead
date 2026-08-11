@@ -229,6 +229,214 @@ describe('source binding indexes', () => {
 		)).some((locator) => httpProxyOrigins.has(locator))).toBe(false)
 	})
 
+	it('keeps social, storage, and operator reads on their verified delivery boundaries', () => {
+		expect(sourceBindings.filter((binding) => (
+			[
+				Source.Mastodon_Rest,
+				Source.NostrRelay_Nip11_Http,
+				Source.NostrRelay_WebSocket,
+				Source.Atproto_Xrpc,
+				Source.AtprotoSync_Xrpc,
+				Source.Farcaster_Rest,
+				Source.Arweave_Graphql,
+				Source.Arweave_Rest,
+				Source.Swarm_Rest,
+				Source.Radicle_Local,
+				Source.Radicle_Remote,
+				Source.RadicleCli_Local,
+				Source.RadicleNode_Control,
+			].includes(binding.source)
+		)).map((binding) => ({
+			source: binding.source,
+			target: binding.target.key,
+			delivery: binding.delivery,
+			wireProtocol: binding.wireProtocol,
+			operations: binding.operationGroups,
+		}))).toEqual([
+			{
+				source: Source.Arweave_Graphql,
+				target: 'arweave',
+				delivery: SourceDelivery.BrowserDirect,
+				wireProtocol: WireProtocol.Graphql,
+				operations: [SourceOperationGroup.GenericRead],
+			},
+			{
+				source: Source.Arweave_Rest,
+				target: 'arweave',
+				delivery: SourceDelivery.BrowserDirect,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.ContentGatewayRead],
+			},
+			{
+				source: Source.Atproto_Xrpc,
+				target: 'bsky-public-appview',
+				delivery: SourceDelivery.HttpProxy,
+				wireProtocol: WireProtocol.Xrpc,
+				operations: [SourceOperationGroup.GenericRead],
+			},
+			{
+				source: Source.AtprotoSync_Xrpc,
+				target: 'atproto-sync',
+				delivery: SourceDelivery.RemoteQuery,
+				wireProtocol: WireProtocol.Xrpc,
+				operations: [SourceOperationGroup.GenericRead],
+			},
+			{
+				source: Source.AtprotoSync_Xrpc,
+				target: 'atproto-sync',
+				delivery: SourceDelivery.RemoteLive,
+				wireProtocol: WireProtocol.Xrpc,
+				operations: [SourceOperationGroup.GenericSubscribe],
+			},
+			{
+				source: Source.Farcaster_Rest,
+				target: 'client-api',
+				delivery: SourceDelivery.HttpProxy,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.GenericRead],
+			},
+			{
+				source: Source.Farcaster_Rest,
+				target: 'web-api',
+				delivery: SourceDelivery.HttpProxy,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.GenericRead],
+			},
+			{
+				source: Source.Mastodon_Rest,
+				target: 'mastodon-instance:https://mastodon.social',
+				delivery: SourceDelivery.HttpProxy,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.GenericRead],
+			},
+			{
+				source: Source.Mastodon_Rest,
+				target: 'mastodon-instance:https://fosstodon.org',
+				delivery: SourceDelivery.HttpProxy,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.GenericRead],
+			},
+			{
+				source: Source.Mastodon_Rest,
+				target: 'mastodon-public-timeline:https://fosstodon.org',
+				delivery: SourceDelivery.HttpProxy,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.GenericRead],
+			},
+			{
+				source: Source.NostrRelay_Nip11_Http,
+				target: 'wss://nos.lol',
+				delivery: SourceDelivery.HttpProxy,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.NostrRelayRead],
+			},
+			{
+				source: Source.NostrRelay_Nip11_Http,
+				target: 'wss://relay.damus.io',
+				delivery: SourceDelivery.HttpProxy,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.NostrRelayRead],
+			},
+			{
+				source: Source.NostrRelay_Nip11_Http,
+				target: 'wss://relay.nostr.band',
+				delivery: SourceDelivery.HttpProxy,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.NostrRelayRead],
+			},
+			{
+				source: Source.NostrRelay_Nip11_Http,
+				target: 'wss://relay.primal.net',
+				delivery: SourceDelivery.HttpProxy,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.NostrRelayRead],
+			},
+			{
+				source: Source.NostrRelay_WebSocket,
+				target: 'wss://nos.lol',
+				delivery: SourceDelivery.RemoteLive,
+				wireProtocol: WireProtocol.WebSocketMessages,
+				operations: [
+					SourceOperationGroup.GenericSubscribe,
+					SourceOperationGroup.NostrRelayPublish,
+					SourceOperationGroup.NostrRelayRead,
+				],
+			},
+			{
+				source: Source.NostrRelay_WebSocket,
+				target: 'wss://relay.damus.io',
+				delivery: SourceDelivery.RemoteLive,
+				wireProtocol: WireProtocol.WebSocketMessages,
+				operations: [
+					SourceOperationGroup.GenericSubscribe,
+					SourceOperationGroup.NostrRelayPublish,
+					SourceOperationGroup.NostrRelayRead,
+				],
+			},
+			{
+				source: Source.NostrRelay_WebSocket,
+				target: 'wss://relay.nostr.band',
+				delivery: SourceDelivery.RemoteLive,
+				wireProtocol: WireProtocol.WebSocketMessages,
+				operations: [
+					SourceOperationGroup.GenericSubscribe,
+					SourceOperationGroup.NostrRelayPublish,
+					SourceOperationGroup.NostrRelayRead,
+					SourceOperationGroup.NostrSearch,
+				],
+			},
+			{
+				source: Source.NostrRelay_WebSocket,
+				target: 'wss://relay.primal.net',
+				delivery: SourceDelivery.RemoteLive,
+				wireProtocol: WireProtocol.WebSocketMessages,
+				operations: [
+					SourceOperationGroup.GenericSubscribe,
+					SourceOperationGroup.NostrRelayPublish,
+					SourceOperationGroup.NostrRelayRead,
+				],
+			},
+			{
+				source: Source.Radicle_Local,
+				target: 'radicle-repository',
+				delivery: SourceDelivery.LocalOnly,
+				wireProtocol: WireProtocol.LocalFile,
+				operations: [
+					SourceOperationGroup.GitRepositoryContents,
+					SourceOperationGroup.RepositoryMetadata,
+				],
+			},
+			{
+				source: Source.Radicle_Remote,
+				target: 'radicle-repository',
+				delivery: SourceDelivery.RemoteQuery,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.RepositoryMetadata],
+			},
+			{
+				source: Source.RadicleCli_Local,
+				target: 'radicle-cli',
+				delivery: SourceDelivery.LocalOnly,
+				wireProtocol: WireProtocol.InProcess,
+				operations: [SourceOperationGroup.RepositoryMetadata],
+			},
+			{
+				source: Source.RadicleNode_Control,
+				target: 'radicle-node',
+				delivery: SourceDelivery.ServerOnly,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.RepositoryMetadata],
+			},
+			{
+				source: Source.Swarm_Rest,
+				target: 'swarm',
+				delivery: SourceDelivery.BrowserDirect,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.ContentGatewayRead],
+			},
+		])
+	})
+
 	it('derives network source applicability directly from binding targets', () => {
 		const sources = [
 			Source.Avail,
