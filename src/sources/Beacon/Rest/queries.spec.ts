@@ -22,6 +22,7 @@ import {
 	getNodeVersionObservation,
 	getNodeSyncingFromWire,
 	getNodeSyncingObservation,
+	getRecentProposerValidatorIndices,
 	getSyncCommitteeFromWire,
 	getValidator,
 	getValidatorAtHead,
@@ -36,6 +37,22 @@ afterEach(() => {
 })
 
 describe('Beacon REST native checkpoint and fork wires', () => {
+	it('rejects invalid proposer discovery bounds before transport', async () => {
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch')
+
+		await expect(getRecentProposerValidatorIndices({
+			chainId: Number(bindings[Source.Beacon_Rest][0].target.key),
+			limit: -1,
+			slotLookbackCap: 10,
+		})).rejects.toThrow('invalid proposer validator limit')
+		await expect(getRecentProposerValidatorIndices({
+			chainId: Number(bindings[Source.Beacon_Rest][0].target.key),
+			limit: 1,
+			slotLookbackCap: -1,
+		})).rejects.toThrow('invalid proposer validator lookback')
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
 	it('preserves native finality checkpoint keys and decimal strings', () => {
 		expect(getFinalityCheckpointsFromWire({
 			data: {

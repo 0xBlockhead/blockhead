@@ -336,6 +336,10 @@ export const getRecentProposerValidatorIndices = async ({
 	limit: number
 	slotLookbackCap: number
 }) => {
+	if (!Number.isSafeInteger(limit) || limit < 0)
+		throw new Error(`Beacon: invalid proposer validator limit ${limit}`)
+	if (!Number.isSafeInteger(slotLookbackCap) || slotLookbackCap < 0)
+		throw new Error(`Beacon: invalid proposer validator lookback ${slotLookbackCap}`)
 	const head = Number(await getHeadSlot(chainId))
 	if (!Number.isSafeInteger(head))
 		throw new Error('Beacon: head slot must be a safe integer for recent proposer discovery')
