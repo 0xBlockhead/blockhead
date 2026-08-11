@@ -45,19 +45,24 @@ const zeroXLowerHexCastHash = (hash: string) => {
 	return `0x${hex.toLowerCase()}`
 }
 
-const farcasterTimestampMs = (timestamp: number | undefined) => (
-	timestamp != null && Number.isFinite(timestamp) ?
-		(
-			timestamp >= 1e12 ?
-				timestamp
-			:
-				timestamp * 1000
-		)
-	:
-	undefined
-)
+const farcasterTimestampMs = (timestamp: number | undefined) => {
+	if (timestamp == null)
+		return undefined
+
+	const timestampMs = timestamp >= 1e12 ? timestamp : timestamp * 1000
+	if (!Number.isSafeInteger(timestampMs) || timestampMs < 0)
+		throw new Error('Farcaster_Rest: timestamp must resolve to safe nonnegative milliseconds')
+
+	return timestampMs
+}
 
 const farcasterChannelFields = (channel: FarcasterChannel) => {
+	if (
+		(channel.followerCount != null && (!Number.isSafeInteger(channel.followerCount) || channel.followerCount < 0))
+		|| (channel.memberCount != null && (!Number.isSafeInteger(channel.memberCount) || channel.memberCount < 0))
+	)
+		throw new Error('Farcaster_Rest: channel counts must be safe nonnegative integers')
+
 	const imageUrl = normalizeMediaUrl(optionalNonemptyString(channel.imageUrl))
 	const headerImageUrl = normalizeMediaUrl(optionalNonemptyString(channel.headerImageUrl))
 	const timestampMs = Date.now()

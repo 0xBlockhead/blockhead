@@ -158,6 +158,30 @@ describe('Farcaster channel directory', () => {
 		expect(getChannel).toHaveBeenCalledOnce()
 	})
 
+	it('rejects invalid external channel observation counts', async () => {
+		getChannel.mockResolvedValueOnce({
+			id: 'dev',
+			parentUrl: 'https://farcaster.xyz/~/channel/dev',
+			name: 'Dev',
+			followerCount: -1,
+		})
+
+		await expect(channelResolver.resolve.Id.resolve({ id: 'dev' }, {})).rejects.toThrow(
+			'channel counts must be safe nonnegative integers'
+		)
+
+		getChannel.mockResolvedValueOnce({
+			id: 'dev',
+			parentUrl: 'https://farcaster.xyz/~/channel/dev',
+			name: 'Dev',
+			createdAt: -1,
+		})
+
+		await expect(channelResolver.resolve.Id.resolve({ id: 'dev' }, {})).rejects.toThrow(
+			'timestamp must resolve to safe nonnegative milliseconds'
+		)
+	})
+
 	it('keeps viewer identity and false membership on the materialized observation row', async () => {
 		getUserFollowingChannelsPage.mockResolvedValue({
 			result: {
