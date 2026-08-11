@@ -156,6 +156,11 @@ export const getBlock = async (
 	assertBlockIdentifierBounds(result.block.block_identifier)
 	assertBlockIdentifierBounds(result.block.parent_block_identifier)
 	assertSafeUnsignedInteger(result.block.timestamp, 'block timestamp')
+	if (
+		(blockIdentifier.index != null && result.block.block_identifier.index !== blockIdentifier.index)
+		|| (blockIdentifier.hash != null && result.block.block_identifier.hash !== blockIdentifier.hash)
+	)
+		throw new Error('InternetComputer_RosettaApi: block response does not match request')
 	if (result.block.transactions.length !== 1)
 		throw new Error('InternetComputer_RosettaApi: ICP ledger block must contain exactly one transaction')
 	const transactionHashes = new Set<string>()
@@ -197,6 +202,11 @@ export const getAccountBalance = async (
 		)
 	)
 	assertBlockIdentifierBounds(result.block_identifier)
+	if (
+		(blockIdentifier?.index != null && result.block_identifier.index !== blockIdentifier.index)
+		|| (blockIdentifier?.hash != null && result.block_identifier.hash !== blockIdentifier.hash)
+	)
+		throw new Error('InternetComputer_RosettaApi: account balance response does not match requested block')
 	if (result.balances.length !== 1)
 		throw new Error('InternetComputer_RosettaApi: account balance response must contain exactly ICP')
 	assertIcpAmount(result.balances[0], 'account balance')

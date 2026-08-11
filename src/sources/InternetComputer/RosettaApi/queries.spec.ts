@@ -164,6 +164,29 @@ describe('Internet Computer Rosetta ledger transport', () => {
 		await expect(getBlock({
 			index: 100,
 		})).rejects.toThrow('exactly one transaction')
+
+		sourceFetch.mockResolvedValueOnce(response({
+			block: {
+				block_identifier: {
+					index: 101,
+					hash: blockHash,
+				},
+				parent_block_identifier: {
+					index: 100,
+					hash: parentHash,
+				},
+				timestamp: 1_720_000_000_000,
+				transactions: [{
+					transaction_identifier: {
+						hash: transactionHash,
+					},
+					operations: [],
+				}],
+			},
+		}))
+		await expect(getBlock({
+			index: 100,
+		})).rejects.toThrow('does not match request')
 	})
 
 	it('loads a lossless ICP account balance at an exact block', async () => {
@@ -210,6 +233,17 @@ describe('Internet Computer Rosetta ledger transport', () => {
 			balances: [],
 		}))
 		await expect(getAccountBalance(accountIdentifier)).rejects.toThrow('exactly ICP')
+
+		sourceFetch.mockResolvedValueOnce(response({
+			block_identifier: {
+				index: 9_890_653,
+				hash: blockHash,
+			},
+			balances: [icpAmount('1')],
+		}))
+		await expect(getAccountBalance(accountIdentifier, {
+			index: 9_890_652,
+		})).rejects.toThrow('does not match requested block')
 	})
 
 	it('loads a bounded account-owned transaction page with lossless amounts', async () => {
