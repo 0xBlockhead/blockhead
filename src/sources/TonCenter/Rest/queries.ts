@@ -23,6 +23,12 @@ type TonCenterV2Binding = Extract<
 >
 type TonCenterV2Network = TonCenterV2Binding['target']['key']
 
+const assertResultObject = <_Result>(result: _Result, operation: string) => {
+	if (result == null)
+		throw new Error(`TonCenter_Rest: ${operation} response result is missing`)
+	return result
+}
+
 export const getAddressInformation = (
 	network: TonCenterV2Network,
 	{
@@ -38,7 +44,7 @@ export const getAddressInformation = (
 				seqno: String(seqno),
 			}),
 		})}`
-	).then(({ result }) => result)
+		).then(({ result }) => assertResultObject(result, 'getAddressInformation'))
 )
 
 export const getMasterchainInfo = (
@@ -47,5 +53,5 @@ export const getMasterchainInfo = (
 	getJson<TonlibOperationResponse<components['schemas']['MasterchainInfo']>>(
 		bindingByNetwork[network],
 		'getMasterchainInfo'
-	).then(({ result }) => result)
+		).then(({ result }) => assertResultObject(result, 'getMasterchainInfo'))
 )

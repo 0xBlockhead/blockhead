@@ -133,6 +133,16 @@ describe('TON Center V2 OpenAPI operations', () => {
 		)
 	})
 
+	it('rejects missing native result objects instead of exposing undefined state', async () => {
+		getJson.mockResolvedValueOnce({ ok: true, result: null })
+		await expect(getMasterchainInfo('ton:-239')).rejects.toThrow('response result is missing')
+
+		getJson.mockResolvedValueOnce({ ok: true, result: null })
+		await expect(getAddressInformation('ton:-3', {
+			address: '0:account',
+		})).rejects.toThrow('response result is missing')
+	})
+
 	it('exports only product-facing endpoint operations', () => {
 		expect(Object.keys(queries).sort()).toEqual([
 			'getAddressInformation',
