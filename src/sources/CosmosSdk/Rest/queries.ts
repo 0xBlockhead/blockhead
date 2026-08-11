@@ -230,6 +230,9 @@ export const getAccounts = ({
 }: {
 	limit?: number
 }) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`CosmosSdk_Rest: invalid account page limit ${limit}`)
+
 	const parameters = new URLSearchParams({
 		'pagination.limit': String(limit),
 		'pagination.count_total': 'true',
@@ -259,6 +262,9 @@ export const getProposals = ({
 	limit?: number
 	paginationKey?: string
 }) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`CosmosSdk_Rest: invalid governance proposal page limit ${limit}`)
+
 	const parameters = new URLSearchParams({
 		'pagination.limit': String(limit),
 		'pagination.count_total': 'true',
@@ -280,6 +286,9 @@ export const getProposalVotes = ({
 	limit?: number
 	paginationKey?: string
 }) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`CosmosSdk_Rest: invalid governance vote page limit ${limit}`)
+
 	const parameters = new URLSearchParams({
 		'pagination.limit': String(limit),
 		'pagination.count_total': 'true',
@@ -314,6 +323,9 @@ export const getProposalDeposits = ({
 	limit?: number
 	paginationKey?: string
 }) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`CosmosSdk_Rest: invalid governance deposit page limit ${limit}`)
+
 	const parameters = new URLSearchParams({
 		'pagination.limit': String(limit),
 		'pagination.count_total': 'true',

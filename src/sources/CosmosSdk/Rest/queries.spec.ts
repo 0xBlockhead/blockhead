@@ -62,6 +62,7 @@ vi.mock('$/sources/_runtime/http.ts', () => {
 
 const {
 	getBalances,
+	getAccounts,
 	getDelegationRewards,
 	getDelegations,
 	getDenomMetadata,
@@ -213,6 +214,11 @@ describe('Cosmos SDK public account module transport', () => {
 	beforeEach(() => {
 		getJson.mockReset()
 		getJson.mockResolvedValue()
+	})
+
+	it.each([0, 101, 1.5, Number.MAX_SAFE_INTEGER + 1])('rejects account page limit %s before transport', (limit) => {
+		expect(() => getAccounts({ limit })).toThrow('CosmosSdk_Rest: invalid account page limit')
+		expect(getJson).not.toHaveBeenCalled()
 	})
 
 	it('validates and normalizes an exact fixed-height balance page', async () => {
@@ -705,6 +711,21 @@ describe('Cosmos SDK denom metadata transport', () => {
 describe('Cosmos SDK x/gov v1 transport', () => {
 	beforeEach(() => {
 		getJson.mockReset()
+	})
+
+	it.each([
+		() => getProposals({ limit: 0 }),
+		() => getProposals({ limit: 101 }),
+		() => getProposals({ limit: 1.5 }),
+		() => getProposalVotes({ proposalId: '123', limit: 0 }),
+		() => getProposalVotes({ proposalId: '123', limit: 101 }),
+		() => getProposalVotes({ proposalId: '123', limit: 1.5 }),
+		() => getProposalDeposits({ proposalId: '123', limit: 0 }),
+		() => getProposalDeposits({ proposalId: '123', limit: 101 }),
+		() => getProposalDeposits({ proposalId: '123', limit: 1.5 }),
+	])('rejects unbounded governance pages before transport', (query) => {
+		expect(query).toThrow('CosmosSdk_Rest: invalid governance')
+		expect(getJson).not.toHaveBeenCalled()
 	})
 
 	it.each([
