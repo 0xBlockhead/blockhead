@@ -1,16 +1,16 @@
 import { type as arktype } from 'arktype'
 
-export type AaveChainWire = {
+type AaveChainWire = {
 	chainId: number
 	name: string
 	icon?: string
 }
 
-export type AaveAmountWire = {
+type AaveAmountWire = {
 	value: string
 }
 
-export type AaveEmodeCategoryWire = {
+type AaveEmodeCategoryWire = {
 	id: number
 	label: string
 	maxLTV: AaveAmountWire
@@ -29,12 +29,12 @@ export type AaveMarketWire = {
 	eModeCategories?: AaveEmodeCategoryWire[]
 }
 
-export type AaveTokenAmountWire = {
+type AaveTokenAmountWire = {
 	amount: AaveAmountWire
 	usd?: string
 }
 
-export type AaveCurrencyWire = {
+type AaveCurrencyWire = {
 	address: string
 	name: string
 	symbol: string
@@ -48,7 +48,7 @@ export type AaveCurrencyWire = {
  * Enrolled projections use underlying / size / supply+borrow APY / liquidity / freeze flags.
  * Richer supply/borrow / aToken / oracle surfaces stay transport-only until APP enrolls them.
  */
-export type AaveIsolationModeConfigWire = {
+type AaveIsolationModeConfigWire = {
 	canBeCollateral: boolean
 	canBeBorrowed: boolean
 	debtCeiling: AaveTokenAmountWire
@@ -56,7 +56,7 @@ export type AaveIsolationModeConfigWire = {
 	totalBorrows?: AaveTokenAmountWire
 }
 
-export type AaveReserveWire = {
+type AaveReserveWire = {
 	underlyingToken: AaveCurrencyWire
 	aToken?: AaveCurrencyWire
 	vToken?: AaveCurrencyWire
