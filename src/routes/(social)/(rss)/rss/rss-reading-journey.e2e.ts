@@ -1,10 +1,61 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 
 const feedUrl = 'https://hnrss.org/frontpage'
 const feedPath = `/rss/feed/${encodeURIComponent(feedUrl)}`
 
+const installRssFixture = async (page: Page) => {
+	await page.route('**/api-proxy/**', async (route) => {
+		if (route.request().url().includes('api.rss2json.com')) {
+			await route.fulfill({
+				json: {
+					status: 'ok',
+					feed: {
+						title: 'Deterministic RSS feed',
+						link: 'https://example.com/',
+					},
+					items: [{
+						title: 'Deterministic item',
+						guid: 'deterministic-item',
+						link: 'https://example.com/items/1',
+					}],
+				},
+			})
+			return
+		}
+
+		await route.fulfill({
+			contentType: 'application/rss+xml',
+			body: `
+				<rss version="2.0">
+					<channel>
+						<title>Deterministic RSS feed</title>
+						<link>https://example.com/</link>
+						<item>
+							<title>Deterministic item</title>
+							<guid>deterministic-item</guid>
+							<link>https://example.com/items/1</link>
+						</item>
+					</channel>
+				</rss>
+			`,
+		})
+	})
+}
+
 test.describe('RSS reading journey', () => {
+	test('successful feed reads expose their source-owned observation list', async ({ page }) => {
+		test.setTimeout(180_000)
+		await installRssFixture(page)
+		await page.goto(feedPath, { waitUntil: 'domcontentloaded' })
+
+		await expect(page.locator('#main')).toContainText('Deterministic RSS feed', {
+			timeout: 120_000,
+		})
+		await expect(page.getByRole('heading', { name: /^Observations/ })).toBeVisible()
+		await expect(page.locator('#timestamps')).toContainText('Deterministic RSS feed')
+	})
+
 	test('feedUrl itemIdentityKind itemIdentity remain the canonical route identity', async ({ page }) => {
 		test.setTimeout(180_000)
 		await page.goto(feedPath, { waitUntil: 'domcontentloaded' })
