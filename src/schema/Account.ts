@@ -163,6 +163,20 @@ export default entity({
 				],
 			},
 		}),
+		Tezos: facet({
+			path: [
+				'namespace',
+			],
+			is: 'tezos',
+		})({
+			$account: {
+				entityType: EntityType.TezosAccount,
+				cardinality: EntityFieldCardinality.One,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
+			},
+		}),
 		Starknet: facet({
 			path: [
 				'namespace',
