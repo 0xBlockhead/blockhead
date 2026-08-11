@@ -181,6 +181,9 @@ export const getValidators = ({
 	limit?: number
 	status?: string
 }) => {
+	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100)
+		throw new Error(`CosmosSdk_Rest: invalid validator page limit ${limit}`)
+
 	const parameters = new URLSearchParams({
 		'pagination.limit': String(limit),
 		'pagination.count_total': 'true',

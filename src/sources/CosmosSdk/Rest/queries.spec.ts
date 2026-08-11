@@ -74,6 +74,7 @@ const {
 	getProposals,
 	getTx,
 	getTransactionsByEvent,
+	getValidators,
 } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 
 describe('Cosmos SDK GetTxsEvent transport', () => {
@@ -151,6 +152,31 @@ describe('Cosmos SDK GetTxsEvent transport', () => {
 				continuationToken,
 			})).rejects.toThrow('invalid or foreign balance continuation')
 		expect(getJson).not.toHaveBeenCalled()
+	})
+})
+
+describe('Cosmos SDK validator transport', () => {
+	beforeEach(() => {
+		getJson.mockReset()
+	})
+
+	it('rejects an unbounded validator page before transport', () => {
+		for (const limit of [0, 101, 1.5, Number.MAX_SAFE_INTEGER + 1])
+			expect(() => getValidators({ limit })).toThrow('invalid validator page limit')
+		expect(getJson).not.toHaveBeenCalled()
+	})
+
+	it('requests a bounded validator page with the selected status', async () => {
+		getJson.mockResolvedValueOnce({ validators: [], pagination: {} })
+
+		await expect(getValidators({
+			limit: 16,
+			status: 'BOND_STATUS_BONDED',
+		})).resolves.toEqual({ validators: [], pagination: {} })
+		expect(getJson).toHaveBeenCalledWith(
+			'https://rest.cosmos.directory/cosmoshub/cosmos/staking/v1beta1/validators?pagination.limit=16&pagination.count_total=true&status=BOND_STATUS_BONDED',
+			expect.any(Object)
+		)
 	})
 })
 
