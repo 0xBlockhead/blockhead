@@ -119,11 +119,13 @@ const assertEnvelope = <_Value>(
 }
 
 const assertUniqueStatusIds = (
-	statuses: { id: string }[],
+	statuses: { id?: string }[],
 	operationLabel: string
 ) => {
 	const statusIds = new Set<string>()
 	for (const status of statuses) {
+		if (status.id == null)
+			continue
 		if (statusIds.has(status.id))
 			throw new Error(`Mastodon_Rest: ${operationLabel} response contains a duplicate status`)
 		statusIds.add(status.id)
@@ -232,13 +234,22 @@ export const getStatusContext = async (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],
 	instanceOrigin: string,
 	localStatusId: string
-) => (
-	assertEnvelope(
+) => {
+	assertInstanceMatches(binding, instanceOrigin)
+	const context = assertEnvelope(
 		'status-context',
 		mastodonApiV1ContextWire,
 		await mastodonGet(binding, `/statuses/${encodeURIComponent(localStatusId)}/context`)
 	)
-)
+	assertUniqueStatusIds(
+		[
+			...(context.ancestors ?? []),
+			...(context.descendants ?? []),
+		],
+		'status context'
+	)
+	return context
+}
 
 export const listAccountStatusesPageByLocalAccountId = async (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],

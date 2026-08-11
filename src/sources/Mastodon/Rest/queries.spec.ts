@@ -31,6 +31,7 @@ const {
 	getInstance,
 	getInstanceV2,
 	getStatus,
+	getStatusContext,
 	listAccountStatusesPageByLocalAccountId,
 	listInstanceModeratedDomains,
 	listInstancePeerDomains,
@@ -370,6 +371,26 @@ describe('Mastodon Rest arktype envelopes', () => {
 			'https://mastodon.social',
 			'9'
 		)).rejects.toThrow('status response does not match request')
+	})
+
+	it('keeps context reads bound to the requested instance and rejects duplicate relatives', async () => {
+		mastodonGet.mockResolvedValueOnce({
+			ancestors: [{ id: '8' }],
+			descendants: [{ id: '8' }],
+		})
+
+		await expect(getStatusContext(
+			mastodonSocialBinding,
+			'https://mastodon.social',
+			'9'
+		)).rejects.toThrow('status context response contains a duplicate status')
+
+		await expect(getStatusContext(
+			fosstodonPublicTimeline.binding,
+			'https://mastodon.social',
+			'9'
+		)).rejects.toThrow('entity instance binding is missing')
+		expect(mastodonGet).toHaveBeenCalledTimes(1)
 	})
 
 	it('fails closed on malformed envelopes', async () => {
