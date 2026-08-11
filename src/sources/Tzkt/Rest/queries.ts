@@ -507,6 +507,8 @@ export const listBlocks = async ({
 	) as TzktBlock[]
 	if (blocks.length > limit)
 		throw new Error('TzKT blocks exceeded the requested limit')
+	if (new Set(blocks.map((block) => block.hash)).size !== blocks.length)
+		throw new Error('TzKT blocks returned duplicate hashes')
 
 	return blocks
 }

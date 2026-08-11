@@ -224,6 +224,18 @@ describe('TzKT REST fail-closed envelopes', () => {
 		await expect(getBlock({ level: 1 })).rejects.toThrow('invalid block response envelope')
 	})
 
+	it('rejects duplicate block hashes from a page', async () => {
+		sourceGetJsonMock.mockResolvedValueOnce([
+			block,
+			block,
+		])
+
+		await expect(listBlocks({
+			offset: 0,
+			limit: 2,
+		})).rejects.toThrow('TzKT blocks returned duplicate hashes')
+	})
+
 	it('rejects empty addresses and invalid pages before transport', async () => {
 		await expect(getAccount({ address: '' })).rejects.toThrow('must not be empty')
 		await expect(listBlocks({
