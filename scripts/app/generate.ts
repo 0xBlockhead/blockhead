@@ -14108,17 +14108,22 @@ const generatePageFile = (
 		&& collectionComponentFile != null
 		&& isDefaultPluralViewComponent(indexes, collectionEntity, collectionComponentFile)
 	)
-	const inlineSelectorExpression = generatedPageModule ?
-		undefined
-	: mapping == null ?
-		undefined
-	:
-		emitObject(mapping.fields.map((field) => [
+	const inlineSelectorExpression = (() => {
+		if (generatedPageModule || mapping == null)
+			return undefined
+
+		const fieldValueByName = new Map(mapping.fields.map(({ name, value }) => [name, value]))
+		return emitObject(mapping.fields.map((field) => [
 			field.name,
-			renderExpression(field.value, {
+			renderExpression(resolveRouteSelectorFieldExpression(
+				field.value,
+				fieldValueByName,
+			), {
 				params: 'params',
+				pageSelector: 'data.selector',
 			}),
 		]))
+	})()
 	const componentImports = unique([
 		...(component == null || componentFile == null ? [] : [`import ${component} from '${viewModulePath(componentFile)}'`]),
 		...(collectionComponent == null || collectionComponentFile == null || inlinesDefaultCollectionView ? [] : [

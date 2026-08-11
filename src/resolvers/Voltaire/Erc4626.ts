@@ -71,32 +71,36 @@ export const erc4626Resolvers = [
 					return withTransports(
 						chainIdFromNetwork($contract.$network),
 						'Erc4626Vault',
-						(getCall) => getErc4626VaultIdentity({
-							getCall,
-							vaultAddress: $contract.address,
-						})
-					).then((identity) => ({
-						$network: {
-							[EntityMetaKey.Selector]: $contract.$network,
-						},
-						$asset: {
-							[EntityMetaKey.Selector]: {
-								$network: $contract.$network,
-								type: CoinInstanceType.Erc20Token,
-								$contract: {
-									$network: $contract.$network,
-									address: identity.assetAddress,
+						async (getCall) => {
+							const identity = await getErc4626VaultIdentity({
+								getCall,
+								vaultAddress: $contract.address,
+							})
+
+							return {
+								$network: {
+									[EntityMetaKey.Selector]: $contract.$network,
 								},
-							},
-						},
-						$shareToken: {
-							[EntityMetaKey.Selector]: {
-								$network: $contract.$network,
-								type: CoinInstanceType.Erc20Token,
-								$contract,
-							},
-						},
-					}))
+								$asset: {
+									[EntityMetaKey.Selector]: {
+										$network: $contract.$network,
+										type: CoinInstanceType.Erc20Token,
+										$contract: {
+											$network: $contract.$network,
+											address: identity.assetAddress,
+										},
+									},
+								},
+								$shareToken: {
+									[EntityMetaKey.Selector]: {
+										$network: $contract.$network,
+										type: CoinInstanceType.Erc20Token,
+										$contract,
+									},
+								},
+							}
+						}
+					)
 				},
 			},
 		},
@@ -110,7 +114,6 @@ export const erc4626Resolvers = [
 		entityType: EntityType.Erc4626Vault_Block,
 		resolve: {
 			VaultBlockNumberSource: {
-				appliesTo: [{ source: Source.Voltaire_JsonRpc }],
 				resolve: async ({
 					$vault,
 					blockNumber,
@@ -119,7 +122,7 @@ export const erc4626Resolvers = [
 					return withTransports(
 						chainIdFromNetwork($vault.$contract.$network),
 						'Erc4626Vault_Block',
-						(getCall) => getErc4626VaultBlockState({
+						async (getCall) => getErc4626VaultBlockState({
 							getCall,
 							vaultAddress: $vault.$contract.address,
 							blockNumber: BigInt(blockNumber),

@@ -1,0 +1,6 @@
+{
+	"extends": "./tsconfig.json",
+	"include": [
+		"src/resolvers/Voltaire/Erc4626.ts"
+	]
+}

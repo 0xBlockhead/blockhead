@@ -2187,9 +2187,6 @@ export const schema = {
 			},
 			{
 				id: "HyperliquidAccountInfoType",
-				routeParam: {
-					matcher: "stringSegment",
-				},
 				type: { raw: "type.enumerated('clearinghouseState', 'spotClearinghouseState', 'userFees', 'delegatorSummary', 'userAbstraction', 'userDexAbstraction', 'approvedBuilders', 'borrowLendUserState')" },
 			},
 			{
@@ -73919,7 +73916,7 @@ export const routes = defineRoutes(schema)({
 																					},
 																					children: {
 																						"[infoType]": {
-																							params: { "infoType": ["HyperliquidAccountInfoType"] },
+																							params: { "infoType": ["string"] },
 																							selectors: {
 																								[EntityType.HyperliquidAccount_Timestamp]: {
 																									"AccountInfoTypeTimestampMsSource": {
@@ -73930,7 +73927,6 @@ export const routes = defineRoutes(schema)({
 																											"timestampMs": { kind: "param", name: "timestampMs" },
 																											"source": { kind: "param", name: "source" },
 																										},
-																										page: {},
 																									},
 																								},
 																							},
