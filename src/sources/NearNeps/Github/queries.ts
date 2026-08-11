@@ -20,12 +20,15 @@ export const getMarkdownText = ({
 	number,
 }: {
 	number: number
-}) => (
-	getGithubRawText({
+}) => {
+	if (!Number.isSafeInteger(number) || number < 1)
+		throw new Error('NearNeps_Github: NEP number must be a positive safe integer')
+
+	return getGithubRawText({
 		binding,
 		target: {
 			...target,
 			path: `${target.path}/nep-${number.toString().padStart(4, '0')}.md`,
 		},
 	})
-)
+}
