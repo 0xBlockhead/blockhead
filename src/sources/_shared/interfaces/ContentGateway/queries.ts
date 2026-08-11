@@ -38,6 +38,9 @@ export const assertGatewayContentPath = ({
 	if (/[\u0000-\u001f\u007f]/.test(trimmedPath))
 		throw new Error(`${family}_Rest: content path contains control characters`)
 
+	if (trimmedPath.split('/').some((segment) => segment === '.' || segment === '..'))
+		throw new Error(`${family}_Rest: content path contains a traversal segment`)
+
 	return trimmedPath
 }
 

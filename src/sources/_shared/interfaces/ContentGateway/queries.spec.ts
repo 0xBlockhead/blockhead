@@ -40,6 +40,17 @@ describe('ContentGateway shared helpers', () => {
 		})).toThrow('control characters')
 	})
 
+	it.each([
+		'.',
+		'..',
+		'nested/../other',
+	])('rejects traversal content path %s', (contentPath) => {
+		expect(() => assertGatewayContentPath({
+			family: ContentGatewayFamily.Ipfs,
+			contentPath,
+		})).toThrow('traversal segment')
+	})
+
 	it('falls back from rejected HEAD to GET when probing reachability', async () => {
 		sourceFetch
 			.mockResolvedValueOnce({ ok: false, status: 405 })

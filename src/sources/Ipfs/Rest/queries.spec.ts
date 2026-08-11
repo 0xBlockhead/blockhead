@@ -68,6 +68,25 @@ describe('IPFS gateway binding transport', () => {
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
+	it('preserves reserved content-path characters as literal path segments', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response('literal path', {
+			status: 200,
+			headers: {
+				'content-type': 'text/plain',
+			},
+		}))
+
+		await fetchBrowseResult({
+			namespace: 'ipfs',
+			target: ipfsGatewaySampleCid,
+			contentPath: 'folder/a b?#%.txt',
+		})
+
+		expect(sourceFetch.mock.calls[0][1]).toBe(
+			`${binding.endpoints[0].locator}/ipfs/${ipfsGatewaySampleCid}/folder/a%20b%3F%23%25.txt`
+		)
+	})
+
 	it('fails over after network errors and non-OK gateway responses', async () => {
 		sourceFetch
 			.mockRejectedValueOnce(new Error('offline'))

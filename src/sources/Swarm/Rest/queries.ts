@@ -52,7 +52,7 @@ export const getGatewayUrl = ({
 		family: ContentGatewayFamily.Swarm,
 		contentPath,
 	})
-	return `${gatewayOrigin}/bzz/${trimmedReference}${trimmedPath ? `/${trimmedPath}` : ''}`
+	return `${gatewayOrigin}/bzz/${trimmedReference}${trimmedPath ? `/${trimmedPath.split('/').map(encodeURIComponent).join('/')}` : ''}`
 }
 
 export const fetchBrowseResult = async ({

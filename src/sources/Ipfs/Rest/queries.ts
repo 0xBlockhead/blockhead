@@ -71,7 +71,7 @@ export const getGatewayUrl = ({
 	return `${gatewayOrigin}/${resolvedIpfsNamespace({
 		target: trimmedTarget,
 		namespace,
-	})}/${trimmedTarget}${trimmedPath ? `/${trimmedPath}` : ''}`
+	})}/${trimmedTarget}${trimmedPath ? `/${trimmedPath.split('/').map(encodeURIComponent).join('/')}` : ''}`
 }
 
 export const fetchBrowseResult = async ({
