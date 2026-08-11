@@ -370,7 +370,7 @@ export const getAccountTransactions = async (
 		transactionsPageWire,
 		await query(`/v2/accounts/${encodeURIComponent(address)}/transactions?${parameters.toString()}`),
 		'account transactions page'
-	) as AlgorandIndexerTransactionsPage
+	)
 	if (page.transactions.length > limit)
 		throw new Error('AlgorandIndexer_Rest: transaction page exceeds requested limit')
 
@@ -406,7 +406,7 @@ export const listTransactions = async (
 		transactionsPageWire,
 		await query(`/v2/transactions?${parameters.toString()}`),
 		'transactions page'
-	) as AlgorandIndexerTransactionsPage
+	)
 	if (page.transactions.length > limit)
 		throw new Error('AlgorandIndexer_Rest: transaction page exceeds requested limit')
 
@@ -430,7 +430,7 @@ export const getTransaction = async (
 		transactionResponseWire,
 		await query(`/v2/transactions/${encodeURIComponent(txId)}`),
 		'transaction'
-	) as AlgorandIndexerTransactionResponse
+	)
 	if (response.transaction.id !== txId)
 		throw new Error('AlgorandIndexer_Rest: transaction response does not match the subject')
 	assertTransactionRow(response.transaction)
@@ -555,8 +555,13 @@ export const getBlock = async (
 	) as AlgorandIndexerBlock
 	if (BigInt(block.round) !== round)
 		throw new Error('AlgorandIndexer_Rest: block response does not match the subject')
-	for (const transaction of block.transactions ?? [])
+	const transactionIds = new Set<string>()
+	for (const transaction of block.transactions ?? []) {
 		assertTransactionRow(transaction)
+		if (transactionIds.has(transaction.id))
+			throw new Error('AlgorandIndexer_Rest: duplicate block transaction ID')
+		transactionIds.add(transaction.id)
+	}
 	return block
 }
 

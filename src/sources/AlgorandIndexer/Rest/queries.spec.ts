@@ -203,6 +203,29 @@ describe('Algorand Indexer transport', () => {
 		await expect(getAsset(5n)).rejects.toThrow('invalid asset envelope')
 	})
 
+	it('rejects duplicate transaction identities within a subject-matched block', async () => {
+		getJson.mockResolvedValueOnce({
+			round: 10,
+			timestamp: 1_700_000_000,
+			transactions: [
+				{
+					id: 'duplicate-transaction',
+					sender: account,
+					fee: 1_000,
+					'tx-type': 'pay',
+				},
+				{
+					id: 'duplicate-transaction',
+					sender: account,
+					fee: 1_000,
+					'tx-type': 'pay',
+				},
+			],
+		})
+
+		await expect(getBlock(10n)).rejects.toThrow('duplicate block transaction ID')
+	})
+
 	it('pages network transactions, asset balances, local state, and boxes', async () => {
 		getJson.mockResolvedValueOnce({
 			'current-round': 100,
