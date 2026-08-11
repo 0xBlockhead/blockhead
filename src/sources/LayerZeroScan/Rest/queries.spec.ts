@@ -272,6 +272,25 @@ describe('LayerZero Scan public message queries', () => {
 		)
 	})
 
+	it('rejects duplicate message GUIDs before materializing bridge observations', async () => {
+		getJson.mockResolvedValue({
+			data: [
+				message,
+				{
+					...message,
+					pathway: {
+						...message.pathway,
+						nonce: message.pathway.nonce - 1,
+					},
+				},
+			],
+		})
+
+		await expect(getLatestMessages({ limit: 2 })).rejects.toThrow(
+			'response contains duplicate message identities'
+		)
+	})
+
 	it.each([
 		{
 			mutate: {

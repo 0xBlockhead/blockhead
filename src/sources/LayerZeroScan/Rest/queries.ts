@@ -34,7 +34,7 @@ const omitUndefinedJson = (
 		return value.map(omitUndefinedJson)
 	if (value != null && typeof value === 'object')
 		return Object.fromEntries(
-			Object.entries(value)
+			Object.entries(value as Record<string, unknown>)
 				.filter(([, entry]) => entry !== undefined)
 				.map(([key, entry]) => [
 					key,
@@ -155,8 +155,14 @@ const assertMessagesResponse = (
 	)
 	if (limit != null && page.data.length > limit)
 		throw new Error('LayerZeroScan_Rest: response exceeds requested limit')
-	for (const message of page.data)
+	const messageGuids = new Set<string>()
+	for (const message of page.data) {
 		assertMessage(message)
+		const messageGuid = message.guid.toLowerCase()
+		if (messageGuids.has(messageGuid))
+			throw new Error('LayerZeroScan_Rest: response contains duplicate message identities')
+		messageGuids.add(messageGuid)
+	}
 	return page
 }
 
