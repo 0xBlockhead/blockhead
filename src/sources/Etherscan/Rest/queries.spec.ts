@@ -22,6 +22,7 @@ const {
 } = await import('$/sources/Etherscan/Rest/queries.ts')
 const {
 	getGasOracle,
+	getBlockByNumber,
 	getInternalTransactionsByTxHash,
 	getTokenTransfersByAddress,
 	getTokenTransfersByTransaction,
@@ -201,6 +202,30 @@ describe('Etherscan transaction hash query boundaries', () => {
 			chainId: 1,
 			txHash: normalizedTxHash,
 		})).rejects.toThrow('transaction receipt subject mismatch')
+	})
+
+	it('rejects substituted and malformed block-number responses', async () => {
+		etherscanV2GetJson.mockResolvedValueOnce({
+			result: {
+				number: '0x8',
+			},
+		})
+		await expect(getBlockByNumber({
+			publicEnv,
+			chainId: 1,
+			blockNumber: 7n,
+		})).rejects.toThrow('block response does not match the subject')
+
+		etherscanV2GetJson.mockResolvedValueOnce({
+			result: {
+				number: 'not-a-quantity',
+			},
+		})
+		await expect(getBlockByNumber({
+			publicEnv,
+			chainId: 1,
+			blockNumber: 7n,
+		})).rejects.toThrow('block response has an invalid number')
 	})
 
 	it('derives token transfers from receipt Transfer logs for one tx', async () => {

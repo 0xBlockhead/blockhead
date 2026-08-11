@@ -211,8 +211,8 @@ export const etherscanQueries = (() => {
 	blockNumber?: bigint
 	tag?: string
 	includeTransactions?: boolean
-}) => (
-	etherscanV2GetProxyResult<RpcBlockHeader>({
+}) => {
+	const block = await etherscanV2GetProxyResult<RpcBlockHeader>({
 		chainId,
 		publicEnv,
 		query: {
@@ -222,7 +222,19 @@ export const etherscanQueries = (() => {
 			boolean: includeTransactions ? 'true' : 'false',
 		},
 	})
-)
+	if (blockNumber != null && block != null) {
+		try {
+			if (BigInt(block.number ?? '') !== blockNumber)
+				throw new Error('Etherscan_Rest: block response does not match the subject')
+		} catch (error) {
+			if (error instanceof Error && error.message === 'Etherscan_Rest: block response does not match the subject')
+				throw error
+			throw new Error('Etherscan_Rest: block response has an invalid number')
+		}
+	}
+
+	return block
+}
 
 /**
  * **`module=contract`**, **`action=getabi`**, **`address`**.
