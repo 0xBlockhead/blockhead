@@ -117,16 +117,16 @@ const domainRef = (
 
 const messageMatchingNonce = (
 	result: CircleCctpMessagesV2Response,
-	nonce: string
+	messageId: CctpMessageId
 ) => {
-	const message = result.messages.find((candidate) => (
-		candidate.decodedMessage?.nonce === nonce
-		|| candidate.eventNonce === nonce
+	const messages = result.messages.filter((candidate) => (
+		candidate.decodedMessage?.sourceDomain === String(messageId.sourceDomain)
+		&& candidate.decodedMessage.nonce === messageId.nonce
 	))
-	if (message == null)
-		throw new Error(`CircleCctpIris_Rest: no message for nonce ${nonce}`)
+	if (messages.length !== 1)
+		throw new Error(`CircleCctpIris_Rest: expected one decoded message for ${messageId.sourceDomain}:${messageId.nonce}`)
 
-	return message
+	return messages[0]
 }
 
 const messageHashFromBytes = (
@@ -279,7 +279,7 @@ const loadMessageForSelector = async (
 	return {
 		result: loaded.body,
 		requestId: loaded.requestId,
-		message: messageMatchingNonce(loaded.body, messageId.nonce),
+		message: messageMatchingNonce(loaded.body, messageId),
 	}
 }
 

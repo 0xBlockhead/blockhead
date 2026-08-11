@@ -380,4 +380,25 @@ describe('CircleCctpIris_Rest resolvers', () => {
 			source: 'Other',
 		})).rejects.toThrow('unsupported fast burn allowance source')
 	})
+
+	it('rejects a status-only row that cannot prove the requested source-domain nonce', async () => {
+		getMessages.mockResolvedValue({
+			body: {
+				...messagesResponse,
+				messages: [{
+					...message,
+					eventNonce: messageId.nonce,
+					decodedMessage: null,
+				}],
+			},
+		})
+		const resolver = circleCctpRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.CctpMessage
+		))
+		if (resolver == null)
+			throw new Error('missing CctpMessage resolver')
+
+		await expect(resolver.resolve.SourceDomainNonce.resolve(messageId))
+			.rejects.toThrow(`expected one decoded message for ${messageId.sourceDomain}:${messageId.nonce}`)
+	})
 })
