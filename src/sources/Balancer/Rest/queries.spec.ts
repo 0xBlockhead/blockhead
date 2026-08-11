@@ -702,6 +702,46 @@ describe('Balancer veBAL and voting gauge operations', () => {
 		})
 	})
 
+	it('rejects negative, non-decimal, and unsafe veBAL observations', async () => {
+		const account = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+		graphql.mockResolvedValueOnce({
+			veBalGetUserBalance: '-1',
+		})
+		await expect(getVeBalUserBalance({
+			binding,
+			chainId: 1,
+			account,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid veBAL balance`)
+
+		graphql.mockResolvedValueOnce({
+			veBalGetUser: {
+				balance: '1',
+				locked: 'not-a-decimal',
+				lockedUsd: '1',
+				rank: 1,
+			},
+		})
+		await expect(getVeBalUser({
+			binding,
+			chainId: 1,
+			account,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid veBAL locked`)
+
+		graphql.mockResolvedValueOnce({
+			veBalGetUser: {
+				balance: '1',
+				locked: '1',
+				lockedUsd: '1',
+				rank: -1,
+			},
+		})
+		await expect(getVeBalUser({
+			binding,
+			chainId: 1,
+			account,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid veBAL rank`)
+	})
+
 	it('fails closed when the voting list envelope is malformed', async () => {
 		graphql.mockResolvedValueOnce({
 			veBalGetVotingList: [

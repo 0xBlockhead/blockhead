@@ -136,6 +136,16 @@ const assertNonEmptyString = (
 	return value
 }
 
+const assertNonNegativeDecimal = (
+	value: string | undefined,
+	label: string
+) => {
+	const decimal = assertNonEmptyString(value, label)
+	if (!/^(0|[1-9][0-9]*)(?:\.[0-9]+)?$/.test(decimal))
+		throw new Error(`${Source.Balancer_Rest}: invalid ${label}`)
+	return decimal
+}
+
 const assertEnvelope = <_Value>(
 	envelope: {
 		assert: (value: unknown) => _Value
@@ -618,7 +628,7 @@ export const getVeBalUserBalance = async ({
 	if (data.veBalGetUserBalance === undefined)
 		throw new Error(`${Source.Balancer_Rest}: veBAL balance response veBalGetUserBalance is missing`)
 	assertEnvelope(balancerVeBalUserBalanceEnvelope, data.veBalGetUserBalance, 'veBAL balance')
-	return assertNonEmptyString(data.veBalGetUserBalance, 'veBAL balance')
+	return assertNonNegativeDecimal(data.veBalGetUserBalance, 'veBAL balance')
 }
 
 /** veBAL lock snapshot for one account on one chain (`veBalGetUser`). */
@@ -658,13 +668,15 @@ export const getVeBalUser = async ({
 	if (data.veBalGetUser == null)
 		throw new Error(`${Source.Balancer_Rest}: veBAL user not found ${normalizedAccount} on chain ${String(chainId)}`)
 	assertEnvelope(balancerVeBalUserEnvelope, data.veBalGetUser, 'veBAL user')
+	if (data.veBalGetUser.rank != null && (!Number.isSafeInteger(data.veBalGetUser.rank) || data.veBalGetUser.rank < 0))
+		throw new Error(`${Source.Balancer_Rest}: invalid veBAL rank`)
 
 	return {
 		chainId,
 		account: normalizedAccount,
-		balance: assertNonEmptyString(data.veBalGetUser.balance, 'veBAL balance'),
-		locked: assertNonEmptyString(data.veBalGetUser.locked, 'veBAL locked'),
-		lockedUsd: assertNonEmptyString(data.veBalGetUser.lockedUsd, 'veBAL lockedUsd'),
+		balance: assertNonNegativeDecimal(data.veBalGetUser.balance, 'veBAL balance'),
+		locked: assertNonNegativeDecimal(data.veBalGetUser.locked, 'veBAL locked'),
+		lockedUsd: assertNonNegativeDecimal(data.veBalGetUser.lockedUsd, 'veBAL lockedUsd'),
 		...(data.veBalGetUser.rank != null && {
 			rank: data.veBalGetUser.rank,
 		}),
