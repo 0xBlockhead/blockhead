@@ -352,6 +352,83 @@ describe('MempoolSpace UTXO', () => {
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	})
 
+	it('resumes block history from the native height endpoint and stops after genesis', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce([
+				{
+					height: 3,
+					id: 'a'.repeat(64),
+					timestamp: 1_700_000_000,
+					tx_count: 1,
+				},
+			])
+			.mockResolvedValueOnce([
+				{
+					height: 1,
+					id: 'b'.repeat(64),
+					timestamp: 1_699_999_000,
+					tx_count: 1,
+				},
+				{
+					height: 0,
+					id: 'c'.repeat(64),
+					timestamp: 1_699_998_000,
+					tx_count: 1,
+				},
+			])
+
+		expect(await blocksResolver.resolve.Caip2.resolve(network, {
+			...resolverContext,
+			pagination: {
+				limit: 2,
+				offset: 2,
+			},
+		})).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: 1n,
+					hash: 'b'.repeat(64),
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: 0n,
+					hash: 'c'.repeat(64),
+				},
+			},
+		])
+		expect(sourceGetJson.mock.calls).toEqual([
+			[
+				binding,
+				'https://mempool.space/api/v1/blocks',
+			],
+			[
+				binding,
+				'https://mempool.space/api/v1/blocks/1',
+			],
+		])
+
+		sourceGetJson.mockReset()
+		sourceGetJson.mockResolvedValueOnce([
+			{
+				height: 3,
+				id: 'a'.repeat(64),
+				timestamp: 1_700_000_000,
+				tx_count: 1,
+			},
+		])
+		expect(await blocksResolver.resolve.Caip2.resolve(network, {
+			...resolverContext,
+			pagination: {
+				limit: 2,
+				offset: 4,
+			},
+		})).toEqual([])
+		expect(sourceGetJson).toHaveBeenCalledOnce()
+	})
+
 	it('uses the bound confirmed-history endpoint with resumable pagination', async () => {
 		sourceGetJson.mockResolvedValueOnce(transactions)
 

@@ -685,7 +685,21 @@ export default {
 			resolve: bitcoinNetworkSelectors(async (network, context) => {
 				assertBitcoinMainnet(network)
 				const { getBlocks } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-				const blocks = await getBlocks()
+				const tipBlocks = await getBlocks()
+				const offset = context.pagination.offset ?? 0
+				const tip = tipBlocks.at(0)
+				if (tip == null)
+					throw new Error('MempoolSpace_Rest: no blocks returned')
+
+				if (BigInt(offset) > BigInt(tip.height))
+					return []
+
+				const blocks = (
+					offset === 0 ?
+						tipBlocks
+					:
+						await getBlocks(BigInt(tip.height) - BigInt(offset))
+				)
 				return blocks.slice(0, resolverContextRowLimit(context)).map((block) => ({
 					[EntityMetaKey.Selector]: {
 						$network: network,
