@@ -427,7 +427,12 @@
 								[]
 							:
 								[...new Map(
-									[...(getResourceItems?.(resource) ?? resource.values)]
+									[...(
+										getResourceItems === undefined ?
+											resource.values
+										:
+											getResourceItems(resource)
+									)]
 										.map((item) => [getKey(item), item])
 								).values()],
 							resource?.continuation
