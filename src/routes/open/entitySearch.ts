@@ -1,5 +1,7 @@
 import { resolve } from '$app/paths'
 
+import { base58, bech32, hex } from '@scure/base'
+
 import { NetworkExecutionModel, NetworkNamespace, networks } from '$/constants/Network.ts'
 import { ipfsResourceAddressFromInput, ipfsResourceHref } from '$/lib/ipfs.ts'
 import { swarmResourceHrefFromInput } from '$/lib/swarm.ts'
@@ -63,6 +65,20 @@ export const utxoTransactionNetworkChoices = networks.flatMap((network) => (
 				`${network.caip2.namespace}:${network.caip2.reference}`
 			:
 				`${network.namespace} catalog slug: ${network.slug}`,
+		}]
+	:
+		[]
+))
+
+export const solanaTransactionNetworkChoices = networks.flatMap((network) => (
+	network.executionModels.some((executionModel) => executionModel === NetworkExecutionModel.SolanaRuntime) ?
+		[{
+			name: network.name,
+			environment: network.environment,
+			network: 'caip2' in network ?
+				`${network.caip2.namespace}:${network.caip2.reference}`
+			:
+				network.slug,
 		}]
 	:
 		[]
@@ -233,6 +249,43 @@ export const entityHrefFromSearchInput = (query: string) => {
 				magnetUri: encodeURIComponent(query),
 			}
 		)
+
+	try {
+		if (
+			base58.decode(query).length === 64
+			&& solanaTransactionNetworkChoices.length === 1
+		)
+			return resolve(
+				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
+				{
+					network: solanaTransactionNetworkChoices[0].network,
+					transactionId: query,
+				}
+			)
+	} catch {}
+
+	try {
+		const nostrIdentifier = bech32.decode(query, false)
+
+		if (
+			['npub', 'note'].some((prefix) => prefix === nostrIdentifier.prefix)
+			&& bech32.fromWords(nostrIdentifier.words).length === 32
+		)
+			return resolve(
+				nostrIdentifier.prefix === 'npub' ?
+					'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]'
+				:
+					'/(social)/(nostr)/nostr/(globalNostrNetwork)/note/[eventId=stringSegment]',
+				nostrIdentifier.prefix === 'npub' ?
+					{
+						pubkey: hex.encode(bech32.fromWords(nostrIdentifier.words)),
+					}
+				:
+					{
+						eventId: hex.encode(bech32.fromWords(nostrIdentifier.words)),
+					}
+			)
+	} catch {}
 
 	if (/^https?:\/\//i.test(query))
 		return resolve(

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { base58, bech32 } from '@scure/base'
+
 import {
 	entityHrefFromSearchInput,
 	evmAccountCandidatesFromSearchInput,
@@ -36,12 +38,26 @@ describe(entityHrefFromSearchInput, () => {
 		['ipfs://bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/folder/file.json', '/ipfs/ipfs/bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/path/folder/file.json'],
 		['ipns://docs.ipfs.tech/concepts', '/ipfs/ipns/docs.ipfs.tech/path/concepts'],
 		['magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567', '/magnet/magnet%3A%3Fxt%3Durn%3Abtih%3A0123456789abcdef0123456789abcdef01234567'],
+		[base58.encode(new Uint8Array(64).fill(7)), `/network/solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/tx/${base58.encode(new Uint8Array(64).fill(7))}`],
+		[bech32.encode('npub', bech32.toWords(new Uint8Array(32).fill(7)), false), `/nostr/profile/${'07'.repeat(32)}`],
+		[bech32.encode('note', bech32.toWords(new Uint8Array(32).fill(8)), false), `/nostr/note/${'08'.repeat(32)}`],
 	])('recognizes %s', (query, href) => {
 		expect(entityHrefFromSearchInput(query)).toBe(href)
 	})
 
 	it('does not guess the network for a bare address', () => {
 		expect(entityHrefFromSearchInput('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')).toBeUndefined()
+	})
+
+	it('does not relabel a Solana public key as a transaction signature', () => {
+		expect(entityHrefFromSearchInput(base58.encode(new Uint8Array(32).fill(7)))).toBeUndefined()
+	})
+
+	it.each([
+		[bech32.encode('nprofile', bech32.toWords(new Uint8Array(32).fill(7)), false)],
+		[bech32.encode('npub', bech32.toWords(new Uint8Array(31).fill(7)), false)],
+	])('does not relabel unsupported NIP-19 value %s', (query) => {
+		expect(entityHrefFromSearchInput(query)).toBeUndefined()
 	})
 
 	it('does not relabel another AT Protocol collection as a post', () => {
