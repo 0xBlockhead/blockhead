@@ -419,6 +419,44 @@ describe('Tally onchain governance reads', () => {
 		})).rejects.toThrow('invalid page count')
 	})
 
+	it('rejects page counts below the number of returned rows', async () => {
+		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
+		sourceFetch
+			.mockResolvedValueOnce(jsonResponse({
+				governors: {
+					nodes: [
+						governor,
+					],
+					pageInfo: {
+						firstCursor: null,
+						lastCursor: null,
+						count: 0,
+					},
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				proposals: {
+					nodes: [
+						proposal,
+					],
+					pageInfo: {
+						firstCursor: null,
+						lastCursor: null,
+						count: 0,
+					},
+				},
+			}))
+
+		await expect(getGovernorsPage({
+			organizationId,
+			limit: 1,
+		})).rejects.toThrow('governors page count is below returned rows')
+		await expect(getProposalsPage({
+			governorId,
+			limit: 1,
+		})).rejects.toThrow('proposals page count is below returned rows')
+	})
+
 	it('fails closed on malformed governor/proposal arktype envelopes', async () => {
 		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
 		sourceFetch

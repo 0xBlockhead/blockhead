@@ -456,6 +456,8 @@ export const getGovernorsPage = async ({
 	if (governors.nodes.length > limit)
 		throw new Error('Tally: governors page exceeds requested limit')
 	assertPageInfo(governors.pageInfo)
+	if (governors.pageInfo.count != null && governors.pageInfo.count < governors.nodes.length)
+		throw new Error('Tally: governors page count is below returned rows')
 
 	const governorIds = new Set<string>()
 	const nodes: TallyGovernor[] = []
@@ -538,6 +540,8 @@ export const getProposalsPage = async ({
 	if (proposals.nodes.length > limit)
 		throw new Error('Tally: proposals page exceeds requested limit')
 	assertPageInfo(proposals.pageInfo)
+	if (proposals.pageInfo.count != null && proposals.pageInfo.count < proposals.nodes.length)
+		throw new Error('Tally: proposals page count is below returned rows')
 
 	const proposalIds = new Set<string>()
 	const nodes: TallyProposal[] = []
