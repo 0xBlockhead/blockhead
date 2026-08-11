@@ -26,6 +26,11 @@
 		boundaryKey?: string
 	} = $props()
 
+	let copyResult = $state<{
+		errorDetails: string
+		copied: boolean
+	}>()
+
 	import { serializeError } from '$/lib/errors.ts'
 	import { stringify } from '$/lib/json.ts'
 </script>
@@ -63,6 +68,7 @@
 		retry?: () => void
 	)}
 		{@const normalizedError = normalizeBoundaryError(error)}
+		{@const errorDetails = String(serializeError(normalizedError))}
 		<div
 			data-card
 			data-error={boundaryKey}
@@ -90,9 +96,22 @@
 						>
 							<button
 								type="button"
-								onclick={() => navigator.clipboard.writeText(String(serializeError(normalizedError)))}
+								onclick={async () => {
+									try {
+										await navigator.clipboard.writeText(errorDetails)
+										copyResult = {
+											errorDetails,
+											copied: true,
+										}
+									} catch {
+										copyResult = {
+											errorDetails,
+											copied: false,
+										}
+									}
+								}}
 							>
-								Copy
+								Copy error details
 							</button>
 
 							{#if retry}
@@ -105,6 +124,12 @@
 							{/if}
 						</div>
 					</header>
+
+					{#if copyResult?.errorDetails === errorDetails}
+						<p role="status">
+							{copyResult.copied ? 'Error details copied.' : 'Unable to copy error details. Select the error text to copy it manually.'}
+						</p>
+					{/if}
 
 					<div class="error-content">
 						{#if normalizedError instanceof Error}
