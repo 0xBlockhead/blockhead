@@ -68,25 +68,49 @@ export const getBlock = async (
 		| { blockHeight: number }
 		| { absoluteSlot: number }
 		| { epoch: number, slot: number }
-): Promise<CardanoscanBlock> => (
-	assertCardanoscanEnvelope(
+): Promise<CardanoscanBlock> => {
+	if (
+		('blockHash' in params && !/^[0-9a-fA-F]{64}$/.test(params.blockHash))
+		|| ('blockHeight' in params && (!Number.isSafeInteger(params.blockHeight) || params.blockHeight < 0))
+		|| ('absoluteSlot' in params && (!Number.isSafeInteger(params.absoluteSlot) || params.absoluteSlot < 0))
+		|| ('epoch' in params && (!Number.isSafeInteger(params.epoch) || params.epoch < 0 || !Number.isSafeInteger(params.slot) || params.slot < 0))
+	)
+		throw new Error('Cardanoscan_Rest: invalid block selector')
+
+	const block = assertCardanoscanEnvelope(
 		cardanoscanBlockWire,
 		await query('/api/v1/block', params),
 		'block'
 	)
-)
+	if (
+		('blockHash' in params && block.hash.toLowerCase() !== params.blockHash.toLowerCase())
+		|| ('blockHeight' in params && block.blockHeight !== params.blockHeight)
+		|| ('absoluteSlot' in params && block.absSlot !== params.absoluteSlot)
+		|| ('epoch' in params && (block.epoch !== params.epoch || block.slot !== params.slot))
+	)
+		throw new Error('Cardanoscan_Rest: block response has mismatched identity')
+
+	return block
+}
 
 export const getTransaction = async (
 	hash: string
-): Promise<CardanoscanTransaction> => (
-	assertCardanoscanEnvelope(
+): Promise<CardanoscanTransaction> => {
+	if (!/^[0-9a-fA-F]{64}$/.test(hash))
+		throw new Error('Cardanoscan_Rest: invalid transaction hash')
+
+	const transaction = assertCardanoscanEnvelope(
 		cardanoscanTransactionWire,
 		await query('/api/v1/transaction', {
 			hash,
 		}),
 		'transaction'
 	)
-)
+	if (transaction.hash.toLowerCase() !== hash.toLowerCase())
+		throw new Error('Cardanoscan_Rest: transaction response has mismatched identity')
+
+	return transaction
+}
 
 export const getAsset = async (
 	params:

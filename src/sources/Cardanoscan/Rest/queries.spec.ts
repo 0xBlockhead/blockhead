@@ -18,6 +18,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const {
 	getAddressBalance,
+	getBlock,
 	getLatestBlock,
 	getTransaction,
 	listPools,
@@ -104,6 +105,26 @@ describe('Cardanoscan public REST transport', () => {
 			fees: '-1',
 		})
 		await expect(getTransaction('c'.repeat(64))).rejects.toThrow('invalid transaction envelope')
+	})
+
+	it('requires requested block and transaction identities before accepting a response', async () => {
+		sourceGetJson.mockResolvedValueOnce(validBlock)
+		await expect(getBlock({
+			blockHash: 'd'.repeat(64),
+		})).rejects.toThrow('mismatched identity')
+
+		sourceGetJson.mockResolvedValueOnce(validBlock)
+		await expect(getBlock({
+			blockHeight: validBlock.blockHeight + 1,
+		})).rejects.toThrow('mismatched identity')
+
+		sourceGetJson.mockResolvedValueOnce(validTransaction)
+		await expect(getTransaction('d'.repeat(64))).rejects.toThrow('mismatched identity')
+
+		await expect(getBlock({
+			blockHash: 'invalid',
+		})).rejects.toThrow('invalid block selector')
+		await expect(getTransaction('invalid')).rejects.toThrow('invalid transaction hash')
 	})
 
 	it('fail-closes address balance envelopes', async () => {
