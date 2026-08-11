@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-	bitcoinInscriptionId,
 	bitcoinOrdinalInscriptionRefsFromPayloads,
 	bitcoinOrdinalInscriptionRefsFromUtxoInscriptions,
 	bitcoinOrdinalInscriptionSnapshotFromPayload,
@@ -16,8 +15,7 @@ import { EntityMetaKey } from '$/schema/$schema.ts'
 
 
 describe('bitcoinOrdinalsRunes helpers', () => {
-	it('parses and formats inscription ids', () => {
-		expect(bitcoinInscriptionId('aa'.repeat(32), 3)).toBe(`${'aa'.repeat(32)}i3`)
+	it('parses inscription ids', () => {
 		expect(parseBitcoinInscriptionId(`${'aa'.repeat(32)}i3`)).toEqual({
 			txId: 'aa'.repeat(32),
 			inscriptionIndex: 3,

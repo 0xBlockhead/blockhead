@@ -16,7 +16,7 @@ import {
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type UtxoTransactionId = EntitySelector<typeof schema, EntityType.UtxoTransaction>
 
-export const bitcoinInscriptionId = (
+const bitcoinInscriptionId = (
 	txId: string,
 	inscriptionIndex: number
 ) => `${txId}i${inscriptionIndex}`
