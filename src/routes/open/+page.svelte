@@ -4,6 +4,8 @@
 
 
 	// State
+	import { evmAccountCandidatesFromSearchInput } from './entitySearch.ts'
+
 	let {
 		data,
 	}: {
@@ -11,6 +13,10 @@
 			query: string
 		}
 	} = $props()
+
+	const evmAccountCandidates = $derived(
+		evmAccountCandidatesFromSearchInput(data.query)
+	)
 </script>
 
 
@@ -61,4 +67,30 @@
 
 		<button type="submit">Open entity</button>
 	</form>
+
+	{#if evmAccountCandidates.length}
+		<section data-column="gap-2">
+			<h2>Choose an EVM network</h2>
+
+			<p>The address does not identify its network. Open it on one of the checked-in EVM networks:</p>
+
+			<ul data-column="gap-1">
+				{#each evmAccountCandidates as candidate (candidate.caip2)}
+					<li>
+						<a href={resolve(
+							'/(explore)/account/[namespace=stringSegment]:[reference=stringSegment]/[accountAddress=stringSegment]',
+							{
+								namespace: candidate.namespace,
+								reference: candidate.reference,
+								accountAddress: candidate.accountAddress,
+							}
+						)}>
+							{candidate.name}
+							<span data-text="annotation">{candidate.caip2}</span>
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</section>
+	{/if}
 </main>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { entityHrefFromSearchInput } from './entitySearch.ts'
+import { entityHrefFromSearchInput, evmAccountCandidatesFromSearchInput } from './entitySearch.ts'
 
 
 describe(entityHrefFromSearchInput, () => {
@@ -18,5 +18,32 @@ describe(entityHrefFromSearchInput, () => {
 
 	it('does not guess the network for a bare address', () => {
 		expect(entityHrefFromSearchInput('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')).toBeUndefined()
+	})
+})
+
+
+describe(evmAccountCandidatesFromSearchInput, () => {
+	it('offers checked-in EVM networks for a bare address', () => {
+		const address = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+		const candidates = evmAccountCandidatesFromSearchInput(address)
+
+		expect(candidates).toContainEqual({
+			name: 'Ethereum Mainnet',
+			caip2: 'eip155:1',
+			namespace: 'eip155',
+			reference: '1',
+			accountAddress: address,
+		})
+		expect(candidates).toContainEqual({
+			name: 'Base',
+			caip2: 'eip155:8453',
+			namespace: 'eip155',
+			reference: '8453',
+			accountAddress: address,
+		})
+	})
+
+	it('does not offer EVM networks for other unresolved input', () => {
+		expect(evmAccountCandidatesFromSearchInput('0123456789abcdef')).toEqual([])
 	})
 })

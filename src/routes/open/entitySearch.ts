@@ -1,5 +1,6 @@
 import { resolve } from '$app/paths'
 
+import { NetworkExecutionModel, networks } from '$/constants/Network.ts'
 import { ipfsResourceAddressFromInput, ipfsResourceHref } from '$/lib/ipfs.ts'
 
 
@@ -58,3 +59,22 @@ export const entityHrefFromSearchInput = (query: string) => {
 			}
 		)
 }
+
+export const evmAccountCandidatesFromSearchInput = (query: string) => (
+	!/^0x[a-fA-F0-9]{40}$/.test(query) ?
+		[]
+	:
+		networks.flatMap((network) => (
+			'caip2' in network
+			&& network.executionModels.some((executionModel) => executionModel === NetworkExecutionModel.Evm) ?
+				[{
+					name: network.name,
+					caip2: `${network.caip2.namespace}:${network.caip2.reference}`,
+					namespace: network.caip2.namespace,
+					reference: network.caip2.reference,
+					accountAddress: query,
+				}]
+			:
+				[]
+		))
+)
