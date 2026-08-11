@@ -417,6 +417,20 @@ describe('Snapshot Hub public governance reads', () => {
 		})).rejects.toThrow('does not align with strategies')
 	})
 
+	it('rejects a proposal score clock that predates the proposal creation', async () => {
+		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
+		sourceFetch.mockResolvedValueOnce(jsonResponse({
+			proposal: {
+				...proposal,
+				scores_updated: proposal.created - 1,
+			},
+		}))
+
+		await expect(getProposal({
+			proposalId,
+		})).rejects.toThrow('proposal score clock')
+	})
+
 	it('enforces page bounds and the raw GraphQL response byte cap', async () => {
 		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
 

@@ -229,6 +229,8 @@ const assertProposal = (
 		throw new Error('SnapshotHub_Graphql: invalid proposal lifecycle')
 	if (proposal.updated != null && proposal.updated < proposal.created)
 		throw new Error('SnapshotHub_Graphql: invalid proposal lifecycle')
+	if (proposal.scores_updated != null && proposal.scores_updated < proposal.created)
+		throw new Error('SnapshotHub_Graphql: proposal score clock predates creation')
 	if (
 		proposal.state !== 'pending'
 		&& proposal.state !== 'active'
