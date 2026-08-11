@@ -339,8 +339,15 @@ export const getBlocks = async ({
 }: {
 	startSlot: bigint
 	endSlot: bigint
-}) => (
-	assertEnvelope(
+}) => {
+	if (
+		startSlot < 0n
+		|| endSlot < startSlot
+		|| endSlot > BigInt(Number.MAX_SAFE_INTEGER)
+	)
+		throw new Error('Solana getBlocks received an invalid slot range')
+
+	const slots = assertEnvelope(
 		'blocks',
 		arktype(nonNegativeSafeInteger).array(),
 		await jsonRpc2<unknown>(binding, 'getBlocks', [
@@ -351,7 +358,19 @@ export const getBlocks = async ({
 			},
 		])
 	)
-)
+	const seenSlots = new Set<number>()
+	for (const slot of slots) {
+		if (
+			BigInt(slot) < startSlot
+			|| BigInt(slot) > endSlot
+			|| seenSlots.has(slot)
+		)
+			throw new Error('Solana getBlocks returned an invalid slot range')
+		seenSlots.add(slot)
+	}
+
+	return slots
+}
 
 export const getEpochInfo = async () => (
 	assertEnvelope(
@@ -399,11 +418,15 @@ export const getTransaction = async ({
 	if (transaction == null)
 		return null
 
-	return assertEnvelope(
+	const parsedTransaction = assertEnvelope(
 		'transaction',
 		solanaTransactionWire,
 		transaction
 	) as SolanaRpcTransaction
+	if (parsedTransaction.transaction.signatures[0] !== signature)
+		throw new Error('Solana getTransaction returned a mismatched signature')
+
+	return parsedTransaction
 }
 
 export const getSignaturesForAddress = async ({

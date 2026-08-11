@@ -11,8 +11,10 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const {
 	getBlockHeight,
+	getBlocks,
 	getRecentPerformanceSamples,
 	getSignaturesForAddress,
+	getTransaction,
 	getTransactionsForAddress,
 } = await import('$/sources/Solana/JsonRpc/queries.ts')
 
@@ -266,6 +268,51 @@ describe('Solana account transaction JSON-RPC', () => {
 			},
 		})
 		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+})
+
+describe('Solana exact transaction and block-range identity', () => {
+	beforeEach(() => {
+		sourceFetch.mockReset()
+	})
+
+	it('rejects a substituted direct transaction signature', async () => {
+		sourceFetch.mockResolvedValueOnce(rpcResponse({
+			transaction: {
+				signatures: [secondSignature],
+				message: {
+					accountKeys: [],
+					instructions: [],
+				},
+			},
+		}))
+
+		await expect(getTransaction({
+			signature: firstSignature,
+		})).rejects.toThrow('mismatched signature')
+	})
+
+	it('rejects invalid requested and returned block ranges', async () => {
+		await expect(getBlocks({
+			startSlot: 2n,
+			endSlot: 1n,
+		})).rejects.toThrow('invalid slot range')
+		expect(sourceFetch).not.toHaveBeenCalled()
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse([
+			1,
+			1,
+		]))
+		await expect(getBlocks({
+			startSlot: 1n,
+			endSlot: 2n,
+		})).rejects.toThrow('invalid slot range')
+
+		sourceFetch.mockResolvedValueOnce(rpcResponse([3]))
+		await expect(getBlocks({
+			startSlot: 1n,
+			endSlot: 2n,
+		})).rejects.toThrow('invalid slot range')
 	})
 })
 
