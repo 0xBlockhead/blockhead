@@ -1542,11 +1542,18 @@ export default {
 				Caip2: {
 					resolve: async ({ caip2 }, context) => {
 						const chainId = chainIdFromEvmNetworkId({ caip2 })
-						const jsonRpcTransports = (
+						const configuredJsonRpcTransports = (
 							(await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
-						).slice(0, resolverContextRowLimit(context))
-						if (jsonRpcTransports.length === 0)
+						)
+						if (configuredJsonRpcTransports.length === 0)
 							throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for Network.$$endpointObservations on chain ${String(chainId)}`)
+
+						const jsonRpcTransports = configuredJsonRpcTransports.slice(
+							context.pagination.offset ?? 0,
+							(context.pagination.offset ?? 0) + resolverContextRowLimit(context)
+						)
+						if (jsonRpcTransports.length === 0)
+							return []
 
 						const observations = []
 						const errors: string[] = []
