@@ -29,6 +29,29 @@ export type MevRelayBidTraceQuery = {
 	builder_pubkey?: string
 }
 
+const assertBidTraceQuery = (
+	options: MevRelayBidTraceQuery
+) => {
+	if (options.limit != null && (!Number.isSafeInteger(options.limit) || options.limit < 1))
+		throw new Error(`MevRelay_Rest: invalid BidTrace limit ${options.limit}`)
+	for (const [label, value] of [
+		['slot', options.slot],
+		['block number', options.block_number],
+	])
+		if (
+			value != null
+			&& (
+				typeof value === 'number' && !Number.isSafeInteger(value)
+				|| !/^(0|[1-9][0-9]*)$/.test(String(value))
+			)
+		)
+			throw new Error(`MevRelay_Rest: invalid BidTrace ${label} ${String(value)}`)
+	if (options.block_hash != null && !/^0x[0-9a-fA-F]{64}$/.test(options.block_hash))
+		throw new Error(`MevRelay_Rest: invalid BidTrace block hash ${options.block_hash}`)
+	if (options.builder_pubkey != null && !/^0x[0-9a-fA-F]{96}$/.test(options.builder_pubkey))
+		throw new Error(`MevRelay_Rest: invalid BidTrace builder public key ${options.builder_pubkey}`)
+}
+
 const bidTraceSearchParams = (
 	options: MevRelayBidTraceQuery
 ) => {
@@ -92,6 +115,7 @@ const getBidTracesForRelayHost = async (
 	relayHost: string,
 	options: MevRelayBidTraceQuery
 ) => {
+	assertBidTraceQuery(options)
 	const binding = mevRelayBindingByHost.get(relayHost)
 	if (binding == null)
 		throw new Error(`MevRelay_Rest: no canonical relay binding for ${relayHost}`)

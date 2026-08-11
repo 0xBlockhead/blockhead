@@ -63,8 +63,8 @@ describe('MevRelay REST bidtrace queries', () => {
 	it('binds Flashbots mainnet over HTTP proxy', () => {
 		expect(flashbotsMainnetBinding.apiFamily).toBe(ApiFamily.RestJson)
 		expect(flashbotsMainnetBinding.delivery).toBe(SourceDelivery.HttpProxy)
-		expect(flashbotsMainnetBinding.endpoints[0]?.locator).toBe('https://boost-relay.flashbots.net')
-		expect(flashbotsMainnetBinding.endpoints[0]?.corsEnabled).toBe(false)
+		expect(flashbotsMainnetBinding.endpoints[0].locator).toBe('https://boost-relay.flashbots.net')
+		expect(flashbotsMainnetBinding.endpoints[0].corsEnabled).toBe(false)
 	})
 
 	it('routes proposer_payload_delivered through the registered browser HTTP proxy binding', async () => {
@@ -129,6 +129,26 @@ describe('MevRelay REST bidtrace queries', () => {
 		expect(() => getBuilderBlocksReceivedForRelayHost('boost-relay.flashbots.net', {
 			limit: 1,
 		})).toThrow('builder_blocks_received requires')
+	})
+
+	it('rejects malformed BidTrace query coordinates before transport', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+		vi.stubGlobal('fetch', fetchMock)
+
+		for (const options of [
+			{ limit: 0 },
+			{ limit: 1.5 },
+			{ slot: '01' },
+			{ slot: Number.MAX_SAFE_INTEGER + 1 },
+			{ block_number: -1 },
+			{ block_hash: '0x1234' },
+			{ builder_pubkey: '0x1234' },
+		])
+			await expect(getProposerPayloadDeliveredForRelayHost(
+				'boost-relay.flashbots.net',
+				options
+			)).rejects.toThrow('MevRelay_Rest: invalid BidTrace')
+		expect(fetchMock).not.toHaveBeenCalled()
 	})
 
 	it('routes filtered builder_blocks_received tip leftovers through the proxy binding', async () => {
