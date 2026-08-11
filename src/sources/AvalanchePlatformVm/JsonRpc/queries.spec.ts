@@ -16,6 +16,7 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 
 const {
 	getBalance,
+	getBlock,
 	getBlockByHeight,
 	getCurrentValidators,
 	getStake,
@@ -226,6 +227,37 @@ it('projects json-encoded P-Chain blocks with transaction ids', async () => {
 		},
 		encoding: 'json',
 	})
+})
+
+it('rejects substituted JSON block and transaction identities', async () => {
+	jsonRpc2
+		.mockResolvedValueOnce({
+			block: {
+				parentID: 'parent',
+				height: 2,
+				id: 'block-id',
+			},
+			encoding: 'json',
+		})
+		.mockResolvedValueOnce({
+			block: {
+				parentID: 'parent',
+				height: 1,
+				id: 'other-block',
+			},
+			encoding: 'json',
+		})
+		.mockResolvedValueOnce({
+			tx: {
+				id: 'other-tx',
+				unsignedTx: {},
+			},
+			encoding: 'json',
+		})
+
+	await expect(getBlockByHeight(1n, 'json')).rejects.toThrow('block height response does not match request')
+	await expect(getBlock('block-id', 'json')).rejects.toThrow('block response does not match request')
+	await expect(getTx('tx-id', 'json')).rejects.toThrow('transaction response does not match request')
 })
 
 it('accepts json-encoded platform.getTx envelopes and fail-closes hex-shaped strings when json is expected downstream', async () => {

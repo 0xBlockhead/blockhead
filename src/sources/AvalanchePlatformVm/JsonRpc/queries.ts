@@ -261,7 +261,7 @@ export const getTx = async (
 	if (txID === '')
 		throw new Error(`${Source.AvalanchePlatformVm_JsonRpc}: empty transaction id`)
 
-	return assertEnvelope(
+	const response = assertEnvelope(
 		'tx',
 		txWire,
 		await request<unknown>(binding, 'platform.getTx', {
@@ -269,6 +269,13 @@ export const getTx = async (
 			encoding,
 		})
 	)
+	if (encoding === 'json') {
+		const transaction = assertEnvelope('JSON tx', jsonTxWire, response.tx)
+		if (transaction.id !== txID)
+			throw new Error(`${Source.AvalanchePlatformVm_JsonRpc}: transaction response does not match request`)
+	}
+
+	return response
 }
 
 export const getBlockByHeight = async (
@@ -281,7 +288,7 @@ export const getBlockByHeight = async (
 	if (!Number.isSafeInteger(numericHeight))
 		throw new Error(`${Source.AvalanchePlatformVm_JsonRpc}: unsafe block height ${height}`)
 
-	return assertEnvelope(
+	const response = assertEnvelope(
 		'block by height',
 		blockWire,
 		await request<unknown>(binding, 'platform.getBlockByHeight', {
@@ -289,6 +296,13 @@ export const getBlockByHeight = async (
 			encoding,
 		})
 	)
+	if (encoding === 'json') {
+		const block = assertEnvelope('JSON block', jsonBlockWire, response.block)
+		if (BigInt(block.height) !== height)
+			throw new Error(`${Source.AvalanchePlatformVm_JsonRpc}: block height response does not match request`)
+	}
+
+	return response
 }
 
 export const getBlock = async (
@@ -298,7 +312,7 @@ export const getBlock = async (
 	if (blockID === '')
 		throw new Error(`${Source.AvalanchePlatformVm_JsonRpc}: empty block id`)
 
-	return assertEnvelope(
+	const response = assertEnvelope(
 		'block',
 		blockWire,
 		await request<unknown>(binding, 'platform.getBlock', {
@@ -306,6 +320,13 @@ export const getBlock = async (
 			encoding,
 		})
 	)
+	if (encoding === 'json') {
+		const block = assertEnvelope('JSON block', jsonBlockWire, response.block)
+		if (block.id !== blockID)
+			throw new Error(`${Source.AvalanchePlatformVm_JsonRpc}: block response does not match request`)
+	}
+
+	return response
 }
 
 export const getUtxos = async (
