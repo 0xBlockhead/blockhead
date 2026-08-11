@@ -21,7 +21,6 @@ const {
 	supportsChainId,
 } = await import('$/sources/Etherscan/Rest/queries.ts')
 const {
-	getGasOracle,
 	getBlockByNumber,
 	getInternalTransactionsByTxHash,
 	getTokenTransfersByAddress,
@@ -290,18 +289,6 @@ describe('Etherscan transaction hash query boundaries', () => {
 		expect(etherscanV2GetJson.mock.calls.every(([{
 			query,
 		}]) => query.sort === 'desc')).toBe(true)
-	})
-
-	it('throws when gasoracle status is not OK', async () => {
-		etherscanV2GetJson.mockResolvedValue({
-			status: '0',
-			message: 'NOTOK',
-			result: 'Max rate limit reached',
-		})
-		await expect(getGasOracle({
-			publicEnv,
-			chainId: 1,
-		})).rejects.toThrow('Etherscan_Rest: gasoracle failed: Max rate limit reached')
 	})
 
 	it('accepts official V2 chainlist members and rejects unknowns', () => {

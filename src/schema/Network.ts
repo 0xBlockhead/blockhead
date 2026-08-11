@@ -284,7 +284,6 @@ export default entity({
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
 					Source.Blockscout_Rest,
-					Source.Etherscan_Rest,
 				],
 			},
 			$$activityDays: {

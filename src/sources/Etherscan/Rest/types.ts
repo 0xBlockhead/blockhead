@@ -33,25 +33,6 @@ export type EtherscanStringStatus = {
 	result: string
 }
 
-/**
- * `module=gastracker`, `action=gasoracle`.
- * @see https://docs.etherscan.io/api-reference/endpoint/gasoracle
- */
-export type EtherscanGasOracleResult = {
-	LastBlock: string
-	SafeGasPrice: string
-	ProposeGasPrice: string
-	FastGasPrice: string
-	suggestBaseFee?: string
-	gasUsedRatio?: string
-}
-
-export type EtherscanGasOracle = {
-	status: string
-	message: string
-	result: EtherscanGasOracleResult
-}
-
 export type EtherscanContractCreationResult = {
 	contractAddress?: string
 	contractCreator?: string

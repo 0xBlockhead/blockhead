@@ -46,7 +46,6 @@ const {
 	getContractAbiJsonString,
 	getContractCreation,
 	getContractSourceCode,
-	getGasOracle,
 	getInternalTransactionsByAddress,
 	getInternalTransactionsByTxHash,
 	getStorageAt,
@@ -769,56 +768,10 @@ const evmLogEntityFromRpcWire = (
 	}
 }
 
-const gweiFromDecimalString = (
-	raw: string | undefined
-): number | undefined => {
-	if (raw == null || raw === '') return undefined
-	const value = Number(raw)
-	return Number.isFinite(value) && value >= 0 ?
-		value
-	:
-		undefined
-}
-
-
 export default {
 	source: Source.Etherscan_Rest,
 
 	resolvers: [
-		defineResolver({
-			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({ $network, source }, context) => {
-						if (source !== Source.Etherscan_Rest)
-							throw new Error('Etherscan_Rest: EvmNetwork_GasEstimate_Timestamp selector source mismatch')
-
-						const chainId = evmChainIdFromNetworkSelector($network)
-						const oracle = await getGasOracle({
-							publicEnv: context.publicEnv,
-							chainId,
-						})
-						const slowGwei = gweiFromDecimalString(oracle.SafeGasPrice)
-						const averageGwei = gweiFromDecimalString(oracle.ProposeGasPrice)
-						const fastGwei = gweiFromDecimalString(oracle.FastGasPrice)
-						if (slowGwei == null && averageGwei == null && fastGwei == null)
-							throw new Error('Etherscan_Rest: gasoracle missing tier prices')
-						return {
-							...(slowGwei != null && { slowGwei }),
-							...(averageGwei != null && { averageGwei }),
-							...(fastGwei != null && { fastGwei }),
-							transport: 'etherscan-gasoracle',
-						}
-					},
-				},
-			},
-		})({
-			slowGwei: (timestamp) => timestamp.slowGwei,
-			averageGwei: (timestamp) => timestamp.averageGwei,
-			fastGwei: (timestamp) => timestamp.fastGwei,
-			transport: (timestamp) => timestamp.transport,
-		}),
-
 		defineResolver({
 			entityType: EntityType.EvmTokenTransfer,
 			resolve: {
@@ -1086,32 +1039,6 @@ export default {
 			},
 		})({
 				storageSlotReads: (contract) => contract,
-			}),
-
-		defineResolver({
-			entityType: EntityType.Network,
-			resolve: {
-				Caip2: {
-					resolve: async (entitySelector) => {
-						if (!supportsChainId(evmChainIdFromNetworkSelector(entitySelector)))
-							throw new Error('Etherscan_Rest: unsupported network')
-
-						return [
-							{
-								[EntityMetaKey.Selector]: {
-									$network: entitySelector,
-									timestampMs: Date.now(),
-									source: Source.Etherscan_Rest,
-								},
-							},
-						]
-					},
-				}
-			},
-		})({
-				Evm: {
-					$$gasEstimateTimestamps: (network) => network,
-				},
 			}),
 
 		defineResolver({

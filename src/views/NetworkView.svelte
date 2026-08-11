@@ -1832,11 +1832,6 @@
 						Source.Voltaire_JsonRpc,
 					], pendingEntity)}
 
-				{@const evmExecutionGasEstimatesSources = networkApplicableSources([
-						Source.Blockscout_Rest,
-						Source.Etherscan_Rest,
-					], pendingEntity)}
-
 				{@const evmExecutionSections = [
 						{
 							id: 'evm-execution-upgrades',
@@ -1887,7 +1882,7 @@
 								[]
 						),
 						...(
-							evmExecutionGasEstimatesSources.length > 0 ?
+							blockscoutRestSources.length > 0 ?
 								[
 									{
 										id: 'evm-execution-gas-estimates',
@@ -2011,7 +2006,7 @@
 								selection={
 									projection
 									.$$gasEstimateTimestamps({
-										sources: evmExecutionGasEstimatesSources,
+										sources: blockscoutRestSources,
 										limit: 16,
 									})
 								}

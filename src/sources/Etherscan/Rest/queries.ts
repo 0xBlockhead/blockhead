@@ -15,7 +15,6 @@ import type {
 	EtherscanErc1155TokenTransfer,
 	EtherscanErc20TokenTransfer,
 	EtherscanErc721TokenTransfer,
-	EtherscanGasOracle,
 	EtherscanInternalTransaction,
 	EtherscanNormalTransaction,
 	EtherscanStringStatus,
@@ -434,39 +433,6 @@ export const etherscanQueries = (() => {
 	})
 )
 
-/**
- * **`module=gastracker`**, **`action=gasoracle`** — slow / average / fast tiers in gwei.
- * @see https://docs.etherscan.io/api-reference/endpoint/gasoracle
- */
-	const getGasOracle = async ({
-	publicEnv,
-	chainId,
-}: {
-	publicEnv: SourcePublicEnv
-	chainId: number
-}) => {
-	const wire = await etherscanV2GetJson<EtherscanGasOracle>({
-		chainId,
-		publicEnv,
-		query: {
-			module: 'gastracker',
-			action: 'gasoracle',
-		},
-	})
-	if (wire.status !== '1')
-		throw new Error(
-			`Etherscan_Rest: gasoracle failed${
-				typeof wire.result === 'string' ?
-					`: ${wire.result}`
-				: wire.message !== '' ?
-					`: ${wire.message}`
-				:
-					''
-			}`
-		)
-	return wire.result
-}
-
 type EtherscanTokenTransferByAction = {
 	token1155tx: EtherscanErc1155TokenTransfer
 	tokennfttx: EtherscanErc721TokenTransfer
@@ -780,7 +746,6 @@ const uintStringFromDataWord = (
 		getContractAbiJsonString,
 		getContractCreation,
 		getContractSourceCode,
-		getGasOracle,
 		getInternalTransactionsByAddress,
 		getInternalTransactionsByTxHash,
 		getStorageAt,
