@@ -4,8 +4,6 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { untrack } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -34,11 +32,6 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import SuiNetworkView from '$/views/SuiNetworkView.svelte'
-	import MoveStructView from '$/views/MoveStructView.svelte'
-	import SuiObjectView from '$/views/SuiObjectView.svelte'
-	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
-	import SuiCoinBalance_TimestampsView from '$/views/SuiCoinBalance_TimestampsView.svelte'
-	import SuiObjectsView from '$/views/SuiObjectsView.svelte'
 	import SuiRegulatedCoinState_TimestampsView from '$/views/SuiRegulatedCoinState_TimestampsView.svelte'
 </script>
 
@@ -47,7 +40,7 @@
 	entityType={EntityType.SuiCoinType}
 	entitySelector={selection.entitySelector}
 	id={viewDomId}
-	title={title ?? 'Sui coin type'}
+	title={title ?? (selection.entitySelector.coinType || 'Sui coin type')}
 	href={
 		href === undefined ?
 			resolve(
@@ -69,6 +62,15 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet HeadingAfter()}
+		<span data-text="muted">
+			<SuiNetworkView
+				selection={select(EntityType.SuiNetwork, selection.entitySelector.$network)}
+				layout={EntityLayout.Title}
+			/>
+		</span>
+	{/snippet}
+
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -87,64 +89,6 @@
 					{selection.entitySelector.coinType}
 				</dd>
 			</div>
-
-			<ResourceBoundary
-				resource={selection.$definingStruct}
-			>
-				{#snippet children(moveStruct)}
-					{#if moveStruct != null}
-						{@const moveStructInitial = untrack(() => moveStruct)}
-						<div>
-							<dt>defining struct</dt>
-							<dd>
-								<MoveStructView
-									selection={select(EntityType.MoveStruct, (moveStruct ?? moveStructInitial)[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$treasuryCap}
-			>
-				{#snippet children(suiObject)}
-					{#if suiObject != null}
-						{@const suiObjectInitial = untrack(() => suiObject)}
-						<div>
-							<dt>treasury cap</dt>
-							<dd>
-								<SuiObjectView
-									selection={select(EntityType.SuiObject, (suiObject ?? suiObjectInitial)[EntityMetaKey.Selector])}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={selection.$assetInstance}
-			>
-				{#snippet children(assetInstance)}
-					{#if assetInstance != null}
-						{@const assetInstanceInitial = untrack(() => assetInstance)}
-						<div>
-							<dt>asset instance</dt>
-							<dd>
-								<AssetInstanceView
-									selection={select(EntityType.AssetInstance, (assetInstance ?? assetInstanceInitial)[EntityMetaKey.Selector])}
-									prefetched={assetInstance ?? assetInstanceInitial}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
 
 			<ResourceBoundary
 				resource={
@@ -266,72 +210,26 @@
 
 	{#snippet Details()}
 		<CollapsibleTabs
-			id={viewDomId + '-carousel-sui-coin-type-activity-a'}
+			id={viewDomId + '-carousel-sui-coin-type-regulated-states'}
 			sectionIdPrefix={viewDomId}
 			sections={
 				[
 					{
-						id: 'sui-coin-type-balances',
-						label: 'Balances',
-					},
-					{
-						id: 'sui-coin-type-objects',
-						label: 'Objects',
-					},
-				]
-			}
-			data-card
-			class='network-view-collapsible-activity-a'
-		>
-			{#snippet Summary()}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Activity</HeadingComponent>
-				</header>
-			{/snippet}
-
-			{#snippet SectionSuiCoinTypeBalances({ id, label })}
-				<SuiCoinBalance_TimestampsView
-					selection={selection.$$balances}
-					collapsible={false}
-					title={label}
-					emptyText='No balances.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-
-			{#snippet SectionSuiCoinTypeObjects({ id, label })}
-				<SuiObjectsView
-					selection={selection.$$objects}
-					collapsible={false}
-					title={label}
-					emptyText='No objects.'
-					id={`${id}-list`}
-				/>
-			{/snippet}
-
-		</CollapsibleTabs>
-
-		<CollapsibleTabs
-			id={viewDomId + '-carousel-sui-coin-type-activity-b'}
-			sectionIdPrefix={viewDomId}
-			sections={
-				[
-					{
-						id: 'sui-coin-type-regulated-states',
+						id: 'sui-coin-type-regulated-states-list',
 						label: 'Regulated States',
 					},
 				]
 			}
 			data-card
-			class='network-view-collapsible-activity-b'
+			class='network-view-collapsible-activity'
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Activity continued</HeadingComponent>
+					<HeadingComponent>Regulated States</HeadingComponent>
 				</header>
 			{/snippet}
 
-			{#snippet SectionSuiCoinTypeRegulatedStates({ id, label })}
+			{#snippet SectionSuiCoinTypeRegulatedStatesList({ id, label })}
 				<SuiRegulatedCoinState_TimestampsView
 					selection={selection.$$regulatedStates}
 					collapsible={false}

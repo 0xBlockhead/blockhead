@@ -15,6 +15,8 @@
 		data,
 	}: PageProps = $props()
 
+	const pageSelection = $derived(select(EntityType.SuiCoinType, data.selector))
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -23,12 +25,12 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Sui coin type'} • Sui coin type • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.coinType || 'Sui coin type')} • Sui coin type • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<SuiCoinTypeView
-		selection={select(EntityType.SuiCoinType, data.selector)}
+		selection={pageSelection}
 	/>
 </Page>

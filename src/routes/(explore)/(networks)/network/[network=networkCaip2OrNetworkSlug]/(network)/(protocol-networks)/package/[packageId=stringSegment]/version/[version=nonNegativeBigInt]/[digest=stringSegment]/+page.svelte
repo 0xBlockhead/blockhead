@@ -16,6 +16,13 @@
 		params,
 	}: PageProps = $props()
 
+	const pageSelection = $derived(select(EntityType.SuiPackageVersion, {
+		$network: data.selector,
+		packageId: params.packageId,
+		version: BigInt(params.version),
+		digest: params.digest,
+	}))
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -24,19 +31,12 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Sui package version'} • Sui package version • Blockhead</title>
+	<title>{data.title ?? (String(pageSelection.entitySelector.version) || 'Sui package version')} • Sui package version • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<SuiPackageVersionView
-		selection={
-			select(EntityType.SuiPackageVersion, {
-				$network: data.selector,
-				packageId: params.packageId,
-				version: BigInt(params.version),
-				digest: params.digest,
-			})
-		}
+		selection={pageSelection}
 	/>
 </Page>

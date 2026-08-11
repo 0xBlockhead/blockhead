@@ -16,6 +16,14 @@
 		params,
 	}: PageProps = $props()
 
+	const pageSelection = $derived(select(EntityType.SuiRegulatedCoinState_Timestamp, {
+		$coinType: data.selector,
+		timestampMs: Number(params.timestampMs),
+		source: params.source,
+	}, {
+		sources: [params.source],
+	}))
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -24,20 +32,12 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Sui regulated coin state timestamp'} • Sui regulated coin state timestamp • Blockhead</title>
+	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Sui regulated coin state timestamp')} • Sui regulated coin state timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<SuiRegulatedCoinState_TimestampView
-		selection={
-			select(EntityType.SuiRegulatedCoinState_Timestamp, {
-				$coinType: data.selector,
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			}, {
-				sources: [params.source],
-			})
-		}
+		selection={pageSelection}
 	/>
 </Page>

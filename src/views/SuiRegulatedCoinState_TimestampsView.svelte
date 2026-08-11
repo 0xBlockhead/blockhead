@@ -26,7 +26,17 @@
 	{...EntitiesListProps}
 	entityType={EntityType.SuiRegulatedCoinState_Timestamp}
 	bind:open
-	resource={selection()}
+	resource={
+		selection({
+			...{
+				fields: {
+					timestampMs: true,
+					source: true,
+					$coinType: true,
+				},
+			},
+		})
+	}
 >
 	{#snippet Item({ item: suiRegulatedCoinStateTimestamp })}
 		{@const suiRegulatedCoinStateTimestampSelector = suiRegulatedCoinStateTimestamp[EntityMetaKey.Selector]}
@@ -52,7 +62,15 @@
 			}
 		>
 			{#snippet Title()}
-				Sui regulated coin state timestamp
+				{suiRegulatedCoinStateTimestampSelector.timestampMs}
+			{/snippet}
+
+			{#snippet Value()}
+				{suiRegulatedCoinStateTimestampSelector.source}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{suiRegulatedCoinStateTimestampSelector.$coinType.coinType || 'Sui coin type'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

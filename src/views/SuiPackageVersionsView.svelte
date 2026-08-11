@@ -26,7 +26,17 @@
 	{...EntitiesListProps}
 	entityType={EntityType.SuiPackageVersion}
 	bind:open
-	resource={selection()}
+	resource={
+		selection({
+			...{
+				fields: {
+					version: true,
+					packageId: true,
+					$package: true,
+				},
+			},
+		})
+	}
 >
 	{#snippet Item({ item: suiPackageVersion })}
 		{@const suiPackageVersionSelector = suiPackageVersion[EntityMetaKey.Selector]}
@@ -51,7 +61,15 @@
 			}
 		>
 			{#snippet Title()}
-				Sui package version
+				{suiPackageVersionSelector.version}
+			{/snippet}
+
+			{#snippet Value()}
+				{suiPackageVersionSelector.packageId}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{suiPackageVersion.$package == null ? '' : suiPackageVersion.$package.originalPackageId || 'Sui package'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

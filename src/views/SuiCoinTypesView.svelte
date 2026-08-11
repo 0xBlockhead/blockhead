@@ -26,7 +26,16 @@
 	{...EntitiesListProps}
 	entityType={EntityType.SuiCoinType}
 	bind:open
-	resource={selection()}
+	resource={
+		selection({
+			...{
+				fields: {
+					coinType: true,
+					$network: true,
+				},
+			},
+		})
+	}
 >
 	{#snippet Item({ item: suiCoinType })}
 		{@const suiCoinTypeSelector = suiCoinType[EntityMetaKey.Selector]}
@@ -49,7 +58,11 @@
 			}
 		>
 			{#snippet Title()}
-				Sui coin type
+				{suiCoinTypeSelector.coinType || 'Sui coin type'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{suiCoinType.$network.$network.name || (suiCoinType.$network.$network.caip2 == null ? '' : `${suiCoinType.$network.$network.caip2.namespace}:${suiCoinType.$network.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

@@ -7,6 +7,7 @@
 	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
 
@@ -24,19 +25,25 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.SuiPackageVersion>, 'prefetched'> = $props()
 
+	const viewDomId = $derived('sui-package-version-' + encodeURIComponent(stringify(selection.entitySelector)))
+
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import SuiNetworkView from '$/views/SuiNetworkView.svelte'
 	import SuiPackageView from '$/views/SuiPackageView.svelte'
+	import MoveModulesView from '$/views/MoveModulesView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.SuiPackageVersion}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'Sui package version'}
+	id={viewDomId}
+	title={title ?? String(selection.entitySelector.version)}
 	href={
 		href === undefined ?
 			resolve(
@@ -60,6 +67,28 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Value()}
+		<TruncatedValue value={selection.entitySelector.packageId} />
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary
+			resource={selection.$package}
+		>
+			{#snippet children(suiPackage)}
+				{#if suiPackage != null}
+					{@const suiPackageInitial = untrack(() => suiPackage)}
+					<span data-text="muted">
+						<SuiPackageView
+							selection={select(EntityType.SuiPackage, (suiPackage ?? suiPackageInitial)[EntityMetaKey.Selector])}
+							layout={EntityLayout.Title}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -94,7 +123,7 @@
 			<div>
 				<dt>package ID</dt>
 				<dd>
-					{selection.entitySelector.packageId}
+					<TruncatedValue value={selection.entitySelector.packageId} />
 				</dd>
 			</div>
 
@@ -111,50 +140,40 @@
 					<TruncatedValue value={selection.entitySelector.digest} />
 				</dd>
 			</div>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							previousPackageId: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const previousPackageId = entity.previousPackageId}
-					{#if previousPackageId != null}
-						<div>
-							<dt>previous package ID</dt>
-							<dd>
-								{previousPackageId}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							upgradePolicy: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const upgradePolicy = entity.upgradePolicy}
-					{#if upgradePolicy != null}
-						<div>
-							<dt>upgrade policy</dt>
-							<dd>
-								{upgradePolicy}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-sui-package-version-abi'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'sui-package-version-modules',
+						label: 'Modules',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-abi'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>ABI</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionSuiPackageVersionModules({ id, label })}
+				<MoveModulesView
+					selection={selection.$$modules}
+					collapsible={false}
+					title={label}
+					emptyText='No modules found.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

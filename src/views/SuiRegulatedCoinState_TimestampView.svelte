@@ -35,7 +35,7 @@
 <EntityView
 	entityType={EntityType.SuiRegulatedCoinState_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'Sui regulated coin state timestamp'}
+	title={title ?? String(selection.entitySelector.timestampMs)}
 	href={
 		href === undefined ?
 			resolve(
@@ -59,6 +59,23 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Title()}
+		<Timestamp timestamp={selection.entitySelector.timestampMs} />
+	{/snippet}
+
+	{#snippet Value()}
+		{selection.entitySelector.source || String(selection.entitySelector.timestampMs)}
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<span data-text="muted">
+			<SuiCoinTypeView
+				selection={select(EntityType.SuiCoinType, selection.entitySelector.$coinType)}
+				layout={EntityLayout.Title}
+			/>
+		</span>
+	{/snippet}
+
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -101,94 +118,6 @@
 							<dt>deny cap object ID</dt>
 							<dd>
 								{denyCapObjectId}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							denyListObjectId: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const denyListObjectId = entity.denyListObjectId}
-					{#if denyListObjectId != null}
-						<div>
-							<dt>deny list object ID</dt>
-							<dd>
-								{denyListObjectId}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							globalPause: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const globalPause = entity.globalPause}
-					{#if globalPause != null}
-						<div>
-							<dt>global pause</dt>
-							<dd>
-								{globalPause ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							denyListEpoch: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const denyListEpoch = entity.denyListEpoch}
-					{#if denyListEpoch != null}
-						<div>
-							<dt>deny list epoch</dt>
-							<dd>
-								{denyListEpoch}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							deniedAddressCount: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const deniedAddressCount = entity.deniedAddressCount}
-					{#if deniedAddressCount != null}
-						<div>
-							<dt>denied address count</dt>
-							<dd>
-								{deniedAddressCount}
 							</dd>
 						</div>
 					{/if}
