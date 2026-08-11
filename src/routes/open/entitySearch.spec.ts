@@ -14,6 +14,7 @@ import {
 describe(entityHrefFromSearchInput, () => {
 	it.each([
 		['ar://1234567890123456789012345678901234567890123/docs/index.html', '/arweave/resource/1234567890123456789012345678901234567890123/docs%2Findex.html'],
+		['did:plc:ewvi7nxzyoun6zhxrhs64oiz', '/atproto/actor/did%3Aplc%3Aewvi7nxzyoun6zhxrhs64oiz'],
 		['bzz://0000000000000000000000000000000000000000000000000000000000000001/docs/index.html', '/swarm/0000000000000000000000000000000000000000000000000000000000000001/path/docs/index.html'],
 		['swarm://0x0000000000000000000000000000000000000000000000000000000000000001', '/swarm/0000000000000000000000000000000000000000000000000000000000000001'],
 		['@alice@mastodon.social', '/activitypub/actor/https%3A%2F%2Fmastodon.social/@alice'],
@@ -69,6 +70,14 @@ describe(entityHrefFromSearchInput, () => {
 		['ar://short/docs'],
 		['ar://1234567890123456789012345678901234567890123/'],
 	])('does not route incomplete Arweave resource %s', (query) => {
+		expect(entityHrefFromSearchInput(query)).toBeUndefined()
+	})
+
+	it.each([
+		['did:plc:short'],
+		['did:plc:EWVI7NXZYOUN6ZHXrhs64oiz'],
+		['did:web:example.com'],
+	])('does not infer AT Protocol actor from unsupported DID %s', (query) => {
 		expect(entityHrefFromSearchInput(query)).toBeUndefined()
 	})
 })

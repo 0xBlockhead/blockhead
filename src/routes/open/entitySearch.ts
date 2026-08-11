@@ -106,6 +106,14 @@ export const entityHrefFromSearchInput = (query: string) => {
 			}
 		)
 
+	if (/^did:plc:[a-z2-7]{24}$/.test(query))
+		return resolve(
+			'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
+			{
+				did: encodeURIComponent(query),
+			}
+		)
+
 	if (/^(?:bzz|swarm):\/\//i.test(query))
 		return swarmResourceHrefFromInput(query)
 
