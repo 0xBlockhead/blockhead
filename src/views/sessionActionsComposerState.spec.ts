@@ -13,7 +13,6 @@ import {
 	idleSessionActionDraft,
 	idleSessionComposerNotice,
 	isSessionComposerPreparing,
-	nextSessionActionIndexInSequence,
 	retargetSessionActionDraft,
 	sessionComposerNoticeMessage,
 	sessionComposerReadinessCheckIds,
@@ -24,13 +23,6 @@ import {
 
 
 describe('sessionActionsComposerState', () => {
-	it('assigns dense create indexes from existing sequence positions', () => {
-		expect(nextSessionActionIndexInSequence([])).toBe(0)
-		expect(nextSessionActionIndexInSequence([0])).toBe(1)
-		expect(nextSessionActionIndexInSequence([0, 1])).toBe(2)
-		expect(nextSessionActionIndexInSequence([2, 0])).toBe(3)
-	})
-
 	it('keeps create drafts free of edit identity fields', () => {
 		const draft = createSessionActionDraft(emptyDraftFieldsForActionType(ActionType.Transfer))
 		expect(draft).toEqual({

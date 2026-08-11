@@ -111,15 +111,6 @@ export const idleSessionComposerNotice = {
 	status: 'idle',
 } as const satisfies SessionComposerNotice
 
-export const nextSessionActionIndexInSequence = (
-	existingIndexes: readonly number[]
-) => (
-	existingIndexes.length === 0 ?
-		0
-	:
-		Math.max(...existingIndexes) + 1
-)
-
 export const emptyTransferDraftFields = (): TransferDraftFields => ({
 	fromActor: '',
 	toActor: '',
