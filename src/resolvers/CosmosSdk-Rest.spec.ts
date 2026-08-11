@@ -571,7 +571,9 @@ describe('Cosmos SDK message resolver', () => {
 					}],
 				},
 			},
-			tx_response: {},
+			tx_response: {
+				txhash: 'ABC123',
+			},
 		})
 		const transactionSelector = {
 			$network: {
