@@ -67,6 +67,7 @@
 			data-text="muted"
 			data-resource-state="pending"
 			class="loading"
+			aria-busy="true"
 		>
 			<p>{placeholderText}</p>
 		</div>

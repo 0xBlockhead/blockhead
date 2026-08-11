@@ -24,6 +24,7 @@
 			data-card
 			data-row
 			role="status"
+			aria-busy="true"
 			aria-live="polite"
 		>
 			<p>

@@ -27,6 +27,7 @@ it('shows chrome and bootstrap pending UI before mounting one route child', asyn
 	await expect.element(page.getByText('Loading...')).toBeVisible({
 		timeout: 2_000,
 	})
+	expect(page.getByRole('status').element().getAttribute('aria-busy')).toBe('true')
 	await expect.element(page.getByRole('heading', { name: 'Route child' })).not.toBeInTheDocument()
 	expect(onMount).not.toHaveBeenCalled()
 
