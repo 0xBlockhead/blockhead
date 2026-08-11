@@ -284,9 +284,9 @@ describe('Monero daemon JSON-RPC queries', () => {
 		await expect(getBlock({
 			height: 1n,
 		})).rejects.toThrow('block response does not match requested height')
-		await expect(getBlock({
-			height: BigInt(Number.MAX_SAFE_INTEGER) + 1n,
-		})).rejects.toThrow('block height exceeds lossless JSON integer range')
+			expect(() => getBlock({
+				height: BigInt(Number.MAX_SAFE_INTEGER) + 1n,
+			})).toThrow('block height exceeds lossless JSON integer range')
 	})
 
 	it('uses the canonical mainnet binding endpoints', async () => {

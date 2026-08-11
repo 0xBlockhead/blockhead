@@ -142,11 +142,10 @@ export const getBlock = ({
 				'get_block',
 				{
 					height: Number(height),
-				}
+					}
+				)
 			)
-		)
-	)
-		if (block.block_header.height !== Number(height))
+			if (block.block_header.height !== Number(height))
 			throw new Error('MoneroDaemonRpc_JsonRpc: block response does not match requested height')
 		return block
 	})
