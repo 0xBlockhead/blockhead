@@ -135,6 +135,13 @@ describe('Pyth Hermes OpenAPI operations', () => {
 		})
 	})
 
+	it('rejects malformed Hermes price feed ids before transport', async () => {
+		await expect(queries.getLatestPriceUpdates({
+			'ids[]': ['not-a-price-feed-id'],
+		})).rejects.toThrow('invalid price feed id')
+		expect(getJson).not.toHaveBeenCalled()
+	})
+
 	it('fail-closes malformed Hermes price-feed catalogs', async () => {
 		getJson.mockResolvedValue([{
 			id: 'not-a-price-feed-id',
@@ -276,6 +283,15 @@ describe('Pyth Benchmarks REST operations', () => {
 			timestampSec: 1,
 			ids: [priceFeedId],
 		})).rejects.toThrow('invalid Benchmarks price update response envelope')
+	})
+
+	it('rejects malformed Benchmarks price feed ids before transport', async () => {
+		await expect(queries.getBenchmarkPriceFeed('not-a-price-feed-id')).rejects.toThrow('invalid price feed id')
+		await expect(queries.getBenchmarkPriceUpdateAt({
+			timestampSec: 1,
+			ids: ['not-a-price-feed-id'],
+		})).rejects.toThrow('invalid price feed id')
+		expect(getJson).not.toHaveBeenCalled()
 	})
 })
 

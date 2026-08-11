@@ -16,6 +16,12 @@ import { Source } from '$/sources/Source.ts'
 const hermesBinding = Object.fromEntries(bindings[Source.PythHermes_Rest].map((binding) => [binding.target.key, binding]))['pyth-hermes']
 const benchmarksBinding = Object.fromEntries(bindings[Source.PythBenchmarks_Rest].map((binding) => [binding.target.key, binding]))['pyth-benchmarks']
 
+const assertPriceFeedId = (id: string) => {
+	if (!/^[0-9a-f]{64}$/i.test(id))
+		throw new Error(`Pyth_Rest: invalid price feed id ${id}`)
+	return id
+}
+
 const omitUndefinedJson = (
 	value: unknown
 ): unknown => {
@@ -71,6 +77,7 @@ export const getLatestPriceUpdates = async (
 	priceUpdate: PythPriceUpdateResponse
 	fetchedAtMs: number
 }> => {
+	parameters['ids[]'].forEach(assertPriceFeedId)
 	const priceUpdate = assertEnvelope(
 		'Hermes latest price updates',
 		pythPriceUpdateResponseWire,
@@ -126,7 +133,7 @@ export const getBenchmarkPriceFeed = async (
 		pythBenchmarksPriceFeedWire,
 		await getJson(
 			benchmarksBinding,
-			`/v1/price_feeds/${encodeURIComponent(id)}`
+			`/v1/price_feeds/${encodeURIComponent(assertPriceFeedId(id))}`
 		)
 	)
 )
@@ -151,6 +158,7 @@ export const getBenchmarkPriceUpdateAt = async (
 		throw new Error(`Pyth_Rest: invalid Benchmarks price update timestamp ${timestampSec}`)
 	if (ids.length === 0)
 		throw new Error('Pyth_Rest: Benchmarks price update requires at least one price feed id')
+	ids.forEach(assertPriceFeedId)
 
 	const priceUpdate = assertEnvelope(
 		'Benchmarks price update',
