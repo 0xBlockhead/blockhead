@@ -55,3 +55,22 @@ test('renders subsequent values from an asynchronous source notification', async
 	await expect.element(page.getByText('Updated source value')).toBeInTheDocument()
 	await expect.element(page.getByText('Initial source value')).not.toBeInTheDocument()
 })
+
+test('renders an explicit default source failure without hiding its detail', async () => {
+	const resource = new TanStackLiveQueryResource(() => ({
+		data: undefined,
+		error: new Error('provider unavailable'),
+		isLoading: false,
+		isError: true,
+		isReady: false,
+		status: 'error',
+	}))
+
+	await render(ResourceBoundaryFixture, {
+		resource,
+	})
+
+	const failure = page.getByRole('alert', { name: 'provider unavailable' })
+	await expect.element(failure).toHaveTextContent('Failed to load')
+	expect(failure.element().getAttribute('title')).toBe('provider unavailable')
+})

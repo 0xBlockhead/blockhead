@@ -88,14 +88,17 @@
 			data-tag
 			data-resource-state="failed"
 			class="inline-placeholder"
+			role="alert"
 			aria-label={errorDisplayMessage(normalizedError)}
+			title={errorDisplayMessage(normalizedError)}
 		>
-			•••
+			Failed to load
 		</span>
 	{:else}
 		<div
 			data-card
 			data-resource-state="failed"
+			role="alert"
 		>
 			<p>{errorDisplayMessage(normalizedError)}</p>
 		</div>
