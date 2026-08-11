@@ -27,6 +27,16 @@ const assertEnvelope = <_Value>(
 	}
 }
 
+const assertSafeNonnegativeInteger = (
+	value: number | bigint,
+	label: string
+) => {
+	const numberValue = Number(value)
+	if (!Number.isSafeInteger(numberValue) || numberValue < 0)
+		throw new Error(`ZeroGStorageNode_JsonRpc: invalid ${label}`)
+	return numberValue
+}
+
 export const getStatus = async (): Promise<ZeroGStorageNodeStatus> => (
 	assertEnvelope(
 		'zgs_getStatus',
@@ -41,8 +51,8 @@ export const getFileInfo = async ({
 }: {
 	root: string
 	needAvailable: boolean
-}): Promise<ZeroGStorageNodeFileInfo | null> => (
-	assertEnvelope(
+}): Promise<ZeroGStorageNodeFileInfo | null> => {
+	const fileInfo = assertEnvelope(
 		'zgs_getFileInfo',
 		zeroGStorageNodeFileInfoOrNullWire,
 		await jsonRpc2<unknown>(
@@ -54,25 +64,32 @@ export const getFileInfo = async ({
 			]
 		)
 	)
-)
+	if (fileInfo != null && fileInfo.tx.dataMerkleRoot.toLowerCase() !== root.toLowerCase())
+		throw new Error('ZeroGStorageNode_JsonRpc: zgs_getFileInfo response root does not match request')
+	return fileInfo
+}
 
 export const getFileInfoByTxSeq = async ({
 	txSeq,
 }: {
 	txSeq: number | bigint
-}): Promise<ZeroGStorageNodeFileInfo | null> => (
-	assertEnvelope(
+}): Promise<ZeroGStorageNodeFileInfo | null> => {
+	const sequenceNumber = assertSafeNonnegativeInteger(txSeq, 'transaction sequence')
+	const fileInfo = assertEnvelope(
 		'zgs_getFileInfoByTxSeq',
 		zeroGStorageNodeFileInfoOrNullWire,
 		await jsonRpc2<unknown>(
 			binding,
 			'zgs_getFileInfoByTxSeq',
 			[
-				Number(txSeq),
+				sequenceNumber,
 			]
 		)
 	)
-)
+	if (fileInfo != null && fileInfo.tx.seq !== sequenceNumber)
+		throw new Error('ZeroGStorageNode_JsonRpc: zgs_getFileInfoByTxSeq response sequence does not match request')
+	return fileInfo
+}
 
 export const getSectorProof = async ({
 	sectorIndex,
@@ -88,7 +105,7 @@ export const getSectorProof = async ({
 			binding,
 			'zgs_getSectorProof',
 			[
-				Number(sectorIndex),
+				assertSafeNonnegativeInteger(sectorIndex, 'sector index'),
 				root ?? null,
 			]
 		)

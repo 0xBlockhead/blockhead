@@ -17,6 +17,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 
 const {
 	getFileInfo,
+	getFileInfoByTxSeq,
 	getSectorProof,
 	getStatus,
 } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
@@ -119,5 +120,54 @@ describe('ZeroG StorageNode JSON-RPC envelopes', () => {
 			},
 		}))
 		await expect(getStatus()).rejects.toThrow('invalid zgs_getStatus response envelope')
+	})
+
+	it('binds file information to its requested root and transaction sequence', async () => {
+		sourceFetch.mockResolvedValueOnce(jsonRpcResult({
+			tx: {
+				streamIds: ['0xaaa'],
+				data: '0x',
+				dataMerkleRoot: '0xother',
+				startEntryIndex: 0,
+				size: 12,
+				seq: 7,
+			},
+			finalized: true,
+			isCached: false,
+			uploadedSegNum: 1,
+			pruned: false,
+		}))
+		await expect(getFileInfo({
+			root: '0xbbb',
+			needAvailable: true,
+		})).rejects.toThrow('response root does not match request')
+
+		sourceFetch.mockResolvedValueOnce(jsonRpcResult({
+			tx: {
+				streamIds: ['0xaaa'],
+				data: '0x',
+				dataMerkleRoot: '0xbbb',
+				startEntryIndex: 0,
+				size: 12,
+				seq: 7,
+			},
+			finalized: true,
+			isCached: false,
+			uploadedSegNum: 1,
+			pruned: false,
+		}))
+		await expect(getFileInfoByTxSeq({
+			txSeq: 8,
+		})).rejects.toThrow('response sequence does not match request')
+	})
+
+	it('rejects lossy or negative request coordinates before transport', async () => {
+		await expect(getFileInfoByTxSeq({
+			txSeq: BigInt(Number.MAX_SAFE_INTEGER) + 1n,
+		})).rejects.toThrow('invalid transaction sequence')
+		await expect(getSectorProof({
+			sectorIndex: -1,
+		})).rejects.toThrow('invalid sector index')
+		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 })
