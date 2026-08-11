@@ -368,6 +368,25 @@ describe('Cardano Koios REST transaction transport', () => {
 		)
 	})
 
+	it('rejects transaction outputs that do not match the requested hash', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json([{
+			...transactionInfo,
+			outputs: [{
+				payment_addr: {
+					bech32: 'addr1output',
+				},
+				tx_hash: 'different-transaction-hash',
+				tx_index: 0,
+				value: '1000000',
+				asset_list: [],
+			}],
+		}]))
+
+		await expect(getTransactionInfo(transactionInfo.tx_hash)).rejects.toThrow(
+			'CardanoKoios_Rest: transaction output does not match request'
+		)
+	})
+
 	it.each([
 		{
 			field: 'malformed fee',

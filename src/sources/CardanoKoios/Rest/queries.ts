@@ -203,6 +203,8 @@ export const getTransactionInfo = async (
 			!== transaction.outputs.length
 	)
 		throw new Error('CardanoKoios_Rest: outputs contains duplicate identities')
+	if (transaction.outputs.some((output) => output.tx_hash !== transactionHash))
+		throw new Error('CardanoKoios_Rest: transaction output does not match request')
 	for (const [label, rows] of [
 		['inputs', transaction.inputs],
 		['collateral_inputs', collateralInputs],
