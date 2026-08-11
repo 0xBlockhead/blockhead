@@ -43,6 +43,8 @@ describe(entityHrefFromSearchInput, () => {
 		[base58.encode(new Uint8Array(64).fill(7)), `/network/solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/tx/${base58.encode(new Uint8Array(64).fill(7))}`],
 		[bech32.encode('npub', bech32.toWords(new Uint8Array(32).fill(7)), false), `/nostr/profile/${'07'.repeat(32)}`],
 		[bech32.encode('note', bech32.toWords(new Uint8Array(32).fill(8)), false), `/nostr/note/${'08'.repeat(32)}`],
+		[`nostr:${bech32.encode('npub', bech32.toWords(new Uint8Array(32).fill(7)), false)}`, `/nostr/profile/${'07'.repeat(32)}`],
+		[`nostr:${bech32.encode('note', bech32.toWords(new Uint8Array(32).fill(8)), false)}`, `/nostr/note/${'08'.repeat(32)}`],
 	])('recognizes %s', (query, href) => {
 		expect(entityHrefFromSearchInput(query)).toBe(href)
 	})

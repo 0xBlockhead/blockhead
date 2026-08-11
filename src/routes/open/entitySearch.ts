@@ -285,7 +285,10 @@ export const entityHrefFromSearchInput = (query: string) => {
 	} catch {}
 
 	try {
-		const nostrIdentifier = bech32.decode(query, false)
+		const nostrIdentifier = bech32.decode(
+			query.replace(/^nostr:/i, ''),
+			false
+		)
 
 		if (
 			['npub', 'note'].some((prefix) => prefix === nostrIdentifier.prefix)
