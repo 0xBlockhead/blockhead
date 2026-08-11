@@ -54,6 +54,7 @@ describe('Neynar channel request identity', () => {
 				id: 'design',
 				name: 'Design',
 				object: 'channel',
+				parent_url: 'chain://eip155:1/erc721:0xabc',
 				url: 'https://farcaster.xyz/~/channel/design',
 				created_at: '2024-01-01T00:00:00Z',
 				viewer_context: {
@@ -77,6 +78,35 @@ describe('Neynar channel request identity', () => {
 			{},
 			'/v2/farcaster/channel/?id=chain%3A%2F%2Feip155%3A1%2Ferc721%3A0xabc&type=parent_url&viewer_fid=3'
 		)
+	})
+
+	it('rejects a substituted channel id', async () => {
+		neynarFetch.mockResolvedValueOnce({
+			channel: {
+				id: 'development',
+				url: 'https://farcaster.xyz/~/channel/development',
+			},
+		})
+
+		await expect(getChannel({}, {
+			id: 'design',
+			type: 'id',
+		})).rejects.toThrow('channel subject mismatch')
+	})
+
+	it('rejects a substituted channel parent URL', async () => {
+		neynarFetch.mockResolvedValueOnce({
+			channel: {
+				id: 'design',
+				parent_url: 'https://farcaster.xyz/~/channel/development',
+				url: 'https://farcaster.xyz/~/channel/development',
+			},
+		})
+
+		await expect(getChannel({}, {
+			id: 'https://farcaster.xyz/~/channel/design',
+			type: 'parent_url',
+		})).rejects.toThrow('channel subject mismatch')
 	})
 
 	it('serializes anonymous membership pagination exactly', async () => {

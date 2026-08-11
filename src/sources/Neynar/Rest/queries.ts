@@ -43,12 +43,24 @@ export const getChannel = async (
 	if (query.viewerFid != null)
 		searchParams.set('viewer_fid', String(query.viewerFid))
 
-	return (
+	const channel = (
 		await neynarFetch<NeynarChannelResponse>(
 			publicEnv,
 			`/v2/farcaster/channel/?${searchParams}`
 		)
 	)?.channel
+	if (
+		channel != null
+		&& (
+			query.type === 'id' ?
+				channel.id !== query.id
+				:
+				channel.parent_url !== query.id
+		)
+	)
+		throw new Error('Neynar channel subject mismatch')
+
+	return channel
 }
 
 /** Paginated channel members, or an exact membership check when `fid` is set. */
