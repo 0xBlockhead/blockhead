@@ -66,7 +66,7 @@ it('groups a bare 32-byte transaction ID by checked-in network identity', async 
 		},
 	})
 
-	await expect.element(page.getByRole('status')).toHaveTextContent('valid 32-byte transaction ID')
+	await expect.element(page.getByRole('status')).toHaveTextContent('valid 32-byte hexadecimal identifier')
 	await expect.element(page.getByRole('heading', { name: 'Identify this transaction' })).toBeVisible()
 	await expect.element(page.getByRole('combobox', { name: 'Network' })).toBeVisible()
 	await expect.element(page.getByRole('option', { name: 'Bitcoin — Mainnet (bip122:000000000019d6689c085ae165831e93)' })).toBeInTheDocument()
@@ -74,4 +74,8 @@ it('groups a bare 32-byte transaction ID by checked-in network identity', async 
 	await expect.element(page.getByRole('option', { name: 'Liquid Network — Mainnet (Elements catalog slug: liquid)' })).toBeInTheDocument()
 	await expect.element(page.getByRole('complementary', { name: 'Candidate provenance' })).toBeVisible()
 	await expect.element(page.getByRole('alert')).not.toBeInTheDocument()
+	await expect.element(page.getByRole('heading', { name: 'Identify this Nostr value' })).toBeVisible()
+	await expect.element(page.getByRole('combobox', { name: 'Nostr entity kind' })).toBeVisible()
+	await expect.element(page.getByRole('option', { name: 'Profile public key' })).toBeInTheDocument()
+	await expect.element(page.getByRole('option', { name: 'Note event' })).toBeInTheDocument()
 })

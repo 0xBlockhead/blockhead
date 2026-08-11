@@ -66,6 +66,33 @@ export const utxoTransactionNetworkChoices = networks.flatMap((network) => (
 		[]
 ))
 
+export const nostrHexEntityKinds = [
+	{
+		value: 'profile',
+		label: 'Profile public key',
+	},
+	{
+		value: 'note',
+		label: 'Note event',
+	},
+	{
+		value: 'article-version',
+		label: 'Article version event',
+	},
+	{
+		value: 'profile-metadata-version',
+		label: 'Profile metadata event',
+	},
+	{
+		value: 'reaction',
+		label: 'Reaction event',
+	},
+	{
+		value: 'repost',
+		label: 'Repost event',
+	},
+] as const
+
 export const entityHrefFromSearchInput = (query: string) => {
 	if (/^ip(?:fs|ns):\/\//i.test(query)) {
 		const ipfsResourceAddress = ipfsResourceAddressFromInput({
@@ -215,4 +242,30 @@ export const utxoTransactionHrefFromCoordinates = ({
 			transactionId: query,
 		}
 	)
+}
+
+export const nostrHexHrefFromCoordinates = ({
+	query,
+	entityKind,
+}: {
+	query: string
+	entityKind: string | null
+}) => {
+	if (!/^[0-9a-fA-F]{64}$/.test(query)) return
+
+	if (entityKind === 'profile')
+		return resolve(
+			'/(social)/(nostr)/nostr/(globalNostrNetwork)/profile/[pubkey=stringSegment]',
+			{
+				pubkey: query,
+			}
+		)
+
+	if (nostrHexEntityKinds.some((candidate) => candidate.value === entityKind))
+		return resolve(
+			`/(social)/(nostr)/nostr/(globalNostrNetwork)/${entityKind}/[eventId=stringSegment]`,
+			{
+				eventId: query,
+			}
+		)
 }

@@ -5,6 +5,7 @@ import {
 	evmAccountCandidatesFromSearchInput,
 	evmAddressHrefFromCoordinates,
 	evmHashHrefFromCoordinates,
+	nostrHexHrefFromCoordinates,
 	utxoTransactionHrefFromCoordinates,
 	utxoTransactionNetworkChoices,
 } from './entitySearch.ts'
@@ -161,6 +162,35 @@ describe(utxoTransactionHrefFromCoordinates, () => {
 		expect(utxoTransactionHrefFromCoordinates({
 			query: transactionId,
 			networkKey,
+		})).toBeUndefined()
+	})
+})
+
+
+describe(nostrHexHrefFromCoordinates, () => {
+	const hex = '31ed178236b6bc4dd6dc8c6026e9d344e39afe0dc6d832c228131ce4ee40a8ca'
+
+	it.each([
+		['profile', `/nostr/profile/${hex}`],
+		['note', `/nostr/note/${hex}`],
+		['article-version', `/nostr/article-version/${hex}`],
+		['profile-metadata-version', `/nostr/profile-metadata-version/${hex}`],
+		['reaction', `/nostr/reaction/${hex}`],
+		['repost', `/nostr/repost/${hex}`],
+	])('opens the canonical %s route', (entityKind, href) => {
+		expect(nostrHexHrefFromCoordinates({
+			query: hex,
+			entityKind,
+		})).toBe(href)
+	})
+
+	it.each([
+		[null],
+		['relay'],
+	])('rejects unsupported entity kind %s', (entityKind) => {
+		expect(nostrHexHrefFromCoordinates({
+			query: hex,
+			entityKind,
 		})).toBeUndefined()
 	})
 })

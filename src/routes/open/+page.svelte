@@ -9,6 +9,7 @@
 		evmAccountCandidatesFromSearchInput,
 		evmHashEntityKinds,
 		evmNetworkChoices,
+		nostrHexEntityKinds,
 		utxoTransactionNetworkChoices,
 	} from './entitySearch.ts'
 
@@ -55,7 +56,7 @@
 			</p>
 		{:else if isUtxoTransactionId}
 			<p role="status">
-				“{data.query}” is a valid 32-byte transaction ID, but it does not identify its network.
+				“{data.query}” is a valid 32-byte hexadecimal identifier, but it does not identify its network, protocol, or entity kind.
 			</p>
 		{:else if data.query}
 			<p role="alert">
@@ -100,7 +101,7 @@
 		>
 			<p>
 				<strong>Candidate authority:</strong>
-				Network identities and environments come from Blockhead’s checked-in network catalog.
+				Network identities and environments come from Blockhead’s checked-in network catalog; entity kinds correspond to existing generated routes.
 			</p>
 
 			<p>
@@ -204,6 +205,31 @@
 				</select>
 
 				<button type="submit">Open transaction</button>
+			</form>
+		</section>
+
+		<section data-column="gap-2">
+			<h2>Identify this Nostr value</h2>
+
+			<p>A Nostr public key and event ID have the same hexadecimal shape. Choose the entity kind to continue on the global Nostr network.</p>
+
+			<form
+				action={resolve('/open')}
+				method="get"
+				data-column="gap-2"
+			>
+				<input name="q" type="hidden" value={data.query} />
+
+				<label for="nostr-hex-kind">Nostr entity kind</label>
+
+				<select id="nostr-hex-kind" name="kind" required>
+					<option value="">Choose an entity kind</option>
+					{#each nostrHexEntityKinds as entityKind (entityKind.value)}
+						<option value={entityKind.value}>{entityKind.label}</option>
+					{/each}
+				</select>
+
+				<button type="submit">Open Nostr entity</button>
 			</form>
 		</section>
 	{/if}
