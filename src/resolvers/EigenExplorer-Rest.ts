@@ -141,6 +141,17 @@ const slashObservations = (
 		createdAtBlock: number
 	}
 ) => {
+	if (slash.strategies.length !== slash.wadSlashed.length)
+		throw new Error('EigenExplorer_Rest: slash strategy and quantity counts differ')
+
+	if (
+		!Number.isSafeInteger(slash.operatorSetId)
+		|| slash.operatorSetId < 0
+		|| !Number.isSafeInteger(slash.createdAtBlock)
+		|| slash.createdAtBlock < 0
+	)
+		throw new Error('EigenExplorer_Rest: slash coordinates not safe nonnegative integers')
+
 	const operatorAddress = hexLowerOfByteSize(slash.operatorAddress, 20)
 	const avsAddress = hexLowerOfByteSize(slash.avsAddress, 20)
 	if (operatorAddress == null || avsAddress == null)
@@ -158,6 +169,8 @@ const slashObservations = (
 		const wadSlashed = slash.wadSlashed[index]
 		if (wadSlashed == null)
 			throw new Error('EigenExplorer_Rest: slash wad missing')
+		if (!/^\d+$/.test(wadSlashed))
+			throw new Error('EigenExplorer_Rest: slash wad not a nonnegative integer')
 
 		return {
 			[EntityMetaKey.Selector]: {
@@ -1148,6 +1161,8 @@ export default {
 								.find((candidate) => (
 									candidate[EntityMetaKey.Selector].slashId === slashId
 									&& candidate[EntityMetaKey.Selector].$avs.avsAddress === avsAddress
+									&& candidate[EntityMetaKey.Selector].$operator.operatorAddress
+										=== $operator.operatorAddress.toLowerCase()
 								))
 							if (observation != null)
 								return observation[EntityMetaKey.Fields]

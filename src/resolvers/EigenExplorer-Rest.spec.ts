@@ -773,6 +773,87 @@ describe('EigenExplorer allocation and slash resolvers', () => {
 		expect(slashEventResolver.projections.blockNumber(slashEvent)).toBe(3325343n)
 	})
 
+	it('rejects unpaired, lossy, or negative slash evidence before materialization', async () => {
+		listOperatorSlashes.mockResolvedValueOnce({
+			data: [{
+				...slash,
+				wadSlashed: [],
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+
+		await expect(operatorSlashesResolver.resolve.NetworkOperatorAddress.resolve(
+			operatorSelector,
+			context
+		)).rejects.toThrow('slash strategy and quantity counts differ')
+
+		listOperatorSlashes.mockResolvedValueOnce({
+			data: [{
+				...slash,
+				createdAtBlock: -1,
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+
+		await expect(operatorSlashesResolver.resolve.NetworkOperatorAddress.resolve(
+			operatorSelector,
+			context
+		)).rejects.toThrow('slash coordinates not safe nonnegative integers')
+
+		listOperatorSlashes.mockResolvedValueOnce({
+			data: [{
+				...slash,
+				wadSlashed: ['-1'],
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+
+		await expect(operatorSlashesResolver.resolve.NetworkOperatorAddress.resolve(
+			operatorSelector,
+			context
+		)).rejects.toThrow('slash wad not a nonnegative integer')
+	})
+
+	it('rejects a foreign operator with an otherwise matching slash identity', async () => {
+		const slashId = `0:3325343:${strategyAddress}`
+		listOperatorSlashes.mockResolvedValueOnce({
+			data: [{
+				...slash,
+				operatorAddress: '0x5555555555555555555555555555555555555555',
+			}],
+			meta: {
+				total: 1,
+				skip: 0,
+				take: 100,
+			},
+		})
+
+		await expect(slashEventResolver.resolve.OperatorAvsSourceSlashId.resolve({
+			$operator: {
+				$network: network,
+				operatorAddress,
+			},
+			$avs: {
+				$network: network,
+				avsAddress,
+			},
+			source: Source.EigenExplorer_Rest,
+			slashId,
+		}, context)).rejects.toThrow('slash observation mismatch')
+	})
+
 	it('pages singular slash lookup beyond the first operator slash page', async () => {
 		const slashId = `0:3325343:${strategyAddress}`
 		listOperatorSlashes
