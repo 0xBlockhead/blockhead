@@ -47,4 +47,16 @@ describe('Chainlist REST queries', () => {
 
 		await expect(fetchRpcsJson()).rejects.toThrow('Chainlist_Rest: invalid rpcs.json response envelope')
 	})
+
+	it('fails closed when the response aliases two rows to one chain identity', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify([
+			chain,
+			{
+				...chain,
+				name: 'Conflicting Ethereum Mainnet',
+			},
+		])))
+
+		await expect(fetchRpcsJson()).rejects.toThrow('Chainlist_Rest: duplicate chain identity 1')
+	})
 })

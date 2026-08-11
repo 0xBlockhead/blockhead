@@ -35,8 +35,17 @@ export const fetchRpcsJson = async () => {
 	const payload = await response.json<unknown>()
 	try {
 		chainlistRpcsJsonWire.assert(payload)
-		return payload as ChainlistRpcsJsonChain[]
 	} catch {
 		throw new Error('Chainlist_Rest: invalid rpcs.json response envelope')
 	}
+
+	const chains = payload as ChainlistRpcsJsonChain[]
+	const chainIds = new Set<number>()
+	for (const chain of chains) {
+		if (chainIds.has(chain.chainId))
+			throw new Error(`Chainlist_Rest: duplicate chain identity ${chain.chainId.toString()}`)
+
+		chainIds.add(chain.chainId)
+	}
+	return chains
 }
