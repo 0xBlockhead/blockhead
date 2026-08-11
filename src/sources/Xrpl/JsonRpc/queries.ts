@@ -12,19 +12,13 @@ import {
 	xrplLedgerData,
 	xrplLedgerWithTransactions,
 	xrplServerInfo,
-	type XrplAccountInfoResult,
 	type XrplAccountLinesResult,
 	type XrplAccountObjectsResult,
 	type XrplAccountTransactionsResult,
-	type XrplAmmInfoResult,
 	type XrplFeature,
 	type XrplFeatureResult,
-	type XrplLedgerDataResult,
-	type XrplLedgerResult,
 	type XrplLedgerSpecifier,
-	type XrplLedgerWithTransactionsResult,
 	type XrplMarker,
-	type XrplServerInfoResult,
 } from '$/sources/Xrpl/JsonRpc/types.ts'
 import {
 	isJsonObject,
@@ -68,7 +62,7 @@ export const getServerInfo = async () => (
 		'server_info',
 		xrplServerInfo,
 		await jsonRpc2<unknown>(binding, 'server_info')
-	) as XrplServerInfoResult
+	)
 )
 
 export const getLedger = async (
@@ -77,14 +71,14 @@ export const getLedger = async (
 	} = 'validated'
 ) => {
 	if (typeof specifier === 'object') {
-		if (specifier.ledgerHash.length === 0)
-			throw new Error('Xrpl_Rippled: ledger hash must not be empty')
+		if (!/^[0-9a-fA-F]{64}$/.test(specifier.ledgerHash))
+			throw new Error('Xrpl_Rippled: ledger hash must be canonical hexadecimal')
 	} else if (specifier !== 'validated') {
 		if (!Number.isSafeInteger(specifier) || specifier < 0)
 			throw new Error('Xrpl_Rippled: ledger index must be a nonnegative safe integer')
 	}
 
-	return assertEnvelope(
+	const ledger = assertEnvelope(
 		'ledger',
 		xrplLedger,
 		await jsonRpc2<unknown>(binding, 'ledger', [{
@@ -101,7 +95,14 @@ export const getLedger = async (
 			transactions: false,
 			expand: false,
 		}])
-	) as XrplLedgerResult
+	)
+	if (
+		(typeof specifier === 'object' && ledger.ledger_hash.toLowerCase() !== specifier.ledgerHash.toLowerCase())
+		|| (typeof specifier === 'number' && ledger.ledger_index !== specifier)
+		|| (specifier === 'validated' && !ledger.validated)
+	)
+		throw new Error('Xrpl_Rippled: ledger response does not match request')
+	return ledger
 }
 
 export const getValidatedLedger = async () => (
@@ -127,7 +128,7 @@ export const getValidatedLedgerData = async (
 				marker,
 			}),
 		}])
-	) as XrplLedgerDataResult
+	)
 }
 
 export const getValidatedLedgerTransactions = async () => (
@@ -139,7 +140,7 @@ export const getValidatedLedgerTransactions = async () => (
 			transactions: true,
 			expand: true,
 		}])
-	) as XrplLedgerWithTransactionsResult
+	)
 )
 
 export const getFeatures = async () => (
@@ -161,7 +162,7 @@ export const getAccountInfo = async (
 			account,
 			ledger_index: ledgerIndex,
 		}])
-	) as XrplAccountInfoResult
+	)
 	if (response.account_data.Account !== account)
 		throw new Error('Xrpl_Rippled: account_info response does not match request')
 	return response
@@ -265,7 +266,7 @@ export const getAmmInfo = async (
 			amm_account: ammAccount,
 			ledger_index: ledgerIndex,
 		}])
-	) as XrplAmmInfoResult
+	)
 	if (response.amm.account !== ammAccount)
 		throw new Error('Xrpl_Rippled: amm_info response does not match request')
 	return response

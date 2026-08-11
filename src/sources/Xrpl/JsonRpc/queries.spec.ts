@@ -71,7 +71,7 @@ describe('Xrpl_Rippled ledger transport', () => {
 	it('fail-closes empty ledger hash and invalid index', async () => {
 		await expect(getLedger({
 			ledgerHash: '',
-		})).rejects.toThrow('ledger hash must not be empty')
+		})).rejects.toThrow('ledger hash must be canonical hexadecimal')
 
 		await expect(getLedger(-1)).rejects.toThrow('ledger index must be a nonnegative safe integer')
 		expect(sourceFetch).not.toHaveBeenCalled()
@@ -86,6 +86,32 @@ describe('Xrpl_Rippled ledger transport', () => {
 			},
 		}))
 		await expect(getValidatedLedger()).rejects.toThrow('invalid ledger response envelope')
+	})
+
+	it('binds ledger responses to an explicit index or hash and validated subject', async () => {
+		sourceFetch
+			.mockResolvedValueOnce(jsonRpcResponse({
+				...validatedLedger,
+				ledger_index: validatedLedger.ledger_index + 1,
+			}))
+			.mockResolvedValueOnce(jsonRpcResponse({
+				...validatedLedger,
+				ledger_hash: '0'.repeat(64),
+			}))
+			.mockResolvedValueOnce(jsonRpcResponse({
+				...validatedLedger,
+				validated: false,
+			}))
+
+		await expect(getLedger(validatedLedger.ledger_index)).rejects.toThrow('ledger response does not match request')
+		await expect(getLedger({
+			ledgerHash: validatedLedger.ledger_hash,
+		})).rejects.toThrow('ledger response does not match request')
+		await expect(getValidatedLedger()).rejects.toThrow('ledger response does not match request')
+		await expect(getLedger({
+			ledgerHash: 'not-a-ledger-hash',
+		})).rejects.toThrow('ledger hash must be canonical hexadecimal')
+		expect(sourceFetch).toHaveBeenCalledTimes(3)
 	})
 })
 
