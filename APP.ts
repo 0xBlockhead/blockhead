@@ -31626,6 +31626,7 @@ export const schema = {
 								[{ field: "$parentCast" }],
 								[{ field: "parentUrl", format: "truncated" }],
 								[{ field: "rootParentUrl", format: "truncated" }],
+								[{ field: "mentionedProfileFids", format: "stringList" }],
 								[{ field: "threadHash", format: "truncated" }],
 								[{ field: "clientUrl", format: "truncated" }],
 							],

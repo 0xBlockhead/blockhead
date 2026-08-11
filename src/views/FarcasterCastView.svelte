@@ -275,6 +275,30 @@
 				resource={
 					viewSelection({
 						fields: {
+							mentionedProfileFids: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const mentionedProfileFids = entity.mentionedProfileFids}
+					{#if mentionedProfileFids != null}
+						<div>
+							<dt>Mentioned profile FIDs</dt>
+							<dd>
+								{mentionedProfileFids.join(', ')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
 							threadHash: true,
 						},
 					})
