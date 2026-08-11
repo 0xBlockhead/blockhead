@@ -545,6 +545,7 @@ export const getHistoricalOrders = async ({
 }: {
 	user: string
 }) => {
+	assertInfoAddress(user)
 	const orders = await info<HyperliquidHistoricalOrder[]>({
 		body: {
 			type: 'historicalOrders',
@@ -566,6 +567,8 @@ export const getUserFillsByTime = async ({
 	startTime: number
 	endTime?: number
 }) => {
+	assertInfoAddress(user)
+
 	if (!Number.isSafeInteger(startTime) || startTime < 0)
 		throw new Error(`Hyperliquid_Rest: invalid fill start time ${startTime}`)
 
@@ -592,6 +595,7 @@ export const getUserVaultEquities = async ({
 }: {
 	user: string
 }) => {
+	assertInfoAddress(user)
 	const equities = await info<HyperliquidUserVaultEquity[]>({
 		body: {
 			type: 'userVaultEquities',
@@ -912,6 +916,7 @@ export const getFrontendOpenOrders = async ({
 }: {
 	user: string
 }) => {
+	assertInfoAddress(user)
 	const orders = await info<HyperliquidFrontendOrder[]>({
 		body: {
 			type: 'frontendOpenOrders',

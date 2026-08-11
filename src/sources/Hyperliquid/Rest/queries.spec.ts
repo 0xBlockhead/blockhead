@@ -678,6 +678,25 @@ describe('Hyperliquid public account Info transport', () => {
 		expect(corsFetch).not.toHaveBeenCalled()
 	})
 
+	it.each([
+		getHistoricalOrders,
+		getFrontendOpenOrders,
+		getUserVaultEquities,
+	])('rejects invalid account identity before transport', async (query) => {
+		await expect(query({
+			user: 'not-an-address',
+		})).rejects.toThrow('Hyperliquid_Rest: invalid account address not-an-address')
+		expect(corsFetch).not.toHaveBeenCalled()
+	})
+
+	it('rejects invalid fill account identity before transport', async () => {
+		await expect(getUserFillsByTime({
+			user: 'not-an-address',
+			startTime: 0,
+		})).rejects.toThrow('Hyperliquid_Rest: invalid account address not-an-address')
+		expect(corsFetch).not.toHaveBeenCalled()
+	})
+
 	it('rejects invalid candle, book, and vault requests before transport', async () => {
 		await expect(getL2Book({
 			coin: '',
