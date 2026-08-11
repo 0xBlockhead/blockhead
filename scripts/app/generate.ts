@@ -9703,7 +9703,7 @@ const generateSingularViewFile = (
 			`\t\t\t\t\t\thref={\`data:${artifact.mediaType};charset=utf-8,\${encodeURIComponent(artifactContent)}\`}`,
 			`\t\t\t\t\t\tdownload=${emitTypeScript(artifact.fileName)}`,
 			'\t\t\t\t\t>',
-			`\t\t\t\t\t\t{${emitTypeScript(artifact.label)}}`,
+			`\t\t\t\t\t\t${artifact.label}`,
 			'\t\t\t\t\t</a>',
 			'\t\t\t\t{/if}',
 		])

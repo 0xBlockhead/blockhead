@@ -6749,7 +6749,7 @@ test('compiles selector-owned IPFS and Swarm path variants without duplicate map
 	assert.doesNotMatch(ipfsResourceView ?? '', /resolve\(`/)
 	assert.match(ipfsResourceView ?? '', /href=\{`data:text\/plain;charset=utf-8,\$\{encodeURIComponent\(artifactContent\)\}`\}/)
 	assert.match(ipfsResourceView ?? '', /download='ipfs-resource\.txt'/)
-	assert.match(ipfsResourceView ?? '', />\s*\{'Download resolved text'\}\s*<\/a>/)
+	assert.match(ipfsResourceView ?? '', />\s*Download resolved text\s*<\/a>/)
 	assert.match(arweaveResourceTimestampView ?? '', /download='arweave-resource\.txt'/)
 	assert.doesNotMatch(ipfsResourceView ?? '', /fetch\(/)
 	assert.doesNotMatch(swarmResourceView ?? '', /resolve\(`|encodeURIComponent/)
