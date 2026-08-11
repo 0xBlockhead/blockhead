@@ -23689,7 +23689,7 @@ export const schema = {
 				"$gauge": { label: "Gauge", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.CurveGauge, defaultSources: [Source.Curve_Rest] },
 				"assetTypeName": { label: "Asset type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Curve_Rest] },
 				"creationBlockNumber": { label: "Creation block number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
-				"creationTs": { label: "Creation timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Curve_Rest] },
+				"creationTimestampMs": { label: "Creation timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.Curve_Rest] },
 				"$$coins": { label: "Coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CurvePoolCoin, defaultSources: [Source.Curve_Rest] },
 			})({
 				selectors: {
@@ -23710,7 +23710,7 @@ export const schema = {
 							dl: [
 								["$network", { field: "poolAddress", format: "address" }, "name", "symbol", "registryId"],
 								[{ field: "lpTokenAddress", format: "address" }, "virtualPrice", "amplificationCoefficient", "totalSupply", { field: "usdTotal", format: "number" }],
-								["isMetaPool", "assetTypeName", "$gauge", { field: "creationBlockNumber", format: "number" }, { field: "creationTs", format: "timestamp" }],
+								["isMetaPool", "assetTypeName", "$gauge", { field: "creationBlockNumber", format: "number" }, { field: "creationTimestampMs", format: "timestamp" }],
 							],
 						},
 						lists: [

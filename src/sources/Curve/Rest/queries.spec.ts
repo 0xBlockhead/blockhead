@@ -186,7 +186,7 @@ const threePoolSnapshot = {
 	assetType: 0,
 	assetTypeName: 'usd',
 	creationBlockNumber: 10809473,
-	creationTs: 1599422178,
+	creationTimestampMs: 1599422178000,
 	gaugeCrvApy: [
 		1.5892053264738892e-05,
 		3.973013316184723e-05,
@@ -504,6 +504,23 @@ describe('Curve pool operations', () => {
 					{
 						...threePoolWire,
 						creationTs: 1599422178.5,
+					},
+				],
+			},
+		})
+
+		await expect(listPoolsByRegistry({
+			chainId: 1,
+			registryId: 'main',
+		})).rejects.toThrow('Curve_Rest: invalid creation timestamp')
+
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				poolData: [
+					{
+						...threePoolWire,
+						creationTs: Number.MAX_SAFE_INTEGER,
 					},
 				],
 			},

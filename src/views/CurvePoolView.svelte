@@ -361,18 +361,18 @@
 				resource={
 					viewSelection({
 						fields: {
-							creationTs: true,
+							creationTimestampMs: true,
 						},
 					})
 				}
 			>
 				{#snippet children(entity)}
-					{@const creationTs = entity.creationTs}
-					{#if creationTs != null}
+					{@const creationTimestampMs = entity.creationTimestampMs}
+					{#if creationTimestampMs != null}
 						<div>
 							<dt>Creation timestamp</dt>
 							<dd>
-								<Timestamp timestamp={creationTs} />
+								<Timestamp timestamp={creationTimestampMs} />
 							</dd>
 						</div>
 					{/if}

@@ -361,7 +361,10 @@ const mapPoolWire = (
 			creationBlockNumber: assertNonNegativeSafeInteger(wire.creationBlockNumber, 'creation block number'),
 		}),
 		...(wire.creationTs != null && {
-			creationTs: assertNonNegativeSafeInteger(wire.creationTs, 'creation timestamp'),
+			creationTimestampMs: assertNonNegativeSafeInteger(
+				assertNonNegativeSafeInteger(wire.creationTs, 'creation timestamp') * 1_000,
+				'creation timestamp'
+			),
 		}),
 		...(wire.usdTotalExcludingBasePool != null && {
 			usdTotalExcludingBasePool: assertFiniteNumber(wire.usdTotalExcludingBasePool, 'USD total excluding base pool'),

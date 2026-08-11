@@ -472,7 +472,7 @@ export type CurvePoolSnapshot = {
 	assetType?: number
 	assetTypeName?: string
 	creationBlockNumber?: number
-	creationTs?: number
+	creationTimestampMs?: number
 	implementation?: string
 	gaugeCrvApy?: readonly [number, number]
 	gaugeFutureCrvApy?: readonly [number, number]

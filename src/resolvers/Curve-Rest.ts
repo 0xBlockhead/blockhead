@@ -136,8 +136,8 @@ const mapCurvePoolSnapshot = (
 		...(pool.creationBlockNumber != null && {
 			creationBlockNumber: pool.creationBlockNumber,
 		}),
-		...(pool.creationTs != null && {
-			creationTs: pool.creationTs,
+		...(pool.creationTimestampMs != null && {
+			creationTimestampMs: pool.creationTimestampMs,
 		}),
 		coins: pool.coins.map((coin) => (
 			mapCurvePoolCoin(poolSelector, coin)
@@ -262,7 +262,7 @@ export default {
 			$gauge: (pool) => pool.$gauge,
 			assetTypeName: (pool) => pool.assetTypeName,
 			creationBlockNumber: (pool) => pool.creationBlockNumber,
-			creationTs: (pool) => pool.creationTs,
+			creationTimestampMs: (pool) => pool.creationTimestampMs,
 			$$coins: (pool) => (
 				pool.coins.map((coin) => ({
 					[EntityMetaKey.Selector]: {

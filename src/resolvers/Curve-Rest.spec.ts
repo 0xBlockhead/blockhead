@@ -116,7 +116,7 @@ const threePoolWire = {
 	gaugeAddress: threePoolGaugeAddress,
 	assetTypeName: 'usd',
 	creationBlockNumber: 10809473,
-	creationTs: 1599422178,
+	creationTimestampMs: 1599422178000,
 } as const
 
 const mockPoolDetail = () => {

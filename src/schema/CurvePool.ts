@@ -108,8 +108,8 @@ export default entity({
 			Source.Curve_Rest,
 		],
 	},
-	creationTs: {
-		primitiveType: type('number'),
+	creationTimestampMs: {
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Curve_Rest,
