@@ -129,20 +129,28 @@ export const getBlock = ({
 	height,
 }: {
 	height: bigint
-}) => queryMoneroBinding(moneroMainnetBinding, async (endpoint) => (
-	assertEnvelope(
-		'block',
-		MoneroRpcBlock,
-		await requestMoneroDaemonJsonRpc(
-			moneroMainnetBinding,
-			endpoint,
-			'get_block',
-			{
-				height: Number(height),
-			}
+}) => {
+	if (height < 0n || height > BigInt(Number.MAX_SAFE_INTEGER))
+		throw new Error('MoneroDaemonRpc_JsonRpc: block height exceeds lossless JSON integer range')
+	return queryMoneroBinding(moneroMainnetBinding, async (endpoint) => {
+		const block = assertEnvelope(
+			'block',
+			MoneroRpcBlock,
+			await requestMoneroDaemonJsonRpc(
+				moneroMainnetBinding,
+				endpoint,
+				'get_block',
+				{
+					height: Number(height),
+				}
+			)
 		)
 	)
-))
+		if (block.block_header.height !== Number(height))
+			throw new Error('MoneroDaemonRpc_JsonRpc: block response does not match requested height')
+		return block
+	})
+}
 
 export const getTransactions = ({
 	txHashes,

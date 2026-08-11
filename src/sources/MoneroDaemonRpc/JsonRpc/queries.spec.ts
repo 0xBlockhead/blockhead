@@ -272,6 +272,21 @@ describe('Monero daemon JSON-RPC queries', () => {
 				},
 			],
 		})).rejects.toThrow('MoneroDaemonRpc_JsonRpc: all selected binding endpoints failed')
+
+		fetchMock.mockReset()
+		fetchMock.mockResolvedValue(rpcResponse({
+			...blockEnvelope,
+			block_header: {
+				...blockEnvelope.block_header,
+				height: 2,
+			},
+		}))
+		await expect(getBlock({
+			height: 1n,
+		})).rejects.toThrow('block response does not match requested height')
+		await expect(getBlock({
+			height: BigInt(Number.MAX_SAFE_INTEGER) + 1n,
+		})).rejects.toThrow('block height exceeds lossless JSON integer range')
 	})
 
 	it('uses the canonical mainnet binding endpoints', async () => {
