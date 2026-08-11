@@ -556,19 +556,23 @@ const getCosmosAccountSnapshot = async (
 	const response = await getAccounts({
 		limit,
 	})
+	const rows = response.accounts.flatMap((account) => {
+		const address = cosmosAccountBaseFields(account).address
+		return address == null ?
+			[]
+		:
+			[address]
+	})
+	if (new Set(rows).size !== rows.length)
+		throw new Error('CosmosSdk_Rest: account list contains duplicate identities')
+
 	return {
-		rows: response.accounts.flatMap((account) => {
-			const address = cosmosAccountBaseFields(account).address
-			return address == null ?
-				[]
-			:
-				[{
-					[EntityMetaKey.Selector]: {
-						$network: network,
-						address,
-					},
-				}]
-		}),
+		rows: rows.map((address) => ({
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				address,
+			},
+		})),
 		totalCount: cosmosPaginationCount(response.pagination?.total, 'account'),
 	}
 }
@@ -582,11 +586,15 @@ const getCosmosValidatorSnapshot = async (
 	const response = await getValidators({
 		limit,
 	})
+	const operatorAddresses = response.validators.map((validator) => validator.operator_address)
+	if (new Set(operatorAddresses).size !== operatorAddresses.length)
+		throw new Error('CosmosSdk_Rest: validator list contains duplicate identities')
+
 	return {
-		rows: response.validators.map((validator) => ({
+		rows: operatorAddresses.map((operatorAddress) => ({
 			[EntityMetaKey.Selector]: {
 				$network: network,
-				operatorAddress: validator.operator_address,
+				operatorAddress,
 			},
 		})),
 		totalCount: cosmosPaginationCount(response.pagination?.total, 'validator'),
@@ -602,11 +610,15 @@ const getCosmosProposalSnapshot = async (
 	const response = await getProposals({
 		limit,
 	})
+	const proposalIds = response.proposals.map((proposal) => proposal.id)
+	if (new Set(proposalIds).size !== proposalIds.length)
+		throw new Error('CosmosSdk_Rest: governance proposal list contains duplicate identities')
+
 	return {
-		rows: response.proposals.map((proposal) => ({
+		rows: proposalIds.map((proposalId) => ({
 			[EntityMetaKey.Selector]: {
 				$network: network,
-				proposalId: proposal.id,
+				proposalId,
 			},
 		})),
 		totalCount: cosmosPaginationCount(response.pagination?.total, 'governance proposal'),

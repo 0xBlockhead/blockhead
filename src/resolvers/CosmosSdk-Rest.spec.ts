@@ -72,6 +72,14 @@ const validatorResolver = cosmosSdk.resolvers.find((resolver) => (
 	&& 'NetworkOperatorAddress' in resolver.resolve
 	&& 'moniker' in resolver.projections
 ))
+const validatorsListResolver = cosmosSdk.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Cosmos' in resolver.projections
+	&& '$$validators' in resolver.projections.Cosmos
+	&& typeof resolver.projections.Cosmos.$$validators === 'object'
+	&& resolver.projections.Cosmos.$$validators != null
+	&& 'select' in resolver.projections.Cosmos.$$validators
+))
 const validatorTimestampResolver = cosmosSdk.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CosmosValidator_Timestamp
 	&& 'ValidatorTimestampMsSource' in resolver.resolve
@@ -107,6 +115,7 @@ if (
 	|| accountDetailResolver == null
 	|| accountTimestampResolver == null
 	|| validatorResolver == null
+	|| validatorsListResolver == null
 	|| validatorTimestampResolver == null
 	|| messageResolver == null
 	|| governanceProposalsListResolver == null
@@ -302,6 +311,26 @@ describe('Cosmos SDK account list resolver', () => {
 			},
 			context
 		)).toBe(3_691_345)
+	})
+
+	it('rejects duplicate account identities from a provider page', async () => {
+		getJson.mockResolvedValueOnce({
+			accounts: [
+				{
+					address: 'cosmos1duplicate',
+				},
+				{
+					address: 'cosmos1duplicate',
+				},
+			],
+			pagination: {
+				total: '2',
+			},
+		})
+
+		await expect(accountsListResolver.resolve.Slug.resolve({
+			slug: 'cosmos',
+		}, context)).rejects.toThrow('CosmosSdk_Rest: account list contains duplicate identities')
 	})
 })
 
@@ -553,6 +582,26 @@ describe('Cosmos SDK validator timestamp resolver', () => {
 		expect(validatorResolver.projections.securityContact(validatorSnapshot)).toBe('sec@validator.example')
 		expect(validatorResolver.projections.details(validatorSnapshot)).toBe('Hub validator')
 	})
+
+	it('rejects duplicate validator identities from a provider page', async () => {
+		getJson.mockResolvedValueOnce({
+			validators: [
+				{
+					operator_address: 'cosmosvaloper1duplicate',
+				},
+				{
+					operator_address: 'cosmosvaloper1duplicate',
+				},
+			],
+			pagination: {
+				total: '2',
+			},
+		})
+
+		await expect(validatorsListResolver.resolve.Slug.resolve({
+			slug: 'cosmos',
+		}, context)).rejects.toThrow('CosmosSdk_Rest: validator list contains duplicate identities')
+	})
 })
 
 describe('Cosmos SDK message resolver', () => {
@@ -714,6 +763,26 @@ describe('Cosmos SDK governance proposal resolver', () => {
 			},
 			proposalId: '4',
 		}, context)).rejects.toThrow('governance proposal response does not match the subject')
+	})
+
+	it('rejects duplicate governance proposal identities from a provider page', async () => {
+		getJson.mockResolvedValueOnce({
+			proposals: [
+				{
+					id: '17',
+				},
+				{
+					id: '17',
+				},
+			],
+			pagination: {
+				total: '2',
+			},
+		})
+
+		await expect(governanceProposalsListResolver.resolve.Slug.resolve({
+			slug: 'cosmos',
+		}, context)).rejects.toThrow('CosmosSdk_Rest: governance proposal list contains duplicate identities')
 	})
 })
 
