@@ -87,7 +87,7 @@
 		/>
 
 		<p id="open-entity-help">
-			Supported identifiers: CAIP-2 networks, CAIP-10 accounts, HTTP(S) URLs, .eth names, IPFS/IPNS URIs, and magnet URIs.
+			Supported identifiers: CAIP-2 networks, CAIP-10 accounts, HTTP(S) URLs, .eth names, AT Protocol post URIs, IPFS/IPNS URIs, and magnet URIs.
 		</p>
 
 		<button type="submit">Open entity</button>

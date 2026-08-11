@@ -13,6 +13,7 @@ import {
 
 describe(entityHrefFromSearchInput, () => {
 	it.each([
+		['at://did:plc:ewvi7nxzyoun6zhxrhs64oiz/app.bsky.feed.post/3lbm6y55c2c2a', '/atproto/post/at%3A%2F%2Fdid%3Aplc%3Aewvi7nxzyoun6zhxrhs64oiz%2Fapp.bsky.feed.post%2F3lbm6y55c2c2a'],
 		['eip155:1', '/network/eip155:1'],
 		['eip155:1:0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', '/account/eip155:1/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'],
 		['https://example.com/a?b=c', '/url/https%3A%2F%2Fexample.com%2Fa%3Fb%3Dc'],
@@ -26,6 +27,12 @@ describe(entityHrefFromSearchInput, () => {
 
 	it('does not guess the network for a bare address', () => {
 		expect(entityHrefFromSearchInput('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')).toBeUndefined()
+	})
+
+	it('does not relabel another AT Protocol collection as a post', () => {
+		expect(entityHrefFromSearchInput(
+			'at://did:plc:ewvi7nxzyoun6zhxrhs64oiz/app.bsky.feed.like/3lbm6y55c2c2a'
+		)).toBeUndefined()
 	})
 })
 

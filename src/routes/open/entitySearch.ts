@@ -94,6 +94,14 @@ export const nostrHexEntityKinds = [
 ] as const
 
 export const entityHrefFromSearchInput = (query: string) => {
+	if (/^at:\/\/[^/\s]+\/app\.bsky\.feed\.post\/[^/\s]+$/.test(query))
+		return resolve(
+			'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
+			{
+				uri: encodeURIComponent(query),
+			}
+		)
+
 	if (/^ip(?:fs|ns):\/\//i.test(query)) {
 		const ipfsResourceAddress = ipfsResourceAddressFromInput({
 			targetInput: query,
