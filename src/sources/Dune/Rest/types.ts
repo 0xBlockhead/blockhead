@@ -258,8 +258,3 @@ export type DuneUsageResponse = {
 	billingPeriods?: DuneUsageBillingPeriod[]
 	billing_periods?: DuneUsageBillingPeriod[]
 }
-
-export {
-	duneExecutionStateWire,
-	dunePerformanceTierWire,
-}

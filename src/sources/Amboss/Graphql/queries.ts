@@ -294,5 +294,3 @@ export const getPopularNodePubkeys = async () => {
 	}
 	return publicKeys
 }
-
-export { parseAmbossChannelFundingPoint }

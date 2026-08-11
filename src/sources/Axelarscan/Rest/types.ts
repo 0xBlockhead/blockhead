@@ -338,8 +338,3 @@ export type AxelarscanErrorEnvelope = {
 	params?: Record<string, unknown>
 	time_spent?: number
 }
-
-export {
-	bytes32String,
-	nonnegativeIntegerString,
-}
