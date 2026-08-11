@@ -209,7 +209,7 @@ const osmosisDurationToNs = (
 		throw new Error(`${Source.Osmosis_LCD_Rest}: invalid ${label} duration ${value}`)
 
 	const wholeSeconds = BigInt(match[1])
-	const fraction = match[2]
+	const fraction = match[2] ?? ''
 	const nanos = BigInt(fraction.padEnd(9, '0'))
 	return wholeSeconds * 1_000_000_000n + nanos
 }

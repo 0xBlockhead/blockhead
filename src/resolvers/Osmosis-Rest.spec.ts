@@ -83,6 +83,10 @@ const osmosisPoolAssetResolver = osmosisRest.resolvers.find((resolver) => (
 const osmosisPoolTimestampResolver = osmosisRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.OsmosisPool_Timestamp
 ))
+const ibcClientResolver = osmosisRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.IbcClient
+	&& 'clientType' in resolver.projections
+))
 
 describe('Osmosis LCD resolver module', () => {
 	beforeEach(() => {
@@ -856,6 +860,42 @@ describe('Osmosis LCD resolver module', () => {
 			$network: osmosisNetwork,
 			poolId: '99',
 		}, context)).resolves.toBeUndefined()
+	})
+
+	it('projects whole-second IBC client durations from LCD', async () => {
+		if (ibcClientResolver == null)
+			throw new Error('missing IBC client resolver')
+
+		sourceGetJson.mockResolvedValueOnce({
+			client_state: {
+				'@type': '/ibc.lightclients.tendermint.v1.ClientState',
+				chain_id: 'cosmoshub-4',
+				trust_level: {
+					numerator: '1',
+					denominator: '3',
+				},
+				trusting_period: '1209600s',
+				unbonding_period: '1814400s',
+				max_clock_drift: '600s',
+				frozen_height: {
+					revision_number: '0',
+					revision_height: '0',
+				},
+				latest_height: {
+					revision_number: '1',
+					revision_height: '9',
+				},
+			},
+		})
+
+		const snapshot = await ibcClientResolver.resolve.NetworkClientId.resolve({
+			$network: osmosisNetwork,
+			clientId: '07-tendermint-0',
+		}, context)
+
+		expect(ibcClientResolver.projections.trustingPeriodNs(snapshot)).toBe(1209600n * 1_000_000_000n)
+		expect(ibcClientResolver.projections.unbondingPeriodNs(snapshot)).toBe(1814400n * 1_000_000_000n)
+		expect(ibcClientResolver.projections.maxClockDriftNs(snapshot)).toBe(600n * 1_000_000_000n)
 	})
 
 })
