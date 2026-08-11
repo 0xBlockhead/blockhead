@@ -9994,16 +9994,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/witness/[address]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/witness/[address=stringSegment]/(tronWitness)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'TronWitness_Timestamp.WitnessTimestampMsSource',
-				probeAtomPrefixes: ['/network/[network]/witness/[address]/observations/[timestampMs]/[source]:TronWitness_Timestamp.WitnessTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'address', 'network']]]],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/workchain/[workchain]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/workchain/[workchain=nonNegativeInteger]',
 		mappings: [

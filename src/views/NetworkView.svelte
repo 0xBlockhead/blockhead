@@ -332,6 +332,7 @@
 	// Components
 	import Market_TimestampView from '$/views/Market_TimestampView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -453,7 +454,6 @@
 	import CardanoCommittee_EpochsView from '$/views/CardanoCommittee_EpochsView.svelte'
 	import CardanoNativeAssetsView from '$/views/CardanoNativeAssetsView.svelte'
 	import CardanoProtocolParameters_EpochsView from '$/views/CardanoProtocolParameters_EpochsView.svelte'
-	import TronNetwork_TimestampsView from '$/views/TronNetwork_TimestampsView.svelte'
 	import TronBlocksView from '$/views/TronBlocksView.svelte'
 	import TronWitnessesView from '$/views/TronWitnessesView.svelte'
 	import TonNetwork_TimestampsView from '$/views/TonNetwork_TimestampsView.svelte'
@@ -6423,18 +6423,27 @@
 						{/snippet}
 
 						{#snippet SectionTronChainObservations({ id, label })}
-							<TronNetwork_TimestampsView
-								selection={
+							<EntitiesList
+								entityType={EntityType.TronNetwork_Timestamp}
+								collapsible={false}
+								title={label}
+								open={true}
+								id={`${id}-list`}
+								resource={
 									projection
 									.$$timestamps({
 										sources: tronGridRestSources,
 										limit: 16,
-									})
+									})()
 								}
-								collapsible={false}
-								title={label}
-								id={`${id}-list`}
-							/>
+							>
+								{#snippet Item({ item: tronNetworkTimestamp })}
+									<EntityView
+										entityType={EntityType.TronNetwork_Timestamp}
+										entitySelector={tronNetworkTimestamp[EntityMetaKey.Selector]}
+									/>
+								{/snippet}
+							</EntitiesList>
 						{/snippet}
 
 						{#snippet SectionTronChainBlocks({ id, label })}
