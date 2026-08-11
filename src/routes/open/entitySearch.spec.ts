@@ -24,6 +24,8 @@ describe(entityHrefFromSearchInput, () => {
 		['https://www.youtube.com/embed/dQw4w9WgXcQ', '/youtube/video/dQw4w9WgXcQ'],
 		['https://www.youtube.com/playlist?list=PL1234567890_example', '/youtube/playlist/PL1234567890_example'],
 		['https://youtube.com/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw', '/youtube/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw'],
+		['https://x.com/vitalikbuterin', '/x/user/@vitalikbuterin'],
+		['https://mobile.twitter.com/vitalikbuterin/status/1892305694578297172', '/x/post/1892305694578297172'],
 		['ar://1234567890123456789012345678901234567890123/docs/index.html', '/arweave/resource/1234567890123456789012345678901234567890123/docs/index.html'],
 		['did:plc:ewvi7nxzyoun6zhxrhs64oiz', '/atproto/actor/did%3Aplc%3Aewvi7nxzyoun6zhxrhs64oiz'],
 		['bzz://0000000000000000000000000000000000000000000000000000000000000001/docs/index.html', '/swarm/0000000000000000000000000000000000000000000000000000000000000001/path/docs/index.html'],
@@ -119,6 +121,14 @@ describe(entityHrefFromSearchInput, () => {
 		['https://farcaster.xyz.evil.example/alice/0xabcdef12'],
 		['https://farcaster.xyz:8443/alice/0xabcdef12'],
 	])('does not relabel unsafe Farcaster URL %s', (query) => {
+		expect(entityHrefFromSearchInput(query)).toBe(`/url/${encodeURIComponent(query)}`)
+	})
+
+	it.each([
+		['https://x.com.evil.example/vitalikbuterin'],
+		['https://x.com/i/web/status/1892305694578297172'],
+		['https://twitter.com/vitalikbuterin/status/not-a-post-id'],
+	])('does not relabel unsafe or malformed X URL %s', (query) => {
 		expect(entityHrefFromSearchInput(query)).toBe(`/url/${encodeURIComponent(query)}`)
 	})
 })

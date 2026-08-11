@@ -184,6 +184,26 @@ export const entityHrefFromSearchInput = (query: string) => {
 			}
 		)
 
+	const xPost = query.match(/^https?:\/\/(?:www\.|mobile\.)?(?:x|twitter)\.com\/([a-zA-Z0-9_]{1,15})\/status\/([0-9]+)(?:[/?#]|$)/i)
+
+	if (xPost)
+		return resolve(
+			'/(social)/(x)/x/(xNetwork)/post/[postId=stringSegment]',
+			{
+				postId: xPost[2],
+			}
+		)
+
+	const xUser = query.match(/^https?:\/\/(?:www\.|mobile\.)?(?:x|twitter)\.com\/([a-zA-Z0-9_]{1,15})\/?(?:[?#].*)?$/i)
+
+	if (xUser)
+		return resolve(
+			'/x/user/@[username=stringSegment]',
+			{
+				username: xUser[1],
+			}
+		)
+
 	const arweaveResource = query.match(/^ar:\/\/([a-zA-Z0-9_-]{43})\/([^?#]+)(?:[?#].*)?$/)
 
 	if (arweaveResource)
