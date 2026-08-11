@@ -991,7 +991,7 @@ export const writeLocalBlockheadCashuMintQuote = async (
 		entitySelector,
 		primitiveFields
 	)
-	if (observationEntitySelector !== undefined) {
+	if (observation !== undefined && observationEntitySelector !== undefined) {
 		writeLocalPresence(
 			context,
 			EntityType.BlockheadCashuMintQuote_Timestamp,
