@@ -207,6 +207,14 @@ describe('Bithomp Rest fail-closed envelopes', () => {
 		await expect(getAccount(publicEnv, { address: 'rAccount' })).rejects.toThrow(/503/)
 	})
 
+	it('rejects malformed transaction cursor coordinates before transport', async () => {
+		await expect(getAccountTransactions(publicEnv, {
+			address: 'rAccount',
+			startTxHash: 'not-a-transaction-hash',
+		})).rejects.toThrow('invalid account transaction start hash')
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
 	it('asserts search / username transport leftovers', async () => {
 		sourceFetch
 			.mockResolvedValueOnce(jsonResponse({

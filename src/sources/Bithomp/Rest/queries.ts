@@ -17,14 +17,6 @@ import {
 	bithompTransactions,
 	bithompTrustlines,
 	bithompUsername,
-	type BithompAccount,
-	type BithompAmm,
-	type BithompAmms,
-	type BithompLedgerEntry,
-	type BithompSearch,
-	type BithompTransactions,
-	type BithompTrustlines,
-	type BithompUsername,
 } from '$/sources/Bithomp/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -42,8 +34,9 @@ const omitUndefinedJson = (
 		return value.map(omitUndefinedJson)
 	if (value != null && typeof value === 'object')
 		return Object.fromEntries(
-			Object.entries(value)
-				.filter(([, entry]) => entry !== undefined)
+				Object.entries(value)
+					// oxlint-disable-next-line typescript/no-unnecessary-condition -- unknown wire objects may contain explicit undefined properties
+					.filter(([, entry]) => entry !== undefined)
 				.map(([key, entry]) => [
 					key,
 					omitUndefinedJson(entry),
@@ -136,7 +129,7 @@ export const getAccount = async (
 			`address/${encodeURIComponent(address)}?ledgerInfo=true`,
 			'get account'
 		)
-	) as BithompAccount
+	)
 }
 
 export const getAmm = async (
@@ -156,7 +149,7 @@ export const getAmm = async (
 			`amm/${encodeURIComponent(id)}`,
 			'get amm'
 		)
-	) as BithompAmm
+	)
 }
 
 export const getAmms = async (
@@ -185,7 +178,7 @@ export const getAmms = async (
 			`amms${search.length > 0 ? `?${search}` : ''}`,
 			'get amms'
 		)
-	) as BithompAmms
+	)
 }
 
 export const getTrustlines = async (
@@ -205,7 +198,7 @@ export const getTrustlines = async (
 			`trustlines/${encodeURIComponent(address)}`,
 			'get trustlines'
 		)
-	) as BithompTrustlines
+	)
 }
 
 export const getAccountTransactions = async (
@@ -224,6 +217,8 @@ export const getAccountTransactions = async (
 ) => {
 	assertNonempty(address, 'address')
 	assertPositiveLimit(limit, 'account transactions')
+	if (startTxHash != null && !/^[0-9a-f]{64}$/i.test(startTxHash))
+		throw new Error('Bithomp: invalid account transaction start hash')
 	const search = queryString({
 		limit,
 		marker,
@@ -238,7 +233,7 @@ export const getAccountTransactions = async (
 			`transactions/${encodeURIComponent(address)}${search.length > 0 ? `?${search}` : ''}`,
 			'get account transactions'
 		)
-	) as BithompTransactions
+	)
 }
 
 export const getLedgerEntry = async (
@@ -265,7 +260,7 @@ export const getLedgerEntry = async (
 			`ledgerEntry/${encodeURIComponent(index)}${search.length > 0 ? `?${search}` : ''}`,
 			'get ledger entry'
 		)
-	) as BithompLedgerEntry
+	)
 }
 
 export const getSearch = async (
@@ -290,7 +285,7 @@ export const getSearch = async (
 			`search/${encodeURIComponent(value)}${search.length > 0 ? `?${search}` : ''}`,
 			'get search'
 		)
-	) as BithompSearch
+	)
 }
 
 export const getUsername = async (
@@ -310,5 +305,5 @@ export const getUsername = async (
 			`username/${encodeURIComponent(username)}`,
 			'get username'
 		)
-	) as BithompUsername
+	)
 }
