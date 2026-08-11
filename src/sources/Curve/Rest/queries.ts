@@ -160,6 +160,15 @@ const assertSafeInteger = (
 	return value
 }
 
+const assertNonNegativeSafeInteger = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isSafeInteger(value) || value < 0)
+		throw new Error(`${Source.Curve_Rest}: invalid ${label}`)
+	return value
+}
+
 const assertEnvelope = (
 	envelope: {
 		assert: (value: unknown) => unknown
@@ -207,8 +216,8 @@ const optionalApyPair = (
 		return undefined
 	if (value.length !== 2)
 		throw new Error(`${Source.Curve_Rest}: invalid ${label}`)
-	const low = assertFiniteNumber(value[0]!, label)
-	const high = assertFiniteNumber(value[1]!, label)
+	const low = assertFiniteNumber(value[0], label)
+	const high = assertFiniteNumber(value[1], label)
 	return [
 		low,
 		high,
@@ -349,10 +358,10 @@ const mapPoolWire = (
 			assetTypeName: assertNonEmptyString(wire.assetTypeName, 'asset type name'),
 		}),
 		...(wire.creationBlockNumber != null && {
-			creationBlockNumber: assertSafeInteger(wire.creationBlockNumber, 'creation block number'),
+			creationBlockNumber: assertNonNegativeSafeInteger(wire.creationBlockNumber, 'creation block number'),
 		}),
 		...(wire.creationTs != null && {
-			creationTs: assertSafeInteger(wire.creationTs, 'creation timestamp'),
+			creationTs: assertNonNegativeSafeInteger(wire.creationTs, 'creation timestamp'),
 		}),
 		...(wire.usdTotalExcludingBasePool != null && {
 			usdTotalExcludingBasePool: assertFiniteNumber(wire.usdTotalExcludingBasePool, 'USD total excluding base pool'),
@@ -1010,4 +1019,3 @@ export const listCrvUsdAmmVolumes = async ({
 		throw new Error(`${Source.Curve_Rest}: crvUSD AMM volumes response contains duplicate addresses`)
 	return volumes
 }
-

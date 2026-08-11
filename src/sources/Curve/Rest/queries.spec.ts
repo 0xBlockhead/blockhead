@@ -513,6 +513,23 @@ describe('Curve pool operations', () => {
 			chainId: 1,
 			registryId: 'main',
 		})).rejects.toThrow('Curve_Rest: invalid creation timestamp')
+
+		sourceGetJson.mockResolvedValueOnce({
+			success: true,
+			data: {
+				poolData: [
+					{
+						...threePoolWire,
+						creationBlockNumber: -1,
+					},
+				],
+			},
+		})
+
+		await expect(listPoolsByRegistry({
+			chainId: 1,
+			registryId: 'main',
+		})).rejects.toThrow('Curve_Rest: invalid creation block number')
 	})
 
 	it('rejects duplicate pool addresses in list and registry envelopes', async () => {
@@ -584,7 +601,7 @@ describe('Curve pool operations', () => {
 						assetType: '0',
 						coins: [
 							{
-								...threePoolCoins[0]!,
+							...threePoolCoins[0],
 								decimals: 18,
 							},
 							...threePoolCoins.slice(1),
