@@ -69,7 +69,6 @@ test('encodes an arbitrary feed URL as one reserved query value', async () => {
 	})
 
 	await getFeed(
-		bindings[Source.Rss2Json_Rest][0],
 		'https://example.com/feed.xml?topic=a+b&redirect=https%3A%2F%2Fother.example%2Fx%3Fy%3D1%26z%3D2#latest'
 	)
 
