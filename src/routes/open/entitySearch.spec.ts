@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { entityHrefFromSearchInput, evmAccountCandidatesFromSearchInput } from './entitySearch.ts'
+import {
+	entityHrefFromSearchInput,
+	evmAccountCandidatesFromSearchInput,
+	evmHashHrefFromCoordinates,
+} from './entitySearch.ts'
 
 
 describe(entityHrefFromSearchInput, () => {
@@ -45,5 +49,39 @@ describe(evmAccountCandidatesFromSearchInput, () => {
 
 	it('does not offer EVM networks for other unresolved input', () => {
 		expect(evmAccountCandidatesFromSearchInput('0123456789abcdef')).toEqual([])
+	})
+})
+
+
+describe(evmHashHrefFromCoordinates, () => {
+	const hash = '0x31ed178236b6bc4dd6dc8c6026e9d344e39afe0dc6d832c228131ce4ee40a8ca'
+
+	it('opens a transaction after both coordinates are chosen', () => {
+		expect(evmHashHrefFromCoordinates({
+			query: hash,
+			networkCaip2: 'eip155:1',
+			entityKind: 'transaction',
+		})).toBe(`/network/eip155:1/tx/${hash}`)
+	})
+
+	it('opens a user operation after both coordinates are chosen', () => {
+		expect(evmHashHrefFromCoordinates({
+			query: hash,
+			networkCaip2: 'eip155:8453',
+			entityKind: 'user-operation',
+		})).toBe(`/network/eip155:8453/user-operation/${hash}`)
+	})
+
+	it.each([
+		[null, 'transaction'],
+		['eip155:999999999', 'transaction'],
+		['eip155:1', null],
+		['eip155:1', 'block'],
+	])('rejects unsupported coordinates %s / %s', (networkCaip2, entityKind) => {
+		expect(evmHashHrefFromCoordinates({
+			query: hash,
+			networkCaip2,
+			entityKind,
+		})).toBeUndefined()
 	})
 })

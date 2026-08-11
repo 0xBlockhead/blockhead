@@ -4,6 +4,30 @@ import { NetworkExecutionModel, networks } from '$/constants/Network.ts'
 import { ipfsResourceAddressFromInput, ipfsResourceHref } from '$/lib/ipfs.ts'
 
 
+export const evmNetworkChoices = networks.flatMap((network) => (
+	'caip2' in network
+	&& network.executionModels.some((executionModel) => executionModel === NetworkExecutionModel.Evm) ?
+		[{
+			name: network.name,
+			caip2: `${network.caip2.namespace}:${network.caip2.reference}`,
+			namespace: network.caip2.namespace,
+			reference: network.caip2.reference,
+		}]
+	:
+		[]
+))
+
+export const evmHashEntityKinds = [
+	{
+		value: 'transaction',
+		label: 'Transaction',
+	},
+	{
+		value: 'user-operation',
+		label: 'ERC-4337 user operation',
+	},
+] as const
+
 export const entityHrefFromSearchInput = (query: string) => {
 	if (/^ip(?:fs|ns):\/\//i.test(query)) {
 		const ipfsResourceAddress = ipfsResourceAddressFromInput({
@@ -64,17 +88,40 @@ export const evmAccountCandidatesFromSearchInput = (query: string) => (
 	!/^0x[a-fA-F0-9]{40}$/.test(query) ?
 		[]
 	:
-		networks.flatMap((network) => (
-			'caip2' in network
-			&& network.executionModels.some((executionModel) => executionModel === NetworkExecutionModel.Evm) ?
-				[{
-					name: network.name,
-					caip2: `${network.caip2.namespace}:${network.caip2.reference}`,
-					namespace: network.caip2.namespace,
-					reference: network.caip2.reference,
-					accountAddress: query,
-				}]
-			:
-				[]
-		))
+		evmNetworkChoices.map((network) => ({
+			...network,
+			accountAddress: query,
+		}))
 )
+
+export const evmHashHrefFromCoordinates = ({
+	query,
+	networkCaip2,
+	entityKind,
+}: {
+	query: string
+	networkCaip2: string | null
+	entityKind: string | null
+}) => {
+	const network = evmNetworkChoices.find((candidate) => candidate.caip2 === networkCaip2)
+
+	if (!network || !/^0x[a-fA-F0-9]{64}$/.test(query)) return
+
+	if (entityKind === 'transaction')
+		return resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
+			{
+				network: network.caip2,
+				transactionId: query,
+			}
+		)
+
+	if (entityKind === 'user-operation')
+		return resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/user-operation/[userOperationHash=userOperationHash]',
+			{
+				network: network.caip2,
+				userOperationHash: query,
+			}
+		)
+}

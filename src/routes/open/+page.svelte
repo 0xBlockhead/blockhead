@@ -4,7 +4,11 @@
 
 
 	// State
-	import { evmAccountCandidatesFromSearchInput } from './entitySearch.ts'
+	import {
+		evmAccountCandidatesFromSearchInput,
+		evmHashEntityKinds,
+		evmNetworkChoices,
+	} from './entitySearch.ts'
 
 	let {
 		data,
@@ -16,6 +20,9 @@
 
 	const evmAccountCandidates = $derived(
 		evmAccountCandidatesFromSearchInput(data.query)
+	)
+	const isEvmHash = $derived(
+		/^0x[a-fA-F0-9]{64}$/.test(data.query)
 	)
 </script>
 
@@ -91,6 +98,42 @@
 					</li>
 				{/each}
 			</ul>
+		</section>
+	{/if}
+
+	{#if isEvmHash}
+		<section data-column="gap-2">
+			<h2>Identify this EVM hash</h2>
+
+			<p>A 32-byte hash does not identify its network or entity kind. Choose both coordinates to continue.</p>
+
+			<form
+				action={resolve('/open')}
+				method="get"
+				data-column="gap-2"
+			>
+				<input name="q" type="hidden" value={data.query} />
+
+				<label for="evm-hash-network">Network</label>
+
+				<select id="evm-hash-network" name="network" required>
+					<option value="">Choose a network</option>
+					{#each evmNetworkChoices as network (network.caip2)}
+						<option value={network.caip2}>{network.name} ({network.caip2})</option>
+					{/each}
+				</select>
+
+				<label for="evm-hash-kind">Entity kind</label>
+
+				<select id="evm-hash-kind" name="kind" required>
+					<option value="">Choose an entity kind</option>
+					{#each evmHashEntityKinds as entityKind (entityKind.value)}
+						<option value={entityKind.value}>{entityKind.label}</option>
+					{/each}
+				</select>
+
+				<button type="submit">Open hash</button>
+			</form>
 		</section>
 	{/if}
 </main>
