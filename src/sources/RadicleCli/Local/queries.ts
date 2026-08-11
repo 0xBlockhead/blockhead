@@ -7,11 +7,19 @@ export const command = (
 	args,
 })
 
+const assertRepositoryId = (
+	repositoryId: string
+) => {
+	if (!/^rad:z[1-9A-HJ-NP-Za-km-z]+$/.test(repositoryId))
+		throw new Error('RadicleCli_Local: invalid repository ID')
+}
+
 export const inspectRepository = (
 	repositoryId: string
-) => (
-	command([
+) => {
+	assertRepositoryId(repositoryId)
+	return command([
 		'inspect',
 		repositoryId,
 	])
-)
+}
