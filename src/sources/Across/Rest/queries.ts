@@ -113,6 +113,9 @@ const assertDeposit = (deposit: AcrossDeposit) => {
 		depositTxnRef: deposit.depositTxnRef,
 		...(deposit.relayHash != null && { relayHash: deposit.relayHash }),
 		...(deposit.fillTxnRef != null && { fillTxnRef: deposit.fillTxnRef }),
+		...(deposit.depositRefundTxnRef != null && {
+			depositRefundTxnRef: deposit.depositRefundTxnRef,
+		}),
 	}))
 		assertOpaqueIdentity(value, name)
 	assertTimestamp(deposit.quoteTimestamp, 'quote timestamp')

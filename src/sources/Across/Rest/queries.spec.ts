@@ -398,6 +398,25 @@ describe('Across public bridge queries', () => {
 		})).rejects.toThrow('fill transaction present for pending deposit')
 
 		sourceGetJson.mockResolvedValue({
+			deposit: {
+				...deposit,
+				status: 'refunded',
+				fillTxnRef: null,
+				fillBlockTimestamp: null,
+				fillBlockNumber: null,
+				depositRefundTxnRef: 'refund/transaction',
+			},
+			pagination: {
+				currentIndex: 0,
+				maxIndex: 0,
+			},
+		})
+		await expect(getDeposit({
+			originChainId: 8453,
+			depositId,
+		})).rejects.toThrow('invalid depositRefundTxnRef')
+
+		sourceGetJson.mockResolvedValue({
 			status: 'refunded',
 			originChainId: 8453,
 			depositId,
