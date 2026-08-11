@@ -245,6 +245,41 @@ describe('Morpho GraphQL market enumeration', () => {
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
+	it('rejects duplicate chain filters before transport', async () => {
+		await expect(listMarkets({
+			chainIds: [
+				8453,
+				8453,
+			],
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: duplicate chain ids`)
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('rejects duplicate market identities after normalization', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				markets: {
+					items: [
+						market,
+						{
+							...market,
+							marketId: `0x${market.marketId.slice(2).toUpperCase()}`,
+						},
+					],
+					pageInfo: {
+						countTotal: 2,
+					},
+				},
+			},
+		})))
+
+		await expect(listMarkets({
+			chainIds: [
+				8453,
+			],
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: markets response contains duplicate market identities`)
+	})
+
 	it('accepts every chain id advertised by Morpho GraphQL chains', async () => {
 		const {
 			morphoGraphqlNetworkByChainId,
@@ -626,6 +661,31 @@ describe('Morpho GraphQL MetaMorpho vault enumeration', () => {
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
 
+	it('rejects duplicate vault identities after normalization', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				vaults: {
+					items: [
+						vault,
+						{
+							...vault,
+							address: `0x${vault.address.slice(2).toUpperCase()}`,
+						},
+					],
+					pageInfo: {
+						countTotal: 2,
+					},
+				},
+			},
+		})))
+
+		await expect(listVaults({
+			chainIds: [
+				1,
+			],
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: vaults response contains duplicate vault identities`)
+	})
+
 	it('rejects invalid limits before transport', async () => {
 		await expect(listVaults({
 			chainIds: [
@@ -867,6 +927,48 @@ describe('Morpho GraphQL account positions', () => {
 			chainId: 1,
 			account: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
 		})).resolves.toEqual([])
+	})
+
+	it('rejects duplicate account position identities after normalization', async () => {
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			data: {
+				userByAddress: {
+					address: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
+					marketPositions: [
+						{
+							market: {
+								marketId: '0x698fe98247a40c5771537b5786b2f3f9d78eb487b4ce4d75533cd0e94d88a115',
+							},
+							state: {
+								supplyAssets: '1000',
+								supplyShares: '1000',
+								borrowAssets: '0',
+								borrowShares: '0',
+								collateral: '0',
+							},
+						},
+						{
+							market: {
+								marketId: '0x698FE98247A40C5771537B5786B2F3F9D78EB487B4CE4D75533CD0E94D88A115',
+							},
+							state: {
+								supplyAssets: '2000',
+								supplyShares: '2000',
+								borrowAssets: '0',
+								borrowShares: '0',
+								collateral: '0',
+							},
+						},
+					],
+					vaultPositions: [],
+				},
+			},
+		})))
+
+		await expect(getAccountPositions({
+			chainId: 1,
+			account: '0x821880a3E2bac432d67E5155e72BB655Ef65fa5E',
+		})).rejects.toThrow(`${Source.Morpho_Graphql}: account positions contain duplicate identities`)
 	})
 
 	it('rejects unsupported chains before transport', async () => {

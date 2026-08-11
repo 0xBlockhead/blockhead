@@ -477,6 +477,8 @@ export const listMarkets = async ({
 }) => {
 	if (chainIds.length < 1)
 		throw new Error(`${Source.Morpho_Graphql}: chainIds required`)
+	if (new Set(chainIds).size !== chainIds.length)
+		throw new Error(`${Source.Morpho_Graphql}: duplicate chain ids`)
 	for (const chainId of chainIds)
 		assertChainId(chainId)
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > morphoMarketPageLimit)
@@ -518,10 +520,14 @@ export const listMarkets = async ({
 	if (data.markets.pageInfo.countTotal < data.markets.items.length)
 		throw new Error(`${Source.Morpho_Graphql}: markets countTotal below page length`)
 
+	const items = data.markets.items.map((market) => (
+		normalizeMarket(market, chainIds)
+	))
+	if (new Set(items.map((market) => `${String(market.chainId)}:${market.marketId}`)).size !== items.length)
+		throw new Error(`${Source.Morpho_Graphql}: markets response contains duplicate market identities`)
+
 	return {
-		items: data.markets.items.map((market) => (
-			normalizeMarket(market, chainIds)
-		)),
+		items,
 		countTotal: data.markets.pageInfo.countTotal,
 	}
 }
@@ -576,6 +582,8 @@ export const listVaults = async ({
 }) => {
 	if (chainIds.length < 1)
 		throw new Error(`${Source.Morpho_Graphql}: chainIds required`)
+	if (new Set(chainIds).size !== chainIds.length)
+		throw new Error(`${Source.Morpho_Graphql}: duplicate chain ids`)
 	for (const chainId of chainIds)
 		assertChainId(chainId)
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > morphoVaultPageLimit)
@@ -617,10 +625,14 @@ export const listVaults = async ({
 	if (data.vaults.pageInfo.countTotal < data.vaults.items.length)
 		throw new Error(`${Source.Morpho_Graphql}: vaults countTotal below page length`)
 
+	const items = data.vaults.items.map((vault) => (
+		normalizeVault(vault, chainIds)
+	))
+	if (new Set(items.map((vault) => `${String(vault.chainId)}:${vault.address}`)).size !== items.length)
+		throw new Error(`${Source.Morpho_Graphql}: vaults response contains duplicate vault identities`)
+
 	return {
-		items: data.vaults.items.map((vault) => (
-			normalizeVault(vault, chainIds)
-		)),
+		items,
 		countTotal: data.vaults.pageInfo.countTotal,
 	}
 }
@@ -805,7 +817,7 @@ export const getAccountPositions = async ({
 	if (responseAddress !== normalizedAccount)
 		throw new Error(`${Source.Morpho_Graphql}: account positions address mismatch`)
 
-	return [
+	const positions = [
 		...data.userByAddress.marketPositions.map((wire) => (
 			normalizeMarketPosition(wire, {
 				chainId,
@@ -819,4 +831,13 @@ export const getAccountPositions = async ({
 			})
 		)),
 	].filter((position) => position != null)
+	if (new Set(positions.map((position) => (
+		position.kind === 'market' ?
+			`${position.kind}:${position.marketId}`
+		:
+			`${position.kind}:${position.vaultAddress}`
+	))).size !== positions.length)
+		throw new Error(`${Source.Morpho_Graphql}: account positions contain duplicate identities`)
+
+	return positions
 }
