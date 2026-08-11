@@ -15,12 +15,15 @@ export const getContentsUrl = () => (
 	githubContentsUrl(target)
 )
 
-export const getMarkdownUrl = ({ number }: { number: number }) => (
-	githubRawUrl({
+export const getMarkdownUrl = ({ number }: { number: number }) => {
+	if (!Number.isSafeInteger(number) || number < 1)
+		throw new Error('FilecoinFips_Github: FIP number must be a positive safe integer')
+
+	return githubRawUrl({
 		...target,
 		path: `${target.path}/fip-${number.toString().padStart(4, '0')}.md`,
 	})
-)
+}
 
 export const getContents = () => (
 	getGithubContents({
