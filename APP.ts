@@ -8124,20 +8124,6 @@ export const schema = {
 					"NetworkTimestampMsSource": ["$network", "timestampMs", "source"],
 				},
 				views: {
-					singular: {
-						summary: {
-							title: [{ field: "timestampMs", format: "timestamp" }],
-							value: [{ field: "latestHeight", format: "numberValue" }],
-							HeadingAfter: ["source", "reachable"],
-						},
-						content: {
-							dl: [
-								["$network", { field: "timestampMs", format: "timestamp" }, "source"],
-								[{ field: "latestHeight", format: "numberValue" }, { field: "latestBlockHash", format: "truncated" }, { field: "currentBlockHash", format: "truncated" }],
-								["networkId", { field: "peerCount", format: "number" }, { field: "queuedTransactionCount", format: "number" }, "gatewayOrigin", "graphqlCursor", "reachable"],
-							],
-						},
-					},
 					plural: { component: "ArweaveNetwork_TimestampsView",
 					},
 				},
@@ -24285,20 +24271,6 @@ export const schema = {
 					"AttestationTimestampMsSource": ["$attestation", "timestampMs", "source"],
 				},
 				views: {
-					singular: {
-						query: {
-							sources: [Source.EasScan_Graphql],
-							openFields: ["revoked", "revocationTime", "valid", "expired", "blockNumber", "transactionHash", "logIndex", "revokedTransactionHash", "revokedLogIndex"],
-						},
-						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["valid"], HeadingAfter: ["revoked"] },
-						closed: ["$attestation", { field: "timestampMs", format: "timestamp" }, "valid", "revoked"],
-						content: {
-							dl: [
-								["$attestation", { field: "timestampMs", format: "timestamp" }, "source", "valid", "revoked", "expired", { field: "revocationTime", format: "timestamp" }],
-								[{ field: "blockNumber", format: "number" }, "transactionHash", { field: "logIndex", format: "number" }, "revokedTransactionHash", { field: "revokedLogIndex", format: "number" }],
-							],
-						},
-					},
 					plural: { component: "EasAttestation_TimestampsView", title: "EAS attestation observations", },
 				},
 			}),
@@ -44676,36 +44648,6 @@ export const schema = {
 					"BuilderTimestampMsSource": ["$builder", "timestampMs", "source"],
 				},
 				views: {
-					singular: {
-						summary: {
-							title: [
-								{ field: "deliveredPayloadCount", format: "number", suffix: " payloads" },
-								{ field: "deliveredValueWei", format: "numberValue", suffix: " wei" },
-							],
-							value: [{ field: "deliveredPayloadCount", format: "number", suffix: " payloads" }],
-							HeadingAfter: ["$builder"],
-						},
-						closed: [{ field: "timestampMs", format: "timestamp" }, "source"],
-						content: {
-							dl: [
-								[
-									{ field: "deliveredPayloadCount", format: "number" },
-									{ field: "deliveredValueWei", format: "numberValue", suffix: " wei" },
-									{ field: "relayCount", format: "number" },
-								],
-								[
-									{ field: "windowStartSlot", format: "number" },
-									{ field: "windowEndSlot", format: "number" },
-									{ field: "sampleLimit", format: "number" },
-								],
-								[
-									{ field: "timestampMs", format: "timestamp" },
-									"source",
-									"$builder",
-								],
-							],
-						},
-					},
 					plural: { component: "MevBuilder_TimestampsView",
 					},
 				},
@@ -44950,33 +44892,6 @@ export const schema = {
 					"RelayTimestampMsSource": ["$relay", "timestampMs", "source"],
 				},
 				views: {
-					singular: {
-						summary: {
-							title: [{ field: "timestampMs", format: "timestamp" }],
-							value: [
-								{ field: "deliveredPayloadSampleCount", format: "number" },
-								{ field: "builderSampleCount", format: "number" },
-							],
-							HeadingAfter: ["$relay"],
-						},
-						closed: [{ field: "timestampMs", format: "timestamp" }, "source"],
-						content: {
-							dl: [
-								[
-									{ field: "deliveredPayloadSampleCount", format: "number" },
-									{ field: "builderSampleCount", format: "number" },
-									{ field: "sampleLimit", format: "number" },
-								],
-								[
-									{ field: "windowStartSlot", format: "number" },
-									{ field: "windowEndSlot", format: "number" },
-									{ field: "timestampMs", format: "timestamp" },
-									"source",
-									"$relay",
-								],
-							],
-						},
-					},
 					plural: { component: "MevRelay_TimestampsView",
 					},
 				},
@@ -48416,28 +48331,8 @@ export const schema = {
 						"blockchainSizeBytes": { label: "Blockchain size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 					}),
 				},
-				views: {
-					singular: {
-						summary: {
-							title: [{ field: "timestampMs", format: "timestamp" }],
-							value: ["source"],
-						},
-						closed: [
-							{ field: "timestampMs", format: "timestamp" },
-							"source",
-						],
-						content: {
-							dl: [
-								["$network", { field: "timestampMs", format: "timestamp" }, "source", "ledgerModels", "executionModels"],
-								[{ field: ["Cosmos", "latestBlockHeight"], format: "numberValue" }, { field: ["Cosmos", "latestBlockHash"] }, { field: ["Cosmos", "latestBlockTimeMs"], format: "timestamp" }, { field: ["Cosmos", "latestBlockTransactionCount"], format: "number" }],
-								[{ field: ["Cosmos", "chainId"] }, { field: ["Cosmos", "nodeNetwork"] }, { field: ["Cosmos", "applicationName"] }, { field: ["Cosmos", "applicationVersion"] }, { field: ["Cosmos", "cosmosSdkVersion"] }, { field: ["Cosmos", "isSyncing"] }, { field: ["Cosmos", "bondedValidatorCount"] }, { field: ["Cosmos", "bondedTokens"] }, { field: ["Cosmos", "notBondedTokens"] }],
-								[{ field: ["Polkadot", "finalizedBlockNumber"], format: "numberValue" }, { field: ["Polkadot", "finalizedBlockHash"] }, { field: ["Polkadot", "finalizedExtrinsicCount"], format: "number" }, { field: ["Polkadot", "runtimeSpecName"] }, { field: ["Polkadot", "runtimeSpecVersion"] }, { field: ["Polkadot", "transactionVersion"] }, { field: ["Polkadot", "stateVersion"] }, { field: ["Polkadot", "peerCount"] }, { field: ["Polkadot", "isSyncing"] }, { field: ["Polkadot", "shouldHavePeers"] }],
-								[{ field: ["Solana", "health"] }, { field: ["Solana", "absoluteSlot"], format: "numberValue" }, { field: ["Solana", "blockHeight"], format: "numberValue" }, { field: ["Solana", "epoch"] }, { field: ["Solana", "slotIndex"] }, { field: ["Solana", "slotsInEpoch"] }, { field: ["Solana", "transactionCount"], format: "numberValue" }, { field: ["Solana", "currentValidatorCount"] }, { field: ["Solana", "delinquentValidatorCount"] }, { field: ["Solana", "totalActivatedStakeLamports"] }, { field: ["Solana", "solanaCoreVersion"] }, { field: ["Solana", "featureSet"] }],
-								[{ field: ["Utxo", "bestBlockHeight"], format: "numberValue" }, { field: ["Utxo", "bestBlockHash"] }, { field: ["Utxo", "bestBlockTimeMs"], format: "timestamp" }, { field: ["Utxo", "blockCount"] }, { field: ["Utxo", "transactionCount"] }, { field: ["Utxo", "blocks24h"] }, { field: ["Utxo", "transactions24h"] }, { field: ["Utxo", "mempoolTransactionCount"] }, { field: ["Utxo", "mempoolSizeBytes"] }, { field: ["Utxo", "mempoolTps"] }, { field: ["Utxo", "averageTransactionFee24hSats"] }, { field: ["Utxo", "medianTransactionFee24hSats"] }, { field: ["Utxo", "suggestedTransactionFeePerByteSats"] }, { field: ["Utxo", "blockchainSizeBytes"] }],
-							],
-						},
-					},
-					plural: { component: "Network_TimestampsView",
+					views: {
+						plural: { component: "Network_TimestampsView",
 					},
 				},
 			}),
