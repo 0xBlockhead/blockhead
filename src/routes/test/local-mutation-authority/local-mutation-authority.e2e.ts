@@ -160,20 +160,36 @@ test('nested callable references update collection and first ResourceBoundary co
 	})
 	const diagnostics = await openFixture(page, testInfo)
 	const collectionBoundary = page.getByTestId('nested-resource-collection-awaited')
+	const firstCurrent = page.getByTestId('nested-resource-first-current')
+	const firstPromise = page.getByTestId('nested-resource-first-promise')
 	const firstBoundary = page.getByTestId('nested-resource-first-awaited')
 	await expect(collectionBoundary).toBeAttached({
+		timeout: 120_000,
+	})
+	await expect(firstCurrent).toBeAttached({
+		timeout: 120_000,
+	})
+	await expect(firstPromise).toBeAttached({
 		timeout: 120_000,
 	})
 	await expect(firstBoundary).toBeAttached({
 		timeout: 120_000,
 	})
 	await expect(collectionBoundary).toHaveText('')
+	await expect(firstCurrent).toHaveText('')
+	await expect(firstPromise).toHaveText('')
 	await expect(firstBoundary).toHaveText('')
 
 	await diagnostics.step(page.getByRole('button', {
 		name: 'Materialize boundary session',
 	}).click())
 	await diagnostics.step(expect(collectionBoundary).toHaveText('Resource Boundary 100', {
+		timeout: 120_000,
+	}))
+	await diagnostics.step(expect(firstCurrent).toHaveText('Resource Boundary 100', {
+		timeout: 120_000,
+	}))
+	await diagnostics.step(expect(firstPromise).toHaveText('Resource Boundary 100', {
 		timeout: 120_000,
 	}))
 	await diagnostics.step(expect(firstBoundary).toHaveText('Resource Boundary 100', {
@@ -184,6 +200,12 @@ test('nested callable references update collection and first ResourceBoundary co
 		name: 'Update boundary session',
 	}).click())
 	await diagnostics.step(expect(collectionBoundary).toHaveText('Resource Boundary 101', {
+		timeout: 120_000,
+	}))
+	await diagnostics.step(expect(firstCurrent).toHaveText('Resource Boundary 101', {
+		timeout: 120_000,
+	}))
+	await diagnostics.step(expect(firstPromise).toHaveText('Resource Boundary 101', {
 		timeout: 120_000,
 	}))
 	await diagnostics.step(expect(firstBoundary).toHaveText('Resource Boundary 101', {

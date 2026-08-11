@@ -285,6 +285,7 @@
 	import BlockheadSessionsView from '$/views/BlockheadSessionsView.svelte'
 	import BlockheadSessionView from '$/views/BlockheadSessionView.svelte'
 	import BlockheadWalletConnectionsView from '$/views/BlockheadWalletConnectionsView.svelte'
+	import FieldProxyObservation from './FieldProxyObservation.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
@@ -343,6 +344,8 @@
 			</p>
 		{/snippet}
 	</ResourceBoundary>
+
+	<FieldProxyObservation resource={firstResourceBoundarySession}/>
 
 	<ResourceBoundary resource={firstResourceBoundarySession}>
 		{#snippet children(resolvedSession)}
