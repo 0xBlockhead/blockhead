@@ -84,6 +84,16 @@ const validateCoinIds = (coins: string[]) => {
 		throw new Error('Defillama_Rest: malformed requested coin identities')
 }
 
+const assertProtocolSlug = (protocol: string) => {
+	if (
+		protocol.length < 1
+		|| protocol.length > 256
+		|| protocol !== protocol.trim()
+		|| /[\\/\u0000-\u001f\u007f]/.test(protocol)
+	)
+		throw new Error('Defillama_Rest: malformed protocol slug')
+}
+
 const coinsPathSegment = (coins: string[]) => (
 	coins
 		.map((coin) => encodeURIComponent(coin))
@@ -418,8 +428,7 @@ export const getChainsTvl = async () => (
 export const getProtocolTvl = async ({
 	protocol,
 }: GetDefillamaProtocolTvlArgs) => {
-	if (protocol === '')
-		throw new Error('Defillama_Rest: malformed protocol slug')
+	assertProtocolSlug(protocol)
 
 	return getDefillamaJson<DefillamaProtocolTvlResponse>(
 		publicApiBinding,
@@ -436,8 +445,7 @@ export const getProtocolTvl = async ({
 export const getProtocol = async ({
 	protocol,
 }: GetDefillamaProtocolArgs) => {
-	if (protocol === '')
-		throw new Error('Defillama_Rest: malformed protocol slug')
+	assertProtocolSlug(protocol)
 
 	return getDefillamaJson<DefillamaProtocolResponse>(
 		publicApiBinding,

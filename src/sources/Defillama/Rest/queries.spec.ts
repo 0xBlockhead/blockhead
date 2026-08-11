@@ -539,12 +539,17 @@ describe('DeFiLlama REST endpoint selection', () => {
 		await expect(query()).rejects.toThrow(`Defillama_Rest: invalid ${label} response envelope`)
 	})
 
-	it('rejects empty protocol slug before transport', async () => {
+	it.each([
+		'',
+		' aave',
+		'aave/protocol',
+		'aave\u0000protocol',
+	])('rejects malformed protocol slug %j before transport', async (protocol) => {
 		await expect(getProtocolTvl({
-			protocol: '',
+			protocol,
 		})).rejects.toThrow('malformed protocol slug')
 		await expect(getProtocol({
-			protocol: '',
+			protocol,
 		})).rejects.toThrow('malformed protocol slug')
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
