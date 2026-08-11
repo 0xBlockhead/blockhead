@@ -152,25 +152,32 @@ const blockFieldsFromWire = (
 const transactionEdgeRows = (
 	network: NetworkId,
 	page: ArweaveGraphqlTransactionPage
-) => (
-	page.edges.map(({ node }) => ({
-		[EntityMetaKey.Selector]: {
-			$network: {
-				$network: network,
+) => {
+	const transactionIds = new Set<string>()
+	return page.edges.map(({ node }) => {
+		if (transactionIds.has(node.id))
+			throw new Error(`Arweave_Graphql: duplicate transaction identity ${node.id}`)
+
+		transactionIds.add(node.id)
+		return {
+			[EntityMetaKey.Selector]: {
+				$network: {
+					$network: network,
+				},
+				transactionId: node.id,
 			},
-			transactionId: node.id,
-		},
-		[EntityMetaKey.Fields]: Object.fromEntries(Object.entries(
-			transactionFieldsFromWire(
-				network,
-				node
-			)
-		).map(([field, value]) => [
-			entityFieldAddressKey(EntityType.ArweaveTransaction, [], field),
-			value,
-		])),
-	}))
-)
+			[EntityMetaKey.Fields]: Object.fromEntries(Object.entries(
+				transactionFieldsFromWire(
+					network,
+					node
+				)
+			).map(([field, value]) => [
+				entityFieldAddressKey(EntityType.ArweaveTransaction, [], field),
+				value,
+			])),
+		}
+	})
+}
 
 const transactionPageContinuation = (
 	page: ArweaveGraphqlTransactionPage,
@@ -197,23 +204,30 @@ const transactionPageContinuation = (
 const blockEdgeRows = (
 	network: NetworkId,
 	page: ArweaveGraphqlBlockPage
-) => (
-	page.edges.map(({ node }) => ({
-		[EntityMetaKey.Selector]: {
-			$network: {
-				$network: network,
+) => {
+	const heights = new Set<number>()
+	return page.edges.map(({ node }) => {
+		if (heights.has(node.height))
+			throw new Error(`Arweave_Graphql: duplicate block height ${String(node.height)}`)
+
+		heights.add(node.height)
+		return {
+			[EntityMetaKey.Selector]: {
+				$network: {
+					$network: network,
+				},
+				height: BigInt(node.height),
 			},
-			height: BigInt(node.height),
-		},
-		[EntityMetaKey.Fields]: {
-			[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'indepHash')]: node.id,
-			...(node.previous !== '' && {
-				[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'previousBlock')]: node.previous,
-			}),
-			[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'timestampMs')]: node.timestamp * 1000,
-		},
-	}))
-)
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'indepHash')]: node.id,
+				...(node.previous !== '' && {
+					[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'previousBlock')]: node.previous,
+				}),
+				[entityFieldAddressKey(EntityType.ArweaveBlock, [], 'timestampMs')]: node.timestamp * 1000,
+			},
+		}
+	})
+}
 
 const blockPageContinuation = (
 	page: ArweaveGraphqlBlockPage

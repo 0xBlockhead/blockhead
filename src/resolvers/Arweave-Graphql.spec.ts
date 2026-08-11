@@ -201,6 +201,48 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 		)).rejects.toThrow('unsupported network')
 	})
 
+	it('rejects duplicate transaction and block identities from a GraphQL page', async () => {
+		getTransactionsPage.mockResolvedValueOnce({
+			edges: [{
+				cursor: 'first',
+				node: transactionWire,
+			}, {
+				cursor: 'second',
+				node: transactionWire,
+			}],
+			pageInfo: {
+				hasNextPage: false,
+			},
+		})
+		const transactionSnapshot = await networkTransactionsResolver.resolve.Network.resolve({
+			$network: network,
+		}, context)
+		expect(() => networkTransactionsResolver.projections.$$transactions.select(
+			transactionSnapshot,
+			{ $network: network }
+		)).toThrow('duplicate transaction identity')
+
+		getBlocksPage.mockResolvedValueOnce({
+			edges: [{
+				cursor: 'first',
+				node: blockWire,
+			}, {
+				cursor: 'second',
+				node: blockWire,
+			}],
+			pageInfo: {
+				hasNextPage: false,
+			},
+		})
+		const blockSnapshot = await networkBlocksResolver.resolve.Network.resolve({
+			$network: network,
+		}, context)
+		expect(() => networkBlocksResolver.projections.$$blocks.select(
+			blockSnapshot,
+			{ $network: network }
+		)).toThrow('duplicate block height')
+	})
+
 	it('keeps transaction and block continuation cursors on independent hub resolvers', async () => {
 		getTransactionsPage.mockResolvedValueOnce({
 			edges: [
