@@ -1376,6 +1376,50 @@ describe('Hyperliquid public account Info transport', () => {
 		})).rejects.toThrow('Hyperliquid_Rest: invalid fundingHistory response envelope')
 	})
 
+	it('rejects duplicate and unsafe fill identities at the source boundary', async () => {
+		const fill = {
+			closedPnl: '0.0',
+			coin: 'AVAX',
+			crossed: false,
+			dir: 'Open Long',
+			hash: '0xa166e3fa63c25663024b03f2e0da011a00307e4017465df020210d3d432e7cb8',
+			oid: 90542681,
+			px: '18.435',
+			side: 'B',
+			startPosition: '26.86',
+			sz: '93.53',
+			time: 1681222254710,
+			fee: '0.01',
+			feeToken: 'USDC',
+			tid: 118906512037719,
+		}
+		corsFetch
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => [
+					fill,
+					fill,
+				],
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => [
+					{
+						...fill,
+						tid: Number.MAX_SAFE_INTEGER + 1,
+					},
+				],
+			})
+
+		await expect(getUserFills({
+			user: '0x1111111111111111111111111111111111111111',
+		})).rejects.toThrow('userFills response contains duplicate trade ids')
+		await expect(getUserFillsByTime({
+			user: '0x1111111111111111111111111111111111111111',
+			startTime: 0,
+		})).rejects.toThrow('invalid userFillsByTime response identity')
+	})
+
 	it('rejects foreign, duplicate, and invalid candle rows', async () => {
 		const candle = {
 			t: 1_700_000_000_000,

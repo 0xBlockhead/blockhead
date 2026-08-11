@@ -455,6 +455,28 @@ const info = async <_Result>({
 	return response.json<_Result>()
 }
 
+const assertFills = (
+	fills: HyperliquidFill[],
+	label: string
+) => {
+	const tradeIds = new Set<number>()
+	for (const fill of fills) {
+		if (
+			!Number.isSafeInteger(fill.tid)
+			|| fill.tid < 0
+			|| !Number.isSafeInteger(fill.oid)
+			|| fill.oid < 0
+			|| !Number.isSafeInteger(fill.time)
+			|| fill.time < 0
+		)
+			throw new Error(`Hyperliquid_Rest: invalid ${label} identity`)
+		if (tradeIds.has(fill.tid))
+			throw new Error(`Hyperliquid_Rest: ${label} contains duplicate trade ids`)
+
+		tradeIds.add(fill.tid)
+	}
+}
+
 export const getMeta = () => (
 	info<HyperliquidMeta>({
 		body: {
@@ -586,6 +608,7 @@ export const getUserFillsByTime = async ({
 	})
 	if (!hyperliquidFillEnvelope.array().allows(fills))
 		throw new Error('Hyperliquid_Rest: invalid userFillsByTime response envelope')
+	assertFills(fills, 'userFillsByTime response')
 
 	return fills
 }
@@ -1039,6 +1062,7 @@ export const getUserFills = async ({
 	})
 	if (!hyperliquidFillEnvelope.array().allows(fills))
 		throw new Error('Hyperliquid_Rest: invalid userFills response envelope')
+	assertFills(fills, 'userFills response')
 
 	return fills
 }
