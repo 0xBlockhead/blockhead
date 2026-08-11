@@ -41,4 +41,15 @@ describe('Dogecoin DIPs GitHub queries', () => {
 			'https://raw.githubusercontent.com/dogecoin/dips/master/dip-0070.mediawiki'
 		)
 	})
+
+	it('rejects unsafe DIP coordinates before requesting GitHub', () => {
+		vi.clearAllMocks()
+		expect(() => getMediaWikiText({
+			number: 0,
+		})).toThrow('DIP number must be a positive safe integer')
+		expect(() => getMediaWikiText({
+			number: Number.MAX_SAFE_INTEGER + 1,
+		})).toThrow('DIP number must be a positive safe integer')
+		expect(httpRuntime.sourceGetText).not.toHaveBeenCalled()
+	})
 })
