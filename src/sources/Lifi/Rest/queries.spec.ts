@@ -149,6 +149,17 @@ describe('LI.FI public quote observations', () => {
 		await expect(fetchQuote(request)).rejects.toThrow('Lifi_Rest:')
 	})
 
+	it.each([
+		['fromToken', { fromToken: ' ' }],
+		['fromAddress', { fromAddress: `${request.fromAddress}\n` }],
+	])('rejects a blank or control-character quote identity before transport (%s)', async (_label, override) => {
+		await expect(fetchQuote({
+			...request,
+			...override,
+		})).rejects.toThrow('invalid quote')
+		expect(lifiRestFetch).not.toHaveBeenCalled()
+	})
+
 	it('rejects excessive or duplicate included steps', async () => {
 		vi.mocked(lifiRestFetch).mockResolvedValue(new Response(JSON.stringify({
 			...quote,

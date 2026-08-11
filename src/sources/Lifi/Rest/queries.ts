@@ -32,6 +32,18 @@ import type {
 const unsignedIntegerPattern = /^(0|[1-9]\d*)$/
 const decimalPattern = /^(0|[1-9]\d*)(\.\d+)?$/
 
+const assertQuoteIdentity = (
+	value: string,
+	label: string
+) => {
+	if (
+		value.trim() === ''
+		|| value !== value.trim()
+		|| /[\u0000-\u001f\u007f]/.test(value)
+	)
+		throw new Error(`Lifi_Rest: invalid quote ${label}`)
+}
+
 /**
  * LI.FI tool catalogs mix numeric and string chain ids, including SVM-scale
  * values above `Number.MAX_SAFE_INTEGER` that still round-trip exactly.
@@ -416,6 +428,13 @@ export const fetchQuote = async (
 		))
 	)
 		throw new Error('Lifi_Rest: invalid quote request')
+	for (const [value, label] of [
+		[params.fromToken, 'source token'],
+		[params.toToken, 'destination token'],
+		[params.fromAddress, 'source address'],
+		[params.toAddress ?? params.fromAddress, 'destination address'],
+	] as const)
+		assertQuoteIdentity(value, label)
 
 	const search = new URLSearchParams({
 		fromChain: String(params.fromChain),
