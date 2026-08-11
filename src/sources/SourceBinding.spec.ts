@@ -238,7 +238,10 @@ describe('source binding indexes', () => {
 				Source.Farcaster_Rest,
 				Source.Arweave_Graphql,
 				Source.Arweave_Rest,
+				Source.Ipfs_Rest,
 				Source.Swarm_Rest,
+				Source.ZeroGStorageNode_JsonRpc,
+				Source.QuilibriumNodeMetrics_Prometheus,
 				Source.Radicle_Local,
 				Source.Radicle_Remote,
 				Source.RadicleCli_Local,
@@ -299,6 +302,13 @@ describe('source binding indexes', () => {
 				delivery: SourceDelivery.HttpProxy,
 				wireProtocol: WireProtocol.HttpRest,
 				operations: [SourceOperationGroup.GenericRead],
+			},
+			{
+				source: Source.Ipfs_Rest,
+				target: 'ipfs',
+				delivery: SourceDelivery.HttpProxy,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.ContentGatewayRead],
 			},
 			{
 				source: Source.Mastodon_Rest,
@@ -395,6 +405,13 @@ describe('source binding indexes', () => {
 				],
 			},
 			{
+				source: Source.QuilibriumNodeMetrics_Prometheus,
+				target: 'quilibrium-node',
+				delivery: SourceDelivery.ServerOnly,
+				wireProtocol: WireProtocol.Prometheus,
+				operations: [SourceOperationGroup.GenericRead],
+			},
+			{
 				source: Source.Radicle_Local,
 				target: 'radicle-repository',
 				delivery: SourceDelivery.LocalOnly,
@@ -431,6 +448,13 @@ describe('source binding indexes', () => {
 				delivery: SourceDelivery.BrowserDirect,
 				wireProtocol: WireProtocol.HttpRest,
 				operations: [SourceOperationGroup.ContentGatewayRead],
+			},
+			{
+				source: Source.ZeroGStorageNode_JsonRpc,
+				target: 'local-0g-storage-node',
+				delivery: SourceDelivery.LocalOnly,
+				wireProtocol: WireProtocol.JsonRpc2,
+				operations: [SourceOperationGroup.GenericRead],
 			},
 		])
 	})

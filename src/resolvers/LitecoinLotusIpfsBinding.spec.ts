@@ -168,11 +168,27 @@ describe('Litecoin, Lotus, and IPFS canonical resolver bindings', () => {
 			target: 'docs.ipfs.tech',
 			contentPath: 'concepts',
 			canonicalUri: 'ipns://docs.ipfs.tech/concepts',
+			gatewayOrigin: 'https://ipfs.io',
+			gatewayUrl: 'https://ipfs.io/ipns/docs.ipfs.tech/concepts',
+			fileName: 'concepts',
+			displayType: 'text',
+			isContentTypeInferred: true,
+			text: 'IPFS concepts',
 		})
 		expect(fetchBrowseResult).toHaveBeenCalledWith({
 			namespace: 'ipns',
 			target: 'docs.ipfs.tech',
 			contentPath: 'concepts',
 		})
+
+		fetchBrowseResult.mockRejectedValueOnce(new Error('Ipfs_Rest: no configured gateway could fetch the resource'))
+
+		await expect(ipfsResolvers.resolvers[0].resolve[
+			'ResourceAddress'
+		].resolve({
+			namespace: 'ipns',
+			target: 'docs.ipfs.tech',
+			contentPath: 'missing',
+		})).rejects.toThrow('Ipfs_Rest: no configured gateway could fetch the resource')
 	})
 })
