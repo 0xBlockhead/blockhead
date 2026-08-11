@@ -9,6 +9,7 @@ export const evmNetworkChoices = networks.flatMap((network) => (
 	&& network.executionModels.some((executionModel) => executionModel === NetworkExecutionModel.Evm) ?
 		[{
 			name: network.name,
+			environment: network.environment,
 			caip2: `${network.caip2.namespace}:${network.caip2.reference}`,
 			namespace: network.caip2.namespace,
 			reference: network.caip2.reference,

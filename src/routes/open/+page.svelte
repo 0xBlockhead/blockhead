@@ -101,7 +101,7 @@
 							}
 						)}>
 							{candidate.name}
-							<span data-text="annotation">{candidate.caip2}</span>
+							<span data-text="annotation">{candidate.environment} · {candidate.caip2}</span>
 						</a>
 					</li>
 				{/each}
@@ -127,7 +127,7 @@
 				<select id="evm-hash-network" name="network" required>
 					<option value="">Choose a network</option>
 					{#each evmNetworkChoices as network (network.caip2)}
-						<option value={network.caip2}>{network.name} ({network.caip2})</option>
+						<option value={network.caip2}>{network.name} — {network.environment} ({network.caip2})</option>
 					{/each}
 				</select>
 

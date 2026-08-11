@@ -33,6 +33,7 @@ describe(evmAccountCandidatesFromSearchInput, () => {
 
 		expect(candidates).toContainEqual({
 			name: 'Ethereum Mainnet',
+			environment: 'Mainnet',
 			caip2: 'eip155:1',
 			namespace: 'eip155',
 			reference: '1',
@@ -40,11 +41,22 @@ describe(evmAccountCandidatesFromSearchInput, () => {
 		})
 		expect(candidates).toContainEqual({
 			name: 'Base',
+			environment: 'Mainnet',
 			caip2: 'eip155:8453',
 			namespace: 'eip155',
 			reference: '8453',
 			accountAddress: address,
 		})
+	})
+
+	it('preserves checked-in environment distinctions', () => {
+		expect(evmAccountCandidatesFromSearchInput(
+			'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+		)).toContainEqual(expect.objectContaining({
+			name: 'Ethereum Sepolia',
+			environment: 'Testnet',
+			caip2: 'eip155:11155111',
+		}))
 	})
 
 	it('does not offer EVM networks for other unresolved input', () => {
