@@ -53,7 +53,8 @@ test.describe('RSS reading journey', () => {
 			timeout: 120_000,
 		})
 		await expect(page.getByRole('heading', { name: /^Observations/ })).toBeVisible()
-		await expect(page.locator('#timestamps')).toContainText('Deterministic RSS feed')
+		await expect(page.locator('#timestamps').getByRole('listitem')).toHaveCount(2)
+		await expect(page.locator('#timestamps')).toContainText(feedUrl)
 	})
 
 	test('feedUrl itemIdentityKind itemIdentity remain the canonical route identity', async ({ page }) => {
