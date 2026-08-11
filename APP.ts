@@ -16664,6 +16664,20 @@ export const schema = {
 							fields: ["label", "source", "provider", "endpointUrl"],
 							openFields: ["transportKind", "authKind", "corsMode", "proxyMode", "environmentScope"],
 						},
+						latest: [
+							{
+								field: "$$timestamps",
+								label: "Latest health",
+								query: {
+									sources: [Source.Local_Internal],
+									limit: 1,
+								},
+								fields: ["timestampMs", "enabled", "health", "latencyMs", "statusCode", "error", "rateLimitRemaining", "rateLimitResetMs", "resolverCount"],
+								sort: "timestampMs",
+								direction: "desc",
+								view: "BlockheadSource_TimestampView",
+							},
+						],
 						summary: {
 							title: ["label"],
 							titleFallback: [{ field: "id", format: "truncated" }],
@@ -16681,6 +16695,11 @@ export const schema = {
 						title: "Sources",
 						query: {
 							sources: [Source.Constants_Internal, Source.Local_Internal],
+						},
+						row: {
+							title: ["label", "provider"],
+							value: ["source", "endpointUrl"],
+							HeadingAfter: ["transportKind", "authKind", "corsMode", "proxyMode", "environmentScope"],
 						},
 					},
 				},
