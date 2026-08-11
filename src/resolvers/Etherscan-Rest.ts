@@ -27,9 +27,9 @@ import type { Entity, EntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
 import { Source } from '$/sources/Source.ts'
+import { accountListMaxOffset } from '$/sources/Etherscan/Rest/constants.ts'
 import {
 	etherscanQueries,
-	getAccountListMaxOffset,
 	supportsChainId,
 } from '$/sources/Etherscan/Rest/queries.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
@@ -1125,7 +1125,7 @@ export default {
 							throw new Error('Etherscan_Rest: EvmNetworkAccount wallet address not normalized')
 						const limit = Math.min(
 							resolverContextRowLimit(context),
-							getAccountListMaxOffset
+							accountListMaxOffset
 						)
 						const wires = await getTokenTransfersByAddress({
 							publicEnv: context.publicEnv,
@@ -1155,7 +1155,7 @@ export default {
 							throw new Error('Etherscan_Rest: EvmNetworkAccount wallet address not normalized')
 						const limit = Math.min(
 							resolverContextRowLimit(context),
-							getAccountListMaxOffset
+							accountListMaxOffset
 						)
 						const wires = await getInternalTransactionsByAddress({
 							publicEnv: context.publicEnv,
@@ -1754,7 +1754,7 @@ export default {
 							throw new Error('Etherscan_Rest: EvmNetworkAccount wallet address not normalized')
 						const limit = Math.min(
 							resolverContextRowLimit(context),
-							getAccountListMaxOffset
+							accountListMaxOffset
 						)
 						const wires = await getTransactionsByAddress({
 							publicEnv: context.publicEnv,

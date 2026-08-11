@@ -49,9 +49,6 @@ export const supportsChainId = (chainId: number) => (
 	supportedChainIds.some((supportedChainId) => supportedChainId === chainId)
 )
 
-/** Re-export catalog cap for resolvers that page account lists. */
-export const getAccountListMaxOffset = accountListMaxOffset
-
 const requireTxHash = (txHash: string) => {
 	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
 	if (normalizedTxHash == null)
