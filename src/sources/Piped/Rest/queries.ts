@@ -16,9 +16,11 @@ import {
 	type PipedStreamItem,
 } from '$/sources/Piped/Rest/types.ts'
 
-const clampPipedLimit = (limit: number) => (
-	Math.min(100, Math.max(1, limit))
-)
+const clampPipedLimit = (limit: number) => {
+	if (!Number.isSafeInteger(limit))
+		throw new Error(`Piped_Rest: invalid page limit ${limit}`)
+	return Math.min(100, Math.max(1, limit))
+}
 
 const assertEnvelope = <_Value>(
 	label: string,
@@ -30,6 +32,11 @@ const assertEnvelope = <_Value>(
 	} catch {
 		throw new Error(`Piped_Rest: invalid ${label} response envelope`)
 	}
+}
+
+const assertIdentity = (label: string, identity: string) => {
+	if (identity.trim() === '')
+		throw new Error(`Piped_Rest: ${label} identity must not be empty`)
 }
 
 export const getChannelIdFromUploaderUrl = (uploaderUrl: string | undefined) => (
@@ -84,33 +91,39 @@ const pipedPlaylistSummariesFromTabContent = (
 
 export const getStream = async (
 	videoId: string
-) => (
-	assertEnvelope(
+) => {
+	assertIdentity('video', videoId)
+	return assertEnvelope(
 		'stream',
 		pipedStreamWire,
 		await pipedApiGet<unknown>(
 			`/streams/${encodeURIComponent(videoId)}`
 		)
 	)
-)
+}
 
 export const getChannel = async (
 	channelId: string
-) => (
-	assertEnvelope(
+) => {
+	assertIdentity('channel', channelId)
+	const channel = assertEnvelope(
 		'channel',
 		pipedChannelWire,
 		await pipedApiGet<unknown>(
 			`/channel/${encodeURIComponent(channelId)}`
 		)
 	)
-)
+	if (channel.id !== channelId)
+		throw new Error('Piped_Rest: channel response does not match request')
+	return channel
+}
 
 export const listTrending = async (
 	limit: number,
 	region = 'US'
-) => (
-	sliceStreamItems(
+) => {
+	clampPipedLimit(limit)
+	return sliceStreamItems(
 		assertEnvelope(
 			'trending',
 			pipedStreamItemListWire,
@@ -121,19 +134,20 @@ export const listTrending = async (
 		),
 		limit
 	)
-)
+}
 
 export const getPlaylist = async (
 	playlistId: string
-) => (
-	assertEnvelope(
+) => {
+	assertIdentity('playlist', playlistId)
+	return assertEnvelope(
 		'playlist',
 		pipedPlaylistWire,
 		await pipedApiGet<unknown>(
 			`/playlists/${encodeURIComponent(playlistId)}`
 		)
 	)
-)
+}
 
 export const listPlaylistVideos = async (
 	playlistId: string,
@@ -190,15 +204,16 @@ export const getChannelTab = async (
 
 export const getComments = async (
 	videoId: string
-) => (
-	assertEnvelope(
+) => {
+	assertIdentity('video', videoId)
+	return assertEnvelope(
 		'comments',
 		pipedCommentsWire,
 		await pipedApiGet<unknown>(
 			`/comments/${encodeURIComponent(videoId)}`
 		)
 	)
-)
+}
 
 export const listComments = async (
 	videoId: string,

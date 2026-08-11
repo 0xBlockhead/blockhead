@@ -55,7 +55,7 @@ export const pipedTabInfoWire = arktype({
 export type PipedTabInfo = typeof pipedTabInfoWire.infer
 
 export const pipedChannelWire = arktype({
-	'id?': 'string',
+	id: 'string > 0',
 	'name?': 'string',
 	'avatarUrl?': 'string',
 	'bannerUrl?': 'string',

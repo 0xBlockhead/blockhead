@@ -130,4 +130,23 @@ describe('Piped Rest arktype envelopes', () => {
 			'Piped_Rest: invalid trending response envelope'
 		)
 	})
+
+	it('rejects substituted channel identities and invalid subjects or limits before transport', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			id: 'UCforeign',
+		})
+		await expect(getChannel('UCrequested')).rejects.toThrow('channel response does not match request')
+
+		sourceGetJson.mockReset()
+		for (const query of [
+			() => getStream(''),
+			() => getChannel(''),
+			() => getPlaylist(''),
+			() => getComments(''),
+			() => listTrending(Number.NaN),
+			() => listTrending(1.5),
+		])
+			await expect(query()).rejects.toThrow('Piped_Rest:')
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
 })
