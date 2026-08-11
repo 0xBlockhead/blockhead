@@ -1,3 +1,4 @@
+import { type } from 'arktype'
 import {
 	firstHttpUrlForBinding,
 	sourceGetJson,
@@ -14,18 +15,30 @@ const bitcoinCashChipsGitlabRepo = {
 	ref: 'master',
 }
 
+const bitcoinCashChipsGitlabTreeWire = type({
+	type: 'string',
+	name: 'string',
+	path: 'string',
+}).array()
+
 const gitlabProjectUrl = (path: string) => (
 	`${firstHttpUrlForBinding(binding)}/api/v4/projects/${bitcoinCashChipsGitlabRepo.projectId}${path}`
 )
 
-export const getTree = () => (
-	sourceGetJson<BitcoinCashChipsGitlabTree>(
+export const getTree = async () => {
+	const tree = await sourceGetJson<BitcoinCashChipsGitlabTree>(
 		binding,
 		gitlabProjectUrl(
 			`/repository/tree?ref=${bitcoinCashChipsGitlabRepo.ref}&per_page=100`
 		)
 	)
-)
+
+	try {
+		return bitcoinCashChipsGitlabTreeWire.assert(tree)
+	} catch {
+		throw new Error('BitcoinCashChips_Gitlab: invalid repository tree response')
+	}
+}
 
 export const getChipMarkdownText = (
 	{ path }: { path: string }
