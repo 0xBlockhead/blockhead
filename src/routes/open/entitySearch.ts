@@ -1,7 +1,26 @@
 import { resolve } from '$app/paths'
 
+import { ipfsResourceAddressFromInput, ipfsResourceHref } from '$/lib/ipfs.ts'
+
 
 export const entityHrefFromSearchInput = (query: string) => {
+	if (/^ip(?:fs|ns):\/\//i.test(query)) {
+		const ipfsResourceAddress = ipfsResourceAddressFromInput({
+			targetInput: query,
+		})
+
+		if (ipfsResourceAddress)
+			return ipfsResourceHref(ipfsResourceAddress)
+	}
+
+	if (/^magnet:\?/i.test(query))
+		return resolve(
+			'/magnet/[magnetUri=stringSegment]',
+			{
+				magnetUri: encodeURIComponent(query),
+			}
+		)
+
 	if (/^https?:\/\//i.test(query))
 		return resolve(
 			'/(explore)/url/[url=absoluteUrl]',
