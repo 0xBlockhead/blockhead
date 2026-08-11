@@ -218,14 +218,18 @@ export const getMintKeysForKeyset = async (
 	}: {
 		keysetId: string
 	}
-): Promise<CashuMintKeysWire> => (
-	assertEnvelope(
+): Promise<CashuMintKeysWire> => {
+	const keys = assertEnvelope(
 		mintUrl,
 		'mint keys',
 		cashuMintKeysWire,
 		await requestMintJson(mintUrl, `/v1/keys/${encodeURIComponent(keysetId)}`)
 	)
-)
+	if (!keys.keysets.some((keyset) => keyset.id === keysetId))
+		throw new Error(`CashuMint_Rest: mint keys response is missing requested keyset ${keysetId}`)
+
+	return keys
+}
 
 export const createMintQuoteBolt11 = async (
 	mintUrl: string,

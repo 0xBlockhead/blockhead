@@ -67,7 +67,14 @@ it('dispatches each Cashu endpoint through its exact binding and preserves keyse
 			keysets: [],
 		}))
 		.mockResolvedValueOnce(jsonResponse({
-			keysets: [],
+			keysets: [{
+				id: 'keyset/with spaces',
+				unit: 'sat',
+				active: true,
+				keys: {
+					1: '02abc',
+				},
+			}],
 		}))
 
 	await expect(getMintInfo('https://first.mint')).resolves.toEqual({
@@ -82,7 +89,14 @@ it('dispatches each Cashu endpoint through its exact binding and preserves keyse
 	await expect(getMintKeysForKeyset('https://second.mint', {
 		keysetId: 'keyset/with spaces',
 	})).resolves.toEqual({
-		keysets: [],
+		keysets: [{
+			id: 'keyset/with spaces',
+			unit: 'sat',
+			active: true,
+			keys: {
+				1: '02abc',
+			},
+		}],
 	})
 
 	expect(sourceFetch.mock.calls).toEqual([
@@ -149,6 +163,25 @@ it('fails closed on malformed mint keys responses', async () => {
 
 	await expect(getMintKeys('https://first.mint')).rejects.toThrow(
 		'CashuMint_Rest: invalid mint keys response envelope for mint https://first.mint'
+	)
+})
+
+it('rejects a keyset endpoint response that substitutes the requested identity', async () => {
+	sourceFetch.mockResolvedValueOnce(jsonResponse({
+		keysets: [{
+			id: 'other-keyset',
+			unit: 'sat',
+			active: true,
+			keys: {
+				1: '02abc',
+			},
+		}],
+	}))
+
+	await expect(getMintKeysForKeyset('https://first.mint', {
+		keysetId: 'requested-keyset',
+	})).rejects.toThrow(
+		'CashuMint_Rest: mint keys response is missing requested keyset requested-keyset'
 	)
 })
 
