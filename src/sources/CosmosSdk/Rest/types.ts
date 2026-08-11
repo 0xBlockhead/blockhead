@@ -381,7 +381,7 @@ export type CosmosSdkIbcClientStateResponse = {
 export type CosmosSdkIbcClientStatesResponse = {
 	client_states: {
 		client_id: string
-		client_state: CosmosSdkIbcTendermintClientState
+		client_state: JsonValue
 	}[]
 	pagination?: CosmosSdkPagination
 }

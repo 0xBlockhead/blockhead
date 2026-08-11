@@ -41,7 +41,10 @@ import {
 	balancerVotingListEnvelope,
 } from '$/sources/Balancer/Rest/types.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
+import bindings from '$/sources/Balancer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.Balancer_Rest][0]
 
 const poolFields = `
 	id
@@ -321,11 +324,11 @@ const assertListLimit = (
 
 /** List Balancer v2/v3 pool snapshots for one EIP-155 chain, ordered by liquidity. */
 export const listPools = async ({
-	binding,
+	binding: sourceBinding = binding,
 	chainId,
 	limit = balancerPoolListDefaultLimit,
 }: {
-	binding: SourceBinding
+	binding?: SourceBinding
 	chainId: number
 	limit?: number
 }) => {
@@ -333,7 +336,7 @@ export const listPools = async ({
 	assertListLimit(limit, balancerPoolListMaxLimit, 'limit')
 
 	const data = await graphql<BalancerPoolsData>({
-		binding,
+		binding: sourceBinding,
 		query: `
 			query PoolGetPools($chain: GqlChain!, $first: Int!) {
 				poolGetPools(
@@ -373,11 +376,11 @@ export const listPools = async ({
 
 /** Authoritative on-chain indexed pool count for one EIP-155 chain (`poolGetPoolsCount`). */
 export const getPoolsCount = async ({
-	binding,
+	binding: sourceBinding = binding,
 	chainId,
 	userAddress,
 }: {
-	binding: SourceBinding
+	binding?: SourceBinding
 	chainId: number
 	userAddress?: string
 }) => {
@@ -390,7 +393,7 @@ export const getPoolsCount = async ({
 	)
 
 	const data = await graphql<BalancerPoolsCountData>({
-		binding,
+		binding: sourceBinding,
 		query: `
 			query PoolGetPoolsCount($chain: GqlChain!, $userAddress: String) {
 				poolGetPoolsCount(
@@ -419,11 +422,11 @@ export const getPoolsCount = async ({
 
 /** Fetch one Balancer v2/v3 pool by EIP-155 chain id and native pool id. */
 export const getPool = async ({
-	binding,
+	binding: sourceBinding = binding,
 	chainId,
 	poolId,
 }: {
-	binding: SourceBinding
+	binding?: SourceBinding
 	chainId: number
 	poolId: string
 }) => {
@@ -431,7 +434,7 @@ export const getPool = async ({
 	const normalizedPoolId = assertPoolId(poolId)
 
 	const data = await graphql<BalancerPoolData>({
-		binding,
+		binding: sourceBinding,
 		query: `
 			query PoolGetPool($id: String!, $chain: GqlChain!) {
 				poolGetPool(id: $id, chain: $chain) {
@@ -465,12 +468,12 @@ export const getPool = async ({
  * @see https://docs.balancer.fi/data-and-analytics/data-and-analytics/balancer-api/user-pool-balance.html
  */
 export const getAccountPoolBalances = async ({
-	binding,
+	binding: sourceBinding = binding,
 	chainId,
 	account,
 	limit = balancerPoolListMaxLimit,
 }: {
-	binding: SourceBinding
+	binding?: SourceBinding
 	chainId: number
 	account: string
 	limit?: number
@@ -480,7 +483,7 @@ export const getAccountPoolBalances = async ({
 	assertListLimit(limit, balancerPoolListMaxLimit, 'limit')
 
 	const data = await graphql<BalancerPoolsData>({
-		binding,
+		binding: sourceBinding,
 		query: `
 			query AccountPoolBalances($chain: GqlChain!, $userAddress: String!, $first: Int!) {
 				poolGetPools(
@@ -524,14 +527,14 @@ export const getAccountPoolBalances = async ({
 
 /** veBAL voting-gauge list (`veBalGetVotingList`), optionally including killed gauges. */
 export const listVotingGauges = async ({
-	binding,
+	binding: sourceBinding = binding,
 	includeKilled = false,
 }: {
-	binding: SourceBinding
+	binding?: SourceBinding
 	includeKilled?: boolean
 } = {}) => {
 	const data = await graphql<BalancerVotingListData>({
-		binding,
+		binding: sourceBinding,
 		query: `
 			query VeBalGetVotingList($includeKilled: Boolean!) {
 				veBalGetVotingList(includeKilled: $includeKilled) {
@@ -600,11 +603,11 @@ export const listVotingGauges = async ({
 
 /** veBAL voting power balance string for one account on one chain. */
 export const getVeBalUserBalance = async ({
-	binding,
+	binding: sourceBinding = binding,
 	chainId,
 	account,
 }: {
-	binding: SourceBinding
+	binding?: SourceBinding
 	chainId: number
 	account: string
 }) => {
@@ -612,7 +615,7 @@ export const getVeBalUserBalance = async ({
 	const normalizedAccount = assertAddress(account, 'account')
 
 	const data = await graphql<BalancerVeBalUserBalanceData>({
-		binding,
+		binding: sourceBinding,
 		query: `
 			query VeBalGetUserBalance($address: String!, $chain: GqlChain!) {
 				veBalGetUserBalance(address: $address, chain: $chain)
@@ -633,11 +636,11 @@ export const getVeBalUserBalance = async ({
 
 /** veBAL lock snapshot for one account on one chain (`veBalGetUser`). */
 export const getVeBalUser = async ({
-	binding,
+	binding: sourceBinding = binding,
 	chainId,
 	account,
 }: {
-	binding: SourceBinding
+	binding?: SourceBinding
 	chainId: number
 	account: string
 }): Promise<BalancerVeBalUser> => {
@@ -645,7 +648,7 @@ export const getVeBalUser = async ({
 	const normalizedAccount = assertAddress(account, 'account')
 
 	const data = await graphql<BalancerVeBalUserData>({
-		binding,
+		binding: sourceBinding,
 		query: `
 			query VeBalGetUser($address: String!, $chain: GqlChain!) {
 				veBalGetUser(address: $address, chain: $chain) {
@@ -685,12 +688,12 @@ export const getVeBalUser = async ({
 
 /** Recent pool events (`poolEvents`) for one EIP-155 chain, optionally filtered by pool id. */
 export const listPoolEvents = async ({
-	binding,
+	binding: sourceBinding = binding,
 	chainId,
 	poolId,
 	limit = balancerPoolEventListDefaultLimit,
 }: {
-	binding: SourceBinding
+	binding?: SourceBinding
 	chainId: number
 	poolId?: string
 	limit?: number
@@ -700,7 +703,7 @@ export const listPoolEvents = async ({
 	const normalizedPoolId = poolId == null ? undefined : assertPoolId(poolId)
 
 	const data = await graphql<BalancerPoolEventsData>({
-		binding,
+		binding: sourceBinding,
 		query: `
 			query PoolEvents($chain: GqlChain!, $first: Int!, $poolIdIn: [String!]) {
 				poolEvents(

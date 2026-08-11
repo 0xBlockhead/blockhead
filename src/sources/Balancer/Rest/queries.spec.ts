@@ -106,6 +106,19 @@ const stableV3Pool = {
 } as const
 
 describe('Balancer API binding', () => {
+	beforeEach(() => {
+		graphql.mockReset()
+	})
+
+	it('uses the canonical binding when the caller omits one', async () => {
+		graphql.mockResolvedValueOnce({ poolGetPools: [] })
+
+		await listPools({ chainId: 1 })
+
+		expect(graphql).toHaveBeenCalledOnce()
+		expect(graphql.mock.calls[0][0].binding).toBe(binding)
+	})
+
 	it('passes only the caller-provided noncanonical binding to GraphQL', async () => {
 		const modifiedBinding = {
 			...binding,

@@ -106,6 +106,19 @@ const ethereumMarketSnapshot = {
 } as const
 
 describe('Aave V3 GraphQL binding', () => {
+	beforeEach(() => {
+		graphql.mockReset()
+	})
+
+	it('uses the canonical binding when the caller omits one', async () => {
+		graphql.mockResolvedValueOnce({ markets: [] })
+
+		await listMarkets({ chainIds: [1] })
+
+		expect(graphql).toHaveBeenCalledOnce()
+		expect(graphql.mock.calls[0][0].binding).toBe(binding)
+	})
+
 	it('passes only the caller-provided noncanonical binding to GraphQL', async () => {
 		const modifiedBinding = {
 			...binding,

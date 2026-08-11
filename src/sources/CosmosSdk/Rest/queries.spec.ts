@@ -1041,6 +1041,13 @@ describe('Cosmos SDK IBC queries', () => {
 							},
 						},
 					},
+					{
+						client_id: '08-wasm-0',
+						client_state: {
+							'@type': '/ibc.lightclients.wasm.v1.ClientState',
+							data: 'opaque-provider-state',
+						},
+					},
 				],
 				pagination: {
 					total: '7',
@@ -1082,6 +1089,9 @@ describe('Cosmos SDK IBC queries', () => {
 			client_states: [
 				{
 					client_id: '07-tendermint-1',
+				},
+				{
+					client_id: '08-wasm-0',
 				},
 			],
 		})

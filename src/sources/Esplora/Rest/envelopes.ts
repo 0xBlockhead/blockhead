@@ -15,7 +15,7 @@ export const esploraBlockWire = arktype({
 	'size?': unsignedSafe,
 	'weight?': unsignedSafe,
 	'merkle_root?': 'string',
-	'previousblockhash?': esploraBlockHashWire,
+	'previousblockhash?': esploraBlockHashWire.or(arktype('null')),
 	'mediantime?': unsignedSafe,
 	'nonce?': unsignedSafe,
 	'bits?': unsignedSafe,

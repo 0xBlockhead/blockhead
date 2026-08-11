@@ -6,6 +6,7 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { aaveChainByChainId } from '$/sources/Aave/Rest/constants.ts'
+import bindings from '$/sources/Aave/bindings.ts'
 import type {
 	AaveAccountBorrowPosition,
 	AaveAccountPosition,
@@ -25,6 +26,8 @@ import {
 } from '$/sources/Aave/Rest/types.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
 import { Source } from '$/sources/Source.ts'
+
+const binding = bindings[Source.Aave_Rest][0]
 
 const marketFields = `
 	name
@@ -433,10 +436,10 @@ const assertMarketSnapshotWire = (
 
 /** List Aave markets for one or more supported EIP-155 chain ids. */
 export const listMarkets = async ({
-	binding,
+	binding: sourceBinding = binding,
 	chainIds,
 }: {
-	binding: SourceBinding
+	binding?: SourceBinding
 	chainIds: readonly number[]
 }) => {
 	if (chainIds.length < 1)
@@ -447,7 +450,7 @@ export const listMarkets = async ({
 		assertChainId(chainId)
 
 	const data = await graphql<AaveMarketsData>({
-		binding,
+		binding: sourceBinding,
 		query: `
 			query Markets($request: MarketsRequest!) {
 				markets(request: $request) {
@@ -489,11 +492,11 @@ export const listMarkets = async ({
  * @see https://aave.com/docs/aave-v3/markets/data.md
  */
 export const getMarket = async ({
-	binding,
+	binding: sourceBinding = binding,
 	chainId,
 	poolAddress,
 }: {
-	binding: SourceBinding
+	binding?: SourceBinding
 	chainId: number
 	poolAddress: string
 }) => {
@@ -501,7 +504,7 @@ export const getMarket = async ({
 	const normalizedPoolAddress = assertPoolAddress(poolAddress)
 
 	const data = await graphql<AaveMarketData>({
-		binding,
+		binding: sourceBinding,
 		query: `
 			query Market($request: MarketRequest!) {
 				market(request: $request) {
@@ -648,18 +651,18 @@ const normalizeBorrowPosition = (
  * @see https://aave.com/docs/aave-v3/getting-started/graphql.md
  */
 export const getAccountPositions = async ({
-	binding,
+	binding: sourceBinding = binding,
 	chainId,
 	account,
 }: {
-	binding: SourceBinding
+	binding?: SourceBinding
 	chainId: number
 	account: string
 }): Promise<AaveAccountPosition[]> => {
 	assertChainId(chainId)
 	const normalizedAccount = assertAccount(account)
 	const markets = await listMarkets({
-		binding,
+		binding: sourceBinding,
 		chainIds: [
 			chainId,
 		],
@@ -674,7 +677,7 @@ export const getAccountPositions = async ({
 	const poolAddresses = new Set(markets.map((market) => market.address))
 
 	const data = await graphql<AaveAccountPositionsData>({
-		binding,
+		binding: sourceBinding,
 		query: `
 			query AccountPositions(
 				$supplies: UserSuppliesRequest!,

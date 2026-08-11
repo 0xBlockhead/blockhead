@@ -638,7 +638,7 @@ const cosmosSdkIbcClientStateResponseWire = arktype({
 const cosmosSdkIbcClientStatesResponseWire = arktype({
 	client_states: arktype({
 		client_id: 'string > 0',
-		client_state: cosmosSdkIbcClientStateBody,
+		client_state: 'unknown',
 	}).array(),
 	'pagination?': cosmosSdkIbcPagination,
 })

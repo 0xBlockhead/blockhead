@@ -101,6 +101,19 @@ describe('mempool.space Bitcoin REST binding', () => {
 		])
 	})
 
+	it('accepts the genesis block null previous hash', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...validBlock,
+			height: 0,
+			previousblockhash: null,
+		})
+
+		await expect(getBlock('a'.repeat(64))).resolves.toMatchObject({
+			height: 0,
+			previousblockhash: null,
+		})
+	})
+
 	it('rejects invalid or substituted block, transaction, and address identities before returning provider rows', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			...validBlock,

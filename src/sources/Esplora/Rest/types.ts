@@ -7,7 +7,7 @@ export type EsploraBlock = {
 	size: number
 	weight: number
 	merkle_root: string
-	previousblockhash?: string
+	previousblockhash?: string | null
 	mediantime: number
 	nonce: number
 	bits: number

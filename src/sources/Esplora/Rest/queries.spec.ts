@@ -99,6 +99,22 @@ describe('Esplora REST binding selection', () => {
 		})).rejects.toThrow('mismatched identity')
 	})
 
+	it('accepts the genesis block null previous hash', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...validBlock,
+			height: 0,
+			previousblockhash: null,
+		})
+
+		await expect(getBlock({
+			blockHash: validBlock.id,
+			target: bitcoinBinding.target.key,
+		})).resolves.toMatchObject({
+			height: 0,
+			previousblockhash: null,
+		})
+	})
+
 	it('fail-closes malformed block and asset envelopes', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			id: 'not-a-hash',
