@@ -34,11 +34,3 @@ export const idByCoinId = Object.fromEntries(
 			entry.wireId,
 		])
 )
-
-export const coinIdByWireId = new Map(
-	catalog
-		.map((entry) => [
-			entry.wireId,
-			entry.coinId,
-		])
-)
