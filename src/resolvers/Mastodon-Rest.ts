@@ -78,7 +78,9 @@ const activityPubNoteFieldsFromMastodonStatus = (
 ) => {
 	if (status.id == null)
 		throw new Error('Mastodon_Rest: ActivityPub note missing local status id')
-	const createdAt = Date.parse(status.created_at ?? '')
+	const createdAt = status.created_at == null ? undefined : Date.parse(status.created_at)
+	if (createdAt != null && !Number.isFinite(createdAt))
+		throw new Error('Mastodon_Rest: ActivityPub note has an invalid creation timestamp')
 	const editedAt = optionalTimestampMs(status.edited_at ?? undefined)
 	const content = optionalNonemptyString(status.content)
 	const language = optionalNonemptyString(status.language ?? undefined)
@@ -106,7 +108,7 @@ const activityPubNoteFieldsFromMastodonStatus = (
 		instanceOrigin,
 		localStatusId: String(status.id),
 		...(content != null && { content }),
-		...(Number.isFinite(createdAt) && { createdAt }),
+		...(createdAt != null && { createdAt }),
 		...(editedAt != null && { editedAt }),
 		...(visibility != null && { visibility }),
 		...(status.sensitive != null && { sensitive: status.sensitive }),

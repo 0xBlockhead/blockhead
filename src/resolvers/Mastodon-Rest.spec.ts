@@ -712,6 +712,29 @@ describe('Mastodon ActivityPub observations', () => {
 		}, context)).rejects.toThrow('unknown ActivityStreams note request')
 	})
 
+	it('rejects notes with an invalid creation timestamp', async () => {
+		getStatus.mockResolvedValueOnce({
+			id: 'note-invalid-time',
+			uri: 'https://fosstodon.org/users/alice/statuses/note-invalid-time',
+			created_at: 'not-a-timestamp',
+			account: {
+				id: 'actor-17',
+				uri: 'https://mastodon.social/users/alice',
+				username: 'alice',
+				acct: 'alice@federation.example',
+				display_name: 'Alice Example',
+				avatar: null,
+			},
+			media_attachments: [],
+		})
+
+		const note = resolver(EntityType.ActivityPubNote, 'content')
+		await expect(note.resolve['InstanceOriginLocalStatusId'].resolve({
+			instanceOrigin: 'https://fosstodon.org',
+			localStatusId: 'note-invalid-time',
+		}, context)).rejects.toThrow('invalid creation timestamp')
+	})
+
 	it('rejects source payloads whose actor or note identity differs from the requested subject', async () => {
 		getAccountByLocalAccountId.mockResolvedValueOnce({
 			id: 'different',
