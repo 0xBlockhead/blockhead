@@ -201,6 +201,32 @@ describe('OpenSea NFT endpoints', () => {
 		)
 	})
 
+	it('rejects a single NFT response with a foreign contract or identifier', async () => {
+		respond({
+			nft: {
+				...detailedNft,
+				contract: address,
+			},
+		})
+		await expect(getNft({
+			chain: 'ethereum',
+			address: contract,
+			identifier: detailedNft.identifier,
+		})).rejects.toThrow('does not match requested identity')
+
+		respond({
+			nft: {
+				...detailedNft,
+				identifier: '1',
+			},
+		})
+		await expect(getNft({
+			chain: 'ethereum',
+			address: contract,
+			identifier: detailedNft.identifier,
+		})).rejects.toThrow('does not match requested identity')
+	})
+
 	it('lists NFTs for a contract with pagination', async () => {
 		respond({
 			nfts: [nft],
@@ -219,6 +245,20 @@ describe('OpenSea NFT endpoints', () => {
 		expect(vi.mocked(sourceFetch).mock.calls[0]?.[1]).toBe(
 			`https://api.opensea.io/api/v2/chain/base/contract/${contract}/nfts?limit=25&next=prior`
 		)
+	})
+
+	it('rejects a contract NFT page containing a foreign contract', async () => {
+		respond({
+			nfts: [{
+				...nft,
+				contract: address,
+			}],
+		})
+
+		await expect(getNftsByContract({
+			chain: 'base',
+			address: contract,
+		})).rejects.toThrow('contains a foreign contract')
 	})
 
 	it('hard-fails non-OK HTTP instead of soft-emptying', async () => {
@@ -394,6 +434,29 @@ describe('OpenSea contract / owners / collection endpoints', () => {
 				},
 			}
 		)
+	})
+
+	it('rejects foreign contract and collection responses', async () => {
+		respond({
+			address,
+			chain: 'ethereum',
+			collection: 'collection',
+		})
+		await expect(getContract({
+			chain: 'ethereum',
+			address: contract,
+		})).rejects.toThrow('contract response does not match requested identity')
+
+		respond({
+			collection: 'foreign-collection',
+			contracts: [{
+				address: contract,
+				chain: 'ethereum',
+			}],
+		})
+		await expect(getCollection({
+			slug: 'collection',
+		})).rejects.toThrow('collection response does not match requested slug')
 	})
 
 	it('lists NFT owners with the documented 100 cap', async () => {

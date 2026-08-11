@@ -310,6 +310,11 @@ export const getNft = async ({
 	})
 
 	assertEnvelope(openSeaNftEnvelope, body, 'NFT')
+	if (
+		body.nft.contract.toLowerCase() !== address.toLowerCase()
+		|| body.nft.identifier !== identifier
+	)
+		throw new Error('OpenSea_Rest: NFT response does not match requested identity')
 	return body
 }
 
@@ -324,6 +329,11 @@ export const getContract = async ({
 	})
 
 	assertEnvelope(openSeaContractEnvelope, body, 'contract')
+	if (
+		body.address.toLowerCase() !== address.toLowerCase()
+			|| body.chain !== chain
+	)
+		throw new Error('OpenSea_Rest: contract response does not match requested identity')
 	return body
 }
 
@@ -341,12 +351,15 @@ export const getNftsByContract = async ({
 		next,
 	})
 
-	return requireNftList(
+	const body = requireNftList(
 		await requestOpenSeaJson<OpenSeaContractNftsResponse>({
 			path: `/api/v2/chain/${encodeURIComponent(chain)}/contract/${encodeURIComponent(address)}/nfts?${searchParameters}`,
 		}),
 		'contract NFTs'
 	)
+	if (body.nfts.some((nft) => nft.contract.toLowerCase() !== address.toLowerCase()))
+		throw new Error('OpenSea_Rest: contract NFTs contains a foreign contract')
+	return body
 }
 
 export const getNftOwners = async ({
@@ -420,6 +433,8 @@ export const getCollection = async ({
 	})
 
 	assertEnvelope(openSeaCollectionEnvelope, body, 'collection')
+	if (body.collection !== slug)
+		throw new Error('OpenSea_Rest: collection response does not match requested slug')
 	return body
 }
 
