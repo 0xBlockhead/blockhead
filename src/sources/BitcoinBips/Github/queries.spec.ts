@@ -72,4 +72,15 @@ describe('Bitcoin BIPs GitHub queries', () => {
 			number: 3,
 		})).rejects.toThrow('BitcoinBips_Github: duplicate proposal files for BIP 3: bip-0003.md, bip-0003.mediawiki')
 	})
+
+	it('rejects unsafe proposal coordinates before listing repository contents', async () => {
+		vi.clearAllMocks()
+		await expect(getProposalText({
+			number: -1,
+		})).rejects.toThrow('proposal number must be a non-negative safe integer')
+		await expect(getProposalText({
+			number: Number.MAX_SAFE_INTEGER + 1,
+		})).rejects.toThrow('proposal number must be a non-negative safe integer')
+		expect(httpRuntime.sourceGetJson).not.toHaveBeenCalled()
+	})
 })

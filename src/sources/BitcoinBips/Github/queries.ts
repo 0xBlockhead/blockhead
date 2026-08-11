@@ -8,6 +8,11 @@ import { Source } from '$/sources/Source.ts'
 
 const binding = bindings[Source.BitcoinBips_Github][0]
 
+const assertProposalNumber = (number: number) => {
+	if (!Number.isSafeInteger(number) || number < 0)
+		throw new Error('BitcoinBips_Github: proposal number must be a non-negative safe integer')
+}
+
 export const getContents = () => (
 	getGithubContents({
 		binding,
@@ -50,6 +55,7 @@ export const getProposalText = async ({
 }: {
 	number: number
 }) => {
+	assertProposalNumber(number)
 	const proposal = (await getProposalFiles()).find((candidate) => candidate.number === number)
 	if (proposal == null)
 		throw new Error(`BitcoinBips_Github: proposal not found ${number.toString()}`)
