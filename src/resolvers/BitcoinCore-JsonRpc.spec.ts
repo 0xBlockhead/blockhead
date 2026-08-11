@@ -261,6 +261,7 @@ describe('BitcoinCore UTXO', () => {
 		getBlockHash
 			.mockResolvedValueOnce('1'.repeat(64))
 			.mockResolvedValueOnce('2'.repeat(64))
+			.mockResolvedValueOnce('1'.repeat(64))
 		getBlock.mockResolvedValueOnce({
 			...tipBlock,
 			hash: '1'.repeat(64),
@@ -299,6 +300,33 @@ describe('BitcoinCore UTXO', () => {
 		expect(getBlockHash).toHaveBeenCalledWith({
 			height: 5n,
 		})
+	})
+
+	it('rejects block responses with a mismatched hash or duplicate transaction identity', async () => {
+		getBlockHash.mockResolvedValueOnce(blockHash)
+		getBlock.mockResolvedValueOnce({
+			...tipBlock,
+			hash: 'f'.repeat(64),
+		})
+
+		await expect(blockResolver.resolve.NetworkHeight.resolve({
+			$network: network,
+			height: 850_000n,
+		}, resolverContext)).rejects.toThrow('BitcoinCore_JsonRpc: block response does not match requested hash')
+
+		getBlockHash.mockResolvedValueOnce(blockHash)
+		getBlock.mockResolvedValueOnce({
+			...tipBlock,
+			tx: [
+				'd'.repeat(64),
+				'd'.repeat(64),
+			],
+		})
+
+		await expect(blockResolver.resolve.NetworkHeight.resolve({
+			$network: network,
+			height: 850_000n,
+		}, resolverContext)).rejects.toThrow('BitcoinCore_JsonRpc: block response contains duplicate transaction identities')
 	})
 
 	it('projects address $$outputs and tip balance observations from scantxoutset', async () => {

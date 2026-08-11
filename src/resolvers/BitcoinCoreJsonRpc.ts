@@ -93,6 +93,15 @@ export const bitcoinCoreJsonRpcResolvers = <
 		const block = await getBlock({
 			blockHash,
 		})
+		if (block.hash !== blockHash)
+			throw new Error(`${source}: block response does not match requested hash`)
+
+		const transactionIds = block.tx.map((transaction) => (
+			typeof transaction === 'string' ? transaction : transaction.txid
+		))
+		if (new Set(transactionIds).size !== transactionIds.length)
+			throw new Error(`${source}: block response contains duplicate transaction identities`)
+
 		return {
 			hash: block.hash,
 			...(block.previousblockhash != null && {
@@ -115,22 +124,12 @@ export const bitcoinCoreJsonRpcResolvers = <
 				weightUnits: block.weight,
 			}),
 			transactionCount: block.nTx,
-			$$transactions: block.tx.map((transaction) => (
-				typeof transaction === 'string' ?
-					{
-						[EntityMetaKey.Selector]: {
-							$network,
-							txId: transaction,
-						},
-					}
-				:
-					{
-						[EntityMetaKey.Selector]: {
-							$network,
-							txId: transaction.txid,
-						},
-					}
-			)),
+			$$transactions: transactionIds.map((txId) => ({
+				[EntityMetaKey.Selector]: {
+					$network,
+					txId,
+				},
+			})),
 		}
 	}
 
