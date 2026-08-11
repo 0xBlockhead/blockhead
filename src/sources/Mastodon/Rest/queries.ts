@@ -122,13 +122,18 @@ export const getAccountByLocalAccountId = async (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],
 	instanceOrigin: string,
 	localAccountId: string
-) => (
-	assertEnvelope(
+) => {
+	assertInstanceMatches(binding, instanceOrigin)
+	const account = assertEnvelope(
 		'account',
 		mastodonApiV1AccountWire,
 		await mastodonGet(binding, `/accounts/${encodeURIComponent(localAccountId)}`)
 	)
-)
+	if (account.id !== localAccountId)
+		throw new Error('Mastodon_Rest: account response does not match request')
+
+	return account
+}
 
 const assertPublicTimelineMatches = (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],
@@ -191,13 +196,18 @@ export const getStatus = async (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],
 	instanceOrigin: string,
 	localStatusId: string
-) => (
-	assertEnvelope(
+) => {
+	assertInstanceMatches(binding, instanceOrigin)
+	const status = assertEnvelope(
 		'status',
 		mastodonApiV1StatusWire,
 		await mastodonGet(binding, `/statuses/${encodeURIComponent(localStatusId)}`)
 	)
-)
+	if (status.id !== localStatusId)
+		throw new Error('Mastodon_Rest: status response does not match request')
+
+	return status
+}
 
 export const getStatusByActivityStreamsUri = (
 	binding: (typeof bindings)[Source.Mastodon_Rest][number],

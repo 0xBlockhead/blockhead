@@ -329,6 +329,32 @@ describe('Mastodon Rest arktype envelopes', () => {
 		)
 	})
 
+	it('rejects substituted local account and status identities', async () => {
+		mastodonGet
+			.mockResolvedValueOnce({
+				id: '2',
+				acct: 'bob',
+				uri: 'https://mastodon.social/users/bob',
+				followers_count: 0,
+			})
+			.mockResolvedValueOnce({
+				id: '10',
+				uri: 'https://mastodon.social/users/bob/statuses/10',
+				favourites_count: 0,
+			})
+
+		await expect(getAccountByLocalAccountId(
+			mastodonSocialBinding,
+			'https://mastodon.social',
+			'1'
+		)).rejects.toThrow('account response does not match request')
+		await expect(getStatus(
+			mastodonSocialBinding,
+			'https://mastodon.social',
+			'9'
+		)).rejects.toThrow('status response does not match request')
+	})
+
 	it('fails closed on malformed envelopes', async () => {
 		mastodonGet
 			.mockResolvedValueOnce({
