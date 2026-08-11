@@ -17,6 +17,7 @@ const {
 const {
 	getGasPrice,
 	getReceipt,
+	getTx,
 	getTxStatus,
 	getValidators,
 	viewAccessKey,
@@ -295,4 +296,62 @@ it('rejects empty receipt and transaction selectors before transport', async () 
 		senderAccountId: 'signer.near',
 	})).rejects.toThrow('transaction hash and signer are required')
 	expect(jsonRpc2).not.toHaveBeenCalled()
+})
+
+it('rejects substituted receipt and transaction subjects', async () => {
+	jsonRpc2
+		.mockResolvedValueOnce({
+			predecessor_id: 'signer.near',
+			receiver_id: 'receiver.near',
+			receipt_id: 'receipt-2',
+			receipt: actionReceiptBody,
+		})
+		.mockResolvedValueOnce({
+			transaction: {
+				hash: 'other-hash',
+				signer_id: 'signer.near',
+				receiver_id: 'receiver.near',
+				nonce: 1,
+				actions: [],
+			},
+			transaction_outcome: {
+				id: 'outcome',
+				outcome: {
+					gas_burnt: 0,
+					receipt_ids: [],
+					status: { SuccessValue: '' },
+				},
+			},
+			receipts_outcome: [],
+			status: { SuccessValue: '' },
+		})
+		.mockResolvedValueOnce({
+			transaction: {
+				hash: 'hash',
+				signer_id: 'other.near',
+				receiver_id: 'receiver.near',
+				nonce: 1,
+				actions: [],
+			},
+			transaction_outcome: {
+				id: 'outcome',
+				outcome: {
+					gas_burnt: 0,
+					receipt_ids: [],
+					status: { SuccessValue: '' },
+				},
+			},
+			receipts_outcome: [],
+			status: { SuccessValue: '' },
+		})
+
+	await expect(getReceipt({ receiptId: 'receipt-1' })).rejects.toThrow('receipt response does not match request')
+	await expect(getTx({
+		txHash: 'hash',
+		senderAccountId: 'signer.near',
+	})).rejects.toThrow('tx response does not match request')
+	await expect(getTxStatus({
+		txHash: 'hash',
+		senderAccountId: 'signer.near',
+	})).rejects.toThrow('tx status response does not match request')
 })

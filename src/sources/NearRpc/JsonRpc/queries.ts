@@ -313,16 +313,23 @@ export const nearRpc = (() => {
 	if (txHash === '' || senderAccountId === '')
 		throw new Error(`${Source.NearRpc_JsonRpc}: transaction hash and signer are required`)
 
-	return assertEnvelope(
-		'tx',
+		const transactionStatus = assertEnvelope(
+			'tx',
 		nearTransactionStatusWire,
 		await jsonRpc2<unknown>(binding, 'tx', {
 			tx_hash: txHash,
 			sender_account_id: senderAccountId,
 			wait_until: 'FINAL',
-		})
-	) as NearRpcTransactionStatus
-}
+			})
+		) as NearRpcTransactionStatus
+		if (
+			transactionStatus.transaction.hash !== txHash
+			|| transactionStatus.transaction.signer_id !== senderAccountId
+		)
+			throw new Error(`${Source.NearRpc_JsonRpc}: tx response does not match request`)
+
+		return transactionStatus
+	}
 
 	const getTxStatus = async ({
 	txHash,
@@ -334,16 +341,23 @@ export const nearRpc = (() => {
 	if (txHash === '' || senderAccountId === '')
 		throw new Error(`${Source.NearRpc_JsonRpc}: transaction hash and signer are required`)
 
-	return assertEnvelope(
-		'tx status',
+		const transactionStatus = assertEnvelope(
+			'tx status',
 		nearTransactionStatusWire,
 		await jsonRpc2<unknown>(binding, 'EXPERIMENTAL_tx_status', {
 			tx_hash: txHash,
 			sender_account_id: senderAccountId,
 			wait_until: 'FINAL',
-		})
-	) as NearRpcTransactionStatus
-}
+			})
+		) as NearRpcTransactionStatus
+		if (
+			transactionStatus.transaction.hash !== txHash
+			|| transactionStatus.transaction.signer_id !== senderAccountId
+		)
+			throw new Error(`${Source.NearRpc_JsonRpc}: tx status response does not match request`)
+
+		return transactionStatus
+	}
 
 	const getReceipt = async ({
 	receiptId,
@@ -353,14 +367,18 @@ export const nearRpc = (() => {
 	if (receiptId === '')
 		throw new Error(`${Source.NearRpc_JsonRpc}: empty receipt id`)
 
-	return assertEnvelope(
-		'receipt',
+		const receipt = assertEnvelope(
+			'receipt',
 		nearReceiptWire,
 		await jsonRpc2<unknown>(binding, 'EXPERIMENTAL_receipt', {
 			receipt_id: receiptId,
-		})
-	) as NearRpcReceipt
-}
+			})
+		) as NearRpcReceipt
+		if (receipt.receipt_id !== receiptId)
+			throw new Error(`${Source.NearRpc_JsonRpc}: receipt response does not match request`)
+
+		return receipt
+	}
 
 	const getChunk = async ({
 	chunkHash,
