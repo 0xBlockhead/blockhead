@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -42,16 +41,6 @@
 		<EntityView
 			entityType={EntityType.RedditComment_Timestamp}
 			entitySelector={redditCommentTimestampSelector}
-			href={
-				resolve(
-					'/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						fullname: encodeURIComponent(redditCommentTimestampSelector.$comment.fullname),
-						timestampMs: String(redditCommentTimestampSelector.timestampMs),
-						source: redditCommentTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{redditCommentTimestampSelector.timestampMs}

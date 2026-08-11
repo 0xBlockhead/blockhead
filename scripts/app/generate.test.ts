@@ -6082,6 +6082,70 @@ test('retracts stale Hyperliquid orderbook and arbitrary timestamp page surfaces
 	)
 })
 
+test('keeps social observations parent-materialized without direct timestamp products', () => {
+	const targets = [
+		[EntityType._GlobalActivityPubNetwork_Timestamp, 'HubTimestampMsSource'],
+		[EntityType.ActivityPubInstance_Timestamp, 'InstanceTimestampMsSource'],
+		[EntityType.ActivityPubActor_Timestamp, 'ActivityPubActorTimestampMsSource'],
+		[EntityType.ActivityPubNote_Timestamp, 'ActivityPubNoteTimestampMsSource'],
+		[EntityType._GlobalAtprotoNetwork_Timestamp, 'HubTimestampMsSource'],
+		[EntityType.AtprotoPost_Timestamp, 'AtprotoPostTimestampMs'],
+		[EntityType._GlobalNostrNetwork_Timestamp, 'HubTimestampMsSource'],
+		[EntityType.NostrRelay_Timestamp, 'RelayTimestampMsSource'],
+		[EntityType._GlobalRedditNetwork_Timestamp, 'HubTimestampMsSource'],
+		[EntityType.RedditSubreddit_Timestamp, 'SubredditTimestampMsSource'],
+		[EntityType.RedditLink_Timestamp, 'LinkTimestampMsSource'],
+		[EntityType.RedditComment_Timestamp, 'CommentTimestampMsSource'],
+		[EntityType._GlobalYoutubeNetwork_Timestamp, 'HubTimestampMsSource'],
+	] as const
+	const mappings: {
+		entityType: string
+		page: boolean | object | undefined
+		selectorName: string
+	}[] = []
+	const routeNodes = [...Object.values(app.routes.children)]
+	for (const routeNode of routeNodes) {
+		for (const [entityType, selectors] of Object.entries(routeNode.selectors ?? {}))
+			for (const [selectorName, mapping] of Object.entries(selectors))
+				if (targets.some((target) => target[0] === entityType && target[1] === selectorName))
+					mappings.push({
+						entityType,
+						page: mapping.page,
+						selectorName,
+					})
+
+		routeNodes.push(...Object.values(routeNode.children ?? {}))
+	}
+
+	assert.deepEqual(
+		mappings.toSorted((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right), 'en')),
+		targets.map(([entityType, selectorName]) => ({
+			entityType,
+			page: false,
+			selectorName,
+		})).toSorted((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right), 'en'))
+	)
+	for (const [entityType, selectorName] of targets) {
+		assert.equal(baselineCompiledApp.sourceClaims.some((claim) => (
+			claim.entityType === entityType
+			&& claim.selectorName === selectorName
+			&& claim.publicRoute != null
+		)), false)
+		for (const generatedFile of baselineCompiledApp.generatedFiles.filter(({ path }) => (
+			path.endsWith('/+page.ts') || path.endsWith('/+page.svelte')
+		)))
+			assert.doesNotMatch(
+				renderGeneratedFile(generatedFile),
+				new RegExp(`(?:EntityType\\.)?${entityType}.*${selectorName}|${selectorName}.*(?:EntityType\\.)?${entityType}`),
+				generatedFile.path
+			)
+	}
+	const routeFixtures = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'tests/e2e/_generatedRouteFixtureMetadata.ts')
+	assert.ok(routeFixtures)
+	for (const [entityType, selectorName] of targets)
+		assert.doesNotMatch(renderGeneratedFile(routeFixtures), new RegExp(`${entityType}\\.${selectorName}`))
+})
+
 test('retains only rendered detail layout facts', () => {
 	const generatorSource = readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8')
 	const detailPlanSource = generatorSource.slice(

@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -43,16 +42,6 @@
 		<EntityView
 			entityType={EntityType.RedditSubreddit_Timestamp}
 			entitySelector={redditSubredditTimestampSelector}
-			href={
-				resolve(
-					'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						name: encodeURIComponent(redditSubredditTimestampSelector.$subreddit.name),
-						timestampMs: String(redditSubredditTimestampSelector.timestampMs),
-						source: redditSubredditTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{redditSubredditTimestampSelector.timestampMs}

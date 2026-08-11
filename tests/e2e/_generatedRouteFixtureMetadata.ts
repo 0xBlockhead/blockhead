@@ -10209,19 +10209,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(social)/(atproto)/atproto/post/[...uri]/observations/[timestampMs]': {
-		routeId: '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/observations/[timestampMs=nonNegativeInteger]',
-		parameterEncodingByName: {
-			uri: 'Opaque',
-		},
-		mappings: [
-			{
-				id: 'AtprotoPost_Timestamp.AtprotoPostTimestampMs',
-				probeAtomPrefixes: ['/atproto/post/[...uri]/observations/[timestampMs]:AtprotoPost_Timestamp.AtprotoPostTimestampMs'],
-				probeCases: [[[0, '1', ['timestampMs', 'uri']]]],
-			},
-		],
-	},
 	'/(social)/(atproto)/atproto/post/[...uri]/thread': {
 		routeId: '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/thread',
 		parameterEncodingByName: {
@@ -10588,19 +10575,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(social)/(nostr)/nostr/relay/[relayKey]/observations/[timestampMs]/[source]': {
-		routeId: '/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]/(nostrRelay)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		parameterEncodingByName: {
-			relayKey: 'Opaque',
-		},
-		mappings: [
-			{
-				id: 'NostrRelay_Timestamp.RelayTimestampMsSource',
-				probeAtomPrefixes: ['/nostr/relay/[relayKey]/observations/[timestampMs]/[source]:NostrRelay_Timestamp.RelayTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'relayKey']]]],
-			},
-		],
-	},
 	'/(social)/(nostr)/nostr/repost/[eventId]': {
 		routeId: '/(social)/(nostr)/nostr/(globalNostrNetwork)/repost/[eventId=stringSegment]',
 		mappings: [
@@ -10644,19 +10618,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'RedditComment.Fullname',
 				probeAtomPrefixes: ['/reddit/comment/[fullname]:RedditComment.Fullname'],
 				probeCases: [[[0, '1', ['fullname']]]],
-			},
-		],
-	},
-	'/(social)/(reddit)/reddit/comment/[fullname]/observations/[timestampMs]/[source]': {
-		routeId: '/(social)/(reddit)/reddit/(globalRedditNetwork)/comment/[fullname=stringSegment]/(redditComment)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		parameterEncodingByName: {
-			fullname: 'Opaque',
-		},
-		mappings: [
-			{
-				id: 'RedditComment_Timestamp.CommentTimestampMsSource',
-				probeAtomPrefixes: ['/reddit/comment/[fullname]/observations/[timestampMs]/[source]:RedditComment_Timestamp.CommentTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'fullname']]]],
 			},
 		],
 	},
@@ -10712,19 +10673,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(social)/(reddit)/reddit/link/[fullname]/observations/[timestampMs]/[source]': {
-		routeId: '/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]/(redditLink)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		parameterEncodingByName: {
-			fullname: 'Opaque',
-		},
-		mappings: [
-			{
-				id: 'RedditLink_Timestamp.LinkTimestampMsSource',
-				probeAtomPrefixes: ['/reddit/link/[fullname]/observations/[timestampMs]/[source]:RedditLink_Timestamp.LinkTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'fullname']]]],
-			},
-		],
-	},
 	'/(social)/(reddit)/reddit/r/[name]': {
 		routeId: '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]',
 		parameterEncodingByName: {
@@ -10761,19 +10709,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'RedditSubreddit.Name',
 				probeAtomPrefixes: ['/reddit/r/[name]:RedditSubreddit.Name'],
 				probeCases: [[[0, '1', ['name']]]],
-			},
-		],
-	},
-	'/(social)/(reddit)/reddit/r/[name]/observations/[timestampMs]/[source]': {
-		routeId: '/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]/(redditSubreddit)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		parameterEncodingByName: {
-			name: 'Opaque',
-		},
-		mappings: [
-			{
-				id: 'RedditSubreddit_Timestamp.SubredditTimestampMsSource',
-				probeAtomPrefixes: ['/reddit/r/[name]/observations/[timestampMs]/[source]:RedditSubreddit_Timestamp.SubredditTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'name']]]],
 			},
 		],
 	},

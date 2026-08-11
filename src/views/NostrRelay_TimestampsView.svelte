@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -46,16 +45,6 @@
 		<EntityView
 			entityType={EntityType.NostrRelay_Timestamp}
 			entitySelector={nostrRelayTimestampSelector}
-			href={
-				resolve(
-					'/(social)/(nostr)/nostr/(globalNostrNetwork)/relay/[relayKey=stringSegment]/(nostrRelay)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						relayKey: encodeURIComponent(nostrRelayTimestampSelector.$relay.relayUrl),
-						timestampMs: String(nostrRelayTimestampSelector.timestampMs),
-						source: nostrRelayTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{[(nostrRelayTimestamp.name ?? ''), nostrRelayTimestampSelector.source].filter(Boolean).join(' ') || 'Nostr relay timestamp'}

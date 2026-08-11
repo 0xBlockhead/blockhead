@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -42,15 +41,6 @@
 		<EntityView
 			entityType={EntityType.AtprotoPost_Timestamp}
 			entitySelector={atprotoPostTimestampSelector}
-			href={
-				resolve(
-					'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]/(atprotoPost)/observations/[timestampMs=nonNegativeInteger]',
-					{
-						uri: encodeURIComponent(atprotoPostTimestampSelector.$post.uri),
-						timestampMs: String(atprotoPostTimestampSelector.timestampMs),
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{atprotoPostTimestampSelector.timestampMs}
