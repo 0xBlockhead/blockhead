@@ -237,6 +237,17 @@ export const entityHrefFromSearchInput = (query: string) => {
 			}
 		)
 
+	const activityPubNote = query.match(/^https:\/\/((?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63})\/@[a-zA-Z0-9_.-]+\/([0-9]+)\/?(?:[?#].*)?$/)
+
+	if (activityPubNote)
+		return resolve(
+			'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]',
+			{
+				instanceOrigin: encodeURIComponent(`https://${activityPubNote[1].toLowerCase()}`),
+				localStatusId: activityPubNote[2],
+			}
+		)
+
 	if (/^rad:z[1-9A-HJ-NP-Za-km-z]+$/.test(query))
 		return resolve(
 			'/radicle/repository/[rid=stringSegment]',
@@ -250,6 +261,56 @@ export const entityHrefFromSearchInput = (query: string) => {
 			'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
 			{
 				uri: encodeURIComponent(query),
+			}
+		)
+
+	const bskyPost = query.match(/^https:\/\/bsky\.app\/profile\/((?:did:plc:[a-z2-7]{24}|[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+))\/post\/([^/?#\s]+)(?:[?#].*)?$/i)
+
+	if (bskyPost)
+		return resolve(
+			'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
+			{
+				uri: encodeURIComponent(`at://${bskyPost[1].toLowerCase()}/app.bsky.feed.post/${bskyPost[2]}`),
+			}
+		)
+
+	const bskyDidProfile = query.match(/^https:\/\/bsky\.app\/profile\/(did:plc:[a-z2-7]{24})\/?(?:[?#].*)?$/i)
+
+	if (bskyDidProfile)
+		return resolve(
+			'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
+			{
+				did: encodeURIComponent(bskyDidProfile[1].toLowerCase()),
+			}
+		)
+
+	const bskyHandleProfile = query.match(/^https:\/\/bsky\.app\/profile\/([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+)\/?(?:[?#].*)?$/i)
+
+	if (bskyHandleProfile)
+		return resolve(
+			'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/handle/[handle=stringSegment]',
+			{
+				handle: bskyHandleProfile[1].toLowerCase(),
+			}
+		)
+
+	const redditLink = query.match(/^https:\/\/(?:www\.)?reddit\.com\/r\/[a-z0-9_]{3,21}\/comments\/([a-z0-9]+)(?:\/[^?#\s]*)?(?:[?#].*)?$/i)
+
+	if (redditLink)
+		return resolve(
+			'/(social)/(reddit)/reddit/(globalRedditNetwork)/link/[fullname=stringSegment]',
+			{
+				fullname: `t3_${redditLink[1].toLowerCase()}`,
+			}
+		)
+
+	const redditSubreddit = query.match(/^https:\/\/(?:www\.)?reddit\.com\/r\/([a-z0-9_]{3,21})\/?(?:[?#].*)?$/i)
+
+	if (redditSubreddit)
+		return resolve(
+			'/(social)/(reddit)/reddit/(globalRedditNetwork)/r/[name=stringSegment]',
+			{
+				name: redditSubreddit[1].toLowerCase(),
 			}
 		)
 

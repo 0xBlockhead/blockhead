@@ -31,8 +31,15 @@ describe(entityHrefFromSearchInput, () => {
 		['bzz://0000000000000000000000000000000000000000000000000000000000000001/docs/index.html', '/swarm/0000000000000000000000000000000000000000000000000000000000000001/path/docs/index.html'],
 		['swarm://0x0000000000000000000000000000000000000000000000000000000000000001', '/swarm/0000000000000000000000000000000000000000000000000000000000000001'],
 		['@alice@mastodon.social', '/activitypub/actor/https%3A%2F%2Fmastodon.social/@alice'],
+		['https://mastodon.social/@alice/114000000000000000', '/activitypub/note/https%3A%2F%2Fmastodon.social/114000000000000000'],
 		['rad:z3gqcJUoA1n9HaHKufZs5FCSGazv5D6Dt7Fnx1C4h2kKz', '/radicle/repository/rad:z3gqcJUoA1n9HaHKufZs5FCSGazv5D6Dt7Fnx1C4h2kKz'],
 		['at://did:plc:ewvi7nxzyoun6zhxrhs64oiz/app.bsky.feed.post/3lbm6y55c2c2a', '/atproto/post/at%3A%2F%2Fdid%3Aplc%3Aewvi7nxzyoun6zhxrhs64oiz%2Fapp.bsky.feed.post%2F3lbm6y55c2c2a'],
+		['https://bsky.app/profile/did:plc:ewvi7nxzyoun6zhxrhs64oiz', '/atproto/actor/did%3Aplc%3Aewvi7nxzyoun6zhxrhs64oiz'],
+		['https://bsky.app/profile/alice.bsky.social', '/atproto/actor/handle/alice.bsky.social'],
+		['https://bsky.app/profile/did:plc:ewvi7nxzyoun6zhxrhs64oiz/post/3lbm6y55c2c2a?ref=search', '/atproto/post/at%3A%2F%2Fdid%3Aplc%3Aewvi7nxzyoun6zhxrhs64oiz%2Fapp.bsky.feed.post%2F3lbm6y55c2c2a'],
+		['https://bsky.app/profile/alice.bsky.social/post/3lbm6y55c2c2a', '/atproto/post/at%3A%2F%2Falice.bsky.social%2Fapp.bsky.feed.post%2F3lbm6y55c2c2a'],
+		['https://www.reddit.com/r/ethereum/comments/1u8x2f8/a_title/', '/reddit/link/t3_1u8x2f8'],
+		['https://reddit.com/r/ethereum?utm_source=search', '/reddit/r/ethereum'],
 		['eip155:1', '/network/eip155:1'],
 		['eip155:1:0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', '/account/eip155:1/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'],
 		['https://example.com/a?b=c', '/url/https%3A%2F%2Fexample.com%2Fa%3Fb%3Dc'],
@@ -80,6 +87,13 @@ describe(entityHrefFromSearchInput, () => {
 	})
 
 	it.each([
+		['http://mastodon.social/@alice/114000000000000000'],
+		['https://mastodon.social/@alice/not-a-status-id'],
+	])('does not relabel unsafe or malformed ActivityPub note URL %s', (query) => {
+		expect(entityHrefFromSearchInput(query)).toBe(`/url/${encodeURIComponent(query)}`)
+	})
+
+	it.each([
 		['rad:'],
 		['rad:z3gqc!'],
 		['rad:z3gqc/path'],
@@ -115,6 +129,20 @@ describe(entityHrefFromSearchInput, () => {
 		['https://www.youtube.com/@GoogleDevelopers'],
 		['https://example.com/watch?v=dQw4w9WgXcQ'],
 	])('does not relabel non-video URL %s as a YouTube video', (query) => {
+		expect(entityHrefFromSearchInput(query)).toBe(`/url/${encodeURIComponent(query)}`)
+	})
+
+	it.each([
+		['http://bsky.app/profile/alice.bsky.social'],
+		['https://bsky.app.evil.example/profile/alice.bsky.social'],
+		['https://bsky.app/profile/did:plc:short'],
+		['https://bsky.app/profile/alice'],
+		['https://bsky.app/profile/alice.bsky.social/post/'],
+		['http://reddit.com/r/ethereum'],
+		['https://reddit.com.evil.example/r/ethereum'],
+		['https://reddit.com/r/ab'],
+		['https://reddit.com/r/ethereum/comments/not-a-valid-id!'],
+	])('does not relabel unsafe or incomplete Bluesky URL %s', (query) => {
 		expect(entityHrefFromSearchInput(query)).toBe(`/url/${encodeURIComponent(query)}`)
 	})
 
