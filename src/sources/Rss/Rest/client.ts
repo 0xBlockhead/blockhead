@@ -1,4 +1,5 @@
 import { fetchFailedMessage } from '$/lib/http.ts'
+import { rssItemIdentityFromParts } from '$/sources/_shared/interfaces/Rss/constants.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
 import { normalizeRssFeedUrl } from '$/sources/_shared/interfaces/Rss/constants.ts'
 import { parseRssFeedXml } from '$/sources/Rss/Rest/parseFeed.ts'
@@ -14,5 +15,16 @@ export const rssFetchFeed = async (binding: SourceBinding, feedUrl: string) => {
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage(normalizedFeedUrl, response))
 
-	return parseRssFeedXml(await response.text()) satisfies ParsedRssFeed
+	const feed = parseRssFeedXml(await response.text()) satisfies ParsedRssFeed
+	const itemIds = new Set<string>()
+	for (const item of feed.items) {
+		const identity = rssItemIdentityFromParts(item.guid, item.link)
+		if (identity == null)
+			continue
+		const itemId = `${identity.itemIdentityKind}:${identity.itemIdentity}`
+		if (itemIds.has(itemId))
+			throw new Error('Rss_Rest: feed response contains a duplicate item identity')
+		itemIds.add(itemId)
+	}
+	return feed
 }

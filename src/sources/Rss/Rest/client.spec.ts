@@ -89,6 +89,22 @@ test('preserves a registered feed URL path, query, and reserved values', async (
 	)
 })
 
+test('rejects repeated canonical item identities from the scoped feed response', async () => {
+	sourceFetch.mockResolvedValueOnce(new Response(`
+		<rss>
+			<channel>
+				<item><guid>same-item</guid></item>
+				<item><guid>same-item</guid></item>
+			</channel>
+		</rss>
+	`))
+
+	await expect(rssFetchFeed(hnrssBinding, 'https://hnrss.org/frontpage')).rejects.toThrow(
+		'duplicate item identity'
+	)
+	expect(sourceFetch).toHaveBeenCalledOnce()
+})
+
 test('rejects failed refresh responses before parsing their bodies', async () => {
 	sourceFetch.mockResolvedValueOnce(new Response('<rss><channel /></rss>', {
 		status: 503,
