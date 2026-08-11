@@ -175,6 +175,22 @@ const assertMintInfoHasFields = (
 	return info
 }
 
+const assertKeysetClocks = (
+	mintUrl: string,
+	keysets: {
+		final_expiry?: number | null
+	}[]
+) => {
+	if (keysets.some((keyset) => (
+		keyset.final_expiry != null
+		&& (
+			!Number.isSafeInteger(keyset.final_expiry * 1_000)
+			|| keyset.final_expiry < 0
+		)
+	)))
+		throw new Error(`CashuMint_Rest: keyset final expiry is outside the native clock for mint ${mintUrl}`)
+}
+
 export const getMintInfo = async (
 	mintUrl: string
 ): Promise<CashuMintInfoWire> => {
@@ -204,6 +220,7 @@ export const getMintKeysets = async (
 	)
 	if (new Set(keysets.keysets.map((keyset) => keyset.id)).size !== keysets.keysets.length)
 		throw new Error(`CashuMint_Rest: duplicate keyset identity in keysets for mint ${mintUrl}`)
+	assertKeysetClocks(mintUrl, keysets.keysets)
 
 	return keysets
 }
@@ -219,6 +236,7 @@ export const getMintKeys = async (
 	)
 	if (new Set(keys.keysets.map((keyset) => keyset.id)).size !== keys.keysets.length)
 		throw new Error(`CashuMint_Rest: duplicate keyset identity in keys for mint ${mintUrl}`)
+	assertKeysetClocks(mintUrl, keys.keysets)
 
 	return keys
 }
@@ -239,6 +257,7 @@ export const getMintKeysForKeyset = async (
 	)
 	if (new Set(keys.keysets.map((keyset) => keyset.id)).size !== keys.keysets.length)
 		throw new Error(`CashuMint_Rest: duplicate keyset identity in keys for mint ${mintUrl}`)
+	assertKeysetClocks(mintUrl, keys.keysets)
 	if (!keys.keysets.some((keyset) => keyset.id === keysetId))
 		throw new Error(`CashuMint_Rest: mint keys response is missing requested keyset ${keysetId}`)
 

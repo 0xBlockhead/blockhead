@@ -522,6 +522,34 @@ it('fails closed on duplicate keyset identities', async () => {
 	)
 })
 
+it('fails closed on keyset expiry values outside the native clock', async () => {
+	sourceFetch.mockResolvedValueOnce(jsonResponse({
+		keysets: [{
+			id: 'keyset',
+			unit: 'sat',
+			active: true,
+			final_expiry: -1,
+		}],
+	}))
+
+	await expect(getMintKeysets('https://first.mint')).rejects.toThrow(
+		'CashuMint_Rest: keyset final expiry is outside the native clock for mint https://first.mint'
+	)
+
+	sourceFetch.mockResolvedValueOnce(jsonResponse({
+		keysets: [{
+			id: 'keyset',
+			unit: 'sat',
+			active: true,
+			final_expiry: Number.MAX_SAFE_INTEGER,
+		}],
+	}))
+
+	await expect(getMintKeysets('https://first.mint')).rejects.toThrow(
+		'CashuMint_Rest: keyset final expiry is outside the native clock for mint https://first.mint'
+	)
+})
+
 it('fails closed on a mint quote with a reversed clock', async () => {
 	sourceFetch.mockResolvedValueOnce(jsonResponse({
 		quote: 'q',
