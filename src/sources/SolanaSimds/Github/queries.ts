@@ -22,6 +22,9 @@ export const getProposalMarkdownText = async ({
 }: {
 	number: number
 }) => {
+	if (!Number.isSafeInteger(number) || number < 0)
+		throw new Error(`SolanaSimds_Github: invalid proposal number ${number}`)
+
 	const entries = (await getProposalContents()).filter((contentEntry) => (
 		contentEntry.type === 'file'
 		&& contentEntry.name.startsWith(`${number.toString().padStart(4, '0')}-`)

@@ -46,6 +46,15 @@ describe('Solana SIMDs GitHub queries', () => {
 		)
 	})
 
+	it('rejects invalid proposal numbers before requesting the index', async () => {
+		vi.clearAllMocks()
+
+		await expect(getProposalMarkdownText({ number: -1 })).rejects.toThrow(/invalid proposal number/)
+		await expect(getProposalMarkdownText({ number: 1.5 })).rejects.toThrow(/invalid proposal number/)
+		await expect(getProposalMarkdownText({ number: Number.MAX_SAFE_INTEGER + 1 })).rejects.toThrow(/invalid proposal number/)
+		expect(httpRuntime.sourceGetJson).not.toHaveBeenCalled()
+	})
+
 	it('rejects directories and duplicate files for one proposal number', async () => {
 		httpRuntime.sourceGetJson.mockResolvedValueOnce([
 			{
