@@ -49,7 +49,12 @@ it('identifies a bare EVM address as incomplete rather than unsupported', async 
 	})
 
 	await expect.element(page.getByRole('status')).toHaveTextContent('valid EVM address')
-	await expect.element(page.getByRole('heading', { name: 'Choose an EVM network' })).toBeVisible()
+	await expect.element(page.getByRole('heading', { name: 'Identify this EVM address' })).toBeVisible()
+	await expect.element(page.getByRole('combobox', { name: 'Network' })).toBeVisible()
+	await expect.element(page.getByRole('combobox', { name: 'Entity kind' })).toBeVisible()
+	await expect.element(page.getByRole('option', { name: 'Account' })).toBeInTheDocument()
+	await expect.element(page.getByRole('option', { name: 'Contract' })).toBeInTheDocument()
+	await expect.element(page.getByRole('button', { name: 'Open address' })).toBeVisible()
 	await expect.element(page.getByRole('complementary', { name: 'Candidate provenance' })).toBeVisible()
 	await expect.element(page.getByRole('alert')).not.toBeInTheDocument()
 })

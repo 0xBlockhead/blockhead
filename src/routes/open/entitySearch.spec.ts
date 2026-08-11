@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	entityHrefFromSearchInput,
 	evmAccountCandidatesFromSearchInput,
+	evmAddressHrefFromCoordinates,
 	evmHashHrefFromCoordinates,
 } from './entitySearch.ts'
 
@@ -61,6 +62,40 @@ describe(evmAccountCandidatesFromSearchInput, () => {
 
 	it('does not offer EVM networks for other unresolved input', () => {
 		expect(evmAccountCandidatesFromSearchInput('0123456789abcdef')).toEqual([])
+	})
+})
+
+
+describe(evmAddressHrefFromCoordinates, () => {
+	const address = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+
+	it('opens an account after both coordinates are chosen', () => {
+		expect(evmAddressHrefFromCoordinates({
+			query: address,
+			networkCaip2: 'eip155:1',
+			entityKind: 'account',
+		})).toBe(`/account/eip155:1/${address}`)
+	})
+
+	it('opens a contract after both coordinates are chosen', () => {
+		expect(evmAddressHrefFromCoordinates({
+			query: address,
+			networkCaip2: 'eip155:8453',
+			entityKind: 'contract',
+		})).toBe(`/network/eip155:8453/contract/${address}`)
+	})
+
+	it.each([
+		[null, 'account'],
+		['eip155:999999999', 'account'],
+		['eip155:1', null],
+		['eip155:1', 'token'],
+	])('rejects unsupported coordinates %s / %s', (networkCaip2, entityKind) => {
+		expect(evmAddressHrefFromCoordinates({
+			query: address,
+			networkCaip2,
+			entityKind,
+		})).toBeUndefined()
 	})
 })
 

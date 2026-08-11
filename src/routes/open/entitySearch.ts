@@ -29,6 +29,17 @@ export const evmHashEntityKinds = [
 	},
 ] as const
 
+export const evmAddressEntityKinds = [
+	{
+		value: 'account',
+		label: 'Account',
+	},
+	{
+		value: 'contract',
+		label: 'Contract',
+	},
+] as const
+
 export const entityHrefFromSearchInput = (query: string) => {
 	if (/^ip(?:fs|ns):\/\//i.test(query)) {
 		const ipfsResourceAddress = ipfsResourceAddressFromInput({
@@ -94,6 +105,39 @@ export const evmAccountCandidatesFromSearchInput = (query: string) => (
 			accountAddress: query,
 		}))
 )
+
+export const evmAddressHrefFromCoordinates = ({
+	query,
+	networkCaip2,
+	entityKind,
+}: {
+	query: string
+	networkCaip2: string | null
+	entityKind: string | null
+}) => {
+	const network = evmNetworkChoices.find((candidate) => candidate.caip2 === networkCaip2)
+
+	if (!network || !/^0x[a-fA-F0-9]{40}$/.test(query)) return
+
+	if (entityKind === 'account')
+		return resolve(
+			'/(explore)/account/[namespace=stringSegment]:[reference=stringSegment]/[accountAddress=stringSegment]',
+			{
+				namespace: network.namespace,
+				reference: network.reference,
+				accountAddress: query,
+			}
+		)
+
+	if (entityKind === 'contract')
+		return resolve(
+			'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]',
+			{
+				network: network.caip2,
+				address: query,
+			}
+		)
+}
 
 export const evmHashHrefFromCoordinates = ({
 	query,

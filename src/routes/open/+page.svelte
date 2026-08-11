@@ -5,6 +5,7 @@
 
 	// State
 	import {
+		evmAddressEntityKinds,
 		evmAccountCandidatesFromSearchInput,
 		evmHashEntityKinds,
 		evmNetworkChoices,
@@ -42,7 +43,7 @@
 
 		{#if evmAccountCandidates.length}
 			<p role="status">
-				“{data.query}” is a valid EVM address, but an address does not identify its network.
+				“{data.query}” is a valid EVM address, but an address does not identify its network or entity kind.
 			</p>
 		{:else if isEvmHash}
 			<p role="status">
@@ -102,27 +103,37 @@
 
 	{#if evmAccountCandidates.length}
 		<section data-column="gap-2">
-			<h2>Choose an EVM network</h2>
+			<h2>Identify this EVM address</h2>
 
-			<p>The address does not identify its network. Open it on one of the checked-in EVM networks:</p>
+			<p>An address may identify an account or contract on any checked-in EVM network. Choose both coordinates to continue.</p>
 
-			<ul data-column="gap-1">
-				{#each evmAccountCandidates as candidate (candidate.caip2)}
-					<li>
-						<a href={resolve(
-							'/(explore)/account/[namespace=stringSegment]:[reference=stringSegment]/[accountAddress=stringSegment]',
-							{
-								namespace: candidate.namespace,
-								reference: candidate.reference,
-								accountAddress: candidate.accountAddress,
-							}
-						)}>
-							{candidate.name}
-							<span data-text="annotation">{candidate.environment} · {candidate.caip2}</span>
-						</a>
-					</li>
-				{/each}
-			</ul>
+			<form
+				action={resolve('/open')}
+				method="get"
+				data-column="gap-2"
+			>
+				<input name="q" type="hidden" value={data.query} />
+
+				<label for="evm-address-network">Network</label>
+
+				<select id="evm-address-network" name="network" required>
+					<option value="">Choose a network</option>
+					{#each evmAccountCandidates as network (network.caip2)}
+						<option value={network.caip2}>{network.name} — {network.environment} ({network.caip2})</option>
+					{/each}
+				</select>
+
+				<label for="evm-address-kind">Entity kind</label>
+
+				<select id="evm-address-kind" name="kind" required>
+					<option value="">Choose an entity kind</option>
+					{#each evmAddressEntityKinds as entityKind (entityKind.value)}
+						<option value={entityKind.value}>{entityKind.label}</option>
+					{/each}
+				</select>
+
+				<button type="submit">Open address</button>
+			</form>
 		</section>
 	{/if}
 
