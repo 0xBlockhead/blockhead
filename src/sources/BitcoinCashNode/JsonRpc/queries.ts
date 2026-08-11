@@ -104,13 +104,15 @@ export const getBlockHash = async ({
 	return hash
 }
 
-export const getBlockCount = async () => (
-	assertEnvelope(
+export const getBlockCount = async () => {
+	const blockCount = assertEnvelope(
 		'block count',
 		bitcoinCashBlockCount,
 		await jsonRpc2<unknown>(binding, 'getblockcount', [])
 	)
-)
+	assertSafeUnsignedInteger(blockCount, 'block count')
+	return blockCount
+}
 
 export const getMempoolInfo = async () => (
 	assertEnvelope(

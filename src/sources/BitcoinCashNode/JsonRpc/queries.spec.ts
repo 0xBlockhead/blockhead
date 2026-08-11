@@ -100,6 +100,9 @@ describe('Bitcoin Cash Node JSON-RPC envelopes', () => {
 		jsonRpc2.mockResolvedValueOnce(-1)
 		await expect(getBlockCount()).rejects.toThrow('invalid block count response envelope')
 
+		jsonRpc2.mockResolvedValueOnce(Number.MAX_SAFE_INTEGER + 1)
+		await expect(getBlockCount()).rejects.toThrow('block count exceeds lossless JSON integer range')
+
 		jsonRpc2.mockReset()
 		jsonRpc2.mockResolvedValueOnce({
 			isvalid: true,
