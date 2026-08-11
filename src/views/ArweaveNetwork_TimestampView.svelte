@@ -15,23 +15,14 @@
 	// State
 	let {
 		selection,
-		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.ArweaveNetwork_Timestamp>, 'prefetched'> = $props()
 
-	const arweaveNetworkTimestamp = $derived(selection({
-		fields: {
-			latestHeight: true,
-			reachable: true,
-		},
-	}))
-
 
 	// Components
-	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -42,7 +33,6 @@
 <EntityView
 	entityType={EntityType.ArweaveNetwork_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? String(selection.entitySelector.timestampMs)}
 	href={
 		href === undefined ?
 			resolve(
@@ -65,39 +55,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet Value()}
-		<ResourceBoundary resource={arweaveNetworkTimestamp}>
-			{#snippet children(entity)}
-				{@const latestHeight = entity.latestHeight}
-				{#if latestHeight != null}
-					<NumberValue
-						value={latestHeight}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={arweaveNetworkTimestamp}>
-			{#snippet children(entity)}
-				<span data-text="muted">
-					{selection.entitySelector.source}
-				</span>
-				{@const reachable = entity.reachable}
-				{#if reachable != null}
-					<span data-text="muted">
-						{reachable ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -123,11 +80,15 @@
 					{selection.entitySelector.source}
 				</dd>
 			</div>
-		</dl>
 
-		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={arweaveNetworkTimestamp}
+				resource={
+					selection({
+						fields: {
+							latestHeight: true,
+						},
+					})
+				}
 			>
 				{#snippet children(entity)}
 					{@const latestHeight = entity.latestHeight}
@@ -135,9 +96,7 @@
 						<div>
 							<dt>latest height</dt>
 							<dd>
-								<NumberValue
-									value={latestHeight}
-								/>
+								{latestHeight}
 							</dd>
 						</div>
 					{/if}
@@ -187,9 +146,7 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		</dl>
 
-		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					selection({
@@ -227,9 +184,7 @@
 						<div>
 							<dt>peer count</dt>
 							<dd>
-								<NumberValue
-									value={peerCount}
-								/>
+								{peerCount}
 							</dd>
 						</div>
 					{/if}
@@ -251,9 +206,7 @@
 						<div>
 							<dt>queued transaction count</dt>
 							<dd>
-								<NumberValue
-									value={queuedTransactionCount}
-								/>
+								{queuedTransactionCount}
 							</dd>
 						</div>
 					{/if}
@@ -305,7 +258,13 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={arweaveNetworkTimestamp}
+				resource={
+					selection({
+						fields: {
+							reachable: true,
+						},
+					})
+				}
 			>
 				{#snippet children(entity)}
 					{@const reachable = entity.reachable}

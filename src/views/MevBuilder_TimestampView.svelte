@@ -15,26 +15,16 @@
 	// State
 	let {
 		selection,
-		prefetched = {},
-		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: EntitySelectionViewProps<EntityType.MevBuilder_Timestamp> = $props()
+	}: Omit<EntitySelectionViewProps<EntityType.MevBuilder_Timestamp>, 'prefetched'> = $props()
 
 	const builder = $derived(selection.entitySelector.$builder)
-	const mevBuilderTimestamp = $derived(selection({
-		fields: {
-			deliveredPayloadCount: true,
-			deliveredValueWei: true,
-		},
-	}))
-	const titleFallback = $derived([(prefetched.deliveredPayloadCount != null ? String(prefetched.deliveredPayloadCount) + ' payloads' : ''), (prefetched.deliveredValueWei != null ? String(prefetched.deliveredValueWei) + ' wei' : '')].filter(Boolean).join(' ') || 'MEV builder timestamp')
 
 
 	// Components
-	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import MevBuilderView from '$/views/MevBuilderView.svelte'
@@ -44,7 +34,6 @@
 <EntityView
 	entityType={EntityType.MevBuilder_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
 	href={
 		href === undefined ?
 			resolve(
@@ -68,42 +57,40 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		<ResourceBoundary resource={mevBuilderTimestamp}>
-			{#snippet children(entity)}
-				{[(entity.deliveredPayloadCount != null ? String(entity.deliveredPayloadCount) + ' payloads' : ''), (entity.deliveredValueWei != null ? String(entity.deliveredValueWei) + ' wei' : '')].filter(Boolean).join(' ') || title || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<ResourceBoundary resource={mevBuilderTimestamp}>
-			{#snippet children(entity)}
-				{@const deliveredPayloadCount = entity.deliveredPayloadCount}
-				{#if deliveredPayloadCount != null}
-					<NumberValue
-						value={deliveredPayloadCount}
-					/>
-
-					<span> payloads</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		<span data-text="muted">
-			<MevBuilderView
-				selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
-				layout={EntityLayout.Title}
-			/>
-		</span>
-	{/snippet}
-
 	{#snippet Content()}
 		<dl data-column-item="center">
+			<div>
+				<dt>Builder</dt>
+				<dd>
+					<MevBuilderView
+						selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
+						layout={EntityLayout.Value}
+					/>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<Timestamp timestamp={selection.entitySelector.timestampMs} />
+				</dd>
+			</div>
+
+			<div>
+				<dt>Source</dt>
+				<dd>
+					{selection.entitySelector.source}
+				</dd>
+			</div>
+
 			<ResourceBoundary
-				resource={mevBuilderTimestamp}
+				resource={
+					selection({
+						fields: {
+							deliveredPayloadCount: true,
+						},
+					})
+				}
 			>
 				{#snippet children(entity)}
 					{@const deliveredPayloadCount = entity.deliveredPayloadCount}
@@ -111,9 +98,7 @@
 						<div>
 							<dt>Delivered payload count</dt>
 							<dd>
-								<NumberValue
-									value={deliveredPayloadCount}
-								/>
+								{deliveredPayloadCount}
 							</dd>
 						</div>
 					{/if}
@@ -121,7 +106,13 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={mevBuilderTimestamp}
+				resource={
+					selection({
+						fields: {
+							deliveredValueWei: true,
+						},
+					})
+				}
 			>
 				{#snippet children(entity)}
 					{@const deliveredValueWei = entity.deliveredValueWei}
@@ -129,11 +120,7 @@
 						<div>
 							<dt>Delivered value</dt>
 							<dd>
-								<NumberValue
-									value={deliveredValueWei}
-								/>
-
-								<span> wei</span>
+								{deliveredValueWei}
 							</dd>
 						</div>
 					{/if}
@@ -155,17 +142,13 @@
 						<div>
 							<dt>Relay count</dt>
 							<dd>
-								<NumberValue
-									value={relayCount}
-								/>
+								{relayCount}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		</dl>
 
-		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={
 					selection({
@@ -181,9 +164,7 @@
 						<div>
 							<dt>Window start slot</dt>
 							<dd>
-								<NumberValue
-									value={windowStartSlot}
-								/>
+								{windowStartSlot}
 							</dd>
 						</div>
 					{/if}
@@ -205,9 +186,7 @@
 						<div>
 							<dt>Window end slot</dt>
 							<dd>
-								<NumberValue
-									value={windowEndSlot}
-								/>
+								{windowEndSlot}
 							</dd>
 						</div>
 					{/if}
@@ -229,40 +208,12 @@
 						<div>
 							<dt>Sample limit</dt>
 							<dd>
-								<NumberValue
-									value={sampleLimit}
-								/>
+								{sampleLimit}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<div>
-				<dt>Timestamp</dt>
-				<dd>
-					<Timestamp timestamp={selection.entitySelector.timestampMs} />
-				</dd>
-			</div>
-
-			<div>
-				<dt>Source</dt>
-				<dd>
-					{selection.entitySelector.source}
-				</dd>
-			</div>
-
-			<div>
-				<dt>Builder</dt>
-				<dd>
-					<MevBuilderView
-						selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
-						layout={EntityLayout.Value}
-					/>
-				</dd>
-			</div>
 		</dl>
 	{/snippet}
 </EntityView>

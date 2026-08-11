@@ -41,9 +41,9 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import EasAttestation_TimestampsView from '$/views/EasAttestation_TimestampsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EasSchemaView from '$/views/EasSchemaView.svelte'
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
@@ -364,12 +364,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EasAttestation_TimestampsView
-						selection={timestampsResource}
+					<EntitiesList
+						entityType={EntityType.EasAttestation_Timestamp}
 						countResource={timestampsResource.count}
 						title='Timestamps'
+						open={true}
 						id='timestamps'
-					/>
+						resource={timestampsResource()}
+					>
+						{#snippet Item({ item: easAttestationTimestamp })}
+							<EntityView
+								entityType={EntityType.EasAttestation_Timestamp}
+								entitySelector={easAttestationTimestamp[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

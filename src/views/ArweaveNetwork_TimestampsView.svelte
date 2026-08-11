@@ -26,18 +26,7 @@
 	{...EntitiesListProps}
 	entityType={EntityType.ArweaveNetwork_Timestamp}
 	bind:open
-	resource={
-		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					latestHeight: true,
-					source: true,
-					reachable: true,
-				},
-			},
-		})
-	}
+	resource={selection()}
 >
 	{#snippet Item({ item: arweaveNetworkTimestamp })}
 		{@const arweaveNetworkTimestampSelector = arweaveNetworkTimestamp[EntityMetaKey.Selector]}
@@ -59,18 +48,6 @@
 					}
 				)
 			}
-		>
-			{#snippet Title()}
-				{arweaveNetworkTimestampSelector.timestampMs}
-			{/snippet}
-
-			{#snippet Value()}
-				{arweaveNetworkTimestamp.latestHeight ?? ''}
-			{/snippet}
-
-			{#snippet HeadingAfter()}
-				<span data-text="annotation">{[arweaveNetworkTimestampSelector.source, String(arweaveNetworkTimestamp.reachable ?? '')].filter(Boolean).join(' ')}</span>
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

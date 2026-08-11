@@ -26,17 +26,7 @@
 	{...EntitiesListProps}
 	entityType={EntityType.MevBuilder_Timestamp}
 	bind:open
-	resource={
-		selection({
-			...{
-				fields: {
-					deliveredPayloadCount: true,
-					deliveredValueWei: true,
-					$builder: true,
-				},
-			},
-		})
-	}
+	resource={selection()}
 >
 	{#snippet Item({ item: mevBuilderTimestamp })}
 		{@const mevBuilderTimestampSelector = mevBuilderTimestamp[EntityMetaKey.Selector]}
@@ -60,18 +50,6 @@
 					}
 				)
 			}
-		>
-			{#snippet Title()}
-				{[(mevBuilderTimestamp.deliveredPayloadCount != null ? String(mevBuilderTimestamp.deliveredPayloadCount) + ' payloads' : ''), (mevBuilderTimestamp.deliveredValueWei != null ? String(mevBuilderTimestamp.deliveredValueWei) + ' wei' : '')].filter(Boolean).join(' ') || 'MEV builder timestamp'}
-			{/snippet}
-
-			{#snippet Value()}
-				{mevBuilderTimestamp.deliveredPayloadCount != null ? mevBuilderTimestamp.deliveredPayloadCount + ' payloads' : ''}
-			{/snippet}
-
-			{#snippet HeadingAfter()}
-				<span data-text="annotation">{mevBuilderTimestampSelector.$builder.builderPubkey || 'MEV builder'}</span>
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.Network_Timestamp, {
-		$network: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,20 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'Network timestamp')} • Network timestamp • Blockhead</title>
+	<title>{data.title ?? 'Network timestamp'} • Network timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<Network_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.Network_Timestamp, {
+				$network: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})
+		}
 	/>
 </Page>

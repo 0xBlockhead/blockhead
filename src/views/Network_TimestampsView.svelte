@@ -26,16 +26,7 @@
 	{...EntitiesListProps}
 	entityType={EntityType.Network_Timestamp}
 	bind:open
-	resource={
-		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					source: true,
-				},
-			},
-		})
-	}
+	resource={selection()}
 >
 	{#snippet Item({ item: networkTimestamp })}
 		{@const networkTimestampSelector = networkTimestamp[EntityMetaKey.Selector]}
@@ -58,14 +49,6 @@
 					}
 				)
 			}
-		>
-			{#snippet Title()}
-				{networkTimestampSelector.timestampMs}
-			{/snippet}
-
-			{#snippet Value()}
-				{networkTimestampSelector.source}
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

@@ -16,14 +16,6 @@
 		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(select(EntityType.MevRelay_Timestamp, {
-		$relay: data.selector,
-		timestampMs: Number(params.timestampMs),
-		source: params.source,
-	}, {
-		sources: [params.source],
-	}))
-
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -32,12 +24,20 @@
 
 
 <svelte:head>
-	<title>{data.title ?? (String(pageSelection.entitySelector.timestampMs) || 'MEV relay timestamp')} • MEV relay timestamp • Blockhead</title>
+	<title>{data.title ?? 'MEV relay timestamp'} • MEV relay timestamp • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<MevRelay_TimestampView
-		selection={pageSelection}
+		selection={
+			select(EntityType.MevRelay_Timestamp, {
+				$relay: data.selector,
+				timestampMs: Number(params.timestampMs),
+				source: params.source,
+			}, {
+				sources: [params.source],
+			})
+		}
 	/>
 </Page>

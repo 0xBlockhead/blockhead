@@ -26,18 +26,7 @@
 	{...EntitiesListProps}
 	entityType={EntityType.MevRelay_Timestamp}
 	bind:open
-	resource={
-		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					deliveredPayloadSampleCount: true,
-					builderSampleCount: true,
-					$relay: true,
-				},
-			},
-		})
-	}
+	resource={selection()}
 >
 	{#snippet Item({ item: mevRelayTimestamp })}
 		{@const mevRelayTimestampSelector = mevRelayTimestamp[EntityMetaKey.Selector]}
@@ -61,18 +50,6 @@
 					}
 				)
 			}
-		>
-			{#snippet Title()}
-				{mevRelayTimestampSelector.timestampMs}
-			{/snippet}
-
-			{#snippet Value()}
-				{[String(mevRelayTimestamp.deliveredPayloadSampleCount ?? ''), String(mevRelayTimestamp.builderSampleCount ?? '')].filter(Boolean).join(' ')}
-			{/snippet}
-
-			{#snippet HeadingAfter()}
-				<span data-text="annotation">{mevRelayTimestampSelector.$relay.host || 'MEV relay'}</span>
-			{/snippet}
-		</EntityView>
+		/>
 	{/snippet}
 </EntitiesList>

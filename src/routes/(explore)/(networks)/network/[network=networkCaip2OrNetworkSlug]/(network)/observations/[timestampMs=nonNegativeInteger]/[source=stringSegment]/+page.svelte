@@ -203,7 +203,7 @@
 				(pageSelection.entity == null ? String(data.selector.timestampMs ?? '') || 'EVM network timestamp' : ['Block ' + String(pageSelection.entity.blockHeight), String(data.selector.timestampMs)].filter(Boolean).join(' ') || 'EVM network timestamp') + ' • EVM network timestamp • Blockhead'
 			:
 			data.entityType === EntityType.ArweaveNetwork_Timestamp ?
-				(String(data.selector.timestampMs) || 'arweave network timestamp') + ' • arweave network timestamp • Blockhead'
+				('arweave network timestamp') + ' • arweave network timestamp • Blockhead'
 			:
 			data.entityType === EntityType.AvailNetwork_Timestamp ?
 				(String(data.selector.timestampMs) || 'avail network timestamp') + ' • avail network timestamp • Blockhead'

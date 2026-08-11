@@ -4,7 +4,6 @@
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -14,27 +13,13 @@
 	// State
 	let {
 		selection,
-		title,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.EasAttestation_Timestamp>, 'prefetched'> = $props()
 
-	const viewSelection = $derived(selection({
-		sources: selection.sources ?? [
-			Source.EasScan_Graphql,
-		],
-	}))
-	const easAttestationTimestamp = $derived(viewSelection({
-		fields: {
-			valid: true,
-			revoked: true,
-		},
-	}))
-
 
 	// Components
-	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -45,36 +30,10 @@
 <EntityView
 	entityType={EntityType.EasAttestation_Timestamp}
 	entitySelector={selection.entitySelector}
-	title={title ?? String(selection.entitySelector.timestampMs)}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		<Timestamp timestamp={selection.entitySelector.timestampMs} />
-	{/snippet}
-
-	{#snippet Value()}
-		<ResourceBoundary resource={easAttestationTimestamp}>
-			{#snippet children(entity)}
-				{String(entity.valid ?? '') || String(selection.entitySelector.timestampMs)}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={easAttestationTimestamp}>
-			{#snippet children(entity)}
-				{@const revoked = entity.revoked}
-				{#if revoked != null}
-					<span data-text="muted">
-						{revoked ? 'Yes' : 'No'}
-					</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -102,23 +61,13 @@
 			</div>
 
 			<ResourceBoundary
-				resource={easAttestationTimestamp}
-			>
-				{#snippet children(entity)}
-					{@const valid = entity.valid}
-					{#if valid != null}
-						<div>
-							<dt>Valid</dt>
-							<dd>
-								{valid ? 'Yes' : 'No'}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={easAttestationTimestamp}
+				resource={
+					selection({
+						fields: {
+							revoked: true,
+						},
+					})
+				}
 			>
 				{#snippet children(entity)}
 					{@const revoked = entity.revoked}
@@ -135,7 +84,51 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
+						fields: {
+							revocationTime: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const revocationTime = entity.revocationTime}
+					{#if revocationTime != null}
+						<div>
+							<dt>Revocation time</dt>
+							<dd>
+								{revocationTime}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							valid: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const valid = entity.valid}
+					{#if valid != null}
+						<div>
+							<dt>Valid</dt>
+							<dd>
+								{valid ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
 						fields: {
 							expired: true,
 						},
@@ -157,31 +150,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
-						fields: {
-							revocationTime: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const revocationTime = entity.revocationTime}
-					{#if revocationTime != null}
-						<div>
-							<dt>Revocation time</dt>
-							<dd>
-								<Timestamp timestamp={revocationTime} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
-
-		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					viewSelection({
+					selection({
 						fields: {
 							blockNumber: true,
 						},
@@ -194,9 +163,7 @@
 						<div>
 							<dt>Block number</dt>
 							<dd>
-								<NumberValue
-									value={blockNumber}
-								/>
+								{blockNumber}
 							</dd>
 						</div>
 					{/if}
@@ -205,7 +172,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							transactionHash: true,
 						},
@@ -227,7 +194,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							logIndex: true,
 						},
@@ -240,9 +207,7 @@
 						<div>
 							<dt>Log index</dt>
 							<dd>
-								<NumberValue
-									value={logIndex}
-								/>
+								{logIndex}
 							</dd>
 						</div>
 					{/if}
@@ -251,7 +216,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							revokedTransactionHash: true,
 						},
@@ -273,7 +238,7 @@
 
 			<ResourceBoundary
 				resource={
-					viewSelection({
+					selection({
 						fields: {
 							revokedLogIndex: true,
 						},
@@ -286,9 +251,7 @@
 						<div>
 							<dt>Revoked log index</dt>
 							<dd>
-								<NumberValue
-									value={revokedLogIndex}
-								/>
+								{revokedLogIndex}
 							</dd>
 						</div>
 					{/if}
