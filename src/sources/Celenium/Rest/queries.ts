@@ -244,6 +244,14 @@ const assertHash = (
 		throw new Error(`Celenium_Rest: invalid ${label}`)
 }
 
+const assertTimestamp = (
+	value: string,
+	label: string
+) => {
+	if (!Number.isFinite(Date.parse(value)))
+		throw new Error(`Celenium_Rest: invalid ${label}`)
+}
+
 const assertAddress = (value: string) => {
 	if (!celeniumAddress.test(value))
 		throw new Error('Celenium_Rest: invalid Celestia account address')
@@ -339,6 +347,7 @@ export const getHead = async () => {
 		),
 	])
 	assertHash(wire.hash, 'head hash')
+	assertTimestamp(wire.last_time, 'head timestamp')
 	assertDecimal(wire.total_fee, 'total fee')
 	assertDecimal(wire.total_supply, 'total supply')
 	if (wire.total_voting_power != null)
@@ -390,6 +399,7 @@ const validatedBlockWire = (wire: typeof blockWire.infer) => {
 		[wire.data_hash, 'data hash'],
 	])
 		assertHash(value, label)
+	assertTimestamp(wire.time, 'block timestamp')
 	if (!/^[0-9a-fA-F]{40}$/.test(wire.proposer.cons_address))
 		throw new Error('Celenium_Rest: invalid block proposer address')
 	assertDecimal(wire.stats.fee, 'block fee')
@@ -482,11 +492,8 @@ const validatedNamespaceWire = (wire: typeof namespaceWire.infer) => {
 		throw new Error('Celenium_Rest: invalid namespace ID')
 	if (!namespaceHashPattern.test(wire.hash))
 		throw new Error('Celenium_Rest: invalid namespace hash')
-	if (
-		wire.last_message_time != null
-		&& !Number.isFinite(Date.parse(wire.last_message_time))
-	)
-		throw new Error('Celenium_Rest: invalid namespace last message time')
+	if (wire.last_message_time != null)
+		assertTimestamp(wire.last_message_time, 'namespace last message time')
 	return wire
 }
 
@@ -552,6 +559,7 @@ const validatedBlobMetadataWire = (wire: typeof blobMetadataWire.infer) => {
 		throw new Error('Celenium_Rest: invalid blob namespace hash')
 	if (!commitmentPattern.test(wire.commitment))
 		throw new Error('Celenium_Rest: invalid blob commitment')
+	assertTimestamp(wire.time, 'blob timestamp')
 	assertHash(wire.tx_hash, 'blob transaction hash')
 	assertAddress(wire.signer.hash)
 	return wire
@@ -625,6 +633,7 @@ export const listBlockBlobs = async ({
 			throw new Error('Celenium_Rest: invalid blob namespace hash')
 		if (!commitmentPattern.test(wire.commitment))
 			throw new Error('Celenium_Rest: invalid blob commitment')
+		assertTimestamp(wire.time, 'blob timestamp')
 		const txHash = txHashFromBlobWire(wire)
 		assertHash(txHash, 'blob transaction hash')
 		assertAddress(wire.signer.hash)
@@ -675,6 +684,7 @@ export const listNamespaceBlobs = async ({
 			throw new Error('Celenium_Rest: invalid blob share version')
 		if (!commitmentPattern.test(wire.commitment))
 			throw new Error('Celenium_Rest: invalid blob commitment')
+		assertTimestamp(wire.time, 'blob timestamp')
 		const txHash = txHashFromBlobWire(wire)
 		assertHash(txHash, 'blob transaction hash')
 		assertAddress(wire.signer.hash)
@@ -743,6 +753,7 @@ export const getBlobMetadata = async ({
 		throw new Error('Celenium_Rest: blob response has mismatched commitment')
 	if (wire.namespace !== namespaceHash)
 		throw new Error('Celenium_Rest: blob response has mismatched namespace')
+	assertTimestamp(wire.time, 'blob timestamp')
 	return wire
 }
 
@@ -797,6 +808,7 @@ export const getTransaction = async (
 	assertDecimal(wire.fee, 'transaction fee')
 	if (wire.status !== 'success' && wire.status !== 'failed')
 		throw new Error('Celenium_Rest: invalid transaction status')
+	assertTimestamp(wire.time, 'transaction timestamp')
 	for (const signer of wire.signers)
 		assertAddress(signer.hash)
 	return wire

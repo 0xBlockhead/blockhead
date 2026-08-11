@@ -119,6 +119,29 @@ describe('Celenium mainnet public indexer contracts', () => {
 		await expect(getBlock(1n)).rejects.toThrow('mismatched height')
 	})
 
+	it('rejects malformed endpoint clocks instead of exposing unverifiable observations', async () => {
+		const sourceGetJson = vi.spyOn(sourceHttp, 'sourceGetJson')
+		sourceGetJson.mockResolvedValueOnce({
+			chain_id: 'celestia',
+			last_height: 1,
+			hash,
+			last_time: 'not-a-timestamp',
+			total_tx: 1,
+			total_accounts: 1,
+			total_fee: '1',
+			total_blobs_size: 1,
+			total_supply: '1',
+			synced: true,
+		})
+		await expect(getHead()).rejects.toThrow('invalid head timestamp')
+
+		sourceGetJson.mockResolvedValueOnce({
+			...blockWire,
+			time: 'not-a-timestamp',
+		})
+		await expect(getBlock(BigInt(blockWire.height))).rejects.toThrow('invalid block timestamp')
+	})
+
 	it('validates and preserves the endpoint-native block row', async () => {
 		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue(blockWire)
 
