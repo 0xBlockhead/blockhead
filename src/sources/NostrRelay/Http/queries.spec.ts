@@ -195,4 +195,68 @@ describe('NostrRelay NIP-11 Http transport', () => {
 			})
 		).rejects.toThrow('NostrRelay_Nip11_Http: request failed with 502')
 	})
+
+	it('fails closed on duplicate supported_nips', async () => {
+		if (boundRelayUrl == null)
+			throw new Error('missing NIP-11 binding')
+
+		sourceFetch.mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				supported_nips: [
+					1,
+					11,
+					11,
+				],
+			}),
+		})
+
+		await expect(
+			fetchRelayInformation({
+				relayUrl: boundRelayUrl,
+			})
+		).rejects.toThrow('NostrRelay_Nip11_Http: duplicate supported_nips')
+	})
+
+	it('fails closed on duplicate tags', async () => {
+		if (boundRelayUrl == null)
+			throw new Error('missing NIP-11 binding')
+
+		sourceFetch.mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				tags: [
+					'media',
+					'media',
+				],
+			}),
+		})
+
+		await expect(
+			fetchRelayInformation({
+				relayUrl: boundRelayUrl,
+			})
+		).rejects.toThrow('NostrRelay_Nip11_Http: duplicate tags')
+	})
+
+	it('fails closed on reversed created_at clock limits', async () => {
+		if (boundRelayUrl == null)
+			throw new Error('missing NIP-11 binding')
+
+		sourceFetch.mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				limitation: {
+					created_at_lower_limit: 1_000_000,
+					created_at_upper_limit: 100,
+				},
+			}),
+		})
+
+		await expect(
+			fetchRelayInformation({
+				relayUrl: boundRelayUrl,
+			})
+		).rejects.toThrow('NostrRelay_Nip11_Http: reversed created_at clock limits')
+	})
 })
