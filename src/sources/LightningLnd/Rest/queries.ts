@@ -368,22 +368,20 @@ export const listChannels = async () => {
 
 export const listInvoices = async ({
 	indexOffset,
-	numMaxInvoices,
+	numMaxInvoices = 100,
 }: {
 	indexOffset?: string
 	numMaxInvoices?: number
 } = {}) => {
 	if (indexOffset != null && !losslessUnsignedString.allows(indexOffset))
 		throw new Error('LightningLnd_Rest: invoice index offset must be an unsigned integer string')
-	if (numMaxInvoices != null && (!Number.isSafeInteger(numMaxInvoices) || numMaxInvoices < 1))
-		throw new Error('LightningLnd_Rest: invoice page size must be a positive safe integer')
+	if (!Number.isSafeInteger(numMaxInvoices) || numMaxInvoices < 1 || numMaxInvoices > 100)
+		throw new Error('LightningLnd_Rest: invoice page size must be a positive safe integer no greater than 100')
 	const searchParams = new URLSearchParams({
 		...(indexOffset != null && {
 			index_offset: indexOffset,
 		}),
-		...(numMaxInvoices != null && {
-			num_max_invoices: String(numMaxInvoices),
-		}),
+		num_max_invoices: String(numMaxInvoices),
 	})
 	const page = assertEnvelope(
 		listInvoicesWire,
@@ -406,22 +404,20 @@ export const listInvoices = async ({
 
 export const listPayments = async ({
 	indexOffset,
-	maxPayments,
+	maxPayments = 100,
 }: {
 	indexOffset?: string
 	maxPayments?: number
 } = {}) => {
 	if (indexOffset != null && !losslessUnsignedString.allows(indexOffset))
 		throw new Error('LightningLnd_Rest: payment index offset must be an unsigned integer string')
-	if (maxPayments != null && (!Number.isSafeInteger(maxPayments) || maxPayments < 1))
-		throw new Error('LightningLnd_Rest: payment page size must be a positive safe integer')
+	if (!Number.isSafeInteger(maxPayments) || maxPayments < 1 || maxPayments > 100)
+		throw new Error('LightningLnd_Rest: payment page size must be a positive safe integer no greater than 100')
 	const searchParams = new URLSearchParams({
 		...(indexOffset != null && {
 			index_offset: indexOffset,
 		}),
-		...(maxPayments != null && {
-			max_payments: String(maxPayments),
-		}),
+		max_payments: String(maxPayments),
 	})
 	const page = assertEnvelope(
 		listPaymentsWire,

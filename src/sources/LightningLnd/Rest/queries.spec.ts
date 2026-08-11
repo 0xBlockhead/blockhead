@@ -159,6 +159,32 @@ describe('LND server-authenticated public graph reads', () => {
 		)
 	})
 
+	it('requests bounded default local-history pages and rejects unbounded requests before transport', async () => {
+		respond({})
+		await expect(listInvoices()).resolves.toEqual({})
+		expect(sourceFetch).toHaveBeenLastCalledWith(
+			binding,
+			'https://127.0.0.1:8080/v1/invoices?num_max_invoices=100'
+		)
+
+		respond({})
+		await expect(listPayments()).resolves.toEqual({})
+		expect(sourceFetch).toHaveBeenLastCalledWith(
+			binding,
+			'https://127.0.0.1:8080/v1/payments?max_payments=100'
+		)
+
+		sourceFetch.mockReset()
+		for (const query of [
+			() => listInvoices({ numMaxInvoices: 101 }),
+			() => listInvoices({ numMaxInvoices: 1.5 }),
+			() => listPayments({ maxPayments: 101 }),
+			() => listPayments({ maxPayments: 1.5 }),
+		])
+			await expect(query()).rejects.toThrow('page size must be a positive safe integer no greater than 100')
+		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
 	it('rejects duplicate channel, invoice, and payment identities', async () => {
 		const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
 		respond({
