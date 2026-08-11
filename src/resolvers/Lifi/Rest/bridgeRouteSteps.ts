@@ -61,7 +61,7 @@ export const coinInstanceRefFromLifiToken = (
 )
 
 
-export const bridgeRouteStepMechanicsFromToolKey = (
+const bridgeRouteStepMechanicsFromToolKey = (
 	toolKey: string | undefined
 ) => {
 	if (toolKey == null || toolKey.trim() === '') return {}
@@ -75,7 +75,7 @@ export const bridgeRouteStepMechanicsFromToolKey = (
 	}
 }
 
-export const lifiToolKeyFromQuoteStep = (
+const lifiToolKeyFromQuoteStep = (
 	step: LifiQuoteStepLike
 ) => (
 	step.tool.trim()
