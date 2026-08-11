@@ -36,11 +36,37 @@ const assertEnvelope = <_Value>(
 	}
 }
 
+const assertExactItems = <_Response extends {
+	items?: readonly { id?: string }[]
+}>(
+	label: string,
+	requestedId: string,
+	response: _Response
+) => {
+	if (
+		response.items != null
+		&& (
+			response.items.length > 1
+			|| response.items.some(({ id }) => id !== requestedId)
+		)
+	)
+		throw new Error(`Youtube_Rest: ${label} response does not match request`)
+
+	return response
+}
+
+const assertPointLookupIdentity = (label: string, identity: string) => {
+	if (identity.trim() === '')
+		throw new Error(`Youtube_Rest: ${label} identity must not be empty`)
+}
+
 export const getChannel = async (
 	publicEnv: SourcePublicEnv,
 	channelId: string
-) => (
-	assertEnvelope(
+) => {
+	assertPointLookupIdentity('channel', channelId)
+
+	return assertExactItems('channel', channelId, assertEnvelope(
 		'channels',
 		youtubeApiChannelsListResponseWire,
 		await youtubeApiV3Get(
@@ -51,14 +77,16 @@ export const getChannel = async (
 				id: channelId,
 			}
 		)
-	)
-)
+	))
+}
 
 export const getVideo = async (
 	publicEnv: SourcePublicEnv,
 	videoId: string
-) => (
-	assertEnvelope(
+) => {
+	assertPointLookupIdentity('video', videoId)
+
+	return assertExactItems('video', videoId, assertEnvelope(
 		'videos',
 		youtubeApiVideosListResponseWire,
 		await youtubeApiV3Get(
@@ -69,14 +97,16 @@ export const getVideo = async (
 				id: videoId,
 			}
 		)
-	)
-)
+	))
+}
 
 export const getComment = async (
 	publicEnv: SourcePublicEnv,
 	commentId: string
-) => (
-	assertEnvelope(
+) => {
+	assertPointLookupIdentity('comment', commentId)
+
+	return assertExactItems('comment', commentId, assertEnvelope(
 		'comments',
 		youtubeApiCommentsListResponseWire,
 		await youtubeApiV3Get(
@@ -87,14 +117,16 @@ export const getComment = async (
 				id: commentId,
 			}
 		)
-	)
-)
+	))
+}
 
 export const getCommentThread = async (
 	publicEnv: SourcePublicEnv,
 	commentThreadId: string
-) => (
-	assertEnvelope(
+) => {
+	assertPointLookupIdentity('comment thread', commentThreadId)
+
+	return assertExactItems('comment thread', commentThreadId, assertEnvelope(
 		'commentThreads',
 		youtubeApiCommentThreadsListResponseWire,
 		await youtubeApiV3Get(
@@ -105,14 +137,16 @@ export const getCommentThread = async (
 				id: commentThreadId,
 			}
 		)
-	)
-)
+	))
+}
 
 export const getPlaylist = async (
 	publicEnv: SourcePublicEnv,
 	playlistId: string
-) => (
-	assertEnvelope(
+) => {
+	assertPointLookupIdentity('playlist', playlistId)
+
+	return assertExactItems('playlist', playlistId, assertEnvelope(
 		'playlists',
 		youtubeApiPlaylistsListResponseWire,
 		await youtubeApiV3Get(
@@ -123,8 +157,8 @@ export const getPlaylist = async (
 				id: playlistId,
 			}
 		)
-	)
-)
+	))
+}
 
 export const listChannelPlaylists = async (
 	publicEnv: SourcePublicEnv,

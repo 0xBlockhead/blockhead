@@ -20,6 +20,9 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 
 const {
 	getChannel,
+	getComment,
+	getCommentThread,
+	getPlaylist,
 	getVideo,
 	listPopularVideos,
 	searchChannels,
@@ -149,5 +152,25 @@ describe('Youtube Rest arktype envelopes', () => {
 		await expect(searchChannels(publicEnv, 'x', 2)).rejects.toThrow(
 			'Youtube_Rest: invalid search response envelope'
 		)
+	})
+
+	it('rejects substituted point-lookup identities', async () => {
+		for (let index = 0; index < 5; index++)
+			sourceGetJson.mockResolvedValueOnce({ items: [{ id: 'foreign' }] })
+
+		await expect(getChannel(publicEnv, 'channel')).rejects.toThrow('channel response does not match request')
+		await expect(getVideo(publicEnv, 'video')).rejects.toThrow('video response does not match request')
+		await expect(getComment(publicEnv, 'comment')).rejects.toThrow('comment response does not match request')
+		await expect(getCommentThread(publicEnv, 'thread')).rejects.toThrow('comment thread response does not match request')
+		await expect(getPlaylist(publicEnv, 'playlist')).rejects.toThrow('playlist response does not match request')
+	})
+
+	it('rejects empty point-lookup identities before transport', async () => {
+		await expect(getChannel(publicEnv, '')).rejects.toThrow('identity must not be empty')
+		await expect(getVideo(publicEnv, '')).rejects.toThrow('identity must not be empty')
+		await expect(getComment(publicEnv, '')).rejects.toThrow('identity must not be empty')
+		await expect(getCommentThread(publicEnv, '')).rejects.toThrow('identity must not be empty')
+		await expect(getPlaylist(publicEnv, '')).rejects.toThrow('identity must not be empty')
+		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 })
