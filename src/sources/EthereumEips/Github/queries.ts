@@ -35,6 +35,11 @@ const githubTargetForLedger = (ledger: EthereumEipSpecLedger) => (
 
 const bindingForLedger = (ledger: EthereumEipSpecLedger) => bindingByLedger[ledger]
 
+const assertProposalNumber = (number: number) => {
+	if (!Number.isSafeInteger(number) || number < 1)
+		throw new Error('EthereumEips_Github: proposal number must be a positive safe integer')
+}
+
 export const getContentsUrl = ({ ledger }: { ledger: EthereumEipSpecLedger }) => (
 	githubContentsUrl({
 		...githubTargetForLedger(ledger),
@@ -67,6 +72,7 @@ export const getProposalMarkdownUrl = ({
 	ledger: EthereumEipSpecLedger
 	number: number
 }) => {
+	assertProposalNumber(number)
 	const target = githubTargetForLedger(ledger)
 	return githubRawUrl({
 		...target,
@@ -81,17 +87,27 @@ export const getProposalMarkdownPageUrl = ({
 	ledger: EthereumEipSpecLedger
 	number: number
 }) => {
+	assertProposalNumber(number)
 	const target = githubTargetForLedger(ledger)
 	return `https://github.com/${target.owner}/${target.repo}/blob/${target.ref}/${target.path}/${ethereumEipSpecMarkdownPrefixByLedger[ledger]}-${number}.md`
 }
 
-export const getContents = ({
+export const getContents = async ({
 	ledger,
 }: {
 	ledger: EthereumEipSpecLedger
-}) => (
-	sourceGetJson<GithubContentsEntry[]>(bindingForLedger(ledger), getContentsUrl({ ledger }))
-)
+}) => {
+	const contents = await sourceGetJson<GithubContentsEntry[]>(bindingForLedger(ledger), getContentsUrl({ ledger }))
+	const names = new Set<string>()
+	for (const content of contents) {
+		if (content.name === '')
+			throw new Error('EthereumEips_Github: contents response contains an unnamed entry')
+		if (names.has(content.name))
+			throw new Error('EthereumEips_Github: contents response contains a duplicate entry name')
+		names.add(content.name)
+	}
+	return contents
+}
 
 export const getRawMarkdownText = ({
 	ledger,
