@@ -45,14 +45,12 @@ const queryLensPages = async <_Item>(
 				itemByKey.set(itemKey(item), item)
 		nonProgressPageCount = itemByKey.size === previousItemCount ? nonProgressPageCount + 1 : 0
 
-		if (
-			page.items.length === 0
-			|| pageInfo.next == null
-			|| pageInfo.next === ''
-			|| nonProgressPageCount >= 2
-			|| seenCursors.has(pageInfo.next)
-		)
+		if (page.items.length === 0 || pageInfo.next == null || pageInfo.next === '')
 			break
+		if (seenCursors.has(pageInfo.next))
+			throw new Error('Lens_Graphql: repeated page cursor')
+		if (nonProgressPageCount >= 2)
+			throw new Error('Lens_Graphql: pages made no unique item progress')
 
 		seenCursors.add(pageInfo.next)
 		cursor = pageInfo.next

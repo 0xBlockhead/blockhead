@@ -133,7 +133,7 @@ it('keeps account and observation provider operations independently addressable'
 	expect(requestBody(2).query).toMatch(/query LensAccountStats/)
 })
 
-it('continues public directories by cursor, dedupes identities, and stops at exhaustion', async () => {
+it('continues public directories by cursor, dedupes identities, and rejects repeated cursors', async () => {
 	const account = (address: `0x${string}`) => ({
 		address,
 		owner: address,
@@ -204,15 +204,7 @@ it('continues public directories by cursor, dedupes identities, and stops at exh
 				pageInfo: { prev: null, next: 'stuck' },
 			},
 		}))
-	await expect(queryFeeds(3)).resolves.toMatchObject({
-		feeds: {
-			items: [
-				{ address: '0x4444444444444444444444444444444444444444' },
-				{ address: '0x5555555555555555555555555555555555555555' },
-			],
-			pageInfo: { next: 'stuck' },
-		},
-	})
+	await expect(queryFeeds(3)).rejects.toThrow('repeated page cursor')
 	expect(fetchMock).toHaveBeenCalledTimes(2)
 })
 
@@ -439,7 +431,7 @@ it('paginates and deduplicates unsigned posts for one exact feed', async () => {
 	expect(requestBody(0).query).toMatch(/contentUri[\s\S]*repostOf[\s\S]*slug/)
 })
 
-it('stops opaque-cursor pagination after repeated pages make no identity progress', async () => {
+it('rejects opaque-cursor pagination after repeated pages make no identity progress', async () => {
 	const address = '0x1111111111111111111111111111111111111111'
 	const post = {
 		__typename: 'Post',
@@ -465,12 +457,7 @@ it('stops opaque-cursor pagination after repeated pages make no identity progres
 			},
 		}))
 
-	await expect(queryFeedPosts(address, 2)).resolves.toMatchObject({
-		posts: {
-			items: [post],
-			pageInfo: { next: 'opaque+/=3' },
-		},
-	})
+	await expect(queryFeedPosts(address, 2)).rejects.toThrow('pages made no unique item progress')
 	expect(fetchMock.mock.calls.map((_call, index) => requestBody(index).variables.cursor)).toEqual([
 		undefined,
 		'opaque+/=1',
