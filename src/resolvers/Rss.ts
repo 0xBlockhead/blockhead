@@ -1,6 +1,9 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	entityFieldAddressKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import {
@@ -28,6 +31,7 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 						resolve: async ({ feedUrl: feedUrlSelector }, context) => {
 							const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
 							const feed = await loadFeed(feedUrl)
+							const timestampMs = Date.now()
 							return {
 								...(feed.title != null && { title: feed.title }),
 								...(feed.description != null && { description: feed.description }),
@@ -50,6 +54,17 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 											},
 										}]
 									}),
+								$$timestamps: [{
+									[EntityMetaKey.Selector]: {
+										$feed: { feedUrl },
+										timestampMs,
+										source,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.RssFeed_Timestamp, [], 'reachable')]: true,
+										[entityFieldAddressKey(EntityType.RssFeed_Timestamp, [], 'observedItemCount')]: feed.items.length,
+									},
+								}],
 							}
 						},
 					}
@@ -64,6 +79,7 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 				}),
 				imageUrl: (snapshot) => snapshot.imageUrl,
 				$$items: (snapshot) => snapshot.items,
+				$$timestamps: (snapshot) => snapshot.$$timestamps,
 			}),
 
 			defineResolver({
@@ -108,6 +124,21 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 								$feed: {
 									[EntityMetaKey.Selector]: { feedUrl },
 								},
+								$$timestamps: [{
+									[EntityMetaKey.Selector]: {
+										$item: {
+											$feed: { feedUrl },
+											itemIdentityKind,
+											itemIdentity,
+										},
+										timestampMs: Date.now(),
+										source,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'observed')]: true,
+										[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'reachable')]: true,
+									},
+								}],
 							}
 						},
 					}
@@ -130,6 +161,7 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 					commentsUrl: (snapshot) => snapshot.commentsUrl,
 				}),
 				$feed: (snapshot) => snapshot.$feed,
+				$$timestamps: (snapshot) => snapshot.$$timestamps,
 			}),
 
 			defineResolver({
