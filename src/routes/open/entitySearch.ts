@@ -95,6 +95,17 @@ export const nostrHexEntityKinds = [
 ] as const
 
 export const entityHrefFromSearchInput = (query: string) => {
+	const arweaveResource = query.match(/^ar:\/\/([a-zA-Z0-9_-]{43})\/([^?#]+)(?:[?#].*)?$/)
+
+	if (arweaveResource)
+		return resolve(
+			'/(arweave)/arweave/resource/[transactionId=stringSegment]/[contentPath=stringSegment]',
+			{
+				transactionId: arweaveResource[1],
+				contentPath: arweaveResource[2],
+			}
+		)
+
 	if (/^(?:bzz|swarm):\/\//i.test(query))
 		return swarmResourceHrefFromInput(query)
 

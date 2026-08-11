@@ -13,6 +13,7 @@ import {
 
 describe(entityHrefFromSearchInput, () => {
 	it.each([
+		['ar://1234567890123456789012345678901234567890123/docs/index.html', '/arweave/resource/1234567890123456789012345678901234567890123/docs%2Findex.html'],
 		['bzz://0000000000000000000000000000000000000000000000000000000000000001/docs/index.html', '/swarm/0000000000000000000000000000000000000000000000000000000000000001/path/docs/index.html'],
 		['swarm://0x0000000000000000000000000000000000000000000000000000000000000001', '/swarm/0000000000000000000000000000000000000000000000000000000000000001'],
 		['@alice@mastodon.social', '/activitypub/actor/https%3A%2F%2Fmastodon.social/@alice'],
@@ -60,6 +61,14 @@ describe(entityHrefFromSearchInput, () => {
 		['bzz://'],
 		['swarm:///docs'],
 	])('does not route malformed Swarm resource %s', (query) => {
+		expect(entityHrefFromSearchInput(query)).toBeUndefined()
+	})
+
+	it.each([
+		['ar://1234567890123456789012345678901234567890123'],
+		['ar://short/docs'],
+		['ar://1234567890123456789012345678901234567890123/'],
+	])('does not route incomplete Arweave resource %s', (query) => {
 		expect(entityHrefFromSearchInput(query)).toBeUndefined()
 	})
 })
