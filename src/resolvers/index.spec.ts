@@ -1117,7 +1117,7 @@ describe('resolver registry live resolver architecture', () => {
 			&& sourceClaimParentMaterializers(claim).length > 0
 		))
 
-		expect(parentOwnedClaims).toHaveLength(35)
+		expect(parentOwnedClaims).toHaveLength(71)
 		expect(Object.entries(Object.groupBy(
 			parentOwnedClaims,
 			(claim) => claim.entityType
@@ -1127,9 +1127,14 @@ describe('resolver registry live resolver architecture', () => {
 		]).toSorted(([leftEntityType], [rightEntityType]) => (
 			String(leftEntityType).localeCompare(String(rightEntityType), 'en')
 		))).toEqual([
+			[EntityType._GlobalIpfsAccess_Timestamp, 3],
+			[EntityType._GlobalSwarmAccess_Timestamp, 5],
+			[EntityType.AtprotoPost_Timestamp, 10],
 			[EntityType.BridgeTransfer_Timestamp, 1],
 			[EntityType.CardanoTransaction, 1],
 			[EntityType.EvmNetworkActorCoinBalance_Timestamp, 1],
+			[EntityType.HyperliquidPerpMarket_Timestamp, 2],
+			[EntityType.LiquidityPool_Timestamp, 16],
 			[EntityType.NetworkEndpointObservation_Timestamp, 20],
 			[EntityType.UniswapV3Position, 1],
 			[EntityType.UtxoAddress_Timestamp, 1],
