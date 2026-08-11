@@ -5,6 +5,7 @@ import {
 } from 'vitest'
 
 import {
+	abiFragmentFromSignature,
 	decodeCalldataWithSignature,
 	decodeLogWithContractAbiJson,
 	formatDecodedParamValue,
@@ -25,6 +26,32 @@ describe('calldata decoder', () => {
 
 	it('computes function selectors from canonical signatures', () => {
 		expect(functionSelectorFromSignature('transfer(address,uint256)')).toBe('0xa9059cbb')
+	})
+
+	it('derives only signature-authoritative ABI fragment fields', () => {
+		expect(abiFragmentFromSignature(
+			'Transfer(address indexed,address indexed,uint256)',
+			'event'
+		)).toEqual({
+			type: 'event',
+			name: 'Transfer',
+			inputs: [
+				{
+					name: 'param0',
+					type: 'address',
+					indexed: true,
+				},
+				{
+					name: 'param1',
+					type: 'address',
+					indexed: true,
+				},
+				{
+					name: 'param2',
+					type: 'uint256',
+				},
+			],
+		})
 	})
 
 	it('decodes ERC20 transfer calldata using package-typed ABI parameters', () => {

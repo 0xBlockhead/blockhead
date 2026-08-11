@@ -37,6 +37,10 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 	resource.set({ values: [signature] })
 	await expect.element(page.getByText(signature)).toBeInTheDocument()
 	await expect.element(page.getByText('123')).toBeInTheDocument()
+	await expect.element(page.getByRole('link', { name: 'Download candidate ABI JSON' })).toHaveAttribute(
+		'download',
+		'evm-function-candidate-abi.json'
+	)
 	await expect.element(page.getByRole('link', { name: 'Download decoded JSON' })).toHaveAttribute(
 		'download',
 		'evm-function-calldata-decoded.json'

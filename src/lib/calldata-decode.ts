@@ -105,6 +105,42 @@ export const parseFunctionSignature = (sig: string): {
 	}
 }
 
+export const abiFragmentFromSignature = (
+	signature: string,
+	kind: 'event' | 'function'
+) => {
+	const parsed = parseFunctionSignature(signature)
+	if (parsed == null)
+		return null
+
+	return {
+		type: kind,
+		name: parsed.name,
+		inputs: parsed.types.map((parameterType, index) => {
+			const trimmedParameterType = parameterType.trim()
+			const indexed = (
+				kind === 'event'
+				&& (
+					trimmedParameterType.endsWith(' indexed')
+					|| trimmedParameterType.startsWith('indexed ')
+				)
+			)
+			return {
+				name: `param${String(index)}`,
+				type: (
+					trimmedParameterType.endsWith(' indexed') ?
+						trimmedParameterType.slice(0, -8).trim()
+					: trimmedParameterType.startsWith('indexed ') ?
+						trimmedParameterType.slice(8).trim()
+					:
+						trimmedParameterType
+				),
+				...(indexed && { indexed: true }),
+			}
+		}),
+	}
+}
+
 /**
 	* Decode event log (topic0 [+ topic1...] + data) using an event signature.
 	* topicAndDataHex must be at least 64 chars (32-byte topic0). Data starts after topic0 plus

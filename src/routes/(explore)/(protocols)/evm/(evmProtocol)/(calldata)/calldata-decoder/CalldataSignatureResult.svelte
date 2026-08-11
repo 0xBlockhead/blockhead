@@ -36,6 +36,7 @@
 
 	// Functions
 	import {
+		abiFragmentFromSignature,
 		decodeCalldataWithSignature,
 		decodeEventDataWithSignature,
 		formatDecodedParamValue,
@@ -76,6 +77,11 @@
 		{#if selectedSignature == null}
 			<p data-text="muted">No catalog signatures matched this {kind === CalldataSignatureKind.Function ? 'function selector' : 'event topic'}.</p>
 		{:else}
+			{@const abiFragment = abiFragmentFromSignature(
+					selectedSignature,
+					kind === CalldataSignatureKind.Function ? 'function' : 'event'
+				)}
+			{@const abiFragmentJson = abiFragment == null ? null : `${JSON.stringify([abiFragment], null, '\t')}\n`}
 			{@const decodedJson = decoded == null ? null : `${JSON.stringify({
 				artifactVersion: 1,
 				kind: kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data',
@@ -137,6 +143,15 @@
 					</div>
 				{/if}
 			</dl>
+
+			{#if abiFragmentJson != null}
+				<a
+					href={`data:application/json;charset=utf-8,${encodeURIComponent(abiFragmentJson)}`}
+					download={`evm-${kind === CalldataSignatureKind.Function ? 'function' : 'event'}-candidate-abi.json`}
+				>
+					Download candidate ABI JSON
+				</a>
+			{/if}
 
 			{#if decodedJson != null}
 				<a
