@@ -149,6 +149,20 @@ export default entity({
 				],
 			},
 		}),
+		Sui: facet({
+			path: [
+				'namespace',
+			],
+			is: 'sui',
+		})({
+			$account: {
+				entityType: EntityType.SuiAccount,
+				cardinality: EntityFieldCardinality.One,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
+			},
+		}),
 		Starknet: facet({
 			path: [
 				'namespace',
