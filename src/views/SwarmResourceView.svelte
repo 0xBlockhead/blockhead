@@ -298,5 +298,21 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+
+		<ResourceBoundary
+			resource={swarmResource}
+		>
+			{#snippet children(entity)}
+				{@const artifactContent = entity.text}
+				{#if artifactContent != null && artifactContent !== ''}
+					<a
+						href={`data:text/plain;charset=utf-8,${encodeURIComponent(artifactContent)}`}
+						download='swarm-resource.txt'
+					>
+						Download resolved text
+					</a>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

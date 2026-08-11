@@ -58537,6 +58537,14 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						artifacts: [
+							{
+								field: "text",
+								label: "Download resolved text",
+								fileName: "swarm-resource.txt",
+								mediaType: "text/plain",
+							},
+						],
 						query: {
 							sources: [Source.Swarm_Rest],
 							fields: ["canonicalUri", "gatewayOrigin", "gatewayUrl", "fileName", "extension", "contentType", "contentLength", "displayType", "isContentTypeInferred"],
