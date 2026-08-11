@@ -87,7 +87,7 @@ export const nostrReplyToEventId = (tags: string[][]) => {
 	)
 }
 
-export const nostrRootEventId = (tags: string[][]) => (
+const nostrRootEventId = (tags: string[][]) => (
 	tags.flatMap((tag) => (
 		tag[0] === 'e'
 		&& tag[3] === 'root' ?
