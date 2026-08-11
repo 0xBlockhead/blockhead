@@ -30,6 +30,7 @@ const binding = bindings[Source.FedimintGatewayd_Rest][0]
 export const localGatewayBindingKey = binding.target.key
 
 const gatewayIdWire = arktype('string > 0')
+const nonNegativeSafeInteger = arktype(`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`)
 
 const configuredBinding = (publicEnv: SourcePublicEnv) => ({
 	...binding,
@@ -133,8 +134,8 @@ export const getGatewayInfo = async ({
 	publicEnv,
 }: {
 	publicEnv: SourcePublicEnv
-}): Promise<FedimintGatewayInfoWire> => (
-	assertEnvelope(
+}): Promise<FedimintGatewayInfoWire> => {
+	const info = assertEnvelope(
 		'gateway info',
 		fedimintGatewayInfoWire,
 		await requestGatewayJson({
@@ -143,7 +144,14 @@ export const getGatewayInfo = async ({
 			authenticated: true,
 		})
 	)
-)
+	const federationIds = new Set<string>()
+	for (const federation of info.federations) {
+		if (federationIds.has(federation.federation_id))
+			throw new Error('FedimintGatewayd_Rest: gateway info contains a duplicate federation')
+		federationIds.add(federation.federation_id)
+	}
+	return info
+}
 
 /**
  * GET /v1/balances — admin Bearer required.
@@ -152,8 +160,8 @@ export const getGatewayBalances = async ({
 	publicEnv,
 }: {
 	publicEnv: SourcePublicEnv
-}): Promise<FedimintGatewayBalancesWire> => (
-	assertEnvelope(
+}): Promise<FedimintGatewayBalancesWire> => {
+	const balances = assertEnvelope(
 		'gateway balances',
 		fedimintGatewayBalancesWire,
 		await requestGatewayJson({
@@ -162,7 +170,14 @@ export const getGatewayBalances = async ({
 			authenticated: true,
 		})
 	)
-)
+	const federationIds = new Set<string>()
+	for (const balance of balances.ecash_balances) {
+		if (federationIds.has(balance.federation_id))
+			throw new Error('FedimintGatewayd_Rest: gateway balances contains a duplicate federation')
+		federationIds.add(balance.federation_id)
+	}
+	return balances
+}
 
 /**
  * GET /v1/list_channels — admin Bearer required.
@@ -194,8 +209,13 @@ export const getPaymentSummary = async ({
 	publicEnv: SourcePublicEnv
 	startMs: number
 	endMs: number
-}): Promise<FedimintPaymentSummaryWire> => (
-	assertEnvelope(
+}): Promise<FedimintPaymentSummaryWire> => {
+	if (!nonNegativeSafeInteger.allows(startMs) || !nonNegativeSafeInteger.allows(endMs))
+		throw new Error('FedimintGatewayd_Rest: payment summary window must use non-negative safe millisecond timestamps')
+	if (endMs <= startMs)
+		throw new Error('FedimintGatewayd_Rest: payment summary window end must follow its start')
+
+	return assertEnvelope(
 		'payment summary',
 		fedimintPaymentSummaryWire,
 		await requestGatewayJson({
@@ -209,4 +229,4 @@ export const getPaymentSummary = async ({
 			authenticated: true,
 		})
 	)
-)
+}

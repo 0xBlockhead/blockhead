@@ -162,6 +162,90 @@ it('posts payment summary with an explicit observation window', async () => {
 	})
 })
 
+it('rejects duplicate federation balances and invalid payment observation windows before transport', async () => {
+	sourceFetch.mockResolvedValueOnce(jsonResponse({
+		onchain_balance_sats: 1,
+		lightning_balance_msats: 2,
+		ecash_balances: [
+			{
+				federation_id: 'fed-1',
+				ecash_balance_msats: 3,
+			},
+			{
+				federation_id: 'fed-1',
+				ecash_balance_msats: 4,
+			},
+		],
+		inbound_lightning_liquidity_msats: 5,
+	}))
+
+	await expect(getGatewayBalances({
+		publicEnv,
+	})).rejects.toThrow('duplicate federation')
+	await expect(getPaymentSummary({
+		publicEnv,
+		startMs: 20,
+		endMs: 20,
+	})).rejects.toThrow('window end must follow its start')
+	await expect(getPaymentSummary({
+		publicEnv,
+		startMs: -1,
+		endMs: 20,
+	})).rejects.toThrow('non-negative safe millisecond timestamps')
+
+	expect(sourceFetch).toHaveBeenCalledOnce()
+})
+
+it('rejects duplicate federation identities in the gateway information response', async () => {
+	sourceFetch.mockResolvedValueOnce(jsonResponse({
+		version_hash: 'abc',
+		federations: [
+			{
+				federation_id: 'fed-1',
+				balance_msat: 3,
+				config: {
+					invite_code: 'invite',
+					federation_index: 0,
+					lightning_fee: {
+						base: 0,
+						parts_per_million: 0,
+					},
+					transaction_fee: {
+						base: 0,
+						parts_per_million: 0,
+					},
+				},
+			},
+			{
+				federation_id: 'fed-1',
+				balance_msat: 4,
+				config: {
+					invite_code: 'invite',
+					federation_index: 1,
+					lightning_fee: {
+						base: 0,
+						parts_per_million: 0,
+					},
+					transaction_fee: {
+						base: 0,
+						parts_per_million: 0,
+					},
+				},
+			},
+		],
+		gateway_state: 'running',
+		lightning_info: {
+			not_connected: null,
+		},
+		lightning_mode: {},
+		registrations: {},
+	}))
+
+	await expect(getGatewayInfo({
+		publicEnv,
+	})).rejects.toThrow('duplicate federation')
+})
+
 it('fails closed when admin password env is missing', async () => {
 	await expect(getGatewayInfo({
 		publicEnv: {
