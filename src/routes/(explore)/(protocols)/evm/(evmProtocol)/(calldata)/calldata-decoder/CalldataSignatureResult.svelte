@@ -49,6 +49,22 @@
 </script>
 
 
+<aside
+	aria-label="Signature provenance"
+	data-card="padding-2"
+	data-column="gap-1"
+>
+	<p>
+		<strong>Candidate source:</strong>
+		Openchain REST. When Openchain returns no matches, the resolver queries 4byte.directory.
+	</p>
+
+	<p>
+		<strong>Interpretation:</strong>
+		Candidate signatures are provider-attributed claims. Decoding is performed locally and is deterministic for the selected candidate.
+	</p>
+</aside>
+
 <ResourceBoundary
 	{resource}
 	placeholderText={`Loading ${kind === CalldataSignatureKind.Function ? 'function' : 'event'} signature...`}

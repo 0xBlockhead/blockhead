@@ -23,6 +23,10 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 		resource,
 	})
 
+	await expect.element(page.getByRole('complementary', { name: 'Signature provenance' })).toBeVisible()
+	await expect.element(page.getByText('Openchain REST', { exact: false })).toBeVisible()
+	await expect.element(page.getByText('provider-attributed claims', { exact: false })).toBeVisible()
+	await expect.element(page.getByText('deterministic for the selected candidate', { exact: false })).toBeVisible()
 	await expect.element(page.getByLabelText('Loading function signature...')).toBeInTheDocument()
 	await expect.element(page.getByText('No catalog signatures matched this function selector.')).not.toBeInTheDocument()
 	await tick()
@@ -37,6 +41,7 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 
 	resource.fail(new Error('catalog unavailable'))
 	await expect.element(page.getByText('Unable to load function signatures: catalog unavailable')).toBeInTheDocument()
+	await expect.element(page.getByRole('complementary', { name: 'Signature provenance' })).toBeVisible()
 	await expect.element(page.getByText('No catalog signatures matched this function selector.')).not.toBeInTheDocument()
 	await expect.element(page.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
 })
