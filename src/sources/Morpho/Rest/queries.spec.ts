@@ -191,4 +191,17 @@ describe('Morpho Blue market operations', () => {
 			marketId: baseMarketId,
 		})).rejects.toThrow(`${Source.Morpho_Rest}: invalid market state response envelope`)
 	})
+
+	it('rejects unsafe provider observation clocks', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			data: {
+				...baseMarketState,
+				last_accrual_timestamp: Number.MAX_SAFE_INTEGER + 1,
+			},
+		})
+		await expect(getMarketState({
+			chainId: 8453,
+			marketId: baseMarketId,
+		})).rejects.toThrow(`${Source.Morpho_Rest}: invalid last accrual timestamp`)
+	})
 })

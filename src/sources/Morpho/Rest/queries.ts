@@ -78,6 +78,15 @@ const assertNonEmptyDecimalString = (
 	return value
 }
 
+const assertSafeTimestamp = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isSafeInteger(value) || value < 0)
+		throw new Error(`${Source.Morpho_Rest}: invalid ${label}`)
+	return value
+}
+
 const marketSelectorPath = (
 	chainId: number,
 	marketId: `0x${string}`
@@ -129,7 +138,7 @@ const assertMarketStateWire = (
 		chainId: wire.chain_id,
 		marketId,
 		lastIndexedBlock: assertNonEmptyDecimalString(wire.last_indexed_block, 'last_indexed_block'),
-		lastAccrualTimestamp: wire.last_accrual_timestamp,
+		lastAccrualTimestamp: assertSafeTimestamp(wire.last_accrual_timestamp, 'last accrual timestamp'),
 		totalSupplyAssets: assertNonEmptyDecimalString(wire.total_supply_assets, 'total_supply_assets'),
 		totalSupplyShares: assertNonEmptyDecimalString(wire.total_supply_shares, 'total_supply_shares'),
 		totalBorrowAssets: assertNonEmptyDecimalString(wire.total_borrow_assets, 'total_borrow_assets'),
