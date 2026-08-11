@@ -204,8 +204,8 @@ export const getMinerSectors = async ({
 }: {
 	minerAddress: string
 	tipsetKey: LotusTipsetKey
-}) => (
-	assertEnvelope(
+}) => {
+	const sectors = assertEnvelope(
 		'miner-sectors',
 		lotusSectorOnChainInfo.array(),
 		await jsonRpc2(binding, 'Filecoin.StateMinerSectors', [
@@ -214,7 +214,11 @@ export const getMinerSectors = async ({
 			tipsetKey,
 		])
 	)
-)
+	if (new Set(sectors.map((sector) => sector.SectorNumber)).size !== sectors.length)
+		throw new Error('Lotus_JsonRpc: miner sectors contains duplicate sector number')
+
+	return sectors
+}
 
 export const getMinerActiveSectors = async ({
 	minerAddress,
@@ -222,8 +226,8 @@ export const getMinerActiveSectors = async ({
 }: {
 	minerAddress: string
 	tipsetKey: LotusTipsetKey
-}) => (
-	assertEnvelope(
+}) => {
+	const activeSectors = assertEnvelope(
 		'miner-active-sectors',
 		lotusSectorOnChainInfo.array(),
 		await jsonRpc2(binding, 'Filecoin.StateMinerActiveSectors', [
@@ -231,7 +235,11 @@ export const getMinerActiveSectors = async ({
 			tipsetKey,
 		])
 	)
-)
+	if (new Set(activeSectors.map((sector) => sector.SectorNumber)).size !== activeSectors.length)
+		throw new Error('Lotus_JsonRpc: miner active sectors contains duplicate sector number')
+
+	return activeSectors
+}
 
 export const getMinerSectorCount = async ({
 	minerAddress,

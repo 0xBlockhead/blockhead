@@ -253,6 +253,22 @@ describe('Lotus JSON-RPC state queries', () => {
 		])
 	})
 
+	it('rejects duplicate sector numbers for a miner', async () => {
+		const duplicateSectorEnvelope = [sectorEnvelope, sectorEnvelope]
+		fetchMock
+			.mockResolvedValueOnce(rpcResponse(duplicateSectorEnvelope))
+			.mockResolvedValueOnce(rpcResponse(duplicateSectorEnvelope))
+
+		await expect(getMinerSectors({
+			minerAddress: 'f01234',
+			tipsetKey,
+		})).rejects.toThrow('Lotus_JsonRpc: miner sectors contains duplicate sector number')
+		await expect(getMinerActiveSectors({
+			minerAddress: 'f01234',
+			tipsetKey,
+		})).rejects.toThrow('Lotus_JsonRpc: miner active sectors contains duplicate sector number')
+	})
+
 	it('binds tipset responses to their requested height and key', async () => {
 		fetchMock
 			.mockResolvedValueOnce(rpcResponse({
