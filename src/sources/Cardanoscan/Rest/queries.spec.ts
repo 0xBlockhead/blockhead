@@ -22,7 +22,6 @@ const {
 	getLatestBlock,
 	getTransaction,
 	listPools,
-	queryPath,
 } = await import('$/sources/Cardanoscan/Rest/queries.ts')
 
 const binding = bindings[Source.Cardanoscan_Rest][0]
@@ -62,16 +61,14 @@ describe('Cardanoscan public REST transport', () => {
 	})
 
 	it('uses the exact binding-owned public endpoint', async () => {
-		sourceGetJson.mockResolvedValueOnce({
-			status: 'ok',
-		})
+		sourceGetJson.mockResolvedValueOnce(validBlock)
 
-		await expect(queryPath('/api/v1/block')).resolves.toEqual({
-			status: 'ok',
+		await expect(getLatestBlock()).resolves.toMatchObject({
+			blockHeight: 12_345_678,
 		})
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			binding,
-			'https://api.cardanoscan.io/api/v1/block'
+			'https://api.cardanoscan.io/api/v1/block/latest'
 		)
 	})
 

@@ -49,11 +49,6 @@ const query = (
 	)
 )
 
-/** @deprecated Prefer typed getters; retained for binding smoke tests. */
-export const queryPath = (
-	path: string
-) => query(path)
-
 export const getLatestBlock = async (): Promise<CardanoscanBlock> => (
 	assertCardanoscanEnvelope(
 		cardanoscanBlockWire,
