@@ -181,4 +181,53 @@ describe('MevRelay REST bidtrace queries', () => {
 			limit: 1,
 		})).resolves.toEqual([])
 	})
+
+	it('fail-closes proposer_payload_delivered rows that do not match the requested slot', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([{
+			...bidTrace,
+			slot: '14917872',
+		}]))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getProposerPayloadDeliveredForRelayHost('boost-relay.flashbots.net', {
+			limit: 1,
+			slot: 14917871,
+		})).rejects.toThrow('MevRelay_Rest: proposer_payload_delivered BidTrace slot does not match query')
+	})
+
+	it('fail-closes proposer_payload_delivered rows with duplicate identities', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([bidTrace, bidTrace]))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getProposerPayloadDeliveredForRelayHost('boost-relay.flashbots.net', {
+			limit: 2,
+		})).rejects.toThrow('MevRelay_Rest: proposer_payload_delivered BidTrace list contains duplicate identities')
+	})
+
+	it('fail-closes builder_blocks_received rows that do not match the requested builder_pubkey', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([{
+			...builderTipBidTrace,
+			builder_pubkey: '0x0000000000000000000000000000000000000000000000000000000000000001',
+		}]))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getBuilderBlocksReceivedForRelayHost('boost-relay.flashbots.net', {
+			limit: 1,
+			builder_pubkey: bidTrace.builder_pubkey,
+		})).rejects.toThrow('MevRelay_Rest: builder_blocks_received BidTrace builder_pubkey does not match query')
+	})
+
+	it('fail-closes builder_blocks_received rows with duplicate identities', async () => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse([builderTipBidTrace, builderTipBidTrace]))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getBuilderBlocksReceivedForRelayHost('boost-relay.flashbots.net', {
+			limit: 2,
+			builder_pubkey: bidTrace.builder_pubkey,
+		})).rejects.toThrow('MevRelay_Rest: builder_blocks_received BidTrace list contains duplicate identities')
+	})
 })

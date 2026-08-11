@@ -46,15 +46,45 @@ const bidTraceSearchParams = (
 	return search
 }
 
-const assertBidTraceList = (
+const assertBidTracesForQuery = (
 	path: string,
+	options: MevRelayBidTraceQuery,
 	response: unknown
 ): readonly BidTrace[] => {
+	let bidTraces: readonly BidTrace[]
 	try {
-		return bidTraceListWire.assert(response)
+		bidTraces = bidTraceListWire.assert(response)
 	} catch {
 		throw new Error(`MevRelay_Rest: invalid ${path} BidTrace response envelope`)
 	}
+
+	const seenIdentities = new Set<string>()
+	for (const bidTrace of bidTraces) {
+		if (options.slot != null && String(options.slot) !== bidTrace.slot)
+			throw new Error(`MevRelay_Rest: ${path} BidTrace slot does not match query`)
+		if (
+			options.block_hash != null
+			&& bidTrace.block_hash.toLowerCase() !== options.block_hash.toLowerCase()
+		)
+			throw new Error(`MevRelay_Rest: ${path} BidTrace block_hash does not match query`)
+		if (
+			options.block_number != null
+			&& String(options.block_number) !== bidTrace.block_number
+		)
+			throw new Error(`MevRelay_Rest: ${path} BidTrace block_number does not match query`)
+		if (
+			options.builder_pubkey != null
+			&& bidTrace.builder_pubkey.toLowerCase() !== options.builder_pubkey.toLowerCase()
+		)
+			throw new Error(`MevRelay_Rest: ${path} BidTrace builder_pubkey does not match query`)
+
+		const identity = `${bidTrace.slot}/${bidTrace.block_hash.toLowerCase()}/${bidTrace.builder_pubkey.toLowerCase()}`
+		if (seenIdentities.has(identity))
+			throw new Error(`MevRelay_Rest: ${path} BidTrace list contains duplicate identities`)
+		seenIdentities.add(identity)
+	}
+
+	return bidTraces
 }
 
 const getBidTracesForRelayHost = async (
@@ -67,8 +97,9 @@ const getBidTracesForRelayHost = async (
 		throw new Error(`MevRelay_Rest: no canonical relay binding for ${relayHost}`)
 
 	const search = bidTraceSearchParams(options)
-	return assertBidTraceList(
+	return assertBidTracesForQuery(
 		path,
+		options,
 		await sourceGetJson(
 			binding,
 			new URL(
