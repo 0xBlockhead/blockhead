@@ -18,6 +18,7 @@ vi.mock('$/sources/RedditPublic/Rest/client.ts', () => ({
 
 import {
 	getCommentsByArticleId,
+	getInfo,
 	listSubredditLinks,
 } from '$/sources/RedditPublic/Rest/queries.ts'
 
@@ -69,6 +70,15 @@ describe('Reddit Public listing hard-fail', () => {
 				sort: 'hot',
 			})
 		).rejects.toThrow('JSON unavailable')
+	})
+
+	it('rejects empty path identities before transport', async () => {
+		await expect(getInfo('   ')).rejects.toThrow('info id must not be empty')
+		await expect(listSubredditLinks('', {
+			limit: 25,
+			sort: 'hot',
+		})).rejects.toThrow('subreddit name must not be empty')
+		expect(redditJsonGet).not.toHaveBeenCalled()
 	})
 })
 

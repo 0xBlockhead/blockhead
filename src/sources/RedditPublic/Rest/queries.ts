@@ -20,6 +20,14 @@ const redditListingLimit = (limit: number) => {
 	return Math.min(100, limit)
 }
 
+const assertNonemptyPathId = (value: string, label: string) => {
+	if (value.trim() === '')
+		throw new Error(`Reddit_PublicJson: ${label} must not be empty`)
+	if (value !== value.trim() || /[\u0000-\u001f\u007f]/.test(value))
+		throw new Error(`Reddit_PublicJson: invalid ${label}`)
+	return value
+}
+
 const assertEnvelope = <_Value>(
 	label: string,
 	wire: { assert: (value: unknown) => _Value },
@@ -38,7 +46,7 @@ export const getInfo = async (id: string) => (
 		redditPublicInfoResponseWire,
 		await redditJsonGet<RedditPublicApiInfoResponse>(
 			`/api/info.json?${(
-				new URLSearchParams({ id, raw_json: '1' }).toString()
+				new URLSearchParams({ id: assertNonemptyPathId(id, 'info id'), raw_json: '1' }).toString()
 			)}`
 		)
 	)
@@ -49,7 +57,7 @@ export const getSubredditAbout = async (name: string) => (
 		'subreddit-about',
 		redditPublicSubredditAboutWire,
 		await redditJsonGet<RedditPublicApiSubredditAbout>(
-			`/r/${encodeURIComponent(name)}/about.json?raw_json=1`
+			`/r/${encodeURIComponent(assertNonemptyPathId(name, 'subreddit name'))}/about.json?raw_json=1`
 		)
 	)
 )
@@ -59,6 +67,7 @@ export const listSubredditLinks = async (
 	request: RedditPublicApiListingRequest
 ) => {
 	const limit = redditListingLimit(request.limit)
+	assertNonemptyPathId(name, 'subreddit name')
 	if (limit === 0)
 		return {
 			kind: 'Listing',
