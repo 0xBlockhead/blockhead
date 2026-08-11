@@ -194,13 +194,19 @@ const pagination = ({
 
 const requireNftList = <
 	_Response extends {
-		nfts: unknown
+		nfts: {
+			contract: string
+			identifier: string
+		}[]
 	},
 >(
 	body: _Response,
 	surface: string
 ) => {
 	assertEnvelope(openSeaNftListEnvelope, body, surface)
+	if (new Set(body.nfts.map((nft) => `${nft.contract.toLowerCase()}:${nft.identifier}`)).size !== body.nfts.length)
+		throw new Error(`OpenSea_Rest: ${surface} contains duplicate NFT identities`)
+
 	return body
 }
 
@@ -208,6 +214,9 @@ const requireOwnersList = (
 	body: OpenSeaNftOwnersResponse
 ) => {
 	assertEnvelope(openSeaNftOwnersEnvelope, body, 'NFT owners')
+	if (new Set(body.owners.map((owner) => owner.address.toLowerCase())).size !== body.owners.length)
+		throw new Error('OpenSea_Rest: NFT owners contains duplicate addresses')
+
 	return body
 }
 

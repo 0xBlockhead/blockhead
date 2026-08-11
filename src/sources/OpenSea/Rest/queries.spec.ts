@@ -274,6 +274,20 @@ describe('OpenSea NFT endpoints', () => {
 		})).rejects.toThrow('invalid contract NFTs response envelope')
 	})
 
+	it('rejects duplicate NFT identities rather than collapsing page rows', async () => {
+		respond({
+			nfts: [
+				nft,
+				nft,
+			],
+		})
+
+		await expect(getNftsByContract({
+			chain: 'ethereum',
+			address: contract,
+		})).rejects.toThrow('duplicate NFT identities')
+	})
+
 	it('hard-fails incomplete NFT details instead of returning partial metadata', async () => {
 		vi.mocked(sourceFetch).mockResolvedValueOnce(
 			new Response(JSON.stringify({
@@ -410,6 +424,29 @@ describe('OpenSea contract / owners / collection endpoints', () => {
 			identifier: '1',
 			limit: 101,
 		})).rejects.toThrow('between 1 and 100')
+	})
+
+	it('rejects duplicate owner addresses rather than collapsing ownership rows', async () => {
+		respond({
+			owners: [
+				{
+					address,
+					quantity: 1,
+					quantity_string: '1',
+				},
+				{
+					address,
+					quantity: 2,
+					quantity_string: '2',
+				},
+			],
+		})
+
+		await expect(getNftOwners({
+			chain: 'ethereum',
+			address: contract,
+			identifier: '1',
+		})).rejects.toThrow('duplicate addresses')
 	})
 
 	it('lists NFT events with repeated event_type filters', async () => {
