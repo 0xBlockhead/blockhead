@@ -56,8 +56,8 @@
 	data-column="gap-1"
 >
 	<p>
-		<strong>Candidate source:</strong>
-		Openchain REST. When Openchain returns no matches, the resolver queries 4byte.directory.
+		<strong>Candidate lookup:</strong>
+		Openchain REST is queried first. When it returns no matches, the resolver queries 4byte.directory. Individual candidates are not tagged with their lookup origin.
 	</p>
 
 	<p>
@@ -172,9 +172,12 @@
 	{/snippet}
 
 	{#snippet Failed(error, retry)}
-		<p data-resource-state="failed">
-			Unable to load {kind === CalldataSignatureKind.Function ? 'function' : 'event'} signatures: {errorDisplayMessage(error)}
-			<button type="button" onclick={retry}>Retry</button>
+		<p
+			data-resource-state="failed"
+			role="alert"
+		>
+			Unable to load {kind === CalldataSignatureKind.Function ? 'function' : 'event'} signatures from the candidate lookup: {errorDisplayMessage(error)}
+			<button type="button" onclick={retry}>Retry signature lookup</button>
 		</p>
 	{/snippet}
 </ResourceBoundary>

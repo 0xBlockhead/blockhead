@@ -24,7 +24,8 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 	})
 
 	await expect.element(page.getByRole('complementary', { name: 'Signature provenance' })).toBeVisible()
-	await expect.element(page.getByText('Openchain REST', { exact: false })).toBeVisible()
+	await expect.element(page.getByText('Openchain REST is queried first', { exact: false })).toBeVisible()
+	await expect.element(page.getByText('Individual candidates are not tagged with their lookup origin', { exact: false })).toBeVisible()
 	await expect.element(page.getByText('provider-attributed claims', { exact: false })).toBeVisible()
 	await expect.element(page.getByText('deterministic for the selected candidate', { exact: false })).toBeVisible()
 	await expect.element(page.getByRole('link', { name: 'Download raw hex' })).toHaveAttribute(
@@ -52,8 +53,8 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 	await expect.element(page.getByText('No catalog signatures matched this function selector.')).not.toBeInTheDocument()
 
 	resource.fail(new Error('catalog unavailable'))
-	await expect.element(page.getByText('Unable to load function signatures: catalog unavailable')).toBeInTheDocument()
+	await expect.element(page.getByRole('alert')).toHaveTextContent('Unable to load function signatures from the candidate lookup: catalog unavailable')
 	await expect.element(page.getByRole('complementary', { name: 'Signature provenance' })).toBeVisible()
 	await expect.element(page.getByText('No catalog signatures matched this function selector.')).not.toBeInTheDocument()
-	await expect.element(page.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
+	await expect.element(page.getByRole('button', { name: 'Retry signature lookup' })).toBeInTheDocument()
 })
