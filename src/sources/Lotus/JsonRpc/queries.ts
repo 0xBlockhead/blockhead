@@ -49,8 +49,11 @@ export const getTipSetByHeight = async ({
 	height,
 }: {
 	height: bigint
-}) => (
-	assertEnvelope(
+}) => {
+	if (height < 0n || height > BigInt(Number.MAX_SAFE_INTEGER))
+		throw new Error('Lotus_JsonRpc: invalid tipset height')
+
+	const tipset = assertEnvelope(
 		'tipset-by-height',
 		lotusTipset,
 		await jsonRpc2(binding, 'Filecoin.ChainGetTipSetByHeight', [
@@ -58,21 +61,30 @@ export const getTipSetByHeight = async ({
 			null,
 		])
 	)
-)
+	if (tipset.Height > Number(height))
+		throw new Error('Lotus_JsonRpc: tipset response height exceeds request')
+	return tipset
+}
 
 export const getTipSet = async ({
 	tipsetKey,
 }: {
 	tipsetKey: LotusTipsetKey
-}) => (
-	assertEnvelope(
+}) => {
+	const tipset = assertEnvelope(
 		'tipset',
 		lotusTipset,
 		await jsonRpc2(binding, 'Filecoin.ChainGetTipSet', [
 			tipsetKey,
 		])
 	)
-)
+	if (
+		tipset.Cids.length !== tipsetKey.length
+		|| tipset.Cids.some((cid, index) => cid['/'] !== tipsetKey[index]?.['/'])
+	)
+		throw new Error('Lotus_JsonRpc: tipset response key does not match request')
+	return tipset
+}
 
 export const getHead = async () => (
 	assertEnvelope(

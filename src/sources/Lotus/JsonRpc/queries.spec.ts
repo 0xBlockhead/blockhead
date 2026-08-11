@@ -16,6 +16,8 @@ import {
 	getMinerPower,
 	getMinerSectorCount,
 	getMinerSectors,
+	getTipSet,
+	getTipSetByHeight,
 } from '$/sources/Lotus/JsonRpc/queries.ts'
 
 const fetchMock = vi.fn<typeof fetch>()
@@ -80,6 +82,19 @@ const sectorCountEnvelope = {
 	Active: 1,
 	Faulty: 0,
 	Total: 1,
+}
+
+const tipsetEnvelope = {
+	Cids: tipsetKey,
+	Blocks: [{
+		Miner: 'f01234',
+		Parents: [],
+		ParentWeight: '0',
+		Height: 100,
+		Timestamp: 1_750_000_000,
+		Messages: { '/': 'bafy2bzacemessages' },
+	}],
+	Height: 100,
 }
 
 const dealEnvelope = {
@@ -236,6 +251,37 @@ describe('Lotus JSON-RPC state queries', () => {
 				params: [42, tipsetKey],
 			},
 		])
+	})
+
+	it('binds tipset responses to their requested height and key', async () => {
+		fetchMock
+			.mockResolvedValueOnce(rpcResponse({
+				...tipsetEnvelope,
+				Height: 99,
+			}))
+			.mockResolvedValueOnce(rpcResponse({
+				...tipsetEnvelope,
+				Height: 101,
+			}))
+			.mockResolvedValueOnce(rpcResponse({
+				...tipsetEnvelope,
+				Cids: [{
+					'/': 'bafy2bzaceother',
+				}],
+			}))
+
+		await expect(getTipSetByHeight({
+			height: 100n,
+		})).resolves.toMatchObject({ Height: 99 })
+		await expect(getTipSetByHeight({
+			height: 100n,
+		})).rejects.toThrow('tipset response height exceeds request')
+		await expect(getTipSet({ tipsetKey })).rejects.toThrow('tipset response key does not match request')
+
+		await expect(getTipSetByHeight({
+			height: BigInt(Number.MAX_SAFE_INTEGER) + 1n,
+		})).rejects.toThrow('invalid tipset height')
+		expect(fetchMock).toHaveBeenCalledTimes(3)
 	})
 
 	it('fail-closes malformed actor, miner, and deal envelopes', async () => {
