@@ -40,9 +40,17 @@
 	<header data-column="gap-1">
 		<h1>Open an entity</h1>
 
-		{#if data.query}
+		{#if evmAccountCandidates.length}
+			<p role="status">
+				“{data.query}” is a valid EVM address, but an address does not identify its network.
+			</p>
+		{:else if isEvmHash}
+			<p role="status">
+				“{data.query}” is a valid 32-byte EVM hash, but a hash does not identify its network or entity kind.
+			</p>
+		{:else if data.query}
 			<p role="alert">
-				“{data.query}” is ambiguous or unsupported. Include a canonical namespace or use a supported identifier.
+				“{data.query}” is unsupported. Include a canonical namespace or use a supported identifier.
 			</p>
 		{:else}
 			<p>Enter a canonical identifier.</p>
