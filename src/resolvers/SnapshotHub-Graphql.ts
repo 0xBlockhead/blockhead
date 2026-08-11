@@ -26,6 +26,28 @@ const isEvmAddress = (
 	/^0x[0-9a-fA-F]{40}$/.test(value)
 )
 
+const snapshotOffset = (
+	context: ResolverContext,
+	label: string
+) => {
+	if (
+		context.providerContinuationToken != null
+		&& !/^(0|[1-9][0-9]*)$/.test(context.providerContinuationToken)
+	)
+		throw new Error(`SnapshotHub_Graphql: invalid ${label} continuation`)
+
+	const offset = (
+		context.providerContinuationToken == null ?
+			context.pagination.offset ?? 0
+		:
+			Number(context.providerContinuationToken)
+	)
+	if (!Number.isSafeInteger(offset) || offset < 0)
+		throw new Error(`SnapshotHub_Graphql: invalid ${label} continuation`)
+
+	return offset
+}
+
 const evmNetworkSelector = (
 	chainId: string
 ) => {
@@ -422,14 +444,37 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				Scope: {
-					resolve: async (_entitySelector, context) => ({
-						$$snapshotSpaces: await resolveSnapshotSpaces(context),
-					}),
+					resolve: async (_entitySelector, context) => {
+						const offset = snapshotOffset(context, 'spaces')
+
+						return {
+							offset,
+							limit: resolverContextRowLimit(context),
+							$$snapshotSpaces: await resolveSnapshotSpaces({
+								...context,
+								pagination: {
+									...context.pagination,
+									offset,
+								},
+							}),
+						}
+					},
 				},
 			},
 		})({
 			$$snapshotSpaces: {
 				select: (snapshot) => snapshot.$$snapshotSpaces,
+				continuation: (snapshot) => {
+					const nextOffset = snapshot.offset + snapshot.$$snapshotSpaces.length
+					return {
+						operation: 'spaces',
+						target: 'snapshot-hub',
+						terminal: snapshot.$$snapshotSpaces.length < snapshot.limit,
+						...(snapshot.$$snapshotSpaces.length === snapshot.limit && {
+							token: String(nextOffset),
+						}),
+					}
+				},
 			},
 		}),
 
@@ -461,16 +506,39 @@ export default {
 			entityType: EntityType.SnapshotSpace,
 			resolve: {
 				SpaceId: {
-					resolve: async ({ spaceId }, context) => ({
-						$$proposals: await resolveSnapshotProposals({
-							spaceId,
-						}, context),
-					}),
+					resolve: async ({ spaceId }, context) => {
+						const offset = snapshotOffset(context, 'proposals')
+
+						return {
+							offset,
+							limit: resolverContextRowLimit(context),
+							$$proposals: await resolveSnapshotProposals({
+								spaceId,
+							}, {
+								...context,
+								pagination: {
+									...context.pagination,
+									offset,
+								},
+							}),
+						}
+					},
 				},
 			},
 		})({
 			$$proposals: {
 				select: (snapshot) => snapshot.$$proposals,
+				continuation: (snapshot) => {
+					const nextOffset = snapshot.offset + snapshot.$$proposals.length
+					return {
+						operation: 'proposals',
+						target: 'snapshot-hub',
+						terminal: snapshot.$$proposals.length < snapshot.limit,
+						...(snapshot.$$proposals.length === snapshot.limit && {
+							token: String(nextOffset),
+						}),
+					}
+				},
 			},
 		}),
 
@@ -515,14 +583,7 @@ export default {
 			resolve: {
 				ProposalId: {
 					resolve: async ({ proposalId }, context) => {
-						const offset = (
-							context.providerContinuationToken == null ?
-								context.pagination.offset ?? 0
-							:
-								Number(context.providerContinuationToken)
-						)
-						if (!Number.isSafeInteger(offset) || offset < 0)
-							throw new Error('SnapshotHub_Graphql: invalid votes continuation')
+						const offset = snapshotOffset(context, 'votes')
 
 						return {
 							offset,

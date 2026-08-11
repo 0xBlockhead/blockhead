@@ -517,6 +517,75 @@ describe('SnapshotHub GraphQL resolvers', () => {
 		})
 	})
 
+	it('continues Snapshot space and proposal entry lists with opaque offsets', async () => {
+		const spacesResolver = snapshotHubGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType._Global
+			&& 'Scope' in resolver.resolve
+			&& '$$snapshotSpaces' in resolver.projections
+		))
+		const proposalsResolver = snapshotHubGraphql.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.SnapshotSpace
+			&& 'SpaceId' in resolver.resolve
+			&& '$$proposals' in resolver.projections
+		))
+		if (spacesResolver == null || !('Scope' in spacesResolver.resolve))
+			throw new Error('SnapshotHub_Graphql spec missing global Snapshot spaces resolver')
+		if (proposalsResolver == null || !('SpaceId' in proposalsResolver.resolve))
+			throw new Error('SnapshotHub_Graphql spec missing Snapshot space proposals resolver')
+
+		await expect(spacesResolver.resolve.Scope.resolve({}, {
+			...context,
+			providerContinuationToken: '1e2',
+		})).rejects.toThrow('invalid spaces continuation')
+
+		getSpacesPage.mockResolvedValueOnce([
+			space,
+			{
+				...space,
+				id: 'ethdao.eth',
+			},
+		])
+		const spacesPage = await spacesResolver.resolve.Scope.resolve({}, {
+			...context,
+			pagination: { limit: 2 },
+			providerContinuationToken: '6',
+		})
+		expect(getSpacesPage).toHaveBeenCalledWith({
+			limit: 2,
+			offset: 6,
+		})
+		expect(spacesResolver.projections.$$snapshotSpaces.continuation(spacesPage)).toEqual({
+			operation: 'spaces',
+			target: 'snapshot-hub',
+			terminal: false,
+			token: '8',
+		})
+
+		getProposalsPage.mockResolvedValueOnce([
+			proposal,
+			{
+				...proposal,
+				id: `0x${'3'.repeat(64)}`,
+			},
+		])
+		const proposalsPage = await proposalsResolver.resolve.SpaceId.resolve({ spaceId }, {
+			...context,
+			pagination: { limit: 2 },
+			providerContinuationToken: '8',
+		})
+		expect(getProposalsPage).toHaveBeenCalledWith({
+			spaceId,
+			limit: 2,
+			offset: 8,
+		})
+		expect(proposalsResolver.projections.$$proposals.continuation(proposalsPage)).toEqual({
+			operation: 'proposals',
+			target: 'snapshot-hub',
+			terminal: false,
+			token: '10',
+		})
+	})
+
 	it('hard-fails missing entities and upstream HTTP errors instead of soft-empty', async () => {
 		getSpace.mockResolvedValueOnce(null)
 		getProposal.mockRejectedValueOnce(new Error('SnapshotHub_Graphql GraphQL: 502 Bad Gateway'))
