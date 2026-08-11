@@ -450,6 +450,12 @@ type _EntityView<
 		}[]
 	}[]
 	latestDlClassName?: string
+	artifacts?: {
+		field: _EntityFieldReference
+		label: string
+		fileName: string
+		mediaType: 'application/json' | 'text/plain'
+	}[]
 	TypeAnnotationTooltip?: _RawSnippet
 	summary?: {
 		icon?: _ViewItem<_EntityFieldReference>

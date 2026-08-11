@@ -2492,6 +2492,23 @@ test('validates facet fields through the canonical facet traversal', () => {
 	)
 })
 
+test('rejects declarative artifacts that are not resolved string fields', () => {
+	const invalidArtifactApp = structuredClone(app)
+	const ipfsResource = invalidArtifactApp.schema.entities.find((entity) => (
+		entity.entityType === EntityType.IpfsResource
+	))
+	assert.ok(ipfsResource?.views.singular?.artifacts)
+	Object.defineProperty(ipfsResource.views.singular.artifacts[0], 'field', {
+		enumerable: true,
+		value: '$media',
+	})
+
+	assert.throws(
+		() => compileApp(invalidArtifactApp),
+		/IpfsResource artifact field \$media must be primitive/
+	)
+})
+
 test('renders value display facts and their query dependencies in definition lists', () => {
 	const generatedFiles = baselineCompiledApp.generatedFiles
 	const beaconValidatorView = generatedFiles.find((generatedFile) => generatedFile.path === 'src/views/BeaconValidatorView.svelte')
@@ -6700,6 +6717,7 @@ test('compiles selector-owned IPFS and Swarm path variants without duplicate map
 		renderGeneratedFile(generatedFile),
 	]))
 	const ipfsResourceView = renderedFileByPath.get('src/views/IpfsResourceView.svelte')
+	const arweaveResourceTimestampView = renderedFileByPath.get('src/views/ArweaveResource_TimestampView.svelte')
 	const swarmResourceView = renderedFileByPath.get('src/views/SwarmResourceView.svelte')
 	const ipfsBasePath = 'src/routes/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]'
 	const ipfsContentPath = `${ipfsBasePath}/path/[...contentPath=stringSegment]`
@@ -6728,7 +6746,12 @@ test('compiles selector-owned IPFS and Swarm path variants without duplicate map
 	assert.match(swarmResourceView ?? '', /contentPath === ''[\s\S]*?'\/\(swarm\)\/swarm\/\(swarmProtocol\)\/\[reference=stringSegment\]'[\s\S]*?:[\s\S]*?'\/\(swarm\)\/swarm\/\(swarmProtocol\)\/\[reference=stringSegment\]\/path\/\[\.\.\.contentPath=stringSegment\]'/)
 	assert.doesNotMatch(ipfsResourceView ?? '', /contentPath !== ''/)
 	assert.doesNotMatch(swarmResourceView ?? '', /contentPath !== ''/)
-	assert.doesNotMatch(ipfsResourceView ?? '', /resolve\(`|encodeURIComponent/)
+	assert.doesNotMatch(ipfsResourceView ?? '', /resolve\(`/)
+	assert.match(ipfsResourceView ?? '', /href=\{`data:text\/plain;charset=utf-8,\$\{encodeURIComponent\(artifactContent\)\}`\}/)
+	assert.match(ipfsResourceView ?? '', /download='ipfs-resource\.txt'/)
+	assert.match(ipfsResourceView ?? '', />\s*\{'Download resolved text'\}\s*<\/a>/)
+	assert.match(arweaveResourceTimestampView ?? '', /download='arweave-resource\.txt'/)
+	assert.doesNotMatch(ipfsResourceView ?? '', /fetch\(/)
 	assert.doesNotMatch(swarmResourceView ?? '', /resolve\(`|encodeURIComponent/)
 	assert.match(routeFixtureMetadata ?? '', /IpfsResource\.ResourceAddress[\s\S]*?probeAtomPrefixes:[\s\S]*?IpfsResource\.ResourceAddress[\s\S]*?probeCaseId: 'path'/)
 	assert.match(routeFixtureMetadata ?? '', /probeAtomPrefixes:[\s\S]*?'\/\[namespace\]\/\[target\]:IpfsResource\.ResourceAddress'[\s\S]*?probeCases:[\s\S]*?'namespace'[\s\S]*?'target'/)

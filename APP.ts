@@ -8207,6 +8207,14 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						artifacts: [
+							{
+								field: "text",
+								label: "Download resolved text",
+								fileName: "arweave-resource.txt",
+								mediaType: "text/plain",
+							},
+						],
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
 							value: ["contentType", "displayType"],
@@ -41034,6 +41042,14 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						artifacts: [
+							{
+								field: "text",
+								label: "Download resolved text",
+								fileName: "ipfs-resource.txt",
+								mediaType: "text/plain",
+							},
+						],
 						query: {
 							sources: [Source.Ipfs_Rest],
 							fields: ["canonicalUri", "gatewayOrigin", "gatewayUrl", "fileName", "extension", "contentType", "contentLength", "displayType", "isContentTypeInferred"],

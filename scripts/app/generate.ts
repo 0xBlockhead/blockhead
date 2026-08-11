@@ -2466,6 +2466,7 @@ const declaredViewItems = (entity: Entity) => {
 		...(singularView?.details?.body == null ? [] : [singularView.details.body]),
 		...(singularView?.details?.blocks?.flat() ?? []),
 		...(singularView?.details?.tabs?.flatMap((tab) => tab.items ?? []) ?? []),
+		...(singularView?.artifacts ?? []).map((artifact) => artifact.field),
 		...(pluralView?.row?.value ?? []),
 		...(pluralView?.row?.title ?? []),
 		...(pluralView?.row?.titleFallback ?? []),
@@ -5563,6 +5564,21 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 			}
 		}
 		const contentWarning = singularView?.contentWarning
+		for (const artifact of singularView?.artifacts ?? []) {
+			const field = fieldDefinitionByReference(entity, artifact.field, { entityFacetByPath })
+			const valueType = field?.valueType == null ? undefined : valueTypeById[field.valueType]
+			const primitiveType = valueType?.type ?? field?.primitiveType
+			if (field == null)
+				errors.push(`${entity.entityType} artifact references missing field ${artifact.field}`)
+			else if (field.type !== EntityFieldType.Primitive)
+				errors.push(`${entity.entityType} artifact field ${artifact.field} must be primitive`)
+			else if (primitiveType == null || !('primitive' in primitiveType) || primitiveType.primitive !== 'string')
+				errors.push(`${entity.entityType} artifact field ${artifact.field} must be string`)
+			if (artifact.label.trim() === '')
+				errors.push(`${entity.entityType} artifact label must be nonblank`)
+			if (artifact.fileName.trim() === '' || /[/\\]/.test(artifact.fileName))
+				errors.push(`${entity.entityType} artifact fileName must be a plain nonblank filename`)
+		}
 		if (contentWarning != null) {
 			if (singularView?.content?.body == null)
 				errors.push(`${entity.entityType} contentWarning requires content.body`)
@@ -8361,6 +8377,7 @@ const allViewItems = (entity: Entity, indexes: GenerationIndexes) => {
 		...(details?.blocks ?? []).flat(),
 		...(details?.tabs ?? []).flatMap((group) => group.items ?? []),
 		...(singularView?.carousels ?? []).flatMap((group) => group.sections.flatMap((section) => section.items ?? [])),
+		...(singularView?.artifacts ?? []).map((artifact) => artifact.field),
 	])
 }
 
@@ -9252,6 +9269,7 @@ const generateSingularViewFile = (
 		} satisfies RelationshipSection]
 	}))
 	const latestItems = singularView?.latest ?? []
+	const artifacts = singularView?.artifacts ?? []
 	const declaredCarousels = singularView?.carousels ?? []
 	const contentWarningMediaCarousels = contentWarning == null ? [] : declaredCarousels
 		.map((carousel) => ({
@@ -9406,6 +9424,7 @@ const generateSingularViewFile = (
 			:
 				0
 		)
+		+ artifacts.length
 	)
 	const inlineEntityResource = resolvesEntity && entityResourceReferenceCount === 1
 	const sectionQueries = sections.map((section) => renderQuery(section.selection, []))
@@ -9674,6 +9693,21 @@ const generateSingularViewFile = (
 			universalSelectorFieldNames
 		)})`
 	const entityResourceExpression = inlineEntityResource ? resolvedEntitySelectionExpression : entityName
+	const artifactMarkup = artifacts.flatMap((artifact) => renderResourceBoundary(
+		2,
+		entityResourceExpression,
+		renderSvelteSnippet(3, 'children(entity)', [
+			`\t\t\t\t{@const artifactContent = ${fieldExpression('entity', artifact.field)}}`,
+			'\t\t\t\t{#if artifactContent != null && artifactContent !== \'\'}',
+			'\t\t\t\t\t<a',
+			`\t\t\t\t\t\thref={\`data:${artifact.mediaType};charset=utf-8,\${encodeURIComponent(artifactContent)}\`}`,
+			`\t\t\t\t\t\tdownload=${emitTypeScript(artifact.fileName)}`,
+			'\t\t\t\t\t>',
+			`\t\t\t\t\t\t{${emitTypeScript(artifact.label)}}`,
+			'\t\t\t\t\t</a>',
+			'\t\t\t\t{/if}',
+		])
+	))
 	const iconMarkup = (
 		singularView?.summary?.Icon != null
 		|| singularView?.summary?.icon != null
@@ -10130,6 +10164,7 @@ const generateSingularViewFile = (
 		...contentBodyMarkup,
 		...contentWarningMarkup,
 		...contentBlockMarkup,
+		...artifactMarkup,
 	]
 	const markup = [
 		'<EntityView',
