@@ -3,6 +3,7 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { networkBySlug } from '$/constants/Network.ts'
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
@@ -17,40 +18,73 @@ const assertHyperliquidMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.hyperliquid.slug)
 		throw new Error('Hyperliquid_JsonRpc: unsupported network')
 }
-const hexToBigInt = (hex: string) => BigInt(hex)
+const hexToBigInt = (
+	value: string,
+	label: string
+) => {
+	if (!/^0x(?:0|[1-9a-fA-F][0-9a-fA-F]*)$/.test(value))
+		throw new Error(`Hyperliquid_JsonRpc: invalid ${label}`)
+
+	return BigInt(value)
+}
+
 const hyperliquidTransactionEntity = (
 	transaction: RpcTransactionWire,
 	network: NetworkId
-) => ({
-	[EntityMetaKey.Selector]: {
-		$network: network,
-		txHash: transaction.hash,
-	},
-	[EntityMetaKey.Fields]: {
-		[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], 'actionType')]: 'evm',
-		...(transaction.blockNumber != null && {
-			[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], '$block')]: {
+) => {
+	const txHash = hexLowerOfByteSize(transaction.hash, 32)
+	const accountAddress = hexLowerOfByteSize(transaction.from, 20)
+	if (txHash == null || accountAddress == null)
+		throw new Error('Hyperliquid_JsonRpc: transaction identity is not normalized')
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$network: network,
+			txHash,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], 'actionType')]: 'evm',
+			...(transaction.blockNumber != null && {
+				[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], '$block')]: {
+					[EntityMetaKey.Selector]: {
+						$network: network,
+						height: hexToBigInt(transaction.blockNumber, 'transaction block number'),
+					},
+				},
+			}),
+			[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], '$account')]: {
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					height: hexToBigInt(transaction.blockNumber),
+					address: accountAddress,
 				},
 			},
-		}),
-		[entityFieldAddressKey(EntityType.HyperliquidTransaction, [], '$account')]: {
-			[EntityMetaKey.Selector]: {
-				$network: network,
-				address: transaction.from,
-			},
 		},
+	}
+}
+
+const assertHyperliquidBlock = (
+	block: {
+		number: string
+		hash: string
 	},
-})
+	expectedHeight: bigint
+) => {
+	if (hexToBigInt(block.number, 'block number') !== expectedHeight)
+		throw new Error('Hyperliquid_JsonRpc: block height does not match request')
+
+	const blockHash = hexLowerOfByteSize(block.hash, 32)
+	if (blockHash == null)
+		throw new Error('Hyperliquid_JsonRpc: block hash is not normalized')
+
+	return blockHash
+}
 const resolveHyperliquidBlocks = async (
 	network: NetworkId,
 	limit: number
 ) => {
 	assertHyperliquidMainnet(network)
 	const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-	const headBlockHeight = BigInt(await getBlockNumber())
+	const headBlockHeight = hexToBigInt(await getBlockNumber(), 'head block number')
 	return Array.from({
 		length: Math.min(
 			Number(headBlockHeight + 1n),
@@ -72,7 +106,7 @@ const resolveHyperliquidTransactions = async (
 		getBlockByNumber,
 		getBlockNumber,
 	} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-	const headBlockHeight = BigInt(await getBlockNumber())
+	const headBlockHeight = hexToBigInt(await getBlockNumber(), 'head block number')
 	return (
 		await Promise.all(
 			Array.from({
@@ -88,10 +122,18 @@ const resolveHyperliquidTransactions = async (
 		.flatMap((block, blockOffset) => {
 			if (block == null)
 				throw new Error(`Hyperliquid_JsonRpc: block not found for ${(headBlockHeight - BigInt(blockOffset)).toString()}`)
+			const blockHeight = headBlockHeight - BigInt(blockOffset)
+			const blockHash = assertHyperliquidBlock(block, blockHeight)
 
-			return block.transactions.map((transaction) => (
-				hyperliquidTransactionEntity(transaction, network)
-			))
+			return block.transactions.map((transaction) => {
+				if (
+					transaction.blockNumber !== block.number
+					|| transaction.blockHash?.toLowerCase() !== blockHash
+				)
+					throw new Error('Hyperliquid_JsonRpc: block transaction does not match block identity')
+
+				return hyperliquidTransactionEntity(transaction, network)
+			})
 		})
 		.slice(0, limit)
 }
@@ -105,12 +147,19 @@ export const hyperliquidEvmResolvers = [
 					const { getBlockByNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 					const block = await getBlockByNumber(height)
 					if (block == null) throw new Error(`Hyperliquid_JsonRpc: block not found for ${height.toString()}`)
+					const blockHash = assertHyperliquidBlock(block, height)
 					return {
-						hash: block.hash,
-						timestampMs: Number(hexToBigInt(block.timestamp)) * 1000,
-						$$transactions: block.transactions.map((transaction) => (
-							hyperliquidTransactionEntity(transaction, $network)
-						)),
+						hash: blockHash,
+						timestampMs: Number(hexToBigInt(block.timestamp, 'block timestamp')) * 1000,
+						$$transactions: block.transactions.map((transaction) => {
+							if (
+								transaction.blockNumber !== block.number
+								|| transaction.blockHash?.toLowerCase() !== blockHash
+							)
+								throw new Error('Hyperliquid_JsonRpc: block transaction does not match block identity')
+
+							return hyperliquidTransactionEntity(transaction, $network)
+						}),
 					}
 				},
 			}
@@ -129,19 +178,26 @@ export const hyperliquidEvmResolvers = [
 					const { getTransactionByHash } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
 					const transaction = await getTransactionByHash({ txHash })
 					if (transaction == null) throw new Error(`Hyperliquid_JsonRpc: transaction not found for ${txHash}`)
+					if (hexLowerOfByteSize(transaction.hash, 32) !== txHash)
+						throw new Error('Hyperliquid_JsonRpc: transaction hash does not match request')
+
+					const accountAddress = hexLowerOfByteSize(transaction.from, 20)
+					if (accountAddress == null)
+						throw new Error('Hyperliquid_JsonRpc: transaction account is not normalized')
+
 					return {
 						...(transaction.blockNumber != null && {
 							$block: {
 								[EntityMetaKey.Selector]: {
 									$network: $network,
-									height: hexToBigInt(transaction.blockNumber),
+									height: hexToBigInt(transaction.blockNumber, 'transaction block number'),
 								},
 							},
 						}),
 						$account: {
 							[EntityMetaKey.Selector]: {
 								$network: $network,
-								address: transaction.from,
+								address: accountAddress,
 							},
 						},
 						actionType: 'evm',
@@ -182,14 +238,14 @@ export const hyperliquidEvmResolvers = [
 					const receipt = await getTransactionReceipt({ txHash: $transaction.txHash })
 					if (receipt == null)
 						throw new Error(`Hyperliquid_JsonRpc: receipt not found for ${$transaction.txHash}`)
+					if (hexLowerOfByteSize(receipt.transactionHash, 32) !== $transaction.txHash)
+						throw new Error('Hyperliquid_JsonRpc: receipt hash does not match transaction')
 
 					return {
 						...(receipt.status != null && {
 							status: receipt.status === '0x1' ? 'success' : 'failed',
 						}),
-						...(receipt.blockNumber != null && {
-							blockNumber: hexToBigInt(receipt.blockNumber),
-						}),
+						blockNumber: hexToBigInt(receipt.blockNumber, 'receipt block number'),
 					}
 				},
 			},
