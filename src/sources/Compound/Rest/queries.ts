@@ -169,6 +169,11 @@ const assertConfigurationWire = (
 				left.symbol.localeCompare(right.symbol)
 			))
 	)
+	const baseTokenAddress = assertAddress(wire.baseTokenAddress, 'baseTokenAddress')
+	if (new Set(assets.map((asset) => asset.tokenAddress)).size !== assets.length)
+		throw new Error(`${Source.Compound_Rest}: configuration has duplicate collateral asset identity`)
+	if (assets.some((asset) => asset.tokenAddress === baseTokenAddress))
+		throw new Error(`${Source.Compound_Rest}: base token cannot also be a collateral asset`)
 
 	if (wire.storeFrontPriceFactor != null && (!Number.isFinite(wire.storeFrontPriceFactor) || wire.storeFrontPriceFactor < 0 || wire.storeFrontPriceFactor > 1))
 		throw new Error(`${Source.Compound_Rest}: configuration storeFrontPriceFactor must be a finite number in [0, 1]`)
@@ -177,7 +182,7 @@ const assertConfigurationWire = (
 		name: assertNonEmptyString(wire.name, 'name'),
 		symbol: assertNonEmptyString(wire.symbol, 'symbol'),
 		baseTokenSymbol: assertNonEmptyString(wire.baseToken, 'baseToken'),
-		baseTokenAddress: assertAddress(wire.baseTokenAddress, 'baseTokenAddress'),
+		baseTokenAddress,
 		baseTokenPriceFeedAddress: assertAddress(wire.baseTokenPriceFeed, 'baseTokenPriceFeed'),
 		...(wire.borrowMin != null && {
 			borrowMin: assertCompoundAmountString(wire.borrowMin, 'borrowMin'),

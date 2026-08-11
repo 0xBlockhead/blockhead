@@ -161,6 +161,37 @@ describe('Compound III deployment operations', () => {
 		)
 	})
 
+	it('rejects duplicate and base-token collateral identities after normalization', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...baseConfiguration,
+			assets: {
+				...baseConfiguration.assets,
+				WETH_ALIAS: {
+					...baseConfiguration.assets.WETH,
+					address: baseConfiguration.assets.WETH.address.toUpperCase().replace('0X', '0x'),
+				},
+			},
+		})
+		await expect(getConfiguration({
+			networkSlug: 'base',
+			marketSlug: 'usdc',
+		})).rejects.toThrow('configuration has duplicate collateral asset identity')
+
+		sourceGetJson.mockResolvedValueOnce({
+			...baseConfiguration,
+			assets: {
+				USDC: {
+					...baseConfiguration.assets.WETH,
+					address: baseConfiguration.baseTokenAddress,
+				},
+			},
+		})
+		await expect(getConfiguration({
+			networkSlug: 'base',
+			marketSlug: 'usdc',
+		})).rejects.toThrow('base token cannot also be a collateral asset')
+	})
+
 	it('reads roots.json for a deployment folder', async () => {
 		sourceGetJson.mockResolvedValueOnce(baseRoots)
 		await expect(getRoots({
