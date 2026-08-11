@@ -159,6 +159,41 @@ describe('LND server-authenticated public graph reads', () => {
 		)
 	})
 
+	it('rejects duplicate channel, invoice, and payment identities', async () => {
+		const { listChannels } = await import('$/sources/LightningLnd/Rest/queries.ts')
+		respond({
+			channels: [
+				{
+					remote_pubkey: peerPublicKey,
+					channel_point: 'txid:0',
+					chan_id: '1',
+				},
+				{
+					remote_pubkey: peerPublicKey,
+					channel_point: 'txid:0',
+					chan_id: '1',
+				},
+			],
+		})
+		await expect(listChannels()).rejects.toThrow('duplicate channel')
+
+		respond({
+			invoices: [
+				{ r_hash_str: 'invoice-hash' },
+				{ r_hash_str: 'invoice-hash' },
+			],
+		})
+		await expect(listInvoices()).rejects.toThrow('duplicate invoice')
+
+		respond({
+			payments: [
+				{ payment_hash: 'payment-hash' },
+				{ payment_hash: 'payment-hash' },
+			],
+		})
+		await expect(listPayments()).rejects.toThrow('duplicate payment')
+	})
+
 	it('fails closed when the graph edge has an unsafe update height', async () => {
 		respond({
 			channel_id: '123',

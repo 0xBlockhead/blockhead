@@ -356,8 +356,13 @@ export const listChannels = async () => {
 		}),
 		'list channels'
 	)
-	for (const channel of response.channels ?? [])
+	const channelIds = new Set<string>()
+	for (const channel of response.channels ?? []) {
 		assertChannelPoint(channel.channel_point)
+		if (channelIds.has(channel.chan_id))
+			throw new Error('LightningLnd_Rest: list channels contains a duplicate channel')
+		channelIds.add(channel.chan_id)
+	}
 	return response
 }
 
@@ -380,13 +385,23 @@ export const listInvoices = async ({
 			num_max_invoices: String(numMaxInvoices),
 		}),
 	})
-	return assertEnvelope(
+	const page = assertEnvelope(
 		listInvoicesWire,
 		await requestLightningLndRestJson({
 			path: `/v1/invoices${searchParams.size === 0 ? '' : `?${searchParams}`}`,
 		}),
 		'list invoices'
 	)
+	const paymentHashes = new Set<string>()
+	for (const invoice of page.invoices ?? []) {
+		const paymentHash = invoice.r_hash_str ?? invoice.r_hash
+		if (paymentHash == null)
+			continue
+		if (paymentHashes.has(paymentHash))
+			throw new Error('LightningLnd_Rest: invoice page contains a duplicate invoice')
+		paymentHashes.add(paymentHash)
+	}
+	return page
 }
 
 export const listPayments = async ({
@@ -408,11 +423,18 @@ export const listPayments = async ({
 			max_payments: String(maxPayments),
 		}),
 	})
-	return assertEnvelope(
+	const page = assertEnvelope(
 		listPaymentsWire,
 		await requestLightningLndRestJson({
 			path: `/v1/payments${searchParams.size === 0 ? '' : `?${searchParams}`}`,
 		}),
 		'list payments'
 	)
+	const paymentHashes = new Set<string>()
+	for (const payment of page.payments ?? []) {
+		if (paymentHashes.has(payment.payment_hash))
+			throw new Error('LightningLnd_Rest: payment page contains a duplicate payment')
+		paymentHashes.add(payment.payment_hash)
+	}
+	return page
 }
