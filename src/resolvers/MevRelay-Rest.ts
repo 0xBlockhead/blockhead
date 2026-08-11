@@ -18,13 +18,19 @@ const parsePayloadSlot = (payload: BidTrace) => {
 	return slot
 }
 
-const parsePayloadValueWei = (payload: BidTrace) => (
-	BigInt(payload.value)
-)
+const parsePayloadValueWei = (payload: BidTrace) => {
+	const valueWei = BigInt(payload.value)
+	if (valueWei < 0n)
+		throw new Error(`MevRelay_Rest: invalid BidTrace value ${payload.value}`)
+	return valueWei
+}
 
-const parsePayloadBlockNumber = (payload: BidTrace) => (
-	BigInt(payload.block_number)
-)
+const parsePayloadBlockNumber = (payload: BidTrace) => {
+	const blockNumber = BigInt(payload.block_number)
+	if (blockNumber < 0n)
+		throw new Error(`MevRelay_Rest: invalid BidTrace block number ${payload.block_number}`)
+	return blockNumber
+}
 
 const relayHostsForChainId = async (chainId: number) => {
 	const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')

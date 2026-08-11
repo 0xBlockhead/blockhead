@@ -132,6 +132,30 @@ describe('MevRelay REST resolvers', () => {
 		})
 	})
 
+	it('rejects negative bid value and block number fields', async () => {
+		getProposerPayloadDeliveredForRelayHost.mockResolvedValueOnce([{
+			...bidTrace,
+			value: '-1',
+		}])
+		await expect(payloadResolver.resolve.EvmNetworkRelayHostSlotBlockHash.resolve({
+			$network: network,
+			relayHost: 'boost-relay.flashbots.net',
+			slot: 14917871,
+			blockHash: bidTrace.block_hash,
+		}, context)).rejects.toThrow('invalid BidTrace value')
+
+		getProposerPayloadDeliveredForRelayHost.mockResolvedValueOnce([{
+			...bidTrace,
+			block_number: '-1',
+		}])
+		await expect(payloadResolver.resolve.EvmNetworkRelayHostSlotBlockHash.resolve({
+			$network: network,
+			relayHost: 'boost-relay.flashbots.net',
+			slot: 14917871,
+			blockHash: bidTrace.block_hash,
+		}, context)).rejects.toThrow('invalid BidTrace block number')
+	})
+
 	it('projects enrolled MevRelay url tip leftover from host', async () => {
 		const snapshot = await relayUrlResolver.resolve.EvmNetworkHost.resolve({
 			$network: network,
