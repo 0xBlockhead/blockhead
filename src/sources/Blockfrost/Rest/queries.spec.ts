@@ -95,6 +95,20 @@ describe('Blockfrost REST transport', () => {
 			inputs: [],
 			outputs: [],
 		})
+
+		sourceFetch
+			.mockResolvedValueOnce(Response.json({
+				...transaction,
+				hash: 'foreign-transaction',
+			}))
+			.mockResolvedValueOnce(Response.json({
+				hash: 'foreign-transaction',
+				inputs: [],
+				outputs: [],
+			}))
+		await expect(getTransaction('hash/with delimiter')).rejects.toThrow('transaction response does not match request')
+		await expect(getTransactionUtxos('hash/with delimiter')).rejects.toThrow('transaction UTXO response does not match request')
+
 		expect(sourceFetch).toHaveBeenNthCalledWith(
 			1,
 			binding,

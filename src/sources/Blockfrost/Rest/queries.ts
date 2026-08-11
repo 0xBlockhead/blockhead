@@ -208,21 +208,27 @@ export const getBlock = async (blockId: string) => (
 	)
 )
 
-export const getTransaction = async (hash: string) => (
-	assertBlockfrostEnvelope(
+export const getTransaction = async (hash: string) => {
+	const transaction = assertBlockfrostEnvelope(
 		blockfrostTransactionWire,
 		await get(`txs/${encodeURIComponent(hash)}`),
 		'transaction'
 	)
-)
+	if (transaction.hash !== hash)
+		throw new Error('Blockfrost_Rest: transaction response does not match request')
+	return transaction
+}
 
-export const getTransactionUtxos = async (hash: string) => (
-	assertBlockfrostEnvelope(
+export const getTransactionUtxos = async (hash: string) => {
+	const transactionUtxos = assertBlockfrostEnvelope(
 		blockfrostTransactionUtxosWire,
 		await get(`txs/${encodeURIComponent(hash)}/utxos`),
 		'transaction utxos'
 	)
-)
+	if (transactionUtxos.hash !== hash)
+		throw new Error('Blockfrost_Rest: transaction UTXO response does not match request')
+	return transactionUtxos
+}
 
 export const listBlocks = async (count: number) => {
 	if (!Number.isSafeInteger(count) || count < 0 || count > 100)
