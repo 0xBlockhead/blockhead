@@ -741,7 +741,11 @@ export const listPoolEvents = async ({
 			throw new Error(`${Source.Balancer_Rest}: pool event chain mismatch`)
 		if (!Number.isSafeInteger(wire.blockNumber) || wire.blockNumber < 0)
 			throw new Error(`${Source.Balancer_Rest}: invalid pool event blockNumber`)
-		if (!Number.isSafeInteger(wire.blockTimestamp) || wire.blockTimestamp < 0)
+		if (
+			!Number.isSafeInteger(wire.blockTimestamp)
+			|| wire.blockTimestamp < 0
+			|| !Number.isSafeInteger(wire.blockTimestamp * 1000)
+		)
 			throw new Error(`${Source.Balancer_Rest}: invalid pool event blockTimestamp`)
 		const eventPoolId = assertPoolId(wire.poolId)
 		if (normalizedPoolId != null && eventPoolId !== normalizedPoolId)

@@ -831,4 +831,25 @@ describe('Balancer poolEvents operation', () => {
 			limit: 1,
 		})).rejects.toThrow(`${Source.Balancer_Rest}: pool events response exceeds requested limit 1`)
 	})
+
+	it('rejects event clocks that overflow the millisecond observation coordinate', async () => {
+		graphql.mockResolvedValueOnce({
+			poolEvents: [{
+				id: 'event',
+				type: 'SWAP',
+				chain: 'MAINNET',
+				poolId: weightedV2PoolId,
+				valueUSD: 1,
+				blockNumber: 1,
+				blockTimestamp: Math.floor(Number.MAX_SAFE_INTEGER / 1000) + 1,
+				tx: '0xd80ee5aeb80511d3a4a96503b44ccfa3f2af0c113daa42691bfc0f1baf43961d',
+				userAddress: '0xa99b2d5cc6847849f9b9c051474964acf1cac543',
+			}],
+		})
+
+		await expect(listPoolEvents({
+			binding,
+			chainId: 1,
+		})).rejects.toThrow(`${Source.Balancer_Rest}: invalid pool event blockTimestamp`)
+	})
 })
