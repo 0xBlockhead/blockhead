@@ -175,16 +175,11 @@ describe('Reddit_Rest hub tip observations', () => {
 			candidate.entityType === EntityType._GlobalRedditNetwork
 			&& '$$timestamps' in candidate.projections
 		))
-		const hubTimestampSingular = redditRest.resolvers.find((candidate) => (
-			candidate.entityType === EntityType._GlobalRedditNetwork_Timestamp
-		))
 		if (
 			hubTimestamps == null
-			|| hubTimestampSingular == null
 			|| !('Scope' in hubTimestamps.resolve)
-			|| !('HubTimestampMsSource' in hubTimestampSingular.resolve)
 		)
-			throw new Error('Reddit_Rest spec missing hub timestamp resolvers')
+			throw new Error('Reddit_Rest spec missing hub timestamps resolver')
 
 		const hub = await hubTimestamps.resolve.Scope.resolve({
 			scope: '_GlobalRedditNetwork',
@@ -203,20 +198,13 @@ describe('Reddit_Rest hub tip observations', () => {
 				[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'listingWindowKind')]: 'popular:hot',
 			},
 		}])
-
-		await expect(hubTimestampSingular.resolve.HubTimestampMsSource.resolve({
-			$hub: { scope: '_GlobalRedditNetwork' },
-			timestampMs: 1_750_000_000_000,
-			source: Source.Reddit_Rest,
-		}, resolverContext)).resolves.toEqual({
-			$hub: { scope: '_GlobalRedditNetwork' },
-			timestampMs: 1_750_000_000_000,
-			source: Source.Reddit_Rest,
-			observedSubredditCount: 1,
-			observedLinkCount: 2,
-			reachable: true,
-			listingWindowKind: 'popular:hot',
-		})
+		for (const entityType of [
+			EntityType.RedditSubreddit_Timestamp,
+			EntityType.RedditLink_Timestamp,
+			EntityType.RedditComment_Timestamp,
+			EntityType._GlobalRedditNetwork_Timestamp,
+		])
+			expect(redditRest.resolvers.some((candidate) => candidate.entityType === entityType)).toBe(false)
 	})
 })
 

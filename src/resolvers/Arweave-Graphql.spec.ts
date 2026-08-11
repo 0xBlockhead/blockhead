@@ -62,10 +62,6 @@ const blockResolver = arweaveResolvers.resolvers.find((resolver) => (
 const resourceResolver = arweaveResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.ArweaveResource
 ))
-const networkTimestampResolver = arweaveResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.ArweaveNetwork_Timestamp
-))
-
 if (
 	networkTransactionsResolver == null
 	|| networkBlocksResolver == null
@@ -75,7 +71,6 @@ if (
 	|| transactionResolver == null
 	|| blockResolver == null
 	|| resourceResolver == null
-	|| networkTimestampResolver == null
 )
 	throw new Error('Arweave-Graphql spec missing resolvers')
 
@@ -159,7 +154,17 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 
 	it('materializes the Arweave network hub for the content-address scheme slug', async () => {
 		getTransactionsPage.mockResolvedValueOnce(emptyPage)
-		getBlocksPage.mockResolvedValueOnce(emptyPage)
+		getBlocksPage
+			.mockResolvedValueOnce(emptyPage)
+			.mockResolvedValueOnce({
+				edges: [{
+					cursor: 'latest-block',
+					node: blockWire,
+				}],
+				pageInfo: {
+					hasNextPage: false,
+				},
+			})
 		const transactionsSnapshot = await networkTransactionsResolver.resolve.Network.resolve(
 			{
 				$network: network,
@@ -189,7 +194,7 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 		})
 		expect(timestampsSnapshot.timestamps).toHaveLength(1)
 		expect(getTransactionsPage).toHaveBeenCalledTimes(1)
-		expect(getBlocksPage).toHaveBeenCalledTimes(1)
+		expect(getBlocksPage).toHaveBeenCalledTimes(2)
 
 		await expect(networkTransactionsResolver.resolve.Network.resolve(
 			{
@@ -533,7 +538,7 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 		expect(getTransactionById).toHaveBeenCalledWith(transactionId)
 	})
 
-	it('maps the latest GraphQL block into ArweaveNetwork_Timestamp', async () => {
+	it('materializes the latest GraphQL block in the parent network observation', async () => {
 		getBlocksPage.mockResolvedValueOnce({
 			edges: [
 				{
@@ -545,19 +550,26 @@ describe('Arweave_Graphql blocks / resources / network hub', () => {
 				hasNextPage: false,
 			},
 		})
-		await expect(networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve(
-			{
-				$network: arweaveNetwork,
-				timestampMs: 1_700_000_000_000,
-				source: Source.Arweave_Graphql,
-			},
-			context
-		)).resolves.toMatchObject({
-			latestHeight: 1_500_000n,
-			latestBlockHash: blockId,
-			currentBlockHash: blockId,
-			graphqlCursor: 'latest-block',
-			reachable: true,
+		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
+		await expect(networkTimestampsResolver.resolve.Network.resolve({
+			$network: network,
+		}, context)).resolves.toMatchObject({
+			timestamps: [{
+				[EntityMetaKey.Selector]: {
+					timestampMs: 1_700_000_000_000,
+					source: Source.Arweave_Graphql,
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'latestHeight')]: 1_500_000n,
+					[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'latestBlockHash')]: blockId,
+					[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'currentBlockHash')]: blockId,
+					[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'graphqlCursor')]: 'latest-block',
+					[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'reachable')]: true,
+				},
+			}],
 		})
+		expect(arweaveResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.ArweaveNetwork_Timestamp
+		))).toBe(false)
 	})
 })

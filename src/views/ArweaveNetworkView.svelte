@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
 
@@ -25,9 +26,9 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
-	import ArweaveNetwork_TimestampsView from '$/views/ArweaveNetwork_TimestampsView.svelte'
 	import ArweaveBlocksView from '$/views/ArweaveBlocksView.svelte'
 	import ArweaveTransactionsView from '$/views/ArweaveTransactionsView.svelte'
 	import ArweaveResourcesView from '$/views/ArweaveResourcesView.svelte'
@@ -99,13 +100,22 @@
 			{/snippet}
 
 			{#snippet SectionArweaveChainObservations({ id, label })}
-				<ArweaveNetwork_TimestampsView
-					selection={selection.$$timestamps}
+				<EntitiesList
+					entityType={EntityType.ArweaveNetwork_Timestamp}
 					collapsible={false}
 					title={label}
 					emptyText='No Arweave network observations.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: arweaveNetworkTimestamp })}
+						<EntityView
+							entityType={EntityType.ArweaveNetwork_Timestamp}
+							entitySelector={arweaveNetworkTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 			{#snippet SectionArweaveChainBlocks({ id, label })}

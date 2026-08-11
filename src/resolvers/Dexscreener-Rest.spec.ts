@@ -5,7 +5,10 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	EntityMetaKey,
+	entityFieldAddressKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/Dexscreener/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -63,47 +66,13 @@ describe('Dexscreener liquidity pool observation clock', () => {
 			pairs: [{
 				baseToken: {
 					address: '0x2222222222222222222222222222222222222222',
-				},
-				quoteToken: {
-					address: '0x3333333333333333333333333333333333333333',
-				},
-				resolvedAtMs: 1_725_000_000_000,
-			}],
-		})
-
-		const snapshot = await resolver.resolve['EvmNetworkId'].resolve(
-			poolSelector,
-			emptyContext,
-		)
-		expect(resolver.projections.$$timestamps.select(snapshot)).toEqual([{
-			[EntityMetaKey.Selector]: {
-				$liquidityPool: poolSelector,
-				timestampMs: 1_725_000_000_000,
-				feedKey: 'dexscreener',
-			},
-		}])
-		expect(resolver.projections.$$timestamps.resolveCount?.(snapshot)).toBe(1)
-		expect(getLatestPairs).toHaveBeenCalledWith({
-			chainId: 'ethereum',
-			pairId: '0x1111111111111111111111111111111111111111',
-		})
-	})
-
-	it('maps pair metrics onto LiquidityPool_Timestamp fields', async () => {
-		const resolver = dexscreener.resolvers.find((candidate) => (
-			candidate.entityType === EntityType.LiquidityPool_Timestamp
-			&& 'priceUsd' in candidate.projections
-		))
-		if (resolver == null)
-			throw new Error('Dexscreener_Rest: missing LiquidityPool_Timestamp metric resolver')
-		getLatestPairs.mockResolvedValue({
-			pairs: [{
-				baseToken: {
 					symbol: 'WETH',
 				},
 				quoteToken: {
+					address: '0x3333333333333333333333333333333333333333',
 					symbol: 'USDC',
 				},
+				resolvedAtMs: 1_725_000_000_000,
 				pairCreatedAt: 1_700_000_000_000,
 				labels: ['v3'],
 				dexId: 'uniswap',
@@ -130,19 +99,47 @@ describe('Dexscreener liquidity pool observation clock', () => {
 			}],
 		})
 
-		const snapshot = await resolver.resolve['LiquidityPoolTimestampMsFeedKey'].resolve(
-			{
+		const snapshot = await resolver.resolve['EvmNetworkId'].resolve(
+			poolSelector,
+			emptyContext,
+		)
+		expect(resolver.projections.$$timestamps.select(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
 				$liquidityPool: poolSelector,
 				timestampMs: 1_725_000_000_000,
 				feedKey: 'dexscreener',
 			},
-			emptyContext,
-		)
-		expect(resolver.projections.priceUsd(snapshot)).toBe('3500.1')
-		expect(resolver.projections.volumeUsd24h(snapshot)).toBe(1_000_000)
-		expect(resolver.projections.transactionBuys24h(snapshot)).toBe(10)
-		expect(resolver.projections.dexId(snapshot)).toBe('uniswap')
-		expect(resolver.projections.transport(snapshot)).toBe('Dexscreener OpenAPI')
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'baseTokenSymbol')]: 'WETH',
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'quoteTokenSymbol')]: 'USDC',
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'pairCreatedAtMs')]: 1_700_000_000_000,
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'dexscreenerLabels')]: ['v3'],
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'dexId')]: 'uniswap',
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'dexscreenerPairUrl')]: 'https://dexscreener.com/ethereum/0x1111111111111111111111111111111111111111',
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'priceUsd')]: '3500.1',
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'priceNative')]: '1',
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'liquidityUsd')]: 9_000_000,
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'volumeUsd24h')]: 1_000_000,
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'priceChangePercent24h')]: -1.5,
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'transactionBuys24h')]: 10,
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'transactionSells24h')]: 4,
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'marketCapUsd')]: 3_000_000_000,
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'fdvUsd')]: 4_000_000_000,
+				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'transport')]: 'Dexscreener OpenAPI',
+			},
+		}])
+		expect(resolver.projections.$$timestamps.resolveCount?.(snapshot)).toBe(1)
+		expect(getLatestPairs).toHaveBeenCalledWith({
+			chainId: 'ethereum',
+			pairId: '0x1111111111111111111111111111111111111111',
+		})
+	})
+
+	it('does not refetch an arbitrary liquidity-pool timestamp', () => {
+		expect(dexscreener.resolvers.some((candidate) => (
+			candidate.entityType === EntityType.LiquidityPool_Timestamp
+			&& 'priceUsd' in candidate.projections
+		))).toBe(false)
 	})
 
 	it('rejects global liquidity-pool search that returns no mapped EVM pools', async () => {

@@ -23,7 +23,6 @@
 		[EntityType.MoneroNetwork_Timestamp]: MoneroNetwork_TimestampView,
 		[EntityType.TonNetwork_Timestamp]: TonNetwork_TimestampView,
 		[EntityType.TronNetwork_Timestamp]: TronNetwork_TimestampView,
-		[EntityType.ArweaveNetwork_Timestamp]: ArweaveNetwork_TimestampView,
 		[EntityType.AvailNetwork_Timestamp]: AvailNetwork_TimestampView,
 		[EntityType.CelestiaNetwork_Timestamp]: CelestiaNetwork_TimestampView,
 		[EntityType.DydxChainNetwork_Timestamp]: DydxChainNetwork_TimestampView,
@@ -47,7 +46,6 @@
 	import MoneroNetwork_TimestampView from '$/views/MoneroNetwork_TimestampView.svelte'
 	import TonNetwork_TimestampView from '$/views/TonNetwork_TimestampView.svelte'
 	import TronNetwork_TimestampView from '$/views/TronNetwork_TimestampView.svelte'
-	import ArweaveNetwork_TimestampView from '$/views/ArweaveNetwork_TimestampView.svelte'
 	import AvailNetwork_TimestampView from '$/views/AvailNetwork_TimestampView.svelte'
 	import CelestiaNetwork_TimestampView from '$/views/CelestiaNetwork_TimestampView.svelte'
 	import DydxChainNetwork_TimestampView from '$/views/DydxChainNetwork_TimestampView.svelte'
@@ -86,9 +84,6 @@
 			:
 			data.entityType === EntityType.TronNetwork_Timestamp ?
 				('tron network timestamp') + ' • tron network timestamp • Blockhead'
-			:
-			data.entityType === EntityType.ArweaveNetwork_Timestamp ?
-				('arweave network timestamp') + ' • arweave network timestamp • Blockhead'
 			:
 			data.entityType === EntityType.AvailNetwork_Timestamp ?
 				(String(data.selector.timestampMs) || 'avail network timestamp') + ' • avail network timestamp • Blockhead'
@@ -166,11 +161,6 @@
 			:
 			data.entityType === EntityType.TronNetwork_Timestamp ?
 				select(EntityType.TronNetwork_Timestamp, data.selector, {
-					sources: [data.selector.source],
-				})
-			:
-			data.entityType === EntityType.ArweaveNetwork_Timestamp ?
-				select(EntityType.ArweaveNetwork_Timestamp, data.selector, {
 					sources: [data.selector.source],
 				})
 			:

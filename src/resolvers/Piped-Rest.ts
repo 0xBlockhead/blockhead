@@ -154,7 +154,6 @@ export default {
 					resolve: async ({ channelId }) => {
 						const { getChannel } = await import('$/sources/Piped/Rest/queries.ts')
 						const d = await getChannel(channelId)
-						if (d.id == null) throw new Error('Piped_Rest: channel not found')
 						const iconMedia = mediaFromUrl(optionalNonemptyString(d.avatarUrl), MediaType.Image)
 						return {
 							title: optionalNonemptyString(d.name),
@@ -645,30 +644,5 @@ export default {
 		})({
 			$$timestamps: (observations) => observations,
 		}),
-
-		defineResolver({
-			entityType: EntityType._GlobalYoutubeNetwork_Timestamp,
-			resolve: {
-				HubTimestampMsSource: {
-					resolve: async ({ $hub, timestampMs, source }) => {
-						if (source !== Source.Piped_Rest)
-							throw new Error('Piped_Rest: global YouTube observation source mismatch')
-
-						return {
-							$hub: {
-								[EntityMetaKey.Selector]: $hub,
-							},
-							timestampMs,
-							source,
-						}
-					},
-				},
-			},
-		})({
-			$hub: (observation) => observation.$hub,
-			timestampMs: (observation) => observation.timestampMs,
-			source: (observation) => observation.source,
-		}),
-
 	],
 } satisfies RegisteredSourceResolverModule

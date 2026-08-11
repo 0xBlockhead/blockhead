@@ -962,19 +962,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(assets)/pool/[chainId]/[poolId]/observations/[timestampMs]/[feedKey]': {
-		routeId: '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
-		parameterEncodingByName: {
-			feedKey: 'Opaque',
-		},
-		mappings: [
-			{
-				id: 'LiquidityPool_Timestamp.LiquidityPoolTimestampMsFeedKey',
-				probeAtomPrefixes: ['/pool/[chainId]/[poolId]/observations/[timestampMs]/[feedKey]:LiquidityPool_Timestamp.LiquidityPoolTimestampMsFeedKey'],
-				probeCases: [[[0, '1', ['timestampMs', 'feedKey', 'chainId', 'poolId']]]],
-			},
-		],
-	},
 	'/(assets)/uniswap-cca/auction/[chainId]/[auctionAddress]': {
 		routeId: '/(assets)/uniswap-cca/auction/[chainId=eip155ChainId]/[auctionAddress=evmAddress]',
 		mappings: [
@@ -7733,16 +7720,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/governance/proposal/[proposalId]/observations/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalId=stringSegment]/(cosmosGovernanceProposal)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'CosmosGovernanceProposal_Timestamp.ProposalTimestampMsSource',
-				probeAtomPrefixes: ['/network/[network]/governance/proposal/[proposalId]/observations/[timestampMs]/[source]:CosmosGovernanceProposal_Timestamp.ProposalTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'proposalId', 'network']]]],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/governance/proposal/[proposalTxHash]/[proposalIndex]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]',
 		mappings: [
@@ -8127,20 +8104,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/mev/builder/[builderPubkey]/timestamp/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builder/[builderPubkey=stringSegment]/(mevBuilder)/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'MevBuilder_Timestamp.BuilderTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/mev/builder/[builderPubkey]/timestamp/[timestampMs]/[source]:MevBuilder_Timestamp.BuilderTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'builderPubkey', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
 	'/(explore)/(networks)/network/[network]/mev/builders': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/builders',
 		mappings: [
@@ -8193,20 +8156,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				projectionEntity: 'Network',
 				probeAtomPrefixes: ['/network/[network]/mev/relay/[host]:MevRelay.EvmNetworkHost'],
 				probeCases: [[[0, '1', ['host', 'network']]]],
-				projectionPath: [
-					'Evm',
-				],
-			},
-		],
-	},
-	'/(explore)/(networks)/network/[network]/mev/relay/[host]/timestamp/[timestampMs]/[source]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]/(mevRelay)/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: 'MevRelay_Timestamp.RelayTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/mev/relay/[host]/timestamp/[timestampMs]/[source]:MevRelay_Timestamp.RelayTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'host', 'network']]]],
 				projectionPath: [
 					'Evm',
 				],
@@ -8629,15 +8578,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				probeCases: [[[0, '1', ['source', 'timestampMs', 'network']]]],
 				projectionPath: [
 					'Tron',
-				],
-			},
-			{
-				id: 'ArweaveNetwork_Timestamp.NetworkTimestampMsSource',
-				projectionEntity: 'Network',
-				probeAtomPrefixes: ['/network/[network]/observations/[timestampMs]/[source]:ArweaveNetwork_Timestamp.NetworkTimestampMsSource'],
-				probeCases: [[[0, '1', ['timestampMs', 'source', 'network']]]],
-				projectionPath: [
-					'Arweave',
 				],
 			},
 			{
@@ -10243,16 +10183,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(social)/(atproto)/atproto/observations/[timestampMs]/[source]': {
-		routeId: '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: '_GlobalAtprotoNetwork_Timestamp.HubTimestampMsSource',
-				probeAtomPrefixes: ['/atproto/observations/[timestampMs]/[source]:_GlobalAtprotoNetwork_Timestamp.HubTimestampMsSource'],
-				probeCases: [[[0, '1', ['source', 'timestampMs']]]],
-			},
-		],
-	},
 	'/(social)/(atproto)/atproto/post/[...uri]': {
 		routeId: '/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',
 		parameterEncodingByName: {
@@ -10585,16 +10515,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(social)/(nostr)/nostr/observations/[timestampMs]/[source]': {
-		routeId: '/(social)/(nostr)/nostr/(globalNostrNetwork)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: '_GlobalNostrNetwork_Timestamp.HubTimestampMsSource',
-				probeAtomPrefixes: ['/nostr/observations/[timestampMs]/[source]:_GlobalNostrNetwork_Timestamp.HubTimestampMsSource'],
-				probeCases: [[[0, '1', ['source', 'timestampMs']]]],
-			},
-		],
-	},
 	'/(social)/(nostr)/nostr/profile-metadata-version/[eventId]': {
 		routeId: '/(social)/(nostr)/nostr/(globalNostrNetwork)/profile-metadata-version/[eventId=stringSegment]',
 		mappings: [
@@ -10802,16 +10722,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'RedditLink_Timestamp.LinkTimestampMsSource',
 				probeAtomPrefixes: ['/reddit/link/[fullname]/observations/[timestampMs]/[source]:RedditLink_Timestamp.LinkTimestampMsSource'],
 				probeCases: [[[0, '1', ['timestampMs', 'source', 'fullname']]]],
-			},
-		],
-	},
-	'/(social)/(reddit)/reddit/observations/[timestampMs]/[source]': {
-		routeId: '/(social)/(reddit)/reddit/(globalRedditNetwork)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: '_GlobalRedditNetwork_Timestamp.HubTimestampMsSource',
-				probeAtomPrefixes: ['/reddit/observations/[timestampMs]/[source]:_GlobalRedditNetwork_Timestamp.HubTimestampMsSource'],
-				probeCases: [[[0, '1', ['source', 'timestampMs']]]],
 			},
 		],
 	},
@@ -11074,16 +10984,6 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'YoutubeComment_Timestamp.YoutubeCommentTimestampMsSource',
 				probeAtomPrefixes: ['/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]-[source]:YoutubeComment_Timestamp.YoutubeCommentTimestampMsSource'],
 				probeCases: [[[0, '1', ['timestampMs', 'source', 'videoId', 'commentId']]]],
-			},
-		],
-	},
-	'/(social)/(youtube)/youtube/observations/[timestampMs]/[source]': {
-		routeId: '/(social)/(youtube)/youtube/(globalYoutubeNetwork)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-		mappings: [
-			{
-				id: '_GlobalYoutubeNetwork_Timestamp.HubTimestampMsSource',
-				probeAtomPrefixes: ['/youtube/observations/[timestampMs]/[source]:_GlobalYoutubeNetwork_Timestamp.HubTimestampMsSource'],
-				probeCases: [[[0, '1', ['source', 'timestampMs']]]],
 			},
 		],
 	},

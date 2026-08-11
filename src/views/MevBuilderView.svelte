@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
 
@@ -26,9 +27,9 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import MevBuilder_TimestampsView from '$/views/MevBuilder_TimestampsView.svelte'
 	import MevRelay_ProposerPayloadDeliveredsView from '$/views/MevRelay_ProposerPayloadDeliveredsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
@@ -104,12 +105,21 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<MevBuilder_TimestampsView
-						selection={timestampsResource}
+					<EntitiesList
+						entityType={EntityType.MevBuilder_Timestamp}
 						countResource={timestampsResource.count}
 						title='Timestamps'
+						open={true}
 						id='timestamps'
-					/>
+						resource={timestampsResource()}
+					>
+						{#snippet Item({ item: mevBuilderTimestamp })}
+							<EntityView
+								entityType={EntityType.MevBuilder_Timestamp}
+								entitySelector={mevBuilderTimestamp[EntityMetaKey.Selector]}
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

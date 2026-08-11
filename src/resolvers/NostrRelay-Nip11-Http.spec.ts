@@ -6,7 +6,7 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import bindings from '$/sources/NostrRelay/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -21,12 +21,7 @@ const { default: nostrRelayNip11Http } = await import('$/resolvers/NostrRelay-Ni
 
 const boundRelayUrl = bindings[Source.NostrRelay_Nip11_Http][0].target.key
 
-const timestampResolver = nostrRelayNip11Http.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.NostrRelay_Timestamp
-))
-const relayResolver = nostrRelayNip11Http.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.NostrRelay
-))
+const [relayResolver] = nostrRelayNip11Http.resolvers
 
 describe('NostrRelay NIP-11 Http resolver', () => {
 	beforeEach(() => {
@@ -35,13 +30,11 @@ describe('NostrRelay NIP-11 Http resolver', () => {
 
 	it('registers under NostrRelay_Nip11_Http', () => {
 		expect(nostrRelayNip11Http.source).toBe(Source.NostrRelay_Nip11_Http)
-		expect(timestampResolver).toBeDefined()
+		expect(nostrRelayNip11Http.resolvers).toHaveLength(1)
+		expect(relayResolver.entityType).toBe(EntityType.NostrRelay)
 	})
 
 	it('rejects relay URL aliases that would discard credentials or request components', async () => {
-		if (relayResolver == null)
-			throw new Error('missing NIP-11 relay resolver')
-
 		await expect(relayResolver.resolve.RelayUrl.resolve({
 			relayUrl: 'wss://relay.example/?profile=public',
 		})).rejects.toThrow('relay url must not include credentials, query, or fragment')
@@ -84,41 +77,27 @@ describe('NostrRelay NIP-11 Http resolver', () => {
 			},
 		})
 
-		const snapshot = await timestampResolver.resolve.RelayTimestampMsSource.resolve({
-			$relay: {
-				relayUrl: boundRelayUrl,
-			},
-			timestampMs: 1_700_000_000_000,
-			source: Source.NostrRelay_Nip11_Http,
-		}, {
-			filters: [],
-			sorts: [],
-			pagination: {
-				limit: 16,
-			},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
-		})
+		const relay = await relayResolver.resolve.RelayUrl.resolve({ relayUrl: boundRelayUrl })
+		const snapshot = relay.$$timestamps[0]
+		const fields = snapshot[EntityMetaKey.Fields]
 
-		expect(timestampResolver.projections.reachable(snapshot)).toBe(true)
-		expect(timestampResolver.projections.name(snapshot)).toBe('relay.example')
-		expect(timestampResolver.projections.description(snapshot)).toBe('test relay')
-		expect(timestampResolver.projections.software(snapshot)).toBe('strfry')
-		expect(timestampResolver.projections.version(snapshot)).toBe('1.0.0')
-		expect(timestampResolver.projections.supportedNips(snapshot)).toEqual([
+		expect(fields[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'reachable')]).toBe(true)
+		expect(fields[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'name')]).toBe('relay.example')
+		expect(fields[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'description')]).toBe('test relay')
+		expect(fields[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'software')]).toBe('strfry')
+		expect(fields[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'version')]).toBe('1.0.0')
+		expect(fields[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'supportedNips')]).toEqual([
 			1,
 			11,
 		])
-		expect(timestampResolver.projections.limitation(snapshot)).toEqual({
+		expect(fields[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'limitation')]).toEqual({
 			maxLimit: 500,
 			authenticationRequired: false,
 			paymentRequired: true,
 		})
-		expect(timestampResolver.projections.isPaid(snapshot)).toBe(true)
-		expect(timestampResolver.projections.paymentsUrl(snapshot)).toBe('https://example.com/pay')
-		expect(timestampResolver.projections.fees(snapshot)).toEqual({
+		expect(fields[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'isPaid')]).toBe(true)
+		expect(fields[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'paymentsUrl')]).toBe('https://example.com/pay')
+		expect(fields[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'fees')]).toEqual({
 			admission: [
 				{
 					amount: 1000,
@@ -126,10 +105,8 @@ describe('NostrRelay NIP-11 Http resolver', () => {
 				},
 			],
 		})
-		expect(timestampResolver.projections.$relay(snapshot)).toEqual({
-			[EntityMetaKey.Selector]: {
+		expect(snapshot[EntityMetaKey.Selector].$relay).toEqual({
 				relayUrl: boundRelayUrl.replace(/\/$/, ''),
-			},
 		})
 		expect(snapshot).not.toHaveProperty('language_tags')
 		expect(snapshot).not.toHaveProperty('relay_countries')
@@ -152,52 +129,21 @@ describe('NostrRelay NIP-11 Http resolver', () => {
 			],
 		})
 
-		const snapshot = await timestampResolver.resolve.RelayTimestampMsSource.resolve({
-			$relay: {
-				relayUrl: boundRelayUrl,
-			},
-			timestampMs: 1_700_000_000_000,
-			source: Source.NostrRelay_Nip11_Http,
-		}, {
-			filters: [],
-			sorts: [],
-			pagination: {
-				limit: 16,
-			},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
-		})
-
-		expect(timestampResolver.projections.name(snapshot)).toBe('relay.example')
+		const snapshot = (await relayResolver.resolve.RelayUrl.resolve({ relayUrl: boundRelayUrl })).$$timestamps[0]
+		expect(snapshot[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'name')]).toBe('relay.example')
 		expect(snapshot).not.toHaveProperty('language_tags')
 		expect(snapshot).not.toHaveProperty('relay_countries')
 		expect(snapshot).not.toHaveProperty('tags')
-		expect(Object.keys(timestampResolver.projections)).not.toContain('languageTags')
-		expect(Object.keys(timestampResolver.projections)).not.toContain('relayCountries')
-		expect(Object.keys(timestampResolver.projections)).not.toContain('tags')
+		expect(Object.keys(snapshot[EntityMetaKey.Fields])).not.toContain('languageTags')
+		expect(Object.keys(snapshot[EntityMetaKey.Fields])).not.toContain('relayCountries')
+		expect(Object.keys(snapshot[EntityMetaKey.Fields])).not.toContain('tags')
 	})
 
 	it('propagates NIP-11 transport failures', async () => {
 		fetchRelayInformation.mockRejectedValue(new Error('NostrRelay_Nip11_Http: invalid NIP-11 response envelope'))
 
-		await expect(timestampResolver.resolve.RelayTimestampMsSource.resolve({
-			$relay: {
-				relayUrl: boundRelayUrl,
-			},
-			timestampMs: 1_700_000_000_000,
-			source: Source.NostrRelay_Nip11_Http,
-		}, {
-			filters: [],
-			sorts: [],
-			pagination: {
-				limit: 16,
-			},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
+		await expect(relayResolver.resolve.RelayUrl.resolve({
+			relayUrl: boundRelayUrl,
 		})).rejects.toThrow('NostrRelay_Nip11_Http: invalid NIP-11 response envelope')
 	})
 })

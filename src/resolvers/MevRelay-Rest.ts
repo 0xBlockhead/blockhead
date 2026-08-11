@@ -5,6 +5,7 @@ import {
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -76,11 +77,10 @@ export default {
 						const [payload] = await getProposerPayloadDeliveredForRelayHost(entitySelector.relayHost, {
 							limit: 1,
 							slot: entitySelector.slot,
-							block_hash: wantHash,
-						})
-						if (payload == null) throw new Error('MevRelay_Rest: relay payload not found for id')
+								block_hash: wantHash,
+							})
 
-						const blockNumber = parsePayloadBlockNumber(payload)
+							const blockNumber = parsePayloadBlockNumber(payload)
 						const valueWei = parsePayloadValueWei(payload)
 						return {
 							[EntityMetaKey.Selector]: entitySelector,
@@ -128,35 +128,12 @@ export default {
 			entityType: EntityType.MevRelay,
 			resolve: {
 				EvmNetworkHost: {
-					resolve: async (entitySelector) => [
-						{
-							[EntityMetaKey.Selector]: {
-								$relay: entitySelector,
-								timestampMs: Date.now(),
-								source: Source.MevRelay_Rest,
-							},
-						},
-					],
-				},
-			},
-		})({
-				$$timestamps: (snapshot) => snapshot,
-			}),
-
-		defineResolver({
-			entityType: EntityType.MevRelay_Timestamp,
-			resolve: {
-				RelayTimestampMsSource: {
-					resolve: async ({ $relay, source }, context) => {
-						if (source !== Source.MevRelay_Rest)
-							throw new Error('MevRelay_Rest: MevRelay_Timestamp selector source mismatch')
-
+					resolve: async (entitySelector, context) => {
 						const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 						const sampleLimit = Math.min(200, Math.max(1, resolverContextRowLimit(context)))
-						const deliveredPayloads = await getProposerPayloadDeliveredForRelayHost($relay.host, {
+						const deliveredPayloads = await getProposerPayloadDeliveredForRelayHost(entitySelector.host, {
 							limit: sampleLimit,
 						})
-
 						const builderPubkeys = new Set<string>()
 						let windowStartSlot: number | undefined
 						let windowEndSlot: number | undefined
@@ -167,37 +144,27 @@ export default {
 							windowEndSlot = windowEndSlot == null ? slot : Math.max(windowEndSlot, slot)
 						}
 
-						return {
-							deliveredPayloadSampleCount: deliveredPayloads.length,
-							builderSampleCount: builderPubkeys.size,
-							...(windowStartSlot != null && { windowStartSlot }),
-							...(windowEndSlot != null && { windowEndSlot }),
-							sampleLimit,
-						}
-					},
-				},
-			},
-		})({
-				deliveredPayloadSampleCount: (snapshot) => snapshot.deliveredPayloadSampleCount,
-				builderSampleCount: (snapshot) => snapshot.builderSampleCount,
-				windowStartSlot: (snapshot) => snapshot.windowStartSlot,
-				windowEndSlot: (snapshot) => snapshot.windowEndSlot,
-				sampleLimit: (snapshot) => snapshot.sampleLimit,
-			}),
-
-		defineResolver({
-			entityType: EntityType.MevBuilder,
-			resolve: {
-				EvmNetworkBuilderPubkey: {
-					resolve: async (entitySelector) => [
-						{
-							[EntityMetaKey.Selector]: {
-								$builder: entitySelector,
-								timestampMs: Date.now(),
-								source: Source.MevRelay_Rest,
+						return [
+							{
+								[EntityMetaKey.Selector]: {
+									$relay: entitySelector,
+									timestampMs: Date.now(),
+									source: Source.MevRelay_Rest,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.MevRelay_Timestamp, [], 'deliveredPayloadSampleCount')]: deliveredPayloads.length,
+									[entityFieldAddressKey(EntityType.MevRelay_Timestamp, [], 'builderSampleCount')]: builderPubkeys.size,
+									...(windowStartSlot != null && {
+										[entityFieldAddressKey(EntityType.MevRelay_Timestamp, [], 'windowStartSlot')]: windowStartSlot,
+									}),
+									...(windowEndSlot != null && {
+										[entityFieldAddressKey(EntityType.MevRelay_Timestamp, [], 'windowEndSlot')]: windowEndSlot,
+									}),
+									[entityFieldAddressKey(EntityType.MevRelay_Timestamp, [], 'sampleLimit')]: sampleLimit,
+								},
 							},
-						},
-					],
+						]
+					},
 				},
 			},
 		})({
@@ -205,27 +172,21 @@ export default {
 			}),
 
 		defineResolver({
-			entityType: EntityType.MevBuilder_Timestamp,
+			entityType: EntityType.MevBuilder,
 			resolve: {
-				BuilderTimestampMsSource: {
-					resolve: async ({ $builder, source }) => {
-						if (source !== Source.MevRelay_Rest)
-							throw new Error('MevRelay_Rest: MevBuilder_Timestamp selector source mismatch')
-
+				EvmNetworkBuilderPubkey: {
+					resolve: async (entitySelector) => {
 						const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
-						const chainId = Number($builder.$network.caip2.reference)
-						const relayHosts = await relayHostsForChainId(chainId)
+						const relayHosts = await relayHostsForChainId(Number(entitySelector.$network.caip2.reference))
 						const sampleLimit = 200
-
 						const deliveredPayloadPages = await Promise.all(
 							relayHosts.map((host) => (
 								getProposerPayloadDeliveredForRelayHost(host, {
 									limit: sampleLimit,
-									builder_pubkey: $builder.builderPubkey,
+									builder_pubkey: entitySelector.builderPubkey,
 								})
 							))
 						)
-
 						let deliveredPayloadCount = 0
 						let deliveredValueWei = 0n
 						let windowStartSlot: number | undefined
@@ -240,24 +201,30 @@ export default {
 							}
 						}
 
-						return {
-							deliveredPayloadCount,
-							deliveredValueWei,
-							relayCount: relayHosts.length,
-							...(windowStartSlot != null && { windowStartSlot }),
-							...(windowEndSlot != null && { windowEndSlot }),
-							sampleLimit,
-						}
+						return [{
+							[EntityMetaKey.Selector]: {
+								$builder: entitySelector,
+								timestampMs: Date.now(),
+								source: Source.MevRelay_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'deliveredPayloadCount')]: deliveredPayloadCount,
+								[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'deliveredValueWei')]: deliveredValueWei,
+								[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'relayCount')]: relayHosts.length,
+								...(windowStartSlot != null && {
+									[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'windowStartSlot')]: windowStartSlot,
+								}),
+								...(windowEndSlot != null && {
+									[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'windowEndSlot')]: windowEndSlot,
+								}),
+								[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'sampleLimit')]: sampleLimit,
+							},
+						}]
 					},
 				},
 			},
 		})({
-				deliveredPayloadCount: (snapshot) => snapshot.deliveredPayloadCount,
-				deliveredValueWei: (snapshot) => snapshot.deliveredValueWei,
-				relayCount: (snapshot) => snapshot.relayCount,
-				windowStartSlot: (snapshot) => snapshot.windowStartSlot,
-				windowEndSlot: (snapshot) => snapshot.windowEndSlot,
-				sampleLimit: (snapshot) => snapshot.sampleLimit,
+				$$timestamps: (snapshot) => snapshot,
 			}),
 
 		defineResolver({

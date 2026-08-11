@@ -5,7 +5,6 @@ import { error } from '@sveltejs/kit'
 import { match as matchNonNegativeInteger } from '$/params/nonNegativeInteger.ts'
 import { match as matchStringSegment } from '$/params/stringSegment.ts'
 import { parseEntitySelector, type EntitySelectorForSelectorName } from '$/schema/$schema.ts'
-import ArweaveNetwork_TimestampSchema from '$/schema/ArweaveNetwork_Timestamp.ts'
 import AvailNetwork_TimestampSchema from '$/schema/AvailNetwork_Timestamp.ts'
 import BittensorNetwork_TimestampSchema from '$/schema/BittensorNetwork_Timestamp.ts'
 import CardanoNetwork_TimestampSchema from '$/schema/CardanoNetwork_Timestamp.ts'
@@ -93,15 +92,6 @@ export const load: PageLoad = async ({ params, parent }) => {
 			readonly selector: EntitySelectorForSelectorName<
 				typeof schema,
 				EntityType.TronNetwork_Timestamp,
-				'NetworkTimestampMsSource'
-			>
-		}
-		| {
-			readonly entityType: EntityType.ArweaveNetwork_Timestamp
-			readonly selectorName: 'NetworkTimestampMsSource'
-			readonly selector: EntitySelectorForSelectorName<
-				typeof schema,
-				EntityType.ArweaveNetwork_Timestamp,
 				'NetworkTimestampMsSource'
 			>
 		}
@@ -373,31 +363,6 @@ export const load: PageLoad = async ({ params, parent }) => {
 				entityType: EntityType.TronNetwork_Timestamp,
 				selectorName: 'NetworkTimestampMsSource',
 				selector: tronNetworkTimestampNetworkTimestampMsSourceSelector,
-			})
-	}
-
-	if (
-		parentData.projectionNetwork.namespace === 'Arweave'
-		&& matchNonNegativeInteger(params.timestampMs)
-		&& matchStringSegment(params.source)
-	) {
-		const arweaveNetworkTimestampNetworkTimestampMsSourceSelector = parseEntitySelector(
-			schema,
-			ArweaveNetwork_TimestampSchema,
-			{
-				$network: {
-					$network: parentData.selector,
-				},
-				timestampMs: Number(params.timestampMs),
-				source: params.source,
-			},
-			'NetworkTimestampMsSource'
-		)
-		if (!(arweaveNetworkTimestampNetworkTimestampMsSourceSelector instanceof arktype.errors))
-			routeCandidates.push({
-				entityType: EntityType.ArweaveNetwork_Timestamp,
-				selectorName: 'NetworkTimestampMsSource',
-				selector: arweaveNetworkTimestampNetworkTimestampMsSourceSelector,
 			})
 	}
 

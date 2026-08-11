@@ -145,16 +145,11 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 			resolver.entityType === EntityType._GlobalAtprotoNetwork
 			&& '$$observedPosts' in resolver.projections
 		))
-		const postTimestamp = atproto.resolvers.find((resolver) => (
-			resolver.entityType === EntityType.AtprotoPost_Timestamp
-		))
 		if (
 			observedPosts == null
-			|| postTimestamp == null
 			|| !('Scope' in observedPosts.resolve)
-			|| !('AtprotoPostTimestampMs' in postTimestamp.resolve)
 		)
-			throw new Error('missing observed posts / timestamp resolvers')
+			throw new Error('missing observed posts resolver')
 
 		vi.spyOn(Date, 'now').mockReturnValue(1_738_555_506_000)
 		await expect(observedPosts.resolve.Scope.resolve({
@@ -185,17 +180,9 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 				}],
 			},
 		}])
-
-		await expect(postTimestamp.resolve.AtprotoPostTimestampMs.resolve({
-			$post: { uri: postView.uri },
-			timestampMs: 1,
-		}, context)).resolves.toEqual({
-			likeCount: 0,
-			repostCount: 2,
-			replyCount: 1,
-			quoteCount: 0,
-			bookmarkCount: 0,
-		})
+		expect(atproto.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.AtprotoPost_Timestamp
+		))).toBe(false)
 	})
 
 	it('projects Did handle from getProfile and hub tip $$timestamps from AppView search windows', async () => {
@@ -226,16 +213,11 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 			resolver.entityType === EntityType._GlobalAtprotoNetwork
 			&& '$$timestamps' in resolver.projections
 		))
-		const hubTimestampSingular = atproto.resolvers.find((resolver) => (
-			resolver.entityType === EntityType._GlobalAtprotoNetwork_Timestamp
-		))
 		if (
 			actorDid == null
 			|| hubTimestamps == null
-			|| hubTimestampSingular == null
 			|| !('Did' in actorDid.resolve)
 			|| !('Scope' in hubTimestamps.resolve)
-			|| !('HubTimestampMsSource' in hubTimestampSingular.resolve)
 		)
 			throw new Error('missing Did / hub timestamp resolvers')
 
@@ -257,20 +239,9 @@ describe('Atproto_Xrpc APP-free social deepenings', () => {
 			[entityFieldAddressKey(EntityType._GlobalAtprotoNetwork_Timestamp, [], 'relayHost')]: 'public.api.bsky.app',
 			[entityFieldAddressKey(EntityType._GlobalAtprotoNetwork_Timestamp, [], 'reachable')]: true,
 		})
-
-		await expect(hubTimestampSingular.resolve.HubTimestampMsSource.resolve({
-			$hub: { scope: '_GlobalAtprotoNetwork' },
-			timestampMs: 1_700_000_000_000,
-			source: Source.Atproto_Xrpc,
-		}, context)).resolves.toEqual({
-			$hub: { scope: '_GlobalAtprotoNetwork' },
-			timestampMs: 1_700_000_000_000,
-			source: Source.Atproto_Xrpc,
-			observedActorCount: 1,
-			observedPostCount: 1,
-			relayHost: 'public.api.bsky.app',
-			reachable: true,
-		})
+		expect(atproto.resolvers.some((resolver) => (
+			resolver.entityType === EntityType._GlobalAtprotoNetwork_Timestamp
+		))).toBe(false)
 	})
 
 	it('walks getPostThread ancestors/descendants and skips notFound/blocked nodes', async () => {

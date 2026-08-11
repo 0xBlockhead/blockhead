@@ -49,6 +49,31 @@ type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type ArweaveNetworkId = EntitySelector<typeof schema, EntityType.ArweaveNetwork>
 type ResolverContext = Parameters<typeof resolverContextRowLimit>[0]
 
+const arweaveGraphqlNetworkTimestamp = async (network: NetworkId) => {
+	const { getBlocksPage } = await import('$/sources/Arweave/Graphql/queries.ts')
+	const blocks = await getBlocksPage({
+		first: 1,
+	})
+	const latest = blocks.edges[0].node
+
+	return {
+		[EntityMetaKey.Selector]: {
+			$network: {
+				$network: network,
+			},
+			timestampMs: Date.now(),
+			source: Source.Arweave_Graphql,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'latestHeight')]: BigInt(latest.height),
+			[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'latestBlockHash')]: latest.id,
+			[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'currentBlockHash')]: latest.id,
+			[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'graphqlCursor')]: blocks.edges[0].cursor,
+			[entityFieldAddressKey(EntityType.ArweaveNetwork_Timestamp, [], 'reachable')]: true,
+		},
+	}
+}
+
 const arweaveSlugNetwork = {
 	slug: 'arweave' as const,
 }
@@ -398,15 +423,7 @@ export default {
 					resolve: async ({ $network }) => {
 						assertArweaveNetwork($network)
 						return {
-							timestamps: [{
-								[EntityMetaKey.Selector]: {
-									$network: {
-										$network: $network,
-									},
-									timestampMs: Date.now(),
-									source: Source.Arweave_Graphql,
-								},
-							}],
+							timestamps: [await arweaveGraphqlNetworkTimestamp($network)],
 						}
 					},
 				},
@@ -509,15 +526,7 @@ export default {
 					resolve: async (network) => {
 						assertArweaveNetwork(network)
 						return {
-							timestamps: [{
-								[EntityMetaKey.Selector]: {
-									$network: {
-										$network: network,
-									},
-									timestampMs: Date.now(),
-									source: Source.Arweave_Graphql,
-								},
-							}],
+							timestamps: [await arweaveGraphqlNetworkTimestamp(network)],
 						}
 					},
 				},
@@ -526,51 +535,6 @@ export default {
 			Arweave: {
 				$$timestamps: (snapshot) => snapshot.timestamps,
 			},
-		}),
-
-		defineResolver({
-			entityType: EntityType.ArweaveNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({
-						$network,
-						timestampMs,
-						source,
-					}) => {
-						assertArweaveNetworkHub($network)
-						if (source !== Source.Arweave_Graphql)
-							throw new Error(`Arweave_Graphql: unsupported source ${source}`)
-
-						const { getBlocksPage } = await import('$/sources/Arweave/Graphql/queries.ts')
-						const blocks = await getBlocksPage({
-							first: 1,
-						})
-						const latest = blocks.edges[0].node
-
-						return {
-							$network: {
-								[EntityMetaKey.Selector]: $network,
-							},
-							timestampMs,
-							source,
-							latestHeight: BigInt(latest.height),
-							latestBlockHash: latest.id,
-							currentBlockHash: latest.id,
-							graphqlCursor: blocks.edges[0]?.cursor,
-							reachable: true,
-						}
-					},
-				},
-			},
-		})({
-			$network: (timestamp) => timestamp.$network,
-			timestampMs: (timestamp) => timestamp.timestampMs,
-			source: (timestamp) => timestamp.source,
-			latestHeight: (timestamp) => timestamp.latestHeight,
-			latestBlockHash: (timestamp) => timestamp.latestBlockHash,
-			currentBlockHash: (timestamp) => timestamp.currentBlockHash,
-			graphqlCursor: (timestamp) => timestamp.graphqlCursor,
-			reachable: (timestamp) => timestamp.reachable,
 		}),
 
 		defineResolver({

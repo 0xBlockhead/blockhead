@@ -349,73 +349,6 @@ export default {
 				$parentComment: (comment) => comment.$parentComment,
 				$$timestamps: (comment) => comment.$$timestamps,
 			}),
-
-		defineResolver({
-			entityType: EntityType.RedditSubreddit_Timestamp,
-			resolve: {
-				SubredditTimestampMsSource: {
-					resolve: async ({ $subreddit }) => {
-						const { getSubredditAbout } = await import('$/sources/Reddit/Rest/queries.ts')
-						const subredditAbout = (await getSubredditAbout($subreddit.name)).data
-						return {
-							...(subredditAbout.subscribers != null && { subscriberCount: subredditAbout.subscribers }),
-							...(subredditAbout.active_user_count != null && {
-								activeUserCount: subredditAbout.active_user_count,
-							}),
-						}
-					},
-				}
-			},
-		})({
-				subscriberCount: (timestamp) => timestamp.subscriberCount,
-				activeUserCount: (timestamp) => timestamp.activeUserCount,
-			}),
-
-		defineResolver({
-			entityType: EntityType.RedditLink_Timestamp,
-			resolve: {
-				LinkTimestampMsSource: {
-					resolve: async ({ $link }) => {
-						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-						const redditThing = (await getInfo($link.fullname))
-							.data
-							.children.find((child) => child.data.name === $link.fullname)
-						if (redditThing == null || redditThing.kind !== 't3')
-							throw new Error('Reddit_Rest: link not found')
-						return {
-							...(redditThing.data.score != null && { score: redditThing.data.score }),
-							...(redditThing.data.num_comments != null && {
-								commentCount: redditThing.data.num_comments,
-							}),
-						}
-					},
-				}
-			},
-		})({
-				score: (timestamp) => timestamp.score,
-				commentCount: (timestamp) => timestamp.commentCount,
-			}),
-
-		defineResolver({
-			entityType: EntityType.RedditComment_Timestamp,
-			resolve: {
-				CommentTimestampMsSource: {
-					resolve: async ({ $comment }) => {
-						const { getInfo } = await import('$/sources/Reddit/Rest/queries.ts')
-						const redditThing = (await getInfo($comment.fullname))
-							.data
-							.children.find((child) => child.data.name === $comment.fullname)
-						if (redditThing == null || redditThing.kind !== 't1')
-							throw new Error('Reddit_Rest: comment not found')
-						return {
-							...(redditThing.data.score != null && { score: redditThing.data.score }),
-						}
-					},
-				}
-			},
-		})({
-				score: (timestamp) => timestamp.score,
-			}),
 		defineResolver({
 			entityType: EntityType._GlobalRedditNetwork,
 			resolve: {
@@ -502,60 +435,6 @@ export default {
 					resolveCount: (hub) => hub.$$timestamps.length,
 				},
 			}),
-
-		defineResolver({
-			entityType: EntityType._GlobalRedditNetwork_Timestamp,
-			resolve: {
-				HubTimestampMsSource: {
-					resolve: async ({
-						$hub,
-						timestampMs,
-						source: observationSource,
-					}, context) => {
-						if (observationSource !== Source.Reddit_Rest)
-							throw new Error(`Reddit_Rest: unsupported source ${observationSource}`)
-
-						const { listSubredditLinks } = await import('$/sources/Reddit/Rest/queries.ts')
-						const limit = resolverContextRowLimit(context)
-						const children = (
-							(await listSubredditLinks(
-								'popular',
-								limit,
-								undefined,
-								'hot'
-							)).data.children
-							?? []
-						)
-						const subreddits = new Set(
-							children.flatMap((child) => {
-								if (redditLinkCardReference(child) == null) return []
-								const name = optionalNonemptyString(child.data.subreddit?.trim())?.toLowerCase()
-								return name == null ? [] : [name]
-							})
-						)
-						const links = redditLinkCardReferences(children, limit)
-						return {
-							$hub,
-							timestampMs,
-							source: Source.Reddit_Rest,
-							observedSubredditCount: subreddits.size,
-							observedLinkCount: links.length,
-							reachable: true as const,
-							listingWindowKind: 'popular:hot',
-						}
-					},
-				},
-			},
-		})({
-				$hub: (observation) => observation.$hub,
-				timestampMs: (observation) => observation.timestampMs,
-				source: (observation) => observation.source,
-				observedSubredditCount: (observation) => observation.observedSubredditCount,
-				observedLinkCount: (observation) => observation.observedLinkCount,
-				reachable: (observation) => observation.reachable,
-				listingWindowKind: (observation) => observation.listingWindowKind,
-			}),
-
 		defineResolver({
 			entityType: EntityType.RedditSubreddit,
 			resolve: {

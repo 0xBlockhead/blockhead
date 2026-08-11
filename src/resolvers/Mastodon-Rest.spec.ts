@@ -460,36 +460,10 @@ describe('Mastodon ActivityPub observations', () => {
 		])
 	})
 
-	it('reuses persisted global observations without refetching current state', async () => {
-		const observation = resolver(EntityType._GlobalActivityPubNetwork_Timestamp)
-
-		await expect(observation.resolve[
-			'HubTimestampMsSource'
-		].resolve({
-			$hub: {
-				scope: '_GlobalActivityPubNetwork',
-			},
-			timestampMs: 1_700_000_000_100,
-			source: Source.Mastodon_Rest,
-		}, context)).resolves.toEqual({
-			$hub: {
-				[EntityMetaKey.Selector]: {
-					scope: '_GlobalActivityPubNetwork',
-				},
-			},
-			timestampMs: 1_700_000_000_100,
-			source: Source.Mastodon_Rest,
-		})
-		expect(getInstance).not.toHaveBeenCalled()
-		await expect(observation.resolve[
-			'HubTimestampMsSource'
-		].resolve({
-			$hub: {
-				scope: '_GlobalActivityPubNetwork',
-			},
-			timestampMs: 1_700_000_000_100,
-			source: Source.Rss_Rest,
-		}, context)).rejects.toThrow('source mismatch')
+	it('does not register a direct global observation resolver', () => {
+		expect(mastodon.resolvers.some((candidate) => (
+			candidate.entityType === EntityType._GlobalActivityPubNetwork_Timestamp
+		))).toBe(false)
 	})
 
 	it('produces one source-keyed instance observation batch with observation-owned topology', async () => {
@@ -954,50 +928,16 @@ describe('Mastodon ActivityPub observations', () => {
 		expect(listInstanceModeratedDomains).toHaveBeenCalledTimes(2)
 	})
 
-	it('does not refetch current state for historical actor, note, or instance selectors', async () => {
-		const actor = resolver(EntityType.ActivityPubActor_Timestamp)
-		const note = resolver(EntityType.ActivityPubNote_Timestamp)
-		const instance = resolver(EntityType.ActivityPubInstance_Timestamp)
-
-		expect(actor.resolve[
-			'ActivityPubActorTimestampMsSource'
-		].resolve({
-			$actor: {
-				activityStreamsUri: 'https://actor.example/users/alice',
-			},
-			timestampMs: 1,
-			source: Source.Mastodon_Rest,
-		}, context)).toMatchObject({
-			timestampMs: 1,
-		})
-		expect(note.resolve[
-			'ActivityPubNoteTimestampMsSource'
-		].resolve({
-			$note: {
-				activityStreamsUri: 'https://note.example/users/alice/statuses/1',
-			},
-			timestampMs: 1,
-			source: Source.Mastodon_Rest,
-		}, context)).toMatchObject({
-			timestampMs: 1,
-		})
-		expect(instance.resolve[
-			'InstanceTimestampMsSource'
-		].resolve({
-			$instance: {
-				instanceOrigin: 'https://instance.example',
-			},
-			timestampMs: 1,
-			source: Source.Mastodon_Rest,
-		}, context)).toMatchObject({
-			timestampMs: 1,
-		})
-		expect(getInstance).not.toHaveBeenCalled()
-		expect(listInstancePeerDomains).not.toHaveBeenCalled()
-		expect(listInstanceModeratedDomains).not.toHaveBeenCalled()
+	it('does not register direct actor, note, or instance observation resolvers', () => {
+		for (const entityType of [
+			EntityType.ActivityPubActor_Timestamp,
+			EntityType.ActivityPubNote_Timestamp,
+			EntityType.ActivityPubInstance_Timestamp,
+		])
+			expect(mastodon.resolvers.some((candidate) => candidate.entityType === entityType)).toBe(false)
 	})
 
-	it('keeps equal clocks distinct by source and rejects unsupported source reads', async () => {
+	it('keeps equal clocks distinct by source', () => {
 		const selector = {
 			$instance: {
 				instanceOrigin: 'https://instance.example',
@@ -1011,11 +951,5 @@ describe('Mastodon ActivityPub observations', () => {
 			...selector,
 			source: Source.Constants_Internal,
 		})
-		expect(() => resolver(EntityType.ActivityPubInstance_Timestamp).resolve[
-			'InstanceTimestampMsSource'
-		].resolve({
-			...selector,
-			source: Source.Constants_Internal,
-		}, context)).toThrow('source mismatch')
 	})
 })

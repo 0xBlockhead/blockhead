@@ -784,6 +784,31 @@ describe('Cosmos SDK governance proposal resolver', () => {
 			slug: 'cosmos',
 		}, context)).rejects.toThrow('CosmosSdk_Rest: governance proposal list contains duplicate identities')
 	})
+
+	it('embeds the current status without exposing an arbitrary timestamp refetch', async () => {
+		getJson.mockResolvedValueOnce({
+			proposal: {
+				id: '9',
+				status: 'PROPOSAL_STATUS_PASSED',
+				title: 'Passed proposal',
+				summary: 'Passed proposal summary',
+			},
+		})
+
+		const snapshot = await governanceProposalResolver.resolve.NetworkProposalId.resolve({
+			$network: {
+				slug: 'cosmos',
+			},
+			proposalId: '9',
+		}, context)
+		expect(snapshot.$$timestamps[0][EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.CosmosGovernanceProposal_Timestamp, [], 'status')]: 'PROPOSAL_STATUS_PASSED',
+		})
+		expect(cosmosSdk.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.CosmosGovernanceProposal_Timestamp
+		))).toBe(false)
+		expect(getJson).toHaveBeenCalledTimes(1)
+	})
 })
 
 describe('Cosmos SDK account transaction resolver', () => {

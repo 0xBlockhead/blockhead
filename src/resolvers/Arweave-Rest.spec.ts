@@ -47,9 +47,6 @@ const networkResolver = arweaveRest.resolvers.find((resolver) => (
 const directoryNetworkResolver = arweaveRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 ))
-const networkTimestampResolver = arweaveRest.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.ArweaveNetwork_Timestamp
-))
 const blockResolver = arweaveRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.ArweaveBlock
 ))
@@ -66,7 +63,6 @@ const resourceTimestampResolver = arweaveRest.resolvers.find((resolver) => (
 if (
 	networkResolver == null
 	|| directoryNetworkResolver == null
-	|| networkTimestampResolver == null
 	|| blockResolver == null
 	|| transactionResolver == null
 	|| resourceResolver == null
@@ -351,34 +347,10 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 		)).toBe(11)
 	})
 
-	it('maps GET /info into ArweaveNetwork_Timestamp fields', async () => {
-		getNetworkInfo.mockResolvedValueOnce({
-			network: 'arweave.N.1',
-			version: 5,
-			release: 43,
-			height: 551_511,
-			current: blockId,
-			blocks: 97_375,
-			peers: 64,
-			queue_length: 0,
-		})
-		await expect(networkTimestampResolver.resolve.NetworkTimestampMsSource.resolve(
-			{
-				$network: arweaveNetwork,
-				timestampMs: 1_700_000_000_000,
-				source: Source.Arweave_Rest,
-			},
-			context
-		)).resolves.toMatchObject({
-			latestHeight: 551_511n,
-			latestBlockHash: blockId,
-			currentBlockHash: blockId,
-			networkId: 'arweave.N.1',
-			peerCount: 64,
-			queuedTransactionCount: 0,
-			gatewayOrigin: 'https://arweave.net',
-			reachable: true,
-		})
+	it('does not expose an arbitrary current-state ArweaveNetwork_Timestamp facet', () => {
+		expect(arweaveRest.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.ArweaveNetwork_Timestamp
+		))).toBe(false)
 	})
 
 	it('maps GET /block/height into full ArweaveBlock fields and tx refs', async () => {

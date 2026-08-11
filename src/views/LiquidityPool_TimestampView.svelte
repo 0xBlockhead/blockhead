@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -19,13 +18,11 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.LiquidityPool_Timestamp> = $props()
 
-	const liquidityPool = $derived(selection.entitySelector.$liquidityPool)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Dexscreener_Rest,
@@ -55,25 +52,6 @@
 	entityType={EntityType.LiquidityPool_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	href={
-		href === undefined ?
-			(
-				'caip2' in liquidityPool.$network ?
-					resolve(
-						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
-						{
-							chainId: liquidityPool.$network.caip2.reference,
-							poolId: liquidityPool.id,
-							timestampMs: String(selection.entitySelector.timestampMs),
-							feedKey: encodeURIComponent(selection.entitySelector.feedKey),
-						}
-					)
-				:
-					undefined
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

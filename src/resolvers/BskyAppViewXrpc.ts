@@ -217,27 +217,6 @@ export const bskyAppViewResolvers = (
 				$root: (post) => post.$root,
 				$$timestamps: (post) => post.$$timestamps,
 			}),
-
-		defineResolver({
-			entityType: EntityType.AtprotoPost_Timestamp,
-			resolve: {
-				AtprotoPostTimestampMs: {
-					resolve: async ({ $post }, context) => {
-						const [binding, { getPosts }] = await loadBindingAndQueries(context)
-						const postView = (await getPosts(binding, [$post.uri])).posts.find((post) => post.uri === $post.uri)
-						if (postView == null) throw new Error(`${source}: post not found`)
-						return atprotoPostEngagementFromPostView(postView)
-					},
-				}
-			},
-		})({
-				likeCount: (timestamp) => timestamp.likeCount,
-				repostCount: (timestamp) => timestamp.repostCount,
-				replyCount: (timestamp) => timestamp.replyCount,
-				quoteCount: (timestamp) => timestamp.quoteCount,
-				bookmarkCount: (timestamp) => timestamp.bookmarkCount,
-			}),
-
 		defineResolver({
 			entityType: EntityType._GlobalAtprotoNetwork,
 			resolve: {
@@ -359,38 +338,6 @@ export const bskyAppViewResolvers = (
 					resolveCount: (hub) => hub.$$timestamps.length,
 				},
 			}),
-
-		defineResolver({
-			entityType: EntityType._GlobalAtprotoNetwork_Timestamp,
-			resolve: {
-				HubTimestampMsSource: {
-					resolve: async ({
-						$hub,
-						timestampMs,
-						source: observationSource,
-					}, context) => {
-						if (observationSource !== source)
-							throw new Error(`${source}: unsupported source ${observationSource}`)
-
-						return {
-							$hub,
-							timestampMs,
-							source,
-							...(await atprotoNetworkHubObservation(context)),
-						}
-					},
-				},
-			},
-		})({
-				$hub: (observation) => observation.$hub,
-				timestampMs: (observation) => observation.timestampMs,
-				source: (observation) => observation.source,
-				observedActorCount: (observation) => observation.observedActorCount,
-				observedPostCount: (observation) => observation.observedPostCount,
-				relayHost: (observation) => observation.relayHost,
-				reachable: (observation) => observation.reachable,
-			}),
-
 		defineResolver({
 			entityType: EntityType.AtprotoActor,
 			resolve: {

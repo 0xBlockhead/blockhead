@@ -206,25 +206,9 @@ describe('Primal Rest enrolled leftovers', () => {
 		}])
 	})
 
-	it('reuses HubTimestampMsSource identity fields', async () => {
-		expect(
-			await resolver(
-				EntityType._GlobalNostrNetwork_Timestamp
-			).resolve.HubTimestampMsSource.resolve({
-				$hub: {
-					scope: '_GlobalNostrNetwork',
-				},
-				timestampMs: 1_700_000_000_300,
-				source: Source.Primal_Rest,
-			}, context)
-		).toEqual({
-			$hub: {
-				[EntityMetaKey.Selector]: {
-					scope: '_GlobalNostrNetwork',
-				},
-			},
-			timestampMs: 1_700_000_000_300,
-			source: Source.Primal_Rest,
-		})
+	it('does not register a direct global observation resolver', () => {
+		expect(primalRest.resolvers.some((candidate) => (
+			candidate.entityType === EntityType._GlobalNostrNetwork_Timestamp
+		))).toBe(false)
 	})
 })

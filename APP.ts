@@ -4168,7 +4168,7 @@ export const schema = {
 			})({
 				"scope": { label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, primitiveType: { unit: "_GlobalSwarmAccess" } },
 				"$$observedResources": { label: "Observed resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SwarmResource },
-				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalSwarmAccess_Timestamp },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalSwarmAccess_Timestamp, defaultSources: [Source.Swarm_Rest] },
 			})({
 				selectors: {
 					"Scope": ["scope"],
@@ -4200,11 +4200,11 @@ export const schema = {
 				"$hub": { label: "Hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalSwarmAccess },
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"declaredAccessEndpointCount": { label: "Declared access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"reachableAccessEndpointCount": { label: "Reachable access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"observedResourceCount": { label: "Observed resources", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"seededExampleCount": { label: "Seeded examples", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"reachable": { label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"declaredAccessEndpointCount": { label: "Declared access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Swarm_Rest] },
+				"reachableAccessEndpointCount": { label: "Reachable access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Swarm_Rest] },
+				"observedResourceCount": { label: "Observed resources", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Swarm_Rest] },
+				"seededExampleCount": { label: "Seeded examples", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Swarm_Rest] },
+				"reachable": { label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Swarm_Rest] },
 			})({
 				selectors: {
 					"HubTimestampMsSource": ["$hub", "timestampMs", "source"],
@@ -50581,7 +50581,7 @@ export const schema = {
 				"referendumId": { label: "Referendum ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"track": { label: "Track", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"submittedAtBlockNumber": { label: "Submitted at block number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"$$timestamps": { label: "Lifecycle observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotReferendum_Timestamp },
+				"$$timestamps": { label: "Lifecycle observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.PolkadotReferendum_Timestamp, defaultSources: [Source.Subscan_Rest] },
 			})({
 				selectors: {
 					"NetworkReferendumId": ["$network", "referendumId"],
@@ -50625,6 +50625,7 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						query: { sources: [Source.Subscan_Rest] },
 						summary: { title: ["status"], value: [{ field: "timestampMs", format: "timestamp" }], HeadingAfter: ["source"] },
 						closed: ["$referendum", { field: "timestampMs", format: "timestamp" }, "status"],
 						content: {
@@ -78259,7 +78260,7 @@ export const routes = defineRoutes(schema)({
 																										"source"
 																									]
 																								},
-																								page: {}
+																								page: false
 																							}
 																						}
 																					},
@@ -78312,7 +78313,7 @@ export const routes = defineRoutes(schema)({
 																										"source"
 																									]
 																								},
-																								page: {}
+																								page: false
 																							}
 																						}
 																					},
@@ -79575,7 +79576,7 @@ export const routes = defineRoutes(schema)({
 																							"ProposalTimestampMsSource": {
 																								params: {},
 																								derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
-																								page: {},
+																								page: false,
 																							}
 																						}
 																					},
@@ -79783,7 +79784,7 @@ export const routes = defineRoutes(schema)({
 																				params: [{ field: "$network", value: { kind: "pageSelector" } }],
 																			},
 																		},
-																		page: {},
+																		page: false,
 																		when: { path: ["namespace"], is: "Arweave" },
 																		projection: { entityType: EntityType.Network, facetPath: ["Arweave"] },
 																	}
@@ -87749,7 +87750,7 @@ export const routes = defineRoutes(schema)({
 																				],
 																			}
 																		},
-																		page: {}
+																		page: false
 																	}
 																}
 															},
@@ -90329,7 +90330,7 @@ export const routes = defineRoutes(schema)({
 															"HubTimestampMsSource": {
 																params: { "source": ["source"] },
 																derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
-																page: {},
+																page: false,
 															},
 														},
 													},
@@ -90664,7 +90665,7 @@ export const routes = defineRoutes(schema)({
 															"HubTimestampMsSource": {
 																params: { "source": ["source"] },
 																derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
-																page: {},
+																page: false,
 															},
 														},
 													},
@@ -91127,7 +91128,7 @@ export const routes = defineRoutes(schema)({
 															"HubTimestampMsSource": {
 																params: { "source": ["source"] },
 																derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
-																page: {},
+																page: false,
 															},
 														},
 													},
@@ -91508,7 +91509,7 @@ export const routes = defineRoutes(schema)({
 															"HubTimestampMsSource": {
 																params: { "source": ["source"] },
 																derivations: { "timestampMs": { kind: "param", name: "timestampMs" } },
-																page: {},
+																page: false,
 															},
 														},
 													},

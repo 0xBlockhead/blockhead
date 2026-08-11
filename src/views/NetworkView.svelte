@@ -429,7 +429,6 @@
 	import FilecoinNetwork_TimestampsView from '$/views/FilecoinNetwork_TimestampsView.svelte'
 	import FilecoinTipsetsView from '$/views/FilecoinTipsetsView.svelte'
 	import FilecoinDealsView from '$/views/FilecoinDealsView.svelte'
-	import ArweaveNetwork_TimestampsView from '$/views/ArweaveNetwork_TimestampsView.svelte'
 	import ArweaveBlocksView from '$/views/ArweaveBlocksView.svelte'
 	import ArweaveTransactionsView from '$/views/ArweaveTransactionsView.svelte'
 	import ArweaveResourcesView from '$/views/ArweaveResourcesView.svelte'
@@ -5153,18 +5152,27 @@
 						{/snippet}
 
 						{#snippet SectionArweaveChainObservations({ id, label })}
-							<ArweaveNetwork_TimestampsView
-								selection={
+							<EntitiesList
+								entityType={EntityType.ArweaveNetwork_Timestamp}
+								collapsible={false}
+								title={label}
+								open={true}
+								id={`${id}-list`}
+								resource={
 									projection
 									.$$timestamps({
 										sources: arweaveGraphqlAndArweaveRestSources,
 										limit: 16,
-									})
+									})()
 								}
-								collapsible={false}
-								title={label}
-								id={`${id}-list`}
-							/>
+							>
+								{#snippet Item({ item: arweaveNetworkTimestamp })}
+									<EntityView
+										entityType={EntityType.ArweaveNetwork_Timestamp}
+										entitySelector={arweaveNetworkTimestamp[EntityMetaKey.Selector]}
+									/>
+								{/snippet}
+							</EntitiesList>
 						{/snippet}
 
 						{#snippet SectionArweaveChainBlocks({ id, label })}

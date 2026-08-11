@@ -236,56 +236,6 @@ export default {
 		}),
 
 		defineResolver({
-			entityType: EntityType.ArweaveNetwork_Timestamp,
-			resolve: {
-				NetworkTimestampMsSource: {
-					resolve: async ({
-						$network,
-						timestampMs,
-						source,
-					}) => {
-						assertArweaveNetworkHub($network)
-						if (source !== Source.Arweave_Rest)
-							throw new Error(`Arweave_Rest: unsupported source ${source}`)
-
-						const {
-							getGatewayOrigin,
-							getNetworkInfo,
-						} = await import('$/sources/Arweave/Rest/queries.ts')
-						const info = await getNetworkInfo()
-						return {
-							$network: {
-								[EntityMetaKey.Selector]: $network,
-							},
-							timestampMs,
-							source,
-							latestHeight: BigInt(info.height),
-							latestBlockHash: info.current,
-							currentBlockHash: info.current,
-							networkId: info.network,
-							peerCount: info.peers,
-							queuedTransactionCount: info.queue_length,
-							gatewayOrigin: getGatewayOrigin(),
-							reachable: true,
-						}
-					},
-				},
-			},
-		})({
-			$network: (timestamp) => timestamp.$network,
-			timestampMs: (timestamp) => timestamp.timestampMs,
-			source: (timestamp) => timestamp.source,
-			latestHeight: (timestamp) => timestamp.latestHeight,
-			latestBlockHash: (timestamp) => timestamp.latestBlockHash,
-			currentBlockHash: (timestamp) => timestamp.currentBlockHash,
-			networkId: (timestamp) => timestamp.networkId,
-			peerCount: (timestamp) => timestamp.peerCount,
-			queuedTransactionCount: (timestamp) => timestamp.queuedTransactionCount,
-			gatewayOrigin: (timestamp) => timestamp.gatewayOrigin,
-			reachable: (timestamp) => timestamp.reachable,
-		}),
-
-		defineResolver({
 			entityType: EntityType.ArweaveBlock,
 			resolve: {
 				NetworkHeight: {

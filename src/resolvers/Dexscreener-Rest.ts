@@ -6,6 +6,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -69,6 +70,38 @@ export default {
 									timestampMs: latestDexPair.resolvedAtMs,
 									feedKey: 'dexscreener',
 								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'baseTokenSymbol')]: latestDexPair.baseToken.symbol,
+									[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'quoteTokenSymbol')]: latestDexPair.quoteToken.symbol,
+									...(latestDexPair.pairCreatedAt != null && {
+										[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'pairCreatedAtMs')]: latestDexPair.pairCreatedAt,
+									}),
+									[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'dexscreenerLabels')]: latestDexPair.labels,
+									[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'dexId')]: latestDexPair.dexId,
+									...(latestDexPair.url != null && latestDexPair.url !== '' && {
+										[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'dexscreenerPairUrl')]: latestDexPair.url,
+									}),
+									...(latestDexPair.priceUsd != null && {
+										[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'priceUsd')]: latestDexPair.priceUsd,
+									}),
+									...(latestDexPair.priceNative != null && {
+										[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'priceNative')]: latestDexPair.priceNative,
+									}),
+									...(latestDexPair.liquidity?.usd != null && {
+										[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'liquidityUsd')]: latestDexPair.liquidity.usd,
+									}),
+									[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'volumeUsd24h')]: latestDexPair.volume.h24,
+									[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'priceChangePercent24h')]: latestDexPair.priceChange.h24,
+									[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'transactionBuys24h')]: latestDexPair.txns.h24.buys,
+									[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'transactionSells24h')]: latestDexPair.txns.h24.sells,
+									...(latestDexPair.marketCap != null && {
+										[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'marketCapUsd')]: latestDexPair.marketCap,
+									}),
+									...(latestDexPair.fdv != null && {
+										[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'fdvUsd')]: latestDexPair.fdv,
+									}),
+									[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'transport')]: 'Dexscreener OpenAPI',
+								},
 							}],
 						}
 					},
@@ -81,69 +114,6 @@ export default {
 					select: (snapshot) => snapshot.$$timestamps,
 					resolveCount: (snapshot) => snapshot.$$timestamps.length,
 				},
-			}),
-
-		defineResolver({
-			entityType: EntityType.LiquidityPool_Timestamp,
-			resolve: {
-				LiquidityPoolTimestampMsFeedKey: {
-					resolve: async ({ $liquidityPool }) => {
-						const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
-						const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
-
-						const chainId = Number($liquidityPool.$network.caip2.reference)
-						const apiChainId = apiChainIdByChainId[chainId]
-						if (apiChainId == null)
-							throw new Error(`Dexscreener_Rest: unsupported chain ${String(chainId)}`)
-
-						const latestDexPair = (
-							await getLatestPairs({
-								chainId: apiChainId,
-								pairId: $liquidityPool.id,
-							})
-						).pairs.at(0)
-
-						if (latestDexPair == null)
-							throw new Error('Dexscreener_Rest: liquidity pool / pair not found for timestamp id')
-
-						return {
-							baseTokenSymbol: latestDexPair.baseToken.symbol,
-							quoteTokenSymbol: latestDexPair.quoteToken.symbol,
-							...(latestDexPair.pairCreatedAt != null && { pairCreatedAtMs: latestDexPair.pairCreatedAt }),
-							dexscreenerLabels: latestDexPair.labels,
-							dexId: latestDexPair.dexId,
-							...(latestDexPair.url != null && latestDexPair.url !== '' && { dexscreenerPairUrl: latestDexPair.url }),
-							...(latestDexPair.priceUsd != null && { priceUsd: latestDexPair.priceUsd }),
-							...(latestDexPair.priceNative != null && { priceNative: latestDexPair.priceNative }),
-							...(latestDexPair.liquidity?.usd != null && { liquidityUsd: latestDexPair.liquidity.usd }),
-							...(latestDexPair.volume.h24 != null && { volumeUsd24h: latestDexPair.volume.h24 }),
-							...(latestDexPair.priceChange.h24 != null && { priceChangePercent24h: latestDexPair.priceChange.h24 }),
-							...(latestDexPair.txns.h24?.buys != null && { transactionBuys24h: latestDexPair.txns.h24.buys }),
-							...(latestDexPair.txns.h24?.sells != null && { transactionSells24h: latestDexPair.txns.h24.sells }),
-							...(latestDexPair.marketCap != null && { marketCapUsd: latestDexPair.marketCap }),
-							...(latestDexPair.fdv != null && { fdvUsd: latestDexPair.fdv }),
-							transport: 'Dexscreener OpenAPI',
-						}
-					},
-				}
-			}
-		})({
-				baseTokenSymbol: (snapshot) => snapshot.baseTokenSymbol,
-				quoteTokenSymbol: (snapshot) => snapshot.quoteTokenSymbol,
-				pairCreatedAtMs: (snapshot) => snapshot.pairCreatedAtMs,
-				dexscreenerLabels: (snapshot) => snapshot.dexscreenerLabels,
-				dexId: (snapshot) => snapshot.dexId,
-				dexscreenerPairUrl: (snapshot) => snapshot.dexscreenerPairUrl,
-				priceUsd: (snapshot) => snapshot.priceUsd,
-				priceNative: (snapshot) => snapshot.priceNative,
-				liquidityUsd: (snapshot) => snapshot.liquidityUsd,
-				volumeUsd24h: (snapshot) => snapshot.volumeUsd24h,
-				priceChangePercent24h: (snapshot) => snapshot.priceChangePercent24h,
-				transactionBuys24h: (snapshot) => snapshot.transactionBuys24h,
-				transactionSells24h: (snapshot) => snapshot.transactionSells24h,
-				marketCapUsd: (snapshot) => snapshot.marketCapUsd,
-				fdvUsd: (snapshot) => snapshot.fdvUsd,
-				transport: (snapshot) => snapshot.transport,
 			}),
 
 		defineResolver({

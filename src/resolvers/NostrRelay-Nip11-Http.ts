@@ -4,6 +4,7 @@ import {
 } from '$/resolvers/defineResolver.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import {
+	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -28,6 +29,8 @@ export default {
 				RelayUrl: {
 					resolve: async ({ relayUrl }) => {
 						const normalizedRelayUrl = normalizeRelayUrl(relayUrl)
+						const { fetchRelayInformation } = await import('$/sources/NostrRelay/Http/queries.ts')
+						const document = await fetchRelayInformation({ relayUrl: normalizedRelayUrl })
 						return {
 							relayUrl: normalizedRelayUrl,
 							$$timestamps: [{
@@ -35,6 +38,65 @@ export default {
 									$relay: { relayUrl: normalizedRelayUrl },
 									timestampMs: Date.now(),
 									source: Source.NostrRelay_Nip11_Http,
+								},
+								[EntityMetaKey.Fields]: {
+									[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'reachable')]: true,
+									...(optionalNonemptyString(document.name) != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'name')]: optionalNonemptyString(document.name),
+									}),
+									...(optionalNonemptyString(document.description) != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'description')]: optionalNonemptyString(document.description),
+									}),
+									...(optionalNonemptyString(document.software) != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'software')]: optionalNonemptyString(document.software),
+									}),
+									...(optionalNonemptyString(document.version) != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'version')]: optionalNonemptyString(document.version),
+									}),
+									...(optionalNonemptyString(document.pubkey) != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'pubkey')]: optionalNonemptyString(document.pubkey),
+									}),
+									...(optionalNonemptyString(document.contact) != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'contact')]: optionalNonemptyString(document.contact),
+									}),
+									...(optionalNonemptyString(document.payments_url) != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'paymentsUrl')]: optionalNonemptyString(document.payments_url),
+									}),
+									...(optionalNonemptyString(document.terms_of_service) != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'termsOfServiceUrl')]: optionalNonemptyString(document.terms_of_service),
+									}),
+									...(optionalNonemptyString(document.icon) != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'iconUrl')]: optionalNonemptyString(document.icon),
+									}),
+									...(optionalNonemptyString(document.banner) != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'bannerUrl')]: optionalNonemptyString(document.banner),
+									}),
+									...(document.supported_nips != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'supportedNips')]: document.supported_nips,
+									}),
+									...(document.limitation != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'limitation')]: {
+											...(document.limitation.max_message_length != null && { maxMessageLength: document.limitation.max_message_length }),
+											...(document.limitation.max_subscriptions != null && { maxSubscriptions: document.limitation.max_subscriptions }),
+											...(document.limitation.max_filters != null && { maxFilters: document.limitation.max_filters }),
+											...(document.limitation.max_limit != null && { maxLimit: document.limitation.max_limit }),
+											...(document.limitation.max_subid_length != null && { maxSubscriptionIdLength: document.limitation.max_subid_length }),
+											...(document.limitation.max_event_tags != null && { maxEventTags: document.limitation.max_event_tags }),
+											...(document.limitation.max_content_length != null && { maxContentLength: document.limitation.max_content_length }),
+											...(document.limitation.min_pow_difficulty != null && { minimumProofOfWorkDifficulty: document.limitation.min_pow_difficulty }),
+											...(document.limitation.auth_required != null && { authenticationRequired: document.limitation.auth_required }),
+											...(document.limitation.payment_required != null && { paymentRequired: document.limitation.payment_required }),
+											...(document.limitation.restricted_writes != null && { restrictedWrites: document.limitation.restricted_writes }),
+											...(document.limitation.created_at_lower_limit != null && { createdAtLowerLimit: document.limitation.created_at_lower_limit }),
+											...(document.limitation.created_at_upper_limit != null && { createdAtUpperLimit: document.limitation.created_at_upper_limit }),
+										},
+									}),
+									...(document.fees != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'fees')]: document.fees,
+									}),
+									...(document.limitation?.payment_required != null && {
+										[entityFieldAddressKey(EntityType.NostrRelay_Timestamp, [], 'isPaid')]: document.limitation.payment_required,
+									}),
 								},
 							}],
 						}
@@ -44,87 +106,6 @@ export default {
 		})({
 			relayUrl: (relay) => relay.relayUrl,
 			$$timestamps: (relay) => relay.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.NostrRelay_Timestamp,
-			resolve: {
-				RelayTimestampMsSource: {
-					appliesTo: [{
-						source: Source.NostrRelay_Nip11_Http,
-					}],
-					resolve: async ({
-						$relay,
-						timestampMs,
-						source,
-					}) => {
-						if (source !== Source.NostrRelay_Nip11_Http)
-							throw new Error(`NostrRelay_Nip11_Http: unsupported source ${source}`)
-
-						const relayUrl = normalizeRelayUrl($relay.relayUrl)
-						const { fetchRelayInformation } = await import('$/sources/NostrRelay/Http/queries.ts')
-						const document = await fetchRelayInformation({ relayUrl })
-						return {
-							$relay: { [EntityMetaKey.Selector]: { relayUrl } },
-							timestampMs,
-							source,
-							reachable: true,
-							name: optionalNonemptyString(document.name),
-							description: optionalNonemptyString(document.description),
-							software: optionalNonemptyString(document.software),
-							version: optionalNonemptyString(document.version),
-							pubkey: optionalNonemptyString(document.pubkey),
-							contact: optionalNonemptyString(document.contact),
-							paymentsUrl: optionalNonemptyString(document.payments_url),
-							termsOfServiceUrl: optionalNonemptyString(document.terms_of_service),
-							iconUrl: optionalNonemptyString(document.icon),
-							bannerUrl: optionalNonemptyString(document.banner),
-							...(document.supported_nips != null && { supportedNips: document.supported_nips }),
-							...(document.limitation != null && {
-								limitation: {
-									...(document.limitation.max_message_length != null && { maxMessageLength: document.limitation.max_message_length }),
-									...(document.limitation.max_subscriptions != null && { maxSubscriptions: document.limitation.max_subscriptions }),
-									...(document.limitation.max_filters != null && { maxFilters: document.limitation.max_filters }),
-									...(document.limitation.max_limit != null && { maxLimit: document.limitation.max_limit }),
-									...(document.limitation.max_subid_length != null && { maxSubscriptionIdLength: document.limitation.max_subid_length }),
-									...(document.limitation.max_event_tags != null && { maxEventTags: document.limitation.max_event_tags }),
-									...(document.limitation.max_content_length != null && { maxContentLength: document.limitation.max_content_length }),
-									...(document.limitation.min_pow_difficulty != null && { minimumProofOfWorkDifficulty: document.limitation.min_pow_difficulty }),
-									...(document.limitation.auth_required != null && { authenticationRequired: document.limitation.auth_required }),
-									...(document.limitation.payment_required != null && { paymentRequired: document.limitation.payment_required }),
-									...(document.limitation.restricted_writes != null && { restrictedWrites: document.limitation.restricted_writes }),
-									...(document.limitation.created_at_lower_limit != null && { createdAtLowerLimit: document.limitation.created_at_lower_limit }),
-									...(document.limitation.created_at_upper_limit != null && { createdAtUpperLimit: document.limitation.created_at_upper_limit }),
-								},
-							}),
-							...(document.fees != null && { fees: document.fees }),
-							...(document.limitation?.payment_required != null && {
-								isPaid: document.limitation.payment_required,
-							}),
-						}
-					},
-				},
-			},
-		})({
-			$relay: (observation) => observation.$relay,
-			timestampMs: (observation) => observation.timestampMs,
-			source: (observation) => observation.source,
-			name: (observation) => observation.name,
-			description: (observation) => observation.description,
-			software: (observation) => observation.software,
-			version: (observation) => observation.version,
-			supportedNips: (observation) => observation.supportedNips,
-			limitation: (observation) => observation.limitation,
-			fees: (observation) => observation.fees,
-			paymentsUrl: (observation) => observation.paymentsUrl,
-			termsOfServiceUrl: (observation) => observation.termsOfServiceUrl,
-			iconUrl: (observation) => observation.iconUrl,
-			bannerUrl: (observation) => observation.bannerUrl,
-			pubkey: (observation) => observation.pubkey,
-			contact: (observation) => observation.contact,
-			isPaid: (observation) => observation.isPaid,
-			reachable: (observation) => observation.reachable,
-			error: (observation) => observation.error,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

@@ -646,31 +646,6 @@ export default {
 		})({
 			$$timestamps: (observations) => observations,
 		}),
-
-		defineResolver({
-			entityType: EntityType._GlobalActivityPubNetwork_Timestamp,
-			resolve: {
-				HubTimestampMsSource: {
-					resolve: async ({ $hub, timestampMs, source }) => {
-						if (source !== Source.Mastodon_Rest)
-							throw new Error('Mastodon_Rest: global ActivityPub observation source mismatch')
-
-						return {
-							$hub: {
-								[EntityMetaKey.Selector]: $hub,
-							},
-							timestampMs,
-							source,
-						}
-					},
-				},
-			},
-		})({
-			$hub: (observation) => observation.$hub,
-			timestampMs: (observation) => observation.timestampMs,
-			source: (observation) => observation.source,
-		}),
-
 		defineResolver({
 			entityType: EntityType.ActivityPubInstance,
 			resolve: {
@@ -754,25 +729,6 @@ export default {
 		})({
 				$$timestamps: (observations) => observations,
 			}),
-
-		defineResolver({
-			entityType: EntityType.ActivityPubInstance_Timestamp,
-			resolve: {
-				InstanceTimestampMsSource: {
-					resolve: (selector) => {
-						const { source } = selector
-						if (source !== Source.Mastodon_Rest)
-							throw new Error('Mastodon_Rest: ActivityPub instance source mismatch')
-						return selector
-					},
-				},
-			},
-		})({
-				$instance: (observation) => observation.$instance,
-				timestampMs: (observation) => observation.timestampMs,
-				source: (observation) => observation.source,
-			}),
-
 		defineResolver({
 			entityType: EntityType.ActivityPubInstancePeer,
 			resolve: {
@@ -1001,40 +957,6 @@ export default {
 				$inReplyTo: (note) => note.$inReplyTo,
 				$reblogOf: (note) => note.$reblogOf,
 				$$timestamps: (note) => note.$$timestamps,
-			}),
-
-		defineResolver({
-			entityType: EntityType.ActivityPubActor_Timestamp,
-			resolve: {
-				ActivityPubActorTimestampMsSource: {
-					resolve: (selector) => {
-						if (selector.source !== Source.Mastodon_Rest)
-							throw new Error('Mastodon_Rest: ActivityPub actor observation source mismatch')
-						return selector
-					},
-				}
-			},
-		})({
-				$actor: (timestamp) => timestamp.$actor,
-				timestampMs: (timestamp) => timestamp.timestampMs,
-				source: (timestamp) => timestamp.source,
-			}),
-
-		defineResolver({
-			entityType: EntityType.ActivityPubNote_Timestamp,
-			resolve: {
-				ActivityPubNoteTimestampMsSource: {
-					resolve: (selector) => {
-						if (selector.source !== Source.Mastodon_Rest)
-							throw new Error('Mastodon_Rest: ActivityPub note observation source mismatch')
-						return selector
-					},
-				}
-			},
-		})({
-				$note: (timestamp) => timestamp.$note,
-				timestampMs: (timestamp) => timestamp.timestampMs,
-				source: (timestamp) => timestamp.source,
 			}),
 		defineResolver({
 			entityType: EntityType.ActivityPubActor,

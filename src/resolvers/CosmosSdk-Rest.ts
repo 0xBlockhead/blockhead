@@ -122,17 +122,6 @@ const cosmosTransactionReferenceApplicability = [
 	},
 ] as const
 
-const cosmosProposalTimestampApplicability = [
-	{
-		$proposal: cosmosNetworkReferenceApplicability[0],
-		source: Source.CosmosSdk_Rest,
-	},
-	{
-		$proposal: cosmosNetworkReferenceApplicability[1],
-		source: Source.CosmosSdk_Rest,
-	},
-] as const
-
 const cosmosPaginationCount = (
 	total: string | undefined,
 	label: string
@@ -1017,37 +1006,6 @@ export default {
 				title: (proposal) => proposal.title,
 				summary: (proposal) => proposal.summary,
 				$$timestamps: (proposal) => proposal.$$timestamps,
-			}),
-
-		defineResolver({
-			entityType: EntityType.CosmosGovernanceProposal_Timestamp,
-			resolve: {
-				ProposalTimestampMsSource: {
-					appliesTo: cosmosProposalTimestampApplicability,
-					resolve: async ({
-						$proposal,
-						timestampMs,
-						source,
-					}) => {
-						const { getProposal } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-						return {
-							$proposal: {
-								[EntityMetaKey.Selector]: $proposal,
-							},
-							timestampMs,
-							source,
-							status: (await getProposal({
-								proposalId: $proposal.proposalId,
-							})).proposal.status,
-						}
-					},
-				},
-			},
-		})({
-				$proposal: (proposal) => proposal.$proposal,
-				timestampMs: (proposal) => proposal.timestampMs,
-				source: (proposal) => proposal.source,
-				status: (proposal) => proposal.status,
 			}),
 
 		defineResolver({

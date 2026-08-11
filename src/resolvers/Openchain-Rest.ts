@@ -2,7 +2,10 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
@@ -88,11 +91,6 @@ const getErrorObservation = async (hex: `0x${string}`): Promise<SignatureObserva
 	}
 }
 
-const unreachableObservation = (): SignatureObservation => ({
-	signatures: [],
-	reachable: false,
-})
-
 export default {
 	source: Source.Openchain_Rest,
 
@@ -112,6 +110,16 @@ export default {
 										timestampMs: Date.now(),
 										source: Source.Openchain_Rest,
 									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'signatures')]: observation.signatures,
+										...(observation.filteredSignatureCount != null && {
+											[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'filteredSignatureCount')]: observation.filteredSignatureCount,
+										}),
+										...(observation.verifiedCandidateCount != null && {
+											[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'verifiedCandidateCount')]: observation.verifiedCandidateCount,
+										}),
+										[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'reachable')]: observation.reachable,
+									},
 								},
 							],
 						}
@@ -121,26 +129,6 @@ export default {
 		})({
 			signatures: (snapshot) => snapshot.signatures,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.EvmSelector_Timestamp,
-			resolve: {
-				SelectorTimestampMsSource: {
-					resolve: async ({ $selector }) => {
-						try {
-							return await getFunctionObservation($selector.hex)
-						} catch {
-							return unreachableObservation()
-						}
-					},
-				},
-			},
-		})({
-			signatures: (snapshot) => snapshot.signatures,
-			filteredSignatureCount: (snapshot) => snapshot.filteredSignatureCount,
-			verifiedCandidateCount: (snapshot) => snapshot.verifiedCandidateCount,
-			reachable: (snapshot) => snapshot.reachable,
 		}),
 
 		defineResolver({
@@ -158,6 +146,16 @@ export default {
 										timestampMs: Date.now(),
 										source: Source.Openchain_Rest,
 									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.EvmTopic_Timestamp, [], 'signatures')]: observation.signatures,
+										...(observation.filteredSignatureCount != null && {
+											[entityFieldAddressKey(EntityType.EvmTopic_Timestamp, [], 'filteredSignatureCount')]: observation.filteredSignatureCount,
+										}),
+										...(observation.verifiedCandidateCount != null && {
+											[entityFieldAddressKey(EntityType.EvmTopic_Timestamp, [], 'verifiedCandidateCount')]: observation.verifiedCandidateCount,
+										}),
+										[entityFieldAddressKey(EntityType.EvmTopic_Timestamp, [], 'reachable')]: observation.reachable,
+									},
 								},
 							],
 						}
@@ -167,26 +165,6 @@ export default {
 		})({
 			signatures: (snapshot) => snapshot.signatures,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.EvmTopic_Timestamp,
-			resolve: {
-				TopicTimestampMsSource: {
-					resolve: async ({ $topic }) => {
-						try {
-							return await getEventObservation($topic.hex)
-						} catch {
-							return unreachableObservation()
-						}
-					},
-				},
-			},
-		})({
-			signatures: (snapshot) => snapshot.signatures,
-			filteredSignatureCount: (snapshot) => snapshot.filteredSignatureCount,
-			verifiedCandidateCount: (snapshot) => snapshot.verifiedCandidateCount,
-			reachable: (snapshot) => snapshot.reachable,
 		}),
 
 		defineResolver({
@@ -204,6 +182,16 @@ export default {
 										timestampMs: Date.now(),
 										source: Source.Openchain_Rest,
 									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.EvmError_Timestamp, [], 'signatures')]: observation.signatures,
+										...(observation.filteredSignatureCount != null && {
+											[entityFieldAddressKey(EntityType.EvmError_Timestamp, [], 'filteredSignatureCount')]: observation.filteredSignatureCount,
+										}),
+										...(observation.verifiedCandidateCount != null && {
+											[entityFieldAddressKey(EntityType.EvmError_Timestamp, [], 'verifiedCandidateCount')]: observation.verifiedCandidateCount,
+										}),
+										[entityFieldAddressKey(EntityType.EvmError_Timestamp, [], 'reachable')]: observation.reachable,
+									},
 								},
 							],
 						}
@@ -213,26 +201,6 @@ export default {
 		})({
 			signatures: (snapshot) => snapshot.signatures,
 			$$timestamps: (snapshot) => snapshot.$$timestamps,
-		}),
-
-		defineResolver({
-			entityType: EntityType.EvmError_Timestamp,
-			resolve: {
-				ErrorTimestampMsSource: {
-					resolve: async ({ $error }) => {
-						try {
-							return await getErrorObservation($error.hex)
-						} catch {
-							return unreachableObservation()
-						}
-					},
-				},
-			},
-		})({
-			signatures: (snapshot) => snapshot.signatures,
-			filteredSignatureCount: (snapshot) => snapshot.filteredSignatureCount,
-			verifiedCandidateCount: (snapshot) => snapshot.verifiedCandidateCount,
-			reachable: (snapshot) => snapshot.reachable,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -41,24 +40,9 @@
 >
 	{#snippet Item({ item: liquidityPoolTimestamp })}
 		{@const liquidityPoolTimestampSelector = liquidityPoolTimestamp[EntityMetaKey.Selector]}
-		{@const liquidityPool = liquidityPoolTimestampSelector.$liquidityPool}
 		<EntityView
 			entityType={EntityType.LiquidityPool_Timestamp}
 			entitySelector={liquidityPoolTimestampSelector}
-			href={
-				'caip2' in liquidityPool.$network ?
-					resolve(
-						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/observations/[timestampMs=nonNegativeInteger]/[feedKey=stringSegment]',
-						{
-							chainId: liquidityPool.$network.caip2.reference,
-							poolId: liquidityPool.id,
-							timestampMs: String(liquidityPoolTimestampSelector.timestampMs),
-							feedKey: encodeURIComponent(liquidityPoolTimestampSelector.feedKey),
-						}
-					)
-				:
-					undefined
-			}
 		>
 			{#snippet Title()}
 				{[(liquidityPoolTimestamp.baseTokenSymbol ?? ''), (liquidityPoolTimestamp.quoteTokenSymbol ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp'}

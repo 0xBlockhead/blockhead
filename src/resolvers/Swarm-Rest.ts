@@ -106,9 +106,6 @@ export default {
 			resolve: {
 				Scope: {
 					resolve: async ({ scope }) => {
-						if (scope !== '_GlobalSwarmAccess')
-							throw new Error(`Swarm_Rest: unsupported scope ${scope}`)
-
 						const {
 							getGatewayReachability,
 							listSeededExampleResources,
@@ -160,46 +157,5 @@ export default {
 			},
 		}),
 
-		defineResolver({
-			entityType: EntityType._GlobalSwarmAccess_Timestamp,
-			resolve: {
-				HubTimestampMsSource: {
-					resolve: async ({
-						$hub,
-						timestampMs,
-						source,
-					}) => {
-						if (source !== Source.Swarm_Rest)
-							throw new Error(`Swarm_Rest: unsupported source ${source}`)
-
-						const {
-							getGatewayReachability,
-							listSeededExampleResources,
-						} = await import('$/sources/Swarm/Rest/queries.ts')
-						const seededExampleCount = listSeededExampleResources().length
-
-						return {
-							$hub,
-							timestampMs,
-							source,
-							...(await getGatewayReachability()),
-							observedResourceCount: seededExampleCount,
-							seededExampleCount,
-						}
-					},
-				},
-			},
-		})({
-			$hub: (snapshot) => ({
-				[EntityMetaKey.Selector]: snapshot.$hub,
-			}),
-			timestampMs: (snapshot) => snapshot.timestampMs,
-			source: (snapshot) => snapshot.source,
-			declaredAccessEndpointCount: (snapshot) => snapshot.declaredAccessEndpointCount,
-			reachableAccessEndpointCount: (snapshot) => snapshot.reachableAccessEndpointCount,
-			observedResourceCount: (snapshot) => snapshot.observedResourceCount,
-			seededExampleCount: (snapshot) => snapshot.seededExampleCount,
-			reachable: (snapshot) => snapshot.reachable,
-		}),
 	],
 } satisfies RegisteredSourceResolverModule

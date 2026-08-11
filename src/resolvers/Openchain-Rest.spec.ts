@@ -4,7 +4,12 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import {
+	entityFieldAddressKey,
+	EntityMetaKey,
+} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 
 const {
 	getEventEntries,
@@ -108,7 +113,7 @@ describe('Openchain resolver', () => {
 		})).rejects.toThrow('4byte unavailable')
 	})
 
-	it('projects filtered/verified counts on selector timestamp observations', async () => {
+	it('materializes complete selector observations in the parent row', async () => {
 		getFunctionEntries.mockResolvedValue([
 			{
 				name: 'transfer(address,uint256)',
@@ -122,44 +127,29 @@ describe('Openchain resolver', () => {
 			},
 		])
 
-		const resolver = openchain.resolvers.find((candidate) => (
-			candidate.entityType === EntityType.EvmSelector_Timestamp
-		))
-		if (resolver == null)
-			throw new Error('Openchain REST spec missing selector timestamp resolver')
-
-		const snapshot = await resolver.resolve['SelectorTimestampMsSource'].resolve({
-			$selector: { hex: '0xa9059cbb' },
-			timestampMs: 1,
-			source: 'Openchain_Rest',
-		})
-
-		expect(snapshot).toMatchObject({
-			signatures: [
-				'transfer(address,uint256)',
-			],
-			filteredSignatureCount: 1,
-			verifiedCandidateCount: 1,
-			reachable: true,
-		})
+		const snapshot = await resolveSelector()
+		expect(snapshot.$$timestamps).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$selector: { hex: '0x12345678' },
+				timestampMs: expect.any(Number),
+				source: Source.Openchain_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'signatures')]: [
+					'transfer(address,uint256)',
+				],
+				[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'filteredSignatureCount')]: 1,
+				[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'verifiedCandidateCount')]: 1,
+				[entityFieldAddressKey(EntityType.EvmSelector_Timestamp, [], 'reachable')]: true,
+			},
+		}])
 	})
 
-	it('records unreachable topic observations without inventing empty-success HTTP', async () => {
-		getEventEntries.mockRejectedValueOnce(new Error('Openchain down'))
-
-		const resolver = openchain.resolvers.find((candidate) => (
-			candidate.entityType === EntityType.EvmTopic_Timestamp
-		))
-		if (resolver == null)
-			throw new Error('Openchain REST spec missing topic timestamp resolver')
-
-		await expect(resolver.resolve['TopicTimestampMsSource'].resolve({
-			$topic: { hex: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' },
-			timestampMs: 1,
-			source: 'Openchain_Rest',
-		})).resolves.toEqual({
-			signatures: [],
-			reachable: false,
-		})
+	it('does not expose arbitrary selector, topic, or error timestamp facets', () => {
+		expect(openchain.resolvers.some((candidate) => (
+			candidate.entityType === EntityType.EvmSelector_Timestamp
+			|| candidate.entityType === EntityType.EvmTopic_Timestamp
+			|| candidate.entityType === EntityType.EvmError_Timestamp
+		))).toBe(false)
 	})
 })

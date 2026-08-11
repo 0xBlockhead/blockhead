@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -43,15 +42,6 @@
 		<EntityView
 			entityType={EntityType._GlobalYoutubeNetwork_Timestamp}
 			entitySelector={globalYoutubeNetworkTimestampSelector}
-			href={
-				resolve(
-					'/(social)/(youtube)/youtube/(globalYoutubeNetwork)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						timestampMs: String(globalYoutubeNetworkTimestampSelector.timestampMs),
-						source: globalYoutubeNetworkTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{globalYoutubeNetworkTimestampSelector.timestampMs}

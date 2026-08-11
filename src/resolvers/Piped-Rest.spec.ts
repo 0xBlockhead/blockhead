@@ -129,31 +129,9 @@ describe('Piped Rest enrolled leftovers', () => {
 		}])
 	})
 
-	it('reuses persisted hub observations without refetching', async () => {
-		const observation = resolver(EntityType._GlobalYoutubeNetwork_Timestamp)
-
-		await expect(observation.resolve.HubTimestampMsSource.resolve({
-			$hub: {
-				scope: '_GlobalYoutubeNetwork',
-			},
-			timestampMs: 1_700_000_000_100,
-			source: Source.Piped_Rest,
-		}, context)).resolves.toEqual({
-			$hub: {
-				[EntityMetaKey.Selector]: {
-					scope: '_GlobalYoutubeNetwork',
-				},
-			},
-			timestampMs: 1_700_000_000_100,
-			source: Source.Piped_Rest,
-		})
-		expect(listTrending).not.toHaveBeenCalled()
-		await expect(observation.resolve.HubTimestampMsSource.resolve({
-			$hub: {
-				scope: '_GlobalYoutubeNetwork',
-			},
-			timestampMs: 1_700_000_000_100,
-			source: Source.Youtube_Rest,
-		}, context)).rejects.toThrow('source mismatch')
+	it('does not register a direct global observation resolver', () => {
+		expect(pipedRest.resolvers.some((candidate) => (
+			candidate.entityType === EntityType._GlobalYoutubeNetwork_Timestamp
+		))).toBe(false)
 	})
 })
