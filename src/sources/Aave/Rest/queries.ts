@@ -268,6 +268,7 @@ const assertMarketSnapshotWire = (
 			throw new Error(`${Source.Aave_Rest}: invalid eMode decimal value`)
 		return category
 	})
+	const reserveAddresses = new Set<string>()
 
 	return {
 		...asserted,
@@ -278,6 +279,10 @@ const assertMarketSnapshotWire = (
 			if (reserve.underlyingToken.chainId !== expected.chainId)
 				throw new Error(`${Source.Aave_Rest}: reserve chain mismatch`)
 			const address = assertPoolAddress(reserve.underlyingToken.address)
+			if (reserveAddresses.has(address))
+				throw new Error(`${Source.Aave_Rest}: duplicate reserve identity`)
+
+			reserveAddresses.add(address)
 			const aToken = assertOptionalCurrency(reserve.aToken, expected.chainId, 'aToken')
 			const vToken = assertOptionalCurrency(reserve.vToken, expected.chainId, 'vToken')
 			const usdOracleAddress = (

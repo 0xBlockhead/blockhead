@@ -412,6 +412,30 @@ describe('Aave market list/detail operations', () => {
 		})).rejects.toThrow(`${Source.Aave_Rest}: reserve chain mismatch`)
 	})
 
+	it('rejects duplicate reserve identities after address normalization', async () => {
+		graphql.mockResolvedValueOnce({
+			market: {
+				...ethereumMarketSnapshot,
+				reserves: [
+					ethereumMarketSnapshot.reserves[0],
+					{
+						...ethereumMarketSnapshot.reserves[0],
+						underlyingToken: {
+							...ethereumMarketSnapshot.reserves[0].underlyingToken,
+							address: ethereumMarketSnapshot.reserves[0].underlyingToken.address.toLowerCase(),
+						},
+					},
+				],
+			},
+		})
+
+		await expect(getMarket({
+			binding,
+			chainId: 1,
+			poolAddress: ethereumMarket.address,
+		})).rejects.toThrow(`${Source.Aave_Rest}: duplicate reserve identity`)
+	})
+
 	it('rejects a response without detail data', async () => {
 		graphql.mockResolvedValueOnce(undefined)
 
