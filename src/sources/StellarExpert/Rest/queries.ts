@@ -21,7 +21,7 @@ const omitUndefinedJson = (
 		return value.map(omitUndefinedJson)
 	if (value != null && typeof value === 'object')
 		return Object.fromEntries(
-			Object.entries(value)
+			Object.entries(value as Record<string, unknown>)
 				.filter(([, entry]) => entry !== undefined)
 				.map(([key, entry]) => [
 					key,
@@ -73,16 +73,31 @@ const assertLedgerDomain = (
 
 const assertAssetPageDomain = (
 	page: StellarExpertAssetPage,
-	limit?: number
+	limit?: number,
+	cursor?: number
 ) => {
 	if (limit != null && page._embedded.records.length > limit)
 		throw new Error('StellarExpert: asset page exceeds requested limit')
 	const assets = new Set<string>()
+	const pagingTokens = new Set<number>()
 	for (const record of page._embedded.records) {
 		if (assets.has(record.asset))
 			throw new Error('StellarExpert: duplicate asset record')
 		assets.add(record.asset)
+		if (record.paging_token != null) {
+			if (pagingTokens.has(record.paging_token))
+				throw new Error('StellarExpert: duplicate asset paging token')
+			if (cursor != null && record.paging_token <= cursor)
+				throw new Error('StellarExpert: asset page cursor did not advance')
+			pagingTokens.add(record.paging_token)
+		}
 	}
+	if (
+		limit != null
+		&& page._embedded.records.length === limit
+		&& page._embedded.records.at(-1)?.paging_token == null
+	)
+		throw new Error('StellarExpert: full asset page is missing continuation token')
 }
 
 export const getAllAssets = async (
@@ -130,7 +145,7 @@ export const getAllAssets = async (
 			`/explorer/${network}/asset${searchParams.size === 0 ? '' : `?${searchParams}`}`
 		)
 	)
-	assertAssetPageDomain(page, limit)
+	assertAssetPageDomain(page, limit, cursor)
 	return page
 }
 

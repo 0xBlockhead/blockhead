@@ -235,6 +235,45 @@ describe('StellarExpert OpenAPI operations', () => {
 		})).rejects.toThrow('invalid asset supply response envelope')
 	})
 
+	it('requires unique, advancing continuation tokens for full asset pages', async () => {
+		getJson
+			.mockResolvedValueOnce({
+				_embedded: {
+					records: [
+						{ asset: 'XLM', paging_token: 3 },
+						{ asset: 'USDC', paging_token: 3 },
+					],
+				},
+			})
+			.mockResolvedValueOnce({
+				_embedded: {
+					records: [
+						{ asset: 'XLM', paging_token: 3 },
+						{ asset: 'USDC' },
+					],
+				},
+			})
+			.mockResolvedValueOnce({
+				_embedded: {
+					records: [{ asset: 'XLM', paging_token: 3 }],
+				},
+			})
+
+		await expect(getAllAssets({
+			network: 'public',
+			limit: 2,
+		})).rejects.toThrow('duplicate asset paging token')
+		await expect(getAllAssets({
+			network: 'public',
+			limit: 2,
+		})).rejects.toThrow('full asset page is missing continuation token')
+		await expect(getAllAssets({
+			network: 'public',
+			limit: 1,
+			cursor: 3,
+		})).rejects.toThrow('asset page cursor did not advance')
+	})
+
 	it('propagates HTTP failures from getJson and getText without soft-empty fallbacks', async () => {
 		getJson.mockRejectedValue(new Error('HTTP 404: Not Found'))
 		getText.mockRejectedValue(new Error('HTTP 502: Bad Gateway'))
