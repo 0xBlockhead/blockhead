@@ -33,21 +33,6 @@ type BridgeRouteResolverBundle = {
 	steps: BridgeRouteStepSnapshot[]
 }
 
-const bridgeRouteResolverBundleByQuoteId = new Map<string, Promise<BridgeRouteResolverBundle>>()
-
-const bridgeRouteQuoteIdKey = (quoteId: BridgeRouteQuoteId) => (
-	[
-		quoteId.fromChainId,
-		quoteId.toChainId,
-		quoteId.fromToken,
-		quoteId.toToken,
-		quoteId.fromAmount,
-		quoteId.fromAddress,
-		quoteId.slippage,
-		quoteId.toAddress,
-	].join('|')
-)
-
 const bridgeRouteQuoteIdToRequest = (
 	quoteId: BridgeRouteQuoteId
 ): LifiQuoteRequest => ({
@@ -138,18 +123,7 @@ const bridgeRouteBundleFromQuoteStep = (
 
 export const fetchBridgeRouteBundleForQuoteId = async (
 	quoteId: BridgeRouteQuoteId
-) => {
-	const quoteIdKey = bridgeRouteQuoteIdKey(quoteId)
-	const existingBundle = bridgeRouteResolverBundleByQuoteId.get(quoteIdKey)
-	if (existingBundle != null)
-		return existingBundle
-
-	const bundle = fetchQuote(bridgeRouteQuoteIdToRequest(quoteId))
-		.then((step) => bridgeRouteBundleFromQuoteStep(quoteId, step))
-		.catch((error) => {
-			bridgeRouteResolverBundleByQuoteId.delete(quoteIdKey)
-			throw error
-		})
-	bridgeRouteResolverBundleByQuoteId.set(quoteIdKey, bundle)
-	return bundle
-}
+) => bridgeRouteBundleFromQuoteStep(
+	quoteId,
+	await fetchQuote(bridgeRouteQuoteIdToRequest(quoteId))
+)

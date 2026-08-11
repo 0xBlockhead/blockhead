@@ -565,6 +565,7 @@ describe('client resolver architecture', () => {
 
 			expect(source, filePath).not.toMatch(/\bsingleFlight\b/)
 			expect(source, filePath).not.toMatch(/\$\/lib\/singleFlight\.ts/)
+			expect(source, filePath).not.toMatch(/\bnew Map<string,\s*Promise(?:<|\s)/)
 			expect(source, filePath).not.toMatch(/\b(?:dedupe|memoize|memoized|cached(?!At\b)[A-Z]\w*|cacheOnce|once[A-Z]\w*)\b/)
 		}
 	})

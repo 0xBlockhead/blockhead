@@ -156,6 +156,15 @@ describe('LI.FI bridge route quote bundle', () => {
 		})
 	})
 
+	it('does not retain a live quote beyond its resolving request', async () => {
+		fetchQuote.mockResolvedValue(quoteStep)
+
+		await fetchBridgeRouteBundleForQuoteId(quoteId)
+		await fetchBridgeRouteBundleForQuoteId(quoteId)
+
+		expect(fetchQuote).toHaveBeenCalledTimes(2)
+	})
+
 	it('rejects quote transport failures without caching a soft-empty bundle', async () => {
 		const failingQuoteId = {
 			...quoteId,
