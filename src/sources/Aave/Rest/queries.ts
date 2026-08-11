@@ -469,11 +469,18 @@ export const listMarkets = async ({
 		throw new Error(`${Source.Aave_Rest}: markets response missing markets`)
 	assertEnvelope(aaveMarketsEnvelope, data.markets, 'markets')
 
+	const marketIdentities = new Set<string>()
 	return data.markets.map((market) => {
 		if (!chainIds.includes(market.chain.chainId))
 			throw new Error(`${Source.Aave_Rest}: market chain filter violated`)
 
-		return assertMarketWire(market)
+		const asserted = assertMarketWire(market)
+		const identity = `${String(asserted.chain.chainId)}:${asserted.address}`
+		if (marketIdentities.has(identity))
+			throw new Error(`${Source.Aave_Rest}: duplicate market identity`)
+
+		marketIdentities.add(identity)
+		return asserted
 	})
 }
 

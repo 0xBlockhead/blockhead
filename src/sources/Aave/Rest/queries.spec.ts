@@ -262,6 +262,25 @@ describe('Aave market list/detail operations', () => {
 		})).rejects.toThrow(`${Source.Aave_Rest}: market chain filter violated`)
 	})
 
+	it('rejects duplicate market identities after address normalization', async () => {
+		graphql.mockResolvedValueOnce({
+			markets: [
+				ethereumMarket,
+				{
+					...ethereumMarket,
+					address: ethereumMarket.address.toLowerCase(),
+				},
+			],
+		})
+
+		await expect(listMarkets({
+			binding,
+			chainIds: [
+				1,
+			],
+		})).rejects.toThrow(`${Source.Aave_Rest}: duplicate market identity`)
+	})
+
 	it('rejects an empty chainIds list before transport', async () => {
 		await expect(listMarkets({
 			binding,
