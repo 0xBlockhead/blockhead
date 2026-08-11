@@ -430,14 +430,19 @@ export default {
 			resolve: {
 				NetworkHeightHash: {
 					appliesTo: tronNetworkReferenceApplicability,
-					resolve: async ({ $network, height }) => {
+					resolve: async ({ $network, height, hash }) => {
 						assertTronMainnet($network)
 						const { getBlock } = await import('$/sources/TronScan/Rest/queries.ts')
 						const block = (await getBlock(
 							height
 						)).data.at(0)
 						if (block == null) throw new Error(`TronScan_Rest: block not found for ${height.toString()}`)
-						return blockFieldsFromTronScanBlock($network, block)
+						if (BigInt(block.number) !== height)
+							throw new Error(`TronScan_Rest: block height does not match selector ${height.toString()}`)
+						const fields = blockFieldsFromTronScanBlock($network, block)
+						if (fields.hash !== hash)
+							throw new Error(`TronScan_Rest: block hash ${fields.hash} does not match selector ${hash}`)
+						return fields
 					},
 				}
 			},
@@ -567,7 +572,7 @@ export default {
 								return {
 									[EntityMetaKey.Selector]: {
 										$network,
-										transactionId: transaction.hash ?? transaction.transactionHash,
+										transactionId: transaction.hash,
 									},
 									[EntityMetaKey.Fields]: Object.fromEntries(
 										Object.entries(fields).flatMap(([fieldName, value]) => (

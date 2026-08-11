@@ -12,12 +12,14 @@ const {
 	getAccount,
 	getAccountResource,
 	getAccountTransactions,
+	getBlockByNumber,
 	getTransactionInfoById,
 	listWitnesses,
 } = vi.hoisted(() => ({
 	getAccount: vi.fn(),
 	getAccountResource: vi.fn(),
 	getAccountTransactions: vi.fn(),
+	getBlockByNumber: vi.fn(),
 	getTransactionInfoById: vi.fn(),
 	listWitnesses: vi.fn(),
 }))
@@ -31,6 +33,7 @@ vi.mock('$/sources/TronGrid/Rest/queries.ts', () => ({
 	getAccount,
 	getAccountResource,
 	getAccountTransactions,
+	getBlockByNumber,
 	getTransactionInfoById,
 	listWitnesses,
 }))
@@ -89,6 +92,52 @@ describe('TronGrid REST network relationships', () => {
 				slug: networkBySlug.tron.slug,
 			}, resolverContext)
 		)
+	})
+
+	it('rejects a block returned by height when its hash disagrees with the exact selector', async () => {
+		getBlockByNumber.mockResolvedValueOnce({
+			blockID: 'returned-block-hash',
+			block_header: {
+				raw_data: {
+					number: 123,
+					timestamp: 1_720_000_000_000,
+				},
+			},
+		})
+
+		const resolver = tronGridRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TronBlock
+		))
+		if (resolver == null) throw new Error('Tron block resolver is missing')
+
+		await expect(
+			resolver.resolve.NetworkHeightHash.resolve({
+				$network: {
+					caip2: networkBySlug.tron.caip2,
+				},
+				height: 123n,
+				hash: 'requested-block-hash',
+			}, resolverContext)
+		).rejects.toThrow('block hash returned-block-hash does not match selector requested-block-hash')
+
+		getBlockByNumber.mockResolvedValueOnce({
+			blockID: 'requested-block-hash',
+			block_header: {
+				raw_data: {
+					number: 124,
+					timestamp: 1_720_000_000_000,
+				},
+			},
+		})
+		await expect(
+			resolver.resolve.NetworkHeightHash.resolve({
+				$network: {
+					caip2: networkBySlug.tron.caip2,
+				},
+				height: 123n,
+				hash: 'requested-block-hash',
+			}, resolverContext)
+		).rejects.toThrow('block height does not match selector 123')
 	})
 
 	it('embeds enrolled account tip Fields from account + resource wires', async () => {

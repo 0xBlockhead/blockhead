@@ -12,9 +12,11 @@ import bindings from '$/sources/TronScan/bindings.ts'
 import type { TronScanTransactions } from '$/sources/TronScan/Rest/types.ts'
 
 const getAccountTransactions = vi.fn()
+const getBlock = vi.fn()
 
 vi.mock('$/sources/TronScan/Rest/queries.ts', () => ({
 	getAccountTransactions,
+	getBlock,
 }))
 
 const { default: tronScanResolvers } = await import('$/resolvers/TronScan-Rest.ts')
@@ -91,6 +93,44 @@ describe('TronScan account transaction resolver', () => {
 		expect(accountTokenTimestampResolver.resolve[
 			'AccountTokenTimestampMsSource'
 		].appliesTo).toHaveLength(2)
+	})
+
+	it('rejects a block returned by height when its hash disagrees with the exact selector', async () => {
+		getBlock.mockResolvedValueOnce({
+			data: [{
+				hash: 'returned-block-hash',
+				number: 123,
+				timestamp: 1_720_000_000_000,
+			}],
+		})
+
+		const resolver = tronScanResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.TronBlock
+		))
+		if (resolver == null) throw new Error('Tron block resolver is missing')
+
+		await expect(
+			resolver.resolve.NetworkHeightHash.resolve({
+				$network: network,
+				height: 123n,
+				hash: 'requested-block-hash',
+			}, resolverContext)
+		).rejects.toThrow('block hash returned-block-hash does not match selector requested-block-hash')
+
+		getBlock.mockResolvedValueOnce({
+			data: [{
+				hash: 'requested-block-hash',
+				number: 124,
+				timestamp: 1_720_000_000_000,
+			}],
+		})
+		await expect(
+			resolver.resolve.NetworkHeightHash.resolve({
+				$network: network,
+				height: 123n,
+				hash: 'requested-block-hash',
+			}, resolverContext)
+		).rejects.toThrow('block height does not match selector 123')
 	})
 
 	it('materializes transaction membership Fields and pagination', async () => {

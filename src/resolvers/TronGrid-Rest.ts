@@ -427,15 +427,24 @@ export default {
 			resolve: {
 				NetworkHeightHash: {
 					appliesTo: tronNetworkReferenceApplicability,
-					resolve: async ({ $network, height }) => {
+					resolve: async ({ $network, height, hash }) => {
 						assertTronMainnet($network)
 						const { getBlockByNumber } = await import('$/sources/TronGrid/Rest/queries.ts')
-						return blockFields(
-							$network,
-							await getBlockByNumber({
-								height: height,
-							})
+						const wireBlock = await getBlockByNumber({
+							height: height,
+						})
+						if (
+							wireBlock.block_header?.raw_data?.number == null
+							|| BigInt(wireBlock.block_header.raw_data.number) !== height
 						)
+							throw new Error(`TronGrid_Rest: block height does not match selector ${height.toString()}`)
+						const block = blockFields(
+							$network,
+							wireBlock
+						)
+						if (block.hash !== hash)
+							throw new Error(`TronGrid_Rest: block hash ${block.hash} does not match selector ${hash}`)
+						return block
 					},
 				}
 			},
