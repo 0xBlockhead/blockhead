@@ -2,6 +2,7 @@ import bindings from '$/sources/SolanaSimds/bindings.ts'
 import type { SolanaSimdContentEntry } from '$/sources/SolanaSimds/Github/types.ts'
 import {
 	githubContentsUrl,
+	githubRawUrl,
 	githubRepositoryTargetFromKey,
 } from '$/sources/_shared/hosts/Github/Http/client.ts'
 import {
@@ -38,6 +39,11 @@ export const getProposalMarkdownText = async ({
 	const downloadUrl = entries[0]?.download_url
 	if (downloadUrl == null)
 		throw new Error(`SolanaSimds_Github: proposal ${number} has no download URL`)
+	if (downloadUrl !== githubRawUrl({
+		...target,
+		path: `${target.path}/${entries[0].name}`,
+	}))
+		throw new Error(`SolanaSimds_Github: proposal ${number} download URL does not match the bound repository target`)
 
 	return sourceGetText(binding, downloadUrl)
 }

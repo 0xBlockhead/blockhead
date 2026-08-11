@@ -79,4 +79,17 @@ describe('Solana SIMDs GitHub queries', () => {
 		])
 		await expect(getProposalMarkdownText({ number: 326 })).rejects.toThrow(/duplicate files/)
 	})
+
+	it('rejects a discovered file whose download URL escapes the bound repository snapshot', async () => {
+		httpRuntime.sourceGetJson.mockResolvedValueOnce([
+			{
+				name: '0326-alpenglow.md',
+				type: 'file',
+				download_url: 'https://example.com/0326-alpenglow.md',
+			},
+		])
+
+		await expect(getProposalMarkdownText({ number: 326 })).rejects.toThrow(/does not match the bound repository target/)
+		expect(httpRuntime.sourceGetText).not.toHaveBeenCalled()
+	})
 })
