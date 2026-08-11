@@ -69,6 +69,22 @@ const blockfrostPageContinuation = (
 	}
 }
 
+const blockfrostPage = (
+	token: string | undefined,
+	label: string
+) => {
+	if (token == null)
+		return 1
+	if (!/^[1-9]\d*$/.test(token))
+		throw new Error(`Blockfrost_Rest: invalid ${label} continuation`)
+
+	const page = Number(token)
+	if (!Number.isSafeInteger(page))
+		throw new Error(`Blockfrost_Rest: invalid ${label} continuation`)
+
+	return page
+}
+
 const cardanoTransactionUtxos = async (
 	cardanoTransaction: EntitySelector<typeof schema, EntityType.CardanoTransaction>
 ) => {
@@ -407,12 +423,10 @@ export default {
 					resolve: async (cardanoAddress, context) => {
 						assertCardanoMainnet(cardanoAddress.$network)
 						const limit = Math.min(resolverContextRowLimit(context), 100)
-						const page = context.providerContinuationToken == null ?
-							1
-						:
-							Number(context.providerContinuationToken)
-						if (!Number.isSafeInteger(page) || page < 1)
-							throw new Error('Blockfrost_Rest: invalid address transaction continuation')
+						const page = blockfrostPage(
+							context.providerContinuationToken,
+							'address transaction'
+						)
 
 						const { listAddressTransactions } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
@@ -461,12 +475,10 @@ export default {
 					resolve: async (cardanoAddress, context) => {
 						assertCardanoMainnet(cardanoAddress.$network)
 						const limit = Math.min(resolverContextRowLimit(context), 100)
-						const page = context.providerContinuationToken == null ?
-							1
-						:
-							Number(context.providerContinuationToken)
-						if (!Number.isSafeInteger(page) || page < 1)
-							throw new Error('Blockfrost_Rest: invalid address UTXO continuation')
+						const page = blockfrostPage(
+							context.providerContinuationToken,
+							'address UTXO'
+						)
 
 						const { listAddressUtxos } = await import('$/sources/Blockfrost/Rest/queries.ts')
 
@@ -1913,12 +1925,10 @@ export default {
 					}, context) => {
 						assertCardanoMainnet($network)
 						const limit = Math.min(resolverContextRowLimit(context), 100)
-						const page = context.providerContinuationToken == null ?
-							1
-						:
-							Number(context.providerContinuationToken)
-						if (!Number.isSafeInteger(page) || page < 1)
-							throw new Error('Blockfrost_Rest: invalid stake credential address continuation')
+						const page = blockfrostPage(
+							context.providerContinuationToken,
+							'stake credential address'
+						)
 
 						const { listAccountAddresses } = await import('$/sources/Blockfrost/Rest/queries.ts')
 

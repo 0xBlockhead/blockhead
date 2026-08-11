@@ -669,6 +669,34 @@ describe('Blockfrost Cardano address facet', () => {
 		)
 	})
 
+	it.each([
+		[
+			'address transactions',
+			cardanoAddressTransactionsResolver,
+			cardanoAddress,
+			'address transaction',
+		],
+		[
+			'address UTXOs',
+			cardanoAddressUtxosResolver,
+			cardanoAddress,
+			'address UTXO',
+		],
+	])('rejects non-canonical %s continuation tokens', async (
+		_name,
+		resolver,
+		selector,
+		label
+	) => {
+		await expect(resolver.resolve['NetworkAddress'].resolve(
+			selector,
+			{
+				...resolverContext,
+				providerContinuationToken: '1e2',
+			}
+		)).rejects.toThrow(`Blockfrost_Rest: invalid ${label} continuation`)
+	})
+
 	it('materializes transaction summary fields from the transaction detail operation', async () => {
 		getTransaction.mockResolvedValueOnce({
 			hash: cardanoTransaction.hash,
