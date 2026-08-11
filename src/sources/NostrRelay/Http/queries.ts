@@ -87,6 +87,28 @@ export const fetchRelayInformation = async ({
 		&& document.limitation.created_at_lower_limit > document.limitation.created_at_upper_limit
 	)
 		throw new Error('NostrRelay_Nip11_Http: reversed created_at clock limits')
+	if (
+		document.limitation != null
+		&& [
+			document.limitation.max_message_length,
+			document.limitation.max_subscriptions,
+			document.limitation.max_filters,
+			document.limitation.max_limit,
+			document.limitation.max_subid_length,
+			document.limitation.max_event_tags,
+			document.limitation.max_content_length,
+			document.limitation.min_pow_difficulty,
+			document.limitation.created_at_lower_limit,
+			document.limitation.created_at_upper_limit,
+		].some((value) => (
+			value != null
+			&& (
+				!Number.isSafeInteger(value)
+				|| value < 0
+			)
+		))
+	)
+		throw new Error('NostrRelay_Nip11_Http: invalid native limitation value')
 
 	return document
 }

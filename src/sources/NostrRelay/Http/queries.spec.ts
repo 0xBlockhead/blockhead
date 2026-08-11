@@ -18,7 +18,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 
 const { fetchRelayInformation } = await import('$/sources/NostrRelay/Http/queries.ts')
 
-const boundRelayUrl = bindings[Source.NostrRelay_Nip11_Http][0]?.target.key
+const boundRelayUrl = bindings[Source.NostrRelay_Nip11_Http][0].target.key
 
 describe('NostrRelay NIP-11 Http transport', () => {
 	beforeEach(() => {
@@ -31,9 +31,6 @@ describe('NostrRelay NIP-11 Http transport', () => {
 	})
 
 	it('accepts a minimal valid NIP-11 document', async () => {
-		if (boundRelayUrl == null)
-			throw new Error('missing NIP-11 binding')
-
 		sourceFetch.mockResolvedValue({
 			ok: true,
 			json: async () => ({
@@ -67,9 +64,6 @@ describe('NostrRelay NIP-11 Http transport', () => {
 	})
 
 	it('accepts NIP-11 transport leftovers without requiring enrolled projection', async () => {
-		if (boundRelayUrl == null)
-			throw new Error('missing NIP-11 binding')
-
 		sourceFetch.mockResolvedValue({
 			ok: true,
 			json: async () => ({
@@ -111,9 +105,6 @@ describe('NostrRelay NIP-11 Http transport', () => {
 	})
 
 	it('fail-closes malformed language_tags leftovers', async () => {
-		if (boundRelayUrl == null)
-			throw new Error('missing NIP-11 binding')
-
 		sourceFetch.mockResolvedValue({
 			ok: true,
 			json: async () => ({
@@ -129,9 +120,6 @@ describe('NostrRelay NIP-11 Http transport', () => {
 	})
 
 	it('fail-closes malformed supported_nips', async () => {
-		if (boundRelayUrl == null)
-			throw new Error('missing NIP-11 binding')
-
 		sourceFetch.mockResolvedValue({
 			ok: true,
 			json: async () => ({
@@ -147,9 +135,6 @@ describe('NostrRelay NIP-11 Http transport', () => {
 	})
 
 	it('fail-closes malformed fee rows', async () => {
-		if (boundRelayUrl == null)
-			throw new Error('missing NIP-11 binding')
-
 		sourceFetch.mockResolvedValue({
 			ok: true,
 			json: async () => ({
@@ -181,9 +166,6 @@ describe('NostrRelay NIP-11 Http transport', () => {
 	})
 
 	it('throws on non-OK HTTP status', async () => {
-		if (boundRelayUrl == null)
-			throw new Error('missing NIP-11 binding')
-
 		sourceFetch.mockResolvedValue({
 			ok: false,
 			status: 502,
@@ -197,9 +179,6 @@ describe('NostrRelay NIP-11 Http transport', () => {
 	})
 
 	it('fails closed on duplicate supported_nips', async () => {
-		if (boundRelayUrl == null)
-			throw new Error('missing NIP-11 binding')
-
 		sourceFetch.mockResolvedValue({
 			ok: true,
 			json: async () => ({
@@ -219,9 +198,6 @@ describe('NostrRelay NIP-11 Http transport', () => {
 	})
 
 	it('fails closed on duplicate tags', async () => {
-		if (boundRelayUrl == null)
-			throw new Error('missing NIP-11 binding')
-
 		sourceFetch.mockResolvedValue({
 			ok: true,
 			json: async () => ({
@@ -239,10 +215,35 @@ describe('NostrRelay NIP-11 Http transport', () => {
 		).rejects.toThrow('NostrRelay_Nip11_Http: duplicate tags')
 	})
 
-	it('fails closed on reversed created_at clock limits', async () => {
-		if (boundRelayUrl == null)
-			throw new Error('missing NIP-11 binding')
+	it('fails closed on negative or fractional native relay limitations', async () => {
+		sourceFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				limitation: {
+					max_limit: -1,
+				},
+			}),
+		})
 
+		await expect(fetchRelayInformation({
+			relayUrl: boundRelayUrl,
+		})).rejects.toThrow('NostrRelay_Nip11_Http: invalid native limitation value')
+
+		sourceFetch.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				limitation: {
+					created_at_upper_limit: 1.5,
+				},
+			}),
+		})
+
+		await expect(fetchRelayInformation({
+			relayUrl: boundRelayUrl,
+		})).rejects.toThrow('NostrRelay_Nip11_Http: invalid native limitation value')
+	})
+
+	it('fails closed on reversed created_at clock limits', async () => {
 		sourceFetch.mockResolvedValue({
 			ok: true,
 			json: async () => ({
