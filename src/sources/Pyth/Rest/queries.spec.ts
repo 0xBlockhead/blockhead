@@ -142,6 +142,19 @@ describe('Pyth Hermes OpenAPI operations', () => {
 		expect(getJson).not.toHaveBeenCalled()
 	})
 
+	it('rejects empty and duplicate Hermes update identities before transport', async () => {
+		await expect(queries.getLatestPriceUpdates({
+			'ids[]': [],
+		})).rejects.toThrow('requires at least one price feed id')
+		await expect(queries.getLatestPriceUpdates({
+			'ids[]': [
+				priceFeedId,
+				priceFeedId.toUpperCase(),
+			],
+		})).rejects.toThrow('duplicate price feed id')
+		expect(getJson).not.toHaveBeenCalled()
+	})
+
 	it('fail-closes malformed Hermes price-feed catalogs', async () => {
 		getJson.mockResolvedValue([{
 			id: 'not-a-price-feed-id',
@@ -179,6 +192,37 @@ describe('Pyth Hermes OpenAPI operations', () => {
 			'ids[]': [priceFeedId],
 			parsed: true,
 		})).rejects.toThrow('invalid Hermes latest price updates response envelope')
+	})
+
+	it.each([
+		[
+			'foreign parsed identity',
+			{
+				...priceUpdate,
+				parsed: [{
+					...priceUpdate.parsed[0],
+					id: 'f'.repeat(64),
+				}],
+			},
+			'foreign price update id',
+		],
+		[
+			'duplicate parsed identity',
+			{
+				...priceUpdate,
+				parsed: [
+					priceUpdate.parsed[0],
+					priceUpdate.parsed[0],
+				],
+			},
+			'duplicate price update id',
+		],
+	])('rejects %s from Hermes before returning the observation', async (_label, response, message) => {
+		getJson.mockResolvedValue(response)
+		await expect(queries.getLatestPriceUpdates({
+			'ids[]': [priceFeedId],
+			parsed: true,
+		})).rejects.toThrow(message)
 	})
 })
 
@@ -283,6 +327,42 @@ describe('Pyth Benchmarks REST operations', () => {
 			timestampSec: 1,
 			ids: [priceFeedId],
 		})).rejects.toThrow('invalid Benchmarks price update response envelope')
+	})
+
+	it('rejects foreign Benchmarks feed and update identities', async () => {
+		getJson.mockResolvedValueOnce({
+			id: 'f'.repeat(64),
+			market_hours: null,
+			attributes: {},
+		})
+		await expect(queries.getBenchmarkPriceFeed(priceFeedId)).rejects.toThrow('does not match requested identity')
+
+		getJson.mockResolvedValueOnce({
+			...priceUpdate,
+			parsed: [{
+				...priceUpdate.parsed[0],
+				id: 'f'.repeat(64),
+			}],
+		})
+		await expect(queries.getBenchmarkPriceUpdateAt({
+			timestampSec: 1,
+			ids: [priceFeedId],
+		})).rejects.toThrow('foreign price update id')
+	})
+
+	it('rejects empty and duplicate Benchmarks update identities before transport', async () => {
+		await expect(queries.getBenchmarkPriceUpdateAt({
+			timestampSec: 1,
+			ids: [],
+		})).rejects.toThrow('requires at least one price feed id')
+		await expect(queries.getBenchmarkPriceUpdateAt({
+			timestampSec: 1,
+			ids: [
+				priceFeedId,
+				priceFeedId.toUpperCase(),
+			],
+		})).rejects.toThrow('duplicate price feed id')
+		expect(getJson).not.toHaveBeenCalled()
 	})
 
 	it('rejects malformed Benchmarks price feed ids before transport', async () => {

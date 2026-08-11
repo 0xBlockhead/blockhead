@@ -19,7 +19,34 @@ const benchmarksBinding = Object.fromEntries(bindings[Source.PythBenchmarks_Rest
 const assertPriceFeedId = (id: string) => {
 	if (!/^[0-9a-f]{64}$/i.test(id))
 		throw new Error(`Pyth_Rest: invalid price feed id ${id}`)
-	return id
+	return id.toLowerCase()
+}
+
+const assertPriceFeedIds = (ids: string[]) => {
+	if (ids.length === 0)
+		throw new Error('Pyth_Rest: price update requires at least one price feed id')
+	const normalizedIds = ids.map(assertPriceFeedId)
+	if (new Set(normalizedIds).size !== normalizedIds.length)
+		throw new Error('Pyth_Rest: duplicate price feed id')
+	return normalizedIds
+}
+
+const assertPriceUpdateIdentities = (
+	priceUpdate: PythPriceUpdateResponse,
+	requestedIds: string[]
+) => {
+	if (priceUpdate.parsed == null)
+		return
+	const parsedIds = new Set<string>()
+	for (const parsedUpdate of priceUpdate.parsed) {
+		const id = assertPriceFeedId(parsedUpdate.id.replace(/^0x/i, ''))
+		if (!requestedIds.includes(id))
+			throw new Error(`Pyth_Rest: foreign price update id ${parsedUpdate.id}`)
+		if (parsedIds.has(id))
+			throw new Error(`Pyth_Rest: duplicate price update id ${parsedUpdate.id}`)
+
+		parsedIds.add(id)
+	}
 }
 
 const omitUndefinedJson = (
@@ -77,14 +104,14 @@ export const getLatestPriceUpdates = async (
 	priceUpdate: PythPriceUpdateResponse
 	fetchedAtMs: number
 }> => {
-	parameters['ids[]'].forEach(assertPriceFeedId)
+	const ids = assertPriceFeedIds(parameters['ids[]'])
 	const priceUpdate = assertEnvelope(
 		'Hermes latest price updates',
 		pythPriceUpdateResponseWire,
 		await getJson(
 			hermesBinding,
 			`/v2/updates/price/latest?${new URLSearchParams([
-				...parameters['ids[]'].map((id) => ['ids[]', id]),
+				...ids.map((id) => ['ids[]', id]),
 				...(parameters.encoding != null ? [['encoding', parameters.encoding]] : []),
 				...(parameters.parsed != null ? [['parsed', String(parameters.parsed)]] : []),
 				...(parameters.ignore_invalid_price_ids != null ?
@@ -94,6 +121,7 @@ export const getLatestPriceUpdates = async (
 			])}`
 		)
 	)
+	assertPriceUpdateIdentities(priceUpdate, ids)
 
 	return {
 		priceUpdate,
@@ -127,16 +155,20 @@ export const getBenchmarkPriceFeeds = async (
 
 export const getBenchmarkPriceFeed = async (
 	id: string
-): Promise<PythBenchmarksPriceFeed> => (
-	assertEnvelope(
+): Promise<PythBenchmarksPriceFeed> => {
+	const normalizedId = assertPriceFeedId(id)
+	const priceFeed = assertEnvelope(
 		'Benchmarks price feed',
 		pythBenchmarksPriceFeedWire,
 		await getJson(
 			benchmarksBinding,
-			`/v1/price_feeds/${encodeURIComponent(assertPriceFeedId(id))}`
+			`/v1/price_feeds/${encodeURIComponent(normalizedId)}`
 		)
 	)
-)
+	if (assertPriceFeedId(priceFeed.id.replace(/^0x/i, '')) !== normalizedId)
+		throw new Error('Pyth_Rest: Benchmarks price feed does not match requested identity')
+	return priceFeed
+}
 
 export const getBenchmarkPriceUpdateAt = async (
 	{
@@ -156,9 +188,7 @@ export const getBenchmarkPriceUpdateAt = async (
 }> => {
 	if (!Number.isSafeInteger(timestampSec) || timestampSec < 0)
 		throw new Error(`Pyth_Rest: invalid Benchmarks price update timestamp ${timestampSec}`)
-	if (ids.length === 0)
-		throw new Error('Pyth_Rest: Benchmarks price update requires at least one price feed id')
-	ids.forEach(assertPriceFeedId)
+	const normalizedIds = assertPriceFeedIds(ids)
 
 	const priceUpdate = assertEnvelope(
 		'Benchmarks price update',
@@ -166,12 +196,13 @@ export const getBenchmarkPriceUpdateAt = async (
 		await getJson(
 			benchmarksBinding,
 			`/v1/updates/price/${timestampSec}?${new URLSearchParams([
-				...ids.map((id) => ['ids', id]),
+				...normalizedIds.map((id) => ['ids', id]),
 				['encoding', encoding],
 				['parsed', String(parsed)],
 			])}`
 		)
 	)
+	assertPriceUpdateIdentities(priceUpdate, normalizedIds)
 
 	return {
 		priceUpdate,
