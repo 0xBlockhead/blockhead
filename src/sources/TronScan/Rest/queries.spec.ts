@@ -59,6 +59,44 @@ describe('TronScan REST account transactions transport', () => {
 		)
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
+
+	it('fails closed on foreign and duplicate account transaction identities', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			total: 2,
+			data: [
+				{
+					hash: 'same-hash',
+					ownerAddress: 'Tforeign',
+				},
+				{
+					hash: 'same-hash',
+					ownerAddress: 'Taccount',
+				},
+			],
+		})
+
+		await expect(getAccountTransactions('Taccount', 2)).rejects.toThrow(
+			'account transaction page contains a foreign owner'
+		)
+
+		sourceGetJson.mockResolvedValueOnce({
+			total: 2,
+			data: [
+				{
+					hash: 'same-hash',
+					ownerAddress: 'Taccount',
+				},
+				{
+					hash: 'same-hash',
+					ownerAddress: 'Taccount',
+				},
+			],
+		})
+
+		await expect(getAccountTransactions('Taccount', 2)).rejects.toThrow(
+			'account transaction page contains a duplicate hash'
+		)
+	})
 })
 
 describe('TronScan REST arktype envelopes', () => {
@@ -254,5 +292,33 @@ describe('TronScan REST arktype envelopes', () => {
 		await expect(getTokenOverview('Ttoken')).rejects.toThrow('invalid token overview response envelope')
 		await expect(getContract('Tcontract')).rejects.toThrow('invalid contract response envelope')
 		await expect(getTrc20Transfers('tx-hash', 1)).rejects.toThrow('invalid trc20 transfers response envelope')
+	})
+
+	it('rejects mismatched scalar and trc20 response identities', async () => {
+		sourceGetJson
+			.mockResolvedValueOnce({
+				address: 'Tother',
+			})
+			.mockResolvedValueOnce({
+				hash: 'other-hash',
+			})
+			.mockResolvedValueOnce({
+				total: 1,
+				data: [{
+					number: 2,
+				}],
+			})
+			.mockResolvedValueOnce({
+				token_transfers: [{
+					transaction_id: 'other-hash',
+				}],
+			})
+
+		await expect(getAccount('Taccount')).rejects.toThrow('account response identity mismatch')
+		await expect(getTransaction('tx-hash')).rejects.toThrow('transaction response identity mismatch')
+		await expect(getBlock(1n)).rejects.toThrow('block response height mismatch')
+		await expect(getTrc20Transfers('tx-hash', 1)).rejects.toThrow(
+			'trc20 transfer response contains a foreign transaction'
+		)
 	})
 })
