@@ -132,12 +132,16 @@ export const getTx = ({
 	txHash,
 }: {
 	txHash: string
-}) => (
-	sourceGetJson<CosmosSdkTxResponse>(
+}) => sourceGetJson<CosmosSdkTxResponse>(
 		binding,
 		`${base(binding)}/cosmos/tx/v1beta1/txs/${encodeURIComponent(txHash)}`
 	)
-)
+	.then((response) => {
+		if (response.tx_response.txhash.toUpperCase() !== txHash.toUpperCase())
+			throw new Error('CosmosSdk_Rest: transaction response does not match request')
+
+		return response
+	})
 
 export const getTransactionsByEvent = ({
 	event,

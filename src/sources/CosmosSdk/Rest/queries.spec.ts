@@ -72,6 +72,7 @@ const {
 	getProposalVote,
 	getProposalVotes,
 	getProposals,
+	getTx,
 	getTransactionsByEvent,
 } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 
@@ -150,6 +151,35 @@ describe('Cosmos SDK GetTxsEvent transport', () => {
 				continuationToken,
 			})).rejects.toThrow('invalid or foreign balance continuation')
 		expect(getJson).not.toHaveBeenCalled()
+	})
+})
+
+describe('Cosmos SDK transaction transport', () => {
+	beforeEach(() => {
+		getJson.mockReset()
+	})
+
+	it('accepts canonical hash casing and rejects a foreign transaction response', async () => {
+		getJson
+			.mockResolvedValueOnce({
+				tx_response: {
+					txhash: 'ABC123',
+				},
+			})
+			.mockResolvedValueOnce({
+				tx_response: {
+					txhash: 'DEF456',
+				},
+			})
+
+		await expect(getTx({ txHash: 'abc123' })).resolves.toMatchObject({
+			tx_response: {
+				txhash: 'ABC123',
+			},
+		})
+		await expect(getTx({ txHash: 'ABC123' })).rejects.toThrow(
+			'CosmosSdk_Rest: transaction response does not match request'
+		)
 	})
 })
 
