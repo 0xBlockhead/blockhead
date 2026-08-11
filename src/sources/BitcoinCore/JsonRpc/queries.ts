@@ -100,6 +100,26 @@ export const getRawTransaction = async ({
 	)
 	if (transaction.txid.toLowerCase() !== txId.toLowerCase())
 		throw new Error(`${Source.BitcoinCore_JsonRpc}: transaction id does not match request`)
+	assertHash(transaction.hash, 'transaction witness hash')
+	const spentOutpoints = new Set<string>()
+	for (const input of transaction.vin) {
+		if (input.txid == null || input.vout == null)
+			continue
+		assertHash(input.txid, 'transaction input ID')
+		if (!Number.isSafeInteger(input.vout) || input.vout < 0)
+			throw new Error(`${Source.BitcoinCore_JsonRpc}: invalid transaction input output index`)
+		const spentOutpoint = `${input.txid}:${input.vout}`
+		if (spentOutpoints.has(spentOutpoint))
+			throw new Error(`${Source.BitcoinCore_JsonRpc}: transaction contains duplicate input outpoints`)
+		spentOutpoints.add(spentOutpoint)
+	}
+	for (const [outputIndex, output] of transaction.vout.entries()) {
+		if (output.n !== outputIndex)
+			throw new Error(`${Source.BitcoinCore_JsonRpc}: transaction output index does not match its position`)
+		if (!/^(?:[0-9a-f]{2})*$/i.test(output.scriptPubKey.hex))
+			throw new Error(`${Source.BitcoinCore_JsonRpc}: invalid transaction output script`)
+		satoshisFromBtc(output.value, 'transaction output BTC amount')
+	}
 	return transaction
 }
 

@@ -115,6 +115,65 @@ describe('Bitcoin Core JSON-RPC', () => {
 		})).rejects.toThrow('invalid transaction response envelope')
 	})
 
+	it('rejects transaction rows that cannot safely become UTXO input and output identities', async () => {
+		const transaction = {
+			txid: txId,
+			hash: txId,
+			version: 2,
+			size: 100,
+			vsize: 100,
+			weight: 400,
+			locktime: 0,
+			vin: [{
+				txid: parentHash,
+				vout: 0,
+				sequence: 0,
+			}],
+			vout: [{
+				value: 0.00005,
+				n: 0,
+				scriptPubKey: {
+					asm: 'OP_0',
+					hex: '0014',
+					type: 'witness_v0_keyhash',
+				},
+			}],
+		}
+
+		jsonRpc2.mockResolvedValueOnce({
+			...transaction,
+			vin: [
+				transaction.vin[0],
+				transaction.vin[0],
+			],
+		})
+		await expect(getRawTransaction({
+			txId,
+		})).rejects.toThrow('duplicate input outpoints')
+
+		jsonRpc2.mockResolvedValueOnce({
+			...transaction,
+			vout: [{
+				...transaction.vout[0],
+				n: 1,
+			}],
+		})
+		await expect(getRawTransaction({
+			txId,
+		})).rejects.toThrow('output index does not match its position')
+
+		jsonRpc2.mockResolvedValueOnce({
+			...transaction,
+			vout: [{
+				...transaction.vout[0],
+				value: 0.000000001,
+			}],
+		})
+		await expect(getRawTransaction({
+			txId,
+		})).rejects.toThrow('invalid or lossy transaction output BTC amount')
+	})
+
 	it('loads tip height, height→hash, and mempool info with fail-closed envelopes', async () => {
 		jsonRpc2.mockResolvedValueOnce(840_000)
 		await expect(getBlockCount()).resolves.toBe(840_000)
