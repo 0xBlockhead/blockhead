@@ -28,7 +28,7 @@ type AcrossChainRow = {
 
 // Constants
 
-export const acrossDepositStatuses = [
+const acrossDepositStatuses = [
 	{
 		status: 'pending',
 		label: 'Deposit submitted; not yet filled',
@@ -56,7 +56,7 @@ export const acrossDepositStatuses = [
 	},
 ] as const satisfies readonly AcrossDepositStatusRow[]
 
-export const acrossChains = [
+const acrossChains = [
 	{
 		chainId: 1,
 		name: 'Ethereum',
