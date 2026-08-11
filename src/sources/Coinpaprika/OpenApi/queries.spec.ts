@@ -32,6 +32,22 @@ describe('Coinpaprika coin queries', () => {
 		expect(coinpaprikaExchangeIdByMarketVenueId[MarketVenueId.Okx]).toBe('okx')
 	})
 
+	it('rejects empty coin identifiers before transport', async () => {
+		const fetchMock = vi.fn<typeof fetch>()
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getCoinById({
+			publicEnv: {},
+			coinpaprikaId: '   ' as never,
+		})).rejects.toThrow('coin identifier must not be empty')
+		await expect(getTickerById({
+			publicEnv: {},
+			coinpaprikaId: '   ' as never,
+		})).rejects.toThrow('coin identifier must not be empty')
+		expect(fetchMock).not.toHaveBeenCalled()
+	})
+
 	it('loads all catalog tickers with one bulk request', async () => {
 		const tickers = [{
 			id: 'aave-new',

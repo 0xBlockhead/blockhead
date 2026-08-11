@@ -40,6 +40,14 @@ const assertEnvelope = <_Value>(
 	return value as _Value
 }
 
+const assertCoinpaprikaId = (value: string) => {
+	if (value.trim() === '')
+		throw new Error('Coinpaprika_Rest: coin identifier must not be empty')
+	if (value !== value.trim() || /[\u0000-\u001f\u007f]/.test(value))
+		throw new Error('Coinpaprika_Rest: invalid coin identifier')
+	return value
+}
+
 export const getCoinById = async ({
 	publicEnv,
 	coinpaprikaId,
@@ -51,7 +59,7 @@ export const getCoinById = async ({
 		coinpaprikaCoinEnvelope,
 		await getCoinpaprikaJson<CoinpaprikaCoin>(
 			publicEnv,
-			`/coins/${encodeURIComponent(coinpaprikaId)}`
+			`/coins/${encodeURIComponent(assertCoinpaprikaId(coinpaprikaId))}`
 		),
 		'coin'
 	)
@@ -72,7 +80,7 @@ export const getCoinMarkets = async ({
 		coinpaprikaMarketsEnvelope,
 		await getCoinpaprikaJson<CoinpaprikaCoinMarkets>(
 			publicEnv,
-			`/coins/${encodeURIComponent(coinpaprikaId)}/markets?quotes=USD`
+			`/coins/${encodeURIComponent(assertCoinpaprikaId(coinpaprikaId))}/markets?quotes=USD`
 		),
 		'coin markets'
 	)
@@ -112,7 +120,7 @@ export const getTickerById = async ({
 		coinpaprikaTickerEnvelope,
 		await getCoinpaprikaJson<CoinpaprikaTicker>(
 			publicEnv,
-			`/tickers/${encodeURIComponent(coinpaprikaId)}`
+			`/tickers/${encodeURIComponent(assertCoinpaprikaId(coinpaprikaId))}`
 		),
 		'ticker'
 	)
@@ -148,7 +156,7 @@ export const getOhlcvToday = async ({
 		coinpaprikaOhlcvRowsEnvelope,
 		await getCoinpaprikaJson<CoinpaprikaOhlcvTodayRows>(
 			publicEnv,
-			`/coins/${encodeURIComponent(coinpaprikaId)}/ohlcv/today`
+			`/coins/${encodeURIComponent(assertCoinpaprikaId(coinpaprikaId))}/ohlcv/today`
 		),
 		'ohlcv today'
 	)
@@ -175,7 +183,7 @@ export const getOhlcvHistorical = async ({
 		coinpaprikaOhlcvRowsEnvelope,
 		await getCoinpaprikaJson<CoinpaprikaOhlcvHistoricalRows>(
 			publicEnv,
-			`/coins/${encodeURIComponent(coinpaprikaId)}/ohlcv/historical?${new URLSearchParams({
+			`/coins/${encodeURIComponent(assertCoinpaprikaId(coinpaprikaId))}/ohlcv/historical?${new URLSearchParams({
 				start,
 				...(end != null && { end }),
 				...(limit != null && { limit: String(limit) }),
