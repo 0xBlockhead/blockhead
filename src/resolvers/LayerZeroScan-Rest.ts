@@ -147,32 +147,6 @@ const loadLayerZeroMessageByGuid = async (
 	return data[0]
 }
 
-const loadLayerZeroMessageForTransfer = async (
-	transfer: EntitySelector<typeof schema, EntityType.BridgeTransfer>
-) => {
-	if (transfer.source !== Source.LayerZeroScan_Rest)
-		throw new Error(`LayerZeroScan_Rest: unsupported bridge transfer source ${transfer.source}`)
-
-	if ('transferId' in transfer)
-		return loadLayerZeroMessageByGuid(transfer)
-
-	if (!('txHash' in transfer.$sourceTx))
-		throw new Error('LayerZeroScan_Rest: source transaction requires NetworkTxHash')
-
-	const { getMessagesByTransaction } = await import('$/sources/LayerZeroScan/Rest/queries.ts')
-	const { data } = await getMessagesByTransaction({
-		transactionHash: transfer.$sourceTx.txHash,
-	})
-	const message = data.find((candidate) => (
-		candidate.source.tx.txHash.toLowerCase() === transfer.$sourceTx.txHash.toLowerCase()
-		|| candidate.destination?.tx?.txHash?.toLowerCase() === transfer.$sourceTx.txHash.toLowerCase()
-	))
-	if (message == null)
-		throw new Error(`LayerZeroScan_Rest: no message for source tx ${transfer.$sourceTx.txHash}`)
-
-	return message
-}
-
 const layerZeroBridgeTransferObservation = async ({
 	$transfer,
 	timestampMs,
@@ -183,7 +157,7 @@ const layerZeroBridgeTransferObservation = async ({
 	if ($transfer.source !== Source.LayerZeroScan_Rest)
 		throw new Error(`LayerZeroScan_Rest: unsupported bridge transfer source ${$transfer.source}`)
 
-	const message = await loadLayerZeroMessageForTransfer($transfer)
+	const message = await loadLayerZeroMessageByGuid($transfer)
 	const observedAtMs = layerZeroMessageObservationMs(message.updated)
 	if (observedAtMs !== timestampMs)
 		throw new Error('LayerZeroScan_Rest: observation clock mismatch')
@@ -260,18 +234,6 @@ export default {
 							await loadLayerZeroMessageByGuid(transfer)
 						)
 					),
-				},
-				SourceTxSourceLogIndex: {
-					resolve: async (transfer) => {
-						const message = await loadLayerZeroMessageForTransfer(transfer)
-						return layerZeroBridgeTransferSnapshot(
-							{
-								source: Source.LayerZeroScan_Rest,
-								transferId: message.guid.toLowerCase(),
-							},
-							message
-						)
-					},
 				},
 			},
 		})({

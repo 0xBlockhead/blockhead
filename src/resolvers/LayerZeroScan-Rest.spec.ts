@@ -11,12 +11,9 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getMessageByGuid = vi.hoisted(() => vi.fn())
-const getMessagesByTransaction = vi.hoisted(() => vi.fn())
-
 vi.mock('$/sources/LayerZeroScan/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/LayerZeroScan/Rest/queries.ts')>(),
 	getMessageByGuid,
-	getMessagesByTransaction,
 }))
 
 const { default: layerZeroScan } = await import('$/resolvers/LayerZeroScan-Rest.ts')
@@ -104,7 +101,6 @@ const message = {
 describe('LayerZeroScan BridgeTransfer resolvers', () => {
 	afterEach(() => {
 		getMessageByGuid.mockReset()
-		getMessagesByTransaction.mockReset()
 	})
 
 	it('materializes schema-shaped transfer fields from the GUID message', async () => {
@@ -169,42 +165,14 @@ describe('LayerZeroScan BridgeTransfer resolvers', () => {
 		expect(resolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
 	})
 
-	it('resolves SourceTxSourceLogIndex from the official transaction message list', async () => {
-		getMessagesByTransaction.mockResolvedValue({
-			data: [message],
-		})
+	it('does not claim transaction-log-index resolution without a Scan log-index identity', () => {
 		const resolver = layerZeroScan.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.BridgeTransfer
 		))
 		if (resolver == null)
 			throw new Error('LayerZeroScan_Rest: BridgeTransfer resolver missing')
 
-		const snapshot = await resolver.resolve.SourceTxSourceLogIndex.resolve({
-			source: Source.LayerZeroScan_Rest,
-			$sourceTx: {
-				$network: {
-					caip2: {
-						namespace: 'eip155' as const,
-						reference: '1',
-					},
-				},
-				txHash: sourceTxHash,
-			},
-			logIndex: 0,
-		})
-
-		expect(getMessagesByTransaction).toHaveBeenCalledWith({
-			transactionHash: sourceTxHash,
-		})
-		expect(snapshot.transferId).toBe(guid)
-		expect(snapshot).toMatchObject({
-			assetOutcome: 'MessageOnly',
-			$sourceTx: {
-				[EntityMetaKey.Selector]: {
-					txHash: sourceTxHash,
-				},
-			},
-		})
+		expect(resolver.resolve).not.toHaveProperty('SourceTxSourceLogIndex')
 	})
 
 	it('projects status observations from official message lifecycle fields', async () => {
