@@ -169,20 +169,6 @@ const assertVaa = (
 		throw new Error(`Wormholescan_Rest: mismatched VAA id ${vaa.id}`)
 }
 
-export const getHealth = () => (
-	getJson<operations['health-check']['responses'][200]['content']['*/*']>(
-		binding,
-		'health'
-	)
-)
-
-export const getReady = () => (
-	getJson<operations['ready-check']['responses'][200]['content']['*/*']>(
-		binding,
-		'ready'
-	)
-)
-
 export const getOperations = async (
 	parameters: NonNullable<operations['get-operations']['parameters']['query']> = {}
 ) => {
@@ -227,27 +213,6 @@ export const getOperationById = async (
 			emitter,
 			sequence,
 		}
-	)
-}
-
-export const findGlobalTransactionById = (
-	{
-		chainId,
-		emitter,
-		sequence,
-	}: {
-		chainId: number
-		emitter: string
-		sequence: number | string
-	}
-) => {
-	assertWormholeChainId(chainId)
-	assertEmitterAddress(emitter)
-	assertSequence(sequence)
-
-	return getJson<operations['find-global-transaction-by-id']['responses'][200]['content']['*/*']>(
-		binding,
-		`global-tx/${chainId}/${encodeURIComponent(emitter)}/${sequence}`
 	)
 }
 

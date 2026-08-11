@@ -27,20 +27,6 @@ describe('Wormholescan OpenAPI operations', () => {
 		vi.clearAllMocks()
 	})
 
-	it('checks health through the canonical binding', async () => {
-		getJson.mockResolvedValue({ status: 'OK' })
-
-		await expect(queries.getHealth()).resolves.toEqual({ status: 'OK' })
-		expect(getJson).toHaveBeenCalledWith(binding, 'health')
-	})
-
-	it('checks readiness through the canonical binding', async () => {
-		getJson.mockResolvedValue({ ready: 'OK' })
-
-		await expect(queries.getReady()).resolves.toEqual({ ready: 'OK' })
-		expect(getJson).toHaveBeenCalledWith(binding, 'ready')
-	})
-
 	it('unwraps the live operations page envelope and encodes filters', async () => {
 		getJson.mockResolvedValue({
 			operations: [{
@@ -195,39 +181,6 @@ describe('Wormholescan OpenAPI operations', () => {
 		})).resolves.toMatchObject({ sequence })
 	})
 
-	it('loads a global transaction by wormhole id path', async () => {
-		getJson.mockResolvedValue({ id: 'global' })
-
-		await expect(queries.findGlobalTransactionById({
-			chainId: 2,
-			emitter: 'abcd',
-			sequence: '3',
-		})).resolves.toEqual({ id: 'global' })
-		expect(getJson).toHaveBeenCalledWith(
-			binding,
-			'global-tx/2/abcd/3'
-		)
-	})
-
-	it('rejects non-canonical global transaction path atoms before transport', async () => {
-		expect(() => queries.findGlobalTransactionById({
-			chainId: -1,
-			emitter: 'abcd',
-			sequence: 3,
-		})).toThrow('invalid wormhole chain id')
-		expect(() => queries.findGlobalTransactionById({
-			chainId: 2,
-			emitter: 'ab/cd',
-			sequence: 3,
-		})).toThrow('invalid emitter address')
-		expect(() => queries.findGlobalTransactionById({
-			chainId: 2,
-			emitter: 'abcd',
-			sequence: '01',
-		})).toThrow('invalid VAA sequence')
-		expect(getJson).not.toHaveBeenCalled()
-	})
-
 	it('loads a VAA snapshot by wormhole id and asserts identity', async () => {
 		const emitter = '0000000000000000000000003ee18b2214aff97000d974cf647e7c347e8fa585'
 		const vaa = {
@@ -355,11 +308,8 @@ describe('Wormholescan OpenAPI operations', () => {
 
 	it('exports only live-supported OpenAPI GET operations', () => {
 		expect(Object.keys(queries).sort()).toEqual([
-			'findGlobalTransactionById',
-			'getHealth',
 			'getOperationById',
 			'getOperations',
-			'getReady',
 			'getVaaById',
 		])
 	})
