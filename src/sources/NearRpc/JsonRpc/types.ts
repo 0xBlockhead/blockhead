@@ -66,9 +66,6 @@ export type NearRpcCurrentValidator = {
 	shards_endorsed?: number[]
 }
 
-/** @deprecated Prefer NearRpcCurrentValidator — kept for resolver call-site typing. */
-export type NearRpcValidator = NearRpcCurrentValidator
-
 export type NearRpcValidators = {
 	current_fishermen: NearRpcValidatorStake[]
 	current_proposals: NearRpcValidatorStake[]
