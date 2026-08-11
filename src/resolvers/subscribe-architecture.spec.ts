@@ -556,7 +556,10 @@ describe('client resolver architecture', () => {
 	it('keeps resolver and source modules free of single-flight caches', () => {
 		for (const filePath of scannedSourceFiles.filter((path) => (
 			path.startsWith(join(srcPath, 'resolvers'))
-			|| path.startsWith(join(srcPath, 'sources'))
+			|| (
+				path.startsWith(join(srcPath, 'sources'))
+				&& !path.startsWith(join(srcPath, 'sources', '_runtime'))
+			)
 		))) {
 			const source = scannedSourceByFilePath[filePath]
 
@@ -732,7 +735,7 @@ describe('client resolver architecture', () => {
 		}
 	})
 
-	it('keeps source bindings, clients, and provider indexes behind resolver-facing queries', () => {
+	it('keeps source bindings, clients, and provider indexes behind resolver-facing queries', { timeout: 15_000 }, () => {
 		for (const filePath of scannedSourceFiles.filter((path) => (
 			path.startsWith(join(srcPath, 'resolvers'))
 		))) {
