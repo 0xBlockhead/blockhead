@@ -275,10 +275,17 @@ const countRowsAcrossFarcasterPages = async <_Result, _Row>({
 }) => {
 	let count = 0
 	let cursor: string | undefined
+	const seenCursors = new Set<string>()
 	do {
 		const page = await loadPage(cursor)
 		count += selectRows(page.result)?.length ?? 0
 		cursor = page.next?.cursor
+		if (cursor != null && cursor !== '') {
+			if (seenCursors.has(cursor))
+				throw new Error('Farcaster_Rest: repeated pagination cursor')
+
+			seenCursors.add(cursor)
+		}
 	} while (cursor != null && cursor !== '')
 	return count
 }

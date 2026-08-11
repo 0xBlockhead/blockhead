@@ -19,6 +19,7 @@ const {
 	getChannelMembersPage,
 	getPrimaryAddress,
 	getUserChannelFollowStatus,
+	getUserFollowingChannelsCount,
 	getUserThreadCastsByClientUrl,
 	getUserThreadCasts,
 } = await import(
@@ -309,6 +310,52 @@ describe('Farcaster envelope validation and materialization', () => {
 			fid: 3,
 			channelId: 'design',
 		})).rejects.toThrow('Farcaster_Rest: invalid channel-follow-status response envelope')
+	})
+
+	it('counts bounded following-channel pages and fails closed on cursor cycles', async () => {
+		farcasterGet
+			.mockResolvedValueOnce({
+				result: {
+					channels: [
+						{ id: 'design', url: 'https://farcaster.xyz/~/channel/design', followedAt: 1 },
+						{ id: 'dev', url: 'https://farcaster.xyz/~/channel/dev', followedAt: 2 },
+					],
+				},
+				next: { cursor: 'opaque-2' },
+			})
+			.mockResolvedValueOnce({
+				result: {
+					channels: [
+						{ id: 'music', url: 'https://farcaster.xyz/~/channel/music', followedAt: 3 },
+					],
+				},
+			})
+
+		await expect(getUserFollowingChannelsCount({ fid: 3 })).resolves.toBe(3)
+		expect(farcasterGet).toHaveBeenNthCalledWith(
+			2,
+			'client-api',
+			'/v1/user-following-channels',
+			{
+				fid: 3,
+				cursor: 'opaque-2',
+				limit: 100,
+			}
+		)
+
+		farcasterGet
+			.mockResolvedValueOnce({
+				result: { channels: [] },
+				next: { cursor: 'cycle' },
+			})
+			.mockResolvedValueOnce({
+				result: { channels: [] },
+				next: { cursor: 'cycle' },
+			})
+
+		await expect(getUserFollowingChannelsCount({ fid: 3 })).rejects.toThrow(
+			'Farcaster_Rest: repeated pagination cursor'
+		)
 	})
 
 	it('materializes an exact channel and thread envelope', async () => {
