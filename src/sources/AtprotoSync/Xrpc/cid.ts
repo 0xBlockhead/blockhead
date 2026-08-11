@@ -5,7 +5,7 @@ import { type } from 'arktype'
 export const atprotoCidLinkTag = 42
 
 
-export const cidFromAtprotoLinkBytes = (
+const cidFromAtprotoLinkBytes = (
 	value: Uint8Array
 ) => {
 	if (value.byteLength < 2 || value[0] !== 0)
