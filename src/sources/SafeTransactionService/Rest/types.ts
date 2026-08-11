@@ -128,11 +128,3 @@ export const safeMultisigConfirmationPageEnvelope = arktype({
 })
 
 export type SafeMultisigConfirmationPage = typeof safeMultisigConfirmationPageEnvelope.infer
-
-/** @deprecated Prefer typed page envelopes; kept for call-site generics. */
-export type SafePage<_Result> = {
-	count: number
-	next: string | null
-	previous: string | null
-	results: _Result[]
-}
