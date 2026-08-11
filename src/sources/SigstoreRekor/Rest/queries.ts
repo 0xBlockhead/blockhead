@@ -12,11 +12,14 @@ export const getLogInfo = () => (
 	)
 )
 
-export const getLogEntry = ({
+export const getLogEntry = async ({
 	entryUUID,
-}: operations['getLogEntryByUUID']['parameters']['path']) => (
-	getJson<operations['getLogEntryByUUID']['responses'][200]['content']['application/json']>(
+}: operations['getLogEntryByUUID']['parameters']['path']) => {
+	const entry = await getJson<operations['getLogEntryByUUID']['responses'][200]['content']['application/json']>(
 		binding,
 		`/api/v1/log/entries/${encodeURIComponent(entryUUID)}`
 	)
-)
+	if (!Object.hasOwn(entry, entryUUID))
+		throw new Error('SigstoreRekor: foreign log entry response')
+	return entry
+}

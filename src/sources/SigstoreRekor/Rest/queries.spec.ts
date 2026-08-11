@@ -64,4 +64,19 @@ describe('Sigstore Rekor public transparency log', () => {
 			`/api/v1/log/entries/${encodeURIComponent(entryUUID)}`
 		)
 	})
+
+	it('rejects a response keyed by a different entry UUID', async () => {
+		getJson.mockResolvedValue({
+			other: {
+				logID: 'b'.repeat(64),
+				logIndex: 42,
+				body: {},
+				integratedTime: 1_700_000_000,
+			},
+		})
+
+		await expect(queries.getLogEntry({
+			entryUUID: 'requested',
+		})).rejects.toThrow('foreign log entry response')
+	})
 })
