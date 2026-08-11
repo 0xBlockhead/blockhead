@@ -19,7 +19,7 @@ type BridgeRouteQuoteId = EntitySelector<typeof schema, EntityType.BridgeRoute>
 
 type BridgeRouteStepSnapshot = ReturnType<typeof bridgeRouteStepSnapshotFromLifiQuoteStep>
 
-export type BridgeRouteResolverBundle = {
+type BridgeRouteResolverBundle = {
 	routeFields: {
 		$fromNetwork: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155', reference: string } } }
 		$toNetwork: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155', reference: string } } }
