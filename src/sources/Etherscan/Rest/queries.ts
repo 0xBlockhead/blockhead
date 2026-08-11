@@ -118,17 +118,25 @@ export const etherscanQueries = (() => {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: string
-}) => (
-	etherscanV2GetProxyResult<RpcTransaction>({
-		chainId,
-		publicEnv,
-		query: {
-			module: 'proxy',
-			action: 'eth_getTransactionByHash',
-			txhash: requireTxHash(txHash),
-		},
-	})
-)
+	}) => {
+		const requestedTxHash = requireTxHash(txHash)
+		const transaction = await etherscanV2GetProxyResult<RpcTransaction>({
+			chainId,
+			publicEnv,
+			query: {
+				module: 'proxy',
+				action: 'eth_getTransactionByHash',
+				txhash: requestedTxHash,
+			},
+		})
+		if (
+			transaction?.hash != null
+			&& hexLowerOfByteSize(transaction.hash, 32) !== requestedTxHash
+		)
+			throw new Error('Etherscan_Rest: transaction subject mismatch')
+
+		return transaction
+	}
 /**
  * **`module=proxy`**, **`action=eth_getTransactionReceipt`**, **`txhash`**.
  * @see https://docs.etherscan.io/api-reference/endpoint/ethgettransactionreceipt
@@ -141,17 +149,25 @@ export const etherscanQueries = (() => {
 	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: string
-}) => (
-	etherscanV2GetProxyResult<RpcReceipt>({
-		chainId,
-		publicEnv,
-		query: {
-			module: 'proxy',
-			action: 'eth_getTransactionReceipt',
-			txhash: requireTxHash(txHash),
-		},
-	})
-)
+	}) => {
+		const requestedTxHash = requireTxHash(txHash)
+		const receipt = await etherscanV2GetProxyResult<RpcReceipt>({
+			chainId,
+			publicEnv,
+			query: {
+				module: 'proxy',
+				action: 'eth_getTransactionReceipt',
+				txhash: requestedTxHash,
+			},
+		})
+		if (
+			receipt?.transactionHash != null
+			&& hexLowerOfByteSize(receipt.transactionHash, 32) !== requestedTxHash
+		)
+			throw new Error('Etherscan_Rest: transaction receipt subject mismatch')
+
+		return receipt
+	}
 
 /**
  * **`module=proxy`**, **`action=eth_blockNumber`**.

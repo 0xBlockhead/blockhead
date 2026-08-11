@@ -177,6 +177,32 @@ describe('Etherscan transaction hash query boundaries', () => {
 		])
 	})
 
+	it('rejects substituted transaction and receipt subjects', async () => {
+		etherscanV2GetJson.mockResolvedValueOnce({
+			result: {
+				hash: `0x${'b'.repeat(64)}`,
+			},
+		})
+
+		await expect(getTransactionByHash({
+			publicEnv,
+			chainId: 1,
+			txHash: normalizedTxHash,
+		})).rejects.toThrow('transaction subject mismatch')
+
+		etherscanV2GetJson.mockResolvedValueOnce({
+			result: {
+				transactionHash: `0x${'b'.repeat(64)}`,
+			},
+		})
+
+		await expect(getTransactionReceipt({
+			publicEnv,
+			chainId: 1,
+			txHash: normalizedTxHash,
+		})).rejects.toThrow('transaction receipt subject mismatch')
+	})
+
 	it('derives token transfers from receipt Transfer logs for one tx', async () => {
 		etherscanV2GetJson.mockResolvedValue({
 			result: {
