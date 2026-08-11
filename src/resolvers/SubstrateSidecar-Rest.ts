@@ -1096,17 +1096,21 @@ export default {
 						const head = await getBlockHeadHeader()
 						const limit = resolverContextRowLimit(context)
 						const headNumber = BigInt(head.number)
+						const offset = BigInt(context.pagination.offset ?? 0)
 						const rowCount = Math.min(
 							limit,
-							Number(headNumber + 1n)
+							Math.max(
+								Number(headNumber + 1n - offset),
+								0
+							)
 						)
 						if (rowCount === 0)
 							return []
 
-						const from = headNumber - BigInt(rowCount - 1)
+						const to = headNumber - offset
 						const blocks = await getBlocks({
-							from,
-							to: headNumber,
+							from: to - BigInt(rowCount - 1),
+							to,
 						})
 						return [...blocks]
 							.reverse()

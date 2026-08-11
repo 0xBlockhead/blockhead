@@ -548,7 +548,7 @@ describe('Substrate Sidecar Polkadot block / pallet projections', () => {
 		expect(palletResolver.projections.index(snapshot)).toBe(10)
 	})
 
-	it('lists tip blocks from finalized head header + range', async () => {
+	it('lists an offset block page from finalized head header + range', async () => {
 		sourceFetch
 			.mockResolvedValueOnce(new Response(JSON.stringify({
 				number: block.number,
@@ -559,35 +559,45 @@ describe('Substrate Sidecar Polkadot block / pallet projections', () => {
 			.mockResolvedValueOnce(new Response(JSON.stringify([
 				{
 					...block,
-					number: '9',
-					hash: '0xPARENT_HASH',
+					number: '7',
+					hash: '0xBLOCK_7',
 					parentHash: '0xGRANDPARENT_HASH',
 				},
-				block,
+				{
+					...block,
+					number: '8',
+					hash: '0xBLOCK_8',
+				},
 			])))
 
 		const snapshot = await networkBlockListResolver.resolve.Slug.resolve(
 			account.$network,
-			context
+			{
+				...context,
+				pagination: {
+					limit: 2,
+					offset: 2,
+				},
+			}
 		)
 		expect(networkBlockListResolver.projections.Polkadot.$$blocks(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: account.$network,
-					blockNumber: 10n,
-					hash: '0xBLOCK_HASH',
+					blockNumber: 8n,
+					hash: '0xBLOCK_8',
 				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
 					$network: account.$network,
-					blockNumber: 9n,
-					hash: '0xPARENT_HASH',
+					blockNumber: 7n,
+					hash: '0xBLOCK_7',
 				},
 			},
 		])
 		expect(sourceFetch.mock.calls[0][1]).toBe('http://127.0.0.1:8080/blocks/head/header?finalized=true')
-		expect(sourceFetch.mock.calls[1][1]).toBe('http://127.0.0.1:8080/blocks?range=9-10')
+		expect(sourceFetch.mock.calls[1][1]).toBe('http://127.0.0.1:8080/blocks?range=7-8')
 	})
 })
 
