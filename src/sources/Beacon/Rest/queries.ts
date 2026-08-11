@@ -110,6 +110,8 @@ const beaconFetch = (
 	path: `/${string}`,
 	init?: RequestInit
 ) => {
+	if (!Number.isSafeInteger(chainId) || chainId < 1)
+		throw new Error(`Beacon_Rest: invalid chain ${String(chainId)}`)
 	const beaconRest = beaconRestByChainId.get(chainId)
 	if (beaconRest == null)
 		throw new Error(`Beacon_Rest: no binding for chain ${String(chainId)}`)

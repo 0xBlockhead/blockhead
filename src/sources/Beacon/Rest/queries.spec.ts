@@ -251,6 +251,10 @@ describe('Beacon REST native header wire', () => {
 })
 
 describe('Beacon REST native scalar clocks', () => {
+	it('rejects an invalid chain coordinate before transport', async () => {
+		await expect(getHeadSlot(1.5)).rejects.toThrow('Beacon_Rest: invalid chain 1.5')
+	})
+
 	it('preserves native node peer counts and timestamps only a valid response', async () => {
 		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_123)
 		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
