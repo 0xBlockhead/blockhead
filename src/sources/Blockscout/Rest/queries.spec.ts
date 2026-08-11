@@ -40,17 +40,21 @@ const gasPrices = {
 	fast: 1.61,
 }
 const userOperation = {
-	hash: '0x1234',
+	address: {
+		hash: hex('a', 40),
+	},
+	hash: hex('a', 64),
 	status: true,
+	transaction_hash: hex('a', 64),
 }
 const transaction = {
 	block_hash: hex('1', 64),
 	block_number: 12,
 	from: {
-		hash: hex('2', 40),
+		hash: hex('a', 40),
 	},
 	gas_limit: '21000',
-	hash: hex('3', 64),
+	hash: hex('A', 64),
 	nonce: 4,
 	raw_input: '0x',
 	to: {
@@ -74,7 +78,7 @@ const tokenTransfer = {
 		decimals: '6',
 		value: '1',
 	},
-	transaction_hash: hex('1', 64),
+	transaction_hash: hex('2', 64),
 } as const
 
 describe('Blockscout account-abstraction queries', () => {
@@ -365,7 +369,7 @@ describe('Blockscout account-abstraction queries', () => {
 		const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => jsonResponse({
 			items: [
 				tokenTransfer,
-				tokenTransfer,
+				{ ...tokenTransfer, log_index: 2 },
 			],
 		}))
 
@@ -397,11 +401,12 @@ describe('Blockscout account-abstraction queries', () => {
 					hex('2', 64),
 					null,
 				],
-				transaction_hash: hex('3', 64),
+				transaction_hash: hex('A', 64),
 			},
 			{
 				address_hash: hex('4', 40),
 				index: 6,
+				transaction_hash: hex('A', 64),
 			},
 		]
 		const fetchMock = vi.spyOn(globalThis, 'fetch')
@@ -627,5 +632,75 @@ describe('Blockscout account-abstraction queries', () => {
 			expect.stringContaining(`factory=${hex('d', 40)}`),
 			expect.any(Object)
 		)
+	})
+
+	it('rejects address transactions that do not involve the requested address', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			items: [{
+				...transaction,
+				from: { hash: hex('b', 40) },
+				to: { hash: hex('c', 40) },
+			}],
+		}))
+
+		await expect(getAddressTransactions({
+			chainId: 1,
+			address: hex('A', 40),
+			limit: 1,
+		})).rejects.toThrow('does not match the requested address')
+	})
+
+	it('rejects duplicate transaction identities in block and network lists', async () => {
+		const fetchMock = vi.spyOn(globalThis, 'fetch')
+			.mockResolvedValueOnce(jsonResponse({
+				items: [transaction, transaction],
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				items: [transaction, transaction],
+			}))
+
+		await expect(getBlockTransactions({
+			chainId: 1,
+			blockNumber: 12n,
+			limit: 2,
+		})).rejects.toThrow('duplicate identities')
+		await expect(getTransactions({
+			chainId: 1,
+			limit: 2,
+		})).rejects.toThrow('duplicate identities')
+		expect(fetchMock).toHaveBeenCalledTimes(2)
+	})
+
+	it('rejects transaction logs with a stale or duplicate cursor', async () => {
+		const logs = [
+			{
+				address_hash: hex('4', 40),
+				index: 5,
+				transaction_hash: hex('A', 64),
+			},
+		]
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			items: [logs[0]],
+			next_page_params: {
+				index: 5,
+			},
+		}))
+
+		await expect(getTransactionLogs({
+			chainId: 1,
+			txHash: hex('A', 64),
+		})).rejects.toThrow('cursor did not progress')
+	})
+
+	it('rejects user operations whose transaction hash does not match the filter', async () => {
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			items: [userOperation],
+		}))
+
+		await expect(getUserOperationsPage({
+			chainId: 1,
+			limit: 1,
+			transactionHash: hex('b', 64),
+		})).rejects.toThrow('does not match the requested transaction hash')
 	})
 })

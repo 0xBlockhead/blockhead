@@ -3,6 +3,7 @@
  * @see https://docs.blockscout.com/devs/apis/rest
  * @see https://docs.blockscout.com/devs/apis/rpc/eth-rpc
  */
+import { type as arktype } from 'arktype'
 import { throwIfHttpNotOk } from '$/lib/http.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import bindings from '$/sources/Blockscout/bindings.ts'
@@ -89,6 +90,8 @@ export const blockscoutAccountAbstractionChainIds = new Set(
 )
 
 const validatedBlockscoutTransactionWire = (wire: BlockscoutTransaction) => {
+	blockscoutTransactionHash(wire.hash, 'transaction')
+
 	for (const quantity of [
 		wire.gas_limit,
 		wire.gas_price,
@@ -111,9 +114,19 @@ const validatedBlockscoutTransactionWire = (wire: BlockscoutTransaction) => {
 			throw new Error('Blockscout_Rest: invalid authorization y_parity')
 	}
 
+	if (wire.block_number != null && (!Number.isSafeInteger(wire.block_number) || wire.block_number < 0))
+		throw new Error('Blockscout_Rest: invalid transaction block_number')
+	if (wire.position != null && (!Number.isSafeInteger(wire.position) || wire.position < 0))
+		throw new Error('Blockscout_Rest: invalid transaction position')
+
 	return wire
 }
 const validatedBlockscoutBlockWire = (wire: BlockscoutBlockDetails) => {
+	blockscoutTimestampMs(wire.timestamp, 'block')
+
+	if (!Number.isSafeInteger(wire.height) || wire.height < 0)
+		throw new Error('Blockscout_Rest: invalid block height')
+
 	for (const quantity of [
 		wire.gas_used,
 		wire.gas_limit,
@@ -134,6 +147,7 @@ const validatedBlockscoutTokenBalanceWire = (wire: BlockscoutTokenBalance) => {
 		const address = hexLowerOfByteSize(wire.token.address_hash, 20)
 		if (address == null)
 			throw new Error('Blockscout_Rest: invalid token balance token address')
+		wire.token.address_hash = address
 	}
 	return wire
 }
@@ -153,6 +167,34 @@ const assertBlockscoutEnvelope = (
 	} catch {
 		throw new Error(`Blockscout_Rest: invalid ${label} response envelope`)
 	}
+}
+
+const blockscoutTimestampMs = (timestamp: string, label: string) => {
+	const ms = Date.parse(timestamp)
+	if (!Number.isFinite(ms) || ms < 0)
+		throw new Error(`Blockscout_Rest: invalid ${label} timestamp`)
+
+	return ms
+}
+
+const blockscoutPageEnvelope = arktype({
+	items: 'unknown[]',
+})
+
+const blockscoutAddressHash = (value: string, label: string) => {
+	const normalized = hexLowerOfByteSize(value, 20)
+	if (normalized == null)
+		throw new Error(`Blockscout_Rest: invalid ${label} address`)
+
+	return normalized
+}
+
+const blockscoutTransactionHash = (value: string, label: string) => {
+	const normalized = hexLowerOfByteSize(value, 32)
+	if (normalized == null)
+		throw new Error(`Blockscout_Rest: invalid ${label} transaction hash`)
+
+	return normalized
 }
 
 /**
@@ -182,6 +224,9 @@ export const getBlockByNumber = async ({ chainId, blockNumber }: {
 		path: `/blocks/${blockNumber}`,
 	})
 	assertBlockscoutEnvelope(blockscoutBlockDetailEnvelope, block, 'block detail')
+	if (String(block.height) !== blockNumber.toString())
+		throw new Error('Blockscout_Rest: block response does not match the requested block number')
+
 	return validatedBlockscoutBlockWire(block)
 }
 
@@ -200,7 +245,26 @@ export const getBlocks = async ({ chainId, limit }: {
 		},
 	})
 	assertBlockscoutEnvelope(blockscoutBlocksPageEnvelope, wire, 'blocks')
-	return wire.items
+
+	const seenHeights = new Set<number>()
+	let previousHeight: number | undefined
+	return wire.items.map((block) => {
+		blockscoutTimestampMs(block.timestamp, 'block list item')
+
+		if (!Number.isSafeInteger(block.height) || block.height < 0)
+			throw new Error('Blockscout_Rest: invalid blocks list item height')
+
+		if (previousHeight != null && block.height >= previousHeight)
+			throw new Error('Blockscout_Rest: blocks are not in descending height order')
+
+		previousHeight = block.height
+
+		if (seenHeights.has(block.height))
+			throw new Error('Blockscout_Rest: blocks contain duplicate identities')
+
+		seenHeights.add(block.height)
+		return block
+	})
 }
 
 export const getBlockTransactions = async ({ chainId, blockNumber, limit }: {
@@ -219,7 +283,19 @@ export const getBlockTransactions = async ({ chainId, blockNumber, limit }: {
 		},
 	})
 	assertBlockscoutEnvelope(blockscoutTransactionsPageEnvelope, wire, 'block transactions')
-	return wire.items.map(validatedBlockscoutTransactionWire)
+
+	const seen = new Set<`0x${string}`>()
+	return wire.items.map((transaction) => {
+		if (transaction.block_number == null || String(transaction.block_number) !== blockNumber.toString())
+			throw new Error('Blockscout_Rest: block transaction block_number does not match the requested block')
+
+		const hash = blockscoutTransactionHash(transaction.hash, 'block transaction')
+		if (seen.has(hash))
+			throw new Error('Blockscout_Rest: block transactions contain duplicate identities')
+
+		seen.add(hash)
+		return validatedBlockscoutTransactionWire(transaction)
+	})
 }
 
 export const getTransactionByHash = async ({ chainId, txHash }: {
@@ -235,6 +311,11 @@ export const getTransactionByHash = async ({ chainId, txHash }: {
 		path: `/transactions/${normalized}`,
 	})
 	assertBlockscoutEnvelope(blockscoutTransactionEnvelope, wire, 'transaction detail')
+
+	const returnedHash = blockscoutTransactionHash(wire.hash, 'transaction detail')
+	if (returnedHash !== normalized)
+		throw new Error('Blockscout_Rest: transaction response does not match the requested hash')
+
 	return validatedBlockscoutTransactionWire(wire)
 }
 
@@ -253,7 +334,16 @@ export const getTransactions = async ({ chainId, limit }: {
 		},
 	})
 	assertBlockscoutEnvelope(blockscoutTransactionsPageEnvelope, wire, 'transactions')
-	return wire.items.map(validatedBlockscoutTransactionWire)
+
+	const seen = new Set<`0x${string}`>()
+	return wire.items.map((transaction) => {
+		const hash = blockscoutTransactionHash(transaction.hash, 'network transaction')
+		if (seen.has(hash))
+			throw new Error('Blockscout_Rest: transactions contain duplicate identities')
+
+		seen.add(hash)
+		return validatedBlockscoutTransactionWire(transaction)
+	})
 }
 
 export const getAddressTransactions = async ({ chainId, address, limit }: {
@@ -280,7 +370,21 @@ export const getAddressTransactions = async ({ chainId, address, limit }: {
 	await throwIfHttpNotOk(response, response.url)
 	const wire = await response.json<BlockscoutAddressTransactionsPage>()
 	assertBlockscoutEnvelope(blockscoutTransactionsPageEnvelope, wire, 'address transactions')
-	return wire.items.map(validatedBlockscoutTransactionWire)
+
+	const seen = new Set<`0x${string}`>()
+	return wire.items.map((transaction) => {
+		const from = hexLowerOfByteSize(transaction.from.hash, 20) ?? ''
+		const to = hexLowerOfByteSize(transaction.to.hash, 20) ?? ''
+		if (from !== normalized && to !== normalized)
+			throw new Error('Blockscout_Rest: address transaction does not match the requested address')
+
+		const hash = blockscoutTransactionHash(transaction.hash, 'address transaction')
+		if (seen.has(hash))
+			throw new Error('Blockscout_Rest: address transactions contain duplicate identities')
+
+		seen.add(hash)
+		return validatedBlockscoutTransactionWire(transaction)
+	})
 }
 
 export const getAddressDetails = ({ chainId, address }: {
@@ -335,7 +439,22 @@ export const getAddressTokenTransfers = async ({ chainId, address, limit }: {
 	await throwIfHttpNotOk(response, response.url)
 	const wire = await response.json<BlockscoutAddressTokenTransfersPage>()
 	assertBlockscoutEnvelope(blockscoutTokenTransfersPageEnvelope, wire, 'address token transfers')
-	return wire.items
+
+	const seen = new Set<string>()
+	return wire.items.map((tokenTransfer) => {
+		const from = hexLowerOfByteSize(tokenTransfer.from.hash, 20) ?? ''
+		const to = hexLowerOfByteSize(tokenTransfer.to.hash, 20) ?? ''
+		if (from !== normalized && to !== normalized)
+			throw new Error('Blockscout_Rest: address token transfer does not match the requested address')
+
+		const transactionHash = blockscoutTransactionHash(tokenTransfer.transaction_hash, 'address token transfer')
+		const identity = `${transactionHash}:${String(tokenTransfer.log_index)}`
+		if (seen.has(identity))
+			throw new Error('Blockscout_Rest: address token transfers contain duplicate identities')
+
+		seen.add(identity)
+		return tokenTransfer
+	})
 }
 
 /**
@@ -359,7 +478,19 @@ export const getAddressTokenBalances = async ({ chainId, address }: {
 	await throwIfHttpNotOk(response, response.url)
 	const wire = await response.json<BlockscoutAddressTokenBalances>()
 	assertBlockscoutEnvelope(blockscoutTokenBalancesEnvelope, wire, 'address token balances')
-	return wire.map(validatedBlockscoutTokenBalanceWire)
+
+	const seen = new Set<string>()
+	return wire.map((item) => {
+		const balance = validatedBlockscoutTokenBalanceWire(item)
+		const tokenAddress = balance.token?.address_hash ?? ''
+		const tokenId = balance.token_id ?? ''
+		const identity = `${tokenAddress}:${tokenId}`
+		if (seen.has(identity))
+			throw new Error('Blockscout_Rest: address token balances contain duplicate identities')
+
+		seen.add(identity)
+		return balance
+	})
 }
 
 /**
@@ -386,6 +517,8 @@ export const getAddressCoinBalanceHistory = async ({ chainId, address, limit }: 
 		},
 	})
 	assertBlockscoutEnvelope(blockscoutCoinBalanceHistoryPageEnvelope, wire, 'address coin balance history')
+
+	const seen = new Set<number>()
 	return wire.items.slice(0, limit).map((item) => {
 		BigInt(item.value)
 		if (item.delta != null && item.delta !== '')
@@ -395,6 +528,10 @@ export const getAddressCoinBalanceHistory = async ({ chainId, address, limit }: 
 		const timestampMs = Date.parse(item.block_timestamp)
 		if (!Number.isFinite(timestampMs) || timestampMs < 0)
 			throw new Error('Blockscout_Rest: invalid coin balance history block_timestamp')
+		if (seen.has(item.block_number))
+			throw new Error('Blockscout_Rest: address coin balance history contains duplicate identities')
+
+		seen.add(item.block_number)
 		return item
 	})
 }
@@ -436,7 +573,19 @@ export const getAddressTokens = async ({
 	await throwIfHttpNotOk(response, response.url)
 	const wire = await response.json<BlockscoutAddressTokensPage>()
 	assertBlockscoutEnvelope(blockscoutAddressTokensPageEnvelope, wire, 'address tokens')
-	return wire.items.slice(0, limit).map(validatedBlockscoutTokenBalanceWire)
+
+	const seen = new Set<string>()
+	return wire.items.slice(0, limit).map((item) => {
+		const balance = validatedBlockscoutTokenBalanceWire(item)
+		const tokenAddress = balance.token?.address_hash ?? ''
+		const tokenId = balance.token_id ?? ''
+		const identity = `${tokenAddress}:${tokenId}`
+		if (seen.has(identity))
+			throw new Error('Blockscout_Rest: address tokens contain duplicate identities')
+
+		seen.add(identity)
+		return balance
+	})
 }
 
 export const getTokenTransfers = async ({ chainId, limit }: {
@@ -454,7 +603,17 @@ export const getTokenTransfers = async ({ chainId, limit }: {
 		},
 	})
 	assertBlockscoutEnvelope(blockscoutTokenTransfersPageEnvelope, wire, 'token transfers')
-	return wire.items
+
+	const seen = new Set<string>()
+	return wire.items.map((tokenTransfer) => {
+		const transactionHash = blockscoutTransactionHash(tokenTransfer.transaction_hash, 'token transfer')
+		const identity = `${transactionHash}:${String(tokenTransfer.log_index)}`
+		if (seen.has(identity))
+			throw new Error('Blockscout_Rest: token transfers contain duplicate identities')
+
+		seen.add(identity)
+		return tokenTransfer
+	})
 }
 
 export const getTransactionTokenTransfers = async ({ chainId, txHash, limit }: {
@@ -474,7 +633,18 @@ export const getTransactionTokenTransfers = async ({ chainId, txHash, limit }: {
 		path: `/transactions/${normalized}/token-transfers`,
 	})
 	assertBlockscoutEnvelope(blockscoutTokenTransfersPageEnvelope, wire, 'transaction token transfers')
-	return wire.items.slice(0, limit)
+
+	const seen = new Set<number>()
+	return wire.items.slice(0, limit).map((tokenTransfer) => {
+		const transactionHash = blockscoutTransactionHash(tokenTransfer.transaction_hash, 'transaction token transfer')
+		if (transactionHash !== normalized)
+			throw new Error('Blockscout_Rest: transaction token transfer does not match the requested transaction hash')
+		if (seen.has(tokenTransfer.log_index))
+			throw new Error('Blockscout_Rest: transaction token transfers contain duplicate identities')
+
+		seen.add(tokenTransfer.log_index)
+		return tokenTransfer
+	})
 }
 
 export const getTransactionInternalTransactions = async ({ chainId, txHash, limit }: {
@@ -496,8 +666,21 @@ export const getTransactionInternalTransactions = async ({ chainId, txHash, limi
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
+	assertBlockscoutEnvelope(blockscoutPageEnvelope, wire, 'transaction internal transactions')
 
-	return wire.items
+	const seen = new Set<number>()
+	return wire.items.map((internalTransaction) => {
+		const transactionHash = blockscoutTransactionHash(internalTransaction.transaction_hash, 'transaction internal transaction')
+		if (transactionHash !== normalized)
+			throw new Error('Blockscout_Rest: transaction internal transaction does not match the requested transaction hash')
+		if (!Number.isSafeInteger(internalTransaction.index) || internalTransaction.index < 0)
+			throw new Error('Blockscout_Rest: invalid transaction internal transaction index')
+		if (seen.has(internalTransaction.index))
+			throw new Error('Blockscout_Rest: transaction internal transactions contain duplicate identities')
+
+		seen.add(internalTransaction.index)
+		return internalTransaction
+	}).slice(0, limit)
 }
 
 export const getAddressInternalTransactions = async ({ chainId, address, limit }: {
@@ -523,7 +706,25 @@ export const getAddressInternalTransactions = async ({ chainId, address, limit }
 		return []
 	await throwIfHttpNotOk(response, response.url)
 
-	return (await response.json<BlockscoutAddressInternalTransactionsPage>()).items
+	const wire = await response.json<BlockscoutAddressInternalTransactionsPage>()
+	assertBlockscoutEnvelope(blockscoutPageEnvelope, wire, 'address internal transactions')
+
+	const seen = new Set<string>()
+	return wire.items.map((internalTransaction) => {
+		const from = hexLowerOfByteSize(internalTransaction.from.hash, 20) ?? ''
+		const to = internalTransaction.to != null ? (hexLowerOfByteSize(internalTransaction.to.hash, 20) ?? '') : ''
+		const createdContract = internalTransaction.created_contract != null ? (hexLowerOfByteSize(internalTransaction.created_contract.hash, 20) ?? '') : ''
+		if (from !== normalized && to !== normalized && createdContract !== normalized)
+			throw new Error('Blockscout_Rest: address internal transaction does not match the requested address')
+
+		const transactionHash = blockscoutTransactionHash(internalTransaction.transaction_hash, 'address internal transaction')
+		const identity = `${transactionHash}:${String(internalTransaction.index)}`
+		if (seen.has(identity))
+			throw new Error('Blockscout_Rest: address internal transactions contain duplicate identities')
+
+		seen.add(identity)
+		return internalTransaction
+	}).slice(0, limit)
 }
 
 export const getTransactionLogs = async ({ chainId, txHash }: {
@@ -535,6 +736,8 @@ export const getTransactionLogs = async ({ chainId, txHash }: {
 		return []
 
 	const logs: BlockscoutTransactionLogsPage['items'] = []
+	const seenLogIndices = new Set<number>()
+	let maxLogIndex = -1
 	let nextPageParams: NonNullable<BlockscoutTransactionLogsPage['next_page_params']> | undefined
 	do {
 		const wire = await getBlockscoutJson<BlockscoutTransactionLogsPage>({
@@ -542,7 +745,24 @@ export const getTransactionLogs = async ({ chainId, txHash }: {
 			path: `/transactions/${normalized}/logs`,
 			searchParams: nextPageParams,
 		})
-		logs.push(...wire.items)
+		assertBlockscoutEnvelope(blockscoutPageEnvelope, wire, 'transaction logs')
+		for (const log of wire.items) {
+			const transactionHash = blockscoutTransactionHash(log.transaction_hash, 'transaction log')
+			if (transactionHash !== normalized)
+				throw new Error('Blockscout_Rest: transaction log does not match the requested transaction hash')
+			if (!Number.isSafeInteger(log.index) || log.index < 0)
+				throw new Error('Blockscout_Rest: invalid transaction log index')
+			if (seenLogIndices.has(log.index))
+				throw new Error('Blockscout_Rest: transaction logs contain duplicate identities')
+
+			seenLogIndices.add(log.index)
+			if (log.index > maxLogIndex)
+				maxLogIndex = log.index
+			logs.push(log)
+		}
+		if (wire.next_page_params?.index != null && wire.next_page_params.index <= maxLogIndex)
+			throw new Error('Blockscout_Rest: transaction logs pagination cursor did not progress')
+
 		nextPageParams = wire.next_page_params ?? undefined
 	} while (nextPageParams != null)
 
@@ -572,8 +792,17 @@ export const getSmartContracts = async ({ chainId, limit }: {
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
+	assertBlockscoutEnvelope(blockscoutPageEnvelope, wire, 'smart contracts')
 
-	return wire.items
+	const seen = new Set<`0x${string}`>()
+	return wire.items.map((smartContract) => {
+		const address = blockscoutAddressHash(smartContract.address.hash, 'smart contract')
+		if (seen.has(address))
+			throw new Error('Blockscout_Rest: smart contracts contain duplicate identities')
+
+		seen.add(address)
+		return smartContract
+	})
 }
 
 export const getSmartContract = ({
@@ -657,32 +886,46 @@ export const getUserOperationsPage = async ({
 	if (limit <= 0)
 		return []
 
-	return (await getBlockscoutJson<BlockscoutUserOperationsPage>({
+	const requestedTransactionHash = transactionHash != null ? blockscoutErc4337PathHash(
+		transactionHash,
+		32,
+		'Blockscout user operations by transaction'
+	) : undefined
+	const requestedSender = sender != null ? blockscoutAddressHash(sender, 'Blockscout user operations by sender') : undefined
+
+	const wire = await getBlockscoutJson<BlockscoutUserOperationsPage>({
 		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: '/proxy/account-abstraction/operations',
 		searchParams: {
 			page_size: blockscoutItemsCount(limit),
-			...(transactionHash != null && {
-				transaction_hash: blockscoutErc4337PathHash(
-					transactionHash,
-					32,
-					'Blockscout user operations by transaction'
-				),
-			}),
-			...(sender != null && {
-				sender: blockscoutErc4337PathHash(sender, 20, 'Blockscout user operations by sender'),
-			}),
-			...(bundler != null && {
-				bundler: blockscoutErc4337PathHash(bundler, 20, 'Blockscout user operations by bundler'),
-			}),
-			...(paymaster != null && {
-				paymaster: blockscoutErc4337PathHash(paymaster, 20, 'Blockscout user operations by paymaster'),
-			}),
-			...(factory != null && {
-				factory: blockscoutErc4337PathHash(factory, 20, 'Blockscout user operations by factory'),
-			}),
+			...(transactionHash != null && { transaction_hash: requestedTransactionHash }),
+			...(sender != null && { sender: requestedSender }),
+			...(bundler != null && { bundler: blockscoutErc4337PathHash(bundler, 20, 'Blockscout user operations by bundler') }),
+			...(paymaster != null && { paymaster: blockscoutErc4337PathHash(paymaster, 20, 'Blockscout user operations by paymaster') }),
+			...(factory != null && { factory: blockscoutErc4337PathHash(factory, 20, 'Blockscout user operations by factory') }),
 		},
-	})).items
+	})
+	assertBlockscoutEnvelope(blockscoutPageEnvelope, wire, 'user operations')
+
+	const seen = new Set<`0x${string}`>()
+	return wire.items.slice(0, limit).map((item) => {
+		const hash = blockscoutTransactionHash(item.hash, 'user operation')
+		if (seen.has(hash))
+			throw new Error('Blockscout_Rest: user operations contain duplicate identities')
+
+		seen.add(hash)
+		if (requestedTransactionHash != null) {
+			const itemTransactionHash = blockscoutTransactionHash(item.transaction_hash, 'user operation transaction')
+			if (itemTransactionHash !== requestedTransactionHash)
+				throw new Error('Blockscout_Rest: user operation does not match the requested transaction hash')
+		}
+		if (requestedSender != null) {
+			const itemSender = blockscoutAddressHash(item.address.hash, 'user operation sender')
+			if (itemSender !== requestedSender)
+				throw new Error('Blockscout_Rest: user operation does not match the requested sender')
+		}
+		return item
+	})
 }
 
 export const getUserOperationDetail = ({
@@ -724,7 +967,7 @@ export const getErc4337SmartAccountList = async ({
 	if (limit <= 0)
 		return []
 
-	return (await getBlockscoutJson<BlockscoutErc4337AccountsPage>({
+	const wire = await getBlockscoutJson<BlockscoutErc4337AccountsPage>({
 		binding: requireBlockscoutBinding(chainId, ApiFamily.BlockscoutRestV2),
 		path: erc4337RegistryPath.smartAccount,
 		searchParams: {
@@ -733,7 +976,18 @@ export const getErc4337SmartAccountList = async ({
 				factory: blockscoutErc4337PathHash(factory, 20, 'Blockscout ERC-4337 accounts by factory'),
 			}),
 		},
-	})).items
+	})
+	assertBlockscoutEnvelope(blockscoutPageEnvelope, wire, 'ERC-4337 accounts')
+
+	const seen = new Set<`0x${string}`>()
+	return wire.items.slice(0, limit).map((item) => {
+		const address = blockscoutAddressHash(item.address.hash, 'ERC-4337 account')
+		if (seen.has(address))
+			throw new Error('Blockscout_Rest: ERC-4337 accounts contain duplicate identities')
+
+		seen.add(address)
+		return item
+	})
 }
 
 export const getErc4337SmartAccountDetail = ({
