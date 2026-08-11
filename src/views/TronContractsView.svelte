@@ -26,7 +26,18 @@
 	{...EntitiesListProps}
 	entityType={EntityType.TronContract}
 	bind:open
-	resource={selection()}
+	resource={
+		selection({
+			...{
+				fields: {
+					name: true,
+					$account: true,
+					address: true,
+					$network: true,
+				},
+			},
+		})
+	}
 >
 	{#snippet Item({ item: tronContract })}
 		{@const tronContractSelector = tronContract[EntityMetaKey.Selector]}
@@ -48,6 +59,18 @@
 					}
 				)
 			}
-		/>
+		>
+			{#snippet Title()}
+				{(tronContract.name ?? '') || tronContractSelector.address || 'tron contract'}
+			{/snippet}
+
+			{#snippet Value()}
+				{tronContract.$account == null ? '' : tronContract.$account.address || 'tron account'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{tronContract.$network.name || (tronContract.$network.caip2 == null ? '' : `${tronContract.$network.caip2.namespace}:${tronContract.$network.caip2.reference}`) || 'Network'}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

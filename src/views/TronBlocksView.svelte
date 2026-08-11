@@ -26,7 +26,17 @@
 	{...EntitiesListProps}
 	entityType={EntityType.TronBlock}
 	bind:open
-	resource={selection()}
+	resource={
+		selection({
+			...{
+				fields: {
+					height: true,
+					hash: true,
+					timestampMs: true,
+				},
+			},
+		})
+	}
 >
 	{#snippet Item({ item: tronBlock })}
 		{@const tronBlockSelector = tronBlock[EntityMetaKey.Selector]}
@@ -63,6 +73,18 @@
 						}
 					)
 			}
-		/>
+		>
+			{#snippet Title()}
+				{tronBlockSelector.height}
+			{/snippet}
+
+			{#snippet Value()}
+				{tronBlock.hash}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{tronBlock.timestampMs ?? ''}</span>
+			{/snippet}
+		</EntityView>
 	{/snippet}
 </EntitiesList>

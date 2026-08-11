@@ -63564,6 +63564,27 @@ export const schema = {
 					"NetworkHeightHash": ["$network", "height", "hash"],
 				},
 				views: {
+					singular: {
+						query: {
+							sources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest, Source.TronScan_Rest],
+						},
+						summary: {
+							title: [{ field: "height", format: "number" }],
+							value: [{ field: "hash", format: "truncated" }],
+							HeadingAfter: [{ field: "timestampMs", format: "timestamp" }],
+						},
+						content: {
+							dl: [
+								["$network", { field: "height", format: "number" }, { field: "hash", format: "truncated" }, "$parent", { field: "parentHash", format: "truncated" }],
+								[{ field: "timestampMs", format: "timestamp" }, "$witness", { field: "txTrieRoot", format: "truncated" }, "version", "transactionCount"],
+							],
+						},
+						carousels: [
+							{ id: "tron-block-transactions", label: "Transactions", sections: [
+								{ id: "tron-block-transaction-list", field: "$$transactions", List: "TronTransactionsView", label: "Transactions", emptyText: "No transactions." },
+							] },
+						],
+					},
 					plural: { component: "TronBlocksView", },
 				},
 			}),
@@ -63588,6 +63609,31 @@ export const schema = {
 					"NetworkAddress": ["$network", "address"],
 				},
 				views: {
+					singular: {
+						query: {
+							sources: [Source.TronScan_Rest],
+						},
+						summary: {
+							title: ["name"],
+							titleFallback: [{ field: "address", format: "truncated" }],
+							value: ["$account"],
+							HeadingAfter: ["$network"],
+						},
+						content: {
+							dl: [
+								["$network", { field: "address", format: "truncated" }, "$account", "name"],
+								["$creator", "$creationTransaction"],
+							],
+						},
+						carousels: [
+							{ id: "tron-contract-related", label: "Related", sections: [
+								{ id: "tron-contract-tokens", field: "$$tokens", List: "TronTokensView", label: "Tokens", emptyText: "No tokens." },
+							] },
+							{ id: "tron-contract-observations", label: "Observations", sections: [
+								{ id: "tron-contract-timestamps", field: "$$timestamps", List: "TronContract_TimestampsView", label: "Observations", emptyText: "No observations." },
+							] },
+						],
+					},
 					plural: { component: "TronContractsView", },
 				},
 			}),

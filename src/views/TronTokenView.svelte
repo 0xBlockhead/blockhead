@@ -130,6 +130,7 @@
 							<dd>
 								<TronContractView
 									selection={select(EntityType.TronContract, (tronContract ?? tronContractInitial)[EntityMetaKey.Selector])}
+									prefetched={tronContract ?? tronContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

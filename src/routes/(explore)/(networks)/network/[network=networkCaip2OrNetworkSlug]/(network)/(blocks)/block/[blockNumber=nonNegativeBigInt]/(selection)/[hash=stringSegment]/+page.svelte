@@ -54,7 +54,7 @@
 			data.entityType === EntityType.NearBlock ?
 				(String(data.selector.height) || 'near block') + ' • near block • Blockhead'
 			:
-				('tron block') + ' • tron block • Blockhead'
+				(String(data.selector.height) || 'tron block') + ' • tron block • Blockhead'
 		)
 	}</title>
 </svelte:head>
@@ -94,7 +94,14 @@
 					],
 				})
 			:
-				select(EntityType.TronBlock, data.selector)
+				select(EntityType.TronBlock, data.selector, {
+					sources: [
+						Source.TronGrid_Rest,
+						Source.TronFullNode_Rest,
+						Source.TronSolidityNode_Rest,
+						Source.TronScan_Rest,
+					],
+				})
 		}
 	/>
 </Page>

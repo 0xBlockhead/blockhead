@@ -7,7 +7,9 @@
 	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -17,6 +19,7 @@
 	// State
 	let {
 		selection,
+		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -24,21 +27,42 @@
 	}: Omit<EntitySelectionViewProps<EntityType.TronBlock>, 'prefetched'> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
+	const viewSelection = $derived(selection({
+		sources: selection.sources ?? [
+			Source.TronGrid_Rest,
+			Source.TronFullNode_Rest,
+			Source.TronSolidityNode_Rest,
+			Source.TronScan_Rest,
+		],
+	}))
+	const tronBlock = $derived(viewSelection({
+		fields: {
+			hash: true,
+			timestampMs: true,
+		},
+	}))
+	const viewDomId = $derived('tron-block-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import TronBlockView from '$/views/TronBlockView.svelte'
 	import TronWitnessView from '$/views/TronWitnessView.svelte'
+	import TronTransactionsView from '$/views/TronTransactionsView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.TronBlock}
 	entitySelector={selection.entitySelector}
+	id={viewDomId}
+	title={title ?? String(selection.entitySelector.height)}
 	href={
 		href === undefined ?
 			(
@@ -77,6 +101,33 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Title()}
+		<NumberValue
+			value={selection.entitySelector.height}
+		/>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={tronBlock}>
+			{#snippet children(entity)}
+				<TruncatedValue value={entity.hash} />
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary resource={tronBlock}>
+			{#snippet children(entity)}
+				{@const timestampMs = entity.timestampMs}
+				{#if timestampMs != null}
+					<span data-text="muted">
+						<Timestamp timestamp={timestampMs} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -92,7 +143,9 @@
 			<div>
 				<dt>Height</dt>
 				<dd>
-					{selection.entitySelector.height}
+					<NumberValue
+						value={selection.entitySelector.height}
+					/>
 				</dd>
 			</div>
 
@@ -100,13 +153,7 @@
 				<dt>Hash</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									hash: true,
-								},
-							})
-						}
+						resource={tronBlock}
 					>
 						{#snippet children(entity)}
 							<TruncatedValue value={entity.hash} />
@@ -136,7 +183,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							parentHash: true,
 						},
@@ -155,15 +202,11 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							timestampMs: true,
-						},
-					})
-				}
+				resource={tronBlock}
 			>
 				{#snippet children(entity)}
 					{@const timestampMs = entity.timestampMs}
@@ -199,7 +242,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							txTrieRoot: true,
 						},
@@ -212,7 +255,7 @@
 						<div>
 							<dt>Transaction trie root</dt>
 							<dd>
-								{txTrieRoot}
+								<TruncatedValue value={txTrieRoot} />
 							</dd>
 						</div>
 					{/if}
@@ -221,7 +264,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							version: true,
 						},
@@ -243,7 +286,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection({
+					viewSelection({
 						fields: {
 							transactionCount: true,
 						},
@@ -263,5 +306,38 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-tron-block-transactions'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'tron-block-transaction-list',
+						label: 'Transactions',
+					},
+				]
+			}
+			data-card
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Transactions</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionTronBlockTransactionList({ id, label })}
+				<TronTransactionsView
+					selection={selection.$$transactions}
+					collapsible={false}
+					title={label}
+					emptyText='No transactions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

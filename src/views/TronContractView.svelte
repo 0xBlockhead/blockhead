@@ -7,7 +7,9 @@
 	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { stringify } from 'devalue'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -17,27 +19,45 @@
 	// State
 	let {
 		selection,
+		prefetched = {},
+		title,
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
-	}: Omit<EntitySelectionViewProps<EntityType.TronContract>, 'prefetched'> = $props()
+	}: EntitySelectionViewProps<EntityType.TronContract> = $props()
 
 	const network = $derived(selection.entitySelector.$network)
+	const tronContract = $derived(selection({
+		sources: selection.sources ?? [
+			Source.TronScan_Rest,
+		],
+		fields: {
+			name: true,
+		},
+	}))
+	const titleFallback = $derived((prefetched.name ?? '') || selection.entitySelector.address || 'tron contract')
+	const viewDomId = $derived('tron-contract-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import TronAccountView from '$/views/TronAccountView.svelte'
 	import TronTransactionView from '$/views/TronTransactionView.svelte'
+	import TronTokensView from '$/views/TronTokensView.svelte'
+	import TronContract_TimestampsView from '$/views/TronContract_TimestampsView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.TronContract}
 	entitySelector={selection.entitySelector}
+	id={viewDomId}
+	title={title ?? titleFallback}
 	href={
 		href === undefined ?
 			resolve(
@@ -59,6 +79,40 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Title()}
+		<ResourceBoundary resource={tronContract}>
+			{#snippet children(entity)}
+				{(entity.name ?? '') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={selection.$account}
+		>
+			{#snippet children(tronAccount)}
+				{#if tronAccount != null}
+					{@const tronAccountInitial = untrack(() => tronAccount)}
+					<TronAccountView
+						selection={select(EntityType.TronAccount, (tronAccount ?? tronAccountInitial)[EntityMetaKey.Selector])}
+						href={null}
+						layout={EntityLayout.Value}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<span data-text="muted">
+			<NetworkView
+				selection={select(EntityType.Network, selection.entitySelector.$network)}
+				layout={EntityLayout.Title}
+			/>
+		</span>
+	{/snippet}
+
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -98,13 +152,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							name: true,
-						},
-					})
-				}
+				resource={tronContract}
 			>
 				{#snippet children(entity)}
 					{@const name = entity.name}
@@ -118,7 +166,9 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={selection.$creator}
 			>
@@ -157,5 +207,69 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-tron-contract-related'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'tron-contract-tokens',
+						label: 'Tokens',
+					},
+				]
+			}
+			data-card
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Related</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionTronContractTokens({ id, label })}
+				<TronTokensView
+					selection={selection.$$tokens}
+					collapsible={false}
+					title={label}
+					emptyText='No tokens.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-tron-contract-observations'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'tron-contract-timestamps',
+						label: 'Observations',
+					},
+				]
+			}
+			data-card
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Observations</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionTronContractTimestamps({ id, label })}
+				<TronContract_TimestampsView
+					selection={selection.$$timestamps}
+					collapsible={false}
+					title={label}
+					emptyText='No observations.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

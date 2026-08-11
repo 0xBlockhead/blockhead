@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { LayoutProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -41,7 +42,13 @@
 >
 	{#snippet Summary()}
 		<TronContractView
-			selection={select(EntityType.TronContract, data.selector)}
+			selection={
+				select(EntityType.TronContract, data.selector, {
+					sources: [
+						Source.TronScan_Rest,
+					],
+				})
+			}
 			href={detailHref}
 			layout={EntityLayout.SummaryInline}
 		/>
