@@ -149,19 +149,23 @@ const evmBlockProjections = {
 
 const tipBlockReferences = async (
 	$network: EntitySelector<typeof schema, EntityType.Network>,
-	limit: number
+	limit: number,
+	offset: number
 ) => {
 	assertEthereumMainnet($network)
 	const tip = await getBlockNumber()
 	return Array.from({
 		length: Math.min(
-			Number(tip + 1n),
+			Math.max(
+				Number(tip + 1n - BigInt(offset)),
+				0
+			),
 			Math.max(1, limit)
 		),
 	}, (_value, blockOffset) => ({
 		[EntityMetaKey.Selector]: {
 			$network,
-			blockNumber: tip - BigInt(blockOffset),
+			blockNumber: tip - BigInt(offset + blockOffset),
 		},
 	} satisfies Entity<typeof schema, EntityType.EvmBlock>))
 }
@@ -173,7 +177,8 @@ const networkTipResolvers = {
 			context: Parameters<typeof resolverContextRowLimit>[0]
 		) => tipBlockReferences(
 			network,
-			resolverContextRowLimit(context)
+			resolverContextRowLimit(context),
+			context.pagination.offset ?? 0
 		),
 	},
 	Slug: {
@@ -182,7 +187,8 @@ const networkTipResolvers = {
 			context: Parameters<typeof resolverContextRowLimit>[0]
 		) => tipBlockReferences(
 			network,
-			resolverContextRowLimit(context)
+			resolverContextRowLimit(context),
+			context.pagination.offset ?? 0
 		),
 	},
 } as const

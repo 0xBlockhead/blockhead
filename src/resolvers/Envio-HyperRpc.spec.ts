@@ -368,24 +368,30 @@ describe('Envio HyperRPC resolver', () => {
 
 	it('projects Network.Evm tip $$blocks / resolveCount / $$timestamps from eth_blockNumber', async () => {
 		jsonRpc2.mockResolvedValueOnce('0x122a134')
-		const blocks = await resolverFor(EntityType.Network).resolve.Caip2.resolve(network, context)
+		const blocks = await resolverFor(EntityType.Network).resolve.Caip2.resolve(network, {
+			...context,
+			pagination: {
+				limit: 3,
+				offset: 2,
+			},
+		})
 		expect(blocks).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					blockNumber: 19_046_708n,
-				},
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					blockNumber: 19_046_707n,
-				},
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: network,
 					blockNumber: 19_046_706n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 19_046_705n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					blockNumber: 19_046_704n,
 				},
 			},
 		])
