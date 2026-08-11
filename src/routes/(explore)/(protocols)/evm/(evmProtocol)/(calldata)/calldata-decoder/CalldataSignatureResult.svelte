@@ -76,6 +76,18 @@
 		{#if selectedSignature == null}
 			<p data-text="muted">No catalog signatures matched this {kind === CalldataSignatureKind.Function ? 'function selector' : 'event topic'}.</p>
 		{:else}
+			{@const decodedJson = decoded == null ? null : `${JSON.stringify({
+				artifactVersion: 1,
+				kind: kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data',
+				input: hex,
+				signature: selectedSignature,
+				name: decoded.name,
+				params: decoded.params.map((param, index) => ({
+					index,
+					type: param.type,
+					value: formatDecodedParamValue(param.type, param.value),
+				})),
+			}, null, '\t')}\n`}
 			<dl data-definition-list="vertical">
 				<div>
 					<dt>Signature</dt>
@@ -95,7 +107,7 @@
 					</dd>
 				</div>
 
-				{#if decoded}
+				{#if decoded != null}
 					<div>
 						<dt>Arguments</dt>
 						<dd>
@@ -125,6 +137,15 @@
 					</div>
 				{/if}
 			</dl>
+
+			{#if decodedJson != null}
+				<a
+					href={`data:application/json;charset=utf-8,${encodeURIComponent(decodedJson)}`}
+					download={`evm-${kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data'}-decoded.json`}
+				>
+					Download decoded JSON
+				</a>
+			{/if}
 		{/if}
 	{/snippet}
 

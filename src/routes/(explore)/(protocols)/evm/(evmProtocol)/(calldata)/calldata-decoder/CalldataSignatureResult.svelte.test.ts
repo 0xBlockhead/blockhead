@@ -37,6 +37,10 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 	resource.set({ values: [signature] })
 	await expect.element(page.getByText(signature)).toBeInTheDocument()
 	await expect.element(page.getByText('123')).toBeInTheDocument()
+	await expect.element(page.getByRole('link', { name: 'Download decoded JSON' })).toHaveAttribute(
+		'download',
+		'evm-function-calldata-decoded.json'
+	)
 	await expect.element(page.getByText('No catalog signatures matched this function selector.')).not.toBeInTheDocument()
 
 	resource.fail(new Error('catalog unavailable'))
