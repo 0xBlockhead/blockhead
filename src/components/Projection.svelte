@@ -32,6 +32,13 @@
 {:else if projection.resolution === ProjectionResolution.NotApplicable}
 	{#if NotApplicable}
 		{@render NotApplicable()}
+	{:else}
+		<span
+			data-text="muted"
+			data-section-state="not-applicable"
+		>
+			This section does not apply to this entity.
+		</span>
 	{/if}
 {:else if projection.resolution === ProjectionResolution.Blocked}
 	{#if Blocked}

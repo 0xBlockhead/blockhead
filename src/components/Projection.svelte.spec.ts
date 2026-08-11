@@ -12,7 +12,19 @@ const applicable = createRawSnippet(() => ({
 }))
 
 
-test('keeps blocked and unsupported projection states visible when a view omits custom copy', async () => {
+test('keeps non-applicable, blocked, and unsupported projection states visible when a view omits custom copy', async () => {
+	await render(Projection, {
+		props: {
+			projection: {
+				resolution: ProjectionResolution.NotApplicable,
+			},
+			Applicable: applicable,
+		},
+	})
+
+	await expect.element(page.getByText('This section does not apply to this entity.')).toBeInTheDocument()
+	expect(page.getByText('This section does not apply to this entity.').element().getAttribute('data-section-state')).toBe('not-applicable')
+
 	await render(Projection, {
 		props: {
 			projection: {
