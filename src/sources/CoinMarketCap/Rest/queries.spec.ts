@@ -130,6 +130,24 @@ describe('CoinMarketCap REST market transport', () => {
 		})
 	})
 
+	it('rejects a quote response for a foreign requested coin', async () => {
+		coinMarketCapFetch.mockResolvedValueOnce({
+			status: {
+				error_code: 0,
+			},
+			data: {
+				'1': {
+					id: 1,
+				},
+			},
+		})
+
+		await expect(getQuotesLatest({
+			publicEnv: {},
+			id: 1027,
+		})).rejects.toThrow('CoinMarketCap_Rest: quotes latest response does not match requested coin')
+	})
+
 	it('retains quote supply / percent leftovers on transport without requiring enrolled projection', async () => {
 		coinMarketCapFetch.mockResolvedValueOnce({
 			status: {

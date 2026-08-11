@@ -49,6 +49,20 @@ const assertApiStatus = (
 		)
 }
 
+const assertRequestedCoin = (
+	response: {
+		data?: Record<string, {
+			id?: number
+		}>
+	},
+	id: number,
+	label: string
+) => {
+	const entries = Object.entries(response.data ?? {})
+	if (entries.length !== 1 || entries[0]?.[0] !== String(id) || entries[0][1].id !== id)
+		throw new Error(`CoinMarketCap_Rest: ${label} response does not match requested coin`)
+}
+
 /**
 	* `GET /v3/cryptocurrency/quotes/latest`
 	*/
@@ -68,6 +82,7 @@ export const getQuotesLatest = async ({
 		'quotes latest'
 	)
 	assertApiStatus(response.status, 'quotes latest')
+	assertRequestedCoin(response, id, 'quotes latest')
 	return response
 }
 
@@ -90,6 +105,7 @@ export const getInfo = async ({
 		'info'
 	)
 	assertApiStatus(response.status, 'info')
+	assertRequestedCoin(response, id, 'info')
 	return response
 }
 
@@ -115,5 +131,6 @@ export const getOhlcvHistorical = async ({
 		'ohlcv historical'
 	)
 	assertApiStatus(response.status, 'ohlcv historical')
+	assertRequestedCoin(response, id, 'ohlcv historical')
 	return response
 }
