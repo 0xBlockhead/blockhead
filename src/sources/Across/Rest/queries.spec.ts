@@ -210,6 +210,17 @@ describe('Across public bridge queries', () => {
 			binding, depositor })).resolves.toHaveLength(1)
 
 		sourceGetJson.mockResolvedValue([
+			deposit,
+			{
+				...deposit,
+				depositId: '2',
+			},
+		])
+		await expect(getDeposits({
+			depositor,
+		})).rejects.toThrow('deposits response contains duplicate row ids')
+
+		sourceGetJson.mockResolvedValue([
 			{
 				...deposit,
 				id: 'not-a-number',
@@ -321,6 +332,21 @@ describe('Across public bridge queries', () => {
 			originChainId: 8453,
 			depositId,
 		})).rejects.toThrow('invalid input amount')
+
+		sourceGetJson.mockResolvedValue({
+			deposit: {
+				...deposit,
+				id: 1.5,
+			},
+			pagination: {
+				currentIndex: 0,
+				maxIndex: 0,
+			},
+		})
+		await expect(getDeposit({
+			originChainId: 8453,
+			depositId,
+		})).rejects.toThrow('invalid deposit row id')
 
 		sourceGetJson.mockResolvedValue({
 			deposit: {

@@ -87,6 +87,8 @@ const assertTimestamp = (value: string, name: string) => {
 }
 
 const assertDeposit = (deposit: AcrossDeposit) => {
+	if (!Number.isSafeInteger(deposit.id) || deposit.id < 0)
+		throw new Error('Across_Rest: invalid deposit row id')
 	assertChainId(deposit.originChainId)
 	assertChainId(deposit.destinationChainId)
 	if (deposit.depositId != null)
@@ -259,6 +261,8 @@ export const getDeposits = async ({
 		if (deposit.depositor.toLowerCase() !== depositor.toLowerCase())
 			throw new Error('Across_Rest: foreign depositor deposit')
 	}
+	if (new Set(deposits.map((deposit) => deposit.id)).size !== deposits.length)
+		throw new Error('Across_Rest: deposits response contains duplicate row ids')
 	return deposits
 }
 
