@@ -4,6 +4,7 @@
 
 
 	// Context
+	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 
 
@@ -38,7 +39,7 @@
 			data-row-item="flexible"
 		>
 			<a
-				href="/"
+				href={resolve('/')}
 				aria-label="Home"
 				data-row="start gap-0"
 			>
@@ -74,6 +75,34 @@
 		id="nav-menu"
 		data-sticky-container
 	>
+		<form
+			class="entity-search"
+			action={resolve('/open')}
+			method="get"
+			data-column="gap-1"
+		>
+			<label for="entity-search-input">Open an entity</label>
+
+			<div data-row="gap-1">
+				<input
+					id="entity-search-input"
+					name="q"
+					type="search"
+					placeholder="eip155:1 or example.eth"
+					autocomplete="off"
+					enterkeyhint="go"
+					required
+					aria-describedby="entity-search-help"
+				/>
+
+				<button type="submit">Open</button>
+			</div>
+
+			<small id="entity-search-help">
+				CAIP-2, CAIP-10, URL, or ENS name
+			</small>
+		</form>
+
 		<NavigationItems
 			items={navigationItems}
 			currentPathname={page.url.pathname}
@@ -158,6 +187,23 @@
 
 		#nav-menu {
 			padding: 1rem 0.75rem;
+
+			.entity-search {
+				padding-block-end: 1rem;
+
+				label {
+					font-weight: 600;
+				}
+
+				input {
+					min-inline-size: 0;
+					font-size: 1rem;
+				}
+
+				small {
+					min-block-size: 1lh;
+				}
+			}
 
 			&[data-sticky-container] {
 				--sticky-marginBlockStart: 1rem;
