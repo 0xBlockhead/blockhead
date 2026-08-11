@@ -64580,6 +64580,15 @@ export const schema = {
 						},
 						carousels: [
 							{
+								id: "utxo-address-bitcoin-metaprotocols",
+								label: "Bitcoin metaprotocols",
+								className: "network-view-collapsible-bitcoin-metaprotocols",
+								sections: [
+									{ id: "utxo-address-ordinal-inscriptions", field: "$$bitcoinOrdinalInscriptions", List: "BitcoinOrdinalInscriptionsView", label: "Ordinal inscriptions", emptyText: "No Ordinal inscriptions.", selection: { sources: [Source.UniSat_Rest], limit: 16 } },
+									{ id: "utxo-address-rune-balances", field: "$$bitcoinRuneBalances", List: "BitcoinRuneBalancesView", label: "Rune balances", emptyText: "No Rune balances.", selection: { sources: [Source.UniSat_Rest], limit: 16 } },
+								],
+							},
+							{
 								id: "utxo-address-activity",
 								label: "Activity",
 								className: "network-view-collapsible-activity",
@@ -64683,6 +64692,7 @@ export const schema = {
 						},
 						lists: [
 							{ field: "$$transactions", component: "UtxoTransactionsView", label: "Transactions" },
+							{ field: "$$zcashShieldedPoolStates", component: "ZcashShieldedPoolBlockStatesView", label: "Zcash shielded pool states", emptyText: "No Zcash shielded pool states." },
 						],
 					},
 					plural: { component: "UtxoBlocksView", },
@@ -64748,7 +64758,7 @@ export const schema = {
 				"$bitcoinCashCashTokenNft": { label: "Bitcoin Cash CashToken NFT", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinCashCashTokenNft },
 				"$$bitcoinOrdinalInscriptions": { label: "Bitcoin Ordinal inscriptions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinOrdinalInscription, defaultSources: [Source.UniSat_Rest] },
 				"$$bitcoinRuneBalances": { label: "Bitcoin Rune balances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinRuneBalance, defaultSources: [Source.UniSat_Rest] },
-				"$bitcoinRunestone": { label: "Bitcoin runestone", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinRunestone },
+				"$bitcoinRunestone": { label: "Bitcoin runestone", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinRunestone, defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 			})({
 				selectors: {
 					"TransactionIndexInTransaction": ["$transaction", "indexInTransaction"],
@@ -64786,9 +64796,13 @@ export const schema = {
 						content: {
 							dl: [
 								[{ field: "indexInTransaction", format: "number" }, { field: "valueSats", format: "numberValue" }, "$address", "scriptPubKeyType", "isSpent", "isConfidential"],
-								["scriptPubKeyAsm", "scriptPubKeyHex", "$bitcoinCashCashTokenFungibleAmount", "$bitcoinCashCashTokenNft", "$transaction"],
+								["scriptPubKeyAsm", "scriptPubKeyHex", "$bitcoinCashCashTokenFungibleAmount", "$bitcoinCashCashTokenNft", "$bitcoinRunestone", "$transaction"],
 							],
 						},
+						lists: [
+							{ field: "$$bitcoinOrdinalInscriptions", component: "BitcoinOrdinalInscriptionsView", label: "Ordinal inscriptions", emptyText: "No Ordinal inscriptions." },
+							{ field: "$$bitcoinRuneBalances", component: "BitcoinRuneBalancesView", label: "Rune balances", emptyText: "No Rune balances." },
+						],
 					},
 					plural: { component: "UtxoOutputsView", },
 				},
@@ -64813,9 +64827,9 @@ export const schema = {
 				"isCoinbase": { label: "Coinbase", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"$$inputs": { label: "Inputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoInput },
 				"$$outputs": { label: "Outputs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoOutput },
-				"$$zcashShieldedActions": { label: "Zcash shielded actions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ZcashShieldedAction },
-				"$$bitcoinOrdinalInscriptions": { label: "Bitcoin Ordinal inscriptions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinOrdinalInscription },
-				"$bitcoinRunestone": { label: "Bitcoin runestone", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinRunestone },
+				"$$zcashShieldedActions": { label: "Zcash shielded actions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ZcashShieldedAction, defaultSources: [Source.Zcashd_JsonRpc] },
+				"$$bitcoinOrdinalInscriptions": { label: "Bitcoin Ordinal inscriptions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BitcoinOrdinalInscription, defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
+				"$bitcoinRunestone": { label: "Bitcoin runestone", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BitcoinRunestone, defaultSources: [Source.BitcoinCore_JsonRpc, Source.Esplora_Rest, Source.MempoolSpace_Rest] },
 			})({
 				selectors: {
 					"NetworkTxId": ["$network", "txId"],
@@ -64826,7 +64840,7 @@ export const schema = {
 						content: {
 							dl: [
 								[{ field: "txId", format: "truncated" }, "version", "lockTime", "isCoinbase"],
-								["sizeBytes", "virtualSizeBytes", "weightUnits", { field: "feeSats", format: "numberValue" }, "$block", "$network"],
+								["sizeBytes", "virtualSizeBytes", "weightUnits", { field: "feeSats", format: "numberValue" }, "$bitcoinRunestone", "$block", "$network"],
 							],
 						},
 						carousels: [
@@ -64837,6 +64851,8 @@ export const schema = {
 								sections: [
 									{ id: "utxo-transaction-inputs", field: "$$inputs", List: "UtxoInputsView", label: "Inputs", emptyText: "No inputs." },
 									{ id: "utxo-transaction-outputs", field: "$$outputs", List: "UtxoOutputsView", label: "Outputs", emptyText: "No outputs." },
+									{ id: "utxo-transaction-ordinal-inscriptions", field: "$$bitcoinOrdinalInscriptions", List: "BitcoinOrdinalInscriptionsView", label: "Ordinal inscriptions", emptyText: "No Ordinal inscriptions." },
+									{ id: "utxo-transaction-zcash-shielded-actions", field: "$$zcashShieldedActions", List: "ZcashShieldedActionsView", label: "Zcash shielded actions", emptyText: "No Zcash shielded actions." },
 								],
 							},
 						],

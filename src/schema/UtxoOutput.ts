@@ -75,6 +75,11 @@ export default entity({
 	$bitcoinRunestone: {
 		entityType: EntityType.BitcoinRunestone,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.BitcoinCore_JsonRpc,
+			Source.Esplora_Rest,
+			Source.MempoolSpace_Rest,
+		],
 	},
 })({
 	selectors: {

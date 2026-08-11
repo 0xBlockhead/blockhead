@@ -33,6 +33,8 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import BitcoinOrdinalInscriptionsView from '$/views/BitcoinOrdinalInscriptionsView.svelte'
+	import BitcoinRuneBalancesView from '$/views/BitcoinRuneBalancesView.svelte'
 	import UtxoOutputsView from '$/views/UtxoOutputsView.svelte'
 	import UtxoTransactionsView from '$/views/UtxoTransactionsView.svelte'
 	import UtxoAddress_TimestampsView from '$/views/UtxoAddress_TimestampsView.svelte'
@@ -104,6 +106,68 @@
 	{/snippet}
 
 	{#snippet Details()}
+		<CollapsibleTabs
+			id={viewDomId + '-carousel-utxo-address-bitcoin-metaprotocols'}
+			sectionIdPrefix={viewDomId}
+			sections={
+				[
+					{
+						id: 'utxo-address-ordinal-inscriptions',
+						label: 'Ordinal inscriptions',
+					},
+					{
+						id: 'utxo-address-rune-balances',
+						label: 'Rune balances',
+					},
+				]
+			}
+			data-card
+			class='network-view-collapsible-bitcoin-metaprotocols'
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Bitcoin metaprotocols</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionUtxoAddressOrdinalInscriptions({ id, label })}
+				<BitcoinOrdinalInscriptionsView
+					selection={
+						selection
+						.$$bitcoinOrdinalInscriptions({
+							sources: [
+								Source.UniSat_Rest,
+							],
+							limit: 16,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Ordinal inscriptions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionUtxoAddressRuneBalances({ id, label })}
+				<BitcoinRuneBalancesView
+					selection={
+						selection
+						.$$bitcoinRuneBalances({
+							sources: [
+								Source.UniSat_Rest,
+							],
+							limit: 16,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Rune balances.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+		</CollapsibleTabs>
+
 		<CollapsibleTabs
 			id={viewDomId + '-carousel-utxo-address-activity'}
 			sectionIdPrefix={viewDomId}

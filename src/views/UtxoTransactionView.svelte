@@ -41,10 +41,13 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import BitcoinRunestoneView from '$/views/BitcoinRunestoneView.svelte'
 	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import UtxoInputsView from '$/views/UtxoInputsView.svelte'
 	import UtxoOutputsView from '$/views/UtxoOutputsView.svelte'
+	import BitcoinOrdinalInscriptionsView from '$/views/BitcoinOrdinalInscriptionsView.svelte'
+	import ZcashShieldedActionsView from '$/views/ZcashShieldedActionsView.svelte'
 </script>
 
 
@@ -257,6 +260,25 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
+				resource={selection.$bitcoinRunestone}
+			>
+				{#snippet children(bitcoinRunestone)}
+					{#if bitcoinRunestone != null}
+						{@const bitcoinRunestoneInitial = untrack(() => bitcoinRunestone)}
+						<div>
+							<dt>Bitcoin runestone</dt>
+							<dd>
+								<BitcoinRunestoneView
+									selection={select(EntityType.BitcoinRunestone, (bitcoinRunestone ?? bitcoinRunestoneInitial)[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
 				resource={selection.$block}
 			>
 				{#snippet children(utxoBlock)}
@@ -301,6 +323,14 @@
 						id: 'utxo-transaction-outputs',
 						label: 'Outputs',
 					},
+					{
+						id: 'utxo-transaction-ordinal-inscriptions',
+						label: 'Ordinal inscriptions',
+					},
+					{
+						id: 'utxo-transaction-zcash-shielded-actions',
+						label: 'Zcash shielded actions',
+					},
 				]
 			}
 			data-card
@@ -328,6 +358,26 @@
 					collapsible={false}
 					title={label}
 					emptyText='No outputs.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionUtxoTransactionOrdinalInscriptions({ id, label })}
+				<BitcoinOrdinalInscriptionsView
+					selection={selection.$$bitcoinOrdinalInscriptions}
+					collapsible={false}
+					title={label}
+					emptyText='No Ordinal inscriptions.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionUtxoTransactionZcashShieldedActions({ id, label })}
+				<ZcashShieldedActionsView
+					selection={selection.$$zcashShieldedActions}
+					collapsible={false}
+					title={label}
+					emptyText='No Zcash shielded actions.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

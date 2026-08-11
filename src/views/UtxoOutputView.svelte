@@ -38,9 +38,12 @@
 	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import BitcoinOrdinalInscriptionsView from '$/views/BitcoinOrdinalInscriptionsView.svelte'
+	import BitcoinRuneBalancesView from '$/views/BitcoinRuneBalancesView.svelte'
 	import UtxoAddressView from '$/views/UtxoAddressView.svelte'
 	import BitcoinCashCashTokenFungibleAmountView from '$/views/BitcoinCashCashTokenFungibleAmountView.svelte'
 	import BitcoinCashCashTokenNftView from '$/views/BitcoinCashCashTokenNftView.svelte'
+	import BitcoinRunestoneView from '$/views/BitcoinRunestoneView.svelte'
 	import UtxoTransactionView from '$/views/UtxoTransactionView.svelte'
 </script>
 
@@ -319,6 +322,25 @@
 				{/snippet}
 			</ResourceBoundary>
 
+			<ResourceBoundary
+				resource={selection.$bitcoinRunestone}
+			>
+				{#snippet children(bitcoinRunestone)}
+					{#if bitcoinRunestone != null}
+						{@const bitcoinRunestoneInitial = untrack(() => bitcoinRunestone)}
+						<div>
+							<dt>Bitcoin runestone</dt>
+							<dd>
+								<BitcoinRunestoneView
+									selection={select(EntityType.BitcoinRunestone, (bitcoinRunestone ?? bitcoinRunestoneInitial)[EntityMetaKey.Selector])}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			<div>
 				<dt>Transaction</dt>
 				<dd>
@@ -414,5 +436,38 @@
 				</dl>
 			{/snippet}
 		</ProjectionBoundary>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const bitcoinOrdinalInscriptionsResource = selection.$$bitcoinOrdinalInscriptions}
+		<ResourceBoundary
+			resource={bitcoinOrdinalInscriptionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BitcoinOrdinalInscriptionsView
+						selection={bitcoinOrdinalInscriptionsResource}
+						countResource={bitcoinOrdinalInscriptionsResource.count}
+						title='Ordinal inscriptions'
+						id='bitcoin-ordinal-inscriptions'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const bitcoinRuneBalancesResource = selection.$$bitcoinRuneBalances}
+		<ResourceBoundary
+			resource={bitcoinRuneBalancesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<BitcoinRuneBalancesView
+						selection={bitcoinRuneBalancesResource}
+						countResource={bitcoinRuneBalancesResource.count}
+						title='Rune balances'
+						id='bitcoin-rune-balances'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

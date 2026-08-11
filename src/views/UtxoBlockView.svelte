@@ -39,6 +39,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import UtxoTransactionsView from '$/views/UtxoTransactionsView.svelte'
+	import ZcashShieldedPoolBlockStatesView from '$/views/ZcashShieldedPoolBlockStatesView.svelte'
 	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
@@ -321,6 +322,21 @@
 						countResource={transactionsResource.count}
 						title='Transactions'
 						id='transactions'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const zcashShieldedPoolStatesResource = selection.$$zcashShieldedPoolStates}
+		<ResourceBoundary
+			resource={zcashShieldedPoolStatesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<ZcashShieldedPoolBlockStatesView
+						selection={zcashShieldedPoolStatesResource}
+						countResource={zcashShieldedPoolStatesResource.count}
+						title='Zcash shielded pool states'
+						id='zcash-shielded-pool-states'
 					/>
 				{/if}
 			{/snippet}
