@@ -209,6 +209,7 @@ const assertPage = <_Row>(
 		|| page.meta.skip !== skip
 		|| page.meta.take !== take
 		|| page.data.length > take
+		|| page.meta.total < skip + page.data.length
 	)
 		throw new Error(`${Source.EigenExplorer_Rest}: invalid pagination metadata`)
 

@@ -114,7 +114,7 @@ describe('EigenExplorer REST queries', () => {
 				createdAt: '2026-01-01T00:00:00.000Z',
 			}],
 			meta: {
-				total: 1,
+				total: 11,
 				skip: 10,
 				take: 25,
 			},
@@ -154,6 +154,33 @@ describe('EigenExplorer REST queries', () => {
 		await expect(getStakerDeposits(
 			stakerAddress
 		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: foreign deposit`)
+	})
+
+	it('rejects page metadata that places returned rows beyond its total', async () => {
+		respond({
+			data: [{
+				transactionHash,
+				stakerAddress,
+				tokenAddress,
+				strategyAddress,
+				shares: '1',
+				createdAtBlock: 100,
+				createdAt: '2026-01-01T00:00:00.000Z',
+			}],
+			meta: {
+				total: 10,
+				skip: 10,
+				take: 25,
+			},
+		})
+
+		await expect(getStakerDeposits(
+			stakerAddress,
+			{
+				skip: 10,
+				take: 25,
+			}
+		)).rejects.toThrow(`${Source.EigenExplorer_Rest}: invalid pagination metadata`)
 	})
 
 	it('validates withdrawal identity and nested strategy shares', async () => {
