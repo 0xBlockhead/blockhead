@@ -473,6 +473,10 @@ describe('Lens_Graphql reading relationships', () => {
 				address: '2222222222222222222222222222222222222222',
 				owner: '0x1111111111111111111111111111111111111111',
 				createdAt: '2025-03-04T05:06:07.000Z',
+				rules: {
+					required: [],
+					anyOf: [],
+				},
 				metadata: {
 					name: 'Research',
 					description: '',
@@ -510,6 +514,7 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 			name: 'Research',
 			createdAt: 1_741_064_767_000,
+			$$rules: [],
 		})
 	})
 
@@ -587,7 +592,7 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[11].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[12].resolve.Address.resolve({
 			address: '0x1111111111111111111111111111111111111111',
 		}, {
 			...context,
@@ -729,7 +734,7 @@ describe('Lens_Graphql reading relationships', () => {
 			},
 		})
 
-		await expect(lensGraphql.resolvers[12].resolve.Id.resolve({
+		await expect(lensGraphql.resolvers[13].resolve.Id.resolve({
 			id: 'username-1',
 		}, context)).resolves.toEqual({
 			id: 'username-1',
@@ -755,14 +760,14 @@ describe('Lens_Graphql reading relationships', () => {
 				},
 			},
 		})
-		await expect(lensGraphql.resolvers[12].resolve.NamespaceLocalName.resolve({
+		await expect(lensGraphql.resolvers[13].resolve.NamespaceLocalName.resolve({
 			namespace: namespaceAddress,
 			localName: 'alice',
 		}, context)).resolves.toMatchObject({
 			id: 'username-1',
 			localName: 'alice',
 		})
-		await expect(lensGraphql.resolvers[13].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[14].resolve.Address.resolve({
 			address: namespaceAddress,
 		}, context)).resolves.toEqual({
 			address: namespaceAddress,
@@ -778,8 +783,9 @@ describe('Lens_Graphql reading relationships', () => {
 			createdAt: 1_735_787_045_000,
 			description: 'Canonical Lens namespace',
 			totalUsernames: 9,
+			$$rules: [],
 		})
-		await expect(lensGraphql.resolvers[14].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[16].resolve.Address.resolve({
 			address: namespaceAddress,
 		}, {
 			...context,
@@ -813,7 +819,7 @@ describe('Lens_Graphql reading relationships', () => {
 				ownedBy: '0x1111111111111111111111111111111111111111',
 			},
 		})
-		await expect(lensGraphql.resolvers[12].resolve.Id.resolve({
+		await expect(lensGraphql.resolvers[13].resolve.Id.resolve({
 			id: 'username-1',
 		}, context)).rejects.toThrow('username response does not match request')
 
@@ -823,7 +829,7 @@ describe('Lens_Graphql reading relationships', () => {
 				namespace: 'lens',
 			},
 		})
-		await expect(lensGraphql.resolvers[13].resolve.Address.resolve({
+		await expect(lensGraphql.resolvers[14].resolve.Address.resolve({
 			address: '0x2222222222222222222222222222222222222222',
 		}, context)).rejects.toThrow('namespace response does not match request')
 	})
@@ -846,6 +852,7 @@ describe('Lens_Graphql reading relationships', () => {
 								type: 'SIMPLE_PAYMENT',
 								address: '0x3333333333333333333333333333333333333333',
 								executesOn: ['CREATE_POST'],
+								config: [],
 							}],
 							anyOf: [],
 						},
@@ -917,15 +924,19 @@ describe('Lens_Graphql reading relationships', () => {
 				[entityFieldAddressKey(EntityType.LensFeed, [], 'name')]: 'Research',
 				[entityFieldAddressKey(EntityType.LensFeed, [], 'description')]: 'Bounded research feed',
 				[entityFieldAddressKey(EntityType.LensFeed, [], 'createdAt')]: 1_741_064_767_000,
-				[entityFieldAddressKey(EntityType.LensFeed, [], 'rules')]: {
-					required: [{
-						id: 'feed-rule-1',
-						type: 'SIMPLE_PAYMENT',
-						address: '0x3333333333333333333333333333333333333333',
-						executesOn: ['CREATE_POST'],
-					}],
-					anyOf: [],
-				},
+				[entityFieldAddressKey(EntityType.LensFeed, [], '$$rules')]: [{
+					[EntityMetaKey.Selector]: {
+						$feed: { address: '0x2222222222222222222222222222222222222222' },
+						ruleId: 'feed-rule-1',
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.LensFeedRule, [], 'ruleType')]: 'SIMPLE_PAYMENT',
+						[entityFieldAddressKey(EntityType.LensFeedRule, [], 'address')]: '0x3333333333333333333333333333333333333333',
+						[entityFieldAddressKey(EntityType.LensFeedRule, [], 'requirement')]: 'Required',
+						[entityFieldAddressKey(EntityType.LensFeedRule, [], 'executesOn')]: ['CREATE_POST'],
+						[entityFieldAddressKey(EntityType.LensFeedRule, [], 'configurationKinds')]: [],
+					},
+				}],
 			},
 		}])
 		expect(queryFeeds).toHaveBeenCalledWith(3)
@@ -953,15 +964,19 @@ describe('Lens_Graphql reading relationships', () => {
 				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'createdAt')]: 1_741_064_767_000,
 				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'description')]: 'Default Lens namespace',
 				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'totalUsernames')]: 0,
-				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'rules')]: {
-					required: [],
-					anyOf: [{
-						id: 'namespace-rule-1',
-						type: 'TOKEN_GATED',
-						address: '0x4444444444444444444444444444444444444444',
-						executesOn: ['CREATE_USERNAME'],
-					}],
-				},
+				[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], '$$rules')]: [{
+					[EntityMetaKey.Selector]: {
+						$namespace: { address: '0x2222222222222222222222222222222222222222' },
+						ruleId: 'namespace-rule-1',
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'ruleType')]: 'TOKEN_GATED',
+						[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'address')]: '0x4444444444444444444444444444444444444444',
+						[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'requirement')]: 'AnyOf',
+						[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'executesOn')]: ['CREATE_USERNAME'],
+						[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'configurationKinds')]: ['AddressKeyValue'],
+					},
+				}],
 			},
 		}])
 		expect(queryNamespaces).toHaveBeenCalledWith(2)
@@ -980,6 +995,65 @@ describe('Lens_Graphql reading relationships', () => {
 		await expect(feedsResolver.resolve.Scope.resolve({
 			scope: 'LensNetwork',
 		}, context)).rejects.toThrow('invalid feed rules response')
+	})
+
+	it('resolves protocol-native feed and namespace rules by their parent-scoped RuleId', async () => {
+		queryFeed.mockResolvedValue({
+			feed: {
+				address: '0x2222222222222222222222222222222222222222',
+				rules: {
+					required: [{
+						id: 'feed-rule-1',
+						type: 'SIMPLE_PAYMENT',
+						address: '0x3333333333333333333333333333333333333333',
+						executesOn: ['CREATING_POST'],
+						config: [{ __typename: 'BigDecimalKeyValue' }],
+					}],
+					anyOf: [],
+				},
+			},
+		})
+		queryNamespace.mockResolvedValue({
+			namespace: {
+				address: '0x4444444444444444444444444444444444444444',
+				rules: {
+					required: [],
+					anyOf: [{
+						id: 'namespace-rule-1',
+						type: 'USERNAME_LENGTH',
+						address: '0x5555555555555555555555555555555555555555',
+						executesOn: ['CREATING'],
+						config: [{ __typename: 'IntKeyValue' }],
+					}],
+				},
+			},
+		})
+
+		const feedRuleResolver = lensGraphql.resolvers.find(({ entityType }) => entityType === EntityType.LensFeedRule)
+		const namespaceRuleResolver = lensGraphql.resolvers.find(({ entityType }) => entityType === EntityType.LensUsernameNamespaceRule)
+		if (feedRuleResolver == null || namespaceRuleResolver == null)
+			throw new Error('Lens spec missing native rule resolvers')
+
+		await expect(feedRuleResolver.resolve.FeedRuleId.resolve({
+			$feed: { address: '0x2222222222222222222222222222222222222222' },
+			ruleId: 'feed-rule-1',
+		}, context)).resolves.toEqual({
+			ruleType: 'SIMPLE_PAYMENT',
+			address: '0x3333333333333333333333333333333333333333',
+			requirement: 'Required',
+			executesOn: ['CREATING_POST'],
+			configurationKinds: ['BigDecimalKeyValue'],
+		})
+		await expect(namespaceRuleResolver.resolve.NamespaceRuleId.resolve({
+			$namespace: { address: '0x4444444444444444444444444444444444444444' },
+			ruleId: 'namespace-rule-1',
+		}, context)).resolves.toEqual({
+			ruleType: 'USERNAME_LENGTH',
+			address: '0x5555555555555555555555555555555555555555',
+			requirement: 'AnyOf',
+			executesOn: ['CREATING'],
+			configurationKinds: ['IntKeyValue'],
+		})
 	})
 
 	it('propagates typed-rule producer failures before namespace projection', async () => {

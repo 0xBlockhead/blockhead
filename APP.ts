@@ -1369,11 +1369,13 @@ export enum EntityType {
 	LensAccount_Timestamp = "LensAccount_Timestamp",
 	LensAccountManager = "LensAccountManager",
 	LensFeed = "LensFeed",
+	LensFeedRule = "LensFeedRule",
 	LensNetwork = "LensNetwork",
 	LensPost = "LensPost",
 	LensPost_Timestamp = "LensPost_Timestamp",
 	LensUsername = "LensUsername",
 	LensUsernameNamespace = "LensUsernameNamespace",
+	LensUsernameNamespaceRule = "LensUsernameNamespaceRule",
 	Leverage = "Leverage",
 	LightningChannel = "LightningChannel",
 	LightningChannel_Timestamp = "LightningChannel_Timestamp",
@@ -41649,7 +41651,7 @@ export const schema = {
 				"name": { label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"description": { label: "Description", description: "A human-readable description from the source domain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"createdAt": { label: "Created", description: "The time when the subject was created according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"rules": { label: "Rules", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
+				"$$rules": { label: "Rules", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensFeedRule, defaultSources: [Source.Lens_Graphql] },
 				"$$posts": { label: "Posts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensPost, defaultSources: [Source.Lens_Graphql] },
 			})({
 				selectors: {
@@ -41666,10 +41668,38 @@ export const schema = {
 							],
 						},
 						lists: [
+							{ field: "$$rules", component: "LensFeedRulesView", label: "Rules", emptyText: "No Lens feed rules." },
 							{ field: "$$posts", component: "LensPostsView", label: "Posts", emptyText: "No Lens posts for this feed." },
 						],
 					},
 					plural: { component: "LensFeedsView", title: "Feeds", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.LensFeedRule,
+				labels: {
+					singular: "Lens feed rule",
+					plural: "Lens feed rules",
+				},
+			})({
+				"$feed": { label: "Feed", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LensFeed },
+				"ruleId": { label: "Rule ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"ruleType": { label: "Rule type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"address": { label: "Rule address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"requirement": { label: "Requirement", description: "Whether Lens requires this rule or accepts it as one member of an any-of group.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"executesOn": { label: "Executes on", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
+				"configurationKinds": { label: "Configuration kinds", description: "The protocol-native Lens key-value configuration variants returned for this rule.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
+			})({
+				selectors: {
+					"FeedRuleId": ["$feed", "ruleId"],
+				},
+				views: {
+					singular: {
+						summary: { title: ["ruleType"], value: ["requirement", { field: "address", format: "truncated" }] },
+						content: { dl: [["$feed", "ruleId", "ruleType", "requirement"], [{ field: "address", format: "truncated" }, "executesOn", "configurationKinds"]] },
+					},
+					plural: { component: "LensFeedRulesView", title: "Feed rules" },
 				},
 			}),
 
@@ -41937,7 +41967,7 @@ export const schema = {
 				"createdAt": { label: "Created", description: "The time when the subject was created according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"description": { label: "Description", description: "A human-readable description from the source domain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"totalUsernames": { label: "Total usernames", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"rules": { label: "Rules", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
+				"$$rules": { label: "Rules", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensUsernameNamespaceRule, defaultSources: [Source.Lens_Graphql] },
 				"$$usernames": { label: "Usernames", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensUsername, defaultSources: [Source.Lens_Graphql] },
 			})({
 				selectors: {
@@ -41955,10 +41985,38 @@ export const schema = {
 							],
 						},
 						lists: [
+							{ field: "$$rules", component: "LensUsernameNamespaceRulesView", label: "Rules", emptyText: "No Lens username namespace rules." },
 							{ field: "$$usernames", component: "LensUsernamesView", label: "Usernames", emptyText: "No Lens usernames in this namespace." },
 						],
 					},
 					plural: { component: "LensUsernameNamespacesView", title: "Username namespaces", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.LensUsernameNamespaceRule,
+				labels: {
+					singular: "Lens username namespace rule",
+					plural: "Lens username namespace rules",
+				},
+			})({
+				"$namespace": { label: "Namespace", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LensUsernameNamespace },
+				"ruleId": { label: "Rule ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"ruleType": { label: "Rule type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"address": { label: "Rule address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
+				"requirement": { label: "Requirement", description: "Whether Lens requires this rule or accepts it as one member of an any-of group.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"executesOn": { label: "Executes on", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
+				"configurationKinds": { label: "Configuration kinds", description: "The protocol-native Lens key-value configuration variants returned for this rule.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "string" },
+			})({
+				selectors: {
+					"NamespaceRuleId": ["$namespace", "ruleId"],
+				},
+				views: {
+					singular: {
+						summary: { title: ["ruleType"], value: ["requirement", { field: "address", format: "truncated" }] },
+						content: { dl: [["$namespace", "ruleId", "ruleType", "requirement"], [{ field: "address", format: "truncated" }, "executesOn", "configurationKinds"]] },
+					},
+					plural: { component: "LensUsernameNamespaceRulesView", title: "Namespace rules" },
 				},
 			}),
 
@@ -89455,6 +89513,25 @@ export const routes = defineRoutes(schema)({
 													}
 												}
 											},
+											children: {
+												"rule": {
+													children: {
+														"[ruleId]": {
+															selectors: {
+																[EntityType.LensFeedRule]: {
+																	"FeedRuleId": {
+																		params: { "ruleId": ["ruleId"] },
+																		derivations: {
+																			"$feed": { kind: "object", fields: [{ name: "address", value: { kind: "param", name: "address" } }] },
+																		},
+																		page: {},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
 										}
 									}
 								},
@@ -89490,6 +89567,25 @@ export const routes = defineRoutes(schema)({
 														page: {}
 													}
 												}
+											},
+											children: {
+												"rule": {
+													children: {
+														"[ruleId]": {
+															selectors: {
+																[EntityType.LensUsernameNamespaceRule]: {
+																	"NamespaceRuleId": {
+																		params: { "ruleId": ["ruleId"] },
+																		derivations: {
+																			"$namespace": { kind: "object", fields: [{ name: "address", value: { kind: "param", name: "address" } }] },
+																		},
+																		page: {},
+																	},
+																},
+															},
+														},
+													},
+												},
 											},
 										}
 									}

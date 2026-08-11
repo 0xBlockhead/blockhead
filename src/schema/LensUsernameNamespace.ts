@@ -50,9 +50,12 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	rules: {
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+	$$rules: {
+		entityType: EntityType.LensUsernameNamespaceRule,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Lens_Graphql,
+		],
 	},
 	$$usernames: {
 		entityType: EntityType.LensUsername,

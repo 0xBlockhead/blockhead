@@ -672,11 +672,13 @@ import LensAccount_TimestampSchema from '$/schema/LensAccount_Timestamp.ts'
 import LensAccountSchema from '$/schema/LensAccount.ts'
 import LensAccountManagerSchema from '$/schema/LensAccountManager.ts'
 import LensFeedSchema from '$/schema/LensFeed.ts'
+import LensFeedRuleSchema from '$/schema/LensFeedRule.ts'
 import LensNetworkSchema from '$/schema/LensNetwork.ts'
 import LensPost_TimestampSchema from '$/schema/LensPost_Timestamp.ts'
 import LensPostSchema from '$/schema/LensPost.ts'
 import LensUsernameSchema from '$/schema/LensUsername.ts'
 import LensUsernameNamespaceSchema from '$/schema/LensUsernameNamespace.ts'
+import LensUsernameNamespaceRuleSchema from '$/schema/LensUsernameNamespaceRule.ts'
 import LeverageSchema from '$/schema/Leverage.ts'
 import LightningChannel_TimestampSchema from '$/schema/LightningChannel_Timestamp.ts'
 import LightningChannelSchema from '$/schema/LightningChannel.ts'
@@ -1765,11 +1767,13 @@ const schemaChunk13 = [
 	LensAccount_TimestampSchema,
 	LensAccountManagerSchema,
 	LensFeedSchema,
+	LensFeedRuleSchema,
 	LensNetworkSchema,
 	LensPostSchema,
 	LensPost_TimestampSchema,
 	LensUsernameSchema,
 	LensUsernameNamespaceSchema,
+	LensUsernameNamespaceRuleSchema,
 	LeverageSchema,
 	LightningChannelSchema,
 	LightningChannel_TimestampSchema,
@@ -1792,11 +1796,11 @@ const schemaChunk13 = [
 	MarketSchema,
 	Market_Derivative_TimestampSchema,
 	Market_TimeInterval_TimestampSchema,
-	Market_TimestampSchema,
-	MarketAssetSchema,
 ] as const
 
 const schemaChunk14 = [
+	Market_TimestampSchema,
+	MarketAssetSchema,
 	MarketPriceSchema,
 	MarketVenueSchema,
 	McpPromptSchema,
@@ -1845,11 +1849,11 @@ const schemaChunk14 = [
 	NearContractStorageEntrySchema,
 	NearExecutionOutcomeSchema,
 	NearNetworkSchema,
-	NearNetwork_TimestampSchema,
-	NearReceiptSchema,
 ] as const
 
 const schemaChunk15 = [
+	NearNetwork_TimestampSchema,
+	NearReceiptSchema,
 	NearTransactionSchema,
 	NearValidatorSchema,
 	NearValidator_TimestampSchema,
@@ -1898,11 +1902,11 @@ const schemaChunk15 = [
 	PolkadotPalletSchema,
 	PolkadotReferendumSchema,
 	PolkadotReferendum_TimestampSchema,
-	PolkadotValidatorSchema,
-	PolkadotValidator_EraSchema,
 ] as const
 
 const schemaChunk16 = [
+	PolkadotValidatorSchema,
+	PolkadotValidator_EraSchema,
 	PythPriceFeedSchema,
 	PythPriceFeed_TimestampSchema,
 	QuilibriumAccountSchema,
@@ -1951,11 +1955,11 @@ const schemaChunk16 = [
 	SolanaTransaction_TimestampSchema,
 	SolanaValidatorSchema,
 	SolanaValidator_TimestampSchema,
-	SorobanContractSchema,
-	SorobanContract_TimestampSchema,
 ] as const
 
 const schemaChunk17 = [
+	SorobanContractSchema,
+	SorobanContract_TimestampSchema,
 	SorobanContractStorageEntrySchema,
 	SorobanContractStorageEntry_TimestampSchema,
 	SorobanWasmSchema,
@@ -2004,11 +2008,11 @@ const schemaChunk17 = [
 	SuiDynamicFieldEdgeSchema,
 	SuiDynamicFieldEdge_TimestampSchema,
 	SuiEventSchema,
-	SuiNetworkSchema,
-	SuiNetwork_TimestampSchema,
 ] as const
 
 const schemaChunk18 = [
+	SuiNetworkSchema,
+	SuiNetwork_TimestampSchema,
 	SuiObjectSchema,
 	SuiObjectChangeSchema,
 	SuiObjectVersionSchema,
@@ -2057,11 +2061,11 @@ const schemaChunk18 = [
 	TonAccountSchema,
 	TonAccount_TimestampSchema,
 	TonBlockSchema,
-	TonContractSchema,
-	TonContract_TimestampSchema,
 ] as const
 
 const schemaChunk19 = [
+	TonContractSchema,
+	TonContract_TimestampSchema,
 	TonContractGetMethodSchema,
 	TonContractGetMethod_TimestampSchema,
 	TonJettonSchema,
@@ -2110,11 +2114,11 @@ const schemaChunk19 = [
 	UtxoAddressSchema,
 	UtxoAddress_TimestampSchema,
 	UtxoBlockSchema,
-	UtxoInputSchema,
-	UtxoOutputSchema,
 ] as const
 
 const schemaChunk20 = [
+	UtxoInputSchema,
+	UtxoOutputSchema,
 	UtxoTransactionSchema,
 	WalletConnectionMethodSchema,
 	WormholeVaaSchema,
@@ -2163,11 +2167,11 @@ const schemaChunk20 = [
 	ZeroGServiceProviderSchema,
 	ZeroGServiceRequestSchema,
 	ZeroGSettlementTraceSchema,
-	ZeroGStorageLogEntrySchema,
-	ZeroGStorageNodeSchema,
 ] as const
 
 const schemaChunk21 = [
+	ZeroGStorageLogEntrySchema,
+	ZeroGStorageNodeSchema,
 	ZeroGStorageNode_TimestampSchema,
 	ZeroGStorageProofSchema,
 ] as const

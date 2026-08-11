@@ -10594,6 +10594,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(social)/(lens)/lens/feed/[address]/rule/[ruleId]': {
+		routeId: '/(social)/(lens)/lens/(lensNetwork)/feed/[address=evmAddress]/(lensFeed)/rule/[ruleId=stringSegment]',
+		mappings: [
+			{
+				id: 'LensFeedRule.FeedRuleId',
+				probeAtomPrefixes: ['/lens/feed/[address]/rule/[ruleId]:LensFeedRule.FeedRuleId'],
+				probeCases: [[[0, '1', ['ruleId', 'address']]]],
+			},
+		],
+	},
 	'/(social)/(lens)/lens/namespace/[address]': {
 		routeId: '/(social)/(lens)/lens/(lensNetwork)/namespace/[address=evmAddress]',
 		mappings: [
@@ -10601,6 +10611,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				id: 'LensUsernameNamespace.Address',
 				probeAtomPrefixes: ['/lens/namespace/[address]:LensUsernameNamespace.Address'],
 				probeCases: [[[0, '1', ['address']]]],
+			},
+		],
+	},
+	'/(social)/(lens)/lens/namespace/[address]/rule/[ruleId]': {
+		routeId: '/(social)/(lens)/lens/(lensNetwork)/namespace/[address=evmAddress]/(lensUsernameNamespace)/rule/[ruleId=stringSegment]',
+		mappings: [
+			{
+				id: 'LensUsernameNamespaceRule.NamespaceRuleId',
+				probeAtomPrefixes: ['/lens/namespace/[address]/rule/[ruleId]:LensUsernameNamespaceRule.NamespaceRuleId'],
+				probeCases: [[[0, '1', ['ruleId', 'address']]]],
 			},
 		],
 	},

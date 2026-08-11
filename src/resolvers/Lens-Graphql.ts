@@ -332,24 +332,69 @@ const lensUsernameReferenceFromWire = (
 	}
 }
 
-const lensRulesWithoutConfigurationFromWire = (
-	rules: LensFeedRules | LensUsernameNamespaceRules | null | undefined
-) => (
-	rules == null ? undefined : {
-		required: rules.required.map((rule) => ({
-			id: rule.id,
-			type: rule.type,
-			address: rule.address,
-			executesOn: rule.executesOn,
-		})),
-		anyOf: rules.anyOf.map((rule) => ({
-			id: rule.id,
-			type: rule.type,
-			address: rule.address,
-			executesOn: rule.executesOn,
-		})),
-	}
-)
+const lensFeedRuleReferencesFromWire = (
+	feedAddress: string,
+	rules: LensFeedRules | null | undefined
+) => ([
+	...(rules?.required ?? []).map((rule) => ({
+		[EntityMetaKey.Selector]: {
+			$feed: { address: feedAddress },
+			ruleId: rule.id,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.LensFeedRule, [], 'ruleType')]: rule.type,
+			[entityFieldAddressKey(EntityType.LensFeedRule, [], 'address')]: lensEvmAddressFromWire(rule.address),
+			[entityFieldAddressKey(EntityType.LensFeedRule, [], 'requirement')]: 'Required',
+			[entityFieldAddressKey(EntityType.LensFeedRule, [], 'executesOn')]: rule.executesOn,
+			[entityFieldAddressKey(EntityType.LensFeedRule, [], 'configurationKinds')]: rule.config.map(({ __typename }) => __typename),
+		},
+	})),
+	...(rules?.anyOf ?? []).map((rule) => ({
+		[EntityMetaKey.Selector]: {
+			$feed: { address: feedAddress },
+			ruleId: rule.id,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.LensFeedRule, [], 'ruleType')]: rule.type,
+			[entityFieldAddressKey(EntityType.LensFeedRule, [], 'address')]: lensEvmAddressFromWire(rule.address),
+			[entityFieldAddressKey(EntityType.LensFeedRule, [], 'requirement')]: 'AnyOf',
+			[entityFieldAddressKey(EntityType.LensFeedRule, [], 'executesOn')]: rule.executesOn,
+			[entityFieldAddressKey(EntityType.LensFeedRule, [], 'configurationKinds')]: rule.config.map(({ __typename }) => __typename),
+		},
+	})),
+])
+
+const lensUsernameNamespaceRuleReferencesFromWire = (
+	namespaceAddress: string,
+	rules: LensUsernameNamespaceRules | null | undefined
+) => ([
+	...(rules?.required ?? []).map((rule) => ({
+		[EntityMetaKey.Selector]: {
+			$namespace: { address: namespaceAddress },
+			ruleId: rule.id,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'ruleType')]: rule.type,
+			[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'address')]: lensEvmAddressFromWire(rule.address),
+			[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'requirement')]: 'Required',
+			[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'executesOn')]: rule.executesOn,
+			[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'configurationKinds')]: rule.config.map(({ __typename }) => __typename),
+		},
+	})),
+	...(rules?.anyOf ?? []).map((rule) => ({
+		[EntityMetaKey.Selector]: {
+			$namespace: { address: namespaceAddress },
+			ruleId: rule.id,
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'ruleType')]: rule.type,
+			[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'address')]: lensEvmAddressFromWire(rule.address),
+			[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'requirement')]: 'AnyOf',
+			[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'executesOn')]: rule.executesOn,
+			[entityFieldAddressKey(EntityType.LensUsernameNamespaceRule, [], 'configurationKinds')]: rule.config.map(({ __typename }) => __typename),
+		},
+	})),
+])
 
 const lensUsernameNamespaceFromWire = (
 	namespace: NonNullable<Awaited<ReturnType<
@@ -371,7 +416,10 @@ const lensUsernameNamespaceFromWire = (
 		...((createdAt) => createdAt != null && { createdAt })(optionalTimestampMs(namespace.createdAt)),
 		...((description) => description != null && { description })(optionalNonemptyString(namespace.metadata?.description)),
 		totalUsernames: namespace.stats.totalUsernames,
-		...((rules) => rules != null && { rules })(lensRulesWithoutConfigurationFromWire(namespace.rules)),
+		$$rules: lensUsernameNamespaceRuleReferencesFromWire(
+			lensEvmAddressFromWire(namespace.address),
+			namespace.rules
+		),
 	}
 }
 
@@ -837,7 +885,6 @@ const lensGraphqlResolvers = {
 							const name = optionalNonemptyString(feed.metadata?.name)
 							const description = optionalNonemptyString(feed.metadata?.description)
 							const createdAt = optionalTimestampMs(feed.createdAt)
-							const rules = lensRulesWithoutConfigurationFromWire(feed.rules)
 							return [{
 								[EntityMetaKey.Selector]: { address },
 								[EntityMetaKey.Fields]: {
@@ -855,9 +902,10 @@ const lensGraphqlResolvers = {
 									...(createdAt != null && {
 										[entityFieldAddressKey(EntityType.LensFeed, [], 'createdAt')]: createdAt,
 									}),
-									...(rules != null && {
-										[entityFieldAddressKey(EntityType.LensFeed, [], 'rules')]: rules,
-									}),
+									[entityFieldAddressKey(EntityType.LensFeed, [], '$$rules')]: lensFeedRuleReferencesFromWire(
+										address,
+										feed.rules
+									),
 								},
 							}]
 						}).slice(0, limit)
@@ -896,9 +944,7 @@ const lensGraphqlResolvers = {
 										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'description')]: resolved.description,
 									}),
 										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'totalUsernames')]: resolved.totalUsernames,
-									...(resolved.rules != null && {
-										[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], 'rules')]: resolved.rules,
-									}),
+									[entityFieldAddressKey(EntityType.LensUsernameNamespace, [], '$$rules')]: resolved.$$rules,
 								},
 							}]
 						}).slice(0, limit)
@@ -930,7 +976,10 @@ const lensGraphqlResolvers = {
 							...((name) => name != null && { name })(optionalNonemptyString(feed.metadata?.name)),
 							...((description) => description != null && { description })(optionalNonemptyString(feed.metadata?.description)),
 							...((createdAt) => createdAt != null && { createdAt })(optionalTimestampMs(feed.createdAt)),
-							...((rules) => rules != null && { rules })(lensRulesWithoutConfigurationFromWire(feed.rules)),
+							$$rules: lensFeedRuleReferencesFromWire(
+								lensEvmAddressFromWire(feed.address),
+								feed.rules
+							),
 						}
 					},
 				},
@@ -942,8 +991,51 @@ const lensGraphqlResolvers = {
 				name: (feed) => feed.name,
 				description: (feed) => feed.description,
 				createdAt: (feed) => feed.createdAt,
-				rules: (feed) => feed.rules,
+				$$rules: (feed) => feed.$$rules,
 			}),
+
+		defineResolver({
+			entityType: EntityType.LensFeedRule,
+			resolve: {
+				FeedRuleId: {
+					resolve: async ({ $feed, ruleId }) => {
+						const feedAddress = zeroExLowerCase($feed.address)
+						const feed = (await queryFeed(feedAddress)).feed
+						if (feed == null) throw new Error('Lens_Graphql: feed not found')
+						if (lensEvmAddressFromWire(feed.address) !== feedAddress)
+							throw new Error('Lens_Graphql: feed response does not match request')
+
+						const matchingRequiredRules = feed.rules.required.filter((rule) => rule.id === ruleId)
+						const matchingAnyOfRules = feed.rules.anyOf.filter((rule) => rule.id === ruleId)
+						if (matchingRequiredRules.length + matchingAnyOfRules.length === 0)
+							throw new Error('Lens_Graphql: feed rule not found')
+
+						if (matchingRequiredRules.length + matchingAnyOfRules.length !== 1)
+							throw new Error('Lens_Graphql: feed response contains duplicate rule identity')
+
+						const rule = matchingRequiredRules[0] ?? matchingAnyOfRules[0]
+						if (rule == null) throw new Error('Lens_Graphql: feed rule not found')
+						return {
+							ruleType: rule.type,
+							address: lensEvmAddressFromWire(rule.address),
+							requirement: matchingRequiredRules.length === 1 ? 'Required' : 'AnyOf',
+							executesOn: rule.executesOn,
+							configurationKinds: rule.config.map(({ __typename }) => __typename),
+						}
+					},
+				},
+			},
+		})({
+			$feed: (_rule, { $feed }) => ({
+				[EntityMetaKey.Selector]: $feed,
+			}),
+			ruleId: (_rule, { ruleId }) => ruleId,
+			ruleType: (rule) => rule.ruleType,
+			address: (rule) => rule.address,
+			requirement: (rule) => rule.requirement,
+			executesOn: (rule) => rule.executesOn,
+			configurationKinds: (rule) => rule.configurationKinds,
+		}),
 
 		defineResolver({
 			entityType: EntityType.LensFeed,
@@ -1042,8 +1134,51 @@ const lensGraphqlResolvers = {
 				createdAt: (namespace) => namespace.createdAt,
 				description: (namespace) => namespace.description,
 				totalUsernames: (namespace) => namespace.totalUsernames,
-				rules: (namespace) => namespace.rules,
+				$$rules: (namespace) => namespace.$$rules,
 			}),
+
+		defineResolver({
+			entityType: EntityType.LensUsernameNamespaceRule,
+			resolve: {
+				NamespaceRuleId: {
+					resolve: async ({ $namespace, ruleId }) => {
+						const namespaceAddress = zeroExLowerCase($namespace.address)
+						const namespace = (await queryNamespace(namespaceAddress)).namespace
+						if (namespace == null) throw new Error('Lens_Graphql: namespace not found')
+						if (lensEvmAddressFromWire(namespace.address) !== namespaceAddress)
+							throw new Error('Lens_Graphql: namespace response does not match request')
+
+						const matchingRequiredRules = namespace.rules.required.filter((rule) => rule.id === ruleId)
+						const matchingAnyOfRules = namespace.rules.anyOf.filter((rule) => rule.id === ruleId)
+						if (matchingRequiredRules.length + matchingAnyOfRules.length === 0)
+							throw new Error('Lens_Graphql: namespace rule not found')
+
+						if (matchingRequiredRules.length + matchingAnyOfRules.length !== 1)
+							throw new Error('Lens_Graphql: namespace response contains duplicate rule identity')
+
+						const rule = matchingRequiredRules[0] ?? matchingAnyOfRules[0]
+						if (rule == null) throw new Error('Lens_Graphql: namespace rule not found')
+						return {
+							ruleType: rule.type,
+							address: lensEvmAddressFromWire(rule.address),
+							requirement: matchingRequiredRules.length === 1 ? 'Required' : 'AnyOf',
+							executesOn: rule.executesOn,
+							configurationKinds: rule.config.map(({ __typename }) => __typename),
+						}
+					},
+				},
+			},
+		})({
+			$namespace: (_rule, { $namespace }) => ({
+				[EntityMetaKey.Selector]: $namespace,
+			}),
+			ruleId: (_rule, { ruleId }) => ruleId,
+			ruleType: (rule) => rule.ruleType,
+			address: (rule) => rule.address,
+			requirement: (rule) => rule.requirement,
+			executesOn: (rule) => rule.executesOn,
+			configurationKinds: (rule) => rule.configurationKinds,
+		}),
 
 		defineResolver({
 			entityType: EntityType.LensUsernameNamespace,

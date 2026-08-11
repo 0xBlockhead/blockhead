@@ -38,6 +38,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import LensUsernameNamespaceRulesView from '$/views/LensUsernameNamespaceRulesView.svelte'
 	import LensUsernamesView from '$/views/LensUsernamesView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
@@ -226,6 +227,21 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const rulesResource = selection.$$rules}
+		<ResourceBoundary
+			resource={rulesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<LensUsernameNamespaceRulesView
+						selection={rulesResource}
+						countResource={rulesResource.count}
+						title='Rules'
+						id='rules'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		{@const usernamesResource = selection.$$usernames}
 		<ResourceBoundary
 			resource={usernamesResource}

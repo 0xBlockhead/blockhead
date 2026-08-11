@@ -38,9 +38,12 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	rules: {
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+	$$rules: {
+		entityType: EntityType.LensFeedRule,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Lens_Graphql,
+		],
 	},
 	$$posts: {
 		entityType: EntityType.LensPost,

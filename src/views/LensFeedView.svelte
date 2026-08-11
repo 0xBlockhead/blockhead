@@ -37,6 +37,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import LensFeedRulesView from '$/views/LensFeedRulesView.svelte'
 	import LensPostsView from '$/views/LensPostsView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
@@ -166,6 +167,21 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const rulesResource = selection.$$rules}
+		<ResourceBoundary
+			resource={rulesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<LensFeedRulesView
+						selection={rulesResource}
+						countResource={rulesResource.count}
+						title='Rules'
+						id='rules'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		{@const postsResource = selection.$$posts}
 		<ResourceBoundary
 			resource={postsResource}
