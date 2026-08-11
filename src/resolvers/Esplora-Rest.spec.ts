@@ -442,6 +442,45 @@ describe('Esplora UTXO', () => {
 		])
 	})
 
+	it('resumes network block pages from the native start height', async () => {
+		getBlocks
+			.mockResolvedValueOnce([
+				{
+					id: 'a'.repeat(64),
+					height: 3,
+					timestamp: 1_700_000_000,
+					tx_count: 1,
+				},
+			])
+			.mockResolvedValueOnce([
+				{
+					id: 'b'.repeat(64),
+					height: 1,
+					timestamp: 1_699_999_000,
+					tx_count: 1,
+				},
+			])
+
+		await expect(networkBlocksResolver.resolve.Caip2.resolve(bitcoinNetwork, {
+			...resolverContext,
+			pagination: {
+				limit: 1,
+				offset: 2,
+			},
+		})).resolves.toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: bitcoinNetwork,
+					height: 1n,
+					hash: 'b'.repeat(64),
+				},
+			},
+		])
+		expect(getBlocks).toHaveBeenNthCalledWith(2, expect.objectContaining({
+			startHeight: 1n,
+		}))
+	})
+
 	it('projects address tip stats and outputs from Esplora address wires', async () => {
 		getAddressUtxos.mockResolvedValueOnce([
 			{

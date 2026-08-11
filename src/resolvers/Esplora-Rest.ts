@@ -863,9 +863,25 @@ export default {
 			resolve: bitcoinNetworkSelectors(async (network, context) => {
 				assertBitcoinMainnet(network)
 				const { getBlocks } = await import('$/sources/Esplora/Rest/queries.ts')
-				const blocks = await getBlocks({
-					target: esploraTargetForNetwork(network),
-				})
+				const target = esploraTargetForNetwork(network)
+				const tipBlocks = await getBlocks({ target })
+				const offset = context.pagination.offset ?? 0
+				const tip = tipBlocks.at(0)
+				if (tip == null)
+					throw new Error('Esplora_Rest: no blocks returned')
+
+				if (BigInt(offset) > BigInt(tip.height))
+					return []
+
+				const blocks = (
+					offset === 0 ?
+						tipBlocks
+					:
+						await getBlocks({
+							startHeight: BigInt(tip.height) - BigInt(offset),
+							target,
+						})
+				)
 				return blocks.slice(0, resolverContextRowLimit(context)).map((block) => ({
 					[EntityMetaKey.Selector]: {
 						$network: network,
