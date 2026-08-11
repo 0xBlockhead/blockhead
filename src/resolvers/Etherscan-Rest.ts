@@ -829,7 +829,6 @@ export default {
 							publicEnv: context.publicEnv,
 							chainId,
 							txHash: entitySelector.$log.$transaction.txHash,
-							offset: getAccountListMaxOffset,
 						})
 						const wire = findEtherscanTokenTransferWireForEntitySelector(wires, entitySelector)
 						if (wire == null)
@@ -1181,15 +1180,10 @@ export default {
 				TransactionIndexInTransaction: {
 					resolve: async ({ $transaction, indexInTransaction }, context) => {
 						const chainId = evmChainIdFromNetworkSelector($transaction.$network)
-						const limit = Math.min(
-							resolverContextRowLimit(context),
-							getAccountListMaxOffset
-						)
 						const wires = await getTokenTransfersByTransaction({
 							publicEnv: context.publicEnv,
 							chainId,
 							txHash: $transaction.txHash,
-							offset: limit,
 						})
 						return evmTokenTransferEntitySelectorsFromEtherscanWires({
 							$network: $transaction.$network,
@@ -1216,15 +1210,10 @@ export default {
 				EvmNetworkTxHash: {
 					resolve: async ({ $network, txHash }, context) => {
 						const chainId = evmChainIdFromNetworkSelector($network)
-						const limit = Math.min(
-							resolverContextRowLimit(context),
-							getAccountListMaxOffset
-						)
 						const wires = await getTokenTransfersByTransaction({
 							publicEnv: context.publicEnv,
 							chainId,
 							txHash: txHash,
-							offset: limit,
 						})
 						return evmTokenTransferEntitySelectorsFromEtherscanWires({
 							$network,

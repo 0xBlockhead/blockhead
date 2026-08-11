@@ -621,8 +621,6 @@ const uintStringFromDataWord = (
 	publicEnv: SourcePublicEnv
 	chainId: number
 	txHash: string
-	/** retained for call-site compatibility; receipt logs are complete for the tx */
-	offset?: number
 }) => {
 	const normalizedTxHash = requireTxHash(txHash)
 

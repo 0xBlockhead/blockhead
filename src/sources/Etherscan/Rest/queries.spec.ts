@@ -119,7 +119,6 @@ describe('Etherscan transaction hash query boundaries', () => {
 			publicEnv,
 			chainId: 1,
 			txHash: 'invalid',
-			offset: 1,
 		})).rejects.toThrow('Etherscan_Rest: invalid tx hash')
 		await expect(getInternalTransactionsByTxHash({
 			publicEnv,
@@ -169,7 +168,6 @@ describe('Etherscan transaction hash query boundaries', () => {
 			publicEnv,
 			chainId: 1,
 			txHash: uppercaseTxHash,
-			offset: 1,
 		})
 		await getInternalTransactionsByTxHash({
 			publicEnv,
