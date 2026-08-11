@@ -199,7 +199,7 @@ export const bskyAppViewResolvers = (
 				Uri: {
 					resolve: async ({ uri }, context) => {
 						const [binding, { getPosts }] = await loadBindingAndQueries(context)
-						const postView = (await getPosts(binding, [uri])).posts.at(0)
+						const postView = (await getPosts(binding, [uri])).posts.find((post) => post.uri === uri)
 						if (postView == null) throw new Error(`${source}: post not found`)
 						return atprotoPostFieldsFromPostView(postView)
 					},
@@ -224,7 +224,7 @@ export const bskyAppViewResolvers = (
 				AtprotoPostTimestampMs: {
 					resolve: async ({ $post }, context) => {
 						const [binding, { getPosts }] = await loadBindingAndQueries(context)
-						const postView = (await getPosts(binding, [$post.uri])).posts.at(0)
+						const postView = (await getPosts(binding, [$post.uri])).posts.find((post) => post.uri === $post.uri)
 						if (postView == null) throw new Error(`${source}: post not found`)
 						return atprotoPostEngagementFromPostView(postView)
 					},

@@ -68,19 +68,26 @@ export const bskyAppViewXrpc = (binding: SourceBinding) => {
 				)
 			)
 		),
-		getPosts: async (uris: string[]) => (
-			uris.length === 0 ?
-				{ posts: [] }
-			:
-				assertEnvelope(
-					'posts',
-					bskyAppViewGetPostsResponseWire,
-					await get<BskyAppViewGetPostsResponse>(
-						'/app.bsky.feed.getPosts',
-						uris.map((uri) => ['uris', uri])
-					)
+		getPosts: async (uris: string[]) => {
+			if (uris.length === 0)
+				return { posts: [] }
+
+			const response = assertEnvelope(
+				'posts',
+				bskyAppViewGetPostsResponseWire,
+				await get<BskyAppViewGetPostsResponse>(
+					'/app.bsky.feed.getPosts',
+					uris.map((uri) => ['uris', uri])
 				)
-		),
+			)
+			const requestedUris = new Set(uris)
+			if (response.posts.some(({ uri }) => !requestedUris.has(uri)))
+				throw new Error('BskyAppView_Xrpc: posts response subject mismatch')
+			if (new Set(response.posts.map(({ uri }) => uri)).size !== response.posts.length)
+				throw new Error('BskyAppView_Xrpc: duplicate post URI')
+
+			return response
+		},
 		getPostThread: async (
 			uri: string,
 			{

@@ -131,7 +131,7 @@ it('preserves repeated uri parameters and reserved values without direct fetch',
 		.mockResolvedValueOnce({ did: 'did:plc:resolved' })
 		.mockResolvedValueOnce({
 			posts: [{
-				uri: 'at://did:plc:first/app.bsky.feed.post/3first',
+				uri: 'at://did:plc:first/app.bsky.feed.post/3first?x=1&y=2',
 				cid: 'bafyfixture',
 				indexedAt: '2025-01-01T00:00:00.000Z',
 				author: { did: 'did:plc:first', handle: 'first.test' },
@@ -182,6 +182,33 @@ it('does not transport an empty getPosts request', async () => {
 		posts: [],
 	})
 	expect(sourceGetJson).not.toHaveBeenCalled()
+})
+
+it('rejects substituted and duplicate getPosts subjects', async () => {
+	sourceGetJson.mockResolvedValueOnce({
+		posts: [{
+			uri: 'at://did:plc:other/app.bsky.feed.post/other',
+			cid: 'bafyother',
+			indexedAt: '2025-01-01T00:00:00.000Z',
+			author: { did: 'did:plc:other', handle: 'other.test' },
+			record: { text: 'other', createdAt: '2025-01-01T00:00:00.000Z' },
+		}],
+	})
+	await expect(getPosts([
+		'at://did:plc:requested/app.bsky.feed.post/requested',
+	])).rejects.toThrow('BskyAppView_Xrpc: posts response subject mismatch')
+
+	const post = {
+		uri: 'at://did:plc:requested/app.bsky.feed.post/requested',
+		cid: 'bafyrequested',
+		indexedAt: '2025-01-01T00:00:00.000Z',
+		author: { did: 'did:plc:requested', handle: 'requested.test' },
+		record: { text: 'requested', createdAt: '2025-01-01T00:00:00.000Z' },
+	}
+	sourceGetJson.mockResolvedValueOnce({ posts: [post, post] })
+	await expect(getPosts([post.uri])).rejects.toThrow(
+		'BskyAppView_Xrpc: duplicate post URI'
+	)
 })
 
 it('fail-closes malformed profile / posts / search envelopes', async () => {
