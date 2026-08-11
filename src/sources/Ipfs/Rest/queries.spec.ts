@@ -16,6 +16,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 const {
 	assertIpfsGatewayTarget,
 	fetchBrowseResult,
+	getGatewayUrl,
 	getGatewayReachability,
 	listDeclaredGatewayOrigins,
 	listSeededExampleResources,
@@ -56,6 +57,20 @@ describe('IPFS gateway binding transport', () => {
 		})).rejects.toThrow('invalid IPFS CID target')
 
 		expect(sourceFetch).not.toHaveBeenCalled()
+	})
+
+	it('validates direct gateway URL targets before composing a binding-owned URL', () => {
+		expect(() => getGatewayUrl({
+			namespace: 'ipfs',
+			target: 'not-a-cid',
+			gatewayOrigin: 'https://ipfs.io',
+		})).toThrow('invalid IPFS CID target')
+
+		expect(() => getGatewayUrl({
+			namespace: 'ipns',
+			target: 'bad\nname',
+			gatewayOrigin: 'https://ipfs.io',
+		})).toThrow('IPNS target contains control characters')
 	})
 
 	it('fails closed on content paths with control characters before transport', async () => {

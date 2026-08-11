@@ -64,14 +64,18 @@ export const getGatewayUrl = ({
 	gatewayOrigin: string
 }) => {
 	const trimmedTarget = trimIpfsSlashes(target.trim())
+	const resolvedNamespace = resolvedIpfsNamespace({
+		target: trimmedTarget,
+		namespace,
+	})
 	const trimmedPath = assertGatewayContentPath({
 		family: ContentGatewayFamily.Ipfs,
 		contentPath,
 	})
-	return `${gatewayOrigin}/${resolvedIpfsNamespace({
+	return `${gatewayOrigin}/${resolvedNamespace}/${assertIpfsGatewayTarget({
+		namespace: resolvedNamespace,
 		target: trimmedTarget,
-		namespace,
-	})}/${trimmedTarget}${trimmedPath ? `/${trimmedPath.split('/').map(encodeURIComponent).join('/')}` : ''}`
+	})}${trimmedPath ? `/${trimmedPath.split('/').map(encodeURIComponent).join('/')}` : ''}`
 }
 
 export const fetchBrowseResult = async ({
