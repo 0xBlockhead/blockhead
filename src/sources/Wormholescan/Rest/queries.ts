@@ -26,7 +26,7 @@ const omitUndefinedJson = (
 		return value.map(omitUndefinedJson)
 	if (value != null && typeof value === 'object')
 		return Object.fromEntries(
-			Object.entries(value)
+			Object.entries(value as Record<string, unknown>)
 				.filter(([, entry]) => entry !== undefined)
 				.map(([key, entry]) => [
 					key,
@@ -123,9 +123,12 @@ const operationsFromPage = (
 		path
 	)
 
-	return operationsPage.operations.map((operation) => (
+	const operations = operationsPage.operations.map((operation) => (
 		assertOperation(operation)
 	))
+	if (new Set(operations.map(({ id }) => id)).size !== operations.length)
+		throw new Error('Wormholescan_Rest: operations page contains duplicate identities')
+	return operations
 }
 
 const assertVaa = (
@@ -182,15 +185,22 @@ export const getReady = () => (
 
 export const getOperations = async (
 	parameters: NonNullable<operations['get-operations']['parameters']['query']> = {}
-) => (
-	operationsFromPage(
+) => {
+	if (parameters.page != null && (!Number.isSafeInteger(parameters.page) || parameters.page < 0))
+		throw new Error(`Wormholescan_Rest: invalid operations page ${parameters.page}`)
+	if (parameters.pageSize != null && (!Number.isSafeInteger(parameters.pageSize) || parameters.pageSize < 1))
+		throw new Error(`Wormholescan_Rest: invalid operations page size ${parameters.pageSize}`)
+	if (parameters.minAmount != null && (!Number.isFinite(parameters.minAmount) || parameters.minAmount < 0))
+		throw new Error(`Wormholescan_Rest: invalid operations minimum amount ${parameters.minAmount}`)
+
+	return operationsFromPage(
 		await getJson(
 			binding,
 			`operations${queryString(parameters)}`
 		),
 		'operations'
 	)
-)
+}
 
 export const getOperationById = async (
 	{
@@ -230,12 +240,16 @@ export const findGlobalTransactionById = (
 		emitter: string
 		sequence: number | string
 	}
-) => (
-	getJson<operations['find-global-transaction-by-id']['responses'][200]['content']['*/*']>(
+) => {
+	assertWormholeChainId(chainId)
+	assertEmitterAddress(emitter)
+	assertSequence(sequence)
+
+	return getJson<operations['find-global-transaction-by-id']['responses'][200]['content']['*/*']>(
 		binding,
 		`global-tx/${chainId}/${encodeURIComponent(emitter)}/${sequence}`
 	)
-)
+}
 
 export const getVaaById = async (
 	{

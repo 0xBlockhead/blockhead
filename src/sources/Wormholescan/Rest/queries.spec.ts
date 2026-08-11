@@ -77,6 +77,37 @@ describe('Wormholescan OpenAPI operations', () => {
 		await expect(queries.getOperations({ txHash: '0xabc' })).resolves.toEqual([])
 	})
 
+	it('rejects malformed page bounds and duplicate operation identities before materializing bridge rows', async () => {
+		for (const parameters of [
+			{ page: -1 },
+			{ page: 1.5 },
+			{ pageSize: 0 },
+			{ pageSize: 1.5 },
+			{ minAmount: -1 },
+			{ minAmount: Number.NaN },
+		])
+			await expect(queries.getOperations(parameters)).rejects.toThrow('Wormholescan_Rest: invalid operations')
+		expect(getJson).not.toHaveBeenCalled()
+
+		getJson.mockResolvedValueOnce({
+			operations: [
+				{
+					id: '2/abcdef/1',
+					emitterChain: 2,
+					emitterAddress: { hex: 'abcdef' },
+					sequence: '1',
+				},
+				{
+					id: '2/abcdef/1',
+					emitterChain: 2,
+					emitterAddress: { hex: 'abcdef' },
+					sequence: '1',
+				},
+			],
+		})
+		await expect(queries.getOperations()).rejects.toThrow('operations page contains duplicate identities')
+	})
+
 	it('hard-fails when the operations page omits operations', async () => {
 		getJson.mockResolvedValue({})
 
@@ -169,13 +200,32 @@ describe('Wormholescan OpenAPI operations', () => {
 
 		await expect(queries.findGlobalTransactionById({
 			chainId: 2,
-			emitter: 'ab/cd',
+			emitter: 'abcd',
 			sequence: '3',
 		})).resolves.toEqual({ id: 'global' })
 		expect(getJson).toHaveBeenCalledWith(
 			binding,
-			'global-tx/2/ab%2Fcd/3'
+			'global-tx/2/abcd/3'
 		)
+	})
+
+	it('rejects non-canonical global transaction path atoms before transport', async () => {
+		expect(() => queries.findGlobalTransactionById({
+			chainId: -1,
+			emitter: 'abcd',
+			sequence: 3,
+		})).toThrow('invalid wormhole chain id')
+		expect(() => queries.findGlobalTransactionById({
+			chainId: 2,
+			emitter: 'ab/cd',
+			sequence: 3,
+		})).toThrow('invalid emitter address')
+		expect(() => queries.findGlobalTransactionById({
+			chainId: 2,
+			emitter: 'abcd',
+			sequence: '01',
+		})).toThrow('invalid VAA sequence')
+		expect(getJson).not.toHaveBeenCalled()
 	})
 
 	it('loads a VAA snapshot by wormhole id and asserts identity', async () => {
