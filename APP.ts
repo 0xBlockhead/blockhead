@@ -57018,27 +57018,41 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						summary: {
+							title: ['coinType'],
+							HeadingAfter: ['$network'],
+						},
+						content: {
+							dl: [
+								[
+									'$network',
+									'coinType',
+									'decimals',
+									'symbol',
+									'name',
+									'description',
+									'iconUrl',
+								],
+							],
+						},
 						carousels: [
 							{
-								id: "sui-coin-type-activity-a",
-								label: "Activity",
-								className: "network-view-collapsible-activity-a",
+								id: 'sui-coin-type-regulated-states',
+								label: 'Regulated States',
+								className: 'network-view-collapsible-activity',
 								sections: [
-									{ id: "sui-coin-type-balances", field: "$$balances", List: "SuiCoinBalance_TimestampsView", label: "Balances", emptyText: "No balances." },
-									{ id: "sui-coin-type-objects", field: "$$objects", List: "SuiObjectsView", label: "Objects", emptyText: "No objects." },
-								],
-							},
-							{
-								id: "sui-coin-type-activity-b",
-								label: "Activity continued",
-								className: "network-view-collapsible-activity-b",
-								sections: [
-									{ id: "sui-coin-type-regulated-states", field: "$$regulatedStates", List: "SuiRegulatedCoinState_TimestampsView", label: "Regulated States", emptyText: "No regulated states." },
+									{
+										id: 'sui-coin-type-regulated-states-list',
+										field: '$$regulatedStates',
+										List: 'SuiRegulatedCoinState_TimestampsView',
+										label: 'Regulated States',
+										emptyText: 'No regulated states.',
+									},
 								],
 							},
 						],
 					},
-					plural: { component: "SuiCoinTypesView", },
+					plural: { component: 'SuiCoinTypesView', },
 				},
 			}),
 
@@ -57632,7 +57646,37 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiPackagesView", },
+					singular: {
+						summary: {
+							title: ['originalPackageId'],
+							HeadingAfter: ['$network'],
+						},
+						content: {
+							dl: [
+								[
+									'$network',
+									{ field: 'originalPackageId', format: 'truncated' },
+								],
+							],
+						},
+						carousels: [
+							{
+								id: 'sui-package-versions',
+								label: 'Versions',
+								className: 'network-view-collapsible-versions',
+								sections: [
+									{
+										id: 'sui-package-versions-list',
+										field: '$$versions',
+										List: 'SuiPackageVersionsView',
+										label: 'Versions',
+										emptyText: 'No versions.',
+									},
+								],
+							},
+						],
+					},
+					plural: { component: 'SuiPackagesView', },
 				},
 			}),
 
@@ -57787,7 +57831,41 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiPackageVersionsView", },
+					singular: {
+						summary: {
+							title: ['version'],
+							value: [{ field: 'packageId', format: 'truncated' }],
+							HeadingAfter: ['$package'],
+						},
+						content: {
+							dl: [
+								[
+									'$network',
+									'$package',
+									{ field: 'packageId', format: 'truncated' },
+									'version',
+									{ field: 'digest', format: 'truncated' },
+								],
+							],
+						},
+						carousels: [
+							{
+								id: 'sui-package-version-abi',
+								label: 'ABI',
+								className: 'network-view-collapsible-abi',
+								sections: [
+									{
+										id: 'sui-package-version-modules',
+										field: '$$modules',
+										List: 'MoveModulesView',
+										label: 'Modules',
+										emptyText: 'No modules found.',
+									},
+								],
+							},
+						],
+					},
+					plural: { component: 'SuiPackageVersionsView', },
 				},
 			}),
 
@@ -57930,7 +58008,24 @@ export const schema = {
 					],
 				},
 				views: {
-					plural: { component: "SuiRegulatedCoinState_TimestampsView", },
+					singular: {
+						summary: {
+							title: [{ field: 'timestampMs', format: 'timestamp' }],
+							value: ['source'],
+							HeadingAfter: ['$coinType'],
+						},
+						content: {
+							dl: [
+								[
+									'$coinType',
+									{ field: 'timestampMs', format: 'timestamp' },
+									'source',
+									'denyCapObjectId',
+								],
+							],
+						},
+					},
+					plural: { component: 'SuiRegulatedCoinState_TimestampsView', },
 				},
 			}),
 
