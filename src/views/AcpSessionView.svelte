@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -69,8 +70,9 @@
 		>
 			{#snippet children(acpAgentRuntime)}
 				{#if acpAgentRuntime != null}
+					{@const acpAgentRuntimeInitial = untrack(() => acpAgentRuntime)}
 					<AcpAgentRuntimeView
-						selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpAgentRuntime, (acpAgentRuntime ?? acpAgentRuntimeInitial)[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -112,11 +114,12 @@
 			>
 				{#snippet children(acpAgentRuntime)}
 					{#if acpAgentRuntime != null}
+						{@const acpAgentRuntimeInitial = untrack(() => acpAgentRuntime)}
 						<div>
 							<dt>runtime</dt>
 							<dd>
 								<AcpAgentRuntimeView
-									selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
+									selection={select(EntityType.AcpAgentRuntime, (acpAgentRuntime ?? acpAgentRuntimeInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

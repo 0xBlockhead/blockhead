@@ -50,7 +50,7 @@
 			entitySelector={activityPubInstancePeerSelector}
 			href={
 				resolve(
-					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/(activityPubInstanceTimestamp)/peer/[peerDomain=stringSegment]',
+					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/peer/[peerDomain=stringSegment]',
 					{
 						instanceOrigin: encodeURIComponent(observation.$instance.instanceOrigin),
 						timestampMs: String(observation.timestampMs),

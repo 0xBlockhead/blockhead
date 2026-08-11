@@ -26,6 +26,7 @@ const getPoolLiquidity = vi.hoisted(() => vi.fn())
 const getPoolFeeGrowthGlobal0X128 = vi.hoisted(() => vi.fn())
 const getPoolFeeGrowthGlobal1X128 = vi.hoisted(() => vi.fn())
 const getPoolProtocolFees = vi.hoisted(() => vi.fn())
+const getCcaAuctionConfiguration = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 	voltaireJsonRpcTransports: {
@@ -52,6 +53,7 @@ vi.mock('$/sources/Uniswap/Contracts/queries.ts', async () => {
 		getPoolFeeGrowthGlobal0X128,
 		getPoolFeeGrowthGlobal1X128,
 		getPoolProtocolFees,
+		getCcaAuctionConfiguration,
 	}
 })
 
@@ -77,6 +79,22 @@ const ethereumNetwork = {
 
 const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 
+const ccaConfiguration = {
+	auctionAddress: '0x1234567890abcdef1234567890abcdef12345678',
+	blockNumber: 12_345_678n,
+	currencyAddress: '0x0000000000000000000000000000000000000000',
+	tokenAddress: '0x1111111111111111111111111111111111111111',
+	totalSupply: 1_000_000n,
+	tokensRecipient: '0x2222222222222222222222222222222222222222',
+	fundsRecipient: '0x3333333333333333333333333333333333333333',
+	startBlock: 12_000_000n,
+	endBlock: 12_500_000n,
+	claimBlock: 12_600_000n,
+	validationHookAddress: '0x0000000000000000000000000000000000000000',
+	floorPriceQ96: 100n,
+	tickSpacingQ96: 5n,
+}
+
 
 describe('UniswapContracts_Evm resolver', () => {
 	beforeEach(() => {
@@ -91,14 +109,17 @@ describe('UniswapContracts_Evm resolver', () => {
 		getPoolFeeGrowthGlobal0X128.mockReset()
 		getPoolFeeGrowthGlobal1X128.mockReset()
 		getPoolProtocolFees.mockReset()
+		getCcaAuctionConfiguration.mockReset()
 		getLogs.mockResolvedValue([])
 		getBlockNumber.mockResolvedValue(12_345_678n)
+		getCcaAuctionConfiguration.mockResolvedValue(ccaConfiguration)
 	})
 
 	it('registers global hub + pool + tip block resolvers', () => {
 		expect(uniswapContractsEvm.source).toBe(Source.UniswapContracts_Evm)
 		expect(uniswapContractsEvm.resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType._Global,
+			EntityType.UniswapCcaAuction,
 			EntityType.UniswapV3Pool,
 			EntityType.UniswapV3Pool,
 			EntityType.UniswapV3Pool,
@@ -107,6 +128,167 @@ describe('UniswapContracts_Evm resolver', () => {
 			EntityType.UniswapV3Position,
 			EntityType.UniswapV3Position_Block,
 		])
+	})
+
+	it('resolves native-currency CCA configuration at one current transport block', async () => {
+		const resolver = uniswapContractsEvm.resolvers.find(({ entityType }) => (
+			entityType === EntityType.UniswapCcaAuction
+		))
+		if (resolver == null)
+			throw new Error('missing UniswapCcaAuction resolver')
+
+		const snapshot = await resolver.resolve.NetworkAuctionAddress.resolve({
+			$network: ethereumNetwork,
+			auctionAddress: '0x1234567890ABCDEF1234567890ABCDEF12345678',
+		}, context)
+
+		expect(getBlockNumber).toHaveBeenCalledOnce()
+		expect(getCcaAuctionConfiguration).toHaveBeenCalledWith({
+			getCall,
+			auctionAddress: ccaConfiguration.auctionAddress,
+			blockNumber: ccaConfiguration.blockNumber,
+		})
+		expect(resolver.projections.auctionAddress(snapshot)).toBe(ccaConfiguration.auctionAddress)
+		expect(resolver.projections.$auctionContract(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				address: ccaConfiguration.auctionAddress,
+			},
+		})
+		expect(resolver.projections.$currency(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				type: 'NativeCurrency',
+			},
+		})
+		expect(resolver.projections.$token(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				type: 'Erc20Token',
+				$contract: {
+					$network: ethereumNetwork,
+					address: ccaConfiguration.tokenAddress,
+				},
+			},
+		})
+		expect(resolver.projections.totalSupply(snapshot)).toBe(ccaConfiguration.totalSupply)
+		expect(resolver.projections.$tokensRecipient(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				address: ccaConfiguration.tokensRecipient,
+			},
+		})
+		expect(resolver.projections.$fundsRecipient(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				address: ccaConfiguration.fundsRecipient,
+			},
+		})
+		expect(resolver.projections.$startBlock(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				blockNumber: ccaConfiguration.startBlock,
+			},
+		})
+		expect(resolver.projections.$endBlock(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				blockNumber: ccaConfiguration.endBlock,
+			},
+		})
+		expect(resolver.projections.$claimBlock(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				blockNumber: ccaConfiguration.claimBlock,
+			},
+		})
+		expect(resolver.projections.$validationHook(snapshot)).toBeUndefined()
+		expect(resolver.projections.floorPriceQ96(snapshot)).toBe(ccaConfiguration.floorPriceQ96)
+		expect(resolver.projections.tickSpacingQ96(snapshot)).toBe(ccaConfiguration.tickSpacingQ96)
+		expect('$$blocks' in resolver.projections).toBe(false)
+	})
+
+	it('projects ERC-20 currency and validation-hook identities', async () => {
+		getCcaAuctionConfiguration.mockResolvedValue({
+			...ccaConfiguration,
+			currencyAddress: '0x4444444444444444444444444444444444444444',
+			validationHookAddress: '0x5555555555555555555555555555555555555555',
+		})
+		const resolver = uniswapContractsEvm.resolvers.find(({ entityType }) => (
+			entityType === EntityType.UniswapCcaAuction
+		))
+		if (resolver == null)
+			throw new Error('missing UniswapCcaAuction resolver')
+
+		const snapshot = await resolver.resolve.NetworkAuctionAddress.resolve({
+			$network: ethereumNetwork,
+			auctionAddress: ccaConfiguration.auctionAddress,
+		}, context)
+
+		expect(resolver.projections.$currency(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				type: 'Erc20Token',
+				$contract: {
+					$network: ethereumNetwork,
+					address: '0x4444444444444444444444444444444444444444',
+				},
+			},
+		})
+		expect(resolver.projections.$validationHook(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: ethereumNetwork,
+				address: '0x5555555555555555555555555555555555555555',
+			},
+		})
+	})
+
+	it('rejects non-EIP-155 CCA network selectors before transport access', async () => {
+		const resolver = uniswapContractsEvm.resolvers.find(({ entityType }) => (
+			entityType === EntityType.UniswapCcaAuction
+		))
+		if (resolver == null)
+			throw new Error('missing UniswapCcaAuction resolver')
+
+		await expect(resolver.resolve.NetworkAuctionAddress.resolve({
+			$network: {
+				caip2: {
+					namespace: 'solana',
+					reference: 'mainnet',
+				},
+			},
+			auctionAddress: ccaConfiguration.auctionAddress,
+		}, context)).rejects.toThrow('network selector does not identify an EIP-155 network')
+		expect(getBlockNumber).not.toHaveBeenCalled()
+	})
+
+	it('fail-closes a mismatched CCA configuration address', async () => {
+		getCcaAuctionConfiguration.mockResolvedValue({
+			...ccaConfiguration,
+			auctionAddress: '0x9999999999999999999999999999999999999999',
+		})
+		const resolver = uniswapContractsEvm.resolvers.find(({ entityType }) => (
+			entityType === EntityType.UniswapCcaAuction
+		))
+		if (resolver == null)
+			throw new Error('missing UniswapCcaAuction resolver')
+
+		await expect(resolver.resolve.NetworkAuctionAddress.resolve({
+			$network: ethereumNetwork,
+			auctionAddress: ccaConfiguration.auctionAddress,
+		}, context)).rejects.toThrow('configuration address 0x9999999999999999999999999999999999999999 does not match 0x1234567890abcdef1234567890abcdef12345678')
+	})
+
+	it('fail-closes a failed CCA configuration snapshot', async () => {
+		getCcaAuctionConfiguration.mockRejectedValue(new Error('eth_call unavailable'))
+		const resolver = uniswapContractsEvm.resolvers.find(({ entityType }) => (
+			entityType === EntityType.UniswapCcaAuction
+		))
+		if (resolver == null)
+			throw new Error('missing UniswapCcaAuction resolver')
+
+		await expect(resolver.resolve.NetworkAuctionAddress.resolve({
+			$network: ethereumNetwork,
+			auctionAddress: ccaConfiguration.auctionAddress,
+		}, context)).rejects.toThrow('all UniswapCcaAuction endpoints failed for 0x1234567890abcdef1234567890abcdef12345678 on chain 1: mock-rpc: eth_call unavailable')
 	})
 
 	it('lists seeded Uniswap V3 pools on _Global.$$uniswapV3Pools', async () => {

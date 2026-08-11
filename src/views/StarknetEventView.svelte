@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -87,9 +88,10 @@
 		>
 			{#snippet children(starknetContract)}
 				{#if starknetContract != null}
+					{@const starknetContractInitial = untrack(() => starknetContract)}
 					<span data-text="muted">
 						<StarknetContractView
-							selection={select(EntityType.StarknetContract, starknetContract[EntityMetaKey.Selector])}
+							selection={select(EntityType.StarknetContract, (starknetContract ?? starknetContractInitial)[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -124,11 +126,12 @@
 			>
 				{#snippet children(starknetContract)}
 					{#if starknetContract != null}
+						{@const starknetContractInitial = untrack(() => starknetContract)}
 						<div>
 							<dt>from contract</dt>
 							<dd>
 								<StarknetContractView
-									selection={select(EntityType.StarknetContract, starknetContract[EntityMetaKey.Selector])}
+									selection={select(EntityType.StarknetContract, (starknetContract ?? starknetContractInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

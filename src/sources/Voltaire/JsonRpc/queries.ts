@@ -118,6 +118,7 @@ const executionTransport = (
 
 	return {
 		diagnosticLabel: `${sourceBindingId(binding)} ${endpoint.endpointKind} ${endpoint.locator}`,
+		endpointKind: endpoint.endpointKind,
 		origin: endpoint.locator,
 		...jsonRpc,
 		getLogs: async ({

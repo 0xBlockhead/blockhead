@@ -14,6 +14,14 @@ import {
 	getGenesisTimeSeconds,
 	getHeadSlot,
 	getHeaderFromWire,
+	getNodePeerCountFromWire,
+	getNodePeerCountObservation,
+	getNodeIdentityFromWire,
+	getNodeIdentityObservation,
+	getNodeHealthObservation,
+	getNodeVersionObservation,
+	getNodeSyncingFromWire,
+	getNodeSyncingObservation,
 	getSyncCommitteeFromWire,
 	getValidator,
 	getValidatorAtHead,
@@ -198,6 +206,245 @@ describe('Beacon REST native header wire', () => {
 })
 
 describe('Beacon REST native scalar clocks', () => {
+	it('preserves native node peer counts and timestamps only a valid response', async () => {
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_123)
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
+			data: {
+				disconnected: '12',
+				connecting: '34',
+				connected: '56',
+				disconnecting: '5',
+			},
+		})))
+
+		await expect(getNodePeerCountObservation(1)).resolves.toEqual({
+			disconnected: '12',
+			connecting: '34',
+			connected: '56',
+			disconnecting: '5',
+			endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
+			fetchedAtMs: 1_700_000_000_123,
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			bindings[Source.Beacon_Rest][0],
+			'https://ethereum-beacon-api.publicnode.com/eth/v1/node/peer_count',
+			{ headers: { accept: 'application/json' } }
+		)
+		expect(dateNow).toHaveBeenCalledOnce()
+	})
+
+	it('rejects malformed node peer counts before assigning a fetched-at clock', async () => {
+		const dateNow = vi.spyOn(Date, 'now')
+		vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
+			data: {
+				disconnected: '12',
+				connecting: '34',
+				connected: '18446744073709551616',
+				disconnecting: '5',
+			},
+		})))
+
+		await expect(getNodePeerCountObservation(1)).rejects.toThrow('invalid node peer_count response')
+		expect(dateNow).not.toHaveBeenCalled()
+		expect(getNodePeerCountFromWire({
+			data: {
+				disconnected: '12',
+				connecting: '34',
+				connected: '56',
+			},
+		})).toBeUndefined()
+	})
+
+	it('preserves one complete native node identity snapshot', async () => {
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_321)
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
+			data: {
+				peer_id: '16Uiu2HAmExample',
+				enr: 'enr:-example',
+				p2p_addresses: ['/ip4/127.0.0.1/tcp/9000/p2p/16Uiu2HAmExample'],
+				discovery_addresses: ['/ip4/127.0.0.1/udp/9000/p2p/16Uiu2HAmExample'],
+				metadata: {
+					seq_number: '18446744073709551615',
+					attnets: '0x0000000000000000',
+					syncnets: '0x0f',
+					custody_group_count: '128',
+				},
+			},
+		})))
+
+		await expect(getNodeIdentityObservation(1)).resolves.toEqual({
+			peer_id: '16Uiu2HAmExample',
+			enr: 'enr:-example',
+			p2p_addresses: ['/ip4/127.0.0.1/tcp/9000/p2p/16Uiu2HAmExample'],
+			discovery_addresses: ['/ip4/127.0.0.1/udp/9000/p2p/16Uiu2HAmExample'],
+			metadata: {
+				seq_number: '18446744073709551615',
+				attnets: '0x0000000000000000',
+				syncnets: '0x0f',
+				custody_group_count: '128',
+			},
+			endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
+			fetchedAtMs: 1_700_000_000_321,
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			bindings[Source.Beacon_Rest][0],
+			'https://ethereum-beacon-api.publicnode.com/eth/v1/node/identity',
+			{ headers: { accept: 'application/json' } }
+		)
+		expect(dateNow).toHaveBeenCalledOnce()
+	})
+
+	it('rejects invalid node identity metadata before assigning a fetched-at clock', async () => {
+		const dateNow = vi.spyOn(Date, 'now')
+		vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
+			data: {
+				peer_id: '16Uiu2HAmExample',
+				enr: 'enr:-example',
+				p2p_addresses: [],
+				discovery_addresses: [],
+				metadata: {
+					seq_number: '1',
+					attnets: 'not-hex',
+				},
+			},
+		})))
+
+		await expect(getNodeIdentityObservation(1)).rejects.toThrow('invalid node identity response')
+		expect(dateNow).not.toHaveBeenCalled()
+		expect(getNodeIdentityFromWire({
+			data: {
+				peer_id: '16Uiu2HAmExample',
+				enr: 'enr:-example',
+				p2p_addresses: [],
+				discovery_addresses: [],
+				metadata: {
+					seq_number: '18446744073709551616',
+					attnets: '0x00',
+				},
+			},
+		})).toBeUndefined()
+	})
+
+	it.each([
+		200,
+		206,
+		503,
+	] as const)('preserves native node health status %i as the complete response fact', async (statusCode) => {
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_350)
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(null, {
+			status: statusCode,
+		}))
+
+		await expect(getNodeHealthObservation(1)).resolves.toEqual({
+			statusCode,
+			endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
+			fetchedAtMs: 1_700_000_000_350,
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			bindings[Source.Beacon_Rest][0],
+			'https://ethereum-beacon-api.publicnode.com/eth/v1/node/health',
+			{ headers: { accept: 'application/json' } }
+		)
+		expect(dateNow).toHaveBeenCalledOnce()
+	})
+
+	it('rejects a status outside the Beacon health contract before assigning a fetched-at clock', async () => {
+		const dateNow = vi.spyOn(Date, 'now')
+		vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(null, {
+			status: 418,
+			statusText: 'Teapot',
+		}))
+
+		await expect(getNodeHealthObservation(1)).rejects.toThrow()
+		expect(dateNow).not.toHaveBeenCalled()
+	})
+
+	it('preserves the implementation-owned node version string without parsing labels', async () => {
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_400)
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
+			data: {
+				version: 'Lighthouse/v8.2.1-b263df5/x86_64-linux',
+			},
+		})))
+
+		await expect(getNodeVersionObservation(1)).resolves.toEqual({
+			version: 'Lighthouse/v8.2.1-b263df5/x86_64-linux',
+			endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
+			fetchedAtMs: 1_700_000_000_400,
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			bindings[Source.Beacon_Rest][0],
+			'https://ethereum-beacon-api.publicnode.com/eth/v1/node/version',
+			{ headers: { accept: 'application/json' } }
+		)
+		expect(dateNow).toHaveBeenCalledOnce()
+	})
+
+	it('rejects an empty node version before assigning a fetched-at clock', async () => {
+		const dateNow = vi.spyOn(Date, 'now')
+		vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
+			data: {
+				version: '',
+			},
+		})))
+
+		await expect(getNodeVersionObservation(1)).rejects.toThrow('invalid node version response')
+		expect(dateNow).not.toHaveBeenCalled()
+	})
+
+	it('preserves native node sync coordinates and readiness flags in one snapshot', async () => {
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_456)
+		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
+			data: {
+				head_slot: '18446744073709551615',
+				sync_distance: '12',
+				is_syncing: true,
+				is_optimistic: true,
+				el_offline: false,
+			},
+		})))
+
+		await expect(getNodeSyncingObservation(1)).resolves.toEqual({
+			head_slot: '18446744073709551615',
+			sync_distance: '12',
+			is_syncing: true,
+			is_optimistic: true,
+			el_offline: false,
+			endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
+			fetchedAtMs: 1_700_000_000_456,
+		})
+		expect(sourceFetch).toHaveBeenCalledWith(
+			bindings[Source.Beacon_Rest][0],
+			'https://ethereum-beacon-api.publicnode.com/eth/v1/node/syncing',
+			{ headers: { accept: 'application/json' } }
+		)
+		expect(dateNow).toHaveBeenCalledOnce()
+	})
+
+	it('rejects partial or malformed node sync rows before assigning a fetched-at clock', async () => {
+		const dateNow = vi.spyOn(Date, 'now')
+		vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
+			data: {
+				head_slot: '128',
+				sync_distance: '-1',
+				is_syncing: true,
+				is_optimistic: false,
+				el_offline: false,
+			},
+		})))
+
+		await expect(getNodeSyncingObservation(1)).rejects.toThrow('invalid node syncing response')
+		expect(dateNow).not.toHaveBeenCalled()
+		expect(getNodeSyncingFromWire({
+			data: {
+				head_slot: '128',
+				sync_distance: '0',
+				is_syncing: false,
+				is_optimistic: false,
+			},
+		})).toBeUndefined()
+	})
+
 	it('preserves the head slot decimal string until a numeric consumer boundary', async () => {
 		const sourceFetch = vi.spyOn(sourceHttp, 'sourceFetch').mockResolvedValue(new Response(JSON.stringify({
 			data: {

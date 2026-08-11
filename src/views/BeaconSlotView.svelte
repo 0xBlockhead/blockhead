@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -96,9 +97,10 @@
 			resource={selection.$epoch}
 		>
 			{#snippet children(beaconEpoch)}
+				{@const beaconEpochInitial = untrack(() => beaconEpoch)}
 				<span data-text="muted">
 					<BeaconEpochView
-						selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
+						selection={select(EntityType.BeaconEpoch, (beaconEpoch ?? beaconEpochInitial)[EntityMetaKey.Selector])}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -139,8 +141,9 @@
 						resource={selection.$epoch}
 					>
 						{#snippet children(beaconEpoch)}
+							{@const beaconEpochInitial = untrack(() => beaconEpoch)}
 							<BeaconEpochView
-								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
+								selection={select(EntityType.BeaconEpoch, (beaconEpoch ?? beaconEpochInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

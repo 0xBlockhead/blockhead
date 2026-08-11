@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -89,10 +90,11 @@
 			resource={selection.$governor}
 		>
 			{#snippet children(tallyGovernor)}
+				{@const tallyGovernorInitial = untrack(() => tallyGovernor)}
 				<span data-text="muted">
 					<TallyGovernorView
-						selection={select(EntityType.TallyGovernor, tallyGovernor[EntityMetaKey.Selector])}
-						prefetched={tallyGovernor}
+						selection={select(EntityType.TallyGovernor, (tallyGovernor ?? tallyGovernorInitial)[EntityMetaKey.Selector])}
+						prefetched={tallyGovernor ?? tallyGovernorInitial}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -109,9 +111,10 @@
 						resource={selection.$governor}
 					>
 						{#snippet children(tallyGovernor)}
+							{@const tallyGovernorInitial = untrack(() => tallyGovernor)}
 							<TallyGovernorView
-								selection={select(EntityType.TallyGovernor, tallyGovernor[EntityMetaKey.Selector])}
-								prefetched={tallyGovernor}
+								selection={select(EntityType.TallyGovernor, (tallyGovernor ?? tallyGovernorInitial)[EntityMetaKey.Selector])}
+								prefetched={tallyGovernor ?? tallyGovernorInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -126,9 +129,10 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
+							{@const networkInitial = untrack(() => network)}
 							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
+								selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+								prefetched={network ?? networkInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -141,11 +145,12 @@
 			>
 				{#snippet children(evmNetworkAccount)}
 					{#if evmNetworkAccount != null}
+						{@const evmNetworkAccountInitial = untrack(() => evmNetworkAccount)}
 						<div>
 							<dt>Proposer</dt>
 							<dd>
 								<EvmNetworkAccountView
-									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmNetworkAccount, (evmNetworkAccount ?? evmNetworkAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

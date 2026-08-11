@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -363,11 +364,12 @@
 			>
 				{#snippet children(hyperliquidOrder)}
 					{#if hyperliquidOrder != null}
+						{@const hyperliquidOrderInitial = untrack(() => hyperliquidOrder)}
 						<div>
 							<dt>order</dt>
 							<dd>
 								<HyperliquidOrderView
-									selection={select(EntityType.HyperliquidOrder, hyperliquidOrder[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidOrder, (hyperliquidOrder ?? hyperliquidOrderInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -381,11 +383,12 @@
 			>
 				{#snippet children(hyperliquidTransaction)}
 					{#if hyperliquidTransaction != null}
+						{@const hyperliquidTransactionInitial = untrack(() => hyperliquidTransaction)}
 						<div>
 							<dt>transaction</dt>
 							<dd>
 								<HyperliquidTransactionView
-									selection={select(EntityType.HyperliquidTransaction, hyperliquidTransaction[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidTransaction, (hyperliquidTransaction ?? hyperliquidTransactionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

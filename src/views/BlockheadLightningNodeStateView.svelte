@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -102,9 +103,10 @@
 		>
 			{#snippet children(lightningNode)}
 				{#if lightningNode != null}
+					{@const lightningNodeInitial = untrack(() => lightningNode)}
 					<span data-text="muted">
 						<LightningNodeView
-							selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
+							selection={select(EntityType.LightningNode, (lightningNode ?? lightningNodeInitial)[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -175,11 +177,12 @@
 			>
 				{#snippet children(lightningNode)}
 					{#if lightningNode != null}
+						{@const lightningNodeInitial = untrack(() => lightningNode)}
 						<div>
 							<dt>node</dt>
 							<dd>
 								<LightningNodeView
-									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
+									selection={select(EntityType.LightningNode, (lightningNode ?? lightningNodeInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

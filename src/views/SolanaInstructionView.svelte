@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -204,11 +205,12 @@
 			>
 				{#snippet children(solanaProgram)}
 					{#if solanaProgram != null}
+						{@const solanaProgramInitial = untrack(() => solanaProgram)}
 						<div>
 							<dt>Program</dt>
 							<dd>
 								<SolanaProgramView
-									selection={select(EntityType.SolanaProgram, solanaProgram[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaProgram, (solanaProgram ?? solanaProgramInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

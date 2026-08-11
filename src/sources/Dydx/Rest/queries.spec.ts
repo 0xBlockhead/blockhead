@@ -246,6 +246,27 @@ describe('dYdX v4 read-only public transport', () => {
 		})
 	})
 
+	it('fail-closes mismatched subaccount position market identity', async () => {
+		sourceGetJson.mockResolvedValue({
+			address,
+			subaccountNumber: 7,
+			equity: '1',
+			freeCollateral: '1',
+			openPerpetualPositions: {
+				'ETH-USD': positionRow,
+			},
+			assetPositions: {},
+			marginEnabled: true,
+			updatedAtHeight: '100',
+			latestProcessedBlockHeight: '100',
+		})
+
+		await expect(getSubaccount({
+			address,
+			subaccountNumber: 7,
+		})).rejects.toThrow('mismatched subaccount position market identity')
+	})
+
 	it.each([
 		{
 			query: getOrders,

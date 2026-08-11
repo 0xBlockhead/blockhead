@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -69,8 +70,9 @@
 		>
 			{#snippet children(nearAccount)}
 				{#if nearAccount != null}
+					{@const nearAccountInitial = untrack(() => nearAccount)}
 					<NearAccountView
-						selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearAccount, (nearAccount ?? nearAccountInitial)[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -85,9 +87,10 @@
 		>
 			{#snippet children(nearAccount)}
 				{#if nearAccount != null}
+					{@const nearAccountInitial = untrack(() => nearAccount)}
 					<span data-text="muted">
 						<NearAccountView
-							selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
+							selection={select(EntityType.NearAccount, (nearAccount ?? nearAccountInitial)[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -120,11 +123,12 @@
 			>
 				{#snippet children(nearAccount)}
 					{#if nearAccount != null}
+						{@const nearAccountInitial = untrack(() => nearAccount)}
 						<div>
 							<dt>Predecessor</dt>
 							<dd>
 								<NearAccountView
-									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.NearAccount, (nearAccount ?? nearAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -138,11 +142,12 @@
 			>
 				{#snippet children(nearAccount)}
 					{#if nearAccount != null}
+						{@const nearAccountInitial = untrack(() => nearAccount)}
 						<div>
 							<dt>Receiver</dt>
 							<dd>
 								<NearAccountView
-									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.NearAccount, (nearAccount ?? nearAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -3,23 +3,28 @@ import {
 	ApiFamily,
 	genericReadOperationGroups,
 	indexSourceBindings,
+	mapSourceBindings,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
-export default indexSourceBindings([
-	{
+export default indexSourceBindings(mapSourceBindings(
+	[
+		'uniswap-v3-evm-contract-catalog',
+		'uniswap-cca-v2-contract-interface',
+	] as const,
+	(key) => ({
 		source: Source.UniswapContracts_Evm,
 		target: {
 			kind: SourceTargetKind.Global,
-			key: 'uniswap-v3-evm-contract-catalog',
+			key,
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.InProcess,
-				locator: 'uniswap-v3-evm-contract-catalog',
+				locator: key,
 			},
 		],
 		wireProtocol: WireProtocol.InProcess,
@@ -27,5 +32,5 @@ export default indexSourceBindings([
 		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
-	},
-])
+	})
+))

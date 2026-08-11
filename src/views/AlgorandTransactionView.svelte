@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -201,11 +202,12 @@
 			>
 				{#snippet children(algorandTransactionGroup)}
 					{#if algorandTransactionGroup != null}
+						{@const algorandTransactionGroupInitial = untrack(() => algorandTransactionGroup)}
 						<div>
 							<dt>group</dt>
 							<dd>
 								<AlgorandTransactionGroupView
-									selection={select(EntityType.AlgorandTransactionGroup, algorandTransactionGroup[EntityMetaKey.Selector])}
+									selection={select(EntityType.AlgorandTransactionGroup, (algorandTransactionGroup ?? algorandTransactionGroupInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

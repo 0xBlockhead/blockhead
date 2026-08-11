@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -92,9 +93,10 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
+							{@const networkInitial = untrack(() => network)}
 							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
+								selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+								prefetched={network ?? networkInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -126,11 +128,12 @@
 			>
 				{#snippet children(tonNftCollection)}
 					{#if tonNftCollection != null}
+						{@const tonNftCollectionInitial = untrack(() => tonNftCollection)}
 						<div>
 							<dt>collection</dt>
 							<dd>
 								<TonNftCollectionView
-									selection={select(EntityType.TonNftCollection, tonNftCollection[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonNftCollection, (tonNftCollection ?? tonNftCollectionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -166,11 +169,12 @@
 			>
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null}
+						{@const tonAccountInitial = untrack(() => tonAccount)}
 						<div>
 							<dt>account</dt>
 							<dd>
 								<TonAccountView
-									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonAccount, (tonAccount ?? tonAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

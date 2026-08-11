@@ -5,6 +5,7 @@
 	import { resolve } from '$app/paths'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -236,11 +237,12 @@
 					>
 						{#snippet children(evmAccount)}
 							{#if evmAccount != null}
+								{@const evmAccountInitial = untrack(() => evmAccount)}
 								<div>
 									<dt>Agent wallet</dt>
 									<dd>
 										<EvmAccountView
-											selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+											selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 											layout={EntityLayout.Value}
 										/>
 									</dd>

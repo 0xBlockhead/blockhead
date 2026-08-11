@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -96,9 +97,10 @@
 		>
 			{#snippet children(polkadotPallet)}
 				{#if polkadotPallet != null}
+					{@const polkadotPalletInitial = untrack(() => polkadotPallet)}
 					<span data-text="muted">
 						<PolkadotPalletView
-							selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
+							selection={select(EntityType.PolkadotPallet, (polkadotPallet ?? polkadotPalletInitial)[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -134,11 +136,12 @@
 			>
 				{#snippet children(polkadotPallet)}
 					{#if polkadotPallet != null}
+						{@const polkadotPalletInitial = untrack(() => polkadotPallet)}
 						<div>
 							<dt>Pallet</dt>
 							<dd>
 								<PolkadotPalletView
-									selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
+									selection={select(EntityType.PolkadotPallet, (polkadotPallet ?? polkadotPalletInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -152,11 +155,12 @@
 			>
 				{#snippet children(polkadotExtrinsic)}
 					{#if polkadotExtrinsic != null}
+						{@const polkadotExtrinsicInitial = untrack(() => polkadotExtrinsic)}
 						<div>
 							<dt>Extrinsic</dt>
 							<dd>
 								<PolkadotExtrinsicView
-									selection={select(EntityType.PolkadotExtrinsic, polkadotExtrinsic[EntityMetaKey.Selector])}
+									selection={select(EntityType.PolkadotExtrinsic, (polkadotExtrinsic ?? polkadotExtrinsicInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -126,7 +126,7 @@ describe('CoinGecko global market prices resolver', () => {
 })
 
 describe('CoinGecko derivative timestamp resolver', () => {
-	it('projects enrolled markPrice and indexPrice from last/index wire', async () => {
+	it('projects exact derivative decimal strings from the normalized wire', async () => {
 		getDerivativesExchange.mockResolvedValue({
 			name: 'Binance (Futures)',
 			trade_volume_24h_btc: 50,
@@ -134,12 +134,12 @@ describe('CoinGecko derivative timestamp resolver', () => {
 				coin_id: 'bitcoin',
 				target_coin_id: 'tether',
 				symbol: 'BTCUSDT',
-				last: 100_000.25,
-				index: 99_999.5,
+				last: '100000.123456789',
+				index: '0.000000015',
 				last_traded: 1_700_000_000,
-				open_interest_usd: 1_000_000,
-				index_basis_percentage: 0.12,
-				funding_rate: 0.01,
+				open_interest_usd: '9007199254740992',
+				index_basis_percentage: '-0.12',
+				funding_rate: '-0.0000000000001',
 				volume_24h: 5_000,
 			}],
 		})
@@ -173,12 +173,18 @@ describe('CoinGecko derivative timestamp resolver', () => {
 			resolverContext
 		)
 
-		expect(snapshot.markPrice).toBe(BigInt(Math.round(100_000.25 * 1e8)))
-		expect(snapshot.indexPrice).toBe(BigInt(Math.round(99_999.5 * 1e8)))
+		expect(snapshot.markPrice).toBe('100000.123456789')
+		expect(snapshot.indexPrice).toBe('0.000000015')
+		expect(snapshot.openInterestUsd).toBe('9007199254740992')
+		expect(snapshot.indexBasisPercent).toBe('-0.12')
+		expect(snapshot.fundingRate).toBe('-0.0000000000001')
 		expect(snapshot).not.toHaveProperty('volume_24h')
 		expect(snapshot).not.toHaveProperty('trade_volume_24h_btc')
 		expect(resolver.projections.markPrice(snapshot)).toBe(snapshot.markPrice)
 		expect(resolver.projections.indexPrice(snapshot)).toBe(snapshot.indexPrice)
+		expect(resolver.projections.openInterestUsd(snapshot)).toBe(snapshot.openInterestUsd)
+		expect(resolver.projections.indexBasisPercent(snapshot)).toBe(snapshot.indexBasisPercent)
+		expect(resolver.projections.fundingRate(snapshot)).toBe(snapshot.fundingRate)
 		expect(getDerivativesExchange).toHaveBeenCalledWith({
 			publicEnv: {},
 			id: 'binance_futures',

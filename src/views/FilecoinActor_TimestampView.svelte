@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -162,8 +163,9 @@
 						resource={selection.$tipset}
 					>
 						{#snippet children(filecoinTipset)}
+							{@const filecoinTipsetInitial = untrack(() => filecoinTipset)}
 							<FilecoinTipsetView
-								selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
+								selection={select(EntityType.FilecoinTipset, (filecoinTipset ?? filecoinTipsetInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

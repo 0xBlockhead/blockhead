@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -174,11 +175,12 @@
 			>
 				{#snippet children(blockheadWalletConnection)}
 					{#if blockheadWalletConnection != null}
+						{@const blockheadWalletConnectionInitial = untrack(() => blockheadWalletConnection)}
 						<div>
 							<dt>wallet connection</dt>
 							<dd>
 								<BlockheadWalletConnectionView
-									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadWalletConnection, (blockheadWalletConnection ?? blockheadWalletConnectionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -192,12 +194,13 @@
 			>
 				{#snippet children(blockheadAgentConversation)}
 					{#if blockheadAgentConversation != null}
+						{@const blockheadAgentConversationInitial = untrack(() => blockheadAgentConversation)}
 						<div>
 							<dt>agent conversation</dt>
 							<dd>
 								<BlockheadAgentConversationView
-									selection={select(EntityType.BlockheadAgentConversation, blockheadAgentConversation[EntityMetaKey.Selector])}
-									prefetched={blockheadAgentConversation}
+									selection={select(EntityType.BlockheadAgentConversation, (blockheadAgentConversation ?? blockheadAgentConversationInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadAgentConversation ?? blockheadAgentConversationInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

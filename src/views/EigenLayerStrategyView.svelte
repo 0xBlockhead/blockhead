@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -29,9 +30,6 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
-			Source.EigenLayerContracts_Evm,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
 		],
 	}))
 	const eigenLayerStrategy = $derived(viewSelection({
@@ -130,11 +128,12 @@
 			>
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null}
+						{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 						<div>
 							<dt>underlying coin</dt>
 							<dd>
 								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -182,12 +181,13 @@
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}
+						{@const evmContractInitial = untrack(() => evmContract)}
 						<div>
 							<dt>strategy contract</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
+									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContract ?? evmContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

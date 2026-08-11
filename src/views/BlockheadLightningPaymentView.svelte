@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -182,12 +183,13 @@
 			>
 				{#snippet children(blockheadLightningNodeState)}
 					{#if blockheadLightningNodeState != null}
+						{@const blockheadLightningNodeStateInitial = untrack(() => blockheadLightningNodeState)}
 						<div>
 							<dt>Local node state</dt>
 							<dd>
 								<BlockheadLightningNodeStateView
-									selection={select(EntityType.BlockheadLightningNodeState, blockheadLightningNodeState[EntityMetaKey.Selector])}
-									prefetched={blockheadLightningNodeState}
+									selection={select(EntityType.BlockheadLightningNodeState, (blockheadLightningNodeState ?? blockheadLightningNodeStateInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadLightningNodeState ?? blockheadLightningNodeStateInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -201,12 +203,13 @@
 			>
 				{#snippet children(blockheadLightningInvoice)}
 					{#if blockheadLightningInvoice != null}
+						{@const blockheadLightningInvoiceInitial = untrack(() => blockheadLightningInvoice)}
 						<div>
 							<dt>Invoice</dt>
 							<dd>
 								<BlockheadLightningInvoiceView
-									selection={select(EntityType.BlockheadLightningInvoice, blockheadLightningInvoice[EntityMetaKey.Selector])}
-									prefetched={blockheadLightningInvoice}
+									selection={select(EntityType.BlockheadLightningInvoice, (blockheadLightningInvoice ?? blockheadLightningInvoiceInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadLightningInvoice ?? blockheadLightningInvoiceInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

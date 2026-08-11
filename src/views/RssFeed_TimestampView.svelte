@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,7 +15,6 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -42,19 +40,6 @@
 	entityType={EntityType.RssFeed_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'RSS feed observation'}
-	href={
-		href === undefined ?
-			resolve(
-				'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-				{
-					feedUrl: encodeURIComponent(selection.entitySelector.$feed.feedUrl),
-					timestampMs: String(selection.entitySelector.timestampMs),
-					source: selection.entitySelector.source,
-				}
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

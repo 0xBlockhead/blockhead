@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,7 +15,6 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -42,25 +40,6 @@
 	entityType={EntityType.FarcasterChannel_Viewer_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'Farcaster channel viewer observation'}
-	href={
-		href === undefined ?
-			(
-				'id' in selection.entitySelector.$channel ?
-					resolve(
-						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/viewer/[fid=farcasterFid]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-						{
-							channelId: selection.entitySelector.$channel.id,
-							fid: String(selection.entitySelector.$viewer.fid),
-							timestampMs: String(selection.entitySelector.timestampMs),
-							source: selection.entitySelector.source,
-						}
-					)
-				:
-					undefined
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

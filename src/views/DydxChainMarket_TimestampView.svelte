@@ -2,10 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -17,17 +15,14 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.DydxChainMarket_Timestamp>, 'prefetched'> = $props()
 
-	const market = $derived(selection.entitySelector.$market)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.DydxIndexer,
-			Source.KingnodesDydxNode,
 		],
 	}))
 	const dydxChainMarketTimestamp = $derived(viewSelection({
@@ -48,25 +43,6 @@
 	entityType={EntityType.DydxChainMarket_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
-	href={
-		href === undefined ?
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(dydx)/market/[ticker=stringSegment]/(dydxChainMarket)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-				{
-					network: (
-						'caip2' in market.$network.$network ?
-							caip2StringFromValue(market.$network.$network.caip2)
-						:
-							market.$network.$network.slug
-					),
-					ticker: market.ticker,
-					timestampMs: String(selection.entitySelector.timestampMs),
-					source: selection.entitySelector.source,
-				}
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

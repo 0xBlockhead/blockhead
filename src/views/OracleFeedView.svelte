@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -90,8 +91,9 @@
 				>
 					{#snippet children(market)}
 						{#if market != null}
+							{@const marketInitial = untrack(() => market)}
 							<MarketView
-								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
+								selection={select(EntityType.Market, (market ?? marketInitial)[EntityMetaKey.Selector])}
 								href={null}
 								layout={EntityLayout.Value}
 							/>
@@ -126,11 +128,12 @@
 			>
 				{#snippet children(market)}
 					{#if market != null}
+						{@const marketInitial = untrack(() => market)}
 						<div>
 							<dt>market</dt>
 							<dd>
 								<MarketView
-									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
+									selection={select(EntityType.Market, (market ?? marketInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

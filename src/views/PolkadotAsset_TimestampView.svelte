@@ -2,10 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -18,13 +16,11 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.PolkadotAsset_Timestamp> = $props()
 
-	const asset = $derived(selection.entitySelector.$asset)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.SubstrateSidecar_Rest,
@@ -53,26 +49,6 @@
 	entityType={EntityType.PolkadotAsset_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	href={
-		href === undefined ?
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/asset/[assetKind=stringSegment]:[assetId=stringSegment]/(polkadotAsset)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-				{
-					network: (
-						'caip2' in asset.$network ?
-							caip2StringFromValue(asset.$network.caip2)
-						:
-							asset.$network.slug
-					),
-					assetKind: asset.assetKind,
-					assetId: asset.assetId,
-					timestampMs: String(selection.entitySelector.timestampMs),
-					source: selection.entitySelector.source,
-				}
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

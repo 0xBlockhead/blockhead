@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -153,12 +154,13 @@
 			>
 				{#snippet children(cardanoGovernanceProposal)}
 					{#if cardanoGovernanceProposal != null}
+						{@const cardanoGovernanceProposalInitial = untrack(() => cardanoGovernanceProposal)}
 						<div>
 							<dt>seating proposal</dt>
 							<dd>
 								<CardanoGovernanceProposalView
-									selection={select(EntityType.CardanoGovernanceProposal, cardanoGovernanceProposal[EntityMetaKey.Selector])}
-									prefetched={cardanoGovernanceProposal}
+									selection={select(EntityType.CardanoGovernanceProposal, (cardanoGovernanceProposal ?? cardanoGovernanceProposalInitial)[EntityMetaKey.Selector])}
+									prefetched={cardanoGovernanceProposal ?? cardanoGovernanceProposalInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

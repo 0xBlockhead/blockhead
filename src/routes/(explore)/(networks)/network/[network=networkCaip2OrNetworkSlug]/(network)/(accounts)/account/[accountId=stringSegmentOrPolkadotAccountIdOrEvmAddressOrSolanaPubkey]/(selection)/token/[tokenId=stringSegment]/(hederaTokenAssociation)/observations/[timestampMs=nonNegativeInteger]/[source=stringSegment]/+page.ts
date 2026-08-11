@@ -47,7 +47,7 @@ export const load: PageLoad = async ({ params, parent }) => {
 			{
 				$account: parentData.selector,
 				$token: {
-					$network: selector.$account.$network,
+					$network: parentData.selector.$network,
 					tokenId: params.tokenId,
 				},
 				timestampMs: Number(params.timestampMs),

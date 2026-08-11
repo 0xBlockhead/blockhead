@@ -52,7 +52,7 @@
 			entitySelector={activityPubInstanceModeratedDomainSelector}
 			href={
 				resolve(
-					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/(activityPubInstanceTimestamp)/moderated-domain/[domain=stringSegment]',
+					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/moderated-domain/[domain=stringSegment]',
 					{
 						instanceOrigin: encodeURIComponent(observation.$instance.instanceOrigin),
 						timestampMs: String(observation.timestampMs),

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -265,12 +266,13 @@
 			>
 				{#snippet children(media)}
 					{#if media != null}
+						{@const mediaInitial = untrack(() => media)}
 						<div>
 							<dt>Media</dt>
 							<dd>
 								<MediaView
-									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
-									prefetched={media}
+									selection={select(EntityType.Media, (media ?? mediaInitial)[EntityMetaKey.Selector])}
+									prefetched={media ?? mediaInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

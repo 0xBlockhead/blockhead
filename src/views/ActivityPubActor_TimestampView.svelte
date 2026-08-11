@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,13 +15,11 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.ActivityPubActor_Timestamp>, 'prefetched'> = $props()
 
-	const actor = $derived(selection.entitySelector.$actor)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Mastodon_Rest,
@@ -42,26 +39,6 @@
 	entityType={EntityType.ActivityPubActor_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'ActivityPub actor observation'}
-	href={
-		href === undefined ?
-			(
-				'instanceOrigin' in actor
-				&& 'localAccountId' in actor ?
-					resolve(
-						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-						{
-							instanceOrigin: encodeURIComponent(actor.instanceOrigin),
-							localAccountId: actor.localAccountId,
-							timestampMs: String(selection.entitySelector.timestampMs),
-							source: selection.entitySelector.source,
-						}
-					)
-				:
-					undefined
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

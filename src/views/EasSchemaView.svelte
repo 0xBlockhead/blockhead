@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -27,11 +28,7 @@
 	const network = $derived(selection.entitySelector.$network)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Blockscout_Rest,
-			Source.EasContracts_Evm,
 			Source.EasScan_Graphql,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
 		],
 	}))
 	const easSchema = $derived(viewSelection({
@@ -268,12 +265,13 @@
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}
+						{@const evmContractInitial = untrack(() => evmContract)}
 						<div>
 							<dt>Resolver contract</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
+									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContract ?? evmContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -287,11 +285,12 @@
 			>
 				{#snippet children(evmNetworkAccount)}
 					{#if evmNetworkAccount != null}
+						{@const evmNetworkAccountInitial = untrack(() => evmNetworkAccount)}
 						<div>
 							<dt>Registerer account</dt>
 							<dd>
 								<EvmNetworkAccountView
-									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmNetworkAccount, (evmNetworkAccount ?? evmNetworkAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

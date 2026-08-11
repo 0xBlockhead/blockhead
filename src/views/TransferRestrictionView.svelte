@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -112,12 +113,13 @@
 			>
 				{#snippet children(regulatedAssetProfile)}
 					{#if regulatedAssetProfile != null}
+						{@const regulatedAssetProfileInitial = untrack(() => regulatedAssetProfile)}
 						<div>
 							<dt>profile</dt>
 							<dd>
 								<RegulatedAssetProfileView
-									selection={select(EntityType.RegulatedAssetProfile, regulatedAssetProfile[EntityMetaKey.Selector])}
-									prefetched={regulatedAssetProfile}
+									selection={select(EntityType.RegulatedAssetProfile, (regulatedAssetProfile ?? regulatedAssetProfileInitial)[EntityMetaKey.Selector])}
+									prefetched={regulatedAssetProfile ?? regulatedAssetProfileInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

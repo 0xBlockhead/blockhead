@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -190,11 +191,12 @@
 			>
 				{#snippet children(cashuMint)}
 					{#if cashuMint != null}
+						{@const cashuMintInitial = untrack(() => cashuMint)}
 						<div>
 							<dt>mint</dt>
 							<dd>
 								<CashuMintView
-									selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
+									selection={select(EntityType.CashuMint, (cashuMint ?? cashuMintInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

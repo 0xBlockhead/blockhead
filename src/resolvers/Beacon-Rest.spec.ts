@@ -30,6 +30,11 @@ const getValidator = vi.hoisted(() => vi.fn())
 const getBlockDutySummary = vi.hoisted(() => vi.fn())
 const getHeader = vi.hoisted(() => vi.fn())
 const getHeadSlot = vi.hoisted(() => vi.fn())
+const getNodeHealthObservation = vi.hoisted(() => vi.fn())
+const getNodeIdentityObservation = vi.hoisted(() => vi.fn())
+const getNodePeerCountObservation = vi.hoisted(() => vi.fn())
+const getNodeSyncingObservation = vi.hoisted(() => vi.fn())
+const getNodeVersionObservation = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Beacon/Rest/queries.ts')>(),
@@ -41,6 +46,11 @@ vi.mock('$/sources/Beacon/Rest/queries.ts', async (importOriginal) => ({
 	getBlockDutySummary,
 	getHeader,
 	getHeadSlot,
+	getNodeHealthObservation,
+	getNodeIdentityObservation,
+	getNodePeerCountObservation,
+	getNodeSyncingObservation,
+	getNodeVersionObservation,
 }))
 
 const { default: beaconRest } = await import('$/resolvers/Beacon-Rest.ts')
@@ -664,5 +674,125 @@ describe('Beacon REST checkpoint and fork projections', () => {
 			previousForkVersion: undefined,
 			currentForkVersion: undefined,
 		})
+	})
+})
+
+describe('Beacon endpoint observation', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		getNodeHealthObservation.mockResolvedValue({
+			statusCode: 206,
+			endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
+			fetchedAtMs: 1_785_477_600_101,
+		})
+		getNodeIdentityObservation.mockResolvedValue({
+			peer_id: 'peer-id',
+			enr: 'enr:-example',
+			p2p_addresses: ['/ip4/127.0.0.1/tcp/9000'],
+			discovery_addresses: ['/ip4/127.0.0.1/udp/9000'],
+			metadata: {
+				seq_number: '7',
+				attnets: '0x01',
+				syncnets: '0x02',
+				custody_group_count: '3',
+			},
+			endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
+			fetchedAtMs: 1_785_477_600_102,
+		})
+		getNodePeerCountObservation.mockResolvedValue({
+			disconnected: '1',
+			connecting: '2',
+			connected: '3',
+			disconnecting: '4',
+			endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
+			fetchedAtMs: 1_785_477_600_103,
+		})
+		getNodeSyncingObservation.mockResolvedValue({
+			head_slot: '12345678',
+			sync_distance: '9',
+			is_syncing: true,
+			is_optimistic: false,
+			el_offline: false,
+			endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
+			fetchedAtMs: 1_785_477_600_104,
+		})
+		getNodeVersionObservation.mockResolvedValue({
+			version: 'Lighthouse/v7.1.0',
+			endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
+			fetchedAtMs: 1_785_477_600_105,
+		})
+	})
+
+	it('materializes one complete current Beacon endpoint snapshot from Network', async () => {
+		const resolver = beaconRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& '$$endpointObservations' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Beacon endpoint observation resolver is not registered')
+
+		const observation = await resolver.resolve.Caip2.resolve(network, {
+			filters: [],
+			sorts: [],
+			pagination: {},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		})
+
+		expect(resolver.projections.$$endpointObservations(observation)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				endpointUrl: 'https://ethereum-beacon-api.publicnode.com',
+				endpointKind: 'EthereumBeaconRest',
+				timestampMs: 1_785_477_600_105,
+				source: Source.Beacon_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'disconnectedPeerCount')]: 1n,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'connectingPeerCount')]: 2n,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'connectedPeerCount')]: 3n,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'disconnectingPeerCount')]: 4n,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'headSlot')]: 12_345_678n,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'syncDistance')]: 9n,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'isSyncing')]: true,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'isOptimistic')]: false,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'executionLayerOffline')]: false,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'version')]: 'Lighthouse/v7.1.0',
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'peerId')]: 'peer-id',
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'enr')]: 'enr:-example',
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'p2pAddresses')]: ['/ip4/127.0.0.1/tcp/9000'],
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'discoveryAddresses')]: ['/ip4/127.0.0.1/udp/9000'],
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'metadataSequenceNumber')]: 7n,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'attestationSubnets')]: '0x01',
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'syncCommitteeSubnets')]: '0x02',
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'custodyGroupCount')]: 3n,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'statusCode')]: 206,
+			},
+		}])
+		expect(beaconRest.resolvers.some((candidate) => (
+			candidate.entityType === EntityType.NetworkEndpointObservation_Timestamp
+		))).toBe(false)
+	})
+
+	it('rejects an incomplete Beacon facet instead of publishing a partial snapshot', async () => {
+		getNodeVersionObservation.mockRejectedValue(new Error('version unavailable'))
+		const resolver = beaconRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& '$$endpointObservations' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Beacon endpoint observation resolver is not registered')
+
+		await expect(resolver.resolve.Caip2.resolve(network, {
+			filters: [],
+			sorts: [],
+			pagination: {},
+			selectorKeys: [],
+			parentSelectorKeys: [],
+			sources: [],
+			publicEnv: {},
+		})).rejects.toThrow('version unavailable')
 	})
 })

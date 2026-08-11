@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -199,12 +200,13 @@
 			>
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null}
+						{@const aiArtifactInitial = untrack(() => aiArtifact)}
 						<div>
 							<dt>artifact</dt>
 							<dd>
 								<AiArtifactView
-									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
-									prefetched={aiArtifact}
+									selection={select(EntityType.AiArtifact, (aiArtifact ?? aiArtifactInitial)[EntityMetaKey.Selector])}
+									prefetched={aiArtifact ?? aiArtifactInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

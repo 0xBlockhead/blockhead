@@ -19,7 +19,6 @@
 	const pageSelection = $derived(select(EntityType.DydxChainOrder, data.selector, {
 		sources: [
 			Source.DydxIndexer,
-			Source.KingnodesDydxNode,
 		],
 	}))
 

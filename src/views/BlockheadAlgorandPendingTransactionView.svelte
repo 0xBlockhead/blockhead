@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -107,11 +108,12 @@
 			>
 				{#snippet children(algorandNetwork)}
 					{#if algorandNetwork != null}
+						{@const algorandNetworkInitial = untrack(() => algorandNetwork)}
 						<div>
 							<dt>network</dt>
 							<dd>
 								<AlgorandNetworkView
-									selection={select(EntityType.AlgorandNetwork, algorandNetwork[EntityMetaKey.Selector])}
+									selection={select(EntityType.AlgorandNetwork, (algorandNetwork ?? algorandNetworkInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

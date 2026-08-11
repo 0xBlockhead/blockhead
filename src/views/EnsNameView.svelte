@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -158,11 +159,12 @@
 			>
 				{#snippet children(ensName)}
 					{#if ensName != null}
+						{@const ensNameInitial = untrack(() => ensName)}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<EnsNameView
-									selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector])}
+									selection={select(EntityType.EnsName, (ensName ?? ensNameInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -176,12 +178,13 @@
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}
+						{@const evmContractInitial = untrack(() => evmContract)}
 						<div>
 							<dt>Resolver contract</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
+									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContract ?? evmContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -195,11 +198,12 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
+						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>Resolved actor</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -213,11 +217,12 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
+						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>Owner</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -67,8 +68,9 @@
 			resource={selection.$account}
 		>
 			{#snippet children(evmAccount)}
+				{@const evmAccountInitial = untrack(() => evmAccount)}
 				<EvmAccountView
-					selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+					selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 					href={null}
 					layout={EntityLayout.Title}
 				/>
@@ -100,9 +102,10 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
+							{@const networkInitial = untrack(() => network)}
 							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
+								selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+								prefetched={network ?? networkInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -117,9 +120,10 @@
 						resource={selection.$room}
 					>
 						{#snippet children(blockheadRoom)}
+							{@const blockheadRoomInitial = untrack(() => blockheadRoom)}
 							<BlockheadRoomView
-								selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
-								prefetched={blockheadRoom}
+								selection={select(EntityType.BlockheadRoom, (blockheadRoom ?? blockheadRoomInitial)[EntityMetaKey.Selector])}
+								prefetched={blockheadRoom ?? blockheadRoomInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -147,8 +151,9 @@
 						resource={selection.$account}
 					>
 						{#snippet children(evmAccount)}
+							{@const evmAccountInitial = untrack(() => evmAccount)}
 							<EvmAccountView
-								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

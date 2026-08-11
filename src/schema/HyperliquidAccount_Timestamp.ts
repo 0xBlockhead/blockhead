@@ -24,6 +24,10 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	infoType: {
+		primitiveType: type.enumerated('clearinghouseState', 'spotClearinghouseState', 'userFees', 'delegatorSummary', 'userAbstraction', 'userDexAbstraction', 'approvedBuilders', 'borrowLendUserState'),
+		cardinality: EntityFieldCardinality.One,
+	},
 	accountValue: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -86,8 +90,9 @@ export default entity({
 	},
 })({
 	selectors: {
-		AccountTimestampMsSource: [
+		AccountInfoTypeTimestampMsSource: [
 			'$account',
+			'infoType',
 			'timestampMs',
 			'source',
 		],

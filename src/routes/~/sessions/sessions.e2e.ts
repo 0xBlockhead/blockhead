@@ -111,9 +111,15 @@ const installEvmNativeTransferRpcStub = async (
 }
 
 test('connects a matching wallet and prepares a locked native transfer without sending', async ({ context, page }, testInfo) => {
+	testInfo.setTimeout(300_000)
 	const fromAccount = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 	const toAccount = '0x000000000000000000000000000000000000dEaD'
 	const providerName = 'Locked prep wallet'
+	const derivedInertWarnings: string[] = []
+	page.on('console', (message) => {
+		if (message.type() === 'warning' && message.text().includes('derived_inert'))
+			derivedInertWarnings.push(message.text())
+	})
 
 	await installIsolatedLocalDatabase(context, testInfo, 'locked-session-prep')
 	await installEvmNativeTransferRpcStub(context)
@@ -160,9 +166,13 @@ test('connects a matching wallet and prepares a locked native transfer without s
 		timeout: 120_000,
 	}))
 	await expectMainAttached(page, 120_000, diagnostics)
-	await page.getByRole('button', {
+	const connectWallet = page.getByRole('button', {
 		name: `Connect ${providerName}`,
-	}).click()
+	})
+	await expect(connectWallet).toBeVisible({
+		timeout: 120_000,
+	})
+	await connectWallet.click()
 	const connectedWallet = page.getByRole('article').filter({
 		has: page.getByRole('link', {
 			name: providerName,
@@ -175,7 +185,7 @@ test('connects a matching wallet and prepares a locked native transfer without s
 		timeout: 120_000,
 	})
 	await expect(connectedWallet.getByRole('button', {
-		name: 'Disconnect from Blockhead',
+		name: 'Disconnect wallet',
 	})).toBeVisible()
 
 	await diagnostics.step(page.goto('/~/sessions', {
@@ -248,6 +258,12 @@ test('connects a matching wallet and prepares a locked native transfer without s
 	await expect(page.getByRole('link', {
 		name: 'Open wallet request',
 	})).toBeVisible()
+	const walletRequestHref = await page.getByRole('link', {
+		name: 'Open wallet request',
+	}).getAttribute('href')
+	expect(walletRequestHref).toMatch(/^\/~\/wallets\/requests\/0x[0-9a-f]{64}$/)
+	if (walletRequestHref == null)
+		throw new Error('Prepared wallet request link did not expose a destination')
 	await expect(page.getByRole('listitem').filter({
 		hasText: 'wallet-account',
 	}).first()).toBeAttached()
@@ -256,9 +272,55 @@ test('connects a matching wallet and prepares a locked native transfer without s
 	})).toHaveCount(0)
 	expect(await page.evaluate(() => window.lockedPrepWalletMethodCalls)).not.toContain('eth_sendTransaction')
 
-	await page.getByRole('link', {
-		name: 'Open wallet request',
+	const sessionHref = new URL(page.url()).pathname
+	await page.locator('a[data-scroll-marker-label="Intent invocations"]').click()
+	const intentInvocationLink = page.locator('article[id$=":blockhead-session-intents-list"] a[href*="/intent-invocation/"]')
+	await expect(intentInvocationLink).toHaveCount(1, {
+		timeout: 120_000,
+	})
+	await expect(intentInvocationLink).toContainText('click')
+
+	await page.locator('a[href*="/action/"]:not([href*="/outcome/"])').filter({
+		hasText: 'Transfer',
 	}).click()
+	await expect(page).toHaveURL(/\/~\/session\/[^/]+\/action\/[^/]+(?:\?|$)/)
+	const outcomesMarker = page.locator('a[data-scroll-marker-label="Outcomes"]')
+	await expect(outcomesMarker).toBeAttached({
+		timeout: 120_000,
+	})
+	await outcomesMarker.click()
+	const actionOutcomeLink = page.locator('article[id$=":session-action-outcomes-list"] a[href*="/outcome/"]')
+	await expect(actionOutcomeLink).toHaveCount(1, {
+		timeout: 120_000,
+	})
+	await expect(actionOutcomeLink).toContainText('wallet-request')
+
+	await page.reload({
+		waitUntil: 'load',
+	})
+	await expect(outcomesMarker).toBeAttached({
+		timeout: 120_000,
+	})
+	await outcomesMarker.click()
+	await expect(actionOutcomeLink).toHaveCount(1, {
+		timeout: 120_000,
+	})
+	await expect(actionOutcomeLink).toContainText('wallet-request')
+
+	await diagnostics.step(page.goto(sessionHref, {
+		waitUntil: 'load',
+		timeout: 120_000,
+	}))
+	await page.locator('a[data-scroll-marker-label="Intent invocations"]').click()
+	await expect(intentInvocationLink).toHaveCount(1, {
+		timeout: 120_000,
+	})
+	await expect(intentInvocationLink).toContainText('click')
+
+	await diagnostics.step(page.goto(walletRequestHref, {
+		waitUntil: 'load',
+		timeout: 120_000,
+	}))
 	await expect(page).toHaveURL(/\/~\/wallets\/requests\/0x[0-9a-f]{64}(?:\?|$)/, {
 		timeout: 60_000,
 	})
@@ -267,6 +329,7 @@ test('connects a matching wallet and prepares a locked native transfer without s
 		timeout: 120_000,
 	})
 	expect(await page.evaluate(() => window.lockedPrepWalletMethodCalls)).not.toContain('eth_sendTransaction')
+	expect(derivedInertWarnings).toEqual([])
 	expect(diagnostics.issues).toEqual([])
 })
 

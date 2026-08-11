@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -80,11 +81,12 @@
 			>
 				{#snippet children(icpCanister)}
 					{#if icpCanister != null}
+						{@const icpCanisterInitial = untrack(() => icpCanister)}
 						<div>
 							<dt>canister</dt>
 							<dd>
 								<IcpCanisterView
-									selection={select(EntityType.IcpCanister, icpCanister[EntityMetaKey.Selector])}
+									selection={select(EntityType.IcpCanister, (icpCanister ?? icpCanisterInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

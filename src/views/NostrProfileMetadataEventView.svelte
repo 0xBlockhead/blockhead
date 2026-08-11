@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -112,8 +113,9 @@
 						resource={selection.$profile}
 					>
 						{#snippet children(nostrProfile)}
+							{@const nostrProfileInitial = untrack(() => nostrProfile)}
 							<NostrProfileView
-								selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
+								selection={select(EntityType.NostrProfile, (nostrProfile ?? nostrProfileInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

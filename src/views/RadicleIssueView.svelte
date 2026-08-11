@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -201,11 +202,12 @@
 			>
 				{#snippet children(gitObject)}
 					{#if gitObject != null}
+						{@const gitObjectInitial = untrack(() => gitObject)}
 						<div>
 							<dt>payload object</dt>
 							<dd>
 								<GitObjectView
-									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
+									selection={select(EntityType.GitObject, (gitObject ?? gitObjectInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

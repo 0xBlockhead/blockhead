@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -92,11 +93,12 @@
 			>
 				{#snippet children(moveStruct)}
 					{#if moveStruct != null}
+						{@const moveStructInitial = untrack(() => moveStruct)}
 						<div>
 							<dt>defining struct</dt>
 							<dd>
 								<MoveStructView
-									selection={select(EntityType.MoveStruct, moveStruct[EntityMetaKey.Selector])}
+									selection={select(EntityType.MoveStruct, (moveStruct ?? moveStructInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -110,11 +112,12 @@
 			>
 				{#snippet children(suiObject)}
 					{#if suiObject != null}
+						{@const suiObjectInitial = untrack(() => suiObject)}
 						<div>
 							<dt>treasury cap</dt>
 							<dd>
 								<SuiObjectView
-									selection={select(EntityType.SuiObject, suiObject[EntityMetaKey.Selector])}
+									selection={select(EntityType.SuiObject, (suiObject ?? suiObjectInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -128,12 +131,13 @@
 			>
 				{#snippet children(assetInstance)}
 					{#if assetInstance != null}
+						{@const assetInstanceInitial = untrack(() => assetInstance)}
 						<div>
 							<dt>asset instance</dt>
 							<dd>
 								<AssetInstanceView
-									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
-									prefetched={assetInstance}
+									selection={select(EntityType.AssetInstance, (assetInstance ?? assetInstanceInitial)[EntityMetaKey.Selector])}
+									prefetched={assetInstance ?? assetInstanceInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

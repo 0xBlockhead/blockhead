@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -247,11 +248,12 @@
 			>
 				{#snippet children(evmTransaction)}
 					{#if evmTransaction != null}
+						{@const evmTransactionInitial = untrack(() => evmTransaction)}
 						<div>
 							<dt>Bundled transaction</dt>
 							<dd>
 								<EvmTransactionView
-									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmTransaction, (evmTransaction ?? evmTransactionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -265,12 +267,13 @@
 			>
 				{#snippet children(evmBlock)}
 					{#if evmBlock != null}
+						{@const evmBlockInitial = untrack(() => evmBlock)}
 						<div>
 							<dt>Bundled block</dt>
 							<dd>
 								<EvmBlockView
-									selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
-									prefetched={evmBlock}
+									selection={select(EntityType.EvmBlock, (evmBlock ?? evmBlockInitial)[EntityMetaKey.Selector])}
+									prefetched={evmBlock ?? evmBlockInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -311,11 +314,12 @@
 						>
 							{#snippet children(erc4337SmartAccount)}
 								{#if erc4337SmartAccount != null}
+									{@const erc4337SmartAccountInitial = untrack(() => erc4337SmartAccount)}
 									<div>
 										<dt>Sender</dt>
 										<dd>
 											<Erc4337SmartAccountView
-												selection={select(EntityType.Erc4337SmartAccount, erc4337SmartAccount[EntityMetaKey.Selector])}
+												selection={select(EntityType.Erc4337SmartAccount, (erc4337SmartAccount ?? erc4337SmartAccountInitial)[EntityMetaKey.Selector])}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -329,11 +333,12 @@
 						>
 							{#snippet children(erc4337Paymaster)}
 								{#if erc4337Paymaster != null}
+									{@const erc4337PaymasterInitial = untrack(() => erc4337Paymaster)}
 									<div>
 										<dt>Paymaster</dt>
 										<dd>
 											<Erc4337PaymasterView
-												selection={select(EntityType.Erc4337Paymaster, erc4337Paymaster[EntityMetaKey.Selector])}
+												selection={select(EntityType.Erc4337Paymaster, (erc4337Paymaster ?? erc4337PaymasterInitial)[EntityMetaKey.Selector])}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -347,11 +352,12 @@
 						>
 							{#snippet children(erc4337Bundler)}
 								{#if erc4337Bundler != null}
+									{@const erc4337BundlerInitial = untrack(() => erc4337Bundler)}
 									<div>
 										<dt>Bundler</dt>
 										<dd>
 											<Erc4337BundlerView
-												selection={select(EntityType.Erc4337Bundler, erc4337Bundler[EntityMetaKey.Selector])}
+												selection={select(EntityType.Erc4337Bundler, (erc4337Bundler ?? erc4337BundlerInitial)[EntityMetaKey.Selector])}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -365,12 +371,13 @@
 						>
 							{#snippet children(evmContract)}
 								{#if evmContract != null}
+									{@const evmContractInitial = untrack(() => evmContract)}
 									<div>
 										<dt>EntryPoint</dt>
 										<dd>
 											<EvmContractView
-												selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-												prefetched={evmContract}
+												selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+												prefetched={evmContract ?? evmContractInitial}
 												layout={EntityLayout.Value}
 											/>
 										</dd>

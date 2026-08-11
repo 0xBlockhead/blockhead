@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -99,9 +100,10 @@
 		>
 			{#snippet children(mevBuilder)}
 				{#if mevBuilder != null}
+					{@const mevBuilderInitial = untrack(() => mevBuilder)}
 					<span data-text="muted">
 						<MevBuilderView
-							selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
+							selection={select(EntityType.MevBuilder, (mevBuilder ?? mevBuilderInitial)[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -208,11 +210,12 @@
 			>
 				{#snippet children(mevBuilder)}
 					{#if mevBuilder != null}
+						{@const mevBuilderInitial = untrack(() => mevBuilder)}
 						<div>
 							<dt>Builder</dt>
 							<dd>
 								<MevBuilderView
-									selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
+									selection={select(EntityType.MevBuilder, (mevBuilder ?? mevBuilderInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -226,12 +229,13 @@
 			>
 				{#snippet children(evmBlock)}
 					{#if evmBlock != null}
+						{@const evmBlockInitial = untrack(() => evmBlock)}
 						<div>
 							<dt>Execution block</dt>
 							<dd>
 								<EvmBlockView
-									selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
-									prefetched={evmBlock}
+									selection={select(EntityType.EvmBlock, (evmBlock ?? evmBlockInitial)[EntityMetaKey.Selector])}
+									prefetched={evmBlock ?? evmBlockInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

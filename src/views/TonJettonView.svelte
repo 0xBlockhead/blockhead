@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -91,11 +92,12 @@
 			>
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null}
+						{@const tonAccountInitial = untrack(() => tonAccount)}
 						<div>
 							<dt>master account</dt>
 							<dd>
 								<TonAccountView
-									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonAccount, (tonAccount ?? tonAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

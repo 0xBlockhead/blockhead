@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -42,16 +41,6 @@
 		<EntityView
 			entityType={EntityType.CctpFastBurnAllowance_Timestamp}
 			entitySelector={cctpFastBurnAllowanceTimestampSelector}
-			href={
-				resolve(
-					'/(assets)/cctp/allowance/[token=stringSegment]/(cctpAllowance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						token: cctpFastBurnAllowanceTimestampSelector.$allowance.token,
-						timestampMs: String(cctpFastBurnAllowanceTimestampSelector.timestampMs),
-						source: cctpFastBurnAllowanceTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{cctpFastBurnAllowanceTimestampSelector.timestampMs}

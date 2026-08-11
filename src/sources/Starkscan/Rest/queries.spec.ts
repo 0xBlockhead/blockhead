@@ -263,13 +263,19 @@ describe('Starkscan account portfolio transport', () => {
 	})
 
 	it('returns only exact, complete, owner-matched indexed holdings', async () => {
+		vi.useFakeTimers()
+		vi.setSystemTime(1_784_116_800_000)
 		getJson.mockResolvedValueOnce(holdings)
 
-		await expect(getExactTokenHoldings(account)).resolves.toEqual(holdings)
+		await expect(getExactTokenHoldings(account)).resolves.toEqual({
+			...holdings,
+			fetchedAtMs: 1_784_116_800_000,
+		})
 		expect(getJson).toHaveBeenCalledWith(
 			binding,
 			'/v1/SN_MAIN/address/0x01/token-holdings'
 		)
+		vi.useRealTimers()
 	})
 
 	it('certifies address summaries with class or not-deployed evidence', async () => {

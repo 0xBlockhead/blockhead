@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -111,9 +112,10 @@
 						resource={selection.$federation}
 					>
 						{#snippet children(fedimintFederation)}
+							{@const fedimintFederationInitial = untrack(() => fedimintFederation)}
 							<FedimintFederationView
-								selection={select(EntityType.FedimintFederation, fedimintFederation[EntityMetaKey.Selector])}
-								prefetched={fedimintFederation}
+								selection={select(EntityType.FedimintFederation, (fedimintFederation ?? fedimintFederationInitial)[EntityMetaKey.Selector])}
+								prefetched={fedimintFederation ?? fedimintFederationInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

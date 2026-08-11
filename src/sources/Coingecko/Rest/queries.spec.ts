@@ -154,7 +154,7 @@ describe('CoinGecko documented endpoints', () => {
 				last: 100_000,
 				index: 99_999,
 				last_traded: 1_700_000_000,
-				open_interest_usd: 1_000_000,
+				open_interest_usd: 1_000_000.125,
 				index_basis_percentage: 0.1,
 				funding_rate: 0.01,
 				volume_24h: 5_000,
@@ -169,8 +169,41 @@ describe('CoinGecko documented endpoints', () => {
 			trade_volume_24h_btc: 50,
 			tickers: [{
 				volume_24h: 5_000,
-				last: 100_000,
-				index: 99_999,
+				last: '100000',
+				index: '99999',
+				open_interest_usd: '1000000.125',
+				index_basis_percentage: '0.1',
+				funding_rate: '0.01',
+			}],
+		})
+	})
+
+	it('normalizes finite derivative numerics without bigint rounding or exponent notation', async () => {
+		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			name: 'Precision Futures',
+			tickers: [{
+				coin_id: 'bitcoin',
+				target_coin_id: 'tether',
+				symbol: 'BTCUSDT',
+				last: 0.12345678901234568,
+				index: 1e-8,
+				last_traded: 1_700_000_000,
+				open_interest_usd: 9_007_199_254_740_992,
+				index_basis_percentage: -1.25e-7,
+				funding_rate: 5e-8,
+			}],
+		})))
+
+		await expect(getDerivativesExchange({
+			publicEnv: {},
+			id: 'precision_futures',
+		})).resolves.toMatchObject({
+			tickers: [{
+				last: '0.12345678901234568',
+				index: '0.00000001',
+				open_interest_usd: '9007199254740992',
+				index_basis_percentage: '-0.000000125',
+				funding_rate: '0.00000005',
 			}],
 		})
 	})
@@ -448,6 +481,31 @@ describe('CoinGecko documented endpoints', () => {
 			publicEnv: {},
 			id: 'binance_futures',
 		})).rejects.toThrow('invalid derivatives exchange response envelope')
+	})
+
+	it('fail-closes non-finite derivative numerics at the source boundary', async () => {
+		coingeckoFetch.mockResolvedValueOnce({
+			status: 200,
+			ok: true,
+			json: async () => ({
+				tickers: [{
+					coin_id: 'bitcoin',
+					target_coin_id: 'tether',
+					symbol: 'BTCUSDT',
+					last: Infinity,
+					index: 1,
+					last_traded: 1_700_000_000,
+					open_interest_usd: 1,
+					index_basis_percentage: 0.1,
+					funding_rate: 0.01,
+				}],
+			}),
+		})
+
+		await expect(getDerivativesExchange({
+			publicEnv: {},
+			id: 'binance_futures',
+		})).rejects.toThrow('Coingecko_Rest: invalid finite derivative mark price')
 	})
 
 	it('fail-closes coin leftovers with non-numeric circulating_supply', async () => {

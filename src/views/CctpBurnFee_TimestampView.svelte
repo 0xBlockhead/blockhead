@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,13 +15,11 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.CctpBurnFee_Timestamp>, 'prefetched'> = $props()
 
-	const sourceDomain = $derived(selection.entitySelector.$sourceDomain)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.CircleCctpIris,
@@ -41,21 +38,6 @@
 	entityType={EntityType.CctpBurnFee_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
-	href={
-		href === undefined ?
-			resolve(
-				'/cctp/version/[cctpVersion=nonNegativeInteger]/domain/[domainId=nonNegativeInteger]/(cctpDomainSupport)/burn-fee/[destinationDomain=nonNegativeInteger]/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-				{
-					cctpVersion: String(sourceDomain.cctpVersion),
-					domainId: String(sourceDomain.domainId),
-					destinationDomain: String(selection.entitySelector.$destinationDomain.domainId),
-					timestampMs: String(selection.entitySelector.timestampMs),
-					source: selection.entitySelector.source,
-				}
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

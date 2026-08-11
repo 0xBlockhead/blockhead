@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -27,7 +28,6 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.DydxIndexer,
-			Source.KingnodesDydxNode,
 		],
 	}))
 	const dydxChainOrder = $derived(viewSelection({
@@ -120,11 +120,12 @@
 			>
 				{#snippet children(dydxChainMarket)}
 					{#if dydxChainMarket != null}
+						{@const dydxChainMarketInitial = untrack(() => dydxChainMarket)}
 						<div>
 							<dt>market</dt>
 							<dd>
 								<DydxChainMarketView
-									selection={select(EntityType.DydxChainMarket, dydxChainMarket[EntityMetaKey.Selector])}
+									selection={select(EntityType.DydxChainMarket, (dydxChainMarket ?? dydxChainMarketInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

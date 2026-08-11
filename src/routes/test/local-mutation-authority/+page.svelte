@@ -17,6 +17,8 @@
 		deleteLocalBlockheadSession,
 		deleteLocalBlockheadWalletConnection,
 		writeLocalBlockheadSession,
+		writeLocalBlockheadSessionName,
+		writeLocalBlockheadSessionSimulation,
 		writeLocalBlockheadWallet,
 		writeLocalBlockheadWalletConnection,
 	} from '$/collections/localMutations.ts'
@@ -32,6 +34,9 @@
 	} as const
 	const walletConnectionParentSelector = {
 		scope: '$$blockheadWalletConnections',
+	} as const
+	const resourceBoundarySessionParentSelector = {
+		scope: 'resource-boundary-nested-sessions',
 	} as const
 	const sessions = select(
 		EntityType._Global,
@@ -68,11 +73,36 @@
 			sources: [Source.Local_Internal],
 		}
 	)
+	const resourceBoundarySessions = select(
+		EntityType._Global,
+		resourceBoundarySessionParentSelector,
+		{
+			sources: [Source.Local_Internal],
+		}
+	).$$blockheadSessions
+	const resourceBoundarySessionRows = resourceBoundarySessions({
+		sources: [Source.Local_Internal],
+		fields: {
+			name: true,
+		},
+	})
+	const firstResourceBoundarySession = resourceBoundarySessions.first({
+		sources: [Source.Local_Internal],
+		fields: {
+			name: true,
+		},
+	})
 	let sessionsPersisted = $state(false)
 	let walletsPersisted = $state(false)
 	let walletHydrationEnabled = $state(false)
 	let walletHydrationSettled = $state(false)
 	let walletHydrationSummary = $state('')
+	let resourceBoundarySessionSelector = $state<{
+		id: string,
+	}>()
+	let entityReferenceSessionSelector = $state<{
+		id: string,
+	}>()
 	void walletConnectionRows.then(async (connections) => {
 		walletHydrationEnabled = connections.values.some((connection) => (
 			connection.connectionKey === 'authority-connection-a'
@@ -196,9 +226,64 @@
 		walletsPersisted = true
 	}
 
+	const materializeResourceBoundarySession = async () => {
+		resourceBoundarySessionSelector = await writeLocalBlockheadSession(
+			getAppClient(),
+			resourceBoundarySessionParentSelector,
+			'Resource Boundary 100'
+		)
+	}
+
+	const updateResourceBoundarySession = () => {
+		if (resourceBoundarySessionSelector === undefined)
+			return
+
+		writeLocalBlockheadSessionName(
+			getAppClient(),
+			resourceBoundarySessionSelector,
+			'Resource Boundary 101'
+		)
+	}
+
+	const materializeEntityReferenceSession = async () => {
+		entityReferenceSessionSelector = await writeLocalBlockheadSession(
+			getAppClient(),
+			resourceBoundarySessionParentSelector,
+			'Entity reference session'
+		)
+		await writeLocalBlockheadSessionSimulation(
+			getAppClient(),
+			entityReferenceSessionSelector,
+			{
+				id: 'entity-reference-simulation-a',
+				status: 'succeeded',
+				createdAt: 100,
+				paramsHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+			}
+		)
+	}
+
+	const replaceEntityReferenceSimulation = async () => {
+		if (entityReferenceSessionSelector === undefined)
+			return
+
+		await writeLocalBlockheadSessionSimulation(
+			getAppClient(),
+			entityReferenceSessionSelector,
+			{
+				id: 'entity-reference-simulation-b',
+				status: 'failed',
+				createdAt: 101,
+				paramsHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+				error: 'fixture failure',
+			}
+		)
+	}
+
 
 	// Components
 	import BlockheadSessionsView from '$/views/BlockheadSessionsView.svelte'
+	import BlockheadSessionView from '$/views/BlockheadSessionView.svelte'
 	import BlockheadWalletConnectionsView from '$/views/BlockheadWalletConnectionsView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
@@ -241,6 +326,50 @@
 		emptyText="No runtime sessions."
 		id="local-authority-sessions"
 	/>
+</section>
+
+<section data-column="gap-3">
+	<h2>Nested resource boundaries</h2>
+
+	<div data-row="wrap gap-2">
+		<button type="button" onclick={materializeResourceBoundarySession}>Materialize boundary session</button>
+		<button type="button" onclick={updateResourceBoundarySession}>Update boundary session</button>
+	</div>
+
+	<ResourceBoundary resource={resourceBoundarySessionRows}>
+		{#snippet children(resolvedSessions)}
+			<p data-testid="nested-resource-collection-awaited">
+				{resolvedSessions.values.map((session) => session.name).join('|')}
+			</p>
+		{/snippet}
+	</ResourceBoundary>
+
+	<ResourceBoundary resource={firstResourceBoundarySession}>
+		{#snippet children(resolvedSession)}
+			<p data-testid="nested-resource-first-awaited">
+				{resolvedSession?.name ?? ''}
+			</p>
+		{/snippet}
+	</ResourceBoundary>
+
+	<div data-row="wrap gap-2">
+		<button type="button" onclick={materializeEntityReferenceSession}>Materialize entity reference</button>
+		<button type="button" onclick={replaceEntityReferenceSimulation}>Replace entity reference</button>
+	</div>
+
+	{#if entityReferenceSessionSelector !== undefined}
+		<div data-testid="entity-reference-session-view">
+			<BlockheadSessionView
+				selection={select(
+					EntityType.BlockheadSession,
+					entityReferenceSessionSelector,
+					{
+						sources: [Source.Local_Internal],
+					}
+				)}
+			/>
+		</div>
+	{/if}
 </section>
 
 <section data-column="gap-3">

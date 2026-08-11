@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -86,8 +87,9 @@
 		>
 			{#snippet children(filecoinMiner)}
 				{#if filecoinMiner != null}
+					{@const filecoinMinerInitial = untrack(() => filecoinMiner)}
 					<FilecoinMinerView
-						selection={select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector])}
+						selection={select(EntityType.FilecoinMiner, (filecoinMiner ?? filecoinMinerInitial)[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -100,8 +102,9 @@
 		>
 			{#snippet children(filecoinActor)}
 				{#if filecoinActor != null}
+					{@const filecoinActorInitial = untrack(() => filecoinActor)}
 					<FilecoinActorView
-						selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
+						selection={select(EntityType.FilecoinActor, (filecoinActor ?? filecoinActorInitial)[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -149,11 +152,12 @@
 			>
 				{#snippet children(filecoinMiner)}
 					{#if filecoinMiner != null}
+						{@const filecoinMinerInitial = untrack(() => filecoinMiner)}
 						<div>
 							<dt>Provider</dt>
 							<dd>
 								<FilecoinMinerView
-									selection={select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector])}
+									selection={select(EntityType.FilecoinMiner, (filecoinMiner ?? filecoinMinerInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -167,11 +171,12 @@
 			>
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null}
+						{@const filecoinActorInitial = untrack(() => filecoinActor)}
 						<div>
 							<dt>Client</dt>
 							<dd>
 								<FilecoinActorView
-									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
+									selection={select(EntityType.FilecoinActor, (filecoinActor ?? filecoinActorInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

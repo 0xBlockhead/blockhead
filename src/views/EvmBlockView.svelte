@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -313,12 +314,13 @@
 				>
 					{#snippet children(evmBlock)}
 						{#if evmBlock != null}
+							{@const evmBlockInitial = untrack(() => evmBlock)}
 							<div>
 								<dt>Parent block</dt>
 								<dd>
 									<EvmBlockView
-										selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
-										prefetched={evmBlock}
+										selection={select(EntityType.EvmBlock, (evmBlock ?? evmBlockInitial)[EntityMetaKey.Selector])}
+										prefetched={evmBlock ?? evmBlockInitial}
 										layout={EntityLayout.Value}
 									/>
 								</dd>
@@ -334,11 +336,12 @@
 				>
 					{#snippet children(evmAccount)}
 						{#if evmAccount != null}
+							{@const evmAccountInitial = untrack(() => evmAccount)}
 							<div>
 								<dt>Miner / validator</dt>
 								<dd>
 									<EvmAccountView
-										selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+										selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 									/>
 								</dd>

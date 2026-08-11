@@ -48,7 +48,6 @@
 				select(EntityType.DydxChainOrder, data.selector, {
 					sources: [
 						Source.DydxIndexer,
-						Source.KingnodesDydxNode,
 					],
 				})
 			}

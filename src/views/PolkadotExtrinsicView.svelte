@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -176,11 +177,12 @@
 			>
 				{#snippet children(polkadotAccount)}
 					{#if polkadotAccount != null}
+						{@const polkadotAccountInitial = untrack(() => polkadotAccount)}
 						<div>
 							<dt>Signer</dt>
 							<dd>
 								<PolkadotAccountView
-									selection={select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.PolkadotAccount, (polkadotAccount ?? polkadotAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -194,11 +196,12 @@
 			>
 				{#snippet children(polkadotPallet)}
 					{#if polkadotPallet != null}
+						{@const polkadotPalletInitial = untrack(() => polkadotPallet)}
 						<div>
 							<dt>Pallet</dt>
 							<dd>
 								<PolkadotPalletView
-									selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
+									selection={select(EntityType.PolkadotPallet, (polkadotPallet ?? polkadotPalletInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

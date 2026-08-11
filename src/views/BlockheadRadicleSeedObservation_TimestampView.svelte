@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -98,11 +99,12 @@
 			>
 				{#snippet children(blockheadRadicleNodeState)}
 					{#if blockheadRadicleNodeState != null}
+						{@const blockheadRadicleNodeStateInitial = untrack(() => blockheadRadicleNodeState)}
 						<div>
 							<dt>observer node</dt>
 							<dd>
 								<BlockheadRadicleNodeStateView
-									selection={select(EntityType.BlockheadRadicleNodeState, blockheadRadicleNodeState[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadRadicleNodeState, (blockheadRadicleNodeState ?? blockheadRadicleNodeStateInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -29,9 +30,6 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
-			Source.EigenLayerContracts_Evm,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
 		],
 	}))
 	const eigenLayerAvs = $derived(viewSelection({
@@ -198,11 +196,12 @@
 			>
 				{#snippet children(evmNetworkAccount)}
 					{#if evmNetworkAccount != null}
+						{@const evmNetworkAccountInitial = untrack(() => evmNetworkAccount)}
 						<div>
 							<dt>AVS account</dt>
 							<dd>
 								<EvmNetworkAccountView
-									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmNetworkAccount, (evmNetworkAccount ?? evmNetworkAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

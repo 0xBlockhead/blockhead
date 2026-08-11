@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -128,9 +129,10 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
+							{@const networkInitial = untrack(() => network)}
 							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
+								selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+								prefetched={network ?? networkInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -145,11 +147,12 @@
 			>
 				{#snippet children(payjoinDirectory)}
 					{#if payjoinDirectory != null}
+						{@const payjoinDirectoryInitial = untrack(() => payjoinDirectory)}
 						<div>
 							<dt>directory</dt>
 							<dd>
 								<PayjoinDirectoryView
-									selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
+									selection={select(EntityType.PayjoinDirectory, (payjoinDirectory ?? payjoinDirectoryInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -163,11 +166,12 @@
 			>
 				{#snippet children(payjoinEndpoint)}
 					{#if payjoinEndpoint != null}
+						{@const payjoinEndpointInitial = untrack(() => payjoinEndpoint)}
 						<div>
 							<dt>endpoint</dt>
 							<dd>
 								<PayjoinEndpointView
-									selection={select(EntityType.PayjoinEndpoint, payjoinEndpoint[EntityMetaKey.Selector])}
+									selection={select(EntityType.PayjoinEndpoint, (payjoinEndpoint ?? payjoinEndpointInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -443,11 +447,12 @@
 			>
 				{#snippet children(utxoTransaction)}
 					{#if utxoTransaction != null}
+						{@const utxoTransactionInitial = untrack(() => utxoTransaction)}
 						<div>
 							<dt>final transaction</dt>
 							<dd>
 								<UtxoTransactionView
-									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoTransaction, (utxoTransaction ?? utxoTransactionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

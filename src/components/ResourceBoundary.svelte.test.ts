@@ -24,3 +24,34 @@ test('renders subsequent values from the resource-owned await state', async () =
 	await expect.element(page.getByText('Updated value')).toBeInTheDocument()
 	await expect.element(page.getByText('Initial value')).not.toBeInTheDocument()
 })
+
+test('renders subsequent values from an asynchronous source notification', async () => {
+	let snapshot = {
+		data: 'Initial source value',
+		isLoading: false,
+		isError: false,
+		isReady: true,
+		status: 'ready',
+	}
+	let publish = () => {}
+	const resource = new TanStackLiveQueryResource(
+		() => snapshot,
+		(update) => {
+			publish = update
+			return () => {}
+		}
+	)
+
+	await render(ResourceBoundaryFixture, {
+		resource,
+	})
+
+	await expect.element(page.getByText('Initial source value')).toBeInTheDocument()
+	snapshot = {
+		...snapshot,
+		data: 'Updated source value',
+	}
+	queueMicrotask(publish)
+	await expect.element(page.getByText('Updated source value')).toBeInTheDocument()
+	await expect.element(page.getByText('Initial source value')).not.toBeInTheDocument()
+})

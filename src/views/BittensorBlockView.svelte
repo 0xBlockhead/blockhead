@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -132,11 +133,12 @@
 			>
 				{#snippet children(bittensorBlock)}
 					{#if bittensorBlock != null}
+						{@const bittensorBlockInitial = untrack(() => bittensorBlock)}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<BittensorBlockView
-									selection={select(EntityType.BittensorBlock, bittensorBlock[EntityMetaKey.Selector])}
+									selection={select(EntityType.BittensorBlock, (bittensorBlock ?? bittensorBlockInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

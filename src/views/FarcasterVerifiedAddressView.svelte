@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -72,9 +73,10 @@
 						resource={selection.$user}
 					>
 						{#snippet children(farcasterUser)}
+							{@const farcasterUserInitial = untrack(() => farcasterUser)}
 							<FarcasterUserView
-								selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
-								prefetched={farcasterUser}
+								selection={select(EntityType.FarcasterUser, (farcasterUser ?? farcasterUserInitial)[EntityMetaKey.Selector])}
+								prefetched={farcasterUser ?? farcasterUserInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -107,11 +109,12 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
+						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>EVM account</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -127,11 +130,12 @@
 			>
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null}
+						{@const solanaAccountInitial = untrack(() => solanaAccount)}
 						<div>
 							<dt>Solana account</dt>
 							<dd>
 								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaAccount, (solanaAccount ?? solanaAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -140,11 +141,12 @@
 			>
 				{#snippet children(cardanoAddress)}
 					{#if cardanoAddress != null}
+						{@const cardanoAddressInitial = untrack(() => cardanoAddress)}
 						<div>
 							<dt>Address</dt>
 							<dd>
 								<CardanoAddressView
-									selection={select(EntityType.CardanoAddress, cardanoAddress[EntityMetaKey.Selector])}
+									selection={select(EntityType.CardanoAddress, (cardanoAddress ?? cardanoAddressInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

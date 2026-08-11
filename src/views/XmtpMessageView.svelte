@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -109,9 +110,10 @@
 						resource={selection.$conversation}
 					>
 						{#snippet children(xmtpConversation)}
+							{@const xmtpConversationInitial = untrack(() => xmtpConversation)}
 							<XmtpConversationView
-								selection={select(EntityType.XmtpConversation, xmtpConversation[EntityMetaKey.Selector])}
-								prefetched={xmtpConversation}
+								selection={select(EntityType.XmtpConversation, (xmtpConversation ?? xmtpConversationInitial)[EntityMetaKey.Selector])}
+								prefetched={xmtpConversation ?? xmtpConversationInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

@@ -14,6 +14,7 @@ const {
 	getBlock,
 	getClass,
 	getContractEvents,
+	getExactTokenHoldings,
 	getTransaction,
 } = vi.hoisted(() => ({
 	getAddressSummary: vi.fn(),
@@ -21,6 +22,7 @@ const {
 	getBlock: vi.fn(),
 	getClass: vi.fn(),
 	getContractEvents: vi.fn(),
+	getExactTokenHoldings: vi.fn(),
 	getTransaction: vi.fn(),
 }))
 
@@ -30,6 +32,7 @@ vi.mock('$/sources/Starkscan/Rest/queries.ts', () => ({
 	getBlock,
 	getClass,
 	getContractEvents,
+	getExactTokenHoldings,
 	getTransaction,
 }))
 
@@ -43,6 +46,12 @@ const eventsResolver = starkscanResolvers.resolvers.find((resolver) => (
 const transactionsResolver = starkscanResolvers.resolvers.find((resolver) => (
 	'$$transactions' in resolver.projections
 	&& 'NetworkAddress' in resolver.resolve
+))
+const tokenHoldingsResolver = starkscanResolvers.resolvers.find((resolver) => (
+	'$$tokenHoldings' in resolver.projections
+))
+const tokenHoldingResolver = starkscanResolvers.resolvers.find((resolver) => (
+	'OwnerTokenContract' in resolver.resolve
 ))
 const blockResolver = starkscanResolvers.resolvers.find((resolver) => (
 	'NetworkBlockNumber' in resolver.resolve
@@ -60,6 +69,10 @@ if (eventsResolver == null)
 	throw new Error('Starkscan spec missing contract events resolver')
 if (transactionsResolver == null)
 	throw new Error('Starkscan spec missing contract transactions resolver')
+if (tokenHoldingsResolver == null)
+	throw new Error('Starkscan spec missing contract token holdings resolver')
+if (tokenHoldingResolver == null)
+	throw new Error('Starkscan spec missing token holding resolver')
 if (blockResolver == null)
 	throw new Error('Starkscan spec missing block resolver')
 if (transactionResolver == null)
@@ -147,6 +160,31 @@ const events = [
 		decodingStatus: 'unknown',
 	},
 ]
+const tokenHoldings = {
+	chainId: 'SN_MAIN',
+	ownerAddress: '0x1',
+	items: [{
+		tokenAddress: '0x03',
+		normalizedTokenAddress: '0x3',
+		indexedBalanceRaw: '340282366920938463463374607431768211455',
+		symbol: 'STRK',
+		name: 'Starknet Token',
+		decimals: 18,
+	}],
+	exact: true,
+	truncated: false,
+	completeness: {
+		exact: true,
+		truncated: false,
+		complete: true,
+		reasonCode: 'complete',
+		reason: 'Complete indexed holdings',
+		lagBlocks: 0,
+		capped: false,
+		cap: null,
+	},
+	fetchedAtMs: 1_784_116_800_000,
+}
 
 describe('Starkscan contract resolvers', () => {
 	beforeEach(() => {
@@ -173,6 +211,9 @@ describe('Starkscan contract resolvers', () => {
 			},
 		])
 		expect(starkscanResolvers.source).toBe(Source.Starkscan)
+		expect(starkscanResolvers.resolvers.some((resolver) => (
+			resolver.entityType === EntityType.StarknetTokenHolding_Timestamp
+		))).toBe(false)
 	})
 
 	it('projects account states from certified class or not-deployed summaries', async () => {
@@ -342,6 +383,97 @@ describe('Starkscan contract resolvers', () => {
 			terminal: false,
 			token: 'opaque:next+cursor',
 		})
+	})
+
+	it('projects exact owner holdings with one fetched-at observation per token', async () => {
+		getExactTokenHoldings.mockResolvedValueOnce(tokenHoldings)
+		const holdings = await tokenHoldingsResolver.resolve[
+			'NetworkAddress'
+		].resolve(contract, resolverContext)
+		expect(getExactTokenHoldings).toHaveBeenCalledWith('0x1')
+		expect(tokenHoldingsResolver.projections.$$tokenHoldings(
+			holdings,
+			contract,
+			resolverContext
+		)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$owner: contract,
+				$tokenContract: {
+					$network: contract.$network,
+					address: '0x3',
+				},
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.StarknetTokenHolding, [], '$$timestamps')]: [{
+					[EntityMetaKey.Selector]: {
+						$holding: {
+							$owner: contract,
+							$tokenContract: {
+								$network: contract.$network,
+								address: '0x3',
+							},
+						},
+						timestampMs: 1_784_116_800_000,
+						source: Source.Starkscan,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.StarknetTokenHolding_Timestamp, [], 'indexedBalanceRaw')]: 340282366920938463463374607431768211455n,
+						[entityFieldAddressKey(EntityType.StarknetTokenHolding_Timestamp, [], 'symbol')]: 'STRK',
+						[entityFieldAddressKey(EntityType.StarknetTokenHolding_Timestamp, [], 'name')]: 'Starknet Token',
+						[entityFieldAddressKey(EntityType.StarknetTokenHolding_Timestamp, [], 'decimals')]: 18,
+					},
+				}],
+			},
+		}])
+	})
+
+	it('resolves one stable holding and rejects missing or foreign identities', async () => {
+		const holding = {
+			$owner: contract,
+			$tokenContract: {
+				$network: contract.$network,
+				address: '0x03',
+			},
+		}
+		getExactTokenHoldings.mockResolvedValueOnce(tokenHoldings)
+		const snapshot = await tokenHoldingResolver.resolve[
+			'OwnerTokenContract'
+		].resolve(holding, resolverContext)
+		expect(tokenHoldingResolver.projections.$$timestamps(
+			snapshot,
+			holding,
+			resolverContext
+		)[0][EntityMetaKey.Selector]).toEqual({
+			$holding: holding,
+			timestampMs: 1_784_116_800_000,
+			source: Source.Starkscan,
+		})
+
+		getExactTokenHoldings.mockResolvedValueOnce(tokenHoldings)
+		await expect(tokenHoldingResolver.resolve[
+			'OwnerTokenContract'
+		].resolve({
+			...holding,
+			$tokenContract: {
+				...holding.$tokenContract,
+				address: '0x4',
+			},
+		}, resolverContext)).rejects.toThrow('token holding was not found')
+
+		await expect(tokenHoldingResolver.resolve[
+			'OwnerTokenContract'
+		].resolve({
+			...holding,
+			$tokenContract: {
+				$network: {
+					$network: {
+						slug: 'not-starknet',
+					},
+				},
+				address: '0x3',
+			},
+		}, resolverContext)).rejects.toThrow('unsupported network')
+		expect(getExactTokenHoldings).toHaveBeenCalledTimes(2)
 	})
 
 	it('terminates empty pages and fails before transport for foreign networks', async () => {

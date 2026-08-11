@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -99,12 +100,13 @@
 			>
 				{#snippet children(xUser)}
 					{#if xUser != null}
+						{@const xUserInitial = untrack(() => xUser)}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<XUserView
-									selection={select(EntityType.XUser, xUser[EntityMetaKey.Selector])}
-									prefetched={xUser}
+									selection={select(EntityType.XUser, (xUser ?? xUserInitial)[EntityMetaKey.Selector])}
+									prefetched={xUser ?? xUserInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -168,12 +170,13 @@
 			>
 				{#snippet children(xPost)}
 					{#if xPost != null}
+						{@const xPostInitial = untrack(() => xPost)}
 						<div>
 							<dt>Reply to post</dt>
 							<dd>
 								<XPostView
-									selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector])}
-									prefetched={xPost}
+									selection={select(EntityType.XPost, (xPost ?? xPostInitial)[EntityMetaKey.Selector])}
+									prefetched={xPost ?? xPostInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -189,12 +192,13 @@
 			>
 				{#snippet children(xPost)}
 					{#if xPost != null}
+						{@const xPostInitial = untrack(() => xPost)}
 						<div>
 							<dt>Quoted post</dt>
 							<dd>
 								<XPostView
-									selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector])}
-									prefetched={xPost}
+									selection={select(EntityType.XPost, (xPost ?? xPostInitial)[EntityMetaKey.Selector])}
+									prefetched={xPost ?? xPostInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

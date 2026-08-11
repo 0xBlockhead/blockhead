@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -107,12 +108,13 @@
 				>
 					{#snippet children(atprotoActor)}
 						{#if atprotoActor != null}
+							{@const atprotoActorInitial = untrack(() => atprotoActor)}
 							<div>
 								<dt>Author</dt>
 								<dd>
 									<AtprotoActorView
-										selection={select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector])}
-										prefetched={atprotoActor}
+										selection={select(EntityType.AtprotoActor, (atprotoActor ?? atprotoActorInitial)[EntityMetaKey.Selector])}
+										prefetched={atprotoActor ?? atprotoActorInitial}
 										layout={EntityLayout.Value}
 									/>
 								</dd>
@@ -128,12 +130,13 @@
 				>
 					{#snippet children(atprotoPost)}
 						{#if atprotoPost != null}
+							{@const atprotoPostInitial = untrack(() => atprotoPost)}
 							<div>
 								<dt>Reply parent</dt>
 								<dd>
 									<AtprotoPostView
-										selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector])}
-										prefetched={atprotoPost}
+										selection={select(EntityType.AtprotoPost, (atprotoPost ?? atprotoPostInitial)[EntityMetaKey.Selector])}
+										prefetched={atprotoPost ?? atprotoPostInitial}
 										layout={EntityLayout.Value}
 									/>
 								</dd>
@@ -149,12 +152,13 @@
 				>
 					{#snippet children(atprotoPost)}
 						{#if atprotoPost != null}
+							{@const atprotoPostInitial = untrack(() => atprotoPost)}
 							<div>
 								<dt>Thread root</dt>
 								<dd>
 									<AtprotoPostView
-										selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector])}
-										prefetched={atprotoPost}
+										selection={select(EntityType.AtprotoPost, (atprotoPost ?? atprotoPostInitial)[EntityMetaKey.Selector])}
+										prefetched={atprotoPost ?? atprotoPostInitial}
 										layout={EntityLayout.Value}
 									/>
 								</dd>

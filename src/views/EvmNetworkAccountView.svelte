@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -123,12 +124,13 @@
 			>
 				{#snippet children(balancerVeBalBalance)}
 					{#if balancerVeBalBalance != null}
+						{@const balancerVeBalBalanceInitial = untrack(() => balancerVeBalBalance)}
 						<div>
 							<dt>veBAL</dt>
 							<dd>
 								<BalancerVeBalBalanceView
-									selection={select(EntityType.BalancerVeBalBalance, balancerVeBalBalance[EntityMetaKey.Selector])}
-									prefetched={balancerVeBalBalance}
+									selection={select(EntityType.BalancerVeBalBalance, (balancerVeBalBalance ?? balancerVeBalBalanceInitial)[EntityMetaKey.Selector])}
+									prefetched={balancerVeBalBalance ?? balancerVeBalBalanceInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

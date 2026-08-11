@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -100,9 +101,10 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
+							{@const networkInitial = untrack(() => network)}
 							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
+								selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+								prefetched={network ?? networkInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -136,8 +138,9 @@
 						resource={selection.$rootMessage}
 					>
 						{#snippet children(tonMessage)}
+							{@const tonMessageInitial = untrack(() => tonMessage)}
 							<TonMessageView
-								selection={select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector])}
+								selection={select(EntityType.TonMessage, (tonMessage ?? tonMessageInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

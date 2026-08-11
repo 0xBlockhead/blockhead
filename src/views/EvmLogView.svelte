@@ -5,6 +5,7 @@
 	import { resolve } from '$app/paths'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -73,9 +74,10 @@
 		>
 			{#snippet children(evmContract)}
 				{#if evmContract != null}
+					{@const evmContractInitial = untrack(() => evmContract)}
 					<EvmContractView
-						selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-						prefetched={evmContract}
+						selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+						prefetched={evmContract ?? evmContractInitial}
 						href={null}
 						layout={EntityLayout.Title}
 					/>
@@ -119,12 +121,13 @@
 				>
 					{#snippet children(evmBlock)}
 						{#if evmBlock != null}
+							{@const evmBlockInitial = untrack(() => evmBlock)}
 							<div>
 								<dt>Block</dt>
 								<dd>
 									<EvmBlockView
-										selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
-										prefetched={evmBlock}
+										selection={select(EntityType.EvmBlock, (evmBlock ?? evmBlockInitial)[EntityMetaKey.Selector])}
+										prefetched={evmBlock ?? evmBlockInitial}
 										layout={EntityLayout.Value}
 									/>
 								</dd>
@@ -139,12 +142,13 @@
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}
+						{@const evmContractInitial = untrack(() => evmContract)}
 						<div>
 							<dt>Emitter contract</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
+									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContract ?? evmContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

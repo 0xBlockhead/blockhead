@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -139,12 +140,13 @@
 			>
 				{#snippet children(cardanoDRep)}
 					{#if cardanoDRep != null}
+						{@const cardanoDRepInitial = untrack(() => cardanoDRep)}
 						<div>
 							<dt>drep</dt>
 							<dd>
 								<CardanoDRepView
-									selection={select(EntityType.CardanoDRep, cardanoDRep[EntityMetaKey.Selector])}
-									prefetched={cardanoDRep}
+									selection={select(EntityType.CardanoDRep, (cardanoDRep ?? cardanoDRepInitial)[EntityMetaKey.Selector])}
+									prefetched={cardanoDRep ?? cardanoDRepInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -158,12 +160,13 @@
 			>
 				{#snippet children(cardanoStakePool)}
 					{#if cardanoStakePool != null}
+						{@const cardanoStakePoolInitial = untrack(() => cardanoStakePool)}
 						<div>
 							<dt>stake pool</dt>
 							<dd>
 								<CardanoStakePoolView
-									selection={select(EntityType.CardanoStakePool, cardanoStakePool[EntityMetaKey.Selector])}
-									prefetched={cardanoStakePool}
+									selection={select(EntityType.CardanoStakePool, (cardanoStakePool ?? cardanoStakePoolInitial)[EntityMetaKey.Selector])}
+									prefetched={cardanoStakePool ?? cardanoStakePoolInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -177,11 +180,12 @@
 			>
 				{#snippet children(cardanoTransaction)}
 					{#if cardanoTransaction != null}
+						{@const cardanoTransactionInitial = untrack(() => cardanoTransaction)}
 						<div>
 							<dt>transaction</dt>
 							<dd>
 								<CardanoTransactionView
-									selection={select(EntityType.CardanoTransaction, cardanoTransaction[EntityMetaKey.Selector])}
+									selection={select(EntityType.CardanoTransaction, (cardanoTransaction ?? cardanoTransactionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

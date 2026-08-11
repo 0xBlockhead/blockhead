@@ -12,7 +12,9 @@ import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 // Projection eligibility: facetPath=['Dydx']
-export const load: LayoutLoad = ({ params }) => {
+export const load: LayoutLoad = async ({ params, parent }) => {
+	const parentData = await parent()
+
 	if (!(
 		parentData.projectionNetwork.namespace === 'Dydx'
 		&& matchNonNegativeInteger(params.subaccountNumber)
@@ -26,7 +28,9 @@ export const load: LayoutLoad = ({ params }) => {
 		DydxChainSubaccountSchema,
 		{
 			$network: {
-				$network: selector.$account.$network,
+				$network: {
+					caip2: params.network,
+				},
 			},
 			$account: {
 				$network: {

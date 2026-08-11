@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -165,11 +166,12 @@
 			>
 				{#snippet children(liquidityPool)}
 					{#if liquidityPool != null}
+						{@const liquidityPoolInitial = untrack(() => liquidityPool)}
 						<div>
 							<dt>liquidity pool</dt>
 							<dd>
 								<LiquidityPoolView
-									selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
+									selection={select(EntityType.LiquidityPool, (liquidityPool ?? liquidityPoolInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -183,11 +185,12 @@
 			>
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null}
+						{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 						<div>
 							<dt>token in</dt>
 							<dd>
 								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -201,11 +204,12 @@
 			>
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null}
+						{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 						<div>
 							<dt>token out</dt>
 							<dd>
 								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

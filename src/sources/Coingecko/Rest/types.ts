@@ -203,10 +203,30 @@ export type CoingeckoAssetPlatform = AssetPlatformsResponse[number]
 export type CoingeckoCoinsMarket = CoinsMarketsResponse[number]
 export type CoingeckoCoinTickers = CoinTickersResponse
 export type CoingeckoCoinTicker = NonNullable<CoinTickersResponse['tickers']>[number]
-export type CoingeckoDerivativesExchange = DerivativesExchangeResponse
-export type CoingeckoDerivativesExchangeTicker = NonNullable<
+export type CoingeckoDerivativesExchangeWire = DerivativesExchangeResponse
+type CoingeckoDerivativesExchangeTickerWire = NonNullable<
 	DerivativesExchangeResponse['tickers']
 >[number]
+export type CoingeckoDerivativesExchangeTicker = Omit<
+	CoingeckoDerivativesExchangeTickerWire,
+	| 'last'
+	| 'index'
+	| 'open_interest_usd'
+	| 'index_basis_percentage'
+	| 'funding_rate'
+> & {
+	last: string
+	index: string
+	open_interest_usd: string
+	index_basis_percentage: string
+	funding_rate: string
+}
+export type CoingeckoDerivativesExchange = Omit<
+	CoingeckoDerivativesExchangeWire,
+	'tickers'
+> & {
+	tickers: CoingeckoDerivativesExchangeTicker[]
+}
 export type CoingeckoSimplePrice = SimplePriceResponse
 export type CoingeckoSimplePriceRow = CoingeckoSimplePrice[string]
 

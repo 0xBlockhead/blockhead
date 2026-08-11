@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -78,9 +79,10 @@
 			resource={selection.$channel}
 		>
 			{#snippet children(lightningChannel)}
+				{@const lightningChannelInitial = untrack(() => lightningChannel)}
 				<LightningChannelView
-					selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
-					prefetched={lightningChannel}
+					selection={select(EntityType.LightningChannel, (lightningChannel ?? lightningChannelInitial)[EntityMetaKey.Selector])}
+					prefetched={lightningChannel ?? lightningChannelInitial}
 					href={null}
 					layout={EntityLayout.Value}
 				/>
@@ -120,9 +122,10 @@
 						resource={selection.$channel}
 					>
 						{#snippet children(lightningChannel)}
+							{@const lightningChannelInitial = untrack(() => lightningChannel)}
 							<LightningChannelView
-								selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
-								prefetched={lightningChannel}
+								selection={select(EntityType.LightningChannel, (lightningChannel ?? lightningChannelInitial)[EntityMetaKey.Selector])}
+								prefetched={lightningChannel ?? lightningChannelInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

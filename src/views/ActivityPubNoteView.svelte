@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -175,12 +176,13 @@
 			>
 				{#snippet children(activityPubActor)}
 					{#if activityPubActor != null}
+						{@const activityPubActorInitial = untrack(() => activityPubActor)}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<ActivityPubActorView
-									selection={select(EntityType.ActivityPubActor, activityPubActor[EntityMetaKey.Selector])}
-									prefetched={activityPubActor}
+									selection={select(EntityType.ActivityPubActor, (activityPubActor ?? activityPubActorInitial)[EntityMetaKey.Selector])}
+									prefetched={activityPubActor ?? activityPubActorInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

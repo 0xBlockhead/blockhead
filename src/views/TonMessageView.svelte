@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -93,9 +94,10 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
+							{@const networkInitial = untrack(() => network)}
 							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
+								selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+								prefetched={network ?? networkInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -127,11 +129,12 @@
 			>
 				{#snippet children(tonTransaction)}
 					{#if tonTransaction != null}
+						{@const tonTransactionInitial = untrack(() => tonTransaction)}
 						<div>
 							<dt>source transaction</dt>
 							<dd>
 								<TonTransactionView
-									selection={select(EntityType.TonTransaction, tonTransaction[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonTransaction, (tonTransaction ?? tonTransactionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -406,11 +409,12 @@
 			>
 				{#snippet children(tonTrace)}
 					{#if tonTrace != null}
+						{@const tonTraceInitial = untrack(() => tonTrace)}
 						<div>
 							<dt>trace</dt>
 							<dd>
 								<TonTraceView
-									selection={select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonTrace, (tonTrace ?? tonTraceInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -424,11 +428,12 @@
 			>
 				{#snippet children(tonTransaction)}
 					{#if tonTransaction != null}
+						{@const tonTransactionInitial = untrack(() => tonTransaction)}
 						<div>
 							<dt>destination transaction</dt>
 							<dd>
 								<TonTransactionView
-									selection={select(EntityType.TonTransaction, tonTransaction[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonTransaction, (tonTransaction ?? tonTransactionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

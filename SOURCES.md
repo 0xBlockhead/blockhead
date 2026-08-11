@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-254 providers register 286 sources and 512 bindings.
+254 providers register 286 sources and 513 bindings.
 
 ## Providers
 
@@ -526,7 +526,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | TrustWalletAssets_Github | TrustWalletAssets | Trust Wallet Assets GitHub |
 | Tzkt_Rest | Tzkt | TzKT REST |
 | UniSat_Rest | UniSat | UniSat OpenAPI |
-| UniswapContracts_Evm | Uniswap | Uniswap V3 contract catalog |
+| UniswapContracts_Evm | Uniswap | Uniswap contract interface catalog |
 | Voltaire_JsonRpc | Voltaire | Voltaire JSON-RPC |
 | Voyager | Voyager | Voyager |
 | WakuNode | WakuNode | Waku node |
@@ -964,6 +964,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Tzkt_Rest","Caip2Network","tezos:NetXdQprcVkpaWU","HttpProxy","RestJson"] | Tzkt | Tzkt_Rest | Caip2Network | tezos:NetXdQprcVkpaWU | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["UniSat_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","HttpProxy","RestJson"] | UniSat | UniSat_Rest | Caip2Network | bip122:000000000019d6689c085ae165831e93 | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["UniswapContracts_Evm","Global","uniswap-v3-evm-contract-catalog","BrowserDirect","CatalogRows"] | Uniswap | UniswapContracts_Evm | Global | uniswap-v3-evm-contract-catalog | InProcess | CatalogRows | GenericRead | BrowserDirect |
+| ["UniswapContracts_Evm","Global","uniswap-cca-v2-contract-interface","BrowserDirect","CatalogRows"] | Uniswap | UniswapContracts_Evm | Global | uniswap-cca-v2-contract-interface | InProcess | CatalogRows | GenericRead | BrowserDirect |
 | ["Voltaire_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | Voltaire | Voltaire_JsonRpc | Eip155Chain | 1 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore, EvmRpcTrace | HttpProxy |
 | ["Voltaire_JsonRpc","Eip155Chain","1","RemoteLive","EvmExecutionJsonRpc"] | Voltaire | Voltaire_JsonRpc | Eip155Chain | 1 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcSubscribe | RemoteLive |
 | ["Voltaire_JsonRpc","Eip155Chain","10","HttpProxy","EvmExecutionJsonRpc"] | Voltaire | Voltaire_JsonRpc | Eip155Chain | 10 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | HttpProxy |
@@ -1517,6 +1518,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Tzkt_Rest","Caip2Network","tezos:NetXdQprcVkpaWU","HttpProxy","RestJson"] | HttpUrl | https://api.tzkt.io | https://api.tzkt.io | false |
 | ["UniSat_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","HttpProxy","RestJson"] | HttpUrl | https://open-api.unisat.io | https://open-api.unisat.io | false |
 | ["UniswapContracts_Evm","Global","uniswap-v3-evm-contract-catalog","BrowserDirect","CatalogRows"] | InProcess | uniswap-v3-evm-contract-catalog |  |  |
+| ["UniswapContracts_Evm","Global","uniswap-cca-v2-contract-interface","BrowserDirect","CatalogRows"] | InProcess | uniswap-cca-v2-contract-interface |  |  |
 | ["Voltaire_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://ethereum.publicnode.com | https://ethereum.publicnode.com | false |
 | ["Voltaire_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://eth.drpc.org | https://eth.drpc.org | true |
 | ["Voltaire_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://eth.llamarpc.com | https://eth.llamarpc.com | false |

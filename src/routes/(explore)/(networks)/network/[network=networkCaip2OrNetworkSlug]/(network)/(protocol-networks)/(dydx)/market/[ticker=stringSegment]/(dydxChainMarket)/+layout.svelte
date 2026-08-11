@@ -46,7 +46,6 @@
 				select(EntityType.DydxChainMarket, data.selector, {
 					sources: [
 						Source.DydxIndexer,
-						Source.KingnodesDydxNode,
 					],
 				})
 			}

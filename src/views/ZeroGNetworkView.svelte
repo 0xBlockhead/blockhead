@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -169,12 +170,13 @@
 			>
 				{#snippet children(network)}
 					{#if network != null}
+						{@const networkInitial = untrack(() => network)}
 						<div>
 							<dt>execution network</dt>
 							<dd>
 								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
+									selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+									prefetched={network ?? networkInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -188,11 +190,12 @@
 			>
 				{#snippet children(zeroGConsensusNetwork)}
 					{#if zeroGConsensusNetwork != null}
+						{@const zeroGConsensusNetworkInitial = untrack(() => zeroGConsensusNetwork)}
 						<div>
 							<dt>consensus network</dt>
 							<dd>
 								<ZeroGConsensusNetworkView
-									selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGConsensusNetwork, (zeroGConsensusNetwork ?? zeroGConsensusNetworkInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

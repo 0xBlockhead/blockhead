@@ -324,8 +324,12 @@ export const getSubaccount = async ({
 	assertDecimal(observation.value.freeCollateral, 'freeCollateral')
 	assertHeight(observation.value.updatedAtHeight)
 	assertHeight(observation.value.latestProcessedBlockHeight)
-	for (const position of Object.values(observation.value.openPerpetualPositions))
+	for (const [market, position] of Object.entries(observation.value.openPerpetualPositions)) {
+		if (market !== position.market)
+			throw new Error('DydxIndexer_Rest: mismatched subaccount position market identity')
+
 		assertPosition(position, subaccountNumber)
+	}
 
 	return observation
 }

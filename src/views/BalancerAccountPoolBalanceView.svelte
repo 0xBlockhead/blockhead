@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -126,12 +127,13 @@
 			>
 				{#snippet children(balancerGauge)}
 					{#if balancerGauge != null}
+						{@const balancerGaugeInitial = untrack(() => balancerGauge)}
 						<div>
 							<dt>Gauge</dt>
 							<dd>
 								<BalancerGaugeView
-									selection={select(EntityType.BalancerGauge, balancerGauge[EntityMetaKey.Selector])}
-									prefetched={balancerGauge}
+									selection={select(EntityType.BalancerGauge, (balancerGauge ?? balancerGaugeInitial)[EntityMetaKey.Selector])}
+									prefetched={balancerGauge ?? balancerGaugeInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

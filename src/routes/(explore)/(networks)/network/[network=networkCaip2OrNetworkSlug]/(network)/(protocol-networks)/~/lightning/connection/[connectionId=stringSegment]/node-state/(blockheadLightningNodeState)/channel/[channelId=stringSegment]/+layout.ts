@@ -21,7 +21,7 @@ export const load: LayoutLoad = async ({ params, parent }) => {
 		{
 			$localNodeState: parentData.selector,
 			$channel: {
-				$network: selector.$localNodeState.$network.$network,
+				$network: parentData.selector.$network.$network,
 				channelId: params.channelId,
 			},
 		},

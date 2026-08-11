@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -30,6 +31,7 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -39,7 +41,6 @@
 	import HyperliquidFillsView from '$/views/HyperliquidFillsView.svelte'
 	import HyperliquidVaultEquity_TimestampsView from '$/views/HyperliquidVaultEquity_TimestampsView.svelte'
 	import HyperliquidBorrowLendPositionsView from '$/views/HyperliquidBorrowLendPositionsView.svelte'
-	import HyperliquidAccount_TimestampsView from '$/views/HyperliquidAccount_TimestampsView.svelte'
 </script>
 
 
@@ -111,11 +112,12 @@
 			>
 				{#snippet children(hyperliquidAccount)}
 					{#if hyperliquidAccount != null}
+						{@const hyperliquidAccountInitial = untrack(() => hyperliquidAccount)}
 						<div>
 							<dt>master account</dt>
 							<dd>
 								<HyperliquidAccountView
-									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidAccount, (hyperliquidAccount ?? hyperliquidAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -129,11 +131,12 @@
 			>
 				{#snippet children(hyperliquidAccount)}
 					{#if hyperliquidAccount != null}
+						{@const hyperliquidAccountInitial = untrack(() => hyperliquidAccount)}
 						<div>
 							<dt>agent account</dt>
 							<dd>
 								<HyperliquidAccountView
-									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidAccount, (hyperliquidAccount ?? hyperliquidAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -248,13 +251,22 @@
 			{/snippet}
 
 			{#snippet SectionHyperliquidAccountTimestamps({ id, label })}
-				<HyperliquidAccount_TimestampsView
-					selection={selection.$$timestamps}
+				<EntitiesList
+					entityType={EntityType.HyperliquidAccount_Timestamp}
 					collapsible={false}
 					title={label}
 					emptyText='No timestamps.'
+					open={true}
 					id={`${id}-list`}
-				/>
+					resource={selection.$$timestamps()}
+				>
+					{#snippet Item({ item: hyperliquidAccountTimestamp })}
+						<EntityView
+							entityType={EntityType.HyperliquidAccount_Timestamp}
+							entitySelector={hyperliquidAccountTimestamp[EntityMetaKey.Selector]}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 
 		</CollapsibleTabs>

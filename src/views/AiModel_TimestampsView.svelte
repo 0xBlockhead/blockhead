@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -53,24 +52,9 @@
 >
 	{#snippet Item({ item: aiModelTimestamp })}
 		{@const aiModelTimestampSelector = aiModelTimestamp[EntityMetaKey.Selector]}
-		{@const model = aiModelTimestampSelector.$model}
 		<EntityView
 			entityType={EntityType.AiModel_Timestamp}
 			entitySelector={aiModelTimestampSelector}
-			href={
-				'providerId' in model.$provider ?
-					resolve(
-						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/model/[providerModelId=stringSegment]/(aiModel)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-						{
-							providerId: model.$provider.providerId,
-							providerModelId: model.providerModelId,
-							timestampMs: String(aiModelTimestampSelector.timestampMs),
-							source: aiModelTimestampSelector.source,
-						}
-					)
-				:
-					undefined
-			}
 		>
 			{#snippet Title()}
 				{(aiModelTimestamp.providerDisplayName ?? '') || (aiModelTimestamp.$model.label ?? '') || aiModelTimestampSelector.$model.providerModelId || 'AI model'}

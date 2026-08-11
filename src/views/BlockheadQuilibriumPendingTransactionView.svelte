@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -126,11 +127,12 @@
 			>
 				{#snippet children(quilibriumAccount)}
 					{#if quilibriumAccount != null}
+						{@const quilibriumAccountInitial = untrack(() => quilibriumAccount)}
 						<div>
 							<dt>account</dt>
 							<dd>
 								<QuilibriumAccountView
-									selection={select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.QuilibriumAccount, (quilibriumAccount ?? quilibriumAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -144,11 +146,12 @@
 			>
 				{#snippet children(quilibriumAccount)}
 					{#if quilibriumAccount != null}
+						{@const quilibriumAccountInitial = untrack(() => quilibriumAccount)}
 						<div>
 							<dt>refund account</dt>
 							<dd>
 								<QuilibriumAccountView
-									selection={select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.QuilibriumAccount, (quilibriumAccount ?? quilibriumAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

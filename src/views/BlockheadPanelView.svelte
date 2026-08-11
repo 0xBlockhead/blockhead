@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -117,8 +118,9 @@
 						resource={selection.$panelTree}
 					>
 						{#snippet children(blockheadPanelTree)}
+							{@const blockheadPanelTreeInitial = untrack(() => blockheadPanelTree)}
 							<BlockheadPanelTreeView
-								selection={select(EntityType.BlockheadPanelTree, blockheadPanelTree[EntityMetaKey.Selector])}
+								selection={select(EntityType.BlockheadPanelTree, (blockheadPanelTree ?? blockheadPanelTreeInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

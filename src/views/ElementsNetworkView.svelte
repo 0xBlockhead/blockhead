@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -85,12 +86,13 @@
 			>
 				{#snippet children(network)}
 					{#if network != null}
+						{@const networkInitial = untrack(() => network)}
 						<div>
 							<dt>Settlement network</dt>
 							<dd>
 								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-									prefetched={network}
+									selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+									prefetched={network ?? networkInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -166,12 +168,13 @@
 			>
 				{#snippet children(elementsAsset)}
 					{#if elementsAsset != null}
+						{@const elementsAssetInitial = untrack(() => elementsAsset)}
 						<div>
 							<dt>Native asset</dt>
 							<dd>
 								<ElementsAssetView
-									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
-									prefetched={elementsAsset}
+									selection={select(EntityType.ElementsAsset, (elementsAsset ?? elementsAssetInitial)[EntityMetaKey.Selector])}
+									prefetched={elementsAsset ?? elementsAssetInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

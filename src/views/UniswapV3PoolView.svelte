@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -126,10 +127,11 @@
 			resource={selection.$network}
 		>
 			{#snippet children(network)}
+				{@const networkInitial = untrack(() => network)}
 				<span data-text="muted">
 					<NetworkView
-						selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-						prefetched={network}
+						selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+						prefetched={network ?? networkInitial}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -146,9 +148,10 @@
 						resource={selection.$network}
 					>
 						{#snippet children(network)}
+							{@const networkInitial = untrack(() => network)}
 							<NetworkView
-								selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-								prefetched={network}
+								selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+								prefetched={network ?? networkInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -174,12 +177,13 @@
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}
+						{@const evmContractInitial = untrack(() => evmContract)}
 						<div>
 							<dt>Pool contract</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
+									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContract ?? evmContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -195,12 +199,13 @@
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}
+						{@const evmContractInitial = untrack(() => evmContract)}
 						<div>
 							<dt>Factory</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
+									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContract ?? evmContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -214,12 +219,13 @@
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}
+						{@const evmContractInitial = untrack(() => evmContract)}
 						<div>
 							<dt>Token 0</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
+									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContract ?? evmContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -233,12 +239,13 @@
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null}
+						{@const evmContractInitial = untrack(() => evmContract)}
 						<div>
 							<dt>Token 1</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
+									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContract ?? evmContractInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

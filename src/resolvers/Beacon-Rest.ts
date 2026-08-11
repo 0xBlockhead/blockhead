@@ -23,6 +23,7 @@ import type {
 } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
 import {
 	beaconRestByChainId,
 } from '$/sources/Beacon/Rest/queries.ts'
@@ -207,6 +208,88 @@ export default {
 	source: Source.Beacon_Rest,
 
 	resolvers: [
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					appliesTo: beaconNetworkApplicability,
+					resolve: async ({ caip2 }) => {
+						const chainId = Number(caip2.reference)
+						const {
+							getNodeHealthObservation,
+							getNodeIdentityObservation,
+							getNodePeerCountObservation,
+							getNodeSyncingObservation,
+							getNodeVersionObservation,
+						} = await import('$/sources/Beacon/Rest/queries.ts')
+						const [
+							health,
+							identity,
+							peerCount,
+							syncing,
+							version,
+						] = await Promise.all([
+							getNodeHealthObservation(chainId),
+							getNodeIdentityObservation(chainId),
+							getNodePeerCountObservation(chainId),
+							getNodeSyncingObservation(chainId),
+							getNodeVersionObservation(chainId),
+						])
+						if (![
+							health.endpointUrl,
+							identity.endpointUrl,
+							syncing.endpointUrl,
+							version.endpointUrl,
+						].every((endpointUrl) => endpointUrl === peerCount.endpointUrl))
+							throw new Error('Beacon_Rest: node observation endpoints do not match')
+
+						return [{
+							[EntityMetaKey.Selector]: {
+								$network: { caip2 },
+								endpointUrl: peerCount.endpointUrl,
+								endpointKind: ApiFamily.EthereumBeaconRest,
+								timestampMs: Math.max(
+									health.fetchedAtMs,
+									identity.fetchedAtMs,
+									peerCount.fetchedAtMs,
+									syncing.fetchedAtMs,
+									version.fetchedAtMs
+								),
+								source: Source.Beacon_Rest,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'disconnectedPeerCount')]: BigInt(peerCount.disconnected),
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'connectingPeerCount')]: BigInt(peerCount.connecting),
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'connectedPeerCount')]: BigInt(peerCount.connected),
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'disconnectingPeerCount')]: BigInt(peerCount.disconnecting),
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'headSlot')]: BigInt(syncing.head_slot),
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'syncDistance')]: BigInt(syncing.sync_distance),
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'isSyncing')]: syncing.is_syncing,
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'isOptimistic')]: syncing.is_optimistic,
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'executionLayerOffline')]: syncing.el_offline,
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'version')]: version.version,
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'peerId')]: identity.peer_id,
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'enr')]: identity.enr,
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'p2pAddresses')]: identity.p2p_addresses,
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'discoveryAddresses')]: identity.discovery_addresses,
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'metadataSequenceNumber')]: BigInt(identity.metadata.seq_number),
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'attestationSubnets')]: identity.metadata.attnets,
+								...(identity.metadata.syncnets != null && {
+									[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'syncCommitteeSubnets')]: identity.metadata.syncnets,
+								}),
+								...(identity.metadata.custody_group_count != null && {
+									[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'custodyGroupCount')]: BigInt(identity.metadata.custody_group_count),
+								}),
+								[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'statusCode')]: health.statusCode,
+							},
+						}]
+					},
+				},
+			},
+		})({
+			$$endpointObservations: (network) => network,
+		}),
+
 		defineResolver({
 			entityType: EntityType.Network,
 			resolve: {

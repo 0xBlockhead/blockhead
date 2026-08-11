@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -46,16 +45,6 @@
 		<EntityView
 			entityType={EntityType.RssFeed_Timestamp}
 			entitySelector={rssFeedTimestampSelector}
-			href={
-				resolve(
-					'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						feedUrl: encodeURIComponent(rssFeedTimestampSelector.$feed.feedUrl),
-						timestampMs: String(rssFeedTimestampSelector.timestampMs),
-						source: rssFeedTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{[(rssFeedTimestamp.$feed.title ?? ''), rssFeedTimestampSelector.$feed.feedUrl].filter(Boolean).join(' ') || 'RSS feed'}

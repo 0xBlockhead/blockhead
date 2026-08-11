@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -104,10 +105,11 @@
 		>
 			{#snippet children(balancerPool)}
 				{#if balancerPool != null}
+					{@const balancerPoolInitial = untrack(() => balancerPool)}
 					<span data-text="muted">
 						<BalancerPoolView
-							selection={select(EntityType.BalancerPool, balancerPool[EntityMetaKey.Selector])}
-							prefetched={balancerPool}
+							selection={select(EntityType.BalancerPool, (balancerPool ?? balancerPoolInitial)[EntityMetaKey.Selector])}
+							prefetched={balancerPool ?? balancerPoolInitial}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -140,12 +142,13 @@
 			>
 				{#snippet children(balancerPool)}
 					{#if balancerPool != null}
+						{@const balancerPoolInitial = untrack(() => balancerPool)}
 						<div>
 							<dt>Pool</dt>
 							<dd>
 								<BalancerPoolView
-									selection={select(EntityType.BalancerPool, balancerPool[EntityMetaKey.Selector])}
-									prefetched={balancerPool}
+									selection={select(EntityType.BalancerPool, (balancerPool ?? balancerPoolInitial)[EntityMetaKey.Selector])}
+									prefetched={balancerPool ?? balancerPoolInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

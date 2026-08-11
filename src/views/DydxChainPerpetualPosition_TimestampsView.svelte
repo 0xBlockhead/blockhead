@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -40,26 +39,9 @@
 >
 	{#snippet Item({ item: dydxChainPerpetualPositionTimestamp })}
 		{@const dydxChainPerpetualPositionTimestampSelector = dydxChainPerpetualPositionTimestamp[EntityMetaKey.Selector]}
-		{@const subaccount = dydxChainPerpetualPositionTimestampSelector.$subaccount}
 		<EntityView
 			entityType={EntityType.DydxChainPerpetualPosition_Timestamp}
 			entitySelector={dydxChainPerpetualPositionTimestampSelector}
-			href={
-				'caip2' in subaccount.$account.$network ?
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[accountAddress=stringSegment]/subaccount/[subaccountNumber=nonNegativeInteger]/(dydxChainSubaccount)/market/[ticker=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-						{
-							network: String(subaccount.$account.$network.caip2),
-							accountAddress: subaccount.$account.address,
-							subaccountNumber: String(subaccount.subaccountNumber),
-							ticker: dydxChainPerpetualPositionTimestampSelector.$market.ticker,
-							timestampMs: String(dydxChainPerpetualPositionTimestampSelector.timestampMs),
-							source: dydxChainPerpetualPositionTimestampSelector.source,
-						}
-					)
-				:
-					undefined
-			}
 		>
 			{#snippet Title()}
 				{dydxChainPerpetualPositionTimestampSelector.timestampMs}

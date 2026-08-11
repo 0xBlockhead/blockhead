@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -118,11 +119,12 @@
 			>
 				{#snippet children(tezosContract)}
 					{#if tezosContract != null}
+						{@const tezosContractInitial = untrack(() => tezosContract)}
 						<div>
 							<dt>contract</dt>
 							<dd>
 								<TezosContractView
-									selection={select(EntityType.TezosContract, tezosContract[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosContract, (tezosContract ?? tezosContractInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

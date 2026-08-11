@@ -30,6 +30,7 @@ import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
+import { ApiFamily } from '$/sources/SourceBinding.ts'
 import { voltaireJsonRpcTransports } from '$/sources/Voltaire/JsonRpc/queries.ts'
 import type {
 	RpcBlockWire,
@@ -1533,6 +1534,50 @@ export default {
 			},
 		})({
 			$primaryName: (entity) => entity,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Caip2: {
+					resolve: async ({ caip2 }, context) => {
+						const chainId = chainIdFromEvmNetworkId({ caip2 })
+						const jsonRpcTransports = (
+							(await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []
+						).slice(0, resolverContextRowLimit(context))
+						if (jsonRpcTransports.length === 0)
+							throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for Network.$$endpointObservations on chain ${String(chainId)}`)
+
+						const observations = []
+						const errors: string[] = []
+						for (const jsonRpcTransport of jsonRpcTransports) {
+							try {
+								const observation = await jsonRpcTransport.getPeerCountObservation()
+								observations.push({
+									[EntityMetaKey.Selector]: {
+										$network: { caip2 },
+										endpointUrl: jsonRpcTransport.origin,
+										endpointKind: ApiFamily.EvmExecutionJsonRpc,
+										timestampMs: observation.fetchedAtMs,
+										source: Source.Voltaire_JsonRpc,
+									},
+									[EntityMetaKey.Fields]: {
+										[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Execution'], 'peerCount')]: BigInt(observation.peerCount),
+									},
+								})
+							} catch (error) {
+								errors.push(`${jsonRpcTransport.diagnosticLabel}: ${errorMessage(error)}`)
+							}
+						}
+						if (observations.length === 0)
+							throw allJsonRpcEndpointsFailedError(chainId, '$$endpointObservations', errors)
+
+						return observations
+					},
+				},
+			},
+		})({
+			$$endpointObservations: (network) => network,
 		}),
 
 		defineResolver({

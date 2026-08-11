@@ -18,11 +18,7 @@
 
 	const pageSelection = $derived(select(EntityType.EasAttestation, data.selector, {
 		sources: [
-			Source.Blockscout_Rest,
-			Source.EasContracts_Evm,
 			Source.EasScan_Graphql,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
 		],
 	}))
 

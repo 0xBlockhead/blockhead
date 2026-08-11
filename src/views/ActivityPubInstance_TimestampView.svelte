@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -17,7 +16,6 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
@@ -50,19 +48,6 @@
 	entityType={EntityType.ActivityPubInstance_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	href={
-		href === undefined ?
-			resolve(
-				'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-				{
-					instanceOrigin: encodeURIComponent(selection.entitySelector.$instance.instanceOrigin),
-					timestampMs: String(selection.entitySelector.timestampMs),
-					source: selection.entitySelector.source,
-				}
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -210,12 +211,13 @@
 			>
 				{#snippet children(evmContractCompilation)}
 					{#if evmContractCompilation != null}
+						{@const evmContractCompilationInitial = untrack(() => evmContractCompilation)}
 						<div>
 							<dt>Compilation</dt>
 							<dd>
 								<EvmContractCompilationView
-									selection={select(EntityType.EvmContractCompilation, evmContractCompilation[EntityMetaKey.Selector])}
-									prefetched={evmContractCompilation}
+									selection={select(EntityType.EvmContractCompilation, (evmContractCompilation ?? evmContractCompilationInitial)[EntityMetaKey.Selector])}
+									prefetched={evmContractCompilation ?? evmContractCompilationInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -229,11 +231,12 @@
 			>
 				{#snippet children(evmContractSourceBundle)}
 					{#if evmContractSourceBundle != null}
+						{@const evmContractSourceBundleInitial = untrack(() => evmContractSourceBundle)}
 						<div>
 							<dt>Source bundle</dt>
 							<dd>
 								<EvmContractSourceBundleView
-									selection={select(EntityType.EvmContractSourceBundle, evmContractSourceBundle[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmContractSourceBundle, (evmContractSourceBundle ?? evmContractSourceBundleInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

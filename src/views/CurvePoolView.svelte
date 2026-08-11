@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -317,12 +318,13 @@
 			>
 				{#snippet children(curveGauge)}
 					{#if curveGauge != null}
+						{@const curveGaugeInitial = untrack(() => curveGauge)}
 						<div>
 							<dt>Gauge</dt>
 							<dd>
 								<CurveGaugeView
-									selection={select(EntityType.CurveGauge, curveGauge[EntityMetaKey.Selector])}
-									prefetched={curveGauge}
+									selection={select(EntityType.CurveGauge, (curveGauge ?? curveGaugeInitial)[EntityMetaKey.Selector])}
+									prefetched={curveGauge ?? curveGaugeInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

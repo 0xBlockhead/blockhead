@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -111,11 +112,12 @@
 			>
 				{#snippet children(eip8004AgentRegistration)}
 					{#if eip8004AgentRegistration != null}
+						{@const eip8004AgentRegistrationInitial = untrack(() => eip8004AgentRegistration)}
 						<div>
 							<dt>Registration</dt>
 							<dd>
 								<Eip8004AgentRegistrationView
-									selection={select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector])}
+									selection={select(EntityType.Eip8004AgentRegistration, (eip8004AgentRegistration ?? eip8004AgentRegistrationInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

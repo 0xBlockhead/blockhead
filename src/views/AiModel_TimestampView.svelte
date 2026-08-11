@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -17,13 +16,11 @@
 		selection,
 		prefetched = {},
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.AiModel_Timestamp> = $props()
 
-	const model = $derived(selection.entitySelector.$model)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Anthropic_Rest,
@@ -52,25 +49,6 @@
 	entityType={EntityType.AiModel_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? titleFallback}
-	href={
-		href === undefined ?
-			(
-				'providerId' in model.$provider ?
-					resolve(
-						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/model/[providerModelId=stringSegment]/(aiModel)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-						{
-							providerId: model.$provider.providerId,
-							providerModelId: model.providerModelId,
-							timestampMs: String(selection.entitySelector.timestampMs),
-							source: selection.entitySelector.source,
-						}
-					)
-				:
-					undefined
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

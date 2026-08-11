@@ -25,7 +25,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$positions: {
-		entityType: EntityType.DydxChainPerpetualPosition_Timestamp,
+		entityType: EntityType.DydxChainPerpetualPosition,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$orders: {

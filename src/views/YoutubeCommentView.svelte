@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -166,12 +167,13 @@
 				>
 					{#snippet children(youtubeChannel)}
 						{#if youtubeChannel != null}
+							{@const youtubeChannelInitial = untrack(() => youtubeChannel)}
 							<div>
 								<dt>Author channel</dt>
 								<dd>
 									<YoutubeChannelView
-										selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
-										prefetched={youtubeChannel}
+										selection={select(EntityType.YoutubeChannel, (youtubeChannel ?? youtubeChannelInitial)[EntityMetaKey.Selector])}
+										prefetched={youtubeChannel ?? youtubeChannelInitial}
 										layout={EntityLayout.Value}
 									/>
 								</dd>
@@ -187,12 +189,13 @@
 				>
 					{#snippet children(youtubeVideo)}
 						{#if youtubeVideo != null}
+							{@const youtubeVideoInitial = untrack(() => youtubeVideo)}
 							<div>
 								<dt>Video</dt>
 								<dd>
 									<YoutubeVideoView
-										selection={select(EntityType.YoutubeVideo, youtubeVideo[EntityMetaKey.Selector])}
-										prefetched={youtubeVideo}
+										selection={select(EntityType.YoutubeVideo, (youtubeVideo ?? youtubeVideoInitial)[EntityMetaKey.Selector])}
+										prefetched={youtubeVideo ?? youtubeVideoInitial}
 										layout={EntityLayout.Value}
 									/>
 								</dd>
@@ -208,12 +211,13 @@
 				>
 					{#snippet children(youtubeComment)}
 						{#if youtubeComment != null}
+							{@const youtubeCommentInitial = untrack(() => youtubeComment)}
 							<div>
 								<dt>Parent comment</dt>
 								<dd>
 									<YoutubeCommentView
-										selection={select(EntityType.YoutubeComment, youtubeComment[EntityMetaKey.Selector])}
-										prefetched={youtubeComment}
+										selection={select(EntityType.YoutubeComment, (youtubeComment ?? youtubeCommentInitial)[EntityMetaKey.Selector])}
+										prefetched={youtubeComment ?? youtubeCommentInitial}
 										layout={EntityLayout.Value}
 									/>
 								</dd>

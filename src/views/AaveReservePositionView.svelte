@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -110,9 +111,10 @@
 						resource={selection.$reserve}
 					>
 						{#snippet children(aaveReserve)}
+							{@const aaveReserveInitial = untrack(() => aaveReserve)}
 							<AaveReserveView
-								selection={select(EntityType.AaveReserve, aaveReserve[EntityMetaKey.Selector])}
-								prefetched={aaveReserve}
+								selection={select(EntityType.AaveReserve, (aaveReserve ?? aaveReserveInitial)[EntityMetaKey.Selector])}
+								prefetched={aaveReserve ?? aaveReserveInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

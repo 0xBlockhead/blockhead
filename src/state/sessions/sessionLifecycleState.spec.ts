@@ -66,6 +66,9 @@ describe('sessionLifecycleState', () => {
 		expect(sessionsE2eSource).toMatch(/Prep journey must not broadcast eth_sendTransaction/)
 		expect(sessionsE2eSource).toMatch(/Lock session/)
 		expect(sessionsE2eSource).toMatch(/Prepare EVM native transfer/)
+		expect(sessionsE2eSource).toMatch(/blockhead-session-intents-list/)
+		expect(sessionsE2eSource).toMatch(/session-action-outcomes-list/)
+		expect(sessionsE2eSource).toMatch(/wallet-request/)
 	})
 
 	it('keeps Draft lock optional and requires lock on terminal statuses', () => {

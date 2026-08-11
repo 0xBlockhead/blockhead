@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -95,9 +96,10 @@
 			resource={selection.$category}
 		>
 			{#snippet children(bitcoinCashCashTokenCategory)}
+				{@const bitcoinCashCashTokenCategoryInitial = untrack(() => bitcoinCashCashTokenCategory)}
 				<span data-text="muted">
 					<BitcoinCashCashTokenCategoryView
-						selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
+						selection={select(EntityType.BitcoinCashCashTokenCategory, (bitcoinCashCashTokenCategory ?? bitcoinCashCashTokenCategoryInitial)[EntityMetaKey.Selector])}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -129,8 +131,9 @@
 						resource={selection.$category}
 					>
 						{#snippet children(bitcoinCashCashTokenCategory)}
+							{@const bitcoinCashCashTokenCategoryInitial = untrack(() => bitcoinCashCashTokenCategory)}
 							<BitcoinCashCashTokenCategoryView
-								selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
+								selection={select(EntityType.BitcoinCashCashTokenCategory, (bitcoinCashCashTokenCategory ?? bitcoinCashCashTokenCategoryInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

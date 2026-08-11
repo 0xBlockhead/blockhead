@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -55,9 +56,10 @@
 			resource={selection.$network}
 		>
 			{#snippet children(network)}
+				{@const networkInitial = untrack(() => network)}
 				<NetworkView
-					selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-					prefetched={network}
+					selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+					prefetched={network ?? networkInitial}
 					href={null}
 					layout={EntityLayout.Title}
 				/>
@@ -71,9 +73,10 @@
 		>
 			{#snippet children(blockheadSessionSimulation)}
 				{#if blockheadSessionSimulation != null}
+					{@const blockheadSessionSimulationInitial = untrack(() => blockheadSessionSimulation)}
 					<BlockheadSessionSimulationView
-						selection={select(EntityType.BlockheadSessionSimulation, blockheadSessionSimulation[EntityMetaKey.Selector])}
-						prefetched={blockheadSessionSimulation}
+						selection={select(EntityType.BlockheadSessionSimulation, (blockheadSessionSimulation ?? blockheadSessionSimulationInitial)[EntityMetaKey.Selector])}
+						prefetched={blockheadSessionSimulation ?? blockheadSessionSimulationInitial}
 						href={null}
 						layout={EntityLayout.Value}
 					/>

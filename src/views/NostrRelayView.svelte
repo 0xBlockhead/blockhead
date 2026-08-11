@@ -24,6 +24,19 @@
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.NostrRelay>, 'prefetched'> = $props()
 
+	const nostrRelayLatestResource1 = $derived(
+		selection
+			.$$timestamps({
+				sources: [
+					Source.NostrRelay_Nip11_Http,
+				],
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
+
 	const viewDomId = $derived('nostr-relay-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -68,19 +81,10 @@
 				<dt>Latest observation</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection
-							.$$timestamps({
-								sources: [
-									Source.NostrRelay_Nip11_Http,
-								],
-								orderBy: [
-									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-								],
-							}).first()
-						}
+						resource={nostrRelayLatestResource1}
 					>
-						{#snippet children(nostrRelayTimestamp)}
+						{#snippet children(nostrRelayTimestamps)}
+							{@const nostrRelayTimestamp = nostrRelayTimestamps.values[0]}
 							{#if nostrRelayTimestamp != null}
 								{@const nostrRelayTimestampSelector = nostrRelayTimestamp[EntityMetaKey.Selector]}
 								<NostrRelay_TimestampView

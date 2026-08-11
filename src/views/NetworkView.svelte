@@ -5,6 +5,7 @@
 	import { resolve } from '$app/paths'
 	import ProjectionBoundary from '$/components/ProjectionBoundary.svelte'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -29,6 +30,113 @@
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.Network> = $props()
+
+	const networkLatestResource1 = $derived(
+		selection.Evm
+			.$$upgrades({
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					name: true,
+					activationBlock: true,
+				},
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value].activationBlock ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
+	const networkLatestResource2 = $derived(
+		selection.Evm
+			.$$blocks({
+				sources: [
+					Source.Voltaire_JsonRpc,
+				],
+				fields: {
+					blockNumber: true,
+				},
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
+	const networkLatestResource3 = $derived(
+		selection.Evm
+			.$$gasFeeBlocks({
+				sources: [
+					Source.Voltaire_JsonRpc,
+				],
+				fields: {
+					blockNumber: true,
+					baseFeePerGas: true,
+					gasUsedRatio: true,
+				},
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
+	const networkLatestResource4 = $derived(
+		selection.Evm
+			.$nativeCoin({
+				sources: [
+					Source.Constants_Internal,
+				],
+			})
+	)
+	const networkLatestResource5 = $derived(
+		selection.Evm
+			.$$txpoolTimestamps({
+				sources: [
+					Source.Voltaire_JsonRpc,
+				],
+				fields: {
+					timestampMs: true,
+					pendingCount: true,
+					queuedCount: true,
+				},
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
+	const networkLatestResource6 = $derived(
+		selection.Evm
+			.$$beaconEpochs({
+				sources: [
+					Source.Beacon_Rest,
+				],
+				fields: {
+					epoch: true,
+					startSlot: true,
+					endSlot: true,
+				},
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].epoch ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
+	const networkLatestResource7 = $derived(
+		selection.Evm
+			.$$beaconSlots({
+				sources: [
+					Source.Beacon_Rest,
+				],
+				fields: {
+					slot: true,
+					epoch: true,
+				},
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].slot ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
 
 	const pendingEntity = $derived(
 		(() => {
@@ -240,6 +348,7 @@
 	import EvmNetwork_Txpool_TimestampView from '$/views/EvmNetwork_Txpool_TimestampView.svelte'
 	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
+	import NetworkEndpointObservation_TimestampsView from '$/views/NetworkEndpointObservation_TimestampsView.svelte'
 	import AssetInstancesView from '$/views/AssetInstancesView.svelte'
 	import UrlsView from '$/views/UrlsView.svelte'
 	import DydxChainNetworkView from '$/views/DydxChainNetworkView.svelte'
@@ -427,23 +536,10 @@
 						<dt>Upgrade</dt>
 						<dd>
 							<ResourceBoundary
-								resource={
-									projection
-									.$$upgrades({
-										sources: [
-											Source.Constants_Internal,
-										],
-										fields: {
-											name: true,
-											activationBlock: true,
-										},
-										orderBy: [
-											[({ fieldRow }) => fieldRow[EntityMetaKey.Value].activationBlock ?? Number.NEGATIVE_INFINITY, 'desc'],
-										],
-									}).first()
-								}
+								resource={networkLatestResource1}
 							>
-								{#snippet children(ethereumNetworkUpgrade)}
+								{#snippet children(ethereumNetworkUpgrades)}
+									{@const ethereumNetworkUpgrade = ethereumNetworkUpgrades.values[0]}
 									{#if ethereumNetworkUpgrade != null}
 										{@const ethereumNetworkUpgradeSelector = ethereumNetworkUpgrade[EntityMetaKey.Selector]}
 										<EthereumNetworkUpgradeView
@@ -469,22 +565,10 @@
 						<dt>Block</dt>
 						<dd>
 							<ResourceBoundary
-								resource={
-									projection
-									.$$blocks({
-										sources: [
-											Source.Voltaire_JsonRpc,
-										],
-										fields: {
-											blockNumber: true,
-										},
-										orderBy: [
-											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc'],
-										],
-									}).first()
-								}
+								resource={networkLatestResource2}
 							>
-								{#snippet children(evmBlock)}
+								{#snippet children(evmBlocks)}
+									{@const evmBlock = evmBlocks.values[0]}
 									{#if evmBlock != null}
 										{@const evmBlockSelector = evmBlock[EntityMetaKey.Selector]}
 										<EvmBlockView
@@ -510,24 +594,10 @@
 						<dt>Fee market</dt>
 						<dd>
 							<ResourceBoundary
-								resource={
-									projection
-									.$$gasFeeBlocks({
-										sources: [
-											Source.Voltaire_JsonRpc,
-										],
-										fields: {
-											blockNumber: true,
-											baseFeePerGas: true,
-											gasUsedRatio: true,
-										},
-										orderBy: [
-											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc'],
-										],
-									}).first()
-								}
+								resource={networkLatestResource3}
 							>
-								{#snippet children(evmNetworkGasFeeBlock)}
+								{#snippet children(evmNetworkGasFeeBlocks)}
+									{@const evmNetworkGasFeeBlock = evmNetworkGasFeeBlocks.values[0]}
 									{#if evmNetworkGasFeeBlock != null}
 										{@const evmNetworkGasFeeBlockSelector = evmNetworkGasFeeBlock[EntityMetaKey.Selector]}
 										<EvmNetwork_GasFee_BlockView
@@ -553,14 +623,7 @@
 						<dt>Native price</dt>
 						<dd>
 							<ResourceBoundary
-								resource={
-									projection
-									.$nativeCoin({
-										sources: [
-											Source.Constants_Internal,
-										],
-									})
-								}
+								resource={networkLatestResource4}
 							>
 								{#snippet children(coin)}
 									{#if coin != null}
@@ -579,36 +642,45 @@
 
 										<ResourceBoundary
 											resource={
-												select(EntityType.Coin, coin[EntityMetaKey.Selector])
-													.$$marketsWithCoinAsBase({
-														sources: [
-															Source.Constants_Internal,
-														],
-														limit: 1,
-													}).first()
+												select(EntityType.Coin, coin[EntityMetaKey.Selector], {
+													fields: {
+														$$marketsWithCoinAsBase: {
+															sources: [
+																Source.Constants_Internal,
+															],
+															limit: 1,
+														},
+													},
+												})
 											}
 										>
-											{#snippet children(nativeCoinUsdMarket)}
+											{#snippet children(nativeCoinWithUsdMarket)}
+												{@const nativeCoinUsdMarket = nativeCoinWithUsdMarket.$$marketsWithCoinAsBase.values[0]}
 												{#if nativeCoinUsdMarket != null}
 													<ResourceBoundary
 														resource={
 															select(EntityType.MarketPrice, {
 																$market: nativeCoinUsdMarket[EntityMetaKey.Selector],
-															})
-																.$$quotes({
-																	sources: [
-																		Source.Coingecko_Rest,
-																	],
-																	fields: {
-																		price: true,
+															}, {
+																fields: {
+																	$$quotes: {
+																		sources: [
+																			Source.Coingecko_Rest,
+																		],
+																		fields: {
+																			price: true,
+																		},
+																		orderBy: [
+																			[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+																		],
+																		limit: 1,
 																	},
-																	orderBy: [
-																		[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-																	],
-																}).first()
+																},
+															})
 														}
 													>
-														{#snippet children(nativeCoinUsdQuote)}
+														{#snippet children(nativeCoinUsdMarketPrice)}
+															{@const nativeCoinUsdQuote = nativeCoinUsdMarketPrice.$$quotes.values[0]}
 															{#if nativeCoinUsdQuote != null}
 																<Market_TimestampView
 																	selection={select(EntityType.Market_Timestamp, nativeCoinUsdQuote[EntityMetaKey.Selector], {
@@ -641,24 +713,10 @@
 						<dt>Mempool</dt>
 						<dd>
 							<ResourceBoundary
-								resource={
-									projection
-									.$$txpoolTimestamps({
-										sources: [
-											Source.Voltaire_JsonRpc,
-										],
-										fields: {
-											timestampMs: true,
-											pendingCount: true,
-											queuedCount: true,
-										},
-										orderBy: [
-											[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
-										],
-									}).first()
-								}
+								resource={networkLatestResource5}
 							>
-								{#snippet children(evmNetworkTxpoolTimestamp)}
+								{#snippet children(evmNetworkTxpoolTimestamps)}
+									{@const evmNetworkTxpoolTimestamp = evmNetworkTxpoolTimestamps.values[0]}
 									{#if evmNetworkTxpoolTimestamp != null}
 										{@const evmNetworkTxpoolTimestampSelector = evmNetworkTxpoolTimestamp[EntityMetaKey.Selector]}
 										<EvmNetwork_Txpool_TimestampView
@@ -688,24 +746,10 @@
 								<dt>Epoch</dt>
 								<dd>
 									<ResourceBoundary
-										resource={
-											selection.Evm
-											.$$beaconEpochs({
-												sources: [
-													Source.Beacon_Rest,
-												],
-												fields: {
-													epoch: true,
-													startSlot: true,
-													endSlot: true,
-												},
-												orderBy: [
-													[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].epoch ?? Number.NEGATIVE_INFINITY, 'desc'],
-												],
-											}).first()
-										}
+										resource={networkLatestResource6}
 									>
-										{#snippet children(beaconEpoch)}
+										{#snippet children(beaconEpochs)}
+											{@const beaconEpoch = beaconEpochs.values[0]}
 											{#if beaconEpoch != null}
 												<BeaconEpochView
 													selection={
@@ -729,23 +773,10 @@
 								<dt>Slot</dt>
 								<dd>
 									<ResourceBoundary
-										resource={
-											selection.Evm
-											.$$beaconSlots({
-												sources: [
-													Source.Beacon_Rest,
-												],
-												fields: {
-													slot: true,
-													epoch: true,
-												},
-												orderBy: [
-													[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].slot ?? Number.NEGATIVE_INFINITY, 'desc'],
-												],
-											}).first()
-										}
+										resource={networkLatestResource7}
 									>
-										{#snippet children(beaconSlot)}
+										{#snippet children(beaconSlots)}
+											{@const beaconSlot = beaconSlots.values[0]}
 											{#if beaconSlot != null}
 												<BeaconSlotView
 													selection={
@@ -828,12 +859,13 @@
 			>
 				{#snippet children(networkStack)}
 					{#if networkStack != null}
+						{@const networkStackInitial = untrack(() => networkStack)}
 						<div>
 							<dt>Network stack</dt>
 							<dd>
 								<NetworkStackView
-									selection={select(EntityType.NetworkStack, networkStack[EntityMetaKey.Selector])}
-									prefetched={networkStack}
+									selection={select(EntityType.NetworkStack, (networkStack ?? networkStackInitial)[EntityMetaKey.Selector])}
+									prefetched={networkStack ?? networkStackInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -972,11 +1004,12 @@
 						>
 							{#snippet children(evmCoinInstance)}
 								{#if evmCoinInstance != null}
+									{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 									<div>
 										<dt>Native currency</dt>
 										<dd>
 											<EvmCoinInstanceView
-												selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+												selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -992,12 +1025,13 @@
 						>
 							{#snippet children(coin)}
 								{#if coin != null}
+									{@const coinInitial = untrack(() => coin)}
 									<div>
 										<dt>Native coin</dt>
 										<dd>
 											<CoinView
-												selection={select(EntityType.Coin, coin[EntityMetaKey.Selector])}
-												prefetched={coin}
+												selection={select(EntityType.Coin, (coin ?? coinInitial)[EntityMetaKey.Selector])}
+												prefetched={coin ?? coinInitial}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -1013,12 +1047,13 @@
 						>
 							{#snippet children(network)}
 								{#if network != null}
+									{@const networkInitial = untrack(() => network)}
 									<div>
 										<dt>Parent</dt>
 										<dd>
 											<NetworkView
-												selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-												prefetched={network}
+												selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+												prefetched={network ?? networkInitial}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -1034,12 +1069,13 @@
 						>
 							{#snippet children(network)}
 								{#if network != null}
+									{@const networkInitial = untrack(() => network)}
 									<div>
 										<dt>Mainnet</dt>
 										<dd>
 											<NetworkView
-												selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-												prefetched={network}
+												selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+												prefetched={network ?? networkInitial}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -1088,12 +1124,13 @@
 						>
 							{#snippet children(network)}
 								{#if network != null}
+									{@const networkInitial = untrack(() => network)}
 									<div>
 										<dt>Settlement network</dt>
 										<dd>
 											<NetworkView
-												selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
-												prefetched={network}
+												selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+												prefetched={network ?? networkInitial}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -1150,6 +1187,58 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const networkEndpointObservationsHistorySources = networkApplicableSources([
+				Source.Beacon_Rest,
+				Source.Voltaire_JsonRpc,
+			], pendingEntity)}
+
+		{@const networkEndpointObservationsSections = [
+				...(
+					networkEndpointObservationsHistorySources.length > 0 ?
+						[
+							{
+								id: 'network-endpoint-observations-history',
+								label: 'Endpoint observations',
+							},
+						]
+					:
+						[]
+				),
+			]}
+
+		{#if networkEndpointObservationsSections.length > 0}
+			<CollapsibleTabs
+				id={viewDomId + '-carousel-network-endpoint-observations'}
+				sectionIdPrefix={viewDomId}
+				sections={networkEndpointObservationsSections}
+				data-card
+				class='network-view-collapsible-resources'
+			>
+				{#snippet Summary()}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Endpoint observations</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet SectionNetworkEndpointObservationsHistory({ id, label })}
+					<NetworkEndpointObservation_TimestampsView
+						selection={
+							selection
+							.$$endpointObservations({
+								sources: networkEndpointObservationsHistorySources,
+								limit: 16,
+							})
+						}
+						collapsible={false}
+						title={label}
+						emptyText='No endpoint observations.'
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+			</CollapsibleTabs>
+		{/if}
+
 		<CollapsibleTabs
 			id={viewDomId + '-carousel-network-assets'}
 			sectionIdPrefix={viewDomId}
@@ -1298,6 +1387,7 @@
 								}
 							>
 								{#snippet children(dydxChainNetwork)}
+									{@const dydxChainNetworkInitial = untrack(() => dydxChainNetwork)}
 									<section
 										id={id}
 										aria-labelledby={`${id}:marker`}
@@ -1308,7 +1398,7 @@
 									>
 										<DydxChainNetworkView
 											selection={
-												select(EntityType.DydxChainNetwork, dydxChainNetwork[EntityMetaKey.Selector], {
+												select(EntityType.DydxChainNetwork, (dydxChainNetwork ?? dydxChainNetworkInitial)[EntityMetaKey.Selector], {
 													sources: dydxNetworkSources,
 												})
 											}
@@ -1454,6 +1544,7 @@
 						>
 							{#snippet children(network)}
 								{#if network != null}
+									{@const networkInitial = untrack(() => network)}
 									<section
 										id={id}
 										aria-labelledby={`${id}:marker`}
@@ -1470,7 +1561,7 @@
 										>
 											<NetworkView
 												selection={
-													select(EntityType.Network, network[EntityMetaKey.Selector], {
+													select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector], {
 														sources: [
 															Source.Chainlist_Rest,
 															Source.EthereumLists_Rest,
@@ -1478,7 +1569,7 @@
 														],
 													})
 												}
-												prefetched={network}
+												prefetched={network ?? networkInitial}
 												layout={EntityLayout.SummaryInline}
 											/>
 										</article>
@@ -1530,6 +1621,7 @@
 						>
 							{#snippet children(evmRollup)}
 								{#if evmRollup != null}
+									{@const evmRollupInitial = untrack(() => evmRollup)}
 									<section
 										id={id}
 										aria-labelledby={`${id}:marker`}
@@ -1546,13 +1638,13 @@
 										>
 											<EvmRollupView
 												selection={
-													select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector], {
+													select(EntityType.EvmRollup, (evmRollup ?? evmRollupInitial)[EntityMetaKey.Selector], {
 														sources: [
 															Source.L2Beat_Rest,
 														],
 													})
 												}
-												prefetched={evmRollup}
+												prefetched={evmRollup ?? evmRollupInitial}
 												layout={EntityLayout.SummaryInline}
 											/>
 										</article>
@@ -1642,6 +1734,7 @@
 						>
 							{#snippet children(network)}
 								{#if network != null}
+									{@const networkInitial = untrack(() => network)}
 									<section
 										id={id}
 										aria-labelledby={`${id}:marker`}
@@ -1658,14 +1751,14 @@
 										>
 											<NetworkView
 												selection={
-													select(EntityType.Network, network[EntityMetaKey.Selector], {
+													select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector], {
 														sources: [
 															Source.Chainlist_Rest,
 															Source.EthereumLists_Rest,
 														],
 													})
 												}
-												prefetched={network}
+												prefetched={network ?? networkInitial}
 												layout={EntityLayout.SummaryInline}
 											/>
 										</article>
@@ -2599,6 +2692,7 @@
 							>
 								{#snippet children(coin)}
 									{#if coin != null}
+										{@const coinInitial = untrack(() => coin)}
 										<section
 											id={id}
 											aria-labelledby={`${id}:marker`}
@@ -2609,13 +2703,13 @@
 										>
 											<CoinView
 												selection={
-													select(EntityType.Coin, coin[EntityMetaKey.Selector], {
+													select(EntityType.Coin, (coin ?? coinInitial)[EntityMetaKey.Selector], {
 														sources: [
 															Source.Constants_Internal,
 														],
 													})
 												}
-												prefetched={coin}
+												prefetched={coin ?? coinInitial}
 												layout={EntityLayout.Summary}
 											/>
 										</section>
@@ -2666,6 +2760,7 @@
 							>
 								{#snippet children(evmCoinInstance)}
 									{#if evmCoinInstance != null}
+										{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 										<section
 											id={id}
 											aria-labelledby={`${id}:marker`}
@@ -2676,7 +2771,7 @@
 										>
 											<EvmCoinInstanceView
 												selection={
-													select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector], {
+													select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector], {
 														sources: [
 															Source.Constants_Internal,
 														],
@@ -7471,6 +7566,7 @@
 						>
 							{#snippet children(specificationProposal)}
 								{#if specificationProposal != null}
+									{@const specificationProposalInitial = untrack(() => specificationProposal)}
 									<section
 										id={id}
 										aria-labelledby={`${id}:marker`}
@@ -7487,13 +7583,13 @@
 										>
 											<SpecificationProposalView
 												selection={
-													select(EntityType.SpecificationProposal, specificationProposal[EntityMetaKey.Selector], {
+													select(EntityType.SpecificationProposal, (specificationProposal ?? specificationProposalInitial)[EntityMetaKey.Selector], {
 														sources: [
 															Source.QuilibriumDocs_Rest,
 														],
 													})
 												}
-												prefetched={specificationProposal}
+												prefetched={specificationProposal ?? specificationProposalInitial}
 												layout={EntityLayout.SummaryInline}
 											/>
 										</article>

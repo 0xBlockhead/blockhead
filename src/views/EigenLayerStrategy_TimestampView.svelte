@@ -2,10 +2,8 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { caip2StringFromValue } from '$/lib/caip2.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -17,19 +15,14 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.EigenLayerStrategy_Timestamp>, 'prefetched'> = $props()
 
-	const strategy = $derived(selection.entitySelector.$strategy)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.EigenExplorer_Rest,
-			Source.EigenLayerContracts_Evm,
-			Source.Etherscan_Rest,
-			Source.Voltaire_JsonRpc,
 		],
 	}))
 	const eigenLayerStrategyTimestamp = $derived(viewSelection({
@@ -51,25 +44,6 @@
 	entityType={EntityType.EigenLayerStrategy_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'eigen layer strategy timestamp'}
-	href={
-		href === undefined ?
-			resolve(
-				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/eigenlayer/(eigenLayerProtocol)/strategy/[strategyAddress=evmAddress]/(eigenLayerStrategy)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-				{
-					network: (
-						'caip2' in strategy.$network ?
-							caip2StringFromValue(strategy.$network.caip2)
-						:
-							strategy.$network.slug
-					),
-					strategyAddress: strategy.strategyAddress,
-					timestampMs: String(selection.entitySelector.timestampMs),
-					source: selection.entitySelector.source,
-				}
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -164,12 +165,13 @@
 			>
 				{#snippet children(aiModelProvider)}
 					{#if aiModelProvider != null}
+						{@const aiModelProviderInitial = untrack(() => aiModelProvider)}
 						<div>
 							<dt>provider</dt>
 							<dd>
 								<AiModelProviderView
-									selection={select(EntityType.AiModelProvider, aiModelProvider[EntityMetaKey.Selector])}
-									prefetched={aiModelProvider}
+									selection={select(EntityType.AiModelProvider, (aiModelProvider ?? aiModelProviderInitial)[EntityMetaKey.Selector])}
+									prefetched={aiModelProvider ?? aiModelProviderInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

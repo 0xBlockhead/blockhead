@@ -13,6 +13,7 @@ import type {
 	CoingeckoCoinTickers,
 	CoingeckoCoinsMarket,
 	CoingeckoDerivativesExchange,
+	CoingeckoDerivativesExchangeWire,
 	CoingeckoOhlc,
 	CoingeckoSimplePrice,
 	GetCoingeckoAssetPlatformsArgs,
@@ -41,6 +42,35 @@ const assertNonemptyRequiredString = (
 ) => {
 	if (value === '')
 		throw new Error(`Coingecko_Rest: invalid ${label}`)
+}
+
+const canonicalDecimalStringFromFiniteWireNumber = (
+	value: number,
+	label: string
+) => {
+	if (!Number.isFinite(value))
+		throw new Error(`Coingecko_Rest: invalid finite ${label}`)
+	if (Object.is(value, -0))
+		return '0'
+
+	const serialized = value.toString()
+	const exponentMarkerIndex = serialized.indexOf('e')
+	if (exponentMarkerIndex === -1)
+		return serialized
+
+	const negative = serialized.startsWith('-')
+	const coefficient = serialized.slice(negative ? 1 : 0, exponentMarkerIndex)
+	const decimalPointIndex = coefficient.indexOf('.')
+	const integerDigitCount = decimalPointIndex === -1 ? coefficient.length : decimalPointIndex
+	const digits = decimalPointIndex === -1 ? coefficient : `${coefficient.slice(0, decimalPointIndex)}${coefficient.slice(decimalPointIndex + 1)}`
+	const expandedDecimalPointIndex = integerDigitCount + Number(serialized.slice(exponentMarkerIndex + 1))
+	const sign = negative ? '-' : ''
+	if (expandedDecimalPointIndex <= 0)
+		return `${sign}0.${'0'.repeat(-expandedDecimalPointIndex)}${digits}`
+	if (expandedDecimalPointIndex >= digits.length)
+		return `${sign}${digits}${'0'.repeat(expandedDecimalPointIndex - digits.length)}`
+
+	return `${sign}${digits.slice(0, expandedDecimalPointIndex)}.${digits.slice(expandedDecimalPointIndex)}`
 }
 
 const omitUndefinedJson = (
@@ -270,11 +300,23 @@ export const getDerivativesExchange = async ({
 	if (!response.ok)
 		await throwHttpError(`Coingecko_Rest`, response)
 
-	return assertEnvelope<CoingeckoDerivativesExchange>(
+	const exchange = assertEnvelope<CoingeckoDerivativesExchangeWire>(
 		coingeckoDerivativesExchangeEnvelope,
-		await response.json<CoingeckoDerivativesExchange>(),
+		await response.json<CoingeckoDerivativesExchangeWire>(),
 		'derivatives exchange'
 	)
+
+	return {
+		...exchange,
+		tickers: (exchange.tickers ?? []).map((ticker) => ({
+			...ticker,
+			last: canonicalDecimalStringFromFiniteWireNumber(ticker.last, 'derivative mark price'),
+			index: canonicalDecimalStringFromFiniteWireNumber(ticker.index, 'derivative index price'),
+			open_interest_usd: canonicalDecimalStringFromFiniteWireNumber(ticker.open_interest_usd, 'derivative open interest USD'),
+			index_basis_percentage: canonicalDecimalStringFromFiniteWireNumber(ticker.index_basis_percentage, 'derivative index basis percentage'),
+			funding_rate: canonicalDecimalStringFromFiniteWireNumber(ticker.funding_rate, 'derivative funding rate'),
+		})),
+	} satisfies CoingeckoDerivativesExchange
 }
 
 /** `GET /simple/price` — batched spot prices by CoinGecko ids. */

@@ -32,7 +32,7 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import DydxChainNetworkView from '$/views/DydxChainNetworkView.svelte'
 	import CosmosAccountView from '$/views/CosmosAccountView.svelte'
-	import DydxChainPerpetualPosition_TimestampsView from '$/views/DydxChainPerpetualPosition_TimestampsView.svelte'
+	import DydxChainPerpetualPositionsView from '$/views/DydxChainPerpetualPositionsView.svelte'
 	import DydxChainOrdersView from '$/views/DydxChainOrdersView.svelte'
 	import DydxChainSubaccount_TimestampsView from '$/views/DydxChainSubaccount_TimestampsView.svelte'
 </script>
@@ -138,11 +138,11 @@
 			{/snippet}
 
 			{#snippet SectionDydxSubaccountPositions({ id, label })}
-				<DydxChainPerpetualPosition_TimestampsView
+				<DydxChainPerpetualPositionsView
 					selection={selection.$$positions}
 					collapsible={false}
 					title={label}
-					emptyText='No dYdX position observations.'
+					emptyText='No dYdX positions.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

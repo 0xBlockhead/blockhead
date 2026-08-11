@@ -137,8 +137,10 @@ describe('shared EVM execution JSON-RPC queries', () => {
 	})
 
 	it('uses one injected request capability and emits input-only execution calls', async () => {
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_123)
 		const request = vi.fn()
 			.mockResolvedValueOnce('0x20000000000001')
+			.mockResolvedValueOnce('0x2a')
 			.mockResolvedValueOnce('0x2a')
 			.mockResolvedValueOnce('0x3')
 			.mockResolvedValueOnce({
@@ -164,6 +166,10 @@ describe('shared EVM execution JSON-RPC queries', () => {
 
 		expectTypeOf(client.getCall).returns.toEqualTypeOf<Promise<`0x${string}`>>()
 		await expect(client.getBlockNumber()).resolves.toBe(0x20000000000001n)
+		await expect(client.getPeerCountObservation()).resolves.toEqual({
+			peerCount: 42,
+			fetchedAtMs: 1_700_000_000_123,
+		})
 		await expect(client.getGasPrice()).resolves.toBe('0x2a')
 		await expect(client.getMaxPriorityFeePerGas()).resolves.toBe('0x3')
 		await expect(client.getFeeHistory({
@@ -200,6 +206,7 @@ describe('shared EVM execution JSON-RPC queries', () => {
 
 		expect(request.mock.calls).toEqual([
 			['eth_blockNumber'],
+			['net_peerCount'],
 			['eth_gasPrice'],
 			['eth_maxPriorityFeePerGas'],
 			[
@@ -251,6 +258,23 @@ describe('shared EVM execution JSON-RPC queries', () => {
 				[],
 			],
 		])
+		dateNow.mockRestore()
+	})
+
+	it('rejects malformed or unsafe peer-count quantities before timestamping', async () => {
+		const dateNow = vi.spyOn(Date, 'now')
+		const request = vi.fn()
+			.mockResolvedValueOnce('0x00')
+			.mockResolvedValueOnce('0x20000000000000')
+		const client = evmExecutionJsonRpc({
+			binding,
+			request,
+		})
+
+		await expect(client.getPeerCountObservation()).rejects.toThrow('malformed QUANTITY result')
+		await expect(client.getPeerCountObservation()).rejects.toThrow('peer count exceeds safe integer range')
+		expect(dateNow).not.toHaveBeenCalled()
+		dateNow.mockRestore()
 	})
 
 	it('rejects a malformed eth_call DATA result at the shared wire boundary', async () => {

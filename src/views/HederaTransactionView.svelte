@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -315,11 +316,12 @@
 			>
 				{#snippet children(hederaBlock)}
 					{#if hederaBlock != null}
+						{@const hederaBlockInitial = untrack(() => hederaBlock)}
 						<div>
 							<dt>block</dt>
 							<dd>
 								<HederaBlockView
-									selection={select(EntityType.HederaBlock, hederaBlock[EntityMetaKey.Selector])}
+									selection={select(EntityType.HederaBlock, (hederaBlock ?? hederaBlockInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -333,11 +335,12 @@
 			>
 				{#snippet children(hederaSchedule)}
 					{#if hederaSchedule != null}
+						{@const hederaScheduleInitial = untrack(() => hederaSchedule)}
 						<div>
 							<dt>schedule</dt>
 							<dd>
 								<HederaScheduleView
-									selection={select(EntityType.HederaSchedule, hederaSchedule[EntityMetaKey.Selector])}
+									selection={select(EntityType.HederaSchedule, (hederaSchedule ?? hederaScheduleInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

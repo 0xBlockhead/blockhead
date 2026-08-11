@@ -27,8 +27,6 @@
 		sources: selection.sources ?? [
 			Source.PythBenchmarks_Rest,
 			Source.PythHermes_Rest,
-			Source.Pyth_EvmContract,
-			Source.Pyth_SolanaProgram,
 		],
 	}))
 	const pythPriceFeedTimestamp = $derived(viewSelection({

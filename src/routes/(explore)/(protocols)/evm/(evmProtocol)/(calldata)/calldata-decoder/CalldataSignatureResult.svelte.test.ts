@@ -24,6 +24,7 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 	})
 
 	await expect.element(page.getByLabelText('Loading function signature...')).toBeInTheDocument()
+	await expect.element(page.getByText('No catalog signatures matched this function selector.')).not.toBeInTheDocument()
 	await tick()
 	resource.set({ values: [] })
 	await expect.element(page.getByText('No catalog signatures matched this function selector.')).toBeInTheDocument()
@@ -36,5 +37,6 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 
 	resource.fail(new Error('catalog unavailable'))
 	await expect.element(page.getByText('Unable to load function signatures: catalog unavailable')).toBeInTheDocument()
+	await expect.element(page.getByText('No catalog signatures matched this function selector.')).not.toBeInTheDocument()
 	await expect.element(page.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
 })

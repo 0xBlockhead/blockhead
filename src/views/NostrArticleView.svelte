@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -62,9 +63,10 @@
 		>
 			{#snippet children(nostrArticleEvent)}
 				{#if nostrArticleEvent != null}
+					{@const nostrArticleEventInitial = untrack(() => nostrArticleEvent)}
 					<NostrArticleEventView
-						selection={select(EntityType.NostrArticleEvent, nostrArticleEvent[EntityMetaKey.Selector])}
-						prefetched={nostrArticleEvent}
+						selection={select(EntityType.NostrArticleEvent, (nostrArticleEvent ?? nostrArticleEventInitial)[EntityMetaKey.Selector])}
+						prefetched={nostrArticleEvent ?? nostrArticleEventInitial}
 						href={null}
 						layout={EntityLayout.Title}
 					/>
@@ -116,12 +118,13 @@
 			>
 				{#snippet children(nostrArticleEvent)}
 					{#if nostrArticleEvent != null}
+						{@const nostrArticleEventInitial = untrack(() => nostrArticleEvent)}
 						<div>
 							<dt>Latest signed version</dt>
 							<dd>
 								<NostrArticleEventView
-									selection={select(EntityType.NostrArticleEvent, nostrArticleEvent[EntityMetaKey.Selector])}
-									prefetched={nostrArticleEvent}
+									selection={select(EntityType.NostrArticleEvent, (nostrArticleEvent ?? nostrArticleEventInitial)[EntityMetaKey.Selector])}
+									prefetched={nostrArticleEvent ?? nostrArticleEventInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

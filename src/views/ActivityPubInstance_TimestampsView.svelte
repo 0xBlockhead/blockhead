@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -44,16 +43,6 @@
 		<EntityView
 			entityType={EntityType.ActivityPubInstance_Timestamp}
 			entitySelector={activityPubInstanceTimestampSelector}
-			href={
-				resolve(
-					'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/instance/[instanceOrigin=absoluteUrl]/(activityPubInstance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-					{
-						instanceOrigin: encodeURIComponent(activityPubInstanceTimestampSelector.$instance.instanceOrigin),
-						timestampMs: String(activityPubInstanceTimestampSelector.timestampMs),
-						source: activityPubInstanceTimestampSelector.source,
-					}
-				)
-			}
 		>
 			{#snippet Title()}
 				{[(activityPubInstanceTimestamp.title ?? ''), String(activityPubInstanceTimestampSelector.timestampMs)].filter(Boolean).join(' ') || 'ActivityPub instance observation'}

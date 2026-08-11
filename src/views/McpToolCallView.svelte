@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -71,9 +72,10 @@
 		>
 			{#snippet children(mcpTool)}
 				{#if mcpTool != null}
+					{@const mcpToolInitial = untrack(() => mcpTool)}
 					<McpToolView
-						selection={select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector])}
-						prefetched={mcpTool}
+						selection={select(EntityType.McpTool, (mcpTool ?? mcpToolInitial)[EntityMetaKey.Selector])}
+						prefetched={mcpTool ?? mcpToolInitial}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -119,12 +121,13 @@
 			>
 				{#snippet children(mcpTool)}
 					{#if mcpTool != null}
+						{@const mcpToolInitial = untrack(() => mcpTool)}
 						<div>
 							<dt>tool</dt>
 							<dd>
 								<McpToolView
-									selection={select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector])}
-									prefetched={mcpTool}
+									selection={select(EntityType.McpTool, (mcpTool ?? mcpToolInitial)[EntityMetaKey.Selector])}
+									prefetched={mcpTool ?? mcpToolInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

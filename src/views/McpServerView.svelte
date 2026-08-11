@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { stringify } from 'devalue'
@@ -114,12 +115,13 @@
 			>
 				{#snippet children(blockheadSource)}
 					{#if blockheadSource != null}
+						{@const blockheadSourceInitial = untrack(() => blockheadSource)}
 						<div>
 							<dt>Source</dt>
 							<dd>
 								<BlockheadSourceView
-									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
-									prefetched={blockheadSource}
+									selection={select(EntityType.BlockheadSource, (blockheadSource ?? blockheadSourceInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadSource ?? blockheadSourceInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -133,12 +135,13 @@
 			>
 				{#snippet children(mcpServerPackageVersion)}
 					{#if mcpServerPackageVersion != null}
+						{@const mcpServerPackageVersionInitial = untrack(() => mcpServerPackageVersion)}
 						<div>
 							<dt>package version</dt>
 							<dd>
 								<McpServerPackageVersionView
-									selection={select(EntityType.McpServerPackageVersion, mcpServerPackageVersion[EntityMetaKey.Selector])}
-									prefetched={mcpServerPackageVersion}
+									selection={select(EntityType.McpServerPackageVersion, (mcpServerPackageVersion ?? mcpServerPackageVersionInitial)[EntityMetaKey.Selector])}
+									prefetched={mcpServerPackageVersion ?? mcpServerPackageVersionInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

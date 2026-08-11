@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,13 +15,11 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.RssItem_Timestamp>, 'prefetched'> = $props()
 
-	const item = $derived(selection.entitySelector.$item)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Rss_Rest,
@@ -42,21 +39,6 @@
 	entityType={EntityType.RssItem_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? 'RSS item observation'}
-	href={
-		href === undefined ?
-			resolve(
-				'/(social)/(rss)/rss/(rssNetwork)/feed/[feedUrl=absoluteUrl]/(rssFeed)/item/[itemIdentityKind=rssItemIdentityKind]/[itemIdentity=stringSegment]/(rssItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-				{
-					feedUrl: encodeURIComponent(item.$feed.feedUrl),
-					itemIdentityKind: item.itemIdentityKind,
-					itemIdentity: encodeURIComponent(item.itemIdentity),
-					timestampMs: String(selection.entitySelector.timestampMs),
-					source: selection.entitySelector.source,
-				}
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

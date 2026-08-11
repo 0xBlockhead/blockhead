@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { proposalCategoryById, specificationRealmById } from '$/constants/SpecificationProposal.ts'
@@ -112,9 +113,10 @@
 						resource={selection.$specificationRealm}
 					>
 						{#snippet children(specificationRealm)}
+							{@const specificationRealmInitial = untrack(() => specificationRealm)}
 							<SpecificationRealmView
-								selection={select(EntityType.SpecificationRealm, specificationRealm[EntityMetaKey.Selector])}
-								prefetched={specificationRealm}
+								selection={select(EntityType.SpecificationRealm, (specificationRealm ?? specificationRealmInitial)[EntityMetaKey.Selector])}
+								prefetched={specificationRealm ?? specificationRealmInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -176,12 +177,13 @@
 			>
 				{#snippet children(blockheadAgentProfile)}
 					{#if blockheadAgentProfile != null}
+						{@const blockheadAgentProfileInitial = untrack(() => blockheadAgentProfile)}
 						<div>
 							<dt>profile</dt>
 							<dd>
 								<BlockheadAgentProfileView
-									selection={select(EntityType.BlockheadAgentProfile, blockheadAgentProfile[EntityMetaKey.Selector])}
-									prefetched={blockheadAgentProfile}
+									selection={select(EntityType.BlockheadAgentProfile, (blockheadAgentProfile ?? blockheadAgentProfileInitial)[EntityMetaKey.Selector])}
+									prefetched={blockheadAgentProfile ?? blockheadAgentProfileInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

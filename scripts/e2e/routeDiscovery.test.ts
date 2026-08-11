@@ -26,6 +26,19 @@ test('route probe atom values exactly cover every generated atom', () => {
 	)
 })
 
+test('excludes the unsupported Hyperliquid account observation page from route discovery', () => {
+	const mappingIds = Object.values(e2eRouteFixtureMetadataByNodeId).flatMap(({ mappings }) => (
+		mappings.map(({ id }) => id)
+	))
+
+	assert.equal(mappingIds.includes('HyperliquidAccount_Timestamp.AccountTimestampMsSource'), false)
+	assert.equal(mappingIds.includes('HyperliquidAccount_Timestamp.AccountInfoTypeTimestampMsSource'), false)
+	assert.equal(mappingIds.includes('NearAccount_Timestamp.AccountTimestampMsSource'), true)
+	assert.equal(Object.keys(e2eRouteProbeAtomValueById).some((atom) => (
+		atom.includes(':HyperliquidAccount_Timestamp.')
+	)), false)
+})
+
 test('completes global discovery including IPFS and Swarm selector path variants', async () => {
 	assert.deepEqual(
 		(await discoverPathnamesFromRoutes()).filter((pathname) => (

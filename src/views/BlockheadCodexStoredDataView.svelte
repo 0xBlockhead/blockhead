@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -109,12 +110,13 @@
 			>
 				{#snippet children(codexDataset)}
 					{#if codexDataset != null}
+						{@const codexDatasetInitial = untrack(() => codexDataset)}
 						<div>
 							<dt>dataset</dt>
 							<dd>
 								<CodexDatasetView
-									selection={select(EntityType.CodexDataset, codexDataset[EntityMetaKey.Selector])}
-									prefetched={codexDataset}
+									selection={select(EntityType.CodexDataset, (codexDataset ?? codexDatasetInitial)[EntityMetaKey.Selector])}
+									prefetched={codexDataset ?? codexDatasetInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

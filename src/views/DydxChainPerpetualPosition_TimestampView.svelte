@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,17 +15,14 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.DydxChainPerpetualPosition_Timestamp>, 'prefetched'> = $props()
 
-	const subaccount = $derived(selection.entitySelector.$subaccount)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.DydxIndexer,
-			Source.KingnodesDydxNode,
 		],
 	}))
 	const dydxChainPerpetualPositionTimestamp = $derived(viewSelection({
@@ -39,8 +35,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import DydxChainSubaccountView from '$/views/DydxChainSubaccountView.svelte'
-	import DydxChainMarketView from '$/views/DydxChainMarketView.svelte'
+	import DydxChainPerpetualPositionView from '$/views/DydxChainPerpetualPositionView.svelte'
 </script>
 
 
@@ -48,27 +43,6 @@
 	entityType={EntityType.DydxChainPerpetualPosition_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
-	href={
-		href === undefined ?
-			(
-				'caip2' in subaccount.$account.$network ?
-					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[accountAddress=stringSegment]/subaccount/[subaccountNumber=nonNegativeInteger]/(dydxChainSubaccount)/market/[ticker=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-						{
-							network: String(subaccount.$account.$network.caip2),
-							accountAddress: subaccount.$account.address,
-							subaccountNumber: String(subaccount.subaccountNumber),
-							ticker: selection.entitySelector.$market.ticker,
-							timestampMs: String(selection.entitySelector.timestampMs),
-							source: selection.entitySelector.source,
-						}
-					)
-				:
-					undefined
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -88,20 +62,10 @@
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
-				<dt>subaccount</dt>
+				<dt>position</dt>
 				<dd>
-					<DydxChainSubaccountView
-						selection={select(EntityType.DydxChainSubaccount, selection.entitySelector.$subaccount)}
-						layout={EntityLayout.Value}
-					/>
-				</dd>
-			</div>
-
-			<div>
-				<dt>market</dt>
-				<dd>
-					<DydxChainMarketView
-						selection={select(EntityType.DydxChainMarket, selection.entitySelector.$market)}
+					<DydxChainPerpetualPositionView
+						selection={select(EntityType.DydxChainPerpetualPosition, selection.entitySelector.$position)}
 						layout={EntityLayout.Value}
 					/>
 				</dd>

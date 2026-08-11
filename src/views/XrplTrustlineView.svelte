@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -99,11 +100,12 @@
 			>
 				{#snippet children(xrplAccount)}
 					{#if xrplAccount != null}
+						{@const xrplAccountInitial = untrack(() => xrplAccount)}
 						<div>
 							<dt>account</dt>
 							<dd>
 								<XrplAccountView
-									selection={select(EntityType.XrplAccount, xrplAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.XrplAccount, (xrplAccount ?? xrplAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -117,11 +119,12 @@
 			>
 				{#snippet children(xrplAccount)}
 					{#if xrplAccount != null}
+						{@const xrplAccountInitial = untrack(() => xrplAccount)}
 						<div>
 							<dt>issuer account</dt>
 							<dd>
 								<XrplAccountView
-									selection={select(EntityType.XrplAccount, xrplAccount[EntityMetaKey.Selector])}
+									selection={select(EntityType.XrplAccount, (xrplAccount ?? xrplAccountInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

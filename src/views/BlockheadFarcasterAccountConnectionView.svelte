@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -68,9 +69,10 @@
 			resource={selection.$user}
 		>
 			{#snippet children(farcasterUser)}
+				{@const farcasterUserInitial = untrack(() => farcasterUser)}
 				<FarcasterUserView
-					selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
-					prefetched={farcasterUser}
+					selection={select(EntityType.FarcasterUser, (farcasterUser ?? farcasterUserInitial)[EntityMetaKey.Selector])}
+					prefetched={farcasterUser ?? farcasterUserInitial}
 					href={null}
 					layout={EntityLayout.Value}
 				/>
@@ -100,9 +102,10 @@
 						resource={selection.$user}
 					>
 						{#snippet children(farcasterUser)}
+							{@const farcasterUserInitial = untrack(() => farcasterUser)}
 							<FarcasterUserView
-								selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
-								prefetched={farcasterUser}
+								selection={select(EntityType.FarcasterUser, (farcasterUser ?? farcasterUserInitial)[EntityMetaKey.Selector])}
+								prefetched={farcasterUser ?? farcasterUserInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

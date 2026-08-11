@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -118,12 +119,13 @@
 			>
 				{#snippet children(bridgeTransfer)}
 					{#if bridgeTransfer != null}
+						{@const bridgeTransferInitial = untrack(() => bridgeTransfer)}
 						<div>
 							<dt>Bridge transfer</dt>
 							<dd>
 								<BridgeTransferView
-									selection={select(EntityType.BridgeTransfer, bridgeTransfer[EntityMetaKey.Selector])}
-									prefetched={bridgeTransfer}
+									selection={select(EntityType.BridgeTransfer, (bridgeTransfer ?? bridgeTransferInitial)[EntityMetaKey.Selector])}
+									prefetched={bridgeTransfer ?? bridgeTransferInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -111,11 +112,12 @@
 			>
 				{#snippet children(arweaveTransaction)}
 					{#if arweaveTransaction != null}
+						{@const arweaveTransactionInitial = untrack(() => arweaveTransaction)}
 						<div>
 							<dt>transaction</dt>
 							<dd>
 								<ArweaveTransactionView
-									selection={select(EntityType.ArweaveTransaction, arweaveTransaction[EntityMetaKey.Selector])}
+									selection={select(EntityType.ArweaveTransaction, (arweaveTransaction ?? arweaveTransactionInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

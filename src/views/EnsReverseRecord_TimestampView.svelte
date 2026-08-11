@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -16,13 +15,11 @@
 	let {
 		selection,
 		title,
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...EntityViewProps
 	}: Omit<EntitySelectionViewProps<EntityType.EnsReverseRecord_Timestamp>, 'prefetched'> = $props()
 
-	const reverseRecord = $derived(selection.entitySelector.$reverseRecord)
 	const ensReverseRecordTimestamp = $derived(selection({
 		sources: selection.sources ?? [
 			Source.TheGraph_Graphql,
@@ -45,22 +42,6 @@
 	entityType={EntityType.EnsReverseRecord_Timestamp}
 	entitySelector={selection.entitySelector}
 	title={title ?? String(selection.entitySelector.timestampMs)}
-	href={
-		href === undefined ?
-			resolve(
-				'/(explore)/account/[namespace=stringSegment]:[reference=stringSegment]/[accountAddress=stringSegment]/(account)/ens/reverse/[ensName=stringSegment]/(ensReverseRecord)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
-				{
-					namespace: reverseRecord.$account.caip10.namespace,
-					reference: reverseRecord.$account.caip10.reference,
-					accountAddress: reverseRecord.$account.caip10.accountAddress,
-					ensName: encodeURIComponent(reverseRecord.$name.name),
-					timestampMs: String(selection.entitySelector.timestampMs),
-					source: selection.entitySelector.source,
-				}
-			)
-		:
-			href ?? undefined
-	}
 	{layout}
 	bind:open
 	{...EntityViewProps}

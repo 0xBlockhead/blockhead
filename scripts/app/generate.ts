@@ -7904,7 +7904,10 @@ const renderValueMarkup = (
 			])
 		: format === 'currency' || format === 'currencyScaled' ?
 			renderNumberValueMarkup([
-				`value={Number(${valueExpression})${format === 'currencyScaled' ? ' / 1e8' : ''}}`,
+				`value={${valueExpression}}`,
+				...(format === 'currencyScaled' ? [
+					'decimalPlaces={8}',
+				] : []),
 				`formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}`,
 			])
 		: format === 'percent' ?
@@ -9061,18 +9064,20 @@ const renderSummaryItemMarkup = (
 
 		const component = singularComponentName(targetEntity.entityType)
 		const targetEntityName = camel(targetEntity.entityType)
+		const targetEntityInitialName = `${targetEntityName}Initial`
+		const targetEntityExpression = `${targetEntityName} ?? ${targetEntityInitialName}`
 		const referenceLevel = level + (item.optional ? 3 : 2)
 		const componentLevel = referenceLevel + (headingAfter ? 1 : 0)
 		const targetHasHref = !headingAfter && (indexes.entityRouteLinksByType[targetEntity.entityType]?.length ?? 0) > 0
 		const componentLines = (
 			selectionExpression: string,
-			prefetched: boolean,
+			prefetchedExpression: string | undefined,
 			componentStartLevel: number
 		) => [
 			`${'\t'.repeat(componentStartLevel)}<${componentIdentifier(component)}`,
 			renderSvelteAttribute(componentStartLevel + 1, 'selection', selectionExpression),
-			...(prefetched && viewComponentAcceptsPrefetched(indexes, targetEntity.entityType, component) ? [
-				`${'\t'.repeat(componentStartLevel + 1)}prefetched={${targetEntityName}}`,
+			...(prefetchedExpression != null && viewComponentAcceptsPrefetched(indexes, targetEntity.entityType, component) ? [
+				`${'\t'.repeat(componentStartLevel + 1)}prefetched={${prefetchedExpression}}`,
 			] : []),
 			...(targetHasHref ? [`${'\t'.repeat(componentStartLevel + 1)}href={null}`] : []),
 			`${'\t'.repeat(componentStartLevel + 1)}layout={EntityLayout.${headingAfter ? 'Title' : presentation}}`,
@@ -9081,7 +9086,7 @@ const renderSummaryItemMarkup = (
 		if (item.selectorOwned)
 			return presented(componentLines(
 				`select(EntityType.${targetEntity.entityType}, ${fieldExpression('selection.entitySelector', fieldReference)})`,
-				false,
+				undefined,
 				level + (headingAfter ? 1 : 0)
 			), level)
 
@@ -9090,9 +9095,10 @@ const renderSummaryItemMarkup = (
 			fieldProxyResourceExpression('selection', headingAfter ? fieldReference : fieldName),
 			renderSvelteSnippet(level + 1, `children(${targetEntityName})`, [
 			...(item.optional ? [`${'\t'.repeat(level + 2)}{#if ${targetEntityName} != null}`] : []),
+			renderSvelteConst(referenceLevel, targetEntityInitialName, `untrack(() => ${targetEntityName})`),
 			...presented(componentLines(
-				`select(EntityType.${targetEntity.entityType}, ${targetEntityName}[EntityMetaKey.Selector])`,
-				true,
+				`select(EntityType.${targetEntity.entityType}, (${targetEntityExpression})[EntityMetaKey.Selector])`,
+				targetEntityExpression,
 				componentLevel
 			), referenceLevel),
 			...(item.optional ? [`${'\t'.repeat(level + 2)}{/if}`] : []),
@@ -9491,6 +9497,13 @@ const generateSingularViewFile = (
 		'detailsOpen',
 		3
 	)))
+	const latestResourceDeclarations = latestItems.map((latest, index) => {
+		const { query } = latestResourceFacts(entity, indexes, latest)
+		return `const ${latestResourceVariableName(entity, index)} = $derived(\n${indent(
+			fieldProxyResourceExpression('selection', latest.field, query),
+			1
+		)}\n)`
+	})
 	const latestMarkup = renderLatestContentItems(entity, indexes, latestItems, 3)
 	const relationshipFieldKeys = new Set(sections.map((section) => fieldReferenceKey(section.field)))
 	const carouselFieldKeys = new Set(
@@ -9812,10 +9825,8 @@ const generateSingularViewFile = (
 		&& summaryIconFieldDefinition?.type !== EntityFieldType.EntityReference
 	)
 	const generatedUsesTooltip = carouselsToRender.some((carousel) => carousel.description != null)
-	const generatedUsesEntityMetaKey = (
-		usesGeneratedEntitiesList
-		|| latestItems.length > 0
-		|| summaryPlan.allItems.some(({ kind, selectorOwned }) => kind === 'entityReference' && !selectorOwned)
+	const generatedUsesEntityReferenceInitialFallback = (
+		summaryPlan.allItems.some(({ kind, selectorOwned }) => kind === 'entityReference' && !selectorOwned)
 		|| [
 			...contentRows.flat(),
 			...detailsTabs.flatMap((tab) => tab.items ?? []),
@@ -9832,6 +9843,11 @@ const generateSingularViewFile = (
 			&& fieldDefinition?.type === EntityFieldType.EntityReference
 			&& (owner === 'carousel' || !entitySelectorOwnsField(entity, section.field))
 		))
+	)
+	const generatedUsesEntityMetaKey = (
+		usesGeneratedEntitiesList
+		|| latestItems.length > 0
+		|| generatedUsesEntityReferenceInitialFallback
 	)
 	const generatedUsesResourceBoundary = (
 		contentWarning != null
@@ -9936,6 +9952,13 @@ const generateSingularViewFile = (
 		...(generatedUsesProjectionBoundary && !declaredImportKeys.has('$/components/ProjectionBoundary.svelte\0ProjectionBoundary') ? ['import ProjectionBoundary from \'$/components/ProjectionBoundary.svelte\''] : []),
 		'import EntityView, { EntityLayout, type EntitySelectionViewProps } from \'$/components/EntityView.svelte\'',
 		...(
+			generatedUsesEntityReferenceInitialFallback
+			&& !declaredImportKeys.has('svelte\0untrack') ?
+				['import { untrack } from \'svelte\'']
+			:
+				[]
+		),
+		...(
 			generatedUsesEntityMetaKey
 			&& !declaredImportKeys.has('$/schema/$schema.ts\0EntityMetaKey') ?
 				['import { EntityMetaKey } from \'$/schema/$schema.ts\'']
@@ -9983,6 +10006,8 @@ const generateSingularViewFile = (
 		'\t...EntityViewProps',
 		`}: ${consumesPrefetched ? '' : 'Omit<'}EntitySelectionViewProps<EntityType.${entity.entityType}>${consumesPrefetched ? '' : ', \'prefetched\'>'} = $props()`,
 		'',
+		...latestResourceDeclarations,
+		...(latestResourceDeclarations.length === 0 ? [] : ['']),
 	]
 	const renderScriptAfterPendingEntity = (inlineEntityResource: boolean) => [
 		...hrefFieldBindings.map(({ expression, name }) => `const ${name} = $derived(${expression})`),
@@ -10416,11 +10441,17 @@ const renderEntityReferenceDlItem = (
 	}
 
 	const targetEntityName = camel(targetEntity.entityType)
+	const targetEntityInitialName = `${targetEntityName}Initial`
+	const targetEntityExpression = `${targetEntityName} ?? ${targetEntityInitialName}`
 	const entityViewLines = [
 		`${'\t'.repeat(level + 2)}<${component}`,
-		renderSvelteAttribute(level + 3, 'selection', `select(EntityType.${fieldDefinition.entityType}, ${targetEntityName}[EntityMetaKey.Selector])`),
+		renderSvelteAttribute(
+			level + 3,
+			'selection',
+			`select(EntityType.${fieldDefinition.entityType}, (${targetEntityExpression})[EntityMetaKey.Selector])`
+		),
 		...(viewComponentAcceptsPrefetched(indexes, fieldDefinition.entityType, component) ? [
-			`${'\t'.repeat(level + 3)}prefetched={${targetEntityName}}`,
+			`${'\t'.repeat(level + 3)}prefetched={${targetEntityExpression}}`,
 		] : []),
 		`${'\t'.repeat(level + 3)}layout={EntityLayout.Value}`,
 		`${'\t'.repeat(level + 2)}/>`,
@@ -10432,6 +10463,7 @@ const renderEntityReferenceDlItem = (
 			fieldProxyResourceExpression(fieldResourceBase, fieldReference, query),
 			renderSvelteSnippet(level + 1, `children(${targetEntityName})`, [
 				`${'\t'.repeat(level + 2)}{#if ${targetEntityName} != null}`,
+				renderSvelteConst(level + 3, targetEntityInitialName, `untrack(() => ${targetEntityName})`),
 				...renderDefinitionListItem(level + 3, label, entityViewLines.map((line) => indent(line, 3))),
 				`${'\t'.repeat(level + 2)}{/if}`,
 			])
@@ -10444,7 +10476,10 @@ const renderEntityReferenceDlItem = (
 			renderSvelteSnippet(
 				level + 3,
 				`children(${targetEntityName})`,
-				entityViewLines.map((line) => indent(line, 2))
+				[
+					renderSvelteConst(level + 4, targetEntityInitialName, `untrack(() => ${targetEntityName})`),
+					...entityViewLines.map((line) => indent(line, 2)),
+				]
 			)
 		),
 	]))
@@ -10662,15 +10697,15 @@ const latestComponentName = (
 	return latest.view ?? (entityType == null ? undefined : singularComponentName(entityType))
 }
 
-const renderLatestContentItem = (
+const latestResourceVariableName = (
+	entity: Entity,
+	index: number
+) => `${camel(entity.entityType)}LatestResource${index + 1}`
+
+const latestResourceFacts = (
 	entity: Entity,
 	indexes: GenerationIndexes,
-	latest: EntityLatest,
-	level: number,
-	fieldResource?: {
-		base: string
-		field: FieldReference
-	}
+	latest: EntityLatest
 ) => {
 	const latestFieldDefinition = fieldDefinitionByReference(entity, latest.field, indexes)
 	const entityType = latestFieldDefinition?.entityType
@@ -10684,8 +10719,8 @@ const renderLatestContentItem = (
 		|| component == null
 	)
 		throw new Error(`${entity.entityType}.${latest.field} latest reference must identify an entity relationship`)
+
 	const latestEntityName = camel(entityType)
-	const latestSelectorName = `${latestEntityName}Selector`
 	const latestEntity = indexes.entityByType[entityType]
 	const latestSelectorFieldNames = latestEntity == null ? new Set<string>() : entitySelectorFieldNames(latestEntity)
 	const latestOrderBy = latest.query?.orderBy ?? (latest.sort == null ? undefined : [
@@ -10705,16 +10740,49 @@ const renderLatestContentItem = (
 		].filter((fieldName) => !latestSelectorFieldNames.has(fieldName)),
 	].filter((fieldName) => latestEntity == null || fieldDefinitionByReference(latestEntity, fieldName) != null))
 
-	const query = renderQuery(
-		{
-			...latest.query,
-			limit: undefined,
-			orderBy: latestOrderBy,
-		},
-		latestQueryFields,
-		undefined,
-		undefined,
-		latestEntity
+	return {
+		latestFieldDefinition,
+		entityType,
+		component,
+		latestEntityName,
+		latestEntity,
+		query: renderQuery(
+			{
+				...latest.query,
+				limit: latestFieldDefinition.type === EntityFieldType.EntitiesReference ? 1 : undefined,
+				orderBy: latestOrderBy,
+			},
+			latestQueryFields,
+			undefined,
+			undefined,
+			latestEntity
+		),
+	}
+}
+
+const renderLatestContentItem = (
+	entity: Entity,
+	indexes: GenerationIndexes,
+	latest: EntityLatest,
+	latestResourceVariable: string,
+	level: number,
+	fieldProjectionAlreadyApplicable = false
+) => {
+	const {
+		latestFieldDefinition,
+		entityType,
+		component,
+		latestEntityName,
+		latestEntity,
+		query,
+	} = latestResourceFacts(entity, indexes, latest)
+	const latestSelectorName = `${latestEntityName}Selector`
+	const latestEntitiesName = latestEntity == null ? `${latestEntityName}Entities` : camel(pluralViewName(latestEntity))
+	const latestResourceName = (
+		latestFieldDefinition.type === EntityFieldType.EntitiesReference ?
+			latestEntitiesName
+		:
+			latestEntityName
 	)
 	const latestSelectionQuery = renderQuery(
 		latest.query == null ?
@@ -10747,69 +10815,76 @@ const renderLatestContentItem = (
 		`${'\t'.repeat(level + 4)}{/if}`,
 	]
 
-	const renderLines = (
-		fieldResourceBase: string,
-		fieldReference: FieldReference
-	) => renderDefinitionListItem(level, latestLabel, renderResourceBoundary(
+	const renderLines = () => renderDefinitionListItem(level, latestLabel, renderResourceBoundary(
 		level + 2,
-		`${fieldResourceExpression(fieldResourceBase, fieldReference, query)}${
-			latestFieldDefinition.type === EntityFieldType.EntitiesReference ? '.first()' : ''
-		}`,
-		renderSvelteSnippet(level + 3, `children(${latestEntityName})`, latestBodyLines)
+		latestResourceVariable,
+		renderSvelteSnippet(level + 3, `children(${latestResourceName})`, [
+			...(latestFieldDefinition.type === EntityFieldType.EntitiesReference ? [
+				renderSvelteConst(level + 4, latestEntityName, `${latestEntitiesName}.values[0]`),
+			] : []),
+			...latestBodyLines,
+		])
 	), latest.id == null ? undefined : `viewDomId + ${emitTypeScript(`-latest-${latest.id}`)}`)
 
-	const renderConditionedLines = (
-		fieldResourceBase: string,
-		fieldReference: FieldReference
-	) => renderConditionedEntityLines(
+	const renderConditionedLines = () => renderConditionedEntityLines(
 		entity,
 		indexes,
 		latestConditions,
 		level,
-		renderLines(fieldResourceBase, fieldReference)
+		renderLines()
 	)
-	if (fieldResource != null)
-		return renderConditionedLines(fieldResource.base, fieldResource.field)
+	if (fieldProjectionAlreadyApplicable)
+		return renderConditionedLines()
 
 	return renderProjectionBoundaryLines(
 		latest.field,
-		renderConditionedLines,
+		() => renderConditionedLines(),
 		level
 	)
 }
 
 // Latest cards retain the facet that declared them separately from the facet
-// that owns their field. The tree installs each applicability boundary once;
-// every card still renders its own query ResourceBoundary below that tree.
+// that owns their field. ResourceBoundary consumes that field's native resource
+// directly and selects a collection's first value only after resolution.
 const renderLatestContentItems = (
 	entity: Entity,
 	indexes: GenerationIndexes,
 	latestItems: readonly EntityLatest[],
 	level: number
-) => renderProjectionPathTree(
-	entity,
-	indexes,
-	latestItems,
-	(latest) => latest.projectionPath ?? [],
-	(latest) => {
-		if (!isProjectionFieldReference(latest.field))
-			return renderLatestContentItem(entity, indexes, latest, level)
+) => {
+	const indexedLatestItems = latestItems.map((latest, index) => ({
+		latest,
+		index,
+	}))
+	return renderProjectionPathTree(
+		entity,
+		indexes,
+		indexedLatestItems,
+		({ latest }) => latest.projectionPath ?? [],
+		({ latest, index }) => {
+			if (!isProjectionFieldReference(latest.field))
+				return renderLatestContentItem(
+					entity,
+					indexes,
+					latest,
+					latestResourceVariableName(entity, index),
+					level
+				)
 
-		const fieldProjectionPath = latest.field.slice(0, -1)
-		const declaredAtFieldProjection = (
-			fieldProjectionPath.length === latest.projectionPath?.length
-			&& fieldProjectionPath.every((facetName, index) => latest.projectionPath?.[index] === facetName)
-		)
-		return renderLatestContentItem(entity, indexes, latest, level, declaredAtFieldProjection ? {
-			base: 'projection',
-			field: fieldNameForReference(latest.field),
-		} : {
-			base: 'selection',
-			field: latest.field,
-		})
-	},
-	level
-)
+			const fieldProjectionPath = latest.field.slice(0, -1)
+			return renderLatestContentItem(
+				entity,
+				indexes,
+				latest,
+				latestResourceVariableName(entity, index),
+				level,
+				fieldProjectionPath.length <= (latest.projectionPath?.length ?? 0)
+					&& fieldProjectionPath.every((facetName, pathIndex) => latest.projectionPath?.[pathIndex] === facetName)
+			)
+		},
+		level
+	)
+}
 
 const renderRelationshipSections = (
 	entity: Entity,
@@ -11787,7 +11862,8 @@ const renderCarouselSectionSnippet = (
 	sectionBodyLines: string[],
 	usesOpen: boolean,
 	omitWhenResolvedEmpty = false,
-	contentOwnsResourceState = false
+	contentOwnsResourceState = false,
+	resolvedPreludeLines: string[] = []
 ) => {
 	if (contentOwnsResourceState) {
 		return [
@@ -11806,6 +11882,7 @@ const renderCarouselSectionSnippet = (
 		...(omitWhenResolvedEmpty ? [
 			`\t\t\t\t\t\t\t{#if ${resolvedName} != null}`,
 		] : []),
+		...resolvedPreludeLines.map((line) => indent(line, sectionLevel)),
 		`${'\t'.repeat(sectionLevel)}<section`,
 		`${'\t'.repeat(sectionLevel + 1)}id={id}`,
 		'\t'.repeat(sectionLevel + 1) + 'aria-labelledby={`${id}:marker`}',
@@ -12030,13 +12107,15 @@ const renderCarouselSection = (
 
 	const targetEntity = fieldDefinition.entityType
 	const targetEntityName = camel(targetEntity)
+	const targetEntityInitialName = `${targetEntityName}Initial`
+	const targetEntityExpression = `${targetEntityName} ?? ${targetEntityInitialName}`
 	const sectionSelectSourcesExpression = (
 		applicableSources.applicable ?
 			applicableSources.name
 		:
 			renderSourceSelectionExpression(section.selection?.sources) ?? 'selection.sources'
 	)
-	const targetSelectionExpression = `select(EntityType.${targetEntity}, ${targetEntityName}[EntityMetaKey.Selector], ${emitObject([
+	const targetSelectionExpression = `select(EntityType.${targetEntity}, (${targetEntityExpression})[EntityMetaKey.Selector], ${emitObject([
 		['sources', sectionSelectSourcesExpression],
 	])})`
 	const hrefExpression = section.link == null ?
@@ -12080,7 +12159,7 @@ const renderCarouselSection = (
 			targetSelectionExpression
 		),
 		...(viewComponentAcceptsPrefetched(indexes, targetEntity, component) ? [
-			`${'\t'.repeat(entityReferenceComponentLevel + 1)}prefetched={${targetEntityName}}`,
+			`${'\t'.repeat(entityReferenceComponentLevel + 1)}prefetched={${targetEntityExpression}}`,
 		] : []),
 		`${'\t'.repeat(entityReferenceComponentLevel + 1)}layout={EntityLayout.${entityReferenceLayout}}`,
 		`${'\t'.repeat(entityReferenceComponentLevel)}/>`,
@@ -12159,7 +12238,10 @@ const renderCarouselSection = (
 				sectionBodyLines,
 				section.items?.some(viewItemUsesOpen) ?? false,
 				omitWhenResolvedEmpty,
-				contentOwnsResourceState
+				contentOwnsResourceState,
+				fieldDefinition.type === EntityFieldType.EntityReference ? [
+					renderSvelteConst(0, targetEntityInitialName, `untrack(() => ${targetEntityName})`),
+				] : []
 			),
 		],
 	}
@@ -13113,20 +13195,84 @@ const projectionConditionExpression = (condition: _AppFacetCondition, entityExpr
 	], '&&')
 }
 
+const resolveRouteSelectorFieldExpression = (
+	expression: _Expression,
+	fieldValueByName: ReadonlyMap<string, _Expression>,
+	resolvingFieldNames: readonly string[] = []
+): _Expression => {
+	if (typeof expression === 'string' || 'raw' in expression)
+		return expression
+	if (expression.kind === 'field') {
+		const fieldValue = fieldValueByName.get(expression.name)
+		if (fieldValue == null)
+			return expression
+		if (resolvingFieldNames.includes(expression.name))
+			throw new Error(`Route selector field derivation cycle: ${[...resolvingFieldNames, expression.name].join(' -> ')}`)
+
+		return resolveRouteSelectorFieldExpression(
+			fieldValue,
+			fieldValueByName,
+			[...resolvingFieldNames, expression.name]
+		)
+	}
+	if (expression.kind === 'property') {
+		const value = resolveRouteSelectorFieldExpression(
+			expression.value,
+			fieldValueByName,
+			resolvingFieldNames
+		)
+		if (typeof value !== 'string' && !('raw' in value)) {
+			const selectorParam = value.kind === 'selector' ?
+				value.params.find(({ field }) => field === expression.property)
+			:
+				undefined
+			const propertyValue = value.kind === 'object' ?
+				value.fields.find(({ name }) => name === expression.property)?.value
+			: selectorParam == null ?
+				undefined
+			: 'value' in selectorParam ?
+				selectorParam.value
+			:
+				{
+					kind: 'param' as const,
+					name: selectorParam.param,
+					decode: selectorParam.decode,
+				}
+			if (propertyValue != null)
+				return resolveRouteSelectorFieldExpression(
+					propertyValue,
+					fieldValueByName,
+					resolvingFieldNames
+				)
+		}
+
+		return {
+			...expression,
+			value,
+		}
+	}
+
+	return mapExpressionChildren(expression, (child) => resolveRouteSelectorFieldExpression(
+		child,
+		fieldValueByName,
+		resolvingFieldNames
+	))
+}
+
 const routeMappingContext = (
 	routePath: string,
 	indexes: GenerationIndexes,
 	mapping: SelectorRouteMapping
 ) => {
 	const networkParam = mapping.projectionRouteParam
+	const fieldValueByName = new Map(mapping.fields.map(({ name, value }) => [name, value]))
 	const fieldsExpression = emitObject(mapping.fields.map((field) => [
 		field.name,
-		renderExpression(field.value, {
+		renderExpression(resolveRouteSelectorFieldExpression(field.value, fieldValueByName), {
 			params: 'params',
 			pageSelector: 'parentData.selector',
 		}),
 	]))
-	const usesParentSelector = mapping.fields.some((field) => expressionUsesKind(field.value, 'pageSelector'))
 	const projectionEntity = mapping.projection == null ? undefined : indexes.entityByType[mapping.projection.entityType]
 	if (mapping.projection != null && projectionEntity == null)
 		throw new Error(`${routePath} references missing projection entity ${mapping.projection.entityType}`)
@@ -13149,8 +13295,9 @@ const routeMappingContext = (
 
 		return uniqueConditions.length < 2 ? uniqueConditions[0] : { all: uniqueConditions }
 	})()
+	const usesParentProjection = networkParam != null && projectionCondition != null
 	const guardExpressions = [
-		...(networkParam == null || projectionCondition == null ? [] : [
+		...(!usesParentProjection ? [] : [
 			projectionConditionExpression(projectionCondition, 'parentData.projectionNetwork'),
 		]),
 		...mapping.routeParamMatchers.map(({ param, matchers }) => (
@@ -13163,6 +13310,10 @@ const routeMappingContext = (
 				)
 		)),
 	]
+	const usesParentSelector = (
+		mapping.fields.some((field) => expressionUsesKind(field.value, 'pageSelector'))
+		|| usesParentProjection
+	)
 
 	return {
 		mapping,

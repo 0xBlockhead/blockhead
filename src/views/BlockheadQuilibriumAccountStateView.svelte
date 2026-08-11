@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -122,8 +123,9 @@
 						resource={selection.$account}
 					>
 						{#snippet children(quilibriumAccount)}
+							{@const quilibriumAccountInitial = untrack(() => quilibriumAccount)}
 							<QuilibriumAccountView
-								selection={select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector])}
+								selection={select(EntityType.QuilibriumAccount, (quilibriumAccount ?? quilibriumAccountInitial)[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

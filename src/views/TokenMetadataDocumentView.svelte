@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
@@ -290,9 +291,10 @@
 						resource={selection.$assetInstance}
 					>
 						{#snippet children(assetInstance)}
+							{@const assetInstanceInitial = untrack(() => assetInstance)}
 							<AssetInstanceView
-								selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
-								prefetched={assetInstance}
+								selection={select(EntityType.AssetInstance, (assetInstance ?? assetInstanceInitial)[EntityMetaKey.Selector])}
+								prefetched={assetInstance ?? assetInstanceInitial}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

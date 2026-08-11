@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -282,11 +283,12 @@
 			>
 				{#snippet children(utxoBlock)}
 					{#if utxoBlock != null}
+						{@const utxoBlockInitial = untrack(() => utxoBlock)}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<UtxoBlockView
-									selection={select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoBlock, (utxoBlock ?? utxoBlockInitial)[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

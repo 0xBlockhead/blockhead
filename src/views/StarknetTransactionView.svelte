@@ -4,6 +4,7 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2StringFromValue } from '$/lib/caip2.ts'
@@ -88,10 +89,11 @@
 		>
 			{#snippet children(starknetBlock)}
 				{#if starknetBlock != null}
+					{@const starknetBlockInitial = untrack(() => starknetBlock)}
 					<span data-text="muted">
 						<StarknetBlockView
-							selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector])}
-							prefetched={starknetBlock}
+							selection={select(EntityType.StarknetBlock, (starknetBlock ?? starknetBlockInitial)[EntityMetaKey.Selector])}
+							prefetched={starknetBlock ?? starknetBlockInitial}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -130,12 +132,13 @@
 			>
 				{#snippet children(starknetBlock)}
 					{#if starknetBlock != null}
+						{@const starknetBlockInitial = untrack(() => starknetBlock)}
 						<div>
 							<dt>block</dt>
 							<dd>
 								<StarknetBlockView
-									selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector])}
-									prefetched={starknetBlock}
+									selection={select(EntityType.StarknetBlock, (starknetBlock ?? starknetBlockInitial)[EntityMetaKey.Selector])}
+									prefetched={starknetBlock ?? starknetBlockInitial}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
