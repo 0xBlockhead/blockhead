@@ -357,6 +357,17 @@ describe('Cardano Koios REST transaction transport', () => {
 		)
 	})
 
+	it('rejects a transaction response for a different requested hash', async () => {
+		sourceFetch.mockResolvedValueOnce(Response.json([{
+			...transactionInfo,
+			tx_hash: 'different-transaction-hash',
+		}]))
+
+		await expect(getTransactionInfo(transactionInfo.tx_hash)).rejects.toThrow(
+			'CardanoKoios_Rest: transaction response does not match request'
+		)
+	})
+
 	it.each([
 		{
 			field: 'malformed fee',

@@ -167,6 +167,9 @@ export const getTransactionInfo = async (
 				'CardanoKoios_Rest: tx_info must return exactly one transaction'
 		)
 	const transaction = transactions[0]
+	if (transaction.tx_hash !== transactionHash)
+		throw new Error('CardanoKoios_Rest: transaction response does not match request')
+
 	const collateralInputs = transaction.collateral_inputs ?? []
 	const referenceInputs = transaction.reference_inputs ?? []
 	const utxos = [
