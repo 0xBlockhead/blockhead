@@ -430,6 +430,11 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
+					appliesTo: [{
+						caip2: {
+							namespace: 'eip155',
+						},
+					}],
 					resolve: async ({ caip2 }) => {
 						if (caip2.namespace !== 'eip155')
 							throw new Error('Lifi_Rest: only eip155 networks are supported')
@@ -722,6 +727,11 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				Caip2: {
+					appliesTo: [{
+						caip2: {
+							namespace: 'eip155',
+						},
+					}],
 					resolve: async ({ caip2 }) => {
 						if (caip2.namespace !== 'eip155')
 							throw new Error('Lifi_Rest: only eip155 networks are supported')

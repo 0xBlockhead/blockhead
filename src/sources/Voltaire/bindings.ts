@@ -85,11 +85,6 @@ export default indexSourceBindings([
 				locator: 'https://mainnet.rpc.buidlguidl.com',
 				corsEnabled: false,
 			},
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://evm.stupidtech.net',
-				corsEnabled: false,
-			},
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.EvmExecutionJsonRpc,

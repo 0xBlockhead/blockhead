@@ -8,6 +8,8 @@ import {
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
+import { indexResolvers } from '$/resolvers/$resolvers.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	LifiChainsResponse,
@@ -451,6 +453,33 @@ describe('LI.FI network catalog projections', () => {
 				reference: '1e0',
 			},
 		})).rejects.toThrow('invalid eip155 chain id 1e0')
+		expect(fetchChains).not.toHaveBeenCalled()
+	})
+})
+
+describe('LI.FI network applicability', () => {
+	it('excludes non-EVM CAIP-2 networks before transport', () => {
+		const resolvers = indexResolvers(
+			schema,
+			[lifiRest],
+			new Set([Source.Lifi_Rest])
+		).resolverDefinitions.filter((resolver) => resolver.entityType === EntityType.Network)
+
+		expect(resolvers).toHaveLength(2)
+		for (const resolver of resolvers) {
+			expect(resolver.appliesTo('Caip2', {
+				caip2: {
+					namespace: 'bip122',
+					reference: '000000000019d6689c085ae165831e93',
+				},
+			})).toBe(false)
+			expect(resolver.appliesTo('Caip2', {
+				caip2: {
+					namespace: 'eip155',
+					reference: '1',
+				},
+			})).toBe(true)
+		}
 		expect(fetchChains).not.toHaveBeenCalled()
 	})
 })

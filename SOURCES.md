@@ -1523,7 +1523,6 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Voltaire_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://eth.drpc.org | https://eth.drpc.org | true |
 | ["Voltaire_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://eth.llamarpc.com | https://eth.llamarpc.com | false |
 | ["Voltaire_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://mainnet.rpc.buidlguidl.com | https://mainnet.rpc.buidlguidl.com | false |
-| ["Voltaire_JsonRpc","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://evm.stupidtech.net | https://evm.stupidtech.net | false |
 | ["Voltaire_JsonRpc","Eip155Chain","1","RemoteLive","EvmExecutionJsonRpc"] | WebSocketUrl | wss://ethereum.publicnode.com |  |  |
 | ["Voltaire_JsonRpc","Eip155Chain","1","RemoteLive","EvmExecutionJsonRpc"] | WebSocketUrl | ws://localhost:8545 |  |  |
 | ["Voltaire_JsonRpc","Eip155Chain","1","RemoteLive","EvmExecutionJsonRpc"] | WebSocketUrl | wss://eth.llamarpc.com |  |  |
