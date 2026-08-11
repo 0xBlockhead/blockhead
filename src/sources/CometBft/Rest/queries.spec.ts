@@ -17,6 +17,7 @@ vi.mock('$/sources/_shared/wire/HttpRest/client.ts', () => ({
 
 const {
 	getBlock,
+	getBlockByHash,
 	getBlockchain,
 	getStatus,
 	getTx,
@@ -57,7 +58,7 @@ describe('CometBFT REST queries', () => {
 
 		getJson.mockResolvedValue({
 			result: {
-				hash: 'ABCD',
+				hash: 'A'.repeat(64),
 				height: '1',
 				index: 0,
 				tx_result: {
@@ -68,7 +69,7 @@ describe('CometBFT REST queries', () => {
 			},
 		})
 		await getTx({
-			txHash: '0xABCD',
+			txHash: `0x${'A'.repeat(64)}`,
 		})
 
 		expect(getJson.mock.calls).toEqual([
@@ -78,9 +79,18 @@ describe('CometBFT REST queries', () => {
 			],
 			[
 				binding,
-				'/tx?hash=0xABCD',
+				`/tx?hash=0x${'A'.repeat(64)}`,
 			],
 		])
+	})
+
+	it('rejects non-canonical block and transaction hash coordinates', () => {
+		expect(() => getBlockByHash({
+			hash: '0x1234&height=1',
+		})).toThrow('invalid block hash')
+		expect(() => getTx({
+			txHash: 'not-a-hash',
+		})).toThrow('invalid transaction hash')
 	})
 
 	it('fail-closes malformed block envelopes', async () => {

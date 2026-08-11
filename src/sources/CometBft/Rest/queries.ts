@@ -6,6 +6,7 @@ import { type as arktype } from 'arktype'
 const binding = bindings[Source.CometBft_Rest][0]
 
 const unsignedIntegerString = '/^(0|[1-9][0-9]*)$/'
+const cometBftHash = /^(?:0x)?[0-9A-Fa-f]{64}$/
 
 const cometBftBlockWire = arktype({
 	result: {
@@ -133,14 +134,12 @@ const assertHeight = (height: bigint) => {
 		throw new Error(`${Source.CometBft_Rest}: invalid block height ${height}`)
 }
 
-const assertTxHash = (txHash: string) => {
-	if (txHash.length === 0)
-		throw new Error(`${Source.CometBft_Rest}: transaction hash is empty`)
-}
-
-const assertBlockHash = (hash: string) => {
-	if (hash.length === 0)
-		throw new Error(`${Source.CometBft_Rest}: block hash is empty`)
+const assertHash = (
+	hash: string,
+	coordinate: string
+) => {
+	if (!cometBftHash.test(hash))
+		throw new Error(`${Source.CometBft_Rest}: invalid ${coordinate} ${hash}`)
 }
 
 const assertHeightWindow = (
@@ -174,7 +173,7 @@ export const getBlockByHash = ({
 }: {
 	hash: string
 }) => {
-	assertBlockHash(hash)
+	assertHash(hash, 'block hash')
 	return getJson(
 		binding,
 		`/block_by_hash?hash=0x${hash.replace(/^0x/i, '')}`
@@ -188,7 +187,7 @@ export const getTx = ({
 }: {
 	txHash: string
 }) => {
-	assertTxHash(txHash)
+	assertHash(txHash, 'transaction hash')
 	return getJson(
 		binding,
 		`/tx?hash=0x${txHash.replace(/^0x/i, '')}`
