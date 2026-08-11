@@ -253,6 +253,9 @@ export const getUserFollowingChannelsPage = async ({
 		{ fid, cursor, limit }
 	)
 	assertEnvelope('user-following-channels', farcasterUserFollowingChannelsResponseWire, page)
+	if (cursor != null && cursor !== '' && page.next?.cursor === cursor)
+		throw new Error('Farcaster_Rest: repeated user-following-channels cursor')
+
 	return {
 		...(page.result != null && {
 			result: {

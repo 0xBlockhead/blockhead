@@ -19,6 +19,7 @@ const {
 	getChannelMembersPage,
 	getPrimaryAddress,
 	getUserChannelFollowStatus,
+	getUserFollowingChannelsPage,
 	getUserFollowingChannelsCount,
 	getUserThreadCastsByClientUrl,
 	getUserThreadCasts,
@@ -346,15 +347,43 @@ describe('Farcaster envelope validation and materialization', () => {
 		farcasterGet
 			.mockResolvedValueOnce({
 				result: { channels: [] },
-				next: { cursor: 'cycle' },
+				next: { cursor: 'cycle-a' },
 			})
 			.mockResolvedValueOnce({
 				result: { channels: [] },
-				next: { cursor: 'cycle' },
+				next: { cursor: 'cycle-b' },
+			})
+			.mockResolvedValueOnce({
+				result: { channels: [] },
+				next: { cursor: 'cycle-a' },
 			})
 
 		await expect(getUserFollowingChannelsCount({ fid: 3 })).rejects.toThrow(
 			'Farcaster_Rest: repeated pagination cursor'
+		)
+	})
+
+	it('rejects a repeated following-channel page cursor', async () => {
+		farcasterGet.mockResolvedValueOnce({
+			result: { channels: [] },
+			next: { cursor: 'same-page' },
+		})
+
+		await expect(getUserFollowingChannelsPage({
+			fid: 3,
+			cursor: 'same-page',
+			limit: 100,
+		})).rejects.toThrow(
+			'Farcaster_Rest: repeated user-following-channels cursor'
+		)
+		expect(farcasterGet).toHaveBeenCalledWith(
+			'client-api',
+			'/v1/user-following-channels',
+			{
+				fid: 3,
+				cursor: 'same-page',
+				limit: 100,
+			}
 		)
 	})
 
