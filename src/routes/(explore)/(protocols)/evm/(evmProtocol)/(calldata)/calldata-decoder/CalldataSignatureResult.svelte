@@ -66,6 +66,13 @@
 	</p>
 </aside>
 
+<a
+	href={`data:text/plain;charset=utf-8,${encodeURIComponent(`${hex}\n`)}`}
+	download={`evm-${kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data'}-raw.txt`}
+>
+	Download raw hex
+</a>
+
 <ResourceBoundary
 	{resource}
 	placeholderText={`Loading ${kind === CalldataSignatureKind.Function ? 'function' : 'event'} signature...`}

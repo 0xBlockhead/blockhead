@@ -27,6 +27,10 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 	await expect.element(page.getByText('Openchain REST', { exact: false })).toBeVisible()
 	await expect.element(page.getByText('provider-attributed claims', { exact: false })).toBeVisible()
 	await expect.element(page.getByText('deterministic for the selected candidate', { exact: false })).toBeVisible()
+	await expect.element(page.getByRole('link', { name: 'Download raw hex' })).toHaveAttribute(
+		'download',
+		'evm-function-calldata-raw.txt'
+	)
 	await expect.element(page.getByLabelText('Loading function signature...')).toBeInTheDocument()
 	await expect.element(page.getByText('No catalog signatures matched this function selector.')).not.toBeInTheDocument()
 	await tick()
