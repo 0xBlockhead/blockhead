@@ -164,26 +164,33 @@ describe('Polkadot JsonRpc block leftovers', () => {
 		).toBe(11n)
 	})
 
-	it('lists tip blocks from finalized head', async () => {
+	it('lists an offset block page from finalized head', async () => {
 		sourceFetch
 			.mockResolvedValueOnce(jsonRpcResult('0xeeee'))
 			.mockResolvedValueOnce(jsonRpcResult(header))
-			.mockResolvedValueOnce(jsonRpcResult('0xaaa1'))
+			.mockResolvedValueOnce(jsonRpcResult(`0x${'8'.repeat(64)}`))
+			.mockResolvedValueOnce(jsonRpcResult(`0x${'7'.repeat(64)}`))
 
-		const snapshot = await networkBlockListResolver.resolve.Slug.resolve(network, context)
+		const snapshot = await networkBlockListResolver.resolve.Slug.resolve(network, {
+			...context,
+			pagination: {
+				limit: 2,
+				offset: 2,
+			},
+		})
 		expect(networkBlockListResolver.projections.Polkadot.$$blocks(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					blockNumber: 10n,
-					hash: '0xeeee',
+					blockNumber: 8n,
+					hash: `0x${'8'.repeat(64)}`,
 				},
 			},
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					blockNumber: 9n,
-					hash: '0xaaa1',
+					blockNumber: 7n,
+					hash: `0x${'7'.repeat(64)}`,
 				},
 			},
 		])

@@ -335,21 +335,25 @@ export default {
 						const finalizedBlockNumber = blockNumberFromHeader(await getHeader({
 							blockHash: finalizedBlockHash,
 						}))
+						const offset = context.pagination.offset ?? 0
 						return Promise.all(Array.from({
 							length: Math.min(
-								Number(finalizedBlockNumber + 1n),
+								Math.max(
+									Number(finalizedBlockNumber + 1n - BigInt(offset)),
+									0
+								),
 								resolverContextRowLimit(context)
 							),
 						}, async (_value, blockOffset) => ({
 							[EntityMetaKey.Selector]: {
 								$network: network,
-								blockNumber: finalizedBlockNumber - BigInt(blockOffset),
+								blockNumber: finalizedBlockNumber - BigInt(offset + blockOffset),
 								hash: (
-									blockOffset === 0 ?
+									offset === 0 && blockOffset === 0 ?
 										finalizedBlockHash
 									:
 										await getBlockHash({
-											blockNumber: finalizedBlockNumber - BigInt(blockOffset),
+											blockNumber: finalizedBlockNumber - BigInt(offset + blockOffset),
 										})
 								),
 							},
