@@ -141,6 +141,34 @@ describe('CoinGecko documented endpoints', () => {
 		})
 	})
 
+	it('rejects duplicate coin identities from a market page', async () => {
+		const market = {
+			id: 'bitcoin',
+			symbol: 'btc',
+			name: 'Bitcoin',
+			current_price: 100_000,
+			market_cap: 1_000_000_000_000,
+			market_cap_rank: 1,
+			fully_diluted_valuation: 1_050_000_000_000,
+			total_volume: 30_000_000_000,
+			circulating_supply: 19_700_000,
+			total_supply: 21_000_000,
+			max_supply: 21_000_000,
+			ath: 120_000,
+			ath_change_percentage: -10,
+			last_updated: '2026-08-06T12:00:00.000Z',
+		}
+		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify([
+			market,
+			market,
+		])))
+
+		await expect(getCoinsMarkets({
+			publicEnv: {},
+			vs_currency: 'usd',
+		})).rejects.toThrow('Coingecko_Rest: coins markets response contains duplicate coin ids')
+	})
+
 	it('accepts derivatives exchange leftover volume legs beside enrolled mark/index', async () => {
 		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 			name: 'Binance (Futures)',

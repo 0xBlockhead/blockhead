@@ -213,11 +213,15 @@ export const getCoinsMarkets = async ({
 	if (!response.ok)
 		await throwHttpError('Coingecko_Rest', response)
 
-	return assertEnvelope<CoingeckoCoinsMarket[]>(
+	const markets = assertEnvelope<CoingeckoCoinsMarket[]>(
 		coingeckoCoinsMarketEnvelope,
 		await response.json<CoingeckoCoinsMarket[]>(),
 		'coins markets'
 	)
+	if (new Set(markets.map((market) => market.id)).size !== markets.length)
+		throw new Error('Coingecko_Rest: coins markets response contains duplicate coin ids')
+
+	return markets
 }
 
 /** `GET /coins/{id}/ohlc` — fixed-range OHLC candles. */
