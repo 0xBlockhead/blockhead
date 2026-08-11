@@ -260,6 +260,17 @@ describe('Pendle market operations', () => {
 		expect(sourceGetJson).not.toHaveBeenCalled()
 	})
 
+	it('rejects duplicate requested market addresses before transport', async () => {
+		await expect(listMarkets({
+			chainId: 1,
+			marketAddresses: [
+				baseMarketAddress,
+				baseMarketAddress.toUpperCase(),
+			],
+		})).rejects.toThrow(`${Source.Pendle_Rest}: market addresses contains duplicate addresses`)
+		expect(sourceGetJson).not.toHaveBeenCalled()
+	})
+
 	it('rejects an unsupported chain before transport', async () => {
 		await expect(listMarkets({
 			chainId: 9999,
@@ -324,6 +335,41 @@ describe('Pendle market operations', () => {
 			chainId: 1,
 			limit: 1,
 		})).rejects.toThrow(`${Source.Pendle_Rest}: invalid markets/all response envelope`)
+	})
+
+	it.each([
+		[
+			'foreign page coordinates',
+			{
+				total: 1,
+				limit: 1,
+				skip: 1,
+				results: [baseMarketWire],
+			},
+			'markets/all response skip mismatch',
+		],
+		[
+			'duplicate market addresses',
+			{
+				total: 2,
+				limit: 2,
+				skip: 0,
+				results: [
+					baseMarketWire,
+					{
+						...baseMarketWire,
+						address: baseMarketAddress.toUpperCase(),
+					},
+				],
+			},
+			'markets/all response contains duplicate market addresses',
+		],
+	])('rejects %s from markets/all', async (_label, response, message) => {
+		sourceGetJson.mockResolvedValueOnce(response)
+		await expect(listMarkets({
+			chainId: 1,
+			limit: response.limit,
+		})).rejects.toThrow(`${Source.Pendle_Rest}: ${message}`)
 	})
 
 	it('rejects market records outside requested filters', async () => {

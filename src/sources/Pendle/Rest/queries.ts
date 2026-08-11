@@ -211,6 +211,11 @@ export const listMarkets = async ({
 	const normalizedMarketAddresses = marketAddresses?.map((marketAddress) => (
 		assertAddress(marketAddress, 'market address')
 	))
+	if (
+		normalizedMarketAddresses != null
+		&& new Set(normalizedMarketAddresses).size !== normalizedMarketAddresses.length
+	)
+		throw new Error(`${Source.Pendle_Rest}: market addresses contains duplicate addresses`)
 	const response = await sourceGetJson<PendleMarketsAllResponseWire>(
 		binding,
 		httpUrl(
@@ -219,19 +224,26 @@ export const listMarkets = async ({
 		)
 	)
 	assertEnvelope(pendleMarketsAllEnvelope, response, 'markets/all')
+	if (response.skip !== skip)
+		throw new Error(`${Source.Pendle_Rest}: markets/all response skip mismatch`)
+	if (response.results.length > limit)
+		throw new Error(`${Source.Pendle_Rest}: markets/all response exceeds requested limit`)
+	const markets = response.results.map((market) => {
+		if (market.chainId !== chainId)
+			throw new Error(`${Source.Pendle_Rest}: market chain filter violated`)
+		const snapshot = assertMarketWire(market)
+		if (normalizedMarketAddresses != null && !normalizedMarketAddresses.includes(snapshot.marketAddress))
+			throw new Error(`${Source.Pendle_Rest}: market address filter violated`)
+		return snapshot
+	})
+	if (new Set(markets.map((market) => market.marketAddress)).size !== markets.length)
+		throw new Error(`${Source.Pendle_Rest}: markets/all response contains duplicate market addresses`)
 
 	return {
 		total: assertPageMetadata(response.total, 'total'),
 		limit: assertPageMetadata(response.limit, 'limit'),
 		skip: assertPageMetadata(response.skip, 'skip'),
-		markets: response.results.map((market) => {
-			if (market.chainId !== chainId)
-				throw new Error(`${Source.Pendle_Rest}: market chain filter violated`)
-			const snapshot = assertMarketWire(market)
-			if (normalizedMarketAddresses != null && !normalizedMarketAddresses.includes(snapshot.marketAddress))
-				throw new Error(`${Source.Pendle_Rest}: market address filter violated`)
-			return snapshot
-		}),
+		markets,
 	} satisfies PendleMarketsPage
 }
 
