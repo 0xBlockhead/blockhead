@@ -5179,6 +5179,25 @@ export const schema = {
 							],
 						},
 					}),
+					Tezos: facet({
+						path: ["namespace"],
+						is: "tezos",
+					})({
+						"$account": { label: "Tezos account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.TezosAccount, defaultSources: [Source.Constants_Internal] },
+					})({
+						singularView: {
+							carousels: [
+								{
+									id: "account-tezos",
+									label: "Tezos",
+									className: "account-view-collapsible-tezos",
+									sections: [
+										{ id: "account-tezos-projection", field: ["Tezos", "$account"], List: "TezosAccountView", label: "Tezos account", layout: EntityLayout.SummaryDetails },
+									],
+								},
+							],
+						},
+					}),
 					Starknet: facet({
 						path: ["namespace"],
 						is: "starknet",
