@@ -390,7 +390,6 @@ describe('Hyperliquid public account Info transport', () => {
 
 	it('parses the documented account position, balance, summary, abstraction, builder, and health wires', async () => {
 		vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_123)
-
 		corsFetch.mockResolvedValueOnce({
 			ok: true,
 			json: async () => ({

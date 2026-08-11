@@ -1725,6 +1725,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/observations/[timestampMs]/[source]/[infoType]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/(nearAccountTimestamp)/[infoType=stringSegment]',
+		mappings: [
+			{
+				id: 'HyperliquidAccount_Timestamp.AccountInfoTypeTimestampMsSource',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/account/[accountId]/observations/[timestampMs]/[source]/[infoType]:HyperliquidAccount_Timestamp.AccountInfoTypeTimestampMsSource'],
+				probeCases: [[[0, '1', ['infoType', 'timestampMs', 'source', 'accountId', 'network']]]],
+				projectionPath: [
+					'Hyperliquid',
+				],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/order/client/[cloid]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/order/client/[cloid=stringSegment]',
 		mappings: [

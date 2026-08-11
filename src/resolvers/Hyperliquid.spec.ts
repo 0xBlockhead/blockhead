@@ -71,85 +71,115 @@ const responseByInfoType = {
 		role: 'user',
 	},
 	clearinghouseState: {
-		marginSummary: {
-			accountValue: '100.5',
-			totalNtlPos: '50.25',
-			totalRawUsd: '100.5',
-			totalMarginUsed: '12.5',
-		},
-		crossMarginSummary: {
-			accountValue: '100.5',
-			totalNtlPos: '50.25',
-			totalRawUsd: '100.5',
-			totalMarginUsed: '12.5',
-		},
-		assetPositions: [{
-			type: 'oneWay',
-			position: {
-				coin: 'ETH',
-				szi: '0.5',
-				entryPx: '2_000',
-				positionValue: '1_000',
-				unrealizedPnl: '10',
-				returnOnEquity: '0.1',
-				liquidationPx: '1_500',
-				marginUsed: '100',
-				maxLeverage: 50,
-				cumFunding: {
-					allTime: '1',
-					sinceChange: '0.5',
-					sinceOpen: '0.25',
-				},
-				leverage: {
-					rawUsd: '100',
-					type: 'isolated',
-					value: 10,
-				},
+		infoType: 'clearinghouseState',
+		state: {
+			marginSummary: {
+				accountValue: '100.5',
+				totalNtlPos: '50.25',
+				totalRawUsd: '100.5',
+				totalMarginUsed: '12.5',
 			},
-		}],
-		withdrawable: '88',
-		crossMaintenanceMarginUsed: '4',
-		time: 1_700_000_000_000,
+			crossMarginSummary: {
+				accountValue: '100.5',
+				totalNtlPos: '50.25',
+				totalRawUsd: '100.5',
+				totalMarginUsed: '12.5',
+			},
+			assetPositions: [{
+				type: 'oneWay',
+				position: {
+					coin: 'ETH',
+					szi: '0.5',
+					entryPx: '2_000',
+					positionValue: '1_000',
+					unrealizedPnl: '10',
+					returnOnEquity: '0.1',
+					liquidationPx: '1_500',
+					marginUsed: '100',
+					maxLeverage: 50,
+					cumFunding: {
+						allTime: '1',
+						sinceChange: '0.5',
+						sinceOpen: '0.25',
+					},
+					leverage: {
+						rawUsd: '100',
+						type: 'isolated',
+						value: 10,
+					},
+				},
+			}],
+			withdrawable: '88',
+			crossMaintenanceMarginUsed: '4',
+			time: 1_700_000_000_000,
+		},
+		timestampMs: 1_700_000_000_000,
 	},
 	spotClearinghouseState: {
-		balances: [{
-			coin: 'USDC',
-			token: 0,
-			total: '25',
-			hold: '2',
-			entryNtl: '25',
-		}],
+		infoType: 'spotClearinghouseState',
+		state: {
+			balances: [{
+				coin: 'USDC',
+				token: 0,
+				total: '25',
+				hold: '2',
+				entryNtl: '25',
+			}],
+		},
+		fetchedAtMs: 1_700_000_000_000,
 	},
 	userFees: {
-		dailyUserVlm: [],
-		feeSchedule: {
-			cross: '0.00045',
-			add: '0.00015',
+		infoType: 'userFees',
+		fees: {
+			dailyUserVlm: [],
+			feeSchedule: {
+				cross: '0.00045',
+				add: '0.00015',
+			},
+			userCrossRate: '0.000315',
+			userAddRate: '0.000105',
+			userSpotCrossRate: '0.00049',
+			userSpotAddRate: '0.00028',
+			activeReferralDiscount: '0.0',
+			trial: null,
+			feeTrialReward: '0.0',
+			nextTrialAvailableTimestamp: null,
+			stakingLink: null,
+			activeStakingDiscount: {
+				bpsOfMaxSupply: '0',
+				discount: '0',
+			},
 		},
-		userCrossRate: '0.000315',
-		userAddRate: '0.000105',
-		userSpotCrossRate: '0.00049',
-		userSpotAddRate: '0.00028',
-		activeReferralDiscount: '0.0',
-		trial: null,
-		feeTrialReward: '0.0',
-		nextTrialAvailableTimestamp: null,
-		stakingLink: null,
-		activeStakingDiscount: {
-			bpsOfMaxSupply: '0',
-			discount: '0',
-		},
+		fetchedAtMs: 1_700_000_000_000,
 	},
 	delegatorSummary: {
-		delegated: '12',
-		undelegated: '0',
-		totalPendingWithdrawal: '0',
-		nPendingWithdrawals: 0,
+		infoType: 'delegatorSummary',
+		summary: {
+			delegated: '12',
+			undelegated: '0',
+			totalPendingWithdrawal: '0',
+			nPendingWithdrawals: 0,
+		},
+		fetchedAtMs: 1_700_000_000_000,
 	},
-	userAbstraction: 'default',
-	userDexAbstraction: false,
-	approvedBuilders: ['0x476fa87b4d3818f437f38f1263bee508d7672d82'],
+	userAbstraction: {
+		infoType: 'userAbstraction',
+		abstraction: 'default',
+		fetchedAtMs: 1_700_000_000_000,
+	},
+	userDexAbstraction: {
+		infoType: 'userDexAbstraction',
+		abstraction: false,
+		fetchedAtMs: 1_700_000_000_000,
+	},
+	approvedBuilders: {
+		infoType: 'approvedBuilders',
+		builders: ['0x476fa87b4d3818f437f38f1263bee508d7672d82'],
+		fetchedAtMs: 1_700_000_000_000,
+	},
 	borrowLendUserState: {
+		infoType: 'borrowLendUserState',
+		state: {
 		tokenToState: [
 			[
 				0,
@@ -181,6 +211,8 @@ const responseByInfoType = {
 		health: 'healthy',
 		healthFactor: null,
 	},
+	fetchedAtMs: 1_700_000_000_000,
+},
 }
 
 describe('Hyperliquid public account resolvers', () => {
@@ -191,7 +223,12 @@ describe('Hyperliquid public account resolvers', () => {
 			const body = JSON.parse(options.init.body)
 			return {
 				ok: true,
-				json: async () => responseByInfoType[body.type],
+				json: async () => {
+					const response = responseByInfoType[body.type]
+					return 'infoType' in response ?
+						response.state ?? response.fees ?? response.abstraction ?? response.builders ?? response.summary
+					: response
+				},
 			}
 		})
 	})
@@ -279,13 +316,13 @@ describe('Hyperliquid public account resolvers', () => {
 			entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'assetPositions'),
 		])
 		expect(timestamps[1]?.[EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotBalances')]: responseByInfoType.spotClearinghouseState.balances,
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'spotBalances')]: responseByInfoType.spotClearinghouseState.state.balances,
 		})
 		expect(timestamps[2]?.[EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'feeSchedule')]: responseByInfoType.userFees,
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'feeSchedule')]: responseByInfoType.userFees.fees,
 		})
 		expect(timestamps[3]?.[EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'stakingSummary')]: responseByInfoType.delegatorSummary,
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'stakingSummary')]: responseByInfoType.delegatorSummary.summary,
 		})
 		expect(timestamps[4]?.[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userAbstraction')]: 'default',
@@ -294,7 +331,7 @@ describe('Hyperliquid public account resolvers', () => {
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'userDexAbstraction')]: false,
 		})
 		expect(timestamps[6]?.[EntityMetaKey.Fields]).toEqual({
-			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'approvedBuilders')]: responseByInfoType.approvedBuilders,
+			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'approvedBuilders')]: responseByInfoType.approvedBuilders.builders,
 		})
 		expect(timestamps[7]?.[EntityMetaKey.Fields]).toEqual({
 			[entityFieldAddressKey(EntityType.HyperliquidAccount_Timestamp, [], 'borrowLendHealth')]: 'healthy',
