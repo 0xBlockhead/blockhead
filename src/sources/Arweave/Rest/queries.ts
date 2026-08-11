@@ -256,9 +256,13 @@ export const getPeers = async () => {
 			'/peers'
 		)
 	)
+	const peerEndpoints = new Set<string>()
 	for (const peer of peers) {
 		if (peer.includes('://') || peer.includes(' '))
 			throw new Error('Arweave_Rest: invalid peer endpoint')
+		if (peerEndpoints.has(peer))
+			throw new Error('Arweave_Rest: duplicate peer endpoint')
+		peerEndpoints.add(peer)
 	}
 	return peers
 }

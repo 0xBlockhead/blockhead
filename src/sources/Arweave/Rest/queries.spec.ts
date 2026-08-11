@@ -111,6 +111,17 @@ describe('Arweave public gateway metadata', () => {
 		})
 	})
 
+	it('rejects a peer list that contains a duplicate endpoint', async () => {
+		const getJson = vi.spyOn(httpRestClient, 'getJson')
+		getJson.mockResolvedValueOnce([
+			'1.2.3.4:1984',
+			'[::1]:1984',
+			'1.2.3.4:1984',
+		])
+
+		await expect(getPeers()).rejects.toThrow('duplicate peer')
+	})
+
 	it('fail-closes mismatched block identity and invalid /info current hash', async () => {
 		vi.spyOn(httpRestClient, 'getJson').mockResolvedValueOnce({
 			network: 'arweave.N.1',
