@@ -15,6 +15,7 @@ vi.mock('$/sources/Reddit/Rest/client.ts', () => ({
 }))
 
 import {
+	getLinkCommentsByArticleId,
 	listSubredditLinks,
 } from '$/sources/Reddit/Rest/queries.ts'
 
@@ -68,6 +69,40 @@ describe('Reddit OAuth listing requests', () => {
 
 		expect(oauthGetJson).toHaveBeenCalledWith(
 			'/r/popular/rising?limit=25&raw_json=1'
+		)
+	})
+
+	it('bounds listing windows and skips transport for exact zero windows', async () => {
+		await expect(listSubredditLinks(
+			'ethereum',
+			-1
+		)).rejects.toThrow('listing limit must be a nonnegative safe integer')
+		await expect(listSubredditLinks(
+			'ethereum',
+			Number.NaN
+		)).rejects.toThrow('listing limit must be a nonnegative safe integer')
+		await expect(listSubredditLinks(
+			'ethereum',
+			0
+		)).resolves.toEqual({
+			kind: 'Listing',
+			data: { children: [] },
+		})
+		await expect(getLinkCommentsByArticleId(
+			'article',
+			0
+		)).resolves.toEqual([
+			{ kind: 'Listing', data: { children: [] } },
+			{ kind: 'Listing', data: { children: [] } },
+		])
+		expect(oauthGetJson).not.toHaveBeenCalled()
+	})
+
+	it('caps OAuth listing windows at Reddit’s documented maximum', async () => {
+		await listSubredditLinks('ethereum', 101)
+
+		expect(oauthGetJson).toHaveBeenCalledWith(
+			'/r/ethereum/hot?limit=100&raw_json=1'
 		)
 	})
 })

@@ -12,6 +12,12 @@ import {
 	redditApiSubredditAboutWire,
 } from '$/sources/Reddit/Rest/types.ts'
 
+const redditListingLimit = (limit: number) => {
+	if (!Number.isSafeInteger(limit) || limit < 0)
+		throw new Error('Reddit_Rest: listing limit must be a nonnegative safe integer')
+	return Math.min(100, limit)
+}
+
 const assertEnvelope = <_Value>(
 	label: string,
 	wire: { assert: (value: unknown) => _Value },
@@ -50,7 +56,13 @@ export const listSubredditLinks = async (
 	after?: string,
 	sort: RedditApiListingRequest['sort'] = 'hot'
 ) => (
-	assertEnvelope(
+	redditListingLimit(limit) === 0 ?
+		{
+			kind: 'Listing',
+			data: { children: [] },
+		} satisfies RedditApiListing
+	:
+		assertEnvelope(
 		'listing',
 		redditApiListingWire,
 		await oauthGetJson<RedditApiListing>(
@@ -59,28 +71,34 @@ export const listSubredditLinks = async (
 					...(after !== undefined && {
 						after,
 					}),
-					limit: String(limit),
+					limit: String(redditListingLimit(limit)),
 					raw_json: '1',
 				}).toString()
 			)}`
 		)
-	)
+		)
 )
 
 export const getLinkCommentsByArticleId = async (
 	articleId: string,
 	limit: number
 ) => (
-	assertEnvelope(
+	redditListingLimit(limit) === 0 ?
+		[
+			{ kind: 'Listing', data: { children: [] } },
+			{ kind: 'Listing', data: { children: [] } },
+		] satisfies RedditApiListing[]
+	:
+		assertEnvelope(
 		'comments',
 		redditApiCommentsWire,
 		await oauthGetJson<RedditApiListing[]>(
 			`/comments/${encodeURIComponent(articleId)}?${(
 				new URLSearchParams({
-					limit: String(limit),
+					limit: String(redditListingLimit(limit)),
 					raw_json: '1',
 				}).toString()
 			)}`
 		)
-	)
+		)
 )
