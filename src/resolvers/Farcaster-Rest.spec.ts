@@ -341,4 +341,24 @@ describe('Farcaster public cast direct replies', () => {
 			hashPrefix: '0xabcdef',
 		})).rejects.toThrow('cast author username mismatch')
 	})
+
+	it('rejects non-hexadecimal cast identities before materialization', async () => {
+		getUserThreadCasts.mockResolvedValueOnce({
+			result: {
+				casts: [{
+					hash: 'not-a-cast-hash',
+					author: {
+						fid: 42,
+						username: 'alice',
+					},
+					timestamp: 1_752_840_000,
+				}],
+			},
+		})
+
+		await expect(castResolve.UsernameHashPrefix.resolve({
+			username: 'alice',
+			hashPrefix: '0xabcdef',
+		})).rejects.toThrow('cast hash is not hexadecimal')
+	})
 })

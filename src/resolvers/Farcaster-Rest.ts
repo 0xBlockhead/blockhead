@@ -39,6 +39,9 @@ const zeroXLowerHexCastHash = (hash: string) => {
 		:
 			hash
 	)
+	if (!/^[0-9a-fA-F]+$/.test(hex))
+		throw new Error('Farcaster_Rest: cast hash is not hexadecimal')
+
 	return `0x${hex.toLowerCase()}`
 }
 
