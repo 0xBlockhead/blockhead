@@ -21,6 +21,7 @@ vi.mock('$/sources/_runtime/http.ts', async (importOriginal) => ({
 }))
 
 const {
+	getBlock,
 	getNetworkExchangeRate,
 	getNetworkFees,
 	getNetworkStake,
@@ -108,6 +109,20 @@ describe('Hedera Mirror network collections', () => {
 				node_id: '9007199254740997',
 			}],
 		})
+	})
+
+	it('rejects substituted block number and hash identities', async () => {
+		sourceGetText.mockResolvedValueOnce(JSON.stringify({
+			number: 8,
+			hash: 'aa'.repeat(48),
+		}))
+		await expect(getBlock('7')).rejects.toThrow('block response does not match request')
+
+		sourceGetText.mockResolvedValueOnce(JSON.stringify({
+			number: 7,
+			hash: 'bb'.repeat(48),
+		}))
+		await expect(getBlock('aa'.repeat(48))).rejects.toThrow('block response does not match request')
 	})
 
 	it('parses exact node service endpoints while preserving the open node envelope', async () => {

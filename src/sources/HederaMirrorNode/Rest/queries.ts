@@ -554,18 +554,28 @@ export const getBlocks = (
 	return sourceGetHederaJson<HederaMirrorNodeBlocks>(url.toString())
 }
 
-export const getBlock = (
+export const getBlock = async (
 	hashOrNumber: string
 ) => {
 	if (!/^(?:\d{1,10}|(?:0x)?(?:[A-Fa-f0-9]{64}|[A-Fa-f0-9]{96}))$/.test(hashOrNumber))
 		throw new Error('HederaMirrorNode_Rest: invalid block selector')
 
-	return sourceGetHederaJson<HederaMirrorNodeBlock>(
+	const block = await sourceGetHederaJson<HederaMirrorNodeBlock>(
 		new URL(
 			`/api/v1/blocks/${encodeURIComponent(hashOrNumber)}`,
 			firstHttpUrlForBinding(binding)
 		).toString()
 	)
+	if (
+		/^\d+$/.test(hashOrNumber) ?
+			block.number !== Number(hashOrNumber)
+			:
+			block.hash.replace(/^0x/i, '').toLowerCase()
+			!== hashOrNumber.replace(/^0x/i, '').toLowerCase()
+	)
+		throw new Error('HederaMirrorNode_Rest: block response does not match request')
+
+	return block
 }
 
 export const getBlockByConsensusTimestamp = (
