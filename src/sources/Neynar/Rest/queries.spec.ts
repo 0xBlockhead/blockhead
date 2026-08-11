@@ -191,6 +191,19 @@ describe('Neynar FID request limits', () => {
 		expect(neynarFetch).not.toHaveBeenCalled()
 	})
 
+	it('rejects duplicate bulk-user FIDs before transport', async () => {
+		neynarFetch.mockClear()
+
+		await expect(getBulkUsers({
+			publicEnv: {},
+			fids: [
+				1,
+				1,
+			],
+		})).rejects.toThrow('Neynar bulk users requires unique FIDs')
+		expect(neynarFetch).not.toHaveBeenCalled()
+	})
+
 	it('accepts 100 feed-filter FIDs', async () => {
 		const fids = Array.from({ length: 100 }, (_, index) => index + 1)
 
@@ -297,12 +310,12 @@ describe('Neynar user-cast request identity', () => {
 		)
 	})
 
-	it('rejects a non-protocol FID before transport', () => {
+	it('rejects a non-protocol FID before transport', async () => {
 		neynarFetch.mockClear()
 
-		expect(() => getUserCastsPage({}, {
+		await expect(getUserCastsPage({}, {
 			fid: 0,
-		})).toThrow('positive FID')
+		})).rejects.toThrow('positive FID')
 		expect(neynarFetch).not.toHaveBeenCalled()
 	})
 

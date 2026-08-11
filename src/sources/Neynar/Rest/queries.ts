@@ -126,6 +126,8 @@ export const getBulkUsers = async ({
 	if (fids.length === 0) return []
 	if (fids.length > neynarFidCountMax)
 		throw new Error(`Neynar bulk users accepts at most ${neynarFidCountMax} FIDs`)
+	if (new Set(fids).size !== fids.length)
+		throw new Error('Neynar bulk users requires unique FIDs')
 
 	const searchParams = new URLSearchParams({ fids: fids.join(',') })
 	return (
