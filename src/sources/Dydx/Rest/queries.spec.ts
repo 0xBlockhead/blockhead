@@ -370,6 +370,28 @@ describe('dYdX v4 read-only public transport', () => {
 		await expect(getHistoricalFunding({
 			ticker: 'BTC-USD',
 		})).rejects.toThrow('mismatched historical funding ticker')
+
+		sourceGetJson.mockResolvedValue({
+			historicalFunding: [
+				{
+					ticker: 'BTC-USD',
+					rate: '0',
+					price: '1',
+					effectiveAtHeight: '1',
+					effectiveAt: '2026-08-07T01:00:00.000Z',
+				},
+				{
+					ticker: 'BTC-USD',
+					rate: '0',
+					price: '1',
+					effectiveAtHeight: '1',
+					effectiveAt: '2026-08-07T01:00:00.000Z',
+				},
+			],
+		})
+		await expect(getHistoricalFunding({
+			ticker: 'BTC-USD',
+		})).rejects.toThrow('historical funding response contains duplicate heights')
 	})
 
 	it('rejects malformed inputs, foreign subjects, and write-shaped arbitrary paths', async () => {
@@ -396,6 +418,15 @@ describe('dYdX v4 read-only public transport', () => {
 			subaccountNumber: 0,
 		})).rejects.toThrow('foreign subaccount order')
 
+		sourceGetJson.mockResolvedValue([
+			orderRow,
+			orderRow,
+		])
+		await expect(getOrders({
+			address,
+			subaccountNumber: 7,
+		})).rejects.toThrow('order response contains duplicate ids')
+
 		sourceGetJson.mockResolvedValue({
 			fills: [{
 				id: 'fill-1',
@@ -405,6 +436,17 @@ describe('dYdX v4 read-only public transport', () => {
 			address,
 			subaccountNumber: 0,
 		})).rejects.toThrow('invalid fills envelope')
+
+		sourceGetJson.mockResolvedValue({
+			fills: [
+				fillRow,
+				fillRow,
+			],
+		})
+		await expect(getFills({
+			address,
+			subaccountNumber: 7,
+		})).rejects.toThrow('fill response contains duplicate ids')
 
 		expect('query' in await import('$/sources/Dydx/Rest/queries.ts')).toBe(false)
 	})

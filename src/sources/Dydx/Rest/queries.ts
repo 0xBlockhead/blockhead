@@ -283,6 +283,8 @@ export const getHistoricalFunding = async ({
 		assertDecimal(funding.rate, 'rate')
 		assertNonNegativeDecimal(funding.price, 'price')
 	}
+	if (new Set(observation.value.map((funding) => funding.effectiveAtHeight)).size !== observation.value.length)
+		throw new Error('DydxIndexer_Rest: historical funding response contains duplicate heights')
 
 	return observation
 }
@@ -369,6 +371,8 @@ export const getOrders = async ({
 			throw new Error('DydxIndexer_Rest: foreign subaccount order')
 		assertOrderDecimals(order)
 	}
+	if (new Set(observation.value.map((order) => order.id)).size !== observation.value.length)
+		throw new Error('DydxIndexer_Rest: order response contains duplicate ids')
 
 	return observation
 }
@@ -440,6 +444,8 @@ export const getFills = async ({
 			throw new Error('DydxIndexer_Rest: foreign subaccount fill')
 		assertFillDecimals(fill)
 	}
+	if (new Set(observation.value.map((fill) => fill.id)).size !== observation.value.length)
+		throw new Error('DydxIndexer_Rest: fill response contains duplicate ids')
 
 	return observation
 }
