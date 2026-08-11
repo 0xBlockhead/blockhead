@@ -94,6 +94,17 @@ export const nostrHexEntityKinds = [
 ] as const
 
 export const entityHrefFromSearchInput = (query: string) => {
+	const activityPubHandle = query.match(/^@([a-zA-Z0-9_.-]+)@((?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63})$/)
+
+	if (activityPubHandle)
+		return resolve(
+			'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/@[acct=stringSegment]',
+			{
+				instanceOrigin: encodeURIComponent(`https://${activityPubHandle[2].toLowerCase()}`),
+				acct: activityPubHandle[1],
+			}
+		)
+
 	if (/^at:\/\/[^/\s]+\/app\.bsky\.feed\.post\/[^/\s]+$/.test(query))
 		return resolve(
 			'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/post/[...uri=stringSegment]',

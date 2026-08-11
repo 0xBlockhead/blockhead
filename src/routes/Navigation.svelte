@@ -99,7 +99,7 @@
 			</div>
 
 			<small id="entity-search-help">
-				CAIP-2, CAIP-10, URL, ENS, AT Protocol post, IPFS, or magnet URI
+				CAIP-2, CAIP-10, URL, ENS, ActivityPub handle, AT Protocol post, IPFS, or magnet URI
 			</small>
 		</form>
 
