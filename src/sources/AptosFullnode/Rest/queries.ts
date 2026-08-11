@@ -104,9 +104,13 @@ const request = async (
 	}
 }
 
-const ledgerVersionQuery = (ledgerVersion?: bigint) => (
-	ledgerVersion == null ? '' : `?ledger_version=${ledgerVersion.toString()}`
-)
+const ledgerVersionQuery = (ledgerVersion?: bigint) => {
+	if (ledgerVersion == null)
+		return ''
+	if (ledgerVersion < 0n)
+		throw new Error('AptosFullnode_Rest: ledger version must not be negative')
+	return `?ledger_version=${ledgerVersion.toString()}`
+}
 
 export const getLedgerInfo = async (binding: SourceBinding) => {
 	const response = await request(binding)
@@ -145,6 +149,8 @@ export const getAccountResources = async (
 		throw new Error('AptosFullnode_Rest: account address must not be empty')
 	if (start === '')
 		throw new Error('AptosFullnode_Rest: resource cursor must not be empty')
+	if (ledgerVersion != null && ledgerVersion < 0n)
+		throw new Error('AptosFullnode_Rest: ledger version must not be negative')
 	if (limit != null && (!Number.isSafeInteger(limit) || limit < 1 || limit > 1_000))
 		throw new Error('AptosFullnode_Rest: resource limit must be an integer from 1 through 1000')
 
@@ -165,10 +171,17 @@ export const getAccountResources = async (
 	if (start != null && response.metadata.cursor === start)
 		throw new Error('AptosFullnode_Rest: resource cursor did not advance')
 
+	const resources = response.body.map((resource) => (
+		assertEnvelope('account resource', aptosMoveResourceWire, resource)
+	)) as AptosMoveResource[]
+	const resourceTypes = new Set<string>()
+	for (const resource of resources) {
+		if (resourceTypes.has(resource.type))
+			throw new Error('AptosFullnode_Rest: duplicate account resource type')
+		resourceTypes.add(resource.type)
+	}
 	return {
-		body: response.body.map((resource) => (
-			assertEnvelope('account resource', aptosMoveResourceWire, resource)
-		)) as AptosMoveResource[],
+		body: resources,
 		metadata: response.metadata,
 	}
 }

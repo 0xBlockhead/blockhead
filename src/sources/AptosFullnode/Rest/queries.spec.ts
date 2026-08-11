@@ -14,6 +14,7 @@ const {
 	getAccount,
 	getAccountModule,
 	getAccountModules,
+	getAccountResources,
 	getBlockByHeight,
 	getBlockByVersion,
 	getLedgerInfo,
@@ -197,6 +198,34 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 		await expect(getBlockByVersion(binding, 43n)).rejects.toThrow('block version response does not contain request')
 		await expect(getTransactionByHash(binding, '0x42')).rejects.toThrow('transaction hash response does not match request')
 		await expect(getTransactionByVersion(binding, 42n)).rejects.toThrow('transaction version response does not match request')
+	})
+
+	it('rejects negative historical coordinates and duplicate resource identities', async () => {
+		for (const query of [
+			() => getAccount(binding, '0xa11ce', -1n),
+			() => getAccountResources(binding, '0xa11ce', -1n),
+			() => getAccountModules(binding, '0xa11ce', -1n),
+			() => getAccountModule(binding, '0xa11ce', 'coin', -1n),
+			() => getTableItem(binding, '0xhandle', {
+				key_type: 'address',
+				value_type: 'u64',
+				key: '0xa11ce',
+			}, -1n),
+		])
+			await expect(query()).rejects.toThrow('ledger version must not be negative')
+		expect(sourceFetch).not.toHaveBeenCalled()
+
+		sourceFetch.mockResolvedValueOnce(jsonResponse([
+			{
+				type: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
+				data: {},
+			},
+			{
+				type: '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>',
+				data: {},
+			},
+		]))
+		await expect(getAccountResources(binding, '0xa11ce')).rejects.toThrow('duplicate account resource type')
 	})
 
 	it('accepts Move-module bytecode and table-item value envelopes', async () => {
