@@ -452,7 +452,8 @@ const resolveNearBlock = async (entitySelector: NearBlockSelector) => {
 }
 const getNearBlockReferences = async (
 	network: NetworkId,
-	limit: number
+	limit: number,
+	offset: number
 ) => {
 	assertNearMainnet(network)
 	const headBlock = await getBlock({
@@ -461,23 +462,27 @@ const getNearBlockReferences = async (
 	const headBlockHeight = BigInt(headBlock.header.height)
 	return Array.from({
 		length: Math.min(
-			Number(headBlockHeight + 1n),
+			Math.max(
+				Number(headBlockHeight + 1n - BigInt(offset)),
+				0
+			),
 			limit
 		),
 	}, (_value, blockOffset) => ({
 		[EntityMetaKey.Selector]: {
 			$network: network,
-			height: headBlockHeight - BigInt(blockOffset),
+			height: headBlockHeight - BigInt(offset + blockOffset),
 		},
 	}))
 }
 const getNearValidatorReferences = async (
 	network: NetworkId,
-	limit: number
+	limit: number,
+	offset: number
 ) => {
 	assertNearMainnet(network)
 	return (await getValidators()).current_validators
-		.slice(0, limit)
+		.slice(offset, offset + limit)
 		.map((validator) => {
 			const fields = nearValidatorFields(validator)
 			return {
@@ -958,7 +963,8 @@ export default {
 							timestamps: [nearNetworkTimestampReference(network, timestamp)],
 							blocks: await getNearBlockReferences(
 								network,
-								resolverContextRowLimit(context)
+								resolverContextRowLimit(context),
+								context.pagination.offset ?? 0
 							),
 						}
 					},
@@ -1034,7 +1040,8 @@ export default {
 					resolve: async (entitySelector, context) => {
 						return getNearBlockReferences(
 							entitySelector,
-							resolverContextRowLimit(context)
+							resolverContextRowLimit(context),
+							context.pagination.offset ?? 0
 						)
 					},
 				}
@@ -1049,7 +1056,8 @@ export default {
 					resolve: async (entitySelector, context) => {
 						return getNearValidatorReferences(
 							entitySelector,
-							resolverContextRowLimit(context)
+							resolverContextRowLimit(context),
+							context.pagination.offset ?? 0
 						)
 					},
 				}
@@ -1064,7 +1072,8 @@ export default {
 					resolve: async (network, context) => {
 						return getNearValidatorReferences(
 							network,
-							resolverContextRowLimit(context)
+							resolverContextRowLimit(context),
+							context.pagination.offset ?? 0
 						)
 					},
 				}

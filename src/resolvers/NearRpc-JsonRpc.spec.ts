@@ -326,6 +326,7 @@ describe('Near block selectors', () => {
 			...context,
 			pagination: {
 				limit: 3,
+				offset: 2,
 			},
 		})
 		expect(JSON.parse(corsFetch.mock.calls[0][1].init.body)).toMatchObject({
@@ -338,19 +339,19 @@ describe('Near block selectors', () => {
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					height,
-				},
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: network,
-					height: height - 1n,
-				},
-			},
-			{
-				[EntityMetaKey.Selector]: {
-					$network: network,
 					height: height - 2n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: height - 3n,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					height: height - 4n,
 				},
 			},
 		])
@@ -396,6 +397,7 @@ describe('NEAR network reading facets', () => {
 			...context,
 			pagination: {
 				limit: 1,
+				offset: 1,
 			},
 		})
 		expect(JSON.parse(corsFetch.mock.calls[0][1].init.body)).toMatchObject({
@@ -405,14 +407,14 @@ describe('NEAR network reading facets', () => {
 			{
 				[EntityMetaKey.Selector]: {
 					$network: network,
-					accountId: 'alice.near',
+					accountId: 'bob.near',
 				},
 				[EntityMetaKey.Fields]: {
-					[entityFieldAddressKey(EntityType.NearValidator, [], 'publicKey')]: 'ed25519:alice',
-					[entityFieldAddressKey(EntityType.NearValidator, [], 'stakeYoctoNear')]: 1000n,
-					[entityFieldAddressKey(EntityType.NearValidator, [], 'isSlashed')]: false,
-					[entityFieldAddressKey(EntityType.NearValidator, [], 'expectedBlocks')]: 10,
-					[entityFieldAddressKey(EntityType.NearValidator, [], 'producedBlocks')]: 9,
+					[entityFieldAddressKey(EntityType.NearValidator, [], 'publicKey')]: 'ed25519:bob',
+					[entityFieldAddressKey(EntityType.NearValidator, [], 'stakeYoctoNear')]: 2000n,
+					[entityFieldAddressKey(EntityType.NearValidator, [], 'isSlashed')]: true,
+					[entityFieldAddressKey(EntityType.NearValidator, [], 'expectedBlocks')]: 5,
+					[entityFieldAddressKey(EntityType.NearValidator, [], 'producedBlocks')]: 4,
 				},
 			},
 		])
