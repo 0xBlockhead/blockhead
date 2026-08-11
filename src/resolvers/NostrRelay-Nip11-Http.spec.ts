@@ -19,10 +19,13 @@ vi.mock('$/sources/NostrRelay/Http/queries.ts', () => ({
 
 const { default: nostrRelayNip11Http } = await import('$/resolvers/NostrRelay-Nip11-Http.ts')
 
-const boundRelayUrl = bindings[Source.NostrRelay_Nip11_Http][0]?.target.key
+const boundRelayUrl = bindings[Source.NostrRelay_Nip11_Http][0].target.key
 
 const timestampResolver = nostrRelayNip11Http.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.NostrRelay_Timestamp
+))
+const relayResolver = nostrRelayNip11Http.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.NostrRelay
 ))
 
 describe('NostrRelay NIP-11 Http resolver', () => {
@@ -35,10 +38,22 @@ describe('NostrRelay NIP-11 Http resolver', () => {
 		expect(timestampResolver).toBeDefined()
 	})
 
-	it('projects enrolled NIP-11 observation fields when reachable', async () => {
-		if (timestampResolver == null || boundRelayUrl == null)
-			throw new Error('missing NIP-11 timestamp resolver or binding')
+	it('rejects relay URL aliases that would discard credentials or request components', async () => {
+		if (relayResolver == null)
+			throw new Error('missing NIP-11 relay resolver')
 
+		await expect(relayResolver.resolve.RelayUrl.resolve({
+			relayUrl: 'wss://relay.example/?profile=public',
+		})).rejects.toThrow('relay url must not include credentials, query, or fragment')
+		await expect(relayResolver.resolve.RelayUrl.resolve({
+			relayUrl: 'wss://ops:secret@relay.example/',
+		})).rejects.toThrow('relay url must not include credentials, query, or fragment')
+		await expect(relayResolver.resolve.RelayUrl.resolve({
+			relayUrl: 'wss://relay.example/#metadata',
+		})).rejects.toThrow('relay url must not include credentials, query, or fragment')
+	})
+
+	it('projects enrolled NIP-11 observation fields when reachable', async () => {
 		fetchRelayInformation.mockResolvedValue({
 			name: 'relay.example',
 			description: 'test relay',
@@ -124,9 +139,6 @@ describe('NostrRelay NIP-11 Http resolver', () => {
 	})
 
 	it('keeps NIP-11 language_tags / relay_countries / tags unprojected', async () => {
-		if (timestampResolver == null || boundRelayUrl == null)
-			throw new Error('missing NIP-11 timestamp resolver or binding')
-
 		fetchRelayInformation.mockResolvedValue({
 			name: 'relay.example',
 			language_tags: [
@@ -168,9 +180,6 @@ describe('NostrRelay NIP-11 Http resolver', () => {
 	})
 
 	it('propagates NIP-11 transport failures', async () => {
-		if (timestampResolver == null || boundRelayUrl == null)
-			throw new Error('missing NIP-11 timestamp resolver or binding')
-
 		fetchRelayInformation.mockRejectedValue(new Error('NostrRelay_Nip11_Http: invalid NIP-11 response envelope'))
 
 		await expect(timestampResolver.resolve.RelayTimestampMsSource.resolve({

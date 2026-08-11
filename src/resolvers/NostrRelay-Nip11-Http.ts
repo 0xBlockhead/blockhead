@@ -12,6 +12,8 @@ const normalizeRelayUrl = (relayUrl: string) => {
 	const url = new URL(relayUrl.includes('://') ? relayUrl : `wss://${relayUrl}`)
 	if (url.protocol !== 'wss:' && url.protocol !== 'ws:')
 		throw new Error('NostrRelay_Nip11_Http: relay url must use ws or wss')
+	if (url.username !== '' || url.password !== '' || url.search !== '' || url.hash !== '')
+		throw new Error('NostrRelay_Nip11_Http: relay url must not include credentials, query, or fragment')
 
 	return `${url.protocol}//${url.host}${url.pathname.replace(/\/$/, '')}`
 }
