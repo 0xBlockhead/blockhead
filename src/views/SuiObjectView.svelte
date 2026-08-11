@@ -24,6 +24,9 @@
 
 
 	// Components
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import SuiObjectVersionsView from '$/views/SuiObjectVersionsView.svelte'
 	import SuiNetworkView from '$/views/SuiNetworkView.svelte'
 </script>
 
@@ -31,7 +34,7 @@
 <EntityView
 	entityType={EntityType.SuiObject}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'Sui object'}
+	title={title ?? (selection.entitySelector.objectId || 'Sui object')}
 	href={
 		href === undefined ?
 			resolve(
@@ -53,6 +56,19 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Title()}
+		<TruncatedValue value={selection.entitySelector.objectId} />
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<span data-text="muted">
+			<SuiNetworkView
+				selection={select(EntityType.SuiNetwork, selection.entitySelector.$network)}
+				layout={EntityLayout.Title}
+			/>
+		</span>
+	{/snippet}
+
 	{#snippet Content()}
 		<dl data-column-item="center">
 			<div>
@@ -68,9 +84,27 @@
 			<div>
 				<dt>object ID</dt>
 				<dd>
-					{selection.entitySelector.objectId}
+					<TruncatedValue value={selection.entitySelector.objectId} />
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const versionsResource = selection.$$versions}
+		<ResourceBoundary
+			resource={versionsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<SuiObjectVersionsView
+						selection={versionsResource}
+						countResource={versionsResource.count}
+						title='Versions'
+						id='versions'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

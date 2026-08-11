@@ -26,7 +26,16 @@
 	{...EntitiesListProps}
 	entityType={EntityType.SuiObject}
 	bind:open
-	resource={selection()}
+	resource={
+		selection({
+			...{
+				fields: {
+					objectId: true,
+					$network: true,
+				},
+			},
+		})
+	}
 >
 	{#snippet Item({ item: suiObject })}
 		{@const suiObjectSelector = suiObject[EntityMetaKey.Selector]}
@@ -49,7 +58,11 @@
 			}
 		>
 			{#snippet Title()}
-				Sui object
+				{suiObjectSelector.objectId || 'Sui object'}
+			{/snippet}
+
+			{#snippet HeadingAfter()}
+				<span data-text="annotation">{suiObject.$network.$network.name || (suiObject.$network.$network.caip2 == null ? '' : `${suiObject.$network.$network.caip2.namespace}:${suiObject.$network.$network.caip2.reference}`) || 'Network'}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

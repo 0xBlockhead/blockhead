@@ -15,6 +15,8 @@
 		data,
 	}: PageProps = $props()
 
+	const pageSelection = $derived(select(EntityType.SuiObject, data.selector))
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -23,12 +25,12 @@
 
 
 <svelte:head>
-	<title>{data.title ?? 'Sui object'} • Sui object • Blockhead</title>
+	<title>{data.title ?? (pageSelection.entitySelector.objectId || 'Sui object')} • Sui object • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<SuiObjectView
-		selection={select(EntityType.SuiObject, data.selector)}
+		selection={pageSelection}
 	/>
 </Page>

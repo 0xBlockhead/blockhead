@@ -57523,6 +57523,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					entityType: EntityType.SuiObjectVersion,
 					cardinality: EntityFieldCardinality.Many,
+					defaultSources: [Source.Sui],
 				},
 				"$$dynamicFields": {
 					label: 'dynamic fields',
@@ -57538,6 +57539,20 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						summary: {
+							title: [{ field: 'objectId', format: 'truncated' }],
+							HeadingAfter: ['$network'],
+						},
+						content: {
+							dl: [
+								['$network', { field: 'objectId', format: 'truncated' }],
+							],
+						},
+						lists: [
+							{ field: '$$versions', component: 'SuiObjectVersionsView', label: 'Versions', emptyText: 'No Sui object versions.' },
+						],
+					},
 					plural: { component: "SuiObjectsView", },
 				},
 			}),
