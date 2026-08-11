@@ -1614,6 +1614,55 @@ describe('client resolver stack architecture', () => {
 		})
 	})
 
+	it('scopes loaded markers to requested identity rows while retaining derived aliases', () => {
+		const remoteResult = persistedCollectionRemoteResult({
+			collectionId: 'entities',
+			loadedKey: 'handle:alice',
+			persistedRows: [],
+			loaded: {
+				rows: [
+					{
+						key: 'handle:alice',
+						[EntityMetaKey.Source]: 'identity-source',
+					},
+					{
+						key: 'did:alice',
+						[EntityMetaKey.Source]: 'identity-source',
+					},
+				],
+				outcomes: [{
+					source: 'identity-source',
+					status: PersistedCollectionSourceStatus.Completed,
+				}],
+			},
+			remoteSources: ['identity-source'],
+			requestedSources: ['identity-source'],
+			getKey: (row) => row.key,
+			ownsLoadedKey: (row) => row.key === 'handle:alice',
+		})
+
+		expect(remoteResult.rows).toHaveLength(2)
+		expect(remoteResult.nextMarker).toMatchObject({
+			rowCount: 1,
+			sourceRowCounts: {
+				'identity-source': 1,
+			},
+			sourceRowKeys: {
+				'identity-source': ['handle:alice'],
+			},
+		})
+		expect(persistedCollectionHydrationPlan(
+			'entities',
+			'handle:alice',
+			remoteResult.nextMarker,
+			remoteResult.rows.filter((row) => row.key === 'handle:alice'),
+			['identity-source']
+		)).toMatchObject({
+			decision: CollectionLoadDecision.HydratedRows,
+			remoteSources: [],
+		})
+	})
+
 	it('replays incomplete persisted subsets and rejects implicit-source marker incompatibility', () => {
 		const persistedRows = [
 			{

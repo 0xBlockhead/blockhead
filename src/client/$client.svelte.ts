@@ -268,6 +268,7 @@ type PersistedCollectionSyncOptions<_Row extends PersistedCollectionRow> = {
 	persistence: PersistedCollectionPersistence
 	getKey(row: _Row): string | number
 	loadedKey(loadSubsetOptions: LoadSubsetOptions): string
+	ownsLoadedKey?(row: _Row, loadSubsetOptions: LoadSubsetOptions): boolean
 	additionalLoadedKeys?(row: _Row, loadSubsetOptions: LoadSubsetOptions): readonly string[]
 	sources(loadSubsetOptions: LoadSubsetOptions): readonly string[]
 	persistedRows(
@@ -1164,6 +1165,7 @@ export const persistedCollectionRemoteResult = <
 	requestedSources,
 	invalidSources = [],
 	getKey,
+	ownsLoadedKey,
 }: {
 	collectionId: string
 	loadedKey: string
@@ -1175,6 +1177,7 @@ export const persistedCollectionRemoteResult = <
 	requestedSources: readonly string[]
 	invalidSources?: readonly string[]
 	getKey(row: _Row): string | number
+	ownsLoadedKey?(row: _Row): boolean
 }) => {
 	const outcomes: PersistedCollectionSourceOutcome[] = [
 		...loaded.outcomes,
@@ -1232,8 +1235,9 @@ export const persistedCollectionRemoteResult = <
 			)),
 		]),
 	]
-	const sourceRowCounts = productSourceRowCounts(rows, completedSources)
-	const sourceRowKeys = productSourceRowKeys(rows, completedSources, getKey)
+	const markerRows = ownsLoadedKey === undefined ? rows : rows.filter(ownsLoadedKey)
+	const sourceRowCounts = productSourceRowCounts(markerRows, completedSources)
+	const sourceRowKeys = productSourceRowKeys(markerRows, completedSources, getKey)
 	const continuationBySource = Object.fromEntries([
 		...Object.entries(marker?.continuationBySource ?? {}).filter(([source]) => (
 			completedSources.includes(source)
@@ -1660,6 +1664,7 @@ const persistedCollectionSync = <
 	persistence,
 	getKey,
 	loadedKey,
+	ownsLoadedKey,
 	additionalLoadedKeys,
 	sources,
 	persistedRows,
@@ -1956,6 +1961,9 @@ const persistedCollectionSync = <
 							requestedSources,
 							invalidSources: hydratedRows.invalidSources,
 							getKey,
+							ownsLoadedKey: ownsLoadedKey === undefined ? undefined : (row) => (
+								ownsLoadedKey(row, loadSubsetOptions)
+							),
 						})
 						const otherSubsetMarkers = (metadata?.collection.list() ?? []).flatMap(({
 							key: otherMetadataKey,
@@ -3814,6 +3822,13 @@ export const client = <
 						row[EntityMetaKey.SelectorKey],
 					]),
 					loadedKey: entityLoadedSubsetKey,
+					ownsLoadedKey: (row, loadSubsetOptions) => {
+						const selectorKeys = parseResolverSubset(loadSubsetOptions).selectorKeys
+						return (
+							selectorKeys.length === 0
+							|| selectorKeys.includes(row[EntityMetaKey.SelectorKey])
+						)
+					},
 					additionalLoadedKeys: (row, loadSubsetOptions) => [entityLoadedSubsetKey(
 						loadSubsetOptions,
 						[row[EntityMetaKey.SelectorKey]]
