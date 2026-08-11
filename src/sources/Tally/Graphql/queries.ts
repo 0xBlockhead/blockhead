@@ -5,6 +5,7 @@ import {
 	tallyProposalStatuses,
 	tallyProposalsPageDataWire,
 	type TallyGovernor,
+	type TallyPageInfo,
 	type TallyProposal,
 	type TallyProposalStatus,
 } from '$/sources/Tally/Graphql/types.ts'
@@ -230,6 +231,17 @@ const assertPageLimit = (
 		throw new Error('Tally: page limit must be from 1 through 20')
 }
 
+const assertPageInfo = (
+	pageInfo: TallyPageInfo
+) => {
+	if (pageInfo.firstCursor != null)
+		assertOpaqueIdentity(pageInfo.firstCursor, 'first cursor')
+	if (pageInfo.lastCursor != null)
+		assertOpaqueIdentity(pageInfo.lastCursor, 'last cursor')
+	if (pageInfo.count != null)
+		assertSafeNonnegativeInteger(pageInfo.count, 'page count')
+}
+
 const normalizeIntId = (
 	value: string | number,
 	label: string
@@ -441,6 +453,7 @@ export const getGovernorsPage = async ({
 		throw new Error('Tally: governors page nodes are missing')
 	if (governors.nodes.length > limit)
 		throw new Error('Tally: governors page exceeds requested limit')
+	assertPageInfo(governors.pageInfo)
 
 	const governorIds = new Set<string>()
 	const nodes: TallyGovernor[] = []
@@ -522,6 +535,7 @@ export const getProposalsPage = async ({
 		throw new Error('Tally: proposals page nodes are missing')
 	if (proposals.nodes.length > limit)
 		throw new Error('Tally: proposals page exceeds requested limit')
+	assertPageInfo(proposals.pageInfo)
 
 	const proposalIds = new Set<string>()
 	const nodes: TallyProposal[] = []

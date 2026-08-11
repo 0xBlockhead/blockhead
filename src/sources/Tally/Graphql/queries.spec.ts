@@ -369,6 +369,40 @@ describe('Tally onchain governance reads', () => {
 		})).rejects.toThrow('page limit')
 	})
 
+	it('fails closed on invalid native page cursors and unsafe counts', async () => {
+		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
+		sourceFetch
+			.mockResolvedValueOnce(jsonResponse({
+				governors: {
+					nodes: [],
+					pageInfo: {
+						firstCursor: '\n',
+						lastCursor: null,
+						count: 0,
+					},
+				},
+			}))
+			.mockResolvedValueOnce(jsonResponse({
+				proposals: {
+					nodes: [],
+					pageInfo: {
+						firstCursor: null,
+						lastCursor: null,
+						count: Number.MAX_SAFE_INTEGER + 1,
+					},
+				},
+			}))
+
+		await expect(getGovernorsPage({
+			organizationId,
+			limit: 1,
+		})).rejects.toThrow('invalid first cursor')
+		await expect(getProposalsPage({
+			governorId,
+			limit: 1,
+		})).rejects.toThrow('invalid page count')
+	})
+
 	it('fails closed on malformed governor/proposal arktype envelopes', async () => {
 		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
 		sourceFetch
