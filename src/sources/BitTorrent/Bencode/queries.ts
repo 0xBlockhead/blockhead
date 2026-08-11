@@ -49,13 +49,56 @@ export const parseTrackerAnnounceResponse = (
 	)
 )
 
+const assertTorrentMetainfoIntegrity = (
+	metainfo: TorrentMetainfo
+) => {
+	const {
+		info,
+	} = metainfo
+	if (!(info.pieces instanceof Uint8Array) || info.pieces.byteLength % 20 !== 0)
+		throw new Error('BitTorrent: metainfo pieces must be concatenated 20-byte hashes')
+	if (!Number.isSafeInteger(info['piece length']))
+		throw new Error('BitTorrent: metainfo piece length exceeds the safe integer range')
+
+	let totalLength: number
+	if (info.length != null) {
+		if (info.files != null)
+			throw new Error('BitTorrent: metainfo must have either length or files')
+		if (!Number.isSafeInteger(info.length))
+			throw new Error('BitTorrent: metainfo length exceeds the safe integer range')
+		totalLength = info.length
+	} else {
+		if (info.files == null || info.files.length === 0)
+			throw new Error('BitTorrent: metainfo must have either length or files')
+		if (info.files.some((file) => (
+			!Number.isSafeInteger(file.length)
+			|| file.path.length === 0
+			|| file.path.some((segment) => (
+				segment === ''
+				|| segment === '.'
+				|| segment === '..'
+			))
+		)))
+			throw new Error('BitTorrent: metainfo has an invalid file entry')
+		totalLength = info.files.reduce((length, file) => length + file.length, 0)
+		if (!Number.isSafeInteger(totalLength))
+			throw new Error('BitTorrent: metainfo total length exceeds the safe integer range')
+	}
+	if (Math.ceil(totalLength / info['piece length']) !== info.pieces.byteLength / 20)
+		throw new Error('BitTorrent: metainfo piece hash count does not match content length')
+
+	return metainfo
+}
+
 /** Fail-closed decode of an already-bdecoded metainfo dict. */
 export const parseTorrentMetainfo = (
 	decoded: unknown
 ): TorrentMetainfo => (
-	assertEnvelope(
-		'metainfo',
-		torrentMetainfoWire,
-		decoded
+	assertTorrentMetainfoIntegrity(
+		assertEnvelope(
+			'metainfo',
+			torrentMetainfoWire,
+			decoded
+		)
 	)
 )

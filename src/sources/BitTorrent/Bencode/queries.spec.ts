@@ -73,4 +73,51 @@ describe('BitTorrent Bencode queries', () => {
 			},
 		})).toThrow('invalid metainfo bencode envelope')
 	})
+
+	it('rejects metainfo whose v1 hashes cannot cover its declared content', () => {
+		expect(() => parseTorrentMetainfo({
+			info: {
+				name: 'example.bin',
+				'piece length': 1024,
+				pieces: new Uint8Array(20),
+				length: 2048,
+			},
+		})).toThrow('piece hash count does not match content length')
+
+		expect(() => parseTorrentMetainfo({
+			info: {
+				name: 'example.bin',
+				'piece length': 1024,
+				pieces: new Uint8Array(21),
+				length: 1024,
+			},
+		})).toThrow('pieces must be concatenated 20-byte hashes')
+	})
+
+	it('rejects ambiguous or unsafe multi-file layouts', () => {
+		expect(() => parseTorrentMetainfo({
+			info: {
+				name: 'example',
+				'piece length': 1024,
+				pieces: new Uint8Array(20),
+				length: 1024,
+				files: [{
+					length: 1024,
+					path: ['example.bin'],
+				}],
+			},
+		})).toThrow('must have either length or files')
+
+		expect(() => parseTorrentMetainfo({
+			info: {
+				name: 'example',
+				'piece length': 1024,
+				pieces: new Uint8Array(20),
+				files: [{
+					length: 1024,
+					path: ['..'],
+				}],
+			},
+		})).toThrow('invalid file entry')
+	})
 })
