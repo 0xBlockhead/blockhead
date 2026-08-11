@@ -4,7 +4,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
 
 
-export type TransferDraftFields = {
+type TransferDraftFields = {
 	fromActor: string
 	toActor: string
 	chainId: string
@@ -12,7 +12,7 @@ export type TransferDraftFields = {
 	amount: string
 }
 
-export type SwapDraftFields = {
+type SwapDraftFields = {
 	chainId: string
 	tokenIn: string
 	tokenOut: string
@@ -20,7 +20,7 @@ export type SwapDraftFields = {
 	slippage: string
 }
 
-export type BridgeDraftFields = {
+type BridgeDraftFields = {
 	fromChainId: string
 	toChainId: string
 	tokenAddress: string
@@ -28,7 +28,7 @@ export type BridgeDraftFields = {
 	slippage: string
 }
 
-export type SessionActionDraftFields =
+type SessionActionDraftFields =
 	| {
 		actionType: ActionType.Transfer
 		fields: TransferDraftFields
@@ -63,7 +63,7 @@ export type SessionActionDraft =
 		} & SessionActionDraftEditIdentity
 	)
 
-export type SessionComposerReadinessCheckId = string
+type SessionComposerReadinessCheckId = string
 
 export type SessionComposerNotice =
 	| {
@@ -111,7 +111,7 @@ export const idleSessionComposerNotice = {
 	status: 'idle',
 } as const satisfies SessionComposerNotice
 
-export const emptyTransferDraftFields = (): TransferDraftFields => ({
+const emptyTransferDraftFields = (): TransferDraftFields => ({
 	fromActor: '',
 	toActor: '',
 	chainId: '',
@@ -119,7 +119,7 @@ export const emptyTransferDraftFields = (): TransferDraftFields => ({
 	amount: '',
 })
 
-export const emptySwapDraftFields = (): SwapDraftFields => ({
+const emptySwapDraftFields = (): SwapDraftFields => ({
 	chainId: '',
 	tokenIn: '',
 	tokenOut: '',
@@ -127,7 +127,7 @@ export const emptySwapDraftFields = (): SwapDraftFields => ({
 	slippage: '0.005',
 })
 
-export const emptyBridgeDraftFields = (): BridgeDraftFields => ({
+const emptyBridgeDraftFields = (): BridgeDraftFields => ({
 	fromChainId: '',
 	toChainId: '',
 	tokenAddress: '',
