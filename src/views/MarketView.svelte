@@ -125,6 +125,8 @@
 											layout={EntityLayout.Value}
 											showTypeAnnotation={false}
 										/>
+									{:else}
+										<p data-text="muted" data-section-state="resolved-empty">No latest derivative observation available.</p>
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
