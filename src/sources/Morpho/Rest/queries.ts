@@ -29,6 +29,8 @@ import { httpUrl } from '$/sources/_shared/wire/HttpRest/client.ts'
 
 const binding = bindings[Source.Morpho_Rest][0]
 
+const unsignedIntegerPattern = /^(?:0|[1-9]\d*)$/
+
 const assertEnvelope = <_Value>(
 	label: string,
 	wire: { assert: (value: unknown) => _Value },
@@ -69,12 +71,12 @@ const assertAddress = (
 	return normalized
 }
 
-const assertNonEmptyDecimalString = (
+const assertNonNegativeIntegerString = (
 	value: string | undefined,
 	label: string
 ) => {
-	if (value == null || value.length < 1)
-		throw new Error(`${Source.Morpho_Rest}: market missing ${label}`)
+	if (value == null || !unsignedIntegerPattern.test(value))
+		throw new Error(`${Source.Morpho_Rest}: invalid ${label}`)
 	return value
 }
 
@@ -115,8 +117,8 @@ const assertMarketConfigWire = (
 		collateralToken: assertAddress(wire.collateral_token, 'collateral token'),
 		oracleAddress: assertAddress(wire.oracle_address, 'oracle address'),
 		irmAddress: assertAddress(wire.irm_address, 'irm address'),
-		lltvWad: assertNonEmptyDecimalString(wire.lltv_wad, 'lltv_wad'),
-		creationBlockNumber: assertNonEmptyDecimalString(wire.creation_block_number, 'creation_block_number'),
+		lltvWad: assertNonNegativeIntegerString(wire.lltv_wad, 'lltv_wad'),
+		creationBlockNumber: assertNonNegativeIntegerString(wire.creation_block_number, 'creation_block_number'),
 	}
 }
 
@@ -137,13 +139,13 @@ const assertMarketStateWire = (
 	return {
 		chainId: wire.chain_id,
 		marketId,
-		lastIndexedBlock: assertNonEmptyDecimalString(wire.last_indexed_block, 'last_indexed_block'),
+		lastIndexedBlock: assertNonNegativeIntegerString(wire.last_indexed_block, 'last_indexed_block'),
 		lastAccrualTimestamp: assertSafeTimestamp(wire.last_accrual_timestamp, 'last accrual timestamp'),
-		totalSupplyAssets: assertNonEmptyDecimalString(wire.total_supply_assets, 'total_supply_assets'),
-		totalSupplyShares: assertNonEmptyDecimalString(wire.total_supply_shares, 'total_supply_shares'),
-		totalBorrowAssets: assertNonEmptyDecimalString(wire.total_borrow_assets, 'total_borrow_assets'),
-		totalBorrowShares: assertNonEmptyDecimalString(wire.total_borrow_shares, 'total_borrow_shares'),
-		feeWad: assertNonEmptyDecimalString(wire.fee_wad, 'fee_wad'),
+		totalSupplyAssets: assertNonNegativeIntegerString(wire.total_supply_assets, 'total_supply_assets'),
+		totalSupplyShares: assertNonNegativeIntegerString(wire.total_supply_shares, 'total_supply_shares'),
+		totalBorrowAssets: assertNonNegativeIntegerString(wire.total_borrow_assets, 'total_borrow_assets'),
+		totalBorrowShares: assertNonNegativeIntegerString(wire.total_borrow_shares, 'total_borrow_shares'),
+		feeWad: assertNonNegativeIntegerString(wire.fee_wad, 'fee_wad'),
 	}
 }
 

@@ -179,6 +179,31 @@ describe('Morpho Blue market operations', () => {
 		})).rejects.toThrow(`${Source.Morpho_Rest}: invalid market response envelope`)
 	})
 
+	it.each([
+		[
+			'lltv wad',
+			{
+				...baseMarketConfig,
+				lltv_wad: '0.86',
+			},
+			'invalid lltv_wad',
+		],
+		[
+			'creation block number',
+			{
+				...baseMarketConfig,
+				creation_block_number: '-1',
+			},
+			'invalid creation_block_number',
+		],
+	])('rejects noncanonical %s coordinates', async (_label, data, message) => {
+		sourceGetJson.mockResolvedValueOnce({ data })
+		await expect(getMarket({
+			chainId: 8453,
+			marketId: baseMarketId,
+		})).rejects.toThrow(`${Source.Morpho_Rest}: ${message}`)
+	})
+
 	it('fails closed when market state envelope is malformed', async () => {
 		sourceGetJson.mockResolvedValueOnce({
 			data: {
@@ -203,5 +228,38 @@ describe('Morpho Blue market operations', () => {
 			chainId: 8453,
 			marketId: baseMarketId,
 		})).rejects.toThrow(`${Source.Morpho_Rest}: invalid last accrual timestamp`)
+	})
+
+	it.each([
+		[
+			'last indexed block',
+			{
+				...baseMarketState,
+				last_indexed_block: '4.5',
+			},
+			'invalid last_indexed_block',
+		],
+		[
+			'total supply assets',
+			{
+				...baseMarketState,
+				total_supply_assets: '-1',
+			},
+			'invalid total_supply_assets',
+		],
+		[
+			'fee wad',
+			{
+				...baseMarketState,
+				fee_wad: 'not-a-number',
+			},
+			'invalid fee_wad',
+		],
+	])('rejects noncanonical %s state values', async (_label, data, message) => {
+		sourceGetJson.mockResolvedValueOnce({ data })
+		await expect(getMarketState({
+			chainId: 8453,
+			marketId: baseMarketId,
+		})).rejects.toThrow(`${Source.Morpho_Rest}: ${message}`)
 	})
 })
