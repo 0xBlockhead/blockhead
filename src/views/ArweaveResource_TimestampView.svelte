@@ -344,5 +344,21 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<ResourceBoundary
+			resource={arweaveResourceTimestamp}
+		>
+			{#snippet children(entity)}
+				{@const artifactContent = entity.text}
+				{#if artifactContent != null && artifactContent !== ''}
+					<a
+						href={`data:text/plain;charset=utf-8,${encodeURIComponent(artifactContent)}`}
+						download='arweave-resource.txt'
+					>
+						Download resolved text
+					</a>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>
