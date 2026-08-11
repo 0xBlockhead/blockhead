@@ -224,6 +224,7 @@ describe('EIP-8004 Scan registration observation tip fields', () => {
 			agent_wallet: '0xe10d5158186870ab0274835191032b1b1013bf69',
 			created_block_number: 113957614,
 			created_tx_hash: '0xd2281d6e485b3e4265d7aacc1c4286af86188e757b7723979793786ba89ec84b',
+			updated_at: '2026-08-04T10:58:50.553Z',
 			is_active: true,
 			raw_metadata: {
 				offchain_uri: registrationFile.fileUrl,
@@ -233,7 +234,7 @@ describe('EIP-8004 Scan registration observation tip fields', () => {
 
 		await expect(timestampResolver.resolve.RegistrationTimestampMsSource.resolve({
 			$registration: registrationFile.$registration,
-			timestampMs: 1,
+			timestampMs: Date.parse('2026-08-04T10:58:50.553Z'),
 			source: Source.Eip8004Scan_Rest,
 		}, context)).resolves.toEqual({
 			agentUri: registrationFile.fileUrl,
@@ -251,6 +252,25 @@ describe('EIP-8004 Scan registration observation tip fields', () => {
 			'ownerAddress',
 			'transactionHash',
 		])
+	})
+
+	it('rejects an observation without an authoritative provider clock', async () => {
+		fetchAgentDetail.mockResolvedValueOnce({
+			chain_id: 1,
+			token_id: '42',
+			contract_address: identityRegistry,
+			raw_metadata: {
+				offchain_uri: registrationFile.fileUrl,
+			},
+		})
+
+		await expect(resolver(EntityType.Eip8004AgentRegistration_Timestamp).resolve[
+			'RegistrationTimestampMsSource'
+		].resolve({
+			$registration: registrationFile.$registration,
+			timestampMs: 1,
+			source: Source.Eip8004Scan_Rest,
+		}, context)).rejects.toThrow('registration observation clock does not match request')
 	})
 })
 
@@ -496,5 +516,35 @@ describe('EIP-8004 Scan global agent NFT list', () => {
 		})
 		expect(globalResolver.projections.$$eip8004Services.select(snapshot)).toEqual(snapshot.$$eip8004Services)
 		expect(globalResolver.projections.$$eip8004Services.resolveCount(snapshot)).toBe(699983)
+	})
+
+	it('rejects duplicate canonical registrations instead of collapsing provider rows', async () => {
+		fetchAgentList.mockResolvedValueOnce({
+			success: true,
+			data: [
+				{
+					chain_id: 1,
+					token_id: '42',
+					contract_address: identityRegistry,
+				},
+				{
+					chain_id: 1,
+					token_id: '42',
+					contract_address: identityRegistry,
+				},
+			],
+			meta: {
+				pagination: {
+					page: 1,
+					limit: 100,
+					total: 2,
+					hasMore: false,
+				},
+			},
+		})
+
+		await expect(resolver(EntityType._Global).resolve.Scope.resolve({
+			scope: Source.Eip8004Scan_Rest,
+		}, context)).rejects.toThrow('agent list contains duplicate registrations')
 	})
 })

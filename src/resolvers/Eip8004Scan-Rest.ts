@@ -55,7 +55,7 @@ const observationTimestampMsFromWire = (row: Eip8004ScanAgentDetail) => {
 	if (Number.isFinite(createdAtMs))
 		return createdAtMs
 
-	return Date.now()
+	return undefined
 }
 
 const assertAgentService = (value: unknown) => {
@@ -121,11 +121,14 @@ const agentDetailFromWire = (row: Eip8004ScanAgentDetail | undefined) => {
 	)
 	const ownerAddress = hexLowerOfByteSize(row.owner_address ?? '', 20)
 	const transactionHash = hexLowerOfByteSize(row.created_tx_hash ?? '', 32)
+	const fetchedAt = observationTimestampMsFromWire(row)
 
 	return {
 		...agent,
 		agentUri,
-		fetchedAt: observationTimestampMsFromWire(row),
+		...(fetchedAt != null && {
+			fetchedAt,
+		}),
 		services,
 		...(row.name != null && row.name !== '' && { name: row.name }),
 		...(row.description != null && row.description !== '' && { description: row.description }),
@@ -236,13 +239,15 @@ export default {
 									fileUrl: detail.agentUri,
 								},
 							}],
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
-									$registration,
-									timestampMs: detail.fetchedAt,
-									source: Source.Eip8004Scan_Rest,
-								},
-							}],
+							...(detail.fetchedAt != null && {
+								$$timestamps: [{
+									[EntityMetaKey.Selector]: {
+										$registration,
+										timestampMs: detail.fetchedAt,
+										source: Source.Eip8004Scan_Rest,
+									},
+								}],
+							}),
 						}
 					},
 				},
@@ -263,6 +268,8 @@ export default {
 				RegistrationTimestampMsSource: {
 					resolve: async ({
 						$registration,
+						timestampMs,
+						source,
 					}) => {
 						const {
 							namespace,
@@ -274,6 +281,8 @@ export default {
 							throw new Error('Eip8004Scan_Rest: unsupported registration observation namespace')
 						if (!Number.isSafeInteger(chainId) || chainId <= 0)
 							throw new Error('Eip8004Scan_Rest: invalid registration observation chain ID')
+						if (source !== Source.Eip8004Scan_Rest)
+							throw new Error('Eip8004Scan_Rest: unsupported registration observation source')
 
 						const { fetchAgentDetail } = await import('$/sources/Eip8004Scan/Rest/queries.ts')
 						const detail = agentDetailFromWire(
@@ -292,6 +301,8 @@ export default {
 							|| detail.tokenId !== agentId
 						)
 							throw new Error('Eip8004Scan_Rest: registration observation does not match request')
+						if (detail.fetchedAt == null || detail.fetchedAt !== timestampMs)
+							throw new Error('Eip8004Scan_Rest: registration observation clock does not match request')
 
 						return {
 							agentUri: detail.agentUri,
@@ -468,7 +479,7 @@ export default {
 							agentRegistry: `eip155:${String(detail.chainId)}:${detail.contractAddress}`,
 							agentId: detail.tokenId,
 							agentUri: detail.agentUri,
-							fetchedAt: detail.fetchedAt,
+							...(detail.fetchedAt != null && { fetchedAt: detail.fetchedAt }),
 							...(detail.agentWallet != null && {
 								$agentWallet: {
 									[EntityMetaKey.Selector]: {
@@ -522,30 +533,36 @@ export default {
 							{ limit }
 						)
 
+						const services = response.data.flatMap((row) => {
+							const agent = agentFromWire(row)
+							return (
+								agent == null ?
+									[]
+								:
+									[{
+										[EntityMetaKey.Selector]: {
+											$contract: {
+												$network: {
+													caip2: {
+														namespace: 'eip155' as const,
+														reference: String(agent.chainId),
+													},
+												},
+												address: EvmAddress.assert(agent.contractAddress),
+											},
+											tokenId: agent.tokenId,
+										},
+									}]
+							)
+						})
+						if (new Set(services.map((service) => (
+							`${service[EntityMetaKey.Selector].$contract.$network.caip2.reference}:${service[EntityMetaKey.Selector].$contract.address}:${service[EntityMetaKey.Selector].tokenId}`
+						))).size !== services.length)
+							throw new Error('Eip8004Scan_Rest: agent list contains duplicate registrations')
+
 						return {
 							totalCount: response.meta.pagination.total,
-							$$eip8004Services: response.data.flatMap((row) => {
-								const agent = agentFromWire(row)
-								return (
-									agent == null ?
-										[]
-									:
-										[{
-											[EntityMetaKey.Selector]: {
-												$contract: {
-													$network: {
-														caip2: {
-															namespace: 'eip155' as const,
-															reference: String(agent.chainId),
-														},
-													},
-													address: EvmAddress.assert(agent.contractAddress),
-												},
-												tokenId: agent.tokenId,
-											},
-										}]
-								)
-							}),
+							$$eip8004Services: services,
 						}
 					},
 				},
