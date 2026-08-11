@@ -133,6 +133,34 @@
 				</dd>
 			</div>
 
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							imageUrl: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const imageUrl = entity.imageUrl}
+					{#if imageUrl != null}
+						<div>
+							<dt>Image</dt>
+							<dd>
+								<a
+									href={imageUrl}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={imageUrl} />
+								</a>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			<div>
 				<dt>Decimals</dt>
 				<dd>

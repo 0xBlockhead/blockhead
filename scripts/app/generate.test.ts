@@ -2662,6 +2662,10 @@ test('folds AaveMarket Directory into Network.Evm with $$aaveMarkets carousel', 
 	assert.match(renderedAaveMarketView, /totalMarketSize|Total market size/)
 	assert.match(renderedAaveMarketView, /totalAvailableLiquidity|Total available liquidity/)
 
+	const aaveReserveView = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/views/AaveReserveView.svelte')
+	assert.ok(aaveReserveView)
+	assert.match(renderGeneratedFile(aaveReserveView), /imageUrl: true[\s\S]*?<dt>Image<\/dt>/)
+
 	assert.ok(
 		baselineCompiledApp.generatedFiles.some(({ path }) => (
 			path.includes('aave-market')

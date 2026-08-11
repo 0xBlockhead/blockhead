@@ -5051,7 +5051,7 @@ export const schema = {
 						},
 						content: {
 							dl: [
-								["$market", { field: "underlyingTokenAddress", format: "address" }, "symbol", "name", "decimals"],
+								["$market", { field: "underlyingTokenAddress", format: "address" }, "symbol", "name", "imageUrl", "decimals"],
 								["totalSupplied", "availableLiquidity", "supplyApy", "borrowApy", "frozen", "paused"],
 							],
 						},
