@@ -369,6 +369,22 @@ describe('Tally onchain governance reads', () => {
 		})).rejects.toThrow('page limit')
 	})
 
+	it('rejects a proposal governor whose account identity is on another chain', async () => {
+		vi.spyOn(runtimeHttp, 'sourceFetch').mockResolvedValue(jsonResponse({
+			proposal: {
+				...proposal,
+				governor: {
+					...proposal.governor,
+					id: 'eip155:10:0x0000000000000000000000000000000000000001',
+				},
+			},
+		}))
+
+		await expect(getProposal({
+			proposalId,
+		})).rejects.toThrow('proposal governor chain disagrees with ID')
+	})
+
 	it('fails closed on invalid native page cursors and unsafe counts', async () => {
 		const sourceFetch = vi.spyOn(runtimeHttp, 'sourceFetch')
 		sourceFetch

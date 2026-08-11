@@ -349,6 +349,8 @@ const assertProposal = (
 	}
 	assertAccountId(proposal.governor.id, 'proposal governor ID')
 	assertCaip2(proposal.governor.chainId, 'proposal governor chain ID')
+	if (!proposal.governor.id.startsWith(`${proposal.governor.chainId}:`))
+		throw new Error('Tally: proposal governor chain disagrees with ID')
 	if (proposal.governor.chainId !== proposal.chainId)
 		throw new Error('Tally: proposal chain disagrees with governor')
 	if (proposal.governor.name != null)
